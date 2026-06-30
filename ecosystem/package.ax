@@ -1,0 +1,18 @@
+// AXIOM Ecosystem — Package Manifest
+// Copyright (c) 2026 Eleftherios Notas
+// Licensed under the MIT or Apache-2.0 license, at your option.
+
+package axiom_ecosystem {
+  name: "axiom-ecosystem";
+  version: "0.1.0";
+  description: "AXIOM Ecosystem Libraries";
+  authors: ["AXIOM Team"];
+  deps: {
+    "axiom-std": "0.1.0"
+  };
+  packages: [
+    "axiom-http",
+    "axiom-crypto",
+    "axiom-sql"
+  ];
+}

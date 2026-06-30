@@ -1,0 +1,28 @@
+// AXIOM — HTTP Library
+// Copyright (c) 2026 Eleftherios Notas
+// Licensed under the MIT or Apache-2.0 license, at your option.
+
+module axiom.http {
+
+// HTTP method constants
+pub fn METHOD_GET() -> Int { return 0; }
+pub fn METHOD_POST() -> Int { return 1; }
+
+// HTTP response type
+pub type HttpResponse = {
+  status: Int;
+  body: Str;
+} derive[Clone]
+
+// Simple HTTP GET request
+pub fn get(url: Str) -> HttpResponse {
+  // For MVP: return a stub
+  return HttpResponse{ status: 200, body: "" };
+}
+
+// Simple HTTP POST request
+pub fn post(url: Str, body: Str) -> HttpResponse {
+  return HttpResponse{ status: 200, body: "" };
+}
+
+}
