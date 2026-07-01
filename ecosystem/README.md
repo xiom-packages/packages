@@ -9,6 +9,9 @@ Standard libraries for the AXIOM programming language.
 | axiom-http | `axiom-http/` | HTTP client via libcurl FFI |
 | axiom-crypto | `axiom-crypto/` | Cryptographic hashing via OpenSSL FFI |
 | axiom-sql | `axiom-sql/` | SQL database via SQLite FFI |
+| axiom-vulkan | `axiom-vulkan/` | GPU graphics/compute via Vulkan FFI |
+| axiom-glfw | `axiom-glfw/` | Windowing and input via GLFW FFI |
+| axiom-libsodium | `axiom-libsodium/` | Secure cryptography via libsodium FFI |
 
 ## Available FFI Bindings
 
@@ -17,6 +20,9 @@ Standard libraries for the AXIOM programming language.
 | libcurl | `axiom-http/libcurl.axiom-bind` | libcurl |
 | OpenSSL | `axiom-crypto/openssl.axiom-bind` | libcrypto + libssl |
 | SQLite | `axiom-sql/sqlite.axiom-bind` | libsqlite3 |
+| Vulkan | `axiom-vulkan/vulkan.axiom-bind` | vulkan-1 |
+| GLFW | `axiom-glfw/glfw.axiom-bind` | glfw3 |
+| libsodium | `axiom-libsodium/libsodium.axiom-bind` | libsodium |
 
 ## Generate Bindings
 
@@ -24,6 +30,9 @@ Standard libraries for the AXIOM programming language.
 axiom ffigen ecosystem/axiom-http/libcurl.axiom-bind > ecosystem/axiom-http/curl_extern.ax
 axiom ffigen ecosystem/axiom-crypto/openssl.axiom-bind > ecosystem/axiom-crypto/crypto_extern.ax
 axiom ffigen ecosystem/axiom-sql/sqlite.axiom-bind > ecosystem/axiom-sql/sql_extern.ax
+axiom ffigen ecosystem/axiom-vulkan/vulkan.axiom-bind > ecosystem/axiom-vulkan/vulkan_extern.ax
+axiom ffigen ecosystem/axiom-glfw/glfw.axiom-bind > ecosystem/axiom-glfw/glfw_extern.ax
+axiom ffigen ecosystem/axiom-libsodium/libsodium.axiom-bind > ecosystem/axiom-libsodium/libsodium_extern.ax
 ```
 
 ## Build

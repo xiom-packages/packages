@@ -13,6 +13,9 @@ package axiom_ecosystem {
   packages: [
     "axiom-http",
     "axiom-crypto",
-    "axiom-sql"
+    "axiom-sql",
+    "axiom-vulkan",
+    "axiom-glfw",
+    "axiom-libsodium"
   ];
 }

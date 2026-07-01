@@ -1,0 +1,39 @@
+# GLFW 3.4 FFI Bindings — Windowing and Input
+# Target: glfw3.dll (Windows), libglfw.so (Linux), libglfw.dylib (macOS)
+
+library "glfw3" {
+  fn glfwInit() -> i32;
+  fn glfwTerminate();
+  fn glfwGetVersion(major: ptr, minor: ptr, rev: ptr);
+  fn glfwGetError(description: ptr) -> i32;
+
+  fn glfwCreateWindow(width: i32, height: i32, title: str, monitor: ptr, share: ptr) -> ptr;
+  fn glfwDestroyWindow(window: ptr);
+  fn glfwWindowShouldClose(window: ptr) -> i32;
+  fn glfwSetWindowShouldClose(window: ptr, value: i32);
+  fn glfwSetWindowTitle(window: ptr, title: str);
+  fn glfwGetWindowSize(window: ptr, width: ptr, height: ptr);
+  fn glfwSetWindowSize(window: ptr, width: i32, height: i32);
+  fn glfwGetFramebufferSize(window: ptr, width: ptr, height: ptr);
+  fn glfwGetWindowPos(window: ptr, xpos: ptr, ypos: ptr);
+
+  fn glfwPollEvents();
+  fn glfwWaitEvents();
+  fn glfwGetTime() -> f64;
+  fn glfwSetTime(time: f64);
+
+  fn glfwGetKey(window: ptr, key: i32) -> i32;
+  fn glfwGetMouseButton(window: ptr, button: i32) -> i32;
+  fn glfwGetCursorPos(window: ptr, xpos: ptr, ypos: ptr);
+
+  fn glfwMakeContextCurrent(window: ptr);
+  fn glfwSwapBuffers(window: ptr);
+  fn glfwSwapInterval(interval: i32);
+
+  fn glfwCreateWindowSurface(instance: ptr, window: ptr, allocator: ptr, surface: ptr) -> i32;
+  fn glfwGetRequiredInstanceExtensions(count: ptr) -> ptr;
+
+  fn glfwSetKeyCallback(window: ptr, callback: ptr) -> ptr;
+  fn glfwSetCursorPosCallback(window: ptr, callback: ptr) -> ptr;
+  fn glfwSetFramebufferSizeCallback(window: ptr, callback: ptr) -> ptr;
+}
