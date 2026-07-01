@@ -18,6 +18,8 @@ package axiom_ecosystem {
     "axiom-glfw",
     "axiom-libsodium",
     "axiom-openal",
-    "axiom-stb"
+    "axiom-stb",
+    "axiom-postgres",
+    "axiom-redis"
   ];
 }

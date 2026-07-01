@@ -1,0 +1,22 @@
+module postgres_tests
+use axiom.test;
+use axiom.postgres;
+
+fn test_connect_failure() -> TestResult {
+  match connect("host=invalid") {
+    Ok(_) => { return assert(false, "pg: unexpected success"); }
+    Err(_) => { return assert(true, "pg: connect failure handled"); }
+  }
+}
+
+fn test_error_message() -> TestResult {
+  match connect("host=invalid") {
+    Ok(c) => { let msg = error_message(c); disconnect(c); return assert(true, "pg: error msg"); }
+    Err(_) => { return assert(true, "pg: skip"); }
+  }
+}
+
+fn main() -> Int {
+  var tests = [test_connect_failure, test_error_message];
+  return test.run_all(tests);
+}

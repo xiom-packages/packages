@@ -1,0 +1,7 @@
+package {
+  name: "axiom-postgres"
+  version: "0.1.0"
+  description: "PostgreSQL database bindings for AXIOM via libpq"
+  authors: ["AXIOM Team"]
+  deps: { "axiom-std": "0.1.0" }
+}
