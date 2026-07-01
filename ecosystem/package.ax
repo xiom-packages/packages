@@ -20,6 +20,10 @@ package axiom_ecosystem {
     "axiom-openal",
     "axiom-stb",
     "axiom-postgres",
-    "axiom-redis"
+    "axiom-redis",
+    "axiom-bullet",
+    "axiom-blas",
+    "axiom-protobuf",
+    "axiom-grpc"
   ];
 }

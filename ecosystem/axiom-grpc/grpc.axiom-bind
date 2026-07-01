@@ -1,0 +1,13 @@
+# gRPC C Core FFI Bindings
+# Target: libgrpc.dll
+
+library "grpc" {
+  fn grpc_init();
+  fn grpc_shutdown();
+  fn grpc_channel_create(target: str, creds: ptr, reserved: ptr) -> ptr;
+  fn grpc_channel_destroy(channel: ptr);
+  fn grpc_insecure_channel_create(target: str, reserved: ptr) -> ptr;
+  fn grpc_call_create(channel: ptr, method: str, host: str, deadline: ptr, reserved: ptr) -> ptr;
+  fn grpc_call_destroy(call: ptr);
+  fn grpc_call_start_unary(call: ptr, request: ptr, request_size: u64, response: ptr);
+}
