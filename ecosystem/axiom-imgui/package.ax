@@ -1,0 +1,11 @@
+// AXIOM — ImGui Package Manifest
+// Copyright (c) 2026 Eleftherios Notas
+// Licensed under the MIT or Apache-2.0 license, at your option.
+
+package {
+  name: "axiom-imgui"
+  version: "0.1.0"
+  description: "Dear ImGui immediate mode GUI bindings for AXIOM"
+  authors: ["AXIOM Team"]
+  deps: { "axiom-std": "0.1.0", "axiom-glfw": "0.1.0" }
+}

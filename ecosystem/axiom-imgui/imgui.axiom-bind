@@ -1,0 +1,83 @@
+# Dear ImGui FFI Bindings — Immediate Mode GUI
+# Target: cimgui.dll (Windows), libcimgui.so (Linux), libcimgui.dylib (macOS)
+# Uses cimgui — the C API wrapper for Dear ImGui
+
+library "cimgui" {
+  # Context
+  fn igCreateContext(shared_font_atlas: ptr) -> ptr;
+  fn igDestroyContext(ctx: ptr);
+  fn igGetCurrentContext() -> ptr;
+  fn igSetCurrentContext(ctx: ptr);
+
+  # Main
+  fn igGetIO() -> ptr;
+  fn igNewFrame();
+  fn igRender();
+  fn igGetDrawData() -> ptr;
+
+  # Windows
+  fn igBegin(name: str, p_open: ptr, flags: i32) -> bool;
+  fn igEnd();
+  fn igBeginChild(str_id: str, size_width: f32, size_height: f32, child_flags: i32) -> bool;
+  fn igEndChild();
+
+  # Layout
+  fn igSeparator();
+  fn igSameLine(offset_from_start_x: f32, spacing: f32);
+  fn igSpacing();
+  fn igNewLine();
+
+  # Widgets
+  fn igText(fmt: str, ...);
+  fn igTextColored(col_r: f32, col_g: f32, col_b: f32, col_a: f32, fmt: str, ...);
+  fn igButton(label: str, size_x: f32, size_y: f32) -> bool;
+  fn igCheckbox(label: str, v: ptr) -> bool;
+  fn igSliderFloat(label: str, v: ptr, v_min: f32, v_max: f32, fmt: str, flags: i32) -> bool;
+  fn igSliderInt(label: str, v: ptr, v_min: i32, v_max: i32, fmt: str, flags: i32) -> bool;
+  fn igInputFloat(label: str, v: ptr, step: f32, step_fast: f32, fmt: str, flags: i32) -> bool;
+  fn igInputInt(label: str, v: ptr, step: i32, step_fast: i32, flags: i32) -> bool;
+  fn igInputText(label: str, buf: ptr, buf_size: u64, flags: i32) -> bool;
+  fn igCombo(label: str, current_item: ptr, items_separated_by_zeros: str, popup_max_height_in_items: i32) -> bool;
+
+  # Trees & Collapsing
+  fn igTreeNodeStr(label: str, flags: i32) -> bool;
+  fn igTreePop();
+  fn igCollapsingHeader(label: str, flags: i32) -> bool;
+
+  # Plotting
+  fn igPlotLines(label: str, values: ptr, values_count: i32, values_offset: i32, overlay_text: str, scale_min: f32, scale_max: f32, graph_size_width: f32, graph_size_height: f32, stride: i32);
+  fn igPlotHistogram(label: str, values: ptr, values_count: i32, values_offset: i32, overlay_text: str, scale_min: f32, scale_max: f32, graph_size_width: f32, graph_size_height: f32, stride: i32);
+
+  # Popups & Modals
+  fn igOpenPopup_Str(name: str, popup_flags: i32);
+  fn igBeginPopup(name: str, flags: i32) -> bool;
+  fn igEndPopup();
+  fn igBeginPopupModal(name: str, p_open: ptr, flags: i32) -> bool;
+  fn igEndPopup();
+
+  # Style
+  fn igGetStyle() -> ptr;
+  fn igStyleColorsDark(style: ptr);
+  fn igStyleColorsLight(style: ptr);
+  fn igStyleColorsClassic(style: ptr);
+
+  # Drawing
+  fn igGetWindowDrawList() -> ptr;
+  fn igGetForegroundDrawList() -> ptr;
+}
+
+# GLFW Backend
+library "cimgui_glfw" {
+  fn ImGui_ImplGlfw_InitForVulkan(window: ptr, install_callbacks: bool) -> bool;
+  fn ImGui_ImplGlfw_InitForOpenGL(window: ptr, install_callbacks: bool) -> bool;
+  fn ImGui_ImplGlfw_Shutdown();
+  fn ImGui_ImplGlfw_NewFrame();
+}
+
+# Vulkan Backend
+library "cimgui_vulkan" {
+  fn ImGui_ImplVulkan_Init(init_info: ptr, render_pass: ptr) -> bool;
+  fn ImGui_ImplVulkan_Shutdown();
+  fn ImGui_ImplVulkan_NewFrame();
+  fn ImGui_ImplVulkan_RenderDrawData(draw_data: ptr, command_buffer: ptr, pipeline: ptr);
+}

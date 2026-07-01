@@ -16,6 +16,8 @@ package axiom_ecosystem {
     "axiom-sql",
     "axiom-vulkan",
     "axiom-glfw",
-    "axiom-libsodium"
+    "axiom-libsodium",
+    "axiom-openal",
+    "axiom-stb"
   ];
 }
