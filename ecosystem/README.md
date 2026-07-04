@@ -1,55 +1,55 @@
-# AXIOM Ecosystem
+# XIOM Ecosystem
 
-Standard libraries for the AXIOM programming language.
+Standard libraries for the XIOM programming language.
 
 ## Libraries
 
 | Package | Directory | Description |
 |---------|-----------|-------------|
-| axiom-http | `axiom-http/` | HTTP client via libcurl FFI |
-| axiom-crypto | `axiom-crypto/` | Cryptographic hashing via OpenSSL FFI |
-| axiom-sql | `axiom-sql/` | SQL database via SQLite FFI |
-| axiom-vulkan | `axiom-vulkan/` | GPU graphics/compute via Vulkan FFI |
-| axiom-glfw | `axiom-glfw/` | Windowing and input via GLFW FFI |
-| axiom-libsodium | `axiom-libsodium/` | Secure cryptography via libsodium FFI |
-| axiom-bullet | `axiom-bullet/` | Physics via Bullet Physics FFI |
-| axiom-blas | `axiom-blas/` | Linear algebra via BLAS/LAPACK FFI |
-| axiom-protobuf | `axiom-protobuf/` | Protocol Buffers via libprotobuf FFI |
-| axiom-grpc | `axiom-grpc/` | gRPC client via gRPC C Core FFI |
+| xiom-http | `xiom-http/` | HTTP client via libcurl FFI |
+| xiom-crypto | `xiom-crypto/` | Cryptographic hashing via OpenSSL FFI |
+| xiom-sql | `xiom-sql/` | SQL database via SQLite FFI |
+| xiom-vulkan | `xiom-vulkan/` | GPU graphics/compute via Vulkan FFI |
+| xiom-glfw | `xiom-glfw/` | Windowing and input via GLFW FFI |
+| xiom-libsodium | `xiom-libsodium/` | Secure cryptography via libsodium FFI |
+| xiom-bullet | `xiom-bullet/` | Physics via Bullet Physics FFI |
+| xiom-blas | `xiom-blas/` | Linear algebra via BLAS/LAPACK FFI |
+| xiom-protobuf | `xiom-protobuf/` | Protocol Buffers via libprotobuf FFI |
+| xiom-grpc | `xiom-grpc/` | gRPC client via gRPC C Core FFI |
 
 ## Available FFI Bindings
 
 | Library | Spec File | C Library |
 |---------|-----------|-----------|
-| libcurl | `axiom-http/libcurl.axiom-bind` | libcurl |
-| OpenSSL | `axiom-crypto/openssl.axiom-bind` | libcrypto + libssl |
-| SQLite | `axiom-sql/sqlite.axiom-bind` | libsqlite3 |
-| Vulkan | `axiom-vulkan/vulkan.axiom-bind` | vulkan-1 |
-| GLFW | `axiom-glfw/glfw.axiom-bind` | glfw3 |
-| libsodium | `axiom-libsodium/libsodium.axiom-bind` | libsodium |
-| Bullet Physics | `axiom-bullet/bullet.axiom-bind` | BulletCollision + BulletDynamics |
-| BLAS/LAPACK | `axiom-blas/blas.axiom-bind` | libopenblas |
-| Protocol Buffers | `axiom-protobuf/protobuf.axiom-bind` | libprotobuf |
-| gRPC C Core | `axiom-grpc/grpc.axiom-bind` | libgrpc |
+| libcurl | `xiom-http/libcurl.xiom-bind` | libcurl |
+| OpenSSL | `xiom-crypto/openssl.xiom-bind` | libcrypto + libssl |
+| SQLite | `xiom-sql/sqlite.xiom-bind` | libsqlite3 |
+| Vulkan | `xiom-vulkan/vulkan.xiom-bind` | vulkan-1 |
+| GLFW | `xiom-glfw/glfw.xiom-bind` | glfw3 |
+| libsodium | `xiom-libsodium/libsodium.xiom-bind` | libsodium |
+| Bullet Physics | `xiom-bullet/bullet.xiom-bind` | BulletCollision + BulletDynamics |
+| BLAS/LAPACK | `xiom-blas/blas.xiom-bind` | libopenblas |
+| Protocol Buffers | `xiom-protobuf/protobuf.xiom-bind` | libprotobuf |
+| gRPC C Core | `xiom-grpc/grpc.xiom-bind` | libgrpc |
 
 ## Generate Bindings
 
 ```powershell
-axiom ffigen ecosystem/axiom-http/libcurl.axiom-bind > ecosystem/axiom-http/curl_extern.ax
-axiom ffigen ecosystem/axiom-crypto/openssl.axiom-bind > ecosystem/axiom-crypto/crypto_extern.ax
-axiom ffigen ecosystem/axiom-sql/sqlite.axiom-bind > ecosystem/axiom-sql/sql_extern.ax
-axiom ffigen ecosystem/axiom-vulkan/vulkan.axiom-bind > ecosystem/axiom-vulkan/vulkan_extern.ax
-axiom ffigen ecosystem/axiom-glfw/glfw.axiom-bind > ecosystem/axiom-glfw/glfw_extern.ax
-axiom ffigen ecosystem/axiom-libsodium/libsodium.axiom-bind > ecosystem/axiom-libsodium/libsodium_extern.ax
-axiom ffigen ecosystem/axiom-bullet/bullet.axiom-bind > ecosystem/axiom-bullet/bullet_extern.ax
-axiom ffigen ecosystem/axiom-blas/blas.axiom-bind > ecosystem/axiom-blas/blas_extern.ax
-axiom ffigen ecosystem/axiom-protobuf/protobuf.axiom-bind > ecosystem/axiom-protobuf/protobuf_extern.ax
-axiom ffigen ecosystem/axiom-grpc/grpc.axiom-bind > ecosystem/axiom-grpc/grpc_extern.ax
+xiom ffigen ecosystem/xiom-http/libcurl.xiom-bind > ecosystem/xiom-http/curl_extern.xi
+xiom ffigen ecosystem/xiom-crypto/openssl.xiom-bind > ecosystem/xiom-crypto/crypto_extern.xi
+xiom ffigen ecosystem/xiom-sql/sqlite.xiom-bind > ecosystem/xiom-sql/sql_extern.xi
+xiom ffigen ecosystem/xiom-vulkan/vulkan.xiom-bind > ecosystem/xiom-vulkan/vulkan_extern.xi
+xiom ffigen ecosystem/xiom-glfw/glfw.xiom-bind > ecosystem/xiom-glfw/glfw_extern.xi
+xiom ffigen ecosystem/xiom-libsodium/libsodium.xiom-bind > ecosystem/xiom-libsodium/libsodium_extern.xi
+xiom ffigen ecosystem/xiom-bullet/bullet.xiom-bind > ecosystem/xiom-bullet/bullet_extern.xi
+xiom ffigen ecosystem/xiom-blas/blas.xiom-bind > ecosystem/xiom-blas/blas_extern.xi
+xiom ffigen ecosystem/xiom-protobuf/protobuf.xiom-bind > ecosystem/xiom-protobuf/protobuf_extern.xi
+xiom ffigen ecosystem/xiom-grpc/grpc.xiom-bind > ecosystem/xiom-grpc/grpc_extern.xi
 ```
 
 ## Build
 
 All ecosystem libraries compile with:
 ```powershell
-axiomc -o output.exe ecosystem/axiom-http/http.ax
+xiomc -o output.exe ecosystem/xiom-http/http.xi
 ```

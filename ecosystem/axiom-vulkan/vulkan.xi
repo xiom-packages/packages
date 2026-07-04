@@ -1,0 +1,86 @@
+// XIOM — Vulkan Bindings
+// Copyright (c) 2026 Eleftherios Notas
+// Licensed under the MIT or Apache-2.0 license, at your option.
+//
+// First-party Vulkan FFI bindings for GPU graphics and compute.
+// Wraps vulkan-1.dll / libvulkan.so / libvulkan.dylib.
+
+module xiom.vulkan
+
+// === Instance ===
+pub type Instance = Int;
+pub type PhysicalDevice = Int;
+pub type Device = Int;
+
+pub fn create_instance(app_name: Str, engine_name: Str) -> Result[Instance, Str];
+pub fn destroy_instance(instance: Instance);
+
+pub fn enumerate_devices(instance: Instance) -> Result[Vec[PhysicalDevice], Str];
+pub fn get_device_name(device: PhysicalDevice) -> Str;
+pub fn get_device_type(device: PhysicalDevice) -> Int; // 0=other, 1=integrated, 2=discrete, 3=virtual, 4=cpu
+
+pub fn create_device(physical_device: PhysicalDevice) -> Result[Device, Str];
+pub fn destroy_device(device: Device);
+pub fn get_queue(device: Device, queue_family: Int, queue_index: Int) -> Int;
+pub fn wait_device_idle(device: Device);
+
+// === Swapchain ===
+pub type Swapchain = Int;
+pub type ImageView = Int;
+
+pub fn create_swapchain(device: Device, surface: Int, width: Int, height: Int) -> Result[Swapchain, Str];
+pub fn destroy_swapchain(device: Device, swapchain: Swapchain);
+pub fn get_swapchain_images(device: Device, swapchain: Swapchain) -> Result[Vec[Int], Str];
+pub fn create_image_view(device: Device, image: Int, format: Int) -> Result[ImageView, Str];
+pub fn acquire_next_image(device: Device, swapchain: Swapchain, semaphore: Int, fence: Int) -> Result[Int, Str];
+pub fn present(queue: Int, swapchain: Swapchain, image_index: Int, wait_semaphore: Int) -> Result[Unit, Str];
+
+// === Pipeline ===
+pub type RenderPass = Int;
+pub type Pipeline = Int;
+pub type Framebuffer = Int;
+pub type ShaderModule = Int;
+
+pub fn create_render_pass(device: Device, format: Int) -> Result[RenderPass, Str];
+pub fn create_graphics_pipeline(device: Device, render_pass: RenderPass, vert_shader: ShaderModule, frag_shader: ShaderModule) -> Result[Pipeliene, Str];
+pub fn create_framebuffer(device: Device, render_pass: RenderPass, image_views: &Vec[ImageView], width: Int, height: Int) -> Result[Framebuffer, Str];
+
+// === Shaders ===
+pub fn create_shader_module(device: Device, spirv_code: &Vec[UInt8]) -> Result[ShaderModule, Str];
+pub fn destroy_shader_module(device: Device, shader: ShaderModule);
+
+// === Commands ===
+pub type CommandPool = Int;
+pub type CommandBuffer = Int;
+
+pub fn create_command_pool(device: Device, queue_family: Int) -> Result[CommandPool, Str];
+pub fn allocate_command_buffer(device: Device, pool: CommandPool) -> Result[CommandBuffer, Str];
+pub fn begin_command_buffer(cmd: CommandBuffer);
+pub fn begin_render_pass(cmd: CommandBuffer, render_pass: RenderPass, framebuffer: Framebuffer, width: Int, height: Int);
+pub fn bind_pipeline(cmd: CommandBuffer, pipeline: Pipeliene);
+pub fn draw(cmd: CommandBuffer, vertex_count: Int, instance_count: Int);
+pub fn end_render_pass(cmd: CommandBuffer);
+pub fn end_command_buffer(cmd: CommandBuffer);
+
+pub fn submit(queue: Int, cmd: CommandBuffer, wait_semaphore: Int, signal_semaphore: Int, fence: Int);
+
+// === Synchronization ===
+pub type Semaphore = Int;
+pub type Fence = Int;
+
+pub fn create_semaphore(device: Device) -> Result[Semaphore, Str];
+pub fn destroy_semaphore(device: Device, semaphore: Semaphore);
+pub fn create_fence(device: Device) -> Result[Fence, Str];
+pub fn destroy_fence(device: Device, fence: Fence);
+pub fn wait_for_fence(device: Device, fence: Fence);
+pub fn reset_fence(device: Device, fence: Fence);
+
+// === Memory & Buffers ===
+pub type Buffer = Int;
+pub type DeviceMemory = Int;
+
+pub fn allocate_buffer(device: Device, size: Int, usage: Int) -> Result[(Buffer, DeviceMemory), Str];
+pub fn destroy_buffer(device: Device, buffer: Buffer);
+pub fn free_memory(device: Device, memory: DeviceMemory);
+pub fn map_memory(device: Device, memory: DeviceMemory, offset: Int, size: Int) -> Result[Int, Str];
+pub fn unmap_memory(device: Device, memory: DeviceMemory);

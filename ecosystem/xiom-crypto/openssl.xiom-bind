@@ -1,0 +1,21 @@
+# OpenSSL FFI Bindings
+
+library "libcrypto" {
+  fn SHA256(data: ptr, len: u64, out: ptr) -> ptr;
+  fn SHA512(data: ptr, len: u64, out: ptr) -> ptr;
+  fn MD5(data: ptr, len: u64, out: ptr) -> ptr;
+  fn RAND_bytes(buf: ptr, num: i32) -> i32;
+}
+
+library "libssl" {
+  fn TLS_client_method() -> ptr;
+  fn SSL_CTX_new(method: ptr) -> ptr;
+  fn SSL_new(ctx: ptr) -> ptr;
+  fn SSL_set_fd(ssl: ptr, fd: i32) -> i32;
+  fn SSL_connect(ssl: ptr) -> i32;
+  fn SSL_read(ssl: ptr, buf: ptr, num: i32) -> i32;
+  fn SSL_write(ssl: ptr, buf: ptr, num: i32) -> i32;
+  fn SSL_shutdown(ssl: ptr) -> i32;
+  fn SSL_free(ssl: ptr);
+  fn SSL_CTX_free(ctx: ptr);
+}

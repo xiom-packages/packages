@@ -1,0 +1,10 @@
+# Protocol Buffers FFI Bindings
+# Target: libprotobuf.dll
+
+library "libprotobuf" {
+  fn protobuf_version() -> ptr;
+  fn protobuf_message_new() -> ptr;
+  fn protobuf_message_free(msg: ptr);
+  fn protobuf_message_serialize(msg: ptr, size: ptr) -> ptr;
+  fn protobuf_message_parse(data: ptr, size: u64) -> ptr;
+}

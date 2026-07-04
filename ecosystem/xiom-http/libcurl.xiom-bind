@@ -1,0 +1,10 @@
+# libcurl FFI Bindings
+
+library "libcurl" {
+  fn curl_easy_init() -> ptr;
+  fn curl_easy_setopt(handle: ptr, option: i32, value: ptr) -> i32;
+  fn curl_easy_perform(handle: ptr) -> i32;
+  fn curl_easy_getinfo(handle: ptr, info: i32, arg: ptr) -> i32;
+  fn curl_easy_cleanup(handle: ptr);
+  fn curl_easy_strerror(code: i32) -> str;
+}

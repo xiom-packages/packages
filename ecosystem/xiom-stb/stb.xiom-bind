@@ -1,0 +1,13 @@
+# stb_image FFI Bindings — Image Loading
+# Target: stb_image (header-only, compiled as shared lib)
+
+library "stb_image" {
+  fn stbi_load(filename: str, width: ptr, height: ptr, channels: ptr, desired_channels: i32) -> ptr;
+  fn stbi_load_from_memory(buffer: ptr, len: i32, width: ptr, height: ptr, channels: ptr, desired_channels: i32) -> ptr;
+  fn stbi_image_free(ptr: ptr);
+  fn stbi_failure_reason() -> ptr;
+
+  fn stbi_write_png(filename: str, w: i32, h: i32, comp: i32, data: ptr, stride: i32) -> i32;
+  fn stbi_write_jpg(filename: str, w: i32, h: i32, comp: i32, data: ptr, quality: i32) -> i32;
+  fn stbi_write_bmp(filename: str, w: i32, h: i32, comp: i32, data: ptr) -> i32;
+}
