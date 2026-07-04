@@ -24,6 +24,11 @@ package xiom_ecosystem {
     "xiom-bullet",
     "xiom-blas",
     "xiom-protobuf",
-    "xiom-grpc"
+    "xiom-grpc",
+    "xiom-json",
+    "xiom-test",
+    "xiom-db",
+    "xiom-vector",
+    "xiom-algo"
   ];
 }
