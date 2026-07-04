@@ -12,12 +12,30 @@ pub type TestResults = {
   failures: Vec[TestFailure];
 } derive[Clone]
 
+pub type TestCase = {
+  name: Str;
+  passed: Bool;
+  message: Str;
+}
+
+pub type TestSuite = {
+  name: Str;
+  cases: Vec[TestCase];
+}
+
+pub type BenchResult = {
+  name: Str;
+  iterations: Int;
+  elapsed_ms: Int;
+  ops_per_sec: Int;
+}
+
 pub fn TestResults.new() -> TestResults {
   return TestResults{
-    passed: 0;
-    failed: 0;
-    total: 0;
-    failures: Vec[TestFailure].new();
+    passed: 0,
+    failed: 0,
+    total: 0,
+    failures: Vec[TestFailure].new(),
   };
 }
 
@@ -28,32 +46,248 @@ pub fn TestResults.merge(other: &TestResults) {
   var i: Int = 0;
   while i < other.failures.len() {
     var f = other.failures[i];
-    failures.push(TestFailure{ name: f.name; message: f.message; });
+    failures.push(TestFailure{ name: f.name, message: f.message });
     i = i + 1;
   }
 }
 
-pub fn assert_eq[T: Eq](actual: T, expected: T, msg: Str)
-  requires: actual == expected
-{
+pub fn TestSuite.new(name: Str) -> TestSuite {
+  return TestSuite{
+    name: name,
+    cases: Vec[TestCase].new(),
+  };
 }
 
-pub fn assert_true(condition: Bool, msg: Str)
-  requires: condition
-{
+pub fn TestSuite.add(suite: &mut TestSuite, case: TestCase) {
+  suite.cases.push(case);
 }
 
-pub fn assert_false(condition: Bool, msg: Str)
-  requires: !condition
-{
-}
-
-pub fn run_tests(tests: Vec[TestResults]) -> TestResults {
-  var result = TestResults.new();
+pub fn TestSuite.run() -> TestResults {
+  var results = TestResults.new();
   var i: Int = 0;
-  while i < tests.len() {
-    result.merge(&tests[i]);
+  while i < cases.len() {
+    var c = cases[i];
+    if c.passed {
+      results.passed = results.passed + 1;
+    } else {
+      results.failed = results.failed + 1;
+      results.failures.push(TestFailure{ name: c.name, message: c.message });
+    }
     i = i + 1;
   }
-  return result;
+  results.total = results.passed + results.failed;
+  return results;
+}
+
+pub fn TestSuite.failed_count() -> Int {
+  var count: Int = 0;
+  var i: Int = 0;
+  while i < cases.len() {
+    var c = cases[i];
+    if !c.passed {
+      count = count + 1;
+    }
+    i = i + 1;
+  }
+  return count;
+}
+
+pub fn TestSuite.passed_count() -> Int {
+  var count: Int = 0;
+  var i: Int = 0;
+  while i < cases.len() {
+    var c = cases[i];
+    if c.passed {
+      count = count + 1;
+    }
+    i = i + 1;
+  }
+  return count;
+}
+
+pub fn assert_eq(actual: Int, expected: Int, msg: Str) -> TestCase {
+  if actual == expected {
+    return TestCase{ name: msg, passed: true, message: msg };
+  } else {
+    return TestCase{ name: msg, passed: false, message: msg };
+  }
+}
+
+pub fn assert_ne(actual: Int, expected: Int, msg: Str) -> TestCase {
+  if actual != expected {
+    return TestCase{ name: msg, passed: true, message: msg };
+  } else {
+    return TestCase{ name: msg, passed: false, message: msg };
+  }
+}
+
+pub fn assert_true(condition: Bool, msg: Str) -> TestCase {
+  if condition {
+    return TestCase{ name: msg, passed: true, message: msg };
+  } else {
+    return TestCase{ name: msg, passed: false, message: msg };
+  }
+}
+
+pub fn assert_false(condition: Bool, msg: Str) -> TestCase {
+  if !condition {
+    return TestCase{ name: msg, passed: true, message: msg };
+  } else {
+    return TestCase{ name: msg, passed: false, message: msg };
+  }
+}
+
+pub fn assert_lt(actual: Int, expected: Int, msg: Str) -> TestCase {
+  if actual < expected {
+    return TestCase{ name: msg, passed: true, message: msg };
+  } else {
+    return TestCase{ name: msg, passed: false, message: msg };
+  }
+}
+
+pub fn assert_le(actual: Int, expected: Int, msg: Str) -> TestCase {
+  if actual <= expected {
+    return TestCase{ name: msg, passed: true, message: msg };
+  } else {
+    return TestCase{ name: msg, passed: false, message: msg };
+  }
+}
+
+pub fn assert_gt(actual: Int, expected: Int, msg: Str) -> TestCase {
+  if actual > expected {
+    return TestCase{ name: msg, passed: true, message: msg };
+  } else {
+    return TestCase{ name: msg, passed: false, message: msg };
+  }
+}
+
+pub fn assert_ge(actual: Int, expected: Int, msg: Str) -> TestCase {
+  if actual >= expected {
+    return TestCase{ name: msg, passed: true, message: msg };
+  } else {
+    return TestCase{ name: msg, passed: false, message: msg };
+  }
+}
+
+pub fn assert_some(opt: Option[Int], msg: Str) -> TestCase {
+  match opt {
+    Some(val) => {
+      return TestCase{ name: msg, passed: true, message: msg };
+    },
+    None => {
+      return TestCase{ name: msg, passed: false, message: msg };
+    },
+  }
+}
+
+pub fn assert_none(opt: Option[Int], msg: Str) -> TestCase {
+  match opt {
+    Some(val) => {
+      return TestCase{ name: msg, passed: false, message: msg };
+    },
+    None => {
+      return TestCase{ name: msg, passed: true, message: msg };
+    },
+  }
+}
+
+pub fn assert_ok(result: Result[Int, Str], msg: Str) -> TestCase {
+  match result {
+    Ok(val) => {
+      return TestCase{ name: msg, passed: true, message: msg };
+    },
+    Err(e) => {
+      return TestCase{ name: msg, passed: false, message: msg };
+    },
+  }
+}
+
+pub fn assert_err(result: Result[Int, Str], msg: Str) -> TestCase {
+  match result {
+    Ok(val) => {
+      return TestCase{ name: msg, passed: false, message: msg };
+    },
+    Err(e) => {
+      return TestCase{ name: msg, passed: true, message: msg };
+    },
+  }
+}
+
+pub fn assert_eq_str(actual: Str, expected: Str, msg: Str) -> TestCase {
+  if actual == expected {
+    return TestCase{ name: msg, passed: true, message: msg };
+  } else {
+    return TestCase{ name: msg, passed: false, message: msg };
+  }
+}
+
+pub fn assert_eq_bool(actual: Bool, expected: Bool, msg: Str) -> TestCase {
+  if actual == expected {
+    return TestCase{ name: msg, passed: true, message: msg };
+  } else {
+    return TestCase{ name: msg, passed: false, message: msg };
+  }
+}
+
+pub fn run_suite(suite: &TestSuite) -> TestResults {
+  var results = TestResults.new();
+  var i: Int = 0;
+  while i < suite.cases.len() {
+    var c = suite.cases[i];
+    if c.passed {
+      results.passed = results.passed + 1;
+    } else {
+      results.failed = results.failed + 1;
+      results.failures.push(TestFailure{ name: c.name, message: c.message });
+    }
+    i = i + 1;
+  }
+  results.total = results.passed + results.failed;
+  return results;
+}
+
+pub fn run_all(suites: &Vec[TestSuite]) -> TestResults {
+  var results = TestResults.new();
+  var i: Int = 0;
+  while i < suites.len() {
+    var sr = run_suite(&suites[i]);
+    results.merge(&sr);
+    i = i + 1;
+  }
+  return results;
+}
+
+pub fn report(results: &TestResults) -> Str {
+  return "Test Results: " + results.passed.to_str() + " passed, " + results.failed.to_str() + " failed, " + results.total.to_str() + " total";
+}
+
+pub fn report_verbose(results: &TestResults) -> Str {
+  var s: Str = "Test Results: " + results.passed.to_str() + " passed, " + results.failed.to_str() + " failed, " + results.total.to_str() + " total";
+  if results.failed > 0 {
+    s = s + "\n\nFailures:";
+    var i: Int = 0;
+    while i < results.failures.len() {
+      var f = results.failures[i];
+      s = s + "\n  - " + f.name + ": " + f.message;
+      i = i + 1;
+    }
+  }
+  return s;
+}
+
+pub fn bench_result(name: Str, iterations: Int, ms: Int) -> BenchResult {
+  var ops: Int = 0;
+  if ms > 0 {
+    ops = (iterations * 1000) / ms;
+  }
+  return BenchResult{
+    name: name,
+    iterations: iterations,
+    elapsed_ms: ms,
+    ops_per_sec: ops,
+  };
+}
+
+pub fn bench_report(result: &BenchResult) -> Str {
+  return "Bench: " + result.name + " — " + result.iterations.to_str() + " iter, " + result.elapsed_ms.to_str() + " ms, " + result.ops_per_sec.to_str() + " ops/sec";
 }

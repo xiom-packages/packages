@@ -29,6 +29,8 @@ package xiom_ecosystem {
     "xiom-test",
     "xiom-db",
     "xiom-vector",
-    "xiom-algo"
+    "xiom-algo",
+    "xiom-net",
+    "xiom-sqlite"
   ];
 }

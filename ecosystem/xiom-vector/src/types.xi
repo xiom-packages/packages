@@ -1,22 +1,18 @@
 module xiom.vector.types
 
-pub type VectorId = UInt64;
-
 pub type Neighbor = {
-  id: VectorId;
+  id: UInt64;
   distance: Float32;
 } derive[Clone]
 
 pub type Vector = {
   data: Vec[Float32];
   dimension: UInt;
-  invariant: data.len() == dimension;
 } derive[Clone]
 
 pub type HNSWNode = {
-  id: VectorId;
+  id: UInt64;
   neighbors: Vec[Neighbor];
-  invariant: neighbors.len() <= 16;
 } derive[Clone]
 
 pub enum DistanceMetric {
@@ -50,7 +46,7 @@ pub fn Vector.get(index: UInt) -> Float32
   return data[index];
 }
 
-pub fn HNSWNode.new(id: VectorId) -> HNSWNode {
+pub fn HNSWNode.new(id: UInt64) -> HNSWNode {
   return HNSWNode{ id: id, neighbors: Vec[Neighbor].new() };
 }
 
@@ -108,4 +104,88 @@ pub fn euclidean_distance(a: &Vector, b: &Vector) -> Float32
     i = i + 1;
   }
   return sqrt_f32(sum_sq);
+}
+
+pub fn vector_dot(a: &Vector, b: &Vector) -> Float32
+  requires: a.dimension == b.dimension
+{
+  var sum: Float32 = 0.0;
+  var i: UInt = 0;
+  while i < a.dimension {
+    sum = sum + a.data[i] * b.data[i];
+    i = i + 1;
+  }
+  return sum;
+}
+
+pub fn vector_magnitude(v: &Vector) -> Float32 {
+  var sum_sq: Float32 = 0.0;
+  var i: UInt = 0;
+  while i < v.dimension {
+    sum_sq = sum_sq + v.data[i] * v.data[i];
+    i = i + 1;
+  }
+  return sqrt_f32(sum_sq);
+}
+
+pub fn vector_normalize(v: &Vector) -> Vector {
+  var mag = vector_magnitude(v);
+  var result = Vector.new(v.dimension);
+  var i: UInt = 0;
+  if mag == 0.0 {
+    return result;
+  }
+  while i < v.dimension {
+    result.data[i] = v.data[i] / mag;
+    i = i + 1;
+  }
+  return result;
+}
+
+pub fn vector_add(a: &Vector, b: &Vector) -> Vector
+  requires: a.dimension == b.dimension
+{
+  var result = Vector.new(a.dimension);
+  var i: UInt = 0;
+  while i < a.dimension {
+    result.data[i] = a.data[i] + b.data[i];
+    i = i + 1;
+  }
+  return result;
+}
+
+pub fn vector_sub(a: &Vector, b: &Vector) -> Vector
+  requires: a.dimension == b.dimension
+{
+  var result = Vector.new(a.dimension);
+  var i: UInt = 0;
+  while i < a.dimension {
+    result.data[i] = a.data[i] - b.data[i];
+    i = i + 1;
+  }
+  return result;
+}
+
+pub fn vector_scale(v: &Vector, scalar: Float32) -> Vector {
+  var result = Vector.new(v.dimension);
+  var i: UInt = 0;
+  while i < v.dimension {
+    result.data[i] = v.data[i] * scalar;
+    i = i + 1;
+  }
+  return result;
+}
+
+pub fn vector_distance(a: &Vector, b: &Vector, metric: DistanceMetric) -> Float32
+  requires: a.dimension == b.dimension
+{
+  match metric {
+    Cosine { return cosine_distance(a, b); };
+    DotProduct { return dot_product_distance(a, b); };
+    Euclidean { return euclidean_distance(a, b); };
+  }
+}
+
+pub fn vector_dimension(v: &Vector) -> UInt {
+  return v.dimension;
 }
