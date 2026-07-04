@@ -1,7 +1,0 @@
-package {
-  name: "axiom-redis"
-  version: "0.1.0"
-  description: "Redis database bindings for AXIOM via hiredis"
-  authors: ["AXIOM Team"]
-  deps: { "axiom-std": "0.1.0" }
-}

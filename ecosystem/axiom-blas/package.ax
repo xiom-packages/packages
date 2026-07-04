@@ -1,7 +1,0 @@
-package {
-  name: "axiom-blas"
-  version: "0.1.0"
-  description: "BLAS/LAPACK linear algebra bindings for AXIOM"
-  authors: ["AXIOM Team"]
-  deps: { "axiom-std": "0.1.0" }
-}

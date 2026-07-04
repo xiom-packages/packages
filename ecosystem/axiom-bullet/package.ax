@@ -1,7 +1,0 @@
-package {
-  name: "axiom-bullet"
-  version: "0.1.0"
-  description: "Bullet Physics rigid body dynamics bindings for AXIOM"
-  authors: ["AXIOM Team"]
-  deps: { "axiom-std": "0.1.0" }
-}
