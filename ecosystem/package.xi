@@ -33,6 +33,15 @@ package xiom_ecosystem {
     "xiom-net",
     "xiom-sqlite",
     "xiom-imgui",
-    "xiom-ui"
+    "xiom-ui",
+    "xiom-torch",
+    "xiom-onnx",
+    "xiom-opencv",
+    "xiom-control",
+    "xiom-sensor",
+    "xiom-ffi",
+    "xiom-bench",
+    "xiom-log",
+    "xiom-kafka"
   ];
 }
