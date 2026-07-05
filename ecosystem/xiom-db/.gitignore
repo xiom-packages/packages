@@ -1,0 +1,16 @@
+build/
+*.exe
+*.o
+*.obj
+*.ll
+*.bc
+*.wasm
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+deps/
+*.lock
+*.db
