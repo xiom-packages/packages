@@ -82,6 +82,12 @@ fn main() -> Int {
 3. **Parameterized tests** — run same test with multiple inputs
 4. **Output formats** — JUnit XML, TAP, JSON
 
+## Build & Run
+
+```bash
+xiomc --run myprogram.xi
+```
+
 ## Dependencies: None (Pure XIOM)
 ## Links: [xiom-lang](https://github.com/xiom-lang) | [XIOM](https://github.com/xiom-lang/XIOM)
 ## License: MIT OR Apache-2.0

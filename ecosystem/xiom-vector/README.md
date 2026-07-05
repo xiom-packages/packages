@@ -90,6 +90,12 @@ fn main() -> Int {
 4. **Disk persistence** — mmap-backed index
 5. **SIMD acceleration** — blocked on compiler intrinsics
 
+## Build & Run
+
+```bash
+xiomc --run myprogram.xi
+```
+
 ## Dependencies: None (Pure XIOM)
 ## Links: [github.com/xiom-lang](https://github.com/xiom-lang) | [XIOM](https://github.com/xiom-lang/XIOM)
 ## License: MIT OR Apache-2.0

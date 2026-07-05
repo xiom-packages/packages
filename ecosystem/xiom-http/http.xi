@@ -1,33 +1,59 @@
-// XIOM — HTTP Library (Production via libcurl)
+// XIOM — HTTP Client Library (Production via libcurl + FFI Bridge)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 
 module xiom.http
 
-extern "C" {
-  fn curl_easy_init() -> Int;
-  fn curl_easy_setopt(handle: Int, option: Int, value: Int) -> Int;
-  fn curl_easy_perform(handle: Int) -> Int;
-  fn curl_easy_getinfo(handle: Int, info: Int, arg: Int) -> Int;
-  fn curl_easy_cleanup(handle: Int);
-  fn curl_easy_strerror(code: Int) -> *UInt8;
+// ─── XIOM FFI Bridge ────────────────────────────────────────────────────────
 
+extern "C" {
+  fn xiom_str_to_cstr(xiom_str: *UInt8, len: Int) -> *UInt8
+    ensures: result != nil;
+
+  fn xiom_free_cstr(cstr: *UInt8)
+    ensures: true;
+
+  fn xiom_alloc(size: Int) -> *UInt8
+    ensures: result != nil;
+
+  fn xiom_free_ptr(ptr: *UInt8)
+    ensures: true;
+
+  fn xiom_copy_from_vec(c_buf: *UInt8, vec_data: *UInt8, vec_len: Int, vec_cap: Int, offset: Int, count: Int);
+}
+
+// ─── libcurl FFI ────────────────────────────────────────────────────────────
+
+extern "C" {
+  fn curl_easy_init() -> *UInt8;
+  fn curl_easy_setopt(handle: *UInt8, option: Int, value: *UInt8) -> Int;
+  fn curl_easy_perform(handle: *UInt8) -> Int;
+  fn curl_easy_getinfo(handle: *UInt8, info: Int, arg: *UInt8) -> Int;
+  fn curl_easy_cleanup(handle: *UInt8);
+  fn curl_easy_strerror(code: Int) -> *UInt8;
+}
+
+// ─── libc FFI (file I/O) ────────────────────────────────────────────────────
+
+extern "C" {
   fn fopen(path: *UInt8, mode: *UInt8) -> *UInt8;
   fn fclose(file: *UInt8) -> Int;
-  fn fread(buf: *UInt8, size: UInt, count: UInt, file: *UInt8) -> UInt;
-  fn fwrite(buf: *UInt8, size: UInt, count: UInt, file: *UInt8) -> UInt;
+  fn fread(buf: *UInt8, size: Int, count: Int, file: *UInt8) -> Int;
+  fn fwrite(buf: *UInt8, size: Int, count: Int, file: *UInt8) -> Int;
   fn fseek(file: *UInt8, offset: Int, whence: Int) -> Int;
   fn ftell(file: *UInt8) -> Int;
   fn remove(path: *UInt8) -> Int;
-  fn malloc(size: UInt) -> *UInt8;
-  fn free(ptr: *UInt8);
 }
+
+// ─── Types ──────────────────────────────────────────────────────────────────
 
 pub type HttpResponse = {
   status: Int;
   body: Str;
   headers: Str;
 } derive[Clone]
+
+// ─── CURL Option Constants ──────────────────────────────────────────────────
 
 fn CURLOPT_URL() -> Int { return 10002; }
 fn CURLOPT_FOLLOWLOCATION() -> Int { return 52; }
@@ -50,19 +76,35 @@ fn CURLOPT_TCP_KEEPALIVE() -> Int { return 213; }
 fn CURLOPT_TCP_KEEPIDLE() -> Int { return 214; }
 fn CURLOPT_TCP_KEEPINTVL() -> Int { return 215; }
 fn CURLOPT_BUFFERSIZE() -> Int { return 98; }
-fn CURLOPT_VERBOSE() -> Int { return 41; }
 
 fn CURLINFO_RESPONSE_CODE() -> Int { return 2097154; }
-fn CURLINFO_CONTENT_TYPE() -> Int { return 2097186; }
-fn CURLINFO_TOTAL_TIME() -> Int { return 3145731; }
+
+// ─── Internal Constants ─────────────────────────────────────────────────────
 
 fn SEEK_SET() -> Int { return 0; }
 fn SEEK_END() -> Int { return 2; }
-
 fn BUF_SIZE() -> Int { return 65536; }
 
-fn TEMP_BODY_PATH() -> Str { return "__xiom_http_body.tmp"; }
-fn TEMP_HEADER_PATH() -> Str { return "__xiom_http_headers.tmp"; }
+fn TEMP_BODY() -> Str { return "__xiom_http_body.tmp"; }
+fn TEMP_HEADERS() -> Str { return "__xiom_http_headers.tmp"; }
+
+// ─── C String Helpers ───────────────────────────────────────────────────────
+// Converts a XIOM Str to a null-terminated C string via the FFI bridge.
+// Caller must free the result with xiom_free_cstr.
+
+fn str_to_cstr(s: Str) -> *UInt8 {
+  return xiom_str_to_cstr(s.c_str(), s.len());
+}
+
+fn str_to_cstr_or_err(s: Str, label: Str) -> Result[*UInt8, Str] {
+  var c: *UInt8 = xiom_str_to_cstr(s.c_str(), s.len());
+  if c == nil {
+    return Err(label + ": xiom_str_to_cstr returned null");
+  };
+  return Ok(c);
+}
+
+// ─── Error Helpers ──────────────────────────────────────────────────────────
 
 fn curl_error_string(code: Int) -> Str {
   var err_ptr: *UInt8 = curl_easy_strerror(code);
@@ -72,45 +114,154 @@ fn curl_error_string(code: Int) -> Str {
   return Str.from_c_str(err_ptr);
 }
 
-fn setup_common_options(handle: Int, url: Str) -> Result[Unit, Str] {
+// ─── Temp File Management ───────────────────────────────────────────────────
+
+fn open_temp_files() -> Result[{ body: *UInt8; headers: *UInt8; }, Str] {
+  var body_c: *UInt8;
+  var headers_c: *UInt8;
+  var body_path: *UInt8;
+  var headers_path: *UInt8;
+  var mode: *UInt8;
+
+  body_path = str_to_cstr(TEMP_BODY());
+  headers_path = str_to_cstr(TEMP_HEADERS());
+  mode = str_to_cstr("wb+");
+
+  body_c = fopen(body_path, mode);
+  if body_c == nil {
+    xiom_free_cstr(body_path);
+    xiom_free_cstr(headers_path);
+    xiom_free_cstr(mode);
+    return Err("failed to open body temp file");
+  };
+
+  headers_c = fopen(headers_path, mode);
+  if headers_c == nil {
+    let _ = fclose(body_c);
+    xiom_free_cstr(body_path);
+    xiom_free_cstr(headers_path);
+    xiom_free_cstr(mode);
+    return Err("failed to open headers temp file");
+  };
+
+  xiom_free_cstr(body_path);
+  xiom_free_cstr(headers_path);
+  xiom_free_cstr(mode);
+
+  return Ok({ body: body_c; headers: headers_c; });
+}
+
+fn close_temp_files(body_f: *UInt8, headers_f: *UInt8) {
+  let _ = fclose(body_f);
+  let _ = fclose(headers_f);
+}
+
+fn cleanup_temp_files() {
+  var body_path: *UInt8 = str_to_cstr(TEMP_BODY());
+  var headers_path: *UInt8 = str_to_cstr(TEMP_HEADERS());
+  let _ = remove(body_path);
+  let _ = remove(headers_path);
+  xiom_free_cstr(body_path);
+  xiom_free_cstr(headers_path);
+}
+
+// ─── File I/O Helpers ───────────────────────────────────────────────────────
+// Reads file contents into a Str via xiom_alloc bridge buffer.
+
+fn read_file_to_str(file: *UInt8) -> Str {
+  var file_size: Int;
+  let _ = fseek(file, 0, SEEK_END());
+  file_size = ftell(file);
+  let _ = fseek(file, 0, SEEK_SET());
+
+  if file_size <= 0 {
+    return "";
+  };
+
+  var buf: *UInt8 = xiom_alloc(file_size + 1);
+  if buf == nil {
+    return "";
+  };
+
+  let read_count: Int = fread(buf, 1, file_size, file);
+  var termination_offset: Int = read_count;
+  if termination_offset < 0 { termination_offset = 0; };
+  if termination_offset > file_size { termination_offset = file_size; };
+
+  // null-terminate in-place for Str.from_c_str
+  unsafe {
+    buf[termination_offset] = 0 as UInt8;
+  };
+  var result: Str = Str.from_c_str(buf);
+  xiom_free_ptr(buf);
+  return result;
+}
+
+// ─── Response Code Extraction ───────────────────────────────────────────────
+
+fn get_response_code(handle: *UInt8) -> Int {
+  var status_buf: *UInt8 = xiom_alloc(8);
+  if status_buf == nil {
+    return 0;
+  };
+
+  var rc: Int = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE(), status_buf);
+  if rc != 0 {
+    xiom_free_ptr(status_buf);
+    return 0;
+  };
+
+  var p: *Int = status_buf as *Int;
+  var status: Int = *p;
+  xiom_free_ptr(status_buf);
+  return status;
+}
+
+// ─── cURL Setup Helpers ─────────────────────────────────────────────────────
+
+fn setup_common_options(handle: *UInt8, url_cstr: *UInt8) -> Result[Unit, Str] {
   var rc: Int;
 
-  rc = curl_easy_setopt(handle, CURLOPT_URL(), url.c_str() as Int);
+  rc = curl_easy_setopt(handle, CURLOPT_URL(), url_cstr);
   if rc != 0 {
     return Err("CURLOPT_URL failed: " + curl_error_string(rc));
   };
 
-  rc = curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION(), 1);
+  rc = curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION(), 1 as *UInt8);
   if rc != 0 {
     return Err("CURLOPT_FOLLOWLOCATION failed: " + curl_error_string(rc));
   };
 
-  rc = curl_easy_setopt(handle, CURLOPT_TIMEOUT(), 30);
+  rc = curl_easy_setopt(handle, CURLOPT_TIMEOUT(), 30 as *UInt8);
   if rc != 0 {
     return Err("CURLOPT_TIMEOUT failed: " + curl_error_string(rc));
   };
 
-  rc = curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT(), 10);
+  rc = curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT(), 10 as *UInt8);
   if rc != 0 {
     return Err("CURLOPT_CONNECTTIMEOUT failed: " + curl_error_string(rc));
   };
 
-  rc = curl_easy_setopt(handle, CURLOPT_NOSIGNAL(), 1);
+  rc = curl_easy_setopt(handle, CURLOPT_NOSIGNAL(), 1 as *UInt8);
   if rc != 0 {
     return Err("CURLOPT_NOSIGNAL failed: " + curl_error_string(rc));
   };
 
-  rc = curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING(), "gzip, deflate".c_str() as Int);
+  var encoding_cstr: *UInt8 = str_to_cstr("gzip, deflate");
+  rc = curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING(), encoding_cstr);
+  xiom_free_cstr(encoding_cstr);
   if rc != 0 {
     return Err("CURLOPT_ACCEPT_ENCODING failed: " + curl_error_string(rc));
   };
 
-  rc = curl_easy_setopt(handle, CURLOPT_USERAGENT(), "xiom-http/0.1.0".c_str() as Int);
+  var ua_cstr: *UInt8 = str_to_cstr("xiom-http/0.1.0");
+  rc = curl_easy_setopt(handle, CURLOPT_USERAGENT(), ua_cstr);
+  xiom_free_cstr(ua_cstr);
   if rc != 0 {
     return Err("CURLOPT_USERAGENT failed: " + curl_error_string(rc));
   };
 
-  rc = curl_easy_setopt(handle, CURLOPT_BUFFERSIZE(), BUF_SIZE());
+  rc = curl_easy_setopt(handle, CURLOPT_BUFFERSIZE(), BUF_SIZE() as *UInt8);
   if rc != 0 {
     return Err("CURLOPT_BUFFERSIZE failed: " + curl_error_string(rc));
   };
@@ -118,95 +269,15 @@ fn setup_common_options(handle: Int, url: Str) -> Result[Unit, Str] {
   return Ok(Unit);
 }
 
-fn open_temp_files() -> Result[{ body_file: *UInt8; header_file: *UInt8; }, Str] {
-  var body_file: *UInt8;
-  var header_file: *UInt8;
-  unsafe {
-    body_file = fopen(TEMP_BODY_PATH().c_str(), "wb+".c_str());
-    if body_file == nil {
-      return Err("failed to open body temp file: " + TEMP_BODY_PATH());
-    };
-    header_file = fopen(TEMP_HEADER_PATH().c_str(), "wb+".c_str());
-    if header_file == nil {
-      let _ = fclose(body_file);
-      return Err("failed to open header temp file: " + TEMP_HEADER_PATH());
-    };
-  };
-  return Ok({ body_file: body_file; header_file: header_file; });
-}
-
-fn close_temp_files(body_file: *UInt8, header_file: *UInt8) {
-  unsafe {
-    let _ = fclose(body_file);
-    let _ = fclose(header_file);
-  };
-}
-
-fn cleanup_temp_files() {
-  unsafe {
-    let _ = remove(TEMP_BODY_PATH().c_str());
-    let _ = remove(TEMP_HEADER_PATH().c_str());
-  };
-}
-
-fn read_file_to_str(file: *UInt8) -> Str {
-  var file_size: Int;
-  unsafe {
-    let _ = fseek(file, 0, SEEK_END());
-    file_size = ftell(file);
-    let _ = fseek(file, 0, SEEK_SET());
-  };
-  if file_size <= 0 {
-    return "";
-  };
-  var buf: *UInt8;
-  var result: Str;
-  unsafe {
-    buf = malloc(file_size as UInt + 1 as UInt);
-    if buf == nil {
-      return "";
-    };
-    let read_count: UInt = fread(buf, 1 as UInt, file_size as UInt, file);
-    buf[read_count as Int] = 0 as UInt8;
-    result = Str.from_c_str(buf);
-    free(buf);
-  };
-  return result;
-}
-
-fn get_response_code(handle: Int) -> Int {
-  var status_ptr: *UInt8;
-  var status: Int;
-  unsafe {
-    status_ptr = malloc(8 as UInt);
-    if status_ptr == nil {
-      return 0;
-    };
-  };
-  var rc: Int = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE(), status_ptr as Int);
-  if rc != 0 {
-    unsafe {
-      free(status_ptr);
-    };
-    return 0;
-  };
-  unsafe {
-    var p: *Int = status_ptr as *Int;
-    status = *p;
-    free(status_ptr);
-  };
-  return status;
-}
-
-fn perform_and_collect(handle: Int, body_file: *UInt8, header_file: *UInt8) -> Result[Unit, Str] {
+fn perform_and_collect(handle: *UInt8, body_f: *UInt8, headers_f: *UInt8) -> Result[Unit, Str] {
   var rc: Int;
 
-  rc = curl_easy_setopt(handle, CURLOPT_WRITEDATA(), body_file as Int);
+  rc = curl_easy_setopt(handle, CURLOPT_WRITEDATA(), body_f);
   if rc != 0 {
     return Err("CURLOPT_WRITEDATA failed: " + curl_error_string(rc));
   };
 
-  rc = curl_easy_setopt(handle, CURLOPT_HEADERDATA(), header_file as Int);
+  rc = curl_easy_setopt(handle, CURLOPT_HEADERDATA(), headers_f);
   if rc != 0 {
     return Err("CURLOPT_HEADERDATA failed: " + curl_error_string(rc));
   };
@@ -219,42 +290,51 @@ fn perform_and_collect(handle: Int, body_file: *UInt8, header_file: *UInt8) -> R
   return Ok(Unit);
 }
 
+// ─── Public HTTP API ────────────────────────────────────────────────────────
+
 pub fn http_get(url: Str) -> Result[HttpResponse, Str]
-  requires: url.len() > 0 {
-  var handle: Int = curl_easy_init();
-  if handle == 0 {
+  requires: url.len() > 0
+{
+  var url_cstr: *UInt8 = str_to_cstr(url);
+  if url_cstr == nil {
+    return Err("xiom_str_to_cstr failed for URL");
+  };
+
+  var handle: *UInt8 = curl_easy_init();
+  if handle == nil {
+    xiom_free_cstr(url_cstr);
     return Err("curl_easy_init returned null handle");
   };
 
-  var setup_result: Result[Unit, Str] = setup_common_options(handle, url);
-  match setup_result {
+  var setup = setup_common_options(handle, url_cstr);
+  match setup {
     Err(e) => {
       curl_easy_cleanup(handle);
+      xiom_free_cstr(url_cstr);
       return Err(e);
     };
     Ok(_) => {};
   };
 
-  var files_result: Result[{ body_file: *UInt8; header_file: *UInt8; }, Str] = open_temp_files();
-  match files_result {
+  var files = open_temp_files();
+  match files {
     Err(e) => {
       curl_easy_cleanup(handle);
+      xiom_free_cstr(url_cstr);
       return Err(e);
     };
-    Ok(files) => {
-      var body_file: *UInt8 = files.body_file;
-      var header_file: *UInt8 = files.header_file;
-
-      var perf_result: Result[Unit, Str] = perform_and_collect(handle, body_file, header_file);
+    Ok(fds) => {
+      var perf = perform_and_collect(handle, fds.body, fds.headers);
       var status: Int = get_response_code(handle);
-      var body: Str = read_file_to_str(body_file);
-      var headers: Str = read_file_to_str(header_file);
+      var body: Str = read_file_to_str(fds.body);
+      var headers: Str = read_file_to_str(fds.headers);
 
-      close_temp_files(body_file, header_file);
+      close_temp_files(fds.body, fds.headers);
       cleanup_temp_files();
       curl_easy_cleanup(handle);
+      xiom_free_cstr(url_cstr);
 
-      match perf_result {
+      match perf {
         Err(e) => { return Err(e); };
         Ok(_) => {};
       };
@@ -269,70 +349,86 @@ pub fn http_get(url: Str) -> Result[HttpResponse, Str]
 }
 
 pub fn http_post(url: Str, body: Str, content_type: Str) -> Result[HttpResponse, Str]
-  requires: url.len() > 0 {
-  var handle: Int = curl_easy_init();
-  if handle == 0 {
+  requires: url.len() > 0
+{
+  var url_cstr: *UInt8 = str_to_cstr(url);
+  if url_cstr == nil {
+    return Err("xiom_str_to_cstr failed for URL");
+  };
+
+  var handle: *UInt8 = curl_easy_init();
+  if handle == nil {
+    xiom_free_cstr(url_cstr);
     return Err("curl_easy_init returned null handle");
   };
 
-  var setup_result: Result[Unit, Str] = setup_common_options(handle, url);
-  match setup_result {
+  var setup = setup_common_options(handle, url_cstr);
+  match setup {
     Err(e) => {
       curl_easy_cleanup(handle);
+      xiom_free_cstr(url_cstr);
       return Err(e);
     };
     Ok(_) => {};
   };
 
   var rc: Int;
-  rc = curl_easy_setopt(handle, CURLOPT_POST(), 1);
+  rc = curl_easy_setopt(handle, CURLOPT_POST(), 1 as *UInt8);
   if rc != 0 {
     curl_easy_cleanup(handle);
+    xiom_free_cstr(url_cstr);
     return Err("CURLOPT_POST failed: " + curl_error_string(rc));
   };
 
-  rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), body.c_str() as Int);
+  var body_cstr: *UInt8 = str_to_cstr(body);
+  if body_cstr == nil {
+    curl_easy_cleanup(handle);
+    xiom_free_cstr(url_cstr);
+    return Err("xiom_str_to_cstr failed for body");
+  };
+
+  rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), body_cstr);
   if rc != 0 {
     curl_easy_cleanup(handle);
+    xiom_free_cstr(url_cstr);
+    xiom_free_cstr(body_cstr);
     return Err("CURLOPT_POSTFIELDS failed: " + curl_error_string(rc));
   };
 
-  rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), body.len());
+  rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), body.len() as *UInt8);
   if rc != 0 {
     curl_easy_cleanup(handle);
+    xiom_free_cstr(url_cstr);
+    xiom_free_cstr(body_cstr);
     return Err("CURLOPT_POSTFIELDSIZE failed: " + curl_error_string(rc));
   };
 
-  var content_type_header: Str = "Content-Type: " + content_type;
-  var header_list: Int = 0;
-  // NOTE: CURLOPT_HTTPHEADER requires a curl_slist*.
-  // curl_slist_append is not yet wired in XIOM FFI.
-  // Once available, build header list and set via:
-  //   header_list = curl_slist_append(0, content_type_header.c_str());
-  //   curl_easy_setopt(handle, CURLOPT_HTTPHEADER(), header_list);
-  // For now, POST body is sent but without explicit Content-Type header.
-  // The libcurl default Content-Type will be used.
+  // LIMITATION: CURLOPT_HTTPHEADER requires curl_slist_append which is not
+  // yet wired in the XIOM FFI. When available, build a curl_slist* for
+  // Content-Type and set via curl_easy_setopt(handle, CURLOPT_HTTPHEADER, ...).
+  // Currently libcurl will use its default Content-Type for POST bodies.
 
-  var files_result: Result[{ body_file: *UInt8; header_file: *UInt8; }, Str] = open_temp_files();
-  match files_result {
+  var files = open_temp_files();
+  match files {
     Err(e) => {
       curl_easy_cleanup(handle);
+      xiom_free_cstr(url_cstr);
+      xiom_free_cstr(body_cstr);
       return Err(e);
     };
-    Ok(files) => {
-      var body_file: *UInt8 = files.body_file;
-      var header_file: *UInt8 = files.header_file;
-
-      var perf_result: Result[Unit, Str] = perform_and_collect(handle, body_file, header_file);
+    Ok(fds) => {
+      var perf = perform_and_collect(handle, fds.body, fds.headers);
       var status: Int = get_response_code(handle);
-      var resp_body: Str = read_file_to_str(body_file);
-      var headers: Str = read_file_to_str(header_file);
+      var resp_body: Str = read_file_to_str(fds.body);
+      var headers: Str = read_file_to_str(fds.headers);
 
-      close_temp_files(body_file, header_file);
+      close_temp_files(fds.body, fds.headers);
       cleanup_temp_files();
       curl_easy_cleanup(handle);
+      xiom_free_cstr(url_cstr);
+      xiom_free_cstr(body_cstr);
 
-      match perf_result {
+      match perf {
         Err(e) => { return Err(e); };
         Ok(_) => {};
       };
@@ -347,60 +443,84 @@ pub fn http_post(url: Str, body: Str, content_type: Str) -> Result[HttpResponse,
 }
 
 pub fn http_put(url: Str, body: Str) -> Result[HttpResponse, Str]
-  requires: url.len() > 0 {
-  var handle: Int = curl_easy_init();
-  if handle == 0 {
+  requires: url.len() > 0
+{
+  var url_cstr: *UInt8 = str_to_cstr(url);
+  if url_cstr == nil {
+    return Err("xiom_str_to_cstr failed for URL");
+  };
+
+  var handle: *UInt8 = curl_easy_init();
+  if handle == nil {
+    xiom_free_cstr(url_cstr);
     return Err("curl_easy_init returned null handle");
   };
 
-  var setup_result: Result[Unit, Str] = setup_common_options(handle, url);
-  match setup_result {
+  var setup = setup_common_options(handle, url_cstr);
+  match setup {
     Err(e) => {
       curl_easy_cleanup(handle);
+      xiom_free_cstr(url_cstr);
       return Err(e);
     };
     Ok(_) => {};
   };
 
   var rc: Int;
-  rc = curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST(), "PUT".c_str() as Int);
+  var method_cstr: *UInt8 = str_to_cstr("PUT");
+  rc = curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST(), method_cstr);
   if rc != 0 {
     curl_easy_cleanup(handle);
+    xiom_free_cstr(url_cstr);
+    xiom_free_cstr(method_cstr);
     return Err("CURLOPT_CUSTOMREQUEST PUT failed: " + curl_error_string(rc));
   };
+  xiom_free_cstr(method_cstr);
 
-  rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), body.c_str() as Int);
+  var body_cstr: *UInt8 = str_to_cstr(body);
+  if body_cstr == nil {
+    curl_easy_cleanup(handle);
+    xiom_free_cstr(url_cstr);
+    return Err("xiom_str_to_cstr failed for body");
+  };
+
+  rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), body_cstr);
   if rc != 0 {
     curl_easy_cleanup(handle);
+    xiom_free_cstr(url_cstr);
+    xiom_free_cstr(body_cstr);
     return Err("CURLOPT_POSTFIELDS PUT failed: " + curl_error_string(rc));
   };
 
-  rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), body.len());
+  rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), body.len() as *UInt8);
   if rc != 0 {
     curl_easy_cleanup(handle);
+    xiom_free_cstr(url_cstr);
+    xiom_free_cstr(body_cstr);
     return Err("CURLOPT_POSTFIELDSIZE PUT failed: " + curl_error_string(rc));
   };
 
-  var files_result: Result[{ body_file: *UInt8; header_file: *UInt8; }, Str] = open_temp_files();
-  match files_result {
+  var files = open_temp_files();
+  match files {
     Err(e) => {
       curl_easy_cleanup(handle);
+      xiom_free_cstr(url_cstr);
+      xiom_free_cstr(body_cstr);
       return Err(e);
     };
-    Ok(files) => {
-      var body_file: *UInt8 = files.body_file;
-      var header_file: *UInt8 = files.header_file;
-
-      var perf_result: Result[Unit, Str] = perform_and_collect(handle, body_file, header_file);
+    Ok(fds) => {
+      var perf = perform_and_collect(handle, fds.body, fds.headers);
       var status: Int = get_response_code(handle);
-      var resp_body: Str = read_file_to_str(body_file);
-      var headers: Str = read_file_to_str(header_file);
+      var resp_body: Str = read_file_to_str(fds.body);
+      var headers: Str = read_file_to_str(fds.headers);
 
-      close_temp_files(body_file, header_file);
+      close_temp_files(fds.body, fds.headers);
       cleanup_temp_files();
       curl_easy_cleanup(handle);
+      xiom_free_cstr(url_cstr);
+      xiom_free_cstr(body_cstr);
 
-      match perf_result {
+      match perf {
         Err(e) => { return Err(e); };
         Ok(_) => {};
       };
@@ -415,48 +535,59 @@ pub fn http_put(url: Str, body: Str) -> Result[HttpResponse, Str]
 }
 
 pub fn http_delete(url: Str) -> Result[HttpResponse, Str]
-  requires: url.len() > 0 {
-  var handle: Int = curl_easy_init();
-  if handle == 0 {
+  requires: url.len() > 0
+{
+  var url_cstr: *UInt8 = str_to_cstr(url);
+  if url_cstr == nil {
+    return Err("xiom_str_to_cstr failed for URL");
+  };
+
+  var handle: *UInt8 = curl_easy_init();
+  if handle == nil {
+    xiom_free_cstr(url_cstr);
     return Err("curl_easy_init returned null handle");
   };
 
-  var setup_result: Result[Unit, Str] = setup_common_options(handle, url);
-  match setup_result {
+  var setup = setup_common_options(handle, url_cstr);
+  match setup {
     Err(e) => {
       curl_easy_cleanup(handle);
+      xiom_free_cstr(url_cstr);
       return Err(e);
     };
     Ok(_) => {};
   };
 
   var rc: Int;
-  rc = curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST(), "DELETE".c_str() as Int);
+  var method_cstr: *UInt8 = str_to_cstr("DELETE");
+  rc = curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST(), method_cstr);
   if rc != 0 {
     curl_easy_cleanup(handle);
+    xiom_free_cstr(url_cstr);
+    xiom_free_cstr(method_cstr);
     return Err("CURLOPT_CUSTOMREQUEST DELETE failed: " + curl_error_string(rc));
   };
+  xiom_free_cstr(method_cstr);
 
-  var files_result: Result[{ body_file: *UInt8; header_file: *UInt8; }, Str] = open_temp_files();
-  match files_result {
+  var files = open_temp_files();
+  match files {
     Err(e) => {
       curl_easy_cleanup(handle);
+      xiom_free_cstr(url_cstr);
       return Err(e);
     };
-    Ok(files) => {
-      var body_file: *UInt8 = files.body_file;
-      var header_file: *UInt8 = files.header_file;
-
-      var perf_result: Result[Unit, Str] = perform_and_collect(handle, body_file, header_file);
+    Ok(fds) => {
+      var perf = perform_and_collect(handle, fds.body, fds.headers);
       var status: Int = get_response_code(handle);
-      var resp_body: Str = read_file_to_str(body_file);
-      var headers: Str = read_file_to_str(header_file);
+      var resp_body: Str = read_file_to_str(fds.body);
+      var headers: Str = read_file_to_str(fds.headers);
 
-      close_temp_files(body_file, header_file);
+      close_temp_files(fds.body, fds.headers);
       cleanup_temp_files();
       curl_easy_cleanup(handle);
+      xiom_free_cstr(url_cstr);
 
-      match perf_result {
+      match perf {
         Err(e) => { return Err(e); };
         Ok(_) => {};
       };
@@ -472,82 +603,104 @@ pub fn http_delete(url: Str) -> Result[HttpResponse, Str]
 
 pub fn http_download(url: Str, path: Str) -> Result[Unit, Str]
   requires: url.len() > 0
-  requires: path.len() > 0 {
-  var handle: Int = curl_easy_init();
-  if handle == 0 {
+  requires: path.len() > 0
+{
+  var url_cstr: *UInt8 = str_to_cstr(url);
+  if url_cstr == nil {
+    return Err("xiom_str_to_cstr failed for URL");
+  };
+
+  var handle: *UInt8 = curl_easy_init();
+  if handle == nil {
+    xiom_free_cstr(url_cstr);
     return Err("curl_easy_init returned null handle");
   };
 
-  var setup_result: Result[Unit, Str] = setup_common_options(handle, url);
-  match setup_result {
+  var setup = setup_common_options(handle, url_cstr);
+  match setup {
     Err(e) => {
       curl_easy_cleanup(handle);
+      xiom_free_cstr(url_cstr);
       return Err(e);
     };
     Ok(_) => {};
   };
 
-  var out_file: *UInt8;
-  unsafe {
-    out_file = fopen(path.c_str(), "wb".c_str());
-  };
+  var path_cstr: *UInt8 = str_to_cstr(path);
+  var mode_cstr: *UInt8 = str_to_cstr("wb");
+  var out_file: *UInt8 = fopen(path_cstr, mode_cstr);
   if out_file == nil {
     curl_easy_cleanup(handle);
+    xiom_free_cstr(url_cstr);
+    xiom_free_cstr(path_cstr);
+    xiom_free_cstr(mode_cstr);
     return Err("failed to open output file: " + path);
   };
 
-  var rc: Int;
-  rc = curl_easy_setopt(handle, CURLOPT_WRITEDATA(), out_file as Int);
+  var rc: Int = curl_easy_setopt(handle, CURLOPT_WRITEDATA(), out_file);
   if rc != 0 {
-    unsafe { let _ = fclose(out_file); };
+    let _ = fclose(out_file);
     curl_easy_cleanup(handle);
+    xiom_free_cstr(url_cstr);
+    xiom_free_cstr(path_cstr);
+    xiom_free_cstr(mode_cstr);
     return Err("CURLOPT_WRITEDATA download failed: " + curl_error_string(rc));
   };
 
   var perf_rc: Int = curl_easy_perform(handle);
-  unsafe {
-    let _ = fclose(out_file);
-  };
+  let _ = fclose(out_file);
 
   if perf_rc != 0 {
     var err_msg: Str = curl_error_string(perf_rc);
     curl_easy_cleanup(handle);
-    unsafe { let _ = remove(path.c_str()); };
+    xiom_free_cstr(url_cstr);
+    xiom_free_cstr(path_cstr);
+    xiom_free_cstr(mode_cstr);
+    let _ = remove(path_cstr);
     return Err("download failed: " + err_msg);
   };
 
   var status: Int = get_response_code(handle);
   curl_easy_cleanup(handle);
+  xiom_free_cstr(url_cstr);
+  xiom_free_cstr(path_cstr);
+  xiom_free_cstr(mode_cstr);
 
   if status < 200 || status >= 300 {
-    unsafe { let _ = remove(path.c_str()); };
-    return Err("download failed with HTTP status: " + int_to_str(status));
+    let _ = remove(path_cstr);
+    return Err("download failed with HTTP status " + int_to_str(status));
   };
 
   return Ok(Unit);
 }
 
+// ─── Utility ────────────────────────────────────────────────────────────────
+
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; };
   var digits: Vec[Str] = Vec[Str].new();
   var num: Int = n;
-  if num < 0 { num = -num; };
+  var is_neg: Bool = false;
+  if num < 0 {
+    is_neg = true;
+    num = -num;
+  };
   while num > 0 {
     var d: Int = num % 10;
     num = num / 10;
-    if d == 0 { digits.push("0"); };
-    elif d == 1 { digits.push("1"); };
-    elif d == 2 { digits.push("2"); };
-    elif d == 3 { digits.push("3"); };
-    elif d == 4 { digits.push("4"); };
-    elif d == 5 { digits.push("5"); };
-    elif d == 6 { digits.push("6"); };
-    elif d == 7 { digits.push("7"); };
-    elif d == 8 { digits.push("8"); };
+    if d == 0 { digits.push("0"); }
+    elif d == 1 { digits.push("1"); }
+    elif d == 2 { digits.push("2"); }
+    elif d == 3 { digits.push("3"); }
+    elif d == 4 { digits.push("4"); }
+    elif d == 5 { digits.push("5"); }
+    elif d == 6 { digits.push("6"); }
+    elif d == 7 { digits.push("7"); }
+    elif d == 8 { digits.push("8"); }
     elif d == 9 { digits.push("9"); };
   };
   var result: Str = "";
-  if n < 0 { result = result + "-"; };
+  if is_neg { result = "-"; };
   var j: Int = digits.len() - 1;
   while j >= 0 {
     result = result + digits[j];

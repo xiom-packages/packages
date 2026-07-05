@@ -1,4 +1,7 @@
 module xiom.db.types
+use xiom.collections;
+// Note: For production use, xiom.collections.BTreeMap[Int, Int] provides a more
+// optimized B-tree than the flat-array implementation in xiom.db.btree.
 
 pub type Page = {
   id: UInt64;

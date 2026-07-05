@@ -1,5 +1,8 @@
 module xiom.http.types
 
+use xiom.string;
+use xiom.convert;
+
 pub enum HttpMethod {
   GET,
   POST,
@@ -132,39 +135,6 @@ pub fn version_from_str(s: Str) -> HttpVersion {
   return HttpVersion.HTTP11;
 }
 
-fn int_to_str(n: Int) -> Str {
-  if n == 0 { return "0"; }
-  var digits: Vec[Str] = Vec[Str].new();
-  var num: Int = n;
-  if num < 0 {
-    num = -num;
-  }
-  while num > 0 {
-    var d: Int = num % 10;
-    num = num / 10;
-    if d == 0 { digits.push("0"); }
-    elif d == 1 { digits.push("1"); }
-    elif d == 2 { digits.push("2"); }
-    elif d == 3 { digits.push("3"); }
-    elif d == 4 { digits.push("4"); }
-    elif d == 5 { digits.push("5"); }
-    elif d == 6 { digits.push("6"); }
-    elif d == 7 { digits.push("7"); }
-    elif d == 8 { digits.push("8"); }
-    elif d == 9 { digits.push("9"); }
-  }
-  var result: Str = "";
-  if n < 0 {
-    result = result + "-";
-  }
-  var j: Int = digits.len() - 1;
-  while j >= 0 {
-    result = result + digits[j];
-    j = j - 1;
-  }
-  return result;
-}
-
 fn byte_to_char(b: Int) -> Str {
   if b == 0 { return "\0"; }
   if b == 10 { return "\n"; }
@@ -293,16 +263,15 @@ pub fn HttpRequest.set_body(new_body: Vec[Int]) {
 }
 
 pub fn HttpRequest.to_str() -> Str {
-  var s: Str = "";
-  s = s + method_to_str(method) + " " + path + " " + version_to_str(version) + "\r\n";
+  var s: Str = xiom.string.str_concat(method_to_str(method), " ", path, " ", version_to_str(version), "\r\n");
   var i: Int = 0;
   while i < headers.entries.len() {
-    s = s + headers.entries[i].name + ": " + headers.entries[i].value + "\r\n";
+    s = xiom.string.str_concat(s, headers.entries[i].name, ": ", headers.entries[i].value, "\r\n");
     i = i + 1;
   }
-  s = s + "\r\n";
+  s = xiom.string.str_concat(s, "\r\n");
   if body.len() > 0 {
-    s = s + str_from_vec_byte(body);
+    s = xiom.string.str_concat(s, str_from_vec_byte(body));
   }
   return s;
 }
@@ -328,16 +297,15 @@ pub fn HttpResponse.set_body(new_body: Vec[Int]) {
 }
 
 pub fn HttpResponse.to_str() -> Str {
-  var s: Str = "";
-  s = s + version_to_str(version) + " " + int_to_str(status) + " " + reason + "\r\n";
+  var s: Str = xiom.string.str_concat(version_to_str(version), " ", xiom.convert.int_to_string(status), " ", reason, "\r\n");
   var i: Int = 0;
   while i < headers.entries.len() {
-    s = s + headers.entries[i].name + ": " + headers.entries[i].value + "\r\n";
+    s = xiom.string.str_concat(s, headers.entries[i].name, ": ", headers.entries[i].value, "\r\n");
     i = i + 1;
   }
-  s = s + "\r\n";
+  s = xiom.string.str_concat(s, "\r\n");
   if body.len() > 0 {
-    s = s + str_from_vec_byte(body);
+    s = xiom.string.str_concat(s, str_from_vec_byte(body));
   }
   return s;
 }

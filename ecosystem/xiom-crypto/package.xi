@@ -7,6 +7,7 @@ package xiom_crypto {
   version: "0.1.0";
   description: "XIOM Cryptography Library — Layer 3.4: Pure-XIOM Hashing, Encryption, Encoding, and Key Derivation";
   authors: ["XIOM Team"];
+  deps: { "xiom-std": "0.1.0" };
   modules: [
     "xiom.crypto",
     "xiom.crypto.demo",

@@ -1,5 +1,8 @@
 module xiom.algo
 
+use xiom.math;
+use xiom.rand;
+
 // ============================================================
 // Searching
 // ============================================================
@@ -347,18 +350,15 @@ pub fn is_power_of_two(n: Int) -> Bool
 }
 
 pub fn abs(n: Int) -> Int {
-  if n < 0 { return -n; }
-  return n;
+  return xiom.math.abs_int(n);
 }
 
 pub fn min_val(a: Int, b: Int) -> Int {
-  if a < b { return a; }
-  return b;
+  return xiom.math.min_int(a, b);
 }
 
 pub fn max_val(a: Int, b: Int) -> Int {
-  if a > b { return a; }
-  return b;
+  return xiom.math.max_int(a, b);
 }
 
 pub fn clamp(value: Int, lo: Int, hi: Int) -> Int
@@ -509,21 +509,8 @@ pub fn shuffle(arr: Vec[Int]) -> Vec[Int]
   ensures: result.len() == arr.len()@pre
 {
   if arr.len() <= 1 { return arr; }
-  var seed = arr.len();
-  var i = arr.len() - 1;
-  while i > 0 {
-    seed = lcg_rand(seed);
-    var j = seed % (i + 1);
-    var tmp = arr[i];
-    arr[i] = arr[j];
-    arr[j] = tmp;
-    i = i - 1;
-  }
+  xiom.rand.shuffle(&mut arr);
   return arr;
-}
-
-fn lcg_rand(seed: Int) -> Int {
-  return (seed * 1103515245 + 12345) % 2147483648;
 }
 
 pub fn slice(arr: &Vec[Int], start: Int, len: Int) -> Vec[Int]

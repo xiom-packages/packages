@@ -116,15 +116,15 @@ Every FFI boundary is guarded:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| SHA-256/512 (OpenSSL FFI) | Production | FFI code written, needs `@axiom_vec_to_ptr` runtime intrinsic |
+| SHA-256/512 (OpenSSL FFI) | ✅ Production | FFI bridge integrated, requires ffi_bridge.c |
 | SHA-256/512 (Pure XIOM) | Reference | FIPS 180-4 compliant, for verification |
-| MD5 (OpenSSL FFI) | Production | Legacy compatibility |
+| MD5 (OpenSSL FFI) | ✅ Production | FFI bridge integrated |
 | MD5 (Pure XIOM) | Reference | RFC 1321 compliant |
 | HMAC-SHA256 | Production | Pure XIOM on top of FFI SHA-256 |
 | AES-128/256 (Pure XIOM) | Reference | Full S-Box, MixColumns, key expansion |
 | AES-GCM / AES-CBC | Not yet | Block cipher modes |
 | Base64/Hex | Production | Pure XIOM, no FFI needed |
-| Random (OpenSSL) | Production | FFI code written |
+| Random (OpenSSL) | ✅ Production | FFI bridge integrated |
 | Random (Xorshift) | Complete | Pure XIOM PRNG |
 | PBKDF2 | Production | Pure XIOM on top of SHA-256 |
 | Ed25519 | Stubs only | Needs bigint math + secure RNG |
@@ -134,7 +134,16 @@ Every FFI boundary is guarded:
 1. **Block cipher modes** — CBC, CTR, GCM for AES
 2. **Ed25519 implementation** — needs compiler bigint support or FFI
 3. **TLS bindings** — via OpenSSL `libssl`
-4. **Runtime intrinsics** — `@axiom_vec_to_ptr`, `@axiom_alloc`, `@axiom_read_u8`, `@axiom_free` needed for FFI to activate
+
+## Build & Run
+
+```bash
+# Compile with FFI bridge and OpenSSL
+xiomc myprogram.xi ../runtime/ffi_bridge.c -l crypto -l ssl -o myprogram.exe
+./myprogram.exe
+```
+
+> Requires ffi_bridge.c to be compiled alongside. The FFI bridge provides `xiom_alloc`, `xiom_free_ptr`, `xiom_read_byte`, `xiom_write_byte`, `xiom_str_to_cstr`, and `xiom_free_cstr` across the FFI boundary.
 
 ## Links
 

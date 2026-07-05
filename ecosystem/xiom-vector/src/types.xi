@@ -1,5 +1,7 @@
 module xiom.vector.types
 
+use xiom.math;
+
 pub type Neighbor = {
   id: UInt64;
   distance: Float32;
@@ -50,17 +52,6 @@ pub fn HNSWNode.new(id: UInt64) -> HNSWNode {
   return HNSWNode{ id: id, neighbors: Vec[Neighbor].new() };
 }
 
-fn sqrt_f32(x: Float32) -> Float32 {
-  if x <= 0.0 { return 0.0; }
-  var guess: Float32 = x / 2.0;
-  var i: UInt = 0;
-  while i < 20 {
-    guess = (guess + x / guess) / 2.0;
-    i = i + 1;
-  }
-  return guess;
-}
-
 pub fn dot_product_distance(a: &Vector, b: &Vector) -> Float32
   requires: a.dimension == b.dimension
 {
@@ -89,7 +80,7 @@ pub fn cosine_distance(a: &Vector, b: &Vector) -> Float32
     i = i + 1;
   }
   if mag_a == 0.0 || mag_b == 0.0 { return 1.0; }
-  var similarity = dot / (sqrt_f32(mag_a) * sqrt_f32(mag_b));
+  var similarity = dot / ((xiom.math.sqrt(mag_a as Float64) as Float32) * (xiom.math.sqrt(mag_b as Float64) as Float32));
   return 1.0 - similarity;
 }
 
@@ -103,7 +94,7 @@ pub fn euclidean_distance(a: &Vector, b: &Vector) -> Float32
     sum_sq = sum_sq + diff * diff;
     i = i + 1;
   }
-  return sqrt_f32(sum_sq);
+  return (xiom.math.sqrt(sum_sq as Float64) as Float32);
 }
 
 pub fn vector_dot(a: &Vector, b: &Vector) -> Float32
@@ -125,7 +116,7 @@ pub fn vector_magnitude(v: &Vector) -> Float32 {
     sum_sq = sum_sq + v.data[i] * v.data[i];
     i = i + 1;
   }
-  return sqrt_f32(sum_sq);
+  return (xiom.math.sqrt(sum_sq as Float64) as Float32);
 }
 
 pub fn vector_normalize(v: &Vector) -> Vector

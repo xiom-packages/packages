@@ -1,5 +1,8 @@
 module xiom.http.demo
 
+use xiom.io;
+use xiom.convert;
+
 pub fn demo_get() -> Result[Unit, Str] {
   var result: Result[HttpResponse, Str] = xiom.http.http_get("https://httpbin.org/get");
   match result {
@@ -8,11 +11,12 @@ pub fn demo_get() -> Result[Unit, Str] {
     };
     Ok(resp) => {
       if resp.status != 200 {
-        return Err("GET demo: unexpected status " + int_to_str(resp.status));
+        return Err("GET demo: unexpected status " + xiom.convert.int_to_string(resp.status));
       };
       if resp.body.len() == 0 {
         return Err("GET demo: empty response body");
       };
+      xiom.io.println("GET demo passed");
       return Ok(Unit);
     };
   };
@@ -31,11 +35,12 @@ pub fn demo_post() -> Result[Unit, Str] {
     };
     Ok(resp) => {
       if resp.status != 200 {
-        return Err("POST demo: unexpected status " + int_to_str(resp.status));
+        return Err("POST demo: unexpected status " + xiom.convert.int_to_string(resp.status));
       };
       if resp.body.len() == 0 {
         return Err("POST demo: empty response body");
       };
+      xiom.io.println("POST demo passed");
       return Ok(Unit);
     };
   };
@@ -51,7 +56,7 @@ pub fn demo_rest_api() -> Result[Unit, Str] {
     };
     Ok(resp) => {
       if resp.status != 200 {
-        return Err("REST GET: unexpected status " + int_to_str(resp.status));
+        return Err("REST GET: unexpected status " + xiom.convert.int_to_string(resp.status));
       };
     };
   };
@@ -68,7 +73,7 @@ pub fn demo_rest_api() -> Result[Unit, Str] {
     };
     Ok(resp) => {
       if resp.status != 200 {
-        return Err("REST POST: unexpected status " + int_to_str(resp.status));
+        return Err("REST POST: unexpected status " + xiom.convert.int_to_string(resp.status));
       };
     };
   };
@@ -84,7 +89,7 @@ pub fn demo_rest_api() -> Result[Unit, Str] {
     };
     Ok(resp) => {
       if resp.status != 200 {
-        return Err("REST PUT: unexpected status " + int_to_str(resp.status));
+        return Err("REST PUT: unexpected status " + xiom.convert.int_to_string(resp.status));
       };
     };
   };
@@ -98,7 +103,7 @@ pub fn demo_rest_api() -> Result[Unit, Str] {
     };
     Ok(resp) => {
       if resp.status != 200 {
-        return Err("REST DELETE: unexpected status " + int_to_str(resp.status));
+        return Err("REST DELETE: unexpected status " + xiom.convert.int_to_string(resp.status));
       };
     };
   };
@@ -116,38 +121,10 @@ pub fn demo_rest_api() -> Result[Unit, Str] {
     };
   };
 
+  xiom.io.println("REST API demo passed");
   return Ok(Unit);
 }
 
 fn cleanup_download(path: Str) -> Int {
   return 0;
-}
-
-fn int_to_str(n: Int) -> Str {
-  if n == 0 { return "0"; };
-  var digits: Vec[Str] = Vec[Str].new();
-  var num: Int = n;
-  if num < 0 { num = -num; };
-  while num > 0 {
-    var d: Int = num % 10;
-    num = num / 10;
-    if d == 0 { digits.push("0"); };
-    elif d == 1 { digits.push("1"); };
-    elif d == 2 { digits.push("2"); };
-    elif d == 3 { digits.push("3"); };
-    elif d == 4 { digits.push("4"); };
-    elif d == 5 { digits.push("5"); };
-    elif d == 6 { digits.push("6"); };
-    elif d == 7 { digits.push("7"); };
-    elif d == 8 { digits.push("8"); };
-    elif d == 9 { digits.push("9"); };
-  };
-  var result: Str = "";
-  if n < 0 { result = result + "-"; };
-  var j: Int = digits.len() - 1;
-  while j >= 0 {
-    result = result + digits[j];
-    j = j - 1;
-  };
-  return result;
 }

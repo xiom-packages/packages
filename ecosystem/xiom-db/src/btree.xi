@@ -1,4 +1,7 @@
 module xiom.db.btree
+// Note: For production, prefer xiom.collections.BTreeMap[K, V] which provides an
+// optimized implementation. This module serves as a reference implementation and
+// educational resource.
 
 pub type BTree = {
   root: Int;

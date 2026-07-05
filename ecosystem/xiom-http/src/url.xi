@@ -1,5 +1,8 @@
 module xiom.http.url
 
+use xiom.encoding;
+use xiom.string;
+
 pub type Url = {
   scheme: Str;
   host: Str;
@@ -19,49 +22,6 @@ fn is_digit_char(c: Int) -> Bool {
 
 fn is_alphanum(c: Int) -> Bool {
   return is_alpha_char(c) || is_digit_char(c);
-}
-
-fn is_unreserved(c: Int) -> Bool {
-  if is_alphanum(c) { return true; }
-  if c == 45 { return true; }
-  if c == 46 { return true; }
-  if c == 95 { return true; }
-  if c == 126 { return true; }
-  return false;
-}
-
-fn is_hex_digit(c: Int) -> Bool {
-  if is_digit_char(c) { return true; }
-  if c >= 65 && c <= 70 { return true; }
-  if c >= 97 && c <= 102 { return true; }
-  return false;
-}
-
-fn hex_val(c: Int) -> Int {
-  if c >= 48 && c <= 57 { return c - 48; }
-  if c >= 65 && c <= 70 { return c - 65 + 10; }
-  if c >= 97 && c <= 102 { return c - 97 + 10; }
-  return 0;
-}
-
-fn hex_char(v: Int) -> Str {
-  if v == 0 { return "0"; }
-  elif v == 1 { return "1"; }
-  elif v == 2 { return "2"; }
-  elif v == 3 { return "3"; }
-  elif v == 4 { return "4"; }
-  elif v == 5 { return "5"; }
-  elif v == 6 { return "6"; }
-  elif v == 7 { return "7"; }
-  elif v == 8 { return "8"; }
-  elif v == 9 { return "9"; }
-  elif v == 10 { return "A"; }
-  elif v == 11 { return "B"; }
-  elif v == 12 { return "C"; }
-  elif v == 13 { return "D"; }
-  elif v == 14 { return "E"; }
-  elif v == 15 { return "F"; }
-  return "0";
 }
 
 fn char_to_str(c: Int) -> Str {
@@ -361,54 +321,12 @@ pub fn url_to_str(url: &Url) -> Str {
 
 pub fn url_encode(s: Str) -> Str
   requires: s.len() > 0 {
-  var result: Str = "";
-  var i: Int = 0;
-  var len: Int = @axiom_str_len(s);
-  while i < len {
-    var c: Int = @axiom_char_at(s, i);
-    if is_unreserved(c) {
-      result = result + char_to_str(c);
-    }
-    else {
-      var hi: Int = c / 16;
-      var lo: Int = c % 16;
-      result = result + "%" + hex_char(hi) + hex_char(lo);
-    }
-    i = i + 1;
-  }
-  return result;
+  return xiom.encoding.url_encode(s);
 }
 
 pub fn url_decode(s: Str) -> Result[Str, Str]
   requires: s.len() > 0 {
-  var result: Str = "";
-  var i: Int = 0;
-  var len: Int = @axiom_str_len(s);
-  while i < len {
-    var c: Int = @axiom_char_at(s, i);
-    if c == 37 {
-      if i + 2 < len {
-        var hi: Int = @axiom_char_at(s, i + 1);
-        var lo: Int = @axiom_char_at(s, i + 2);
-        if is_hex_digit(hi) && is_hex_digit(lo) {
-          var val: Int = hex_val(hi) * 16 + hex_val(lo);
-          result = result + char_to_str(val);
-          i = i + 3;
-          continue;
-        }
-        return Err("Invalid percent encoding");
-      }
-      return Err("Truncated percent encoding");
-    }
-    elif c == 43 {
-      result = result + " ";
-    }
-    else {
-      result = result + char_to_str(c);
-    }
-    i = i + 1;
-  }
-  return Ok(result);
+  return xiom.encoding.url_decode(s);
 }
 
 pub fn path_join(base: Str, relative: Str) -> Str

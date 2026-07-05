@@ -114,6 +114,12 @@ All FFI boundaries are validated before execution.
 
 **None.** Pure XIOM. No C libraries, no FFI, no runtime dependencies.
 
+## Build & Run
+
+```bash
+xiomc --run myprogram.xi
+```
+
 ## Links
 
 - **Organization**: [github.com/xiom-lang](https://github.com/xiom-lang)

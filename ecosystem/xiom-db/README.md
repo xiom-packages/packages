@@ -94,6 +94,12 @@ fn main() -> Int {
 3. **Secondary indexes** — non-primary-key indexes
 4. **Compaction** — page merging, defragmentation
 
+## Build & Run
+
+```bash
+xiomc --run myprogram.xi
+```
+
 ## Dependencies: None (Pure XIOM)
 ## Links: [xiom-lang](https://github.com/xiom-lang) | [XIOM](https://github.com/xiom-lang/XIOM)
 ## License: MIT OR Apache-2.0

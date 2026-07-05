@@ -1,5 +1,9 @@
 module xiom.test
 
+use xiom.fmt;
+use xiom.string;
+use xiom.convert;
+
 pub type TestFailure = {
   name: Str;
   message: Str;
@@ -292,17 +296,17 @@ requires: suites.len() > 0
 }
 
 pub fn report(results: &TestResults) -> Str {
-  return "Test Results: " + results.passed.to_str() + " passed, " + results.failed.to_str() + " failed, " + results.total.to_str() + " total";
+  return xiom.string.str_concat("Test Results: ", xiom.convert.int_to_string(results.passed), " passed, ", xiom.convert.int_to_string(results.failed), " failed, ", xiom.convert.int_to_string(results.total), " total");
 }
 
 pub fn report_verbose(results: &TestResults) -> Str {
-  var s: Str = "Test Results: " + results.passed.to_str() + " passed, " + results.failed.to_str() + " failed, " + results.total.to_str() + " total";
+  var s: Str = xiom.string.str_concat("Test Results: ", xiom.convert.int_to_string(results.passed), " passed, ", xiom.convert.int_to_string(results.failed), " failed, ", xiom.convert.int_to_string(results.total), " total");
   if results.failed > 0 {
-    s = s + "\n\nFailures:";
+    s = xiom.string.str_concat(s, "\n\nFailures:");
     var i: Int = 0;
     while i < results.failures.len() {
       var f = results.failures[i];
-      s = s + "\n  - " + f.name + ": " + f.message;
+      s = xiom.string.str_concat(s, "\n  - ", f.name, ": ", f.message);
       i = i + 1;
     }
   }
@@ -327,5 +331,5 @@ requires: ms >= 0
 }
 
 pub fn bench_report(result: &BenchResult) -> Str {
-  return "Bench: " + result.name + " — " + result.iterations.to_str() + " iter, " + result.elapsed_ms.to_str() + " ms, " + result.ops_per_sec.to_str() + " ops/sec";
+  return xiom.string.str_concat("Bench: ", result.name, " — ", xiom.convert.int_to_string(result.iterations), " iter, ", xiom.convert.int_to_string(result.elapsed_ms), " ms, ", xiom.convert.int_to_string(result.ops_per_sec), " ops/sec");
 }

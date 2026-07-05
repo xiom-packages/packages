@@ -1,4 +1,6 @@
 module xiom.db.engine
+// Note: For production workloads, consider xiom.collections.BTreeMap[K, V]
+// which provides a more optimized B-tree than xiom.db.btree.
 
 pub type Engine = {
   tree: BTree;

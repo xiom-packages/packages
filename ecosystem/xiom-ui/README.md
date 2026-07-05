@@ -122,6 +122,27 @@ fn main() -> Int {
 | `demo_form()` | Form with text fields, sliders |
 | `demo_layout()` | Layout engine demo |
 
+### Backend (`xiom.ui.backend`)
+| Function | Description |
+|----------|-------------|
+| `backend_setup_viewport(w, h)` | Set orthographic projection |
+| `backend_clear_bg(color)` | Clear with background color |
+| `backend_render(list, theme, w, h)` | Dispatch all render commands to OpenGL |
+| `backend_render_single(cmd)` | Render a single command |
+
+## Build & Run
+
+```bash
+# Pure XIOM UI (no rendering, render commands only)
+xiomc --run myprogram.xi
+
+# With OpenGL backend (requires GLFW + ffi_bridge.c)
+xiomc myprogram.xi ../runtime/ffi_bridge.c -l glfw3 -l opengl32 -o myprogram.exe
+./myprogram.exe
+```
+
+> The `xiom.ui.backend` module requires ffi_bridge.c to be compiled alongside for `xiom_alloc`, `xiom_free_ptr`, `xiom_read_byte`, `xiom_write_byte`, `xiom_str_to_cstr`, and `xiom_free_cstr`. A GLFW window must be created via `xiom-glfw` before calling `backend_render`.
+
 ## Safety Contracts
 
 All UI operations guarded:
@@ -139,10 +160,10 @@ All UI operations guarded:
 | Render command buffer | ✅ Complete | 6 command types |
 | Theme system | ✅ Complete | 3 presets |
 | Application framework | ✅ Complete | Frame lifecycle |
+| OpenGL render backend | ✅ OpenGL backend available | Via xiom.ui.backend + ffi_bridge.c |
 | GLFW window integration | ❌ Not yet | Needs xiom-glfw FFI |
 | Text rendering | ❌ Not yet | Needs font rasterizer |
 | Widget hit-testing/interaction | ❌ Not yet | Mouse→widget dispatch |
-| Actual rendering (OpenGL/Vulkan) | ❌ Not yet | Needs backend |
 | Animations | ❌ Not yet | |
 | Drag and drop | ❌ Not yet | |
 | Clipboard | ❌ Not yet | |
@@ -150,10 +171,10 @@ All UI operations guarded:
 
 ### What's Left for v1.0
 1. **GLFW backend** — wire xiom-glfw for window creation + input
-2. **OpenGL render backend** — translate RenderCommands to GL calls
-3. **Widget interaction loop** — hit-testing, focus management, event dispatch
-4. **Text rendering** — font atlas generation, glyph placement
-5. **Styling system** — CSS-like selector-based styling
+2. **Widget interaction loop** — hit-testing, focus management, event dispatch
+3. **Text rendering** — font atlas generation, glyph placement
+4. **Styling system** — CSS-like selector-based styling
+5. **Vulkan backend** — alternative render backend beyond OpenGL
 
 ## Architecture
 
@@ -169,7 +190,9 @@ All UI operations guarded:
 ├──────────────────────────────────┤
 │  xiom.ui.theme                   │  ← Theme presets
 ├──────────────────────────────────┤
-│  Render Backend (GL/Vulkan)      │  ← Platform-specific (NOT yet)
+│  xiom.ui.backend                 │  ← OpenGL render backend (FFI bridge)
+├──────────────────────────────────┤
+│  FFI Bridge + OpenGL             │  ← Platform-specific rendering
 └──────────────────────────────────┘
 ```
 

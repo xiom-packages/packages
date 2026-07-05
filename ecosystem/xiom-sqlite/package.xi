@@ -3,5 +3,5 @@ package xiom_sqlite {
   version: "0.1.0";
   description: "SQLite Database Bindings for XIOM";
   authors: ["XIOM Team"];
-  deps: {};
+  deps: { "xiom-std": "0.1.0" };
 }

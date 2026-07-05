@@ -125,6 +125,12 @@ Every function with preconditions is guarded:
 
 **None.** Pure XIOM.
 
+## Build & Run
+
+```bash
+xiomc --run myprogram.xi
+```
+
 ## Links
 
 - **Organization**: [github.com/xiom-lang](https://github.com/xiom-lang)

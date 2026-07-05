@@ -125,9 +125,9 @@ Every socket operation is guarded:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| TCP client (connect/send/recv/close) | ✅ Production | Winsock2 FFI implemented |
-| TCP server (bind/listen/accept) | ✅ Production | Winsock2 FFI implemented |
-| UDP (bind/sendto/recvfrom) | ✅ Production | Winsock2 FFI implemented |
+| TCP client (connect/send/recv/close) | ✅ Production | FFI bridge integrated, requires ffi_bridge.c |
+| TCP server (bind/listen/accept) | ✅ Production | FFI bridge integrated |
+| UDP (bind/sendto/recvfrom) | ✅ Production | FFI bridge integrated |
 | IPv4 parsing/formatting | ✅ Complete | Pure XIOM |
 | IPv6 | ⚠️ Types only | Parsing stubbed |
 | DNS resolution | ⚠️ Stub | Needs getaddrinfo FFI |
@@ -142,8 +142,17 @@ Every socket operation is guarded:
 1. **DNS resolution** — wire up `getaddrinfo` FFI
 2. **IPv6 support** — complete parsing and sockaddr_in6
 3. **Non-blocking mode** — `fcntl`/`ioctlsocket` for async I/O
-4. **Runtime intrinsics** — `@axiom_vec_to_ptr`, `@axiom_alloc` for buffer management
-5. **POSIX portability** — `#ifdef` for Linux/macOS socket calls vs Winsock2
+4. **POSIX portability** — `#ifdef` for Linux/macOS socket calls vs Winsock2
+
+## Build & Run
+
+```bash
+# Compile with FFI bridge (sockets are OS-provided)
+xiomc myprogram.xi ../runtime/ffi_bridge.c -l ws2_32 -o myprogram.exe
+./myprogram.exe
+```
+
+> Requires ffi_bridge.c to be compiled alongside. The FFI bridge provides `xiom_alloc`, `xiom_free_ptr`, `xiom_read_byte`, `xiom_write_byte`, `xiom_str_to_cstr`, and `xiom_free_cstr` across the FFI boundary. On Linux/macOS, omit `-l ws2_32`.
 
 ## Links
 

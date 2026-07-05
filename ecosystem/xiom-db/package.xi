@@ -3,5 +3,7 @@ package xiom_db {
   version: "0.1.0";
   description: "XiomDB — production-grade embedded database with B-Tree, WAL, query engine";
   authors: ["XIOM Team"];
-  deps: {};
+  deps: {
+    "xiom-std": "0.1.0",
+  };
 }

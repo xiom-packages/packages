@@ -1,5 +1,9 @@
 module xiom.json
 
+use xiom.string;
+use xiom.convert;
+use xiom.fmt;
+
 pub enum JsonValue {
   Null,
   Bool(value: Bool),
@@ -101,7 +105,7 @@ fn JsonParser.new(input: Str) -> JsonParser {
   return JsonParser{
     input: input,
     pos: 0,
-    len: input.len(),
+    len: xiom.string.str_len(input),
     line: 1,
     col: 1,
   };
@@ -113,37 +117,52 @@ fn JsonParser.eof() -> Bool {
 
 fn JsonParser.peek() -> Int {
   if pos >= len { return -1; }
-  return input[pos];
+  match xiom.string.char_at(input, pos) {
+    Some(ch) => xiom.convert.char_to_int(ch),
+    None => -1,
+  }
 }
 
 fn JsonParser.peek_ahead(offset: Int) -> Int {
   var idx = pos + offset;
   if idx >= len { return -1; }
-  return input[idx];
+  match xiom.string.char_at(input, idx) {
+    Some(ch) => xiom.convert.char_to_int(ch),
+    None => -1,
+  }
 }
 
 fn JsonParser.advance() {
-  var ch = input[pos];
-  if ch == BYTE_NEWLINE() {
-    line = line + 1;
-    col = 1;
-  } else {
-    col = col + 1;
+  match xiom.string.char_at(input, pos) {
+    Some(ch) => {
+      if xiom.convert.char_to_int(ch) == BYTE_NEWLINE() {
+        line = line + 1;
+        col = 1;
+      } else {
+        col = col + 1;
+      }
+    }
+    None => {},
   }
   pos = pos + 1;
 }
 
 fn JsonParser.skip_ws() {
   while pos < len {
-    var ch = input[pos];
-    if ch != BYTE_SPACE() && ch != BYTE_TAB() && ch != BYTE_NEWLINE() && ch != BYTE_CR() {
-      return;
-    }
-    if ch == BYTE_NEWLINE() {
-      line = line + 1;
-      col = 1;
-    } else {
-      col = col + 1;
+    match xiom.string.char_at(input, pos) {
+      Some(ch) => {
+        var byte = xiom.convert.char_to_int(ch);
+        if byte != BYTE_SPACE() && byte != BYTE_TAB() && byte != BYTE_NEWLINE() && byte != BYTE_CR() {
+          return;
+        }
+        if byte == BYTE_NEWLINE() {
+          line = line + 1;
+          col = 1;
+        } else {
+          col = col + 1;
+        }
+      }
+      None => return,
     }
     pos = pos + 1;
   }
@@ -155,10 +174,20 @@ fn JsonParser.make_error(msg: Str) -> ParseError {
 
 fn JsonParser.match_literal(lit: Str) -> Bool {
   var i: Int = 0;
-  while i < lit.len() {
+  while i < xiom.string.str_len(lit) {
     if pos + i >= len { return false; }
-    if input[pos + i] != lit[i] {
-      return false;
+    match xiom.string.char_at(input, pos + i) {
+      Some(ich) => {
+        match xiom.string.char_at(lit, i) {
+          Some(lch) => {
+            if xiom.convert.char_to_int(ich) != xiom.convert.char_to_int(lch) {
+              return false;
+            }
+          }
+          None => return false,
+        }
+      }
+      None => return false,
     }
     i = i + 1;
   }
@@ -261,47 +290,56 @@ fn JsonParser.parse_string() -> Result[Str, ParseError] {
   advance();
   var result = "";
   while pos < len {
-    var ch = input[pos];
-    if ch == BYTE_QUOTE() {
-      advance();
-      return Ok(result);
-    }
-    if ch == BYTE_BACKSLASH() {
-      advance();
-      if eof() { return Err(make_error("unexpected end of input in string escape")); }
-      var esc = input[pos];
-      advance();
-      if esc == BYTE_QUOTE() {
-        result = result + "\"";
-      } elif esc == BYTE_BACKSLASH() {
-        result = result + "\\";
-      } elif esc == BYTE_SLASH() {
-        result = result + "/";
-      } elif esc == BYTE_LOWER_B() {
-        result = result + "\b";
-      } elif esc == BYTE_LOWER_F() {
-        result = result + "\f";
-      } elif esc == BYTE_LOWER_N() {
-        result = result + "\n";
-      } elif esc == BYTE_LOWER_R() {
-        result = result + "\r";
-      } elif esc == BYTE_LOWER_T() {
-        result = result + "\t";
-      } elif esc == BYTE_LOWER_U() {
-        if pos + 4 > len { return Err(make_error("unexpected end of input in unicode escape")); }
-        pos = pos + 4;
-        result = result + "\u0000";
-      } else {
-        return Err(make_error("invalid escape character"));
+    match xiom.string.char_at(input, pos) {
+      Some(ch) => {
+        var byte = xiom.convert.char_to_int(ch);
+        if byte == BYTE_QUOTE() {
+          advance();
+          return Ok(result);
+        }
+        if byte == BYTE_BACKSLASH() {
+          advance();
+          if eof() { return Err(make_error("unexpected end of input in string escape")); }
+          match xiom.string.char_at(input, pos) {
+            Some(esc) => {
+              var esc_byte = xiom.convert.char_to_int(esc);
+              advance();
+              if esc_byte == BYTE_QUOTE() {
+                result = xiom.string.str_concat(result, "\"");
+              } elif esc_byte == BYTE_BACKSLASH() {
+                result = xiom.string.str_concat(result, "\\");
+              } elif esc_byte == BYTE_SLASH() {
+                result = xiom.string.str_concat(result, "/");
+              } elif esc_byte == BYTE_LOWER_B() {
+                result = xiom.string.str_concat(result, "\b");
+              } elif esc_byte == BYTE_LOWER_F() {
+                result = xiom.string.str_concat(result, "\f");
+              } elif esc_byte == BYTE_LOWER_N() {
+                result = xiom.string.str_concat(result, "\n");
+              } elif esc_byte == BYTE_LOWER_R() {
+                result = xiom.string.str_concat(result, "\r");
+              } elif esc_byte == BYTE_LOWER_T() {
+                result = xiom.string.str_concat(result, "\t");
+              } elif esc_byte == BYTE_LOWER_U() {
+                if pos + 4 > len { return Err(make_error("unexpected end of input in unicode escape")); }
+                pos = pos + 4;
+                result = xiom.string.str_concat(result, "\u0000");
+              } else {
+                return Err(make_error("invalid escape character"));
+              }
+            }
+            None => return Err(make_error("unexpected end of input in string escape")),
+          }
+        } else {
+          if byte < 32 {
+            return Err(make_error("unescaped control character in string"));
+          }
+          var single = chr_byte(byte);
+          result = xiom.string.str_concat(result, single);
+          advance();
+        }
       }
-    } else {
-      if ch < 32 {
-        return Err(make_error("unescaped control character in string"));
-      }
-      var single = "";
-      single = chr_byte(ch);
-      result = result + single;
-      advance();
+      None => return Err(make_error("unterminated string")),
     }
   }
   return Err(make_error("unterminated string"));
@@ -315,13 +353,16 @@ fn JsonParser.parse_number_value() -> Result[JsonValue, ParseError] {
 
 fn JsonParser.read_digits() -> Int {
   var value: Int = 0;
-  var started = false;
   while pos < len {
-    var ch = input[pos];
-    if ch < BYTE_ZERO() || ch > BYTE_NINE() { return value; }
-    value = value * 10 + (ch - BYTE_ZERO());
-    advance();
-    started = true;
+    match xiom.string.char_at(input, pos) {
+      Some(ch) => {
+        var byte = xiom.convert.char_to_int(ch);
+        if byte < BYTE_ZERO() || byte > BYTE_NINE() { return value; }
+        value = value * 10 + (byte - BYTE_ZERO());
+        advance();
+      }
+      None => return value,
+    }
   }
   return value;
 }
@@ -342,36 +383,76 @@ fn JsonParser.parse_number() -> Result[Float64, ParseError] {
     return Err(make_error("expected digit in number"));
   }
   var frac_val: Float64 = 0.0;
-  var frac_divisor: Float64 = 1.0;
-  if pos < len && input[pos] == BYTE_DOT() {
-    advance();
-    if pos >= len || input[pos] < BYTE_ZERO() || input[pos] > BYTE_NINE() {
-      return Err(make_error("expected digit after decimal point"));
+  if pos < len {
+    match xiom.string.char_at(input, pos) {
+      Some(ch) => {
+        if xiom.convert.char_to_int(ch) == BYTE_DOT() {
+          advance();
+          if pos >= len {
+            return Err(make_error("expected digit after decimal point"));
+          }
+          match xiom.string.char_at(input, pos) {
+            Some(nch) => {
+              var nbyte = xiom.convert.char_to_int(nch);
+              if nbyte < BYTE_ZERO() || nbyte > BYTE_NINE() {
+                return Err(make_error("expected digit after decimal point"));
+              }
+            }
+            None => return Err(make_error("expected digit after decimal point")),
+          }
+          var frac_digits = read_digits();
+          var fd: Float64 = xiom.convert.int_to_float(frac_digits);
+          var divisor: Float64 = 1.0;
+          var temp = frac_digits;
+          while temp > 0 {
+            divisor = divisor * 10.0;
+            temp = temp / 10;
+          }
+          frac_val = fd / divisor;
+        }
+      }
+      None => {},
     }
-    var frac_digits = read_digits();
-    var fd: Float64 = int_to_float64(frac_digits);
-    var divisor: Float64 = 1.0;
-    var temp = frac_digits;
-    while temp > 0 {
-      divisor = divisor * 10.0;
-      temp = temp / 10;
-    }
-    frac_val = fd / divisor;
   }
   var exp_val: Int = 0;
   var exp_neg = false;
-  if pos < len && (input[pos] == BYTE_LOWER_E() || input[pos] == BYTE_UPPER_E()) {
-    advance();
-    if pos < len && input[pos] == BYTE_MINUS() {
-      exp_neg = true;
-      advance();
-    } elif pos < len && input[pos] == BYTE_PLUS() {
-      advance();
+  if pos < len {
+    match xiom.string.char_at(input, pos) {
+      Some(ch) => {
+        var byte = xiom.convert.char_to_int(ch);
+        if byte == BYTE_LOWER_E() || byte == BYTE_UPPER_E() {
+          advance();
+          if pos < len {
+            match xiom.string.char_at(input, pos) {
+              Some(ech) => {
+                var ebyte = xiom.convert.char_to_int(ech);
+                if ebyte == BYTE_MINUS() {
+                  exp_neg = true;
+                  advance();
+                } elif ebyte == BYTE_PLUS() {
+                  advance();
+                }
+              }
+              None => {},
+            }
+          }
+          if pos >= len {
+            return Err(make_error("expected digit in exponent"));
+          }
+          match xiom.string.char_at(input, pos) {
+            Some(dch) => {
+              var dbyte = xiom.convert.char_to_int(dch);
+              if dbyte < BYTE_ZERO() || dbyte > BYTE_NINE() {
+                return Err(make_error("expected digit in exponent"));
+              }
+            }
+            None => return Err(make_error("expected digit in exponent")),
+          }
+          exp_val = read_digits();
+        }
+      }
+      None => {},
     }
-    if pos >= len || input[pos] < BYTE_ZERO() || input[pos] > BYTE_NINE() {
-      return Err(make_error("expected digit in exponent"));
-    }
-    exp_val = read_digits();
   }
   if start == pos {
     return Err(make_error("empty number"));
@@ -379,7 +460,7 @@ fn JsonParser.parse_number() -> Result[Float64, ParseError] {
   if is_neg && start + 1 == pos {
     return Err(make_error("incomplete negative number"));
   }
-  var result: Float64 = int_to_float64(int_val) + frac_val;
+  var result: Float64 = xiom.convert.int_to_float(int_val) + frac_val;
   if exp_val > 0 {
     var mult: Float64 = 1.0;
     var ei: Int = 0;
@@ -392,34 +473,6 @@ fn JsonParser.parse_number() -> Result[Float64, ParseError] {
   }
   if is_neg { result = -result; }
   return Ok(result);
-}
-
-fn int_to_float64(n: Int) -> Float64 {
-  if n == 0 { return 0.0; }
-  var is_neg = n < 0;
-  var val = n;
-  if is_neg { val = -val; }
-  var result: Float64 = 0.0;
-  var mult: Float64 = 1.0;
-  while val > 0 {
-    var d = val % 10;
-    var df: Float64 = 0.0;
-    if d == 0 { df = 0.0; }
-    elif d == 1 { df = 1.0; }
-    elif d == 2 { df = 2.0; }
-    elif d == 3 { df = 3.0; }
-    elif d == 4 { df = 4.0; }
-    elif d == 5 { df = 5.0; }
-    elif d == 6 { df = 6.0; }
-    elif d == 7 { df = 7.0; }
-    elif d == 8 { df = 8.0; }
-    elif d == 9 { df = 9.0; }
-    result = result + df * mult;
-    mult = mult * 10.0;
-    val = val / 10;
-  }
-  if is_neg { return -result; }
-  return result;
 }
 
 fn JsonParser.parse_bool_value() -> Result[JsonValue, ParseError] {
@@ -465,7 +518,7 @@ fn chr_byte(b: Int) -> Str {
 // ============================================================
 
 pub fn json_parse(input: Str) -> Result[JsonValue, ParseError]
-  requires: input.len() > 0
+  requires: xiom.string.str_len(input) > 0
 {
   var parser = JsonParser.new(input);
   var value = parser.parse_value();
@@ -478,7 +531,7 @@ pub fn json_parse(input: Str) -> Result[JsonValue, ParseError]
 }
 
 pub fn json_validate(input: Str) -> Result[Bool, ParseError]
-  requires: input.len() > 0
+  requires: xiom.string.str_len(input) > 0
 {
   var parser = JsonParser.new(input);
   var value = parser.parse_value();
@@ -511,16 +564,21 @@ fn escape_char(ch: Int) -> Str {
 fn stringify_string(s: Str) -> Str {
   var result = "\"";
   var i: Int = 0;
-  while i < s.len() {
-    var ch = s[i];
-    if ch == 34 || ch == 92 || ch < 32 {
-      result = result + escape_char(ch);
-    } else {
-      result = result + chr_byte(ch);
+  while i < xiom.string.str_len(s) {
+    match xiom.string.char_at(s, i) {
+      Some(ch) => {
+        var byte = xiom.convert.char_to_int(ch);
+        if byte == 34 || byte == 92 || byte < 32 {
+          result = xiom.string.str_concat(result, escape_char(byte));
+        } else {
+          result = xiom.string.str_concat(result, chr_byte(byte));
+        }
+      }
+      None => {},
     }
     i = i + 1;
   }
-  result = result + "\"";
+  result = xiom.string.str_concat(result, "\"");
   return result;
 }
 
@@ -533,73 +591,25 @@ fn stringify_number(v: Float64) -> Str {
     num = -num;
   }
   if num >= 1000000000000000.0 {
-    result = result + "0";
+    result = xiom.string.str_concat(result, "0");
     return result;
   }
-  var int_part: Int = float64_to_int(num);
-  var int_str = int_to_str(int_part);
-  result = result + int_str;
-  var frac = num - int_to_float64(int_part);
+  var int_part: Int = xiom.convert.float_to_int(num);
+  var int_str = xiom.convert.int_to_string(int_part);
+  result = xiom.string.str_concat(result, int_str);
+  var frac = num - xiom.convert.int_to_float(int_part);
   if frac > 0.0000000001 {
-    result = result + ".";
+    result = xiom.string.str_concat(result, ".");
     var digits: Int = 0;
     while frac > 0.0000000001 && digits < 15 {
       frac = frac * 10.0;
-      var d: Int = float64_to_int(frac);
-      result = result + digit_char(d);
-      frac = frac - int_to_float64(d);
+      var d: Int = xiom.convert.float_to_int(frac);
+      result = xiom.string.str_concat(result, xiom.convert.int_to_char(d));
+      frac = frac - xiom.convert.int_to_float(d);
       digits = digits + 1;
     }
   }
   return result;
-}
-
-fn float64_to_int(v: Float64) -> Int {
-  if v <= 0.0 { return 0; }
-  if v >= 1000000000.0 { return 1000000000; }
-  var result: Int = 0;
-  var rem = v;
-  while rem >= 1.0 {
-    result = result + 1;
-    rem = rem - 1.0;
-  }
-  return result;
-}
-
-fn int_to_str(n: Int) -> Str {
-  if n == 0 { return "0"; }
-  var is_neg = n < 0;
-  var val = n;
-  if is_neg { val = -val; }
-  var digits = Vec[Int].new();
-  while val > 0 {
-    var d = val % 10;
-    digits.push(d);
-    val = val / 10;
-  }
-  var result = "";
-  if is_neg { result = "-"; }
-  if digits.is_empty() { return "0"; }
-  var i = digits.len() - 1;
-  while i >= 0 {
-    result = result + digit_char(digits[i]);
-    i = i - 1;
-  }
-  return result;
-}
-
-fn digit_char(d: Int) -> Str {
-  if d == 0 { return "0"; }
-  if d == 1 { return "1"; }
-  if d == 2 { return "2"; }
-  if d == 3 { return "3"; }
-  if d == 4 { return "4"; }
-  if d == 5 { return "5"; }
-  if d == 6 { return "6"; }
-  if d == 7 { return "7"; }
-  if d == 8 { return "8"; }
-  if d == 9 { return "9"; }
-  return "0";
 }
 
 fn stringify_indent(depth: Int, config: &JsonPrettyConfig) -> Str {
@@ -607,7 +617,7 @@ fn stringify_indent(depth: Int, config: &JsonPrettyConfig) -> Str {
   var total_spaces = depth * config.indent;
   var i: Int = 0;
   while i < total_spaces {
-    result = result + " ";
+    result = xiom.string.str_concat(result, " ");
     i = i + 1;
   }
   return result;
@@ -628,25 +638,25 @@ fn stringify_value_rec(value: &JsonValue, depth: Int, config: &JsonPrettyConfig,
       if is_pretty {
         var i: Int = 0;
         while i < items.len() {
-          result = result + stringify_indent(depth + 1, config);
-          result = result + stringify_value_rec(&items[i], depth + 1, config, is_pretty);
+          result = xiom.string.str_concat(result, stringify_indent(depth + 1, config));
+          result = xiom.string.str_concat(result, stringify_value_rec(&items[i], depth + 1, config, is_pretty));
           if i < items.len() - 1 {
-            result = result + ",";
+            result = xiom.string.str_concat(result, ",");
           }
           i = i + 1;
         }
-        result = result + stringify_indent(depth, config);
-        result = result + "]";
+        result = xiom.string.str_concat(result, stringify_indent(depth, config));
+        result = xiom.string.str_concat(result, "]");
       } else {
         var i: Int = 0;
         while i < items.len() {
-          result = result + stringify_value_rec(&items[i], depth + 1, config, is_pretty);
+          result = xiom.string.str_concat(result, stringify_value_rec(&items[i], depth + 1, config, is_pretty));
           if i < items.len() - 1 {
-            result = result + ",";
+            result = xiom.string.str_concat(result, ",");
           }
           i = i + 1;
         }
-        result = result + "]";
+        result = xiom.string.str_concat(result, "]");
       }
       return result;
     }
@@ -665,24 +675,24 @@ fn stringify_value_rec(value: &JsonValue, depth: Int, config: &JsonPrettyConfig,
       var i: Int = 0;
       while i < sorted.len() {
         if is_pretty {
-          result = result + stringify_indent(depth + 1, config);
+          result = xiom.string.str_concat(result, stringify_indent(depth + 1, config));
         }
-        result = result + stringify_string(sorted[i].key);
+        result = xiom.string.str_concat(result, stringify_string(sorted[i].key));
         if is_pretty {
-          result = result + ": ";
+          result = xiom.string.str_concat(result, ": ");
         } else {
-          result = result + ":";
+          result = xiom.string.str_concat(result, ":");
         }
-        result = result + stringify_value_rec(&sorted[i].value, depth + 1, config, is_pretty);
+        result = xiom.string.str_concat(result, stringify_value_rec(&sorted[i].value, depth + 1, config, is_pretty));
         if i < sorted.len() - 1 {
-          result = result + ",";
+          result = xiom.string.str_concat(result, ",");
         }
         i = i + 1;
       }
       if is_pretty {
-        result = result + stringify_indent(depth, config);
+        result = xiom.string.str_concat(result, stringify_indent(depth, config));
       }
-      result = result + "}";
+      result = xiom.string.str_concat(result, "}");
       return result;
     }
   }
@@ -735,7 +745,7 @@ pub fn json_stringify_pretty(value: &JsonValue, config: &JsonPrettyConfig) -> St
 // ============================================================
 
 pub fn json_get(obj: &JsonValue, key: Str) -> Option[JsonValue]
-  requires: key.len() > 0
+  requires: xiom.string.str_len(key) > 0
 {
   match obj {
     Object(entries) => {
@@ -781,7 +791,7 @@ pub fn json_get_path(root: &JsonValue, path: &JsonPath) -> Option[JsonValue]
 }
 
 pub fn json_set(obj: &mut JsonValue, key: Str, value: JsonValue) -> Bool
-  requires: key.len() > 0
+  requires: xiom.string.str_len(key) > 0
 {
   match obj {
     Object(entries) => {
@@ -860,7 +870,7 @@ pub fn json_set_path(root: &mut JsonValue, path: &JsonPath, value: JsonValue) ->
 }
 
 pub fn json_remove(obj: &mut JsonValue, key: Str) -> Bool
-  requires: key.len() > 0
+  requires: xiom.string.str_len(key) > 0
 {
   match obj {
     Object(entries) => {
@@ -887,7 +897,7 @@ pub fn json_remove(obj: &mut JsonValue, key: Str) -> Bool
 }
 
 pub fn json_has_key(obj: &JsonValue, key: Str) -> Bool
-  requires: key.len() > 0
+  requires: xiom.string.str_len(key) > 0
 {
   match obj {
     Object(entries) => {
@@ -997,10 +1007,9 @@ pub fn json_schema_validate(value: &JsonValue, schema: &JsonValue) -> Result[Boo
           if prop_val.is_some() {
             var r = json_schema_validate(&prop_val.ok_value(), &prop_schemas[i].value);
             if r.is_err() {
-              var err_msg = "property '";
-              err_msg = err_msg + prop_schemas[i].key;
-              err_msg = err_msg + "': ";
-              err_msg = err_msg + r.err_value();
+              var err_msg = xiom.string.str_concat("property '", prop_schemas[i].key);
+              err_msg = xiom.string.str_concat(err_msg, "': ");
+              err_msg = xiom.string.str_concat(err_msg, r.err_value());
               return Err(err_msg);
             }
           }
@@ -1151,7 +1160,7 @@ pub fn json_array_push(arr: &mut JsonValue, value: JsonValue) {
 }
 
 pub fn json_object_put(obj: &mut JsonValue, key: Str, value: JsonValue)
-  requires: key.len() > 0
+  requires: xiom.string.str_len(key) > 0
 {
   match obj {
     Object(entries) => {
@@ -1178,7 +1187,7 @@ pub fn JsonPath.new() -> JsonPath {
 }
 
 pub fn JsonPath.push_key(key: Str)
-  requires: key.len() > 0
+  requires: xiom.string.str_len(key) > 0
 {
   segments.push(JsonPathSegment.Key(key));
 }
@@ -1188,67 +1197,77 @@ pub fn JsonPath.push_index(index: Int) {
 }
 
 pub fn JsonPath.parse(path_str: Str) -> Result[JsonPath, Str]
-  requires: path_str.len() > 0
+  requires: xiom.string.str_len(path_str) > 0
 {
   var result = JsonPath{ segments: Vec[JsonPathSegment].new() };
-  if path_str.len() == 0 { return Ok(result); }
+  var str_len = xiom.string.str_len(path_str);
+  if str_len == 0 { return Ok(result); }
   var i: Int = 0;
-  if path_str[i] == 36 {
+  if path_byte(path_str, i) == 36 {
     i = i + 1;
   }
-  while i < path_str.len() {
-    if path_str[i] == 46 {
+  while i < str_len {
+    var b = path_byte(path_str, i);
+    if b == 46 {
       i = i + 1;
       var start = i;
-      while i < path_str.len() && path_str[i] != 46 && path_str[i] != 91 {
-        i = i + 1;
+      var scanning = true;
+      while i < str_len && scanning {
+        var cb = path_byte(path_str, i);
+        if cb == 46 || cb == 91 { scanning = false; }
+        else { i = i + 1; }
       }
       if i > start {
         var key = "";
         var j = start;
         while j < i {
-          key = key + chr_byte(path_str[j]);
+          key = xiom.string.str_concat(key, chr_byte(path_byte(path_str, j)));
           j = j + 1;
         }
         result.segments.push(JsonPathSegment.Key(key));
       }
-    } elif path_str[i] == 91 {
+    } elif b == 91 {
       i = i + 1;
-      if i < path_str.len() && path_str[i] == 39 {
+      if i < str_len && path_byte(path_str, i) == 39 {
         i = i + 1;
         var start = i;
-        while i < path_str.len() && path_str[i] != 39 {
-          i = i + 1;
+        var scanning = true;
+        while i < str_len && scanning {
+          if path_byte(path_str, i) == 39 { scanning = false; }
+          else { i = i + 1; }
         }
-        if i >= path_str.len() { return Err("unterminated bracket key"); }
+        if i >= str_len { return Err("unterminated bracket key"); }
         var key = "";
         var j = start;
         while j < i {
-          key = key + chr_byte(path_str[j]);
+          key = xiom.string.str_concat(key, chr_byte(path_byte(path_str, j)));
           j = j + 1;
         }
         result.segments.push(JsonPathSegment.Key(key));
         i = i + 1;
-        if i < path_str.len() && path_str[i] == 93 {
+        if i < str_len && path_byte(path_str, i) == 93 {
           i = i + 1;
         } else {
           return Err("expected ']'");
         }
       } else {
         var start = i;
-        while i < path_str.len() && path_str[i] >= 48 && path_str[i] <= 57 {
-          i = i + 1;
+        var scanning = true;
+        while i < str_len && scanning {
+          var nb = path_byte(path_str, i);
+          if nb >= 48 && nb <= 57 { i = i + 1; }
+          else { scanning = false; }
         }
         if i > start {
           var idx: Int = 0;
           var j = start;
           while j < i {
-            idx = idx * 10 + (path_str[j] - 48);
+            idx = idx * 10 + (path_byte(path_str, j) - 48);
             j = j + 1;
           }
           result.segments.push(JsonPathSegment.Index(idx));
         }
-        if i < path_str.len() && path_str[i] == 93 {
+        if i < str_len && path_byte(path_str, i) == 93 {
           i = i + 1;
         } else {
           return Err("expected ']'");
@@ -1259,6 +1278,13 @@ pub fn JsonPath.parse(path_str: Str) -> Result[JsonPath, Str]
     }
   }
   return Ok(result);
+}
+
+fn path_byte(s: Str, i: Int) -> Int {
+  match xiom.string.char_at(s, i) {
+    Some(ch) => xiom.convert.char_to_int(ch),
+    None => -1,
+  }
 }
 
 // ============================================================

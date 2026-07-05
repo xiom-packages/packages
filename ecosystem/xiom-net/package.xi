@@ -3,5 +3,5 @@ package xiom_net {
   version: "0.1.0";
   description: "XIOM Networking Library — TCP/UDP primitives";
   authors: ["XIOM Team"];
-  deps: {};
+  deps: { "xiom-std": "0.1.0" };
 }

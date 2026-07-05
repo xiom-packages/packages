@@ -338,19 +338,76 @@ End-to-end examples showing real database patterns using the FFI-backed connecti
 
 ---
 
-## FFI Implementation (Layer 4 — COMPLETE)
+## FFI Implementation (Layer 4 — BRIDGE-BACKED, PRODUCTION)
 
-All SQLite3 C FFI functions are declared in `connection.xi` via `extern "C" { }` blocks and called within `unsafe { }` blocks. The binding file `E:\Projects\AXIOM\ecosystem\xiom-sql\sqlite.xiom-bind` provides the library-level declarations.
+All SQLite3 C FFI functions are declared in `connection.xi` via `extern "C" { }` blocks and called within `unsafe { }` blocks. The XIOM FFI bridge (`ffi_bridge.c`) provides the runtime layer for memory management, type conversion, and byte-level pointer access.
+
+### FFI Bridge Architecture
+
+```
+┌─────────────────────────────────┐
+│  connection.xi (XIOM source)    │
+│  ┌───────────────────────────┐  │
+│  │  extern "C" declarations  │  │
+│  │  unsafe { FFI calls }     │  │
+│  └───────────┬───────────────┘  │
+│              │                   │
+│  ┌───────────▼───────────────┐  │
+│  │  ffi_bridge.c             │  │
+│  │  xiom_str_to_cstr()       │  │
+│  │  xiom_alloc() / free()    │  │
+│  │  xiom_read_byte()         │  │
+│  │  xiom_write_byte()        │  │
+│  └───────────┬───────────────┘  │
+│              │                   │
+│  ┌───────────▼───────────────┐  │
+│  │  libsqlite3               │  │
+│  │  sqlite3_open / close     │  │
+│  │  sqlite3_exec / prepare   │  │
+│  │  sqlite3_step / column_*  │  │
+│  └───────────────────────────┘  │
+└─────────────────────────────────┘
+```
+
+### FFI Bridge Functions (ffi_bridge.c)
+
+The following C functions must be compiled and linked into the XIOM runtime. The bridge provides safe conversion between XIOM types and C memory:
+
+| Bridge Function | Signature | Purpose |
+|---|---|---|
+| `xiom_vec_ptr` | `(vec_data: *UInt8) -> *UInt8` | Get raw pointer from a Vec's internal buffer |
+| `xiom_vec_len` | `(vec_data: *UInt8) -> Int` | Get the logical length of a Vec |
+| `xiom_alloc` | `(size: Int) -> *UInt8` | Allocate heap memory (zeroed). Used for output pointers and handle buffers. |
+| `xiom_free_ptr` | `(ptr: *UInt8)` | Free memory allocated by `xiom_alloc` |
+| `xiom_read_byte` | `(buf: *UInt8, offset: Int) -> Int` | Read a single byte (0-255) at offset from a C pointer |
+| `xiom_write_byte` | `(buf: *UInt8, offset: Int, value: Int)` | Write a single byte at offset to a C pointer |
+| `xiom_copy_from_vec` | `(c_buf: *UInt8, vec_data: *UInt8, vec_len: Int, vec_cap: Int, offset: Int, count: Int)` | Bulk copy bytes from a Vec to C memory |
+| `xiom_str_to_cstr` | `(xiom_str: *UInt8, len: Int) -> *UInt8` | Convert XIOM `Str` to null-terminated C string. Returns heap buffer; caller must free with `xiom_free_cstr`. |
+| `xiom_free_cstr` | `(cstr: *UInt8)` | Free a C string created by `xiom_str_to_cstr` |
+| `xiom_ffi_panic` | `(msg: *UInt8)` | Abort execution with a fatal error message. Used for unrecoverable FFI failures. |
+
+### Implementation Pattern
+
+Each public function in `connection.xi` follows this production pattern:
+
+1. **Validate** preconditions with `requires:` clauses
+2. **Convert** XIOM values to C via bridge (`xiom_str_to_cstr` for strings, `xiom_alloc` for output buffers)
+3. **Call** SQLite3 C API within `unsafe { }` blocks
+4. **Check** return code against expected constants (`SQLITE_OK`, `SQLITE_ROW`, `SQLITE_DONE`)
+5. **Convert** C results back to XIOM types (`cstr_to_str` for text, `read_column_value` for variant rows)
+6. **Clean up** all allocated resources with `xiom_free_cstr` and `xiom_free_ptr`
+7. **Return** `Result[T, Str]` with either success value or descriptive error message
+
+### Handle Storage
+
+Database and statement handles are stored as `Int` in XIOM types. On function entry, the `Int` handle is passed to C functions which expect `*UInt8`. The XIOM FFI layer maps `Int` ↔ `*UInt8` at the ABI boundary (both are machine-word-sized). For `sqlite3_open` and `sqlite3_prepare_v2`, which write output handles, the pattern uses `xiom_alloc(PTR_SIZE)` to create a buffer, passes it as the `**db` / `**stmt` parameter, then reads the 8 bytes back with `read_ptr_from_buf` to reconstruct the handle as `Int`.
 
 ### Runtime Functions Required
 
-The following XIOM runtime intrinsics are called by `connection.xi` and must be provided by the XIOM compiler/runtime:
+The following XIOM runtime intrinsics are still required for internal XIOM-to-XIOM conversions (not FFI):
 
 | Runtime Function | Purpose |
 |---|---|
-| `native.str_to_c(str: Str) -> *UInt8` | Converts XIOM `Str` to null-terminated C string. Returns heap-allocated buffer freed automatically or via explicit free. |
-| `native.addr_of(var: T) -> *UInt8` | Returns the address of a local variable cast to `*UInt8`, used to pass output pointers to C functions. |
-| `native.read_u8(ptr: *UInt8) -> Int` | Reads a single byte (0-255) from the given pointer. Used in `cstr_to_str` and blob reading. |
 | `native.byte_to_char(byte: Int) -> Str` | Converts a single byte value to a single-character XIOM `Str`. Used in `cstr_to_str`. |
 | `native.codepoint_to_char(cp: Int) -> Str` | Converts a Unicode codepoint to a single-character `Str`. Used in `int_to_str`. |
 
@@ -388,16 +445,39 @@ brew install sqlite
 ```
 macOS ships with libsqlite3 built-in at `/usr/lib/libsqlite3.dylib`.
 
-### 2. Build Configuration
+### 2. Build the FFI Bridge
+
+The `ffi_bridge.c` file must be compiled to an object file before linking:
+
+**Linux / macOS:**
+```sh
+gcc -c -fPIC -o ffi_bridge.o ffi_bridge.c
+```
+
+**Windows (MinGW):**
+```sh
+gcc -c -o ffi_bridge.o ffi_bridge.c
+```
+
+**Windows (MSVC):**
+```sh
+cl /c /Fo:ffi_bridge.obj ffi_bridge.c
+```
+
+### 3. Build Configuration
 
 Add to your `kilo.json` or XIOM project config:
 
 ```json
 {
   "ffi": {
+    "bridge": {
+      "source": "ecosystem/xiom-sqlite/ffi_bridge.c",
+      "object": "ecosystem/xiom-sqlite/ffi_bridge.o"
+    },
     "libraries": {
       "sqlite3": {
-        "bind": "ecosystem/xiom-sql/sqlite.xiom-bind",
+        "bind": "ecosystem/xiom-sqlite/src/connection.xi",
         "link": "sqlite3",
         "search_paths": ["/usr/lib", "/usr/local/lib"]
       }
@@ -406,33 +486,43 @@ Add to your `kilo.json` or XIOM project config:
 }
 ```
 
-### 3. Linker Flags
+### 4. Linker Flags
 
 The XIOM compiler must be invoked with the appropriate linker flags:
 
 **Linux / macOS:**
 ```sh
-xiom build --link sqlite3
+xiom build ecosystem/xiom-sqlite \
+  --bridge ecosystem/xiom-sqlite/ffi_bridge.o \
+  --link sqlite3
 ```
 
 **Windows (MinGW):**
 ```sh
-xiom build --link sqlite3 --link-path /mingw64/lib
+xiom build ecosystem/xiom-sqlite \
+  --bridge ecosystem/xiom-sqlite/ffi_bridge.o \
+  --link sqlite3 --link-path /mingw64/lib
 ```
 
 **Windows (MSVC):**
 ```sh
-xiom build --link sqlite3.lib
+xiom build ecosystem/xiom-sqlite \
+  --bridge ecosystem/xiom-sqlite/ffi_bridge.obj \
+  --link sqlite3.lib
 ```
 
-### 4. Verification
+### 5. Verification
 
-Run the demo to verify the FFI is linked correctly:
+Run the demo to verify the FFI bridge and SQLite3 are linked correctly:
 ```sh
 xiom run ecosystem/xiom-sqlite/src/demo.xi --fn demo_in_memory
 ```
 
-Expected output: no errors, all CRUD operations succeed silently. A successful run confirms the FFI bridge to `libsqlite3` is operational.
+Expected output: no errors, all CRUD operations succeed silently. A successful run confirms:
+1. The `ffi_bridge.o` is linked and functional
+2. `libsqlite3` FFI calls resolve correctly
+3. Memory management (alloc/free) works without leaks or crashes
+4. All type conversions between XIOM and C types produce correct values
 
 ---
 
@@ -544,4 +634,4 @@ ecosystem/xiom-sqlite/
 3. **Column name retrieval**: `sqlite3_column_name` is not yet called during `sqlite_query`. Column names can be obtained by adding `PRAGMA table_info` queries.
 4. **Blob size limit**: Large blobs may exceed the implicit size tracking. Use `sqlite3_column_bytes` for exact sizes.
 5. **Thread safety**: SQLite threading mode must be configured at compile time (`SQLITE_THREADSAFE`). The XIOM FFI layer does not add its own synchronization.
-6. **C string conversion**: The `native.str_to_c` / `native.addr_of` / `native.read_u8` runtime intrinsics are assumed present. See **Runtime Functions Required** above.
+6. **Pointer dereference**: XIOM cannot directly dereference `*UInt8` to read pointer-sized values. The `read_ptr_from_buf` helper reconstructs 64-bit handles by reading 8 bytes sequentially via `xiom_read_byte` and reconstructing via multiplication. This is correct but does not handle endianness differences between architectures (big-endian systems would require a different byte order). The current implementation assumes little-endian (x86_64, ARM64).

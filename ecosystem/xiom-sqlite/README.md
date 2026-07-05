@@ -133,8 +133,8 @@ Every FFI boundary guarded:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| SQLite3 open/close | ✅ Production | FFI code written |
-| SQL execute | ✅ Production | Direct exec |
+| SQLite3 open/close | ✅ Production | FFI bridge integrated, requires ffi_bridge.c |
+| SQL execute | ✅ Production | FFI bridge integrated |
 | SQL query (rows) | ✅ Production | Full column type dispatch |
 | Prepared statements | ✅ Production | Full lifecycle |
 | Schema builder | ✅ Complete | Pure XIOM |
@@ -151,8 +151,17 @@ Every FFI boundary guarded:
 ### What's Left for v1.0
 1. **Connection pooling** — multi-threaded connection management
 2. **ORM layer** — type-safe row mapping (blocked on compiler generics)
-3. **Runtime intrinsics** — `native.str_to_c`, `native.addr_of`, `native.read_u8` needed for FFI
-4. **Full-text search** — FTS5 bindings
+3. **Full-text search** — FTS5 bindings
+
+## Build & Run
+
+```bash
+# Compile with FFI bridge and system libraries
+xiomc myprogram.xi ../runtime/ffi_bridge.c -l sqlite3 -o myprogram.exe
+./myprogram.exe
+```
+
+> Requires ffi_bridge.c to be compiled alongside. The FFI bridge provides `xiom_alloc`, `xiom_free_ptr`, `xiom_read_byte`, `xiom_write_byte`, `xiom_str_to_cstr`, and `xiom_free_cstr` across the FFI boundary.
 
 ## Links
 

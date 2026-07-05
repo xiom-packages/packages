@@ -132,7 +132,7 @@ Every public function is guarded:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| HTTP GET/POST/PUT/DELETE (libcurl) | ✅ Production | FFI code written, needs runtime intrinsics |
+| HTTP GET/POST/PUT/DELETE (libcurl) | ✅ Production | FFI bridge integrated, requires ffi_bridge.c |
 | HTTP message parser | ✅ Complete | Pure XIOM, RFC 7230 compliant |
 | URL parser/encoder | ✅ Complete | RFC 3986 compliant |
 | Cookie parser | ✅ Complete | RFC 6265 compliant |
@@ -151,7 +151,16 @@ Every public function is guarded:
 1. **HTTP server** — wire up via xiom-net TCP sockets
 2. **Streaming/chunked responses** — incremental body reading
 3. **Multipart form uploads** — file upload support
-4. **Runtime intrinsics** — `@axiom_vec_to_ptr`, `c_str()` conversion for FFI
+
+## Build & Run
+
+```bash
+# Compile with FFI bridge and libcurl
+xiomc myprogram.xi ../runtime/ffi_bridge.c -l curl -o myprogram.exe
+./myprogram.exe
+```
+
+> Requires ffi_bridge.c to be compiled alongside. The FFI bridge provides `xiom_alloc`, `xiom_free_ptr`, `xiom_read_byte`, `xiom_write_byte`, `xiom_str_to_cstr`, and `xiom_free_cstr` across the FFI boundary.
 
 ## Links
 
