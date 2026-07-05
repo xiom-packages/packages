@@ -2,10 +2,17 @@ xiom-crypto: XIOM Cryptography Library v0.1.0
 
 == Overview ==
 
-xiom-crypto is a pure-XIOM cryptographic library providing hashing, symmetric encryption,
+xiom-crypto is the XIOM Cryptography Library providing hashing, symmetric encryption,
 encoding, random number generation, key derivation, and digital signature primitives.
-All implementations are self-contained (no FFI dependencies) and serve as reference
-implementations for the XIOM ecosystem.
+
+Two tiers of implementation are provided:
+  - FFI Tier (crypto.xi): Production-grade bindings to OpenSSL via extern "C",
+    offering SHA-256, SHA-512, MD5, HMAC-SHA256, CSPRNG (RAND_bytes), Base64,
+    and Hex encoding.
+  - Pure-XIOM Tier (src/): Self-contained reference implementations for SHA,
+    MD5, AES, Base64, Hex, Xorshift PRNG, PBKDF2, HKDF, and Ed25519 stubs.
+    Serves as verification-grade code and educational reference for the XIOM
+    ecosystem.
 
 Layer: 3.4 (Ecosystem Libraries)
 Package: xiom-crypto
@@ -13,17 +20,197 @@ Namespace: xiom.crypto.*
 
 == Module Architecture ==
 
-xiom.crypto.hash      Fast non-cryptographic hashes (DJB2, FNV-1a, MurmurHash3)
-xiom.crypto.sha       SHA-256 and SHA-512 with HMAC
-xiom.crypto.md5       MD5 hash (legacy compatibility)
-xiom.crypto.aes       AES-128/256 block cipher (ECB mode)
-xiom.crypto.b64       Base64 and Base64URL encoding/decoding
-xiom.crypto.hex       Hexadecimal encoding/decoding
-xiom.crypto.random    Xorshift PRNG family
-xiom.crypto.pbkdf     PBKDF2-HMAC-SHA256 and HKDF-SHA256
-xiom.crypto.ed25519   Ed25519 signature types (stubs)
+xiom.crypto            FFI-backed production bindings (OpenSSL via extern "C")
+xiom.crypto.demo       Usage examples and smoke tests for the FFI tier
+xiom.crypto.hash       Fast non-cryptographic hashes (DJB2, FNV-1a, MurmurHash3)
+xiom.crypto.sha        SHA-256 and SHA-512 with HMAC (pure XIOM)
+xiom.crypto.md5        MD5 hash (legacy compatibility, pure XIOM)
+xiom.crypto.aes        AES-128/256 block cipher (ECB mode, pure XIOM)
+xiom.crypto.b64        Base64 and Base64URL encoding/decoding (pure XIOM)
+xiom.crypto.hex        Hexadecimal encoding/decoding (pure XIOM)
+xiom.crypto.random     Xorshift PRNG family (pure XIOM)
+xiom.crypto.pbkdf      PBKDF2-HMAC-SHA256 and HKDF-SHA256 (pure XIOM)
+xiom.crypto.ed25519    Ed25519 signature types (stubs)
+
+== OpenSSL Runtime Dependency ==
+
+The root `xiom.crypto` module (crypto.xi) links against OpenSSL's libcrypto
+at runtime for hardware-accelerated hashing and cryptographically secure
+random number generation. The pure-XIOM src/ modules have no external
+dependencies.
+
+Required FFI symbols:
+  SHA256, SHA512, MD5      — libcrypto (one-shot digest)
+  RAND_bytes               — libcrypto (CSPRNG)
+
+=== Linux (Debian/Ubuntu) ===
+
+  sudo apt update
+  sudo apt install libssl-dev
+
+The XIOM runtime resolver loads libcrypto.so.3 (or libcrypto.so.1.1 on older
+systems). Verify the library is on the linker path:
+
+  ldconfig -p | grep libcrypto
+
+=== Linux (Fedora/RHEL) ===
+
+  sudo dnf install openssl-devel
+
+=== Linux (Arch) ===
+
+  sudo pacman -S openssl
+
+=== macOS ===
+
+OpenSSL is not shipped by default on macOS. Install via Homebrew:
+
+  brew install openssl@3
+
+Add the library to the linker search path (Homebrew keg-only default):
+
+  export LIBRARY_PATH="/opt/homebrew/opt/openssl@3/lib:$LIBRARY_PATH"
+  export LD_LIBRARY_PATH="/opt/homebrew/opt/openssl@3/lib:$LD_LIBRARY_PATH"
+
+On Intel Macs, use /usr/local/homebrew/opt/openssl@3/lib instead.
+
+Verify:
+
+  ls /opt/homebrew/opt/openssl@3/lib/libcrypto.dylib
+
+=== Windows ===
+
+Option A — vcpkg (recommended)
+
+  git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
+  cd C:\vcpkg
+  .\bootstrap-vcpkg.bat
+  .\vcpkg install openssl:x64-windows
+
+Set environment variables for the XIOM linker:
+
+  set OPENSSL_DIR=C:\vcpkg\packages\openssl_x64-windows
+  set PATH=%OPENSSL_DIR%\bin;%PATH%
+
+Option B — Pre-built binaries (SlikSVN / Shining Light Productions)
+
+  1. Download "Win64 OpenSSL v3.x" installer from https://slproweb.com/products/Win32OpenSSL.html
+  2. Run the installer and choose "Copy OpenSSL DLLs to /bin directory"
+  3. Verify: where libcrypto-3-x64.dll
+
+Option C — MSYS2 / MinGW
+
+  pacman -S mingw-w64-x86_64-openssl
+
+Verify after any method:
+
+  XIOM loads libcrypto-3-x64.dll (or libcrypto-1_1-x64.dll) from PATH.
+
+=== XIOM FFI Link-Time Resolution ===
+
+At build time, the XIOM compiler emits a dynamic symbol reference for
+each function declared in `extern "C" { }` blocks. The runtime loader
+resolves these symbols against the system libcrypto using:
+
+  Linux:   dlopen("libcrypto.so.3", RTLD_NOW)
+  macOS:   dlopen("libcrypto.3.dylib", RTLD_NOW)
+  Windows: LoadLibraryA("libcrypto-3-x64.dll")
+
+If the library cannot be found, the module will fail to load and return
+a linker error at module initialization time.
+
+=== Runtime Intrinsics Required ===
+
+The following XIOM runtime intrinsics are required before the FFI tier is
+fully operational (all marked PENDING in crypto.xi):
+
+  @axiom_vec_to_ptr(v: &Vec[Int]) -> *UInt8
+    Returns a pointer to the Vec backing store. No copy — the pointer is
+    valid for the duration of the FFI call within the unsafe block.
+
+  @axiom_alloc(size: UInt) -> *UInt8
+    Allocates `size` zeroed bytes on the native heap. Caller frees manually.
+
+  @axiom_read_u8(ptr: *UInt8, offset: UInt) -> Int
+    Reads one unsigned byte at ptr+offset, zero-extended to XIOM Int.
+
+  @axiom_free(ptr: *UInt8)
+    Releases a native heap allocation returned by @axiom_alloc.
+
+  @axiom_str_char_code(s: Str, pos: Int) -> Int
+    Returns the Unicode code point at position `pos` in string `s`.
+    Used for character-by-character String iteration in base64/hex decode.
+
+These intrinsics must be implemented in the XIOM runtime (Layer 0) and
+exposed to the compiler before crypto.xi can execute FFI code paths.
 
 == Module Specifications ==
+
+=== 0. xiom.crypto -- FFI Production Bindings ===
+
+The root crypto.xi module provides production-quality cryptographic
+primitives backed by the system OpenSSL library. All functions in this
+module delegate to libcrypto via extern "C" FFI where applicable.
+Encoding functions (Base64, Hex) are pure XIOM with no FFI dependency.
+
+Functions:
+
+  sha256(data: &Vec[Int]) -> Vec[Int]
+    SHA-256 one-shot hash via libcrypto SHA256(). Returns 32 bytes.
+    PENDING: @axiom_vec_to_ptr, @axiom_alloc, @axiom_read_u8, @axiom_free.
+
+  sha256_hex(data: &Vec[Int]) -> Str
+    Convenience: sha256() piped through hex_encode(). 64 hex chars.
+
+  sha512(data: &Vec[Int]) -> Vec[Int]
+    SHA-512 hash via libcrypto SHA512(). Returns 64 bytes.
+    PENDING: Same intrinsics as sha256.
+
+  sha512_hex(data: &Vec[Int]) -> Str
+    Convenience: sha512() piped through hex_encode(). 128 hex chars.
+
+  md5(data: &Vec[Int]) -> Vec[Int]
+    MD5 hash via libcrypto MD5(). Returns 16 bytes.
+    PENDING: Same intrinsics as sha256.
+
+  md5_hex(data: &Vec[Int]) -> Str
+    Convenience: md5() piped through hex_encode(). 32 hex chars.
+
+  hmac_sha256(data: &Vec[Int], key: &Vec[Int]) -> Vec[Int]
+    HMAC-SHA256 per RFC 2104. Uses sha256() (FFI-backed) internally.
+    Key is padded/hashed to the SHA-256 block size (64 bytes).
+    The HMAC algorithm itself is pure XIOM — no additional C function needed.
+
+  random_bytes(count: Int) -> Result[Vec[Int], Str]
+    Cryptographically secure random bytes via OpenSSL RAND_bytes().
+    Returns count bytes, or Err if the entropy source is unavailable.
+    PENDING: @axiom_alloc, @axiom_read_u8, @axiom_free.
+
+  base64_encode(data: &Vec[Int]) -> Str
+    RFC 4648 standard Base64 with + / and = padding. Pure XIOM.
+
+  base64_decode(input: Str) -> Result[Vec[Int], Str]
+    Decode standard Base64. Returns Err on invalid length or characters.
+    Pure XIOM. PENDING: @axiom_str_char_code for string indexing.
+
+  hex_encode(data: &Vec[Int]) -> Str
+    Lowercase hex encoding. Pure XIOM.
+
+  hex_decode(input: Str) -> Result[Vec[Int], Str]
+    Decode hex string to bytes. Returns Err on odd length or invalid chars.
+    Pure XIOM. PENDING: @axiom_str_char_code for string indexing.
+
+=== 0.1. xiom.crypto.demo -- Usage Examples ===
+
+  demo_hash() -> Result[Unit, Str]
+    Computes SHA-256 of "Hello World" (ASCII bytes), produces hex string.
+    Expected: a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e
+
+  demo_random() -> Result[Unit, Str]
+    Generates 16 cryptographically random bytes, encodes as hex.
+
+  demo_hmac() -> Result[Unit, Str]
+    Computes HMAC-SHA256 of "Hello World" with key "secret".
 
 === 1. xiom.crypto.hash -- Fast Hashes ===
 
@@ -166,9 +353,13 @@ Dependencies (not yet available):
 1. ECB Mode Only: AES implements single-block ECB. CBC/CTR/GCM not yet available.
 2. No Authenticated Encryption: AES-GCM and ChaCha20-Poly1305 not implemented.
 3. Deterministic PRNG: Xorshift is not cryptographically secure without hardware seed.
+   The FFI tier's random_bytes() provides CSPRNG via OpenSSL RAND_bytes.
 4. Ed25519 Stubs: Full Ed25519 requires Layer 2 (big integer math) completion.
-5. No Constant-Time Guarantees: Implementations are educational/verification grade.
+5. No Constant-Time Guarantees: Pure-XIOM implementations are educational grade.
 6. No Side-Channel Protection: Not hardened against timing or power analysis.
+7. FFI Tier Pending: The root crypto.xi FFI bindings depend on Layer 0 runtime
+   intrinsics (@axiom_vec_to_ptr, @axiom_alloc, @axiom_read_u8, @axiom_free).
+   Until these are available, the FFI code paths are stubbed and return zeros.
 
 == API Conventions ==
 

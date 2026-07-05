@@ -274,3 +274,99 @@ fn str_to_int(s: Str) -> Int {
   };
   return result;
 }
+
+pub const AF_INET: Int = 2;
+pub const SOCK_STREAM: Int = 1;
+pub const SOCK_DGRAM: Int = 2;
+pub const INADDR_ANY: Int = 0;
+pub const INVALID_SOCKET: Int = -1;
+pub const SOCKET_ERROR: Int = -1;
+pub const SOMAXCONN: Int = 128;
+
+fn htons(host: Int) -> Int {
+  var hi: Int = (host >> 8) & 0xFF;
+  var lo: Int = host & 0xFF;
+  return (lo << 8) | hi;
+}
+
+fn ntohs(net: Int) -> Int {
+  return htons(net);
+}
+
+fn build_u32_be(a: Int, b: Int, c: Int, d: Int) -> Int {
+  return (a << 24) | (b << 16) | (c << 8) | d;
+}
+
+pub fn build_sockaddr_in(addr: &SocketAddr) -> Vec[Int]
+  requires: addr.ip.version == 4
+  requires: addr.ip.octets.len() == 4
+{
+  var buf = Vec[Int].new();
+  var port_net: Int = htons(addr.port);
+  buf.push(AF_INET & 0xFF);
+  buf.push((AF_INET >> 8) & 0xFF);
+  buf.push(port_net & 0xFF);
+  buf.push((port_net >> 8) & 0xFF);
+  buf.push(addr.ip.octets[0]);
+  buf.push(addr.ip.octets[1]);
+  buf.push(addr.ip.octets[2]);
+  buf.push(addr.ip.octets[3]);
+  var z: Int = 0;
+  while z < 8 {
+    buf.push(0);
+    z = z + 1;
+  };
+  return buf;
+}
+
+pub fn build_sockaddr_in_any(port: Int) -> Vec[Int]
+  requires: port >= 0 && port <= 65535
+{
+  var any_addr = ipv4(0, 0, 0, 0);
+  var addr = socket_addr(any_addr, port);
+  return build_sockaddr_in(&addr);
+}
+
+pub fn parse_sockaddr_in(raw: &Vec[Int]) -> Result[SocketAddr, Str] {
+  if raw.len() < 16 { return Err("sockaddr_in too short — need 16 bytes"); };
+  var port_lo: Int = raw[2];
+  var port_hi: Int = raw[3];
+  var port_net: Int = (port_hi << 8) | port_lo;
+  var port: Int = ntohs(port_net);
+  var a: Int = raw[4];
+  var b: Int = raw[5];
+  var c: Int = raw[6];
+  var d: Int = raw[7];
+  var ip = ipv4(a, b, c, d);
+  return Ok(socket_addr(ip, port));
+}
+
+pub fn ws_error_to_str(code: Int) -> Str {
+  if code == 10013 { return "permission denied"; }
+  elif code == 10022 { return "invalid argument"; }
+  elif code == 10035 { return "would block"; }
+  elif code == 10036 { return "in progress"; }
+  elif code == 10037 { return "already in progress"; }
+  elif code == 10038 { return "not a socket"; }
+  elif code == 10039 { return "destination address required"; }
+  elif code == 10040 { return "message too long"; }
+  elif code == 10047 { return "address family not supported"; }
+  elif code == 10048 { return "address in use"; }
+  elif code == 10049 { return "address not available"; }
+  elif code == 10050 { return "network down"; }
+  elif code == 10051 { return "network unreachable"; }
+  elif code == 10052 { return "network reset"; }
+  elif code == 10053 { return "connection aborted"; }
+  elif code == 10054 { return "connection reset"; }
+  elif code == 10055 { return "no buffer space"; }
+  elif code == 10056 { return "already connected"; }
+  elif code == 10057 { return "not connected"; }
+  elif code == 10060 { return "connection timed out"; }
+  elif code == 10061 { return "connection refused"; }
+  elif code == 10064 { return "host down"; }
+  elif code == 10065 { return "host unreachable"; }
+  elif code == 10091 { return "network subsystem unavailable"; }
+  elif code == 10092 { return "Winsock version not supported"; }
+  elif code == 10093 { return "WSAStartup not called"; };
+  return "unknown socket error";
+}

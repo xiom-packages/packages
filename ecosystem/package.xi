@@ -31,6 +31,8 @@ package xiom_ecosystem {
     "xiom-vector",
     "xiom-algo",
     "xiom-net",
-    "xiom-sqlite"
+    "xiom-sqlite",
+    "xiom-imgui",
+    "xiom-ui"
   ];
 }

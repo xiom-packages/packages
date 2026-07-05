@@ -8,6 +8,8 @@ package xiom_crypto {
   description: "XIOM Cryptography Library — Layer 3.4: Pure-XIOM Hashing, Encryption, Encoding, and Key Derivation";
   authors: ["XIOM Team"];
   modules: [
+    "xiom.crypto",
+    "xiom.crypto.demo",
     "xiom.crypto.hash",
     "xiom.crypto.sha",
     "xiom.crypto.md5",
