@@ -157,7 +157,8 @@ fn char_to_str(c: Int) -> Str {
   return "?";
 }
 
-pub fn url_parse(input: Str) -> Result[Url, Str] {
+pub fn url_parse(input: Str) -> Result[Url, Str]
+  requires: input.len() > 0 {
   var scheme: Str = "";
   var host: Str = "";
   var port: Int = 0;
@@ -358,7 +359,8 @@ pub fn url_to_str(url: &Url) -> Str {
   return s;
 }
 
-pub fn url_encode(s: Str) -> Str {
+pub fn url_encode(s: Str) -> Str
+  requires: s.len() > 0 {
   var result: Str = "";
   var i: Int = 0;
   var len: Int = @axiom_str_len(s);
@@ -377,7 +379,8 @@ pub fn url_encode(s: Str) -> Str {
   return result;
 }
 
-pub fn url_decode(s: Str) -> Result[Str, Str] {
+pub fn url_decode(s: Str) -> Result[Str, Str]
+  requires: s.len() > 0 {
   var result: Str = "";
   var i: Int = 0;
   var len: Int = @axiom_str_len(s);
@@ -408,7 +411,8 @@ pub fn url_decode(s: Str) -> Result[Str, Str] {
   return Ok(result);
 }
 
-pub fn path_join(base: Str, relative: Str) -> Str {
+pub fn path_join(base: Str, relative: Str) -> Str
+  requires: base.len() > 0 {
   var base_len: Int = @axiom_str_len(base);
   var rel_len: Int = @axiom_str_len(relative);
   if rel_len == 0 { return base; }

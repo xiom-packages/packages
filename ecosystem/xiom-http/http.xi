@@ -219,7 +219,8 @@ fn perform_and_collect(handle: Int, body_file: *UInt8, header_file: *UInt8) -> R
   return Ok(Unit);
 }
 
-pub fn http_get(url: Str) -> Result[HttpResponse, Str] {
+pub fn http_get(url: Str) -> Result[HttpResponse, Str]
+  requires: url.len() > 0 {
   var handle: Int = curl_easy_init();
   if handle == 0 {
     return Err("curl_easy_init returned null handle");
@@ -267,7 +268,8 @@ pub fn http_get(url: Str) -> Result[HttpResponse, Str] {
   };
 }
 
-pub fn http_post(url: Str, body: Str, content_type: Str) -> Result[HttpResponse, Str] {
+pub fn http_post(url: Str, body: Str, content_type: Str) -> Result[HttpResponse, Str]
+  requires: url.len() > 0 {
   var handle: Int = curl_easy_init();
   if handle == 0 {
     return Err("curl_easy_init returned null handle");
@@ -344,7 +346,8 @@ pub fn http_post(url: Str, body: Str, content_type: Str) -> Result[HttpResponse,
   };
 }
 
-pub fn http_put(url: Str, body: Str) -> Result[HttpResponse, Str] {
+pub fn http_put(url: Str, body: Str) -> Result[HttpResponse, Str]
+  requires: url.len() > 0 {
   var handle: Int = curl_easy_init();
   if handle == 0 {
     return Err("curl_easy_init returned null handle");
@@ -411,7 +414,8 @@ pub fn http_put(url: Str, body: Str) -> Result[HttpResponse, Str] {
   };
 }
 
-pub fn http_delete(url: Str) -> Result[HttpResponse, Str] {
+pub fn http_delete(url: Str) -> Result[HttpResponse, Str]
+  requires: url.len() > 0 {
   var handle: Int = curl_easy_init();
   if handle == 0 {
     return Err("curl_easy_init returned null handle");
@@ -466,7 +470,9 @@ pub fn http_delete(url: Str) -> Result[HttpResponse, Str] {
   };
 }
 
-pub fn http_download(url: Str, path: Str) -> Result[Unit, Str] {
+pub fn http_download(url: Str, path: Str) -> Result[Unit, Str]
+  requires: url.len() > 0
+  requires: path.len() > 0 {
   var handle: Int = curl_easy_init();
   if handle == 0 {
     return Err("curl_easy_init returned null handle");

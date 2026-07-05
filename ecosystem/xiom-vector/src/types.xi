@@ -23,7 +23,7 @@ pub enum DistanceMetric {
 
 pub fn Vector.new(dimension: UInt) -> Vector
   requires: dimension > 0
-  ensures: data.len() == dimension
+  ensures: result.data.len() == dimension
 {
   var data_vec = Vec[Float32].new();
   var i: UInt = 0;
@@ -128,7 +128,8 @@ pub fn vector_magnitude(v: &Vector) -> Float32 {
   return sqrt_f32(sum_sq);
 }
 
-pub fn vector_normalize(v: &Vector) -> Vector {
+pub fn vector_normalize(v: &Vector) -> Vector
+  requires: vector_magnitude(&v) > 0.0 {
   var mag = vector_magnitude(v);
   var result = Vector.new(v.dimension);
   var i: UInt = 0;

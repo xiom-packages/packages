@@ -85,7 +85,9 @@ fn str_to_int_part(s: Str, start: Int, end: Int) -> Result[(Int, Int), Str] {
   return Ok((result, consumed));
 }
 
-pub fn ipv4_from_str(s: Str) -> Result[IpAddr, Str] {
+pub fn ipv4_from_str(s: Str) -> Result[IpAddr, Str]
+  requires: s.len() > 0
+{
   var octets = Vec[Int].new();
   var i: Int = 0;
   var len: Int = s.len();
@@ -190,12 +192,15 @@ pub fn ipv4_to_str(ip: &IpAddr) -> Str
 }
 
 pub fn socket_addr(ip: IpAddr, port: Int) -> SocketAddr
-  requires: port >= 0 && port <= 65535
+  requires: port > 0
+  requires: port < 65536
 {
   return SocketAddr{ ip: ip, port: port };
 }
 
-pub fn socket_addr_from_str(s: Str) -> Result[SocketAddr, Str] {
+pub fn socket_addr_from_str(s: Str) -> Result[SocketAddr, Str]
+  requires: s.len() > 0
+{
   var len: Int = s.len();
   var colon_pos: Int = -1;
   var i: Int = 0;

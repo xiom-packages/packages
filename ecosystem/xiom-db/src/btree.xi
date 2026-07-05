@@ -27,7 +27,9 @@ fn new_internal_node() -> BTreeNode {
   return BTreeNode{ keys: keys, values: values, children: children, is_leaf: false };
 }
 
-pub fn btree_new(order: Int) -> BTree {
+pub fn btree_new(order: Int) -> BTree
+  requires: order >= 3
+{
   var nodes = Vec[BTreeNode].new();
   var leaf = new_leaf_node();
   nodes.push(leaf);
@@ -478,7 +480,9 @@ fn borrow_from_right(tree: &mut BTree, parent_idx: Int, child_pos: Int) {
   tree.nodes[right_idx] = right;
 }
 
-pub fn btree_range_query(tree: &BTree, low: Int, high: Int) -> Vec[Int] {
+pub fn btree_range_query(tree: &BTree, low: Int, high: Int) -> Vec[Int]
+  requires: low <= high
+{
   var results = Vec[Int].new();
   collect_range(tree, tree.root, low, high, results);
   return results;

@@ -30,11 +30,15 @@ pub fn query_where(q: &mut Query, op: QueryOp, value: Int) {
   q.conditions.push(cond);
 }
 
-pub fn query_limit(q: &mut Query, limit: Int) {
+pub fn query_limit(q: &mut Query, limit: Int)
+  requires: limit > 0
+{
   q.limit = limit;
 }
 
-pub fn query_offset(q: &mut Query, offset: Int) {
+pub fn query_offset(q: &mut Query, offset: Int)
+  requires: offset >= 0
+{
   q.offset = offset;
 }
 

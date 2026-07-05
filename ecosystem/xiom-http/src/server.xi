@@ -11,7 +11,10 @@ pub type HttpHandler = {
   method: HttpMethod;
 }
 
-pub fn server_new(addr: Str, port: Int) -> HttpServer {
+pub fn server_new(addr: Str, port: Int) -> HttpServer
+  requires: addr.len() > 0
+  requires: port > 0
+  requires: port < 65536 {
   return HttpServer{
     addr: addr,
     port: port,

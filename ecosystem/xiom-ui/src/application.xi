@@ -9,7 +9,10 @@ pub type UIApp = {
   render_list: RenderList;
 }
 
-pub fn UIApp.new(title: Str, w: Float32, h: Float32) -> UIApp {
+pub fn UIApp.new(title: Str, w: Float32, h: Float32) -> UIApp
+  requires: title.len() > 0
+  requires: w > 0.0
+  requires: h > 0.0 {
   return UIApp{
     running: true,
     width: w,

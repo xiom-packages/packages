@@ -105,7 +105,9 @@ pub fn LayoutContext.next_column(width: Float32) {
   cursor_y = y;
 }
 
-pub fn layout_row(ctx: &mut LayoutContext, height: Float32, count: Int) -> Vec[Rect] {
+pub fn layout_row(ctx: &mut LayoutContext, height: Float32, count: Int) -> Vec[Rect]
+  requires: height > 0.0
+  requires: count > 0 {
   var result = Vec[Rect].new();
   if count <= 0 { return result; }
   var total_spacing = int_to_float32(count - 1) * ctx.spacing;
@@ -122,7 +124,9 @@ pub fn layout_row(ctx: &mut LayoutContext, height: Float32, count: Int) -> Vec[R
   return result;
 }
 
-pub fn layout_column(ctx: &mut LayoutContext, width: Float32, count: Int) -> Vec[Rect] {
+pub fn layout_column(ctx: &mut LayoutContext, width: Float32, count: Int) -> Vec[Rect]
+  requires: width > 0.0
+  requires: count > 0 {
   var result = Vec[Rect].new();
   if count <= 0 { return result; }
   var total_spacing = int_to_float32(count - 1) * ctx.spacing;
@@ -139,7 +143,9 @@ pub fn layout_column(ctx: &mut LayoutContext, width: Float32, count: Int) -> Vec
   return result;
 }
 
-pub fn layout_push(ctx: &mut LayoutContext, size: Size) -> Rect {
+pub fn layout_push(ctx: &mut LayoutContext, size: Size) -> Rect
+  requires: size.w > 0.0
+  requires: size.h > 0.0 {
   return ctx.allocate(size);
 }
 
@@ -189,7 +195,11 @@ pub fn layout_center(size: &Size) -> Rect {
   return Rect.new(-size.w * 0.5, -size.h * 0.5, size.w, size.h);
 }
 
-pub fn layout_grid(ctx: &mut LayoutContext, cols: Int, rows: Int, cell_w: Float32, cell_h: Float32) -> Vec[Rect] {
+pub fn layout_grid(ctx: &mut LayoutContext, cols: Int, rows: Int, cell_w: Float32, cell_h: Float32) -> Vec[Rect]
+  requires: cell_w > 0.0
+  requires: cell_h > 0.0
+  requires: cols > 0
+  requires: rows > 0 {
   var result = Vec[Rect].new();
   var r: Int = 0;
   while r < rows {

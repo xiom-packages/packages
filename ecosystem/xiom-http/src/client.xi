@@ -18,7 +18,9 @@ pub fn http_delete(url: Str) -> Result[HttpResponse, Str] {
   return xiom.http.http_delete(url);
 }
 
-pub fn http_send(request: &HttpRequest, url: &Url) -> Result[HttpResponse, Str] {
+pub fn http_send(request: &HttpRequest, url: &Url) -> Result[HttpResponse, Str]
+  requires: url.scheme.len() > 0
+  requires: url.host.len() > 0 {
   var url_str: Str = url_to_str(url);
 
   match request.method {

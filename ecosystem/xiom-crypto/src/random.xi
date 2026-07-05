@@ -8,7 +8,9 @@ pub fn xorshift32(state: Int) -> Int {
   return x;
 }
 
-pub fn xorshift64(state: Int) -> Int {
+pub fn xorshift64(state: Int) -> Int
+  requires: state != 0;
+{
   var x = state;
   x = x ^ (x << 13);
   x = x ^ (x >> 7);
@@ -32,7 +34,10 @@ pub fn xorshift_star64(state: Int) -> Int {
   return x * -1275374097;
 }
 
-pub fn random_range(state: Int, min: Int, max: Int) -> (Int, Int) {
+pub fn random_range(state: Int, min: Int, max: Int) -> (Int, Int)
+  requires: min < max;
+  requires: state != 0;
+{
   var new_state = xorshift64(state);
   var range = max - min;
   if range == 0 {
@@ -42,7 +47,10 @@ pub fn random_range(state: Int, min: Int, max: Int) -> (Int, Int) {
   return (value, new_state);
 }
 
-pub fn random_bytes(state: Int, count: Int) -> (Vec[Int], Int) {
+pub fn random_bytes(state: Int, count: Int) -> (Vec[Int], Int)
+  requires: count > 0;
+  requires: state != 0;
+{
   var result = Vec[Int].new();
   var current = state;
   var i = 0;

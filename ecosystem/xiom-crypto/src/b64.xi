@@ -1,6 +1,9 @@
 module xiom.crypto.b64
 
-pub fn base64_encode(data: &Vec[Int]) -> Str {
+pub fn base64_encode(data: &Vec[Int]) -> Str
+  requires: data.len() > 0;
+  ensures: result.len() > 0;
+{
   var result = "";
   var i = 0;
   var len = data.len();
@@ -31,7 +34,9 @@ pub fn base64_encode(data: &Vec[Int]) -> Str {
   return result;
 }
 
-pub fn base64_decode(input: Str) -> Result[Vec[Int], Str] {
+pub fn base64_decode(input: Str) -> Result[Vec[Int], Str]
+  requires: input.len() > 0;
+{
   var len = input.len();
   if len % 4 != 0 {
     return Err("base64: invalid length");
@@ -63,7 +68,9 @@ pub fn base64_decode(input: Str) -> Result[Vec[Int], Str] {
   return Ok(result);
 }
 
-pub fn base64url_encode(data: &Vec[Int]) -> Str {
+pub fn base64url_encode(data: &Vec[Int]) -> Str
+  requires: data.len() > 0;
+{
   var result = "";
   var i = 0;
   var len = data.len();
@@ -91,7 +98,9 @@ pub fn base64url_encode(data: &Vec[Int]) -> Str {
   return result;
 }
 
-pub fn base64url_decode(input: Str) -> Result[Vec[Int], Str] {
+pub fn base64url_decode(input: Str) -> Result[Vec[Int], Str]
+  requires: input.len() > 0;
+{
   var result = Vec[Int].new();
   var i = 0;
   var len = input.len();

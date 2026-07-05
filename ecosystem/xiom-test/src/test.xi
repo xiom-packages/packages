@@ -30,7 +30,9 @@ pub type BenchResult = {
   ops_per_sec: Int;
 }
 
-pub fn TestResults.new() -> TestResults {
+pub fn TestResults.new() -> TestResults
+ensures: result.passed == 0 && result.failed == 0
+{
   return TestResults{
     passed: 0,
     failed: 0,
@@ -51,7 +53,9 @@ pub fn TestResults.merge(other: &TestResults) {
   }
 }
 
-pub fn TestSuite.new(name: Str) -> TestSuite {
+pub fn TestSuite.new(name: Str) -> TestSuite
+requires: name.len() > 0
+{
   return TestSuite{
     name: name,
     cases: Vec[TestCase].new(),
@@ -105,7 +109,9 @@ pub fn TestSuite.passed_count() -> Int {
   return count;
 }
 
-pub fn assert_eq(actual: Int, expected: Int, msg: Str) -> TestCase {
+pub fn assert_eq(actual: Int, expected: Int, msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   if actual == expected {
     return TestCase{ name: msg, passed: true, message: msg };
   } else {
@@ -113,7 +119,9 @@ pub fn assert_eq(actual: Int, expected: Int, msg: Str) -> TestCase {
   }
 }
 
-pub fn assert_ne(actual: Int, expected: Int, msg: Str) -> TestCase {
+pub fn assert_ne(actual: Int, expected: Int, msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   if actual != expected {
     return TestCase{ name: msg, passed: true, message: msg };
   } else {
@@ -121,7 +129,9 @@ pub fn assert_ne(actual: Int, expected: Int, msg: Str) -> TestCase {
   }
 }
 
-pub fn assert_true(condition: Bool, msg: Str) -> TestCase {
+pub fn assert_true(condition: Bool, msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   if condition {
     return TestCase{ name: msg, passed: true, message: msg };
   } else {
@@ -129,7 +139,9 @@ pub fn assert_true(condition: Bool, msg: Str) -> TestCase {
   }
 }
 
-pub fn assert_false(condition: Bool, msg: Str) -> TestCase {
+pub fn assert_false(condition: Bool, msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   if !condition {
     return TestCase{ name: msg, passed: true, message: msg };
   } else {
@@ -137,7 +149,9 @@ pub fn assert_false(condition: Bool, msg: Str) -> TestCase {
   }
 }
 
-pub fn assert_lt(actual: Int, expected: Int, msg: Str) -> TestCase {
+pub fn assert_lt(actual: Int, expected: Int, msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   if actual < expected {
     return TestCase{ name: msg, passed: true, message: msg };
   } else {
@@ -145,7 +159,9 @@ pub fn assert_lt(actual: Int, expected: Int, msg: Str) -> TestCase {
   }
 }
 
-pub fn assert_le(actual: Int, expected: Int, msg: Str) -> TestCase {
+pub fn assert_le(actual: Int, expected: Int, msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   if actual <= expected {
     return TestCase{ name: msg, passed: true, message: msg };
   } else {
@@ -153,7 +169,9 @@ pub fn assert_le(actual: Int, expected: Int, msg: Str) -> TestCase {
   }
 }
 
-pub fn assert_gt(actual: Int, expected: Int, msg: Str) -> TestCase {
+pub fn assert_gt(actual: Int, expected: Int, msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   if actual > expected {
     return TestCase{ name: msg, passed: true, message: msg };
   } else {
@@ -161,7 +179,9 @@ pub fn assert_gt(actual: Int, expected: Int, msg: Str) -> TestCase {
   }
 }
 
-pub fn assert_ge(actual: Int, expected: Int, msg: Str) -> TestCase {
+pub fn assert_ge(actual: Int, expected: Int, msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   if actual >= expected {
     return TestCase{ name: msg, passed: true, message: msg };
   } else {
@@ -169,7 +189,9 @@ pub fn assert_ge(actual: Int, expected: Int, msg: Str) -> TestCase {
   }
 }
 
-pub fn assert_some(opt: Option[Int], msg: Str) -> TestCase {
+pub fn assert_some(opt: Option[Int], msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   match opt {
     Some(val) => {
       return TestCase{ name: msg, passed: true, message: msg };
@@ -180,7 +202,9 @@ pub fn assert_some(opt: Option[Int], msg: Str) -> TestCase {
   }
 }
 
-pub fn assert_none(opt: Option[Int], msg: Str) -> TestCase {
+pub fn assert_none(opt: Option[Int], msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   match opt {
     Some(val) => {
       return TestCase{ name: msg, passed: false, message: msg };
@@ -191,7 +215,9 @@ pub fn assert_none(opt: Option[Int], msg: Str) -> TestCase {
   }
 }
 
-pub fn assert_ok(result: Result[Int, Str], msg: Str) -> TestCase {
+pub fn assert_ok(result: Result[Int, Str], msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   match result {
     Ok(val) => {
       return TestCase{ name: msg, passed: true, message: msg };
@@ -202,7 +228,9 @@ pub fn assert_ok(result: Result[Int, Str], msg: Str) -> TestCase {
   }
 }
 
-pub fn assert_err(result: Result[Int, Str], msg: Str) -> TestCase {
+pub fn assert_err(result: Result[Int, Str], msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   match result {
     Ok(val) => {
       return TestCase{ name: msg, passed: false, message: msg };
@@ -213,7 +241,9 @@ pub fn assert_err(result: Result[Int, Str], msg: Str) -> TestCase {
   }
 }
 
-pub fn assert_eq_str(actual: Str, expected: Str, msg: Str) -> TestCase {
+pub fn assert_eq_str(actual: Str, expected: Str, msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   if actual == expected {
     return TestCase{ name: msg, passed: true, message: msg };
   } else {
@@ -221,7 +251,9 @@ pub fn assert_eq_str(actual: Str, expected: Str, msg: Str) -> TestCase {
   }
 }
 
-pub fn assert_eq_bool(actual: Bool, expected: Bool, msg: Str) -> TestCase {
+pub fn assert_eq_bool(actual: Bool, expected: Bool, msg: Str) -> TestCase
+requires: msg.len() > 0
+{
   if actual == expected {
     return TestCase{ name: msg, passed: true, message: msg };
   } else {
@@ -246,7 +278,9 @@ pub fn run_suite(suite: &TestSuite) -> TestResults {
   return results;
 }
 
-pub fn run_all(suites: &Vec[TestSuite]) -> TestResults {
+pub fn run_all(suites: &Vec[TestSuite]) -> TestResults
+requires: suites.len() > 0
+{
   var results = TestResults.new();
   var i: Int = 0;
   while i < suites.len() {
@@ -275,7 +309,11 @@ pub fn report_verbose(results: &TestResults) -> Str {
   return s;
 }
 
-pub fn bench_result(name: Str, iterations: Int, ms: Int) -> BenchResult {
+pub fn bench_result(name: Str, iterations: Int, ms: Int) -> BenchResult
+requires: name.len() > 0
+requires: iterations > 0
+requires: ms >= 0
+{
   var ops: Int = 0;
   if ms > 0 {
     ops = (iterations * 1000) / ms;

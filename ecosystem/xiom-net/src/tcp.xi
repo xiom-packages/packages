@@ -63,7 +63,10 @@ fn make_error() -> Str {
   return ws_error_to_str(err);
 }
 
-pub fn tcp_connect(addr: SocketAddr) -> Result[TcpStream, Str] {
+pub fn tcp_connect(addr: SocketAddr) -> Result[TcpStream, Str]
+  requires: addr.port > 0
+  requires: addr.port < 65536
+{
   var init = ensure_wsa();
   match init {
     Err(msg) => { return Err(msg); },
@@ -86,7 +89,10 @@ pub fn tcp_connect(addr: SocketAddr) -> Result[TcpStream, Str] {
   return Ok(TcpStream{ fd: fd, connected: true, remote: addr });
 }
 
-pub fn tcp_listen(addr: SocketAddr) -> Result[TcpListener, Str] {
+pub fn tcp_listen(addr: SocketAddr) -> Result[TcpListener, Str]
+  requires: addr.port > 0
+  requires: addr.port < 65536
+{
   var init = ensure_wsa();
   match init {
     Err(msg) => { return Err(msg); },
@@ -116,7 +122,9 @@ pub fn tcp_listen(addr: SocketAddr) -> Result[TcpListener, Str] {
   return Ok(TcpListener{ fd: fd, bound: true, addr: addr });
 }
 
-pub fn tcp_accept(listener: &mut TcpListener) -> Result[TcpStream, Str] {
+pub fn tcp_accept(listener: &mut TcpListener) -> Result[TcpStream, Str]
+  requires: listener.bound
+{
   if !listener.bound {
     return Err("listener is not bound");
   };
@@ -148,7 +156,9 @@ pub fn tcp_accept(listener: &mut TcpListener) -> Result[TcpStream, Str] {
   return Ok(TcpStream{ fd: client_fd, connected: true, remote: remote });
 }
 
-pub fn tcp_read(stream: &mut TcpStream, buf: &mut Vec[Int]) -> Result[Int, Str] {
+pub fn tcp_read(stream: &mut TcpStream, buf: &mut Vec[Int]) -> Result[Int, Str]
+  requires: stream.connected
+{
   if !stream.connected {
     return Err("stream is not connected");
   };
@@ -179,7 +189,10 @@ pub fn tcp_read(stream: &mut TcpStream, buf: &mut Vec[Int]) -> Result[Int, Str] 
   return Ok(bytes);
 }
 
-pub fn tcp_write(stream: &mut TcpStream, data: &Vec[Int]) -> Result[Int, Str] {
+pub fn tcp_write(stream: &mut TcpStream, data: &Vec[Int]) -> Result[Int, Str]
+  requires: stream.connected
+  requires: data.len() > 0
+{
   if !stream.connected {
     return Err("stream is not connected");
   };
@@ -194,14 +207,18 @@ pub fn tcp_write(stream: &mut TcpStream, data: &Vec[Int]) -> Result[Int, Str] {
   return Ok(bytes);
 }
 
-pub fn tcp_close(stream: TcpStream) {
+pub fn tcp_close(stream: TcpStream)
+  requires: stream.connected
+{
   if stream.fd >= 0 {
     var _shut = unsafe { shutdown(stream.fd, 2) };
     var _closed = unsafe { closesocket(stream.fd) };
   };
 }
 
-pub fn tcp_listener_close(listener: TcpListener) {
+pub fn tcp_listener_close(listener: TcpListener)
+  requires: listener.bound
+{
   if listener.fd >= 0 {
     var _closed = unsafe { closesocket(listener.fd) };
   };
@@ -211,6 +228,8 @@ pub fn tcp_is_connected(stream: &TcpStream) -> Bool {
   return stream.connected;
 }
 
-pub fn tcp_remote_addr(stream: &TcpStream) -> SocketAddr {
+pub fn tcp_remote_addr(stream: &TcpStream) -> SocketAddr
+  requires: stream.connected
+{
   return stream.remote;
 }

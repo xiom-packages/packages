@@ -41,7 +41,10 @@ fn make_error() -> Str {
   return ws_error_to_str(err);
 }
 
-pub fn udp_bind(addr: SocketAddr) -> Result[UdpSocket, Str] {
+pub fn udp_bind(addr: SocketAddr) -> Result[UdpSocket, Str]
+  requires: addr.port > 0
+  requires: addr.port < 65536
+{
   var init = ensure_wsa();
   match init {
     Err(msg) => { return Err(msg); },
@@ -64,7 +67,10 @@ pub fn udp_bind(addr: SocketAddr) -> Result[UdpSocket, Str] {
   return Ok(UdpSocket{ fd: fd, bound: true });
 }
 
-pub fn udp_send_to(socket: &UdpSocket, data: &Vec[Int], addr: SocketAddr) -> Result[Int, Str] {
+pub fn udp_send_to(socket: &UdpSocket, data: &Vec[Int], addr: SocketAddr) -> Result[Int, Str]
+  requires: socket.bound
+  requires: data.len() > 0
+{
   if !socket.bound {
     return Err("socket is not bound");
   };
@@ -80,7 +86,9 @@ pub fn udp_send_to(socket: &UdpSocket, data: &Vec[Int], addr: SocketAddr) -> Res
   return Ok(bytes);
 }
 
-pub fn udp_recv_from(socket: &UdpSocket, buf: &mut Vec[Int]) -> Result[(Int, SocketAddr), Str] {
+pub fn udp_recv_from(socket: &UdpSocket, buf: &mut Vec[Int]) -> Result[(Int, SocketAddr), Str]
+  requires: socket.bound
+{
   if !socket.bound {
     return Err("socket is not bound");
   };
@@ -131,7 +139,9 @@ pub fn udp_recv_from(socket: &UdpSocket, buf: &mut Vec[Int]) -> Result[(Int, Soc
   }
 }
 
-pub fn udp_close(socket: UdpSocket) {
+pub fn udp_close(socket: UdpSocket)
+  requires: socket.bound
+{
   if socket.fd >= 0 {
     var _closed = unsafe { closesocket(socket.fd) };
   };

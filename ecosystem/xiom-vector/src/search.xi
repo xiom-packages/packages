@@ -8,6 +8,7 @@ pub type SearchResult = {
 pub fn search_knn(idx: &VectorIndex, query: &Vector, k: Int, metric: DistanceMetric) -> Vec[SearchResult]
   requires: k > 0
   requires: idx.dim == query.dimension
+  ensures: result.len() <= k
 {
   var results = Vec[SearchResult].new();
   var i: Int = 0;
@@ -32,7 +33,7 @@ pub fn search_knn(idx: &VectorIndex, query: &Vector, k: Int, metric: DistanceMet
 }
 
 pub fn search_range(idx: &VectorIndex, query: &Vector, radius: Float32, metric: DistanceMetric) -> Vec[SearchResult]
-  requires: radius >= 0.0
+  requires: radius > 0.0
   requires: idx.dim == query.dimension
 {
   var results = Vec[SearchResult].new();

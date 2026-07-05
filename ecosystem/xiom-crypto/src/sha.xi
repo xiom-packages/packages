@@ -107,7 +107,9 @@ fn sigma1_small(x: Int) -> Int {
   return rotr(x, 7) ^ rotr(x, 18) ^ ((x >> 3) & 0x1FFFFFFF);
 }
 
-pub fn sha256(data: &Vec[Int]) -> Vec[Int] {
+pub fn sha256(data: &Vec[Int]) -> Vec[Int]
+  ensures: result.len() == 32;
+{
   var padded = pad_sha256(data);
   var h0 = sha256_initial_h0();
   var h1 = sha256_initial_h1();
@@ -403,7 +405,9 @@ fn sigma1_small_64(x: Int) -> Int {
   return rotr64(x, 19) ^ rotr64(x, 61) ^ ((x >> 6) & 0x3FFFFFFFFFFFFFF);
 }
 
-pub fn sha512(data: &Vec[Int]) -> Vec[Int] {
+pub fn sha512(data: &Vec[Int]) -> Vec[Int]
+  ensures: result.len() == 64;
+{
   var padded = pad_sha512(data);
   var h0 = sha512_initial_h0();
   var h1 = sha512_initial_h1();

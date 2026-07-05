@@ -70,7 +70,9 @@ pub type InputState = {
   scroll: Float32;
 }
 
-pub fn Rect.new(x: Float32, y: Float32, w: Float32, h: Float32) -> Rect {
+pub fn Rect.new(x: Float32, y: Float32, w: Float32, h: Float32) -> Rect
+  requires: w >= 0.0
+  requires: h >= 0.0 {
   return Rect{ x: x, y: y, w: w, h: h };
 }
 
@@ -82,7 +84,11 @@ pub fn Rect.contains(point: &Point) -> Bool {
   return point.x >= x && point.x <= x + w && point.y >= y && point.y <= y + h;
 }
 
-pub fn Color.new(r: Float32, g: Float32, b: Float32, a: Float32) -> Color {
+pub fn Color.new(r: Float32, g: Float32, b: Float32, a: Float32) -> Color
+  requires: r >= 0.0 && r <= 1.0
+  requires: g >= 0.0 && g <= 1.0
+  requires: b >= 0.0 && b <= 1.0
+  requires: a >= 0.0 && a <= 1.0 {
   return Color{ r: r, g: g, b: b, a: a };
 }
 
@@ -94,7 +100,9 @@ pub fn Point.zero() -> Point {
   return Point{ x: 0.0, y: 0.0 };
 }
 
-pub fn Size.new(w: Float32, h: Float32) -> Size {
+pub fn Size.new(w: Float32, h: Float32) -> Size
+  requires: w >= 0.0
+  requires: h >= 0.0 {
   return Size{ w: w, h: h };
 }
 
@@ -102,7 +110,11 @@ pub fn Size.zero() -> Size {
   return Size{ w: 0.0, h: 0.0 };
 }
 
-pub fn Padding.new(top: Float32, right: Float32, bottom: Float32, left: Float32) -> Padding {
+pub fn Padding.new(top: Float32, right: Float32, bottom: Float32, left: Float32) -> Padding
+  requires: top >= 0.0
+  requires: right >= 0.0
+  requires: bottom >= 0.0
+  requires: left >= 0.0 {
   return Padding{ top: top, right: right, bottom: bottom, left: left };
 }
 
@@ -114,7 +126,11 @@ pub fn Padding.symmetric(h: Float32, v: Float32) -> Padding {
   return Padding{ top: v, right: h, bottom: v, left: h };
 }
 
-pub fn Margin.new(top: Float32, right: Float32, bottom: Float32, left: Float32) -> Margin {
+pub fn Margin.new(top: Float32, right: Float32, bottom: Float32, left: Float32) -> Margin
+  requires: top >= 0.0
+  requires: right >= 0.0
+  requires: bottom >= 0.0
+  requires: left >= 0.0 {
   return Margin{ top: top, right: right, bottom: bottom, left: left };
 }
 

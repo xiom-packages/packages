@@ -23,7 +23,9 @@ pub fn binary_search(arr: &Vec[Int], target: Int) -> Option[Int]
   return None;
 }
 
-pub fn binary_search_insert_pos(arr: &Vec[Int], target: Int) -> Int {
+pub fn binary_search_insert_pos(arr: &Vec[Int], target: Int) -> Int
+  requires: arr.len() > 0
+{
   var left = 0;
   var right = arr.len();
   while left < right {
@@ -37,7 +39,9 @@ pub fn binary_search_insert_pos(arr: &Vec[Int], target: Int) -> Int {
   return left;
 }
 
-pub fn linear_search(arr: &Vec[Int], target: Int) -> Option[Int] {
+pub fn linear_search(arr: &Vec[Int], target: Int) -> Option[Int]
+  requires: arr.len() > 0
+{
   var i = 0;
   while i < arr.len() {
     if arr[i] == target { return Some(i); }
@@ -46,7 +50,9 @@ pub fn linear_search(arr: &Vec[Int], target: Int) -> Option[Int] {
   return None;
 }
 
-pub fn find_min(arr: &Vec[Int]) -> Option[Int] {
+pub fn find_min(arr: &Vec[Int]) -> Option[Int]
+  requires: arr.len() > 0
+{
   if arr.len() == 0 { return None; }
   var min = arr[0];
   var i = 1;
@@ -57,7 +63,9 @@ pub fn find_min(arr: &Vec[Int]) -> Option[Int] {
   return Some(min);
 }
 
-pub fn find_max(arr: &Vec[Int]) -> Option[Int] {
+pub fn find_max(arr: &Vec[Int]) -> Option[Int]
+  requires: arr.len() > 0
+{
   if arr.len() == 0 { return None; }
   var max = arr[0];
   var i = 1;
@@ -86,7 +94,9 @@ pub fn find_min_max(arr: &Vec[Int]) -> (Int, Int)
 // Sorting
 // ============================================================
 
-pub fn quicksort(arr: Vec[Int]) -> Vec[Int] {
+pub fn quicksort(arr: Vec[Int]) -> Vec[Int]
+  ensures: result.len() == arr.len()@pre
+{
   if arr.len() <= 1 { return arr; }
   var pivot_idx = arr.len() / 2;
   var pivot = arr[pivot_idx];
@@ -120,7 +130,9 @@ fn concat_three(a: Vec[Int], b: Vec[Int], c: Vec[Int]) -> Vec[Int] {
   return result;
 }
 
-pub fn merge_sort(arr: Vec[Int]) -> Vec[Int] {
+pub fn merge_sort(arr: Vec[Int]) -> Vec[Int]
+  ensures: result.len() == arr.len()@pre
+{
   if arr.len() <= 1 { return arr; }
   var mid = arr.len() / 2;
   var left = Vec[Int].new();
@@ -163,7 +175,9 @@ fn merge(left: Vec[Int], right: Vec[Int]) -> Vec[Int] {
   return result;
 }
 
-pub fn insertion_sort(arr: Vec[Int]) -> Vec[Int] {
+pub fn insertion_sort(arr: Vec[Int]) -> Vec[Int]
+  ensures: result.len() == arr.len()@pre
+{
   if arr.len() <= 1 { return arr; }
   var i = 1;
   while i < arr.len() {
@@ -179,7 +193,9 @@ pub fn insertion_sort(arr: Vec[Int]) -> Vec[Int] {
   return arr;
 }
 
-pub fn bubble_sort(arr: Vec[Int]) -> Vec[Int] {
+pub fn bubble_sort(arr: Vec[Int]) -> Vec[Int]
+  ensures: result.len() == arr.len()@pre
+{
   var n = arr.len();
   var i = 0;
   while i < n {
@@ -200,7 +216,9 @@ pub fn bubble_sort(arr: Vec[Int]) -> Vec[Int] {
   return arr;
 }
 
-pub fn selection_sort(arr: Vec[Int]) -> Vec[Int] {
+pub fn selection_sort(arr: Vec[Int]) -> Vec[Int]
+  ensures: result.len() == arr.len()@pre
+{
   var n = arr.len();
   var i = 0;
   while i < n {
@@ -427,7 +445,9 @@ pub fn catalan(n: Int) -> Int
 // Array / Vector Utilities
 // ============================================================
 
-pub fn reverse(arr: Vec[Int]) -> Vec[Int] {
+pub fn reverse(arr: Vec[Int]) -> Vec[Int]
+  ensures: result.len() == arr.len()@pre
+{
   var left = 0;
   var right = arr.len() - 1;
   while left < right {
@@ -440,7 +460,9 @@ pub fn reverse(arr: Vec[Int]) -> Vec[Int] {
   return arr;
 }
 
-pub fn rotate_left(arr: Vec[Int], k: Int) -> Vec[Int] {
+pub fn rotate_left(arr: Vec[Int], k: Int) -> Vec[Int]
+  requires: k >= 0
+{
   if arr.len() <= 1 { return arr; }
   var n = arr.len();
   var shift = k % n;
@@ -459,7 +481,9 @@ pub fn rotate_left(arr: Vec[Int], k: Int) -> Vec[Int] {
   return result;
 }
 
-pub fn rotate_right(arr: Vec[Int], k: Int) -> Vec[Int] {
+pub fn rotate_right(arr: Vec[Int], k: Int) -> Vec[Int]
+  requires: k >= 0
+{
   if arr.len() <= 1 { return arr; }
   var n = arr.len();
   var shift = k % n;
@@ -467,7 +491,9 @@ pub fn rotate_right(arr: Vec[Int], k: Int) -> Vec[Int] {
   return rotate_left(arr, n - shift);
 }
 
-pub fn prefix_sum(arr: &Vec[Int]) -> Vec[Int] {
+pub fn prefix_sum(arr: &Vec[Int]) -> Vec[Int]
+  requires: arr.len() > 0
+{
   var result = Vec[Int].new();
   if arr.len() == 0 { return result; }
   result.push(arr[0]);
@@ -479,7 +505,9 @@ pub fn prefix_sum(arr: &Vec[Int]) -> Vec[Int] {
   return result;
 }
 
-pub fn shuffle(arr: Vec[Int]) -> Vec[Int] {
+pub fn shuffle(arr: Vec[Int]) -> Vec[Int]
+  ensures: result.len() == arr.len()@pre
+{
   if arr.len() <= 1 { return arr; }
   var seed = arr.len();
   var i = arr.len() - 1;
@@ -513,7 +541,9 @@ pub fn slice(arr: &Vec[Int], start: Int, len: Int) -> Vec[Int]
   return result;
 }
 
-pub fn concat(a: Vec[Int], b: Vec[Int]) -> Vec[Int] {
+pub fn concat(a: Vec[Int], b: Vec[Int]) -> Vec[Int]
+  ensures: result.len() == a.len()@pre + b.len()@pre
+{
   var result = Vec[Int].new();
   var i = 0;
   while i < a.len() { result.push(a[i]); i = i + 1; }
@@ -523,6 +553,7 @@ pub fn concat(a: Vec[Int], b: Vec[Int]) -> Vec[Int] {
 }
 
 pub fn unique(arr: Vec[Int]) -> Vec[Int]
+  requires: is_sorted(&arr)
   ensures: is_sorted(&result)
 {
   if arr.len() <= 1 { return arr; }
@@ -574,7 +605,9 @@ pub fn is_palindrome(arr: &Vec[Int]) -> Bool {
   return true;
 }
 
-pub fn longest_increasing_subsequence(arr: &Vec[Int]) -> Int {
+pub fn longest_increasing_subsequence(arr: &Vec[Int]) -> Int
+  requires: arr.len() > 0
+{
   if arr.len() == 0 { return 0; }
   var dp = Vec[Int].new();
   var i = 0;

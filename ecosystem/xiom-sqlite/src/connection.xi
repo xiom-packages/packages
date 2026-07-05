@@ -63,7 +63,9 @@ fn errmsg_to_str(db: Int) -> Str {
   return cstr_to_str(ptr);
 }
 
-pub fn sqlite_open(path: Str) -> Result[SqliteConnection, Str] {
+pub fn sqlite_open(path: Str) -> Result[SqliteConnection, Str]
+  requires: path.len() > 0
+{
   var c_path = native.str_to_c(path);
   var db_handle: Int = 0;
   var db_ptr = native.addr_of(db_handle);
@@ -79,7 +81,9 @@ pub fn sqlite_open(path: Str) -> Result[SqliteConnection, Str] {
   return Ok(SqliteConnection{ db_path: path; handle: db_handle; is_open: true; });
 }
 
-pub fn sqlite_close(conn: SqliteConnection) -> Result[Unit, Str] {
+pub fn sqlite_close(conn: SqliteConnection) -> Result[Unit, Str]
+  requires: conn.handle != 0
+{
   if !conn.is_open {
     return Err("connection already closed");
   };
@@ -90,8 +94,10 @@ pub fn sqlite_close(conn: SqliteConnection) -> Result[Unit, Str] {
   return Ok({});
 }
 
-pub fn sqlite_execute(conn: &SqliteConnection, sql: Str) -> Result[Unit, Str] {
-  requires: conn.is_open;
+pub fn sqlite_execute(conn: &SqliteConnection, sql: Str) -> Result[Unit, Str]
+  requires: conn.handle != 0
+  requires: sql.len() > 0
+{
   var c_sql = native.str_to_c(sql);
   var rc = unsafe { sqlite3_exec(conn.handle, c_sql, 0, 0, 0, ) };
   if rc != SQLITE_OK {
@@ -101,8 +107,10 @@ pub fn sqlite_execute(conn: &SqliteConnection, sql: Str) -> Result[Unit, Str] {
   return Ok({});
 }
 
-pub fn sqlite_query(conn: &SqliteConnection, sql: Str) -> Result[Vec[SqliteRow], Str] {
-  requires: conn.is_open;
+pub fn sqlite_query(conn: &SqliteConnection, sql: Str) -> Result[Vec[SqliteRow], Str]
+  requires: conn.handle != 0
+  requires: sql.len() > 0
+{
   var stmt = sqlite_prepare(conn, sql)?;
   var col_count = unsafe { sqlite3_column_count(stmt.handle, ) };
   var rows = Vec[SqliteRow].new();
@@ -127,8 +135,10 @@ pub fn sqlite_query(conn: &SqliteConnection, sql: Str) -> Result[Vec[SqliteRow],
   return Ok(rows);
 }
 
-pub fn sqlite_prepare(conn: &SqliteConnection, sql: Str) -> Result[SqliteStmt, Str] {
-  requires: conn.is_open;
+pub fn sqlite_prepare(conn: &SqliteConnection, sql: Str) -> Result[SqliteStmt, Str]
+  requires: conn.handle != 0
+  requires: sql.len() > 0
+{
   var c_sql = native.str_to_c(sql);
   var stmt_handle: Int = 0;
   var stmt_ptr = native.addr_of(stmt_handle);
@@ -140,7 +150,9 @@ pub fn sqlite_prepare(conn: &SqliteConnection, sql: Str) -> Result[SqliteStmt, S
   return Ok(SqliteStmt{ handle: stmt_handle; sql: sql; });
 }
 
-pub fn sqlite_step(stmt: &SqliteStmt) -> Result[Bool, Str] {
+pub fn sqlite_step(stmt: &SqliteStmt) -> Result[Bool, Str]
+  requires: stmt.handle != 0
+{
   var rc = unsafe { sqlite3_step(stmt.handle, ) };
   if rc == SQLITE_ROW {
     return Ok(true);
@@ -151,15 +163,24 @@ pub fn sqlite_step(stmt: &SqliteStmt) -> Result[Bool, Str] {
   return Err("sqlite3_step failed with code " + int_to_str(rc));
 }
 
-pub fn sqlite_column_int(stmt: &SqliteStmt, col: Int) -> Int {
+pub fn sqlite_column_int(stmt: &SqliteStmt, col: Int) -> Int
+  requires: stmt.handle != 0
+  requires: col >= 0
+{
   return unsafe { sqlite3_column_int(stmt.handle, col, ) };
 }
 
-pub fn sqlite_column_float(stmt: &SqliteStmt, col: Int) -> Float64 {
+pub fn sqlite_column_float(stmt: &SqliteStmt, col: Int) -> Float64
+  requires: stmt.handle != 0
+  requires: col >= 0
+{
   return unsafe { sqlite3_column_double(stmt.handle, col, ) };
 }
 
-pub fn sqlite_column_text(stmt: &SqliteStmt, col: Int) -> Str {
+pub fn sqlite_column_text(stmt: &SqliteStmt, col: Int) -> Str
+  requires: stmt.handle != 0
+  requires: col >= 0
+{
   var ptr = unsafe { sqlite3_column_text(stmt.handle, col, ) };
   if ptr == 0 {
     return "";
@@ -167,7 +188,10 @@ pub fn sqlite_column_text(stmt: &SqliteStmt, col: Int) -> Str {
   return cstr_to_str(ptr);
 }
 
-pub fn sqlite_column_blob(stmt: &SqliteStmt, col: Int) -> Vec[Int] {
+pub fn sqlite_column_blob(stmt: &SqliteStmt, col: Int) -> Vec[Int]
+  requires: stmt.handle != 0
+  requires: col >= 0
+{
   var bytes_len = unsafe { sqlite3_column_bytes(stmt.handle, col, ) };
   var blob = Vec[Int].new();
   if bytes_len <= 0 {
@@ -220,7 +244,9 @@ fn read_column_value(stmt_handle: Int, col: Int) -> SqliteValue {
   return SqliteValue.null();
 }
 
-pub fn sqlite_finalize(stmt: SqliteStmt) -> Result[Unit, Str] {
+pub fn sqlite_finalize(stmt: SqliteStmt) -> Result[Unit, Str]
+  requires: stmt.handle != 0
+{
   var rc = unsafe { sqlite3_finalize(stmt.handle, ) };
   if rc != SQLITE_OK {
     return Err("sqlite3_finalize failed with code " + int_to_str(rc));
@@ -228,17 +254,21 @@ pub fn sqlite_finalize(stmt: SqliteStmt) -> Result[Unit, Str] {
   return Ok({});
 }
 
-pub fn sqlite_last_insert_rowid(conn: &SqliteConnection) -> Int {
-  requires: conn.is_open;
+pub fn sqlite_last_insert_rowid(conn: &SqliteConnection) -> Int
+  requires: conn.handle != 0
+{
   return unsafe { sqlite3_last_insert_rowid(conn.handle, ) };
 }
 
-pub fn sqlite_changes(conn: &SqliteConnection) -> Int {
-  requires: conn.is_open;
+pub fn sqlite_changes(conn: &SqliteConnection) -> Int
+  requires: conn.handle != 0
+{
   return unsafe { sqlite3_changes(conn.handle, ) };
 }
 
-pub fn sqlite_is_open(conn: &SqliteConnection) -> Bool {
+pub fn sqlite_is_open(conn: &SqliteConnection) -> Bool
+  requires: conn.is_open
+{
   return conn.is_open;
 }
 

@@ -6,7 +6,9 @@ pub type Engine = {
   timestamp_counter: Int;
 }
 
-pub fn engine_new(order: Int) -> Engine {
+pub fn engine_new(order: Int) -> Engine
+  requires: order >= 3
+{
   var tree = btree_new(order);
   var wal = wal_new();
   return Engine{ tree: tree, wal: wal, timestamp_counter: 0 };
@@ -76,7 +78,9 @@ pub fn engine_recover(eng: &mut Engine) -> Bool {
   return wal_replay(&eng.wal, &mut eng.tree);
 }
 
-pub fn engine_range_query(eng: &Engine, low: Int, high: Int) -> Vec[Int] {
+pub fn engine_range_query(eng: &Engine, low: Int, high: Int) -> Vec[Int]
+  requires: low <= high
+{
   return btree_range_query(&eng.tree, low, high);
 }
 

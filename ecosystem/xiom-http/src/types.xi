@@ -46,11 +46,13 @@ pub fn HttpHeaders.new() -> HttpHeaders {
   return HttpHeaders{ entries: Vec[HttpHeader].new() };
 }
 
-pub fn HttpHeaders.add(name: Str, value: Str) {
+pub fn HttpHeaders.add(name: Str, value: Str)
+  requires: name.len() > 0 {
   entries.push(HttpHeader{ name: name, value: value });
 }
 
-pub fn HttpHeaders.get(name: Str) -> Option[Str] {
+pub fn HttpHeaders.get(name: Str) -> Option[Str]
+  requires: name.len() > 0 {
   var i: Int = 0;
   while i < entries.len() {
     if entries[i].name == name {
@@ -61,7 +63,8 @@ pub fn HttpHeaders.get(name: Str) -> Option[Str] {
   return None;
 }
 
-pub fn HttpHeaders.has(name: Str) -> Bool {
+pub fn HttpHeaders.has(name: Str) -> Bool
+  requires: name.len() > 0 {
   var i: Int = 0;
   while i < entries.len() {
     if entries[i].name == name {
@@ -72,7 +75,8 @@ pub fn HttpHeaders.has(name: Str) -> Bool {
   return false;
 }
 
-pub fn HttpHeaders.remove(name: Str) -> Bool {
+pub fn HttpHeaders.remove(name: Str) -> Bool
+  requires: name.len() > 0 {
   var i: Int = 0;
   while i < entries.len() {
     if entries[i].name == name {
@@ -268,7 +272,8 @@ fn str_from_vec_byte(body: Vec[Int]) -> Str {
   return result;
 }
 
-pub fn HttpRequest.new(method: HttpMethod, path: Str) -> HttpRequest {
+pub fn HttpRequest.new(method: HttpMethod, path: Str) -> HttpRequest
+  requires: path.len() > 0 {
   return HttpRequest{
     method: method,
     path: path,
@@ -278,7 +283,8 @@ pub fn HttpRequest.new(method: HttpMethod, path: Str) -> HttpRequest {
   };
 }
 
-pub fn HttpRequest.set_header(name: Str, value: Str) {
+pub fn HttpRequest.set_header(name: Str, value: Str)
+  requires: name.len() > 0 {
   headers.add(name, value);
 }
 
@@ -301,7 +307,9 @@ pub fn HttpRequest.to_str() -> Str {
   return s;
 }
 
-pub fn HttpResponse.new(status: Int) -> HttpResponse {
+pub fn HttpResponse.new(status: Int) -> HttpResponse
+  requires: status >= 100
+  requires: status < 600 {
   return HttpResponse{
     version: HttpVersion.HTTP11,
     status: status,

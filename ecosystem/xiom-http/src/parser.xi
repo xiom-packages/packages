@@ -510,7 +510,8 @@ fn parse_header_line(line: Str) -> Result[HttpHeader, HttpParseError] {
   return Err(HttpParseError{ message: "Invalid header line: no colon found", position: 0 });
 }
 
-pub fn http_parse_request(input: Str) -> Result[HttpRequest, HttpParseError] {
+pub fn http_parse_request(input: Str) -> Result[HttpRequest, HttpParseError]
+  requires: input.len() > 0 {
   var pos: Int = 0;
   var len: Int = @axiom_str_len(input);
   if len == 0 {
@@ -551,7 +552,8 @@ pub fn http_parse_request(input: Str) -> Result[HttpRequest, HttpParseError] {
   }
 }
 
-pub fn http_parse_response(input: Str) -> Result[HttpResponse, HttpParseError] {
+pub fn http_parse_response(input: Str) -> Result[HttpResponse, HttpParseError]
+  requires: input.len() > 0 {
   var pos: Int = 0;
   var len: Int = @axiom_str_len(input);
   if len == 0 {

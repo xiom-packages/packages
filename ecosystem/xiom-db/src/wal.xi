@@ -66,7 +66,9 @@ pub fn wal_clear(wal: &mut WAL) {
   wal.entries = empty;
 }
 
-pub fn wal_truncate(wal: &mut WAL, before_timestamp: Int) {
+pub fn wal_truncate(wal: &mut WAL, before_timestamp: Int)
+  requires: before_timestamp >= 0
+{
   var kept = Vec[WALEntry].new();
   var i = 0;
   while i < wal.entries.len() {

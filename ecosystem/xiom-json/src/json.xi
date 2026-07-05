@@ -464,7 +464,9 @@ fn chr_byte(b: Int) -> Str {
 // PUBLIC PARSE / VALIDATE
 // ============================================================
 
-pub fn json_parse(input: Str) -> Result[JsonValue, ParseError] {
+pub fn json_parse(input: Str) -> Result[JsonValue, ParseError]
+  requires: input.len() > 0
+{
   var parser = JsonParser.new(input);
   var value = parser.parse_value();
   if value.is_err() { return value; }
@@ -475,7 +477,9 @@ pub fn json_parse(input: Str) -> Result[JsonValue, ParseError] {
   return value;
 }
 
-pub fn json_validate(input: Str) -> Result[Bool, ParseError] {
+pub fn json_validate(input: Str) -> Result[Bool, ParseError]
+  requires: input.len() > 0
+{
   var parser = JsonParser.new(input);
   var value = parser.parse_value();
   if value.is_err() { return Err(value.err_value()); }
@@ -730,7 +734,9 @@ pub fn json_stringify_pretty(value: &JsonValue, config: &JsonPrettyConfig) -> St
 // JSON MANIPULATION API
 // ============================================================
 
-pub fn json_get(obj: &JsonValue, key: Str) -> Option[JsonValue] {
+pub fn json_get(obj: &JsonValue, key: Str) -> Option[JsonValue]
+  requires: key.len() > 0
+{
   match obj {
     Object(entries) => {
       var i: Int = 0;
@@ -746,7 +752,9 @@ pub fn json_get(obj: &JsonValue, key: Str) -> Option[JsonValue] {
   }
 }
 
-pub fn json_get_path(root: &JsonValue, path: &JsonPath) -> Option[JsonValue] {
+pub fn json_get_path(root: &JsonValue, path: &JsonPath) -> Option[JsonValue]
+  requires: path.segments.len() > 0
+{
   var current = root.clone();
   var i: Int = 0;
   while i < path.segments.len() {
@@ -772,7 +780,9 @@ pub fn json_get_path(root: &JsonValue, path: &JsonPath) -> Option[JsonValue] {
   return Some(current);
 }
 
-pub fn json_set(obj: &mut JsonValue, key: Str, value: JsonValue) -> Bool {
+pub fn json_set(obj: &mut JsonValue, key: Str, value: JsonValue) -> Bool
+  requires: key.len() > 0
+{
   match obj {
     Object(entries) => {
       var i: Int = 0;
@@ -790,7 +800,9 @@ pub fn json_set(obj: &mut JsonValue, key: Str, value: JsonValue) -> Bool {
   }
 }
 
-pub fn json_set_path(root: &mut JsonValue, path: &JsonPath, value: JsonValue) -> Bool {
+pub fn json_set_path(root: &mut JsonValue, path: &JsonPath, value: JsonValue) -> Bool
+  requires: path.segments.len() > 0
+{
   if path.segments.is_empty() { return false; }
   var current = root;
   var i: Int = 0;
@@ -847,7 +859,9 @@ pub fn json_set_path(root: &mut JsonValue, path: &JsonPath, value: JsonValue) ->
   }
 }
 
-pub fn json_remove(obj: &mut JsonValue, key: Str) -> Bool {
+pub fn json_remove(obj: &mut JsonValue, key: Str) -> Bool
+  requires: key.len() > 0
+{
   match obj {
     Object(entries) => {
       var i: Int = 0;
@@ -872,7 +886,9 @@ pub fn json_remove(obj: &mut JsonValue, key: Str) -> Bool {
   }
 }
 
-pub fn json_has_key(obj: &JsonValue, key: Str) -> Bool {
+pub fn json_has_key(obj: &JsonValue, key: Str) -> Bool
+  requires: key.len() > 0
+{
   match obj {
     Object(entries) => {
       var i: Int = 0;
@@ -1134,7 +1150,9 @@ pub fn json_array_push(arr: &mut JsonValue, value: JsonValue) {
   }
 }
 
-pub fn json_object_put(obj: &mut JsonValue, key: Str, value: JsonValue) {
+pub fn json_object_put(obj: &mut JsonValue, key: Str, value: JsonValue)
+  requires: key.len() > 0
+{
   match obj {
     Object(entries) => {
       var i: Int = 0;
@@ -1159,7 +1177,9 @@ pub fn JsonPath.new() -> JsonPath {
   return JsonPath{ segments: Vec[JsonPathSegment].new() };
 }
 
-pub fn JsonPath.push_key(key: Str) {
+pub fn JsonPath.push_key(key: Str)
+  requires: key.len() > 0
+{
   segments.push(JsonPathSegment.Key(key));
 }
 
@@ -1167,7 +1187,9 @@ pub fn JsonPath.push_index(index: Int) {
   segments.push(JsonPathSegment.Index(index));
 }
 
-pub fn JsonPath.parse(path_str: Str) -> Result[JsonPath, Str] {
+pub fn JsonPath.parse(path_str: Str) -> Result[JsonPath, Str]
+  requires: path_str.len() > 0
+{
   var result = JsonPath{ segments: Vec[JsonPathSegment].new() };
   if path_str.len() == 0 { return Ok(result); }
   var i: Int = 0;

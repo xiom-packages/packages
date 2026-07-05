@@ -103,7 +103,8 @@ fn char_from_int(c: Int) -> Str {
   return "?";
 }
 
-pub fn cookie_new(name: Str, value: Str) -> Cookie {
+pub fn cookie_new(name: Str, value: Str) -> Cookie
+  requires: name.len() > 0 {
   return Cookie{
     name: name,
     value: value,
@@ -254,7 +255,8 @@ fn parse_int_from_str(s: Str) -> Int {
   return result;
 }
 
-pub fn cookie_parse(set_cookie_header: Str) -> Result[Cookie, Str] {
+pub fn cookie_parse(set_cookie_header: Str) -> Result[Cookie, Str]
+  requires: set_cookie_header.len() > 0 {
   var cookie: Cookie = Cookie{
     name: "",
     value: "",

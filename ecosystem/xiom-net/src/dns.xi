@@ -5,7 +5,9 @@ pub type DnsResult = {
   addresses: Vec[IpAddr];
 } derive[Clone]
 
-pub fn dns_resolve(hostname: Str) -> Result[DnsResult, Str] {
+pub fn dns_resolve(hostname: Str) -> Result[DnsResult, Str]
+  requires: hostname.len() > 0
+{
   return Err("DNS requires OS resolver FFI — implement dns_resolve in Layer 2 via platform resolver API (getaddrinfo/gethostbyname)");
 }
 

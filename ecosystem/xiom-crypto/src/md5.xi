@@ -158,7 +158,10 @@ fn md5_i(x: Int, y: Int, z: Int) -> Int {
   return y ^ (x | (~z));
 }
 
-pub fn md5(data: &Vec[Int]) -> Vec[Int] {
+pub fn md5(data: &Vec[Int]) -> Vec[Int]
+  requires: data.len() > 0;
+  ensures: result.len() == 16;
+{
   var a0 = 0x67452301;
   var b0 = 0xefcdab89;
   var c0 = 0x98badcfe;
@@ -231,7 +234,10 @@ pub fn md5(data: &Vec[Int]) -> Vec[Int] {
   return result;
 }
 
-pub fn md5_hex(data: &Vec[Int]) -> Str {
+pub fn md5_hex(data: &Vec[Int]) -> Str
+  requires: data.len() > 0;
+  ensures: result.len() == 32;
+{
   var hash = md5(data);
   return hex_encode_md5(&hash);
 }

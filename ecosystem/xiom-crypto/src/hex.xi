@@ -1,6 +1,9 @@
 module xiom.crypto.hex
 
-pub fn hex_encode(data: &Vec[Int]) -> Str {
+pub fn hex_encode(data: &Vec[Int]) -> Str
+  requires: data.len() > 0;
+  ensures: result.len() == data.len() * 2;
+{
   var result = "";
   var i = 0;
   while i < data.len() {
@@ -26,7 +29,9 @@ pub fn hex_encode_upper(data: &Vec[Int]) -> Str {
   return result;
 }
 
-pub fn hex_decode(input: Str) -> Result[Vec[Int], Str] {
+pub fn hex_decode(input: Str) -> Result[Vec[Int], Str]
+  requires: input.len() > 0;
+{
   var len = input.len();
   if len % 2 != 0 {
     return Err("hex: odd length string");
