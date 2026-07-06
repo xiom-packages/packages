@@ -124,20 +124,20 @@ a linker error at module initialization time.
 The following XIOM runtime intrinsics are required before the FFI tier is
 fully operational (all marked PENDING in crypto.xi):
 
-  @axiom_vec_to_ptr(v: &Vec[Int]) -> *UInt8
+  @xiom_vec_to_ptr(v: &Vec[Int]) -> *UInt8
     Returns a pointer to the Vec backing store. No copy — the pointer is
     valid for the duration of the FFI call within the unsafe block.
 
-  @axiom_alloc(size: UInt) -> *UInt8
+  @xiom_alloc(size: UInt) -> *UInt8
     Allocates `size` zeroed bytes on the native heap. Caller frees manually.
 
-  @axiom_read_u8(ptr: *UInt8, offset: UInt) -> Int
+  @xiom_read_u8(ptr: *UInt8, offset: UInt) -> Int
     Reads one unsigned byte at ptr+offset, zero-extended to XIOM Int.
 
-  @axiom_free(ptr: *UInt8)
-    Releases a native heap allocation returned by @axiom_alloc.
+  @xiom_free(ptr: *UInt8)
+    Releases a native heap allocation returned by @xiom_alloc.
 
-  @axiom_str_char_code(s: Str, pos: Int) -> Int
+  @xiom_str_char_code(s: Str, pos: Int) -> Int
     Returns the Unicode code point at position `pos` in string `s`.
     Used for character-by-character String iteration in base64/hex decode.
 
@@ -157,7 +157,7 @@ Functions:
 
   sha256(data: &Vec[Int]) -> Vec[Int]
     SHA-256 one-shot hash via libcrypto SHA256(). Returns 32 bytes.
-    PENDING: @axiom_vec_to_ptr, @axiom_alloc, @axiom_read_u8, @axiom_free.
+    PENDING: @xiom_vec_to_ptr, @xiom_alloc, @xiom_read_u8, @xiom_free.
 
   sha256_hex(data: &Vec[Int]) -> Str
     Convenience: sha256() piped through hex_encode(). 64 hex chars.
@@ -184,21 +184,21 @@ Functions:
   random_bytes(count: Int) -> Result[Vec[Int], Str]
     Cryptographically secure random bytes via OpenSSL RAND_bytes().
     Returns count bytes, or Err if the entropy source is unavailable.
-    PENDING: @axiom_alloc, @axiom_read_u8, @axiom_free.
+    PENDING: @xiom_alloc, @xiom_read_u8, @xiom_free.
 
   base64_encode(data: &Vec[Int]) -> Str
     RFC 4648 standard Base64 with + / and = padding. Pure XIOM.
 
   base64_decode(input: Str) -> Result[Vec[Int], Str]
     Decode standard Base64. Returns Err on invalid length or characters.
-    Pure XIOM. PENDING: @axiom_str_char_code for string indexing.
+    Pure XIOM. PENDING: @xiom_str_char_code for string indexing.
 
   hex_encode(data: &Vec[Int]) -> Str
     Lowercase hex encoding. Pure XIOM.
 
   hex_decode(input: Str) -> Result[Vec[Int], Str]
     Decode hex string to bytes. Returns Err on odd length or invalid chars.
-    Pure XIOM. PENDING: @axiom_str_char_code for string indexing.
+    Pure XIOM. PENDING: @xiom_str_char_code for string indexing.
 
 === 0.1. xiom.crypto.demo -- Usage Examples ===
 
@@ -358,7 +358,7 @@ Dependencies (not yet available):
 5. No Constant-Time Guarantees: Pure-XIOM implementations are educational grade.
 6. No Side-Channel Protection: Not hardened against timing or power analysis.
 7. FFI Tier Pending: The root crypto.xi FFI bindings depend on Layer 0 runtime
-   intrinsics (@axiom_vec_to_ptr, @axiom_alloc, @axiom_read_u8, @axiom_free).
+   intrinsics (@xiom_vec_to_ptr, @xiom_alloc, @xiom_read_u8, @xiom_free).
    Until these are available, the FFI code paths are stubbed and return zeros.
 
 == API Conventions ==

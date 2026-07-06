@@ -53,7 +53,7 @@ fn hex_decode(input: Str) -> Result[Vec[Int], Str] {
 // ===========================================================================
 
 fn ascii_bytes(s: Str) -> Vec[Int] {
-  // PENDING: @axiom_str_to_ptr / @axiom_str_len intrinsics needed for
+  // PENDING: @xiom_str_to_ptr / @xiom_str_len intrinsics needed for
   // iterating string characters by code point.
   // Workaround: pre-encode known strings as hex and decode at runtime.
   var result = Vec[Int].new();

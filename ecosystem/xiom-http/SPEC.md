@@ -61,7 +61,7 @@ HTTP message parser operating on raw strings.
 
 **Error type:** `HttpParseError { message: Str; position: Int; }`
 
-Uses `@axiom_str_len` and `@axiom_char_at` intrinsics for character-by-character parsing. Position-counters track progress through the input.
+Uses `@xiom_str_len` and `@xiom_char_at` intrinsics for character-by-character parsing. Position-counters track progress through the input.
 
 ---
 
@@ -298,7 +298,7 @@ The libcurl FFI layer requires the following runtime features from XIOM's C inte
 ## Design Notes
 
 ### String Parsing
-Without a full stdlib, string manipulation uses `@axiom_str_len` for length queries and `@axiom_char_at` for character access. All parsing maintains position counters and builds substrings via character-by-character concatenation.
+Without a full stdlib, string manipulation uses `@xiom_str_len` for length queries and `@xiom_char_at` for character access. All parsing maintains position counters and builds substrings via character-by-character concatenation.
 
 ### `to_str` Serialization
 Both `HttpRequest.to_str()` and `HttpResponse.to_str()` produce valid HTTP/1.1 wire format with `\r\n` line endings. Integer-to-string conversion is done via manual digit extraction (no `sprintf`-like functionality).
