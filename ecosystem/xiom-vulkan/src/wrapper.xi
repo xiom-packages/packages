@@ -1,70 +1,61 @@
+// XIOM — Vulkan Convenience Wrapper
+// Copyright (c) 2026 Eleftherios Notas
+// Licensed under the MIT or Apache-2.0 license, at your option.
+//
+// Typed convenience layer over the raw xvk C bridge API.
 module xiom.vulkan.wrapper
 
-pub type VulkanInstance = {
+use xiom.vulkan;
+
+pub type VulkanApp = {
   handle: Int;
-  debug: Bool;
+  width: Int;
+  height: Int;
 } derive[Clone]
 
-pub type VulkanDevice = {
-  handle: Int;
-  physical: Int;
-} derive[Clone]
-
-fn vk_create_instance(app_name: Str) -> Result[VulkanInstance, Str]
-  requires: app_name.len() > 0
-  ensures: result.is_ok() implies result.unwrap().handle != 0
+pub fn VulkanApp.new(title: Str, width: Int, height: Int) -> Result[VulkanApp, Str]
+  requires: width > 0
+  requires: height > 0
+  ensures: result is Ok => result.unwrap().handle != 0
 {
-  let raw = create_instance(app_name, "XIOM Engine");
-  match raw {
-    Ok(handle) => Ok(VulkanInstance { handle: handle; debug: false; }),
-    Err(e) => Err(e),
+  let handle = create_app(title, width, height)?;
+  return Ok(VulkanApp{ handle: handle, width: width, height: height });
+}
+
+pub fn VulkanApp.is_open() -> Bool {
+  return !should_close(handle);
+}
+
+pub fn VulkanApp.frame_2d(r: Float32, g: Float32, b: Float32) {
+  poll(handle);
+  let status = begin_frame(handle);
+  if status == 1 {
+    set_clear_color(handle, r, g, b);
+    draw_triangle_2d(handle, r, g, b);
+    end_frame(handle);
   }
 }
 
-fn vk_destroy_instance(instance: VulkanInstance)
-  requires: instance.handle != 0
-{
-  destroy_instance(instance.handle);
-}
-
-fn vk_enumerate_devices(instance: &VulkanInstance) -> Result[Vec[Int], Str]
-  requires: instance.handle != 0
-{
-  enumerate_devices(instance.handle)
-}
-
-fn vk_create_device(instance: &VulkanInstance, physical_device: Int) -> Result[VulkanDevice, Str]
-  requires: instance.handle != 0
-  requires: physical_device != 0
-  ensures: result.is_ok() implies result.unwrap().handle != 0
-{
-  let raw = create_device(physical_device);
-  match raw {
-    Ok(handle) => Ok(VulkanDevice { handle: handle; physical: physical_device; }),
-    Err(e) => Err(e),
+pub fn VulkanApp.frame_3d(angle: Float32) {
+  poll(handle);
+  let status = begin_frame(handle);
+  if status == 1 {
+    set_clear_color(handle, 0.05, 0.05, 0.1);
+    draw_cube_3d(handle, angle);
+    end_frame(handle);
   }
 }
 
-fn vk_destroy_device(device: VulkanDevice)
-  requires: device.handle != 0
-{
-  destroy_device(device.handle);
+pub fn VulkanApp.frame_particles(dt: Float32) {
+  poll(handle);
+  let s = begin_frame(handle);
+  if s == 1 {
+    set_clear_color(handle, 0.02, 0.02, 0.05);
+    draw_particles(handle, dt);
+    end_frame(handle);
+  }
 }
 
-fn vk_get_device_name(device: &VulkanDevice) -> Str
-  requires: device.handle != 0
-{
-  get_device_name(device.physical)
-}
-
-fn vk_get_device_type(device: &VulkanDevice) -> Int
-  requires: device.handle != 0
-{
-  get_device_type(device.physical)
-}
-
-fn vk_wait_device_idle(device: &VulkanDevice)
-  requires: device.handle != 0
-{
-  wait_device_idle(device.handle);
+pub fn VulkanApp.close() {
+  destroy_app(handle);
 }
