@@ -11,6 +11,7 @@ package xiom_ecosystem {
     "xiom-std": "0.1.0"
   };
   packages: [
+    "xiom-core",
     "xiom-http",
     "xiom-crypto",
     "xiom-sql",

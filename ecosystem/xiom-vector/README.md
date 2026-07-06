@@ -1,13 +1,22 @@
 # xiom-vector
 
-> Vector database library for XIOM — similarity search, indexing, and HNSW graph navigation.
+> Production-grade vector database engine for XIOM — dense vectors, distance metrics, flat + HNSW ANN search, collections, segments, and a WAL-backed durable write path, built on the shared `xiom-core` durable-systems substrate.
 
 [![XIOM](https://img.shields.io/badge/XIOM-v0.22.1-blue)](https://github.com/xiom-lang/XIOM)
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE)
 
 ## Overview
 
-xiom-vector provides vector math operations, similarity search (KNN + range), a flat index, and an HNSW (Hierarchical Navigable Small World) graph structure — all in pure XIOM with safety contracts.
+xiom-vector is organized as a **layered engine** rather than a flat set of files. It reuses `xiom-core` (errors, ids, config, limits, contracts, WAL, metrics) as its durable-systems substrate and adds the vector-specific layers on top: types, storage, indexes, query, collections, payload/filtering, segments, durability, and a public API facade.
+
+The engine's working core — dense-vector math, the three distance metrics, the exact flat/brute-force search, and the in-memory HNSW graph — is fully implemented today. Higher layers (collections, segments, payload filtering, durable recovery) are typed and scaffolded against the roadmap.
+
+See:
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — the shared-core + vector-layer model, module tree, write/search paths, failure domains.
+- [`ROADMAP.md`](ROADMAP.md) — the Phase 0–10 plan and honest status of every capability.
+- [`COLLECTIONS.md`](COLLECTIONS.md) — the user-facing collection schema model.
+- [`SPEC.md`](SPEC.md) — module-by-module reference.
+- [`docs/`](docs/) — deep dives (engine, core-vs-vector, metrics, HNSW, segments, filtering, query execution, contracts, errors).
 
 ## Installation
 ```bash
@@ -16,86 +25,78 @@ xiom install xiom-vector
 
 ## Quick Start
 ```xiom
-use xiom.vector.types;
-use xiom.vector.index;
-use xiom.vector.search;
+use xiom.vector.engine;
+use xiom.vector.api.vector_api;
+use xiom.vector.types.dense_vector;
+use xiom.vector.types.metric;
 
 fn main() -> Int {
-  var v1 = Vector.new(3);
-  v1.set(0, 1.0); v1.set(1, 0.0); v1.set(2, 0.0);
-  var v2 = Vector.new(3);
-  v2.set(0, 0.0); v2.set(1, 1.0); v2.set(2, 0.0);
-  var dist = cosine_distance(&v1, &v2);
+  var eng = engine_new();
+  create_collection(&mut eng, 3, DistanceMetric.Cosine);
+
+  var v = Vector.new(3);
+  v.set(0, 1.0); v.set(1, 0.0); v.set(2, 0.0);
+  upsert(&mut eng, 1, v);
+
+  var q = Vector.new(3);
+  q.set(0, 0.9); q.set(1, 0.1); q.set(2, 0.0);
+  var hits = search(&eng, &q, 5);
   return 0;
 }
 ```
 
-## API Reference
+## Module Tree
 
-### Vector Math (`xiom.vector.types`)
-| Function | Description |
-|----------|-------------|
-| `Vector.new(dim)` | Create zero vector |
-| `Vector.set(i, val)` | Set dimension |
-| `Vector.get(i)` | Get dimension |
-| `vector_dot(a, b)` | Dot product |
-| `vector_magnitude(v)` | Euclidean magnitude |
-| `vector_normalize(v)` | Unit vector |
-| `vector_add/sub/scale` | Arithmetic |
-| `vector_distance(a, b, metric)` | Distance (Cosine/DotProduct/Euclidean) |
-
-### Index (`xiom.vector.index`)
-| Function | Description |
-|----------|-------------|
-| `index_new(dim)` | Create index |
-| `index_add(idx, id, vec)` | Insert vector |
-| `index_remove(idx, id)` | Remove by ID |
-| `index_get(idx, id)` | Get by ID |
-| `index_size(idx)` | Count |
-
-### Search (`xiom.vector.search`)
-| Function | Description |
-|----------|-------------|
-| `search_knn(idx, query, k, metric)` | Top-K nearest neighbors |
-| `search_range(idx, query, radius, metric)` | Radius search |
-
-### HNSW (`xiom.vector.hnsw`)
-| Function | Description |
-|----------|-------------|
-| `hnsw_new(max_neighbors, ml)` | Create HNSW graph |
-| `hnsw_insert(graph, id, vec)` | Insert vector |
-| `hnsw_search(graph, query, k)` | Greedy hierarchical search |
-| `hnsw_layer_count(graph)` | Layer count |
-| `hnsw_node_count(graph)` | Node count |
-
-## Production Readiness
-| Feature | Status |
-|---------|--------|
-| Vector math (dot/cosine/euclidean) | ✅ Complete |
-| Flat index (CRUD) | ✅ Complete |
-| KNN brute-force search | ✅ Complete |
-| Range search | ✅ Complete |
-| HNSW graph structure | ✅ Complete |
-| HNSW insert with neighbor selection | ✅ Complete |
-| HNSW greedy search | ✅ Complete |
-| GPU acceleration | ❌ Not yet |
-| IVF/PQ quantization | ❌ Not yet |
-| Disk-backed storage | ❌ Not yet |
-| Batch insertion | ❌ Not yet |
-
-### What's Left
-1. **HNSW performance optimization** — heuristic neighbor selection
-2. **IVF index** — inverted file for billion-scale
-3. **Product quantization** — memory-efficient vectors
-4. **Disk persistence** — mmap-backed index
-5. **SIMD acceleration** — blocked on compiler intrinsics
-
-## Build & Run
-
-```bash
-xiomc --run myprogram.xi
+```
+src/
+├── error.xi                  VectorError taxonomy (-> CoreError)
+├── ids.xi                    PointId + reuse of core Collection/Vector/SegmentId
+├── engine.xi                 VectorEngine orchestrator (real dispatch)
+├── types/                    dense_vector · metric · neighbor · dimension
+├── collection/               schema · collection · validator
+├── payload/                  payload · filter_ast · filter_eval
+├── storage/                  vector_store · id_map
+├── segment/                  segment_state · segment · manifest
+├── index/                    ann_index · flat_index · hnsw
+├── distance/                 cosine · dot · l2
+├── query/                    search_request · topk_heap · search_service
+├── durability/               write_ahead_events
+└── api/                      vector_api (public facade)
 ```
 
-## Dependencies: None (Pure XIOM)
+## Public API (`xiom.vector.api.vector_api`)
+| Function | Description |
+|----------|-------------|
+| `create_collection(eng, dim, metric)` | Create the active collection; fixes dimension + metric |
+| `upsert(eng, point, vec)` | WAL-durable insert/update of a point |
+| `search(eng, query, k)` | Exact top-k nearest neighbours |
+| `delete_point(eng, point)` | Remove a point |
+| `get_point(eng, point)` | Fetch a stored vector by id |
+
+All fallible calls return `Result[T, CoreError]`.
+
+## Production Readiness
+| Capability | Status |
+|-----------|--------|
+| Dense vector math (dot/cosine/euclidean/normalize/…) | ✅ Done |
+| Distance metrics + dispatch | ✅ Done |
+| Flat exact KNN + range search | ✅ Done |
+| In-memory HNSW graph (insert + greedy search) | ✅ Done |
+| Bounded top-K heap | ✅ Done |
+| Engine orchestration (create/upsert/search/delete) | ✅ Done |
+| WAL-before-ack write path | 🟡 In progress (in-memory core WAL; fsync + payload = Phase 2) |
+| Collections / schema / validator | 🟡 In progress (single active collection) |
+| Segments + lifecycle state machine | 🟠 Scaffold (types + transitions) |
+| Payload + metadata filtering | 🟠 Scaffold (AST + fail-open eval) |
+| Durable recovery / manifest | 🟠 Scaffold |
+| IVF / PQ / disk-backed / SIMD | ⛔ Not started |
+
+Full detail in [`ROADMAP.md`](ROADMAP.md).
+
+## Dependencies
+- `xiom-std` — standard library
+- `xiom.math` — `sqrt` for magnitude/euclidean/cosine
+- `xiom-core` — shared errors, ids, config, limits, contracts, WAL, metrics
+
 ## Links: [github.com/xiom-lang](https://github.com/xiom-lang) | [XIOM](https://github.com/xiom-lang/XIOM)
 ## License: MIT OR Apache-2.0

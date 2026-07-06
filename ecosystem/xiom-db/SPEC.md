@@ -1,246 +1,158 @@
 # XiomDB Specification
 
+> Version 0.2.0 — layered architecture on top of the `xiom-core` substrate.
+
 ## Architecture Overview
 
-XiomDB is a production-grade embedded database type system written in pure XIOM. It provides in-memory data structures for storage, indexing, crash recovery, and query execution — designed to be embedded directly into XIOM applications without external dependencies.
+XiomDB is a production-grade embedded database written in pure XIOM. It is organized as a set of layered modules, each owning one concern, and depends on `xiom-core` for the shared durable-systems substrate (IDs, errors, config, contracts, metrics). This document describes the module structure, contracts, and execution model. For the narrative architecture and ownership rules see [ARCHITECTURE.md](ARCHITECTURE.md); for subsystem deep-dives see [`docs/`](docs/).
 
-### Architecture Diagram
+### Layer Diagram
 
 ```
-┌─────────────────────────────────────────────┐
-│                  Engine                      │
-│  ┌─────────┐  ┌──────────┐  ┌───────────┐  │
-│  │  Query   │  │   BTree   │  │    WAL    │  │
-│  │  Engine  │──│   Index   │──│  Recovery │  │
-│  └─────────┘  └──────────┘  └───────────┘  │
-│        │            │              │         │
-│  ┌─────┴────────────┴──────────────┴──────┐ │
-│  │            Core Types                   │ │
-│  │  Page·Schema·Row·ResultSet·Transaction  │ │
-│  └─────────────────────────────────────────┘ │
-└─────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│  api/database.xi        Public facade (Database)               │
+├──────────────────────────────────────────────────────────────┤
+│  engine.xi              Internal coordinator (Engine)          │
+├───────────────┬───────────────┬───────────────┬──────────────┤
+│  query/       │  wal/         │  index/       │  txn/         │
+│  query,planner│  wal,record   │  btree        │  transaction  │
+├───────────────┴───────────────┴───────────────┴──────────────┤
+│  catalog/ schema, schema_validator                            │
+├──────────────────────────────────────────────────────────────┤
+│  storage/ page, tuple, free_space_map                         │
+├──────────────────────────────────────────────────────────────┤
+│  Foundations: error · ids · config · contracts                │
+├──────────────────────────────────────────────────────────────┤
+│  xiom-core: error · ids · config · limits · contracts · metrics│
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ### Module Dependency Graph
 
 ```
-engine.xi ──→ btree.xi, wal.xi, query.xi
-wal.xi    ──→ btree.xi
-query.xi  ──→ btree.xi
-btree.xi  ──→ (self-contained)
-types.xi  ──→ (self-contained)
+api/database.xi   ──→ engine.xi, query/query.xi, config.xi
+engine.xi         ──→ index/btree.xi, wal/wal.xi, wal/wal_record.xi, query/query.xi
+query/query.xi    ──→ index/btree.xi
+query/planner.xi  ──→ query/query.xi, index/btree.xi
+wal/wal.xi        ──→ wal/wal_record.xi, index/btree.xi
+catalog/schema_validator.xi ──→ catalog/schema.xi, error.xi
+storage/page.xi   ──→ config.xi
+storage/tuple.xi  ──→ error.xi
+storage/free_space_map.xi ──→ xiom.core.ids
+config.xi         ──→ xiom.core.config, xiom.core.contracts, xiom.core.limits
+contracts.xi      ──→ xiom.core.contracts
+error.xi          ──→ xiom.core.error
+ids.xi            ──→ xiom.core.ids
+index/btree.xi    ──→ (self-contained)
+txn/transaction.xi──→ (self-contained)
 ```
 
 ---
 
-## Module Documentation
+## Foundations
 
-### 1. `xiom.db.types` — Core Types (`src/types.xi`)
+### `xiom.db.error` — `src/error.xi`
+Typed error domain. `DbError` = `NotFound | DuplicateKey | ConstraintViolation | SchemaMismatch | StorageError | Corruption`. `DbResult[T] = Result[T, DbError]` is the fallible-return convention for the whole package. `db_error_from_core` folds a `xiom.core.error.CoreError` into this domain; `DbError.is_retryable` marks only `StorageError` as retryable.
 
-Low-level storage primitives and schema definitions.
+### `xiom.db.ids` — `src/ids.xi`
+Strongly-typed `RowId` and `TableId` struct wrappers (with `row_id` / `table_id` constructors and accessors). Lower-level identities (`PageId`, `Lsn`, `TxnId`) are re-used from `xiom.core.ids`; `row_id_to_page_id` bridges into the core PageId space.
 
-**Storage Layer**
-- `Page`: 4KB data page with `id` (UInt64), `data` (Vec[UInt8]), and `checksum` (UInt32). Used by the buffer pool for caching.
-- `BufferPool`: LRU-style page cache with hit/miss tracking and capacity-limited storage.
+### `xiom.db.config` — `src/config.xi`
+`DatabaseConfig` (page_size, buffer_pool_capacity, wal_enabled, btree_order) with `default()`, `database_config_validate` (page size valid + capacity ≥ 1 + order ≥ 3), and `database_config_from_core` to project a `CoreConfig`.
 
-**Schema Layer**
-- `ColumnType` enum: `IntType | FloatType | BoolType | StringType | BytesType`
-- `ColumnDef`: Column metadata — name, type, nullability, default value.
-- `Schema`: Table definition with named columns and a primary key index.
-- `IndexDef`: Index specification with name, table reference, column index, type (BTree/Hash), and uniqueness flag.
-- `IndexType` enum: `BTreeIndex | HashIndex`
-
-**Data Layer**
-- `Row`: Record with `id` (UInt64) and `data` (Vec[Int]). Supports column access by index.
-- `ResultSet`: Columnar result container with named columns and row iteration.
-
-**Transaction Layer**
-- `Transaction`: ACID transaction with WAL operation tracking and Active/Committed/Aborted lifecycle.
-- `TxState` enum: `Active | Committed | Aborted`
-- `WALOp` enum: `Insert | Update | Delete`
-
-**Error Handling**
-- `DbError` enum: `NotFound | DuplicateKey | ConstraintViolation | SchemaMismatch | StorageError | Corruption`
-- `DbResult[T]`: Typed result alias `Result[T, DbError]`
-
-**Configuration**
-- `DatabaseConfig`: Tuning parameters — page size, buffer pool capacity, WAL toggle, B-tree order.
-- `StorageEngine`: Configuration + BufferPool composite.
+### `xiom.db.contracts` — `src/contracts.xi`
+Shared predicates: `valid_btree_order`, `valid_key`, `sorted_keys` (strictly ascending), `valid_range`, `non_decreasing` (delegates to `xiom.core.contracts.is_sorted_ints`).
 
 ---
 
-### 2. `xiom.db.btree` — B-Tree Index (`src/btree.xi`)
+## Storage Layer
 
-In-memory B-Tree implementation using a flat array representation.
+### `xiom.db.storage.page` — `src/storage/page.xi`
+- `Page`: id (UInt64), data (Vec[UInt8]), checksum (UInt32); `Page.is_valid()` re-checksums; `page_compute_checksum` seals a buffer.
+- `BufferPool`: direct-mapped cache (`id % capacity`) with hit/miss accounting and `hit_ratio`.
+- `StorageEngine`: `DatabaseConfig` + `BufferPool` with `cache_page` / `lookup_page`.
 
-**Design Rationale**
-B-tree nodes cannot reference each other directly in XIOM structs (no recursive borrows). The solution stores all nodes in a flat `Vec[BTreeNode]` and uses integer indices for parent-child references.
+### `xiom.db.storage.tuple` — `src/storage/tuple.xi`
+- `Row`: id + `Vec[Int]` column data; `get_column` / `set_column` / `column_count`.
+- `tuple_encode` / `tuple_decode` (`DbResult[Row]`): the codec seam (Phase 1 hardens to byte-packed pages).
+- `ResultSet`: `columns: Vec[Str]` (fixed from the old `Vec<Str>` bug) + rows.
 
-**Types**
-- `BTree`: Contains `root` (Int index into nodes), `order` (max children per node), and `nodes` (Vec[BTreeNode]).
-- `BTreeNode`: Contains `keys` (Vec[Int]), `values` (Vec[Int]), `children` (Vec[Int] of node indices), and `is_leaf` (Bool).
-
-**API Reference**
-
-| Function | Signature | Description |
-|---|---|---|
-| `btree_new` | `(order: Int) -> BTree` | Creates empty B-tree of given order |
-| `btree_insert` | `(tree: &mut BTree, key: Int, value: Int) -> Bool` | Inserts key-value; returns false on duplicate |
-| `btree_search` | `(tree: &BTree, key: Int) -> Option[Int]` | Returns value for key or None |
-| `btree_delete` | `(tree: &mut BTree, key: Int) -> Bool` | Deletes key; returns false if not found |
-| `btree_range_query` | `(tree: &BTree, low: Int, high: Int) -> Vec[Int]` | Returns values with keys in [low, high] |
-| `btree_size` | `(tree: &BTree) -> Int` | Total key count |
-| `btree_min` | `(tree: &BTree) -> Option[Int]` | Smallest key's value |
-| `btree_max` | `(tree: &BTree) -> Option[Int]` | Largest key's value |
-| `btree_to_vec` | `(tree: &BTree) -> Vec[Int]` | In-order traversal of all values |
-
-**Internal Operations**
-- `split_root`: Splits root when full, creating new root level.
-- `split_child`: Splits a full child node, promoting median to parent.
-- `insert_nonfull`: Recursive insertion into non-full subtree.
-- `delete_from_node`: Recursive deletion handling underflow via borrow/merge.
-- `fill_child`: Ensures child has enough keys before descent (borrow from sibling or merge).
-
-**Complexity**
-- Search: O(log n)
-- Insert: O(log n) with at most O(log n) splits
-- Delete: O(log n) with at most O(log n) merges
-- Range query: O(log n + k) where k is result size
+### `xiom.db.storage.free_space_map` — `src/storage/free_space_map.xi` *(scaffold, Phase 1)*
+`FreeSpaceMap` per-page free-byte tracking with `fsm_register_page`, `fsm_record_used`, `fsm_find_page` — placeholder linear scan to be replaced by an on-disk FSM tree.
 
 ---
 
-### 3. `xiom.db.wal` — Write-Ahead Log (`src/wal.xi`)
+## Catalog Layer
 
-Durability and crash recovery through sequential logging.
+### `xiom.db.catalog.schema` — `src/catalog/schema.xi`
+Data dictionary: `ColumnType`, `ColumnDef`, `Schema` (with `column_index`, `column_count`), `IndexType`, `IndexDef`.
 
-**Types**
-- `WALOpType` enum: `InsertOp | UpdateOp | DeleteOp`
-- `WALEntry`: Operation record with `op`, `key`, `value`, and `timestamp`.
-- `WAL`: Ordered sequence of `WALEntry` records.
-
-**API Reference**
-
-| Function | Signature | Description |
-|---|---|---|
-| `wal_new` | `() -> WAL` | Creates empty log |
-| `wal_append` | `(wal: &mut WAL, entry: WALEntry)` | Appends entry to log |
-| `wal_replay` | `(wal: &WAL, target: &mut BTree) -> Bool` | Replays all entries onto target B-tree; returns false if any entry failed |
-| `wal_clear` | `(wal: &mut WAL)` | Empties the log |
-| `wal_truncate` | `(wal: &mut WAL, before_timestamp: Int)` | Removes entries with timestamp < threshold |
-| `wal_len` | `(wal: &WAL) -> Int` | Entry count |
-| `wal_is_empty` | `(wal: &WAL) -> Bool` | True if log is empty |
-| `wal_entry_count` | `(wal: &WAL, op_filter: WALOpType) -> Int` | Count of entries matching operation type |
-
-**Replay Semantics**
-- `InsertOp`: Calls `btree_insert`; skips duplicates (idempotent).
-- `UpdateOp`: Deletes old key then inserts new value; logs failure if key not found.
-- `DeleteOp`: Calls `btree_delete`; logs failure if key not found.
-- Returns `false` if any operation failed, but continues replay for remaining entries.
+### `xiom.db.catalog.schema_validator` — `src/catalog/schema_validator.xi`
+`validate_schema` (≥1 column, primary key in range, unique names), `validate_column`, `validate_index` — all returning `DbResult[Bool]`.
 
 ---
 
-### 4. `xiom.db.query` — Query Engine (`src/query.xi`)
+## WAL Layer
 
-Declarative query construction and execution against B-tree indexes.
+### `xiom.db.wal.wal_record` — `src/wal/wal_record.xi`
+`WALOpType` = `InsertOp | UpdateOp | DeleteOp`; `WALEntry` (op, key, value, timestamp); `wal_entry_new`.
 
-**Types**
-- `QueryOp` enum: `Eq | Neq | Lt | Lte | Gt | Gte` — comparison operators.
-- `QueryCondition`: Single predicate with an operator and a target value.
-- `Query`: Collection of conditions with optional `limit` and `offset`.
+### `xiom.db.wal.wal` — `src/wal/wal.xi`
+`WAL` = ordered `Vec[WALEntry]`. `wal_new`, `wal_append`, `wal_replay(&WAL, &mut BTree) -> Bool`, `wal_clear`, `wal_truncate` (`requires: before_timestamp >= 0`), `wal_len`, `wal_is_empty`, `wal_entry_count`. Imports `xiom.db.index.btree` for replay.
 
-**API Reference**
-
-| Function | Signature | Description |
-|---|---|---|
-| `query_new` | `() -> Query` | Creates query with no conditions, no limit/offset |
-| `query_where` | `(q: &mut Query, op: QueryOp, value: Int)` | Adds a condition (AND semantics) |
-| `query_limit` | `(q: &mut Query, limit: Int)` | Sets result count cap (0 = unlimited) |
-| `query_offset` | `(q: &mut Query, offset: Int)` | Sets skip count before first result |
-| `query_execute` | `(q: &Query, tree: &BTree) -> Vec[Int]` | Runs query against tree, returns matching values |
-| `query_condition_count` | `(q: &Query) -> Int` | Number of active conditions |
-| `query_has_limit` | `(q: &Query) -> Bool` | Whether a limit is set |
-| `query_has_offset` | `(q: &Query) -> Bool` | Whether an offset is set |
-| `query_reset` | `(q: &mut Query)` | Clears all conditions, limit, and offset |
-
-**Execution Model**
-1. All values are extracted from the B-tree via in-order traversal (`btree_to_vec`).
-2. Each value is tested against all conditions (AND conjunction).
-3. Matching values are collected, offset is applied, then limit truncation.
-4. If limit = 0, all matching results are returned.
-
-**Example**
-```
-var q = query_new();
-query_where(&mut q, QueryOp.Gt, 10);
-query_where(&mut q, QueryOp.Lt, 50);
-query_limit(&mut q, 20);
-var results = query_execute(&q, &tree);
-// Returns at most 20 values where 10 < value < 50
-```
+**Replay semantics:** `InsertOp` → `btree_insert`; `UpdateOp` → delete+insert (fails if missing); `DeleteOp` → `btree_delete`. Returns `false` if any entry failed, but continues to maximize partial recovery.
 
 ---
 
-### 5. `xiom.db.engine` — Database Engine (`src/engine.xi`)
+## Transaction Layer
 
-Unified database facade combining B-tree storage, WAL durability, and query execution.
+### `xiom.db.txn.transaction` — `src/txn/transaction.xi`
+`WALOp` = `Insert | Update | Delete`; `TxState` = `Active | Committed | Aborted`; `Transaction` (id, state, operations) with `new` / `commit` / `abort` / `add_op` / `is_active`. State machine only — isolation lands in Phase 3.
 
-**Types**
-- `Engine`: Holds a `BTree`, a `WAL`, and an internal `timestamp_counter` (monotonic).
+---
 
-**API Reference**
+## Index Layer
 
-| Function | Signature | Description |
-|---|---|---|
-| `engine_new` | `(order: Int) -> Engine` | Creates engine with fresh tree and empty WAL |
-| `engine_insert` | `(eng: &mut Engine, key: Int, value: Int) -> Bool` | Logs to WAL then inserts into B-tree |
-| `engine_get` | `(eng: &Engine, key: Int) -> Option[Int]` | Reads value by key |
-| `engine_delete` | `(eng: &mut Engine, key: Int) -> Bool` | Logs delete to WAL then removes from tree |
-| `engine_update` | `(eng: &mut Engine, key: Int, value: Int) -> Bool` | Logs update to WAL, deletes old, inserts new |
-| `engine_query` | `(eng: &Engine, query: &Query) -> Vec[Int]` | Executes query against engine's tree |
-| `engine_recover` | `(eng: &mut Engine) -> Bool` | Recreates tree from WAL replay |
-| `engine_range_query` | `(eng: &Engine, low: Int, high: Int) -> Vec[Int]` | Range scan on keys |
-| `engine_size` | `(eng: &Engine) -> Int` | Total records in tree |
-| `engine_wal_size` | `(eng: &Engine) -> Int` | WAL entry count |
-| `engine_flush_wal` | `(eng: &mut Engine)` | Clears WAL (checkpoint) |
-| `engine_truncate_wal` | `(eng: &mut Engine, before_timestamp: Int)` | Removes old WAL entries |
+### `xiom.db.index.btree` — `src/index/btree.xi`
+The canonical, WORKING B-tree. Flat-array representation (`Vec[BTreeNode]` + integer child indices) to satisfy the borrow checker. `btree_new` (`requires: order >= 3`), `btree_insert`, `btree_search`, `btree_delete`, `btree_range_query` (`requires: low <= high`), `btree_min`, `btree_max`, `btree_size`, `btree_to_vec`. Complexity: search/insert/delete O(log n), range O(log n + k).
 
-**Write Path**
-```
-engine_insert(key, value)
-  → next_timestamp()           // get monotonic TS
-  → wal_append(InsertOp entry) // durability first
-  → btree_insert()             // then index
-```
+> The previous `btree_stdlib.xi` (which called non-existent `BTreeMap.range/iter/first/last`) has been **removed**; the flat-array module is the single source of truth.
 
-**Recovery Path**
-```
-engine_recover()
-  → btree_new()          // fresh empty tree
-  → wal_replay()         // rebuild from log
-  → timestamp_counter = 0
-```
+---
+
+## Query Layer
+
+### `xiom.db.query.query` — `src/query/query.xi`
+`QueryOp` (Eq/Neq/Lt/Lte/Gt/Gte), `QueryCondition`, `Query`. Builder: `query_new`, `query_where`, `query_limit` (`requires: limit > 0`), `query_offset` (`requires: offset >= 0`). `query_execute(&Query, &BTree)` scans in-order, filters by AND, applies offset then limit. Imports `xiom.db.index.btree`.
+
+### `xiom.db.query.planner` — `src/query/planner.xi` *(scaffold, Phase 3)*
+`PlanKind` (FullScan/IndexRange/PointLookup), `QueryPlan`, `plan_query`, `execute_plan` — currently degrade to full scan; will push key predicates into `btree_range_query`.
+
+---
+
+## Engine & API
+
+### `xiom.db.engine` — `src/engine.xi`
+`Engine` (tree, wal, timestamp_counter). Coordinates WAL-before-data writes. `engine_new` (`requires: order >= 3`), `engine_insert/get/update/delete/query/range_query/recover/size/wal_size/flush_wal/truncate_wal`. Imports btree, wal, wal_record, query.
+
+### `xiom.db.api.database` — `src/api/database.xi`
+Public facade `Database` (engine + open flag). `db_open` / `db_open_with`, `db_insert`, `db_get`, `db_update`, `db_delete`, `db_query`, `db_range`, `db_size`, `db_recover`, `db_close`. Rejects operations on a closed handle; delegates everything to `engine_*`.
 
 ---
 
 ## Design Notes
 
 ### Flat Array B-Tree
-Traditional B-tree implementations use recursive pointers between nodes. XIOM's borrow checker prohibits storing references inside structs (no `&BTreeNode` fields). The flat array approach — storing all nodes in a `Vec` and using integer indices — avoids this limitation while maintaining O(log n) access. Node splitting/merging creates new nodes by appending to the vec and updating parent indices.
+XIOM's borrow checker prohibits `&BTreeNode` fields, so nodes live in a flat `Vec` addressed by integer indices. Splits/merges append nodes and rewrite parent indices. O(log n) access preserved.
 
 ### WAL Before Data
-All mutating operations (`engine_insert`, `engine_delete`, `engine_update`) follow the WAL-before-data principle: the operation is logged to the WAL first, and only then applied to the B-tree. This ensures that after a crash, `engine_recover()` can reconstruct the tree state from the log.
+All mutations log to the WAL first, then apply to the index. After a crash, `engine_recover` rebuilds the tree from the log. See [docs/wal-and-recovery.md](docs/wal-and-recovery.md).
 
 ### Monotonic Timestamps
-The engine uses an internal integer counter rather than wall-clock time for WAL timestamps. This guarantees strict ordering and avoids clock skew issues in embedded contexts.
-
-### Query Execution Strategy
-The query engine performs a full table scan (`btree_to_vec` → filter → offset → limit). This is suitable for small to medium datasets. Future optimizations could leverage B-tree range queries for conditions on the key column, or add secondary indexes.
+The engine uses an internal integer counter (not wall-clock) for WAL ordering — strict ordering, no clock skew.
 
 ### Error Strategy
-Operations return `Bool` (success/failure) or `Option[T]` (presence/absence) rather than panicking. The `DbError` enum in `types.xi` provides typed error codes for the `DbResult[T]` type alias, enabling caller-side error discrimination without exception mechanisms.
-
-### Buffer Pool
-The `BufferPool` in `types.xi` provides a simple direct-mapped page cache. Pages are indexed by `id % capacity`. While less sophisticated than LRU, it has O(1) lookup and constant memory overhead — suitable for embedded use cases where predictable performance matters more than optimal hit rates.
+Public operations return `Bool` / `Option[T]`; fallible internal operations return `DbResult[T]`. `DbError` is a stable, coarse domain; message-bearing detail rides `CoreError` from lower layers. See [docs/error-catalog.md](docs/error-catalog.md).
 
 ---
 
@@ -248,12 +160,11 @@ The `BufferPool` in `types.xi` provides a simple direct-mapped page cache. Pages
 
 ```
 ecosystem/xiom-db/
-├── package.xi          # Package manifest
-├── SPEC.md             # This specification
-└── src/
-    ├── types.xi        # Core types: Page, Schema, Row, Transaction, DbError
-    ├── btree.xi        # B-Tree index: insert, search, delete, range query
-    ├── wal.xi          # Write-Ahead Log: append, replay, truncate
-    ├── query.xi        # Query engine: conditions, limit/offset, execution
-    └── engine.xi       # Database engine: unified insert/get/delete/query/recover
+├── package.xi           # Manifest (depends on xiom-core)
+├── README.md
+├── ARCHITECTURE.md
+├── ROADMAP.md
+├── SPEC.md              # This document
+├── docs/                # Subsystem deep-dives
+└── src/                 # Layered modules (see Module Dependency Graph)
 ```

@@ -1,6 +1,14 @@
 module xiom.db.engine
-// Note: For production workloads, consider xiom.collections.BTreeMap[K, V]
-// which provides a more optimized B-tree than xiom.db.btree.
+use xiom.db.index.btree;
+use xiom.db.wal.wal;
+use xiom.db.wal.wal_record;
+use xiom.db.query.query;
+
+// The engine is the internal coordination point: it binds a B-tree index to a
+// write-ahead log and enforces the WAL-before-data write ordering that makes
+// the store recoverable. It hands out monotonic timestamps for log ordering.
+// The high-level facade in `xiom.db.api.database` wraps these functions with a
+// stable public API. In-memory only for Phase 0.
 
 pub type Engine = {
   tree: BTree;
@@ -73,6 +81,8 @@ pub fn engine_query(eng: &Engine, query: &Query) -> Vec[Int] {
   return query_execute(query, &eng.tree);
 }
 
+// Rebuild the entire index by replaying the WAL onto a fresh tree. The recovery
+// contract: after this returns, the index reflects exactly the logged history.
 pub fn engine_recover(eng: &mut Engine) -> Bool {
   var fresh = btree_new(eng.tree.order);
   eng.tree = fresh;

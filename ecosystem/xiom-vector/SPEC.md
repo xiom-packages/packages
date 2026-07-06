@@ -1,317 +1,133 @@
-# xiom-vector SPEC
+# xiom-vector — SPEC
 
-## Architecture
+Module-by-module reference for the layered vector engine. For the design
+rationale see [`ARCHITECTURE.md`](ARCHITECTURE.md); for status see
+[`ROADMAP.md`](ROADMAP.md).
 
-xiom-vector is a pure-XIOM vector database library organized into four modules:
+## Layout
 
 ```
 ecosystem/xiom-vector/
-├── package.xi          Package manifest
-├── SPEC.md             This document
+├── package.xi                  Manifest (deps: xiom-std, xiom.math, xiom-core)
+├── README.md · ARCHITECTURE.md · ROADMAP.md · COLLECTIONS.md · SPEC.md
+├── docs/                       Deep-dive design docs
 └── src/
-    ├── types.xi          Core types and distance functions
-    ├── index.xi          Brute-force flat vector index
-    ├── search.xi         Similarity search algorithms
-    └── hnsw.xi           Hierarchical Navigable Small World graph
-```
-
-### Module Dependency Graph
-
-```
-types.xi  (base: Vector, DistanceMetric, HNSWNode, Neighbor)
-    ↓
-index.xi  (VectorIndex: flat storage, depends on types)
-    ↓
-search.xi (SearchResult, search_knn, search_range: depends on types + index)
-    ↓
-hnsw.xi   (HNSWGraph: approximate NN search, depends on types + search)
+    ├── error.xi · ids.xi · engine.xi
+    ├── types/{dense_vector,metric,neighbor,dimension}.xi
+    ├── collection/{schema,collection,validator}.xi
+    ├── payload/{payload,filter_ast,filter_eval}.xi
+    ├── storage/{vector_store,id_map}.xi
+    ├── segment/{segment_state,segment,manifest}.xi
+    ├── index/{ann_index,flat_index,hnsw}.xi
+    ├── distance/{cosine,dot,l2}.xi
+    ├── query/{search_request,topk_heap,search_service}.xi
+    ├── durability/write_ahead_events.xi
+    └── api/vector_api.xi
 ```
 
 ---
 
-## Module: `xiom.vector.types` — Core Types
+## `xiom.vector.types.dense_vector`
+`Vector { data: Vec[Float32]; dimension: UInt }` — the fundamental value type.
+- `Vector.new(dimension)` `requires: dimension > 0` `ensures: result.data.len() == dimension`
+- `Vector.set(index, value)` / `Vector.get(index)` `requires: index < dimension`
+- `vector_dot`, `vector_magnitude`, `vector_normalize`, `vector_add`, `vector_sub`, `vector_scale`, `vector_dimension`
+- Binary ops `requires: a.dimension == b.dimension`.
 
-### Types
+## `xiom.vector.types.metric`
+`enum DistanceMetric { Cosine, DotProduct, Euclidean }`.
+- `dot_product_distance` → `−Σ(aᵢbᵢ)`; `cosine_distance` → `1 − cosθ` (zero vectors → 1.0); `euclidean_distance` → `√Σ(aᵢ−bᵢ)²`.
+- `vector_distance(a, b, metric)` dispatches (`requires: a.dimension == b.dimension`).
+- `metric_name(m) -> Str`.
 
-| Type | Fields | Description |
-|------|--------|-------------|
-| `Vector` | `data: Vec[Float32]`, `dimension: UInt` | Dense float vector |
-| `HNSWNode` | `id: UInt64`, `neighbors: Vec[Neighbor]` | Graph node for HNSW |
-| `Neighbor` | `id: UInt64`, `distance: Float32` | Edge in HNSW graph |
+## `xiom.vector.types.neighbor`
+`Neighbor { id: UInt64; distance: Float32 }` — low-level result edge used inside indexes/graph adjacency. `neighbor_new`, `neighbor_closer`.
 
-### Enum: `DistanceMetric`
+## `xiom.vector.types.dimension`
+`Dimension { value: Int }` wrapper. `dimension(v)`, `dimension_value`, `dimension_eq`, `dimension_is_valid` (delegates to `core.contracts.is_valid_dimension`), `dimension_within_limit` (uses `core.limits.max_dimensions`).
 
-| Variant | Description |
-|---------|-------------|
-| `Cosine` | 1 - cosine similarity |
-| `DotProduct` | Negative dot product (inner product distance) |
-| `Euclidean` | L2 norm distance |
+## `xiom.vector.error`
+`enum VectorError { DimensionMismatch(expected, got), UnsupportedMetric(name), CollectionNotFound(id), InvalidVector(msg), SegmentSealed(id), TopKExceeded(requested, max) }`.
+- `vector_error_to_str`, `vector_error_to_core` (→ `CoreError`), `vector_error_code` (stable numeric codes).
 
-### Vector Constructors & Accessors
+## `xiom.vector.ids`
+Reuses `CollectionId`/`VectorId`/`SegmentId` from `xiom.core.ids`. Adds `PointId { value: Int }` (user id) with `point_id`, `point_id_value`, `point_id_eq`, and `point_to_vector_id` / `vector_to_point_id` bridges.
 
-```
-fn Vector.new(dimension: UInt) -> Vector
-  requires: dimension > 0
-```
-Creates a zero-initialized vector of the given dimension.
+## `xiom.vector.storage.vector_store`
+`VectorIndex { vectors: Vec[Vector]; ids: Vec[Int]; dim: UInt }` — flat columnar store.
+- `index_new(dim)` `requires: dim > 0`
+- `index_add(idx, id, vec)` `requires: idx.dim == vec.dimension` (returns false on duplicate id)
+- `index_remove` (O(1) swap-with-last), `index_get -> Option[Vector]`, `index_size`.
 
-```
-fn Vector.set(index: UInt, value: Float32)
-  requires: index < dimension
-```
-Sets element at `index` to `value`.
+## `xiom.vector.storage.id_map`
+`IdMap` of `IdMapEntry { vector_id; segment; offset }`. `id_map_new/put/lookup/remove/len`. Maps logical id → physical location for compaction stability.
 
-```
-fn Vector.get(index: UInt) -> Float32
-  requires: index < dimension
-```
-Returns element at `index`.
+## `xiom.vector.index.ann_index`
+`enum AnnIndexKind { Flat, Hnsw, Ivf }`; `AnnParams { m; ef_construction; ef_search }`. `ann_params_default` (`m=16, efC=200, efS=64`), `ann_params_valid` (bounds `m` by `core.limits.max_graph_degree`), `ann_index_kind_name`.
 
-### Distance Functions
+## `xiom.vector.index.flat_index`
+`FlatIndex { store: VectorIndex }` — exact brute-force baseline / correctness oracle. `flat_index_new/add/remove/size`; `flat_index_search(idx, query, k, metric)` `ensures: result.len() <= k` (delegates to `search_service.search_knn`).
 
-```
-fn dot_product_distance(a: &Vector, b: &Vector) -> Float32
-  requires: a.dimension == b.dimension
-```
-Returns `-Σ(a[i] * b[i])`. Negative so that closer vectors have smaller distances.
+## `xiom.vector.index.hnsw`
+`HNSWNode { id: UInt64; neighbors: Vec[Neighbor] }`, `HNSWLayer`, `HNSWGraph { layers; max_neighbors; ml }`.
+- `hnsw_new(max_neighbors, ml)` `requires: max_neighbors > 0`, `ml > 0.0`.
+- `hnsw_insert(graph, id, vec)` — level assignment, greedy descent, in-layer neighbour selection, bidirectional edges bounded by `max_neighbors`.
+- `hnsw_search(graph, query, k)` `requires: k > 0` `ensures: result.len() <= k` — returns `Vec[Neighbor]`.
+- `hnsw_layer_count`, `hnsw_node_count`.
 
-```
-fn cosine_distance(a: &Vector, b: &Vector) -> Float32
-  requires: a.dimension == b.dimension
-```
-Returns `1 - cos(θ) = 1 - (a·b) / (|a| * |b|)`. Zero vectors return 1.0.
+## `xiom.vector.distance.{cosine,dot,l2}`
+Kernel seam (SIMD drop-in point, Phase 10). `cosine_kernel`/`cosine_similarity`, `dot_distance`/`dot_raw`, `l2_distance`/`l2_squared`. Delegate to `types.metric` today.
 
-```
-fn euclidean_distance(a: &Vector, b: &Vector) -> Float32
-  requires: a.dimension == b.dimension
-```
-Returns `sqrt(Σ(a[i] - b[i])²)`. Uses Newton's method (20 iterations) for sqrt.
+## `xiom.vector.query.search_request`
+`SearchRequest { query: Vector; top_k: Int; metric: DistanceMetric; filter: Vec[FilterExpr]; with_payload: Bool }`. `search_request_new` `requires: top_k > 0`, `search_request_set_filter`, `search_request_has_filter`, `search_request_top_k`.
 
-### Vector Utility Functions
+## `xiom.vector.query.topk_heap`
+`TopKHeap { capacity; items: Vec[Neighbor] }`. `topk_new(capacity)` `requires: capacity > 0` `ensures: items.len() == 0`; `topk_push` `ensures: items.len() <= capacity`; `topk_len`, `topk_is_full`, `topk_worst`.
 
-```
-fn vector_dot(a: &Vector, b: &Vector) -> Float32
-```
-Positive dot product `Σ(a[i] * b[i])`. Raw similarity score.
+## `xiom.vector.query.search_service`
+`SearchResult { id: Int; distance: Float32 }`.
+- `search_knn(idx, query, k, metric)` `requires: k > 0, idx.dim == query.dimension` `ensures: result.len() <= k`.
+- `search_range(idx, query, radius, metric)` `requires: radius > 0.0, idx.dim == query.dimension`.
+- `search_execute(idx, graph, query, k, metric, kind)` — routes by `AnnIndexKind` (Flat/Ivf → exact scan, Hnsw → graph), lowers `Neighbor → SearchResult`, `ensures: result.len() <= k`.
 
-```
-fn vector_magnitude(v: &Vector) -> Float32
-```
-Euclidean norm `sqrt(Σ v[i]²)`.
+## `xiom.vector.collection.schema`
+`enum NormalizationMode { Raw, L2Normalized }`; `PayloadFieldSpec { name; indexed }`; `CollectionSchema { dimension; metric; normalization; payload_fields }`. `schema_new(dim, metric)` `requires: is_valid_dimension(dim)` `ensures: result.dimension == dim`; `schema_set_normalization`, `schema_add_field`, `schema_dimension`.
 
-```
-fn vector_normalize(v: &Vector) -> Vector
-```
-Unit vector in direction of `v`. Zero vector returns zero vector.
+## `xiom.vector.collection.collection`
+`Collection { id: CollectionId; schema; segments: Vec[SegmentId]; index_kind; index_params }`. `collection_new`, `collection_register_segment`, `collection_segment_count`, `collection_dimension`.
 
-```
-fn vector_add(a: &Vector, b: &Vector) -> Vector
-fn vector_sub(a: &Vector, b: &Vector) -> Vector
-fn vector_scale(v: &Vector, scalar: Float32) -> Vector
-```
-Element-wise arithmetic. All return new `Vector` instances.
+## `xiom.vector.collection.validator`
+`validate_dimension(schema, dim) -> Bool`; `validate_vector(schema, v) -> Result[Bool, VectorError]` (enforces dimension constancy); `validate_metric(schema, metric) -> Result[Bool, VectorError]`.
 
-```
-fn vector_distance(a: &Vector, b: &Vector, metric: DistanceMetric) -> Float32
-```
-Dispatcher that delegates to `cosine_distance`, `dot_product_distance`, or `euclidean_distance` based on the `metric` variant.
+## `xiom.vector.payload.{payload,filter_ast,filter_eval}`
+`enum FieldValue { IntVal, FloatVal, TextVal, BoolVal }`; `Payload` + `payload_new/set/has/len`, `field_value_kind`.
+`enum FilterExpr { Eq, Range, Exists, In, And, Or, Not }` + constructors.
+`filter_matches(expr, payload) -> Bool` — combinators + Exists implemented; value predicates fail-open (Phase 3).
 
-```
-fn vector_dimension(v: &Vector) -> UInt
-```
-Returns `v.dimension`.
+## `xiom.vector.segment.{segment_state,segment,manifest}`
+`enum SegmentStateKind { Mutable, Sealing, Sealed, Indexing, Immutable, Compacting, Dropped }` + `segment_state_is_writable/is_terminal/code/can_transition`.
+`Segment { id; state; store }` + `segment_new/insert/transition/size/is_writable`.
+`Manifest { collection; active_segments; last_lsn }` + `manifest_new/add_segment/remove_segment/set_lsn/segment_count`.
 
----
+## `xiom.vector.durability.write_ahead_events`
+`enum VectorWalEvent { UpsertEvent, DeleteEvent, SegmentSeal }`. `log_upsert/log_delete/log_segment_seal(w, ...)` map to `core.wal.wal_writer.wal_writer_append` with the matching `WalOpKind`; `event_op`.
 
-## Module: `xiom.vector.index` — Flat Vector Index
+## `xiom.vector.engine`
+`VectorEngine { store; metric; dimension; created; wal; upserts; deletes; next_collection }`.
+- `engine_new()`; `engine_create_collection(eng, dim, metric) -> Result[CollectionId, CoreError]` `requires: dim >= 1`.
+- `engine_upsert(eng, point, vec) -> Result[Bool, CoreError]` `requires: eng.created` — WAL-before-ack + store apply + metric.
+- `engine_search(eng, query, k) -> Result[Vec[SearchResult], CoreError]` `requires: eng.created, k > 0`.
+- `engine_delete`, `engine_size`, `engine_durable_lsn`.
 
-### Type: `VectorIndex`
-
-```
-pub type VectorIndex = {
-  vectors: Vec[Vector];
-  ids: Vec[Int];
-  dim: UInt;
-}
-```
-
-Parallel arrays storing vectors and their integer IDs. All vectors must have the same dimension `dim`.
-
-### API
-
-```
-fn index_new(dim: UInt) -> VectorIndex
-  requires: dim > 0
-```
-Creates an empty index for vectors of dimension `dim`.
-
-```
-fn index_add(idx: &mut VectorIndex, id: Int, vec: Vector) -> Bool
-  requires: idx.dim == vec.dimension
-```
-Adds a vector with the given ID. Returns `true` on success, `false` if ID already exists.
-
-```
-fn index_remove(idx: &mut VectorIndex, id: Int) -> Bool
-```
-Removes the vector with the given ID. Uses swap-with-last + pop for O(1) removal. Returns `true` if found and removed.
-
-```
-fn index_get(idx: &VectorIndex, id: Int) -> Option[Vector]
-```
-Returns `Some(vector)` if the ID exists, `None` otherwise.
-
-```
-fn index_size(idx: &VectorIndex) -> Int
-```
-Returns the number of vectors currently stored.
+## `xiom.vector.api.vector_api`
+Public facade: `create_collection`, `upsert`, `search`, `delete_point`, `get_point`. All fallible calls return `Result[T, CoreError]`.
 
 ---
 
-## Module: `xiom.vector.search` — Similarity Search
+## Distance formulas
 
-### Type: `SearchResult`
-
-```
-pub type SearchResult = {
-  id: Int;
-  distance: Float32;
-} derive[Clone]
-```
-
-Represents a single search hit: the vector's ID and its distance from the query.
-
-### API
-
-```
-fn search_knn(idx: &VectorIndex, query: &Vector, k: Int, metric: DistanceMetric) -> Vec[SearchResult]
-  requires: k > 0
-  requires: idx.dim == query.dimension
-```
-Brute-force k-nearest neighbors search. Returns up to `k` results sorted by distance ascending.
-
-**Algorithm**: For each stored vector, compute distance to query. Insert into a sorted result buffer using insertion sort (bubble leftwards). Truncate to `k` elements. Time: O(n·k) where n = index size.
-
-```
-fn search_range(idx: &VectorIndex, query: &Vector, radius: Float32, metric: DistanceMetric) -> Vec[SearchResult]
-  requires: radius >= 0.0
-  requires: idx.dim == query.dimension
-```
-Returns all vectors whose distance to the query is ≤ `radius`, sorted by distance ascending.
-
-**Algorithm**: For each stored vector, if distance ≤ radius, insert into sorted results buffer. Time: O(n·m) where m = result count.
-
----
-
-## Module: `xiom.vector.hnsw` — HNSW Graph
-
-### Types
-
-```
-pub type HNSWLayer = {
-  nodes: Vec[HNSWNode];
-  vectors: Vec[Vector];
-}
-
-pub type HNSWGraph = {
-  layers: Vec[HNSWLayer];
-  max_neighbors: Int;
-  ml: Float32;
-}
-```
-
-An HNSW graph consists of a hierarchy of layers. Layer 0 (base) contains all nodes. Higher layers contain progressively fewer nodes (exponentially decaying with `ml`). Each layer is a navigable small world graph where nodes are connected to their `max_neighbors` nearest neighbors.
-
-`ml` (level multiplier) controls the layer distribution: probability of a node reaching level `ℓ` is `ml^(-ℓ)`.
-
-### API
-
-```
-fn hnsw_new(max_neighbors: Int, ml: Float32) -> HNSWGraph
-  requires: max_neighbors > 0
-  requires: ml > 0.0
-```
-Creates an empty HNSW graph. `max_neighbors` is the maximum edges per node per layer. Typical values: `max_neighbors=16`, `ml=4.0`.
-
-```
-fn hnsw_insert(graph: &mut HNSWGraph, id: Int, vec: Vector) -> Bool
-```
-Inserts a vector into the HNSW graph.
-
-**Algorithm** (simplified greedy):
-1. Assign a random level `L` to the node using exponential distribution parameterized by `ml`.
-2. If graph is empty: add node to all layers 0..L as the sole entry point.
-3. Otherwise:
-   - From the top layer down to L+1: perform greedy descent to find the closest node to the new vector. Map the entry point to the next layer by node ID.
-   - For layers L down to 0: perform greedy descent, select `max_neighbors` nearest neighbors via brute-force within the layer, add the node, and establish bidirectional connections.
-
-```
-fn hnsw_search(graph: &HNSWGraph, query: &Vector, k: Int) -> Vec[SearchResult]
-  requires: k > 0
-```
-Approximate k-nearest neighbors using HNSW graph traversal.
-
-**Algorithm** (simplified greedy, Euclidean distance):
-1. Start from the top layer's first node.
-2. For each layer down to 1: perform greedy descent (check neighbors, move to closer node, repeat until local minimum). Map result to next layer by ID.
-3. In layer 0: perform beam search from the entry point. Expand candidates by exploring neighbors. Collect all visited candidates, sort by distance, return top-k.
-
-```
-fn hnsw_layer_count(graph: &HNSWGraph) -> Int
-```
-Returns the number of layers in the graph.
-
-```
-fn hnsw_node_count(graph: &HNSWGraph) -> Int
-```
-Returns the total number of node entries across all layers (a single vector may appear in multiple layers).
-
----
-
-## Distance Metric Formulas
-
-### Euclidean (L2)
-```
-d(a, b) = sqrt( Σ (a[i] - b[i])² )
-```
-Range: [0, ∞). Sensitive to magnitude.
-
-### Dot Product (Inner Product)
-```
-d(a, b) = - Σ (a[i] * b[i])
-```
-Range: (-∞, ∞). Negative so that closer = smaller. Equivalent to negative inner product. Use when vectors are normalized and magnitude matters.
-
-### Cosine
-```
-d(a, b) = 1 - (a·b) / (|a| * |b|)
-```
-Range: [0, 2]. Measures angular difference, invariant to magnitude. Zero vectors return 1.0 (maximum distance).
-
----
-
-## Design Decisions
-
-### Why parallel arrays in VectorIndex?
-`Vec[Vector]` and `Vec[Int]` are kept in sync (same index = same entry). This enables O(1) access by position and simple swap-pop removal. A `HashMap[Int, Vector]` would require XIOM hash map support which isn't guaranteed.
-
-### Why insertion sort for KNN results?
-Pure XIOM has no built-in sort function or priority queue. Insertion sort via bubble-leftwards is straightforward with `while` loops and requires no external dependencies. For small `k` (typical: 5-100), the O(n·k) cost is acceptable.
-
-### Why simplified greedy HNSW?
-Full HNSW requires:
-- Heuristic neighbor selection (pruning)
-- Shrink-down edge maintenance
-- Bidirectional edge count enforcement
-- Random level generation with precise float precision
-
-The simplified version demonstrates the structural concepts (hierarchical layers, greedy descent, node ID-based cross-layer mapping) without requiring these complex operations. The brute-force neighbor selection within layers compensates for the lack of pruning.
-
-### Why Euclidean-only search in HNSW?
-The greedy descent uses `Euclidean` distance internally for layer traversal. The search result distances are also Euclidean. Supporting all metrics within HNSW traversal would require passing `DistanceMetric` through all internal functions, which adds complexity without structural benefit.
-
-### Why LCG-based level assignment?
-XIOM has no built-in random number generator. The `assign_level` function uses a linear congruential generator seeded from the node count to produce deterministic but well-distributed level assignments following the HNSW exponential decay model.
-
-### Why `ml` controls layer probability?
-In standard HNSW, `mL = 1 / ln(M)` where M is the neighbor count. Here `ml` is exposed directly. Higher `ml` → more nodes in lower layers → flatter hierarchy. Lower `ml` → more nodes in higher layers → deeper hierarchy with faster traversal but higher memory.
+| Metric | Formula | Range | Notes |
+|--------|---------|-------|-------|
+| Euclidean (L2) | `√Σ(aᵢ−bᵢ)²` | `[0, ∞)` | magnitude-sensitive; `l2_squared` skips the sqrt |
+| Dot product | `−Σ(aᵢbᵢ)` | `(−∞, ∞)` | negated so closer = smaller |
+| Cosine | `1 − (a·b)/(‖a‖‖b‖)` | `[0, 2]` | angular; zero vectors → 1.0 |
