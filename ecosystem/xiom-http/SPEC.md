@@ -325,3 +325,24 @@ This will eliminate disk I/O for response capture and improve performance.
 
 ### Client/Server TCP Integration
 Client and server stubs in `src/client.xi` and `src/server.xi` delegate to `xiom.http` where possible. The `http_send` function uses manual URL serialization and method dispatch. Future integration with `xiom.net.tcp` (Layer 3.1) will allow direct socket-based HTTP without libcurl for platforms where libcurl is unavailable.
+
+---
+
+## Roadmap / Planned Core Modules
+
+The modules documented above are the **implemented** surface of `xiom-http`: the libcurl-backed client, HTTP message types, parser, URL, cookie, MIME, and status helpers. The following core modules are **design-stage** — specified in [ARCHITECTURE.md](ARCHITECTURE.md) but not yet built. They are listed here so the spec reflects the intended shape of the lean native core.
+
+| Planned module | Directory | Responsibility | Status |
+|----------------|-----------|----------------|--------|
+| Router | `src/router/` | Method + path matching with typed path params and wildcards; per-module route tables merged explicitly at startup. | Design-stage |
+| Middleware | `src/middleware/` | Onion-model chain with explicit `next` closures; built-in middleware (logger, cors, compress, rate_limit, timeout, recover). | Design-stage |
+| Plugin | `src/plugin/` | Fastify-style scope encapsulation — child scopes inherit from parents but not the reverse; no global mutable app state. | Design-stage |
+| JSON codec | `src/json/` | Schema-first encode/decode driven by native XIOM types rather than a runtime JSON Schema interpreter. | Design-stage |
+| Contracts | `src/contracts/` | Contract-at-the-edge request/response validation via `requires`/`ensures` at the HTTP boundary. | Design-stage |
+| Static files | `src/static/` | Static file serving with MIME resolution as an explicit module (not implicit-fallthrough middleware). | Design-stage |
+
+### Native server transport
+
+The planned native server (`src/server.xi` beyond its current stub) will accept connections and dispatch requests through the router and middleware chain using **`xiom-net` (TCP, Layer 3.1)** as its transport — not libcurl. libcurl remains exclusively the **client** transport. This keeps the server free of the libcurl dependency and allows platforms without libcurl to still run a server.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) → "Current State vs Target" for the full implemented-vs-planned breakdown.

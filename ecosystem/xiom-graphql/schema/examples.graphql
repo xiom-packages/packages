@@ -1,0 +1,77 @@
+# =============================================================================
+# schema/examples.graphql
+#
+# EXAMPLE SCHEMA — DESIGN ILLUSTRATION ONLY.
+#
+# Example domain type definitions referenced by schema/root.graphql. These
+# illustrate object types, input types, enums, and interface usage under the
+# schema-first model. Design-stage example; not wired into any runtime.
+#
+# Note: `DateTime` and `JSON` scalars are declared in schema/scalars.graphql;
+# the `@auth` / `@deprecated` directives in schema/directives.graphql. In a
+# real server the schema loader composes these fragments before validation
+# (see docs/schema-loading.md).
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Object types
+# ---------------------------------------------------------------------------
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  createdAt: DateTime!
+
+  # Posts authored by this user. A prime N+1 candidate — resolve via a
+  # per-request DataLoader (see docs/batching-and-dataloaders.md).
+  posts: [Post!]!
+
+  # Free-form profile metadata as an arbitrary JSON value.
+  metadata: JSON
+}
+
+type Post {
+  id: ID!
+  title: String!
+  body: String!
+  status: PostStatus!
+  publishedAt: DateTime
+
+  # The author. Batch-load by authorId to avoid N+1.
+  author: User!
+}
+
+# ---------------------------------------------------------------------------
+# Enums
+# ---------------------------------------------------------------------------
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+# ---------------------------------------------------------------------------
+# Input types — arguments are coerced and validated during the validate phase.
+# ---------------------------------------------------------------------------
+
+input CreateUserInput {
+  name: String!
+  email: String!
+  metadata: JSON
+}
+
+input CreatePostInput {
+  authorId: ID!
+  title: String!
+  body: String!
+}
+
+# ---------------------------------------------------------------------------
+# Interface — illustrates polymorphic selections queried through fragments.
+# ---------------------------------------------------------------------------
+
+interface Node {
+  id: ID!
+}

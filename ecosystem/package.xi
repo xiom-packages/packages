@@ -43,6 +43,11 @@ package xiom_ecosystem {
     "xiom-ffi",
     "xiom-bench",
     "xiom-log",
-    "xiom-kafka"
+    "xiom-kafka",
+    "xiom-rest",
+    "xiom-graphql",
+    "xiom-websocket",
+    "xiom-realtime",
+    "xiom-micro"
   ];
 }

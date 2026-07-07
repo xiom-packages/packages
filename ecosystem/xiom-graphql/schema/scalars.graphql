@@ -1,0 +1,26 @@
+# =============================================================================
+# schema/scalars.graphql
+#
+# EXAMPLE SCHEMA — DESIGN ILLUSTRATION ONLY.
+#
+# Custom scalar declarations for a xiom-graphql server. Design-stage example;
+# not wired into any runtime.
+#
+# In xiom-graphql, each custom scalar is backed by a strongly typed ScalarCodec
+# (see SPEC.md, src/scalars.xi) registered at schema-load time, e.g.:
+#
+#     GraphQLSchema.load("schema/root.graphql")
+#       .with_scalar("DateTime", date_time_scalar)
+#       .with_scalar("JSON", json_scalar)
+#
+# The codec's parse()/serialize() functions apply contract validation, so the
+# scalar's invariants are enforced at the schema boundary.
+# =============================================================================
+
+# An RFC 3339 / ISO 8601 date-time string, e.g. "2026-07-06T20:30:00Z".
+# Codec: parses to an internal instant type; serializes back to a string.
+scalar DateTime
+
+# An arbitrary JSON value (object, array, string, number, boolean, or null).
+# Codec: bridges to xiom-json; validated as well-formed JSON on the boundary.
+scalar JSON

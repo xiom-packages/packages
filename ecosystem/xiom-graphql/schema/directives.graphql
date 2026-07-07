@@ -1,0 +1,38 @@
+# =============================================================================
+# schema/directives.graphql
+#
+# EXAMPLE SCHEMA — DESIGN ILLUSTRATION ONLY.
+#
+# Example directive definitions for a xiom-graphql server. Design-stage
+# example; not wired into any runtime.
+#
+# Directives are declarative behavior extensions with explicit hooks
+# (see SPEC.md, src/directives.xi). Each directive definition declares the
+# locations where it may appear; operation validation rejects any directive
+# used outside its declared locations.
+# =============================================================================
+
+# Marks a field or enum value as deprecated. Surfaced via introspection.
+directive @deprecated(
+  reason: String = "No longer supported"
+) on FIELD_DEFINITION | ENUM_VALUE
+
+# Conditionally include a field/fragment in the response when `if` is true.
+directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+# Conditionally skip a field/fragment when `if` is true.
+directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+# ---------------------------------------------------------------------------
+# Example custom directive.
+# ---------------------------------------------------------------------------
+
+# Require the request principal to hold a given role before the field resolves.
+# Backed by an execution-time hook wired through plugins/auth.xi.
+directive @auth(requires: Role = USER) on FIELD_DEFINITION | OBJECT
+
+enum Role {
+  GUEST
+  USER
+  ADMIN
+}

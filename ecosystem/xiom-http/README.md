@@ -9,6 +9,19 @@
 
 xiom-http provides a complete HTTP/1.1 client backed by libcurl, plus a pure-XIOM HTTP message parser, URL encoder, cookie handler, MIME type resolver, and status code library — all guarded by safety contracts.
 
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the full design vision — the lean native core (server/client/routing/middleware/plugins/contracts), how it compares to Express/Fastify/Koa/NestJS/Tower, and an honest "Current State vs Target" breakdown of what is implemented today versus planned.
+
+## Ecosystem
+
+xiom-http is the mandatory, dependency-lean core of a web layer that is split into opt-in, independently versioned packages built on top of it:
+
+- **xiom-http** — core: HTTP client, message types, parsing, and (planned) native server, routing, middleware, plugins, and contracts.
+- **xiom-rest** — REST resource routing, content negotiation, pagination, and HATEOAS helpers; builds on xiom-http.
+- **xiom-graphql** — GraphQL schema, resolvers, and execution engine; builds on xiom-http.
+- **xiom-websocket** — WebSocket upgrade, framing, and pub/sub channels; builds on xiom-http.
+- **xiom-micro** — service discovery, RPC clients, circuit breakers, and retries; builds on xiom-http.
+- **xiom-realtime** — pub/sub, presence, and broadcast rooms; builds on xiom-http (via xiom-websocket).
+
 ## Installation
 
 ```bash
