@@ -1,5 +1,45 @@
 # XIOM Compiler Gaps — Driven by the Production Ecosystem
 
+> ## ✅ UPDATE 2026-07-09 (xiomc @ feat/guardian, post Tier-2): 13 of 14 gaps CLOSED
+> Every gap below was re-tested against the current compiler with minimal repros.
+> **Only GAP-13 (brace module) remains open, and it is an intentional design choice
+> (file-form `module x` is canonical), NOT a bug.** The ecosystem can now use all of
+> GAP-1,2,3,4,5,6,8,9,10,11,12,14 patterns directly.
+>
+> | Gap | Pattern | Current status |
+> |-----|---------|----------------|
+> | GAP-1  | qualified `Type.Variant` in match | ✅ CLOSED (regress_gap1) |
+> | GAP-2  | `extern "C" { }` blocks | ✅ CLOSED (regress_gap2) |
+> | GAP-3  | `const` / `pub const` refs | ✅ CLOSED this pass — checker now registers globals (check test_gap3_*) |
+> | GAP-4  | `=>` implication in contracts | ✅ CLOSED |
+> | GAP-5  | `\0 \b \u{}` escapes | ✅ CLOSED (regress_gap5) |
+> | GAP-6  | `_` in user enum payload | ✅ CLOSED (regress_gap6) |
+> | GAP-8  | bitwise/shift `^ & \| ~ << >>` | ✅ CLOSED (regress_gap8) |
+> | GAP-9  | `type X = enum {…}` | ✅ CLOSED (regress_gap9) |
+> | GAP-10 | trailing `;` after control block | ✅ CLOSED (regress_gap10) |
+> | GAP-11 | tail expression (implicit return) | ✅ CLOSED (regress_gap11) |
+> | GAP-12 | unit literal `()` / `Ok(())` | ✅ CLOSED (regress_gap12) |
+> | GAP-13 | brace module `module x { }` | ⛔ WON'T FIX — file-form `module x` is canonical |
+> | GAP-14 | bare `is Ok` / `is Err` | ✅ CLOSED |
+> | cross-module `use` | multi-file build | ✅ RESOLVED — stdlib search path + transitive extern/const injection landed; `use xiom.*` resolves. Whole-package builds work via the injected external-decl pass. |
+>
+> Regression tests locking these in: `crates/xiom-codegen/tests/feature_regression_tests.rs`
+> (`regress_gap*`) and `crates/xiom-check/src/lib.rs` (`test_gap3_*`).
+> **Action for the ecosystem session:** stop working around GAP-1..12,14; recompile the
+> ecosystem against the current compiler and reclassify any remaining failures as genuine
+> code bugs (ECOSYSTEM_SYNTAX_ERRORS.md) or NEW gaps.
+>
+> Note: XIOM's core guarantee is "if it compiles, it's safe" — but the compiler currently
+> still prints `T001` type errors and CONTINUES to codegen (`note: N type errors ...`). That
+> bypass (`crates/xiomc/src/main.rs`) must eventually be removed so a type error aborts; until
+> then, a "compiles" result may hide `T001` diagnostics — always scan stderr for `error[`.
+
+---
+
+# (Original v0.11.0 gap report below — retained for history)
+
+# XIOM Compiler Gaps — Driven by the Production Ecosystem (v0.11.0)
+
 > **Purpose.** `ecosystem/` is production XIOM written to `docs/AI_CONTEXT.md`. It is the
 > **fixed reference**. This file lists cases where **`xiomc v0.11.0` rejects code that the
 > spec says is valid** — features to add/fix in the compiler. **No ecosystem code is changed
