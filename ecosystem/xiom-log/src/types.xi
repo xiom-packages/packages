@@ -1,4 +1,4 @@
-module xiom.log.types;
+module xiom.log.types
 
 pub enum LogLevel { Trace, Debug, Info, Warn, Error, Fatal }
 
@@ -7,7 +7,7 @@ pub type LogField = { key: Str; value: Str; }
 pub type LogEntry = {
   level: LogLevel;
   message: Str;
-  module: Str;
+  module_name: Str;
   timestamp: Int;
   fields: Vec[LogField];
 }
@@ -21,10 +21,10 @@ pub type LoggerConfig = {
 
 fn log_config_default() -> LoggerConfig {
   LoggerConfig {
-    min_level: LogLevel::Info;
-    include_timestamp: true;
-    include_module: true;
-    output_json: false;
+    min_level: LogLevel.Info,
+    include_timestamp: true,
+    include_module: true,
+    output_json: false,
   }
 }
 
@@ -52,10 +52,10 @@ fn log_level_ordinal(level: &LogLevel) -> Int {
 
 fn log_entry_new(level: LogLevel, message: Str) -> LogEntry {
   LogEntry {
-    level: level;
-    message: message;
-    module: "";
-    timestamp: 0;
-    fields: Vec::new();
+    level: level,
+    message: message,
+    module_name: "",
+    timestamp: 0,
+    fields: Vec[LogField].new(),
   }
 }

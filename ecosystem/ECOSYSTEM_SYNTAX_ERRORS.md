@@ -1,14 +1,18 @@
 # Ecosystem Syntax Errors — Genuine AI Code Bugs
 
-> **Purpose.** These are places where the AI-written `ecosystem/` code **genuinely violates
-> `docs/AI_CONTEXT.md`** and must be fixed in a later ecosystem pass (NOT compiler work).
-> They are the opposite of `COMPILER_GAPS.md`. **Do not fix these yet** — this is the
-> catalog for the dedicated ecosystem-cleanup pass, so it can be done consistently after the
-> compiler is upgraded (some files are blocked by BOTH a compiler gap and a code bug; fixing
-> code first would be wasted until the gap is closed).
+> **STATUS UPDATE (syntax-cleanup pass complete for genuine errors).**
+> The mechanical/genuine spec-violation fixes below have been **APPLIED** to the ecosystem
+> (31 `.xi` files changed, 144/144 balanced separator/path edits — no logic changes). What
+> remains blocking those files is now almost entirely **compiler gaps** (see `COMPILER_GAPS.md`),
+> chiefly **GAP-11 tail expressions**. Per project decision, spec-valid code is NOT rewritten to
+> appease the current compiler — the compiler is upgraded instead.
 >
-> Verified with `xiomc --diagnostics=json` and isolated minimal repros. `T001` type errors are
-> non-fatal and excluded here; only genuine fatal syntax violations are listed.
+> Scan movement this pass: **OK 94 → 103**, P001 90 → 74. Remaining P001 are dominated by
+> GAP-10 (`;` after control block) and GAP-11 (tail expression), both compiler gaps.
+
+> **Purpose.** Places where AI-written `ecosystem/` code **genuinely violates
+> `docs/AI_CONTEXT.md`**. Opposite of `COMPILER_GAPS.md`.
+> Verified with `xiomc --diagnostics=json`. `T001` type errors are non-fatal and excluded.
 
 ---
 
@@ -119,26 +123,64 @@
 - This one is a **compiler gap** (unit literal), not an ecosystem bug. Listed here only to note it
   was triaged. Do NOT change the code — fix the compiler (GAP-12).
 
+## E15 — Rust-style `::` path syntax  (27 occurrences)
+- **Wrong:** `Vec::new()`, `LogLevel::Trace`, `HashMap::new()`
+- **Right:** `Vec[T].new()` (or the correct XIOM constructor), `LogLevel.Trace` (enum variant uses `.`)
+- **Error:** varies — `expected ';', found }` / `expected identifier, found ':'`
+- **Root cause:** AI emitted Rust path syntax `::`. XIOM uses `.` for member/variant access and `Type[Params].method()` for associated calls.
+- **Files (sample):** xiom-bench/src/types.xi, xiom-ffi/src/buffer.xi, xiom-kafka/src/consumer.xi, xiom-log/src/logger.xi (`LogLevel::Trace/Debug/Info/...`), and more — scan `::` across ecosystem.
+
+## E16 — Reserved keyword used as a struct field name  (2 occurrences)
+- **Wrong:** `module: Str;` (field named `module`), and literal `module: "";`
+- **Right:** rename the field (e.g. `module_name: Str;`).
+- **Error:** `error[P001]: expected identifier, found 'module'`
+- **Reserved words** (AI_CONTEXT L215-223) cannot be field names: `module type match enum fn use const let var if elif else while for return self result pub is as async await spawn requires ensures invariant true false Some None Ok Err unsafe extern derive interface`.
+- **Files:** xiom-log/src/types.xi (`module` field, lines 10 & 57).
+
+## E17 — Deeper `;`-in-struct-literal (uncovered after E1 fixes)  (several)
+- Same rule as E3, found in more files once the module-line `;` was removed:
+  `BenchConfig { iterations: 1000; warmup: 3; ... }` → use `,`.
+- **Files:** xiom-bench/src/types.xi, xiom-ffi/src/buffer.xi, xiom-kafka/src/consumer.xi, xiom-log/src/logger.xi, and others (re-scan after E1).
+
+## NOTE — layered errors
+Files often have MULTIPLE genuine errors stacked (the compiler reports only the first).
+E.g. the 13 E1 files, after removing the module `;`, revealed E3/E15/E16 and some COMPILER
+GAPS (GAP-11 tail expression `{ 0 } else {...}`, GAP-12 unit type `Result[(), E]`). A proper
+fix pass must iterate each file: fix genuine error → recompile → fix next → until the file is
+green OR fails only on a documented `COMPILER_GAPS.md` item.
+
 ---
 
 ## Summary
-| Class | Description | Files |
-|-------|-------------|-------|
-| E1 | module-line trailing `;` | 13 |
-| E2 | block match arm trailing `,` (+ doc defect) | 9 |
-| E3 | `;` in struct literal | 5 |
-| E4 | single-expr arm `;` not `,` | 2 |
-| E5 | match arm bare assignment | 2 |
-| E6 | `let mut` | 1 |
-| E7 | `mut` in pattern | 1 |
-| E8 | `@intrinsic()` syntax | 1-2 |
-| E9 | `&name` param | 1 |
-| E10 | anonymous struct literal | 1 |
-| E11 | contract clause trailing `;` | 1 |
-| E12 | body-less fn missing `;` | 1 |
-| E13 | param-list trailing comma (borderline) | 1 |
+| Class | Description | Files | Status |
+|-------|-------------|-------|--------|
+| E1 | module-line trailing `;` | 13 | ✅ FIXED |
+| E2 | block match arm trailing `,` (+ doc defect) | 9 | ✅ FIXED |
+| E3 | `;` in struct literal | 5 | ✅ FIXED |
+| E4 | single-expr arm `;` not `,` | 2 | ✅ FIXED |
+| E5 | match arm bare assignment | 2 | ✅ FIXED |
+| E6 | `let mut` | 1 | ✅ FIXED |
+| E7 | `mut` in pattern | 1 | ⏳ pending (xiom-http/src/parser.xi — also has E8) |
+| E8 | `@intrinsic()` syntax | 1-2 | ⏳ pending (deferred: semantic fix to stdlib string API) |
+| E9 | `&name` param | 1 | ⏳ pending (xiom-imgui/imgui.xi) |
+| E10 | anonymous struct literal | 1 | ⏳ pending (xiom-onnx/src/types.xi) |
+| E11 | contract clause trailing `;` | 1 | ⏳ pending (xiom-crypto/src/random.xi) |
+| E12 | body-less fn missing `;` | 1 | ⏳ pending (xiom-postgres/postgres.xi) |
+| E13 | param-list trailing comma (borderline) | 1 | ✅ FIXED |
+| E15 | Rust-style `::` paths | 27 | ✅ FIXED |
+| E16 | reserved keyword as field name | 2 | ✅ FIXED (`module` → `module_name`) |
+| E17 | deeper `;`-in-literal (post-E1) | several | ✅ FIXED |
+| missing `=>` on match arm | filter_eval, search_service | 2 | ✅ FIXED |
 
-**~38-39 files** have genuine ecosystem syntax errors. Several also carry a compiler-gap
-blocker; fix order = **compiler gaps first (COMPILER_GAPS.md), then this list.**
+**FIXED this pass:** E1, E2, E3, E4, E5, E6, E13, E15, E16, E17, missing-arrow.
+**Still pending (small, mostly single-file):** E7, E8 (semantic — needs stdlib string API), E9, E10, E11, E12.
 
-> Reminder: this catalog was produced read-only. No ecosystem `.xi` files were modified.
+These remaining ~6 are low-volume and several are entangled with a compiler gap in the same
+file; they are best finished in a short follow-up once the compiler gaps (esp. GAP-11) land.
+
+**~103 files now compile clean.** Most remaining failures are compiler gaps, not ecosystem bugs.
+The single highest-impact fix is **GAP-11 (tail expressions)** — see `COMPILER_GAPS.md`; it alone
+blocks 14+ otherwise-clean files.
+
+> This catalog and the applied fixes touched ONLY `.xi` files inside `ecosystem/`. No
+> spec-valid code was altered (no tail expressions rewritten, no gap workarounds inserted).

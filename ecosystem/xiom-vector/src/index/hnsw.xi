@@ -36,16 +36,16 @@ pub fn hnsw_new(max_neighbors: Int, ml: Float32) -> HNSWGraph
   requires: ml > 0.0
 {
   return HNSWGraph{
-    layers: Vec[HNSWLayer].new();
-    max_neighbors: max_neighbors;
-    ml: ml;
+    layers: Vec[HNSWLayer].new(),
+    max_neighbors: max_neighbors,
+    ml: ml,
   };
 }
 
 fn layer_new() -> HNSWLayer {
   return HNSWLayer{
-    nodes: Vec[HNSWNode].new();
-    vectors: Vec[Vector].new();
+    nodes: Vec[HNSWNode].new(),
+    vectors: Vec[Vector].new(),
   };
 }
 

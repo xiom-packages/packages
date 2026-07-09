@@ -46,7 +46,7 @@ pub fn engine_get(eng: &Engine, key: Int) -> Option[Int] {
 pub fn engine_delete(eng: &mut Engine, key: Int) -> Bool {
   var found = btree_search(&eng.tree, key);
   match found {
-    None => return false;
+    None => return false,
     Some(v) => {}
   }
 
@@ -62,7 +62,7 @@ pub fn engine_delete(eng: &mut Engine, key: Int) -> Bool {
 pub fn engine_update(eng: &mut Engine, key: Int, value: Int) -> Bool {
   var found = btree_search(&eng.tree, key);
   match found {
-    None => return false;
+    None => return false,
     Some(_) => {}
   }
 

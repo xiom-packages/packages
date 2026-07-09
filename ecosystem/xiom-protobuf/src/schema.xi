@@ -29,7 +29,7 @@ pub type ProtoMessage = {
 fn proto_message_new(name: Str) -> ProtoMessage
   requires: name.len() > 0
 {
-  ProtoMessage { name: name.clone(); fields: Vec[ProtoField].new(); }
+  ProtoMessage { name: name.clone(), fields: Vec[ProtoField].new() }
 }
 
 fn proto_add_field(msg: &mut ProtoMessage, name: Str, number: Int, ftype: ProtoType)
@@ -38,10 +38,10 @@ fn proto_add_field(msg: &mut ProtoMessage, name: Str, number: Int, ftype: ProtoT
   requires: number < 536870912
 {
   let field = ProtoField {
-    name: name.clone();
-    number: number;
-    field_type: ftype;
-    repeated: false;
+    name: name.clone(),
+    number: number,
+    field_type: ftype,
+    repeated: false,
   };
   msg.fields.push(field);
 }
@@ -86,17 +86,17 @@ fn proto_field_count(msg: &ProtoMessage) -> Int
 fn proto_type_to_str(ftype: ProtoType) -> Str
 {
   match ftype {
-    ProtoType::Int32 => "int32",
-    ProtoType::Int64 => "int64",
-    ProtoType::UInt32 => "uint32",
-    ProtoType::UInt64 => "uint64",
-    ProtoType::Float => "float",
-    ProtoType::Double => "double",
-    ProtoType::Bool => "bool",
-    ProtoType::String => "string",
-    ProtoType::Bytes => "bytes",
-    ProtoType::Message => "message",
-    ProtoType::Enum => "enum",
+    ProtoType.Int32 => "int32",
+    ProtoType.Int64 => "int64",
+    ProtoType.UInt32 => "uint32",
+    ProtoType.UInt64 => "uint64",
+    ProtoType.Float => "float",
+    ProtoType.Double => "double",
+    ProtoType.Bool => "bool",
+    ProtoType.String => "string",
+    ProtoType.Bytes => "bytes",
+    ProtoType.Message => "message",
+    ProtoType.Enum => "enum",
   }
 }
 

@@ -1,4 +1,4 @@
-module xiom.kafka.producer;
+module xiom.kafka.producer
 
 fn kafka_producer_new(config: &KafkaConfig) -> Result[KafkaProducer, KafkaError] {
   let producer = KafkaProducer {

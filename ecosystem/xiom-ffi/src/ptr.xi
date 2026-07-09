@@ -1,4 +1,4 @@
-module xiom.ffi.ptr;
+module xiom.ffi.ptr
 
 pub type SafePtr = {
   ptr: Int;

@@ -11,22 +11,22 @@ use xiom.vector.payload.filter_ast;
 
 pub fn filter_matches(expr: &FilterExpr, p: &Payload) -> Bool {
   match expr {
-    Eq(field, value) {
+    Eq(field, value) => {
       // TODO(Phase 3): resolve `field` in payload and compare against `value`.
       return payload_has(p, field);
     }
-    Range(field, lo, hi) {
+    Range(field, lo, hi) => {
       // TODO(Phase 3): numeric range check [lo, hi] on the resolved field.
       return payload_has(p, field);
     }
-    Exists(field) {
+    Exists(field) => {
       return payload_has(p, field);
     }
-    In(field, values) {
+    In(field, values) => {
       // TODO(Phase 3): membership test of the field value within `values`.
       return payload_has(p, field);
     }
-    And(clauses) {
+    And(clauses) => {
       var i: Int = 0;
       while i < clauses.len() {
         if !filter_matches(&clauses[i], p) {
@@ -36,7 +36,7 @@ pub fn filter_matches(expr: &FilterExpr, p: &Payload) -> Bool {
       }
       return true;
     }
-    Or(clauses) {
+    Or(clauses) => {
       var i: Int = 0;
       while i < clauses.len() {
         if filter_matches(&clauses[i], p) {
@@ -46,7 +46,7 @@ pub fn filter_matches(expr: &FilterExpr, p: &Payload) -> Bool {
       }
       return false;
     }
-    Not(clauses) {
+    Not(clauses) => {
       if clauses.len() == 0 {
         return true;
       }

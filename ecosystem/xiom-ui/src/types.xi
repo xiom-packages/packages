@@ -157,9 +157,9 @@ pub fn InputState.reset() {
 pub fn InputState.is_mouse_down(button: MouseButton) -> Bool {
   var idx: Int = 0;
   match button {
-    Left => idx = 0,
-    Right => idx = 1,
-    Middle => idx = 2,
+    Left => { idx = 0; }
+    Right => { idx = 1; }
+    Middle => { idx = 2; }
   }
   if idx >= mouse_down.len() { return false; }
   return mouse_down[idx];

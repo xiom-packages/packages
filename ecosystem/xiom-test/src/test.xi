@@ -199,10 +199,10 @@ requires: msg.len() > 0
   match opt {
     Some(val) => {
       return TestCase{ name: msg, passed: true, message: msg };
-    },
+    }
     None => {
       return TestCase{ name: msg, passed: false, message: msg };
-    },
+    }
   }
 }
 
@@ -212,10 +212,10 @@ requires: msg.len() > 0
   match opt {
     Some(val) => {
       return TestCase{ name: msg, passed: false, message: msg };
-    },
+    }
     None => {
       return TestCase{ name: msg, passed: true, message: msg };
-    },
+    }
   }
 }
 
@@ -225,10 +225,10 @@ requires: msg.len() > 0
   match result {
     Ok(val) => {
       return TestCase{ name: msg, passed: true, message: msg };
-    },
+    }
     Err(e) => {
       return TestCase{ name: msg, passed: false, message: msg };
-    },
+    }
   }
 }
 
@@ -238,10 +238,10 @@ requires: msg.len() > 0
   match result {
     Ok(val) => {
       return TestCase{ name: msg, passed: false, message: msg };
-    },
+    }
     Err(e) => {
       return TestCase{ name: msg, passed: true, message: msg };
-    },
+    }
   }
 }
 

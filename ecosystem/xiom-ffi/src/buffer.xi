@@ -1,4 +1,4 @@
-module xiom.ffi.buffer;
+module xiom.ffi.buffer
 
 pub type FFIBuffer = {
   data: Vec[Int];
@@ -6,7 +6,7 @@ pub type FFIBuffer = {
 }
 
 fn buffer_new(capacity: Int) -> FFIBuffer {
-  FFIBuffer { data: Vec::new(); capacity: capacity }
+  FFIBuffer { data: Vec[Int].new(), capacity: capacity }
 }
 
 fn buffer_write(buf: &mut FFIBuffer, data: &Vec[Int]) -> Result[Int, Str] {
@@ -34,7 +34,7 @@ fn buffer_read(buf: &FFIBuffer, offset: Int, len: Int) -> Result[Vec[Int], Str] 
   } elif offset + len > buf.data.len() {
     Err("buffer_read: read range out of bounds")
   } else {
-    let result = buffer_read_slice(buf, offset, len, 0, Vec::new());
+    let result = buffer_read_slice(buf, offset, len, 0, Vec[Int].new());
     Ok(result)
   }
 }
@@ -49,5 +49,5 @@ fn buffer_read_slice(buf: &FFIBuffer, offset: Int, len: Int, idx: Int, acc: Vec[
 }
 
 fn buffer_clear(buf: &mut FFIBuffer) {
-  buf.data = Vec::new();
+  buf.data = Vec[Int].new();
 }

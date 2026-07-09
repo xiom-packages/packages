@@ -1,4 +1,4 @@
-module xiom.kafka.types;
+module xiom.kafka.types
 
 pub type KafkaConfig = {
   brokers: Str;

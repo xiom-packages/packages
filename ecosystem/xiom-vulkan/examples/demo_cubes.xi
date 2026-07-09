@@ -14,7 +14,7 @@ fn main() -> Int {
     Err(e) => {
       io.println(e);
       return 1;
-    },
+    }
     Ok(a) => {
       while !should_close(a) {
         poll(a);
@@ -41,6 +41,6 @@ fn main() -> Int {
       }
       destroy_app(a);
       return 0;
-    },
+    }
   }
 }

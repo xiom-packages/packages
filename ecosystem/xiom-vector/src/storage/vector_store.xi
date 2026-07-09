@@ -17,9 +17,9 @@ pub fn index_new(dim: UInt) -> VectorIndex
   requires: dim > 0
 {
   return VectorIndex{
-    vectors: Vec[Vector].new();
-    ids: Vec[Int].new();
-    dim: dim;
+    vectors: Vec[Vector].new(),
+    ids: Vec[Int].new(),
+    dim: dim,
   };
 }
 

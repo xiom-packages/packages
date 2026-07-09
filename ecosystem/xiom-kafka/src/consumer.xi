@@ -1,23 +1,23 @@
-module xiom.kafka.consumer;
+module xiom.kafka.consumer
 
 fn kafka_consumer_new(config: &KafkaConfig, topics: &Vec[Str]) -> Result[KafkaConsumer, KafkaError] {
   let consumer = KafkaConsumer {
-    handle: -1;
+    handle: -1,
     config: KafkaConfig {
-      brokers: config.brokers;
-      client_id: config.client_id;
-      group_id: config.group_id;
-    };
-    topics: Vec::new();
+      brokers: config.brokers,
+      client_id: config.client_id,
+      group_id: config.group_id,
+    },
+    topics: Vec[Str].new(),
   };
   Ok(consumer)
 }
 
 fn kafka_subscribe(consumer: &mut KafkaConsumer, topics: &Vec[Str]) -> Result[(), KafkaError] {
   if topics.len() == 0 {
-    return Err(KafkaError { code: -1; message: "topics must not be empty"; is_retryable: false });
+    return Err(KafkaError { code: -1, message: "topics must not be empty", is_retryable: false });
   };
-  consumer.topics = topic_list_copy(topics, 0, Vec::new());
+  consumer.topics = topic_list_copy(topics, 0, Vec[Str].new());
   Ok(())
 }
 

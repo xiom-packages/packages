@@ -15,12 +15,12 @@ fn matrix_new(rows: Int, cols: Int) -> Matrix
 {
   let size = rows * cols;
   let data = Vec[Float64].with_capacity(size);
-  let mut i = 0;
+  var i = 0;
   while i < size {
     data.push(0.0);
     i = i + 1;
   };
-  Matrix { data: data; rows: rows; cols: cols; }
+  Matrix { data: data, rows: rows, cols: cols }
 }
 
 fn matrix_get(m: &Matrix, row: Int, col: Int) -> Float64
@@ -82,8 +82,8 @@ fn matrix_sub(a: &Matrix, b: &Matrix) -> Result[Matrix, Str]
 
 fn matrix_scale(m: &Matrix, scalar: Float64) -> Matrix
 {
-  let mut result = matrix_new(m.rows, m.cols);
-  let mut i = 0;
+  var result = matrix_new(m.rows, m.cols);
+  var i = 0;
   while i < m.data.len() {
     result.data[i] = m.data[i] * scalar;
     i = i + 1;
@@ -94,8 +94,8 @@ fn matrix_scale(m: &Matrix, scalar: Float64) -> Matrix
 fn identity(n: Int) -> Matrix
   requires: n > 0
 {
-  let mut result = matrix_new(n, n);
-  let mut i = 0;
+  var result = matrix_new(n, n);
+  var i = 0;
   while i < n {
     result.data[i * n + i] = 1.0;
     i = i + 1;
@@ -107,19 +107,19 @@ fn matrix_determinant(m: &Matrix) -> Float64
   requires: m.rows == m.cols
 {
   let n = m.rows;
-  let mut lu = m.data.clone();
-  let mut det = 1.0;
-  let mut i = 0;
+  var lu = m.data.clone();
+  var det = 1.0;
+  var i = 0;
   while i < n {
     let pivot = lu[i * n + i];
     if pivot == 0.0 {
       return 0.0;
     };
     det = det * pivot;
-    let mut j = i + 1;
+    var j = i + 1;
     while j < n {
       let factor = lu[j * n + i] / pivot;
-      let mut k = i;
+      var k = i;
       while k < n {
         lu[j * n + k] = lu[j * n + k] - factor * lu[i * n + k];
         k = k + 1;
@@ -139,10 +139,10 @@ fn matrix_inverse(m: &Matrix) -> Result[Matrix, Str]
     return Err("singular matrix");
   };
 
-  let mut aug = matrix_new(n, n * 2);
-  let mut i = 0;
+  var aug = matrix_new(n, n * 2);
+  var i = 0;
   while i < n {
-    let mut j = 0;
+    var j = 0;
     while j < n {
       aug.data[i * (n * 2) + j] = m.data[i * n + j];
       j = j + 1;
@@ -151,20 +151,20 @@ fn matrix_inverse(m: &Matrix) -> Result[Matrix, Str]
     i = i + 1;
   };
 
-  let mut col = 0;
+  var col = 0;
   while col < n {
     let pivot = aug.data[col * (n * 2) + col];
-    let mut j = 0;
+    var j = 0;
     while j < n * 2 {
       aug.data[col * (n * 2) + j] = aug.data[col * (n * 2) + j] / pivot;
       j = j + 1;
     };
 
-    let mut row = 0;
+    var row = 0;
     while row < n {
       if row != col {
         let factor = aug.data[row * (n * 2) + col];
-        let mut j = 0;
+        var j = 0;
         while j < n * 2 {
           aug.data[row * (n * 2) + j] = aug.data[row * (n * 2) + j] - factor * aug.data[col * (n * 2) + j];
           j = j + 1;
@@ -175,10 +175,10 @@ fn matrix_inverse(m: &Matrix) -> Result[Matrix, Str]
     col = col + 1;
   };
 
-  let mut inv = matrix_new(n, n);
-  let mut row = 0;
+  var inv = matrix_new(n, n);
+  var row = 0;
   while row < n {
-    let mut col = 0;
+    var col = 0;
     while col < n {
       inv.data[row * n + col] = aug.data[row * (n * 2) + n + col];
       col = col + 1;
@@ -198,11 +198,11 @@ fn solve_linear_system(a: &Matrix, b: &Vec[Float64]) -> Result[Vec[Float64], Str
   };
 
   let inv = matrix_inverse(a)?;
-  let mut x = Vec[Float64].with_capacity(n);
-  let mut i = 0;
+  var x = Vec[Float64].with_capacity(n);
+  var i = 0;
   while i < n {
-    let mut sum = 0.0;
-    let mut j = 0;
+    var sum = 0.0;
+    var j = 0;
     while j < n {
       sum = sum + inv.data[i * n + j] * b[j];
       j = j + 1;

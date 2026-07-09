@@ -1,4 +1,4 @@
-module xiom.bench.types;
+module xiom.bench.types
 
 pub type BenchConfig = {
   iterations: Int;
@@ -22,9 +22,9 @@ pub type BenchSuite = {
 }
 
 fn bench_config_default() -> BenchConfig {
-  BenchConfig { iterations: 1000; warmup: 3; min_time_ms: 100 }
+  BenchConfig { iterations: 1000, warmup: 3, min_time_ms: 100 }
 }
 
 fn bench_suite_new(name: Str) -> BenchSuite {
-  BenchSuite { name: name; results: Vec::new() }
+  BenchSuite { name: name, results: Vec[BenchResult].new() }
 }

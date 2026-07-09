@@ -2,12 +2,12 @@ OK	package.xi
 OK	xiom-algo\package.xi	
 P001	xiom-algo\src\algo.xi	error[P001]: 349:13: expected ')', found &
 OK	xiom-bench\package.xi	
-P001	xiom-bench\src\runner.xi	error[P001]: 1:25: expected declaration, found ';'
-P001	xiom-bench\src\stats.xi	error[P001]: 1:24: expected declaration, found ';'
-P001	xiom-bench\src\types.xi	error[P001]: 1:24: expected declaration, found ';'
+P001	xiom-bench\src\runner.xi	error[P001]: 6:3: expected ';', found }
+P001	xiom-bench\src\stats.xi	error[P001]: 6:3: expected ';', found }
+P001	xiom-bench\src\types.xi	error[P001]: 26:1: expected ';', found }
 OK	xiom-blas\blas.xi	
 OK	xiom-blas\package.xi	
-P001	xiom-blas\src\linalg.xi	error[P001]: 18:11: expected '=', found i
+P001	xiom-blas\src\linalg.xi	error[P001]: 23:3: expected identifier, found ';'
 OK	xiom-blas\tests\test_blas.xi	
 C001	xiom-bullet\bullet.xi	unknown type 'World'
 OK	xiom-bullet\package.xi	
@@ -59,10 +59,10 @@ OK	xiom-db\src\catalog\schema.xi
 OK	xiom-db\src\catalog\schema_validator.xi	
 C001	xiom-db\src\config.xi	unknown type 'CoreConfig'
 OK	xiom-db\src\contracts.xi	
-P001	xiom-db\src\engine.xi	error[P001]: 50:5: expected identifier, found ';'
+OK	xiom-db\src\engine.xi	
 P001	xiom-db\src\error.xi	error[P001]: 49:19: expected identifier, found '_'
 OK	xiom-db\src\ids.xi	
-P001	xiom-db\src\index\btree.xi	error[P001]: 77:5: expected identifier, found ';'
+OK	xiom-db\src\index\btree.xi	
 OK	xiom-db\src\query.xi	
 P001	xiom-db\src\query\planner.xi	error[P001]: 53:5: expected ';', found }
 C001	xiom-db\src\query\query.xi	unknown type 'BTree'
@@ -75,9 +75,9 @@ OK	xiom-db\src\wal.xi
 C001	xiom-db\src\wal\wal.xi	unknown type 'BTree'
 OK	xiom-db\src\wal\wal_record.xi	
 OK	xiom-ffi\package.xi	
-P001	xiom-ffi\src\buffer.xi	error[P001]: 1:23: expected declaration, found ';'
-P001	xiom-ffi\src\ptr.xi	error[P001]: 1:20: expected declaration, found ';'
-P001	xiom-ffi\src\result.xi	error[P001]: 1:23: expected declaration, found ';'
+P001	xiom-ffi\src\buffer.xi	error[P001]: 10:1: expected ';', found }
+P001	xiom-ffi\src\ptr.xi	error[P001]: 12:3: expected ';', found }
+P001	xiom-ffi\src\result.xi	error[P001]: 10:32: expected identifier, found ';'
 P001	xiom-glfw\glfw.xi	error[P001]: 38:5: 'pub' not valid on const declarations
 OK	xiom-glfw\package.xi	
 OK	xiom-glfw\tests\test_glfw.xi	
@@ -106,17 +106,17 @@ OK	xiom-imgui\tests\test_imgui.xi
 OK	xiom-json\package.xi	
 L001	xiom-json\src\json.xi	error[L001]: invalid escape sequence at 314:60
 OK	xiom-kafka\package.xi	
-P001	xiom-kafka\src\admin.xi	error[P001]: 1:24: expected declaration, found ';'
-P001	xiom-kafka\src\consumer.xi	error[P001]: 1:27: expected declaration, found ';'
-P001	xiom-kafka\src\producer.xi	error[P001]: 1:27: expected declaration, found ';'
-P001	xiom-kafka\src\types.xi	error[P001]: 1:24: expected declaration, found ';'
+P001	xiom-kafka\src\admin.xi	error[P001]: 3:96: expected identifier, found ')'
+P001	xiom-kafka\src\consumer.xi	error[P001]: 14:1: expected ';', found }
+P001	xiom-kafka\src\producer.xi	error[P001]: 6:5: expected identifier, found ';'
+P001	xiom-kafka\src\types.xi	error[P001]: 36:35: expected identifier, found ';'
 P001	xiom-libsodium\libsodium.xi	error[P001]: 28:5: 'pub' not valid on const declarations
 OK	xiom-libsodium\package.xi	
 OK	xiom-libsodium\tests\test_libsodium.xi	
 OK	xiom-log\package.xi	
-P001	xiom-log\src\format.xi	error[P001]: 1:23: expected declaration, found ';'
-P001	xiom-log\src\logger.xi	error[P001]: 1:23: expected declaration, found ';'
-P001	xiom-log\src\types.xi	error[P001]: 1:22: expected declaration, found ';'
+P001	xiom-log\src\format.xi	error[P001]: 8:3: expected ';', found }
+P001	xiom-log\src\logger.xi	error[P001]: 18:1: expected ';', found }
+P001	xiom-log\src\types.xi	error[P001]: 29:1: expected ';', found }
 OK	xiom-micro\package.xi	
 OK	xiom-net\package.xi	
 P001	xiom-net\src\demo.xi	error[P001]: 11:3: expected identifier, found ';'
@@ -142,7 +142,7 @@ P001	xiom-postgres\src\client.xi	error[P001]: 17:27: expected '{', found implies
 OK	xiom-postgres\tests\test_postgres.xi	
 OK	xiom-protobuf\package.xi	
 P001	xiom-protobuf\protobuf.xi	error[P001]: 11:28: expected identifier, found 'enum'
-P001	xiom-protobuf\src\schema.xi	error[P001]: 32:38: expected identifier, found ';'
+P001	xiom-protobuf\src\schema.xi	error[P001]: 33:1: expected ';', found }
 C001	xiom-protobuf\tests\test_protobuf.xi	unknown type 'ProtoMessage'
 OK	xiom-realtime\package.xi	
 OK	xiom-redis\package.xi	
@@ -167,7 +167,7 @@ OK	xiom-stb\package.xi
 OK	xiom-stb\stb.xi	
 OK	xiom-stb\tests\test_stb.xi	
 OK	xiom-test\package.xi	
-P001	xiom-test\src\test.xi	error[P001]: 203:5: expected identifier, found ','
+OK	xiom-test\src\test.xi	
 OK	xiom-torch\package.xi	
 P001	xiom-torch\src\ffi.xi	error[P001]: 5:1: expected declaration, found 'extern'
 P001	xiom-torch\src\nn.xi	error[P001]: 14:3: expected declaration, found 'requires'
@@ -176,10 +176,10 @@ OK	xiom-ui\package.xi
 C001	xiom-ui\src\application.xi	unknown type 'Theme'
 P001	xiom-ui\src\backend.xi	error[P001]: 7:1: expected declaration, found 'extern'
 C001	xiom-ui\src\demo.xi	unknown type 'Unit'
-P001	xiom-ui\src\layout.xi	error[P001]: 180:18: expected identifier, found '='
+C001	xiom-ui\src\layout.xi	unknown type 'LayoutDirection'
 C001	xiom-ui\src\render.xi	unknown type 'Rect'
-P001	xiom-ui\src\theme.xi	error[P001]: 23:3: expected identifier, found ')'
-P001	xiom-ui\src\types.xi	error[P001]: 160:19: expected identifier, found '='
+C001	xiom-ui\src\theme.xi	unknown type 'Color'
+OK	xiom-ui\src\types.xi	
 L001	xiom-ui\src\widgets.xi	error[L001]: invalid escape sequence at 230:25
 OK	xiom-vector\package.xi	
 C001	xiom-vector\src\api\vector_api.xi	unknown type 'VectorEngine'
@@ -190,38 +190,38 @@ C001	xiom-vector\src\distance\cosine.xi	unknown type 'Vector'
 C001	xiom-vector\src\distance\dot.xi	unknown type 'Vector'
 C001	xiom-vector\src\distance\l2.xi	unknown type 'Vector'
 P001	xiom-vector\src\durability\write_ahead_events.xi	error[P001]: 37:18: expected identifier, found '_'
-OK	xiom-vector\src\engine.xi	
+C001	xiom-vector\src\engine.xi	unknown type 'HNSWGraph'
 P001	xiom-vector\src\error.xi	error[P001]: 22:24: expected identifier, found '_'
 OK	xiom-vector\src\hnsw.xi	
 C001	xiom-vector\src\ids.xi	unknown type 'VectorId'
 OK	xiom-vector\src\index.xi	
 OK	xiom-vector\src\index\ann_index.xi	
 C001	xiom-vector\src\index\flat_index.xi	unknown type 'Vector'
-P001	xiom-vector\src\index\hnsw.xi	error[P001]: 40:5: expected identifier, found ';'
+C001	xiom-vector\src\index\hnsw.xi	unknown type 'Neighbor'
 C001	xiom-vector\src\payload\filter_ast.xi	unknown type 'FieldValue'
-P001	xiom-vector\src\payload\filter_eval.xi	error[P001]: 14:22: expected '=>', found {
+C001	xiom-vector\src\payload\filter_eval.xi	unknown type 'Payload'
 P001	xiom-vector\src\payload\payload.xi	error[P001]: 52:13: expected identifier, found '_'
 C001	xiom-vector\src\query\search_request.xi	unknown type 'Vector'
-P001	xiom-vector\src\query\search_service.xi	error[P001]: 31:48: expected identifier, found ';'
+C001	xiom-vector\src\query\search_service.xi	unknown type 'VectorIndex'
 C001	xiom-vector\src\query\topk_heap.xi	unknown type 'Neighbor'
 OK	xiom-vector\src\search.xi	
 C001	xiom-vector\src\segment\manifest.xi	unknown type 'CollectionId'
 C001	xiom-vector\src\segment\segment.xi	unknown type 'SegmentId'
 OK	xiom-vector\src\segment\segment_state.xi	
 OK	xiom-vector\src\storage\id_map.xi	
-P001	xiom-vector\src\storage\vector_store.xi	error[P001]: 21:5: expected identifier, found ';'
+C001	xiom-vector\src\storage\vector_store.xi	unknown type 'Vector'
 OK	xiom-vector\src\types.xi	
 OK	xiom-vector\src\types\dense_vector.xi	
 OK	xiom-vector\src\types\dimension.xi	
 OK	xiom-vector\src\types\metric.xi	
 OK	xiom-vector\src\types\neighbor.xi	
-P001	xiom-vulkan\examples\demo_2d.xi	error[P001]: 19:5: expected identifier, found ','
-P001	xiom-vulkan\examples\demo_3d.xi	error[P001]: 18:5: expected identifier, found ','
-P001	xiom-vulkan\examples\demo_cubes.xi	error[P001]: 18:5: expected identifier, found ','
-P001	xiom-vulkan\examples\demo_particles.xi	error[P001]: 18:5: expected identifier, found ','
-P001	xiom-vulkan\examples\demo_shapes.xi	error[P001]: 19:5: expected identifier, found ','
+OK	xiom-vulkan\examples\demo_2d.xi	
+OK	xiom-vulkan\examples\demo_3d.xi	
+OK	xiom-vulkan\examples\demo_cubes.xi	
+OK	xiom-vulkan\examples\demo_particles.xi	
+OK	xiom-vulkan\examples\demo_shapes.xi	
 OK	xiom-vulkan\package.xi	
 P001	xiom-vulkan\src\wrapper.xi	error[P001]: 19:25: expected '(', found =>
-P001	xiom-vulkan\tests\test_vulkan.xi	error[P001]: 20:3: expected identifier, found ','
+OK	xiom-vulkan\tests\test_vulkan.xi	
 P001	xiom-vulkan\vulkan.xi	error[P001]: 8:1: expected declaration, found 'extern'
 OK	xiom-websocket\package.xi	

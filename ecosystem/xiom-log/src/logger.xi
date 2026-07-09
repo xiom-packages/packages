@@ -1,4 +1,4 @@
-module xiom.log.logger;
+module xiom.log.logger
 
 pub type Logger = {
   config: LoggerConfig;
@@ -8,12 +8,12 @@ pub type Logger = {
 fn logger_new(config: &LoggerConfig) -> Logger {
   Logger {
     config: LoggerConfig {
-      min_level: config.min_level;
-      include_timestamp: config.include_timestamp;
-      include_module: config.include_module;
-      output_json: config.output_json;
-    };
-    entries: Vec::new();
+      min_level: config.min_level,
+      include_timestamp: config.include_timestamp,
+      include_module: config.include_module,
+      output_json: config.output_json,
+    },
+    entries: Vec[LogEntry].new(),
   }
 }
 
@@ -28,32 +28,32 @@ fn logger_log(logger: &mut Logger, entry: LogEntry) {
 }
 
 fn logger_trace(logger: &mut Logger, msg: Str) {
-  let entry = log_entry_new(LogLevel::Trace, msg);
+  let entry = log_entry_new(LogLevel.Trace, msg);
   logger_log(logger, entry);
 }
 
 fn logger_debug(logger: &mut Logger, msg: Str) {
-  let entry = log_entry_new(LogLevel::Debug, msg);
+  let entry = log_entry_new(LogLevel.Debug, msg);
   logger_log(logger, entry);
 }
 
 fn logger_info(logger: &mut Logger, msg: Str) {
-  let entry = log_entry_new(LogLevel::Info, msg);
+  let entry = log_entry_new(LogLevel.Info, msg);
   logger_log(logger, entry);
 }
 
 fn logger_warn(logger: &mut Logger, msg: Str) {
-  let entry = log_entry_new(LogLevel::Warn, msg);
+  let entry = log_entry_new(LogLevel.Warn, msg);
   logger_log(logger, entry);
 }
 
 fn logger_error(logger: &mut Logger, msg: Str) {
-  let entry = log_entry_new(LogLevel::Error, msg);
+  let entry = log_entry_new(LogLevel.Error, msg);
   logger_log(logger, entry);
 }
 
 fn logger_fatal(logger: &mut Logger, msg: Str) {
-  let entry = log_entry_new(LogLevel::Fatal, msg);
+  let entry = log_entry_new(LogLevel.Fatal, msg);
   logger_log(logger, entry);
 }
 
@@ -77,5 +77,5 @@ fn logger_flush_entries(logger: &Logger, idx: Int, acc: Str) -> Str {
 }
 
 fn logger_clear(logger: &mut Logger) {
-  logger.entries = Vec::new();
+  logger.entries = Vec[LogEntry].new();
 }

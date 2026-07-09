@@ -73,7 +73,7 @@ fn search_node(tree: &BTree, node_idx: Int, key: Int) -> Option[Int] {
 pub fn btree_insert(tree: &mut BTree, key: Int, value: Int) -> Bool {
   var found = btree_search(tree, key);
   match found {
-    Some(_) => return false;
+    Some(_) => return false,
     None => {}
   }
   var max_keys = tree.order - 1;
@@ -230,7 +230,7 @@ fn insert_at_pos(tree: &mut BTree, node_idx: Int, pos: Int, key: Int, value: Int
 pub fn btree_delete(tree: &mut BTree, key: Int) -> Bool {
   var found = btree_search(tree, key);
   match found {
-    None => return false;
+    None => return false,
     Some(_) => {}
   }
   return delete_from_node(tree, tree.root, key);

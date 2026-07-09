@@ -16,7 +16,7 @@ fn test_offscreen_render_triangle() -> TestResult {
       let hash = offscreen_hash(s);
       offscreen_destroy(s);
       return assert(hash != 0, "offscreen: hash != 0");
-    },
+    }
   }
 }
 
@@ -26,7 +26,7 @@ fn test_app_create_destroy() -> TestResult {
     Ok(app) => {
       destroy_app(app);
       return assert(true, "app: create+destroy ok");
-    },
+    }
     Err(_) => return assert(true, "app: no vulkan (skip)"),
   }
 }

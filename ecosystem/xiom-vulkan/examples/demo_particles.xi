@@ -14,7 +14,7 @@ fn main() -> Int {
     Err(e) => {
       io.println(e);
       return 1;
-    },
+    }
     Ok(a) => {
       let ok = particles_enable(a, 3000);
       if !ok {
@@ -37,6 +37,6 @@ fn main() -> Int {
       }
       destroy_app(a);
       return 0;
-    },
+    }
   }
 }

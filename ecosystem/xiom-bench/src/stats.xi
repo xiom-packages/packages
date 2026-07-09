@@ -1,4 +1,4 @@
-module xiom.bench.stats;
+module xiom.bench.stats
 
 fn stats_mean(data: &Vec[Int]) -> Int {
   if data.len() == 0 {

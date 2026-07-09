@@ -1,4 +1,4 @@
-module xiom.ffi.result;
+module xiom.ffi.result
 
 pub type FFIError = {
   code: Int;

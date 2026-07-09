@@ -28,7 +28,7 @@ pub fn search_knn(idx: &VectorIndex, query: &Vector, k: Int, metric: DistanceMet
   var total: Int = idx.ids.len();
   while i < total {
     var dist = vector_distance(&idx.vectors[i], query, metric);
-    var result = SearchResult{ id: idx.ids[i]; distance: dist; };
+    var result = SearchResult{ id: idx.ids[i], distance: dist };
     results.push(result);
     var pos: Int = results.len() - 1;
     while pos > 0 && results[pos - 1].distance > results[pos].distance {
@@ -55,7 +55,7 @@ pub fn search_range(idx: &VectorIndex, query: &Vector, radius: Float32, metric: 
   while i < total {
     var dist = vector_distance(&idx.vectors[i], query, metric);
     if dist <= radius {
-      var result = SearchResult{ id: idx.ids[i]; distance: dist; };
+      var result = SearchResult{ id: idx.ids[i], distance: dist };
       results.push(result);
       var pos: Int = results.len() - 1;
       while pos > 0 && results[pos - 1].distance > results[pos].distance {
@@ -91,12 +91,12 @@ pub fn search_execute(idx: &VectorIndex, graph: &HNSWGraph, query: &Vector, k: I
   ensures: result.len() <= k
 {
   match kind {
-    Flat { return search_knn(idx, query, k, metric); }
-    Hnsw {
+    Flat => { return search_knn(idx, query, k, metric); }
+    Hnsw => {
       var hits = hnsw_search(graph, query, k);
       return neighbors_to_results(&hits);
     }
-    Ivf {
+    Ivf => {
       // TODO(Phase 9): route to the IVF index once it exists.
       return search_knn(idx, query, k, metric);
     }

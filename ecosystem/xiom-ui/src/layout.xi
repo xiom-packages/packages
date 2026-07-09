@@ -177,15 +177,15 @@ pub fn layout_align(outer: &Rect, inner: &Size, halign: Alignment, valign: Align
   var w = inner.w;
   var h = inner.h;
   match halign {
-    Start => x = outer.x,
-    Center => x = outer.x + (outer.w - inner.w) * 0.5,
-    End => x = outer.x + outer.w - inner.w,
+    Start => { x = outer.x; }
+    Center => { x = outer.x + (outer.w - inner.w) * 0.5; }
+    End => { x = outer.x + outer.w - inner.w; }
     Stretch => { w = outer.w; x = outer.x; }
   }
   match valign {
-    Start => y = outer.y,
-    Center => y = outer.y + (outer.h - inner.h) * 0.5,
-    End => y = outer.y + outer.h - inner.h,
+    Start => { y = outer.y; }
+    Center => { y = outer.y + (outer.h - inner.h) * 0.5; }
+    End => { y = outer.y + outer.h - inner.h; }
     Stretch => { h = outer.h; y = outer.y; }
   }
   return Rect.new(x, y, w, h);

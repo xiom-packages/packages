@@ -1,4 +1,4 @@
-module xiom.bench.runner;
+module xiom.bench.runner
 
 fn bench_ops_per_sec(total_ms: Int, iterations: Int) -> Int {
   if total_ms <= 0 || iterations <= 0 {

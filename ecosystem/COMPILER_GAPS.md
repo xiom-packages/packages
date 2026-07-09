@@ -20,7 +20,7 @@
 ## Priority ranking (by file impact)
 | Gap | Files affected | Severity |
 |-----|----------------|----------|
-| GAP-11 tail expression (implicit return) | high (grpc, db, imgui, …) | **critical** |
+| **GAP-11 tail expression (implicit return)** | **14+ (blocks whole packages)** | **★ FIX FIRST** |
 | GAP-10 trailing `;` after control block | 12+ (control, sensor, net, opencv, torch, sqlite) | **critical** |
 | GAP-2 `extern "C"` blocks | 10 | high |
 | GAP-8 bitwise / shift operators | 9 (crypto, algo, core, net) | high |
@@ -30,9 +30,17 @@
 | GAP-1 qualified `Type.Variant` in match | 2 | medium |
 | GAP-4 `=>` implication in contracts | 2 | medium |
 | GAP-9 `type X = enum {…}` | 2 | medium |
-| GAP-12 unit literal `()` | 1+ | medium |
+| GAP-12 unit literal `()` | 3+ (kafka, crypto, ui/demo) | medium |
 | GAP-13 brace module `module x { }` | 1 | low (doc conflict) |
 | GAP-14 bare `is Ok` / `is Err` (no parens) | 1 | low |
+
+> **Status after genuine-syntax cleanup pass:** OK 94 → **103** files compile clean.
+> All remaining failures are either compiler gaps (this file) or cross-module `use`
+> resolution (methodology — needs the multi-file build entry). No spec-valid code was
+> altered to work around any gap.
+>
+> **Recommended fix order for Track A:** GAP-11 → GAP-10 → decide GAP-8 (bitwise) → GAP-2
+> (extern) → the rest. GAP-11 + GAP-10 together unblock the majority of remaining files.
 
 ---
 
@@ -99,11 +107,25 @@
 - **Spec:** L50 "Every statement MUST end with `;`" arguably endorses terminating a control statement with `;` (C/Rust accept empty statements). Very high frequency in AI code.
 - **Files:** xiom-control/src/{filter,pid,state_machine,trajectory}.xi, xiom-sensor/src/{calibration,fusion,gps,imu}.xi, xiom-net/src/demo.xi, xiom-opencv/src/filters.xi, xiom-sqlite/src/demo.xi, xiom-torch/src/types.xi.
 
-## GAP-11 — Tail expression (implicit return) rejected
+## GAP-11 — Tail expression (implicit return) rejected  ★ HIGHEST PRIORITY
 - **Error:** `error[P001]: expected ';', found }`
 - **Repro (FAILS):** `fn f() -> Int { g() }`   **Works:** `fn f() -> Int { return g(); }`
-- **Spec:** L50/L77 and grammar `Block = "{" {Stmt} [Expr] "}"` permit a trailing expression as the block value. Also affects `if`/`match` branch tail values used as expressions.
-- **Files:** xiom-grpc/src/client.xi, xiom-imgui/src/bindings.xi, xiom-db/src/query/planner.xi, xiom-db/src/storage/page.xi.
+- **Spec:** L50/L77 and grammar `Block = "{" {Stmt} [Expr] "}"` permit a trailing expression as the block value. Also affects `if`/`match`/`else` branch tail values used as expressions.
+- **WHY HIGHEST PRIORITY:** After the genuine-syntax cleanup pass, this single gap is the sole
+  remaining blocker for **14+ otherwise-clean files**. The AI wrote idiomatic implicit-return
+  style pervasively (spec-endorsed). Fixing tail-expression parsing flips all of these green at
+  once with zero code changes.
+- **Confirmed blocked-only-by-GAP-11 files (after genuine fixes applied):**
+  - xiom-bench/src/{runner,stats,types}.xi
+  - xiom-ffi/src/{buffer,ptr}.xi
+  - xiom-kafka/src/consumer.xi
+  - xiom-log/src/{format,logger,types}.xi
+  - xiom-protobuf/src/schema.xi
+  - xiom-grpc/src/client.xi
+  - xiom-imgui/src/bindings.xi
+  - xiom-db/src/query/planner.xi
+  - xiom-db/src/storage/page.xi
+  - (more will surface once GAP-10 and cross-module builds are resolved)
 
 ## GAP-12 — Unit literal `()` cannot be constructed
 - **Error:** `error[P001]: expected identifier, found ')'`

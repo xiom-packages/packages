@@ -19,7 +19,7 @@ pub fn Theme.new(
   hover: Color,
   active: Color,
   scale: Float32,
-  radius: Float32,
+  radius: Float32
 ) -> Theme {
   return Theme{
     bg_color: bg,

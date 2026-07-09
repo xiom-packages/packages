@@ -1,4 +1,4 @@
-module xiom.kafka.admin;
+module xiom.kafka.admin
 
 fn kafka_create_topic(brokers: Str, topic: Str, partitions: Int, replication: Int) -> Result[(), KafkaError] {
   let _ = brokers;

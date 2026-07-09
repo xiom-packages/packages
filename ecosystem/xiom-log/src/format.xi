@@ -1,4 +1,4 @@
-module xiom.log.format;
+module xiom.log.format
 
 fn format_text(entry: &LogEntry, config: &LoggerConfig) -> Str {
   let prefix = format_text_prefix(entry, config);
