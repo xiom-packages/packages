@@ -14,8 +14,8 @@ pub type PgResult = {
 
 fn pg_connect(conn_str: Str) -> Result[PgConnection, Str]
   requires: conn_str.len() > 0
-  ensures: result.is_ok() implies result.unwrap().handle != 0
-  ensures: result.is_ok() implies result.unwrap().connected
+  ensures: !result.is_ok() || result.unwrap().handle != 0
+  ensures: !result.is_ok() || result.unwrap().connected
 {
   let raw = connect(conn_str);
   match raw {
@@ -51,11 +51,11 @@ fn pg_query(conn: &PgConnection, sql: Str) -> Result[PgResult, Str]
   let raw = execute(conn.handle, sql);
   match raw {
     Ok(result) => {
-      let mut rows = Vec[Vec[Option[Str]]].with_capacity(result.row_count);
-      let mut i = 0;
+      var rows = Vec[Vec[Option[Str]]].with_capacity(result.row_count);
+      var i = 0;
       while i < result.row_count {
-        let mut row = Vec[Option[Str]].with_capacity(result.col_count);
-        let mut j = 0;
+        var row = Vec[Option[Str]].with_capacity(result.col_count);
+        var j = 0;
         while j < result.col_count {
           row.push(result.rows[i].values[j].clone());
           j = j + 1;
@@ -81,11 +81,11 @@ fn pg_execute_params(conn: &PgConnection, sql: Str, params: &Vec[Str]) -> Result
   let raw = execute_params(conn.handle, sql, params);
   match raw {
     Ok(result) => {
-      let mut rows = Vec[Vec[Option[Str]]].with_capacity(result.row_count);
-      let mut i = 0;
+      var rows = Vec[Vec[Option[Str]]].with_capacity(result.row_count);
+      var i = 0;
       while i < result.row_count {
-        let mut row = Vec[Option[Str]].with_capacity(result.col_count);
-        let mut j = 0;
+        var row = Vec[Option[Str]].with_capacity(result.col_count);
+        var j = 0;
         while j < result.col_count {
           row.push(result.rows[i].values[j].clone());
           j = j + 1;
@@ -110,15 +110,15 @@ fn pg_execute_batch(conn: &PgConnection, queries: &Vec[Str]) -> Result[Vec[PgRes
   let raw = execute_batch(conn.handle, queries);
   match raw {
     Ok(results) => {
-      let mut wrapped = Vec[PgResult].with_capacity(results.len());
-      let mut i = 0;
+      var wrapped = Vec[PgResult].with_capacity(results.len());
+      var i = 0;
       while i < results.len() {
         let result = &results[i];
-        let mut rows = Vec[Vec[Option[Str]]].with_capacity(result.row_count);
-        let mut r = 0;
+        var rows = Vec[Vec[Option[Str]]].with_capacity(result.row_count);
+        var r = 0;
         while r < result.row_count {
-          let mut row = Vec[Option[Str]].with_capacity(result.col_count);
-          let mut c = 0;
+          var row = Vec[Option[Str]].with_capacity(result.col_count);
+          var c = 0;
           while c < result.col_count {
             row.push(result.rows[r].values[c].clone());
             c = c + 1;

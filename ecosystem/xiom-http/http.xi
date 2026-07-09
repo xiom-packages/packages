@@ -7,17 +7,10 @@ module xiom.http
 // ─── XIOM FFI Bridge ────────────────────────────────────────────────────────
 
 extern "C" {
-  fn xiom_str_to_cstr(xiom_str: *UInt8, len: Int) -> *UInt8
-    ensures: result != nil;
-
-  fn xiom_free_cstr(cstr: *UInt8)
-    ensures: true;
-
-  fn xiom_alloc(size: Int) -> *UInt8
-    ensures: result != nil;
-
-  fn xiom_free_ptr(ptr: *UInt8)
-    ensures: true;
+  fn xiom_str_to_cstr(xiom_str: *UInt8, len: Int) -> *UInt8;
+  fn xiom_free_cstr(cstr: *UInt8);
+  fn xiom_alloc(size: Int) -> *UInt8;
+  fn xiom_free_ptr(ptr: *UInt8);
 
   fn xiom_copy_from_vec(c_buf: *UInt8, vec_data: *UInt8, vec_len: Int, vec_cap: Int, offset: Int, count: Int);
 }
@@ -116,7 +109,12 @@ fn curl_error_string(code: Int) -> Str {
 
 // ─── Temp File Management ───────────────────────────────────────────────────
 
-fn open_temp_files() -> Result[{ body: *UInt8; headers: *UInt8; }, Str] {
+pub type TempFiles = {
+  body: *UInt8;
+  headers: *UInt8;
+}
+
+fn open_temp_files() -> Result[TempFiles, Str] {
   var body_c: *UInt8;
   var headers_c: *UInt8;
   var body_path: *UInt8;
@@ -148,7 +146,7 @@ fn open_temp_files() -> Result[{ body: *UInt8; headers: *UInt8; }, Str] {
   xiom_free_cstr(headers_path);
   xiom_free_cstr(mode);
 
-  return Ok({ body: body_c; headers: headers_c; });
+  return Ok(TempFiles{ body: body_c, headers: headers_c });
 }
 
 fn close_temp_files(body_f: *UInt8, headers_f: *UInt8) {

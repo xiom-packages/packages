@@ -27,7 +27,7 @@ fn grpc_unary_call(channel: Int, method: Str, request: &Vec[Int]) -> Result[Vec[
   requires: method.len() > 0
 {
   let request_bytes = Vec[UInt8].with_capacity(request.len());
-  let mut i = 0;
+  var i = 0;
   while i < request.len() {
     request_bytes.push(request[i] as UInt8);
     i = i + 1;
@@ -35,8 +35,8 @@ fn grpc_unary_call(channel: Int, method: Str, request: &Vec[Int]) -> Result[Vec[
   let raw = unary_call(channel, method, &request_bytes);
   match raw {
     Ok(bytes) => {
-      let mut result = Vec[Int].with_capacity(bytes.len());
-      let mut j = 0;
+      var result = Vec[Int].with_capacity(bytes.len());
+      var j = 0;
       while j < bytes.len() {
         result.push(bytes[j] as Int);
         j = j + 1;
@@ -58,7 +58,7 @@ fn grpc_stream_send(call: Int, data: &Vec[Int]) -> Result[Unit, Str]
   requires: call != 0
 {
   let data_bytes = Vec[UInt8].with_capacity(data.len());
-  let mut i = 0;
+  var i = 0;
   while i < data.len() {
     data_bytes.push(data[i] as UInt8);
     i = i + 1;
@@ -77,8 +77,8 @@ fn grpc_stream_recv(call: Int) -> Result[Option[Vec[Int]], Str]
   match raw {
     Ok(opt) => match opt {
       Some(bytes) => {
-        let mut result = Vec[Int].with_capacity(bytes.len());
-        let mut j = 0;
+        var result = Vec[Int].with_capacity(bytes.len());
+        var j = 0;
         while j < bytes.len() {
           result.push(bytes[j] as Int);
           j = j + 1;

@@ -13,12 +13,12 @@ fn kafka_consumer_new(config: &KafkaConfig, topics: &Vec[Str]) -> Result[KafkaCo
   Ok(consumer)
 }
 
-fn kafka_subscribe(consumer: &mut KafkaConsumer, topics: &Vec[Str]) -> Result[(), KafkaError] {
+fn kafka_subscribe(consumer: &mut KafkaConsumer, topics: &Vec[Str]) -> Result[Unit, KafkaError] {
   if topics.len() == 0 {
     return Err(KafkaError { code: -1, message: "topics must not be empty", is_retryable: false });
   };
   consumer.topics = topic_list_copy(topics, 0, Vec[Str].new());
-  Ok(())
+  Ok(Unit{})
 }
 
 fn topic_list_copy(src: &Vec[Str], idx: Int, acc: Vec[Str]) -> Vec[Str] {
@@ -36,9 +36,9 @@ fn kafka_poll(consumer: &KafkaConsumer, timeout_ms: Int) -> Result[Option[KafkaM
   Ok(None)
 }
 
-fn kafka_commit(consumer: &KafkaConsumer) -> Result[(), KafkaError] {
+fn kafka_commit(consumer: &KafkaConsumer) -> Result[Unit, KafkaError] {
   let _ = consumer;
-  Ok(())
+  Ok(Unit{})
 }
 
 fn kafka_consumer_close(consumer: KafkaConsumer) {

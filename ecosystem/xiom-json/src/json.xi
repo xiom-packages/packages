@@ -323,7 +323,7 @@ fn JsonParser.parse_string() -> Result[Str, ParseError] {
               } elif esc_byte == BYTE_LOWER_U() {
                 if pos + 4 > len { return Err(make_error("unexpected end of input in unicode escape")); }
                 pos = pos + 4;
-                result = xiom.string.str_concat(result, "\u0000");
+                result = xiom.string.str_concat(result, "\u{0000}");
               } else {
                 return Err(make_error("invalid escape character"));
               }

@@ -46,13 +46,13 @@ pub fn hash_murmur3_32(data: &Vec[Int], seed: Int) -> Int {
   var remaining = len - i;
   if remaining == 3 {
     tail = data[i] | (data[i + 1] << 8) | (data[i + 2] << 16);
-  };
+  }
   elif remaining == 2 {
     tail = data[i] | (data[i + 1] << 8);
-  };
+  }
   elif remaining == 1 {
     tail = data[i];
-  };
+  }
 
   if remaining > 0 {
     tail = tail * c1;

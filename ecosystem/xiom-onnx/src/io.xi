@@ -3,14 +3,14 @@ module xiom.onnx.io
 use xiom.onnx.types;
 
 pub fn onnx_tensor_from_vec(data: &Vec[Float32], shape: &Vec[Int]) -> OnnxTensor
-  requires: data.len() > 0;
-  requires: shape.len() > 0;
+  requires: data.len() > 0
+  requires: shape.len() > 0
 {
-  return {
-    name: "input";
-    data: data.clone();
-    shape: shape.clone();
-    dtype: ORT_DTYPE_FLOAT;
+  return OnnxTensor{
+    name: "input",
+    data: data.clone(),
+    shape: shape.clone(),
+    dtype: ORT_DTYPE_FLOAT,
   };
 }
 
@@ -25,8 +25,8 @@ fn clamp_float(v: Float32, lo: Float32, hi: Float32) -> Float32 {
 }
 
 pub fn onnx_preprocess_image(data: &Vec[Int], target_size: Int) -> OnnxTensor
-  requires: data.len() > 0;
-  requires: target_size > 0;
+  requires: data.len() > 0
+  requires: target_size > 0
 {
   var c = 3;
   var h = target_size;
@@ -43,16 +43,16 @@ pub fn onnx_preprocess_image(data: &Vec[Int], target_size: Int) -> OnnxTensor
   shape.push(c);
   shape.push(h);
   shape.push(w);
-  return {
-    name: "input";
-    data: out;
-    shape: shape;
-    dtype: ORT_DTYPE_FLOAT;
+  return OnnxTensor{
+    name: "input",
+    data: out,
+    shape: shape,
+    dtype: ORT_DTYPE_FLOAT,
   };
 }
 
 pub fn onnx_tensor_zeros(name: Str, shape: &Vec[Int]) -> OnnxTensor
-  requires: shape.len() > 0;
+  requires: shape.len() > 0
 {
   var total = 1;
   var i = 0;
@@ -66,11 +66,11 @@ pub fn onnx_tensor_zeros(name: Str, shape: &Vec[Int]) -> OnnxTensor
     data.push(0.0);
     j = j + 1;
   };
-  return {
-    name: name;
-    data: data;
-    shape: shape.clone();
-    dtype: ORT_DTYPE_FLOAT;
+  return OnnxTensor{
+    name: name,
+    data: data,
+    shape: shape.clone(),
+    dtype: ORT_DTYPE_FLOAT,
   };
 }
 

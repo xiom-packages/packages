@@ -38,10 +38,10 @@ pub fn calibration_compute_offset(readings: &Vec[Float64]) -> Float64 {
 pub fn calibration_apply(value: Float64, cal: &CalibrationData, axis: Int) -> Float64 {
   if axis == 0 {
     return (value - cal.offset_x) * cal.scale_x;
-  };
+  }
   elif axis == 1 {
     return (value - cal.offset_y) * cal.scale_y;
-  };
+  }
   elif axis == 2 {
     return (value - cal.offset_z) * cal.scale_z;
   };

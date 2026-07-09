@@ -43,8 +43,8 @@ fn matrix_set(m: &mut Matrix, row: Int, col: Int, val: Float64)
 
 fn matrix_multiply(a: &Matrix, b: &Matrix) -> Result[Matrix, Str]
   requires: a.cols == b.rows
-  ensures: result.is_ok() implies result.unwrap().rows == a.rows
-  ensures: result.is_ok() implies result.unwrap().cols == b.cols
+  ensures: !result.is_ok() || result.unwrap().rows == a.rows
+  ensures: !result.is_ok() || result.unwrap().cols == b.cols
 {
   matmul(a, b)
 }

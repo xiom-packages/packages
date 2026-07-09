@@ -819,9 +819,9 @@ fn aes_decrypt_block(state: &Vec[Int], round_keys: &Vec[Int], rounds: Int) -> Ve
 }
 
 pub fn aes128_encrypt(plaintext: &Vec[Int], key: &Vec[Int]) -> Result[Vec[Int], Str]
-  requires: plaintext.len() == 16;
-  requires: key.len() == 16;
-  ensures: result is Ok => result.len() == 16;
+  requires: plaintext.len() == 16
+  requires: key.len() == 16
+  ensures: result is Ok => result.len() == 16
 {
   if key.len() != 16 {
     return Err("aes128: key must be 16 bytes");
@@ -836,8 +836,8 @@ pub fn aes128_encrypt(plaintext: &Vec[Int], key: &Vec[Int]) -> Result[Vec[Int], 
 }
 
 pub fn aes128_decrypt(ciphertext: &Vec[Int], key: &Vec[Int]) -> Result[Vec[Int], Str]
-  requires: ciphertext.len() == 16;
-  requires: key.len() == 16;
+  requires: ciphertext.len() == 16
+  requires: key.len() == 16
 {
   if key.len() != 16 {
     return Err("aes128: key must be 16 bytes");
@@ -852,8 +852,8 @@ pub fn aes128_decrypt(ciphertext: &Vec[Int], key: &Vec[Int]) -> Result[Vec[Int],
 }
 
 pub fn aes256_encrypt(plaintext: &Vec[Int], key: &Vec[Int]) -> Result[Vec[Int], Str]
-  requires: plaintext.len() == 16;
-  requires: key.len() == 32;
+  requires: plaintext.len() == 16
+  requires: key.len() == 32
 {
   if key.len() != 32 {
     return Err("aes256: key must be 32 bytes");
@@ -868,8 +868,8 @@ pub fn aes256_encrypt(plaintext: &Vec[Int], key: &Vec[Int]) -> Result[Vec[Int], 
 }
 
 pub fn aes256_decrypt(ciphertext: &Vec[Int], key: &Vec[Int]) -> Result[Vec[Int], Str]
-  requires: ciphertext.len() == 16;
-  requires: key.len() == 32;
+  requires: ciphertext.len() == 16
+  requires: key.len() == 32
 {
   if key.len() != 32 {
     return Err("aes256: key must be 32 bytes");

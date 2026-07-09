@@ -29,7 +29,7 @@ fn log_config_default() -> LoggerConfig {
 }
 
 fn log_level_to_str(level: &LogLevel) -> Str {
-  Match level {
+  match level {
     Trace => "TRACE",
     Debug => "DEBUG",
     Info => "INFO",
@@ -40,7 +40,7 @@ fn log_level_to_str(level: &LogLevel) -> Str {
 }
 
 fn log_level_ordinal(level: &LogLevel) -> Int {
-  Match level {
+  match level {
     Trace => 0,
     Debug => 1,
     Info => 2,

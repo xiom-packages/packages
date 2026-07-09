@@ -47,9 +47,9 @@ pub type MatchedPoints = {
 }
 
 pub fn image_new(width: Int, height: Int, channels: Int) -> Image
-  requires: width > 0;
-  requires: height > 0;
-  requires: channels > 0;
+  requires: width > 0
+  requires: height > 0
+  requires: channels > 0
 {
   var total = width * height * channels;
   var data = Vec[Int].new();
@@ -58,32 +58,32 @@ pub fn image_new(width: Int, height: Int, channels: Int) -> Image
     data.push(0);
     i = i + 1;
   };
-  return {
-    data: data;
-    width: width;
-    height: height;
-    channels: channels;
+  return Image{
+    data: data,
+    width: width,
+    height: height,
+    channels: channels,
   };
 }
 
 pub fn image_from_vec(data: Vec[Int], w: Int, h: Int, c: Int) -> Image
-  requires: data.len() > 0;
-  requires: w > 0;
-  requires: h > 0;
-  requires: c > 0;
-  ensures: result.data.len() == data.len();
+  requires: data.len() > 0
+  requires: w > 0
+  requires: h > 0
+  requires: c > 0
+  ensures: result.data.len() == data.len()
 {
-  return {
-    data: data;
-    width: w;
-    height: h;
-    channels: c;
+  return Image{
+    data: data,
+    width: w,
+    height: h,
+    channels: c,
   };
 }
 
 pub fn image_region(img: &Image, roi: &Rect) -> Image
-  requires: roi.x + roi.w <= img.width;
-  requires: roi.y + roi.h <= img.height;
+  requires: roi.x + roi.w <= img.width
+  requires: roi.y + roi.h <= img.height
 {
   var out = image_new(roi.w, roi.h, img.channels);
   var row = 0;
@@ -105,17 +105,17 @@ pub fn image_region(img: &Image, roi: &Rect) -> Image
 }
 
 pub fn image_size(img: &Image) -> Size2i {
-  return { w: img.width; h: img.height; };
+  return Size2i{ w: img.width, h: img.height };
 }
 
 pub fn rect_new(x: Int, y: Int, w: Int, h: Int) -> Rect {
-  return { x: x; y: y; w: w; h: h; };
+  return Rect{ x: x, y: y, w: w, h: h };
 }
 
 pub fn point2i_new(x: Int, y: Int) -> Point2i {
-  return { x: x; y: y; };
+  return Point2i{ x: x, y: y };
 }
 
 pub fn size2i_new(w: Int, h: Int) -> Size2i {
-  return { w: w; h: h; };
+  return Size2i{ w: w, h: h };
 }

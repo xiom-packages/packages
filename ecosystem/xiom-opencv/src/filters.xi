@@ -20,8 +20,8 @@ fn clamp_byte(v: Int) -> Int {
 }
 
 pub fn blur(img: &Image, kernel_size: Int) -> Image
-  requires: kernel_size > 0;
-  requires: kernel_size % 2 == 1;
+  requires: kernel_size > 0
+  requires: kernel_size % 2 == 1
 {
   var half = kernel_size / 2;
   var out = image_new(img.width, img.height, img.channels);
@@ -58,7 +58,7 @@ pub fn blur(img: &Image, kernel_size: Int) -> Image
 }
 
 pub fn grayscale(img: &Image) -> Image
-  requires: img.channels >= 3;
+  requires: img.channels >= 3
 {
   var out = image_new(img.width, img.height, 1);
   var y = 0;
@@ -78,8 +78,8 @@ pub fn grayscale(img: &Image) -> Image
 }
 
 pub fn threshold(img: &Image, thresh: Int, max_val: Int) -> Image
-  requires: thresh >= 0;
-  requires: max_val >= 0;
+  requires: thresh >= 0
+  requires: max_val >= 0
 {
   var out = image_new(img.width, img.height, img.channels);
   var i = 0;
@@ -96,7 +96,7 @@ pub fn threshold(img: &Image, thresh: Int, max_val: Int) -> Image
 }
 
 pub fn sobel_edges(img: &Image) -> Image
-  requires: img.channels == 1;
+  requires: img.channels == 1
 {
   var out = image_new(img.width, img.height, 1);
   var gx = [ -1, 0, 1, -2, 0, 2, -1, 0, 1 ];
@@ -137,8 +137,8 @@ pub fn sobel_edges(img: &Image) -> Image
 }
 
 pub fn resize_nearest(img: &Image, w: Int, h: Int) -> Image
-  requires: w > 0;
-  requires: h > 0;
+  requires: w > 0
+  requires: h > 0
 {
   var out = image_new(w, h, img.channels);
   var y = 0;

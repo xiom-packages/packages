@@ -12,7 +12,7 @@ fn format_text(entry: &LogEntry, config: &LoggerConfig) -> Str {
 
 fn format_text_prefix(entry: &LogEntry, config: &LoggerConfig) -> Str {
   let level_str = log_level_to_str(&entry.level);
-  let mut result = "";
+  var result = "";
   if config.include_timestamp {
     result = result + Int_to_str(entry.timestamp) + " ";
   };
@@ -24,7 +24,7 @@ fn format_text_prefix(entry: &LogEntry, config: &LoggerConfig) -> Str {
 }
 
 fn format_json(entry: &LogEntry) -> Str {
-  let mut result = "{";
+  var result = "{";
   result = result + "\"level\":\"" + log_level_to_str(&entry.level) + "\"";
   result = result + ",\"message\":\"" + entry.message + "\"";
   if entry.module.len() > 0 {

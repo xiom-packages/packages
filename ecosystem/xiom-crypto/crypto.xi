@@ -33,8 +33,8 @@ extern "C" {
 // ===========================================================================
 
 pub fn sha256(data: &Vec[Int]) -> Vec[Int]
-  requires: data.len() > 0;
-  ensures: result.len() == 32;
+  requires: data.len() > 0
+  ensures: result.len() == 32
 {
   var out_buf = unsafe { xiom_alloc(32) };
   if out_buf == 0 {
@@ -65,8 +65,8 @@ pub fn sha256(data: &Vec[Int]) -> Vec[Int]
 }
 
 pub fn sha256_hex(data: &Vec[Int]) -> Str
-  requires: data.len() > 0;
-  ensures: result.len() == 64;
+  requires: data.len() > 0
+  ensures: result.len() == 64
 {
   var hash = sha256(data);
   return hex_encode(&hash);
@@ -77,8 +77,8 @@ pub fn sha256_hex(data: &Vec[Int]) -> Str
 // ===========================================================================
 
 pub fn sha512(data: &Vec[Int]) -> Vec[Int]
-  requires: data.len() > 0;
-  ensures: result.len() == 64;
+  requires: data.len() > 0
+  ensures: result.len() == 64
 {
   var out_buf = unsafe { xiom_alloc(64) };
   if out_buf == 0 {
@@ -109,8 +109,8 @@ pub fn sha512(data: &Vec[Int]) -> Vec[Int]
 }
 
 pub fn sha512_hex(data: &Vec[Int]) -> Str
-  requires: data.len() > 0;
-  ensures: result.len() == 128;
+  requires: data.len() > 0
+  ensures: result.len() == 128
 {
   var hash = sha512(data);
   return hex_encode(&hash);
@@ -121,8 +121,8 @@ pub fn sha512_hex(data: &Vec[Int]) -> Str
 // ===========================================================================
 
 pub fn md5(data: &Vec[Int]) -> Vec[Int]
-  requires: data.len() > 0;
-  ensures: result.len() == 16;
+  requires: data.len() > 0
+  ensures: result.len() == 16
 {
   var out_buf = unsafe { xiom_alloc(16) };
   if out_buf == 0 {
@@ -153,8 +153,8 @@ pub fn md5(data: &Vec[Int]) -> Vec[Int]
 }
 
 pub fn md5_hex(data: &Vec[Int]) -> Str
-  requires: data.len() > 0;
-  ensures: result.len() == 32;
+  requires: data.len() > 0
+  ensures: result.len() == 32
 {
   var hash = md5(data);
   return hex_encode(&hash);
@@ -165,9 +165,9 @@ pub fn md5_hex(data: &Vec[Int]) -> Str
 // ===========================================================================
 
 pub fn hmac_sha256(data: &Vec[Int], key: &Vec[Int]) -> Vec[Int]
-  requires: data.len() > 0;
-  requires: key.len() > 0;
-  ensures: result.len() == 32;
+  requires: data.len() > 0
+  requires: key.len() > 0
+  ensures: result.len() == 32
 {
   var block_size = 64;
 
@@ -238,7 +238,7 @@ pub fn hmac_sha256(data: &Vec[Int], key: &Vec[Int]) -> Vec[Int]
 // ===========================================================================
 
 pub fn random_bytes(count: Int) -> Result[Vec[Int], Str]
-  requires: count > 0;
+  requires: count > 0
 {
   if count <= 0 {
     return Err("random_bytes: count must be positive");
@@ -251,14 +251,14 @@ pub fn random_bytes(count: Int) -> Result[Vec[Int], Str]
 // ===========================================================================
 
 pub fn base64_encode(data: &Vec[Int]) -> Str
-  requires: data.len() > 0;
-  ensures: result.len() > 0;
+  requires: data.len() > 0
+  ensures: result.len() > 0
 {
   return xiom.encoding.base64_encode(data);
 }
 
 pub fn base64_decode(input: Str) -> Result[Vec[Int], Str]
-  requires: input.len() > 0;
+  requires: input.len() > 0
 {
   return xiom.encoding.base64_decode(input);
 }
@@ -268,14 +268,14 @@ pub fn base64_decode(input: Str) -> Result[Vec[Int], Str]
 // ===========================================================================
 
 pub fn hex_encode(data: &Vec[Int]) -> Str
-  requires: data.len() > 0;
-  ensures: result.len() == data.len() * 2;
+  requires: data.len() > 0
+  ensures: result.len() == data.len() * 2
 {
   return xiom.encoding.hex_encode(data);
 }
 
 pub fn hex_decode(input: Str) -> Result[Vec[Int], Str]
-  requires: input.len() > 0;
+  requires: input.len() > 0
 {
   return xiom.encoding.hex_decode(input);
 }

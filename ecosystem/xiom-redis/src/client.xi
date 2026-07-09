@@ -9,7 +9,7 @@ pub type RedisConn = {
 fn redis_connect(host: Str, port: Int) -> Result[RedisConn, Str]
   requires: host.len() > 0
   requires: port > 0
-  ensures: result.is_ok() implies result.unwrap().handle != 0
+  ensures: !result.is_ok() || result.unwrap().handle != 0
 {
   let raw = connect(host, port);
   match raw {
@@ -20,7 +20,7 @@ fn redis_connect(host: Str, port: Int) -> Result[RedisConn, Str]
 
 fn redis_connect_timeout(host: Str, port: Int, timeout_sec: Float64) -> Result[RedisConn, Str]
   requires: port > 0
-  ensures: result.is_ok() implies result.unwrap().handle != 0
+  ensures: !result.is_ok() || result.unwrap().handle != 0
 {
   let raw = connect_timeout(host, port, timeout_sec);
   match raw {

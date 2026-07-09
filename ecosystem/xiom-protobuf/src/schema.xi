@@ -56,7 +56,7 @@ fn proto_set_repeated(msg: &mut ProtoMessage, field_index: Int)
 fn proto_get_field(msg: &ProtoMessage, name: Str) -> Option[ProtoField]
   requires: name.len() > 0
 {
-  let mut i = 0;
+  var i = 0;
   while i < msg.fields.len() {
     if msg.fields[i].name == name {
       return Some(msg.fields[i].clone());
@@ -68,7 +68,7 @@ fn proto_get_field(msg: &ProtoMessage, name: Str) -> Option[ProtoField]
 
 fn proto_has_repeated(msg: &ProtoMessage) -> Bool
 {
-  let mut i = 0;
+  var i = 0;
   while i < msg.fields.len() {
     if msg.fields[i].repeated {
       return true;
@@ -102,9 +102,9 @@ fn proto_type_to_str(ftype: ProtoType) -> Str
 
 fn proto_message_to_proto3(msg: &ProtoMessage) -> Str
 {
-  let mut output = "syntax = \"proto3\";\n\nmessage ".to_owned();
+  var output = "syntax = \"proto3\";\n\nmessage ".to_owned();
   output = output + msg.name + " {\n";
-  let mut i = 0;
+  var i = 0;
   while i < msg.fields.len() {
     let field = &msg.fields[i];
     let prefix = if field.repeated { "  repeated " } else { "  " };

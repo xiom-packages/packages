@@ -95,7 +95,9 @@ pub fn ipv4_from_str(s: Str) -> Result[IpAddr, Str]
   while i < len && octet_count < 4 {
     var part = str_to_int_part(s, i, len);
     match part {
-      Ok((value, consumed)) => {
+      Ok(pair) => {
+        var value = pair.0;
+        var consumed = pair.1;
         octets.push(value);
         octet_count = octet_count + 1;
         i = i + consumed;
@@ -236,7 +238,9 @@ fn ipv4_from_str_part(s: Str, start: Int, end: Int) -> Result[IpAddr, Str] {
   while i < end && octet_count < 4 {
     var part = str_to_int_part(s, i, end);
     match part {
-      Ok((value, consumed)) => {
+      Ok(pair) => {
+        var value = pair.0;
+        var consumed = pair.1;
         octets.push(value);
         octet_count = octet_count + 1;
         i = i + consumed;

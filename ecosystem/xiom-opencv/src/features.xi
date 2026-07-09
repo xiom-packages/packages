@@ -10,26 +10,26 @@ extern "C" {
 }
 
 pub fn cv_detect_keypoints(img: &Image, threshold: Float32) -> Result[Vec[KeyPoint], Str]
-  requires: threshold > 0.0;
+  requires: threshold > 0.0
 {
   var kps = Vec[KeyPoint].new();
-  return Result.Ok(kps);
+  return Ok(kps);
 }
 
 pub fn cv_match_descriptors(desc1: &Vec[Float32], desc2: &Vec[Float32]) -> Result[MatchedPoints, Str]
-  requires: desc1.len() > 0;
-  requires: desc2.len() > 0;
+  requires: desc1.len() > 0
+  requires: desc2.len() > 0
 {
-  var mp = {
-    query: Vec[Point2i].new();
-    train: Vec[Point2i].new();
-    distances: Vec[Float32].new();
+  var mp = MatchedPoints{
+    query: Vec[Point2i].new(),
+    train: Vec[Point2i].new(),
+    distances: Vec[Float32].new(),
   };
-  return Result.Ok(mp);
+  return Ok(mp);
 }
 
 pub fn cv_homography(matches: &MatchedPoints) -> Result[Vec[Float32], Str]
-  requires: matches.query.len() >= 4;
+  requires: matches.query.len() >= 4
 {
   var h = Vec[Float32].new();
   var i = 0;
@@ -40,5 +40,5 @@ pub fn cv_homography(matches: &MatchedPoints) -> Result[Vec[Float32], Str]
   h[0] = 1.0;
   h[4] = 1.0;
   h[8] = 1.0;
-  return Result.Ok(h);
+  return Ok(h);
 }

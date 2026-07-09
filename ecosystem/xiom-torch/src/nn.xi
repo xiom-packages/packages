@@ -10,8 +10,8 @@ pub type Linear = {
 }
 
 pub fn linear_new(in_features: Int, out_features: Int) -> Linear
-  requires: in_features > 0;
-  requires: out_features > 0;
+  requires: in_features > 0
+  requires: out_features > 0
 {
   var w_shape = Vec[Int].new();
   w_shape.push(out_features);
@@ -20,11 +20,11 @@ pub fn linear_new(in_features: Int, out_features: Int) -> Linear
   var b_shape = Vec[Int].new();
   b_shape.push(out_features);
   var bias = tensor_zeros(&b_shape);
-  return {
-    weight: weight;
-    bias: bias;
-    in_features: in_features;
-    out_features: out_features;
+  return Linear{
+    weight: weight,
+    bias: bias,
+    in_features: in_features,
+    out_features: out_features,
   };
 }
 
@@ -54,11 +54,11 @@ pub type Conv2d = {
 }
 
 pub fn conv2d_new(in_ch: Int, out_ch: Int, kernel: Int, stride: Int, padding: Int) -> Conv2d
-  requires: in_ch > 0;
-  requires: out_ch > 0;
-  requires: kernel > 0;
-  requires: stride > 0;
-  requires: padding >= 0;
+  requires: in_ch > 0
+  requires: out_ch > 0
+  requires: kernel > 0
+  requires: stride > 0
+  requires: padding >= 0
 {
   var w_shape = Vec[Int].new();
   w_shape.push(out_ch);
@@ -69,14 +69,14 @@ pub fn conv2d_new(in_ch: Int, out_ch: Int, kernel: Int, stride: Int, padding: In
   var b_shape = Vec[Int].new();
   b_shape.push(out_ch);
   var bias = tensor_zeros(&b_shape);
-  return {
-    weight: weight;
-    bias: bias;
-    in_ch: in_ch;
-    out_ch: out_ch;
-    kernel: kernel;
-    stride: stride;
-    padding: padding;
+  return Conv2d{
+    weight: weight,
+    bias: bias,
+    in_ch: in_ch,
+    out_ch: out_ch,
+    kernel: kernel,
+    stride: stride,
+    padding: padding,
   };
 }
 
@@ -89,17 +89,17 @@ pub type BatchNorm2d = {
 }
 
 pub fn batchnorm2d_new(num_features: Int, eps: Float32) -> BatchNorm2d
-  requires: num_features > 0;
-  requires: eps > 0.0;
+  requires: num_features > 0
+  requires: eps > 0.0
 {
   var shape = Vec[Int].new();
   shape.push(num_features);
-  return {
-    gamma: tensor_ones(&shape);
-    beta: tensor_zeros(&shape);
-    running_mean: tensor_zeros(&shape);
-    running_var: tensor_ones(&shape);
-    eps: eps;
+  return BatchNorm2d{
+    gamma: tensor_ones(&shape),
+    beta: tensor_zeros(&shape),
+    running_mean: tensor_zeros(&shape),
+    running_var: tensor_ones(&shape),
+    eps: eps,
   };
 }
 
@@ -128,7 +128,7 @@ pub enum LayerType {
 }
 
 pub fn sequential_new() -> Sequential {
-  return { layers: Vec[LayerType].new(); };
+  return Sequential{ layers: Vec[LayerType].new() };
 }
 
 pub fn sequential_add(seq: &mut Sequential, layer: LayerType) {

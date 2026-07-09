@@ -11,27 +11,27 @@ extern "C" {
 }
 
 pub fn torch_load_model(path: Str) -> Result[ModuleDef, Str] {
-  var dummy = {
-    name: "stub";
-    params: Vec[Tensor].new();
-    buffers: Vec[Tensor].new();
+  var dummy = ModuleDef{
+    name: "stub",
+    params: Vec[Tensor].new(),
+    buffers: Vec[Tensor].new(),
   };
-  return Result.Ok(dummy);
+  return Ok(dummy);
 }
 
 pub fn torch_forward(module: &ModuleDef, input: &Tensor) -> Result[Tensor, Str] {
-  var dummy = {
-    data: Vec[Float32].new();
-    shape: Vec[Int].new();
-    strides: Vec[Int].new();
-    device: Device.CPU;
-    dtype: DType.Float32;
+  var dummy = Tensor{
+    data: Vec[Float32].new(),
+    shape: Vec[Int].new(),
+    strides: Vec[Int].new(),
+    device: Device.CPU,
+    dtype: DType.Float32,
   };
-  return Result.Ok(dummy);
+  return Ok(dummy);
 }
 
 pub fn torch_save_model(module: &ModuleDef, path: Str) -> Result[Unit, Str] {
-  return Result.Ok({});
+  return Ok(Unit{});
 }
 
 pub fn torch_is_cuda_available() -> Bool {

@@ -129,11 +129,31 @@ if pkg-config --exists glfw3 2>/dev/null; then
     GLFW_LIBS="$(pkg-config --libs glfw3)"
     info "GLFW via pkg-config: $GLFW_CFLAGS"
 elif [ -n "${GLFW_DIR:-}" ]; then
+    GLFW_DIR="${GLFW_DIR%/}"  # strip trailing slash
     GLFW_INCLUDE="$GLFW_DIR/include"
-    GLFW_LIB="$GLFW_DIR/lib"
     if [ ! -d "$GLFW_INCLUDE" ]; then
-        die "GLFW include not found at '$GLFW_INCLUDE'"
+        # Common mistake: GLFW_DIR set to the lib subfolder instead of root.
+        # Walk up one level and try again.
+        GLFW_PARENT="$(dirname "$GLFW_DIR")"
+        if [ -n "$GLFW_PARENT" ] && [ -d "$GLFW_PARENT/include" ]; then
+            info "[build] GLFW_DIR was set to '$GLFW_DIR' but 'include/' is at '$GLFW_PARENT'. Auto-correcting."
+            GLFW_DIR="$GLFW_PARENT"
+            GLFW_INCLUDE="$GLFW_DIR/include"
+        fi
     fi
+    if [ ! -d "$GLFW_INCLUDE" ]; then
+        die "GLFW include not found at '$GLFW_INCLUDE'.  Set GLFW_DIR to the root (the folder containing include/GLFW/glfw3.h)."
+    fi
+    GLFW_LIB="$GLFW_DIR/lib"
+    GLFW_CFLAGS="-I$GLFW_INCLUDE"
+    GLFW_LIBS="-L$GLFW_LIB -lglfw3"
+    info "GLFW dir: $GLFW_DIR"
+else
+    # Fallback: assume system paths (Linux)
+    GLFW_CFLAGS=""
+    GLFW_LIBS="-lglfw3"
+    info "GLFW: assuming system paths (pkg-config unavailable, GLFW_DIR unset)"
+fi
     GLFW_CFLAGS="-I$GLFW_INCLUDE"
     GLFW_LIBS="-L$GLFW_LIB -lglfw3"
     info "GLFW dir: $GLFW_DIR"

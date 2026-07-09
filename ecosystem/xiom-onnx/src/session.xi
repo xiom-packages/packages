@@ -12,18 +12,18 @@ extern "C" {
 }
 
 pub fn onnx_load_model(path: Str, config: &OnnxConfig) -> Result[OnnxModel, Str] {
-  var model = {
-    path: path;
-    session: 0;
-    input_names: Vec[Str].new();
-    output_names: Vec[Str].new();
+  var model = OnnxModel{
+    path: path,
+    session: 0,
+    input_names: Vec[Str].new(),
+    output_names: Vec[Str].new(),
   };
-  return Result.Ok(model);
+  return Ok(model);
 }
 
 pub fn onnx_run(model: &OnnxModel, inputs: &Vec[OnnxTensor]) -> Result[Vec[OnnxTensor], Str] {
   var outputs = Vec[OnnxTensor].new();
-  return Result.Ok(outputs);
+  return Ok(outputs);
 }
 
 pub fn onnx_get_input_count(model: &OnnxModel) -> Int {

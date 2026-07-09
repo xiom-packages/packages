@@ -44,7 +44,7 @@ pub fn demo_in_memory() -> Result[Unit, Str] {
   var count_rows = sqlite_query(&conn, "SELECT COUNT(*) AS cnt FROM users;")?;
 
   sqlite_close(conn)?;
-  return Ok({});
+  return Ok(Unit{});
 }
 
 fn sqlite_value_to_display(val: &SqliteValue) -> Str {
@@ -110,7 +110,7 @@ pub fn demo_file(path: Str) -> Result[Unit, Str] {
   var rows = sqlite_query(&conn, "SELECT name, value FROM counters;")?;
 
   sqlite_close(conn)?;
-  return Ok({});
+  return Ok(Unit{});
 }
 
 pub fn demo_prepared_steps() -> Result[Unit, Str] {
@@ -136,7 +136,7 @@ pub fn demo_prepared_steps() -> Result[Unit, Str] {
   sqlite_finalize(query_stmt)?;
 
   sqlite_close(conn)?;
-  return Ok({});
+  return Ok(Unit{});
 }
 
 pub fn demo_transaction() -> Result[Unit, Str] {
@@ -158,5 +158,5 @@ pub fn demo_transaction() -> Result[Unit, Str] {
   var results = sqlite_query(&conn, "SELECT id, balance FROM accounts ORDER BY id;")?;
 
   sqlite_close(conn)?;
-  return Ok({});
+  return Ok(Unit{});
 }

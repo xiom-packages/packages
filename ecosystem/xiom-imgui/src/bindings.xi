@@ -23,7 +23,7 @@ fn ig_render()
 fn ig_begin(name: Str) -> Bool
   requires: name.len() > 0
 {
-  let mut open = true;
+  var open = true;
   begin_window(name, &mut open, 0)
 }
 
@@ -47,7 +47,7 @@ fn ig_slider_float(label: Str, value: Float32, min: Float32, max: Float32) -> Fl
   requires: label.len() > 0
   requires: min <= max
 {
-  let mut v = value;
+  var v = value;
   slider_float(label, &mut v, min, max);
   v
 }
@@ -55,7 +55,7 @@ fn ig_slider_float(label: Str, value: Float32, min: Float32, max: Float32) -> Fl
 fn ig_checkbox(label: Str, checked: Bool) -> Bool
   requires: label.len() > 0
 {
-  let mut v = checked;
+  var v = checked;
   checkbox(label, &mut v);
   v
 }
@@ -63,7 +63,7 @@ fn ig_checkbox(label: Str, checked: Bool) -> Bool
 fn ig_input_text(label: Str, text: Str) -> Str
   requires: label.len() > 0
 {
-  let mut buffer = text.clone();
+  var buffer = text.clone();
   input_text(label, &mut buffer, 256);
   buffer
 }
@@ -72,7 +72,7 @@ fn ig_slider_int(label: Str, value: Int, min: Int, max: Int) -> Int
   requires: label.len() > 0
   requires: min <= max
 {
-  let mut v = value;
+  var v = value;
   slider_int(label, &mut v, min, max);
   v
 }
@@ -80,7 +80,7 @@ fn ig_slider_int(label: Str, value: Int, min: Int, max: Int) -> Int
 fn ig_input_float(label: Str, value: Float32) -> Float32
   requires: label.len() > 0
 {
-  let mut v = value;
+  var v = value;
   input_float(label, &mut v);
   v
 }
@@ -88,7 +88,7 @@ fn ig_input_float(label: Str, value: Float32) -> Float32
 fn ig_input_int(label: Str, value: Int) -> Int
   requires: label.len() > 0
 {
-  let mut v = value;
+  var v = value;
   input_int(label, &mut v);
   v
 }
@@ -170,7 +170,7 @@ fn ig_end_popup()
 fn ig_begin_modal(name: Str) -> Bool
   requires: name.len() > 0
 {
-  let mut open = true;
+  var open = true;
   begin_modal(name, &mut open)
 }
 
@@ -182,7 +182,7 @@ fn ig_end_modal()
 fn ig_combo(label: Str, current: Int, items: &Vec[Str]) -> Int
   requires: label.len() > 0
 {
-  let mut cur = current;
+  var cur = current;
   combo(label, &mut cur, items.clone());
   cur
 }

@@ -7,14 +7,9 @@ module xiom.net.tcp
 // ─── XIOM FFI Bridge ────────────────────────────────────────────────────────
 
 extern "C" {
-  fn xiom_alloc(size: Int) -> *UInt8
-    ensures: result != nil;
-
-  fn xiom_free_ptr(ptr: *UInt8)
-    ensures: true;
-
-  fn xiom_write_byte(ptr: *UInt8, offset: Int, value: Int)
-    ensures: true;
+  fn xiom_alloc(size: Int) -> *UInt8;
+  fn xiom_free_ptr(ptr: *UInt8);
+  fn xiom_write_byte(ptr: *UInt8, offset: Int, value: Int);
 
   fn xiom_read_byte(ptr: *UInt8, offset: Int) -> Int;
 

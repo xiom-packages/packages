@@ -193,19 +193,19 @@ fn int_to_str(n: Int) -> Str {
   while num > 0 {
     var d: Int = num % 10;
     num = num / 10;
-    if d == 0 { digits.push("0"); };
-    elif d == 1 { digits.push("1"); };
-    elif d == 2 { digits.push("2"); };
-    elif d == 3 { digits.push("3"); };
-    elif d == 4 { digits.push("4"); };
-    elif d == 5 { digits.push("5"); };
-    elif d == 6 { digits.push("6"); };
-    elif d == 7 { digits.push("7"); };
-    elif d == 8 { digits.push("8"); };
-    elif d == 9 { digits.push("9"); };
-  };
+    if d == 0 { digits.push("0"); }
+    elif d == 1 { digits.push("1"); }
+    elif d == 2 { digits.push("2"); }
+    elif d == 3 { digits.push("3"); }
+    elif d == 4 { digits.push("4"); }
+    elif d == 5 { digits.push("5"); }
+    elif d == 6 { digits.push("6"); }
+    elif d == 7 { digits.push("7"); }
+    elif d == 8 { digits.push("8"); }
+    elif d == 9 { digits.push("9"); }
+  }
   var result: Str = "";
-  if n < 0 { result = result + "-"; };
+  if n < 0 { result = result + "-"; }
   var j: Int = digits.len() - 1;
   while j >= 0 {
     result = result + digits[j];

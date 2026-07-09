@@ -126,14 +126,27 @@ Write-Host "[build] glslc:      $Glslc"
 # ------------------------------------------------------------------
 if (-not $GlfwDir) { $GlfwDir = $env:GLFW_DIR }
 if (-not $GlfwDir) {
-    throw "GLFW_DIR environment variable or -GlfwDir parameter is required.  Download GLFW 3.4 from https://www.glfw.org/"
+    throw "GLFW_DIR environment variable or -GlfwDir parameter is required.  Download GLFW 3.4 from https://www.glfw.org/.  Set GLFW_DIR to the root directory (the folder containing include/ and lib-vc2022/)."
 }
+$GlfwDir = $GlfwDir.TrimEnd('\', '/')
 if (-not (Test-Path $GlfwDir)) {
     throw "GLFW directory '$GlfwDir' does not exist."
 }
+
+# Auto-correct: if GLFW_DIR was set to a lib subfolder (common mistake),
+# walk up to the real root.
 $GlfwInclude = Join-Path $GlfwDir 'include'
 if (-not (Test-Path $GlfwInclude)) {
-    throw "GLFW include directory not found at '$GlfwInclude'"
+    $parent = Split-Path -Parent $GlfwDir
+    $parentInclude = Join-Path $parent 'include'
+    if ($parent -and (Test-Path $parentInclude)) {
+        Write-Warning "[build] GLFW_DIR was set to '$GlfwDir' but 'include/' is at '$parent'. Auto-correcting to '$parent'."
+        $GlfwDir = $parent
+        $GlfwInclude = $parentInclude
+    }
+}
+if (-not (Test-Path $GlfwInclude)) {
+    throw "GLFW include directory not found.  GLFW_DIR is '$GlfwDir' -- expected '$GlfwDir\include\GLFW\glfw3.h' to exist."
 }
 
 if (-not $GlfwLib) {

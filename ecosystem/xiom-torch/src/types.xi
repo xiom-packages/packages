@@ -55,7 +55,7 @@ fn compute_strides(shape: &Vec[Int]) -> Vec[Int] {
 }
 
 pub fn tensor_new(shape: &Vec[Int], options: &TensorOptions) -> Tensor
-  requires: shape.len() > 0;
+  requires: shape.len() > 0
 {
   var total = 1;
   var i = 0;
@@ -69,28 +69,28 @@ pub fn tensor_new(shape: &Vec[Int], options: &TensorOptions) -> Tensor
     data.push(0.0);
     j = j + 1;
   };
-  return {
-    data: data;
-    shape: shape.clone();
-    strides: compute_strides(shape);
-    device: options.device;
-    dtype: options.dtype;
+  return Tensor{
+    data: data,
+    shape: shape.clone(),
+    strides: compute_strides(shape),
+    device: options.device,
+    dtype: options.dtype,
   };
 }
 
 pub fn tensor_zeros(shape: &Vec[Int]) -> Tensor
-  requires: shape.len() > 0;
+  requires: shape.len() > 0
 {
-  var opts = {
-    dtype: DType.Float32;
-    device: Device.CPU;
-    requires_grad: false;
+  var opts = TensorOptions{
+    dtype: DType.Float32,
+    device: Device.CPU,
+    requires_grad: false,
   };
   return tensor_new(shape, &opts);
 }
 
 pub fn tensor_ones(shape: &Vec[Int]) -> Tensor
-  requires: shape.len() > 0;
+  requires: shape.len() > 0
 {
   var t = tensor_zeros(shape);
   var i = 0;
@@ -116,25 +116,25 @@ fn compute_total(shape: &Vec[Int]) -> Int {
 }
 
 pub fn tensor_reshape(t: &Tensor, shape: &Vec[Int]) -> Tensor
-  requires: shape.len() > 0;
-  ensures: result.data.len() == t.data.len();
+  requires: shape.len() > 0
+  ensures: result.data.len() == t.data.len()
 {
   var new_total = compute_total(shape);
   var old_total = compute_total(&t.shape);
   if new_total != old_total {
-    return {
-      data: Vec[Float32].new();
-      shape: Vec[Int].new();
-      strides: Vec[Int].new();
-      device: t.device;
-      dtype: t.dtype;
+    return Tensor{
+      data: Vec[Float32].new(),
+      shape: Vec[Int].new(),
+      strides: Vec[Int].new(),
+      device: t.device,
+      dtype: t.dtype,
     };
   };
-  return {
-    data: t.data.clone();
-    shape: shape.clone();
-    strides: compute_strides(shape);
-    device: t.device;
-    dtype: t.dtype;
+  return Tensor{
+    data: t.data.clone(),
+    shape: shape.clone(),
+    strides: compute_strides(shape),
+    device: t.device,
+    dtype: t.dtype,
   };
 }

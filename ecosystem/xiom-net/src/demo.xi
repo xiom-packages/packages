@@ -158,7 +158,7 @@ pub fn demo_http_request() -> Result[Unit, Str] {
     Err(msg) => { return Err("TCP connect to " + hostname + ":80 failed: " + msg); },
     Ok(stream) => {},
   };
-  var mut stream = stream_result?;
+  var stream = stream_result?;
 
   var request: Str = "GET / HTTP/1.0\r\nHost: example.com\r\nConnection: close\r\n\r\n";
   var req_bytes = str_to_bytes(request);
@@ -207,7 +207,7 @@ pub fn demo_echo_server() -> Result[Unit, Str] {
     Err(msg) => { return Err("echo server listen on 127.0.0.1:8080 failed: " + msg); },
     Ok(listener) => {},
   };
-  var mut listener = listen_result?;
+  var listener = listen_result?;
 
   var client_result = tcp_accept(&mut listener);
   match client_result {
@@ -217,7 +217,7 @@ pub fn demo_echo_server() -> Result[Unit, Str] {
     },
     Ok(client) => {},
   };
-  var mut client = client_result?;
+  var client = client_result?;
 
   var buf = Vec[Int].new();
   var i: Int = 0;

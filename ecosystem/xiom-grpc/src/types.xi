@@ -54,7 +54,7 @@ fn grpc_response_ok(payload: Vec[Int]) -> GrpcResponse
 fn grpc_response_error(status: Int, message: Str) -> GrpcResponse
   requires: status != 0
 {
-  let mut metadata = Vec[(Str, Str)].new();
+  var metadata = Vec[(Str, Str)].new();
   metadata.push(("error-message".to_owned(), message.clone()));
   GrpcResponse {
     status: status;
@@ -66,7 +66,7 @@ fn grpc_response_error(status: Int, message: Str) -> GrpcResponse
 fn grpc_metadata_get(resp: &GrpcResponse, key: Str) -> Option[Str]
   requires: key.len() > 0
 {
-  let mut i = 0;
+  var i = 0;
   while i < resp.metadata.len() {
     let (k, v) = &resp.metadata[i];
     if k == &key {
@@ -80,8 +80,8 @@ fn grpc_metadata_get(resp: &GrpcResponse, key: Str) -> Option[Str]
 fn grpc_metadata_set(req: &mut GrpcRequest, key: Str, value: Str)
   requires: key.len() > 0
 {
-  let mut found = false;
-  let mut i = 0;
+  var found = false;
+  var i = 0;
   while i < req.metadata.len() {
     let (k, v) = &req.metadata[i];
     if k == &key {

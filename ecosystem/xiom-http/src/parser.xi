@@ -156,7 +156,7 @@ pub fn http_parse_request(input: Str) -> Result[HttpRequest, HttpParseError]
   }
   var req_result: Result[HttpRequest, HttpParseError] = parse_request_line(input, &mut pos);
   match req_result {
-    Ok(mut req) => {
+    Ok(req) => {
       var headers: HttpHeaders = HttpHeaders.new();
       while pos + 1 < len {
         var c0: Int = xiom.string.char_at(input, pos);
@@ -198,7 +198,7 @@ pub fn http_parse_response(input: Str) -> Result[HttpResponse, HttpParseError]
   }
   var resp_result: Result[HttpResponse, HttpParseError] = parse_response_line(input, &mut pos);
   match resp_result {
-    Ok(mut resp) => {
+    Ok(resp) => {
       var headers: HttpHeaders = HttpHeaders.new();
       while pos + 1 < len {
         var c0: Int = xiom.string.char_at(input, pos);

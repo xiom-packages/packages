@@ -3,10 +3,10 @@ module xiom.crypto.pbkdf
 use xiom.crypto.sha;
 
 pub fn pbkdf2_sha256(password: &Vec[Int], salt: &Vec[Int], iterations: Int, keylen: Int) -> Vec[Int]
-  requires: password.len() > 0;
-  requires: salt.len() > 0;
-  requires: iterations >= 1;
-  requires: keylen > 0;
+  requires: password.len() > 0
+  requires: salt.len() > 0
+  requires: iterations >= 1
+  requires: keylen > 0
 {
   var result = Vec[Int].new();
   var block_count = (keylen + 31) / 32;

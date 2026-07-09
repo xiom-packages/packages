@@ -108,7 +108,7 @@ fn sigma1_small(x: Int) -> Int {
 }
 
 pub fn sha256(data: &Vec[Int]) -> Vec[Int]
-  ensures: result.len() == 32;
+  ensures: result.len() == 32
 {
   var padded = pad_sha256(data);
   var h0 = sha256_initial_h0();
@@ -406,7 +406,7 @@ fn sigma1_small_64(x: Int) -> Int {
 }
 
 pub fn sha512(data: &Vec[Int]) -> Vec[Int]
-  ensures: result.len() == 64;
+  ensures: result.len() == 64
 {
   var padded = pad_sha512(data);
   var h0 = sha512_initial_h0();

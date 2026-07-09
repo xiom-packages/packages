@@ -22,28 +22,28 @@ fn color_space_to_int(cs: ColorSpace) -> Int {
 
 pub fn cv_imread(path: Str) -> Result[Image, Str] {
   var img = image_new(1, 1, 3);
-  return Result.Ok(img);
+  return Ok(img);
 }
 
 pub fn cv_imwrite(path: Str, img: &Image) -> Result[Unit, Str] {
-  return Result.Ok({});
+  return Ok(Unit{});
 }
 
 pub fn cv_resize(img: &Image, w: Int, h: Int) -> Result[Image, Str]
-  requires: w > 0;
-  requires: h > 0;
+  requires: w > 0
+  requires: h > 0
 {
   var out = image_new(w, h, img.channels);
-  return Result.Ok(out);
+  return Ok(out);
 }
 
 pub fn cv_cvt_color(img: &Image, from: ColorSpace, to: ColorSpace) -> Result[Image, Str] {
   if from == to {
-    return Result.Ok({
-      data: img.data.clone();
-      width: img.width;
-      height: img.height;
-      channels: img.channels;
+    return Ok(Image{
+      data: img.data.clone(),
+      width: img.width,
+      height: img.height,
+      channels: img.channels,
     });
   };
   var channels_out = 3;
@@ -51,5 +51,5 @@ pub fn cv_cvt_color(img: &Image, from: ColorSpace, to: ColorSpace) -> Result[Ima
     channels_out = 1;
   };
   var out = image_new(img.width, img.height, channels_out);
-  return Result.Ok(out);
+  return Ok(out);
 }

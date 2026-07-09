@@ -229,7 +229,7 @@ pub fn sqlite_close(conn: SqliteConnection) -> Result[Unit, Str]
     var err = "sqlite3_close failed: " + msg;
     return Err(err);
   };
-  return Ok({});
+  return Ok(Unit{});
 }
 
 pub fn sqlite_execute(conn: &SqliteConnection, sql: Str) -> Result[Unit, Str]
@@ -246,7 +246,7 @@ pub fn sqlite_execute(conn: &SqliteConnection, sql: Str) -> Result[Unit, Str]
     var err = "sqlite3_exec failed: " + msg + " [SQL: " + sql + "]";
     return Err(err);
   };
-  return Ok({});
+  return Ok(Unit{});
 }
 
 pub fn sqlite_prepare(conn: &SqliteConnection, sql: Str) -> Result[SqliteStmt, Str]
@@ -374,7 +374,7 @@ pub fn sqlite_finalize(stmt: SqliteStmt) -> Result[Unit, Str]
     var err = "sqlite3_finalize failed with error code " + int_to_str(rc);
     return Err(err);
   };
-  return Ok({});
+  return Ok(Unit{});
 }
 
 pub fn sqlite_last_insert_rowid(conn: &SqliteConnection) -> Int

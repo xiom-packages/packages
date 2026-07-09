@@ -21,10 +21,10 @@ pub type OnnxConfig = {
 }
 
 pub fn onnx_config_default() -> OnnxConfig {
-  return {
-    num_threads: 4;
-    graph_optimization_level: 1;
-    enable_profiling: false;
+  return OnnxConfig{
+    num_threads: 4,
+    graph_optimization_level: 1,
+    enable_profiling: false,
   };
 }
 
