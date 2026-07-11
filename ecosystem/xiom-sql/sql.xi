@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 
-module xiom.sql {
+module xiom.sql
 
 pub type Database = {
   handle: Int;
@@ -19,6 +19,4 @@ pub fn execute(db: &Database, sql: Str) -> Int {
 
 pub fn close(db: &Database) -> Int {
   return 0; // MVP stub
-}
-
 }
