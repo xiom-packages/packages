@@ -1,0 +1,54 @@
+# =============================================================================
+# schema/root.graphql
+#
+# EXAMPLE SCHEMA — DESIGN ILLUSTRATION ONLY.
+#
+# This file is a design-stage example of the root GraphQL schema for a
+# xiom-graphql server. It is NOT wired into any runtime and is provided to
+# illustrate the schema-first contract described in ARCHITECTURE.md and
+# docs/schema-first.md.
+#
+# The root schema declares the three operation types. Every reachable field
+# of the API originates here; the schema is the single source of truth.
+# =============================================================================
+
+# The schema block names the root operation types.
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+# -----------------------------------------------------------------------------
+# Query — read operations. Fields resolve concurrently.
+# -----------------------------------------------------------------------------
+type Query {
+  # Fetch a single user by id. Bound to resolver "Query.user".
+  user(id: ID!): User
+
+  # List users with simple pagination. Bound to resolver "Query.users".
+  users(first: Int = 20, after: ID): [User!]!
+
+  # Fetch a single post by id. Bound to resolver "Query.post".
+  post(id: ID!): Post
+}
+
+# -----------------------------------------------------------------------------
+# Mutation — write operations. Top-level fields resolve sequentially.
+# -----------------------------------------------------------------------------
+type Mutation {
+  # Create a user. Bound to resolver "Mutation.createUser".
+  createUser(input: CreateUserInput!): User!
+
+  # Publish a post authored by a user. Bound to "Mutation.createPost".
+  createPost(input: CreatePostInput!): Post!
+}
+
+# -----------------------------------------------------------------------------
+# Subscription — transport-agnostic typed event streams.
+# The GraphQL layer defines the event contract; xiom-websocket carries frames.
+# -----------------------------------------------------------------------------
+type Subscription {
+  # Emits each newly published post. Bound to "Subscription.postPublished".
+  postPublished(authorId: ID): Post!
+}

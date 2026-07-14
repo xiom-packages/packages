@@ -1,86 +1,171 @@
-// XIOM — Vulkan Bindings
+// XIOM — Vulkan Bindings (C Bridge Wrapper)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// First-party Vulkan FFI bindings for GPU graphics and compute.
-// Wraps vulkan-1.dll / libvulkan.so / libvulkan.dylib.
-
+// Low-level FFI declarations and safe wrappers for the xvk C bridge library.
 module xiom.vulkan
 
-// === Instance ===
-pub type Instance = Int;
-pub type PhysicalDevice = Int;
-pub type Device = Int;
+extern "C" {
+  fn xvk_app_create(title: Str, width: Int32, height: Int32) -> Int;
+  fn xvk_app_destroy(app: Int);
+  fn xvk_app_valid(app: Int) -> Int32;
+  fn xvk_last_error() -> Str;
+  fn xvk_app_should_close(app: Int) -> Int32;
+  fn xvk_app_poll(app: Int);
+  fn xvk_now() -> Float64;
+  fn xvk_device_type(app: Int) -> Int32;
+  fn xvk_begin_frame(app: Int) -> Int32;
+  fn xvk_set_clear_color(app: Int, r: Float32, g: Float32, b: Float32);
+  fn xvk_end_frame(app: Int);
+  fn xvk_draw_triangle_2d(app: Int, r: Float32, g: Float32, b: Float32);
+  fn xvk_draw_cube_3d(app: Int, angle: Float32);
+  fn xvk_offscreen_create(width: Int32, height: Int32) -> Int;
+  fn xvk_offscreen_render_triangle(app: Int, r: Float32, g: Float32, b: Float32) -> Int32;
+  fn xvk_offscreen_pixel(app: Int, x: Int32, y: Int32) -> Int32;
+  fn xvk_offscreen_hash(app: Int) -> Int;
+  fn xvk_offscreen_destroy(app: Int);
+  fn xvk_draw_quad_2d(app: Int, cx: Float32, cy: Float32, hw: Float32, hh: Float32, r: Float32, g: Float32, b: Float32);
+  fn xvk_draw_cube_3d_at(app: Int, angle: Float32, px: Float32, py: Float32, pz: Float32, scale: Float32);
+  fn xvk_particles_enable(app: Int, count: Int32) -> Int32;
+  fn xvk_draw_particles(app: Int, dt: Float32);
+}
 
-pub fn create_instance(app_name: Str, engine_name: Str) -> Result[Instance, Str];
-pub fn destroy_instance(instance: Instance);
+pub fn create_app(title: Str, width: Int, height: Int) -> Result[Int, Str]
+  requires: width > 0
+  requires: height > 0
+{
+  let raw = unsafe { xvk_app_create(title, width as Int32, height as Int32) };
+  if raw == 0 {
+    return Err("failed to create vulkan app");
+  }
+  return Ok(raw);
+}
 
-pub fn enumerate_devices(instance: Instance) -> Result[Vec[PhysicalDevice], Str];
-pub fn get_device_name(device: PhysicalDevice) -> Str;
-pub fn get_device_type(device: PhysicalDevice) -> Int; // 0=other, 1=integrated, 2=discrete, 3=virtual, 4=cpu
+pub fn destroy_app(app: Int)
+  requires: app != 0
+{
+  unsafe { xvk_app_destroy(app); }
+}
 
-pub fn create_device(physical_device: PhysicalDevice) -> Result[Device, Str];
-pub fn destroy_device(device: Device);
-pub fn get_queue(device: Device, queue_family: Int, queue_index: Int) -> Int;
-pub fn wait_device_idle(device: Device);
+pub fn app_valid(app: Int) -> Bool {
+  let ok: Int32 = unsafe { xvk_app_valid(app) };
+  return ok != 0;
+}
 
-// === Swapchain ===
-pub type Swapchain = Int;
-pub type ImageView = Int;
+pub fn should_close(app: Int) -> Bool
+  requires: app != 0
+{
+  let sc: Int32 = unsafe { xvk_app_should_close(app) };
+  return sc != 0;
+}
 
-pub fn create_swapchain(device: Device, surface: Int, width: Int, height: Int) -> Result[Swapchain, Str];
-pub fn destroy_swapchain(device: Device, swapchain: Swapchain);
-pub fn get_swapchain_images(device: Device, swapchain: Swapchain) -> Result[Vec[Int], Str];
-pub fn create_image_view(device: Device, image: Int, format: Int) -> Result[ImageView, Str];
-pub fn acquire_next_image(device: Device, swapchain: Swapchain, semaphore: Int, fence: Int) -> Result[Int, Str];
-pub fn present(queue: Int, swapchain: Swapchain, image_index: Int, wait_semaphore: Int) -> Result[Unit, Str];
+pub fn poll(app: Int)
+  requires: app != 0
+{
+  unsafe { xvk_app_poll(app); }
+}
 
-// === Pipeline ===
-pub type RenderPass = Int;
-pub type Pipeline = Int;
-pub type Framebuffer = Int;
-pub type ShaderModule = Int;
+pub fn now() -> Float64 {
+  return unsafe { xvk_now() };
+}
 
-pub fn create_render_pass(device: Device, format: Int) -> Result[RenderPass, Str];
-pub fn create_graphics_pipeline(device: Device, render_pass: RenderPass, vert_shader: ShaderModule, frag_shader: ShaderModule) -> Result[Pipeliene, Str];
-pub fn create_framebuffer(device: Device, render_pass: RenderPass, image_views: &Vec[ImageView], width: Int, height: Int) -> Result[Framebuffer, Str];
+pub fn device_type(app: Int) -> Int
+  requires: app != 0
+{
+  let dt: Int32 = unsafe { xvk_device_type(app) };
+  return dt as Int;
+}
 
-// === Shaders ===
-pub fn create_shader_module(device: Device, spirv_code: &Vec[UInt8]) -> Result[ShaderModule, Str];
-pub fn destroy_shader_module(device: Device, shader: ShaderModule);
+pub fn begin_frame(app: Int) -> Int
+  requires: app != 0
+{
+  let bf: Int32 = unsafe { xvk_begin_frame(app) };
+  return bf as Int;
+}
 
-// === Commands ===
-pub type CommandPool = Int;
-pub type CommandBuffer = Int;
+pub fn set_clear_color(app: Int, r: Float32, g: Float32, b: Float32)
+  requires: app != 0
+{
+  unsafe { xvk_set_clear_color(app, r, g, b); }
+}
 
-pub fn create_command_pool(device: Device, queue_family: Int) -> Result[CommandPool, Str];
-pub fn allocate_command_buffer(device: Device, pool: CommandPool) -> Result[CommandBuffer, Str];
-pub fn begin_command_buffer(cmd: CommandBuffer);
-pub fn begin_render_pass(cmd: CommandBuffer, render_pass: RenderPass, framebuffer: Framebuffer, width: Int, height: Int);
-pub fn bind_pipeline(cmd: CommandBuffer, pipeline: Pipeliene);
-pub fn draw(cmd: CommandBuffer, vertex_count: Int, instance_count: Int);
-pub fn end_render_pass(cmd: CommandBuffer);
-pub fn end_command_buffer(cmd: CommandBuffer);
+pub fn end_frame(app: Int)
+  requires: app != 0
+{
+  unsafe { xvk_end_frame(app); }
+}
 
-pub fn submit(queue: Int, cmd: CommandBuffer, wait_semaphore: Int, signal_semaphore: Int, fence: Int);
+pub fn draw_triangle_2d(app: Int, r: Float32, g: Float32, b: Float32)
+  requires: app != 0
+{
+  unsafe { xvk_draw_triangle_2d(app, r, g, b); }
+}
 
-// === Synchronization ===
-pub type Semaphore = Int;
-pub type Fence = Int;
+pub fn draw_cube_3d(app: Int, angle: Float32)
+  requires: app != 0
+{
+  unsafe { xvk_draw_cube_3d(app, angle); }
+}
 
-pub fn create_semaphore(device: Device) -> Result[Semaphore, Str];
-pub fn destroy_semaphore(device: Device, semaphore: Semaphore);
-pub fn create_fence(device: Device) -> Result[Fence, Str];
-pub fn destroy_fence(device: Device, fence: Fence);
-pub fn wait_for_fence(device: Device, fence: Fence);
-pub fn reset_fence(device: Device, fence: Fence);
+pub fn draw_quad_2d(app: Int, cx: Float32, cy: Float32, hw: Float32, hh: Float32, r: Float32, g: Float32, b: Float32)
+  requires: app != 0
+{
+  unsafe { xvk_draw_quad_2d(app, cx, cy, hw, hh, r, g, b); }
+}
 
-// === Memory & Buffers ===
-pub type Buffer = Int;
-pub type DeviceMemory = Int;
+pub fn draw_cube_3d_at(app: Int, angle: Float32, px: Float32, py: Float32, pz: Float32, scale: Float32)
+  requires: app != 0
+{
+  unsafe { xvk_draw_cube_3d_at(app, angle, px, py, pz, scale); }
+}
 
-pub fn allocate_buffer(device: Device, size: Int, usage: Int) -> Result[(Buffer, DeviceMemory), Str];
-pub fn destroy_buffer(device: Device, buffer: Buffer);
-pub fn free_memory(device: Device, memory: DeviceMemory);
-pub fn map_memory(device: Device, memory: DeviceMemory, offset: Int, size: Int) -> Result[Int, Str];
-pub fn unmap_memory(device: Device, memory: DeviceMemory);
+pub fn particles_enable(app: Int, count: Int) -> Bool
+  requires: app != 0
+  requires: count > 0
+{
+  let result: Int32 = unsafe { xvk_particles_enable(app, count as Int32) };
+  return result != 0;
+}
+
+pub fn draw_particles(app: Int, dt: Float32)
+  requires: app != 0
+{
+  unsafe { xvk_draw_particles(app, dt); }
+}
+
+pub fn offscreen_create(width: Int, height: Int) -> Result[Int, Str]
+  requires: width > 0
+  requires: height > 0
+{
+  let raw = unsafe { xvk_offscreen_create(width as Int32, height as Int32) };
+  if raw == 0 {
+    return Err("failed to create offscreen surface");
+  }
+  return Ok(raw);
+}
+
+pub fn offscreen_render_triangle(app: Int, r: Float32, g: Float32, b: Float32) -> Bool
+  requires: app != 0
+{
+  let ok: Int32 = unsafe { xvk_offscreen_render_triangle(app, r, g, b) };
+  return ok != 0;
+}
+
+pub fn offscreen_pixel(app: Int, x: Int, y: Int) -> Int
+  requires: app != 0
+{
+  let px: Int32 = unsafe { xvk_offscreen_pixel(app, x as Int32, y as Int32) };
+  return px as Int;
+}
+
+pub fn offscreen_hash(app: Int) -> Int
+  requires: app != 0
+{
+  return unsafe { xvk_offscreen_hash(app) };
+}
+
+pub fn offscreen_destroy(app: Int)
+  requires: app != 0
+{
+  unsafe { xvk_offscreen_destroy(app); }
+}

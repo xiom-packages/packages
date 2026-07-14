@@ -39,7 +39,7 @@ pub fn plot_histogram(label: Str, values: &Vec[Float32], scale_min: Float32, sca
 pub fn open_popup(name: Str);
 pub fn begin_popup(name: Str) -> Bool;
 pub fn end_popup();
-pub fn begin_modal(name: Str, &open: Bool) -> Bool;
+pub fn begin_modal(name: Str, open: &Bool) -> Bool;
 pub fn end_modal();
 
 pub fn style_dark();

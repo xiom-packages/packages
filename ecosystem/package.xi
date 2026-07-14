@@ -11,6 +11,7 @@ package xiom_ecosystem {
     "xiom-std": "0.1.0"
   };
   packages: [
+    "xiom-core",
     "xiom-http",
     "xiom-crypto",
     "xiom-sql",
@@ -24,6 +25,29 @@ package xiom_ecosystem {
     "xiom-bullet",
     "xiom-blas",
     "xiom-protobuf",
-    "xiom-grpc"
+    "xiom-grpc",
+    "xiom-json",
+    "xiom-test",
+    "xiom-db",
+    "xiom-vector",
+    "xiom-algo",
+    "xiom-net",
+    "xiom-sqlite",
+    "xiom-imgui",
+    "xiom-ui",
+    "xiom-torch",
+    "xiom-onnx",
+    "xiom-opencv",
+    "xiom-control",
+    "xiom-sensor",
+    "xiom-ffi",
+    "xiom-bench",
+    "xiom-log",
+    "xiom-kafka",
+    "xiom-rest",
+    "xiom-graphql",
+    "xiom-websocket",
+    "xiom-realtime",
+    "xiom-micro"
   ];
 }

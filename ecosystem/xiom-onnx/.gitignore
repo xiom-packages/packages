@@ -1,0 +1,26 @@
+# Build output
+build/
+*.exe
+*.o
+*.obj
+*.ll
+*.bc
+*.wasm
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# XIOM
+deps/
+*.lock
+
+# ONNX
+*.onnx
+*.ort

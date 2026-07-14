@@ -1,0 +1,17 @@
+target/
+*.xiobj
+*.xibc
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+bridge/*.obj
+bridge/*.o
+bridge/spv/
+bridge/xvk_shaders_generated.h
+*.exe
