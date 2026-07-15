@@ -354,6 +354,11 @@ $XiomcArgs += $XiFiles
 $XiomcArgs += @('--c-source', $BridgeObj)
 $XiomcArgs += @('--link', 'vulkan-1')
 $XiomcArgs += @('--link', 'glfw3')
+$XiomcArgs += @('--link', 'gdi32')
+$XiomcArgs += @('--link', 'user32')
+$XiomcArgs += @('--link', 'kernel32')
+$XiomcArgs += @('--link', 'shell32')
+$XiomcArgs += @('--link', 'ole32')
 $XiomcArgs += @('--link-path', "`"$VkLib`"")
 $XiomcArgs += @('--link-path', "`"$GlfwLib`"")
 
