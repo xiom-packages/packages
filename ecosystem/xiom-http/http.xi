@@ -15,7 +15,8 @@ extern "C" {
   fn xiom_free_cstr(cstr: *UInt8);
   fn xiom_alloc(size: Int) -> *UInt8;
   fn xiom_free_ptr(ptr: *UInt8);
-
+  fn xiom_write_byte(ptr: *UInt8, offset: Int, value: Int);
+  fn xiom_read_byte(ptr: *UInt8, offset: Int) -> Int;
   fn xiom_copy_from_vec(c_buf: *UInt8, vec_data: *UInt8, vec_len: Int, vec_cap: Int, offset: Int, count: Int);
 }
 
@@ -93,14 +94,14 @@ fn make_ptr_value(v: Int) -> *UInt8 {
   if ptr.is_null[UInt8](p) {
     return ptr.null[UInt8]();
   };
-  p[0] = (v & 0xFF) as UInt8;
-  p[1] = ((v >> 8) & 0xFF) as UInt8;
-  p[2] = ((v >> 16) & 0xFF) as UInt8;
-  p[3] = ((v >> 24) & 0xFF) as UInt8;
-  p[4] = 0 as UInt8;
-  p[5] = 0 as UInt8;
-  p[6] = 0 as UInt8;
-  p[7] = 0 as UInt8;
+  xiom_write_byte(p, 0, v & 0xFF);
+  xiom_write_byte(p, 1, (v >> 8) & 0xFF);
+  xiom_write_byte(p, 2, (v >> 16) & 0xFF);
+  xiom_write_byte(p, 3, (v >> 24) & 0xFF);
+  xiom_write_byte(p, 4, 0);
+  xiom_write_byte(p, 5, 0);
+  xiom_write_byte(p, 6, 0);
+  xiom_write_byte(p, 7, 0);
   return p;
 }
 
@@ -144,7 +145,7 @@ fn cstr_to_str(cstr: *UInt8) -> Str {
   var result: Str = "";
   var i: Int = 0;
   while i < 65536 {
-    var b: UInt8 = cstr[i];
+    var b: Int = xiom_read_byte(cstr, i);
     if b == 0 as UInt8 { break; };
     var b_int: Int = b as Int;
     result = result + byte_to_char(b_int);
@@ -242,7 +243,7 @@ fn read_file_to_str(file: *UInt8) -> Str {
   if term > file_size { term = file_size; };
 
   if term >= 0 {
-    buf[term] = 0 as UInt8;
+    xiom_write_byte(buf, term, 0);
   };
   var result: Str = cstr_to_str(buf);
   xiom_free_ptr(buf);
@@ -272,57 +273,57 @@ fn get_response_code(handle: *UInt8) -> Int {
 
 // ─── cURL Setup Helpers ─────────────────────────────────────────────────────
 
-fn setup_common_options(handle: *UInt8, url_cstr: *UInt8) -> Result[(), Str] {
+fn setup_common_options(handle: *UInt8, url_cstr: *UInt8) -> Result[Unit, Str] {
   var rc: Int;
 
   rc = curl_easy_setopt(handle, CURLOPT_URL(), url_cstr);
-  if rc != 0 { return Err("CURLOPT_URL failed: " + curl_error_string(rc)); };
+  if rc != 0 { return Err(string.str_concat("CURLOPT_URL failed: ", curl_error_string(rc))); };
 
   var p1: *UInt8 = make_ptr_value(1);
   rc = curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION(), p1);
-  if rc != 0 { xiom_free_ptr(p1); return Err("CURLOPT_FOLLOWLOCATION failed: " + curl_error_string(rc)); };
+  if rc != 0 { xiom_free_ptr(p1); return Err(string.str_concat("CURLOPT_FOLLOWLOCATION failed: ", curl_error_string(rc))); };
   xiom_free_ptr(p1);
 
   var p30: *UInt8 = make_ptr_value(30);
   rc = curl_easy_setopt(handle, CURLOPT_TIMEOUT(), p30);
-  if rc != 0 { xiom_free_ptr(p30); return Err("CURLOPT_TIMEOUT failed: " + curl_error_string(rc)); };
+  if rc != 0 { xiom_free_ptr(p30); return Err(string.str_concat("CURLOPT_TIMEOUT failed: ", curl_error_string(rc))); };
   xiom_free_ptr(p30);
 
   var p10: *UInt8 = make_ptr_value(10);
   rc = curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT(), p10);
-  if rc != 0 { xiom_free_ptr(p10); return Err("CURLOPT_CONNECTTIMEOUT failed: " + curl_error_string(rc)); };
+  if rc != 0 { xiom_free_ptr(p10); return Err(string.str_concat("CURLOPT_CONNECTTIMEOUT failed: ", curl_error_string(rc))); };
   xiom_free_ptr(p10);
 
   rc = curl_easy_setopt(handle, CURLOPT_NOSIGNAL(), p1);
-  if rc != 0 { xiom_free_ptr(p1); return Err("CURLOPT_NOSIGNAL failed: " + curl_error_string(rc)); };
+  if rc != 0 { xiom_free_ptr(p1); return Err(string.str_concat("CURLOPT_NOSIGNAL failed: ", curl_error_string(rc))); };
   xiom_free_ptr(p1);  // free our extra copy
 
   var encoding_cstr: *UInt8 = str_to_cstr("gzip, deflate");
   rc = curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING(), encoding_cstr);
   xiom_free_cstr(encoding_cstr);
-  if rc != 0 { return Err("CURLOPT_ACCEPT_ENCODING failed: " + curl_error_string(rc)); };
+  if rc != 0 { return Err(string.str_concat("CURLOPT_ACCEPT_ENCODING failed: ", curl_error_string(rc))); };
 
   var ua_cstr: *UInt8 = str_to_cstr("xiom-http/0.1.0");
   rc = curl_easy_setopt(handle, CURLOPT_USERAGENT(), ua_cstr);
   xiom_free_cstr(ua_cstr);
-  if rc != 0 { return Err("CURLOPT_USERAGENT failed: " + curl_error_string(rc)); };
+  if rc != 0 { return Err(string.str_concat("CURLOPT_USERAGENT failed: ", curl_error_string(rc))); };
 
   var p_buf: *UInt8 = make_ptr_value(BUF_SIZE());
   rc = curl_easy_setopt(handle, CURLOPT_BUFFERSIZE(), p_buf);
-  if rc != 0 { xiom_free_ptr(p_buf); return Err("CURLOPT_BUFFERSIZE failed: " + curl_error_string(rc)); };
+  if rc != 0 { xiom_free_ptr(p_buf); return Err(string.str_concat("CURLOPT_BUFFERSIZE failed: ", curl_error_string(rc))); };
   xiom_free_ptr(p_buf);
 
   return Ok(());
 }
 
-fn perform_and_collect(handle: *UInt8, body_f: *UInt8, headers_f: *UInt8) -> Result[(), Str] {
+fn perform_and_collect(handle: *UInt8, body_f: *UInt8, headers_f: *UInt8) -> Result[Unit, Str] {
   var rc: Int;
   rc = curl_easy_setopt(handle, CURLOPT_WRITEDATA(), body_f);
-  if rc != 0 { return Err("CURLOPT_WRITEDATA failed: " + curl_error_string(rc)); };
+  if rc != 0 { return Err(string.str_concat("CURLOPT_WRITEDATA failed: ", curl_error_string(rc))); };
   rc = curl_easy_setopt(handle, CURLOPT_HEADERDATA(), headers_f);
-  if rc != 0 { return Err("CURLOPT_HEADERDATA failed: " + curl_error_string(rc)); };
+  if rc != 0 { return Err(string.str_concat("CURLOPT_HEADERDATA failed: ", curl_error_string(rc))); };
   rc = curl_easy_perform(handle);
-  if rc != 0 { return Err("curl_easy_perform failed: " + curl_error_string(rc)); };
+  if rc != 0 { return Err(string.str_concat("curl_easy_perform failed: ", curl_error_string(rc))); };
   return Ok(());
 }
 
@@ -388,19 +389,19 @@ pub fn http_post(url: Str, body: Str, content_type: Str) -> Result[HttpClientRes
   var p1: *UInt8 = make_ptr_value(1);
   rc = curl_easy_setopt(handle, CURLOPT_POST(), p1);
   xiom_free_ptr(p1);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err("CURLOPT_POST failed: " + curl_error_string(rc)); };
+  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err(string.str_concat("CURLOPT_POST failed: ", curl_error_string(rc))); };
 
   var body_cstr: *UInt8 = str_to_cstr(body);
   if ptr.is_null[UInt8](body_cstr) { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err("xiom_str_to_cstr failed for body"); };
 
   rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), body_cstr);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err("CURLOPT_POSTFIELDS failed: " + curl_error_string(rc)); };
+  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err(string.str_concat("CURLOPT_POSTFIELDS failed: ", curl_error_string(rc))); };
 
   var body_bytes: Vec[UInt8] = encoding.utf8_encode(body);
   var p_size: *UInt8 = make_ptr_value(body_bytes.len());
   rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), p_size);
   xiom_free_ptr(p_size);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err("CURLOPT_POSTFIELDSIZE failed: " + curl_error_string(rc)); };
+  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err(string.str_concat("CURLOPT_POSTFIELDSIZE failed: ", curl_error_string(rc))); };
 
   var files = open_temp_files();
   match files {
@@ -419,6 +420,7 @@ pub fn http_post(url: Str, body: Str, content_type: Str) -> Result[HttpClientRes
       return Ok(HttpClientResponse{ status: status, body: resp_body, headers: headers });
     },
   };
+  return Err("unreachable");
 }
 
 pub fn http_put(url: Str, body: Str) -> Result[HttpClientResponse, Str]
@@ -437,19 +439,19 @@ pub fn http_put(url: Str, body: Str) -> Result[HttpClientResponse, Str]
   var method_cstr: *UInt8 = str_to_cstr("PUT");
   rc = curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST(), method_cstr);
   xiom_free_cstr(method_cstr);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err("CURLOPT_CUSTOMREQUEST PUT failed: " + curl_error_string(rc)); };
+  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err(string.str_concat("CURLOPT_CUSTOMREQUEST PUT failed: ", curl_error_string(rc))); };
 
   var body_cstr: *UInt8 = str_to_cstr(body);
   if ptr.is_null[UInt8](body_cstr) { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err("xiom_str_to_cstr failed for body"); };
 
   rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), body_cstr);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err("CURLOPT_POSTFIELDS PUT failed: " + curl_error_string(rc)); };
+  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err(string.str_concat("CURLOPT_POSTFIELDS PUT failed: ", curl_error_string(rc))); };
 
   var body_bytes: Vec[UInt8] = encoding.utf8_encode(body);
   var p_size: *UInt8 = make_ptr_value(body_bytes.len());
   rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), p_size);
   xiom_free_ptr(p_size);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err("CURLOPT_POSTFIELDSIZE PUT failed: " + curl_error_string(rc)); };
+  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err(string.str_concat("CURLOPT_POSTFIELDSIZE PUT failed: ", curl_error_string(rc))); };
 
   var files = open_temp_files();
   match files {
@@ -468,6 +470,7 @@ pub fn http_put(url: Str, body: Str) -> Result[HttpClientResponse, Str]
       return Ok(HttpClientResponse{ status: status, body: resp_body, headers: headers });
     },
   };
+  return Err("unreachable");
 }
 
 pub fn http_delete(url: Str) -> Result[HttpClientResponse, Str]
@@ -486,7 +489,7 @@ pub fn http_delete(url: Str) -> Result[HttpClientResponse, Str]
   var method_cstr: *UInt8 = str_to_cstr("DELETE");
   rc = curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST(), method_cstr);
   xiom_free_cstr(method_cstr);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err("CURLOPT_CUSTOMREQUEST DELETE failed: " + curl_error_string(rc)); };
+  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err(string.str_concat("CURLOPT_CUSTOMREQUEST DELETE failed: ", curl_error_string(rc))); };
 
   var files = open_temp_files();
   match files {
@@ -504,9 +507,10 @@ pub fn http_delete(url: Str) -> Result[HttpClientResponse, Str]
       return Ok(HttpClientResponse{ status: status, body: resp_body, headers: headers });
     },
   };
+  return Err("unreachable");
 }
 
-pub fn http_download(url: Str, path: Str) -> Result[(), Str]
+pub fn http_download(url: Str, path: Str) -> Result[Unit, Str]
   requires: string.str_len(url) > 0
   requires: string.str_len(path) > 0
 {
@@ -527,7 +531,7 @@ pub fn http_download(url: Str, path: Str) -> Result[(), Str]
     xiom_free_cstr(url_cstr);
     xiom_free_cstr(path_cstr);
     xiom_free_cstr(mode_cstr);
-    return Err("failed to open output file: " + path);
+    return Err(string.str_concat("failed to open output file: ", path));
   };
 
   var rc: Int = curl_easy_setopt(handle, CURLOPT_WRITEDATA(), out_file);
@@ -537,7 +541,7 @@ pub fn http_download(url: Str, path: Str) -> Result[(), Str]
     xiom_free_cstr(url_cstr);
     xiom_free_cstr(path_cstr);
     xiom_free_cstr(mode_cstr);
-    return Err("CURLOPT_WRITEDATA download failed: " + curl_error_string(rc));
+    return Err(string.str_concat("CURLOPT_WRITEDATA download failed: ", curl_error_string(rc)));
   };
 
   var perf_rc: Int = curl_easy_perform(handle);
@@ -550,7 +554,7 @@ pub fn http_download(url: Str, path: Str) -> Result[(), Str]
     xiom_free_cstr(path_cstr);
     xiom_free_cstr(mode_cstr);
     let _ = remove(path_cstr);
-    return Err("download failed: " + err_msg);
+    return Err(string.str_concat("download failed: ", err_msg));
   };
 
   var status: Int = get_response_code(handle);
@@ -561,7 +565,7 @@ pub fn http_download(url: Str, path: Str) -> Result[(), Str]
 
   if status < 200 || status >= 300 {
     let _ = remove(path_cstr);
-    return Err("download failed with HTTP status " + to_string(status));
+    return Err(string.str_concat("download failed with HTTP status ", to_string(status)));
   };
 
   return Ok(());
