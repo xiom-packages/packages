@@ -3,8 +3,8 @@ use xiom.test;
 use xiom.openal;
 
 fn test_create_source() -> TestResult {
-  match create_source() {
-    Ok(s) => { delete_source(s); return assert(true, "openal source"); }
+  match openal.create_source() {
+    Ok(s) => { openal.delete_source(s); return assert(true, "openal source"); }
     Err(_) => { return assert(true, "openal skip"); }
   }
 }

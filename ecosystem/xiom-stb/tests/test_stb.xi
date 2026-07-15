@@ -3,7 +3,7 @@ use xiom.test;
 use xiom.stb;
 
 fn test_failure_reason() -> TestResult {
-  let reason = failure_reason();
+  let reason = stb.failure_reason();
   return assert(true, "stb failure reason");
 }
 
