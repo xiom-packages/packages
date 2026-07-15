@@ -5,6 +5,7 @@
 module libsodium_tests
 use xiom.test;
 use xiom.libsodium;
+use xiom.encoding;
 
 fn test_init() -> TestResult {
   match init() {
@@ -25,7 +26,8 @@ fn test_secretbox_roundtrip() -> TestResult {
     Ok(_) => {
       let key = random_bytes(SECRETBOX_KEYBYTES);
       let nonce = random_bytes(SECRETBOX_NONCEBYTES);
-      match secretbox_encrypt("test", key, nonce) {
+      var msg = encoding.utf8_encode("test");
+      match secretbox_encrypt(&msg, &key, &nonce) {
         Ok(enc) => {
           match secretbox_decrypt(enc, key, nonce) {
             Ok(_) => { return assert(true, "libsodium secretbox roundtrip"); }
