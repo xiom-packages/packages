@@ -2,7 +2,7 @@ module xiom.sqlite.types
 
 pub type SqliteValue = {
   value: SqliteValueKind;
-} derive[Clone]
+}
 
 pub enum SqliteValueKind {
   Null,
@@ -10,41 +10,41 @@ pub enum SqliteValueKind {
   Real(value: Float64),
   Text(value: Str),
   Blob(value: Vec[Int]),
-} derive[Clone]
+}
 
 pub type SqliteRow = {
   columns: Vec[SqliteValue];
-} derive[Clone]
+}
 
 pub type SqliteResult = {
   rows: Vec[SqliteRow];
   column_names: Vec[Str];
   rows_affected: Int;
-} derive[Clone]
+}
 
 pub type SqliteError = {
   code: Int;
   message: Str;
-} derive[Clone]
+}
 
 pub fn SqliteValue.null() -> SqliteValue {
   return SqliteValue{ value: SqliteValueKind.Null };
 }
 
 pub fn SqliteValue.integer(val: Int) -> SqliteValue {
-  return SqliteValue{ value: SqliteValueKind.Integer(value: val) };
+  return SqliteValue{ value: SqliteValueKind.Integer(val) };
 }
 
 pub fn SqliteValue.real(val: Float64) -> SqliteValue {
-  return SqliteValue{ value: SqliteValueKind.Real(value: val) };
+  return SqliteValue{ value: SqliteValueKind.Real(val) };
 }
 
 pub fn SqliteValue.text(val: Str) -> SqliteValue {
-  return SqliteValue{ value: SqliteValueKind.Text(value: val) };
+  return SqliteValue{ value: SqliteValueKind.Text(val) };
 }
 
 pub fn SqliteValue.blob(val: Vec[Int]) -> SqliteValue {
-  return SqliteValue{ value: SqliteValueKind.Blob(value: val) };
+  return SqliteValue{ value: SqliteValueKind.Blob(val) };
 }
 
 pub fn SqliteValue.as_int(val: &SqliteValue) -> Option[Int] {
@@ -91,10 +91,31 @@ pub fn SqliteRow.add(row: &mut SqliteRow, value: SqliteValue) {
   row.columns.push(value);
 }
 
+fn clone_sqlite_value(v: &SqliteValue) -> SqliteValue {
+  match v.value {
+    SqliteValueKind.Null => SqliteValue{ value: SqliteValueKind.Null },
+    SqliteValueKind.Integer(value) => SqliteValue{ value: SqliteValueKind.Integer(value) },
+    SqliteValueKind.Real(value) => SqliteValue{ value: SqliteValueKind.Real(value) },
+    SqliteValueKind.Text(value) => SqliteValue{ value: SqliteValueKind.Text(value) },
+    SqliteValueKind.Blob(value) => SqliteValue{ value: SqliteValueKind.Blob(value) },
+  }
+}
+
+fn clone_sqlite_row(row: &SqliteRow) -> SqliteRow {
+  var cols = Vec[SqliteValue].new();
+  var i: Int = 0;
+  while i < row.columns.len() {
+    var v = clone_sqlite_value(&row.columns[i]);
+    cols.push(v);
+    i = i + 1;
+  };
+  return SqliteRow{ columns: cols };
+}
+
 pub fn SqliteRow.get(row: &SqliteRow, index: Int) -> Option[SqliteValue] {
   if index < 0 { return None; }
   if index >= row.columns.len() { return None; }
-  var v = row.columns[index].clone();
+  var v = clone_sqlite_value(&row.columns[index]);
   return Some(v);
 }
 
@@ -128,7 +149,7 @@ pub fn SqliteResult.column_count(result: &SqliteResult) -> Int {
 pub fn SqliteResult.get_row(result: &SqliteResult, index: Int) -> Option[SqliteRow] {
   if index < 0 { return None; }
   if index >= result.rows.len() { return None; }
-  var r = result.rows[index].clone();
+  var r = clone_sqlite_row(&result.rows[index]);
   return Some(r);
 }
 

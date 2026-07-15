@@ -1,11 +1,23 @@
 module xiom.sqlite.migration
 
+use xiom.sqlite.types;
+use xiom.sqlite.connection;
+
 pub type Migration = {
   version: Int;
   name: Str;
   up_sql: Str;
   down_sql: Str;
-} derive[Clone]
+}
+
+fn clone_migration(m: &Migration) -> Migration {
+  return Migration{
+    version: m.version,
+    name: m.name,
+    up_sql: m.up_sql,
+    down_sql: m.down_sql,
+  };
+}
 
 pub type MigrationManager = {
   migrations: Vec[Migration];
@@ -51,7 +63,7 @@ pub fn MigrationManager.pending(mgr: &MigrationManager) -> Vec[Migration] {
   var i = 0;
   while i < mgr.migrations.len() {
     if mgr.migrations[i].version > mgr.current_version {
-      pending.push(mgr.migrations[i].clone());
+      pending.push(clone_migration(&mgr.migrations[i]));
     }
     i = i + 1;
   }
@@ -64,8 +76,8 @@ pub fn MigrationManager.sort(mgr: &mut MigrationManager) {
     var j = i + 1;
     while j < mgr.migrations.len() {
       if mgr.migrations[j].version < mgr.migrations[i].version {
-        var tmp = mgr.migrations[i].clone();
-        mgr.migrations[i] = mgr.migrations[j].clone();
+        var tmp = clone_migration(&mgr.migrations[i]);
+        mgr.migrations[i] = clone_migration(&mgr.migrations[j]);
         mgr.migrations[j] = tmp;
       }
       j = j + 1;
@@ -111,7 +123,7 @@ pub fn MigrationManager.down(mgr: &mut MigrationManager, conn: &SqliteConnection
   var i = 0;
   while i < mgr.migrations.len() {
     if mgr.migrations[i].version <= mgr.current_version {
-      applied.push(mgr.migrations[i].clone());
+      applied.push(clone_migration(&mgr.migrations[i]));
     }
     i = i + 1;
   }
@@ -121,7 +133,7 @@ pub fn MigrationManager.down(mgr: &mut MigrationManager, conn: &SqliteConnection
       break;
     }
     idx = idx - 1;
-    var m = applied[idx].clone();
+    var m = clone_migration(&applied[idx]);
     if m.down_sql == "" {
       return Err(SqliteError{
         code: -1,

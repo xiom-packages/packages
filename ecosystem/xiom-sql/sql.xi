@@ -17,6 +17,6 @@ pub fn execute(db: &Database, sql: Str) -> Int {
   return 0; // MVP stub
 }
 
-pub fn close(db: &Database) -> Int {
+pub pub fn close(db: &Database) -> Int {
   return 0; // MVP stub
 }

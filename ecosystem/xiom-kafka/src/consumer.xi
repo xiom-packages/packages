@@ -1,7 +1,9 @@
 module xiom.kafka.consumer
 
+use xiom.kafka.types;
+
 fn kafka_consumer_new(config: &KafkaConfig, topics: &Vec[Str]) -> Result[KafkaConsumer, KafkaError] {
-  let consumer = KafkaConsumer {
+  var consumer = KafkaConsumer {
     handle: -1,
     config: KafkaConfig {
       brokers: config.brokers,
@@ -10,37 +12,32 @@ fn kafka_consumer_new(config: &KafkaConfig, topics: &Vec[Str]) -> Result[KafkaCo
     },
     topics: Vec[Str].new(),
   };
-  Ok(consumer)
+  return Ok(consumer);
 }
 
-fn kafka_subscribe(consumer: &mut KafkaConsumer, topics: &Vec[Str]) -> Result[Unit, KafkaError] {
+fn kafka_subscribe(consumer: &mut KafkaConsumer, topics: &Vec[Str]) -> Result[Int, KafkaError] {
   if topics.len() == 0 {
     return Err(KafkaError { code: -1, message: "topics must not be empty", is_retryable: false });
   };
   consumer.topics = topic_list_copy(topics, 0, Vec[Str].new());
-  Ok(Unit{})
+  return Ok(0);
 }
 
 fn topic_list_copy(src: &Vec[Str], idx: Int, acc: Vec[Str]) -> Vec[Str] {
   if idx >= src.len() {
-    acc
-  } else {
-    acc.push(src[idx]);
-    topic_list_copy(src, idx + 1, acc)
-  }
+    return acc;
+  };
+  acc.push(src[idx]);
+  return topic_list_copy(src, idx + 1, acc);
 }
 
 fn kafka_poll(consumer: &KafkaConsumer, timeout_ms: Int) -> Result[Option[KafkaMessage], KafkaError] {
-  let _ = consumer;
-  let _ = timeout_ms;
-  Ok(None)
+  return Ok(None);
 }
 
-fn kafka_commit(consumer: &KafkaConsumer) -> Result[Unit, KafkaError] {
-  let _ = consumer;
-  Ok(Unit{})
+fn kafka_commit(consumer: &KafkaConsumer) -> Result[Int, KafkaError] {
+  return Ok(0);
 }
 
 fn kafka_consumer_close(consumer: KafkaConsumer) {
-  let _ = consumer;
 }
