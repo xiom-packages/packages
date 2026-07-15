@@ -1,0 +1,98 @@
+# Jolt Physics FFI Bindings — Rigid Body Dynamics
+# Target: joltc.dll (C bridge over JoltPhysics C++17)
+#
+# JoltPhysics is C++ only. These bindings assume the joltc C bridge is compiled:
+#   https://github.com/amerkoleci/joltc
+#
+# Build the C bridge:
+#   git clone https://github.com/amerkoleci/joltc
+#   cd joltc && cmake -B build && cmake --build build --config Release
+#   # produces joltc.dll / libjoltc.so
+
+library "joltc" {
+  # Init / Shutdown
+  fn JPH_Init() -> i32;
+  fn JPH_Shutdown();
+
+  # JobSystem
+  fn JPH_JobSystemThreadPool_Create(max_jobs: i32, max_barriers: i32, num_threads: i32) -> ptr;
+  fn JPH_JobSystem_Destroy(job_system: ptr);
+
+  # PhysicsSystem
+  fn JPH_PhysicsSystem_Create(max_bodies: i32, num_body_mutexes: i32, max_body_pairs: i32, max_contact_constraints: i32) -> ptr;
+  fn JPH_PhysicsSystem_Destroy(system: ptr);
+  fn JPH_PhysicsSystem_Update(system: ptr, delta_time: f32, collision_steps: i32, job_system: ptr) -> i32;
+  fn JPH_PhysicsSystem_OptimizeBroadPhase(system: ptr);
+  fn JPH_PhysicsSystem_GetNumBodies(system: ptr) -> i32;
+  fn JPH_PhysicsSystem_GetNumActiveBodies(system: ptr, type: i32) -> i32;
+
+  # Gravity
+  fn JPH_PhysicsSystem_SetGravity(system: ptr, x: f32, y: f32, z: f32);
+  fn JPH_PhysicsSystem_GetGravity(system: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+
+  # Body Interface
+  fn JPH_PhysicsSystem_GetBodyInterface(system: ptr) -> ptr;
+
+  fn JPH_BodyInterface_CreateAndAddBody(body_iface: ptr, settings: ptr, activate: i32) -> i32;
+  fn JPH_BodyInterface_CreateBody(body_iface: ptr, settings: ptr) -> i32;
+  fn JPH_BodyInterface_AddBody(body_iface: ptr, body_id: i32, activate: i32);
+  fn JPH_BodyInterface_RemoveBody(body_iface: ptr, body_id: i32);
+  fn JPH_BodyInterface_DestroyBody(body_iface: ptr, body_id: i32);
+
+  fn JPH_BodyInterface_IsActive(body_iface: ptr, body_id: i32) -> i32;
+
+  fn JPH_BodyInterface_GetCenterOfMassPosition(body_iface: ptr, body_id: i32, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_BodyInterface_GetRotation(body_iface: ptr, body_id: i32, out_x: ptr, out_y: ptr, out_z: ptr, out_w: ptr);
+  fn JPH_BodyInterface_GetLinearVelocity(body_iface: ptr, body_id: i32, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_BodyInterface_GetAngularVelocity(body_iface: ptr, body_id: i32, out_x: ptr, out_y: ptr, out_z: ptr);
+
+  fn JPH_BodyInterface_SetLinearVelocity(body_iface: ptr, body_id: i32, vx: f32, vy: f32, vz: f32);
+  fn JPH_BodyInterface_SetAngularVelocity(body_iface: ptr, body_id: i32, avx: f32, avy: f32, avz: f32);
+  fn JPH_BodyInterface_SetPosition(body_iface: ptr, body_id: i32, px: f32, py: f32, pz: f32, qx: f32, qy: f32, qz: f32, qw: f32);
+
+  fn JPH_BodyInterface_AddForce(body_iface: ptr, body_id: i32, fx: f32, fy: f32, fz: f32);
+  fn JPH_BodyInterface_AddImpulse(body_iface: ptr, body_id: i32, ix: f32, iy: f32, iz: f32);
+  fn JPH_BodyInterface_AddTorque(body_iface: ptr, body_id: i32, tx: f32, ty: f32, tz: f32);
+
+  fn JPH_BodyInterface_GetFriction(body_iface: ptr, body_id: i32) -> f32;
+  fn JPH_BodyInterface_GetRestitution(body_iface: ptr, body_id: i32) -> f32;
+
+  # Shape Settings
+  fn JPH_BoxShapeSettings_Create(half_x: f32, half_y: f32, half_z: f32) -> ptr;
+  fn JPH_SphereShapeSettings_Create(radius: f32) -> ptr;
+  fn JPH_CapsuleShapeSettings_Create(half_height: f32, radius: f32) -> ptr;
+  fn JPH_CylinderShapeSettings_Create(half_height: f32, radius: f32) -> ptr;
+  fn JPH_PlaneShapeSettings_Create(nx: f32, ny: f32, nz: f32, constant: f32) -> ptr;
+
+  fn JPH_ShapeSettings_CreateShape(settings: ptr) -> ptr;
+  fn JPH_ShapeSettings_Destroy(settings: ptr);
+  fn JPH_Shape_Destroy(shape: ptr);
+
+  # Body Creation Settings
+  fn JPH_BodyCreationSettings_Create(shape: ptr, px: f32, py: f32, pz: f32, qx: f32, qy: f32, qz: f32, qw: f32, motion_type: i32, object_layer: i32) -> ptr;
+  fn JPH_BodyCreationSettings_SetRestitution(settings: ptr, value: f32);
+  fn JPH_BodyCreationSettings_SetFriction(settings: ptr, value: f32);
+  fn JPH_BodyCreationSettings_SetLinearDamping(settings: ptr, value: f32);
+  fn JPH_BodyCreationSettings_SetAngularDamping(settings: ptr, value: f32);
+  fn JPH_BodyCreationSettings_SetGravityFactor(settings: ptr, value: f32);
+  fn JPH_BodyCreationSettings_Destroy(settings: ptr);
+
+  # Ray casting
+  fn JPH_NarrowPhaseQuery_CastRay(narrow_query: ptr, origin_x: f32, origin_y: f32, origin_z: f32, dir_x: f32, dir_y: f32, dir_z: f32, out_body_id: ptr, out_fraction: ptr, out_hit_x: ptr, out_hit_y: ptr, out_hit_z: ptr, out_normal_x: ptr, out_normal_y: ptr, out_normal_z: ptr) -> i32;
+
+  # Collision groups
+  fn JPH_GroupFilterTable_Create(num_groups: i32) -> ptr;
+  fn JPH_GroupFilterTable_DisableCollision(filter: ptr, group1: i32, group2: i32);
+  fn JPH_GroupFilterTable_EnableCollision(filter: ptr, group1: i32, group2: i32);
+  fn JPH_GroupFilter_Destroy(filter: ptr);
+
+  # Constraints
+  fn JPH_DistanceConstraintSettings_Create() -> ptr;
+  fn JPH_DistanceConstraintSettings_SetPoint1(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_DistanceConstraintSettings_SetPoint2(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_DistanceConstraintSettings_SetDistance(settings: ptr, min_dist: f32, max_dist: f32);
+  fn JPH_Constraint_Create(settings: ptr, body1: i32, body2: i32) -> ptr;
+  fn JPH_PhysicsSystem_AddConstraint(system: ptr, constraint: ptr);
+  fn JPH_PhysicsSystem_RemoveConstraint(system: ptr, constraint: ptr);
+  fn JPH_Constraint_Destroy(constraint: ptr);
+}

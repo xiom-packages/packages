@@ -1,0 +1,134 @@
+# Box2D Physics Engine FFI Bindings
+# Target: box2d.dll (Windows), libbox2d.so (Linux), libbox2d.dylib (macOS)
+#
+# Box2D is a pure C handle-based API. All types are POD structs passed by value.
+# MATH FUNCTIONS (b2Add, b2Mul, etc.) are inline and NOT exported from the DLL.
+# See AUDIT.md for compiler gap analysis.
+
+library "box2d" {
+
+  # --- Version & Configuration ---
+
+  fn b2GetVersion() -> struct_b2Version;
+  fn b2IsDoublePrecision() -> i32;
+  fn b2SetLengthUnitsPerMeter(lengthUnits: f32);
+  fn b2GetLengthUnitsPerMeter() -> f32;
+
+  # --- World Lifecycle ---
+
+  fn b2DefaultWorldDef() -> struct_b2WorldDef;
+  fn b2CreateWorld(def: ptr) -> struct_b2WorldId;
+  fn b2DestroyWorld(worldId: struct_b2WorldId);
+  fn b2World_IsValid(worldId: struct_b2WorldId) -> i32;
+
+  # --- Simulation ---
+
+  fn b2World_Step(worldId: struct_b2WorldId, timeStep: f32, subStepCount: i32);
+
+  # --- Gravity ---
+
+  fn b2World_GetGravity(worldId: struct_b2WorldId) -> struct_b2Vec2;
+  fn b2World_SetGravity(worldId: struct_b2WorldId, gravity: struct_b2Vec2);
+
+  # --- Body Lifecycle ---
+
+  fn b2DefaultBodyDef() -> struct_b2BodyDef;
+  fn b2CreateBody(worldId: struct_b2WorldId, def: ptr) -> struct_b2BodyId;
+  fn b2DestroyBody(bodyId: struct_b2BodyId);
+  fn b2Body_IsValid(bodyId: struct_b2BodyId) -> i32;
+
+  # --- Body Properties ---
+
+  fn b2Body_GetType(bodyId: struct_b2BodyId) -> i32;
+  fn b2Body_SetType(bodyId: struct_b2BodyId, bodyType: i32);
+  fn b2Body_GetPosition(bodyId: struct_b2BodyId) -> struct_b2Pos;
+  fn b2Body_GetRotation(bodyId: struct_b2BodyId) -> struct_b2Rot;
+  fn b2Body_GetTransform(bodyId: struct_b2BodyId) -> struct_b2WorldTransform;
+  fn b2Body_SetTransform(bodyId: struct_b2BodyId, position: struct_b2Pos, rotation: struct_b2Rot);
+  fn b2Body_GetLinearVelocity(bodyId: struct_b2BodyId) -> struct_b2Vec2;
+  fn b2Body_GetAngularVelocity(bodyId: struct_b2BodyId) -> f32;
+  fn b2Body_SetLinearVelocity(bodyId: struct_b2BodyId, linearVelocity: struct_b2Vec2);
+  fn b2Body_SetAngularVelocity(bodyId: struct_b2BodyId, angularVelocity: f32);
+
+  # --- Body Forces & Impulses ---
+
+  fn b2Body_ApplyForce(bodyId: struct_b2BodyId, force: struct_b2Vec2, point: struct_b2Pos, wake: i32);
+  fn b2Body_ApplyForceToCenter(bodyId: struct_b2BodyId, force: struct_b2Vec2, wake: i32);
+  fn b2Body_ApplyTorque(bodyId: struct_b2BodyId, torque: f32, wake: i32);
+  fn b2Body_ApplyLinearImpulse(bodyId: struct_b2BodyId, impulse: struct_b2Vec2, point: struct_b2Pos, wake: i32);
+  fn b2Body_ApplyLinearImpulseToCenter(bodyId: struct_b2BodyId, impulse: struct_b2Vec2, wake: i32);
+  fn b2Body_ApplyAngularImpulse(bodyId: struct_b2BodyId, impulse: f32, wake: i32);
+
+  # --- Body Mass ---
+
+  fn b2Body_GetMass(bodyId: struct_b2BodyId) -> f32;
+  fn b2Body_GetRotationalInertia(bodyId: struct_b2BodyId) -> f32;
+  fn b2Body_SetMassData(bodyId: struct_b2BodyId, massData: struct_b2MassData);
+  fn b2Body_GetMassData(bodyId: struct_b2BodyId) -> struct_b2MassData;
+  fn b2Body_ApplyMassFromShapes(bodyId: struct_b2BodyId);
+
+  # --- Body Sleep ---
+
+  fn b2Body_IsAwake(bodyId: struct_b2BodyId) -> i32;
+  fn b2Body_SetAwake(bodyId: struct_b2BodyId, awake: i32);
+  fn b2Body_EnableSleep(bodyId: struct_b2BodyId, enableSleep: i32);
+  fn b2Body_IsEnabled(bodyId: struct_b2BodyId) -> i32;
+  fn b2Body_Disable(bodyId: struct_b2BodyId);
+  fn b2Body_Enable(bodyId: struct_b2BodyId);
+
+  # --- Body Shape/Joint Enumeration ---
+
+  fn b2Body_GetShapeCount(bodyId: struct_b2BodyId) -> i32;
+  fn b2Body_GetShapes(bodyId: struct_b2BodyId, shapeArray: ptr, capacity: i32) -> i32;
+  fn b2Body_GetJointCount(bodyId: struct_b2BodyId) -> i32;
+  fn b2Body_GetJoints(bodyId: struct_b2BodyId, jointArray: ptr, capacity: i32) -> i32;
+  fn b2Body_GetContactCapacity(bodyId: struct_b2BodyId) -> i32;
+  fn b2Body_GetContactData(bodyId: struct_b2BodyId, contactData: ptr, capacity: i32) -> i32;
+  fn b2Body_ComputeAABB(bodyId: struct_b2BodyId) -> struct_b2AABB;
+
+  # --- Shape Lifecycle ---
+
+  fn b2DefaultShapeDef() -> struct_b2ShapeDef;
+  fn b2CreateCircleShape(bodyId: struct_b2BodyId, def: ptr, circle: ptr) -> struct_b2ShapeId;
+  fn b2CreateCapsuleShape(bodyId: struct_b2BodyId, def: ptr, capsule: ptr) -> struct_b2ShapeId;
+  fn b2CreateSegmentShape(bodyId: struct_b2BodyId, def: ptr, segment: ptr) -> struct_b2ShapeId;
+  fn b2CreatePolygonShape(bodyId: struct_b2BodyId, def: ptr, polygon: ptr) -> struct_b2ShapeId;
+  fn b2DestroyShape(shapeId: struct_b2ShapeId, updateBodyMass: i32);
+  fn b2Shape_IsValid(shapeId: struct_b2ShapeId) -> i32;
+  fn b2Shape_GetType(shapeId: struct_b2ShapeId) -> i32;
+  fn b2Shape_GetBody(shapeId: struct_b2ShapeId) -> struct_b2BodyId;
+
+  # --- Shape Properties ---
+
+  fn b2Shape_SetDensity(shapeId: struct_b2ShapeId, density: f32);
+  fn b2Shape_GetDensity(shapeId: struct_b2ShapeId) -> f32;
+  fn b2Shape_SetFriction(shapeId: struct_b2ShapeId, friction: f32);
+  fn b2Shape_GetFriction(shapeId: struct_b2ShapeId) -> f32;
+  fn b2Shape_SetRestitution(shapeId: struct_b2ShapeId, restitution: f32);
+  fn b2Shape_GetRestitution(shapeId: struct_b2ShapeId) -> f32;
+
+  # --- Polygon Factories ---
+
+  fn b2MakeSquare(halfWidth: f32) -> struct_b2Polygon;
+  fn b2MakeBox(halfWidth: f32, halfHeight: f32) -> struct_b2Polygon;
+  fn b2MakeRoundedBox(halfWidth: f32, halfHeight: f32, radius: f32) -> struct_b2Polygon;
+  fn b2MakeOffsetBox(halfWidth: f32, halfHeight: f32, center: struct_b2Vec2, rotation: struct_b2Rot) -> struct_b2Polygon;
+
+  # --- Joint Creation ---
+
+  fn b2CreateDistanceJoint(worldId: struct_b2WorldId, def: ptr) -> struct_b2JointId;
+  fn b2CreateRevoluteJoint(worldId: struct_b2WorldId, def: ptr) -> struct_b2JointId;
+  fn b2CreateWeldJoint(worldId: struct_b2WorldId, def: ptr) -> struct_b2JointId;
+  fn b2CreatePrismaticJoint(worldId: struct_b2WorldId, def: ptr) -> struct_b2JointId;
+  fn b2CreateMotorJoint(worldId: struct_b2WorldId, def: ptr) -> struct_b2JointId;
+  fn b2CreateWheelJoint(worldId: struct_b2WorldId, def: ptr) -> struct_b2JointId;
+  fn b2DestroyJoint(jointId: struct_b2JointId, wakeAttached: i32);
+  fn b2Joint_IsValid(jointId: struct_b2JointId) -> i32;
+  fn b2Joint_GetType(jointId: struct_b2JointId) -> i32;
+  fn b2Joint_GetBodyA(jointId: struct_b2JointId) -> struct_b2BodyId;
+  fn b2Joint_GetBodyB(jointId: struct_b2JointId) -> struct_b2BodyId;
+
+  # --- Spatial Queries ---
+
+  fn b2World_CastRayClosest(worldId: struct_b2WorldId, origin: struct_b2Pos, translation: struct_b2Vec2, filter: struct_b2QueryFilter) -> struct_b2RayResult;
+}
