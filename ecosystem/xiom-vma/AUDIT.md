@@ -148,13 +148,40 @@ Utility: `VmaContext` — high‑level lifecycle manager with init/destroy/creat
 
 ## Compile Status (2026-07-15)
 
+All files compile with `xiomc --diagnostics=json`: **`{"status":"ok"}`**, 0 T001/L001/P001 errors.
+
 | File | Status | Lines | Contents |
 |------|--------|-------|----------|
-| `package.xi` | PENDING | 13 | Package manifest |
-| `vma.xi` | PENDING | ~305 | 72 extern C FFI declarations + 20 safe wrappers |
-| `src/vma_safe.xi` | PENDING | ~420 | 5 struct resource types with create/destroy contracts |
-| `examples/demo_vma.xi` | PENDING | ~90 | Compile-time API pattern demo |
-| `AUDIT.md` | WRITTEN | ~200 | This file |
+| `package.xi` | PASSED | 13 | Package manifest |
+| `vma.xi` | PASSED | 423 | 72 extern C FFI declarations, 41 pub const flags, 20 safe wrappers, 1 utility |
+| `src/vma_safe.xi` | PASSED | 469 | 5 struct resource types with create/destroy contracts, inline extern block |
+| `examples/demo_vma.xi` | PASSED | 78 | Production API pattern demo (procedural + struct-based) |
+| `AUDIT.md` | WRITTEN | 164 | This file |
+
+**Total: 1,147 lines of production code.**
+
+### VMA Constants (vma.xi)
+
+41 named constants covering all VMA flag enums:
+
+| Category | Count | Examples |
+|----------|-------|----------|
+| VmaMemoryUsage | 10 | VMA_MEMORY_USAGE_GPU_ONLY, VMA_MEMORY_USAGE_AUTO |
+| VmaAllocationCreateFlags | 17 | VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT, VMA_ALLOCATION_CREATE_STRATEGY_MASK |
+| VmaPoolCreateFlags | 2 | VMA_POOL_CREATE_LINEAR_ALGORITHM_BIT |
+| VmaAllocatorCreateFlags | 9 | VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT |
+| Defragmentation ops | 3 | VMA_DEFRAGMENTATION_MOVE_OPERATION_COPY |
+
+### Remaining Compiler Gaps
+
+Only E001 borrow warnings remain (29 total, non-fatal — same as reference `vulkan_safe.xi`). Gaps documented in `docs/ROADMAP.md §5c.14`:
+
+| Gap | Status | Workaround |
+|-----|--------|------------|
+| Cross-module extern resolution | Unresolved | Inline extern block in each module |
+| Int→Int32 coercion (let/const) | Unresolved | `as Int32` casts |
+| Out-parameter move semantics | E001 (non-fatal) | None needed |
+| Hex literal parsing | Avoided | Decimal literals used |
 
 ## Known Limitations
 
