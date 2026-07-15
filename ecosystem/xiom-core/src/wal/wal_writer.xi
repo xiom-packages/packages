@@ -1,5 +1,7 @@
 module xiom.core.wal.wal_writer
 
+use xiom.core.wal.wal_record;
+
 // The single most important durability component: every acknowledged write
 // must be appended here first (WAL-before-ack). This phase buffers records in
 // memory and assigns LSNs; `synced_lsn` records how far durability has been

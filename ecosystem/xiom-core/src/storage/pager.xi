@@ -1,5 +1,7 @@
 module xiom.core.storage.pager
 
+use xiom.core.storage.page;
+
 // The Pager owns the flat array of pages and hands out monotonically
 // increasing page ids. This phase is fully in-memory; the disk-backed path
 // (preallocation, fsync, torn-page recovery) arrives in Phase 2 behind FFI.

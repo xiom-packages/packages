@@ -1,5 +1,7 @@
 module xiom.core.wal.recovery
 
+use xiom.core.wal.wal_writer;
+
 // Crash-recovery orchestration. `recovery_scan` replays the tail of the log
 // after the last checkpoint and reports how many records would be reapplied
 // plus the highest LSN observed. Real disk recovery (torn-page detection,

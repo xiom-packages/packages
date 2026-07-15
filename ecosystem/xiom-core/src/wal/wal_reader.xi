@@ -1,5 +1,8 @@
 module xiom.core.wal.wal_reader
 
+use xiom.core.wal.wal_writer;
+use xiom.core.wal.wal_record;
+
 // Sequential and point-in-time WAL readers used by recovery, repair tooling,
 // and snapshot validation. In this phase they read straight from the writer's
 // in-memory buffer; the disk reader with checksum verification lands in Phase 2.
