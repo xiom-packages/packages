@@ -83,7 +83,7 @@ fn main() -> Int {
   }
 
   var q2 = Quat.from_euler(0.0 as Float32, 0.0 as Float32, 3.14159265 as Float32 * 0.5 as Float32);
-  var slerped = q.slerp(0.5 as Float32, q2);
+  var slerped = q.slerp(q2, 0.5 as Float32);
   var _ = slerped;
 
   var mat = q.to_mat4();

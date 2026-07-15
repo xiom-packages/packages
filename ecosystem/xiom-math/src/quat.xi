@@ -92,15 +92,15 @@ pub fn Quat.to_mat4() -> Mat4 {
   var one: Float32 = 1.0 as Float32;
   var two: Float32 = 2.0 as Float32;
 
-  return Mat4{
-    m0: one - two * (yy + zz),  m1: two * (xy + wz),        m2: two * (xz - wy),        m3: 0.0 as Float32,
-    m4: two * (xy - wz),        m5: one - two * (xx + zz),  m6: two * (yz + wx),        m7: 0.0 as Float32,
-    m8: two * (xz + wy),        m9: two * (yz - wx),        m10: one - two * (xx + yy), m11: 0.0 as Float32,
-    m12: 0.0 as Float32,        m13: 0.0 as Float32,        m14: 0.0 as Float32,        m15: one,
-  };
+  var m: [16]Float32;
+  m[0] = one - two * (yy + zz);  m[1] = two * (xy + wz);        m[2] = two * (xz - wy);        m[3] = 0.0 as Float32;
+  m[4] = two * (xy - wz);        m[5] = one - two * (xx + zz);  m[6] = two * (yz + wx);        m[7] = 0.0 as Float32;
+  m[8] = two * (xz + wy);        m[9] = two * (yz - wx);        m[10] = one - two * (xx + yy); m[11] = 0.0 as Float32;
+  m[12] = 0.0 as Float32;        m[13] = 0.0 as Float32;        m[14] = 0.0 as Float32;        m[15] = one;
+  return Mat4{ m: m };
 }
 
-pub fn Quat.slerp(t: Float32, other: Quat) -> Quat {
+pub fn Quat.slerp(other: Quat, t: Float32) -> Quat {
   var dot = x * other.x + y * other.y + z * other.z + w * other.w;
 
   var other_x = other.x;
