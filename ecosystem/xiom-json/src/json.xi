@@ -192,14 +192,14 @@ fn parser_make_error(p: &JsonParser, msg: Str) -> ParseError {
 }
 
 fn parser_match_literal(p: &JsonParser, lit: Str) -> Bool {
-  var i: Int = 0;
+  var idx: Int = 0;
   var lit_len = xiom.string.str_len(lit);
-  while i < lit_len {
-    if p.pos + i >= p.len { return false; }
-    var ich_opt = xiom.string.char_at(p.input, p.pos + i);
+  while idx < lit_len {
+    if p.pos + idx >= p.len { return false; }
+    var ich_opt = xiom.string.char_at(p.input, p.pos + idx);
     match ich_opt {
       Some(ich) => {
-        var lch_opt = xiom.string.char_at(lit, i);
+        var lch_opt = xiom.string.char_at(lit, idx + 0);
         match lch_opt {
           Some(lch) => {
             if xiom.convert.char_to_int(ich) != xiom.convert.char_to_int(lch) {
@@ -211,7 +211,8 @@ fn parser_match_literal(p: &JsonParser, lit: Str) -> Bool {
       }
       None => return false,
     }
-    i = i + 1;
+    var next_idx = idx + 1;
+    idx = next_idx;
   }
   return true;
 }
@@ -351,7 +352,7 @@ fn parser_parse_number(p: &mut JsonParser) -> Result[Float64, ParseError] {
             None => return Err(parser_make_error(p, "expected digit after decimal point")),
           }
           var frac_digits = parser_read_digits(p);
-          var fd: Float64 = xiom.convert.int_to_float(frac_digits);
+          var fd: Float64 = xiom.convert.int_to_float(frac_digits + 0);
           var divisor: Float64 = 1.0;
           var temp = frac_digits;
           while temp > 0 {
@@ -642,7 +643,8 @@ fn stringify_string_loop(s: Str, pos: Int, slen: Int, acc: Str) -> Str {
   match ch_opt {
     Some(ch) => {
       var byte = xiom.convert.char_to_int(ch);
-      if byte == 34 || byte == 92 || byte < 32 {
+      var byte_copy = byte + 0;
+      if byte_copy == 34 || byte_copy == 92 || byte_copy < 32 {
         char_str = escape_char(byte);
       } else {
         char_str = chr_byte(byte);
@@ -668,14 +670,15 @@ fn stringify_number_body(prefix: Str, num: Float64) -> Str {
     return xiom.string.str_concat(prefix, "0");
   }
   var int_part: Int = xiom.convert.float_to_int(num);
-  var int_str = xiom.convert.int_to_string(int_part);
+  var int_str = xiom.convert.int_to_string(int_part + 0);
   var s0 = xiom.string.str_concat(prefix, int_str);
-  var int_as_float = xiom.convert.int_to_float(int_part);
+  var int_as_float = xiom.convert.int_to_float(int_part + 0);
   var frac = num - int_as_float;
   if frac > 0.0000000001 {
     return stringify_frac(s0, frac, 0);
+  } else {
+    return s0;
   }
-  return s0;
 }
 
 fn stringify_frac(acc: Str, frac: Float64, digits: Int) -> Str {
@@ -685,7 +688,7 @@ fn stringify_frac(acc: Str, frac: Float64, digits: Int) -> Str {
     return stringify_frac(s0, frac, digits);
   }
   var multiplied = frac * 10.0;
-  var d_val: Int = xiom.convert.float_to_int(multiplied);
+  var d_val: Int = xiom.convert.float_to_int(multiplied + 0.0);
   var d_copy = d_val + 0;
   var ch_opt = xiom.convert.int_to_char(d_copy);
   var dstr = "0";
@@ -700,11 +703,6 @@ fn stringify_frac(acc: Str, frac: Float64, digits: Int) -> Str {
   var remaining = multiplied - xiom.convert.int_to_float(d_val2);
   var next_digits = digits + 1;
   return stringify_frac(s1, remaining, next_digits);
-}
-
-fn stringify_indent(depth: Int, config: &JsonPrettyConfig) -> Str {
-  var total_spaces = depth * config.indent;
-  return str_build_loop("\n", " ", total_spaces);
 }
 
 fn stringify_value_rec(value: &JsonValue, depth: Int, config: &JsonPrettyConfig, is_pretty: Bool) -> Str {
@@ -732,8 +730,9 @@ fn stringify_value_rec(value: &JsonValue, depth: Int, config: &JsonPrettyConfig,
       if config.sort_keys {
         var srt = sort_entries(sorted);
         return stringify_object(&srt, depth, config, is_pretty, 0, "{");
+      } else {
+        return stringify_object(&sorted, depth, config, is_pretty, 0, "{");
       }
-      return stringify_object(&sorted, depth, config, is_pretty, 0, "{");
     }
   }
 }
@@ -746,20 +745,54 @@ fn stringify_array(items: &Vec[JsonValue], depth: Int, config: &JsonPrettyConfig
     }
     return xiom.string.str_concat(acc, "]");
   }
-  var a1 = acc;
   if is_pretty {
-    var prefix = xiom.string.str_concat(acc, stringify_indent(depth + 1, config));
-    a1 = prefix;
+    var base = xiom.string.str_concat(acc, stringify_indent(depth + 1, config));
+    return stringify_array_item(items, depth, config, is_pretty, idx, base);
+  }
+  return stringify_array_item(items, depth, config, is_pretty, idx, acc);
+}
+
+fn stringify_array_item(items: &Vec[JsonValue], depth: Int, config: &JsonPrettyConfig, is_pretty: Bool, idx: Int, base: Str) -> Str {
+  var next = idx + 1;
+  if idx == items.len() - 1 {
+    var val_str = stringify_value_rec(&items[idx], depth + 1, config, is_pretty);
+    var a2 = xiom.string.str_concat(base, val_str);
+    return stringify_array(items, depth, config, is_pretty, next, a2);
   }
   var val_str = stringify_value_rec(&items[idx], depth + 1, config, is_pretty);
-  var a2 = xiom.string.str_concat(a1, val_str);
-  var a3 = a2;
-  if idx < items.len() - 1 {
-    var with_comma = xiom.string.str_concat(a2, ",");
-    a3 = with_comma;
+  var a2 = xiom.string.str_concat(base, val_str);
+  var a3 = xiom.string.str_concat(a2, ",");
+  return stringify_array(items, depth, config, is_pretty, next, a3);
+}
+
+fn stringify_object_item(entries: &Vec[JsonEntry], depth: Int, config: &JsonPrettyConfig, is_pretty: Bool, idx: Int, base: Str) -> Str {
+  var key_str = stringify_string(entries[idx].key);
+  var a2 = xiom.string.str_concat(base, key_str);
+  var next = idx + 1;
+  if is_pretty {
+    if idx == entries.len() - 1 {
+      var a3 = xiom.string.str_concat(a2, ": ");
+      var val_str = stringify_value_rec(&entries[idx].value, depth + 1, config, is_pretty);
+      var a4 = xiom.string.str_concat(a3, val_str);
+      return stringify_object(entries, depth, config, is_pretty, next, a4);
+    }
+    var a3 = xiom.string.str_concat(a2, ": ");
+    var val_str = stringify_value_rec(&entries[idx].value, depth + 1, config, is_pretty);
+    var a4 = xiom.string.str_concat(a3, val_str);
+    var a5 = xiom.string.str_concat(a4, ",");
+    return stringify_object(entries, depth, config, is_pretty, next, a5);
   }
-  var next_idx = idx + 1;
-  return stringify_array(items, depth, config, is_pretty, next_idx, a3);
+  if idx == entries.len() - 1 {
+    var a3 = xiom.string.str_concat(a2, ":");
+    var val_str = stringify_value_rec(&entries[idx].value, depth + 1, config, is_pretty);
+    var a4 = xiom.string.str_concat(a3, val_str);
+    return stringify_object(entries, depth, config, is_pretty, next, a4);
+  }
+  var a3 = xiom.string.str_concat(a2, ":");
+  var val_str = stringify_value_rec(&entries[idx].value, depth + 1, config, is_pretty);
+  var a4 = xiom.string.str_concat(a3, val_str);
+  var a5 = xiom.string.str_concat(a4, ",");
+  return stringify_object(entries, depth, config, is_pretty, next, a5);
 }
 
 fn stringify_object(entries: &Vec[JsonEntry], depth: Int, config: &JsonPrettyConfig, is_pretty: Bool, idx: Int, acc: Str) -> Str {
@@ -770,30 +803,39 @@ fn stringify_object(entries: &Vec[JsonEntry], depth: Int, config: &JsonPrettyCon
     }
     return xiom.string.str_concat(acc, "}");
   }
-  var a1 = acc;
   if is_pretty {
-    var prefix = xiom.string.str_concat(acc, stringify_indent(depth + 1, config));
-    a1 = prefix;
+    var base = xiom.string.str_concat(acc, stringify_indent(depth + 1, config));
+    return stringify_object_item(entries, depth, config, is_pretty, idx, base);
   }
+  return stringify_object_item(entries, depth, config, is_pretty, idx, acc);
+}
+
+fn stringify_object_item(entries: &Vec[JsonEntry], depth: Int, config: &JsonPrettyConfig, is_pretty: Bool, idx: Int, base: Str) -> Str {
   var key_str = stringify_string(entries[idx].key);
-  var a2 = xiom.string.str_concat(a1, key_str);
-  var a3 = a2;
+  var a2 = xiom.string.str_concat(base, key_str);
   if is_pretty {
-    var with_colon = xiom.string.str_concat(a2, ": ");
-    a3 = with_colon;
+    var a3 = xiom.string.str_concat(a2, ": ");
+    var next = idx + 1;
+    var val_str = stringify_value_rec(&entries[idx].value, depth + 1, config, is_pretty);
+    if idx == entries.len() - 1 {
+      var a4 = xiom.string.str_concat(a3, val_str);
+      return stringify_object(entries, depth, config, is_pretty, next, a4);
+    }
+    var a4 = xiom.string.str_concat(a3, val_str);
+    var a5 = xiom.string.str_concat(a4, ",");
+    return stringify_object(entries, depth, config, is_pretty, next, a5);
   } else {
-    var with_colon = xiom.string.str_concat(a2, ":");
-    a3 = with_colon;
+    var a3 = xiom.string.str_concat(a2, ":");
+    var next = idx + 1;
+    var val_str = stringify_value_rec(&entries[idx].value, depth + 1, config, is_pretty);
+    if idx == entries.len() - 1 {
+      var a4 = xiom.string.str_concat(a3, val_str);
+      return stringify_object(entries, depth, config, is_pretty, next, a4);
+    }
+    var a4 = xiom.string.str_concat(a3, val_str);
+    var a5 = xiom.string.str_concat(a4, ",");
+    return stringify_object(entries, depth, config, is_pretty, next, a5);
   }
-  var val_str = stringify_value_rec(&entries[idx].value, depth + 1, config, is_pretty);
-  var a4 = xiom.string.str_concat(a3, val_str);
-  var a5 = a4;
-  if idx < entries.len() - 1 {
-    var with_comma = xiom.string.str_concat(a4, ",");
-    a5 = with_comma;
-  }
-  var next_idx = idx + 1;
-  return stringify_object(entries, depth, config, is_pretty, next_idx, a5);
 }
 
 fn sort_entries(entries: Vec[JsonEntry]) -> Vec[JsonEntry] {
@@ -1000,7 +1042,8 @@ pub fn json_remove(obj: &mut JsonValue, key: Str) -> Bool
             if j != i {
               new_entries.push(entries[j]);
             }
-            var next_j = j + 1;
+            var j_copy = j + 0;
+            var next_j = j_copy + 1;
             j = next_j;
           }
           entries = new_entries;
@@ -1344,109 +1387,140 @@ pub fn json_path_push_index(path: &mut JsonPath, index: Int) {
   path.segments.push(JsonPathSegment.Index(index));
 }
 
+fn json_path_parse_segments(path_str: Str, str_len: Int, i: Int, result: JsonPath) -> Result[JsonPath, Str] {
+  if i >= str_len { return Ok(result); }
+  var b0 = json_path_byte(path_str, i + 0);
+  if b0 == 46 {
+    var next_i = i + 1;
+    return json_path_parse_dot(path_str, str_len, next_i, result);
+  }
+  if b0 == 91 {
+    var next_i = i + 1;
+    return json_path_parse_bracket(path_str, str_len, next_i, result);
+  }
+  return Err("unexpected character in path");
+}
+
+fn json_path_parse_dot(path_str: Str, str_len: Int, i: Int, result: JsonPath) -> Result[JsonPath, Str] {
+  return json_path_parse_dot_scan(path_str, str_len, i, i, result);
+}
+
+fn json_path_parse_dot_scan(path_str: Str, str_len: Int, i: Int, start: Int, result: JsonPath) -> Result[JsonPath, Str] {
+  if i >= str_len {
+    if i > start {
+      return json_path_parse_key_build(path_str, str_len, i, start, "", result);
+    }
+    return json_path_parse_segments(path_str, str_len, i, result);
+  }
+  var cb0 = json_path_byte(path_str, i + 0);
+  if cb0 == 46 || cb0 == 91 {
+    if i > start {
+      return json_path_parse_key_build(path_str, str_len, i, start, "", result);
+    }
+    return json_path_parse_segments(path_str, str_len, i, result);
+  }
+  var next_i = i + 1;
+  return json_path_parse_dot_scan(path_str, str_len, next_i, start, result);
+}
+
+fn json_path_parse_key_build(path_str: Str, str_len: Int, end_i: Int, j: Int, acc: Str, result: JsonPath) -> Result[JsonPath, Str] {
+  if j >= end_i {
+    result.segments.push(JsonPathSegment.Key(acc));
+    return json_path_parse_segments(path_str, str_len, end_i, result);
+  }
+  var ch_byte = json_path_byte(path_str, j + 0);
+  var ch_str = chr_byte(ch_byte);
+  var new_acc = xiom.string.str_concat(acc, ch_str);
+  var next_j = j + 1;
+  return json_path_parse_key_build(path_str, str_len, end_i, next_j, new_acc, result);
+}
+
+fn json_path_parse_bracket(path_str: Str, str_len: Int, i: Int, result: JsonPath) -> Result[JsonPath, Str] {
+  if i >= str_len { return Err("unterminated bracket segment"); }
+  var b0 = json_path_byte(path_str, i + 0);
+  if b0 == 39 {
+    var start = i + 1;
+    return json_path_parse_bracket_key_scan(path_str, str_len, start, start, result);
+  }
+  return json_path_parse_bracket_idx_scan(path_str, str_len, i, i, result);
+}
+
+fn json_path_parse_bracket_key_scan(path_str: Str, str_len: Int, i: Int, start: Int, result: JsonPath) -> Result[JsonPath, Str] {
+  if i >= str_len { return Err("unterminated bracket key"); }
+  var b0 = json_path_byte(path_str, i + 0);
+  if b0 == 39 {
+    return json_path_parse_bracket_key_build_and_close(path_str, str_len, i, start, "", result);
+  }
+  var next_i = i + 1;
+  return json_path_parse_bracket_key_scan(path_str, str_len, next_i, start, result);
+}
+
+fn json_path_parse_expect_close_bracket(path_str: Str, str_len: Int, i: Int, result: JsonPath) -> Result[JsonPath, Str] {
+  if i < str_len {
+    var b0 = json_path_byte(path_str, i + 0);
+    if b0 == 93 {
+      var next_i = i + 1;
+      return json_path_parse_segments(path_str, str_len, next_i, result);
+    }
+  }
+  return Err("expected ']'");
+}
+
+fn json_path_parse_bracket_key_build_and_close(path_str: Str, str_len: Int, quote_end: Int, j: Int, acc: Str, result: JsonPath) -> Result[JsonPath, Str] {
+  if j >= quote_end {
+    result.segments.push(JsonPathSegment.Key(acc));
+    var next_i = quote_end + 1;
+    return json_path_parse_expect_close_bracket(path_str, str_len, next_i, result);
+  }
+  var ch_byte = json_path_byte(path_str, j + 0);
+  var ch_str = chr_byte(ch_byte);
+  var new_acc = xiom.string.str_concat(acc, ch_str);
+  var next_j = j + 1;
+  return json_path_parse_bracket_key_build_and_close(path_str, str_len, quote_end, next_j, new_acc, result);
+}
+
+fn json_path_parse_bracket_idx_scan(path_str: Str, str_len: Int, i: Int, start: Int, result: JsonPath) -> Result[JsonPath, Str] {
+  if i >= str_len { return Err("expected ']'"); }
+  var b0 = json_path_byte(path_str, i + 0);
+  if b0 >= 48 && b0 <= 57 {
+    var next_i = i + 1;
+    return json_path_parse_bracket_idx_scan(path_str, str_len, next_i, start, result);
+  }
+  if b0 == 93 {
+    if i > start {
+      return json_path_parse_idx_build(path_str, str_len, i, start, 0, result);
+    }
+    var next_i = i + 1;
+    return json_path_parse_segments(path_str, str_len, next_i, result);
+  }
+  return Err("expected ']' or digit");
+}
+
+fn json_path_parse_idx_build(path_str: Str, str_len: Int, end_i: Int, j: Int, acc: Int, result: JsonPath) -> Result[JsonPath, Str] {
+  if j >= end_i {
+    result.segments.push(JsonPathSegment.Index(acc));
+    var next_i = end_i + 1;
+    return json_path_parse_segments(path_str, str_len, next_i, result);
+  }
+  var digit = json_path_byte(path_str, j + 0) - 48;
+  var new_acc = acc * 10 + digit;
+  var next_j = j + 1;
+  return json_path_parse_idx_build(path_str, str_len, end_i, next_j, new_acc, result);
+}
+
 pub fn json_path_parse(path_str: Str) -> Result[JsonPath, Str]
   requires: xiom.string.str_len(path_str) > 0
 {
   var result = JsonPath{ segments: Vec[JsonPathSegment].new() };
   var str_len = xiom.string.str_len(path_str);
   if str_len == 0 { return Ok(result); }
-  var i: Int = 0;
-  if json_path_byte(path_str, i) == 36 {
-    var next_i = i + 1;
-    i = next_i;
+  var i0: Int = 0;
+  var b0 = json_path_byte(path_str, i0 + 0);
+  if b0 == 36 {
+    var next_i = i0 + 1;
+    return json_path_parse_segments(path_str, str_len, next_i, result);
   }
-  while i < str_len {
-    var b = json_path_byte(path_str, i);
-    if b == 46 {
-      var dot_i = i + 1;
-      i = dot_i;
-      var start = i;
-      var scanning = true;
-      while i < str_len && scanning {
-        var cb = json_path_byte(path_str, i);
-        if cb == 46 || cb == 91 { scanning = false; }
-        else {
-          var next_i = i + 1;
-          i = next_i;
-        }
-      }
-      if i > start {
-        var key = "";
-        var j = start;
-        while j < i {
-          var k0 = xiom.string.str_concat(key, chr_byte(json_path_byte(path_str, j)));
-          key = k0;
-          var next_j = j + 1;
-          j = next_j;
-        }
-        result.segments.push(JsonPathSegment.Key(key));
-      }
-    } elif b == 91 {
-      var bracket_i = i + 1;
-      i = bracket_i;
-      if i < str_len && json_path_byte(path_str, i) == 39 {
-        var quote_i = i + 1;
-        i = quote_i;
-        var start = i;
-        var scanning = true;
-        while i < str_len && scanning {
-          if json_path_byte(path_str, i) == 39 { scanning = false; }
-          else {
-            var next_i = i + 1;
-            i = next_i;
-          }
-        }
-        if i >= str_len { return Err("unterminated bracket key"); }
-        var key = "";
-        var j = start;
-        while j < i {
-          var k0 = xiom.string.str_concat(key, chr_byte(json_path_byte(path_str, j)));
-          key = k0;
-          var next_j = j + 1;
-          j = next_j;
-        }
-        result.segments.push(JsonPathSegment.Key(key));
-        var next_i = i + 1;
-        i = next_i;
-        if i < str_len && json_path_byte(path_str, i) == 93 {
-          var close_i = i + 1;
-          i = close_i;
-        } else {
-          return Err("expected ']'");
-        }
-      } else {
-        var start = i;
-        var scanning = true;
-        while i < str_len && scanning {
-          var nb = json_path_byte(path_str, i);
-          if nb >= 48 && nb <= 57 {
-            var next_i = i + 1;
-            i = next_i;
-          }
-          else { scanning = false; }
-        }
-        if i > start {
-          var idx: Int = 0;
-          var j = start;
-          while j < i {
-            idx = idx * 10 + (json_path_byte(path_str, j) - 48);
-            var next_j = j + 1;
-            j = next_j;
-          }
-          result.segments.push(JsonPathSegment.Index(idx));
-        }
-        if i < str_len && json_path_byte(path_str, i) == 93 {
-          var close_i = i + 1;
-          i = close_i;
-        } else {
-          return Err("expected ']'");
-        }
-      }
-    } else {
-      return Err("unexpected character in path");
-    }
-  }
-  return Ok(result);
+  return json_path_parse_segments(path_str, str_len, i0, result);
 }
 
 fn json_path_byte(s: Str, i: Int) -> Int {
