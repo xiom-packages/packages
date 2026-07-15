@@ -1,5 +1,7 @@
 module xiom.ui.layout
 
+use xiom.ui.types;
+
 pub type LayoutContext = {
   x: Float32;
   y: Float32;
@@ -72,7 +74,14 @@ pub fn LayoutContext.advance(size: Size) {
 
 pub fn LayoutContext.allocate(size: Size) -> Rect {
   var rect = Rect.new(cursor_x, cursor_y, size.w, size.h);
-  advance(size);
+  match direction {
+    Horizontal => {
+      cursor_x = cursor_x + size.w + spacing;
+    }
+    Vertical => {
+      cursor_y = cursor_y + size.h + spacing;
+    }
+  }
   return rect;
 }
 

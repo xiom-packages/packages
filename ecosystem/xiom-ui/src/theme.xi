@@ -1,5 +1,7 @@
 module xiom.ui.theme
 
+use xiom.ui.types;
+
 pub type Theme = {
   bg_color: Color;
   text_color: Color;

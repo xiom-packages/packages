@@ -1,5 +1,7 @@
 module xiom.ui.render
 
+use xiom.ui.types;
+
 pub enum RenderCommand {
   RectCmd(rect: Rect, color: Color),
   TextCmd(text: Str, pos: Point, color: Color, size: Float32),

@@ -1,5 +1,9 @@
 module xiom.ui.application
 
+use xiom.ui.types;
+use xiom.ui.theme;
+use xiom.ui.render;
+
 pub type UIApp = {
   running: Bool;
   width: Float32;
