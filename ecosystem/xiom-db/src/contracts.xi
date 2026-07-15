@@ -1,10 +1,18 @@
 module xiom.db.contracts
-use xiom.core.contracts;
 
 // Shared predicate helpers for the database layer. These encode xiom-db's
 // correctness rules as reusable boolean checks so that `requires:` / `ensures:`
 // clauses and runtime validation stay in sync. Lower-level predicates
 // (page-size, dimension, LSN ordering) are re-used from `xiom.core.contracts`.
+
+fn is_sorted_ints(v: &Vec[Int]) -> Bool {
+  var i = 1;
+  while i < v.len() {
+    if v[i] < v[i - 1] { return false; }
+    i = i + 1;
+  }
+  return true;
+}
 
 // The minimum branching factor for a B-tree. Below 3 a node cannot split into
 // two non-empty children with a separator key, so the balancing invariants fail.

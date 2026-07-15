@@ -1,5 +1,4 @@
 module xiom.db.ids
-use xiom.core.ids;
 
 // Database-level strongly-typed identifiers. XIOM does not permit bare type
 // aliases over a primitive, so each identity is a single-field struct wrapper.
@@ -9,6 +8,13 @@ use xiom.core.ids;
 
 pub type RowId = { value: Int; } derive[Clone, Eq]
 pub type TableId = { value: Int; } derive[Clone, Eq]
+
+// Local PageId wrapper for db-layer use, mirrors xiom.core.ids.PageId.
+pub type PageId = { value: Int; } derive[Clone, Eq]
+
+fn page_id(v: Int) -> PageId {
+  return PageId{ value: v };
+}
 
 // --- RowId ---
 pub fn row_id(v: Int) -> RowId {

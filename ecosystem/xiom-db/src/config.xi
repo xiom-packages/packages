@@ -1,7 +1,5 @@
 module xiom.db.config
 use xiom.core.config;
-use xiom.core.contracts;
-use xiom.core.limits;
 
 // Database tuning parameters. Validation lives here so an invalid profile fails
 // fast at `db_open` rather than deep inside the storage or index layers. The
@@ -14,6 +12,26 @@ pub type DatabaseConfig = {
   buffer_pool_capacity: Int;
   wal_enabled: Bool;
   btree_order: Int;
+}
+
+fn is_power_of_two(n: Int) -> Bool {
+  if n <= 0 { return false; }
+  var m = n;
+  while m > 1 {
+    if m % 2 != 0 { return false; }
+    m = m / 2;
+  }
+  return true;
+}
+
+fn is_valid_page_size(size: Int) -> Bool {
+  if size < 512 { return false; }
+  if size > 65536 { return false; }
+  return is_power_of_two(size);
+}
+
+fn default_btree_order() -> Int {
+  return 64;
 }
 
 pub fn DatabaseConfig.default() -> DatabaseConfig {

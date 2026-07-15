@@ -8,12 +8,12 @@ use xiom.db.config;
 // direct-mapped pool and hand-rolled checksum with the xiom-core pager/replacer.
 
 pub type Page = {
-  id: UInt64;
-  data: Vec[UInt8];
-  checksum: UInt32;
+  id: Int;
+  data: Vec[Int];
+  checksum: Int;
 } derive[Clone]
 
-pub fn Page.new(id: UInt64, data: Vec[UInt8], checksum: UInt32) -> Page
+pub fn Page.new(id: Int, data: Vec[Int], checksum: Int) -> Page
   requires: data.len() <= 4096
 {
   return Page{ id: id, data: data, checksum: checksum };
@@ -27,11 +27,11 @@ pub fn Page.is_valid() -> Bool {
 
 // Additive rolling checksum over the page bytes. Cheap and order-independent;
 // Phase 1 upgrades this to CRC32C for stronger torn-write detection.
-fn page_checksum(data: &Vec[UInt8]) -> UInt32 {
-  var sum: UInt32 = 0;
+fn page_checksum(data: &Vec[Int]) -> Int {
+  var sum: Int = 0;
   var i = 0;
   while i < data.len() {
-    sum = sum + (data[i] as UInt32);
+    sum = sum + data[i];
     i = i + 1;
   }
   return sum;
@@ -39,7 +39,7 @@ fn page_checksum(data: &Vec[UInt8]) -> UInt32 {
 
 // Compute the canonical checksum for a byte buffer. Exposed so writers can seal
 // a page before caching it.
-pub fn page_compute_checksum(data: &Vec[UInt8]) -> UInt32 {
+pub fn page_compute_checksum(data: &Vec[Int]) -> Int {
   return page_checksum(data);
 }
 
@@ -74,11 +74,11 @@ pub fn BufferPool.put(pool: &mut BufferPool, page: Page) {
 
 // Direct-mapped slot selection: page id modulo capacity. O(1) but collision
 // prone; Phase 1 introduces an associative frame table + clock replacer.
-fn page_id_index(id: UInt64, capacity: Int) -> Int {
-  return (id as Int) % capacity;
+fn page_id_index(id: Int, capacity: Int) -> Int {
+  return id % capacity;
 }
 
-pub fn BufferPool.get(pool: &BufferPool, page_id: UInt64) -> Option[Page] {
+pub fn BufferPool.get(pool: &BufferPool, page_id: Int) -> Option[Page] {
   var idx = page_id_index(page_id, pool.capacity);
   var entry = pool.pages[idx];
   match entry {
@@ -113,6 +113,6 @@ pub fn StorageEngine.cache_page(eng: &mut StorageEngine, page: Page) {
   eng.buffer_pool.put(page);
 }
 
-pub fn StorageEngine.lookup_page(eng: &StorageEngine, page_id: UInt64) -> Option[Page] {
+pub fn StorageEngine.lookup_page(eng: &StorageEngine, page_id: Int) -> Option[Page] {
   return eng.buffer_pool.get(page_id);
 }

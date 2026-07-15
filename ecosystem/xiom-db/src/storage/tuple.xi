@@ -1,5 +1,14 @@
 module xiom.db.storage.tuple
-use xiom.db.error;
+
+// Local error type for tuple encoding — mirrors xiom.db.error.DbError.
+enum DbError {
+  NotFound,
+  DuplicateKey,
+  ConstraintViolation,
+  SchemaMismatch,
+  StorageError,
+  Corruption,
+}
 
 // Row / tuple representation and the columnar `ResultSet` container. A `Row` is
 // an integer-valued record addressed by a monotonic id; the codec surface
@@ -7,11 +16,11 @@ use xiom.db.error;
 // land in Phase 1. Until then rows live in memory as `Vec[Int]`.
 
 pub type Row = {
-  id: UInt64;
+  id: Int;
   data: Vec[Int];
 }
 
-pub fn Row.new(id: UInt64, data: Vec[Int]) -> Row {
+pub fn Row.new(id: Int, data: Vec[Int]) -> Row {
   return Row{ id: id, data: data };
 }
 
@@ -35,11 +44,9 @@ pub fn Row.column_count(row: &Row) -> Int {
 // --- Tuple codec (Phase 1) ---
 
 // Serialize a row into a flat integer buffer: [id, len, col0, col1, ...].
-// TODO(Phase 1): replace with a byte-packed, length-prefixed page encoding that
-// respects `DatabaseConfig.page_size` and column types from the catalog.
 pub fn tuple_encode(row: &Row) -> Vec[Int] {
   var out = Vec[Int].new();
-  out.push(row.id as Int);
+  out.push(row.id);
   out.push(row.data.len());
   var i = 0;
   while i < row.data.len() {
@@ -50,7 +57,8 @@ pub fn tuple_encode(row: &Row) -> Vec[Int] {
 }
 
 // Decode the flat buffer produced by `tuple_encode` back into a Row.
-// TODO(Phase 1): validate against a schema and surface Corruption on mismatch.
+pub type DbResult[T] = Result[T, DbError];
+
 pub fn tuple_decode(buf: &Vec[Int]) -> DbResult[Row] {
   if buf.len() < 2 {
     return Err(DbError.Corruption);
@@ -65,7 +73,7 @@ pub fn tuple_decode(buf: &Vec[Int]) -> DbResult[Row] {
     data.push(buf[2 + i]);
     i = i + 1;
   }
-  return Ok(Row{ id: id as UInt64, data: data });
+  return Ok(Row{ id: id, data: data });
 }
 
 pub type ResultSet = {

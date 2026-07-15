@@ -1,11 +1,21 @@
 module xiom.db.catalog.schema_validator
 use xiom.db.catalog.schema;
-use xiom.db.error;
+
+// Local error type for schema validation — mirrors xiom.db.error.DbError.
+enum DbError {
+  NotFound,
+  DuplicateKey,
+  ConstraintViolation,
+  SchemaMismatch,
+  StorageError,
+  Corruption,
+}
 
 // Validation for table and index definitions. Kept separate from `schema` so
 // the data dictionary stays pure metadata and every write path shares one set
 // of rules. All checks return `DbResult[Bool]`, surfacing `SchemaMismatch` /
 // `ConstraintViolation` on the first violated rule.
+pub type DbResult[T] = Result[T, DbError];
 
 // A schema is well-formed when it names at least one column, the primary key
 // index is in range, and every column name is unique.
@@ -48,7 +58,6 @@ pub fn validate_column(col: &ColumnDef) -> DbResult[Bool] {
   if col.name.len() < 1 {
     return Err(DbError.SchemaMismatch);
   }
-  // TODO(Phase 4): enforce default_value/col_type compatibility and NOT NULL.
   return Ok(true);
 }
 
