@@ -1,5 +1,7 @@
 module xiom.blas.linalg
 
+use xiom.blas;
+
 pub type Matrix = {
   data: Vec[Float64];
   rows: Int;
@@ -13,14 +15,13 @@ fn matrix_new(rows: Int, cols: Int) -> Matrix
   ensures: result.cols == cols
   ensures: result.data.len() == rows * cols
 {
-  let size = rows * cols;
-  let data = Vec[Float64].with_capacity(size);
+  var data = Vec[Float64].new();
   var i = 0;
-  while i < size {
+  while i < rows * cols {
     data.push(0.0);
     i = i + 1;
   };
-  Matrix { data: data, rows: rows, cols: cols }
+  return Matrix { data: data, rows: rows, cols: cols };
 }
 
 fn matrix_get(m: &Matrix, row: Int, col: Int) -> Float64
@@ -29,7 +30,7 @@ fn matrix_get(m: &Matrix, row: Int, col: Int) -> Float64
   requires: row < m.rows
   requires: col < m.cols
 {
-  m.data[row * m.cols + col]
+  return m.data[row * m.cols + col];
 }
 
 fn matrix_set(m: &mut Matrix, row: Int, col: Int, val: Float64)
@@ -46,38 +47,66 @@ fn matrix_multiply(a: &Matrix, b: &Matrix) -> Result[Matrix, Str]
   ensures: !result.is_ok() || result.unwrap().rows == a.rows
   ensures: !result.is_ok() || result.unwrap().cols == b.cols
 {
-  matmul(a, b)
+  return blas.matmul(a, b);
 }
 
 fn matrix_vector_multiply(m: &Matrix, v: &Vec[Float64]) -> Result[Vec[Float64], Str]
   requires: m.cols == v.len()
 {
-  matvec(m, v)
+  return blas.matvec(m, v);
 }
 
 fn vector_dot(a: &Vec[Float64], b: &Vec[Float64]) -> Float64
   requires: a.len() == b.len()
 {
-  dot(a, b)
+  return blas.dot(a, b);
 }
 
 fn matrix_transpose(m: &Matrix) -> Matrix
 {
-  matrix_transpose(m)
+  var t = matrix_new(m.cols, m.rows);
+  var i = 0;
+  while i < m.rows {
+    var j = 0;
+    while j < m.cols {
+      t.data[j * m.rows + i] = m.data[i * m.cols + j];
+      j = j + 1;
+    };
+    i = i + 1;
+  };
+  return t;
 }
 
 fn matrix_add(a: &Matrix, b: &Matrix) -> Result[Matrix, Str]
   requires: a.rows == b.rows
   requires: a.cols == b.cols
 {
-  matrix_add(a, b)
+  if a.rows != b.rows || a.cols != b.cols {
+    return Err("dimension mismatch");
+  };
+  var result = matrix_new(a.rows, a.cols);
+  var i = 0;
+  while i < a.data.len() {
+    result.data[i] = a.data[i] + b.data[i];
+    i = i + 1;
+  };
+  return Ok(result);
 }
 
 fn matrix_sub(a: &Matrix, b: &Matrix) -> Result[Matrix, Str]
   requires: a.rows == b.rows
   requires: a.cols == b.cols
 {
-  matrix_sub(a, b)
+  if a.rows != b.rows || a.cols != b.cols {
+    return Err("dimension mismatch");
+  };
+  var result = matrix_new(a.rows, a.cols);
+  var i = 0;
+  while i < a.data.len() {
+    result.data[i] = a.data[i] - b.data[i];
+    i = i + 1;
+  };
+  return Ok(result);
 }
 
 fn matrix_scale(m: &Matrix, scalar: Float64) -> Matrix
@@ -198,7 +227,7 @@ fn solve_linear_system(a: &Matrix, b: &Vec[Float64]) -> Result[Vec[Float64], Str
   };
 
   let inv = matrix_inverse(a)?;
-  var x = Vec[Float64].with_capacity(n);
+  var x = Vec[Float64].new();
   var i = 0;
   while i < n {
     var sum = 0.0;
@@ -210,5 +239,5 @@ fn solve_linear_system(a: &Matrix, b: &Vec[Float64]) -> Result[Vec[Float64], Str
     x.push(sum);
     i = i + 1;
   };
-  Ok(x)
+  return Ok(x);
 }

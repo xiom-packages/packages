@@ -11,11 +11,86 @@ pub fn dot(x: &Vec[Float64], y: &Vec[Float64]) -> Float64;
 pub fn axpy(alpha: Float64, x: &Vec[Float64], y: &mut Vec[Float64]);
 pub fn scal(alpha: Float64, x: &mut Vec[Float64]);
 
-pub fn matrix_new(rows: Int, cols: Int) -> Matrix;
-pub fn matrix_zeros(rows: Int, cols: Int) -> Matrix;
-pub fn matrix_identity(n: Int) -> Matrix;
-pub fn matrix_transpose(a: &Matrix) -> Matrix;
-pub fn matrix_add(a: &Matrix, b: &Matrix) -> Result[Matrix, Str];
-pub fn matrix_sub(a: &Matrix, b: &Matrix) -> Result[Matrix, Str];
-pub fn vector_zeros(n: Int) -> Vec[Float64];
-pub fn vector_ones(n: Int) -> Vec[Float64];
+pub fn matrix_new(rows: Int, cols: Int) -> Matrix {
+  var data = Vec[Float64].new();
+  var i = 0;
+  while i < rows * cols {
+    data.push(0.0);
+    i = i + 1;
+  };
+  return Matrix{ rows: rows, cols: cols, data: data };
+}
+
+pub fn matrix_zeros(rows: Int, cols: Int) -> Matrix {
+  return matrix_new(rows, cols);
+}
+
+pub fn matrix_identity(n: Int) -> Matrix {
+  var m = matrix_new(n, n);
+  var i = 0;
+  while i < n {
+    m.data[i * n + i] = 1.0;
+    i = i + 1;
+  };
+  return m;
+}
+
+pub fn matrix_transpose(a: &Matrix) -> Matrix {
+  var t = matrix_new(a.cols, a.rows);
+  var i = 0;
+  while i < a.rows {
+    var j = 0;
+    while j < a.cols {
+      t.data[j * a.rows + i] = a.data[i * a.cols + j];
+      j = j + 1;
+    };
+    i = i + 1;
+  };
+  return t;
+}
+
+pub fn matrix_add(a: &Matrix, b: &Matrix) -> Result[Matrix, Str] {
+  if a.rows != b.rows || a.cols != b.cols {
+    return Err("dimension mismatch");
+  };
+  var result = matrix_new(a.rows, a.cols);
+  var i = 0;
+  while i < a.data.len() {
+    result.data[i] = a.data[i] + b.data[i];
+    i = i + 1;
+  };
+  return Ok(result);
+}
+
+pub fn matrix_sub(a: &Matrix, b: &Matrix) -> Result[Matrix, Str] {
+  if a.rows != b.rows || a.cols != b.cols {
+    return Err("dimension mismatch");
+  };
+  var result = matrix_new(a.rows, a.cols);
+  var i = 0;
+  while i < a.data.len() {
+    result.data[i] = a.data[i] - b.data[i];
+    i = i + 1;
+  };
+  return Ok(result);
+}
+
+pub fn vector_zeros(n: Int) -> Vec[Float64] {
+  var v = Vec[Float64].new();
+  var i = 0;
+  while i < n {
+    v.push(0.0);
+    i = i + 1;
+  };
+  return v;
+}
+
+pub fn vector_ones(n: Int) -> Vec[Float64] {
+  var v = Vec[Float64].new();
+  var i = 0;
+  while i < n {
+    v.push(1.0);
+    i = i + 1;
+  };
+  return v;
+}
