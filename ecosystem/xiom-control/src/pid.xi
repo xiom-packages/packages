@@ -1,7 +1,5 @@
 module xiom.control.pid
 
-use xiom.math;
-
 pub type PIDController = {
   kp: Float64;
   ki: Float64;
