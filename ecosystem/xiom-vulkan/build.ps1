@@ -342,9 +342,15 @@ $XiFiles = @(
 )
 
 # Build the xiomc command.
-# Use cargo run -p xiomc -- for repo dev workflow.
-# For production, replace with "xiomc" when prebuilt.
-$XiomcCmd = 'cargo', 'run', '-p', 'xiomc', '--'
+# Use prebuilt xiomc.exe when available (production), fall back to
+# cargo run for dev workflow.
+$ProjectRoot = Split-Path -Parent (Split-Path -Parent $RootDir)
+$XiomcExe = Join-Path $ProjectRoot "target\release\xiomc.exe"
+if (Test-Path $XiomcExe) {
+    $XiomcCmd = @($XiomcExe)
+} else {
+    $XiomcCmd = @('cargo', 'run', '-p', 'xiomc', '--')
+}
 
 $XiomcArgs = @(
     '-o', $OutExe
