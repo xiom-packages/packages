@@ -1,7 +1,26 @@
 module xiom.crypto.aes
 
+use xiom.math;
+
+type AesState = {
+  s00: Int; s01: Int; s02: Int; s03: Int;
+  s10: Int; s11: Int; s12: Int; s13: Int;
+  s20: Int; s21: Int; s22: Int; s23: Int;
+  s30: Int; s31: Int; s32: Int; s33: Int;
+}
+
+type AesCol = { b0: Int; b1: Int; b2: Int; b3: Int; }
+
+type GfInput = { val: Int; }
+
+type IntHolder = { val: Int; }
+
+type StateHolder = { s: AesState; }
+
+type KeyExpState = { temp0: Int; temp1: Int; temp2: Int; temp3: Int; rcon_iteration: Int; }
+
 pub fn aes_sbox(b: Int) -> Int {
-  var val = b & 0xFF;
+  var val = xiom.math.bit_and(b, 0xFF);
   if val == 0x00 { return 0x63; };
   if val == 0x01 { return 0x7c; };
   if val == 0x02 { return 0x77; };
@@ -262,7 +281,7 @@ pub fn aes_sbox(b: Int) -> Int {
 }
 
 pub fn aes_inv_sbox(b: Int) -> Int {
-  var val = b & 0xFF;
+  var val = xiom.math.bit_and(b, 0xFF);
   if val == 0x00 { return 0x52; };
   if val == 0x01 { return 0x09; };
   if val == 0x02 { return 0x6a; };
@@ -536,142 +555,173 @@ pub fn aes_rcon(round: Int) -> Int {
   return 0;
 }
 
-fn aes_gf_mul2(x: Int) -> Int {
-  var val = x & 0xFF;
-  var result = (val << 1) & 0xFF;
-  if (val & 0x80) != 0 {
-    result = result ^ 0x1b;
+fn aes_gf_mul2(input: GfInput) -> Int {
+  var v = xiom.math.bit_and(input.val, 0xFF);
+  var r = IntHolder{ val: xiom.math.bit_and(xiom.math.shl(v, 1), 0xFF) };
+  var cond = xiom.math.bit_and(input.val, 0x80);
+  if cond != 0 {
+    r = IntHolder{ val: xiom.math.bit_xor(r.val, 0x1b) };
   };
-  return result;
+  return r.val;
 }
 
-fn aes_gf_mul3(x: Int) -> Int {
-  return aes_gf_mul2(x) ^ (x & 0xFF);
+fn aes_gf_mul3(input: GfInput) -> Int {
+  var v = xiom.math.bit_and(input.val, 0xFF);
+  return xiom.math.bit_xor(aes_gf_mul2(input), v);
 }
 
-fn aes_gf_mul9(x: Int) -> Int {
-  return aes_gf_mul2(aes_gf_mul2(aes_gf_mul2(x))) ^ (x & 0xFF);
+fn aes_gf_mul9(input: GfInput) -> Int {
+  var v = xiom.math.bit_and(input.val, 0xFF);
+  return xiom.math.bit_xor(
+    aes_gf_mul2(GfInput{ val: aes_gf_mul2(GfInput{ val: aes_gf_mul2(input) }) }),
+    v
+  );
 }
 
-fn aes_gf_mul11(x: Int) -> Int {
-  var x2 = aes_gf_mul2(x);
-  var x4 = aes_gf_mul2(x2);
-  var x8 = aes_gf_mul2(x4);
-  return x8 ^ x2 ^ (x & 0xFF);
+fn aes_gf_mul11(input: GfInput) -> Int {
+  var v = xiom.math.bit_and(input.val, 0xFF);
+  var x2v = aes_gf_mul2(input);
+  var x4v = aes_gf_mul2(GfInput{ val: x2v });
+  var x8v = aes_gf_mul2(GfInput{ val: x4v });
+  return xiom.math.bit_xor(xiom.math.bit_xor(x8v, x2v), v);
 }
 
-fn aes_gf_mul13(x: Int) -> Int {
-  var x2 = aes_gf_mul2(x);
-  var x4 = aes_gf_mul2(x2);
-  var x8 = aes_gf_mul2(x4);
-  return x8 ^ x4 ^ (x & 0xFF);
+fn aes_gf_mul13(input: GfInput) -> Int {
+  var v = xiom.math.bit_and(input.val, 0xFF);
+  var x2v = aes_gf_mul2(input);
+  var x4v = aes_gf_mul2(GfInput{ val: x2v });
+  var x8v = aes_gf_mul2(GfInput{ val: x4v });
+  return xiom.math.bit_xor(xiom.math.bit_xor(x8v, x4v), v);
 }
 
-fn aes_gf_mul14(x: Int) -> Int {
-  var x2 = aes_gf_mul2(x);
-  var x4 = aes_gf_mul2(x2);
-  var x8 = aes_gf_mul2(x4);
-  return x8 ^ x4 ^ x2;
+fn aes_gf_mul14(input: GfInput) -> Int {
+  var x2v = aes_gf_mul2(input);
+  var x4v = aes_gf_mul2(GfInput{ val: x2v });
+  var x8v = aes_gf_mul2(GfInput{ val: x4v });
+  return xiom.math.bit_xor(xiom.math.bit_xor(x8v, x4v), x2v);
 }
 
-fn aes_sub_bytes(state: &Vec[Int]) {
-  var i = 0;
-  while i < 16 {
-    state[i] = aes_sbox(state[i]);
-    i = i + 1;
-  }
+fn aes_sub_bytes(state: AesState) -> AesState {
+  return AesState{
+    s00: aes_sbox(state.s00), s01: aes_sbox(state.s01), s02: aes_sbox(state.s02), s03: aes_sbox(state.s03),
+    s10: aes_sbox(state.s10), s11: aes_sbox(state.s11), s12: aes_sbox(state.s12), s13: aes_sbox(state.s13),
+    s20: aes_sbox(state.s20), s21: aes_sbox(state.s21), s22: aes_sbox(state.s22), s23: aes_sbox(state.s23),
+    s30: aes_sbox(state.s30), s31: aes_sbox(state.s31), s32: aes_sbox(state.s32), s33: aes_sbox(state.s33),
+  };
 }
 
-fn aes_inv_sub_bytes(state: &Vec[Int]) {
-  var i = 0;
-  while i < 16 {
-    state[i] = aes_inv_sbox(state[i]);
-    i = i + 1;
-  }
+fn aes_inv_sub_bytes(state: AesState) -> AesState {
+  return AesState{
+    s00: aes_inv_sbox(state.s00), s01: aes_inv_sbox(state.s01), s02: aes_inv_sbox(state.s02), s03: aes_inv_sbox(state.s03),
+    s10: aes_inv_sbox(state.s10), s11: aes_inv_sbox(state.s11), s12: aes_inv_sbox(state.s12), s13: aes_inv_sbox(state.s13),
+    s20: aes_inv_sbox(state.s20), s21: aes_inv_sbox(state.s21), s22: aes_inv_sbox(state.s22), s23: aes_inv_sbox(state.s23),
+    s30: aes_inv_sbox(state.s30), s31: aes_inv_sbox(state.s31), s32: aes_inv_sbox(state.s32), s33: aes_inv_sbox(state.s33),
+  };
 }
 
-fn aes_shift_rows(state: &Vec[Int]) {
-  var t = state[1];
-  state[1] = state[5];
-  state[5] = state[9];
-  state[9] = state[13];
-  state[13] = t;
-
-  t = state[2];
-  state[2] = state[10];
-  state[10] = t;
-  t = state[6];
-  state[6] = state[14];
-  state[14] = t;
-
-  t = state[15];
-  state[15] = state[11];
-  state[11] = state[7];
-  state[7] = state[3];
-  state[3] = t;
+fn aes_shift_rows(state: AesState) -> AesState {
+  return AesState{
+    s00: state.s00, s01: state.s01, s02: state.s02, s03: state.s03,
+    s10: state.s11, s11: state.s12, s12: state.s13, s13: state.s10,
+    s20: state.s22, s21: state.s23, s22: state.s20, s23: state.s21,
+    s30: state.s33, s31: state.s30, s32: state.s31, s33: state.s32,
+  };
 }
 
-fn aes_inv_shift_rows(state: &Vec[Int]) {
-  var t = state[13];
-  state[13] = state[9];
-  state[9] = state[5];
-  state[5] = state[1];
-  state[1] = t;
-
-  t = state[2];
-  state[2] = state[10];
-  state[10] = t;
-  t = state[6];
-  state[6] = state[14];
-  state[14] = t;
-
-  t = state[3];
-  state[3] = state[7];
-  state[7] = state[11];
-  state[11] = state[15];
-  state[15] = t;
+fn aes_inv_shift_rows(state: AesState) -> AesState {
+  return AesState{
+    s00: state.s00, s01: state.s01, s02: state.s02, s03: state.s03,
+    s10: state.s13, s11: state.s10, s12: state.s11, s13: state.s12,
+    s20: state.s22, s21: state.s23, s22: state.s20, s23: state.s21,
+    s30: state.s31, s31: state.s32, s32: state.s33, s33: state.s30,
+  };
 }
 
-fn aes_mix_columns(state: &Vec[Int]) {
-  var i = 0;
-  while i < 4 {
-    var c0 = state[i * 4];
-    var c1 = state[i * 4 + 1];
-    var c2 = state[i * 4 + 2];
-    var c3 = state[i * 4 + 3];
-
-    state[i * 4] = aes_gf_mul2(c0) ^ aes_gf_mul3(c1) ^ c2 ^ c3;
-    state[i * 4 + 1] = c0 ^ aes_gf_mul2(c1) ^ aes_gf_mul3(c2) ^ c3;
-    state[i * 4 + 2] = c0 ^ c1 ^ aes_gf_mul2(c2) ^ aes_gf_mul3(c3);
-    state[i * 4 + 3] = aes_gf_mul3(c0) ^ c1 ^ c2 ^ aes_gf_mul2(c3);
-
-    i = i + 1;
-  }
+fn aes_mix_single_column(col: AesCol) -> AesCol {
+  var x0 = xiom.math.bit_xor(
+    xiom.math.bit_xor(aes_gf_mul2(GfInput{ val: col.b0 }), aes_gf_mul3(GfInput{ val: col.b1 })),
+    xiom.math.bit_xor(col.b2, col.b3)
+  );
+  var x1 = xiom.math.bit_xor(
+    xiom.math.bit_xor(col.b0, aes_gf_mul2(GfInput{ val: col.b1 })),
+    xiom.math.bit_xor(aes_gf_mul3(GfInput{ val: col.b2 }), col.b3)
+  );
+  var x2 = xiom.math.bit_xor(
+    xiom.math.bit_xor(col.b0, col.b1),
+    xiom.math.bit_xor(aes_gf_mul2(GfInput{ val: col.b2 }), aes_gf_mul3(GfInput{ val: col.b3 }))
+  );
+  var x3 = xiom.math.bit_xor(
+    xiom.math.bit_xor(aes_gf_mul3(GfInput{ val: col.b0 }), col.b1),
+    xiom.math.bit_xor(col.b2, aes_gf_mul2(GfInput{ val: col.b3 }))
+  );
+  return AesCol{ b0: x0, b1: x1, b2: x2, b3: x3 };
 }
 
-fn aes_inv_mix_columns(state: &Vec[Int]) {
-  var i = 0;
-  while i < 4 {
-    var c0 = state[i * 4];
-    var c1 = state[i * 4 + 1];
-    var c2 = state[i * 4 + 2];
-    var c3 = state[i * 4 + 3];
-
-    state[i * 4] = aes_gf_mul14(c0) ^ aes_gf_mul11(c1) ^ aes_gf_mul13(c2) ^ aes_gf_mul9(c3);
-    state[i * 4 + 1] = aes_gf_mul9(c0) ^ aes_gf_mul14(c1) ^ aes_gf_mul11(c2) ^ aes_gf_mul13(c3);
-    state[i * 4 + 2] = aes_gf_mul13(c0) ^ aes_gf_mul9(c1) ^ aes_gf_mul14(c2) ^ aes_gf_mul11(c3);
-    state[i * 4 + 3] = aes_gf_mul11(c0) ^ aes_gf_mul13(c1) ^ aes_gf_mul9(c2) ^ aes_gf_mul14(c3);
-
-    i = i + 1;
-  }
+fn aes_mix_columns(state: AesState) -> AesState {
+  var col0 = aes_mix_single_column(AesCol{ b0: state.s00, b1: state.s10, b2: state.s20, b3: state.s30 });
+  var col1 = aes_mix_single_column(AesCol{ b0: state.s01, b1: state.s11, b2: state.s21, b3: state.s31 });
+  var col2 = aes_mix_single_column(AesCol{ b0: state.s02, b1: state.s12, b2: state.s22, b3: state.s32 });
+  var col3 = aes_mix_single_column(AesCol{ b0: state.s03, b1: state.s13, b2: state.s23, b3: state.s33 });
+  return AesState{
+    s00: col0.b0, s01: col1.b0, s02: col2.b0, s03: col3.b0,
+    s10: col0.b1, s11: col1.b1, s12: col2.b1, s13: col3.b1,
+    s20: col0.b2, s21: col1.b2, s22: col2.b2, s23: col3.b2,
+    s30: col0.b3, s31: col1.b3, s32: col2.b3, s33: col3.b3,
+  };
 }
 
-fn aes_add_round_key(state: &Vec[Int], round_key: &Vec[Int], offset: Int) {
-  var i = 0;
-  while i < 16 {
-    state[i] = state[i] ^ round_key[offset + i];
-    i = i + 1;
-  }
+fn aes_inv_mix_single_column(col: AesCol) -> AesCol {
+  var x0 = xiom.math.bit_xor(
+    xiom.math.bit_xor(aes_gf_mul14(GfInput{ val: col.b0 }), aes_gf_mul11(GfInput{ val: col.b1 })),
+    xiom.math.bit_xor(aes_gf_mul13(GfInput{ val: col.b2 }), aes_gf_mul9(GfInput{ val: col.b3 }))
+  );
+  var x1 = xiom.math.bit_xor(
+    xiom.math.bit_xor(aes_gf_mul9(GfInput{ val: col.b0 }), aes_gf_mul14(GfInput{ val: col.b1 })),
+    xiom.math.bit_xor(aes_gf_mul11(GfInput{ val: col.b2 }), aes_gf_mul13(GfInput{ val: col.b3 }))
+  );
+  var x2 = xiom.math.bit_xor(
+    xiom.math.bit_xor(aes_gf_mul13(GfInput{ val: col.b0 }), aes_gf_mul9(GfInput{ val: col.b1 })),
+    xiom.math.bit_xor(aes_gf_mul14(GfInput{ val: col.b2 }), aes_gf_mul11(GfInput{ val: col.b3 }))
+  );
+  var x3 = xiom.math.bit_xor(
+    xiom.math.bit_xor(aes_gf_mul11(GfInput{ val: col.b0 }), aes_gf_mul13(GfInput{ val: col.b1 })),
+    xiom.math.bit_xor(aes_gf_mul9(GfInput{ val: col.b2 }), aes_gf_mul14(GfInput{ val: col.b3 }))
+  );
+  return AesCol{ b0: x0, b1: x1, b2: x2, b3: x3 };
+}
+
+fn aes_inv_mix_columns(state: AesState) -> AesState {
+  var col0 = aes_inv_mix_single_column(AesCol{ b0: state.s00, b1: state.s10, b2: state.s20, b3: state.s30 });
+  var col1 = aes_inv_mix_single_column(AesCol{ b0: state.s01, b1: state.s11, b2: state.s21, b3: state.s31 });
+  var col2 = aes_inv_mix_single_column(AesCol{ b0: state.s02, b1: state.s12, b2: state.s22, b3: state.s32 });
+  var col3 = aes_inv_mix_single_column(AesCol{ b0: state.s03, b1: state.s13, b2: state.s23, b3: state.s33 });
+  return AesState{
+    s00: col0.b0, s01: col1.b0, s02: col2.b0, s03: col3.b0,
+    s10: col0.b1, s11: col1.b1, s12: col2.b1, s13: col3.b1,
+    s20: col0.b2, s21: col1.b2, s22: col2.b2, s23: col3.b2,
+    s30: col0.b3, s31: col1.b3, s32: col2.b3, s33: col3.b3,
+  };
+}
+
+fn aes_add_round_key(state: AesState, round_key: &Vec[Int], offset: Int) -> AesState {
+  return AesState{
+    s00: xiom.math.bit_xor(state.s00, round_key[offset]),
+    s01: xiom.math.bit_xor(state.s01, round_key[offset + 1]),
+    s02: xiom.math.bit_xor(state.s02, round_key[offset + 2]),
+    s03: xiom.math.bit_xor(state.s03, round_key[offset + 3]),
+    s10: xiom.math.bit_xor(state.s10, round_key[offset + 4]),
+    s11: xiom.math.bit_xor(state.s11, round_key[offset + 5]),
+    s12: xiom.math.bit_xor(state.s12, round_key[offset + 6]),
+    s13: xiom.math.bit_xor(state.s13, round_key[offset + 7]),
+    s20: xiom.math.bit_xor(state.s20, round_key[offset + 8]),
+    s21: xiom.math.bit_xor(state.s21, round_key[offset + 9]),
+    s22: xiom.math.bit_xor(state.s22, round_key[offset + 10]),
+    s23: xiom.math.bit_xor(state.s23, round_key[offset + 11]),
+    s30: xiom.math.bit_xor(state.s30, round_key[offset + 12]),
+    s31: xiom.math.bit_xor(state.s31, round_key[offset + 13]),
+    s32: xiom.math.bit_xor(state.s32, round_key[offset + 14]),
+    s33: xiom.math.bit_xor(state.s33, round_key[offset + 15]),
+  };
 }
 
 fn aes_key_expansion_128(key: &Vec[Int]) -> Vec[Int] {
@@ -688,28 +738,32 @@ fn aes_key_expansion_128(key: &Vec[Int]) -> Vec[Int] {
     i = i + 1;
   }
 
+  var ks = KeyExpState{ temp0: 0, temp1: 0, temp2: 0, temp3: 0, rcon_iteration: 1 };
   var bytes_generated = 16;
-  var rcon_iteration = 1;
 
   while bytes_generated < 176 {
-    var temp0 = expanded[bytes_generated - 4];
-    var temp1 = expanded[bytes_generated - 3];
-    var temp2 = expanded[bytes_generated - 2];
-    var temp3 = expanded[bytes_generated - 1];
-
-    if bytes_generated % 16 == 0 {
-      var t = temp0;
-      temp0 = aes_sbox(temp1) ^ aes_rcon(rcon_iteration);
-      temp1 = aes_sbox(temp2);
-      temp2 = aes_sbox(temp3);
-      temp3 = aes_sbox(t);
-      rcon_iteration = rcon_iteration + 1;
+    ks = KeyExpState{
+      temp0: expanded[bytes_generated - 4],
+      temp1: expanded[bytes_generated - 3],
+      temp2: expanded[bytes_generated - 2],
+      temp3: expanded[bytes_generated - 1],
+      rcon_iteration: ks.rcon_iteration,
     };
 
-    expanded[bytes_generated] = expanded[bytes_generated - 16] ^ temp0;
-    expanded[bytes_generated + 1] = expanded[bytes_generated - 15] ^ temp1;
-    expanded[bytes_generated + 2] = expanded[bytes_generated - 14] ^ temp2;
-    expanded[bytes_generated + 3] = expanded[bytes_generated - 13] ^ temp3;
+    if bytes_generated % 16 == 0 {
+      ks = KeyExpState{
+        temp0: xiom.math.bit_xor(aes_sbox(ks.temp1), aes_rcon(ks.rcon_iteration)),
+        temp1: aes_sbox(ks.temp2),
+        temp2: aes_sbox(ks.temp3),
+        temp3: aes_sbox(ks.temp0),
+        rcon_iteration: ks.rcon_iteration + 1,
+      };
+    };
+
+    expanded[bytes_generated] = xiom.math.bit_xor(expanded[bytes_generated - 16], ks.temp0);
+    expanded[bytes_generated + 1] = xiom.math.bit_xor(expanded[bytes_generated - 15], ks.temp1);
+    expanded[bytes_generated + 2] = xiom.math.bit_xor(expanded[bytes_generated - 14], ks.temp2);
+    expanded[bytes_generated + 3] = xiom.math.bit_xor(expanded[bytes_generated - 13], ks.temp3);
 
     bytes_generated = bytes_generated + 4;
   }
@@ -731,34 +785,41 @@ fn aes_key_expansion_256(key: &Vec[Int]) -> Vec[Int] {
     i = i + 1;
   }
 
+  var ks = KeyExpState{ temp0: 0, temp1: 0, temp2: 0, temp3: 0, rcon_iteration: 1 };
   var bytes_generated = 32;
-  var rcon_iteration = 1;
 
   while bytes_generated < 240 {
-    var temp0 = expanded[bytes_generated - 4];
-    var temp1 = expanded[bytes_generated - 3];
-    var temp2 = expanded[bytes_generated - 2];
-    var temp3 = expanded[bytes_generated - 1];
-
-    if bytes_generated % 32 == 0 {
-      var t = temp0;
-      temp0 = aes_sbox(temp1) ^ aes_rcon(rcon_iteration);
-      temp1 = aes_sbox(temp2);
-      temp2 = aes_sbox(temp3);
-      temp3 = aes_sbox(t);
-      rcon_iteration = rcon_iteration + 1;
-    }
-    elif bytes_generated % 32 == 16 {
-      temp0 = aes_sbox(temp0);
-      temp1 = aes_sbox(temp1);
-      temp2 = aes_sbox(temp2);
-      temp3 = aes_sbox(temp3);
+    ks = KeyExpState{
+      temp0: expanded[bytes_generated - 4],
+      temp1: expanded[bytes_generated - 3],
+      temp2: expanded[bytes_generated - 2],
+      temp3: expanded[bytes_generated - 1],
+      rcon_iteration: ks.rcon_iteration,
     };
 
-    expanded[bytes_generated] = expanded[bytes_generated - 32] ^ temp0;
-    expanded[bytes_generated + 1] = expanded[bytes_generated - 31] ^ temp1;
-    expanded[bytes_generated + 2] = expanded[bytes_generated - 30] ^ temp2;
-    expanded[bytes_generated + 3] = expanded[bytes_generated - 29] ^ temp3;
+    if bytes_generated % 32 == 0 {
+      ks = KeyExpState{
+        temp0: xiom.math.bit_xor(aes_sbox(ks.temp1), aes_rcon(ks.rcon_iteration)),
+        temp1: aes_sbox(ks.temp2),
+        temp2: aes_sbox(ks.temp3),
+        temp3: aes_sbox(ks.temp0),
+        rcon_iteration: ks.rcon_iteration + 1,
+      };
+    }
+    elif bytes_generated % 32 == 16 {
+      ks = KeyExpState{
+        temp0: aes_sbox(ks.temp0),
+        temp1: aes_sbox(ks.temp1),
+        temp2: aes_sbox(ks.temp2),
+        temp3: aes_sbox(ks.temp3),
+        rcon_iteration: ks.rcon_iteration,
+      };
+    };
+
+    expanded[bytes_generated] = xiom.math.bit_xor(expanded[bytes_generated - 32], ks.temp0);
+    expanded[bytes_generated + 1] = xiom.math.bit_xor(expanded[bytes_generated - 31], ks.temp1);
+    expanded[bytes_generated + 2] = xiom.math.bit_xor(expanded[bytes_generated - 30], ks.temp2);
+    expanded[bytes_generated + 3] = xiom.math.bit_xor(expanded[bytes_generated - 29], ks.temp3);
 
     bytes_generated = bytes_generated + 4;
   }
@@ -766,56 +827,76 @@ fn aes_key_expansion_256(key: &Vec[Int]) -> Vec[Int] {
   return expanded;
 }
 
-fn aes_encrypt_block(state: &Vec[Int], round_keys: &Vec[Int], rounds: Int) -> Vec[Int] {
-  var s = Vec[Int].new();
-  var i = 0;
-  while i < 16 {
-    s.push(state[i]);
-    i = i + 1;
-  }
+fn state_from_vec(input: &Vec[Int]) -> AesState {
+  return AesState{
+    s00: input[0], s01: input[4], s02: input[8],  s03: input[12],
+    s10: input[1], s11: input[5], s12: input[9],  s13: input[13],
+    s20: input[2], s21: input[6], s22: input[10], s23: input[14],
+    s30: input[3], s31: input[7], s32: input[11], s33: input[15],
+  };
+}
 
-  aes_add_round_key(&s, round_keys, 0);
+fn state_to_vec(state: AesState) -> Vec[Int] {
+  var result = Vec[Int].new();
+  result.push(state.s00);
+  result.push(state.s10);
+  result.push(state.s20);
+  result.push(state.s30);
+  result.push(state.s01);
+  result.push(state.s11);
+  result.push(state.s21);
+  result.push(state.s31);
+  result.push(state.s02);
+  result.push(state.s12);
+  result.push(state.s22);
+  result.push(state.s32);
+  result.push(state.s03);
+  result.push(state.s13);
+  result.push(state.s23);
+  result.push(state.s33);
+  return result;
+}
+
+fn aes_encrypt_block(input: &Vec[Int], round_keys: &Vec[Int], rounds: Int) -> Vec[Int] {
+  var h = StateHolder{ s: state_from_vec(input) };
+
+  h = StateHolder{ s: aes_add_round_key(h.s, round_keys, 0) };
 
   var round = 1;
   while round < rounds {
-    aes_sub_bytes(&s);
-    aes_shift_rows(&s);
-    aes_mix_columns(&s);
-    aes_add_round_key(&s, round_keys, round * 16);
+    h = StateHolder{ s: aes_sub_bytes(h.s) };
+    h = StateHolder{ s: aes_shift_rows(h.s) };
+    h = StateHolder{ s: aes_mix_columns(h.s) };
+    h = StateHolder{ s: aes_add_round_key(h.s, round_keys, round * 16) };
     round = round + 1;
   }
 
-  aes_sub_bytes(&s);
-  aes_shift_rows(&s);
-  aes_add_round_key(&s, round_keys, rounds * 16);
+  h = StateHolder{ s: aes_sub_bytes(h.s) };
+  h = StateHolder{ s: aes_shift_rows(h.s) };
+  h = StateHolder{ s: aes_add_round_key(h.s, round_keys, rounds * 16) };
 
-  return s;
+  return state_to_vec(h.s);
 }
 
-fn aes_decrypt_block(state: &Vec[Int], round_keys: &Vec[Int], rounds: Int) -> Vec[Int] {
-  var s = Vec[Int].new();
-  var i = 0;
-  while i < 16 {
-    s.push(state[i]);
-    i = i + 1;
-  }
+fn aes_decrypt_block(input: &Vec[Int], round_keys: &Vec[Int], rounds: Int) -> Vec[Int] {
+  var h = StateHolder{ s: state_from_vec(input) };
 
-  aes_add_round_key(&s, round_keys, rounds * 16);
+  h = StateHolder{ s: aes_add_round_key(h.s, round_keys, rounds * 16) };
 
   var round = rounds - 1;
   while round > 0 {
-    aes_inv_shift_rows(&s);
-    aes_inv_sub_bytes(&s);
-    aes_add_round_key(&s, round_keys, round * 16);
-    aes_inv_mix_columns(&s);
+    h = StateHolder{ s: aes_inv_shift_rows(h.s) };
+    h = StateHolder{ s: aes_inv_sub_bytes(h.s) };
+    h = StateHolder{ s: aes_add_round_key(h.s, round_keys, round * 16) };
+    h = StateHolder{ s: aes_inv_mix_columns(h.s) };
     round = round - 1;
   }
 
-  aes_inv_shift_rows(&s);
-  aes_inv_sub_bytes(&s);
-  aes_add_round_key(&s, round_keys, 0);
+  h = StateHolder{ s: aes_inv_shift_rows(h.s) };
+  h = StateHolder{ s: aes_inv_sub_bytes(h.s) };
+  h = StateHolder{ s: aes_add_round_key(h.s, round_keys, 0) };
 
-  return s;
+  return state_to_vec(h.s);
 }
 
 pub fn aes128_encrypt(plaintext: &Vec[Int], key: &Vec[Int]) -> Result[Vec[Int], Str]

@@ -2,6 +2,10 @@ module xiom.crypto.pbkdf
 
 use xiom.crypto.sha;
 
+type Ctx = { v: Int; }
+
+type LoopI = { i: Int; }
+
 pub fn pbkdf2_sha256(password: &Vec[Int], salt: &Vec[Int], iterations: Int, keylen: Int) -> Vec[Int]
   requires: password.len() > 0
   requires: salt.len() > 0
@@ -88,7 +92,7 @@ pub fn hkdf_sha256(ikm: &Vec[Int], salt: &Vec[Int], info: &Vec[Int], length: Int
 
   var okm = Vec[Int].new();
   var t = Vec[Int].new();
-  var counter = 1;
+  var ctr = Ctx{ v: 1 };
 
   while okm.len() < length {
     var t_input = Vec[Int].new();
@@ -102,7 +106,7 @@ pub fn hkdf_sha256(ikm: &Vec[Int], salt: &Vec[Int], info: &Vec[Int], length: Int
       t_input.push(info[i]);
       i = i + 1;
     }
-    t_input.push(counter);
+    t_input.push(ctr.v);
 
     t = sha256_hmac(&t_input, &prk);
 
@@ -112,7 +116,7 @@ pub fn hkdf_sha256(ikm: &Vec[Int], salt: &Vec[Int], info: &Vec[Int], length: Int
       i = i + 1;
     }
 
-    counter = counter + 1;
+    ctr = Ctx{ v: ctr.v + 1 };
   }
 
   var result = Vec[Int].new();

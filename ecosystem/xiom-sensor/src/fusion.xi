@@ -4,6 +4,8 @@ use xiom.math;
 use xiom.sensor.imu;
 use xiom.sensor.gps;
 
+type FloatHolder = { v: Float64; }
+
 pub type FusedPose = {
   x: Float64;
   y: Float64;
@@ -116,10 +118,9 @@ pub fn fusion_weighted(poses: &Vec[FusedPose]) -> FusedPose {
 pub fn fusion_predict(pose: &FusedPose, velocity: Float64, heading: Float64, dt: Float64) -> FusedPose
   requires: dt >= 0.0
 {
-  var heading_rad = heading * 0.017453292519943295;
-  var hr_snap = heading_rad;
-  var dx = velocity * xiom.math.cos(hr_snap) * dt;
-  var dy = velocity * xiom.math.sin(hr_snap) * dt;
+  var hr = FloatHolder{ v: heading * 0.017453292519943295 };
+  var dx = velocity * xiom.math.cos(hr.v) * dt;
+  var dy = velocity * xiom.math.sin(hr.v) * dt;
 
   var earth_radius: Float64 = 6371000.0;
   var lat_rad = pose.x * 0.017453292519943295;
