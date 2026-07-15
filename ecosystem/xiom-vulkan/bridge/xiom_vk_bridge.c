@@ -1203,7 +1203,7 @@ static void xvk_app_cleanup_internal(XvkApp* a)
 
     /* --- Sync objects --- */
     if (a->image_available) {
-        for (int i = 0; i < XVK_MAX_FRAMES; ++i) {
+        for (int i = 0; i < a->swapchain_image_count; ++i) {
             if (a->image_available[i])
                 vkDestroySemaphore(a->device, a->image_available[i], NULL);
             if (a->render_finished[i])
@@ -1651,18 +1651,19 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
                                a->cmd_buffers, a->swapchain_image_count))
         goto fail;
 
-    /* Sync */
-    a->image_available = (VkSemaphore*)malloc(XVK_MAX_FRAMES * sizeof(VkSemaphore));
-    a->render_finished = (VkSemaphore*)malloc(XVK_MAX_FRAMES * sizeof(VkSemaphore));
-    a->in_flight_fences= (VkFence*)malloc(XVK_MAX_FRAMES * sizeof(VkFence));
+    /* Sync — per-swapchain-image semaphores + fences */
+    int n = a->swapchain_image_count;
+    a->image_available = (VkSemaphore*)malloc(n * sizeof(VkSemaphore));
+    a->render_finished = (VkSemaphore*)malloc(n * sizeof(VkSemaphore));
+    a->in_flight_fences= (VkFence*)malloc(n * sizeof(VkFence));
     if (!a->image_available || !a->render_finished || !a->in_flight_fences) {
         xvk_set_error("malloc failed for sync objects");
         goto fail;
     }
-    memset(a->image_available, 0, XVK_MAX_FRAMES * sizeof(VkSemaphore));
-    memset(a->render_finished, 0, XVK_MAX_FRAMES * sizeof(VkSemaphore));
-    memset(a->in_flight_fences, 0, XVK_MAX_FRAMES * sizeof(VkFence));
-    if (!create_sync_objects(a->device, XVK_MAX_FRAMES,
+    memset(a->image_available, 0, n * sizeof(VkSemaphore));
+    memset(a->render_finished, 0, n * sizeof(VkSemaphore));
+    memset(a->in_flight_fences, 0, n * sizeof(VkFence));
+    if (!create_sync_objects(a->device, n,
                               a->image_available,
                               a->render_finished,
                               a->in_flight_fences))
@@ -1765,17 +1766,19 @@ int32_t xvk_begin_frame(int64_t app_h)
         }
     }
 
-    VkSemaphore avail = a->image_available[a->frame_index];
-    VkFence    fence  = a->in_flight_fences[a->frame_index];
+    /* Wait for this frame's in-flight fence BEFORE passing its semaphore to acquire.
+     * Skip first-frame/after-resize where fences haven't been signaled yet. */
+    VkFence fence = a->in_flight_fences[a->frame_index];
+    if (fence != VK_NULL_HANDLE) {
+        vkWaitForFences(a->device, 1, &fence, VK_TRUE, UINT64_MAX);
+        vkResetFences(a->device, 1, &fence);
+    }
 
-    /* Wait for the current frame's fence */
-    vkWaitForFences(a->device, 1, &fence, VK_TRUE, UINT64_MAX);
-    vkResetFences(a->device, 1, &fence);
-
-    /* Acquire next image */
+    /* Acquire next image — frame_index rotates through the semaphore array */
     uint32_t img_idx = 0;
     VkResult res = vkAcquireNextImageKHR(a->device, a->swapchain,
-                                          UINT64_MAX, avail,
+                                          UINT64_MAX,
+                                          a->image_available[a->frame_index],
                                           VK_NULL_HANDLE, &img_idx);
     if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR) {
         recreate_swapchain(a);
@@ -1785,8 +1788,6 @@ int32_t xvk_begin_frame(int64_t app_h)
         xvk_set_error_fmt("vkAcquireNextImageKHR failed: %d", (int)res);
         return -1;
     }
-
-    /* Store current image index for end_frame */
     a->current_image = img_idx;
 
     /* Reset and begin command buffer */
@@ -1848,7 +1849,7 @@ void xvk_end_frame(int64_t app_h)
     /* Submit */
     VkSemaphore          wait_sems[] = { a->image_available[a->frame_index] };
     VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    VkSemaphore          sig_sems[]  = { a->render_finished[a->frame_index] };
+    VkSemaphore          sig_sems[]  = { a->render_finished[img_idx] };
 
     VkSubmitInfo si = {0};
     si.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1860,7 +1861,7 @@ void xvk_end_frame(int64_t app_h)
     si.signalSemaphoreCount = 1;
     si.pSignalSemaphores    = sig_sems;
 
-    VkFence fence = a->in_flight_fences[a->frame_index];
+    VkFence fence = a->in_flight_fences[img_idx];
 
     if (vkQueueSubmit(a->graphics_queue, 1, &si, fence) != VK_SUCCESS) {
         xvk_set_error("vkQueueSubmit failed");
@@ -1881,7 +1882,7 @@ void xvk_end_frame(int64_t app_h)
         recreate_swapchain(a);
     }
 
-    a->frame_index = (a->frame_index + 1) % XVK_MAX_FRAMES;
+    a->frame_index = (a->frame_index + 1) % a->swapchain_image_count;
 }
 
 /* ---- draw_triangle_2d ---- */
