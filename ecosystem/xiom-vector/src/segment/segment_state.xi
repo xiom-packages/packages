@@ -1,15 +1,5 @@
 module xiom.vector.segment.segment_state
 
-// Segment lifecycle state machine. A segment is the unit of storage, sealing,
-// indexing, and compaction. Legal transitions:
-//   Mutable    -> Sealing
-//   Sealing    -> Sealed
-//   Sealed     -> Indexing
-//   Indexing   -> Immutable
-//   Immutable  -> Compacting | Dropped
-//   Compacting -> Immutable | Dropped
-//   Dropped    -> (terminal)
-
 pub enum SegmentStateKind {
   Mutable,
   Sealing,
@@ -20,7 +10,6 @@ pub enum SegmentStateKind {
   Dropped,
 }
 
-// Only a Mutable segment accepts new writes.
 pub fn segment_state_is_writable(s: &SegmentStateKind) -> Bool {
   match s {
     Mutable => true,
@@ -33,7 +22,6 @@ pub fn segment_state_is_writable(s: &SegmentStateKind) -> Bool {
   }
 }
 
-// Dropped is the only terminal state.
 pub fn segment_state_is_terminal(s: &SegmentStateKind) -> Bool {
   match s {
     Mutable => false,
@@ -46,7 +34,6 @@ pub fn segment_state_is_terminal(s: &SegmentStateKind) -> Bool {
   }
 }
 
-// Dense ordinal used to express the transition table compactly.
 pub fn segment_state_code(s: &SegmentStateKind) -> Int {
   match s {
     Mutable => 0,
@@ -59,7 +46,6 @@ pub fn segment_state_code(s: &SegmentStateKind) -> Int {
   }
 }
 
-// Enforces the transition table above. Any transition not listed is illegal.
 pub fn segment_state_can_transition(from: &SegmentStateKind, to: &SegmentStateKind) -> Bool {
   var f = segment_state_code(from);
   var t = segment_state_code(to);

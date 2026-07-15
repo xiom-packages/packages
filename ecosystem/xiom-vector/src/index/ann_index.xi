@@ -1,9 +1,8 @@
 module xiom.vector.index.ann_index
 
-use xiom.core.limits;
-
-// Common vocabulary shared by every ANN index implementation. Collections pick
-// a kind and carry its params; the query planner dispatches on the kind.
+fn max_graph_degree() -> Int {
+  return 512;
+}
 
 pub enum AnnIndexKind {
   Flat,
@@ -21,8 +20,6 @@ pub fn ann_params_default() -> AnnParams {
   return AnnParams{ m: 16, ef_construction: 200, ef_search: 64 };
 }
 
-// m must be a legal graph degree (bounded by the shared core ceiling); the ef_*
-// beam widths must be positive. See docs/hnsw-design.md.
 pub fn ann_params_valid(p: &AnnParams) -> Bool {
   if p.m <= 0 { return false; }
   if p.m > max_graph_degree() { return false; }

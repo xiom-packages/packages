@@ -1,11 +1,11 @@
 module xiom.vector.segment.manifest
 
-use xiom.core.ids;
+pub type CollectionId = { value: Int; }
+pub type SegmentId = { value: Int; }
 
-// The manifest is the durable list of a collection's live segments plus the LSN
-// at which it was last updated. On recovery the engine replays the WAL up to
-// last_lsn and rebuilds in-memory indexes from the listed segments. SCAFFOLD:
-// in-memory only until the manifest is persisted through the WAL in Phase 2.
+fn segment_id_eq(a: &SegmentId, b: &SegmentId) -> Bool {
+  return a.value == b.value;
+}
 
 pub type Manifest = {
   collection: CollectionId;
@@ -19,8 +19,6 @@ pub fn manifest_new(collection: CollectionId) -> Manifest {
 }
 
 pub fn manifest_add_segment(m: &mut Manifest, seg: SegmentId) {
-  // TODO(Phase 2): persist a ManifestUpdate WAL record before exposing the
-  // segment to readers.
   m.active_segments.push(seg);
 }
 

@@ -1,13 +1,24 @@
 module xiom.vector.collection.collection
+// Local type wrappers — mirrors xiom.core.ids and xiom.vector.index.ann_index.
+pub type CollectionId = { value: Int; }
+pub type SegmentId = { value: Int; }
 
-use xiom.core.ids;
-use xiom.vector.collection.schema;
-use xiom.vector.index.ann_index;
+pub enum AnnIndexKind { Flat, Hnsw, Ivf }
+pub type AnnParams = { m: Int; ef_construction: Int; ef_search: Int; } derive[Clone]
 
-// A Collection binds a schema to its physical realization: the set of live
-// segments and the ANN index configuration used to search them. SCAFFOLD: the
-// engine currently manages one collection with a single segment; the segment
-// registry here is the shape Phase 5 grows into.
+fn ann_params_default() -> AnnParams {
+  return AnnParams{ m: 16, ef_construction: 200, ef_search: 64 };
+}
+
+pub type CollectionSchema = {
+  name: Str;
+  dimension: Int;
+  metric: Str;
+}
+
+pub fn schema_dimension(s: &CollectionSchema) -> Int {
+  return s.dimension;
+}
 
 pub type Collection = {
   id: CollectionId;
@@ -29,7 +40,6 @@ pub fn collection_new(id: CollectionId, schema: CollectionSchema, index_kind: An
 }
 
 pub fn collection_register_segment(c: &mut Collection, seg: SegmentId) {
-  // TODO(Phase 5): update the durable manifest before exposing the segment.
   c.segments.push(seg);
 }
 

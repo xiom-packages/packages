@@ -1,12 +1,18 @@
 module xiom.vector.error
 
-use xiom.core.error;
-
-// Vector-layer error taxonomy. These are the domain-specific failures the
-// engine raises; each maps onto a shared xiom.core.error.CoreError so that
-// callers holding a CoreError channel (WAL, storage) still get a single,
-// uniform error type. XIOM models errors as values — there are no hidden
-// failure channels — so every fallible API returns Result[T, _] explicitly.
+// Local CoreError type — mirrors xiom.core.error.CoreError.
+pub enum CoreError {
+  NotFound,
+  InvalidInput(msg: Str),
+  OutOfBounds,
+  Corruption(msg: Str),
+  IOFailure(msg: Str),
+  Unsupported(msg: Str),
+  CapacityExceeded,
+  InvalidState(msg: Str),
+  ChecksumMismatch,
+  VersionMismatch,
+}
 
 pub enum VectorError {
   DimensionMismatch(expected: Int, got: Int),
@@ -28,7 +34,6 @@ pub fn vector_error_to_str(e: &VectorError) -> Str {
   }
 }
 
-// Bridge to the shared core error type used by storage/WAL boundaries.
 pub fn vector_error_to_core(e: &VectorError) -> CoreError {
   match e {
     DimensionMismatch(_, _) => CoreError.InvalidInput("dimension mismatch"),
@@ -40,7 +45,6 @@ pub fn vector_error_to_core(e: &VectorError) -> CoreError {
   }
 }
 
-// Stable numeric codes for the wire/FFI boundary (see docs/error-catalog.md).
 pub fn vector_error_code(e: &VectorError) -> Int {
   match e {
     DimensionMismatch(_, _) => 1001,

@@ -1,12 +1,17 @@
 module xiom.vector.query.search_request
+// Local inline types.
 
-use xiom.vector.types.dense_vector;
-use xiom.vector.types.metric;
-use xiom.vector.payload.filter_ast;
-
-// A fully-specified query. `filter` is a Vec used as an optional single clause
-// (empty = no filter) since the engine has no Option-of-recursive-enum yet;
-// `with_payload` asks the engine to hydrate payloads on the returned hits.
+pub type Vector = { data: Vec[Float32]; dimension: Int; }
+pub enum DistanceMetric { Cosine, DotProduct, Euclidean }
+pub enum FilterExpr {
+  Eq(field: Str, value: Str),
+  Range(field: Str, lo: Str, hi: Str),
+  Exists(field: Str),
+  In(field: Str, values: Vec[Str]),
+  And(terms: Vec[FilterExpr]),
+  Or(terms: Vec[FilterExpr]),
+  Not(terms: Vec[FilterExpr]),
+}
 
 pub type SearchRequest = {
   query: Vector;
@@ -30,7 +35,6 @@ pub fn search_request_new(query: Vector, top_k: Int, metric: DistanceMetric) -> 
 }
 
 pub fn search_request_set_filter(req: &mut SearchRequest, expr: FilterExpr) {
-  // Single-clause slot for now; Phase 3 accepts a full FilterExpr tree.
   var filter = Vec[FilterExpr].new();
   filter.push(expr);
   req.filter = filter;
