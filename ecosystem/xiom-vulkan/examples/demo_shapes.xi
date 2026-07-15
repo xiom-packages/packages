@@ -21,27 +21,26 @@ fn main() -> Int {
         poll(a);
         let status = begin_frame(a);
         if status == 1 {
-          let t = now();
           // Quad 1 — red, orbits center
-          let c1x = (math.sin(t) * 0.6) as Float32;
-          let c1y = (math.cos(t) * 0.6) as Float32;
+          let c1x = (math.sin(now()) * 0.6) as Float32;
+          let c1y = (math.cos(now()) * 0.6) as Float32;
           draw_quad_2d(a, c1x, c1y, 0.12, 0.12, 1.0, 0.2, 0.2);
           // Quad 2 — green, 120° phase offset
-          let c2x = (math.sin(t + 2.094) * 0.6) as Float32;
-          let c2y = (math.cos(t + 2.094) * 0.6) as Float32;
+          let c2x = (math.sin(now() + 2.094) * 0.6) as Float32;
+          let c2y = (math.cos(now() + 2.094) * 0.6) as Float32;
           draw_quad_2d(a, c2x, c2y, 0.12, 0.12, 0.2, 1.0, 0.2);
           // Quad 3 — blue, 240° phase offset
-          let c3x = (math.sin(t + 4.189) * 0.6) as Float32;
-          let c3y = (math.cos(t + 4.189) * 0.6) as Float32;
+          let c3x = (math.sin(now() + 4.189) * 0.6) as Float32;
+          let c3y = (math.cos(now() + 4.189) * 0.6) as Float32;
           draw_quad_2d(a, c3x, c3y, 0.12, 0.12, 0.2, 0.2, 1.0);
           // Quad 4 — yellow, figure-8 pattern
-          let c4x = (math.sin(t * 0.5) * 0.3) as Float32;
-          let c4y = (math.cos(t * 0.7) * 0.3) as Float32;
+          let c4x = (math.sin(now() * 0.5) * 0.3) as Float32;
+          let c4y = (math.cos(now() * 0.7) * 0.3) as Float32;
           draw_quad_2d(a, c4x, c4y, 0.08, 0.08, 1.0, 1.0, 0.2);
           // Triangle — cycling rainbow color
-          let tr = (math.sin(t) * 0.5 + 0.5) as Float32;
-          let tg = (math.sin(t + 2.0) * 0.5 + 0.5) as Float32;
-          let tb = (math.sin(t + 4.0) * 0.5 + 0.5) as Float32;
+          let tr = (math.sin(now()) * 0.5 + 0.5) as Float32;
+          let tg = (math.sin(now() + 2.0) * 0.5 + 0.5) as Float32;
+          let tb = (math.sin(now() + 4.0) * 0.5 + 0.5) as Float32;
           set_clear_color(a, 0.05, 0.05, 0.1);
           draw_triangle_2d(a, tr, tg, tb);
           end_frame(a);

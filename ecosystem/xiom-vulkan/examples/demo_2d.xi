@@ -21,10 +21,9 @@ fn main() -> Int {
         poll(a);
         let status = begin_frame(a);
         if status == 1 {
-          let t = now();
-          let r = (math.sin(t) * 0.5 + 0.5) as Float32;
-          let g = (math.sin(t + 2.0) * 0.5 + 0.5) as Float32;
-          let b = (math.sin(t + 4.0) * 0.5 + 0.5) as Float32;
+          let r = (math.sin(now()) * 0.5 + 0.5) as Float32;
+          let g = (math.sin(now() + 2.0) * 0.5 + 0.5) as Float32;
+          let b = (math.sin(now() + 4.0) * 0.5 + 0.5) as Float32;
           set_clear_color(a, 0.1, 0.1, 0.15);
           draw_triangle_2d(a, r, g, b);
           end_frame(a);
