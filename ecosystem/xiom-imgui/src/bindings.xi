@@ -179,11 +179,11 @@ fn ig_end_modal()
   end_modal();
 }
 
-fn ig_combo(label: Str, current: Int, items: &Vec[Str]) -> Int
+fn ig_combo(label: Str, current: Int, items: Vec[Str]) -> Int
   requires: label.len() > 0
 {
   var cur = current;
-  combo(label, &mut cur, items.clone());
+  combo(label, &mut cur, items);
   cur
 }
 
