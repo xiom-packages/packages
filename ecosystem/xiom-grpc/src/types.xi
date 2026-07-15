@@ -55,7 +55,7 @@ fn grpc_response_error(status: Int, message: Str) -> GrpcResponse
   requires: status != 0
 {
   var metadata = Vec[(Str, Str)].new();
-  metadata.push(("error-message".to_owned(), message.clone()));
+  metadata.push(("error-message".clone(), message.clone()));
   GrpcResponse {
     status: status;
     payload: Vec[Int].new();

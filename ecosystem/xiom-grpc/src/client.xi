@@ -1,4 +1,5 @@
 module xiom.grpc.client
+use xiom.grpc;
 
 fn grpc_init()
 {
@@ -26,24 +27,18 @@ fn grpc_unary_call(channel: Int, method: Str, request: &Vec[Int]) -> Result[Vec[
   requires: channel != 0
   requires: method.len() > 0
 {
-  let request_bytes = Vec[UInt8].with_capacity(request.len());
-  var i = 0;
-  while i < request.len() {
-    request_bytes.push(request[i] as UInt8);
-    i = i + 1;
-  };
-  let raw = unary_call(channel, method, &request_bytes);
-  match raw {
-    Ok(bytes) => {
-      var result = Vec[Int].with_capacity(bytes.len());
-      var j = 0;
-      while j < bytes.len() {
-        result.push(bytes[j] as Int);
-        j = j + 1;
-      };
-      Ok(result)
-    }
-    Err(e) => Err(e),
+  var raw: Result[Vec[Int], Str] = unary_call(channel, method, request);
+  if raw.is_ok() {
+    var bytes: Vec[Int] = raw.unwrap();
+    var result = Vec[Int]::new();
+    var j = 0;
+    while j < bytes.len() {
+      result.push(bytes[j]);
+      j = j + 1;
+    };
+    Ok(result)
+  } else {
+    Err("unary call failed")
   }
 }
 
@@ -57,36 +52,33 @@ fn grpc_stream_call(channel: Int, method: Str) -> Result[Int, Str]
 fn grpc_stream_send(call: Int, data: &Vec[Int]) -> Result[Unit, Str]
   requires: call != 0
 {
-  let data_bytes = Vec[UInt8].with_capacity(data.len());
-  var i = 0;
-  while i < data.len() {
-    data_bytes.push(data[i] as UInt8);
-    i = i + 1;
-  };
-  let raw = send_stream(call, &data_bytes);
-  match raw {
-    Ok(()) => Ok(()),
-    Err(e) => Err(e),
+  var raw: Result[Unit, Str] = send_stream(call, data);
+  if raw.is_ok() {
+    Ok(())
+  } else {
+    Err("stream send failed")
   }
 }
 
 fn grpc_stream_recv(call: Int) -> Result[Option[Vec[Int]], Str]
   requires: call != 0
 {
-  let raw = recv_stream(call);
-  match raw {
-    Ok(opt) => match opt {
-      Some(bytes) => {
-        var result = Vec[Int].with_capacity(bytes.len());
-        var j = 0;
-        while j < bytes.len() {
-          result.push(bytes[j] as Int);
-          j = j + 1;
-        };
-        Ok(Some(result))
-      }
-      None => Ok(None),
+  var raw: Result[Option[Vec[Int]], Str] = recv_stream(call);
+  if raw.is_ok() {
+    var opt: Option[Vec[Int]] = raw.unwrap();
+    if opt.is_some() {
+      var bytes: Vec[Int] = opt.unwrap();
+      var result = Vec[Int]::new();
+      var j = 0;
+      while j < bytes.len() {
+        result.push(bytes[j]);
+        j = j + 1;
+      };
+      Ok(Some(result))
+    } else {
+      Ok(None)
     }
-    Err(e) => Err(e),
+  } else {
+    Err("stream recv failed")
   }
 }

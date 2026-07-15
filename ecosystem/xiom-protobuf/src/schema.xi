@@ -102,7 +102,7 @@ fn proto_type_to_str(ftype: ProtoType) -> Str
 
 fn proto_message_to_proto3(msg: &ProtoMessage) -> Str
 {
-  var output = "syntax = \"proto3\";\n\nmessage ".to_owned();
+  var output = "syntax = \"proto3\";\n\nmessage ".clone();
   output = output + msg.name + " {\n";
   var i = 0;
   while i < msg.fields.len() {

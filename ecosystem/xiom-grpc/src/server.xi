@@ -1,4 +1,5 @@
 module xiom.grpc.server
+use xiom.grpc.types.GrpcServer;
 
 fn grpc_server_create(addr: Str, port: Int) -> Result[GrpcServer, Str]
   requires: addr.len() > 0
