@@ -48,6 +48,7 @@ package xiom_ecosystem {
     "xiom-graphql",
     "xiom-websocket",
     "xiom-realtime",
-    "xiom-micro"
+    "xiom-micro",
+    "xiom-math"
   ];
 }
