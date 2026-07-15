@@ -1,343 +1,768 @@
-// XIOM — Vulkan FFI Bindings
+// XIOM - Complete Vulkan FFI Bindings (Auto-generated from SDK 1.4.350.0)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Raw `extern "C"` declarations for the Vulkan 1.3 API targeting
-// vulkan-1.dll (Windows) / libvulkan.so (Linux) / libvulkan.dylib (macOS).
-//
-// ALL pointer/handle parameters use `Int`.  VkResult values are `Int32`.
-// Generated from vulkan_core.h (SDK 1.4.350.0) + manual curation.
-//
-// 120+ entry points covering: Instance, Device, Memory, Buffer, Image,
-// Command Buffers, Pipeline, Descriptor Sets, Synchronisation, Swapchain,
-// Dynamic Rendering, Debug Utils, and Compute.
-//
-// Enum constants are split across src/vulkan_constants{1,2,3}.xi
-// to stay under the compiler's pub const per-module limit (~99).
+// Generated from vulkan_core.h (SDK 1.4.350.0) - 755 functions total.
+// All pointer/handle params use Int. VkResult values are Int32.
+// DO NOT call these directly - use src/vulkan_safe.xi wrappers.
 
-module xiom.vulkan.extern
 
-use xiom.vulkan.constants;
-use xiom.vulkan.constants2;
-use xiom.vulkan.constants3;
 
-// =========================================================================
-// Instance
-// =========================================================================
 extern "C" {
-  fn vkCreateInstance(create_info: Int, allocator: Int, instance: Int) -> Int32;
-  fn vkDestroyInstance(instance: Int, allocator: Int);
-  fn vkEnumerateInstanceExtensionProperties(layer_name: Int, count: Int, props: Int) -> Int32;
-  fn vkEnumerateInstanceLayerProperties(count: Int, props: Int) -> Int32;
-  fn vkEnumerateInstanceVersion(api_version: Int) -> Int32;
-  fn vkGetInstanceProcAddr(instance: Int, name: Int) -> Int;
-}
-
-// =========================================================================
-// Physical Device
-// =========================================================================
 extern "C" {
-  fn vkEnumeratePhysicalDevices(instance: Int, count: Int, devices: Int) -> Int32;
-  fn vkGetPhysicalDeviceProperties(device: Int, props: Int);
-  fn vkGetPhysicalDeviceProperties2(device: Int, props: Int);
-  fn vkGetPhysicalDeviceFeatures(device: Int, features: Int);
-  fn vkGetPhysicalDeviceFeatures2(device: Int, features: Int);
-  fn vkGetPhysicalDeviceMemoryProperties(device: Int, props: Int);
-  fn vkGetPhysicalDeviceMemoryProperties2(device: Int, props: Int);
-  fn vkGetPhysicalDeviceFormatProperties(device: Int, format: Int32, props: Int);
-  fn vkGetPhysicalDeviceFormatProperties2(device: Int, format: Int32, props: Int);
-  fn vkGetPhysicalDeviceImageFormatProperties(device: Int, format: Int32, image_type: Int32, tiling: Int32, usage: Int32, flags: Int32, props: Int) -> Int32;
-  fn vkGetPhysicalDeviceQueueFamilyProperties(device: Int, count: Int, props: Int);
-  fn vkGetPhysicalDeviceQueueFamilyProperties2(device: Int, count: Int, props: Int);
-  fn vkGetPhysicalDeviceSurfaceSupportKHR(device: Int, queue_family: Int32, surface: Int, supported: Int) -> Int32;
-  fn vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device: Int, surface: Int, caps: Int) -> Int32;
-  fn vkGetPhysicalDeviceSurfaceFormatsKHR(device: Int, surface: Int, count: Int, formats: Int) -> Int32;
-  fn vkGetPhysicalDeviceSurfacePresentModesKHR(device: Int, surface: Int, count: Int, modes: Int) -> Int32;
-  fn vkEnumerateDeviceExtensionProperties(device: Int, layer_name: Int, count: Int, props: Int) -> Int32;
-}
-
-// =========================================================================
-// Device
-// =========================================================================
-extern "C" {
-  fn vkCreateDevice(physical_device: Int, create_info: Int, allocator: Int, device: Int) -> Int32;
-  fn vkDestroyDevice(device: Int, allocator: Int);
-  fn vkGetDeviceQueue(device: Int, queue_family: Int32, queue_index: Int32, queue: Int);
-  fn vkGetDeviceQueue2(device: Int, queue_info: Int, queue: Int);
+  fn vkCreateInstance(pCreateInfo: Int, pAllocator: Int, pInstance: Int) -> Int32;
+  fn vkDestroyInstance(instance: Int, pAllocator: Int);
+  fn vkEnumeratePhysicalDevices(instance: Int, pPhysicalDeviceCount: Int32, pPhysicalDevices: Int) -> Int32;
+  fn vkGetPhysicalDeviceFeatures(physicalDevice: Int, pFeatures: Int);
+  fn vkGetPhysicalDeviceFormatProperties(physicalDevice: Int, format: Int, pFormatProperties: Int);
+  fn vkGetPhysicalDeviceImageFormatProperties(physicalDevice: Int, format: Int, vk_type: Int, tiling: Int, usage: Int, flags: Int, pImageFormatProperties: Int) -> Int32;
+  fn vkGetPhysicalDeviceProperties(physicalDevice: Int, pProperties: Int);
+  fn vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice: Int, pQueueFamilyPropertyCount: Int32, pQueueFamilyProperties: Int);
+  fn vkGetPhysicalDeviceMemoryProperties(physicalDevice: Int, pMemoryProperties: Int);
+  fn vkGetInstanceProcAddr(instance: Int, pName: Int) -> Int;
+  fn vkGetDeviceProcAddr(device: Int, pName: Int) -> Int;
+  fn vkCreateDevice(physicalDevice: Int, pCreateInfo: Int, pAllocator: Int, pDevice: Int) -> Int32;
+  fn vkDestroyDevice(device: Int, pAllocator: Int);
+  fn vkEnumerateInstanceExtensionProperties(pLayerName: Int, pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkEnumerateDeviceExtensionProperties(physicalDevice: Int, pLayerName: Int, pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkEnumerateInstanceLayerProperties(pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkEnumerateDeviceLayerProperties(physicalDevice: Int, pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkGetDeviceQueue(device: Int, queueFamilyIndex: Int32, queueIndex: Int32, pQueue: Int);
+  fn vkQueueSubmit(queue: Int, submitCount: Int32, pSubmits: Int, fence: Int) -> Int32;
+  fn vkQueueWaitIdle(queue: Int) -> Int32;
   fn vkDeviceWaitIdle(device: Int) -> Int32;
-  fn vkGetDeviceProcAddr(device: Int, name: Int) -> Int;
-}
-
-// =========================================================================
-// Memory
-// =========================================================================
-extern "C" {
-  fn vkAllocateMemory(device: Int, allocate_info: Int, allocator: Int, memory: Int) -> Int32;
-  fn vkFreeMemory(device: Int, memory: Int, allocator: Int);
-  fn vkMapMemory(device: Int, memory: Int, offset: Int, size: Int, flags: Int32, data: Int) -> Int32;
+  fn vkAllocateMemory(device: Int, pAllocateInfo: Int, pAllocator: Int, pMemory: Int) -> Int32;
+  fn vkFreeMemory(device: Int, memory: Int, pAllocator: Int);
+  fn vkMapMemory(device: Int, memory: Int, offset: Int, size: Int, flags: Int, ppData: Int) -> Int32;
   fn vkUnmapMemory(device: Int, memory: Int);
-  fn vkFlushMappedMemoryRanges(device: Int, count: Int32, ranges: Int) -> Int32;
-  fn vkInvalidateMappedMemoryRanges(device: Int, count: Int32, ranges: Int) -> Int32;
-  fn vkGetDeviceMemoryCommitment(device: Int, memory: Int, committed: Int);
-  fn vkGetBufferMemoryRequirements(device: Int, buffer: Int, reqs: Int);
-  fn vkGetBufferMemoryRequirements2(device: Int, info: Int, reqs: Int);
-  fn vkGetImageMemoryRequirements(device: Int, image: Int, reqs: Int);
-  fn vkGetImageMemoryRequirements2(device: Int, info: Int, reqs: Int);
-}
-
-// =========================================================================
-// Buffer
-// =========================================================================
-extern "C" {
-  fn vkCreateBuffer(device: Int, create_info: Int, allocator: Int, buffer: Int) -> Int32;
-  fn vkDestroyBuffer(device: Int, buffer: Int, allocator: Int);
-  fn vkBindBufferMemory(device: Int, buffer: Int, memory: Int, offset: Int) -> Int32;
-  fn vkBindBufferMemory2(device: Int, count: Int32, bind_infos: Int) -> Int32;
-  fn vkCreateBufferView(device: Int, create_info: Int, allocator: Int, view: Int) -> Int32;
-  fn vkDestroyBufferView(device: Int, view: Int, allocator: Int);
-  fn vkGetBufferDeviceAddress(device: Int, info: Int) -> Int;
-}
-
-// =========================================================================
-// Image
-// =========================================================================
-extern "C" {
-  fn vkCreateImage(device: Int, create_info: Int, allocator: Int, image: Int) -> Int32;
-  fn vkDestroyImage(device: Int, image: Int, allocator: Int);
-  fn vkBindImageMemory(device: Int, image: Int, memory: Int, offset: Int) -> Int32;
-  fn vkBindImageMemory2(device: Int, count: Int32, bind_infos: Int) -> Int32;
-  fn vkGetImageSubresourceLayout(device: Int, image: Int, subresource: Int, layout: Int);
-  fn vkCreateImageView(device: Int, create_info: Int, allocator: Int, view: Int) -> Int32;
-  fn vkDestroyImageView(device: Int, view: Int, allocator: Int);
-}
-
-// =========================================================================
-// Command Pool & Command Buffer
-// =========================================================================
-extern "C" {
-  fn vkCreateCommandPool(device: Int, create_info: Int, allocator: Int, pool: Int) -> Int32;
-  fn vkDestroyCommandPool(device: Int, pool: Int, allocator: Int);
-  fn vkResetCommandPool(device: Int, pool: Int, flags: Int32) -> Int32;
-  fn vkTrimCommandPool(device: Int, pool: Int, flags: Int32);
-  fn vkAllocateCommandBuffers(device: Int, allocate_info: Int, command_buffers: Int) -> Int32;
-  fn vkFreeCommandBuffers(device: Int, pool: Int, count: Int32, command_buffers: Int);
-  fn vkBeginCommandBuffer(command_buffer: Int, begin_info: Int) -> Int32;
-  fn vkEndCommandBuffer(command_buffer: Int) -> Int32;
-  fn vkResetCommandBuffer(command_buffer: Int, flags: Int32) -> Int32;
-}
-
-// =========================================================================
-// Commands — Draw, State, Copy
-// =========================================================================
-extern "C" {
-  fn vkCmdBindPipeline(command_buffer: Int, pipeline_bind_point: Int32, pipeline: Int);
-  fn vkCmdSetViewport(command_buffer: Int, first_viewport: Int32, count: Int32, viewports: Int);
-  fn vkCmdSetScissor(command_buffer: Int, first_scissor: Int32, count: Int32, scissors: Int);
-  fn vkCmdSetLineWidth(command_buffer: Int, line_width: Float32);
-  fn vkCmdSetDepthBias(command_buffer: Int, constant_factor: Float32, clamp: Float32, slope_factor: Float32);
-  fn vkCmdSetBlendConstants(command_buffer: Int, blend_constants: Int);
-  fn vkCmdSetDepthBounds(command_buffer: Int, min_depth: Float32, max_depth: Float32);
-  fn vkCmdSetStencilCompareMask(command_buffer: Int, face_mask: Int32, compare_mask: Int32);
-  fn vkCmdSetStencilWriteMask(command_buffer: Int, face_mask: Int32, write_mask: Int32);
-  fn vkCmdSetStencilReference(command_buffer: Int, face_mask: Int32, reference: Int32);
-  fn vkCmdBindVertexBuffers(command_buffer: Int, first_binding: Int32, count: Int32, buffers: Int, offsets: Int);
-  fn vkCmdBindIndexBuffer(command_buffer: Int, buffer: Int, offset: Int, index_type: Int32);
-  fn vkCmdBindDescriptorSets(command_buffer: Int, pipeline_bind_point: Int32, layout: Int, first_set: Int32, count: Int32, descriptor_sets: Int, dynamic_offset_count: Int32, dynamic_offsets: Int);
-  fn vkCmdPushConstants(command_buffer: Int, layout: Int, stage_flags: Int32, offset: Int32, size: Int32, values: Int);
-  fn vkCmdDraw(command_buffer: Int, vertex_count: Int32, instance_count: Int32, first_vertex: Int32, first_instance: Int32);
-  fn vkCmdDrawIndexed(command_buffer: Int, index_count: Int32, instance_count: Int32, first_index: Int32, vertex_offset: Int32, first_instance: Int32);
-  fn vkCmdDrawIndirect(command_buffer: Int, buffer: Int, offset: Int, draw_count: Int32, stride: Int32);
-  fn vkCmdDrawIndexedIndirect(command_buffer: Int, buffer: Int, offset: Int, draw_count: Int32, stride: Int32);
-  fn vkCmdDispatch(command_buffer: Int, group_count_x: Int32, group_count_y: Int32, group_count_z: Int32);
-  fn vkCmdDispatchIndirect(command_buffer: Int, buffer: Int, offset: Int);
-  fn vkCmdCopyBuffer(command_buffer: Int, src: Int, dst: Int, region_count: Int32, regions: Int);
-  fn vkCmdCopyImage(command_buffer: Int, src: Int, src_layout: Int32, dst: Int, dst_layout: Int32, region_count: Int32, regions: Int);
-  fn vkCmdCopyBufferToImage(command_buffer: Int, src: Int, dst: Int, dst_layout: Int32, region_count: Int32, regions: Int);
-  fn vkCmdCopyImageToBuffer(command_buffer: Int, src: Int, src_layout: Int32, dst: Int, region_count: Int32, regions: Int);
-  fn vkCmdUpdateBuffer(command_buffer: Int, dst: Int, dst_offset: Int, data_size: Int, data: Int);
-  fn vkCmdFillBuffer(command_buffer: Int, dst: Int, dst_offset: Int, size: Int, data: Int32);
-  fn vkCmdClearColorImage(command_buffer: Int, image: Int, image_layout: Int32, color: Int, range_count: Int32, ranges: Int);
-  fn vkCmdClearDepthStencilImage(command_buffer: Int, image: Int, image_layout: Int32, depth_stencil: Int, range_count: Int32, ranges: Int);
-  fn vkCmdBlitImage(command_buffer: Int, src: Int, src_layout: Int32, dst: Int, dst_layout: Int32, region_count: Int32, regions: Int, filter: Int32);
-  fn vkCmdResolveImage(command_buffer: Int, src: Int, src_layout: Int32, dst: Int, dst_layout: Int32, region_count: Int32, regions: Int);
-  fn vkCmdPipelineBarrier(command_buffer: Int, src_stage_mask: Int32, dst_stage_mask: Int32, dependency_flags: Int32, memory_barrier_count: Int32, memory_barriers: Int, buffer_memory_barrier_count: Int32, buffer_memory_barriers: Int, image_memory_barrier_count: Int32, image_memory_barriers: Int);
-  fn vkCmdBeginQuery(command_buffer: Int, query_pool: Int, query: Int32, flags: Int32);
-  fn vkCmdEndQuery(command_buffer: Int, query_pool: Int, query: Int32);
-  fn vkCmdResetQueryPool(command_buffer: Int, query_pool: Int, first: Int32, count: Int32);
-  fn vkCmdWriteTimestamp(command_buffer: Int, stage: Int32, query_pool: Int, query: Int32);
-  fn vkCmdCopyQueryPoolResults(command_buffer: Int, query_pool: Int, first_query: Int32, query_count: Int32, dst: Int, dst_offset: Int, stride: Int, flags: Int32);
-  fn vkCmdExecuteCommands(command_buffer: Int, count: Int32, secondary_command_buffers: Int);
-}
-
-// =========================================================================
-// Render Pass & Framebuffer
-// =========================================================================
-extern "C" {
-  fn vkCreateRenderPass(device: Int, create_info: Int, allocator: Int, render_pass: Int) -> Int32;
-  fn vkDestroyRenderPass(device: Int, render_pass: Int, allocator: Int);
-  fn vkGetRenderAreaGranularity(device: Int, render_pass: Int, granularity: Int);
-  fn vkCreateRenderPass2(device: Int, create_info: Int, allocator: Int, render_pass: Int) -> Int32;
-  fn vkCmdBeginRenderPass(command_buffer: Int, render_pass_begin: Int, contents: Int32);
-  fn vkCmdNextSubpass(command_buffer: Int, contents: Int32);
-  fn vkCmdEndRenderPass(command_buffer: Int);
-  fn vkCmdBeginRenderPass2(command_buffer: Int, render_pass_begin: Int, subpass_begin: Int);
-  fn vkCmdNextSubpass2(command_buffer: Int, subpass_begin: Int, subpass_end: Int);
-  fn vkCmdEndRenderPass2(command_buffer: Int, subpass_end: Int);
-  fn vkCmdClearAttachments(command_buffer: Int, attachment_count: Int32, attachments: Int, rect_count: Int32, rects: Int);
-  fn vkCreateFramebuffer(device: Int, create_info: Int, allocator: Int, framebuffer: Int) -> Int32;
-  fn vkDestroyFramebuffer(device: Int, framebuffer: Int, allocator: Int);
-}
-
-// =========================================================================
-// Dynamic Rendering (VK_KHR_dynamic_rendering / Vulkan 1.3 core)
-// =========================================================================
-extern "C" {
-  fn vkCmdBeginRendering(command_buffer: Int, rendering_info: Int);
-  fn vkCmdEndRendering(command_buffer: Int);
-}
-
-// =========================================================================
-// Pipeline
-// =========================================================================
-extern "C" {
-  fn vkCreateGraphicsPipelines(device: Int, cache: Int, count: Int32, create_infos: Int, allocator: Int, pipelines: Int) -> Int32;
-  fn vkCreateComputePipelines(device: Int, cache: Int, count: Int32, create_infos: Int, allocator: Int, pipelines: Int) -> Int32;
-  fn vkDestroyPipeline(device: Int, pipeline: Int, allocator: Int);
-  fn vkCreatePipelineLayout(device: Int, create_info: Int, allocator: Int, layout: Int) -> Int32;
-  fn vkDestroyPipelineLayout(device: Int, layout: Int, allocator: Int);
-  fn vkCreatePipelineCache(device: Int, create_info: Int, allocator: Int, cache: Int) -> Int32;
-  fn vkDestroyPipelineCache(device: Int, cache: Int, allocator: Int);
-  fn vkGetPipelineCacheData(device: Int, cache: Int, data_size: Int, data: Int) -> Int32;
-  fn vkMergePipelineCaches(device: Int, dst: Int, src_count: Int32, srcs: Int) -> Int32;
-}
-
-// =========================================================================
-// Shader Module
-// =========================================================================
-extern "C" {
-  fn vkCreateShaderModule(device: Int, create_info: Int, allocator: Int, shader_module: Int) -> Int32;
-  fn vkDestroyShaderModule(device: Int, shader_module: Int, allocator: Int);
-}
-
-// =========================================================================
-// Descriptor Sets
-// =========================================================================
-extern "C" {
-  fn vkCreateDescriptorSetLayout(device: Int, create_info: Int, allocator: Int, layout: Int) -> Int32;
-  fn vkDestroyDescriptorSetLayout(device: Int, layout: Int, allocator: Int);
-  fn vkCreateDescriptorPool(device: Int, create_info: Int, allocator: Int, pool: Int) -> Int32;
-  fn vkDestroyDescriptorPool(device: Int, pool: Int, allocator: Int);
-  fn vkResetDescriptorPool(device: Int, pool: Int, flags: Int32) -> Int32;
-  fn vkAllocateDescriptorSets(device: Int, allocate_info: Int, descriptor_sets: Int) -> Int32;
-  fn vkFreeDescriptorSets(device: Int, pool: Int, count: Int32, descriptor_sets: Int) -> Int32;
-  fn vkUpdateDescriptorSets(device: Int, write_count: Int32, writes: Int, copy_count: Int32, copies: Int);
-  fn vkCreateDescriptorUpdateTemplate(device: Int, create_info: Int, allocator: Int, template: Int) -> Int32;
-  fn vkDestroyDescriptorUpdateTemplate(device: Int, template: Int, allocator: Int);
-  fn vkUpdateDescriptorSetWithTemplate(device: Int, descriptor_set: Int, template: Int, data: Int);
-}
-
-// =========================================================================
-// Sampler
-// =========================================================================
-extern "C" {
-  fn vkCreateSampler(device: Int, create_info: Int, allocator: Int, sampler: Int) -> Int32;
-  fn vkDestroySampler(device: Int, sampler: Int, allocator: Int);
-}
-
-// =========================================================================
-// Synchronisation (Fences, Semaphores, Events)
-// =========================================================================
-extern "C" {
-  fn vkCreateFence(device: Int, create_info: Int, allocator: Int, fence: Int) -> Int32;
-  fn vkDestroyFence(device: Int, fence: Int, allocator: Int);
-  fn vkResetFences(device: Int, fence_count: Int32, fences: Int) -> Int32;
+  fn vkFlushMappedMemoryRanges(device: Int, memoryRangeCount: Int32, pMemoryRanges: Int) -> Int32;
+  fn vkInvalidateMappedMemoryRanges(device: Int, memoryRangeCount: Int32, pMemoryRanges: Int) -> Int32;
+  fn vkGetDeviceMemoryCommitment(device: Int, memory: Int, pCommittedMemoryInBytes: Int);
+  fn vkBindBufferMemory(device: Int, buffer: Int, memory: Int, memoryOffset: Int) -> Int32;
+  fn vkBindImageMemory(device: Int, image: Int, memory: Int, memoryOffset: Int) -> Int32;
+  fn vkGetBufferMemoryRequirements(device: Int, buffer: Int, pMemoryRequirements: Int);
+  fn vkGetImageMemoryRequirements(device: Int, image: Int, pMemoryRequirements: Int);
+  fn vkGetImageSparseMemoryRequirements(device: Int, image: Int, pSparseMemoryRequirementCount: Int32, pSparseMemoryRequirements: Int);
+  fn vkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice: Int, format: Int, vk_type: Int, samples: Int, usage: Int, tiling: Int, pPropertyCount: Int32, pProperties: Int);
+  fn vkQueueBindSparse(queue: Int, bindInfoCount: Int32, pBindInfo: Int, fence: Int) -> Int32;
+  fn vkCreateFence(device: Int, pCreateInfo: Int, pAllocator: Int, pFence: Int) -> Int32;
+  fn vkDestroyFence(device: Int, fence: Int, pAllocator: Int);
+  fn vkResetFences(device: Int, fenceCount: Int32, pFences: Int) -> Int32;
   fn vkGetFenceStatus(device: Int, fence: Int) -> Int32;
-  fn vkWaitForFences(device: Int, fence_count: Int32, fences: Int, wait_all: Int32, timeout: Int) -> Int32;
-  fn vkCreateSemaphore(device: Int, create_info: Int, allocator: Int, semaphore: Int) -> Int32;
-  fn vkDestroySemaphore(device: Int, semaphore: Int, allocator: Int);
-  fn vkCreateEvent(device: Int, create_info: Int, allocator: Int, event: Int) -> Int32;
-  fn vkDestroyEvent(device: Int, event: Int, allocator: Int);
+  fn vkWaitForFences(device: Int, fenceCount: Int32, pFences: Int, waitAll: Int32, timeout: Int) -> Int32;
+  fn vkCreateSemaphore(device: Int, pCreateInfo: Int, pAllocator: Int, pSemaphore: Int) -> Int32;
+  fn vkDestroySemaphore(device: Int, semaphore: Int, pAllocator: Int);
+  fn vkCreateQueryPool(device: Int, pCreateInfo: Int, pAllocator: Int, pQueryPool: Int) -> Int32;
+  fn vkDestroyQueryPool(device: Int, queryPool: Int, pAllocator: Int);
+  fn vkGetQueryPoolResults(device: Int, queryPool: Int, firstQuery: Int32, queryCount: Int32, dataSize: Int, pData: Int, stride: Int, flags: Int) -> Int32;
+  fn vkCreateBuffer(device: Int, pCreateInfo: Int, pAllocator: Int, pBuffer: Int) -> Int32;
+  fn vkDestroyBuffer(device: Int, buffer: Int, pAllocator: Int);
+  fn vkCreateImage(device: Int, pCreateInfo: Int, pAllocator: Int, pImage: Int) -> Int32;
+  fn vkDestroyImage(device: Int, image: Int, pAllocator: Int);
+  fn vkGetImageSubresourceLayout(device: Int, image: Int, pSubresource: Int, pLayout: Int);
+  fn vkCreateImageView(device: Int, pCreateInfo: Int, pAllocator: Int, pView: Int) -> Int32;
+  fn vkDestroyImageView(device: Int, imageView: Int, pAllocator: Int);
+  fn vkCreateCommandPool(device: Int, pCreateInfo: Int, pAllocator: Int, pCommandPool: Int) -> Int32;
+  fn vkDestroyCommandPool(device: Int, commandPool: Int, pAllocator: Int);
+  fn vkResetCommandPool(device: Int, commandPool: Int, flags: Int) -> Int32;
+  fn vkAllocateCommandBuffers(device: Int, pAllocateInfo: Int, pCommandBuffers: Int) -> Int32;
+  fn vkFreeCommandBuffers(device: Int, commandPool: Int, commandBufferCount: Int32, pCommandBuffers: Int);
+  fn vkBeginCommandBuffer(commandBuffer: Int, pBeginInfo: Int) -> Int32;
+  fn vkEndCommandBuffer(commandBuffer: Int) -> Int32;
+  fn vkResetCommandBuffer(commandBuffer: Int, flags: Int) -> Int32;
+  fn vkCmdCopyBuffer(commandBuffer: Int, srcBuffer: Int, dstBuffer: Int, regionCount: Int32, pRegions: Int);
+  fn vkCmdCopyImage(commandBuffer: Int, srcImage: Int, srcImageLayout: Int, dstImage: Int, dstImageLayout: Int, regionCount: Int32, pRegions: Int);
+  fn vkCmdCopyBufferToImage(commandBuffer: Int, srcBuffer: Int, dstImage: Int, dstImageLayout: Int, regionCount: Int32, pRegions: Int);
+  fn vkCmdCopyImageToBuffer(commandBuffer: Int, srcImage: Int, srcImageLayout: Int, dstBuffer: Int, regionCount: Int32, pRegions: Int);
+  fn vkCmdUpdateBuffer(commandBuffer: Int, dstBuffer: Int, dstOffset: Int, dataSize: Int, pData: Int);
+  fn vkCmdFillBuffer(commandBuffer: Int, dstBuffer: Int, dstOffset: Int, size: Int, data: Int32);
+  fn vkCmdPipelineBarrier(commandBuffer: Int, srcStageMask: Int, dstStageMask: Int, dependencyFlags: Int, memoryBarrierCount: Int32, pMemoryBarriers: Int, bufferMemoryBarrierCount: Int32, pBufferMemoryBarriers: Int, imageMemoryBarrierCount: Int32, pImageMemoryBarriers: Int);
+  fn vkCmdBeginQuery(commandBuffer: Int, queryPool: Int, query: Int32, flags: Int);
+  fn vkCmdEndQuery(commandBuffer: Int, queryPool: Int, query: Int32);
+  fn vkCmdResetQueryPool(commandBuffer: Int, queryPool: Int, firstQuery: Int32, queryCount: Int32);
+  fn vkCmdWriteTimestamp(commandBuffer: Int, pipelineStage: Int, queryPool: Int, query: Int32);
+  fn vkCmdCopyQueryPoolResults(commandBuffer: Int, queryPool: Int, firstQuery: Int32, queryCount: Int32, dstBuffer: Int, dstOffset: Int, stride: Int, flags: Int);
+  fn vkCmdExecuteCommands(commandBuffer: Int, commandBufferCount: Int32, pCommandBuffers: Int);
+  fn vkCreateEvent(device: Int, pCreateInfo: Int, pAllocator: Int, pEvent: Int) -> Int32;
+  fn vkDestroyEvent(device: Int, event: Int, pAllocator: Int);
   fn vkGetEventStatus(device: Int, event: Int) -> Int32;
   fn vkSetEvent(device: Int, event: Int) -> Int32;
   fn vkResetEvent(device: Int, event: Int) -> Int32;
-}
-
-// =========================================================================
-// Query Pool
-// =========================================================================
-extern "C" {
-  fn vkCreateQueryPool(device: Int, create_info: Int, allocator: Int, pool: Int) -> Int32;
-  fn vkDestroyQueryPool(device: Int, pool: Int, allocator: Int);
-  fn vkGetQueryPoolResults(device: Int, pool: Int, first: Int32, count: Int32, data_size: Int, data: Int, stride: Int, flags: Int32) -> Int32;
-  fn vkResetQueryPool(device: Int, pool: Int, first: Int32, count: Int32);
-}
-
-// =========================================================================
-// Queue
-// =========================================================================
-extern "C" {
-  fn vkQueueSubmit(queue: Int, submit_count: Int32, submits: Int, fence: Int) -> Int32;
-  fn vkQueueSubmit2(queue: Int, submit_count: Int32, submits: Int, fence: Int) -> Int32;
-  fn vkQueueWaitIdle(queue: Int) -> Int32;
-  fn vkQueueBindSparse(queue: Int, bind_info_count: Int32, bind_infos: Int, fence: Int) -> Int32;
-}
-
-// =========================================================================
-// Swapchain (KHR)
-// =========================================================================
-extern "C" {
-  fn vkCreateSwapchainKHR(device: Int, create_info: Int, allocator: Int, swapchain: Int) -> Int32;
-  fn vkDestroySwapchainKHR(device: Int, swapchain: Int, allocator: Int);
-  fn vkGetSwapchainImagesKHR(device: Int, swapchain: Int, count: Int, images: Int) -> Int32;
-  fn vkAcquireNextImageKHR(device: Int, swapchain: Int, timeout: Int, semaphore: Int, fence: Int, image_index: Int) -> Int32;
-  fn vkQueuePresentKHR(queue: Int, present_info: Int) -> Int32;
-  fn vkAcquireNextImage2KHR(device: Int, acquire_info: Int, image_index: Int) -> Int32;
+  fn vkCreateBufferView(device: Int, pCreateInfo: Int, pAllocator: Int, pView: Int) -> Int32;
+  fn vkDestroyBufferView(device: Int, bufferView: Int, pAllocator: Int);
+  fn vkCreateShaderModule(device: Int, pCreateInfo: Int, pAllocator: Int, pShaderModule: Int) -> Int32;
+  fn vkDestroyShaderModule(device: Int, shaderModule: Int, pAllocator: Int);
+  fn vkCreatePipelineCache(device: Int, pCreateInfo: Int, pAllocator: Int, pPipelineCache: Int) -> Int32;
+  fn vkDestroyPipelineCache(device: Int, pipelineCache: Int, pAllocator: Int);
+  fn vkGetPipelineCacheData(device: Int, pipelineCache: Int, pDataSize: Int, pData: Int) -> Int32;
+  fn vkMergePipelineCaches(device: Int, dstCache: Int, srcCacheCount: Int32, pSrcCaches: Int) -> Int32;
+  fn vkCreateComputePipelines(device: Int, pipelineCache: Int, createInfoCount: Int32, pCreateInfos: Int, pAllocator: Int, pPipelines: Int) -> Int32;
+  fn vkDestroyPipeline(device: Int, pipeline: Int, pAllocator: Int);
+  fn vkCreatePipelineLayout(device: Int, pCreateInfo: Int, pAllocator: Int, pPipelineLayout: Int) -> Int32;
+  fn vkDestroyPipelineLayout(device: Int, pipelineLayout: Int, pAllocator: Int);
+  fn vkCreateSampler(device: Int, pCreateInfo: Int, pAllocator: Int, pSampler: Int) -> Int32;
+  fn vkDestroySampler(device: Int, sampler: Int, pAllocator: Int);
+  fn vkCreateDescriptorSetLayout(device: Int, pCreateInfo: Int, pAllocator: Int, pSetLayout: Int) -> Int32;
+  fn vkDestroyDescriptorSetLayout(device: Int, descriptorSetLayout: Int, pAllocator: Int);
+  fn vkCreateDescriptorPool(device: Int, pCreateInfo: Int, pAllocator: Int, pDescriptorPool: Int) -> Int32;
+  fn vkDestroyDescriptorPool(device: Int, descriptorPool: Int, pAllocator: Int);
+  fn vkResetDescriptorPool(device: Int, descriptorPool: Int, flags: Int) -> Int32;
+  fn vkAllocateDescriptorSets(device: Int, pAllocateInfo: Int, pDescriptorSets: Int) -> Int32;
+  fn vkFreeDescriptorSets(device: Int, descriptorPool: Int, descriptorSetCount: Int32, pDescriptorSets: Int) -> Int32;
+  fn vkUpdateDescriptorSets(device: Int, descriptorWriteCount: Int32, pDescriptorWrites: Int, descriptorCopyCount: Int32, pDescriptorCopies: Int);
+  fn vkCmdBindPipeline(commandBuffer: Int, pipelineBindPoint: Int, pipeline: Int);
+  fn vkCmdBindDescriptorSets(commandBuffer: Int, pipelineBindPoint: Int, layout: Int, firstSet: Int32, descriptorSetCount: Int32, pDescriptorSets: Int, dynamicOffsetCount: Int32, pDynamicOffsets: Int);
+  fn vkCmdClearColorImage(commandBuffer: Int, image: Int, imageLayout: Int, pColor: Int, rangeCount: Int32, pRanges: Int);
+  fn vkCmdDispatch(commandBuffer: Int, groupCountX: Int32, groupCountY: Int32, groupCountZ: Int32);
+  fn vkCmdDispatchIndirect(commandBuffer: Int, buffer: Int, offset: Int);
+  fn vkCmdSetEvent(commandBuffer: Int, event: Int, stageMask: Int);
+  fn vkCmdResetEvent(commandBuffer: Int, event: Int, stageMask: Int);
+  fn vkCmdWaitEvents(commandBuffer: Int, eventCount: Int32, pEvents: Int, srcStageMask: Int, dstStageMask: Int, memoryBarrierCount: Int32, pMemoryBarriers: Int, bufferMemoryBarrierCount: Int32, pBufferMemoryBarriers: Int, imageMemoryBarrierCount: Int32, pImageMemoryBarriers: Int);
+  fn vkCmdPushConstants(commandBuffer: Int, layout: Int, stageFlags: Int, offset: Int32, size: Int32, pValues: Int);
+  fn vkCreateGraphicsPipelines(device: Int, pipelineCache: Int, createInfoCount: Int32, pCreateInfos: Int, pAllocator: Int, pPipelines: Int) -> Int32;
+  fn vkCreateFramebuffer(device: Int, pCreateInfo: Int, pAllocator: Int, pFramebuffer: Int) -> Int32;
+  fn vkDestroyFramebuffer(device: Int, framebuffer: Int, pAllocator: Int);
+  fn vkCreateRenderPass(device: Int, pCreateInfo: Int, pAllocator: Int, pRenderPass: Int) -> Int32;
+  fn vkDestroyRenderPass(device: Int, renderPass: Int, pAllocator: Int);
+  fn vkGetRenderAreaGranularity(device: Int, renderPass: Int, pGranularity: Int);
+  fn vkCmdSetViewport(commandBuffer: Int, firstViewport: Int32, viewportCount: Int32, pViewports: Int);
+  fn vkCmdSetScissor(commandBuffer: Int, firstScissor: Int32, scissorCount: Int32, pScissors: Int);
+  fn vkCmdSetLineWidth(commandBuffer: Int, lineWidth: Float32);
+  fn vkCmdSetDepthBias(commandBuffer: Int, depthBiasConstantFactor: Float32, depthBiasClamp: Float32, depthBiasSlopeFactor: Float32);
+  fn vkCmdSetBlendConstants(commandBuffer: Int, blendConstants: Int);
+  fn vkCmdSetDepthBounds(commandBuffer: Int, minDepthBounds: Float32, maxDepthBounds: Float32);
+  fn vkCmdSetStencilCompareMask(commandBuffer: Int, faceMask: Int, compareMask: Int32);
+  fn vkCmdSetStencilWriteMask(commandBuffer: Int, faceMask: Int, writeMask: Int32);
+  fn vkCmdSetStencilReference(commandBuffer: Int, faceMask: Int, reference: Int32);
+  fn vkCmdBindIndexBuffer(commandBuffer: Int, buffer: Int, offset: Int, indexType: Int);
+  fn vkCmdBindVertexBuffers(commandBuffer: Int, firstBinding: Int32, bindingCount: Int32, pBuffers: Int, pOffsets: Int);
+  fn vkCmdDraw(commandBuffer: Int, vertexCount: Int32, instanceCount: Int32, firstVertex: Int32, firstInstance: Int32);
+  fn vkCmdDrawIndexed(commandBuffer: Int, indexCount: Int32, instanceCount: Int32, firstIndex: Int32, vertexOffset: Int32, firstInstance: Int32);
+  fn vkCmdDrawIndirect(commandBuffer: Int, buffer: Int, offset: Int, drawCount: Int32, stride: Int32);
+  fn vkCmdDrawIndexedIndirect(commandBuffer: Int, buffer: Int, offset: Int, drawCount: Int32, stride: Int32);
+  fn vkCmdBlitImage(commandBuffer: Int, srcImage: Int, srcImageLayout: Int, dstImage: Int, dstImageLayout: Int, regionCount: Int32, pRegions: Int, filter: Int);
+  fn vkCmdClearDepthStencilImage(commandBuffer: Int, image: Int, imageLayout: Int, pDepthStencil: Int, rangeCount: Int32, pRanges: Int);
+  fn vkCmdClearAttachments(commandBuffer: Int, attachmentCount: Int32, pAttachments: Int, rectCount: Int32, pRects: Int);
+  fn vkCmdResolveImage(commandBuffer: Int, srcImage: Int, srcImageLayout: Int, dstImage: Int, dstImageLayout: Int, regionCount: Int32, pRegions: Int);
+  fn vkCmdBeginRenderPass(commandBuffer: Int, pRenderPassBegin: Int, contents: Int);
+  fn vkCmdNextSubpass(commandBuffer: Int, contents: Int);
+  fn vkCmdEndRenderPass(commandBuffer: Int);
+  fn vkEnumerateInstanceVersion(pApiVersion: Int32) -> Int32;
+  fn vkBindBufferMemory2(device: Int, bindInfoCount: Int32, pBindInfos: Int) -> Int32;
+  fn vkBindImageMemory2(device: Int, bindInfoCount: Int32, pBindInfos: Int) -> Int32;
+  fn vkGetDeviceGroupPeerMemoryFeatures(device: Int, heapIndex: Int32, localDeviceIndex: Int32, remoteDeviceIndex: Int32, pPeerMemoryFeatures: Int);
+  fn vkCmdSetDeviceMask(commandBuffer: Int, deviceMask: Int32);
+  fn vkEnumeratePhysicalDeviceGroups(instance: Int, pPhysicalDeviceGroupCount: Int32, pPhysicalDeviceGroupProperties: Int) -> Int32;
+  fn vkGetImageMemoryRequirements2(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkGetBufferMemoryRequirements2(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkGetImageSparseMemoryRequirements2(device: Int, pInfo: Int, pSparseMemoryRequirementCount: Int32, pSparseMemoryRequirements: Int);
+  fn vkGetPhysicalDeviceFeatures2(physicalDevice: Int, pFeatures: Int);
+  fn vkGetPhysicalDeviceProperties2(physicalDevice: Int, pProperties: Int);
+  fn vkGetPhysicalDeviceFormatProperties2(physicalDevice: Int, format: Int, pFormatProperties: Int);
+  fn vkGetPhysicalDeviceImageFormatProperties2(physicalDevice: Int, pImageFormatInfo: Int, pImageFormatProperties: Int) -> Int32;
+  fn vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice: Int, pQueueFamilyPropertyCount: Int32, pQueueFamilyProperties: Int);
+  fn vkGetPhysicalDeviceMemoryProperties2(physicalDevice: Int, pMemoryProperties: Int);
+  fn vkGetPhysicalDeviceSparseImageFormatProperties2(physicalDevice: Int, pFormatInfo: Int, pPropertyCount: Int32, pProperties: Int);
+  fn vkTrimCommandPool(device: Int, commandPool: Int, flags: Int);
+  fn vkGetDeviceQueue2(device: Int, pQueueInfo: Int, pQueue: Int);
+  fn vkGetPhysicalDeviceExternalBufferProperties(physicalDevice: Int, pExternalBufferInfo: Int, pExternalBufferProperties: Int);
+  fn vkGetPhysicalDeviceExternalFenceProperties(physicalDevice: Int, pExternalFenceInfo: Int, pExternalFenceProperties: Int);
+  fn vkGetPhysicalDeviceExternalSemaphoreProperties(physicalDevice: Int, pExternalSemaphoreInfo: Int, pExternalSemaphoreProperties: Int);
+  fn vkCmdDispatchBase(commandBuffer: Int, baseGroupX: Int32, baseGroupY: Int32, baseGroupZ: Int32, groupCountX: Int32, groupCountY: Int32, groupCountZ: Int32);
+  fn vkCreateDescriptorUpdateTemplate(device: Int, pCreateInfo: Int, pAllocator: Int, pDescriptorUpdateTemplate: Int) -> Int32;
+  fn vkDestroyDescriptorUpdateTemplate(device: Int, descriptorUpdateTemplate: Int, pAllocator: Int);
+  fn vkUpdateDescriptorSetWithTemplate(device: Int, descriptorSet: Int, descriptorUpdateTemplate: Int, pData: Int);
+  fn vkGetDescriptorSetLayoutSupport(device: Int, pCreateInfo: Int, pSupport: Int);
+  fn vkCreateSamplerYcbcrConversion(device: Int, pCreateInfo: Int, pAllocator: Int, pYcbcrConversion: Int) -> Int32;
+  fn vkDestroySamplerYcbcrConversion(device: Int, ycbcrConversion: Int, pAllocator: Int);
+  fn vkResetQueryPool(device: Int, queryPool: Int, firstQuery: Int32, queryCount: Int32);
+  fn vkGetSemaphoreCounterValue(device: Int, semaphore: Int, pValue: Int) -> Int32;
+  fn vkWaitSemaphores(device: Int, pWaitInfo: Int, timeout: Int) -> Int32;
+  fn vkSignalSemaphore(device: Int, pSignalInfo: Int) -> Int32;
+  fn vkGetBufferDeviceAddress(device: Int, pInfo: Int) -> Int;
+  fn vkGetBufferOpaqueCaptureAddress(device: Int, pInfo: Int) -> Int;
+  fn vkGetDeviceMemoryOpaqueCaptureAddress(device: Int, pInfo: Int) -> Int;
+  fn vkCmdDrawIndirectCount(commandBuffer: Int, buffer: Int, offset: Int, countBuffer: Int, countBufferOffset: Int, maxDrawCount: Int32, stride: Int32);
+  fn vkCmdDrawIndexedIndirectCount(commandBuffer: Int, buffer: Int, offset: Int, countBuffer: Int, countBufferOffset: Int, maxDrawCount: Int32, stride: Int32);
+  fn vkCreateRenderPass2(device: Int, pCreateInfo: Int, pAllocator: Int, pRenderPass: Int) -> Int32;
+  fn vkCmdBeginRenderPass2(commandBuffer: Int, pRenderPassBegin: Int, pSubpassBeginInfo: Int);
+  fn vkCmdNextSubpass2(commandBuffer: Int, pSubpassBeginInfo: Int, pSubpassEndInfo: Int);
+  fn vkCmdEndRenderPass2(commandBuffer: Int, pSubpassEndInfo: Int);
+  fn vkGetPhysicalDeviceToolProperties(physicalDevice: Int, pToolCount: Int32, pToolProperties: Int) -> Int32;
+  fn vkCreatePrivateDataSlot(device: Int, pCreateInfo: Int, pAllocator: Int, pPrivateDataSlot: Int) -> Int32;
+  fn vkDestroyPrivateDataSlot(device: Int, privateDataSlot: Int, pAllocator: Int);
+  fn vkSetPrivateData(device: Int, objectType: Int, objectHandle: Int, privateDataSlot: Int, data: Int) -> Int32;
+  fn vkGetPrivateData(device: Int, objectType: Int, objectHandle: Int, privateDataSlot: Int, pData: Int);
+  fn vkCmdPipelineBarrier2(commandBuffer: Int, pDependencyInfo: Int);
+  fn vkCmdWriteTimestamp2(commandBuffer: Int, stage: Int, queryPool: Int, query: Int32);
+  fn vkQueueSubmit2(queue: Int, submitCount: Int32, pSubmits: Int, fence: Int) -> Int32;
+  fn vkCmdCopyBuffer2(commandBuffer: Int, pCopyBufferInfo: Int);
+  fn vkCmdCopyImage2(commandBuffer: Int, pCopyImageInfo: Int);
+  fn vkCmdCopyBufferToImage2(commandBuffer: Int, pCopyBufferToImageInfo: Int);
+  fn vkCmdCopyImageToBuffer2(commandBuffer: Int, pCopyImageToBufferInfo: Int);
+  fn vkGetDeviceBufferMemoryRequirements(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkGetDeviceImageMemoryRequirements(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkGetDeviceImageSparseMemoryRequirements(device: Int, pInfo: Int, pSparseMemoryRequirementCount: Int32, pSparseMemoryRequirements: Int);
+  fn vkCmdSetEvent2(commandBuffer: Int, event: Int, pDependencyInfo: Int);
+  fn vkCmdResetEvent2(commandBuffer: Int, event: Int, stageMask: Int);
+  fn vkCmdWaitEvents2(commandBuffer: Int, eventCount: Int32, pEvents: Int, pDependencyInfos: Int);
+  fn vkCmdBlitImage2(commandBuffer: Int, pBlitImageInfo: Int);
+  fn vkCmdResolveImage2(commandBuffer: Int, pResolveImageInfo: Int);
+  fn vkCmdBeginRendering(commandBuffer: Int, pRenderingInfo: Int);
+  fn vkCmdEndRendering(commandBuffer: Int);
+  fn vkCmdSetCullMode(commandBuffer: Int, cullMode: Int);
+  fn vkCmdSetFrontFace(commandBuffer: Int, frontFace: Int);
+  fn vkCmdSetPrimitiveTopology(commandBuffer: Int, primitiveTopology: Int);
+  fn vkCmdSetViewportWithCount(commandBuffer: Int, viewportCount: Int32, pViewports: Int);
+  fn vkCmdSetScissorWithCount(commandBuffer: Int, scissorCount: Int32, pScissors: Int);
+  fn vkCmdBindVertexBuffers2(commandBuffer: Int, firstBinding: Int32, bindingCount: Int32, pBuffers: Int, pOffsets: Int, pSizes: Int, pStrides: Int);
+  fn vkCmdSetDepthTestEnable(commandBuffer: Int, depthTestEnable: Int32);
+  fn vkCmdSetDepthWriteEnable(commandBuffer: Int, depthWriteEnable: Int32);
+  fn vkCmdSetDepthCompareOp(commandBuffer: Int, depthCompareOp: Int);
+  fn vkCmdSetDepthBoundsTestEnable(commandBuffer: Int, depthBoundsTestEnable: Int32);
+  fn vkCmdSetStencilTestEnable(commandBuffer: Int, stencilTestEnable: Int32);
+  fn vkCmdSetStencilOp(commandBuffer: Int, faceMask: Int, failOp: Int, passOp: Int, depthFailOp: Int, compareOp: Int);
+  fn vkCmdSetRasterizerDiscardEnable(commandBuffer: Int, rasterizerDiscardEnable: Int32);
+  fn vkCmdSetDepthBiasEnable(commandBuffer: Int, depthBiasEnable: Int32);
+  fn vkCmdSetPrimitiveRestartEnable(commandBuffer: Int, primitiveRestartEnable: Int32);
+  fn vkMapMemory2(device: Int, pMemoryMapInfo: Int, ppData: Int) -> Int32;
+  fn vkUnmapMemory2(device: Int, pMemoryUnmapInfo: Int) -> Int32;
+  fn vkGetDeviceImageSubresourceLayout(device: Int, pInfo: Int, pLayout: Int);
+  fn vkGetImageSubresourceLayout2(device: Int, image: Int, pSubresource: Int, pLayout: Int);
+  fn vkCopyMemoryToImage(device: Int, pCopyMemoryToImageInfo: Int) -> Int32;
+  fn vkCopyImageToMemory(device: Int, pCopyImageToMemoryInfo: Int) -> Int32;
+  fn vkCopyImageToImage(device: Int, pCopyImageToImageInfo: Int) -> Int32;
+  fn vkTransitionImageLayout(device: Int, transitionCount: Int32, pTransitions: Int) -> Int32;
+  fn vkCmdPushDescriptorSet(commandBuffer: Int, pipelineBindPoint: Int, layout: Int, set: Int32, descriptorWriteCount: Int32, pDescriptorWrites: Int);
+  fn vkCmdPushDescriptorSetWithTemplate(commandBuffer: Int, descriptorUpdateTemplate: Int, layout: Int, set: Int32, pData: Int);
+  fn vkCmdBindDescriptorSets2(commandBuffer: Int, pBindDescriptorSetsInfo: Int);
+  fn vkCmdPushConstants2(commandBuffer: Int, pPushConstantsInfo: Int);
+  fn vkCmdPushDescriptorSet2(commandBuffer: Int, pPushDescriptorSetInfo: Int);
+  fn vkCmdPushDescriptorSetWithTemplate2(commandBuffer: Int, pPushDescriptorSetWithTemplateInfo: Int);
+  fn vkCmdSetLineStipple(commandBuffer: Int, lineStippleFactor: Int32, lineStipplePattern: Int);
+  fn vkCmdBindIndexBuffer2(commandBuffer: Int, buffer: Int, offset: Int, size: Int, indexType: Int);
+  fn vkGetRenderingAreaGranularity(device: Int, pRenderingAreaInfo: Int, pGranularity: Int);
+  fn vkCmdSetRenderingAttachmentLocations(commandBuffer: Int, pLocationInfo: Int);
+  fn vkCmdSetRenderingInputAttachmentIndices(commandBuffer: Int, pInputAttachmentIndexInfo: Int);
+  fn vkDestroySurfaceKHR(instance: Int, surface: Int, pAllocator: Int);
+  fn vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice: Int, queueFamilyIndex: Int32, surface: Int, pSupported: Int32) -> Int32;
+  fn vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice: Int, surface: Int, pSurfaceCapabilities: Int) -> Int32;
+  fn vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice: Int, surface: Int, pSurfaceFormatCount: Int32, pSurfaceFormats: Int) -> Int32;
+  fn vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice: Int, surface: Int, pPresentModeCount: Int32, pPresentModes: Int) -> Int32;
+  fn vkCreateSwapchainKHR(device: Int, pCreateInfo: Int, pAllocator: Int, pSwapchain: Int) -> Int32;
+  fn vkDestroySwapchainKHR(device: Int, swapchain: Int, pAllocator: Int);
+  fn vkGetSwapchainImagesKHR(device: Int, swapchain: Int, pSwapchainImageCount: Int32, pSwapchainImages: Int) -> Int32;
+  fn vkAcquireNextImageKHR(device: Int, swapchain: Int, timeout: Int, semaphore: Int, fence: Int, pImageIndex: Int32) -> Int32;
+  fn vkQueuePresentKHR(queue: Int, pPresentInfo: Int) -> Int32;
+  fn vkGetDeviceGroupPresentCapabilitiesKHR(device: Int, pDeviceGroupPresentCapabilities: Int) -> Int32;
+  fn vkGetDeviceGroupSurfacePresentModesKHR(device: Int, surface: Int, pModes: Int) -> Int32;
+  fn vkGetPhysicalDevicePresentRectanglesKHR(physicalDevice: Int, surface: Int, pRectCount: Int32, pRects: Int) -> Int32;
+  fn vkAcquireNextImage2KHR(device: Int, pAcquireInfo: Int, pImageIndex: Int32) -> Int32;
+  fn vkGetPhysicalDeviceDisplayPropertiesKHR(physicalDevice: Int, pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkGetPhysicalDeviceDisplayPlanePropertiesKHR(physicalDevice: Int, pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkGetDisplayPlaneSupportedDisplaysKHR(physicalDevice: Int, planeIndex: Int32, pDisplayCount: Int32, pDisplays: Int) -> Int32;
+  fn vkGetDisplayModePropertiesKHR(physicalDevice: Int, display: Int, pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkCreateDisplayModeKHR(physicalDevice: Int, display: Int, pCreateInfo: Int, pAllocator: Int, pMode: Int) -> Int32;
+  fn vkGetDisplayPlaneCapabilitiesKHR(physicalDevice: Int, mode: Int, planeIndex: Int32, pCapabilities: Int) -> Int32;
+  fn vkCreateDisplayPlaneSurfaceKHR(instance: Int, pCreateInfo: Int, pAllocator: Int, pSurface: Int) -> Int32;
+  fn vkCreateSharedSwapchainsKHR(device: Int, swapchainCount: Int32, pCreateInfos: Int, pAllocator: Int, pSwapchains: Int) -> Int32;
+  fn vkGetPhysicalDeviceVideoCapabilitiesKHR(physicalDevice: Int, pVideoProfile: Int, pCapabilities: Int) -> Int32;
+  fn vkGetPhysicalDeviceVideoFormatPropertiesKHR(physicalDevice: Int, pVideoFormatInfo: Int, pVideoFormatPropertyCount: Int32, pVideoFormatProperties: Int) -> Int32;
+  fn vkCreateVideoSessionKHR(device: Int, pCreateInfo: Int, pAllocator: Int, pVideoSession: Int) -> Int32;
+  fn vkDestroyVideoSessionKHR(device: Int, videoSession: Int, pAllocator: Int);
+  fn vkGetVideoSessionMemoryRequirementsKHR(device: Int, videoSession: Int, pMemoryRequirementsCount: Int32, pMemoryRequirements: Int) -> Int32;
+  fn vkBindVideoSessionMemoryKHR(device: Int, videoSession: Int, bindSessionMemoryInfoCount: Int32, pBindSessionMemoryInfos: Int) -> Int32;
+  fn vkCreateVideoSessionParametersKHR(device: Int, pCreateInfo: Int, pAllocator: Int, pVideoSessionParameters: Int) -> Int32;
+  fn vkUpdateVideoSessionParametersKHR(device: Int, videoSessionParameters: Int, pUpdateInfo: Int) -> Int32;
+  fn vkDestroyVideoSessionParametersKHR(device: Int, videoSessionParameters: Int, pAllocator: Int);
+  fn vkCmdBeginVideoCodingKHR(commandBuffer: Int, pBeginInfo: Int);
+  fn vkCmdEndVideoCodingKHR(commandBuffer: Int, pEndCodingInfo: Int);
+  fn vkCmdControlVideoCodingKHR(commandBuffer: Int, pCodingControlInfo: Int);
+  fn vkCmdDecodeVideoKHR(commandBuffer: Int, pDecodeInfo: Int);
+  fn vkCmdBeginRenderingKHR(commandBuffer: Int, pRenderingInfo: Int);
+  fn vkCmdEndRenderingKHR(commandBuffer: Int);
+  fn vkGetPhysicalDeviceFeatures2KHR(physicalDevice: Int, pFeatures: Int);
+  fn vkGetPhysicalDeviceProperties2KHR(physicalDevice: Int, pProperties: Int);
+  fn vkGetPhysicalDeviceFormatProperties2KHR(physicalDevice: Int, format: Int, pFormatProperties: Int);
+  fn vkGetPhysicalDeviceImageFormatProperties2KHR(physicalDevice: Int, pImageFormatInfo: Int, pImageFormatProperties: Int) -> Int32;
+  fn vkGetPhysicalDeviceQueueFamilyProperties2KHR(physicalDevice: Int, pQueueFamilyPropertyCount: Int32, pQueueFamilyProperties: Int);
+  fn vkGetPhysicalDeviceMemoryProperties2KHR(physicalDevice: Int, pMemoryProperties: Int);
+  fn vkGetPhysicalDeviceSparseImageFormatProperties2KHR(physicalDevice: Int, pFormatInfo: Int, pPropertyCount: Int32, pProperties: Int);
+  fn vkGetDeviceGroupPeerMemoryFeaturesKHR(device: Int, heapIndex: Int32, localDeviceIndex: Int32, remoteDeviceIndex: Int32, pPeerMemoryFeatures: Int);
+  fn vkCmdSetDeviceMaskKHR(commandBuffer: Int, deviceMask: Int32);
+  fn vkCmdDispatchBaseKHR(commandBuffer: Int, baseGroupX: Int32, baseGroupY: Int32, baseGroupZ: Int32, groupCountX: Int32, groupCountY: Int32, groupCountZ: Int32);
+  fn vkTrimCommandPoolKHR(device: Int, commandPool: Int, flags: Int);
+  fn vkEnumeratePhysicalDeviceGroupsKHR(instance: Int, pPhysicalDeviceGroupCount: Int32, pPhysicalDeviceGroupProperties: Int) -> Int32;
+  fn vkGetPhysicalDeviceExternalBufferPropertiesKHR(physicalDevice: Int, pExternalBufferInfo: Int, pExternalBufferProperties: Int);
+  fn vkGetMemoryFdKHR(device: Int, pGetFdInfo: Int, pFd: Int) -> Int32;
+  fn vkGetMemoryFdPropertiesKHR(device: Int, handleType: Int, fd: Int, pMemoryFdProperties: Int) -> Int32;
+  fn vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(physicalDevice: Int, pExternalSemaphoreInfo: Int, pExternalSemaphoreProperties: Int);
+  fn vkImportSemaphoreFdKHR(device: Int, pImportSemaphoreFdInfo: Int) -> Int32;
+  fn vkGetSemaphoreFdKHR(device: Int, pGetFdInfo: Int, pFd: Int) -> Int32;
+  fn vkCmdPushDescriptorSetKHR(commandBuffer: Int, pipelineBindPoint: Int, layout: Int, set: Int32, descriptorWriteCount: Int32, pDescriptorWrites: Int);
+  fn vkCmdPushDescriptorSetWithTemplateKHR(commandBuffer: Int, descriptorUpdateTemplate: Int, layout: Int, set: Int32, pData: Int);
+  fn vkCreateDescriptorUpdateTemplateKHR(device: Int, pCreateInfo: Int, pAllocator: Int, pDescriptorUpdateTemplate: Int) -> Int32;
+  fn vkDestroyDescriptorUpdateTemplateKHR(device: Int, descriptorUpdateTemplate: Int, pAllocator: Int);
+  fn vkUpdateDescriptorSetWithTemplateKHR(device: Int, descriptorSet: Int, descriptorUpdateTemplate: Int, pData: Int);
+  fn vkCreateRenderPass2KHR(device: Int, pCreateInfo: Int, pAllocator: Int, pRenderPass: Int) -> Int32;
+  fn vkCmdBeginRenderPass2KHR(commandBuffer: Int, pRenderPassBegin: Int, pSubpassBeginInfo: Int);
+  fn vkCmdNextSubpass2KHR(commandBuffer: Int, pSubpassBeginInfo: Int, pSubpassEndInfo: Int);
+  fn vkCmdEndRenderPass2KHR(commandBuffer: Int, pSubpassEndInfo: Int);
   fn vkGetSwapchainStatusKHR(device: Int, swapchain: Int) -> Int32;
-}
-
-// =========================================================================
-// Surface (KHR)
-// =========================================================================
-extern "C" {
-  fn vkDestroySurfaceKHR(instance: Int, surface: Int, allocator: Int);
-}
-
-// =========================================================================
-// Debug Utils (EXT)
-// =========================================================================
-extern "C" {
-  fn vkCreateDebugUtilsMessengerEXT(instance: Int, create_info: Int, allocator: Int, messenger: Int) -> Int32;
-  fn vkDestroyDebugUtilsMessengerEXT(instance: Int, messenger: Int, allocator: Int);
-  fn vkSetDebugUtilsObjectNameEXT(device: Int, name_info: Int) -> Int32;
-  fn vkCmdBeginDebugUtilsLabelEXT(command_buffer: Int, label_info: Int);
-  fn vkCmdEndDebugUtilsLabelEXT(command_buffer: Int);
-  fn vkCmdInsertDebugUtilsLabelEXT(command_buffer: Int, label_info: Int);
-}
-
-// =========================================================================
-// Dynamic State (VK_EXT_extended_dynamic_state / Vulkan 1.3 core)
-// =========================================================================
-extern "C" {
-  fn vkCmdSetCullMode(command_buffer: Int, cull_mode: Int32);
-  fn vkCmdSetFrontFace(command_buffer: Int, front_face: Int32);
-  fn vkCmdSetPrimitiveTopology(command_buffer: Int, topology: Int32);
-  fn vkCmdSetViewportWithCount(command_buffer: Int, count: Int32, viewports: Int);
-  fn vkCmdSetScissorWithCount(command_buffer: Int, count: Int32, scissors: Int);
-  fn vkCmdSetDepthTestEnable(command_buffer: Int, enable: Int32);
-  fn vkCmdSetDepthWriteEnable(command_buffer: Int, enable: Int32);
-  fn vkCmdSetDepthCompareOp(command_buffer: Int, compare_op: Int32);
-  fn vkCmdSetStencilTestEnable(command_buffer: Int, enable: Int32);
-  fn vkCmdSetStencilOp(command_buffer: Int, face_mask: Int32, fail_op: Int32, pass_op: Int32, depth_fail_op: Int32, compare_op: Int32);
-  fn vkCmdSetRasterizerDiscardEnable(command_buffer: Int, enable: Int32);
-  fn vkCmdSetDepthBiasEnable(command_buffer: Int, enable: Int32);
-  fn vkCmdSetPrimitiveRestartEnable(command_buffer: Int, enable: Int32);
-}
-
-// =========================================================================
-// Image Layout Transitions (VK_KHR_maintenance5)
-// =========================================================================
-extern "C" {
-  fn vkTransitionImageLayout(device: Int, transition_count: Int32, transitions: Int) -> Int32;
-  fn vkCopyMemoryToImage(device: Int, copy_info: Int) -> Int32;
-  fn vkCopyImageToMemory(device: Int, copy_info: Int) -> Int32;
+  fn vkGetPhysicalDeviceExternalFencePropertiesKHR(physicalDevice: Int, pExternalFenceInfo: Int, pExternalFenceProperties: Int);
+  fn vkImportFenceFdKHR(device: Int, pImportFenceFdInfo: Int) -> Int32;
+  fn vkGetFenceFdKHR(device: Int, pGetFdInfo: Int, pFd: Int) -> Int32;
+  fn vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR(physicalDevice: Int, queueFamilyIndex: Int32, pCounterCount: Int32, pCounters: Int, pCounterDescriptions: Int) -> Int32;
+  fn vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR(physicalDevice: Int, pPerformanceQueryCreateInfo: Int, pNumPasses: Int32);
+  fn vkAcquireProfilingLockKHR(device: Int, pInfo: Int) -> Int32;
+  fn vkReleaseProfilingLockKHR(device: Int);
+  fn vkGetPhysicalDeviceSurfaceCapabilities2KHR(physicalDevice: Int, pSurfaceInfo: Int, pSurfaceCapabilities: Int) -> Int32;
+  fn vkGetPhysicalDeviceSurfaceFormats2KHR(physicalDevice: Int, pSurfaceInfo: Int, pSurfaceFormatCount: Int32, pSurfaceFormats: Int) -> Int32;
+  fn vkGetPhysicalDeviceDisplayProperties2KHR(physicalDevice: Int, pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkGetPhysicalDeviceDisplayPlaneProperties2KHR(physicalDevice: Int, pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkGetDisplayModeProperties2KHR(physicalDevice: Int, display: Int, pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkGetDisplayPlaneCapabilities2KHR(physicalDevice: Int, pDisplayPlaneInfo: Int, pCapabilities: Int) -> Int32;
+  fn vkGetImageMemoryRequirements2KHR(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkGetBufferMemoryRequirements2KHR(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkGetImageSparseMemoryRequirements2KHR(device: Int, pInfo: Int, pSparseMemoryRequirementCount: Int32, pSparseMemoryRequirements: Int);
+  fn vkCreateSamplerYcbcrConversionKHR(device: Int, pCreateInfo: Int, pAllocator: Int, pYcbcrConversion: Int) -> Int32;
+  fn vkDestroySamplerYcbcrConversionKHR(device: Int, ycbcrConversion: Int, pAllocator: Int);
+  fn vkBindBufferMemory2KHR(device: Int, bindInfoCount: Int32, pBindInfos: Int) -> Int32;
+  fn vkBindImageMemory2KHR(device: Int, bindInfoCount: Int32, pBindInfos: Int) -> Int32;
+  fn vkGetDescriptorSetLayoutSupportKHR(device: Int, pCreateInfo: Int, pSupport: Int);
+  fn vkCmdDrawIndirectCountKHR(commandBuffer: Int, buffer: Int, offset: Int, countBuffer: Int, countBufferOffset: Int, maxDrawCount: Int32, stride: Int32);
+  fn vkCmdDrawIndexedIndirectCountKHR(commandBuffer: Int, buffer: Int, offset: Int, countBuffer: Int, countBufferOffset: Int, maxDrawCount: Int32, stride: Int32);
+  fn vkGetSemaphoreCounterValueKHR(device: Int, semaphore: Int, pValue: Int) -> Int32;
+  fn vkWaitSemaphoresKHR(device: Int, pWaitInfo: Int, timeout: Int) -> Int32;
+  fn vkSignalSemaphoreKHR(device: Int, pSignalInfo: Int) -> Int32;
+  fn vkGetPhysicalDeviceFragmentShadingRatesKHR(physicalDevice: Int, pFragmentShadingRateCount: Int32, pFragmentShadingRates: Int) -> Int32;
+  fn vkCmdSetFragmentShadingRateKHR(commandBuffer: Int, pFragmentSize: Int, combinerOps: Int);
+  fn vkCmdSetRenderingAttachmentLocationsKHR(commandBuffer: Int, pLocationInfo: Int);
+  fn vkCmdSetRenderingInputAttachmentIndicesKHR(commandBuffer: Int, pInputAttachmentIndexInfo: Int);
+  fn vkWaitForPresentKHR(device: Int, swapchain: Int, presentId: Int, timeout: Int) -> Int32;
+  fn vkGetBufferDeviceAddressKHR(device: Int, pInfo: Int) -> Int;
+  fn vkGetBufferOpaqueCaptureAddressKHR(device: Int, pInfo: Int) -> Int;
+  fn vkGetDeviceMemoryOpaqueCaptureAddressKHR(device: Int, pInfo: Int) -> Int;
+  fn vkCreateDeferredOperationKHR(device: Int, pAllocator: Int, pDeferredOperation: Int) -> Int32;
+  fn vkDestroyDeferredOperationKHR(device: Int, operation: Int, pAllocator: Int);
+  fn vkGetDeferredOperationMaxConcurrencyKHR(device: Int, operation: Int) -> Int32;
+  fn vkGetDeferredOperationResultKHR(device: Int, operation: Int) -> Int32;
+  fn vkDeferredOperationJoinKHR(device: Int, operation: Int) -> Int32;
+  fn vkGetPipelineExecutablePropertiesKHR(device: Int, pPipelineInfo: Int, pExecutableCount: Int32, pProperties: Int) -> Int32;
+  fn vkGetPipelineExecutableStatisticsKHR(device: Int, pExecutableInfo: Int, pStatisticCount: Int32, pStatistics: Int) -> Int32;
+  fn vkGetPipelineExecutableInternalRepresentationsKHR(device: Int, pExecutableInfo: Int, pInternalRepresentationCount: Int32, pInternalRepresentations: Int) -> Int32;
+  fn vkMapMemory2KHR(device: Int, pMemoryMapInfo: Int, ppData: Int) -> Int32;
+  fn vkUnmapMemory2KHR(device: Int, pMemoryUnmapInfo: Int) -> Int32;
+  fn vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR(physicalDevice: Int, pQualityLevelInfo: Int, pQualityLevelProperties: Int) -> Int32;
+  fn vkGetEncodedVideoSessionParametersKHR(device: Int, pVideoSessionParametersInfo: Int, pFeedbackInfo: Int, pDataSize: Int, pData: Int) -> Int32;
+  fn vkCmdEncodeVideoKHR(commandBuffer: Int, pEncodeInfo: Int);
+  fn vkCmdSetEvent2KHR(commandBuffer: Int, event: Int, pDependencyInfo: Int);
+  fn vkCmdResetEvent2KHR(commandBuffer: Int, event: Int, stageMask: Int);
+  fn vkCmdWaitEvents2KHR(commandBuffer: Int, eventCount: Int32, pEvents: Int, pDependencyInfos: Int);
+  fn vkCmdPipelineBarrier2KHR(commandBuffer: Int, pDependencyInfo: Int);
+  fn vkCmdWriteTimestamp2KHR(commandBuffer: Int, stage: Int, queryPool: Int, query: Int32);
+  fn vkQueueSubmit2KHR(queue: Int, submitCount: Int32, pSubmits: Int, fence: Int) -> Int32;
+  fn vkCmdBindIndexBuffer3KHR(commandBuffer: Int, pInfo: Int);
+  fn vkCmdBindVertexBuffers3KHR(commandBuffer: Int, firstBinding: Int32, bindingCount: Int32, pBindingInfos: Int);
+  fn vkCmdDrawIndirect2KHR(commandBuffer: Int, pInfo: Int);
+  fn vkCmdDrawIndexedIndirect2KHR(commandBuffer: Int, pInfo: Int);
+  fn vkCmdDispatchIndirect2KHR(commandBuffer: Int, pInfo: Int);
+  fn vkCmdCopyMemoryKHR(commandBuffer: Int, pCopyMemoryInfo: Int);
+  fn vkCmdCopyMemoryToImageKHR(commandBuffer: Int, pCopyMemoryInfo: Int);
+  fn vkCmdCopyImageToMemoryKHR(commandBuffer: Int, pCopyMemoryInfo: Int);
+  fn vkCmdUpdateMemoryKHR(commandBuffer: Int, pDstRange: Int, dstFlags: Int, dataSize: Int, pData: Int);
+  fn vkCmdFillMemoryKHR(commandBuffer: Int, pDstRange: Int, dstFlags: Int, data: Int32);
+  fn vkCmdCopyQueryPoolResultsToMemoryKHR(commandBuffer: Int, queryPool: Int, firstQuery: Int32, queryCount: Int32, pDstRange: Int, dstFlags: Int, queryResultFlags: Int);
+  fn vkCmdDrawIndirectCount2KHR(commandBuffer: Int, pInfo: Int);
+  fn vkCmdDrawIndexedIndirectCount2KHR(commandBuffer: Int, pInfo: Int);
+  fn vkCmdBeginConditionalRendering2EXT(commandBuffer: Int, pConditionalRenderingBegin: Int);
+  fn vkCmdBindTransformFeedbackBuffers2EXT(commandBuffer: Int, firstBinding: Int32, bindingCount: Int32, pBindingInfos: Int);
+  fn vkCmdBeginTransformFeedback2EXT(commandBuffer: Int, firstCounterRange: Int32, counterRangeCount: Int32, pCounterInfos: Int);
+  fn vkCmdEndTransformFeedback2EXT(commandBuffer: Int, firstCounterRange: Int32, counterRangeCount: Int32, pCounterInfos: Int);
+  fn vkCmdDrawIndirectByteCount2EXT(commandBuffer: Int, instanceCount: Int32, firstInstance: Int32, pCounterInfo: Int, counterOffset: Int32, vertexStride: Int32);
+  fn vkCmdDrawMeshTasksIndirect2EXT(commandBuffer: Int, pInfo: Int);
+  fn vkCmdDrawMeshTasksIndirectCount2EXT(commandBuffer: Int, pInfo: Int);
+  fn vkCmdWriteMarkerToMemoryAMD(commandBuffer: Int, pInfo: Int);
+  fn vkCreateAccelerationStructure2KHR(device: Int, pCreateInfo: Int, pAllocator: Int, pAccelerationStructure: Int) -> Int32;
+  fn vkCmdCopyBuffer2KHR(commandBuffer: Int, pCopyBufferInfo: Int);
+  fn vkCmdCopyImage2KHR(commandBuffer: Int, pCopyImageInfo: Int);
+  fn vkCmdCopyBufferToImage2KHR(commandBuffer: Int, pCopyBufferToImageInfo: Int);
+  fn vkCmdCopyImageToBuffer2KHR(commandBuffer: Int, pCopyImageToBufferInfo: Int);
+  fn vkCmdBlitImage2KHR(commandBuffer: Int, pBlitImageInfo: Int);
+  fn vkCmdResolveImage2KHR(commandBuffer: Int, pResolveImageInfo: Int);
+  fn vkCmdTraceRaysIndirect2KHR(commandBuffer: Int, indirectDeviceAddress: Int);
+  fn vkGetDeviceBufferMemoryRequirementsKHR(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkGetDeviceImageMemoryRequirementsKHR(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkGetDeviceImageSparseMemoryRequirementsKHR(device: Int, pInfo: Int, pSparseMemoryRequirementCount: Int32, pSparseMemoryRequirements: Int);
+  fn vkCmdBindIndexBuffer2KHR(commandBuffer: Int, buffer: Int, offset: Int, size: Int, indexType: Int);
+  fn vkGetRenderingAreaGranularityKHR(device: Int, pRenderingAreaInfo: Int, pGranularity: Int);
+  fn vkGetDeviceImageSubresourceLayoutKHR(device: Int, pInfo: Int, pLayout: Int);
+  fn vkGetImageSubresourceLayout2KHR(device: Int, image: Int, pSubresource: Int, pLayout: Int);
+  fn vkWaitForPresent2KHR(device: Int, swapchain: Int, pPresentWait2Info: Int) -> Int32;
+  fn vkCreatePipelineBinariesKHR(device: Int, pCreateInfo: Int, pAllocator: Int, pBinaries: Int) -> Int32;
+  fn vkDestroyPipelineBinaryKHR(device: Int, pipelineBinary: Int, pAllocator: Int);
+  fn vkGetPipelineKeyKHR(device: Int, pPipelineCreateInfo: Int, pPipelineKey: Int) -> Int32;
+  fn vkGetPipelineBinaryDataKHR(device: Int, pInfo: Int, pPipelineBinaryKey: Int, pPipelineBinaryDataSize: Int, pPipelineBinaryData: Int) -> Int32;
+  fn vkReleaseCapturedPipelineDataKHR(device: Int, pInfo: Int, pAllocator: Int) -> Int32;
+  fn vkReleaseSwapchainImagesKHR(device: Int, pReleaseInfo: Int) -> Int32;
+  fn vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR(physicalDevice: Int, pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkCmdSetLineStippleKHR(commandBuffer: Int, lineStippleFactor: Int32, lineStipplePattern: Int);
+  fn vkGetPhysicalDeviceCalibrateableTimeDomainsKHR(physicalDevice: Int, pTimeDomainCount: Int32, pTimeDomains: Int) -> Int32;
+  fn vkGetCalibratedTimestampsKHR(device: Int, timestampCount: Int32, pTimestampInfos: Int, pTimestamps: Int, pMaxDeviation: Int) -> Int32;
+  fn vkCmdBindDescriptorSets2KHR(commandBuffer: Int, pBindDescriptorSetsInfo: Int);
+  fn vkCmdPushConstants2KHR(commandBuffer: Int, pPushConstantsInfo: Int);
+  fn vkCmdPushDescriptorSet2KHR(commandBuffer: Int, pPushDescriptorSetInfo: Int);
+  fn vkCmdPushDescriptorSetWithTemplate2KHR(commandBuffer: Int, pPushDescriptorSetWithTemplateInfo: Int);
+  fn vkCmdSetDescriptorBufferOffsets2EXT(commandBuffer: Int, pSetDescriptorBufferOffsetsInfo: Int);
+  fn vkCmdBindDescriptorBufferEmbeddedSamplers2EXT(commandBuffer: Int, pBindDescriptorBufferEmbeddedSamplersInfo: Int);
+  fn vkCmdCopyMemoryIndirectKHR(commandBuffer: Int, pCopyMemoryIndirectInfo: Int);
+  fn vkCmdCopyMemoryToImageIndirectKHR(commandBuffer: Int, pCopyMemoryToImageIndirectInfo: Int);
+  fn vkGetDeviceFaultReportsKHR(device: Int, timeout: Int, pFaultCounts: Int32, pFaultInfo: Int) -> Int32;
+  fn vkGetDeviceFaultDebugInfoKHR(device: Int, pDebugInfo: Int) -> Int32;
+  fn vkCmdEndRendering2KHR(commandBuffer: Int, pRenderingEndInfo: Int);
+  fn vkCreateDebugReportCallbackEXT(instance: Int, pCreateInfo: Int, pAllocator: Int, pCallback: Int) -> Int32;
+  fn vkDestroyDebugReportCallbackEXT(instance: Int, callback: Int, pAllocator: Int);
+  fn vkDebugReportMessageEXT(instance: Int, flags: Int, objectType: Int, object: Int, location: Int, messageCode: Int32, pLayerPrefix: Int, pMessage: Int);
+  fn vkDebugMarkerSetObjectTagEXT(device: Int, pTagInfo: Int) -> Int32;
+  fn vkDebugMarkerSetObjectNameEXT(device: Int, pNameInfo: Int) -> Int32;
+  fn vkCmdDebugMarkerBeginEXT(commandBuffer: Int, pMarkerInfo: Int);
+  fn vkCmdDebugMarkerEndEXT(commandBuffer: Int);
+  fn vkCmdDebugMarkerInsertEXT(commandBuffer: Int, pMarkerInfo: Int);
+  fn vkCmdBindTransformFeedbackBuffersEXT(commandBuffer: Int, firstBinding: Int32, bindingCount: Int32, pBuffers: Int, pOffsets: Int, pSizes: Int);
+  fn vkCmdBeginTransformFeedbackEXT(commandBuffer: Int, firstCounterBuffer: Int32, counterBufferCount: Int32, pCounterBuffers: Int, pCounterBufferOffsets: Int);
+  fn vkCmdEndTransformFeedbackEXT(commandBuffer: Int, firstCounterBuffer: Int32, counterBufferCount: Int32, pCounterBuffers: Int, pCounterBufferOffsets: Int);
+  fn vkCmdBeginQueryIndexedEXT(commandBuffer: Int, queryPool: Int, query: Int32, flags: Int, index: Int32);
+  fn vkCmdEndQueryIndexedEXT(commandBuffer: Int, queryPool: Int, query: Int32, index: Int32);
+  fn vkCmdDrawIndirectByteCountEXT(commandBuffer: Int, instanceCount: Int32, firstInstance: Int32, counterBuffer: Int, counterBufferOffset: Int, counterOffset: Int32, vertexStride: Int32);
+  fn vkCreateCuModuleNVX(device: Int, pCreateInfo: Int, pAllocator: Int, pModule: Int) -> Int32;
+  fn vkCreateCuFunctionNVX(device: Int, pCreateInfo: Int, pAllocator: Int, pFunction: Int) -> Int32;
+  fn vkDestroyCuModuleNVX(device: Int, vk_module: Int, pAllocator: Int);
+  fn vkDestroyCuFunctionNVX(device: Int, function: Int, pAllocator: Int);
+  fn vkCmdCuLaunchKernelNVX(commandBuffer: Int, pLaunchInfo: Int);
+  fn vkGetImageViewHandleNVX(device: Int, pInfo: Int) -> Int32;
+  fn vkGetImageViewHandle64NVX(device: Int, pInfo: Int) -> Int;
+  fn vkGetImageViewAddressNVX(device: Int, imageView: Int, pProperties: Int) -> Int32;
+  fn vkGetDeviceCombinedImageSamplerIndexNVX(device: Int, imageViewIndex: Int, samplerIndex: Int) -> Int;
+  fn vkCmdDrawIndirectCountAMD(commandBuffer: Int, buffer: Int, offset: Int, countBuffer: Int, countBufferOffset: Int, maxDrawCount: Int32, stride: Int32);
+  fn vkCmdDrawIndexedIndirectCountAMD(commandBuffer: Int, buffer: Int, offset: Int, countBuffer: Int, countBufferOffset: Int, maxDrawCount: Int32, stride: Int32);
+  fn vkGetShaderInfoAMD(device: Int, pipeline: Int, shaderStage: Int, infoType: Int, pInfoSize: Int, pInfo: Int) -> Int32;
+  fn vkGetPhysicalDeviceExternalImageFormatPropertiesNV(physicalDevice: Int, format: Int, vk_type: Int, tiling: Int, usage: Int, flags: Int, externalHandleType: Int, pExternalImageFormatProperties: Int) -> Int32;
+  fn vkCmdBeginConditionalRenderingEXT(commandBuffer: Int, pConditionalRenderingBegin: Int);
+  fn vkCmdEndConditionalRenderingEXT(commandBuffer: Int);
+  fn vkCmdSetViewportWScalingNV(commandBuffer: Int, firstViewport: Int32, viewportCount: Int32, pViewportWScalings: Int);
+  fn vkReleaseDisplayEXT(physicalDevice: Int, display: Int) -> Int32;
+  fn vkGetPhysicalDeviceSurfaceCapabilities2EXT(physicalDevice: Int, surface: Int, pSurfaceCapabilities: Int) -> Int32;
+  fn vkDisplayPowerControlEXT(device: Int, display: Int, pDisplayPowerInfo: Int) -> Int32;
+  fn vkRegisterDeviceEventEXT(device: Int, pDeviceEventInfo: Int, pAllocator: Int, pFence: Int) -> Int32;
+  fn vkRegisterDisplayEventEXT(device: Int, display: Int, pDisplayEventInfo: Int, pAllocator: Int, pFence: Int) -> Int32;
+  fn vkGetSwapchainCounterEXT(device: Int, swapchain: Int, counter: Int, pCounterValue: Int) -> Int32;
+  fn vkGetRefreshCycleDurationGOOGLE(device: Int, swapchain: Int, pDisplayTimingProperties: Int) -> Int32;
+  fn vkGetPastPresentationTimingGOOGLE(device: Int, swapchain: Int, pPresentationTimingCount: Int32, pPresentationTimings: Int) -> Int32;
+  fn vkCmdSetDiscardRectangleEXT(commandBuffer: Int, firstDiscardRectangle: Int32, discardRectangleCount: Int32, pDiscardRectangles: Int);
+  fn vkCmdSetDiscardRectangleEnableEXT(commandBuffer: Int, discardRectangleEnable: Int32);
+  fn vkCmdSetDiscardRectangleModeEXT(commandBuffer: Int, discardRectangleMode: Int);
+  fn vkSetHdrMetadataEXT(device: Int, swapchainCount: Int32, pSwapchains: Int, pMetadata: Int);
+  fn vkSetDebugUtilsObjectNameEXT(device: Int, pNameInfo: Int) -> Int32;
+  fn vkSetDebugUtilsObjectTagEXT(device: Int, pTagInfo: Int) -> Int32;
+  fn vkQueueBeginDebugUtilsLabelEXT(queue: Int, pLabelInfo: Int);
+  fn vkQueueEndDebugUtilsLabelEXT(queue: Int);
+  fn vkQueueInsertDebugUtilsLabelEXT(queue: Int, pLabelInfo: Int);
+  fn vkCmdBeginDebugUtilsLabelEXT(commandBuffer: Int, pLabelInfo: Int);
+  fn vkCmdEndDebugUtilsLabelEXT(commandBuffer: Int);
+  fn vkCmdInsertDebugUtilsLabelEXT(commandBuffer: Int, pLabelInfo: Int);
+  fn vkCreateDebugUtilsMessengerEXT(instance: Int, pCreateInfo: Int, pAllocator: Int, pMessenger: Int) -> Int32;
+  fn vkDestroyDebugUtilsMessengerEXT(instance: Int, messenger: Int, pAllocator: Int);
+  fn vkSubmitDebugUtilsMessageEXT(instance: Int, messageSeverity: Int, messageTypes: Int, pCallbackData: Int);
+  fn vkWriteSamplerDescriptorsEXT(device: Int, samplerCount: Int32, pSamplers: Int, pDescriptors: Int) -> Int32;
+  fn vkWriteResourceDescriptorsEXT(device: Int, resourceCount: Int32, pResources: Int, pDescriptors: Int) -> Int32;
+  fn vkCmdBindSamplerHeapEXT(commandBuffer: Int, pBindInfo: Int);
+  fn vkCmdBindResourceHeapEXT(commandBuffer: Int, pBindInfo: Int);
+  fn vkCmdPushDataEXT(commandBuffer: Int, pPushDataInfo: Int);
+  fn vkGetImageOpaqueCaptureDataEXT(device: Int, imageCount: Int32, pImages: Int, pDatas: Int) -> Int32;
+  fn vkGetPhysicalDeviceDescriptorSizeEXT(physicalDevice: Int, descriptorType: Int) -> Int;
+  fn vkRegisterCustomBorderColorEXT(device: Int, pBorderColor: Int, requestIndex: Int32, pIndex: Int32) -> Int32;
+  fn vkUnregisterCustomBorderColorEXT(device: Int, index: Int32);
+  fn vkGetTensorOpaqueCaptureDataARM(device: Int, tensorCount: Int32, pTensors: Int, pDatas: Int) -> Int32;
+  fn vkCmdSetSampleLocationsEXT(commandBuffer: Int, pSampleLocationsInfo: Int);
+  fn vkGetPhysicalDeviceMultisamplePropertiesEXT(physicalDevice: Int, samples: Int, pMultisampleProperties: Int);
+  fn vkGetImageDrmFormatModifierPropertiesEXT(device: Int, image: Int, pProperties: Int) -> Int32;
+  fn vkCreateValidationCacheEXT(device: Int, pCreateInfo: Int, pAllocator: Int, pValidationCache: Int) -> Int32;
+  fn vkDestroyValidationCacheEXT(device: Int, validationCache: Int, pAllocator: Int);
+  fn vkMergeValidationCachesEXT(device: Int, dstCache: Int, srcCacheCount: Int32, pSrcCaches: Int) -> Int32;
+  fn vkGetValidationCacheDataEXT(device: Int, validationCache: Int, pDataSize: Int, pData: Int) -> Int32;
+  fn vkCmdBindShadingRateImageNV(commandBuffer: Int, imageView: Int, imageLayout: Int);
+  fn vkCmdSetViewportShadingRatePaletteNV(commandBuffer: Int, firstViewport: Int32, viewportCount: Int32, pShadingRatePalettes: Int);
+  fn vkCmdSetCoarseSampleOrderNV(commandBuffer: Int, sampleOrderType: Int, customSampleOrderCount: Int32, pCustomSampleOrders: Int);
+  fn vkCreateAccelerationStructureNV(device: Int, pCreateInfo: Int, pAllocator: Int, pAccelerationStructure: Int) -> Int32;
+  fn vkDestroyAccelerationStructureNV(device: Int, accelerationStructure: Int, pAllocator: Int);
+  fn vkGetAccelerationStructureMemoryRequirementsNV(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkBindAccelerationStructureMemoryNV(device: Int, bindInfoCount: Int32, pBindInfos: Int) -> Int32;
+  fn vkCmdBuildAccelerationStructureNV(commandBuffer: Int, pInfo: Int, instanceData: Int, instanceOffset: Int, update: Int32, dst: Int, src: Int, scratch: Int, scratchOffset: Int);
+  fn vkCmdCopyAccelerationStructureNV(commandBuffer: Int, dst: Int, src: Int, mode: Int);
+  fn vkCmdTraceRaysNV(commandBuffer: Int, raygenShaderBindingTableBuffer: Int, raygenShaderBindingOffset: Int, missShaderBindingTableBuffer: Int, missShaderBindingOffset: Int, missShaderBindingStride: Int, hitShaderBindingTableBuffer: Int, hitShaderBindingOffset: Int, hitShaderBindingStride: Int, callableShaderBindingTableBuffer: Int, callableShaderBindingOffset: Int, callableShaderBindingStride: Int, width: Int32, height: Int32, depth: Int32);
+  fn vkCreateRayTracingPipelinesNV(device: Int, pipelineCache: Int, createInfoCount: Int32, pCreateInfos: Int, pAllocator: Int, pPipelines: Int) -> Int32;
+  fn vkGetRayTracingShaderGroupHandlesKHR(device: Int, pipeline: Int, firstGroup: Int32, groupCount: Int32, dataSize: Int, pData: Int) -> Int32;
+  fn vkGetRayTracingShaderGroupHandlesNV(device: Int, pipeline: Int, firstGroup: Int32, groupCount: Int32, dataSize: Int, pData: Int) -> Int32;
+  fn vkGetAccelerationStructureHandleNV(device: Int, accelerationStructure: Int, dataSize: Int, pData: Int) -> Int32;
+  fn vkCmdWriteAccelerationStructuresPropertiesNV(commandBuffer: Int, accelerationStructureCount: Int32, pAccelerationStructures: Int, queryType: Int, queryPool: Int, firstQuery: Int32);
+  fn vkCompileDeferredNV(device: Int, pipeline: Int, shader: Int32) -> Int32;
+  fn vkGetMemoryHostPointerPropertiesEXT(device: Int, handleType: Int, pHostPointer: Int, pMemoryHostPointerProperties: Int) -> Int32;
+  fn vkCmdWriteBufferMarkerAMD(commandBuffer: Int, pipelineStage: Int, dstBuffer: Int, dstOffset: Int, marker: Int32);
+  fn vkCmdWriteBufferMarker2AMD(commandBuffer: Int, stage: Int, dstBuffer: Int, dstOffset: Int, marker: Int32);
+  fn vkGetPhysicalDeviceCalibrateableTimeDomainsEXT(physicalDevice: Int, pTimeDomainCount: Int32, pTimeDomains: Int) -> Int32;
+  fn vkGetCalibratedTimestampsEXT(device: Int, timestampCount: Int32, pTimestampInfos: Int, pTimestamps: Int, pMaxDeviation: Int) -> Int32;
+  fn vkCmdDrawMeshTasksNV(commandBuffer: Int, taskCount: Int32, firstTask: Int32);
+  fn vkCmdDrawMeshTasksIndirectNV(commandBuffer: Int, buffer: Int, offset: Int, drawCount: Int32, stride: Int32);
+  fn vkCmdDrawMeshTasksIndirectCountNV(commandBuffer: Int, buffer: Int, offset: Int, countBuffer: Int, countBufferOffset: Int, maxDrawCount: Int32, stride: Int32);
+  fn vkCmdSetExclusiveScissorEnableNV(commandBuffer: Int, firstExclusiveScissor: Int32, exclusiveScissorCount: Int32, pExclusiveScissorEnables: Int);
+  fn vkCmdSetExclusiveScissorNV(commandBuffer: Int, firstExclusiveScissor: Int32, exclusiveScissorCount: Int32, pExclusiveScissors: Int);
+  fn vkCmdSetCheckpointNV(commandBuffer: Int, pCheckpointMarker: Int);
+  fn vkGetQueueCheckpointDataNV(queue: Int, pCheckpointDataCount: Int32, pCheckpointData: Int);
+  fn vkGetQueueCheckpointData2NV(queue: Int, pCheckpointDataCount: Int32, pCheckpointData: Int);
+  fn vkSetSwapchainPresentTimingQueueSizeEXT(device: Int, swapchain: Int, size: Int32) -> Int32;
+  fn vkGetSwapchainTimingPropertiesEXT(device: Int, swapchain: Int, pSwapchainTimingProperties: Int, pSwapchainTimingPropertiesCounter: Int) -> Int32;
+  fn vkGetSwapchainTimeDomainPropertiesEXT(device: Int, swapchain: Int, pSwapchainTimeDomainProperties: Int, pTimeDomainsCounter: Int) -> Int32;
+  fn vkGetPastPresentationTimingEXT(device: Int, pPastPresentationTimingInfo: Int, pPastPresentationTimingProperties: Int) -> Int32;
+  fn vkInitializePerformanceApiINTEL(device: Int, pInitializeInfo: Int) -> Int32;
+  fn vkUninitializePerformanceApiINTEL(device: Int);
+  fn vkCmdSetPerformanceMarkerINTEL(commandBuffer: Int, pMarkerInfo: Int) -> Int32;
+  fn vkCmdSetPerformanceStreamMarkerINTEL(commandBuffer: Int, pMarkerInfo: Int) -> Int32;
+  fn vkCmdSetPerformanceOverrideINTEL(commandBuffer: Int, pOverrideInfo: Int) -> Int32;
+  fn vkAcquirePerformanceConfigurationINTEL(device: Int, pAcquireInfo: Int, pConfiguration: Int) -> Int32;
+  fn vkReleasePerformanceConfigurationINTEL(device: Int, configuration: Int) -> Int32;
+  fn vkQueueSetPerformanceConfigurationINTEL(queue: Int, configuration: Int) -> Int32;
+  fn vkGetPerformanceParameterINTEL(device: Int, parameter: Int, pValue: Int) -> Int32;
+  fn vkSetLocalDimmingAMD(device: Int, swapChain: Int, localDimmingEnable: Int32);
+  fn vkGetBufferDeviceAddressEXT(device: Int, pInfo: Int) -> Int;
+  fn vkGetPhysicalDeviceToolPropertiesEXT(physicalDevice: Int, pToolCount: Int32, pToolProperties: Int) -> Int32;
+  fn vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(physicalDevice: Int, pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV(physicalDevice: Int, pCombinationCount: Int32, pCombinations: Int) -> Int32;
+  fn vkCreateHeadlessSurfaceEXT(instance: Int, pCreateInfo: Int, pAllocator: Int, pSurface: Int) -> Int32;
+  fn vkCmdSetLineStippleEXT(commandBuffer: Int, lineStippleFactor: Int32, lineStipplePattern: Int);
+  fn vkResetQueryPoolEXT(device: Int, queryPool: Int, firstQuery: Int32, queryCount: Int32);
+  fn vkCmdSetCullModeEXT(commandBuffer: Int, cullMode: Int);
+  fn vkCmdSetFrontFaceEXT(commandBuffer: Int, frontFace: Int);
+  fn vkCmdSetPrimitiveTopologyEXT(commandBuffer: Int, primitiveTopology: Int);
+  fn vkCmdSetViewportWithCountEXT(commandBuffer: Int, viewportCount: Int32, pViewports: Int);
+  fn vkCmdSetScissorWithCountEXT(commandBuffer: Int, scissorCount: Int32, pScissors: Int);
+  fn vkCmdBindVertexBuffers2EXT(commandBuffer: Int, firstBinding: Int32, bindingCount: Int32, pBuffers: Int, pOffsets: Int, pSizes: Int, pStrides: Int);
+  fn vkCmdSetDepthTestEnableEXT(commandBuffer: Int, depthTestEnable: Int32);
+  fn vkCmdSetDepthWriteEnableEXT(commandBuffer: Int, depthWriteEnable: Int32);
+  fn vkCmdSetDepthCompareOpEXT(commandBuffer: Int, depthCompareOp: Int);
+  fn vkCmdSetDepthBoundsTestEnableEXT(commandBuffer: Int, depthBoundsTestEnable: Int32);
+  fn vkCmdSetStencilTestEnableEXT(commandBuffer: Int, stencilTestEnable: Int32);
+  fn vkCmdSetStencilOpEXT(commandBuffer: Int, faceMask: Int, failOp: Int, passOp: Int, depthFailOp: Int, compareOp: Int);
+  fn vkCopyMemoryToImageEXT(device: Int, pCopyMemoryToImageInfo: Int) -> Int32;
+  fn vkCopyImageToMemoryEXT(device: Int, pCopyImageToMemoryInfo: Int) -> Int32;
+  fn vkCopyImageToImageEXT(device: Int, pCopyImageToImageInfo: Int) -> Int32;
+  fn vkTransitionImageLayoutEXT(device: Int, transitionCount: Int32, pTransitions: Int) -> Int32;
+  fn vkGetImageSubresourceLayout2EXT(device: Int, image: Int, pSubresource: Int, pLayout: Int);
+  fn vkReleaseSwapchainImagesEXT(device: Int, pReleaseInfo: Int) -> Int32;
+  fn vkGetGeneratedCommandsMemoryRequirementsNV(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkCmdPreprocessGeneratedCommandsNV(commandBuffer: Int, pGeneratedCommandsInfo: Int);
+  fn vkCmdExecuteGeneratedCommandsNV(commandBuffer: Int, isPreprocessed: Int32, pGeneratedCommandsInfo: Int);
+  fn vkCmdBindPipelineShaderGroupNV(commandBuffer: Int, pipelineBindPoint: Int, pipeline: Int, groupIndex: Int32);
+  fn vkCreateIndirectCommandsLayoutNV(device: Int, pCreateInfo: Int, pAllocator: Int, pIndirectCommandsLayout: Int) -> Int32;
+  fn vkDestroyIndirectCommandsLayoutNV(device: Int, indirectCommandsLayout: Int, pAllocator: Int);
+  fn vkCmdSetDepthBias2EXT(commandBuffer: Int, pDepthBiasInfo: Int);
+  fn vkAcquireDrmDisplayEXT(physicalDevice: Int, drmFd: Int32, display: Int) -> Int32;
+  fn vkGetDrmDisplayEXT(physicalDevice: Int, drmFd: Int32, connectorId: Int32, display: Int) -> Int32;
+  fn vkCreatePrivateDataSlotEXT(device: Int, pCreateInfo: Int, pAllocator: Int, pPrivateDataSlot: Int) -> Int32;
+  fn vkDestroyPrivateDataSlotEXT(device: Int, privateDataSlot: Int, pAllocator: Int);
+  fn vkSetPrivateDataEXT(device: Int, objectType: Int, objectHandle: Int, privateDataSlot: Int, data: Int) -> Int32;
+  fn vkGetPrivateDataEXT(device: Int, objectType: Int, objectHandle: Int, privateDataSlot: Int, pData: Int);
+  fn vkQueueSetPerfHintQCOM(queue: Int, pPerfHintInfo: Int) -> Int32;
+  fn vkCmdDispatchTileQCOM(commandBuffer: Int, pDispatchTileInfo: Int);
+  fn vkCmdBeginPerTileExecutionQCOM(commandBuffer: Int, pPerTileBeginInfo: Int);
+  fn vkCmdEndPerTileExecutionQCOM(commandBuffer: Int, pPerTileEndInfo: Int);
+  fn vkGetDescriptorSetLayoutSizeEXT(device: Int, layout: Int, pLayoutSizeInBytes: Int);
+  fn vkGetDescriptorSetLayoutBindingOffsetEXT(device: Int, layout: Int, binding: Int32, pOffset: Int);
+  fn vkGetDescriptorEXT(device: Int, pDescriptorInfo: Int, dataSize: Int, pDescriptor: Int);
+  fn vkCmdBindDescriptorBuffersEXT(commandBuffer: Int, bufferCount: Int32, pBindingInfos: Int);
+  fn vkCmdSetDescriptorBufferOffsetsEXT(commandBuffer: Int, pipelineBindPoint: Int, layout: Int, firstSet: Int32, setCount: Int32, pBufferIndices: Int, pOffsets: Int);
+  fn vkCmdBindDescriptorBufferEmbeddedSamplersEXT(commandBuffer: Int, pipelineBindPoint: Int, layout: Int, set: Int32);
+  fn vkGetBufferOpaqueCaptureDescriptorDataEXT(device: Int, pInfo: Int, pData: Int) -> Int32;
+  fn vkGetImageOpaqueCaptureDescriptorDataEXT(device: Int, pInfo: Int, pData: Int) -> Int32;
+  fn vkGetImageViewOpaqueCaptureDescriptorDataEXT(device: Int, pInfo: Int, pData: Int) -> Int32;
+  fn vkGetSamplerOpaqueCaptureDescriptorDataEXT(device: Int, pInfo: Int, pData: Int) -> Int32;
+  fn vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT(device: Int, pInfo: Int, pData: Int) -> Int32;
+  fn vkCmdSetFragmentShadingRateEnumNV(commandBuffer: Int, shadingRate: Int, combinerOps: Int);
+  fn vkGetDeviceFaultInfoEXT(device: Int, pFaultCounts: Int, pFaultInfo: Int) -> Int32;
+  fn vkCmdSetVertexInputEXT(commandBuffer: Int, vertexBindingDescriptionCount: Int32, pVertexBindingDescriptions: Int, vertexAttributeDescriptionCount: Int32, pVertexAttributeDescriptions: Int);
+  fn vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI(device: Int, renderpass: Int, pMaxWorkgroupSize: Int) -> Int32;
+  fn vkCmdSubpassShadingHUAWEI(commandBuffer: Int);
+  fn vkCmdBindInvocationMaskHUAWEI(commandBuffer: Int, imageView: Int, imageLayout: Int);
+  fn vkGetMemoryRemoteAddressNV(device: Int, pMemoryGetRemoteAddressInfo: Int, pAddress: Int) -> Int32;
+  fn vkGetPipelinePropertiesEXT(device: Int, pPipelineInfo: Int, pPipelineProperties: Int) -> Int32;
+  fn vkCmdSetPatchControlPointsEXT(commandBuffer: Int, patchControlPoints: Int32);
+  fn vkCmdSetRasterizerDiscardEnableEXT(commandBuffer: Int, rasterizerDiscardEnable: Int32);
+  fn vkCmdSetDepthBiasEnableEXT(commandBuffer: Int, depthBiasEnable: Int32);
+  fn vkCmdSetLogicOpEXT(commandBuffer: Int, logicOp: Int);
+  fn vkCmdSetPrimitiveRestartEnableEXT(commandBuffer: Int, primitiveRestartEnable: Int32);
+  fn vkCmdSetColorWriteEnableEXT(commandBuffer: Int, attachmentCount: Int32, pColorWriteEnables: Int);
+  fn vkCmdDrawMultiEXT(commandBuffer: Int, drawCount: Int32, pVertexInfo: Int, instanceCount: Int32, firstInstance: Int32, stride: Int32);
+  fn vkCmdDrawMultiIndexedEXT(commandBuffer: Int, drawCount: Int32, pIndexInfo: Int, instanceCount: Int32, firstInstance: Int32, stride: Int32, pVertexOffset: Int);
+  fn vkCreateMicromapEXT(device: Int, pCreateInfo: Int, pAllocator: Int, pMicromap: Int) -> Int32;
+  fn vkDestroyMicromapEXT(device: Int, micromap: Int, pAllocator: Int);
+  fn vkCmdBuildMicromapsEXT(commandBuffer: Int, infoCount: Int32, pInfos: Int);
+  fn vkBuildMicromapsEXT(device: Int, deferredOperation: Int, infoCount: Int32, pInfos: Int) -> Int32;
+  fn vkCopyMicromapEXT(device: Int, deferredOperation: Int, pInfo: Int) -> Int32;
+  fn vkCopyMicromapToMemoryEXT(device: Int, deferredOperation: Int, pInfo: Int) -> Int32;
+  fn vkCopyMemoryToMicromapEXT(device: Int, deferredOperation: Int, pInfo: Int) -> Int32;
+  fn vkWriteMicromapsPropertiesEXT(device: Int, micromapCount: Int32, pMicromaps: Int, queryType: Int, dataSize: Int, pData: Int, stride: Int) -> Int32;
+  fn vkCmdCopyMicromapEXT(commandBuffer: Int, pInfo: Int);
+  fn vkCmdCopyMicromapToMemoryEXT(commandBuffer: Int, pInfo: Int);
+  fn vkCmdCopyMemoryToMicromapEXT(commandBuffer: Int, pInfo: Int);
+  fn vkCmdWriteMicromapsPropertiesEXT(commandBuffer: Int, micromapCount: Int32, pMicromaps: Int, queryType: Int, queryPool: Int, firstQuery: Int32);
+  fn vkGetDeviceMicromapCompatibilityEXT(device: Int, pVersionInfo: Int, pCompatibility: Int);
+  fn vkGetMicromapBuildSizesEXT(device: Int, buildType: Int, pBuildInfo: Int, pSizeInfo: Int);
+  fn vkCmdDrawClusterHUAWEI(commandBuffer: Int, groupCountX: Int32, groupCountY: Int32, groupCountZ: Int32);
+  fn vkCmdDrawClusterIndirectHUAWEI(commandBuffer: Int, buffer: Int, offset: Int);
+  fn vkSetDeviceMemoryPriorityEXT(device: Int, memory: Int, priority: Float32);
+  fn vkCmdSetDispatchParametersARM(commandBuffer: Int, pDispatchParameters: Int);
+  fn vkGetDescriptorSetLayoutHostMappingInfoVALVE(device: Int, pBindingReference: Int, pHostMapping: Int);
+  fn vkGetDescriptorSetHostMappingVALVE(device: Int, descriptorSet: Int, ppData: Int);
+  fn vkCmdCopyMemoryIndirectNV(commandBuffer: Int, copyBufferAddress: Int, copyCount: Int32, stride: Int32);
+  fn vkCmdCopyMemoryToImageIndirectNV(commandBuffer: Int, copyBufferAddress: Int, copyCount: Int32, stride: Int32, dstImage: Int, dstImageLayout: Int, pImageSubresources: Int);
+  fn vkCmdDecompressMemoryNV(commandBuffer: Int, decompressRegionCount: Int32, pDecompressMemoryRegions: Int);
+  fn vkCmdDecompressMemoryIndirectCountNV(commandBuffer: Int, indirectCommandsAddress: Int, indirectCommandsCountAddress: Int, stride: Int32);
+  fn vkGetPipelineIndirectMemoryRequirementsNV(device: Int, pCreateInfo: Int, pMemoryRequirements: Int);
+  fn vkCmdUpdatePipelineIndirectBufferNV(commandBuffer: Int, pipelineBindPoint: Int, pipeline: Int);
+  fn vkGetPipelineIndirectDeviceAddressNV(device: Int, pInfo: Int) -> Int;
+  fn vkCmdSetDepthClampEnableEXT(commandBuffer: Int, depthClampEnable: Int32);
+  fn vkCmdSetPolygonModeEXT(commandBuffer: Int, polygonMode: Int);
+  fn vkCmdSetRasterizationSamplesEXT(commandBuffer: Int, rasterizationSamples: Int);
+  fn vkCmdSetSampleMaskEXT(commandBuffer: Int, samples: Int, pSampleMask: Int);
+  fn vkCmdSetAlphaToCoverageEnableEXT(commandBuffer: Int, alphaToCoverageEnable: Int32);
+  fn vkCmdSetAlphaToOneEnableEXT(commandBuffer: Int, alphaToOneEnable: Int32);
+  fn vkCmdSetLogicOpEnableEXT(commandBuffer: Int, logicOpEnable: Int32);
+  fn vkCmdSetColorBlendEnableEXT(commandBuffer: Int, firstAttachment: Int32, attachmentCount: Int32, pColorBlendEnables: Int);
+  fn vkCmdSetColorBlendEquationEXT(commandBuffer: Int, firstAttachment: Int32, attachmentCount: Int32, pColorBlendEquations: Int);
+  fn vkCmdSetColorWriteMaskEXT(commandBuffer: Int, firstAttachment: Int32, attachmentCount: Int32, pColorWriteMasks: Int);
+  fn vkCmdSetTessellationDomainOriginEXT(commandBuffer: Int, domainOrigin: Int);
+  fn vkCmdSetRasterizationStreamEXT(commandBuffer: Int, rasterizationStream: Int32);
+  fn vkCmdSetConservativeRasterizationModeEXT(commandBuffer: Int, conservativeRasterizationMode: Int);
+  fn vkCmdSetExtraPrimitiveOverestimationSizeEXT(commandBuffer: Int, extraPrimitiveOverestimationSize: Float32);
+  fn vkCmdSetDepthClipEnableEXT(commandBuffer: Int, depthClipEnable: Int32);
+  fn vkCmdSetSampleLocationsEnableEXT(commandBuffer: Int, sampleLocationsEnable: Int32);
+  fn vkCmdSetColorBlendAdvancedEXT(commandBuffer: Int, firstAttachment: Int32, attachmentCount: Int32, pColorBlendAdvanced: Int);
+  fn vkCmdSetProvokingVertexModeEXT(commandBuffer: Int, provokingVertexMode: Int);
+  fn vkCmdSetLineRasterizationModeEXT(commandBuffer: Int, lineRasterizationMode: Int);
+  fn vkCmdSetLineStippleEnableEXT(commandBuffer: Int, stippledLineEnable: Int32);
+  fn vkCmdSetDepthClipNegativeOneToOneEXT(commandBuffer: Int, negativeOneToOne: Int32);
+  fn vkCmdSetViewportWScalingEnableNV(commandBuffer: Int, viewportWScalingEnable: Int32);
+  fn vkCmdSetViewportSwizzleNV(commandBuffer: Int, firstViewport: Int32, viewportCount: Int32, pViewportSwizzles: Int);
+  fn vkCmdSetCoverageToColorEnableNV(commandBuffer: Int, coverageToColorEnable: Int32);
+  fn vkCmdSetCoverageToColorLocationNV(commandBuffer: Int, coverageToColorLocation: Int32);
+  fn vkCmdSetCoverageModulationModeNV(commandBuffer: Int, coverageModulationMode: Int);
+  fn vkCmdSetCoverageModulationTableEnableNV(commandBuffer: Int, coverageModulationTableEnable: Int32);
+  fn vkCmdSetCoverageModulationTableNV(commandBuffer: Int, coverageModulationTableCount: Int32, pCoverageModulationTable: Int);
+  fn vkCmdSetShadingRateImageEnableNV(commandBuffer: Int, shadingRateImageEnable: Int32);
+  fn vkCmdSetRepresentativeFragmentTestEnableNV(commandBuffer: Int, representativeFragmentTestEnable: Int32);
+  fn vkCmdSetCoverageReductionModeNV(commandBuffer: Int, coverageReductionMode: Int);
+  fn vkCreateTensorARM(device: Int, pCreateInfo: Int, pAllocator: Int, pTensor: Int) -> Int32;
+  fn vkDestroyTensorARM(device: Int, tensor: Int, pAllocator: Int);
+  fn vkCreateTensorViewARM(device: Int, pCreateInfo: Int, pAllocator: Int, pView: Int) -> Int32;
+  fn vkDestroyTensorViewARM(device: Int, tensorView: Int, pAllocator: Int);
+  fn vkGetTensorMemoryRequirementsARM(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkBindTensorMemoryARM(device: Int, bindInfoCount: Int32, pBindInfos: Int) -> Int32;
+  fn vkGetDeviceTensorMemoryRequirementsARM(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkCmdCopyTensorARM(commandBuffer: Int, pCopyTensorInfo: Int);
+  fn vkGetPhysicalDeviceExternalTensorPropertiesARM(physicalDevice: Int, pExternalTensorInfo: Int, pExternalTensorProperties: Int);
+  fn vkGetTensorOpaqueCaptureDescriptorDataARM(device: Int, pInfo: Int, pData: Int) -> Int32;
+  fn vkGetTensorViewOpaqueCaptureDescriptorDataARM(device: Int, pInfo: Int, pData: Int) -> Int32;
+  fn vkGetShaderModuleIdentifierEXT(device: Int, shaderModule: Int, pIdentifier: Int);
+  fn vkGetShaderModuleCreateInfoIdentifierEXT(device: Int, pCreateInfo: Int, pIdentifier: Int);
+  fn vkGetPhysicalDeviceOpticalFlowImageFormatsNV(physicalDevice: Int, pOpticalFlowImageFormatInfo: Int, pFormatCount: Int32, pImageFormatProperties: Int) -> Int32;
+  fn vkCreateOpticalFlowSessionNV(device: Int, pCreateInfo: Int, pAllocator: Int, pSession: Int) -> Int32;
+  fn vkDestroyOpticalFlowSessionNV(device: Int, session: Int, pAllocator: Int);
+  fn vkBindOpticalFlowSessionImageNV(device: Int, session: Int, bindingPoint: Int, view: Int, layout: Int) -> Int32;
+  fn vkCmdOpticalFlowExecuteNV(commandBuffer: Int, session: Int, pExecuteInfo: Int);
+  fn vkAntiLagUpdateAMD(device: Int, pData: Int);
+  fn vkCreateShadersEXT(device: Int, createInfoCount: Int32, pCreateInfos: Int, pAllocator: Int, pShaders: Int) -> Int32;
+  fn vkDestroyShaderEXT(device: Int, shader: Int, pAllocator: Int);
+  fn vkGetShaderBinaryDataEXT(device: Int, shader: Int, pDataSize: Int, pData: Int) -> Int32;
+  fn vkCmdBindShadersEXT(commandBuffer: Int, stageCount: Int32, pStages: Int, pShaders: Int);
+  fn vkCmdSetDepthClampRangeEXT(commandBuffer: Int, depthClampMode: Int, pDepthClampRange: Int);
+  fn vkGetFramebufferTilePropertiesQCOM(device: Int, framebuffer: Int, pPropertiesCount: Int32, pProperties: Int) -> Int32;
+  fn vkGetDynamicRenderingTilePropertiesQCOM(device: Int, pRenderingInfo: Int, pProperties: Int) -> Int32;
+  fn vkGetPhysicalDeviceCooperativeVectorPropertiesNV(physicalDevice: Int, pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkConvertCooperativeVectorMatrixNV(device: Int, pInfo: Int) -> Int32;
+  fn vkCmdConvertCooperativeVectorMatrixNV(commandBuffer: Int, infoCount: Int32, pInfos: Int);
+  fn vkSetLatencySleepModeNV(device: Int, swapchain: Int, pSleepModeInfo: Int) -> Int32;
+  fn vkLatencySleepNV(device: Int, swapchain: Int, pSleepInfo: Int) -> Int32;
+  fn vkSetLatencyMarkerNV(device: Int, swapchain: Int, pLatencyMarkerInfo: Int);
+  fn vkGetLatencyTimingsNV(device: Int, swapchain: Int, pLatencyMarkerInfo: Int);
+  fn vkQueueNotifyOutOfBandNV(queue: Int, pQueueTypeInfo: Int);
+  fn vkCreateDataGraphPipelinesARM(device: Int, deferredOperation: Int, pipelineCache: Int, createInfoCount: Int32, pCreateInfos: Int, pAllocator: Int, pPipelines: Int) -> Int32;
+  fn vkCreateDataGraphPipelineSessionARM(device: Int, pCreateInfo: Int, pAllocator: Int, pSession: Int) -> Int32;
+  fn vkGetDataGraphPipelineSessionBindPointRequirementsARM(device: Int, pInfo: Int, pBindPointRequirementCount: Int32, pBindPointRequirements: Int) -> Int32;
+  fn vkGetDataGraphPipelineSessionMemoryRequirementsARM(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkBindDataGraphPipelineSessionMemoryARM(device: Int, bindInfoCount: Int32, pBindInfos: Int) -> Int32;
+  fn vkDestroyDataGraphPipelineSessionARM(device: Int, session: Int, pAllocator: Int);
+  fn vkCmdDispatchDataGraphARM(commandBuffer: Int, session: Int, pInfo: Int);
+  fn vkGetDataGraphPipelineAvailablePropertiesARM(device: Int, pPipelineInfo: Int, pPropertiesCount: Int32, pProperties: Int) -> Int32;
+  fn vkGetDataGraphPipelinePropertiesARM(device: Int, pPipelineInfo: Int, propertiesCount: Int32, pProperties: Int) -> Int32;
+  fn vkGetPhysicalDeviceQueueFamilyDataGraphPropertiesARM(physicalDevice: Int, queueFamilyIndex: Int32, pQueueFamilyDataGraphPropertyCount: Int32, pQueueFamilyDataGraphProperties: Int) -> Int32;
+  fn vkGetPhysicalDeviceQueueFamilyDataGraphProcessingEnginePropertiesARM(physicalDevice: Int, pQueueFamilyDataGraphProcessingEngineInfo: Int, pQueueFamilyDataGraphProcessingEngineProperties: Int);
+  fn vkGetPhysicalDeviceQueueFamilyDataGraphEngineOperationPropertiesARM(physicalDevice: Int, queueFamilyIndex: Int32, pQueueFamilyDataGraphProperties: Int, pProperties: Int) -> Int32;
+  fn vkCmdSetAttachmentFeedbackLoopEnableEXT(commandBuffer: Int, aspectMask: Int);
+  fn vkCmdBindTileMemoryQCOM(commandBuffer: Int, pTileMemoryBindInfo: Int);
+  fn vkCmdDecompressMemoryEXT(commandBuffer: Int, pDecompressMemoryInfoEXT: Int);
+  fn vkCmdDecompressMemoryIndirectCountEXT(commandBuffer: Int, decompressionMethod: Int, indirectCommandsAddress: Int, indirectCommandsCountAddress: Int, maxDecompressionCount: Int32, stride: Int32);
+  fn vkCreateExternalComputeQueueNV(device: Int, pCreateInfo: Int, pAllocator: Int, pExternalQueue: Int) -> Int32;
+  fn vkDestroyExternalComputeQueueNV(device: Int, externalQueue: Int, pAllocator: Int);
+  fn vkGetExternalComputeQueueDataNV(externalQueue: Int, params: Int, pData: Int);
+  fn vkGetClusterAccelerationStructureBuildSizesNV(device: Int, pInfo: Int, pSizeInfo: Int);
+  fn vkCmdBuildClusterAccelerationStructureIndirectNV(commandBuffer: Int, pCommandInfos: Int);
+  fn vkGetPartitionedAccelerationStructuresBuildSizesNV(device: Int, pInfo: Int, pSizeInfo: Int);
+  fn vkCmdBuildPartitionedAccelerationStructuresNV(commandBuffer: Int, pBuildInfo: Int);
+  fn vkGetGeneratedCommandsMemoryRequirementsEXT(device: Int, pInfo: Int, pMemoryRequirements: Int);
+  fn vkCmdPreprocessGeneratedCommandsEXT(commandBuffer: Int, pGeneratedCommandsInfo: Int, stateCommandBuffer: Int);
+  fn vkCmdExecuteGeneratedCommandsEXT(commandBuffer: Int, isPreprocessed: Int32, pGeneratedCommandsInfo: Int);
+  fn vkCreateIndirectCommandsLayoutEXT(device: Int, pCreateInfo: Int, pAllocator: Int, pIndirectCommandsLayout: Int) -> Int32;
+  fn vkDestroyIndirectCommandsLayoutEXT(device: Int, indirectCommandsLayout: Int, pAllocator: Int);
+  fn vkCreateIndirectExecutionSetEXT(device: Int, pCreateInfo: Int, pAllocator: Int, pIndirectExecutionSet: Int) -> Int32;
+  fn vkDestroyIndirectExecutionSetEXT(device: Int, indirectExecutionSet: Int, pAllocator: Int);
+  fn vkUpdateIndirectExecutionSetPipelineEXT(device: Int, indirectExecutionSet: Int, executionSetWriteCount: Int32, pExecutionSetWrites: Int);
+  fn vkUpdateIndirectExecutionSetShaderEXT(device: Int, indirectExecutionSet: Int, executionSetWriteCount: Int32, pExecutionSetWrites: Int);
+  fn vkGetPhysicalDeviceCooperativeMatrixFlexibleDimensionsPropertiesNV(physicalDevice: Int, pPropertyCount: Int32, pProperties: Int) -> Int32;
+  fn vkEnumeratePhysicalDeviceQueueFamilyPerformanceCountersByRegionARM(physicalDevice: Int, queueFamilyIndex: Int32, pCounterCount: Int32, pCounters: Int, pCounterDescriptions: Int) -> Int32;
+  fn vkEnumeratePhysicalDeviceShaderInstrumentationMetricsARM(physicalDevice: Int, pDescriptionCount: Int32, pDescriptions: Int) -> Int32;
+  fn vkCreateShaderInstrumentationARM(device: Int, pCreateInfo: Int, pAllocator: Int, pInstrumentation: Int) -> Int32;
+  fn vkDestroyShaderInstrumentationARM(device: Int, instrumentation: Int, pAllocator: Int);
+  fn vkCmdBeginShaderInstrumentationARM(commandBuffer: Int, instrumentation: Int);
+  fn vkCmdEndShaderInstrumentationARM(commandBuffer: Int);
+  fn vkGetShaderInstrumentationValuesARM(device: Int, instrumentation: Int, pMetricBlockCount: Int32, pMetricValues: Int, flags: Int) -> Int32;
+  fn vkClearShaderInstrumentationMetricsARM(device: Int, instrumentation: Int);
+  fn vkCmdEndRendering2EXT(commandBuffer: Int, pRenderingEndInfo: Int);
+  fn vkCmdBeginCustomResolveEXT(commandBuffer: Int, pBeginCustomResolveInfo: Int);
+  fn vkGetPhysicalDeviceQueueFamilyDataGraphOpticalFlowImageFormatsARM(physicalDevice: Int, queueFamilyIndex: Int32, pQueueFamilyDataGraphProperties: Int, pOpticalFlowImageFormatInfo: Int, pFormatCount: Int32, pImageFormatProperties: Int) -> Int32;
+  fn vkCmdSetComputeOccupancyPriorityNV(commandBuffer: Int, pParameters: Int);
+  fn vkCmdSetPrimitiveRestartIndexEXT(commandBuffer: Int, primitiveRestartIndex: Int32);
+  fn vkCreateAccelerationStructureKHR(device: Int, pCreateInfo: Int, pAllocator: Int, pAccelerationStructure: Int) -> Int32;
+  fn vkDestroyAccelerationStructureKHR(device: Int, accelerationStructure: Int, pAllocator: Int);
+  fn vkCmdBuildAccelerationStructuresKHR(commandBuffer: Int, infoCount: Int32, pInfos: Int, ppBuildRangeInfos: Int);
+  fn vkCmdBuildAccelerationStructuresIndirectKHR(commandBuffer: Int, infoCount: Int32, pInfos: Int, pIndirectDeviceAddresses: Int, pIndirectStrides: Int, ppMaxPrimitiveCounts: Int);
+  fn vkBuildAccelerationStructuresKHR(device: Int, deferredOperation: Int, infoCount: Int32, pInfos: Int, ppBuildRangeInfos: Int) -> Int32;
+  fn vkCopyAccelerationStructureKHR(device: Int, deferredOperation: Int, pInfo: Int) -> Int32;
+  fn vkCopyAccelerationStructureToMemoryKHR(device: Int, deferredOperation: Int, pInfo: Int) -> Int32;
+  fn vkCopyMemoryToAccelerationStructureKHR(device: Int, deferredOperation: Int, pInfo: Int) -> Int32;
+  fn vkWriteAccelerationStructuresPropertiesKHR(device: Int, accelerationStructureCount: Int32, pAccelerationStructures: Int, queryType: Int, dataSize: Int, pData: Int, stride: Int) -> Int32;
+  fn vkCmdCopyAccelerationStructureKHR(commandBuffer: Int, pInfo: Int);
+  fn vkCmdCopyAccelerationStructureToMemoryKHR(commandBuffer: Int, pInfo: Int);
+  fn vkCmdCopyMemoryToAccelerationStructureKHR(commandBuffer: Int, pInfo: Int);
+  fn vkGetAccelerationStructureDeviceAddressKHR(device: Int, pInfo: Int) -> Int;
+  fn vkCmdWriteAccelerationStructuresPropertiesKHR(commandBuffer: Int, accelerationStructureCount: Int32, pAccelerationStructures: Int, queryType: Int, queryPool: Int, firstQuery: Int32);
+  fn vkGetDeviceAccelerationStructureCompatibilityKHR(device: Int, pVersionInfo: Int, pCompatibility: Int);
+  fn vkGetAccelerationStructureBuildSizesKHR(device: Int, buildType: Int, pBuildInfo: Int, pMaxPrimitiveCounts: Int, pSizeInfo: Int);
+  fn vkCmdTraceRaysKHR(commandBuffer: Int, pRaygenShaderBindingTable: Int, pMissShaderBindingTable: Int, pHitShaderBindingTable: Int, pCallableShaderBindingTable: Int, width: Int32, height: Int32, depth: Int32);
+  fn vkCreateRayTracingPipelinesKHR(device: Int, deferredOperation: Int, pipelineCache: Int, createInfoCount: Int32, pCreateInfos: Int, pAllocator: Int, pPipelines: Int) -> Int32;
+  fn vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(device: Int, pipeline: Int, firstGroup: Int32, groupCount: Int32, dataSize: Int, pData: Int) -> Int32;
+  fn vkCmdTraceRaysIndirectKHR(commandBuffer: Int, pRaygenShaderBindingTable: Int, pMissShaderBindingTable: Int, pHitShaderBindingTable: Int, pCallableShaderBindingTable: Int, indirectDeviceAddress: Int);
+  fn vkGetRayTracingShaderGroupStackSizeKHR(device: Int, pipeline: Int, group: Int32, groupShader: Int) -> Int;
+  fn vkCmdSetRayTracingPipelineStackSizeKHR(commandBuffer: Int, pipelineStackSize: Int32);
+  fn vkCmdDrawMeshTasksEXT(commandBuffer: Int, groupCountX: Int32, groupCountY: Int32, groupCountZ: Int32);
+  fn vkCmdDrawMeshTasksIndirectEXT(commandBuffer: Int, buffer: Int, offset: Int, drawCount: Int32, stride: Int32);
+  fn vkCmdDrawMeshTasksIndirectCountEXT(commandBuffer: Int, buffer: Int, offset: Int, countBuffer: Int, countBufferOffset: Int, maxDrawCount: Int32, stride: Int32);
 }
