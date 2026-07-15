@@ -78,17 +78,21 @@ pub fn HttpHeaders.has(name: Str) -> Bool
   return false;
 }
 
-pub fn HttpHeaders.remove(name: Str) -> Bool
+pub fn HttpHeaders.remove_header(name: Str) -> Bool
   requires: name.len() > 0 {
+  var new_entries: Vec[HttpHeader] = Vec[HttpHeader].new();
   var i: Int = 0;
+  var found: Bool = false;
   while i < entries.len() {
-    if entries[i].name == name {
-      entries.remove(i);
-      return true;
-    }
+    if !found && entries[i].name == name {
+      found = true;
+    } else {
+      new_entries.push(entries[i]);
+    };
     i = i + 1;
-  }
-  return false;
+  };
+  entries = new_entries;
+  return found;
 }
 
 pub fn HttpHeaders.count() -> Int {

@@ -21,10 +21,10 @@ pub type BenchSuite = {
   results: Vec[BenchResult];
 }
 
-fn bench_config_default() -> BenchConfig {
-  BenchConfig { iterations: 1000, warmup: 3, min_time_ms: 100 }
+pub fn bench_config_default() -> BenchConfig {
+  return BenchConfig{ iterations: 1000, warmup: 3, min_time_ms: 100 };
 }
 
-fn bench_suite_new(name: Str) -> BenchSuite {
-  BenchSuite { name: name, results: Vec[BenchResult].new() }
+pub fn bench_suite_new(name: Str) -> BenchSuite {
+  return BenchSuite{ name: name, results: Vec[BenchResult].new() };
 }

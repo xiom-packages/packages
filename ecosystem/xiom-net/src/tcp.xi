@@ -4,6 +4,9 @@
 
 module xiom.net.tcp
 
+use xiom.ptr;
+use xiom.string;
+
 // ─── XIOM FFI Bridge ────────────────────────────────────────────────────────
 
 extern "C" {
@@ -62,12 +65,12 @@ fn SOMAXCONN() -> Int { return 128; }
 var wsa_initialized: Bool = false;
 
 fn ensure_wsa() -> Result[Unit, Str] {
-  if wsa_initialized { return Ok(Unit); };
+  if wsa_initialized { return Ok( () ); };
 
   var version: Int = (2 << 8) | 2;
 
   var wsa_data: *UInt8 = xiom_alloc(400);
-  if wsa_data == nil {
+  if wsa_data == ptr.null[UInt8]() {
     return Err("xiom_alloc failed for WSAStartup data");
   };
 
@@ -86,7 +89,7 @@ fn ensure_wsa() -> Result[Unit, Str] {
   };
 
   wsa_initialized = true;
-  return Ok(Unit);
+  return Ok( () );
 }
 
 pub fn wsa_cleanup() {
@@ -116,8 +119,8 @@ fn build_sockaddr_in_bytes(addr: &SocketAddr) -> *UInt8
   requires: addr.ip.octets.len() == 4
 {
   var buf: *UInt8 = xiom_alloc(16);
-  if buf == nil {
-    return nil;
+  if buf == ptr.null[UInt8]() {
+    return ptr.null[UInt8]();
   };
 
   var family: Int = AF_INET();
@@ -146,7 +149,7 @@ fn build_sockaddr_in_bytes(addr: &SocketAddr) -> *UInt8
 // ─── sockaddr_in Parser (Bridge-backed) ─────────────────────────────────────
 
 fn parse_sockaddr_in_bytes(buf: *UInt8) -> Result[SocketAddr, Str] {
-  if buf == nil {
+  if buf == ptr.null[UInt8]() {
     return Err("null sockaddr buffer");
   };
 
@@ -189,7 +192,7 @@ pub fn tcp_connect(addr: SocketAddr) -> Result[TcpStream, Str]
   };
 
   var sockaddr: *UInt8 = build_sockaddr_in_bytes(&addr);
-  if sockaddr == nil {
+  if sockaddr == ptr.null[UInt8]() {
     let _ = unsafe { closesocket(fd) };
     return Err("xiom_alloc failed for sockaddr");
   };
@@ -225,7 +228,7 @@ pub fn tcp_listen(addr: SocketAddr) -> Result[TcpListener, Str]
   };
 
   var sockaddr: *UInt8 = build_sockaddr_in_bytes(&addr);
-  if sockaddr == nil {
+  if sockaddr == ptr.null[UInt8]() {
     let _ = unsafe { closesocket(fd) };
     return Err("xiom_alloc failed for sockaddr");
   };
@@ -260,7 +263,7 @@ pub fn tcp_accept(listener: &mut TcpListener) -> Result[TcpStream, Str]
   };
 
   var addr_buf: *UInt8 = xiom_alloc(16);
-  if addr_buf == nil {
+  if addr_buf == ptr.null[UInt8]() {
     return Err("xiom_alloc failed for accept addr_buf");
   };
   var i: Int = 0;
@@ -270,7 +273,7 @@ pub fn tcp_accept(listener: &mut TcpListener) -> Result[TcpStream, Str]
   };
 
   var addrlen_buf: *UInt8 = xiom_alloc(4);
-  if addrlen_buf == nil {
+  if addrlen_buf == ptr.null[UInt8]() {
     xiom_free_ptr(addr_buf);
     return Err("xiom_alloc failed for accept addrlen_buf");
   };
@@ -316,7 +319,7 @@ pub fn tcp_write(stream: &mut TcpStream, data: &Vec[Int]) -> Result[Int, Str]
   if data_len == 0 { return Ok(0); };
 
   var send_buf: *UInt8 = xiom_alloc(data_len);
-  if send_buf == nil {
+  if send_buf == ptr.null[UInt8]() {
     return Err("xiom_alloc failed for send buffer");
   };
 
@@ -346,7 +349,7 @@ pub fn tcp_read(stream: &mut TcpStream, buf: &mut Vec[Int]) -> Result[Int, Str]
   if buf_len == 0 { return Ok(0); };
 
   var recv_buf: *UInt8 = xiom_alloc(buf_len);
-  if recv_buf == nil {
+  if recv_buf == ptr.null[UInt8]() {
     return Err("xiom_alloc failed for recv buffer");
   };
 

@@ -149,9 +149,9 @@ pub fn merge_sort(arr: Vec[Int]) -> Vec[Int]
     right.push(arr[i]);
     i = i + 1;
   }
-  left = merge_sort(left);
-  right = merge_sort(right);
-  return merge(left, right);
+  var sorted_left = merge_sort(left);
+  var sorted_right = merge_sort(right);
+  return merge(sorted_left, sorted_right);
 }
 
 fn merge(left: Vec[Int], right: Vec[Int]) -> Vec[Int] {
@@ -182,16 +182,19 @@ pub fn insertion_sort(arr: Vec[Int]) -> Vec[Int]
   ensures: result.len() == arr.len()@pre
 {
   if arr.len() <= 1 { return arr; }
-  var i = 1;
-  while i < arr.len() {
+  var idx = 1;
+  while idx < arr.len() {
+    var next_idx = idx + 1;
+    var i = idx + 0;
     var key = arr[i];
     var j = i;
     while j > 0 && arr[j - 1] > key {
       arr[j] = arr[j - 1];
-      j = j - 1;
+      var next_j = j - 1;
+      j = next_j;
     }
     arr[j] = key;
-    i = i + 1;
+    idx = next_idx;
   }
   return arr;
 }
@@ -211,10 +214,12 @@ pub fn bubble_sort(arr: Vec[Int]) -> Vec[Int]
         arr[j + 1] = tmp;
         swapped = true;
       }
-      j = j + 1;
+      var next_j = j + 1;
+      j = next_j;
     }
     if !swapped { return arr; }
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
   }
   return arr;
 }
@@ -225,18 +230,18 @@ pub fn selection_sort(arr: Vec[Int]) -> Vec[Int]
   var n = arr.len();
   var i = 0;
   while i < n {
-    var min_idx = i;
     var j = i + 1;
     while j < n {
-      if arr[j] < arr[min_idx] { min_idx = j; }
-      j = j + 1;
+      if arr[j] < arr[i] {
+        var tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+      }
+      var next_j = j + 1;
+      j = next_j;
     }
-    if min_idx != i {
-      var tmp = arr[i];
-      arr[i] = arr[min_idx];
-      arr[min_idx] = tmp;
-    }
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
   }
   return arr;
 }
@@ -249,22 +254,27 @@ pub fn counting_sort(arr: Vec[Int], max_val: Int) -> Vec[Int]
   var i = 0;
   while i <= max_val {
     count.push(0);
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
   }
   i = 0;
   while i < arr.len() {
     count[arr[i]] = count[arr[i]] + 1;
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
   }
   var result = Vec[Int].new();
-  i = 0;
-  while i <= max_val {
+  var idx = 0;
+  while idx <= max_val {
+    var next_idx = idx + 1;
+    var i = idx + 0;
     var j = 0;
     while j < count[i] {
       result.push(i);
-      j = j + 1;
+      var next_j = j + 1;
+      j = next_j;
     }
-    i = i + 1;
+    idx = next_idx;
   }
   return result;
 }
@@ -316,16 +326,20 @@ pub fn fibonacci(n: Int) -> Int
   requires: n >= 0
 {
   if n <= 1 { return n; }
-  var prev2 = 0;
-  var prev1 = 1;
-  var i = 2;
-  while i <= n {
-    var curr = prev1 + prev2;
-    prev2 = prev1;
-    prev1 = curr;
-    i = i + 1;
+  var p2 = 0;
+  var p1 = 1;
+  var idx = 2;
+  while idx <= n {
+    var next_idx = idx + 1;
+    var a = p1 + 0;
+    var b = p2 + 0;
+    var new_p1 = a + b;
+    var new_p2 = a;
+    p2 = new_p2;
+    p1 = new_p1;
+    idx = next_idx;
   }
-  return prev1;
+  return p1;
 }
 
 pub fn power(base: Int, exp: Int) -> Int
@@ -390,7 +404,8 @@ pub fn sieve_of_eratosthenes(n: Int) -> Vec[Int]
   var i = 0;
   while i <= n {
     is_prime_arr.push(true);
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
   }
   is_prime_arr[0] = false;
   is_prime_arr[1] = false;
@@ -400,16 +415,20 @@ pub fn sieve_of_eratosthenes(n: Int) -> Vec[Int]
       var j = i * i;
       while j <= n {
         is_prime_arr[j] = false;
-        j = j + i;
+        var next_j = j + i;
+        j = next_j;
       }
     }
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
   }
   var primes = Vec[Int].new();
-  i = 2;
-  while i <= n {
+  var idx = 2;
+  while idx <= n {
+    var next_idx = idx + 1;
+    var i = idx + 0;
     if is_prime_arr[i] { primes.push(i); }
-    i = i + 1;
+    idx = next_idx;
   }
   return primes;
 }
@@ -454,8 +473,10 @@ pub fn reverse(arr: Vec[Int]) -> Vec[Int]
     var tmp = arr[left];
     arr[left] = arr[right];
     arr[right] = tmp;
-    left = left + 1;
-    right = right - 1;
+    var next_left = left + 1;
+    left = next_left;
+    var next_right = right - 1;
+    right = next_right;
   }
   return arr;
 }
@@ -469,14 +490,20 @@ pub fn rotate_left(arr: Vec[Int], k: Int) -> Vec[Int]
   if shift == 0 { return arr; }
   var result = Vec[Int].new();
   var i = shift;
+  var count = 0;
   while i < n {
     result.push(arr[i]);
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
+    count = count + 1;
   }
   i = 0;
-  while i < shift {
+  var remaining = n - count;
+  while remaining > 0 {
     result.push(arr[i]);
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
+    remaining = remaining - 1;
   }
   return result;
 }
@@ -500,7 +527,8 @@ pub fn prefix_sum(arr: &Vec[Int]) -> Vec[Int]
   var i = 1;
   while i < arr.len() {
     result.push(result[i - 1] + arr[i]);
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
   }
   return result;
 }
@@ -552,7 +580,8 @@ pub fn unique(arr: Vec[Int]) -> Vec[Int]
     if sorted[i] != sorted[i - 1] {
       result.push(sorted[i]);
     }
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
   }
   return result;
 }
@@ -561,18 +590,24 @@ pub fn count_if(arr: &Vec[Int], target: Int) -> Int {
   var count = 0;
   var i = 0;
   while i < arr.len() {
-    if arr[i] == target { count = count + 1; }
-    i = i + 1;
+    if arr[i] == target {
+      var next_count = count + 1;
+      count = next_count;
+    }
+    var next_i = i + 1;
+    i = next_i;
   }
   return count;
 }
 
 pub fn find_all(arr: &Vec[Int], target: Int) -> Vec[Int] {
   var result = Vec[Int].new();
-  var i = 0;
-  while i < arr.len() {
+  var idx = 0;
+  while idx < arr.len() {
+    var next_idx = idx + 1;
+    var i = idx + 0;
     if arr[i] == target { result.push(i); }
-    i = i + 1;
+    idx = next_idx;
   }
   return result;
 }
@@ -586,8 +621,10 @@ pub fn is_palindrome(arr: &Vec[Int]) -> Bool {
   var right = arr.len() - 1;
   while left < right {
     if arr[left] != arr[right] { return false; }
-    left = left + 1;
-    right = right - 1;
+    var next_left = left + 1;
+    left = next_left;
+    var next_right = right - 1;
+    right = next_right;
   }
   return true;
 }
@@ -600,7 +637,8 @@ pub fn longest_increasing_subsequence(arr: &Vec[Int]) -> Int
   var i = 0;
   while i < arr.len() {
     dp.push(1);
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
   }
   i = 1;
   while i < arr.len() {
@@ -609,15 +647,18 @@ pub fn longest_increasing_subsequence(arr: &Vec[Int]) -> Int
       if arr[j] < arr[i] && dp[j] + 1 > dp[i] {
         dp[i] = dp[j] + 1;
       }
-      j = j + 1;
+      var next_j = j + 1;
+      j = next_j;
     }
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
   }
   var max_len = dp[0];
   i = 1;
   while i < dp.len() {
     if dp[i] > max_len { max_len = dp[i]; }
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
   }
   return max_len;
 }
@@ -635,7 +676,8 @@ pub fn max_subarray_sum(arr: &Vec[Int]) -> Int
       max_ending = max_ending + arr[i];
     }
     if max_ending > max_so_far { max_so_far = max_ending; }
-    i = i + 1;
+    var next_i = i + 1;
+    i = next_i;
   }
   return max_so_far;
 }

@@ -1,14 +1,29 @@
 module xiom.net.demo
 
+use xiom.net.types;
+use xiom.net.types.IpAddr;
+use xiom.net.types.SocketAddr;
+use xiom.net.tcp;
+use xiom.net.dns;
+use xiom.net.dns.DnsResult;
+use xiom.string;
+
 fn str_to_bytes(s: Str) -> Vec[Int] {
   var buf = Vec[Int].new();
   var i: Int = 0;
-  var len: Int = s.len();
+  var len: Int = string.str_len(s);
   while i < len {
-    buf.push(s[i]);
+    buf.push(char_code_at(s, i));
     i = i + 1;
   };
   return buf;
+}
+
+fn char_code_at(s: Str, pos: Int) -> Int {
+  match string.char_at(s, pos) {
+    Some(c) => { return to_int_from_char(c); },
+    None => { return 0; },
+  }
 }
 
 fn bytes_to_str(buf: &Vec[Int], n: Int) -> Str {
@@ -130,7 +145,9 @@ fn resolve_host(hostname: Str) -> Result[IpAddr, Str] {
   var dns = dns_resolve(hostname);
   match dns {
     Ok(result) => {
-      if result.addresses.len() == 0 {
+      var addrs: Vec[IpAddr] = result.addresses;
+      var addr_count: Int = addrs.len();
+      if addr_count == 0 {
         return Err("DNS returned no addresses for " + hostname);
       };
       return Ok(result.addresses[0]);
@@ -186,10 +203,14 @@ pub fn demo_http_request() -> Result[Unit, Str] {
         tcp_close(stream);
         return Err("HTTP response read failed: " + msg);
       },
-      Ok(0) => { done = true; },
-      Ok(n) => {
-        total = total + n;
-        if total >= 65536 { done = true; };
+      Ok(n_val) => {
+        var n: Int = n_val;
+        if n == 0 {
+          done = true;
+        } else {
+          total = total + n;
+          if total >= 65536 { done = true; };
+        };
       },
     }
   };

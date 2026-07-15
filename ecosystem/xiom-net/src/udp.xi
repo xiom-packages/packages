@@ -1,5 +1,10 @@
 module xiom.net.udp
 
+use xiom.ptr;
+use xiom.string;
+
+type UdpRecvResult = { bytes: Int; addr: SocketAddr; } derive[Clone]
+
 pub type UdpSocket = {
   fd: Int;
   bound: Bool;
@@ -86,7 +91,7 @@ pub fn udp_send_to(socket: &UdpSocket, data: &Vec[Int], addr: SocketAddr) -> Res
   return Ok(bytes);
 }
 
-pub fn udp_recv_from(socket: &UdpSocket, buf: &mut Vec[Int]) -> Result[(Int, SocketAddr), Str]
+pub fn udp_recv_from(socket: &UdpSocket, buf: &mut Vec[Int]) -> Result[UdpRecvResult, Str]
   requires: socket.bound
 {
   if !socket.bound {
@@ -95,8 +100,8 @@ pub fn udp_recv_from(socket: &UdpSocket, buf: &mut Vec[Int]) -> Result[(Int, Soc
 
   var buf_len: Int = buf.len();
   if buf_len == 0 {
-    var empty_addr = socket_addr(ipv4(0, 0, 0, 0), 0);
-    return Ok((0, empty_addr));
+    var empty_addr = SocketAddr{ ip: ipv4(0, 0, 0, 0), port: 0 };
+    return Ok(UdpRecvResult{ bytes: 0, addr: empty_addr });
   };
 
   var recv_buf = Vec[Int].new();
@@ -131,12 +136,13 @@ pub fn udp_recv_from(socket: &UdpSocket, buf: &mut Vec[Int]) -> Result[(Int, Soc
 
   var parsed = parse_sockaddr_in(&addr_buf);
   match parsed {
-    Ok(sa) => { return Ok((bytes, sa)); },
+    Ok(sa) => { return Ok(UdpRecvResult{ bytes: bytes, addr: sa }); },
     Err(_) => {
-      var fallback = socket_addr(ipv4(0, 0, 0, 0), 0);
-      return Ok((bytes, fallback));
+      var fallback = SocketAddr{ ip: ipv4(0, 0, 0, 0), port: 0 };
+      return Ok(UdpRecvResult{ bytes: bytes, addr: fallback });
     },
-  }
+  };
+  return Err("unreachable");
 }
 
 pub fn udp_close(socket: UdpSocket)

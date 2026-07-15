@@ -30,8 +30,8 @@ pub fn torch_forward(module: &ModuleDef, input: &Tensor) -> Result[Tensor, Str] 
   return Ok(dummy);
 }
 
-pub fn torch_save_model(module: &ModuleDef, path: Str) -> Result[Unit, Str] {
-  return Ok(Unit{});
+pub fn torch_save_model(module: &ModuleDef, path: Str) -> Result[Bool, Str] {
+  return Ok(true);
 }
 
 pub fn torch_is_cuda_available() -> Bool {

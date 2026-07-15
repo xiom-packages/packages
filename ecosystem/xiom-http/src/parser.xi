@@ -2,6 +2,13 @@ module xiom.http.parser
 
 use xiom.string;
 
+fn char_code(s: Str, pos: Int) -> Int {
+  match char_code(s, pos) {
+    Some(c) => { return to_int_from_char(c); },
+    None => { return -1; },
+  }
+}
+
 pub type HttpParseError = {
   message: Str;
   position: Int;
@@ -31,7 +38,7 @@ fn parse_until(input: Str, pos: Int, target: Int) -> Str {
   var len: Int = xiom.string.str_len(input);
   var p: Int = pos;
   while p < len {
-    var c: Int = xiom.string.char_at(input, p);
+    var c: Int = char_code(input, p);
     if c == target {
       return xiom.string.str_slice(input, pos, p);
     }
@@ -44,8 +51,8 @@ fn parse_until_crlf(input: Str, pos: Int) -> Str {
   var len: Int = xiom.string.str_len(input);
   var p: Int = pos;
   while p + 1 < len {
-    var c: Int = xiom.string.char_at(input, p);
-    var cn: Int = xiom.string.char_at(input, p + 1);
+    var c: Int = char_code(input, p);
+    var cn: Int = char_code(input, p + 1);
     if is_cr(c) && is_lf(cn) {
       return xiom.string.str_slice(input, pos, p);
     }
@@ -60,14 +67,14 @@ fn str_to_int(s: Str) -> Int {
   var len: Int = xiom.string.str_len(s);
   var negative: Bool = false;
   if len > 0 {
-    var fc: Int = xiom.string.char_at(s, 0);
+    var fc: Int = char_code(s, 0);
     if fc == 45 {
       negative = true;
       i = 1;
     }
   }
   while i < len {
-    var c: Int = xiom.string.char_at(s, i);
+    var c: Int = char_code(s, i);
     if is_digit(c) {
       result = result * 10 + (c - 48);
     }
@@ -131,7 +138,7 @@ fn parse_header_line(line: Str) -> Result[HttpHeader, HttpParseError] {
   var colon_pos: Int = -1;
   var i: Int = 0;
   while i < len {
-    var c: Int = xiom.string.char_at(line, i);
+    var c: Int = char_code(line, i);
     if c == 58 {
       colon_pos = i;
       break;
@@ -159,8 +166,8 @@ pub fn http_parse_request(input: Str) -> Result[HttpRequest, HttpParseError]
     Ok(req) => {
       var headers: HttpHeaders = HttpHeaders.new();
       while pos + 1 < len {
-        var c0: Int = xiom.string.char_at(input, pos);
-        var c1: Int = xiom.string.char_at(input, pos + 1);
+        var c0: Int = char_code(input, pos);
+        var c1: Int = char_code(input, pos + 1);
         if is_cr(c0) && is_lf(c1) {
           pos = pos + 2;
           break;
@@ -179,7 +186,7 @@ pub fn http_parse_request(input: Str) -> Result[HttpRequest, HttpParseError]
       req.headers = headers;
       var body_vec: Vec[Int] = Vec[Int].new();
       while pos < len {
-        body_vec.push(xiom.string.char_at(input, pos));
+        body_vec.push(char_code(input, pos));
         pos = pos + 1;
       }
       req.body = body_vec;
@@ -201,8 +208,8 @@ pub fn http_parse_response(input: Str) -> Result[HttpResponse, HttpParseError]
     Ok(resp) => {
       var headers: HttpHeaders = HttpHeaders.new();
       while pos + 1 < len {
-        var c0: Int = xiom.string.char_at(input, pos);
-        var c1: Int = xiom.string.char_at(input, pos + 1);
+        var c0: Int = char_code(input, pos);
+        var c1: Int = char_code(input, pos + 1);
         if is_cr(c0) && is_lf(c1) {
           pos = pos + 2;
           break;
@@ -221,7 +228,7 @@ pub fn http_parse_response(input: Str) -> Result[HttpResponse, HttpParseError]
       resp.headers = headers;
       var body_vec: Vec[Int] = Vec[Int].new();
       while pos < len {
-        body_vec.push(xiom.string.char_at(input, pos));
+        body_vec.push(char_code(input, pos));
         pos = pos + 1;
       }
       resp.body = body_vec;
@@ -236,8 +243,8 @@ pub fn http_parse_headers(input: Str) -> Result[HttpHeaders, HttpParseError] {
   var pos: Int = 0;
   var len: Int = xiom.string.str_len(input);
   while pos + 1 < len {
-    var c0: Int = xiom.string.char_at(input, pos);
-    var c1: Int = xiom.string.char_at(input, pos + 1);
+    var c0: Int = char_code(input, pos);
+    var c1: Int = char_code(input, pos + 1);
     if is_cr(c0) && is_lf(c1) {
       return Ok(headers);
     }

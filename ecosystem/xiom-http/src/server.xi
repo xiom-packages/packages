@@ -1,5 +1,7 @@
 module xiom.http.server
 
+use xiom.http.types.HttpMethod;
+
 pub type HttpServer = {
   addr: Str;
   port: Int;

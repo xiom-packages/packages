@@ -1,11 +1,14 @@
 module xiom.log.logger
 
+use xiom.log.types;
+use xiom.log.format;
+
 pub type Logger = {
   config: LoggerConfig;
   entries: Vec[LogEntry];
 }
 
-fn logger_new(config: &LoggerConfig) -> Logger {
+pub fn logger_new(config: &LoggerConfig) -> Logger {
   Logger {
     config: LoggerConfig {
       min_level: config.min_level,
@@ -21,43 +24,43 @@ fn logger_should_log(logger: &Logger, entry: &LogEntry) -> Bool {
   log_level_ordinal(&entry.level) >= log_level_ordinal(&logger.config.min_level)
 }
 
-fn logger_log(logger: &mut Logger, entry: LogEntry) {
+pub fn logger_log(logger: &mut Logger, entry: LogEntry) {
   if logger_should_log(logger, &entry) {
     logger.entries.push(entry);
   }
 }
 
-fn logger_trace(logger: &mut Logger, msg: Str) {
+pub fn logger_trace(logger: &mut Logger, msg: Str) {
   let entry = log_entry_new(LogLevel.Trace, msg);
   logger_log(logger, entry);
 }
 
-fn logger_debug(logger: &mut Logger, msg: Str) {
+pub fn logger_debug(logger: &mut Logger, msg: Str) {
   let entry = log_entry_new(LogLevel.Debug, msg);
   logger_log(logger, entry);
 }
 
-fn logger_info(logger: &mut Logger, msg: Str) {
+pub fn logger_info(logger: &mut Logger, msg: Str) {
   let entry = log_entry_new(LogLevel.Info, msg);
   logger_log(logger, entry);
 }
 
-fn logger_warn(logger: &mut Logger, msg: Str) {
+pub fn logger_warn(logger: &mut Logger, msg: Str) {
   let entry = log_entry_new(LogLevel.Warn, msg);
   logger_log(logger, entry);
 }
 
-fn logger_error(logger: &mut Logger, msg: Str) {
+pub fn logger_error(logger: &mut Logger, msg: Str) {
   let entry = log_entry_new(LogLevel.Error, msg);
   logger_log(logger, entry);
 }
 
-fn logger_fatal(logger: &mut Logger, msg: Str) {
+pub fn logger_fatal(logger: &mut Logger, msg: Str) {
   let entry = log_entry_new(LogLevel.Fatal, msg);
   logger_log(logger, entry);
 }
 
-fn logger_flush(logger: &Logger) -> Str {
+pub fn logger_flush(logger: &Logger) -> Str {
   logger_flush_entries(logger, 0, "")
 }
 
@@ -76,6 +79,6 @@ fn logger_flush_entries(logger: &Logger, idx: Int, acc: Str) -> Str {
   }
 }
 
-fn logger_clear(logger: &mut Logger) {
+pub fn logger_clear(logger: &mut Logger) {
   logger.entries = Vec[LogEntry].new();
 }

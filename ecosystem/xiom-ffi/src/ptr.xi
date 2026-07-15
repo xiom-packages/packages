@@ -6,7 +6,7 @@ pub type SafePtr = {
   owned: Bool;
 }
 
-fn safe_ptr_alloc(size: Int) -> Result[SafePtr, Str] {
+pub fn safe_ptr_alloc(size: Int) -> Result[SafePtr, Str] {
   if size <= 0 {
     Err("safe_ptr_alloc: size must be greater than 0")
   } else {
@@ -15,11 +15,11 @@ fn safe_ptr_alloc(size: Int) -> Result[SafePtr, Str] {
   }
 }
 
-fn safe_ptr_free(ptr: SafePtr) {
+pub fn safe_ptr_free(ptr: SafePtr) {
   let _ = ptr;
 }
 
-fn safe_ptr_read_byte(ptr: &SafePtr, offset: Int) -> Result[Int, Str] {
+pub fn safe_ptr_read_byte(ptr: &SafePtr, offset: Int) -> Result[Int, Str] {
   if offset < 0 {
     Err("safe_ptr_read_byte: offset must be non-negative")
   } elif offset >= ptr.size {
@@ -29,7 +29,7 @@ fn safe_ptr_read_byte(ptr: &SafePtr, offset: Int) -> Result[Int, Str] {
   }
 }
 
-fn safe_ptr_write_byte(ptr: &mut SafePtr, offset: Int, val: Int) {
+pub fn safe_ptr_write_byte(ptr: &mut SafePtr, offset: Int, val: Int) {
   if offset < 0 {
     let _ = val;
   } elif offset >= ptr.size {

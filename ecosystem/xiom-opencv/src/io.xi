@@ -2,6 +2,16 @@ module xiom.opencv.io
 
 use xiom.opencv.types;
 
+fn copy_vec_int(src: &Vec[Int]) -> Vec[Int] {
+  var out = Vec[Int].new();
+  var i = 0;
+  while i < src.len() {
+    out.push(src[i]);
+    i = i + 1;
+  };
+  return out;
+}
+
 extern "C" {
   fn cv_c_imread(path_ptr: *UInt8, path_len: Int) -> *UInt8;
   fn cv_c_imwrite(path_ptr: *UInt8, path_len: Int, img_ptr: *UInt8) -> Int;
@@ -25,8 +35,8 @@ pub fn cv_imread(path: Str) -> Result[Image, Str] {
   return Ok(img);
 }
 
-pub fn cv_imwrite(path: Str, img: &Image) -> Result[Unit, Str] {
-  return Ok(Unit{});
+pub fn cv_imwrite(path: Str, img: &Image) -> Result[Bool, Str] {
+  return Ok(true);
 }
 
 pub fn cv_resize(img: &Image, w: Int, h: Int) -> Result[Image, Str]
@@ -40,7 +50,7 @@ pub fn cv_resize(img: &Image, w: Int, h: Int) -> Result[Image, Str]
 pub fn cv_cvt_color(img: &Image, from: ColorSpace, to: ColorSpace) -> Result[Image, Str] {
   if from == to {
     return Ok(Image{
-      data: img.data.clone(),
+      data: copy_vec_int(&img.data),
       width: img.width,
       height: img.height,
       channels: img.channels,

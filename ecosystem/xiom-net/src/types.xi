@@ -1,5 +1,7 @@
 module xiom.net.types
 
+use xiom.string;
+
 pub enum IpVersion {
   V4,
   V6,
@@ -67,22 +69,29 @@ pub fn ipv6_from_parts(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h
   return IpAddr{ octets: octets, version: 6 };
 }
 
-fn char_is_digit(c: Int) -> Bool {
-  return c >= '0' && c <= '9';
+fn char_code_at(s: Str, idx: Int) -> Int {
+  match string.char_at(s, idx) {
+    Some(ch) => { return to_int_from_char(ch); },
+    None => { return -1; },
+  }
 }
 
-fn str_to_int_part(s: Str, start: Int, end: Int) -> Result[(Int, Int), Str] {
+type ParseOctetResult = { value: Int; len_consumed: Int; }
+
+fn str_to_int_part(s: Str, start: Int, end: Int) -> Result[ParseOctetResult, Str] {
   var result: Int = 0;
   var i: Int = start;
-  var consumed: Int = 0;
-  while i < end && char_is_digit(s[i]) {
-    result = result * 10 + (s[i] - '0');
+  var len_consumed: Int = 0;
+  while i < end {
+    var ch: Int = char_code_at(s, i);
+    if ch < 48 || ch > 57 { break; };
+    result = result * 10 + (ch - 48);
     if result > 255 { return Err("octet value exceeds 255"); };
     i = i + 1;
-    consumed = consumed + 1;
+    len_consumed = len_consumed + 1;
   };
-  if consumed == 0 { return Err("expected digit"); };
-  return Ok((result, consumed));
+  if len_consumed == 0 { return Err("expected digit"); };
+  return Ok(ParseOctetResult{ value: result, len_consumed: len_consumed });
 }
 
 pub fn ipv4_from_str(s: Str) -> Result[IpAddr, Str]
@@ -95,14 +104,14 @@ pub fn ipv4_from_str(s: Str) -> Result[IpAddr, Str]
   while i < len && octet_count < 4 {
     var part = str_to_int_part(s, i, len);
     match part {
-      Ok(pair) => {
-        var value = pair.0;
-        var consumed = pair.1;
-        octets.push(value);
+      Ok(r) => {
+        var v: Int = r.value;
+        var c: Int = r.len_consumed;
+        octets.push(v);
         octet_count = octet_count + 1;
-        i = i + consumed;
+        i = i + c;
         if octet_count < 4 && i < len {
-          if s[i] != '.' { return Err("expected '.' separator between octets"); };
+          if char_code_at(s, i) != 46 { return Err("expected '.' separator between octets"); };
           i = i + 1;
           if i >= len { return Err("unexpected end after '.'"); };
         };
@@ -207,7 +216,7 @@ pub fn socket_addr_from_str(s: Str) -> Result[SocketAddr, Str]
   var colon_pos: Int = -1;
   var i: Int = 0;
   while i < len && colon_pos == -1 {
-    if s[i] == ':' { colon_pos = i; };
+    if char_code_at(s, i) == 58 { colon_pos = i; };
     i = i + 1;
   };
   if colon_pos == -1 { return Err("missing port separator ':'"); };
@@ -220,8 +229,9 @@ pub fn socket_addr_from_str(s: Str) -> Result[SocketAddr, Str]
   var port_str: Str = "";
   var j: Int = colon_pos + 1;
   while j < len {
-    if !char_is_digit(s[j]) { return Err("invalid character in port number"); };
-    port_str = port_str + digit_to_char_str(s[j] - '0');
+    var ch_j: Int = char_code_at(s, j);
+    if ch_j < 48 || ch_j > 57 { return Err("invalid character in port number"); };
+    port_str = port_str + digit_to_char_str(ch_j - 48);
     j = j + 1;
   };
   var port: Int = str_to_int(port_str);
@@ -238,14 +248,14 @@ fn ipv4_from_str_part(s: Str, start: Int, end: Int) -> Result[IpAddr, Str] {
   while i < end && octet_count < 4 {
     var part = str_to_int_part(s, i, end);
     match part {
-      Ok(pair) => {
-        var value = pair.0;
-        var consumed = pair.1;
-        octets.push(value);
+      Ok(r) => {
+        var v: Int = r.value;
+        var c: Int = r.len_consumed;
+        octets.push(v);
         octet_count = octet_count + 1;
-        i = i + consumed;
+        i = i + c;
         if octet_count < 4 && i < end {
-          if s[i] != '.' { return Err("expected '.' separator between octets"); };
+          if char_code_at(s, i) != 46 { return Err("expected '.' separator between octets"); };
           i = i + 1;
           if i >= end { return Err("unexpected end after '.'"); };
         };
@@ -275,10 +285,9 @@ fn digit_to_char_str(d: Int) -> Str {
 fn str_to_int(s: Str) -> Int {
   var result: Int = 0;
   var i: Int = 0;
-  var len: Int = s.len();
+  var len: Int = string.str_len(s);
   while i < len {
-    var d = s[i] - '0';
-    result = result * 10 + d;
+    result = result * 10 + (char_code_at(s, i) - 48);
     i = i + 1;
   };
   return result;

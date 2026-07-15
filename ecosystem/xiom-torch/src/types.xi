@@ -71,11 +71,31 @@ pub fn tensor_new(shape: &Vec[Int], options: &TensorOptions) -> Tensor
   };
   return Tensor{
     data: data,
-    shape: shape.clone(),
+    shape: copy_vec_int(shape),
     strides: compute_strides(shape),
     device: options.device,
     dtype: options.dtype,
   };
+}
+
+fn copy_vec_int(src: &Vec[Int]) -> Vec[Int] {
+  var out = Vec[Int].new();
+  var i = 0;
+  while i < src.len() {
+    out.push(src[i]);
+    i = i + 1;
+  };
+  return out;
+}
+
+fn copy_vec_float32(src: &Vec[Float32]) -> Vec[Float32] {
+  var out = Vec[Float32].new();
+  var i = 0;
+  while i < src.len() {
+    out.push(src[i]);
+    i = i + 1;
+  };
+  return out;
 }
 
 pub fn tensor_zeros(shape: &Vec[Int]) -> Tensor
@@ -102,7 +122,7 @@ pub fn tensor_ones(shape: &Vec[Int]) -> Tensor
 }
 
 pub fn tensor_shape(t: &Tensor) -> Vec[Int] {
-  return t.shape.clone();
+  return copy_vec_int(&t.shape);
 }
 
 fn compute_total(shape: &Vec[Int]) -> Int {
@@ -131,8 +151,8 @@ pub fn tensor_reshape(t: &Tensor, shape: &Vec[Int]) -> Tensor
     };
   };
   return Tensor{
-    data: t.data.clone(),
-    shape: shape.clone(),
+    data: copy_vec_float32(&t.data),
+    shape: copy_vec_int(shape),
     strides: compute_strides(shape),
     device: t.device,
     dtype: t.dtype,

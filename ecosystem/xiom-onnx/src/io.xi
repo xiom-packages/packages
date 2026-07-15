@@ -8,14 +8,34 @@ pub fn onnx_tensor_from_vec(data: &Vec[Float32], shape: &Vec[Int]) -> OnnxTensor
 {
   return OnnxTensor{
     name: "input",
-    data: data.clone(),
-    shape: shape.clone(),
-    dtype: ORT_DTYPE_FLOAT,
+    data: copy_vec_float32(data),
+    shape: copy_vec_int(shape),
+    dtype: types.ORT_DTYPE_FLOAT,
   };
 }
 
 pub fn onnx_tensor_to_vec(t: &OnnxTensor) -> Vec[Float32] {
-  return t.data.clone();
+  return copy_vec_float32(&t.data);
+}
+
+fn copy_vec_int(src: &Vec[Int]) -> Vec[Int] {
+  var out = Vec[Int].new();
+  var i = 0;
+  while i < src.len() {
+    out.push(src[i]);
+    i = i + 1;
+  };
+  return out;
+}
+
+fn copy_vec_float32(src: &Vec[Float32]) -> Vec[Float32] {
+  var out = Vec[Float32].new();
+  var i = 0;
+  while i < src.len() {
+    out.push(src[i]);
+    i = i + 1;
+  };
+  return out;
 }
 
 fn clamp_float(v: Float32, lo: Float32, hi: Float32) -> Float32 {
@@ -47,7 +67,7 @@ pub fn onnx_preprocess_image(data: &Vec[Int], target_size: Int) -> OnnxTensor
     name: "input",
     data: out,
     shape: shape,
-    dtype: ORT_DTYPE_FLOAT,
+    dtype: types.ORT_DTYPE_FLOAT,
   };
 }
 
@@ -69,8 +89,8 @@ pub fn onnx_tensor_zeros(name: Str, shape: &Vec[Int]) -> OnnxTensor
   return OnnxTensor{
     name: name,
     data: data,
-    shape: shape.clone(),
-    dtype: ORT_DTYPE_FLOAT,
+    shape: copy_vec_int(shape),
+    dtype: types.ORT_DTYPE_FLOAT,
   };
 }
 

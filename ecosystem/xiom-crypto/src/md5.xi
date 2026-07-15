@@ -1,5 +1,15 @@
 module xiom.crypto.md5
 
+use xiom.math;
+use xiom.encoding;
+
+type LoopState = { i: Int; }
+type IntVal = { v: Int; }
+type Rot32State = { x: Int; n: Int; }
+type FGHIState = { x: Int; y: Int; z: Int; }
+type Md5State = { a: Int; b: Int; c: Int; d: Int; }
+type Md5RoundState = { a: Int; b: Int; c: Int; d: Int; i: Int; }
+
 fn md5_s(index: Int) -> Int {
   if index == 0 { return 7; };
   if index == 1 { return 12; };
@@ -137,100 +147,109 @@ fn md5_k(index: Int) -> Int {
 }
 
 fn rotr_32(x: Int, n: Int) -> Int {
-  var lo = (x >> n) & ((1 << (32 - n)) - 1);
-  var hi = (x & ((1 << n) - 1)) << (32 - n);
-  return lo | hi;
+  var s = Rot32State{ x: x; n: n; };
+  var shr_val = xiom.math.shr(s.x, s.n);
+  var mask = xiom.math.shl(1, s.n) - 1;
+  var hi = xiom.math.bit_and(s.x, mask);
+  var n_compl = 32 - s.n;
+  var hi_shifted = xiom.math.shl(hi, n_compl);
+  return xiom.math.bit_or(shr_val, hi_shifted);
 }
 
 fn md5_f(x: Int, y: Int, z: Int) -> Int {
-  return (x & y) | ((~x) & z);
+  var s = FGHIState{ x: x; y: y; z: z; };
+  var lhs = xiom.math.bit_and(s.x, s.y);
+  var not_x = xiom.math.bit_not(s.x);
+  var rhs = xiom.math.bit_and(not_x, s.z);
+  return xiom.math.bit_or(lhs, rhs);
 }
 
 fn md5_g(x: Int, y: Int, z: Int) -> Int {
-  return (x & z) | (y & (~z));
+  var s = FGHIState{ x: x; y: y; z: z; };
+  var not_z = xiom.math.bit_not(s.z);
+  var lhs = xiom.math.bit_and(s.x, s.z);
+  var rhs = xiom.math.bit_and(s.y, not_z);
+  return xiom.math.bit_or(lhs, rhs);
 }
 
 fn md5_h(x: Int, y: Int, z: Int) -> Int {
-  return x ^ y ^ z;
+  var s = FGHIState{ x: x; y: y; z: z; };
+  var t = xiom.math.bit_xor(s.x, s.y);
+  return xiom.math.bit_xor(t, s.z);
 }
 
 fn md5_i(x: Int, y: Int, z: Int) -> Int {
-  return y ^ (x | (~z));
+  var s = FGHIState{ x: x; y: y; z: z; };
+  var not_z = xiom.math.bit_not(s.z);
+  var t = xiom.math.bit_or(s.x, not_z);
+  return xiom.math.bit_xor(s.y, t);
 }
 
 pub fn md5(data: &Vec[Int]) -> Vec[Int]
   requires: data.len() > 0
   ensures: result.len() == 16
 {
-  var a0 = 0x67452301;
-  var b0 = 0xefcdab89;
-  var c0 = 0x98badcfe;
-  var d0 = 0x10325476;
+  var state = Md5State{ a: 0x67452301; b: 0xefcdab89; c: 0x98badcfe; d: 0x10325476; };
 
   var padded = pad_md5(data);
 
   var m = Vec[Int].new();
-  var x = 0;
-  while x < 16 {
+  var ms = LoopState{ i: 0; };
+  while ms.i < 16 {
     m.push(0);
-    x = x + 1;
+    ms = LoopState{ i: ms.i + 1; };
   }
 
   var offset = 0;
   while offset < padded.len() {
-    var i = 0;
-    while i < 16 {
-      var idx = offset + i * 4;
-      m[i] = (padded[idx] & 0xFF) | ((padded[idx + 1] & 0xFF) << 8) | ((padded[idx + 2] & 0xFF) << 16) | ((padded[idx + 3] & 0xFF) << 24);
-      i = i + 1;
+    var ls = LoopState{ i: 0; };
+    while ls.i < 16 {
+      var idx = offset + ls.i * 4;
+      var b0 = xiom.math.bit_and(padded[idx], 0xFF);
+      var b1 = xiom.math.shl(xiom.math.bit_and(padded[idx + 1], 0xFF), 8);
+      var b2 = xiom.math.shl(xiom.math.bit_and(padded[idx + 2], 0xFF), 16);
+      var b3 = xiom.math.shl(xiom.math.bit_and(padded[idx + 3], 0xFF), 24);
+      var w1 = xiom.math.bit_or(b0, b1);
+      var w2 = xiom.math.bit_or(w1, b2);
+      var word = xiom.math.bit_or(w2, b3);
+      m[ls.i] = word;
+      ls = LoopState{ i: ls.i + 1; };
     }
 
-    var a = a0;
-    var b = b0;
-    var c = c0;
-    var d = d0;
-
-    i = 0;
-    while i < 64 {
+    var cur = Md5RoundState{ a: state.a; b: state.b; c: state.c; d: state.d; i: 0; };
+    while cur.i < 64 {
       var f_val = 0;
       var g = 0;
-      if i < 16 {
-        f_val = md5_f(b, c, d);
-        g = i;
+      if cur.i < 16 {
+        f_val = md5_f(cur.b, cur.c, cur.d);
+        g = cur.i;
       }
-      elif i < 32 {
-        f_val = md5_g(b, c, d);
-        g = (5 * i + 1) % 16;
+      elif cur.i < 32 {
+        f_val = md5_g(cur.b, cur.c, cur.d);
+        g = (5 * cur.i + 1) % 16;
       }
-      elif i < 48 {
-        f_val = md5_h(b, c, d);
-        g = (3 * i + 5) % 16;
+      elif cur.i < 48 {
+        f_val = md5_h(cur.b, cur.c, cur.d);
+        g = (3 * cur.i + 5) % 16;
       } else {
-        f_val = md5_i(b, c, d);
-        g = (7 * i) % 16;
+        f_val = md5_i(cur.b, cur.c, cur.d);
+        g = (7 * cur.i) % 16;
       };
 
-      var temp = d;
-      d = c;
-      c = b;
-      b = b + rotr_32(a + f_val + md5_k(i) + m[g], md5_s(i));
-      a = temp;
-      i = i + 1;
+      var new_b = cur.b + rotr_32(cur.a + f_val + md5_k(cur.i) + m[g], md5_s(cur.i));
+      cur = Md5RoundState{ a: cur.d; b: new_b; c: cur.b; d: cur.c; i: cur.i + 1; };
     }
 
-    a0 = a0 + a;
-    b0 = b0 + b;
-    c0 = c0 + c;
-    d0 = d0 + d;
+    state = Md5State{ a: state.a + cur.a; b: state.b + cur.b; c: state.c + cur.c; d: state.d + cur.d; };
 
     offset = offset + 64;
   }
 
   var result = Vec[Int].new();
-  append_uint32_le(&result, a0);
-  append_uint32_le(&result, b0);
-  append_uint32_le(&result, c0);
-  append_uint32_le(&result, d0);
+  append_uint32_le(&result, state.a);
+  append_uint32_le(&result, state.b);
+  append_uint32_le(&result, state.c);
+  append_uint32_le(&result, state.d);
   return result;
 }
 
@@ -239,22 +258,23 @@ pub fn md5_hex(data: &Vec[Int]) -> Str
   ensures: result.len() == 32
 {
   var hash = md5(data);
-  return hex_encode_md5(&hash);
+  return xiom.encoding.hex_encode(&hash);
 }
 
 fn append_uint32_le(result: &Vec[Int], value: Int) {
-  result.push(value & 0xFF);
-  result.push((value >> 8) & 0xFF);
-  result.push((value >> 16) & 0xFF);
-  result.push((value >> 24) & 0xFF);
+  var s = IntVal{ v: value; };
+  result.push(xiom.math.bit_and(s.v, 0xFF));
+  result.push(xiom.math.bit_and(xiom.math.shr(s.v, 8), 0xFF));
+  result.push(xiom.math.bit_and(xiom.math.shr(s.v, 16), 0xFF));
+  result.push(xiom.math.bit_and(xiom.math.shr(s.v, 24), 0xFF));
 }
 
 fn pad_md5(data: &Vec[Int]) -> Vec[Int] {
   var result = Vec[Int].new();
-  var i = 0;
-  while i < data.len() {
-    result.push(data[i] & 0xFF);
-    i = i + 1;
+  var ls = LoopState{ i: 0; };
+  while ls.i < data.len() {
+    result.push(xiom.math.bit_and(data[ls.i], 0xFF));
+    ls = LoopState{ i: ls.i + 1; };
   }
 
   result.push(0x80);
@@ -266,52 +286,21 @@ fn pad_md5(data: &Vec[Int]) -> Vec[Int] {
     padding_needed = padding_needed + 64;
   };
 
-  i = 0;
-  while i < padding_needed - 8 {
+  var ls2 = LoopState{ i: 0; };
+  while ls2.i < padding_needed - 8 {
     result.push(0);
-    i = i + 1;
+    ls2 = LoopState{ i: ls2.i + 1; };
   }
 
-  result.push(bit_len & 0xFF);
-  result.push((bit_len >> 8) & 0xFF);
-  result.push((bit_len >> 16) & 0xFF);
-  result.push((bit_len >> 24) & 0xFF);
+  var bl = IntVal{ v: bit_len; };
+  result.push(xiom.math.bit_and(bl.v, 0xFF));
+  result.push(xiom.math.bit_and(xiom.math.shr(bl.v, 8), 0xFF));
+  result.push(xiom.math.bit_and(xiom.math.shr(bl.v, 16), 0xFF));
+  result.push(xiom.math.bit_and(xiom.math.shr(bl.v, 24), 0xFF));
   result.push(0);
   result.push(0);
   result.push(0);
   result.push(0);
 
   return result;
-}
-
-fn hex_encode_md5(data: &Vec[Int]) -> Str {
-  var result = "";
-  var i = 0;
-  while i < data.len() {
-    var b = data[i] & 0xFF;
-    var hi = (b >> 4) & 0xF;
-    var lo = b & 0xF;
-    result = result + hex_digit(hi) + hex_digit(lo);
-    i = i + 1;
-  }
-  return result;
-}
-
-fn hex_digit(n: Int) -> Str {
-  if n == 0 { return "0"; };
-  if n == 1 { return "1"; };
-  if n == 2 { return "2"; };
-  if n == 3 { return "3"; };
-  if n == 4 { return "4"; };
-  if n == 5 { return "5"; };
-  if n == 6 { return "6"; };
-  if n == 7 { return "7"; };
-  if n == 8 { return "8"; };
-  if n == 9 { return "9"; };
-  if n == 10 { return "a"; };
-  if n == 11 { return "b"; };
-  if n == 12 { return "c"; };
-  if n == 13 { return "d"; };
-  if n == 14 { return "e"; };
-  return "f";
 }

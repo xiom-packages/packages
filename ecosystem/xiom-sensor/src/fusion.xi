@@ -1,6 +1,8 @@
 module xiom.sensor.fusion
 
 use xiom.math;
+use xiom.sensor.imu;
+use xiom.sensor.gps;
 
 pub type FusedPose = {
   x: Float64;
@@ -85,8 +87,9 @@ pub fn fusion_weighted(poses: &Vec[FusedPose]) -> FusedPose {
     wp = wp + pose.pitch * weight;
     wyaw = wyaw + pose.yaw * weight;
 
-    if pose.timestamp > max_ts {
-      max_ts = pose.timestamp;
+    var ts_snap = pose.timestamp;
+    if ts_snap > max_ts {
+      max_ts = ts_snap;
     };
 
     i = i + 1;
@@ -114,12 +117,14 @@ pub fn fusion_predict(pose: &FusedPose, velocity: Float64, heading: Float64, dt:
   requires: dt >= 0.0
 {
   var heading_rad = heading * 0.017453292519943295;
-  var dx = velocity * xiom.math.cos(heading_rad) * dt;
-  var dy = velocity * xiom.math.sin(heading_rad) * dt;
+  var hr_snap = heading_rad;
+  var dx = velocity * xiom.math.cos(hr_snap) * dt;
+  var dy = velocity * xiom.math.sin(hr_snap) * dt;
 
   var earth_radius: Float64 = 6371000.0;
-  var new_lat = pose.x + rad_to_deg(dy / earth_radius);
-  var new_lon = pose.y + rad_to_deg(dx / (earth_radius * xiom.math.cos(pose.x * 0.017453292519943295)));
+  var lat_rad = pose.x * 0.017453292519943295;
+  var new_lat = pose.x + (dy / earth_radius) * 57.29577951308232;
+  var new_lon = pose.y + (dx / (earth_radius * xiom.math.cos(lat_rad))) * 57.29577951308232;
 
   var conf_decay: Float64 = 0.95;
   if dt > 0.0 {
@@ -147,96 +152,4 @@ pub fn confidence_from_hdop(hdop: Float64) -> Float64 {
     conf = 1.0;
   };
   return conf;
-}
-
-fn deg_to_rad(deg: Float64) -> Float64 {
-  return deg * 0.017453292519943295;
-}
-
-fn rad_to_deg(rad: Float64) -> Float64 {
-  return rad * 57.29577951308232;
-}
-
-fn imu_compute_orientation(reading: &IMUReading) -> Quaternion {
-  var ax = reading.accel_x;
-  var ay = reading.accel_y;
-  var az = reading.accel_z;
-  var mx = reading.mag_x;
-  var my = reading.mag_y;
-  var mz = reading.mag_z;
-
-  var accel_norm = xiom.math.sqrt(ax * ax + ay * ay + az * az);
-  if accel_norm < 0.0000001 {
-    var q = Quaternion{ w: 1.0, x: 0.0, y: 0.0, z: 0.0 };
-    return q;
-  };
-  ax = ax / accel_norm;
-  ay = ay / accel_norm;
-  az = az / accel_norm;
-
-  var roll = xiom.math.atan2(ay, az);
-  var pitch = xiom.math.atan2(-ax, xiom.math.sqrt(ay * ay + az * az));
-
-  var mag_norm = xiom.math.sqrt(mx * mx + my * my + mz * mz);
-  if mag_norm < 0.0000001 {
-    return quat_from_euler(roll, pitch, 0.0);
-  };
-  mx = mx / mag_norm;
-  my = my / mag_norm;
-  mz = mz / mag_norm;
-
-  var cr = xiom.math.cos(roll);
-  var sr = xiom.math.sin(roll);
-  var cp = xiom.math.cos(pitch);
-  var sp = xiom.math.sin(pitch);
-
-  var mag_x_tilt = mx * cp + my * sp * sr + mz * sp * cr;
-  var mag_y_tilt = my * cr - mz * sr;
-  var yaw = xiom.math.atan2(-mag_y_tilt, mag_x_tilt);
-
-  return quat_from_euler(roll, pitch, yaw);
-}
-
-fn quat_from_euler(roll: Float64, pitch: Float64, yaw: Float64) -> Quaternion {
-  var cy = xiom.math.cos(yaw * 0.5);
-  var sy = xiom.math.sin(yaw * 0.5);
-  var cp = xiom.math.cos(pitch * 0.5);
-  var sp = xiom.math.sin(pitch * 0.5);
-  var cr = xiom.math.cos(roll * 0.5);
-  var sr = xiom.math.sin(roll * 0.5);
-
-  return Quaternion{
-    w: cr * cp * cy + sr * sp * sy,
-    x: sr * cp * cy - cr * sp * sy,
-    y: cr * sp * cy + sr * cp * sy,
-    z: cr * cp * sy - sr * sp * cy,
-  };
-}
-
-fn quat_to_euler(q: &Quaternion) -> EulerAngles {
-  var sinr_cosp: Float64 = 2.0 * (q.w * q.x + q.y * q.z);
-  var cosr_cosp: Float64 = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
-  var roll: Float64 = xiom.math.atan2(sinr_cosp, cosr_cosp);
-
-  var sinp: Float64 = 2.0 * (q.w * q.y - q.z * q.x);
-  var pitch: Float64 = 0.0;
-  if xiom.math.abs(sinp) >= 1.0 {
-    if sinp > 0.0 {
-      pitch = 1.5707963267948966;
-    } else {
-      pitch = -1.5707963267948966;
-    };
-  } else {
-    pitch = xiom.math.asin(sinp);
-  };
-
-  var siny_cosp: Float64 = 2.0 * (q.w * q.z + q.x * q.y);
-  var cosy_cosp: Float64 = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
-  var yaw: Float64 = xiom.math.atan2(siny_cosp, cosy_cosp);
-
-  return EulerAngles{ roll: roll, pitch: pitch, yaw: yaw };
-}
-
-fn gps_is_valid(fix: &GPSFix) -> Bool {
-  return fix.fix_quality > 0;
 }

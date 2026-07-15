@@ -92,16 +92,16 @@ pub fn quat_to_euler(q: &Quaternion) -> EulerAngles {
   var cosr_cosp: Float64 = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
   var roll: Float64 = xiom.math.atan2(sinr_cosp, cosr_cosp);
 
-  var sinp: Float64 = 2.0 * (q.w * q.y - q.z * q.x);
+  var sinp_holder = Quaternion{ w: 2.0 * (q.w * q.y - q.z * q.x), x: 0.0, y: 0.0, z: 0.0 };
   var pitch: Float64 = 0.0;
-  if xiom.math.abs(sinp) >= 1.0 {
-    if sinp > 0.0 {
+  if xiom.math.abs_float(sinp_holder.w) >= 1.0 {
+    if sinp_holder.w > 0.0 {
       pitch = 1.5707963267948966;
     } else {
       pitch = -1.5707963267948966;
     };
   } else {
-    pitch = xiom.math.asin(sinp);
+    pitch = xiom.math.asin(sinp_holder.w);
   };
 
   var siny_cosp: Float64 = 2.0 * (q.w * q.z + q.x * q.y);
@@ -120,40 +120,44 @@ pub fn quat_rotate_vector(q: &Quaternion, vx: Float64, vy: Float64, vz: Float64)
 }
 
 pub fn imu_compute_orientation(reading: &IMUReading) -> Quaternion {
-  var ax = reading.accel_x;
-  var ay = reading.accel_y;
-  var az = reading.accel_z;
-  var mx = reading.mag_x;
-  var my = reading.mag_y;
-  var mz = reading.mag_z;
-
-  var accel_norm = xiom.math.sqrt(ax * ax + ay * ay + az * az);
+  var accel_norm = xiom.math.sqrt(reading.accel_x * reading.accel_x + reading.accel_y * reading.accel_y + reading.accel_z * reading.accel_z);
   if accel_norm < 0.0000001 {
     return quat_identity();
   };
-  ax = ax / accel_norm;
-  ay = ay / accel_norm;
-  az = az / accel_norm;
 
-  var roll = xiom.math.atan2(ay, az);
-  var pitch = xiom.math.atan2(-ax, xiom.math.sqrt(ay * ay + az * az));
-
-  var mag_norm = xiom.math.sqrt(mx * mx + my * my + mz * mz);
-  if mag_norm < 0.0000001 {
-    return quat_from_euler(roll, pitch, 0.0);
+  var accel = Quaternion{
+    w: 0.0,
+    x: reading.accel_x / accel_norm,
+    y: reading.accel_y / accel_norm,
+    z: reading.accel_z / accel_norm,
   };
-  mx = mx / mag_norm;
-  my = my / mag_norm;
-  mz = mz / mag_norm;
 
-  var cr = xiom.math.cos(roll);
-  var sr = xiom.math.sin(roll);
-  var cp = xiom.math.cos(pitch);
-  var sp = xiom.math.sin(pitch);
+  var angles = EulerAngles{
+    roll: xiom.math.atan2(accel.y, accel.z),
+    pitch: xiom.math.atan2(-accel.x, xiom.math.sqrt(accel.y * accel.y + accel.z * accel.z)),
+    yaw: 0.0,
+  };
 
-  var mag_x_tilt = mx * cp + my * sp * sr + mz * sp * cr;
-  var mag_y_tilt = my * cr - mz * sr;
+  var mag_norm = xiom.math.sqrt(reading.mag_x * reading.mag_x + reading.mag_y * reading.mag_y + reading.mag_z * reading.mag_z);
+  if mag_norm < 0.0000001 {
+    return quat_from_euler(angles.roll, angles.pitch, 0.0);
+  };
+
+  var mag = Quaternion{
+    w: 0.0,
+    x: reading.mag_x / mag_norm,
+    y: reading.mag_y / mag_norm,
+    z: reading.mag_z / mag_norm,
+  };
+
+  var cr = xiom.math.cos(angles.roll);
+  var sr = xiom.math.sin(angles.roll);
+  var cp = xiom.math.cos(angles.pitch);
+  var sp = xiom.math.sin(angles.pitch);
+
+  var mag_x_tilt = mag.x * cp + mag.y * sp * sr + mag.z * sp * cr;
+  var mag_y_tilt = mag.y * cr - mag.z * sr;
   var yaw = xiom.math.atan2(-mag_y_tilt, mag_x_tilt);
 
-  return quat_from_euler(roll, pitch, yaw);
+  return quat_from_euler(angles.roll, angles.pitch, yaw);
 }

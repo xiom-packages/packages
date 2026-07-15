@@ -5,7 +5,7 @@ pub type FFIError = {
   message: Str;
 }
 
-fn ffi_check(code: Int, msg: Str) -> Result[Int, FFIError] {
+pub fn ffi_check(code: Int, msg: Str) -> Result[Int, FFIError] {
   if code < 0 {
     Err(FFIError { code: code; message: msg })
   } else {
@@ -13,10 +13,10 @@ fn ffi_check(code: Int, msg: Str) -> Result[Int, FFIError] {
   }
 }
 
-fn ffi_ok() -> Int {
+pub fn ffi_ok() -> Int {
   0
 }
 
-fn ffi_error(code: Int, msg: Str) -> FFIError {
+pub fn ffi_error(code: Int, msg: Str) -> FFIError {
   FFIError { code: code; message: msg }
 }

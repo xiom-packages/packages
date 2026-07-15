@@ -6,6 +6,7 @@ module xiom.crypto
 
 use xiom.encoding;
 use xiom.rand;
+use xiom.math;
 
 // ---------------------------------------------------------------------------
 // FFI declarations — OpenSSL libcrypto + XIOM runtime bridge
@@ -28,6 +29,10 @@ extern "C" {
   fn xiom_copy_to_vec(vec_data: *UInt8, vec_len: Int, vec_cap: Int, c_buf: *UInt8, count: Int);
 }
 
+type LoopState = { i: Int; }
+type BufPtr = { ptr: *UInt8; }
+type DataPtr = { ptr: *UInt8; }
+
 // ===========================================================================
 // SHA-256 (32-byte output)
 // ===========================================================================
@@ -36,31 +41,33 @@ pub fn sha256(data: &Vec[Int]) -> Vec[Int]
   requires: data.len() > 0
   ensures: result.len() == 32
 {
-  var out_buf = unsafe { xiom_alloc(32) };
-  if out_buf == 0 {
+  var out_buf_raw = unsafe { xiom_alloc(32) };
+  var out_buf = BufPtr{ ptr: out_buf_raw };
+  if out_buf.ptr == 0 {
     var empty = Vec[Int].new();
     return empty;
   };
 
-  var data_ptr = unsafe { xiom_vec_ptr(data) };
-  if data_ptr == 0 {
-    unsafe { xiom_free_ptr(out_buf); }
+  var data_ptr_raw = unsafe { xiom_vec_ptr(data) };
+  var data_ptr = DataPtr{ ptr: data_ptr_raw };
+  if data_ptr.ptr == 0 {
+    unsafe { xiom_free_ptr(out_buf.ptr); }
     var empty = Vec[Int].new();
     return empty;
   };
 
   var data_len = data.len();
-  unsafe { SHA256(data_ptr, data_len, out_buf); }
+  unsafe { SHA256(data_ptr.ptr, data_len, out_buf.ptr); }
 
   var result = Vec[Int].new();
-  var i = 0;
-  while i < 32 {
-    var byte_val = unsafe { xiom_read_byte(out_buf, i) };
+  var cur = LoopState{ i: 0; };
+  while cur.i < 32 {
+    var byte_val = unsafe { xiom_read_byte(out_buf.ptr, cur.i) };
     result.push(byte_val);
-    i = i + 1;
+    cur = LoopState{ i: cur.i + 1; };
   }
 
-  unsafe { xiom_free_ptr(out_buf); }
+  unsafe { xiom_free_ptr(out_buf.ptr); }
   return result;
 }
 
@@ -80,31 +87,33 @@ pub fn sha512(data: &Vec[Int]) -> Vec[Int]
   requires: data.len() > 0
   ensures: result.len() == 64
 {
-  var out_buf = unsafe { xiom_alloc(64) };
-  if out_buf == 0 {
+  var out_buf_raw = unsafe { xiom_alloc(64) };
+  var out_buf = BufPtr{ ptr: out_buf_raw };
+  if out_buf.ptr == 0 {
     var empty = Vec[Int].new();
     return empty;
   };
 
-  var data_ptr = unsafe { xiom_vec_ptr(data) };
-  if data_ptr == 0 {
-    unsafe { xiom_free_ptr(out_buf); }
+  var data_ptr_raw = unsafe { xiom_vec_ptr(data) };
+  var data_ptr = DataPtr{ ptr: data_ptr_raw };
+  if data_ptr.ptr == 0 {
+    unsafe { xiom_free_ptr(out_buf.ptr); }
     var empty = Vec[Int].new();
     return empty;
   };
 
   var data_len = data.len();
-  unsafe { SHA512(data_ptr, data_len, out_buf); }
+  unsafe { SHA512(data_ptr.ptr, data_len, out_buf.ptr); }
 
   var result = Vec[Int].new();
-  var i = 0;
-  while i < 64 {
-    var byte_val = unsafe { xiom_read_byte(out_buf, i) };
+  var cur = LoopState{ i: 0; };
+  while cur.i < 64 {
+    var byte_val = unsafe { xiom_read_byte(out_buf.ptr, cur.i) };
     result.push(byte_val);
-    i = i + 1;
+    cur = LoopState{ i: cur.i + 1; };
   }
 
-  unsafe { xiom_free_ptr(out_buf); }
+  unsafe { xiom_free_ptr(out_buf.ptr); }
   return result;
 }
 
@@ -124,31 +133,33 @@ pub fn md5(data: &Vec[Int]) -> Vec[Int]
   requires: data.len() > 0
   ensures: result.len() == 16
 {
-  var out_buf = unsafe { xiom_alloc(16) };
-  if out_buf == 0 {
+  var out_buf_raw = unsafe { xiom_alloc(16) };
+  var out_buf = BufPtr{ ptr: out_buf_raw };
+  if out_buf.ptr == 0 {
     var empty = Vec[Int].new();
     return empty;
   };
 
-  var data_ptr = unsafe { xiom_vec_ptr(data) };
-  if data_ptr == 0 {
-    unsafe { xiom_free_ptr(out_buf); }
+  var data_ptr_raw = unsafe { xiom_vec_ptr(data) };
+  var data_ptr = DataPtr{ ptr: data_ptr_raw };
+  if data_ptr.ptr == 0 {
+    unsafe { xiom_free_ptr(out_buf.ptr); }
     var empty = Vec[Int].new();
     return empty;
   };
 
   var data_len = data.len();
-  unsafe { MD5(data_ptr, data_len, out_buf); }
+  unsafe { MD5(data_ptr.ptr, data_len, out_buf.ptr); }
 
   var result = Vec[Int].new();
-  var i = 0;
-  while i < 16 {
-    var byte_val = unsafe { xiom_read_byte(out_buf, i) };
+  var cur = LoopState{ i: 0; };
+  while cur.i < 16 {
+    var byte_val = unsafe { xiom_read_byte(out_buf.ptr, cur.i) };
     result.push(byte_val);
-    i = i + 1;
+    cur = LoopState{ i: cur.i + 1; };
   }
 
-  unsafe { xiom_free_ptr(out_buf); }
+  unsafe { xiom_free_ptr(out_buf.ptr); }
   return result;
 }
 
@@ -174,61 +185,61 @@ pub fn hmac_sha256(data: &Vec[Int], key: &Vec[Int]) -> Vec[Int]
   var key_work = Vec[Int].new();
   if key.len() > block_size {
     var hashed = sha256(key);
-    var i = 0;
-    while i < hashed.len() {
-      key_work.push(hashed[i]);
-      i = i + 1;
+    var ks = LoopState{ i: 0; };
+    while ks.i < hashed.len() {
+      key_work.push(hashed[ks.i]);
+      ks = LoopState{ i: ks.i + 1; };
     };
-    i = hashed.len();
-    while i < block_size {
+    var ks2 = LoopState{ i: hashed.len(); };
+    while ks2.i < block_size {
       key_work.push(0);
-      i = i + 1;
+      ks2 = LoopState{ i: ks2.i + 1; };
     };
   } else {
-    var i = 0;
-    while i < key.len() {
-      key_work.push(key[i]);
-      i = i + 1;
+    var ks = LoopState{ i: 0; };
+    while ks.i < key.len() {
+      key_work.push(key[ks.i]);
+      ks = LoopState{ i: ks.i + 1; };
     };
-    i = key.len();
-    while i < block_size {
+    var ks2 = LoopState{ i: key.len(); };
+    while ks2.i < block_size {
       key_work.push(0);
-      i = i + 1;
+      ks2 = LoopState{ i: ks2.i + 1; };
     };
   };
 
   var o_key_pad = Vec[Int].new();
   var i_key_pad = Vec[Int].new();
-  var i = 0;
-  while i < block_size {
-    o_key_pad.push(key_work[i] ^ 0x5c);
-    i_key_pad.push(key_work[i] ^ 0x36);
-    i = i + 1;
+  var ls = LoopState{ i: 0; };
+  while ls.i < block_size {
+    o_key_pad.push(xiom.math.bit_xor(key_work[ls.i], 0x5c));
+    i_key_pad.push(xiom.math.bit_xor(key_work[ls.i], 0x36));
+    ls = LoopState{ i: ls.i + 1; };
   };
 
   var inner_data = Vec[Int].new();
-  i = 0;
-  while i < i_key_pad.len() {
-    inner_data.push(i_key_pad[i]);
-    i = i + 1;
+  var ls2 = LoopState{ i: 0; };
+  while ls2.i < i_key_pad.len() {
+    inner_data.push(i_key_pad[ls2.i]);
+    ls2 = LoopState{ i: ls2.i + 1; };
   };
-  i = 0;
-  while i < data.len() {
-    inner_data.push(data[i]);
-    i = i + 1;
+  var ls3 = LoopState{ i: 0; };
+  while ls3.i < data.len() {
+    inner_data.push(data[ls3.i]);
+    ls3 = LoopState{ i: ls3.i + 1; };
   };
   var inner_hash = sha256(&inner_data);
 
   var outer_data = Vec[Int].new();
-  i = 0;
-  while i < o_key_pad.len() {
-    outer_data.push(o_key_pad[i]);
-    i = i + 1;
+  var ls4 = LoopState{ i: 0; };
+  while ls4.i < o_key_pad.len() {
+    outer_data.push(o_key_pad[ls4.i]);
+    ls4 = LoopState{ i: ls4.i + 1; };
   };
-  i = 0;
-  while i < inner_hash.len() {
-    outer_data.push(inner_hash[i]);
-    i = i + 1;
+  var ls5 = LoopState{ i: 0; };
+  while ls5.i < inner_hash.len() {
+    outer_data.push(inner_hash[ls5.i]);
+    ls5 = LoopState{ i: ls5.i + 1; };
   };
   return sha256(&outer_data);
 }
@@ -279,4 +290,3 @@ pub fn hex_decode(input: Str) -> Result[Vec[Int], Str]
 {
   return xiom.encoding.hex_decode(input);
 }
-

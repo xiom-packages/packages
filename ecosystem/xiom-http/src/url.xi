@@ -3,6 +3,13 @@ module xiom.http.url
 use xiom.encoding;
 use xiom.string;
 
+fn char_code_at(s: Str, pos: Int) -> Int {
+  match xiom.string.char_at(s, pos) {
+    Some(c) => { return to_int_from_char(c); },
+    None => { return -1; },
+  }
+}
+
 pub type Url = {
   scheme: Str;
   host: Str;
@@ -118,24 +125,24 @@ fn char_to_str(c: Int) -> Str {
 }
 
 pub fn url_parse(input: Str) -> Result[Url, Str]
-  requires: input.len() > 0 {
+  requires: xiom.string.str_len(input) > 0 {
   var scheme: Str = "";
   var host: Str = "";
   var port: Int = 0;
   var path: Str = "/";
   var query: Str = "";
   var fragment: Str = "";
-  var len: Int = @xiom_str_len(input);
+  var len: Int = xiom.string.str_len(input);
   var pos: Int = 0;
   var scheme_end: Int = 0;
   var has_scheme: Bool = false;
   var i: Int = 0;
   while i < len {
-    var c: Int = @xiom_char_at(input, i);
+    var c: Int = char_code_at(input, i);
     if c == 58 {
       if i + 2 < len {
-        var n1: Int = @xiom_char_at(input, i + 1);
-        var n2: Int = @xiom_char_at(input, i + 2);
+        var n1: Int = char_code_at(input, i + 1);
+        var n2: Int = char_code_at(input, i + 2);
         if n1 == 47 && n2 == 47 {
           scheme_end = i;
           has_scheme = true;
@@ -152,7 +159,7 @@ pub fn url_parse(input: Str) -> Result[Url, Str]
     var j: Int = 0;
     scheme = "";
     while j < scheme_end {
-      scheme = scheme + char_to_str(@xiom_char_at(input, j));
+      scheme = scheme + char_to_str(char_code_at(input, j));
       j = j + 1;
     }
     pos = scheme_end + 3;
@@ -162,7 +169,7 @@ pub fn url_parse(input: Str) -> Result[Url, Str]
   }
   var host_start: Int = pos;
   while pos < len {
-    var c: Int = @xiom_char_at(input, pos);
+    var c: Int = char_code_at(input, pos);
     if c == 58 {
       pos = pos + 1;
       break;
@@ -176,19 +183,19 @@ pub fn url_parse(input: Str) -> Result[Url, Str]
   var j: Int = host_start;
   host = "";
   while j < host_end {
-    var c: Int = @xiom_char_at(input, j);
+    var c: Int = char_code_at(input, j);
     if c == 58 {
       j = j + 1;
       var port_str: Str = "";
       while j < host_end {
-        port_str = port_str + char_to_str(@xiom_char_at(input, j));
+        port_str = port_str + char_to_str(char_code_at(input, j));
         j = j + 1;
       }
       var pi: Int = 0;
       var pv: Int = 0;
-      var plen: Int = @xiom_str_len(port_str);
+      var plen: Int = xiom.string.str_len(port_str);
       while pi < plen {
-        var pc: Int = @xiom_char_at(port_str, pi);
+        var pc: Int = char_code_at(port_str, pi);
         pv = pv * 10 + (pc - 48);
         pi = pi + 1;
       }
@@ -200,21 +207,21 @@ pub fn url_parse(input: Str) -> Result[Url, Str]
   }
   if !has_scheme {
     if pos < len {
-      var c: Int = @xiom_char_at(input, pos);
+      var c: Int = char_code_at(input, pos);
       if c == 58 {
         pos = pos + 1;
         var port_str: Str = "";
         while pos < len {
-          var pc: Int = @xiom_char_at(input, pos);
+          var pc: Int = char_code_at(input, pos);
           if pc == 47 || pc == 63 || pc == 35 { break; }
           port_str = port_str + char_to_str(pc);
           pos = pos + 1;
         }
         var pi: Int = 0;
         var pv: Int = 0;
-        var plen: Int = @xiom_str_len(port_str);
+        var plen: Int = xiom.string.str_len(port_str);
         while pi < plen {
-          var pc: Int = @xiom_char_at(port_str, pi);
+          var pc: Int = char_code_at(port_str, pi);
           pv = pv * 10 + (pc - 48);
           pi = pi + 1;
         }
@@ -223,11 +230,11 @@ pub fn url_parse(input: Str) -> Result[Url, Str]
     }
   }
   if pos < len {
-    var c: Int = @xiom_char_at(input, pos);
+    var c: Int = char_code_at(input, pos);
     if c == 47 {
       var path_str: Str = "";
       while pos < len {
-        var pc: Int = @xiom_char_at(input, pos);
+        var pc: Int = char_code_at(input, pos);
         if pc == 63 || pc == 35 { break; }
         path_str = path_str + char_to_str(pc);
         pos = pos + 1;
@@ -236,12 +243,12 @@ pub fn url_parse(input: Str) -> Result[Url, Str]
     }
   }
   if pos < len {
-    var c: Int = @xiom_char_at(input, pos);
+    var c: Int = char_code_at(input, pos);
     if c == 63 {
       pos = pos + 1;
       var query_str: Str = "";
       while pos < len {
-        var pc: Int = @xiom_char_at(input, pos);
+        var pc: Int = char_code_at(input, pos);
         if pc == 35 { break; }
         query_str = query_str + char_to_str(pc);
         pos = pos + 1;
@@ -250,12 +257,12 @@ pub fn url_parse(input: Str) -> Result[Url, Str]
     }
   }
   if pos < len {
-    var c: Int = @xiom_char_at(input, pos);
+    var c: Int = char_code_at(input, pos);
     if c == 35 {
       pos = pos + 1;
       var frag_str: Str = "";
       while pos < len {
-        frag_str = frag_str + char_to_str(@xiom_char_at(input, pos));
+        frag_str = frag_str + char_to_str(char_code_at(input, pos));
         pos = pos + 1;
       }
       fragment = frag_str;
@@ -277,7 +284,7 @@ pub fn url_parse(input: Str) -> Result[Url, Str]
 
 pub fn url_to_str(url: &Url) -> Str {
   var s: Str = "";
-  if @xiom_str_len(url.scheme) > 0 {
+  if xiom.string.str_len(url.scheme) > 0 {
     s = s + url.scheme + "://";
   }
   s = s + url.host;
@@ -310,37 +317,37 @@ pub fn url_to_str(url: &Url) -> Str {
     s = s + ":" + port_str;
   }
   s = s + url.path;
-  if @xiom_str_len(url.query) > 0 {
+  if xiom.string.str_len(url.query) > 0 {
     s = s + "?" + url.query;
   }
-  if @xiom_str_len(url.fragment) > 0 {
+  if xiom.string.str_len(url.fragment) > 0 {
     s = s + "#" + url.fragment;
   }
   return s;
 }
 
 pub fn url_encode(s: Str) -> Str
-  requires: s.len() > 0 {
+  requires: xiom.string.str_len(s) > 0 {
   return xiom.encoding.url_encode(s);
 }
 
 pub fn url_decode(s: Str) -> Result[Str, Str]
-  requires: s.len() > 0 {
+  requires: xiom.string.str_len(s) > 0 {
   return xiom.encoding.url_decode(s);
 }
 
 pub fn path_join(base: Str, relative: Str) -> Str
-  requires: base.len() > 0 {
-  var base_len: Int = @xiom_str_len(base);
-  var rel_len: Int = @xiom_str_len(relative);
+  requires: xiom.string.str_len(base) > 0 {
+  var base_len: Int = xiom.string.str_len(base);
+  var rel_len: Int = xiom.string.str_len(relative);
   if rel_len == 0 { return base; }
   if base_len == 0 { return relative; }
   if base_len > 0 {
-    var first: Int = @xiom_char_at(relative, 0);
+    var first: Int = char_code_at(relative, 0);
     if first == 47 { return relative; }
   }
   var result: Str = base;
-  var last: Int = @xiom_char_at(base, base_len - 1);
+  var last: Int = char_code_at(base, base_len - 1);
   if last != 47 {
     result = result + "/";
   }

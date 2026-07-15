@@ -5,11 +5,11 @@ pub type FFIBuffer = {
   capacity: Int;
 }
 
-fn buffer_new(capacity: Int) -> FFIBuffer {
+pub fn buffer_new(capacity: Int) -> FFIBuffer {
   FFIBuffer { data: Vec[Int].new(), capacity: capacity }
 }
 
-fn buffer_write(buf: &mut FFIBuffer, data: &Vec[Int]) -> Result[Int, Str] {
+pub fn buffer_write(buf: &mut FFIBuffer, data: &Vec[Int]) -> Result[Int, Str] {
   let available = buf.capacity - buf.data.len();
   if data.len() > available {
     Err("buffer_write: would exceed capacity")
@@ -28,7 +28,7 @@ fn buffer_append_all(buf: &mut FFIBuffer, data: &Vec[Int], idx: Int) -> Int {
   }
 }
 
-fn buffer_read(buf: &FFIBuffer, offset: Int, len: Int) -> Result[Vec[Int], Str] {
+pub fn buffer_read(buf: &FFIBuffer, offset: Int, len: Int) -> Result[Vec[Int], Str] {
   if offset < 0 {
     Err("buffer_read: offset must be non-negative")
   } elif offset + len > buf.data.len() {
@@ -48,6 +48,6 @@ fn buffer_read_slice(buf: &FFIBuffer, offset: Int, len: Int, idx: Int, acc: Vec[
   }
 }
 
-fn buffer_clear(buf: &mut FFIBuffer) {
+pub fn buffer_clear(buf: &mut FFIBuffer) {
   buf.data = Vec[Int].new();
 }
