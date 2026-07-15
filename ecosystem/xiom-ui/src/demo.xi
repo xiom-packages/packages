@@ -1,6 +1,13 @@
 module xiom.ui.demo
 
-pub fn demo_counter_app() -> Result[Unit, Str] {
+use xiom.ui.types;
+use xiom.ui.layout;
+use xiom.ui.widgets;
+use xiom.ui.render;
+use xiom.ui.theme;
+use xiom.ui.application;
+
+pub fn demo_counter_app() -> Result[Int, Str] {
   var app = UIApp.new("Counter Demo", 400.0, 300.0);
   var btn = ButtonState.new(0);
   var counter: Int = 0;
@@ -43,10 +50,10 @@ pub fn demo_counter_app() -> Result[Unit, Str] {
     app.end_frame();
   }
 
-  return Ok(Unit{});
+  return Ok(0);
 }
 
-pub fn demo_form() -> Result[Unit, Str] {
+pub fn demo_form() -> Result[Int, Str] {
   var app = UIApp.new("Form Demo", 500.0, 400.0);
   var name_field = TextFieldState.new(0);
   var email_field = TextFieldState.new(1);
@@ -99,10 +106,10 @@ pub fn demo_form() -> Result[Unit, Str] {
     app.end_frame();
   }
 
-  return Ok(Unit{});
+  return Ok(0);
 }
 
-pub fn demo_layout() -> Result[Unit, Str] {
+pub fn demo_layout() -> Result[Int, Str] {
   var app = UIApp.new("Layout Demo", 600.0, 400.0);
 
   while app.should_close() == false {
@@ -158,7 +165,7 @@ pub fn demo_layout() -> Result[Unit, Str] {
     app.end_frame();
   }
 
-  return Ok(Unit{});
+  return Ok(0);
 }
 
 fn int_to_float32(n: Int) -> Float32 {
