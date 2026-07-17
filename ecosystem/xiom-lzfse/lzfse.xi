@@ -2,7 +2,11 @@
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
+<<<<<<< ours
 // Low-level FFI declarations for LZFSE (lzfse.h).
+=======
+// Low-level FFI declarations for LZFSE (lzfse.h + lzfse_internal.h).
+>>>>>>> theirs
 // LZFSE is Apple's LZ-style compression with Finite State Entropy coding.
 // Reference: https://github.com/lzfse/lzfse
 //
@@ -12,7 +16,11 @@
 module xiom.lzfse
 
 // =========================================================================
+<<<<<<< ours
 // FFI: 4 extern C functions from lzfse.h
+=======
+// FFI: 6 extern C functions covering all exported symbols
+>>>>>>> theirs
 // =========================================================================
 
 extern "C" {
@@ -20,6 +28,11 @@ extern "C" {
   fn lzfse_encode_buffer(dst_buffer: Int, dst_size: Int, src_buffer: Int, src_size: Int, scratch_buffer: Int) -> Int;
   fn lzfse_decode_scratch_size() -> Int;
   fn lzfse_decode_buffer(dst_buffer: Int, dst_size: Int, src_buffer: Int, src_size: Int, scratch_buffer: Int) -> Int;
+<<<<<<< ours
+=======
+  fn lzvn_encode_scratch_size() -> Int;
+  fn lzvn_encode_buffer(dst: Int, dst_size: Int, src: Int, src_size: Int, work: Int) -> Int;
+>>>>>>> theirs
 }
 
 // =========================================================================
@@ -29,11 +42,19 @@ extern "C" {
 pub fn compress_bound(src_size: Int) -> Int
   requires: src_size > 0
 {
+<<<<<<< ours
   return src_size + src_size / 4 as Int + 64 as Int;
 }
 
 // =========================================================================
 // Safe wrapper functions — for direct procedural use
+=======
+  return src_size + src_size / 4 + 64;
+}
+
+// =========================================================================
+// LZFSE safe wrapper functions — for direct procedural use
+>>>>>>> theirs
 // =========================================================================
 
 pub fn encode_scratch_size() -> Int {
@@ -95,3 +116,40 @@ pub fn decode_using_malloc(dst_buffer: Int, dst_size: Int, src_buffer: Int, src_
   }
   return Ok(wrote);
 }
+<<<<<<< ours
+=======
+
+// =========================================================================
+// LZVN safe wrapper functions — simpler codec for blocks < 4096 bytes
+// =========================================================================
+
+pub fn lzvn_encode_scratch_size() -> Int {
+  return unsafe { lzvn_encode_scratch_size() };
+}
+
+pub fn lzvn_encode_buffer(dst: Int, dst_size: Int, src: Int, src_size: Int, work: Int) -> Result[Int, Str]
+  requires: dst != 0
+  requires: dst_size > 0
+  requires: src != 0
+  requires: src_size > 0
+{
+  let wrote: Int = unsafe { lzvn_encode_buffer(dst, dst_size, src, src_size, work) };
+  if wrote == 0 {
+    return Err("lzvn_encode_buffer failed: output buffer too small or encode error");
+  }
+  return Ok(wrote);
+}
+
+pub fn lzvn_encode_using_malloc(dst: Int, dst_size: Int, src: Int, src_size: Int) -> Result[Int, Str]
+  requires: dst != 0
+  requires: dst_size > 0
+  requires: src != 0
+  requires: src_size > 0
+{
+  let wrote: Int = unsafe { lzvn_encode_buffer(dst, dst_size, src, src_size, 0) };
+  if wrote == 0 {
+    return Err("lzvn_encode_buffer failed: output buffer too small or encode error");
+  }
+  return Ok(wrote);
+}
+>>>>>>> theirs

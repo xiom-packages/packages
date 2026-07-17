@@ -38,7 +38,11 @@ package xiom_ecosystem {
     "xiom-torch",
     "xiom-onnx",
     "xiom-opencv",
+<<<<<<< ours
     "xiom-ozz",
+=======
+    "xiom-phonon",
+>>>>>>> theirs
     "xiom-control",
     "xiom-sensor",
     "xiom-ffi",
