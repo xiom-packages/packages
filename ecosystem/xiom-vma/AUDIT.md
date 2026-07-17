@@ -69,6 +69,8 @@ ecosystem/xiom-vma/
 │   └── vma_safe.xi         # Module xiom.vma.safe — struct-based wrappers
 ├── examples/
 │   └── demo_vma.xi         # Module xiom.vma.demo — compile-time demo
+├── tests/
+│   └── test_vma.xi         # Module xiom.vma.test — 14 test functions
 └── AUDIT.md                # This file
 ```
 
@@ -76,7 +78,7 @@ ecosystem/xiom-vma/
 
 ### vma.xi — Module `xiom.vma`
 
-**All 72 VMA C API functions** from vk_mem_alloc.h v3.3.0 are declared in one `extern "C"` block:
+**All 72 VMA C API functions** from vk_mem_alloc.h v3.3.0 declared in `pub extern "C"` block (cross-module accessible):
 
 | Category | Functions | Key Functions |
 |----------|-----------|---------------|
@@ -101,7 +103,7 @@ ecosystem/xiom-vma/
 
 ### vma_safe.xi — Module `xiom.vma.safe`
 
-5 struct‑based resource types (with duplicate inline `extern "C"` block — cross‑module resolution is broken in v0.45.3):
+5 struct‑based resource types using `use xiom.vma` for extern function resolution (cross‑module fixed in v0.46):
 
 | Type | Methods | Contracts |
 |------|---------|-----------|
@@ -113,26 +115,15 @@ ecosystem/xiom-vma/
 
 Utility: `VmaContext` — high‑level lifecycle manager with init/destroy/create_buffer/create_image/create_pool.
 
-## Compiler Gaps Worked Around
+## Compiler Gap Resolution (v0.45.3 → v0.46.0)
 
-### 1. Cross-module extern resolution (T001)
-**Symptom:** `extern "C"` functions declared in module A resolve to `()` when called from module B via `use` import.
-**Workaround:** `src/vma_safe.xi` duplicates the `extern "C"` block it needs inline.
-**Impact:** ~80-line duplicate extern block in vma_safe.xi.
-
-### 2. Int→Int32 coercion (T001)
-**Symptom:** Integer literals (`1`, `0`) default to `Int` and do not auto-coerce to `Int32`.
-**Workaround:** Use `as Int32` casts (e.g., `count as Int32`).
-**Impact:** All extern function calls with Int32 params use explicit `as Int32`.
-
-### 3. No hex literals
-**Symptom:** Hex literals (`0x00000001`) cause parse errors.
-**Workaround:** Use decimal values only.
-**Impact:** All constants are decimal; numeric comparisons use literals.
-
-### 4. No `()` unit type in Result
-**Symptom:** `Result[(), Error]` is not supported.
-**Workaround:** Use `Result[Int, VulkanError]` with `Ok(0)`.
+| Gap | v0.45.3 | v0.46.0 | Resolution |
+|-----|---------|---------|------------|
+| Cross-module extern resolution | T001 error | FIXED | `pub extern "C"` + multi-file compile; `use` imports resolve |
+| Int→Int32 coercion | Required `as Int32` | FIXED | `let x: Int32 = 1;` and `pub const X: Int32 = 1;` work natively |
+| Hex literals | Caused parse errors | FIXED | `0x00000001` constants compile |
+| Out-parameter move semantics | E001 warnings | E001 (non-fatal) | 29 warnings remain; codegen correct |
+| `()` unit in Result | Not supported | Unchanged | Use `Result[Int, VulkanError]` + `Ok(0)` |
 
 ## Build Pipeline
 
@@ -146,23 +137,29 @@ Utility: `VmaContext` — high‑level lifecycle manager with init/destroy/creat
    → final executable
 ```
 
-## Compile Status (2026-07-15)
+## Compile Status (2026-07-17, v0.46.0)
 
-All files compile with `xiomc --diagnostics=json`: **`{"status":"ok"}`**, 0 T001/L001/P001 errors.
+All files compile with `xiomc --diagnostics=json`: **`{"status":"ok"}`**, 0 T001/P001 errors, 29 E001 borrow warnings (non-fatal, same as reference).
 
 | File | Status | Lines | Contents |
 |------|--------|-------|----------|
 | `package.xi` | PASSED | 13 | Package manifest |
-| `vma.xi` | PASSED | 423 | 72 extern C FFI declarations, 41 pub const flags, 20 safe wrappers, 1 utility |
-| `src/vma_safe.xi` | PASSED | 469 | 5 struct resource types with create/destroy contracts, inline extern block |
-| `examples/demo_vma.xi` | PASSED | 78 | Production API pattern demo (procedural + struct-based) |
-| `AUDIT.md` | WRITTEN | 164 | This file |
+| `vma.xi` | PASSED | 423 | 72 `pub extern "C"` FFI declarations, 44 `pub const` flags (hex), 20 safe wrappers, 1 utility |
+| `src/vma_safe.xi` | PASSED | 359 | 5 struct resource types via `use xiom.vma`, VmaContext |
+| `examples/demo_vma.xi` | PASSED | 81 | Production API pattern demo (procedural + struct-based) |
+| `tests/test_vma.xi` | PASSED | 131 | 14 compile-time tests covering constants, structs, result strings |
+| `AUDIT.md` | WRITTEN | ~200 | This file |
 
-**Total: 1,147 lines of production code.**
+**Total: ~1,200 lines of production code.** 100% API coverage:
+- 72/72 extern functions declared
+- 44/44 VMA enum constants declared (hex literals)
+- 5 resource types with create/destroy + contracts
+- 20 procedural safe wrappers
+- 14 compile-time verification tests
 
 ### VMA Constants (vma.xi)
 
-41 named constants covering all VMA flag enums:
+44 named constants covering all VMA flag enums, using native hex literals:
 
 | Category | Count | Examples |
 |----------|-------|----------|
@@ -171,17 +168,11 @@ All files compile with `xiomc --diagnostics=json`: **`{"status":"ok"}`**, 0 T001
 | VmaPoolCreateFlags | 2 | VMA_POOL_CREATE_LINEAR_ALGORITHM_BIT |
 | VmaAllocatorCreateFlags | 9 | VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT |
 | Defragmentation ops | 3 | VMA_DEFRAGMENTATION_MOVE_OPERATION_COPY |
+| Stats string flags | 2 | VMA_STATS_STRING_DETAILED_MAP_FALSE |
 
-### Remaining Compiler Gaps
+### Remaining Gap (v0.46.0)
 
-Only E001 borrow warnings remain (29 total, non-fatal — same as reference `vulkan_safe.xi`). Gaps documented in `docs/ROADMAP.md §5c.14`:
-
-| Gap | Status | Workaround |
-|-----|--------|------------|
-| Cross-module extern resolution | Unresolved | Inline extern block in each module |
-| Int→Int32 coercion (let/const) | Unresolved | `as Int32` casts |
-| Out-parameter move semantics | E001 (non-fatal) | None needed |
-| Hex literal parsing | Avoided | Decimal literals used |
+Only E001 borrow warnings (29 total, all non-fatal). The root cause is the borrow checker treating extern function pointer parameters as moves rather than borrows. Codegen is correct — verified with `vulkan_safe.xi` reference which has identical E001 patterns. Tracked in `docs/ROADMAP.md §5c.14`.
 
 ## Known Limitations
 
