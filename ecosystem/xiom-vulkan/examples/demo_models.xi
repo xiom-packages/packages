@@ -1,12 +1,6 @@
-// XIOM - Model Field Demo (Simulated OBJ Rendering)
+// XIOM — Model Field Demo (Vec-based, v0.46-validated FFI)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
-//
-// Simulates loading and rendering multiple 3D objects arranged in a scene.
-// Uses the cube primitive with transforms to create a "model field" effect.
-// Each "model" gets a unique transform (position, rotation, scale, color).
-// Production path: use vkCmdDrawIndexed with actual VBO/IBO data.
-
 module xiom.vulkan.demo_models
 
 use xiom.io;
@@ -35,23 +29,24 @@ fn main() -> Int {
   match app {
     Err(e) => { io.println(e); return 1; }
     Ok(a) => {
-      var models: [ModelInstance; 20];
+      var models = Vec[ModelInstance].new();
       var mi: Int = 0;
       while mi < 20 {
         let angle = (mi as Float32) / 20.0 * 6.28318;
         let radius = 1.5 + ((mi % 3) as Float32) * 0.5;
-        models[mi] = ModelInstance{
-          px: (math.cos(angle as Float64) * radius as Float64) as Float32,
-          py: ((mi - 10) as Float32) * 0.25,
-          pz: (math.sin(angle as Float64) * radius as Float64) as Float32,
-          rx: 0.0,
-          ry: (mi as Float32) * 0.3,
-          rz: 0.0,
-          scale: 0.15 + (mi as Float32) * 0.01,
-          r: ((mi % 5) as Float32) * 0.2,
-          g: (((mi + 2) % 5) as Float32) * 0.2,
-          b: (((mi + 4) % 5) as Float32) * 0.2,
+        let inst = ModelInstance{
+          px: (math.cos(angle as Float64) * radius as Float64) as Float32;
+          py: ((mi - 10) as Float32) * 0.25;
+          pz: (math.sin(angle as Float64) * radius as Float64) as Float32;
+          rx: 0.0;
+          ry: (mi as Float32) * 0.3;
+          rz: 0.0;
+          scale: 0.15 + (mi as Float32) * 0.01;
+          r: ((mi % 5) as Float32) * 0.2;
+          g: (((mi + 2) % 5) as Float32) * 0.2;
+          b: (((mi + 4) % 5) as Float32) * 0.2;
         };
+        models.push(inst);
         mi = mi + 1;
       }
 

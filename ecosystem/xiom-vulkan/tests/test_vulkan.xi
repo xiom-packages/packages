@@ -32,6 +32,8 @@ fn test_app_create_destroy() -> TestResult {
 }
 
 fn main() -> Int {
-  var tests = [test_offscreen_render_triangle, test_app_create_destroy];
+  var tests = Vec[fn() -> TestResult].new();
+  tests.push(test_offscreen_render_triangle);
+  tests.push(test_app_create_destroy);
   return test.run_all(tests);
 }

@@ -1,11 +1,6 @@
-// XIOM - Sprite Batch / Particle Field Demo
+// XIOM — Sprite Field Demo (Vec-based, v0.46-validated FFI)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
-//
-// Demonstrates batched 2D quad rendering with animated transforms.
-// Simulates sprite-sheet rendering for a game engine UI layer.
-// Production path: use UBO + instanced drawing + descriptor sets.
-
 module xiom.vulkan.demo_sprites
 
 use xiom.io;
@@ -35,12 +30,12 @@ fn main() -> Int {
   match app {
     Err(e) => { io.println(e); return 1; }
     Ok(a) => {
-      var sprites: [Sprite; 50];
+      var sprites = Vec[Sprite].new();
       var si: Int = 0;
       while si < 50 {
         let row = (si / 10) as Float32;
         let col = (si % 10) as Float32;
-        sprites[si] = Sprite{
+        sprites.push(Sprite{
           x: (col - 5.0) * 0.18,
           y: (row - 2.5) * 0.3,
           size: 0.03 + (si as Float32) * 0.001,
@@ -49,7 +44,7 @@ fn main() -> Int {
           r: ((si % 3) as Float32) * 0.4 + 0.2,
           g: (((si + 1) % 3) as Float32) * 0.4 + 0.2,
           b: (((si + 2) % 3) as Float32) * 0.4 + 0.2,
-        };
+        });
         si = si + 1;
       }
 
