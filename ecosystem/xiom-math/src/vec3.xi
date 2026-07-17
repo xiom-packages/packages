@@ -58,7 +58,7 @@ pub fn Vec3.normalize() -> Vec3 {
   return Vec3{ x: x * inv, y: y * inv, z: z * inv };
 }
 
-pub fn Vec3.lerp(other: Vec3, t: Float32) -> Vec3 {
+pub fn Vec3.lerp(t: Float32, other: Vec3) -> Vec3 {
   return Vec3{
     x: x + (other.x - x) * t,
     y: y + (other.y - y) * t,

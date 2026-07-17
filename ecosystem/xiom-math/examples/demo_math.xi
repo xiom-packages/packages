@@ -1,24 +1,10 @@
 module xiom.math.examples.demo_math
 
-use xiom.math.vec2.Vec2.new;
-use xiom.math.vec2.Vec2.dot;
-use xiom.math.vec2.Vec2.length;
-use xiom.math.vec3.Vec3.new;
-use xiom.math.vec3.Vec3.cross;
-use xiom.math.vec3.Vec3.zero;
-use xiom.math.vec4.Vec4.from_vec3;
-use xiom.math.vec4.Vec4.to_vec3;
-use xiom.math.mat4.Mat4.identity;
-use xiom.math.mat4.Mat4.translate;
-use xiom.math.mat4.Mat4.perspective;
-use xiom.math.mat4.Mat4.look_at;
-use xiom.math.mat4.Mat4.element;
-use xiom.math.mat4.Mat4.mul_vec3;
-use xiom.math.quat.Quat.from_axis_angle;
-use xiom.math.quat.Quat.rotate_vec;
-use xiom.math.quat.Quat.from_euler;
-use xiom.math.quat.Quat.slerp;
-use xiom.math.quat.Quat.to_mat4;
+use xiom.math.vec2;
+use xiom.math.vec3;
+use xiom.math.vec4;
+use xiom.math.mat4;
+use xiom.math.quat;
 
 fn main() -> Int {
   var failed = false;
@@ -83,7 +69,7 @@ fn main() -> Int {
   }
 
   var q2 = Quat.from_euler(0.0 as Float32, 0.0 as Float32, 3.14159265 as Float32 * 0.5 as Float32);
-  var slerped = q.slerp(q2, 0.5 as Float32);
+  var slerped = q.slerp(0.5 as Float32, q2);
   var _ = slerped;
 
   var mat = q.to_mat4();

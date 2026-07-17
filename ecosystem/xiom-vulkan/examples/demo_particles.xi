@@ -26,9 +26,9 @@ fn main() -> Int {
         let t = now();
         let dt = (t - last) as Float32;
         last = t;
+        set_clear_color(a, 0.02, 0.02, 0.05);
         let status = begin_frame(a);
         if status == 1 {
-          set_clear_color(a, 0.02, 0.02, 0.05);
           draw_particles(a, dt);
           end_frame(a);
         } elif status == -1 {

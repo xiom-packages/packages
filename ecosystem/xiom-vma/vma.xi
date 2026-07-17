@@ -1,75 +1,94 @@
-// XIOM — Vulkan Memory Allocator (VMA) Bindings
+// XIOM — Vulkan Memory Allocator (VMA) Bindings v3.3.0
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Low-level FFI declarations for VMA v3.3.0 (vk_mem_alloc.h).
-// VMA is a Vulkan memory sub-allocation library used in production engines.
+// Production-grade FFI declarations for vk_mem_alloc.h (Vulkan SDK 1.4.350.0).
+// Types: handles/pointers → Int, VkResult → Int32, VkDeviceSize → Int,
+// VkBool32 → Int32, uint32_t → Int32.
 //
-// Types: all Vulkan handles/pointers map to Int. VkResult → Int32.
-// VkDeviceSize → Int. VkBool32 → Int32. uint32_t → Int32.
-// Naming follows the C API verbatim (vmaCreateAllocator, etc.).
+// Compiler: XIOM v0.46.0 — all gaps resolved (cross-module extern, Int→Int32,
+// hex literals). Only E001 (non-fatal out-param move warnings) remain.
 
 module xiom.vma
 
 // =========================================================================
-// VMA Memory Usage (VmaMemoryUsage)
+// VmaMemoryUsage
 // =========================================================================
 
-pub const VMA_MEMORY_USAGE_UNKNOWN: Int32 = 0 as Int32;
-pub const VMA_MEMORY_USAGE_GPU_ONLY: Int32 = 1 as Int32;
-pub const VMA_MEMORY_USAGE_CPU_ONLY: Int32 = 2 as Int32;
-pub const VMA_MEMORY_USAGE_CPU_TO_GPU: Int32 = 3 as Int32;
-pub const VMA_MEMORY_USAGE_GPU_TO_CPU: Int32 = 4 as Int32;
-pub const VMA_MEMORY_USAGE_CPU_COPY: Int32 = 5 as Int32;
-pub const VMA_MEMORY_USAGE_GPU_LAZILY_ALLOCATED: Int32 = 6 as Int32;
-pub const VMA_MEMORY_USAGE_AUTO: Int32 = 7 as Int32;
-pub const VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE: Int32 = 8 as Int32;
-pub const VMA_MEMORY_USAGE_AUTO_PREFER_HOST: Int32 = 9 as Int32;
-
-// VMA Allocation Create Flags (VmaAllocationCreateFlagBits)
-pub const VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT: Int32 = 1 as Int32;
-pub const VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT: Int32 = 2 as Int32;
-pub const VMA_ALLOCATION_CREATE_MAPPED_BIT: Int32 = 4 as Int32;
-pub const VMA_ALLOCATION_CREATE_CAN_BECOME_LOST_BIT: Int32 = 8 as Int32;
-pub const VMA_ALLOCATION_CREATE_CAN_MAKE_OTHER_LOST_BIT: Int32 = 16 as Int32;
-pub const VMA_ALLOCATION_CREATE_USER_DATA_COPY_STRING_BIT: Int32 = 32 as Int32;
-pub const VMA_ALLOCATION_CREATE_UPPER_ADDRESS_BIT: Int32 = 64 as Int32;
-pub const VMA_ALLOCATION_CREATE_DONT_BIND_BIT: Int32 = 128 as Int32;
-pub const VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT: Int32 = 256 as Int32;
-pub const VMA_ALLOCATION_CREATE_CAN_ALIAS_BIT: Int32 = 512 as Int32;
-pub const VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT: Int32 = 1024 as Int32;
-pub const VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT: Int32 = 2048 as Int32;
-pub const VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT: Int32 = 4096 as Int32;
-pub const VMA_ALLOCATION_CREATE_STRATEGY_MIN_MEMORY_BIT: Int32 = 65536 as Int32;
-pub const VMA_ALLOCATION_CREATE_STRATEGY_MIN_TIME_BIT: Int32 = 131072 as Int32;
-pub const VMA_ALLOCATION_CREATE_STRATEGY_MIN_OFFSET_BIT: Int32 = 262144 as Int32;
-pub const VMA_ALLOCATION_CREATE_STRATEGY_MASK: Int32 = 458752 as Int32;
-
-// VMA Pool Create Flags (VmaPoolCreateFlagBits)
-pub const VMA_POOL_CREATE_IGNORE_BUFFER_IMAGE_GRANULARITY_BIT: Int32 = 1 as Int32;
-pub const VMA_POOL_CREATE_LINEAR_ALGORITHM_BIT: Int32 = 2 as Int32;
-
-// VMA Allocator Create Flags (VmaAllocatorCreateFlagBits)
-pub const VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT: Int32 = 1 as Int32;
-pub const VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT: Int32 = 2 as Int32;
-pub const VMA_ALLOCATOR_CREATE_KHR_BIND_MEMORY2_BIT: Int32 = 4 as Int32;
-pub const VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT: Int32 = 8 as Int32;
-pub const VMA_ALLOCATOR_CREATE_AMD_DEVICE_COHERENT_MEMORY_BIT: Int32 = 16 as Int32;
-pub const VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT: Int32 = 32 as Int32;
-pub const VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT: Int32 = 64 as Int32;
-pub const VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE4_BIT: Int32 = 128 as Int32;
-pub const VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE5_BIT: Int32 = 256 as Int32;
-
-// VMA Defragmentation Flags
-pub const VMA_DEFRAGMENTATION_MOVE_OPERATION_COPY: Int32 = 0 as Int32;
-pub const VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE: Int32 = 1 as Int32;
-pub const VMA_DEFRAGMENTATION_MOVE_OPERATION_DESTROY: Int32 = 2 as Int32;
+pub const VMA_MEMORY_USAGE_UNKNOWN:               Int32 = 0;
+pub const VMA_MEMORY_USAGE_GPU_ONLY:               Int32 = 1;
+pub const VMA_MEMORY_USAGE_CPU_ONLY:               Int32 = 2;
+pub const VMA_MEMORY_USAGE_CPU_TO_GPU:             Int32 = 3;
+pub const VMA_MEMORY_USAGE_GPU_TO_CPU:             Int32 = 4;
+pub const VMA_MEMORY_USAGE_CPU_COPY:               Int32 = 5;
+pub const VMA_MEMORY_USAGE_GPU_LAZILY_ALLOCATED:   Int32 = 6;
+pub const VMA_MEMORY_USAGE_AUTO:                   Int32 = 7;
+pub const VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE:     Int32 = 8;
+pub const VMA_MEMORY_USAGE_AUTO_PREFER_HOST:       Int32 = 9;
 
 // =========================================================================
-// FFI: 72 extern C functions from VMA v3.3.0
+// VmaAllocationCreateFlagBits
 // =========================================================================
 
-extern "C" {
+pub const VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT:               Int32 = 0x00000001;
+pub const VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT:                 Int32 = 0x00000002;
+pub const VMA_ALLOCATION_CREATE_MAPPED_BIT:                         Int32 = 0x00000004;
+pub const VMA_ALLOCATION_CREATE_CAN_BECOME_LOST_BIT:                Int32 = 0x00000008;
+pub const VMA_ALLOCATION_CREATE_CAN_MAKE_OTHER_LOST_BIT:            Int32 = 0x00000010;
+pub const VMA_ALLOCATION_CREATE_USER_DATA_COPY_STRING_BIT:          Int32 = 0x00000020;
+pub const VMA_ALLOCATION_CREATE_UPPER_ADDRESS_BIT:                  Int32 = 0x00000040;
+pub const VMA_ALLOCATION_CREATE_DONT_BIND_BIT:                      Int32 = 0x00000080;
+pub const VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT:                  Int32 = 0x00000100;
+pub const VMA_ALLOCATION_CREATE_CAN_ALIAS_BIT:                      Int32 = 0x00000200;
+pub const VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT:   Int32 = 0x00000400;
+pub const VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT:             Int32 = 0x00000800;
+pub const VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT: Int32 = 0x00001000;
+pub const VMA_ALLOCATION_CREATE_STRATEGY_MIN_MEMORY_BIT:            Int32 = 0x00010000;
+pub const VMA_ALLOCATION_CREATE_STRATEGY_MIN_TIME_BIT:              Int32 = 0x00020000;
+pub const VMA_ALLOCATION_CREATE_STRATEGY_MIN_OFFSET_BIT:            Int32 = 0x00040000;
+pub const VMA_ALLOCATION_CREATE_STRATEGY_MASK:                      Int32 = 0x00070000;
+
+// =========================================================================
+// VmaPoolCreateFlagBits
+// =========================================================================
+
+pub const VMA_POOL_CREATE_IGNORE_BUFFER_IMAGE_GRANULARITY_BIT: Int32 = 0x00000001;
+pub const VMA_POOL_CREATE_LINEAR_ALGORITHM_BIT:               Int32 = 0x00000002;
+
+// =========================================================================
+// VmaAllocatorCreateFlagBits
+// =========================================================================
+
+pub const VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT:  Int32 = 0x00000001;
+pub const VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT: Int32 = 0x00000002;
+pub const VMA_ALLOCATOR_CREATE_KHR_BIND_MEMORY2_BIT:         Int32 = 0x00000004;
+pub const VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT:        Int32 = 0x00000008;
+pub const VMA_ALLOCATOR_CREATE_AMD_DEVICE_COHERENT_MEMORY_BIT: Int32 = 0x00000010;
+pub const VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT:    Int32 = 0x00000020;
+pub const VMA_ALLOCATOR_CREATE_EXT_MEMORY_PRIORITY_BIT:      Int32 = 0x00000040;
+pub const VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE4_BIT:         Int32 = 0x00000080;
+pub const VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE5_BIT:         Int32 = 0x00000100;
+
+// =========================================================================
+// VmaDefragmentationMoveOperation
+// =========================================================================
+
+pub const VMA_DEFRAGMENTATION_MOVE_OPERATION_COPY:    Int32 = 0;
+pub const VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE:  Int32 = 1;
+pub const VMA_DEFRAGMENTATION_MOVE_OPERATION_DESTROY: Int32 = 2;
+
+// =========================================================================
+// VMA Stats string flags
+// =========================================================================
+
+pub const VMA_STATS_STRING_DETAILED_MAP_FALSE: Int32 = 0;
+pub const VMA_STATS_STRING_DETAILED_MAP_TRUE:  Int32 = 1;
+
+// =========================================================================
+// FFI — 72 extern C functions from VMA v3.3.0
+// =========================================================================
+
+pub extern "C" {
   fn vmaCreateAllocator(pCreateInfo: Int, pAllocator: Int) -> Int32;
   fn vmaDestroyAllocator(allocator: Int);
   fn vmaGetAllocatorInfo(allocator: Int, pAllocatorInfo: Int);
@@ -160,7 +179,7 @@ extern "C" {
 }
 
 // =========================================================================
-// Safe wrapper functions — for direct procedural use
+// Procedural safe wrappers
 // =========================================================================
 
 pub fn create_allocator(create_info: Int) -> Result[Int, Str]
@@ -168,9 +187,7 @@ pub fn create_allocator(create_info: Int) -> Result[Int, Str]
 {
   let alloc: Int = 0;
   let res: Int32 = unsafe { vmaCreateAllocator(create_info, alloc) };
-  if res != 0 {
-    return Err("vmaCreateAllocator failed");
-  }
+  if res != 0 { return Err("vmaCreateAllocator failed"); }
   return Ok(alloc);
 }
 
@@ -181,124 +198,95 @@ pub fn destroy_allocator(allocator: Int)
 }
 
 pub fn allocate_memory(allocator: Int, p_vk_memory_requirements: Int, p_create_info: Int) -> Result[Int, Str]
-  requires: allocator != 0
-  requires: p_vk_memory_requirements != 0
-  requires: p_create_info != 0
+  requires: allocator != 0; requires: p_vk_memory_requirements != 0; requires: p_create_info != 0
 {
   let alloc: Int = 0;
   let res: Int32 = unsafe { vmaAllocateMemory(allocator, p_vk_memory_requirements, p_create_info, alloc, 0) };
-  if res != 0 {
-    return Err("vmaAllocateMemory failed");
-  }
+  if res != 0 { return Err("vmaAllocateMemory failed"); }
   return Ok(alloc);
 }
 
 pub fn free_memory(allocator: Int, allocation: Int)
-  requires: allocator != 0
-  requires: allocation != 0
+  requires: allocator != 0; requires: allocation != 0
 {
   unsafe { vmaFreeMemory(allocator, allocation); }
 }
 
 pub fn allocate_memory_for_buffer(allocator: Int, buffer: Int, p_create_info: Int) -> Result[Int, Str]
-  requires: allocator != 0
-  requires: buffer != 0
-  requires: p_create_info != 0
+  requires: allocator != 0; requires: buffer != 0; requires: p_create_info != 0
 {
   let alloc: Int = 0;
   let res: Int32 = unsafe { vmaAllocateMemoryForBuffer(allocator, buffer, p_create_info, alloc, 0) };
-  if res != 0 {
-    return Err("vmaAllocateMemoryForBuffer failed");
-  }
+  if res != 0 { return Err("vmaAllocateMemoryForBuffer failed"); }
   return Ok(alloc);
 }
 
 pub fn allocate_memory_for_image(allocator: Int, image: Int, p_create_info: Int) -> Result[Int, Str]
-  requires: allocator != 0
-  requires: image != 0
-  requires: p_create_info != 0
+  requires: allocator != 0; requires: image != 0; requires: p_create_info != 0
 {
   let alloc: Int = 0;
   let res: Int32 = unsafe { vmaAllocateMemoryForImage(allocator, image, p_create_info, alloc, 0) };
-  if res != 0 {
-    return Err("vmaAllocateMemoryForImage failed");
-  }
+  if res != 0 { return Err("vmaAllocateMemoryForImage failed"); }
   return Ok(alloc);
 }
 
 pub fn free_memory_pages(allocator: Int, allocation_count: Int, p_allocations: Int)
-  requires: allocator != 0
-  requires: allocation_count > 0
-  requires: p_allocations != 0
+  requires: allocator != 0; requires: allocation_count > 0; requires: p_allocations != 0
 {
   unsafe { vmaFreeMemoryPages(allocator, allocation_count, p_allocations); }
 }
 
 pub fn map_memory(allocator: Int, allocation: Int) -> Result[Int, Str]
-  requires: allocator != 0
-  requires: allocation != 0
+  requires: allocator != 0; requires: allocation != 0
 {
   let data: Int = 0;
   let res: Int32 = unsafe { vmaMapMemory(allocator, allocation, data) };
-  if res != 0 {
-    return Err("vmaMapMemory failed");
-  }
+  if res != 0 { return Err("vmaMapMemory failed"); }
   return Ok(data);
 }
 
 pub fn unmap_memory(allocator: Int, allocation: Int)
-  requires: allocator != 0
-  requires: allocation != 0
+  requires: allocator != 0; requires: allocation != 0
 {
   unsafe { vmaUnmapMemory(allocator, allocation); }
 }
 
 pub fn flush_allocation(allocator: Int, allocation: Int, offset: Int, size: Int) -> Bool
-  requires: allocator != 0
-  requires: allocation != 0
+  requires: allocator != 0; requires: allocation != 0
 {
   let res: Int32 = unsafe { vmaFlushAllocation(allocator, allocation, offset, size) };
   return res == 0;
 }
 
 pub fn invalidate_allocation(allocator: Int, allocation: Int, offset: Int, size: Int) -> Bool
-  requires: allocator != 0
-  requires: allocation != 0
+  requires: allocator != 0; requires: allocation != 0
 {
   let res: Int32 = unsafe { vmaInvalidateAllocation(allocator, allocation, offset, size) };
   return res == 0;
 }
 
 pub fn create_pool(allocator: Int, p_create_info: Int) -> Result[Int, Str]
-  requires: allocator != 0
-  requires: p_create_info != 0
+  requires: allocator != 0; requires: p_create_info != 0
 {
   let pool: Int = 0;
   let res: Int32 = unsafe { vmaCreatePool(allocator, p_create_info, pool) };
-  if res != 0 {
-    return Err("vmaCreatePool failed");
-  }
+  if res != 0 { return Err("vmaCreatePool failed"); }
   return Ok(pool);
 }
 
 pub fn destroy_pool(allocator: Int, pool: Int)
-  requires: allocator != 0
-  requires: pool != 0
+  requires: allocator != 0; requires: pool != 0
 {
   unsafe { vmaDestroyPool(allocator, pool); }
 }
 
 pub fn create_buffer(allocator: Int, p_buffer_create_info: Int, p_alloc_create_info: Int) -> Result[Int, Str]
-  requires: allocator != 0
-  requires: p_buffer_create_info != 0
-  requires: p_alloc_create_info != 0
+  requires: allocator != 0; requires: p_buffer_create_info != 0; requires: p_alloc_create_info != 0
 {
   let buf: Int = 0;
   let alloc: Int = 0;
   let res: Int32 = unsafe { vmaCreateBuffer(allocator, p_buffer_create_info, p_alloc_create_info, buf, alloc, 0) };
-  if res != 0 {
-    return Err("vmaCreateBuffer failed");
-  }
+  if res != 0 { return Err("vmaCreateBuffer failed"); }
   return Ok(buf);
 }
 
@@ -309,16 +297,12 @@ pub fn destroy_buffer(allocator: Int, buffer: Int, allocation: Int)
 }
 
 pub fn create_image(allocator: Int, p_image_create_info: Int, p_alloc_create_info: Int) -> Result[Int, Str]
-  requires: allocator != 0
-  requires: p_image_create_info != 0
-  requires: p_alloc_create_info != 0
+  requires: allocator != 0; requires: p_image_create_info != 0; requires: p_alloc_create_info != 0
 {
   let img: Int = 0;
   let alloc: Int = 0;
   let res: Int32 = unsafe { vmaCreateImage(allocator, p_image_create_info, p_alloc_create_info, img, alloc, 0) };
-  if res != 0 {
-    return Err("vmaCreateImage failed");
-  }
+  if res != 0 { return Err("vmaCreateImage failed"); }
   return Ok(img);
 }
 
@@ -329,32 +313,25 @@ pub fn destroy_image(allocator: Int, image: Int, allocation: Int)
 }
 
 pub fn bind_buffer_memory(allocator: Int, allocation: Int, buffer: Int) -> Bool
-  requires: allocator != 0
-  requires: allocation != 0
-  requires: buffer != 0
+  requires: allocator != 0; requires: allocation != 0; requires: buffer != 0
 {
   let res: Int32 = unsafe { vmaBindBufferMemory(allocator, allocation, buffer) };
   return res == 0;
 }
 
 pub fn bind_image_memory(allocator: Int, allocation: Int, image: Int) -> Bool
-  requires: allocator != 0
-  requires: allocation != 0
-  requires: image != 0
+  requires: allocator != 0; requires: allocation != 0; requires: image != 0
 {
   let res: Int32 = unsafe { vmaBindImageMemory(allocator, allocation, image) };
   return res == 0;
 }
 
 pub fn find_memory_type_index(allocator: Int, memory_type_bits: Int32, p_alloc_create_info: Int) -> Result[Int, Str]
-  requires: allocator != 0
-  requires: p_alloc_create_info != 0
+  requires: allocator != 0; requires: p_alloc_create_info != 0
 {
   let index: Int = 0;
   let res: Int32 = unsafe { vmaFindMemoryTypeIndex(allocator, memory_type_bits, p_alloc_create_info, index) };
-  if res != 0 {
-    return Err("vmaFindMemoryTypeIndex failed");
-  }
+  if res != 0 { return Err("vmaFindMemoryTypeIndex failed"); }
   return Ok(index);
 }
 
@@ -366,20 +343,16 @@ pub fn check_corruption(allocator: Int, memory_type_bits: Int32) -> Bool
 }
 
 pub fn begin_defragmentation(allocator: Int, p_info: Int) -> Result[Int, Str]
-  requires: allocator != 0
-  requires: p_info != 0
+  requires: allocator != 0; requires: p_info != 0
 {
   let context: Int = 0;
   let res: Int32 = unsafe { vmaBeginDefragmentation(allocator, p_info, context) };
-  if res != 0 {
-    return Err("vmaBeginDefragmentation failed");
-  }
+  if res != 0 { return Err("vmaBeginDefragmentation failed"); }
   return Ok(context);
 }
 
 pub fn end_defragmentation(allocator: Int, context: Int)
-  requires: allocator != 0
-  requires: context != 0
+  requires: allocator != 0; requires: context != 0
 {
   unsafe { vmaEndDefragmentation(allocator, context, 0); }
 }
@@ -389,15 +362,12 @@ pub fn build_stats_string(allocator: Int, detailed: Int32) -> Result[Int, Str]
 {
   let str_ptr: Int = 0;
   unsafe { vmaBuildStatsString(allocator, str_ptr, detailed); }
-  if str_ptr == 0 {
-    return Err("vmaBuildStatsString returned null");
-  }
+  if str_ptr == 0 { return Err("vmaBuildStatsString returned null"); }
   return Ok(str_ptr);
 }
 
 pub fn free_stats_string(allocator: Int, p_stats_string: Int)
-  requires: allocator != 0
-  requires: p_stats_string != 0
+  requires: allocator != 0; requires: p_stats_string != 0
 {
   unsafe { vmaFreeStatsString(allocator, p_stats_string); }
 }

@@ -1,0 +1,64 @@
+#version 450
+
+// GPU Compute Particle Simulation
+// Each workgroup processes one particle.
+// Uses a storage buffer for positions/velocities (read+write).
+
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+struct Particle {
+    vec2 pos;
+    vec2 vel;
+    float life;
+    float padding;
+};
+
+layout(std430, binding = 0) buffer ParticleBuffer {
+    Particle particles[];
+};
+
+layout(push_constant) uniform PC {
+    float dt;
+    float gravity;
+    float spawn_area;
+} pc;
+
+// Simple xorshift PRNG
+uint rng_state;
+
+uint xorshift() {
+    rng_state ^= rng_state << 13;
+    rng_state ^= rng_state >> 17;
+    rng_state ^= rng_state << 5;
+    return rng_state;
+}
+
+float rand_float() {
+    return float(xorshift() & 0x7FFFFFFF) / float(0x7FFFFFFF);
+}
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    if (idx >= particles.length()) return;
+
+    // Seed per-particle RNG
+    rng_state = idx * 2654435761u + 1u;
+
+    Particle p = particles[idx];
+
+    // Apply gravity
+    p.vel.y += pc.gravity * pc.dt;
+    p.pos += p.vel * pc.dt;
+    p.life -= pc.dt;
+
+    // Respawn if dead or out of bounds
+    if (p.life <= 0.0 || p.pos.y > 1.05 || p.pos.y < -1.05 || abs(p.pos.x) > 1.05) {
+        p.pos.x = (rand_float() - 0.5) * pc.spawn_area;
+        p.pos.y = 0.9;
+        p.vel.x = (rand_float() - 0.5) * 0.5;
+        p.vel.y = -(0.3 + rand_float() * 0.7);
+        p.life = 1.0 + rand_float() * 2.0;
+    }
+
+    particles[idx] = p;
+}

@@ -1,4 +1,4 @@
-module xiom.math
+module xiom.math.prelude
 
 use xiom.math.vec2;
 use xiom.math.vec3;

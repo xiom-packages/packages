@@ -35,11 +35,45 @@
  */
 #include "xvk_shaders_generated.h"
 
+/* Fallback declarations for Phase 1 shaders — defined by generated header when
+ * build.ps1/build.sh runs; these externs ensure the bridge compiles without
+ * the header having been regenerated.  Linker errors will occur if the symbols
+ * are actually referenced without the header having been generated. */
+#ifndef XVK_PHASE1_SHADERS_DECLARED
+#define XVK_PHASE1_SHADERS_DECLARED
+extern const unsigned int xvk_particle_render_vert_spv[];
+extern const unsigned int xvk_particle_render_vert_spv_len;
+extern const unsigned int xvk_particle_render_frag_spv[];
+extern const unsigned int xvk_particle_render_frag_spv_len;
+extern const unsigned int xvk_compute_particles_spv[];
+extern const unsigned int xvk_compute_particles_spv_len;
+extern const unsigned int xvk_texture_quad_vert_spv[];
+extern const unsigned int xvk_texture_quad_vert_spv_len;
+extern const unsigned int xvk_texture_quad_frag_spv[];
+extern const unsigned int xvk_texture_quad_frag_spv_len;
+extern const unsigned int xvk_uniform_cube_vert_spv[];
+extern const unsigned int xvk_uniform_cube_vert_spv_len;
+extern const unsigned int xvk_uniform_cube_frag_spv[];
+extern const unsigned int xvk_uniform_cube_frag_spv_len;
+#endif
+
 /* ------------------------------------------------------------------ */
 /*  Constants                                                         */
 /* ------------------------------------------------------------------ */
-#define XVK_MAGIC       0x58564B01u
-#define XVK_MAX_FRAMES  2
+#define XVK_MAGIC               0x58564B01u
+#define XVK_MAX_FRAMES          2
+#define XVK_BUFFER_MAGIC        0x42554601u
+#define XVK_IMAGE_MAGIC         0x494D4701u
+#define XVK_IMAGEVIEW_MAGIC     0x56494557u
+#define XVK_SAMPLER_MAGIC       0x534D5001u
+#define XVK_SHADER_MAGIC        0x53484401u
+#define XVK_PIPELINE_MAGIC      0x50495001u
+#define XVK_PLAYOUT_MAGIC       0x504C4159u
+#define XVK_DESC_LAYOUT_MAGIC   0x44534301u
+#define XVK_DESC_POOL_MAGIC     0x44535001u
+#define XVK_DESC_SET_MAGIC      0x44535301u
+#define XVK_RENDERPASS_MAGIC    0x52504153u
+#define XVK_FRAMEBUFFER_MAGIC   0x46524255u
 #ifndef M_PI
 #  define M_PI 3.14159265358979323846
 #endif
@@ -73,6 +107,78 @@ typedef struct {
     float r, g, b;    /* colour */
     float life;       /* remaining time in seconds */
 } Particle;
+
+/* ------------------------------------------------------------------ */
+/*  New resource handle types (Phase 1)                                */
+/* ------------------------------------------------------------------ */
+typedef struct {
+    uint32_t magic;
+    VkBuffer buffer;
+    VkDeviceMemory memory;
+    VkDeviceSize size;
+    int mapped;
+    void* mapped_ptr;
+} XvkBuffer;
+
+typedef struct {
+    uint32_t magic;
+    VkImage image;
+    VkDeviceMemory memory;
+    VkFormat format;
+    VkExtent2D extent;
+    uint32_t mip_levels;
+} XvkImage;
+
+typedef struct {
+    uint32_t magic;
+    VkImageView view;
+} XvkImageView;
+
+typedef struct {
+    uint32_t magic;
+    VkSampler sampler;
+} XvkSampler;
+
+typedef struct {
+    uint32_t magic;
+    VkShaderModule module;
+} XvkShaderModule;
+
+typedef struct {
+    uint32_t magic;
+    VkPipelineLayout layout;
+} XvkPipelineLayout;
+
+typedef struct {
+    uint32_t magic;
+    VkPipeline pipeline;
+    VkPipelineBindPoint bind_point;
+} XvkPipeline;
+
+typedef struct {
+    uint32_t magic;
+    VkDescriptorSetLayout layout;
+} XvkDescSetLayout;
+
+typedef struct {
+    uint32_t magic;
+    VkDescriptorPool pool;
+} XvkDescPool;
+
+typedef struct {
+    uint32_t magic;
+    VkDescriptorSet set;
+} XvkDescSet;
+
+typedef struct {
+    uint32_t magic;
+    VkRenderPass render_pass;
+} XvkRenderPass;
+
+typedef struct {
+    uint32_t magic;
+    VkFramebuffer framebuffer;
+} XvkFramebuffer;
 
 /* ------------------------------------------------------------------ */
 /*  App structure  (shared by windowed + offscreen paths)             */
@@ -146,6 +252,7 @@ typedef struct XvkApp {
     /* state */
     float               clear_r, clear_g, clear_b;
     int                 recording;          /* non-zero between begin/end_frame */
+    int                 in_render_pass;     /* non-zero when inside a render pass */
     uint32_t            current_image;      /* image index for current frame */
 
     /* --- offscreen-only members --- */
@@ -1203,7 +1310,7 @@ static void xvk_app_cleanup_internal(XvkApp* a)
 
     /* --- Sync objects --- */
     if (a->image_available) {
-        for (int i = 0; i < a->swapchain_image_count; ++i) {
+        for (int i = 0; i < XVK_MAX_FRAMES; ++i) {
             if (a->image_available[i])
                 vkDestroySemaphore(a->device, a->image_available[i], NULL);
             if (a->render_finished[i])
@@ -1651,19 +1758,18 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
                                a->cmd_buffers, a->swapchain_image_count))
         goto fail;
 
-    /* Sync — per-swapchain-image semaphores + fences */
-    int n = a->swapchain_image_count;
-    a->image_available = (VkSemaphore*)malloc(n * sizeof(VkSemaphore));
-    a->render_finished = (VkSemaphore*)malloc(n * sizeof(VkSemaphore));
-    a->in_flight_fences= (VkFence*)malloc(n * sizeof(VkFence));
+    /* Sync */
+    a->image_available = (VkSemaphore*)malloc(XVK_MAX_FRAMES * sizeof(VkSemaphore));
+    a->render_finished = (VkSemaphore*)malloc(XVK_MAX_FRAMES * sizeof(VkSemaphore));
+    a->in_flight_fences= (VkFence*)malloc(XVK_MAX_FRAMES * sizeof(VkFence));
     if (!a->image_available || !a->render_finished || !a->in_flight_fences) {
         xvk_set_error("malloc failed for sync objects");
         goto fail;
     }
-    memset(a->image_available, 0, n * sizeof(VkSemaphore));
-    memset(a->render_finished, 0, n * sizeof(VkSemaphore));
-    memset(a->in_flight_fences, 0, n * sizeof(VkFence));
-    if (!create_sync_objects(a->device, n,
+    memset(a->image_available, 0, XVK_MAX_FRAMES * sizeof(VkSemaphore));
+    memset(a->render_finished, 0, XVK_MAX_FRAMES * sizeof(VkSemaphore));
+    memset(a->in_flight_fences, 0, XVK_MAX_FRAMES * sizeof(VkFence));
+    if (!create_sync_objects(a->device, XVK_MAX_FRAMES,
                               a->image_available,
                               a->render_finished,
                               a->in_flight_fences))
@@ -1672,8 +1778,9 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
     a->clear_r = 0.0f;
     a->clear_g = 0.0f;
     a->clear_b = 0.0f;
-    a->frame_index = 0;
-    a->recording   = 0;
+    a->frame_index     = 0;
+    a->recording       = 0;
+    a->in_render_pass  = 0;
     a->magic       = XVK_MAGIC;
     a->is_offscreen = 0;
 
@@ -1766,19 +1873,17 @@ int32_t xvk_begin_frame(int64_t app_h)
         }
     }
 
-    /* Wait for this frame's in-flight fence BEFORE passing its semaphore to acquire.
-     * Skip first-frame/after-resize where fences haven't been signaled yet. */
-    VkFence fence = a->in_flight_fences[a->frame_index];
-    if (fence != VK_NULL_HANDLE) {
-        vkWaitForFences(a->device, 1, &fence, VK_TRUE, UINT64_MAX);
-        vkResetFences(a->device, 1, &fence);
-    }
+    VkSemaphore avail = a->image_available[a->frame_index];
+    VkFence    fence  = a->in_flight_fences[a->frame_index];
 
-    /* Acquire next image — frame_index rotates through the semaphore array */
+    /* Wait for the current frame's fence */
+    vkWaitForFences(a->device, 1, &fence, VK_TRUE, UINT64_MAX);
+    vkResetFences(a->device, 1, &fence);
+
+    /* Acquire next image */
     uint32_t img_idx = 0;
     VkResult res = vkAcquireNextImageKHR(a->device, a->swapchain,
-                                          UINT64_MAX,
-                                          a->image_available[a->frame_index],
+                                          UINT64_MAX, avail,
                                           VK_NULL_HANDLE, &img_idx);
     if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR) {
         recreate_swapchain(a);
@@ -1788,6 +1893,8 @@ int32_t xvk_begin_frame(int64_t app_h)
         xvk_set_error_fmt("vkAcquireNextImageKHR failed: %d", (int)res);
         return -1;
     }
+
+    /* Store current image index for end_frame */
     a->current_image = img_idx;
 
     /* Reset and begin command buffer */
@@ -1822,7 +1929,8 @@ int32_t xvk_begin_frame(int64_t app_h)
     rpbi.pClearValues        = clears;
 
     vkCmdBeginRenderPass(cb, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
-    a->recording = 1;
+    a->recording      = 1;
+    a->in_render_pass = 1;
 
     /* Keep a->current_image already set above */
 
@@ -1839,6 +1947,7 @@ void xvk_end_frame(int64_t app_h)
     VkCommandBuffer cb = a->cmd_buffers[img_idx];
 
     vkCmdEndRenderPass(cb);
+    a->in_render_pass = 0;
     if (vkEndCommandBuffer(cb) != VK_SUCCESS) {
         xvk_set_error("vkEndCommandBuffer failed");
         a->recording = 0;
@@ -1849,7 +1958,7 @@ void xvk_end_frame(int64_t app_h)
     /* Submit */
     VkSemaphore          wait_sems[] = { a->image_available[a->frame_index] };
     VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    VkSemaphore          sig_sems[]  = { a->render_finished[img_idx] };
+    VkSemaphore          sig_sems[]  = { a->render_finished[a->frame_index] };
 
     VkSubmitInfo si = {0};
     si.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1861,7 +1970,7 @@ void xvk_end_frame(int64_t app_h)
     si.signalSemaphoreCount = 1;
     si.pSignalSemaphores    = sig_sems;
 
-    VkFence fence = a->in_flight_fences[img_idx];
+    VkFence fence = a->in_flight_fences[a->frame_index];
 
     if (vkQueueSubmit(a->graphics_queue, 1, &si, fence) != VK_SUCCESS) {
         xvk_set_error("vkQueueSubmit failed");
@@ -1882,7 +1991,7 @@ void xvk_end_frame(int64_t app_h)
         recreate_swapchain(a);
     }
 
-    a->frame_index = (a->frame_index + 1) % a->swapchain_image_count;
+    a->frame_index = (a->frame_index + 1) % XVK_MAX_FRAMES;
 }
 
 /* ---- draw_triangle_2d ---- */
@@ -2585,4 +2694,1287 @@ void xvk_offscreen_destroy(int64_t app_h)
     if (!a) return;
     xvk_app_cleanup_internal(a);
     free(a);
+}
+
+/* ================================================================== */
+/*  PHASE 1 — Production Bridge Implementations                       */
+/* ================================================================== */
+
+/* ------------------------------------------------------------------ */
+/*  Resource handle helpers                                            */
+/* ------------------------------------------------------------------ */
+
+#define XVK_HANDLE_IMPL(T, magic, field)                                        \
+    static T* xvk_##field##_from_handle(int64_t h) {                            \
+        if (h == 0) return NULL;                                                \
+        T* p = (T*)(intptr_t)h;                                                  \
+        if (p->magic != magic) return NULL;                                     \
+        return p;                                                               \
+    }                                                                           \
+    static int64_t xvk_##field##_to_handle(T* p) {                              \
+        return p ? (int64_t)(intptr_t)p : 0;                                    \
+    }
+
+XVK_HANDLE_IMPL(XvkBuffer,       XVK_BUFFER_MAGIC,       buffer)
+XVK_HANDLE_IMPL(XvkImage,        XVK_IMAGE_MAGIC,        image)
+XVK_HANDLE_IMPL(XvkImageView,    XVK_IMAGEVIEW_MAGIC,    view)
+XVK_HANDLE_IMPL(XvkSampler,      XVK_SAMPLER_MAGIC,      sampler)
+XVK_HANDLE_IMPL(XvkShaderModule, XVK_SHADER_MAGIC,       shader)
+XVK_HANDLE_IMPL(XvkPipeline,     XVK_PIPELINE_MAGIC,     pipeline)
+XVK_HANDLE_IMPL(XvkPipelineLayout, XVK_PLAYOUT_MAGIC,    playout)
+XVK_HANDLE_IMPL(XvkDescSetLayout,  XVK_DESC_LAYOUT_MAGIC,  dslayout)
+XVK_HANDLE_IMPL(XvkDescPool,  XVK_DESC_POOL_MAGIC,  descpool)
+XVK_HANDLE_IMPL(XvkDescSet,   XVK_DESC_SET_MAGIC,   descset)
+XVK_HANDLE_IMPL(XvkRenderPass,  XVK_RENDERPASS_MAGIC,  rp)
+XVK_HANDLE_IMPL(XvkFramebuffer, XVK_FRAMEBUFFER_MAGIC, fb)
+
+/* ------------------------------------------------------------------ */
+/*  Format & enum helpers                                              */
+/* ------------------------------------------------------------------ */
+static VkFormat xvk_map_format(int32_t f) {
+    switch (f) {
+        case 1: return VK_FORMAT_R8G8B8A8_UNORM;
+        case 2: return VK_FORMAT_R8G8B8A8_SRGB;
+        case 3: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case 4: return VK_FORMAT_R32_SFLOAT;
+        case 5: return VK_FORMAT_D32_SFLOAT;
+        default: return VK_FORMAT_R8G8B8A8_UNORM;
+    }
+}
+
+static VkImageUsageFlags xvk_map_image_usage(int32_t u) {
+    VkImageUsageFlags f = 0;
+    if (u & 1)  f |= VK_IMAGE_USAGE_SAMPLED_BIT;
+    if (u & 2)  f |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    if (u & 4)  f |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    if (u & 8)  f |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    if (u & 16) f |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    if (u & 32) f |= VK_IMAGE_USAGE_STORAGE_BIT;
+    return f ? f : VK_IMAGE_USAGE_SAMPLED_BIT;
+}
+
+static VkBufferUsageFlags xvk_map_buffer_usage(int32_t u) {
+    VkBufferUsageFlags f = 0;
+    if (u & 1) f |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    if (u & 2) f |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    if (u & 4) f |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    if (u & 8) f |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+    if (u & 16) f |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    if (u & 32) f |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    return f ? f : VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+}
+
+static VkMemoryPropertyFlags xvk_map_memory_props(int32_t m) {
+    if (m == 1) return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    if (m == 2) return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    if (m == 3) return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+    return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+}
+
+static VkFilter xvk_map_filter(int32_t f) { return f == 1 ? VK_FILTER_LINEAR : VK_FILTER_NEAREST; }
+static VkSamplerAddressMode xvk_map_address(int32_t a) {
+    if (a == 1) return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    if (a == 2) return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+    return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+}
+static VkSamplerMipmapMode xvk_map_mip(int32_t m) { return m == 1 ? VK_SAMPLER_MIPMAP_MODE_LINEAR : VK_SAMPLER_MIPMAP_MODE_NEAREST; }
+
+static VkPrimitiveTopology xvk_map_topology(int32_t t) {
+    if (t == 1) return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+    if (t == 2) return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+    return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+}
+
+static VkFormat xvk_map_vertex_format(int32_t f) {
+    switch (f) {
+        case 1: return VK_FORMAT_R32G32_SFLOAT;
+        case 2: return VK_FORMAT_R32G32B32_SFLOAT;
+        case 3: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case 4: return VK_FORMAT_R8G8B8A8_UNORM;
+        case 5: return VK_FORMAT_R32_SINT;
+        default: return VK_FORMAT_R32G32B32A32_SFLOAT;
+    }
+}
+
+static VkIndexType xvk_map_index_type(int32_t t) {
+    return t == 1 ? VK_INDEX_TYPE_UINT32 : VK_INDEX_TYPE_UINT16;
+}
+
+static VkDescriptorType xvk_map_desc_type(int32_t t) {
+    if (t == 1) return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    if (t == 2) return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    if (t == 3) return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+    return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+}
+
+static VkShaderStageFlags xvk_map_stage_flags(int32_t s) {
+    VkShaderStageFlags f = 0;
+    if (s & 1) f |= VK_SHADER_STAGE_VERTEX_BIT;
+    if (s & 2) f |= VK_SHADER_STAGE_FRAGMENT_BIT;
+    if (s & 4) f |= VK_SHADER_STAGE_COMPUTE_BIT;
+    return f ? f : (VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+}
+
+static VkImageLayout xvk_map_image_layout(int32_t l) {
+    switch (l) {
+        case 1: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        case 2: return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        case 3: return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        case 4: return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        case 5: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        case 6: return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        default: return VK_IMAGE_LAYOUT_UNDEFINED;
+    }
+}
+
+static VkImageAspectFlags xvk_map_aspect(int32_t a) {
+    if (a == 2) return VK_IMAGE_ASPECT_DEPTH_BIT;
+    return VK_IMAGE_ASPECT_COLOR_BIT;
+}
+
+/* ------------------------------------------------------------------ */
+/*  BUFFERS                                                            */
+/* ------------------------------------------------------------------ */
+int64_t xvk_buffer_create(int64_t app_h, int64_t size, int32_t usage, int32_t memory)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || size <= 0) return 0;
+
+    XvkBuffer* b = (XvkBuffer*)calloc(1, sizeof(XvkBuffer));
+    if (!b) { xvk_set_error("calloc buffer"); return 0; }
+
+    VkBufferCreateInfo bci = {0};
+    bci.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bci.size        = (VkDeviceSize)size;
+    bci.usage       = xvk_map_buffer_usage(usage);
+    bci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    VkResult res = vkCreateBuffer(a->device, &bci, NULL, &b->buffer);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkCreateBuffer: %d", (int)res);
+        free(b); return 0;
+    }
+
+    VkMemoryRequirements mr;
+    vkGetBufferMemoryRequirements(a->device, b->buffer, &mr);
+    VkMemoryPropertyFlags props = xvk_map_memory_props(memory);
+    uint32_t mi = find_memory_type(&a->mem_props, mr.memoryTypeBits, props);
+    if (mi == UINT32_MAX) {
+        xvk_set_error("no suitable memory type for buffer");
+        vkDestroyBuffer(a->device, b->buffer, NULL); free(b); return 0;
+    }
+
+    VkMemoryAllocateInfo mai = {0};
+    mai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    mai.allocationSize  = mr.size;
+    mai.memoryTypeIndex = mi;
+    res = vkAllocateMemory(a->device, &mai, NULL, &b->memory);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkAllocateMemory(buf): %d", (int)res);
+        vkDestroyBuffer(a->device, b->buffer, NULL); free(b); return 0;
+    }
+    vkBindBufferMemory(a->device, b->buffer, b->memory, 0);
+
+    b->size  = (VkDeviceSize)size;
+    b->magic = XVK_BUFFER_MAGIC;
+    return xvk_buffer_to_handle(b);
+}
+
+void xvk_buffer_destroy(int64_t app_h, int64_t buf_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkBuffer* b = xvk_buffer_from_handle(buf_h);
+    if (!a || !b) return;
+    if (b->mapped && b->mapped_ptr) vkUnmapMemory(a->device, b->memory);
+    if (b->buffer)  vkDestroyBuffer(a->device, b->buffer, NULL);
+    if (b->memory)  vkFreeMemory(a->device, b->memory, NULL);
+    b->magic = 0;
+    free(b);
+}
+
+int64_t xvk_buffer_size(int64_t app_h, int64_t buf_h)
+{
+    XvkBuffer* b = xvk_buffer_from_handle(buf_h);
+    (void)app_h;
+    return b ? (int64_t)b->size : 0;
+}
+
+int64_t xvk_buffer_map(int64_t app_h, int64_t buf_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkBuffer* b = xvk_buffer_from_handle(buf_h);
+    if (!a || !b) return 0;
+    if (b->mapped) return 1;
+    VkResult res = vkMapMemory(a->device, b->memory, 0, b->size, 0, &b->mapped_ptr);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkMapMemory: %d", (int)res);
+        return 0;
+    }
+    b->mapped = 1;
+    return 1;
+}
+
+void xvk_buffer_unmap(int64_t app_h, int64_t buf_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkBuffer* b = xvk_buffer_from_handle(buf_h);
+    if (!a || !b || !b->mapped) return;
+    vkUnmapMemory(a->device, b->memory);
+    b->mapped = 0;
+    b->mapped_ptr = NULL;
+}
+
+void xvk_buffer_write(int64_t app_h, int64_t buf_h, int64_t offset,
+                       const void* data, int64_t data_size)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkBuffer* b = xvk_buffer_from_handle(buf_h);
+    if (!a || !b || !b->mapped_ptr) return;
+    if (offset + data_size > (int64_t)b->size) return;
+    memcpy((char*)b->mapped_ptr + offset, data, (size_t)data_size);
+}
+
+void xvk_buffer_read(int64_t app_h, int64_t buf_h, int64_t offset,
+                      void* out, int64_t out_size)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkBuffer* b = xvk_buffer_from_handle(buf_h);
+    if (!a || !b || !b->mapped_ptr) return;
+    if (offset + out_size > (int64_t)b->size) return;
+    memcpy(out, (char*)b->mapped_ptr + offset, (size_t)out_size);
+}
+
+/* ------------------------------------------------------------------ */
+/*  IMAGES & VIEWS                                                     */
+/* ------------------------------------------------------------------ */
+int64_t xvk_image_create_2d(int64_t app_h, int32_t width, int32_t height,
+                            int32_t format, int32_t usage, int32_t mip_levels)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || width <= 0 || height <= 0) return 0;
+
+    XvkImage* img = (XvkImage*)calloc(1, sizeof(XvkImage));
+    if (!img) { xvk_set_error("calloc image"); return 0; }
+
+    VkImageCreateInfo ici = {0};
+    ici.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    ici.imageType     = VK_IMAGE_TYPE_2D;
+    ici.format        = xvk_map_format(format);
+    ici.extent.width  = (uint32_t)width;
+    ici.extent.height = (uint32_t)height;
+    ici.extent.depth  = 1;
+    ici.mipLevels     = (uint32_t)(mip_levels > 0 ? mip_levels : 1);
+    ici.arrayLayers   = 1;
+    ici.samples       = VK_SAMPLE_COUNT_1_BIT;
+    ici.tiling        = VK_IMAGE_TILING_OPTIMAL;
+    ici.usage         = xvk_map_image_usage(usage);
+    ici.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+    VkResult res = vkCreateImage(a->device, &ici, NULL, &img->image);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkCreateImage: %d", (int)res);
+        free(img); return 0;
+    }
+
+    VkMemoryRequirements mr;
+    vkGetImageMemoryRequirements(a->device, img->image, &mr);
+    uint32_t mi = find_memory_type(&a->mem_props, mr.memoryTypeBits,
+                                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    if (mi == UINT32_MAX) {
+        xvk_set_error("no device-local memory for image");
+        vkDestroyImage(a->device, img->image, NULL); free(img); return 0;
+    }
+
+    VkMemoryAllocateInfo mai = {0};
+    mai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    mai.allocationSize  = mr.size;
+    mai.memoryTypeIndex = mi;
+    res = vkAllocateMemory(a->device, &mai, NULL, &img->memory);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkAllocateMemory(img): %d", (int)res);
+        vkDestroyImage(a->device, img->image, NULL); free(img); return 0;
+    }
+    vkBindImageMemory(a->device, img->image, img->memory, 0);
+
+    img->format     = xvk_map_format(format);
+    img->extent.width  = (uint32_t)width;
+    img->extent.height = (uint32_t)height;
+    img->mip_levels = (uint32_t)(mip_levels > 0 ? mip_levels : 1);
+    img->magic      = XVK_IMAGE_MAGIC;
+    return xvk_image_to_handle(img);
+}
+
+void xvk_image_destroy(int64_t app_h, int64_t img_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkImage* img = xvk_image_from_handle(img_h);
+    if (!a || !img) return;
+    if (img->image)  vkDestroyImage(a->device, img->image, NULL);
+    if (img->memory) vkFreeMemory(a->device, img->memory, NULL);
+    img->magic = 0;
+    free(img);
+}
+
+int64_t xvk_image_view_create(int64_t app_h, int64_t img_h, int32_t format, int32_t aspect)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkImage* img = xvk_image_from_handle(img_h);
+    if (!a || !img) return 0;
+
+    XvkImageView* v = (XvkImageView*)calloc(1, sizeof(XvkImageView));
+    if (!v) { xvk_set_error("calloc view"); return 0; }
+
+    VkImageViewCreateInfo ivci = {0};
+    ivci.sType    = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    ivci.image    = img->image;
+    ivci.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    ivci.format   = (format > 0) ? xvk_map_format(format) : img->format;
+    ivci.subresourceRange.aspectMask     = xvk_map_aspect(aspect);
+    ivci.subresourceRange.baseMipLevel   = 0;
+    ivci.subresourceRange.levelCount     = img->mip_levels;
+    ivci.subresourceRange.baseArrayLayer = 0;
+    ivci.subresourceRange.layerCount     = 1;
+
+    VkResult res = vkCreateImageView(a->device, &ivci, NULL, &v->view);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkCreateImageView: %d", (int)res);
+        free(v); return 0;
+    }
+    v->magic = XVK_IMAGEVIEW_MAGIC;
+    return xvk_view_to_handle(v);
+}
+
+void xvk_image_view_destroy(int64_t app_h, int64_t view_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkImageView* v = xvk_view_from_handle(view_h);
+    if (!a || !v) return;
+    if (v->view) vkDestroyImageView(a->device, v->view, NULL);
+    v->magic = 0;
+    free(v);
+}
+
+/* ------------------------------------------------------------------ */
+/*  SAMPLERS                                                           */
+/* ------------------------------------------------------------------ */
+int64_t xvk_sampler_create(int64_t app_h, int32_t filter, int32_t address_u,
+                           int32_t address_v, int32_t mip_mode, float max_lod)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a) return 0;
+
+    XvkSampler* s = (XvkSampler*)calloc(1, sizeof(XvkSampler));
+    if (!s) { xvk_set_error("calloc sampler"); return 0; }
+
+    VkSamplerCreateInfo sci = {0};
+    sci.sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    sci.magFilter               = xvk_map_filter(filter);
+    sci.minFilter               = xvk_map_filter(filter);
+    sci.addressModeU            = xvk_map_address(address_u);
+    sci.addressModeV            = xvk_map_address(address_v);
+    sci.addressModeW            = xvk_map_address(address_u);
+    sci.mipmapMode              = xvk_map_mip(mip_mode);
+    sci.anisotropyEnable        = VK_FALSE;
+    sci.maxAnisotropy           = 1.0f;
+    sci.borderColor             = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+    sci.unnormalizedCoordinates = VK_FALSE;
+    sci.compareEnable           = VK_FALSE;
+    sci.compareOp               = VK_COMPARE_OP_ALWAYS;
+    sci.minLod                  = 0.0f;
+    sci.maxLod                  = max_lod > 0.0f ? max_lod : VK_LOD_CLAMP_NONE;
+    sci.mipLodBias              = 0.0f;
+
+    VkResult res = vkCreateSampler(a->device, &sci, NULL, &s->sampler);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkCreateSampler: %d", (int)res);
+        free(s); return 0;
+    }
+    s->magic = XVK_SAMPLER_MAGIC;
+    return xvk_sampler_to_handle(s);
+}
+
+void xvk_sampler_destroy(int64_t app_h, int64_t sampler_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkSampler* s = xvk_sampler_from_handle(sampler_h);
+    if (!a || !s) return;
+    if (s->sampler) vkDestroySampler(a->device, s->sampler, NULL);
+    s->magic = 0;
+    free(s);
+}
+
+/* ------------------------------------------------------------------ */
+/*  SHADER MODULES                                                     */
+/* ------------------------------------------------------------------ */
+int64_t xvk_shader_create(int64_t app_h, const unsigned int* code, int32_t code_size)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !code || code_size <= 0) return 0;
+    return (int64_t)(intptr_t)create_shader_module(a->device, code, (unsigned int)code_size);
+}
+
+int64_t xvk_shader_create_named(int64_t app_h, const char* name)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !name) return 0;
+
+    /* Lookup table mapping name strings to embedded SPIR-V arrays.
+     * Automatically extended by build.ps1 / build.sh when new shaders are added. */
+    static const struct {
+        const char* name;
+        const unsigned int* code;
+        unsigned int size;
+    } table[] = {
+        {"triangle_vert",      xvk_triangle_vert_spv,      xvk_triangle_vert_spv_len},
+        {"triangle_frag",      xvk_triangle_frag_spv,      xvk_triangle_frag_spv_len},
+        {"cube_vert",          xvk_cube_vert_spv,          xvk_cube_vert_spv_len},
+        {"cube_frag",          xvk_cube_frag_spv,          xvk_cube_frag_spv_len},
+        {"quad_vert",          xvk_quad_vert_spv,          xvk_quad_vert_spv_len},
+        {"quad_frag",          xvk_quad_frag_spv,          xvk_quad_frag_spv_len},
+        {"particle_vert",      xvk_particle_vert_spv,      xvk_particle_vert_spv_len},
+        {"particle_frag",      xvk_particle_frag_spv,      xvk_particle_frag_spv_len},
+        {"particle_render_vert", xvk_particle_render_vert_spv, xvk_particle_render_vert_spv_len},
+        {"particle_render_frag", xvk_particle_render_frag_spv, xvk_particle_render_frag_spv_len},
+        {"compute_particles",  xvk_compute_particles_spv,  xvk_compute_particles_spv_len},
+        {"texture_quad_vert",  xvk_texture_quad_vert_spv,  xvk_texture_quad_vert_spv_len},
+        {"texture_quad_frag",  xvk_texture_quad_frag_spv,  xvk_texture_quad_frag_spv_len},
+        {"uniform_cube_vert",  xvk_uniform_cube_vert_spv,  xvk_uniform_cube_vert_spv_len},
+        {"uniform_cube_frag",  xvk_uniform_cube_frag_spv,  xvk_uniform_cube_frag_spv_len},
+    };
+    int n = sizeof(table) / sizeof(table[0]);
+
+    for (int i = 0; i < n; ++i) {
+        if (strcmp(table[i].name, name) == 0 && table[i].code && table[i].size > 0) {
+            return (int64_t)(intptr_t)create_shader_module(a->device, table[i].code, table[i].size);
+        }
+    }
+    xvk_set_error_fmt("shader_create_named: unknown shader '%s'", name);
+    return 0;
+}
+
+void xvk_shader_destroy(int64_t app_h, int64_t shader_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !shader_h) return;
+    VkShaderModule sm = (VkShaderModule)(intptr_t)shader_h;
+    vkDestroyShaderModule(a->device, sm, NULL);
+}
+
+/* ------------------------------------------------------------------ */
+/*  PIPELINE LAYOUT                                                    */
+/* ------------------------------------------------------------------ */
+int64_t xvk_pipeline_layout_create(int64_t app_h, int32_t push_size, int32_t push_stages,
+                                   int32_t desc_layout_count, const int64_t* desc_layouts)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a) return 0;
+
+    XvkPipelineLayout* pl = (XvkPipelineLayout*)calloc(1, sizeof(XvkPipelineLayout));
+    if (!pl) { xvk_set_error("calloc pipeline layout"); return 0; }
+
+    VkPushConstantRange pcr = {0};
+    int pcr_count = 0;
+    if (push_size > 0) {
+        pcr.stageFlags = xvk_map_stage_flags(push_stages);
+        pcr.offset     = 0;
+        pcr.size       = (uint32_t)push_size;
+        pcr_count      = 1;
+    }
+
+    VkDescriptorSetLayout* dsl = NULL;
+    if (desc_layout_count > 0 && desc_layouts) {
+        dsl = (VkDescriptorSetLayout*)malloc((size_t)desc_layout_count * sizeof(VkDescriptorSetLayout));
+        for (int i = 0; i < desc_layout_count; ++i) {
+            XvkDescSetLayout* dl = xvk_dslayout_from_handle(desc_layouts[i]);
+            dsl[i] = dl ? dl->layout : VK_NULL_HANDLE;
+        }
+    }
+
+    VkPipelineLayoutCreateInfo plci = {0};
+    plci.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    plci.setLayoutCount         = (uint32_t)desc_layout_count;
+    plci.pSetLayouts            = dsl;
+    plci.pushConstantRangeCount = (uint32_t)pcr_count;
+    plci.pPushConstantRanges    = pcr_count ? &pcr : NULL;
+
+    VkResult res = vkCreatePipelineLayout(a->device, &plci, NULL, &pl->layout);
+    if (dsl) free(dsl);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkCreatePipelineLayout: %d", (int)res);
+        free(pl); return 0;
+    }
+    pl->magic = XVK_PLAYOUT_MAGIC;
+    return xvk_playout_to_handle(pl);
+}
+
+void xvk_pipeline_layout_destroy(int64_t app_h, int64_t layout_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkPipelineLayout* pl = xvk_playout_from_handle(layout_h);
+    if (!a || !pl) return;
+    if (pl->layout) vkDestroyPipelineLayout(a->device, pl->layout, NULL);
+    pl->magic = 0;
+    free(pl);
+}
+
+/* ------------------------------------------------------------------ */
+/*  DESCRIPTOR SET LAYOUT                                              */
+/* ------------------------------------------------------------------ */
+int64_t xvk_desc_set_layout_create(int64_t app_h, const int32_t* bindings, int32_t count)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !bindings || count <= 0) return 0;
+
+    XvkDescSetLayout* dl = (XvkDescSetLayout*)calloc(1, sizeof(XvkDescSetLayout));
+    if (!dl) { xvk_set_error("calloc desc layout"); return 0; }
+
+    VkDescriptorSetLayoutBinding* b = (VkDescriptorSetLayoutBinding*)
+        malloc((size_t)count * sizeof(VkDescriptorSetLayoutBinding));
+    if (!b) { free(dl); xvk_set_error("malloc bindings"); return 0; }
+
+    for (int i = 0; i < count; ++i) {
+        int off = i * 4;
+        b[i].binding            = (uint32_t)bindings[off];
+        b[i].descriptorType     = xvk_map_desc_type(bindings[off + 1]);
+        b[i].descriptorCount    = (uint32_t)(bindings[off + 2] > 0 ? bindings[off + 2] : 1);
+        b[i].stageFlags         = xvk_map_stage_flags(bindings[off + 3]);
+        b[i].pImmutableSamplers = NULL;
+    }
+
+    VkDescriptorSetLayoutCreateInfo lci = {0};
+    lci.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    lci.bindingCount = (uint32_t)count;
+    lci.pBindings    = b;
+
+    VkResult res = vkCreateDescriptorSetLayout(a->device, &lci, NULL, &dl->layout);
+    free(b);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkCreateDescriptorSetLayout: %d", (int)res);
+        free(dl); return 0;
+    }
+    dl->magic = XVK_DESC_LAYOUT_MAGIC;
+    return xvk_dslayout_to_handle(dl);
+}
+
+void xvk_desc_set_layout_destroy(int64_t app_h, int64_t layout_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkDescSetLayout* dl = xvk_dslayout_from_handle(layout_h);
+    if (!a || !dl) return;
+    if (dl->layout) vkDestroyDescriptorSetLayout(a->device, dl->layout, NULL);
+    dl->magic = 0;
+    free(dl);
+}
+
+/* ------------------------------------------------------------------ */
+/*  PIPELINES                                                          */
+/* ------------------------------------------------------------------ */
+int64_t xvk_pipeline_create_graphics(int64_t app_h,
+    int32_t topology, int32_t cull_mode, int32_t depth_test, int32_t depth_write,
+    int32_t blend_enable,
+    int64_t vertex_shader_h, int64_t fragment_shader_h,
+    int64_t layout_h, int64_t render_pass_h,
+    const int32_t* bindings, int32_t binding_count,
+    const int32_t* attributes, int32_t attr_count)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkPipelineLayout* pl = xvk_playout_from_handle(layout_h);
+    XvkRenderPass* rp = xvk_rp_from_handle(render_pass_h);
+    if (!a || !pl || !rp) return 0;
+    if (!vertex_shader_h || !fragment_shader_h) { xvk_set_error("shader handles required"); return 0; }
+
+    XvkPipeline* p = (XvkPipeline*)calloc(1, sizeof(XvkPipeline));
+    if (!p) { xvk_set_error("calloc pipeline"); return 0; }
+
+    /* Shader stages */
+    VkPipelineShaderStageCreateInfo stages[2] = {{0}};
+    stages[0].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stages[0].stage  = VK_SHADER_STAGE_VERTEX_BIT;
+    stages[0].module = (VkShaderModule)(intptr_t)vertex_shader_h;
+    stages[0].pName  = "main";
+    stages[1].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stages[1].stage  = VK_SHADER_STAGE_FRAGMENT_BIT;
+    stages[1].module = (VkShaderModule)(intptr_t)fragment_shader_h;
+    stages[1].pName  = "main";
+
+    /* Vertex input */
+    VkVertexInputBindingDescription* vb = NULL;
+    VkVertexInputAttributeDescription* va = NULL;
+    if (binding_count > 0 && bindings) {
+        vb = (VkVertexInputBindingDescription*)malloc((size_t)binding_count * sizeof(VkVertexInputBindingDescription));
+        for (int i = 0; i < binding_count; ++i) {
+            vb[i].binding   = (uint32_t)bindings[i * 3];
+            vb[i].stride    = (uint32_t)bindings[i * 3 + 1];
+            vb[i].inputRate = bindings[i * 3 + 2] == 1 ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
+        }
+    }
+    if (attr_count > 0 && attributes) {
+        va = (VkVertexInputAttributeDescription*)malloc((size_t)attr_count * sizeof(VkVertexInputAttributeDescription));
+        for (int i = 0; i < attr_count; ++i) {
+            va[i].location = (uint32_t)attributes[i * 4];
+            va[i].binding  = (uint32_t)attributes[i * 4 + 1];
+            va[i].format   = xvk_map_vertex_format(attributes[i * 4 + 2]);
+            va[i].offset   = (uint32_t)attributes[i * 4 + 3];
+        }
+    }
+
+    VkPipelineVertexInputStateCreateInfo vi = {0};
+    vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vi.vertexBindingDescriptionCount   = (uint32_t)binding_count;
+    vi.pVertexBindingDescriptions      = vb;
+    vi.vertexAttributeDescriptionCount = (uint32_t)attr_count;
+    vi.pVertexAttributeDescriptions    = va;
+
+    VkPipelineInputAssemblyStateCreateInfo ia = {0};
+    ia.sType    = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    ia.topology = xvk_map_topology(topology);
+
+    VkViewport vp = {0};
+    vp.x = 0; vp.y = 0;
+    vp.width  = (float)a->swapchain_extent.width;
+    vp.height = (float)a->swapchain_extent.height;
+    vp.minDepth = 0.0f;
+    vp.maxDepth = 1.0f;
+
+    VkRect2D sc = {0};
+    sc.extent = a->swapchain_extent;
+
+    VkPipelineViewportStateCreateInfo vs = {0};
+    vs.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    vs.viewportCount = 1; vs.pViewports = &vp;
+    vs.scissorCount  = 1; vs.pScissors  = &sc;
+
+    VkPipelineRasterizationStateCreateInfo rs = {0};
+    rs.sType       = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rs.polygonMode = VK_POLYGON_MODE_FILL;
+    rs.cullMode    = cull_mode == 1 ? VK_CULL_MODE_FRONT_BIT :
+                     cull_mode == 2 ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE;
+    rs.frontFace   = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rs.lineWidth   = 1.0f;
+
+    VkPipelineMultisampleStateCreateInfo ms = {0};
+    ms.sType                = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    ms.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+    VkPipelineDepthStencilStateCreateInfo ds = {0};
+    ds.sType                 = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    ds.depthTestEnable       = depth_test ? VK_TRUE : VK_FALSE;
+    ds.depthWriteEnable      = depth_write ? VK_TRUE : VK_FALSE;
+    ds.depthCompareOp        = VK_COMPARE_OP_LESS;
+
+    VkPipelineColorBlendAttachmentState cb = {0};
+    cb.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    if (blend_enable) {
+        cb.blendEnable         = VK_TRUE;
+        cb.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        cb.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        cb.colorBlendOp        = VK_BLEND_OP_ADD;
+        cb.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        cb.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        cb.alphaBlendOp        = VK_BLEND_OP_ADD;
+    } else {
+        cb.blendEnable = VK_FALSE;
+    }
+
+    VkPipelineColorBlendStateCreateInfo cbs = {0};
+    cbs.sType           = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    cbs.attachmentCount = 1;
+    cbs.pAttachments    = &cb;
+
+    VkPipelineDynamicStateCreateInfo dyn = {0};
+    dyn.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+
+    VkGraphicsPipelineCreateInfo gpci = {0};
+    gpci.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    gpci.stageCount          = 2;
+    gpci.pStages             = stages;
+    gpci.pVertexInputState   = &vi;
+    gpci.pInputAssemblyState = &ia;
+    gpci.pViewportState      = &vs;
+    gpci.pRasterizationState = &rs;
+    gpci.pMultisampleState   = &ms;
+    gpci.pDepthStencilState  = &ds;
+    gpci.pColorBlendState    = &cbs;
+    gpci.pDynamicState       = &dyn;
+    gpci.layout              = pl->layout;
+    gpci.renderPass          = rp->render_pass;
+    gpci.subpass             = 0;
+
+    VkResult res = vkCreateGraphicsPipelines(a->device, VK_NULL_HANDLE, 1, &gpci, NULL, &p->pipeline);
+    if (vb) free(vb);
+    if (va) free(va);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkCreateGraphicsPipelines: %d", (int)res);
+        free(p); return 0;
+    }
+    p->bind_point = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    p->magic = XVK_PIPELINE_MAGIC;
+    return xvk_pipeline_to_handle(p);
+}
+
+int64_t xvk_pipeline_create_compute(int64_t app_h, int64_t shader_h, int64_t layout_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkPipelineLayout* pl = xvk_playout_from_handle(layout_h);
+    if (!a || !pl || !shader_h) return 0;
+
+    XvkPipeline* p = (XvkPipeline*)calloc(1, sizeof(XvkPipeline));
+    if (!p) { xvk_set_error("calloc compute pipeline"); return 0; }
+
+    VkPipelineShaderStageCreateInfo stage = {0};
+    stage.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stage.stage  = VK_SHADER_STAGE_COMPUTE_BIT;
+    stage.module = (VkShaderModule)(intptr_t)shader_h;
+    stage.pName  = "main";
+
+    VkComputePipelineCreateInfo cpci = {0};
+    cpci.sType  = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    cpci.stage  = stage;
+    cpci.layout = pl->layout;
+
+    VkResult res = vkCreateComputePipelines(a->device, VK_NULL_HANDLE, 1, &cpci, NULL, &p->pipeline);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkCreateComputePipelines: %d", (int)res);
+        free(p); return 0;
+    }
+    p->bind_point = VK_PIPELINE_BIND_POINT_COMPUTE;
+    p->magic = XVK_PIPELINE_MAGIC;
+    return xvk_pipeline_to_handle(p);
+}
+
+void xvk_pipeline_destroy(int64_t app_h, int64_t pipeline_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkPipeline* p = xvk_pipeline_from_handle(pipeline_h);
+    if (!a || !p) return;
+    if (p->pipeline) vkDestroyPipeline(a->device, p->pipeline, NULL);
+    p->magic = 0;
+    free(p);
+}
+
+/* ------------------------------------------------------------------ */
+/*  DESCRIPTOR POOL & SETS                                             */
+/* ------------------------------------------------------------------ */
+int64_t xvk_desc_pool_create(int64_t app_h, const int32_t* pool_sizes, int32_t size_count,
+                             int32_t max_sets)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !pool_sizes || size_count <= 0) return 0;
+
+    XvkDescPool* dp = (XvkDescPool*)calloc(1, sizeof(XvkDescPool));
+    if (!dp) { xvk_set_error("calloc desc pool"); return 0; }
+
+    VkDescriptorPoolSize* sizes = (VkDescriptorPoolSize*)
+        malloc((size_t)(size_count / 2) * sizeof(VkDescriptorPoolSize));
+    if (!sizes) { free(dp); return 0; }
+    int sc = 0;
+    for (int i = 0; i < size_count; i += 2) {
+        sizes[sc].type            = xvk_map_desc_type(pool_sizes[i]);
+        sizes[sc].descriptorCount = (uint32_t)pool_sizes[i + 1];
+        ++sc;
+    }
+
+    VkDescriptorPoolCreateInfo pci = {0};
+    pci.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    pci.maxSets       = (uint32_t)max_sets;
+    pci.poolSizeCount = (uint32_t)sc;
+    pci.pPoolSizes    = sizes;
+    pci.flags         = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+
+    VkResult res = vkCreateDescriptorPool(a->device, &pci, NULL, &dp->pool);
+    free(sizes);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkCreateDescriptorPool: %d", (int)res);
+        free(dp); return 0;
+    }
+    dp->magic = XVK_DESC_POOL_MAGIC;
+    return xvk_descpool_to_handle(dp);
+}
+
+void xvk_desc_pool_destroy(int64_t app_h, int64_t pool_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkDescPool* dp = xvk_descpool_from_handle(pool_h);
+    if (!a || !dp) return;
+    if (dp->pool) vkDestroyDescriptorPool(a->device, dp->pool, NULL);
+    dp->magic = 0;
+    free(dp);
+}
+
+int64_t xvk_desc_set_allocate(int64_t app_h, int64_t pool_h, int64_t layout_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkDescPool* dp = xvk_descpool_from_handle(pool_h);
+    XvkDescSetLayout* dl = xvk_dslayout_from_handle(layout_h);
+    if (!a || !dp || !dl) return 0;
+
+    XvkDescSet* ds = (XvkDescSet*)calloc(1, sizeof(XvkDescSet));
+    if (!ds) { xvk_set_error("calloc desc set"); return 0; }
+
+    VkDescriptorSetLayout layout = dl->layout;
+    VkDescriptorSetAllocateInfo ai = {0};
+    ai.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    ai.descriptorPool     = dp->pool;
+    ai.descriptorSetCount = 1;
+    ai.pSetLayouts        = &layout;
+
+    VkResult res = vkAllocateDescriptorSets(a->device, &ai, &ds->set);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkAllocateDescriptorSets: %d", (int)res);
+        free(ds); return 0;
+    }
+    ds->magic = XVK_DESC_SET_MAGIC;
+    return xvk_descset_to_handle(ds);
+}
+
+void xvk_desc_set_free(int64_t app_h, int64_t pool_h, int64_t set_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkDescPool* dp = xvk_descpool_from_handle(pool_h);
+    XvkDescSet* ds = xvk_descset_from_handle(set_h);
+    if (!a || !dp || !ds) return;
+    if (ds->set) vkFreeDescriptorSets(a->device, dp->pool, 1, &ds->set);
+    ds->magic = 0;
+    free(ds);
+}
+
+void xvk_desc_set_write_buffer(int64_t app_h, int64_t set_h, int32_t binding,
+                               int64_t buf_h, int64_t offset, int64_t range,
+                               int32_t type)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkDescSet* ds = xvk_descset_from_handle(set_h);
+    XvkBuffer* b   = xvk_buffer_from_handle(buf_h);
+    if (!a || !ds || !b) return;
+
+    VkDescriptorBufferInfo dbi = {0};
+    dbi.buffer = b->buffer;
+    dbi.offset = (VkDeviceSize)offset;
+    dbi.range  = range > 0 ? (VkDeviceSize)range : VK_WHOLE_SIZE;
+
+    VkWriteDescriptorSet w = {0};
+    w.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    w.dstSet          = ds->set;
+    w.dstBinding      = (uint32_t)binding;
+    w.dstArrayElement = 0;
+    w.descriptorCount = 1;
+    w.descriptorType  = xvk_map_desc_type(type);
+    w.pBufferInfo     = &dbi;
+    vkUpdateDescriptorSets(a->device, 1, &w, 0, NULL);
+}
+
+void xvk_desc_set_write_image(int64_t app_h, int64_t set_h, int32_t binding,
+                              int64_t sampler_h, int64_t image_view_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkDescSet* ds = xvk_descset_from_handle(set_h);
+    XvkSampler* s   = xvk_sampler_from_handle(sampler_h);
+    XvkImageView* v = xvk_view_from_handle(image_view_h);
+    if (!a || !ds || !v) return;
+
+    VkDescriptorImageInfo dii = {0};
+    dii.sampler     = s ? s->sampler : VK_NULL_HANDLE;
+    dii.imageView   = v->view;
+    dii.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+    VkWriteDescriptorSet w = {0};
+    w.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    w.dstSet          = ds->set;
+    w.dstBinding      = (uint32_t)binding;
+    w.dstArrayElement = 0;
+    w.descriptorCount = 1;
+    w.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    w.pImageInfo      = &dii;
+    vkUpdateDescriptorSets(a->device, 1, &w, 0, NULL);
+}
+
+/* ------------------------------------------------------------------ */
+/*  COMPUTE DISPATCH                                                   */
+/* ------------------------------------------------------------------ */
+void xvk_compute_dispatch(int64_t app_h, int64_t pipeline_h, int64_t layout_h,
+                          int32_t x, int32_t y, int32_t z)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkPipeline* p = xvk_pipeline_from_handle(pipeline_h);
+    XvkPipelineLayout* pl = xvk_playout_from_handle(layout_h);
+    if (!a || !a->recording || !p || !pl) return;
+
+    VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    if (a->in_render_pass) {
+        vkCmdEndRenderPass(cb);
+        a->in_render_pass = 0;
+    }
+    vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_COMPUTE, p->pipeline);
+    vkCmdDispatch(cb, (uint32_t)x, (uint32_t)y, (uint32_t)z);
+}
+
+/* ------------------------------------------------------------------ */
+/*  RENDER PASSES & FRAMEBUFFERS                                       */
+/* ------------------------------------------------------------------ */
+int64_t xvk_render_pass_create(int64_t app_h, const int32_t* color_formats,
+                               int32_t color_count, int32_t depth_format)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || color_count <= 0) return 0;
+
+    XvkRenderPass* rp = (XvkRenderPass*)calloc(1, sizeof(XvkRenderPass));
+    if (!rp) { xvk_set_error("calloc render pass"); return 0; }
+
+    int att_count = color_count + (depth_format > 0 ? 1 : 0);
+    VkAttachmentDescription* atts = (VkAttachmentDescription*)
+        malloc((size_t)att_count * sizeof(VkAttachmentDescription));
+    VkAttachmentReference* col_refs = (VkAttachmentReference*)
+        malloc((size_t)color_count * sizeof(VkAttachmentReference));
+    if (!atts || !col_refs) {
+        if (atts) free(atts); if (col_refs) free(col_refs);
+        free(rp); xvk_set_error("malloc attachments"); return 0;
+    }
+    memset(atts, 0, (size_t)att_count * sizeof(VkAttachmentDescription));
+
+    for (int i = 0; i < color_count; ++i) {
+        int off = i * 4;
+        int fmt = color_formats[off];
+        atts[i].format         = fmt == 2 ? a->swapchain_fmt : xvk_map_format(fmt > 0 ? fmt : 1);
+        atts[i].samples        = VK_SAMPLE_COUNT_1_BIT;
+        atts[i].loadOp         = color_formats[off+1] == 1 ? VK_ATTACHMENT_LOAD_OP_LOAD :
+                                 color_formats[off+1] == 2 ? VK_ATTACHMENT_LOAD_OP_DONT_CARE :
+                                 VK_ATTACHMENT_LOAD_OP_CLEAR;
+        atts[i].storeOp        = color_formats[off+2] == 1 ? VK_ATTACHMENT_STORE_OP_DONT_CARE :
+                                 VK_ATTACHMENT_STORE_OP_STORE;
+        atts[i].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        atts[i].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        atts[i].initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+        int fl = color_formats[off+3];
+        atts[i].finalLayout    = fl == 1 ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL :
+                                 fl == 2 ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL :
+                                 VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        col_refs[i].attachment = (uint32_t)i;
+        col_refs[i].layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    }
+
+    VkAttachmentReference depth_ref = {0};
+    if (depth_format > 0) {
+        int di = color_count;
+        atts[di].format         = xvk_map_format(depth_format);
+        atts[di].samples        = VK_SAMPLE_COUNT_1_BIT;
+        atts[di].loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        atts[di].storeOp        = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        atts[di].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        atts[di].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        atts[di].initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+        atts[di].finalLayout    = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        depth_ref.attachment = (uint32_t)di;
+        depth_ref.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    }
+
+    VkSubpassDescription subpass = {0};
+    subpass.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount    = (uint32_t)color_count;
+    subpass.pColorAttachments       = col_refs;
+    subpass.pDepthStencilAttachment = depth_format > 0 ? &depth_ref : NULL;
+
+    VkSubpassDependency dep = {0};
+    dep.srcSubpass    = VK_SUBPASS_EXTERNAL;
+    dep.dstSubpass    = 0;
+    dep.srcStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dep.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dep.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+    VkRenderPassCreateInfo rpci = {0};
+    rpci.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    rpci.attachmentCount = (uint32_t)att_count;
+    rpci.pAttachments    = atts;
+    rpci.subpassCount    = 1;
+    rpci.pSubpasses      = &subpass;
+    rpci.dependencyCount = 1;
+    rpci.pDependencies   = &dep;
+
+    VkResult res = vkCreateRenderPass(a->device, &rpci, NULL, &rp->render_pass);
+    free(atts); free(col_refs);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkCreateRenderPass: %d", (int)res);
+        free(rp); return 0;
+    }
+    rp->magic = XVK_RENDERPASS_MAGIC;
+    return xvk_rp_to_handle(rp);
+}
+
+void xvk_render_pass_destroy(int64_t app_h, int64_t rp_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkRenderPass* rp = xvk_rp_from_handle(rp_h);
+    if (!a || !rp) return;
+    if (rp->render_pass) vkDestroyRenderPass(a->device, rp->render_pass, NULL);
+    rp->magic = 0;
+    free(rp);
+}
+
+int64_t xvk_framebuffer_create(int64_t app_h, int64_t render_pass_h,
+                               const int64_t* attachments, int32_t attachment_count,
+                               int32_t width, int32_t height)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkRenderPass* rp = xvk_rp_from_handle(render_pass_h);
+    if (!a || !rp || !attachments || attachment_count <= 0) return 0;
+
+    XvkFramebuffer* fb = (XvkFramebuffer*)calloc(1, sizeof(XvkFramebuffer));
+    if (!fb) { xvk_set_error("calloc framebuffer"); return 0; }
+
+    VkImageView* views = (VkImageView*)malloc((size_t)attachment_count * sizeof(VkImageView));
+    if (!views) { free(fb); return 0; }
+    for (int i = 0; i < attachment_count; ++i) {
+        XvkImageView* v = xvk_view_from_handle(attachments[i]);
+        views[i] = v ? v->view : VK_NULL_HANDLE;
+    }
+
+    VkFramebufferCreateInfo fci = {0};
+    fci.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    fci.renderPass      = rp->render_pass;
+    fci.attachmentCount = (uint32_t)attachment_count;
+    fci.pAttachments    = views;
+    fci.width           = (uint32_t)width;
+    fci.height          = (uint32_t)height;
+    fci.layers          = 1;
+
+    VkResult res = vkCreateFramebuffer(a->device, &fci, NULL, &fb->framebuffer);
+    free(views);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkCreateFramebuffer: %d", (int)res);
+        free(fb); return 0;
+    }
+    fb->magic = XVK_FRAMEBUFFER_MAGIC;
+    return xvk_fb_to_handle(fb);
+}
+
+void xvk_framebuffer_destroy(int64_t app_h, int64_t fb_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkFramebuffer* fb = xvk_fb_from_handle(fb_h);
+    if (!a || !fb) return;
+    if (fb->framebuffer) vkDestroyFramebuffer(a->device, fb->framebuffer, NULL);
+    fb->magic = 0;
+    free(fb);
+}
+
+/* ------------------------------------------------------------------ */
+/*  COMMAND RECORDING (between begin/end_frame)                        */
+/* ------------------------------------------------------------------ */
+void xvk_cmd_bind_vertex_buffer(int64_t app_h, int32_t binding, int64_t buf_h, int64_t offset)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkBuffer* b = xvk_buffer_from_handle(buf_h);
+    if (!a || !a->recording || !b) return;
+    VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    VkDeviceSize off = (VkDeviceSize)offset;
+    vkCmdBindVertexBuffers(cb, (uint32_t)binding, 1, &b->buffer, &off);
+}
+
+void xvk_cmd_bind_index_buffer(int64_t app_h, int64_t buf_h, int64_t offset, int32_t index_type)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkBuffer* b = xvk_buffer_from_handle(buf_h);
+    if (!a || !a->recording || !b) return;
+    VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    vkCmdBindIndexBuffer(cb, b->buffer, (VkDeviceSize)offset, xvk_map_index_type(index_type));
+}
+
+void xvk_cmd_bind_pipeline(int64_t app_h, int64_t pipeline_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkPipeline* p = xvk_pipeline_from_handle(pipeline_h);
+    if (!a || !a->recording || !p) return;
+    VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    vkCmdBindPipeline(cb, p->bind_point, p->pipeline);
+}
+
+void xvk_cmd_bind_descriptor_sets(int64_t app_h, int64_t layout_h, int32_t first_set,
+                                  const int64_t* sets, int32_t set_count)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkPipelineLayout* pl = xvk_playout_from_handle(layout_h);
+    if (!a || !a->recording || !pl || !sets || set_count <= 0) return;
+
+    VkDescriptorSet* dss = (VkDescriptorSet*)malloc((size_t)set_count * sizeof(VkDescriptorSet));
+    if (!dss) return;
+    for (int i = 0; i < set_count; ++i) {
+        XvkDescSet* ds = xvk_descset_from_handle(sets[i]);
+        dss[i] = ds ? ds->set : VK_NULL_HANDLE;
+    }
+    VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pl->layout,
+                            (uint32_t)first_set, (uint32_t)set_count, dss, 0, NULL);
+    free(dss);
+}
+
+void xvk_cmd_push_constants(int64_t app_h, int64_t layout_h, int32_t stages,
+                             int32_t offset, int32_t size, const void* data)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkPipelineLayout* pl = xvk_playout_from_handle(layout_h);
+    if (!a || !a->recording || !pl || !data || size <= 0) return;
+    VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    vkCmdPushConstants(cb, pl->layout, xvk_map_stage_flags(stages),
+                       (uint32_t)offset, (uint32_t)size, data);
+}
+
+void xvk_cmd_draw_indexed(int64_t app_h, int32_t index_count, int32_t instance_count,
+                          int32_t first_index, int32_t vertex_offset, int32_t first_instance)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !a->recording || !a->in_render_pass) return;
+    VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    vkCmdDrawIndexed(cb, (uint32_t)index_count, (uint32_t)instance_count,
+                     (uint32_t)first_index, vertex_offset, (uint32_t)first_instance);
+}
+
+void xvk_cmd_draw(int64_t app_h, int32_t vertex_count, int32_t instance_count,
+                  int32_t first_vertex, int32_t first_instance)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !a->recording || !a->in_render_pass) return;
+    VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    vkCmdDraw(cb, (uint32_t)vertex_count, (uint32_t)instance_count,
+              (uint32_t)first_vertex, (uint32_t)first_instance);
+}
+
+/* ------------------------------------------------------------------ */
+/*  CUSTOM RENDER PASS                                                 */
+/* ------------------------------------------------------------------ */
+int32_t xvk_begin_custom_pass(int64_t app_h, int64_t render_pass_h, int64_t framebuffer_h,
+                              int32_t width, int32_t height,
+                              float r, float g, float b)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkRenderPass* xrp = xvk_rp_from_handle(render_pass_h);
+    XvkFramebuffer* xfb = xvk_fb_from_handle(framebuffer_h);
+    if (!a || !a->recording || !xrp || !xfb) return -1;
+
+    VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+
+    /* End default render pass if active */
+    if (a->in_render_pass) {
+        vkCmdEndRenderPass(cb);
+        a->in_render_pass = 0;
+    }
+
+    VkClearValue clear = {0};
+    clear.color.float32[0] = r;
+    clear.color.float32[1] = g;
+    clear.color.float32[2] = b;
+    clear.color.float32[3] = 1.0f;
+
+    VkRenderPassBeginInfo rpbi = {0};
+    rpbi.sType       = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    rpbi.renderPass  = xrp->render_pass;
+    rpbi.framebuffer = xfb->framebuffer;
+    rpbi.renderArea.offset.x = 0;
+    rpbi.renderArea.offset.y = 0;
+    rpbi.renderArea.extent.width  = (uint32_t)width;
+    rpbi.renderArea.extent.height = (uint32_t)height;
+    rpbi.clearValueCount = 1;
+    rpbi.pClearValues    = &clear;
+
+    vkCmdBeginRenderPass(cb, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
+    a->in_render_pass = 1;
+    return 1;
+}
+
+int32_t xvk_end_custom_pass(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !a->recording || !a->in_render_pass) return -1;
+
+    VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    vkCmdEndRenderPass(cb);
+    a->in_render_pass = 0;
+
+    /* Re-begin the default render pass for the swapchain */
+    VkClearValue clears[2];
+    clears[0].color.float32[0] = a->clear_r;
+    clears[0].color.float32[1] = a->clear_g;
+    clears[0].color.float32[2] = a->clear_b;
+    clears[0].color.float32[3] = 1.0f;
+    clears[1].depthStencil.depth   = 1.0f;
+    clears[1].depthStencil.stencil = 0;
+
+    VkRenderPassBeginInfo rpbi = {0};
+    rpbi.sType       = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    rpbi.renderPass  = a->render_pass;
+    rpbi.framebuffer = a->framebuffers[a->current_image];
+    rpbi.renderArea.extent = a->swapchain_extent;
+    rpbi.clearValueCount   = 2;
+    rpbi.pClearValues      = clears;
+
+    vkCmdBeginRenderPass(cb, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
+    a->in_render_pass = 1;
+    return 1;
+}
+
+/* ------------------------------------------------------------------ */
+/*  LAYOUT TRANSITIONS                                                 */
+/* ------------------------------------------------------------------ */
+void xvk_image_transition(int64_t app_h, int64_t img_h, int32_t old_layout, int32_t new_layout)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    XvkImage* img = xvk_image_from_handle(img_h);
+    if (!a || !a->recording || !img) return;
+
+    VkImageLayout old_l = xvk_map_image_layout(old_layout);
+    VkImageLayout new_l = xvk_map_image_layout(new_layout);
+    if (old_l == new_l) return;
+
+    VkImageMemoryBarrier barrier = {0};
+    barrier.sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout           = old_l;
+    barrier.newLayout           = new_l;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image               = img->image;
+    barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel   = 0;
+    barrier.subresourceRange.levelCount     = img->mip_levels;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount     = 1;
+
+    VkPipelineStageFlags src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    VkPipelineStageFlags dst_stage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+
+    if (old_l == VK_IMAGE_LAYOUT_UNDEFINED && new_l == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    } else if (old_l == VK_IMAGE_LAYOUT_UNDEFINED && new_l == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        dst_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    } else if (old_l == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && new_l == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+        barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        src_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    } else {
+        barrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+    }
+
+    VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    vkCmdPipelineBarrier(cb, src_stage, dst_stage, 0, 0, NULL, 0, NULL, 1, &barrier);
+    img->format = img->format; /* no-op, keep format field */
+}
+
+/* ------------------------------------------------------------------ */
+/*  UTILITY                                                            */
+/* ------------------------------------------------------------------ */
+void xvk_get_framebuffer_size(int64_t app_h, int32_t* out_width, int32_t* out_height)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !out_width || !out_height) return;
+    *out_width  = (int32_t)a->swapchain_extent.width;
+    *out_height = (int32_t)a->swapchain_extent.height;
 }

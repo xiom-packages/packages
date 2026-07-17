@@ -18,10 +18,10 @@ fn main() -> Int {
     Ok(a) => {
       while !should_close(a) {
         poll(a);
+        let t = now() as Float32;
+        set_clear_color(a, 0.02, 0.02, 0.06);
         let status = begin_frame(a);
         if status == 1 {
-          let t = now() as Float32;
-          set_clear_color(a, 0.02, 0.02, 0.06);
           var gx: Int = -1;
           while gx <= 1 {
             var gz: Int = -1;

@@ -7,60 +7,13 @@
 //
 // COVERAGE: 5 resource types spanning the full VMA lifecycle:
 //   VmaAllocator, VmaAllocation, VmaPool, VmaBuffer, VmaImage
+//
+// Compiler: XIOM v0.46.0 — cross-module extern resolution fixed.
+// Uses `pub extern "C"` declarations from xiom.vma via `use xiom.vma`.
 
 module xiom.vma.safe
 
-extern "C" {
-  fn vmaCreateAllocator(pCreateInfo: Int, pAllocator: Int) -> Int32;
-  fn vmaDestroyAllocator(allocator: Int);
-  fn vmaGetMemoryTypeProperties(allocator: Int, memoryTypeIndex: Int32, pFlags: Int);
-
-  fn vmaAllocateMemory(allocator: Int, pVkMemoryRequirements: Int, pCreateInfo: Int, pAllocation: Int, pAllocationInfo: Int) -> Int32;
-  fn vmaFreeMemory(allocator: Int, allocation: Int);
-  fn vmaAllocateMemoryForBuffer(allocator: Int, buffer: Int, pCreateInfo: Int, pAllocation: Int, pAllocationInfo: Int) -> Int32;
-  fn vmaAllocateMemoryForImage(allocator: Int, image: Int, pCreateInfo: Int, pAllocation: Int, pAllocationInfo: Int) -> Int32;
-
-  fn vmaGetAllocationInfo(allocator: Int, allocation: Int, pAllocationInfo: Int);
-  fn vmaSetAllocationUserData(allocator: Int, allocation: Int, pUserData: Int);
-
-  fn vmaMapMemory(allocator: Int, allocation: Int, ppData: Int) -> Int32;
-  fn vmaUnmapMemory(allocator: Int, allocation: Int);
-
-  fn vmaFlushAllocation(allocator: Int, allocation: Int, offset: Int, size: Int) -> Int32;
-  fn vmaInvalidateAllocation(allocator: Int, allocation: Int, offset: Int, size: Int) -> Int32;
-
-  fn vmaCreatePool(allocator: Int, pCreateInfo: Int, pPool: Int) -> Int32;
-  fn vmaDestroyPool(allocator: Int, pool: Int);
-  fn vmaCheckPoolCorruption(allocator: Int, pool: Int) -> Int32;
-  fn vmaGetPoolName(allocator: Int, pool: Int, ppName: Int);
-  fn vmaSetPoolName(allocator: Int, pool: Int, pName: Int);
-
-  fn vmaCreateBuffer(allocator: Int, pBufferCreateInfo: Int, pAllocationCreateInfo: Int, pBuffer: Int, pAllocation: Int, pAllocationInfo: Int) -> Int32;
-  fn vmaDestroyBuffer(allocator: Int, buffer: Int, allocation: Int);
-
-  fn vmaCreateImage(allocator: Int, pImageCreateInfo: Int, pAllocationCreateInfo: Int, pImage: Int, pAllocation: Int, pAllocationInfo: Int) -> Int32;
-  fn vmaDestroyImage(allocator: Int, image: Int, allocation: Int);
-
-  fn vmaFindMemoryTypeIndex(allocator: Int, memoryTypeBits: Int32, pAllocationCreateInfo: Int, pMemoryTypeIndex: Int) -> Int32;
-  fn vmaFindMemoryTypeIndexForBufferInfo(allocator: Int, pBufferCreateInfo: Int, pAllocationCreateInfo: Int, pMemoryTypeIndex: Int) -> Int32;
-  fn vmaFindMemoryTypeIndexForImageInfo(allocator: Int, pImageCreateInfo: Int, pAllocationCreateInfo: Int, pMemoryTypeIndex: Int) -> Int32;
-
-  fn vmaBindBufferMemory(allocator: Int, allocation: Int, buffer: Int) -> Int32;
-  fn vmaBindImageMemory(allocator: Int, allocation: Int, image: Int) -> Int32;
-
-  fn vmaBeginDefragmentation(allocator: Int, pInfo: Int, pContext: Int) -> Int32;
-  fn vmaEndDefragmentation(allocator: Int, context: Int, pStats: Int);
-  fn vmaBeginDefragmentationPass(allocator: Int, context: Int, pPassInfo: Int) -> Int32;
-  fn vmaEndDefragmentationPass(allocator: Int, context: Int, pPassInfo: Int) -> Int32;
-
-  fn vmaCheckCorruption(allocator: Int, memoryTypeBits: Int32) -> Int32;
-
-  fn vmaGetHeapBudgets(allocator: Int, pBudgets: Int);
-  fn vmaCalculateStatistics(allocator: Int, pStats: Int);
-
-  fn vmaBuildStatsString(allocator: Int, ppStatsString: Int, detailedMap: Int32);
-  fn vmaFreeStatsString(allocator: Int, pStatsString: Int);
-}
+use xiom.vma;
 
 // =========================================================================
 // VulkanError
@@ -95,8 +48,7 @@ pub fn VmaAllocator.destroy()
 }
 
 pub fn VmaAllocator.find_memory_type_index(memory_type_bits: Int32, alloc_create_info: Int) -> Result[Int, VulkanError]
-  requires: handle != 0
-  requires: alloc_create_info != 0
+  requires: handle != 0; requires: alloc_create_info != 0
 {
   let idx: Int = 0;
   let res: Int32 = unsafe { vmaFindMemoryTypeIndex(handle, memory_type_bits, alloc_create_info, idx) };
@@ -105,9 +57,7 @@ pub fn VmaAllocator.find_memory_type_index(memory_type_bits: Int32, alloc_create
 }
 
 pub fn VmaAllocator.find_memory_type_index_for_buffer(buffer_create_info: Int, alloc_create_info: Int) -> Result[Int, VulkanError]
-  requires: handle != 0
-  requires: buffer_create_info != 0
-  requires: alloc_create_info != 0
+  requires: handle != 0; requires: buffer_create_info != 0; requires: alloc_create_info != 0
 {
   let idx: Int = 0;
   let res: Int32 = unsafe { vmaFindMemoryTypeIndexForBufferInfo(handle, buffer_create_info, alloc_create_info, idx) };
@@ -116,9 +66,7 @@ pub fn VmaAllocator.find_memory_type_index_for_buffer(buffer_create_info: Int, a
 }
 
 pub fn VmaAllocator.find_memory_type_index_for_image(image_create_info: Int, alloc_create_info: Int) -> Result[Int, VulkanError]
-  requires: handle != 0
-  requires: image_create_info != 0
-  requires: alloc_create_info != 0
+  requires: handle != 0; requires: image_create_info != 0; requires: alloc_create_info != 0
 {
   let idx: Int = 0;
   let res: Int32 = unsafe { vmaFindMemoryTypeIndexForImageInfo(handle, image_create_info, alloc_create_info, idx) };
@@ -135,15 +83,13 @@ pub fn VmaAllocator.check_corruption(memory_type_bits: Int32) -> Result[Int, Vul
 }
 
 pub fn VmaAllocator.get_heap_budgets(budgets_ptr: Int)
-  requires: handle != 0
-  requires: budgets_ptr != 0
+  requires: handle != 0; requires: budgets_ptr != 0
 {
   unsafe { vmaGetHeapBudgets(handle, budgets_ptr); }
 }
 
 pub fn VmaAllocator.calculate_statistics(stats_ptr: Int)
-  requires: handle != 0
-  requires: stats_ptr != 0
+  requires: handle != 0; requires: stats_ptr != 0
 {
   unsafe { vmaCalculateStatistics(handle, stats_ptr); }
 }
@@ -153,20 +99,18 @@ pub fn VmaAllocator.build_stats_string(detailed: Int32) -> Result[Int, VulkanErr
 {
   let str_ptr: Int = 0;
   unsafe { vmaBuildStatsString(handle, str_ptr, detailed); }
-  if str_ptr == 0 { return Err(VulkanError{ code: 1 as Int32 }); }
+  if str_ptr == 0 { return Err(VulkanError{ code: 1 }); }
   return Ok(str_ptr);
 }
 
 pub fn VmaAllocator.free_stats_string(stats_string: Int)
-  requires: handle != 0
-  requires: stats_string != 0
+  requires: handle != 0; requires: stats_string != 0
 {
   unsafe { vmaFreeStatsString(handle, stats_string); }
 }
 
 pub fn VmaAllocator.get_memory_type_properties(memory_type_index: Int32, flags_ptr: Int)
-  requires: handle != 0
-  requires: flags_ptr != 0
+  requires: handle != 0; requires: flags_ptr != 0
 {
   unsafe { vmaGetMemoryTypeProperties(handle, memory_type_index, flags_ptr); }
 }
@@ -181,9 +125,7 @@ pub type VmaAllocation = {
 } derive[Clone]
 
 pub fn VmaAllocation.allocate(allocator: Int, vk_memory_requirements: Int, create_info: Int) -> Result[VmaAllocation, VulkanError]
-  requires: allocator != 0
-  requires: vk_memory_requirements != 0
-  requires: create_info != 0
+  requires: allocator != 0; requires: vk_memory_requirements != 0; requires: create_info != 0
   ensures: result is Ok => result.unwrap().handle != 0
 {
   let alloc: Int = 0;
@@ -193,9 +135,7 @@ pub fn VmaAllocation.allocate(allocator: Int, vk_memory_requirements: Int, creat
 }
 
 pub fn VmaAllocation.allocate_for_buffer(allocator: Int, buffer: Int, create_info: Int) -> Result[VmaAllocation, VulkanError]
-  requires: allocator != 0
-  requires: buffer != 0
-  requires: create_info != 0
+  requires: allocator != 0; requires: buffer != 0; requires: create_info != 0
   ensures: result is Ok => result.unwrap().handle != 0
 {
   let alloc: Int = 0;
@@ -205,9 +145,7 @@ pub fn VmaAllocation.allocate_for_buffer(allocator: Int, buffer: Int, create_inf
 }
 
 pub fn VmaAllocation.allocate_for_image(allocator: Int, image: Int, create_info: Int) -> Result[VmaAllocation, VulkanError]
-  requires: allocator != 0
-  requires: image != 0
-  requires: create_info != 0
+  requires: allocator != 0; requires: image != 0; requires: create_info != 0
   ensures: result is Ok => result.unwrap().handle != 0
 {
   let alloc: Int = 0;
@@ -217,30 +155,25 @@ pub fn VmaAllocation.allocate_for_image(allocator: Int, image: Int, create_info:
 }
 
 pub fn VmaAllocation.free()
-  requires: handle != 0
-  requires: allocator != 0
+  requires: handle != 0; requires: allocator != 0
 {
   unsafe { vmaFreeMemory(allocator, handle); }
 }
 
 pub fn VmaAllocation.get_info(info_ptr: Int)
-  requires: handle != 0
-  requires: allocator != 0
-  requires: info_ptr != 0
+  requires: handle != 0; requires: allocator != 0; requires: info_ptr != 0
 {
   unsafe { vmaGetAllocationInfo(allocator, handle, info_ptr); }
 }
 
 pub fn VmaAllocation.set_user_data(user_data: Int)
-  requires: handle != 0
-  requires: allocator != 0
+  requires: handle != 0; requires: allocator != 0
 {
   unsafe { vmaSetAllocationUserData(allocator, handle, user_data); }
 }
 
 pub fn VmaAllocation.map_memory() -> Result[Int, VulkanError]
-  requires: handle != 0
-  requires: allocator != 0
+  requires: handle != 0; requires: allocator != 0
 {
   let data: Int = 0;
   let res: Int32 = unsafe { vmaMapMemory(allocator, handle, data) };
@@ -249,15 +182,13 @@ pub fn VmaAllocation.map_memory() -> Result[Int, VulkanError]
 }
 
 pub fn VmaAllocation.unmap_memory()
-  requires: handle != 0
-  requires: allocator != 0
+  requires: handle != 0; requires: allocator != 0
 {
   unsafe { vmaUnmapMemory(allocator, handle); }
 }
 
 pub fn VmaAllocation.flush(offset: Int, size: Int) -> Result[Int, VulkanError]
-  requires: handle != 0
-  requires: allocator != 0
+  requires: handle != 0; requires: allocator != 0
 {
   let res: Int32 = unsafe { vmaFlushAllocation(allocator, handle, offset, size) };
   if res != 0 { return Err(VulkanError{ code: res }); }
@@ -265,8 +196,7 @@ pub fn VmaAllocation.flush(offset: Int, size: Int) -> Result[Int, VulkanError]
 }
 
 pub fn VmaAllocation.invalidate(offset: Int, size: Int) -> Result[Int, VulkanError]
-  requires: handle != 0
-  requires: allocator != 0
+  requires: handle != 0; requires: allocator != 0
 {
   let res: Int32 = unsafe { vmaInvalidateAllocation(allocator, handle, offset, size) };
   if res != 0 { return Err(VulkanError{ code: res }); }
@@ -274,9 +204,7 @@ pub fn VmaAllocation.invalidate(offset: Int, size: Int) -> Result[Int, VulkanErr
 }
 
 pub fn VmaAllocation.bind_buffer(buffer: Int) -> Result[Int, VulkanError]
-  requires: handle != 0
-  requires: allocator != 0
-  requires: buffer != 0
+  requires: handle != 0; requires: allocator != 0; requires: buffer != 0
 {
   let res: Int32 = unsafe { vmaBindBufferMemory(allocator, handle, buffer) };
   if res != 0 { return Err(VulkanError{ code: res }); }
@@ -284,9 +212,7 @@ pub fn VmaAllocation.bind_buffer(buffer: Int) -> Result[Int, VulkanError]
 }
 
 pub fn VmaAllocation.bind_image(image: Int) -> Result[Int, VulkanError]
-  requires: handle != 0
-  requires: allocator != 0
-  requires: image != 0
+  requires: handle != 0; requires: allocator != 0; requires: image != 0
 {
   let res: Int32 = unsafe { vmaBindImageMemory(allocator, handle, image) };
   if res != 0 { return Err(VulkanError{ code: res }); }
@@ -303,8 +229,7 @@ pub type VmaPool = {
 } derive[Clone]
 
 pub fn VmaPool.create(allocator: Int, create_info: Int) -> Result[VmaPool, VulkanError]
-  requires: allocator != 0
-  requires: create_info != 0
+  requires: allocator != 0; requires: create_info != 0
   ensures: result is Ok => result.unwrap().handle != 0
 {
   let pool: Int = 0;
@@ -314,15 +239,13 @@ pub fn VmaPool.create(allocator: Int, create_info: Int) -> Result[VmaPool, Vulka
 }
 
 pub fn VmaPool.destroy()
-  requires: handle != 0
-  requires: allocator != 0
+  requires: handle != 0; requires: allocator != 0
 {
   unsafe { vmaDestroyPool(allocator, handle); }
 }
 
 pub fn VmaPool.check_corruption() -> Result[Int, VulkanError]
-  requires: handle != 0
-  requires: allocator != 0
+  requires: handle != 0; requires: allocator != 0
 {
   let res: Int32 = unsafe { vmaCheckPoolCorruption(allocator, handle) };
   if res != 0 { return Err(VulkanError{ code: res }); }
@@ -330,8 +253,7 @@ pub fn VmaPool.check_corruption() -> Result[Int, VulkanError]
 }
 
 pub fn VmaPool.get_name() -> Int
-  requires: handle != 0
-  requires: allocator != 0
+  requires: handle != 0; requires: allocator != 0
 {
   let name: Int = 0;
   unsafe { vmaGetPoolName(allocator, handle, name); }
@@ -339,8 +261,7 @@ pub fn VmaPool.get_name() -> Int
 }
 
 pub fn VmaPool.set_name(p_name: Int)
-  requires: handle != 0
-  requires: allocator != 0
+  requires: handle != 0; requires: allocator != 0
 {
   unsafe { vmaSetPoolName(allocator, handle, p_name); }
 }
@@ -356,9 +277,7 @@ pub type VmaBuffer = {
 } derive[Clone]
 
 pub fn VmaBuffer.create(allocator: Int, buffer_create_info: Int, alloc_create_info: Int) -> Result[VmaBuffer, VulkanError]
-  requires: allocator != 0
-  requires: buffer_create_info != 0
-  requires: alloc_create_info != 0
+  requires: allocator != 0; requires: buffer_create_info != 0; requires: alloc_create_info != 0
   ensures: result is Ok => result.unwrap().buffer != 0
 {
   let buf: Int = 0;
@@ -385,9 +304,7 @@ pub type VmaImage = {
 } derive[Clone]
 
 pub fn VmaImage.create(allocator: Int, image_create_info: Int, alloc_create_info: Int) -> Result[VmaImage, VulkanError]
-  requires: allocator != 0
-  requires: image_create_info != 0
-  requires: alloc_create_info != 0
+  requires: allocator != 0; requires: image_create_info != 0; requires: alloc_create_info != 0
   ensures: result is Ok => result.unwrap().image != 0
 {
   let img: Int = 0;
@@ -408,8 +325,7 @@ pub fn VmaImage.destroy()
 // =========================================================================
 
 pub fn begin_defragmentation(allocator: Int, p_info: Int) -> Result[Int, VulkanError]
-  requires: allocator != 0
-  requires: p_info != 0
+  requires: allocator != 0; requires: p_info != 0
 {
   let context: Int = 0;
   let res: Int32 = unsafe { vmaBeginDefragmentation(allocator, p_info, context) };
@@ -418,8 +334,7 @@ pub fn begin_defragmentation(allocator: Int, p_info: Int) -> Result[Int, VulkanE
 }
 
 pub fn end_defragmentation(allocator: Int, context: Int)
-  requires: allocator != 0
-  requires: context != 0
+  requires: allocator != 0; requires: context != 0
 {
   unsafe { vmaEndDefragmentation(allocator, context, 0); }
 }
@@ -446,24 +361,19 @@ pub fn VmaContext.destroy()
 }
 
 pub fn VmaContext.create_buffer(buffer_create_info: Int, alloc_create_info: Int) -> Result[VmaBuffer, VulkanError]
-  requires: allocator != 0
-  requires: buffer_create_info != 0
-  requires: alloc_create_info != 0
+  requires: allocator != 0; requires: buffer_create_info != 0; requires: alloc_create_info != 0
 {
   return VmaBuffer.create(allocator, buffer_create_info, alloc_create_info);
 }
 
 pub fn VmaContext.create_image(image_create_info: Int, alloc_create_info: Int) -> Result[VmaImage, VulkanError]
-  requires: allocator != 0
-  requires: image_create_info != 0
-  requires: alloc_create_info != 0
+  requires: allocator != 0; requires: image_create_info != 0; requires: alloc_create_info != 0
 {
   return VmaImage.create(allocator, image_create_info, alloc_create_info);
 }
 
 pub fn VmaContext.create_pool(pool_create_info: Int) -> Result[VmaPool, VulkanError]
-  requires: allocator != 0
-  requires: pool_create_info != 0
+  requires: allocator != 0; requires: pool_create_info != 0
 {
   return VmaPool.create(allocator, pool_create_info);
 }

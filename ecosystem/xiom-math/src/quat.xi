@@ -100,7 +100,7 @@ pub fn Quat.to_mat4() -> Mat4 {
   return Mat4{ m: m };
 }
 
-pub fn Quat.slerp(other: Quat, t: Float32) -> Quat {
+pub fn Quat.slerp(t: Float32, other: Quat) -> Quat {
   var dot = x * other.x + y * other.y + z * other.z + w * other.w;
 
   var other_x = other.x;

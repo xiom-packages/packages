@@ -18,10 +18,10 @@ fn main() -> Int {
     Ok(a) => {
       while !should_close(a) {
         poll(a);
+        let angle = now() as Float32;
+        set_clear_color(a, 0.05, 0.05, 0.1);
         let status = begin_frame(a);
         if status == 1 {
-          let angle = now() as Float32;
-          set_clear_color(a, 0.05, 0.05, 0.1);
           draw_cube_3d(a, angle);
           end_frame(a);
         } elif status == -1 {

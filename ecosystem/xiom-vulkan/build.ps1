@@ -52,7 +52,7 @@
 #>
 
 param(
-    [ValidateSet('demo2d', 'demo3d', 'test', 'particles', 'shapes', 'cubes')]
+    [ValidateSet('demo2d', 'demo3d', 'test', 'particles', 'shapes', 'cubes', 'vertex_buffer')]
     [string]$Target = 'demo2d',
 
     [string]$GlfwDir = '',
@@ -201,6 +201,10 @@ $TargetMap = @{
         entry = 'examples/demo_cubes.xi'
         out   = 'demo_cubes'
     }
+    vertex_buffer = @{
+        entry = 'examples/demo_vertex_buffer.xi'
+        out   = 'demo_vertex_buffer'
+    }
 }
 $t = $TargetMap[$Target]
 $EntryFile = Join-Path $RootDir $t.entry
@@ -225,6 +229,14 @@ $ShaderFiles = @(
     @{ src = Join-Path $ShaderDir 'quad.frag';     spv = Join-Path $SpvDir 'quad_frag.spv';     name='quad_frag' }
     @{ src = Join-Path $ShaderDir 'particle.vert'; spv = Join-Path $SpvDir 'particle_vert.spv'; name='particle_vert' }
     @{ src = Join-Path $ShaderDir 'particle.frag'; spv = Join-Path $SpvDir 'particle_frag.spv'; name='particle_frag' }
+    # Phase 1 — new shaders
+    @{ src = Join-Path $ShaderDir 'particle_render.vert'; spv = Join-Path $SpvDir 'particle_render_vert.spv'; name='particle_render_vert' }
+    @{ src = Join-Path $ShaderDir 'particle_render.frag'; spv = Join-Path $SpvDir 'particle_render_frag.spv'; name='particle_render_frag' }
+    @{ src = Join-Path $ShaderDir 'compute_particles.comp'; spv = Join-Path $SpvDir 'compute_particles.spv'; name='compute_particles'; extra='-fshader-stage=compute' }
+    @{ src = Join-Path $ShaderDir 'texture_quad.vert'; spv = Join-Path $SpvDir 'texture_quad_vert.spv'; name='texture_quad_vert' }
+    @{ src = Join-Path $ShaderDir 'texture_quad.frag'; spv = Join-Path $SpvDir 'texture_quad_frag.spv'; name='texture_quad_frag' }
+    @{ src = Join-Path $ShaderDir 'uniform_cube.vert'; spv = Join-Path $SpvDir 'uniform_cube_vert.spv'; name='uniform_cube_vert' }
+    @{ src = Join-Path $ShaderDir 'uniform_cube.frag'; spv = Join-Path $SpvDir 'uniform_cube_frag.spv'; name='uniform_cube_frag' }
 )
 
 $ShaderData = @()  # will hold name, spv_path, words, byte_len
@@ -232,7 +244,9 @@ $ShaderData = @()  # will hold name, spv_path, words, byte_len
 foreach ($sf in $ShaderFiles) {
     Write-Host "  glslc: $($sf.name)..."
     $spvFile = $sf.spv
-    & $Glslc -o $spvFile $sf.src
+    $extraArgs = @()
+    if ($sf.extra) { $extraArgs = $sf.extra -split '\s+' }
+    & $Glslc @extraArgs -o $spvFile $sf.src
     if ($LASTEXITCODE -ne 0) {
         throw "glslc failed for $($sf.src)"
     }
@@ -281,6 +295,13 @@ $SymbolNames = @{
     quad_frag     = 'xvk_quad_frag_spv'
     particle_vert = 'xvk_particle_vert_spv'
     particle_frag = 'xvk_particle_frag_spv'
+    particle_render_vert = 'xvk_particle_render_vert_spv'
+    particle_render_frag = 'xvk_particle_render_frag_spv'
+    compute_particles = 'xvk_compute_particles_spv'
+    texture_quad_vert = 'xvk_texture_quad_vert_spv'
+    texture_quad_frag = 'xvk_texture_quad_frag_spv'
+    uniform_cube_vert = 'xvk_uniform_cube_vert_spv'
+    uniform_cube_frag = 'xvk_uniform_cube_frag_spv'
 }
 
 $lines = @(
@@ -342,15 +363,9 @@ $XiFiles = @(
 )
 
 # Build the xiomc command.
-# Use prebuilt xiomc.exe when available (production), fall back to
-# cargo run for dev workflow.
-$ProjectRoot = Split-Path -Parent (Split-Path -Parent $RootDir)
-$XiomcExe = Join-Path $ProjectRoot "target\release\xiomc.exe"
-if (Test-Path $XiomcExe) {
-    $XiomcCmd = @($XiomcExe)
-} else {
-    $XiomcCmd = @('cargo', 'run', '-p', 'xiomc', '--')
-}
+# Use cargo run -p xiomc -- for repo dev workflow.
+# For production, replace with "xiomc" when prebuilt.
+$XiomcCmd = 'cargo', 'run', '-p', 'xiomc', '--'
 
 $XiomcArgs = @(
     '-o', $OutExe
@@ -358,13 +373,13 @@ $XiomcArgs = @(
 
 $XiomcArgs += $XiFiles
 $XiomcArgs += @('--c-source', $BridgeObj)
+# Auto-detect xio runtime for stdlib functions (xiom_str_len, etc.)
+$RuntimeC = Join-Path $RootDir '..\..\stdlib\runtime\xiom_runtime.c'
+if (Test-Path $RuntimeC) {
+    $XiomcArgs += @('--c-source', $RuntimeC)
+}
 $XiomcArgs += @('--link', 'vulkan-1')
 $XiomcArgs += @('--link', 'glfw3')
-$XiomcArgs += @('--link', 'gdi32')
-$XiomcArgs += @('--link', 'user32')
-$XiomcArgs += @('--link', 'kernel32')
-$XiomcArgs += @('--link', 'shell32')
-$XiomcArgs += @('--link', 'ole32')
 $XiomcArgs += @('--link-path', "`"$VkLib`"")
 $XiomcArgs += @('--link-path', "`"$GlfwLib`"")
 

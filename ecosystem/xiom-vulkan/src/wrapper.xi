@@ -28,9 +28,9 @@ pub fn VulkanApp.is_open() -> Bool {
 
 pub fn VulkanApp.frame_2d(r: Float32, g: Float32, b: Float32) {
   poll(handle);
+  set_clear_color(handle, r, g, b);
   let status = begin_frame(handle);
   if status == 1 {
-    set_clear_color(handle, r, g, b);
     draw_triangle_2d(handle, r, g, b);
     end_frame(handle);
   }
@@ -38,9 +38,9 @@ pub fn VulkanApp.frame_2d(r: Float32, g: Float32, b: Float32) {
 
 pub fn VulkanApp.frame_3d(angle: Float32) {
   poll(handle);
+  set_clear_color(handle, 0.05, 0.05, 0.1);
   let status = begin_frame(handle);
   if status == 1 {
-    set_clear_color(handle, 0.05, 0.05, 0.1);
     draw_cube_3d(handle, angle);
     end_frame(handle);
   }
@@ -48,9 +48,9 @@ pub fn VulkanApp.frame_3d(angle: Float32) {
 
 pub fn VulkanApp.frame_particles(dt: Float32) {
   poll(handle);
+  set_clear_color(handle, 0.02, 0.02, 0.05);
   let s = begin_frame(handle);
   if s == 1 {
-    set_clear_color(handle, 0.02, 0.02, 0.05);
     draw_particles(handle, dt);
     end_frame(handle);
   }
