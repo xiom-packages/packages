@@ -5,14 +5,18 @@
 // Low-level FFI declarations for meshoptimizer v1.2 (meshoptimizer.h).
 // meshoptimizer is a mesh optimization library for rendering engines.
 //
-// Types: size_t → Int, unsigned int / uint32_t → Int32, float → Float,
+// Types: size_t → Int, unsigned int / uint32_t → Int32, float → Float32,
 // int → Int32, unsigned char → Int32, void* → Int, unsigned short → Int32.
+// float* (out-parameter) → Int (pass 0 for NULL).
 // Naming follows the C API verbatim.
 //
-// COVERAGE: ~100 functions across 8 subsystems:
-//   Remapping, Filtering, Index Generation, Optimization,
-//   Encoding/Decoding, Simplification, Meshlets, Analysis,
-//   Filters, Stripification, Spatial, Tangents, Quantization.
+// COVERAGE: 85 functions (100% of C API) across 24 subsystems:
+//   Remapping, Filtering, Shadow Buffers, Index Generation,
+//   Cache Optimization, Overdraw, Fetch Optimization,
+//   Index/Sequence/Meshlet/Vertex Encoding, Filter Encode/Decode,
+//   Simplification, Stripification, Analysis, Meshlet Building,
+//   Meshlet Optimization, Bounds, Partitioning, Spatial,
+//   Opacity Maps, Tangents, Quantization, Allocator.
 
 module xiom.meshopt
 
@@ -69,34 +73,34 @@ pub const MESHOPT_TANGENT_ZERO_FALLBACK: Int32 = 2 as Int32;
 pub type MeshoptVertexCacheStatistics = {
   vertices_transformed: Int32;
   warps_executed: Int32;
-  acmr: Float;
-  atvr: Float;
+  acmr: Float32;
+  atvr: Float32;
 } derive[Clone]
 
 pub type MeshoptVertexFetchStatistics = {
   bytes_fetched: Int32;
-  overfetch: Float;
+  overfetch: Float32;
 } derive[Clone]
 
 pub type MeshoptOverdrawStatistics = {
   pixels_covered: Int32;
   pixels_shaded: Int32;
-  overdraw: Float;
+  overdraw: Float32;
 } derive[Clone]
 
 pub type MeshoptCoverageStatistics = {
-  coverage0: Float;
-  coverage1: Float;
-  coverage2: Float;
-  extent: Float;
+  coverage0: Float32;
+  coverage1: Float32;
+  coverage2: Float32;
+  extent: Float32;
 } derive[Clone]
 
 pub type MeshoptBounds = {
-  center0: Float; center1: Float; center2: Float;
-  radius: Float;
-  cone_apex0: Float; cone_apex1: Float; cone_apex2: Float;
-  cone_axis0: Float; cone_axis1: Float; cone_axis2: Float;
-  cone_cutoff: Float;
+  center0: Float32; center1: Float32; center2: Float32;
+  radius: Float32;
+  cone_apex0: Float32; cone_apex1: Float32; cone_apex2: Float32;
+  cone_axis0: Float32; cone_axis1: Float32; cone_axis2: Float32;
+  cone_cutoff: Float32;
   cone_axis_s8_0: Int32;
   cone_axis_s8_1: Int32;
   cone_axis_s8_2: Int32;
@@ -142,7 +146,7 @@ extern "C" {
   fn meshopt_optimizeVertexCacheFifo(destination: Int, indices: Int, index_count: Int, vertex_count: Int, cache_size: Int32);
 
   // Overdraw optimization
-  fn meshopt_optimizeOverdraw(destination: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, threshold: Float);
+  fn meshopt_optimizeOverdraw(destination: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, threshold: Float32);
 
   // Vertex fetch optimization
   fn meshopt_optimizeVertexFetch(destination: Int, indices: Int, index_count: Int, vertices: Int, vertex_count: Int, vertex_size: Int) -> Int;
@@ -187,13 +191,13 @@ extern "C" {
   fn meshopt_encodeFilterColor(destination: Int, count: Int, stride: Int, bits: Int32, data: Int);
 
   // Simplification
-  fn meshopt_simplify(destination: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, target_index_count: Int, target_error: Float, options: Int32, result_error: Int) -> Int;
-  fn meshopt_simplifyWithAttributes(destination: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, vertex_attributes: Int, vertex_attributes_stride: Int, attribute_weights: Int, attribute_count: Int, vertex_lock: Int, target_index_count: Int, target_error: Float, options: Int32, result_error: Int) -> Int;
-  fn meshopt_simplifyWithUpdate(indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, vertex_attributes: Int, vertex_attributes_stride: Int, attribute_weights: Int, attribute_count: Int, vertex_lock: Int, target_index_count: Int, target_error: Float, options: Int32, result_error: Int) -> Int;
-  fn meshopt_simplifySloppy(destination: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, vertex_lock: Int, target_index_count: Int, target_error: Float, result_error: Int) -> Int;
-  fn meshopt_simplifyPrune(destination: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, target_error: Float) -> Int;
-  fn meshopt_simplifyPoints(destination: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, vertex_colors: Int, vertex_colors_stride: Int, color_weight: Float, target_vertex_count: Int) -> Int;
-  fn meshopt_simplifyScale(vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int) -> Float;
+  fn meshopt_simplify(destination: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, target_index_count: Int, target_error: Float32, options: Int32, result_error: Int) -> Int;
+  fn meshopt_simplifyWithAttributes(destination: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, vertex_attributes: Int, vertex_attributes_stride: Int, attribute_weights: Int, attribute_count: Int, vertex_lock: Int, target_index_count: Int, target_error: Float32, options: Int32, result_error: Int) -> Int;
+  fn meshopt_simplifyWithUpdate(indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, vertex_attributes: Int, vertex_attributes_stride: Int, attribute_weights: Int, attribute_count: Int, vertex_lock: Int, target_index_count: Int, target_error: Float32, options: Int32, result_error: Int) -> Int;
+  fn meshopt_simplifySloppy(destination: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, vertex_lock: Int, target_index_count: Int, target_error: Float32, result_error: Int) -> Int;
+  fn meshopt_simplifyPrune(destination: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, target_error: Float32) -> Int;
+  fn meshopt_simplifyPoints(destination: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, vertex_colors: Int, vertex_colors_stride: Int, color_weight: Float32, target_vertex_count: Int) -> Int;
+  fn meshopt_simplifyScale(vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int) -> Float32;
 
   // Stripification
   fn meshopt_stripify(destination: Int, indices: Int, index_count: Int, vertex_count: Int, restart_index: Int32) -> Int;
@@ -208,11 +212,11 @@ extern "C" {
   fn meshopt_analyzeCoverage(indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int) -> MeshoptCoverageStatistics;
 
   // Meshlet building
-  fn meshopt_buildMeshlets(meshlets: Int, meshlet_vertices: Int, meshlet_triangles: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, max_vertices: Int, max_triangles: Int, cone_weight: Float) -> Int;
+  fn meshopt_buildMeshlets(meshlets: Int, meshlet_vertices: Int, meshlet_triangles: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, max_vertices: Int, max_triangles: Int, cone_weight: Float32) -> Int;
   fn meshopt_buildMeshletsScan(meshlets: Int, meshlet_vertices: Int, meshlet_triangles: Int, indices: Int, index_count: Int, vertex_count: Int, max_vertices: Int, max_triangles: Int) -> Int;
   fn meshopt_buildMeshletsBound(index_count: Int, max_vertices: Int, max_triangles: Int) -> Int;
-  fn meshopt_buildMeshletsFlex(meshlets: Int, meshlet_vertices: Int, meshlet_triangles: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, max_vertices: Int, min_triangles: Int, max_triangles: Int, cone_weight: Float, split_factor: Float) -> Int;
-  fn meshopt_buildMeshletsSpatial(meshlets: Int, meshlet_vertices: Int, meshlet_triangles: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, max_vertices: Int, min_triangles: Int, max_triangles: Int, fill_weight: Float) -> Int;
+  fn meshopt_buildMeshletsFlex(meshlets: Int, meshlet_vertices: Int, meshlet_triangles: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, max_vertices: Int, min_triangles: Int, max_triangles: Int, cone_weight: Float32, split_factor: Float32) -> Int;
+  fn meshopt_buildMeshletsSpatial(meshlets: Int, meshlet_vertices: Int, meshlet_triangles: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, max_vertices: Int, min_triangles: Int, max_triangles: Int, fill_weight: Float32) -> Int;
 
   // Meshlet optimization
   fn meshopt_optimizeMeshlet(meshlet_vertices: Int, meshlet_triangles: Int, triangle_count: Int, vertex_count: Int);
@@ -233,7 +237,7 @@ extern "C" {
   fn meshopt_spatialClusterPoints(destination: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, cluster_size: Int);
 
   // Opacity micromaps (EXPERIMENTAL)
-  fn meshopt_opacityMapMeasure(levels: Int, sources: Int, omm_indices: Int, indices: Int, index_count: Int, vertex_uvs: Int, vertex_count: Int, vertex_uvs_stride: Int, texture_width: Int32, texture_height: Int32, max_level: Int32, target_edge: Float) -> Int;
+  fn meshopt_opacityMapMeasure(levels: Int, sources: Int, omm_indices: Int, indices: Int, index_count: Int, vertex_uvs: Int, vertex_count: Int, vertex_uvs_stride: Int, texture_width: Int32, texture_height: Int32, max_level: Int32, target_edge: Float32) -> Int;
   fn meshopt_opacityMapRasterize(result: Int, level: Int32, states: Int32, uv0: Int, uv1: Int, uv2: Int, texture_data: Int, texture_stride: Int, texture_pitch: Int, texture_width: Int32, texture_height: Int32);
   fn meshopt_opacityMapEntrySize(level: Int32, states: Int32) -> Int;
   fn meshopt_opacityMapCompact(data: Int, data_size: Int, levels: Int, offsets: Int, omm_count: Int, omm_indices: Int, triangle_count: Int, states: Int32) -> Int;
@@ -242,9 +246,9 @@ extern "C" {
   fn meshopt_generateTangents(result: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, vertex_normals: Int, vertex_normals_stride: Int, vertex_uvs: Int, vertex_uvs_stride: Int, options: Int32);
 
   // Quantization
-  fn meshopt_quantizeHalf(v: Float) -> Int32;
-  fn meshopt_quantizeFloat(v: Float, N: Int32) -> Float;
-  fn meshopt_dequantizeHalf(h: Int32) -> Float;
+  fn meshopt_quantizeHalf(v: Float32) -> Int32;
+  fn meshopt_quantizeFloat(v: Float32, N: Int32) -> Float32;
+  fn meshopt_dequantizeHalf(h: Int32) -> Float32;
   fn meshopt_computePositionExponent(minv: Int, maxv: Int, min_exp: Int32, max_bits: Int32) -> Int32;
 
   // Allocator
@@ -275,7 +279,7 @@ pub fn optimize_vertex_cache(dest_ptr: Int, indices_ptr: Int, index_count: Int, 
   unsafe { meshopt_optimizeVertexCache(dest_ptr, indices_ptr, index_count, vertex_count); }
 }
 
-pub fn simplify(dest_ptr: Int, indices_ptr: Int, index_count: Int, pos_ptr: Int, vertex_count: Int, pos_stride: Int, target_count: Int, target_error: Float) -> Result[Int, Str]
+pub fn simplify(dest_ptr: Int, indices_ptr: Int, index_count: Int, pos_ptr: Int, vertex_count: Int, pos_stride: Int, target_count: Int, target_error: Float32) -> Result[Int, Str]
   requires: dest_ptr != 0
   requires: indices_ptr != 0
   requires: pos_ptr != 0
@@ -283,12 +287,11 @@ pub fn simplify(dest_ptr: Int, indices_ptr: Int, index_count: Int, pos_ptr: Int,
   requires: vertex_count > 0
   requires: target_count > 0
 {
-  let result_error: Float = 0.0;
-  let new_count: Int = unsafe { meshopt_simplify(dest_ptr, indices_ptr, index_count, pos_ptr, vertex_count, pos_stride, target_count, target_error, 0 as Int32, result_error) };
+  let new_count: Int = unsafe { meshopt_simplify(dest_ptr, indices_ptr, index_count, pos_ptr, vertex_count, pos_stride, target_count, target_error, 0 as Int32, 0) };
   return Ok(new_count);
 }
 
-pub fn simplify_scale(pos_ptr: Int, vertex_count: Int, pos_stride: Int) -> Float
+pub fn simplify_scale(pos_ptr: Int, vertex_count: Int, pos_stride: Int) -> Float32
   requires: pos_ptr != 0
   requires: vertex_count > 0
   requires: pos_stride > 0

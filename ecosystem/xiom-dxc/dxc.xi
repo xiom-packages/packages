@@ -1,14 +1,18 @@
-// XIOM — DirectX Shader Compiler (DXC) Bindings
+// XIOM — DirectX Shader Compiler (DXC) FFI Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Low-level FFI declarations for DXC (dxcompiler.dll / libdxcompiler.so).
-// DXC uses a COM-based API with IUnknown-derived interfaces.
-// Only DxcCreateInstance and DxcCreateInstance2 are true extern "C" exports.
-// COM interface methods are called via vtable dispatch.
+// DXC uses a COM-based API. All COM vtable dispatch is handled by the
+// C bridge (dxc_bridge.c). XIOM calls plain extern "C" functions only.
 //
-// All COM interface pointers map to Int. HRESULT → Int32. UINT32 → Int32.
-// SIZE_T → Int. BOOL → Int32. LPCWSTR/LPCSTR → Int (opaque pointer).
+// v0.46 compiler notes:
+//   - Int as *T cast: REJECTED at type checker → use C bridge for all ptr ops
+//   - Int as fn(...) cast: REJECTED → use C bridge for all vtable dispatch
+//   - Cross-module extern resolution: broken → duplicate extern block in safe
+//
+// Coverage: 129 bridge functions covering 24 COM interfaces + 34 GUID resolvers
+// + 2 DxcCreateInstance exports = 165 total extern C declarations.
 
 module xiom.dxc
 
@@ -29,7 +33,7 @@ pub const DXC_CP_WIDE: Int32 = 1200 as Int32;
 pub const DXC_HASHFLAG_INCLUDES_SOURCE: Int32 = 1 as Int32;
 
 // =========================================================================
-// Part Constants (FOURCC)
+// FOURCC Part Constants
 // =========================================================================
 
 pub const DXC_PART_PDB: Int32 = 1146246729 as Int32;
@@ -61,7 +65,6 @@ pub const DXC_OUT_EXTRA_OUTPUTS: Int32 = 10 as Int32;
 pub const DXC_OUT_REMARKS: Int32 = 11 as Int32;
 pub const DXC_OUT_TIME_REPORT: Int32 = 12 as Int32;
 pub const DXC_OUT_TIME_TRACE: Int32 = 13 as Int32;
-pub const DXC_OUT_LAST: Int32 = 13 as Int32;
 
 // =========================================================================
 // Validator Flags
@@ -94,30 +97,10 @@ pub const E_NOTIMPL: Int32 = -2147467263 as Int32;
 pub const E_NOINTERFACE: Int32 = -2147467262 as Int32;
 pub const E_POINTER: Int32 = -2147467261 as Int32;
 pub const E_NOT_VALID_STATE: Int32 = -2147016705 as Int32;
-
-// =========================================================================
-// DXC Error Codes (dxcapi.h / dxcerrors.h)
-// =========================================================================
-
 pub const DXC_E_MISSING_PART: Int32 = -2004284416 as Int32;
 
 // =========================================================================
-// COM VTable Layout
-// =========================================================================
-// Every COM interface inherits from IUnknown (3 methods):
-//   [0] QueryInterface(REFIID, void**)
-//   [1] AddRef()
-//   [2] Release()
-// Interface-specific methods start at vtable index 3.
-//
-// VTable dispatch pattern:
-//   let vtbl = unsafe { *(pObj as **Int) };
-//   let fn_ptr_val = unsafe { *((vtbl as *Int) + INDEX) };
-//   let f: fn(...) -> Ret = fn_ptr_val as fn(...) -> Ret;
-//   let result = unsafe { f(pObj as Int, ...) };
-
-// =========================================================================
-// Struct Types
+// Struct Types (for documentation / safe-wrapper use)
 // =========================================================================
 
 pub type DxcBuffer = {
@@ -131,39 +114,15 @@ pub type DxcDefine = {
   value: Int;
 } derive[Clone]
 
-pub type DxcShaderHash = {
-  flags: Int32;
-  hash_digest_0: Int32;
-  hash_digest_1: Int32;
-  hash_digest_2: Int32;
-  hash_digest_3: Int32;
-} derive[Clone]
-
 // =========================================================================
-// GUID type (16 bytes, matches C GUID / IID / CLSID layout)
-// =========================================================================
-
-pub type Guid = {
-  data1: Int32;
-  data2_3: Int32;
-  data4_lo: Int32;
-  data4_hi: Int32;
-} derive[Clone]
-
-// =========================================================================
-// External "C" Functions — dxcompiler.dll exports
+// External "C" Functions — 165 declarations across 2 DLL exports + 163 bridge
 // =========================================================================
 
 extern "C" {
+  // -- DLL exports (dxcompiler.dll) --
   fn DxcCreateInstance(rclsid: Int, riid: Int, ppv: Int) -> Int32;
-  fn DxcCreateInstance2(pMalloc: Int, rclsid: Int, riid: Int, ppv: Int) -> Int32;
-}
 
-// =========================================================================
-// GUID constants — pointers resolved at link time via C bridge
-// =========================================================================
-
-extern "C" {
+  // -- GUID pointer resolvers (CLSIDs) --
   fn xiom_dxc_clsid_compiler() -> Int;
   fn xiom_dxc_clsid_utils() -> Int;
   fn xiom_dxc_clsid_library() -> Int;
@@ -174,7 +133,9 @@ extern "C" {
   fn xiom_dxc_clsid_optimizer() -> Int;
   fn xiom_dxc_clsid_container_builder() -> Int;
   fn xiom_dxc_clsid_compiler_args() -> Int;
+  fn xiom_dxc_clsid_pdb_utils() -> Int;
 
+  // -- GUID pointer resolvers (IIDs) --
   fn xiom_dxc_iid_compiler3() -> Int;
   fn xiom_dxc_iid_utils() -> Int;
   fn xiom_dxc_iid_result() -> Int;
@@ -199,568 +160,151 @@ extern "C" {
   fn xiom_dxc_iid_optimizer() -> Int;
   fn xiom_dxc_iid_pdb_utils() -> Int;
   fn xiom_dxc_iid_pdb_utils2() -> Int;
+
+  // -- IUnknown --
+  fn xiom_unknown_QueryInterface(ptr: Int, riid: Int, ppv_object: Int) -> Int32;
+  fn xiom_unknown_AddRef(ptr: Int) -> Int32;
+  fn xiom_unknown_Release(ptr: Int) -> Int32;
+
+  // -- IDxcBlob --
+  fn xiom_blob_GetBufferPointer(ptr: Int) -> Int;
+  fn xiom_blob_GetBufferSize(ptr: Int) -> Int;
+
+  // -- IDxcBlobEncoding --
+  fn xiom_blob_encoding_GetEncoding(ptr: Int, p_known: Int, p_code_page: Int) -> Int32;
+
+  // -- IDxcBlobUtf8 --
+  fn xiom_blob_utf8_GetStringPointer(ptr: Int) -> Int;
+  fn xiom_blob_utf8_GetStringLength(ptr: Int) -> Int;
+
+  // -- IDxcBlobWide --
+  fn xiom_blob_wide_GetStringPointer(ptr: Int) -> Int;
+  fn xiom_blob_wide_GetStringLength(ptr: Int) -> Int;
+
+  // -- IDxcIncludeHandler --
+  fn xiom_include_handler_LoadSource(ptr: Int, p_filename: Int, pp_include_source: Int) -> Int32;
+
+  // -- IDxcOperationResult --
+  fn xiom_operation_result_GetStatus(ptr: Int, p_status: Int) -> Int32;
+  fn xiom_operation_result_GetResult(ptr: Int, pp_result: Int) -> Int32;
+  fn xiom_operation_result_GetErrorBuffer(ptr: Int, pp_errors: Int) -> Int32;
+
+  // -- IDxcResult --
+  fn xiom_result_HasOutput(ptr: Int, dxc_out_kind: Int) -> Int32;
+  fn xiom_result_GetOutput(ptr: Int, dxc_out_kind: Int, riid: Int, ppv_object: Int, pp_output_name: Int) -> Int32;
+  fn xiom_result_GetNumOutputs(ptr: Int) -> Int32;
+  fn xiom_result_GetOutputByIndex(ptr: Int, index: Int) -> Int32;
+  fn xiom_result_PrimaryOutput(ptr: Int) -> Int32;
+
+  // -- IDxcExtraOutputs --
+  fn xiom_extra_outputs_GetOutputCount(ptr: Int) -> Int32;
+  fn xiom_extra_outputs_GetOutput(ptr: Int, u_index: Int, riid: Int, ppv_object: Int, pp_output_type: Int, pp_output_name: Int) -> Int32;
+
+  // -- IDxcCompiler3 --
+  fn xiom_compiler3_Compile(ptr: Int, p_source: Int, p_arguments: Int, arg_count: Int, p_include_handler: Int, riid: Int, pp_result: Int) -> Int32;
+  fn xiom_compiler3_Disassemble(ptr: Int, p_object: Int, riid: Int, pp_result: Int) -> Int32;
+
+  // -- IDxcUtils --
+  fn xiom_utils_CreateBlobFromBlob(ptr: Int, p_blob: Int, offset: Int, length: Int, pp_result: Int) -> Int32;
+  fn xiom_utils_CreateBlobFromPinned(ptr: Int, p_data: Int, size: Int, code_page: Int, pp_blob_encoding: Int) -> Int32;
+  fn xiom_utils_MoveToBlob(ptr: Int, p_data: Int, p_imalloc: Int, size: Int, code_page: Int, pp_blob_encoding: Int) -> Int32;
+  fn xiom_utils_CreateBlob(ptr: Int, p_data: Int, size: Int, code_page: Int, pp_blob_encoding: Int) -> Int32;
+  fn xiom_utils_LoadFile(ptr: Int, p_file_name: Int, p_code_page: Int, pp_blob_encoding: Int) -> Int32;
+  fn xiom_utils_CreateReadOnlyStreamFromBlob(ptr: Int, p_blob: Int, pp_stream: Int) -> Int32;
+  fn xiom_utils_CreateDefaultIncludeHandler(ptr: Int, pp_result: Int) -> Int32;
+  fn xiom_utils_GetBlobAsUtf8(ptr: Int, p_blob: Int, pp_blob_encoding: Int) -> Int32;
+  fn xiom_utils_GetBlobAsWide(ptr: Int, p_blob: Int, pp_blob_encoding: Int) -> Int32;
+  fn xiom_utils_GetDxilContainerPart(ptr: Int, p_shader: Int, dxc_part: Int, pp_part_data: Int, p_part_size: Int) -> Int32;
+  fn xiom_utils_CreateReflection(ptr: Int, p_data: Int, riid: Int, ppv_reflection: Int) -> Int32;
+  fn xiom_utils_BuildArguments(ptr: Int, p_source_name: Int, p_entry_point: Int, p_target_profile: Int, p_arguments: Int, arg_count: Int, p_defines: Int, define_count: Int, pp_args: Int) -> Int32;
+  fn xiom_utils_GetPDBContents(ptr: Int, p_pdb_blob: Int, pp_hash: Int, pp_container: Int) -> Int32;
+
+  // -- IDxcCompilerArgs --
+  fn xiom_compiler_args_GetArguments(ptr: Int) -> Int;
+  fn xiom_compiler_args_GetCount(ptr: Int) -> Int32;
+  fn xiom_compiler_args_AddArguments(ptr: Int, p_arguments: Int, arg_count: Int) -> Int32;
+  fn xiom_compiler_args_AddArgumentsUTF8(ptr: Int, p_arguments: Int, arg_count: Int) -> Int32;
+  fn xiom_compiler_args_AddDefines(ptr: Int, p_defines: Int, define_count: Int) -> Int32;
+
+  // -- IDxcValidator --
+  fn xiom_validator_Validate(ptr: Int, p_shader: Int, flags: Int, pp_result: Int) -> Int32;
+
+  // -- IDxcValidator2 --
+  fn xiom_validator2_ValidateWithDebug(ptr: Int, p_shader: Int, flags: Int, p_opt_debug_bitcode: Int, pp_result: Int) -> Int32;
+
+  // -- IDxcContainerBuilder --
+  fn xiom_container_builder_Load(ptr: Int, p_dxil_container_header: Int) -> Int32;
+  fn xiom_container_builder_AddPart(ptr: Int, four_cc: Int, p_source: Int) -> Int32;
+  fn xiom_container_builder_RemovePart(ptr: Int, four_cc: Int) -> Int32;
+  fn xiom_container_builder_SerializeContainer(ptr: Int, pp_result: Int) -> Int32;
+
+  // -- IDxcAssembler --
+  fn xiom_assembler_AssembleToContainer(ptr: Int, p_shader: Int, pp_result: Int) -> Int32;
+
+  // -- IDxcContainerReflection --
+  fn xiom_container_reflection_Load(ptr: Int, p_container: Int) -> Int32;
+  fn xiom_container_reflection_GetPartCount(ptr: Int, p_result: Int) -> Int32;
+  fn xiom_container_reflection_GetPartKind(ptr: Int, idx: Int, p_result: Int) -> Int32;
+  fn xiom_container_reflection_GetPartContent(ptr: Int, idx: Int, pp_result: Int) -> Int32;
+  fn xiom_container_reflection_FindFirstPartKind(ptr: Int, kind: Int, p_result: Int) -> Int32;
+  fn xiom_container_reflection_GetPartReflection(ptr: Int, idx: Int, riid: Int, ppv_object: Int) -> Int32;
+
+  // -- IDxcOptimizerPass --
+  fn xiom_optimizer_pass_GetOptionName(ptr: Int, pp_result: Int) -> Int32;
+  fn xiom_optimizer_pass_GetDescription(ptr: Int, pp_result: Int) -> Int32;
+  fn xiom_optimizer_pass_GetOptionArgCount(ptr: Int, p_count: Int) -> Int32;
+  fn xiom_optimizer_pass_GetOptionArgName(ptr: Int, arg_index: Int, pp_result: Int) -> Int32;
+  fn xiom_optimizer_pass_GetOptionArgDescription(ptr: Int, arg_index: Int, pp_result: Int) -> Int32;
+
+  // -- IDxcOptimizer --
+  fn xiom_optimizer_GetAvailablePassCount(ptr: Int, p_count: Int) -> Int32;
+  fn xiom_optimizer_GetAvailablePass(ptr: Int, index: Int, pp_result: Int) -> Int32;
+  fn xiom_optimizer_RunOptimizer(ptr: Int, p_blob: Int, pp_options: Int, option_count: Int, p_output_module: Int, pp_output_text: Int) -> Int32;
+
+  // -- IDxcVersionInfo --
+  fn xiom_version_info_GetVersion(ptr: Int, p_major: Int, p_minor: Int) -> Int32;
+  fn xiom_version_info_GetFlags(ptr: Int, p_flags: Int) -> Int32;
+
+  // -- IDxcVersionInfo2 --
+  fn xiom_version_info2_GetCommitInfo(ptr: Int, p_commit_count: Int, pp_commit_hash: Int) -> Int32;
+
+  // -- IDxcVersionInfo3 --
+  fn xiom_version_info3_GetCustomVersionString(ptr: Int, pp_version_string: Int) -> Int32;
+
+  // -- IDxcPdbUtils2 --
+  fn xiom_pdb_utils2_Load(ptr: Int, p_pdb_or_dxil: Int) -> Int32;
+  fn xiom_pdb_utils2_GetSourceCount(ptr: Int, p_count: Int) -> Int32;
+  fn xiom_pdb_utils2_GetSource(ptr: Int, u_index: Int, pp_result: Int) -> Int32;
+  fn xiom_pdb_utils2_GetSourceName(ptr: Int, u_index: Int, pp_result: Int) -> Int32;
+  fn xiom_pdb_utils2_GetLibraryPDBCount(ptr: Int, p_count: Int) -> Int32;
+  fn xiom_pdb_utils2_GetLibraryPDB(ptr: Int, u_index: Int, pp_out_pdb_utils: Int, pp_library_name: Int) -> Int32;
+  fn xiom_pdb_utils2_GetFlagCount(ptr: Int, p_count: Int) -> Int32;
+  fn xiom_pdb_utils2_GetFlag(ptr: Int, u_index: Int, pp_result: Int) -> Int32;
+  fn xiom_pdb_utils2_GetArgCount(ptr: Int, p_count: Int) -> Int32;
+  fn xiom_pdb_utils2_GetArg(ptr: Int, u_index: Int, pp_result: Int) -> Int32;
+  fn xiom_pdb_utils2_GetArgPairCount(ptr: Int, p_count: Int) -> Int32;
+  fn xiom_pdb_utils2_GetArgPair(ptr: Int, u_index: Int, pp_name: Int, pp_value: Int) -> Int32;
+  fn xiom_pdb_utils2_GetDefineCount(ptr: Int, p_count: Int) -> Int32;
+  fn xiom_pdb_utils2_GetDefine(ptr: Int, u_index: Int, pp_result: Int) -> Int32;
+  fn xiom_pdb_utils2_GetTargetProfile(ptr: Int, pp_result: Int) -> Int32;
+  fn xiom_pdb_utils2_GetEntryPoint(ptr: Int, pp_result: Int) -> Int32;
+  fn xiom_pdb_utils2_GetMainFileName(ptr: Int, pp_result: Int) -> Int32;
+  fn xiom_pdb_utils2_GetHash(ptr: Int, pp_result: Int) -> Int32;
+  fn xiom_pdb_utils2_GetName(ptr: Int, pp_result: Int) -> Int32;
+  fn xiom_pdb_utils2_GetVersionInfo(ptr: Int, pp_version_info: Int) -> Int32;
+  fn xiom_pdb_utils2_GetCustomToolchainID(ptr: Int, p_id: Int) -> Int32;
+  fn xiom_pdb_utils2_GetCustomToolchainData(ptr: Int, pp_blob: Int) -> Int32;
+  fn xiom_pdb_utils2_GetWholeDxil(ptr: Int, pp_result: Int) -> Int32;
+  fn xiom_pdb_utils2_IsFullPDB(ptr: Int) -> Int32;
+  fn xiom_pdb_utils2_IsPDBRef(ptr: Int) -> Int32;
+
+  // -- IDxcLinker --
+  fn xiom_linker_RegisterLibrary(ptr: Int, p_lib_name: Int, p_lib: Int) -> Int32;
+  fn xiom_linker_Link(ptr: Int, p_entry_name: Int, p_target_profile: Int, p_lib_names: Int, lib_count: Int, p_arguments: Int, arg_count: Int, pp_result: Int) -> Int32;
 }
 
 // =========================================================================
-// IUnknown VTable Methods (indices 0-2, common to all COM interfaces)
-// =========================================================================
-
-pub fn iunknown_query_interface(ptr: Int, riid: Int) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: riid != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 0) };
-  let f: fn(Int, Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int) -> Int32;
-  let ppv: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, riid, ppv) };
-  if hr != 0 { return Err("QueryInterface failed"); }
-  return Ok(ppv);
-}
-
-pub fn iunknown_add_ref(ptr: Int) -> Int32
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 1) };
-  let f: fn(Int) -> Int32 = fn_ptr_val as fn(Int) -> Int32;
-  return unsafe { f(ptr as Int) };
-}
-
-pub fn iunknown_release(ptr: Int) -> Int32
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 2) };
-  let f: fn(Int) -> Int32 = fn_ptr_val as fn(Int) -> Int32;
-  return unsafe { f(ptr as Int) };
-}
-
-// =========================================================================
-// IDxcBlob VTable Methods (indices 3-4)
-// =========================================================================
-
-pub fn blob_get_buffer_pointer(ptr: Int) -> Int
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 3) };
-  let f: fn(Int) -> Int = fn_ptr_val as fn(Int) -> Int;
-  return unsafe { f(ptr as Int) };
-}
-
-pub fn blob_get_buffer_size(ptr: Int) -> Int
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 4) };
-  let f: fn(Int) -> Int = fn_ptr_val as fn(Int) -> Int;
-  return unsafe { f(ptr as Int) };
-}
-
-// =========================================================================
-// IDxcBlobEncoding VTable Methods (index 5)
-// =========================================================================
-
-pub fn blob_encoding_get_encoding(ptr: Int) -> Result[Int32, Str]
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 5) };
-  let f: fn(Int, Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int) -> Int32;
-  let known: Int32 = 0 as Int32;
-  let code_page: Int32 = 0 as Int32;
-  let hr: Int32 = unsafe { f(ptr as Int, known, code_page) };
-  if hr != 0 { return Err("GetEncoding failed"); }
-  return Ok(code_page);
-}
-
-// =========================================================================
-// IDxcBlobUtf8 VTable Methods (indices 6-7)
-// =========================================================================
-
-pub fn blob_utf8_get_string_pointer(ptr: Int) -> Int
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 6) };
-  let f: fn(Int) -> Int = fn_ptr_val as fn(Int) -> Int;
-  return unsafe { f(ptr as Int) };
-}
-
-pub fn blob_utf8_get_string_length(ptr: Int) -> Int
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 7) };
-  let f: fn(Int) -> Int = fn_ptr_val as fn(Int) -> Int;
-  return unsafe { f(ptr as Int) };
-}
-
-// =========================================================================
-// IDxcBlobWide VTable Methods (indices 6-7, same as IDxcBlobUtf8)
-// =========================================================================
-// NOTE: These share the same indices as IDxcBlobUtf8 since
-// IDxcBlobWide and IDxcBlobUtf8 both inherit from IDxcBlobEncoding
-// and add 2 methods each. The methods differ in return type semantics.
-// The return type is always Int (pointer-size integer), so the
-// signatures are ABI-compatible.
-
-pub fn blob_wide_get_string_pointer(ptr: Int) -> Int
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 6) };
-  let f: fn(Int) -> Int = fn_ptr_val as fn(Int) -> Int;
-  return unsafe { f(ptr as Int) };
-}
-
-pub fn blob_wide_get_string_length(ptr: Int) -> Int
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 7) };
-  let f: fn(Int) -> Int = fn_ptr_val as fn(Int) -> Int;
-  return unsafe { f(ptr as Int) };
-}
-
-// =========================================================================
-// IDxcIncludeHandler VTable Methods (index 3)
-// =========================================================================
-
-pub fn include_handler_load_source(ptr: Int, p_filename: Int) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: p_filename != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 3) };
-  let f: fn(Int, Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int) -> Int32;
-  let pp_include_source: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_filename, pp_include_source) };
-  if hr != 0 { return Err("LoadSource failed"); }
-  return Ok(pp_include_source);
-}
-
-// =========================================================================
-// IDxcOperationResult VTable Methods (indices 3-5)
-// =========================================================================
-
-pub fn operation_result_get_status(ptr: Int) -> Result[Int32, Str]
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 3) };
-  let f: fn(Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int) -> Int32;
-  let p_status: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_status) };
-  if hr != 0 { return Err("GetStatus failed"); }
-  return Ok(p_status);
-}
-
-pub fn operation_result_get_result(ptr: Int) -> Result[Int, Str]
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 4) };
-  let f: fn(Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int) -> Int32;
-  let pp_result: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, pp_result) };
-  if hr != 0 { return Err("GetResult failed"); }
-  return Ok(pp_result);
-}
-
-pub fn operation_result_get_error_buffer(ptr: Int) -> Result[Int, Str]
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 5) };
-  let f: fn(Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int) -> Int32;
-  let pp_errors: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, pp_errors) };
-  if hr != 0 { return Err("GetErrorBuffer failed"); }
-  return Ok(pp_errors);
-}
-
-// =========================================================================
-// IDxcResult VTable Methods (indices 6-10)
-// =========================================================================
-
-pub fn result_has_output(ptr: Int, dxc_out_kind: Int32) -> Int32
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 6) };
-  let f: fn(Int, Int32) -> Int32 = fn_ptr_val as fn(Int, Int32) -> Int32;
-  return unsafe { f(ptr as Int, dxc_out_kind) };
-}
-
-pub fn result_get_output(ptr: Int, dxc_out_kind: Int32, riid: Int) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: riid != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 7) };
-  let f: fn(Int, Int32, Int, Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int32, Int, Int, Int) -> Int32;
-  let ppv: Int = 0;
-  let pp_name: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, dxc_out_kind, riid, ppv, pp_name) };
-  if hr != 0 { return Err("GetOutput failed"); }
-  return Ok(ppv);
-}
-
-pub fn result_get_num_outputs(ptr: Int) -> Int32
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 8) };
-  let f: fn(Int) -> Int32 = fn_ptr_val as fn(Int) -> Int32;
-  return unsafe { f(ptr as Int) };
-}
-
-pub fn result_get_output_by_index(ptr: Int, index: Int32) -> Int32
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 9) };
-  let f: fn(Int, Int32) -> Int32 = fn_ptr_val as fn(Int, Int32) -> Int32;
-  return unsafe { f(ptr as Int, index) };
-}
-
-pub fn result_primary_output(ptr: Int) -> Int32
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 10) };
-  let f: fn(Int) -> Int32 = fn_ptr_val as fn(Int) -> Int32;
-  return unsafe { f(ptr as Int) };
-}
-
-// =========================================================================
-// IDxcCompiler3 VTable Methods (indices 3-4)
-// =========================================================================
-
-pub fn compiler3_compile(ptr: Int, p_source: Int, p_arguments: Int, arg_count: Int32, p_include_handler: Int, riid: Int) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: p_source != 0
-  requires: riid != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 3) };
-  let f: fn(Int, Int, Int, Int32, Int, Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int, Int32, Int, Int, Int) -> Int32;
-  let pp_result: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_source, p_arguments, arg_count, p_include_handler, riid, pp_result) };
-  if hr != 0 { return Err("Compile failed"); }
-  return Ok(pp_result);
-}
-
-pub fn compiler3_disassemble(ptr: Int, p_object: Int, riid: Int) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: p_object != 0
-  requires: riid != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 4) };
-  let f: fn(Int, Int, Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int, Int) -> Int32;
-  let pp_result: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_object, riid, pp_result) };
-  if hr != 0 { return Err("Disassemble failed"); }
-  return Ok(pp_result);
-}
-
-// =========================================================================
-// IDxcUtils VTable Methods (indices 3-15)
-// =========================================================================
-
-pub fn utils_create_blob_from_blob(ptr: Int, p_blob: Int, offset: Int32, length: Int32) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: p_blob != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 3) };
-  let f: fn(Int, Int, Int32, Int32, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int32, Int32, Int) -> Int32;
-  let pp_result: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_blob, offset, length, pp_result) };
-  if hr != 0 { return Err("CreateBlobFromBlob failed"); }
-  return Ok(pp_result);
-}
-
-pub fn utils_create_blob(ptr: Int, p_data: Int, size: Int32, code_page: Int32) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: p_data != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 5) };
-  let f: fn(Int, Int, Int32, Int32, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int32, Int32, Int) -> Int32;
-  let pp_blob_encoding: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_data, size, code_page, pp_blob_encoding) };
-  if hr != 0 { return Err("CreateBlob failed"); }
-  return Ok(pp_blob_encoding);
-}
-
-pub fn utils_load_file(ptr: Int, p_file_name: Int) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: p_file_name != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 6) };
-  let f: fn(Int, Int, Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int, Int) -> Int32;
-  let pp_blob_encoding: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_file_name, 0, pp_blob_encoding) };
-  if hr != 0 { return Err("LoadFile failed"); }
-  return Ok(pp_blob_encoding);
-}
-
-pub fn utils_create_default_include_handler(ptr: Int) -> Result[Int, Str]
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 8) };
-  let f: fn(Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int) -> Int32;
-  let pp_result: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, pp_result) };
-  if hr != 0 { return Err("CreateDefaultIncludeHandler failed"); }
-  return Ok(pp_result);
-}
-
-pub fn utils_get_blob_as_utf8(ptr: Int, p_blob: Int) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: p_blob != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 9) };
-  let f: fn(Int, Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int) -> Int32;
-  let pp_blob_encoding: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_blob, pp_blob_encoding) };
-  if hr != 0 { return Err("GetBlobAsUtf8 failed"); }
-  return Ok(pp_blob_encoding);
-}
-
-pub fn utils_get_dxil_container_part(ptr: Int, p_shader: Int, dxc_part: Int32) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: p_shader != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 11) };
-  let f: fn(Int, Int, Int32, Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int32, Int, Int) -> Int32;
-  let pp_part_data: Int = 0;
-  let p_part_size: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_shader, dxc_part, pp_part_data, p_part_size) };
-  if hr != 0 { return Err("GetDxilContainerPart failed"); }
-  return Ok(pp_part_data);
-}
-
-pub fn utils_create_reflection(ptr: Int, p_data: Int, riid: Int) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: p_data != 0
-  requires: riid != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 12) };
-  let f: fn(Int, Int, Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int, Int) -> Int32;
-  let ppv_reflection: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_data, riid, ppv_reflection) };
-  if hr != 0 { return Err("CreateReflection failed"); }
-  return Ok(ppv_reflection);
-}
-
-pub fn utils_get_pdb_contents(ptr: Int, p_pdb_blob: Int) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: p_pdb_blob != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 14) };
-  let f: fn(Int, Int, Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int, Int) -> Int32;
-  let pp_hash: Int = 0;
-  let pp_container: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_pdb_blob, pp_hash, pp_container) };
-  if hr != 0 { return Err("GetPDBContents failed"); }
-  return Ok(pp_hash);
-}
-
-// =========================================================================
-// IDxcCompilerArgs VTable Methods (indices 3-5)
-// =========================================================================
-
-pub fn compiler_args_get_arguments(ptr: Int) -> Int
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 3) };
-  let f: fn(Int) -> Int = fn_ptr_val as fn(Int) -> Int;
-  return unsafe { f(ptr as Int) };
-}
-
-pub fn compiler_args_get_count(ptr: Int) -> Int32
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 4) };
-  let f: fn(Int) -> Int32 = fn_ptr_val as fn(Int) -> Int32;
-  return unsafe { f(ptr as Int) };
-}
-
-// =========================================================================
-// IDxcValidator VTable Methods (index 3)
-// =========================================================================
-
-pub fn validator_validate(ptr: Int, p_shader: Int, flags: Int32) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: p_shader != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 3) };
-  let f: fn(Int, Int, Int32, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int32, Int) -> Int32;
-  let pp_result: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_shader, flags, pp_result) };
-  if hr != 0 { return Err("Validate failed"); }
-  return Ok(pp_result);
-}
-
-// =========================================================================
-// IDxcContainerBuilder VTable Methods (indices 3-5)
-// =========================================================================
-
-pub fn container_builder_load(ptr: Int, p_dxil_container_header: Int) -> Result[Int32, Str]
-  requires: ptr != 0
-  requires: p_dxil_container_header != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 3) };
-  let f: fn(Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int) -> Int32;
-  return unsafe { f(ptr as Int, p_dxil_container_header) };
-}
-
-pub fn container_builder_add_part(ptr: Int, four_cc: Int32, p_source: Int) -> Result[Int32, Str]
-  requires: ptr != 0
-  requires: p_source != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 4) };
-  let f: fn(Int, Int32, Int) -> Int32 = fn_ptr_val as fn(Int, Int32, Int) -> Int32;
-  return unsafe { f(ptr as Int, four_cc, p_source) };
-}
-
-pub fn container_builder_serialize_container(ptr: Int) -> Result[Int, Str]
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 6) };
-  let f: fn(Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int) -> Int32;
-  let pp_result: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, pp_result) };
-  if hr != 0 { return Err("SerializeContainer failed"); }
-  return Ok(pp_result);
-}
-
-// =========================================================================
-// IDxcAssembler VTable Methods (index 3)
-// =========================================================================
-
-pub fn assembler_assemble_to_container(ptr: Int, p_shader: Int) -> Result[Int, Str]
-  requires: ptr != 0
-  requires: p_shader != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 3) };
-  let f: fn(Int, Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int) -> Int32;
-  let pp_result: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_shader, pp_result) };
-  if hr != 0 { return Err("AssembleToContainer failed"); }
-  return Ok(pp_result);
-}
-
-// =========================================================================
-// IDxcContainerReflection VTable Methods (indices 3-7)
-// =========================================================================
-
-pub fn container_reflection_load(ptr: Int, p_container: Int) -> Result[Int32, Str]
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 3) };
-  let f: fn(Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int) -> Int32;
-  return unsafe { f(ptr as Int, p_container) };
-}
-
-pub fn container_reflection_get_part_count(ptr: Int) -> Result[Int32, Str]
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 4) };
-  let f: fn(Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int) -> Int32;
-  let p_result: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_result) };
-  if hr != 0 { return Err("GetPartCount failed"); }
-  return Ok(p_result);
-}
-
-pub fn container_reflection_get_part_kind(ptr: Int, idx: Int32) -> Result[Int32, Str]
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 5) };
-  let f: fn(Int, Int32, Int) -> Int32 = fn_ptr_val as fn(Int, Int32, Int) -> Int32;
-  let p_result: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, idx, p_result) };
-  if hr != 0 { return Err("GetPartKind failed"); }
-  return Ok(p_result);
-}
-
-pub fn container_reflection_get_part_content(ptr: Int, idx: Int32) -> Result[Int, Str]
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 6) };
-  let f: fn(Int, Int32, Int) -> Int32 = fn_ptr_val as fn(Int, Int32, Int) -> Int32;
-  let pp_result: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, idx, pp_result) };
-  if hr != 0 { return Err("GetPartContent failed"); }
-  return Ok(pp_result);
-}
-
-pub fn container_reflection_find_first_part_kind(ptr: Int, kind: Int32) -> Result[Int32, Str]
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 7) };
-  let f: fn(Int, Int32, Int) -> Int32 = fn_ptr_val as fn(Int, Int32, Int) -> Int32;
-  let p_result: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, kind, p_result) };
-  if hr != 0 { return Err("FindFirstPartKind failed"); }
-  return Ok(p_result);
-}
-
-// =========================================================================
-// IDxcVersionInfo VTable Methods (indices 3-4)
-// =========================================================================
-
-pub fn version_info_get_version(ptr: Int) -> Result[Int, Str]
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 3) };
-  let f: fn(Int, Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int, Int) -> Int32;
-  let major: Int = 0;
-  let minor: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, major, minor) };
-  if hr != 0 { return Err("GetVersion failed"); }
-  return Ok(major);
-}
-
-pub fn version_info_get_flags(ptr: Int) -> Result[Int, Str]
-  requires: ptr != 0
-{
-  let vtbl: Int = unsafe { *(ptr as **Int) };
-  let fn_ptr_val: Int = unsafe { *((vtbl as *Int) + 4) };
-  let f: fn(Int, Int) -> Int32 = fn_ptr_val as fn(Int, Int) -> Int32;
-  let p_flags: Int = 0;
-  let hr: Int32 = unsafe { f(ptr as Int, p_flags) };
-  if hr != 0 { return Err("GetFlags failed"); }
-  return Ok(p_flags);
-}
-
-// =========================================================================
-// Helpers: create COM instances via DxcCreateInstance
+// Procedural Safe Wrappers
 // =========================================================================
 
 pub fn create_instance(clsid: Int, iid: Int) -> Result[Int, Str]
@@ -772,10 +316,6 @@ pub fn create_instance(clsid: Int, iid: Int) -> Result[Int, Str]
   if hr != 0 { return Err("DxcCreateInstance failed"); }
   return Ok(ppv);
 }
-
-// =========================================================================
-// Procedural Safe Wrappers (following xiom.vma pattern)
-// =========================================================================
 
 pub fn create_compiler() -> Result[Int, Str] {
   let clsid: Int = unsafe { xiom_dxc_clsid_compiler() };
@@ -825,19 +365,86 @@ pub fn create_compiler_args() -> Result[Int, Str] {
   return create_instance(clsid, iid);
 }
 
+pub fn create_optimizer() -> Result[Int, Str] {
+  let clsid: Int = unsafe { xiom_dxc_clsid_optimizer() };
+  let iid: Int = unsafe { xiom_dxc_iid_optimizer() };
+  return create_instance(clsid, iid);
+}
+
+pub fn create_pdb_utils() -> Result[Int, Str] {
+  let clsid: Int = unsafe { xiom_dxc_clsid_pdb_utils() };
+  let iid: Int = unsafe { xiom_dxc_iid_pdb_utils2() };
+  return create_instance(clsid, iid);
+}
+
 // =========================================================================
-// Helpers: release COM interface (IUnknown::Release pattern)
+// Safe helpers for common operations
 // =========================================================================
 
 pub fn release(ptr: Int)
   requires: ptr != 0
 {
-  let ref_count: Int32 = iunknown_release(ptr);
+  let _ref_count: Int32 = unsafe { xiom_unknown_Release(ptr) };
   return ();
 }
 
+pub fn add_ref(ptr: Int) -> Int32
+  requires: ptr != 0
+{
+  return unsafe { xiom_unknown_AddRef(ptr) };
+}
+
+pub fn compiler_compile(compiler: Int, p_source: Int, p_arguments: Int, arg_count: Int, p_include_handler: Int) -> Result[Int, Str]
+  requires: compiler != 0
+  requires: p_source != 0
+{
+  let riid: Int = unsafe { xiom_dxc_iid_result() };
+  let pp_result: Int = 0;
+  let hr: Int32 = unsafe { xiom_compiler3_Compile(compiler, p_source, p_arguments, arg_count, p_include_handler, riid, pp_result) };
+  if hr != 0 { return Err("Compile failed"); }
+  return Ok(pp_result);
+}
+
+pub fn compiler_disassemble(compiler: Int, p_object: Int) -> Result[Int, Str]
+  requires: compiler != 0
+  requires: p_object != 0
+{
+  let riid: Int = unsafe { xiom_dxc_iid_result() };
+  let pp_result: Int = 0;
+  let hr: Int32 = unsafe { xiom_compiler3_Disassemble(compiler, p_object, riid, pp_result) };
+  if hr != 0 { return Err("Disassemble failed"); }
+  return Ok(pp_result);
+}
+
+pub fn result_get_output_blob(result: Int, kind: Int32) -> Result[Int, Str]
+  requires: result != 0
+{
+  let riid: Int = unsafe { xiom_dxc_iid_blob() };
+  let ppv: Int = 0;
+  let hr: Int32 = unsafe { xiom_result_GetOutput(result, kind as Int, riid, ppv, 0) };
+  if hr != 0 { return Err("GetOutput failed"); }
+  return Ok(ppv);
+}
+
+pub fn result_has_output(result: Int, kind: Int32) -> Bool
+  requires: result != 0
+{
+  let ok: Int32 = unsafe { xiom_result_HasOutput(result, kind as Int) };
+  return ok != 0;
+}
+
+pub fn get_errors_as_utf8(result: Int) -> Result[Int, Str]
+  requires: result != 0
+{
+  let pp_errors: Int = 0;
+  let hr: Int32 = unsafe { xiom_operation_result_GetErrorBuffer(result, pp_errors) };
+  if hr != 0 { return Err("GetErrorBuffer failed"); }
+  if pp_errors == 0 { return Err("No error buffer"); }
+  return Ok(pp_errors);
+}
+
 // =========================================================================
-// HRESULT → human-readable string
+// HRESULT -> human-readable string
 // =========================================================================
 
 pub fn result_to_string(code: Int32) -> Str {

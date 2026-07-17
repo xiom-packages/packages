@@ -3,35 +3,16 @@
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Struct-based safe wrappers for meshoptimizer v1.2.
-// Provides typed wrappers for the core optimization pipelines.
+// Uses cross-module `use xiom.meshopt` for extern declarations.
+// Provides typed pipeline wrappers for common optimization workflows.
 //
-// COVERAGE: 4 pipeline types:
-//   RemapPipeline, OptimizePipeline, SimplifyPipeline, EncodePipeline
+// COVERAGE: 5 pipeline types:
+//   RemapPipeline, OptimizePipeline, SimplifyPipeline,
+//   EncodePipeline, StripPipeline
 
 module xiom.meshopt.safe
 
-extern "C" {
-  fn meshopt_generateVertexRemap(destination: Int, indices: Int, index_count: Int, vertices: Int, vertex_count: Int, vertex_size: Int) -> Int;
-  fn meshopt_remapVertexBuffer(destination: Int, vertices: Int, vertex_count: Int, vertex_size: Int, remap: Int);
-  fn meshopt_remapIndexBuffer(destination: Int, indices: Int, index_count: Int, remap: Int);
-  fn meshopt_generateShadowIndexBuffer(destination: Int, indices: Int, index_count: Int, vertices: Int, vertex_count: Int, vertex_size: Int, vertex_stride: Int);
-  fn meshopt_optimizeVertexCache(destination: Int, indices: Int, index_count: Int, vertex_count: Int);
-  fn meshopt_optimizeVertexCacheFifo(destination: Int, indices: Int, index_count: Int, vertex_count: Int, cache_size: Int32);
-  fn meshopt_optimizeOverdraw(destination: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, threshold: Float);
-  fn meshopt_optimizeVertexFetch(destination: Int, indices: Int, index_count: Int, vertices: Int, vertex_count: Int, vertex_size: Int) -> Int;
-  fn meshopt_optimizeVertexFetchRemap(destination: Int, indices: Int, index_count: Int, vertex_count: Int) -> Int;
-  fn meshopt_simplify(destination: Int, indices: Int, index_count: Int, vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int, target_index_count: Int, target_error: Float, options: Int32, result_error: Int) -> Int;
-  fn meshopt_simplifyScale(vertex_positions: Int, vertex_count: Int, vertex_positions_stride: Int) -> Float;
-  fn meshopt_stripify(destination: Int, indices: Int, index_count: Int, vertex_count: Int, restart_index: Int32) -> Int;
-  fn meshopt_stripifyBound(index_count: Int) -> Int;
-  fn meshopt_encodeIndexBuffer(buffer: Int, buffer_size: Int, indices: Int, index_count: Int) -> Int;
-  fn meshopt_encodeIndexBufferBound(index_count: Int, vertex_count: Int) -> Int;
-  fn meshopt_encodeVertexBuffer(buffer: Int, buffer_size: Int, vertices: Int, vertex_count: Int, vertex_size: Int) -> Int;
-  fn meshopt_encodeVertexBufferBound(vertex_count: Int, vertex_size: Int) -> Int;
-  fn meshopt_decodeVertexBuffer(destination: Int, vertex_count: Int, vertex_size: Int, buffer: Int, buffer_size: Int) -> Int32;
-  fn meshopt_analyzeVertexCache(indices: Int, index_count: Int, vertex_count: Int, cache_size: Int32, warp_size: Int32, primgroup_size: Int32) -> MeshoptVertexCacheStatistics;
-  fn meshopt_analyzeVertexFetch(indices: Int, index_count: Int, vertex_count: Int, vertex_size: Int) -> MeshoptVertexFetchStatistics;
-}
+use xiom.meshopt;
 
 // =========================================================================
 // MeshoptError
@@ -111,7 +92,7 @@ pub fn OptimizePipeline.vertex_cache_fifo(dest_indices: Int, src_indices: Int, c
   unsafe { meshopt_optimizeVertexCacheFifo(dest_indices, src_indices, index_count, vertex_count, cache_size); }
 }
 
-pub fn OptimizePipeline.overdraw(dest_indices: Int, cache_optimized_indices: Int, pos_ptr: Int, pos_stride: Int, threshold: Float)
+pub fn OptimizePipeline.overdraw(dest_indices: Int, cache_optimized_indices: Int, pos_ptr: Int, pos_stride: Int, threshold: Float32)
   requires: dest_indices != 0
   requires: cache_optimized_indices != 0
   requires: pos_ptr != 0
@@ -173,21 +154,20 @@ pub fn SimplifyPipeline.init(indices_ptr: Int, index_count: Int, pos_ptr: Int, v
   return SimplifyPipeline{ index_count: index_count, vertex_count: vertex_count, pos_ptr: pos_ptr, pos_stride: pos_stride };
 }
 
-pub fn SimplifyPipeline.scale() -> Float
+pub fn SimplifyPipeline.scale() -> Float32
   requires: pos_ptr != 0
 {
   return unsafe { meshopt_simplifyScale(pos_ptr, vertex_count, pos_stride) };
 }
 
-pub fn SimplifyPipeline.run(dest_ptr: Int, indices_ptr: Int, target_index_count: Int, target_error: Float, options: Int32) -> Result[Int, MeshoptError]
+pub fn SimplifyPipeline.run(dest_ptr: Int, indices_ptr: Int, target_index_count: Int, target_error: Float32, options: Int32) -> Result[Int, MeshoptError]
   requires: dest_ptr != 0
   requires: indices_ptr != 0
   requires: target_index_count > 0
   requires: target_index_count <= index_count
   requires: pos_ptr != 0
 {
-  let result_error: Float = 0.0;
-  let new_count: Int = unsafe { meshopt_simplify(dest_ptr, indices_ptr, index_count, pos_ptr, vertex_count, pos_stride, target_index_count, target_error, options, result_error) };
+  let new_count: Int = unsafe { meshopt_simplify(dest_ptr, indices_ptr, index_count, pos_ptr, vertex_count, pos_stride, target_index_count, target_error, options, 0) };
   if new_count == 0 { return Err(MeshoptError{ code: 3 as Int32, message: "simplification produced no indices" }); }
   return Ok(new_count);
 }

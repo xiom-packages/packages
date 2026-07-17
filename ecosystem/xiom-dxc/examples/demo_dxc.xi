@@ -3,9 +3,8 @@
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Demonstrates DXC shader compilation lifecycle using the
-// xiom.dxc and xiom.dxc.safe APIs.
-// This is a compile-time demo showing the correct API structure.
-// Requires dxcompiler.dll to be in the library path at runtime.
+// xiom.dxc and xiom.dxc.safe APIs (C bridge backed).
+// Requires dxcompiler.dll in the library path at runtime.
 
 module xiom.dxc.demo
 
@@ -18,66 +17,53 @@ fn main() -> Int {
   io.println("===================================");
   io.println("");
 
-  // Step 1: Create the DXC compiler instance.
-  // In production, call DxcCompiler.create() which internally
-  // calls DxcCreateInstance(CLSID_DxcCompiler, IID_IDxcCompiler3, &compiler).
-  let comp_result = DxcCompiler.create();
+  // Procedural API demo (following xiom.vma pattern)
+  // Step 1: Create compiler instance.
+  let comp_result = create_compiler();
   match comp_result {
     Err(err) => {
-      io.println("(expected) Compiler creation returned error — dxcompiler.dll not loaded");
-      io.println("DxcError code:");
-      io.println(dxc_error_to_string(err));
+      io.println("(expected) Compiler creation returned error — code:");
+      io.println(result_to_string(0));
       io.println("");
-      io.println("In production: ensure dxcompiler.dll is in the PATH or link against dxcompiler.lib.");
+      io.println("In production: ensure dxcompiler.dll is in PATH and dxc_bridge.o is linked.");
     }
     Ok(compiler) => {
-      io.println("Compiler created successfully.");
+      io.println("Compiler created (procedural API).");
 
-      // Step 2: Create the Utils instance for blob creation.
-      let utils_result = DxcUtils.create();
+      let utils_result = create_utils();
       match utils_result {
-        Err(err) => {
-          io.println("Utils creation failed:");
-          io.println(dxc_error_to_string(err));
+        Err(_) => {
+          io.println("Utils creation failed.");
         }
         Ok(utils) => {
-          io.println("Utils created successfully.");
+          io.println("Utils created.");
 
-          // Step 3: Create a source blob from HLSL text.
-          // In production, pass the address of a wide/utf8 string + length.
-          let blob_result = create_instance(unsafe { xiom_dxc_clsid_library() }, unsafe { xiom_dxc_iid_blob() });
-          match blob_result {
-            Err(err) => {
-              io.println("Blob creation returned error.");
-            }
-            Ok(blob) => {
-              io.println("Blob created.");
+          // Step 2: Test that the handles are valid.
+          let ref_count = add_ref(compiler);
+          io.println("Compiler AddRef returned ref count.");
+          release(compiler);
 
-              // Step 4: Compile shader source.
-              //   let result = compiler.compile(p_source, p_arguments, arg_count, p_include_handler);
-              //   This calls IDxcCompiler3::Compile via vtable dispatch.
-              //   In production: pass the DxcBuffer source, compiler args, and optional include handler.
-              io.println("Compile step: would call compiler.compile(p_source, p_args, arg_count, p_handler)");
+          io.println("Compliation/validation/reflection steps documented below.");
 
-              // Step 5: Get results.
-              //   let status = result.get_status();
-              //   if result.has_output(DXC_OUT_OBJECT) {
-              //     let object = result.get_output(DXC_OUT_OBJECT);
-              //   }
-              //   if result.has_output(DXC_OUT_ERRORS) {
-              //     let errors = result.get_output(DXC_OUT_ERRORS);
-              //   }
-              io.println("Result inspection: get_status(), has_output(), get_output()");
-
-              release(blob);
-            }
-          }
-
-          utils.destroy();
+          release(utils);
         }
       }
 
-      compiler.destroy();
+      release(compiler);
+    }
+  }
+
+  // Struct-based API demo (requires actual dxcompiler.dll at runtime)
+  io.println("");
+  let ctx_result = DxcContext.init();
+  match ctx_result {
+    Err(_) => {
+      io.println("DxcContext.init() returned error (expected without dxcompiler.dll)");
+    }
+    Ok(ctx) => {
+      io.println("DxcContext created via struct-based API.");
+      release(ctx.utils);
+      release(ctx.compiler);
     }
   }
 
@@ -86,36 +72,37 @@ fn main() -> Int {
   io.println("  let ctx = DxcContext.init()?;");
   io.println("  let compiler = ctx.create_compiler();");
   io.println("  let utils = ctx.create_utils();");
+  io.println("  let handler = utils.create_default_include_handler()?;");
+  io.println("  let args = utils.build_arguments(src_name, entry, target, ...);");
   io.println("  let result = compiler.compile(p_source, p_args, arg_count, p_handler)?;");
-  io.println("  let object = result.get_output(DXC_OUT_OBJECT)?;");
-  io.println("  let data = object.get_buffer_pointer();");
+  io.println("  if result.has_output(DXC_OUT_OBJECT) {");
+  io.println("    let object = result.get_output(DXC_OUT_OBJECT)?;");
+  io.println("    let data = object.get_buffer_pointer();");
+  io.println("  }");
   io.println("  ctx.destroy();");
   io.println("");
 
   io.println("Procedural API (xiom.dxc) pattern:");
   io.println("  let compiler = create_compiler()?;");
-  io.println("  let utils = create_utils()?;");
-  io.println("  let result = compiler3_compile(compiler, p_source, p_args, arg_count, 0, iid_result)?;");
-  io.println("  let blob = result_get_output(result, DXC_OUT_OBJECT, iid_blob)?;");
-  io.println("  let data = blob_get_buffer_pointer(blob);");
+  io.println("  let result = compiler_compile(compiler, p_source, p_args, arg_count, 0)?;");
+  io.println("  if result_has_output(result, DXC_OUT_OBJECT) {");
+  io.println("    let blob = result_get_output_blob(result, DXC_OUT_OBJECT)?;");
+  io.println("  }");
+  io.println("  let errors = get_errors_as_utf8(result)?;");
   io.println("  release(compiler);");
   io.println("");
 
-  io.println("Key DXC Output Kinds:");
-  io.println("  DXC_OUT_OBJECT = 1     — Compiled shader object (DXIL)");
-  io.println("  DXC_OUT_ERRORS = 2     — Compilation errors/warnings");
-  io.println("  DXC_OUT_PDB = 3        — Shader debug information");
-  io.println("  DXC_OUT_DISASSEMBLY = 5 — Disassembly text");
-  io.println("  DXC_OUT_HLSL = 6       — Preprocessor output");
-  io.println("  DXC_OUT_REFLECTION = 8  — Shader reflection data");
-  io.println("  DXC_OUT_ROOT_SIGNATURE = 9 — Serialized root signature");
+  io.println("C Bridge Architecture:");
+  io.println("  XIOM .xi  -->  extern \"C\" fn  -->  dxc_bridge.c  -->  COM vtable");
+  io.println("  All COM method calls go through dxc_bridge.c thin wrappers.");
+  io.println("  The bridge compiles with clang++ against dxcapi.h + dxcompiler.lib.");
   io.println("");
 
-  io.println("COM VTable Dispatch Pattern (used internally):");
-  io.println("  let vtbl = *(pObj as **Int);        // read vtable pointer");
-  io.println("  let fn = *((vtbl as *Int) + idx);   // read function at index");
-  io.println("  let f: fn(...) = fn as fn(...);     // cast to typed function pointer");
-  io.println("  let result = f(pObj, ...);          // call via function pointer");
+  io.println("API Surface Bound:");
+  io.println("  165 extern function declarations (2 DLL exports + 34 GUIDs + 129 COM methods)");
+  io.println("  24 COM interfaces (IUnknown through IDxcPdbUtils2)");
+  io.println("  12 safe struct resource types with create/destroy lifecycle");
+  io.println("  14 constants (DXC_OUT_KIND), 9 FOURCC parts, 5 validator flags");
 
   return 0;
 }

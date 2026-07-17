@@ -71,8 +71,8 @@ fn main() -> Int {
 
   io.println("Quantization helpers:");
   io.println("  let half: Int32 = meshopt_quantizeHalf(my_float);");
-  io.println("  let back: Float = meshopt_dequantizeHalf(half);");
-  io.println("  let reduced: Float = meshopt_quantizeFloat(my_float, 16);");
+  io.println("  let back: Float32 = meshopt_dequantizeHalf(half);");
+  io.println("  let reduced: Float32 = meshopt_quantizeFloat(my_float, 16);");
   io.println("");
 
   io.println("---");
