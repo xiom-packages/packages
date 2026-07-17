@@ -1,98 +1,602 @@
-# Jolt Physics FFI Bindings — Rigid Body Dynamics
-# Target: joltc.dll (C bridge over JoltPhysics C++17)
-#
-# JoltPhysics is C++ only. These bindings assume the joltc C bridge is compiled:
-#   https://github.com/amerkoleci/joltc
+# Jolt Physics FFI Bindings — Full Coverage
+# Target: joltc.dll (C bridge, github.com/amerkoleci/joltc)
+# JoltPhysics v5.6.0 — C++17, no C API. Requires joltc bridge.
 #
 # Build the C bridge:
 #   git clone https://github.com/amerkoleci/joltc
 #   cd joltc && cmake -B build && cmake --build build --config Release
-#   # produces joltc.dll / libjoltc.so
 
+# ============================================================================
+# Init / Shutdown
+# ============================================================================
 library "joltc" {
-  # Init / Shutdown
   fn JPH_Init() -> i32;
   fn JPH_Shutdown();
+  fn JPH_SetTraceHandler(handler: ptr);
+  fn JPH_SetAssertFailureHandler(handler: ptr);
 
   # JobSystem
   fn JPH_JobSystemThreadPool_Create(max_jobs: i32, max_barriers: i32, num_threads: i32) -> ptr;
-  fn JPH_JobSystem_Destroy(job_system: ptr);
+  fn JPH_JobSystem_Destroy(js: ptr);
+
+  # BroadPhaseLayerInterface
+  fn JPH_BroadPhaseLayerInterfaceTable_Create(num_obj_layers: i32, num_broad_layers: i32) -> ptr;
+  fn JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(iface: ptr, obj_layer: i32, broad_layer: i32);
+  fn JPH_BroadPhaseLayerInterfaceMask_Create(num_broad_layers: i32) -> ptr;
+  fn JPH_BroadPhaseLayerInterfaceMask_ConfigureLayer(iface: ptr, broad_layer: i32, groups_include: i32, groups_exclude: i32);
+  fn JPH_BroadPhaseLayerInterface_Destroy(iface: ptr);
+
+  # ObjectLayerPairFilter
+  fn JPH_ObjectLayerPairFilterTable_Create(num_obj_layers: i32) -> ptr;
+  fn JPH_ObjectLayerPairFilterTable_DisableCollision(filter: ptr, layer1: i32, layer2: i32);
+  fn JPH_ObjectLayerPairFilterTable_EnableCollision(filter: ptr, layer1: i32, layer2: i32);
+  fn JPH_ObjectLayerPairFilterTable_ShouldCollide(filter: ptr, layer1: i32, layer2: i32) -> i32;
+  fn JPH_ObjectLayerPairFilterMask_Create() -> ptr;
+  fn JPH_ObjectLayerPairFilterMask_GetObjectLayer(group: i32, mask: i32) -> i32;
+  fn JPH_ObjectLayerPairFilter_Destroy(filter: ptr);
+
+  # ObjectVsBroadPhaseLayerFilter
+  fn JPH_ObjectVsBroadPhaseLayerFilterTable_Create(bp_iface: ptr, num_broad_layers: i32, obj_filter: ptr, num_obj_layers: i32) -> ptr;
+  fn JPH_ObjectVsBroadPhaseLayerFilterMask_Create(bp_iface: ptr) -> ptr;
+  fn JPH_ObjectVsBroadPhaseLayerFilter_Destroy(filter: ptr);
 
   # PhysicsSystem
-  fn JPH_PhysicsSystem_Create(max_bodies: i32, num_body_mutexes: i32, max_body_pairs: i32, max_contact_constraints: i32) -> ptr;
+  fn JPH_PhysicsSystem_Create(max_bodies: i32, num_body_mutexes: i32, max_body_pairs: i32, max_contact_constraints: i32, bp_iface: ptr, obj_vs_bp_filter: ptr, obj_filter: ptr) -> ptr;
   fn JPH_PhysicsSystem_Destroy(system: ptr);
-  fn JPH_PhysicsSystem_Update(system: ptr, delta_time: f32, collision_steps: i32, job_system: ptr) -> i32;
   fn JPH_PhysicsSystem_OptimizeBroadPhase(system: ptr);
-  fn JPH_PhysicsSystem_GetNumBodies(system: ptr) -> i32;
-  fn JPH_PhysicsSystem_GetNumActiveBodies(system: ptr, type: i32) -> i32;
-
-  # Gravity
+  fn JPH_PhysicsSystem_Update(system: ptr, delta_time: f32, collision_steps: i32, js: ptr) -> i32;
+  fn JPH_PhysicsSystem_GetBodyInterface(system: ptr) -> ptr;
+  fn JPH_PhysicsSystem_GetBodyInterfaceNoLock(system: ptr) -> ptr;
+  fn JPH_PhysicsSystem_GetBodyLockInterface(system: ptr) -> ptr;
+  fn JPH_PhysicsSystem_GetBodyLockInterfaceNoLock(system: ptr) -> ptr;
+  fn JPH_PhysicsSystem_GetBroadPhaseQuery(system: ptr) -> ptr;
+  fn JPH_PhysicsSystem_GetNarrowPhaseQuery(system: ptr) -> ptr;
+  fn JPH_PhysicsSystem_GetNarrowPhaseQueryNoLock(system: ptr) -> ptr;
   fn JPH_PhysicsSystem_SetGravity(system: ptr, x: f32, y: f32, z: f32);
   fn JPH_PhysicsSystem_GetGravity(system: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_PhysicsSystem_AddConstraint(system: ptr, constraint: ptr);
+  fn JPH_PhysicsSystem_RemoveConstraint(system: ptr, constraint: ptr);
+  fn JPH_PhysicsSystem_GetNumBodies(system: ptr) -> i32;
+  fn JPH_PhysicsSystem_GetNumActiveBodies(system: ptr, body_type: i32) -> i32;
+  fn JPH_PhysicsSystem_GetMaxBodies(system: ptr) -> i32;
+  fn JPH_PhysicsSystem_GetNumConstraints(system: ptr) -> i32;
+  fn JPH_PhysicsSystem_WereBodiesInContact(system: ptr, body1: i32, body2: i32) -> i32;
+  fn JPH_PhysicsSystem_SetContactListener(system: ptr, listener: ptr);
+  fn JPH_PhysicsSystem_SetBodyActivationListener(system: ptr, listener: ptr);
+  fn JPH_PhysicsSystem_AddStepListener(system: ptr, listener: ptr);
+  fn JPH_PhysicsSystem_RemoveStepListener(system: ptr, listener: ptr);
+  fn JPH_PhysicsSystem_GetPhysicsSettings(system: ptr, result: ptr);
+  fn JPH_PhysicsSystem_SetPhysicsSettings(system: ptr, settings: ptr);
 
-  # Body Interface
-  fn JPH_PhysicsSystem_GetBodyInterface(system: ptr) -> ptr;
-
-  fn JPH_BodyInterface_CreateAndAddBody(body_iface: ptr, settings: ptr, activate: i32) -> i32;
+  # BodyInterface — CRUD
   fn JPH_BodyInterface_CreateBody(body_iface: ptr, settings: ptr) -> i32;
+  fn JPH_BodyInterface_CreateAndAddBody(body_iface: ptr, settings: ptr, activate: i32) -> i32;
   fn JPH_BodyInterface_AddBody(body_iface: ptr, body_id: i32, activate: i32);
   fn JPH_BodyInterface_RemoveBody(body_iface: ptr, body_id: i32);
   fn JPH_BodyInterface_DestroyBody(body_iface: ptr, body_id: i32);
+  fn JPH_BodyInterface_IsAdded(body_iface: ptr, body_id: i32) -> i32;
 
+  # BodyInterface — activation
+  fn JPH_BodyInterface_ActivateBody(body_iface: ptr, body_id: i32);
+  fn JPH_BodyInterface_DeactivateBody(body_iface: ptr, body_id: i32);
   fn JPH_BodyInterface_IsActive(body_iface: ptr, body_id: i32) -> i32;
+  fn JPH_BodyInterface_ResetSleepTimer(body_iface: ptr, body_id: i32);
 
+  # BodyInterface — position/rotation/velocity
+  fn JPH_BodyInterface_GetPosition(body_iface: ptr, body_id: i32, out_x: ptr, out_y: ptr, out_z: ptr);
   fn JPH_BodyInterface_GetCenterOfMassPosition(body_iface: ptr, body_id: i32, out_x: ptr, out_y: ptr, out_z: ptr);
   fn JPH_BodyInterface_GetRotation(body_iface: ptr, body_id: i32, out_x: ptr, out_y: ptr, out_z: ptr, out_w: ptr);
+  fn JPH_BodyInterface_GetWorldTransform(body_iface: ptr, body_id: i32, out: ptr);
+  fn JPH_BodyInterface_GetCenterOfMassTransform(body_iface: ptr, body_id: i32, out: ptr);
+  fn JPH_BodyInterface_SetPosition(body_iface: ptr, body_id: i32, px: f32, py: f32, pz: f32, activate: i32);
+  fn JPH_BodyInterface_SetRotation(body_iface: ptr, body_id: i32, qx: f32, qy: f32, qz: f32, qw: f32, activate: i32);
+  fn JPH_BodyInterface_SetPositionAndRotation(body_iface: ptr, body_id: i32, px: f32, py: f32, pz: f32, qx: f32, qy: f32, qz: f32, qw: f32, activate: i32);
   fn JPH_BodyInterface_GetLinearVelocity(body_iface: ptr, body_id: i32, out_x: ptr, out_y: ptr, out_z: ptr);
   fn JPH_BodyInterface_GetAngularVelocity(body_iface: ptr, body_id: i32, out_x: ptr, out_y: ptr, out_z: ptr);
-
   fn JPH_BodyInterface_SetLinearVelocity(body_iface: ptr, body_id: i32, vx: f32, vy: f32, vz: f32);
   fn JPH_BodyInterface_SetAngularVelocity(body_iface: ptr, body_id: i32, avx: f32, avy: f32, avz: f32);
-  fn JPH_BodyInterface_SetPosition(body_iface: ptr, body_id: i32, px: f32, py: f32, pz: f32, qx: f32, qy: f32, qz: f32, qw: f32);
+  fn JPH_BodyInterface_SetLinearAndAngularVelocity(body_iface: ptr, body_id: i32, vx: f32, vy: f32, vz: f32, avx: f32, avy: f32, avz: f32);
+  fn JPH_BodyInterface_AddLinearVelocity(body_iface: ptr, body_id: i32, vx: f32, vy: f32, vz: f32);
+  fn JPH_BodyInterface_AddLinearAndAngularVelocity(body_iface: ptr, body_id: i32, vx: f32, vy: f32, vz: f32, avx: f32, avy: f32, avz: f32);
+  fn JPH_BodyInterface_GetPointVelocity(body_iface: ptr, body_id: i32, px: f32, py: f32, pz: f32, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_BodyInterface_SetPositionRotationAndVelocity(body_iface: ptr, body_id: i32, px: f32, py: f32, pz: f32, qx: f32, qy: f32, qz: f32, qw: f32, vx: f32, vy: f32, vz: f32, avx: f32, avy: f32, avz: f32);
+  fn JPH_BodyInterface_MoveKinematic(body_iface: ptr, body_id: i32, tx: f32, ty: f32, tz: f32, tqx: f32, tqy: f32, tqz: f32, tqw: f32, dt: f32);
 
+  # BodyInterface — forces/impulses
   fn JPH_BodyInterface_AddForce(body_iface: ptr, body_id: i32, fx: f32, fy: f32, fz: f32);
-  fn JPH_BodyInterface_AddImpulse(body_iface: ptr, body_id: i32, ix: f32, iy: f32, iz: f32);
+  fn JPH_BodyInterface_AddForceAtPoint(body_iface: ptr, body_id: i32, fx: f32, fy: f32, fz: f32, px: f32, py: f32, pz: f32);
   fn JPH_BodyInterface_AddTorque(body_iface: ptr, body_id: i32, tx: f32, ty: f32, tz: f32);
+  fn JPH_BodyInterface_AddForceAndTorque(body_iface: ptr, body_id: i32, fx: f32, fy: f32, fz: f32, tx: f32, ty: f32, tz: f32);
+  fn JPH_BodyInterface_AddImpulse(body_iface: ptr, body_id: i32, ix: f32, iy: f32, iz: f32);
+  fn JPH_BodyInterface_AddImpulseAtPoint(body_iface: ptr, body_id: i32, ix: f32, iy: f32, iz: f32, px: f32, py: f32, pz: f32);
+  fn JPH_BodyInterface_AddAngularImpulse(body_iface: ptr, body_id: i32, ix: f32, iy: f32, iz: f32);
+  fn JPH_BodyInterface_ApplyBuoyancyImpulse(body_iface: ptr, body_id: i32, sx: f32, sy: f32, sz: f32, snx: f32, sny: f32, snz: f32, buoyancy: f32, lin_drag: f32, ang_drag: f32, fvx: f32, fvy: f32, fvz: f32, grav: f32, dt: f32) -> i32;
 
+  # BodyInterface — material/properties
   fn JPH_BodyInterface_GetFriction(body_iface: ptr, body_id: i32) -> f32;
+  fn JPH_BodyInterface_SetFriction(body_iface: ptr, body_id: i32, value: f32);
   fn JPH_BodyInterface_GetRestitution(body_iface: ptr, body_id: i32) -> f32;
+  fn JPH_BodyInterface_SetRestitution(body_iface: ptr, body_id: i32, value: f32);
+  fn JPH_BodyInterface_GetGravityFactor(body_iface: ptr, body_id: i32) -> f32;
+  fn JPH_BodyInterface_SetGravityFactor(body_iface: ptr, body_id: i32, value: f32);
+  fn JPH_BodyInterface_GetMaxLinearVelocity(body_iface: ptr, body_id: i32) -> f32;
+  fn JPH_BodyInterface_SetMaxLinearVelocity(body_iface: ptr, body_id: i32, value: f32);
+  fn JPH_BodyInterface_GetMaxAngularVelocity(body_iface: ptr, body_id: i32) -> f32;
+  fn JPH_BodyInterface_SetMaxAngularVelocity(body_iface: ptr, body_id: i32, value: f32);
+  fn JPH_BodyInterface_GetUseManifoldReduction(body_iface: ptr, body_id: i32) -> i32;
+  fn JPH_BodyInterface_SetUseManifoldReduction(body_iface: ptr, body_id: i32, value: i32);
+  fn JPH_BodyInterface_IsSensor(body_iface: ptr, body_id: i32) -> i32;
+  fn JPH_BodyInterface_SetIsSensor(body_iface: ptr, body_id: i32, value: i32);
+  fn JPH_BodyInterface_GetUserData(body_iface: ptr, body_id: i32) -> i32;
+  fn JPH_BodyInterface_SetUserData(body_iface: ptr, body_id: i32, value: i32);
+  fn JPH_BodyInterface_InvalidateContactCache(body_iface: ptr, body_id: i32);
 
-  # Shape Settings
-  fn JPH_BoxShapeSettings_Create(half_x: f32, half_y: f32, half_z: f32) -> ptr;
+  # BodyInterface — shape/layer/type
+  fn JPH_BodyInterface_GetShape(body_iface: ptr, body_id: i32) -> ptr;
+  fn JPH_BodyInterface_SetShape(body_iface: ptr, body_id: i32, shape: ptr, update_mass: i32, activate: i32);
+  fn JPH_BodyInterface_NotifyShapeChanged(body_iface: ptr, body_id: i32, prev_com_x: f32, prev_com_y: f32, prev_com_z: f32, update_mass: i32, activate: i32);
+  fn JPH_BodyInterface_GetObjectLayer(body_iface: ptr, body_id: i32) -> i32;
+  fn JPH_BodyInterface_SetObjectLayer(body_iface: ptr, body_id: i32, layer: i32);
+  fn JPH_BodyInterface_GetMotionType(body_iface: ptr, body_id: i32) -> i32;
+  fn JPH_BodyInterface_SetMotionType(body_iface: ptr, body_id: i32, motion_type: i32, activate: i32);
+  fn JPH_BodyInterface_GetMotionQuality(body_iface: ptr, body_id: i32) -> i32;
+  fn JPH_BodyInterface_SetMotionQuality(body_iface: ptr, body_id: i32, quality: i32);
+  fn JPH_BodyInterface_GetBodyType(body_iface: ptr, body_id: i32) -> i32;
+  fn JPH_BodyInterface_GetCollisionGroup(body_iface: ptr, body_id: i32) -> ptr;
+  fn JPH_BodyInterface_SetCollisionGroup(body_iface: ptr, body_id: i32, group: ptr);
+
+  # BodyCreationSettings
+  fn JPH_BodyCreationSettings_Create() -> ptr;
+  fn JPH_BodyCreationSettings_SetShape(settings: ptr, shape: ptr);
+  fn JPH_BodyCreationSettings_SetPosition(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_BodyCreationSettings_SetRotation(settings: ptr, qx: f32, qy: f32, qz: f32, qw: f32);
+  fn JPH_BodyCreationSettings_SetLinearVelocity(settings: ptr, vx: f32, vy: f32, vz: f32);
+  fn JPH_BodyCreationSettings_SetAngularVelocity(settings: ptr, avx: f32, avy: f32, avz: f32);
+  fn JPH_BodyCreationSettings_SetMotionType(settings: ptr, motion_type: i32);
+  fn JPH_BodyCreationSettings_SetObjectLayer(settings: ptr, layer: i32);
+  fn JPH_BodyCreationSettings_SetUserData(settings: ptr, user_data: i64);
+  fn JPH_BodyCreationSettings_SetFriction(settings: ptr, friction: f32);
+  fn JPH_BodyCreationSettings_SetRestitution(settings: ptr, restitution: f32);
+  fn JPH_BodyCreationSettings_SetLinearDamping(settings: ptr, damping: f32);
+  fn JPH_BodyCreationSettings_SetAngularDamping(settings: ptr, damping: f32);
+  fn JPH_BodyCreationSettings_SetGravityFactor(settings: ptr, factor: f32);
+  fn JPH_BodyCreationSettings_SetMaxLinearVelocity(settings: ptr, velocity: f32);
+  fn JPH_BodyCreationSettings_SetMaxAngularVelocity(settings: ptr, velocity: f32);
+  fn JPH_BodyCreationSettings_SetAllowedDOFs(settings: ptr, dofs: i32);
+  fn JPH_BodyCreationSettings_SetMotionQuality(settings: ptr, quality: i32);
+  fn JPH_BodyCreationSettings_SetIsSensor(settings: ptr, sensor: i32);
+  fn JPH_BodyCreationSettings_SetCollideKinematicVsNonDynamic(settings: ptr, value: i32);
+  fn JPH_BodyCreationSettings_SetUseManifoldReduction(settings: ptr, value: i32);
+  fn JPH_BodyCreationSettings_SetApplyGyroscopicForce(settings: ptr, value: i32);
+  fn JPH_BodyCreationSettings_SetEnhancedInternalEdgeRemoval(settings: ptr, value: i32);
+  fn JPH_BodyCreationSettings_SetAllowSleeping(settings: ptr, value: i32);
+  fn JPH_BodyCreationSettings_SetOverrideMassProperties(settings: ptr, mode: i32);
+  fn JPH_BodyCreationSettings_SetMassPropertiesOverride(settings: ptr, mass: f32, i00: f32, i01: f32, i02: f32, i10: f32, i11: f32, i12: f32, i20: f32, i21: f32, i22: f32);
+  fn JPH_BodyCreationSettings_SetInertiaMultiplier(settings: ptr, multiplier: f32);
+  fn JPH_BodyCreationSettings_GetShape(settings: ptr) -> ptr;
+  fn JPH_BodyCreationSettings_GetPosition(settings: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_BodyCreationSettings_GetRotation(settings: ptr, out_x: ptr, out_y: ptr, out_z: ptr, out_w: ptr);
+  fn JPH_BodyCreationSettings_Destroy(settings: ptr);
+
+  # Shapes — all types
   fn JPH_SphereShapeSettings_Create(radius: f32) -> ptr;
+  fn JPH_BoxShapeSettings_Create(half_x: f32, half_y: f32, half_z: f32, convex_radius: f32) -> ptr;
   fn JPH_CapsuleShapeSettings_Create(half_height: f32, radius: f32) -> ptr;
-  fn JPH_CylinderShapeSettings_Create(half_height: f32, radius: f32) -> ptr;
+  fn JPH_TaperedCapsuleShapeSettings_Create(half_height: f32, top_radius: f32, bottom_radius: f32) -> ptr;
+  fn JPH_CylinderShapeSettings_Create(half_height: f32, radius: f32, convex_radius: f32) -> ptr;
+  fn JPH_TaperedCylinderShapeSettings_Create(half_height: f32, top_radius: f32, bottom_radius: f32, convex_radius: f32) -> ptr;
+  fn JPH_TriangleShapeSettings_Create(v1x: f32, v1y: f32, v1z: f32, v2x: f32, v2y: f32, v2z: f32, v3x: f32, v3y: f32, v3z: f32, convex_radius: f32) -> ptr;
   fn JPH_PlaneShapeSettings_Create(nx: f32, ny: f32, nz: f32, constant: f32) -> ptr;
-
+  fn JPH_EmptyShapeSettings_Create() -> ptr;
+  fn JPH_ConvexHullShapeSettings_Create(points: ptr, num_points: i32, stride: i32, max_convex_radius: f32) -> ptr;
+  fn JPH_MeshShapeSettings_Create(vertices: ptr, num_vertices: i32, triangles: ptr, num_triangles: i32) -> ptr;
+  fn JPH_HeightFieldShapeSettings_Create(height_map: ptr, material_indices: ptr, sample_count: i32, block_size: i32, offset_x: f32, offset_y: f32, offset_z: f32, scale_x: f32, scale_y: f32, scale_z: f32) -> ptr;
+  fn JPH_StaticCompoundShapeSettings_Create() -> ptr;
+  fn JPH_StaticCompoundShapeSettings_AddShape(settings: ptr, shape: ptr, px: f32, py: f32, pz: f32, qx: f32, qy: f32, qz: f32, qw: f32, user_data: i32);
+  fn JPH_MutableCompoundShapeSettings_Create() -> ptr;
+  fn JPH_MutableCompoundShapeSettings_AddShape(settings: ptr, shape: ptr, px: f32, py: f32, pz: f32, qx: f32, qy: f32, qz: f32, qw: f32, user_data: i32);
+  fn JPH_RotatedTranslatedShapeSettings_Create(inner: ptr, px: f32, py: f32, pz: f32, qx: f32, qy: f32, qz: f32, qw: f32) -> ptr;
+  fn JPH_ScaledShapeSettings_Create(inner: ptr, sx: f32, sy: f32, sz: f32) -> ptr;
+  fn JPH_OffsetCenterOfMassShapeSettings_Create(inner: ptr, ox: f32, oy: f32, oz: f32) -> ptr;
   fn JPH_ShapeSettings_CreateShape(settings: ptr) -> ptr;
   fn JPH_ShapeSettings_Destroy(settings: ptr);
   fn JPH_Shape_Destroy(shape: ptr);
 
-  # Body Creation Settings
-  fn JPH_BodyCreationSettings_Create(shape: ptr, px: f32, py: f32, pz: f32, qx: f32, qy: f32, qz: f32, qw: f32, motion_type: i32, object_layer: i32) -> ptr;
-  fn JPH_BodyCreationSettings_SetRestitution(settings: ptr, value: f32);
-  fn JPH_BodyCreationSettings_SetFriction(settings: ptr, value: f32);
-  fn JPH_BodyCreationSettings_SetLinearDamping(settings: ptr, value: f32);
-  fn JPH_BodyCreationSettings_SetAngularDamping(settings: ptr, value: f32);
-  fn JPH_BodyCreationSettings_SetGravityFactor(settings: ptr, value: f32);
-  fn JPH_BodyCreationSettings_Destroy(settings: ptr);
+  # Shape runtime properties
+  fn JPH_Shape_GetType(shape: ptr) -> i32;
+  fn JPH_Shape_GetSubType(shape: ptr) -> i32;
+  fn JPH_Shape_GetUserData(shape: ptr) -> i64;
+  fn JPH_Shape_SetUserData(shape: ptr, data: i64);
+  fn JPH_Shape_GetCenterOfMass(shape: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_Shape_GetLocalBounds(shape: ptr, out_min_x: ptr, out_min_y: ptr, out_min_z: ptr, out_max_x: ptr, out_max_y: ptr, out_max_z: ptr);
+  fn JPH_Shape_GetVolume(shape: ptr) -> f32;
+  fn JPH_Shape_GetInnerRadius(shape: ptr) -> f32;
+  fn JPH_Shape_ScaleShape(shape: ptr, sx: f32, sy: f32, sz: f32) -> ptr;
 
-  # Ray casting
-  fn JPH_NarrowPhaseQuery_CastRay(narrow_query: ptr, origin_x: f32, origin_y: f32, origin_z: f32, dir_x: f32, dir_y: f32, dir_z: f32, out_body_id: ptr, out_fraction: ptr, out_hit_x: ptr, out_hit_y: ptr, out_hit_z: ptr, out_normal_x: ptr, out_normal_y: ptr, out_normal_z: ptr) -> i32;
+  # BoxShape accessors
+  fn JPH_BoxShape_GetHalfExtent(shape: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_BoxShape_GetConvexRadius(shape: ptr) -> f32;
 
-  # Collision groups
+  # SphereShape accessors
+  fn JPH_SphereShape_GetRadius(shape: ptr) -> f32;
+
+  # CapsuleShape accessors
+  fn JPH_CapsuleShape_GetRadius(shape: ptr) -> f32;
+  fn JPH_CapsuleShape_GetHalfHeight(shape: ptr) -> f32;
+
+  # CylinderShape accessors
+  fn JPH_CylinderShape_GetRadius(shape: ptr) -> f32;
+  fn JPH_CylinderShape_GetHalfHeight(shape: ptr) -> f32;
+
+  # Tapered shapes accessors
+  fn JPH_TaperedCapsuleShape_GetTopRadius(shape: ptr) -> f32;
+  fn JPH_TaperedCapsuleShape_GetBottomRadius(shape: ptr) -> f32;
+  fn JPH_TaperedCapsuleShape_GetHalfHeight(shape: ptr) -> f32;
+  fn JPH_TaperedCylinderShape_GetTopRadius(shape: ptr) -> f32;
+  fn JPH_TaperedCylinderShape_GetBottomRadius(shape: ptr) -> f32;
+  fn JPH_TaperedCylinderShape_GetHalfHeight(shape: ptr) -> f32;
+
+  # ConvexHullShape accessors
+  fn JPH_ConvexHullShape_GetNumPoints(shape: ptr) -> i32;
+  fn JPH_ConvexHullShape_GetPoint(shape: ptr, index: i32, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_ConvexHullShape_GetNumFaces(shape: ptr) -> i32;
+  fn JPH_ConvexHullShape_GetNumVerticesInFace(shape: ptr, face: i32) -> i32;
+
+  # MeshShape accessors
+  fn JPH_MeshShape_GetNumTriangles(shape: ptr) -> i32;
+  fn JPH_MeshShape_GetTriangle(shape: ptr, index: i32, out_i1: ptr, out_i2: ptr, out_i3: ptr, out_mat: ptr, out_ud: ptr);
+
+  # HeightFieldShape accessors
+  fn JPH_HeightFieldShape_GetSampleCount(shape: ptr) -> i32;
+  fn JPH_HeightFieldShape_GetBlockSize(shape: ptr) -> i32;
+  fn JPH_HeightFieldShape_GetPosition(shape: ptr, x: i32, y: i32, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_HeightFieldShape_IsNoCollision(shape: ptr, x: i32, y: i32) -> i32;
+  fn JPH_HeightFieldShape_GetMinHeight(shape: ptr) -> f32;
+  fn JPH_HeightFieldShape_GetMaxHeight(shape: ptr) -> f32;
+
+  # CompoundShape accessors
+  fn JPH_CompoundShape_GetNumSubShapes(shape: ptr) -> i32;
+
+  # MutableCompoundShape mutation
+  fn JPH_MutableCompoundShape_AddShape(shape: ptr, sub: ptr, px: f32, py: f32, pz: f32, qx: f32, qy: f32, qz: f32, qw: f32, ud: i32) -> i32;
+  fn JPH_MutableCompoundShape_RemoveShape(shape: ptr, index: i32);
+  fn JPH_MutableCompoundShape_ModifyShape(shape: ptr, index: i32, sub: ptr, px: f32, py: f32, pz: f32, qx: f32, qy: f32, qz: f32, qw: f32);
+  fn JPH_MutableCompoundShape_AdjustCenterOfMass(shape: ptr);
+
+  # Decorated shapes accessors
+  fn JPH_ScaledShape_GetScale(shape: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_RotatedTranslatedShape_GetRotation(shape: ptr, out_x: ptr, out_y: ptr, out_z: ptr, out_w: ptr);
+  fn JPH_RotatedTranslatedShape_GetPosition(shape: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_OffsetCenterOfMassShape_GetOffset(shape: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_DecoratedShape_GetInnerShape(shape: ptr) -> ptr;
+
+  # CollisionGroup / GroupFilter
   fn JPH_GroupFilterTable_Create(num_groups: i32) -> ptr;
   fn JPH_GroupFilterTable_DisableCollision(filter: ptr, group1: i32, group2: i32);
   fn JPH_GroupFilterTable_EnableCollision(filter: ptr, group1: i32, group2: i32);
   fn JPH_GroupFilter_Destroy(filter: ptr);
 
-  # Constraints
+  # NarrowPhaseQuery — ray casting
+  fn JPH_NarrowPhaseQuery_CastRay(narrow_query: ptr, ox: f32, oy: f32, oz: f32, dx: f32, dy: f32, dz: f32, out_body: ptr, out_frac: ptr, out_hx: ptr, out_hy: ptr, out_hz: ptr, out_nx: ptr, out_ny: ptr, out_nz: ptr) -> i32;
+
+  # Constraints — Fixed
+  fn JPH_FixedConstraintSettings_Create() -> ptr;
+  fn JPH_FixedConstraintSettings_SetPoint1(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_FixedConstraintSettings_SetPoint2(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_FixedConstraintSettings_SetSpace(settings: ptr, space: i32);
+  fn JPH_FixedConstraintSettings_SetAutoDetectPoint(settings: ptr, auto: i32);
+
+  # Constraints — Point
+  fn JPH_PointConstraintSettings_Create() -> ptr;
+  fn JPH_PointConstraintSettings_SetPoint1(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_PointConstraintSettings_SetPoint2(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_PointConstraintSettings_SetSpace(settings: ptr, space: i32);
+  fn JPH_PointConstraint_SetPoint1(constraint: ptr, space: i32, px: f32, py: f32, pz: f32);
+  fn JPH_PointConstraint_SetPoint2(constraint: ptr, space: i32, px: f32, py: f32, pz: f32);
+
+  # Constraints — Distance
   fn JPH_DistanceConstraintSettings_Create() -> ptr;
   fn JPH_DistanceConstraintSettings_SetPoint1(settings: ptr, px: f32, py: f32, pz: f32);
   fn JPH_DistanceConstraintSettings_SetPoint2(settings: ptr, px: f32, py: f32, pz: f32);
-  fn JPH_DistanceConstraintSettings_SetDistance(settings: ptr, min_dist: f32, max_dist: f32);
-  fn JPH_Constraint_Create(settings: ptr, body1: i32, body2: i32) -> ptr;
-  fn JPH_PhysicsSystem_AddConstraint(system: ptr, constraint: ptr);
-  fn JPH_PhysicsSystem_RemoveConstraint(system: ptr, constraint: ptr);
+  fn JPH_DistanceConstraintSettings_SetDistance(settings: ptr, min: f32, max: f32);
+  fn JPH_DistanceConstraintSettings_SetSpace(settings: ptr, space: i32);
+  fn JPH_DistanceConstraintSettings_SetSpring(settings: ptr, mode: i32, freq: f32, damping: f32);
+  fn JPH_DistanceConstraint_SetDistance(constraint: ptr, min: f32, max: f32);
+  fn JPH_DistanceConstraint_GetMinDistance(constraint: ptr) -> f32;
+  fn JPH_DistanceConstraint_GetMaxDistance(constraint: ptr) -> f32;
+
+  # Constraints — Hinge
+  fn JPH_HingeConstraintSettings_Create() -> ptr;
+  fn JPH_HingeConstraintSettings_SetPoint1(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_HingeConstraintSettings_SetPoint2(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_HingeConstraintSettings_SetSpace(settings: ptr, space: i32);
+  fn JPH_HingeConstraintSettings_SetLimits(settings: ptr, min: f32, max: f32);
+  fn JPH_HingeConstraintSettings_SetMaxFrictionTorque(settings: ptr, torque: f32);
+  fn JPH_HingeConstraintSettings_SetMotor(settings: ptr, mode: i32, freq: f32, damping: f32, min_torque: f32, max_torque: f32);
+  fn JPH_HingeConstraint_GetCurrentAngle(constraint: ptr) -> f32;
+  fn JPH_HingeConstraint_SetMaxFrictionTorque(constraint: ptr, torque: f32);
+  fn JPH_HingeConstraint_GetMaxFrictionTorque(constraint: ptr) -> f32;
+  fn JPH_HingeConstraint_SetMotorState(constraint: ptr, state: i32);
+  fn JPH_HingeConstraint_GetMotorState(constraint: ptr) -> i32;
+  fn JPH_HingeConstraint_SetTargetAngularVelocity(constraint: ptr, vel: f32);
+  fn JPH_HingeConstraint_GetTargetAngularVelocity(constraint: ptr) -> f32;
+  fn JPH_HingeConstraint_SetTargetAngle(constraint: ptr, angle: f32);
+  fn JPH_HingeConstraint_GetTargetAngle(constraint: ptr) -> f32;
+  fn JPH_HingeConstraint_SetLimits(constraint: ptr, min: f32, max: f32);
+  fn JPH_HingeConstraint_GetLimitsMin(constraint: ptr) -> f32;
+  fn JPH_HingeConstraint_GetLimitsMax(constraint: ptr) -> f32;
+  fn JPH_HingeConstraint_HasLimits(constraint: ptr) -> i32;
+
+  # Constraints — Slider
+  fn JPH_SliderConstraintSettings_Create() -> ptr;
+  fn JPH_SliderConstraintSettings_SetPoint1(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_SliderConstraintSettings_SetPoint2(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_SliderConstraintSettings_SetSpace(settings: ptr, space: i32);
+  fn JPH_SliderConstraintSettings_SetLimits(settings: ptr, min: f32, max: f32);
+  fn JPH_SliderConstraintSettings_SetMaxFrictionForce(settings: ptr, force: f32);
+  fn JPH_SliderConstraintSettings_SetMotor(settings: ptr, mode: i32, freq: f32, damping: f32, min_force: f32, max_force: f32);
+  fn JPH_SliderConstraint_GetCurrentPosition(constraint: ptr) -> f32;
+
+  # Constraints — Cone
+  fn JPH_ConeConstraintSettings_Create() -> ptr;
+  fn JPH_ConeConstraintSettings_SetPoint1(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_ConeConstraintSettings_SetPoint2(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_ConeConstraintSettings_SetSpace(settings: ptr, space: i32);
+  fn JPH_ConeConstraintSettings_SetHalfConeAngle(settings: ptr, angle: f32);
+  fn JPH_ConeConstraint_SetHalfConeAngle(constraint: ptr, angle: f32);
+
+  # Constraints — SwingTwist
+  fn JPH_SwingTwistConstraintSettings_Create() -> ptr;
+  fn JPH_SwingTwistConstraintSettings_SetPosition1(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_SwingTwistConstraintSettings_SetPosition2(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_SwingTwistConstraintSettings_SetSpace(settings: ptr, space: i32);
+  fn JPH_SwingTwistConstraintSettings_SetNormalHalfConeAngle(settings: ptr, angle: f32);
+  fn JPH_SwingTwistConstraintSettings_SetPlaneHalfConeAngle(settings: ptr, angle: f32);
+  fn JPH_SwingTwistConstraintSettings_SetTwistLimits(settings: ptr, min: f32, max: f32);
+  fn JPH_SwingTwistConstraintSettings_SetMaxFrictionTorque(settings: ptr, torque: f32);
+
+  # Constraints — SixDOF
+  fn JPH_SixDOFConstraintSettings_Create() -> ptr;
+  fn JPH_SixDOFConstraintSettings_SetPosition1(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_SixDOFConstraintSettings_SetPosition2(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_SixDOFConstraintSettings_SetSpace(settings: ptr, space: i32);
+  fn JPH_SixDOFConstraintSettings_MakeFreeAxis(settings: ptr, axis: i32);
+  fn JPH_SixDOFConstraintSettings_MakeFixedAxis(settings: ptr, axis: i32);
+  fn JPH_SixDOFConstraintSettings_SetLimitedAxis(settings: ptr, axis: i32, min: f32, max: f32);
+
+  # Constraints — Path
+  fn JPH_PathConstraintPathHermite_Create() -> ptr;
+  fn JPH_PathConstraintPathHermite_AddPoint(path: ptr, px: f32, py: f32, pz: f32, tx: f32, ty: f32, tz: f32, nx: f32, ny: f32, nz: f32);
+  fn JPH_PathConstraintSettings_Create() -> ptr;
+
+  # Constraints — Gear
+  fn JPH_GearConstraintSettings_Create() -> ptr;
+  fn JPH_GearConstraintSettings_SetSpace(settings: ptr, space: i32);
+
+  # Constraints — RackAndPinion
+  fn JPH_RackAndPinionConstraintSettings_Create() -> ptr;
+
+  # Constraints — Pulley
+  fn JPH_PulleyConstraintSettings_Create() -> ptr;
+  fn JPH_PulleyConstraintSettings_SetLength(settings: ptr, min: f32, max: f32);
+
+  # Constraints — common
+  fn JPH_Constraint_Create2(settings: ptr, body1: i32, body2: i32) -> ptr;
+  fn JPH_Constraint_GetSubType(constraint: ptr) -> i32;
+  fn JPH_Constraint_GetEnabled(constraint: ptr) -> i32;
+  fn JPH_Constraint_SetEnabled(constraint: ptr, enabled: i32);
+  fn JPH_Constraint_GetUserData(constraint: ptr) -> i64;
+  fn JPH_Constraint_SetUserData(constraint: ptr, user_data: i64);
+  fn JPH_Constraint_GetConstraintPriority(constraint: ptr) -> i32;
+  fn JPH_Constraint_SetConstraintPriority(constraint: ptr, priority: i32);
   fn JPH_Constraint_Destroy(constraint: ptr);
+  fn JPH_ConstraintSettings_Destroy(settings: ptr);
+
+  # Motor / Spring settings
+  fn JPH_MotorSettings_Create() -> ptr;
+  fn JPH_MotorSettings_SetSettings(motor: ptr, mode: i32, freq: f32, damping: f32, min: f32, max: f32);
+  fn JPH_SpringSettings_Create() -> ptr;
+  fn JPH_SpringSettings_SetSettings(spring: ptr, mode: i32, freq: f32, damping: f32);
+
+  # Character — rigid body character
+  fn JPH_CharacterSettings_Create() -> ptr;
+  fn JPH_CharacterSettings_SetShape(settings: ptr, shape: ptr);
+  fn JPH_CharacterSettings_SetLayer(settings: ptr, layer: i32);
+  fn JPH_CharacterSettings_SetMass(settings: ptr, mass: f32);
+  fn JPH_CharacterSettings_SetFriction(settings: ptr, friction: f32);
+  fn JPH_CharacterSettings_SetGravityFactor(settings: ptr, factor: f32);
+  fn JPH_CharacterSettings_SetUp(settings: ptr, ux: f32, uy: f32, uz: f32);
+  fn JPH_CharacterSettings_SetMaxSlopeAngle(settings: ptr, angle: f32);
+  fn JPH_CharacterSettings_SetAllowedDOFs(settings: ptr, dofs: i32);
+  fn JPH_Character_Create(settings: ptr) -> ptr;
+  fn JPH_Character_AddToPhysicsSystem(ch: ptr, activation: i32, lock_body: i32);
+  fn JPH_Character_RemoveFromPhysicsSystem(ch: ptr, lock_body: i32);
+  fn JPH_Character_GetPosition(ch: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_Character_SetPosition(ch: ptr, px: f32, py: f32, pz: f32, activation: i32);
+  fn JPH_Character_GetRotation(ch: ptr, out_x: ptr, out_y: ptr, out_z: ptr, out_w: ptr);
+  fn JPH_Character_SetRotation(ch: ptr, qx: f32, qy: f32, qz: f32, qw: f32, activation: i32);
+  fn JPH_Character_GetLinearVelocity(ch: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_Character_SetLinearVelocity(ch: ptr, vx: f32, vy: f32, vz: f32);
+  fn JPH_Character_GetBodyID(ch: ptr) -> i32;
+  fn JPH_Character_GetGroundState(ch: ptr) -> i32;
+  fn JPH_Character_GetGroundPosition(ch: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_Character_GetGroundNormal(ch: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_Character_GetGroundBodyID(ch: ptr) -> i32;
+  fn JPH_Character_IsSupported(ch: ptr) -> i32;
+  fn JPH_Character_PostSimulation(ch: ptr, max_sep: f32, lock_body: i32);
+  fn JPH_Character_Destroy(ch: ptr);
+
+  # CharacterVirtual
+  fn JPH_CharacterVirtualSettings_Create() -> ptr;
+  fn JPH_CharacterVirtualSettings_SetShape(settings: ptr, shape: ptr);
+  fn JPH_CharacterVirtualSettings_SetMass(settings: ptr, mass: f32);
+  fn JPH_CharacterVirtualSettings_SetMaxStrength(settings: ptr, strength: f32);
+  fn JPH_CharacterVirtualSettings_SetMaxSlopeAngle(settings: ptr, angle: f32);
+  fn JPH_CharacterVirtualSettings_SetUp(settings: ptr, ux: f32, uy: f32, uz: f32);
+  fn JPH_CharacterVirtualSettings_SetBackFaceMode(settings: ptr, mode: i32);
+  fn JPH_CharacterVirtualSettings_SetCharacterPadding(settings: ptr, padding: f32);
+  fn JPH_CharacterVirtualSettings_SetPenetrationRecoverySpeed(settings: ptr, speed: f32);
+  fn JPH_CharacterVirtualSettings_SetShapeOffset(settings: ptr, ox: f32, oy: f32, oz: f32);
+  fn JPH_CharacterVirtual_Create(settings: ptr) -> ptr;
+  fn JPH_CharacterVirtual_Update(ch: ptr, dt: f32, gx: f32, gy: f32, gz: f32, bp_filter: ptr, obj_filter: ptr, obj_vs_bp_filter: ptr, body_filter: ptr, shape_filter: ptr, allocator: ptr);
+  fn JPH_CharacterVirtual_GetPosition(ch: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_CharacterVirtual_SetPosition(ch: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_CharacterVirtual_GetRotation(ch: ptr, out_x: ptr, out_y: ptr, out_z: ptr, out_w: ptr);
+  fn JPH_CharacterVirtual_SetRotation(ch: ptr, qx: f32, qy: f32, qz: f32, qw: f32);
+  fn JPH_CharacterVirtual_GetLinearVelocity(ch: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_CharacterVirtual_SetLinearVelocity(ch: ptr, vx: f32, vy: f32, vz: f32);
+  fn JPH_CharacterVirtual_GetGroundState(ch: ptr) -> i32;
+  fn JPH_CharacterVirtual_IsSupported(ch: ptr) -> i32;
+  fn JPH_CharacterVirtual_GetGroundPosition(ch: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_CharacterVirtual_GetGroundNormal(ch: ptr, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_CharacterVirtual_GetGroundBodyID(ch: ptr) -> i32;
+  fn JPH_CharacterVirtual_SetListener(ch: ptr, listener: ptr);
+  fn JPH_CharacterVirtual_SetInnerBodyShape(ch: ptr, shape: ptr);
+  fn JPH_CharacterVirtual_GetID(ch: ptr) -> i32;
+  fn JPH_CharacterVirtual_Destroy(ch: ptr);
+
+  # Vehicle — WheeledVehicleController
+  fn JPH_WheeledVehicleControllerSettings_Create() -> ptr;
+  fn JPH_WheeledVehicleControllerSettings_SetEngine(settings: ptr, max_torque: f32, min_rpm: f32, max_rpm: f32, inertia: f32, ang_damp: f32);
+  fn JPH_WheeledVehicleControllerSettings_SetTransmission(settings: ptr, mode: i32);
+  fn JPH_WheeledVehicleControllerSettings_AddDifferential(settings: ptr, left: i32, right: i32, diff_ratio: f32, split: f32, slip_ratio: f32);
+  fn JPH_WheeledVehicleControllerSettings_AddWheel(settings: ptr, px: f32, py: f32, pz: f32, sdx: f32, sdy: f32, sdz: f32, sax: f32, say: f32, saz: f32, wux: f32, wuy: f32, wuz: f32, wfx: f32, wfy: f32, wfz: f32, s_min: f32, s_max: f32, radius: f32, width: f32, inertia: f32, max_steer: f32, max_brake: f32, max_hb: f32) -> i32;
+  fn JPH_VehicleConstraintSettings_Create() -> ptr;
+  fn JPH_VehicleConstraintSettings_SetController(settings: ptr, controller: ptr);
+  fn JPH_VehicleConstraintSettings_SetUp(settings: ptr, ux: f32, uy: f32, uz: f32);
+  fn JPH_VehicleConstraintSettings_SetForward(settings: ptr, fx: f32, fy: f32, fz: f32);
+  fn JPH_VehicleConstraintSettings_SetMaxPitchRollAngle(settings: ptr, angle: f32);
+  fn JPH_VehicleConstraint_CreateWheeled(settings: ptr, body_id: i32) -> ptr;
+  fn JPH_VehicleConstraint_GetController(constraint: ptr) -> ptr;
+  fn JPH_WheeledVehicleController_SetDriverInput(controller: ptr, forward: f32, right: f32, brake: f32, hb: f32);
+  fn JPH_WheeledVehicleController_GetEngineRPM(controller: ptr) -> f32;
+  fn JPH_WheeledVehicleController_GetCurrentGear(controller: ptr) -> i32;
+  fn JPH_WheeledVehicleController_GetForwardSpeed(controller: ptr) -> f32;
+  fn JPH_VehicleConstraint_GetWheelCount(constraint: ptr) -> i32;
+  fn JPH_VehicleConstraint_GetWheelAngularVelocity(constraint: ptr, idx: i32) -> f32;
+  fn JPH_VehicleConstraint_GetWheelRotationAngle(constraint: ptr, idx: i32) -> f32;
+  fn JPH_VehicleConstraint_WheelHasContact(constraint: ptr, idx: i32) -> i32;
+
+  # Vehicle — TrackedVehicleController
+  fn JPH_TrackedVehicleControllerSettings_Create() -> ptr;
+  fn JPH_TrackedVehicleControllerSettings_SetEngine(settings: ptr, max_torque: f32, min_rpm: f32, max_rpm: f32, inertia: f32, ang_damp: f32);
+  fn JPH_TrackedVehicleControllerSettings_SetTransmission(settings: ptr, mode: i32);
+  fn JPH_TrackedVehicleControllerSettings_AddTrack(settings: ptr, driven_wheel: i32, inertia: f32, ang_damp: f32, max_brake: f32, diff_ratio: f32);
+  fn JPH_TrackedVehicleControllerSettings_AddTrackWheel(settings: ptr, track_idx: i32, wheel: i32);
+  fn JPH_TrackedVehicleControllerSettings_AddWheel(settings: ptr, px: f32, py: f32, pz: f32, sdx: f32, sdy: f32, sdz: f32, s_min: f32, s_max: f32, r: f32, w: f32, long_fr: f32, lat_fr: f32) -> i32;
+  fn JPH_VehicleConstraint_CreateTracked(settings: ptr, body_id: i32) -> ptr;
+  fn JPH_TrackedVehicleController_SetDriverInput(controller: ptr, forward: f32, left_ratio: f32, right_ratio: f32, brake: f32);
+
+  # Vehicle — MotorcycleController
+  fn JPH_MotorcycleControllerSettings_Create() -> ptr;
+  fn JPH_MotorcycleControllerSettings_SetMaxLeanAngle(settings: ptr, angle: f32);
+  fn JPH_VehicleConstraint_CreateMotorcycle(settings: ptr, body_id: i32) -> ptr;
+
+  # SoftBodySharedSettings
+  fn JPH_SoftBodySharedSettings_Create() -> ptr;
+  fn JPH_SoftBodySharedSettings_AddVertex(settings: ptr, px: f32, py: f32, pz: f32, inv_mass: f32);
+  fn JPH_SoftBodySharedSettings_AddFace(settings: ptr, v1: i32, v2: i32, v3: i32, mat: i32);
+  fn JPH_SoftBodySharedSettings_CreateConstraints(settings: ptr, bend_type: i32, angle_tol: f32);
+  fn JPH_SoftBodySharedSettings_Optimize(settings: ptr);
+  fn JPH_SoftBodySharedSettings_GetNumVertices(settings: ptr) -> i32;
+  fn JPH_SoftBodySharedSettings_GetNumFaces(settings: ptr) -> i32;
+  fn JPH_SoftBodySharedSettings_Destroy(settings: ptr);
+
+  # SoftBodyCreationSettings
+  fn JPH_SoftBodyCreationSettings_Create() -> ptr;
+  fn JPH_SoftBodyCreationSettings_SetSettings(settings: ptr, shared: ptr);
+  fn JPH_SoftBodyCreationSettings_SetPosition(settings: ptr, px: f32, py: f32, pz: f32);
+  fn JPH_SoftBodyCreationSettings_SetRotation(settings: ptr, qx: f32, qy: f32, qz: f32, qw: f32);
+  fn JPH_SoftBodyCreationSettings_SetPressure(settings: ptr, pressure: f32);
+  fn JPH_SoftBodyCreationSettings_SetGravityFactor(settings: ptr, factor: f32);
+  fn JPH_SoftBodyCreationSettings_SetLinearDamping(settings: ptr, damping: f32);
+  fn JPH_SoftBodyCreationSettings_SetMaxLinearVelocity(settings: ptr, vel: f32);
+  fn JPH_SoftBodyCreationSettings_SetVertexRadius(settings: ptr, radius: f32);
+  fn JPH_SoftBodyCreationSettings_SetFriction(settings: ptr, friction: f32);
+  fn JPH_SoftBodyCreationSettings_SetRestitution(settings: ptr, restitution: f32);
+  fn JPH_SoftBodyCreationSettings_SetNumIterations(settings: ptr, iterations: i32);
+  fn JPH_SoftBodyCreationSettings_SetAllowSleeping(settings: ptr, allow: i32);
+  fn JPH_SoftBodyCreationSettings_SetFacesDoubleSided(settings: ptr, ds: i32);
+  fn JPH_SoftBodyCreationSettings_Destroy(settings: ptr);
+
+  # SoftBody runtime
+  fn JPH_BodyInterface_CreateSoftBody(body_iface: ptr, settings: ptr) -> i32;
+  fn JPH_BodyInterface_CreateAndAddSoftBody(body_iface: ptr, settings: ptr, activate: i32) -> i32;
+  fn JPH_SoftBodyMotionProperties_GetVolume(iface: ptr, body_id: i32) -> f32;
+  fn JPH_SoftBodyMotionProperties_SetPressure(iface: ptr, body_id: i32, pressure: f32);
+
+  # Ragdoll
+  fn JPH_RagdollSettings_Create() -> ptr;
+  fn JPH_RagdollSettings_SetSkeleton(settings: ptr, skeleton: ptr);
+  fn JPH_Ragdoll_Create(settings: ptr, px: f32, py: f32, pz: f32, qx: f32, qy: f32, qz: f32, qw: f32, user_data: i64, system: ptr) -> ptr;
+  fn JPH_Ragdoll_AddToPhysicsSystem(ragdoll: ptr, activation: i32);
+  fn JPH_Ragdoll_RemoveFromPhysicsSystem(ragdoll: ptr);
+  fn JPH_Ragdoll_Activate(ragdoll: ptr);
+  fn JPH_Ragdoll_IsActive(ragdoll: ptr) -> i32;
+  fn JPH_Ragdoll_DriveToPose(ragdoll: ptr, pose: ptr, dt: f32);
+  fn JPH_Ragdoll_GetBodyCount(ragdoll: ptr) -> i32;
+  fn JPH_Ragdoll_GetBodyID(ragdoll: ptr, index: i32) -> i32;
+  fn JPH_Ragdoll_Destroy(ragdoll: ptr);
+
+  # Skeleton
+  fn JPH_Skeleton_Create() -> ptr;
+  fn JPH_Skeleton_AddJoint(skeleton: ptr, name: str, parent_name: str) -> i32;
+  fn JPH_Skeleton_GetJointCount(skeleton: ptr) -> i32;
+  fn JPH_Skeleton_Destroy(skeleton: ptr);
+
+  # ContactListener
+  fn JPH_ContactListener_Create() -> ptr;
+  fn JPH_ContactListener_SetCallbacks(listener: ptr, on_validate: ptr, on_add: ptr, on_persist: ptr, on_remove: ptr, ctx: ptr);
+  fn JPH_ContactListener_Destroy(listener: ptr);
+
+  # BodyActivationListener
+  fn JPH_BodyActivationListener_Create() -> ptr;
+  fn JPH_BodyActivationListener_SetCallbacks(listener: ptr, on_activated: ptr, on_deactivated: ptr, ctx: ptr);
+  fn JPH_BodyActivationListener_Destroy(listener: ptr);
+
+  # PhysicsStepListener
+  fn JPH_PhysicsStepListener_Create() -> ptr;
+  fn JPH_PhysicsStepListener_SetCallback(listener: ptr, on_step: ptr, ctx: ptr);
+  fn JPH_PhysicsStepListener_Destroy(listener: ptr);
+
+  # PhysicsMaterial
+  fn JPH_PhysicsMaterial_Create(friction: f32, restitution: f32) -> ptr;
+  fn JPH_PhysicsMaterial_GetFriction(material: ptr) -> f32;
+  fn JPH_PhysicsMaterial_GetRestitution(material: ptr) -> f32;
+  fn JPH_PhysicsMaterial_Destroy(material: ptr);
+
+  # Debug Renderer
+  fn JPH_DebugRenderer_NextFrame(renderer: ptr);
+  fn JPH_DebugRenderer_DrawLine(renderer: ptr, x1: f32, y1: f32, z1: f32, x2: f32, y2: f32, z2: f32, color: i32);
+  fn JPH_DebugRenderer_DrawWireBox(renderer: ptr, min_x: f32, min_y: f32, min_z: f32, max_x: f32, max_y: f32, max_z: f32, color: i32);
+  fn JPH_DebugRenderer_DrawWireSphere(renderer: ptr, cx: f32, cy: f32, cz: f32, radius: f32, color: i32);
+  fn JPH_DebugRenderer_DrawArrow(renderer: ptr, fx: f32, fy: f32, fz: f32, tx: f32, ty: f32, tz: f32, color: i32);
+  fn JPH_DebugRenderer_DrawText3D(renderer: ptr, px: f32, py: f32, pz: f32, text: str, color: i32, height: f32);
+
+  # PhysicsSystem debug drawing
+  fn JPH_PhysicsSystem_DrawBodies(system: ptr, draw_shape: i32, draw_wireframe: i32, draw_bbox: i32, draw_com: i32, draw_vel: i32, renderer: ptr);
+  fn JPH_PhysicsSystem_DrawConstraints(system: ptr, renderer: ptr);
+  fn JPH_PhysicsSystem_DrawConstraintLimits(system: ptr, renderer: ptr);
+
+  # State serialization
+  fn JPH_PhysicsSystem_SaveState(system: ptr, out_ptr: ptr, out_size: ptr);
+  fn JPH_PhysicsSystem_RestoreState(system: ptr, state: ptr, size: i32) -> i32;
+
+  # Math — Vec3
+  fn JPH_Vec3_Length(x: f32, y: f32, z: f32) -> f32;
+  fn JPH_Vec3_LengthSquared(x: f32, y: f32, z: f32) -> f32;
+  fn JPH_Vec3_Normalize(x: f32, y: f32, z: f32, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_Vec3_Dot(x1: f32, y1: f32, z1: f32, x2: f32, y2: f32, z2: f32) -> f32;
+  fn JPH_Vec3_Cross(x1: f32, y1: f32, z1: f32, x2: f32, y2: f32, z2: f32, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_Vec3_Negate(x: f32, y: f32, z: f32, out_x: ptr, out_y: ptr, out_z: ptr);
+
+  # Math — Quat
+  fn JPH_Quat_SIdentity(out_x: ptr, out_y: ptr, out_z: ptr, out_w: ptr);
+  fn JPH_Quat_SRotation(ax: f32, ay: f32, az: f32, angle: f32, out_x: ptr, out_y: ptr, out_z: ptr, out_w: ptr);
+  fn JPH_Quat_SEulerAngles(roll: f32, pitch: f32, yaw: f32, out_x: ptr, out_y: ptr, out_z: ptr, out_w: ptr);
+  fn JPH_Quat_SFromTo(fx: f32, fy: f32, fz: f32, tx: f32, ty: f32, tz: f32, out_x: ptr, out_y: ptr, out_z: ptr, out_w: ptr);
+  fn JPH_Quat_Multiply(q1x: f32, q1y: f32, q1z: f32, q1w: f32, q2x: f32, q2y: f32, q2z: f32, q2w: f32, out_x: ptr, out_y: ptr, out_z: ptr, out_w: ptr);
+  fn JPH_Quat_Rotate(qx: f32, qy: f32, qz: f32, qw: f32, vx: f32, vy: f32, vz: f32, out_x: ptr, out_y: ptr, out_z: ptr);
+  fn JPH_Quat_Slerp(q1x: f32, q1y: f32, q1z: f32, q1w: f32, q2x: f32, q2y: f32, q2z: f32, q2w: f32, fraction: f32, out_x: ptr, out_y: ptr, out_z: ptr, out_w: ptr);
+  fn JPH_Quat_GetAxisAngle(qx: f32, qy: f32, qz: f32, qw: f32, out_ax: ptr, out_ay: ptr, out_az: ptr, out_angle: ptr);
 }

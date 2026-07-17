@@ -5,27 +5,27 @@
 // Struct-based safe resource management for SDL 3.4.8.
 // All create/destroy pairs with Result[T, Str] + design-by-contract.
 //
-// COVERAGE: 4 resource types spanning the core SDL3 lifecycle:
-//   SdlContext, SdlWindow, SdlRenderer, SdlEvent
+// COVERAGE: 6 resource types spanning the core SDL3 lifecycle:
+//   SdlContext, SdlWindow, SdlRenderer, SdlTexture, SdlGamepad, SdlApp
 
 module xiom.sdl3.safe
 
 extern "C" {
   fn SDL_Init(flags: Int32) -> Int32;
-  fn SDL_InitSubSystem(flags: Int32) -> Int32;
-  fn SDL_QuitSubSystem(flags: Int32);
-  fn SDL_WasInit(flags: Int32) -> Int32;
   fn SDL_Quit();
+  fn SDL_GetTicks() -> Int;
+  fn SDL_Delay(ms: Int32);
 
   fn SDL_CreateWindow(title: Int, w: Int32, h: Int32, flags: Int) -> Int;
   fn SDL_DestroyWindow(window: Int);
-  fn SDL_GetWindowSize(window: Int, w: Int, h: Int) -> Int32;
   fn SDL_ShowWindow(window: Int) -> Int32;
   fn SDL_HideWindow(window: Int) -> Int32;
+  fn SDL_RaiseWindow(window: Int) -> Int32;
   fn SDL_SetWindowTitle(window: Int, title: Int) -> Int32;
   fn SDL_GetWindowFlags(window: Int) -> Int;
   fn SDL_GetWindowID(window: Int) -> Int32;
-  fn SDL_RaiseWindow(window: Int) -> Int32;
+  fn SDL_SetWindowFullscreen(window: Int, fullscreen: Int32) -> Int32;
+  fn SDL_SetWindowSize(window: Int, w: Int32, h: Int32) -> Int32;
 
   fn SDL_CreateWindowAndRenderer(title: Int, width: Int32, height: Int32, window_flags: Int, window: Int, renderer: Int) -> Int32;
   fn SDL_CreateRenderer(window: Int, name: Int) -> Int;
@@ -37,16 +37,39 @@ extern "C" {
   fn SDL_SetRenderDrawColorFloat(renderer: Int, r: Float32, g: Float32, b: Float32, a: Float32) -> Int32;
   fn SDL_RenderFillRect(renderer: Int, rect: Int) -> Int32;
   fn SDL_RenderRect(renderer: Int, rect: Int) -> Int32;
+  fn SDL_SetRenderDrawBlendMode(renderer: Int, blendMode: Int32) -> Int32;
+  fn SDL_SetRenderVSync(renderer: Int, vsync: Int32) -> Int32;
+
+  fn SDL_CreateTexture(renderer: Int, format: Int32, access: Int32, w: Int32, h: Int32) -> Int;
+  fn SDL_DestroyTexture(texture: Int);
+  fn SDL_SetTextureColorMod(texture: Int, r: Int32, g: Int32, b: Int32) -> Int32;
+  fn SDL_SetTextureAlphaMod(texture: Int, alpha: Int32) -> Int32;
+  fn SDL_SetTextureBlendMode(texture: Int, blendMode: Int32) -> Int32;
+  fn SDL_RenderTexture(renderer: Int, texture: Int, srcrect: Int, dstrect: Int) -> Int32;
 
   fn SDL_PollEvent(event: Int) -> Int32;
-  fn SDL_WaitEvent(event: Int) -> Int32;
   fn SDL_PumpEvents();
-
-  fn SDL_Delay(ms: Int32);
-  fn SDL_GetTicks() -> Int;
   fn SDL_GetError() -> Int;
-  fn SDL_ClearError() -> Int32;
+
+  fn SDL_OpenGamepad(instance_id: Int32) -> Int;
+  fn SDL_CloseGamepad(gamepad: Int);
+  fn SDL_GetGamepadButton(gamepad: Int, button: Int32) -> Int32;
+  fn SDL_GetGamepadAxis(gamepad: Int, axis: Int32) -> Int32;
+  fn SDL_GetGamepadName(gamepad: Int) -> Int;
+  fn SDL_GamepadConnected(gamepad: Int) -> Int32;
+
+  fn SDL_SetClipboardText(text: Int) -> Int32;
+  fn SDL_GetClipboardText() -> Int;
+  fn SDL_HasClipboardText() -> Int32;
 }
+
+// =========================================================================
+// SdlError
+// =========================================================================
+
+pub type SdlError = {
+  message: Str;
+} derive[Clone]
 
 // =========================================================================
 // SdlContext — global SDL3 lifecycle manager
@@ -56,13 +79,13 @@ pub type SdlContext = {
   is_init: Bool;
 } derive[Clone]
 
-pub fn SdlContext.init(flags: Int32) -> Result[SdlContext, Str]
+pub fn SdlContext.init(flags: Int32) -> Result[SdlContext, SdlError]
   requires: flags != 0
   ensures: result is Ok => result.unwrap().is_init == true
 {
   let res: Int32 = unsafe { SDL_Init(flags) };
-  if res != 0 {
-    return Err("SDL_Init failed");
+  if res == 0 {
+    return Err(SdlError{ message: "SDL_Init failed" });
   }
   return Ok(SdlContext{ is_init: true });
 }
@@ -81,7 +104,7 @@ pub type SdlWindow = {
   handle: Int;
 } derive[Clone]
 
-pub fn SdlWindow.create(title: Int, w: Int32, h: Int32, flags: Int) -> Result[SdlWindow, Str]
+pub fn SdlWindow.create(title: Int, w: Int32, h: Int32, flags: Int) -> Result[SdlWindow, SdlError]
   requires: title != 0
   requires: w > 0
   requires: h > 0
@@ -89,7 +112,7 @@ pub fn SdlWindow.create(title: Int, w: Int32, h: Int32, flags: Int) -> Result[Sd
 {
   let win: Int = unsafe { SDL_CreateWindow(title, w, h, flags) };
   if win == 0 {
-    return Err("SDL_CreateWindow failed");
+    return Err(SdlError{ message: "SDL_CreateWindow failed" });
   }
   return Ok(SdlWindow{ handle: win });
 }
@@ -129,6 +152,22 @@ pub fn SdlWindow.set_title(title: Int) -> Bool
   return res != 0;
 }
 
+pub fn SdlWindow.set_size(w: Int32, h: Int32) -> Bool
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { SDL_SetWindowSize(handle, w, h) };
+  return res != 0;
+}
+
+pub fn SdlWindow.set_fullscreen(fullscreen: Bool) -> Bool
+  requires: handle != 0
+{
+  let flag: Int32 = 0 as Int32;
+  if fullscreen { flag = 1 as Int32; }
+  let res: Int32 = unsafe { SDL_SetWindowFullscreen(handle, flag) };
+  return res != 0;
+}
+
 pub fn SdlWindow.get_flags() -> Int
   requires: handle != 0
 {
@@ -141,18 +180,6 @@ pub fn SdlWindow.get_id() -> Int32
   return unsafe { SDL_GetWindowID(handle) };
 }
 
-pub fn SdlWindow.get_size() -> Result[Int, Str]
-  requires: handle != 0
-{
-  let w: Int = 0;
-  let h: Int = 0;
-  let ok: Int32 = unsafe { SDL_GetWindowSize(handle, w, h) };
-  if ok == 0 {
-    return Err("SDL_GetWindowSize failed");
-  }
-  return Ok(w);
-}
-
 // =========================================================================
 // SdlRenderer — an SDL_Renderer* resource
 // =========================================================================
@@ -161,18 +188,18 @@ pub type SdlRenderer = {
   handle: Int;
 } derive[Clone]
 
-pub fn SdlRenderer.create(window_handle: Int) -> Result[SdlRenderer, Str]
+pub fn SdlRenderer.create(window_handle: Int) -> Result[SdlRenderer, SdlError]
   requires: window_handle != 0
   ensures: result is Ok => result.unwrap().handle != 0
 {
   let ren: Int = unsafe { SDL_CreateRenderer(window_handle, 0) };
   if ren == 0 {
-    return Err("SDL_CreateRenderer failed");
+    return Err(SdlError{ message: "SDL_CreateRenderer failed" });
   }
   return Ok(SdlRenderer{ handle: ren });
 }
 
-pub fn SdlRenderer.create_for_window(window: SdlWindow) -> Result[SdlRenderer, Str]
+pub fn SdlRenderer.create_for_window(window: SdlWindow) -> Result[SdlRenderer, SdlError]
   requires: window.handle != 0
   ensures: result is Ok => result.unwrap().handle != 0
 {
@@ -226,66 +253,181 @@ pub fn SdlRenderer.draw_rect(rect_ptr: Int) -> Bool
   return res != 0;
 }
 
+pub fn SdlRenderer.set_blend_mode(mode: Int32) -> Bool
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { SDL_SetRenderDrawBlendMode(handle, mode) };
+  return res != 0;
+}
+
+pub fn SdlRenderer.set_vsync(vsync: Bool) -> Bool
+  requires: handle != 0
+{
+  let flag: Int32 = 0 as Int32;
+  if vsync { flag = 1 as Int32; }
+  let res: Int32 = unsafe { SDL_SetRenderVSync(handle, flag) };
+  return res != 0;
+}
+
+// =========================================================================
+// SdlTexture — an SDL_Texture* resource
+// =========================================================================
+
+pub type SdlTexture = {
+  handle: Int;
+} derive[Clone]
+
+pub fn SdlTexture.create(renderer: Int, format: Int32, access: Int32, w: Int32, h: Int32) -> Result[SdlTexture, SdlError]
+  requires: renderer != 0
+  requires: w > 0
+  requires: h > 0
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let tex: Int = unsafe { SDL_CreateTexture(renderer, format, access, w, h) };
+  if tex == 0 {
+    return Err(SdlError{ message: "SDL_CreateTexture failed" });
+  }
+  return Ok(SdlTexture{ handle: tex });
+}
+
+pub fn SdlTexture.destroy()
+  requires: handle != 0
+{
+  unsafe { SDL_DestroyTexture(handle); }
+}
+
+pub fn SdlTexture.set_color_mod(r: Int32, g: Int32, b: Int32) -> Bool
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { SDL_SetTextureColorMod(handle, r, g, b) };
+  return res != 0;
+}
+
+pub fn SdlTexture.set_alpha_mod(alpha: Int32) -> Bool
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { SDL_SetTextureAlphaMod(handle, alpha) };
+  return res != 0;
+}
+
+pub fn SdlTexture.set_blend_mode(mode: Int32) -> Bool
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { SDL_SetTextureBlendMode(handle, mode) };
+  return res != 0;
+}
+
+// =========================================================================
+// SdlGamepad — an SDL_Gamepad* resource
+// =========================================================================
+
+pub type SdlGamepad = {
+  handle: Int;
+} derive[Clone]
+
+pub fn SdlGamepad.open(instance_id: Int32) -> Result[SdlGamepad, SdlError]
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let gp: Int = unsafe { SDL_OpenGamepad(instance_id) };
+  if gp == 0 {
+    return Err(SdlError{ message: "SDL_OpenGamepad failed" });
+  }
+  return Ok(SdlGamepad{ handle: gp });
+}
+
+pub fn SdlGamepad.close()
+  requires: handle != 0
+{
+  unsafe { SDL_CloseGamepad(handle); }
+}
+
+pub fn SdlGamepad.get_button(button: Int32) -> Bool
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { SDL_GetGamepadButton(handle, button) };
+  return res != 0;
+}
+
+pub fn SdlGamepad.get_axis(axis: Int32) -> Int32
+  requires: handle != 0
+{
+  return unsafe { SDL_GetGamepadAxis(handle, axis) };
+}
+
+pub fn SdlGamepad.is_connected() -> Bool
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { SDL_GamepadConnected(handle) };
+  return res != 0;
+}
+
+pub fn SdlGamepad.get_name() -> Int
+  requires: handle != 0
+{
+  return unsafe { SDL_GetGamepadName(handle) };
+}
+
 // =========================================================================
 // SdlApp — high-level application runner
 // =========================================================================
 
 pub type SdlApp = {
-  ctx: SdlContext;
-  renderer: SdlRenderer;
   window: SdlWindow;
+  renderer: SdlRenderer;
+  is_running: Bool;
 } derive[Clone]
 
-pub fn SdlApp.create(title: Int, width: Int32, height: Int32) -> Result[SdlApp, Str]
+pub fn SdlApp.create(title: Int, width: Int32, height: Int32) -> Result[SdlApp, SdlError]
   requires: title != 0
   requires: width > 0
   requires: height > 0
 {
-  let flags: Int32 = 32 as Int32;
-  let c = SdlContext.init(flags)?;
-
-  let win_flags: Int = 32;
-  let win: Int = 0;
-  let ren: Int = 0;
-  let ok: Int32 = unsafe { SDL_CreateWindowAndRenderer(title, width, height, win_flags, win, ren) };
-  if ok == 0 {
-    return Err("SDL_CreateWindowAndRenderer failed");
+  let ctx = SdlContext.init(0x00000020 as Int32);
+  match ctx {
+    Err(e) => { return Err(e); }
+    Ok(c) => {
+      let win_flags: Int = 0x0000000000000020;
+      let win: Int = 0;
+      let ren: Int = 0;
+      let ok: Int32 = unsafe { SDL_CreateWindowAndRenderer(title, width, height, win_flags, win, ren) };
+      if ok == 0 {
+        return Err(SdlError{ message: "SDL_CreateWindowAndRenderer failed" });
+      }
+      return Ok(SdlApp{
+        window: SdlWindow{ handle: win },
+        renderer: SdlRenderer{ handle: ren },
+        is_running: true,
+      });
+    }
   }
-
-  return Ok(SdlApp{
-    ctx: c,
-    window: SdlWindow{ handle: win },
-    renderer: SdlRenderer{ handle: ren },
-  });
 }
 
-pub fn SdlApp.run(duration_ms: Int32)
+pub fn SdlApp.stop()
+  requires: is_running == true
+{
+  is_running = false;
+}
+
+pub fn SdlApp.destroy()
   requires: window.handle != 0
   requires: renderer.handle != 0
 {
-  let start: Int = unsafe { SDL_GetTicks() };
-  let running: Bool = true;
-  while running {
-    let event_buf: [Int32; 32] = [ 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, 0 as Int32, ];
-    let event_ptr: Int = 0;
-    while unsafe { SDL_PollEvent(event_ptr) } != 0 {
-      let event_type: Int32 = event_buf[0];
-      if event_type == (256 as Int32) {
-        running = false;
-      }
-    }
-
-    unsafe { SDL_SetRenderDrawColor(renderer.handle, 0 as Int32, 0 as Int32, 0 as Int32, 255 as Int32); }
-    unsafe { SDL_RenderClear(renderer.handle); }
-    unsafe { SDL_SetRenderDrawColor(renderer.handle, 255 as Int32, 0 as Int32, 0 as Int32, 255 as Int32); }
-    let rect_data: [Int32; 4] = [ 50 as Int32, 50 as Int32, 200 as Int32, 200 as Int32 ];
-    let rect_ptr: Int = 0;
-    unsafe { SDL_RenderFillRect(renderer.handle, rect_ptr); }
-    unsafe { SDL_RenderPresent(renderer.handle); }
-
-    let now: Int = unsafe { SDL_GetTicks() };
-    if (now - start) > (duration_ms as Int) {
-      running = false;
-    }
-  }
+  unsafe { SDL_DestroyRenderer(renderer.handle); }
+  unsafe { SDL_DestroyWindow(window.handle); }
+  unsafe { SDL_Quit(); }
 }
+
+pub fn SdlApp.clear_screen(r: Int32, g: Int32, b: Int32, a: Int32)
+  requires: renderer.handle != 0
+{
+  unsafe { SDL_SetRenderDrawColor(renderer.handle, r, g, b, a); }
+  unsafe { SDL_RenderClear(renderer.handle); }
+}
+
+pub fn SdlApp.present()
+  requires: renderer.handle != 0
+{
+  unsafe { SDL_RenderPresent(renderer.handle); }
+}
+
+

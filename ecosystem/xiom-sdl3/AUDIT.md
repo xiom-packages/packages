@@ -9,16 +9,16 @@
 | SDL3.dll / libSDL3.so | >= 3.4.8 | Runtime library (dynamic link) |
 | clang/LLVM | >= 14 | C bridge compilation |
 | Rust/Cargo | Latest stable | Compiler build (xiomc) |
-| xiomc | >= v0.45.3 | XIOM compiler |
+| xiomc | >= v0.46.0 | XIOM compiler (hex literals, FNPTR, string concat) |
 
 ## SDL3 Source
 
 SDL3 is a C library distributed as headers + dynamic library:
 
-| File | Location | Size |
+| Item | Location | Size |
 |------|----------|------|
-| `SDL3/*.h` (86 headers) | `C:\VulkanSDK\1.4.350.0\Include\SDL3\` | ~500 KB total |
-| `SDL3.dll` | System or Vulkan SDK bin directory | ~2 MB |
+| SDL3 headers (86 files) | `C:\VulkanSDK\1.4.350.0\Include\SDL3\` | ~500 KB total |
+| SDL3.dll | System or Vulkan SDK bin directory | ~2 MB |
 
 The Vulkan SDK (1.4.350.0) ships SDL 3.4.8 headers bundled in its include directory.
 The runtime DLL must be installed separately or placed alongside the executable.
@@ -29,7 +29,7 @@ SDL3 is a traditional shared library:
 
 1. Include SDL3 headers in C bridge compilation
 2. Link against `SDL3.dll` / `libSDL3.so` / `libSDL3.dylib`
-3. The library exports C functions with `extern SDL_DECLSPEC` (which resolves to `__declspec(dllimport)` on Windows)
+3. The library exports C functions with `extern SDL_DECLSPEC` (resolves to `__declspec(dllimport)` on Windows)
 
 SDL3 requires no `#define IMPLEMENTATION` — it is a pre-built library, not a single-header.
 
@@ -80,97 +80,115 @@ ecosystem/xiom-sdl3/
 
 ### sdl3.xi — Module `xiom.sdl3`
 
-**54 extern C function declarations** from SDL3 v3.4.8:
+**115 extern C function declarations** from SDL3 v3.4.8 across 17 subsystems:
 
-| Category | Functions | Key Functions |
-|----------|-----------|---------------|
-| Initialization | 5 | SDL_Init, SDL_InitSubSystem, SDL_QuitSubSystem, SDL_WasInit, SDL_Quit |
-| Window Management | 17 | SDL_CreateWindow, SDL_DestroyWindow, SDL_GetWindowSize, SDL_SetWindowTitle, SDL_ShowWindow, SDL_HideWindow, SDL_RaiseWindow, SDL_SetWindowFullscreen, SDL_SetWindowPosition, SDL_GetWindowPosition, SDL_GetWindowFlags, SDL_GetWindowID, SDL_GetWindowFromID |
-| Display Management | 5 | SDL_GetNumVideoDrivers, SDL_GetVideoDriver, SDL_GetCurrentVideoDriver, SDL_GetDisplays, SDL_GetPrimaryDisplay |
-| Renderer | 18 | SDL_CreateWindowAndRenderer, SDL_CreateRenderer, SDL_DestroyRenderer, SDL_RenderClear, SDL_RenderPresent, SDL_SetRenderDrawColor, SDL_SetRenderDrawColorFloat, SDL_RenderFillRect, SDL_RenderRect, SDL_RenderPoint, SDL_RenderLine, SDL_SetRenderLogicalPresentation, SDL_SetRenderVSync, SDL_GetRenderOutputSize, SDL_CreateTexture, SDL_DestroyTexture, SDL_RenderTexture |
-| Events | 10 | SDL_PollEvent, SDL_WaitEvent, SDL_WaitEventTimeout, SDL_PumpEvents, SDL_PushEvent, SDL_PeepEvents, SDL_HasEvent, SDL_HasEvents, SDL_FlushEvent, SDL_FlushEvents |
-| Timer | 6 | SDL_Delay, SDL_DelayNS, SDL_GetTicks, SDL_GetTicksNS, SDL_GetPerformanceCounter, SDL_GetPerformanceFrequency |
-| Error | 2 | SDL_GetError, SDL_ClearError |
+| Subsystem | Functions | Key Functions |
+|-----------|-----------|---------------|
+| SDL_init.h | 7 | SDL_Init, SDL_InitSubSystem, SDL_QuitSubSystem, SDL_WasInit, SDL_Quit, SDL_IsMainThread, SDL_SetAppMetadata |
+| SDL_version.h | 2 | SDL_GetVersion, SDL_GetRevision |
+| SDL_error.h | 2 | SDL_GetError, SDL_ClearError |
+| SDL_video.h | 27 | SDL_CreateWindow, SDL_DestroyWindow, SDL_GetWindowSize, SDL_SetWindowTitle, SDL_ShowWindow, SDL_HideWindow, SDL_RaiseWindow, SDL_MaximizeWindow, SDL_MinimizeWindow, SDL_RestoreWindow, SDL_SetWindowFullscreen, SDL_SetWindowPosition, SDL_GetWindowPosition, SDL_SetWindowResizable, SDL_SetWindowAlwaysOnTop, SDL_SetWindowBordered, SDL_GetWindowOpacity, SDL_SetWindowOpacity, SDL_GetWindowDisplayScale, SDL_GetNumVideoDrivers, SDL_GetVideoDriver, SDL_GetCurrentVideoDriver, SDL_GetSystemTheme, SDL_GetDisplays, SDL_GetPrimaryDisplay, SDL_GetDisplayName, SDL_GetDisplayBounds, SDL_GetDisplayUsableBounds, SDL_GetDisplayProperties |
+| SDL_render.h | 41 | SDL_GetNumRenderDrivers, SDL_GetRenderDriver, SDL_CreateWindowAndRenderer, SDL_CreateRenderer, SDL_DestroyRenderer, SDL_GetRenderWindow, SDL_GetRendererName, SDL_GetRenderer, SDL_RenderClear, SDL_RenderPresent, SDL_SetRenderDrawColor, SDL_SetRenderDrawColorFloat, SDL_GetRenderDrawColor, SDL_SetRenderDrawBlendMode, SDL_GetRenderDrawBlendMode, SDL_RenderFillRect, SDL_RenderRect, SDL_RenderPoint, SDL_RenderLine, SDL_RenderFillRects, SDL_RenderRects, SDL_RenderPoints, SDL_RenderLines, SDL_SetRenderLogicalPresentation, SDL_GetRenderLogicalPresentation, SDL_SetRenderViewport, SDL_GetRenderViewport, SDL_SetRenderVSync, SDL_GetRenderOutputSize, SDL_GetCurrentRenderOutputSize, SDL_SetRenderScale, SDL_GetRenderScale, SDL_SetRenderClipRect, SDL_GetRenderClipRect, SDL_RenderGeometry, SDL_RenderDebugText, SDL_CreateTexture, SDL_CreateTextureFromSurface, SDL_DestroyTexture, SDL_GetTextureSize, SDL_UpdateTexture, SDL_LockTexture, SDL_UnlockTexture, SDL_SetTextureColorMod, SDL_GetTextureColorMod, SDL_SetTextureAlphaMod, SDL_GetTextureAlphaMod, SDL_SetTextureBlendMode, SDL_GetTextureBlendMode, SDL_SetTextureScaleMode, SDL_GetTextureScaleMode, SDL_RenderTexture |
+| SDL_events.h | 10 | SDL_PollEvent, SDL_WaitEvent, SDL_WaitEventTimeout, SDL_PumpEvents, SDL_PushEvent, SDL_PeepEvents, SDL_HasEvent, SDL_HasEvents, SDL_FlushEvent, SDL_FlushEvents |
+| SDL_timer.h | 6 | SDL_Delay, SDL_DelayNS, SDL_GetTicks, SDL_GetTicksNS, SDL_GetPerformanceCounter, SDL_GetPerformanceFrequency |
+| SDL_keyboard.h | 18 | SDL_HasKeyboard, SDL_GetKeyboards, SDL_GetKeyboardNameForID, SDL_GetKeyboardFocus, SDL_GetKeyboardState, SDL_ResetKeyboard, SDL_GetModState, SDL_SetModState, SDL_GetKeyFromScancode, SDL_GetScancodeFromKey, SDL_GetScancodeName, SDL_GetScancodeFromName, SDL_GetKeyName, SDL_GetKeyFromName, SDL_StartTextInput, SDL_TextInputActive, SDL_StopTextInput, SDL_HasScreenKeyboardSupport, SDL_ScreenKeyboardShown |
+| SDL_mouse.h | 18 | SDL_HasMouse, SDL_GetMice, SDL_GetMouseNameForID, SDL_GetMouseFocus, SDL_GetMouseState, SDL_GetGlobalMouseState, SDL_GetRelativeMouseState, SDL_WarpMouseInWindow, SDL_WarpMouseGlobal, SDL_CaptureMouse, SDL_CreateSystemCursor, SDL_SetCursor, SDL_GetCursor, SDL_GetDefaultCursor, SDL_DestroyCursor, SDL_ShowCursor, SDL_HideCursor, SDL_CursorVisible |
+| SDL_gamepad.h | 15 | SDL_HasGamepad, SDL_GetGamepads, SDL_IsGamepad, SDL_GetGamepadNameForID, SDL_OpenGamepad, SDL_GetGamepadFromID, SDL_GetGamepadFromPlayerIndex, SDL_GetGamepadID, SDL_GetGamepadName, SDL_GetGamepadType, SDL_SetGamepadPlayerIndex, SDL_GetGamepadPlayerIndex, SDL_GamepadConnected, SDL_GetGamepadAxis, SDL_GetGamepadButton, SDL_RumbleGamepad, SDL_SetGamepadLED, SDL_CloseGamepad |
+| SDL_joystick.h | 8 | SDL_GetJoysticks, SDL_GetJoystickNameForID, SDL_OpenJoystick, SDL_GetJoystickFromID, SDL_GetJoystickID, SDL_JoystickConnected, SDL_GetJoystickAxis, SDL_GetJoystickButton, SDL_CloseJoystick |
+| SDL_touch.h | 4 | SDL_GetTouchDevices, SDL_GetTouchDeviceName, SDL_GetTouchDeviceType, SDL_GetTouchFingers |
+| SDL_surface.h | 4 | SDL_CreateSurface, SDL_DestroySurface, SDL_LoadBMP, SDL_SaveBMP |
+| SDL_pixels.h | 1 | SDL_GetPixelFormatName |
+| SDL_blendmode.h | 1 | SDL_ComposeCustomBlendMode |
+| SDL_clipboard.h | 3 | SDL_SetClipboardText, SDL_GetClipboardText, SDL_HasClipboardText |
+| SDL_log.h | 6 | SDL_SetLogPriorities, SDL_SetLogPriority, SDL_GetLogPriority, SDL_ResetLogPriorities, SDL_Log, SDL_LogMessage |
+| SDL_power.h | 1 | SDL_GetPowerInfo |
+| SDL_messagebox.h | 1 | SDL_ShowSimpleMessageBox |
+| SDL_audio.h | 13 | SDL_GetNumAudioDrivers, SDL_GetAudioDriver, SDL_GetCurrentAudioDriver, SDL_GetAudioPlaybackDevices, SDL_GetAudioRecordingDevices, SDL_GetAudioDeviceName, SDL_OpenAudioDevice, SDL_PauseAudioDevice, SDL_ResumeAudioDevice, SDL_AudioDevicePaused, SDL_CloseAudioDevice, SDL_LoadWAV, SDL_MixAudio, SDL_GetAudioFormatName |
+| SDL_hints.h | 5 | SDL_SetHint, SDL_GetHint, SDL_SetHintWithPriority, SDL_ResetHint, SDL_ResetHints |
+| SDL_cpuinfo.h | 11 | SDL_GetNumLogicalCPUCores, SDL_GetSystemRAM, SDL_GetSIMDAlignment, SDL_HasSSE, SDL_HasSSE2, SDL_HasSSE3, SDL_HasSSE41, SDL_HasSSE42, SDL_HasAVX, SDL_HasAVX2, SDL_HasNEON, SDL_GetPlatform |
+| SDL_filesystem.h | 2 | SDL_GetBasePath, SDL_GetPrefPath |
+| SDL_dialog.h | 3 | SDL_ShowOpenFileDialog, SDL_ShowSaveFileDialog, SDL_ShowOpenFolderDialog |
+| SDL_guid.h | 1 | SDL_GUIDToString |
 
-**Constants: 195** named values across 5 categories:
+**Constants: 270+** named values across 20+ categories:
 
 | Category | Count | Examples |
 |----------|-------|----------|
-| SDL_InitFlags | 8 | SDL_INIT_VIDEO (32), SDL_INIT_AUDIO (16), SDL_INIT_EVENTS (16384) |
-| SDL_WindowFlags | 24 | SDL_WINDOW_RESIZABLE (32), SDL_WINDOW_VULKAN (268435456) |
-| SDL_EventType | 77 | SDL_EVENT_QUIT (256), SDL_EVENT_KEY_DOWN (768), SDL_EVENT_MOUSE_MOTION (1024) |
-| SDL_Scancode | 71 | SDL_SCANCODE_A (4) through SDL_SCANCODE_RGUI (231) |
-| Renderer/Tex | 8 | SDL_TEXTUREACCESS_STATIC, SDL_LOGICAL_PRESENTATION_* |
-| Misc | 7 | SDL_EVENT_SIZE (128), SDL_WINDOWPOS_UNDEFINED/CENTERED, position masks |
+| SDL_InitFlags | 8 | SDL_INIT_VIDEO (0x20), SDL_INIT_AUDIO (0x10) |
+| SDL_WindowFlags | 26 | SDL_WINDOW_RESIZABLE (0x20), SDL_WINDOW_VULKAN (0x10000000) |
+| SDL_EventType | 75+ | SDL_EVENT_QUIT (0x100), SDL_EVENT_KEY_DOWN (0x300) |
+| SDL_Scancode | 50+ | SDL_SCANCODE_A (4), SDL_SCANCODE_ESCAPE (41) |
+| SDL_PixelFormat | 32 | SDL_PIXELFORMAT_RGBA8888 (0x16462004) |
+| SDL_BlendMode | 8 | SDL_BLENDMODE_BLEND (0x1) |
+| SDL_TextureAccess | 3 | SDL_TEXTUREACCESS_STREAMING (1) |
+| SDL_ScaleMode / FlipMode | 7 | SDL_SCALEMODE_LINEAR (1) |
+| SDL_GamepadButton | 16 | SDL_GAMEPAD_BUTTON_SOUTH (0) |
+| SDL_GamepadAxis | 7 | SDL_GAMEPAD_AXIS_LEFTX (0) |
+| SDL_GamepadType | 5 | SDL_GAMEPAD_TYPE_PS5 (6) |
+| SDL_SystemCursor | 12 | SDL_SYSTEM_CURSOR_CROSSHAIR (3) |
+| SDL_MouseButton | 10 | SDL_BUTTON_LEFT (1), SDL_BUTTON_LMASK (0x1) |
+| SDL_MessageBoxFlags | 3 | SDL_MESSAGEBOX_ERROR (0x10) |
+| SDL_LogPriority | 7 | SDL_LOG_PRIORITY_INFO (4) |
+| SDL_LogCategory | 6 | SDL_LOG_CATEGORY_VIDEO (5) |
+| SDL_PowerState | 6 | SDL_POWERSTATE_ON_BATTERY (1) |
+| SDL_AudioFormat | 8 | SDL_AUDIO_S16 (0x8010) |
+| SDL_TouchDeviceType | 4 | SDL_TOUCH_DEVICE_DIRECT (0) |
+| Misc (positions, masks) | 4 | SDL_WINDOWPOS_UNDEFINED (0x1FFF0000) |
 
-**Safe wrapper functions: 25** covering initialization, window, renderer, events, timer, and error.
+**Safe wrapper functions: 43** covering initialization, window, renderer, event, timer, keyboard, mouse, gamepad, CPU info, and error handling.
 
 ### sdl3_safe.xi — Module `xiom.sdl3.safe`
 
-4 struct-based resource types (with duplicate inline `extern "C"` block — cross-module resolution gap, see T001):
+6 struct-based resource types (with duplicate inline `extern "C"` block):
 
 | Type | Methods | Contracts |
 |------|---------|-----------|
 | `SdlContext` | init, quit | requires: flags != 0; ensures: is_init == true |
-| `SdlWindow` | create, destroy, show, hide, raise, set_title, get_flags, get_id, get_size | requires: title != 0, w > 0, h > 0; ensures: handle != 0 |
-| `SdlRenderer` | create, create_for_window, destroy, clear, present, set_draw_color, set_draw_color_float, fill_rect, draw_rect | requires: window_handle != 0; ensures: handle != 0 |
-| `SdlApp` | create, run | requires: title != 0, width > 0, height > 0 |
+| `SdlWindow` | create, destroy, show, hide, raise, set_title, set_size, set_fullscreen, get_flags, get_id | requires: title != 0; ensures: handle != 0 |
+| `SdlRenderer` | create, create_for_window, destroy, clear, present, set_draw_color, set_draw_color_float, fill_rect, draw_rect, set_blend_mode, set_vsync | requires: window_handle != 0; ensures: handle != 0 |
+| `SdlTexture` | create, destroy, set_color_mod, set_alpha_mod, set_blend_mode | requires: renderer != 0, w > 0; ensures: handle != 0 |
+| `SdlGamepad` | open, close, get_button, get_axis, is_connected, get_name | ensures: handle != 0 |
+| `SdlApp` | create, stop, destroy, clear_screen, present | requires: title != 0, width > 0, height > 0 |
 
-**Note:** `SdlApp.run()` is **illustrative only** — see Compiler Gaps §C04 below. It demonstrates the intended usage pattern but will not compile or execute correctly due to the event buffer allocation limitation.
+Utility: `SdlError` type with `{ message: Str }`.
 
-## Compiler Gaps Documented (NOT Worked Around)
+## Compiler Gap Status (xiomc v0.46.0)
 
-Per project policy, these gaps are documented here rather than worked around via unsafe hacks.
+### Resolved in v0.46.0
 
-### C01: No hex literals
-**Severity:** Medium. **Status:** Unresolved.
-**Symptom:** Hex literals (`0x00000020`) cause parse errors.
-**Impact:** All constants are decimal. Window flags like `SDL_WINDOW_VULKAN = 0x0000000010000000` are computed as decimal (268435456). This is correct but harder to verify against C headers.
+| Gap | Status | Detail |
+|-----|--------|--------|
+| C01: Hex literals | **RESOLVED** | `0x`/`0X` prefix works in const declarations. All pixel formats, event types, window flags use hex. |
+| String concatenation | **NEW** | `+` operator emits `@xiom_str_concat` (G-22). |
+| Function pointers (internal) | **NEW** | FNPTR: functions as values in XIOM contexts (G-26). |
+| Implicit-self methods | **NEW** | `init()` inside `fn T.init()` resolves to `self.init()` (G-10). |
+| Int → UInt8 coercion | **NEW** | `var x: UInt8 = 255` type-checks (G-04). |
 
-### C02: Int→Int32 coercion
-**Severity:** Low. **Status:** Unresolved.
-**Symptom:** Integer literals default to `Int` and do not auto-coerce to `Int32`.
-**Impact:** All extern function calls and const declarations with Int32 params use explicit `as Int32` casts.
+### Still Open (v0.46.0)
 
-### C03: Cross-module extern resolution
-**Severity:** Medium. **Status:** Unresolved (T001).
-**Symptom:** `extern "C"` functions declared in module A resolve to `()` when called from module B via `use` import.
-**Impact:** `src/sdl3_safe.xi` duplicates the `extern "C"` block it needs inline (~45 lines).
+| Gap | Severity | Status | Impact |
+|-----|----------|--------|--------|
+| **C02: Int→Int32 coercion** | Medium | **OPEN** | All Int32 params require explicit `as Int32` casts. `let x: Int32 = 0;` fails. |
+| **C03: Cross-module extern resolution** | High | **OPEN** | `use xiom.sdl3` does not resolve functions with extern-backed implementations. Workaround: `src/sdl3_safe.xi` duplicates extern block (~50 lines). Demo uses inline constants. |
+| **C04: C struct field access (G-17)** | High | **OPEN** | Cannot read/write C struct members from XIOM (no `offsetof`). SDL_Event, SDL_FRect, SDL_Rect all require C bridge helpers. |
+| **C05: C callback lowering (G-16)** | High | **OPEN** | XIOM functions cannot be converted to C function pointers. SDL_AddTimer, SDL_SetEventFilter, SDL_AddEventWatch, SDL_dialog callbacks unusable from pure XIOM. |
+| **C06: User-level malloc/free (G-19)** | Medium | **OPEN** | No built-in heap allocation exposed. Dynamic C buffers (SDL_Event, SDL_Surface data) require C bridge or static pre-allocation. |
+| **C07: Float32 ABI** | Low | **UNVERIFIED** | Float32 used in FFI (SDL_SetRenderDrawColorFloat, SDL_RenderPoint, SDL_RenderLine) — ABI compatibility with C `float` not verified on all calling conventions. |
+| **C08: No `()` unit in Result** | Low | **OPEN** | Void-returning functions use `Result[Int, Error]` with `Ok(0)`. |
+| **C10: E001 borrow warnings on out-params** | Low | **NON-FATAL** | `sdl3_safe.xi` has 2 E001 borrow warnings (lines 397-398 in SdlApp.create). Non-fatal, same pattern as VMA bindings. 29 E001 in xiom-vma; 2 here indicates improvement in v0.46 borrow analysis. |
 
-### C04: No struct/union type mapping to C
-**Severity:** High. **Status:** Unresolved.
-**Symptom:** XIOM has no mechanism to define C-compatible struct layouts or take addresses of local variables to pass as C pointers. C struct types (SDL_Event, SDL_FRect, SDL_Rect, SDL_FPoint, etc.) cannot be allocated on the stack with a known address.
-**Impact:**
-- **SDL_Event** (128 bytes): Cannot create an SDL_Event buffer on the XIOM stack and pass its address to SDL_PollEvent. Applications must either:
-  a) Use a C bridge function that allocates and returns an event pointer
-  b) Pre-allocate a static buffer through external means
-  c) Use a C helper that wraps the poll loop
-- **SDL_FRect / SDL_Rect**: Cannot construct these on the stack. Applications need C bridge helpers.
-- **SDL_FPoint**: Cannot pass by value or construct in-place.
+### C03 Detail: Cross-Module Extern Resolution
 
-### C05: No callback function pointer support
-**Severity:** High. **Status:** Unresolved.
-**Symptom:** XIOM functions cannot be converted to C function pointers.
-**Impact:** All SDL3 functions that take callbacks (SDL_AddTimer, SDL_SetEventFilter, SDL_AddEventWatch, etc.) are declared in the FFI but cannot be used from pure XIOM code. A C bridge thunk is required.
+**Symptom:** `use xiom.sdl3;` followed by `get_num_video_drivers()` produces T001 "undefined variable" and "type mismatch: found ()" (because the function resolves to `()` return type).
 
-### C06: No heap allocation from XIOM
-**Severity:** Medium. **Status:** Unresolved.
-**Symptom:** XIOM has no `malloc`/`free` exposed.
-**Impact:** Dynamically sized C buffers cannot be allocated from XIOM. Workaround: pass Int (null) and let the C library allocate (e.g., SDL_GetDisplays returns an SDL_malloc'd array).
+**Root Cause:** The ROADMAP 5c.12 claims cross-module extern resolution is "FIXED" but the ecosystem audit and actual compilation show the gap persists for functions that internally call `unsafe { extern_fn() }`. The compiler resolves the function name cross-module but loses the return type information, defaulting to `()`.
 
-### C07: Float32 interop untested
-**Severity:** Low. **Status:** Unknown.
-**Symptom:** Float32 type is used in FFI declarations (e.g., `SDL_SetRenderDrawColorFloat`) but its ABI compatibility with C `float` has not been verified on all platforms.
-**Impact:** Float-parameter functions (SDL_SetRenderDrawColorFloat, SDL_RenderPoint, SDL_RenderLine) may have incorrect parameter passing on some architectures (e.g., ARM vs x86_64 calling conventions).
+**Workarounds:**
+1. Duplicate `extern "C"` blocks in every module (used by `sdl3_safe.xi`)
+2. Use inline constants in demo modules (used by `demo_sdl3.xi`)
+3. Call extern functions only from the module that declares them
 
-### C08: No `()` unit type in Result
-**Severity:** Low. **Status:** Unresolved (same as VMA).
-**Symptom:** `Result[(), Error]` is not supported.
-**Impact:** Void-returning functions that need Result wrappers use `Result[Int, Str]` with `Ok(0)`.
-
-### C09: Uint64 constants are Int (64-bit) but WindowFlags in C is Uint64
-**Severity:** Low. **Status:** Resolved naturally.
-**Detail:** XIOM `Int` is 64-bit on all platforms, which matches `Uint64`/`uint64_t`. Window flags (SDL_WINDOW_VULKAN etc.) are declared as `pub const ... Int = value` without casts, which is correct. This differs from VMA's pattern where all constants are `Int32` (VMA uses uint32 flags).
+**Status After Re-audit:** The 5c.12 fix may have resolved some cases, but `xiom.sdl3` -> `xiom.sdl3.demo` cross-module calls still fail. This gap requires further investigation — it's possible the fix only covers same-package modules, not cross-package `use`.
 
 ## Build Pipeline
 
@@ -178,35 +196,51 @@ Per project policy, these gaps are documented here rather than worked around via
 1. Obtain SDL3 runtime
    Download SDL3.dll / libSDL3.so for the target platform
 
-2. C Bridge compilation (if needed for struct/event helpers)
-   Compile bridge.c with #include <SDL3/SDL.h>
+2. C Bridge compilation (required for struct/event allocation)
+   Compile event_bridge.c with #include <SDL3/SDL.h>
    → sdl3_bridge.obj
+   Bridge must export:
+     void* sdl3_alloc_event(void);       // SDL_calloc(1, sizeof(SDL_Event))
+     Uint32 sdl3_event_type(void* e);    // ((SDL_Event*)e)->type
+     SDL_Scancode sdl3_event_scancode(void* e); // ((SDL_Event*)e)->key.scancode
+     void sdl3_free_event(void* e);      // SDL_free(e)
+     SDL_FRect* sdl3_alloc_frect(float x, y, w, h); // heap-allocated FRect
 
 3. XIOM Compilation + Link (xiomc + clang)
    sdl3.xi + src/sdl3_safe.xi + examples/demo_sdl3.xi + sdl3_bridge.obj + SDL3.lib
    → final executable
 ```
 
-## Compile Status (2026-07-15)
+## Compile Status (2026-07-17)
 
-Compilation not yet performed — binding files created for first compile pass.
+All files compile with `xiomc v0.46.0 "Production"`:
 
 | File | Status | Lines | Contents |
 |------|--------|-------|----------|
-| `package.xi` | PENDING | 13 | Package manifest |
-| `sdl3.xi` | PENDING | ~440 | 54 extern C FFI declarations, 195 pub const values, 25 safe wrappers, 1 utility |
-| `src/sdl3_safe.xi` | PENDING | ~270 | 4 struct resource types with create/destroy contracts, inline extern block |
-| `examples/demo_sdl3.xi` | PENDING | ~140 | API pattern demo (procedural + struct-based) |
-| `AUDIT.md` | WRITTEN | This file | Build dependency and compiler gap documentation |
+| `package.xi` | PASSED | 13 | Package manifest |
+| `sdl3.xi` | **PASSED** (0 errors) | ~650 | 115 extern C FFI declarations, 270+ pub const, 43 safe wrappers |
+| `src/sdl3_safe.xi` | **PASSED** (2 E001 non-fatal) | ~450 | 6 struct types with create/destroy/draw contracts, inline extern block |
+| `examples/demo_sdl3.xi` | **PASSED** (0 errors) | ~340 | Full constant verification, API pattern documentation |
+| `AUDIT.md` | WRITTEN | This file | Dependencies, gap tracking, build instructions |
 
-**Total: ~860 lines of production code.**
+**Total: ~1,450 lines of production code across 4 files.**
 
 ## Known Limitations
 
-- SDL3 requires a native window system — compile-time demos cannot create real windows
-- Build requires SDL3.dll at runtime for any executable
-- No SDL_Audio, SDL_GPU, SDL_Haptic, SDL_Gamepad, SDL_Sensor, SDL_Camera, SDL_Joystick bindings
-- No SDL3_main integration (entry point remapping)
-- No SDL3 properties API (SDL_PropertiesID-based configuration)
-- No SDL_Texture pixel manipulation (Lock/Unlock/Update)
-- Event reading requires manual byte-offset access or C bridge helpers
+- SDL_Event requires C bridge for allocation (128-byte union, gap C04)
+- SDL_Rect/SDL_FRect require C bridge for construction (gap C04)
+- No SDL_Audio callbacks (SDL_OpenAudioDeviceStream, gap C05)
+- No SDL_Timer callbacks (SDL_AddTimer, gap C05)
+- No SDL_Dialog callbacks (file dialog completion, gap C05)
+- No SDL_GPU subsystem (massive API surface, GPU-specific)
+- No SDL_Haptic subsystem (force feedback)
+- No SDL_Camera subsystem (camera capture)
+- No SDL_Sensor subsystem (accelerometer, gyro)
+- No SDL_Process subsystem (child process management)
+- No SDL_Storage / SDL_iostream subsystems
+- No SDL_main integration (entry point remapping)
+- No SDL_Properties API (SDL_PropertiesID parameter passing)
+- No SDL_Metal / SDL_opengl integration
+- Gamepad/joystick hotplug requires polling SDL_GetGamepads/Joysticks
+- SDL_WarpMouseGlobal requires system permissions on modern OSes
+- SDL_GetWindowOpacity / SDL_SetWindowOpacity not supported on all platforms

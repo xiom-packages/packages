@@ -23,6 +23,7 @@ package xiom_ecosystem {
     "xiom-postgres",
     "xiom-redis",
     "xiom-bullet",
+    "xiom-box2d",
     "xiom-blas",
     "xiom-protobuf",
     "xiom-grpc",

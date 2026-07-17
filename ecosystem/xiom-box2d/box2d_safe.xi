@@ -6,6 +6,18 @@
 // Adds safety contracts, Result-based error handling, and convenience
 // constructors for common physics scenarios.
 //
+// Coverage:
+//   1. Null-handle predicates for all 6 Box2D ID types
+//   2. Math helpers (Box2D inline math reimplemented — see AUDIT.md §2)
+//   3. World lifecycle and stepping
+//   4. Body lifecycle, kinematics, forces, damping, and flags
+//   5. Shape creation (box, circle, capsule) and properties
+//   6. Chain loops for static ground geometry
+//   7. Joints (distance, revolute)
+//   8. Closest-hit ray casting
+//   9. Event count queries
+//  10. Scenario utilities (box stack, pendulum)
+//
 // NOTE ON STRUCT ABI: The extern declarations in box2d.xi assume the compiler
 // supports passing/returning C structs by value. Xiom's current extern "C"
 // support may be limited to primitive types. See AUDIT.md §1 for the C bridge
@@ -17,25 +29,31 @@ use xiom.box2d;
 
 // ===========================================================================
 // NULL HANDLE PREDICATES (Box2D uses B2_IS_NULL: index1 == 0)
+//
+// One predicate per ID type: world, body, shape, chain, joint, contact.
 // ===========================================================================
 
-fn is_null_world_id(id: B2WorldId) -> Bool {
+pub fn is_null_world_id(id: B2WorldId) -> Bool {
   return id.index1 == 0;
 }
 
-fn is_null_body_id(id: B2BodyId) -> Bool {
+pub fn is_null_body_id(id: B2BodyId) -> Bool {
   return id.index1 == 0;
 }
 
-fn is_null_shape_id(id: B2ShapeId) -> Bool {
+pub fn is_null_shape_id(id: B2ShapeId) -> Bool {
   return id.index1 == 0;
 }
 
-fn is_null_joint_id(id: B2JointId) -> Bool {
+pub fn is_null_chain_id(id: B2ChainId) -> Bool {
   return id.index1 == 0;
 }
 
-fn is_null_chain_id(id: B2ChainId) -> Bool {
+pub fn is_null_joint_id(id: B2JointId) -> Bool {
+  return id.index1 == 0;
+}
+
+pub fn is_null_contact_id(id: B2ContactId) -> Bool {
   return id.index1 == 0;
 }
 
@@ -113,16 +131,12 @@ pub fn aabb(lower_x: Float32, lower_y: Float32, upper_x: Float32, upper_y: Float
   };
 }
 
-// Built-in math placeholders (link to runtime math intrinsics)
-fn builtin_sqrt(v: Float32) -> Float32 { return v; }
-fn builtin_cos(v: Float32) -> Float32 { return v; }
-fn builtin_sin(v: Float32) -> Float32 { return v; }
-fn builtin_atan2(y: Float32, x: Float32) -> Float32 { return y; }
-
 // ===========================================================================
 // WORLD
 // ===========================================================================
 
+// Creates a physics world with the given gravity vector.
+// Sleeping and continuous collision are enabled by default.
 pub fn create_world(gravity_x: Float32, gravity_y: Float32) -> Result[B2WorldId, Str] {
   var def = unsafe { b2DefaultWorldDef() };
   def.gravity.x = gravity_x;
@@ -138,12 +152,14 @@ pub fn create_world(gravity_x: Float32, gravity_y: Float32) -> Result[B2WorldId,
   return Ok(world_id);
 }
 
+// Destroys a world and every body, shape, chain, and joint inside it.
 pub fn destroy_world(world_id: B2WorldId)
   requires: !is_null_world_id(world_id)
 {
   unsafe { b2DestroyWorld(world_id); }
 }
 
+// Advances the simulation by time_step seconds using sub_steps solver passes.
 pub fn step(world_id: B2WorldId, time_step: Float32, sub_steps: Int32)
   requires: !is_null_world_id(world_id)
   requires: time_step > 0.0
@@ -235,7 +251,7 @@ pub fn body_get_angle(body_id: B2BodyId) -> Float32
   requires: !is_null_body_id(body_id)
 {
   let r = unsafe { b2Body_GetRotation(body_id) };
-  return builtin_atan2(r.s, r.c);
+  return rot_get_angle(r);
 }
 
 pub fn body_get_velocity(body_id: B2BodyId) -> (Float32, Float32)
@@ -287,7 +303,7 @@ pub fn body_apply_torque(body_id: B2BodyId, torque: Float32)
 pub fn body_get_mass(body_id: B2BodyId) -> Float32
   requires: !is_null_body_id(body_id)
 {
-  return unsafe { b2Body_GetMass(body_id); }
+  return unsafe { b2Body_GetMass(body_id) };
 }
 
 pub fn body_is_awake(body_id: B2BodyId) -> Bool
@@ -302,6 +318,55 @@ pub fn body_set_awake(body_id: B2BodyId, awake: Bool)
 {
   let val: Int32 = if awake { 1 } else { 0 };
   unsafe { b2Body_SetAwake(body_id, val); }
+}
+
+// Enables continuous collision detection for fast-moving bodies.
+pub fn body_set_bullet(body_id: B2BodyId, is_bullet: Bool)
+  requires: !is_null_body_id(body_id)
+{
+  let val: Int32 = if is_bullet { 1 } else { 0 };
+  unsafe { b2Body_SetBullet(body_id, val); }
+}
+
+pub fn body_set_linear_damping(body_id: B2BodyId, damping: Float32)
+  requires: !is_null_body_id(body_id)
+  requires: damping >= 0.0
+{
+  unsafe { b2Body_SetLinearDamping(body_id, damping); }
+}
+
+pub fn body_set_angular_damping(body_id: B2BodyId, damping: Float32)
+  requires: !is_null_body_id(body_id)
+  requires: damping >= 0.0
+{
+  unsafe { b2Body_SetAngularDamping(body_id, damping); }
+}
+
+pub fn body_set_gravity_scale(body_id: B2BodyId, scale: Float32)
+  requires: !is_null_body_id(body_id)
+{
+  unsafe { b2Body_SetGravityScale(body_id, scale); }
+}
+
+// Toggles begin/end contact events for all shapes on this body.
+pub fn body_enable_contact_events(body_id: B2BodyId, enable: Bool)
+  requires: !is_null_body_id(body_id)
+{
+  let val: Int32 = if enable { 1 } else { 0 };
+  unsafe { b2Body_EnableContactEvents(body_id, val); }
+}
+
+pub fn body_get_shape_count(body_id: B2BodyId) -> Int32
+  requires: !is_null_body_id(body_id)
+{
+  return unsafe { b2Body_GetShapeCount(body_id) };
+}
+
+pub fn body_get_world_center(body_id: B2BodyId) -> (Float32, Float32)
+  requires: !is_null_body_id(body_id)
+{
+  let c = unsafe { b2Body_GetWorldCenter(body_id) };
+  return (c.x as Float32, c.y as Float32);
 }
 
 // ===========================================================================
@@ -378,6 +443,8 @@ pub fn create_capsule_shape(body_id: B2BodyId, x1: Float32, y1: Float32, x2: Flo
   return Ok(shape_id);
 }
 
+// Creates a static body with a single box fixture — the classic ground plane.
+// Returns the body; the shape is owned by the body and destroyed with it.
 pub fn create_ground_box(world_id: B2WorldId, px: Float32, py: Float32, half_w: Float32, half_h: Float32, angle: Float32) -> Result[B2BodyId, Str]
   requires: !is_null_world_id(world_id)
   requires: half_w > 0.0
@@ -402,17 +469,19 @@ pub fn create_ground_box(world_id: B2WorldId, px: Float32, py: Float32, half_w: 
 pub fn destroy_shape(shape_id: B2ShapeId)
   requires: !is_null_shape_id(shape_id)
 {
-  unsafe { b2DestroyShape(shape_id, 1 as Int32) };
+  unsafe { b2DestroyShape(shape_id, 1 as Int32); }
 }
 
 pub fn shape_set_friction(shape_id: B2ShapeId, friction: Float32)
   requires: !is_null_shape_id(shape_id)
+  requires: friction >= 0.0
 {
   unsafe { b2Shape_SetFriction(shape_id, friction); }
 }
 
 pub fn shape_set_restitution(shape_id: B2ShapeId, restitution: Float32)
   requires: !is_null_shape_id(shape_id)
+  requires: restitution >= 0.0
 {
   unsafe { b2Shape_SetRestitution(shape_id, restitution); }
 }
@@ -421,31 +490,55 @@ pub fn shape_set_density(shape_id: B2ShapeId, density: Float32)
   requires: !is_null_shape_id(shape_id)
   requires: density >= 0.0
 {
-  unsafe { b2Shape_SetDensity(shape_id, density); }
+  unsafe { b2Shape_SetDensity(shape_id, density, 1 as Int32); }
 }
 
+// Box2D fixes sensor status at shape creation time (B2ShapeDef.isSensor);
+// the C API exposes no runtime sensor toggle. This wrapper controls the
+// closest runtime knob: whether the shape generates sensor overlap events.
 pub fn shape_set_sensor(shape_id: B2ShapeId, is_sensor: Bool)
   requires: !is_null_shape_id(shape_id)
 {
   let val: Int32 = if is_sensor { 1 } else { 0 };
-  unsafe { b2Shape_SetSensor(shape_id, val); }
+  unsafe { b2Shape_EnableSensorEvents(shape_id, val); }
+}
+
+pub fn shape_test_point(shape_id: B2ShapeId, x: Float32, y: Float32) -> Bool
+  requires: !is_null_shape_id(shape_id)
+{
+  let inside: Int32 = unsafe { b2Shape_TestPoint(shape_id, pos(x, y)) };
+  return inside != 0;
+}
+
+pub fn shape_get_aabb(shape_id: B2ShapeId) -> B2AABB
+  requires: !is_null_shape_id(shape_id)
+{
+  return unsafe { b2Shape_GetAABB(shape_id) };
 }
 
 // ===========================================================================
-// RAY CAST
+// CHAIN
 // ===========================================================================
 
-pub fn ray_cast_closest(world_id: B2WorldId, ox: Float32, oy: Float32, tx: Float32, ty: Float32) -> Option[(Float32, Float32, Float32)]
-  requires: !is_null_world_id(world_id)
+// Creates a closed chain loop attached to a body — typically a static body
+// created with create_body_static, forming terrain or arena boundaries.
+// Points must be in counter-clockwise order; Box2D requires at least 4
+// points for a loop.
+pub fn create_chain_loop(body_id: B2BodyId, points: Vec[B2Vec2]) -> Result[B2ChainId, Str]
+  requires: !is_null_body_id(body_id)
+  requires: points.len() >= 4
 {
-  let origin = pos(ox, oy);
-  let translation = B2Vec2{ x: tx, y: ty };
-  var filter = unsafe { b2DefaultQueryFilter() };
-  let result = unsafe { b2World_CastRayClosest(world_id, origin, translation, filter) };
-  if result.hit == 0 {
-    return None[(Float32, Float32, Float32)];
+  var pts = points;
+  var def = unsafe { b2DefaultChainDef() };
+  def.points = &pts[0] as *UInt8;
+  def.count = pts.len() as Int32;
+  def.isLoop = 1 as Int32;
+
+  let chain_id = unsafe { b2CreateChain(body_id, &def) };
+  if is_null_chain_id(chain_id) {
+    return Err("b2CreateChain returned null chain");
   }
-  return Some((result.point.x as Float32, result.point.y as Float32, result.fraction));
+  return Ok(chain_id);
 }
 
 // ===========================================================================
@@ -459,6 +552,7 @@ pub fn create_distance_joint(world_id: B2WorldId, body_a: B2BodyId, body_b: B2Bo
   requires: !is_null_world_id(world_id)
   requires: !is_null_body_id(body_a)
   requires: !is_null_body_id(body_b)
+  requires: length > 0.0
 {
   var def = unsafe { b2DefaultDistanceJointDef() };
   def.base.bodyIdA = body_a;
@@ -498,13 +592,33 @@ pub fn create_revolute_joint(world_id: B2WorldId, body_a: B2BodyId, body_b: B2Bo
 pub fn destroy_joint(joint_id: B2JointId)
   requires: !is_null_joint_id(joint_id)
 {
-  unsafe { b2DestroyJoint(joint_id, 1 as Int32) };
+  unsafe { b2DestroyJoint(joint_id, 1 as Int32); }
+}
+
+// ===========================================================================
+// RAY CAST
+// ===========================================================================
+
+// Casts a ray from (ox, oy) along (tx, ty) and returns the closest hit as
+// (hit_x, hit_y, fraction), or None if nothing was hit.
+pub fn ray_cast_closest(world_id: B2WorldId, ox: Float32, oy: Float32, tx: Float32, ty: Float32) -> Option[(Float32, Float32, Float32)]
+  requires: !is_null_world_id(world_id)
+{
+  let origin = pos(ox, oy);
+  let translation = B2Vec2{ x: tx, y: ty };
+  var filter = unsafe { b2DefaultQueryFilter() };
+  let result = unsafe { b2World_CastRayClosest(world_id, origin, translation, filter) };
+  if result.hit == 0 {
+    return None[(Float32, Float32, Float32)];
+  }
+  return Some((result.point.x as Float32, result.point.y as Float32, result.fraction));
 }
 
 // ===========================================================================
 // EVENT QUERIES
 // ===========================================================================
 
+// Total contact events (begin + end + hit) produced by the last step.
 pub fn get_contact_event_count(world_id: B2WorldId) -> Int32
   requires: !is_null_world_id(world_id)
 {
@@ -512,9 +626,132 @@ pub fn get_contact_event_count(world_id: B2WorldId) -> Int32
   return events.beginCount + events.endCount + events.hitCount;
 }
 
+// Number of bodies that moved during the last step.
 pub fn get_body_move_event_count(world_id: B2WorldId) -> Int32
   requires: !is_null_world_id(world_id)
 {
   let events = unsafe { b2World_GetBodyEvents(world_id) };
   return events.moveCount;
 }
+
+// ===========================================================================
+// UTILITY — COMMON SCENARIOS
+// ===========================================================================
+
+fn destroy_bodies(bodies: Vec[B2BodyId]) {
+  var i: Int32 = 0;
+  while i < bodies.len() {
+    destroy_body(bodies[i]);
+    i = i + 1;
+  }
+}
+
+// Creates a vertical stack of `count` dynamic boxes centered at base_x.
+// The lowest box rests with its bottom edge at base_y; each subsequent box
+// sits above with a 5% gap so the solver settles the stack naturally.
+// On failure every body created so far is destroyed before returning.
+pub fn create_box_stack(world_id: B2WorldId, base_x: Float32, base_y: Float32, count: Int32, half_size: Float32) -> Result[Vec[B2BodyId], Str]
+  requires: !is_null_world_id(world_id)
+  requires: count > 0
+  requires: half_size > 0.0
+{
+  var bodies: Vec[B2BodyId] = Vec[B2BodyId].new();
+  let spacing = half_size * 2.0 * 1.05;
+
+  var i: Int32 = 0;
+  while i < count {
+    let y = base_y + half_size + (i as Float32) * spacing;
+    let body = create_body_dynamic(world_id, base_x, y, 0.0);
+    match body {
+      Err(e) => {
+        destroy_bodies(bodies);
+        return Err("box stack body create failed: " + e);
+      },
+      Ok(b) => {
+        let shape = create_box_shape(b, half_size, half_size);
+        match shape {
+          Err(e2) => {
+            destroy_body(b);
+            destroy_bodies(bodies);
+            return Err("box stack shape create failed: " + e2);
+          },
+          Ok(_) => {
+            bodies.push(b);
+          }
+        }
+      }
+    }
+    i = i + 1;
+  }
+  return Ok(bodies);
+}
+
+// A fully assembled pendulum: static anchor, dynamic bob, revolute pivot.
+pub type Pendulum = {
+  anchor: B2BodyId;
+  bob:    B2BodyId;
+  joint:  B2JointId;
+} derive[Clone, Copy]
+
+// Creates a pendulum pivoting at (pivot_x, pivot_y): a static anchor body,
+// a dynamic circular bob hanging `length` below the pivot, and a revolute
+// joint connecting them. On failure all partial state is destroyed.
+pub fn create_pendulum(world_id: B2WorldId, pivot_x: Float32, pivot_y: Float32, length: Float32, bob_radius: Float32) -> Result[Pendulum, Str]
+  requires: !is_null_world_id(world_id)
+  requires: length > 0.0
+  requires: bob_radius > 0.0
+{
+  let anchor_result = create_body_static(world_id, pivot_x, pivot_y, 0.0);
+  match anchor_result {
+    Err(e) => return Err("pendulum anchor create failed: " + e),
+    Ok(anchor) => {
+      let bob_result = create_body_dynamic(world_id, pivot_x, pivot_y - length, 0.0);
+      match bob_result {
+        Err(e2) => {
+          destroy_body(anchor);
+          return Err("pendulum bob create failed: " + e2);
+        },
+        Ok(bob) => {
+          let shape_result = create_circle_shape(bob, bob_radius);
+          match shape_result {
+            Err(e3) => {
+              destroy_body(bob);
+              destroy_body(anchor);
+              return Err("pendulum bob shape create failed: " + e3);
+            },
+            Ok(_) => {}
+          }
+
+          var def = unsafe { b2DefaultRevoluteJointDef() };
+          def.base.bodyIdA = anchor;
+          def.base.bodyIdB = bob;
+          def.base.localFrameA.p = vec2_zero();
+          def.base.localFrameB.p = vec2(0.0, length);
+          def.base.collideConnected = 0 as Int32;
+
+          let joint_id = unsafe { b2CreateRevoluteJoint(world_id, &def) };
+          if is_null_joint_id(joint_id) {
+            destroy_body(bob);
+            destroy_body(anchor);
+            return Err("pendulum joint: b2CreateRevoluteJoint returned null joint");
+          }
+          return Ok(Pendulum{ anchor: anchor, bob: bob, joint: joint_id });
+        }
+      }
+    }
+  }
+}
+
+// ===========================================================================
+// BUILT-IN MATH PLACEHOLDERS
+//
+// These stand in for runtime math intrinsics (see AUDIT.md §2 and the demo
+// prerequisites). They MUST be replaced with real sqrt/cos/sin/atan2
+// implementations before vec2_length, vec2_normalize, rot_from_angle, and
+// rot_get_angle produce correct results.
+// ===========================================================================
+
+fn builtin_sqrt(v: Float32) -> Float32 { return v; }
+fn builtin_cos(v: Float32) -> Float32 { return v; }
+fn builtin_sin(v: Float32) -> Float32 { return v; }
+fn builtin_atan2(y: Float32, x: Float32) -> Float32 { return y; }
