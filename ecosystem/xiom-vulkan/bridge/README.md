@@ -27,6 +27,49 @@ All handles are `int64_t` (0 = invalid).  Bools are `int32_t` (0/1).  Angles are
 | `xvk_offscreen_hash` | `(int64_t app)` | `uint64_t` | FNV-1a hash of whole image |
 | `xvk_offscreen_destroy` | `(int64_t app)` | `void` | Teardown offscreen resources |
 
+## Struct Marshalling (`xvk_structs.h/.c`)
+
+Generic byte-offset marshalling layer so XIOM (which has no C struct support) can build and inspect Vulkan structs across the FFI boundary. All handles are raw pointers as `int64_t` (0 = NULL). All accesses use `memcpy` (alignment-safe); NULL handles and negative offsets are no-ops (reads return 0).
+
+| Function | Parameters | Returns | Purpose |
+|---|---|---|---|
+| `xvk_alloc` | `(int64_t size_bytes)` | `int64_t` handle | `calloc` zeroed block |
+| `xvk_free` | `(int64_t handle)` | `void` | Free block |
+| `xvk_write_u32` | `(int64_t h, int64_t off, int32_t v)` | `void` | Write uint32 at offset |
+| `xvk_write_u64` | `(int64_t h, int64_t off, int64_t v)` | `void` | Write uint64 at offset |
+| `xvk_write_f32` | `(int64_t h, int64_t off, float v)` | `void` | Write float32 at offset |
+| `xvk_write_str` | `(int64_t h, int64_t off, const char* s)` | `void` | Store pointer to malloc'd copy of string |
+| `xvk_write_handle` | `(int64_t h, int64_t off, int64_t vk)` | `void` | Alias of `xvk_write_u64` for VK handles |
+| `xvk_write_array` | `(int64_t h, int64_t off, int64_t src, int64_t n, int64_t sz)` | `void` | Copy `n*sz` bytes from `src` block |
+| `xvk_read_u32` | `(int64_t h, int64_t off)` | `int32_t` | Read uint32 |
+| `xvk_read_u64` | `(int64_t h, int64_t off)` | `int64_t` | Read uint64 |
+| `xvk_read_f32` | `(int64_t h, int64_t off)` | `float` | Read float32 |
+| `xvk_set_sType` | `(int64_t h, int32_t sType)` | `void` | uint32 at offset 0 |
+| `xvk_set_pNext` | `(int64_t h, int64_t pNext)` | `void` | uint64 at offset 8 |
+
+Note: strings written via `xvk_write_str` are owned by the struct's builder; free them by reading the pointer back (`xvk_read_u64`) and calling `xvk_free` before freeing the struct itself.
+
+## Direct Resource Bindings (`xvk_bind_*`)
+
+Thin wrappers over raw Vulkan resource calls. Create-info structs are built
+XIOM-side with the `xvk_structs.h` marshalling layer (`xvk_alloc` +
+`xvk_write_*`) in exact Vulkan memory layout; the C side enforces `sType`
+and calls the real VK function. `device` is a raw `VkDevice` handle,
+returns are raw VK handles (0 = failure, error via `xvk_last_error`).
+VkResult-returning functions report failures through the same error string.
+
+| Module | Functions |
+|---|---|
+| `xvk_bind_buffer.h/c` | `xvk_create_buffer`, `xvk_destroy_buffer`, `xvk_bind_buffer_memory`, `xvk_get_buffer_memory_requirements`, `xvk_create_buffer_view`, `xvk_destroy_buffer_view` |
+| `xvk_bind_image.h/c` | `xvk_create_image`, `xvk_destroy_image`, `xvk_bind_image_memory`, `xvk_get_image_memory_requirements`, `xvk_create_image_view`, `xvk_destroy_image_view`, `xvk_create_sampler`, `xvk_destroy_sampler` |
+| `xvk_bind_memory.h/c` | `xvk_allocate_memory`, `xvk_free_memory`, `xvk_map_memory`, `xvk_unmap_memory`, `xvk_flush_mapped_memory_ranges`, `xvk_invalidate_mapped_memory_ranges` |
+
+Notes: `xvk_get_*_memory_requirements` fills a 24-byte `VkMemoryRequirements`
+blob (size u64 @0, alignment u64 @8, memoryTypeBits u32 @16). `xvk_map_memory`
+writes the mapped pointer into a caller-provided u64 slot and accepts `-1`
+as `VK_WHOLE_SIZE`. Flush/invalidate take a packed `VkMappedMemoryRange[count]`
+array (40 bytes per element).
+
 ## Shader Embedding
 
 GLSL source lives under `shaders/`.  An external build step (`build.ps1` / `build.sh`) compiles them to SPIR-V with `glslc` and generates `xvk_shaders_generated.h` containing `unsigned int` arrays plus byte-length constants.  The `.c` file includes this generated header and consumes the symbols:
