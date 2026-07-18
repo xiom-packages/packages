@@ -82,6 +82,29 @@ Raw 1:1 Vulkan entry points. All object handles are raw Vulkan handles as `int64
 
 `xvk_create_graphics_pipelines` / `xvk_create_compute_pipelines` write `count` pipeline handles into `out_pipelines` (int64 array) and return `VkResult`. `xvk_allocate_descriptor_sets` writes the allocated sets into `out_sets` per the `VkDescriptorSetAllocateInfo` and returns `VkResult`.
 
+## Ray Tracing Bindings (`xvk_bind_raytracing`)
+
+`xvk_bind_raytracing.h/.c` expose the Vulkan ray tracing extensions through the
+same flat `int64_t` ABI, but as **raw bindings**: `device`/`cmd_buf` are raw
+`VkDevice`/`VkCommandBuffer` handles and `*_struct` parameters are raw pointers
+to caller-populated Vulkan structs.
+
+| Extension | Coverage |
+|---|---|
+| `VK_KHR_acceleration_structure` | create/destroy, build sizes, cmd build (direct + indirect), copies (cmd + host), properties queries, device address, compatibility |
+| `VK_KHR_ray_tracing_pipeline` | pipeline creation, trace rays (direct + indirect), shader group handles (+ capture replay), stack sizes |
+| `VK_NV_ray_tracing` (legacy) | pipelines, acceleration structures, memory binding, build/copy/trace commands, group handles, `vkCompileDeferredNV` |
+| `VK_EXT_micromap` | create/destroy, build (cmd + host), copies, properties, compatibility, build sizes (stubs if headers predate `VK_EXT_opacity_micromap`) |
+
+Extension entry points are resolved via `vkGetDeviceProcAddr` and cached per
+device (up to 8 devices). Call `xvk_raytracing_load_device_procs(device)` once
+after device creation — it returns an `XVK_RT_CAP_*` capability bitmask and
+binds the proc cache used by the `xvk_cmd_*` entry points. `VkResult`-returning
+functions pass the raw result through (negative = error, message via
+`xvk_last_error()`). Flat-ABI packing rules for the few calls whose Vulkan
+signatures exceed the bridge signature (indirect AS builds, NV builds, NV SBT
+regions) are documented in `xvk_bind_raytracing.h`.
+
 ## Shader Embedding
 
 GLSL source lives under `shaders/`.  An external build step (`build.ps1` / `build.sh`) compiles them to SPIR-V with `glslc` and generates `xvk_shaders_generated.h` containing `unsigned int` arrays plus byte-length constants.  The `.c` file includes this generated header and consumes the symbols:

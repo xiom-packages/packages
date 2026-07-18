@@ -20,6 +20,7 @@
 #include "xvk_structs.c"
 #include "xvk_bind_instance.c"
 #include "xvk_bind_device.c"
+#include "xvk_bind_swapchain.c"
 #include "xvk_bind_buffer.c"
 #include "xvk_bind_image.c"
 #include "xvk_bind_memory.c"
@@ -29,3 +30,4 @@
 #include "xvk_bind_command.c"
 #include "xvk_bind_sync.c"
 #include "xvk_bind_query.c"
+#include "xvk_bind_raytracing.c"
