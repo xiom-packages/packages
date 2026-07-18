@@ -2038,11 +2038,20 @@ void xvk_draw_cube_3d(int64_t app_h, float angle)
     mat4_mul(tmp, view, model);
     mat4_mul(mvp, proj, tmp);
 
+    { float cx=mvp[3],cy=mvp[7],cz=mvp[11],cw=mvp[15];
+      fprintf(stderr,"XVK-CUBE: clip=(%.2f %.2f %.2f %.2f)\n",cx,cy,cz,cw); }
+
     VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    if (!a->pipeline_3d) {
+        fprintf(stderr, "XVK-CUBE: pipeline_3d is NULL! Layout=%p\n",
+                (void*)a->pipe_layout_3d);
+        return;
+    }
     vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, a->pipeline_3d);
     vkCmdPushConstants(cb, a->pipe_layout_3d, VK_SHADER_STAGE_VERTEX_BIT,
                        0, 64, mvp);
     vkCmdDraw(cb, 36, 1, 0, 0);
+    fprintf(stderr, "XVK-CUBE: draw done rec=%d\n", a->recording);
 }
 
 /* ---- draw_quad_2d ---- */
@@ -2090,6 +2099,7 @@ void xvk_draw_cube_3d_at(int64_t app_h, float angle,
     mat4_mul(mvp, proj, tmp);
 
     VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    if (!a->pipeline_3d) { fprintf(stderr, "XVK-CUBE-AT: pipeline_3d NULL!\n"); return; }
     vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, a->pipeline_3d);
     vkCmdPushConstants(cb, a->pipe_layout_3d, VK_SHADER_STAGE_VERTEX_BIT,
                        0, 64, mvp);
