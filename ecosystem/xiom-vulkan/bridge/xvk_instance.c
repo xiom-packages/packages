@@ -139,21 +139,15 @@ VkDevice create_device(VkPhysicalDevice pd, uint32_t gfx_family,
     const char* dev_exts[4];
     int n_dev_exts = 0;
     dev_exts[n_dev_exts++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
-    dev_exts[n_dev_exts++] = VK_EXT_DEBUG_MARKER_EXTENSION_NAME;
+    /* VK_EXT_debug_marker is optional — skip if unavailable */
 
     VkPhysicalDeviceFeatures features = {0};
     features.samplerAnisotropy = VK_TRUE;
     features.fillModeNonSolid  = VK_TRUE;
     features.wideLines         = VK_TRUE;
 
-    VkPhysicalDeviceVulkan13Features vk13 = {0};
-    vk13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
-    vk13.dynamicRendering  = VK_TRUE;
-    vk13.synchronization2  = VK_TRUE;
-
     VkDeviceCreateInfo dci = {0};
     dci.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    dci.pNext = &vk13;
     dci.queueCreateInfoCount = (uint32_t)n_families;
     dci.pQueueCreateInfos = qci;
     dci.enabledExtensionCount = (uint32_t)n_dev_exts;
