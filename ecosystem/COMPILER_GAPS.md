@@ -28,10 +28,15 @@
 > ecosystem against the current compiler and reclassify any remaining failures as genuine
 > code bugs (ECOSYSTEM_SYNTAX_ERRORS.md) or NEW gaps.
 >
-> Note: XIOM's core guarantee is "if it compiles, it's safe" — but the compiler currently
-> still prints `T001` type errors and CONTINUES to codegen (`note: N type errors ...`). That
-> bypass (`crates/xiomc/src/main.rs`) must eventually be removed so a type error aborts; until
-> then, a "compiles" result may hide `T001` diagnostics — always scan stderr for `error[`.
+> Note: XIOM's core guarantee is "if it compiles, it's safe". ✅ **RESOLVED (v0.47.8):** the
+> historical bypass where `T001` type errors printed but codegen CONTINUED has been removed —
+> type errors now abort compilation with exit 1 and no binary, verified for BOTH single-file
+> and multi-file compiles ("note: N type errors — aborting codegen"). Recovered PARSE errors
+> are also fatal now (previously silently dropped declarations — fixed in `5ac82af`).
+>
+> **This file is the historical GAP-1..14 record (all closed). The CANONICAL live registry is
+> [`docs/ecosystem-audit/COMPILER_GAPS.md`](../docs/ecosystem-audit/COMPILER_GAPS.md)
+> (G-01..G-49 with retest addendum). New gaps go THERE, not here.**
 
 ---
 
