@@ -372,11 +372,6 @@ $XiomcArgs = @(
 )
 
 $XiomcArgs += $XiFiles
-# Scratch marshalling helper (standalone, no Vulkan deps)
-$ScratchObj = Join-Path $BridgeDir 'xiom_vk_scratch.obj'
-if (Test-Path $ScratchObj) {
-    $XiomcArgs += @('--c-source', $ScratchObj)
-}
 $XiomcArgs += @('--c-source', $BridgeObj)
 # Auto-detect xio runtime for stdlib functions (xiom_str_len, etc.)
 $RuntimeC = Join-Path $RootDir '..\..\stdlib\runtime\xiom_runtime.c'

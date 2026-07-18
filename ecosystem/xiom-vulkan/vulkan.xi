@@ -358,23 +358,6 @@ pub fn buffer_read_float(app: Int, buf: Int, offset: Int, count: Int) -> Vec[Flo
   return out;
 }
 
-pub fn buffer_write_float(app: Int, buf: Int, offset: Int, data: Vec[Float32]) {
-  // Deprecated: use floats_create + buffer_write_f32 instead.
-  // This shim is retained for backward compatibility with existing callers
-  // that have NOT yet been migrated to the Floats staging API.
-  // Under v0.46 Vec[Float32] element reads may be unreliable; prefer the
-  // Floats-based buffer_write_f32 path for production GPU-visible data.
-  var f = floats_create(data.len());
-  var i = 0;
-  while i < data.len() {
-    floats_set(&f, i, data[i]);
-    i = i + 1;
-  }
-  buffer_write_f32(app, buf, offset, &f);
-  floats_destroy(f);
-}
-
-
 // ===========================================================================
 // Safe wrappers — Images
 // ===========================================================================
@@ -595,9 +578,7 @@ pub fn desc_set_write_image(app: Int, set: Int, binding: Int, sampler: Int, imag
 pub fn render_pass_create(app: Int, color_formats: Vec[Int32], depth_format: Int) -> Result[Int, Str]
   requires: app != 0
 {
-  let sc = copy_to_scratch_i32(color_formats);
-  let h = unsafe { xvk_render_pass_create(app, sc, color_formats.len() as Int32, depth_format as Int32) };
-  unsafe { xvk_scratch_destroy(sc); }
+  let h = unsafe { xvk_render_pass_create(app, color_formats as *Int32, color_formats.len() as Int32, depth_format as Int32) };
   if h == 0 {
     return Err("render_pass_create failed");
   }
@@ -613,9 +594,7 @@ pub fn render_pass_destroy(app: Int, rp: Int)
 pub fn framebuffer_create(app: Int, render_pass: Int, attachments: Vec[Int], width: Int, height: Int) -> Result[Int, Str]
   requires: app != 0
 {
-  let sc = copy_to_scratch_i64(attachments);
-  let h = unsafe { xvk_framebuffer_create(app, render_pass, sc, attachments.len() as Int32, width as Int32, height as Int32) };
-  unsafe { xvk_scratch_destroy(sc); }
+  let h = unsafe { xvk_framebuffer_create(app, render_pass, attachments as *Int, attachments.len() as Int32, width as Int32, height as Int32) };
   if h == 0 {
     return Err("framebuffer_create failed");
   }
@@ -653,24 +632,14 @@ pub fn cmd_bind_pipeline(app: Int, pipeline: Int)
 pub fn cmd_bind_descriptor_sets(app: Int, layout: Int, first_set: Int, sets: Vec[Int])
   requires: app != 0
 {
-  let sc = copy_to_scratch_i64(sets);
-  unsafe { xvk_cmd_bind_descriptor_sets(app, layout, first_set as Int32, sc, sets.len() as Int32); }
-  unsafe { xvk_scratch_destroy(sc); }
+  unsafe { xvk_cmd_bind_descriptor_sets(app, layout, first_set as Int32, sets as *Int, sets.len() as Int32); }
 }
 
 pub fn cmd_push_constants_float(app: Int, layout: Int, stages: Int, offset: Int, data: Vec[Float32])
   requires: app != 0
 {
   let sz = data.len() * 4;
-  // Build a temporary Floats staging buffer from the Vec
-  var f = floats_create(data.len());
-  var idx = 0;
-  while idx < data.len() {
-    floats_set(&f, idx, data[idx]);
-    idx = idx + 1;
-  }
-  unsafe { xvk_cmd_push_constants(app, layout, stages as Int32, offset as Int32, sz as Int32, f.h); }
-  floats_destroy(f);
+  unsafe { xvk_cmd_push_constants(app, layout, stages as Int32, offset as Int32, sz as Int32, data as *UInt8); }
 }
 
 pub fn cmd_draw_indexed(app: Int, index_count: Int, instance_count: Int, first_index: Int, vertex_offset: Int, first_instance: Int)
