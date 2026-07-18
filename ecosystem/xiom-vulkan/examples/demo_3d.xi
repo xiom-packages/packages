@@ -24,7 +24,7 @@ fn main() -> Int {
         if status == 1 {
           draw_cube_3d(a, angle);
           end_frame(a);
-        } `elif status == -1 {
+        } elif status == -1 {
           io.println("ERROR: begin_frame failed: " + last_error());
           break;
         }

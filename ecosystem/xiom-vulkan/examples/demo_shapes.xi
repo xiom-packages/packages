@@ -45,7 +45,7 @@ fn main() -> Int {
           let tb = (math.sin(t + 4.0) * 0.5 + 0.5) as Float32;
           draw_triangle_2d(a, tr, tg, tb);
           end_frame(a);
-        } `elif status == -1 {
+        } elif status == -1 {
           io.println("ERROR: begin_frame failed: " + last_error());
           break;
         }

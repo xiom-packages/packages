@@ -66,7 +66,7 @@ fn main() -> Int {
                 if status == 1 {
                   draw_triangle_2d(app, r, g, b);
                   end_frame(app);
-                } `elif status == -1 {
+                } elif status == -1 {
           io.println("ERROR: begin_frame failed: " + last_error());
           break;
                 }

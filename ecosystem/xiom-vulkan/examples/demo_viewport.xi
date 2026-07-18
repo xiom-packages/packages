@@ -38,7 +38,7 @@ fn main() -> Int {
           draw_quad_2d(a, 0.5, -0.5, 0.48, 0.48, 0.05, 0.05, 0.08);
 
           end_frame(a);
-        } `elif status == -1 {
+        } elif status == -1 {
           io.println("ERROR: begin_frame failed: " + last_error());
           break; }
       }
