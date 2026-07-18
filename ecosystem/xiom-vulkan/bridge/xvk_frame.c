@@ -68,16 +68,6 @@ int32_t xvk_begin_frame(int64_t app_h)
     rpbi.pClearValues        = clears;
 
     vkCmdBeginRenderPass(cb, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
-
-    VkViewport vp = {
-        0.0f, 0.0f,
-        (float)a->swapchain_extent.width, (float)a->swapchain_extent.height,
-        0.0f, 1.0f
-    };
-    vkCmdSetViewport(cb, 0, 1, &vp);
-    VkRect2D sc = { {0, 0}, {a->swapchain_extent.width, a->swapchain_extent.height} };
-    vkCmdSetScissor(cb, 0, 1, &sc);
-
     a->recording      = 1;
     a->in_render_pass = 1;
 

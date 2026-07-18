@@ -123,13 +123,6 @@ VkPipeline create_graphics_pipeline(VkDevice dev,
     gpci.renderPass          = rp;
     gpci.subpass             = 0;
 
-    VkDynamicState dyn_states[2] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
-    VkPipelineDynamicStateCreateInfo dyn = {0};
-    dyn.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    dyn.dynamicStateCount = 2;
-    dyn.pDynamicStates    = dyn_states;
-    gpci.pDynamicState    = &dyn;
-
     VkPipeline pipe = VK_NULL_HANDLE;
     VkResult res = vkCreateGraphicsPipelines(dev, VK_NULL_HANDLE,
                                               1, &gpci, NULL, &pipe);
