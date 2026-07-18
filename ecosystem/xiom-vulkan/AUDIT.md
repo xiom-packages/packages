@@ -61,7 +61,7 @@ xiomc -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
 | G1: `Vec as *T` cast | Rejected | **FIXED** |
 | G2: `&local` → `*T` param | Passes value, not address | **FIXED** |
 | G3: `(if..) as Int32` | Rejected | **FIXED** |
-| G4: Float Vec element reads | Garbage (sitofp) | **STILL BROKEN** — scalar floats fine |
+| G4: Float Vec element reads | Garbage (sitofp, fptrunc missing) | **FIXED** — element type tracking + fptrunc coercion |
 | G5: Vec literal + .data → invalid IR | Rejected by clang | **FIXED** |
 | G6: .data local rebind | E001 + crash | **FIXED** |
 | G7: @null contract | clang reject | **FIXED** |
