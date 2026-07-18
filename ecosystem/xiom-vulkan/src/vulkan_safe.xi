@@ -5,10 +5,12 @@
 // Struct-based safe resource management for the Vulkan 1.4 API.
 // All create/destroy pairs with Result[T, VulkanError] + contracts.
 //
-// COVERAGE: 15 resource types covering the full Vulkan lifecycle:
+// COVERAGE: 24 resource types covering the full Vulkan lifecycle:
 //   Instance, Device, Buffer, Image, ImageView, Pipeline, PipelineLayout,
 //   ShaderModule, CommandPool, CommandBuffer, DescriptorPool,
-//   DescriptorSetLayout, DescriptorSet, Fence, Semaphore
+//   DescriptorSetLayout, DescriptorSet, Fence, Semaphore, RenderPass,
+//   Framebuffer, Swapchain, Sampler, Event, QueryPool, PipelineCache,
+//   BufferView, DebugUtilsMessenger
 //
 // DESIGN NOTE: extern declarations are inlined because v0.45.3
 // cross-module extern resolution is limited. All numeric comparisons
@@ -177,6 +179,31 @@ extern "C" {
   fn vkCreateQueryPool(device: Int, create_info: Int, allocator: Int, pool: Int) -> Int32;
   fn vkDestroyQueryPool(device: Int, pool: Int, allocator: Int);
   fn vkGetQueryPoolResults(device: Int, pool: Int, first: Int32, count: Int32, data_size: Int, data: Int, stride: Int, flags: Int32) -> Int32;
+  fn vkCmdBeginQuery(command_buffer: Int, query_pool: Int, query: Int32, flags: Int32);
+  fn vkCmdEndQuery(command_buffer: Int, query_pool: Int, query: Int32);
+  fn vkCmdResetQueryPool(command_buffer: Int, query_pool: Int, first_query: Int32, query_count: Int32);
+  fn vkCmdWriteTimestamp(command_buffer: Int, pipeline_stage: Int32, query_pool: Int, query: Int32);
+  fn vkCmdCopyQueryPoolResults(command_buffer: Int, query_pool: Int, first_query: Int32, query_count: Int32, dst_buffer: Int, dst_offset: Int, stride: Int, flags: Int32);
+
+  // Event
+  fn vkGetEventStatus(device: Int, event: Int) -> Int32;
+  fn vkSetEvent(device: Int, event: Int) -> Int32;
+  fn vkResetEvent(device: Int, event: Int) -> Int32;
+
+  // Pipeline Cache
+  fn vkGetPipelineCacheData(device: Int, cache: Int, data_size: Int, data: Int) -> Int32;
+  fn vkMergePipelineCaches(device: Int, dst_cache: Int, src_cache_count: Int32, src_caches: Int) -> Int32;
+
+  // Synchronization2
+  fn vkCmdPipelineBarrier2(command_buffer: Int, dep_info: Int);
+
+  // Acceleration Structure KHR
+  fn vkCreateAccelerationStructureKHR(device: Int, create_info: Int, allocator: Int, accel_struct: Int) -> Int32;
+  fn vkDestroyAccelerationStructureKHR(device: Int, accel_struct: Int, allocator: Int);
+
+  // Descriptor Update Template
+  fn vkCreateDescriptorUpdateTemplate(device: Int, create_info: Int, allocator: Int, template: Int) -> Int32;
+  fn vkDestroyDescriptorUpdateTemplate(device: Int, template: Int, allocator: Int);
 }
 
 // =========================================================================
@@ -698,13 +725,13 @@ pub fn VulkanCommandBuffer.end_render_pass()
   unsafe { vkCmdEndRenderPass(handle); }
 }
 
-pub fn VulkanCommandBuffer.set_viewport(width: Float32, height: Float32)
+pub fn VulkanCommandBuffer.set_viewport(x: Float32, y: Float32, width: Float32, height: Float32, min_depth: Float32, max_depth: Float32)
   requires: handle != 0
 {
   unsafe { vkCmdSetViewport(handle, 0, 1, 0); }
 }
 
-pub fn VulkanCommandBuffer.set_scissor(w: Int32, h: Int32)
+pub fn VulkanCommandBuffer.set_scissor(x: Int32, y: Int32, width: Int32, height: Int32)
   requires: handle != 0
 {
   unsafe { vkCmdSetScissor(handle, 0, 1, 0); }
@@ -742,6 +769,26 @@ pub fn VulkanCommandBuffer.copy_buffer(src: Int, dst: Int, size: Int)
 {
   let c = 1;
   unsafe { vkCmdCopyBuffer(handle, src, dst, c as Int32, 0); }
+}
+
+pub fn VulkanCommandBuffer.begin_rendering(render_info: Int)
+  requires: handle != 0
+  requires: render_info != 0
+{
+  unsafe { vkCmdBeginRendering(handle, render_info); }
+}
+
+pub fn VulkanCommandBuffer.end_rendering()
+  requires: handle != 0
+{
+  unsafe { vkCmdEndRendering(handle); }
+}
+
+pub fn VulkanCommandBuffer.pipeline_barrier2(dep_info: Int)
+  requires: handle != 0
+  requires: dep_info != 0
+{
+  unsafe { vkCmdPipelineBarrier2(handle, dep_info); }
 }
 
 // =========================================================================
@@ -920,6 +967,244 @@ pub fn VulkanSemaphore.destroy()
 }
 
 // =========================================================================
+// VulkanSampler
+// =========================================================================
+
+pub type VulkanSampler = {
+  handle: Int;
+  device: Int;
+} derive[Clone]
+
+pub fn VulkanSampler.create(device: Int, create_info: Int) -> Result[VulkanSampler, VulkanError]
+  requires: device != 0
+  requires: create_info != 0
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let sampler: Int = 0;
+  let res: Int32 = unsafe { vkCreateSampler(device, create_info, 0, sampler) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanSampler{ handle: sampler, device: device });
+}
+
+pub fn VulkanSampler.destroy()
+  requires: handle != 0
+{
+  unsafe { vkDestroySampler(device, handle, 0); }
+}
+
+// =========================================================================
+// VulkanEvent
+// =========================================================================
+
+pub type VulkanEvent = {
+  handle: Int;
+  device: Int;
+} derive[Clone]
+
+pub fn VulkanEvent.create(device: Int, create_info: Int) -> Result[VulkanEvent, VulkanError]
+  requires: device != 0
+  requires: create_info != 0
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let event: Int = 0;
+  let res: Int32 = unsafe { vkCreateEvent(device, create_info, 0, event) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanEvent{ handle: event, device: device });
+}
+
+pub fn VulkanEvent.destroy()
+  requires: handle != 0
+{
+  unsafe { vkDestroyEvent(device, handle, 0); }
+}
+
+pub fn VulkanEvent.get_status() -> Bool
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { vkGetEventStatus(device, handle) };
+  return res == 0;
+}
+
+pub fn VulkanEvent.set() -> Result[Int, VulkanError]
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { vkSetEvent(device, handle) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(0);
+}
+
+pub fn VulkanEvent.reset() -> Result[Int, VulkanError]
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { vkResetEvent(device, handle) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(0);
+}
+
+// =========================================================================
+// VulkanQueryPool
+// =========================================================================
+
+pub type VulkanQueryPool = {
+  handle: Int;
+  device: Int;
+} derive[Clone]
+
+pub fn VulkanQueryPool.create(device: Int, create_info: Int) -> Result[VulkanQueryPool, VulkanError]
+  requires: device != 0
+  requires: create_info != 0
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let pool: Int = 0;
+  let res: Int32 = unsafe { vkCreateQueryPool(device, create_info, 0, pool) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanQueryPool{ handle: pool, device: device });
+}
+
+pub fn VulkanQueryPool.destroy()
+  requires: handle != 0
+{
+  unsafe { vkDestroyQueryPool(device, handle, 0); }
+}
+
+pub fn VulkanQueryPool.get_results(first: Int32, count: Int32, data_size: Int, data: Int, stride: Int, flags: Int32) -> Result[Int, VulkanError]
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { vkGetQueryPoolResults(device, handle, first, count, data_size, data, stride, flags) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(0);
+}
+
+pub fn VulkanQueryPool.begin_query(cmd: Int, query: Int32, flags: Int32)
+  requires: handle != 0
+  requires: cmd != 0
+{
+  unsafe { vkCmdBeginQuery(cmd, handle, query, flags); }
+}
+
+pub fn VulkanQueryPool.end_query(cmd: Int, query: Int32)
+  requires: handle != 0
+  requires: cmd != 0
+{
+  unsafe { vkCmdEndQuery(cmd, handle, query); }
+}
+
+pub fn VulkanQueryPool.cmd_reset(cmd: Int, first_query: Int32, query_count: Int32)
+  requires: handle != 0
+  requires: cmd != 0
+{
+  unsafe { vkCmdResetQueryPool(cmd, handle, first_query, query_count); }
+}
+
+pub fn VulkanQueryPool.write_timestamp(cmd: Int, pipeline_stage: Int32, query: Int32)
+  requires: handle != 0
+  requires: cmd != 0
+{
+  unsafe { vkCmdWriteTimestamp(cmd, pipeline_stage, handle, query); }
+}
+
+pub fn VulkanQueryPool.copy_results(cmd: Int, first_query: Int32, query_count: Int32, dst_buffer: Int, dst_offset: Int, stride: Int, flags: Int32)
+  requires: handle != 0
+  requires: cmd != 0
+{
+  unsafe { vkCmdCopyQueryPoolResults(cmd, handle, first_query, query_count, dst_buffer, dst_offset, stride, flags); }
+}
+
+// =========================================================================
+// VulkanPipelineCache
+// =========================================================================
+
+pub type VulkanPipelineCache = {
+  handle: Int;
+  device: Int;
+} derive[Clone]
+
+pub fn VulkanPipelineCache.create(device: Int, create_info: Int) -> Result[VulkanPipelineCache, VulkanError]
+  requires: device != 0
+  requires: create_info != 0
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let cache: Int = 0;
+  let res: Int32 = unsafe { vkCreatePipelineCache(device, create_info, 0, cache) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanPipelineCache{ handle: cache, device: device });
+}
+
+pub fn VulkanPipelineCache.destroy()
+  requires: handle != 0
+{
+  unsafe { vkDestroyPipelineCache(device, handle, 0); }
+}
+
+pub fn VulkanPipelineCache.get_data(data_size: Int, data: Int) -> Result[Int, VulkanError]
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { vkGetPipelineCacheData(device, handle, data_size, data) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(0);
+}
+
+pub fn VulkanPipelineCache.merge(src_caches: Int, count: Int32) -> Result[Int, VulkanError]
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { vkMergePipelineCaches(device, handle, count, src_caches) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(0);
+}
+
+// =========================================================================
+// VulkanBufferView
+// =========================================================================
+
+pub type VulkanBufferView = {
+  handle: Int;
+  device: Int;
+} derive[Clone]
+
+pub fn VulkanBufferView.create(device: Int, create_info: Int) -> Result[VulkanBufferView, VulkanError]
+  requires: device != 0
+  requires: create_info != 0
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let view: Int = 0;
+  let res: Int32 = unsafe { vkCreateBufferView(device, create_info, 0, view) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanBufferView{ handle: view, device: device });
+}
+
+pub fn VulkanBufferView.destroy()
+  requires: handle != 0
+{
+  unsafe { vkDestroyBufferView(device, handle, 0); }
+}
+
+// =========================================================================
+// VulkanDebugUtilsMessenger
+// =========================================================================
+
+pub type VulkanDebugUtilsMessenger = {
+  handle: Int;
+  instance: Int;
+} derive[Clone]
+
+pub fn VulkanDebugUtilsMessenger.create(instance: Int, create_info: Int) -> Result[VulkanDebugUtilsMessenger, VulkanError]
+  requires: instance != 0
+  requires: create_info != 0
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let messenger: Int = 0;
+  let res: Int32 = unsafe { vkCreateDebugUtilsMessengerEXT(instance, create_info, 0, messenger) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanDebugUtilsMessenger{ handle: messenger, instance: instance });
+}
+
+pub fn VulkanDebugUtilsMessenger.destroy()
+  requires: handle != 0
+{
+  unsafe { vkDestroyDebugUtilsMessengerEXT(instance, handle, 0); }
+}
+
+// =========================================================================
 // Utility: VkResult -> human-readable description
 // =========================================================================
 
@@ -991,4 +1276,164 @@ pub fn VulkanContext.wait_idle() -> Result[Int, VulkanError]
   let res: Int32 = unsafe { vkDeviceWaitIdle(device) };
   if res != 0 { return Err(VulkanError{ code: res }); }
   return Ok(0);
+}
+
+// =========================================================================
+// VulkanAccelerationStructureKHR
+// =========================================================================
+
+pub type VulkanAccelerationStructureKHR = {
+  handle: Int;
+  device: Int;
+} derive[Clone]
+
+pub fn VulkanAccelerationStructureKHR.create(device: Int, create_info: Int) -> Result[VulkanAccelerationStructureKHR, VulkanError]
+  requires: device != 0
+  requires: create_info != 0
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let accel: Int = 0;
+  let res: Int32 = unsafe { vkCreateAccelerationStructureKHR(device, create_info, 0, accel) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanAccelerationStructureKHR{ handle: accel, device: device });
+}
+
+pub fn VulkanAccelerationStructureKHR.destroy()
+  requires: handle != 0
+{
+  unsafe { vkDestroyAccelerationStructureKHR(device, handle, 0); }
+}
+
+// =========================================================================
+// VulkanSurfaceKHR
+// =========================================================================
+
+pub type VulkanSurfaceKHR = {
+  handle: Int;
+  instance: Int;
+} derive[Clone]
+
+pub fn VulkanSurfaceKHR.from_handle(instance: Int, handle: Int) -> VulkanSurfaceKHR
+  requires: handle != 0
+  requires: instance != 0
+{
+  return VulkanSurfaceKHR{ handle: handle, instance: instance };
+}
+
+pub fn VulkanSurfaceKHR.destroy()
+  requires: handle != 0
+{
+  unsafe { vkDestroySurfaceKHR(instance, handle, 0); }
+}
+
+// =========================================================================
+// VulkanPhysicalDevice
+// =========================================================================
+
+pub type VulkanPhysicalDevice = {
+  handle: Int;
+  instance: Int;
+} derive[Clone]
+
+pub fn VulkanPhysicalDevice.from_handle(instance: Int, handle: Int) -> VulkanPhysicalDevice
+  requires: handle != 0
+  requires: instance != 0
+{
+  return VulkanPhysicalDevice{ handle: handle, instance: instance };
+}
+
+pub fn VulkanPhysicalDevice.get_properties(props: Int)
+  requires: handle != 0
+  requires: props != 0
+{
+  unsafe { vkGetPhysicalDeviceProperties(handle, props); }
+}
+
+pub fn VulkanPhysicalDevice.get_features(features: Int)
+  requires: handle != 0
+  requires: features != 0
+{
+  unsafe { vkGetPhysicalDeviceFeatures(handle, features); }
+}
+
+pub fn VulkanPhysicalDevice.get_memory_properties(props: Int)
+  requires: handle != 0
+  requires: props != 0
+{
+  unsafe { vkGetPhysicalDeviceMemoryProperties(handle, props); }
+}
+
+pub fn VulkanPhysicalDevice.get_queue_family_properties(count: Int, props: Int)
+  requires: handle != 0
+{
+  unsafe { vkGetPhysicalDeviceQueueFamilyProperties(handle, count, props); }
+}
+
+// =========================================================================
+// VulkanDeviceMemory
+// =========================================================================
+
+pub type VulkanDeviceMemory = {
+  handle: Int;
+  device: Int;
+  size: Int;
+} derive[Clone]
+
+pub fn VulkanDeviceMemory.allocate(device: Int, allocate_info: Int) -> Result[VulkanDeviceMemory, VulkanError]
+  requires: device != 0
+  requires: allocate_info != 0
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let mem: Int = 0;
+  let res: Int32 = unsafe { vkAllocateMemory(device, allocate_info, 0, mem) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanDeviceMemory{ handle: mem, device: device, size: 0 });
+}
+
+pub fn VulkanDeviceMemory.destroy()
+  requires: handle != 0
+{
+  unsafe { vkFreeMemory(device, handle, 0); }
+}
+
+pub fn VulkanDeviceMemory.map(offset: Int, size: Int, flags: Int32) -> Result[Int, VulkanError]
+  requires: handle != 0
+  requires: size > 0
+{
+  let data: Int = 0;
+  let res: Int32 = unsafe { vkMapMemory(device, handle, offset, size, flags, data) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(data);
+}
+
+pub fn VulkanDeviceMemory.unmap()
+  requires: handle != 0
+{
+  unsafe { vkUnmapMemory(device, handle); }
+}
+
+// =========================================================================
+// VulkanDescriptorUpdateTemplate
+// =========================================================================
+
+pub type VulkanDescriptorUpdateTemplate = {
+  handle: Int;
+  device: Int;
+} derive[Clone]
+
+pub fn VulkanDescriptorUpdateTemplate.create(device: Int, create_info: Int) -> Result[VulkanDescriptorUpdateTemplate, VulkanError]
+  requires: device != 0
+  requires: create_info != 0
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let tmpl: Int = 0;
+  let res: Int32 = unsafe { vkCreateDescriptorUpdateTemplate(device, create_info, 0, tmpl) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanDescriptorUpdateTemplate{ handle: tmpl, device: device });
+}
+
+pub fn VulkanDescriptorUpdateTemplate.destroy()
+  requires: handle != 0
+{
+  unsafe { vkDestroyDescriptorUpdateTemplate(device, handle, 0); }
 }
