@@ -967,7 +967,7 @@ static VkPipeline create_graphics_pipeline(VkDevice dev,
     VkPipelineRasterizationStateCreateInfo rs = {0};
     rs.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rs.polygonMode             = VK_POLYGON_MODE_FILL;
-    rs.cullMode                = VK_CULL_MODE_BACK_BIT;
+    rs.cullMode                = enable_depth ? VK_CULL_MODE_NONE : VK_CULL_MODE_BACK_BIT;
     rs.frontFace               = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rs.lineWidth               = 1.0f;
 
