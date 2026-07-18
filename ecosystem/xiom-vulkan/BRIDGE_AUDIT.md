@@ -89,7 +89,7 @@ ecosystem/xiom-vulkan/
 | 28 | VulkanDeviceMemory | vkAllocateMemory/vkFreeMemory + map/unmap |
 | 29 | VulkanDescriptorUpdateTemplate | vkCreateDescriptorUpdateTemplate/vkDestroyDescriptorUpdateTemplate |
 
-## C Bridge Modules (16)
+## C Bridge Modules (17)
 
 | Module | Lines | Purpose |
 |--------|-------|---------|
@@ -108,6 +108,12 @@ ecosystem/xiom-vulkan/
 | xvk_offscreen.h/c | ~160 | Offscreen render target, triangle, pixel readback, hash |
 | xvk_frame.h/c | ~180 | begin_frame, end_frame, set_clear_color, poll |
 | xvk_app.h/c | ~140 | app_create, app_destroy, lifecycle |
+| xvk_bind_command.h/c | ~470 | [NEW] Flat raw-handle vkCmd* bindings: copy/clear/resolve, dispatch (base/indirect), sync2 barriers/events, dynamic state, events, device mask, execute_commands, render pass 2, maintenance6 bind/push2, indirect draw count, queries, buffer device address |
+
+> Note: legacy app-based `xvk_cmd_write_timestamp` (xvk_query.h/c) was renamed to
+> `xvk_query_write_timestamp`; the flat `xvk_cmd_*` namespace is reserved for the
+> raw-handle binding layer (`xvk_bind_command.h/c`), which now provides the
+> 4-argument `xvk_cmd_write_timestamp(cb, pipeline_stage, query_pool, query)`.
 
 ## VK 1.3 Feature Status
 

@@ -56,7 +56,7 @@ void xvk_query_pool_destroy(int64_t app_h, int64_t pool_h)
     free(qp);
 }
 
-void xvk_cmd_write_timestamp(int64_t app_h, int64_t pool_h, int32_t query_index)
+void xvk_query_write_timestamp(int64_t app_h, int64_t pool_h, int32_t query_index)
 {
     XvkApp* a = xvk_from_handle(app_h);
     XvkQueryPool* qp = xvk_qp_from_handle(pool_h);
