@@ -114,13 +114,13 @@ extern "C" {
   fn xvk_framebuffer_destroy(app: Int, fb: Int);
 
   // Phase 1 — Command Recording
-  fn xvk_cmd_bind_vertex_buffer(app: Int, binding: Int32, buf: Int, offset: Int);
-  fn xvk_cmd_bind_index_buffer(app: Int, buf: Int, offset: Int, index_type: Int32);
-  fn xvk_cmd_bind_pipeline(app: Int, pipeline: Int);
-  fn xvk_cmd_bind_descriptor_sets(app: Int, layout: Int, first_set: Int32, sets: *Int, set_count: Int32);
-  fn xvk_cmd_push_constants(app: Int, layout: Int, stages: Int32, offset: Int32, size: Int32, data: *UInt8);
-  fn xvk_cmd_draw_indexed(app: Int, index_count: Int32, instance_count: Int32, first_index: Int32, vertex_offset: Int32, first_instance: Int32);
-  fn xvk_cmd_draw(app: Int, vertex_count: Int32, instance_count: Int32, first_vertex: Int32, first_instance: Int32);
+  fn xvk_app_cmd_bind_vertex_buffer(app: Int, binding: Int32, buf: Int, offset: Int);
+  fn xvk_app_cmd_bind_index_buffer(app: Int, buf: Int, offset: Int, index_type: Int32);
+  fn xvk_app_cmd_bind_pipeline(app: Int, pipeline: Int);
+  fn xvk_app_cmd_bind_descriptor_sets(app: Int, layout: Int, first_set: Int32, sets: *Int, set_count: Int32);
+  fn xvk_app_cmd_push_constants(app: Int, layout: Int, stages: Int32, offset: Int32, size: Int32, data: *UInt8);
+  fn xvk_app_cmd_draw_indexed(app: Int, index_count: Int32, instance_count: Int32, first_index: Int32, vertex_offset: Int32, first_instance: Int32);
+  fn xvk_app_cmd_draw(app: Int, vertex_count: Int32, instance_count: Int32, first_vertex: Int32, first_instance: Int32);
 
   // Phase 1 — Custom Render Pass
   fn xvk_begin_custom_pass(app: Int, render_pass: Int, framebuffer: Int, width: Int32, height: Int32, r: Float32, g: Float32, b: Float32) -> Int32;
@@ -614,44 +614,44 @@ pub fn framebuffer_destroy(app: Int, fb: Int)
 pub fn cmd_bind_vertex_buffer(app: Int, binding: Int, buf: Int, offset: Int)
   requires: app != 0
 {
-  unsafe { xvk_cmd_bind_vertex_buffer(app, binding as Int32, buf, offset); }
+  unsafe { xvk_app_cmd_bind_vertex_buffer(app, binding as Int32, buf, offset); }
 }
 
 pub fn cmd_bind_index_buffer(app: Int, buf: Int, offset: Int, index_type: Int)
   requires: app != 0
 {
-  unsafe { xvk_cmd_bind_index_buffer(app, buf, offset, index_type as Int32); }
+  unsafe { xvk_app_cmd_bind_index_buffer(app, buf, offset, index_type as Int32); }
 }
 
 pub fn cmd_bind_pipeline(app: Int, pipeline: Int)
   requires: app != 0
 {
-  unsafe { xvk_cmd_bind_pipeline(app, pipeline); }
+  unsafe { xvk_app_cmd_bind_pipeline(app, pipeline); }
 }
 
 pub fn cmd_bind_descriptor_sets(app: Int, layout: Int, first_set: Int, sets: Vec[Int])
   requires: app != 0
 {
-  unsafe { xvk_cmd_bind_descriptor_sets(app, layout, first_set as Int32, sets as *Int, sets.len() as Int32); }
+  unsafe { xvk_app_cmd_bind_descriptor_sets(app, layout, first_set as Int32, sets as *Int, sets.len() as Int32); }
 }
 
 pub fn cmd_push_constants_float(app: Int, layout: Int, stages: Int, offset: Int, data: Vec[Float32])
   requires: app != 0
 {
   let sz = data.len() * 4;
-  unsafe { xvk_cmd_push_constants(app, layout, stages as Int32, offset as Int32, sz as Int32, data as *UInt8); }
+  unsafe { xvk_app_cmd_push_constants(app, layout, stages as Int32, offset as Int32, sz as Int32, data as *UInt8); }
 }
 
 pub fn cmd_draw_indexed(app: Int, index_count: Int, instance_count: Int, first_index: Int, vertex_offset: Int, first_instance: Int)
   requires: app != 0
 {
-  unsafe { xvk_cmd_draw_indexed(app, index_count as Int32, instance_count as Int32, first_index as Int32, vertex_offset as Int32, first_instance as Int32); }
+  unsafe { xvk_app_cmd_draw_indexed(app, index_count as Int32, instance_count as Int32, first_index as Int32, vertex_offset as Int32, first_instance as Int32); }
 }
 
 pub fn cmd_draw(app: Int, vertex_count: Int, instance_count: Int, first_vertex: Int, first_instance: Int)
   requires: app != 0
 {
-  unsafe { xvk_cmd_draw(app, vertex_count as Int32, instance_count as Int32, first_vertex as Int32, first_instance as Int32); }
+  unsafe { xvk_app_cmd_draw(app, vertex_count as Int32, instance_count as Int32, first_vertex as Int32, first_instance as Int32); }
 }
 
 // ===========================================================================

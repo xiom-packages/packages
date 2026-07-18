@@ -165,6 +165,19 @@ link /nologo /dll /out:xiom_vk_bridge.dll xiom_vk_bridge.obj
 | Depth range | Mapped to [0,1] in the projection matrix (Vulkan convention) |
 | Validation layers | Off by default; enabled only when env var `XVK_VALIDATION=1` is set AND `VK_LAYER_KHRONOS_validation` is available (fail-soft if unavailable) |
 
+## Raw Vulkan Binding Layer (`xvk_bind_*`)
+
+Alongside the legacy app-based API, the bridge exposes a 1:1 Vulkan binding layer.
+Conventions (apply to `xvk_bind_command`, `xvk_bind_sync`, `xvk_bind_query` and siblings):
+
+- Every `int64_t` parameter is either a **raw Vulkan handle** (`VkDevice`, `VkCommandBuffer`, `VkFence`, ...) or a **raw pointer** to a Vulkan struct/array built by `xvk_structs.c` (e.g. `create_info_struct`, `regions_struct`).
+- Handle arrays (`fences`, `buffers`, `sets`, ...) are pointers to `int64_t[]`, bit-identical to Vulkan handle arrays on x64. `dynamic_offsets` points to a `uint32_t[]`.
+- Functions returning `int32_t` for fallible calls return the **raw `VkResult`** (`0 = VK_SUCCESS`, `2 = VK_TIMEOUT`, negative = error); guard failures return `VK_ERROR_INITIALIZATION_FAILED`. Create functions return the new handle or `0`, with details in `xvk_last_error()`.
+- `xvk_create_fence/semaphore/event` and `xvk_begin_command_buffer` accept `0` for the info struct and substitute a zeroed default. Timeline semaphores are created by chaining `VkSemaphoreTypeCreateInfo` via `pNext`.
+- Module split: command pools/buffers and all `vkCmd*` recording in `xvk_bind_command`; fences/semaphores/events/submit in `xvk_bind_sync` (`xvk_queue_present_khr` lives in `xvk_bind_swapchain`); query pools, timestamps and pipeline statistics in `xvk_bind_query`.
+
+> **Rename note:** the legacy app-based recording helpers were renamed to avoid ABI clashes with the raw layer: `xvk_cmd_draw` → `xvk_app_cmd_draw`, `xvk_cmd_draw_indexed` → `xvk_app_cmd_draw_indexed`, `xvk_cmd_bind_pipeline` → `xvk_app_cmd_bind_pipeline`, `xvk_cmd_bind_vertex_buffer` → `xvk_app_cmd_bind_vertex_buffer`, `xvk_cmd_bind_index_buffer` → `xvk_app_cmd_bind_index_buffer`, `xvk_cmd_bind_descriptor_sets` → `xvk_app_cmd_bind_descriptor_sets`, `xvk_cmd_push_constants` → `xvk_app_cmd_push_constants`. The `xvk_cmd_*` names now always denote raw `VkCommandBuffer`-first bindings.
+
 ## Limitations / TODOs
 
 - No text rendering, no sprites, no complex geometry — only the two hardcoded draw calls.

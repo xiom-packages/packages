@@ -1,7 +1,7 @@
 #include "xvk_command.h"
 #include <stdlib.h>
 
-void xvk_cmd_bind_vertex_buffer(int64_t app_h, int32_t binding, int64_t buf_h, int64_t offset)
+void xvk_app_cmd_bind_vertex_buffer(int64_t app_h, int32_t binding, int64_t buf_h, int64_t offset)
 {
     XvkApp* a = xvk_from_handle(app_h);
     XvkBuffer* b = xvk_buffer_from_handle(buf_h);
@@ -11,7 +11,7 @@ void xvk_cmd_bind_vertex_buffer(int64_t app_h, int32_t binding, int64_t buf_h, i
     vkCmdBindVertexBuffers(cb, (uint32_t)binding, 1, &b->buffer, &off);
 }
 
-void xvk_cmd_bind_index_buffer(int64_t app_h, int64_t buf_h, int64_t offset, int32_t index_type)
+void xvk_app_cmd_bind_index_buffer(int64_t app_h, int64_t buf_h, int64_t offset, int32_t index_type)
 {
     XvkApp* a = xvk_from_handle(app_h);
     XvkBuffer* b = xvk_buffer_from_handle(buf_h);
@@ -20,7 +20,7 @@ void xvk_cmd_bind_index_buffer(int64_t app_h, int64_t buf_h, int64_t offset, int
     vkCmdBindIndexBuffer(cb, b->buffer, (VkDeviceSize)offset, xvk_map_index_type(index_type));
 }
 
-void xvk_cmd_bind_pipeline(int64_t app_h, int64_t pipeline_h)
+void xvk_app_cmd_bind_pipeline(int64_t app_h, int64_t pipeline_h)
 {
     XvkApp* a = xvk_from_handle(app_h);
     XvkPipeline* p = xvk_pipeline_from_handle(pipeline_h);
@@ -29,7 +29,7 @@ void xvk_cmd_bind_pipeline(int64_t app_h, int64_t pipeline_h)
     vkCmdBindPipeline(cb, p->bind_point, p->pipeline);
 }
 
-void xvk_cmd_bind_descriptor_sets(int64_t app_h, int64_t layout_h, int32_t first_set,
+void xvk_app_cmd_bind_descriptor_sets(int64_t app_h, int64_t layout_h, int32_t first_set,
                                    const int64_t* sets, int32_t set_count)
 {
     XvkApp* a = xvk_from_handle(app_h);
@@ -48,7 +48,7 @@ void xvk_cmd_bind_descriptor_sets(int64_t app_h, int64_t layout_h, int32_t first
     free(dss);
 }
 
-void xvk_cmd_push_constants(int64_t app_h, int64_t layout_h, int32_t stages,
+void xvk_app_cmd_push_constants(int64_t app_h, int64_t layout_h, int32_t stages,
                              int32_t offset, int32_t size, const void* data)
 {
     XvkApp* a = xvk_from_handle(app_h);
@@ -59,7 +59,7 @@ void xvk_cmd_push_constants(int64_t app_h, int64_t layout_h, int32_t stages,
                        (uint32_t)offset, (uint32_t)size, data);
 }
 
-void xvk_cmd_draw_indexed(int64_t app_h, int32_t index_count, int32_t instance_count,
+void xvk_app_cmd_draw_indexed(int64_t app_h, int32_t index_count, int32_t instance_count,
                            int32_t first_index, int32_t vertex_offset, int32_t first_instance)
 {
     XvkApp* a = xvk_from_handle(app_h);
@@ -69,7 +69,7 @@ void xvk_cmd_draw_indexed(int64_t app_h, int32_t index_count, int32_t instance_c
                      (uint32_t)first_index, vertex_offset, (uint32_t)first_instance);
 }
 
-void xvk_cmd_draw(int64_t app_h, int32_t vertex_count, int32_t instance_count,
+void xvk_app_cmd_draw(int64_t app_h, int32_t vertex_count, int32_t instance_count,
                    int32_t first_vertex, int32_t first_instance)
 {
     XvkApp* a = xvk_from_handle(app_h);

@@ -290,22 +290,22 @@ void    xvk_framebuffer_destroy(int64_t app, int64_t fb);
 /* ---- recording commands (call between begin/end_frame or after begin_custom_pass) ---- */
 
 /* Bind a vertex buffer to binding slot. */
-void    xvk_cmd_bind_vertex_buffer(int64_t app, int32_t binding, int64_t buf, int64_t offset);
+void    xvk_app_cmd_bind_vertex_buffer(int64_t app, int32_t binding, int64_t buf, int64_t offset);
 /* Bind an index buffer (always binding 0). type: 0=uint16, 1=uint32. */
-void    xvk_cmd_bind_index_buffer(int64_t app, int64_t buf, int64_t offset, int32_t index_type);
+void    xvk_app_cmd_bind_index_buffer(int64_t app, int64_t buf, int64_t offset, int32_t index_type);
 /* Bind a pipeline (graphics or compute). */
-void    xvk_cmd_bind_pipeline(int64_t app, int64_t pipeline);
+void    xvk_app_cmd_bind_pipeline(int64_t app, int64_t pipeline);
 /* Bind descriptor sets. first_set = first set number, sets = array of set handles. */
-void    xvk_cmd_bind_descriptor_sets(int64_t app, int64_t layout, int32_t first_set,
+void    xvk_app_cmd_bind_descriptor_sets(int64_t app, int64_t layout, int32_t first_set,
                                       const int64_t* sets, int32_t set_count);
 /* Push constants. size must be <= 128. */
-void    xvk_cmd_push_constants(int64_t app, int64_t layout, int32_t stages,
+void    xvk_app_cmd_push_constants(int64_t app, int64_t layout, int32_t stages,
                                 int32_t offset, int32_t size, const void* data);
 /* Draw indexed. */
-void    xvk_cmd_draw_indexed(int64_t app, int32_t index_count, int32_t instance_count,
+void    xvk_app_cmd_draw_indexed(int64_t app, int32_t index_count, int32_t instance_count,
                               int32_t first_index, int32_t vertex_offset, int32_t first_instance);
 /* Draw arrays. */
-void    xvk_cmd_draw(int64_t app, int32_t vertex_count, int32_t instance_count,
+void    xvk_app_cmd_draw(int64_t app, int32_t vertex_count, int32_t instance_count,
                       int32_t first_vertex, int32_t first_instance);
 
 /* ---- custom render pass recording ---- */
