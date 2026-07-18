@@ -17,6 +17,7 @@
 #include "xvk_app.c"
 
 /* 100% Vulkan bindings — struct marshalling + direct VK API */
+/* TEMPORARILY DISABLED: agents still writing/verifying
 #include "xvk_structs.c"
 #include "xvk_bind_instance.c"
 #include "xvk_bind_device.c"
@@ -32,3 +33,4 @@
 #include "xvk_bind_query.c"
 #include "xvk_bind_extensions.c"
 #include "xvk_bind_raytracing.c"
+*/
