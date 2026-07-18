@@ -108,7 +108,7 @@ ecosystem/xiom-vulkan/
 | xvk_offscreen.h/c | ~160 | Offscreen render target, triangle, pixel readback, hash |
 | xvk_frame.h/c | ~180 | begin_frame, end_frame, set_clear_color, poll |
 | xvk_app.h/c | ~140 | app_create, app_destroy, lifecycle |
-| xvk_bind_command.h/c | ~470 | [NEW] Flat raw-handle vkCmd* bindings: copy/clear/resolve, dispatch (base/indirect), sync2 barriers/events, dynamic state, events, device mask, execute_commands, render pass 2, maintenance6 bind/push2, indirect draw count, queries, buffer device address |
+| xvk_bind_command.h/c | ~680 | [NEW] Flat raw-handle command bindings: pool/buffer lifecycle, bind/draw/dispatch (incl. base/indirect), barriers (1.0 + sync2), render pass 1/2, dynamic rendering, copy/clear/blit/resolve, dynamic state, events, device mask, execute_commands, maintenance6 bind/push2, indirect draw count, buffer device address. Query commands live in xvk_bind_query.h/c |
 
 > Note: legacy app-based `xvk_cmd_write_timestamp` (xvk_query.h/c) was renamed to
 > `xvk_query_write_timestamp`; the flat `xvk_cmd_*` namespace is reserved for the

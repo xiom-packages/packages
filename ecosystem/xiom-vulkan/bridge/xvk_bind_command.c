@@ -12,6 +12,253 @@
 #define XVK_BC_REQUIRE(cond, name, why) \
     do { if (!(cond)) { xvk_set_error_fmt(name ": " why); return; } } while (0)
 
+/* ---- Command pool / command buffer lifecycle ---- */
+
+int64_t xvk_create_command_pool(int64_t device, int64_t create_info_struct)
+{
+    VkDevice dev = XVK_BC_DEVICE(device);
+    const VkCommandPoolCreateInfo* ci = XVK_BC_CPTR(VkCommandPoolCreateInfo, create_info_struct);
+    if (!dev || !ci) { xvk_set_error("xvk_create_command_pool: null device or create_info"); return 0; }
+
+    VkCommandPool pool = VK_NULL_HANDLE;
+    VkResult res = vkCreateCommandPool(dev, ci, NULL, &pool);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkCreateCommandPool failed: %d", (int)res);
+        return 0;
+    }
+    return (int64_t)(uint64_t)pool;
+}
+
+void xvk_destroy_command_pool(int64_t device, int64_t pool)
+{
+    VkDevice dev = XVK_BC_DEVICE(device);
+    if (!dev || !pool) return;
+    vkDestroyCommandPool(dev, XVK_BC_HANDLE(VkCommandPool, pool), NULL);
+}
+
+int32_t xvk_reset_command_pool(int64_t device, int64_t pool, int32_t flags)
+{
+    VkDevice dev = XVK_BC_DEVICE(device);
+    if (!dev || !pool) return (int32_t)VK_ERROR_INITIALIZATION_FAILED;
+    return (int32_t)vkResetCommandPool(dev, XVK_BC_HANDLE(VkCommandPool, pool),
+                                       (VkCommandPoolResetFlags)flags);
+}
+
+int32_t xvk_allocate_command_buffers(int64_t device, int64_t allocate_info_struct, int64_t out_buffers)
+{
+    VkDevice dev = XVK_BC_DEVICE(device);
+    const VkCommandBufferAllocateInfo* ai = XVK_BC_CPTR(VkCommandBufferAllocateInfo, allocate_info_struct);
+    VkCommandBuffer* out = (VkCommandBuffer*)(intptr_t)out_buffers;
+    if (!dev || !ai || !out) {
+        xvk_set_error("xvk_allocate_command_buffers: null device, allocate_info or out_buffers");
+        return (int32_t)VK_ERROR_INITIALIZATION_FAILED;
+    }
+    VkResult res = vkAllocateCommandBuffers(dev, ai, out);
+    if (res != VK_SUCCESS) xvk_set_error_fmt("vkAllocateCommandBuffers failed: %d", (int)res);
+    return (int32_t)res;
+}
+
+void xvk_free_command_buffers(int64_t device, int64_t pool, int32_t count, int64_t buffers)
+{
+    VkDevice dev = XVK_BC_DEVICE(device);
+    const VkCommandBuffer* cbs = XVK_BC_CPTR(VkCommandBuffer, buffers);
+    if (!dev || !pool || !cbs || count <= 0) return;
+    vkFreeCommandBuffers(dev, XVK_BC_HANDLE(VkCommandPool, pool), (uint32_t)count, cbs);
+}
+
+int32_t xvk_begin_command_buffer(int64_t cmd_buf, int64_t begin_info_struct)
+{
+    VkCommandBuffer cb = XVK_BC_CB(cmd_buf);
+    const VkCommandBufferBeginInfo* bi = XVK_BC_CPTR(VkCommandBufferBeginInfo, begin_info_struct);
+    if (!cb) return (int32_t)VK_ERROR_INITIALIZATION_FAILED;
+
+    VkCommandBufferBeginInfo def = {0};
+    if (!bi) {
+        def.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        bi = &def;
+    }
+    return (int32_t)vkBeginCommandBuffer(cb, bi);
+}
+
+int32_t xvk_end_command_buffer(int64_t cmd_buf)
+{
+    VkCommandBuffer cb = XVK_BC_CB(cmd_buf);
+    if (!cb) return (int32_t)VK_ERROR_INITIALIZATION_FAILED;
+    return (int32_t)vkEndCommandBuffer(cb);
+}
+
+/* ---- Bind / draw / dispatch ---- */
+
+void xvk_cmd_bind_pipeline(int64_t cmd_buf, int32_t bind_point, int64_t pipeline)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_bind_pipeline", "null command buffer");
+    XVK_BC_REQUIRE(pipeline != 0, "xvk_cmd_bind_pipeline", "null pipeline");
+    vkCmdBindPipeline(XVK_BC_CB(cmd_buf), (VkPipelineBindPoint)bind_point,
+                      XVK_BC_HANDLE(VkPipeline, pipeline));
+}
+
+void xvk_cmd_draw(int64_t cmd_buf, int32_t vertex_count, int32_t instance_count, int32_t first_vertex, int32_t first_instance)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_draw", "null command buffer");
+    vkCmdDraw(XVK_BC_CB(cmd_buf), (uint32_t)vertex_count, (uint32_t)instance_count,
+              (uint32_t)first_vertex, (uint32_t)first_instance);
+}
+
+void xvk_cmd_draw_indexed(int64_t cmd_buf, int32_t index_count, int32_t instance_count, int32_t first_index, int32_t vertex_offset, int32_t first_instance)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_draw_indexed", "null command buffer");
+    vkCmdDrawIndexed(XVK_BC_CB(cmd_buf), (uint32_t)index_count, (uint32_t)instance_count,
+                     (uint32_t)first_index, vertex_offset, (uint32_t)first_instance);
+}
+
+void xvk_cmd_draw_indirect(int64_t cmd_buf, int64_t buffer, int64_t offset, int32_t draw_count, int32_t stride)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_draw_indirect", "null command buffer");
+    XVK_BC_REQUIRE(buffer != 0, "xvk_cmd_draw_indirect", "null buffer");
+    vkCmdDrawIndirect(XVK_BC_CB(cmd_buf), XVK_BC_HANDLE(VkBuffer, buffer),
+                      (VkDeviceSize)offset, (uint32_t)draw_count, (uint32_t)stride);
+}
+
+void xvk_cmd_dispatch(int64_t cmd_buf, int32_t x, int32_t y, int32_t z)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_dispatch", "null command buffer");
+    vkCmdDispatch(XVK_BC_CB(cmd_buf), (uint32_t)x, (uint32_t)y, (uint32_t)z);
+}
+
+void xvk_cmd_bind_vertex_buffers(int64_t cmd_buf, int32_t first_binding, int32_t count, int64_t buffers, int64_t offsets)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_bind_vertex_buffers", "null command buffer");
+    XVK_BC_REQUIRE(count > 0 && buffers != 0 && offsets != 0, "xvk_cmd_bind_vertex_buffers", "invalid buffers/offsets");
+    vkCmdBindVertexBuffers(XVK_BC_CB(cmd_buf), (uint32_t)first_binding, (uint32_t)count,
+                           XVK_BC_CPTR(VkBuffer, buffers),
+                           XVK_BC_CPTR(VkDeviceSize, offsets));
+}
+
+void xvk_cmd_bind_index_buffer(int64_t cmd_buf, int64_t buffer, int64_t offset, int32_t index_type)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_bind_index_buffer", "null command buffer");
+    XVK_BC_REQUIRE(buffer != 0, "xvk_cmd_bind_index_buffer", "null buffer");
+    vkCmdBindIndexBuffer(XVK_BC_CB(cmd_buf), XVK_BC_HANDLE(VkBuffer, buffer),
+                         (VkDeviceSize)offset, (VkIndexType)index_type);
+}
+
+void xvk_cmd_bind_descriptor_sets(int64_t cmd_buf, int32_t bind_point, int64_t layout, int32_t first_set, int32_t count, int64_t sets, int32_t dynamic_offset_count, int64_t dynamic_offsets)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_bind_descriptor_sets", "null command buffer");
+    XVK_BC_REQUIRE(layout != 0, "xvk_cmd_bind_descriptor_sets", "null layout");
+    XVK_BC_REQUIRE(count > 0 && sets != 0, "xvk_cmd_bind_descriptor_sets", "invalid sets");
+    XVK_BC_REQUIRE(dynamic_offset_count <= 0 || dynamic_offsets != 0, "xvk_cmd_bind_descriptor_sets", "invalid dynamic offsets");
+    vkCmdBindDescriptorSets(XVK_BC_CB(cmd_buf), (VkPipelineBindPoint)bind_point,
+                            XVK_BC_HANDLE(VkPipelineLayout, layout),
+                            (uint32_t)first_set, (uint32_t)count,
+                            XVK_BC_CPTR(VkDescriptorSet, sets),
+                            (uint32_t)(dynamic_offset_count > 0 ? dynamic_offset_count : 0),
+                            dynamic_offset_count > 0 ? (const uint32_t*)(intptr_t)dynamic_offsets : NULL);
+}
+
+void xvk_cmd_push_constants(int64_t cmd_buf, int64_t layout, int32_t stage_flags, int32_t offset, int32_t size, int64_t data)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_push_constants", "null command buffer");
+    XVK_BC_REQUIRE(layout != 0, "xvk_cmd_push_constants", "null layout");
+    XVK_BC_REQUIRE(data != 0 && size > 0, "xvk_cmd_push_constants", "invalid data");
+    vkCmdPushConstants(XVK_BC_CB(cmd_buf), XVK_BC_HANDLE(VkPipelineLayout, layout),
+                       (VkShaderStageFlags)stage_flags,
+                       (uint32_t)offset, (uint32_t)size, (const void*)(intptr_t)data);
+}
+
+/* ---- Barriers ---- */
+
+void xvk_cmd_pipeline_barrier(int64_t cmd_buf, int32_t src_stage, int32_t dst_stage, int32_t dep_flags, int32_t mem_barrier_count, int64_t mem_barriers, int32_t buf_barrier_count, int64_t buf_barriers, int32_t img_barrier_count, int64_t img_barriers)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_pipeline_barrier", "null command buffer");
+    XVK_BC_REQUIRE(mem_barrier_count <= 0 || mem_barriers != 0, "xvk_cmd_pipeline_barrier", "invalid memory barriers");
+    XVK_BC_REQUIRE(buf_barrier_count <= 0 || buf_barriers != 0, "xvk_cmd_pipeline_barrier", "invalid buffer barriers");
+    XVK_BC_REQUIRE(img_barrier_count <= 0 || img_barriers != 0, "xvk_cmd_pipeline_barrier", "invalid image barriers");
+    vkCmdPipelineBarrier(XVK_BC_CB(cmd_buf),
+                         (VkPipelineStageFlags)src_stage,
+                         (VkPipelineStageFlags)dst_stage,
+                         (VkDependencyFlags)dep_flags,
+                         (uint32_t)(mem_barrier_count > 0 ? mem_barrier_count : 0),
+                         XVK_BC_CPTR(VkMemoryBarrier, mem_barriers),
+                         (uint32_t)(buf_barrier_count > 0 ? buf_barrier_count : 0),
+                         XVK_BC_CPTR(VkBufferMemoryBarrier, buf_barriers),
+                         (uint32_t)(img_barrier_count > 0 ? img_barrier_count : 0),
+                         XVK_BC_CPTR(VkImageMemoryBarrier, img_barriers));
+}
+
+/* ---- Render pass / dynamic rendering ---- */
+
+void xvk_cmd_begin_render_pass(int64_t cmd_buf, int64_t begin_info_struct, int32_t contents)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_begin_render_pass", "null command buffer");
+    XVK_BC_REQUIRE(begin_info_struct != 0, "xvk_cmd_begin_render_pass", "null begin info");
+    vkCmdBeginRenderPass(XVK_BC_CB(cmd_buf),
+                         XVK_BC_CPTR(VkRenderPassBeginInfo, begin_info_struct),
+                         (VkSubpassContents)contents);
+}
+
+void xvk_cmd_end_render_pass(int64_t cmd_buf)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_end_render_pass", "null command buffer");
+    vkCmdEndRenderPass(XVK_BC_CB(cmd_buf));
+}
+
+void xvk_cmd_begin_rendering(int64_t cmd_buf, int64_t rendering_info_struct)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_begin_rendering", "null command buffer");
+    XVK_BC_REQUIRE(rendering_info_struct != 0, "xvk_cmd_begin_rendering", "null rendering info");
+#if defined(VK_VERSION_1_3)
+    vkCmdBeginRendering(XVK_BC_CB(cmd_buf), XVK_BC_CPTR(VkRenderingInfo, rendering_info_struct));
+#else
+    xvk_set_error_fmt("xvk_cmd_begin_rendering: requires Vulkan 1.3 headers");
+#endif
+}
+
+void xvk_cmd_end_rendering(int64_t cmd_buf)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_end_rendering", "null command buffer");
+#if defined(VK_VERSION_1_3)
+    vkCmdEndRendering(XVK_BC_CB(cmd_buf));
+#else
+    xvk_set_error_fmt("xvk_cmd_end_rendering: requires Vulkan 1.3 headers");
+#endif
+}
+
+/* ---- Copy / blit (core spec) ---- */
+
+void xvk_cmd_copy_buffer(int64_t cmd_buf, int64_t src, int64_t dst, int32_t region_count, int64_t regions_struct)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_copy_buffer", "null command buffer");
+    XVK_BC_REQUIRE(src != 0 && dst != 0, "xvk_cmd_copy_buffer", "null src/dst buffer");
+    XVK_BC_REQUIRE(region_count > 0 && regions_struct != 0, "xvk_cmd_copy_buffer", "invalid regions");
+    vkCmdCopyBuffer(XVK_BC_CB(cmd_buf),
+                    XVK_BC_HANDLE(VkBuffer, src), XVK_BC_HANDLE(VkBuffer, dst),
+                    (uint32_t)region_count, XVK_BC_CPTR(VkBufferCopy, regions_struct));
+}
+
+void xvk_cmd_copy_buffer_to_image(int64_t cmd_buf, int64_t src, int64_t dst, int32_t dst_layout, int32_t region_count, int64_t regions_struct)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_copy_buffer_to_image", "null command buffer");
+    XVK_BC_REQUIRE(src != 0 && dst != 0, "xvk_cmd_copy_buffer_to_image", "null src buffer/dst image");
+    XVK_BC_REQUIRE(region_count > 0 && regions_struct != 0, "xvk_cmd_copy_buffer_to_image", "invalid regions");
+    vkCmdCopyBufferToImage(XVK_BC_CB(cmd_buf),
+                           XVK_BC_HANDLE(VkBuffer, src), XVK_BC_HANDLE(VkImage, dst),
+                           (VkImageLayout)dst_layout,
+                           (uint32_t)region_count, XVK_BC_CPTR(VkBufferImageCopy, regions_struct));
+}
+
+void xvk_cmd_blit_image(int64_t cmd_buf, int64_t src, int32_t src_layout, int64_t dst, int32_t dst_layout, int32_t region_count, int64_t regions_struct, int32_t filter)
+{
+    XVK_BC_REQUIRE(cmd_buf != 0, "xvk_cmd_blit_image", "null command buffer");
+    XVK_BC_REQUIRE(src != 0 && dst != 0, "xvk_cmd_blit_image", "null src/dst image");
+    XVK_BC_REQUIRE(region_count > 0 && regions_struct != 0, "xvk_cmd_blit_image", "invalid regions");
+    vkCmdBlitImage(XVK_BC_CB(cmd_buf),
+                   XVK_BC_HANDLE(VkImage, src), (VkImageLayout)src_layout,
+                   XVK_BC_HANDLE(VkImage, dst), (VkImageLayout)dst_layout,
+                   (uint32_t)region_count, XVK_BC_CPTR(VkImageBlit, regions_struct),
+                   (VkFilter)filter);
+}
+
 /* ---- Copy / clear operations ---- */
 
 void xvk_cmd_copy_image(int64_t cb, int64_t src, int32_t src_layout, int64_t dst, int32_t dst_layout, int32_t region_count, int64_t regions_struct)
@@ -394,50 +641,6 @@ void xvk_cmd_draw_indexed_indirect_count(int64_t cb, int64_t buffer, int64_t off
     (void)offset; (void)count_offset; (void)max_draw_count; (void)stride;
     xvk_set_error_fmt("xvk_cmd_draw_indexed_indirect_count: requires Vulkan 1.2 headers");
 #endif
-}
-
-/* ---- Queries (core 1.0) ---- */
-
-void xvk_cmd_write_timestamp(int64_t cb, int32_t pipeline_stage, int64_t query_pool, int32_t query)
-{
-    XVK_BC_REQUIRE(cb != 0, "xvk_cmd_write_timestamp", "null command buffer");
-    XVK_BC_REQUIRE(query_pool != 0, "xvk_cmd_write_timestamp", "null query pool");
-    vkCmdWriteTimestamp(XVK_BC_CB(cb), (VkPipelineStageFlagBits)pipeline_stage,
-                        XVK_BC_HANDLE(VkQueryPool, query_pool), (uint32_t)query);
-}
-
-void xvk_cmd_copy_query_pool_results(int64_t cb, int64_t query_pool, int32_t first_query, int32_t query_count, int64_t dst_buffer, int64_t dst_offset, int64_t stride, int32_t flags)
-{
-    XVK_BC_REQUIRE(cb != 0, "xvk_cmd_copy_query_pool_results", "null command buffer");
-    XVK_BC_REQUIRE(query_pool != 0, "xvk_cmd_copy_query_pool_results", "null query pool");
-    XVK_BC_REQUIRE(dst_buffer != 0, "xvk_cmd_copy_query_pool_results", "null dst buffer");
-    vkCmdCopyQueryPoolResults(XVK_BC_CB(cb), XVK_BC_HANDLE(VkQueryPool, query_pool),
-                              (uint32_t)first_query, (uint32_t)query_count,
-                              XVK_BC_HANDLE(VkBuffer, dst_buffer), (VkDeviceSize)dst_offset,
-                              (VkDeviceSize)stride, (VkQueryResultFlags)(uint32_t)flags);
-}
-
-void xvk_cmd_reset_query_pool(int64_t cb, int64_t query_pool, int32_t first_query, int32_t query_count)
-{
-    XVK_BC_REQUIRE(cb != 0, "xvk_cmd_reset_query_pool", "null command buffer");
-    XVK_BC_REQUIRE(query_pool != 0, "xvk_cmd_reset_query_pool", "null query pool");
-    vkCmdResetQueryPool(XVK_BC_CB(cb), XVK_BC_HANDLE(VkQueryPool, query_pool),
-                        (uint32_t)first_query, (uint32_t)query_count);
-}
-
-void xvk_cmd_begin_query(int64_t cb, int64_t query_pool, int32_t query, int32_t flags)
-{
-    XVK_BC_REQUIRE(cb != 0, "xvk_cmd_begin_query", "null command buffer");
-    XVK_BC_REQUIRE(query_pool != 0, "xvk_cmd_begin_query", "null query pool");
-    vkCmdBeginQuery(XVK_BC_CB(cb), XVK_BC_HANDLE(VkQueryPool, query_pool),
-                    (uint32_t)query, (VkQueryControlFlags)(uint32_t)flags);
-}
-
-void xvk_cmd_end_query(int64_t cb, int64_t query_pool, int32_t query)
-{
-    XVK_BC_REQUIRE(cb != 0, "xvk_cmd_end_query", "null command buffer");
-    XVK_BC_REQUIRE(query_pool != 0, "xvk_cmd_end_query", "null query pool");
-    vkCmdEndQuery(XVK_BC_CB(cb), XVK_BC_HANDLE(VkQueryPool, query_pool), (uint32_t)query);
 }
 
 /* ---- Buffer device address (core 1.2) ---- */
