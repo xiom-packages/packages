@@ -70,6 +70,18 @@ writes the mapped pointer into a caller-provided u64 slot and accepts `-1`
 as `VK_WHOLE_SIZE`. Flush/invalidate take a packed `VkMappedMemoryRange[count]`
 array (40 bytes per element).
 
+## Direct Vulkan Bindings (`xvk_bind_*`)
+
+Raw 1:1 Vulkan entry points. All object handles are raw Vulkan handles as `int64_t` (0 = `VK_NULL_HANDLE`). `*_struct` parameters are raw pointers (as `int64_t`) to fully-built Vulkan structs produced by the `xvk_structs` marshalling layer. Create functions return the new handle, or 0 on failure (`xvk_last_error` has details); batch create/allocate/free functions return `VkResult` (0 = `VK_SUCCESS`).
+
+| Module | Functions |
+|---|---|
+| `xvk_bind_pipeline` | `xvk_create_shader_module`, `xvk_destroy_shader_module`, `xvk_create_pipeline_layout`, `xvk_destroy_pipeline_layout`, `xvk_create_graphics_pipelines`, `xvk_create_compute_pipelines`, `xvk_destroy_pipeline`, `xvk_create_pipeline_cache`, `xvk_destroy_pipeline_cache` |
+| `xvk_bind_descriptor` | `xvk_create_descriptor_set_layout`, `xvk_destroy_descriptor_set_layout`, `xvk_create_descriptor_pool`, `xvk_destroy_descriptor_pool`, `xvk_allocate_descriptor_sets`, `xvk_free_descriptor_sets`, `xvk_update_descriptor_sets`, `xvk_create_descriptor_update_template`, `xvk_destroy_descriptor_update_template` |
+| `xvk_bind_renderpass` | `xvk_create_render_pass`, `xvk_destroy_render_pass`, `xvk_create_framebuffer`, `xvk_destroy_framebuffer` |
+
+`xvk_create_graphics_pipelines` / `xvk_create_compute_pipelines` write `count` pipeline handles into `out_pipelines` (int64 array) and return `VkResult`. `xvk_allocate_descriptor_sets` writes the allocated sets into `out_sets` per the `VkDescriptorSetAllocateInfo` and returns `VkResult`.
+
 ## Shader Embedding
 
 GLSL source lives under `shaders/`.  An external build step (`build.ps1` / `build.sh`) compiles them to SPIR-V with `glslc` and generates `xvk_shaders_generated.h` containing `unsigned int` arrays plus byte-length constants.  The `.c` file includes this generated header and consumes the symbols:
