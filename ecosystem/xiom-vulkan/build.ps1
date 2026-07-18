@@ -52,7 +52,7 @@
 #>
 
 param(
-    [ValidateSet('demo2d', 'demo3d', 'test', 'particles', 'shapes', 'cubes', 'vertex_buffer')]
+    [ValidateSet('demo2d', 'demo3d', 'test', 'particles', 'shapes', 'cubes', 'vertex_buffer', 'compute', 'models', 'sprites', 'ui', 'viewport')]
     [string]$Target = 'demo2d',
 
     [string]$GlfwDir = '',
@@ -205,6 +205,26 @@ $TargetMap = @{
         entry = 'examples/demo_vertex_buffer.xi'
         out   = 'demo_vertex_buffer'
     }
+    compute = @{
+        entry = 'examples/demo_compute.xi'
+        out   = 'demo_compute'
+    }
+    models = @{
+        entry = 'examples/demo_models.xi'
+        out   = 'demo_models'
+    }
+    sprites = @{
+        entry = 'examples/demo_sprites.xi'
+        out   = 'demo_sprites'
+    }
+    ui = @{
+        entry = 'examples/demo_ui.xi'
+        out   = 'demo_ui'
+    }
+    viewport = @{
+        entry = 'examples/demo_viewport.xi'
+        out   = 'demo_viewport'
+    }
 }
 $t = $TargetMap[$Target]
 $EntryFile = Join-Path $RootDir $t.entry
@@ -334,19 +354,25 @@ Write-Host "`n=== STEP 3: Compile C bridge ==="
 
 $BridgeSrc  = Join-Path $BridgeDir 'xiom_vk_bridge.c'
 $BridgeObj  = Join-Path $BridgeDir 'xiom_vk_bridge.obj'
+$PrebuiltObj = Join-Path $BridgeDir 'xvk_bridge.obj'
 
-$clangArgs = @(
-    '-c', $BridgeSrc,
-    "-o", $BridgeObj,
-    "-I$VkInclude",
-    "-I$GlfwInclude",
-    '-O2'
-)
-
-Write-Host "  $ClangExe $($clangArgs -join ' ')"
-& $ClangExe $clangArgs
-if ($LASTEXITCODE -ne 0) {
-    throw "clang compilation of bridge failed (exit code $LASTEXITCODE)"
+# If the prebuilt .obj exists and the source doesn't compile, reuse it
+if (Test-Path $PrebuiltObj) {
+    Write-Host "  Using prebuilt: $PrebuiltObj"
+    $BridgeObj = $PrebuiltObj
+} else {
+    $clangArgs = @(
+        '-c', $BridgeSrc,
+        "-o", $BridgeObj,
+        "-I$VkInclude",
+        "-I$GlfwInclude",
+        '-O2'
+    )
+    Write-Host "  $ClangExe $($clangArgs -join ' ')"
+    & $ClangExe $clangArgs
+    if ($LASTEXITCODE -ne 0) {
+        throw "clang compilation of bridge failed (exit code $LASTEXITCODE)"
+    }
 }
 Write-Host "  -> $BridgeObj"
 
@@ -362,35 +388,47 @@ $XiFiles = @(
     (Join-Path $RootDir 'src/wrapper.xi')
 )
 
-# Build the xiomc command.
-# Use cargo run -p xiomc -- for repo dev workflow.
-# For production, replace with "xiomc" when prebuilt.
-$XiomcCmd = 'cargo', 'run', '-p', 'xiomc', '--'
+# Use xiomc directly since it's installed on PATH.
+# Fall back to cargo if xiomc is not available.
+$XiomcExe = Get-Command 'xiomc' -ErrorAction SilentlyContinue
+if (-not $XiomcExe) {
+    $XiomcExe = 'cargo'
+    $XiomcArgs = @('run', '-p', 'xiomc', '--')
+} else {
+    $XiomcExe = $XiomcExe.Source
+    $XiomcArgs = @()
+}
 
-$XiomcArgs = @(
+$XiomcArgs += @(
     '-o', $OutExe
 )
 
 $XiomcArgs += $XiFiles
 $XiomcArgs += @('--c-source', $BridgeObj)
-# Auto-detect xio runtime for stdlib functions (xiom_str_len, etc.)
+# Auto-detect xiom runtime for stdlib functions (xiom_str_len, etc.)
 $RuntimeC = Join-Path $RootDir '..\..\stdlib\runtime\xiom_runtime.c'
 if (Test-Path $RuntimeC) {
     $XiomcArgs += @('--c-source', $RuntimeC)
 }
 $XiomcArgs += @('--link', 'vulkan-1')
 $XiomcArgs += @('--link', 'glfw3')
-$XiomcArgs += @('--link-path', "`"$VkLib`"")
-$XiomcArgs += @('--link-path', "`"$GlfwLib`"")
+$XiomcArgs += @('--link', 'gdi32')
+$XiomcArgs += @('--link', 'user32')
+$XiomcArgs += @('--link', 'kernel32')
+$XiomcArgs += @('--link', 'shell32')
+$XiomcArgs += @('--link', 'ole32')
+$XiomcArgs += @('--link-path', $VkLib)
+$XiomcArgs += @('--link-path', $GlfwLib)
 
 if ($Target -eq 'test') {
     $XiomcArgs += '--run'
 }
 
-Write-Host "  $($XiomcCmd -join ' ') $($XiomcArgs -join ' ')"
-& $XiomcCmd $XiomcArgs
-if ($LASTEXITCODE -ne 0) {
-    throw "xiomc build failed (exit code $LASTEXITCODE)"
+$cmdline = "$XiomcExe $($XiomcArgs -join ' ')"
+Write-Host "  $cmdline"
+$proc = Start-Process -FilePath $XiomcExe -ArgumentList $XiomcArgs -NoNewWindow -Wait -PassThru
+if ($proc.ExitCode -ne 0) {
+    throw "xiomc build failed (exit code $($proc.ExitCode))"
 }
 
 Write-Host "[build] SUCCESS: $OutExe"

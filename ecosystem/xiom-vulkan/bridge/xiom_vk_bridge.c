@@ -62,18 +62,18 @@ extern const unsigned int xvk_uniform_cube_frag_spv_len;
 /* ------------------------------------------------------------------ */
 #define XVK_MAGIC               0x58564B01u
 #define XVK_MAX_FRAMES          2
-#define XVK_BUFFER_MAGIC        0x42554601u
-#define XVK_IMAGE_MAGIC         0x494D4701u
-#define XVK_IMAGEVIEW_MAGIC     0x56494557u
-#define XVK_SAMPLER_MAGIC       0x534D5001u
-#define XVK_SHADER_MAGIC        0x53484401u
-#define XVK_PIPELINE_MAGIC      0x50495001u
-#define XVK_PLAYOUT_MAGIC       0x504C4159u
-#define XVK_DESC_LAYOUT_MAGIC   0x44534301u
-#define XVK_DESC_POOL_MAGIC     0x44535001u
-#define XVK_DESC_SET_MAGIC      0x44535301u
-#define XVK_RENDERPASS_MAGIC    0x52504153u
-#define XVK_FRAMEBUFFER_MAGIC   0x46524255u
+#define XVK_BUFFER_MAGIC        0x42554601
+#define XVK_IMAGE_MAGIC         0x494D4701
+#define XVK_IMAGEVIEW_MAGIC     0x56494557
+#define XVK_SAMPLER_MAGIC       0x534D5001
+#define XVK_SHADER_MAGIC        0x53484401
+#define XVK_PIPELINE_MAGIC      0x50495001
+#define XVK_PLAYOUT_MAGIC       0x504C4159
+#define XVK_DESC_LAYOUT_MAGIC   0x44534301
+#define XVK_DESC_POOL_MAGIC     0x44535001
+#define XVK_DESC_SET_MAGIC      0x44535301
+#define XVK_RENDERPASS_MAGIC    0x52504153
+#define XVK_FRAMEBUFFER_MAGIC   0x46524255
 #ifndef M_PI
 #  define M_PI 3.14159265358979323846
 #endif
@@ -2704,11 +2704,11 @@ void xvk_offscreen_destroy(int64_t app_h)
 /*  Resource handle helpers                                            */
 /* ------------------------------------------------------------------ */
 
-#define XVK_HANDLE_IMPL(T, magic, field)                                        \
+#define XVK_HANDLE_IMPL(T, magic_val, field)                                      \
     static T* xvk_##field##_from_handle(int64_t h) {                            \
         if (h == 0) return NULL;                                                \
         T* p = (T*)(intptr_t)h;                                                  \
-        if (p->magic != magic) return NULL;                                     \
+        if (p->magic != magic_val) return NULL;                                 \
         return p;                                                               \
     }                                                                           \
     static int64_t xvk_##field##_to_handle(T* p) {                              \
