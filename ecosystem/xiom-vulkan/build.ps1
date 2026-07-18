@@ -405,11 +405,8 @@ $XiomcArgs += @(
 
 $XiomcArgs += $XiFiles
 $XiomcArgs += @('--c-source', $BridgeObj)
-# Auto-detect xiom runtime for stdlib functions (xiom_str_len, etc.)
-$RuntimeC = Join-Path $RootDir '..\..\stdlib\runtime\xiom_runtime.c'
-if (Test-Path $RuntimeC) {
-    $XiomcArgs += @('--c-source', $RuntimeC)
-}
+# NOTE: xiom_runtime.c is NOT passed — xiomc v0.47.7 auto-injects
+# runtime symbols; passing it again causes duplicate symbol errors.
 $XiomcArgs += @('--link', 'vulkan-1')
 $XiomcArgs += @('--link', 'glfw3')
 $XiomcArgs += @('--link', 'gdi32')
