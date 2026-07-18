@@ -1,6 +1,5 @@
 #include "xvk_bridge.h"
 
-/* Core bridge (legacy simplified API + app lifecycle) */
 #include "xvk_util.c"
 #include "xvk_math.c"
 #include "xvk_instance.c"
@@ -16,8 +15,7 @@
 #include "xvk_frame.c"
 #include "xvk_app.c"
 
-/* 100% Vulkan bindings — struct marshalling + direct VK API */
-/* TEMPORARILY DISABLED: agents still writing/verifying
+/* Struct marshalling + direct VK bindings */
 #include "xvk_structs.c"
 #include "xvk_bind_instance.c"
 #include "xvk_bind_device.c"
@@ -33,4 +31,3 @@
 #include "xvk_bind_query.c"
 #include "xvk_bind_extensions.c"
 #include "xvk_bind_raytracing.c"
-*/
