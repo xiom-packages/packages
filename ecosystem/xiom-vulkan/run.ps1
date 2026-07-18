@@ -32,7 +32,7 @@ $ErrorActionPreference = 'Stop'
 $Root    = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $Bridge  = Join-Path $Root 'bridge'
 $Shader  = Join-Path $Bridge 'shaders'
-$Spv     = Join-Path $Bridge 'spv'
+$SpvDir  = Join-Path $Bridge 'spv'
 $GenHdr  = Join-Path $Bridge 'xvk_shaders_generated.h'
 
 # ---- Resolve toolchain ----
@@ -69,23 +69,23 @@ $t = $Targets[$Demo]
 
 # ---- STEP 1: GLSL -> SPIR-V ----
 Write-Host "[1/4] Compiling shaders..." -ForegroundColor Cyan
-if (-not (Test-Path $Spv)) { New-Item -ItemType Directory -Path $Spv -Force | Out-Null }
+if (-not (Test-Path $SpvDir)) { New-Item -ItemType Directory -Path $SpvDir -Force | Out-Null }
 $shaderFiles = @(
-    @{ src = "$Shader\triangle.vert";  dst = "$Spv\triangle_vert.spv"  }
-    @{ src = "$Shader\triangle.frag";  dst = "$Spv\triangle_frag.spv"  }
-    @{ src = "$Shader\cube.vert";      dst = "$Spv\cube_vert.spv"      }
-    @{ src = "$Shader\cube.frag";      dst = "$Spv\cube_frag.spv"      }
-    @{ src = "$Shader\quad.vert";      dst = "$Spv\quad_vert.spv"      }
-    @{ src = "$Shader\quad.frag";      dst = "$Spv\quad_frag.spv"      }
-    @{ src = "$Shader\particle.vert";  dst = "$Spv\particle_vert.spv"  }
-    @{ src = "$Shader\particle.frag";  dst = "$Spv\particle_frag.spv"  }
-    @{ src = "$Shader\particle_render.vert"; dst = "$Spv\particle_render_vert.spv" }
-    @{ src = "$Shader\particle_render.frag"; dst = "$Spv\particle_render_frag.spv" }
-    @{ src = "$Shader\texture_quad.vert";    dst = "$Spv\texture_quad_vert.spv"    }
-    @{ src = "$Shader\texture_quad.frag";    dst = "$Spv\texture_quad_frag.spv"    }
-    @{ src = "$Shader\uniform_cube.vert";    dst = "$Spv\uniform_cube_vert.spv"    }
-    @{ src = "$Shader\uniform_cube.frag";    dst = "$Spv\uniform_cube_frag.spv"    }
-    @{ src = "$Shader\compute_particles.comp"; dst = "$Spv\compute_particles.spv"; extra='-fshader-stage=compute' }
+    @{ src = "$Shader\triangle.vert";  dst = "$SpvDir\triangle_vert.spv"  }
+    @{ src = "$Shader\triangle.frag";  dst = "$SpvDir\triangle_frag.spv"  }
+    @{ src = "$Shader\cube.vert";      dst = "$SpvDir\cube_vert.spv"      }
+    @{ src = "$Shader\cube.frag";      dst = "$SpvDir\cube_frag.spv"      }
+    @{ src = "$Shader\quad.vert";      dst = "$SpvDir\quad_vert.spv"      }
+    @{ src = "$Shader\quad.frag";      dst = "$SpvDir\quad_frag.spv"      }
+    @{ src = "$Shader\particle.vert";  dst = "$SpvDir\particle_vert.spv"  }
+    @{ src = "$Shader\particle.frag";  dst = "$SpvDir\particle_frag.spv"  }
+    @{ src = "$Shader\particle_render.vert"; dst = "$SpvDir\particle_render_vert.spv" }
+    @{ src = "$Shader\particle_render.frag"; dst = "$SpvDir\particle_render_frag.spv" }
+    @{ src = "$Shader\texture_quad.vert";    dst = "$SpvDir\texture_quad_vert.spv"    }
+    @{ src = "$Shader\texture_quad.frag";    dst = "$SpvDir\texture_quad_frag.spv"    }
+    @{ src = "$Shader\uniform_cube.vert";    dst = "$SpvDir\uniform_cube_vert.spv"    }
+    @{ src = "$Shader\uniform_cube.frag";    dst = "$SpvDir\uniform_cube_frag.spv"    }
+    @{ src = "$Shader\compute_particles.comp"; dst = "$SpvDir\compute_particles.spv"; extra='-fshader-stage=compute' }
 )
 foreach ($sf in $shaderFiles) {
     $rebuild = $true
@@ -117,9 +117,9 @@ $symbols = @{
 }
 $lines = @('#ifndef XVK_SHADERS_GENERATED_H_', '#define XVK_SHADERS_GENERATED_H_', '')
 foreach ($name in $symbols.Keys) {
-    $spv = Join-Path $Spv "$name.spv"
-    if (-not (Test-Path $spv)) { Write-Warning "Missing SPIR-V: $spv"; continue }
-    $bytes = [IO.File]::ReadAllBytes($spv)
+    $spvFile = Join-Path $SpvDir "$name.spv"
+    if (-not (Test-Path $spvFile)) { Write-Warning "Missing SPIR-V: $spvFile"; continue }
+    $bytes = [IO.File]::ReadAllBytes($spvFile)
     $words = for ($i=0; $i -lt $bytes.Length; $i+=4) {
         "0x{0:X8}" -f ($bytes[$i] -bor ($bytes[$i+1] -shl 8) -bor ($bytes[$i+2] -shl 16) -bor ($bytes[$i+3] -shl 24))
     }

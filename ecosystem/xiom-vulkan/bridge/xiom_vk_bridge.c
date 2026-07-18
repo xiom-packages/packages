@@ -1866,6 +1866,10 @@ int32_t xvk_begin_frame(int64_t app_h)
     if (a->window) {
         int w, h;
         glfwGetFramebufferSize(a->window, &w, &h);
+        /* If the framebuffer is 0×0 (window not yet realized), skip this
+         * frame — don't attempt a swapchain rebuild on a zero-size extent
+         * because it will always fail. */
+        if (w <= 0 || h <= 0) return 0;
         if (w != (int)a->swapchain_extent.width ||
             h != (int)a->swapchain_extent.height) {
             if (!recreate_swapchain(a)) return -1;

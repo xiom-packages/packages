@@ -29,6 +29,7 @@ fn main() -> Int {
           draw_triangle_2d(a, r, g, b);
           end_frame(a);
         } elif status == -1 {
+          io.println("ERROR: begin_frame failed: " + last_error());
           break;
         }
       }

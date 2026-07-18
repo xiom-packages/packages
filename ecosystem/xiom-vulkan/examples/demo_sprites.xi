@@ -60,7 +60,9 @@ fn main() -> Int {
             sj = sj + 1;
           }
           end_frame(a);
-        } elif status == -1 { break; }
+        } `elif status == -1 {
+          io.println("ERROR: begin_frame failed: " + last_error());
+          break; }
       }
       destroy_app(a);
       return 0;

@@ -85,7 +85,9 @@ fn main() -> Int {
           draw_button(a, -0.2, -0.25, 0.06, 0.05, 0.2, 0.2, 0.6);
 
           end_frame(a);
-        } elif status == -1 { break; }
+        } `elif status == -1 {
+          io.println("ERROR: begin_frame failed: " + last_error());
+          break; }
       }
       destroy_app(a);
       return 0;
