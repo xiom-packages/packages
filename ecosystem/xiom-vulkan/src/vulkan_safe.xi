@@ -1128,7 +1128,7 @@ pub fn VulkanEvent.get_status() -> Bool
   requires: handle != 0
 {
   let res: Int32 = unsafe { vkGetEventStatus(device, handle) };
-  return res == 0;
+  return res == 3;
 }
 
 pub fn VulkanEvent.set() -> Result[Int, VulkanError]
