@@ -30,4 +30,5 @@
 #include "xvk_bind_command.c"
 #include "xvk_bind_sync.c"
 #include "xvk_bind_query.c"
+#include "xvk_bind_extensions.c"
 #include "xvk_bind_raytracing.c"

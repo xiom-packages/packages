@@ -49,6 +49,18 @@ Generic byte-offset marshalling layer so XIOM (which has no C struct support) ca
 
 Note: strings written via `xvk_write_str` are owned by the struct's builder; free them by reading the pointer back (`xvk_read_u64`) and calling `xvk_free` before freeing the struct itself.
 
+## Extension Bindings (`xvk_bind_extensions.h/.c`)
+
+Runtime bindings for every VK extension entry point not covered by the core `xvk_bind_*` modules: `VK_EXT_debug_utils`, `VK_EXT_mesh_shader`, `VK_EXT_extended_dynamic_state`/2/3, `VK_EXT_color_write_enable`, `VK_EXT_conditional_rendering`, `VK_EXT_transform_feedback`, `VK_KHR_push_descriptor`, `VK_KHR_fragment_shading_rate`, `VK_EXT_sample_locations`, `VK_EXT_line_rasterization`, `VK_KHR_copy_commands2`, `VK_EXT_host_image_copy`, `VK_KHR_timeline_semaphore`, `VK_KHR_dynamic_rendering`, `VK_KHR_synchronization2`, `VK_EXT_shader_object`, and `VK_KHR_video_queue`/`decode`/`encode`.
+
+- Entry points are resolved lazily through `vkGetInstanceProcAddr`/`vkGetDeviceProcAddr` and cached in static function pointers; where a core-promoted alias exists (e.g. `vkCmdSetCullModeEXT` → `vkCmdSetCullMode`) both names are tried.
+- Call `xvk_ext_load_instance(instance)` after instance creation and `xvk_ext_load_device(device)` after device creation so command-buffer/queue-level wrappers can resolve. Wrappers that receive an instance/device parameter self-register on first use. Calling the loaders again (e.g. after device recreation) invalidates all cached pointers.
+- Handles are raw VK handles in `int64_t`; `*_struct` parameters are raw pointers to fully-built VK structs (see the struct marshalling layer above).
+- `VkResult`-returning wrappers pass the raw `VkResult` through (`0` = `VK_SUCCESS`); `VK_ERROR_EXTENSION_NOT_PRESENT` is returned when an entry point cannot be resolved. Creation wrappers (`xvk_create_video_session_khr`, `xvk_create_video_session_parameters_khr`) return the raw handle or `0`. Failures are also reported via `xvk_last_error()`.
+- `xvk_create_debug_utils_messenger_ext` returns a `VkResult` and tracks created messengers internally; `xvk_destroy_debug_utils_messenger_ext(instance, 0)` destroys the most recently created one.
+- `xvk_cmd_set_sample_mask_ext` uses the sample count last set via `xvk_cmd_set_rasterization_samples_ext` (default 1) as the `samples` argument of `vkCmdSetSampleMaskEXT`.
+
+
 ## Direct Resource Bindings (`xvk_bind_*`)
 
 Thin wrappers over raw Vulkan resource calls. Create-info structs are built

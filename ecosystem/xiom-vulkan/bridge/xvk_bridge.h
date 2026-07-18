@@ -31,6 +31,7 @@
 #include "xvk_bind_sync.h"
 #include "xvk_bind_query.h"
 #include "xvk_bind_raytracing.h"
+#include "xvk_bind_extensions.h"
 #include "xvk_instance.h"
 #include "xvk_swapchain.h"
 #include "xvk_pipeline.h"
