@@ -85,5 +85,10 @@ unsafe { xvk_get_size(&w); }
 unsafe { xvk_draw_triangle_2d(app, 1.0, 0.5, 0.0); }
 ```
 
-### ✗ Float32/Float64 Vec element operations (G4 remaining)
-Do not pass `Vec[Float32]` or `Vec[Float64]` to C if element values matter. Scalar floats work fine.
+### ✓ Float32/Float64 Vec element operations (G4 FIXED)
+Float Vec reads now use bitcast (not sitofp) for IEEE 754 reinterpretation.
+Float64→Float32 push coercion added (fptrunc double→float).
+```xiom
+var v = Vec[Float32].new(); v.push(1.5);
+let x: Float32 = v[0];  // x == 1.5 on v0.47.6+
+```
