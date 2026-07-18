@@ -24,6 +24,20 @@ module xiom.vulkan.safe
 // Full list: vulkan_extern.xi (755 functions)
 // =========================================================================
 extern "C" {
+  // Bridge struct marshalling layer (xvk_bridge)
+  fn xvk_alloc(size: Int) -> Int;
+  fn xvk_free(ptr: Int);
+  fn xvk_write_u32(base: Int, offset: Int, value: Int32);
+  fn xvk_write_u64(base: Int, offset: Int, value: Int);
+  fn xvk_write_f32(base: Int, offset: Int, value: Float32);
+  fn xvk_write_str(base: Int, offset: Int, value: Str);
+  fn xvk_write_handle(base: Int, offset: Int, value: Int);
+  fn xvk_read_u32(base: Int, offset: Int) -> Int32;
+  fn xvk_read_u64(base: Int, offset: Int) -> Int;
+  fn xvk_read_f32(base: Int, offset: Int) -> Float32;
+  fn xvk_set_sType(base: Int, stype: Int32);
+  fn xvk_set_pNext(base: Int, pnext: Int);
+
   // Instance
   fn vkCreateInstance(create_info: Int, allocator: Int, instance: Int) -> Int32;
   fn vkDestroyInstance(instance: Int, allocator: Int);
@@ -215,6 +229,25 @@ pub type VulkanError = {
 } derive[Clone]
 
 // =========================================================================
+// Bridge marshalling helpers
+// =========================================================================
+
+// Build a `const char* const*` array from Vec[Str] via the bridge heap.
+// Returns 0 for an empty vec (valid Vulkan NULL for ppEnabled*Names).
+// Caller must xvk_free the returned buffer when non-zero.
+fn build_cstr_array(strings: Vec[Str]) -> Int {
+  let count = strings.len();
+  if count == 0 { return 0; }
+  let buf = unsafe { xvk_alloc(count * 8) };
+  var i = 0;
+  while i < count {
+    unsafe { xvk_write_str(buf, i * 8, strings[i]); }
+    i = i + 1;
+  }
+  return buf;
+}
+
+// =========================================================================
 // VulkanInstance
 // =========================================================================
 
@@ -222,12 +255,46 @@ pub type VulkanInstance = {
   handle: Int;
 } derive[Clone]
 
-pub fn VulkanInstance.create(create_info: Int) -> Result[VulkanInstance, VulkanError]
-  requires: create_info != 0
+pub fn VulkanInstance.create(app_name: Str, engine_name: Str, layers: Vec[Str], extensions: Vec[Str]) -> Result[VulkanInstance, VulkanError]
   ensures: result is Ok => result.unwrap().handle != 0
 {
+  // VkApplicationInfo (48 bytes, x86_64 layout per vulkan_core.h):
+  //   sType=0(4B) pNext=8(8B) pApplicationName=16(8B) applicationVersion=24(4B)
+  //   pEngineName=32(8B) engineVersion=40(4B) apiVersion=44(4B)
+  let app_info = unsafe { xvk_alloc(48) };
+  unsafe { xvk_set_sType(app_info, 0); }               // VK_STRUCTURE_TYPE_APPLICATION_INFO
+  unsafe { xvk_set_pNext(app_info, 0); }
+  unsafe { xvk_write_str(app_info, 16, app_name); }    // pApplicationName
+  unsafe { xvk_write_u32(app_info, 24, 4194304); }     // applicationVersion = VK_MAKE_VERSION(1,0,0)
+  unsafe { xvk_write_str(app_info, 32, engine_name); } // pEngineName
+  unsafe { xvk_write_u32(app_info, 40, 4194304); }     // engineVersion = VK_MAKE_VERSION(1,0,0)
+  unsafe { xvk_write_u32(app_info, 44, 4210688); }     // apiVersion = VK_API_VERSION_1_4
+
+  let layer_names = build_cstr_array(layers);
+  let ext_names = build_cstr_array(extensions);
+
+  // VkInstanceCreateInfo (64 bytes):
+  //   sType=0(4B) pNext=8(8B) flags=16(4B) pApplicationInfo=24(8B)
+  //   enabledLayerCount=32(4B) ppEnabledLayerNames=40(8B)
+  //   enabledExtensionCount=48(4B) ppEnabledExtensionNames=56(8B)
+  let ci = unsafe { xvk_alloc(64) };
+  unsafe { xvk_set_sType(ci, 1); }                     // VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO
+  unsafe { xvk_set_pNext(ci, 0); }
+  unsafe { xvk_write_u32(ci, 16, 0); }                 // flags
+  unsafe { xvk_write_u64(ci, 24, app_info); }          // pApplicationInfo
+  unsafe { xvk_write_u32(ci, 32, layers.len() as Int32); }     // enabledLayerCount
+  unsafe { xvk_write_u64(ci, 40, layer_names); }       // ppEnabledLayerNames
+  unsafe { xvk_write_u32(ci, 48, extensions.len() as Int32); } // enabledExtensionCount
+  unsafe { xvk_write_u64(ci, 56, ext_names); }         // ppEnabledExtensionNames
+
   let inst: Int = 0;
-  let res: Int32 = unsafe { vkCreateInstance(create_info, 0, inst) };
+  let res: Int32 = unsafe { vkCreateInstance(ci, 0, inst) };
+
+  unsafe { xvk_free(app_info); }
+  unsafe { xvk_free(ci); }
+  if layer_names != 0 { unsafe { xvk_free(layer_names); } }
+  if ext_names != 0 { unsafe { xvk_free(ext_names); } }
+
   if res != 0 { return Err(VulkanError{ code: res }); }
   return Ok(VulkanInstance{ handle: inst });
 }
@@ -256,13 +323,52 @@ pub type VulkanDevice = {
   handle: Int;
 } derive[Clone]
 
-pub fn VulkanDevice.create(physical_device: Int, create_info: Int) -> Result[VulkanDevice, VulkanError]
+pub fn VulkanDevice.create(physical_device: Int, queue_family: Int32, extensions: Vec[Str]) -> Result[VulkanDevice, VulkanError]
   requires: physical_device != 0
-  requires: create_info != 0
+  requires: queue_family >= 0
   ensures: result is Ok => result.unwrap().handle != 0
 {
+  // Single queue at priority 1.0
+  let priorities = unsafe { xvk_alloc(4) };
+  unsafe { xvk_write_f32(priorities, 0, 1.0); }
+
+  // VkDeviceQueueCreateInfo (40 bytes, x86_64 layout per vulkan_core.h):
+  //   sType=0(4B) pNext=8(8B) flags=16(4B) queueFamilyIndex=20(4B)
+  //   queueCount=24(4B) pQueuePriorities=32(8B)
+  let qci = unsafe { xvk_alloc(40) };
+  unsafe { xvk_set_sType(qci, 2); }                // VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO
+  unsafe { xvk_set_pNext(qci, 0); }
+  unsafe { xvk_write_u32(qci, 16, 0); }            // flags
+  unsafe { xvk_write_u32(qci, 20, queue_family); } // queueFamilyIndex
+  unsafe { xvk_write_u32(qci, 24, 1); }            // queueCount
+  unsafe { xvk_write_u64(qci, 32, priorities); }   // pQueuePriorities
+
+  let ext_names = build_cstr_array(extensions);
+
+  // VkDeviceCreateInfo (72 bytes):
+  //   sType=0(4B) pNext=8(8B) flags=16(4B) queueCreateInfoCount=20(4B)
+  //   pQueueCreateInfos=24(8B) enabledLayerCount=32(4B) ppEnabledLayerNames=40(8B)
+  //   enabledExtensionCount=48(4B) ppEnabledExtensionNames=56(8B) pEnabledFeatures=64(8B)
+  let ci = unsafe { xvk_alloc(72) };
+  unsafe { xvk_set_sType(ci, 3); }                 // VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO
+  unsafe { xvk_set_pNext(ci, 0); }
+  unsafe { xvk_write_u32(ci, 16, 0); }             // flags
+  unsafe { xvk_write_u32(ci, 20, 1); }             // queueCreateInfoCount
+  unsafe { xvk_write_u64(ci, 24, qci); }           // pQueueCreateInfos
+  unsafe { xvk_write_u32(ci, 32, 0); }             // enabledLayerCount (deprecated, 0)
+  unsafe { xvk_write_u64(ci, 40, 0); }             // ppEnabledLayerNames
+  unsafe { xvk_write_u32(ci, 48, extensions.len() as Int32); } // enabledExtensionCount
+  unsafe { xvk_write_u64(ci, 56, ext_names); }     // ppEnabledExtensionNames
+  unsafe { xvk_write_u64(ci, 64, 0); }             // pEnabledFeatures
+
   let dev: Int = 0;
-  let res: Int32 = unsafe { vkCreateDevice(physical_device, create_info, 0, dev) };
+  let res: Int32 = unsafe { vkCreateDevice(physical_device, ci, 0, dev) };
+
+  unsafe { xvk_free(priorities); }
+  unsafe { xvk_free(qci); }
+  unsafe { xvk_free(ci); }
+  if ext_names != 0 { unsafe { xvk_free(ext_names); } }
+
   if res != 0 { return Err(VulkanError{ code: res }); }
   return Ok(VulkanDevice{ handle: dev });
 }
@@ -1244,13 +1350,13 @@ pub fn VulkanContext.init(instance_create_info: Int, device_create_info: Int) ->
   requires: instance_create_info != 0
   requires: device_create_info != 0
 {
-  let inst = VulkanInstance.create(instance_create_info)?;
+  let inst = VulkanInstance.create("XIOM", "XIOM", Vec[Str].new(), Vec[Str].new())?;
   let phys_devices: Int32 = 0;
   let pdc: Int32 = 0;
   let res1: Int32 = unsafe { vkEnumeratePhysicalDevices(inst.handle, pdc, 0) };
   if res1 != 0 { return Err(VulkanError{ code: res1 }); }
   if phys_devices == 0 { return Err(VulkanError{ code: -1 }); }
-  let dev = VulkanDevice.create(phys_devices as Int, device_create_info)?;
+  let dev = VulkanDevice.create(phys_devices as Int, 0, Vec[Str].new())?;
   let gq = dev.get_queue(0, 0);
   return Ok(VulkanContext{
     instance: inst.handle,
