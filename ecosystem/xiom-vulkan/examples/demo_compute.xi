@@ -29,7 +29,8 @@ fn main() -> Int {
       var fail_count: Int = 0;
       var frames: Int = 0;
       while frames < 30 {
-        let rf = offscreen_render_triangle(s, r, 0.3, 1.0 - r);
+        let r0 = r;
+        let rf = offscreen_render_triangle(s, r0, 0.3, 1.0 - r0);
         if !rf { fail_count = fail_count + 1; }
         else { pass_count = pass_count + 1; }
         r = r + 0.05;

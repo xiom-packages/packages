@@ -23,9 +23,8 @@ fn main() -> Int {
       var last = now();
       while !should_close(a) {
         poll(a);
-        let t = now();
-        let dt = (t - last) as Float32;
-        last = t;
+        let dt = (now() - last) as Float32;
+        last = now();
         set_clear_color(a, 0.02, 0.02, 0.05);
         let status = begin_frame(a);
         if status == 1 {

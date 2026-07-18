@@ -57,10 +57,9 @@ fn main() -> Int {
               // ---- Run main loop with legacy drawing for visual feedback ----
               while !should_close(app) {
                 poll(app);
-                let t = now();
-                let r = (math.sin(t) * 0.5 + 0.5) as Float32;
-                let g = (math.sin(t + 2.0) * 0.5 + 0.5) as Float32;
-                let b = (math.sin(t + 4.0) * 0.5 + 0.5) as Float32;
+                let r = (math.sin(now()) * 0.5 + 0.5) as Float32;
+                let g = (math.sin(now() + 2.0) * 0.5 + 0.5) as Float32;
+                let b = (math.sin(now() + 4.0) * 0.5 + 0.5) as Float32;
                 set_clear_color(app, 0.05, 0.05, 0.1);
                 let status = begin_frame(app);
                 if status == 1 {
