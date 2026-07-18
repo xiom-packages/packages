@@ -309,7 +309,7 @@ static void mat4_mul(float c[16], const float a[16], const float b[16])
     }
 }
 
-/* Vulkan perspective: Y flipped, depth mapped to [0,1].             */
+/* Vulkan perspective: OpenGL-style view (camera looks down -Z).     */
 static void mat4_perspective(float m[16], float fov_y, float aspect,
                               float near, float far)
 {
@@ -317,8 +317,8 @@ static void mat4_perspective(float m[16], float fov_y, float aspect,
     memset(m, 0, 16 * sizeof(float));
     m[0]  = t / aspect;                       /* [0][0] */
     m[5]  = -t;                               /* [1][1] — Y flip */
-    m[10] = far / (far - near);               /* [2][2] */
-    m[11] = 1.0f;                             /* [2][3] — w division */
+    m[10] = -far / (far - near);              /* [2][2] — flip for -Z front */
+    m[11] = -1.0f;                            /* [2][3] — w = -z (positive for -Z front) */
     m[14] = -near * far / (far - near);       /* [3][2] */
 }
 
@@ -2038,20 +2038,11 @@ void xvk_draw_cube_3d(int64_t app_h, float angle)
     mat4_mul(tmp, view, model);
     mat4_mul(mvp, proj, tmp);
 
-    { float cx=mvp[3],cy=mvp[7],cz=mvp[11],cw=mvp[15];
-      fprintf(stderr,"XVK-CUBE: clip=(%.2f %.2f %.2f %.2f)\n",cx,cy,cz,cw); }
-
     VkCommandBuffer cb = a->cmd_buffers[a->current_image];
-    if (!a->pipeline_3d) {
-        fprintf(stderr, "XVK-CUBE: pipeline_3d is NULL! Layout=%p\n",
-                (void*)a->pipe_layout_3d);
-        return;
-    }
     vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, a->pipeline_3d);
     vkCmdPushConstants(cb, a->pipe_layout_3d, VK_SHADER_STAGE_VERTEX_BIT,
                        0, 64, mvp);
     vkCmdDraw(cb, 36, 1, 0, 0);
-    fprintf(stderr, "XVK-CUBE: draw done rec=%d\n", a->recording);
 }
 
 /* ---- draw_quad_2d ---- */
@@ -2099,7 +2090,6 @@ void xvk_draw_cube_3d_at(int64_t app_h, float angle,
     mat4_mul(mvp, proj, tmp);
 
     VkCommandBuffer cb = a->cmd_buffers[a->current_image];
-    if (!a->pipeline_3d) { fprintf(stderr, "XVK-CUBE-AT: pipeline_3d NULL!\n"); return; }
     vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, a->pipeline_3d);
     vkCmdPushConstants(cb, a->pipe_layout_3d, VK_SHADER_STAGE_VERTEX_BIT,
                        0, 64, mvp);
