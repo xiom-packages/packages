@@ -1,5 +1,5 @@
 // XIOM — ImGui Production Demo
-// Menu bar, windows, widgets, DPI-aware.
+// Menu bar, windows, widgets. Stable modal popup.
 // Menu File > Exit, Escape, or window X to close.
 
 module imgui_demo
@@ -17,8 +17,7 @@ var g_drag_i: Int = 0;
 var g_cr: Float32 = 0.0;
 var g_cg: Float32 = 0.0;
 var g_cb: Float32 = 0.0;
-var g_show_popup: Int = 0;
-var g_color_btn: Int = 0;
+var g_show_modal: Int = 0;
 
 fn main() -> Int {
   let app = create_app("XIOM ImGui Demo", 1280, 800);
@@ -29,7 +28,7 @@ fn main() -> Int {
       g_s_f = 0.65; g_s_i = 32; g_c1 = 1; g_c2 = 0;
       g_drag_f = 1.0; g_drag_i = 50;
       g_cr = 0.18; g_cg = 0.64; g_cb = 0.88;
-      g_show_popup = 0; g_color_btn = 0;
+      g_show_modal = 0;
 
       let win  = unsafe { xvk_get_glfw_window(a) };
       let inst = unsafe { xvk_get_instance(a) };
@@ -67,7 +66,7 @@ fn main() -> Int {
           }
 
           // ── WIDGETS ──
-          unsafe { imgui_set_next_window_size(450.0, 400.0); };
+          unsafe { imgui_set_next_window_size(450.0, 350.0); };
           unsafe { imgui_set_next_window_pos(10.0, 30.0); };
           if unsafe { imgui_begin("Widgets", 0 as Int32) } != 0 {
             g_s_f = unsafe { imgui_slider_float("Float", g_s_f, 0.0, 1.0) };
@@ -80,16 +79,22 @@ fn main() -> Int {
             unsafe { imgui_separator(); };
             unsafe { imgui_color_edit3("RGB", g_cr, g_cg, g_cb); };
             unsafe { imgui_separator(); };
-            if unsafe { imgui_button("Open Modal") } != 0 {
-              unsafe { imgui_open_popup("MyModal"); };
-            }
-            if unsafe { imgui_begin_popup_modal("MyModal") } != 0 {
-              unsafe { imgui_text("Modal window!"); };
-              unsafe { imgui_text("Click OK to close."); };
-              if unsafe { imgui_button("OK") } != 0 { unsafe { imgui_close_current_popup(); }; }
-              unsafe { imgui_end_popup_modal(); };
-            }
+            if unsafe { imgui_button("Open Modal") } != 0 { g_show_modal = 1; }
             unsafe { imgui_end(); };
+          }
+
+          // ── MODAL (flag-based, re-openable) ──
+          if g_show_modal != 0 {
+            unsafe { imgui_open_popup("MyModal"); };
+            g_show_modal = 0;
+          }
+          if unsafe { imgui_begin_popup_modal("MyModal") } != 0 {
+            unsafe { imgui_text("Modal window!"); };
+            unsafe { imgui_separator(); };
+            if unsafe { imgui_button("Close") } != 0 {
+              unsafe { imgui_close_current_popup(); };
+            }
+            unsafe { imgui_end_popup_modal(); };
           }
 
           // ── BROWSER ──
