@@ -18,7 +18,6 @@ int32_t xvk_begin_frame(int64_t app_h)
         }
     }
 
-    VkSemaphore avail = a->image_available[a->frame_index];
     VkFence    fence  = a->in_flight_fences[a->frame_index];
 
     vkWaitForFences(a->device, 1, &fence, VK_TRUE, UINT64_MAX);
@@ -26,13 +25,13 @@ int32_t xvk_begin_frame(int64_t app_h)
 
     uint32_t img_idx = 0;
     VkResult res = vkAcquireNextImageKHR(a->device, a->swapchain,
-                                          UINT64_MAX, avail,
+                                          UINT64_MAX, VK_NULL_HANDLE,
                                           VK_NULL_HANDLE, &img_idx);
     if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR) {
         recreate_swapchain(a);
         return 0;
     }
-    if (res != VK_SUCCESS) {
+    if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) {
         xvk_set_error_fmt("vkAcquireNextImageKHR failed: %d", (int)res);
         return -1;
     }
@@ -92,19 +91,15 @@ void xvk_end_frame(int64_t app_h)
     }
     a->recording = 0;
 
-    VkSemaphore          wait_sems[] = { a->image_available[a->frame_index] };
-    VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    VkSemaphore          sig_sems[]  = { a->render_finished[a->frame_index] };
-
     VkSubmitInfo si = {0};
     si.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    si.waitSemaphoreCount   = 1;
-    si.pWaitSemaphores      = wait_sems;
-    si.pWaitDstStageMask    = wait_stages;
+    si.waitSemaphoreCount   = 0;
+    si.pWaitSemaphores      = NULL;
+    si.pWaitDstStageMask    = NULL;
     si.commandBufferCount   = 1;
     si.pCommandBuffers      = &cb;
-    si.signalSemaphoreCount = 1;
-    si.pSignalSemaphores    = sig_sems;
+    si.signalSemaphoreCount = 0;
+    si.pSignalSemaphores    = NULL;
 
     VkFence fence = a->in_flight_fences[a->frame_index];
 
@@ -115,8 +110,8 @@ void xvk_end_frame(int64_t app_h)
     VkSwapchainKHR swapchains[] = { a->swapchain };
     VkPresentInfoKHR pi = {0};
     pi.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    pi.waitSemaphoreCount = 1;
-    pi.pWaitSemaphores    = sig_sems;
+    pi.waitSemaphoreCount = 0;
+    pi.pWaitSemaphores    = NULL;
     pi.swapchainCount     = 1;
     pi.pSwapchains        = swapchains;
     pi.pImageIndices      = &img_idx;
