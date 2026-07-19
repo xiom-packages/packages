@@ -106,6 +106,16 @@ void imgui_bridge_new_frame()
     ImGui::NewFrame();
 }
 
+void imgui_bridge_new_frame_sized(int32_t fb_w, int32_t fb_h)
+{
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2((float)fb_w, (float)fb_h);
+    io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+}
+
 void imgui_bridge_render(int64_t command_buffer)
 {
     VkCommandBuffer cb = (VkCommandBuffer)(intptr_t)command_buffer;

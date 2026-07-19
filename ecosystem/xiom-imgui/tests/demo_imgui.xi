@@ -53,10 +53,9 @@ fn main() -> Int {
             unsafe { xvk_app_clear_resize(a); };
           }
 
-          unsafe { imgui_bridge_new_frame(); };
           let fb_w = unsafe { xvk_get_fb_width(a) };
           let fb_h = unsafe { xvk_get_fb_height(a) };
-          unsafe { imgui_bridge_set_display_size_i32(fb_w, fb_h); };
+          unsafe { imgui_bridge_new_frame_sized(fb_w, fb_h); };
 
           if unsafe { imgui_begin_main_menu_bar() } != 0 {
             if unsafe { imgui_begin_menu("File") } != 0 {

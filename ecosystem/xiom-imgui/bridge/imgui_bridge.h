@@ -19,6 +19,7 @@ void     imgui_bridge_reset_vulkan(int64_t instance, int64_t device,
             int32_t queue_family, int64_t render_pass,
             float fb_width, float fb_height);
 void     imgui_bridge_new_frame(void);
+void     imgui_bridge_new_frame_sized(int32_t fb_w, int32_t fb_h);
 void     imgui_bridge_render(int64_t command_buffer);
 void     imgui_bridge_set_display_size(float fb_w, float fb_h);
 void     imgui_bridge_set_display_size_i32(int32_t fb_w, int32_t fb_h);
