@@ -12,9 +12,9 @@ int32_t xvk_begin_frame(int64_t app_h)
         if (w <= 0 || h <= 0) return 0;
         if (w != (int)a->swapchain_extent.width ||
             h != (int)a->swapchain_extent.height) {
-            if (!recreate_swapchain(a)) return 0;
+            recreate_swapchain(a);
             a->resized = 1;
-            /* Recreate succeeded — continue with new swapchain */
+            return 0;  /* skip frame — start fresh next frame */
         }
     }
 

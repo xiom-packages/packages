@@ -1,6 +1,6 @@
-// XIOM — ImGui Production Demo (Fluid Layout)
-// Windows sized relative to framebuffer. Scales from 720p to 4K.
-// Menu File > Exit, Escape, or window X to close.
+// XIOM — ImGui Production Demo (Fluid Layout, v0.48.6)
+// Windows sized relative to framebuffer using integer math.
+// Scales from 720p to 4K. Menu File > Exit, Escape, or X to close.
 
 module imgui_demo
 use xiom.io;
@@ -48,17 +48,17 @@ fn main() -> Int {
         set_clear_color(a, 0.06, 0.06, 0.10);
         let status = begin_frame(a);
         if status == 1 {
-          let fb_w = unsafe { xvk_get_fb_width(a) };
-          let fb_h = unsafe { xvk_get_fb_height(a) };
-          unsafe { imgui_bridge_new_frame_sized(fb_w, fb_h); };
+          let fb_w = unsafe { xvk_get_fb_width(a) } as Int;
+          let fb_h = unsafe { xvk_get_fb_height(a) } as Int;
+          unsafe { imgui_bridge_new_frame_sized(fb_w as Int32, fb_h as Int32); };
 
-          // Compute window sizes relative to framebuffer (integer math to avoid CG-01)
-          let left_w  = (fb_w / 3) as Int;   // 33% width
-          let mid_w   = (fb_w / 3) as Int;   // 33% width
-          let right_w = (fb_w / 3) as Int;   // 33% width
-          let win_h   = (fb_h - 30) as Int;  // full height minus status bar
+          // Fluid layout: 3 columns + bottom status bar
+          let pad: Int = 8;
+          let sbh: Int = 28;
+          let third: Int = (fb_w - pad * 4) / 3;
+          let content_h: Int = fb_h - sbh - 32;
 
-          // ── MAIN MENU BAR ──
+          // ── MENU ──
           if unsafe { imgui_begin_main_menu_bar() } != 0 {
             if unsafe { imgui_begin_menu("File") } != 0 {
               if unsafe { imgui_menu_item("Exit", "Alt+F4", 1 as Int32) } != 0 { break; }
@@ -67,9 +67,9 @@ fn main() -> Int {
             unsafe { imgui_end_main_menu_bar(); };
           }
 
-          // ── WIDGETS (left third) ──
-          unsafe { imgui_set_next_window_pos_i32(0 as Int32, 20 as Int32); };
-          unsafe { imgui_set_next_window_size_i32(left_w as Int32, win_h as Int32); };
+          // ── WIDGETS ──
+          unsafe { imgui_set_next_window_pos_i32(pad as Int32, 20 as Int32); };
+          unsafe { imgui_set_next_window_size_i32(third as Int32, content_h as Int32); };
           if unsafe { imgui_begin("Widgets", 0 as Int32) } != 0 {
             g_s_f = unsafe { imgui_slider_float("Float", g_s_f, 0.0, 1.0) };
             g_s_i = unsafe { imgui_slider_int("Int", g_s_i as Int32, 0 as Int32, 100 as Int32) };
@@ -85,9 +85,10 @@ fn main() -> Int {
             unsafe { imgui_end(); };
           }
 
-          // ── BROWSER (middle third) ──
-          unsafe { imgui_set_next_window_pos_i32((left_w + 5) as Int32, 20 as Int32); };
-          unsafe { imgui_set_next_window_size_i32(mid_w as Int32, win_h as Int32); };
+          // ── BROWSER ──
+          let bx: Int = pad * 2 + third;
+          unsafe { imgui_set_next_window_pos_i32(bx as Int32, 20 as Int32); };
+          unsafe { imgui_set_next_window_size_i32(third as Int32, content_h as Int32); };
           if unsafe { imgui_begin("Browser", 0 as Int32) } != 0 {
             if unsafe { imgui_collapsing_header("Meshes") } != 0 {
               if unsafe { imgui_tree_node("Cube") } != 0 { unsafe { imgui_text("24 verts"); }; unsafe { imgui_tree_pop(); }; }
@@ -100,9 +101,10 @@ fn main() -> Int {
             unsafe { imgui_end(); };
           }
 
-          // ── TABS (right third) ──
-          unsafe { imgui_set_next_window_pos_i32((left_w + mid_w + 10) as Int32, 20 as Int32); };
-          unsafe { imgui_set_next_window_size_i32(right_w as Int32, (fb_h / 2) as Int32); };
+          // ── TABS ──
+          let tx: Int = pad * 3 + third * 2;
+          unsafe { imgui_set_next_window_pos_i32(tx as Int32, 20 as Int32); };
+          unsafe { imgui_set_next_window_size_i32(third as Int32, (fb_h / 2) as Int32); };
           if unsafe { imgui_begin("Tabs", 0 as Int32) } != 0 {
             if unsafe { imgui_begin_tab_bar("T") } != 0 {
               if unsafe { imgui_begin_tab_item("Settings") } != 0 {
@@ -110,7 +112,7 @@ fn main() -> Int {
                 unsafe { imgui_end_tab_item(); };
               }
               if unsafe { imgui_begin_tab_item("Info") } != 0 {
-                unsafe { imgui_text("v1.92.9"); };
+                unsafe { imgui_text("XIOM v0.48.6"); };
                 unsafe { imgui_end_tab_item(); };
               }
               unsafe { imgui_end_tab_bar(); };
@@ -118,21 +120,16 @@ fn main() -> Int {
             unsafe { imgui_end(); };
           }
 
-          // ── STATUS (bottom) ──
-          unsafe { imgui_set_next_window_pos_i32(0 as Int32, (fb_h - 30) as Int32); };
-          unsafe { imgui_set_next_window_size_i32(fb_w as Int32, 28 as Int32); };
+          // ── STATUS ──
+          unsafe { imgui_set_next_window_pos_i32(0 as Int32, (fb_h - sbh) as Int32); };
+          unsafe { imgui_set_next_window_size_i32(fb_w as Int32, sbh as Int32); };
           if unsafe { imgui_begin("Status", 0 as Int32) } != 0 {
-            unsafe { imgui_text("XIOM + Dear ImGui v1.92.9 | "); };
-            unsafe { imgui_same_line(0.0, 0.0); };
-            unsafe { imgui_text("Fluid layout"); };
+            unsafe { imgui_text("XIOM v0.48.6 | Dear ImGui v1.92.9 | Fluid"); };
             unsafe { imgui_end(); };
           }
 
           // ── MODAL ──
-          if g_show_modal != 0 {
-            unsafe { imgui_open_popup("MyModal"); };
-            g_show_modal = 0;
-          }
+          if g_show_modal != 0 { unsafe { imgui_open_popup("MyModal"); }; g_show_modal = 0; }
           if unsafe { imgui_begin_popup_modal("MyModal") } != 0 {
             unsafe { imgui_text("Modal window."); };
             if unsafe { imgui_button("Close") } != 0 { unsafe { imgui_close_current_popup(); }; }
