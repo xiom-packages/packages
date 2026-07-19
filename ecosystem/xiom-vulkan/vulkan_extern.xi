@@ -6,9 +6,8 @@
 // All pointer/handle params use Int. VkResult values are Int32.
 // DO NOT call these directly - use src/vulkan_safe.xi wrappers.
 
+module xiom.vulkan.extern
 
-
-extern "C" {
 extern "C" {
   fn vkCreateInstance(pCreateInfo: Int, pAllocator: Int, pInstance: Int) -> Int32;
   fn vkDestroyInstance(instance: Int, pAllocator: Int);

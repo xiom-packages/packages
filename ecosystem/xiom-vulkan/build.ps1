@@ -356,11 +356,25 @@ $BridgeSrc  = Join-Path $BridgeDir 'xiom_vk_bridge.c'
 $BridgeObj  = Join-Path $BridgeDir 'xiom_vk_bridge.obj'
 $PrebuiltObj = Join-Path $BridgeDir 'xvk_bridge.obj'
 
-# If the prebuilt .obj exists and the source doesn't compile, reuse it
+# If the prebuilt .obj is newer than all bridge source files, reuse it.
+# Otherwise recompile from source.
+$needRebuild = $true
 if (Test-Path $PrebuiltObj) {
-    Write-Host "  Using prebuilt: $PrebuiltObj"
-    $BridgeObj = $PrebuiltObj
-} else {
+    $objTime = (Get-Item $PrebuiltObj).LastWriteTime
+    $srcTime = (Get-Item $BridgeSrc).LastWriteTime
+    $hdrTime = (Get-Item (Join-Path $BridgeDir 'xvk_shaders_generated.h')).LastWriteTime
+    $allSrcNewer = ($srcTime -gt $objTime) -or ($hdrTime -gt $objTime)
+    # Also check any bridge .c module files
+    $modFiles = Get-ChildItem (Join-Path $BridgeDir '*.c') -EA SilentlyContinue | Where-Object { $_.LastWriteTime -gt $objTime }
+    if (-not $allSrcNewer -and -not $modFiles) {
+        Write-Host "  Using prebuilt (up to date): $PrebuiltObj"
+        $BridgeObj = $PrebuiltObj
+        $needRebuild = $false
+    }
+}
+if ($needRebuild) {
+    Remove-Item $BridgeObj -Force -EA SilentlyContinue
+    $BridgeObj = Join-Path $BridgeDir 'xvk_bridge.obj'
     $clangArgs = @(
         '-c', $BridgeSrc,
         "-o", $BridgeObj,
@@ -368,7 +382,7 @@ if (Test-Path $PrebuiltObj) {
         "-I$GlfwInclude",
         '-O2'
     )
-    Write-Host "  $ClangExe $($clangArgs -join ' ')"
+    Write-Host "  Recompiling: $ClangExe $($clangArgs -join ' ')"
     & $ClangExe $clangArgs
     if ($LASTEXITCODE -ne 0) {
         throw "clang compilation of bridge failed (exit code $LASTEXITCODE)"
