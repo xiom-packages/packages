@@ -269,19 +269,86 @@ void cleanup_swapchain(XvkApp* a)
 
 int recreate_swapchain(XvkApp* a)
 {
-    int old_count = a->swapchain_image_count;
-    cleanup_swapchain(a);
+    /* Save old state in case recreation fails */
+    VkSwapchainKHR old_swapchain   = a->swapchain;
+    VkImage*       old_images      = a->swapchain_images;
+    VkImageView*   old_views       = a->swapchain_image_views;
+    VkFramebuffer* old_fb          = a->framebuffers;
+    int            old_count       = a->swapchain_image_count;
 
+    /* Null out so cleanup doesn't free them (we'll do it explicitly) */
+    a->swapchain           = VK_NULL_HANDLE;
+    a->swapchain_images    = NULL;
+    a->swapchain_image_views = NULL;
+    a->framebuffers        = NULL;
+
+    if (!create_swapchain(a)) {
+        /* Restore old swapchain and continue */
+        a->swapchain            = old_swapchain;
+        a->swapchain_images     = old_images;
+        a->swapchain_image_views = old_views;
+        a->framebuffers         = old_fb;
+        a->swapchain_image_count = old_count;
+        return 0;
+    }
+    if (!create_depth_resources(a)) {
+        cleanup_swapchain(a);
+        a->swapchain            = old_swapchain;
+        a->swapchain_images     = old_images;
+        a->swapchain_image_views = old_views;
+        a->framebuffers         = old_fb;
+        a->swapchain_image_count = old_count;
+        return 0;
+    }
+    if (!create_framebuffers(a)) {
+        cleanup_swapchain(a);
+        a->swapchain            = old_swapchain;
+        a->swapchain_images     = old_images;
+        a->swapchain_image_views = old_views;
+        a->framebuffers         = old_fb;
+        a->swapchain_image_count = old_count;
+        return 0;
+    }
+
+    /* Success — free old swapchain resources */
+    for (int i = 0; i < old_count; i++) {
+        if (old_fb)    vkDestroyFramebuffer(a->device, old_fb[i], NULL);
+        if (old_views) vkDestroyImageView(a->device, old_views[i], NULL);
+    }
+    free(old_fb);
+    free(old_views);
+    free(old_images);
+    if (old_swapchain != VK_NULL_HANDLE)
+        vkDestroySwapchainKHR(a->device, old_swapchain, NULL);
+
+    /* Free old command buffers and reallocate */
     if (a->cmd_buffers) {
         vkFreeCommandBuffers(a->device, a->cmd_pool,
-                             (uint32_t)old_count,
-                             a->cmd_buffers);
+                             (uint32_t)old_count, a->cmd_buffers);
         free(a->cmd_buffers);
         a->cmd_buffers = NULL;
     }
 
-    if (!create_swapchain(a)) return 0;
-    if (!create_depth_resources(a)) return 0;
+    a->cmd_buffers = (VkCommandBuffer*)malloc(
+        a->swapchain_image_count * sizeof(VkCommandBuffer));
+    if (!a->cmd_buffers) {
+        xvk_set_error("malloc cmd_buffers failed in resize");
+        return 0;
+    }
+
+    VkCommandBufferAllocateInfo cbai = {0};
+    cbai.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cbai.commandPool        = a->cmd_pool;
+    cbai.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    cbai.commandBufferCount = (uint32_t)a->swapchain_image_count;
+
+    VkResult res = vkAllocateCommandBuffers(a->device, &cbai, a->cmd_buffers);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("allocate cmd buffers failed in resize: %d", (int)res);
+        free(a->cmd_buffers);
+        a->cmd_buffers = NULL;
+        return 0;
+    }
 
     return 1;
 }

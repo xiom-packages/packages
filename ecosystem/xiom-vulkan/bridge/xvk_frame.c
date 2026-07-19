@@ -12,12 +12,8 @@ int32_t xvk_begin_frame(int64_t app_h)
         if (w <= 0 || h <= 0) return 0;
         if (w != (int)a->swapchain_extent.width ||
             h != (int)a->swapchain_extent.height) {
-            /* Try to resize — if it fails just skip this frame.
-             * The window might be momentarily invalid (minimized, DPI change).
-             * We'll retry on the next frame. */
-            if (recreate_swapchain(a)) return 0;
-            /* recreate failed, but that's OK — keep trying */
-            return 0;
+            if (!recreate_swapchain(a)) return 0;
+            /* Recreate succeeded — continue with new swapchain */
         }
     }
 
