@@ -123,3 +123,49 @@ void xvk_destroy_pipeline_cache(int64_t device, int64_t cache)
     if (!dev || !cache) return;
     vkDestroyPipelineCache(dev, (VkPipelineCache)(uint64_t)cache, NULL);
 }
+
+/* ---- Pipeline cache serialization (Phase 7.2) ---- */
+
+// Returns the data size needed. Call with out_data=0 to query;
+// then allocate and call again with out_data pointing to the buffer.
+int32_t xvk_get_pipeline_cache_data_size(int64_t device, int64_t cache)
+{
+    VkDevice dev = (VkDevice)(intptr_t)device;
+    if (!dev || !cache) return -1;
+    size_t sz = 0;
+    VkResult res = vkGetPipelineCacheData(dev, (VkPipelineCache)(uint64_t)cache, &sz, NULL);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkGetPipelineCacheData: %d", (int)res);
+        return -1;
+    }
+    return (int32_t)sz;
+}
+
+// Writes cache data into caller-allocated buffer. out_size receives bytes written.
+int32_t xvk_get_pipeline_cache_data(int64_t device, int64_t cache, int64_t data, int64_t data_size)
+{
+    VkDevice dev = (VkDevice)(intptr_t)device;
+    if (!dev || !cache || !data) return -1;
+    size_t sz = (size_t)data_size;
+    VkResult res = vkGetPipelineCacheData(dev, (VkPipelineCache)(uint64_t)cache, &sz, (void*)data);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkGetPipelineCacheData: %d", (int)res);
+        return -1;
+    }
+    return (int32_t)sz;
+}
+
+// Merges one or more source caches into dst_cache.
+int32_t xvk_merge_pipeline_caches(int64_t device, int64_t dst_cache, int32_t src_count, int64_t src_caches)
+{
+    VkDevice dev = (VkDevice)(intptr_t)device;
+    if (!dev || !dst_cache || src_count <= 0 || !src_caches) return -1;
+    VkResult res = vkMergePipelineCaches(dev, (VkPipelineCache)(uint64_t)dst_cache,
+                                          (uint32_t)src_count,
+                                          (const VkPipelineCache*)(intptr_t)src_caches);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkMergePipelineCaches: %d", (int)res);
+        return -1;
+    }
+    return 0;
+}

@@ -27,7 +27,8 @@
 | **SF-06** | CommandBuffer.set_scissor: NULL with count=1 | Allocate VkRect2D, populate from params |
 | **SF-07** | Instance.enumerate_physical_devices: returns 0 | Return c32 as Int; fix type mismatch |
 | **SF-08** | VulkanContext.init: checks wrong variable | Check pdc, allocate devices array, return first |
-| **SF-09** | Event.get_status: wrong VkResult constant | Compare to 1 instead of 3 |
+| **SF-09** | Event.get_status: wrong VkResult constant | ✅ Compare to 1 instead of 3 |
+| **Phase 6** | **ALL 12 SAFETY BUGS FIXED** | ✅ All compile v0.48.0, 11/11 demos link |
 
 ## Phase 7: AAA MISSING FEATURES (P1)
 

@@ -465,3 +465,10 @@ void xvk_app_destroy(int64_t app_h)
     xvk_app_cleanup_internal(a);
     free(a);
 }
+
+int64_t xvk_get_device(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a) return 0;
+    return (int64_t)(uint64_t)a->device;
+}
