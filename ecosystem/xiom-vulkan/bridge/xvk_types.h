@@ -169,6 +169,7 @@ typedef struct XvkApp {
     int                 recording;
     int                 in_render_pass;
     int                 resized;
+    int                 fb_w, fb_h;  /* tracked framebuffer size */
     uint32_t            current_image;
 
     int                 offs_w, offs_h;
