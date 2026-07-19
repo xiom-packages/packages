@@ -214,6 +214,7 @@ int32_t imgui_is_item_clicked(void)   { return ImGui::IsItemClicked() ? 1 : 0; }
 /* ── Styling ── */
 void imgui_style_dark(void)    { ImGui::StyleColorsDark(); }
 void imgui_style_light(void)   { ImGui::StyleColorsLight(); }
+void imgui_style_classic(void) { ImGui::StyleColorsClassic(); }
 void imgui_bridge_reload_fonts(void)
 {
     /* Font texture is auto-managed by ImGui_ImplVulkan_Init.
@@ -225,6 +226,18 @@ void imgui_bridge_reload_fonts(void)
 void imgui_push_style_color(int32_t idx, float r, float g, float b, float a)
     { ImGui::PushStyleColor((ImGuiCol)idx, ImVec4(r,g,b,a)); }
 void imgui_pop_style_color(int32_t count) { ImGui::PopStyleColor(count); }
+
+void imgui_bridge_reinit_vulkan(int64_t render_pass, float fb_w, float fb_h)
+{
+    if (!g_vk_initialized) return;
+    /* Shutdown and reinitialize Vulkan backend */
+    ImGui_ImplVulkan_Shutdown();
+    g_vk_initialized = false;
+
+    /* We need the stored Vulkan handles — stored as globals in init_vulkan
+     * but we don't have them here. Caller must re-call init_vulkan instead. */
+    (void)render_pass; (void)fb_w; (void)fb_h;
+}
 
 /* ── Utility ── */
 int32_t imgui_get_framerate(void)    { return (int32_t)ImGui::GetIO().Framerate; }

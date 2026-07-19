@@ -7,6 +7,8 @@ param(
 )
 
 $BridgeDir = Join-Path $PSScriptRoot 'bridge'
+if (!$env:VULKAN_SDK) { $env:VULKAN_SDK = "C:\VulkanSDK\1.4.350.0" }
+if (!$env:GLFW_DIR)   { $env:GLFW_DIR   = "C:\glfw-3.4.bin.WIN64" }
 $VkInc     = "$env:VULKAN_SDK\Include"
 $GfInc     = "$env:GLFW_DIR\include"
 
