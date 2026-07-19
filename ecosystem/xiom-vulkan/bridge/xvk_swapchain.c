@@ -310,7 +310,8 @@ int recreate_swapchain(XvkApp* a)
         return 0;
     }
 
-    /* Success — free old swapchain resources */
+    /* Success — wait for device idle, then free old resources */
+    vkDeviceWaitIdle(a->device);
     for (int i = 0; i < old_count; i++) {
         if (old_fb)    vkDestroyFramebuffer(a->device, old_fb[i], NULL);
         if (old_views) vkDestroyImageView(a->device, old_views[i], NULL);

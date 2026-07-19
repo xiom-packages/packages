@@ -18,6 +18,8 @@ var g_cr: Float32 = 0.0;
 var g_cg: Float32 = 0.0;
 var g_cb: Float32 = 0.0;
 var g_show_modal: Int = 0;
+var g_last_w: Int = 0;
+var g_last_h: Int = 0;
 
 fn main() -> Int {
   let app = create_app("XIOM ImGui Demo", 1280, 800);
@@ -48,7 +50,15 @@ fn main() -> Int {
         set_clear_color(a, 0.06, 0.06, 0.10);
         let status = begin_frame(a);
         if status == 1 {
-          unsafe { imgui_bridge_new_frame(); };
+          // Detect resize: skip ImGui on first frame after swapchain change
+          let fw = unsafe { xvk_get_fb_width(a) };
+          let fh = unsafe { xvk_get_fb_height(a) };
+          var resize_happened: Int = 0;
+          if fw != g_last_w || fh != g_last_h { resize_happened = 1; }
+          g_last_w = fw as Int; g_last_h = fh as Int;
+
+          if resize_happened == 0 {
+            unsafe { imgui_bridge_new_frame(); };
 
           // ── MAIN MENU BAR ──
           if unsafe { imgui_begin_main_menu_bar() } != 0 {
@@ -86,7 +96,8 @@ fn main() -> Int {
           // ── MODAL (flag-based, re-openable) ──
           if g_show_modal != 0 {
             unsafe { imgui_open_popup("MyModal"); };
-            g_show_modal = 0;
+      g_show_modal = 0;
+      g_last_w = 1280; g_last_h = 800;
           }
           if unsafe { imgui_begin_popup_modal("MyModal") } != 0 {
             unsafe { imgui_text("Modal window!"); };
@@ -130,8 +141,9 @@ fn main() -> Int {
             unsafe { imgui_end(); };
           }
 
-          let cb = unsafe { xvk_get_command_buffer(a) };
-          unsafe { imgui_bridge_render(cb); };
+            let cb = unsafe { xvk_get_command_buffer(a) };
+            unsafe { imgui_bridge_render(cb); };
+          }  // end resize_happened == 0
           end_frame(a);
         } elif status == -1 {
           io.println("ERROR: " + last_error()); break;

@@ -214,7 +214,14 @@ int32_t imgui_is_item_clicked(void)   { return ImGui::IsItemClicked() ? 1 : 0; }
 /* ── Styling ── */
 void imgui_style_dark(void)    { ImGui::StyleColorsDark(); }
 void imgui_style_light(void)   { ImGui::StyleColorsLight(); }
-void imgui_style_classic(void) { ImGui::StyleColorsClassic(); }
+void imgui_bridge_reload_fonts(void)
+{
+    /* Font texture is auto-managed by ImGui_ImplVulkan_Init.
+     * The descriptor sets reference the font image view which
+     * persists across swapchain recreation.
+     * This function is a no-op placeholder for future use. */
+    (void)0;
+}
 void imgui_push_style_color(int32_t idx, float r, float g, float b, float a)
     { ImGui::PushStyleColor((ImGuiCol)idx, ImVec4(r,g,b,a)); }
 void imgui_pop_style_color(int32_t count) { ImGui::PopStyleColor(count); }

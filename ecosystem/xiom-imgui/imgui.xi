@@ -88,6 +88,8 @@ extern "C" {
 
   fn imgui_get_framerate() -> Int32;
   fn imgui_get_frame_count() -> Int32;
+
+  fn imgui_bridge_reload_fonts();
 }
 
 // ── Safe wrappers with contracts ──

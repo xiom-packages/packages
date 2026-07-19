@@ -104,6 +104,10 @@ void     imgui_style_classic(void);
 void     imgui_push_style_color(int32_t idx, float r, float g, float b, float a);
 void     imgui_pop_style_color(int32_t count);
 
+void     imgui_bridge_set_fb_size(int32_t w, int32_t h);
+
+void     imgui_bridge_reload_fonts(void);
+
 /* Utility */
 int32_t  imgui_get_framerate(void);
 int32_t  imgui_get_frame_count(void);
