@@ -143,8 +143,53 @@ void xvk_set_clear_color(int64_t app_h, float r, float g, float b)
 
 void xvk_app_poll(int64_t app_h)
 {
-    (void)app_h;
+    XvkApp* a = xvk_from_handle(app_h);
     glfwPollEvents();
+    if (a && a->window) {
+        glfwGetCursorPos(a->window, &a->mouse_x, &a->mouse_y);
+        a->mouse_btn[0] = glfwGetMouseButton(a->window, GLFW_MOUSE_BUTTON_LEFT);
+        a->mouse_btn[1] = glfwGetMouseButton(a->window, GLFW_MOUSE_BUTTON_RIGHT);
+        a->mouse_btn[2] = glfwGetMouseButton(a->window, GLFW_MOUSE_BUTTON_MIDDLE);
+        a->key_escape = glfwGetKey(a->window, GLFW_KEY_ESCAPE);
+        a->key_space  = glfwGetKey(a->window, GLFW_KEY_SPACE);
+        a->key_w = glfwGetKey(a->window, GLFW_KEY_W);
+        a->key_a = glfwGetKey(a->window, GLFW_KEY_A);
+        a->key_s = glfwGetKey(a->window, GLFW_KEY_S);
+        a->key_d = glfwGetKey(a->window, GLFW_KEY_D);
+    }
+}
+
+/* ---- Input queries (Phase 8.2) ---- */
+
+double xvk_get_mouse_x(int64_t app_h) {
+    XvkApp* a = xvk_from_handle(app_h);
+    return a ? a->mouse_x : 0.0;
+}
+double xvk_get_mouse_y(int64_t app_h) {
+    XvkApp* a = xvk_from_handle(app_h);
+    return a ? a->mouse_y : 0.0;
+}
+int32_t xvk_get_mouse_button(int64_t app_h, int32_t button) {
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || button < 0 || button > 2) return 0;
+    return a->mouse_btn[button];
+}
+int32_t xvk_get_key(int64_t app_h, int32_t key) {
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a) return 0;
+    /* Key codes: 256=ESCAPE, 32=SPACE, 87=W, 65=A, 83=S, 68=D */
+    switch (key) {
+        case 256: return a->key_escape;
+        case 32:  return a->key_space;
+        case 87:  return a->key_w;
+        case 65:  return a->key_a;
+        case 83:  return a->key_s;
+        case 68:  return a->key_d;
+        default: {
+            if (a->window) return glfwGetKey(a->window, key);
+            return 0;
+        }
+    }
 }
 
 double xvk_now(void)

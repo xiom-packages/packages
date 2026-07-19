@@ -63,6 +63,12 @@ extern "C" {
   fn xvk_particles_enable(app: Int, count: Int32) -> Int32;
   fn xvk_draw_particles(app: Int, dt: Float32);
 
+  // Phase 8.2 — Mouse/Keyboard input
+  fn xvk_get_mouse_x(app: Int) -> Float64;
+  fn xvk_get_mouse_y(app: Int) -> Float64;
+  fn xvk_get_mouse_button(app: Int, button: Int32) -> Int32;
+  fn xvk_get_key(app: Int, key: Int32) -> Int32;
+
   // Phase 1 — Buffers
   fn xvk_buffer_create(app: Int, size: Int, usage: Int32, memory: Int32) -> Int;
   fn xvk_buffer_destroy(app: Int, buf: Int);
@@ -131,6 +137,24 @@ extern "C" {
 
   // Phase 1 — Utility
   fn xvk_get_framebuffer_size(app: Int, out_width: *Int32, out_height: *Int32);
+}
+
+// ===========================================================================
+// Phase 8.2 — Mouse/Keyboard Input
+// ===========================================================================
+
+pub fn get_mouse_pos(app: Int) -> (Float64, Float64) {
+  let x = unsafe { xvk_get_mouse_x(app) };
+  let y = unsafe { xvk_get_mouse_y(app) };
+  return (x, y);
+}
+
+pub fn is_mouse_down(app: Int, button: Int) -> Bool {
+  return 0 != unsafe { xvk_get_mouse_button(app, button as Int32) };
+}
+
+pub fn is_key_down(app: Int, key: Int) -> Bool {
+  return 0 != unsafe { xvk_get_key(app, key as Int32) };
 }
 
 // ===========================================================================

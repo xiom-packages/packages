@@ -34,6 +34,7 @@
 #include "xvk_bind_raytracing.h"
 
 /* Legacy app lifecycle + simplified demo API */
+#include "xvk_memory_alloc.h"
 #include "xvk_instance.h"
 #include "xvk_swapchain.h"
 #include "xvk_pipeline.h"
