@@ -217,10 +217,6 @@ $TargetMap = @{
         entry = 'examples/demo_sprites.xi'
         out   = 'demo_sprites'
     }
-    ui = @{
-        entry = 'examples/demo_ui.xi'
-        out   = 'demo_ui'
-    }
     viewport = @{
         entry = 'examples/demo_viewport.xi'
         out   = 'demo_viewport'

@@ -133,6 +133,7 @@ fn panel(cx: Float32, cy: Float32, hw: Float32, hh: Float32) {
 // ===========================================================================
 
 var g_app: Int = 0;
+var g_exit: Int = 0;
 var g_frame: Int = 0;
 var g_fps: Int = 0;
 var g_sr: Float32 = 0.0; var g_sg: Float32 = 0.0; var g_sb: Float32 = 0.0;
@@ -176,7 +177,7 @@ fn draw_ui() {
 
   // EXIT button — brighter red, with obvious text
   let exit_clicked = button(sx, by0b - bs2*6.0, bw3, bh3, 0.85, 0.18, 0.18, 0.75, 0.75, 0.80, bw3*0.20, bh3*0.16);
-  if exit_clicked { io.println("[UI] EXIT"); }
+  if exit_clicked { g_exit = 1; }
 
   // ── Main Viewport ──
   let vx = 0.18; let vy = -0.015; let vhw = 0.82; let vhh = 0.87;
@@ -276,7 +277,7 @@ fn main() -> Int {
     Err(e) => { io.println(e); return 1; }
     Ok(a) => {
       g_app = a;
-      g_frame = 0; g_fps = 60;
+      g_frame = 0; g_fps = 60; g_exit = 0;
       g_sr = 0.5; g_sg = 0.5; g_sb = 0.5; g_br = 0.7;
       g_drag = 0;
       io.println("== XIOM Vulkan UI Demo ==");
@@ -287,7 +288,8 @@ fn main() -> Int {
         poll(a);
         fcount = fcount + 1;
         g_frame = g_frame + 1;
-        if fcount > 10000 { io.println("[UI] Frame limit reached."); break; }
+        if g_exit != 0 { io.println("[UI] Exit button pressed."); break; }
+        if fcount > 60000 { io.println("[UI] Frame limit."); break; }
 
         let status = begin_frame(a);
         if status == 1 {
