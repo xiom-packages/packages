@@ -21,8 +21,7 @@ if ($Target -eq 'build') {
             continue  # up to date
         }
         Write-Host "  Compiling $s.cpp..."
-        clang++ -c $cpp -o $obj -I$BridgeDir -I$VkInc -I$GfInc `
-                -DIMGUI_IMPL_VULKAN_NO_PROTOTYPES -O2
+        clang++ -c $cpp -o $obj -I$BridgeDir -I$VkInc -I$GfInc -O2
         if ($LASTEXITCODE -ne 0) { throw "Failed: $s" }
     }
     Write-Host "[imgui] All 7 .obj files up to date."

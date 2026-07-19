@@ -20,8 +20,16 @@ fn main() -> Int {
 
       // Init ImGui GLFW backend
       let win = unsafe { xvk_get_glfw_window(a) };
-      if !imgui.create_context(win) {
-        io.println("[imgui] create_context failed"); destroy_app(a); return 1;
+      if win == 0 {
+        io.println("[imgui] Window handle is NULL!");
+        destroy_app(a); return 1;
+      }
+      io.println("[imgui] Window handle OK");
+
+      let raw = unsafe { imgui_bridge_init(win) };
+      if raw == 0 {
+        io.println("[imgui] Bridge init failed");
+        destroy_app(a); return 1;
       }
 
       // Init ImGui Vulkan backend
@@ -31,8 +39,9 @@ fn main() -> Int {
       let queue = unsafe { xvk_get_graphics_queue(a) };
       let rp    = unsafe { xvk_get_render_pass(a) };
 
-      if !imgui.init_vulkan(inst, dev, phys, queue, 0, rp, 0, 1280.0, 720.0) {
-        io.println("[imgui] init_vulkan failed"); imgui.destroy_context(); destroy_app(a); return 1;
+      let raw_vk = unsafe { imgui_bridge_init_vulkan(inst, dev, phys, queue, 0 as Int32, rp, 0 as Int32, 1280.0, 720.0) };
+      if raw_vk == 0 {
+        io.println("[imgui] init_vulkan failed"); unsafe { imgui_bridge_shutdown(); }; destroy_app(a); return 1;
       }
       io.println("[imgui] Initialized OK. Press Escape to exit.");
 
@@ -66,7 +75,7 @@ fn main() -> Int {
         }
       }
 
-      imgui.destroy_context();
+      unsafe { imgui_bridge_shutdown(); };
       destroy_app(a);
       io.println("[imgui] Done.");
       return 0;
