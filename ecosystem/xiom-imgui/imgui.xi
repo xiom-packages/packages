@@ -86,3 +86,71 @@ extern "C" {
   fn imgui_get_framerate() -> Int32;
   fn imgui_get_frame_count() -> Int32;
 }
+
+// ── Safe wrappers with contracts ──
+
+pub fn create_context(win: Int) -> Bool
+  requires: win != 0
+{
+  return unsafe { imgui_bridge_init(win) != 0 };
+}
+
+pub fn destroy_context()
+{
+  unsafe { imgui_bridge_shutdown(); };
+}
+
+pub fn init_vulkan(inst: Int, dev: Int, phys: Int, q: Int,
+    family: Int, rp: Int, subpass: Int, w: Float32, h: Float32) -> Bool
+  requires: inst != 0
+  requires: dev != 0
+  requires: phys != 0
+  requires: q != 0
+  requires: rp != 0
+{
+  return unsafe { imgui_bridge_init_vulkan(inst, dev, phys, q,
+      family as Int32, rp, subpass as Int32, w, h) != 0 };
+}
+
+pub fn new_frame() { unsafe { imgui_bridge_new_frame(); }; }
+pub fn render(cb: Int)
+  requires: cb != 0
+{
+  unsafe { imgui_bridge_render(cb); };
+}
+
+pub fn begin_window(title: Str) -> Bool
+  requires: title.len() > 0
+{
+  return unsafe { imgui_begin(title, 0 as Int32) != 0 };
+}
+
+pub fn end_window() { unsafe { imgui_end(); }; }
+
+pub fn button(label: Str) -> Bool
+  requires: label.len() > 0
+{
+  return unsafe { imgui_button(label) != 0 };
+}
+
+pub fn text(text: Str) { unsafe { imgui_text(text); }; }
+pub fn checkbox(label: Str, checked: Bool) -> Bool
+{
+  let c: Int32 = if checked { 1 as Int32 } else { 0 as Int32 };
+  return unsafe { imgui_checkbox(label, c) != 0 };
+}
+
+pub fn slider_float(label: Str, v: Float32, mn: Float32, mx: Float32) -> Float32
+{
+  return unsafe { imgui_slider_float(label, v, mn, mx) };
+}
+
+pub fn separator() { unsafe { imgui_separator(); }; }
+pub fn same_line() { unsafe { imgui_same_line(0.0, 0.0); }; }
+pub fn spacing() { unsafe { imgui_spacing(); }; }
+pub fn tree_node(label: Str) -> Bool { return unsafe { imgui_tree_node(label) != 0 }; }
+pub fn tree_pop() { unsafe { imgui_tree_pop(); }; }
+pub fn collapsing_header(label: Str) -> Bool { return unsafe { imgui_collapsing_header(label) != 0 }; }
+pub fn style_dark() { unsafe { imgui_style_dark(); }; }
+pub fn style_light() { unsafe { imgui_style_light(); }; }
+pub fn style_classic() { unsafe { imgui_style_classic(); }; }
