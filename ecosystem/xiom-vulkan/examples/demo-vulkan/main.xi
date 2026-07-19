@@ -45,7 +45,16 @@ var g_tx_color: Int = 0; var g_tx_ok: Int = 0;
 var g_tx_cancel: Int = 0; var g_tx_apply: Int = 0;
 
 fn init_textures() {
-  g_font = font_create(g_fsize);
+  // Use Roboto TTF font (if available), fallback to built-in
+  let wb3 = unsafe { xvk_alloc(4) }; let hb3 = unsafe { xvk_alloc(4) };
+  g_font = unsafe { xvk_font_create_from_file("examples/demo-vulkan/resources/fonts/Roboto-VariableFont_wdth,wght.ttf", g_fsize, wb3, hb3) };
+  if g_font == 0 {
+    g_font = font_create(g_fsize);
+    io.println("[showcase] Using built-in font (Roboto not found)");
+  } else {
+    io.println("[showcase] Loaded Roboto font");
+  }
+  unsafe { xvk_free(wb3); xvk_free(hb3); };
   g_tx_title = make_text_tex("XIOM Vulkan Showcase v0.4.0");
   g_tx_t1 = make_text_tex("Triangle");
   g_tx_t2 = make_text_tex("Sprites");
@@ -195,8 +204,8 @@ fn draw_right() {
   rct(cx-hw+0.02, scy-0.12, hw*0.30, 0.006, 0.88, 0.55, 0.16);
 
   let ab_y = cy-hh+0.07; let aw = hw*0.38; let ah = 0.028;
-  if btn(cx, ab_y, aw, ah, 0.16,0.88,0.55, g_tx_ok) { }
-  if btn(cx, ab_y-0.045, aw, ah, 0.88,0.20,0.32, g_tx_exit) { g_exit = 1; }
+  if btn(cx, ab_y, aw, ah, 0.16,0.88,0.55, g_tx_ok) { unsafe { xvk_audio_beep(); }; }
+  if btn(cx, ab_y-0.045, aw, ah, 0.88,0.20,0.32, g_tx_exit) { unsafe { xvk_audio_beep(); }; g_exit = 1; }
 }
 
 // ── Viewport ──

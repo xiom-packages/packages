@@ -406,3 +406,101 @@ void xvk_free_pixels(int64_t pixels)
 {
     if (pixels) free((void*)(intptr_t)pixels);
 }
+
+/* ========================================================================
+ * TTF Font loading via stb_truetype (Phase 8.3 extension)
+ * ======================================================================== */
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "stb_truetype.h"
+
+/* Load a TrueType font from file and bake a bitmap atlas.
+ * Replaces the built-in font with the TTF version.
+ * Returns: font handle (> 0) or 0 on failure.
+ * pixel_height: desired font height in pixels (e.g. 24, 48).
+ * The atlas is a 512x512 R8 bitmap suitable for xvk_texture_create. */
+int64_t xvk_font_create_from_file(const char* filepath, float px_height,
+                                   int64_t out_atlas_w, int64_t out_atlas_h)
+{
+    if (!filepath || !out_atlas_w || !out_atlas_h) return 0;
+
+    FILE* f = fopen(filepath, "rb");
+    if (!f) return 0;
+
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    if (sz <= 0 || sz > (32 * 1024 * 1024)) { fclose(f); return 0; }
+
+    unsigned char* ttf_data = (unsigned char*)malloc((size_t)sz);
+    if (!ttf_data) { fclose(f); return 0; }
+    size_t read = fread(ttf_data, 1, (size_t)sz, f);
+    fclose(f);
+
+    if (read != (size_t)sz) { free(ttf_data); return 0; }
+
+    /* Prepare atlas */
+    int atlas_w = 512, atlas_h = 512;
+    unsigned char* atlas = (unsigned char*)malloc((size_t)(atlas_w * atlas_h));
+    if (!atlas) { free(ttf_data); return 0; }
+
+    /* Bake font bitmap for ASCII 32-126 */
+    stbtt_bakedchar baked[95];
+    int result = stbtt_BakeFontBitmap(ttf_data, 0, px_height,
+                                       atlas, atlas_w, atlas_h,
+                                       32, 95, baked);
+    free(ttf_data);
+
+    if (result <= 0) { free(atlas); return 0; }
+
+    /* Build XvkFontGlyph array from baked chars */
+    struct XvkFont* fnt = (struct XvkFont*)calloc(1, sizeof(struct XvkFont));
+    if (!fnt) { free(atlas); return 0; }
+
+    fnt->px_height = px_height;
+    fnt->scale     = 1.0f;
+    fnt->ascender  = 0.0f;
+    fnt->descender = 0.0f;
+    fnt->line_gap  = 0.0f;
+    fnt->atlas_w   = atlas_w;
+    fnt->atlas_h   = atlas_h;
+    fnt->glyph_cell_w = 0;
+    fnt->glyph_cell_h = 0;
+    fnt->cols          = 1;
+
+    /* Copy atlas into font structure */
+    memcpy(fnt->atlas, atlas, (size_t)(atlas_w * atlas_h));
+    free(atlas);
+
+    /* Fill glyph metrics from baked chars */
+    for (int i = 0; i < 95; i++) {
+        XvkFontGlyph* gl = &fnt->glyphs[i];
+        stbtt_bakedchar* bc = &baked[i];
+        gl->codepoint = 32 + i;
+        gl->advance   = bc->xadvance;
+        gl->bearing_x = bc->xoff;
+        gl->bearing_y = bc->yoff;
+        gl->width     = (float)(bc->x1 - bc->x0);
+        gl->height    = (float)(bc->y1 - bc->y0);
+        gl->uv_x      = bc->x0 / (float)atlas_w;
+        gl->uv_y      = bc->y0 / (float)atlas_h;
+        gl->uv_w      = (bc->x1 - bc->x0) / (float)atlas_w;
+        gl->uv_h      = (bc->y1 - bc->y0) / (float)atlas_h;
+    }
+
+    int32_t* w_ptr = (int32_t*)(intptr_t)out_atlas_w;
+    int32_t* h_ptr = (int32_t*)(intptr_t)out_atlas_h;
+    if (w_ptr) *w_ptr = atlas_w;
+    if (h_ptr) *h_ptr = atlas_h;
+
+    return (int64_t)(intptr_t)fnt;
+}
+
+/* ========================================================================
+ * Audio feedback (button clicks, etc.) using Win32 MessageBeep
+ * ======================================================================== */
+#ifdef _WIN32
+#include <windows.h>
+void xvk_audio_beep(void) { MessageBeep(0xFFFFFFFF); }
+#else
+void xvk_audio_beep(void) {}
+#endif

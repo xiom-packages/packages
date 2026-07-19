@@ -188,6 +188,9 @@ extern "C" {
 
   // Textured quad rendering
   fn xvk_image_load(filepath: Str, out_width: Int, out_height: Int) -> Int;
+  fn xvk_font_create_from_file(filepath: Str, px_height: Float32, out_w: Int, out_h: Int) -> Int;
+  fn xvk_audio_beep();
+
   fn xvk_image_free(pixels: Int);
 
   fn xvk_draw_texture_quad(app: Int, image_view: Int, sampler: Int, cx: Float32, cy: Float32, hw: Float32, hh: Float32);

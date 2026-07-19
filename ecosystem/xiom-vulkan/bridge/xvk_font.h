@@ -91,4 +91,11 @@ int64_t xvk_proc_texture_gradient(int32_t width, int32_t height,
                                    int32_t horizontal);
 void xvk_free_pixels(int64_t pixels);
 
+/* TTF font loading via stb_truetype. Creates a baked font atlas (512x512 R8). */
+int64_t xvk_font_create_from_file(const char* filepath, float px_height,
+                                   int64_t out_atlas_w, int64_t out_atlas_h);
+
+/* Audio feedback for UI interactions (Win32 MessageBeep or no-op). */
+void xvk_audio_beep(void);
+
 #endif
