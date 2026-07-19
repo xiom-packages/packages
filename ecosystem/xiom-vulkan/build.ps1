@@ -257,6 +257,8 @@ $ShaderFiles = @(
     @{ src = Join-Path $ShaderDir 'texture_quad.frag'; spv = Join-Path $SpvDir 'texture_quad_frag.spv'; name='texture_quad_frag' }
     @{ src = Join-Path $ShaderDir 'uniform_cube.vert'; spv = Join-Path $SpvDir 'uniform_cube_vert.spv'; name='uniform_cube_vert' }
     @{ src = Join-Path $ShaderDir 'uniform_cube.frag'; spv = Join-Path $SpvDir 'uniform_cube_frag.spv'; name='uniform_cube_frag' }
+    @{ src = Join-Path $ShaderDir 'lit_3d.vert'; spv = Join-Path $SpvDir 'lit_3d_vert.spv'; name='lit_3d_vert' }
+    @{ src = Join-Path $ShaderDir 'lit_3d.frag'; spv = Join-Path $SpvDir 'lit_3d_frag.spv'; name='lit_3d_frag' }
 )
 
 $ShaderData = @()  # will hold name, spv_path, words, byte_len
@@ -322,6 +324,8 @@ $SymbolNames = @{
     texture_quad_frag = 'xvk_texture_quad_frag_spv'
     uniform_cube_vert = 'xvk_uniform_cube_vert_spv'
     uniform_cube_frag = 'xvk_uniform_cube_frag_spv'
+    lit_3d_vert = 'xvk_lit_3d_vert_spv'
+    lit_3d_frag = 'xvk_lit_3d_frag_spv'
 }
 
 $lines = @(

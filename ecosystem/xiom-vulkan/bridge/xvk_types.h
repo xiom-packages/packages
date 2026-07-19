@@ -144,6 +144,9 @@ typedef struct XvkApp {
     VkDescriptorPool        texquad_pool;
     VkDescriptorSet         texquad_ds;
 
+    VkPipelineLayout        lit3d_layout;
+    VkPipeline              lit3d_pipeline;
+
     int32_t             particle_count;
     VkBuffer            particle_vbo;
     VkDeviceMemory      particle_mem;

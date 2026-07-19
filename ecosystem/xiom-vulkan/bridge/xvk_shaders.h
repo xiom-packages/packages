@@ -19,6 +19,10 @@ extern const unsigned int xvk_uniform_cube_vert_spv[];
 extern const unsigned int xvk_uniform_cube_vert_spv_len;
 extern const unsigned int xvk_uniform_cube_frag_spv[];
 extern const unsigned int xvk_uniform_cube_frag_spv_len;
+extern const unsigned int xvk_lit_3d_vert_spv[];
+extern const unsigned int xvk_lit_3d_vert_spv_len;
+extern const unsigned int xvk_lit_3d_frag_spv[];
+extern const unsigned int xvk_lit_3d_frag_spv_len;
 #endif
 
 #endif

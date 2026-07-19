@@ -280,3 +280,33 @@ void xvk_draw_texture_quad(int64_t app_h, int64_t image_view, int64_t sampler,
                        0, 32, pc);
     vkCmdDraw(cb, 6, 1, 0, 0);
 }
+
+void xvk_draw_mesh_lit(int64_t app_h, float angle, float px, float py, float pz, float scale)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !a->recording || !a->lit3d_pipeline) return;
+    float aspect = (float)a->swapchain_extent.width / (float)a->swapchain_extent.height;
+    float model[16], view[16], proj[16], tmp[16], mvp[16];
+    mat4_translation(model, px, py, pz);
+    mat4_rotate_y(model, angle);
+    mat4_rotate_x(model, angle * 0.3f);
+    mat4_scale_right(model, scale);
+    if (xvk_camera_is_active()) {
+        xvk_camera_get_view((int64_t)(intptr_t)view);
+        xvk_camera_get_projection((int64_t)(intptr_t)proj);
+    } else {
+        mat4_look_at(view, 2.0f, 2.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+        mat4_perspective(proj, 45.0f * (float)M_PI / 180.0f, aspect, 0.1f, 10.0f);
+    }
+    mat4_mul(tmp, view, model);
+    mat4_mul(mvp, proj, tmp);
+    float pc[24];
+    memcpy(pc, mvp, 64);
+    pc[16] = 0.5f; pc[17] = -1.0f; pc[18] = 0.3f; pc[19] = 0.5f;
+    pc[20] = 1.0f; pc[21] = 0.9f; pc[22] = 0.8f; pc[23] = 0.8f;
+    VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, a->lit3d_pipeline);
+    vkCmdPushConstants(cb, a->lit3d_layout,
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, 96, pc);
+    vkCmdDraw(cb, 36, 1, 0, 0);
+}

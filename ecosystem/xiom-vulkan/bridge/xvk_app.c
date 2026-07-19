@@ -56,6 +56,7 @@ void xvk_app_cleanup_internal(XvkApp* a)
     if (a->pipe_layout_quad) vkDestroyPipelineLayout(a->device, a->pipe_layout_quad, NULL);
     if (a->texquad_dsl)      vkDestroyDescriptorSetLayout(a->device, a->texquad_dsl, NULL);
     if (a->texquad_layout)   vkDestroyPipelineLayout(a->device, a->texquad_layout, NULL);
+    if (a->lit3d_layout)     vkDestroyPipelineLayout(a->device, a->lit3d_layout, NULL);
     if (a->texquad_pool)     vkDestroyDescriptorPool(a->device, a->texquad_pool, NULL);
     if (a->particle_layout)   vkDestroyPipelineLayout(a->device, a->particle_layout, NULL);
     a->pipeline_2d    = VK_NULL_HANDLE;
@@ -71,6 +72,7 @@ void xvk_app_cleanup_internal(XvkApp* a)
 
     if (a->particle_pipeline) vkDestroyPipeline(a->device, a->particle_pipeline, NULL);
     if (a->texquad_pipeline)    vkDestroyPipeline(a->device, a->texquad_pipeline, NULL);
+    if (a->lit3d_pipeline)      vkDestroyPipeline(a->device, a->lit3d_pipeline, NULL);
     if (a->pipeline_quad)     vkDestroyPipeline(a->device, a->pipeline_quad, NULL);
     if (a->particle_vbo)      vkDestroyBuffer(a->device, a->particle_vbo, NULL);
     if (a->particle_mem) {
@@ -80,6 +82,7 @@ void xvk_app_cleanup_internal(XvkApp* a)
     free(a->particles);
     a->particle_pipeline = VK_NULL_HANDLE;
     a->texquad_pipeline    = VK_NULL_HANDLE;
+    a->lit3d_pipeline      = VK_NULL_HANDLE;
     a->pipeline_quad     = VK_NULL_HANDLE;
     a->particle_vbo      = VK_NULL_HANDLE;
     a->particle_mem      = VK_NULL_HANDLE;
@@ -352,6 +355,34 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
 
         res = vkAllocateDescriptorSets(a->device, &dsai, &a->texquad_ds);
         if (res != VK_SUCCESS) { xvk_set_error_fmt("texquad DS alloc failed: %d", (int)res); goto fail; }
+    }
+
+    /* Lit 3D pipeline (vertex positions + normals, directional light) */
+    {
+        VkPushConstantRange pcr = {0};
+        pcr.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        pcr.offset     = 0;
+        pcr.size       = 96; /* mat4 mvp(64) + vec4 light_dir(16) + vec4 light_color(16) */
+
+        a->lit3d_layout = create_pipeline_layout(a->device, &pcr, 1);
+        if (!a->lit3d_layout) goto fail;
+
+        VkShaderModule lv = create_shader_module(a->device,
+            xvk_lit_3d_vert_spv, xvk_lit_3d_vert_spv_len);
+        VkShaderModule lf = create_shader_module(a->device,
+            xvk_lit_3d_frag_spv, xvk_lit_3d_frag_spv_len);
+        if (!lv || !lf) {
+            if (lv) vkDestroyShaderModule(a->device, lv, NULL);
+            if (lf) vkDestroyShaderModule(a->device, lf, NULL);
+            goto fail;
+        }
+
+        a->lit3d_pipeline = create_graphics_pipeline(a->device,
+            a->lit3d_layout, a->render_pass,
+            lv, lf, width, height, 0);
+        vkDestroyShaderModule(a->device, lv, NULL);
+        vkDestroyShaderModule(a->device, lf, NULL);
+        if (!a->lit3d_pipeline) goto fail;
     }
 
     {
