@@ -22,6 +22,9 @@ extern "C" {
   fn imgui_begin_child(id: Str, w: Float32, h: Float32, border: Int32) -> Int32;
   fn imgui_end_child();
   fn imgui_set_next_window_size(w: Float32, h: Float32);
+  fn imgui_set_next_window_size_i32(w: Int32, h: Int32);
+  fn imgui_set_next_window_pos_i32(x: Int32, y: Int32);
+
   fn imgui_set_next_window_pos(x: Float32, y: Float32);
 
   fn imgui_button(label: Str) -> Int32;
@@ -164,6 +167,7 @@ pub fn collapsing_header(label: Str) -> Bool { return unsafe { imgui_collapsing_
 pub fn style_dark() { unsafe { imgui_style_dark(); }; }
 pub fn style_light() { unsafe { imgui_style_light(); }; }
 pub fn style_classic() { unsafe { imgui_style_classic(); }; }
+
 
 
 

@@ -31,6 +31,8 @@ int32_t  imgui_begin_child(const char* id, float w, float h, int32_t border);
 void     imgui_end_child(void);
 void     imgui_set_next_window_size(float w, float h);
 void     imgui_set_next_window_pos(float x, float y);
+void     imgui_set_next_window_size_i32(int32_t w, int32_t h);
+void     imgui_set_next_window_pos_i32(int32_t x, int32_t y);
 
 /* Widgets — return 1 on interaction/true */
 int32_t  imgui_button(const char* label);

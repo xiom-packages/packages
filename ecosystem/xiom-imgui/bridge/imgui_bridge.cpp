@@ -142,8 +142,10 @@ void    imgui_end(void)                { ImGui::End(); }
 int32_t imgui_begin_child(const char* id, float w, float h, int32_t border)
     { return ImGui::BeginChild(id, ImVec2(w, h), border != 0) ? 1 : 0; }
 void    imgui_end_child(void)          { ImGui::EndChild(); }
-void    imgui_set_next_window_size(float w, float h) { ImGui::SetNextWindowSize(ImVec2(w, h)); }
-void    imgui_set_next_window_pos(float x, float y)  { ImGui::SetNextWindowPos(ImVec2(x, y)); }
+void imgui_set_next_window_size_i32(int32_t w, int32_t h)
+    { ImGui::SetNextWindowSize(ImVec2((float)w, (float)h)); }
+void imgui_set_next_window_pos_i32(int32_t x, int32_t y)
+    { ImGui::SetNextWindowPos(ImVec2((float)x, (float)y)); }
 
 /* ── Widgets ── */
 int32_t imgui_button(const char* label){ return ImGui::Button(label) ? 1 : 0; }
