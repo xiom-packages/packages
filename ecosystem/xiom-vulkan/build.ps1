@@ -52,7 +52,7 @@
 #>
 
 param(
-    [ValidateSet('demo2d', 'demo3d', 'test', 'particles', 'shapes', 'cubes', 'vertex_buffer', 'compute', 'models', 'sprites', 'ui', 'viewport')]
+    [ValidateSet('demo2d', 'demo3d', 'test', 'particles', 'shapes', 'cubes', 'vertex_buffer', 'compute', 'models', 'sprites', 'vulkan-showcase', 'viewport')]
     [string]$Target = 'demo2d',
 
     [string]$GlfwDir = '',
@@ -221,9 +221,9 @@ $TargetMap = @{
         entry = 'examples/demo_viewport.xi'
         out   = 'demo_viewport'
     }
-    ui = @{
-        entry = 'examples/ui/ui_demo.xi'
-        out   = 'ui_demo'
+    'vulkan-showcase' = @{
+        entry = 'examples/demo-vulkan/main.xi'
+        out   = 'demo-vulkan'
     }
 }
 $t = $TargetMap[$Target]
