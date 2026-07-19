@@ -75,4 +75,20 @@ float xvk_font_measure_text(int64_t font, const char* text);
  * by the caller through xvk_texture_create). */
 void xvk_font_destroy(int64_t font);
 
+/* Phase 8.3 extension: Render text to RGBA8 pixel buffer.
+ * White text on transparent background. Returns malloc'd buffer;
+ * caller frees with xvk_font_free_pixels. out_w/out_h receive dimensions. */
+int64_t xvk_font_render_text(int64_t font, const char* text,
+                              int64_t out_width, int64_t out_height);
+void xvk_font_free_pixels(int64_t pixels);
+
+/* Procedural RGBA8 texture generators (malloc'd, free with xvk_free_pixels). */
+int64_t xvk_proc_texture_solid(int32_t width, int32_t height,
+                                float r, float g, float b);
+int64_t xvk_proc_texture_gradient(int32_t width, int32_t height,
+                                   float r1, float g1, float b1,
+                                   float r2, float g2, float b2,
+                                   int32_t horizontal);
+void xvk_free_pixels(int64_t pixels);
+
 #endif

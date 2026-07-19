@@ -15,4 +15,10 @@ int32_t xvk_device_type(int64_t app_h);
 int32_t xvk_app_valid(int64_t app_h);
 const char* xvk_last_error(void);
 
+/* Phase 8.2 extension: UI hit-testing in C (avoids Float64 codegen in XIOM).
+ * Converts NDC coords to pixel space and checks mouse position.
+ * Returns: 0=mouse outside, 1=hover, 2=pressed (left button down). */
+int32_t xvk_button_hit_state(int64_t app_h,
+                              float cx, float cy, float hw, float hh);
+
 #endif

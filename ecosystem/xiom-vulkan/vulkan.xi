@@ -180,6 +180,14 @@ extern "C" {
   fn xvk_font_get_metrics(font: Int, out_metrics: Int);
   fn xvk_font_measure_text(font: Int, text: Str) -> Float32;
   fn xvk_font_destroy(font: Int);
+  fn xvk_font_render_text(font: Int, text: Str, out_width: Int, out_height: Int) -> Int;
+  fn xvk_font_free_pixels(pixels: Int);
+  fn xvk_proc_texture_solid(width: Int32, height: Int32, r: Float32, g: Float32, b: Float32) -> Int;
+  fn xvk_proc_texture_gradient(width: Int32, height: Int32, r1: Float32, g1: Float32, b1: Float32, r2: Float32, g2: Float32, b2: Float32, horizontal: Int32) -> Int;
+  fn xvk_free_pixels(pixels: Int);
+
+  // UI hit-testing (avoids Float64 in XIOM)
+  fn xvk_button_hit_state(app: Int, cx: Float32, cy: Float32, hw: Float32, hh: Float32) -> Int32;
 }
 
 // ===========================================================================

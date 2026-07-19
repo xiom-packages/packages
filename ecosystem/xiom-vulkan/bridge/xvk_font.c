@@ -277,3 +277,132 @@ void xvk_font_destroy(int64_t font)
     if (!font) return;
     free((void*)(intptr_t)font);
 }
+
+/* ========================================================================
+ * Phase 8.3 extension: Text rendering to RGBA8 pixel buffer.
+ * Renders a text string into an RGBA8 (4 bytes/pixel) buffer suitable
+ * for upload via xvk_texture_create. White text on transparent background.
+ * The returned buffer is malloc'd; caller must free it.
+ * out_width / out_height receive the rendered pixel dimensions.
+ * ======================================================================== */
+
+int64_t xvk_font_render_text(int64_t font, const char* text,
+                              int64_t out_width, int64_t out_height)
+{
+    if (!font || !text) return 0;
+    struct XvkFont* f = (struct XvkFont*)(intptr_t)font;
+
+    int text_len = (int)strlen(text);
+    if (text_len == 0) return 0;
+
+    int cell_w = f->glyph_cell_w;
+    int cell_h = f->glyph_cell_h;
+    int px_w = cell_w * text_len + 4;  // +2px padding each side
+    int px_h = cell_h + 4;
+    if (px_w < 4) px_w = 4;
+    if (px_h < 4) px_h = 4;
+
+    unsigned char* pixels = (unsigned char*)calloc((size_t)(px_w * px_h * 4), 1);
+    if (!pixels) return 0;
+
+    /* Render each character into the pixel buffer */
+    for (int ci = 0; ci < text_len; ci++) {
+        unsigned char ch = (unsigned char)text[ci];
+        if (ch < 32 || ch > 126) { ch = '?'; }
+        int glyph_idx = ch - 32;
+
+        int dst_x = 2 + ci * cell_w;
+        int dst_y = 2;
+
+        const unsigned char* src = &g_font_data[glyph_idx * GF_SRC_H];
+        float scale = f->scale;
+
+        for (int sy = 0; sy < GF_SRC_H; sy++) {
+            unsigned char row = src[sy];
+            for (int sx = 0; sx < GF_SRC_W; sx++) {
+                if (!(row & (0x80 >> sx))) continue;
+
+                int py_start = dst_y + (int)((float)sy * scale);
+                int py_end   = dst_y + (int)((float)(sy + 1) * scale);
+                if (py_end > py_start + 3) py_end = py_start + 3;
+                int px_start = dst_x + (int)((float)sx * scale);
+                int px_end   = dst_x + (int)((float)(sx + 1) * scale);
+                if (px_end > px_start + 3) px_end = px_start + 3;
+
+                for (int py = py_start; py < py_end && py < px_h; py++) {
+                    for (int px = px_start; px < px_end && px < px_w; px++) {
+                        int idx = (py * px_w + px) * 4;
+                        pixels[idx + 0] = 255; // R
+                        pixels[idx + 1] = 255; // G
+                        pixels[idx + 2] = 255; // B
+                        pixels[idx + 3] = 255; // A
+                    }
+                }
+            }
+        }
+    }
+
+    int32_t* w_ptr = (int32_t*)(intptr_t)out_width;
+    int32_t* h_ptr = (int32_t*)(intptr_t)out_height;
+    if (w_ptr) *w_ptr = px_w;
+    if (h_ptr) *h_ptr = px_h;
+
+    return (int64_t)(intptr_t)pixels;
+}
+
+void xvk_font_free_pixels(int64_t pixels)
+{
+    if (pixels) free((void*)(intptr_t)pixels);
+}
+
+/* ========================================================================
+ * Procedural texture generators — RGBA8 pixel buffers.
+ * Useful for UI backgrounds, button faces, gradients without external files.
+ * All returned buffers are malloc'd; caller must free with xvk_free_pixels.
+ * ======================================================================== */
+
+int64_t xvk_proc_texture_solid(int32_t width, int32_t height,
+                                float r, float g, float b)
+{
+    if (width <= 0 || height <= 0) return 0;
+    int size = width * height * 4;
+    unsigned char* px = (unsigned char*)malloc((size_t)size);
+    if (!px) return 0;
+    unsigned char rb = (unsigned char)(r * 255.0f);
+    unsigned char gb = (unsigned char)(g * 255.0f);
+    unsigned char bb = (unsigned char)(b * 255.0f);
+    for (int i = 0; i < size; i += 4) {
+        px[i] = rb; px[i+1] = gb; px[i+2] = bb; px[i+3] = 255;
+    }
+    return (int64_t)(intptr_t)px;
+}
+
+int64_t xvk_proc_texture_gradient(int32_t width, int32_t height,
+                                   float r1, float g1, float b1,
+                                   float r2, float g2, float b2,
+                                   int32_t horizontal)
+{
+    if (width <= 0 || height <= 0) return 0;
+    int size = width * height * 4;
+    unsigned char* px = (unsigned char*)malloc((size_t)size);
+    if (!px) return 0;
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            float t = horizontal ? ((float)x / (float)(width - 1)) :
+                                   ((float)y / (float)(height - 1));
+            if (t < 0.0f) t = 0.0f;
+            if (t > 1.0f) t = 1.0f;
+            int idx = (y * width + x) * 4;
+            px[idx]   = (unsigned char)((r1 + (r2 - r1) * t) * 255.0f);
+            px[idx+1] = (unsigned char)((g1 + (g2 - g1) * t) * 255.0f);
+            px[idx+2] = (unsigned char)((b1 + (b2 - b1) * t) * 255.0f);
+            px[idx+3] = 255;
+        }
+    }
+    return (int64_t)(intptr_t)px;
+}
+
+void xvk_free_pixels(int64_t pixels)
+{
+    if (pixels) free((void*)(intptr_t)pixels);
+}

@@ -219,3 +219,30 @@ const char* xvk_last_error(void)
 {
     return g_xvk_error;
 }
+
+int32_t xvk_button_hit_state(int64_t app_h,
+                              float cx, float cy, float hw, float hh)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !a->window) return 0;
+
+    double mx, my;
+    glfwGetCursorPos(a->window, &mx, &my);
+
+    int win_w, win_h;
+    glfwGetFramebufferSize(a->window, &win_w, &win_h);
+    if (win_w <= 0 || win_h <= 0) return 0;
+
+    /* Convert NDC to pixel: ndc [-1,1] -> pixel [0,size] */
+    double px_cx = ((double)cx + 1.0) * 0.5 * (double)win_w;
+    double px_cy = (1.0 - (double)cy) * 0.5 * (double)win_h;
+    double px_hw = (double)hw * 0.5 * (double)win_w;
+    double px_hh = (double)hh * 0.5 * (double)win_h;
+
+    int inside = (mx >= px_cx - px_hw && mx <= px_cx + px_hw &&
+                  my >= px_cy - px_hh && my <= px_cy + px_hh);
+    if (!inside) return 0;
+
+    int left_down = glfwGetMouseButton(a->window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+    return left_down ? 2 : 1;
+}

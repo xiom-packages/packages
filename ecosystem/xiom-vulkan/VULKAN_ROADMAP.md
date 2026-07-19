@@ -7,13 +7,13 @@
 | Layer | Status | Issues |
 |-------|--------|--------|
 | `vulkan_extern.xi` | ✅ 755/755 VK functions (100%) | KHR duplicates, no docs |
-| `vulkan_safe.xi` | ⚠️ 30 types, **6 CRITICAL bugs** | SF-01 through SF-06 crash at runtime |
+| `vulkan_safe.xi` | ⚠︝ 30 types, **6 CRITICAL bugs** | SF-01 through SF-06 crash at runtime |
 | `vulkan_structs.xi` | ✅ 30+ builders, compile-verified | Covers all common create-info types |
 | `vulkan_constants_all.xi` | ✅ 3691 constants | Complete |
 | C bridge bind modules | ✅ 303 functions across 12 modules | Compile + link verified |
 | C bridge legacy | ✅ 117KB, 17 modules | Runtime verified (20-frame test) |
 | **Total bridge** | ✅ 332KB, 30 modules | Full VK 1.3 core API |
-| AAA readiness | ⚠️ 9/15 PRESENT, 4/15 PARTIAL, 2/15 MISSING | See SAFETY_AUDIT.md |
+| AAA readiness | ⚠︝ 9/15 PRESENT, 4/15 PARTIAL, 2/15 MISSING | See SAFETY_AUDIT.md |
 
 ## Phase 6: FIX SAFETY BUGS — ✅ ALL 12 FIXED (2026-07-19)
 
@@ -59,9 +59,9 @@ All 12 safety bugs (SF-01 through SF-12) fixed. All compile v0.48.0, 11/11 demos
 
 | ID | Gap | Workaround |
 |----|-----|------------|
-| CG-01 | Float32/Float64 Vec element reads garbage | Use scalar FFI only |
-| CG-02 | E001 Float64 moved value | Separate now() bindings |
-| CG-03 | Cross-module use catalog | Multi-file merge |
+| CG-01 | Float64 arithmetic + Float32 cast = LLVM constant error. Also: Float32/Float64 Vec reads garbage. | Use scalar FFI only; move Float64 math to C bridge (e.g. xvk_button_hit_state). Avoid Float64 in XIOM entirely. |
+| CG-02 | Module-scope `var x: Float32 = 0.5` (nonzero init) causes LLVM constant error | Initialize to 0.0 at module scope, reassign in main() function. |
+| CG-03 | Cross-module `use` doesn't resolve from single file; LSP shows false errors | Multi-file merge on xiomc command line works. Root cause: G-31 catalog directory scope. Workaround: merge all .xi files in one command. |
 
 **All historical GAP-1 through GAP-14: CLOSED (v0.33.0+).**
 **Vulkan FFI G1-G7 regression tests: ALL PASS.**
