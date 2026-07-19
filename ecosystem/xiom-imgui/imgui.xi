@@ -1,59 +1,75 @@
 // XIOM — Dear ImGui Bindings (Immediate Mode GUI)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
+//
+// Self-contained: ships pre-compiled imgui_bridge.obj files.
+// No external dependencies beyond Vulkan SDK + GLFW.
 module xiom.imgui
 
-pub fn create_context() -> Result[Unit, Str];
-pub fn destroy_context();
+// ── Lifecycle ──
+extern "C" {
+  fn imgui_bridge_init(glfw_window: Int) -> Int32;
+  fn imgui_bridge_shutdown();
+  fn imgui_bridge_init_vulkan(instance: Int, device: Int, physical_device: Int,
+      graphics_queue: Int, queue_family: Int32, render_pass: Int,
+      subpass_count: Int32, fb_width: Float32, fb_height: Float32) -> Int32;
+  fn imgui_bridge_new_frame();
+  fn imgui_bridge_render(command_buffer: Int);
 
-pub fn new_frame();
-pub fn render();
+  fn imgui_begin(name: Str) -> Int32;
+  fn imgui_end();
+  fn imgui_button(label: Str) -> Int32;
+  fn imgui_text(text: Str);
+  fn imgui_slider_float(label: Str, value: Float32, min_val: Float32, max_val: Float32) -> Float32;
+  fn imgui_checkbox(label: Str, checked: Int32) -> Int32;
+  fn imgui_separator();
+  fn imgui_same_line();
+  fn imgui_spacing();
+  fn imgui_tree_node(label: Str) -> Int32;
+  fn imgui_tree_pop();
+  fn imgui_collapsing_header(label: Str) -> Int32;
+  fn imgui_style_dark();
+  fn imgui_style_light();
+  fn imgui_style_classic();
+}
 
-pub fn begin_window(title: Str, open: &Bool, flags: Int) -> Bool;
-pub fn end_window();
-pub fn begin_child(id: Str, width: Float32, height: Float32) -> Bool;
-pub fn end_child();
+pub fn create_context(glfw_window: Int) -> Bool {
+  return unsafe { imgui_bridge_init(glfw_window) != 0 };
+}
+pub fn destroy_context() { unsafe { imgui_bridge_shutdown(); }; }
 
-pub fn separator();
-pub fn same_line(offset: Float32, spacing: Float32);
-pub fn spacing();
+pub fn init_vulkan(instance: Int, device: Int, phys: Int, queue: Int,
+    family: Int, rp: Int, subpass: Int, w: Float32, h: Float32) -> Bool {
+  return unsafe { imgui_bridge_init_vulkan(instance, device, phys, queue,
+      family as Int32, rp, subpass as Int32, w, h) != 0 };
+}
+pub fn new_frame() { unsafe { imgui_bridge_new_frame(); }; }
+pub fn render(cb: Int) { unsafe { imgui_bridge_render(cb); }; }
 
-pub fn text(text: Str);
-pub fn text_colored(r: Float32, g: Float32, b: Float32, a: Float32, text: Str);
-pub fn button(label: Str, width: Float32, height: Float32) -> Bool;
-pub fn checkbox(label: Str, value: &mut Bool) -> Bool;
-pub fn slider_float(label: Str, value: &mut Float32, min: Float32, max: Float32) -> Bool;
-pub fn slider_int(label: Str, value: &mut Int, min: Int, max: Int) -> Bool;
-pub fn input_float(label: Str, value: &mut Float32) -> Bool;
-pub fn input_int(label: Str, value: &mut Int) -> Bool;
-pub fn input_text(label: Str, buffer: &mut Str, buf_size: Int) -> Bool;
-pub fn combo(label: Str, current: &mut Int, items: Vec[Str]) -> Bool;
-
-pub fn tree_node(label: Str) -> Bool;
-pub fn tree_pop();
-pub fn collapsing_header(label: Str) -> Bool;
-
-pub fn plot_lines(label: Str, values: &Vec[Float32], scale_min: Float32, scale_max: Float32);
-pub fn plot_histogram(label: Str, values: &Vec[Float32], scale_min: Float32, scale_max: Float32);
-
-pub fn open_popup(name: Str);
-pub fn begin_popup(name: Str) -> Bool;
-pub fn end_popup();
-pub fn begin_modal(name: Str, open: &Bool) -> Bool;
-pub fn end_modal();
-
-pub fn style_dark();
-pub fn style_light();
-pub fn style_classic();
-
-pub fn init_for_vulkan(window: Int) -> Result[Unit, Str];
-pub fn init_for_opengl(window: Int) -> Result[Unit, Str];
-pub fn shutdown_backend();
-pub fn render_vulkan(draw_data: Int, cmd_buffer: Int, pipeline: Int);
-
-pub const WINDOW_NO_TITLE_BAR: Int = 1;
-pub const WINDOW_NO_RESIZE: Int = 2;
-pub const WINDOW_NO_MOVE: Int = 4;
-pub const WINDOW_NO_SCROLLBAR: Int = 8;
-pub const WINDOW_NO_COLLAPSE: Int = 16;
-pub const WINDOW_ALWAYS_AUTO_RESIZE: Int = 32;
+pub fn begin_window(title: Str) -> Bool {
+  return unsafe { imgui_begin(title) != 0 };
+}
+pub fn end_window() { unsafe { imgui_end(); }; }
+pub fn button(label: Str) -> Bool {
+  return unsafe { imgui_button(label) != 0 };
+}
+pub fn text(text: Str) { unsafe { imgui_text(text); }; }
+pub fn slider_float(label: Str, value: Float32, min_val: Float32, max_val: Float32) -> Float32 {
+  return unsafe { imgui_slider_float(label, value, min_val, max_val) };
+}
+pub fn checkbox(label: Str, checked: Bool) -> Bool {
+  return unsafe { imgui_checkbox(label, if checked { 1 } else { 0 } as Int32) != 0 };
+}
+pub fn separator() { unsafe { imgui_separator(); }; }
+pub fn same_line() { unsafe { imgui_same_line(); }; }
+pub fn spacing() { unsafe { imgui_spacing(); }; }
+pub fn tree_node(label: Str) -> Bool {
+  return unsafe { imgui_tree_node(label) != 0 };
+}
+pub fn tree_pop() { unsafe { imgui_tree_pop(); }; }
+pub fn collapsing_header(label: Str) -> Bool {
+  return unsafe { imgui_collapsing_header(label) != 0 };
+}
+pub fn style_dark() { unsafe { imgui_style_dark(); }; }
+pub fn style_light() { unsafe { imgui_style_light(); }; }
+pub fn style_classic() { unsafe { imgui_style_classic(); }; }
