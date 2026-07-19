@@ -213,23 +213,20 @@ fn draw_vp() {
   let cx = 0.0; let cy = -0.01; let hw = 0.34; let hh = 0.86;
   pnl(cx, cy, hw, hh, g_tx_title);
   vp_angle = vp_angle + 0.02; if vp_angle > 6.28 { vp_angle = 0.0; }
-  draw_cube_3d_at(g_app, vp_angle, 0.0, -0.15, -2.0, 0.35);
-  draw_cube_3d_at(g_app, vp_angle + 1.5, 0.35, -0.25, -2.5, 0.22);
+  // Position cubes fully inside panel to avoid clipping
+  draw_cube_3d_at(g_app, vp_angle, -0.06, -0.05, -3.0, 0.25);
+  draw_cube_3d_at(g_app, vp_angle + 1.5, 0.08, 0.0, -3.5, 0.18);
 
-  // Display loaded sprite in lower-left of viewport
+  // Display loaded sprites inside viewport
   if g_tex_overworld != 0 {
     let view = texture_get_image_view(g_tex_overworld);
     let samp = texture_get_sampler(g_tex_overworld);
-    if view != 0 {
-      draw_texture_quad(g_app, view, samp, cx - hw + 0.10, cy - hh + 0.12, 0.08, 0.06);
-    }
+    if view != 0 { draw_texture_quad(g_app, view, samp, cx - hw + 0.08, cy - hh + 0.10, 0.07, 0.05); }
   }
   if g_tex_character != 0 {
     let view = texture_get_image_view(g_tex_character);
     let samp = texture_get_sampler(g_tex_character);
-    if view != 0 {
-      draw_texture_quad(g_app, view, samp, cx + hw - 0.06, cy - hh + 0.08, 0.04, 0.06);
-    }
+    if view != 0 { draw_texture_quad(g_app, view, samp, cx + hw - 0.05, cy - hh + 0.07, 0.03, 0.05); }
   }
 }
 
@@ -244,7 +241,7 @@ fn draw_sb() {
 
 // ── Main ──
 fn main() -> Int {
-  let app = create_app("XIOM Vulkan Showcase v0.3.3", 1280, 720);
+  let app = create_app("XIOM Vulkan Showcase v0.4.1", 1280, 720);
   match app {
     Err(e) => { io.println(e); return 1; }
     Ok(a) => {
@@ -255,8 +252,11 @@ fn main() -> Int {
       io.println("Real text rendering via font atlas + textured quads.");
       io.println("Interactive buttons, sliders, exit button.");
 
+      var fc = 0;
       while !should_close(a) && g_exit == 0 {
         poll(a);
+        fc = fc + 1;
+        if fc > 60000 { io.println("[Showcase] Frame limit (60k)."); break; }
         let status = begin_frame(a);
         if status == 1 {
           set_clear_color(a, 0.04, 0.04, 0.06);
