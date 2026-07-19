@@ -186,6 +186,9 @@ extern "C" {
   fn xvk_proc_texture_gradient(width: Int32, height: Int32, r1: Float32, g1: Float32, b1: Float32, r2: Float32, g2: Float32, b2: Float32, horizontal: Int32) -> Int;
   fn xvk_free_pixels(pixels: Int);
 
+  // Textured quad rendering
+  fn xvk_draw_texture_quad(app: Int, image_view: Int, sampler: Int, cx: Float32, cy: Float32, hw: Float32, hh: Float32);
+
   // UI hit-testing (avoids Float64 in XIOM)
   fn xvk_button_hit_state(app: Int, cx: Float32, cy: Float32, hw: Float32, hh: Float32) -> Int32;
 }
@@ -319,6 +322,13 @@ pub fn draw_quad_2d(app: Int, cx: Float32, cy: Float32, hw: Float32, hh: Float32
   requires: app != 0
 {
   unsafe { xvk_draw_quad_2d(app, cx, cy, hw, hh, r, g, b); }
+}
+
+pub fn draw_texture_quad(app: Int, image_view: Int, sampler: Int, cx: Float32, cy: Float32, hw: Float32, hh: Float32)
+  requires: app != 0
+  requires: image_view != 0
+{
+  unsafe { xvk_draw_texture_quad(app, image_view, sampler, cx, cy, hw, hh); }
 }
 
 pub fn draw_cube_3d_at(app: Int, angle: Float32, px: Float32, py: Float32, pz: Float32, scale: Float32)

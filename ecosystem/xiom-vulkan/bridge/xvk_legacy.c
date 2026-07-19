@@ -237,3 +237,40 @@ void xvk_draw_particles(int64_t app_h, float dt)
     vkCmdBindVertexBuffers(cb, 0, 1, &a->particle_vbo, &offset);
     vkCmdDraw(cb, (uint32_t)count, 1, 0, 0);
 }
+
+void xvk_draw_texture_quad(int64_t app_h, int64_t image_view, int64_t sampler,
+                           float cx, float cy, float hw, float hh)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !a->recording) return;
+    if (!a->texquad_pipeline || !image_view) return;
+
+    VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+
+    /* Update descriptor set with the current image view + sampler */
+    VkDescriptorImageInfo image_info = {0};
+    image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    image_info.imageView   = (VkImageView)(intptr_t)image_view;
+    image_info.sampler     = (VkSampler)(intptr_t)sampler;
+
+    VkWriteDescriptorSet write = {0};
+    write.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstSet          = a->texquad_ds;
+    write.dstBinding      = 1;
+    write.descriptorCount = 1;
+    write.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    write.pImageInfo      = &image_info;
+
+    vkUpdateDescriptorSets(a->device, 1, &write, 0, NULL);
+
+    /* Bind pipeline + descriptor set + push constants, then draw */
+    vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, a->texquad_pipeline);
+    vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            a->texquad_layout, 0, 1, &a->texquad_ds, 0, NULL);
+
+    float pc[8] = { cx, cy, hw, hh, 1.0f, 1.0f, 1.0f, 1.0f };
+    vkCmdPushConstants(cb, a->texquad_layout,
+                       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                       0, 32, pc);
+    vkCmdDraw(cb, 6, 1, 0, 0);
+}

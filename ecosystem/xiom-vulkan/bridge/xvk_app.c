@@ -54,15 +54,23 @@ void xvk_app_cleanup_internal(XvkApp* a)
     if (a->pipe_layout_2d) vkDestroyPipelineLayout(a->device, a->pipe_layout_2d, NULL);
     if (a->pipe_layout_3d) vkDestroyPipelineLayout(a->device, a->pipe_layout_3d, NULL);
     if (a->pipe_layout_quad) vkDestroyPipelineLayout(a->device, a->pipe_layout_quad, NULL);
+    if (a->texquad_dsl)      vkDestroyDescriptorSetLayout(a->device, a->texquad_dsl, NULL);
+    if (a->texquad_layout)   vkDestroyPipelineLayout(a->device, a->texquad_layout, NULL);
+    if (a->texquad_pool)     vkDestroyDescriptorPool(a->device, a->texquad_pool, NULL);
     if (a->particle_layout)   vkDestroyPipelineLayout(a->device, a->particle_layout, NULL);
     a->pipeline_2d    = VK_NULL_HANDLE;
     a->pipeline_3d    = VK_NULL_HANDLE;
     a->pipe_layout_2d = VK_NULL_HANDLE;
     a->pipe_layout_3d = VK_NULL_HANDLE;
     a->pipe_layout_quad = VK_NULL_HANDLE;
+    a->texquad_dsl      = VK_NULL_HANDLE;
+    a->texquad_layout   = VK_NULL_HANDLE;
+    a->texquad_pool     = VK_NULL_HANDLE;
+    a->texquad_ds       = VK_NULL_HANDLE;
     a->particle_layout   = VK_NULL_HANDLE;
 
     if (a->particle_pipeline) vkDestroyPipeline(a->device, a->particle_pipeline, NULL);
+    if (a->texquad_pipeline)    vkDestroyPipeline(a->device, a->texquad_pipeline, NULL);
     if (a->pipeline_quad)     vkDestroyPipeline(a->device, a->pipeline_quad, NULL);
     if (a->particle_vbo)      vkDestroyBuffer(a->device, a->particle_vbo, NULL);
     if (a->particle_mem) {
@@ -71,6 +79,7 @@ void xvk_app_cleanup_internal(XvkApp* a)
     }
     free(a->particles);
     a->particle_pipeline = VK_NULL_HANDLE;
+    a->texquad_pipeline    = VK_NULL_HANDLE;
     a->pipeline_quad     = VK_NULL_HANDLE;
     a->particle_vbo      = VK_NULL_HANDLE;
     a->particle_mem      = VK_NULL_HANDLE;
@@ -272,6 +281,77 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
         vkDestroyShaderModule(a->device, qv, NULL);
         vkDestroyShaderModule(a->device, qf, NULL);
         if (!a->pipeline_quad) goto fail;
+    }
+
+    /* Texture quad pipeline (descriptor set layout + push constants) */
+    {
+        VkDescriptorSetLayoutBinding dsl_binding = {0};
+        dsl_binding.binding         = 1;
+        dsl_binding.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        dsl_binding.descriptorCount = 1;
+        dsl_binding.stageFlags      = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        VkDescriptorSetLayoutCreateInfo dslci = {0};
+        dslci.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        dslci.bindingCount = 1;
+        dslci.pBindings    = &dsl_binding;
+
+        VkResult res = vkCreateDescriptorSetLayout(a->device, &dslci, NULL, &a->texquad_dsl);
+        if (res != VK_SUCCESS) { xvk_set_error_fmt("texquad DSL failed: %d", (int)res); goto fail; }
+
+        VkPushConstantRange pcr = {0};
+        pcr.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        pcr.offset     = 0;
+        pcr.size       = 32;
+
+        VkPipelineLayoutCreateInfo plci = {0};
+        plci.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        plci.setLayoutCount         = 1;
+        plci.pSetLayouts            = &a->texquad_dsl;
+        plci.pushConstantRangeCount = 1;
+        plci.pPushConstantRanges    = &pcr;
+
+        res = vkCreatePipelineLayout(a->device, &plci, NULL, &a->texquad_layout);
+        if (res != VK_SUCCESS) { xvk_set_error_fmt("texquad layout failed: %d", (int)res); goto fail; }
+
+        VkShaderModule tv = create_shader_module(a->device,
+            xvk_texture_quad_vert_spv, xvk_texture_quad_vert_spv_len);
+        VkShaderModule tf = create_shader_module(a->device,
+            xvk_texture_quad_frag_spv, xvk_texture_quad_frag_spv_len);
+        if (!tv || !tf) {
+            if (tv) vkDestroyShaderModule(a->device, tv, NULL);
+            if (tf) vkDestroyShaderModule(a->device, tf, NULL);
+            goto fail;
+        }
+
+        a->texquad_pipeline = create_graphics_pipeline(a->device,
+            a->texquad_layout, a->render_pass,
+            tv, tf, width, height, 0);
+        vkDestroyShaderModule(a->device, tv, NULL);
+        vkDestroyShaderModule(a->device, tf, NULL);
+        if (!a->texquad_pipeline) goto fail;
+
+        VkDescriptorPoolSize pool_size = {0};
+        pool_size.type            = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        pool_size.descriptorCount = 1;
+
+        VkDescriptorPoolCreateInfo dpci = {0};
+        dpci.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        dpci.maxSets       = 1;
+        dpci.poolSizeCount = 1;
+        dpci.pPoolSizes    = &pool_size;
+
+        res = vkCreateDescriptorPool(a->device, &dpci, NULL, &a->texquad_pool);
+        if (res != VK_SUCCESS) { xvk_set_error_fmt("texquad pool failed: %d", (int)res); goto fail; }
+
+        VkDescriptorSetAllocateInfo dsai = {0};
+        dsai.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        dsai.descriptorPool     = a->texquad_pool;
+        dsai.descriptorSetCount = 1;
+        dsai.pSetLayouts        = &a->texquad_dsl;
+
+        res = vkAllocateDescriptorSets(a->device, &dsai, &a->texquad_ds);
+        if (res != VK_SUCCESS) { xvk_set_error_fmt("texquad DS alloc failed: %d", (int)res); goto fail; }
     }
 
     {
