@@ -203,7 +203,7 @@ extern "C" {
   fn xvk_mesh_vertex_count(mesh: Int) -> Int32;
   fn xvk_mesh_index_count(mesh: Int) -> Int32;
   fn xvk_mesh_vertex_buffer(mesh: Int) -> Int;
-  fn xvk_draw_mesh_lit(app: Int, angle: Float32, px: Float32, py: Float32, pz: Float32, scale: Float32);
+  fn xvk_draw_mesh_lit(app: Int, mesh: Int, angle: Float32, px: Float32, py: Float32, pz: Float32, scale: Float32);
   fn xvk_mesh_destroy(device: Int, mesh: Int);
 
   fn xvk_image_free(pixels: Int);

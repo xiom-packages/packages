@@ -362,7 +362,7 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
         VkPushConstantRange pcr = {0};
         pcr.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
         pcr.offset     = 0;
-        pcr.size       = 96; /* mat4 mvp(64) + vec4 light_dir(16) + vec4 light_color(16) */
+        pcr.size       = 96;
 
         a->lit3d_layout = create_pipeline_layout(a->device, &pcr, 1);
         if (!a->lit3d_layout) goto fail;
@@ -377,12 +377,87 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
             goto fail;
         }
 
-        a->lit3d_pipeline = create_graphics_pipeline(a->device,
-            a->lit3d_layout, a->render_pass,
-            lv, lf, width, height, 0);
+        /* Build pipeline with vertex input for interleaved pos+normal (6 floats, 24 stride) */
+        VkVertexInputBindingDescription vb = {0};
+        vb.binding   = 0;
+        vb.stride    = 24; /* float3 pos + float3 normal */
+        vb.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+        VkVertexInputAttributeDescription va[2] = {{0}};
+        va[0].binding  = 0;
+        va[0].location = 0;
+        va[0].format   = VK_FORMAT_R32G32B32_SFLOAT; /* position */
+        va[0].offset   = 0;
+        va[1].binding  = 0;
+        va[1].location = 1;
+        va[1].format   = VK_FORMAT_R32G32B32_SFLOAT; /* normal */
+        va[1].offset   = 12;
+
+        VkPipelineVertexInputStateCreateInfo vi = {0};
+        vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        vi.vertexBindingDescriptionCount   = 1;
+        vi.pVertexBindingDescriptions      = &vb;
+        vi.vertexAttributeDescriptionCount = 2;
+        vi.pVertexAttributeDescriptions    = va;
+
+        VkPipelineShaderStageCreateInfo stages[2] = {{0}};
+        stages[0].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        stages[0].stage  = VK_SHADER_STAGE_VERTEX_BIT;
+        stages[0].module = lv;
+        stages[0].pName  = "main";
+        stages[1].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        stages[1].stage  = VK_SHADER_STAGE_FRAGMENT_BIT;
+        stages[1].module = lf;
+        stages[1].pName  = "main";
+
+        VkPipelineInputAssemblyStateCreateInfo ia = {0};
+        ia.sType    = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+        ia.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+        VkPipelineViewportStateCreateInfo vs = {0};
+        vs.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        vs.viewportCount = 1;
+        vs.scissorCount  = 1;
+
+        VkPipelineRasterizationStateCreateInfo rs = {0};
+        rs.sType     = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+        rs.polygonMode = VK_POLYGON_MODE_FILL;
+        rs.lineWidth   = 1.0f;
+        rs.cullMode    = VK_CULL_MODE_BACK_BIT;
+        rs.frontFace   = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+
+        VkPipelineMultisampleStateCreateInfo ms = {0};
+        ms.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+        ms.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+        VkPipelineColorBlendAttachmentState cb = {0};
+        cb.colorWriteMask = 0xF;
+        VkPipelineColorBlendStateCreateInfo cbs = {0};
+        cbs.sType           = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+        cbs.attachmentCount = 1;
+        cbs.pAttachments    = &cb;
+
+        VkGraphicsPipelineCreateInfo gpci = {0};
+        gpci.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        gpci.stageCount          = 2;
+        gpci.pStages             = stages;
+        gpci.pVertexInputState   = &vi;
+        gpci.pInputAssemblyState = &ia;
+        gpci.pViewportState      = &vs;
+        gpci.pRasterizationState = &rs;
+        gpci.pMultisampleState   = &ms;
+        gpci.pColorBlendState    = &cbs;
+        gpci.layout              = a->lit3d_layout;
+        gpci.renderPass          = a->render_pass;
+        gpci.subpass             = 0;
+
+        VkResult res = vkCreateGraphicsPipelines(a->device, VK_NULL_HANDLE, 1, &gpci, NULL, &a->lit3d_pipeline);
         vkDestroyShaderModule(a->device, lv, NULL);
         vkDestroyShaderModule(a->device, lf, NULL);
-        if (!a->lit3d_pipeline) goto fail;
+        if (res != VK_SUCCESS || !a->lit3d_pipeline) {
+            xvk_set_error_fmt("lit3d pipeline creation failed: %d", (int)res);
+            goto fail;
+        }
     }
 
     {

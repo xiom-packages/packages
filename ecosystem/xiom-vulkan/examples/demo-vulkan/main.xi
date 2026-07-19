@@ -253,9 +253,13 @@ fn draw_vp() {
       if view != 0 { draw_texture_quad(g_app, view, samp, cx + 0.08, cy - 0.03, 0.05, 0.08); }
     }
   } elif g_scene == 4 {
-    // Scene 4: OBJ mesh (barrel) with camera orbit
+    // Scene 4: Lit OBJ model (barrel from resources)
     unsafe { xvk_camera_orbit(0.008, 0.0, 0.0); }
-    draw_cube_3d_at(g_app, vp_angle, 0.0, 0.0, -3.0, 0.5);
+    if g_mesh != 0 {
+      unsafe { xvk_draw_mesh_lit(g_app, g_mesh, vp_angle, 0.0, 0.0, -3.0, 0.5); }
+    } else {
+      draw_cube_3d_at(g_app, vp_angle, 0.0, 0.0, -3.0, 0.5);
+    }
   } elif g_scene == 5 {
     var gi = 0;
     while gi < 10 {

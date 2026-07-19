@@ -1,6 +1,7 @@
 #include "xvk_legacy.h"
 #include "xvk_math.h"
 #include "xvk_camera.h"
+#include "xvk_mesh.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -281,10 +282,15 @@ void xvk_draw_texture_quad(int64_t app_h, int64_t image_view, int64_t sampler,
     vkCmdDraw(cb, 6, 1, 0, 0);
 }
 
-void xvk_draw_mesh_lit(int64_t app_h, float angle, float px, float py, float pz, float scale)
+void xvk_draw_mesh_lit(int64_t app_h, int64_t mesh_h, float angle, float px, float py, float pz, float scale)
 {
     XvkApp* a = xvk_from_handle(app_h);
     if (!a || !a->recording || !a->lit3d_pipeline) return;
+
+    /* Access mesh data */
+    XvkMesh* m = (XvkMesh*)(intptr_t)mesh_h;
+    if (!m || !m->vbo || !m->ibo || m->idx_count == 0) return;
+
     float aspect = (float)a->swapchain_extent.width / (float)a->swapchain_extent.height;
     float model[16], view[16], proj[16], tmp[16], mvp[16];
     mat4_translation(model, px, py, pz);
@@ -300,13 +306,18 @@ void xvk_draw_mesh_lit(int64_t app_h, float angle, float px, float py, float pz,
     }
     mat4_mul(tmp, view, model);
     mat4_mul(mvp, proj, tmp);
+
     float pc[24];
     memcpy(pc, mvp, 64);
     pc[16] = 0.5f; pc[17] = -1.0f; pc[18] = 0.3f; pc[19] = 0.5f;
     pc[20] = 1.0f; pc[21] = 0.9f; pc[22] = 0.8f; pc[23] = 0.8f;
+
     VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+    VkDeviceSize offset = 0;
     vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, a->lit3d_pipeline);
+    vkCmdBindVertexBuffers(cb, 0, 1, &m->vbo, &offset);
+    vkCmdBindIndexBuffer(cb, m->ibo, 0, VK_INDEX_TYPE_UINT32);
     vkCmdPushConstants(cb, a->lit3d_layout,
         VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, 96, pc);
-    vkCmdDraw(cb, 36, 1, 0, 0);
+    vkCmdDrawIndexed(cb, (uint32_t)m->idx_count, 1, 0, 0, 0);
 }
