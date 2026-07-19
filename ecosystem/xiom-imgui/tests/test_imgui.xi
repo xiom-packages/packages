@@ -7,8 +7,9 @@ use xiom.test;
 use xiom.imgui;
 
 fn test_create_context() -> TestResult {
-  create_context();
-  return assert(true, "imgui create context");
+  let ok = create_context(0);
+  if ok { destroy_context(); }
+  return assert(ok, "imgui create context (stub: no GLFW window)");
 }
 
 fn main() -> Int {

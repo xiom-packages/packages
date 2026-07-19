@@ -2,11 +2,11 @@
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Self-contained: ships pre-compiled imgui_bridge.obj files.
-// No external dependencies beyond Vulkan SDK + GLFW.
+// Self-contained: links against pre-compiled imgui*.obj files.
+// No external imgui dependency beyond Vulkan SDK + GLFW.
 module xiom.imgui
 
-// ── Lifecycle ──
+// ── C Bridge FFI ──
 extern "C" {
   fn imgui_bridge_init(glfw_window: Int) -> Int32;
   fn imgui_bridge_shutdown();
@@ -28,10 +28,16 @@ extern "C" {
   fn imgui_tree_node(label: Str) -> Int32;
   fn imgui_tree_pop();
   fn imgui_collapsing_header(label: Str) -> Int32;
+  fn imgui_input_text(label: Str, buf: Int, buf_size: Int32) -> Int32;
+  fn imgui_combo(label: Str, current: Int32, items: Int, item_count: Int32) -> Int32;
+  fn imgui_plot_lines(label: Str, values: Int, count: Int32,
+      scale_min: Float32, scale_max: Float32, width: Float32, height: Float32);
   fn imgui_style_dark();
   fn imgui_style_light();
   fn imgui_style_classic();
 }
+
+// ── Lifecycle ──
 
 pub fn create_context(glfw_window: Int) -> Bool {
   return unsafe { imgui_bridge_init(glfw_window) != 0 };
@@ -46,10 +52,15 @@ pub fn init_vulkan(instance: Int, device: Int, phys: Int, queue: Int,
 pub fn new_frame() { unsafe { imgui_bridge_new_frame(); }; }
 pub fn render(cb: Int) { unsafe { imgui_bridge_render(cb); }; }
 
+// ── Windows ──
+
 pub fn begin_window(title: Str) -> Bool {
   return unsafe { imgui_begin(title) != 0 };
 }
 pub fn end_window() { unsafe { imgui_end(); }; }
+
+// ── Widgets ──
+
 pub fn button(label: Str) -> Bool {
   return unsafe { imgui_button(label) != 0 };
 }
@@ -58,7 +69,8 @@ pub fn slider_float(label: Str, value: Float32, min_val: Float32, max_val: Float
   return unsafe { imgui_slider_float(label, value, min_val, max_val) };
 }
 pub fn checkbox(label: Str, checked: Bool) -> Bool {
-  return unsafe { imgui_checkbox(label, if checked { 1 } else { 0 } as Int32) != 0 };
+  let cv: Int32 = if checked { 1 as Int32 } else { 0 as Int32 };
+  return unsafe { imgui_checkbox(label, cv) != 0 };
 }
 pub fn separator() { unsafe { imgui_separator(); }; }
 pub fn same_line() { unsafe { imgui_same_line(); }; }
@@ -70,6 +82,9 @@ pub fn tree_pop() { unsafe { imgui_tree_pop(); }; }
 pub fn collapsing_header(label: Str) -> Bool {
   return unsafe { imgui_collapsing_header(label) != 0 };
 }
+
+// ── Styling ──
+
 pub fn style_dark() { unsafe { imgui_style_dark(); }; }
 pub fn style_light() { unsafe { imgui_style_light(); }; }
 pub fn style_classic() { unsafe { imgui_style_classic(); }; }
