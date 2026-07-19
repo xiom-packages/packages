@@ -35,7 +35,7 @@ elseif ($Target -eq 'test') {
     }
     $xiomArgs += @('--link', 'vulkan-1', '--link', 'glfw3', '--link', 'gdi32', '--link', 'user32')
     $xiomArgs += @('--link-path', "$env:VULKAN_SDK\Lib", '--link-path', "$env:GLFW_DIR\lib-vc2022")
-    & xiomc @xiomArgs
+    & xiomc @xiomArgs --release
 }
 elseif ($Target -eq 'demo') {
     $xiomArgs = @('-o', 'demo_imgui.exe',
@@ -50,5 +50,5 @@ elseif ($Target -eq 'demo') {
         '--link', 'ole32', '--link', 'winmm')
     $xiomArgs += @('--link-path', "$env:VULKAN_SDK\Lib",
         '--link-path', "$env:GLFW_DIR\lib-vc2022")
-    & xiomc @xiomArgs
+    & xiomc @xiomArgs --release
 }

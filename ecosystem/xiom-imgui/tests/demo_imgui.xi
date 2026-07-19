@@ -18,6 +18,7 @@ var g_cr: Float32 = 0.0;
 var g_cg: Float32 = 0.0;
 var g_cb: Float32 = 0.0;
 var g_show_modal: Int = 0;
+var g_frame: Int = 0;
 
 fn main() -> Int {
   let app = create_app("XIOM ImGui Demo", 1280, 800);
@@ -29,6 +30,7 @@ fn main() -> Int {
       g_drag_f = 1.0; g_drag_i = 50;
       g_cr = 0.18; g_cg = 0.64; g_cb = 0.88;
       g_show_modal = 0;
+      g_frame = 0;
 
       let win  = unsafe { xvk_get_glfw_window(a) };
       let inst = unsafe { xvk_get_instance(a) };
@@ -42,12 +44,13 @@ fn main() -> Int {
         unsafe { imgui_bridge_shutdown(); }; destroy_app(a); return 1;
       }
 
-      while !should_close(a) {
+      while !should_close(a) && g_frame < 100000 {
         if is_key_down(a, 256) { break; }
         poll(a);
         set_clear_color(a, 0.06, 0.06, 0.10);
         let status = begin_frame(a);
         if status == 1 {
+          g_frame = g_frame + 1;
           let fb_w = unsafe { xvk_get_fb_width(a) } as Int;
           let fb_h = unsafe { xvk_get_fb_height(a) } as Int;
           unsafe { imgui_bridge_new_frame_sized(fb_w as Int32, fb_h as Int32); };
