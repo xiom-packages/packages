@@ -437,6 +437,12 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
         cbs.attachmentCount = 1;
         cbs.pAttachments    = &cb;
 
+        VkDynamicState dyn_states[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+        VkPipelineDynamicStateCreateInfo dyn = {0};
+        dyn.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        dyn.dynamicStateCount = 2;
+        dyn.pDynamicStates    = dyn_states;
+
         VkGraphicsPipelineCreateInfo gpci = {0};
         gpci.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         gpci.stageCount          = 2;
@@ -446,6 +452,7 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
         gpci.pViewportState      = &vs;
         gpci.pRasterizationState = &rs;
         gpci.pMultisampleState   = &ms;
+        gpci.pDynamicState       = &dyn;
         gpci.pColorBlendState    = &cbs;
         gpci.layout              = a->lit3d_layout;
         gpci.renderPass          = a->render_pass;
