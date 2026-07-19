@@ -133,6 +133,13 @@ extern "C" {
   fn vkQueueSubmit2(queue: Int, submit_count: Int32, submits: Int, fence: Int) -> Int32;
   fn vkQueueWaitIdle(queue: Int) -> Int32;
   fn vkQueuePresentKHR(queue: Int, present_info: Int) -> Int32;
+  fn vkGetDeviceQueue2(device: Int, queue_info: Int, queue: Int) -> Int32;
+
+  // Phase 7.5: Bridge convenience functions for multi-threaded command recording
+  fn xvk_create_command_pools(count: Int32, device: Int, queue_family: Int32, flags: Int32, out_pools: Int) -> Int;
+  fn xvk_trim_command_pool(device: Int, pool: Int) -> Int32;
+  fn xvk_allocate_command_buffers_multi(device: Int, pool: Int, level: Int32, count: Int32, out_buffers: Int) -> Int32;
+  fn xvk_queue_submit_multi(queue: Int, cmd_buf_count: Int32, cmd_bufs: Int, fence: Int) -> Int32;
 
   // Render Pass / Framebuffer
   fn vkCreateRenderPass(device: Int, create_info: Int, allocator: Int, render_pass: Int) -> Int32;
@@ -765,6 +772,42 @@ pub fn VulkanCommandPool.reset(flags: Int32) -> Result[Int, VulkanError]
   return Ok(0);
 }
 
+/// Phase 7.5: Trim the command pool (VK 1.1+) — releases unused internal allocations.
+pub fn VulkanCommandPool.trim() -> Result[Int, VulkanError]
+  requires: handle != 0
+{
+  unsafe { vkTrimCommandPool(device, handle, 0); }
+  return Ok(0);
+}
+
+/// Phase 7.5: Create N command pools for multi-threaded command recording.
+/// All pools share the same queue family and creation flags.
+/// Returns a Vec of VulkanCommandPool, one per thread.
+pub fn VulkanCommandPool.create_threaded(count: Int32, device: Int, queue_family: Int32, flags: Int32) -> Result[VulkanCommandPool, VulkanError]
+  requires: count > 0
+  requires: device != 0
+{
+  // Allocate array for count handles (8 bytes each)
+  let out_buf = unsafe { xvk_alloc((count as Int) * 8) };
+  let created: Int = unsafe { xvk_create_command_pools(count, device, queue_family, flags, out_buf) };
+  if created == 0 { unsafe { xvk_free(out_buf); }; return Err(VulkanError{ code: -1 }); }
+  // Return the first pool (caller can iterate with multiple calls or use raw handles)
+  let pool_handle = unsafe { xvk_read_u64(out_buf, 0) };
+  unsafe { xvk_free(out_buf); }
+  return Ok(VulkanCommandPool{ handle: pool_handle, device: device });
+}
+
+/// Phase 7.5: Create N command pools, returning all handles as an array.
+/// out_pools must be pre-allocated (8 * count bytes). Returns actual count created.
+pub fn create_command_pools_multi(count: Int32, device: Int, queue_family: Int32, flags: Int32, out_pools: Int) -> Int
+  requires: count > 0
+  requires: device != 0
+  requires: out_pools != 0
+{
+  let created: Int = unsafe { xvk_create_command_pools(count, device, queue_family, flags, out_pools) };
+  return created;
+}
+
 // =========================================================================
 // VulkanCommandBuffer
 // =========================================================================
@@ -834,6 +877,18 @@ pub fn VulkanCommandBuffer.submit(queue: Int, fence: Int) -> Result[Int, VulkanE
   unsafe { xvk_write_u64(si, 48, handle); } // pCommandBuffers = &handle (passes handle, caller ensures lifetime)
   let res: Int32 = unsafe { vkQueueSubmit(queue, 1, si, fence) };
   unsafe { xvk_free(si); }
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(0);
+}
+
+/// Phase 7.5: Submit multiple command buffers to a queue at once.
+/// cmd_bufs_array is a pointer to an array of command buffer handle Ints (8 bytes each).
+pub fn VulkanCommandBuffer.submit_multi(queue: Int, cmd_bufs_array: Int, count: Int32, fence: Int) -> Result[Int, VulkanError]
+  requires: queue != 0
+  requires: cmd_bufs_array != 0
+  requires: count > 0
+{
+  let res: Int32 = unsafe { xvk_queue_submit_multi(queue, count, cmd_bufs_array, fence) };
   if res != 0 { return Err(VulkanError{ code: res }); }
   return Ok(0);
 }
@@ -1112,6 +1167,78 @@ pub fn VulkanSemaphore.destroy()
   requires: handle != 0
 {
   unsafe { vkDestroySemaphore(device, handle, 0); }
+}
+
+// =========================================================================
+// VulkanQueue — Phase 7.5: Typed queue abstraction for multi-threaded rendering
+// =========================================================================
+
+pub type VulkanQueue = {
+  handle: Int;
+  device: Int;
+  family: Int32;
+} derive[Clone]
+
+/// Get a device queue by family index and queue index.
+pub fn VulkanQueue.get_queue(device: Int, family: Int32, index: Int32) -> Result[VulkanQueue, VulkanError]
+  requires: device != 0
+{
+  let qb = unsafe { xvk_alloc(8) };
+  unsafe { vkGetDeviceQueue(device, family, index, qb); }
+  let qh = unsafe { xvk_read_u64(qb, 0) };
+  unsafe { xvk_free(qb); }
+  if qh == 0 { return Err(VulkanError{ code: -1 }); }
+  return Ok(VulkanQueue{ handle: qh, device: device, family: family });
+}
+
+/// Phase 7.5: Get a device queue with extended options via VkDeviceQueueInfo2 (VK 1.1+).
+/// queue_info_struct is a caller-built VkDeviceQueueInfo2 struct pointer.
+pub fn VulkanQueue.get_queue2(device: Int, queue_info_struct: Int) -> Result[VulkanQueue, VulkanError]
+  requires: device != 0
+  requires: queue_info_struct != 0
+{
+  let qb = unsafe { xvk_alloc(8) };
+  let res: Int32 = unsafe { vkGetDeviceQueue2(device, queue_info_struct, qb) };
+  let qh = unsafe { xvk_read_u64(qb, 0) };
+  unsafe { xvk_free(qb); }
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  if qh == 0 { return Err(VulkanError{ code: -1 }); }
+  // Read the family index from the struct (offset 20 in VkDeviceQueueInfo2)
+  let family = unsafe { xvk_read_u32(queue_info_struct, 20) };
+  return Ok(VulkanQueue{ handle: qh, device: device, family: family as Int32 });
+}
+
+/// Wait for all queue operations to complete.
+pub fn VulkanQueue.wait_idle() -> Result[Int, VulkanError]
+  requires: handle != 0
+{
+  let res: Int32 = unsafe { vkQueueWaitIdle(handle) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(0);
+}
+
+/// Submit one or more command buffers to this queue.
+/// cmd_bufs_array is a pointer to an array of int64 command buffer handles.
+pub fn VulkanQueue.submit(cmd_bufs_array: Int, count: Int32, fence: Int) -> Result[Int, VulkanError]
+  requires: handle != 0
+  requires: cmd_bufs_array != 0
+  requires: count > 0
+{
+  let res: Int32 = unsafe { xvk_queue_submit_multi(handle, count, cmd_bufs_array, fence) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(0);
+}
+
+/// Submit with wait/signal semaphores (full VkSubmitInfo support).
+/// submit_info is a caller-built VkSubmitInfo struct pointer (72 bytes).
+pub fn VulkanQueue.submit_full(submit_info: Int, fence: Int) -> Result[Int, VulkanError]
+  requires: handle != 0
+  requires: submit_info != 0
+{
+  let c = 1;
+  let res: Int32 = unsafe { vkQueueSubmit(handle, c as Int32, submit_info, fence) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(0);
 }
 
 // =========================================================================

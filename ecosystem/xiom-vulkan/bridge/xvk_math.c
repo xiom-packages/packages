@@ -22,15 +22,15 @@ void mat4_mul(float c[16], const float a[16], const float b[16])
 }
 
 void mat4_perspective(float m[16], float fov_y, float aspect,
-                       float near, float far)
+                       float znear, float zfar)
 {
     float t = 1.0f / tanf(fov_y * 0.5f);
     memset(m, 0, 16 * sizeof(float));
     m[0]  = t / aspect;
     m[5]  = -t;
-    m[10] = -far / (far - near);
+    m[10] = -zfar / (zfar - znear);
     m[11] = -1.0f;
-    m[14] = -near * far / (far - near);
+    m[14] = -znear * zfar / (zfar - znear);
 }
 
 void mat4_look_at(float m[16],

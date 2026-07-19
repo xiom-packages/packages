@@ -137,6 +137,21 @@ extern "C" {
 
   // Phase 1 — Utility
   fn xvk_get_framebuffer_size(app: Int, out_width: *Int32, out_height: *Int32);
+
+  // Phase 7.5 — Multi-Thread Command Pools
+  fn xvk_alloc(size: Int) -> Int;
+  fn xvk_free(ptr: Int);
+  fn xvk_create_command_pools(count: Int32, device: Int, queue_family: Int32, flags: Int32, out_pools: Int) -> Int;
+  fn xvk_allocate_command_buffers_multi(device: Int, pool: Int, level: Int32, count: Int32, out_buffers: Int) -> Int32;
+  fn xvk_queue_submit_multi(queue: Int, cmd_buf_count: Int32, cmd_bufs: Int, fence: Int) -> Int32;
+  fn vkTrimCommandPool(device: Int, pool: Int, flags: Int32);
+
+  // Phase 7.3 — Shader Compilation Toolchain
+  fn xvk_compile_glsl_to_spirv(source: Str, stage: Str, flags: Int) -> Int;
+  fn xvk_compile_glsl_file_to_spirv(filepath: Str, stage: Str, flags: Int) -> Int;
+  fn xvk_free_spirv_result(result_ptr: Int);
+  fn xvk_read_u64(base: Int, offset: Int) -> Int;
+  fn xvk_read_u32(base: Int, offset: Int) -> Int32;
 }
 
 // ===========================================================================
@@ -702,4 +717,109 @@ pub fn image_transition(app: Int, img: Int, old_layout: Int, new_layout: Int)
   requires: app != 0
 {
   unsafe { xvk_image_transition(app, img, old_layout as Int32, new_layout as Int32); }
+}
+
+// ===========================================================================
+// Phase 7.5: Multi-Thread Command Pools — High-Level API
+// ===========================================================================
+
+/// Create N thread-safe command pools for multi-threaded rendering.
+/// All pools share the same queue family and include RESET_COMMAND_BUFFER_BIT.
+/// Returns: number of pools created (should equal thread_count on success).
+///
+/// Example: `let count = threaded_command_pool_create(app, 4);`
+/// Each pool can be used by one thread to allocate and record command buffers.
+pub fn threaded_command_pool_create(app: Int, thread_count: Int) -> Int
+  requires: app != 0
+  requires: thread_count > 0
+{
+  // VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT = 2
+  // queue family = 0 (graphics) — caller should know their queue family
+  let pools_buf = unsafe { xvk_alloc(thread_count * 8) };
+  let flags: Int32 = 2;  // VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+  let created: Int = unsafe { xvk_create_command_pools(thread_count as Int32, app, 0 as Int32, flags, pools_buf) };
+  unsafe { xvk_free(pools_buf); }
+  return created;
+}
+
+/// Phase 7.5: Allocate count command buffers from a pool for multi-thread recording.
+/// out_bufs must be pre-allocated (8 * count bytes). Returns VkResult.
+///
+/// Example: `allocate_threaded_command_buffers(app, pool, count, bufs_ptr)`
+pub fn allocate_threaded_command_buffers(app: Int, pool: Int, count: Int, out_bufs: Int) -> Int
+  requires: app != 0
+  requires: pool != 0
+  requires: count > 0
+  requires: out_bufs != 0
+{
+  // VK_COMMAND_BUFFER_LEVEL_PRIMARY = 0
+  let res: Int32 = unsafe { xvk_allocate_command_buffers_multi(app, pool, 0 as Int32, count as Int32, out_bufs) };
+  return res as Int;
+}
+
+/// Phase 7.5: Submit multiple command buffers to a queue for execution.
+/// cmd_bufs must be a pointer to an array of Int64 handles (8 bytes each).
+/// fence is a VkFence handle (0 for no fence). Returns VkResult.
+///
+/// Example: `submit_multi_command_buffers(queue, cmd_bufs_ptr, count, fence)`
+pub fn submit_multi_command_buffers(queue: Int, cmd_bufs: Int, count: Int, fence: Int) -> Int
+  requires: queue != 0
+  requires: cmd_bufs != 0
+  requires: count > 0
+{
+  let res: Int32 = unsafe { xvk_queue_submit_multi(queue, count as Int32, cmd_bufs, fence) };
+  return res as Int;
+}
+
+/// Phase 7.5: Trim a command pool to release unused internal resources (VK 1.1+).
+pub fn trim_command_pool(app: Int, pool: Int)
+  requires: app != 0
+  requires: pool != 0
+{
+  unsafe { vkTrimCommandPool(app, pool, 0); }
+}
+
+// ===========================================================================
+// Phase 7.3: Shader Compilation Toolchain — High-Level API
+// ===========================================================================
+
+/// Phase 7.3: Compile a GLSL source string to SPIR-V at runtime.
+/// Uses glslc (Vulkan SDK) as a subprocess via the bridge.
+/// Returns: pointer to SPIR-V result buffer (use with shader_create_raw_spirv),
+///   or 0 on failure. Free with free_spirv_result.
+pub fn shader_compile_glsl(source: Str, stage: Str) -> Int
+{
+  return unsafe { xvk_compile_glsl_to_spirv(source, stage, 0) };
+}
+
+/// Phase 7.3: Compile a GLSL shader file to SPIR-V.
+/// filepath: path to .vert/.frag/.comp GLSL source.
+/// stage:    shader stage ("vertex", "fragment", etc.). Use "" for auto-detect.
+pub fn shader_compile_file(filepath: Str, stage: Str) -> Int
+{
+  return unsafe { xvk_compile_glsl_file_to_spirv(filepath, stage, 0) };
+}
+
+/// Phase 7.3: Get the size of SPIR-V data from a compile result buffer.
+pub fn spirv_result_size(result_ptr: Int) -> Int
+  requires: result_ptr != 0
+{
+  return unsafe { xvk_read_u64(result_ptr, 0) };
+}
+
+/// Phase 7.3: Free a SPIR-V compile result buffer.
+pub fn free_spirv_result(result_ptr: Int)
+{
+  unsafe { xvk_free_spirv_result(result_ptr); }
+}
+
+/// Phase 7.3: Create a shader module from a SPIR-V compile result buffer.
+pub fn shader_create_raw_spirv(app: Int, spirv_result: Int) -> Int
+  requires: app != 0
+  requires: spirv_result != 0
+{
+  let size: Int32 = unsafe { xvk_read_u32(spirv_result, 0) };
+  // The SPIR-V data starts at offset 8 (after the size prefix)
+  let code_ptr = spirv_result + 8;
+  return unsafe { xvk_shader_create(app, code_ptr, size) };
 }

@@ -44,6 +44,43 @@ int32_t xvk_reset_command_pool(int64_t device, int64_t pool, int32_t flags)
                                        (VkCommandPoolResetFlags)flags);
 }
 
+int32_t xvk_trim_command_pool(int64_t device, int64_t pool)
+{
+    VkDevice dev = XVK_BC_DEVICE(device);
+    if (!dev || !pool) return (int32_t)VK_ERROR_INITIALIZATION_FAILED;
+    vkTrimCommandPool(dev, XVK_BC_HANDLE(VkCommandPool, pool), 0);
+    return (int32_t)VK_SUCCESS;
+}
+
+/* Phase 7.5: Create N command pools for multi-threaded rendering.
+ * All pools get the same queue_family and flags (typically RESET_COMMAND_BUFFER_BIT).
+ * out_pools_array is a pre-allocated array of count int64_t handles.
+ * Returns the number of pools created; caller should check against count. */
+int64_t xvk_create_command_pools(int32_t count, int64_t device, int32_t queue_family, int32_t flags, int64_t out_pools_array)
+{
+    VkDevice dev = XVK_BC_DEVICE(device);
+    int64_t* pools = (int64_t*)(intptr_t)out_pools_array;
+    if (!dev || count <= 0 || !pools) { xvk_set_error("xvk_create_command_pools: bad params"); return 0; }
+
+    VkCommandPoolCreateInfo ci = {0};
+    ci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    ci.queueFamilyIndex = (uint32_t)queue_family;
+    ci.flags = (VkCommandPoolCreateFlags)flags;
+
+    int32_t created = 0;
+    for (int32_t i = 0; i < count; i++) {
+        VkCommandPool pool = VK_NULL_HANDLE;
+        VkResult res = vkCreateCommandPool(dev, &ci, NULL, &pool);
+        if (res != VK_SUCCESS) {
+            xvk_set_error_fmt("xvk_create_command_pools: vkCreateCommandPool[%d] failed: %d", (int)i, (int)res);
+            return (int64_t)created;
+        }
+        pools[i] = (int64_t)(uint64_t)pool;
+        created++;
+    }
+    return (int64_t)created;
+}
+
 int32_t xvk_allocate_command_buffers(int64_t device, int64_t allocate_info_struct, int64_t out_buffers)
 {
     VkDevice dev = XVK_BC_DEVICE(device);
@@ -64,6 +101,30 @@ void xvk_free_command_buffers(int64_t device, int64_t pool, int32_t count, int64
     const VkCommandBuffer* cbs = XVK_BC_CPTR(VkCommandBuffer, buffers);
     if (!dev || !pool || !cbs || count <= 0) return;
     vkFreeCommandBuffers(dev, XVK_BC_HANDLE(VkCommandPool, pool), (uint32_t)count, cbs);
+}
+
+/* Phase 7.5: Convenience — allocate count command buffers with one call.
+ * Builds VkCommandBufferAllocateInfo internally from the given pool, level, count.
+ * out_buffers is a pre-allocated array of count int64_t handles. */
+int32_t xvk_allocate_command_buffers_multi(int64_t device, int64_t pool, int32_t level, int32_t count, int64_t out_buffers)
+{
+    VkDevice dev = XVK_BC_DEVICE(device);
+    VkCommandPool pl = XVK_BC_HANDLE(VkCommandPool, pool);
+    VkCommandBuffer* out = (VkCommandBuffer*)(intptr_t)out_buffers;
+    if (!dev || !pl || !out || count <= 0) {
+        xvk_set_error("xvk_allocate_command_buffers_multi: null device, pool, or out_buffers");
+        return (int32_t)VK_ERROR_INITIALIZATION_FAILED;
+    }
+
+    VkCommandBufferAllocateInfo ai = {0};
+    ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    ai.commandPool = pl;
+    ai.level = (VkCommandBufferLevel)level;
+    ai.commandBufferCount = (uint32_t)count;
+
+    VkResult res = vkAllocateCommandBuffers(dev, &ai, out);
+    if (res != VK_SUCCESS) xvk_set_error_fmt("vkAllocateCommandBuffers multi failed: %d", (int)res);
+    return (int32_t)res;
 }
 
 int32_t xvk_begin_command_buffer(int64_t cmd_buf, int64_t begin_info_struct)

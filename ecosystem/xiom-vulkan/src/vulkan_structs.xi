@@ -1098,3 +1098,79 @@ pub fn build_render_pass_begin_info(render_pass: Int, framebuffer: Int, offset_x
 pub fn free_struct(ptr: Int) {
   xfree(ptr);
 }
+
+// =============================================================================
+// Phase 7.5: Multi-thread command pool struct builders
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// VkDeviceQueueInfo2 (VK 1.1+)
+//
+// Layout (32 bytes, x64 natural alignment):
+//   Offset    Field               Type      Value
+//       0     sType               Int32     48 (VK_STRUCTURE_TYPE_DEVICE_QUEUE_INFO_2)
+//       8     pNext               Int       0
+//      16     flags               Int32     VkDeviceQueueCreateFlags
+//      20     queueFamilyIndex    Int32     target queue family
+//      24     queueIndex          Int32     queue index within family
+// ---------------------------------------------------------------------------
+
+pub fn build_device_queue_info_2(family: Int32, index: Int32, flags: Int32) -> Int {
+  let s = xalloc(32);
+  if s == 0 { return 0; }
+  xstype(s, 48);                    // sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_INFO_2
+  xpnext(s, 0);                     // pNext = null
+  xw32(s, 16, flags);               // flags
+  xw32(s, 20, family);              // queueFamilyIndex
+  xw32(s, 24, index);               // queueIndex
+  return s;
+}
+
+// ---------------------------------------------------------------------------
+// VkCommandBufferBeginInfo
+//
+// Layout (24 bytes):
+//   Offset    Field               Type      Value
+//       0     sType               Int32     42 (VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO)
+//       8     pNext               Int       0
+//      16     flags               Int32     VkCommandBufferUsageFlags (ONE_TIME_SUBMIT / SIMULTANEOUS_USE / RENDER_PASS_CONTINUE)
+//      20     padding             (align)
+//      24     pInheritanceInfo    Int       VkCommandBufferInheritanceInfo* (0 for primary)
+// ---------------------------------------------------------------------------
+
+pub fn build_command_buffer_begin_info(flags: Int32, inheritance_info: Int) -> Int {
+  let s = xalloc(32);
+  if s == 0 { return 0; }
+  xstype(s, 42);                    // sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
+  xpnext(s, 0);                     // pNext = null
+  xw32(s, 16, flags);               // flags
+  xw64(s, 24, inheritance_info);    // pInheritanceInfo
+  return s;
+}
+
+// ---------------------------------------------------------------------------
+// VkCommandBufferInheritanceInfo (for secondary command buffers)
+//
+// Layout (56 bytes):
+//   Offset    Field                     Type
+//       0     sType                     Int32     41
+//       8     pNext                     Int       0
+//      16     renderPass                Int       VkRenderPass (0 if dynamic rendering)
+//      24     subpass                   Int32
+//      28     padding
+//      32     framebuffer               Int       VkFramebuffer (0 if dynamic rendering)
+//      40     occlusionQueryEnable      Int32
+//      44     queryFlags                Int32
+//      48     pipelineStatistics        Int32
+// ---------------------------------------------------------------------------
+
+pub fn build_command_buffer_inheritance_info(render_pass: Int, subpass: Int32, framebuffer: Int) -> Int {
+  let s = xalloc(56);
+  if s == 0 { return 0; }
+  xstype(s, 41);                    // sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO
+  xpnext(s, 0);                     // pNext = null
+  xw64(s, 16, render_pass);         // renderPass
+  xw32(s, 24, subpass);             // subpass
+  xw64(s, 32, framebuffer);         // framebuffer
+  return s;
+}

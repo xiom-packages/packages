@@ -25,9 +25,9 @@ All 12 safety bugs (SF-01 through SF-12) fixed. All compile v0.48.0, 11/11 demos
 |---|--------|--------|
 | 7.1 | Memory sub-allocator | ✅ **DONE** — `xvk_memory_alloc.c` (305 lines): linear + free-list allocator, 64MB blocks, auto memory type selection |
 | 7.2 | Pipeline cache serialization | ✅ **DONE** — `xvk_get_pipeline_cache_data_size`, `xvk_get_pipeline_cache_data`, `xvk_merge_pipeline_caches` in bridge |
-| 7.3 | Shader compilation | PENDING |
+| 7.3 | Shader compilation | ✅ **DONE** — `xvk_shader_compile.c` (Phase 7.3): runtime glslc subprocess for GLSL→SPIR-V compilation. High-level API: `shader_compile_glsl()`, `shader_compile_file()` in vulkan.xi |
 | 7.4 | Texture loading | PENDING |
-| 7.5 | Multi-thread command pools | PENDING |
+| 7.5 | Multi-thread command pools | ✅ **DONE** — Bridge: `xvk_create_command_pools`, `xvk_allocate_command_buffers_multi`, `xvk_queue_submit_multi`, `xvk_get_device_queue2`. Safe: `VulkanQueue` type, `VulkanCommandPool.create_threaded`, `VulkanCommandBuffer.submit_multi`. High-level API: `threaded_command_pool_create()`, `submit_multi_command_buffers()` in vulkan.xi |
 | 7.6 | Ray tracing deferred ops | PENDING |
 
 ## Phase 8: TOOLING & QA (P2)
@@ -49,7 +49,8 @@ All 12 safety bugs (SF-01 through SF-12) fixed. All compile v0.48.0, 11/11 demos
 | v0.2.7 (+cache) | 333 KB | Pipeline cache serialization |
 | v0.2.8 (+memory) | 338 KB | VMA-style memory allocator (305 lines) |
 | v0.2.9 (+input) | 339 KB | Mouse/keyboard input (WASD, mouse btn, pos) |
-| **v0.3.0 (current)** | **339 KB** | **34 modules, 318+ functions** |
+| v0.3.0 (+thread+shaders) | 346 KB | Multi-thread command pools (7.5) + runtime shader compilation (7.3) |
+| **v0.3.0 (current)** | **346 KB** | **35 modules, 325+ functions** |
 
 ## Compiler Gaps
 

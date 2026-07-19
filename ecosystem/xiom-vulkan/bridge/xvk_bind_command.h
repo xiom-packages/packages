@@ -25,7 +25,10 @@
 int64_t xvk_create_command_pool(int64_t device, int64_t create_info_struct);
 void xvk_destroy_command_pool(int64_t device, int64_t pool);
 int32_t xvk_reset_command_pool(int64_t device, int64_t pool, int32_t flags);
+int32_t xvk_trim_command_pool(int64_t device, int64_t pool);
+int64_t xvk_create_command_pools(int32_t count, int64_t device, int32_t queue_family, int32_t flags, int64_t out_pools_array);
 int32_t xvk_allocate_command_buffers(int64_t device, int64_t allocate_info_struct, int64_t out_buffers);
+int32_t xvk_allocate_command_buffers_multi(int64_t device, int64_t pool, int32_t level, int32_t count, int64_t out_buffers);
 void xvk_free_command_buffers(int64_t device, int64_t pool, int32_t count, int64_t buffers);
 int32_t xvk_begin_command_buffer(int64_t cmd_buf, int64_t begin_info_struct);
 int32_t xvk_end_command_buffer(int64_t cmd_buf);

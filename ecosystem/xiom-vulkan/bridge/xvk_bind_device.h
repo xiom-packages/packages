@@ -48,6 +48,11 @@ void xvk_destroy_device(int64_t device);
  * out_queue: VkQueue* — pre-allocated 8 bytes; receives the queue handle. */
 void xvk_get_device_queue(int64_t device, int32_t family, int32_t index, int64_t out_queue);
 
+/* Phase 7.5: Get a device queue with extended options via VkDeviceQueueInfo2.
+ * queue_info_struct: VkDeviceQueueInfo2* — caller-built struct (must set sType=48).
+ * out_queue:         VkQueue* — pre-allocated 8 bytes; receives the queue handle. */
+int32_t xvk_get_device_queue2(int64_t device, int64_t queue_info_struct, int64_t out_queue);
+
 /* Wait for the device to become idle.
  * Returns: VkResult (0 = VK_SUCCESS, negative = error). */
 int32_t xvk_device_wait_idle(int64_t device);

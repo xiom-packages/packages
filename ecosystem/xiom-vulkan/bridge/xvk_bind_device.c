@@ -101,6 +101,30 @@ void xvk_get_device_queue(int64_t device, int32_t family, int32_t index, int64_t
     xvk_write_u64(out_queue, 0, (int64_t)(intptr_t)queue);
 }
 
+/* Phase 7.5: Get a device queue via VkDeviceQueueInfo2 for extended flags (e.g. protected, video).
+ * queue_info_struct: VkDeviceQueueInfo2* — caller-built struct.
+ * out_queue:         VkQueue* — pre-allocated 8 bytes; receives the queue handle. */
+int32_t xvk_get_device_queue2(int64_t device, int64_t queue_info_struct, int64_t out_queue)
+{
+    if (device == 0 || out_queue == 0) {
+        xvk_set_error("xvk_get_device_queue2: null device or out_queue");
+        return (int32_t)VK_ERROR_INITIALIZATION_FAILED;
+    }
+    const VkDeviceQueueInfo2* qi = (const VkDeviceQueueInfo2*)(intptr_t)queue_info_struct;
+    if (!qi || qi->sType != VK_STRUCTURE_TYPE_DEVICE_QUEUE_INFO_2) {
+        xvk_set_error("xvk_get_device_queue2: invalid queue info struct");
+        return (int32_t)VK_ERROR_INITIALIZATION_FAILED;
+    }
+    VkQueue queue = VK_NULL_HANDLE;
+    vkGetDeviceQueue2((VkDevice)(intptr_t)device, qi, &queue);
+    xvk_write_u64(out_queue, 0, (int64_t)(intptr_t)queue);
+    if (queue == VK_NULL_HANDLE) {
+        xvk_set_error("xvk_get_device_queue2: returned null queue");
+        return (int32_t)VK_ERROR_INITIALIZATION_FAILED;
+    }
+    return (int32_t)VK_SUCCESS;
+}
+
 int32_t xvk_device_wait_idle(int64_t device)
 {
     if (device == 0) {

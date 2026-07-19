@@ -39,9 +39,9 @@ ecosystem/xiom-vulkan/
 │   ├── vulkan_constants_all.xi   274KB       3691 VK constants
 │   └── wrapper.xi                ~200 lines  Demo helpers (VK_APP_DESTROY etc.)
 ├── bridge/
-│   ├── xiom_vk_bridge.c          33 lines    Master compilation unit (#includes all .c files)
+│   ├── xiom_vk_bridge.c          36 lines    Master compilation unit (#includes all .c files)
 │   ├── xvk_bridge.h              Master header (includes all module headers)
-│   ├── xvk_bridge.obj            339KB       Prebuilt x64 object
+│   ├── xvk_bridge.obj            346KB       Prebuilt x64 object
 │   ├── xvk_types.h               Resource types + XvkApp struct
 │   ├── xvk_util.h/c              Error reporting, handle helpers
 │   ├── xvk_math.h/c              Matrix math
@@ -60,17 +60,18 @@ ecosystem/xiom-vulkan/
 │   ├── xvk_shaders.h             SPIR-V extern declarations
 │   ├── xvk_shaders_generated.h   Generated SPIR-V data arrays (15 shaders)
 │   ├── xvk_structs.h/c           Struct marshalling (alloc/write/read)
-│   ├── xvk_memory_alloc.h/c      [NEW 7.1] VMA-style sub-allocator (305 lines)
+│   ├── xvk_memory_alloc.h/c      [7.1] VMA-style sub-allocator (305 lines)
+│   ├── xvk_shader_compile.h/c    [7.3] Runtime GLSL→SPIR-V compilation via glslc
 │   ├── xvk_bind_instance.h/c     Raw VK instance/device creation
-│   ├── xvk_bind_device.h/c       Raw VK device/queue management
+│   ├── xvk_bind_device.h/c       Raw VK device/queue management (+ get_device_queue2 for 7.5)
 │   ├── xvk_bind_buffer.h/c       Raw VK buffer/buffer_view
 │   ├── xvk_bind_image.h/c        Raw VK image/image_view/sampler
 │   ├── xvk_bind_memory.h/c       Raw VK memory allocation/mapping
 │   ├── xvk_bind_pipeline.h/c     Raw VK pipeline + cache serialization (7.2)
 │   ├── xvk_bind_descriptor.h/c   Raw VK descriptor sets
 │   ├── xvk_bind_renderpass.h/c   Raw VK render pass/framebuffer
-│   ├── xvk_bind_command.h/c      Raw VK command buffers (63 functions)
-│   ├── xvk_bind_sync.h/c         Raw VK fences/semaphores/submit
+│   ├── xvk_bind_command.h/c      Raw VK command buffers (+ threaded pool creation for 7.5)
+│   ├── xvk_bind_sync.h/c         Raw VK fences/semaphores/submit (+ multi-submit for 7.5)
 │   ├── xvk_bind_query.h/c        Raw VK query pools
 │   ├── xvk_bind_swapchain.h/c    Raw VK swapchain/surface (24 functions)
 │   ├── xvk_bind_extensions.h/c   Raw VK extensions (82 functions: mesh, video, debug, etc.)
@@ -111,6 +112,22 @@ ecosystem/xiom-vulkan/
 ### Phase 7: AAA Features
 - 7.1: `xvk_memory_alloc.c/h` — VMA-style memory sub-allocator (linear + free-list, 64MB blocks)
 - 7.2: Pipeline cache serialization (get_data_size, get_data, merge_caches in bridge)
+- **7.3: `xvk_shader_compile.c/h` — Runtime GLSL→SPIR-V compilation via glslc subprocess** ✅ NEW
+  - `xvk_compile_glsl_to_spirv(source, stage, flags)` — compile source string
+  - `xvk_compile_glsl_file_to_spirv(filepath, stage, flags)` — compile .vert/.frag file
+  - `xvk_free_spirv_result(ptr)` — free allocation
+  - High-level API: `shader_compile_glsl()`, `shader_compile_file()`, `spirv_result_size()`, `free_spirv_result()`, `shader_create_raw_spirv()` in vulkan.xi
+- **7.5: Multi-thread command pools** ✅ NEW
+  - Bridge: `xvk_create_command_pools(count, device, family, flags, out_pools)` — create N pools at once
+  - Bridge: `xvk_allocate_command_buffers_multi(device, pool, level, count, out_bufs)` — allocate N CBs
+  - Bridge: `xvk_queue_submit_multi(queue, cmd_buf_count, cmd_bufs, fence)` — multi-CB submit
+  - Bridge: `xvk_get_device_queue2(device, queue_info_struct, out_queue)` — VkDeviceQueueInfo2 binding
+  - Bridge: `xvk_trim_command_pool(device, pool)` — release unused pool resources
+  - Safe: `VulkanQueue` type with `get_queue()`, `get_queue2()`, `wait_idle()`, `submit()`, `submit_full()`
+  - Safe: `VulkanCommandPool.create_threaded()`, `create_command_pools_multi()`, `trim()`
+  - Safe: `VulkanCommandBuffer.submit_multi()`
+  - Structs: `build_device_queue_info_2()`, `build_command_buffer_begin_info()`, `build_command_buffer_inheritance_info()`
+  - High-level API: `threaded_command_pool_create()`, `allocate_threaded_command_buffers()`, `submit_multi_command_buffers()`, `trim_command_pool()` in vulkan.xi
 
 ### Phase 8: Tooling
 - 8.2: Mouse/keyboard input (`get_mouse_pos`, `is_mouse_down`, `is_key_down` in vulkan.xi)
@@ -169,9 +186,7 @@ xiomc -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
 
 | Priority | Item | Notes |
 |----------|------|-------|
-| P1 | 7.5 Multi-thread command pools | Per-thread command pool creation, async compute queue support |
 | P1 | 7.6 Ray tracing deferred host ops | `VK_KHR_deferred_host_operations` — create/join/destroy |
-| P1 | 7.3 Shader compilation toolchain | glslangValidator/SPIRV-Cross integration |
 | P1 | 7.4 Texture loading pipeline | KTX/DDS loader, staging→upload→mipmap |
 | P2 | 8.1 Debug utils validation output | VkDebugUtilsMessengerCallback in bridge |
 | P2 | 8.3 Font/text rendering | stb_truetype + glyph atlas + texture binding |

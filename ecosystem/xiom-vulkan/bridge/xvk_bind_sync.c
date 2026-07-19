@@ -115,4 +115,26 @@ int32_t xvk_queue_submit(int64_t queue, int32_t submit_count, int64_t submits_st
     return (int32_t)res;
 }
 
+/* Phase 7.5: Convenience multi-submit — submits count command buffers to a queue.
+ * Builds VkSubmitInfo internally from cmd_bufs_array (array of int64_t VK handles).
+ * fence is a VkFence handle (0 for none). */
+int32_t xvk_queue_submit_multi(int64_t queue, int32_t cmd_buf_count, int64_t cmd_bufs_array, int64_t fence)
+{
+    VkQueue q = (VkQueue)(intptr_t)queue;
+    const VkCommandBuffer* cbs = (const VkCommandBuffer*)(intptr_t)cmd_bufs_array;
+    if (!q || cmd_buf_count <= 0 || !cbs) {
+        xvk_set_error("xvk_queue_submit_multi: null queue or command buffers");
+        return (int32_t)VK_ERROR_INITIALIZATION_FAILED;
+    }
+
+    VkSubmitInfo si = {0};
+    si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    si.commandBufferCount = (uint32_t)cmd_buf_count;
+    si.pCommandBuffers = cbs;
+
+    VkResult res = vkQueueSubmit(q, 1, &si, (VkFence)(uint64_t)fence);
+    if (res != VK_SUCCESS) xvk_set_error_fmt("vkQueueSubmit multi failed: %d", (int)res);
+    return (int32_t)res;
+}
+
 /* xvk_queue_present_khr is implemented in xvk_bind_swapchain.c */
