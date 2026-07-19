@@ -81,6 +81,8 @@ void     imgui_end_popup_modal(void);
 /* Menus */
 int32_t  imgui_begin_menu_bar(void);
 void     imgui_end_menu_bar(void);
+int32_t  imgui_begin_main_menu_bar(void);
+void     imgui_end_main_menu_bar(void);
 int32_t  imgui_begin_menu(const char* label);
 void     imgui_end_menu(void);
 int32_t  imgui_menu_item(const char* label, const char* shortcut, int32_t enabled);

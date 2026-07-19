@@ -194,6 +194,8 @@ void    imgui_end_popup_modal(void) { ImGui::EndPopup(); }
 /* ── Menus ── */
 int32_t imgui_begin_menu_bar(void) { return ImGui::BeginMenuBar() ? 1 : 0; }
 void    imgui_end_menu_bar(void)   { ImGui::EndMenuBar(); }
+int32_t imgui_begin_main_menu_bar(void) { return ImGui::BeginMainMenuBar() ? 1 : 0; }
+void    imgui_end_main_menu_bar(void)   { ImGui::EndMainMenuBar(); }
 int32_t imgui_begin_menu(const char* l) { return ImGui::BeginMenu(l) ? 1 : 0; }
 void    imgui_end_menu(void) { ImGui::EndMenu(); }
 int32_t imgui_menu_item(const char* l, const char* s, int32_t e)
