@@ -428,6 +428,7 @@ $XiomcArgs += @('--link', 'user32')
 $XiomcArgs += @('--link', 'kernel32')
 $XiomcArgs += @('--link', 'shell32')
 $XiomcArgs += @('--link', 'ole32')
+$XiomcArgs += @('--link', 'winmm')
 $XiomcArgs += @('--link-path', $VkLib)
 $XiomcArgs += @('--link-path', $GlfwLib)
 

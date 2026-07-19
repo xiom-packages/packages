@@ -190,6 +190,20 @@ extern "C" {
   fn xvk_image_load(filepath: Str, out_width: Int, out_height: Int) -> Int;
   fn xvk_font_create_from_file(filepath: Str, px_height: Float32, out_w: Int, out_h: Int) -> Int;
   fn xvk_audio_beep();
+  fn xvk_audio_play_wav(filepath: Str);
+
+  // 3D Camera
+  fn xvk_camera_set_view(ex: Float32, ey: Float32, ez: Float32, tx: Float32, ty: Float32, tz: Float32);
+  fn xvk_camera_orbit(dyaw: Float32, dpitch: Float32, dradius: Float32);
+  fn xvk_camera_zoom(delta: Float32);
+  fn xvk_camera_reset();
+
+  // OBJ Mesh loader
+  fn xvk_mesh_load(device: Int, phys_dev: Int, filepath: Str) -> Int;
+  fn xvk_mesh_vertex_count(mesh: Int) -> Int32;
+  fn xvk_mesh_index_count(mesh: Int) -> Int32;
+  fn xvk_mesh_vertex_buffer(mesh: Int) -> Int;
+  fn xvk_mesh_destroy(device: Int, mesh: Int);
 
   fn xvk_image_free(pixels: Int);
 

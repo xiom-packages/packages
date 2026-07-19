@@ -15,6 +15,12 @@
 /* Image loader (PNG/JPG/BMP/TGA via stb_image) */
 #include "xvk_image.c"
 
+/* 3D Camera system */
+#include "xvk_camera.c"
+
+/* OBJ Mesh loader */
+#include "xvk_mesh.c"
+
 #include "xvk_util.c"
 #include "xvk_math.c"
 #include "xvk_instance.c"

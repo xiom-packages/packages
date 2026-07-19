@@ -121,10 +121,11 @@ struct XvkFont {
     float ascender;
     float descender;
     float line_gap;
-    int   glyph_cell_w;   /* cell width in atlas pixels */
-    int   glyph_cell_h;   /* cell height in atlas pixels */
-    int   cols;           /* glyph columns in atlas */
+    int   glyph_cell_w;
+    int   glyph_cell_h;
+    int   cols;
     int   atlas_w, atlas_h;
+    int   is_ttf;          /* 1 = TTF font, 0 = built-in bitmap */
 };
 
 /* ---- Helper: pack glyphs into atlas grid ---- */
@@ -295,9 +296,81 @@ int64_t xvk_font_render_text(int64_t font, const char* text,
     int text_len = (int)strlen(text);
     if (text_len == 0) return 0;
 
+    /* Determine rendering mode: TTF atlas or built-in bitmap */
+    int use_ttf = f->is_ttf;
+
+    int total_w = 0, max_h = 0;
+
+    if (use_ttf) {
+        /* Measure total width and height from glyph metrics */
+        for (int ci = 0; ci < text_len; ci++) {
+            unsigned char ch = (unsigned char)text[ci];
+            if (ch < 32 || ch > 126) ch = '?';
+            int idx = ch - 32;
+            XvkFontGlyph* g = &f->glyphs[idx];
+            if (g->width > 0) {
+                total_w += (int)(g->advance > 0 ? g->advance : g->width + 2);
+                int gh = (int)g->height + 2;
+                if (gh > max_h) max_h = gh;
+            }
+        }
+        if (max_h < 8) max_h = (int)(f->px_height * 1.4f);
+        if (total_w < 4) total_w = 4;
+
+        int px_w = total_w + 4;
+        int px_h = max_h + 4;
+        unsigned char* pixels = (unsigned char*)calloc((size_t)(px_w * px_h * 4), 1);
+        if (!pixels) return 0;
+
+        /* Render each glyph from the atlas */
+        int xpos = 2;
+        for (int ci = 0; ci < text_len; ci++) {
+            unsigned char ch = (unsigned char)text[ci];
+            if (ch < 32 || ch > 126) ch = '?';
+            int idx = ch - 32;
+            XvkFontGlyph* g = &f->glyphs[idx];
+            if (g->width <= 0) { xpos += 4; continue; }
+
+            int dst_x = xpos + (int)g->bearing_x;
+            int dst_y = 2;
+            int gw = (int)g->width;
+            int gh = (int)g->height;
+
+            /* Source region in atlas */
+            int src_x = (int)(g->uv_x * (float)f->atlas_w);
+            int src_y = (int)(g->uv_y * (float)f->atlas_h);
+            int src_w = (int)(g->uv_w * (float)f->atlas_w);
+
+            for (int sy = 0; sy < gh && sy < px_h - dst_y; sy++) {
+                for (int sx = 0; sx < gw && sx < px_w - dst_x; sx++) {
+                    int atlas_idx = (src_y + sy) * f->atlas_w + (src_x + sx);
+                    if (atlas_idx >= 0 && atlas_idx < f->atlas_w * f->atlas_h) {
+                        unsigned char a = f->atlas[atlas_idx];
+                        if (a > 0) {
+                            int pi = ((dst_y + sy) * px_w + (dst_x + sx)) * 4;
+                            pixels[pi + 0] = 255;
+                            pixels[pi + 1] = 255;
+                            pixels[pi + 2] = 255;
+                            pixels[pi + 3] = a;
+                        }
+                    }
+                }
+            }
+
+            xpos += (int)(g->advance > 0 ? g->advance : gw + 2);
+        }
+
+        int32_t* w_ptr = (int32_t*)(intptr_t)out_width;
+        int32_t* h_ptr = (int32_t*)(intptr_t)out_height;
+        if (w_ptr) *w_ptr = px_w;
+        if (h_ptr) *h_ptr = px_h;
+        return (int64_t)(intptr_t)pixels;
+    }
+
+    /* ── Built-in bitmap fallback ── */
     int cell_w = f->glyph_cell_w;
     int cell_h = f->glyph_cell_h;
-    int px_w = cell_w * text_len + 4;  // +2px padding each side
+    int px_w = cell_w * text_len + 4;
     int px_h = cell_h + 4;
     if (px_w < 4) px_w = 4;
     if (px_h < 4) px_h = 4;
@@ -305,37 +378,31 @@ int64_t xvk_font_render_text(int64_t font, const char* text,
     unsigned char* pixels = (unsigned char*)calloc((size_t)(px_w * px_h * 4), 1);
     if (!pixels) return 0;
 
-    /* Render each character into the pixel buffer */
     for (int ci = 0; ci < text_len; ci++) {
         unsigned char ch = (unsigned char)text[ci];
         if (ch < 32 || ch > 126) { ch = '?'; }
         int glyph_idx = ch - 32;
-
         int dst_x = 2 + ci * cell_w;
         int dst_y = 2;
-
         const unsigned char* src = &g_font_data[glyph_idx * GF_SRC_H];
         float scale = f->scale;
-
         for (int sy = 0; sy < GF_SRC_H; sy++) {
             unsigned char row = src[sy];
             for (int sx = 0; sx < GF_SRC_W; sx++) {
                 if (!(row & (0x80 >> sx))) continue;
-
                 int py_start = dst_y + (int)((float)sy * scale);
                 int py_end   = dst_y + (int)((float)(sy + 1) * scale);
                 if (py_end > py_start + 3) py_end = py_start + 3;
                 int px_start = dst_x + (int)((float)sx * scale);
                 int px_end   = dst_x + (int)((float)(sx + 1) * scale);
                 if (px_end > px_start + 3) px_end = px_start + 3;
-
                 for (int py = py_start; py < py_end && py < px_h; py++) {
                     for (int px = px_start; px < px_end && px < px_w; px++) {
                         int idx = (py * px_w + px) * 4;
-                        pixels[idx + 0] = 255; // R
-                        pixels[idx + 1] = 255; // G
-                        pixels[idx + 2] = 255; // B
-                        pixels[idx + 3] = 255; // A
+                        pixels[idx + 0] = 255;
+                        pixels[idx + 1] = 255;
+                        pixels[idx + 2] = 255;
+                        pixels[idx + 3] = 255;
                     }
                 }
             }
@@ -346,7 +413,6 @@ int64_t xvk_font_render_text(int64_t font, const char* text,
     int32_t* h_ptr = (int32_t*)(intptr_t)out_height;
     if (w_ptr) *w_ptr = px_w;
     if (h_ptr) *h_ptr = px_h;
-
     return (int64_t)(intptr_t)pixels;
 }
 
@@ -457,6 +523,7 @@ int64_t xvk_font_create_from_file(const char* filepath, float px_height,
     if (!fnt) { free(atlas); return 0; }
 
     fnt->px_height = px_height;
+    fnt->is_ttf    = 1;
     fnt->scale     = 1.0f;
     fnt->ascender  = 0.0f;
     fnt->descender = 0.0f;
@@ -500,7 +567,11 @@ int64_t xvk_font_create_from_file(const char* filepath, float px_height,
  * ======================================================================== */
 #ifdef _WIN32
 #include <windows.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")
 void xvk_audio_beep(void) { MessageBeep(0xFFFFFFFF); }
+void xvk_audio_play_wav(const char* filepath) { PlaySoundA(filepath, NULL, SND_FILENAME | SND_ASYNC); }
 #else
 void xvk_audio_beep(void) {}
+void xvk_audio_play_wav(const char* filepath) { (void)filepath; }
 #endif

@@ -1,5 +1,6 @@
 #include "xvk_legacy.h"
 #include "xvk_math.h"
+#include "xvk_camera.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -80,10 +81,15 @@ void xvk_draw_cube_3d_at(int64_t app_h, float angle,
     mat4_rotate_x(model, angle * 0.3f);
     mat4_scale_right(model, scale);
 
-    mat4_look_at(view, 2.0f, 2.0f, 2.0f,
-                       0.0f, 0.0f, 0.0f,
-                       0.0f, 1.0f, 0.0f);
-    mat4_perspective(proj, 45.0f * (float)M_PI / 180.0f, aspect, 0.1f, 10.0f);
+    if (xvk_camera_is_active()) {
+        xvk_camera_get_view((int64_t)(intptr_t)view);
+        xvk_camera_get_projection((int64_t)(intptr_t)proj);
+    } else {
+        mat4_look_at(view, 2.0f, 2.0f, 2.0f,
+                           0.0f, 0.0f, 0.0f,
+                           0.0f, 1.0f, 0.0f);
+        mat4_perspective(proj, 45.0f * (float)M_PI / 180.0f, aspect, 0.1f, 10.0f);
+    }
 
     mat4_mul(tmp, view, model);
     mat4_mul(mvp, proj, tmp);

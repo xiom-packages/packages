@@ -97,5 +97,6 @@ int64_t xvk_font_create_from_file(const char* filepath, float px_height,
 
 /* Audio feedback for UI interactions (Win32 MessageBeep or no-op). */
 void xvk_audio_beep(void);
+void xvk_audio_play_wav(const char* filepath);
 
 #endif

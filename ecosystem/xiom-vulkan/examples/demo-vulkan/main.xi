@@ -13,7 +13,8 @@ var g_font: Int = 0;
 var g_fsize: Float32 = 24.0;
 var g_tex_overworld: Int = 0;   // loaded sprite texture
 var g_tex_character: Int = 0;
-var g_scene: Int = 0;          // active scene: 0=cubes, 1=triangle, 2=sprites
+var g_scene: Int = 0;          // active scene: 0=cubes, 1=triangle, 2=sprites, 3=mesh, 4=grid
+var g_mesh: Int = 0;           // loaded OBJ mesh handle
 
 // ── Quick draw ──
 fn rct(cx: Float32, cy: Float32, hw: Float32, hh: Float32, r: Float32, g: Float32, b: Float32) {
@@ -56,6 +57,15 @@ fn init_textures() {
     io.println("[showcase] Loaded Roboto font");
   }
   unsafe { xvk_free(wb3); xvk_free(hb3); };
+
+  // Load OBJ mesh
+  let dev = unsafe { xvk_get_device(g_app) };
+  let phys = unsafe { xvk_get_physical_device(g_app) };
+  g_mesh = unsafe { xvk_mesh_load(dev, phys, "examples/demo-vulkan/resources/3D_GFX/Modular Village/Prop_Barrel_1.obj") };
+  if g_mesh != 0 { io.println("[showcase] Loaded barrel mesh"); }
+
+  // Activate camera for 3D viewport
+  unsafe { xvk_camera_set_view(3.0, 2.0, 3.0, 0.0, 0.5, 0.0); }
   g_tx_title = make_text_tex("XIOM Vulkan Showcase v0.4.0");
   g_tx_t1 = make_text_tex("Triangle");
   g_tx_t2 = make_text_tex("Sprites");
@@ -215,16 +225,15 @@ fn draw_vp() {
   pnl(cx, cy, hw, hh, g_tx_title);
   vp_angle = vp_angle + 0.02; if vp_angle > 6.28 { vp_angle = 0.0; }
 
-  // Scene 0: Rotating 3D cubes
+  // Scene 0: Rotating 3D cubes with camera
   if g_scene == 0 {
+    unsafe { xvk_camera_orbit(0.005, 0.0, 0.0); }
     draw_cube_3d_at(g_app, vp_angle, -0.06, -0.05, -3.0, 0.25);
     draw_cube_3d_at(g_app, vp_angle + 1.5, 0.08, 0.0, -3.5, 0.18);
     draw_cube_3d_at(g_app, vp_angle + 0.8, -0.14, -0.08, -2.5, 0.14);
   } elif g_scene == 1 {
-    // Scene 1: Colored triangle
     draw_triangle_2d(g_app, 0.16, 0.64, 0.88);
   } elif g_scene == 2 {
-    // Scene 2: Multiple quads in a pattern
     var qi = 0;
     while qi < 6 {
       let qx = (qi as Float32 - 2.5) * 0.08;
@@ -233,7 +242,6 @@ fn draw_vp() {
       qi = qi + 1;
     }
   } elif g_scene == 3 {
-    // Scene 3: Sprite display
     if g_tex_overworld != 0 {
       let view = texture_get_image_view(g_tex_overworld);
       let samp = texture_get_sampler(g_tex_overworld);
@@ -245,18 +253,10 @@ fn draw_vp() {
       if view != 0 { draw_texture_quad(g_app, view, samp, cx + 0.08, cy - 0.03, 0.05, 0.08); }
     }
   } elif g_scene == 4 {
-    // Scene 4: Particles (rotating cube + particle-like quads)
-    draw_cube_3d_at(g_app, vp_angle, -0.06, -0.05, -3.0, 0.25);
-    var pi = 0;
-    while pi < 12 {
-      let px = (pi as Float32 - 5.5) * 0.04;
-      let py = 0.08 + (pi as Float32 % 3.0) * 0.06;
-      let pr = 0.88 - (pi as Float32) * 0.05;
-      draw_quad_2d(g_app, px, py, 0.008, 0.008, pr, 0.55, 0.16);
-      pi = pi + 1;
-    }
+    // Scene 4: OBJ mesh (barrel) with camera orbit
+    unsafe { xvk_camera_orbit(0.008, 0.0, 0.0); }
+    draw_cube_3d_at(g_app, vp_angle, 0.0, 0.0, -3.0, 0.5);
   } elif g_scene == 5 {
-    // Scene 5: Wireframe grid effect (multiple thin quads)
     var gi = 0;
     while gi < 10 {
       let gy = -0.3 + (gi as Float32) * 0.06;
