@@ -8,6 +8,9 @@ static bool g_initialized = false;
 
 int32_t imgui_bridge_init(int64_t glfw_window)
 {
+    GLFWwindow* win = (GLFWwindow*)(intptr_t)glfw_window;
+    if (!win) return 0;
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -15,7 +18,6 @@ int32_t imgui_bridge_init(int64_t glfw_window)
 
     ImGui::StyleColorsDark();
 
-    GLFWwindow* win = (GLFWwindow*)(intptr_t)glfw_window;
     if (!ImGui_ImplGlfw_InitForVulkan(win, true)) return 0;
     g_initialized = true;
     return 1;
