@@ -80,14 +80,14 @@ fn main() -> Int {
             unsafe { imgui_separator(); };
             unsafe { imgui_color_edit3("RGB", g_cr, g_cg, g_cb); };
             unsafe { imgui_separator(); };
-            if unsafe { imgui_button("Open Modal") } != 0 { g_show_popup = 1; }
-            if g_show_popup != 0 {
-              if unsafe { imgui_begin_popup_modal("MyModal") } != 0 {
-                unsafe { imgui_text("Modal window!"); };
-                unsafe { imgui_text("Click OK to close."); };
-                if unsafe { imgui_button("OK") } != 0 { g_show_popup = 0; }
-                unsafe { imgui_end_popup_modal(); };
-              }
+            if unsafe { imgui_button("Open Modal") } != 0 {
+              unsafe { imgui_open_popup("MyModal"); };
+            }
+            if unsafe { imgui_begin_popup_modal("MyModal") } != 0 {
+              unsafe { imgui_text("Modal window!"); };
+              unsafe { imgui_text("Click OK to close."); };
+              if unsafe { imgui_button("OK") } != 0 { unsafe { imgui_close_current_popup(); }; }
+              unsafe { imgui_end_popup_modal(); };
             }
             unsafe { imgui_end(); };
           }

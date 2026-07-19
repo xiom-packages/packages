@@ -168,7 +168,6 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
         return 0;
     }
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);  /* DPI auto-scaling */
     a->window = glfwCreateWindow(width, height, title ? title : "XIOM Vulkan",
                                  NULL, NULL);
     if (!a->window) {
