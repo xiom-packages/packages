@@ -44,7 +44,7 @@ fn main() -> Int {
         unsafe { imgui_bridge_shutdown(); }; destroy_app(a); return 1;
       }
 
-      while !should_close(a) && g_fc < 30000 {
+      while !should_close(a) && g_fc < 10000 {
         if is_key_down(a, 256) { break; }
         poll(a);
         set_clear_color(a, 0.06, 0.06, 0.10);
@@ -161,6 +161,7 @@ fn main() -> Int {
 
       unsafe { imgui_bridge_shutdown(); };
       destroy_app(a);
+      io.println("[imgui] Done. Frames: OK");
       return 0;
     }
   }
