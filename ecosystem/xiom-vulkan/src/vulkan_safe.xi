@@ -1543,3 +1543,75 @@ pub fn VulkanDescriptorUpdateTemplate.destroy()
 {
   unsafe { vkDestroyDescriptorUpdateTemplate(device, handle, 0); }
 }
+
+// =========================================================================
+// Struct Builder Integration (Phase 4 — use with xiom.vulkan.structs)
+// =========================================================================
+//
+// The xiom.vulkan.structs module provides typed builders for every VK create-
+// info struct (build_application_info, build_instance_create_info, etc.).
+// These builders produce raw Int pointers that are guaranteed to have correct
+// memory layout (sType, pNext, fields at proper offsets).
+//
+// To use the full typed pipeline:
+//   1. use xiom.vulkan.structs;        // get builders
+//   2. let ai = build_application_info(...);  // build VkApplicationInfo
+//   3. let ci = build_instance_create_info(ai, layers, extensions);
+//   4. let inst = VulkanInstance.create_from_struct(ci).unwrap();
+//   5. free_struct(ci); free_struct(ai);
+//
+// Compile with:
+//   xiomc my_app.xi vulkan.xi vulkan_safe.xi vulkan_structs.xi vulkan_extern.xi
+
+// ---- create_from_struct variants ----
+
+pub fn VulkanInstance.create_from_struct(ci: Int) -> Result[VulkanInstance, VulkanError]
+  requires: ci != 0
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let inst: Int = 0;
+  let res: Int32 = unsafe { vkCreateInstance(ci, 0, inst) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanInstance{ handle: inst });
+}
+
+pub fn VulkanDevice.create_from_struct(phys: Int, ci: Int) -> Result[VulkanDevice, VulkanError]
+  requires: phys != 0
+  requires: ci != 0
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let dev: Int = 0;
+  let res: Int32 = unsafe { vkCreateDevice(phys, ci, 0, dev) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanDevice{ handle: dev });
+}
+
+pub fn VulkanBuffer.create_from_struct(device: Int, ci: Int) -> Result[VulkanBuffer, VulkanError]
+  requires: device != 0
+  requires: ci != 0
+{
+  let buf: Int = 0;
+  let res: Int32 = unsafe { vkCreateBuffer(device, ci, 0, buf) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanBuffer{ handle: buf, device: device, size: 0 });
+}
+
+pub fn VulkanImage.create_from_struct(device: Int, ci: Int) -> Result[VulkanImage, VulkanError]
+  requires: device != 0
+  requires: ci != 0
+{
+  let img: Int = 0;
+  let res: Int32 = unsafe { vkCreateImage(device, ci, 0, img) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanImage{ handle: img, device: device });
+}
+
+pub fn VulkanPipelineLayout.create_from_struct(device: Int, ci: Int) -> Result[VulkanPipelineLayout, VulkanError]
+  requires: device != 0
+  requires: ci != 0
+{
+  let pl: Int = 0;
+  let res: Int32 = unsafe { vkCreatePipelineLayout(device, ci, 0, pl) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+  return Ok(VulkanPipelineLayout{ handle: pl, device: device });
+}
