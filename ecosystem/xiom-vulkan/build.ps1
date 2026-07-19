@@ -225,6 +225,10 @@ $TargetMap = @{
         entry = 'examples/demo_viewport.xi'
         out   = 'demo_viewport'
     }
+    ui = @{
+        entry = 'examples/ui/ui_demo.xi'
+        out   = 'ui_demo'
+    }
 }
 $t = $TargetMap[$Target]
 $EntryFile = Join-Path $RootDir $t.entry
