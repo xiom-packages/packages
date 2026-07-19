@@ -215,13 +215,21 @@ int32_t imgui_is_item_clicked(void)   { return ImGui::IsItemClicked() ? 1 : 0; }
 void imgui_style_dark(void)    { ImGui::StyleColorsDark(); }
 void imgui_style_light(void)   { ImGui::StyleColorsLight(); }
 void imgui_style_classic(void) { ImGui::StyleColorsClassic(); }
-void imgui_bridge_reload_fonts(void)
+void imgui_bridge_reset_vulkan(int64_t instance, int64_t device,
+    int64_t physical_device, int64_t graphics_queue,
+    int32_t queue_family, int64_t render_pass,
+    float fb_width, float fb_height)
 {
-    /* Font texture is auto-managed by ImGui_ImplVulkan_Init.
-     * The descriptor sets reference the font image view which
-     * persists across swapchain recreation.
-     * This function is a no-op placeholder for future use. */
-    (void)0;
+    (void)instance; (void)device; (void)physical_device;
+    (void)graphics_queue; (void)queue_family;
+    /* Only reset the ImGui Vulkan backend, keep GLFW backend active */
+    if (g_vk_initialized) {
+        ImGui_ImplVulkan_Shutdown();
+        g_vk_initialized = false;
+    }
+    /* Reinitialize with same handles */
+    imgui_bridge_init_vulkan(instance, device, physical_device, graphics_queue,
+                              queue_family, render_pass, 0, fb_width, fb_height);
 }
 void imgui_push_style_color(int32_t idx, float r, float g, float b, float a)
     { ImGui::PushStyleColor((ImGuiCol)idx, ImVec4(r,g,b,a)); }

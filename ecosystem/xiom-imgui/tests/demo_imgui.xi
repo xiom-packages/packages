@@ -48,6 +48,12 @@ fn main() -> Int {
         set_clear_color(a, 0.06, 0.06, 0.10);
         let status = begin_frame(a);
         if status == 1 {
+          // Reinit ImGui Vulkan backend after swapchain resize
+          if unsafe { xvk_app_did_resize(a) } != 0 {
+            unsafe { xvk_app_clear_resize(a); };
+            unsafe { imgui_bridge_reset_vulkan(inst, dev, phys, q, 0 as Int32, rp, 1280.0, 800.0); };
+          }
+
           unsafe { imgui_bridge_new_frame(); };
 
           if unsafe { imgui_begin_main_menu_bar() } != 0 {

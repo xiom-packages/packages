@@ -168,6 +168,7 @@ typedef struct XvkApp {
     float               clear_r, clear_g, clear_b;
     int                 recording;
     int                 in_render_pass;
+    int                 resized;
     uint32_t            current_image;
 
     int                 offs_w, offs_h;

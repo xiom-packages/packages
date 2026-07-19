@@ -89,7 +89,7 @@ extern "C" {
   fn imgui_get_framerate() -> Int32;
   fn imgui_get_frame_count() -> Int32;
 
-  fn imgui_bridge_reload_fonts();
+  fn imgui_bridge_reset_vulkan(inst: Int, dev: Int, phys: Int, q: Int, family: Int32, rp: Int, fbw: Float32, fbh: Float32);
 }
 
 // ── Safe wrappers with contracts ──
@@ -159,5 +159,6 @@ pub fn collapsing_header(label: Str) -> Bool { return unsafe { imgui_collapsing_
 pub fn style_dark() { unsafe { imgui_style_dark(); }; }
 pub fn style_light() { unsafe { imgui_style_light(); }; }
 pub fn style_classic() { unsafe { imgui_style_classic(); }; }
+
 
 

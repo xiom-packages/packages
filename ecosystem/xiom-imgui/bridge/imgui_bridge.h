@@ -14,6 +14,10 @@ int32_t  imgui_bridge_init_vulkan(int64_t instance, int64_t device,
             int64_t physical_device, int64_t graphics_queue,
             int32_t queue_family, int64_t render_pass,
             int32_t subpass_count, float fb_width, float fb_height);
+void     imgui_bridge_reset_vulkan(int64_t instance, int64_t device,
+            int64_t physical_device, int64_t graphics_queue,
+            int32_t queue_family, int64_t render_pass,
+            float fb_width, float fb_height);
 void     imgui_bridge_new_frame(void);
 void     imgui_bridge_render(int64_t command_buffer);
 
@@ -107,6 +111,8 @@ void     imgui_pop_style_color(int32_t count);
 void     imgui_bridge_set_fb_size(int32_t w, int32_t h);
 
 void     imgui_bridge_reload_fonts(void);
+
+void     imgui_bridge_reinit_vulkan(int64_t render_pass, float fb_w, float fb_h);
 
 /* Utility */
 int32_t  imgui_get_framerate(void);

@@ -44,6 +44,9 @@ extern "C" {
   fn xvk_app_destroy(app: Int);
   fn xvk_app_valid(app: Int) -> Int32;
   fn xvk_last_error() -> Str;
+  fn xvk_app_did_resize(app: Int) -> Int32;
+  fn xvk_app_clear_resize(app: Int);
+
   fn xvk_app_should_close(app: Int) -> Int32;
   fn xvk_app_poll(app: Int);
   fn xvk_now() -> Float64;
@@ -1083,3 +1086,4 @@ pub fn font_destroy(font: Int)
 {
   unsafe { xvk_font_destroy(font); }
 }
+

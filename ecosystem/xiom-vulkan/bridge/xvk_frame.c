@@ -13,6 +13,7 @@ int32_t xvk_begin_frame(int64_t app_h)
         if (w != (int)a->swapchain_extent.width ||
             h != (int)a->swapchain_extent.height) {
             if (!recreate_swapchain(a)) return 0;
+            a->resized = 1;
             /* Recreate succeeded — continue with new swapchain */
         }
     }
@@ -198,6 +199,19 @@ int32_t xvk_app_should_close(int64_t app_h)
     XvkApp* a = xvk_from_handle(app_h);
     if (!a || !a->window) return 1;
     return glfwWindowShouldClose(a->window) ? 1 : 0;
+}
+
+int32_t xvk_app_did_resize(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a) return 0;
+    return a->resized ? 1 : 0;
+}
+
+void xvk_app_clear_resize(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (a) a->resized = 0;
 }
 
 int32_t xvk_device_type(int64_t app_h)
