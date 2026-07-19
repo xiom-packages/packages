@@ -157,6 +157,13 @@ extern "C" {
   fn xvk_get_physical_device(app: Int) -> Int;
   fn xvk_get_graphics_queue(app: Int) -> Int;
   fn xvk_get_command_pool(app: Int) -> Int;
+  fn xvk_get_instance(app: Int) -> Int;
+  fn xvk_get_render_pass(app: Int) -> Int;
+  fn xvk_get_command_buffer(app: Int) -> Int;
+  fn xvk_get_glfw_window(app: Int) -> Int;
+  fn xvk_get_fb_width(app: Int) -> Int32;
+  fn xvk_get_fb_height(app: Int) -> Int32;
+
   fn xvk_get_device(app: Int) -> Int;
   fn xvk_texture_create(device: Int, physical_device: Int, cmd_pool: Int, queue: Int, pixel_data: Int, width: Int32, height: Int32, generate_mips: Int32) -> Int;
   fn xvk_texture_get_image(texture: Int) -> Int;

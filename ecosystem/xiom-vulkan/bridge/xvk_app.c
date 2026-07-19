@@ -686,3 +686,45 @@ int64_t xvk_get_command_pool(int64_t app_h)
     if (!a) return 0;
     return (int64_t)(uint64_t)a->cmd_pool;
 }
+
+int64_t xvk_get_instance(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a) return 0;
+    return (int64_t)(uint64_t)a->instance;
+}
+
+int64_t xvk_get_render_pass(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a) return 0;
+    return (int64_t)(uint64_t)a->render_pass;
+}
+
+int64_t xvk_get_command_buffer(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !a->cmd_buffers) return 0;
+    return (int64_t)(uint64_t)a->cmd_buffers[a->current_image];
+}
+
+int64_t xvk_get_glfw_window(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a) return 0;
+    return (int64_t)(intptr_t)a->window;
+}
+
+int32_t xvk_get_fb_width(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a) return 0;
+    return (int32_t)a->swapchain_extent.width;
+}
+
+int32_t xvk_get_fb_height(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a) return 0;
+    return (int32_t)a->swapchain_extent.height;
+}
