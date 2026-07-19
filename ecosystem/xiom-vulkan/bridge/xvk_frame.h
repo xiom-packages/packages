@@ -13,6 +13,8 @@ double xvk_now(void);
 int32_t xvk_app_should_close(int64_t app_h);
 int32_t xvk_app_did_resize(int64_t app_h);
 void    xvk_app_clear_resize(int64_t app_h);
+void    xvk_app_maximize(int64_t app_h);
+void    xvk_app_toggle_fullscreen(int64_t app_h);
 int32_t xvk_device_type(int64_t app_h);
 int32_t xvk_app_valid(int64_t app_h);
 const char* xvk_last_error(void);

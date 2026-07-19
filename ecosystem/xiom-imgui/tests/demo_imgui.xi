@@ -44,8 +44,12 @@ fn main() -> Int {
         unsafe { imgui_bridge_shutdown(); }; destroy_app(a); return 1;
       }
 
+      // Maximize window on startup
+      unsafe { xvk_app_maximize(a); };
+
       while !should_close(a) && g_frame < 100000 {
         if is_key_down(a, 256) { break; }
+        if is_key_down(a, 292) { unsafe { xvk_app_toggle_fullscreen(a); }; }  // F11
         poll(a);
         set_clear_color(a, 0.06, 0.06, 0.10);
         let status = begin_frame(a);

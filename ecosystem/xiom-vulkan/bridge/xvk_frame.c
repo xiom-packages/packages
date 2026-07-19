@@ -221,6 +221,29 @@ void xvk_app_clear_resize(int64_t app_h)
     if (a) a->resized = 0;
 }
 
+void xvk_app_maximize(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (a && a->window) glfwMaximizeWindow(a->window);
+}
+
+void xvk_app_toggle_fullscreen(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a || !a->window) return;
+    GLFWmonitor* mon = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(mon);
+    if (glfwGetWindowMonitor(a->window)) {
+        /* Restore windowed */
+        glfwSetWindowMonitor(a->window, NULL,
+            100, 100, mode->width/2, mode->height/2, 0);
+    } else {
+        /* Go fullscreen */
+        glfwSetWindowMonitor(a->window, mon,
+            0, 0, mode->width, mode->height, mode->refreshRate);
+    }
+}
+
 int32_t xvk_device_type(int64_t app_h)
 {
     XvkApp* a = xvk_from_handle(app_h);
