@@ -185,6 +185,7 @@ void imgui_plot_histogram(const char* l, const float* v, int32_t n, float smin, 
 void    imgui_open_popup(const char* id) { ImGui::OpenPopup(id); }
 int32_t imgui_begin_popup(const char* id) { return ImGui::BeginPopup(id) ? 1 : 0; }
 void    imgui_end_popup(void) { ImGui::EndPopup(); }
+void    imgui_close_current_popup(void) { ImGui::CloseCurrentPopup(); }
 int32_t imgui_begin_popup_context_item(const char* id)
     { return ImGui::BeginPopupContextItem(id) ? 1 : 0; }
 int32_t imgui_begin_popup_modal(const char* n) { return ImGui::BeginPopupModal(n) ? 1 : 0; }
