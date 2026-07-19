@@ -13,6 +13,7 @@ var g_font: Int = 0;
 var g_fsize: Float32 = 24.0;
 var g_tex_overworld: Int = 0;   // loaded sprite texture
 var g_tex_character: Int = 0;
+var g_scene: Int = 0;          // active scene: 0=cubes, 1=triangle, 2=sprites
 
 // ── Quick draw ──
 fn rct(cx: Float32, cy: Float32, hw: Float32, hh: Float32, r: Float32, g: Float32, b: Float32) {
@@ -176,12 +177,12 @@ fn draw_left() {
   let cx = -0.84; let cy = -0.01; let hw = 0.16; let hh = 0.86;
   pnl(cx, cy, hw, hh, g_tx_t1);
   var bw = hw*0.75; var bh = 0.032; var by0 = cy+hh-0.10; var bs = 0.054;
-  if btn(cx, by0,          bw, bh, 0.16,0.64,0.88, g_tx_t1) { }
-  if btn(cx, by0-bs,       bw, bh, 0.16,0.64,0.88, g_tx_t2) { }
-  if btn(cx, by0-bs*2.0,   bw, bh, 0.88,0.55,0.16, g_tx_t3) { }
-  if btn(cx, by0-bs*3.0,   bw, bh, 0.16,0.88,0.55, g_tx_t4) { }
-  if btn(cx, by0-bs*4.0,   bw, bh, 0.88,0.55,0.16, g_tx_t5) { }
-  if btn(cx, by0-bs*5.0,   bw, bh, 0.16,0.64,0.88, g_tx_t6) { }
+  if btn(cx, by0,          bw, bh, 0.16,0.88,0.55, g_tx_t2) { g_scene = 0; unsafe { xvk_audio_beep(); }; }
+  if btn(cx, by0-bs,       bw, bh, 0.16,0.64,0.88, g_tx_t1) { g_scene = 1; unsafe { xvk_audio_beep(); }; }
+  if btn(cx, by0-bs*2.0,   bw, bh, 0.88,0.55,0.16, g_tx_t3) { g_scene = 2; unsafe { xvk_audio_beep(); }; }
+  if btn(cx, by0-bs*3.0,   bw, bh, 0.16,0.88,0.55, g_tx_t4) { g_scene = 3; unsafe { xvk_audio_beep(); }; }
+  if btn(cx, by0-bs*4.0,   bw, bh, 0.88,0.55,0.16, g_tx_t5) { g_scene = 4; unsafe { xvk_audio_beep(); }; }
+  if btn(cx, by0-bs*5.0,   bw, bh, 0.16,0.64,0.88, g_tx_t6) { g_scene = 5; unsafe { xvk_audio_beep(); }; }
 }
 
 // ── Right sidebar ──
@@ -213,20 +214,55 @@ fn draw_vp() {
   let cx = 0.0; let cy = -0.01; let hw = 0.34; let hh = 0.86;
   pnl(cx, cy, hw, hh, g_tx_title);
   vp_angle = vp_angle + 0.02; if vp_angle > 6.28 { vp_angle = 0.0; }
-  // Position cubes fully inside panel to avoid clipping
-  draw_cube_3d_at(g_app, vp_angle, -0.06, -0.05, -3.0, 0.25);
-  draw_cube_3d_at(g_app, vp_angle + 1.5, 0.08, 0.0, -3.5, 0.18);
 
-  // Display loaded sprites inside viewport
-  if g_tex_overworld != 0 {
-    let view = texture_get_image_view(g_tex_overworld);
-    let samp = texture_get_sampler(g_tex_overworld);
-    if view != 0 { draw_texture_quad(g_app, view, samp, cx - hw + 0.08, cy - hh + 0.10, 0.07, 0.05); }
-  }
-  if g_tex_character != 0 {
-    let view = texture_get_image_view(g_tex_character);
-    let samp = texture_get_sampler(g_tex_character);
-    if view != 0 { draw_texture_quad(g_app, view, samp, cx + hw - 0.05, cy - hh + 0.07, 0.03, 0.05); }
+  // Scene 0: Rotating 3D cubes
+  if g_scene == 0 {
+    draw_cube_3d_at(g_app, vp_angle, -0.06, -0.05, -3.0, 0.25);
+    draw_cube_3d_at(g_app, vp_angle + 1.5, 0.08, 0.0, -3.5, 0.18);
+    draw_cube_3d_at(g_app, vp_angle + 0.8, -0.14, -0.08, -2.5, 0.14);
+  } elif g_scene == 1 {
+    // Scene 1: Colored triangle
+    draw_triangle_2d(g_app, 0.16, 0.64, 0.88);
+  } elif g_scene == 2 {
+    // Scene 2: Multiple quads in a pattern
+    var qi = 0;
+    while qi < 6 {
+      let qx = (qi as Float32 - 2.5) * 0.08;
+      let qr = 0.16 + (qi as Float32) * 0.12;
+      draw_quad_2d(g_app, qx, 0.0, 0.04, 0.05, qr, 0.55, 0.88 - (qi as Float32) * 0.1);
+      qi = qi + 1;
+    }
+  } elif g_scene == 3 {
+    // Scene 3: Sprite display
+    if g_tex_overworld != 0 {
+      let view = texture_get_image_view(g_tex_overworld);
+      let samp = texture_get_sampler(g_tex_overworld);
+      if view != 0 { draw_texture_quad(g_app, view, samp, cx - 0.08, cy + 0.05, 0.12, 0.09); }
+    }
+    if g_tex_character != 0 {
+      let view = texture_get_image_view(g_tex_character);
+      let samp = texture_get_sampler(g_tex_character);
+      if view != 0 { draw_texture_quad(g_app, view, samp, cx + 0.08, cy - 0.03, 0.05, 0.08); }
+    }
+  } elif g_scene == 4 {
+    // Scene 4: Particles (rotating cube + particle-like quads)
+    draw_cube_3d_at(g_app, vp_angle, -0.06, -0.05, -3.0, 0.25);
+    var pi = 0;
+    while pi < 12 {
+      let px = (pi as Float32 - 5.5) * 0.04;
+      let py = 0.08 + (pi as Float32 % 3.0) * 0.06;
+      let pr = 0.88 - (pi as Float32) * 0.05;
+      draw_quad_2d(g_app, px, py, 0.008, 0.008, pr, 0.55, 0.16);
+      pi = pi + 1;
+    }
+  } elif g_scene == 5 {
+    // Scene 5: Wireframe grid effect (multiple thin quads)
+    var gi = 0;
+    while gi < 10 {
+      let gy = -0.3 + (gi as Float32) * 0.06;
+      draw_quad_2d(g_app, 0.0, gy, 0.20, 0.001, 0.16, 0.64, 0.88);
+      gi = gi + 1;
+    }
   }
 }
 
