@@ -7,7 +7,7 @@ fn main() -> Int {
   match app {
     Ok(a)=>{
       var f=0;
-      while f<10 && !should_close(a) {
+      while !should_close(a) {
         poll(a);
         let n1=now();let n2=now();let n3=now();
         set_clear_color(a,0.05,0.05,0.1);
