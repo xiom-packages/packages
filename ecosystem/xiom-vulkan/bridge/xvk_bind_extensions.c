@@ -899,6 +899,122 @@ void xvk_cmd_encode_video_khr(int64_t cmd_buf, int64_t encode_info_struct)
     s_pfn(XVK_EXT_CB(cmd_buf), XVK_EXT_CPTR(VkVideoEncodeInfoKHR, encode_info_struct));
 }
 
+/* ======================================================================== */
+/* Phase 8.1: Validation message capture ring buffer                       */
+/* ======================================================================== */
+
+#define XVK_VAL_MAX_MSGS 64
+#define XVK_VAL_MSG_LEN  256
+
+static char  g_xvk_val_msgs[XVK_VAL_MAX_MSGS][XVK_VAL_MSG_LEN];
+static int   g_xvk_val_count = 0;
+static int   g_xvk_val_head  = 0;
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL xvk_debug_callback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT             messageTypes,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void*                                       pUserData)
+{
+    (void)pUserData;
+    (void)messageTypes;
+
+    if (g_xvk_val_count >= XVK_VAL_MAX_MSGS)
+        return VK_FALSE;  /* buffer full, drop message */
+
+    const char* severity_str = "INFO";
+    if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+        severity_str = "WARN";
+    if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+        severity_str = "ERROR";
+    if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
+        severity_str = "VERBOSE";
+
+    int idx = g_xvk_val_head;
+    snprintf(g_xvk_val_msgs[idx], XVK_VAL_MSG_LEN,
+             "[%s] %s",
+             severity_str,
+             pCallbackData ? pCallbackData->pMessage : "(null)");
+
+    /* Append object names if present */
+    if (pCallbackData && pCallbackData->objectCount > 0) {
+        int len = (int)strlen(g_xvk_val_msgs[idx]);
+        int remaining = XVK_VAL_MSG_LEN - len - 1;
+        if (remaining > 3) {
+            snprintf(g_xvk_val_msgs[idx] + len, (size_t)remaining,
+                     " | objects: %u", pCallbackData->objectCount);
+        }
+    }
+
+    g_xvk_val_head = (g_xvk_val_head + 1) % XVK_VAL_MAX_MSGS;
+    if (g_xvk_val_count < XVK_VAL_MAX_MSGS)
+        g_xvk_val_count++;
+
+    return VK_FALSE;  /* VK_FALSE = continue, don't abort */
+}
+
+int64_t xvk_create_debug_messenger_default(int64_t instance,
+                                            int32_t severity_mask,
+                                            int32_t type_mask)
+{
+    VkInstance inst = (VkInstance)(intptr_t)instance;
+    if (!inst) { xvk_set_error("xvk_create_debug_messenger_default: null instance"); return 0; }
+
+    /* Clear any previous validation messages */
+    g_xvk_val_count = 0;
+    g_xvk_val_head  = 0;
+
+    VkDebugUtilsMessengerCreateInfoEXT ci = {0};
+    ci.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    ci.messageSeverity = (VkDebugUtilsMessageSeverityFlagsEXT)severity_mask;
+    ci.messageType     = (VkDebugUtilsMessageTypeFlagsEXT)type_mask;
+    ci.pfnUserCallback = xvk_debug_callback;
+    ci.pUserData       = NULL;
+
+    VkDebugUtilsMessengerEXT messenger = VK_NULL_HANDLE;
+    PFN_vkCreateDebugUtilsMessengerEXT pfn =
+        (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+            inst, "vkCreateDebugUtilsMessengerEXT");
+    if (!pfn) {
+        xvk_set_error("vkCreateDebugUtilsMessengerEXT not available");
+        return 0;
+    }
+    VkResult res = pfn(inst, &ci, NULL, &messenger);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkCreateDebugUtilsMessengerEXT failed: %d", (int)res);
+        return 0;
+    }
+    return (int64_t)(uint64_t)messenger;
+}
+
+int32_t xvk_get_validation_messages(int64_t out_count, int64_t out_buffer)
+{
+    int32_t* count_ptr = (int32_t*)(intptr_t)out_count;
+    const char** buf = (const char**)(intptr_t)out_buffer;
+    if (!count_ptr || !buf || g_xvk_val_count == 0) {
+        if (count_ptr) *count_ptr = 0;
+        return 0;
+    }
+
+    int cnt = g_xvk_val_count;
+    *count_ptr = (int32_t)cnt;
+
+    /* Messages are stored in order: oldest at (head - count + MAX) % MAX,
+     * newest at (head - 1 + MAX) % MAX. Write pointers in chronological order. */
+    int start = (g_xvk_val_head - cnt + XVK_VAL_MAX_MSGS) % XVK_VAL_MAX_MSGS;
+    for (int i = 0; i < cnt; i++) {
+        int idx = (start + i) % XVK_VAL_MAX_MSGS;
+        buf[i] = g_xvk_val_msgs[idx];
+    }
+    return (int32_t)cnt;
+}
+
+void xvk_clear_validation_messages(void)
+{
+    g_xvk_val_count = 0;
+    g_xvk_val_head  = 0;
+}
+
 #undef XVK_EXT_I
 #undef XVK_EXT_DA
 #undef XVK_EXT_D

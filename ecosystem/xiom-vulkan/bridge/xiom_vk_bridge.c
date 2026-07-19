@@ -9,6 +9,9 @@
 /* Phase 7.4 — Texture loading pipeline */
 #include "xvk_texture.c"
 
+/* Phase 8.3 — Font/text rendering */
+#include "xvk_font.c"
+
 #include "xvk_util.c"
 #include "xvk_math.c"
 #include "xvk_instance.c"

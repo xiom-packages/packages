@@ -166,6 +166,20 @@ extern "C" {
   fn xvk_texture_get_height(texture: Int) -> Int32;
   fn xvk_texture_get_mip_levels(texture: Int) -> Int32;
   fn xvk_texture_destroy(device: Int, texture: Int);
+
+  // Phase 8.1 — Debug validation message capture
+  fn xvk_create_debug_messenger_default(instance: Int, severity_mask: Int32, type_mask: Int32) -> Int;
+  fn xvk_get_validation_messages(out_count: Int, out_buffer: Int) -> Int32;
+  fn xvk_clear_validation_messages();
+
+  // Phase 8.3 — Font/text rendering
+  fn xvk_font_create(font_data: Int, data_size: Int32, px_height: Float32) -> Int;
+  fn xvk_font_get_glyph_count(font: Int) -> Int32;
+  fn xvk_font_get_glyph(font: Int, codepoint: Int32, out_glyph: Int) -> Int32;
+  fn xvk_font_get_atlas_pixels(font: Int, out_width: Int, out_height: Int) -> Int;
+  fn xvk_font_get_metrics(font: Int, out_metrics: Int);
+  fn xvk_font_measure_text(font: Int, text: Str) -> Float32;
+  fn xvk_font_destroy(font: Int);
 }
 
 // ===========================================================================
@@ -911,4 +925,105 @@ pub fn texture_destroy(app: Int, texture: Int)
 {
   let dev = unsafe { xvk_get_device(app) };
   unsafe { xvk_texture_destroy(dev, texture); }
+}
+
+// ===========================================================================
+// Phase 8.1: Debug Validation Message Capture — High-Level API
+// ===========================================================================
+
+/// Create a debug utils messenger that captures validation layer messages.
+/// severity_mask: VkDebugUtilsMessageSeverityFlagsEXT (0x0F = all severities)
+/// type_mask:     VkDebugUtilsMessageTypeFlagsEXT (0x1F = all types)
+/// Returns: messenger handle, or 0 on failure.
+pub fn debug_messenger_create(app: Int, severity_mask: Int, type_mask: Int) -> Int
+{
+  return unsafe { xvk_create_debug_messenger_default(app, severity_mask as Int32, type_mask as Int32) };
+}
+
+/// Get captured validation messages. Returns Vec[Int] of message string pointers.
+/// Each Int is a pointer to a NUL-terminated C string.
+/// Messages are in chronological order (oldest first), up to 64 captured.
+pub fn debug_get_messages() -> Vec[Int]
+{
+  let result = Vec[Int]::new();
+  // buf layout: [0..3] = count (Int32), [4..] = message pointers (64 x 8 bytes)
+  let buf = unsafe { xvk_alloc(4 + 64 * 8) };
+  if buf == 0 { return result; }
+  let count: Int32 = unsafe { xvk_get_validation_messages(buf, buf + 4) };
+  if count <= 0 { unsafe { xvk_free(buf); }; return result; }
+  let cnt = count as Int;
+  let i = 0;
+  while i < cnt {
+    let msg_ptr = unsafe { xvk_read_u64(buf + 4, 8 * i) };
+    if msg_ptr != 0 {
+      result.push(msg_ptr);
+    }
+    i = i + 1;
+  }
+  unsafe { xvk_free(buf); }
+  return result;
+}
+
+/// Clear all captured validation messages.
+pub fn debug_clear_messages() {
+  unsafe { xvk_clear_validation_messages(); }
+}
+
+// ===========================================================================
+// Phase 8.3: Font / Text Rendering — High-Level API
+// ===========================================================================
+
+/// Create a font from a built-in 8x13 console font, scaled to px_height.
+/// font_data can be 0 to use the built-in font. Returns font handle.
+pub fn font_create(px_height: Float32) -> Int
+{
+  return unsafe { xvk_font_create(0, 0, px_height) };
+}
+
+/// Get the number of glyphs in the font atlas (95 for ASCII 32-126).
+pub fn font_get_glyph_count(font: Int) -> Int
+  requires: font != 0
+{
+  return unsafe { xvk_font_get_glyph_count(font) } as Int;
+}
+
+/// Get glyph metrics for a codepoint. out_glyph must point to a 56-byte buffer.
+/// Returns 1 on success.
+pub fn font_get_glyph(font: Int, codepoint: Int, out_glyph: Int) -> Int
+  requires: font != 0
+  requires: out_glyph != 0
+{
+  return unsafe { xvk_font_get_glyph(font, codepoint as Int32, out_glyph) } as Int;
+}
+
+/// Get the atlas pixel buffer (R8 grayscale, atlas_w * atlas_h bytes).
+/// out_width and out_height must point to 4-byte Int32 buffers.
+/// Returns pointer to pixel data (owned by font, valid until font destroyed).
+pub fn font_get_atlas_pixels(font: Int, out_width: Int, out_height: Int) -> Int
+  requires: font != 0
+{
+  return unsafe { xvk_font_get_atlas_pixels(font, out_width, out_height) };
+}
+
+/// Get font metrics: out_metrics must point to float[3] buffer.
+/// Receives {ascender, descender, line_gap} in pixels.
+pub fn font_get_metrics(font: Int, out_metrics: Int)
+  requires: font != 0
+  requires: out_metrics != 0
+{
+  unsafe { xvk_font_get_metrics(font, out_metrics); }
+}
+
+/// Measure the pixel width of a text string.
+pub fn font_measure_text(font: Int, text: Str) -> Float32
+  requires: font != 0
+{
+  return unsafe { xvk_font_measure_text(font, text) };
+}
+
+/// Destroy a font and free all memory.
+pub fn font_destroy(font: Int)
+  requires: font != 0
+{
+  unsafe { xvk_font_destroy(font); }
 }

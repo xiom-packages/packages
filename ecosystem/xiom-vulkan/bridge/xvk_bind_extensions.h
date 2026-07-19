@@ -37,6 +37,27 @@ void xvk_cmd_begin_debug_utils_label_ext(int64_t cmd_buf, int64_t label_info_str
 void xvk_cmd_end_debug_utils_label_ext(int64_t cmd_buf);
 void xvk_cmd_insert_debug_utils_label_ext(int64_t cmd_buf, int64_t label_info_struct);
 
+/* ---- Phase 8.1: Debug validation message capture ------------------------ */
+/* Creates a debug utils messenger with a built-in callback that captures
+ * all validation layer messages into a ring buffer (up to 64 messages).
+ * severity_mask: VkDebugUtilsMessageSeverityFlagsEXT (e.g. 0x0000000F for all)
+ * type_mask:     VkDebugUtilsMessageTypeFlagsEXT (e.g. 0x0000001F for all)
+ * Returns messenger handle on success, 0 on failure. */
+int64_t xvk_create_debug_messenger_default(int64_t instance,
+                                            int32_t severity_mask,
+                                            int32_t type_mask);
+
+/* Query the captured validation message ring buffer.
+ * count: receives number of messages currently buffered (0-64).
+ * out_buffer: pre-allocated char* array (count * 8 bytes), receives pointers
+ *             to NUL-terminated message strings. Strings remain valid until
+ *             the next call to xvk_validation_clear() or this function.
+ * Returns: number of messages written to out_buffer. */
+int32_t xvk_get_validation_messages(int64_t out_count, int64_t out_buffer);
+
+/* Clear the validation message ring buffer. */
+void xvk_clear_validation_messages(void);
+
 /* VK_EXT_mesh_shader */
 void xvk_cmd_draw_mesh_tasks_ext(int64_t cmd_buf, int32_t group_count_x, int32_t group_count_y, int32_t group_count_z);
 void xvk_cmd_draw_mesh_tasks_indirect_ext(int64_t cmd_buf, int64_t buffer, int64_t offset, int32_t draw_count, int32_t stride);

@@ -37,6 +37,7 @@
 #include "xvk_memory_alloc.h"
 #include "xvk_shader_compile.h"
 #include "xvk_texture.h"
+#include "xvk_font.h"
 #include "xvk_instance.h"
 #include "xvk_swapchain.h"
 #include "xvk_pipeline.h"

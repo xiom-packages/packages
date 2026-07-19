@@ -34,9 +34,9 @@ All 12 safety bugs (SF-01 through SF-12) fixed. All compile v0.48.0, 11/11 demos
 
 | # | Item | Status |
 |---|------|--------|
-| 8.1 | Debug utils validation layer output capture | PENDING |
+| 8.1 | Debug utils validation layer output capture | ✅ **DONE** — `xvk_create_debug_messenger_default()` with built-in VKAPI callback. Captures up to 64 messages into ring buffer. High-level: `debug_messenger_create()`, `debug_get_messages()` (returns Vec[Int] of string pointers), `debug_clear_messages()` |
 | 8.2 | Mouse/keyboard input exposure from GLFW to XIOM | ✅ **DONE** — `get_mouse_pos()`, `is_mouse_down()`, `is_key_down()` in vulkan.xi. Supports WASD, Escape, Space, Left/Right/Middle mouse |
-| 8.3 | Font/text rendering module | PENDING |
+| 8.3 | Font/text rendering module | ? DONE � Built-in 8x13 console font, scalable glyph atlas (R8, 512x512). 95 ASCII glyphs with metrics. API: font_create, font_get_glyph, font_get_atlas_pixels, font_measure_text, font_destroy |
 | 8.4 | CI smoke test suite | ✅ **DONE** — `tests/ci_smoke.xi`: app→buffer→cache→destroy in ~1s |
 | 8.5 | Offscreen headless rendering fix | ✅ **DONE** — `create_instance_headless()` bypasses GLFW. Uses VK_EXT_headless_surface when available. Offscreen rendering now works on headless systems (CI, VMs) |
 
@@ -52,7 +52,8 @@ All 12 safety bugs (SF-01 through SF-12) fixed. All compile v0.48.0, 11/11 demos
 | v0.3.0 (+thread+shaders) | 346 KB | Multi-thread command pools (7.5) + runtime shader compilation (7.3) |
 | v0.3.1 (+texture) | 351 KB | Texture loading pipeline (7.4): staging→upload→mipmap, all in one call |
 | **v0.3.2 (+deferred+headless) | 358 KB | Ray tracing deferred ops (7.6) + headless offscreen fix (8.5) |
-| **v0.3.2 (current)** | **358 KB** | **36 modules, 342+ functions** |
+| **v0.3.3 (+debug+font) | 365 KB | Debug validation capture (8.1) + font/text rendering (8.3) |
+| **v0.3.3 (current)** | **365 KB** | **37 modules, 350+ functions** |
 
 ## Compiler Gaps
 
