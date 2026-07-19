@@ -308,11 +308,10 @@ pub fn VulkanInstance.destroy()
 pub fn VulkanInstance.enumerate_physical_devices() -> Result[Int, VulkanError]
   requires: handle != 0
 {
-  let count: Int = 0;
   let c32: Int32 = 0;
   let res: Int32 = unsafe { vkEnumeratePhysicalDevices(handle, c32, 0) };
   if res != 0 { return Err(VulkanError{ code: res }); }
-  return Ok(count);
+  return Ok(c32 as Int);
 }
 
 // =========================================================================
@@ -448,7 +447,8 @@ pub fn VulkanBuffer.create(device: Int, create_info: Int) -> Result[VulkanBuffer
   let buf: Int = 0;
   let res: Int32 = unsafe { vkCreateBuffer(device, create_info, 0, buf) };
   if res != 0 { return Err(VulkanError{ code: res }); }
-  return Ok(VulkanBuffer{ handle: buf, device: device, size: 0 });
+  let sz: Int = unsafe { xvk_read_u64(create_info, 24) };  // VkBufferCreateInfo.size at offset 24
+  return Ok(VulkanBuffer{ handle: buf, device: device, size: sz });
 }
 
 pub fn VulkanBuffer.destroy()
@@ -780,8 +780,15 @@ pub fn VulkanCommandBuffer.allocate(device: Int, pool: Int, level: Int32) -> Res
   requires: pool != 0
   ensures: result is Ok => result.unwrap().handle != 0
 {
+  // VkCommandBufferAllocateInfo (32 bytes): sType=0, pNext=8, commandPool=16, level=24, commandBufferCount=28
+  let ai = unsafe { xvk_alloc(32) };
+  unsafe { xvk_set_sType(ai, 40); }        // VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
+  unsafe { xvk_write_u64(ai, 16, pool); }   // commandPool
+  unsafe { xvk_write_u32(ai, 24, level); }  // level
+  unsafe { xvk_write_u32(ai, 28, 1); }      // commandBufferCount = 1
   let cb: Int = 0;
-  let res: Int32 = unsafe { vkAllocateCommandBuffers(device, pool, cb) };
+  let res: Int32 = unsafe { vkAllocateCommandBuffers(device, ai, cb) };
+  unsafe { xvk_free(ai); }
   if res != 0 { return Err(VulkanError{ code: res }); }
   return Ok(VulkanCommandBuffer{ handle: cb, device: device, pool: pool });
 }
@@ -796,7 +803,12 @@ pub fn VulkanCommandBuffer.free()
 pub fn VulkanCommandBuffer.begin(flags: Int32) -> Result[Int, VulkanError]
   requires: handle != 0
 {
-  let res: Int32 = unsafe { vkBeginCommandBuffer(handle, flags) };
+  // VkCommandBufferBeginInfo (16 bytes): sType=0, pNext=8, flags=12
+  let bi = unsafe { xvk_alloc(16) };
+  unsafe { xvk_set_sType(bi, 42); }        // VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
+  unsafe { xvk_write_u32(bi, 12, flags); }  // flags
+  let res: Int32 = unsafe { vkBeginCommandBuffer(handle, bi) };
+  unsafe { xvk_free(bi); }
   if res != 0 { return Err(VulkanError{ code: res }); }
   return Ok(0);
 }
@@ -813,8 +825,15 @@ pub fn VulkanCommandBuffer.submit(queue: Int, fence: Int) -> Result[Int, VulkanE
   requires: handle != 0
   requires: queue != 0
 {
-  let sc = 1;
-  let res: Int32 = unsafe { vkQueueSubmit(queue, sc as Int32, 0, fence) };
+  // VkSubmitInfo (72 bytes): sType=0, pNext=8, waitSemaphoreCount=16, pWaitSemaphores=24,
+  //   pWaitDstStageMask=32, commandBufferCount=40, pCommandBuffers=48,
+  //   signalSemaphoreCount=56, pSignalSemaphores=64
+  let si = unsafe { xvk_alloc(72) };
+  unsafe { xvk_set_sType(si, 4); }         // VK_STRUCTURE_TYPE_SUBMIT_INFO
+  unsafe { xvk_write_u32(si, 40, 1); }     // commandBufferCount = 1
+  unsafe { xvk_write_u64(si, 48, handle); } // pCommandBuffers = &handle (passes handle, caller ensures lifetime)
+  let res: Int32 = unsafe { vkQueueSubmit(queue, 1, si, fence) };
+  unsafe { xvk_free(si); }
   if res != 0 { return Err(VulkanError{ code: res }); }
   return Ok(0);
 }
@@ -834,13 +853,29 @@ pub fn VulkanCommandBuffer.end_render_pass()
 pub fn VulkanCommandBuffer.set_viewport(x: Float32, y: Float32, width: Float32, height: Float32, min_depth: Float32, max_depth: Float32)
   requires: handle != 0
 {
-  unsafe { vkCmdSetViewport(handle, 0, 1, 0); }
+  // VkViewport (24 bytes): x=0, y=4, width=8, height=12, minDepth=16, maxDepth=20
+  let vp = unsafe { xvk_alloc(24) };
+  unsafe { xvk_write_f32(vp, 0, x); }
+  unsafe { xvk_write_f32(vp, 4, y); }
+  unsafe { xvk_write_f32(vp, 8, width); }
+  unsafe { xvk_write_f32(vp, 12, height); }
+  unsafe { xvk_write_f32(vp, 16, min_depth); }
+  unsafe { xvk_write_f32(vp, 20, max_depth); }
+  unsafe { vkCmdSetViewport(handle, 0, 1, vp); }
+  unsafe { xvk_free(vp); }
 }
 
 pub fn VulkanCommandBuffer.set_scissor(x: Int32, y: Int32, width: Int32, height: Int32)
   requires: handle != 0
 {
-  unsafe { vkCmdSetScissor(handle, 0, 1, 0); }
+  // VkRect2D (16 bytes): offset.x=0, offset.y=4, extent.width=8, extent.height=12
+  let sc = unsafe { xvk_alloc(16) };
+  unsafe { xvk_write_u32(sc, 0, x); }
+  unsafe { xvk_write_u32(sc, 4, y); }
+  unsafe { xvk_write_u32(sc, 8, width); }
+  unsafe { xvk_write_u32(sc, 12, height); }
+  unsafe { vkCmdSetScissor(handle, 0, 1, sc); }
+  unsafe { xvk_free(sc); }
 }
 
 pub fn VulkanCommandBuffer.draw(vertex_count: Int32, instance_count: Int32)
@@ -973,8 +1008,15 @@ pub fn VulkanDescriptorSet.allocate(device: Int, pool: Int, layout: Int) -> Resu
   requires: layout != 0
   ensures: result is Ok => result.unwrap().handle != 0
 {
+  // VkDescriptorSetAllocateInfo (40 bytes): sType=0, pNext=8, descriptorPool=16, descriptorSetCount=24, pSetLayouts=32
+  let ai = unsafe { xvk_alloc(40) };
+  unsafe { xvk_set_sType(ai, 34); }        // VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO
+  unsafe { xvk_write_u64(ai, 16, pool); }   // descriptorPool
+  unsafe { xvk_write_u32(ai, 24, 1); }      // descriptorSetCount = 1
+  unsafe { xvk_write_u64(ai, 32, layout); } // pSetLayouts = &layout (passes handle, caller ensures lifetime)
   let ds: Int = 0;
-  let res: Int32 = unsafe { vkAllocateDescriptorSets(device, pool, ds) };
+  let res: Int32 = unsafe { vkAllocateDescriptorSets(device, ai, ds) };
+  unsafe { xvk_free(ai); }
   if res != 0 { return Err(VulkanError{ code: res }); }
   return Ok(VulkanDescriptorSet{ handle: ds, device: device, pool: pool });
 }
@@ -1128,7 +1170,7 @@ pub fn VulkanEvent.get_status() -> Bool
   requires: handle != 0
 {
   let res: Int32 = unsafe { vkGetEventStatus(device, handle) };
-  return res == 3;
+  return res == 1;  // VK_EVENT_SET = 1
 }
 
 pub fn VulkanEvent.set() -> Result[Int, VulkanError]
@@ -1350,18 +1392,41 @@ pub fn VulkanContext.init(instance_create_info: Int, device_create_info: Int) ->
   requires: instance_create_info != 0
   requires: device_create_info != 0
 {
-  let inst = VulkanInstance.create("XIOM", "XIOM", Vec[Str].new(), Vec[Str].new())?;
-  let phys_devices: Int32 = 0;
+  // Create instance from the caller-supplied create_info
+  let inst: Int = 0;
+  let res: Int32 = unsafe { vkCreateInstance(instance_create_info, 0, inst) };
+  if res != 0 { return Err(VulkanError{ code: res }); }
+
+  // Enumerate physical devices and pick the first one
+  let count_buf = unsafe { xvk_alloc(4) };
   let pdc: Int32 = 0;
-  let res1: Int32 = unsafe { vkEnumeratePhysicalDevices(inst.handle, pdc, 0) };
-  if res1 != 0 { return Err(VulkanError{ code: res1 }); }
-  if phys_devices == 0 { return Err(VulkanError{ code: -1 }); }
-  let dev = VulkanDevice.create(phys_devices as Int, 0, Vec[Str].new())?;
-  let gq = dev.get_queue(0, 0);
+  unsafe { vkEnumeratePhysicalDevices(inst, pdc, 0); }  // get count
+  let dev_count = pdc;
+  if dev_count == 0 { unsafe { xvk_free(count_buf); vkDestroyInstance(inst); }; return Err(VulkanError{ code: -1 }); }
+
+  let devs_buf = unsafe { xvk_alloc((dev_count as Int) * 8) };
+  let res2: Int32 = unsafe { vkEnumeratePhysicalDevices(inst, pdc, devs_buf) };
+  unsafe { xvk_free(count_buf); }
+  if res2 != 0 { unsafe { xvk_free(devs_buf); vkDestroyInstance(inst); }; return Err(VulkanError{ code: res2 }); }
+
+  let phys_dev = unsafe { xvk_read_u64(devs_buf, 0) };
+  unsafe { xvk_free(devs_buf); }
+
+  // Create device from caller-supplied create_info
+  let dev: Int = 0;
+  let res3: Int32 = unsafe { vkCreateDevice(phys_dev, device_create_info, 0, dev) };
+  if res3 != 0 { unsafe { vkDestroyInstance(inst); }; return Err(VulkanError{ code: res3 }); }
+
+  // Get graphics queue (family 0, index 0)
+  let qb = unsafe { xvk_alloc(8) };
+  unsafe { vkGetDeviceQueue(dev, 0, 0, qb); }
+  let gq = unsafe { xvk_read_u64(qb, 0) };
+  unsafe { xvk_free(qb); }
+
   return Ok(VulkanContext{
-    instance: inst.handle,
-    device: dev.handle,
-    physical_device: phys_devices as Int,
+    instance: inst,
+    device: dev,
+    physical_device: phys_dev,
     graphics_queue: gq,
     compute_queue: gq,
     transfer_queue: gq,
@@ -1371,6 +1436,7 @@ pub fn VulkanContext.init(instance_create_info: Int, device_create_info: Int) ->
 
 pub fn VulkanContext.destroy()
   requires: instance != 0
+  requires: device != 0
 {
   unsafe { vkDestroyDevice(device, 0); }
   unsafe { vkDestroyInstance(instance, 0); }
@@ -1493,7 +1559,8 @@ pub fn VulkanDeviceMemory.allocate(device: Int, allocate_info: Int) -> Result[Vu
   let mem: Int = 0;
   let res: Int32 = unsafe { vkAllocateMemory(device, allocate_info, 0, mem) };
   if res != 0 { return Err(VulkanError{ code: res }); }
-  return Ok(VulkanDeviceMemory{ handle: mem, device: device, size: 0 });
+  let sz: Int = unsafe { xvk_read_u64(allocate_info, 16) };  // VkMemoryAllocateInfo.allocationSize at offset 16
+  return Ok(VulkanDeviceMemory{ handle: mem, device: device, size: sz });
 }
 
 pub fn VulkanDeviceMemory.destroy()
