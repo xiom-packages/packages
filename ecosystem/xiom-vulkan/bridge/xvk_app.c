@@ -472,3 +472,24 @@ int64_t xvk_get_device(int64_t app_h)
     if (!a) return 0;
     return (int64_t)(uint64_t)a->device;
 }
+
+int64_t xvk_get_physical_device(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a) return 0;
+    return (int64_t)(uint64_t)a->phys_dev;
+}
+
+int64_t xvk_get_graphics_queue(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a) return 0;
+    return (int64_t)(uint64_t)a->graphics_queue;
+}
+
+int64_t xvk_get_command_pool(int64_t app_h)
+{
+    XvkApp* a = xvk_from_handle(app_h);
+    if (!a) return 0;
+    return (int64_t)(uint64_t)a->cmd_pool;
+}

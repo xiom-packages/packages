@@ -1174,3 +1174,133 @@ pub fn build_command_buffer_inheritance_info(render_pass: Int, subpass: Int32, f
   xw64(s, 32, framebuffer);         // framebuffer
   return s;
 }
+
+// =============================================================================
+// Phase 7.4: Texture loading struct builders
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// VkBufferImageCopy
+//
+// Layout (56 bytes, x64 natural alignment):
+//   Offset    Field                              Type
+//       0     bufferOffset                       Int64
+//       8     bufferRowLength                    Int32
+//      12     bufferImageHeight                  Int32
+//      16     imageSubresource.aspectMask        Int32
+//      20     imageSubresource.mipLevel          Int32
+//      24     imageSubresource.baseArrayLayer    Int32
+//      28     imageSubresource.layerCount        Int32
+//      32     imageOffset.x                      Int32
+//      36     imageOffset.y                      Int32
+//      40     imageOffset.z                      Int32
+//      44     (pad)
+//      48     imageExtent.width                  Int32
+//      52     imageExtent.height                 Int32
+//      56     imageExtent.depth                  Int32
+// ---------------------------------------------------------------------------
+
+pub fn build_buffer_image_copy(buffer_offset: Int, row_length: Int32, image_height: Int32, aspect: Int32, mip_level: Int32, base_layer: Int32, layer_count: Int32, offset_x: Int32, offset_y: Int32, offset_z: Int32, extent_w: Int32, extent_h: Int32, extent_d: Int32) -> Int {
+  let s = xalloc(64);
+  if s == 0 { return 0; }
+  xw64(s, 0, buffer_offset);        // bufferOffset
+  xw32(s, 8, row_length);           // bufferRowLength
+  xw32(s, 12, image_height);        // bufferImageHeight
+  xw32(s, 16, aspect);              // imageSubresource.aspectMask
+  xw32(s, 20, mip_level);           // imageSubresource.mipLevel
+  xw32(s, 24, base_layer);          // imageSubresource.baseArrayLayer
+  xw32(s, 28, layer_count);         // imageSubresource.layerCount
+  xw32(s, 32, offset_x);            // imageOffset.x
+  xw32(s, 36, offset_y);            // imageOffset.y
+  xw32(s, 40, offset_z);            // imageOffset.z
+  xw32(s, 48, extent_w);            // imageExtent.width
+  xw32(s, 52, extent_h);            // imageExtent.height
+  xw32(s, 56, extent_d);            // imageExtent.depth
+  return s;
+}
+
+// ---------------------------------------------------------------------------
+// VkImageBlit
+//
+// Layout (80 bytes, x64 natural alignment):
+//   Offset    Field                              Type
+//     0-27    srcSubresource (same layout as above; 4x Int32)
+//    28       (pad)
+//    32-55    srcOffsets[2] (2x VkOffset3D = 6x Int32)
+//    56-83    dstSubresource
+//    84       (pad)
+//    88-111   dstOffsets[2]
+// ---------------------------------------------------------------------------
+
+pub fn build_image_blit(src_aspect: Int32, src_mip: Int32, src_base_layer: Int32, src_layer_count: Int32, src_x: Int32, src_y: Int32, src_z: Int32, src_w: Int32, src_h: Int32, src_d: Int32, dst_aspect: Int32, dst_mip: Int32, dst_base_layer: Int32, dst_layer_count: Int32, dst_x: Int32, dst_y: Int32, dst_z: Int32, dst_w: Int32, dst_h: Int32, dst_d: Int32) -> Int {
+  let s = xalloc(112);
+  if s == 0 { return 0; }
+  // srcSubresource (offset 0): 4 x Int32
+  xw32(s, 0, src_aspect);           // srcSubresource.aspectMask
+  xw32(s, 4, src_mip);              // srcSubresource.mipLevel
+  xw32(s, 8, src_base_layer);       // srcSubresource.baseArrayLayer
+  xw32(s, 12, src_layer_count);     // srcSubresource.layerCount
+  // srcOffsets[0] (offset 16): 3 x Int32
+  xw32(s, 16, src_x);               // srcOffsets[0].x
+  xw32(s, 20, src_y);               // srcOffsets[0].y
+  xw32(s, 24, src_z);               // srcOffsets[0].z
+  // srcOffsets[1] (offset 28): 3 x Int32
+  xw32(s, 28, src_w);               // srcOffsets[1].x
+  xw32(s, 32, src_h);               // srcOffsets[1].y
+  xw32(s, 36, src_d);               // srcOffsets[1].z
+  // dstSubresource (offset 40): 4 x Int32
+  xw32(s, 40, dst_aspect);          // dstSubresource.aspectMask
+  xw32(s, 44, dst_mip);             // dstSubresource.mipLevel
+  xw32(s, 48, dst_base_layer);      // dstSubresource.baseArrayLayer
+  xw32(s, 52, dst_layer_count);     // dstSubresource.layerCount
+  // dstOffsets[0] (offset 56): 3 x Int32
+  xw32(s, 56, dst_x);               // dstOffsets[0].x
+  xw32(s, 60, dst_y);               // dstOffsets[0].y
+  xw32(s, 64, dst_z);               // dstOffsets[0].z
+  // dstOffsets[1] (offset 68): 3 x Int32
+  xw32(s, 68, dst_w);               // dstOffsets[1].x
+  xw32(s, 72, dst_h);               // dstOffsets[1].y
+  xw32(s, 76, dst_d);               // dstOffsets[1].z
+  return s;
+}
+
+// ---------------------------------------------------------------------------
+// VkImageMemoryBarrier
+//
+// Layout (72 bytes, x64):
+//   Offset    Field                              Type
+//       0     sType                              Int32     VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER (45)
+//       8     pNext                              Int       0
+//      16     srcAccessMask                      Int32
+//      20     dstAccessMask                      Int32
+//      24     oldLayout                          Int32
+//      28     newLayout                          Int32
+//      32     srcQueueFamilyIndex                Int32
+//      36     dstQueueFamilyIndex                Int32
+//      40     image                              Int64
+//      48     aspectMask                         Int32
+//      52     baseMipLevel                       Int32
+//      56     levelCount                         Int32
+//      60     baseArrayLayer                     Int32
+//      64     layerCount                         Int32
+// ---------------------------------------------------------------------------
+
+pub fn build_image_memory_barrier(src_access: Int32, dst_access: Int32, old_layout: Int32, new_layout: Int32, image: Int, aspect: Int32, base_mip: Int32, level_count: Int32, base_layer: Int32, layer_count: Int32) -> Int {
+  let s = xalloc(72);
+  if s == 0 { return 0; }
+  xstype(s, 45);                    // sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER
+  xpnext(s, 0);                     // pNext = null
+  xw32(s, 16, src_access);          // srcAccessMask
+  xw32(s, 20, dst_access);          // dstAccessMask
+  xw32(s, 24, old_layout);          // oldLayout
+  xw32(s, 28, new_layout);          // newLayout
+  xw32(s, 32, -1);                  // srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED
+  xw32(s, 36, -1);                  // dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED
+  xw64(s, 40, image);               // image
+  xw32(s, 48, aspect);              // subresourceRange.aspectMask
+  xw32(s, 52, base_mip);            // subresourceRange.baseMipLevel
+  xw32(s, 56, level_count);         // subresourceRange.levelCount
+  xw32(s, 60, base_layer);          // subresourceRange.baseArrayLayer
+  xw32(s, 64, layer_count);         // subresourceRange.layerCount
+  return s;
+}

@@ -62,6 +62,7 @@ ecosystem/xiom-vulkan/
 │   ├── xvk_structs.h/c           Struct marshalling (alloc/write/read)
 │   ├── xvk_memory_alloc.h/c      [7.1] VMA-style sub-allocator (305 lines)
 │   ├── xvk_shader_compile.h/c    [7.3] Runtime GLSL→SPIR-V compilation via glslc
+│   ├── xvk_texture.h/c           [7.4] Texture loading pipeline: staging→upload→mipmap gen
 │   ├── xvk_bind_instance.h/c     Raw VK instance/device creation
 │   ├── xvk_bind_device.h/c       Raw VK device/queue management (+ get_device_queue2 for 7.5)
 │   ├── xvk_bind_buffer.h/c       Raw VK buffer/buffer_view
@@ -128,6 +129,14 @@ ecosystem/xiom-vulkan/
   - Safe: `VulkanCommandBuffer.submit_multi()`
   - Structs: `build_device_queue_info_2()`, `build_command_buffer_begin_info()`, `build_command_buffer_inheritance_info()`
   - High-level API: `threaded_command_pool_create()`, `allocate_threaded_command_buffers()`, `submit_multi_command_buffers()`, `trim_command_pool()` in vulkan.xi
+- **7.4: Texture loading pipeline** ✅ NEW
+  - Bridge: `xvk_texture.h/c` (350 lines) — full pipeline from raw RGBA8 pixels
+  - `xvk_texture_create(device, phys_dev, cmd_pool, queue, pixels, w, h, gen_mips)` — staging→upload→mipmaps→view+sampler in one call
+  - `xvk_texture_get_image/view/sampler/width/height/mip_levels` — query sub-resources
+  - `xvk_texture_destroy(device, texture)` — complete cleanup
+  - App accessors: `xvk_get_physical_device`, `xvk_get_graphics_queue`, `xvk_get_command_pool`
+  - Structs: `build_buffer_image_copy()`, `build_image_blit()`, `build_image_memory_barrier()`
+  - High-level API: `texture_create()`, `texture_destroy()`, `texture_get_image/view/sampler/width/height/mip_levels()` in vulkan.xi
 
 ### Phase 8: Tooling
 - 8.2: Mouse/keyboard input (`get_mouse_pos`, `is_mouse_down`, `is_key_down` in vulkan.xi)
@@ -187,7 +196,6 @@ xiomc -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
 | Priority | Item | Notes |
 |----------|------|-------|
 | P1 | 7.6 Ray tracing deferred host ops | `VK_KHR_deferred_host_operations` — create/join/destroy |
-| P1 | 7.4 Texture loading pipeline | KTX/DDS loader, staging→upload→mipmap |
 | P2 | 8.1 Debug utils validation output | VkDebugUtilsMessengerCallback in bridge |
 | P2 | 8.3 Font/text rendering | stb_truetype + glyph atlas + texture binding |
 | P2 | 8.5 Offscreen headless rendering | Fix `xvk_offscreen_create` for headless testing |

@@ -6,6 +6,9 @@
 /* Phase 7.3 — Runtime shader compilation toolchain */
 #include "xvk_shader_compile.c"
 
+/* Phase 7.4 — Texture loading pipeline */
+#include "xvk_texture.c"
+
 #include "xvk_util.c"
 #include "xvk_math.c"
 #include "xvk_instance.c"

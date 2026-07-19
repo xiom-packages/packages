@@ -152,6 +152,20 @@ extern "C" {
   fn xvk_free_spirv_result(result_ptr: Int);
   fn xvk_read_u64(base: Int, offset: Int) -> Int;
   fn xvk_read_u32(base: Int, offset: Int) -> Int32;
+
+  // Phase 7.4 — Texture Loading Pipeline
+  fn xvk_get_physical_device(app: Int) -> Int;
+  fn xvk_get_graphics_queue(app: Int) -> Int;
+  fn xvk_get_command_pool(app: Int) -> Int;
+  fn xvk_get_device(app: Int) -> Int;
+  fn xvk_texture_create(device: Int, physical_device: Int, cmd_pool: Int, queue: Int, pixel_data: Int, width: Int32, height: Int32, generate_mips: Int32) -> Int;
+  fn xvk_texture_get_image(texture: Int) -> Int;
+  fn xvk_texture_get_image_view(texture: Int) -> Int;
+  fn xvk_texture_get_sampler(texture: Int) -> Int;
+  fn xvk_texture_get_width(texture: Int) -> Int32;
+  fn xvk_texture_get_height(texture: Int) -> Int32;
+  fn xvk_texture_get_mip_levels(texture: Int) -> Int32;
+  fn xvk_texture_destroy(device: Int, texture: Int);
 }
 
 // ===========================================================================
@@ -822,4 +836,79 @@ pub fn shader_create_raw_spirv(app: Int, spirv_result: Int) -> Int
   // The SPIR-V data starts at offset 8 (after the size prefix)
   let code_ptr = spirv_result + 8;
   return unsafe { xvk_shader_create(app, code_ptr, size) };
+}
+
+// ===========================================================================
+// Phase 7.4: Texture Loading Pipeline — High-Level API
+// ===========================================================================
+
+/// Phase 7.4: Create a GPU texture from raw RGBA8 pixel data in CPU memory.
+/// Performs staging buffer creation, GPU image allocation, layout transitions,
+/// buffer-to-image copy, and optional mipmap generation — all in one call.
+///
+/// pixel_data: pointer to RGBA8 pixel bytes (width * height * 4).
+/// generate_mips: 1 = generate full mip chain, 0 = single level.
+/// Returns: texture handle (> 0), or 0 on failure.
+pub fn texture_create(app: Int, pixel_data: Int, width: Int, height: Int, generate_mips: Int) -> Int
+  requires: app != 0
+  requires: pixel_data != 0
+  requires: width > 0
+  requires: height > 0
+{
+  let dev = unsafe { xvk_get_device(app) };
+  let phys = unsafe { xvk_get_physical_device(app) };
+  let pool = unsafe { xvk_get_command_pool(app) };
+  let queue = unsafe { xvk_get_graphics_queue(app) };
+  return unsafe { xvk_texture_create(dev, phys, pool, queue, pixel_data, width as Int32, height as Int32, generate_mips as Int32) };
+}
+
+/// Phase 7.4: Get the Vulkan image handle from a texture.
+pub fn texture_get_image(texture: Int) -> Int
+  requires: texture != 0
+{
+  return unsafe { xvk_texture_get_image(texture) };
+}
+
+/// Phase 7.4: Get the Vulkan image view handle from a texture.
+pub fn texture_get_image_view(texture: Int) -> Int
+  requires: texture != 0
+{
+  return unsafe { xvk_texture_get_image_view(texture) };
+}
+
+/// Phase 7.4: Get the Vulkan sampler handle from a texture.
+pub fn texture_get_sampler(texture: Int) -> Int
+  requires: texture != 0
+{
+  return unsafe { xvk_texture_get_sampler(texture) };
+}
+
+/// Phase 7.4: Get texture width in pixels.
+pub fn texture_get_width(texture: Int) -> Int
+  requires: texture != 0
+{
+  return unsafe { xvk_texture_get_width(texture) } as Int;
+}
+
+/// Phase 7.4: Get texture height in pixels.
+pub fn texture_get_height(texture: Int) -> Int
+  requires: texture != 0
+{
+  return unsafe { xvk_texture_get_height(texture) } as Int;
+}
+
+/// Phase 7.4: Get texture mip level count.
+pub fn texture_get_mip_levels(texture: Int) -> Int
+  requires: texture != 0
+{
+  return unsafe { xvk_texture_get_mip_levels(texture) } as Int;
+}
+
+/// Phase 7.4: Destroy a texture and all associated Vulkan resources.
+pub fn texture_destroy(app: Int, texture: Int)
+  requires: app != 0
+  requires: texture != 0
+{
+  let dev = unsafe { xvk_get_device(app) };
+  unsafe { xvk_texture_destroy(dev, texture); }
 }
