@@ -163,28 +163,22 @@ fn main() -> Int {
           }
 
           // ══════════════ POPUP + TOOLTIP ══════════════
-          unsafe { imgui_set_next_window_size(300.0, 180.0); };
+          unsafe { imgui_set_next_window_size(300.0, 130.0); };
           unsafe { imgui_set_next_window_pos(770.0, 260.0); };
           if unsafe { imgui_begin("Popups", 0 as Int32) } != 0 {
             if unsafe { imgui_button("Open Popup") } != 0 {
               unsafe { imgui_open_popup("TestPopup"); };
             }
-            if unsafe { imgui_is_item_hovered() } != 0 {
-              unsafe { imgui_set_tooltip("Click to open a popup window"); };
-            }
             if unsafe { imgui_begin_popup("TestPopup") } != 0 {
-              unsafe { imgui_text("This is a popup!"); };
+              unsafe { imgui_text("Popup content here!"); };
               unsafe { imgui_separator(); };
               if unsafe { imgui_button("Close") } != 0 {
-                unsafe { imgui_end_popup(); };
+                unsafe { imgui_close_current_popup(); };
               }
               unsafe { imgui_end_popup(); };
             }
             unsafe { imgui_separator(); };
-            if unsafe { imgui_button("Right-Click Me") } != 0 { }
-            if unsafe { imgui_is_item_clicked() } != 0 {
-              io.println("Right-click detected!");
-            }
+            unsafe { imgui_text("Right-click the button above"); };
             unsafe { imgui_end(); };
           }
 

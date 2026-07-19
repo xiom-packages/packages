@@ -59,6 +59,7 @@ extern "C" {
   fn imgui_open_popup(id: Str);
   fn imgui_begin_popup(id: Str) -> Int32;
   fn imgui_end_popup();
+  fn imgui_close_current_popup();
   fn imgui_begin_popup_context_item(id: Str) -> Int32;
   fn imgui_begin_popup_modal(name: Str) -> Int32;
   fn imgui_end_popup_modal();
@@ -154,3 +155,4 @@ pub fn collapsing_header(label: Str) -> Bool { return unsafe { imgui_collapsing_
 pub fn style_dark() { unsafe { imgui_style_dark(); }; }
 pub fn style_light() { unsafe { imgui_style_light(); }; }
 pub fn style_classic() { unsafe { imgui_style_classic(); }; }
+

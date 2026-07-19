@@ -73,6 +73,7 @@ void     imgui_plot_histogram(const char* label, const float* v, int32_t n,
 void     imgui_open_popup(const char* id);
 int32_t  imgui_begin_popup(const char* id);
 void     imgui_end_popup(void);
+void     imgui_close_current_popup(void);
 int32_t  imgui_begin_popup_context_item(const char* id);
 int32_t  imgui_begin_popup_modal(const char* name);
 void     imgui_end_popup_modal(void);
