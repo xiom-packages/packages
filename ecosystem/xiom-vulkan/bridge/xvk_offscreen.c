@@ -103,15 +103,11 @@ int64_t xvk_offscreen_create(int32_t width, int32_t height)
     XvkApp* a = (XvkApp*)calloc(1, sizeof(XvkApp));
     if (!a) { xvk_set_error("calloc failed"); return 0; }
 
-    if (!glfwInit()) {
-        xvk_set_error("glfwInit failed");
-        free(a);
-        return 0;
-    }
-
+    /* Phase 8.5: Use headless instance (no GLFW needed). This allows
+     * offscreen rendering on headless systems (CI, VMs, etc.). */
     int have_val = 0;
-    a->instance = create_instance("XIOM Offscreen", &have_val);
-    if (!a->instance) { glfwTerminate(); free(a); return 0; }
+    a->instance = create_instance_headless("XIOM Offscreen", &have_val);
+    if (!a->instance) { free(a); return 0; }
 
     if (!pick_physical_device(a->instance, VK_NULL_HANDLE,
                                &a->phys_dev, &a->device_type))
@@ -250,6 +246,7 @@ int64_t xvk_offscreen_create(int32_t width, int32_t height)
 
 offs_fail:
     xvk_app_cleanup_internal(a);
+    /* No glfwTerminate() needed — headless path doesn't use GLFW */
     free(a);
     return 0;
 }

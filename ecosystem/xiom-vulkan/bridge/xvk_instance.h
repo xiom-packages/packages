@@ -5,6 +5,7 @@
 #include "xvk_util.h"
 
 VkInstance create_instance(const char* app_name, int* have_validation);
+VkInstance create_instance_headless(const char* app_name, int* have_validation);
 int pick_physical_device(VkInstance inst, VkSurfaceKHR surface,
                           VkPhysicalDevice* out_pd, int* out_type);
 VkDevice create_device(VkPhysicalDevice pd, uint32_t gfx_family,

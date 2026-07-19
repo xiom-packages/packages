@@ -141,6 +141,13 @@ extern "C" {
   fn xvk_allocate_command_buffers_multi(device: Int, pool: Int, level: Int32, count: Int32, out_buffers: Int) -> Int32;
   fn xvk_queue_submit_multi(queue: Int, cmd_buf_count: Int32, cmd_bufs: Int, fence: Int) -> Int32;
 
+  // Phase 7.6 — Deferred host operations
+  fn xvk_create_deferred_operation_khr(device: Int) -> Int;
+  fn xvk_destroy_deferred_operation_khr(device: Int, deferred_op: Int);
+  fn xvk_deferred_operation_join_khr(device: Int, deferred_op: Int) -> Int32;
+  fn xvk_get_deferred_operation_result_khr(device: Int, deferred_op: Int) -> Int32;
+  fn xvk_get_deferred_operation_max_concurrency_khr(device: Int, deferred_op: Int) -> Int32;
+
   // Render Pass / Framebuffer
   fn vkCreateRenderPass(device: Int, create_info: Int, allocator: Int, render_pass: Int) -> Int32;
   fn vkDestroyRenderPass(device: Int, render_pass: Int, allocator: Int);
@@ -1808,4 +1815,52 @@ pub fn VulkanPipelineLayout.create_from_struct(device: Int, ci: Int) -> Result[V
   let res: Int32 = unsafe { vkCreatePipelineLayout(device, ci, 0, pl) };
   if res != 0 { return Err(VulkanError{ code: res }); }
   return Ok(VulkanPipelineLayout{ handle: pl, device: device });
+}
+
+// =========================================================================
+// VulkanDeferredOperationKHR — Phase 7.6
+// =========================================================================
+
+pub type VulkanDeferredOperationKHR = {
+  handle: Int;
+  device: Int;
+} derive[Clone]
+
+pub fn VulkanDeferredOperationKHR.create(device: Int) -> Result[VulkanDeferredOperationKHR, VulkanError]
+  requires: device != 0
+  ensures: result is Ok => result.unwrap().handle != 0
+{
+  let op = unsafe { xvk_create_deferred_operation_khr(device) };
+  if op == 0 { return Err(VulkanError{ code: -1 }); }
+  return Ok(VulkanDeferredOperationKHR{ handle: op, device: device });
+}
+
+pub fn VulkanDeferredOperationKHR.destroy()
+  requires: handle != 0
+{
+  unsafe { xvk_destroy_deferred_operation_khr(device, handle); }
+}
+
+/// Join a deferred operation (blocks calling thread until the operation completes
+/// or reaches a safe checkpoint). Returns VkResult: 0=done, 1000268000=idle, others=incomplete.
+pub fn VulkanDeferredOperationKHR.join() -> Int32
+  requires: handle != 0
+{
+  return unsafe { xvk_deferred_operation_join_khr(device, handle) };
+}
+
+/// Get the result of a completed deferred operation. Returns VkResult.
+/// VK_SUCCESS means the deferred operation completed successfully.
+/// VK_NOT_READY means the operation is still in progress.
+pub fn VulkanDeferredOperationKHR.get_result() -> Int32
+  requires: handle != 0
+{
+  return unsafe { xvk_get_deferred_operation_result_khr(device, handle) };
+}
+
+/// Get the maximum number of threads that can concurrently join this operation.
+pub fn VulkanDeferredOperationKHR.max_concurrency() -> Int32
+  requires: handle != 0
+{
+  return unsafe { xvk_get_deferred_operation_max_concurrency_khr(device, handle) };
 }

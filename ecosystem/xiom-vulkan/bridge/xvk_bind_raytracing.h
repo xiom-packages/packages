@@ -108,6 +108,16 @@ int32_t xvk_get_ray_tracing_capture_replay_shader_group_handles_khr(int64_t devi
 int64_t xvk_get_ray_tracing_shader_group_stack_size_khr(int64_t device, int64_t pipeline, int32_t group, int32_t group_handle);
 void    xvk_cmd_set_ray_tracing_pipeline_stack_size_khr(int64_t cmd_buf, int32_t stack_size);
 
+/* ---- VK_KHR_deferred_host_operations (Phase 7.6) ------------------------ */
+/* Deferred operations enable host-side parallelization of long-running
+ * device operations (RT pipeline creation, AS builds, micromap builds). */
+
+int64_t xvk_create_deferred_operation_khr(int64_t device);
+void    xvk_destroy_deferred_operation_khr(int64_t device, int64_t deferred_op);
+int32_t xvk_deferred_operation_join_khr(int64_t device, int64_t deferred_op);
+int32_t xvk_get_deferred_operation_result_khr(int64_t device, int64_t deferred_op);
+int32_t xvk_get_deferred_operation_max_concurrency_khr(int64_t device, int64_t deferred_op);
+
 /* ---- VK_NV_ray_tracing (legacy) ------------------------------------------ */
 
 int32_t xvk_create_ray_tracing_pipelines_nv(int64_t device, int64_t pipeline_cache, int32_t count, int64_t create_infos_struct, int64_t out_pipelines);

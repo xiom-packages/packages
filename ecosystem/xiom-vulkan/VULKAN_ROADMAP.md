@@ -28,7 +28,7 @@ All 12 safety bugs (SF-01 through SF-12) fixed. All compile v0.48.0, 11/11 demos
 | 7.3 | Shader compilation | ✅ **DONE** — `xvk_shader_compile.c` (Phase 7.3): runtime glslc subprocess for GLSL→SPIR-V compilation. High-level API: `shader_compile_glsl()`, `shader_compile_file()` in vulkan.xi |
 | 7.4 | Texture loading | ✅ **DONE** — `xvk_texture.c` (350 lines): staging buffer → GPU image → layout transition → buffer-to-image copy → mipmap generation → image view + sampler. Single `xvk_texture_create()` call from raw RGBA8 pixels. High-level API: `texture_create()`, `texture_destroy()`, `texture_get_image/view/sampler/width/height/mips` in vulkan.xi
 | 7.5 | Multi-thread command pools | ✅ **DONE** — Bridge: `xvk_create_command_pools`, `xvk_allocate_command_buffers_multi`, `xvk_queue_submit_multi`, `xvk_get_device_queue2`. Safe: `VulkanQueue` type, `VulkanCommandPool.create_threaded`, `VulkanCommandBuffer.submit_multi`. High-level API: `threaded_command_pool_create()`, `submit_multi_command_buffers()` in vulkan.xi |
-| 7.6 | Ray tracing deferred ops | PENDING |
+| 7.6 | Ray tracing deferred ops | ✅ **DONE** — `xvk_create_deferred_operation_khr`, `xvk_destroy_deferred_operation_khr`, `xvk_deferred_operation_join_khr`, `xvk_get_deferred_operation_result_khr`, `xvk_get_deferred_operation_max_concurrency_khr` in bridge. Safe: `VulkanDeferredOperationKHR` type with create/destroy/join/get_result/max_concurrency
 
 ## Phase 8: TOOLING & QA (P2)
 
@@ -38,7 +38,7 @@ All 12 safety bugs (SF-01 through SF-12) fixed. All compile v0.48.0, 11/11 demos
 | 8.2 | Mouse/keyboard input exposure from GLFW to XIOM | ✅ **DONE** — `get_mouse_pos()`, `is_mouse_down()`, `is_key_down()` in vulkan.xi. Supports WASD, Escape, Space, Left/Right/Middle mouse |
 | 8.3 | Font/text rendering module | PENDING |
 | 8.4 | CI smoke test suite | ✅ **DONE** — `tests/ci_smoke.xi`: app→buffer→cache→destroy in ~1s |
-| 8.5 | Offscreen headless rendering fix | PENDING |
+| 8.5 | Offscreen headless rendering fix | ✅ **DONE** — `create_instance_headless()` bypasses GLFW. Uses VK_EXT_headless_surface when available. Offscreen rendering now works on headless systems (CI, VMs) |
 
 ## Bridge Growth
 
@@ -51,7 +51,8 @@ All 12 safety bugs (SF-01 through SF-12) fixed. All compile v0.48.0, 11/11 demos
 | v0.2.9 (+input) | 339 KB | Mouse/keyboard input (WASD, mouse btn, pos) |
 | v0.3.0 (+thread+shaders) | 346 KB | Multi-thread command pools (7.5) + runtime shader compilation (7.3) |
 | v0.3.1 (+texture) | 351 KB | Texture loading pipeline (7.4): staging→upload→mipmap, all in one call |
-| **v0.3.1 (current)** | **351 KB** | **36 modules, 335+ functions** |
+| **v0.3.2 (+deferred+headless) | 358 KB | Ray tracing deferred ops (7.6) + headless offscreen fix (8.5) |
+| **v0.3.2 (current)** | **358 KB** | **36 modules, 342+ functions** |
 
 ## Compiler Gaps
 

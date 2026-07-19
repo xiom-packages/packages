@@ -195,7 +195,7 @@ xiomc -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
 
 | Priority | Item | Notes |
 |----------|------|-------|
-| P1 | 7.6 Ray tracing deferred host ops | `VK_KHR_deferred_host_operations` — create/join/destroy |
+| P2 | 8.3 Font/text rendering | stb_truetype + glyph atlas + texture binding |
 | P2 | 8.1 Debug utils validation output | VkDebugUtilsMessengerCallback in bridge |
 | P2 | 8.3 Font/text rendering | stb_truetype + glyph atlas + texture binding |
 | P2 | 8.5 Offscreen headless rendering | Fix `xvk_offscreen_create` for headless testing |

@@ -68,6 +68,105 @@ VkInstance create_instance(const char* app_name, int* have_validation)
     return inst;
 }
 
+/* Phase 8.5: Headless instance creation — no GLFW, no surface.
+ * Uses VK_EXT_headless_surface if available (optional, for drivers that require
+ * a surface extension to create a device). Does NOT call glfwInit or
+ * glfwGetRequiredInstanceExtensions. Safe to use on CI servers and headless VMs. */
+VkInstance create_instance_headless(const char* app_name, int* have_validation)
+{
+    *have_validation = 0;
+
+    VkApplicationInfo app_info = {0};
+    app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    app_info.pApplicationName = app_name;
+    app_info.applicationVersion = 1;
+    app_info.pEngineName = "XIOM-Vulkan-Bridge";
+    app_info.engineVersion = 1;
+    app_info.apiVersion = VK_API_VERSION_1_3;
+
+    /* Minimal extensions for headless: no surface, no swapchain needed.
+     * VK_EXT_headless_surface is optional — some GPU drivers require a surface
+     * extension to be enabled even for device-level operations. */
+    const char* headless_exts[] = {
+        "VK_EXT_headless_surface",
+        /* VK_KHR_surface is implicitly available if headless_surface is present */
+    };
+    uint32_t ext_count = 0;
+    const char** enabled_exts = NULL;
+
+    /* Check if VK_EXT_headless_surface is available */
+    uint32_t avail_ext_count = 0;
+    vkEnumerateInstanceExtensionProperties(NULL, &avail_ext_count, NULL);
+    VkExtensionProperties* available = NULL;
+    if (avail_ext_count > 0) {
+        available = (VkExtensionProperties*)malloc(
+            avail_ext_count * sizeof(VkExtensionProperties));
+        if (available) {
+            vkEnumerateInstanceExtensionProperties(NULL, &avail_ext_count, available);
+            int has_headless = 0;
+            for (uint32_t i = 0; i < avail_ext_count; i++) {
+                if (strcmp(available[i].extensionName,
+                           "VK_EXT_headless_surface") == 0) {
+                    has_headless = 1;
+                    break;
+                }
+            }
+            free(available);
+            if (has_headless) {
+                enabled_exts = headless_exts;
+                ext_count = 1;
+            }
+            /* If headless surface not available, proceed with zero extensions.
+             * Most GPUs handle this correctly — the device can be created
+             * without any instance extensions. */
+        }
+    }
+
+    VkInstanceCreateInfo ci = {0};
+    ci.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    ci.pApplicationInfo = &app_info;
+    ci.enabledExtensionCount = ext_count;
+    ci.ppEnabledExtensionNames = enabled_exts;
+
+    const char* env = getenv("XVK_VALIDATION");
+    int want_validation = (env && env[0] == '1');
+    const char* layer_name = "VK_LAYER_KHRONOS_validation";
+    uint32_t layer_count = 0;
+    vkEnumerateInstanceLayerProperties(&layer_count, NULL);
+    VkLayerProperties* layers = NULL;
+    int layer_avail = 0;
+    if (layer_count > 0) {
+        layers = (VkLayerProperties*)malloc(
+            layer_count * sizeof(VkLayerProperties));
+        if (layers) {
+            vkEnumerateInstanceLayerProperties(&layer_count, layers);
+            for (uint32_t i = 0; i < layer_count; ++i) {
+                if (strcmp(layers[i].layerName, layer_name) == 0) {
+                    layer_avail = 1;
+                    break;
+                }
+            }
+            free(layers);
+        }
+    }
+
+    if (want_validation && layer_avail) {
+        ci.enabledLayerCount = 1;
+        ci.ppEnabledLayerNames = &layer_name;
+        *have_validation = 1;
+    }
+
+    VkInstance inst = VK_NULL_HANDLE;
+    VkResult res = vkCreateInstance(&ci, NULL, &inst);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("headless vkCreateInstance failed: %d", (int)res);
+        return VK_NULL_HANDLE;
+    }
+    printf("XIOM-Vulkan-Bridge: headless instance created (validation=%d)\n",
+           *have_validation);
+    return inst;
+}
+
 int pick_physical_device(VkInstance inst, VkSurfaceKHR surface,
                           VkPhysicalDevice* out_pd, int* out_type)
 {

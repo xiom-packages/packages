@@ -55,6 +55,13 @@ typedef struct XvkRtProcs {
     PFN_vkCmdWriteAccelerationStructuresPropertiesNV     CmdWriteAccelerationStructuresPropertiesNV;
     PFN_vkCompileDeferredNV                              CompileDeferredNV;
 
+    /* VK_KHR_deferred_host_operations (Phase 7.6) */
+    PFN_vkCreateDeferredOperationKHR                     CreateDeferredOperationKHR;
+    PFN_vkDestroyDeferredOperationKHR                    DestroyDeferredOperationKHR;
+    PFN_vkDeferredOperationJoinKHR                       DeferredOperationJoinKHR;
+    PFN_vkGetDeferredOperationResultKHR                  GetDeferredOperationResultKHR;
+    PFN_vkGetDeferredOperationMaxConcurrencyKHR          GetDeferredOperationMaxConcurrencyKHR;
+
 #if defined(VK_EXT_opacity_micromap)
     /* VK_EXT_micromap */
     PFN_vkCreateMicromapEXT                              CreateMicromapEXT;
@@ -137,6 +144,13 @@ static XvkRtProcs* xvk_rt_load(VkDevice dev)
     XVK_RT_LOAD(GetAccelerationStructureHandleNV);
     XVK_RT_LOAD(CmdWriteAccelerationStructuresPropertiesNV);
     XVK_RT_LOAD(CompileDeferredNV);
+
+    /* VK_KHR_deferred_host_operations (Phase 7.6) */
+    XVK_RT_LOAD(CreateDeferredOperationKHR);
+    XVK_RT_LOAD(DestroyDeferredOperationKHR);
+    XVK_RT_LOAD(DeferredOperationJoinKHR);
+    XVK_RT_LOAD(GetDeferredOperationResultKHR);
+    XVK_RT_LOAD(GetDeferredOperationMaxConcurrencyKHR);
 
 #if defined(VK_EXT_opacity_micromap)
     XVK_RT_LOAD(CreateMicromapEXT);
@@ -902,6 +916,73 @@ int64_t xvk_get_micromap_build_sizes_ext(int64_t device, int32_t build_type,
         XVK_RT_PTR(const VkMicromapBuildInfoEXT*, build_info_struct),
         out);
     return (int64_t)out->micromapSize;
+}
+
+/* ======================================================================== */
+/* VK_KHR_deferred_host_operations (Phase 7.6)                              */
+/* ======================================================================== */
+
+int64_t xvk_create_deferred_operation_khr(int64_t device)
+{
+    XvkRtProcs* p = xvk_rt_procs(device);
+    XVK_RT_REQUIRE(p, CreateDeferredOperationKHR, 0);
+    if (!p->CreateDeferredOperationKHR) return 0;
+
+    VkDeferredOperationKHR deferred_op = VK_NULL_HANDLE;
+    VkResult res = p->CreateDeferredOperationKHR(
+        XVK_RT_DEV(device), NULL, &deferred_op);
+    if (res != VK_SUCCESS) {
+        if (res == VK_ERROR_OUT_OF_HOST_MEMORY)
+            xvk_set_error("vkCreateDeferredOperationKHR: out of host memory");
+        else
+            xvk_set_error_fmt("vkCreateDeferredOperationKHR failed: %d", (int)res);
+        return 0;
+    }
+    return (int64_t)(uint64_t)deferred_op;
+}
+
+void xvk_destroy_deferred_operation_khr(int64_t device, int64_t deferred_op)
+{
+    if (!deferred_op) return;
+    XvkRtProcs* p = xvk_rt_procs(device);
+    XVK_RT_REQUIRE_VOID(p, DestroyDeferredOperationKHR);
+    if (p->DestroyDeferredOperationKHR)
+        p->DestroyDeferredOperationKHR(XVK_RT_DEV(device),
+            XVK_RT_NDH(VkDeferredOperationKHR, deferred_op), NULL);
+}
+
+int32_t xvk_deferred_operation_join_khr(int64_t device, int64_t deferred_op)
+{
+    if (!deferred_op) return (int32_t)VK_ERROR_INITIALIZATION_FAILED;
+    XvkRtProcs* p = xvk_rt_procs(device);
+    XVK_RT_REQUIRE(p, DeferredOperationJoinKHR, (int32_t)VK_ERROR_EXTENSION_NOT_PRESENT);
+    VkResult res = p->DeferredOperationJoinKHR(XVK_RT_DEV(device),
+        XVK_RT_NDH(VkDeferredOperationKHR, deferred_op));
+    /* VK_THREAD_DONE_KHR (0) and VK_THREAD_IDLE_KHR (1000268000) are success codes */
+    if (res < 0) xvk_set_error_fmt("vkDeferredOperationJoinKHR failed: %d", (int)res);
+    return (int32_t)res;
+}
+
+int32_t xvk_get_deferred_operation_result_khr(int64_t device, int64_t deferred_op)
+{
+    if (!deferred_op) return (int32_t)VK_ERROR_INITIALIZATION_FAILED;
+    XvkRtProcs* p = xvk_rt_procs(device);
+    XVK_RT_REQUIRE(p, GetDeferredOperationResultKHR, (int32_t)VK_ERROR_EXTENSION_NOT_PRESENT);
+    VkResult res = p->GetDeferredOperationResultKHR(XVK_RT_DEV(device),
+        XVK_RT_NDH(VkDeferredOperationKHR, deferred_op));
+    if (res < 0 && res != VK_NOT_READY)
+        xvk_set_error_fmt("vkGetDeferredOperationResultKHR failed: %d", (int)res);
+    return (int32_t)res;
+}
+
+int32_t xvk_get_deferred_operation_max_concurrency_khr(int64_t device, int64_t deferred_op)
+{
+    if (!deferred_op) return 0;
+    XvkRtProcs* p = xvk_rt_procs(device);
+    XVK_RT_REQUIRE(p, GetDeferredOperationMaxConcurrencyKHR, 0);
+    uint32_t max = p->GetDeferredOperationMaxConcurrencyKHR(XVK_RT_DEV(device),
+        XVK_RT_NDH(VkDeferredOperationKHR, deferred_op));
+    return (int32_t)max;
 }
 
 #else /* !VK_EXT_opacity_micromap — headers too old, keep the ABI with stubs */
