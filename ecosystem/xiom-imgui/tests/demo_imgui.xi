@@ -51,9 +51,11 @@ fn main() -> Int {
           // Reinit ImGui Vulkan backend after swapchain resize
           if unsafe { xvk_app_did_resize(a) } != 0 {
             unsafe { xvk_app_clear_resize(a); };
-            unsafe { imgui_bridge_reset_vulkan(inst, dev, phys, q, 0 as Int32, rp, 1280.0, 800.0); };
           }
 
+          let fb_w = unsafe { xvk_get_fb_width(a) };
+          let fb_h = unsafe { xvk_get_fb_height(a) };
+          unsafe { imgui_bridge_set_display_size_i32(fb_w, fb_h); };
           unsafe { imgui_bridge_new_frame(); };
 
           if unsafe { imgui_begin_main_menu_bar() } != 0 {

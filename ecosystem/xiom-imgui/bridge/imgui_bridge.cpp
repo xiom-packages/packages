@@ -109,9 +109,21 @@ void imgui_bridge_new_frame()
 void imgui_bridge_render(int64_t command_buffer)
 {
     VkCommandBuffer cb = (VkCommandBuffer)(intptr_t)command_buffer;
-    if (!cb) { DBG("NULL command buffer in render"); return; }
+    if (!cb) { printf("[imgui-bridge] NULL command buffer in render\n"); return; }
     ImGui::Render();
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
+}
+
+void imgui_bridge_set_display_size(float fb_w, float fb_h)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(fb_w, fb_h);
+    io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+}
+
+void imgui_bridge_set_display_size_i32(int32_t fb_w, int32_t fb_h)
+{
+    imgui_bridge_set_display_size((float)fb_w, (float)fb_h);
 }
 
 /* ── Windows ── */

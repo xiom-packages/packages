@@ -10,6 +10,10 @@ extern "C" {
       graphics_queue: Int, queue_family: Int32, render_pass: Int,
       subpass_count: Int32, fb_width: Float32, fb_height: Float32) -> Int32;
   fn imgui_bridge_new_frame();
+  fn imgui_bridge_set_display_size_i32(fb_w: Int32, fb_h: Int32);
+
+  fn imgui_bridge_set_display_size(fb_w: Float32, fb_h: Float32);
+
   fn imgui_bridge_render(command_buffer: Int);
 
   fn imgui_begin(name: Str, flags: Int32) -> Int32;
@@ -159,6 +163,8 @@ pub fn collapsing_header(label: Str) -> Bool { return unsafe { imgui_collapsing_
 pub fn style_dark() { unsafe { imgui_style_dark(); }; }
 pub fn style_light() { unsafe { imgui_style_light(); }; }
 pub fn style_classic() { unsafe { imgui_style_classic(); }; }
+
+
 
 
 
