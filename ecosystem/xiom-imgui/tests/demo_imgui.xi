@@ -1,5 +1,5 @@
 // XIOM — ImGui Production Demo
-// Main menu bar, multiple windows, all widget types.
+// Menu bar, windows, widgets, DPI-aware.
 // Menu File > Exit, Escape, or window X to close.
 
 module imgui_demo
@@ -17,8 +17,8 @@ var g_drag_i: Int = 0;
 var g_cr: Float32 = 0.0;
 var g_cg: Float32 = 0.0;
 var g_cb: Float32 = 0.0;
-var g_ca: Float32 = 0.0;
-var g_if: Float32 = 0.0;
+var g_show_popup: Int = 0;
+var g_color_btn: Int = 0;
 
 fn main() -> Int {
   let app = create_app("XIOM ImGui Demo", 1280, 800);
@@ -28,8 +28,8 @@ fn main() -> Int {
       g_app = a;
       g_s_f = 0.65; g_s_i = 32; g_c1 = 1; g_c2 = 0;
       g_drag_f = 1.0; g_drag_i = 50;
-      g_cr = 0.18; g_cg = 0.64; g_cb = 0.88; g_ca = 1.0;
-      g_if = 0.0;
+      g_cr = 0.18; g_cg = 0.64; g_cb = 0.88;
+      g_show_popup = 0; g_color_btn = 0;
 
       let win  = unsafe { xvk_get_glfw_window(a) };
       let inst = unsafe { xvk_get_instance(a) };
@@ -51,7 +51,7 @@ fn main() -> Int {
         if status == 1 {
           unsafe { imgui_bridge_new_frame(); };
 
-          // ── MAIN MENU BAR (viewport-level, always visible) ──
+          // ── MAIN MENU BAR ──
           if unsafe { imgui_begin_main_menu_bar() } != 0 {
             if unsafe { imgui_begin_menu("File") } != 0 {
               if unsafe { imgui_menu_item("Exit", "Alt+F4", 1 as Int32) } != 0 { break; }
@@ -66,8 +66,8 @@ fn main() -> Int {
             unsafe { imgui_end_main_menu_bar(); };
           }
 
-          // ── WIDGETS WINDOW ──
-          unsafe { imgui_set_next_window_size(450.0, 500.0); };
+          // ── WIDGETS ──
+          unsafe { imgui_set_next_window_size(450.0, 400.0); };
           unsafe { imgui_set_next_window_pos(10.0, 30.0); };
           if unsafe { imgui_begin("Widgets", 0 as Int32) } != 0 {
             g_s_f = unsafe { imgui_slider_float("Float", g_s_f, 0.0, 1.0) };
@@ -79,14 +79,20 @@ fn main() -> Int {
             g_drag_i = unsafe { imgui_drag_int("Count", g_drag_i, 1.0, 0 as Int32, 200 as Int32) };
             unsafe { imgui_separator(); };
             unsafe { imgui_color_edit3("RGB", g_cr, g_cg, g_cb); };
-            unsafe { imgui_color_edit4("RGBA", g_cr, g_cg, g_cb, g_ca); };
-            g_if = unsafe { imgui_input_float("Input", g_if) };
             unsafe { imgui_separator(); };
-            if unsafe { imgui_button("Action") } != 0 { io.println("click"); }
+            if unsafe { imgui_button("Open Modal") } != 0 { g_show_popup = 1; }
+            if g_show_popup != 0 {
+              if unsafe { imgui_begin_popup_modal("MyModal") } != 0 {
+                unsafe { imgui_text("Modal window!"); };
+                unsafe { imgui_text("Click OK to close."); };
+                if unsafe { imgui_button("OK") } != 0 { g_show_popup = 0; }
+                unsafe { imgui_end_popup_modal(); };
+              }
+            }
             unsafe { imgui_end(); };
           }
 
-          // ── TREE WINDOW ──
+          // ── BROWSER ──
           unsafe { imgui_set_next_window_size(300.0, 400.0); };
           unsafe { imgui_set_next_window_pos(480.0, 30.0); };
           if unsafe { imgui_begin("Browser", 0 as Int32) } != 0 {
@@ -101,8 +107,8 @@ fn main() -> Int {
             unsafe { imgui_end(); };
           }
 
-          // ── TABS WINDOW ──
-          unsafe { imgui_set_next_window_size(300.0, 250.0); };
+          // ── TABS ──
+          unsafe { imgui_set_next_window_size(300.0, 200.0); };
           unsafe { imgui_set_next_window_pos(480.0, 450.0); };
           if unsafe { imgui_begin("Tabs", 0 as Int32) } != 0 {
             if unsafe { imgui_begin_tab_bar("T") } != 0 {
@@ -115,19 +121,6 @@ fn main() -> Int {
                 unsafe { imgui_end_tab_item(); };
               }
               unsafe { imgui_end_tab_bar(); };
-            }
-            unsafe { imgui_end(); };
-          }
-
-          // ── POPUP WINDOW ──
-          unsafe { imgui_set_next_window_size(300.0, 100.0); };
-          unsafe { imgui_set_next_window_pos(10.0, 560.0); };
-          if unsafe { imgui_begin("Popup", 0 as Int32) } != 0 {
-            if unsafe { imgui_button("Open") } != 0 { unsafe { imgui_open_popup("P"); }; }
-            if unsafe { imgui_begin_popup("P") } != 0 {
-              unsafe { imgui_text("Hello!"); };
-              if unsafe { imgui_button("OK") } != 0 { unsafe { imgui_close_current_popup(); }; }
-              unsafe { imgui_end_popup(); };
             }
             unsafe { imgui_end(); };
           }
