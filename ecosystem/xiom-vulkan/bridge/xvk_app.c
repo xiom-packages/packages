@@ -718,13 +718,17 @@ int64_t xvk_get_glfw_window(int64_t app_h)
 int32_t xvk_get_fb_width(int64_t app_h)
 {
     XvkApp* a = xvk_from_handle(app_h);
-    if (!a) return 0;
-    return (int32_t)a->swapchain_extent.width;
+    if (!a || !a->window) return 0;
+    int w, h;
+    glfwGetFramebufferSize(a->window, &w, &h);
+    return (int32_t)w;
 }
 
 int32_t xvk_get_fb_height(int64_t app_h)
 {
     XvkApp* a = xvk_from_handle(app_h);
-    if (!a) return 0;
-    return (int32_t)a->swapchain_extent.height;
+    if (!a || !a->window) return 0;
+    int w, h;
+    glfwGetFramebufferSize(a->window, &w, &h);
+    return (int32_t)h;
 }
