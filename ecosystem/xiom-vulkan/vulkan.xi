@@ -187,6 +187,9 @@ extern "C" {
   fn xvk_free_pixels(pixels: Int);
 
   // Textured quad rendering
+  fn xvk_image_load(filepath: Str, out_width: Int, out_height: Int) -> Int;
+  fn xvk_image_free(pixels: Int);
+
   fn xvk_draw_texture_quad(app: Int, image_view: Int, sampler: Int, cx: Float32, cy: Float32, hw: Float32, hh: Float32);
 
   // UI hit-testing (avoids Float64 in XIOM)
@@ -329,6 +332,16 @@ pub fn draw_texture_quad(app: Int, image_view: Int, sampler: Int, cx: Float32, c
   requires: image_view != 0
 {
   unsafe { xvk_draw_texture_quad(app, image_view, sampler, cx, cy, hw, hh); }
+}
+
+pub fn image_load(app: Int, filepath: Str, out_width: Int, out_height: Int) -> Int
+  requires: app != 0
+{
+  return unsafe { xvk_image_load(filepath, out_width, out_height) };
+}
+
+pub fn image_free(pixels: Int) {
+  unsafe { xvk_image_free(pixels); }
 }
 
 pub fn draw_cube_3d_at(app: Int, angle: Float32, px: Float32, py: Float32, pz: Float32, scale: Float32)

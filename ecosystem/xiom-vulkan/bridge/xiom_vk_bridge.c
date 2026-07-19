@@ -12,6 +12,9 @@
 /* Phase 8.3 — Font/text rendering */
 #include "xvk_font.c"
 
+/* Image loader (PNG/JPG/BMP/TGA via stb_image) */
+#include "xvk_image.c"
+
 #include "xvk_util.c"
 #include "xvk_math.c"
 #include "xvk_instance.c"

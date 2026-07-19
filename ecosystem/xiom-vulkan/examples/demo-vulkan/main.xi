@@ -11,6 +11,8 @@ var g_app: Int = 0;
 var g_exit: Int = 0;
 var g_font: Int = 0;
 var g_fsize: Float32 = 24.0;
+var g_tex_overworld: Int = 0;   // loaded sprite texture
+var g_tex_character: Int = 0;
 
 // ── Quick draw ──
 fn rct(cx: Float32, cy: Float32, hw: Float32, hh: Float32, r: Float32, g: Float32, b: Float32) {
@@ -44,11 +46,11 @@ var g_tx_cancel: Int = 0; var g_tx_apply: Int = 0;
 
 fn init_textures() {
   g_font = font_create(g_fsize);
-  g_tx_title = make_text_tex("XIOM Vulkan Showcase v0.3.3");
+  g_tx_title = make_text_tex("XIOM Vulkan Showcase v0.4.0");
   g_tx_t1 = make_text_tex("Triangle");
-  g_tx_t2 = make_text_tex("Cubes");
+  g_tx_t2 = make_text_tex("Sprites");
   g_tx_t3 = make_text_tex("Particles");
-  g_tx_t4 = make_text_tex("Sprites");
+  g_tx_t4 = make_text_tex("Cubes");
   g_tx_t5 = make_text_tex("Mesh");
   g_tx_t6 = make_text_tex("Compute");
   g_tx_exit = make_text_tex("Exit");
@@ -56,6 +58,24 @@ fn init_textures() {
   g_tx_ok = make_text_tex("OK");
   g_tx_cancel = make_text_tex("Cancel");
   g_tx_apply = make_text_tex("Apply");
+
+  // Load sprite sheets from resources
+  let wb2 = unsafe { xvk_alloc(4) }; let hb2 = unsafe { xvk_alloc(4) };
+  let px_ow = image_load(g_app, "examples/demo-vulkan/resources/2D_GFX/zelda_like_tilable_Sprites/Overworld.png", wb2, hb2);
+  if px_ow != 0 {
+    let w2 = unsafe { xvk_read_u32(wb2, 0) } as Int; let h2 = unsafe { xvk_read_u32(hb2, 0) } as Int;
+    g_tex_overworld = texture_create(g_app, px_ow, w2, h2, 0);
+    image_free(px_ow);
+    io.println("[showcase] Loaded Overworld.png");
+  }
+  let px_ch = image_load(g_app, "examples/demo-vulkan/resources/2D_GFX/zelda_like_tilable_Sprites/character.png", wb2, hb2);
+  if px_ch != 0 {
+    let w3 = unsafe { xvk_read_u32(wb2, 0) } as Int; let h3 = unsafe { xvk_read_u32(hb2, 0) } as Int;
+    g_tex_character = texture_create(g_app, px_ch, w3, h3, 0);
+    image_free(px_ch);
+    io.println("[showcase] Loaded character.png");
+  }
+  unsafe { xvk_free(wb2); xvk_free(hb2); }
 }
 
 fn draw_tex(tex: Int, cx: Float32, cy: Float32, hw: Float32, hh: Float32) {
@@ -186,6 +206,22 @@ fn draw_vp() {
   vp_angle = vp_angle + 0.02; if vp_angle > 6.28 { vp_angle = 0.0; }
   draw_cube_3d_at(g_app, vp_angle, 0.0, -0.15, -2.0, 0.35);
   draw_cube_3d_at(g_app, vp_angle + 1.5, 0.35, -0.25, -2.5, 0.22);
+
+  // Display loaded sprite in lower-left of viewport
+  if g_tex_overworld != 0 {
+    let view = texture_get_image_view(g_tex_overworld);
+    let samp = texture_get_sampler(g_tex_overworld);
+    if view != 0 {
+      draw_texture_quad(g_app, view, samp, cx - hw + 0.10, cy - hh + 0.12, 0.08, 0.06);
+    }
+  }
+  if g_tex_character != 0 {
+    let view = texture_get_image_view(g_tex_character);
+    let samp = texture_get_sampler(g_tex_character);
+    if view != 0 {
+      draw_texture_quad(g_app, view, samp, cx + hw - 0.06, cy - hh + 0.08, 0.04, 0.06);
+    }
+  }
 }
 
 // ── Status bar ──
