@@ -430,6 +430,14 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
         ms.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         ms.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
+        VkPipelineDepthStencilStateCreateInfo ds = {0};
+        ds.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        ds.depthTestEnable  = VK_TRUE;
+        ds.depthWriteEnable = VK_TRUE;
+        ds.depthCompareOp   = VK_COMPARE_OP_LESS;
+        ds.minDepthBounds   = 0.0f;
+        ds.maxDepthBounds   = 1.0f;
+
         VkPipelineColorBlendAttachmentState cb = {0};
         cb.colorWriteMask = 0xF;
         VkPipelineColorBlendStateCreateInfo cbs = {0};
@@ -452,6 +460,7 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
         gpci.pViewportState      = &vs;
         gpci.pRasterizationState = &rs;
         gpci.pMultisampleState   = &ms;
+        gpci.pDepthStencilState  = &ds;
         gpci.pDynamicState       = &dyn;
         gpci.pColorBlendState    = &cbs;
         gpci.layout              = a->lit3d_layout;
