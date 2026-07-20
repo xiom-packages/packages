@@ -6,20 +6,13 @@ int32_t xvk_begin_frame(int64_t app_h)
     XvkApp* a = xvk_from_handle(app_h);
     if (!a) return -1;
 
-    /* Initialize tracked size on first frame */
-    if (a->fb_w == 0 && a->fb_h == 0 && a->window) {
-        int iw, ih;
-        glfwGetFramebufferSize(a->window, &iw, &ih);
-        a->fb_w = iw; a->fb_h = ih;
-    }
-
     if (a->window) {
         int w, h;
         glfwGetFramebufferSize(a->window, &w, &h);
         if (w <= 0 || h <= 0) return 0;
-        if (w != a->fb_w || h != a->fb_h) {
+        if (w != (int)a->swapchain_extent.width ||
+            h != (int)a->swapchain_extent.height) {
             recreate_swapchain(a);
-            a->fb_w = w; a->fb_h = h;
             a->resized = 1;
             return 0;
         }
