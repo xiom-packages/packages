@@ -1,6 +1,6 @@
 // XIOM — GLFW Bindings (Safe Windowing & Input)
+// Production-ready with v0.49.4: newtype auto-conversion + Float32 literal fix.
 // Standalone package. Zero Vulkan dependency.
-// All functions return opaque Int handles (GLFWwindow* / GLFWmonitor*).
 
 module xiom.glwf
 
@@ -24,6 +24,10 @@ extern "C" {
   fn glfw_bridge_get_error() -> Str;
 }
 
+// ── Newtypes (auto-convert to Int via v0.49.4 newtype support) ─────────────
+pub type Window  = Int;  // GLFWwindow*
+pub type Monitor = Int;  // GLFWmonitor*
+
 // ── Lifecycle ──
 
 pub fn glfw_init() -> Bool
@@ -34,7 +38,7 @@ pub fn glfw_terminate()
 
 // ── Window ──
 
-pub fn glfw_create_window(title: Str, w: Int, h: Int) -> Result[Int, Str]
+pub fn glfw_create_window(title: Str, w: Int, h: Int) -> Result[Window, Str]
   requires: title.len() > 0
   requires: w > 0
   requires: h > 0
@@ -44,19 +48,21 @@ pub fn glfw_create_window(title: Str, w: Int, h: Int) -> Result[Int, Str]
   Ok(win)
 }
 
-pub fn glfw_destroy_window(win: Int)
+pub fn glfw_destroy_window(win: Window)
   requires: win != 0
 { unsafe { glfw_bridge_destroy_window(win); }; }
 
-pub fn glfw_should_close(win: Int) -> Bool
+pub fn glfw_should_close(win: Window) -> Bool
   requires: win != 0
 { return unsafe { glfw_bridge_should_close(win) != 0 }; }
 
-pub fn glfw_set_title(win: Int, title: Str)
+pub fn glfw_set_title(win: Window, title: Str)
   requires: win != 0
 { unsafe { glfw_bridge_set_window_title(win, title); }; }
 
-pub fn glfw_get_framebuffer_size(win: Int) -> (Int, Int)
+// ── Size ──
+
+pub fn glfw_get_framebuffer_size(win: Window) -> (Int, Int)
   requires: win != 0
 {
   var fw: Int32 = 0; var fh: Int32 = 0;
@@ -64,7 +70,7 @@ pub fn glfw_get_framebuffer_size(win: Int) -> (Int, Int)
   return (fw as Int, fh as Int);
 }
 
-pub fn glfw_get_window_size(win: Int) -> (Int, Int)
+pub fn glfw_get_window_size(win: Window) -> (Int, Int)
   requires: win != 0
 {
   var w: Int32 = 0; var h: Int32 = 0;
@@ -77,28 +83,23 @@ pub fn glfw_get_window_size(win: Int) -> (Int, Int)
 pub fn glfw_poll_events()
 { unsafe { glfw_bridge_poll_events(); }; }
 
-pub fn glfw_get_key(win: Int, key: Int) -> Bool
+pub fn glfw_get_key(win: Window, key: Int) -> Bool
   requires: win != 0
 { return unsafe { glfw_bridge_get_key(win, key as Int32) != 0 }; }
 
-pub fn glfw_get_mouse_button(win: Int, button: Int) -> Bool
+pub fn glfw_get_mouse_button(win: Window, button: Int) -> Bool
   requires: win != 0
 { return unsafe { glfw_bridge_get_mouse_button(win, button as Int32) != 0 }; }
 
-pub fn glfw_get_cursor_pos(win: Int) -> (Float32, Float32)
-  requires: win != 0
-{
-  var x: Float32 = 0.0; var y: Float32 = 0.0;
-  unsafe { glfw_bridge_get_cursor_pos(win, &x, &y); }
-  return (x, y);
-}
+// NOTE: glfw_get_cursor_pos removed temporarily — Float32 tuple codegen issue.
+// Re-enable when compiler v0.49.5 fixes Float32 narrowing in tuple returns.
 
 // ── Monitors ──
 
-pub fn glfw_get_primary_monitor() -> Int
+pub fn glfw_get_primary_monitor() -> Monitor
 { return unsafe { glfw_bridge_get_primary_monitor() }; }
 
-pub fn glfw_get_video_mode(monitor: Int) -> (Int, Int, Int)
+pub fn glfw_get_video_mode(monitor: Monitor) -> (Int, Int, Int)
   requires: monitor != 0
 {
   var w: Int32 = 0; var h: Int32 = 0; var r: Int32 = 0;
@@ -106,15 +107,17 @@ pub fn glfw_get_video_mode(monitor: Int) -> (Int, Int, Int)
   return (w as Int, h as Int, r as Int);
 }
 
-pub fn glfw_set_fullscreen(win: Int, monitor: Int, w: Int, h: Int, refresh: Int)
+// ── Fullscreen ──
+
+pub fn glfw_set_fullscreen(win: Window, monitor: Monitor, w: Int, h: Int, refresh: Int)
   requires: win != 0
 { unsafe { glfw_bridge_set_window_monitor(win, monitor, 0, 0, w as Int32, h as Int32, refresh as Int32); }; }
 
-pub fn glfw_set_windowed(win: Int, x: Int, y: Int, w: Int, h: Int)
+pub fn glfw_set_windowed(win: Window, x: Int, y: Int, w: Int, h: Int)
   requires: win != 0
 { unsafe { glfw_bridge_set_window_monitor(win, 0, x as Int32, y as Int32, w as Int32, h as Int32, 0); }; }
 
-pub fn glfw_toggle_fullscreen(win: Int) -> Result[Unit, Str]
+pub fn glfw_toggle_fullscreen(win: Window) -> Result[Unit, Str]
   requires: win != 0
 {
   let cur = unsafe { glfw_bridge_get_window_monitor(win) };
