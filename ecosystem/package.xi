@@ -43,7 +43,6 @@ package xiom_ecosystem {
     "xiom-phonon",
     "xiom-control",
     "xiom-sensor",
-    "xiom-ffi",
     "xiom-bench",
     "xiom-log",
     "xiom-kafka",
