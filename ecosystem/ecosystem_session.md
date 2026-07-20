@@ -7,7 +7,7 @@
 
 ## Current State — All Production Packages
 
-### xiom-vulkan (9/10)
+### xiom-vulkan (10/10) ✅ PRODUCTION
 - 91 safe wrappers (+9 accessors), 100% FFI coverage
 - 78% contracts (64/82 requires, 1/82 ensures)
 - 9 new accessor wrappers: get_glfw_window, get_instance, get_device, get_physical_device, get_graphics_queue, get_render_pass, get_command_buffer, get_fb_width, get_fb_height — all with `requires: app != 0`
@@ -15,7 +15,7 @@
 - C bridge: 368 functions, 0 errors, 0 warnings
 - Frame guard: g_in_frame prevents double-begin/end-without-begin
 - `create_app_from_window(window)` decouples from GLFW
-- Missing: `tests/` directory for automated conformance
+- ✅ **tests/test_conformance.xi**: 29 conformance tests covering lifecycle, accessors, frame, input, utility, buffers, offscreen, camera, math, textures, font, images, samplers, drawing, particles, error handling
 
 ### xiom-glfw (8/10)
 - 16 safe wrappers, Window/Monitor newtypes (v0.49.4+)
@@ -63,6 +63,7 @@ Priority: xiom-sqlite → xiom-libuv → xiom-openblas → xiom-numpy → xiom-o
 ## Latest Commits (this session)
 
 ```
+NEW     feat(xiom-vulkan): 29 conformance tests — lifecycle, accessors, frame, input, buffers, offscreen, camera, math, textures, font, images, samplers, drawing, particles, error handling
 NEW     feat(ecosystem): add 9 safe accessor wrappers to xiom-vulkan + 2 imgui wrappers
 NEW     refactor(ecosystem): remove all unsafe FFI from imgui demo files (31 blocks → 0)
 cf83e2c feat(xiom-vulkan): 100% safe wrapper coverage + 7 SDK showcase examples
