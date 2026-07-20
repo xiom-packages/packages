@@ -427,6 +427,175 @@ pub fn draw_particles(app: Int, dt: Float32)
 }
 
 // ===========================================================================
+// Safe wrappers — Camera (6 functions)
+// ===========================================================================
+
+pub fn camera_set_view(app: Int, ex: Float32, ey: Float32, ez: Float32,
+    tx: Float32, ty: Float32, tz: Float32)
+  requires: app != 0
+{ unsafe { xvk_camera_set_view(app, ex, ey, ez, tx, ty, tz); }; }
+
+pub fn camera_orbit(app: Int, dyaw: Float32, dpitch: Float32, dradius: Float32)
+  requires: app != 0
+{ unsafe { xvk_camera_orbit(app, dyaw, dpitch, dradius); }; }
+
+pub fn camera_zoom(app: Int, delta: Float32)
+  requires: app != 0
+{ unsafe { xvk_camera_zoom(app, delta); }; }
+
+pub fn camera_reset(app: Int)
+  requires: app != 0
+{ unsafe { xvk_camera_reset(app); }; }
+
+pub fn camera_set_aspect(app: Int, aspect: Float32)
+  requires: app != 0
+{ unsafe { xvk_camera_set_aspect_ratio(app, aspect); }; }
+
+pub fn camera_set_aspect_from_fb(app: Int, fb_w: Int32, fb_h: Int32)
+  requires: app != 0
+{ unsafe { xvk_camera_set_aspect_from_fb(app, fb_w, fb_h); }; }
+
+// ===========================================================================
+// Safe wrappers — Math (2 functions)
+// ===========================================================================
+
+pub fn cos(x: Float32) -> Float32 { return unsafe { xvk_cos(x) }; }
+pub fn sin(x: Float32) -> Float32 { return unsafe { xvk_sin(x) }; }
+
+// ===========================================================================
+// Safe wrappers — Models / Meshes (6 functions)
+// ===========================================================================
+
+pub fn mesh_load(app: Int, filepath: Str) -> Result[Int, Str]
+  requires: app != 0
+{
+  let dev = unsafe { xvk_get_device(app) };
+  let phys = unsafe { xvk_get_physical_device(app) };
+  let mesh = unsafe { xvk_mesh_load(dev, phys, filepath) };
+  if mesh == 0 { return Err("mesh_load failed"); };
+  Ok(mesh)
+}
+
+pub fn mesh_vertex_count(mesh: Int) -> Int
+  requires: mesh != 0
+{ return unsafe { xvk_mesh_vertex_count(mesh) } as Int; }
+
+pub fn mesh_index_count(mesh: Int) -> Int
+  requires: mesh != 0
+{ return unsafe { xvk_mesh_index_count(mesh) } as Int; }
+
+pub fn mesh_draw(app: Int, mesh: Int, angle: Float32, px: Float32, py: Float32, pz: Float32, scale: Float32)
+  requires: app != 0
+  requires: mesh != 0
+{ unsafe { xvk_draw_mesh_lit(app, mesh, angle, px, py, pz, scale); }; }
+
+pub fn mesh_destroy(app: Int, mesh: Int)
+  requires: app != 0
+  requires: mesh != 0
+{
+  let dev = unsafe { xvk_get_device(app) };
+  unsafe { xvk_mesh_destroy(dev, mesh); };
+}
+
+// ===========================================================================
+// Safe wrappers — Fonts / Text (3 additional functions)
+// ===========================================================================
+
+pub fn font_create_from_file(filepath: Str, px_height: Float32) -> Result[Int, Str]
+{
+  var out_w: Int32 = 0; var out_h: Int32 = 0;
+  let font = unsafe { xvk_font_create_from_file(filepath, px_height, &out_w, &out_h) };
+  if font == 0 { return Err("font_create_from_file failed"); };
+  Ok(font)
+}
+
+pub fn font_render_text(font: Int, text: Str) -> Result[Int, Str]
+  requires: font != 0
+{
+  var out_w: Int32 = 0; var out_h: Int32 = 0;
+  let pixels = unsafe { xvk_font_render_text(font, text, &out_w, &out_h) };
+  if pixels == 0 { return Err("font_render_text failed"); };
+  Ok(pixels)
+}
+
+pub fn font_free_pixels(pixels: Int)
+  requires: pixels != 0
+{ unsafe { xvk_font_free_pixels(pixels); }; }
+
+// ===========================================================================
+// Safe wrappers — Procedural Textures (3 functions)
+// ===========================================================================
+
+pub fn proc_texture_solid(width: Int, height: Int, r: Float32, g: Float32, b: Float32) -> Result[Int, Str]
+  requires: width > 0
+  requires: height > 0
+{
+  let tex = unsafe { xvk_proc_texture_solid(width as Int32, height as Int32, r, g, b) };
+  if tex == 0 { return Err("proc_texture_solid failed"); };
+  Ok(tex)
+}
+
+pub fn proc_texture_gradient(width: Int, height: Int,
+    r1: Float32, g1: Float32, b1: Float32, r2: Float32, g2: Float32, b2: Float32, horizontal: Int) -> Result[Int, Str]
+  requires: width > 0
+  requires: height > 0
+{
+  let tex = unsafe { xvk_proc_texture_gradient(width as Int32, height as Int32, r1, g1, b1, r2, g2, b2, horizontal as Int32) };
+  if tex == 0 { return Err("proc_texture_gradient failed"); };
+  Ok(tex)
+}
+
+pub fn free_pixels(pixels: Int)
+  requires: pixels != 0
+{ unsafe { xvk_free_pixels(pixels); }; }
+
+// ===========================================================================
+// Safe wrappers — Lifecycle helpers (4 functions)
+// ===========================================================================
+
+pub fn app_did_resize(app: Int) -> Bool
+  requires: app != 0
+{ return unsafe { xvk_app_did_resize(app) != 0 }; }
+
+pub fn app_clear_resize(app: Int)
+  requires: app != 0
+{ unsafe { xvk_app_clear_resize(app); }; }
+
+pub fn app_toggle_fullscreen(app: Int)
+  requires: app != 0
+{ unsafe { xvk_app_toggle_fullscreen(app); }; }
+
+pub fn app_maximize(app: Int)
+  requires: app != 0
+{ unsafe { xvk_app_maximize(app); }; }
+
+// ===========================================================================
+// Safe wrappers — Audio (2 functions)
+// ===========================================================================
+
+pub fn audio_beep()
+{ unsafe { xvk_audio_beep(); }; }
+
+pub fn audio_play_wav(filepath: Str)
+{ unsafe { xvk_audio_play_wav(filepath); }; }
+
+// ===========================================================================
+// Safe wrappers — UI Hit-testing (1 function)
+// ===========================================================================
+
+pub fn button_hit_state(app: Int, cx: Float32, cy: Float32, hw: Float32, hh: Float32) -> Bool
+  requires: app != 0
+{ return unsafe { xvk_button_hit_state(app, cx, cy, hw, hh) != 0 }; }
+
+// ===========================================================================
+// Safe wrappers — Descriptor set free (1 function)
+// ===========================================================================
+
+pub fn desc_set_free(app: Int, pool: Int, set: Int)
+  requires: app != 0
+{ unsafe { xvk_desc_set_free(app, pool, set); }; }
+
+// ===========================================================================
 // Safe wrappers — Offscreen
 // ===========================================================================
 
