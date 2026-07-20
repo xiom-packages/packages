@@ -51,9 +51,10 @@ int32_t imgui_bridge_init(int64_t glfw_window)
     ImGui::StyleColorsDark();
 
     /* Runtime version check: bridge must match bundled ImGui .obj version.
-     * Mismatch causes ABI breakage with no compile-time diagnostic. */
-    if (strcmp(ImGui::GetVersion(), "1.92.9") != 0) {
-        DBG("ImGui version mismatch: expected 1.92.9, got %s", ImGui::GetVersion());
+     * Accept "1.92.9" or "1.92.9 WIP" (same version, different build label). */
+    const char* ver = ImGui::GetVersion();
+    if (strncmp(ver, "1.92.9", 6) != 0) {
+        DBG("ImGui version mismatch: expected 1.92.9, got %s", ver);
     }
 
     DBG("Init GLFW for Vulkan");
