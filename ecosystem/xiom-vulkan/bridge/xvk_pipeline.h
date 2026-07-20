@@ -14,7 +14,7 @@ VkPipeline create_graphics_pipeline(VkDevice dev,
     VkPipelineLayout layout, VkRenderPass rp,
     VkShaderModule vert, VkShaderModule frag,
     uint32_t width, uint32_t height,
-    int enable_depth);
+    int enable_depth, int dynamic_viewport);
 int create_sync_objects(VkDevice dev, int count,
     VkSemaphore* image_avail, VkSemaphore* render_fin, VkFence* fences);
 VkCommandPool create_cmd_pool(VkDevice dev, uint32_t family);

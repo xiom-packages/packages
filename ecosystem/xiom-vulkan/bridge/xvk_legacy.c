@@ -96,6 +96,18 @@ void xvk_draw_cube_3d_at(int64_t app_h, float angle,
     mat4_mul(mvp, proj, tmp);
 
     VkCommandBuffer cb = a->cmd_buffers[a->current_image];
+
+    /* Dynamic viewport/scissor (no-op for static pipelines) */
+    {
+        VkViewport vp = { 0, 0,
+            (float)a->swapchain_extent.width,
+            (float)a->swapchain_extent.height,
+            0.0f, 1.0f };
+        VkRect2D   sc = { {0,0}, a->swapchain_extent };
+        vkCmdSetViewport(cb, 0, 1, &vp);
+        vkCmdSetScissor(cb, 0, 1, &sc);
+    }
+
     vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, a->pipeline_3d);
     vkCmdPushConstants(cb, a->pipe_layout_3d, VK_SHADER_STAGE_VERTEX_BIT,
                        0, 64, mvp);

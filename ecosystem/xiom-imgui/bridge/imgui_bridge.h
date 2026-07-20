@@ -53,6 +53,15 @@ int32_t  imgui_color_edit4(const char* label, float r, float g, float b, float a
 int32_t  imgui_combo(const char* label, int32_t cur, const char* const* items, int32_t n);
 int32_t  imgui_list_box(const char* label, int32_t cur, const char* const* items, int32_t n);
 
+/* Widgets — extended */
+void     imgui_progress_bar(float fraction, float w, float h);
+int32_t  imgui_radio_button(const char* label, int32_t active);
+int32_t  imgui_selectable(const char* label, int32_t selected);
+void     imgui_text_wrapped(const char* text);
+void     imgui_label_text(const char* label, const char* text);
+int32_t  imgui_begin_disabled(int32_t disabled);
+void     imgui_end_disabled(void);
+
 /* Layout */
 void     imgui_separator(void);
 void     imgui_same_line(float offset, float spacing);

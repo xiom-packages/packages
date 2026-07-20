@@ -39,7 +39,7 @@ VkPipeline create_graphics_pipeline(VkDevice dev,
     VkPipelineLayout layout, VkRenderPass rp,
     VkShaderModule vert, VkShaderModule frag,
     uint32_t width, uint32_t height,
-    int enable_depth)
+    int enable_depth, int dynamic_viewport)
 {
     VkPipelineShaderStageCreateInfo stages[2] = {{0}};
     stages[0].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -75,9 +75,17 @@ VkPipeline create_graphics_pipeline(VkDevice dev,
     VkPipelineViewportStateCreateInfo vs = {0};
     vs.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     vs.viewportCount = 1;
-    vs.pViewports    = &vp;
+    if (!dynamic_viewport) vs.pViewports = &vp;
     vs.scissorCount  = 1;
-    vs.pScissors     = &scissor;
+    if (!dynamic_viewport) vs.pScissors  = &scissor;
+
+    VkPipelineDynamicStateCreateInfo dyn = {0};
+    VkDynamicState dyn_states[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+    if (dynamic_viewport) {
+        dyn.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        dyn.dynamicStateCount = 2;
+        dyn.pDynamicStates = dyn_states;
+    }
 
     VkPipelineRasterizationStateCreateInfo rs = {0};
     rs.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -122,6 +130,8 @@ VkPipeline create_graphics_pipeline(VkDevice dev,
     gpci.layout              = layout;
     gpci.renderPass          = rp;
     gpci.subpass             = 0;
+    if (dynamic_viewport)
+        gpci.pDynamicState   = &dyn;
 
     VkPipeline pipe = VK_NULL_HANDLE;
     VkResult res = vkCreateGraphicsPipelines(dev, VK_NULL_HANDLE,

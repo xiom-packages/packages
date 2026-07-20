@@ -10,6 +10,7 @@ int32_t xvk_begin_frame(int64_t app_h)
         int w, h;
         glfwGetFramebufferSize(a->window, &w, &h);
         if (w <= 0 || h <= 0) return 0;
+
         if (w != (int)a->swapchain_extent.width ||
             h != (int)a->swapchain_extent.height) {
             recreate_swapchain(a);
@@ -28,11 +29,18 @@ int32_t xvk_begin_frame(int64_t app_h)
     VkResult res = vkAcquireNextImageKHR(a->device, a->swapchain,
                                           UINT64_MAX, avail,
                                           VK_NULL_HANDLE, &img_idx);
-    if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR) {
+    if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_ERROR_SURFACE_LOST_KHR) {
+        /* Swapchain/surface unusable — recreate */
         recreate_swapchain(a);
+        a->resized = 1;
+        return 0;
+    } else if (res == VK_SUBOPTIMAL_KHR) {
+        /* Surface changed after framebuffer check. Recreate. */
+        recreate_swapchain(a);
+        a->resized = 1;
         return 0;
     }
-    if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) {
+    if (res != VK_SUCCESS) {
         xvk_set_error_fmt("vkAcquireNextImageKHR failed: %d", (int)res);
         return -1;
     }
@@ -122,8 +130,15 @@ void xvk_end_frame(int64_t app_h)
     pi.pImageIndices      = &img_idx;
 
     VkResult res = vkQueuePresentKHR(a->present_queue, &pi);
-    if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR) {
+    if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_ERROR_SURFACE_LOST_KHR) {
+        /* Swapchain/surface unusable — recreate immediately */
         recreate_swapchain(a);
+        a->resized = 1;
+    } else if (res == VK_SUBOPTIMAL_KHR) {
+        /* Swapchain still usable, just suboptimal. Defer recreation
+         * to next begin_frame to avoid mid-frame Vulkan object churn
+         * and prevent resize cascades with DWM animations. */
+        a->resized = 1;
     }
 
     a->frame_index = (a->frame_index + 1) % XVK_MAX_FRAMES;

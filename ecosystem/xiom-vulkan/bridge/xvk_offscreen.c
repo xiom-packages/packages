@@ -192,7 +192,7 @@ int64_t xvk_offscreen_create(int32_t width, int32_t height)
 
     a->offs_pipeline = create_graphics_pipeline(a->device,
         a->pipe_layout_2d, a->offs_render_pass,
-        tri_vert, tri_frag, width, height, 0);
+        tri_vert, tri_frag, width, height, 0, 0);
     vkDestroyShaderModule(a->device, tri_vert, NULL);
     vkDestroyShaderModule(a->device, tri_frag, NULL);
 

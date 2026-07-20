@@ -179,6 +179,18 @@ int32_t imgui_combo(const char* l, int32_t cur, const char* const* it, int32_t n
 int32_t imgui_list_box(const char* l, int32_t cur, const char* const* it, int32_t n)
     { ImGui::ListBox(l, &cur, it, n); return cur; }
 
+/* ── Extended Widgets ── */
+void    imgui_progress_bar(float frac, float w, float h)
+    { ImGui::ProgressBar(frac, w > 0 ? ImVec2(w,h) : ImVec2(-FLT_MIN, 0)); }
+int32_t imgui_radio_button(const char* l, int32_t active)
+    { return ImGui::RadioButton(l, active != 0) ? 1 : 0; }
+int32_t imgui_selectable(const char* l, int32_t sel)
+    { return ImGui::Selectable(l, sel != 0) ? 1 : 0; }
+void    imgui_text_wrapped(const char* t) { ImGui::TextWrapped("%s", t); }
+void    imgui_label_text(const char* label, const char* text) { ImGui::LabelText(label, "%s", text); }
+int32_t imgui_begin_disabled(int32_t d) { ImGui::BeginDisabled(d != 0); return d; }
+void    imgui_end_disabled(void) { ImGui::EndDisabled(); }
+
 /* ── Layout ── */
 void    imgui_separator(void) { ImGui::Separator(); }
 void    imgui_same_line(float off, float sp) { ImGui::SameLine(off, sp); }

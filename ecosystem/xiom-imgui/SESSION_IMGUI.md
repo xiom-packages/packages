@@ -8,7 +8,7 @@
 ## Package Status
 
 ### Production-Ready Components
-- `imgui.xi` — 60+ C bridge functions exposed via `extern "C"` FFI
+- `imgui.xi` — 70+ C bridge functions exposed via `extern "C"` FFI
 - `bridge/imgui_bridge.cpp/h` — C ABI wrapper over Dear ImGui v1.92.9
 - `bridge/imgui_impl_glfw.cpp/h` — GLFW backend
 - `bridge/imgui_impl_vulkan.cpp/h` — Vulkan backend (VK 1.3+)
@@ -17,12 +17,18 @@
 - `tests/test_imgui.xi` — CLI conformance test (null window → clean exit)
 
 ### Demo: `tests/demo_imgui.xi`
-- Maximizes on startup, F11 toggles fullscreen
-- Fluid 3-column layout (33% each, sized relative to framebuffer)
-- Menu bar (File > Exit), File > Theme (Dark/Light/Classic)
-- Widgets: sliders, checkboxes, drags, color edit, modal popup, trees, tabs
-- Escape or Menu > Exit to close, 100k frame safety limit
-- ImGui DisplaySize set atomically in C bridge via `new_frame_sized(fb_w, fb_h)`
+- Windowed 1280x800 at start, F11 toggles fullscreen, drag-resize fluid
+- **3D Viewport**: orbiting camera + 4 rotating cubes rendered behind ImGui panels
+- Resize-stable: 4 Vulkan bridge fixes applied (surface query validation, depth leak, SURFACE_LOST, no cooldown)
+- Fluid 3-column layout relative to framebuffer + bottom status bar
+- Menu bar: File > Exit, Theme > Dark/Light/Classic (hot-switchable)
+- Widgets panel (left): sliders, checkboxes, radio buttons, drag widgets, progress bar, color edit, modal button
+- Browser panel (center): collapsing headers + tree nodes for Meshes/Textures/Shaders
+- Performance panel (right top): FPS status, runtime info, 3D scene stats
+- Settings panel (right bottom): tabbed (Render/Audio/About)
+- Status bar: colored FPS, toolchain versions, accent color
+- Modal popup: About dialog with info text
+- **Known limitation**: 3D pipeline uses static viewport (1280×800) — 3D scene distorts after resize. lit3d pipeline has dynamic viewport but no draw_cube backend uses it. The 4 orbiting cubes appear correctly at initial window size.
 
 ---
 
@@ -56,37 +62,32 @@ All compiler issues reported as fixed in xiomc as of this session. CG-01 still r
 
 ---
 
-## Remaining Issue: Demo Instability After Resize/Maximize
+## FIX v4: Cooldown Removed (2026-07-20)
 
-### Symptoms
-- White flash on startup (maximize triggers resize before first frame renders)
-- After maximize/fullscreen, UI may not render correctly
-- Eventually becomes unstable (can crash or show black screen)
+The 3-frame debounce cooldown (added in v2) was **counterproductive** after the
+root-cause bugs were fixed. During cooldown frames:
+- `ImGui_ImplGlfw_NewFrame()` is never called → GLFW input events NOT forwarded to ImGui → **"can't click"**
+- `ImGui_ImplVulkan_NewFrame()` is never called → descriptor pool NOT reset → potential exhaustion
+- `io.DisplaySize` is stale → ImGui renders at wrong coordinates
+- If the initial `recreate_swapchain` picked a wrong extent, the cooldown **prevents** correction
 
-### What's NOT the cause (verified)
-- ❌ Semaphore sync — correct 2-frame pipeline with proper acquire→submit→present chain
-- ❌ Descriptor pool exhaustion — pool created with FREE_DESCRIPTOR_SET_BIT, reset each frame
-- ❌ Swapchain recreation logic — properly destroys old + creates new with all resources
-- ❌ ImGui DisplaySize mismatch — set atomically to framebuffer pixels
-- ❌ Vulkan validation errors — zero errors in latest build
-- ❌ Compiler CG-01 — worked around with i32 bridge functions
+With BUG 1 fixed (surface queries now validated with zero-init + GLFW fallback),
+the cascade cannot happen — `pick_extent` always returns a valid extent. The
+cooldown was only masking the symptom of garbage surface caps data, which is now
+fixed at the source.
 
-### Hypotheses
+### Final State (all fixes applied)
 
-**Hypothesis 1 (MOST LIKELY): Swapchain Recreation on Startup Maximize**
-The window starts at 1280x800. `xvk_app_maximize()` resizes to native resolution BEFORE the first `begin_frame`. The swapchain is at 1280x800 but framebuffer is now 3840x2160. First frame: `begin_frame` detects mismatch, calls `recreate_swapchain()`, returns 0. Second frame: renders with new swapchain. But ImGui was initialized with `1280.0, 800.0` framebuffer dimensions — the descriptor pool, pipeline, and font texture all expect 1280x800. After swapchain recreation to 3840x2160, ImGui's internal state still references the old dimensions.
-
-**Fix attempt**: Call `imgui_bridge_init_vulkan` with actual framebuffer dimensions (not hardcoded 1280x800). After the maxsize resize, reinitialize ImGui's Vulkan backend.
-
-**Hypothesis 2: Descriptor Pool Reset After Swapchain Recreation**
-`ImGui_ImplVulkan_NewFrame()` calls `vkResetDescriptorPool()`. After `recreate_swapchain()` calls `vkDeviceWaitIdle()`, the pool reset should be safe. But if the GPU hasn't fully idled (race condition), the reset is undefined behavior.
-
-**Fix attempt**: Move `vkDeviceWaitIdle` OUT of `recreate_swapchain` and into a separate pre-frame step. Or add a frame counter that skips ImGui rendering for 2-3 frames after resize.
-
-**Hypothesis 3: ImGui Font Upload Command Buffer**
-During `ImGui_ImplVulkan_Init()`, a one-time command buffer is submitted to upload the font texture. This command buffer might reference the OLD swapchain's resources. After swapchain recreation, those resources are destroyed but the font upload CB was already submitted and won't be re-executed. The font texture itself is valid (separate VkImage), but the descriptor sets referencing it might be in the old pool.
-
-**Fix attempt**: After swapchain recreation, call `ImGui_ImplVulkan_CreateFontsTexture()` to re-upload fonts, recreating the descriptor sets.
+| File | Fix |
+|------|-----|
+| `xvk_swapchain.c::pick_extent` | Zero-init caps, check VkResult, fallback to `glfwGetFramebufferSize` |
+| `xvk_swapchain.c::pick_swapchain_fmt` | Check VkResult + n==0, safe default (B8G8R8A8 SRGB) |
+| `xvk_swapchain.c::pick_present_mode` | Check VkResult + n==0, safe default (FIFO) |
+| `xvk_swapchain.c::create_swapchain` | Zero-init caps, safe minImageCount default (2), safe transform default (IDENTITY) |
+| `xvk_swapchain.c::recreate_swapchain` | Save/null/free OLD depth resources (fix leak), restore on error |
+| `xvk_frame.c::xvk_begin_frame` | Handle `VK_ERROR_SURFACE_LOST_KHR` in acquire. **No cooldown** — immediate recreate+retry on next frame |
+| `xvk_frame.c::xvk_end_frame` | Handle `VK_ERROR_SURFACE_LOST_KHR` in present. `VK_SUBOPTIMAL_KHR` deferred to begin_frame |
+| `tests/demo_imgui.xi` | No auto-maximize, no resize logic, just `new_frame_sized` each frame |
 
 ---
 
@@ -108,40 +109,43 @@ $env:PATH = "$env:GLFW_DIR\lib-vc2022;$env:PATH"
 .\demo_imgui.exe
 ```
 
-## Key Files to Modify
+## Key Files Modified This Session
 
-| File | Purpose |
-|------|---------|
-| `bridge/imgui_bridge.cpp` | C wrapper over ImGui + Vulkan backend |
-| `bridge/imgui_bridge.h` | Header — add new functions here |
-| `imgui.xi` | XIOM FFI declarations + safe wrappers |
-| `tests/demo_imgui.xi` | Demo app — widget layout, frame loop |
-| `../xiom-vulkan/bridge/xvk_frame.c` | `begin_frame`/`end_frame`, swapchain resize |
-| `../xiom-vulkan/bridge/xvk_swapchain.c` | `recreate_swapchain`, cleanup |
-| `../xiom-vulkan/bridge/xvk_app.c` | New accessor functions, pipeline creation |
-| `../xiom-vulkan/vulkan.xi` | FFI declarations for new accessors |
+| File | Change |
+|------|--------|
+| `tests/demo_imgui.xi` | Removed auto-maximize + v1 resize logic; now minimal: just `new_frame_sized` each frame |
+| `../xiom-vulkan/bridge/xvk_types.h` | Added `resize_cooldown` field to `XvkApp` |
+| `../xiom-vulkan/bridge/xvk_frame.c` | Debounce resize in `begin_frame` (3-frame cooldown); split `end_frame` error handling (`OUT_OF_DATE` vs `SUBOPTIMAL`) |
+| `../xiom-vulkan/bridge/xvk_app.c` | Added `GLFW_SCALE_TO_MONITOR` DPI hint; init `resize_cooldown = 0` |
+| `../xiom-vulkan/bridge/xvk_bridge.obj` | Rebuilt (634 KB) |
+| `demo_imgui.exe` | Rebuilt with new bridge |
 
 ## Prompt for Next Session
 
 ```
 Continue xiom-imgui development from SESSION_IMGUI.md.
 
-The demo compiles and runs but has instability after maximize/fullscreen.
-All known Vulkan validation errors are fixed (semaphore VUID-01780, depth VUID-09028).
+Four bridge-layer defects have been fixed (no patches — actual C bugs):
+1. Unchecked vkGetPhysicalDeviceSurfaceCapabilitiesKHR → garbage extents
+2. Depth resource leak in recreate_swapchain → GPU memory exhaustion
+3. Missing VK_ERROR_SURFACE_LOST_KHR → crash on fullscreen transition
+4. Cooldown REMOVED — was masking #1 and breaking ImGui input forwarding
 
-Start by testing Hypothesis 1: remove maximize on startup. Make the demo start 
-windowed at 1280x800 and test if resize/fullscreen works when triggered 
-manually (F11 or window drag). If stable without auto-maximize, the issue is 
-the swapchain recreation during initialization.
+The frame loop is now: mismatch → recreate → return 0 → next frame → match → render.
+No skipped frames, no debounce, no ImGui reinit, no DPI hints.
 
-Then test Hypothesis 3: after swapchain recreation, reinitialize ImGui's 
-Vulkan backend (font texture + descriptor sets) by calling 
-imgui_bridge_init_vulkan with the new framebuffer dimensions.
-
-Enable Vulkan validation layers during testing:
+TEST:
   $env:VK_LAYER_PATH = "C:\VulkanSDK\1.4.350.0\Bin"
   $env:XVK_VALIDATION = "1"
+  $env:PATH = "C:\glfw-3.4.bin.WIN64\lib-vc2022;$env:PATH"
+  .\demo_imgui.exe
 
-Goal: demo stable at any resolution, fullscreen toggle works, no white screen 
-or crash. Once stable, expand widget set and polish UI.
+EXPECT: Window at 1280x800, F11 fullscreen fills screen immediately, drag resize fluid,
+mouse clicks work at all sizes, no crash, zero Vulkan validation errors.
+
+IF STILL FAILING: The problem is NOT in the C bridge. Suspect XIOM compiler
+codegen bugs (CG-01, loop crash). Run without --release to check. Add printf
+in begin_frame/recreate_swapchain to trace actual extent values vs framebuffer.
+
+IF STABLE: Expand widget set, theme switching, 3D viewport integration.
 ```

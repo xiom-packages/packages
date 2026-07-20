@@ -9,6 +9,7 @@ static float g_up[3]     = { 0.0f, 1.0f, 0.0f };
 static float g_fov        = 45.0f;
 static float g_near       = 0.1f;
 static float g_far        = 100.0f;
+static float g_aspect     = 16.0f / 9.0f;  /* updated per-frame from swapchain */
 static int   g_active     = 0;
 
 void xvk_camera_set_view(float eye_x, float eye_y, float eye_z,
@@ -24,6 +25,11 @@ void xvk_camera_set_projection(float fov_deg, float near_plane, float far_plane)
     g_fov = fov_deg;
     g_near = near_plane;
     g_far = far_plane;
+}
+
+void xvk_camera_set_aspect_ratio(float aspect)
+{
+    if (aspect > 0.0f) g_aspect = aspect;
 }
 
 void xvk_camera_get_view(int64_t out_matrix)
@@ -42,7 +48,7 @@ void xvk_camera_get_projection(int64_t out_matrix)
     float* m = (float*)(intptr_t)out_matrix;
     if (!m) return;
     float proj[16];
-    mat4_perspective(proj, g_fov * (float)M_PI / 180.0f, 16.0f/9.0f, g_near, g_far);
+    mat4_perspective(proj, g_fov * (float)M_PI / 180.0f, g_aspect, g_near, g_far);
     memcpy(m, proj, 64);
 }
 
@@ -95,3 +101,7 @@ void xvk_camera_reset(void)
 }
 
 int xvk_camera_is_active(void) { return g_active; }
+
+/* ── Trigonometry bridge (Float32 sin/cos for XIOM orbit math) ── */
+float xvk_cos(float x) { return cosf(x); }
+float xvk_sin(float x) { return sinf(x); }

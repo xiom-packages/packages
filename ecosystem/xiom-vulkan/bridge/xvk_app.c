@@ -169,7 +169,7 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
     }
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     a->window = glfwCreateWindow(width, height, title ? title : "XIOM Vulkan",
-                                 NULL, NULL);
+                                  NULL, NULL);
     if (!a->window) {
         xvk_set_error("glfwCreateWindow failed");
         glfwTerminate();
@@ -245,12 +245,12 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
 
     a->pipeline_2d = create_graphics_pipeline(a->device,
         a->pipe_layout_2d, a->render_pass,
-        tri_vert, tri_frag, width, height, 0);
+        tri_vert, tri_frag, width, height, 0, 0);
     if (!a->pipeline_2d) goto fail_shaders;
 
     a->pipeline_3d = create_graphics_pipeline(a->device,
         a->pipe_layout_3d, a->render_pass,
-        cube_vert, cube_frag, width, height, 1);
+        cube_vert, cube_frag, width, height, 1, 1);  /* dynamic viewport */
     if (!a->pipeline_3d) goto fail_shaders;
 
     vkDestroyShaderModule(a->device, tri_vert, NULL);
@@ -280,7 +280,7 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
         }
         a->pipeline_quad = create_graphics_pipeline(a->device,
             a->pipe_layout_quad, a->render_pass,
-            qv, qf, width, height, 0);
+            qv, qf, width, height, 0, 0);
         vkDestroyShaderModule(a->device, qv, NULL);
         vkDestroyShaderModule(a->device, qf, NULL);
         if (!a->pipeline_quad) goto fail;
@@ -329,7 +329,7 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
 
         a->texquad_pipeline = create_graphics_pipeline(a->device,
             a->texquad_layout, a->render_pass,
-            tv, tf, width, height, 0);
+            tv, tf, width, height, 0, 0);
         vkDestroyShaderModule(a->device, tv, NULL);
         vkDestroyShaderModule(a->device, tf, NULL);
         if (!a->texquad_pipeline) goto fail;

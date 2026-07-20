@@ -45,6 +45,14 @@ extern "C" {
   fn imgui_combo(label: Str, cur: Int32, items: Int, n: Int32) -> Int32;
   fn imgui_list_box(label: Str, cur: Int32, items: Int, n: Int32) -> Int32;
 
+  fn imgui_progress_bar(fraction: Float32, w: Float32, h: Float32);
+  fn imgui_radio_button(label: Str, active: Int32) -> Int32;
+  fn imgui_selectable(label: Str, selected: Int32) -> Int32;
+  fn imgui_text_wrapped(text: Str);
+  fn imgui_label_text(label: Str, text: Str);
+  fn imgui_begin_disabled(disabled: Int32) -> Int32;
+  fn imgui_end_disabled();
+
   fn imgui_separator();
   fn imgui_same_line(offset: Float32, spacing: Float32);
   fn imgui_spacing();
@@ -167,6 +175,11 @@ pub fn collapsing_header(label: Str) -> Bool { return unsafe { imgui_collapsing_
 pub fn style_dark() { unsafe { imgui_style_dark(); }; }
 pub fn style_light() { unsafe { imgui_style_light(); }; }
 pub fn style_classic() { unsafe { imgui_style_classic(); }; }
+pub fn progress_bar(fraction: Float32) { unsafe { imgui_progress_bar(fraction, -1.0, 0.0); }; }
+pub fn radio_button(label: Str, active: Bool) -> Bool { return unsafe { imgui_radio_button(label, if active { 1 as Int32 } else { 0 as Int32 }) != 0 }; }
+pub fn selectable(label: Str) -> Bool { return unsafe { imgui_selectable(label, 0 as Int32) != 0 }; }
+pub fn text_wrapped(text: Str) { unsafe { imgui_text_wrapped(text); }; }
+pub fn label_text(label: Str, text: Str) { unsafe { imgui_label_text(label, text); }; }
 
 
 

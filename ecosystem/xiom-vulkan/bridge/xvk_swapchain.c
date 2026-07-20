@@ -1,25 +1,39 @@
 #include "xvk_swapchain.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 VkSurfaceFormatKHR pick_swapchain_fmt(VkPhysicalDevice pd,
                                        VkSurfaceKHR surface)
 {
     uint32_t n = 0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(pd, surface, &n, NULL);
+    VkResult res = vkGetPhysicalDeviceSurfaceFormatsKHR(pd, surface, &n, NULL);
+    if (res != VK_SUCCESS || n == 0) {
+        /* Surface lost or no formats — return safe default */
+        VkSurfaceFormatKHR def = { VK_FORMAT_B8G8R8A8_UNORM,
+                                   VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+        return def;
+    }
     VkSurfaceFormatKHR* fmts = (VkSurfaceFormatKHR*)
         malloc(n * sizeof(VkSurfaceFormatKHR));
-    vkGetPhysicalDeviceSurfaceFormatsKHR(pd, surface, &n, fmts);
+    if (!fmts) {
+        VkSurfaceFormatKHR def = { VK_FORMAT_B8G8R8A8_UNORM,
+                                   VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+        return def;
+    }
+    res = vkGetPhysicalDeviceSurfaceFormatsKHR(pd, surface, &n, fmts);
 
     VkSurfaceFormatKHR chosen = {0};
     chosen.format = VK_FORMAT_B8G8R8A8_UNORM;
     chosen.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
-    for (uint32_t i = 0; i < n; ++i) {
-        if (fmts[i].format == VK_FORMAT_B8G8R8A8_UNORM &&
-            fmts[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-            chosen = fmts[i];
-            break;
+    if (res == VK_SUCCESS) {
+        for (uint32_t i = 0; i < n; ++i) {
+            if (fmts[i].format == VK_FORMAT_B8G8R8A8_UNORM &&
+                fmts[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+                chosen = fmts[i];
+                break;
+            }
         }
     }
     free(fmts);
@@ -30,16 +44,24 @@ VkPresentModeKHR pick_present_mode(VkPhysicalDevice pd,
                                     VkSurfaceKHR surface)
 {
     uint32_t n = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(pd, surface, &n, NULL);
+    VkResult res = vkGetPhysicalDeviceSurfacePresentModesKHR(pd, surface, &n, NULL);
+    if (res != VK_SUCCESS || n == 0) {
+        return VK_PRESENT_MODE_FIFO_KHR;  /* safe fallback */
+    }
     VkPresentModeKHR* modes = (VkPresentModeKHR*)
         malloc(n * sizeof(VkPresentModeKHR));
-    vkGetPhysicalDeviceSurfacePresentModesKHR(pd, surface, &n, modes);
+    if (!modes) {
+        return VK_PRESENT_MODE_FIFO_KHR;
+    }
+    res = vkGetPhysicalDeviceSurfacePresentModesKHR(pd, surface, &n, modes);
 
     VkPresentModeKHR chosen = VK_PRESENT_MODE_FIFO_KHR;
-    for (uint32_t i = 0; i < n; ++i) {
-        if (modes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
-            chosen = modes[i];
-            break;
+    if (res == VK_SUCCESS) {
+        for (uint32_t i = 0; i < n; ++i) {
+            if (modes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
+                chosen = modes[i];
+                break;
+            }
         }
     }
     free(modes);
@@ -50,21 +72,29 @@ VkExtent2D pick_extent(VkPhysicalDevice pd, VkSurfaceKHR surface,
                         GLFWwindow* win)
 {
     VkSurfaceCapabilitiesKHR caps;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(pd, surface, &caps);
+    memset(&caps, 0, sizeof(caps));  /* zero-init: safe if query fails */
+    VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(pd, surface, &caps);
 
-    if (caps.currentExtent.width != UINT32_MAX)
+    if (res == VK_SUCCESS && caps.currentExtent.width != UINT32_MAX &&
+        caps.currentExtent.width > 0 && caps.currentExtent.height > 0)
         return caps.currentExtent;
 
+    /* Surface query failed, surface has no fixed size, or extent is zero.
+     * Fall back to glfwGetFramebufferSize as authoritative source. */
     int w, h;
     glfwGetFramebufferSize(win, &w, &h);
     VkExtent2D ext = {
-        (uint32_t)(w < 0 ? 0 : w),
-        (uint32_t)(h < 0 ? 0 : h)
+        (uint32_t)(w > 0 ? w : 1),
+        (uint32_t)(h > 0 ? h : 1)
     };
-    ext.width  = ext.width  < caps.minImageExtent.width  ? caps.minImageExtent.width  : ext.width;
-    ext.height = ext.height < caps.minImageExtent.height ? caps.minImageExtent.height : ext.height;
-    ext.width  = ext.width  > caps.maxImageExtent.width  ? caps.maxImageExtent.width  : ext.width;
-    ext.height = ext.height > caps.maxImageExtent.height ? caps.maxImageExtent.height : ext.height;
+
+    /* Clamp to surface limits if we have valid caps data */
+    if (res == VK_SUCCESS) {
+        if (ext.width  < caps.minImageExtent.width)  ext.width  = caps.minImageExtent.width;
+        if (ext.height < caps.minImageExtent.height) ext.height = caps.minImageExtent.height;
+        if (caps.maxImageExtent.width  > 0 && ext.width  > caps.maxImageExtent.width)  ext.width  = caps.maxImageExtent.width;
+        if (caps.maxImageExtent.height > 0 && ext.height > caps.maxImageExtent.height) ext.height = caps.maxImageExtent.height;
+    }
     return ext;
 }
 
@@ -150,7 +180,16 @@ int create_depth_resources(XvkApp* a)
 int create_swapchain(XvkApp* a)
 {
     VkSurfaceCapabilitiesKHR caps;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(a->phys_dev, a->surface, &caps);
+    memset(&caps, 0, sizeof(caps));
+    VkResult caps_res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+        a->phys_dev, a->surface, &caps);
+    /* If surface query fails, caps is zeroed; pick_extent falls back to GLFW.
+     * minImageCount defaults to 2 (safe minimum); transform + alpha use defaults. */
+
+    int32_t min_images = 2;
+    if (caps_res == VK_SUCCESS && caps.minImageCount > 0) {
+        min_images = (int32_t)caps.minImageCount;
+    }
 
     VkSurfaceFormatKHR fmt = pick_swapchain_fmt(a->phys_dev, a->surface);
     VkPresentModeKHR   pm  = pick_present_mode(a->phys_dev, a->surface);
@@ -159,8 +198,8 @@ int create_swapchain(XvkApp* a)
     a->swapchain_fmt    = fmt.format;
     a->swapchain_extent = ext;
 
-    uint32_t desired = caps.minImageCount + 1;
-    if (caps.maxImageCount > 0 && desired > caps.maxImageCount)
+    uint32_t desired = (uint32_t)(min_images + 1);
+    if (caps_res == VK_SUCCESS && caps.maxImageCount > 0 && desired > caps.maxImageCount)
         desired = caps.maxImageCount;
 
     VkSwapchainCreateInfoKHR sci = {0};
@@ -172,7 +211,8 @@ int create_swapchain(XvkApp* a)
     sci.imageExtent      = ext;
     sci.imageArrayLayers = 1;
     sci.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    sci.preTransform     = caps.currentTransform;
+    sci.preTransform     = (caps_res == VK_SUCCESS)
+        ? caps.currentTransform : VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
     sci.compositeAlpha   = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     sci.presentMode      = pm;
     sci.clipped          = VK_TRUE;
@@ -276,11 +316,19 @@ int recreate_swapchain(XvkApp* a)
     VkFramebuffer* old_fb          = a->framebuffers;
     int            old_count       = a->swapchain_image_count;
 
+    /* Also save old depth resources — create_depth_resources overwrites them */
+    VkImage        old_depth_img  = a->depth_image;
+    VkDeviceMemory old_depth_mem  = a->depth_memory;
+    VkImageView    old_depth_view = a->depth_image_view;
+
     /* Null out so cleanup doesn't free them (we'll do it explicitly) */
     a->swapchain           = VK_NULL_HANDLE;
     a->swapchain_images    = NULL;
     a->swapchain_image_views = NULL;
     a->framebuffers        = NULL;
+    a->depth_image         = VK_NULL_HANDLE;
+    a->depth_memory        = VK_NULL_HANDLE;
+    a->depth_image_view    = VK_NULL_HANDLE;
 
     if (!create_swapchain(a)) {
         /* Restore old swapchain and continue */
@@ -288,6 +336,9 @@ int recreate_swapchain(XvkApp* a)
         a->swapchain_images     = old_images;
         a->swapchain_image_views = old_views;
         a->framebuffers         = old_fb;
+        a->depth_image          = old_depth_img;
+        a->depth_memory         = old_depth_mem;
+        a->depth_image_view     = old_depth_view;
         a->swapchain_image_count = old_count;
         return 0;
     }
@@ -297,6 +348,9 @@ int recreate_swapchain(XvkApp* a)
         a->swapchain_images     = old_images;
         a->swapchain_image_views = old_views;
         a->framebuffers         = old_fb;
+        a->depth_image          = old_depth_img;
+        a->depth_memory         = old_depth_mem;
+        a->depth_image_view     = old_depth_view;
         a->swapchain_image_count = old_count;
         return 0;
     }
@@ -306,6 +360,9 @@ int recreate_swapchain(XvkApp* a)
         a->swapchain_images     = old_images;
         a->swapchain_image_views = old_views;
         a->framebuffers         = old_fb;
+        a->depth_image          = old_depth_img;
+        a->depth_memory         = old_depth_mem;
+        a->depth_image_view     = old_depth_view;
         a->swapchain_image_count = old_count;
         return 0;
     }
@@ -321,6 +378,12 @@ int recreate_swapchain(XvkApp* a)
     free(old_images);
     if (old_swapchain != VK_NULL_HANDLE)
         vkDestroySwapchainKHR(a->device, old_swapchain, NULL);
+    if (old_depth_view)
+        vkDestroyImageView(a->device, old_depth_view, NULL);
+    if (old_depth_img)
+        vkDestroyImage(a->device, old_depth_img, NULL);
+    if (old_depth_mem)
+        vkFreeMemory(a->device, old_depth_mem, NULL);
 
     /* Free old command buffers and reallocate */
     if (a->cmd_buffers) {

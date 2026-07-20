@@ -210,6 +210,9 @@ extern "C" {
   fn xvk_camera_orbit(dyaw: Float32, dpitch: Float32, dradius: Float32);
   fn xvk_camera_zoom(delta: Float32);
   fn xvk_camera_reset();
+  fn xvk_camera_set_aspect_ratio(aspect: Float32);
+  fn xvk_cos(x: Float32) -> Float32;
+  fn xvk_sin(x: Float32) -> Float32;
 
   // OBJ Mesh loader
   fn xvk_mesh_load(device: Int, phys_dev: Int, filepath: Str) -> Int;
