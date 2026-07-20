@@ -85,8 +85,50 @@ extern "C" {
   fn imgui_style_light();
   fn imgui_style_classic();
 
+  // Standard widgets (extended)
+  fn imgui_input_float(label: Str, val: Float32) -> Float32;
+  fn imgui_input_int(label: Str, val: Int32) -> Int32;
+  fn imgui_input_text(label: Str, buf: Int, buf_size: Int32) -> Int32;
+  fn imgui_color_edit4(label: Str, r: Float32, g: Float32, b: Float32, a: Float32) -> Int32;
+  fn imgui_combo(label: Str, current: Int32, items: Int, count: Int32) -> Int32;
+  fn imgui_list_box(label: Str, current: Int32, items: Int, count: Int32) -> Int32;
+  fn imgui_begin_disabled(disabled: Int32) -> Int32;
+  fn imgui_end_disabled();
+
+  // Trees (extended)
+  fn imgui_tree_node_flags(label: Str, flags: Int32) -> Int32;
+
+  // Popups (extended)
+  fn imgui_begin_popup(id: Str) -> Int32;
+  fn imgui_end_popup();
+  fn imgui_begin_popup_context_item(id: Str) -> Int32;
+
+  // Menus (extended)
+  fn imgui_begin_menu_bar() -> Int32;
+  fn imgui_end_menu_bar();
+
+  // Tooltips
+  fn imgui_set_tooltip(text: Str);
+  fn imgui_begin_tooltip();
+  fn imgui_end_tooltip();
+
+  // Interaction queries
+  fn imgui_set_scroll_here_y();
+  fn imgui_is_item_hovered() -> Int32;
+  fn imgui_is_item_clicked() -> Int32;
+
+  // Plots
+  fn imgui_plot_lines(label: Str, values: Int, count: Int32, min: Float32, max: Float32, w: Float32, h: Float32);
+  fn imgui_plot_histogram(label: Str, values: Int, count: Int32, min: Float32, max: Float32, w: Float32, h: Float32);
+
+  // Styling (extended)
+  fn imgui_push_style_color(idx: Int32, r: Float32, g: Float32, b: Float32, a: Float32);
+  fn imgui_pop_style_color(count: Int32);
+  fn imgui_color_edit4_rgba(label: Str, r: Int, g: Int, b: Int, a: Int);
+
   // Utility
   fn imgui_get_framerate() -> Int32;
+  fn imgui_get_frame_count() -> Int32;
 }
 
 // ── Safe wrappers with contracts ───────────────────────────────────────────
@@ -253,6 +295,77 @@ pub fn style_dark()    { unsafe { imgui_style_dark(); }; }
 pub fn style_light()   { unsafe { imgui_style_light(); }; }
 pub fn style_classic() { unsafe { imgui_style_classic(); }; }
 
+pub fn push_style_color(idx: Int32, r: Float32, g: Float32, b: Float32, a: Float32)
+  { unsafe { imgui_push_style_color(idx, r, g, b, a); }; }
+
+pub fn pop_style_color(count: Int32)
+  { unsafe { imgui_pop_style_color(count); }; }
+
+// Tooltips
+pub fn set_tooltip(text: Str) { unsafe { imgui_set_tooltip(text); }; }
+pub fn begin_tooltip() { unsafe { imgui_begin_tooltip(); }; }
+pub fn end_tooltip()   { unsafe { imgui_end_tooltip(); }; }
+
+// Interaction queries
+pub fn set_scroll_here_y() { unsafe { imgui_set_scroll_here_y(); }; }
+pub fn is_item_hovered() -> Bool { return unsafe { imgui_is_item_hovered() != 0 }; }
+pub fn is_item_clicked() -> Bool { return unsafe { imgui_is_item_clicked() != 0 }; }
+
+// Plots
+pub fn plot_lines(label: Str, values: Int, count: Int32, min: Float32, max: Float32)
+  { unsafe { imgui_plot_lines(label, values, count, min, max, 0.0, 0.0); }; }
+
+pub fn plot_histogram(label: Str, values: Int, count: Int32, min: Float32, max: Float32)
+  { unsafe { imgui_plot_histogram(label, values, count, min, max, 0.0, 0.0); }; }
+
+// Input
+pub fn input_float(label: Str, val: Float32) -> Float32
+  { return unsafe { imgui_input_float(label, val) }; }
+
+pub fn input_int(label: Str, val: Int32) -> Int32
+  { return unsafe { imgui_input_int(label, val) }; }
+
+// Combo / List
+pub fn combo(label: Str, current: Int32, items: Int, count: Int32) -> Int32
+  { return unsafe { imgui_combo(label, current, items, count) }; }
+
+pub fn list_box(label: Str, current: Int32, items: Int, count: Int32) -> Int32
+  { return unsafe { imgui_list_box(label, current, items, count) }; }
+
+// Disabled groups
+pub fn begin_disabled(disabled: Bool) { unsafe { imgui_begin_disabled(if disabled { TRUE_I32 } else { FALSE_I32 }); }; }
+pub fn end_disabled() { unsafe { imgui_end_disabled(); }; }
+
+// Popups (non-modal)
+pub fn begin_popup(id: Str) -> Bool
+  requires: id.len() > 0
+{ return unsafe { imgui_begin_popup(id) != 0 }; }
+
+pub fn end_popup()
+{ unsafe { imgui_end_popup(); }; }
+
+pub fn begin_popup_context_item(id: Str) -> Bool
+  requires: id.len() > 0
+{ return unsafe { imgui_begin_popup_context_item(id) != 0 }; }
+
+// Window-embedded menu bars
+pub fn begin_menu_bar() -> Bool
+{ return unsafe { imgui_begin_menu_bar() != 0 }; }
+
+pub fn end_menu_bar()
+{ unsafe { imgui_end_menu_bar(); }; }
+
+// Tree node with flags
+pub fn tree_node_flags(label: Str, flags: Int32) -> Bool
+{ return unsafe { imgui_tree_node_flags(label, flags) != 0 }; }
+
+// Color edit with alpha
+pub fn color_edit4(label: Str, r: Float32, g: Float32, b: Float32, a: Float32)
+{ unsafe { imgui_color_edit4(label, r, g, b, a); }; }
+
 // Utility
 pub fn get_framerate() -> Int32
 { return unsafe { imgui_get_framerate() }; }
+
+pub fn get_frame_count() -> Int32
+{ return unsafe { imgui_get_frame_count() }; }
