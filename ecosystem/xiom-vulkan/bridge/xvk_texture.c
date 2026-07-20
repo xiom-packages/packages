@@ -305,7 +305,7 @@ int64_t xvk_texture_create(int64_t device, int64_t physical_device,
         cbbi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         cbbi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-        vkBeginCommandBuffer(cb, &cbbi);
+        if (vkBeginCommandBuffer(cb, &cbbi) != VK_SUCCESS) goto fail_gpu;
 
         /* Transition UNDEFINED → TRANSFER_DST (all mips) */
         transition_layout(cb, gpu_image,
@@ -339,7 +339,7 @@ int64_t xvk_texture_create(int64_t device, int64_t physical_device,
                 VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
         }
 
-        vkEndCommandBuffer(cb);
+        if (vkEndCommandBuffer(cb) != VK_SUCCESS) goto fail_gpu;
 
         /* Submit and wait */
         VkSubmitInfo si = {0};
@@ -350,9 +350,12 @@ int64_t xvk_texture_create(int64_t device, int64_t physical_device,
         VkFence fence = VK_NULL_HANDLE;
         VkFenceCreateInfo fci = {0};
         fci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        vkCreateFence(dev, &fci, NULL, &fence);
+        if (vkCreateFence(dev, &fci, NULL, &fence) != VK_SUCCESS) goto fail_gpu;
 
-        vkQueueSubmit(q, 1, &si, fence);
+        if (vkQueueSubmit(q, 1, &si, fence) != VK_SUCCESS) {
+            vkDestroyFence(dev, fence, NULL);
+            goto fail_gpu;
+        }
         vkWaitForFences(dev, 1, &fence, VK_TRUE, UINT64_MAX);
         vkDestroyFence(dev, fence, NULL);
 

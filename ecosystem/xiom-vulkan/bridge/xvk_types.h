@@ -172,7 +172,9 @@ typedef struct XvkApp {
     int                 fb_w, fb_h;  /* tracked framebuffer size */
     uint32_t            current_image;
 
-    /* Camera state — per-app for multi-viewport / multi-window support */
+    /* Texture quad descriptor caching (avoids per-frame vkUpdateDescriptorSets) */
+    int64_t             texquad_cached_view;
+    int64_t             texquad_cached_sampler;
     float               cam_eye[3], cam_target[3];
     float               cam_fov, cam_near, cam_far, cam_aspect;
     int                 cam_active;

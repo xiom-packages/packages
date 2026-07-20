@@ -284,21 +284,26 @@ void xvk_draw_texture_quad(int64_t app_h, int64_t image_view, int64_t sampler,
 
     VkCommandBuffer cb = a->cmd_buffers[a->current_image];
 
-    /* Update descriptor set with the current image view + sampler */
-    VkDescriptorImageInfo image_info = {0};
-    image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    image_info.imageView   = (VkImageView)(intptr_t)image_view;
-    image_info.sampler     = (VkSampler)(intptr_t)sampler;
+    /* Update descriptor set only when texture changes (not every frame).
+     * Cached handles avoid redundant vkUpdateDescriptorSets calls. */
+    if (image_view != a->texquad_cached_view || sampler != a->texquad_cached_sampler) {
+        VkDescriptorImageInfo image_info = {0};
+        image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        image_info.imageView   = (VkImageView)(intptr_t)image_view;
+        image_info.sampler     = (VkSampler)(intptr_t)sampler;
 
-    VkWriteDescriptorSet write = {0};
-    write.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    write.dstSet          = a->texquad_ds;
-    write.dstBinding      = 1;
-    write.descriptorCount = 1;
-    write.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    write.pImageInfo      = &image_info;
+        VkWriteDescriptorSet write = {0};
+        write.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        write.dstSet          = a->texquad_ds;
+        write.dstBinding      = 1;
+        write.descriptorCount = 1;
+        write.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        write.pImageInfo      = &image_info;
+        vkUpdateDescriptorSets(a->device, 1, &write, 0, NULL);
 
-    vkUpdateDescriptorSets(a->device, 1, &write, 0, NULL);
+        a->texquad_cached_view    = (int64_t)image_view;
+        a->texquad_cached_sampler = (int64_t)sampler;
+    }
 
     /* Bind pipeline + descriptor set + push constants, then draw */
     vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, a->texquad_pipeline);

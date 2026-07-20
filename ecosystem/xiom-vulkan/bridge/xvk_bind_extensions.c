@@ -1,4 +1,5 @@
 #include "xvk_bind_extensions.h"
+#include <stdatomic.h>
 
 #define XVK_EXT_DISP(T, h)   ((T)(intptr_t)(h))
 #define XVK_EXT_NDISP(T, h)  ((T)(uint64_t)(h))
@@ -903,12 +904,14 @@ void xvk_cmd_encode_video_khr(int64_t cmd_buf, int64_t encode_info_struct)
 /* Phase 8.1: Validation message capture ring buffer                       */
 /* ======================================================================== */
 
+/* ── Validation message ring buffer (thread-safe via atomics) ── */
+
 #define XVK_VAL_MAX_MSGS 64
 #define XVK_VAL_MSG_LEN  256
 
-static char  g_xvk_val_msgs[XVK_VAL_MAX_MSGS][XVK_VAL_MSG_LEN];
-static int   g_xvk_val_count = 0;
-static int   g_xvk_val_head  = 0;
+static char         g_xvk_val_msgs[XVK_VAL_MAX_MSGS][XVK_VAL_MSG_LEN];
+static _Atomic int  g_xvk_val_count = 0;
+static _Atomic int  g_xvk_val_head  = 0;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL xvk_debug_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
@@ -919,7 +922,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL xvk_debug_callback(
     (void)pUserData;
     (void)messageTypes;
 
-    if (g_xvk_val_count >= XVK_VAL_MAX_MSGS)
+    /* Atomically check if buffer is full */
+    if (atomic_load(&g_xvk_val_count) >= XVK_VAL_MAX_MSGS)
         return VK_FALSE;  /* buffer full, drop message */
 
     const char* severity_str = "INFO";
@@ -930,7 +934,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL xvk_debug_callback(
     if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
         severity_str = "VERBOSE";
 
-    int idx = g_xvk_val_head;
+    int idx = atomic_load(&g_xvk_val_head);
     snprintf(g_xvk_val_msgs[idx], XVK_VAL_MSG_LEN,
              "[%s] %s",
              severity_str,
@@ -946,9 +950,10 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL xvk_debug_callback(
         }
     }
 
-    g_xvk_val_head = (g_xvk_val_head + 1) % XVK_VAL_MAX_MSGS;
-    if (g_xvk_val_count < XVK_VAL_MAX_MSGS)
-        g_xvk_val_count++;
+    /* Atomic ring buffer advance */
+    atomic_store(&g_xvk_val_head, (idx + 1) % XVK_VAL_MAX_MSGS);
+    if (atomic_load(&g_xvk_val_count) < XVK_VAL_MAX_MSGS)
+        atomic_fetch_add(&g_xvk_val_count, 1);
 
     return VK_FALSE;  /* VK_FALSE = continue, don't abort */
 }
@@ -961,8 +966,8 @@ int64_t xvk_create_debug_messenger_default(int64_t instance,
     if (!inst) { xvk_set_error("xvk_create_debug_messenger_default: null instance"); return 0; }
 
     /* Clear any previous validation messages */
-    g_xvk_val_count = 0;
-    g_xvk_val_head  = 0;
+    atomic_store(&g_xvk_val_count, 0);
+    atomic_store(&g_xvk_val_head, 0);
 
     VkDebugUtilsMessengerCreateInfoEXT ci = {0};
     ci.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -991,17 +996,19 @@ int32_t xvk_get_validation_messages(int64_t out_count, int64_t out_buffer)
 {
     int32_t* count_ptr = (int32_t*)(intptr_t)out_count;
     const char** buf = (const char**)(intptr_t)out_buffer;
-    if (!count_ptr || !buf || g_xvk_val_count == 0) {
+
+    int cnt = atomic_load(&g_xvk_val_count);
+    if (!count_ptr || !buf || cnt == 0) {
         if (count_ptr) *count_ptr = 0;
         return 0;
     }
 
-    int cnt = g_xvk_val_count;
     *count_ptr = (int32_t)cnt;
 
     /* Messages are stored in order: oldest at (head - count + MAX) % MAX,
      * newest at (head - 1 + MAX) % MAX. Write pointers in chronological order. */
-    int start = (g_xvk_val_head - cnt + XVK_VAL_MAX_MSGS) % XVK_VAL_MAX_MSGS;
+    int head = atomic_load(&g_xvk_val_head);
+    int start = (head - cnt + XVK_VAL_MAX_MSGS) % XVK_VAL_MAX_MSGS;
     for (int i = 0; i < cnt; i++) {
         int idx = (start + i) % XVK_VAL_MAX_MSGS;
         buf[i] = g_xvk_val_msgs[idx];
@@ -1011,8 +1018,8 @@ int32_t xvk_get_validation_messages(int64_t out_count, int64_t out_buffer)
 
 void xvk_clear_validation_messages(void)
 {
-    g_xvk_val_count = 0;
-    g_xvk_val_head  = 0;
+    atomic_store(&g_xvk_val_count, 0);
+    atomic_store(&g_xvk_val_head, 0);
 }
 
 #undef XVK_EXT_I
