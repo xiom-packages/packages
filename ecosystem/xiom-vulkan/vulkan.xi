@@ -236,17 +236,23 @@ extern "C" {
 // Phase 8.2 — Mouse/Keyboard Input
 // ===========================================================================
 
-pub fn get_mouse_pos(app: Int) -> (Float64, Float64) {
+pub fn get_mouse_pos(app: Int) -> (Float64, Float64)
+  requires: app != 0
+{
   let x = unsafe { xvk_get_mouse_x(app) };
   let y = unsafe { xvk_get_mouse_y(app) };
   return (x, y);
 }
 
-pub fn is_mouse_down(app: Int, button: Int) -> Bool {
+pub fn is_mouse_down(app: Int, button: Int) -> Bool
+  requires: app != 0
+{
   return 0 != unsafe { xvk_get_mouse_button(app, button as Int32) };
 }
 
-pub fn is_key_down(app: Int, key: Int) -> Bool {
+pub fn is_key_down(app: Int, key: Int) -> Bool
+  requires: app != 0
+{
   return 0 != unsafe { xvk_get_key(app, key as Int32) };
 }
 
@@ -396,9 +402,9 @@ pub fn image_load(app: Int, filepath: Str, out_width: Int, out_height: Int) -> I
   return unsafe { xvk_image_load(filepath, out_width, out_height) };
 }
 
-pub fn image_free(pixels: Int) {
-  unsafe { xvk_image_free(pixels); }
-}
+pub fn image_free(pixels: Int)
+  requires: pixels != 0
+{ unsafe { xvk_image_free(pixels); }; }
 
 pub fn draw_cube_3d_at(app: Int, angle: Float32, px: Float32, py: Float32, pz: Float32, scale: Float32)
   requires: app != 0
