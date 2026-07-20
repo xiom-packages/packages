@@ -24,7 +24,9 @@ pub type MigrationManager = {
   current_version: Int;
 } derive[Clone]
 
-pub fn Migration.new(version: Int, name: Str, up: Str, down: Str) -> Migration {
+pub fn Migration.new(version: Int, name: Str, up: Str, down: Str) -> Migration
+  requires: version > 0; requires: name.len() > 0; requires: up.len() > 0
+{
   return Migration{
     version: version,
     name: name,
@@ -46,7 +48,9 @@ pub fn MigrationManager.new() -> MigrationManager {
   return MigrationManager{ migrations: migs, current_version: 0 };
 }
 
-pub fn MigrationManager.add(mgr: &mut MigrationManager, migration: Migration) {
+pub fn MigrationManager.add(mgr: &mut MigrationManager, migration: Migration)
+  requires: migration.version > 0
+{
   mgr.migrations.push(migration);
 }
 
@@ -114,7 +118,9 @@ pub fn MigrationManager.up(mgr: &mut MigrationManager, conn: &SqliteConnection) 
   return Ok(ran);
 }
 
-pub fn MigrationManager.down(mgr: &mut MigrationManager, conn: &SqliteConnection, steps: Int) -> Result[Int, SqliteError] {
+pub fn MigrationManager.down(mgr: &mut MigrationManager, conn: &SqliteConnection, steps: Int) -> Result[Int, SqliteError]
+  requires: steps > 0
+{
   if steps <= 0 { return Ok(0); }
   if mgr.migrations.len() == 0 { return Ok(0); }
   MigrationManager.sort(mgr);

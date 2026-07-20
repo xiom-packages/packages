@@ -38,7 +38,9 @@ pub fn SqliteAffinity.to_sql(affinity: &SqliteAffinity) -> Str {
   }
 }
 
-pub fn ColumnDef.new(name: Str, col_type: SqliteAffinity) -> ColumnDef {
+pub fn ColumnDef.new(name: Str, col_type: SqliteAffinity) -> ColumnDef
+  requires: name.len() > 0
+{
   return ColumnDef{
     name: name,
     col_type: col_type,
@@ -61,17 +63,23 @@ pub fn ColumnDef.with_not_null(col: &mut ColumnDef) {
   col.nullable = false;
 }
 
-pub fn TableDef.new(name: Str) -> TableDef {
+pub fn TableDef.new(name: Str) -> TableDef
+  requires: name.len() > 0
+{
   var columns = Vec[ColumnDef].new();
   return TableDef{ name: name, columns: columns };
 }
 
-pub fn TableDef.add_column(table: &mut TableDef, name: Str, col_type: SqliteAffinity) {
+pub fn TableDef.add_column(table: &mut TableDef, name: Str, col_type: SqliteAffinity)
+  requires: name.len() > 0
+{
   var col = ColumnDef.new(name, col_type);
   table.columns.push(col);
 }
 
-pub fn TableDef.add_primary_key(table: &mut TableDef, name: Str, col_type: SqliteAffinity) {
+pub fn TableDef.add_primary_key(table: &mut TableDef, name: Str, col_type: SqliteAffinity)
+  requires: name.len() > 0
+{
   var col = ColumnDef.new(name, col_type);
   ColumnDef.with_primary_key(&mut col);
   table.columns.push(col);
@@ -127,7 +135,9 @@ pub fn TableDef.to_create_sql(table: &TableDef) -> Str {
   return sql;
 }
 
-pub fn CreateIndexDef.new(name: Str, table: Str, columns: Vec[Str], unique: Bool) -> CreateIndexDef {
+pub fn CreateIndexDef.new(name: Str, table: Str, columns: Vec[Str], unique: Bool) -> CreateIndexDef
+  requires: name.len() > 0; requires: table.len() > 0; requires: columns.len() > 0
+{
   return CreateIndexDef{
     name: name,
     table: table,

@@ -1,7 +1,7 @@
 # xiom-sqlite — SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
-**Status**: SPEC only — no implementation yet
+**Status**: PRODUCTION — v0.2.0, 109 public functions, 32 requires contracts, verified with v0.49.7
 **Depends on**: xiom.ffi (stdlib)
 
 ## What it wraps

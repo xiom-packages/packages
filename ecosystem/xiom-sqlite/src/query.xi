@@ -9,7 +9,9 @@ pub type QueryBuilder = {
   offset_val: Int;
 } derive[Clone]
 
-pub fn QueryBuilder.select(table: Str) -> QueryBuilder {
+pub fn QueryBuilder.select(table: Str) -> QueryBuilder
+  requires: table.len() > 0
+{
   var cols = Vec[Str].new();
   var conds = Vec[Str].new();
   var orders = Vec[Str].new();
@@ -23,11 +25,15 @@ pub fn QueryBuilder.select(table: Str) -> QueryBuilder {
   };
 }
 
-pub fn QueryBuilder.column(qb: &mut QueryBuilder, col: Str) {
+pub fn QueryBuilder.column(qb: &mut QueryBuilder, col: Str)
+  requires: col.len() > 0
+{
   qb.columns.push(col);
 }
 
-pub fn QueryBuilder.where_eq(qb: &mut QueryBuilder, col: Str, val: Str) {
+pub fn QueryBuilder.where_eq(qb: &mut QueryBuilder, col: Str, val: Str)
+  requires: col.len() > 0
+{
   var cond = col;
   cond = cond + " = '";
   cond = cond + val;
@@ -35,7 +41,9 @@ pub fn QueryBuilder.where_eq(qb: &mut QueryBuilder, col: Str, val: Str) {
   qb.conditions.push(cond);
 }
 
-pub fn QueryBuilder.where_neq(qb: &mut QueryBuilder, col: Str, val: Str) {
+pub fn QueryBuilder.where_neq(qb: &mut QueryBuilder, col: Str, val: Str)
+  requires: col.len() > 0
+{
   var cond = col;
   cond = cond + " != '";
   cond = cond + val;
@@ -43,7 +51,9 @@ pub fn QueryBuilder.where_neq(qb: &mut QueryBuilder, col: Str, val: Str) {
   qb.conditions.push(cond);
 }
 
-pub fn QueryBuilder.where_gt(qb: &mut QueryBuilder, col: Str, val: Str) {
+pub fn QueryBuilder.where_gt(qb: &mut QueryBuilder, col: Str, val: Str)
+  requires: col.len() > 0
+{
   var cond = col;
   cond = cond + " > '";
   cond = cond + val;
@@ -51,7 +61,9 @@ pub fn QueryBuilder.where_gt(qb: &mut QueryBuilder, col: Str, val: Str) {
   qb.conditions.push(cond);
 }
 
-pub fn QueryBuilder.where_lt(qb: &mut QueryBuilder, col: Str, val: Str) {
+pub fn QueryBuilder.where_lt(qb: &mut QueryBuilder, col: Str, val: Str)
+  requires: col.len() > 0
+{
   var cond = col;
   cond = cond + " < '";
   cond = cond + val;
@@ -59,7 +71,9 @@ pub fn QueryBuilder.where_lt(qb: &mut QueryBuilder, col: Str, val: Str) {
   qb.conditions.push(cond);
 }
 
-pub fn QueryBuilder.where_like(qb: &mut QueryBuilder, col: Str, pattern: Str) {
+pub fn QueryBuilder.where_like(qb: &mut QueryBuilder, col: Str, pattern: Str)
+  requires: col.len() > 0
+{
   var cond = col;
   cond = cond + " LIKE '";
   cond = cond + pattern;
@@ -67,7 +81,9 @@ pub fn QueryBuilder.where_like(qb: &mut QueryBuilder, col: Str, pattern: Str) {
   qb.conditions.push(cond);
 }
 
-pub fn QueryBuilder.where_in(qb: &mut QueryBuilder, col: Str, values: &Vec[Str]) {
+pub fn QueryBuilder.where_in(qb: &mut QueryBuilder, col: Str, values: &Vec[Str])
+  requires: col.len() > 0; requires: values.len() > 0
+{
   var cond = col;
   cond = cond + " IN (";
   var i = 0;
@@ -88,7 +104,9 @@ pub fn QueryBuilder.where_raw(qb: &mut QueryBuilder, condition: Str) {
   qb.conditions.push(condition);
 }
 
-pub fn QueryBuilder.order_by(qb: &mut QueryBuilder, col: Str, desc: Bool) {
+pub fn QueryBuilder.order_by(qb: &mut QueryBuilder, col: Str, desc: Bool)
+  requires: col.len() > 0
+{
   var clause = col;
   if desc {
     clause = clause + " DESC";
@@ -98,11 +116,15 @@ pub fn QueryBuilder.order_by(qb: &mut QueryBuilder, col: Str, desc: Bool) {
   qb.order_by.push(clause);
 }
 
-pub fn QueryBuilder.limit(qb: &mut QueryBuilder, limit: Int) {
+pub fn QueryBuilder.limit(qb: &mut QueryBuilder, limit: Int)
+  requires: limit >= 0
+{
   qb.limit_val = limit;
 }
 
-pub fn QueryBuilder.offset(qb: &mut QueryBuilder, offset: Int) {
+pub fn QueryBuilder.offset(qb: &mut QueryBuilder, offset: Int)
+  requires: offset >= 0
+{
   qb.offset_val = offset;
 }
 
@@ -161,24 +183,22 @@ fn int_to_str(value: Int) -> Str {
   var neg: Bool = value < 0;
   var val = value;
   if neg { val = -val; }
-  var chars = Vec[Str].new();
+  var result = "";
   while val > 0 {
     var digit = val % 10;
-    var ch = digit + ('0' as Int);
-    chars.push("");
-    var i = chars.len() - 1;
-    while i > 0 {
-      chars[i] = chars[i - 1];
-      i = i - 1;
-    }
-    chars[0] = "";
+    var ch = "";
+    if digit == 0 { ch = "0"; }
+    elif digit == 1 { ch = "1"; }
+    elif digit == 2 { ch = "2"; }
+    elif digit == 3 { ch = "3"; }
+    elif digit == 4 { ch = "4"; }
+    elif digit == 5 { ch = "5"; }
+    elif digit == 6 { ch = "6"; }
+    elif digit == 7 { ch = "7"; }
+    elif digit == 8 { ch = "8"; }
+    elif digit == 9 { ch = "9"; }
+    result = ch + result;
     val = val / 10;
-  }
-  var result = "";
-  var j = 0;
-  while j < chars.len() {
-    result = result + chars[j];
-    j = j + 1;
   }
   if neg {
     var r2 = "-";
@@ -216,7 +236,9 @@ pub fn query_to_sql(qb: &QueryBuilder) -> Str {
   return QueryBuilder.to_sql(qb);
 }
 
-pub fn query_insert_sql(table: Str, columns: &Vec[Str]) -> Str {
+pub fn query_insert_sql(table: Str, columns: &Vec[Str]) -> Str
+  requires: table.len() > 0; requires: columns.len() > 0
+{
   var sql = "INSERT INTO ";
   sql = sql + table;
   sql = sql + " (";
@@ -241,7 +263,9 @@ pub fn query_insert_sql(table: Str, columns: &Vec[Str]) -> Str {
   return sql;
 }
 
-pub fn query_update_sql(table: Str, sets: &Vec[Str], where_clause: Str) -> Str {
+pub fn query_update_sql(table: Str, sets: &Vec[Str], where_clause: Str) -> Str
+  requires: table.len() > 0; requires: sets.len() > 0
+{
   var sql = "UPDATE ";
   sql = sql + table;
   sql = sql + " SET ";
@@ -262,7 +286,9 @@ pub fn query_update_sql(table: Str, sets: &Vec[Str], where_clause: Str) -> Str {
   return sql;
 }
 
-pub fn query_delete_sql(table: Str, where_clause: Str) -> Str {
+pub fn query_delete_sql(table: Str, where_clause: Str) -> Str
+  requires: table.len() > 0
+{
   var sql = "DELETE FROM ";
   sql = sql + table;
   if where_clause != "" {

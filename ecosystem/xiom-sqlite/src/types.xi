@@ -112,7 +112,9 @@ fn clone_sqlite_row(row: &SqliteRow) -> SqliteRow {
   return SqliteRow{ columns: cols };
 }
 
-pub fn SqliteRow.get(row: &SqliteRow, index: Int) -> Option[SqliteValue] {
+pub fn SqliteRow.get(row: &SqliteRow, index: Int) -> Option[SqliteValue]
+  requires: index >= 0; requires: index < row.columns.len()
+{
   if index < 0 { return None; }
   if index >= row.columns.len() { return None; }
   var v = clone_sqlite_value(&row.columns[index]);
@@ -146,7 +148,9 @@ pub fn SqliteResult.column_count(result: &SqliteResult) -> Int {
   return result.column_names.len();
 }
 
-pub fn SqliteResult.get_row(result: &SqliteResult, index: Int) -> Option[SqliteRow] {
+pub fn SqliteResult.get_row(result: &SqliteResult, index: Int) -> Option[SqliteRow]
+  requires: index >= 0; requires: index < result.rows.len()
+{
   if index < 0 { return None; }
   if index >= result.rows.len() { return None; }
   var r = clone_sqlite_row(&result.rows[index]);
