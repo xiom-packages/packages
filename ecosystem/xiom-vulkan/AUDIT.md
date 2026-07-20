@@ -1,23 +1,34 @@
-# xiom-vulkan — Compiler Gap Audit & Production Readiness (v0.47.6)
+# xiom-vulkan — Compiler Gap Audit & Production Readiness (v0.48.9)
 
-**Compiler:** xiomc v0.47.6 "Production" — 495/495 tests, zero warnings
-**Package:** ecosystem/xiom-vulkan v0.2.0
+**Compiler:** xiomc v0.48.9 — 783/783 tests, zero warnings
+**Package:** ecosystem/xiom-vulkan
+**C bridge:** 0 errors, 0 warnings (clang -O2 -Wall -Wextra)
+**Last sprint:** 8 (2026-07-20)
 
-## Executive Summary
+## Status: Production-ready for single-threaded use
 
-xiom-vulkan is **production-grade on v0.47.6.** All 11 examples + tests compile AND link with **native pointer types** using `xiomc` directly from PATH — zero workarounds, zero scratch layers. Two bridge fixes (hex-constant macro, Windows platform libs) eliminated all C compilation and linking issues.
+### All critical audit findings resolved (6 sprints of C bridge fixes)
+| Sprint | What | Status |
+|--------|------|--------|
+| S1 | 10 vkBind* + 6 vkMapMemory checks, offscreen leaks | ✅ |
+| S2 | QueueSubmit, framebuffers NULL, fence, enumerate checks | ✅ |
+| S3 | Thread-local error buffer, allocator destroy | ✅ |
+| S5 | Render pass order, swapchain partial cleanup, image count, dynamic state | ✅ |
+| S7 | Camera state per-app (XvkApp struct), DPI FontGlobalScale | ✅ |
+| S8 | Descriptor set caching, validation ring buffer atomics, texture CB checks | ✅ |
 
-## Build Commands (v0.47.6)
+### Compiler-dependent issues (not fixable in package)
+| Gap | Status | Impact |
+|-----|--------|--------|
+| **CG-01b** Int32→Float32 cast | Fixed in v0.48.8 | Demo needs v0.48.8+ compiler |
+| **G-27** E001 false-positives on loop counters | P2, non-fatal | 34 instances |
+| **G-28** E001 extern out-param treated as move | P2, non-fatal | ~41 instances |
+| **G-03** pub const module limit (~99) | P2 | vulkan.xi near limit |
 
-```powershell
-# Single-command build + run any demo:
-.\run.ps1 demo2d              # 2D triangle
-.\run.ps1 demo3d              # Spinning cube
-.\run.ps1 particles           # Particle fountain
-.\run.ps1 shapes              # Animated quads + triangle
-.\run.ps1 cubes               # 3x3 spinning cubes
-.\run.ps1 vertex_buffer       # Vertex/index buffer workflow
-.\run.ps1 compute             # Offscreen golden-image test
+### Workarounds applied for current compiler (v0.48.7)
+- `xvk_camera_set_aspect_from_fb(Int32,Int32)` — aspect computed in C, avoids CG-01b
+- `TRUE_I32`/`FALSE_I32` constants — avoids `1 as Int32` casts
+- `Int32` params in wrapper signatures — avoids `as Int32` in caller code
 .\run.ps1 models              # Model field
 .\run.ps1 sprites             # Sprite field
 .\run.ps1 ui                  # Immediate-mode UI
