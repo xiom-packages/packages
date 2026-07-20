@@ -1,58 +1,133 @@
-// XIOM — GLFW Windowing Bindings
-// Copyright (c) 2026 Eleftherios Notas
-// Licensed under the MIT or Apache-2.0 license, at your option.
-module xiom.glfw
+// XIOM — GLFW Bindings (Safe Windowing & Input)
+// Standalone package. Zero Vulkan dependency.
+// All functions return opaque Int handles (GLFWwindow* / GLFWmonitor*).
 
-pub type Window = Int;
+module xiom.glwf
 
-pub fn init() -> Result[Unit, Str];
-pub fn terminate();
-pub fn get_version() -> (Int, Int, Int);
-pub fn get_error() -> Option[Str];
+extern "C" {
+  fn glfw_bridge_init() -> Int32;
+  fn glfw_bridge_terminate();
+  fn glfw_bridge_create_window(w: Int32, h: Int32, title: Str) -> Int;
+  fn glfw_bridge_destroy_window(window: Int);
+  fn glfw_bridge_should_close(window: Int) -> Int32;
+  fn glfw_bridge_set_window_title(window: Int, title: Str);
+  fn glfw_bridge_get_framebuffer_size(window: Int, w: Int, h: Int);
+  fn glfw_bridge_get_window_size(window: Int, w: Int, h: Int);
+  fn glfw_bridge_poll_events();
+  fn glfw_bridge_get_key(window: Int, key: Int32) -> Int32;
+  fn glfw_bridge_get_mouse_button(window: Int, button: Int32) -> Int32;
+  fn glfw_bridge_get_cursor_pos(window: Int, x: Int, y: Int);
+  fn glfw_bridge_get_primary_monitor() -> Int;
+  fn glfw_bridge_get_video_mode(monitor: Int, w: Int, h: Int, refresh: Int);
+  fn glfw_bridge_set_window_monitor(window: Int, monitor: Int, x: Int32, y: Int32, w: Int32, h: Int32, refresh: Int32);
+  fn glfw_bridge_get_window_monitor(window: Int) -> Int;
+  fn glfw_bridge_get_error() -> Str;
+}
 
-pub fn create_window(width: Int, height: Int, title: Str) -> Result[Window, Str];
-pub fn destroy_window(window: Window);
-pub fn should_close(window: Window) -> Bool;
-pub fn set_should_close(window: Window, value: Bool);
-pub fn set_title(window: Window, title: Str);
-pub fn get_window_size(window: Window) -> (Int, Int);
-pub fn set_window_size(window: Window, width: Int, height: Int);
-pub fn get_framebuffer_size(window: Window) -> (Int, Int);
+// ── Lifecycle ──
 
-pub fn poll_events();
-pub fn wait_events();
-pub fn get_time() -> Float64;
+pub fn init() -> Bool
+{ return unsafe { glfw_bridge_init() != 0 }; }
 
-pub fn get_key(window: Window, key: Int) -> Int; // 0=release, 1=press, 2=repeat
-pub fn get_mouse_button(window: Window, button: Int) -> Int;
-pub fn get_cursor_pos(window: Window) -> (Float64, Float64);
+pub fn terminate()
+{ unsafe { glfw_bridge_terminate(); }; }
 
-pub fn make_context_current(window: Window);
-pub fn swap_buffers(window: Window);
-pub fn set_swap_interval(interval: Int);
+// ── Window ──
 
-pub fn create_window_surface(instance: Int, window: Window) -> Result[Int, Str];
-pub fn get_vulkan_extensions() -> Vec[Str];
+pub fn create_window(title: Str, w: Int, h: Int) -> Result[Int, Str]
+  requires: title.len() > 0
+  requires: w > 0
+  requires: h > 0
+{
+  let win = unsafe { glfw_bridge_create_window(w as Int32, h as Int32, title) };
+  if win == 0 { return Err(unsafe { glfw_bridge_get_error() }); };
+  Ok(win)
+}
 
-// Key constants
-pub const KEY_SPACE: Int = 32;
-pub const KEY_ESCAPE: Int = 256;
-pub const KEY_ENTER: Int = 257;
-pub const KEY_TAB: Int = 258;
-pub const KEY_BACKSPACE: Int = 259;
-pub const KEY_LEFT: Int = 263;
-pub const KEY_RIGHT: Int = 262;
-pub const KEY_UP: Int = 265;
-pub const KEY_DOWN: Int = 264;
-pub const KEY_A: Int = 65;
-pub const KEY_W: Int = 87;
-pub const KEY_S: Int = 83;
-pub const KEY_D: Int = 68;
+pub fn destroy_window(win: Int)
+  requires: win != 0
+{ unsafe { glfw_bridge_destroy_window(win); }; }
 
-pub const MOUSE_BUTTON_LEFT: Int = 0;
-pub const MOUSE_BUTTON_RIGHT: Int = 1;
-pub const MOUSE_BUTTON_MIDDLE: Int = 2;
+pub fn should_close(win: Int) -> Bool
+  requires: win != 0
+{ return unsafe { glfw_bridge_should_close(win) != 0 }; }
 
-pub const PRESS: Int = 1;
-pub const RELEASE: Int = 0;
-pub const REPEAT: Int = 2;
+pub fn set_title(win: Int, title: Str)
+  requires: win != 0
+{ unsafe { glfw_bridge_set_window_title(win, title); }; }
+
+pub fn get_framebuffer_size(win: Int) -> (Int, Int)
+  requires: win != 0
+{
+  var fw: Int32 = 0; var fh: Int32 = 0;
+  unsafe { glfw_bridge_get_framebuffer_size(win, &fw, &fh); }
+  return (fw as Int, fh as Int);
+}
+
+pub fn get_window_size(win: Int) -> (Int, Int)
+  requires: win != 0
+{
+  var w: Int32 = 0; var h: Int32 = 0;
+  unsafe { glfw_bridge_get_window_size(win, &w, &h); }
+  return (w as Int, h as Int);
+}
+
+// ── Input ──
+
+pub fn poll_events()
+{ unsafe { glfw_bridge_poll_events(); }; }
+
+pub fn get_key(win: Int, key: Int) -> Bool
+  requires: win != 0
+{ return unsafe { glfw_bridge_get_key(win, key as Int32) != 0 }; }
+
+pub fn get_mouse_button(win: Int, button: Int) -> Bool
+  requires: win != 0
+{ return unsafe { glfw_bridge_get_mouse_button(win, button as Int32) != 0 }; }
+
+pub fn get_cursor_pos(win: Int) -> (Float32, Float32)
+  requires: win != 0
+{
+  var x: Float32 = 0.0; var y: Float32 = 0.0;
+  unsafe { glfw_bridge_get_cursor_pos(win, &x, &y); }
+  return (x, y);
+}
+
+// ── Monitors ──
+
+pub fn get_primary_monitor() -> Int
+{ return unsafe { glfw_bridge_get_primary_monitor() }; }
+
+pub fn get_video_mode(monitor: Int) -> (Int, Int, Int)
+  requires: monitor != 0
+{
+  var w: Int32 = 0; var h: Int32 = 0; var r: Int32 = 0;
+  unsafe { glfw_bridge_get_video_mode(monitor, &w, &h, &r); }
+  return (w as Int, h as Int, r as Int);
+}
+
+pub fn set_fullscreen(win: Int, monitor: Int, w: Int, h: Int, refresh: Int)
+  requires: win != 0
+{ unsafe { glfw_bridge_set_window_monitor(win, monitor, 0, 0, w as Int32, h as Int32, refresh as Int32); }; }
+
+pub fn set_windowed(win: Int, x: Int, y: Int, w: Int, h: Int)
+  requires: win != 0
+{ unsafe { glfw_bridge_set_window_monitor(win, 0, x as Int32, y as Int32, w as Int32, h as Int32, 0); }; }
+
+pub fn toggle_fullscreen(win: Int) -> Result[Unit, Str]
+  requires: win != 0
+{
+  let cur = unsafe { glfw_bridge_get_window_monitor(win) };
+  if cur != 0 {
+    let mon = unsafe { glfw_bridge_get_primary_monitor() };
+    var mw: Int32 = 0; var mh: Int32 = 0; var mr: Int32 = 0;
+    unsafe { glfw_bridge_get_video_mode(mon, &mw, &mh, &mr); };
+    unsafe { glfw_bridge_set_window_monitor(win, 0, 100, 100, (mw/2) as Int32, (mh/2) as Int32, 0); };
+  } else {
+    let mon = unsafe { glfw_bridge_get_primary_monitor() };
+    var mw: Int32 = 0; var mh: Int32 = 0; var mr: Int32 = 0;
+    unsafe { glfw_bridge_get_video_mode(mon, &mw, &mh, &mr); };
+    unsafe { glfw_bridge_set_window_monitor(win, mon, 0, 0, mw, mh, mr); };
+  }
+  Ok(())
+}
