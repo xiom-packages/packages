@@ -1,4 +1,4 @@
-# xiom-kafka — SPEC
+# xiom-openssl — SPEC
 **Phase**: 4 (Enterprise) | **Priority**: Medium
 **Status**: SPEC only | **Depends on**: xiom.ffi
-Apache Kafka client (librdkafka). System-installed. Weekend effort.
+OpenSSL — TLS/cryptography. System-installed. Day effort.
