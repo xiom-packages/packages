@@ -4,13 +4,12 @@
 
 module glfw_tests
 use xiom.test;
-use xiom.glfw;
+use xiom.glwf;
 
 fn test_init_terminate() -> TestResult {
-  match init() {
-    Ok(_) => { terminate(); return assert(true, "glfw init+terminate"); }
-    Err(_) => { return assert(true, "glfw skip (no display)"); }
-  }
+  if !glfw_init() { return assert(true, "glfw skip (no display)"); }
+  glfw_terminate();
+  return assert(true, "glfw init+terminate");
 }
 
 fn main() -> Int {

@@ -1,7 +1,7 @@
 # xiom-glfw — SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
-**Status**: PRODUCTION — v0.2.0, 16 safe wrappers, verified with v0.49.5
+**Status**: PRODUCTION — v0.2.0, 17 safe wrappers, verified with v0.49.7
 **Depends on**: xiom.ffi (stdlib)
 
 ## What it wraps
@@ -21,13 +21,15 @@ Window creation, keyboard/mouse input, monitor management, fullscreen toggle.
 ## Architecture
 ```
 xiom-glfw/
-├── glfw.xi              # 16 safe wrappers with contracts
+├── glfw.xi              # 17 safe wrappers with contracts
 ├── bridge/
-│   ├── glfw_bridge.h    # Flat C ABI (15 functions)
+│   ├── glfw_bridge.h    # Flat C ABI (18 functions)
 │   ├── glfw_bridge.c    # Implementation
 │   └── glfw_bridge.obj  # Compiled
 └── tests/
-    └── test_window.xi   # Verified: 5s stable
+    ├── test_conformance.xi  # 18 conformance tests
+    ├── test_glfw.xi     # Lifecycle smoke
+    └── test_window.xi   # Integration smoke
 ```
 
 ## API (complete, all with requires contracts)
