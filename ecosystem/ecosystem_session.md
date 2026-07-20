@@ -68,6 +68,7 @@ Priority: xiom-sqlite → xiom-libuv → xiom-openblas → xiom-numpy → xiom-o
 ## Latest Commits (this session)
 
 ```
+NEW     feat(xiom-sqlite): 9/10 — 32 contracts + 29 conformance tests + ROADMAP + fix int_to_str bug
 NEW     feat(xiom-glfw): 18 conformance tests + ROADMAP + fix test module name — 10/10
 NEW     feat(xiom-ffi): 21 conformance tests + SPEC/README/ROADMAP/AUDIT docs — 10/10
 335137b feat(xiom-imgui): 100% contracts — every label-taking widget has requires
