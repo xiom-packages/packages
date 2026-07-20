@@ -131,6 +131,15 @@ extern "C" {
   fn imgui_get_frame_count() -> Int32;
 }
 
+// ── Module-level state tracking for Begin/End pairing ─────────────────────
+var g_win_open   : Int = 0;  // begin_window count (non-nesting: 0 or 1)
+var g_menu_open  : Int = 0;  // begin_menu count
+var g_mm_open    : Int = 0;  // main menu bar
+var g_tab_bar    : Int = 0;  // begin_tab_bar
+var g_tab_item   : Int = 0;  // begin_tab_item
+var g_popup_open : Int = 0;  // begin_popup_modal / begin_popup
+var g_tree_level : Int = 0;  // tree_node nesting level (trees CAN nest)
+
 // ── Safe wrappers with contracts ───────────────────────────────────────────
 
 // Lifecycle
@@ -163,10 +172,20 @@ pub fn render(cb: Int)
 // Windows
 pub fn begin_window(title: Str, flags: Int32) -> Bool
   requires: title.len() > 0
-{ return unsafe { imgui_begin(title, flags) != 0 }; }
+  requires: g_win_open == 0
+{
+  let ok = unsafe { imgui_begin(title, flags) != 0 };
+  if ok { g_win_open = 1; };
+  return ok;
+}
 
 pub fn end_window()
-{ unsafe { imgui_end(); }; }
+  requires: g_win_open == 1
+  ensures:  g_win_open == 0
+{
+  unsafe { imgui_end(); };
+  g_win_open = 0;
+}
 
 pub fn set_next_window_size(w: Int32, h: Int32)
 { unsafe { imgui_set_next_window_size_i32(w, h); }; }
@@ -230,10 +249,14 @@ pub fn spacing()
 
 // Trees
 pub fn tree_node(label: Str) -> Bool
-{ return unsafe { imgui_tree_node(label) != 0 }; }
-
+{
+  let ok = unsafe { imgui_tree_node(label) != 0 };
+  if ok { g_tree_level = g_tree_level + 1; };
+  return ok;
+}
 pub fn tree_pop()
-{ unsafe { imgui_tree_pop(); }; }
+  requires: g_tree_level > 0
+{ unsafe { imgui_tree_pop(); }; g_tree_level = g_tree_level - 1; }
 
 pub fn collapsing_header(label: Str) -> Bool
 { return unsafe { imgui_collapsing_header(label) != 0 }; }
@@ -241,17 +264,29 @@ pub fn collapsing_header(label: Str) -> Bool
 // Tabs
 pub fn begin_tab_bar(id: Str) -> Bool
   requires: id.len() > 0
-{ return unsafe { imgui_begin_tab_bar(id) != 0 }; }
+  requires: g_tab_bar == 0
+{
+  let ok = unsafe { imgui_begin_tab_bar(id) != 0 };
+  if ok { g_tab_bar = 1; };
+  return ok;
+}
 
 pub fn end_tab_bar()
-{ unsafe { imgui_end_tab_bar(); }; }
+  requires: g_tab_bar == 1
+{ unsafe { imgui_end_tab_bar(); }; g_tab_bar = 0; }
 
 pub fn begin_tab_item(label: Str) -> Bool
   requires: label.len() > 0
-{ return unsafe { imgui_begin_tab_item(label) != 0 }; }
+  requires: g_tab_item == 0
+{
+  let ok = unsafe { imgui_begin_tab_item(label) != 0 };
+  if ok { g_tab_item = 1; };
+  return ok;
+}
 
 pub fn end_tab_item()
-{ unsafe { imgui_end_tab_item(); }; }
+  requires: g_tab_item == 1
+{ unsafe { imgui_end_tab_item(); }; g_tab_item = 0; }
 
 // Popups / Modals
 pub fn open_popup(id: Str)
@@ -260,27 +295,45 @@ pub fn open_popup(id: Str)
 
 pub fn begin_popup_modal(name: Str) -> Bool
   requires: name.len() > 0
-{ return unsafe { imgui_begin_popup_modal(name) != 0 }; }
+  requires: g_popup_open == 0
+{
+  let ok = unsafe { imgui_begin_popup_modal(name) != 0 };
+  if ok { g_popup_open = 1; };
+  return ok;
+}
 
 pub fn end_popup_modal()
-{ unsafe { imgui_end_popup_modal(); }; }
+  requires: g_popup_open == 1
+{ unsafe { imgui_end_popup_modal(); }; g_popup_open = 0; }
 
 pub fn close_current_popup()
 { unsafe { imgui_close_current_popup(); }; }
 
 // Menus
 pub fn begin_main_menu_bar() -> Bool
-{ return unsafe { imgui_begin_main_menu_bar() != 0 }; }
+  requires: g_mm_open == 0
+{
+  let ok = unsafe { imgui_begin_main_menu_bar() != 0 };
+  if ok { g_mm_open = 1; };
+  return ok;
+}
 
 pub fn end_main_menu_bar()
-{ unsafe { imgui_end_main_menu_bar(); }; }
+  requires: g_mm_open == 1
+{ unsafe { imgui_end_main_menu_bar(); }; g_mm_open = 0; }
 
 pub fn begin_menu(label: Str) -> Bool
   requires: label.len() > 0
-{ return unsafe { imgui_begin_menu(label) != 0 }; }
+  requires: g_menu_open == 0
+{
+  let ok = unsafe { imgui_begin_menu(label) != 0 };
+  if ok { g_menu_open = 1; };
+  return ok;
+}
 
 pub fn end_menu()
-{ unsafe { imgui_end_menu(); }; }
+  requires: g_menu_open == 1
+{ unsafe { imgui_end_menu(); }; g_menu_open = 0; }
 
 pub fn menu_item(label: Str) -> Bool
   requires: label.len() > 0
