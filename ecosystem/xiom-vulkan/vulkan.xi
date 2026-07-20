@@ -321,11 +321,16 @@ pub fn get_framebuffer_size(app: Int) -> (Int, Int)
 // Safe wrappers — Frame lifecycle
 // ===========================================================================
 
+var g_in_frame: Bool = false;
+
 pub fn begin_frame(app: Int) -> Int
   requires: app != 0
+  requires: !g_in_frame
 {
   let bf: Int32 = unsafe { xvk_begin_frame(app) };
-  return bf as Int;
+  let result = bf as Int;
+  if result == 1 { g_in_frame = true; };
+  return result;
 }
 
 pub fn set_clear_color(app: Int, r: Float32, g: Float32, b: Float32)
@@ -336,8 +341,11 @@ pub fn set_clear_color(app: Int, r: Float32, g: Float32, b: Float32)
 
 pub fn end_frame(app: Int)
   requires: app != 0
+  requires: g_in_frame
+  ensures:  !g_in_frame
 {
-  unsafe { xvk_end_frame(app); }
+  unsafe { xvk_end_frame(app); };
+  g_in_frame = false;
 }
 
 // ===========================================================================

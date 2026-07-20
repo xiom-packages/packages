@@ -3,6 +3,8 @@
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Typed convenience layer over the raw xvk C bridge API.
+// Frame lifecycle guarded: end_frame requires preceding begin_frame(1).
+
 module xiom.vulkan.wrapper
 
 use xiom.vulkan;
@@ -24,6 +26,22 @@ pub fn VulkanApp.new(title: Str, width: Int, height: Int) -> Result[VulkanApp, S
 
 pub fn VulkanApp.is_open() -> Bool {
   return !should_close(handle);
+}
+
+pub fn VulkanApp.poll() {
+  poll(handle);
+}
+
+pub fn VulkanApp.begin_frame() -> Int {
+  return begin_frame(handle);
+}
+
+pub fn VulkanApp.end_frame() {
+  end_frame(handle);
+}
+
+pub fn VulkanApp.set_clear_color(r: Float32, g: Float32, b: Float32) {
+  set_clear_color(handle, r, g, b);
 }
 
 pub fn VulkanApp.frame_2d(r: Float32, g: Float32, b: Float32) {
