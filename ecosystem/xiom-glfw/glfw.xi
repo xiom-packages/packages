@@ -91,8 +91,14 @@ pub fn glfw_get_mouse_button(win: Window, button: Int) -> Bool
   requires: win != 0
 { return unsafe { glfw_bridge_get_mouse_button(win, button as Int32) != 0 }; }
 
-// NOTE: glfw_get_cursor_pos removed temporarily — Float32 tuple codegen issue.
-// Re-enable when compiler v0.49.5 fixes Float32 narrowing in tuple returns.
+pub fn glfw_get_cursor_pos(win: Window) -> (Float32, Float32)
+  requires: win != 0
+{
+  var x: Float32 = 0.0;
+  var y: Float32 = 0.0;
+  unsafe { glfw_bridge_get_cursor_pos(win, &x, &y); }
+  return (x, y);
+}
 
 // ── Monitors ──
 
