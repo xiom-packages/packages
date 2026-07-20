@@ -36,8 +36,8 @@ fn apply_theme(theme: Int32) {
 
 fn draw_3d_scene(app: Int, time: Float32, fb_w: Int32, fb_h: Int32) {
   // C-side aspect ratio computation avoids CG-01 (Int32→Float32 cast bug)
-  unsafe { xvk_camera_set_aspect_from_fb(fb_w, fb_h); };
-  unsafe { xvk_camera_orbit(0.008, 0.0, 0.0); };
+  unsafe { xvk_camera_set_aspect_from_fb(app, fb_w, fb_h); };
+  unsafe { xvk_camera_orbit(app, 0.008, 0.0, 0.0); };
 
   let angle: Float32 = time * 1.5;
   unsafe { xvk_draw_cube_3d_at(app, angle, 0.0, 0.0, 0.0, 0.45); };

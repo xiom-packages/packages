@@ -2,6 +2,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
 #include "imgui_bridge.h"
+#include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <string.h>
 #include <stdio.h>
@@ -39,9 +40,13 @@ int32_t imgui_bridge_init(int64_t glfw_window)
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    /* DPI font scaling: on HiDPI displays where framebuffer > window size,
-     * scale fonts proportionally. Default 1.0 = no scaling. */
-    io.FontGlobalScale = 1.0f;
+    /* DPI font scaling from GLFW window content scale (HiDPI displays).
+     * Framebuffer pixels / window coordinates ratio. Default 1.0. */
+    {
+        float xs = 1.0f, ys = 1.0f;
+        glfwGetWindowContentScale(win, &xs, &ys);
+        io.FontGlobalScale = (xs > 0.0f) ? xs : 1.0f;
+    }
 
     ImGui::StyleColorsDark();
 
