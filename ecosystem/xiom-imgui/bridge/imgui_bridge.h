@@ -29,8 +29,6 @@ int32_t  imgui_begin(const char* name, int32_t flags);
 void     imgui_end(void);
 int32_t  imgui_begin_child(const char* id, float w, float h, int32_t border);
 void     imgui_end_child(void);
-void     imgui_set_next_window_size(float w, float h);
-void     imgui_set_next_window_pos(float x, float y);
 void     imgui_set_next_window_size_i32(int32_t w, int32_t h);
 void     imgui_set_next_window_pos_i32(int32_t x, int32_t y);
 
@@ -122,10 +120,10 @@ void     imgui_style_classic(void);
 void     imgui_push_style_color(int32_t idx, float r, float g, float b, float a);
 void     imgui_pop_style_color(int32_t count);
 
-void     imgui_bridge_set_fb_size(int32_t w, int32_t h);
+void     imgui_color_edit3_rgb(const char* label, float* r, float* g, float* b);
+void     imgui_color_edit4_rgba(const char* label, float* r, float* g, float* b, float* a);
 
-void     imgui_bridge_reload_fonts(void);
-
+/* Reinitialize Vulkan backend after swapchain resize */
 void     imgui_bridge_reinit_vulkan(int64_t render_pass, float fb_w, float fb_h);
 
 /* Utility */

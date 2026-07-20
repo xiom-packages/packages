@@ -11,6 +11,7 @@ void xvk_camera_set_view(float eye_x, float eye_y, float eye_z,
                           float target_x, float target_y, float target_z);
 void xvk_camera_set_projection(float fov_deg, float near_plane, float far_plane);
 void xvk_camera_set_aspect_ratio(float aspect);
+void xvk_camera_set_aspect_from_fb(int32_t fb_w, int32_t fb_h);  /* avoids CG-01 */
 void xvk_camera_get_view(int64_t out_matrix);     /* 16 floats = 64 bytes */
 void xvk_camera_get_projection(int64_t out_matrix); /* 16 floats */
 void xvk_camera_orbit(float delta_yaw, float delta_pitch, float delta_radius);

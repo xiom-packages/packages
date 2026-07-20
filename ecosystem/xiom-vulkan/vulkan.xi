@@ -211,6 +211,7 @@ extern "C" {
   fn xvk_camera_zoom(delta: Float32);
   fn xvk_camera_reset();
   fn xvk_camera_set_aspect_ratio(aspect: Float32);
+  fn xvk_camera_set_aspect_from_fb(fb_w: Int32, fb_h: Int32);
   fn xvk_cos(x: Float32) -> Float32;
   fn xvk_sin(x: Float32) -> Float32;
 

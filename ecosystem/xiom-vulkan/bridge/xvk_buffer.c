@@ -40,7 +40,12 @@ int64_t xvk_buffer_create(int64_t app_h, int64_t size, int32_t usage, int32_t me
         xvk_set_error_fmt("vkAllocateMemory(buf): %d", (int)res);
         vkDestroyBuffer(a->device, b->buffer, NULL); free(b); return 0;
     }
-    vkBindBufferMemory(a->device, b->buffer, b->memory, 0);
+    res = vkBindBufferMemory(a->device, b->buffer, b->memory, 0);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkBindBufferMemory(buf): %d", (int)res);
+        vkFreeMemory(a->device, b->memory, NULL);
+        vkDestroyBuffer(a->device, b->buffer, NULL); free(b); return 0;
+    }
 
     b->size  = (VkDeviceSize)size;
     b->magic = XVK_BUFFER_MAGIC;
@@ -158,7 +163,12 @@ int64_t xvk_image_create_2d(int64_t app_h, int32_t width, int32_t height,
         xvk_set_error_fmt("vkAllocateMemory(img): %d", (int)res);
         vkDestroyImage(a->device, img->image, NULL); free(img); return 0;
     }
-    vkBindImageMemory(a->device, img->image, img->memory, 0);
+    res = vkBindImageMemory(a->device, img->image, img->memory, 0);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkBindImageMemory(img): %d", (int)res);
+        vkFreeMemory(a->device, img->memory, NULL);
+        vkDestroyImage(a->device, img->image, NULL); free(img); return 0;
+    }
 
     img->format     = xvk_map_format(format);
     img->extent.width  = (uint32_t)width;

@@ -150,7 +150,15 @@ int create_depth_resources(XvkApp* a)
         return 0;
     }
 
-    vkBindImageMemory(a->device, a->depth_image, a->depth_memory, 0);
+    res = vkBindImageMemory(a->device, a->depth_image, a->depth_memory, 0);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkBindImageMemory (depth): %d", (int)res);
+        vkFreeMemory(a->device, a->depth_memory, NULL);
+        a->depth_memory = VK_NULL_HANDLE;
+        vkDestroyImage(a->device, a->depth_image, NULL);
+        a->depth_image = VK_NULL_HANDLE;
+        return 0;
+    }
 
     VkImageViewCreateInfo ivci = {0};
     ivci.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -367,6 +375,58 @@ int recreate_swapchain(XvkApp* a)
         return 0;
     }
 
+    /* Allocate new command buffers BEFORE freeing old ones.
+     * If alloc fails, old CBs are still valid and old state is restored. */
+    {
+        VkCommandBuffer* new_cb = (VkCommandBuffer*)malloc(
+            a->swapchain_image_count * sizeof(VkCommandBuffer));
+        if (!new_cb) {
+            xvk_set_error("malloc cmd_buffers failed in resize");
+            /* Restore old state */
+            a->swapchain            = old_swapchain;
+            a->swapchain_images     = old_images;
+            a->swapchain_image_views = old_views;
+            a->framebuffers         = old_fb;
+            a->depth_image          = old_depth_img;
+            a->depth_memory         = old_depth_mem;
+            a->depth_image_view     = old_depth_view;
+            a->swapchain_image_count = old_count;
+            /* Destroy the new-but-unused swapchain resources */
+            cleanup_swapchain(a);
+            return 0;
+        }
+
+        VkCommandBufferAllocateInfo cbai = {0};
+        cbai.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        cbai.commandPool        = a->cmd_pool;
+        cbai.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        cbai.commandBufferCount = (uint32_t)a->swapchain_image_count;
+        VkResult res = vkAllocateCommandBuffers(a->device, &cbai, new_cb);
+        if (res != VK_SUCCESS) {
+            xvk_set_error_fmt("allocate cmd buffers failed in resize: %d", (int)res);
+            free(new_cb);
+            /* Restore old state */
+            a->swapchain            = old_swapchain;
+            a->swapchain_images     = old_images;
+            a->swapchain_image_views = old_views;
+            a->framebuffers         = old_fb;
+            a->depth_image          = old_depth_img;
+            a->depth_memory         = old_depth_mem;
+            a->depth_image_view     = old_depth_view;
+            a->swapchain_image_count = old_count;
+            cleanup_swapchain(a);
+            return 0;
+        }
+
+        /* New CBs allocated — now safe to free old CBs and old swapchain */
+        if (a->cmd_buffers) {
+            vkFreeCommandBuffers(a->device, a->cmd_pool,
+                                 (uint32_t)old_count, a->cmd_buffers);
+            free(a->cmd_buffers);
+        }
+        a->cmd_buffers = new_cb;
+    }
+
     /* Success — wait for device idle, then free old resources */
     vkDeviceWaitIdle(a->device);
     for (int i = 0; i < old_count; i++) {
@@ -384,35 +444,6 @@ int recreate_swapchain(XvkApp* a)
         vkDestroyImage(a->device, old_depth_img, NULL);
     if (old_depth_mem)
         vkFreeMemory(a->device, old_depth_mem, NULL);
-
-    /* Free old command buffers and reallocate */
-    if (a->cmd_buffers) {
-        vkFreeCommandBuffers(a->device, a->cmd_pool,
-                             (uint32_t)old_count, a->cmd_buffers);
-        free(a->cmd_buffers);
-        a->cmd_buffers = NULL;
-    }
-
-    a->cmd_buffers = (VkCommandBuffer*)malloc(
-        a->swapchain_image_count * sizeof(VkCommandBuffer));
-    if (!a->cmd_buffers) {
-        xvk_set_error("malloc cmd_buffers failed in resize");
-        return 0;
-    }
-
-    VkCommandBufferAllocateInfo cbai = {0};
-    cbai.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    cbai.commandPool        = a->cmd_pool;
-    cbai.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    cbai.commandBufferCount = (uint32_t)a->swapchain_image_count;
-
-    VkResult res = vkAllocateCommandBuffers(a->device, &cbai, a->cmd_buffers);
-    if (res != VK_SUCCESS) {
-        xvk_set_error_fmt("allocate cmd buffers failed in resize: %d", (int)res);
-        free(a->cmd_buffers);
-        a->cmd_buffers = NULL;
-        return 0;
-    }
 
     return 1;
 }

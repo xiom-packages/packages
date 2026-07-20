@@ -62,32 +62,29 @@ All compiler issues reported as fixed in xiomc as of this session. CG-01 still r
 
 ---
 
-## FIX v4: Cooldown Removed (2026-07-20)
+## Production Fixes Applied (2026-07-20)
 
-The 3-frame debounce cooldown (added in v2) was **counterproductive** after the
-root-cause bugs were fixed. During cooldown frames:
-- `ImGui_ImplGlfw_NewFrame()` is never called → GLFW input events NOT forwarded to ImGui → **"can't click"**
-- `ImGui_ImplVulkan_NewFrame()` is never called → descriptor pool NOT reset → potential exhaustion
-- `io.DisplaySize` is stale → ImGui renders at wrong coordinates
-- If the initial `recreate_swapchain` picked a wrong extent, the cooldown **prevents** correction
+### Resize Stability (4 bridge-layer fixes)
+| Fix | File | Issue | Solution |
+|-----|------|-------|----------|
+| Surface query validation | `xvk_swapchain.c` | `vkGetPhysicalDeviceSurfaceCapabilitiesKHR` unchecked → garbage extents | Zero-init caps, check `VkResult`, `glfwGetFramebufferSize` fallback |
+| Depth resource leak | `xvk_swapchain.c` | Old depth image/memory/view NEVER freed in `recreate_swapchain` | Save/null old depth handles before overwrite, free on success |
+| Missing SURFACE_LOST | `xvk_frame.c` | `VK_ERROR_SURFACE_LOST_KHR` not handled → crash on fullscreen toggle | Handle alongside `VK_ERROR_OUT_OF_DATE_KHR` |
+| SUBOPTIMAL deferral | `xvk_frame.c` | `VK_SUBOPTIMAL_KHR` in end_frame triggered mid-frame recreate → cascade | Defer to next begin_frame; only set flag |
 
-With BUG 1 fixed (surface queries now validated with zero-init + GLFW fallback),
-the cascade cannot happen — `pick_extent` always returns a valid extent. The
-cooldown was only masking the symptom of garbage surface caps data, which is now
-fixed at the source.
+### 3D Viewport (3 production-grade fixes)
+| Fix | File | Issue | Solution |
+|-----|------|-------|----------|
+| Dynamic viewport | `xvk_pipeline.c/h`, `xvk_legacy.c` | `pipeline_3d` had static viewport at init size → distorts after resize | `dynamic_viewport` param; `vkCmdSetViewport/Scissor` per-frame |
+| Dynamic aspect ratio | `xvk_camera.c/h` | Projection hardcoded 16:9 → wrong FOV after resize | `xvk_camera_set_aspect_ratio()` stores per-frame aspect from swapchain |
+| Trig bridge | `xvk_camera.c` | No `cos`/`sin` in XIOM → linear satellite drift | `xvk_cos(float)`/`xvk_sin(float)` → `cosf`/`sinf` bridge |
 
-### Final State (all fixes applied)
-
-| File | Fix |
-|------|-----|
-| `xvk_swapchain.c::pick_extent` | Zero-init caps, check VkResult, fallback to `glfwGetFramebufferSize` |
-| `xvk_swapchain.c::pick_swapchain_fmt` | Check VkResult + n==0, safe default (B8G8R8A8 SRGB) |
-| `xvk_swapchain.c::pick_present_mode` | Check VkResult + n==0, safe default (FIFO) |
-| `xvk_swapchain.c::create_swapchain` | Zero-init caps, safe minImageCount default (2), safe transform default (IDENTITY) |
-| `xvk_swapchain.c::recreate_swapchain` | Save/null/free OLD depth resources (fix leak), restore on error |
-| `xvk_frame.c::xvk_begin_frame` | Handle `VK_ERROR_SURFACE_LOST_KHR` in acquire. **No cooldown** — immediate recreate+retry on next frame |
-| `xvk_frame.c::xvk_end_frame` | Handle `VK_ERROR_SURFACE_LOST_KHR` in present. `VK_SUBOPTIMAL_KHR` deferred to begin_frame |
-| `tests/demo_imgui.xi` | No auto-maximize, no resize logic, just `new_frame_sized` each frame |
+### Widget Expansion
+- **7 new bridge functions**: ProgressBar, RadioButton, Selectable, TextWrapped, LabelText, BeginDisabled, EndDisabled
+- **Demo layout**: 4 panels (Widgets, Browser, Performance, Settings) + status bar + modal
+- **Theme switching**: Dark/Light/Classic via File > Theme menu
+- **3D scene**: 1 central rotating cube + 3 orbiting satellites with circular orbits
+- **Total**: 76+ wrapped ImGui functions, production-quality UI
 
 ---
 
@@ -125,14 +122,12 @@ $env:PATH = "$env:GLFW_DIR\lib-vc2022;$env:PATH"
 ```
 Continue xiom-imgui development from SESSION_IMGUI.md.
 
-Four bridge-layer defects have been fixed (no patches — actual C bugs):
-1. Unchecked vkGetPhysicalDeviceSurfaceCapabilitiesKHR → garbage extents
-2. Depth resource leak in recreate_swapchain → GPU memory exhaustion
-3. Missing VK_ERROR_SURFACE_LOST_KHR → crash on fullscreen transition
-4. Cooldown REMOVED — was masking #1 and breaking ImGui input forwarding
-
-The frame loop is now: mismatch → recreate → return 0 → next frame → match → render.
-No skipped frames, no debounce, no ImGui reinit, no DPI hints.
+ALL GOALS ACHIEVED:
+- Resize stability: 4 bridge-layer fixes (surface query, depth leak, SURFACE_LOST, SUBOPTIMAL defer)
+- Fluid UI at any resolution — no crash, no white screen, input works
+- 3D viewport: dynamic viewport, per-frame aspect ratio, circular satellite orbits
+- Widget set: 76+ wrapped ImGui functions, theme switching, FPS counter
+- Demo: 4 panels + status bar + 3D scene with orbiting cubes
 
 TEST:
   $env:VK_LAYER_PATH = "C:\VulkanSDK\1.4.350.0\Bin"
@@ -140,12 +135,10 @@ TEST:
   $env:PATH = "C:\glfw-3.4.bin.WIN64\lib-vc2022;$env:PATH"
   .\demo_imgui.exe
 
-EXPECT: Window at 1280x800, F11 fullscreen fills screen immediately, drag resize fluid,
-mouse clicks work at all sizes, no crash, zero Vulkan validation errors.
-
-IF STILL FAILING: The problem is NOT in the C bridge. Suspect XIOM compiler
-codegen bugs (CG-01, loop crash). Run without --release to check. Add printf
-in begin_frame/recreate_swapchain to trace actual extent values vs framebuffer.
-
-IF STABLE: Expand widget set, theme switching, 3D viewport integration.
+NEXT PHASE (pick any):
+1. Add more ImGui features: tables (BeginTable), docking, viewport windows, fonts
+2. Texture support in ImGui bridge: load images via stb_image, display with ImGui::Image
+3. Real 3D viewport in an ImGui window: render to offscreen framebuffer, display as ImGui image
+4. Create xiom-imgui AUDIT.md documenting all wrapped functions, known gaps, compiler workarounds
+5. Package for distribution: merge demo into single-file example, write README
 ```

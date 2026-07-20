@@ -34,7 +34,8 @@ VkInstance create_instance(const char* app_name, int* have_validation)
     const char* layer_name = "VK_LAYER_KHRONOS_validation";
     VkLayerProperties* layers = NULL;
     uint32_t layer_count = 0;
-    vkEnumerateInstanceLayerProperties(&layer_count, NULL);
+    if (vkEnumerateInstanceLayerProperties(&layer_count, NULL) != VK_SUCCESS)
+        layer_count = 0;
     int layer_avail = 0;
     if (layer_count > 0) {
         layers = (VkLayerProperties*)malloc(

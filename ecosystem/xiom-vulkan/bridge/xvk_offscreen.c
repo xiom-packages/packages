@@ -28,15 +28,25 @@ int create_offscreen_rendertarget(XvkApp* a)
     vkGetImageMemoryRequirements(a->device, a->offs_image, &mr);
     uint32_t mi = find_memory_type(&a->mem_props, mr.memoryTypeBits,
                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    if (mi == UINT32_MAX) { xvk_set_error("no device mem for offscreen image"); return 0; }
+    if (mi == UINT32_MAX) {
+        xvk_set_error("no device mem for offscreen image");
+        goto fail_image;
+    }
 
     VkMemoryAllocateInfo mai = {0};
     mai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     mai.allocationSize   = mr.size;
     mai.memoryTypeIndex  = mi;
     res = vkAllocateMemory(a->device, &mai, NULL, &a->offs_memory);
-    if (res != VK_SUCCESS) { xvk_set_error_fmt("offscreen vkAllocateMemory: %d", (int)res); return 0; }
-    vkBindImageMemory(a->device, a->offs_image, a->offs_memory, 0);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("offscreen vkAllocateMemory: %d", (int)res);
+        goto fail_image;
+    }
+    res = vkBindImageMemory(a->device, a->offs_image, a->offs_memory, 0);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("offscreen vkBindImageMemory: %d", (int)res);
+        goto fail_memory;
+    }
 
     VkImageViewCreateInfo ivci = {0};
     ivci.sType    = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -49,8 +59,19 @@ int create_offscreen_rendertarget(XvkApp* a)
     ivci.subresourceRange.baseArrayLayer = 0;
     ivci.subresourceRange.layerCount     = 1;
     res = vkCreateImageView(a->device, &ivci, NULL, &a->offs_image_view);
-    if (res != VK_SUCCESS) { xvk_set_error_fmt("offscreen vkCreateImageView: %d", (int)res); return 0; }
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("offscreen vkCreateImageView: %d", (int)res);
+        goto fail_memory;
+    }
     return 1;
+
+fail_memory:
+    vkFreeMemory(a->device, a->offs_memory, NULL);
+    a->offs_memory = VK_NULL_HANDLE;
+fail_image:
+    vkDestroyImage(a->device, a->offs_image, NULL);
+    a->offs_image = VK_NULL_HANDLE;
+    return 0;
 }
 
 VkRenderPass create_offscreen_render_pass(VkDevice dev, VkFormat fmt)
@@ -229,9 +250,18 @@ int64_t xvk_offscreen_create(int32_t width, int32_t height)
     bmai.memoryTypeIndex = bmi;
     res = vkAllocateMemory(a->device, &bmai, NULL, &a->offs_readback_mem);
     if (res != VK_SUCCESS) { xvk_set_error_fmt("offscreen alloc readback mem: %d", (int)res); goto offs_fail; }
-    vkBindBufferMemory(a->device, a->offs_readback, a->offs_readback_mem, 0);
+    res = vkBindBufferMemory(a->device, a->offs_readback, a->offs_readback_mem, 0);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("offscreen vkBindBufferMemory: %d", (int)res);
+        goto offs_fail;
+    }
 
-    vkMapMemory(a->device, a->offs_readback_mem, 0, buf_size, 0, &a->offs_mapped);
+    res = vkMapMemory(a->device, a->offs_readback_mem, 0, buf_size, 0, &a->offs_mapped);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("offscreen vkMapMemory: %d", (int)res);
+        a->offs_mapped = NULL;
+        goto offs_fail;
+    }
 
     VkFenceCreateInfo fci = {0};
     fci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -257,7 +287,11 @@ int32_t xvk_offscreen_render_triangle(int64_t app_h, float r, float g, float b)
     if (!a || !a->is_offscreen) return -1;
 
     if (a->offs_fence) {
-        vkWaitForFences(a->device, 1, &a->offs_fence, VK_TRUE, UINT64_MAX);
+        VkResult wait_res = vkWaitForFences(a->device, 1, &a->offs_fence, VK_TRUE, UINT64_MAX);
+        if (wait_res != VK_SUCCESS) {
+            xvk_set_error_fmt("vkWaitForFences(offscreen): %d", (int)wait_res);
+            return 0;
+        }
         vkResetFences(a->device, 1, &a->offs_fence);
     }
 

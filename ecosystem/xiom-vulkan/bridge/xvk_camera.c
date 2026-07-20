@@ -32,6 +32,13 @@ void xvk_camera_set_aspect_ratio(float aspect)
     if (aspect > 0.0f) g_aspect = aspect;
 }
 
+/* Set aspect ratio from framebuffer dimensions (avoids CG-01 Int32→Float32 in XIOM) */
+void xvk_camera_set_aspect_from_fb(int32_t fb_w, int32_t fb_h)
+{
+    if (fb_w > 0 && fb_h > 0)
+        g_aspect = (float)fb_w / (float)fb_h;
+}
+
 void xvk_camera_get_view(int64_t out_matrix)
 {
     float* m = (float*)(intptr_t)out_matrix;

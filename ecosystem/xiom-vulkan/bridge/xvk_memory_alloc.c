@@ -77,6 +77,7 @@ static VkDeviceSize linear_allocate(XvkMaBlock* block, VkDeviceSize size, VkDevi
 
 static VkDeviceSize freelist_allocate(XvkMaBlock* block, VkDeviceSize size, VkDeviceSize alignment) {
     XvkMaBlock* prev = NULL;
+    (void)prev;  /* used for list traversal, GCC/Clang suppress */
     XvkMaBlock* curr = block;
     while (curr) {
         VkDeviceSize offset = (curr->free_offset + alignment - 1) & ~(alignment - 1);

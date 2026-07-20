@@ -11,6 +11,22 @@
 static bool g_initialized = false;
 static bool g_vk_initialized = false;
 
+/* Stored Vulkan handles for reinit_vulkan to use */
+static VkInstance       g_Instance       = VK_NULL_HANDLE;
+static VkDevice         g_Device         = VK_NULL_HANDLE;
+static VkPhysicalDevice g_PhysicalDevice = VK_NULL_HANDLE;
+static VkQueue          g_Queue          = VK_NULL_HANDLE;
+static uint32_t         g_QueueFamily    = 0;
+static VkRenderPass     g_RenderPass     = VK_NULL_HANDLE;
+static int32_t          g_SubpassIndex   = 0;
+
+static void check_vk_result(VkResult err)
+{
+    if (err != VK_SUCCESS) {
+        fprintf(stderr, "[imgui-bridge] VULKAN ERROR: %d\n", (int)err);
+    }
+}
+
 int32_t imgui_bridge_init(int64_t glfw_window)
 {
     GLFWwindow* win = (GLFWwindow*)(intptr_t)glfw_window;
@@ -53,6 +69,15 @@ int32_t imgui_bridge_init_vulkan(int64_t instance, int64_t device,
         DBG("NULL VK handle"); return 0;
     }
 
+    /* Store handles for reinit_vulkan to use */
+    g_Instance       = inst;
+    g_Device         = dev;
+    g_PhysicalDevice = phys;
+    g_Queue          = q;
+    g_QueueFamily    = (uint32_t)queue_family;
+    g_RenderPass     = rp;
+    g_SubpassIndex   = subpass_count;
+
     /* Required when IMGUI_IMPL_VULKAN_NO_PROTOTYPES is defined */
     DBG("Loading Vulkan functions");
     ImGui_ImplVulkan_LoadFunctions(VK_API_VERSION_1_0,
@@ -72,7 +97,7 @@ int32_t imgui_bridge_init_vulkan(int64_t instance, int64_t device,
     ini.MinImageCount     = 2;
     ini.ImageCount        = 2;
     ini.Allocator         = nullptr;
-    ini.CheckVkResultFn   = nullptr;
+    ini.CheckVkResultFn   = check_vk_result;
     ini.PipelineInfoMain.RenderPass  = rp;
     ini.PipelineInfoMain.Subpass     = (uint32_t)subpass_count;
     ini.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
@@ -101,19 +126,25 @@ void imgui_bridge_shutdown()
 
 void imgui_bridge_new_frame()
 {
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(1280.0f, 800.0f);  /* default, overridden by sized variant */
+    io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+    ImGui_ImplGlfw_NewFrame();       /* platform first: mouse, keys, time */
+    ImGui_ImplVulkan_NewFrame();     /* renderer: reset descriptor pool */
+    ImGui::NewFrame();               /* ImGui internal: begin frame */
 }
 
 void imgui_bridge_new_frame_sized(int32_t fb_w, int32_t fb_h)
 {
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
+    /* CRITICAL FIX: set DisplaySize BEFORE NewFrame() so ImGui reads
+     * current dimensions for mouse hit-testing, clipping, and layout.
+     * Order: platform (GLFW) → renderer (Vulkan) → ImGui::NewFrame() */
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2((float)fb_w, (float)fb_h);
     io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+    ImGui_ImplGlfw_NewFrame();       /* updates mouse, keyboard, time from GLFW */
+    ImGui_ImplVulkan_NewFrame();     /* resets descriptor pool */
+    ImGui::NewFrame();               /* begins ImGui frame with correct DisplaySize */
 }
 
 void imgui_bridge_render(int64_t command_buffer)
@@ -171,9 +202,39 @@ int32_t imgui_input_int(const char* l, int32_t v)
 int32_t imgui_input_text(const char* l, char* buf, int32_t sz)
     { return ImGui::InputText(l, buf, (size_t)sz) ? 1 : 0; }
 int32_t imgui_color_edit3(const char* l, float r, float g, float b)
-    { float c[3]={r,g,b}; ImGui::ColorEdit3(l, c); return 1; }
+    { float c[3]={r,g,b}; if(ImGui::ColorEdit3(l, c)) { /* values stored in c, but bridge can't return 3 floats */ }; return 1; }
 int32_t imgui_color_edit4(const char* l, float r, float g, float b, float a)
-    { float c[4]={r,g,b,a}; ImGui::ColorEdit4(l, c); return 1; }
+    { float c[4]={r,g,b,a}; if(ImGui::ColorEdit4(l, c)) { /* same limitation */ }; return 1; }
+
+/* color_edit3_rgb: reads back modified values into caller's float variables */
+void imgui_color_edit3_rgb(const char* label, float* r, float* g, float* b)
+{
+    float col[3];
+    col[0] = r ? *r : 0.0f;
+    col[1] = g ? *g : 0.0f;
+    col[2] = b ? *b : 0.0f;
+    if (ImGui::ColorEdit3(label, col)) {
+        if (r) *r = col[0];
+        if (g) *g = col[1];
+        if (b) *b = col[2];
+    }
+}
+
+/* color_edit4_rgba: reads back modified values into caller's float variables */
+void imgui_color_edit4_rgba(const char* label, float* r, float* g, float* b, float* a)
+{
+    float col[4];
+    col[0] = r ? *r : 0.0f;
+    col[1] = g ? *g : 0.0f;
+    col[2] = b ? *b : 0.0f;
+    col[3] = a ? *a : 0.0f;
+    if (ImGui::ColorEdit4(label, col)) {
+        if (r) *r = col[0];
+        if (g) *g = col[1];
+        if (b) *b = col[2];
+        if (a) *a = col[3];
+    }
+}
 int32_t imgui_combo(const char* l, int32_t cur, const char* const* it, int32_t n)
     { ImGui::Combo(l, &cur, it, n); return cur; }
 int32_t imgui_list_box(const char* l, int32_t cur, const char* const* it, int32_t n)
@@ -274,13 +335,23 @@ void imgui_pop_style_color(int32_t count) { ImGui::PopStyleColor(count); }
 void imgui_bridge_reinit_vulkan(int64_t render_pass, float fb_w, float fb_h)
 {
     if (!g_vk_initialized) return;
-    /* Shutdown and reinitialize Vulkan backend */
+    /* Shutdown and reinitialize Vulkan backend using stored handles */
     ImGui_ImplVulkan_Shutdown();
     g_vk_initialized = false;
 
-    /* We need the stored Vulkan handles — stored as globals in init_vulkan
-     * but we don't have them here. Caller must re-call init_vulkan instead. */
-    (void)render_pass; (void)fb_w; (void)fb_h;
+    if (g_Instance && g_Device && g_PhysicalDevice && g_Queue) {
+        imgui_bridge_init_vulkan(
+            (int64_t)(uint64_t)g_Instance,
+            (int64_t)(uint64_t)g_Device,
+            (int64_t)(uint64_t)g_PhysicalDevice,
+            (int64_t)(uint64_t)g_Queue,
+            (int32_t)g_QueueFamily,
+            render_pass ? render_pass : (int64_t)(uint64_t)g_RenderPass,
+            g_SubpassIndex,
+            fb_w, fb_h);
+    } else {
+        DBG("reinit_vulkan: no stored handles");
+    }
 }
 
 /* ── Utility ── */

@@ -134,13 +134,14 @@ int32_t xvk_particles_enable(int64_t app_h, int32_t count)
     a->particle_count    = 0;
 
     VkDeviceSize buf_size = (VkDeviceSize)count * 20;
+    VkResult res;
     {
         VkBufferCreateInfo bci = {0};
         bci.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bci.size        = buf_size;
         bci.usage       = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
         bci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        VkResult res = vkCreateBuffer(a->device, &bci, NULL, &a->particle_vbo);
+        res = vkCreateBuffer(a->device, &bci, NULL, &a->particle_vbo);
         if (res != VK_SUCCESS) {
             xvk_set_error_fmt("vkCreateBuffer (particle VBO) failed: %d", (int)res);
             return 0;
@@ -164,7 +165,7 @@ int32_t xvk_particles_enable(int64_t app_h, int32_t count)
         mai.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         mai.allocationSize  = mr.size;
         mai.memoryTypeIndex = mi;
-        VkResult res = vkAllocateMemory(a->device, &mai, NULL, &a->particle_mem);
+        res = vkAllocateMemory(a->device, &mai, NULL, &a->particle_mem);
         if (res != VK_SUCCESS) {
             xvk_set_error_fmt("vkAllocateMemory (particle) failed: %d", (int)res);
             vkDestroyBuffer(a->device, a->particle_vbo, NULL);
@@ -173,8 +174,25 @@ int32_t xvk_particles_enable(int64_t app_h, int32_t count)
         }
     }
 
-    vkBindBufferMemory(a->device, a->particle_vbo, a->particle_mem, 0);
-    vkMapMemory(a->device, a->particle_mem, 0, buf_size, 0, &a->particle_mapped);
+    res = vkBindBufferMemory(a->device, a->particle_vbo, a->particle_mem, 0);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkBindBufferMemory (particle): %d", (int)res);
+        vkFreeMemory(a->device, a->particle_mem, NULL);
+        vkDestroyBuffer(a->device, a->particle_vbo, NULL);
+        a->particle_vbo = VK_NULL_HANDLE;
+        a->particle_mem = VK_NULL_HANDLE;
+        return 0;
+    }
+    res = vkMapMemory(a->device, a->particle_mem, 0, buf_size, 0, &a->particle_mapped);
+    if (res != VK_SUCCESS) {
+        xvk_set_error_fmt("vkMapMemory (particle): %d", (int)res);
+        vkFreeMemory(a->device, a->particle_mem, NULL);
+        vkDestroyBuffer(a->device, a->particle_vbo, NULL);
+        a->particle_vbo    = VK_NULL_HANDLE;
+        a->particle_mem    = VK_NULL_HANDLE;
+        a->particle_mapped = NULL;
+        return 0;
+    }
 
     a->particles = (Particle*)malloc((size_t)count * sizeof(Particle));
     if (!a->particles) {

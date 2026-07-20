@@ -4,6 +4,7 @@
 #include "xvk_swapchain.h"
 #include "xvk_pipeline.h"
 #include "xvk_renderpass.h"
+#include "xvk_memory_alloc.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -132,7 +133,10 @@ void xvk_app_cleanup_internal(XvkApp* a)
         a->offs_memory       = VK_NULL_HANDLE;
     }
 
-    if (a->device)  vkDestroyDevice(a->device, NULL);
+    if (a->device) {
+        xvk_ma_destroy();  /* free allocator blocks before device destroy */
+        vkDestroyDevice(a->device, NULL);
+    }
     a->device = VK_NULL_HANDLE;
 
     if (a->surface) {

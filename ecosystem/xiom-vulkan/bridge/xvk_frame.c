@@ -47,6 +47,11 @@ int32_t xvk_begin_frame(int64_t app_h)
 
     a->current_image = img_idx;
 
+    if (!a->framebuffers) {
+        xvk_set_error("framebuffers not initialized");
+        return -1;
+    }
+
     VkCommandBuffer cb = a->cmd_buffers[img_idx];
     vkResetCommandBuffer(cb, 0);
 
@@ -118,6 +123,8 @@ void xvk_end_frame(int64_t app_h)
 
     if (vkQueueSubmit(a->graphics_queue, 1, &si, fence) != VK_SUCCESS) {
         xvk_set_error("vkQueueSubmit failed");
+        a->frame_index = (a->frame_index + 1) % XVK_MAX_FRAMES;
+        return;  /* don't proceed to present with broken semaphore chain */
     }
 
     VkSwapchainKHR swapchains[] = { a->swapchain };

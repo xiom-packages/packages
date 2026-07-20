@@ -9,7 +9,8 @@
 
 #include "xvk_types.h"
 
-extern char g_xvk_error[512];
+/* Thread-local error buffer: each thread gets its own diagnostic string */
+extern _Thread_local char g_xvk_error[512];
 
 void xvk_set_error(const char* msg);
 void xvk_set_error_fmt(const char* fmt, ...);

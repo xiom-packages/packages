@@ -134,10 +134,10 @@ int64_t xvk_mesh_load(int64_t device, int64_t phys_dev, const char* filepath)
     mai.memoryTypeIndex = find_memory_type_vk(pd, mr.memoryTypeBits,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     if (vkAllocateMemory(dev, &mai, NULL, &m->vbo_mem) != VK_SUCCESS) goto fail;
-    vkBindBufferMemory(dev, m->vbo, m->vbo_mem, 0);
+    if (vkBindBufferMemory(dev, m->vbo, m->vbo_mem, 0) != VK_SUCCESS) goto fail;
 
     void* ptr = NULL;
-    vkMapMemory(dev, m->vbo_mem, 0, vb_size, 0, &ptr);
+    if (vkMapMemory(dev, m->vbo_mem, 0, vb_size, 0, &ptr) != VK_SUCCESS) goto fail;
     memcpy(ptr, vdata, (size_t)vb_size);
     vkUnmapMemory(dev, m->vbo_mem);
 
@@ -151,10 +151,10 @@ int64_t xvk_mesh_load(int64_t device, int64_t phys_dev, const char* filepath)
     mai.memoryTypeIndex = find_memory_type_vk(pd, mr.memoryTypeBits,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     if (vkAllocateMemory(dev, &mai, NULL, &m->ibo_mem) != VK_SUCCESS) goto fail;
-    vkBindBufferMemory(dev, m->ibo, m->ibo_mem, 0);
+    if (vkBindBufferMemory(dev, m->ibo, m->ibo_mem, 0) != VK_SUCCESS) goto fail;
 
     ptr = NULL;
-    vkMapMemory(dev, m->ibo_mem, 0, ib_size, 0, &ptr);
+    if (vkMapMemory(dev, m->ibo_mem, 0, ib_size, 0, &ptr) != VK_SUCCESS) goto fail;
     memcpy(ptr, idata, (size_t)ib_size);
     vkUnmapMemory(dev, m->ibo_mem);
 

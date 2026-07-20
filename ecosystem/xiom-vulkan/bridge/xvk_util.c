@@ -1,7 +1,9 @@
 #include "xvk_util.h"
 #include <stdlib.h>
 
-char g_xvk_error[512] = "";
+/* Thread-local error buffer: each thread gets its own error string.
+ * In single-threaded use this is equivalent to a static global. */
+_Thread_local char g_xvk_error[512] = "";
 
 void xvk_set_error(const char* msg)
 {
