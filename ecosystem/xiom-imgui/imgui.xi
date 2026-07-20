@@ -213,28 +213,36 @@ pub fn text_wrapped(text: Str)
 
 // Widgets — interactive
 pub fn checkbox(label: Str, checked: Bool) -> Bool
+  requires: label.len() > 0
 { let c: Int32 = if checked { TRUE_I32 } else { FALSE_I32 };
   return unsafe { imgui_checkbox(label, c) != 0 }; }
 
 pub fn slider_float(label: Str, v: Float32, mn: Float32, mx: Float32) -> Float32
+  requires: label.len() > 0
 { return unsafe { imgui_slider_float(label, v, mn, mx) }; }
 
 pub fn slider_int(label: Str, v: Int32, mn: Int32, mx: Int32) -> Int32
+  requires: label.len() > 0
 { return unsafe { imgui_slider_int(label, v, mn, mx) }; }
 
 pub fn drag_float(label: Str, v: Float32, speed: Float32, mn: Float32, mx: Float32) -> Float32
+  requires: label.len() > 0
 { return unsafe { imgui_drag_float(label, v, speed, mn, mx) }; }
 
 pub fn drag_int(label: Str, v: Int32, speed: Float32, mn: Int32, mx: Int32) -> Int32
+  requires: label.len() > 0
 { return unsafe { imgui_drag_int(label, v, speed, mn, mx) }; }
 
 pub fn color_edit3(label: Str, r: Float32, g: Float32, b: Float32)
+  requires: label.len() > 0
 { unsafe { imgui_color_edit3(label, r, g, b); }; }
 
 pub fn progress_bar(fraction: Float32)
+  requires: fraction >= 0.0
 { unsafe { imgui_progress_bar(fraction, -1.0, 0.0); }; }
 
 pub fn radio_button(label: Str, active: Bool) -> Bool
+  requires: label.len() > 0
 { let a: Int32 = if active { TRUE_I32 } else { FALSE_I32 };
   return unsafe { imgui_radio_button(label, a) != 0 }; }
 
@@ -256,6 +264,7 @@ pub fn spacing()
 
 // Trees
 pub fn tree_node(label: Str) -> Bool
+  requires: label.len() > 0
 {
   let ok = unsafe { imgui_tree_node(label) != 0 };
   if ok { g_tree_level = g_tree_level + 1; };
@@ -266,6 +275,7 @@ pub fn tree_pop()
 { unsafe { imgui_tree_pop(); }; g_tree_level = g_tree_level - 1; }
 
 pub fn collapsing_header(label: Str) -> Bool
+  requires: label.len() > 0
 { return unsafe { imgui_collapsing_header(label) != 0 }; }
 
 // Tabs
@@ -356,13 +366,17 @@ pub fn style_light()   { unsafe { imgui_style_light(); }; }
 pub fn style_classic() { unsafe { imgui_style_classic(); }; }
 
 pub fn push_style_color(idx: Int32, r: Float32, g: Float32, b: Float32, a: Float32)
-  { unsafe { imgui_push_style_color(idx, r, g, b, a); }; }
+  requires: idx >= 0
+{ unsafe { imgui_push_style_color(idx, r, g, b, a); }; }
 
 pub fn pop_style_color(count: Int32)
-  { unsafe { imgui_pop_style_color(count); }; }
+  requires: count > 0
+{ unsafe { imgui_pop_style_color(count); }; }
 
 // Tooltips
-pub fn set_tooltip(text: Str) { unsafe { imgui_set_tooltip(text); }; }
+pub fn set_tooltip(text: Str)
+  requires: text.len() > 0
+{ unsafe { imgui_set_tooltip(text); }; }
 pub fn begin_tooltip() { unsafe { imgui_begin_tooltip(); }; }
 pub fn end_tooltip()   { unsafe { imgui_end_tooltip(); }; }
 
@@ -373,23 +387,29 @@ pub fn is_item_clicked() -> Bool { return unsafe { imgui_is_item_clicked() != 0 
 
 // Plots
 pub fn plot_lines(label: Str, values: Int, count: Int32, min: Float32, max: Float32)
+  requires: label.len() > 0
   { unsafe { imgui_plot_lines(label, values, count, min, max, 0.0, 0.0); }; }
 
 pub fn plot_histogram(label: Str, values: Int, count: Int32, min: Float32, max: Float32)
+  requires: label.len() > 0
   { unsafe { imgui_plot_histogram(label, values, count, min, max, 0.0, 0.0); }; }
 
 // Input
 pub fn input_float(label: Str, val: Float32) -> Float32
+  requires: label.len() > 0
   { return unsafe { imgui_input_float(label, val) }; }
 
 pub fn input_int(label: Str, val: Int32) -> Int32
+  requires: label.len() > 0
   { return unsafe { imgui_input_int(label, val) }; }
 
 // Combo / List
 pub fn combo(label: Str, current: Int32, items: Int, count: Int32) -> Int32
+  requires: label.len() > 0
   { return unsafe { imgui_combo(label, current, items, count) }; }
 
 pub fn list_box(label: Str, current: Int32, items: Int, count: Int32) -> Int32
+  requires: label.len() > 0
   { return unsafe { imgui_list_box(label, current, items, count) }; }
 
 // Disabled groups
@@ -417,10 +437,12 @@ pub fn end_menu_bar()
 
 // Tree node with flags
 pub fn tree_node_flags(label: Str, flags: Int32) -> Bool
+  requires: label.len() > 0
 { return unsafe { imgui_tree_node_flags(label, flags) != 0 }; }
 
 // Color edit with alpha
 pub fn color_edit4(label: Str, r: Float32, g: Float32, b: Float32, a: Float32)
+  requires: label.len() > 0
 { unsafe { imgui_color_edit4(label, r, g, b, a); }; }
 
 // Utility

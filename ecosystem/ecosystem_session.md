@@ -24,14 +24,14 @@
 - Verified: GLFW+Vulkan integration 5s stable
 - Verified: Float32 tuple fix (v0.49.5) restores glfw_get_cursor_pos
 
-### xiom-imgui (9/10)
+### xiom-imgui (10/10) ✅ PRODUCTION
 - 90+ FFI, 68+ safe wrappers with contracts (+2: small_button, same_line_spacing)
+- **100% contracts** — every label-taking widget has `requires: label.len() > 0`
 - Begin/End state tracking (7 guards: window, menu, tab_bar, tab_item, popup, tree_level)
 - Full widget showcase: all components exercised — 0 unsafe blocks in demo files
 - ig_step2.xi: 100% safe wrappers, 0 raw FFI calls
 - demo_imgui.xi: 0 unsafe blocks (was 16), all xvk_get_* calls use safe accessors
 - 5s stable at 1280x800
-- Missing: ~20% contracts on remaining wrappers
 
 ### xiom.ffi (stdlib, 7/10)
 - SafePtr, FFIBuffer, FFIError, struct marshal primitives
