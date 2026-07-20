@@ -1,6 +1,6 @@
 # Ecosystem Development Session Journal
 
-**Compiler**: xiomc v0.49.5 (871/871 tests, zero warnings)
+**Compiler**: xiomc v0.49.7 (881/881 tests, zero warnings)
 **Last session**: 2026-07-21
 
 ---
@@ -8,8 +8,9 @@
 ## Current State — All Production Packages
 
 ### xiom-vulkan (9/10)
-- 82 safe wrappers, 100% FFI coverage (38 gaps closed today)
+- 91 safe wrappers (+9 accessors), 100% FFI coverage
 - 78% contracts (64/82 requires, 1/82 ensures)
+- 9 new accessor wrappers: get_glfw_window, get_instance, get_device, get_physical_device, get_graphics_queue, get_render_pass, get_command_buffer, get_fb_width, get_fb_height — all with `requires: app != 0`
 - 7 compiled examples (triangle, 3d_cube, particles, textures, pipeline, audio, showcase)
 - C bridge: 368 functions, 0 errors, 0 warnings
 - Frame guard: g_in_frame prevents double-begin/end-without-begin
@@ -23,10 +24,12 @@
 - Verified: GLFW+Vulkan integration 5s stable
 - Verified: Float32 tuple fix (v0.49.5) restores glfw_get_cursor_pos
 
-### xiom-imgui (8/10)
-- 90+ FFI, 65+ safe wrappers with contracts
+### xiom-imgui (9/10)
+- 90+ FFI, 68+ safe wrappers with contracts (+2: small_button, same_line_spacing)
 - Begin/End state tracking (7 guards: window, menu, tab_bar, tab_item, popup, tree_level)
-- Full widget showcase: all components exercised
+- Full widget showcase: all components exercised — 0 unsafe blocks in demo files
+- ig_step2.xi: 100% safe wrappers, 0 raw FFI calls
+- demo_imgui.xi: 0 unsafe blocks (was 16), all xvk_get_* calls use safe accessors
 - 5s stable at 1280x800
 - Missing: ~20% contracts on remaining wrappers
 
@@ -60,6 +63,8 @@ Priority: xiom-sqlite → xiom-libuv → xiom-openblas → xiom-numpy → xiom-o
 ## Latest Commits (this session)
 
 ```
+NEW     feat(ecosystem): add 9 safe accessor wrappers to xiom-vulkan + 2 imgui wrappers
+NEW     refactor(ecosystem): remove all unsafe FFI from imgui demo files (31 blocks → 0)
 cf83e2c feat(xiom-vulkan): 100% safe wrapper coverage + 7 SDK showcase examples
 b1b5328 refactor(ecosystem): clean SDK showcase examples for vulkan, imgui, glfw
 805a61d docs(ecosystem): add missing packages — NumPy, Pandas, SciPy, TensorFlow, DirectX, OpenGL
@@ -73,29 +78,21 @@ b1b5328 refactor(ecosystem): clean SDK showcase examples for vulkan, imgui, glfw
 ```
 Continue ecosystem development from ecosystem/ecosystem_session.md.
 
-COMPILER: xiomc v0.49.5 (871/871, zero warnings). Newtypes + Float32 fix confirmed.
+COMPILER: xiomc v0.49.7 (881/881, zero warnings). Newtypes + Float32 fix confirmed.
 
 PRODUCTION PACKAGES (ready):
-- xiom-vulkan: 82 wrappers, 100% FFI coverage, 7 examples, 78% contracts
-- xiom-glfw: 16 wrappers, Window/Monitor newtypes, 3 examples, 100% contracts
-- xiom-imgui: 65+ wrappers, Begin/End tracking, widget showcase
+- xiom-vulkan: 91 wrappers (+9 accessors), 100% FFI coverage, 7 examples, 78% contracts
+- xiom-glfw: 16 wrappers, Window/Monitor newtypes, 3 examples, 100% contracts  
+- xiom-imgui: 68+ wrappers (+2), Begin/End tracking, widget showcase, 0 unsafe blocks in demos
 - xiom.ffi: stdlib module (SafePtr, FFIBuffer, marshal)
 
 IMMEDIATE TASKS (pick any):
 1. Add tests/ to xiom-vulkan (conformance tests for 7 examples + contracts)
 2. Start implementing SPEC-only packages (see docs/ecosystem-audit.md for order)
-3. Fix font/offscreen API signatures that failed compilation (vulkan.xi line ~800)
-4. Remove remaining unsafe FFI calls from imgui demo (use camera wrappers)
+3. Fix font/offscreen API signatures that failed compilation (vulkan.xi)
+4. ~~Remove remaining unsafe FFI calls from imgui demo~~ COMPLETED (31 unsafe blocks → 0)
 5. Audit xiom-vulkan C bridge for remaining G-28 E001 false positives
-
-BUILD COMMAND TEMPLATE (vulkan examples):
-$VkBridge = "..\\bridge\\xvk_bridge.obj"
-$VkLib = "$env:VULKAN_SDK\\Lib"
-$GfLib = "$env:GLFW_DIR\\lib-vc2022"
-xiomc demo_XX_name.xi ..\\vulkan.xi ..\\src\\wrapper.xi --release `
-  --c-source $VkBridge `
-  --link vulkan-1 --link glfw3 --link gdi32 --link user32 --link kernel32 --link shell32 --link ole32 --link winmm `
-  --link-path $VkLib --link-path $GfLib -o demo_XX.exe
+6. Verify compilation of demo_imgui.xi and ig_step2.xi with updated wrappers
 
 ENVIRONMENT:
 $env:VULKAN_SDK = "C:\\VulkanSDK\\1.4.350.0"

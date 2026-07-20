@@ -570,6 +570,47 @@ pub fn app_maximize(app: Int)
 { unsafe { xvk_app_maximize(app); }; }
 
 // ===========================================================================
+// Safe wrappers — Accessors (9 functions)
+// Provides safe access to Vulkan/GLFW handles for interop (e.g. ImGui init).
+// ===========================================================================
+
+pub fn get_glfw_window(app: Int) -> Int
+  requires: app != 0
+{ return unsafe { xvk_get_glfw_window(app) }; }
+
+pub fn get_instance(app: Int) -> Int
+  requires: app != 0
+{ return unsafe { xvk_get_instance(app) }; }
+
+pub fn get_device(app: Int) -> Int
+  requires: app != 0
+{ return unsafe { xvk_get_device(app) }; }
+
+pub fn get_physical_device(app: Int) -> Int
+  requires: app != 0
+{ return unsafe { xvk_get_physical_device(app) }; }
+
+pub fn get_graphics_queue(app: Int) -> Int
+  requires: app != 0
+{ return unsafe { xvk_get_graphics_queue(app) }; }
+
+pub fn get_render_pass(app: Int) -> Int
+  requires: app != 0
+{ return unsafe { xvk_get_render_pass(app) }; }
+
+pub fn get_command_buffer(app: Int) -> Int
+  requires: app != 0
+{ return unsafe { xvk_get_command_buffer(app) }; }
+
+pub fn get_fb_width(app: Int) -> Int32
+  requires: app != 0
+{ return unsafe { xvk_get_fb_width(app) }; }
+
+pub fn get_fb_height(app: Int) -> Int32
+  requires: app != 0
+{ return unsafe { xvk_get_fb_height(app) }; }
+
+// ===========================================================================
 // Safe wrappers — Audio (2 functions)
 // ===========================================================================
 

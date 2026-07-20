@@ -198,6 +198,10 @@ pub fn button(label: Str) -> Bool
   requires: label.len() > 0
 { return unsafe { imgui_button(label) != 0 }; }
 
+pub fn small_button(label: Str) -> Bool
+  requires: label.len() > 0
+{ return unsafe { imgui_small_button(label) != 0 }; }
+
 pub fn text(text: Str)
 { unsafe { imgui_text(text); }; }
 
@@ -243,6 +247,9 @@ pub fn same_line()
 
 pub fn same_line_offset(offset_x: Float32)
 { unsafe { imgui_same_line(offset_x, 0.0); }; }
+
+pub fn same_line_spacing(spacing: Float32)
+{ unsafe { imgui_same_line(0.0, spacing); }; }
 
 pub fn spacing()
 { unsafe { imgui_spacing(); }; }

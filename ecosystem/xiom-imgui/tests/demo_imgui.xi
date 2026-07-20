@@ -38,12 +38,12 @@ fn main() -> Int {
   match app {
     Err(e) => { io.println(e); return 1; }
     Ok(a) => {
-      let w = unsafe { xvk_get_glfw_window(a) };
-      let i = unsafe { xvk_get_instance(a) };
-      let d = unsafe { xvk_get_device(a) };
-      let p = unsafe { xvk_get_physical_device(a) };
-      let q = unsafe { xvk_get_graphics_queue(a) };
-      let r = unsafe { xvk_get_render_pass(a) };
+      let w = get_glfw_window(a);
+      let i = get_instance(a);
+      let d = get_device(a);
+      let p = get_physical_device(a);
+      let q = get_graphics_queue(a);
+      let r = get_render_pass(a);
 
       if !create_context(w) { destroy_app(a); return 1; }
       if !init_vulkan(i, d, p, q, 0, r, 0, 1280.0, 800.0) {
@@ -53,7 +53,7 @@ fn main() -> Int {
       while !should_close(a) && g_frame < 100000 {
         if is_key_down(a, 256) { break; }
         let f11 = if is_key_down(a, 292) { 1 } else { 0 };
-        if f11 != 0 && g_f11_p == 0 { unsafe { xvk_app_toggle_fullscreen(a); }; }
+        if f11 != 0 && g_f11_p == 0 { app_toggle_fullscreen(a); }
         g_f11_p = f11;
 
         poll(a);
@@ -61,9 +61,9 @@ fn main() -> Int {
         let status = begin_frame(a);
         if status == 1 {
           g_frame = g_frame + 1;
-          let fb_w = unsafe { xvk_get_fb_width(a) };
-          let fb_h = unsafe { xvk_get_fb_height(a) };
-          unsafe { imgui_bridge_new_frame_sized(fb_w, fb_h); };
+          let fb_w = get_fb_width(a);
+          let fb_h = get_fb_height(a);
+          new_frame_sized(fb_w, fb_h);
 
           // ── MENU BAR ──────────────────────────────────────────────────────
           if begin_main_menu_bar() {
@@ -123,7 +123,7 @@ fn main() -> Int {
             // Section: Color Picker
             if collapsing_header("Color Picker") {
               color_edit3("RGB Color", g_cr, g_cg, g_cb);
-              unsafe { imgui_text_colored(g_cr, g_cg, g_cb, 1.0, "  Colored preview text"); };
+              text_colored(g_cr, g_cg, g_cb, 1.0, "  Colored preview text");
             }
             separator();
 
@@ -138,8 +138,8 @@ fn main() -> Int {
 
             // Buttons + Modal trigger
             if button("Open About Modal") { g_modal = 1; }
-            unsafe { imgui_same_line(0.0, 8.0); };
-            if unsafe { imgui_small_button("Small") } != 0 { }
+            same_line_spacing(8.0);
+            if small_button("Small") { }
             end_window();
           }
 
@@ -180,8 +180,8 @@ fn main() -> Int {
               // TAB: Layout
               if begin_tab_item("Layout") {
                 text("Same-line demonstration:");
-                text("A"); unsafe { imgui_same_line(0.0, 0.0); };
-                text("B"); unsafe { imgui_same_line(0.0, 0.0); };
+                text("A"); same_line();
+                text("B"); same_line();
                 text("C");
                 separator();
                 text_wrapped("This is wrapped text that demonstrates word wrapping. It will automatically break at the window edge. XIOM ImGui binding provides text_wrapped as a safe wrapper with contract enforcement.");
@@ -253,7 +253,7 @@ fn main() -> Int {
             end_popup_modal();
           }
 
-          let cb = unsafe { xvk_get_command_buffer(a) };
+          let cb = get_command_buffer(a);
           render(cb);
           end_frame(a);
         } elif status == -1 { break; }

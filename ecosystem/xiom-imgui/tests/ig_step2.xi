@@ -1,4 +1,4 @@
-// Step 2: Window + ImGui context only, no widgets
+// Step 2: Window + ImGui context only, no widgets — uses safe wrappers exclusively
 module ig_test
 use xiom.io;
 use xiom.vulkan;
@@ -9,16 +9,16 @@ fn main() -> Int {
   match app {
     Err(e) => { io.println(e); return 1; }
     Ok(a) => {
-      let win  = unsafe { xvk_get_glfw_window(a) };
-      let inst = unsafe { xvk_get_instance(a) };
-      let dev  = unsafe { xvk_get_device(a) };
-      let phys = unsafe { xvk_get_physical_device(a) };
-      let q    = unsafe { xvk_get_graphics_queue(a) };
-      let rp   = unsafe { xvk_get_render_pass(a) };
+      let win  = get_glfw_window(a);
+      let inst = get_instance(a);
+      let dev  = get_device(a);
+      let phys = get_physical_device(a);
+      let q    = get_graphics_queue(a);
+      let rp   = get_render_pass(a);
 
-      if unsafe { imgui_bridge_init(win) } == 0 { destroy_app(a); return 1; }
-      if unsafe { imgui_bridge_init_vulkan(inst, dev, phys, q, 0 as Int32, rp, 0 as Int32, 1280.0, 800.0) } == 0 {
-        unsafe { imgui_bridge_shutdown(); }; destroy_app(a); return 1;
+      if !create_context(win) { destroy_app(a); return 1; }
+      if !init_vulkan(inst, dev, phys, q, 0 as Int32, rp, 0 as Int32, 1280.0, 800.0) {
+        destroy_context(); destroy_app(a); return 1;
       }
 
       var fc: Int = 0;
@@ -29,16 +29,16 @@ fn main() -> Int {
         let s = begin_frame(a);
         if s == 1 {
           fc = fc + 1;
-          let fb_w = unsafe { xvk_get_fb_width(a) } as Int;
-          let fb_h = unsafe { xvk_get_fb_height(a) } as Int;
-          unsafe { imgui_bridge_new_frame_sized(fb_w as Int32, fb_h as Int32); };
+          let fb_w = get_fb_width(a) as Int;
+          let fb_h = get_fb_height(a) as Int;
+          new_frame_sized(fb_w as Int32, fb_h as Int32);
           // No widgets - just new_frame + render
-          let cb = unsafe { xvk_get_command_buffer(a) };
-          unsafe { imgui_bridge_render(cb); };
+          let cb = get_command_buffer(a);
+          render(cb);
           end_frame(a);
         } elif s == -1 { break; }
       }
-      unsafe { imgui_bridge_shutdown(); };
+      destroy_context();
       destroy_app(a);
       return 0;
     }
