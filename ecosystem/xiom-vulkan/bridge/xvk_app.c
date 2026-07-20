@@ -648,6 +648,14 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
     a->frame_index     = 0;
     a->recording       = 0;
     a->in_render_pass  = 0;
+
+    /* Camera defaults: orbit view, 45° FOV, 16:9 aspect */
+    a->cam_eye[0] = 2.0f; a->cam_eye[1] = 2.0f; a->cam_eye[2] = 2.0f;
+    a->cam_target[0] = 0.0f; a->cam_target[1] = 0.0f; a->cam_target[2] = 0.0f;
+    a->cam_fov = 45.0f; a->cam_near = 0.1f; a->cam_far = 100.0f;
+    a->cam_aspect = 16.0f / 9.0f;
+    a->cam_active = 0;
+
     a->magic       = XVK_MAGIC;
     a->is_offscreen = 0;
 

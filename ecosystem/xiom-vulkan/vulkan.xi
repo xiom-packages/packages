@@ -205,13 +205,13 @@ extern "C" {
   fn xvk_audio_beep();
   fn xvk_audio_play_wav(filepath: Str);
 
-  // 3D Camera
-  fn xvk_camera_set_view(ex: Float32, ey: Float32, ez: Float32, tx: Float32, ty: Float32, tz: Float32);
-  fn xvk_camera_orbit(dyaw: Float32, dpitch: Float32, dradius: Float32);
-  fn xvk_camera_zoom(delta: Float32);
-  fn xvk_camera_reset();
-  fn xvk_camera_set_aspect_ratio(aspect: Float32);
-  fn xvk_camera_set_aspect_from_fb(fb_w: Int32, fb_h: Int32);
+  // 3D Camera (per-app state, app handle first parameter)
+  fn xvk_camera_set_view(app: Int, ex: Float32, ey: Float32, ez: Float32, tx: Float32, ty: Float32, tz: Float32);
+  fn xvk_camera_orbit(app: Int, dyaw: Float32, dpitch: Float32, dradius: Float32);
+  fn xvk_camera_zoom(app: Int, delta: Float32);
+  fn xvk_camera_reset(app: Int);
+  fn xvk_camera_set_aspect_ratio(app: Int, aspect: Float32);
+  fn xvk_camera_set_aspect_from_fb(app: Int, fb_w: Int32, fb_h: Int32);
   fn xvk_cos(x: Float32) -> Float32;
   fn xvk_sin(x: Float32) -> Float32;
 

@@ -1,70 +1,35 @@
 #include "xvk_camera.h"
 #include "xvk_math.h"
+#include "xvk_types.h"
+#include "xvk_util.h"
 #include <string.h>
 #include <math.h>
 
-static float g_eye[3]    = { 2.0f, 2.0f, 2.0f };
-static float g_target[3] = { 0.0f, 0.0f, 0.0f };
-static float g_up[3]     = { 0.0f, 1.0f, 0.0f };
-static float g_fov        = 45.0f;
-static float g_near       = 0.1f;
-static float g_far        = 100.0f;
-static float g_aspect     = 16.0f / 9.0f;  /* updated per-frame from swapchain */
-static int   g_active     = 0;
+/* Helper: extract camera from opaque app handle */
+static XvkApp* cam_from_handle(int64_t app_h) {
+    return (XvkApp*)(intptr_t)app_h;
+}
 
-void xvk_camera_set_view(float eye_x, float eye_y, float eye_z,
+/* ── Public API (XIOM-callable, takes app_h first) ── */
+
+void xvk_camera_set_view(int64_t app_h, float eye_x, float eye_y, float eye_z,
                           float target_x, float target_y, float target_z)
 {
-    g_eye[0] = eye_x; g_eye[1] = eye_y; g_eye[2] = eye_z;
-    g_target[0] = target_x; g_target[1] = target_y; g_target[2] = target_z;
-    g_active = 1;
+    XvkApp* a = cam_from_handle(app_h);
+    if (!a) return;
+    a->cam_eye[0] = eye_x; a->cam_eye[1] = eye_y; a->cam_eye[2] = eye_z;
+    a->cam_target[0] = target_x; a->cam_target[1] = target_y; a->cam_target[2] = target_z;
+    a->cam_active = 1;
 }
 
-void xvk_camera_set_projection(float fov_deg, float near_plane, float far_plane)
+void xvk_camera_orbit(int64_t app_h, float delta_yaw, float delta_pitch, float delta_radius)
 {
-    g_fov = fov_deg;
-    g_near = near_plane;
-    g_far = far_plane;
-}
+    XvkApp* a = cam_from_handle(app_h);
+    if (!a) return;
 
-void xvk_camera_set_aspect_ratio(float aspect)
-{
-    if (aspect > 0.0f) g_aspect = aspect;
-}
-
-/* Set aspect ratio from framebuffer dimensions (avoids CG-01 Int32→Float32 in XIOM) */
-void xvk_camera_set_aspect_from_fb(int32_t fb_w, int32_t fb_h)
-{
-    if (fb_w > 0 && fb_h > 0)
-        g_aspect = (float)fb_w / (float)fb_h;
-}
-
-void xvk_camera_get_view(int64_t out_matrix)
-{
-    float* m = (float*)(intptr_t)out_matrix;
-    if (!m) return;
-    float view[16];
-    mat4_look_at(view, g_eye[0], g_eye[1], g_eye[2],
-                       g_target[0], g_target[1], g_target[2],
-                       g_up[0], g_up[1], g_up[2]);
-    memcpy(m, view, 64);
-}
-
-void xvk_camera_get_projection(int64_t out_matrix)
-{
-    float* m = (float*)(intptr_t)out_matrix;
-    if (!m) return;
-    float proj[16];
-    mat4_perspective(proj, g_fov * (float)M_PI / 180.0f, g_aspect, g_near, g_far);
-    memcpy(m, proj, 64);
-}
-
-void xvk_camera_orbit(float delta_yaw, float delta_pitch, float delta_radius)
-{
-    /* Compute spherical coords from current eye relative to target */
-    float dx = g_eye[0] - g_target[0];
-    float dy = g_eye[1] - g_target[1];
-    float dz = g_eye[2] - g_target[2];
+    float dx = a->cam_eye[0] - a->cam_target[0];
+    float dy = a->cam_eye[1] - a->cam_target[1];
+    float dz = a->cam_eye[2] - a->cam_target[2];
     float radius = sqrtf(dx*dx + dy*dy + dz*dz);
     float yaw   = atan2f(dz, dx);
     float pitch = asinf(dy / (radius > 0.001f ? radius : 0.001f));
@@ -77,38 +42,77 @@ void xvk_camera_orbit(float delta_yaw, float delta_pitch, float delta_radius)
     if (radius < 0.5f)  radius = 0.5f;
     if (radius > 50.0f) radius = 50.0f;
 
-    g_eye[0] = g_target[0] + radius * cosf(pitch) * cosf(yaw);
-    g_eye[1] = g_target[1] + radius * sinf(pitch);
-    g_eye[2] = g_target[2] + radius * cosf(pitch) * sinf(yaw);
+    a->cam_eye[0] = a->cam_target[0] + radius * cosf(pitch) * cosf(yaw);
+    a->cam_eye[1] = a->cam_target[1] + radius * sinf(pitch);
+    a->cam_eye[2] = a->cam_target[2] + radius * cosf(pitch) * sinf(yaw);
 }
 
-void xvk_camera_pan(float dx, float dy)
+void xvk_camera_zoom(int64_t app_h, float delta)
 {
-    g_target[0] += dx;
-    g_target[1] += dy;
-    g_eye[0] += dx;
-    g_eye[1] += dy;
-}
-
-void xvk_camera_zoom(float delta)
-{
-    float dir[3] = { g_target[0] - g_eye[0], g_target[1] - g_eye[1], g_target[2] - g_eye[2] };
+    XvkApp* a = cam_from_handle(app_h);
+    if (!a) return;
+    float dir[3] = { a->cam_target[0] - a->cam_eye[0], a->cam_target[1] - a->cam_eye[1], a->cam_target[2] - a->cam_eye[2] };
     float len = sqrtf(dir[0]*dir[0] + dir[1]*dir[1] + dir[2]*dir[2]);
     if (len < 0.001f) len = 0.001f;
-    g_eye[0] += dir[0] / len * delta;
-    g_eye[1] += dir[1] / len * delta;
-    g_eye[2] += dir[2] / len * delta;
+    a->cam_eye[0] += dir[0] / len * delta;
+    a->cam_eye[1] += dir[1] / len * delta;
+    a->cam_eye[2] += dir[2] / len * delta;
 }
 
-void xvk_camera_reset(void)
+void xvk_camera_reset(int64_t app_h)
 {
-    g_eye[0] = 2.0f; g_eye[1] = 2.0f; g_eye[2] = 2.0f;
-    g_target[0] = 0.0f; g_target[1] = 0.0f; g_target[2] = 0.0f;
-    g_fov = 45.0f; g_near = 0.1f; g_far = 100.0f;
+    XvkApp* a = cam_from_handle(app_h);
+    if (!a) return;
+    a->cam_eye[0] = 2.0f; a->cam_eye[1] = 2.0f; a->cam_eye[2] = 2.0f;
+    a->cam_target[0] = 0.0f; a->cam_target[1] = 0.0f; a->cam_target[2] = 0.0f;
+    a->cam_fov = 45.0f; a->cam_near = 0.1f; a->cam_far = 100.0f;
 }
 
-int xvk_camera_is_active(void) { return g_active; }
+void xvk_camera_set_aspect_ratio(int64_t app_h, float aspect)
+{
+    XvkApp* a = cam_from_handle(app_h);
+    if (!a) return;
+    if (aspect > 0.0f) a->cam_aspect = aspect;
+}
 
-/* ── Trigonometry bridge (Float32 sin/cos for XIOM orbit math) ── */
+void xvk_camera_set_aspect_from_fb(int64_t app_h, int32_t fb_w, int32_t fb_h)
+{
+    XvkApp* a = cam_from_handle(app_h);
+    if (!a) return;
+    if (fb_w > 0 && fb_h > 0)
+        a->cam_aspect = (float)fb_w / (float)fb_h;
+}
+
+/* ── Internal API (called from draw functions with direct XvkApp* access) ── */
+
+void xvk_camera_get_view(int64_t app_h, int64_t out_matrix)
+{
+    XvkApp* a = cam_from_handle(app_h);
+    float* m = (float*)(intptr_t)out_matrix;
+    if (!a || !m) return;
+    float view[16];
+    mat4_look_at(view, a->cam_eye[0], a->cam_eye[1], a->cam_eye[2],
+                       a->cam_target[0], a->cam_target[1], a->cam_target[2],
+                       0.0f, 1.0f, 0.0f);
+    memcpy(m, view, 64);
+}
+
+void xvk_camera_get_projection(int64_t app_h, int64_t out_matrix)
+{
+    XvkApp* a = cam_from_handle(app_h);
+    float* m = (float*)(intptr_t)out_matrix;
+    if (!a || !m) return;
+    float proj[16];
+    mat4_perspective(proj, a->cam_fov * (float)M_PI / 180.0f, a->cam_aspect, a->cam_near, a->cam_far);
+    memcpy(m, proj, 64);
+}
+
+int xvk_camera_is_active(int64_t app_h)
+{
+    XvkApp* a = cam_from_handle(app_h);
+    return a ? a->cam_active : 0;
+}
+
+/* ── Trigonometry bridge (stateless — no app handle needed) ── */
 float xvk_cos(float x) { return cosf(x); }
 float xvk_sin(float x) { return sinf(x); }
