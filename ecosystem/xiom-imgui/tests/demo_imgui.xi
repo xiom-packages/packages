@@ -98,13 +98,8 @@ fn main() -> Int {
           let fb_w: Int32 = unsafe { xvk_get_fb_width(a) } as Int32;
           let fb_h: Int32 = unsafe { xvk_get_fb_height(a) } as Int32;
 
-          // Delta-time from ImGui (frame-rate independent)
-          g_time = g_time + 0.016;
-
-          // 3D scene behind panels
+          // 3D scene + ImGui frame
           draw_3d_scene(a, g_time, fb_w, fb_h);
-
-          // ImGui frame
           new_frame_sized(fb_w, fb_h);
 
           // Fluid layout

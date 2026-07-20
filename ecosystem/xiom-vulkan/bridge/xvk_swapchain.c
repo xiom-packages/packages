@@ -250,13 +250,19 @@ int create_swapchain(XvkApp* a)
         xvk_set_error("malloc failed for swapchain_images");
         return 0;
     }
-    vkGetSwapchainImagesKHR(a->device, a->swapchain, &desired,
-                            a->swapchain_images);
+    {
+        uint32_t actual = desired;
+        vkGetSwapchainImagesKHR(a->device, a->swapchain, &actual,
+                                a->swapchain_images);
+        /* Clamp to actual count (may differ from first query in edge cases) */
+        if (actual < desired) { desired = actual; a->swapchain_image_count = (int)actual; }
+    }
 
     a->swapchain_image_views = (VkImageView*)malloc(
         desired * sizeof(VkImageView));
     if (!a->swapchain_image_views) {
         xvk_set_error("malloc failed for swapchain_image_views");
+        free(a->swapchain_images); a->swapchain_images = NULL;
         return 0;
     }
     for (uint32_t i = 0; i < desired; ++i) {
@@ -279,6 +285,11 @@ int create_swapchain(XvkApp* a)
                                         &a->swapchain_image_views[i]);
         if (r != VK_SUCCESS) {
             xvk_set_error_fmt("vkCreateImageView[%u] failed: %d", i, (int)r);
+            /* Cleanup partially created image views */
+            for (uint32_t j = 0; j < i; ++j)
+                vkDestroyImageView(a->device, a->swapchain_image_views[j], NULL);
+            free(a->swapchain_image_views); a->swapchain_image_views = NULL;
+            free(a->swapchain_images);     a->swapchain_images     = NULL;
             return 0;
         }
     }

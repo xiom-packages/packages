@@ -36,8 +36,20 @@ int32_t imgui_bridge_init(int64_t glfw_window)
     DBG("Creating context");
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    /* DPI font scaling: on HiDPI displays where framebuffer > window size,
+     * scale fonts proportionally. Default 1.0 = no scaling. */
+    io.FontGlobalScale = 1.0f;
+
     ImGui::StyleColorsDark();
+
+    /* Runtime version check: bridge must match bundled ImGui .obj version.
+     * Mismatch causes ABI breakage with no compile-time diagnostic. */
+    if (strcmp(ImGui::GetVersion(), "1.92.9") != 0) {
+        DBG("ImGui version mismatch: expected 1.92.9, got %s", ImGui::GetVersion());
+    }
 
     DBG("Init GLFW for Vulkan");
     if (!ImGui_ImplGlfw_InitForVulkan(win, true)) {

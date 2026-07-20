@@ -426,6 +426,8 @@ int64_t xvk_pipeline_create_graphics(int64_t app_h,
     cbs.pAttachments    = &cb;
 
     VkPipelineDynamicStateCreateInfo dyn = {0};
+    /* Only set pDynamicState when dynamic states are actually configured.
+     * An empty dynamic state create info triggers validation layer warnings. */
     dyn.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 
     VkGraphicsPipelineCreateInfo gpci = {0};
@@ -439,7 +441,7 @@ int64_t xvk_pipeline_create_graphics(int64_t app_h,
     gpci.pMultisampleState   = &ms;
     gpci.pDepthStencilState  = &ds;
     gpci.pColorBlendState    = &cbs;
-    gpci.pDynamicState       = &dyn;
+    gpci.pDynamicState       = NULL;  /* no dynamic states needed */
     gpci.layout              = pl->layout;
     gpci.renderPass          = rp->render_pass;
     gpci.subpass             = 0;

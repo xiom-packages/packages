@@ -91,11 +91,12 @@ void xvk_app_cleanup_internal(XvkApp* a)
     a->particles         = NULL;
     a->particle_count    = 0;
 
+    /* Destroy framebuffers BEFORE render pass (framebuffers reference it) */
+    cleanup_swapchain(a);
+
     if (a->render_pass)
         vkDestroyRenderPass(a->device, a->render_pass, NULL);
     a->render_pass = VK_NULL_HANDLE;
-
-    cleanup_swapchain(a);
 
     if (a->is_offscreen) {
         if (a->offs_fence)
