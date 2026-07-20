@@ -673,6 +673,122 @@ fail:
     return 0;
 }
 
+/* ── New API: create app from an existing GLFW window (xiom-glfw owns the window) ── */
+
+/* Internal cleanup that does NOT touch the GLFW window (owned by caller).
+ * Mirrors xvk_app_cleanup_internal but skips glfwDestroyWindow/glfwTerminate. */
+static void xvk_app_cleanup_internal_no_window(XvkApp* a)
+{
+    if (!a) return;
+    vkDeviceWaitIdle(a->device);
+    cleanup_swapchain(a);
+    if (a->render_pass)    vkDestroyRenderPass(a->device, a->render_pass, NULL);
+    if (a->cmd_buffers)    { vkFreeCommandBuffers(a->device, a->cmd_pool, (uint32_t)a->swapchain_image_count, a->cmd_buffers); free(a->cmd_buffers); }
+    if (a->cmd_pool)       vkDestroyCommandPool(a->device, a->cmd_pool, NULL);
+    if (a->in_flight_fences) { for(int i=0; i<XVK_MAX_FRAMES; ++i) vkDestroyFence(a->device, a->in_flight_fences[i], NULL); free(a->in_flight_fences); }
+    if (a->render_finished)  { for(int i=0; i<XVK_MAX_FRAMES; ++i) vkDestroySemaphore(a->device, a->render_finished[i], NULL); free(a->render_finished); }
+    if (a->image_available)  { for(int i=0; i<XVK_MAX_FRAMES; ++i) vkDestroySemaphore(a->device, a->image_available[i], NULL); free(a->image_available); }
+    if (a->pipeline_2d)      vkDestroyPipeline(a->device, a->pipeline_2d, NULL);
+    if (a->pipeline_3d)      vkDestroyPipeline(a->device, a->pipeline_3d, NULL);
+    if (a->pipeline_quad)    vkDestroyPipeline(a->device, a->pipeline_quad, NULL);
+    if (a->texquad_pipeline) vkDestroyPipeline(a->device, a->texquad_pipeline, NULL);
+    if (a->pipe_layout_2d)   vkDestroyPipelineLayout(a->device, a->pipe_layout_2d, NULL);
+    if (a->pipe_layout_3d)   vkDestroyPipelineLayout(a->device, a->pipe_layout_3d, NULL);
+    if (a->pipe_layout_quad)  vkDestroyPipelineLayout(a->device, a->pipe_layout_quad, NULL);
+    if (a->texquad_layout)   vkDestroyPipelineLayout(a->device, a->texquad_layout, NULL);
+    if (a->depth_image_view) vkDestroyImageView(a->device, a->depth_image_view, NULL);
+    if (a->depth_image)      vkDestroyImage(a->device, a->depth_image, NULL);
+    if (a->depth_memory)     vkFreeMemory(a->device, a->depth_memory, NULL);
+    if (a->surface)          vkDestroySurfaceKHR(a->instance, a->surface, NULL);
+    if (a->device)           { xvk_ma_destroy(); vkDestroyDevice(a->device, NULL); }
+    if (a->instance)         vkDestroyInstance(a->instance, NULL);
+    /* NOTE: a->window is NOT destroyed — it's owned by xiom-glfw */
+}
+
+int64_t xvk_app_create_from_window(int64_t glfw_window, int32_t width, int32_t height)
+{
+    GLFWwindow* win = (GLFWwindow*)(uint64_t)glfw_window;
+    if (!win) { xvk_set_error("null window handle"); return 0; }
+
+    XvkApp* a = (XvkApp*)calloc(1, sizeof(XvkApp));
+    if (!a) { xvk_set_error("calloc failed"); return 0; }
+    a->window = win;
+
+    int have_val = 0;
+    a->instance = create_instance("XIOM App", &have_val);
+    if (!a->instance) goto fail_no_window;
+
+    a->surface = create_surface(a->instance, a->window);
+    if (!a->surface) goto fail_no_window;
+
+    if (!pick_physical_device(a->instance, a->surface, &a->phys_dev, &a->device_type))
+        goto fail_no_window;
+    if (!find_queue_families(a->phys_dev, a->surface, &a->graphics_family, &a->present_family))
+        goto fail_no_window;
+
+    a->device = create_device(a->phys_dev, a->graphics_family, a->present_family, a->surface);
+    if (!a->device) goto fail_no_window;
+
+    vkGetDeviceQueue(a->device, a->graphics_family, 0, &a->graphics_queue);
+    vkGetDeviceQueue(a->device, a->present_family, 0, &a->present_queue);
+    vkGetPhysicalDeviceMemoryProperties(a->phys_dev, &a->mem_props);
+
+    if (!create_swapchain(a)) goto fail_no_window;
+    if (!create_depth_resources(a)) goto fail_no_window;
+
+    a->render_pass = create_render_pass(a->device, a->swapchain_fmt, a->depth_format);
+    if (!a->render_pass) goto fail_no_window;
+
+    /* Create shaders + pipelines (mirrors xvk_app_create) */
+    VkShaderModule tri_vert = create_shader_module(a->device, xvk_triangle_vert_spv, xvk_triangle_vert_spv_len);
+    VkShaderModule tri_frag = create_shader_module(a->device, xvk_triangle_frag_spv, xvk_triangle_frag_spv_len);
+    VkShaderModule cube_vert = create_shader_module(a->device, xvk_cube_vert_spv, xvk_cube_vert_spv_len);
+    VkShaderModule cube_frag = create_shader_module(a->device, xvk_cube_frag_spv, xvk_cube_frag_spv_len);
+    if (!tri_vert || !tri_frag || !cube_vert || !cube_frag) { goto fail_no_window; }
+
+    VkPushConstantRange pc2 = {0}; pc2.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; pc2.size = 16;
+    VkPushConstantRange pc3 = {0}; pc3.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; pc3.size = 64;
+    a->pipe_layout_2d = create_pipeline_layout(a->device, &pc2, 1);
+    a->pipe_layout_3d = create_pipeline_layout(a->device, &pc3, 1);
+    a->pipeline_2d = create_graphics_pipeline(a->device, a->pipe_layout_2d, a->render_pass, tri_vert, tri_frag, (uint32_t)width, (uint32_t)height, 0, 0);
+    a->pipeline_3d = create_graphics_pipeline(a->device, a->pipe_layout_3d, a->render_pass, cube_vert, cube_frag, (uint32_t)width, (uint32_t)height, 1, 1);
+    vkDestroyShaderModule(a->device, tri_vert, NULL); vkDestroyShaderModule(a->device, tri_frag, NULL);
+    vkDestroyShaderModule(a->device, cube_vert, NULL); vkDestroyShaderModule(a->device, cube_frag, NULL);
+
+    if (!create_framebuffers(a)) goto fail_no_window;
+
+    VkCommandPoolCreateInfo cpci = {0}; cpci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    cpci.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; cpci.queueFamilyIndex = a->graphics_family;
+    if (vkCreateCommandPool(a->device, &cpci, NULL, &a->cmd_pool) != VK_SUCCESS) goto fail_no_window;
+    a->cmd_buffers = (VkCommandBuffer*)malloc(a->swapchain_image_count * sizeof(VkCommandBuffer));
+    VkCommandBufferAllocateInfo cbai = {0}; cbai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cbai.commandPool = a->cmd_pool; cbai.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; cbai.commandBufferCount = (uint32_t)a->swapchain_image_count;
+    vkAllocateCommandBuffers(a->device, &cbai, a->cmd_buffers);
+
+    a->image_available = (VkSemaphore*)malloc(XVK_MAX_FRAMES * sizeof(VkSemaphore));
+    a->render_finished = (VkSemaphore*)malloc(XVK_MAX_FRAMES * sizeof(VkSemaphore));
+    a->in_flight_fences = (VkFence*)malloc(XVK_MAX_FRAMES * sizeof(VkFence));
+    memset(a->image_available, 0, XVK_MAX_FRAMES * sizeof(VkSemaphore));
+    memset(a->render_finished, 0, XVK_MAX_FRAMES * sizeof(VkSemaphore));
+    memset(a->in_flight_fences, 0, XVK_MAX_FRAMES * sizeof(VkFence));
+    create_sync_objects(a->device, XVK_MAX_FRAMES, a->image_available, a->render_finished, a->in_flight_fences);
+
+    a->clear_r = 0.0f; a->clear_g = 0.0f; a->clear_b = 0.0f;
+    a->frame_index = 0; a->recording = 0; a->in_render_pass = 0;
+    a->cam_eye[0] = 2.0f; a->cam_eye[1] = 2.0f; a->cam_eye[2] = 2.0f;
+    a->cam_target[0] = 0.0f; a->cam_aspect = 16.0f/9.0f;
+    a->cam_fov = 45.0f; a->cam_near = 0.1f; a->cam_far = 100.0f;
+    a->magic = XVK_MAGIC; a->is_offscreen = 0;
+
+    xvk_set_error("");
+    return xvk_to_handle(a);
+
+fail_no_window:
+    xvk_app_cleanup_internal_no_window(a);
+    free(a);
+    return 0;
+}
+
 void xvk_app_destroy(int64_t app_h)
 {
     XvkApp* a = xvk_from_handle(app_h);

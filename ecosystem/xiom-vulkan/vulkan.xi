@@ -41,6 +41,7 @@ pub type VertexAttribute = {
 // ===========================================================================
 extern "C" {
   fn xvk_app_create(title: Str, width: Int32, height: Int32) -> Int;
+  fn xvk_app_create_from_window(window: Int, width: Int32, height: Int32) -> Int;
   fn xvk_app_destroy(app: Int);
   fn xvk_app_valid(app: Int) -> Int32;
   fn xvk_last_error() -> Str;
@@ -265,6 +266,18 @@ pub fn create_app(title: Str, width: Int, height: Int) -> Result[Int, Str]
   let raw = unsafe { xvk_app_create(title, width as Int32, height as Int32) };
   if raw == 0 {
     return Err("failed to create vulkan app");
+  }
+  return Ok(raw);
+}
+
+pub fn create_app_from_window(win: Int, width: Int, height: Int) -> Result[Int, Str]
+  requires: win != 0
+  requires: width > 0
+  requires: height > 0
+{
+  let raw = unsafe { xvk_app_create_from_window(win, width as Int32, height as Int32) };
+  if raw == 0 {
+    return Err("failed to create vulkan app from window");
   }
   return Ok(raw);
 }
