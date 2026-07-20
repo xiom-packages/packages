@@ -1,80 +1,102 @@
 # xiom-vulkan — Production Roadmap
 
-**Status**: Production-ready for single-threaded use. 23/27 findings resolved.
-**CRITICAL**: 5/6 fixed | **HIGH**: 12/14 fixed | **MEDIUM**: 3/5 fixed | **LOW**: 3/5 fixed
-**Compiler**: xiomc v0.48.9 (783/783 tests)
-**Last audit**: 2026-07-20 | **Last sprint**: 6 (2026-07-20)
+**Current rating: 7/10** — Solid C bridge, good XIOM layer. Incomplete safety coverage.
+**C bridge**: 29 files, 368 functions, 0 errors, 0 warnings (clang -O2 -Wall -Wextra)
+**XIOM layer**: 21 files — raw bindings (755 VK functions), safe wrappers (24+ types, contracts), legacy xvk_app API (100+ functions)
+**12 demos**: All compile and run, including 3D orbital cubes and game-style GUI showcase
+**Compiler**: xiomc v0.49.2 (798/798 tests)
 
 ---
 
-## RESOLVED ✅
+## Honest Assessment
 
-### CRITICAL — Fixed
-| # | Issue | Status |
-|---|-------|--------|
-| 1.1 | Unchecked vkBind* (10 sites) | ✅ All checked with cleanup on failure |
-| 1.2 | Unchecked vkMapMemory (6 sites) | ✅ All checked |
-| 1.3 | Swapchain cmd_buffers nullified on recreation failure | ✅ CB alloc before old resource destroy; state restored on failure |
-| 1.4 | Offscreen render target resource leaks | ✅ goto-cleanup labels (fail_memory, fail_image) |
-| 1.5 | Global state — error buffer | ✅ `_Thread_local` |
-| 1.6 | Memory allocator use-after-free on bind failure | ✅ (bind check + cleanup before handle write) |
+xiom-vulkan is the most mature ecosystem package. The C bridge has been hardened through 6 production sprints — 10+ vkBind checks, 6 vkMapMemory checks, offscreen leak fixes, QueueSubmit error handling, thread-local error buffer, camera per-app context, descriptor caching. The XIOM layer has three complete sub-modules: raw auto-generated bindings (vulkan_extern.xi, 755 functions), safe resource wrappers (vulkan_safe.xi, 24+ types with contracts), and a legacy convenience API (vulkan.xi/wrapper.xi, 100+ functions).
 
-### HIGH — Fixed
-| # | Issue | Status |
-|---|-------|--------|
-| 2.2 | vkQueueSubmit failure silently ignored | ✅ Returns early, skips present |
-| 2.3 | framebuffers accessed without NULL guard | ✅ NULL check before dereference |
-| 2.4 | offs_mapped NULL guard in hash path | ✅ Guard already present (audit false-positive) |
-| 2.5 | Camera state into XvkApp (partial) | ✅ Error buffer + allocator done; camera global documented |
-| 2.8 | create_swapchain partial failure relies on caller | ✅ Internal cleanup on image view failure |
-| 3.1 | vkEnumerate* return values unchecked | ✅ Instance layer property check |
-| 3.2 | vkWaitForFences result not checked (offscreen) | ✅ Check added |
-| 3.3 | Swapchain image count mismatch | ✅ Second query clamped to actual count |
-| 3.4 | Memory allocator ma_destroy() never called | ✅ Called in app cleanup before vkDestroyDevice |
-| 4.1 | Empty VkPipelineDynamicStateCreateInfo | ✅ pDynamicState = NULL |
-| 4.2 | vkBegin/EndCommandBuffer not checked | ⬜ Deferred (pre-existing, non-fatal) |
-| 4.3 | Render pass destroyed before framebuffers | ✅ cleanup_swapchain before vkDestroyRenderPass |
-
-### MEDIUM — Fixed
-| # | Issue | Status |
-|---|-------|--------|
-| 5.1 | Swapchain image view partial creation cleanup | ✅ Also fixed in 2.8 |
-| 5.2 | Unused variable warnings | ✅ Suppressed (xvk_memory_alloc.c) |
+The remaining gaps are:
+1. **Safety coverage**: vulkan.xi has contracts on ~60% of functions. vulkan_safe.xi covers ~40% of Vulkan entry points.
+2. **Multi-instance**: Global camera/instance state still uses old static globals in some code paths.
+3. **Struct marshalling**: 1306 lines in vulkan_structs.xi should move to xiom-ffi.
+4. **Demo stability**: The imgui demo has DPI/fullscreen issues — compiler-related, not bridge-related.
 
 ---
 
-## REMAINING ⬜
+## Phase 1: Safety Coverage (7 → 8/10)
 
-### CRITICAL — Remaining
-| # | Issue | Why not fixed |
-|---|-------|---------------|
-| 1.5 | Global state (camera, instance, device, extensions) | **Requires API redesign** — move into XvkContext struct. Camera functions need new signatures. Extension binding needs per-instance proc tables. Breaking change for all XIOM FFI callers. |
+### VK-01: Add `requires`/`ensures` contracts to ALL public functions in vulkan.xi
+**CRITICAL** | `vulkan.xi`
+Currently ~60% coverage. Remaining ~40% need contracts (handle validation, range checks, state guards).
 
-### HIGH — Remaining
-| # | Issue | Why not fixed |
-|---|-------|---------------|
-| 2.6 | Validation ring buffer no synchronization | Rare trigger (debug-only path). Low-risk for single-threaded apps. |
-| 2.7 | Descriptor set updated every frame | Performance optimization, not correctness. `xvk_draw_texture_quad` rewrite needed. |
-| 2.9 | Queue handles assigned without validation | `vkGetDeviceQueue` always returns valid handle if family+index correct. Low-risk. |
-| 4.2 | vkBegin/EndCommandBuffer result not checked | Pre-existing benign pattern; texture path rarely fails. |
-| 4.4 | No content scale callback | DPI changes detected on next `begin_frame`. One-frame delay, not crash. |
+### VK-02: Add `invariant` on `VulkanApp` struct
+**CRITICAL** | `vulkan.xi`
+The wrapped `Int` handle needs: `value != 0` when valid, and a validity flag. Currently no invariant — invalid handles crash at runtime.
 
-### MEDIUM — Remaining
-| # | Issue | Why not fixed |
-|---|-------|---------------|
-| 3.1 | vkEnumerate* remaining sites (extension, physical device) | Count=0 check catches failure; enumeration rarely fails in practice |
-| 3.3 | (Done — fixed under HIGH) | |
+### VK-03: Add frame lifecycle guard — prevent `end_frame` without `begin_frame`
+**CRITICAL** | `vulkan.xi` / `wrapper.xi`
+Track `in_frame: Bool` at wrapper level. `end_frame` requires `in_frame == true`.
 
-### LOW — Remaining
-| # | Issue | Why not fixed |
-|---|-------|---------------|
-| 4.2 | Texture command buffer return not checked | Non-fatal; cleanup handles failure |
-| 4.5 | Redundant shader module destruction | Memory-safe; duplicate destroy is a Vulkan no-op |
+### VK-04: Complete vulkan_safe.xi coverage for all commonly-used VK entry points
+**HIGH** | `vulkan_safe.xi`
+Currently ~40% of 755 VK functions have safe wrappers. Target: 80% of commonly-used subset (~150 functions).
+
+### VK-05: Add `destroy` methods to all resource types in vulkan_safe.xi
+**HIGH** | `vulkan_safe.xi`
+All create functions need paired destroy. Currently ~90% coverage.
+
+### VK-06: Add VkResult → XIOM error mapping for all safe functions
+**MEDIUM** | `vulkan_safe.xi`
+Standardize `Result[T, VulkanError]` pattern across all wrappers.
 
 ---
 
-## Production Readiness Verdict
+## Phase 2: C Bridge Hardening (8 → 9/10)
 
-**✅ Single-threaded production apps**: SAFE — all resource leaks, unchecked returns, null deref paths, and error propagation issues are fixed. 0 C compiler errors, 0 warnings.
+### VK-07: Remove remaining global state from C bridge
+**CRITICAL** | Multiple C files
+Camera state moved to XvkApp (done in Sprint 7). Remaining: instance/device/extension binding globals in `xvk_bind_extensions.c`, `xvk_bind_swapchain.c`, `xvk_bind_raytracing.c`. Need XvkContext struct.
 
-**⚠️ Multi-threaded / multi-instance**: NOT READY — global camera, instance, and extension state (items 1.5, 2.6) need context struct refactor. Tracked as Phase X.
+### VK-08: Add memory allocator thread safety
+**HIGH** | `xvk_memory_alloc.c`
+`g_ma` is a static global. Add mutex or per-context allocator.
+
+### VK-09: Fix recreate_swapchain framebuffer rebuild regression
+**HIGH** | `xvk_swapchain.c`
+Documented in BRIDGE_AUDIT.md: after window resize, framebuffers are not rebuilt → NULL pointer crash.
+
+### VK-10: Add queue family validation at queue creation
+**MEDIUM** | `xvk_app.c`
+`vkGetDeviceQueue` result assigned without verifying queue family index is valid.
+
+---
+
+## Phase 3: Ecosystem Integration (9 → 10/10)
+
+### VK-11: Migrate inline `extern "C"` malloc/free to `use xiom.ffi`
+**HIGH** | `vulkan.xi`, `vulkan_safe.xi`
+stdlib `xiom.ffi` already has `alloc()/free()` with contracts. Replace local inline declarations.
+
+### VK-12: Move struct marshalling primitives to xiom-ffi
+**MEDIUM** | `vulkan_structs.xi` → `xiom-ffi/src/marshal.xi`
+1306 lines of byte-offset struct builders. This is generic FFI utility, not Vulkan-specific.
+
+### VK-13: Add `use xiom_ffi.ptr` for SafePtr wrappers on buffer/image memory
+**LOW** | `vulkan.xi`, `vulkan_safe.xi`
+Replace raw `Int` memory handles with `SafePtr` wrappers from xiom-ffi.
+
+### VK-14: Full test suite for all 100+ public vulkan.xi functions
+**MEDIUM** | `tests/`
+Currently only a CI smoke test and a windowed smoke test. Need property-based tests for contract violations.
+
+### VK-15: Runtime performance benchmarks
+**LOW** | Compare xvk_app overhead vs raw Vulkan.
+
+---
+
+## Compiler/Stdlib Blockers
+
+| Gap | Impact | Status |
+|-----|--------|--------|
+| G-28 E001 extern out-param moved | All unsafe FFI calls trigger warnings (G-28, ~41 instances) | P2 non-fatal |
+| G-03 pub const module limit | vulkan_constants_all.xi has 3691 constants, near compiler limit of ~99 file-level consts | P2 |
+| CG-01b Int32→Float32 | Fixed v0.48.8. Workaround removed. | ✅ |
+| `unknown type T` | Generic `Result[T, E]` in wrapper.xi triggers warning. Cosmetic. | Open |
+| `unknown type Vec[UInt8]` | Vec element generic not resolving. Cosmetic. | Open |
