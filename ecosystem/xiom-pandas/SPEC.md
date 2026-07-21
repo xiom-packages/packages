@@ -1,7 +1,7 @@
 # xiom-pandas — SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
-**Status**: SPEC only — no implementation yet
+**Status**: Phase 1 implemented — `pandas.xi` + tests + ROADMAP
 **Depends on**: xiom.ffi (stdlib), xiom-arrow (Apache Arrow — Pandas 2.0+ backend)
 
 ## What it wraps
@@ -79,3 +79,23 @@ pub fn to_parquet(df: &DataFrame, path: Str) -> Result[Unit, Str]
 | 2 | Filter, group_by, aggregation | Weekend |
 | 3 | Joins, I/O (CSV, Parquet), sorting | Weekend |
 | 4 | Time series, rolling windows, multi-index | Week |
+
+## Phase 1 Implementation Summary
+
+| Artifact | Path | Lines |
+|---|---|---|
+| Module | `pandas.xi` | ~280 |
+| Tests | `tests/test_conformance.xi` | ~460 |
+| Roadmap | `ROADMAP.md` | ~55 |
+| SPEC | `SPEC.md` (this file) | ~100 |
+
+### What Phase 1 delivers
+- **3 opaque types**: `DataFrame = Int`, `Series = Int`, `Dtype = Int`
+- **6 dtype constants**: `DTYPE_INT32`(0) through `DTYPE_BOOL`(5)
+- **6 compare op constants**: `CMP_EQ`(0) through `CMP_GE`(5)
+- **4 join type constants**: `JOIN_INNER`(0) through `JOIN_OUTER`(3)
+- **12 extern "C" functions**: dataframe_new, dataframe_from_csv, dataframe_to_csv, dataframe_get_column, dataframe_set_column, dataframe_filter, dataframe_groupby, dataframe_join, series_new, series_from_vec, series_to_vec, series_apply
+- **12 safe wrappers**: all extern functions wrapped with `requires` contracts and null checks
+- **2 utilities**: `dtype_name(dtype)`, `version()`
+- **80+ conformance tests**: 15 sections covering constants, FFI stubs, API presence, contracts, types, dtype_name, and safe wrapper error paths
+- **11 contracts**: across 11 public functions with `requires` annotations
