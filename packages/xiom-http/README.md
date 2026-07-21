@@ -2,7 +2,7 @@
 
 > Production-grade HTTP client and message library for XIOM — libcurl FFI with pure-XIOM message parser.
 
-[![XIOM](https://img.shields.io/badge/XIOM-v0.22.1-blue)](https://github.com/xiom-lang/XIOM)
+[![XIOM](https://img.shields.io/badge/XIOM-v0.22.1-blue)](https://github.com/XIOM-lang/XIOM.git )
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE)
 
 ## Overview
@@ -178,7 +178,7 @@ xiom myprogram.xi ../runtime/ffi_bridge.c -l curl -o myprogram.exe
 ## Links
 
 - **Organization**: [github.com/xiom-lang](https://github.com/xiom-lang)
-- **Language**: [github.com/xiom-lang/XIOM](https://github.com/xiom-lang/XIOM)
+- **Language**: [github.com/xiom-lang/XIOM](https://github.com/XIOM-lang/XIOM.git )
 
 ## License
 

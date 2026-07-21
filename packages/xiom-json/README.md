@@ -2,7 +2,7 @@
 
 > Pure XIOM JSON parser, serializer, and manipulation library. Zero dependencies.
 
-[![XIOM](https://img.shields.io/badge/XIOM-v0.22.1-blue)](https://github.com/xiom-lang/XIOM)
+[![XIOM](https://img.shields.io/badge/XIOM-v0.22.1-blue)](https://github.com/XIOM-lang/XIOM.git )
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE)
 
 ## Overview
@@ -123,8 +123,8 @@ xiom --run myprogram.xi
 ## Links
 
 - **Organization**: [github.com/xiom-lang](https://github.com/xiom-lang)
-- **Language**: [github.com/xiom-lang/XIOM](https://github.com/xiom-lang/XIOM)
-- **Issues**: [github.com/xiom-lang/xiom-json/issues](https://github.com/xiom-lang/xiom-json/issues)
+- **Language**: [github.com/xiom-lang/XIOM](https://github.com/XIOM-lang/XIOM.git )
+- **Issues**: [github.com/xiom-lang/xiom-json/issues](https://github.com/XIOM-lang/XIOM.git -json/issues)
 
 ## License
 

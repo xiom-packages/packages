@@ -2,7 +2,7 @@
 
 > Shared durable-systems substrate for XIOM database engines — config, typed errors, strong IDs, storage, WAL, and transactions.
 
-[![XIOM](https://img.shields.io/badge/XIOM-v0.22.1-blue)](https://github.com/xiom-lang/XIOM)
+[![XIOM](https://img.shields.io/badge/XIOM-v0.22.1-blue)](https://github.com/XIOM-lang/XIOM.git )
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](https://github.com/xiom-lang)
 
 ## Overview
@@ -190,6 +190,6 @@ xiom --run myprogram.xi
 
 ## Links
 
-[github.com/xiom-lang](https://github.com/xiom-lang) | [XIOM](https://github.com/xiom-lang/XIOM) | Used by [xiom-db](../xiom-db) and [xiom-vector](../xiom-vector)
+[github.com/xiom-lang](https://github.com/xiom-lang) | [XIOM](https://github.com/XIOM-lang/XIOM.git ) | Used by [xiom-db](../xiom-db) and [xiom-vector](../xiom-vector)
 
 ## License: MIT OR Apache-2.0

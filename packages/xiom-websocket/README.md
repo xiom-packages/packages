@@ -2,7 +2,7 @@
 
 > WebSocket transport for XIOM — handshake, framing, connection lifecycle, heartbeat, backpressure, reconnect, and pub/sub, built on xiom-http and xiom-net.
 
-[![XIOM](https://img.shields.io/badge/XIOM-v0.22.1-blue)](https://github.com/xiom-lang/XIOM)
+[![XIOM](https://img.shields.io/badge/XIOM-v0.22.1-blue)](https://github.com/XIOM-lang/XIOM.git )
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE)
 
 > Status: Design stage — spec only, not yet implemented.
@@ -111,7 +111,7 @@ xiom install xiom-websocket
 ## Links
 
 - **Organization**: [github.com/xiom-lang](https://github.com/xiom-lang)
-- **Language**: [github.com/xiom-lang/XIOM](https://github.com/xiom-lang/XIOM)
+- **Language**: [github.com/xiom-lang/XIOM](https://github.com/XIOM-lang/XIOM.git )
 
 ## License
 
