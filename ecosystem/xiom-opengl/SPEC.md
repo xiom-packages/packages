@@ -1,7 +1,7 @@
 # xiom-opengl — SPEC
 
 **Phase**: 2 (Scientific) | **Priority**: HIGH
-**Status**: SPEC only — no implementation yet
+**Status**: SPEC layer implemented (v0.1.0) — C bridge pending
 **Depends on**: xiom.ffi (stdlib), xiom-glfw (window creation)
 **Platform**: Cross-platform (Windows, Linux, macOS)
 
@@ -72,13 +72,24 @@ pub fn gl_get_uniform_location(prog: Program, name: Str) -> Int
 - Buffer size: `requires: data.len() > 0`
 - Context: `requires: ctx != 0`
 
+## Implementation Status
+
+| File | Lines | Description |
+|------|-------|-------------|
+| `opengl.xi` | 354 | Types (5), GLenum constants (100+), extern "C" block (36 fns), safe wrappers (30 fns) |
+| `tests/test_conformance.xi` | 393 | 54 test functions across 17 sections covering types, constants, stub behavior |
+| `ROADMAP.md` | 87 | Detailed implementation roadmap with checkpoints |
+| `SPEC.md` | this | Updated specification |
+
 ## Phased roadmap
 
-| Phase | What | Effort |
-|-------|------|--------|
-| 1 | Context creation, clear, basic triangle (VAO/VBO/shader) | Weekend |
-| 2 | Textures, uniforms, framebuffers, depth/stencil | Weekend |
-| 3 | Compute shaders, instancing, multi-pass, OpenGL ES 3.0 | Weekend |
+| Phase | What | Effort | Status |
+|-------|------|--------|--------|
+| 1 | SPEC phase: Full API surface, contracts, constants, stub tests | Weekend | **DONE** |
+| 2 | C bridge: Link glad loader, implement extern functions, context via GLFW | Weekend | TODO |
+| 3 | Hello Triangle: End-to-end VAO/VBO/shader/program/draw | 1 day | TODO |
+| 4 | Textures, uniforms, framebuffers, depth/stencil | Weekend | TODO |
+| 5 | Compute shaders, instancing, multi-pass, OpenGL ES 3.0 | Weekend | TODO |
 
 ## Relationship to other packages
 - `xiom-glfw`: Creates the window and OpenGL context.
