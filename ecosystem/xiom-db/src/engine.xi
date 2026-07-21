@@ -617,7 +617,9 @@ pub type WALEntry = {
   timestamp: Int;
 }
 
-pub fn wal_entry_new(op: WALOpType, key: Int, value: Int, timestamp: Int) -> WALEntry {
+pub fn wal_entry_new(op: WALOpType, key: Int, value: Int, timestamp: Int) -> WALEntry
+  requires: timestamp >= 0
+{
   return WALEntry{ op: op, key: key, value: value, timestamp: timestamp };
 }
 
@@ -973,7 +975,9 @@ pub fn engine_flush_wal(eng: &mut Engine) {
   wal_clear(&mut eng.wal);
 }
 
-pub fn engine_truncate_wal(eng: &mut Engine, before_timestamp: Int) {
+pub fn engine_truncate_wal(eng: &mut Engine, before_timestamp: Int)
+  requires: before_timestamp >= 0
+{
   wal_truncate(&mut eng.wal, before_timestamp);
 }
 

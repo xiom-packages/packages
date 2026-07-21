@@ -36,7 +36,9 @@ pub fn Transaction.abort() -> Transaction {
   return Transaction{ id: id, state: TxState.Aborted, operations: operations };
 }
 
-pub fn Transaction.add_op(op: WALOp) -> Transaction {
+pub fn Transaction.add_op(op: WALOp) -> Transaction
+  requires: state == TxState.Active
+{
   var new_ops = operations;
   new_ops.push(op);
   return Transaction{ id: id, state: state, operations: new_ops };

@@ -14,7 +14,7 @@ pub type DatabaseConfig = {
   btree_order: Int;
 }
 
-fn is_power_of_two(n: Int) -> Bool {
+pub fn is_power_of_two(n: Int) -> Bool {
   if n <= 0 { return false; }
   var m = n;
   while m > 1 {
@@ -24,7 +24,7 @@ fn is_power_of_two(n: Int) -> Bool {
   return true;
 }
 
-fn is_valid_page_size(size: Int) -> Bool {
+pub fn is_valid_page_size(size: Int) -> Bool {
   if size < 512 { return false; }
   if size > 65536 { return false; }
   return is_power_of_two(size);

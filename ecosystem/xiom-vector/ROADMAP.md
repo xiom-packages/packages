@@ -249,3 +249,75 @@ not assumed; this phase turns a working engine into an operable one.
   IVF/PQ scale tier.
 - **Operability** — recovery time, rebalance safety, and metrics/observability
   coverage in production.
+
+---
+
+## Test coverage (`tests/test_conformance.xi`)
+
+**126 tests** across 12 categories exercising the full public surface:
+
+| # | Category | Tests | Coverage |
+|---|----------|-------|----------|
+| 1 | Types (VectorId, CollectionId, SegmentId, Dimension) | 7 | construction, eq, validation |
+| 2 | Distance metrics (L2, cosine, dot product) | 15 | identical, orthogonal, opposite, magnitude, dispatch |
+| 3 | Vector store (insert, search, delete) | 8 | CRUD, duplicates, misses, multi-add |
+| 4 | HNSW index (AnnParams) | 6 | validation bounds, default values (graph has T001 errors per AUDIT.md) |
+| 5 | Flat index (brute-force KNN) | 4 | top-1, bounded k, ordering, all 3 metrics |
+| 6 | Segment management (state machine, manifest) | 13 | full lifecycle transitions, illegal moves, writable, terminal, manifest CRUD |
+| 7 | Collection (schema, validation, CRUD) | 9 | creation, normalization, fields, registration, dimension/metric validation |
+| 8 | Payload (filter AST, evaluation) | 14 | set/has/len, FieldValue kinds, Eq/Exists/And/Or/Not combinators |
+| 9 | Search (top-K heap, engine orchestration) | 14 | bounded push, sorted invariant, is_full, worst, upsert/search/delete lifecycle |
+| 10 | ANN index (type dispatch) | 3 | AnnIndexKind names, variant discrimination, params on Collection |
+| 11 | Error types (VectorError) | 8 | all 6 variants: codes (1001–1006), to_str, uniqueness |
+| 12 | Durability (WAL, Counter, IdMap) | 16 | append, LSN tracking, flush, before-ack contract, counter increment, id_map CRUD |
+| — | Boundary / validation | 7 | is_valid_dimension, is_valid_top_k, empty search, Float32 approx, SearchRequest fields |
+
+### Contract status
+
+**20 contracts (requires/ensures)** applied to helper functions in the test file.
+These mirror the contracts in `engine.xi` and the standalone modules.
+
+Functions with contracts (18 functions, 20 clauses):
+- `vector_new` : `requires: dim > 0`
+- `vector_set` : `requires: index >= 0 && index < v.dimension`
+- `vector_get` : `requires: index >= 0 && index < v.dimension`
+- `vector_dot` : `requires: a.dimension == b.dimension`
+- `dot_product_distance` : `requires: a.dimension == b.dimension`
+- `cosine_distance` : `requires: a.dimension == b.dimension`
+- `euclidean_distance` : `requires: a.dimension == b.dimension`
+- `vector_distance` : `requires: a.dimension == b.dimension`
+- `index_new` : `requires: dim > 0`
+- `index_add` : `requires: idx.dim == vec.dimension`
+- `search_knn` : `requires: k > 0`, `requires: idx.dim == query.dimension`, `ensures: result.len() <= k`
+- `segment_new` : `requires: dim > 0`
+- `segment_insert` : `requires: seg.store.dim == vec.dimension`
+- `engine_create_collection` : `requires: dim >= 1`
+- `schema_new` : `requires: is_valid_dimension(dimension)`
+- `topk_new` : `requires: capacity > 0`
+- `topk_push` : `requires: h.capacity > 0`
+- `dimension` : `requires: v >= 1`
+
+### Contract gap analysis
+
+Functions in source modules that lack `requires`/`ensures` contracts:
+
+| Module | Functions missing contracts |
+|--------|---------------------------|
+| `engine.xi` | `vector_magnitude`, `neighbor_new`, `index_remove`, `index_get`, `index_size`, `wal_writer_new`, `wal_writer_append`, `wal_writer_current_lsn`, `wal_writer_flush`, `counter_new`, `counter_inc`, `engine_new`, `engine_upsert`, `engine_search`, `engine_delete`, `engine_size`, `engine_durable_lsn` |
+| `error.xi` | `vector_error_to_str`, `vector_error_to_core`, `vector_error_code` |
+| `ids.xi` | `point_id`, `point_id_value`, `point_id_eq`, `point_to_vector_id`, `vector_to_point_id` |
+| `ann_index.xi` | `ann_params_default`, `ann_params_valid`, `ann_index_kind_name` |
+| `search_request.xi` | `search_request_set_filter`, `search_request_has_filter`, `search_request_top_k` |
+| `topk_heap.xi` | `topk_len`, `topk_is_full`, `topk_worst` |
+| `filter_ast.xi` | All 7 filter constructors |
+| `filter_eval.xi` | `filter_matches` |
+| `payload.xi` | `payload_new`, `payload_set`, `payload_has`, `payload_len`, `field_value_kind` |
+| `segment_state.xi` | `segment_state_is_writable`, `segment_state_is_terminal`, `segment_state_code`, `segment_state_can_transition` |
+| `segment.xi` | `segment_transition`, `segment_size`, `segment_is_writable` |
+| `manifest.xi` | All 5 manifest functions |
+| `collection.xi` | All 5 collection functions |
+| `validator.xi` | All 3 validator functions |
+| `schema.xi` | `schema_set_normalization`, `schema_add_field`, `schema_dimension` |
+| `id_map.xi` | All 5 id_map functions |
+
+**Recommendation:** Add `requires` contracts to dimension-validating entry points and `ensures` contracts to result-producing functions. Priority: `segment_state_can_transition` (ensures deterministic transitions), `index_get`/`index_remove` (ensures option/result correctness), `filter_matches` (ensures deterministic evaluation).

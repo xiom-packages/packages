@@ -25,6 +25,7 @@ The working core. Everything here is implemented and exercised through the publi
 | Storage primitives (Page, BufferPool, tuple codec) | ✅ (in-memory) | `storage/page.xi`, `storage/tuple.xi` |
 | Transaction state machine | ✅ (state only) | `txn/transaction.xi` |
 | Dependency on `xiom-core` substrate | ✅ | `package.xi` |
+| Conformance test suite (93 tests) | ✅ | `tests/test_conformance.xi` |
 
 **Known limitation:** all state lives in RAM. "Durability" and "recovery" are correct with respect to the in-memory WAL but survive only process-lifetime, not a real crash.
 

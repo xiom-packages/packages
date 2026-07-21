@@ -20,14 +20,18 @@ pub type ColumnDef = {
   default_value: Option[Int];
 }
 
-pub fn ColumnDef.new(name: Str, col_type: ColumnType) -> ColumnDef {
+pub fn ColumnDef.new(name: Str, col_type: ColumnType) -> ColumnDef
+  requires: name.len() > 0
+{
   return ColumnDef{
     name: name, col_type: col_type, nullable: false,
     default_value: None,
   };
 }
 
-pub fn ColumnDef.optional(name: Str, col_type: ColumnType, default_val: Option[Int]) -> ColumnDef {
+pub fn ColumnDef.optional(name: Str, col_type: ColumnType, default_val: Option[Int]) -> ColumnDef
+  requires: name.len() > 0
+{
   return ColumnDef{
     name: name, col_type: col_type, nullable: true,
     default_value: default_val,
@@ -40,11 +44,16 @@ pub type Schema = {
   primary_key: Int;
 }
 
-pub fn Schema.new(table_name: Str, columns: Vec[ColumnDef], primary_key: Int) -> Schema {
+pub fn Schema.new(table_name: Str, columns: Vec[ColumnDef], primary_key: Int) -> Schema
+  requires: table_name.len() > 0
+  requires: primary_key >= 0
+{
   return Schema{ table_name: table_name, columns: columns, primary_key: primary_key };
 }
 
-pub fn Schema.column_index(schema: &Schema, name: Str) -> Option[Int] {
+pub fn Schema.column_index(schema: &Schema, name: Str) -> Option[Int]
+  requires: name.len() > 0
+{
   var i = 0;
   while i < schema.columns.len() {
     if schema.columns[i].name == name { return Some(i); }
@@ -70,7 +79,9 @@ pub type IndexDef = {
   unique: Bool;
 }
 
-pub fn IndexDef.new(name: Str, table: Str, column: Int, unique: Bool) -> IndexDef {
+pub fn IndexDef.new(name: Str, table: Str, column: Int, unique: Bool) -> IndexDef
+  requires: name.len() > 0
+{
   return IndexDef{
     name: name, table: table, column: column,
     index_type: IndexType.BTreeIndex, unique: unique,
