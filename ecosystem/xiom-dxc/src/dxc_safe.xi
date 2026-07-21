@@ -870,7 +870,9 @@ pub type DxcContext = {
   utils: Int;
 } derive[Clone]
 
-pub fn DxcContext.init() -> Result[DxcContext, DxcError] {
+pub fn DxcContext.init() -> Result[DxcContext, DxcError]
+  ensures: result is Ok => result.unwrap().compiler != 0 && result.unwrap().utils != 0
+{
   let c = DxcCompiler.create()?;
   let u = DxcUtils.create()?;
   return Ok(DxcContext{ compiler: c.handle, utils: u.handle });
@@ -886,12 +888,14 @@ pub fn DxcContext.destroy()
 
 pub fn DxcContext.create_compiler() -> Result[DxcCompiler, DxcError]
   requires: compiler != 0
+  ensures: result is Ok => result.unwrap().handle != 0
 {
   return Ok(DxcCompiler{ handle: compiler });
 }
 
 pub fn DxcContext.create_utils() -> Result[DxcUtils, DxcError]
   requires: utils != 0
+  ensures: result is Ok => result.unwrap().handle != 0
 {
   return Ok(DxcUtils{ handle: utils });
 }

@@ -317,61 +317,81 @@ pub fn create_instance(clsid: Int, iid: Int) -> Result[Int, Str]
   return Ok(ppv);
 }
 
-pub fn create_compiler() -> Result[Int, Str] {
+pub fn create_compiler() -> Result[Int, Str]
+  ensures: result is Ok => result.unwrap() != 0
+{
   let clsid: Int = unsafe { xiom_dxc_clsid_compiler() };
   let iid: Int = unsafe { xiom_dxc_iid_compiler3() };
   return create_instance(clsid, iid);
 }
 
-pub fn create_utils() -> Result[Int, Str] {
+pub fn create_utils() -> Result[Int, Str]
+  ensures: result is Ok => result.unwrap() != 0
+{
   let clsid: Int = unsafe { xiom_dxc_clsid_utils() };
   let iid: Int = unsafe { xiom_dxc_iid_utils() };
   return create_instance(clsid, iid);
 }
 
-pub fn create_validator() -> Result[Int, Str] {
+pub fn create_validator() -> Result[Int, Str]
+  ensures: result is Ok => result.unwrap() != 0
+{
   let clsid: Int = unsafe { xiom_dxc_clsid_validator() };
   let iid: Int = unsafe { xiom_dxc_iid_validator() };
   return create_instance(clsid, iid);
 }
 
-pub fn create_linker() -> Result[Int, Str] {
+pub fn create_linker() -> Result[Int, Str]
+  ensures: result is Ok => result.unwrap() != 0
+{
   let clsid: Int = unsafe { xiom_dxc_clsid_linker() };
   let iid: Int = unsafe { xiom_dxc_iid_linker() };
   return create_instance(clsid, iid);
 }
 
-pub fn create_assembler() -> Result[Int, Str] {
+pub fn create_assembler() -> Result[Int, Str]
+  ensures: result is Ok => result.unwrap() != 0
+{
   let clsid: Int = unsafe { xiom_dxc_clsid_assembler() };
   let iid: Int = unsafe { xiom_dxc_iid_assembler() };
   return create_instance(clsid, iid);
 }
 
-pub fn create_container_reflection() -> Result[Int, Str] {
+pub fn create_container_reflection() -> Result[Int, Str]
+  ensures: result is Ok => result.unwrap() != 0
+{
   let clsid: Int = unsafe { xiom_dxc_clsid_container_reflection() };
   let iid: Int = unsafe { xiom_dxc_iid_container_reflection() };
   return create_instance(clsid, iid);
 }
 
-pub fn create_container_builder() -> Result[Int, Str] {
+pub fn create_container_builder() -> Result[Int, Str]
+  ensures: result is Ok => result.unwrap() != 0
+{
   let clsid: Int = unsafe { xiom_dxc_clsid_container_builder() };
   let iid: Int = unsafe { xiom_dxc_iid_container_builder() };
   return create_instance(clsid, iid);
 }
 
-pub fn create_compiler_args() -> Result[Int, Str] {
+pub fn create_compiler_args() -> Result[Int, Str]
+  ensures: result is Ok => result.unwrap() != 0
+{
   let clsid: Int = unsafe { xiom_dxc_clsid_compiler_args() };
   let iid: Int = unsafe { xiom_dxc_iid_compiler_args() };
   return create_instance(clsid, iid);
 }
 
-pub fn create_optimizer() -> Result[Int, Str] {
+pub fn create_optimizer() -> Result[Int, Str]
+  ensures: result is Ok => result.unwrap() != 0
+{
   let clsid: Int = unsafe { xiom_dxc_clsid_optimizer() };
   let iid: Int = unsafe { xiom_dxc_iid_optimizer() };
   return create_instance(clsid, iid);
 }
 
-pub fn create_pdb_utils() -> Result[Int, Str] {
+pub fn create_pdb_utils() -> Result[Int, Str]
+  ensures: result is Ok => result.unwrap() != 0
+{
   let clsid: Int = unsafe { xiom_dxc_clsid_pdb_utils() };
   let iid: Int = unsafe { xiom_dxc_iid_pdb_utils2() };
   return create_instance(clsid, iid);
@@ -397,6 +417,7 @@ pub fn add_ref(ptr: Int) -> Int32
 pub fn compiler_compile(compiler: Int, p_source: Int, p_arguments: Int, arg_count: Int, p_include_handler: Int) -> Result[Int, Str]
   requires: compiler != 0
   requires: p_source != 0
+  ensures: result is Ok => result.unwrap() != 0
 {
   let riid: Int = unsafe { xiom_dxc_iid_result() };
   let pp_result: Int = 0;
@@ -408,6 +429,7 @@ pub fn compiler_compile(compiler: Int, p_source: Int, p_arguments: Int, arg_coun
 pub fn compiler_disassemble(compiler: Int, p_object: Int) -> Result[Int, Str]
   requires: compiler != 0
   requires: p_object != 0
+  ensures: result is Ok => result.unwrap() != 0
 {
   let riid: Int = unsafe { xiom_dxc_iid_result() };
   let pp_result: Int = 0;
@@ -418,6 +440,7 @@ pub fn compiler_disassemble(compiler: Int, p_object: Int) -> Result[Int, Str]
 
 pub fn result_get_output_blob(result: Int, kind: Int32) -> Result[Int, Str]
   requires: result != 0
+  ensures: result is Ok => result.unwrap() != 0
 {
   let riid: Int = unsafe { xiom_dxc_iid_blob() };
   let ppv: Int = 0;
@@ -435,6 +458,7 @@ pub fn result_has_output(result: Int, kind: Int32) -> Bool
 
 pub fn get_errors_as_utf8(result: Int) -> Result[Int, Str]
   requires: result != 0
+  ensures: result is Ok => result.unwrap() != 0
 {
   let pp_errors: Int = 0;
   let hr: Int32 = unsafe { xiom_operation_result_GetErrorBuffer(result, pp_errors) };

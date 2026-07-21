@@ -291,7 +291,7 @@ pub fn create_buffer(allocator: Int, p_buffer_create_info: Int, p_alloc_create_i
 }
 
 pub fn destroy_buffer(allocator: Int, buffer: Int, allocation: Int)
-  requires: allocator != 0
+  requires: allocator != 0; requires: buffer != 0; requires: allocation != 0
 {
   unsafe { vmaDestroyBuffer(allocator, buffer, allocation); }
 }
@@ -307,7 +307,7 @@ pub fn create_image(allocator: Int, p_image_create_info: Int, p_alloc_create_inf
 }
 
 pub fn destroy_image(allocator: Int, image: Int, allocation: Int)
-  requires: allocator != 0
+  requires: allocator != 0; requires: image != 0; requires: allocation != 0
 {
   unsafe { vmaDestroyImage(allocator, image, allocation); }
 }

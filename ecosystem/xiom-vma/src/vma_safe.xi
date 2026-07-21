@@ -288,7 +288,7 @@ pub fn VmaBuffer.create(allocator: Int, buffer_create_info: Int, alloc_create_in
 }
 
 pub fn VmaBuffer.destroy()
-  requires: allocator != 0
+  requires: allocator != 0; requires: buffer != 0; requires: allocation != 0
 {
   unsafe { vmaDestroyBuffer(allocator, buffer, allocation); }
 }
@@ -315,7 +315,7 @@ pub fn VmaImage.create(allocator: Int, image_create_info: Int, alloc_create_info
 }
 
 pub fn VmaImage.destroy()
-  requires: allocator != 0
+  requires: allocator != 0; requires: image != 0; requires: allocation != 0
 {
   unsafe { vmaDestroyImage(allocator, image, allocation); }
 }
