@@ -72,7 +72,7 @@ brew install meshoptimizer
 ## Package Structure
 
 ```
-ecosystem/xiom-meshopt/
+packages/xiom-meshopt/
 ├── package.xi                  # Package manifest (name, version, deps)
 ├── meshopt.xi                  # Module xiom.meshopt — raw FFI + safe wrappers + constants
 ├── src/

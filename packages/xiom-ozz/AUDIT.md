@@ -71,7 +71,7 @@ Build options: `ozz_build_tools`, `ozz_build_fbx`, `ozz_build_gltf`, `ozz_build_
 ## Package Structure
 
 ```
-ecosystem/xiom-ozz/
+packages/xiom-ozz/
 ├── package.xi              # Package manifest (name, version, deps)
 ├── ozz.xi                  # Module xiom.ozz — raw FFI + procedural wrappers
 ├── src/

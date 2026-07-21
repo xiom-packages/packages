@@ -47,7 +47,7 @@ The public API transparently selects the appropriate codec based on input size.
 ## Package Structure
 
 ```
-ecosystem/xiom-lzfse/
+packages/xiom-lzfse/
 ├── package.xi              # Package manifest (name, version, deps)
 ├── lzfse.xi                # Module xiom.lzfse — raw FFI + safe wrappers
 ├── src/

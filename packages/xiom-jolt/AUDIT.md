@@ -42,7 +42,7 @@ The joltc library (amerkoleci/joltc) wraps JoltPhysics in a C ABI:
 2. Place `joltc.dll` / `libjoltc.so` in the XIOM application directory or system path.
 3. Generate extern declarations from `.xiom-bind`:
    ```
-   xiom ffigen ecosystem/xiom-jolt/jolt.xiom-bind > ecosystem/xiom-jolt/jolt_extern.xi
+   xiom ffigen packages/xiom-jolt/jolt.xiom-bind > packages/xiom-jolt/jolt_extern.xi
    ```
 4. Compile with `xiomc --link joltc`.
 

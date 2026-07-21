@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17  
 **Target Compiler:** xiomc v0.46.0 "Production" (101/101 e2e, deterministic builds)  
-**Binding:** `ecosystem/xiom-box2d/`  
+**Binding:** `packages/xiom-box2d/`  
 **Target:** Box2D v4.x C API (`box2d.dll` / `libbox2d.so`)  
 **API Coverage:** 100% — all B2_API functions declared, all POD structs defined  
 **Status:** Production-ready for struct-by-value FFI capable compilers
@@ -85,7 +85,7 @@ Comprehensive test suite covering the full physics pipeline:
 
 ### Package Manifest (`package.xi`): Complete
 
-Registered in `ecosystem/package.xi` as `"xiom-box2d"`, depends on `xiom-std: "0.1.0"`.
+Registered in `packages/package.xi` as `"xiom-box2d"`, depends on `xiom-std: "0.1.0"`.
 
 ### FFI Spec (`box2d.xiom-bind`): Core subset
 

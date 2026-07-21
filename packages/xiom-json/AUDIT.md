@@ -65,7 +65,7 @@ fn Parser.parse() -> Int {
 
 ## Files Affected
 
-- `ecosystem/xiom-json/src/json.xi` — all internal `JsonParser` methods converted to free functions; Result/Option patterns replaced with `match`; remaining borrow errors in stringify helpers and JSONPath parser
+- `packages/xiom-json/src/json.xi` — all internal `JsonParser` methods converted to free functions; Result/Option patterns replaced with `match`; remaining borrow errors in stringify helpers and JSONPath parser
 
 ## Workaround Patterns Used
 

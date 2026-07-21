@@ -1,7 +1,7 @@
 # xiom-vulkan — Compiler Gap Audit & Production Readiness (v0.48.9)
 
 **Compiler:** xiomc v0.48.9 — 783/783 tests, zero warnings
-**Package:** ecosystem/xiom-vulkan
+**Package:** packages/xiom-vulkan
 **C bridge:** 0 errors, 0 warnings (clang -O2 -Wall -Wextra)
 **Last sprint:** 8 (2026-07-20)
 

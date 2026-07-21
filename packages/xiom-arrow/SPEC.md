@@ -115,7 +115,7 @@ pub fn ipc_read(path: Str) -> Result[Table, Str]
 ## File structure
 
 ```
-ecosystem/xiom-arrow/
+packages/xiom-arrow/
 ├── SPEC.md              ← This file
 ├── ROADMAP.md           ← Version tracking, milestones, FFI bridge gap
 ├── src/

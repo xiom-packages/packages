@@ -113,7 +113,7 @@ This is the same pattern used by `xiom-vulkan` (which has `xiom_vk_bridge.c` for
 ## Package Structure
 
 ```
-ecosystem/xiom-dxc/
+packages/xiom-dxc/
 ├── package.xi              # Package manifest
 ├── dxc.xi                  # Module xiom.dxc — 165 extern C declarations + procedural wrappers
 ├── dxc_bridge.h            # C bridge header (165 function declarations)

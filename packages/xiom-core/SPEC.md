@@ -5,7 +5,7 @@ Full API reference for the XIOM shared durable-systems substrate. xiom-core is a
 ## Architecture
 
 ```
-ecosystem/xiom-core/
+packages/xiom-core/
 ├── package.xi                       Package manifest (deps: xiom-std)
 ├── README.md · ARCHITECTURE.md · ROADMAP.md · SPEC.md
 ├── docs/contracts-and-invariants.md

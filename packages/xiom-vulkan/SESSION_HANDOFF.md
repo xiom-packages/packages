@@ -30,7 +30,7 @@ xiomc -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi --c-source $Br
 ## Architecture Summary
 
 ```
-ecosystem/xiom-vulkan/
+packages/xiom-vulkan/
 ├── vulkan_extern.xi             755 VK functions (100% VK 1.3 core + extensions)
 ├── vulkan.xi                    681 lines  Simplified demo API + mouse/keyboard input
 ├── src/

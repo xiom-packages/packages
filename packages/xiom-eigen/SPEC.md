@@ -20,7 +20,7 @@ Used in robotics (ROS), computer vision, physics simulation.
 ## Architecture
 
 ```
-ecosystem/xiom-eigen/
+packages/xiom-eigen/
 ├── eigen.xi                    # Module xiom.eigen (~330 lines)
 │   ├── Internal pool storage   # 5 parallel Vecs (data, rows, cols, start, used)
 │   ├── pub type EigenMatrix    # Opaque Int handle

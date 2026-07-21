@@ -62,7 +62,7 @@ sudo apt install clang
 ## Package Structure
 
 ```
-ecosystem/xiom-vma/
+packages/xiom-vma/
 ├── package.xi              # Package manifest (name, version, deps)
 ├── vma.xi                  # Module xiom.vma — raw FFI + core safe wrappers
 ├── src/

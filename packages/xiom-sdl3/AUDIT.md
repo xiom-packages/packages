@@ -66,7 +66,7 @@ brew install sdl3
 ## Package Structure
 
 ```
-ecosystem/xiom-sdl3/
+packages/xiom-sdl3/
 ├── package.xi              # Package manifest (name, version, deps)
 ├── sdl3.xi                 # Module xiom.sdl3 — raw FFI + core safe wrappers
 ├── src/
