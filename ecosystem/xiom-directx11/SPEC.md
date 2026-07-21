@@ -1,7 +1,7 @@
 # xiom-directx11 — SPEC
 
 **Phase**: 2 (Scientific) | **Priority**: HIGH
-**Status**: SPEC only — no implementation yet
+**Status**: IMPLEMENTED (v0.1.0 SPEC phase)
 **Depends on**: xiom.ffi (stdlib)
 **Platform**: Windows only
 
@@ -20,42 +20,59 @@ Used by AAA games, CAD tools, Windows desktop apps with GPU rendering.
 ## Bundling strategy
 **System-installed only.** DirectX is part of Windows. No bundling needed.
 
-## API surface
+## SPEC Phase Implementation (v0.1.0)
 
-```xiom
-module xiom.directx11
+All FFI calls return `Err(...)` or stub defaults — no C bridge is linked yet. The module provides:
 
-pub type Device        = Int
-pub type DeviceContext = Int
-pub type SwapChain     = Int
-pub type Texture2D     = Int
-pub type Buffer        = Int
-pub type Shader        = Int
+### Types (7)
+DxDevice, DxContext, DxSwapChain, DxBuffer, DxTexture, DxShader, DxSampler
 
-// Device + swapchain
-pub fn d3d11_create_device(adapter: Int, flags: Int) -> Result[(Device, DeviceContext), Str]
-pub fn d3d11_create_swapchain(dev: Device, hwnd: Window, w: Int, h: Int) -> Result[SwapChain, Str]
+### Constants (75)
+- DXGI_FORMAT (17): UNKNOWN, R32G32B32A32_FLOAT/UINT, R32G32B32_FLOAT/UINT, R32G32_FLOAT, R32_FLOAT/UINT, R8G8B8A8_UNORM/UINT/SNORM, B8G8R8A8_UNORM, R16G16B16A16_FLOAT, R16G16_FLOAT, R16_FLOAT, D24_UNORM_S8_UINT, D32_FLOAT, D32_FLOAT_S8X24_UINT
+- D3D11_USAGE (4): DEFAULT, IMMUTABLE, DYNAMIC, STAGING
+- D3D11_CPU_ACCESS_FLAG (2): WRITE, READ
+- D3D11_BIND_FLAG (8): VERTEX_BUFFER, INDEX_BUFFER, CONSTANT_BUFFER, SHADER_RESOURCE, STREAM_OUTPUT, RENDER_TARGET, DEPTH_STENCIL, UNORDERED_ACCESS
+- D3D11_PRIMITIVE_TOPOLOGY (6): UNDEFINED, POINTLIST, LINELIST, LINESTRIP, TRIANGLELIST, TRIANGLESTRIP
+- D3D11_MAP (5): READ, WRITE, READ_WRITE, WRITE_DISCARD, WRITE_NO_OVERWRITE
+- D3D11_FILTER (9): MIN_MAG_MIP_POINT through ANISOTROPIC
+- D3D11_TEXTURE_ADDRESS_MODE (5): WRAP, MIRROR, CLAMP, BORDER, MIRROR_ONCE
+- D3D11_INPUT_CLASSIFICATION (2): PER_VERTEX_DATA, PER_INSTANCE_DATA
+- D3D_DRIVER_TYPE (4): HARDWARE, WARP, REFERENCE, SOFTWARE
+- D3D11_CREATE_DEVICE_FLAG (3): DEBUG, SINGLETHREADED, BGRA_SUPPORT
+- D3D11_SRV_DIMENSION (10): UNKNOWN through TEXTURECUBE
 
-// Buffers
-pub fn d3d11_create_vertex_buffer(dev: Device, data: Vec[Float32], stride: Int) -> Result[Buffer, Str]
-pub fn d3d11_create_index_buffer(dev: Device, data: Vec[Int32]) -> Result[Buffer, Str]
-pub fn d3d11_create_constant_buffer(dev: Device, size: Int) -> Result[Buffer, Str]
+### extern "C" Functions (29)
+Device creation: D3D11CreateDevice, D3D11CreateDeviceAndSwapChain
+Swap chain: CreateSwapChain, Present
+Render targets: CreateRenderTargetView, ClearRenderTargetView, OMSetRenderTargets
+Buffers: CreateBuffer
+Textures: CreateTexture2D, CreateShaderResourceView
+Samplers: CreateSamplerState
+Shaders: CreateVertexShader, CreatePixelShader, CreateInputLayout
+Pipeline state: IASetInputLayout, IASetVertexBuffers, IASetIndexBuffer, IASetPrimitiveTopology, VSSetShader, PSSetShader, VSSetConstantBuffers, PSSetConstantBuffers, PSSetSamplers, PSSetShaderResources, RSSetViewports
+Drawing: Draw, DrawIndexed
+Mapping: Map, Unmap
 
-// Shaders
-pub fn d3d11_compile_vertex_shader(dev: Device, source: Str, entry: Str) -> Result[Shader, Str]
-pub fn d3d11_compile_pixel_shader(dev: Device, source: Str, entry: Str) -> Result[Shader, Str]
+### Safe Wrappers (31)
+All wrappers include `requires` contracts for handle validation, enum checking, and value range constraints. Functions returning GPU resources return `Result[T, Str]` with Err in stump mode.
 
-// Drawing
-pub fn d3d11_clear(ctx: DeviceContext, r: Float32, g: Float32, b: Float32)
-pub fn d3d11_draw(ctx: DeviceContext, vertex_count: Int, start: Int)
-pub fn d3d11_draw_indexed(ctx: DeviceContext, index_count: Int, start: Int, base: Int)
-pub fn d3d11_present(swap: SwapChain, sync: Int)
-```
+### Tests (65)
+21 sections covering types, all constant groups, stub return behavior, smoke (all non-Result callable, all Result return Err), and full pipeline lifecycle simulation.
 
 ## Phased roadmap
 
-| Phase | What | Effort |
-|-------|------|--------|
-| 1 | Device, swapchain, clear, present, basic triangle | Weekend |
-| 2 | Buffers, shaders, textures, constant buffers | Weekend |
-| 3 | Compute shaders, multi-pass rendering, deferred context | Week |
+| Phase | What | Effort | Status |
+|-------|------|--------|--------|
+| 1 | Device, swapchain, clear, present, basic triangle | Weekend | **DONE** (SPEC) |
+| 2 | Buffers, shaders, textures, constant buffers | Weekend | **DONE** (SPEC) |
+| 3 | Compute shaders, multi-pass rendering, deferred context | Week | TODO |
+| 4 | C bridge — Link d3d11.dll/dxgi.dll, wire extern functions | Weekend | TODO |
+
+## File Inventory
+
+| File | Lines | Description |
+|------|-------|-------------|
+| `directx11.xi` | 580 | Main module: 7 types, 75 constants, 29 extern declarations, 31 safe wrappers |
+| `tests/test_conformance.xi` | 496 | 65 conformance tests across 21 sections |
+| `SPEC.md` | this | Updated specification with implementation status |
+| `ROADMAP.md` | 97 | Implementation roadmap and phase checkpoints |
