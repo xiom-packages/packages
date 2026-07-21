@@ -77,7 +77,8 @@ pub fn TextFieldState.new(id: Int) -> TextFieldState {
   return TextFieldState{ text: "", cursor: 0, focused: false, id: id };
 }
 
-pub fn TextFieldState.insert(c: Str) {
+pub fn TextFieldState.insert(c: Str)
+  requires: c.len() > 0 {
   var left = text_substr(text, 0, cursor);
   var right = text_substr(text, cursor, text.len());
   text = left + c + right;
@@ -126,7 +127,10 @@ pub fn TextFieldState.move_cursor_end() {
   cursor = text.len();
 }
 
-pub fn SliderState.new(id: Int, min: Float32, max: Float32, initial: Float32) -> SliderState {
+pub fn SliderState.new(id: Int, min: Float32, max: Float32, initial: Float32) -> SliderState
+  requires: min <= max
+  requires: initial >= min
+  requires: initial <= max {
   return SliderState{ value: initial, min: min, max: max, dragging: false, id: id };
 }
 

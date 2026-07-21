@@ -1,20 +1,24 @@
 module xiom.http.client
 
-pub fn http_get(url: Str) -> Result[HttpResponse, Str] {
+pub fn http_get(url: Str) -> Result[HttpResponse, Str]
+  requires: url.len() > 0 {
   return xiom.http.http_get(url);
 }
 
-pub fn http_post(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpResponse, Str] {
+pub fn http_post(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpResponse, Str]
+  requires: url.len() > 0 {
   var body_str: Str = str_from_vec_byte(body);
   return xiom.http.http_post(url, body_str, content_type);
 }
 
-pub fn http_put(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpResponse, Str] {
+pub fn http_put(url: Str, body: Vec[Int], content_type: Str) -> Result[HttpResponse, Str]
+  requires: url.len() > 0 {
   var body_str: Str = str_from_vec_byte(body);
   return xiom.http.http_put(url, body_str);
 }
 
-pub fn http_delete(url: Str) -> Result[HttpResponse, Str] {
+pub fn http_delete(url: Str) -> Result[HttpResponse, Str]
+  requires: url.len() > 0 {
   return xiom.http.http_delete(url);
 }
 

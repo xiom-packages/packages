@@ -9,7 +9,10 @@ pub fn hex_encode(data: &Vec[Int]) -> Str
   return xiom.encoding.hex_encode(data);
 }
 
-pub fn hex_encode_upper(data: &Vec[Int]) -> Str {
+pub fn hex_encode_upper(data: &Vec[Int]) -> Str
+  requires: data.len() > 0
+  ensures: result.len() == data.len() * 2
+{
   return xiom.encoding.hex_encode_upper(data);
 }
 

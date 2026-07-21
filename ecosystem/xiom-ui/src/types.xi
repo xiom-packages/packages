@@ -118,11 +118,14 @@ pub fn Padding.new(top: Float32, right: Float32, bottom: Float32, left: Float32)
   return Padding{ top: top, right: right, bottom: bottom, left: left };
 }
 
-pub fn Padding.all(v: Float32) -> Padding {
+pub fn Padding.all(v: Float32) -> Padding
+  requires: v >= 0.0 {
   return Padding{ top: v, right: v, bottom: v, left: v };
 }
 
-pub fn Padding.symmetric(h: Float32, v: Float32) -> Padding {
+pub fn Padding.symmetric(h: Float32, v: Float32) -> Padding
+  requires: h >= 0.0
+  requires: v >= 0.0 {
   return Padding{ top: v, right: h, bottom: v, left: h };
 }
 
@@ -134,7 +137,8 @@ pub fn Margin.new(top: Float32, right: Float32, bottom: Float32, left: Float32) 
   return Margin{ top: top, right: right, bottom: bottom, left: left };
 }
 
-pub fn Margin.all(v: Float32) -> Margin {
+pub fn Margin.all(v: Float32) -> Margin
+  requires: v >= 0.0 {
   return Margin{ top: v, right: v, bottom: v, left: v };
 }
 

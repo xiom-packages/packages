@@ -292,7 +292,8 @@ pub fn HttpResponse.new(status: Int) -> HttpResponse
   };
 }
 
-pub fn HttpResponse.set_header(name: Str, value: Str) {
+pub fn HttpResponse.set_header(name: Str, value: Str)
+  requires: name.len() > 0 {
   headers.add(name, value);
 }
 

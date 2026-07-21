@@ -70,7 +70,9 @@ fn sin_approx(x: Float32) -> Float32 {
   return x - x3 / 6.0 + x3 * x * x / 120.0 - x3 * x * x * x * x / 5040.0;
 }
 
-pub fn backend_setup_viewport(sw: Float32, sh: Float32) {
+pub fn backend_setup_viewport(sw: Float32, sh: Float32)
+  requires: sw > 0.0
+  requires: sh > 0.0 {
   unsafe { glViewport(0, 0, sw as Int, sh as Int); };
   unsafe { glMatrixMode(GL_PROJECTION); };
   unsafe { glLoadIdentity(); };

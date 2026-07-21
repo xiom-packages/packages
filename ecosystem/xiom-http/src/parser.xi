@@ -238,7 +238,8 @@ pub fn http_parse_response(input: Str) -> Result[HttpResponse, HttpParseError]
   }
 }
 
-pub fn http_parse_headers(input: Str) -> Result[HttpHeaders, HttpParseError] {
+pub fn http_parse_headers(input: Str) -> Result[HttpHeaders, HttpParseError]
+  requires: input.len() > 0 {
   var headers: HttpHeaders = HttpHeaders.new();
   var pos: Int = 0;
   var len: Int = xiom.string.str_len(input);

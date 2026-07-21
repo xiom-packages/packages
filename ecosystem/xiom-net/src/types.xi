@@ -345,7 +345,9 @@ pub fn build_sockaddr_in_any(port: Int) -> Vec[Int]
   return build_sockaddr_in(&addr);
 }
 
-pub fn parse_sockaddr_in(raw: &Vec[Int]) -> Result[SocketAddr, Str] {
+pub fn parse_sockaddr_in(raw: &Vec[Int]) -> Result[SocketAddr, Str]
+  requires: raw.len() >= 16
+{
   if raw.len() < 16 { return Err("sockaddr_in too short — need 16 bytes"); };
   var port_lo: Int = raw[2];
   var port_hi: Int = raw[3];

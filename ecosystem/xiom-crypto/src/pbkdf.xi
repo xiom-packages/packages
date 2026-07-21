@@ -72,7 +72,10 @@ pub fn pbkdf2_sha256(password: &Vec[Int], salt: &Vec[Int], iterations: Int, keyl
   return final_result;
 }
 
-pub fn hkdf_sha256(ikm: &Vec[Int], salt: &Vec[Int], info: &Vec[Int], length: Int) -> Vec[Int] {
+pub fn hkdf_sha256(ikm: &Vec[Int], salt: &Vec[Int], info: &Vec[Int], length: Int) -> Vec[Int]
+  requires: ikm.len() > 0
+  requires: length > 0
+{
   var actual_salt = Vec[Int].new();
   if salt.len() == 0 {
     var i = 0;

@@ -28,7 +28,8 @@ pub fn server_listen(server: &mut HttpServer) -> Result[Unit, Str] {
   return Err("HTTP server listen: TCP transport layer not yet available (requires Layer 3.1)");
 }
 
-pub fn server_handle(server: &mut HttpServer, method: HttpMethod, path: Str) -> Result[Unit, Str] {
+pub fn server_handle(server: &mut HttpServer, method: HttpMethod, path: Str) -> Result[Unit, Str]
+  requires: path.len() > 0 {
   return Err("HTTP server handler: TCP transport layer not yet available (requires Layer 3.1)");
 }
 

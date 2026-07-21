@@ -19,7 +19,10 @@ type StateHolder = { s: AesState; }
 
 type KeyExpState = { temp0: Int; temp1: Int; temp2: Int; temp3: Int; rcon_iteration: Int; }
 
-pub fn aes_sbox(b: Int) -> Int {
+pub fn aes_sbox(b: Int) -> Int
+  requires: b >= 0 && b <= 255
+  ensures: result >= 0 && result <= 255
+{
   var val = xiom.math.bit_and(b, 0xFF);
   if val == 0x00 { return 0x63; };
   if val == 0x01 { return 0x7c; };
@@ -280,7 +283,10 @@ pub fn aes_sbox(b: Int) -> Int {
   return 0;
 }
 
-pub fn aes_inv_sbox(b: Int) -> Int {
+pub fn aes_inv_sbox(b: Int) -> Int
+  requires: b >= 0 && b <= 255
+  ensures: result >= 0 && result <= 255
+{
   var val = xiom.math.bit_and(b, 0xFF);
   if val == 0x00 { return 0x52; };
   if val == 0x01 { return 0x09; };
@@ -541,7 +547,9 @@ pub fn aes_inv_sbox(b: Int) -> Int {
   return 0;
 }
 
-pub fn aes_rcon(round: Int) -> Int {
+pub fn aes_rcon(round: Int) -> Int
+  requires: round >= 1 && round <= 10
+{
   if round == 1 { return 0x01; };
   if round == 2 { return 0x02; };
   if round == 3 { return 0x04; };

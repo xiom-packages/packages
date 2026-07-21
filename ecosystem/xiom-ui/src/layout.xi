@@ -28,7 +28,9 @@ pub fn LayoutContext.new() -> LayoutContext {
   };
 }
 
-pub fn LayoutContext.begin(x: Float32, y: Float32, w: Float32, h: Float32) {
+pub fn LayoutContext.begin(x: Float32, y: Float32, w: Float32, h: Float32)
+  requires: w >= 0.0
+  requires: h >= 0.0 {
   var x_off = x + padding.left;
   var y_off = y + padding.top;
   var aw = w - padding.left - padding.right;
@@ -45,7 +47,8 @@ pub fn LayoutContext.set_direction(dir: LayoutDirection) {
   direction = dir;
 }
 
-pub fn LayoutContext.set_spacing(s: Float32) {
+pub fn LayoutContext.set_spacing(s: Float32)
+  requires: s >= 0.0 {
   spacing = s;
 }
 
@@ -61,7 +64,9 @@ pub fn LayoutContext.cursor() -> Point {
   return Point.new(cursor_x, cursor_y);
 }
 
-pub fn LayoutContext.advance(size: Size) {
+pub fn LayoutContext.advance(size: Size)
+  requires: size.w >= 0.0
+  requires: size.h >= 0.0 {
   match direction {
     Horizontal => {
       cursor_x = cursor_x + size.w + spacing;
@@ -72,7 +77,9 @@ pub fn LayoutContext.advance(size: Size) {
   }
 }
 
-pub fn LayoutContext.allocate(size: Size) -> Rect {
+pub fn LayoutContext.allocate(size: Size) -> Rect
+  requires: size.w >= 0.0
+  requires: size.h >= 0.0 {
   var rect = Rect.new(cursor_x, cursor_y, size.w, size.h);
   match direction {
     Horizontal => {
@@ -85,7 +92,8 @@ pub fn LayoutContext.allocate(size: Size) -> Rect {
   return rect;
 }
 
-pub fn LayoutContext.allocate_fill(cross_size: Float32) -> Rect {
+pub fn LayoutContext.allocate_fill(cross_size: Float32) -> Rect
+  requires: cross_size >= 0.0 {
   match direction {
     Horizontal => {
       var remaining = available_w - (cursor_x - x);
@@ -104,12 +112,14 @@ pub fn LayoutContext.allocate_fill(cross_size: Float32) -> Rect {
   }
 }
 
-pub fn LayoutContext.next_row(height: Float32) {
+pub fn LayoutContext.next_row(height: Float32)
+  requires: height >= 0.0 {
   cursor_x = x;
   cursor_y = cursor_y + height + spacing;
 }
 
-pub fn LayoutContext.next_column(width: Float32) {
+pub fn LayoutContext.next_column(width: Float32)
+  requires: width >= 0.0 {
   cursor_x = cursor_x + width + spacing;
   cursor_y = y;
 }
@@ -180,7 +190,9 @@ pub fn layout_with_padding(rect: &Rect, padding: &Padding) -> Rect {
   );
 }
 
-pub fn layout_align(outer: &Rect, inner: &Size, halign: Alignment, valign: Alignment) -> Rect {
+pub fn layout_align(outer: &Rect, inner: &Size, halign: Alignment, valign: Alignment) -> Rect
+  requires: inner.w >= 0.0
+  requires: inner.h >= 0.0 {
   var x = outer.x;
   var y = outer.y;
   var w = inner.w;

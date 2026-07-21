@@ -27,15 +27,18 @@ pub fn RenderList.add_text(text: Str, pos: Point, color: Color) {
   commands.push(RenderCommand.TextCmd(text, pos, color, 16.0));
 }
 
-pub fn RenderList.add_text_sized(text: Str, pos: Point, color: Color, size: Float32) {
+pub fn RenderList.add_text_sized(text: Str, pos: Point, color: Color, size: Float32)
+  requires: size >= 0.0 {
   commands.push(RenderCommand.TextCmd(text, pos, color, size));
 }
 
-pub fn RenderList.add_circle(center: Point, radius: Float32, color: Color) {
+pub fn RenderList.add_circle(center: Point, radius: Float32, color: Color)
+  requires: radius >= 0.0 {
   commands.push(RenderCommand.CircleCmd(center, radius, color));
 }
 
-pub fn RenderList.add_line(start: Point, end: Point, color: Color, width: Float32) {
+pub fn RenderList.add_line(start: Point, end: Point, color: Color, width: Float32)
+  requires: width >= 0.0 {
   commands.push(RenderCommand.LineCmd(start, end, color, width));
 }
 

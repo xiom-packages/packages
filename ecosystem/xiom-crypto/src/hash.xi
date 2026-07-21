@@ -1,6 +1,8 @@
 module xiom.crypto.hash
 
-pub fn hash_djb2(data: &Vec[Int]) -> Int {
+pub fn hash_djb2(data: &Vec[Int]) -> Int
+  requires: data.len() > 0
+{
   var hash = 5381;
   var i = 0;
   while i < data.len() {
@@ -10,7 +12,9 @@ pub fn hash_djb2(data: &Vec[Int]) -> Int {
   return hash;
 }
 
-pub fn hash_fnv1a(data: &Vec[Int]) -> Int {
+pub fn hash_fnv1a(data: &Vec[Int]) -> Int
+  requires: data.len() > 0
+{
   var hash = -2128831035;
   var i = 0;
   while i < data.len() {
@@ -21,7 +25,9 @@ pub fn hash_fnv1a(data: &Vec[Int]) -> Int {
   return hash;
 }
 
-pub fn hash_murmur3_32(data: &Vec[Int], seed: Int) -> Int {
+pub fn hash_murmur3_32(data: &Vec[Int], seed: Int) -> Int
+  requires: data.len() > 0
+{
   var h1 = seed;
   var c1 = -862048943;
   var c2 = 461845907;

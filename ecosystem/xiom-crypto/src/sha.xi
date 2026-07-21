@@ -230,12 +230,19 @@ pub fn sha256(data: &Vec[Int]) -> Vec[Int]
   return result;
 }
 
-pub fn sha256_hex(data: &Vec[Int]) -> Str {
+pub fn sha256_hex(data: &Vec[Int]) -> Str
+  requires: data.len() > 0
+  ensures: result.len() == 64
+{
   var hash = sha256(data);
   return xiom.encoding.hex_encode(&hash);
 }
 
-pub fn sha256_hmac(data: &Vec[Int], key: &Vec[Int]) -> Vec[Int] {
+pub fn sha256_hmac(data: &Vec[Int], key: &Vec[Int]) -> Vec[Int]
+  requires: data.len() > 0
+  requires: key.len() > 0
+  ensures: result.len() == 32
+{
   var block_size_w = IntW{ v: 64; };
   var key_work = Vec[Int].new();
 
@@ -505,7 +512,10 @@ pub fn sha512(data: &Vec[Int]) -> Vec[Int]
   return result;
 }
 
-pub fn sha512_hex(data: &Vec[Int]) -> Str {
+pub fn sha512_hex(data: &Vec[Int]) -> Str
+  requires: data.len() > 0
+  ensures: result.len() == 128
+{
   var hash = sha512(data);
   return xiom.encoding.hex_encode(&hash);
 }

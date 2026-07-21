@@ -20,5 +20,6 @@ package xiom_crypto {
     "xiom.crypto.random",
     "xiom.crypto.pbkdf",
     "xiom.crypto.ed25519",
+    "xiom.crypto.tests",
   ];
 }

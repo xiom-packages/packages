@@ -22,7 +22,9 @@ pub fn Theme.new(
   active: Color,
   scale: Float32,
   radius: Float32
-) -> Theme {
+) -> Theme
+  requires: scale >= 0.0
+  requires: radius >= 0.0 {
   return Theme{
     bg_color: bg,
     text_color: text,
