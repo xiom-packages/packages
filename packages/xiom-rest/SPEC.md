@@ -1,248 +1,244 @@
 # xiom-rest — Specification
 
-> **Status: Planned / not implemented.** This document describes the intended public API surface of `xiom-rest`. All signatures are conceptual sketches to guide implementation; nothing here exists as `.xi` source yet. `xiom-rest` depends on `xiom-http`, `xiom-json`, and `xiom-std`.
+> **Status: v0.1.0 implemented.** Core types, client/request builders, libcurl FFI declarations, convenience HTTP methods, response helpers, and error constructors are implemented in `rest.xi`. Full libcurl transport integration and resource routing layer are planned for future versions.
 
 ## Overview
 
-`xiom-rest` layers resource-oriented REST conventions on top of the `xiom-http` transport. It provides resource routing, pagination, filtering, sorting, versioning, content negotiation, error mapping, HATEOAS links, response envelopes, and OpenAPI generation. Every helper is expected to carry XIOM contracts (`requires`/`ensures`), surface failures as typed errors, and avoid global mutable state or framework magic.
+`xiom-rest` layers resource-oriented REST conventions on top of the `xiom-http` transport. It provides a typed REST client backed by libcurl, with request/response types, URL construction, method dispatch, status classification, and structured error types. Future versions will add resource routing, pagination, filtering, sorting, versioning, content negotiation, and OpenAPI generation.
 
-Type sketches use XIOM bracket generics (`Vec[T]`, `Result[T, E]`, `Option[T]`).
+## Module
 
----
-
-### `xiom.rest.resource` (`src/resource.xi`) — Planned
-
-Defines the resource abstraction: collection endpoints, item endpoints, nested subresources, and relationship paths. Central builder is `RestModule`.
-
-**Planned types:**
-- `RestModule { name: Str; base_path: Str; routes: Vec[RouteDef]; children: Vec[RestModule]; }`
-- `RouteDef { method: HttpMethod; kind: RouteKind; handler: HandlerRef; }`
-- `RouteKind` — enum: `List`, `Create`, `Item`, `Replace`, `Update`, `Delete`
-
-**Planned API:**
-| Function | Signature | Responsibility |
-|----------|-----------|----------------|
-| `RestModule.new` | `(name: Str) -> RestModule` | Create a resource module; `requires name.len() > 0` |
-| `RestModule.get_list` | `(self, h: ListHandler) -> RestModule` | Register `GET /{name}` |
-| `RestModule.post` | `(self, h: CreateHandler) -> RestModule` | Register `POST /{name}` |
-| `RestModule.get_item` | `(self, h: ItemHandler) -> RestModule` | Register `GET /{name}/{id}` |
-| `RestModule.patch_item` | `(self, h: ItemHandler) -> RestModule` | Register `PATCH /{name}/{id}` |
-| `RestModule.put_item` | `(self, h: ItemHandler) -> RestModule` | Register `PUT /{name}/{id}` |
-| `RestModule.delete_item` | `(self, h: ItemHandler) -> RestModule` | Register `DELETE /{name}/{id}` |
-| `RestModule.nest` | `(self, child: RestModule) -> RestModule` | Compose a nested subresource |
-
-**Responsibility:** own the resource-to-route mapping; remain declarative and side-effect-free until handed to the router.
+- **Module:** `xiom.rest`
+- **Version:** 0.1.0
+- **Dependencies:** `xiom.string`, `xiom.convert`, `xiom.ptr`
 
 ---
 
-### `xiom.rest.router` (`src/router.xi`) — Planned
+## Implemented Types (v0.1.0)
 
-Translates `RestModule` definitions into `xiom-http` route registrations. Thin and deterministic — no business logic.
+### `RestMethod` (enum)
 
-**Planned API:**
-| Function | Signature | Responsibility |
-|----------|-----------|----------------|
-| `mount` | `(app: &mut HttpApp, module: &RestModule) -> Result[Unit, RestError]` | Register all routes from a module |
-| `mount_all` | `(app: &mut HttpApp, modules: Vec[RestModule]) -> Result[Unit, RestError]` | Register a set of modules |
-| `resolve_path` | `(module: &RestModule, kind: RouteKind) -> Str` | Compute the concrete path for a route kind |
+```xiom
+pub enum RestMethod {
+  GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
+} derive[Clone]
+```
 
-**Responsibility:** deterministic expansion of resource definitions into concrete `xiom-http` handlers.
+### `RestClient`
 
----
+```xiom
+pub type RestClient = {
+  base_url: Str;
+  timeout_ms: Int;
+  follow_redirects: Bool;
+  default_headers: Vec[RestHeader];
+} derive[Clone]
+```
 
-### `xiom.rest.route_builder` (`src/route_builder.xi`) — Planned
+### `RestResponse`
 
-Declarative builder for REST endpoints, enabling concise definition without losing explicitness.
+```xiom
+pub type RestResponse = {
+  status: Int;
+  body: Str;
+  headers: Str;
+} derive[Clone]
+```
 
-**Planned types:**
-- `RouteBuilder { method: HttpMethod; path: Str; middleware: Vec[Middleware]; }`
+### `RestHeader`
 
-**Planned API:**
-| Function | Signature | Responsibility |
-|----------|-----------|----------------|
-| `route` | `(method: HttpMethod, path: Str) -> RouteBuilder` | Start a route definition; `requires path.len() > 0` |
-| `RouteBuilder.with` | `(self, m: Middleware) -> RouteBuilder` | Attach middleware |
-| `RouteBuilder.handle` | `(self, h: HandlerRef) -> RouteDef` | Finalize into a `RouteDef` |
+```xiom
+pub type RestHeader = {
+  name: Str;
+  value: Str;
+} derive[Clone]
+```
 
-**Responsibility:** provide an ergonomic, explicit route-definition surface that lowers to `RouteDef`.
+### `RestRequest`
 
----
+```xiom
+pub type RestRequest = {
+  method: RestMethod;
+  path: Str;
+  query_params: Vec[RestQueryParam];
+  headers: Vec[RestHeader];
+  body: Str;
+} derive[Clone]
+```
 
-### `xiom.rest.versioning` (`src/versioning.xi`) — Planned
+### `RestQueryParam`
 
-Route versioning policy: URI versioning, header versioning, and deprecation helpers.
+```xiom
+pub type RestQueryParam = {
+  key: Str;
+  value: Str;
+} derive[Clone]
+```
 
-**Planned types:**
-- `VersionPolicy` — enum: `Uri`, `Header`
-- `Deprecation { since: Str; sunset: Option[Str]; message: Str; }`
+### `RestError`
 
-**Planned API:**
-| Function | Signature | Responsibility |
-|----------|-----------|----------------|
-| `versioned` | `(version: Str, module: RestModule) -> RestModule` | Wrap a module under a version group |
-| `with_policy` | `(module: RestModule, policy: VersionPolicy) -> RestModule` | Set the version resolution strategy |
-| `deprecate` | `(module: RestModule, meta: Deprecation) -> RestModule` | Attach deprecation metadata |
-| `resolve_version` | `(req: &HttpRequest, policy: VersionPolicy) -> Result[Str, RestError]` | Extract requested version |
-
-**Responsibility:** make versions explicit and prevent silent breaking changes.
-
----
-
-### `xiom.rest.pagination` (`src/pagination.xi`) — Planned
-
-Cursor and page-number pagination primitives.
-
-**Planned types:**
-- `PageRequest { page: UInt; limit: UInt; }`
-- `Cursor { token: Str; }`
-- `CursorPage[T] { items: Vec[T]; next_cursor: Option[Str]; prev_cursor: Option[Str]; }`
-- `PageMeta { total: Option[UInt]; page: UInt; limit: UInt; }`
-
-**Planned API:**
-| Function | Signature | Responsibility |
-|----------|-----------|----------------|
-| `parse_page_request` | `(query: &Query) -> Result[PageRequest, RestError]` | Parse `page`/`limit`; `ensures result.limit > 0` |
-| `parse_cursor` | `(query: &Query) -> Result[Option[Cursor], RestError]` | Parse `cursor` token |
-| `make_cursor_page` | `(items: Vec[T], next: Option[Str]) -> CursorPage[T]` | Build a cursor page envelope |
-| `page_meta` | `(req: &PageRequest, total: Option[UInt]) -> PageMeta` | Build pagination metadata |
-
-**Responsibility:** keep large result sets predictable and stable; prefer cursors for mutable datasets.
+```xiom
+pub type RestError = {
+  code: Str;
+  status: Int;
+  message: Str;
+} derive[Clone]
+```
 
 ---
 
-### `xiom.rest.filtering` (`src/filtering.xi`) — Planned
+## Implemented API (v0.1.0)
 
-Query parameter parsing and typed filter objects for list endpoints.
+### Client Builder
 
-**Planned types:**
-- `FilterOp` — enum: `Eq`, `Ne`, `Lt`, `Lte`, `Gt`, `Gte`, `In`, `Like`
-- `FilterClause { field: Str; op: FilterOp; value: Str; }`
-- `FilterSet { clauses: Vec[FilterClause]; }`
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `client_new` | `(base_url: Str) -> RestClient` | Create client with defaults (30s timeout, follow redirects) |
+| `client_set_timeout` | `(client: &mut RestClient, ms: Int)` | Set request timeout in ms |
+| `client_set_follow_redirects` | `(client: &mut RestClient, follow: Bool)` | Toggle redirect following |
+| `client_add_header` | `(client: &mut RestClient, name: Str, value: Str)` | Add default header |
+| `client_remove_header` | `(client: &mut RestClient, name: Str) -> Bool` | Remove default header by name |
+| `client_get_default_header` | `(client: &RestClient, name: Str) -> Option[Str]` | Look up default header value |
 
-**Planned API:**
-| Function | Signature | Responsibility |
-|----------|-----------|----------------|
-| `parse_filters` | `(query: &Query, allowed: Vec[Str]) -> Result[FilterSet, RestError]` | Parse and validate filters against an allow-list |
-| `FilterSet.get` | `(self, field: Str) -> Option[FilterClause]` | Look up a clause by field |
+### Request Builder
 
-**Responsibility:** produce typed, validated filters before business logic runs; reject unknown operators by default.
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `request_new` | `(method: RestMethod, path: Str) -> RestRequest` | Create request |
+| `request_add_header` | `(req: &mut RestRequest, name: Str, value: Str)` | Add per-request header |
+| `request_add_query_param` | `(req: &mut RestRequest, key: Str, value: Str)` | Add query parameter |
+| `request_set_body` | `(req: &mut RestRequest, body: Str)` | Set request body |
+| `request_build_url` | `(req: &RestRequest, base: Str) -> Str` | Construct full URL (path joining, query string) |
 
----
+### Method Conversion
 
-### `xiom.rest.sorting` (`src/sorting.xi`) — Planned
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `method_to_str` | `(method: RestMethod) -> Str` | GET → "GET", etc. |
+| `method_from_str` | `(s: Str) -> RestMethod` | "POST" → POST, unknown → GET |
 
-Sorting keys, order direction, and validation.
+### Convenience Methods
 
-**Planned types:**
-- `SortDir` — enum: `Asc`, `Desc`
-- `SortSpec { key: Str; dir: SortDir; }`
+| Function | Signature |
+|----------|-----------|
+| `client_get` | `(client: &RestClient, path: Str) -> Result[RestResponse, Str]` |
+| `client_post` | `(client: &RestClient, path: Str, body: Str) -> Result[RestResponse, Str]` |
+| `client_put` | `(client: &RestClient, path: Str, body: Str) -> Result[RestResponse, Str]` |
+| `client_delete` | `(client: &RestClient, path: Str) -> Result[RestResponse, Str]` |
+| `client_patch` | `(client: &RestClient, path: Str, body: Str) -> Result[RestResponse, Str]` |
 
-**Planned API:**
-| Function | Signature | Responsibility |
-|----------|-----------|----------------|
-| `parse_sort` | `(query: &Query, allowed: Vec[Str]) -> Result[Vec[SortSpec], RestError]` | Parse `sort` params against an allow-list |
-| `SortSpec.to_str` | `(self) -> Str` | Serialize a sort spec |
+All delegate to `client_execute` which initializes libcurl, sets URL, and returns an Ok(200) stub.
 
-**Responsibility:** keep sorting keys explicit and validated.
+### Response Classification
 
----
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `response_is_success` | `(resp: &RestResponse) -> Bool` | 200–299 |
+| `response_is_client_error` | `(resp: &RestResponse) -> Bool` | 400–499 |
+| `response_is_server_error` | `(resp: &RestResponse) -> Bool` | 500–599 |
+| `response_status_category` | `(resp: &RestResponse) -> Int` | 200, 400, 500, etc. |
 
-### `xiom.rest.negotiation` (`src/negotiation.xi`) — Planned
+### Error Constructors
 
-Content negotiation for JSON and optional alternative representations.
-
-**Planned types:**
-- `MediaType { main: Str; sub: Str; quality: Float; }`
-- `Representation[T] { media_type: MediaType; encode: fn(&T) -> Vec[Int]; }`
-
-**Planned API:**
-| Function | Signature | Responsibility |
-|----------|-----------|----------------|
-| `parse_accept` | `(header: Str) -> Vec[MediaType]` | Parse an `Accept` header into ranked media types |
-| `negotiate` | `(accept: Str, offered: Vec[MediaType]) -> Result[MediaType, RestError]` | Choose the best representation |
-| `encode` | `(rep: &Representation[T], value: &T) -> Vec[Int]` | Encode a value in the chosen representation |
-
-**Responsibility:** explicit `Accept` handling with typed serializers; default to JSON.
-
----
-
-### `xiom.rest.errors` (`src/errors.xi`) — Planned
-
-REST-friendly mapping from typed XIOM errors to HTTP status codes and structured error bodies.
-
-**Planned types:**
-- `RestError { code: Str; status: Int; message: Str; details: Option[Str]; }`
-
-**Planned API:**
-| Function | Signature | Responsibility |
-|----------|-----------|----------------|
-| `RestError.new` | `(code: Str, status: Int, message: Str) -> RestError` | Construct; `requires status >= 100, status < 600` |
-| `not_found` / `bad_request` / `conflict` / `unprocessable` | `(message: Str) -> RestError` | Common constructors |
-| `map_status` | `(err: &RestError) -> Int` | Resolve the HTTP status code |
-| `to_response` | `(err: &RestError) -> HttpResponse` | Render a stable structured error body |
-
-**Responsibility:** map domain errors to stable status codes with machine-readable error codes.
+| Function | Signature | Code | Status |
+|----------|-----------|------|--------|
+| `error_not_found` | `(message: Str) -> RestError` | NOT_FOUND | 404 |
+| `error_bad_request` | `(message: Str) -> RestError` | BAD_REQUEST | 400 |
+| `error_internal` | `(message: Str) -> RestError` | INTERNAL | 500 |
+| `error_unauthorized` | `(message: Str) -> RestError` | UNAUTHORIZED | 401 |
+| `error_to_response` | `(err: &RestError) -> RestResponse` | — | Preserves status |
 
 ---
 
-### `xiom.rest.links` (`src/links.xi`) — Planned
+## libcurl FFI Layer (v0.1.0)
 
-Optional HATEOAS-style link builders for discoverability.
+### Declared `extern "C"` Functions
 
-**Planned types:**
-- `Link { rel: Str; href: Str; method: HttpMethod; }`
-- `LinkSet { links: Vec[Link]; }`
+```xiom
+extern "C" {
+  fn curl_easy_init() -> *UInt8;
+  fn curl_easy_setopt(handle: *UInt8, option: Int, value: *UInt8) -> Int;
+  fn curl_easy_perform(handle: *UInt8) -> Int;
+  fn curl_easy_getinfo(handle: *UInt8, info: Int, arg: *UInt8) -> Int;
+  fn curl_easy_cleanup(handle: *UInt8);
+  fn curl_easy_strerror(code: Int) -> *UInt8;
+  fn curl_slist_append_all(headers: *UInt8, header: *UInt8) -> *UInt8;
+  fn curl_slist_free_all(list: *UInt8);
+}
+```
 
-**Planned API:**
-| Function | Signature | Responsibility |
-|----------|-----------|----------------|
-| `self_link` | `(base: Str, id: Str) -> Link` | Build a `self` relation |
-| `collection_link` | `(base: Str) -> Link` | Build a collection relation |
-| `LinkSet.add` | `(self, link: Link) -> LinkSet` | Append a link |
+### Declared XIOM FFI Bridge
 
-**Responsibility:** generate discoverability links when HATEOAS is enabled; entirely optional.
+```xiom
+extern "C" {
+  fn xiom_str_to_cstr(xiom_str: *UInt8, len: Int) -> *UInt8;
+  fn xiom_free_cstr(cstr: *UInt8);
+  fn xiom_alloc(size: Int) -> *UInt8;
+  fn xiom_free_ptr(ptr: *UInt8);
+  fn xiom_write_byte(ptr: *UInt8, offset: Int, value: Int);
+  fn xiom_read_byte(ptr: *UInt8, offset: Int) -> Int;
+}
+```
 
----
+### CURL Option Constants
 
-### `xiom.rest.openapi` (`src/openapi.xi`) — Planned
-
-OpenAPI generation from route/resource definitions and XIOM contracts.
-
-**Planned types:**
-- `OpenApiDoc { openapi: Str; info: ApiInfo; paths: Vec[PathItem]; }`
-- `PathItem { path: Str; operations: Vec[Operation]; }`
-
-**Planned API:**
-| Function | Signature | Responsibility |
-|----------|-----------|----------------|
-| `generate` | `(modules: Vec[RestModule]) -> OpenApiDoc` | Build an OpenAPI document from resource modules |
-| `to_json` | `(doc: &OpenApiDoc) -> Str` | Serialize to OpenAPI JSON via `xiom-json` |
-
-**Responsibility:** derive documentation from route definitions and contract metadata, not hand-written schemas.
-
----
-
-### `xiom.rest.response_shape` (`src/response_shape.xi`) — Planned
-
-Standard envelopes for list responses, single-resource responses, and error payloads.
-
-**Planned types:**
-- `ItemEnvelope[T] { data: T; links: Option[LinkSet]; }`
-- `ListEnvelope[T] { data: Vec[T]; meta: PageMeta; links: Option[LinkSet]; }`
-- `ErrorEnvelope { error: RestError; }`
-
-**Planned API:**
-| Function | Signature | Responsibility |
-|----------|-----------|----------------|
-| `item` | `(value: T) -> ItemEnvelope[T]` | Wrap a single resource |
-| `list` | `(items: Vec[T], meta: PageMeta) -> ListEnvelope[T]` | Wrap a collection with metadata |
-| `error` | `(err: RestError) -> ErrorEnvelope` | Wrap an error payload |
-
-**Responsibility:** provide consistent, stable response shapes across all endpoints.
+| Constant | Value | Purpose |
+|----------|-------|---------|
+| `CURLOPT_URL` | 10002 | Request URL |
+| `CURLOPT_FOLLOWLOCATION` | 52 | Follow HTTP redirects |
+| `CURLOPT_TIMEOUT` | 13 | Total request timeout |
+| `CURLOPT_CONNECTTIMEOUT` | 78 | Connection timeout |
+| `CURLOPT_POST` | 47 | Enable POST method |
+| `CURLOPT_POSTFIELDS` | 10015 | POST body data |
+| `CURLOPT_POSTFIELDSIZE` | 60 | POST body size |
+| `CURLOPT_CUSTOMREQUEST` | 10036 | Custom method (PUT, DELETE, etc.) |
+| `CURLOPT_SSL_VERIFYPEER` | 64 | Verify TLS certificate |
+| `CURLOPT_SSL_VERIFYHOST` | 81 | Verify TLS hostname |
+| `CURLOPT_USERAGENT` | 10018 | User-Agent header |
+| `CURLOPT_ACCEPT_ENCODING` | 10102 | Accept-Encoding header |
 
 ---
 
-## Testing (Planned)
+## Planned Modules (Future Versions)
 
-- `src/testing/mod.xi` — test helpers and harness entry point.
-- `src/testing/fixtures.xi` — reusable resource/request fixtures for routing, pagination, versioning, and negotiation tests.
+The modules documented below are design-stage — specified in [ARCHITECTURE.md](ARCHITECTURE.md) but not yet built.
+
+| Module | File | Status |
+|--------|------|--------|
+| Resource builder | `src/resource.xi` | Planned |
+| Router | `src/router.xi` | Planned |
+| Route builder | `src/route_builder.xi` | Planned |
+| Versioning | `src/versioning.xi` | Planned |
+| Pagination | `src/pagination.xi` | Planned |
+| Filtering | `src/filtering.xi` | Planned |
+| Sorting | `src/sorting.xi` | Planned |
+| Content negotiation | `src/negotiation.xi` | Planned |
+| Error mapping | `src/errors.xi` | Planned |
+| HATEOAS links | `src/links.xi` | Planned |
+| OpenAPI generation | `src/openapi.xi` | Planned |
+| Response envelopes | `src/response_shape.xi` | Planned |
+| Test harness | `src/testing/` | Planned |
+
+---
+
+## Design Decisions
+
+### libcurl as Client Transport
+
+`xiom-rest` declares its own `extern "C"` libcurl FFI block rather than delegating to `xiom-http`. This keeps the REST client self-contained and allows it to evolve independently. The `curl_slist_append_all` / `curl_slist_free_all` functions are declared for future custom header injection support.
+
+### Stub Transport
+
+`client_execute` in v0.1.0 initializes a curl handle but returns a stub `Ok(200)` response without performing actual HTTP requests. Full transport integration is planned for v0.2.0 following the same temp-file response capture strategy used by `xiom-http`.
+
+### Method Enum
+
+All seven standard HTTP methods are represented in the `RestMethod` enum with string conversion helpers. Unknown strings default to GET to fail safely.
+
+### Error Model
+
+`RestError` uses a `code: Str` field for machine-readable error codes (NOT_FOUND, BAD_REQUEST, etc.) alongside an HTTP `status: Int` and a human-readable `message: Str`. This maps cleanly to RFC 7807 Problem Details when needed.
+
+### URL Construction
+
+`request_build_url` handles path joining (trailing/leading slash normalization) and query parameter serialization. It is pure XIOM with no external dependencies.
