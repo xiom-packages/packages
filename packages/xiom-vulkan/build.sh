@@ -296,9 +296,9 @@ XI_FILES=(
 
 # xiom: use cargo run -p xiom for dev workflow.
 # Replace with "xiom" when a prebuilt binary is available.
-XIOMC_CMD=(cargo run -p xiom --)
+xiom_CMD=(cargo run -p xiom --)
 
-XIOMC_ARGS=(
+xiom_ARGS=(
     -o "$OUT_EXE"
     "${XI_FILES[@]}"
     --c-source "$BRIDGE_OBJ"
@@ -309,24 +309,24 @@ XIOMC_ARGS=(
 # Add link paths for Vulkan and GLFW (manual paths; pkg-config
 # already added -L via GLFW_LIBS if applicable).
 if [ -n "${VULKAN_SDK:-}" ]; then
-    XIOMC_ARGS+=(--link-path "$VK_LIB")
+    xiom_ARGS+=(--link-path "$VK_LIB")
 fi
 
 # Add GLFW lib path if not handled by pkg-config linker flags
 # shellcheck disable=SC2076
 if [[ ! "$GLFW_LIBS" =~ "-L" ]]; then
     if [ -n "${GLFW_LIB:-}" ]; then
-        XIOMC_ARGS+=(--link-path "$GLFW_LIB")
+        xiom_ARGS+=(--link-path "$GLFW_LIB")
     fi
 fi
 
 # For the test target, automatically run it
 if [ "$TARGET" = "test" ]; then
-    XIOMC_ARGS+=(--run)
+    xiom_ARGS+=(--run)
 fi
 
-info "  ${XIOMC_CMD[*]} ${XIOMC_ARGS[*]}"
-(cd "$ROOT_DIR" && "${XIOMC_CMD[@]}" "${XIOMC_ARGS[@]}")
+info "  ${xiom_CMD[*]} ${xiom_ARGS[*]}"
+(cd "$ROOT_DIR" && "${xiom_CMD[@]}" "${xiom_ARGS[@]}")
 info "SUCCESS: $OUT_EXE"
 
 # ---- Run (optional) ---------------------------------------------------------

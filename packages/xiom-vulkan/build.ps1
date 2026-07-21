@@ -408,41 +408,41 @@ $XiFiles = @(
 
 # Use xiom directly since it's installed on PATH.
 # Fall back to cargo if xiom is not available.
-$XiomcExe = Get-Command 'xiom' -ErrorAction SilentlyContinue
-if (-not $XiomcExe) {
-    $XiomcExe = 'cargo'
-    $XiomcArgs = @('run', '-p', 'xiom', '--')
+$xiomExe = Get-Command 'xiom' -ErrorAction SilentlyContinue
+if (-not $xiomExe) {
+    $xiomExe = 'cargo'
+    $xiomArgs = @('run', '-p', 'xiom', '--')
 } else {
-    $XiomcExe = $XiomcExe.Source
-    $XiomcArgs = @()
+    $xiomExe = $xiomExe.Source
+    $xiomArgs = @()
 }
 
-$XiomcArgs += @(
+$xiomArgs += @(
     '-o', $OutExe
 )
 
-$XiomcArgs += $XiFiles
-$XiomcArgs += @('--c-source', $BridgeObj)
+$xiomArgs += $XiFiles
+$xiomArgs += @('--c-source', $BridgeObj)
 # NOTE: xiom_runtime.c is NOT passed — xiom v0.47.7 auto-injects
 # runtime symbols; passing it again causes duplicate symbol errors.
-$XiomcArgs += @('--link', 'vulkan-1')
-$XiomcArgs += @('--link', 'glfw3')
-$XiomcArgs += @('--link', 'gdi32')
-$XiomcArgs += @('--link', 'user32')
-$XiomcArgs += @('--link', 'kernel32')
-$XiomcArgs += @('--link', 'shell32')
-$XiomcArgs += @('--link', 'ole32')
-$XiomcArgs += @('--link', 'winmm')
-$XiomcArgs += @('--link-path', $VkLib)
-$XiomcArgs += @('--link-path', $GlfwLib)
+$xiomArgs += @('--link', 'vulkan-1')
+$xiomArgs += @('--link', 'glfw3')
+$xiomArgs += @('--link', 'gdi32')
+$xiomArgs += @('--link', 'user32')
+$xiomArgs += @('--link', 'kernel32')
+$xiomArgs += @('--link', 'shell32')
+$xiomArgs += @('--link', 'ole32')
+$xiomArgs += @('--link', 'winmm')
+$xiomArgs += @('--link-path', $VkLib)
+$xiomArgs += @('--link-path', $GlfwLib)
 
 if ($Target -eq 'test') {
-    $XiomcArgs += '--run'
+    $xiomArgs += '--run'
 }
 
-$cmdline = "$XiomcExe $($XiomcArgs -join ' ')"
+$cmdline = "$xiomExe $($xiomArgs -join ' ')"
 Write-Host "  $cmdline"
-$proc = Start-Process -FilePath $XiomcExe -ArgumentList $XiomcArgs -NoNewWindow -Wait -PassThru
+$proc = Start-Process -FilePath $xiomExe -ArgumentList $xiomArgs -NoNewWindow -Wait -PassThru
 if ($proc.ExitCode -ne 0) {
     throw "xiom build failed (exit code $($proc.ExitCode))"
 }
