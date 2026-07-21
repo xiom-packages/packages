@@ -63,6 +63,10 @@ fn vector_dot(a: &Vec[Float64], b: &Vec[Float64]) -> Float64
 }
 
 fn matrix_transpose(m: &Matrix) -> Matrix
+  requires: m.rows > 0
+  requires: m.cols > 0
+  ensures: result.rows == m.cols
+  ensures: result.cols == m.rows
 {
   var t = matrix_new(m.cols, m.rows);
   var i = 0;
@@ -110,6 +114,10 @@ fn matrix_sub(a: &Matrix, b: &Matrix) -> Result[Matrix, Str]
 }
 
 fn matrix_scale(m: &Matrix, scalar: Float64) -> Matrix
+  requires: m.rows > 0
+  requires: m.cols > 0
+  ensures: result.rows == m.rows
+  ensures: result.cols == m.cols
 {
   var result = matrix_new(m.rows, m.cols);
   var i = 0;

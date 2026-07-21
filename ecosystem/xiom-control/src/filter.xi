@@ -87,7 +87,10 @@ pub type KalmanFilter1D = {
   initialized: Bool;
 }
 
-pub fn kalman_new(process_noise: Float64, measurement_noise: Float64) -> KalmanFilter1D {
+pub fn kalman_new(process_noise: Float64, measurement_noise: Float64) -> KalmanFilter1D
+  requires: process_noise > 0.0
+  requires: measurement_noise > 0.0
+{
   return KalmanFilter1D{
     q: process_noise,
     r: measurement_noise,

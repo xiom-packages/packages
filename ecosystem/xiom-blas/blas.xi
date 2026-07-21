@@ -11,7 +11,13 @@ pub fn dot(x: &Vec[Float64], y: &Vec[Float64]) -> Float64;
 pub fn axpy(alpha: Float64, x: &Vec[Float64], y: &mut Vec[Float64]);
 pub fn scal(alpha: Float64, x: &mut Vec[Float64]);
 
-pub fn matrix_new(rows: Int, cols: Int) -> Matrix {
+pub fn matrix_new(rows: Int, cols: Int) -> Matrix
+  requires: rows > 0
+  requires: cols > 0
+  ensures: result.rows == rows
+  ensures: result.cols == cols
+  ensures: result.data.len() == rows * cols
+{
   var data = Vec[Float64].new();
   var i = 0;
   while i < rows * cols {
@@ -21,11 +27,16 @@ pub fn matrix_new(rows: Int, cols: Int) -> Matrix {
   return Matrix{ rows: rows, cols: cols, data: data };
 }
 
-pub fn matrix_zeros(rows: Int, cols: Int) -> Matrix {
+pub fn matrix_zeros(rows: Int, cols: Int) -> Matrix
+  requires: rows > 0
+  requires: cols > 0
+{
   return matrix_new(rows, cols);
 }
 
-pub fn matrix_identity(n: Int) -> Matrix {
+pub fn matrix_identity(n: Int) -> Matrix
+  requires: n > 0
+{
   var m = matrix_new(n, n);
   var i = 0;
   while i < n {
@@ -35,7 +46,12 @@ pub fn matrix_identity(n: Int) -> Matrix {
   return m;
 }
 
-pub fn matrix_transpose(a: &Matrix) -> Matrix {
+pub fn matrix_transpose(a: &Matrix) -> Matrix
+  requires: a.rows > 0
+  requires: a.cols > 0
+  ensures: result.rows == a.cols
+  ensures: result.cols == a.rows
+{
   var t = matrix_new(a.cols, a.rows);
   var i = 0;
   while i < a.rows {
@@ -49,7 +65,12 @@ pub fn matrix_transpose(a: &Matrix) -> Matrix {
   return t;
 }
 
-pub fn matrix_add(a: &Matrix, b: &Matrix) -> Result[Matrix, Str] {
+pub fn matrix_add(a: &Matrix, b: &Matrix) -> Result[Matrix, Str]
+  requires: a.rows > 0
+  requires: a.cols > 0
+  requires: b.rows > 0
+  requires: b.cols > 0
+{
   if a.rows != b.rows || a.cols != b.cols {
     return Err("dimension mismatch");
   };
@@ -62,7 +83,12 @@ pub fn matrix_add(a: &Matrix, b: &Matrix) -> Result[Matrix, Str] {
   return Ok(result);
 }
 
-pub fn matrix_sub(a: &Matrix, b: &Matrix) -> Result[Matrix, Str] {
+pub fn matrix_sub(a: &Matrix, b: &Matrix) -> Result[Matrix, Str]
+  requires: a.rows > 0
+  requires: a.cols > 0
+  requires: b.rows > 0
+  requires: b.cols > 0
+{
   if a.rows != b.rows || a.cols != b.cols {
     return Err("dimension mismatch");
   };
@@ -75,7 +101,10 @@ pub fn matrix_sub(a: &Matrix, b: &Matrix) -> Result[Matrix, Str] {
   return Ok(result);
 }
 
-pub fn vector_zeros(n: Int) -> Vec[Float64] {
+pub fn vector_zeros(n: Int) -> Vec[Float64]
+  requires: n > 0
+  ensures: result.len() == n
+{
   var v = Vec[Float64].new();
   var i = 0;
   while i < n {
@@ -85,7 +114,10 @@ pub fn vector_zeros(n: Int) -> Vec[Float64] {
   return v;
 }
 
-pub fn vector_ones(n: Int) -> Vec[Float64] {
+pub fn vector_ones(n: Int) -> Vec[Float64]
+  requires: n > 0
+  ensures: result.len() == n
+{
   var v = Vec[Float64].new();
   var i = 0;
   while i < n {

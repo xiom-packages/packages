@@ -12,7 +12,11 @@ pub type PIDController = {
   output_max: Float64;
 }
 
-pub fn pid_new(kp: Float64, ki: Float64, kd: Float64) -> PIDController {
+pub fn pid_new(kp: Float64, ki: Float64, kd: Float64) -> PIDController
+  requires: kp > 0.0
+  requires: ki >= 0.0
+  requires: kd >= 0.0
+{
   return PIDController{
     kp: kp,
     ki: ki,
