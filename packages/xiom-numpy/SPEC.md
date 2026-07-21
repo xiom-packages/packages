@@ -1,7 +1,7 @@
 # xiom-numpy — SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
-**Status**: SPEC only — no implementation yet
+**Status**: Phase 1 implemented — types, extern C FFI, safe wrappers with contracts, 30 conformance tests
 **Depends on**: xiom.ffi (stdlib), xiom-openblas (BLAS/LAPACK backend)
 
 ## What it wraps

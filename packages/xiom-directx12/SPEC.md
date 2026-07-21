@@ -1,7 +1,7 @@
 # xiom-directx12 — SPEC
 
 **Phase**: 2 (Scientific) | **Priority**: HIGH
-**Status**: SPEC only — no implementation yet
+**Status**: SPEC implemented (v0.1.0) — types, constants, extern block, safe wrappers, tests done. C bridge pending.
 **Depends on**: xiom.ffi (stdlib)
 **Platform**: Windows only
 
@@ -66,8 +66,20 @@ pub fn d3d12_wait_fence(fence: Fence, val: Int)
 
 ## Phased roadmap
 
-| Phase | What | Effort |
-|-------|------|--------|
-| 1 | Device, swapchain, upload buffer, clear, present | Weekend |
-| 2 | Pipeline state, root signatures, draw calls, textures | Weekend |
-| 3 | Resource barriers, multi-queue, bindless, ray tracing | Week+ |
+| Phase | What | Effort | Status |
+|-------|------|--------|--------|
+| 1 | Device, swapchain, upload buffer, clear, present | Weekend | **DONE** |
+| 2 | Pipeline state, root signatures, draw calls, textures | Weekend | TODO |
+| 3 | Resource barriers, multi-queue, bindless, ray tracing | Week+ | TODO |
+
+## Implementation Stats (v0.1.0)
+
+| Item | Count |
+|------|-------|
+| Types | 10 |
+| Constants | 60 |
+| extern "C" functions | 22 |
+| Safe wrappers | 22 |
+| requires/ensures clauses | 55 |
+| Conformance tests | 65 |
+| Test sections | 21 |
