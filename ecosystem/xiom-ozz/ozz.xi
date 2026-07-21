@@ -472,6 +472,7 @@ pub fn quaternion_track_destroy(track: Int)
 // --- Offline builders ---
 
 pub fn skeleton_builder_create() -> Result[Int, Str]
+  ensures: result is Ok => result.unwrap() != 0
 {
   let builder: Int = unsafe { ozz_skeleton_builder_create() }
   if builder == 0 { return Err("skeleton_builder_create: failed") }
@@ -496,6 +497,7 @@ pub fn skeleton_builder_build(builder: Int, raw_skeleton_data: Int, raw_skeleton
 }
 
 pub fn animation_builder_create() -> Result[Int, Str]
+  ensures: result is Ok => result.unwrap() != 0
 {
   let builder: Int = unsafe { ozz_animation_builder_create() }
   if builder == 0 { return Err("animation_builder_create: failed") }

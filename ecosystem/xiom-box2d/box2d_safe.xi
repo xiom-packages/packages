@@ -124,7 +124,10 @@ pub fn pos_zero() -> B2Pos {
   return B2Pos{ x: 0.0, y: 0.0 };
 }
 
-pub fn aabb(lower_x: Float32, lower_y: Float32, upper_x: Float32, upper_y: Float32) -> B2AABB {
+pub fn aabb(lower_x: Float32, lower_y: Float32, upper_x: Float32, upper_y: Float32) -> B2AABB
+  requires: lower_x <= upper_x
+  requires: lower_y <= upper_y
+{
   return B2AABB{
     lowerBound: B2Vec2{ x: lower_x, y: lower_y },
     upperBound: B2Vec2{ x: upper_x, y: upper_y },
