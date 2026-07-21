@@ -1,84 +1,33 @@
 module xiom.grpc.client
 use xiom.grpc;
 
-fn grpc_init()
-{
-  init();
-}
-
-fn grpc_shutdown()
-{
-  shutdown();
-}
-
-fn grpc_channel_create(target: Str, secure: Bool) -> Result[Int, Str]
+pub fn grpc_channel_create(target: Str) -> Result[GrpcChannel, GrpcStatus]
   requires: target.len() > 0
 {
-  Ok(create_channel(target, secure))
+  channel_create(target)
 }
 
-fn grpc_channel_destroy(channel: Int)
+pub fn grpc_channel_destroy(channel: GrpcChannel)
   requires: channel != 0
 {
-  destroy_channel(channel);
+  channel_destroy(channel);
 }
 
-fn grpc_unary_call(channel: Int, method: Str, request: &Vec[Int]) -> Result[Vec[Int], Str]
-  requires: channel != 0
-  requires: method.len() > 0
-{
-  var raw: Result[Vec[Int], Str] = unary_call(channel, method, request);
-  if raw.is_ok() {
-    var bytes: Vec[Int] = raw.unwrap();
-    var result = Vec[Int]::new();
-    var j = 0;
-    while j < bytes.len() {
-      result.push(bytes[j]);
-      j = j + 1;
-    };
-    Ok(result)
-  } else {
-    Err("unary call failed")
-  }
-}
-
-fn grpc_stream_call(channel: Int, method: Str) -> Result[Int, Str]
+pub fn grpc_call_create(channel: GrpcChannel, method: Str) -> Result[GrpcCall, GrpcStatus]
   requires: channel != 0
   requires: method.len() > 0
 {
-  stream_call(channel, method)
+  call_create(channel, method)
 }
 
-fn grpc_stream_send(call: Int, data: &Vec[Int]) -> Result[Unit, Str]
+pub fn grpc_call_destroy(call: GrpcCall)
   requires: call != 0
 {
-  var raw: Result[Unit, Str] = send_stream(call, data);
-  if raw.is_ok() {
-    Ok(())
-  } else {
-    Err("stream send failed")
-  }
+  call_destroy(call);
 }
 
-fn grpc_stream_recv(call: Int) -> Result[Option[Vec[Int]], Str]
+pub fn grpc_call_cancel(call: GrpcCall) -> Result[Unit, GrpcStatus]
   requires: call != 0
 {
-  var raw: Result[Option[Vec[Int]], Str] = recv_stream(call);
-  if raw.is_ok() {
-    var opt: Option[Vec[Int]] = raw.unwrap();
-    if opt.is_some() {
-      var bytes: Vec[Int] = opt.unwrap();
-      var result = Vec[Int]::new();
-      var j = 0;
-      while j < bytes.len() {
-        result.push(bytes[j]);
-        j = j + 1;
-      };
-      Ok(Some(result))
-    } else {
-      Ok(None)
-    }
-  } else {
-    Err("stream recv failed")
-  }
+  call_cancel(call)
 }

@@ -1,35 +1,40 @@
 module xiom.grpc.server
-use xiom.grpc.types.GrpcServer;
+use xiom.grpc;
+use xiom.grpc.types.GrpcServerConfig;
 
-fn grpc_server_create(addr: Str, port: Int) -> Result[GrpcServer, Str]
+pub fn grpc_server_new(addr: Str) -> Result[GrpcServer, GrpcStatus]
+  requires: addr.len() > 0
+{
+  server_new(addr)
+}
+
+pub fn grpc_server_register(server: &GrpcServer, service: Str, methods: Int) -> Result[Unit, GrpcStatus]
+  requires: server != 0
+  requires: service.len() > 0
+{
+  server_register_service(server, service, methods)
+}
+
+pub fn grpc_server_start(server: &GrpcServer) -> Result[Unit, GrpcStatus]
+  requires: server != 0
+{
+  server_start(server)
+}
+
+pub fn grpc_server_shutdown(server: GrpcServer) -> Result[Unit, GrpcStatus]
+  requires: server != 0
+{
+  server_shutdown(server)
+}
+
+pub fn grpc_server_config(addr: Str, port: Int) -> GrpcServerConfig
   requires: addr.len() > 0
   requires: port > 0
 {
-  Ok(GrpcServer { addr: addr.clone(); port: port; })
+  GrpcServerConfig { addr: addr.clone(); port: port; }
 }
 
-fn grpc_server_register(server: &GrpcServer, service: Str, handler: fn(&GrpcRequest) -> Result[GrpcResponse, Str]) -> Result[Unit, Str]
-  requires: service.len() > 0
+pub fn grpc_server_address(cfg: &GrpcServerConfig) -> Str
 {
-  Ok(())
-}
-
-fn grpc_server_start(server: &GrpcServer) -> Result[Unit, Str]
-{
-  Ok(())
-}
-
-fn grpc_server_stop(server: &GrpcServer) -> Result[Unit, Str]
-{
-  Ok(())
-}
-
-fn grpc_server_wait(server: &GrpcServer) -> Result[Unit, Str]
-{
-  Ok(())
-}
-
-fn grpc_server_address(server: &GrpcServer) -> Str
-{
-  server.addr + ":" + server.port.to_str()
+  cfg.addr + ":" + cfg.port.to_str()
 }
