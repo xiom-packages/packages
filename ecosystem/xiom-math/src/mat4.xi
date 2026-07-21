@@ -64,7 +64,12 @@ pub fn Mat4.scale(v: Vec3) -> Mat4 {
   return Mat4{ m: m };
 }
 
-pub fn Mat4.perspective(fov: Float32, aspect: Float32, near: Float32, far: Float32) -> Mat4 {
+pub fn Mat4.perspective(fov: Float32, aspect: Float32, near: Float32, far: Float32) -> Mat4
+  requires: fov > 0.0 as Float32
+  requires: aspect > 0.0 as Float32
+  requires: near > 0.0 as Float32
+  requires: far > near
+{
   var f = 1.0 as Float32 / (xiom.math.tan((fov / 2.0 as Float32) as Float64) as Float32);
   var range_inv = 1.0 as Float32 / (near - far);
 
@@ -76,7 +81,11 @@ pub fn Mat4.perspective(fov: Float32, aspect: Float32, near: Float32, far: Float
   return Mat4{ m: m };
 }
 
-pub fn Mat4.ortho(left: Float32, right: Float32, bottom: Float32, top: Float32, near: Float32, far: Float32) -> Mat4 {
+pub fn Mat4.ortho(left: Float32, right: Float32, bottom: Float32, top: Float32, near: Float32, far: Float32) -> Mat4
+  requires: left < right
+  requires: bottom < top
+  requires: near != far
+{
   var rl = 1.0 as Float32 / (right - left);
   var tb = 1.0 as Float32 / (top - bottom);
   var nf = 1.0 as Float32 / (far - near);
@@ -241,6 +250,8 @@ pub fn Mat4.inverse() -> Mat4 {
   return Mat4{ m: out };
 }
 
-pub fn Mat4.element(row: Int, col: Int) -> Float32 {
+pub fn Mat4.element(row: Int, col: Int) -> Float32
+  requires: row >= 0; requires: row < 4; requires: col >= 0; requires: col < 4
+{
   return m[col * 4 + row];
 }

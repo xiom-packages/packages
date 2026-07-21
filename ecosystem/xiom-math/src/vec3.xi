@@ -24,7 +24,9 @@ pub fn Vec3.mul_scalar(s: Float32) -> Vec3 {
   return Vec3{ x: x * s, y: y * s, z: z * s };
 }
 
-pub fn Vec3.div_scalar(s: Float32) -> Vec3 {
+pub fn Vec3.div_scalar(s: Float32) -> Vec3
+  requires: s != 0.0 as Float32
+{
   return Vec3{ x: x / s, y: y / s, z: z / s };
 }
 
