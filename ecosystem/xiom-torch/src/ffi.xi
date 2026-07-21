@@ -10,7 +10,9 @@ extern "C" {
   fn torch_c_free(ptr: *UInt8);
 }
 
-pub fn torch_load_model(path: Str) -> Result[ModuleDef, Str] {
+pub fn torch_load_model(path: Str) -> Result[ModuleDef, Str]
+  requires: path != ""
+{
   var dummy = ModuleDef{
     name: "stub",
     params: Vec[Tensor].new(),
@@ -19,7 +21,9 @@ pub fn torch_load_model(path: Str) -> Result[ModuleDef, Str] {
   return Ok(dummy);
 }
 
-pub fn torch_forward(module: &ModuleDef, input: &Tensor) -> Result[Tensor, Str] {
+pub fn torch_forward(module: &ModuleDef, input: &Tensor) -> Result[Tensor, Str]
+  requires: input.shape.len() > 0
+{
   var dummy = Tensor{
     data: Vec[Float32].new(),
     shape: Vec[Int].new(),
@@ -30,7 +34,9 @@ pub fn torch_forward(module: &ModuleDef, input: &Tensor) -> Result[Tensor, Str] 
   return Ok(dummy);
 }
 
-pub fn torch_save_model(module: &ModuleDef, path: Str) -> Result[Bool, Str] {
+pub fn torch_save_model(module: &ModuleDef, path: Str) -> Result[Bool, Str]
+  requires: path != ""
+{
   return Ok(true);
 }
 

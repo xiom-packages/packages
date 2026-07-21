@@ -144,7 +144,9 @@ pub fn fusion_predict(pose: &FusedPose, velocity: Float64, heading: Float64, dt:
   };
 }
 
-pub fn confidence_from_hdop(hdop: Float64) -> Float64 {
+pub fn confidence_from_hdop(hdop: Float64) -> Float64
+  requires: hdop >= 0.0
+{
   if hdop <= 0.0 {
     return 0.0;
   };

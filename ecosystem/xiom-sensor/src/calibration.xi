@@ -35,7 +35,10 @@ pub fn calibration_compute_offset(readings: &Vec[Float64]) -> Float64 {
   return sum / (readings.len() as Float64);
 }
 
-pub fn calibration_apply(value: Float64, cal: &CalibrationData, axis: Int) -> Float64 {
+pub fn calibration_apply(value: Float64, cal: &CalibrationData, axis: Int) -> Float64
+  requires: axis >= 0
+  requires: axis <= 2
+{
   if axis == 0 {
     return (value - cal.offset_x) * cal.scale_x;
   }

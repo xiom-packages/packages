@@ -28,7 +28,9 @@ pub fn linear_new(in_features: Int, out_features: Int) -> Linear
   };
 }
 
-pub fn linear_forward(layer: &Linear, input: &Tensor) -> Tensor {
+pub fn linear_forward(layer: &Linear, input: &Tensor) -> Tensor
+  requires: input.shape.len() > 0
+{
   var out_shape = Vec[Int].new();
   var in_ndim = input.shape.len();
   var batch_size = 1;
