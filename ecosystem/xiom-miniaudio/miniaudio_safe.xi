@@ -14,6 +14,7 @@ pub fn create_engine(sample_rate: Int, channels: Int) -> Result[Int, Str]
   requires: sample_rate > 0
   requires: channels > 0
   requires: channels <= 8
+  ensures: result.is_ok() -> result.unwrap() != 0
 {
   let raw = unsafe { xma_engine_create(sample_rate as Int32, channels as Int32) }
   if raw == 0 {
@@ -55,6 +56,7 @@ pub fn create_waveform(type_: Int, sample_rate: Int, channels: Int,
   requires: amplitude >= 0.0
   requires: amplitude <= 1.0
   requires: frequency > 0.0
+  ensures: result.is_ok() -> result.unwrap() != 0
 {
   let raw = unsafe {
     xma_waveform_create(type_ as Int32, sample_rate as Int32,
@@ -105,6 +107,7 @@ pub fn waveform_set_type(waveform: Int, type_: Int) -> Bool
 pub fn play_waveform(engine: Int, waveform: Int) -> Result[Int, Str]
   requires: engine != 0
   requires: waveform != 0
+  ensures: result.is_ok() -> result.unwrap() != 0
 {
   let raw = unsafe { xma_play_waveform(engine, waveform) }
   if raw == 0 {
@@ -144,6 +147,8 @@ pub fn sleep_ms(ms: Int)
   unsafe { xma_sleep_ms(ms as Int32) }
 }
 
-pub fn result_string(code: Int32) -> Str {
+pub fn result_string(code: Int32) -> Str
+  ensures: result != ""
+{
   return unsafe { xma_result_string(code) }
 }

@@ -56,6 +56,8 @@ pub fn RemapPipeline.remap_vertices(dest_vertices: Int)
 pub fn RemapPipeline.remap_indices(dest_indices: Int, src_indices: Int, index_count: Int)
   requires: remap_ptr != 0
   requires: dest_indices != 0
+  requires: src_indices != 0
+  requires: index_count > 0
 {
   unsafe { meshopt_remapIndexBuffer(dest_indices, src_indices, index_count, remap_ptr); }
 }
@@ -80,6 +82,7 @@ pub fn OptimizePipeline.vertex_cache(dest_indices: Int, src_indices: Int)
   requires: dest_indices != 0
   requires: src_indices != 0
   requires: index_count > 0
+  requires: vertex_count > 0
 {
   unsafe { meshopt_optimizeVertexCache(dest_indices, src_indices, index_count, vertex_count); }
 }
@@ -88,6 +91,7 @@ pub fn OptimizePipeline.vertex_cache_fifo(dest_indices: Int, src_indices: Int, c
   requires: dest_indices != 0
   requires: src_indices != 0
   requires: index_count > 0
+  requires: vertex_count > 0
 {
   unsafe { meshopt_optimizeVertexCacheFifo(dest_indices, src_indices, index_count, vertex_count, cache_size); }
 }
@@ -97,6 +101,7 @@ pub fn OptimizePipeline.overdraw(dest_indices: Int, cache_optimized_indices: Int
   requires: cache_optimized_indices != 0
   requires: pos_ptr != 0
   requires: index_count > 0
+  requires: vertex_count > 0
 {
   unsafe { meshopt_optimizeOverdraw(dest_indices, cache_optimized_indices, index_count, pos_ptr, vertex_count, pos_stride, threshold); }
 }
@@ -123,6 +128,8 @@ pub fn OptimizePipeline.vertex_fetch_remap(dest_remap: Int, indices_ptr: Int) ->
 
 pub fn OptimizePipeline.analyze_vertex_cache(indices_ptr: Int, cache_size: Int32, warp_size: Int32, primgroup_size: Int32) -> MeshoptVertexCacheStatistics
   requires: indices_ptr != 0
+  requires: index_count > 0
+  requires: vertex_count > 0
 {
   return unsafe { meshopt_analyzeVertexCache(indices_ptr, index_count, vertex_count, cache_size, warp_size, primgroup_size) };
 }
@@ -130,6 +137,8 @@ pub fn OptimizePipeline.analyze_vertex_cache(indices_ptr: Int, cache_size: Int32
 pub fn OptimizePipeline.analyze_vertex_fetch(indices_ptr: Int, vertex_size: Int) -> MeshoptVertexFetchStatistics
   requires: indices_ptr != 0
   requires: vertex_size > 0
+  requires: index_count > 0
+  requires: vertex_count > 0
 {
   return unsafe { meshopt_analyzeVertexFetch(indices_ptr, index_count, vertex_count, vertex_size) };
 }
@@ -156,6 +165,8 @@ pub fn SimplifyPipeline.init(indices_ptr: Int, index_count: Int, pos_ptr: Int, v
 
 pub fn SimplifyPipeline.scale() -> Float32
   requires: pos_ptr != 0
+  requires: vertex_count > 0
+  requires: pos_stride > 0
 {
   return unsafe { meshopt_simplifyScale(pos_ptr, vertex_count, pos_stride) };
 }

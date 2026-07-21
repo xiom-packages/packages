@@ -726,12 +726,16 @@ extern "C" {
 // Safe wrapper functions — for direct procedural use
 // =========================================================================
 
-pub fn init(flags: Int32) -> Bool {
+pub fn init(flags: Int32) -> Bool
+  requires: flags != 0
+{
   let res: Int32 = unsafe { SDL_Init(flags) };
   return res != 0;
 }
 
-pub fn init_subsystem(flags: Int32) -> Bool {
+pub fn init_subsystem(flags: Int32) -> Bool
+  requires: flags != 0
+{
   let res: Int32 = unsafe { SDL_InitSubSystem(flags) };
   return res != 0;
 }
@@ -841,7 +845,9 @@ pub fn pump_events() {
   unsafe { SDL_PumpEvents(); }
 }
 
-pub fn delay(ms: Int32) {
+pub fn delay(ms: Int32)
+  requires: ms >= 0
+{
   unsafe { SDL_Delay(ms); }
 }
 
@@ -862,7 +868,9 @@ pub fn get_num_video_drivers() -> Int32 {
   return unsafe { SDL_GetNumVideoDrivers() };
 }
 
-pub fn get_video_driver(index: Int32) -> Int {
+pub fn get_video_driver(index: Int32) -> Int
+  requires: index >= 0
+{
   return unsafe { SDL_GetVideoDriver(index) };
 }
 
@@ -874,7 +882,9 @@ pub fn get_num_render_drivers() -> Int32 {
   return unsafe { SDL_GetNumRenderDrivers() };
 }
 
-pub fn get_render_driver(index: Int32) -> Int {
+pub fn get_render_driver(index: Int32) -> Int
+  requires: index >= 0
+{
   return unsafe { SDL_GetRenderDriver(index) };
 }
 
