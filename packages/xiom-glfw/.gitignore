@@ -1,0 +1,25 @@
+# XIOM build artifacts
+*.exe
+*.obj
+*.o
+*.ll
+*.bc
+*.wasm
+*.pdb
+*.ilk
+*.exp
+*.lib
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# XIOM cache
+.xiom_ai_cache/
+.xiom_ai.json
