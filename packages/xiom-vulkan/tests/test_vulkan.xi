@@ -11,7 +11,7 @@
 // hangs in the bridge until true offscreen support lands. Every test
 // below drives the windowed API, opening a small window briefly.
 //
-// NOTE: structured to work around two xiomc v0.47.x codegen issues:
+// NOTE: structured to work around two xiom v0.47.x codegen issues:
 //   - test.run_all() crashes: indexed fn-pointer calls (tests[i]())
 //     miscompile into an access violation, so tests are dispatched
 //     directly from main.

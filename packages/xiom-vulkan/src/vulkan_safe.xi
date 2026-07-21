@@ -1762,7 +1762,7 @@ pub fn VulkanDescriptorUpdateTemplate.destroy()
 //   5. free_struct(ci); free_struct(ai);
 //
 // Compile with:
-//   xiomc my_app.xi vulkan.xi vulkan_safe.xi vulkan_structs.xi vulkan_extern.xi
+//   xiom my_app.xi vulkan.xi vulkan_safe.xi vulkan_structs.xi vulkan_extern.xi
 
 // ---- create_from_struct variants ----
 

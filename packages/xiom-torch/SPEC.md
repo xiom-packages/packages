@@ -52,7 +52,7 @@ The FFI tier (xiom.torch.ffi) requires the LibTorch C++ shared library.
 
 === XIOM Build Integration ===
 
-  xiomc myprogram.xi -L $LIBTORCH/lib -l torch -l c10 -I $LIBTORCH/include
+  xiom myprogram.xi -L $LIBTORCH/lib -l torch -l c10 -I $LIBTORCH/include
 
 == Module Specifications ==
 

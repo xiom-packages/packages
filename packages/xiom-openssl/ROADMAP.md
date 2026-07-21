@@ -50,5 +50,5 @@
 ## Known Limitations
 
 - All handle types are typed `Int` — no compiler-level distinction between `SslContext`, `SslConnection`, `SslBio` at the type level (same as `TcpStream`, `TcpListener` in `xiom.net`)
-- Contracts are compile-time: `requires(host.len() > 0)` and `requires(port > 0)` are verified by `xiomc` but do not generate runtime checks (by design — v0.49 contract semantics)
+- Contracts are compile-time: `requires(host.len() > 0)` and `requires(port > 0)` are verified by `xiom` but do not generate runtime checks (by design — v0.49 contract semantics)
 - Tests are structural only; runtime tests require a linked OpenSSL shared library

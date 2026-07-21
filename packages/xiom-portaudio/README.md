@@ -11,7 +11,7 @@ use xiom.portaudio;
 ## Building
 
 ```powershell
-xiomc --release portaudio.xi -o portaudio.exe
+xiom --release portaudio.xi -o portaudio.exe
 ```
 
 ## Dependencies

@@ -27,8 +27,8 @@ documentation** that will produce linker errors when executed.
 | ozz_c_bridge | N/A (to be written) | C wrapper layer (wraps C++ classes as opaque handles) |
 | clang/LLVM | >= 14 | C/C++ compilation (bridge + Ozz) |
 | CMake | >= 3.20 | Ozz build system |
-| Rust/Cargo | Latest stable | Compiler build (xiomc) |
-| xiomc | >= v0.45.3 | XIOM compiler |
+| Rust/Cargo | Latest stable | Compiler build (xiom) |
+| xiom | >= v0.45.3 | XIOM compiler |
 
 ## Ozz Source Layout
 
@@ -181,7 +181,7 @@ tagging. Each type has a versioned tag (e.g., "ozz-skeleton", "ozz-animation").
 
 ## Compiler Gaps (2026-07-15)
 
-All historically documented gaps (GAP-1 through GAP-14) are **CLOSED** as of xiomc v0.33.0+.
+All historically documented gaps (GAP-1 through GAP-14) are **CLOSED** as of xiom v0.33.0+.
 The following gaps affect this package specifically:
 
 ### 1. C Bridge Does Not Exist (BLOCKER)
@@ -196,7 +196,7 @@ symbol`) because the Ozz C bridge has not been written.
 2. Add `#include <ozz/animation/runtime/skeleton.h>` etc. to the bridge
 3. Compile the bridge with clang, linking ozz_base + ozz_animation + ozz_animation_offline
    + ozz_geometry static libraries
-4. Supply the resulting `.lib` (Windows) / `.a` (Unix) to xiomc's linker step
+4. Supply the resulting `.lib` (Windows) / `.a` (Unix) to xiom's linker step
 
 ### 2. Cross-module extern resolution (T001) — PERSISTENT
 
@@ -235,15 +235,15 @@ via an external allocator. The safe wrapper `AnimationPlayer` manages these life
    clang -c ozz_c_bridge.cpp -I include/ -o ozz_c_bridge.obj
    → ozz_c_bridge.obj
 
-3. XIOM Compilation + Link (xiomc + clang)
-   xiomc ozz.xi src/ozz_safe.xi examples/demo_ozz.xi
+3. XIOM Compilation + Link (xiom + clang)
+   xiom ozz.xi src/ozz_safe.xi examples/demo_ozz.xi
         ozz_c_bridge.obj ozz_base.lib ozz_animation.lib ozz_animation_offline.lib ozz_geometry.lib
    → final executable
 ```
 
 ## Compile Status (2026-07-15)
 
-All XIOM files compile with `xiomc --diagnostics=json`: syntax checks pass. Linker
+All XIOM files compile with `xiom --diagnostics=json`: syntax checks pass. Linker
 errors expected because the C bridge `.obj`/`.lib` does not exist yet.
 
 | File | Status | Lines | Contents |

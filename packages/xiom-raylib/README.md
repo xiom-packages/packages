@@ -11,7 +11,7 @@ use xiom.raylib;
 ## Building
 
 ```powershell
-xiomc --release raylib.xi -o raylib.exe
+xiom --release raylib.xi -o raylib.exe
 ```
 
 ## Dependencies

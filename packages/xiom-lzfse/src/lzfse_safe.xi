@@ -7,7 +7,7 @@
 //
 // Compiler gap T001 (cross-module extern resolution): extern "C" block
 // duplicated here because `use xiom.lzfse` does not resolve FFI symbols
-// in xiomc v0.46.0. Individual module compilation is unaffected.
+// in xiom v0.46.0. Individual module compilation is unaffected.
 
 module xiom.lzfse.safe
 

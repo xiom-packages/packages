@@ -11,7 +11,7 @@ use xiom.libuv;
 ## Building
 
 ```powershell
-xiomc --release libuv.xi -o libuv.exe
+xiom --release libuv.xi -o libuv.exe
 ```
 
 ## Dependencies

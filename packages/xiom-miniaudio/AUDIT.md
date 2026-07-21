@@ -95,7 +95,7 @@
 
 | Gap | Status |
 |-----|--------|
-| `extern "C" { }` blocks (`GAP-2`) | CLOSED (xiomc v0.33.0) |
+| `extern "C" { }` blocks (`GAP-2`) | CLOSED (xiom v0.33.0) |
 | `pub const` declarations (`GAP-3`) | CLOSED |
 | `requires:` / `ensures:` contracts (`GAP-4`) | CLOSED |
 | Cross-module `use xiom.*` resolution | RESOLVED |
@@ -113,13 +113,13 @@ binary. A minimal build invocation (after placing `miniaudio.h` in the bridge di
 ```powershell
 # Windows (MSVC)
 cl /c /O2 /I. bridge\xiom_ma_bridge.c /Fo:xiom_ma_bridge.obj
-xiomc --c-source xiom_ma_bridge.obj --link miniaudio demo_miniaudio.xi
+xiom --c-source xiom_ma_bridge.obj --link miniaudio demo_miniaudio.xi
 ```
 
 ```bash
 # Linux/macOS
 cc -c -O2 -Ibridge bridge/xiom_ma_bridge.c -o xiom_ma_bridge.o
-xiomc --c-source xiom_ma_bridge.o --link miniaudio demo_miniaudio.xi
+xiom --c-source xiom_ma_bridge.o --link miniaudio demo_miniaudio.xi
 ```
 
 > **Note:** `miniaudio.h` is a single-header library. The bridge `#include`s it

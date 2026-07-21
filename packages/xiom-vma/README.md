@@ -11,7 +11,7 @@ use xiom.vma;
 ## Building
 
 ```powershell
-xiomc --release vma.xi -o vma.exe
+xiom --release vma.xi -o vma.exe
 ```
 
 ## Dependencies

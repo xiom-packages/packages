@@ -1,7 +1,7 @@
 # AUDIT: xiom-sql
 
 ## Status
-Compiles cleanly on xiomc v0.45.3. MVP stub implementation.
+Compiles cleanly on xiom v0.45.3. MVP stub implementation.
 
 ## System Library Dependencies
 None. This is a pure-XIOM MVP with stub `execute` and `close` functions.

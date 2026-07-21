@@ -77,8 +77,8 @@ fn main() -> Int {
 
   io.println("---");
   io.println("To compile and run this demo, link against meshoptimizer:");
-  io.println("  On Windows: xiomc --link meshoptimizer -o demo.exe demo_meshopt.xi");
-  io.println("  On Linux:   xiomc --link meshoptimizer -o demo demo_meshopt.xi");
+  io.println("  On Windows: xiom --link meshoptimizer -o demo.exe demo_meshopt.xi");
+  io.println("  On Linux:   xiom --link meshoptimizer -o demo demo_meshopt.xi");
   io.println("");
 
   return 0;

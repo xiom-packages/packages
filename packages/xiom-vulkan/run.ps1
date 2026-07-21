@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
   Build and run any xiom-vulkan demo with a single command.
-  Uses the INSTALLED xiomc (must be on PATH).
+  Uses the INSTALLED xiom (must be on PATH).
 .DESCRIPTION
   One-step: compiles GLSL shaders, generates SPIR-V header,
   compiles C bridge, builds XIOM source, links Vulkan/GLFW, and
@@ -38,7 +38,7 @@ $GenHdr  = Join-Path $Bridge 'xvk_shaders_generated.h'
 # ---- Resolve toolchain ----
 $Glslc  = Join-Path $env:VULKAN_SDK 'Bin\glslc.exe'
 $Clang  = if (Test-Path 'C:\Program Files\LLVM\bin\clang.exe') { 'C:\Program Files\LLVM\bin\clang.exe' } else { 'clang' }
-$Xiomc  = (Get-Command 'xiomc' -ErrorAction Stop).Source
+$xiom  = (Get-Command 'xiom' -ErrorAction Stop).Source
 
 # ---- Verify env ----
 if (-not $env:VULKAN_SDK)   { throw 'VULKAN_SDK not set' }
@@ -170,10 +170,10 @@ $xiomArgs = @(
 )
 if ($Demo -eq 'test') { $xiomArgs += '--run' }
 
-$cmdline = "$Xiomc $($xiomArgs -join ' ')"
-Write-Host "  $Xiomc -o $outExe $src vulkan.xi src/wrapper.xi [flags]"
-$proc = Start-Process -FilePath $Xiomc -ArgumentList $xiomArgs -NoNewWindow -Wait -PassThru
-if ($proc.ExitCode -ne 0) { throw "xiomc failed (exit $($proc.ExitCode))" }
+$cmdline = "$xiom $($xiomArgs -join ' ')"
+Write-Host "  $xiom -o $outExe $src vulkan.xi src/wrapper.xi [flags]"
+$proc = Start-Process -FilePath $xiom -ArgumentList $xiomArgs -NoNewWindow -Wait -PassThru
+if ($proc.ExitCode -ne 0) { throw "xiom failed (exit $($proc.ExitCode))" }
 Write-Host "[build] $outExe" -ForegroundColor Green
 
 if (-not $NoRun -and $Demo -ne 'test') {

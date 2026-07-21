@@ -6,7 +6,7 @@
 // contract enforcement, and stub return behaviour.
 // All FFI calls return Err until the C bridge is linked.
 //
-// Compile: xiomc opengl.xi tests/test_conformance.xi
+// Compile: xiom opengl.xi tests/test_conformance.xi
 
 module opengl_conformance_tests
 

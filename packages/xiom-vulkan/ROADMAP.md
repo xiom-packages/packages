@@ -4,7 +4,7 @@
 **C bridge**: 29 files, 368 functions, 0 errors, 0 warnings (clang -O2 -Wall -Wextra)
 **XIOM layer**: 21 files — raw bindings (755 VK functions), safe wrappers (24+ types, contracts), legacy xvk_app API (100+ functions)
 **12 demos**: All compile and run, including 3D orbital cubes and game-style GUI showcase
-**Compiler**: xiomc v0.49.2 (798/798 tests)
+**Compiler**: xiom v0.49.2 (798/798 tests)
 
 ---
 

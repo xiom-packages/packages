@@ -51,5 +51,5 @@ xiom ffigen packages/xiom-grpc/grpc.xiom-bind > packages/xiom-grpc/grpc_extern.x
 
 All ecosystem libraries compile with:
 ```powershell
-xiomc -o output.exe packages/xiom-http/http.xi
+xiom -o output.exe packages/xiom-http/http.xi
 ```

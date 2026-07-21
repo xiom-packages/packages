@@ -3,7 +3,7 @@
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Self-contained demo: all extern declarations and wrappers are inlined
-// because cross-module `use` does not resolve FFI symbols in xiomc v0.46.0.
+// because cross-module `use` does not resolve FFI symbols in xiom v0.46.0.
 //
 // Demonstrates LZFSE + LZVN compress/decompress lifecycle using both the
 // procedural API pattern and the struct-based safe pattern.

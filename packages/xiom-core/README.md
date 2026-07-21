@@ -181,7 +181,7 @@ fn main() -> Int {
 ## Build & Run
 
 ```bash
-xiomc --run myprogram.xi
+xiom --run myprogram.xi
 ```
 
 ## Dependencies

@@ -6,7 +6,7 @@
 // Phase 3: Robotics middleware. Opaque Int handles for rcl/rclc primitives.
 //
 // Dependencies: ROS 2 (system-installed via apt/choco)
-// Compile (when bridge ready): xiomc --link rcl ros2.xi
+// Compile (when bridge ready): xiom --link rcl ros2.xi
 
 module xiom.ros2
 

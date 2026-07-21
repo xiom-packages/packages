@@ -11,7 +11,7 @@ use xiom.libpq;
 ## Building
 
 ```powershell
-xiomc --release libpq.xi -o libpq.exe
+xiom --release libpq.xi -o libpq.exe
 ```
 
 ## Dependencies

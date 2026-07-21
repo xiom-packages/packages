@@ -8,7 +8,7 @@
 //
 // Real C bridge will be linked after xiom.ffi matures.
 // Compile (when bridge ready):
-//   xiomc --link d3d12 dxgi dxguid directx12.xi directx12_bridge.c
+//   xiom --link d3d12 dxgi dxguid directx12.xi directx12_bridge.c
 
 module xiom.directx12
 

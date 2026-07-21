@@ -1,7 +1,7 @@
 # AUDIT.md — xiom-protobuf
 
 ## Compiler Compatibility
-- **Compiler version:** xiomc v0.11.0 (XIOM v0.45.3)
+- **Compiler version:** xiom v0.11.0 (XIOM v0.45.3)
 - **Status:** All `.xi` files compile successfully to LLVM IR.
 
 ## Files

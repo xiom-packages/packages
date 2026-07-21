@@ -6,7 +6,7 @@
 |-----------|---------|---------|
 | LZFSE | Latest | Compression library (C source) |
 | clang/LLVM | >= 14 | C bridge compilation |
-| xiomc | >= v0.45.3 | XIOM compiler |
+| xiom | >= v0.45.3 | XIOM compiler |
 
 LZFSE has no external C dependencies beyond the standard library (stdlib.h, string.h).
 
@@ -102,7 +102,7 @@ Compile-time demonstration showing both API patterns:
    clang -c lzfse_encode.c lzfse_decode.c lzfse_fse.c → lzfse_*.obj
    → liblzfse.lib (static library)
 
-2. XIOM Compilation + Link (xiomc + clang)
+2. XIOM Compilation + Link (xiom + clang)
    lzfse.xi + src/lzfse_safe.xi + examples/demo_lzfse.xi + liblzfse.lib
    → lzfse_demo.exe
 ```

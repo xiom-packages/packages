@@ -6,7 +6,7 @@
 // contract predicates across xiom.dxc + xiom.dxc.safe API surface.
 // DLL-dependent create/destroy paths are gated behind runtime checks.
 //
-// Compile: xiomc dxc.xi src/dxc_safe.xi tests/test_conformance.xi
+// Compile: xiom dxc.xi src/dxc_safe.xi tests/test_conformance.xi
 
 module xiom.dxc.test
 

@@ -11,7 +11,7 @@ use xiom.directx12;
 ## Building
 
 ```powershell
-xiomc --release directx12.xi -o directx12.exe
+xiom --release directx12.xi -o directx12.exe
 ```
 
 ## Dependencies

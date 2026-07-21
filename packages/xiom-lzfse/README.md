@@ -11,7 +11,7 @@ use xiom.lzfse;
 ## Building
 
 ```powershell
-xiomc --release lzfse.xi -o lzfse.exe
+xiom --release lzfse.xi -o lzfse.exe
 ```
 
 ## Dependencies

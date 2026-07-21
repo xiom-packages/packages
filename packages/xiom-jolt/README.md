@@ -11,7 +11,7 @@ use xiom.jolt;
 ## Building
 
 ```powershell
-xiomc --release jolt.xi -o jolt.exe
+xiom --release jolt.xi -o jolt.exe
 ```
 
 ## Dependencies

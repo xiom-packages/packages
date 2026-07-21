@@ -11,7 +11,7 @@ use xiom.ffmpeg;
 ## Building
 
 ```powershell
-xiomc --release ffmpeg.xi -o ffmpeg.exe
+xiom --release ffmpeg.xi -o ffmpeg.exe
 ```
 
 ## Dependencies

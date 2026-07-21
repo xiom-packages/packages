@@ -1,6 +1,6 @@
 # xiom-vulkan — Compiler Gap Audit & Production Readiness (v0.48.9)
 
-**Compiler:** xiomc v0.48.9 — 783/783 tests, zero warnings
+**Compiler:** xiom v0.48.9 — 783/783 tests, zero warnings
 **Package:** packages/xiom-vulkan
 **C bridge:** 0 errors, 0 warnings (clang -O2 -Wall -Wextra)
 **Last sprint:** 8 (2026-07-20)
@@ -39,8 +39,8 @@
 .\build.ps1 -Target demo2d -Run
 .\build.ps1 -Target test -Run
 
-# Direct xiomc (minimal):
-xiomc -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
+# Direct xiom (minimal):
+xiom -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
   --c-source bridge/xvk_bridge.obj `
   --link vulkan-1 --link glfw3 --link gdi32 --link user32 --link kernel32 --link shell32 --link ole32 `
   --link-path $env:VULKAN_SDK\Lib --link-path $env:GLFW_DIR\lib-vc2022
@@ -48,7 +48,7 @@ xiomc -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
 
 ## Compile Status (v0.47.6)
 
-| Target | xiomc compile | xiomc link | Notes |
+| Target | xiom compile | xiom link | Notes |
 |--------|--------------|------------|-------|
 | 11 demos | ALL PASS | ALL PASS | Zero type errors, zero link errors |
 | test_vulkan | PASS | PASS | Headless offscreen CI |
@@ -62,7 +62,7 @@ xiomc -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
 | `XVK_HANDLE_IMPL` hex-constant macro | BROKEN (clang 19) | **FIXED** — renamed macro param from `magic` to `magic_val` |
 | Windows platform libs missing | Undefined symbols | **FIXED** — `--link gdi32 user32 kernel32 shell32 ole32` added |
 | `--link-path` quoting in build.ps1 | BROKEN | **FIXED** |
-| `cargo run` in build.ps1 | Doesn't work standalone | **FIXED** — uses `xiomc` from PATH |
+| `cargo run` in build.ps1 | Doesn't work standalone | **FIXED** — uses `xiom` from PATH |
 | Missing demo targets in build.ps1 | 6 targets | **12 targets** (all 11 demos + test) |
 
 ## Compiler Gaps Resolved (v0.46 → v0.47.6)

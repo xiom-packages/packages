@@ -8,7 +8,7 @@
 - [x] tests/test_conformance.xi — 16 conformance tests (compile-time and runtime)
 
 ## Next Steps
-- [ ] Build C bridge library (`moveit_bridge`) for xiomc FFI ABI compatibility
+- [ ] Build C bridge library (`moveit_bridge`) for xiom FFI ABI compatibility
 - [ ] Add URDF/SRDF file loading (`moveit_robot_model_load_from_file`)
 - [ ] Add joint limits query (`moveit_robot_model_get_joint_limits`)
 - [ ] Add link/collision geometry enumeration

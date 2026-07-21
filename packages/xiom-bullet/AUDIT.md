@@ -29,7 +29,7 @@ No source changes needed. The test file compiles correctly when passed alongside
 
 ### Compilation with Libraries
 ```powershell
-xiomc --link BulletDynamics --link BulletCollision --link LinearMath --link-path C:/path/to/bullet/lib bullet.xi program.xi
+xiom --link BulletDynamics --link BulletCollision --link LinearMath --link-path C:/path/to/bullet/lib bullet.xi program.xi
 ```
 
 ## FFI Bindings Mapped (bullet.xiom-bind)

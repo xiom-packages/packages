@@ -11,7 +11,7 @@ use xiom.ros2;
 ## Building
 
 ```powershell
-xiomc --release ros2.xi -o ros2.exe
+xiom --release ros2.xi -o ros2.exe
 ```
 
 ## Dependencies

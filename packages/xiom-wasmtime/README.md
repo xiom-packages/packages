@@ -11,7 +11,7 @@ use xiom.wasmtime;
 ## Building
 
 ```powershell
-xiomc --release wasmtime.xi -o wasmtime.exe
+xiom --release wasmtime.xi -o wasmtime.exe
 ```
 
 ## Dependencies

@@ -128,7 +128,7 @@ Every function with preconditions is guarded:
 ## Build & Run
 
 ```bash
-xiomc --run myprogram.xi
+xiom --run myprogram.xi
 ```
 
 ## Links

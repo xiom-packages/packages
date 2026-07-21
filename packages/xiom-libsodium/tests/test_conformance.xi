@@ -6,7 +6,7 @@
 // the full public API surface: 6 constants, 15 public functions,
 // 17 requires contracts across 12 parameterized functions.
 //
-// Compile: xiomc --link sodium libsodium.xi tests/test_conformance.xi
+// Compile: xiom --link sodium libsodium.xi tests/test_conformance.xi
 
 module libsodium_conformance
 use xiom.io;

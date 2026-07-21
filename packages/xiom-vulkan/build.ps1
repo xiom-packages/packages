@@ -7,7 +7,7 @@
     1. Compile GLSL shaders to SPIR-V via glslc
     2. Generate bridge/xvk_shaders_generated.h with uint32 SPIR-V arrays
     3. Compile the C bridge to an object file
-     4. Build the XIOM target with xiomc (demo2d, demo3d, test, particles, shapes, or cubes)
+     4. Build the XIOM target with xiom (demo2d, demo3d, test, particles, shapes, or cubes)
 
 .PARAMETER Target
   Which XIOM entry to build: "demo2d" (default), "demo3d", "test", "particles", "shapes", or "cubes".
@@ -395,23 +395,23 @@ if ($needRebuild) {
 Write-Host "  -> $BridgeObj"
 
 # ------------------------------------------------------------------
-# STEP 4  —  Build XIOM target with xiomc
+# STEP 4  —  Build XIOM target with xiom
 # ------------------------------------------------------------------
 Write-Host "`n=== STEP 4: Build XIOM target ($Target) ==="
 
-# Source files to pass to xiomc
+# Source files to pass to xiom
 $XiFiles = @(
     $EntryFile
     (Join-Path $RootDir 'vulkan.xi')
     (Join-Path $RootDir 'src/wrapper.xi')
 )
 
-# Use xiomc directly since it's installed on PATH.
-# Fall back to cargo if xiomc is not available.
-$XiomcExe = Get-Command 'xiomc' -ErrorAction SilentlyContinue
+# Use xiom directly since it's installed on PATH.
+# Fall back to cargo if xiom is not available.
+$XiomcExe = Get-Command 'xiom' -ErrorAction SilentlyContinue
 if (-not $XiomcExe) {
     $XiomcExe = 'cargo'
-    $XiomcArgs = @('run', '-p', 'xiomc', '--')
+    $XiomcArgs = @('run', '-p', 'xiom', '--')
 } else {
     $XiomcExe = $XiomcExe.Source
     $XiomcArgs = @()
@@ -423,7 +423,7 @@ $XiomcArgs += @(
 
 $XiomcArgs += $XiFiles
 $XiomcArgs += @('--c-source', $BridgeObj)
-# NOTE: xiom_runtime.c is NOT passed — xiomc v0.47.7 auto-injects
+# NOTE: xiom_runtime.c is NOT passed — xiom v0.47.7 auto-injects
 # runtime symbols; passing it again causes duplicate symbol errors.
 $XiomcArgs += @('--link', 'vulkan-1')
 $XiomcArgs += @('--link', 'glfw3')
@@ -444,7 +444,7 @@ $cmdline = "$XiomcExe $($XiomcArgs -join ' ')"
 Write-Host "  $cmdline"
 $proc = Start-Process -FilePath $XiomcExe -ArgumentList $XiomcArgs -NoNewWindow -Wait -PassThru
 if ($proc.ExitCode -ne 0) {
-    throw "xiomc build failed (exit code $($proc.ExitCode))"
+    throw "xiom build failed (exit code $($proc.ExitCode))"
 }
 
 Write-Host "[build] SUCCESS: $OutExe"

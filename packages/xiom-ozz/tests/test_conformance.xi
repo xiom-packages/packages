@@ -5,7 +5,7 @@
 // Comprehensive conformance suite for xiom-ozz bindings (xiom.ozz + xiom.ozz.safe).
 // Covers all 76 public functions across both modules.
 //
-// NOTE: Source modules use legacy syntax (derive[Clone]) not parseable by xiomc v0.49.7.
+// NOTE: Source modules use legacy syntax (derive[Clone]) not parseable by xiom v0.49.7.
 // This test file uses current syntax and defines local stub types matching the public
 // API surface. Tests verify contract enforcement, value-type semantics, error handling,
 // and lifecycle correctness.

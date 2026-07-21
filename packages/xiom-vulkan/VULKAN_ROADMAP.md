@@ -1,6 +1,6 @@
 # XIOM Vulkan — Production Roadmap (Updated 2026-07-19)
 
-**Compiler:** xiomc v0.48.0 | **Package:** v0.3.0 → v1.0.0 | **Target:** AAA-ready VK bindings
+**Compiler:** xiom v0.48.0 | **Package:** v0.3.0 → v1.0.0 | **Target:** AAA-ready VK bindings
 
 ## Current State (Honest Audit)
 
@@ -61,7 +61,7 @@ All 12 safety bugs (SF-01 through SF-12) fixed. All compile v0.48.0, 11/11 demos
 |----|-----|------------|
 | CG-01 | Float64 arithmetic + Float32 cast = LLVM constant error. Also: Float32/Float64 Vec reads garbage. | Use scalar FFI only; move Float64 math to C bridge (e.g. xvk_button_hit_state). Avoid Float64 in XIOM entirely. |
 | CG-02 | Module-scope `var x: Float32 = 0.5` (nonzero init) causes LLVM constant error | Initialize to 0.0 at module scope, reassign in main() function. |
-| CG-03 | Cross-module `use` doesn't resolve from single file; LSP shows false errors | Multi-file merge on xiomc command line works. Root cause: G-31 catalog directory scope. Workaround: merge all .xi files in one command. |
+| CG-03 | Cross-module `use` doesn't resolve from single file; LSP shows false errors | Multi-file merge on xiom command line works. Root cause: G-31 catalog directory scope. Workaround: merge all .xi files in one command. |
 
 **All historical GAP-1 through GAP-14: CLOSED (v0.33.0+).**
 **Vulkan FFI G1-G7 regression tests: ALL PASS.**

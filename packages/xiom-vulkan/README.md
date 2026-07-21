@@ -1,7 +1,7 @@
 # xiom-vulkan — Production Vulkan SDK for XIOM
 
 **Status**: Production-ready. 82 safe wrappers, 100% FFI coverage, zero workarounds.
-**Compiler**: xiomc v0.49.5+ (871/871 tests, zero warnings)
+**Compiler**: xiom v0.49.5+ (871/871 tests, zero warnings)
 **Dependencies**: Vulkan SDK (system-installed), GLFW 3.4 (system-installed)
 
 ## Quick Start
@@ -22,7 +22,7 @@ clang -c xiom_vk_bridge.c -o xvk_bridge.obj -I"%VULKAN_SDK%\Include" -I"%GLFW_DI
 
 # 4. Build any example
 cd ..\examples
-xiomc demo_01_triangle.xi ..\vulkan.xi ..\src\wrapper.xi --release `
+xiom demo_01_triangle.xi ..\vulkan.xi ..\src\wrapper.xi --release `
   --c-source ..\bridge\xvk_bridge.obj `
   --link vulkan-1 --link glfw3 --link gdi32 --link user32 --link kernel32 --link shell32 --link ole32 --link winmm `
   --link-path "%VULKAN_SDK%\Lib" --link-path "%GLFW_DIR%\lib-vc2022" `
@@ -51,7 +51,7 @@ $VkBridge = "..\bridge\xvk_bridge.obj"
 $VkLib = "$env:VULKAN_SDK\Lib"
 $GfLib = "$env:GLFW_DIR\lib-vc2022"
 
-xiomc demo_XX_name.xi ..\vulkan.xi ..\src\wrapper.xi --release `
+xiom demo_XX_name.xi ..\vulkan.xi ..\src\wrapper.xi --release `
   --c-source $VkBridge `
   --link vulkan-1 --link glfw3 --link gdi32 --link user32 --link kernel32 --link shell32 --link ole32 --link winmm `
   --link-path $VkLib --link-path $GfLib `

@@ -9,7 +9,7 @@
 // All FFI calls are stubs returning Err until the C bridge is linked.
 // Tests verify stub behaviour (no crash) and contract presence.
 //
-// Compile: xiomc ros2.xi tests/test_conformance.xi
+// Compile: xiom ros2.xi tests/test_conformance.xi
 
 module ros2_conformance
 use xiom.io;

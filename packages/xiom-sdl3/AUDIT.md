@@ -8,8 +8,8 @@
 | Vulkan SDK | >= 1.4.350.0 | Ships SDL3 headers at Include/SDL3/ |
 | SDL3.dll / libSDL3.so | >= 3.4.8 | Runtime library (dynamic link) |
 | clang/LLVM | >= 14 | C bridge compilation |
-| Rust/Cargo | Latest stable | Compiler build (xiomc) |
-| xiomc | >= v0.46.0 | XIOM compiler (hex literals, FNPTR, string concat) |
+| Rust/Cargo | Latest stable | Compiler build (xiom) |
+| xiom | >= v0.46.0 | XIOM compiler (hex literals, FNPTR, string concat) |
 
 ## SDL3 Source
 
@@ -152,7 +152,7 @@ packages/xiom-sdl3/
 
 Utility: `SdlError` type with `{ message: Str }`.
 
-## Compiler Gap Status (xiomc v0.46.0)
+## Compiler Gap Status (xiom v0.46.0)
 
 ### Resolved in v0.46.0
 
@@ -206,14 +206,14 @@ Utility: `SdlError` type with `{ message: Str }`.
      void sdl3_free_event(void* e);      // SDL_free(e)
      SDL_FRect* sdl3_alloc_frect(float x, y, w, h); // heap-allocated FRect
 
-3. XIOM Compilation + Link (xiomc + clang)
+3. XIOM Compilation + Link (xiom + clang)
    sdl3.xi + src/sdl3_safe.xi + examples/demo_sdl3.xi + sdl3_bridge.obj + SDL3.lib
    → final executable
 ```
 
 ## Compile Status (2026-07-17)
 
-All files compile with `xiomc v0.46.0 "Production"`:
+All files compile with `xiom v0.46.0 "Production"`:
 
 | File | Status | Lines | Contents |
 |------|--------|-------|----------|

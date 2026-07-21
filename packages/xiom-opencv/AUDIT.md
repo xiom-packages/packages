@@ -1,10 +1,10 @@
 # xiom-opencv — System Dependency Audit
 
-> **Version:** 0.1.0 | **Compiler:** xiomc v0.45.3 | **Status:** All modules compile clean.
+> **Version:** 0.1.0 | **Compiler:** xiom v0.45.3 | **Status:** All modules compile clean.
 
 ## Compiler Compatibility
 
-All `.xi` source files pass `xiomc --check` with `{"status":"ok"}`.
+All `.xi` source files pass `xiom --check` with `{"status":"ok"}`.
 
 ### Fixes Applied (v0.45.3)
 
@@ -30,7 +30,7 @@ vcpkg install opencv:x64-windows
 # https://opencv.org/releases/
 
 Build with:
-  xiomc myprogram.xi $(pkg-config --cflags --libs opencv4)
+  xiom myprogram.xi $(pkg-config --cflags --libs opencv4)
 ```
 
 #### Ubuntu / Debian
@@ -42,7 +42,7 @@ sudo apt install libopencv-dev
 pkg-config --modversion opencv4
 
 # Build:
-xiomc myprogram.xi $(pkg-config --cflags --libs opencv4)
+xiom myprogram.xi $(pkg-config --cflags --libs opencv4)
 ```
 
 #### Fedora / RHEL
@@ -50,7 +50,7 @@ xiomc myprogram.xi $(pkg-config --cflags --libs opencv4)
 sudo dnf install opencv-devel
 
 # Build:
-xiomc myprogram.xi $(pkg-config --cflags --libs opencv4)
+xiom myprogram.xi $(pkg-config --cflags --libs opencv4)
 ```
 
 #### macOS
@@ -58,7 +58,7 @@ xiomc myprogram.xi $(pkg-config --cflags --libs opencv4)
 brew install opencv
 
 # Build:
-xiomc myprogram.xi $(pkg-config --cflags --libs opencv4)
+xiom myprogram.xi $(pkg-config --cflags --libs opencv4)
 ```
 
 ### Library Dependencies

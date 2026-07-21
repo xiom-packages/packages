@@ -1,6 +1,6 @@
 # xiom-vulkan — Production Safety Audit & AAA Readiness Report
 
-**Date:** 2026-07-19 | **Compiler:** xiomc v0.48.0 | **Package:** v0.3.0 → v1.0.0
+**Date:** 2026-07-19 | **Compiler:** xiom v0.48.0 | **Package:** v0.3.0 → v1.0.0
 
 ## Executive Summary
 
@@ -73,7 +73,7 @@
 
 ---
 
-## 3. Compiler Gaps (xiomc v0.48.0)
+## 3. Compiler Gaps (xiom v0.48.0)
 
 | ID | Gap | Status |
 |----|-----|--------|

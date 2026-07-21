@@ -11,7 +11,7 @@ use xiom.libtorch;
 ## Building
 
 ```powershell
-xiomc --release libtorch.xi -o libtorch.exe
+xiom --release libtorch.xi -o libtorch.exe
 ```
 
 ## Dependencies

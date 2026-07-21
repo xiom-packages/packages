@@ -11,7 +11,7 @@ use xiom.numpy;
 ## Building
 
 ```powershell
-xiomc --release numpy.xi -o numpy.exe
+xiom --release numpy.xi -o numpy.exe
 ```
 
 ## Dependencies

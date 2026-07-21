@@ -6,7 +6,7 @@
 // Phase 1: Engine, Store, Module, Instance with design-by-contract wrappers.
 //
 // Dependencies: Wasmtime C API (system-installed via winget/apt/brew)
-// Compile (when bridge ready): xiomc --link wasmtime wasmtime.xi
+// Compile (when bridge ready): xiom --link wasmtime wasmtime.xi
 
 module xiom.wasmtime
 

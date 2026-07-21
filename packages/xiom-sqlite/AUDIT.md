@@ -1,7 +1,7 @@
 # AUDIT: xiom-sqlite
 
 ## Status
-All 6 source files compile on xiomc v0.45.3 with stubbed FFI functions. The production FFI implementation (extern "C" blocks connecting to libsqlite3 via ffi_bridge.c) has been replaced with compile-safe stubs.
+All 6 source files compile on xiom v0.45.3 with stubbed FFI functions. The production FFI implementation (extern "C" blocks connecting to libsqlite3 via ffi_bridge.c) has been replaced with compile-safe stubs.
 
 ## System Library Dependencies
 - **libsqlite3** (SQLite >= 3.31.0 recommended)

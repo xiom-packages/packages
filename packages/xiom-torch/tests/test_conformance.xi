@@ -6,7 +6,7 @@
 // the full public API surface: 3 modules, 9 types, 14 public functions,
 // 11 requires contracts.
 //
-// Compile: xiomc --run tests/test_conformance.xi
+// Compile: xiom --run tests/test_conformance.xi
 
 module xiom_torch_conformance
 use xiom.io;

@@ -1,6 +1,6 @@
 # xiom.protobuf — Production Roadmap
 
-**Version**: v0.2.0 | **Compiler**: xiomc v0.49.7+ | **Last updated**: 2026-07-21
+**Version**: v0.2.0 | **Compiler**: xiom v0.49.7+ | **Last updated**: 2026-07-21
 
 ## Current Rating: 8/10 ⚙️ PRODUCTION-READY (FFI stubs + pure-XIOM wire primitives)
 

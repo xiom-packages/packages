@@ -11,7 +11,7 @@ use xiom.imgui;
 ## Building
 
 ```powershell
-xiomc --release imgui.xi -o imgui.exe
+xiom --release imgui.xi -o imgui.exe
 ```
 
 ## Dependencies

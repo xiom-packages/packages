@@ -9,7 +9,7 @@
 // All FFI calls are stubs returning Err until the C bridge is linked.
 // Tests verify stub behavior (no crash) and contract presence.
 //
-// Compile: xiomc libuv.xi tests/test_conformance.xi
+// Compile: xiom libuv.xi tests/test_conformance.xi
 
 module libuv_conformance
 use xiom.io;

@@ -117,7 +117,7 @@ All FFI boundaries are validated before execution.
 ## Build & Run
 
 ```bash
-xiomc --run myprogram.xi
+xiom --run myprogram.xi
 ```
 
 ## Links

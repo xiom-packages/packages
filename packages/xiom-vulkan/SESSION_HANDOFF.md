@@ -1,6 +1,6 @@
 # XIOM Vulkan — Session Handoff File
 
-**Date:** 2026-07-19 | **Bridge:** v0.3.0 | **Compiler:** xiomc v0.48.0
+**Date:** 2026-07-19 | **Bridge:** v0.3.0 | **Compiler:** xiom v0.48.0
 **GPU:** NVIDIA GeForce RTX 3070 Ti | **VK SDK:** 1.4.350.0
 
 ---
@@ -11,14 +11,14 @@
 cd E:\Projects\AXIOM\ecosystem\xiom-vulkan
 
 # Verify everything compiles:
-xiomc --diagnostics=json vulkan_extern.xi
-xiomc --diagnostics=json src/vulkan_safe.xi
-xiomc --diagnostics=json src/vulkan_structs.xi
-xiomc --diagnostics=json vulkan.xi
+xiom --diagnostics=json vulkan_extern.xi
+xiom --diagnostics=json src/vulkan_safe.xi
+xiom --diagnostics=json src/vulkan_structs.xi
+xiom --diagnostics=json vulkan.xi
 
 # Build all 11 demos:
 $BrObj="E:\Projects\AXIOM\ecosystem\xiom-vulkan\bridge\xvk_bridge.obj"
-xiomc -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi --c-source $BrObj --link vulkan-1 --link glfw3 --link gdi32 --link user32 --link kernel32 --link shell32 --link ole32 --link-path $env:VULKAN_SDK\Lib --link-path $env:GLFW_DIR\lib-vc2022
+xiom -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi --c-source $BrObj --link vulkan-1 --link glfw3 --link gdi32 --link user32 --link kernel32 --link shell32 --link ole32 --link-path $env:VULKAN_SDK\Lib --link-path $env:GLFW_DIR\lib-vc2022
 
 # Or use build.ps1:
 .\build.ps1 -Target demo2d -Run
@@ -157,7 +157,7 @@ packages/xiom-vulkan/
 cd E:\Projects\AXIOM\ecosystem\xiom-vulkan
 
 # Type-check any file:
-xiomc --diagnostics=json vulkan_extern.xi
+xiom --diagnostics=json vulkan_extern.xi
 
 # Build any demo:
 .\build.ps1 -Target demo2d -Run
@@ -168,8 +168,8 @@ $env:GLFW_DIR   = "C:\glfw-3.4.bin.WIN64"
 clang -c bridge\xiom_vk_bridge.c -o bridge\xvk_bridge.obj `
   -I"$env:VULKAN_SDK\Include" -I"$env:GLFW_DIR\include" -O2
 
-# Direct xiomc build (no script):
-xiomc -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
+# Direct xiom build (no script):
+xiom -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
   --c-source bridge/xvk_bridge.obj `
   --link vulkan-1 --link glfw3 --link gdi32 --link user32 `
   --link kernel32 --link shell32 --link ole32 `
@@ -185,7 +185,7 @@ xiomc -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
 2. **Compute/test demos hang** — `offscreen_create` doesn't work on all GPU/driver combos (headless without surface).
 3. **E001 Float64 warnings** — cosmetic. Use separate `now()` bindings per `math.sin` call.
 4. **Float32/Float64 Vec reads** — codegen bug (sitofp instead of bitcast). Use scalar FFI.
-5. **Cross-module `use`** — ModuleCatalog doesn't resolve from single file. Multi-file merge on xiomc command line works.
+5. **Cross-module `use`** — ModuleCatalog doesn't resolve from single file. Multi-file merge on xiom command line works.
 6. **`xvk_get_device` crash** — passing app handle to bind functions that expect raw VK handles causes ACCESS_VIOLATION. The new `xvk_get_device(app)` exposes the raw handle but needs testing.
 7. **build.ps1 prebuilt caching** — uses stale `xvk_bridge.obj` if it exists. Delete manually if source changes aren't picked up.
 

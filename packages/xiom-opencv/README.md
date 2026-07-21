@@ -37,7 +37,7 @@ Without it, pure XIOM filters still work; only FFI functions return dummy values
 ### Build Integration
 
 ```bash
-xiomc myprogram.xi $(pkg-config --cflags --libs opencv4)
+xiom myprogram.xi $(pkg-config --cflags --libs opencv4)
 ```
 
 ## Quick Start
@@ -153,10 +153,10 @@ fn main() -> Int {
 
 ```bash
 # With OpenCV (recommended for production)
-xiomc myprogram.xi $(pkg-config --cflags --libs opencv4)
+xiom myprogram.xi $(pkg-config --cflags --libs opencv4)
 
 # Without OpenCV (pure XIOM filters only)
-xiomc --run myprogram.xi
+xiom --run myprogram.xi
 ```
 
 ## Links

@@ -1,6 +1,6 @@
 # xiom.ffi — Production Readiness Audit
 
-**Version**: v0.3.0 | **Compiler**: xiomc v0.49.7 | **Rating**: 10/10 ✅
+**Version**: v0.3.0 | **Compiler**: xiom v0.49.7 | **Rating**: 10/10 ✅
 
 ## Production Criteria (10/10)
 

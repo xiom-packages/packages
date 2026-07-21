@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// NOTE: xiomc v0.46.0 treats opaque FFI Int handles as move-only.
+// NOTE: xiom v0.46.0 treats opaque FFI Int handles as move-only.
 // Multi-step builder patterns (calling multiple setters on the same settings
 // handle) trigger E001 borrow errors. The safe wrapper (jolt_safe.xi) provides
 // one-shot functions that handle setup internally.

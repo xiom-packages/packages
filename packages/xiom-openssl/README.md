@@ -11,7 +11,7 @@ use xiom.openssl;
 ## Building
 
 ```powershell
-xiomc --release openssl.xi -o openssl.exe
+xiom --release openssl.xi -o openssl.exe
 ```
 
 ## Dependencies

@@ -6,7 +6,7 @@
 #   1. Compile GLSL shaders to SPIR-V via glslc
 #   2. Generate bridge/xvk_shaders_generated.h with uint32 SPIR-V arrays
 #   3. Compile the C bridge to an object file
-#   4. Build the XIOM target with xiomc
+#   4. Build the XIOM target with xiom
 #
 # Usage:
 #   ./build.sh                    # demo2d (default)
@@ -23,7 +23,7 @@
 #   - glslc  (from Vulkan SDK: $VULKAN_SDK/bin/glslc, or on PATH)
 #   - GLFW 3.4 dev libraries  (via pkg-config or $GLFW_DIR)
 #   - clang / LLVM
-#   - Rust toolchain (for cargo run -p xiomc)
+#   - Rust toolchain (for cargo run -p xiom)
 #
 # On Linux, most distros ship libvulkan-dev and libglfw3-dev.
 # The script prefers pkg-config for GLFW flags and auto-detects
@@ -294,9 +294,9 @@ XI_FILES=(
     "$ROOT_DIR/src/wrapper.xi"
 )
 
-# XIOMC: use cargo run -p xiomc for dev workflow.
-# Replace with "xiomc" when a prebuilt binary is available.
-XIOMC_CMD=(cargo run -p xiomc --)
+# xiom: use cargo run -p xiom for dev workflow.
+# Replace with "xiom" when a prebuilt binary is available.
+XIOMC_CMD=(cargo run -p xiom --)
 
 XIOMC_ARGS=(
     -o "$OUT_EXE"

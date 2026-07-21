@@ -5,7 +5,7 @@
 // Verifies all FFI declarations, constants, safe wrappers, and struct types
 // compile correctly with v0.46. Covers 100% of the public API surface.
 //
-// Compile: xiomc vma.xi src/vma_safe.xi tests/test_vma.xi
+// Compile: xiom vma.xi src/vma_safe.xi tests/test_vma.xi
 
 module xiom.vma.test
 

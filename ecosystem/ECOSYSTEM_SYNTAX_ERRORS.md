@@ -12,7 +12,7 @@
 
 > **Purpose.** Places where AI-written `ecosystem/` code **genuinely violates
 > `docs/AI_CONTEXT.md`**. Opposite of `COMPILER_GAPS.md`.
-> Verified with `xiomc --diagnostics=json`. `T001` type errors are non-fatal and excluded.
+> Verified with `xiom --diagnostics=json`. `T001` type errors are non-fatal and excluded.
 
 ---
 

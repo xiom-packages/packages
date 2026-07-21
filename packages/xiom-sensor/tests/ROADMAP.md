@@ -118,14 +118,14 @@ Tests compile to IR. Runtime execution is blocked by Vec<T> generic type lowerin
 
 ```powershell
 # Compile individual modules to IR
-xiomc --emit-ir src/gps.xi
-xiomc --emit-ir src/imu.xi
-xiomc --emit-ir src/fusion.xi
-xiomc --emit-ir src/calibration.xi
+xiom --emit-ir src/gps.xi
+xiom --emit-ir src/imu.xi
+xiom --emit-ir src/fusion.xi
+xiom --emit-ir src/calibration.xi
 
 # Compile tests to IR
-xiomc --emit-ir tests/test_conformance.xi
+xiom --emit-ir tests/test_conformance.xi
 
 # Run tests (requires Vec<T> fix)
-xiomc --run tests/test_conformance.xi
+xiom --run tests/test_conformance.xi
 ```

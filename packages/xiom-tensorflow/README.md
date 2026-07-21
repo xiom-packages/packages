@@ -11,7 +11,7 @@ use xiom.tensorflow;
 ## Building
 
 ```powershell
-xiomc --release tensorflow.xi -o tensorflow.exe
+xiom --release tensorflow.xi -o tensorflow.exe
 ```
 
 ## Dependencies

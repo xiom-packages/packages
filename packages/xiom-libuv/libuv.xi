@@ -6,7 +6,7 @@
 // Phase 1: Event loop, TCP, timers, file I/O function signatures + full contracts.
 //
 // Dependencies: libuv (system-installed via winget/apt)
-// Compile (when bridge ready): xiomc --link uv libuv.xi
+// Compile (when bridge ready): xiom --link uv libuv.xi
 
 module xiom.libuv
 

@@ -29,7 +29,7 @@
 
 ### Compilation with Libraries
 ```powershell
-xiomc --link openblas --link lapack --link-path C:/path/to/openblas/lib blas.xi src/linalg.xi program.xi
+xiom --link openblas --link lapack --link-path C:/path/to/openblas/lib blas.xi src/linalg.xi program.xi
 ```
 
 ## FFI Functions Requiring OpenBLAS at Runtime

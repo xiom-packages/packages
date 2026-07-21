@@ -11,7 +11,7 @@ use xiom.eigen;
 ## Building
 
 ```powershell
-xiomc --release eigen.xi -o eigen.exe
+xiom --release eigen.xi -o eigen.exe
 ```
 
 ## Dependencies

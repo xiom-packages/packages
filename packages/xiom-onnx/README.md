@@ -37,7 +37,7 @@ types and constructors still work; only session/run functions return dummy value
 ### Build Integration
 
 ```bash
-xiomc myprogram.xi -L $ONNX_RUNTIME_DIR/lib -l onnxruntime
+xiom myprogram.xi -L $ONNX_RUNTIME_DIR/lib -l onnxruntime
 ```
 
 ## Quick Start
@@ -147,10 +147,10 @@ fn main() -> Int {
 
 ```bash
 # With ONNX Runtime (recommended for production)
-xiomc myprogram.xi -L $ONNX_RUNTIME_DIR/lib -l onnxruntime
+xiom myprogram.xi -L $ONNX_RUNTIME_DIR/lib -l onnxruntime
 
 # Without ONNX Runtime (types & constructors only)
-xiomc --run myprogram.xi
+xiom --run myprogram.xi
 ```
 
 ## Links

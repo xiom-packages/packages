@@ -1,6 +1,6 @@
 // ===========================================================================
 // XIOM Vulkan SDK — Example 01: First Triangle
-// xiomc demo_01_triangle.xi --release --c-source ../bridge/xvk_bridge.obj
+// xiom demo_01_triangle.xi --release --c-source ../bridge/xvk_bridge.obj
 // ===========================================================================
 
 module demo_triangle

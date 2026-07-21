@@ -95,7 +95,7 @@ All functions with preconditions are compile-time guarded:
 ## Build & Run
 
 ```bash
-xiomc --run myprogram.xi
+xiom --run myprogram.xi
 ```
 
 ## License

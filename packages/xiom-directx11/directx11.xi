@@ -8,7 +8,7 @@
 //
 // Real C bridge will be linked after xiom.ffi matures.
 // Compile (when bridge ready):
-//   xiomc --link d3d11 dxgi directx11.xi directx11_bridge.c
+//   xiom --link d3d11 dxgi directx11.xi directx11_bridge.c
 
 module xiom.directx11
 

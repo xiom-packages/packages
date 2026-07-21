@@ -1,10 +1,10 @@
 # xiom-onnx — System Dependency Audit
 
-> **Version:** 0.1.0 | **Compiler:** xiomc v0.45.3 | **Status:** All modules compile clean.
+> **Version:** 0.1.0 | **Compiler:** xiom v0.45.3 | **Status:** All modules compile clean.
 
 ## Compiler Compatibility
 
-All `.xi` source files pass `xiomc --check` with `{"status":"ok"}`.
+All `.xi` source files pass `xiom --check` with `{"status":"ok"}`.
 
 ### Fixes Applied (v0.45.3)
 
@@ -28,7 +28,7 @@ Extract to: C:\onnxruntime
 Build with:
   set ONNX_RUNTIME_DIR=C:\onnxruntime
   set PATH=%ONNX_RUNTIME_DIR%\lib;%PATH%
-  xiomc myprogram.xi -L %ONNX_RUNTIME_DIR%\lib -l onnxruntime
+  xiom myprogram.xi -L %ONNX_RUNTIME_DIR%\lib -l onnxruntime
 ```
 
 #### Ubuntu / Debian
@@ -37,7 +37,7 @@ wget https://github.com/microsoft/onnxruntime/releases/download/v1.18.0/onnxrunt
 tar xzf onnxruntime-linux-x64-1.18.0.tgz -C /opt
 export ONNX_RUNTIME_DIR=/opt/onnxruntime-linux-x64-1.18.0
 export LD_LIBRARY_PATH=$ONNX_RUNTIME_DIR/lib:$LD_LIBRARY_PATH
-xiomc myprogram.xi -L $ONNX_RUNTIME_DIR/lib -l onnxruntime
+xiom myprogram.xi -L $ONNX_RUNTIME_DIR/lib -l onnxruntime
 ```
 
 #### macOS
@@ -46,7 +46,7 @@ wget https://github.com/microsoft/onnxruntime/releases/download/v1.18.0/onnxrunt
 tar xzf onnxruntime-osx-universal2-1.18.0.tgz -C /opt
 export ONNX_RUNTIME_DIR=/opt/onnxruntime-osx-universal2-1.18.0
 export DYLD_LIBRARY_PATH=$ONNX_RUNTIME_DIR/lib:$DYLD_LIBRARY_PATH
-xiomc myprogram.xi -L $ONNX_RUNTIME_DIR/lib -l onnxruntime
+xiom myprogram.xi -L $ONNX_RUNTIME_DIR/lib -l onnxruntime
 ```
 
 #### Fedora / RHEL

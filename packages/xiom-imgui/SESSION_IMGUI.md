@@ -1,6 +1,6 @@
 # xiom-imgui — Session Handoff
 
-**Date**: 2026-07-20 | **Compiler**: xiomc v0.48.7 (768/768 tests, AI mode, LSP, Hot Reload)
+**Date**: 2026-07-20 | **Compiler**: xiom v0.48.7 (768/768 tests, AI mode, LSP, Hot Reload)
 **GPU**: NVIDIA GeForce RTX 3070 Ti | **VK SDK**: 1.4.350.0 | **GLFW**: 3.4
 
 ---
@@ -50,7 +50,7 @@
 | `xvk_get_fb_width/height` used `swapchain_extent` (stale during resize) | Now queries `glfwGetFramebufferSize` directly |
 | ImGui `DisplaySize` set by GLFW window coords, not framebuffer pixels | `new_frame_sized()` sets `DisplaySize` = framebuffer, `FramebufferScale` = (1,1) |
 
-### Compiler Issues Found (reported to xiomc team)
+### Compiler Issues Found (reported to xiom team)
 
 | ID | Issue | Status |
 |----|-------|--------|
@@ -58,7 +58,7 @@
 | Loop-Crash | `while !should_close(app)` → `0xC0000005` after ~30s with 50+ FFI calls/frame | Reported, mitigated by `--release` + frame limit |
 | CG-02 | Module-scope `var x: Float32 = 0.5` → LLVM constant error | Workaround: init to 0.0 |
 
-All compiler issues reported as fixed in xiomc as of this session. CG-01 still reproduces in v0.48.7.
+All compiler issues reported as fixed in xiom as of this session. CG-01 still reproduces in v0.48.7.
 
 ---
 

@@ -6,7 +6,7 @@
 // Box2D v4+ uses a pure C handle-based API. All objects are POD structs
 // passed by value — no C++ classes, vtables, or inheritance.
 //
-// TARGET COMPILER: xiomc v0.46.0+ "Production"
+// TARGET COMPILER: xiom v0.46.0+ "Production"
 // All struct types, fixed-size arrays, and value-type FFI are expected
 // to work with v0.46's extended extern "C" ABI support.
 // See AUDIT.md for remaining gaps (callbacks, bool layout).

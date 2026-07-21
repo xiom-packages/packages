@@ -53,7 +53,7 @@ gcc -shared -fPIC -o libstb_image.dylib stb_wrapper.c
 
 When compiling an XIOM program that uses `xiom-stb`:
 ```
-xiomc --link stb_image -o app.exe src/main.xi
+xiom --link stb_image -o app.exe src/main.xi
 ```
 
 ### Supported Formats

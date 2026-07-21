@@ -1,7 +1,7 @@
 # AUDIT: xiom-redis
 
 ## Status
-All 3 source files compile on xiomc v0.45.3 with stubbed FFI functions.
+All 3 source files compile on xiom v0.45.3 with stubbed FFI functions.
 
 ## System Library Dependencies
 - **hiredis** (Redis C client library)

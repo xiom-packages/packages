@@ -7,8 +7,8 @@
 | Vulkan SDK | >= 1.3 | GPU API (headers + loader) — required by VMA |
 | VMA (VulkanMemoryAllocator) | >= 3.3.0 | Memory sub-allocation library (single-header) |
 | clang/LLVM | >= 14 | C bridge compilation |
-| Rust/Cargo | Latest stable | Compiler build (xiomc) |
-| xiomc | >= v0.45.3 | XIOM compiler |
+| Rust/Cargo | Latest stable | Compiler build (xiom) |
+| xiom | >= v0.45.3 | XIOM compiler |
 
 ## VMA Source
 
@@ -132,14 +132,14 @@ Utility: `VmaContext` — high‑level lifecycle manager with init/destroy/creat
    Compile a C file with #define VMA_IMPLEMENTATION + vk_mem_alloc.h include
    → vma_impl.obj
 
-2. XIOM Compilation + Link (xiomc + clang)
+2. XIOM Compilation + Link (xiom + clang)
    vma.xi + src/vma_safe.xi + examples/*.xi + vma_impl.obj + vulkan-1.lib
    → final executable
 ```
 
 ## Compile Status (2026-07-17, v0.46.0)
 
-All files compile with `xiomc --diagnostics=json`: **`{"status":"ok"}`**, 0 T001/P001 errors, 29 E001 borrow warnings (non-fatal, same as reference).
+All files compile with `xiom --diagnostics=json`: **`{"status":"ok"}`**, 0 T001/P001 errors, 29 E001 borrow warnings (non-fatal, same as reference).
 
 | File | Status | Lines | Contents |
 |------|--------|-------|----------|

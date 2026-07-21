@@ -11,7 +11,7 @@ use xiom.ozz;
 ## Building
 
 ```powershell
-xiomc --release ozz.xi -o ozz.exe
+xiom --release ozz.xi -o ozz.exe
 ```
 
 ## Dependencies

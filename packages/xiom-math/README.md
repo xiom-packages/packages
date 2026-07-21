@@ -11,7 +11,7 @@ use xiom.math;
 ## Building
 
 ```powershell
-xiomc --release math.xi -o math.exe
+xiom --release math.xi -o math.exe
 ```
 
 ## Dependencies

@@ -4,7 +4,7 @@
 
 | Dependency | Version | Purpose |
 |-----------|---------|---------|
-| xiomc | >= v0.45.3 | XIOM compiler |
+| xiom | >= v0.45.3 | XIOM compiler |
 | GLFW | >= 3.3 | Window backend (for `xiom.ui.backend` OpenGL rendering) |
 | OpenGL | System | Rendering backend (for `xiom.ui.backend`) |
 | ffi_bridge.c | Project runtime | C bridge for `xiom_alloc`, `xiom_free_ptr`, etc. |
@@ -33,11 +33,11 @@ Link flags: `-framework OpenGL -l glfw`
 
 ```powershell
 # Type-check only (pure XIOM modules)
-xiomc --check src/types.xi src/layout.xi src/widgets.xi src/render.xi `
+xiom --check src/types.xi src/layout.xi src/widgets.xi src/render.xi `
   src/theme.xi src/application.xi src/demo.xi
 
 # Full build with OpenGL backend
-xiomc src/types.xi src/layout.xi src/widgets.xi src/render.xi `
+xiom src/types.xi src/layout.xi src/widgets.xi src/render.xi `
   src/theme.xi src/application.xi src/demo.xi src/backend.xi `
   ../runtime/ffi_bridge.c -l glfw3 -l opengl32 -o app.exe
 ```

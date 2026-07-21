@@ -24,7 +24,7 @@ xiom install xiom-net
 | **Linux** | POSIX sockets | Built-in |
 | **macOS** | POSIX sockets | Built-in |
 
-Link on Windows: `xiomc -l ws2_32 myprogram.xi`
+Link on Windows: `xiom -l ws2_32 myprogram.xi`
 Link on Linux/macOS: No extra flags needed.
 
 ## Quick Start
@@ -148,7 +148,7 @@ Every socket operation is guarded:
 
 ```bash
 # Compile with FFI bridge (sockets are OS-provided)
-xiomc myprogram.xi ../runtime/ffi_bridge.c -l ws2_32 -o myprogram.exe
+xiom myprogram.xi ../runtime/ffi_bridge.c -l ws2_32 -o myprogram.exe
 ./myprogram.exe
 ```
 

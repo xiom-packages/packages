@@ -134,10 +134,10 @@ fn main() -> Int {
 
 ```bash
 # Pure XIOM UI (no rendering, render commands only)
-xiomc --run myprogram.xi
+xiom --run myprogram.xi
 
 # With OpenGL backend (requires GLFW + ffi_bridge.c)
-xiomc myprogram.xi ../runtime/ffi_bridge.c -l glfw3 -l opengl32 -o myprogram.exe
+xiom myprogram.xi ../runtime/ffi_bridge.c -l glfw3 -l opengl32 -o myprogram.exe
 ./myprogram.exe
 ```
 

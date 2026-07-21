@@ -6,8 +6,8 @@
 |-----------|---------|---------|
 | meshoptimizer | >= 1.2 | Mesh optimization library (simplification, compression, strip generation) |
 | clang/LLVM | >= 14 | C bridge compilation |
-| Rust/Cargo | Latest stable | Compiler build (xiomc) |
-| xiomc | >= v0.46.0 | XIOM compiler (v0.46 "Production" — 101/101 e2e) |
+| Rust/Cargo | Latest stable | Compiler build (xiom) |
+| xiom | >= v0.46.0 | XIOM compiler (v0.46 "Production" — 101/101 e2e) |
 
 ## meshoptimizer Source
 
@@ -134,7 +134,7 @@ packages/xiom-meshopt/
 | `EncodePipeline` | index_bound, encode_indices, vertex_bound, encode_vertices, decode_vertices | requires: pointers != 0, counts > 0 |
 | `StripPipeline` | init, bound, stripify | requires: pointers != 0, counts > 0 |
 
-## Compiler Gap Status (xiomc v0.46.0)
+## Compiler Gap Status (xiom v0.46.0)
 
 | # | Gap | v0.45 Status | v0.46 Status |
 |---|-----|-------------|-------------|
@@ -178,24 +178,24 @@ Simplification functions have `float* result_error` out-parameters. The safe wra
    cd meshoptimizer && cmake -B build && cmake --build build --config Release
    → meshoptimizer.lib (Windows) or libmeshoptimizer.a (Linux)
 
-2. XIOM Compilation + Link (xiomc + clang)
+2. XIOM Compilation + Link (xiom + clang)
    meshopt.xi + src/meshopt_safe.xi + examples/*.xi + meshoptimizer.lib
    → final executable
 ```
 
 On Windows:
 ```
-xiomc --link meshoptimizer -o demo.exe meshopt.xi src/meshopt_safe.xi examples/demo_meshopt.xi
+xiom --link meshoptimizer -o demo.exe meshopt.xi src/meshopt_safe.xi examples/demo_meshopt.xi
 ```
 
 On Linux:
 ```
-xiomc --link meshoptimizer -o demo meshopt.xi src/meshopt_safe.xi examples/demo_meshopt.xi
+xiom --link meshoptimizer -o demo meshopt.xi src/meshopt_safe.xi examples/demo_meshopt.xi
 ```
 
 ## Compile Status (2026-07-17)
 
-All files compile with `xiomc --diagnostics=json` (v0.46.0): **`{"status":"ok"}`**, 0 errors.
+All files compile with `xiom --diagnostics=json` (v0.46.0): **`{"status":"ok"}`**, 0 errors.
 
 | File | Status | Lines | Contents |
 |------|--------|-------|----------|

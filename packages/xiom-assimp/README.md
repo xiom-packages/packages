@@ -11,7 +11,7 @@ use xiom.assimp;
 ## Building
 
 ```powershell
-xiomc --release assimp.xi -o assimp.exe
+xiom --release assimp.xi -o assimp.exe
 ```
 
 ## Dependencies

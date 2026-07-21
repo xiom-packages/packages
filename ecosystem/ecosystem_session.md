@@ -1,6 +1,6 @@
 # Ecosystem Development Session Journal
 
-**Compiler**: xiomc v0.49.7 (881/881 tests, zero warnings)
+**Compiler**: xiom v0.49.7 (881/881 tests, zero warnings)
 **Last session**: 2026-07-21
 **Structure**: Packages moved to `packages/` (monorepo). xiom-db/xiom-vector at root (applications). xiom-bench/xiom-crypto merged into stdlib.
 
@@ -83,7 +83,7 @@ b63b761 feat(ecosystem): 9 vulkan accessor wrappers + 2 imgui wrappers, remove a
 ```
 Continue ecosystem development from ecosystem/ecosystem_session.md.
 
-COMPILER: xiomc v0.49.7 (881/881, zero warnings). Newtypes + Float32 fix confirmed.
+COMPILER: xiom v0.49.7 (881/881, zero warnings). Newtypes + Float32 fix confirmed.
 
 PRODUCTION PACKAGES (ready):
 - xiom-vulkan: 91 wrappers (+9 accessors), 100% FFI coverage, 7 examples, 78% contracts

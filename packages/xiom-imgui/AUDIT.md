@@ -10,7 +10,7 @@ containing Dear ImGui v1.92.9 + GLFW backend + Vulkan backend.
 | Vulkan SDK | 1.3+ | vulkan-1.lib at link time, vulkan-1.dll at runtime |
 | GLFW | 3.3+ | glfw3.lib at link time, glfw3.dll at runtime |
 | xiom-vulkan | — | provides `create_app()`, begin/end frame, VK handles |
-| xiomc | >= 0.48.2 | XIOM compiler |
+| xiom | >= 0.48.2 | XIOM compiler |
 
 **No other dependencies.** No cimgui, CMake, or imgui source download.
 The entire imgui library is bundled as .obj files in `bridge/`.

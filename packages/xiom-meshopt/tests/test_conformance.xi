@@ -6,7 +6,7 @@
 // the full public API surface: 16 constants, 28 public functions,
 // 88 requires contracts across all 28 functions.
 //
-// Compile: xiomc --link meshoptimizer meshopt.xi tests/test_conformance.xi
+// Compile: xiom --link meshoptimizer meshopt.xi tests/test_conformance.xi
 
 module meshopt_conformance
 use xiom.io;

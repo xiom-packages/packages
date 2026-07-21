@@ -1,14 +1,14 @@
 # XIOM Vulkan — Getting Started
 
 **Version:** v1.0.0  
-**Compiler required:** xiomc v0.48.0+  
+**Compiler required:** xiom v0.48.0+  
 **Tested on:** Windows 11, RTX 3070 Ti, Vulkan SDK 1.4.350.0
 
 ## Prerequisites
 
 | Tool | Version | Download |
 |------|---------|----------|
-| xiomc | ≥ 0.48.0 | `cargo install xiomc` or prebuilt in `release/` |
+| xiom | ≥ 0.48.0 | `cargo install xiom` or prebuilt in `release/` |
 | Vulkan SDK | ≥ 1.3 | [vulkan.lunarg.com](https://vulkan.lunarg.com) |
 | GLFW | 3.4 | [glfw.org](https://glfw.org/download.html) — prebuilt Windows binaries |
 | LLVM/clang | ≥ 18 | [llvm.org](https://llvm.org) — for C bridge compilation |
@@ -32,7 +32,7 @@ This runs a 4-step pipeline:
 1. Compiles GLSL shaders → SPIR-V
 2. Generates C header with embedded SPIR-V arrays
 3. Compiles the C bridge (30 Vulkan modules) into xvk_bridge.obj
-4. Builds + links the XIOM demo with xiomc
+4. Builds + links the XIOM demo with xiom
 
 The window opens and stays until you close it. GPU: NVIDIA RTX 3070 Ti detected.
 
@@ -53,14 +53,14 @@ The window opens and stays until you close it. GPU: NVIDIA RTX 3070 Ti detected.
 .\build.ps1 -Target test -Run         # CI smoke test
 ```
 
-## Direct xiomc Compilation (No Build Script)
+## Direct xiom Compilation (No Build Script)
 
 ```powershell
 # Type-check only:
-xiomc --diagnostics=json examples/demo_2d.xi vulkan.xi src/wrapper.xi
+xiom --diagnostics=json examples/demo_2d.xi vulkan.xi src/wrapper.xi
 
 # Full build + run (requires bridge compiled first):
-xiomc -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
+xiom -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
   --c-source bridge/xvk_bridge.obj `
   --link vulkan-1 --link glfw3 --link gdi32 --link user32 `
   --link kernel32 --link shell32 --link ole32 `
@@ -74,7 +74,7 @@ xiomc -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
 
 ```xiom
 // vulkan_extern.xi declares all VK functions — links directly to vulkan-1.lib
-// Compile with: xiomc app.xi vulkan_extern.xi vulkan_safe.xi vulkan_structs.xi
+// Compile with: xiom app.xi vulkan_extern.xi vulkan_safe.xi vulkan_structs.xi
 use xiom.vulkan.safe;
 use xiom.vulkan.structs;
 

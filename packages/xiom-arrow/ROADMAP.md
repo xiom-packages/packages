@@ -1,6 +1,6 @@
 # xiom-arrow — Production Roadmap
 
-**Version**: v0.1.0 | **Compiler**: xiomc v0.49.7 | **Last updated**: 2026-07-21
+**Version**: v0.1.0 | **Compiler**: xiom v0.49.7 | **Last updated**: 2026-07-21
 
 ## Current Rating: 7/10
 

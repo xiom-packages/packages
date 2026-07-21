@@ -4,7 +4,7 @@
 
 ### Windows
 - **Winsock2** (`ws2_32.dll`) — Built into Windows, no separate installation needed.
-- **Linker flag:** `xiomc -l ws2_32 ...`
+- **Linker flag:** `xiom -l ws2_32 ...`
 
 ### Linux
 - POSIX sockets — Built into libc, no extra installation needed.
@@ -21,16 +21,16 @@
 
 ```bash
 # Windows
-xiomc src/types.xi src/tcp.xi src/udp.xi src/dns.xi src/demo.xi -l ws2_32 -o net_demo.exe
+xiom src/types.xi src/tcp.xi src/udp.xi src/dns.xi src/demo.xi -l ws2_32 -o net_demo.exe
 
 # Linux/macOS
-xiomc src/types.xi src/tcp.xi src/udp.xi src/dns.xi src/demo.xi posix_shim.c -o net_demo
+xiom src/types.xi src/tcp.xi src/udp.xi src/dns.xi src/demo.xi posix_shim.c -o net_demo
 ```
 
 ## Runtime Dependencies
 - None beyond the platform's native socket library.
 
 ## Compilation Status
-- All 5 source files (`types.xi`, `tcp.xi`, `udp.xi`, `dns.xi`, `demo.xi`) type-check successfully with xiomc v0.45.3.
+- All 5 source files (`types.xi`, `tcp.xi`, `udp.xi`, `dns.xi`, `demo.xi`) type-check successfully with xiom v0.45.3.
 - `dns.xi` functions are stubs returning `Err(...)` — DNS resolution requires OS `getaddrinfo` FFI to be wired.
 - IPv6 parsing is stubbed; only IPv4 is fully implemented.

@@ -25,7 +25,7 @@ xiom install xiom-sqlite
 | **Fedora** | `sudo dnf install sqlite-devel` |
 | **macOS** | Pre-installed |
 
-Link: `xiomc -l sqlite3 myprogram.xi`
+Link: `xiom -l sqlite3 myprogram.xi`
 
 ## Quick Start
 
@@ -157,7 +157,7 @@ Every FFI boundary guarded:
 
 ```bash
 # Compile with FFI bridge and system libraries
-xiomc myprogram.xi ../runtime/ffi_bridge.c -l sqlite3 -o myprogram.exe
+xiom myprogram.xi ../runtime/ffi_bridge.c -l sqlite3 -o myprogram.exe
 ./myprogram.exe
 ```
 

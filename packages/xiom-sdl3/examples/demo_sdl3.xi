@@ -18,7 +18,7 @@ use xiom.fmt;
 fn main() -> Int {
   io.println("==========================================");
   io.println("  XIOM SDL3 Bindings - Production Demo");
-  io.println("  SDL 3.4.8  |  xiomc v0.46.0");
+  io.println("  SDL 3.4.8  |  xiom v0.46.0");
   io.println("  Headers: C:\\VulkanSDK\\1.4.350.0\\Include\\SDL3\\");
   io.println("==========================================");
   io.println("");
@@ -342,7 +342,7 @@ fn main() -> Int {
   io.println("     void* sdl3_alloc_event() { return SDL_calloc(1, sizeof(SDL_Event)); }");
   io.println("     Uint32 sdl3_event_type(void* e) { return ((SDL_Event*)e)->type; }");
   io.println("  3. Compile bridge: clang -c event_bridge.c -I<SDL3_INCLUDE> -o bridge.obj");
-  io.println("  4. Link: xiomc sdl3.xi + src/sdl3_safe.xi + bridge.obj + SDL3.lib");
+  io.println("  4. Link: xiom sdl3.xi + src/sdl3_safe.xi + bridge.obj + SDL3.lib");
   io.println("");
 
   io.println("All API constants verified at compile time.");

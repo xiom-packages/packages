@@ -1,7 +1,7 @@
 # AUDIT: xiom-kafka
 
 ## Status
-All 4 source files compile on xiomc v0.45.3 with stub implementations.
+All 4 source files compile on xiom v0.45.3 with stub implementations.
 
 ## System Library Dependencies
 - **librdkafka** (Apache Kafka C client library)

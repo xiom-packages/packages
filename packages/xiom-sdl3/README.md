@@ -11,7 +11,7 @@ use xiom.sdl3;
 ## Building
 
 ```powershell
-xiomc --release sdl3.xi -o sdl3.exe
+xiom --release sdl3.xi -o sdl3.exe
 ```
 
 ## Dependencies

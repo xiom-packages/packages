@@ -6,7 +6,7 @@
 // contract enforcement, and stub return behaviour.
 // All FFI calls return Err until the C bridge is linked.
 //
-// Compile: xiomc directx11.xi tests/test_conformance.xi
+// Compile: xiom directx11.xi tests/test_conformance.xi
 
 module directx11_conformance_tests
 

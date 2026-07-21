@@ -37,7 +37,7 @@ Or use the built-in OpenAL framework (no install required).
 
 When compiling an XIOM program that uses `xiom-openal`:
 ```
-xiomc --link OpenAL32 -o app.exe src/main.xi
+xiom --link OpenAL32 -o app.exe src/main.xi
 ```
 
 On Linux: `--link openal`

@@ -6,7 +6,7 @@
 // the full public API surface: 4 types, 14 public functions,
 // 23 contracts (20 requires + 3 ensures) across 14 functions.
 //
-// Compile: xiomc --link gz-sim gazebo.xi tests/test_conformance.xi
+// Compile: xiom --link gz-sim gazebo.xi tests/test_conformance.xi
 
 module gazebo_conformance
 use xiom.io;

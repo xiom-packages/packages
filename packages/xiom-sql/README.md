@@ -11,7 +11,7 @@ use xiom.sql;
 ## Building
 
 ```powershell
-xiomc --release sql.xi -o sql.exe
+xiom --release sql.xi -o sql.exe
 ```
 
 ## Dependencies

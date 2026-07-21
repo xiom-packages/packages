@@ -1,7 +1,7 @@
 # AUDIT.md — xiom-grpc
 
 ## Compiler Compatibility
-- **Compiler version:** xiomc v0.11.0 (XIOM v0.45.3)
+- **Compiler version:** xiom v0.11.0 (XIOM v0.45.3)
 - **Status:** All `.xi` files compile successfully to LLVM IR when compiled together.
 
 ## Files
@@ -43,5 +43,5 @@
 
 ## Notes
 - `grpc.xi` uses FFI declarations without function bodies. Linking requires gRPC C Core.
-- All client/server functions compile successfully in multi-file mode (`xiomc grpc.xi src/types.xi src/client.xi src/server.xi`).
+- All client/server functions compile successfully in multi-file mode (`xiom grpc.xi src/types.xi src/client.xi src/server.xi`).
 - `pub const` declarations in `src/types.xi` compile without errors (GAP-3 confirmed closed).

@@ -11,7 +11,7 @@ use xiom.phonon;
 ## Building
 
 ```powershell
-xiomc --release phonon.xi -o phonon.exe
+xiom --release phonon.xi -o phonon.exe
 ```
 
 ## Dependencies

@@ -27,7 +27,7 @@
 
 ### Compilation with Libraries
 ```powershell
-xiomc --link sodium --link-path C:/path/to/libsodium/lib libsodium.xi program.xi
+xiom --link sodium --link-path C:/path/to/libsodium/lib libsodium.xi program.xi
 ```
 
 ## FFI Bindings Mapped (libsodium.xiom-bind)

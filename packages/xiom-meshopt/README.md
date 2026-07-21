@@ -11,7 +11,7 @@ use xiom.meshopt;
 ## Building
 
 ```powershell
-xiomc --release meshopt.xi -o meshopt.exe
+xiom --release meshopt.xi -o meshopt.exe
 ```
 
 ## Dependencies

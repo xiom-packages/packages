@@ -37,7 +37,7 @@ types and constructors still work; only FFI functions return dummy values.
 ### Build Integration
 
 ```bash
-xiomc myprogram.xi -L $LIBTORCH/lib -l torch -l c10 -I $LIBTORCH/include
+xiom myprogram.xi -L $LIBTORCH/lib -l torch -l c10 -I $LIBTORCH/include
 ```
 
 ## Quick Start
@@ -153,10 +153,10 @@ Every constructor is guarded:
 
 ```bash
 # With LibTorch (recommended for production)
-xiomc myprogram.xi -L $LIBTORCH/lib -l torch -l c10 -I $LIBTORCH/include
+xiom myprogram.xi -L $LIBTORCH/lib -l torch -l c10 -I $LIBTORCH/include
 
 # Without LibTorch (types & constructors only)
-xiomc --run myprogram.xi
+xiom --run myprogram.xi
 ```
 
 ## Links

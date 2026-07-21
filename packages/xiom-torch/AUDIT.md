@@ -1,10 +1,10 @@
 # xiom-torch — System Dependency Audit
 
-> **Version:** 0.1.0 | **Compiler:** xiomc v0.45.3 | **Status:** All modules compile clean.
+> **Version:** 0.1.0 | **Compiler:** xiom v0.45.3 | **Status:** All modules compile clean.
 
 ## Compiler Compatibility
 
-All `.xi` source files pass `xiomc --check` with `{"status":"ok"}`.
+All `.xi` source files pass `xiom --check` with `{"status":"ok"}`.
 
 ### Fixes Applied (v0.45.3)
 
@@ -28,7 +28,7 @@ Extract to: C:\libtorch
 Build with:
   set LIBTORCH=C:\libtorch
   set PATH=%LIBTORCH%\lib;%PATH%
-  xiomc myprogram.xi -L %LIBTORCH%\lib -l torch -l c10 -I %LIBTORCH%\include
+  xiom myprogram.xi -L %LIBTORCH%\lib -l torch -l c10 -I %LIBTORCH%\include
 ```
 
 #### Ubuntu / Debian
@@ -37,7 +37,7 @@ wget https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-2.4.0%2
 unzip libtorch-shared-with-deps-2.4.0+cpu.zip -d /opt/libtorch
 export LIBTORCH=/opt/libtorch
 export LD_LIBRARY_PATH=$LIBTORCH/lib:$LD_LIBRARY_PATH
-xiomc myprogram.xi -L $LIBTORCH/lib -l torch -l c10 -I $LIBTORCH/include
+xiom myprogram.xi -L $LIBTORCH/lib -l torch -l c10 -I $LIBTORCH/include
 ```
 
 #### macOS
@@ -46,7 +46,7 @@ wget https://download.pytorch.org/libtorch/cpu/libtorch-macos-2.4.0.zip
 unzip libtorch-macos-2.4.0.zip -d /opt/libtorch
 export LIBTORCH=/opt/libtorch
 export DYLD_LIBRARY_PATH=$LIBTORCH/lib:$DYLD_LIBRARY_PATH
-xiomc myprogram.xi -L $LIBTORCH/lib -l torch -l c10 -I $LIBTORCH/include
+xiom myprogram.xi -L $LIBTORCH/lib -l torch -l c10 -I $LIBTORCH/include
 ```
 
 #### Fedora / RHEL

@@ -4,7 +4,7 @@
 **C bridge**: 7 precompiled .obj files (Dear ImGui v1.92.9 + GLFW + Vulkan backends)
 **XIOM layer**: Single 258-line module — 90 `extern "C"` declarations, 48 safe wrappers with contracts
 **Demo**: 2-panel + menu + 3D viewport, confirmed stable for 6s+ at 1280x800
-**Compiler**: xiomc v0.49.2 (798/798 tests)
+**Compiler**: xiom v0.49.2 (798/798 tests)
 
 ---
 

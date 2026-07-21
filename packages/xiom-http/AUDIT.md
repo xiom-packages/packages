@@ -13,16 +13,16 @@
 ### XIOM Runtime Bridge
 The FFI bridge provides `xiom_alloc`, `xiom_free_ptr`, `xiom_write_byte`, `xiom_read_byte`, `xiom_str_to_cstr`, `xiom_free_cstr`, and `xiom_copy_from_vec`. Link with:
 ```bash
-xiomc ... --c-source ../runtime/ffi_bridge.c -l curl
+xiom ... --c-source ../runtime/ffi_bridge.c -l curl
 ```
 
 ## Build Command Example
 ```bash
 # Windows
-xiomc http.xi src/types.xi src/parser.xi ../runtime/ffi_bridge.c -l curl -o http_client.exe
+xiom http.xi src/types.xi src/parser.xi ../runtime/ffi_bridge.c -l curl -o http_client.exe
 
 # Linux/macOS
-xiomc http.xi src/types.xi src/parser.xi ../runtime/ffi_bridge.c -l curl -o http_client
+xiom http.xi src/types.xi src/parser.xi ../runtime/ffi_bridge.c -l curl -o http_client
 ```
 
 ## Compilation Status

@@ -8,7 +8,7 @@
 //
 // Real C bridge will be linked after xiom.ffi matures.
 // Compile (when bridge ready):
-//   xiomc --link opengl32 opengl.xi glad.c opengl_bridge.c
+//   xiom --link opengl32 opengl.xi glad.c opengl_bridge.c
 
 module xiom.opengl
 

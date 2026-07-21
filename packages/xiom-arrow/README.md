@@ -11,7 +11,7 @@ use xiom.arrow;
 ## Building
 
 ```powershell
-xiomc --release arrow.xi -o arrow.exe
+xiom --release arrow.xi -o arrow.exe
 ```
 
 ## Dependencies

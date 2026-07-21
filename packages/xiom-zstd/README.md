@@ -11,7 +11,7 @@ use xiom.zstd;
 ## Building
 
 ```powershell
-xiomc --release zstd.xi -o zstd.exe
+xiom --release zstd.xi -o zstd.exe
 ```
 
 ## Dependencies

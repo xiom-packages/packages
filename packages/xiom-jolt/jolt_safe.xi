@@ -29,7 +29,7 @@ pub type Quat = {
 }
 
 // ============================================================================
-// Local constants (cross-module const not resolved by xiomc v0.46.0)
+// Local constants (cross-module const not resolved by xiom v0.46.0)
 // ============================================================================
 pub const MOTION_STATIC: Int = 0;
 pub const MOTION_KINEMATIC: Int = 1;

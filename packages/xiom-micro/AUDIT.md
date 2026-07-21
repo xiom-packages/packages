@@ -1,7 +1,7 @@
 # AUDIT.md — xiom-micro
 
 ## Compiler Compatibility
-- **Compiler version:** xiomc v0.11.0 (XIOM v0.45.3)
+- **Compiler version:** xiom v0.11.0 (XIOM v0.45.3)
 - **Status:** Docs-only / design stage. No `.xi` source files to compile.
 
 ## Files

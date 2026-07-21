@@ -11,7 +11,7 @@ use xiom.miniaudio;
 ## Building
 
 ```powershell
-xiomc --release miniaudio.xi -o miniaudio.exe
+xiom --release miniaudio.xi -o miniaudio.exe
 ```
 
 ## Dependencies

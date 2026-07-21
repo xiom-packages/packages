@@ -44,14 +44,14 @@ The joltc library (amerkoleci/joltc) wraps JoltPhysics in a C ABI:
    ```
    xiom ffigen packages/xiom-jolt/jolt.xiom-bind > packages/xiom-jolt/jolt_extern.xi
    ```
-4. Compile with `xiomc --link joltc`.
+4. Compile with `xiom --link joltc`.
 
 Alternatively, a custom C bridge could be written that wraps Jolt's C++ directly,
 following the pattern used by `xiom-vulkan/bridge/xiom_vk_bridge.c`.
 
 ## Compiler Gaps Affecting This Package
 
-All previously reported gaps (GAP-1 through GAP-14) are closed as of xiomc v0.33.0.
+All previously reported gaps (GAP-1 through GAP-14) are closed as of xiom v0.33.0.
 This package should compile once the C bridge binary is available.
 
 | Gap | Relevance | Status |

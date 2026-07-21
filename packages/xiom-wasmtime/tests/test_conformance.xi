@@ -9,7 +9,7 @@
 // All FFI calls are stubs returning Err until the C bridge is linked.
 // Tests verify stub behavior (no crash) and contract presence.
 //
-// Compile: xiomc wasmtime.xi tests/test_conformance.xi
+// Compile: xiom wasmtime.xi tests/test_conformance.xi
 
 module wasmtime_conformance
 use xiom.io;

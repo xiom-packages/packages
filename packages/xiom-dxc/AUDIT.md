@@ -7,7 +7,7 @@
 | DirectX Shader Compiler (DXC) | dxcompiler.dll / libdxcompiler.so | HLSL compiler library (COM-based) |
 | Vulkan SDK | 1.4.350.0 | Ships DXC headers (dxcapi.h, WinAdapter.h) |
 | clang/LLVM | >= 14 (C++ required) | C++ bridge compilation (dxc_bridge.c) |
-| xiomc | v0.46.0 | XIOM compiler |
+| xiom | v0.46.0 | XIOM compiler |
 | xiom-std | 0.1.0 | Standard library runtime |
 
 ## DXC Header Location
@@ -76,7 +76,7 @@ The remaining ~100+ methods are COM vtable dispatch across **24 COM interfaces**
 **Symptom:** Passing a local to an extern function and then reading it afterward triggers "use of moved value"
 **Count:** 6 in dxc.xi, 30 in dxc_safe.xi, 7 in demo_dxc.xi = **43 total**
 **Status:** Non-fatal — `{"status":"ok"}` with codegen succeeding. Same behaviour as xiom-vma (29 E001 warnings).
-**Resolution:** No workaround needed. Non-fatal per xiomc v0.46 behaviour.
+**Resolution:** No workaround needed. Non-fatal per xiom v0.46 behaviour.
 
 ### G008 — `null` literal has type `Ptr` but cannot be cast to typed pointer
 **Severity:** Low (no impact on these bindings)
@@ -235,7 +235,7 @@ winget install LLVM.LLVM
 clang++ -c dxc_bridge.c -I"%VULKAN_SDK%\Include\dxc" -o dxc_bridge.o
 
 # 4. Compile XIOM
-xiomc --diagnostics=json dxc.xi src\dxc_safe.xi examples\demo_dxc.xi
+xiom --diagnostics=json dxc.xi src\dxc_safe.xi examples\demo_dxc.xi
 ```
 
 ### Linux
@@ -248,7 +248,7 @@ xiomc --diagnostics=json dxc.xi src\dxc_safe.xi examples\demo_dxc.xi
 clang++ -c dxc_bridge.c -I/usr/include/dxc -o dxc_bridge.o
 
 # Compile
-xiomc --diagnostics=json dxc.xi src/dxc_safe.xi examples/demo_dxc.xi
+xiom --diagnostics=json dxc.xi src/dxc_safe.xi examples/demo_dxc.xi
 ```
 
 ### Build Pipeline
@@ -259,7 +259,7 @@ xiomc --diagnostics=json dxc.xi src/dxc_safe.xi examples/demo_dxc.xi
    → dxc_bridge.o (165 function symbols, resolves CLSID/IID + COM dispatch)
 
 2. XIOM compilation + link
-   xiomc dxc.xi src/dxc_safe.xi examples/demo_dxc.xi
+   xiom dxc.xi src/dxc_safe.xi examples/demo_dxc.xi
    → links dxc_bridge.o + dxcompiler.lib/libdxcompiler.so
    → final executable
 
@@ -269,7 +269,7 @@ xiomc --diagnostics=json dxc.xi src/dxc_safe.xi examples/demo_dxc.xi
 
 ## Compile Status — v0.46.0 (2026-07-17)
 
-All three files compile together with xiomc v0.46.0: **`{"status":"ok"}`**
+All three files compile together with xiom v0.46.0: **`{"status":"ok"}`**
 
 | File | Lines | Status | Contents |
 |------|-------|--------|----------|
@@ -285,7 +285,7 @@ All three files compile together with xiomc v0.46.0: **`{"status":"ok"}`**
 
 | Metric | Value |
 |--------|-------|
-| Compiler version | xiomc v0.46.0 |
+| Compiler version | xiom v0.46.0 |
 | Build status | `{"status":"ok"}` |
 | T001 type errors | 0 |
 | L001 lifetime errors | 0 |

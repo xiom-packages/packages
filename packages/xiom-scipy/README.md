@@ -11,7 +11,7 @@ use xiom.scipy;
 ## Building
 
 ```powershell
-xiomc --release scipy.xi -o scipy.exe
+xiom --release scipy.xi -o scipy.exe
 ```
 
 ## Dependencies

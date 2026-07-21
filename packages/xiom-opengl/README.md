@@ -11,7 +11,7 @@ use xiom.opengl;
 ## Building
 
 ```powershell
-xiomc --release opengl.xi -o opengl.exe
+xiom --release opengl.xi -o opengl.exe
 ```
 
 ## Dependencies

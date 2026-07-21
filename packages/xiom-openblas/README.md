@@ -11,7 +11,7 @@ use xiom.openblas;
 ## Building
 
 ```powershell
-xiomc --release openblas.xi -o openblas.exe
+xiom --release openblas.xi -o openblas.exe
 ```
 
 ## Dependencies

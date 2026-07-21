@@ -6,7 +6,7 @@
 // public API surface: 43 constants, 7 struct types, 65 public functions
 // across xiom.vma and xiom.vma.safe.
 //
-// Compile: xiomc vma.xi src/vma_safe.xi tests/test_conformance.xi
+// Compile: xiom vma.xi src/vma_safe.xi tests/test_conformance.xi
 
 module xiom.vma.test_conformance
 

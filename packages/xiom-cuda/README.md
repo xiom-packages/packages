@@ -11,7 +11,7 @@ use xiom.cuda;
 ## Building
 
 ```powershell
-xiomc --release cuda.xi -o cuda.exe
+xiom --release cuda.xi -o cuda.exe
 ```
 
 ## Dependencies

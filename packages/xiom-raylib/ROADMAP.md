@@ -9,7 +9,7 @@
 
 ## v0.2.0 — C Bridge Layer
 - [ ] Implement `raylib_bridge.c` — thin C wrapper linking raylib symbols
-- [ ] Build system integration (CMake/Meson) for `xiomc` + raylib
+- [ ] Build system integration (CMake/Meson) for `xiom` + raylib
 - [ ] Replace raw FFI stubs with bridge function calls
 - [ ] Enable runtime FFI tests to validate actual raylib linking
 - [ ] Add `GetScreenWidth()` / `GetScreenHeight()` wrappers

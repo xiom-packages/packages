@@ -11,7 +11,7 @@ use xiom.moveit;
 ## Building
 
 ```powershell
-xiomc --release moveit.xi -o moveit.exe
+xiom --release moveit.xi -o moveit.exe
 ```
 
 ## Dependencies

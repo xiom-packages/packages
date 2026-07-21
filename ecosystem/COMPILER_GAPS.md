@@ -4,7 +4,7 @@
 > GAP-1 through GAP-14: **ALL CLOSED** — regression tests in `feature_regression_tests.rs`.
 > Vulkan FFI probes (G1-G7 from packages/xiom-vulkan): **ALL CLOSED** — tests in `regress_5c_e_*`.
 >
-> ## Current status (xiomc v0.48.0, 495+ tests, zero warnings)
+> ## Current status (xiom v0.48.0, 495+ tests, zero warnings)
 > 
 > ### Remaining issues (NOT compiler gaps — codegen behavior):
 > 
@@ -12,7 +12,7 @@
 > |----|---------|--------|------------|
 > | CG-01 | Float32/Float64 Vec element reads return garbage | ⚠️ Reproduced | Use scalar Float32 FFI only. Float arrays must route through C-side staging |
 > | CG-02 | E001 "use of moved value" on Float64 in math.sin() calls | ⚠️ Cosmetic | Use separate `now()` bindings for each call |
-> | CG-03 | Multi-module catalog doesn't resolve `use xiom.vulkan` from single file | ⚠️ Works via merge | Pass all .xi files on xiomc command line |
+> | CG-03 | Multi-module catalog doesn't resolve `use xiom.vulkan` from single file | ⚠️ Works via merge | Pass all .xi files on xiom command line |
 > 
 > ### True compiler gaps found during xiom-vulkan production audit:
 > 
@@ -61,11 +61,11 @@
 # XIOM Compiler Gaps — Driven by the Production Ecosystem (v0.11.0)
 
 > **Purpose.** `ecosystem/` is production XIOM written to `docs/AI_CONTEXT.md`. It is the
-> **fixed reference**. This file lists cases where **`xiomc v0.11.0` rejects code that the
+> **fixed reference**. This file lists cases where **`xiom v0.11.0` rejects code that the
 > spec says is valid** — features to add/fix in the compiler. **No ecosystem code is changed
 > to work around these.** Companion: `ECOSYSTEM_SYNTAX_ERRORS.md` (genuine AI code bugs).
 >
-> **Method.** Every `ecosystem/**/*.xi` compiled with `xiomc --diagnostics=json <file>`.
+> **Method.** Every `ecosystem/**/*.xi` compiled with `xiom --diagnostics=json <file>`.
 > Each gap below has a **verified minimal repro** (tested in isolation) and a spec citation.
 >
 > **Compiler diagnostic behavior discovered:** `T001` type errors are **non-fatal** — the
@@ -210,7 +210,7 @@
 ## Methodology (NOT bugs): single-file compile & cross-module `use`
 32 files fail only with `C001: unknown type 'X'` where `X` (e.g. `Vector`, `CoreConfig`,
 `VectorId`, `Neighbor`, `Engine`) is defined in a **sibling module** referenced via `use`.
-Compiling each file individually cannot resolve sibling exports. `xiomc --help` shows a single
+Compiling each file individually cannot resolve sibling exports. `xiom --help` shows a single
 `<source.xi>` entry; AI_CONTEXT.md §multi-file (L2404-2503) describes dotted `module`/`use`
 resolution.
 - **Open question for Track A:** what is the canonical whole-package / multi-file build entry?

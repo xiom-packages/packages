@@ -10,7 +10,7 @@
 // All FFI-dependent functions return Err or stub values until the native
 // libtensorflow bridge is linked at compile time.
 //
-// Compile: xiomc tensorflow.xi tests/test_conformance.xi
+// Compile: xiom tensorflow.xi tests/test_conformance.xi
 
 module tf_conformance
 use xiom.tensorflow as tf;

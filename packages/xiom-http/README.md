@@ -38,7 +38,7 @@ xiom install xiom-http
 | **Fedora** | `sudo dnf install libcurl-devel` |
 | **macOS** | `brew install curl` |
 
-Link: `xiomc -l curl myprogram.xi`
+Link: `xiom -l curl myprogram.xi`
 
 The message parser, URL handler, and cookie parser are **pure XIOM** and need no dependencies.
 
@@ -169,7 +169,7 @@ Every public function is guarded:
 
 ```bash
 # Compile with FFI bridge and libcurl
-xiomc myprogram.xi ../runtime/ffi_bridge.c -l curl -o myprogram.exe
+xiom myprogram.xi ../runtime/ffi_bridge.c -l curl -o myprogram.exe
 ./myprogram.exe
 ```
 

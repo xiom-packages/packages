@@ -6,7 +6,7 @@
 // the full public API surface: 3 types, 18 public functions,
 // 31 contracts (25 requires + 6 ensures) across all 18 functions.
 //
-// Compile: xiomc --link bullet bullet.xi tests/test_conformance.xi
+// Compile: xiom --link bullet bullet.xi tests/test_conformance.xi
 
 module bullet_conformance
 use xiom.io;

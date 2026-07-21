@@ -8,7 +8,7 @@
 - [x] tests/test_conformance.xi — 47 conformance tests (compile-time and runtime)
 
 ## Next Steps
-- [ ] Build C bridge library (`libgz_bridge`) for xiomc FFI ABI compatibility
+- [ ] Build C bridge library (`libgz_bridge`) for xiom FFI ABI compatibility
 - [ ] Add SDF file loading (`gz_world_load_sdf`)
 - [ ] Add plugin support (`gz_world_attach_plugin`, `gz_world_detach_plugin`)
 - [ ] Add joint position/velocity getters

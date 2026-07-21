@@ -102,7 +102,7 @@ Server-side lifecycle wrappers with config support.
 
 ## Build & Link
 ```
-xiomc grpc.xi src/types.xi src/client.xi src/server.xi
+xiom grpc.xi src/types.xi src/client.xi src/server.xi
 ```
 Runtime requires gRPC C Core: `-l grpc -l gpr -l protobuf`
 

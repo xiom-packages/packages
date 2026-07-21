@@ -11,7 +11,7 @@ use xiom.pandas;
 ## Building
 
 ```powershell
-xiomc --release pandas.xi -o pandas.exe
+xiom --release pandas.xi -o pandas.exe
 ```
 
 ## Dependencies

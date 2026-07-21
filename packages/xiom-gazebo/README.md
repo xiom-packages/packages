@@ -11,7 +11,7 @@ use xiom.gazebo;
 ## Building
 
 ```powershell
-xiomc --release gazebo.xi -o gazebo.exe
+xiom --release gazebo.xi -o gazebo.exe
 ```
 
 ## Dependencies

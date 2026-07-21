@@ -9,7 +9,7 @@
 // int → Int32, float → Float32, C bool → Int32 (0=false, non-zero=true),
 // Uint8 → Int32 (0-255), Sint16 → Int32, char* → Int.
 //
-// Hex literals are supported by xiomc v0.46.0+.
+// Hex literals are supported by xiom v0.46.0+.
 // Naming follows the C API verbatim.
 
 module xiom.sdl3

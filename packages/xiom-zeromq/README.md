@@ -11,7 +11,7 @@ use xiom.zeromq;
 ## Building
 
 ```powershell
-xiomc --release zeromq.xi -o zeromq.exe
+xiom --release zeromq.xi -o zeromq.exe
 ```
 
 ## Dependencies

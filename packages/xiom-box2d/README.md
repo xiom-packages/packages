@@ -11,7 +11,7 @@ use xiom.box2d;
 ## Building
 
 ```powershell
-xiomc --release box2d.xi -o box2d.exe
+xiom --release box2d.xi -o box2d.exe
 ```
 
 ## Dependencies

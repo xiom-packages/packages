@@ -150,9 +150,9 @@ guaranteed to be destroyed in the correct relative order.
 | Vulkan SDK | >= 1.3 | `vulkan-1.dll` / `libvulkan.so` + headers + `glslc` |
 | GLFW | >= 3.4 | Windowing, input, surface creation |
 | clang/LLVM | recent | Compiles the C bridge |
-| Rust + xiomc | — | XIOM compiler (built from repo via `cargo run -p xiomc`) |
+| Rust + xiom | — | XIOM compiler (built from repo via `cargo run -p xiom`) |
 
-**Link flags** (passed via xiomc `--link`):
+**Link flags** (passed via xiom `--link`):
 - `vulkan-1` (Windows) / `vulkan` (Linux)
 - `glfw3`
 
@@ -176,14 +176,14 @@ guaranteed to be destroyed in the correct relative order.
                 │
           xiom_vk_bridge.obj / .o
                 │
-    xiomc --c-source bridge/xiom_vk_bridge.obj \
+    xiom --c-source bridge/xiom_vk_bridge.obj \
           --link vulkan-1 --link glfw3          \
           --link-path <vk_lib> --link-path <glfw_lib>
                 │
           demo_2d.exe / demo_3d.exe / demo_particles.exe / demo_shapes.exe / demo_cubes.exe
 ```
 
-### xiomc flags used
+### xiom flags used
 
 | Flag | Purpose |
 |------|---------|

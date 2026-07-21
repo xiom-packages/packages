@@ -1,7 +1,7 @@
 # Box2D FFI Binding Audit
 
 **Date:** 2026-07-17  
-**Target Compiler:** xiomc v0.46.0 "Production" (101/101 e2e, deterministic builds)  
+**Target Compiler:** xiom v0.46.0 "Production" (101/101 e2e, deterministic builds)  
 **Binding:** `packages/xiom-box2d/`  
 **Target:** Box2D v4.x C API (`box2d.dll` / `libbox2d.so`)  
 **API Coverage:** 100% — all B2_API functions declared, all POD structs defined  
@@ -13,7 +13,7 @@
 
 Box2D uses a **pure C API** — no C++ classes, no vtables, no inheritance. All objects are POD structs passed by value with handle-based IDs (`b2WorldId`, `b2BodyId`, etc.). The API surface comprises ~300 exported functions across 7 header files.
 
-With xiomc v0.46.0, struct-by-value FFI and fixed-size inline arrays in structs are expected to be supported (confirmed by `xiomc --version` showing production readiness). A **C bridge library is no longer required** for the v0.46 target — `box2d.xi` can bind directly to `box2d.dll`.
+With xiom v0.46.0, struct-by-value FFI and fixed-size inline arrays in structs are expected to be supported (confirmed by `xiom --version` showing production readiness). A **C bridge library is no longer required** for the v0.46 target — `box2d.xi` can bind directly to `box2d.dll`.
 
 **Remaining gaps** below are callback-related only — none affect core physics simulation.
 
@@ -177,7 +177,7 @@ To validate the binding with v0.46:
 3. **Fixed-array access**: Access `polygon.vertices[0]` and verify correct field offset
 4. **Bool field offset**: Verify `bodyDef.isAwake` is at correct offset in the struct
 5. **Handle lifecycle**: Create world → create body → destroy body → destroy world (no leaks)
-6. **All 12 demo tests pass**: Run `xiomc` on `demo_box2d.xi`
+6. **All 12 demo tests pass**: Run `xiom` on `demo_box2d.xi`
 
 ---
 

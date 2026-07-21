@@ -11,7 +11,7 @@ use xiom.dxc;
 ## Building
 
 ```powershell
-xiomc --release dxc.xi -o dxc.exe
+xiom --release dxc.xi -o dxc.exe
 ```
 
 ## Dependencies

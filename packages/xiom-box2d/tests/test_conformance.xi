@@ -10,7 +10,7 @@
 //   - ~300 extern "C" FFI declarations in box2d.xi
 //   - ~50 public types and ~35 public constants
 //
-// Compile: xiomc box2d.xi box2d_safe.xi tests/test_conformance.xi
+// Compile: xiom box2d.xi box2d_safe.xi tests/test_conformance.xi
 
 module box2d_conformance
 
