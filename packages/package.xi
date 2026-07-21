@@ -13,7 +13,6 @@ package xiom_ecosystem {
   packages: [
     "xiom-core",
     "xiom-http",
-    "xiom-crypto",
     "xiom-sql",
     "xiom-vulkan",
     "xiom-glfw",
@@ -43,7 +42,6 @@ package xiom_ecosystem {
     "xiom-phonon",
     "xiom-control",
     "xiom-sensor",
-    "xiom-bench",
     "xiom-log",
     "xiom-kafka",
     "xiom-rest",
