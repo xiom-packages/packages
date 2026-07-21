@@ -14,7 +14,9 @@ pub fn onnx_tensor_from_vec(data: &Vec[Float32], shape: &Vec[Int]) -> OnnxTensor
   };
 }
 
-pub fn onnx_tensor_to_vec(t: &OnnxTensor) -> Vec[Float32] {
+pub fn onnx_tensor_to_vec(t: &OnnxTensor) -> Vec[Float32]
+  requires: t.data.len() > 0
+{
   return copy_vec_float32(&t.data);
 }
 
@@ -94,7 +96,9 @@ pub fn onnx_tensor_zeros(name: Str, shape: &Vec[Int]) -> OnnxTensor
   };
 }
 
-pub fn onnx_tensor_get_name(t: &OnnxTensor) -> Str {
+pub fn onnx_tensor_get_name(t: &OnnxTensor) -> Str
+  requires: t.name.len() > 0
+{
   return t.name;
 }
 

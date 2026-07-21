@@ -20,6 +20,7 @@ The foundation every other phase builds on. Complete and usable today.
 - ✅ In-memory storage: `Page`, `Pager` (alloc/read), `BufferPool` (cache + stats), FNV-1a checksum.
 - ✅ In-memory WAL: `WalRecord`, `WalWriter` (append + LSN assignment), readers, checkpoint, post-checkpoint recovery scan.
 - ✅ In-memory transactions: state machine, `TxnManager`, read `Snapshot`.
+- ✅ Conformance test suite (`tests/test_conformance.xi`) covering all 105 public functions across 21 modules with 152 test functions, each guarded by a `requires:` contract — 30 non-trivial contracts exercising invariants (page size validity via `is_valid_page_size`/`is_power_of_two`, LSN monotonic ordering via `is_valid_lsn_ordering`, checkpoint truncation safety, snapshot visibility, config validation).
 
 **Status: complete.** All data structures and contracts are real; only the disk/FFI boundary is stubbed.
 

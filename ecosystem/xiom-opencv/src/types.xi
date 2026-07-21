@@ -108,7 +108,10 @@ pub fn image_size(img: &Image) -> Size2i {
   return Size2i{ w: img.width, h: img.height };
 }
 
-pub fn rect_new(x: Int, y: Int, w: Int, h: Int) -> Rect {
+pub fn rect_new(x: Int, y: Int, w: Int, h: Int) -> Rect
+  requires: w >= 0
+  requires: h >= 0
+{
   return Rect{ x: x, y: y, w: w, h: h };
 }
 
@@ -116,6 +119,9 @@ pub fn point2i_new(x: Int, y: Int) -> Point2i {
   return Point2i{ x: x, y: y };
 }
 
-pub fn size2i_new(w: Int, h: Int) -> Size2i {
+pub fn size2i_new(w: Int, h: Int) -> Size2i
+  requires: w >= 0
+  requires: h >= 0
+{
   return Size2i{ w: w, h: h };
 }

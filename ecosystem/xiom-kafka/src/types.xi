@@ -32,6 +32,8 @@ pub type KafkaError = {
   is_retryable: Bool;
 }
 
-fn kafka_config_new(brokers: Str) -> KafkaConfig {
+fn kafka_config_new(brokers: Str) -> KafkaConfig
+  requires: brokers.len() > 0
+{
   KafkaConfig { brokers: brokers; client_id: "xiom-kafka"; group_id: "" }
 }

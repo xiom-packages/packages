@@ -30,12 +30,19 @@ fn color_space_to_int(cs: ColorSpace) -> Int {
   }
 }
 
-pub fn cv_imread(path: Str) -> Result[Image, Str] {
+pub fn cv_imread(path: Str) -> Result[Image, Str]
+  requires: path.len() > 0
+{
   var img = image_new(1, 1, 3);
   return Ok(img);
 }
 
-pub fn cv_imwrite(path: Str, img: &Image) -> Result[Bool, Str] {
+pub fn cv_imwrite(path: Str, img: &Image) -> Result[Bool, Str]
+  requires: path.len() > 0
+  requires: img.width > 0
+  requires: img.height > 0
+  requires: img.channels > 0
+{
   return Ok(true);
 }
 
@@ -47,7 +54,9 @@ pub fn cv_resize(img: &Image, w: Int, h: Int) -> Result[Image, Str]
   return Ok(out);
 }
 
-pub fn cv_cvt_color(img: &Image, from: ColorSpace, to: ColorSpace) -> Result[Image, Str] {
+pub fn cv_cvt_color(img: &Image, from: ColorSpace, to: ColorSpace) -> Result[Image, Str]
+  requires: img.channels > 0
+{
   if from == to {
     return Ok(Image{
       data: copy_vec_int(&img.data),

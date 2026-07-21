@@ -11,7 +11,9 @@ extern "C" {
   fn ort_c_free(ptr: *UInt8);
 }
 
-pub fn onnx_load_model(path: Str, config: &OnnxConfig) -> Result[OnnxModel, Str] {
+pub fn onnx_load_model(path: Str, config: &OnnxConfig) -> Result[OnnxModel, Str]
+  requires: path.len() > 0
+{
   var model = OnnxModel{
     path: path,
     session: 0,
@@ -21,7 +23,9 @@ pub fn onnx_load_model(path: Str, config: &OnnxConfig) -> Result[OnnxModel, Str]
   return Ok(model);
 }
 
-pub fn onnx_run(model: &OnnxModel, inputs: &Vec[OnnxTensor]) -> Result[Vec[OnnxTensor], Str] {
+pub fn onnx_run(model: &OnnxModel, inputs: &Vec[OnnxTensor]) -> Result[Vec[OnnxTensor], Str]
+  requires: inputs.len() > 0
+{
   var outputs = Vec[OnnxTensor].new();
   return Ok(outputs);
 }
