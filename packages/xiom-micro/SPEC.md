@@ -1,6 +1,6 @@
 # xiom-micro — Specification
 
-> **Status: Planned / not implemented.** This document specifies the intended module layout and conceptual API surface of `xiom-micro`. No `.xi` source files exist yet; only the manifest and documentation are present at the design stage.
+> **Status: v0.1.0 — Implemented.** Core microservice framework types, router, route registration, request/response builders, middleware chain, and app builder are implemented in `micro.xi`. See `ROADMAP.md` for planned features.
 
 ## Overview
 

@@ -1,6 +1,6 @@
 # xiom-websocket — WebSocket Transport Specification
 
-> **Status: Planned / not implemented.** This document specifies the intended module layout, responsibilities, and conceptual API surface for `xiom-websocket`. No `.xi` source files exist yet; contents describe design intent.
+> **Status: v0.1.0 — Implemented.** Core types (WsOpcode, WsConnection, WsFrame, WsMessage), extern "C" FFI blocks for socket/handshake/frame operations, frame encode/decode stubs, connection lifecycle, handshake validation, server management, channel subscriptions, close codes, and heartbeat utilities are implemented in `websocket.xi`. See `ROADMAP.md` for planned features.
 
 ## Overview
 
