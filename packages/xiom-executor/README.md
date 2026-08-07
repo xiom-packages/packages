@@ -1,6 +1,13 @@
-﻿# xiom-executor (PLACEHOLDER)
+# xiom-executor
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Task execution engine with futures and continuation support.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-executor package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `executor/executor` | Task submission and execution policies |
+| `executor/future` | Async result handles and continuations |
+| `executor/task` | Task metadata and scheduling hints |

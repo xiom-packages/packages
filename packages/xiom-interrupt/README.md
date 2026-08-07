@@ -1,6 +1,14 @@
-﻿# xiom-interrupt (PLACEHOLDER)
+# xiom-interrupt
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Interrupt registration, priority, and dispatch for external and peripheral sources.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-interrupt package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `handler` | ISR registration and dispatch. |
+| `priority` | Priority and preemption configuration. |
+| `enable` | Interrupt enable/disable. |
+| `defer` | Deferred work scheduling. |

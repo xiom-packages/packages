@@ -1,6 +1,14 @@
-﻿# xiom-template (PLACEHOLDER)
+# xiom-template
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** String templating and variable substitution.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-template package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `template` | Template rendering engine |
+| `syntax` | Template syntax parser |
+| `context` | Template variable context |
+| `filters` | Built-in value filters |

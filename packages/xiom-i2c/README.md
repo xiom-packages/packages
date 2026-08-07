@@ -1,6 +1,14 @@
-﻿# xiom-i2c (PLACEHOLDER)
+# xiom-i2c
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** I2C bus master/slave communication with addressing and clock control.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-i2c package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `bus` | I2C bus master transaction handling. |
+| `device` | Addressed device read/write. |
+| `slave` | Slave-mode address response. |
+| `speed` | Clock frequency configuration. |

@@ -1,38 +1,16 @@
 # xiom-scipy
 
-SciPy &mdash; scientific computing library. Provides algorithms: optimization, integration, interpolation, signal processing, statistics, sparse matrices.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** SciPy-style scientific computing routines.
+> **Deps:** stdlib; may wrap C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.scipy;
-```
-
-## Building
-
-```powershell
-xiom --release scipy.xi -o scipy.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- `xiom.math` (for pure-XIOM stats)
-- `xiom-numpy` (future)
-- `xiom-openblas` (future)
-- System-installed C/Fortran libraries per module
-
-## Package Structure
-
-```
-├── scipy.xi             # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `stats` | Statistical distributions and tests. |
+| `linalg` | Advanced linear algebra. |
+| `optimize` | Root finding and minimization. |
+| `sparse` | Sparse matrix representations. |
+| `special` | Special mathematical functions. |
+| `integrate` | Numerical integration. |

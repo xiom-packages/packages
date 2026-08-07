@@ -1,6 +1,14 @@
-﻿# xiom-collation (PLACEHOLDER)
+# xiom-collation
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Locale-aware string comparison and sorting according to Unicode collation rules.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-collation package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `collator` | Create locale-aware collation instances with strength options. |
+| `collate_sort` | Sort sequences of strings using an active collation. |
+| `collate_search` | Key-based search and range queries over collated text. |
+| `collate_keys` | Generate sortable collation keys from strings. |

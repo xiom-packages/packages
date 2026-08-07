@@ -1,6 +1,14 @@
-﻿# xiom-codec (PLACEHOLDER)
+# xiom-codec
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Shared codec abstractions and low-level bitstream utilities for all media packages.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-codec package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `codec` | Common codec trait and capability interface |
+| `bitstream` | Bit-level reader and writer primitives |
+| `crc` | CRC checksums shared across codecs |
+| `fuzz` | Decoder fuzzing and corruption helpers |

@@ -1,6 +1,14 @@
-﻿# xiom-l10n-date (PLACEHOLDER)
+# xiom-l10n-date
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Locale-aware calendar date formatting, parsing, and calendar system conversion.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-l10n-date package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `date_format` | Format dates using locale-specific date patterns. |
+| `date_parse` | Parse localized date strings back into date values. |
+| `calendar_systems` | Support for non-Gregorian calendar systems. |
+| `date_patterns` | Predefined and custom date pattern handling. |

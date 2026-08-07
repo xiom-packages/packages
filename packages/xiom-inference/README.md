@@ -1,6 +1,15 @@
-﻿# xiom-inference (PLACEHOLDER)
+# xiom-inference
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Model inference execution and batch prediction.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-inference package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `inference` | Optimized forward execution path. |
+| `predict` | High-level prediction API. |
+| `batch` | Batched and streaming inference. |
+| `export` | Model export to exchange formats. |
+| `quantize` | Integer and float quantization. |

@@ -1,6 +1,15 @@
-﻿# xiom-microscopy (PLACEHOLDER)
+# xiom-microscopy
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Microscopy imaging parameters and calibration.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-microscopy package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `optics` | Objective and condenser optical properties |
+| `magnification` | Magnification and field-of-view math |
+| `focus` | Depth of field and focus stacking |
+| `contrast` | Contrast enhancement techniques |
+| `calibration` | Scale calibration and pixel sizing |

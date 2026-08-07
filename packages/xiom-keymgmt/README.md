@@ -1,6 +1,14 @@
-﻿# xiom-keymgmt (PLACEHOLDER)
+# xiom-keymgmt
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Cryptographic key lifecycle management and rotation.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-keymgmt package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `gen` | Secure key generation |
+| `store` | Key storage and retrieval |
+| `rotate` | Key rotation and versioning |
+| `import_export` | Key import/export in standard formats |

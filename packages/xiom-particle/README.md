@@ -1,6 +1,15 @@
-﻿# xiom-particle (PLACEHOLDER)
+# xiom-particle
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Particle physics: the standard model and interactions.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-particle package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `particles` | Standard model particle catalog |
+| `decays` | Decay channel and branching ratio |
+| `scattering` | Scattering kinematics |
+| `fields` | Field and gauge boson properties |
+| `invariants` | Invariant mass and conservation checks |

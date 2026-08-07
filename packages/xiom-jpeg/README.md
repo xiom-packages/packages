@@ -1,6 +1,14 @@
-﻿# xiom-jpeg (PLACEHOLDER)
+# xiom-jpeg
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** JPEG image codec: baseline and progressive encode/decode with quality control.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-jpeg package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `decode` | Baseline and progressive JPEG decoder |
+| `encode` | JPEG encoder with quality and sampling control |
+| `huffman` | Huffman entropy coding and decoding tables |
+| `dct` | Forward and inverse DCT transforms |

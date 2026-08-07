@@ -1,6 +1,15 @@
-﻿# xiom-timer (PLACEHOLDER)
+# xiom-timer
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Hardware timer/counter services for delays, scheduling, and timing measurement.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-timer package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `delay` | Blocking delay operations. |
+| `oneshot` | One-shot timeout callbacks. |
+| `periodic` | Repeating tick callbacks. |
+| `capture` | Input capture timestamping. |
+| `counter` | Free-running counter access. |

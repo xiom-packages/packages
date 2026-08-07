@@ -1,6 +1,15 @@
-﻿# xiom-quantum (PLACEHOLDER)
+# xiom-quantum
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Quantum mechanical state and operator computations.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-quantum package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `qbit` | Qubit state vector and measurement |
+| `operators` | Hermitian operators and observables |
+| `states` | Superposition and density matrices |
+| `tunneling` | Barrier tunneling probability |
+| `entanglement` | Entangled state analysis |

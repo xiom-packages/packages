@@ -1,6 +1,14 @@
-﻿# xiom-ogg (PLACEHOLDER)
+# xiom-ogg
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** OGG container: page-based multiplexing of audio/video logical streams.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-ogg package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `pages` | OGG page reader and writer |
+| `crc` | Ogg CRC-32 checksums |
+| `streams` | Logical bitstream demultiplexing and multiplexing |
+| `seek` | Page and granule position seeking |

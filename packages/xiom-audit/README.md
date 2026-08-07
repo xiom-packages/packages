@@ -1,6 +1,14 @@
-﻿# xiom-audit (PLACEHOLDER)
+# xiom-audit
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Security audit event logging and tamper-evident trails.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-audit package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `log` | Structured audit event emission |
+| `chain` | Hash-chained tamper-evident log |
+| `query` | Audit trail search and export |
+| `sink` | Pluggable audit storage backends |

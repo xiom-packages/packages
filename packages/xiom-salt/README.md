@@ -1,6 +1,15 @@
-﻿# xiom-salt (PLACEHOLDER)
+# xiom-salt
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Remote execution and configuration management (states, pillars, minions).
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-salt package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `state` | State module enforcement |
+| `pillar` | Pillar data retrieval |
+| `minion` | Minion targeting and execution |
+| `grains` | System fact collection |
+| `event` | Event bus and reactions |

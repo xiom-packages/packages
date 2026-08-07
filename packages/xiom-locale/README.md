@@ -1,6 +1,14 @@
-﻿# xiom-locale (PLACEHOLDER)
+# xiom-locale
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Locale identifiers: BCP-47 parsing, canonicalization, matching, and fallback resolution.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-locale package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `locale_id` | Parse, validate, and canonicalize BCP-47 language tags. |
+| `locale_matcher` | Best-fit locale matching between requested and available locales. |
+| `locale_resolve` | Resolve locale fallback chains with default data. |
+| `locale_registry` | Static registry of known locales and their metadata. |

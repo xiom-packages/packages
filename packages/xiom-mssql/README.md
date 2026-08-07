@@ -1,6 +1,13 @@
-﻿# xiom-mssql (PLACEHOLDER)
+# xiom-mssql
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Microsoft SQL Server client over the TDS protocol.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-mssql package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `mssql` | SQL Server TDS client (connect, query, execute). |
+| `mssql_stmt` | Prepared statements and typed parameters. |
+| `mssql_meta` | Catalog, table, and column metadata access. |

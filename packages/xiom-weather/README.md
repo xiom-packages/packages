@@ -1,6 +1,15 @@
-﻿# xiom-weather (PLACEHOLDER)
+# xiom-weather
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Weather observation and forecasting computations.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-weather package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `atmosphere` | Air pressure, density, and lapse rates |
+| `forecast` | Short-term prediction from observations |
+| `humidity` | Dew point and relative humidity calculations |
+| `wind` | Wind speed, direction, and gust modeling |
+| `fronts` | Weather front classification |

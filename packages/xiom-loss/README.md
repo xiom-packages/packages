@@ -1,6 +1,16 @@
-﻿# xiom-loss (PLACEHOLDER)
+# xiom-loss
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Loss functions for supervised training.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-loss package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `mse` | Mean squared error loss. |
+| `crossentropy` | Categorical cross-entropy loss. |
+| `binaryce` | Binary cross-entropy loss. |
+| `hinge` | Margin-based hinge loss. |
+| `huber` | Robust Huber loss. |
+| `nll` | Negative log-likelihood loss. |

@@ -1,6 +1,14 @@
-﻿# xiom-rtc (PLACEHOLDER)
+# xiom-rtc
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Real-time clock keeping wall-clock time and alarms across power cycles.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-rtc package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `clock` | Date/time get and set. |
+| `alarm` | Alarm scheduling. |
+| `cal` | Calibration and drift correction. |
+| `format` | Time formatting and conversion. |

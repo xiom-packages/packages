@@ -1,6 +1,12 @@
-﻿# xiom-pool (PLACEHOLDER)
+# xiom-pool
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Object pooling for reuse and management of expensive resources.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-pool package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `pool/object` | Generic object pool with borrow and return |
+| `pool/lease` | Leased resource handles with automatic release |

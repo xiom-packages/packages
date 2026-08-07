@@ -1,6 +1,14 @@
-﻿# xiom-l10n-address (PLACEHOLDER)
+# xiom-l10n-address
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Locale-aware postal address formatting, field ordering, and validation templates.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-l10n-address package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `address_format` | Render addresses using per-country field layouts. |
+| `address_fields` | Describe required/optional fields for each country. |
+| `address_validate` | Validate address structure against country templates. |
+| `address_data` | Static country address-format dataset. |

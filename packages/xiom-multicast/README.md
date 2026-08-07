@@ -1,6 +1,15 @@
-﻿# xiom-multicast (PLACEHOLDER)
+# xiom-multicast
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** IP multicast send/receive with group membership management.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-multicast package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `socket` | Multicast socket setup and address binding. |
+| `sender` | Multicast sending with TTL and loop control. |
+| `receiver` | Multicast group join and datagram reception. |
+| `group` | Group membership and interface management. |
+| `igmp` | IGMP membership reporting for routers. |

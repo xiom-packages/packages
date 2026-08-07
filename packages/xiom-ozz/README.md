@@ -1,35 +1,16 @@
 # xiom-ozz
 
-Ozz Animation &mdash; open-source skeletal animation library. Runtime playback and blending.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** Ozz Animation skeleton and clip runtime bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.ozz;
-```
-
-## Building
-
-```powershell
-xiom --release ozz.xi -o ozz.exe
-```
-
-## Dependencies
-
-- Ozz Animation &mdash; system-installed or built from source
-
-## Package Structure
-
-```
-├── ozz.xi               # Main module
-├── src/                 # Source files
-├── examples/            # Usage examples
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── AUDIT.md             # Safety audit report
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `skeleton` | Skeleton hierarchy |
+| `animation` | Animation clips |
+| `sampler` | Clip sampling |
+| `blend` | Animation blending |
+| `mesh` | Skinned mesh data |
+| `player` | Playback controller |

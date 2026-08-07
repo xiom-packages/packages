@@ -1,6 +1,14 @@
-﻿# xiom-transaction (PLACEHOLDER)
+# xiom-transaction
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Transaction construction, signing, and serialization.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-transaction package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `builder` | Transaction construction and validation. |
+| `signer` | Transaction signature logic. |
+| `fee` | Fee estimation and calculation. |
+| `mempool` | Pending transaction pool model. |

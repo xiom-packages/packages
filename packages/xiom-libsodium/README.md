@@ -1,24 +1,14 @@
-# xiom:libsodium — Secure Cryptography
+# xiom-libsodium
 
-libsodium FFI bindings for XIOM. Provides:
-- Secret-key encryption (secretbox)
-- Public-key encryption (box)
-- Digital signatures
-- Generic hashing (BLAKE2b)
-- Password hashing (Argon2)
-- Secure random number generation
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** libsodium FFI bindings for modern crypto primitives.
+> **Deps:** stdlib; may wrap C (FFI).
 
-## Example
+## Libs inventory
 
-```xiom
-use xiom.libsodium;
-
-fn main() -> Int {
-  init()?;
-  let key = random_bytes(SECRETBOX_KEYBYTES);
-  let nonce = random_bytes(SECRETBOX_NONCEBYTES);
-  let encrypted = secretbox_encrypt("hello", key, nonce)?;
-  let decrypted = secretbox_decrypt(encrypted, key, nonce)?;
-  return 0;
-}
-```
+| Lib | Description |
+|-----|-------------|
+| `aead` | Secretbox/box AEAD bindings |
+| `kdf` | Argon2 and key derivation bindings |
+| `sign` | Ed25519 signature bindings |
+| `key` | Key generation and conversion helpers |

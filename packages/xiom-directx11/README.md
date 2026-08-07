@@ -1,35 +1,16 @@
 # xiom-directx11
 
-Direct3D 11 &mdash; Microsoft's graphics API. Part of the DirectX SDK. Windows only.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** DirectX 11 graphics API bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.directx11;
-```
-
-## Building
-
-```powershell
-xiom --release directx11.xi -o directx11.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- DirectX SDK &mdash; Windows system-installed
-
-## Package Structure
-
-```
-├── directx11.xi         # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `device` | Device creation and resources |
+| `context` | Immediate context state |
+| `swapchain` | Present chain management |
+| `shader` | HLSL shader loading |
+| `buffer` | Vertex/index/constant buffers |
+| `texture` | Texture and render target resources |

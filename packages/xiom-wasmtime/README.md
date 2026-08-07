@@ -1,35 +1,16 @@
 # xiom-wasmtime
 
-Wasmtime &mdash; standalone WebAssembly runtime (Bytecode Alliance). Engine, Store, Module compilation, Instance instantiation, function calling.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** WebAssembly runtime host bindings over Wasmtime.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.wasmtime;
-```
-
-## Building
-
-```powershell
-xiom --release wasmtime.xi -o wasmtime.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- Wasmtime &mdash; system-installed or downloaded from Bytecode Alliance
-
-## Package Structure
-
-```
-├── wasmtime.xi          # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `engine` | Global Wasmtime engine configuration |
+| `store` | Per-context store state |
+| `module` | Compiled WebAssembly module |
+| `instance` | Instantiated module with exports |
+| `linker` | Host import resolution |
+| `func` | Host function wrappers |

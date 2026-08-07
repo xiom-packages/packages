@@ -1,6 +1,15 @@
-﻿# xiom-inline-asm (PLACEHOLDER)
+# xiom-inline-asm
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Inline assembly support with operand constraints.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-inline-asm package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `parse` | Inline asm template and operand parsing |
+| `constraints` | Operand constraint classification |
+| `lower` | Asm node lowering into the codegen backend |
+| `targets` | Architecture-specific instruction handling |
+| `regs` | Register allocation hints and clobber lists |

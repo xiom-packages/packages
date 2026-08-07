@@ -1,6 +1,14 @@
-﻿# xiom-chaincore (PLACEHOLDER)
+# xiom-chaincore
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Core blockchain data structures and chain primitives.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-chaincore package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `block` | Block data structure and header layout. |
+| `chain` | Chain organization and block linking. |
+| `header` | Block header fields and validation. |
+| `fork` | Fork selection and reorg handling. |

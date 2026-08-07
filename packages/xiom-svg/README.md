@@ -1,6 +1,14 @@
-﻿# xiom-svg (PLACEHOLDER)
+# xiom-svg
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** SVG parsing and vector rendering to raster images.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-svg package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `parse` | SVG XML parsing into a scene graph |
+| `render` | Vector scene rendering to a pixel buffer |
+| `paths` | Path data parsing and geometry math |
+| `style` | CSS presentation attributes and inheritance |

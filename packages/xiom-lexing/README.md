@@ -1,6 +1,14 @@
-﻿# xiom-lexing (PLACEHOLDER)
+# xiom-lexing
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Lexical analysis and token generation from source text.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-lexing package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `lexer` | Core lexer engine |
+| `token` | Token type definitions |
+| `rules` | Lexical rule specifications |
+| `position` | Source position tracking |

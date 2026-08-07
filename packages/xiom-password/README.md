@@ -1,6 +1,14 @@
-﻿# xiom-password (PLACEHOLDER)
+# xiom-password
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Password hashing, validation, and policy enforcement.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-password package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `hash` | Password hashing (argon2/bcrypt-style) |
+| `verify` | Constant-time password verification |
+| `policy` | Complexity and strength rules |
+| `gen` | Secure random password generation |

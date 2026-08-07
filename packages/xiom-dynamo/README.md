@@ -1,6 +1,12 @@
-﻿# xiom-dynamo (PLACEHOLDER)
+# xiom-dynamo
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Amazon DynamoDB client: tables, items, and queries.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-dynamo package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `dynamo` | DynamoDB API client (tables, CRUD, query, scan). |
+| `dynamo_item` | Attribute-value and item type handling. |

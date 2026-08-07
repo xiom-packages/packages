@@ -1,6 +1,15 @@
-﻿# xiom-biology (PLACEHOLDER)
+# xiom-biology
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Biological modeling: genetics, populations, and ecosystems.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-biology package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `genetics` | Mendelian inheritance and allele calculations |
+| `dna` | Sequence handling and nucleotide statistics |
+| `ecosystems` | Population dynamics and trophic interactions |
+| `phylogeny` | Tree building and evolutionary distance |
+| `cells` | Cell growth and division models |

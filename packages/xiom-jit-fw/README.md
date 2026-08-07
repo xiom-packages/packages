@@ -1,6 +1,15 @@
-﻿# xiom-jit-fw (PLACEHOLDER)
+# xiom-jit-fw
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Framework for just-in-time compilation and execution.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-jit-fw package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `engine` | JIT compilation and execution engine |
+| `exec` | Generated code loading and invocation |
+| `cache` | Compiled artifact caching |
+| `trampoline` | Call-back trampolines and closure adapters |
+| `monitor` | Compilation telemetry and statistics |

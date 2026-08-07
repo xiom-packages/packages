@@ -1,6 +1,15 @@
-﻿# xiom-geology (PLACEHOLDER)
+# xiom-geology
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Earth science: minerals, rock types, and geological processes.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-geology package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `minerals` | Mineral properties and classification |
+| `rocks` | Rock type identification and formation |
+| `strata` | Stratigraphic layering and dating |
+| `plate` | Plate tectonic motion modeling |
+| `sediment` | Sedimentation and erosion processes |

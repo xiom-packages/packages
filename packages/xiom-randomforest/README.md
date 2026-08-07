@@ -1,6 +1,15 @@
-﻿# xiom-randomforest (PLACEHOLDER)
+# xiom-randomforest
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Random forest classification and regression.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-randomforest package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `forest` | Random forest ensemble. |
+| `tree` | Decision tree learner. |
+| `split` | Split finding algorithms. |
+| `criterion` | Split quality criteria. |
+| `importance` | Feature importance estimation. |

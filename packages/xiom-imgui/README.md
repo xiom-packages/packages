@@ -1,37 +1,16 @@
 # xiom-imgui
 
-Dear ImGui v1.92.9 &mdash; immediate-mode GUI library. Widgets, windows, tabs, popups, menus, plots, styling.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** Dear ImGui immediate mode GUI bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.imgui;
-```
-
-## Building
-
-```powershell
-xiom --release imgui.xi -o imgui.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- `xiom-vulkan`
-- `xiom-glfw`
-- Dear ImGui &mdash; bundled or system-installed
-
-## Package Structure
-
-```
-├── imgui.xi             # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `context` | ImGui context lifecycle |
+| `window` | Dockable window management |
+| `widget` | Standard UI widgets |
+| `draw` | Vertex list drawing commands |
+| `input` | Input event routing |
+| `renderer` | Backend renderer integration |

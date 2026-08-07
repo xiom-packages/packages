@@ -1,6 +1,14 @@
-﻿# xiom-escape (PLACEHOLDER)
+# xiom-escape
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Context-aware output escaping to prevent injection attacks.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-escape package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `html` | HTML/attribute escaping |
+| `url` | URL and query string encoding |
+| `js` | JavaScript string escaping |
+| `shell` | Shell command argument escaping |

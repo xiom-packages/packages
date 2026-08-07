@@ -1,6 +1,12 @@
-﻿# xiom-consul (PLACEHOLDER)
+# xiom-consul
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** HashiCorp Consul client: service discovery, KV, and health.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-consul package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `consul` | Consul HTTP API client (service registry, KV store). |
+| `consul_health` | Health checks and service catalog queries. |

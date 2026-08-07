@@ -1,6 +1,14 @@
-﻿# xiom-secret (PLACEHOLDER)
+# xiom-secret
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Secrets handling, redaction, and ephemeral storage.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-secret package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `secret` | Zeroizing secret container |
+| `redact` | Secret redaction in logs and output |
+| `derive` | Key derivation from secrets |
+| `env` | Environment secret loading |

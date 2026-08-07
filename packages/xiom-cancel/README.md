@@ -1,6 +1,12 @@
-﻿# xiom-cancel (PLACEHOLDER)
+# xiom-cancel
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Cooperative cancellation via linked cancellation tokens.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-cancel package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `cancel/token` | Cancellation token creation and linking |
+| `cancel/source` | Cancellation sources and request propagation |

@@ -1,6 +1,14 @@
-﻿# xiom-l10n-unit (PLACEHOLDER)
+# xiom-l10n-unit
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Locale-aware measurement unit formatting, conversion, and singular/plural labeling.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-l10n-unit package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `unit_format` | Format values with locale unit labels and per-unit plurals. |
+| `unit_convert` | Convert between compatible units of measure. |
+| `unit_style` | Long, short, and narrow unit presentation styles. |
+| `unit_registry` | Unit system and conversion-factor metadata. |

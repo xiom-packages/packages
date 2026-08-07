@@ -1,6 +1,14 @@
-﻿# xiom-stemming (PLACEHOLDER)
+# xiom-stemming
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Word stemming across multiple languages.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-stemming package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `stemmer` | Core stemming engine |
+| `porter` | Porter stemmer |
+| `snowball` | Snowball stemmers |
+| `lang` | Language-specific stemmers |

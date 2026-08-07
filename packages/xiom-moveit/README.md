@@ -1,35 +1,16 @@
 # xiom-moveit
 
-MoveIt &mdash; Motion planning framework. System-installed.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** ROS 2 MoveIt motion planning framework bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.moveit;
-```
-
-## Building
-
-```powershell
-xiom --release moveit.xi -o moveit.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- MoveIt2 &mdash; system-installed (ROS 2 package)
-
-## Package Structure
-
-```
-├── moveit.xi            # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `planning` | Motion planning interface |
+| `kinematics` | Kinematic solvers |
+| `trajectory` | Trajectory processing |
+| `collision` | Collision checking |
+| `scene` | Planning scene model |
+| `plan` | Computed motion plans |

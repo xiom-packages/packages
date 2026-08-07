@@ -1,6 +1,14 @@
-﻿# xiom-jwt (PLACEHOLDER)
+# xiom-jwt
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** JSON Web Token creation, verification, and claim validation.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-jwt package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `encode` | JWT signing and serialization |
+| `decode` | JWT parsing and verification |
+| `claims` | Standard claim validation helpers |
+| `algs` | Supported signing algorithms (HS/RS/ES) |

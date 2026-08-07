@@ -1,6 +1,13 @@
-﻿# xiom-coverage (PLACEHOLDER)
+# xiom-coverage
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Code coverage collection and report generation.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-coverage package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `coverage/collect` | Runtime tracking of executed lines and branches |
+| `coverage/summary` | Aggregation into per-file and overall coverage metrics |
+| `coverage/report` | Emits text, JSON, and HTML coverage reports |

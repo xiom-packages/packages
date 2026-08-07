@@ -1,6 +1,15 @@
-﻿# xiom-chef (PLACEHOLDER)
+# xiom-chef
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Configuration management with cookbooks and policy-driven node convergence.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-chef package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `cookbook` | Cookbook packaging and retrieval |
+| `recipe` | Recipe and run-list execution |
+| `node` | Node attribute and state access |
+| `knife` | Server and client administration |
+| `data_bag` | Encrypted shared data storage |

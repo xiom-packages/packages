@@ -1,6 +1,15 @@
-﻿# xiom-docker (PLACEHOLDER)
+# xiom-docker
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Docker container lifecycle management (images, containers, registries, compose).
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-docker package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `image` | Image build and pull operations |
+| `container` | Container create, start, stop |
+| `registry` | Registry login and push/pull |
+| `compose` | Multi-container stack orchestration |
+| `volume` | Volume and network management |

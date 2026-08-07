@@ -1,6 +1,12 @@
-﻿# xiom-exchanger (PLACEHOLDER)
+# xiom-exchanger
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Synchronous rendezvous point for pair-wise data exchange between threads.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-exchanger package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `exchanger/point` | Paired exchange rendezvous point |
+| `exchanger/slot` | Slot reservation for two-party swaps |

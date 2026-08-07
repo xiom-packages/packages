@@ -1,6 +1,15 @@
-﻿# xiom-irc (PLACEHOLDER)
+# xiom-irc
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** IRC client/server for real-time multi-user chat.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-irc package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `irc-client` | IRC client with channel join, send, and receive. |
+| `irc-server` | IRC server managing users, channels, and relays. |
+| `message` | IRC message parsing and formatting. |
+| `channel` | Channel membership and topic handling. |
+| `dcc` | Direct client-to-client file and chat transfers. |

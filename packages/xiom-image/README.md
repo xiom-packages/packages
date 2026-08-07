@@ -1,6 +1,14 @@
-﻿# xiom-image (PLACEHOLDER)
+# xiom-image
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Core image decoding/encoding dispatcher with shared pixel and color handling across formats.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-image package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `decode` | Unified image decode pipeline with format detection |
+| `encode` | Unified image encode pipeline to a target format |
+| `format` | Format sniffing and image metadata extraction |
+| `convert` | Pixel format and color space conversion |

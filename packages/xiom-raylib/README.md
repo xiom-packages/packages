@@ -1,35 +1,16 @@
 # xiom-raylib
 
-Raylib &mdash; simple game framework. System-installed.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** raylib game development library bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.raylib;
-```
-
-## Building
-
-```powershell
-xiom --release raylib.xi -o raylib.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- raylib &mdash; system-installed (`apt install libraylib-dev`)
-
-## Package Structure
-
-```
-├── raylib.xi            # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `window` | Window creation and management |
+| `drawing` | 2D/3D drawing primitives |
+| `texture` | Texture loading and rendering |
+| `model` | 3D model loading and drawing |
+| `audio` | Sound and music playback |
+| `input` | Keyboard, mouse, and gamepad input |

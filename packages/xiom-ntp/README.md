@@ -1,6 +1,15 @@
-﻿# xiom-ntp (PLACEHOLDER)
+# xiom-ntp
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** NTP client/server for network time synchronization.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-ntp package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `ntp-client` | NTP client querying time from servers. |
+| `ntp-server` | NTP server serving time to clients. |
+| `packet` | NTP packet encode/decode of timestamps and fields. |
+| `clock` | Offset/delay computation and local clock discipline. |
+| `stratum` | Stratum and peer hierarchy management. |

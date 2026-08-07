@@ -1,6 +1,16 @@
-﻿# xiom-deep (PLACEHOLDER)
+# xiom-deep
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Deep learning constructs for stacked and modern architectures.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-deep package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `deep` | Deep network assembly helpers. |
+| `resnet` | Residual and skip-connection blocks. |
+| `convnet` | Convolutional network building blocks. |
+| `transformer` | Attention-based transformer blocks. |
+| `recurrent` | RNN, LSTM and GRU cells. |
+| `init` | Architecture-specific initialization. |

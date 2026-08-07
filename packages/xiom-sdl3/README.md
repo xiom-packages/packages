@@ -1,35 +1,16 @@
 # xiom-sdl3
 
-SDL3 &mdash; cross-platform multimedia. System-installed.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** SDL3 cross-platform multimedia bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.sdl3;
-```
-
-## Building
-
-```powershell
-xiom --release sdl3.xi -o sdl3.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- SDL3 &mdash; system-installed
-
-## Package Structure
-
-```
-├── sdl3.xi              # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `video` | Window and renderer management |
+| `event` | Event queue and handling |
+| `input` | Keyboard, mouse, and gamepad input |
+| `audio` | Audio device playback |
+| `render` | GPU and software rendering |
+| `timer` | Timing and delay helpers |

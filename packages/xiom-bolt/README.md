@@ -1,6 +1,11 @@
-﻿# xiom-bolt (PLACEHOLDER)
+# xiom-bolt
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** BoltDB embedded transactional key-value store bindings.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-bolt package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `bolt` | Embedded transactional key-value store (open, buckets, get, put). |

@@ -1,6 +1,14 @@
-﻿# xiom-mp4 (PLACEHOLDER)
+# xiom-mp4
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** MP4 container: ISO BMFF box parsing, demuxing, and muxing.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-mp4 package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `box` | ISO BMFF box parser and builder |
+| `moov` | Track, sample, and fragment tables |
+| `demux` | MP4 demuxer with sample lookup |
+| `mux` | MP4 muxer with fragmented output support |

@@ -1,35 +1,16 @@
 # xiom-meshopt
 
-meshoptimizer &mdash; mesh optimization library. Simplification, vertex cache optimization, overdraw reduction.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** Mesh optimization and vertex processing bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.meshopt;
-```
-
-## Building
-
-```powershell
-xiom --release meshopt.xi -o meshopt.exe
-```
-
-## Dependencies
-
-- meshoptimizer &mdash; system-installed or built from source
-
-## Package Structure
-
-```
-├── meshopt.xi           # Main module
-├── src/                 # Source files
-├── examples/            # Usage examples
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── AUDIT.md             # Safety audit report
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `simplify` | Mesh simplification |
+| `vertex-cache` | Vertex cache optimization |
+| `overdraw` | Overdraw reduction |
+| `stripify` | Triangle strip conversion |
+| `quantize` | Vertex quantization |
+| `decoder` | Meshlet stream decoding |

@@ -1,6 +1,13 @@
-﻿# xiom-property (PLACEHOLDER)
+# xiom-property
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Property-based testing with generators and shrinking.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-property package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `property/gen` | Random value generators for arbitrary input types |
+| `property/shrink` | Minimal counterexample search on property failures |
+| `property/runner` | Executes properties across seeds and reports failures |

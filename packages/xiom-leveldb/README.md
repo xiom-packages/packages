@@ -1,6 +1,11 @@
-﻿# xiom-leveldb (PLACEHOLDER)
+# xiom-leveldb
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** LevelDB embedded key-value store bindings.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-leveldb package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `leveldb` | Embedded key-value store (open, get, put, delete, iterate). |

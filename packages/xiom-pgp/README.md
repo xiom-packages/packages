@@ -1,6 +1,14 @@
-﻿# xiom-pgp (PLACEHOLDER)
+# xiom-pgp
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** OpenPGP encryption, signing, and keyring operations.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-pgp package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `keys` | PGP key generation, import, and export |
+| `encrypt` | Symmetric and public-key message encryption |
+| `sign` | Message signing and signature verification |
+| `armor` | ASCII-armored packet encoding/decoding |

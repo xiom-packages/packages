@@ -1,6 +1,15 @@
-﻿# xiom-bonjour (PLACEHOLDER)
+# xiom-bonjour
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Bonjour (mDNS/DNS-SD) zero-configuration service discovery.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-bonjour package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `mdns` | mDNS multicast DNS responder and querier. |
+| `dns-sd` | DNS service discovery records and querying. |
+| `advertise` | Service advertisement with name resolution. |
+| `browse` | Service browsing with live result updates. |
+| `resolve` | Resolving service instances to host/port. |

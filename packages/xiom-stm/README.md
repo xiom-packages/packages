@@ -1,6 +1,13 @@
-﻿# xiom-stm (PLACEHOLDER)
+# xiom-stm
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Software transactional memory for composable atomic operations.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-stm package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `stm/txn` | Transaction context with automatic retry and rollback |
+| `stm/var` | Transactional shared variables |
+| `stm/retry` | Blocking primitives that wait on transaction dependencies |

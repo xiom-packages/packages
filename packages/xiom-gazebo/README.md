@@ -1,37 +1,16 @@
 # xiom-gazebo
 
-Gazebo &mdash; Robot simulation engine (gz-sim / Ignition Gazebo). System-installed.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** Gazebo robotics simulator bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.gazebo;
-```
-
-## Building
-
-```powershell
-xiom --release gazebo.xi -o gazebo.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- `xiom.io`
-- `xiom.test`
-- Gazebo &mdash; system-installed
-
-## Package Structure
-
-```
-├── gazebo.xi            # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `world` | Simulated world management |
+| `model` | Model loading and control |
+| `sensor` | Sensor data access |
+| `plugin` | Plugin host interface |
+| `transport` | Simulation messaging |
+| `physics` | Physics engine access |

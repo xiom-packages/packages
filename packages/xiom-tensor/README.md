@@ -1,6 +1,16 @@
-﻿# xiom-tensor (PLACEHOLDER)
+# xiom-tensor
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** N-dimensional array and tensor primitives for numeric computation.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-tensor package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `tensor` | Core ND-array storage and construction. |
+| `shape` | Shape inspection, reshaping and squeeze/unsqueeze. |
+| `slice` | Indexing, slicing and fancy indexing views. |
+| `broadcast` | Broadcasting rule evaluation and expansion. |
+| `transpose` | Axis permutation and dimension reordering. |
+| `math` | Elementwise arithmetic and comparison ops. |

@@ -1,6 +1,14 @@
-﻿# xiom-pdf (PLACEHOLDER)
+# xiom-pdf
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** PDF document generation and parsing.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-pdf package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `pdf-read` | PDF object parser |
+| `pdf-write` | PDF document writer |
+| `pdf-font` | Font embedding |
+| `pdf-encrypt` | Document encryption |

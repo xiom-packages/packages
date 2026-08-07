@@ -1,6 +1,15 @@
-﻿# xiom-robotics (PLACEHOLDER)
+# xiom-robotics
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Robot kinematics, control, and motion planning.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-robotics package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `kinematics` | Forward and inverse kinematics |
+| `control` | PID and servo loop control |
+| `sensors` | Sensor fusion and odometry |
+| `motion` | Trajectory generation and interpolation |
+| `path_planning` | Obstacle avoidance and path search |

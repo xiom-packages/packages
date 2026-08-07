@@ -1,6 +1,13 @@
-﻿# xiom-cache (PLACEHOLDER)
+# xiom-cache
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** General-purpose in-memory caching with TTL and eviction.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-cache package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `cache/store` | Thread-safe key-value cache with pluggable eviction |
+| `cache/ttl` | Time-to-live expiry and lazy invalidation |
+| `cache/refresh` | Background refresh of stale or near-expiry entries |

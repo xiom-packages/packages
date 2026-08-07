@@ -1,6 +1,13 @@
-﻿# xiom-forkjoin (PLACEHOLDER)
+# xiom-forkjoin
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Fork/join parallel task splitting and result combining across worker groups.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-forkjoin package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `forkjoin/fork` | Spawn and manage fork/join task groups |
+| `forkjoin/join` | Collect and combine subtask results |
+| `forkjoin/split` | Recursive task splitting policies |

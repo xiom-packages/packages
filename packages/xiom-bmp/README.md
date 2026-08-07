@@ -1,6 +1,14 @@
-﻿# xiom-bmp (PLACEHOLDER)
+# xiom-bmp
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** BMP image codec: decoding and encoding of Windows bitmap files.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-bmp package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `decode` | BMP decoder for all bit depths |
+| `encode` | BMP encoder with row padding |
+| `dib` | DIB header parsing (BITMAPINFOHEADER variants) |
+| `compression` | RLE8/RLE4 and BI_BITFIELDS compression |

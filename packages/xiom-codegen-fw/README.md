@@ -1,6 +1,16 @@
-﻿# xiom-codegen-fw (PLACEHOLDER)
+# xiom-codegen-fw
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Framework for target-agnostic code generation pipelines.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-codegen-fw package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `ir` | Intermediate representation value types |
+| `context` | Codegen session and target context |
+| `emit` | Instruction emission primitives |
+| `lower` | AST-to-IR lowering passes |
+| `layout` | Data layout and ABI convention handling |
+| `targets` | Backend target abstraction |

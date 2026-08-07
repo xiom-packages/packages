@@ -1,18 +1,15 @@
-# xiom:openal — 3D Audio
+# xiom-openal
 
-OpenAL Soft FFI bindings for XIOM. 3D positional audio.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** OpenAL 3D positional audio bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Example
-```xiom
-use xiom.openal;
+## Libs inventory
 
-fn main() -> Int {
-  let (buffer, freq) = load_wav("explosion.wav")?;
-  let source = play_sound(buffer, freq)?;
-  set_listener_position(0.0, 0.0, 10.0);
-  set_source_position(source, 5.0, 0.0, 0.0);
-  while is_source_playing(source) { }
-  delete_source(source);
-  return 0;
-}
-```
+| Lib | Description |
+|-----|-------------|
+| `device` | Output device management |
+| `context` | Audio context state |
+| `source` | Positioned sound sources |
+| `buffer` | Audio sample buffers |
+| `listener` | Listener position and orientation |

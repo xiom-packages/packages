@@ -1,6 +1,15 @@
-﻿# xiom-refactor (PLACEHOLDER)
+# xiom-refactor
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Programmatic source refactoring toolkit for editors and CLIs.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-refactor package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `edits` | Text edit and source change model |
+| `renames` | Symbol rename across scopes |
+| `extract` | Function extraction and inlining |
+| `moves` | Item relocation and module restructuring |
+| `apply` | Edit application and conflict resolution |

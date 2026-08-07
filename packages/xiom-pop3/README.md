@@ -1,6 +1,14 @@
-﻿# xiom-pop3 (PLACEHOLDER)
+# xiom-pop3
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** POP3 client/server for retrieving mail from a mailbox.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-pop3 package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `pop3-client` | POP3 client for listing, fetching, and deleting messages. |
+| `pop3-server` | POP3 server exposing a mailbox over the wire. |
+| `message` | Message retrieval and header/body separation. |
+| `auth` | USER/PASS and APOP authentication. |

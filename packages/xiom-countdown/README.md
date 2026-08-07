@@ -1,6 +1,12 @@
-﻿# xiom-countdown (PLACEHOLDER)
+# xiom-countdown
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Countdown latch for waiting on completion of a fixed number of operations.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-countdown package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `countdown/latch` | Countdown latch with await and release |
+| `countdown/deadline` | Timed waiting on latch release |

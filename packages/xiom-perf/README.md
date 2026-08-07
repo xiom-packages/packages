@@ -1,6 +1,13 @@
-﻿# xiom-perf (PLACEHOLDER)
+# xiom-perf
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Performance benchmarking and regression comparison.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-perf package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `perf/bench` | Repeatable benchmark harness with warmup and calibration |
+| `perf/metrics` | Throughput, latency, and allocation measurements |
+| `perf/compare` | Statistical comparison against baseline runs |

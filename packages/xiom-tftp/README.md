@@ -1,6 +1,15 @@
-﻿# xiom-tftp (PLACEHOLDER)
+# xiom-tftp
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** TFTP client/server for trivial file transfer.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-tftp package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `tftp-client` | TFTP client for reading and writing remote files. |
+| `tftp-server` | TFTP server handling read and write requests. |
+| `packet` | TFTP packet encode/decode (RRQ, WRQ, DATA, ACK). |
+| `transfer` | Retransmission and windowed transfer logic. |
+| `options` | RFC 2347 options like blksize and timeout. |

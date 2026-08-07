@@ -1,6 +1,16 @@
-﻿# xiom-dimred (PLACEHOLDER)
+# xiom-dimred
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Dimensionality reduction and manifold learning.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-dimred package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `pca` | Principal component analysis. |
+| `svd` | Singular value decomposition. |
+| `tsne` | t-SNE embedding. |
+| `umap` | UMAP manifold projection. |
+| `lda` | Linear discriminant analysis. |
+| `ica` | Independent component analysis. |

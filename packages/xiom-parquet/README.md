@@ -1,6 +1,14 @@
-﻿# xiom-parquet (PLACEHOLDER)
+# xiom-parquet
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Parquet columnar file reading and writing.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-parquet package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `parquet-schema` | Parquet schema model |
+| `parquet-read` | Columnar reader and row-group decode |
+| `parquet-write` | Columnar writer and row-group encode |
+| `parquet-metadata` | Footer metadata parsing |

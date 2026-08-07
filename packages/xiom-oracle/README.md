@@ -1,6 +1,14 @@
-﻿# xiom-oracle (PLACEHOLDER)
+# xiom-oracle
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Off-chain data oracles for blockchain systems.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-oracle package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `feed` | Data feed ingestion. |
+| `aggregator` | Multi-source data aggregation. |
+| `heartbeat` | Feed freshness monitoring. |
+| `signer` | Oracle attestation signing. |

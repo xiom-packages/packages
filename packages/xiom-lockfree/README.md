@@ -1,6 +1,14 @@
-﻿# xiom-lockfree (PLACEHOLDER)
+# xiom-lockfree
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Lock-free concurrent data structures built on atomic primitives.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-lockfree package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `lockfree/queue` | Lock-free queue with safe concurrent enqueue and dequeue |
+| `lockfree/stack` | Treiber-style lock-free stack |
+| `lockfree/hash` | Concurrent lock-free hash map |
+| `lockfree/counter` | Atomic counters and accumulators |

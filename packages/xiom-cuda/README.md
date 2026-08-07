@@ -1,36 +1,15 @@
 # xiom-cuda
 
-CUDA Toolkit &mdash; NVIDIA GPU computing (cuBLAS, cuDNN, cuFFT, cuRAND).
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** CUDA GPU device management and kernels.
+> **Deps:** stdlib; may wrap C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.cuda;
-```
-
-## Building
-
-```powershell
-xiom --release cuda.xi -o cuda.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- `xiom-libtorch` (for tensor interop)
-- CUDA Toolkit 12.x &mdash; system-installed (`nvidia-smi` to check)
-
-## Package Structure
-
-```
-├── cuda.xi              # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `cuda` | Device and context management. |
+| `kernel` | Custom CUDA kernel launch. |
+| `mem` | Device memory allocation and copies. |
+| `stream` | Asynchronous streams. |
+| `reduce` | Parallel reduction kernels. |

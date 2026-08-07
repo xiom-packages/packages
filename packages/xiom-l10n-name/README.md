@@ -1,6 +1,14 @@
-﻿# xiom-l10n-name (PLACEHOLDER)
+# xiom-l10n-name
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Locale-aware personal and language name formatting and display ordering.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-l10n-name package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `person_name` | Format personal names per locale name-ordering rules. |
+| `name_titles` | Resolve locale-appropriate honorifics and titles. |
+| `display_names` | Localized display names for languages, regions, and scripts. |
+| `name_translit` | Transliterate names between scripts. |

@@ -1,36 +1,13 @@
 # xiom-math
 
-XIOM math &mdash; standard library mathematics module. Vectors, matrices, quaternions, transforms.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** Numerical, vector, and statistical math utilities.
+> **Deps:** stdlib; may wrap C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.math;
-```
-
-## Building
-
-```powershell
-xiom --release math.xi -o math.exe
-```
-
-## Dependencies
-
-- None (pure XIOM standard library)
-
-## Package Structure
-
-```
-├── math.xi              # Main module
-├── src/                 # Source files
-├── examples/            # Usage examples
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── ROADMAP.md           # Development roadmap
-├── AUDIT.md             # Safety audit report
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `math/vector` | Fixed-size vector and matrix operations |
+| `math/random` | Deterministic seeded random number generation |
+| `math/stat` | Descriptive statistics and sampling helpers |

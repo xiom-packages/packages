@@ -1,6 +1,13 @@
-﻿# xiom-tls (PLACEHOLDER)
+# xiom-tls
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** TLS handshake, certificate validation, and secure session management.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-tls package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `handshake` | TLS 1.2/1.3 handshake state machine |
+| `cert` | X.509 certificate parsing and chain validation |
+| `session` | Session resumption and cipher suite negotiation |

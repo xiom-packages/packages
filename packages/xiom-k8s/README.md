@@ -1,6 +1,15 @@
-﻿# xiom-k8s (PLACEHOLDER)
+# xiom-k8s
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Kubernetes orchestration (workloads, services, configuration, cluster access).
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-k8s package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `pod` | Pod lifecycle operations |
+| `deployment` | Replica management and rolling updates |
+| `service` | Service and ingress exposure |
+| `configmap` | Config and secret management |
+| `namespace` | Namespace and quota administration |

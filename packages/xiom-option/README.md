@@ -1,6 +1,13 @@
-﻿# xiom-option (PLACEHOLDER)
+# xiom-option
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Optional and fallible value types for safe nullable handling.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-option package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `option/option` | Option value type with map, flat-map, and unwrap combinators |
+| `option/result` | Result type capturing success or typed error outcomes |
+| `option/convert` | Interop conversions between option, result, and raw values |

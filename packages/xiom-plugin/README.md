@@ -1,6 +1,15 @@
-﻿# xiom-plugin (PLACEHOLDER)
+# xiom-plugin
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Plugin system for extending the compiler toolchain.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-plugin package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `api` | Stable plugin API and capability surface |
+| `host` | Plugin host loading and lifecycle |
+| `manifest` | Plugin metadata and version negotiation |
+| `hooks` | Compiler pipeline hook points |
+| `session` | Plugin session state and isolation |

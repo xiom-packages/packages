@@ -1,6 +1,14 @@
-﻿# xiom-l10n-phone (PLACEHOLDER)
+# xiom-l10n-phone
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** International phone number parsing, formatting, and validation (E.164 / ITU rules).
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-l10n-phone package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `phone_parse` | Parse raw strings into structured phone numbers. |
+| `phone_format` | Format numbers in national, international, and E.164 forms. |
+| `phone_validate` | Validate numbers against country dial plans. |
+| `phone_metadata` | Country dialing and numbering-plan metadata registry. |

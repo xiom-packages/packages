@@ -1,36 +1,16 @@
 # xiom-box2d
 
-Box2D &mdash; 2D physics engine. Real-time rigid body simulation for games.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** Box2D 2D rigid body physics bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.box2d;
-```
-
-## Building
-
-```powershell
-xiom --release box2d.xi -o box2d.exe
-```
-
-## Dependencies
-
-- Box2D &mdash; system-installed or built from source
-
-## Package Structure
-
-```
-├── box2d.xi             # Main module
-├── box2d.xiom-bind      # Raw FFI bindings
-├── box2d_safe.xi         # Safe wrapper layer
-├── demo_box2d.xi         # Interactive demo
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── AUDIT.md             # Safety audit report
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `world` | 2D physics world |
+| `body` | Rigid body states |
+| `fixture` | Shape attachment |
+| `joint` | Joint constraints |
+| `shape` | Collision geometry |
+| `contact` | Contact events |

@@ -1,6 +1,14 @@
-﻿# xiom-report (PLACEHOLDER)
+# xiom-report
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Structured test and benchmark result reporting.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-report package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `report/model` | Normalized in-memory result representation |
+| `report/text` | Human-readable console output |
+| `report/json` | Machine-readable serialization for CI ingestion |
+| `report/markdown` | Markdown summary generation |

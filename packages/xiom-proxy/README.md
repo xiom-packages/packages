@@ -1,6 +1,15 @@
-﻿# xiom-proxy (PLACEHOLDER)
+# xiom-proxy
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Proxy server support for HTTP and SOCKS forwarding.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-proxy package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `http-proxy` | Forwarding and reverse HTTP proxy. |
+| `socks5` | SOCKS5 proxy with connect and bind modes. |
+| `tunnel` | CONNECT tunneling for TLS destinations. |
+| `forwarder` | Bidirectional stream relay between peers. |
+| `auth` | Proxy access authentication and allowlists. |

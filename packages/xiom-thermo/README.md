@@ -1,6 +1,15 @@
-﻿# xiom-thermo (PLACEHOLDER)
+# xiom-thermo
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Thermodynamic property and cycle computations.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-thermo package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `entropy` | Entropy change and second-law analysis |
+| `enthalpy` | Enthalpy and heat of reaction |
+| `cycles` | Carnot, Rankine, and Otto cycle analysis |
+| `transfer` | Heat conduction, convection, and radiation |
+| `equilibrium` | Phase and chemical equilibrium |

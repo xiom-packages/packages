@@ -1,6 +1,15 @@
-﻿# xiom-flash (PLACEHOLDER)
+# xiom-flash
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** NOR/NAND flash memory program, erase, and status management.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-flash package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `read` | Block/page read operations. |
+| `write` | Page program operations. |
+| `erase` | Sector/block erase. |
+| `status` | Device status and busy polling. |
+| `cfi` | Flash identification and geometry. |

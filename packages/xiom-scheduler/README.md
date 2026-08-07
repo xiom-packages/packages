@@ -1,6 +1,13 @@
-﻿# xiom-scheduler (PLACEHOLDER)
+# xiom-scheduler
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Time- and event-based scheduling of one-shot and periodic tasks.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-scheduler package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `scheduler/schedule` | One-shot and periodic task scheduling |
+| `scheduler/timer` | Timer wheel and deadline management |
+| `scheduler/queue` | Priority queue of pending scheduled tasks |

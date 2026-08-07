@@ -1,36 +1,16 @@
 # xiom-miniaudio
 
-MiniAudio &mdash; single-header C audio playback and capture library. Cross-platform.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** miniaudio cross-platform audio playback bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.miniaudio;
-```
-
-## Building
-
-```powershell
-xiom --release miniaudio.xi -o miniaudio.exe
-```
-
-## Dependencies
-
-- MiniAudio &mdash; single-header, bundled or system-installed
-
-## Package Structure
-
-```
-├── miniaudio.xi         # Main module
-├── miniaudio_safe.xi     # Safe wrapper layer
-├── demo_miniaudio.xi     # Interactive demo
-├── bridge/              # Platform bridge
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── AUDIT.md             # Safety audit report
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `device` | Audio device management |
+| `context` | Backend context setup |
+| `engine` | High-level playback engine |
+| `sound` | Sound sources |
+| `decode` | Audio file decoding |
+| `encode` | Audio file encoding |

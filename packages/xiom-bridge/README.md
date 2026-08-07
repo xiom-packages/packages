@@ -1,6 +1,14 @@
-﻿# xiom-bridge (PLACEHOLDER)
+# xiom-bridge
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Cross-chain bridge primitives.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-bridge package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `relay` | Cross-chain message relay. |
+| `swap` | Cross-chain asset swap. |
+| `vault` | Bridge lock and mint vaults. |
+| `chainproof` | Cross-chain proof verification. |

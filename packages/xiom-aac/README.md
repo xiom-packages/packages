@@ -1,6 +1,14 @@
-﻿# xiom-aac (PLACEHOLDER)
+# xiom-aac
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** AAC audio codec: AAC-LC/HE decoding and encoding.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-aac package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `decode` | AAC-LC and AAC-HE decoder |
+| `encode` | AAC encoder with bitrate and channel config |
+| `sbr` | Spectral Band Replication processing |
+| `huffman` | AAC Huffman tables and scalefactor decoding |

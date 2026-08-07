@@ -1,6 +1,15 @@
-﻿# xiom-ansible (PLACEHOLDER)
+# xiom-ansible
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Agentless configuration management (playbooks, inventory, modules, ad-hoc tasks).
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-ansible package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `playbook` | Playbook execution engine |
+| `inventory` | Host inventory and groups |
+| `module` | Core and custom module registry |
+| `adhoc` | One-off task execution |
+| `vault` | Encrypted secrets handling |

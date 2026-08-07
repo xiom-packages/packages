@@ -1,6 +1,11 @@
-﻿# xiom-amqp (PLACEHOLDER)
+# xiom-amqp
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** AMQP messaging protocol client.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-amqp package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `amqp` | AMQP 0-9-1/1.0 client & protocol |

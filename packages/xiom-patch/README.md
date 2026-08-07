@@ -1,6 +1,14 @@
-﻿# xiom-patch (PLACEHOLDER)
+# xiom-patch
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Patch generation, application, and conflict resolution.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-patch package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `patch` | Patch apply engine |
+| `unified` | Unified patch format parsing |
+| `merge` | Three-way merging |
+| `conflict` | Conflict detection |

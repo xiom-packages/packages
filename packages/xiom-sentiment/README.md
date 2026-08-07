@@ -1,6 +1,14 @@
-﻿# xiom-sentiment (PLACEHOLDER)
+# xiom-sentiment
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Sentiment analysis and opinion polarity scoring.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-sentiment package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `sentiment` | Core sentiment scoring |
+| `lexicon` | Sentiment word lexicons |
+| `score` | Polarity scoring functions |
+| `lang` | Language-specific lexicons |

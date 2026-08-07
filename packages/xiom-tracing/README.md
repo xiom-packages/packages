@@ -1,6 +1,15 @@
-﻿# xiom-tracing (PLACEHOLDER)
+# xiom-tracing
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Distributed tracing (spans, traces, propagation, context, export).
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-tracing package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `span` | Span creation and lifecycle |
+| `trace` | Trace context and correlation |
+| `propagate` | Header and carrier propagation |
+| `sampler` | Sampling and head decisions |
+| `export` | Span batch export to backends |

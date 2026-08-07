@@ -1,6 +1,14 @@
-﻿# xiom-transliteration (PLACEHOLDER)
+# xiom-transliteration
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Transliteration between writing systems and scripts.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-transliteration package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `transliterate` | Core transliteration engine |
+| `script` | Script mapping tables |
+| `rules` | Transliteration rules |
+| `iso` | ISO romanization standards |

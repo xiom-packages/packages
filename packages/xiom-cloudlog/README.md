@@ -1,6 +1,15 @@
-﻿# xiom-cloudlog (PLACEHOLDER)
+# xiom-cloudlog
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Cloud log ingestion, aggregation, storage, and retrieval pipelines.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-cloudlog package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `ingest` | Log intake and batching |
+| `format` | Structured format encoding |
+| `stream` | Tail and live-stream consumption |
+| `store` | Long-term log retention |
+| `search` | Query and filter across logs |

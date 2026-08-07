@@ -1,6 +1,15 @@
-﻿# xiom-svm (PLACEHOLDER)
+# xiom-svm
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Support vector machines for classification and regression.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-svm package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `svm` | SVM classifier and regressor. |
+| `kernel` | Kernel functions. |
+| `smo` | Sequential minimal optimization solver. |
+| `svr` | Support vector regression. |
+| `decision` | Decision function computation. |

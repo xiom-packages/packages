@@ -1,6 +1,15 @@
-﻿# xiom-environment (PLACEHOLDER)
+# xiom-environment
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Environmental monitoring and impact assessment.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-environment package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `pollution` | Pollutant concentration and dispersion modeling |
+| `impact` | Environmental impact scoring |
+| `sustainability` | Resource use and sustainability metrics |
+| `remediation` | Cleanup effectiveness assessment |
+| `habitat` | Habitat suitability analysis |

@@ -1,6 +1,15 @@
-﻿# xiom-monitoring (PLACEHOLDER)
+# xiom-monitoring
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Metrics collection, aggregation, and visualization across systems and clouds.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-monitoring package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `metric` | Metric recording and labels |
+| `collector` | Source collection and scraping |
+| `aggregate` | Rollups, rates, and percentiles |
+| `dashboard` | Dashboard and panel definitions |
+| `query` | Time-series query interface |

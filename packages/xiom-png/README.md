@@ -1,6 +1,14 @@
-﻿# xiom-png (PLACEHOLDER)
+# xiom-png
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** PNG image codec: decoding and encoding of the Portable Network Graphics format.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-png package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `decode` | PNG decoder for all bit depths and color types |
+| `encode` | PNG encoder with configurable filter strategy |
+| `filter` | Per-row pre-filter selection and reconstruction |
+| `palette` | Palette (PLTE) and transparency (tRNS) handling |

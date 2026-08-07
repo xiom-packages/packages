@@ -1,6 +1,14 @@
-﻿# xiom-telnet (PLACEHOLDER)
+# xiom-telnet
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Telnet client/server for interactive terminal sessions.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-telnet package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `telnet-client` | Telnet client connecting to remote terminals. |
+| `telnet-server` | Telnet server hosting line-oriented sessions. |
+| `terminal` | Terminal emulation for output and input handling. |
+| `negotiation` | Option negotiation via Telnet commands. |

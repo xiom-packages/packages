@@ -1,6 +1,15 @@
-﻿# xiom-uart (PLACEHOLDER)
+# xiom-uart
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** UART serial communication with baud-rate, framing, and buffered I/O.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-uart package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `config` | Baud rate and framing configuration. |
+| `tx` | Transmit path with FIFO management. |
+| `rx` | Receive path with line buffering. |
+| `flow` | Hardware flow-control signaling. |
+| `errors` | Framing/overrun error reporting. |

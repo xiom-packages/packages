@@ -1,6 +1,15 @@
-﻿# xiom-physics (PLACEHOLDER)
+# xiom-physics
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Classical physics simulations: motion, forces, energy, and fields.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-physics package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `mechanics` | Kinematics and dynamics of point masses and rigid bodies |
+| `electromagnetism` | Electric and magnetic field calculations |
+| `optics` | Ray tracing, lenses, and wave optics |
+| `thermodynamics` | Heat, work, and state transitions |
+| `units` | Dimensional analysis and unit conversion |

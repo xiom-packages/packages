@@ -1,6 +1,14 @@
-﻿# xiom-oauth (PLACEHOLDER)
+# xiom-oauth
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** OAuth 2.0 flows, token issuance, and introspection.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-oauth package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `flow` | Authorization code and client credentials flows |
+| `token` | Access/refresh token issuance and storage |
+| `introspect` | Token introspection and revocation |
+| `client` | Client registration and management |

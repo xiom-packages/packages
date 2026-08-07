@@ -1,6 +1,13 @@
-﻿# xiom-thrift (PLACEHOLDER)
+# xiom-thrift
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Apache Thrift protocol, IDL, and codegen support.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-thrift package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `thrift-idl` | Thrift IDL parser |
+| `thrift-binary` | Binary protocol codec |
+| `thrift-compact` | Compact protocol codec |

@@ -1,6 +1,15 @@
-﻿# xiom-serverless (PLACEHOLDER)
+# xiom-serverless
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Serverless compute abstractions (functions, triggers, deployments, cold starts).
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-serverless package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `function` | Function definition and invocation |
+| `trigger` | Event source wiring |
+| `deploy` | Package upload and rollout |
+| `runtime` | Runtime and handler lifecycle |
+| `invoke` | Synchronous and async calls |

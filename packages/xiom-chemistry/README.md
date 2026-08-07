@@ -1,6 +1,15 @@
-﻿# xiom-chemistry (PLACEHOLDER)
+# xiom-chemistry
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Chemical computations: reactions, stoichiometry, and molecular modeling.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-chemistry package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `periodic` | Periodic table data and element properties |
+| `stoichiometry` | Reaction balancing and yield calculations |
+| `kinetics` | Reaction rates and rate laws |
+| `equilibria` | Equilibrium constants and shifts |
+| `molecular` | Molecule composition and molar mass |

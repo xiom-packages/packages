@@ -1,35 +1,15 @@
 # xiom-zstd
 
-zstd &mdash; fast lossless compression algorithm (Facebook). Compression/decompression at GB/s speeds.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** Zstandard fast compression/decompression bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.zstd;
-```
-
-## Building
-
-```powershell
-xiom --release zstd.xi -o zstd.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- zstd &mdash; system-installed (`winget install zstd`, `apt install libzstd-dev`)
-
-## Package Structure
-
-```
-├── zstd.xi              # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `compress` | One-shot compression |
+| `decompress` | One-shot decompression |
+| `streaming` | Incremental compress/decompress streams |
+| `dict` | Dictionary-based compression |
+| `level` | Compression level presets |

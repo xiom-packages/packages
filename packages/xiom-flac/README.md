@@ -1,6 +1,14 @@
-﻿# xiom-flac (PLACEHOLDER)
+# xiom-flac
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** FLAC audio codec: lossless decoding, encoding, and metadata handling.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-flac package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `decode` | FLAC decoder with all channel assignments |
+| `encode` | FLAC encoder with predictor selection |
+| `frames` | Frame and subframe decoding |
+| `residual` | Rice and constant residual coding |

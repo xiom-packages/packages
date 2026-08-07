@@ -1,6 +1,15 @@
-﻿# xiom-imap (PLACEHOLDER)
+# xiom-imap
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** IMAP client/server for mailbox access and synchronization.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-imap package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `imap-client` | IMAP client with folder, message, and flag operations. |
+| `imap-server` | IMAP server with mailbox and message store. |
+| `mailbox` | Mailbox/folder hierarchy and message sequence handling. |
+| `idle` | IDLE push notifications for new mail. |
+| `search` | Server-side search and fetch criteria. |

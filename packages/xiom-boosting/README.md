@@ -1,6 +1,16 @@
-﻿# xiom-boosting (PLACEHOLDER)
+# xiom-boosting
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Gradient boosting and additive tree ensembles.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-boosting package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `gbdt` | Gradient-boosted decision trees. |
+| `xgboost` | Regularized boosting (XGBoost-style). |
+| `adaboost` | Adaptive boosting. |
+| `gradient` | Gradient computation for boosting. |
+| `tree` | Base tree learner. |
+| `loss` | Boosting loss objectives. |

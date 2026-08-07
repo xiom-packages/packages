@@ -1,6 +1,12 @@
-﻿# xiom-db2 (PLACEHOLDER)
+# xiom-db2
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** IBM Db2 client: connection, statement execution, and result handling.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-db2 package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `db2` | Db2 client connection and query execution. |
+| `db2_stmt` | Prepared statement execution and binding. |

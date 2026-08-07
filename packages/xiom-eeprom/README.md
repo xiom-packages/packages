@@ -1,6 +1,14 @@
-﻿# xiom-eeprom (PLACEHOLDER)
+# xiom-eeprom
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Non-volatile EEPROM byte-level read/write with wear management.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-eeprom package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `read` | Byte/block read operations. |
+| `write` | Byte/block write operations. |
+| `protect` | Write-protection control. |
+| `erase` | Sector erase handling. |

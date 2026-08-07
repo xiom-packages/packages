@@ -1,36 +1,16 @@
 # xiom-opengl
 
-OpenGL 4.6 &mdash; cross-platform graphics API. Legacy support for Linux/macOS, embedded systems (OpenGL ES), WebGL transpilation target.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** OpenGL rendering API bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.opengl;
-```
-
-## Building
-
-```powershell
-xiom --release opengl.xi -o opengl.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- `xiom-glfw` (window creation)
-- OpenGL &mdash; system-installed
-
-## Package Structure
-
-```
-├── opengl.xi            # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `context` | Context and function loading |
+| `shader` | Shader compilation and linking |
+| `buffer` | Vertex and uniform buffers |
+| `texture` | Texture creation and sampling |
+| `framebuffer` | Render targets |
+| `program` | Shader program state |

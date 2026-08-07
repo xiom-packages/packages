@@ -1,6 +1,14 @@
-﻿# xiom-zigbee (PLACEHOLDER)
+# xiom-zigbee
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Zigbee network formation, joining, and application messaging.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-zigbee package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `radio` | IEEE 802.15.4 radio control. |
+| `network` | PAN formation and joining. |
+| `cluster` | Application cluster handling. |
+| `binding` | Device binding management. |

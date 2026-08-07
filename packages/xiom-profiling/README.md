@@ -1,6 +1,13 @@
-﻿# xiom-profiling (PLACEHOLDER)
+# xiom-profiling
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** CPU, memory, and wall-clock profiling utilities.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-profiling package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `profiling/timer` | High-resolution timing of code sections |
+| `profiling/sampler` | Periodic sampling of stacks and allocations |
+| `profiling/flame` | Flame-graph style aggregation of sampled stacks |

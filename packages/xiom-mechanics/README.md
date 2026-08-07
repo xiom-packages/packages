@@ -1,6 +1,15 @@
-﻿# xiom-mechanics (PLACEHOLDER)
+# xiom-mechanics
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Mechanical systems: statics, dynamics, and machine analysis.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-mechanics package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `statics` | Force equilibrium and support reactions |
+| `dynamics` | Motion of bodies under applied forces |
+| `kinematics` | Position, velocity, and acceleration analysis |
+| `vibration` | Natural frequencies and damping |
+| `friction` | Contact and friction force models |

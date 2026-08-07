@@ -1,6 +1,15 @@
-﻿# xiom-autoscale (PLACEHOLDER)
+# xiom-autoscale
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Auto-scaling policies, capacity decisions, and scaling actions for compute targets.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-autoscale package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `policy` | Scaling policy definition |
+| `metric_source` | Utilization metric collection |
+| `decision` | Scale up/down decision logic |
+| `action` | Scale action execution and cooldown |
+| `schedule` | Scheduled and predicted scaling |

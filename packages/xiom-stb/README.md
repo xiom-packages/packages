@@ -1,15 +1,15 @@
-# xiom:stb — Image Loading
+# xiom-stb
 
-stb_image FFI bindings. Load PNG, JPG, BMP, TGA, GIF, HDR.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** stb single-file C library bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Example
-```xiom
-use xiom.stb;
+## Libs inventory
 
-fn main() -> Int {
-  let image = load_image_rgba("texture.png")?;
-  let (r, g, b, a) = pixel_at(image, 10, 10);
-  write_jpg("output.jpg", image, 90)?;
-  return 0;
-}
-```
+| Lib | Description |
+|-----|-------------|
+| `stb_image` | Image decoding |
+| `stb_image_write` | Image encoding |
+| `stb_truetype` | Font rasterization |
+| `stb_vorbis` | Ogg Vorbis decoding |
+| `stb_dxt` | DXT texture compression |

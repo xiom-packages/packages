@@ -1,6 +1,15 @@
-﻿# xiom-helm (PLACEHOLDER)
+# xiom-helm
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Kubernetes package management (charts, releases, repositories, values).
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-helm package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `chart` | Chart package creation and validation |
+| `release` | Release install, upgrade, rollback |
+| `repo` | Repository index and sync |
+| `values` | Value templating and overrides |
+| `template` | Chart-to-manifest rendering |

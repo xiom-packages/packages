@@ -1,6 +1,15 @@
-﻿# xiom-signal (PLACEHOLDER)
+# xiom-signal
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Digital signal processing: transforms and filtering.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-signal package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `fft` | Fast Fourier transform and spectral analysis |
+| `filters` | FIR and IIR filter design |
+| `sampling` | Sampling rate conversion and aliasing |
+| `noise` | Noise generation and SNR estimation |
+| `modulation` | AM/FM and pulse modulation schemes |

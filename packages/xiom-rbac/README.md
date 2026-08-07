@@ -1,6 +1,14 @@
-﻿# xiom-rbac (PLACEHOLDER)
+# xiom-rbac
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Role-based access control policies and checks.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-rbac package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `roles` | Role definition and hierarchy |
+| `perms` | Permission resolution and checks |
+| `policy` | Policy evaluation engine |
+| `assign` | Role/permission assignment helpers |

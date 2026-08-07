@@ -1,6 +1,14 @@
-﻿# xiom-icu (PLACEHOLDER)
+# xiom-icu
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Thin, safe FFI bindings to the International Components for Unicode (ICU) library.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-icu package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `icu_core` | Raw ICU function bindings and error-code translation. |
+| `icu_ucol` | Binding for ICU collation entry points. |
+| `icu_udat` | Binding for ICU date/time formatting entry points. |
+| `icu_unum` | Binding for ICU number formatting entry points. |

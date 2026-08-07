@@ -1,6 +1,14 @@
-﻿# xiom-spell (PLACEHOLDER)
+# xiom-spell
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Spell checking and correction suggestions.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-spell package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `spell` | Core spell checking |
+| `correct` | Correction suggestions |
+| `dictionary` | Word dictionaries |
+| `edit-distance` | Edit distance computation |

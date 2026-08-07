@@ -1,6 +1,15 @@
-﻿# xiom-rpc (PLACEHOLDER)
+# xiom-rpc
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Generic RPC framework for serialized remote procedure calls.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-rpc package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `rpc-client` | Client-side proxy for invoking remote procedures. |
+| `rpc-server` | Server-side dispatcher for registered handlers. |
+| `codec` | Request/response serialization and framing. |
+| `registry` | Procedure name to handler registration. |
+| `dispatcher` | Call routing, error mapping, and concurrency. |

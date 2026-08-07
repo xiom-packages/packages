@@ -1,6 +1,14 @@
-﻿# xiom-avi (PLACEHOLDER)
+# xiom-avi
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** AVI container: RIFF-based demuxing, muxing, and index handling.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-avi package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `riff` | RIFF chunk reader and writer |
+| `demux` | AVI demuxer with stream interleaving |
+| `mux` | AVI muxer with index generation |
+| `index` | idx1 index parsing and frame lookup |

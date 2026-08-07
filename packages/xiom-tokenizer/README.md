@@ -1,6 +1,14 @@
-﻿# xiom-tokenizer (PLACEHOLDER)
+# xiom-tokenizer
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Text tokenization into words, sentences, and subwords.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-tokenizer package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `tokenizer` | Core tokenization engine |
+| `word` | Word tokenization |
+| `sentence` | Sentence tokenization |
+| `subword` | Subword tokenization |

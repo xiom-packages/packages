@@ -1,6 +1,12 @@
-﻿# xiom-stub (PLACEHOLDER)
+# xiom-stub
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Static stubs with canned responses for tests.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-stub package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `stub/behavior` | Fixed or sequenced canned responses |
+| `stub/record` | Optional tracing of stub invocations |

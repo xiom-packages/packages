@@ -1,35 +1,16 @@
 # xiom-arrow
 
-Apache Arrow &mdash; in-memory columnar data format. Pandas backend, zero-copy data sharing between libraries.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** Apache Arrow columnar memory format bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.arrow;
-```
-
-## Building
-
-```powershell
-xiom --release arrow.xi -o arrow.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- Apache Arrow &mdash; system-installed (`apt install libarrow-dev`)
-
-## Package Structure
-
-```
-├── arrow.xi             # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `array` | Array data structures |
+| `record-batch` | Tabular record batches |
+| `schema` | Schema definition |
+| `table` | In-memory tables |
+| `ipc` | IPC serialization |
+| `flight` | Flight RPC transport |

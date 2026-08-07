@@ -1,6 +1,16 @@
-﻿# xiom-clustering (PLACEHOLDER)
+# xiom-clustering
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Unsupervised clustering algorithms.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-clustering package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `kmeans` | K-means clustering. |
+| `dbscan` | Density-based spatial clustering. |
+| `hierarchical` | Agglomerative clustering. |
+| `gmm` | Gaussian mixture models. |
+| `silhouette` | Silhouette scoring. |
+| `metrics` | Cluster validity metrics. |

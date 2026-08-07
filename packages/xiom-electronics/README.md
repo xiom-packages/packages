@@ -1,6 +1,16 @@
-﻿# xiom-electronics (PLACEHOLDER)
+# xiom-electronics
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Electronic circuit analysis and component modeling.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-electronics package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `circuits` | Kirchhoff-based network analysis |
+| `resistors` | Resistance, tolerance, and color codes |
+| `capacitors` | Capacitance and RC behavior |
+| `amplifiers` | Gain and frequency response of amplifiers |
+| `logic` | Digital logic gate evaluation |
+| `signals` | Waveform generation and measurement |

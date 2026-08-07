@@ -1,6 +1,14 @@
-﻿# xiom-l10n-number (PLACEHOLDER)
+# xiom-l10n-number
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Locale-aware number formatting, parsing, and rounding for all script systems.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-l10n-number package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `number_format` | Format integers and decimals per locale conventions. |
+| `number_parse` | Parse localized number strings with group/dec separators. |
+| `number_notation` | Scientific, compact, and percent notation rendering. |
+| `number_round` | Locale-aware rounding and significant-digit handling. |

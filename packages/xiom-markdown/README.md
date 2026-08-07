@@ -1,6 +1,14 @@
-﻿# xiom-markdown (PLACEHOLDER)
+# xiom-markdown
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Markdown parsing and rendering.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-markdown package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `markdown` | Markdown parse/render |
+| `blocks` | Block element handling |
+| `inline` | Inline element handling |
+| `render-html` | HTML output rendering |

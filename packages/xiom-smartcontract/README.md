@@ -1,6 +1,14 @@
-﻿# xiom-smartcontract (PLACEHOLDER)
+# xiom-smartcontract
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Smart contract bytecode and execution interface.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-smartcontract package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `abi` | Contract ABI encoding and decoding. |
+| `bytecode` | Bytecode parsing and inspection. |
+| `exec` | Contract execution sandbox. |
+| `deploy` | Contract deployment workflow. |

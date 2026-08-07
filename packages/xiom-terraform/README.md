@@ -1,6 +1,15 @@
-﻿# xiom-terraform (PLACEHOLDER)
+# xiom-terraform
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Infrastructure-as-code workflows (configuration, plan, apply, state, providers).
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-terraform package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `config` | HCL configuration parsing |
+| `plan` | Execution plan generation |
+| `apply` | Infrastructure apply and destroy |
+| `state` | Remote state management |
+| `provider` | Provider registry and initialization |

@@ -1,6 +1,13 @@
-﻿# xiom-golden (PLACEHOLDER)
+# xiom-golden
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Golden-file testing against checked-in expected outputs.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-golden package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `golden/files` | Manages golden output files per test case |
+| `golden/compare` | Normalized comparison of actual vs expected output |
+| `golden/update` | Flag-controlled regeneration of stale golden files |

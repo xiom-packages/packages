@@ -1,35 +1,16 @@
 # xiom-zeromq
 
-libzmq &mdash; high-performance asynchronous messaging library. Supports PUB/SUB, REQ/REP, PUSH/PULL, and other messaging patterns.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** ZeroMQ message queue bindings.
+> **Deps:** stdlib; wraps C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.zeromq;
-```
-
-## Building
-
-```powershell
-xiom --release zeromq.xi -o zeromq.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- ZeroMQ &mdash; system-installed (`winget install zeromq`, `apt install libzmq3-dev`)
-
-## Package Structure
-
-```
-├── zeromq.xi            # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `context` | Library context lifecycle |
+| `socket` | Socket creation and config |
+| `message` | Message framing |
+| `poll` | Polling multiple sockets |
+| `publish` | Publish/subscribe patterns |
+| `request` | Request/reply patterns |

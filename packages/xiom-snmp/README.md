@@ -1,6 +1,15 @@
-﻿# xiom-snmp (PLACEHOLDER)
+# xiom-snmp
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** SNMP agent/manager for network device monitoring.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-snmp package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `snmp-agent` | SNMP agent serving device object state. |
+| `snmp-manager` | SNMP manager issuing get, set, and walk. |
+| `oid` | Object identifier handling and tree traversal. |
+| `mib` | MIB definition registry and value access. |
+| `trap` | Trap and notification send/receive. |

@@ -1,6 +1,14 @@
-﻿# xiom-ble (PLACEHOLDER)
+# xiom-ble
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Bluetooth Low Energy advertising, scanning, and GATT connectivity.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-ble package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `radio` | Advertising and scanning. |
+| `gatt` | GATT server and client operations. |
+| `conn` | Connection management. |
+| `service` | Service and characteristic definition. |

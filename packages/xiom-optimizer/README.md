@@ -1,6 +1,16 @@
-﻿# xiom-optimizer (PLACEHOLDER)
+# xiom-optimizer
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Gradient-based optimization algorithms for training.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-optimizer package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `sgd` | Stochastic gradient descent with momentum. |
+| `adam` | Adaptive moment estimation optimizer. |
+| `adamw` | Adam with decoupled weight decay. |
+| `rmsprop` | RMSProp adaptive learning-rate method. |
+| `adagrad` | Per-parameter adaptive gradient method. |
+| `scheduler` | Optimizer-side learning-rate control. |

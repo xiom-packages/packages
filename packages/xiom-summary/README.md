@@ -1,6 +1,14 @@
-﻿# xiom-summary (PLACEHOLDER)
+# xiom-summary
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Automatic text summarization.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-summary package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `summary` | Core summarization engine |
+| `extract` | Extractive summarization |
+| `abstract` | Abstractive summarization |
+| `rank` | Sentence ranking |

@@ -1,6 +1,15 @@
-﻿# xiom-nlp (PLACEHOLDER)
+# xiom-nlp
 
 > **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
-> **Spec source:** docs/STDLIB_EXTENSION.md §8.2
+> **Scope:** Natural language processing utilities and pipelines.
+> **Deps:** stdlib; may wrap C (FFI).
 
-This folder is reserved for the xiom-nlp package. Details and modules will be specced when the stdlib rework is complete.
+## Libs inventory
+
+| Lib | Description |
+|-----|-------------|
+| `nlp` | Core NLP pipeline |
+| `pos` | Part-of-speech tagging |
+| `ner` | Named entity recognition |
+| `segment` | Sentence segmentation |
+| `lang-detect` | Language detection |

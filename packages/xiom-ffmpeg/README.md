@@ -1,35 +1,14 @@
 # xiom-ffmpeg
 
-FFmpeg &mdash; audio/video codec library (libavcodec, libavformat, libavutil). Decode/encode, transcode, stream.
+> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Scope:** FFI bindings to FFmpeg for media demuxing, decoding, encoding, and scaling.
+> **Deps:** stdlib; may wrap C (FFI).
 
-## Quick Start
+## Libs inventory
 
-```xiom
-use xiom.ffmpeg;
-```
-
-## Building
-
-```powershell
-xiom --release ffmpeg.xi -o ffmpeg.exe
-```
-
-## Dependencies
-
-- `xiom.ffi` (stdlib)
-- FFmpeg &mdash; system-installed (`winget install FFmpeg`, `apt install libavcodec-dev`)
-
-## Package Structure
-
-```
-├── ffmpeg.xi            # Main module
-├── tests/
-│   └── test_conformance.xi  # Conformance tests
-├── SPEC.md              # Full specification
-├── ROADMAP.md           # Development roadmap
-└── package.xi           # Package manifest
-```
-
-## License
-
-MIT OR Apache-2.0
+| Lib | Description |
+|-----|-------------|
+| `avcodec` | libavcodec bindings for encoding and decoding |
+| `avformat` | libavformat bindings for containers |
+| `swscale` | libswscale pixel format conversion |
+| `ffi` | C ABI declarations and buffer lifetime management |
