@@ -1,4 +1,4 @@
-// XIOM — Raylib Conformance Tests
+// XIOM -- Raylib Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -255,7 +255,7 @@ fn test_constants_key_symmetry() -> TestResult {
 }
 
 // =========================================================================
-// Main — run all tests
+// Main -- run all tests
 // =========================================================================
 
 fn main() -> Int {

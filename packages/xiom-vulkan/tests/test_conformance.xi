@@ -1,4 +1,4 @@
-// XIOM — Vulkan Conformance Tests
+// XIOM -- Vulkan Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -18,9 +18,9 @@ use xiom.io;
 use xiom.test;
 use xiom.vulkan;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Helpers
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; }
@@ -53,9 +53,9 @@ fn report(passed: Bool, name: Str) -> Int {
   return 1;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 1. Lifecycle (create_app, destroy_app, app_valid, should_close, poll)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_lifecycle_create_destroy() -> Int {
   let a = create_app("XIOM Lifecycle", 120, 120);
@@ -131,9 +131,9 @@ fn test_lifecycle_should_close() -> TestResult {
   return assert(false, "lifecycle: should_close true on fresh app");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 2. Accessors (9 getter functions)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_accessors_all() -> Int {
   let a = create_app("XIOM Accessors", 120, 120);
@@ -171,9 +171,9 @@ fn test_accessors_all() -> TestResult {
   return assert(false, "accessors: getter returned zero handle");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 3. Frame Cycle (begin_frame, set_clear_color, end_frame)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_frame_cycle() -> Int {
   let a = create_app("XIOM Frame", 120, 120);
@@ -234,9 +234,9 @@ fn test_frame_guard() -> TestResult {
   return assert(false, "frame: guard failed to reset");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 4. Input (keys, mouse)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_input_keys() -> Int {
   let a = create_app("XIOM Input", 120, 120);
@@ -274,7 +274,7 @@ fn run_input_mouse() -> Int {
       let (mx, my) = get_mouse_pos(app);
       let mb = is_mouse_down(app, 0);
       // Verify get_mouse_pos returns finite values
-      // Mouse position defaults to (0,0) or window center — just verify it runs
+      // Mouse position defaults to (0,0) or window center -- just verify it runs
       destroy_app(app);
       return 0;
     }
@@ -288,9 +288,9 @@ fn test_input_mouse() -> TestResult {
   return assert(false, "input: mouse functions crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 5. Utility (last_error, now, device_type, framebuffer_size)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_utility_last_error() -> Int {
   // last_error should return a string even without an app
@@ -361,9 +361,9 @@ fn test_utility_framebuffer_size() -> TestResult {
   return assert(false, "utility: framebuffer_size crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 6. Lifecycle Helpers (resize, maximize, fullscreen, toggle)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_lifecycle_helpers() -> Int {
   let a = create_app("XIOM Helpers", 120, 120);
@@ -391,9 +391,9 @@ fn test_lifecycle_helpers() -> TestResult {
   return assert(false, "lifecycle: helpers crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 7. Buffers (create, destroy, size, map, unmap)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_buffer_create_destroy() -> Int {
   let a = create_app("XIOM Buffer", 120, 120);
@@ -479,9 +479,9 @@ fn test_buffer_map_unmap() -> TestResult {
   return assert(false, "buffer: map or unmap failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 8. Offscreen (create, render, pixel, hash, destroy)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_offscreen_lifecycle() -> Int {
   let a = create_app("XIOM Offscreen", 120, 120);
@@ -518,9 +518,9 @@ fn test_offscreen_lifecycle() -> TestResult {
   return assert(false, "offscreen: lifecycle failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 9. Camera (orbit, zoom, reset, aspect ratio)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_camera_operations() -> Int {
   let a = create_app("XIOM Camera", 120, 120);
@@ -551,9 +551,9 @@ fn test_camera_operations() -> TestResult {
   return assert(false, "camera: operation crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 10. Math (cos, sin)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_math_cos_sin() -> Int {
   let c0 = cos(0.0);
@@ -583,9 +583,9 @@ fn test_math_cos_sin() -> TestResult {
   return assert(false, "math: cos or sin incorrect");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 11. Procedural Textures (solid, gradient)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_proc_texture_solid() -> Int {
   let t = proc_texture_solid(32, 32, 1.0, 0.0, 0.0);
@@ -615,9 +615,9 @@ fn test_proc_texture_gradient() -> TestResult {
   return assert(false, "texture: gradient create failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 12. Font (create, metrics, measure, destroy)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_font_lifecycle() -> Int {
   let font = font_create(16.0);
@@ -639,9 +639,9 @@ fn test_font_lifecycle() -> TestResult {
   return assert(false, "font: lifecycle failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 13. Images (create_2d, destroy, view create, view destroy)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_image_create_destroy() -> Int {
   let a = create_app("XIOM Image", 120, 120);
@@ -675,9 +675,9 @@ fn test_image_create_destroy() -> TestResult {
   return assert(false, "image: lifecycle failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 14. Samplers (create, destroy)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_sampler_create_destroy() -> Int {
   let a = create_app("XIOM Sampler", 120, 120);
@@ -705,9 +705,9 @@ fn test_sampler_create_destroy() -> TestResult {
   return assert(false, "sampler: lifecycle failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// 15. Drawing (triangle, cube, quad, particles — windowed smoke)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// 15. Drawing (triangle, cube, quad, particles -- windowed smoke)
+// ===========================================================================
 
 fn run_drawing_smoke() -> Int {
   let a = create_app("XIOM Draw", 120, 120);
@@ -772,12 +772,12 @@ fn test_particles_smoke() -> TestResult {
   return assert(false, "drawing: particles smoke failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 16. Error Handling (invalid params)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_error_invalid_app() -> Int {
-  // destroy_app with invalid handle — contract should catch it
+  // destroy_app with invalid handle -- contract should catch it
   // NOTE: contracts trap (X0100), so we test via the raw FFI
   // Checking that buffer_create with garbage returns Err
   let b = buffer_create(0, 256, 8, 2);
@@ -807,9 +807,9 @@ fn test_error_zero_size() -> TestResult {
   return assert(false, "error: 0-byte buffer unexpectedly created");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Main
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn main() -> Int {
   io.println("=== XIOM Vulkan Conformance Tests ===");

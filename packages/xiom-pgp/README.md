@@ -1,6 +1,6 @@
 # xiom-pgp
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** OpenPGP encryption, signing, and keyring operations.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,4 +1,4 @@
-// XIOM — TCP Networking (Production via Winsock2 + FFI Bridge)
+// XIOM -- TCP Networking (Production via Winsock2 + FFI Bridge)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 
@@ -7,7 +7,7 @@ module xiom.net.tcp
 use xiom.ptr;
 use xiom.string;
 
-// ─── XIOM FFI Bridge ────────────────────────────────────────────────────────
+// --- XIOM FFI Bridge --------------------------------------------------------
 
 extern "C" {
   fn xiom_alloc(size: Int) -> *UInt8;
@@ -19,7 +19,7 @@ extern "C" {
   fn xiom_copy_from_vec(c_buf: *UInt8, vec_data: *UInt8, vec_len: Int, vec_cap: Int, offset: Int, count: Int);
 }
 
-// ─── Winsock2 FFI ───────────────────────────────────────────────────────────
+// --- Winsock2 FFI -----------------------------------------------------------
 
 extern "C" {
   fn socket(af: Int, typ: Int, protocol: Int) -> Int;
@@ -36,7 +36,7 @@ extern "C" {
   fn shutdown(sock: Int, how: Int) -> Int;
 }
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// --- Types ------------------------------------------------------------------
 // NOTE: SocketAddr and IpAddr are defined in xiom.net.types (same package).
 // They are package-level visible and auto-resolved at compile time.
 
@@ -52,7 +52,7 @@ pub type TcpListener = {
   addr: SocketAddr;
 } derive[Clone]
 
-// ─── Constants ──────────────────────────────────────────────────────────────
+// --- Constants --------------------------------------------------------------
 
 fn AF_INET() -> Int { return 2; }
 fn SOCK_STREAM() -> Int { return 1; }
@@ -60,7 +60,7 @@ fn INVALID_SOCKET() -> Int { return -1; }
 fn SOCKET_ERROR() -> Int { return -1; }
 fn SOMAXCONN() -> Int { return 128; }
 
-// ─── Winsock Lifecycle ──────────────────────────────────────────────────────
+// --- Winsock Lifecycle ------------------------------------------------------
 
 var wsa_initialized: Bool = false;
 
@@ -104,7 +104,7 @@ fn make_error() -> Str {
   return ws_error_to_str(err);
 }
 
-// ─── sockaddr_in Builder (Bridge-backed) ────────────────────────────────────
+// --- sockaddr_in Builder (Bridge-backed) ------------------------------------
 // Allocates 16 bytes via xiom_alloc and writes sockaddr_in fields byte-by-byte
 // via xiom_write_byte.  Caller must free the buffer with xiom_free_ptr.
 //
@@ -146,7 +146,7 @@ fn build_sockaddr_in_bytes(addr: &SocketAddr) -> *UInt8
   return buf;
 }
 
-// ─── sockaddr_in Parser (Bridge-backed) ─────────────────────────────────────
+// --- sockaddr_in Parser (Bridge-backed) -------------------------------------
 
 fn parse_sockaddr_in_bytes(buf: *UInt8) -> Result[SocketAddr, Str] {
   if buf == ptr.null[UInt8]() {
@@ -173,7 +173,7 @@ fn parse_sockaddr_in_bytes(buf: *UInt8) -> Result[SocketAddr, Str] {
   return Ok(socket_addr(ip, port));
 }
 
-// ─── TCP Connect ────────────────────────────────────────────────────────────
+// --- TCP Connect ------------------------------------------------------------
 
 pub fn tcp_connect(addr: SocketAddr) -> Result[TcpStream, Str]
   requires: addr.ip.version == 4
@@ -209,7 +209,7 @@ pub fn tcp_connect(addr: SocketAddr) -> Result[TcpStream, Str]
   return Ok(TcpStream{ fd: fd, connected: true, remote: addr });
 }
 
-// ─── TCP Listen ─────────────────────────────────────────────────────────────
+// --- TCP Listen -------------------------------------------------------------
 
 pub fn tcp_listen(addr: SocketAddr) -> Result[TcpListener, Str]
   requires: addr.ip.version == 4
@@ -253,7 +253,7 @@ pub fn tcp_listen(addr: SocketAddr) -> Result[TcpListener, Str]
   return Ok(TcpListener{ fd: fd, bound: true, addr: addr });
 }
 
-// ─── TCP Accept ─────────────────────────────────────────────────────────────
+// --- TCP Accept -------------------------------------------------------------
 
 pub fn tcp_accept(listener: &mut TcpListener) -> Result[TcpStream, Str]
   requires: listener.bound
@@ -303,7 +303,7 @@ pub fn tcp_accept(listener: &mut TcpListener) -> Result[TcpStream, Str]
   return Ok(TcpStream{ fd: client_fd, connected: true, remote: remote });
 }
 
-// ─── TCP Write ──────────────────────────────────────────────────────────────
+// --- TCP Write --------------------------------------------------------------
 // Uses xiom_copy_from_vec to copy XIOM Vec data into a bridge-allocated C
 // buffer, then calls send().
 
@@ -334,7 +334,7 @@ pub fn tcp_write(stream: &mut TcpStream, data: &Vec[Int]) -> Result[Int, Str]
   return Ok(bytes);
 }
 
-// ─── TCP Read ───────────────────────────────────────────────────────────────
+// --- TCP Read ---------------------------------------------------------------
 // Allocates a bridge buffer, calls recv(), then copies bytes back into the
 // XIOM Vec.
 
@@ -376,7 +376,7 @@ pub fn tcp_read(stream: &mut TcpStream, buf: &mut Vec[Int]) -> Result[Int, Str]
   return Ok(bytes);
 }
 
-// ─── TCP Close ──────────────────────────────────────────────────────────────
+// --- TCP Close --------------------------------------------------------------
 // Performs graceful shutdown (SD_BOTH) then closes the socket.
 
 pub fn tcp_close(stream: TcpStream)
@@ -396,7 +396,7 @@ pub fn tcp_listener_close(listener: TcpListener)
   };
 }
 
-// ─── Query Helpers ──────────────────────────────────────────────────────────
+// --- Query Helpers ----------------------------------------------------------
 
 pub fn tcp_is_connected(stream: &TcpStream) -> Bool {
   return stream.connected;
@@ -408,7 +408,7 @@ pub fn tcp_remote_addr(stream: &TcpStream) -> SocketAddr
   return stream.remote;
 }
 
-// ─── Winsock Error Codes ────────────────────────────────────────────────────
+// --- Winsock Error Codes ----------------------------------------------------
 
 fn ws_error_to_str(code: Int) -> Str {
   if code == 10013 { return "permission denied"; }
@@ -440,7 +440,7 @@ fn ws_error_to_str(code: Int) -> Str {
   return "unknown socket error (" + int_to_str(code) + ")";
 }
 
-// ─── Utility ────────────────────────────────────────────────────────────────
+// --- Utility ----------------------------------------------------------------
 
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; };

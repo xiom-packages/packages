@@ -1,6 +1,6 @@
 # xiom-websocket Architecture
 
-> **Status: Design stage — specification only, not yet implemented. Depends on xiom-http (upgrade bridge) and xiom-net (TCP transport).**
+> **Status: Design stage -- specification only, not yet implemented. Depends on xiom-http (upgrade bridge) and xiom-net (TCP transport).**
 
 `xiom-websocket` is the WebSocket extension package for the XIOM ecosystem. It provides WebSocket handshake handling, frame parsing, connection lifecycle management, pub/sub channel abstractions, presence hooks, backpressure controls, and reconnect-oriented session semantics on top of `xiom-http` and `xiom-net`.
 
@@ -42,56 +42,56 @@ At the design stage only the manifest and documentation exist; no `.xi` source f
 
 ```text
 xiom-websocket/
-├── package.xi
-├── README.md
-├── ARCHITECTURE.md
-├── SPEC.md
-├── docs/
-│   ├── handshake.md
-│   ├── frames.md
-│   ├── close-codes.md
-│   ├── heartbeat.md
-│   ├── reconnect.md
-│   ├── presence.md
-│   ├── backpressure.md
-│   ├── scaling.md
-│   └── subprotocols.md
-├── src/                        # planned — not yet implemented
-│   ├── mod.xi
-│   ├── server.xi
-│   ├── client.xi
-│   ├── handshake.xi
-│   ├── upgrade.xi
-│   ├── frame.xi
-│   ├── opcode.xi
-│   ├── close_code.xi
-│   ├── message.xi
-│   ├── connection.xi
-│   ├── session.xi
-│   ├── heartbeat.xi
-│   ├── backpressure.xi
-│   ├── reconnect.xi
-│   ├── presence.xi
-│   ├── channel.xi
-│   ├── pubsub.xi
-│   ├── broadcast.xi
-│   ├── subprotocol.xi
-│   ├── auth.xi
-│   ├── transport/
-│   │   ├── mod.xi
-│   │   ├── http_upgrade_bridge.xi
-│   │   └── websocket_stream.xi
-│   └── testing/
-│       ├── mod.xi
-│       ├── frames.xi
-│       └── fixtures.xi
-└── tests/                      # planned — not yet implemented
-    ├── handshake/
-    ├── frames/
-    ├── lifecycle/
-    ├── reconnect/
-    ├── presence/
-    └── scaling/
+|-- package.xi
+|-- README.md
+|-- ARCHITECTURE.md
+|-- SPEC.md
+|-- docs/
+|   |-- handshake.md
+|   |-- frames.md
+|   |-- close-codes.md
+|   |-- heartbeat.md
+|   |-- reconnect.md
+|   |-- presence.md
+|   |-- backpressure.md
+|   |-- scaling.md
+|   `-- subprotocols.md
+|-- src/                        # planned -- not yet implemented
+|   |-- mod.xi
+|   |-- server.xi
+|   |-- client.xi
+|   |-- handshake.xi
+|   |-- upgrade.xi
+|   |-- frame.xi
+|   |-- opcode.xi
+|   |-- close_code.xi
+|   |-- message.xi
+|   |-- connection.xi
+|   |-- session.xi
+|   |-- heartbeat.xi
+|   |-- backpressure.xi
+|   |-- reconnect.xi
+|   |-- presence.xi
+|   |-- channel.xi
+|   |-- pubsub.xi
+|   |-- broadcast.xi
+|   |-- subprotocol.xi
+|   |-- auth.xi
+|   |-- transport/
+|   |   |-- mod.xi
+|   |   |-- http_upgrade_bridge.xi
+|   |   `-- websocket_stream.xi
+|   `-- testing/
+|       |-- mod.xi
+|       |-- frames.xi
+|       `-- fixtures.xi
+`-- tests/                      # planned -- not yet implemented
+    |-- handshake/
+    |-- frames/
+    |-- lifecycle/
+    |-- reconnect/
+    |-- presence/
+    `-- scaling/
 ```
 
 ## Core module responsibilities

@@ -1,4 +1,4 @@
-// XIOM — Realtime Priority Scheduler (Pure XIOM, contract-protected)
+// XIOM -- Realtime Priority Scheduler (Pure XIOM, contract-protected)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 
@@ -7,7 +7,7 @@ module xiom.realtime
 use xiom.string;
 use xiom.convert;
 
-// ─── Types ────────────────────────────────────────────────────────────────
+// --- Types ----------------------------------------------------------------
 
 pub enum RtPriority {
   Critical,
@@ -57,7 +57,7 @@ pub type RtScheduleResult = {
   failed: Vec[Str];
 } derive[Clone]
 
-// ─── Priority Helpers ─────────────────────────────────────────────────────
+// --- Priority Helpers -----------------------------------------------------
 
 pub fn priority_to_int(p: RtPriority) -> Int {
   match p {
@@ -87,7 +87,7 @@ pub fn priority_to_str(p: RtPriority) -> Str {
   };
 }
 
-// ─── Task Builder ─────────────────────────────────────────────────────────
+// --- Task Builder ---------------------------------------------------------
 
 pub fn task_new(id: Str, name: Str, priority: RtPriority, deadline_ms: Int, now_ms: Int) -> RtTask
   requires: string.str_len(id) > 0
@@ -120,7 +120,7 @@ pub fn task_can_retry(task: &RtTask) -> Bool {
   return task.retry_count < task.max_retries;
 }
 
-// ─── Task Comparator ──────────────────────────────────────────────────────
+// --- Task Comparator ------------------------------------------------------
 
 pub fn task_cmp_priority(a: &RtTask, b: &RtTask) -> Int {
   var pa: Int = priority_to_int(a.priority);
@@ -130,7 +130,7 @@ pub fn task_cmp_priority(a: &RtTask, b: &RtTask) -> Int {
   return 0;
 }
 
-// ─── Scheduler Builder ────────────────────────────────────────────────────
+// --- Scheduler Builder ----------------------------------------------------
 
 pub fn scheduler_new(max_concurrent: Int) -> RtScheduler
   requires: max_concurrent >= 0
@@ -174,7 +174,7 @@ pub fn scheduler_set_now(sched: &mut RtScheduler, ms: Int) {
   sched.now_ms = ms;
 }
 
-// ─── Priority-Based Sort ──────────────────────────────────────────────────
+// --- Priority-Based Sort --------------------------------------------------
 
 fn scheduler_sort_pending(sched: &mut RtScheduler) {
   var n: Int = sched.tasks.len();
@@ -196,7 +196,7 @@ fn scheduler_sort_pending(sched: &mut RtScheduler) {
   };
 }
 
-// ─── Tick Execution ───────────────────────────────────────────────────────
+// --- Tick Execution -------------------------------------------------------
 
 pub fn scheduler_tick(sched: &mut RtScheduler) -> RtScheduleResult {
   var result = RtScheduleResult{
@@ -209,7 +209,7 @@ pub fn scheduler_tick(sched: &mut RtScheduler) -> RtScheduleResult {
 
   var slots: Int = sched.max_concurrent - sched.running_count;
   if slots <= 0 {
-    // All slots full — defer everything
+    // All slots full -- defer everything
     var i: Int = 0;
     while i < sched.tasks.len() {
       if task_is_pending(&sched.tasks[i]) {
@@ -255,7 +255,7 @@ pub fn scheduler_tick(sched: &mut RtScheduler) -> RtScheduleResult {
   return result;
 }
 
-// ─── Task Completion ──────────────────────────────────────────────────────
+// --- Task Completion ------------------------------------------------------
 
 pub fn scheduler_complete_task(sched: &mut RtScheduler, task_id: Str) -> Bool {
   var i: Int = 0;
@@ -304,7 +304,7 @@ pub fn scheduler_fail_task(sched: &mut RtScheduler, task_id: Str) -> Bool {
   return false;
 }
 
-// ─── Scheduler Query ──────────────────────────────────────────────────────
+// --- Scheduler Query ------------------------------------------------------
 
 pub fn scheduler_find_task(sched: &RtScheduler, task_id: Str) -> Option[RtTask] {
   var i: Int = 0;

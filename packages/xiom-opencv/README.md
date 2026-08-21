@@ -1,6 +1,6 @@
 # xiom-opencv
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** OpenCV bindings for computer vision.
 > **Deps:** stdlib; may wrap C (FFI).
 

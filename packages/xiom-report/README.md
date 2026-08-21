@@ -1,6 +1,6 @@
 # xiom-report
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Structured test and benchmark result reporting.
 > **Deps:** stdlib; may wrap C (FFI).
 

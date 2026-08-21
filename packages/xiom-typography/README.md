@@ -1,6 +1,6 @@
 # xiom-typography
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Font handling and text shaping.
 > **Deps:** stdlib; may wrap C (FFI).
 

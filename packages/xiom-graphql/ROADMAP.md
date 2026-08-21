@@ -13,7 +13,7 @@
 - [x] Precision-typed error model (ParseError, ValidationError, GraphQLError)
 - [x] Conformance test suite (10 tests)
 
-## v0.2.0 — Full SDL Parser
+## v0.2.0 -- Full SDL Parser
 - [ ] Recursive-descent SDL parser (full GraphQL schema definition language)
 - [ ] Scalar type resolution (Int, Float, String, Boolean, ID)
 - [ ] Non-null and List type wrapper parsing
@@ -23,7 +23,7 @@
 - [ ] Directive definition parsing
 - [ ] Schema composition from multiple SDL files
 
-## v0.3.0 — Full Query Parser
+## v0.3.0 -- Full Query Parser
 - [ ] Recursive-descent query parser (full GraphQL query language)
 - [ ] Variable definition parsing
 - [ ] Fragment definition and spread parsing
@@ -32,7 +32,7 @@
 - [ ] Alias support
 - [ ] Argument parsing with nested values
 
-## v0.4.0 — Validation Engine
+## v0.4.0 -- Validation Engine
 - [ ] Full GraphQL validation rule set
 - [ ] Field existence on target type
 - [ ] Argument type validation
@@ -43,7 +43,7 @@
 - [ ] Lone anonymous operation rule
 - [ ] Leaf field selection rule
 
-## v0.5.0 — Execution Engine
+## v0.5.0 -- Execution Engine
 - [ ] Field resolver dispatch
 - [ ] Parallel query execution
 - [ ] Sequential mutation execution
@@ -51,7 +51,7 @@
 - [ ] Error collection and path tracking
 - [ ] Response assembly
 
-## v1.0.0 — Production Readiness
+## v1.0.0 -- Production Readiness
 - [ ] Subscriptions via event streams
 - [ ] DataLoader integration for N+1 mitigation
 - [ ] Introspection query support (__schema, __type, __typename)

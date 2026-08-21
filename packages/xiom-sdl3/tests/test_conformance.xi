@@ -1,4 +1,4 @@
-// XIOM — SDL3 Conformance Test Suite
+// XIOM -- SDL3 Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -108,7 +108,7 @@ fn test_a75_windowpos_undefined() -> Bool { return SDL_WINDOWPOS_UNDEFINED == 0x
 fn test_a76_windowpos_centered() -> Bool { return SDL_WINDOWPOS_CENTERED == 0x2FFF0000 as Int32; }
 
 // =========================================================================
-// SECTION B: DISTINCTNESS CHECKS — key constants must not overlap
+// SECTION B: DISTINCTNESS CHECKS -- key constants must not overlap
 // =========================================================================
 
 fn test_b01_pixelformat_argb_vs_rgba() -> Bool { return SDL_PIXELFORMAT_ARGB8888 != SDL_PIXELFORMAT_RGBA8888; }
@@ -123,7 +123,7 @@ fn test_b09_gamepad_type_distinct() -> Bool { return SDL_GAMEPAD_TYPE_UNKNOWN !=
 fn test_b10_mouse_button_distinct() -> Bool { return SDL_BUTTON_LEFT != SDL_BUTTON_RIGHT; }
 
 // =========================================================================
-// SECTION C: ORDERING CHECKS — enums with defined ordering
+// SECTION C: ORDERING CHECKS -- enums with defined ordering
 // =========================================================================
 
 fn test_c01_scalemode_near_lt_linear() -> Bool { return SDL_SCALEMODE_NEAREST < SDL_SCALEMODE_LINEAR; }
@@ -140,7 +140,7 @@ fn test_c11_event_gamepad_lt_finger() -> Bool { return SDL_EVENT_GAMEPAD_AXIS_MO
 fn test_c12_event_finger_lt_render() -> Bool { return SDL_EVENT_FINGER_DOWN < SDL_EVENT_RENDER_TARGETS_RESET; }
 
 // =========================================================================
-// SECTION D: PROCEDURAL API — xiom.sdl3 function type compilation
+// SECTION D: PROCEDURAL API -- xiom.sdl3 function type compilation
 // =========================================================================
 
 fn test_d01_init_compiles() {
@@ -286,7 +286,7 @@ fn test_d33_event_type_to_string_compiles() {
 }
 
 // =========================================================================
-// SECTION E: EVENT TYPE STRINGS — verify specific mappings compile
+// SECTION E: EVENT TYPE STRINGS -- verify specific mappings compile
 // =========================================================================
 
 fn test_e01_event_type_quit_str() -> Bool { return event_type_to_string(SDL_EVENT_QUIT) == "SDL_EVENT_QUIT"; }
@@ -316,7 +316,7 @@ fn test_e24_event_type_drop_text_str() -> Bool { return event_type_to_string(SDL
 fn test_e25_event_type_unknown_str() -> Bool { return event_type_to_string(SDL_EVENT_POLL_SENTINEL) == "SDL_EVENT_UNKNOWN"; }
 
 // =========================================================================
-// SECTION F: SAFE TYPES — type construction and field verification
+// SECTION F: SAFE TYPES -- type construction and field verification
 // =========================================================================
 
 fn test_f01_sdlerror_construct() -> Bool {
@@ -357,7 +357,7 @@ fn test_f07_sdlapp_construct() -> Bool {
 }
 
 // =========================================================================
-// SECTION G: SAFE API — Result type compilation (contracts verified)
+// SECTION G: SAFE API -- Result type compilation (contracts verified)
 // =========================================================================
 
 fn test_g01_sdlcontext_init_compiles() {
@@ -389,7 +389,7 @@ fn test_g06_sdlapp_create_compiles() {
 }
 
 // =========================================================================
-// SECTION H: SAFE API — method call compilation (all methods verified)
+// SECTION H: SAFE API -- method call compilation (all methods verified)
 // =========================================================================
 
 fn test_h01_sdlwindow_show_compiles() {
@@ -557,7 +557,7 @@ fn test_h31_sdlapp_destroy_compiles() {
 }
 
 // =========================================================================
-// SECTION I: CONTRACT ENFORCEMENT — requires contracts verified
+// SECTION I: CONTRACT ENFORCEMENT -- requires contracts verified
 //   These functions call API entry points with valid args to verify
 //   contracts are satisfied at the call site. Contract violations
 //   would be compiler errors.
@@ -615,7 +615,7 @@ fn test_i08_contract_wait_event_requires_event()
 }
 
 // =========================================================================
-// SECTION J: RESOURCE LIFECYCLE — create/destroy pairs compile
+// SECTION J: RESOURCE LIFECYCLE -- create/destroy pairs compile
 // =========================================================================
 
 fn test_j01_resource_window_create_destroy() {
@@ -682,7 +682,7 @@ fn test_j04_resource_context_quit() {
 }
 
 // =========================================================================
-// SECTION K: FLAG COMBINATIONS — bitwise OR patterns compile
+// SECTION K: FLAG COMBINATIONS -- bitwise OR patterns compile
 // =========================================================================
 
 fn test_k01_window_flag_bitwise_or() {
@@ -694,7 +694,7 @@ fn test_k02_init_flag_bitwise_or() {
 }
 
 // =========================================================================
-// SECTION L: RELATIONSHIP CHECKS — verify logical invariants
+// SECTION L: RELATIONSHIP CHECKS -- verify logical invariants
 // =========================================================================
 
 fn test_l01_scancode_alphabetic_range() -> Bool {

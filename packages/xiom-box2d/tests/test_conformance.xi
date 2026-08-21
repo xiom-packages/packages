@@ -1,4 +1,4 @@
-// XIOM — Box2D Conformance Tests
+// XIOM -- Box2D Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -55,7 +55,7 @@ fn report(passed: Bool, name: Str) -> Int {
 }
 
 // ===========================================================================
-// SECTION 1 — Type & Constant Verification (9 tests)
+// SECTION 1 -- Type & Constant Verification (9 tests)
 // ===========================================================================
 
 fn test_type_B2WorldId() -> TestResult {
@@ -73,7 +73,7 @@ fn test_type_Pendulum() -> TestResult {
 }
 
 fn test_const_B2_PI() -> TestResult {
-  return assert(B2_PI > 3.14 && B2_PI < 3.15, "const: B2_PI ≈ 3.14159");
+  return assert(B2_PI > 3.14 && B2_PI < 3.15, "const: B2_PI ~= 3.14159");
 }
 
 fn test_const_B2_MAX_POLYGON_VERTICES() -> TestResult {
@@ -104,7 +104,7 @@ fn test_const_colors() -> TestResult {
 }
 
 // ===========================================================================
-// SECTION 2 — Null Predicate Tests (6 tests, runtime-verifiable)
+// SECTION 2 -- Null Predicate Tests (6 tests, runtime-verifiable)
 // ===========================================================================
 
 fn test_null_world_id() -> TestResult {
@@ -138,7 +138,7 @@ fn test_null_contact_id() -> TestResult {
 }
 
 // ===========================================================================
-// SECTION 3 — Math Helper Tests (13 tests, runtime-verifiable)
+// SECTION 3 -- Math Helper Tests (13 tests, runtime-verifiable)
 // ===========================================================================
 
 fn test_math_vec2_zero() -> TestResult {
@@ -216,7 +216,7 @@ fn test_math_vec2_normalize_nonzero() -> TestResult {
 }
 
 // ===========================================================================
-// SECTION 4 — API Function Presence (49 tests, compile-time verification)
+// SECTION 4 -- API Function Presence (49 tests, compile-time verification)
 // ===========================================================================
 
 fn test_api_create_world() -> TestResult {
@@ -416,7 +416,7 @@ fn test_api_create_pendulum() -> TestResult {
 }
 
 // ===========================================================================
-// SECTION 5 — Contract Declaration Tests (49 tests)
+// SECTION 5 -- Contract Declaration Tests (49 tests)
 // ===========================================================================
 
 fn test_contract_destroy_world() -> TestResult {
@@ -616,7 +616,7 @@ fn test_contract_aabb() -> TestResult {
 }
 
 // ===========================================================================
-// SECTION 6 — Demo API Presence (2 tests)
+// SECTION 6 -- Demo API Presence (2 tests)
 // ===========================================================================
 
 fn test_demo_assert() -> TestResult {
@@ -628,7 +628,7 @@ fn test_demo_run_all() -> TestResult {
 }
 
 // ===========================================================================
-// SECTION 7 — FFI Extern Declaration Verification (compile-time smoke)
+// SECTION 7 -- FFI Extern Declaration Verification (compile-time smoke)
 // ===========================================================================
 
 fn test_ffi_world_functions_present() -> TestResult {
@@ -823,19 +823,19 @@ pub fn main() -> Int {
   let r132 = test_ffi_collision_functions_present(); total = total + 1; if !r132.passed { failed = failed + 1; };
 
   io.println("");
-  io.println("═══════════════════════════════════════");
+  io.println("=======================================");
   if failed == 0 {
   io.println("  ALL 133 TESTS PASSED");
   io.println("  Path:    " + "E:\\Projects\\AXIOM\\ecosystem\\xiom-box2d\\tests\\test_conformance.xi");
   io.println("  Test Count: 133");
   io.println("  Contract Count: 76 (across 49 functions)");
-    io.println("═══════════════════════════════════════");
+    io.println("=======================================");
     return 0;
   }
   io.println("  Path:    " + "E:\\Projects\\AXIOM\\ecosystem\\xiom-box2d\\tests\\test_conformance.xi");
   io.println("  Test Count: 133");
   io.println("  Contract Count: 76 (across 49 functions)");
   io.println("  " + int_to_str(failed) + " TESTS FAILED");
-  io.println("═══════════════════════════════════════");
+  io.println("=======================================");
   return 1;
 }

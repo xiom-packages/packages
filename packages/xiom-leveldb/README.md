@@ -1,6 +1,6 @@
 # xiom-leveldb
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** LevelDB embedded key-value store bindings.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,4 +1,4 @@
-// XIOM — Vulkan Smoke Tests (windowed API only)
+// XIOM -- Vulkan Smoke Tests (windowed API only)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -7,7 +7,7 @@
 //   2. 5-frame poll/begin_frame/end_frame cycle
 //   3. invalid-parameter rejection (0x0)
 //
-// NOTE: offscreen_create is deliberately NOT used — headless GPU init
+// NOTE: offscreen_create is deliberately NOT used -- headless GPU init
 // hangs in the bridge until true offscreen support lands. Every test
 // below drives the windowed API, opening a small window briefly.
 //
@@ -29,7 +29,7 @@ use xiom.vulkan;
 // Runner exit codes shared by all tests below.
 // 0 = pass, 1 = fail, 2 = skip (vulkan unavailable)
 
-// ─── Test 1: open a small window, destroy it ───
+// --- Test 1: open a small window, destroy it ---
 
 fn run_create_destroy() -> Int {
   let instance = create_app("XIOM Smoke", 100, 100);
@@ -49,7 +49,7 @@ fn test_app_create_destroy() -> TestResult {
   return assert(false, "app: create+destroy failed");
 }
 
-// ─── Test 2: pump 5 frames of poll + begin_frame + end_frame ───
+// --- Test 2: pump 5 frames of poll + begin_frame + end_frame ---
 // begin_frame status: 1 = frame begun, 0 = skip (resize/minimized),
 // -1 = error. Completing the loop without a crash is the pass signal.
 
@@ -84,7 +84,7 @@ fn test_begin_frame_cycle() -> TestResult {
   return assert(false, "frame: begin_frame failed");
 }
 
-// ─── Test 3: invalid params (0x0) must yield Err, not a crash ───
+// --- Test 3: invalid params (0x0) must yield Err, not a crash ---
 // create_app carries `requires: width > 0` / `requires: height > 0`, so
 // calling it with 0x0 would trap on the contract (X0100) instead of
 // returning Err. Drive the same rejection path through the raw bridge
@@ -115,7 +115,7 @@ fn test_error_handling() -> TestResult {
   return assert(false, "error: 0x0 create unexpectedly succeeded");
 }
 
-// ─── Helpers ───
+// --- Helpers ---
 
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; }
@@ -150,7 +150,7 @@ fn report(passed: Bool, name: Str) -> Int {
   return 1;
 }
 
-// ─── Main ───
+// --- Main ---
 
 fn main() -> Int {
   var failed = 0;

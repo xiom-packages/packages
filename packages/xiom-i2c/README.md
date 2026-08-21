@@ -1,6 +1,6 @@
 # xiom-i2c
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** I2C bus master/slave communication with addressing and clock control.
 > **Deps:** stdlib; may wrap C (FFI).
 

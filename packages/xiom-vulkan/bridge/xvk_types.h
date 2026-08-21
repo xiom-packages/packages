@@ -192,7 +192,7 @@ typedef struct XvkApp {
     VkCommandBuffer     offs_cmd;
     VkFence             offs_fence;
 
-    /* Input state (Phase 8.2) — updated per-frame in xvk_app_poll */
+    /* Input state (Phase 8.2) -- updated per-frame in xvk_app_poll */
     double              mouse_x, mouse_y;
     int                 mouse_btn[3];  /* 0=left, 1=right, 2=middle */
     int                 key_escape, key_space, key_w, key_a, key_s, key_d;

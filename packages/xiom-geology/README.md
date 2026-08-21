@@ -1,6 +1,6 @@
 # xiom-geology
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Earth science: minerals, rock types, and geological processes.
 > **Deps:** stdlib; may wrap C (FFI).
 

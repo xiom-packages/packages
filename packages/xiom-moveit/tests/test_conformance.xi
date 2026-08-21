@@ -1,4 +1,4 @@
-// XIOM — xiom.moveit conformance test suite
+// XIOM -- xiom.moveit conformance test suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -11,7 +11,7 @@ module xiom.moveit.test_conformance
 use xiom.moveit
 
 // ============================================================
-// Section 1 — Type declarations (4)
+// Section 1 -- Type declarations (4)
 // ============================================================
 
 fn test_type_robot_model() -> Bool {
@@ -39,7 +39,7 @@ fn test_type_collision_object() -> Bool {
 }
 
 // ============================================================
-// Section 2 — Shape constants (2)
+// Section 2 -- Shape constants (2)
 // ============================================================
 
 fn test_shape_constants_distinct() -> Bool {
@@ -56,7 +56,7 @@ fn test_shape_constants_range() -> Bool {
 }
 
 // ============================================================
-// Section 3 — Robot model lifecycle (2)
+// Section 3 -- Robot model lifecycle (2)
 // ============================================================
 
 fn test_robot_model_load_free() -> Bool {
@@ -75,7 +75,7 @@ fn test_robot_model_joint_count() -> Bool {
 }
 
 // ============================================================
-// Section 4 — Planning scene lifecycle (3)
+// Section 4 -- Planning scene lifecycle (3)
 // ============================================================
 
 fn test_planning_scene_create_free() -> Bool {
@@ -115,7 +115,7 @@ fn test_scene_add_collision_objects() -> Bool {
 }
 
 // ============================================================
-// Section 5 — Motion planning (3)
+// Section 5 -- Motion planning (3)
 // ============================================================
 
 fn test_plan_valid() -> Bool {
@@ -200,7 +200,7 @@ fn test_plan_time_limit_positive() -> Bool {
 }
 
 // ============================================================
-// Section 6 — Trajectory queries (2)
+// Section 6 -- Trajectory queries (2)
 // ============================================================
 
 fn test_plan_trajectory_points() -> Bool {

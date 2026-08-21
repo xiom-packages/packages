@@ -1,5 +1,5 @@
 // ===========================================================================
-// XIOM Vulkan SDK — Example 01: First Triangle
+// XIOM Vulkan SDK -- Example 01: First Triangle
 // xiom demo_01_triangle.xi --release --c-source ../bridge/xvk_bridge.obj
 // ===========================================================================
 
@@ -8,7 +8,7 @@ use xiom.io;
 use xiom.vulkan;
 
 fn main() -> Int {
-  let app = create_app("01 — First Triangle", 800, 600);
+  let app = create_app("01 -- First Triangle", 800, 600);
   match app {
     Err(e) => { return 1; }
     Ok(a) => {

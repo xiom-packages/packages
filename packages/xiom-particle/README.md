@@ -1,6 +1,6 @@
 # xiom-particle
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Particle physics: the standard model and interactions.
 > **Deps:** stdlib; may wrap C (FFI).
 

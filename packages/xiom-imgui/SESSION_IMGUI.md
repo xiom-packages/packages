@@ -1,4 +1,4 @@
-# xiom-imgui — Session Handoff
+# xiom-imgui -- Session Handoff
 
 **Date**: 2026-07-20 | **Compiler**: xiom v0.48.7 (768/768 tests, AI mode, LSP, Hot Reload)
 **GPU**: NVIDIA GeForce RTX 3070 Ti | **VK SDK**: 1.4.350.0 | **GLFW**: 3.4
@@ -8,13 +8,13 @@
 ## Package Status
 
 ### Production-Ready Components
-- `imgui.xi` — 70+ C bridge functions exposed via `extern "C"` FFI
-- `bridge/imgui_bridge.cpp/h` — C ABI wrapper over Dear ImGui v1.92.9
-- `bridge/imgui_impl_glfw.cpp/h` — GLFW backend
-- `bridge/imgui_impl_vulkan.cpp/h` — Vulkan backend (VK 1.3+)
-- `bridge/imgui.cpp/h` etc. — Full Dear ImGui source (bundled, no external deps)
-- `build.ps1` — Compiles 7 .obj files + builds test/demo targets
-- `tests/test_imgui.xi` — CLI conformance test (null window → clean exit)
+- `imgui.xi` -- 70+ C bridge functions exposed via `extern "C"` FFI
+- `bridge/imgui_bridge.cpp/h` -- C ABI wrapper over Dear ImGui v1.92.9
+- `bridge/imgui_impl_glfw.cpp/h` -- GLFW backend
+- `bridge/imgui_impl_vulkan.cpp/h` -- Vulkan backend (VK 1.3+)
+- `bridge/imgui.cpp/h` etc. -- Full Dear ImGui source (bundled, no external deps)
+- `build.ps1` -- Compiles 7 .obj files + builds test/demo targets
+- `tests/test_imgui.xi` -- CLI conformance test (null window -> clean exit)
 
 ### Demo: `tests/demo_imgui.xi`
 - Windowed 1280x800 at start, F11 toggles fullscreen, drag-resize fluid
@@ -28,7 +28,7 @@
 - Settings panel (right bottom): tabbed (Render/Audio/About)
 - Status bar: colored FPS, toolchain versions, accent color
 - Modal popup: About dialog with info text
-- **Known limitation**: 3D pipeline uses static viewport (1280×800) — 3D scene distorts after resize. lit3d pipeline has dynamic viewport but no draw_cube backend uses it. The 4 orbiting cubes appear correctly at initial window size.
+- **Known limitation**: 3D pipeline uses static viewport (1280x800) -- 3D scene distorts after resize. lit3d pipeline has dynamic viewport but no draw_cube backend uses it. The 4 orbiting cubes appear correctly at initial window size.
 
 ---
 
@@ -38,15 +38,15 @@
 
 | VUID | Issue | Fix |
 |------|-------|-----|
-| `vkAcquireNextImageKHR-semaphore-01780` | Both semaphore+fence were VK_NULL_HANDLE | Restored semaphore chain: `image_available[]` → submit wait → `render_finished[]` → present wait |
+| `vkAcquireNextImageKHR-semaphore-01780` | Both semaphore+fence were VK_NULL_HANDLE | Restored semaphore chain: `image_available[]` -> submit wait -> `render_finished[]` -> present wait |
 | `VkGraphicsPipelineCreateInfo-renderPass-09028` | lit3d pipeline missing pDepthStencilState | Added depth test+write with COMPARE_OP_LESS |
 
 ### Swapchain/Resize Fixes
 
 | Issue | Fix |
 |-------|-----|
-| `swapchain_extent` from surface caps ≠ `glfwGetFramebufferSize` | Compare `glfwGetFramebufferSize` against `swapchain_extent` in `begin_frame` |
-| Rendering on same frame as swapchain recreation corrupted state | Skip frame after `recreate_swapchain()` — return 0, render next frame |
+| `swapchain_extent` from surface caps = `glfwGetFramebufferSize` | Compare `glfwGetFramebufferSize` against `swapchain_extent` in `begin_frame` |
+| Rendering on same frame as swapchain recreation corrupted state | Skip frame after `recreate_swapchain()` -- return 0, render next frame |
 | `xvk_get_fb_width/height` used `swapchain_extent` (stale during resize) | Now queries `glfwGetFramebufferSize` directly |
 | ImGui `DisplaySize` set by GLFW window coords, not framebuffer pixels | `new_frame_sized()` sets `DisplaySize` = framebuffer, `FramebufferScale` = (1,1) |
 
@@ -54,9 +54,9 @@
 
 | ID | Issue | Status |
 |----|-------|--------|
-| CG-01 | `Int32 as Float32` cast → LLVM `%tmp defined with type i32 expected float` | Reported, workaround: Int32-only bridge functions |
-| Loop-Crash | `while !should_close(app)` → `0xC0000005` after ~30s with 50+ FFI calls/frame | Reported, mitigated by `--release` + frame limit |
-| CG-02 | Module-scope `var x: Float32 = 0.5` → LLVM constant error | Workaround: init to 0.0 |
+| CG-01 | `Int32 as Float32` cast -> LLVM `%tmp defined with type i32 expected float` | Reported, workaround: Int32-only bridge functions |
+| Loop-Crash | `while !should_close(app)` -> `0xC0000005` after ~30s with 50+ FFI calls/frame | Reported, mitigated by `--release` + frame limit |
+| CG-02 | Module-scope `var x: Float32 = 0.5` -> LLVM constant error | Workaround: init to 0.0 |
 
 All compiler issues reported as fixed in xiom as of this session. CG-01 still reproduces in v0.48.7.
 
@@ -67,17 +67,17 @@ All compiler issues reported as fixed in xiom as of this session. CG-01 still re
 ### Resize Stability (4 bridge-layer fixes)
 | Fix | File | Issue | Solution |
 |-----|------|-------|----------|
-| Surface query validation | `xvk_swapchain.c` | `vkGetPhysicalDeviceSurfaceCapabilitiesKHR` unchecked → garbage extents | Zero-init caps, check `VkResult`, `glfwGetFramebufferSize` fallback |
+| Surface query validation | `xvk_swapchain.c` | `vkGetPhysicalDeviceSurfaceCapabilitiesKHR` unchecked -> garbage extents | Zero-init caps, check `VkResult`, `glfwGetFramebufferSize` fallback |
 | Depth resource leak | `xvk_swapchain.c` | Old depth image/memory/view NEVER freed in `recreate_swapchain` | Save/null old depth handles before overwrite, free on success |
-| Missing SURFACE_LOST | `xvk_frame.c` | `VK_ERROR_SURFACE_LOST_KHR` not handled → crash on fullscreen toggle | Handle alongside `VK_ERROR_OUT_OF_DATE_KHR` |
-| SUBOPTIMAL deferral | `xvk_frame.c` | `VK_SUBOPTIMAL_KHR` in end_frame triggered mid-frame recreate → cascade | Defer to next begin_frame; only set flag |
+| Missing SURFACE_LOST | `xvk_frame.c` | `VK_ERROR_SURFACE_LOST_KHR` not handled -> crash on fullscreen toggle | Handle alongside `VK_ERROR_OUT_OF_DATE_KHR` |
+| SUBOPTIMAL deferral | `xvk_frame.c` | `VK_SUBOPTIMAL_KHR` in end_frame triggered mid-frame recreate -> cascade | Defer to next begin_frame; only set flag |
 
 ### 3D Viewport (3 production-grade fixes)
 | Fix | File | Issue | Solution |
 |-----|------|-------|----------|
-| Dynamic viewport | `xvk_pipeline.c/h`, `xvk_legacy.c` | `pipeline_3d` had static viewport at init size → distorts after resize | `dynamic_viewport` param; `vkCmdSetViewport/Scissor` per-frame |
-| Dynamic aspect ratio | `xvk_camera.c/h` | Projection hardcoded 16:9 → wrong FOV after resize | `xvk_camera_set_aspect_ratio()` stores per-frame aspect from swapchain |
-| Trig bridge | `xvk_camera.c` | No `cos`/`sin` in XIOM → linear satellite drift | `xvk_cos(float)`/`xvk_sin(float)` → `cosf`/`sinf` bridge |
+| Dynamic viewport | `xvk_pipeline.c/h`, `xvk_legacy.c` | `pipeline_3d` had static viewport at init size -> distorts after resize | `dynamic_viewport` param; `vkCmdSetViewport/Scissor` per-frame |
+| Dynamic aspect ratio | `xvk_camera.c/h` | Projection hardcoded 16:9 -> wrong FOV after resize | `xvk_camera_set_aspect_ratio()` stores per-frame aspect from swapchain |
+| Trig bridge | `xvk_camera.c` | No `cos`/`sin` in XIOM -> linear satellite drift | `xvk_cos(float)`/`xvk_sin(float)` -> `cosf`/`sinf` bridge |
 
 ### Widget Expansion
 - **7 new bridge functions**: ProgressBar, RadioButton, Selectable, TextWrapped, LabelText, BeginDisabled, EndDisabled
@@ -124,7 +124,7 @@ Continue xiom-imgui development from SESSION_IMGUI.md.
 
 ALL GOALS ACHIEVED:
 - Resize stability: 4 bridge-layer fixes (surface query, depth leak, SURFACE_LOST, SUBOPTIMAL defer)
-- Fluid UI at any resolution — no crash, no white screen, input works
+- Fluid UI at any resolution -- no crash, no white screen, input works
 - 3D viewport: dynamic viewport, per-frame aspect ratio, circular satellite orbits
 - Widget set: 76+ wrapped ImGui functions, theme switching, FPS counter
 - Demo: 4 panels + status bar + 3D scene with orbiting cubes

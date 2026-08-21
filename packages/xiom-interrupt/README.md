@@ -1,6 +1,6 @@
 # xiom-interrupt
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Interrupt registration, priority, and dispatch for external and peripheral sources.
 > **Deps:** stdlib; may wrap C (FFI).
 

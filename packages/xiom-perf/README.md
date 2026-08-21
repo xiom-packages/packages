@@ -1,6 +1,6 @@
 # xiom-perf
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Performance benchmarking and regression comparison.
 > **Deps:** stdlib; may wrap C (FFI).
 

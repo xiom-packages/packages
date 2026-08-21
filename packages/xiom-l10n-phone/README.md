@@ -1,6 +1,6 @@
 # xiom-l10n-phone
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** International phone number parsing, formatting, and validation (E.164 / ITU rules).
 > **Deps:** stdlib; may wrap C (FFI).
 

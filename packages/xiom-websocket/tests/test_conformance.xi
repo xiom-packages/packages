@@ -1,4 +1,4 @@
-// XIOM — xiom-websocket Conformance Tests (10 tests)
+// XIOM -- xiom-websocket Conformance Tests (10 tests)
 module xiom.websocket.tests
 
 use xiom.websocket;
@@ -12,12 +12,12 @@ fn assert_true(condition: Bool, label: Str) -> Result[Unit, Str] {
 
 fn assert_int_eq(actual: Int, expected: Int, label: Str) -> Result[Unit, Str] {
   if actual == expected { return Ok(Unit); };
-  return Err("FAIL: " + label + " — expected " + int_to_str(expected) + " got " + int_to_str(actual));
+  return Err("FAIL: " + label + " -- expected " + int_to_str(expected) + " got " + int_to_str(actual));
 }
 
 fn assert_str_eq(actual: Str, expected: Str, label: Str) -> Result[Unit, Str] {
   if actual == expected { return Ok(Unit); };
-  return Err("FAIL: " + label + " — expected '" + expected + "' got '" + actual + "'");
+  return Err("FAIL: " + label + " -- expected '" + expected + "' got '" + actual + "'");
 }
 
 fn int_to_str(n: Int) -> Str {
@@ -157,7 +157,7 @@ fn test_frame_validate() -> Result[Unit, Str] {
   var v1 = frame_validate(&text_frame);
   match v1 { Ok(_) => {}, Err(e) => { return Err("FAIL: validate text: " + e); }, };
 
-  // Large payload ping — should fail
+  // Large payload ping -- should fail
   var large_ping: Vec[Int] = Vec[Int].new();
   var i2: Int = 0;
   while i2 < 200 {
@@ -177,7 +177,7 @@ fn test_frame_validate() -> Result[Unit, Str] {
     Err(_) => {},
   };
 
-  // Fragmented control frame — should fail
+  // Fragmented control frame -- should fail
   var frag = WsFrame{
     fin: false,
     opcode: WsOpcode.Close,

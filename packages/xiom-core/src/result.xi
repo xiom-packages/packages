@@ -8,7 +8,7 @@ module xiom.core.result
 // a plain-old-data `ResultInfo` record for FFI / wire boundaries where a
 // tagged union is inconvenient to serialize.
 
-// Trivial predicate — mostly used to keep call sites readable.
+// Trivial predicate -- mostly used to keep call sites readable.
 pub fn is_ok_result(ok: Bool) -> Bool {
   return ok;
 }

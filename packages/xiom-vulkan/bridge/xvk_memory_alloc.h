@@ -1,4 +1,4 @@
-/* xvk_memory_alloc.h — VMA-style memory sub-allocator for production use
+/* xvk_memory_alloc.h -- VMA-style memory sub-allocator for production use
  * Phase 7.1: Eliminates vkAllocateMemory count limits via block sub-allocation.
  *
  * Architecture:
@@ -8,12 +8,12 @@
  *   - Automatic memory type selection from VkMemoryRequirements
  *
  * Usage:
- *   1. xvk_ma_init(physical_device, device) — one-time init
+ *   1. xvk_ma_init(physical_device, device) -- one-time init
  *   2. xvk_ma_allocate_buffer(create_info, flags, &buf, &mem, &offset)
- *   3. xvk_ma_map(mem, offset, size) — map for CPU access
+ *   3. xvk_ma_map(mem, offset, size) -- map for CPU access
  *   4. xvk_ma_unmap(mem)
  *   5. xvk_ma_free_buffer(buf, mem)
- *   6. xvk_ma_destroy() — cleanup all pools
+ *   6. xvk_ma_destroy() -- cleanup all pools
  */
 #ifndef XVK_MA_H_
 #define XVK_MA_H_
@@ -27,7 +27,7 @@
 #define XVK_MA_LINEAR_SIZE    (16ULL * 1024 * 1024)  /* 16 MB linear ring */
 #define XVK_MA_MAX_BLOCKS     16
 
-/* Memory block — one VkDeviceMemory allocation */
+/* Memory block -- one VkDeviceMemory allocation */
 typedef struct XvkMaBlock {
     VkDeviceMemory      memory;
     VkDeviceSize        size;
@@ -40,7 +40,7 @@ typedef struct XvkMaBlock {
     VkDeviceSize        free_size;   // free-list: size of this free chunk
 } XvkMaBlock;
 
-/* Pool — collection of blocks for one memory type */
+/* Pool -- collection of blocks for one memory type */
 typedef struct XvkMaPool {
     XvkMaBlock*         blocks[XVK_MA_MAX_BLOCKS];
     int                 block_count;

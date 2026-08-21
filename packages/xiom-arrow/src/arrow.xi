@@ -1,4 +1,4 @@
-// XIOM — Arrow Library (Apache Arrow C Data Interface Bindings)
+// XIOM -- Arrow Library (Apache Arrow C Data Interface Bindings)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -11,9 +11,9 @@
 
 module xiom.arrow
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Types — Opaque handles for Arrow C Data Interface
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Types -- Opaque handles for Arrow C Data Interface
+// ===============================================================================
 
 pub type ArrowArray = Int
 pub type ArrowSchema = Int
@@ -46,9 +46,9 @@ pub type Table = {
   num_rows: Int;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // DataType constructors
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 pub fn dtype_null() -> DataType {
   DataType { id: 0; name: "null"; }
@@ -145,9 +145,9 @@ pub fn data_type_name(dt: &DataType) -> Str {
   dt.name
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Field constructors
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 pub fn field_new(name: Str, data_type: DataType) -> Field
   requires: name.len() > 0
@@ -173,9 +173,9 @@ pub fn field_is_nullable(f: &Field) -> Bool {
   f.nullable
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Schema constructors
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 pub fn schema_new(fields: Vec[Field]) -> Schema
   requires: fields.len() > 0
@@ -205,9 +205,9 @@ pub fn schema_get_field(s: &Schema, idx: Int) -> Result[Field, Str]
   Ok(s.fields[idx])
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Raw C Data Interface — extern "C" stubs
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Raw C Data Interface -- extern "C" stubs
+// ===============================================================================
 
 extern "C" {
   fn arrow_array_create(length: Int, n_buffers: Int) -> Int;
@@ -228,9 +228,9 @@ extern "C" {
   fn arrow_record_batch_get_schema(batch: Int) -> Int;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Safe wrappers — ArrowArray
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Safe wrappers -- ArrowArray
+// ===============================================================================
 
 pub fn array_create(length: Int, n_buffers: Int) -> Result[ArrowArray, Str]
   requires: length >= 0
@@ -319,9 +319,9 @@ pub fn array_get_child(arr: ArrowArray, index: Int) -> Result[ArrowArray, Str]
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Safe wrappers — ArrowSchema
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Safe wrappers -- ArrowSchema
+// ===============================================================================
 
 pub fn schema_create(format: Str, name: Str) -> Result[ArrowSchema, Str]
   requires: format.len() > 0
@@ -366,9 +366,9 @@ pub fn schema_get_name(schema: ArrowSchema) -> Result[Int, Str]
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Safe wrappers — RecordBatch
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Safe wrappers -- RecordBatch
+// ===============================================================================
 
 pub fn record_batch_create(schema: ArrowSchema, n_columns: Int, columns: Int) -> Result[ArrowArray, Str]
   requires: schema != 0
@@ -414,9 +414,9 @@ pub fn record_batch_get_schema(batch: ArrowArray) -> Result[ArrowSchema, Str]
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// High-level Array API (SPEC §API)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// High-level Array API (SPEC SAPI)
+// ===============================================================================
 
 pub fn array_new(typ: DataType, data: Vec[Int]) -> Result[Array, Str]
   requires: data.len() >= 0
@@ -448,9 +448,9 @@ pub fn array_is_valid(arr: &Array) -> Bool {
   arr.handle != 0
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// High-level Table API (SPEC §API)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// High-level Table API (SPEC SAPI)
+// ===============================================================================
 
 pub fn table_new(schema: Schema, columns: Vec[Array]) -> Result[Table, Str]
   requires: schema.fields.len() > 0
@@ -488,27 +488,27 @@ pub fn table_schema(t: &Table) -> Schema {
   t.schema
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// IPC read/write (SPEC §API — Phase 2 stubs)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// IPC read/write (SPEC SAPI -- Phase 2 stubs)
+// ===============================================================================
 
 pub fn ipc_write(t: &Table, path: Str) -> Result[Unit, Str]
   requires: path.len() > 0
 {
   if path.len() == 0 { return Err("ipc_write: path must not be empty"); };
-  Err("ipc_write: IPC bridge not yet linked — requires native Arrow IPC runtime")
+  Err("ipc_write: IPC bridge not yet linked -- requires native Arrow IPC runtime")
 }
 
 pub fn ipc_read(path: Str) -> Result[Table, Str]
   requires: path.len() > 0
 {
   if path.len() == 0 { return Err("ipc_read: path must not be empty"); };
-  Err("ipc_read: IPC bridge not yet linked — requires native Arrow IPC runtime")
+  Err("ipc_read: IPC bridge not yet linked -- requires native Arrow IPC runtime")
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Utility
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 pub fn version() -> Str {
   "0.1.0"

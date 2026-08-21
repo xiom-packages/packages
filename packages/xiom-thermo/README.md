@@ -1,6 +1,6 @@
 # xiom-thermo
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Thermodynamic property and cycle computations.
 > **Deps:** stdlib; may wrap C (FFI).
 

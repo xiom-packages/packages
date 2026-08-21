@@ -1,4 +1,4 @@
-# xiom-directx11 — ROADMAP
+# xiom-directx11 -- ROADMAP
 
 **Phase 2 (Scientific)** | **Priority: HIGH**
 **Depends on**: xiom.ffi (stdlib)
@@ -13,20 +13,20 @@ The package currently contains a full XIOM specification layer:
 - 31 safe wrapper functions with requires/ensures contracts
 - 65 conformance tests across 21 sections covering types, constants, and stub behavior
 
-All FFI calls return `Err(...)` or stub defaults — no C bridge is linked yet.
+All FFI calls return `Err(...)` or stub defaults -- no C bridge is linked yet.
 
 ## Phased Roadmap
 
 | Phase | What | Effort | Status |
 |-------|------|--------|--------|
-| 1 | **SPEC phase** — Full API surface, contracts, constants, stub tests | Weekend | **DONE** |
-| 2 | **C bridge** — Link d3d11.dll/dxgi.dll, implement extern functions, D3D11CreateDevice bridge | Weekend | TODO |
-| 3 | **Hello Triangle** — End-to-end vertex buffer, input layout, shader, draw pipeline integration test | 1 day | TODO |
-| 4 | **Textures & Samplers** — Texture2D loading, SRV creation, sampler states, PSSetShaderResources | Weekend | TODO |
-| 5 | **Constant Buffers** — CBV management, Map/Unmap data upload, per-draw updates | Weekend | TODO |
-| 6 | **Render Targets & Depth/Stencil** — Render-to-texture, depth testing, multi-RTV | Weekend | TODO |
-| 7 | **Compute Shaders** — UAV, Dispatch, structured buffers, GPU compute pipeline | Weekend | TODO |
-| 8 | **Instancing & Multi-pass** — DrawInstanced, deferred contexts, command lists | Weekend | TODO |
+| 1 | **SPEC phase** -- Full API surface, contracts, constants, stub tests | Weekend | **DONE** |
+| 2 | **C bridge** -- Link d3d11.dll/dxgi.dll, implement extern functions, D3D11CreateDevice bridge | Weekend | TODO |
+| 3 | **Hello Triangle** -- End-to-end vertex buffer, input layout, shader, draw pipeline integration test | 1 day | TODO |
+| 4 | **Textures & Samplers** -- Texture2D loading, SRV creation, sampler states, PSSetShaderResources | Weekend | TODO |
+| 5 | **Constant Buffers** -- CBV management, Map/Unmap data upload, per-draw updates | Weekend | TODO |
+| 6 | **Render Targets & Depth/Stencil** -- Render-to-texture, depth testing, multi-RTV | Weekend | TODO |
+| 7 | **Compute Shaders** -- UAV, Dispatch, structured buffers, GPU compute pipeline | Weekend | TODO |
+| 8 | **Instancing & Multi-pass** -- DrawInstanced, deferred contexts, command lists | Weekend | TODO |
 
 ## Phase 2 (C Bridge) Checkpoints
 
@@ -40,13 +40,13 @@ All FFI calls return `Err(...)` or stub defaults — no C bridge is linked yet.
 - [ ] Wire up sampler creation (CreateSamplerState with D3D11_SAMPLER_DESC)
 - [ ] Wire up input layout creation (CreateInputLayout with D3D11_INPUT_ELEMENT_DESC array)
 - [ ] Implement Map/Unmap for dynamic buffer updates
-- [ ] Error code → error message translation (HRESULT → Str)
+- [ ] Error code -> error message translation (HRESULT -> Str)
 
 ## Phase 3 (Hello Triangle) Checkpoints
 
 - [ ] Create window (via raw Win32 CreateWindowEx or xiom-windowing bridge)
 - [ ] Create D3D11 device + swap chain
-- [ ] Compile VS/PS via xiom-dxc (HLSL → DXBC bytecode)
+- [ ] Compile VS/PS via xiom-dxc (HLSL -> DXBC bytecode)
 - [ ] Create vertex buffer with triangle positions + colors
 - [ ] Create input layout matching vertex format
 - [ ] Set render targets, viewport, clear, draw, present

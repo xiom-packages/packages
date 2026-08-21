@@ -1,4 +1,4 @@
-// XIOM — xiom-ui Conformance Tests
+// XIOM -- xiom-ui Conformance Tests
 // 98 tests covering types, layout, theme, widgets, render, and application lifecycle
 module ui_tests
 use xiom.io;
@@ -42,7 +42,7 @@ fn run_test(result: TestResult) -> Int {
   io.println("  [FAIL] " + result.name); return 1;
 }
 
-// ——— Types ——— (t1–t21)
+// ------ Types ------ (t1-t21)
 
 fn t1() -> TestResult {
   var r = Rect.new(10.0, 20.0, 100.0, 50.0);
@@ -135,7 +135,7 @@ fn t21() -> TestResult {
   return check(!down, "types: InputState new has no keys");
 }
 
-// ——— Theme ——— (t22–t27)
+// ------ Theme ------ (t22-t27)
 
 fn t22() -> TestResult {
   var th = theme_default();
@@ -167,7 +167,7 @@ fn t27() -> TestResult {
   return check(copy.font_scale == orig.font_scale && copy.corner_radius == orig.corner_radius, "theme: Theme.clone preserves");
 }
 
-// ——— Layout ——— (t28–t48)
+// ------ Layout ------ (t28-t48)
 
 fn t28() -> TestResult {
   var ctx = LayoutContext.new();
@@ -297,7 +297,7 @@ fn t48() -> TestResult {
   return check(r.x < 0.0, "layout: layout_center x negative");
 }
 
-// ——— Render ——— (t49–t59)
+// ------ Render ------ (t49-t59)
 
 fn t49() -> TestResult {
   var rl = RenderList.new();
@@ -360,7 +360,7 @@ fn t59() -> TestResult {
   return check(ok, "render: get_command out of bounds returns None");
 }
 
-// ——— Widgets ——— (t60–t82)
+// ------ Widgets ------ (t60-t82)
 
 fn t60() -> TestResult {
   var btn = ButtonState.new(0);
@@ -506,7 +506,7 @@ fn t82() -> TestResult {
   return check(p.scroll_x == 10.0 && p.scroll_y == 20.0, "widgets: PanelState scroll accumulates");
 }
 
-// ——— Application ——— (t83–t88)
+// ------ Application ------ (t83-t88)
 
 fn t83() -> TestResult {
   var app = UIApp.new("Test App", 800.0, 600.0);
@@ -541,7 +541,7 @@ fn t88() -> TestResult {
   return check(app.should_close(), "app: close sets close flag");
 }
 
-// ——— Layout edge cases ——— (t89–t90)
+// ------ Layout edge cases ------ (t89-t90)
 
 fn t89() -> TestResult {
   var ctx = LayoutContext.new();
@@ -558,7 +558,7 @@ fn t90() -> TestResult {
   return check(fill.w > 0.0, "layout: allocate_fill horizontal");
 }
 
-// ——— Render edge cases ——— (t91–t92)
+// ------ Render edge cases ------ (t91-t92)
 
 fn t91() -> TestResult {
   var rl = RenderList.new();
@@ -575,7 +575,7 @@ fn t92() -> TestResult {
   return check(ok, "render: get_command negative index None");
 }
 
-// ——— Widget edge cases ——— (t93–t95)
+// ------ Widget edge cases ------ (t93-t95)
 
 fn t93() -> TestResult {
   var s = SliderState.new(3, 10.0, 10.0, 10.0);
@@ -593,7 +593,7 @@ fn t95() -> TestResult {
   return check(tstate.active_tab == 0, "widgets: TabsState next on empty no-op");
 }
 
-// ——— Application edge cases ——— (t96–t98)
+// ------ Application edge cases ------ (t96-t98)
 
 fn t96() -> TestResult {
   var app = UIApp.new("Test App", 800.0, 600.0);

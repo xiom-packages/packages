@@ -1,12 +1,12 @@
-// XIOM — Vulkan Memory Allocator (VMA) Bindings v3.3.0
+// XIOM -- Vulkan Memory Allocator (VMA) Bindings v3.3.0
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Production-grade FFI declarations for vk_mem_alloc.h (Vulkan SDK 1.4.350.0).
-// Types: handles/pointers → Int, VkResult → Int32, VkDeviceSize → Int,
-// VkBool32 → Int32, uint32_t → Int32.
+// Types: handles/pointers -> Int, VkResult -> Int32, VkDeviceSize -> Int,
+// VkBool32 -> Int32, uint32_t -> Int32.
 //
-// Compiler: XIOM v0.46.0 — all gaps resolved (cross-module extern, Int→Int32,
+// Compiler: XIOM v0.46.0 -- all gaps resolved (cross-module extern, Int->Int32,
 // hex literals). Only E001 (non-fatal out-param move warnings) remain.
 
 module xiom.vma
@@ -85,7 +85,7 @@ pub const VMA_STATS_STRING_DETAILED_MAP_FALSE: Int32 = 0;
 pub const VMA_STATS_STRING_DETAILED_MAP_TRUE:  Int32 = 1;
 
 // =========================================================================
-// FFI — 72 extern C functions from VMA v3.3.0
+// FFI -- 72 extern C functions from VMA v3.3.0
 // =========================================================================
 
 pub extern "C" {
@@ -373,7 +373,7 @@ pub fn free_stats_string(allocator: Int, p_stats_string: Int)
 }
 
 // =========================================================================
-// VkResult → human-readable string
+// VkResult -> human-readable string
 // =========================================================================
 
 pub fn result_to_string(code: Int32) -> Str {

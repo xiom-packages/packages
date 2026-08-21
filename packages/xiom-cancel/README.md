@@ -1,6 +1,6 @@
 # xiom-cancel
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Cooperative cancellation via linked cancellation tokens.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,4 +1,4 @@
-// XIOM — SDL3 Production Demo
+// XIOM -- SDL3 Production Demo
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //

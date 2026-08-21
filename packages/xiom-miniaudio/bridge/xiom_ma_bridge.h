@@ -1,4 +1,4 @@
-// XIOM — MiniAudio C Bridge Header
+// XIOM -- MiniAudio C Bridge Header
 // Flat ABI for XIOM FFI consumption. No struct passing, no callbacks.
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.

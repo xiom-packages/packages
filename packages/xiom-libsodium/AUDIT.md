@@ -1,19 +1,19 @@
 # xiom-libsodium Audit
 
 ## Compilation Status
-- `libsodium.xi` — PASSES (standalone)
-- `tests/test_libsodium.xi` — PASSES (with libsodium.xi)
+- `libsodium.xi` -- PASSES (standalone)
+- `tests/test_libsodium.xi` -- PASSES (with libsodium.xi)
 - All files compile together: PASS
 
 ## Changes Made
-1. **tests/test_libsodium.xi**: Fixed type mismatch — `secretbox_encrypt("test", key, nonce)` passed `Str` where `&Vec[UInt8]` was expected. Changed to `encoding.utf8_encode("test")` with `use xiom.encoding;`.
+1. **tests/test_libsodium.xi**: Fixed type mismatch -- `secretbox_encrypt("test", key, nonce)` passed `Str` where `&Vec[UInt8]` was expected. Changed to `encoding.utf8_encode("test")` with `use xiom.encoding;`.
 
 ## System Dependencies
 
 ### Required: libsodium
-- **Linux**: `apt install libsodium-dev` → `libsodium.so`
-- **macOS**: `brew install libsodium` → `libsodium.dylib`
-- **Windows**: Download pre-built from https://download.libsodium.org/libsodium/releases/ → `libsodium.dll`
+- **Linux**: `apt install libsodium-dev` -> `libsodium.so`
+- **macOS**: `brew install libsodium` -> `libsodium.dylib`
+- **Windows**: Download pre-built from https://download.libsodium.org/libsodium/releases/ -> `libsodium.dll`
 
 ### Required DLL at Runtime
 | DLL | Purpose |
@@ -53,8 +53,8 @@ xiom --link sodium --link-path C:/path/to/libsodium/lib libsodium.xi program.xi
 All constants (`SECRETBOX_KEYBYTES`, `SECRETBOX_NONCEBYTES`, `BOX_PUBLICKEYBYTES`, `BOX_SECRETKEYBYTES`, `SIGN_PUBLICKEYBYTES`, `SIGN_SECRETKEYBYTES`) are hardcoded in `libsodium.xi`. They match libsodium 1.0.18+ values.
 
 ## Known Gaps
-- All `libsodium.xi` functions are forward declarations (`;` body) — they require libsodium at link time and runtime.
+- All `libsodium.xi` functions are forward declarations (`;` body) -- they require libsodium at link time and runtime.
 - Tests gracefully skip if `init()` fails (no DLL present), but this means functional correctness is not verified at compile time.
-- `pwhash_verify` is declared in `libsodium.xi` but has no corresponding `.xiom-bind` mapping — the C function `crypto_pwhash_str_verify` is missing from the bind file.
-- `pwhash` salt parameter is missing from the XIOM API surface — the C function requires a salt but the XIOM binding doesn't expose it.
+- `pwhash_verify` is declared in `libsodium.xi` but has no corresponding `.xiom-bind` mapping -- the C function `crypto_pwhash_str_verify` is missing from the bind file.
+- `pwhash` salt parameter is missing from the XIOM API surface -- the C function requires a salt but the XIOM binding doesn't expose it.
 - No `sodium_memzero` or `sodium_mlock` wrappers for secure memory handling.

@@ -1,6 +1,6 @@
 # xiom-pdf
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** PDF document generation and parsing.
 > **Deps:** stdlib; may wrap C (FFI).
 

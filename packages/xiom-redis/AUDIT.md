@@ -19,9 +19,9 @@ All 3 source files compile on xiom v0.45.3 with stubbed FFI functions.
 5. **test_redis.xi**: Simplified to self-contained test. Uses inline connect stub.
 
 ## Files Modified
-- `redis.xi` — Added stub bodies to all forward-declared functions
-- `src/client.xi` — Made self-contained, renamed shadowed `set`/`del` to `rset`/`rdel`
-- `tests/test_redis.xi` — Made self-contained, replaced `let` with `var`, added inline stub
+- `redis.xi` -- Added stub bodies to all forward-declared functions
+- `src/client.xi` -- Made self-contained, renamed shadowed `set`/`del` to `rset`/`rdel`
+- `tests/test_redis.xi` -- Made self-contained, replaced `let` with `var`, added inline stub
 
 ## Restoring Production FFI
 To restore production functionality:

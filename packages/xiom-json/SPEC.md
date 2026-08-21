@@ -330,10 +330,10 @@ pub fn JsonPath.parse(path_str: Str) -> Result[JsonPath, Str]
 ```
 
 `JsonPath.parse` supports a limited subset of JSONPath syntax:
-- `$` — root (optional, ignored)
-- `.key` — dot-notation key access
-- `[0]` — bracket index access
-- `['key']` — bracket key access with single quotes
+- `$` -- root (optional, ignored)
+- `.key` -- dot-notation key access
+- `[0]` -- bracket index access
+- `['key']` -- bracket key access with single quotes
 
 **Example**:
 ```xi
@@ -421,7 +421,7 @@ The following features require runtime/stdlib support that is not available in p
 | Str concatenation | `result = result + str` is assumed to work; if not, all string building requires Vec-based approach | stdlib string builder |
 | Vec truncation | `json_remove` builds a new Vec and replaces elements but cannot shrink the Vec without `.truncate()` or `.pop()` | Vec::truncate / Vec::pop |
 | Reference reassignment | `json_set_path` reassigns mutable references in a loop; if XIOM does not support this, the function must be restructured | Mutable pointer chains |
-| `break` in loops | Not used — all loops rewritten with flag variables | `break` / `continue` support |
+| `break` in loops | Not used -- all loops rewritten with flag variables | `break` / `continue` support |
 | Generics with constraints | `sort_entries` reimplements quicksort for `JsonEntry` specifically to avoid `[T: Ord]` codegen issues | Full generics support |
 | Exact number representation | The `JsonNumber` type is defined but `json_parse` uses `Float64` for the Number variant; a `parse_exact` variant would fill `JsonNumber` | `JsonValue::NumberExact(JsonNumber)` variant |
 
@@ -431,7 +431,7 @@ The following features require runtime/stdlib support that is not available in p
 
 ### Recursive Descent Parser
 
-The parser is implemented as a set of methods on an internal `JsonParser` type that maintains position, line, and column state. This avoids global mutable state and allows the parser to be re-entrant. The `JsonParser` type is not public — all access goes through `json_parse` and `json_validate`.
+The parser is implemented as a set of methods on an internal `JsonParser` type that maintains position, line, and column state. This avoids global mutable state and allows the parser to be re-entrant. The `JsonParser` type is not public -- all access goes through `json_parse` and `json_validate`.
 
 ### Byte-Level Comparison
 
@@ -451,7 +451,7 @@ Object entries are stored in a `Vec[JsonEntry]` which preserves insertion order.
 
 ### Schema Validation Subset
 
-The schema validator implements a pragmatic subset of JSON Schema. It supports the most commonly used keywords (`type`, `enum`, `properties`, `required`) which cover a large percentage of real-world validation needs. Full JSON Schema compliance would require `oneOf`, `anyOf`, `allOf`, `$ref`, `pattern`, `minLength`, `maxLength`, `minimum`, `maximum`, and other keywords — all implementable in pure XIOM but left for future versions.
+The schema validator implements a pragmatic subset of JSON Schema. It supports the most commonly used keywords (`type`, `enum`, `properties`, `required`) which cover a large percentage of real-world validation needs. Full JSON Schema compliance would require `oneOf`, `anyOf`, `allOf`, `$ref`, `pattern`, `minLength`, `maxLength`, `minimum`, `maximum`, and other keywords -- all implementable in pure XIOM but left for future versions.
 
 ### Int-to-Float64 Conversion
 

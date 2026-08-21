@@ -1,4 +1,4 @@
-// XIOM — PortAudio Conformance Tests
+// XIOM -- PortAudio Conformance Tests
 // Validates the public API of xiom.portaudio with contract verification.
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
@@ -9,7 +9,7 @@ use xiom.test
 use xiom.portaudio
 
 // ===========================================================================
-// SECTION 0 — extern "C" duplicate for test module resolution (T001 workaround)
+// SECTION 0 -- extern "C" duplicate for test module resolution (T001 workaround)
 // ===========================================================================
 
 extern "C" {
@@ -28,7 +28,7 @@ extern "C" {
 }
 
 // ===========================================================================
-// SECTION 1 — Constants validation (3 tests)
+// SECTION 1 -- Constants validation (3 tests)
 // ===========================================================================
 
 fn test_sample_formats_distinct() -> TestCase {
@@ -53,7 +53,7 @@ fn test_no_device_constant() -> TestCase {
 }
 
 // ===========================================================================
-// SECTION 2 — Initialization / termination lifecycle (3 tests)
+// SECTION 2 -- Initialization / termination lifecycle (3 tests)
 // ===========================================================================
 
 fn local_initialize() -> Int {
@@ -98,7 +98,7 @@ fn test_terminate_without_init() -> TestCase {
 }
 
 // ===========================================================================
-// SECTION 3 — Device query (3 tests)
+// SECTION 3 -- Device query (3 tests)
 // ===========================================================================
 
 fn local_get_default_output() -> Int {
@@ -141,7 +141,7 @@ fn test_get_host_api_count() -> TestCase {
 }
 
 // ===========================================================================
-// SECTION 4 — Version query (2 tests)
+// SECTION 4 -- Version query (2 tests)
 // ===========================================================================
 
 fn test_get_version() -> TestCase {
@@ -155,7 +155,7 @@ fn test_get_version_text() -> TestCase {
 }
 
 // ===========================================================================
-// SECTION 5 — Stream state checks on invalid stream (2 tests)
+// SECTION 5 -- Stream state checks on invalid stream (2 tests)
 // ===========================================================================
 
 fn test_is_stream_stopped_invalid() -> TestCase {
@@ -169,7 +169,7 @@ fn test_is_stream_active_invalid() -> TestCase {
 }
 
 // ===========================================================================
-// SECTION 6 — Error text (2 tests)
+// SECTION 6 -- Error text (2 tests)
 // ===========================================================================
 
 fn test_get_error_text_success() -> TestCase {
@@ -183,7 +183,7 @@ fn test_get_error_text_failure() -> TestCase {
 }
 
 // ===========================================================================
-// SECTION 7 — Sleep utility (1 test)
+// SECTION 7 -- Sleep utility (1 test)
 // ===========================================================================
 
 fn test_sleep() -> TestCase {
@@ -192,7 +192,7 @@ fn test_sleep() -> TestCase {
 }
 
 // ===========================================================================
-// SECTION 8 — API presence (compile-time contracts) (9 tests)
+// SECTION 8 -- API presence (compile-time contracts) (9 tests)
 // ===========================================================================
 
 fn test_api_initialize() -> TestCase {
@@ -272,11 +272,11 @@ fn test_api_version() -> TestCase {
 }
 
 fn test_api_sleep() -> TestCase {
-  return xiom.test.assert_true(true, "api: sleep(Int) — requires: msec > 0");
+  return xiom.test.assert_true(true, "api: sleep(Int) -- requires: msec > 0");
 }
 
 // ===========================================================================
-// SECTION 9 — Type contracts (2 tests)
+// SECTION 9 -- Type contracts (2 tests)
 // ===========================================================================
 
 fn test_type_pa_stream_is_int() -> TestCase {
@@ -290,7 +290,7 @@ fn test_type_pa_stream_nonzero() -> TestCase {
 }
 
 // ===========================================================================
-// SECTION 10 — Edge cases (1 test)
+// SECTION 10 -- Edge cases (1 test)
 // ===========================================================================
 
 fn test_defaults_sane() -> TestCase {
@@ -300,7 +300,7 @@ fn test_defaults_sane() -> TestCase {
 }
 
 // ===========================================================================
-// Main — test dispatch
+// Main -- test dispatch
 // ===========================================================================
 
 pub fn main() -> Int {

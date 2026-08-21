@@ -60,7 +60,7 @@ int64_t xiom_dxc_create_instance(int64_t clsid_ptr, int64_t iid_ptr, int64_t ppv
 int64_t xiom_dxc_create_instance2(int64_t p_malloc, int64_t clsid_ptr, int64_t iid_ptr, int64_t ppv_ptr);
 
 // =========================================================================
-// IUnknown — vtable indices 0-2 (shared by ALL COM interfaces)
+// IUnknown -- vtable indices 0-2 (shared by ALL COM interfaces)
 // =========================================================================
 
 int64_t xiom_unknown_QueryInterface(int64_t ptr, int64_t riid, int64_t ppv_object);
@@ -68,40 +68,40 @@ int64_t xiom_unknown_AddRef(int64_t ptr);
 int64_t xiom_unknown_Release(int64_t ptr);
 
 // =========================================================================
-// IDxcBlob — vtable indices 3-4
+// IDxcBlob -- vtable indices 3-4
 // =========================================================================
 
 int64_t xiom_blob_GetBufferPointer(int64_t ptr);
 int64_t xiom_blob_GetBufferSize(int64_t ptr);
 
 // =========================================================================
-// IDxcBlobEncoding — vtable index 5
+// IDxcBlobEncoding -- vtable index 5
 // =========================================================================
 
 int64_t xiom_blob_encoding_GetEncoding(int64_t ptr, int64_t p_known, int64_t p_code_page);
 
 // =========================================================================
-// IDxcBlobUtf8 — vtable indices 6-7
+// IDxcBlobUtf8 -- vtable indices 6-7
 // =========================================================================
 
 int64_t xiom_blob_utf8_GetStringPointer(int64_t ptr);
 int64_t xiom_blob_utf8_GetStringLength(int64_t ptr);
 
 // =========================================================================
-// IDxcBlobWide — vtable indices 6-7 (same layout as Utf8)
+// IDxcBlobWide -- vtable indices 6-7 (same layout as Utf8)
 // =========================================================================
 
 int64_t xiom_blob_wide_GetStringPointer(int64_t ptr);
 int64_t xiom_blob_wide_GetStringLength(int64_t ptr);
 
 // =========================================================================
-// IDxcIncludeHandler — vtable index 3
+// IDxcIncludeHandler -- vtable index 3
 // =========================================================================
 
 int64_t xiom_include_handler_LoadSource(int64_t ptr, int64_t p_filename, int64_t pp_include_source);
 
 // =========================================================================
-// IDxcOperationResult — vtable indices 3-5
+// IDxcOperationResult -- vtable indices 3-5
 // =========================================================================
 
 int64_t xiom_operation_result_GetStatus(int64_t ptr, int64_t p_status);
@@ -109,7 +109,7 @@ int64_t xiom_operation_result_GetResult(int64_t ptr, int64_t pp_result);
 int64_t xiom_operation_result_GetErrorBuffer(int64_t ptr, int64_t pp_errors);
 
 // =========================================================================
-// IDxcResult — vtable indices 6-10
+// IDxcResult -- vtable indices 6-10
 // =========================================================================
 
 int64_t xiom_result_HasOutput(int64_t ptr, int64_t dxc_out_kind);
@@ -119,21 +119,21 @@ int64_t xiom_result_GetOutputByIndex(int64_t ptr, int64_t index);
 int64_t xiom_result_PrimaryOutput(int64_t ptr);
 
 // =========================================================================
-// IDxcExtraOutputs — vtable indices 3-4
+// IDxcExtraOutputs -- vtable indices 3-4
 // =========================================================================
 
 int64_t xiom_extra_outputs_GetOutputCount(int64_t ptr);
 int64_t xiom_extra_outputs_GetOutput(int64_t ptr, int64_t u_index, int64_t riid, int64_t ppv_object, int64_t pp_output_type, int64_t pp_output_name);
 
 // =========================================================================
-// IDxcCompiler3 — vtable indices 3-4
+// IDxcCompiler3 -- vtable indices 3-4
 // =========================================================================
 
 int64_t xiom_compiler3_Compile(int64_t ptr, int64_t p_source, int64_t p_arguments, int64_t arg_count, int64_t p_include_handler, int64_t riid, int64_t pp_result);
 int64_t xiom_compiler3_Disassemble(int64_t ptr, int64_t p_object, int64_t riid, int64_t pp_result);
 
 // =========================================================================
-// IDxcUtils — vtable indices 3-15
+// IDxcUtils -- vtable indices 3-15
 // =========================================================================
 
 int64_t xiom_utils_CreateBlobFromBlob(int64_t ptr, int64_t p_blob, int64_t offset, int64_t length, int64_t pp_result);
@@ -151,7 +151,7 @@ int64_t xiom_utils_BuildArguments(int64_t ptr, int64_t p_source_name, int64_t p_
 int64_t xiom_utils_GetPDBContents(int64_t ptr, int64_t p_pdb_blob, int64_t pp_hash, int64_t pp_container);
 
 // =========================================================================
-// IDxcCompilerArgs — vtable indices 3-7
+// IDxcCompilerArgs -- vtable indices 3-7
 // =========================================================================
 
 int64_t xiom_compiler_args_GetArguments(int64_t ptr);
@@ -161,19 +161,19 @@ int64_t xiom_compiler_args_AddArgumentsUTF8(int64_t ptr, int64_t p_arguments, in
 int64_t xiom_compiler_args_AddDefines(int64_t ptr, int64_t p_defines, int64_t define_count);
 
 // =========================================================================
-// IDxcValidator — vtable index 3
+// IDxcValidator -- vtable index 3
 // =========================================================================
 
 int64_t xiom_validator_Validate(int64_t ptr, int64_t p_shader, int64_t flags, int64_t pp_result);
 
 // =========================================================================
-// IDxcValidator2 — vtable index 4
+// IDxcValidator2 -- vtable index 4
 // =========================================================================
 
 int64_t xiom_validator2_ValidateWithDebug(int64_t ptr, int64_t p_shader, int64_t flags, int64_t p_opt_debug_bitcode, int64_t pp_result);
 
 // =========================================================================
-// IDxcContainerBuilder — vtable indices 3-6
+// IDxcContainerBuilder -- vtable indices 3-6
 // =========================================================================
 
 int64_t xiom_container_builder_Load(int64_t ptr, int64_t p_dxil_container_header);
@@ -182,13 +182,13 @@ int64_t xiom_container_builder_RemovePart(int64_t ptr, int64_t four_cc);
 int64_t xiom_container_builder_SerializeContainer(int64_t ptr, int64_t pp_result);
 
 // =========================================================================
-// IDxcAssembler — vtable index 3
+// IDxcAssembler -- vtable index 3
 // =========================================================================
 
 int64_t xiom_assembler_AssembleToContainer(int64_t ptr, int64_t p_shader, int64_t pp_result);
 
 // =========================================================================
-// IDxcContainerReflection — vtable indices 3-8
+// IDxcContainerReflection -- vtable indices 3-8
 // =========================================================================
 
 int64_t xiom_container_reflection_Load(int64_t ptr, int64_t p_container);
@@ -199,7 +199,7 @@ int64_t xiom_container_reflection_FindFirstPartKind(int64_t ptr, int64_t kind, i
 int64_t xiom_container_reflection_GetPartReflection(int64_t ptr, int64_t idx, int64_t riid, int64_t ppv_object);
 
 // =========================================================================
-// IDxcOptimizerPass — vtable indices 3-7
+// IDxcOptimizerPass -- vtable indices 3-7
 // =========================================================================
 
 int64_t xiom_optimizer_pass_GetOptionName(int64_t ptr, int64_t pp_result);
@@ -209,7 +209,7 @@ int64_t xiom_optimizer_pass_GetOptionArgName(int64_t ptr, int64_t arg_index, int
 int64_t xiom_optimizer_pass_GetOptionArgDescription(int64_t ptr, int64_t arg_index, int64_t pp_result);
 
 // =========================================================================
-// IDxcOptimizer — vtable indices 3-5
+// IDxcOptimizer -- vtable indices 3-5
 // =========================================================================
 
 int64_t xiom_optimizer_GetAvailablePassCount(int64_t ptr, int64_t p_count);
@@ -217,26 +217,26 @@ int64_t xiom_optimizer_GetAvailablePass(int64_t ptr, int64_t index, int64_t pp_r
 int64_t xiom_optimizer_RunOptimizer(int64_t ptr, int64_t p_blob, int64_t pp_options, int64_t option_count, int64_t p_output_module, int64_t pp_output_text);
 
 // =========================================================================
-// IDxcVersionInfo — vtable indices 3-4
+// IDxcVersionInfo -- vtable indices 3-4
 // =========================================================================
 
 int64_t xiom_version_info_GetVersion(int64_t ptr, int64_t p_major, int64_t p_minor);
 int64_t xiom_version_info_GetFlags(int64_t ptr, int64_t p_flags);
 
 // =========================================================================
-// IDxcVersionInfo2 — vtable index 5
+// IDxcVersionInfo2 -- vtable index 5
 // =========================================================================
 
 int64_t xiom_version_info2_GetCommitInfo(int64_t ptr, int64_t p_commit_count, int64_t pp_commit_hash);
 
 // =========================================================================
-// IDxcVersionInfo3 — vtable index 3
+// IDxcVersionInfo3 -- vtable index 3
 // =========================================================================
 
 int64_t xiom_version_info3_GetCustomVersionString(int64_t ptr, int64_t pp_version_string);
 
 // =========================================================================
-// IDxcPdbUtils2 — vtable indices 3-22 (modern interface, prefer over IDxcPdbUtils)
+// IDxcPdbUtils2 -- vtable indices 3-22 (modern interface, prefer over IDxcPdbUtils)
 // =========================================================================
 
 int64_t xiom_pdb_utils2_Load(int64_t ptr, int64_t p_pdb_or_dxil);
@@ -266,7 +266,7 @@ int64_t xiom_pdb_utils2_IsFullPDB(int64_t ptr);
 int64_t xiom_pdb_utils2_IsPDBRef(int64_t ptr);
 
 // =========================================================================
-// IDxcLinker — vtable indices 3-4 (legacy but still in use)
+// IDxcLinker -- vtable indices 3-4 (legacy but still in use)
 // =========================================================================
 
 int64_t xiom_linker_RegisterLibrary(int64_t ptr, int64_t p_lib_name, int64_t p_lib);

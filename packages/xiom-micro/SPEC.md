@@ -1,12 +1,12 @@
-# xiom-micro — Specification
+# xiom-micro -- Specification
 
-> **Status: v0.1.0 — Implemented.** Core microservice framework types, router, route registration, request/response builders, middleware chain, and app builder are implemented in `micro.xi`. See `ROADMAP.md` for planned features.
+> **Status: v0.1.0 -- Implemented.** Core microservice framework types, router, route registration, request/response builders, middleware chain, and app builder are implemented in `micro.xi`. See `ROADMAP.md` for planned features.
 
 ## Overview
 
 `xiom-micro` is the resilience and distributed-call package for the XIOM ecosystem. It sits above `xiom-http` (client transport) and `xiom-net` (low-level networking) and provides service discovery, typed RPC, retries with budgets, circuit breakers, bulkheads, timeouts, distributed tracing, idempotency, and multi-service workflow primitives (outbox and saga).
 
-Every primitive is designed around XIOM's philosophy: contracts enforce call assumptions, failures surface as typed `Result` errors, the breaker is a contract-checked state machine, retries require an explicit budget, endpoints are typed values, and saga compensations are explicit functions — never hidden rollback magic.
+Every primitive is designed around XIOM's philosophy: contracts enforce call assumptions, failures surface as typed `Result` errors, the breaker is a contract-checked state machine, retries require an explicit budget, endpoints are typed values, and saga compensations are explicit functions -- never hidden rollback magic.
 
 ## Module summary
 
@@ -36,7 +36,7 @@ Every primitive is designed around XIOM's philosophy: contracts enforce call ass
 
 ## Core modules
 
-### `src/client.xi` — Service client — *Planned*
+### `src/client.xi` -- Service client -- *Planned*
 High-level `ServiceClient` that combines discovery, retry, breaker, timeout, bulkhead, and tracing into a single explicit call pipeline. Builder-style configuration (`with_timeout`, `with_retry`, `with_breaker`) produces a typed client whose calls return `Result[T, ServiceError]`.
 
 Conceptual surface:
@@ -48,50 +48,50 @@ Conceptual surface:
 - `get[R](path: Str) -> Result[R, ServiceError]`
 - `post[Q, R](path: Str, body: Q) -> Result[R, ServiceError]`
 
-### `src/request.xi` — Request envelope — *Planned*
+### `src/request.xi` -- Request envelope -- *Planned*
 Shared outbound envelope carrying method/path or RPC method name, headers, typed body, trace context, idempotency key, and deadline. Used by both the HTTP client path and the RPC path.
 
-### `src/response.xi` — Response envelope — *Planned*
+### `src/response.xi` -- Response envelope -- *Planned*
 Shared inbound envelope carrying status, typed body, headers, and trace metadata. Errors are mapped to typed `ServiceError` / `RpcError` variants rather than raw status codes.
 
-### `src/discovery.xi` — Discovery abstraction — *Planned*
+### `src/discovery.xi` -- Discovery abstraction -- *Planned*
 Structural `Discovery` interface so `xiom-micro` never forces one registry. Supports client-side and server-side discovery adapters. Conceptual surface: `discover(service: Str) -> Result[Vec[Endpoint], ServiceError]`.
 
-### `src/registry.xi` — Registry adapters — *Planned*
+### `src/registry.xi` -- Registry adapters -- *Planned*
 Concrete adapters implementing `Discovery`: Kubernetes DNS/service discovery, Consul-like registries, static service maps, and a deterministic test registry.
 
-### `src/resolver.xi` — Resolver — *Planned*
+### `src/resolver.xi` -- Resolver -- *Planned*
 Resolves a live endpoint from registry results filtered by current health state. Conceptual surface: `resolve(service: Str) -> Result[Endpoint, ServiceError]` with contract ensuring the returned endpoint is healthy.
 
-### `src/endpoint.xi` — Endpoint metadata — *Planned*
+### `src/endpoint.xi` -- Endpoint metadata -- *Planned*
 Typed `Endpoint { address, port, region, health, tags }` value used throughout resolution, health, and routing.
 
-### `src/timeout.xi` — Timeout budgets — *Planned*
+### `src/timeout.xi` -- Timeout budgets -- *Planned*
 `TimeoutBudget` splitting connect/read/write/total durations. Contracts ensure sub-budgets do not exceed the total.
 
-### `src/retry.xi` — Retry — *Planned*
+### `src/retry.xi` -- Retry -- *Planned*
 `RetryPolicy` with bounded attempts, an explicit `RetryBudget`, and stop conditions. Contract requires the target operation be classified safe/idempotent before retrying. Conceptual surface: `RetryPolicy.exponential(max_attempts) -> RetryPolicy`, `RetryPolicy.with_budget(budget) -> RetryPolicy`.
 
-### `src/backoff.xi` — Backoff — *Planned*
+### `src/backoff.xi` -- Backoff -- *Planned*
 Exponential backoff with configurable base, max delay, and jitter strategy. `Backoff.exponential(base_ms, max_ms)`, `Backoff.with_jitter(strategy)`.
 
-### `src/breaker.xi` — Circuit breaker — *Planned*
+### `src/breaker.xi` -- Circuit breaker -- *Planned*
 Contract-checked state machine with `Closed`, `Open`, and `HalfOpen` states. Opens on failure-rate threshold, admits limited probe traffic when half-open, closes only after recovery. Emits state for metrics/health. Conceptual surface: `CircuitBreaker.default()`, `state() -> BreakerState`, `record_success()`, `record_failure()`.
 
-### `src/bulkhead.xi` — Bulkhead — *Planned*
+### `src/bulkhead.xi` -- Bulkhead -- *Planned*
 Per-dependency resource isolation via concurrency/permit limits and typed capacity budgets. Conceptual surface: `Bulkhead.new(max_concurrent)`, `acquire() -> Result[Permit, BulkheadFull]`.
 
-### `src/idempotency.xi` — Idempotency — *Planned*
+### `src/idempotency.xi` -- Idempotency -- *Planned*
 Idempotency keys, deduplication windows, and replay-safe request handling. Conceptual surface: `IdempotencyKey.new()`, `DedupWindow`.
 
-### `src/tracing.xi` — Tracing — *Planned*
+### `src/tracing.xi` -- Tracing -- *Planned*
 Trace context propagation and span metadata carried explicitly in the request envelope. Conceptual surface: `TraceContext`, `TraceContext.propagate(req)`, `Span.start(name)`.
 
 ---
 
 ## Subpackages
 
-### `src/rpc/` — Typed RPC — *Planned*
+### `src/rpc/` -- Typed RPC -- *Planned*
 | File | Responsibility |
 |------|----------------|
 | `mod.xi` | Public RPC surface |
@@ -103,7 +103,7 @@ Trace context propagation and span metadata carried explicitly in the request en
 
 Keeps envelopes explicit and reusable rather than mixing transport details into application logic.
 
-### `src/workflow/` — Multi-service workflows — *Planned*
+### `src/workflow/` -- Multi-service workflows -- *Planned*
 | File | Responsibility |
 |------|----------------|
 | `mod.xi` | Public workflow surface |
@@ -114,14 +114,14 @@ Keeps envelopes explicit and reusable rather than mixing transport details into 
 
 Compensations are explicit functions, not hidden rollback magic.
 
-### `src/health/` — Health — *Planned*
+### `src/health/` -- Health -- *Planned*
 | File | Responsibility |
 |------|----------------|
 | `mod.xi` | Public health surface |
 | `checks.xi` | Readiness/liveness checks |
 | `dependency_graph.xi` | Dependency health graph |
 
-### `src/policy/` — Policy objects — *Planned*
+### `src/policy/` -- Policy objects -- *Planned*
 | File | Responsibility |
 |------|----------------|
 | `mod.xi` | Public policy surface |
@@ -129,7 +129,7 @@ Compensations are explicit functions, not hidden rollback magic.
 | `retry_policy.xi` | Retry configuration objects |
 | `breaker_policy.xi` | Breaker threshold configuration |
 
-### `src/testing/` — Test support — *Planned*
+### `src/testing/` -- Test support -- *Planned*
 | File | Responsibility |
 |------|----------------|
 | `mod.xi` | Public testing surface |

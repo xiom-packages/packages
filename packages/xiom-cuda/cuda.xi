@@ -1,4 +1,4 @@
-// XIOM — CUDA Runtime API Bindings
+// XIOM -- CUDA Runtime API Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -10,7 +10,7 @@
 
 module xiom.cuda
 
-// ── Opaque Handle Types ───────────────────────────────────────────────────
+// -- Opaque Handle Types ---------------------------------------------------
 
 pub type CudaDevice   = Int
 pub type CudaStream   = Int
@@ -19,7 +19,7 @@ pub type CudaEvent    = Int
 pub type CudaModule   = Int
 pub type CudaFunction = Int
 
-// ── Error Codes ──────────────────────────────────────────────────────────
+// -- Error Codes ----------------------------------------------------------
 
 pub const CUDA_SUCCESS: Int               = 0
 pub const CUDA_ERROR_INVALID_VALUE: Int    = 1
@@ -33,13 +33,13 @@ pub const CUDA_ERROR_INVALID_HANDLE: Int   = 400
 pub const CUDA_ERROR_NOT_FOUND: Int        = 500
 pub const CUDA_ERROR_NOT_READY: Int        = 600
 
-// ── Memcpy Kind ──────────────────────────────────────────────────────────
+// -- Memcpy Kind ----------------------------------------------------------
 
 pub const CUDA_MEMCPY_HOST_TO_DEVICE: Int     = 1
 pub const CUDA_MEMCPY_DEVICE_TO_HOST: Int     = 2
 pub const CUDA_MEMCPY_DEVICE_TO_DEVICE: Int   = 3
 
-// ── Device Properties Struct ─────────────────────────────────────────────
+// -- Device Properties Struct ---------------------------------------------
 
 pub type DeviceProps = {
   name: Str;
@@ -65,7 +65,7 @@ pub type DeviceProps = {
   compute_capability: Str;
 }
 
-// ── Raw CUDA Runtime API (extern "C") ────────────────────────────────────
+// -- Raw CUDA Runtime API (extern "C") ------------------------------------
 
 extern "C" {
   // Device management
@@ -103,7 +103,7 @@ extern "C" {
                       args: *UInt8, extra: *UInt8) -> Int;
 }
 
-// ── Error checking utility ───────────────────────────────────────────────
+// -- Error checking utility -----------------------------------------------
 
 pub fn check_cuda(code: Int) -> Result[Int, Str]
   ensures: code == 0 -> result.is_ok()
@@ -130,7 +130,7 @@ pub fn error_string(code: Int) -> Str {
   "unknown error"
 }
 
-// ── Safe Wrappers — Device Management ────────────────────────────────────
+// -- Safe Wrappers -- Device Management ------------------------------------
 
 pub fn device_count() -> Result[Int, Str]
   ensures: result.is_ok() -> result.unwrap() >= 0
@@ -169,7 +169,7 @@ pub fn device_reset() -> Result[Int, Str] {
   }
 }
 
-// ── Safe Wrappers — Memory Management ────────────────────────────────────
+// -- Safe Wrappers -- Memory Management ------------------------------------
 
 pub fn malloc(size: Int) -> Result[CudaMemory, Str]
   requires: size > 0
@@ -229,7 +229,7 @@ pub fn memcpy_async(dst: Int, src: Int, count: Int, kind: Int, stream: CudaStrea
   }
 }
 
-// ── Safe Wrappers — Stream Management ────────────────────────────────────
+// -- Safe Wrappers -- Stream Management ------------------------------------
 
 pub fn stream_create() -> Result[CudaStream, Str]
   ensures: result.is_ok() -> result.unwrap() != 0
@@ -258,7 +258,7 @@ pub fn stream_destroy(stream: CudaStream) -> Result[Int, Str]
   }
 }
 
-// ── Safe Wrappers — Event Management ─────────────────────────────────────
+// -- Safe Wrappers -- Event Management -------------------------------------
 
 pub fn event_create() -> Result[CudaEvent, Str]
   ensures: result.is_ok() -> result.unwrap() != 0
@@ -307,7 +307,7 @@ pub fn event_destroy(event: CudaEvent) -> Result[Int, Str]
   }
 }
 
-// ── Safe Wrappers — Module Management ────────────────────────────────────
+// -- Safe Wrappers -- Module Management ------------------------------------
 
 pub fn module_load(fname: Str) -> Result[CudaModule, Str]
   requires: fname.len() > 0
@@ -340,7 +340,7 @@ pub fn module_get_function(module: CudaModule, name: Str) -> Result[CudaFunction
   }
 }
 
-// ── Safe Wrappers — Kernel Launch ────────────────────────────────────────
+// -- Safe Wrappers -- Kernel Launch ----------------------------------------
 
 pub fn launch_kernel(func: CudaFunction, grid: (Int, Int, Int), block: (Int, Int, Int),
                      shared_mem: Int, stream: CudaStream) -> Result[Int, Str]
@@ -358,7 +358,7 @@ pub fn launch_kernel(func: CudaFunction, grid: (Int, Int, Int), block: (Int, Int
   }
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────
+// -- Helpers --------------------------------------------------------------
 
 fn empty_device_props() -> DeviceProps {
   DeviceProps {

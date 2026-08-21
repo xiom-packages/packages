@@ -1,6 +1,6 @@
 # xiom-telnet
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Telnet client/server for interactive terminal sessions.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,4 +1,4 @@
-// XIOM — xiom.eigen conformance test suite
+// XIOM -- xiom.eigen conformance test suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -11,7 +11,7 @@ module xiom.eigen.test_conformance
 use xiom.eigen;
 
 // ============================================================
-// Section 1 — Matrix lifecycle
+// Section 1 -- Matrix lifecycle
 // ============================================================
 
 fn test_matrix_create_valid() -> Bool {
@@ -54,7 +54,7 @@ fn test_matrix_create_1x1() -> Bool {
 }
 
 // ============================================================
-// Section 2 — Element access
+// Section 2 -- Element access
 // ============================================================
 
 fn test_matrix_get_default_zeros() -> Bool {
@@ -127,7 +127,7 @@ fn test_matrix_rows_cols() -> Bool {
 }
 
 // ============================================================
-// Section 3 — Matrix algebra
+// Section 3 -- Matrix algebra
 // ============================================================
 
 fn test_matrix_multiply_square() -> Bool {
@@ -211,7 +211,7 @@ fn test_matrix_transpose_rectangular() -> Bool {
 }
 
 // ============================================================
-// Section 4 — Determinant
+// Section 4 -- Determinant
 // ============================================================
 
 fn test_matrix_determinant_identity() -> Bool {
@@ -254,7 +254,7 @@ fn test_matrix_determinant_rectangular() -> Bool {
 }
 
 // ============================================================
-// Section 5 — Inverse
+// Section 5 -- Inverse
 // ============================================================
 
 fn test_matrix_inverse_identity() -> Bool {
@@ -289,7 +289,7 @@ fn test_matrix_inverse_singular() -> Bool {
 }
 
 // ============================================================
-// Section 6 — Linear solve
+// Section 6 -- Linear solve
 // ============================================================
 
 fn test_solve_identity_system() -> Bool {
@@ -352,7 +352,7 @@ fn test_solve_singular_matrix() -> Bool {
 }
 
 // ============================================================
-// Section 7 — SVD
+// Section 7 -- SVD
 // ============================================================
 
 fn test_svd_returns_ok() -> Bool {
@@ -391,7 +391,7 @@ fn test_svd_correct_shapes() -> Bool {
 }
 
 // ============================================================
-// Section 8 — Eigenvalues
+// Section 8 -- Eigenvalues
 // ============================================================
 
 fn test_eigenvalues_square_ok() -> Bool {

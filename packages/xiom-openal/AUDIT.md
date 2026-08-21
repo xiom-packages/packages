@@ -1,4 +1,4 @@
-# xiom-openal — System Dependency Audit
+# xiom-openal -- System Dependency Audit
 
 ## Dependency: OpenAL SDK (OpenAL Soft)
 
@@ -14,7 +14,7 @@ This package provides FFI bindings to the OpenAL audio library. The native libra
 
 **Windows**
 1. Download the OpenAL Soft installer from https://openal-soft.org/
-2. Run the installer — places `OpenAL32.dll` in `C:\Windows\System32\` (64-bit: `SysWOW64\`)
+2. Run the installer -- places `OpenAL32.dll` in `C:\Windows\System32\` (64-bit: `SysWOW64\`)
 3. Alternatively, download the pre-built DLL and place it alongside your executable
 
 **Linux (Debian/Ubuntu)**
@@ -45,7 +45,7 @@ On macOS: `--link openal` (or `-framework OpenAL`)
 
 ### Compiler Flags
 
-The `.xiom-bind` file targets the `OpenAL32` library. If using OpenAL Soft on Linux/macOS, the library name is `openal` — adjust the linker flag accordingly.
+The `.xiom-bind` file targets the `OpenAL32` library. If using OpenAL Soft on Linux/macOS, the library name is `openal` -- adjust the linker flag accordingly.
 
 ### Version Compatibility
 

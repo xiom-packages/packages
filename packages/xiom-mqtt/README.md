@@ -1,6 +1,6 @@
 # xiom-mqtt
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** MQTT publish/subscribe messaging protocol.
 > **Deps:** stdlib; may wrap C (FFI).
 

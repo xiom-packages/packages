@@ -1,11 +1,11 @@
-# xiom-sqlite — SPEC
+# xiom-sqlite -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
-**Status**: PRODUCTION — v0.2.0, 109 public functions, 32 requires contracts, verified with v0.49.7
+**Status**: PRODUCTION -- v0.2.0, 109 public functions, 32 requires contracts, verified with v0.49.7
 **Depends on**: xiom.ffi (stdlib)
 
 ## What it wraps
-SQLite — embedded SQL database engine (C API).
+SQLite -- embedded SQL database engine (C API).
 Single-file, zero-config, public domain.
 
 ## Dependencies
@@ -13,7 +13,7 @@ Single-file, zero-config, public domain.
 | What | How | Size |
 |------|-----|------|
 | SQLite | System installed OR bundled as amalgamation. `sqlite3.c` is a single 8MB file. | ~2MB .dll |
-| C compiler | For building bridge | — |
+| C compiler | For building bridge | -- |
 
 ## Bundling strategy
 **Hybrid.** SQLite amalgamation (`sqlite3.c` + `sqlite3.h`) can be compiled into the bridge .obj, making xiom-sqlite truly zero-dependency. Users don't need to install SQLite separately. Alternatively, link against system `sqlite3.dll`.

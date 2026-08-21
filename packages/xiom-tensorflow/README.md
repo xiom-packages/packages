@@ -1,6 +1,6 @@
 # xiom-tensorflow
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** TensorFlow-compatible binding surface.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,11 +1,11 @@
-# xiom-libtorch — SPEC
+# xiom-libtorch -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
-**Status**: Phase 1 implemented — module `xiom.libtorch` with 18 safe wrappers, 18 extern "C" decls, 16 conformance tests
+**Status**: Phase 1 implemented -- module `xiom.libtorch` with 18 safe wrappers, 18 extern "C" decls, 16 conformance tests
 **Depends on**: xiom.ffi (stdlib)
 
 ## What it wraps
-LibTorch — PyTorch C++ API. Full ML/DL framework with CUDA support.
+LibTorch -- PyTorch C++ API. Full ML/DL framework with CUDA support.
 Used directly by PyTorch's C++ frontend.
 
 ## Dependencies
@@ -14,7 +14,7 @@ Used directly by PyTorch's C++ frontend.
 |------|-----|------|
 | LibTorch | Download from pytorch.org. Set `LIBTORCH_DIR`. | ~2GB (CPU) / ~3GB (CUDA) |
 | CUDA Toolkit | System-installed (for GPU). `nvidia-smi` to check. | ~3GB |
-| C++ compiler | clang++ or MSVC for C++ bridge | — |
+| C++ compiler | clang++ or MSVC for C++ bridge | -- |
 
 ## Bundling strategy
 **System-installed only.** LibTorch is 2-3GB. Never bundle.

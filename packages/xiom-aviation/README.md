@@ -1,6 +1,6 @@
 # xiom-aviation
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Aviation, navigation, and air traffic protocols.
 > **Deps:** stdlib; may wrap C (FFI).
 

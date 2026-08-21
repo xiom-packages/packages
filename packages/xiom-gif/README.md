@@ -1,6 +1,6 @@
 # xiom-gif
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** GIF image codec: GIF87a/89a decoding, encoding, and animation support.
 > **Deps:** stdlib; may wrap C (FFI).
 

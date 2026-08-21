@@ -1,6 +1,6 @@
 # xiom-selection
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Model and hyperparameter selection utilities.
 > **Deps:** stdlib; may wrap C (FFI).
 

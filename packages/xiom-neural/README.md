@@ -1,6 +1,6 @@
 # xiom-neural
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Neural network construction and training primitives.
 > **Deps:** stdlib; may wrap C (FFI).
 

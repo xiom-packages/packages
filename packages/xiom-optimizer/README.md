@@ -1,6 +1,6 @@
 # xiom-optimizer
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Gradient-based optimization algorithms for training.
 > **Deps:** stdlib; may wrap C (FFI).
 

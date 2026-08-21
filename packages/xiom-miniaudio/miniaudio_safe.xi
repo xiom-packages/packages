@@ -1,4 +1,4 @@
-// XIOM — MiniAudio Safe Wrappers
+// XIOM -- MiniAudio Safe Wrappers
 // High-level, safe XIOM wrappers around the raw C bridge handle functions.
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
@@ -101,7 +101,7 @@ pub fn waveform_set_type(waveform: Int, type_: Int) -> Bool
 }
 
 // ===========================================================================
-// Playback — attach a waveform to an engine, returning a sound handle
+// Playback -- attach a waveform to an engine, returning a sound handle
 // ===========================================================================
 
 pub fn play_waveform(engine: Int, waveform: Int) -> Result[Int, Str]

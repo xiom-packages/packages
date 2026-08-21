@@ -1,6 +1,6 @@
-# xiom-pandas — Roadmap
+# xiom-pandas -- Roadmap
 
-**Phase 1** (v0.1.0) — Core Foundation ✅
+**Phase 1** (v0.1.0) -- Core Foundation [OK]
 - [x] 3 opaque types: `DataFrame`, `Series`, `Dtype`
 - [x] 6 dtype constants: `DTYPE_INT32`..`DTYPE_BOOL`
 - [x] 6 compare op constants: `CMP_EQ`..`CMP_GE`
@@ -11,16 +11,16 @@
 - [x] `version` utility
 - [x] 80+ conformance tests
 
-**Phase 2** (v0.2.0) — DataFrame Operations
-- [ ] `dataframe_shape(df) -> (Int, Int)` — row/column count
-- [ ] `dataframe_columns(df) -> Vec[Str]` — column name enumeration
-- [ ] `dataframe_dtypes(df) -> Vec[Dtype]` — per-column dtype query
-- [ ] `dataframe_iloc(df, row) -> Result[Series, Str]` — row access
-- [ ] `dataframe_loc_range(df, start, end) -> Result[DataFrame, Str]` — row slice
-- [ ] `dataframe_head(df, n) -> Result[DataFrame, Str]` — first N rows
-- [ ] `dataframe_tail(df, n) -> Result[DataFrame, Str]` — last N rows
+**Phase 2** (v0.2.0) -- DataFrame Operations
+- [ ] `dataframe_shape(df) -> (Int, Int)` -- row/column count
+- [ ] `dataframe_columns(df) -> Vec[Str]` -- column name enumeration
+- [ ] `dataframe_dtypes(df) -> Vec[Dtype]` -- per-column dtype query
+- [ ] `dataframe_iloc(df, row) -> Result[Series, Str]` -- row access
+- [ ] `dataframe_loc_range(df, start, end) -> Result[DataFrame, Str]` -- row slice
+- [ ] `dataframe_head(df, n) -> Result[DataFrame, Str]` -- first N rows
+- [ ] `dataframe_tail(df, n) -> Result[DataFrame, Str]` -- last N rows
 
-**Phase 3** (v0.3.0) — Aggregation & Transformation
+**Phase 3** (v0.3.0) -- Aggregation & Transformation
 - [ ] `groupby_sum(gb, col) -> Result[DataFrame, Str]`
 - [ ] `groupby_mean(gb, col) -> Result[DataFrame, Str]`
 - [ ] `groupby_count(gb, col) -> Result[DataFrame, Str]`
@@ -28,7 +28,7 @@
 - [ ] `dataframe_drop_columns(df, cols) -> Result[DataFrame, Str]`
 - [ ] `dataframe_fillna(df, value) -> Result[DataFrame, Str]`
 
-**Phase 4** (v0.4.0) — Advanced I/O & Time Series
+**Phase 4** (v0.4.0) -- Advanced I/O & Time Series
 - [ ] `dataframe_read_parquet(path) -> Result[DataFrame, Str]`
 - [ ] `dataframe_to_parquet(df, path) -> Result[Unit, Str]`
 - [ ] Time series: rolling windows, date range generation

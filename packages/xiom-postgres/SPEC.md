@@ -7,23 +7,23 @@ PostgreSQL client bindings for XIOM via libpq. Provides safe, contract-enforced 
 
 ### Layers
 ```
-┌──────────────────────────────────────┐
-│  src/client.xi   (Safe XIOM API)     │
-│  PgConnection, PgResult contracts    │
-├──────────────────────────────────────┤
-│  postgres.xi     (Raw FFI decls)     │
-│  Connection, QueryResult, execute    │
-├──────────────────────────────────────┤
-│  libpq.xiom-bind (C ABI mapping)     │
-│  PQconnectdb, PQexec, PQfinish       │
-└──────────────────────────────────────┘
++--------------------------------------+
+|  src/client.xi   (Safe XIOM API)     |
+|  PgConnection, PgResult contracts    |
+|--------------------------------------|
+|  postgres.xi     (Raw FFI decls)     |
+|  Connection, QueryResult, execute    |
+|--------------------------------------|
+|  libpq.xiom-bind (C ABI mapping)     |
+|  PQconnectdb, PQexec, PQfinish       |
+`--------------------------------------+
 ```
 
 ### Design Decisions
 - `PgConnection` wraps the raw `Connection` handle with a connection state enum.
 - All query functions validate the connection is alive before executing.
 - Parameterized queries use `$1`, `$2` placeholders (libpq native format).
-- Result sets are eagerly materialized into XIOM types — no lazy fetch cursors.
+- Result sets are eagerly materialized into XIOM types -- no lazy fetch cursors.
 
 ## Type System
 
@@ -38,7 +38,7 @@ pub type PgConnection = { handle: Int; connected: Bool; }
 ```
 pub type PgResult = { columns: Vec[Str]; rows: Vec[Vec[Option[Str]]]; row_count: Int; col_count: Int; }
 ```
-- Each row is `Vec[Option[Str]]` — NULL values are `None`.
+- Each row is `Vec[Option[Str]]` -- NULL values are `None`.
 - Column names are extracted via `PQfname`.
 
 ## API Surface
@@ -84,14 +84,14 @@ host=localhost port=5432 dbname=mydb user=postgres password=secret
 5. SQL injection is prevented by using `pg_escape_literal`/`pg_escape_identifier` and parameterized queries.
 
 ## External Dependencies
-- **Runtime:** PostgreSQL client library — `libpq.dll` / `libpq.so` / `libpq.dylib`
+- **Runtime:** PostgreSQL client library -- `libpq.dll` / `libpq.so` / `libpq.dylib`
 - **Install:** PostgreSQL installation (includes libpq), or `libpq-dev` package
 - **Link flags:** `-l pq`
 - **Compatibility:** PostgreSQL >= 12, libpq protocol version 3
 
 ## Error Handling
 1. Connection failures return `Err(connection_error_message)`.
-2. Query failures return `Err(result_error_message)` — the full libpq error.
+2. Query failures return `Err(result_error_message)` -- the full libpq error.
 3. Transaction failures preserve the error from `PQexec` of the failing statement.
 4. All errors include the raw libpq error string for debugging.
 

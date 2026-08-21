@@ -1,9 +1,9 @@
 # xiom-blas Audit
 
 ## Compilation Status
-- `blas.xi` — PASSES (standalone)
-- `src/linalg.xi` — PASSES (with blas.xi)
-- `tests/test_blas.xi` — PASSES (with blas.xi)
+- `blas.xi` -- PASSES (standalone)
+- `src/linalg.xi` -- PASSES (with blas.xi)
+- `tests/test_blas.xi` -- PASSES (with blas.xi)
 - All files compile together: PASS
 
 ## Changes Made
@@ -18,9 +18,9 @@
 ## System Dependencies
 
 ### Required: OpenBLAS
-- **Linux**: `apt install libopenblas-dev` → `libopenblas.so`
-- **macOS**: `brew install openblas` → `libopenblas.dylib`
-- **Windows**: vcpkg `vcpkg install openblas` → `libopenblas.dll`
+- **Linux**: `apt install libopenblas-dev` -> `libopenblas.so`
+- **macOS**: `brew install openblas` -> `libopenblas.dylib`
+- **Windows**: vcpkg `vcpkg install openblas` -> `libopenblas.dll`
 
 ### Link Flags
 ```
@@ -43,6 +43,6 @@ xiom --link openblas --link lapack --link-path C:/path/to/openblas/lib blas.xi s
 | `scal` | `cblas_dscal` | libopenblas |
 
 ## Known Gaps
-- Tests only verify pure-XIOM operations (construction, identity, transpose). FFI operations are not tested in `test_blas.xi` — they require OpenBLAS linked at runtime.
+- Tests only verify pure-XIOM operations (construction, identity, transpose). FFI operations are not tested in `test_blas.xi` -- they require OpenBLAS linked at runtime.
 - `matrix_scale` exists in `linalg.xi` but the FFI `scal` wrapper is in `blas.xi`. No integration between them.
 - No SIMD fallback for `matmul` when OpenBLAS is not available.

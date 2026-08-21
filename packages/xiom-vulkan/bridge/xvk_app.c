@@ -649,7 +649,7 @@ int64_t xvk_app_create(const char* title, int32_t width, int32_t height)
     a->recording       = 0;
     a->in_render_pass  = 0;
 
-    /* Camera defaults: orbit view, 45° FOV, 16:9 aspect */
+    /* Camera defaults: orbit view, 45deg FOV, 16:9 aspect */
     a->cam_eye[0] = 2.0f; a->cam_eye[1] = 2.0f; a->cam_eye[2] = 2.0f;
     a->cam_target[0] = 0.0f; a->cam_target[1] = 0.0f; a->cam_target[2] = 0.0f;
     a->cam_fov = 45.0f; a->cam_near = 0.1f; a->cam_far = 100.0f;
@@ -673,7 +673,7 @@ fail:
     return 0;
 }
 
-/* ── New API: create app from an existing GLFW window (xiom-glfw owns the window) ── */
+/* -- New API: create app from an existing GLFW window (xiom-glfw owns the window) -- */
 
 /* Internal cleanup that does NOT touch the GLFW window (owned by caller).
  * Mirrors xvk_app_cleanup_internal but skips glfwDestroyWindow/glfwTerminate. */
@@ -702,7 +702,7 @@ static void xvk_app_cleanup_internal_no_window(XvkApp* a)
     if (a->surface)          vkDestroySurfaceKHR(a->instance, a->surface, NULL);
     if (a->device)           { xvk_ma_destroy(); vkDestroyDevice(a->device, NULL); }
     if (a->instance)         vkDestroyInstance(a->instance, NULL);
-    /* NOTE: a->window is NOT destroyed — it's owned by xiom-glfw */
+    /* NOTE: a->window is NOT destroyed -- it's owned by xiom-glfw */
 }
 
 int64_t xvk_app_create_from_window(int64_t glfw_window, int32_t width, int32_t height)

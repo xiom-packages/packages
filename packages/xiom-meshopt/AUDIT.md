@@ -1,4 +1,4 @@
-# xiom-meshopt — Build Dependency Audit
+# xiom-meshopt -- Build Dependency Audit
 
 ## Required Dependencies
 
@@ -7,7 +7,7 @@
 | meshoptimizer | >= 1.2 | Mesh optimization library (simplification, compression, strip generation) |
 | clang/LLVM | >= 14 | C bridge compilation |
 | Rust/Cargo | Latest stable | Compiler build (xiom) |
-| xiom | >= v0.46.0 | XIOM compiler (v0.46 "Production" — 101/101 e2e) |
+| xiom | >= v0.46.0 | XIOM compiler (v0.46 "Production" -- 101/101 e2e) |
 
 ## meshoptimizer Source
 
@@ -15,20 +15,20 @@ meshoptimizer is available as a C library from https://github.com/zeux/meshoptim
 
 The single public API header is `src/meshoptimizer.h` (~1700 lines). The library provides:
 
-- **Vertex remapping** — deduplicate vertices by binary equivalence or position
-- **Index generation** — adjacency/tessellation/provoking index buffers
-- **Index filtering** — remove degenerate/duplicate triangles
-- **Vertex cache optimization** — reorder triangles for GPU post-T&L cache
-- **Overdraw optimization** — reorder triangles to reduce pixel overdraw
-- **Vertex fetch optimization** — reorder vertices for GPU pre-T&L cache
-- **Simplification** — reduce triangle count with attribute-aware error metric
-- **Meshlet building** — cluster meshes for mesh shading pipelines
-- **Index/vertex encoding** — compress index and vertex buffers
-- **Vertex filter encoding** — encode/decode octahedral normals, quaternions, exponential data, YCoCg color
-- **Triangle strip generation** — convert triangle lists to strips
-- **Analysis** — measure ACMR, ATVR, overfetch, overdraw, coverage
-- **Spatial sorting** — reorder points/triangles for spatial locality
-- **Quantization** — float↔half, mantissa reduction, position exponent
+- **Vertex remapping** -- deduplicate vertices by binary equivalence or position
+- **Index generation** -- adjacency/tessellation/provoking index buffers
+- **Index filtering** -- remove degenerate/duplicate triangles
+- **Vertex cache optimization** -- reorder triangles for GPU post-T&L cache
+- **Overdraw optimization** -- reorder triangles to reduce pixel overdraw
+- **Vertex fetch optimization** -- reorder vertices for GPU pre-T&L cache
+- **Simplification** -- reduce triangle count with attribute-aware error metric
+- **Meshlet building** -- cluster meshes for mesh shading pipelines
+- **Index/vertex encoding** -- compress index and vertex buffers
+- **Vertex filter encoding** -- encode/decode octahedral normals, quaternions, exponential data, YCoCg color
+- **Triangle strip generation** -- convert triangle lists to strips
+- **Analysis** -- measure ACMR, ATVR, overfetch, overdraw, coverage
+- **Spatial sorting** -- reorder points/triangles for spatial locality
+- **Quantization** -- float<->half, mantissa reduction, position exponent
 
 ## Platform-Specific Installation
 
@@ -73,20 +73,20 @@ brew install meshoptimizer
 
 ```
 packages/xiom-meshopt/
-├── package.xi                  # Package manifest (name, version, deps)
-├── meshopt.xi                  # Module xiom.meshopt — raw FFI + safe wrappers + constants
-├── src/
-│   └── meshopt_safe.xi         # Module xiom.meshopt.safe — struct-based pipeline wrappers
-├── examples/
-│   └── demo_meshopt.xi         # Module xiom.meshopt.demo — compile-time demo
-└── AUDIT.md                    # This file
+|-- package.xi                  # Package manifest (name, version, deps)
+|-- meshopt.xi                  # Module xiom.meshopt -- raw FFI + safe wrappers + constants
+|-- src/
+|   `-- meshopt_safe.xi         # Module xiom.meshopt.safe -- struct-based pipeline wrappers
+|-- examples/
+|   `-- demo_meshopt.xi         # Module xiom.meshopt.demo -- compile-time demo
+`-- AUDIT.md                    # This file
 ```
 
 ## FFI Binding Coverage
 
-### meshopt.xi — Module `xiom.meshopt`
+### meshopt.xi -- Module `xiom.meshopt`
 
-**85 C API functions** declared in one `extern "C"` block — 100% coverage of the public C API (meshoptimizer.h v1.2):
+**85 C API functions** declared in one `extern "C"` block -- 100% coverage of the public C API (meshoptimizer.h v1.2):
 
 | Category | Count | Key Functions |
 |----------|-------|---------------|
@@ -116,15 +116,15 @@ packages/xiom-meshopt/
 | Quantization | 4 | meshopt_quantizeHalf, meshopt_quantizeFloat, meshopt_dequantizeHalf, meshopt_computePositionExponent |
 | Allocator | 1 | meshopt_setAllocator |
 
-**Total: 85 extern function declarations — 100% of the public C API surface.**
+**Total: 85 extern function declarations -- 100% of the public C API surface.**
 
 13 named constants covering all enums: simplification options (7 flags), vertex lock flags (3), EncodeExpMode (4 values), tangent options (2 flags).
 
 6 XIOM struct types matching C structs: `MeshoptStream`, `MeshoptVertexCacheStatistics`, `MeshoptVertexFetchStatistics`, `MeshoptOverdrawStatistics`, `MeshoptCoverageStatistics`, `MeshoptBounds`, `MeshoptMeshlet`.
 
-### meshopt_safe.xi — Module `xiom.meshopt.safe`
+### meshopt_safe.xi -- Module `xiom.meshopt.safe`
 
-5 struct-based pipeline types using cross-module `use xiom.meshopt` (no inline extern block — resolved in v0.46):
+5 struct-based pipeline types using cross-module `use xiom.meshopt` (no inline extern block -- resolved in v0.46):
 
 | Type | Methods | Contracts |
 |------|---------|-----------|
@@ -138,18 +138,18 @@ packages/xiom-meshopt/
 
 | # | Gap | v0.45 Status | v0.46 Status |
 |---|-----|-------------|-------------|
-| 1 | Cross-module extern resolution | Workaround: inline extern block in each module | **RESOLVED** — `use xiom.meshopt` works across modules |
-| 2 | Int→Int32 coercion | Workaround: `as Int32` casts everywhere | **RESOLVED** — integer literals auto-coerce to Int32 |
-| 3 | Hex literals | Avoided: decimal values only | **RESOLVED** — `0x10` parses correctly |
-| 4 | `()` unit type in Result | Workaround: `Result[Int, ...]` with `Ok(0)` | **RESOLVED** — `Result[(), Str]` compiles |
-| 5 | `Float` type does not exist | Assumed `Float` mapped to C `float` | **CORRECTED** — C `float` = `Float32`, C `double` = `Float64`. All bindings use `Float32`. |
+| 1 | Cross-module extern resolution | Workaround: inline extern block in each module | **RESOLVED** -- `use xiom.meshopt` works across modules |
+| 2 | Int->Int32 coercion | Workaround: `as Int32` casts everywhere | **RESOLVED** -- integer literals auto-coerce to Int32 |
+| 3 | Hex literals | Avoided: decimal values only | **RESOLVED** -- `0x10` parses correctly |
+| 4 | `()` unit type in Result | Workaround: `Result[Int, ...]` with `Ok(0)` | **RESOLVED** -- `Result[(), Str]` compiles |
+| 5 | `Float` type does not exist | Assumed `Float` mapped to C `float` | **CORRECTED** -- C `float` = `Float32`, C `double` = `Float64`. All bindings use `Float32`. |
 
 ### Remaining Observations
 
 #### Float32 literal coercion
 Float literals (`0.0`, `1.05`) default to `Float64`. Assignment to `Float32` variables or `Float32` parameters requires `as Float32` cast (e.g., `0.0 as Float32`). The compiler does not auto-narrow Float64 literals to Float32.
 
-Affected: `meshopt.xi:279` — `simplify()` wrapper passes float literals for `target_error`. Current safe wrappers accept `Float32` parameters from the caller; the caller is responsible for the cast.
+Affected: `meshopt.xi:279` -- `simplify()` wrapper passes float literals for `target_error`. Current safe wrappers accept `Float32` parameters from the caller; the caller is responsible for the cast.
 
 #### C struct-by-value returns
 7 functions return C structs by value: `meshopt_analyzeVertexCache`, `meshopt_analyzeVertexFetch`, `meshopt_analyzeOverdraw`, `meshopt_analyzeCoverage`, `meshopt_computeClusterBounds`, `meshopt_computeMeshletBounds`, `meshopt_computeSphereBounds`.
@@ -159,9 +159,9 @@ Affected: `meshopt.xi:279` — `simplify()` wrapper passes float literals for `t
 #### Function pointer callback types
 `meshopt_generateVertexRemapCustom` and `meshopt_setAllocator` take C function pointers (`int (*callback)(void*, unsigned int, unsigned int)` and `void* (*allocate)(size_t)`).
 
-**Status:** Declared as `Int` (raw pointer). Passing `0` (NULL) to `meshopt_generateVertexRemapCustom` falls back to position-only comparisons. Passing `0` to `meshopt_setAllocator` restores default allocator. Dynamic function pointer creation from XIOM closures is not supported — custom callbacks require a C bridge layer.
+**Status:** Declared as `Int` (raw pointer). Passing `0` (NULL) to `meshopt_generateVertexRemapCustom` falls back to position-only comparisons. Passing `0` to `meshopt_setAllocator` restores default allocator. Dynamic function pointer creation from XIOM closures is not supported -- custom callbacks require a C bridge layer.
 
-#### `unsigned short` → `Int32` ABI
+#### `unsigned short` -> `Int32` ABI
 `meshopt_quantizeHalf` returns `unsigned short` (2 bytes), declared as `Int32` (4 bytes) return type. `meshopt_dequantizeHalf` takes `unsigned short` (2 bytes), declared as `Int32` parameter. On x86-64 Windows/Linux ABI, small integer types are zero/sign-extended to register width, so this mapping is correct for values within `[0, 65535]`. Values outside this range (non-valid half-precision inputs) will have undefined high bits.
 
 #### `meshopt_Stream` struct ABI
@@ -176,11 +176,11 @@ Simplification functions have `float* result_error` out-parameters. The safe wra
 1. Build meshoptimizer static library
    git clone https://github.com/zeux/meshoptimizer.git
    cd meshoptimizer && cmake -B build && cmake --build build --config Release
-   → meshoptimizer.lib (Windows) or libmeshoptimizer.a (Linux)
+   -> meshoptimizer.lib (Windows) or libmeshoptimizer.a (Linux)
 
 2. XIOM Compilation + Link (xiom + clang)
    meshopt.xi + src/meshopt_safe.xi + examples/*.xi + meshoptimizer.lib
-   → final executable
+   -> final executable
 ```
 
 On Windows:
@@ -209,9 +209,9 @@ All files compile with `xiom --diagnostics=json` (v0.46.0): **`{"status":"ok"}`*
 
 ## Known Limitations
 
-- meshoptimizer is a pure C library with no runtime requirements — no GPU, Vulkan, or windowing needed
-- 7 analysis/bounds functions return C structs by value — compile OK, runtime ABI pending link verification
+- meshoptimizer is a pure C library with no runtime requirements -- no GPU, Vulkan, or windowing needed
+- 7 analysis/bounds functions return C structs by value -- compile OK, runtime ABI pending link verification
 - Callback-based functions (remap custom, allocator) are declared but only usable with NULL callbacks from XIOM
-- `Float*` out-parameters in simplification functions passed as NULL in safe wrappers — call raw extern for result error
+- `Float*` out-parameters in simplification functions passed as NULL in safe wrappers -- call raw extern for result error
 - The inline C++ functions (`meshopt_quantizeUnorm`, `meshopt_quantizeSnorm`) are not available via C ABI
 - Experimental APIs (opacity maps, tangents, filter index buffer) are included but marked as unstable in meshoptimizer

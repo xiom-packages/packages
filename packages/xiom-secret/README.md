@@ -1,6 +1,6 @@
 # xiom-secret
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Secrets handling, redaction, and ephemeral storage.
 > **Deps:** stdlib; may wrap C (FFI).
 

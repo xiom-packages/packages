@@ -1,15 +1,15 @@
-# AUDIT — xiom-miniaudio Compiler Gaps
+# AUDIT -- xiom-miniaudio Compiler Gaps
 
 > **Binding strategy:** Due to compiler gaps listed below, miniaudio is bound via a
 > flat-ABI C bridge (`bridge/xiom_ma_bridge.c`) rather than direct `extern "C"` to
 > the native miniaudio API. The bridge exposes int64_t opaque handles and flat
-> primitive parameters — no struct passing, no callbacks cross the FFI boundary.
+> primitive parameters -- no struct passing, no callbacks cross the FFI boundary.
 
 ---
 
 ## Active Gaps (require compiler work to eliminate the C bridge)
 
-### GAP-MA-01 — Struct return by value from `extern "C"`
+### GAP-MA-01 -- Struct return by value from `extern "C"`
 
 - **What:** `ma_device_config_init()`, `ma_engine_config_init()`, etc. return C
   structs by value. XIOM's `extern "C"` ABI currently supports only scalar types
@@ -25,9 +25,9 @@
   ```xiom
   extern "C" { fn make_foo() -> Int }  // FAILS: struct-by-value not representable
   ```
-- **Spec reference:** AI_CONTEXT.md L509 (`extern "C"`) — no struct ABI defined.
+- **Spec reference:** AI_CONTEXT.md L509 (`extern "C"`) -- no struct ABI defined.
 
-### GAP-MA-02 — C function pointers / callbacks
+### GAP-MA-02 -- C function pointers / callbacks
 
 - **What:** The device API requires a data callback:
   `void callback(ma_device*, void*, const void*, ma_uint32)`.
@@ -44,7 +44,7 @@
   ```
 - **Spec reference:** No XIOM-to-C function pointer lowering defined.
 
-### GAP-MA-03 — Struct field access (layout / offset)
+### GAP-MA-03 -- Struct field access (layout / offset)
 
 - **What:** Miniaudio objects are transparent structs. To configure playback
   format, channel count, or device ID, the caller must write to struct fields
@@ -62,7 +62,7 @@
   }
   ```
 
-### GAP-MA-04 — `sizeof()` operator
+### GAP-MA-04 -- `sizeof()` operator
 
 - **What:** To allocate memory for opaque/transparent C structs via `xiom_alloc`,
   XIOM needs the size of the C type. No `sizeof()` or compile-time size
@@ -79,7 +79,7 @@
   }
   ```
 
-### GAP-MA-05 — Pointer-to-struct type distinction
+### GAP-MA-05 -- Pointer-to-struct type distinction
 
 - **What:** `extern "C"` pointer types are `*UInt8` or raw `Int`. There is no
   way to declare `*ma_device` vs `*ma_engine` as distinct pointer types.
@@ -99,8 +99,8 @@
 | `pub const` declarations (`GAP-3`) | CLOSED |
 | `requires:` / `ensures:` contracts (`GAP-4`) | CLOSED |
 | Cross-module `use xiom.*` resolution | RESOLVED |
-| `defer` statement for cleanup | WORKS — used in demo |
-| `Result[T, Str]` with `?` propagation | WORKS — used in safe wrappers |
+| `defer` statement for cleanup | WORKS -- used in demo |
+| `Result[T, Str]` with `?` propagation | WORKS -- used in safe wrappers |
 | `as` type casts (`Int` <-> `Int32`, `Int` <-> `Float32`) | WORKS |
 
 ---
@@ -124,7 +124,7 @@ xiom --c-source xiom_ma_bridge.o --link miniaudio demo_miniaudio.xi
 
 > **Note:** `miniaudio.h` is a single-header library. The bridge `#include`s it
 > with `#define MINIAUDIO_IMPLEMENTATION` before the include, so a separate
-> `miniaudio.c` is **not** required — the implementation is compiled into the
+> `miniaudio.c` is **not** required -- the implementation is compiled into the
 > bridge object file.
 
 ---

@@ -1,4 +1,4 @@
-# xiom-torch — System Dependency Audit
+# xiom-torch -- System Dependency Audit
 
 > **Version:** 0.1.0 | **Compiler:** xiom v0.45.3 | **Status:** All modules compile clean.
 
@@ -10,8 +10,8 @@ All `.xi` source files pass `xiom --check` with `{"status":"ok"}`.
 
 | File | Issue | Fix |
 |------|-------|-----|
-| `src/types.xi` | `.clone()` on `Vec[Int]` / `Vec[Float32]` — method not registered | Replaced with manual `copy_vec_int` / `copy_vec_float32` helpers using `Vec.push` loop |
-| `src/ffi.xi` | `Unit` type unknown; `Ok(Unit{})` parse error | Changed `Result[Unit, Str]` → `Result[Bool, Str]`, returns `Ok(true)` |
+| `src/types.xi` | `.clone()` on `Vec[Int]` / `Vec[Float32]` -- method not registered | Replaced with manual `copy_vec_int` / `copy_vec_float32` helpers using `Vec.push` loop |
+| `src/ffi.xi` | `Unit` type unknown; `Ok(Unit{})` parse error | Changed `Result[Unit, Str]` -> `Result[Bool, Str]`, returns `Ok(true)` |
 
 ## System Dependency: LibTorch
 
@@ -22,7 +22,7 @@ The FFI tier (`xiom.torch.ffi`) requires the **LibTorch C++ distribution** from 
 #### Windows
 ```
 Download: https://pytorch.org/get-started/locally/
-  → Select "C++/Java" → "LibTorch" → CPU or CUDA
+  -> Select "C++/Java" -> "LibTorch" -> CPU or CUDA
 Extract to: C:\libtorch
 
 Build with:
@@ -51,7 +51,7 @@ xiom myprogram.xi -L $LIBTORCH/lib -l torch -l c10 -I $LIBTORCH/include
 
 #### Fedora / RHEL
 ```bash
-# Same as Ubuntu — download the LibTorch CPU/CUDA distribution
+# Same as Ubuntu -- download the LibTorch CPU/CUDA distribution
 wget https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-2.4.0%2Bcpu.zip
 unzip libtorch-shared-with-deps-2.4.0+cpu.zip -d /opt/libtorch
 export LIBTORCH=/opt/libtorch
@@ -59,10 +59,10 @@ export LD_LIBRARY_PATH=$LIBTORCH/lib:$LD_LIBRARY_PATH
 ```
 
 ### Library Dependencies
-- `libtorch.so` / `torch.dll` — Core tensor library
-- `libc10.so` / `c10.dll` — C10 utility library
-- `libtorch_cpu.so` / `torch_cpu.dll` — CPU backend
-- (Optional) `libtorch_cuda.so` / `torch_cuda.dll` — CUDA backend
+- `libtorch.so` / `torch.dll` -- Core tensor library
+- `libc10.so` / `c10.dll` -- C10 utility library
+- `libtorch_cpu.so` / `torch_cpu.dll` -- CPU backend
+- (Optional) `libtorch_cuda.so` / `torch_cuda.dll` -- CUDA backend
 
 ### Without LibTorch
 - `xiom.torch.types` and `xiom.torch.nn` work without any dependency (pure XIOM types and constructors)

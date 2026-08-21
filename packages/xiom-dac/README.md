@@ -1,6 +1,6 @@
 # xiom-dac
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Digital-to-analog conversion for analog output generation.
 > **Deps:** stdlib; may wrap C (FFI).
 

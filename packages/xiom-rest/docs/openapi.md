@@ -1,6 +1,6 @@
 # OpenAPI
 
-> Status: Design stage — specification only, not yet implemented.
+> Status: Design stage -- specification only, not yet implemented.
 
 Documentation drifts the moment it is written by hand. `xiom-rest` avoids this by generating OpenAPI descriptions directly from the same declarative `RestModule` definitions used for routing, enriched with the `requires`/`ensures` contract metadata XIOM already carries. The specification is derived from the code, not maintained alongside it, so the docs cannot silently fall out of step with the implementation.
 
@@ -10,7 +10,7 @@ Documentation drifts the moment it is written by hand. `xiom-rest` avoids this b
 
 ## Deriving parameters and schemas
 
-The generator draws on the typed structures the rest of the package already defines. Pagination parameters (`page`, `limit`, `cursor`), the allow-listed filter fields and operators, and the permitted sort keys all become documented query parameters, so the generated spec reflects exactly what the parsing layer will accept. Response bodies are described from the resource types and the standard envelopes (`ItemEnvelope`, `ListEnvelope`, `ErrorEnvelope`), and XIOM contracts contribute constraints — a `requires` on a field becomes a documented validation rule rather than tribal knowledge.
+The generator draws on the typed structures the rest of the package already defines. Pagination parameters (`page`, `limit`, `cursor`), the allow-listed filter fields and operators, and the permitted sort keys all become documented query parameters, so the generated spec reflects exactly what the parsing layer will accept. Response bodies are described from the resource types and the standard envelopes (`ItemEnvelope`, `ListEnvelope`, `ErrorEnvelope`), and XIOM contracts contribute constraints -- a `requires` on a field becomes a documented validation rule rather than tribal knowledge.
 
 ## Serialization
 

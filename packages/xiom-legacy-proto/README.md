@@ -1,6 +1,6 @@
 # xiom-legacy-proto
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Legacy and proxy network protocols umbrella.
 > **Deps:** stdlib; may wrap C (FFI).
 

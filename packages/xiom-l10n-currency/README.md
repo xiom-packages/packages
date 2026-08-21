@@ -1,6 +1,6 @@
 # xiom-l10n-currency
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Locale-aware currency amount formatting, symbol resolution, and code/display-name lookup.
 > **Deps:** stdlib; may wrap C (FFI).
 

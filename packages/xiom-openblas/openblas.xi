@@ -1,17 +1,17 @@
-// XIOM — xiom.openblas
+// XIOM -- xiom.openblas
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // OpenBLAS / LAPACK bindings for XIOM.
-// Phase 1 — Core Foundation: BLAS 1-3, LAPACK SVD/Eigen/Solve.
+// Phase 1 -- Core Foundation: BLAS 1-3, LAPACK SVD/Eigen/Solve.
 // Link against system-installed libopenblas.
 // Matrix = Int (opaque pool handle).
 //
 // Depends on: xiom.ffi (stdlib)
 //
 // C signatures reference:
-//   https://www.openblas.net/     — cblas_*
-//   https://netlib.org/lapack/    — dgesvd_, dsyev_, dgesv_
+//   https://www.openblas.net/     -- cblas_*
+//   https://netlib.org/lapack/    -- dgesvd_, dsyev_, dgesv_
 
 module xiom.openblas
 
@@ -100,7 +100,7 @@ fn __pool_mark_freed(m: Matrix)
 }
 
 // ============================================================
-// extern "C" — OpenBLAS (CBLAS) + LAPACK (FORTRAN linkage)
+// extern "C" -- OpenBLAS (CBLAS) + LAPACK (FORTRAN linkage)
 // ============================================================
 
 extern "C" {
@@ -186,7 +186,7 @@ pub fn matrix_cols(m: &Matrix) -> Int {
 }
 
 // ============================================================
-// BLAS Level 1 — vector-vector operations
+// BLAS Level 1 -- vector-vector operations
 // ============================================================
 
 pub fn dot(x: &Vec[Float64], y: &Vec[Float64], n: Int) -> Float64
@@ -212,7 +212,7 @@ pub fn axpy(alpha: Float64, x: &Vec[Float64], y: &mut Vec[Float64], n: Int)
 }
 
 // ============================================================
-// BLAS Level 2 — matrix-vector
+// BLAS Level 2 -- matrix-vector
 // ============================================================
 
 pub fn gemv(trans: Bool, m: Int, n: Int, alpha: Float64, A: &Matrix, x: &Vec[Float64], beta: Float64, y: &mut Vec[Float64])
@@ -251,7 +251,7 @@ pub fn gemv(trans: Bool, m: Int, n: Int, alpha: Float64, A: &Matrix, x: &Vec[Flo
 }
 
 // ============================================================
-// BLAS Level 3 — matrix-matrix
+// BLAS Level 3 -- matrix-matrix
 // ============================================================
 
 pub fn gemm(transA: Bool, transB: Bool, m: Int, n: Int, k: Int, alpha: Float64, A: &Matrix, B: &Matrix, beta: Float64, C: &mut Matrix)
@@ -315,7 +315,7 @@ pub fn gemm(transA: Bool, transB: Bool, m: Int, n: Int, k: Int, alpha: Float64, 
 }
 
 // ============================================================
-// LAPACK — Singular Value Decomposition
+// LAPACK -- Singular Value Decomposition
 // ============================================================
 
 pub fn svd(A: &Matrix) -> Result[(Matrix, Matrix, Matrix), Str] {
@@ -344,7 +344,7 @@ pub fn svd(A: &Matrix) -> Result[(Matrix, Matrix, Matrix), Str] {
 }
 
 // ============================================================
-// LAPACK — Symmetric Eigenvalue Decomposition
+// LAPACK -- Symmetric Eigenvalue Decomposition
 // ============================================================
 
 pub fn eigen_sym(A: &Matrix) -> Result[(Matrix, Matrix), Str] {
@@ -370,7 +370,7 @@ pub fn eigen_sym(A: &Matrix) -> Result[(Matrix, Matrix), Str] {
 }
 
 // ============================================================
-// LAPACK — Linear Solve (A·x = b)
+// LAPACK -- Linear Solve (A-x = b)
 // ============================================================
 
 pub fn solve(A: &Matrix, b: &Vec[Float64]) -> Result[Matrix, Str] {

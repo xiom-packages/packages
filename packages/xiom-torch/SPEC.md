@@ -33,7 +33,7 @@ The FFI tier (xiom.torch.ffi) requires the LibTorch C++ shared library.
 
 === Linux (Fedora/RHEL) ===
 
-  Same as Ubuntu — download the LibTorch distribution.
+  Same as Ubuntu -- download the LibTorch distribution.
 
 === macOS ===
 
@@ -56,7 +56,7 @@ The FFI tier (xiom.torch.ffi) requires the LibTorch C++ shared library.
 
 == Module Specifications ==
 
-=== 1. xiom.torch.types — Tensor & Device Types ===
+=== 1. xiom.torch.types -- Tensor & Device Types ===
 
 Core data types for tensor representation.
 
@@ -88,7 +88,7 @@ Functions:
     match the original. Returns an empty tensor with zero-length shape on
     mismatch. Data is shared (cloned). Strides are recomputed.
 
-=== 2. xiom.torch.ffi — LibTorch C API Stubs ===
+=== 2. xiom.torch.ffi -- LibTorch C API Stubs ===
 
 All functions are currently stubbed for development. Full implementation
 requires linking against the system LibTorch installation.
@@ -106,7 +106,7 @@ FFI symbols (extern "C"):
   torch_c_is_cuda_available() -> Int
   torch_c_free(ptr)
 
-=== 3. xiom.torch.nn — Neural Network Building Blocks ===
+=== 3. xiom.torch.nn -- Neural Network Building Blocks ===
 
 Pure XIOM types for constructing neural network architectures. Forward
 passes are stubbed (zero-output) until tensor operations are available.
@@ -199,12 +199,12 @@ Forward passes:
 
 == What's Left for v1.0 ==
 
-1. **LibTorch FFI bridge** — Implement xiom_torch_bridge.c for all extern "C"
+1. **LibTorch FFI bridge** -- Implement xiom_torch_bridge.c for all extern "C"
    symbols using the LibTorch C++ API.
-2. **Tensor math primitives** — matmul, elementwise ops, convolutions in
+2. **Tensor math primitives** -- matmul, elementwise ops, convolutions in
    xiom-std or xiom-blas.
-3. **Real forward passes** — Use tensor math to implement linear_forward,
+3. **Real forward passes** -- Use tensor math to implement linear_forward,
    conv2d_forward, batch normalization, and activation functions.
-4. **Model serialization** — Load/save PyTorch model files (.pt, .pth).
-5. **GPU support** — CUDA tensor allocation and device transfer.
-6. **Autograd** — Automatic differentiation for training.
+4. **Model serialization** -- Load/save PyTorch model files (.pt, .pth).
+5. **GPU support** -- CUDA tensor allocation and device transfer.
+6. **Autograd** -- Automatic differentiation for training.

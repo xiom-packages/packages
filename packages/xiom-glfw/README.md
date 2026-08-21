@@ -1,6 +1,6 @@
 # xiom-glfw
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** GLFW windowing and input bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

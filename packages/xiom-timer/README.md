@@ -1,6 +1,6 @@
 # xiom-timer
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Hardware timer/counter services for delays, scheduling, and timing measurement.
 > **Deps:** stdlib; may wrap C (FFI).
 

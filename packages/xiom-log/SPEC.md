@@ -5,7 +5,7 @@
 
 ## Modules
 
-### `xiom.log.types` — Log Types and Configuration
+### `xiom.log.types` -- Log Types and Configuration
 **Enum:** `LogLevel { Trace, Debug, Info, Warn, Error, Fatal }`
 
 | Type | Fields |
@@ -22,7 +22,7 @@
 | `log_level_ordinal` | `(level: &LogLevel) -> Int` | Trace=0 ... Fatal=5 |
 | `log_entry_new` | `(level: LogLevel, message: Str) -> LogEntry` | Entry with empty module, timestamp=0, no fields |
 
-### `xiom.log.logger` — Logger Implementation
+### `xiom.log.logger` -- Logger Implementation
 **Type:** `Logger = { config: LoggerConfig; entries: Vec[LogEntry]; }`
 
 | Function | Signature | Description |
@@ -41,7 +41,7 @@
 **Level Filtering:**
 Entries below `config.min_level` are silently discarded. Comparison uses ordinal values: Trace(0) < Debug(1) < Info(2) < Warn(3) < Error(4) < Fatal(5).
 
-### `xiom.log.format` — Output Formatters
+### `xiom.log.format` -- Output Formatters
 | Function | Signature | Description |
 |---|---|---|
 | `format_text` | `(entry: &LogEntry, config: &LoggerConfig) -> Str` | Standard text format with optional timestamp and module |
@@ -65,7 +65,7 @@ No fallible operations. All functions return direct values. The logger is append
 - `xiom-std` (0.1.0): Vec, Int, Str, Bool types and basic operations.
 
 ## Design Constraints
-- No `for` loops — iteration over entries and fields uses tail-recursive helpers.
-- No `self` methods — logger state is passed explicitly as `&Logger` or `&mut Logger`.
+- No `for` loops -- iteration over entries and fields uses tail-recursive helpers.
+- No `self` methods -- logger state is passed explicitly as `&Logger` or `&mut Logger`.
 - `Match` uses bare variant names in pattern arms.
 - String building uses `+` concatenation; no mutable string buffers in pure formatters.

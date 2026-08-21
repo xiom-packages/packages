@@ -1,6 +1,6 @@
 # xiom-cassandra
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Apache Cassandra client: CQL queries, prepared statements, and schema metadata.
 > **Deps:** stdlib; may wrap C (FFI).
 

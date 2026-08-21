@@ -1,4 +1,4 @@
-# xiom-lzfse — Build Dependency Audit
+# xiom-lzfse -- Build Dependency Audit
 
 ## Required Dependencies
 
@@ -48,18 +48,18 @@ The public API transparently selects the appropriate codec based on input size.
 
 ```
 packages/xiom-lzfse/
-├── package.xi              # Package manifest (name, version, deps)
-├── lzfse.xi                # Module xiom.lzfse — raw FFI + safe wrappers
-├── src/
-│   └── lzfse_safe.xi       # Module xiom.lzfse.safe — struct-based wrappers
-├── examples/
-│   └── demo_lzfse.xi       # Module xiom.lzfse.demo — compile-time demo
-└── AUDIT.md                # This file
+|-- package.xi              # Package manifest (name, version, deps)
+|-- lzfse.xi                # Module xiom.lzfse -- raw FFI + safe wrappers
+|-- src/
+|   `-- lzfse_safe.xi       # Module xiom.lzfse.safe -- struct-based wrappers
+|-- examples/
+|   `-- demo_lzfse.xi       # Module xiom.lzfse.demo -- compile-time demo
+`-- AUDIT.md                # This file
 ```
 
 ## FFI Binding Coverage
 
-### lzfse.xi — Module `xiom.lzfse`
+### lzfse.xi -- Module `xiom.lzfse`
 
 All **4 LZFSE public API functions** from lzfse.h are declared in one `extern "C"` block:
 
@@ -69,16 +69,16 @@ All **4 LZFSE public API functions** from lzfse.h are declared in one `extern "C
 | Encode/Decode | lzfse_encode_buffer, lzfse_decode_buffer |
 
 **6 safe wrapper functions:**
-- `encode_scratch_size()`, `decode_scratch_size()` — query scratch buffer requirements
-- `encode_buffer()` — compress with explicit scratch buffer (returns Result[Int, Str])
-- `decode_buffer()` — decompress with explicit scratch buffer (returns Result[Int, Str])
-- `encode_using_malloc()` — compress with internal malloc (passes NULL scratch)
-- `decode_using_malloc()` — decompress with internal malloc (passes NULL scratch)
+- `encode_scratch_size()`, `decode_scratch_size()` -- query scratch buffer requirements
+- `encode_buffer()` -- compress with explicit scratch buffer (returns Result[Int, Str])
+- `decode_buffer()` -- decompress with explicit scratch buffer (returns Result[Int, Str])
+- `encode_using_malloc()` -- compress with internal malloc (passes NULL scratch)
+- `decode_using_malloc()` -- decompress with internal malloc (passes NULL scratch)
 
 **1 utility function:**
-- `compress_bound()` — worst-case compressed size estimate (`src_size + src_size/4 + 64`)
+- `compress_bound()` -- worst-case compressed size estimate (`src_size + src_size/4 + 64`)
 
-### lzfse_safe.xi — Module `xiom.lzfse.safe`
+### lzfse_safe.xi -- Module `xiom.lzfse.safe`
 
 2 struct-based resource types with inline `extern "C"` block (cross-module resolution workaround):
 
@@ -89,7 +89,7 @@ All **4 LZFSE public API functions** from lzfse.h are declared in one `extern "C
 
 Error type: `LzfseError` with `code: Int` and `message: Str`.
 
-### demo_lzfse.xi — Module `xiom.lzfse.demo`
+### demo_lzfse.xi -- Module `xiom.lzfse.demo`
 
 Compile-time demonstration showing both API patterns:
 - Procedural API (`xiom.lzfse`) with scratch size queries and compress bound
@@ -99,12 +99,12 @@ Compile-time demonstration showing both API patterns:
 
 ```
 1. Compile LZFSE C source
-   clang -c lzfse_encode.c lzfse_decode.c lzfse_fse.c → lzfse_*.obj
-   → liblzfse.lib (static library)
+   clang -c lzfse_encode.c lzfse_decode.c lzfse_fse.c -> lzfse_*.obj
+   -> liblzfse.lib (static library)
 
 2. XIOM Compilation + Link (xiom + clang)
    lzfse.xi + src/lzfse_safe.xi + examples/demo_lzfse.xi + liblzfse.lib
-   → lzfse_demo.exe
+   -> lzfse_demo.exe
 ```
 
 ## Compiler Gaps Documented
@@ -114,19 +114,19 @@ Compile-time demonstration showing both API patterns:
 **Workaround:** `src/lzfse_safe.xi` duplicates the `extern "C"` block it needs inline.
 **Impact:** 8-line duplicate extern block in lzfse_safe.xi.
 
-### 2. Int→Int32 coercion (T001)
+### 2. Int->Int32 coercion (T001)
 **Symptom:** Integer literals default to `Int` and do not auto-coerce to `Int32`.
-**Workaround:** Not applicable — LZFSE API uses `size_t` (maps to `Int`). Explicit `as Int` casts used where needed.
-**Impact:** Minor — only affects `compress_bound` division.
+**Workaround:** Not applicable -- LZFSE API uses `size_t` (maps to `Int`). Explicit `as Int` casts used where needed.
+**Impact:** Minor -- only affects `compress_bound` division.
 
 ### 3. No hex literals
 **Symptom:** Hex literals (`0x00000001`) cause parse errors.
-**Workaround:** Not applicable — LZFSE has no flag constants requiring hex.
+**Workaround:** Not applicable -- LZFSE has no flag constants requiring hex.
 **Impact:** None.
 
 ### 4. No `()` unit type in Result
 **Symptom:** `Result[(), Error]` is not supported.
-**Workaround:** Not applicable — LZFSE functions return `size_t` (Int), naturally mapped to `Result[Int, Err]`.
+**Workaround:** Not applicable -- LZFSE functions return `size_t` (Int), naturally mapped to `Result[Int, Err]`.
 **Impact:** None.
 
 ### 5. No pointer-sized allocation from XIOM
@@ -153,7 +153,7 @@ Compile-time demonstration showing both API patterns:
 - LZFSE requires a C compiler (clang) to produce the linkable library
 - Scratch buffer allocation must be handled by C code or a memory allocation bridge
 - The LZFSE C library internally calls `malloc`/`free` when scratch is NULL
-- No native XIOM memory bridge exists yet — requires a C shim for buffer allocation
+- No native XIOM memory bridge exists yet -- requires a C shim for buffer allocation
 - LZFSE compression ratio depends on tuning parameters in `lzfse_tunables.h`
 - LZFSE falls back to LZVN for inputs < 4096 bytes (transparent to the API)
 
@@ -165,6 +165,6 @@ Compile-time demonstration showing both API patterns:
 | `lzfse.xi` | 128 | 4 extern C FFI declarations, 6 safe wrappers, 1 utility |
 | `src/lzfse_safe.xi` | 172 | 2 struct resource types with create/destroy contracts, inline extern block |
 | `examples/demo_lzfse.xi` | 109 | Procedural + struct-based API demo |
-| `AUDIT.md` | — | This file |
+| `AUDIT.md` | -- | This file |
 
 **Total: 422 lines.**

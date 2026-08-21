@@ -1,6 +1,6 @@
 # Execution
 
-> Status: Design stage — specification only.
+> Status: Design stage -- specification only.
 
 ## Four explicit phases
 
@@ -12,7 +12,7 @@ Convert the incoming query text into an abstract syntax tree (`Document`). Parsi
 
 ### Validate
 
-Check the parsed operation against the frozen schema — fields, arguments, fragments, variables, selections, and directive placement. Invalid operations fail here, before any data fetching starts, producing a set of `ValidationError` values. See `validation.md` for the full rule set.
+Check the parsed operation against the frozen schema -- fields, arguments, fragments, variables, selections, and directive placement. Invalid operations fail here, before any data fetching starts, producing a set of `ValidationError` values. See `validation.md` for the full rule set.
 
 ### Execute
 
@@ -35,4 +35,4 @@ When a resolver fails or returns null for a non-null field, the error propagates
 
 ## Transport-agnostic
 
-Execution operates on a `Document`, a `FrozenSchema`, and a `GraphQLContext` — none of which reference HTTP or WebSocket directly. The transport bridges (`http_bridge`, `websocket_bridge`) adapt concrete requests into these engine inputs and serialize the results back out. This keeps the engine independent of how a request arrived.
+Execution operates on a `Document`, a `FrozenSchema`, and a `GraphQLContext` -- none of which reference HTTP or WebSocket directly. The transport bridges (`http_bridge`, `websocket_bridge`) adapt concrete requests into these engine inputs and serialize the results back out. This keeps the engine independent of how a request arrived.

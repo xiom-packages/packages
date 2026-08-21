@@ -1,4 +1,4 @@
-// XIOM — libsodium Conformance Test Suite
+// XIOM -- libsodium Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -57,7 +57,7 @@ fn has_libsodium() -> Bool {
 }
 
 // =========================================================================
-// SECTION 1 — Constant verification (6 tests)
+// SECTION 1 -- Constant verification (6 tests)
 // =========================================================================
 
 fn run_const_secretbox_keybytes() -> Int {
@@ -127,7 +127,7 @@ fn test_const_sign_secretkeybytes() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 2 — API function compile-time presence (15 tests)
+// SECTION 2 -- API function compile-time presence (15 tests)
 // =========================================================================
 
 fn test_api_init() -> TestResult {
@@ -191,7 +191,7 @@ fn test_api_pwhash_verify() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 3 — Runtime behavior (12 tests, skipped if no libsodium.dll)
+// SECTION 3 -- Runtime behavior (12 tests, skipped if no libsodium.dll)
 // =========================================================================
 
 fn run_runtime_init() -> Int {
@@ -408,7 +408,7 @@ fn test_runtime_pwhash_roundtrip() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 4 — Contract declaration presence (12 tests)
+// SECTION 4 -- Contract declaration presence (12 tests)
 // =========================================================================
 
 fn test_contract_random_bytes() -> TestResult {
@@ -460,7 +460,7 @@ fn test_contract_pwhash_verify() -> TestResult {
 }
 
 // =========================================================================
-// Main — manual test dispatch
+// Main -- manual test dispatch
 // =========================================================================
 
 pub fn main() -> Int {
@@ -531,18 +531,18 @@ pub fn main() -> Int {
   let r44 = test_contract_pwhash_verify(); total = total + 1; if !r44.passed { failed = failed + 1; };
 
   io.println("");
-  io.println("═══════════════════════════════════════");
+  io.println("=======================================");
   if failed == 0 {
     io.println("  ALL 45 TESTS PASSED");
     io.println("  Path:    " + "E:\\Projects\\AXIOM\\ecosystem\\xiom-libsodium\\tests\\test_conformance.xi");
     io.println("  Contracts: " + "17" + " (across 12 parameterized functions)");
-    io.println("═══════════════════════════════════════");
+    io.println("=======================================");
     return 0;
   }
   io.println("  Path:    " + "E:\\Projects\\AXIOM\\ecosystem\\xiom-libsodium\\tests\\test_conformance.xi");
   io.println("  Tests:   45");
   io.println("  Contracts: " + "17" + " (across 12 parameterized functions)");
   io.println("  SOME TESTS FAILED");
-  io.println("═══════════════════════════════════════");
+  io.println("=======================================");
   return 1;
 }

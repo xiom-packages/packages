@@ -1,8 +1,8 @@
-# ROADMAP — xiom-eigen
+# ROADMAP -- xiom-eigen
 
-## Phase 1 — Core Foundation (CURRENT)
+## Phase 1 -- Core Foundation (CURRENT)
 
-**Status:** In progress — SPEC layer implemented, stub computations
+**Status:** In progress -- SPEC layer implemented, stub computations
 
 - [x] Module scaffold (`module xiom.eigen`)
 - [x] `pub type EigenMatrix = Int` opaque handle
@@ -14,7 +14,7 @@
 - [x] Decomposition stubs: `svd`, `eigenvalues` (return identity/zero placeholders)
 - [x] 28 conformance tests in `tests/test_conformance.xi`
 - [ ] Download Eigen 3.4 headers (`wget https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz`)
-- [ ] Write C bridge (`eigen_bridge.cpp`) — thin C ABI over Eigen C++ templates
+- [ ] Write C bridge (`eigen_bridge.cpp`) -- thin C ABI over Eigen C++ templates
 - [ ] Compile bridge `.obj` against Eigen headers
 - [ ] Link XIOM module against bridge object
 - [ ] Replace pure-XIOM loops with Eigen-native calls through the bridge
@@ -23,11 +23,11 @@
 
 **Effort:** ~2 days remaining
 
-## Phase 2 — Full Eigen Coverage
+## Phase 2 -- Full Eigen Coverage
 
 - [ ] `matrix_add` / `matrix_sub` / `matrix_scale` element-wise operations
-- [ ] `matrix_row` / `matrix_col` — extract single row/column as vector
-- [ ] `matrix_block(r, c, rows, cols)` — sub-matrix views
+- [ ] `matrix_row` / `matrix_col` -- extract single row/column as vector
+- [ ] `matrix_block(r, c, rows, cols)` -- sub-matrix views
 - [ ] QR decomposition (`Eigen::HouseholderQR`)
 - [ ] LU decomposition with partial pivoting (`Eigen::PartialPivLU`)
 - [ ] Cholesky decomposition (`Eigen::LLT`, `Eigen::LDLT`)
@@ -37,7 +37,7 @@
 
 **Effort:** ~3 days
 
-## Phase 3 — Advanced Linear Algebra
+## Phase 3 -- Advanced Linear Algebra
 
 - [ ] Sparse matrix support (`Eigen::SparseMatrix`)
 - [ ] Conjugate gradient solver
@@ -45,17 +45,17 @@
 - [ ] Sparse LU / Sparse QR
 - [ ] Geometry module wrappers (`Eigen::Quaternion`, `Eigen::AngleAxis`)
 - [ ] Transform types (`Eigen::Affine3d`, `Eigen::Isometry3d`)
-- [ ] Array operations (`Eigen::ArrayWrapper`) — coefficient-wise math
+- [ ] Array operations (`Eigen::ArrayWrapper`) -- coefficient-wise math
 
 **Effort:** ~1 week
 
-## Phase 4 — Performance & Integration
+## Phase 4 -- Performance & Integration
 
 - [ ] SIMD auto-vectorization verification (SSE/AVX/NEON via Eigen)
 - [ ] Fixed-size matrix optimization (Matrix2d, Matrix3d, Matrix4d)
 - [ ] `package.toml` manifest for `xiom-eigen`
-- [ ] CI: matrix of (Linux, macOS, Windows) × (system Eigen headers, vendored headers)
+- [ ] CI: matrix of (Linux, macOS, Windows) x (system Eigen headers, vendored headers)
 - [ ] Downstream package smoke tests: verify `xiom-robot`, `xiom-cv`, etc. link correctly
-- [ ] Benchmark suite: vs NumPy, vs raw C, vs OpenBLAS — publish in docs/benchmarks.md
+- [ ] Benchmark suite: vs NumPy, vs raw C, vs OpenBLAS -- publish in docs/benchmarks.md
 
 **Effort:** ongoing

@@ -1,4 +1,4 @@
-// XIOM — Wasmtime Conformance Test Suite
+// XIOM -- Wasmtime Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -16,9 +16,9 @@ use xiom.io;
 use xiom.test;
 use xiom.wasmtime;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Helpers
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; }
@@ -42,9 +42,9 @@ fn int_to_str(n: Int) -> Str {
   return out;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 1 — Types (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 1 -- Types (4 tests)
+// ===========================================================================
 
 fn test_type_wasm_engine_is_int() -> TestResult {
   return assert(true, "type: WasmEngine is Int alias present");
@@ -62,9 +62,9 @@ fn test_type_wasm_instance_is_int() -> TestResult {
   return assert(true, "type: WasmInstance is Int alias present");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 2 — Constants (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 2 -- Constants (4 tests)
+// ===========================================================================
 
 fn run_const_valtype_i32() -> Int {
   if WASM_VALTYPE_I32 == 0 { return 0; }
@@ -110,9 +110,9 @@ fn test_const_valtype_f64() -> TestResult {
   return assert(false, "const: WASM_VALTYPE_F64 == 3");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 3 — Engine (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 3 -- Engine (3 tests)
+// ===========================================================================
 
 fn run_engine_new_stub() -> Int {
   match engine_new() {
@@ -156,9 +156,9 @@ fn test_engine_lifecycle() -> TestResult {
   return assert(false, "engine: engine_new + engine_delete crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 4 — Store (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 4 -- Store (3 tests)
+// ===========================================================================
 
 fn run_store_new_stub() -> Int {
   match store_new(1) {
@@ -204,9 +204,9 @@ fn test_store_lifecycle() -> TestResult {
   return assert(false, "store: engine_new + store_new crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 5 — Module (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 5 -- Module (2 tests)
+// ===========================================================================
 
 fn run_module_new_stub() -> Int {
   match module_new(1, &Vec[UInt8].new()) {
@@ -234,9 +234,9 @@ fn test_module_delete_callable() -> TestResult {
   return assert(false, "module: module_delete callable");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 6 — Instance (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 6 -- Instance (2 tests)
+// ===========================================================================
 
 fn run_instance_new_stub() -> Int {
   match instance_new(1, 1, 0) {
@@ -264,9 +264,9 @@ fn test_instance_delete_callable() -> TestResult {
   return assert(false, "instance: instance_delete callable");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 7 — Function Calling (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 7 -- Function Calling (1 test)
+// ===========================================================================
 
 fn run_func_call_stub() -> Int {
   match func_call(1, 0, 0) {
@@ -284,9 +284,9 @@ fn test_func_call_stub() -> TestResult {
   return assert(false, "func: func_call(1,0,0) returns Err (stub)");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 8 — Function Types (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 8 -- Function Types (2 tests)
+// ===========================================================================
 
 fn run_functype_new_stub() -> Int {
   match functype_new(0, 0) {
@@ -320,9 +320,9 @@ fn test_valtype_new_stub() -> TestResult {
   return assert(false, "valtype: valtype_new(I32) returns Err (stub)");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 9 — Contract Declarations (11 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 9 -- Contract Declarations (11 tests)
+// ===========================================================================
 
 fn test_contract_engine_delete() -> TestResult {
   return assert(true, "contract: engine_delete has requires: engine > 0");
@@ -368,9 +368,9 @@ fn test_contract_engine_new_ensures() -> TestResult {
   return assert(true, "contract: engine_new has ensures: result.is_ok() || result.is_err()");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 10 — Error Handling (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 10 -- Error Handling (2 tests)
+// ===========================================================================
 
 fn run_error_message_non_empty() -> Int {
   match engine_new() {
@@ -412,9 +412,9 @@ fn test_error_message_contains_stub() -> TestResult {
   return assert(false, "error: Err message contains 'stub'");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 11 — API Presence (compile-time verification) (11 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 11 -- API Presence (compile-time verification) (11 tests)
+// ===========================================================================
 
 fn test_api_engine_new() -> TestResult {
   return assert(true, "api: engine_new() -> Result[WasmEngine, Str]");
@@ -460,9 +460,9 @@ fn test_api_valtype_new() -> TestResult {
   return assert(true, "api: valtype_new(kind: Int) -> Result[Int, Str]");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 12 — Full Lifecycle Simulation (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 12 -- Full Lifecycle Simulation (1 test)
+// ===========================================================================
 
 fn run_full_lifecycle() -> Int {
   let eng = engine_new();
@@ -498,13 +498,13 @@ fn run_full_lifecycle() -> Int {
 
 fn test_full_lifecycle() -> TestResult {
   let rc = run_full_lifecycle();
-  if rc == 0 { return assert(true, "lifecycle: engine → store → module → instance create/destroy no crash (stub)"); }
+  if rc == 0 { return assert(true, "lifecycle: engine -> store -> module -> instance create/destroy no crash (stub)"); }
   return assert(false, "lifecycle: full lifecycle crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Main — manual test dispatch
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Main -- manual test dispatch
+// ===========================================================================
 
 pub fn main() -> Int {
   io.println("XIOM Wasmtime Conformance Suite");

@@ -1,4 +1,4 @@
-// XIOM — OpenAL Conformance Tests
+// XIOM -- OpenAL Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -16,9 +16,9 @@ use xiom.io;
 use xiom.test;
 use xiom.openal;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Helpers
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; }
@@ -58,9 +58,9 @@ fn has_openal() -> Bool {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 1. Error handling: get_error + get_string
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_get_error() -> Int {
   let err = openal.get_error();
@@ -91,9 +91,9 @@ fn test_get_string() -> TestResult {
   return assert(false, "error: get_string returned empty");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 2. Source lifecycle: create, play, pause, stop, rewind, is_playing, delete
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_create_delete_source() -> Int {
   match openal.create_source() {
@@ -172,9 +172,9 @@ fn test_is_source_playing() -> TestResult {
   return assert(false, "source: fresh source reports playing");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 3. Source properties: position, velocity, pitch, gain, looping
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_source_position() -> Int {
   match openal.create_source() {
@@ -273,9 +273,9 @@ fn test_source_looping() -> TestResult {
   return assert(false, "source: set_looping crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 4. Buffer lifecycle: create, buffer_data_mono16, buffer_data_stereo16, delete
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_create_delete_buffer() -> Int {
   match openal.create_buffer() {
@@ -342,9 +342,9 @@ fn test_buffer_data_stereo16() -> TestResult {
   return assert(false, "buffer: buffer_data_stereo16 crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 5. Listener: position, orientation, gain
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_listener_position() -> Int {
   if !has_openal() { return 2; }
@@ -389,9 +389,9 @@ fn test_listener_gain() -> TestResult {
   return assert(false, "listener: set_gain crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 6. WAV loading + playback: load_wav, play_sound
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_load_wav() -> Int {
   if !has_openal() { return 2; }
@@ -442,9 +442,9 @@ fn test_play_sound() -> TestResult {
   return assert(false, "wav: play_sound failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 7. Constants
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_constants() -> Int {
   if openal.NO_ERROR != 0 { return 1; }
@@ -460,15 +460,15 @@ fn test_constants() -> TestResult {
   return assert(false, "constants: values incorrect");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 8. Contract enforcement: FFI error paths for invalid handles/params
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_invalid_source_handle() -> Int {
   if !has_openal() { return 2; }
   // source=0 should trigger contract violation (requires: source != 0)
   // unsafe bypass to test FFI-level behavior
-  // Cannot directly test requires: without unsafe — verified at compile time
+  // Cannot directly test requires: without unsafe -- verified at compile time
   // Just verify valid sources don't crash
   return 0;
 }
@@ -558,9 +558,9 @@ fn test_empty_buffer_data() -> TestResult {
   return assert(false, "contract: data test failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Main
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn main() -> Int {
   io.println("=== XIOM OpenAL Conformance Tests ===");

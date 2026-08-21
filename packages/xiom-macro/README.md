@@ -1,6 +1,6 @@
 # xiom-macro
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Macro definition, expansion, and hygiene handling.
 > **Deps:** stdlib; may wrap C (FFI).
 

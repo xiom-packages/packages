@@ -985,7 +985,7 @@ int32_t xvk_get_deferred_operation_max_concurrency_khr(int64_t device, int64_t d
     return (int32_t)max;
 }
 
-#else /* !VK_EXT_opacity_micromap — headers too old, keep the ABI with stubs */
+#else /* !VK_EXT_opacity_micromap -- headers too old, keep the ABI with stubs */
 
 #define XVK_RT_NO_MICROMAP_HEADERS()                                           \
     xvk_set_error("VK_EXT_micromap unavailable: Vulkan headers lack "          \

@@ -7,7 +7,7 @@ Compiles cleanly on xiom v0.45.3. MVP stub implementation.
 None. This is a pure-XIOM MVP with stub `execute` and `close` functions.
 
 ## Files Modified
-- `sql.xi` — Made `close` function `pub` for proper API exposure.
+- `sql.xi` -- Made `close` function `pub` for proper API exposure.
 
 ## Known Gaps
 1. **No database backend**: `execute` and `close` return 0 without any database interaction.

@@ -1,11 +1,11 @@
-// XIOM — MiniAudio FFI Bindings (C Bridge)
+// XIOM -- MiniAudio FFI Bindings (C Bridge)
 // Low-level extern "C" declarations and safe wrappers for the xma C bridge.
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 module xiom.miniaudio
 
 // ===========================================================================
-// Constants — format / device / waveform / result codes
+// Constants -- format / device / waveform / result codes
 // ===========================================================================
 
 pub const FORMAT_UNKNOWN: Int32 = 0
@@ -125,7 +125,7 @@ pub const MAX_CHANNELS:        Int = 254
 pub const DEFAULT_FORMAT:      Int32 = FORMAT_F32
 
 // ===========================================================================
-// extern "C" — C bridge declarations (xiom_ma_bridge)
+// extern "C" -- C bridge declarations (xiom_ma_bridge)
 // ===========================================================================
 
 extern "C" {

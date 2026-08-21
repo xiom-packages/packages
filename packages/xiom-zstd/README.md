@@ -1,6 +1,6 @@
 # xiom-zstd
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Zstandard fast compression/decompression bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

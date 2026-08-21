@@ -1,7 +1,7 @@
-// XIOM — Protocol Buffers Conformance Tests
+// XIOM -- Protocol Buffers Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
-// 47 tests, 16 sections — pure-XIOM varint/zigzag/wire format.
+// 47 tests, 16 sections -- pure-XIOM varint/zigzag/wire format.
 
 module protobuf_conformance
 
@@ -25,7 +25,7 @@ fn itoa(n: Int) -> Str {
 }
 
 // =========================================================================
-// Varint — encode to buffer, returns bytes written
+// Varint -- encode to buffer, returns bytes written
 // =========================================================================
 
 fn varint_write(buf: &mut Vec[UInt8], value: Int) -> Int {
@@ -35,7 +35,7 @@ fn varint_write(buf: &mut Vec[UInt8], value: Int) -> Int {
 }
 
 // =========================================================================
-// Varint — encode to new Vec
+// Varint -- encode to new Vec
 // =========================================================================
 
 fn varint_enc(value: Int) -> Vec[UInt8] {
@@ -43,7 +43,7 @@ fn varint_enc(value: Int) -> Vec[UInt8] {
 }
 
 // =========================================================================
-// Varint — decode: returns (value, consumed, ok) as separate globals
+// Varint -- decode: returns (value, consumed, ok) as separate globals
 // =========================================================================
 var g_val: Int = 0
 var g_len: Int = 0

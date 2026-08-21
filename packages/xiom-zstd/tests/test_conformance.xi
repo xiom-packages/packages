@@ -1,4 +1,4 @@
-// XIOM — Zstandard Conformance Tests
+// XIOM -- Zstandard Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -50,7 +50,7 @@ fn int_to_str(n: Int) -> Str {
 }
 
 // =========================================================================
-// SECTION 1 — compress_bound (pure FFI call, formula-based)
+// SECTION 1 -- compress_bound (pure FFI call, formula-based)
 // =========================================================================
 
 fn local_compress_bound(size: Int) -> Int {
@@ -91,7 +91,7 @@ fn test_compress_bound_formula_4k() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 2 — ZSTD_isError helper
+// SECTION 2 -- ZSTD_isError helper
 // =========================================================================
 
 fn test_is_error_zero() -> TestCase {
@@ -111,7 +111,7 @@ fn test_is_error_on_compress_bound() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 3 — ZSTD_compress FFI stub behavior
+// SECTION 3 -- ZSTD_compress FFI stub behavior
 // =========================================================================
 
 fn local_compress(dst: Int, dstCap: Int, src: Int, srcSize: Int, level: Int) -> Result[Int, Str] {
@@ -154,7 +154,7 @@ fn test_compress_level_10() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 4 — ZSTD_decompress FFI stub behavior
+// SECTION 4 -- ZSTD_decompress FFI stub behavior
 // =========================================================================
 
 fn local_decompress(dst: Int, dstCap: Int, src: Int, srcSize: Int) -> Result[Int, Str] {
@@ -192,7 +192,7 @@ fn test_decompress_est_capacity() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 5 — Safe wrapper compress (xiom.zstd.compress)
+// SECTION 5 -- Safe wrapper compress (xiom.zstd.compress)
 // =========================================================================
 
 fn safe_compress(srcSize: Int, level: Int) -> Result[Int, Str] {
@@ -230,7 +230,7 @@ fn test_safe_compress_bound_positive() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 6 — Safe wrapper decompress (xiom.zstd.decompress)
+// SECTION 6 -- Safe wrapper decompress (xiom.zstd.decompress)
 // =========================================================================
 
 fn safe_decompress(srcSize: Int) -> Result[Int, Str] {
@@ -259,7 +259,7 @@ fn test_safe_decompress_large_input() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 7 — Error path: ZSTD_getErrorName
+// SECTION 7 -- Error path: ZSTD_getErrorName
 // =========================================================================
 
 fn test_get_error_name_callable() -> TestCase {
@@ -278,7 +278,7 @@ fn test_get_error_name_on_error_code() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 8 — API presence (compile-time verification)
+// SECTION 8 -- API presence (compile-time verification)
 // =========================================================================
 
 fn test_api_compress_bound() -> TestCase {
@@ -302,7 +302,7 @@ fn test_api_zstd_get_error_name() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 9 — Contract declarations
+// SECTION 9 -- Contract declarations
 // =========================================================================
 
 fn test_contract_compress_bound_requires() -> TestCase {
@@ -326,7 +326,7 @@ fn test_contract_decompress_requires() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 10 — Edge cases and bounds
+// SECTION 10 -- Edge cases and bounds
 // =========================================================================
 
 fn test_compress_bound_reasonable_upper() -> TestCase {
@@ -347,7 +347,7 @@ fn test_safe_compress_bound_min_input() -> TestCase {
 }
 
 // =========================================================================
-// Main — manual test dispatch
+// Main -- manual test dispatch
 // =========================================================================
 
 pub fn main() -> Int {

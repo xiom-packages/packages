@@ -1,6 +1,6 @@
 # xiom-auth
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Core authentication, sessions, and credential validation.
 > **Deps:** stdlib; may wrap C (FFI).
 

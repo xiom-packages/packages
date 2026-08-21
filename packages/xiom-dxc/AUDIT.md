@@ -1,4 +1,4 @@
-# xiom-dxc — Build Dependency Audit
+# xiom-dxc -- Build Dependency Audit
 
 ## Required Dependencies
 
@@ -17,7 +17,7 @@
 | `dxcapi.h` | `C:\VulkanSDK\1.4.350.0\Include\dxc\` | 1,310 | COM interfaces, CLSIDs, IIDs, constants, structs |
 | `WinAdapter.h` | `C:\VulkanSDK\1.4.350.0\Include\dxc\` | 1,056 | Windows type adapter (GUID, HRESULT, etc.) |
 
-No dxcerrors.h ships in the Vulkan SDK — error codes are inline in dxcapi.h.
+No dxcerrors.h ships in the Vulkan SDK -- error codes are inline in dxcapi.h.
 
 ### DXC Architecture
 
@@ -30,58 +30,58 @@ DXC exposes a COM-based API with IUnknown-derived interfaces. Only **2 functions
 
 The remaining ~100+ methods are COM vtable dispatch across **24 COM interfaces**.
 
-## v0.46 Compiler Gaps (XIOM — Impact on These Bindings)
+## v0.46 Compiler Gaps (XIOM -- Impact on These Bindings)
 
-### G001 — `Int as *T` cast rejected — CRITICAL
+### G001 -- `Int as *T` cast rejected -- CRITICAL
 **Severity:** Blocker for COM vtable dispatch in pure XIOM
 **Symptom:** `ptr as *Int`, `ptr as **Int`, `0 as *Int` all rejected by type checker
-**Location:** `crates/xiom-check/src/lib.rs:2773-2787` — `Expr::As` handler only allows numeric↔numeric, Int↔Float64, Char↔Int, and identity casts
+**Location:** `crates/xiom-check/src/lib.rs:2773-2787` -- `Expr::As` handler only allows numeric<->numeric, Int<->Float64, Char<->Int, and identity casts
 **Codegen:** `inttoptr`/`ptrtoint` exist in `coerce_value` (codegen lib.rs:465-473) but unreachable from `as` expressions
 **Resolution:** **Not workable in pure XIOM.** All COM vtable dispatch delegated to C bridge (dxc_bridge.c). 129 thin wrapper functions that cast and dispatch through the C type system.
 **Impact:** `dxc_bridge.c` required for all COM method calls. No pure-XIOM vtable dispatch possible.
 
-### G002 — `Int as fn(T, U) -> Ret` cast rejected — CRITICAL
+### G002 -- `Int as fn(T, U) -> Ret` cast rejected -- CRITICAL
 **Severity:** Blocker for calling raw function pointers
 **Symptom:** `raw_ptr as fn(Int, Int) -> Int32` rejected by type checker
-**Location:** `crates/xiom-check/src/lib.rs:2785` — fn types not in numeric cast match
-**Resolution:** Same as G001 — all function pointer casting done in C bridge.
+**Location:** `crates/xiom-check/src/lib.rs:2785` -- fn types not in numeric cast match
+**Resolution:** Same as G001 -- all function pointer casting done in C bridge.
 **Impact:** Function pointer types in XIOM limited to statically declared variables. Cannot synthesize from integer values.
 
-### G003 — Cross-module `extern "C"` resolution broken
+### G003 -- Cross-module `extern "C"` resolution broken
 **Severity:** Medium (same as v0.45.3, unfixed in v0.46)
 **Symptom:** `extern "C"` functions declared in module A resolve to `()` when called from module B via `use`
 **Workaround:** `src/dxc_safe.xi` duplicates the `extern "C"` block it needs inline (33 declarations, ~60 lines).
 **Impact:** 60-line duplicate extern block in dxc_safe.xi. Exact same pattern as xiom-vma.
 
-### G004 — `Int` ↔ `Int32` no auto-coercion
+### G004 -- `Int` <-> `Int32` no auto-coercion
 **Severity:** Low (same as v0.45.3)
 **Symptom:** Integer literals default to `Int`, parameters typed `Int` accept `Int` but `Int32` params require explicit casts
 **Workaround:** `as Int32` casts on all Int32 extern params. `as Int` on Int32 values passed to `Int` params.
-**Impact:** Cosmetic — consistent with all other xiom-* ecosystem packages.
+**Impact:** Cosmetic -- consistent with all other xiom-* ecosystem packages.
 
-### G005 — No hex integer literals
+### G005 -- No hex integer literals
 **Severity:** Low (same as v0.45.3)
 **Symptom:** `0x73E22D93` causes parse errors
 **Workaround:** All FOURCC constants, flag values, and HRESULT codes pre-computed as decimal.
 **Impact:** Constants use decimal values only. Hex values documented in comments for maintainability.
 
-### G006 — Method resolution fails on match-bound pattern variables
+### G006 -- Method resolution fails on match-bound pattern variables
 **Severity:** Medium (new finding in v0.46)
 **Symptom:** `Ok(val) => { val.destroy(); }` fails: "cannot call 'destroy' on this expression"
 **Workaround:** Use procedural API functions or access struct fields directly (e.g., `release(val.handle)`)
 **Impact:** Demo and test code must avoid method calls on match-bound variables. Struct method calls work fine on directly-bound locals.
 
-### G007 — Non-fatal E001 borrow errors on extern out-parameters
+### G007 -- Non-fatal E001 borrow errors on extern out-parameters
 **Severity:** Non-fatal (same as v0.45.3)
 **Symptom:** Passing a local to an extern function and then reading it afterward triggers "use of moved value"
 **Count:** 6 in dxc.xi, 30 in dxc_safe.xi, 7 in demo_dxc.xi = **43 total**
-**Status:** Non-fatal — `{"status":"ok"}` with codegen succeeding. Same behaviour as xiom-vma (29 E001 warnings).
+**Status:** Non-fatal -- `{"status":"ok"}` with codegen succeeding. Same behaviour as xiom-vma (29 E001 warnings).
 **Resolution:** No workaround needed. Non-fatal per xiom v0.46 behaviour.
 
-### G008 — `null` literal has type `Ptr` but cannot be cast to typed pointer
+### G008 -- `null` literal has type `Ptr` but cannot be cast to typed pointer
 **Severity:** Low (no impact on these bindings)
 **Symptom:** `null` is recognized but restricted to comparison contexts
-**Impact:** No practical impact — all COM pointer operations go through the C bridge.
+**Impact:** No practical impact -- all COM pointer operations go through the C bridge.
 
 ## Architecture Decision: C Bridge Pattern
 
@@ -114,20 +114,20 @@ This is the same pattern used by `xiom-vulkan` (which has `xiom_vk_bridge.c` for
 
 ```
 packages/xiom-dxc/
-├── package.xi              # Package manifest
-├── dxc.xi                  # Module xiom.dxc — 165 extern C declarations + procedural wrappers
-├── dxc_bridge.h            # C bridge header (165 function declarations)
-├── dxc_bridge.c            # C bridge implementation (vtable dispatch + GUID resolvers)
-├── src/
-│   └── dxc_safe.xi         # Module xiom.dxc.safe — 12 struct-based safe resource types
-├── examples/
-│   └── demo_dxc.xi         # Module xiom.dxc.demo — compile-time demo
-└── AUDIT.md                # This file
+|-- package.xi              # Package manifest
+|-- dxc.xi                  # Module xiom.dxc -- 165 extern C declarations + procedural wrappers
+|-- dxc_bridge.h            # C bridge header (165 function declarations)
+|-- dxc_bridge.c            # C bridge implementation (vtable dispatch + GUID resolvers)
+|-- src/
+|   `-- dxc_safe.xi         # Module xiom.dxc.safe -- 12 struct-based safe resource types
+|-- examples/
+|   `-- demo_dxc.xi         # Module xiom.dxc.demo -- compile-time demo
+`-- AUDIT.md                # This file
 ```
 
-## FFI Binding Coverage — 100% API Surface
+## FFI Binding Coverage -- 100% API Surface
 
-### dxc.xi — Module `xiom.dxc`
+### dxc.xi -- Module `xiom.dxc`
 
 **Extern "C" declarations:** 165 total
 
@@ -188,7 +188,7 @@ packages/xiom-dxc/
 | IDxcPdbUtils2 | 3-27 | 25 | Load, GetSource*, GetFlag*, GetArg*, GetTargetProfile, GetHash, GetName, GetVersionInfo, IsFullPDB, IsPDBRef, etc. |
 | IDxcLinker | 3-4 | 2 | RegisterLibrary, Link |
 
-### dxc_safe.xi — Module `xiom.dxc.safe`
+### dxc_safe.xi -- Module `xiom.dxc.safe`
 
 **12 struct-based safe resource types** with 70+ methods:
 
@@ -207,7 +207,7 @@ packages/xiom-dxc/
 | DxcOptimizer | create, destroy | get_available_pass_count, get_available_pass, run_optimizer | ensures: handle != 0 |
 | DxcPdbUtils | create, destroy | load, get_source_count, get_source, get_source_name, get_flag_count, get_flag, get_arg_count, get_arg, get_hash, get_name, is_full_pdb, is_pdb_ref | ensures: handle != 0 |
 
-**High-level context:** `DxcContext` — lifecycle manager with init/destroy/create_compiler/create_utils.
+**High-level context:** `DxcContext` -- lifecycle manager with init/destroy/create_compiler/create_utils.
 
 **Error type:** `DxcError` with `code: Int32` field and `dxc_error_to_string()` converter.
 
@@ -256,18 +256,18 @@ xiom --diagnostics=json dxc.xi src/dxc_safe.xi examples/demo_dxc.xi
 ```
 1. C++ bridge compilation
    clang++ -c dxc_bridge.c -I"$VULKAN_SDK/Include/dxc" -o dxc_bridge.o
-   → dxc_bridge.o (165 function symbols, resolves CLSID/IID + COM dispatch)
+   -> dxc_bridge.o (165 function symbols, resolves CLSID/IID + COM dispatch)
 
 2. XIOM compilation + link
    xiom dxc.xi src/dxc_safe.xi examples/demo_dxc.xi
-   → links dxc_bridge.o + dxcompiler.lib/libdxcompiler.so
-   → final executable
+   -> links dxc_bridge.o + dxcompiler.lib/libdxcompiler.so
+   -> final executable
 
 3. Runtime
    dxcompiler.dll / libdxcompiler.so must be in PATH/LD_LIBRARY_PATH
 ```
 
-## Compile Status — v0.46.0 (2026-07-17)
+## Compile Status -- v0.46.0 (2026-07-17)
 
 All three files compile together with xiom v0.46.0: **`{"status":"ok"}`**
 
@@ -300,9 +300,9 @@ All three files compile together with xiom v0.46.0: **`{"status":"ok"}`**
 
 ## Known Limitations
 
-- Requires C++ bridge compilation (clang++) — the bridge must be compiled as C++ because DXC's `__uuidof` operator and GUID/IID resolution require the C++ type system
-- dxcompiler.dll required at runtime — compile-time demos cannot create real compiler instances
-- COM interface reference counting is manual — callers must manage AddRef/Release via `.destroy()` or `release()`
+- Requires C++ bridge compilation (clang++) -- the bridge must be compiled as C++ because DXC's `__uuidof` operator and GUID/IID resolution require the C++ type system
+- dxcompiler.dll required at runtime -- compile-time demos cannot create real compiler instances
+- COM interface reference counting is manual -- callers must manage AddRef/Release via `.destroy()` or `release()`
 - No automatic lifetime management (no RAII equivalent in XIOM)
-- Method calls on match-bound pattern variables fail (G006) — use procedural API or direct field access
-- VTable indices hardcoded — changes to DXC interface layouts require C bridge update
+- Method calls on match-bound pattern variables fail (G006) -- use procedural API or direct field access
+- VTable indices hardcoded -- changes to DXC interface layouts require C bridge update

@@ -7,25 +7,25 @@ Protocol Buffers serialization bindings for XIOM. Provides proto3-compatible sch
 
 ### Layers
 ```
-┌──────────────────────────────────────────────────┐
-│  src/schema.xi   (Proto3 types)                  │
-│  ProtoType, ProtoField, ProtoMessage             │
-├──────────────────────────────────────────────────┤
-│  protobuf.xi     (Pure-XIOM Wire Primitives)     │
-│  varint, zigzag, wire_tag, write_field_*,        │
-│  read_field_*                                     │
-├──────────────────────────────────────────────────┤
-│  protobuf.xi     (Runtime FFI)                   │
-│  encode, decode, ProtoValue, extern "C" block    │
-├──────────────────────────────────────────────────┤
-│  protobuf.xiom-bind (C ABI)                      │
-│  protobuf_c_message_serialize/parse              │
-└──────────────────────────────────────────────────┘
++--------------------------------------------------+
+|  src/schema.xi   (Proto3 types)                  |
+|  ProtoType, ProtoField, ProtoMessage             |
+|--------------------------------------------------|
+|  protobuf.xi     (Pure-XIOM Wire Primitives)     |
+|  varint, zigzag, wire_tag, write_field_*,        |
+|  read_field_*                                     |
+|--------------------------------------------------|
+|  protobuf.xi     (Runtime FFI)                   |
+|  encode, decode, ProtoValue, extern "C" block    |
+|--------------------------------------------------|
+|  protobuf.xiom-bind (C ABI)                      |
+|  protobuf_c_message_serialize/parse              |
+`--------------------------------------------------+
 ```
 
 ### Design Decisions
-- **Schema types** (`ProtoType`, `ProtoField`, `ProtoMessage`) are pure XIOM — they describe the proto3 schema without runtime dependencies.
-- **Wire primitives** (varint, zigzag, wire format field write/read) are pure XIOM — no FFI dependency, usable without libprotobuf.
+- **Schema types** (`ProtoType`, `ProtoField`, `ProtoMessage`) are pure XIOM -- they describe the proto3 schema without runtime dependencies.
+- **Wire primitives** (varint, zigzag, wire format field write/read) are pure XIOM -- no FFI dependency, usable without libprotobuf.
 - **Runtime serialization** (`encode`, `decode`) delegates to the C library for wire-format compliance at the message level.
 - `ProtoValue` is an algebraic type covering all proto3 wire types: varint, fixed64, length-delimited, fixed32.
 
@@ -92,28 +92,28 @@ pub type ProtoMessage = { fields: Map[Int, ProtoValue]; } derive[Clone]
 
 ## API Surface
 
-### Wire Primitives — Varint (protobuf.xi)
+### Wire Primitives -- Varint (protobuf.xi)
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `varint_encode` | `(value: Int) -> Vec[UInt8]` | Encode unsigned integer as base-128 varint |
 | `varint_decode` | `(buf: &Vec[UInt8], pos: Int) -> Result[(Int, Int), Str]` | Decode varint, returns (value, bytes_consumed) |
 
-### Wire Primitives — ZigZag (protobuf.xi)
+### Wire Primitives -- ZigZag (protobuf.xi)
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `zigzag_encode` | `(signed: Int) -> Int` | ZigZag encode signed→unsigned |
-| `zigzag_decode` | `(encoded: Int) -> Int` | ZigZag decode unsigned→signed |
+| `zigzag_encode` | `(signed: Int) -> Int` | ZigZag encode signed->unsigned |
+| `zigzag_decode` | `(encoded: Int) -> Int` | ZigZag decode unsigned->signed |
 
-### Wire Primitives — Wire Tags (protobuf.xi)
+### Wire Primitives -- Wire Tags (protobuf.xi)
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `make_wire_tag` | `(field_number: Int, wire_type: WireType) -> Int` | Build tag: `(fn << 3) \| wt` |
 | `parse_wire_tag` | `(tag: Int) -> (Int, WireType)` | Extract field_number and wire_type |
-| `wire_type_to_int` | `(wt: WireType) -> Int` | WireType enum → wire type value |
-| `int_to_wire_type` | `(raw: Int) -> WireType` | Wire type value → WireType enum |
+| `wire_type_to_int` | `(wt: WireType) -> Int` | WireType enum -> wire type value |
+| `int_to_wire_type` | `(raw: Int) -> WireType` | Wire type value -> WireType enum |
 | `wire_type_name` | `(wt: WireType) -> Str` | Human-readable wire type name |
 
-### Wire Primitives — Field Writers (protobuf.xi)
+### Wire Primitives -- Field Writers (protobuf.xi)
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `write_field_varint` | `(buf: &mut Vec[UInt8], fn: Int, value: Int)` | Write tag + varint value |
@@ -123,7 +123,7 @@ pub type ProtoMessage = { fields: Map[Int, ProtoValue]; } derive[Clone]
 | `write_field_length_delimited` | `(buf: &mut Vec[UInt8], fn: Int, data: &Vec[UInt8])` | Write tag + length + data |
 | `write_field_bool` | `(buf: &mut Vec[UInt8], fn: Int, value: Bool)` | Write tag + varint 0/1 |
 
-### Wire Primitives — Field Readers (protobuf.xi)
+### Wire Primitives -- Field Readers (protobuf.xi)
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `read_field_tag` | `(buf: &Vec[UInt8], pos: Int) -> Result[(Int, WireType, Int), Str]` | Read field header: (fn, wt, next_pos) |
@@ -171,8 +171,8 @@ emit value & 0x7F
 ## ZigZag Encoding Specification
 
 Signed integers are mapped to unsigned integers for efficient varint encoding:
-- Positive n → 2n
-- Negative n → 2|n| - 1
+- Positive n -> 2n
+- Negative n -> 2|n| - 1
 
 | Signed | Unsigned |
 |--------|----------|
@@ -190,7 +190,7 @@ Signed integers are mapped to unsigned integers for efficient varint encoding:
 tag = (field_number << 3) | wire_type
 ```
 
-- Bits 0–2: wire type (3 bits)
+- Bits 0-2: wire type (3 bits)
 - Bits 3+: field number (shifted left by 3)
 
 ### Valid Wire Types
@@ -214,7 +214,7 @@ tag = (field_number << 3) | wire_type
 8. Duplicate field numbers within a message are rejected at schema build time.
 
 ## External Dependencies
-- **Runtime:** libprotobuf-c — optional; core wire primitives are pure-XIOM
+- **Runtime:** libprotobuf-c -- optional; core wire primitives are pure-XIOM
 - **Install:** `apt install libprotobuf-c-dev` (Linux), `brew install protobuf-c` (macOS), vcpkg (Windows)
 - **Link flags:** `-l protobuf-c`
 - **Compatibility:** protobuf >= 3.0 (proto3 syntax)
@@ -228,6 +228,6 @@ tag = (field_number << 3) | wire_type
 6. Fixed-size readers return `Err(description)` when buffer is too short.
 
 ## Test Coverage
-- `tests/test_conformance.xi` — 56 tests, 18 sections
-- `tests/test_protobuf.xi` — 3 integration tests (version, encode/decode roundtrip)
+- `tests/test_conformance.xi` -- 56 tests, 18 sections
+- `tests/test_protobuf.xi` -- 3 integration tests (version, encode/decode roundtrip)
 - Covers: varint encode/decode/roundtrip, zigzag encode/decode/roundtrip, wire tag construction/parsing, all 4 wire type field writers/readers, bool fields, sint fields, multi-field buffers, error conditions (OOB, truncated), API presence for FFI stubs

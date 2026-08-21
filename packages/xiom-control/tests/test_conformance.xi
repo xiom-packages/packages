@@ -1,7 +1,7 @@
-// XIOM — xiom-control Conformance Tests
+// XIOM -- xiom-control Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Tests: LowPassFilter, MovingAverage, KalmanFilter1D, PIDController,
-//        Trajectory/Waypoint, StateMachine — all 24 public functions
+//        Trajectory/Waypoint, StateMachine -- all 24 public functions
 module control_tests
 use xiom.io;
 use xiom.test;
@@ -40,9 +40,9 @@ fn report(passed: Bool, name: Str) -> Int {
   io.println("  [FAIL] " + name); return 1;
 }
 
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 // LowPassFilter tests
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 fn test_lpf_new_valid() -> TestResult {
   var f = lpf_new(10.0, 100.0);
@@ -73,9 +73,9 @@ fn test_lpf_reset() -> TestResult {
   return assert(pass, "filter: lpf_reset clears output and initialized flag");
 }
 
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 // MovingAverage tests
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 fn test_ma_new_valid() -> TestResult {
   var ma = ma_new(5);
@@ -98,9 +98,9 @@ fn test_ma_compute_sliding() -> TestResult {
   return assert(float_eq(out, 6.0), "filter: ma_compute sliding (10+2)/2 = 6.0");
 }
 
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 // KalmanFilter1D tests
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 fn test_kalman_new_valid() -> TestResult {
   var kf = kalman_new(0.01, 0.1);
@@ -119,9 +119,9 @@ fn test_kalman_compute_filtering() -> TestResult {
   return assert(ok_init && converging, "filter: kalman_compute converges toward measurements");
 }
 
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 // PIDController tests
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 fn test_pid_new_valid() -> TestResult {
   var ctrl = pid_new(1.0, 0.1, 0.05);
@@ -191,9 +191,9 @@ fn test_pid_get_error() -> TestResult {
     "pid: pid_get_error setpoint=10, last_meas=7 => 7.0");
 }
 
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 // Trajectory / Waypoint tests
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 fn test_trajectory_new_empty() -> TestResult {
   var traj = trajectory_new();
@@ -243,9 +243,9 @@ fn test_trajectory_interpolate_boundary() -> TestResult {
     "trajectory: interpolate clamps before-first and after-last waypoint");
 }
 
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 // StateMachine tests
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 fn test_sm_new_empty() -> TestResult {
   var sm = sm_new();
@@ -292,9 +292,9 @@ fn test_sm_transition_invalid() -> TestResult {
     "statemachine: sm_transition invalid condition rejected, current stays 0");
 }
 
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 // Main
-// ════════════════════════════════════════════════════════════════
+// ================================================================
 
 fn main() -> Int {
   io.println("=== XIOM Control Conformance Tests ===");

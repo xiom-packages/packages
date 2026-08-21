@@ -1,6 +1,6 @@
 # xiom-gpio
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** General-purpose digital pin control (direction, level, pull resistors) for embedded platforms.
 > **Deps:** stdlib; may wrap C (FFI).
 

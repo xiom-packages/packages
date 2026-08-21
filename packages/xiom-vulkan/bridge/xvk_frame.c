@@ -30,7 +30,7 @@ int32_t xvk_begin_frame(int64_t app_h)
                                           UINT64_MAX, avail,
                                           VK_NULL_HANDLE, &img_idx);
     if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_ERROR_SURFACE_LOST_KHR) {
-        /* Swapchain/surface unusable — recreate */
+        /* Swapchain/surface unusable -- recreate */
         recreate_swapchain(a);
         a->resized = 1;
         return 0;
@@ -138,7 +138,7 @@ void xvk_end_frame(int64_t app_h)
 
     VkResult res = vkQueuePresentKHR(a->present_queue, &pi);
     if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_ERROR_SURFACE_LOST_KHR) {
-        /* Swapchain/surface unusable — recreate immediately */
+        /* Swapchain/surface unusable -- recreate immediately */
         recreate_swapchain(a);
         a->resized = 1;
     } else if (res == VK_SUBOPTIMAL_KHR) {

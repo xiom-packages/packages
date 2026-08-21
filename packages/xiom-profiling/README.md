@@ -1,6 +1,6 @@
 # xiom-profiling
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** CPU, memory, and wall-clock profiling utilities.
 > **Deps:** stdlib; may wrap C (FFI).
 

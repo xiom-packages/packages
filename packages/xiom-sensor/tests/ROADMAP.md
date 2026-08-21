@@ -14,7 +14,7 @@
 ### Public API Summary
 
 **GPS** (`xiom.sensor.gps`)
-- `GPSFix`, `GeoPoint` — data types
+- `GPSFix`, `GeoPoint` -- data types
 - `gps_is_valid(fix: &GPSFix) -> Bool`
 - `gps_distance_m(a: &GeoPoint, b: &GeoPoint) -> Float64`
 - `gps_bearing_deg(a: &GeoPoint, b: &GeoPoint) -> Float64`
@@ -23,7 +23,7 @@
 - `utm_to_gps(easting: Float64, northing: Float64, zone: Int, southern: Bool) -> (Float64, Float64)` (requires: zone in [1,60])
 
 **IMU** (`xiom.sensor.imu`)
-- `IMUReading`, `Quaternion`, `EulerAngles` — data types
+- `IMUReading`, `Quaternion`, `EulerAngles` -- data types
 - `imu_reading_new() -> IMUReading`
 - `quat_identity() -> Quaternion`
 - `quat_normalize(q: &Quaternion) -> Quaternion`
@@ -36,14 +36,14 @@
 - `imu_compute_orientation(reading: &IMUReading) -> Quaternion`
 
 **Fusion** (`xiom.sensor.fusion`)
-- `FusedPose` — data type
+- `FusedPose` -- data type
 - `fusion_complementary(imu, gps, alpha) -> FusedPose` (requires: alpha in [0,1])
 - `fusion_weighted(poses: &Vec[FusedPose]) -> FusedPose`
 - `fusion_predict(pose, velocity, heading, dt) -> FusedPose` (requires: dt >= 0.0)
 - `confidence_from_hdop(hdop: Float64) -> Float64` (requires: hdop >= 0.0)
 
 **Calibration** (`xiom.sensor.calibration`)
-- `CalibrationData` — data type
+- `CalibrationData` -- data type
 - `calibration_identity() -> CalibrationData`
 - `calibration_compute_offset(readings: &Vec[Float64]) -> Float64`
 - `calibration_apply(value, cal, axis) -> Float64` (requires: axis in [0,2])
@@ -62,7 +62,7 @@
 
 ### Test Suite
 
-**File:** `tests/test_conformance.xi` — 36 tests
+**File:** `tests/test_conformance.xi` -- 36 tests
 
 | Module | Tests | Coverage |
 |--------|-------|----------|
@@ -75,19 +75,19 @@ Tests compile to IR. Runtime execution is blocked by Vec<T> generic type lowerin
 
 ## Near-Term (v0.2.0)
 
-### Priority 1 — AHRS/Madgwick Filter
+### Priority 1 -- AHRS/Madgwick Filter
 
 - [ ] Implement Madgwick AHRS algorithm for 9-DOF IMU fusion
 - [ ] Add gyroscope integration (dead reckoning between GPS fixes)
 - [ ] Quaternion SLERP for pose interpolation
 
-### Priority 2 — Extended Kalman Filter
+### Priority 2 -- Extended Kalman Filter
 
 - [ ] Add `src/ekf.xi` with EKF state estimation
 - [ ] Sensor covariance matrices
 - [ ] GPS+IMU tight coupling
 
-### Priority 3 — Calibration Matrix
+### Priority 3 -- Calibration Matrix
 
 - [ ] Full 3x3 calibration matrix (cross-axis sensitivity)
 - [ ] Temperature compensation curves

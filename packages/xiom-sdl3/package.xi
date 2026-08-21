@@ -1,4 +1,4 @@
-// XIOM — SDL3 Bindings Package Manifest
+// XIOM -- SDL3 Bindings Package Manifest
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 

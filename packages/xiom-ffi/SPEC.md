@@ -1,24 +1,24 @@
-# xiom.ffi — SPEC
+# xiom.ffi -- SPEC
 
 **Phase**: Foundation (stdlib) | **Priority**: CRITICAL
-**Status**: PRODUCTION — v0.3.0, 30 public functions, verified with v0.49.7
+**Status**: PRODUCTION -- v0.3.0, 30 public functions, verified with v0.49.7
 **Location**: `stdlib/xiom/ffi.xi` (280 lines)
 
 ## What it is
 The foundational FFI module for all XIOM C-binding packages. Provides:
 - Raw C interop (malloc, free, memcpy) via `extern "C"`
-- SafePtr — owned pointer with bounds tracking
-- FFIBuffer — growable byte buffer with capacity guard
-- FFIError — C error code translation (negative/null/nonzero conventions)
-- Struct marshalling — byte-offset write primitives (write_u32_at, write_u64_at, write_f32_at, write_str_at)
-- Compile-time utilities — size_of[T], align_of[T], extern_c
+- SafePtr -- owned pointer with bounds tracking
+- FFIBuffer -- growable byte buffer with capacity guard
+- FFIError -- C error code translation (negative/null/nonzero conventions)
+- Struct marshalling -- byte-offset write primitives (write_u32_at, write_u64_at, write_f32_at, write_str_at)
+- Compile-time utilities -- size_of[T], align_of[T], extern_c
 
 ## Dependencies
 
 | What | How | Size |
 |------|-----|------|
-| libc | System-installed (msvcrt / glibc) | — |
-| libm | System-installed (optional) | — |
+| libc | System-installed (msvcrt / glibc) | -- |
+| libm | System-installed (optional) | -- |
 
 ## Bundling strategy
 **Never bundled.** Part of the XIOM standard library. Always available via `use xiom.ffi;`.
@@ -26,20 +26,20 @@ The foundational FFI module for all XIOM C-binding packages. Provides:
 ## Architecture
 ```
 stdlib/xiom/
-├── ffi.xi              # 30 public functions, 3 types
-│   ├── Raw C interop   # alloc, free, memcpy (extern "C")
-│   ├── SafePtr         # Owned pointer with bounds
-│   ├── FFIBuffer       # Growable byte buffer
-│   ├── FFIError        # C error code translation
-│   └── Marshal         # byte-offset write primitives
-│
+|-- ffi.xi              # 30 public functions, 3 types
+|   |-- Raw C interop   # alloc, free, memcpy (extern "C")
+|   |-- SafePtr         # Owned pointer with bounds
+|   |-- FFIBuffer       # Growable byte buffer
+|   |-- FFIError        # C error code translation
+|   `-- Marshal         # byte-offset write primitives
+|
 ecosystem/runtime/
-├── ffi_bridge.h        # XiomVec, bridge signatures
-├── ffi_bridge.c        # C runtime bridge
-└── README.md           # Build instructions
-│
+|-- ffi_bridge.h        # XiomVec, bridge signatures
+|-- ffi_bridge.c        # C runtime bridge
+`-- README.md           # Build instructions
+|
 tests/stdlib/
-└── ffi_tests.xi        # Conformance tests
+`-- ffi_tests.xi        # Conformance tests
 ```
 
 ## API
@@ -105,8 +105,8 @@ pub fn extern_c(name: Str) -> Int
 ```
 
 ## Verified
-- alloc/free/memcpy round-trip: ✅ (memory_tests.xi)
-- FFIError translation: ✅
-- SafePtr lifecycle (alloc/from_raw/free): ✅
-- FFIBuffer write/read/clear: ✅
+- alloc/free/memcpy round-trip: [OK] (memory_tests.xi)
+- FFIError translation: [OK]
+- SafePtr lifecycle (alloc/from_raw/free): [OK]
+- FFIBuffer write/read/clear: [OK]
 - Used by: xiom-vulkan, xiom-imgui, xiom-glfw (all production)

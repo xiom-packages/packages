@@ -1,4 +1,4 @@
-// XIOM — ImGui Conformance Tests
+// XIOM -- ImGui Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Comprehensive safe wrapper contract and return-type conformance suite.
 // Covers: context lifecycle, window state tracking, widgets, layout,
@@ -7,9 +7,9 @@ module imgui_conformance
 use xiom.test;
 use xiom.imgui;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Context Lifecycle
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn test_create_context_null() -> TestResult {
   let ok = create_context(0);
@@ -27,9 +27,9 @@ fn test_double_destroy_context_idempotent() -> TestResult {
   return assert(true, "context: double destroy_context is idempotent");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Window Begin/End State Tracking
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn test_begin_window_no_context() -> TestResult {
   let ok = begin_window("Test", 0 as Int32);
@@ -37,7 +37,7 @@ fn test_begin_window_no_context() -> TestResult {
 }
 
 fn test_window_begin_state_guard() -> TestResult {
-  // Without context, begin_window returns false — g_win_open stays 0.
+  // Without context, begin_window returns false -- g_win_open stays 0.
   // Contract requires g_win_open == 0 before each begin_window call.
   // A failed begin must NOT lock the guard. The second call proves this.
   let ok1 = begin_window("A", 0 as Int32);
@@ -55,9 +55,9 @@ fn test_set_next_window_size() -> TestResult {
   return assert(true, "window: set_next_window_size runs without crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Widget Functions
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn test_button_no_context() -> TestResult {
   let ok = button("Test");
@@ -140,9 +140,9 @@ fn test_color_edit3_no_crash() -> TestResult {
   return assert(true, "widget: color_edit3 runs without crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Layout Functions
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn test_separator_no_crash() -> TestResult {
   separator();
@@ -169,9 +169,9 @@ fn test_spacing_no_crash() -> TestResult {
   return assert(true, "layout: spacing runs without crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Tree / Tab / Popup Begin/End Pairing
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn test_tree_node_no_context() -> TestResult {
   let ok = tree_node("Test");
@@ -220,9 +220,9 @@ fn test_close_current_popup_no_crash() -> TestResult {
   return assert(true, "popup: close_current_popup runs without crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Menu Bar Lifecycle
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn test_main_menu_bar_no_context() -> TestResult {
   let ok = begin_main_menu_bar();
@@ -257,9 +257,9 @@ fn test_menu_item_shortcut_no_context() -> TestResult {
   return assert(!ok, "menu: menu_item_shortcut returns false without context");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Styling Functions
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn test_style_dark_no_crash() -> TestResult {
   style_dark();
@@ -289,9 +289,9 @@ fn test_push_pop_style_color() -> TestResult {
   return assert(true, "style: push/pop style_color pair runs without crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Utility
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn test_get_framerate_non_negative() -> TestResult {
   let fps = get_framerate();
@@ -317,9 +317,9 @@ fn test_get_frame_count_is_int32() -> TestResult {
   return assert(ok, "util: get_frame_count returns valid Int32");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Dispatcher
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn main() -> Int {
   var tests = [

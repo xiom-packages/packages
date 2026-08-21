@@ -1,6 +1,6 @@
 # xiom-uart
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** UART serial communication with baud-rate, framing, and buffered I/O.
 > **Deps:** stdlib; may wrap C (FFI).
 

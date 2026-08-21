@@ -1,6 +1,6 @@
 # xiom-ansible
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Agentless configuration management (playbooks, inventory, modules, ad-hoc tasks).
 > **Deps:** stdlib; may wrap C (FFI).
 

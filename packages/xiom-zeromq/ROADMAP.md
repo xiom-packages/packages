@@ -1,55 +1,55 @@
-# xiom.zeromq — Production Roadmap
+# xiom.zeromq -- Production Roadmap
 
 **Version**: v0.1.0 | **Compiler**: xiom v0.46.0+ | **Last updated**: 2026-07-21
 
-## Current Rating: 7/10 ⚙️ PRODUCTION-READY (FFI stub)
+## Current Rating: 7/10 [SETTINGS] PRODUCTION-READY (FFI stub)
 
 | Criterion | Status |
 |-----------|--------|
-| ✅ Extern "C" declarations | 12 FFI functions declared: zmq_ctx_new, zmq_ctx_destroy, zmq_socket, zmq_close, zmq_bind, zmq_connect, zmq_send, zmq_recv, zmq_setsockopt, zmq_getsockopt, zmq_poll, zmq_version |
-| ✅ Types | ZmqContext, ZmqSocket (Int aliases) |
-| ✅ Socket type constants | 12 types: PAIR(0), PUB(1), SUB(2), REQ(3), REP(4), DEALER(5), ROUTER(6), PULL(7), PUSH(8), XPUB(9), XSUB(10), STREAM(11) |
-| ✅ Flag constants | ZMQ_DONTWAIT(1), ZMQ_SNDMORE(2) |
-| ✅ Socket option constants | ZMQ_SUBSCRIBE(6), ZMQ_UNSUBSCRIBE(7), ZMQ_LINGER(17), ZMQ_RCVTIMEO(27), ZMQ_SNDTIMEO(28) |
-| ✅ Safe wrappers | 12 pub fn: context_new, context_destroy, socket, close, bind, connect, send, recv, poll, setsockopt, getsockopt, version |
-| ✅ Design-by-contract | 3 requires contracts: bind(addr != 0), send(len > 0), recv(len > 0) |
-| ✅ Tests | test_conformance.xi — 58 tests, 15 sections |
-| ✅ SPEC.md | Full API surface documented |
-| ✅ ROADMAP.md | This file |
-| ⚠️ Vec[UInt8] marshaling | Blocked on compiler *UInt8 dereference support |
-| ⚠️ C bridge linking | Requires system-installed libzmq at link time |
-| ⚠️ Str-to-CStr conversion | Requires xiom.ffi CStr bridge for endpoint addresses |
+| [OK] Extern "C" declarations | 12 FFI functions declared: zmq_ctx_new, zmq_ctx_destroy, zmq_socket, zmq_close, zmq_bind, zmq_connect, zmq_send, zmq_recv, zmq_setsockopt, zmq_getsockopt, zmq_poll, zmq_version |
+| [OK] Types | ZmqContext, ZmqSocket (Int aliases) |
+| [OK] Socket type constants | 12 types: PAIR(0), PUB(1), SUB(2), REQ(3), REP(4), DEALER(5), ROUTER(6), PULL(7), PUSH(8), XPUB(9), XSUB(10), STREAM(11) |
+| [OK] Flag constants | ZMQ_DONTWAIT(1), ZMQ_SNDMORE(2) |
+| [OK] Socket option constants | ZMQ_SUBSCRIBE(6), ZMQ_UNSUBSCRIBE(7), ZMQ_LINGER(17), ZMQ_RCVTIMEO(27), ZMQ_SNDTIMEO(28) |
+| [OK] Safe wrappers | 12 pub fn: context_new, context_destroy, socket, close, bind, connect, send, recv, poll, setsockopt, getsockopt, version |
+| [OK] Design-by-contract | 3 requires contracts: bind(addr != 0), send(len > 0), recv(len > 0) |
+| [OK] Tests | test_conformance.xi -- 58 tests, 15 sections |
+| [OK] SPEC.md | Full API surface documented |
+| [OK] ROADMAP.md | This file |
+| [WARN] Vec[UInt8] marshaling | Blocked on compiler *UInt8 dereference support |
+| [WARN] C bridge linking | Requires system-installed libzmq at link time |
+| [WARN] Str-to-CStr conversion | Requires xiom.ffi CStr bridge for endpoint addresses |
 
 ## Dependencies
 
 - **System**: libzmq (`winget install zeromq`, `apt install libzmq3-dev`, `brew install zeromq`)
-- **XIOM**: xiom.ffi (for CStr bridge and Vec[UInt8] ↔ raw pointer, future)
+- **XIOM**: xiom.ffi (for CStr bridge and Vec[UInt8] <-> raw pointer, future)
 
 ## Implementation History
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| **P1: Core FFI** | ✅ Done | extern "C" declarations for 12 ZeroMQ functions |
-| **P1: Types & Constants** | ✅ Done | ZmqContext, ZmqSocket, 12 socket types, 2 send/recv flags, 5 socket options |
-| **P1: Safe Wrappers** | ✅ Done | 12 safe functions with null checks, error handling, and contracts |
-| **P1: Tests** | ✅ Done | 58 conformance tests covering constants, FFI stubs, API presence, contracts, types |
+| **P1: Core FFI** | [OK] Done | extern "C" declarations for 12 ZeroMQ functions |
+| **P1: Types & Constants** | [OK] Done | ZmqContext, ZmqSocket, 12 socket types, 2 send/recv flags, 5 socket options |
+| **P1: Safe Wrappers** | [OK] Done | 12 safe functions with null checks, error handling, and contracts |
+| **P1: Tests** | [OK] Done | 58 conformance tests covering constants, FFI stubs, API presence, contracts, types |
 
 ## API Surface
 
 | Function | Signature | Contracts | Status |
 |----------|-----------|-----------|--------|
-| `context_new` | `() -> Result[ZmqContext, Str]` | — | ✅ |
-| `context_destroy` | `(ctx: ZmqContext) -> Result[Int, Str]` | — | ✅ |
-| `socket` | `(ctx: ZmqContext, type_: Int) -> Result[ZmqSocket, Str]` | — | ✅ |
-| `close` | `(s: ZmqSocket) -> Result[Int, Str]` | — | ✅ |
-| `bind` | `(s: ZmqSocket, addr: Int) -> Result[Int, Str]` | requires addr != 0 | ✅ |
-| `connect` | `(s: ZmqSocket, addr: Int) -> Result[Int, Str]` | — | ✅ |
-| `send` | `(s: ZmqSocket, buf: Int, len: Int, flags: Int) -> Result[Int, Str]` | requires len > 0 | ✅ |
-| `recv` | `(s: ZmqSocket, buf: Int, len: Int, flags: Int) -> Result[Int, Str]` | requires len > 0 | ✅ |
-| `poll` | `(items: Int, nitems: Int, timeout: Int) -> Result[Int, Str]` | — | ✅ |
-| `setsockopt` | `(s: ZmqSocket, option_name: Int, option_value: Int, option_len: Int) -> Result[Int, Str]` | — | ✅ |
-| `getsockopt` | `(s: ZmqSocket, option_name: Int, option_value: Int, option_len: Int) -> Result[Int, Str]` | — | ✅ |
-| `version` | `(major: Int, minor: Int, patch: Int) -> Result[Int, Str]` | — | ✅ |
+| `context_new` | `() -> Result[ZmqContext, Str]` | -- | [OK] |
+| `context_destroy` | `(ctx: ZmqContext) -> Result[Int, Str]` | -- | [OK] |
+| `socket` | `(ctx: ZmqContext, type_: Int) -> Result[ZmqSocket, Str]` | -- | [OK] |
+| `close` | `(s: ZmqSocket) -> Result[Int, Str]` | -- | [OK] |
+| `bind` | `(s: ZmqSocket, addr: Int) -> Result[Int, Str]` | requires addr != 0 | [OK] |
+| `connect` | `(s: ZmqSocket, addr: Int) -> Result[Int, Str]` | -- | [OK] |
+| `send` | `(s: ZmqSocket, buf: Int, len: Int, flags: Int) -> Result[Int, Str]` | requires len > 0 | [OK] |
+| `recv` | `(s: ZmqSocket, buf: Int, len: Int, flags: Int) -> Result[Int, Str]` | requires len > 0 | [OK] |
+| `poll` | `(items: Int, nitems: Int, timeout: Int) -> Result[Int, Str]` | -- | [OK] |
+| `setsockopt` | `(s: ZmqSocket, option_name: Int, option_value: Int, option_len: Int) -> Result[Int, Str]` | -- | [OK] |
+| `getsockopt` | `(s: ZmqSocket, option_name: Int, option_value: Int, option_len: Int) -> Result[Int, Str]` | -- | [OK] |
+| `version` | `(major: Int, minor: Int, patch: Int) -> Result[Int, Str]` | -- | [OK] |
 
 ## Extern "C" Surface
 
@@ -70,7 +70,7 @@
 
 ## Constants Surface
 
-### Socket Types (libzmq § zmq_socket(3))
+### Socket Types (libzmq S zmq_socket(3))
 
 | Constant | Value | Pattern |
 |----------|-------|---------|
@@ -109,7 +109,7 @@
 | Feature | Priority | Effort | Blocker |
 |---------|----------|--------|---------|
 | Str-to-CStr endpoint bridge | P0 | Day | xiom.ffi CStr support |
-| Vec[UInt8] ↔ raw pointer marshaling | P0 | Day | Compiler *UInt8 dereference |
+| Vec[UInt8] <-> raw pointer marshaling | P0 | Day | Compiler *UInt8 dereference |
 | Production send/recv with real buffers | P0 | Day | Vec[UInt8] marshaling |
 | ZMQ proxy (zmq_proxy) | P1 | Hour | FFI declaration only |
 | ZMQ curve security (zmq_curve_keypair) | P1 | Day | FFI + keypair struct |
@@ -120,7 +120,7 @@
 
 ## Known Limitations
 
-- **Raw pointer API** — All FFI functions use `Int` for pointers. Until `xiom.ffi` provides a CStr bridge, endpoint strings must be manually allocated as null-terminated byte arrays.
-- **No Vec[UInt8] bridge** — send/recv take raw `(buf: Int, len: Int)` pairs. Vec ↔ buffer marshaling requires compiler *UInt8 dereference support.
-- **No CStr endpoint utility** — bind/connect require pre-allocated C string pointers. A `make_endpoint()` helper that converts Str → CStr is planned for Phase 2.
-- **Stub behavior without libzmq** — All FFI calls return error codes when libzmq is not linked at link time. Tests verify error-path behavior.
+- **Raw pointer API** -- All FFI functions use `Int` for pointers. Until `xiom.ffi` provides a CStr bridge, endpoint strings must be manually allocated as null-terminated byte arrays.
+- **No Vec[UInt8] bridge** -- send/recv take raw `(buf: Int, len: Int)` pairs. Vec <-> buffer marshaling requires compiler *UInt8 dereference support.
+- **No CStr endpoint utility** -- bind/connect require pre-allocated C string pointers. A `make_endpoint()` helper that converts Str -> CStr is planned for Phase 2.
+- **Stub behavior without libzmq** -- All FFI calls return error codes when libzmq is not linked at link time. Tests verify error-path behavior.

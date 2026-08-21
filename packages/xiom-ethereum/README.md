@@ -1,6 +1,6 @@
 # xiom-ethereum
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Ethereum network and protocol bindings.
 > **Deps:** stdlib; may wrap C (FFI).
 

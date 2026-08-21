@@ -1,13 +1,13 @@
-// XIOM — SDL3 (Simple DirectMedia Layer 3) Production Bindings
+// XIOM -- SDL3 (Simple DirectMedia Layer 3) Production Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Low-level FFI declarations for SDL 3.4.8 — full API surface.
+// Low-level FFI declarations for SDL 3.4.8 -- full API surface.
 // SDL3 is a cross-platform development library for graphics, input, and audio.
 //
-// Types: all SDL handles/pointers map to Int. Uint32 → Int32, Uint64 → Int,
-// int → Int32, float → Float32, C bool → Int32 (0=false, non-zero=true),
-// Uint8 → Int32 (0-255), Sint16 → Int32, char* → Int.
+// Types: all SDL handles/pointers map to Int. Uint32 -> Int32, Uint64 -> Int,
+// int -> Int32, float -> Float32, C bool -> Int32 (0=false, non-zero=true),
+// Uint8 -> Int32 (0-255), Sint16 -> Int32, char* -> Int.
 //
 // Hex literals are supported by xiom v0.46.0+.
 // Naming follows the C API verbatim.
@@ -15,7 +15,7 @@
 module xiom.sdl3
 
 // =========================================================================
-// SDL Init Flags (SDL_InitFlags — Uint32)
+// SDL Init Flags (SDL_InitFlags -- Uint32)
 // =========================================================================
 
 pub const SDL_INIT_AUDIO: Int32    = 0x00000010 as Int32;
@@ -28,7 +28,7 @@ pub const SDL_INIT_SENSOR: Int32   = 0x00008000 as Int32;
 pub const SDL_INIT_CAMERA: Int32   = 0x00010000 as Int32;
 
 // =========================================================================
-// SDL Window Flags (SDL_WindowFlags — Uint64 → Int)
+// SDL Window Flags (SDL_WindowFlags -- Uint64 -> Int)
 // =========================================================================
 
 pub const SDL_WINDOW_FULLSCREEN: Int           = 0x0000000000000001;
@@ -723,7 +723,7 @@ extern "C" {
 }
 
 // =========================================================================
-// Safe wrapper functions — for direct procedural use
+// Safe wrapper functions -- for direct procedural use
 // =========================================================================
 
 pub fn init(flags: Int32) -> Bool
@@ -916,7 +916,7 @@ pub fn get_system_ram() -> Int {
 }
 
 // =========================================================================
-// Event type → human-readable string
+// Event type -> human-readable string
 // =========================================================================
 
 pub fn event_type_to_string(type_: Int32) -> Str {

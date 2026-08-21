@@ -1,4 +1,4 @@
-// XIOM — xiom-sqlite Conformance Tests
+// XIOM -- xiom-sqlite Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -21,9 +21,9 @@ use xiom.sqlite.schema;
 use xiom.sqlite.migration;
 use xiom.sqlite.connection;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Helpers
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; }
@@ -56,9 +56,9 @@ fn report(passed: Bool, name: Str) -> Int {
   return 1;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 1. Types: SqliteValue constructors + accessors
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_value_null() -> Int {
   let v = SqliteValue.null();
@@ -129,9 +129,9 @@ fn test_value_as_wrong_type() -> TestResult {
   return assert(false, "types: wrong type accessor returned Some");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 2. Types: SqliteRow add/get/count
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_row_add_get() -> Int {
   var row = SqliteRow.new();
@@ -180,9 +180,9 @@ fn test_row_out_of_bounds() -> TestResult {
   return assert(false, "types: out-of-bounds returned Some");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 3. Types: SqliteResult operations
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_result_add_rows() -> Int {
   var res = SqliteResult.new();
@@ -228,9 +228,9 @@ fn test_result_column_names() -> TestResult {
   return assert(false, "types: column_names failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 4. Query Builder: SELECT SQL generation
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_query_select_all() -> Int {
   var qb = QueryBuilder.select("users");
@@ -290,9 +290,9 @@ fn test_query_order_by_limit() -> TestResult {
   return assert(false, "query: order/limit SQL incorrect");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 5. Query Builder: INSERT/UPDATE/DELETE SQL generation
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_query_insert() -> Int {
   var cols = Vec[Str].new();
@@ -336,9 +336,9 @@ fn test_query_delete() -> TestResult {
   return assert(false, "query: delete SQL incorrect");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 6. Schema Builder: table DDL generation
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_schema_affinity_sql() -> Int {
   let int_aff = SqliteAffinity.IntegerAff;
@@ -401,9 +401,9 @@ fn test_schema_create_index() -> TestResult {
   return assert(false, "schema: index SQL incorrect");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 7. Migration Manager: sort, pending, status
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_migration_sort() -> Int {
   var mgr = MigrationManager.new();
@@ -457,7 +457,7 @@ fn run_migration_empty_up_down() -> Int {
   // Let's test empty up_sql
   var mgr2 = MigrationManager.new();
   MigrationManager.add(&mut mgr2, Migration.new(1, "bad", "", "DROP TABLE x"));
-  // Try to run up — should error on empty up_sql
+  // Try to run up -- should error on empty up_sql
   // But we can't test without a real connection
   // Just verify no crash on add
   return 0;
@@ -469,9 +469,9 @@ fn test_migration_empty_sql() -> TestResult {
   return assert(false, "migration: empty SQL crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 8. Connection: FFI stub error paths
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_connection_open_stub() -> Int {
   let conn = sqlite_open(":memory:");
@@ -557,9 +557,9 @@ fn test_connection_accessors() -> TestResult {
   return assert(false, "connection: accessors incorrect");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 9. Error handling
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_error_new() -> Int {
   let err = SqliteError.new(5, "busy");
@@ -574,9 +574,9 @@ fn test_error_new() -> TestResult {
   return assert(false, "error: SqliteError incorrect");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Main
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn main() -> Int {
   io.println("=== XIOM SQLite Conformance Tests ===");

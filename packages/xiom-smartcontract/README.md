@@ -1,6 +1,6 @@
 # xiom-smartcontract
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Smart contract bytecode and execution interface.
 > **Deps:** stdlib; may wrap C (FFI).
 

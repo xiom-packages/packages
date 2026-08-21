@@ -1,8 +1,8 @@
-// XIOM — OpenGL 4.6 Bindings
+// XIOM -- OpenGL 4.6 Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Pure SPEC package — all FFI calls return Err until the C bridge is linked.
+// Pure SPEC package -- all FFI calls return Err until the C bridge is linked.
 // Wraps OpenGL 4.6 Core Profile. Extension loader (glad) bundled at build time.
 // Depends on: xiom-glfw (window creation), glad (extension loader).
 //
@@ -12,7 +12,7 @@
 
 module xiom.opengl
 
-// ── Opaque handle types ────────────────────────────────────────────────────
+// -- Opaque handle types ----------------------------------------------------
 
 pub type GlShader = Int;
 pub type GlProgram = Int;
@@ -20,7 +20,7 @@ pub type GlBuffer = Int;
 pub type GlVao = Int;
 pub type GlTexture = Int;
 
-// ── GLenum Constants ───────────────────────────────────────────────────────
+// -- GLenum Constants -------------------------------------------------------
 
 // Shader types
 pub const GL_VERTEX_SHADER: Int = 35633;
@@ -141,15 +141,15 @@ pub const GL_UNSIGNED_INT_INDEX: Int = 5125;
 pub const GL_UNSIGNED_SHORT_INDEX: Int = 5123;
 pub const GL_UNSIGNED_BYTE_INDEX: Int = 5121;
 
-// ═══════════════════════════════════════════════════════════════════════════
-// extern "C" — Raw OpenGL 4.6 Core Profile Declarations (36 functions)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// extern "C" -- Raw OpenGL 4.6 Core Profile Declarations (36 functions)
+// ===========================================================================
 // These map 1:1 to the system OpenGL library via glad/gl3w loader.
 // Pointers are typed as Int for SPEC phase; cast to concrete types when
 // the C bridge is linked.
 
 extern "C" {
-  // ── Shader compilation ──────────────────────────────────────────────────
+  // -- Shader compilation --------------------------------------------------
   fn glCreateShader(shaderType: Int) -> Int;
   fn glShaderSource(shader: Int, count: Int, source: Int, length: Int);
   fn glCompileShader(shader: Int);
@@ -157,7 +157,7 @@ extern "C" {
   fn glGetShaderInfoLog(shader: Int, bufSize: Int, length: Int, infoLog: Int);
   fn glDeleteShader(shader: Int);
 
-  // ── Program linking ─────────────────────────────────────────────────────
+  // -- Program linking -----------------------------------------------------
   fn glCreateProgram() -> Int;
   fn glAttachShader(program: Int, shader: Int);
   fn glLinkProgram(program: Int);
@@ -166,51 +166,51 @@ extern "C" {
   fn glUseProgram(program: Int);
   fn glDeleteProgram(program: Int);
 
-  // ── Buffer objects ──────────────────────────────────────────────────────
+  // -- Buffer objects ------------------------------------------------------
   fn glGenBuffers(n: Int, buffers: Int);
   fn glBindBuffer(target: Int, buffer: Int);
   fn glBufferData(target: Int, size: Int, data: Int, usage: Int);
   fn glDeleteBuffers(n: Int, buffers: Int);
 
-  // ── Vertex array objects ────────────────────────────────────────────────
+  // -- Vertex array objects ------------------------------------------------
   fn glGenVertexArrays(n: Int, arrays: Int);
   fn glBindVertexArray(array: Int);
   fn glDeleteVertexArrays(n: Int, arrays: Int);
 
-  // ── Vertex attributes ───────────────────────────────────────────────────
+  // -- Vertex attributes ---------------------------------------------------
   fn glEnableVertexAttribArray(index: Int);
   fn glVertexAttribPointer(index: Int, size: Int, typ: Int, normalized: Int, stride: Int, pointer: Int);
   fn glDisableVertexAttribArray(index: Int);
 
-  // ── Drawing ─────────────────────────────────────────────────────────────
+  // -- Drawing -------------------------------------------------------------
   fn glDrawArrays(mode: Int, first: Int, count: Int);
   fn glDrawElements(mode: Int, count: Int, typ: Int, indices: Int);
   fn glClear(mask: Int);
   fn glClearColor(red: Float32, green: Float32, blue: Float32, alpha: Float32);
   fn glViewport(x: Int, y: Int, width: Int, height: Int);
 
-  // ── Textures ────────────────────────────────────────────────────────────
+  // -- Textures ------------------------------------------------------------
   fn glGenTextures(n: Int, textures: Int);
   fn glBindTexture(target: Int, texture: Int);
   fn glTexImage2D(target: Int, level: Int, internalformat: Int, width: Int, height: Int, border: Int, format: Int, typ: Int, pixels: Int);
   fn glTexParameteri(target: Int, pname: Int, param: Int);
   fn glDeleteTextures(n: Int, textures: Int);
 
-  // ── Uniforms ────────────────────────────────────────────────────────────
+  // -- Uniforms ------------------------------------------------------------
   fn glGetUniformLocation(program: Int, name: Int) -> Int;
   fn glUniform1i(location: Int, v0: Int);
   fn glUniform1f(location: Int, v0: Float32);
   fn glUniformMatrix4fv(location: Int, count: Int, transpose: Int, value: Int);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Shader
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn gl_create_shader(typ: Int) -> Result[GlShader, Str]
   requires: typ == GL_VERTEX_SHADER || typ == GL_FRAGMENT_SHADER || typ == GL_GEOMETRY_SHADER || typ == GL_COMPUTE_SHADER || typ == GL_TESS_CONTROL_SHADER || typ == GL_TESS_EVALUATION_SHADER
 {
-  return Err("gl_create_shader: C bridge not yet linked — xiom-opengl is in SPEC phase");
+  return Err("gl_create_shader: C bridge not yet linked -- xiom-opengl is in SPEC phase");
 }
 
 pub fn gl_shader_source(shader: GlShader, source: Str)
@@ -222,7 +222,7 @@ pub fn gl_shader_source(shader: GlShader, source: Str)
 pub fn gl_compile_shader(shader: GlShader) -> Result[Unit, Str]
   requires: shader != 0
 {
-  return Err("gl_compile_shader: C bridge not yet linked — xiom-opengl is in SPEC phase");
+  return Err("gl_compile_shader: C bridge not yet linked -- xiom-opengl is in SPEC phase");
 }
 
 pub fn gl_delete_shader(shader: GlShader)
@@ -230,13 +230,13 @@ pub fn gl_delete_shader(shader: GlShader)
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Program
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn gl_create_program() -> Result[GlProgram, Str]
 {
-  return Err("gl_create_program: C bridge not yet linked — xiom-opengl is in SPEC phase");
+  return Err("gl_create_program: C bridge not yet linked -- xiom-opengl is in SPEC phase");
 }
 
 pub fn gl_attach_shader(prog: GlProgram, shader: GlShader)
@@ -248,7 +248,7 @@ pub fn gl_attach_shader(prog: GlProgram, shader: GlShader)
 pub fn gl_link_program(prog: GlProgram) -> Result[Unit, Str]
   requires: prog != 0
 {
-  return Err("gl_link_program: C bridge not yet linked — xiom-opengl is in SPEC phase");
+  return Err("gl_link_program: C bridge not yet linked -- xiom-opengl is in SPEC phase");
 }
 
 pub fn gl_use_program(prog: GlProgram)
@@ -261,13 +261,13 @@ pub fn gl_delete_program(prog: GlProgram)
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Buffer
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn gl_gen_buffer() -> Result[GlBuffer, Str]
 {
-  return Err("gl_gen_buffer: C bridge not yet linked — xiom-opengl is in SPEC phase");
+  return Err("gl_gen_buffer: C bridge not yet linked -- xiom-opengl is in SPEC phase");
 }
 
 pub fn gl_bind_buffer(target: Int, buf: GlBuffer)
@@ -288,13 +288,13 @@ pub fn gl_delete_buffer(buf: GlBuffer)
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Vertex Array Object
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn gl_gen_vertex_array() -> Result[GlVao, Str]
 {
-  return Err("gl_gen_vertex_array: C bridge not yet linked — xiom-opengl is in SPEC phase");
+  return Err("gl_gen_vertex_array: C bridge not yet linked -- xiom-opengl is in SPEC phase");
 }
 
 pub fn gl_bind_vertex_array(vao: GlVao)
@@ -307,9 +307,9 @@ pub fn gl_delete_vertex_array(vao: GlVao)
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Vertex Attributes
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn gl_enable_vertex_attrib_array(index: Int)
   requires: index >= 0
@@ -334,9 +334,9 @@ pub fn gl_disable_vertex_attrib_array(index: Int)
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Drawing
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn gl_clear(r: Float32, g: Float32, b: Float32, a: Float32)
 {
@@ -376,13 +376,13 @@ pub fn gl_viewport(x: Int, y: Int, w: Int, h: Int)
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Textures
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn gl_gen_texture() -> Result[GlTexture, Str]
 {
-  return Err("gl_gen_texture: C bridge not yet linked — xiom-opengl is in SPEC phase");
+  return Err("gl_gen_texture: C bridge not yet linked -- xiom-opengl is in SPEC phase");
 }
 
 pub fn gl_bind_texture(target: Int, tex: GlTexture)
@@ -411,9 +411,9 @@ pub fn gl_delete_texture(tex: GlTexture)
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Uniforms
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn gl_get_uniform_location(prog: GlProgram, name: Str) -> Int
   requires: prog != 0
@@ -439,16 +439,16 @@ pub fn gl_uniform_matrix4fv(location: Int, count: Int, transpose: Bool, data: &V
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Context (bridge via glfw / WGL / GLX)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn gl_create_context(win: Int, major: Int, minor: Int) -> Result[Int, Str]
   requires: win != 0
   requires: major >= 1
   requires: minor >= 0
 {
-  return Err("gl_create_context: C bridge not yet linked — xiom-opengl is in SPEC phase");
+  return Err("gl_create_context: C bridge not yet linked -- xiom-opengl is in SPEC phase");
 }
 
 pub fn gl_make_current(ctx: Int)

@@ -1,4 +1,4 @@
-// XIOM — MiniAudio Demo: Sine Wave, Sweep, Waveform Types, Noise, Panning
+// XIOM -- MiniAudio Demo: Sine Wave, Sweep, Waveform Types, Noise, Panning
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 module xiom.miniaudio.demo

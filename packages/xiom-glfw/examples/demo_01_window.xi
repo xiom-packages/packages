@@ -1,5 +1,5 @@
 // ===========================================================================
-// XIOM GLFW SDK — Example 01: Window Lifecycle
+// XIOM GLFW SDK -- Example 01: Window Lifecycle
 // Shows: glfw_init, glfw_create_window, glfw_should_close, glfw_destroy_window
 // ===========================================================================
 
@@ -15,7 +15,7 @@ fn main() -> Int {
     return 1;
   }
 
-  let win = glfw_create_window("GLFW — Window Demo", 800, 600);
+  let win = glfw_create_window("GLFW -- Window Demo", 800, 600);
   match win {
     Err(e) => { io.println("ERROR: " + e); glfw_terminate(); return 1; }
     Ok(w) => {
@@ -29,7 +29,7 @@ fn main() -> Int {
         frames = frames + 1;
         if frames % 60 == 0 {
           let (fw, fh) = glfw_get_framebuffer_size(w);
-          io.println("Frame " + "" + " — " + "" + "x" + "");
+          io.println("Frame " + "" + " -- " + "" + "x" + "");
         }
       }
 

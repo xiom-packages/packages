@@ -1,6 +1,6 @@
 // ===========================================================================
-// XIOM ImGui SDK — Full Widget Showcase
-// Pure UI — no 3D rendering. Shows ALL available ImGui components.
+// XIOM ImGui SDK -- Full Widget Showcase
+// Pure UI -- no 3D rendering. Shows ALL available ImGui components.
 // Menu bar, windows, sliders, checkboxes, radio, drag, color, progress,
 // tabs, trees, collapsing headers, popups, modals, tooltips, plots, tables.
 // ===========================================================================
@@ -65,7 +65,7 @@ fn main() -> Int {
           let fb_h = get_fb_height(a);
           new_frame_sized(fb_w, fb_h);
 
-          // ── MENU BAR ──────────────────────────────────────────────────────
+          // -- MENU BAR ------------------------------------------------------
           if begin_main_menu_bar() {
             if begin_menu("File") { if menu_item("Exit") { break; } end_menu(); }
             if begin_menu("Theme") {
@@ -86,7 +86,7 @@ fn main() -> Int {
           let th: Int = (fb_w - pad * 3) / 2;
           let ch: Int = fb_h - top - pad * 2;
 
-          // ── LEFT: Basic Widgets ───────────────────────────────────────────
+          // -- LEFT: Basic Widgets -------------------------------------------
           set_next_window_pos(pad, top);
           set_next_window_size(th, ch);
           if begin_window("Basic Widgets", 0) {
@@ -143,7 +143,7 @@ fn main() -> Int {
             end_window();
           }
 
-          // ── RIGHT: Advanced Widgets ───────────────────────────────────────
+          // -- RIGHT: Advanced Widgets ---------------------------------------
           let bx: Int = pad * 2 + th;
           set_next_window_pos(bx, top);
           set_next_window_size(th, ch);
@@ -239,7 +239,7 @@ fn main() -> Int {
             end_window();
           }
 
-          // ── MODAL ─────────────────────────────────────────────────────────
+          // -- MODAL ---------------------------------------------------------
           if g_modal != 0 { open_popup("AboutModal"); g_modal = 0; }
           if begin_popup_modal("AboutModal") {
             text("XIOM ImGui Widget Showcase");

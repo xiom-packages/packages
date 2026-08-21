@@ -1,4 +1,4 @@
-// XIOM — xiom.ffi Conformance Tests
+// XIOM -- xiom.ffi Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -15,9 +15,9 @@ use xiom.io;
 use xiom.test;
 use xiom.ffi;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Helpers
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; }
@@ -50,9 +50,9 @@ fn report(passed: Bool, name: Str) -> Int {
   return 1;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 1. Raw C Interop: alloc + free
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_alloc_free() -> Int {
   let ptr = alloc(64);
@@ -103,9 +103,9 @@ fn test_alloc_multiple() -> TestResult {
   return assert(false, "raw: allocs collided or failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 2. Raw C Interop: memcpy
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_memcpy_roundtrip() -> Int {
   let src = alloc(16);
@@ -126,9 +126,9 @@ fn test_memcpy_roundtrip() -> TestResult {
   return assert(false, "raw: memcpy failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 3. SafePtr: alloc, from_raw, free
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_safe_ptr_alloc_free() -> Int {
   let sp = safe_ptr_alloc(128);
@@ -171,7 +171,7 @@ fn run_safe_ptr_read_write_stubs() -> Int {
   match sp {
     Err(_) => { return 1; }
     Ok(ptr) => {
-      // STUB functions — verify they don't crash (return Ok with dummy values)
+      // STUB functions -- verify they don't crash (return Ok with dummy values)
       let rb = safe_ptr_read_byte(&ptr, 0);
       let wb = safe_ptr_write_byte(&mut ptr, 0, 42);
       let ri = safe_ptr_read_i32(&ptr, 0);
@@ -188,9 +188,9 @@ fn test_safe_ptr_read_write_stubs() -> TestResult {
   return assert(false, "SafePtr: stubs crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 4. FFIBuffer: new, write, read, clear, len, is_empty
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_buffer_new_clear() -> Int {
   let buf = buffer_new(64);
@@ -230,9 +230,9 @@ fn test_buffer_capacity() -> TestResult {
   return assert(false, "FFIBuffer: capacity mismatch");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 5. FFIError: check, check_ptr, check_nonzero, ok, error
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_ffi_check_negative() -> Int {
   // Negative return codes = error in C convention
@@ -353,15 +353,15 @@ fn test_ffi_ok_error() -> TestResult {
   return assert(false, "FFIError: ffi_ok or ffi_error incorrect");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 6. Marshal: write stubs (signature correctness only)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_marshal_stubs() -> Int {
   let buf = alloc(64);
   if buf == null { return 1; }
   let buf_int = unsafe { buf as Int };
-  // All marshal functions are STUB — verify they don't crash
+  // All marshal functions are STUB -- verify they don't crash
   write_u32_at(buf_int, 0, 0xDEAD);
   write_u64_at(buf_int, 4, 0xBEEF);
   write_f32_at(buf_int, 8, 3.14);
@@ -376,15 +376,15 @@ fn test_marshal_stubs() -> TestResult {
   return assert(false, "Marshal: stubs crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 7. Compile-time utilities (stub correctness)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_size_align_stubs() -> Int {
-  // size_of and align_of return 0 — verify they don't crash
+  // size_of and align_of return 0 -- verify they don't crash
   let sz = size_of[Int]();
   let al = align_of[Int]();
-  // Skip actual value check — these are known stubs
+  // Skip actual value check -- these are known stubs
   return 0;
 }
 
@@ -396,7 +396,7 @@ fn test_size_align_stubs() -> TestResult {
 
 fn run_extern_c_stub() -> Int {
   let addr = extern_c("malloc");
-  // extern_c returns 0 — STUB, verify no crash
+  // extern_c returns 0 -- STUB, verify no crash
   return 0;
 }
 
@@ -406,9 +406,9 @@ fn test_extern_c_stub() -> TestResult {
   return assert(false, "Utility: extern_c crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 8. Edge Cases
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_alloc_zero() -> Int {
   // alloc(0) should be rejected by contract (requires: size > 0)
@@ -455,9 +455,9 @@ fn test_buffer_write_bytes() -> TestResult {
   return assert(false, "edge: buffer_write failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Main
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn main() -> Int {
   io.println("=== XIOM FFI Conformance Tests ===");

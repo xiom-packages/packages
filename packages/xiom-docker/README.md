@@ -1,6 +1,6 @@
 # xiom-docker
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Docker container lifecycle management (images, containers, registries, compose).
 > **Deps:** stdlib; may wrap C (FFI).
 

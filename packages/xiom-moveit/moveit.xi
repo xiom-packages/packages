@@ -1,4 +1,4 @@
-// XIOM — xiom.moveit
+// XIOM -- xiom.moveit
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -75,7 +75,7 @@ fn __pool_kind_of(handle: Int) -> Int
 }
 
 // ============================================================
-// extern "C" — MoveIt C bridge (~10 functions)
+// extern "C" -- MoveIt C bridge (~10 functions)
 // ============================================================
 //
 // The C bridge (moveit_bridge.cpp) wraps the MoveIt C++ API
@@ -103,7 +103,7 @@ extern "C" {
 }
 
 // ============================================================
-// Safe wrappers — RobotModel
+// Safe wrappers -- RobotModel
 // ============================================================
 
 pub fn robot_model_load(urdf: Int, srdf: Int) -> RobotModel
@@ -137,7 +137,7 @@ pub fn robot_model_joint_count(model: RobotModel) -> Int
 }
 
 // ============================================================
-// Safe wrappers — PlanningScene
+// Safe wrappers -- PlanningScene
 // ============================================================
 
 pub fn planning_scene_create() -> PlanningScene
@@ -172,7 +172,7 @@ pub fn scene_set_robot_model(scene: PlanningScene, model: RobotModel) -> Bool
 }
 
 // ============================================================
-// Safe wrappers — Collision objects
+// Safe wrappers -- Collision objects
 // ============================================================
 
 pub fn scene_add_box(scene: PlanningScene, x: Float64, y: Float64, z: Float64, sx: Float64, sy: Float64, sz: Float64) -> CollisionObject
@@ -204,7 +204,7 @@ pub fn scene_add_sphere(scene: PlanningScene, x: Float64, y: Float64, z: Float64
 }
 
 // ============================================================
-// Safe wrappers — Motion planning
+// Safe wrappers -- Motion planning
 // ============================================================
 
 pub fn plan(scene: PlanningScene, model: RobotModel, start_joints: &Vec[Float64], goal_joints: &Vec[Float64], time_limit: Float64) -> Result[MotionPlan, Str]

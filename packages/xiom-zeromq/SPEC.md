@@ -1,10 +1,10 @@
-# xiom-zeromq — SPEC
+# xiom-zeromq -- SPEC
 
 **Phase**: 4 (Enterprise) | **Priority**: Medium
 **Status**: PRODUCTION | **Depends on**: xiom.ffi (for CStr bridge, future)
 
 ## What it wraps
-libzmq — high-performance asynchronous messaging library (ZeroMQ).
+libzmq -- high-performance asynchronous messaging library (ZeroMQ).
 Supports PUB/SUB, REQ/REP, PUSH/PULL, and other messaging patterns.
 
 ## Dependencies: System-installed. `winget install zeromq`, `apt install libzmq3-dev`, `brew install zeromq`.
@@ -101,29 +101,29 @@ extern "C" {
 |------|-------|-------------|
 | `src/zeromq.xi` | ~240 | Main module: types, constants, 12 extern C + 12 safe wrappers with 3 requires contracts |
 | `tests/test_conformance.xi` | ~440 | 58 conformance tests (15 sections) |
-| `ROADMAP.md` | — | Single-phase roadmap, known limitations, future work |
-| `SPEC.md` | — | This file |
+| `ROADMAP.md` | -- | Single-phase roadmap, known limitations, future work |
+| `SPEC.md` | -- | This file |
 
 ## Test Coverage (58 tests, 15 sections)
-1. Socket type constants — 7 tests: PUB, SUB, REQ, REP, PULL, PUSH, 12 types defined
-2. zmq_ctx_new / zmq_ctx_destroy — 3 tests: callable, null context, valid handle
-3. zmq_socket / zmq_close — 4 tests: callable, null context, all 12 types, close null
-4. zmq_bind / zmq_connect — 3 tests: null socket, connect null, stubs callable
-5. zmq_send / zmq_recv — 4 tests: null socket, with length, error paths
-6. zmq_setsockopt / zmq_getsockopt — 3 tests: null sockopt, SUBSCRIBE stub
-7. zmq_poll — 3 tests: zero items, timeout, block indefinitely
-8. zmq_version — 1 test: callable with null pointers
-9. API presence — 12 tests: all 12 safe wrapper signatures
-10. Contract declarations — 3 tests: bind(addr != 0), send(len > 0), recv(len > 0)
-11. Type definitions — 2 tests: ZmqContext, ZmqSocket
-12. Flag constants — 2 tests: ZMQ_DONTWAIT, ZMQ_SNDMORE
-13. Socket option constants — 4 tests: SUBSCRIBE, LINGER, RCVTIMEO, SNDTIMEO
-14. Safe wrapper stubs — 6 tests: context_new, socket, bind, send, recv error paths
-15. Extern count — 1 test: 12 ZeroMQ C functions declared
+1. Socket type constants -- 7 tests: PUB, SUB, REQ, REP, PULL, PUSH, 12 types defined
+2. zmq_ctx_new / zmq_ctx_destroy -- 3 tests: callable, null context, valid handle
+3. zmq_socket / zmq_close -- 4 tests: callable, null context, all 12 types, close null
+4. zmq_bind / zmq_connect -- 3 tests: null socket, connect null, stubs callable
+5. zmq_send / zmq_recv -- 4 tests: null socket, with length, error paths
+6. zmq_setsockopt / zmq_getsockopt -- 3 tests: null sockopt, SUBSCRIBE stub
+7. zmq_poll -- 3 tests: zero items, timeout, block indefinitely
+8. zmq_version -- 1 test: callable with null pointers
+9. API presence -- 12 tests: all 12 safe wrapper signatures
+10. Contract declarations -- 3 tests: bind(addr != 0), send(len > 0), recv(len > 0)
+11. Type definitions -- 2 tests: ZmqContext, ZmqSocket
+12. Flag constants -- 2 tests: ZMQ_DONTWAIT, ZMQ_SNDMORE
+13. Socket option constants -- 4 tests: SUBSCRIBE, LINGER, RCVTIMEO, SNDTIMEO
+14. Safe wrapper stubs -- 6 tests: context_new, socket, bind, send, recv error paths
+15. Extern count -- 1 test: 12 ZeroMQ C functions declared
 
 ## Known Limitations
-- send() and recv() use raw `(buf: Int, len: Int)` — Vec[UInt8] bridge blocked on compiler *UInt8 dereference support
-- bind() and connect() require pre-allocated C string pointers — CStr bridge blocked on xiom.ffi
+- send() and recv() use raw `(buf: Int, len: Int)` -- Vec[UInt8] bridge blocked on compiler *UInt8 dereference support
+- bind() and connect() require pre-allocated C string pointers -- CStr bridge blocked on xiom.ffi
 - All FFI calls return error codes when libzmq is not linked at link time
 - FFI error-checking and null-guard logic is complete; only buffer marshaling is stubbed
 

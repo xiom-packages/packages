@@ -1,6 +1,6 @@
 # xiom-codegen-fw
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Framework for target-agnostic code generation pipelines.
 > **Deps:** stdlib; may wrap C (FFI).
 

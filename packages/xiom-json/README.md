@@ -1,6 +1,6 @@
 # xiom-json
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** JSON parsing, serialization, and manipulation.
 > **Deps:** stdlib; may wrap C (FFI).
 

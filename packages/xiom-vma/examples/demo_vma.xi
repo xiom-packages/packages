@@ -1,10 +1,10 @@
-// XIOM — VMA Production Demo
+// XIOM -- VMA Production Demo
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Demonstrates both API layers:
-//   xiom.vma      — procedural safe wrappers (fast path)
-//   xiom.vma.safe — struct-based resource management (typed path)
+//   xiom.vma      -- procedural safe wrappers (fast path)
+//   xiom.vma.safe -- struct-based resource management (typed path)
 
 module xiom.vma.demo
 
@@ -40,7 +40,7 @@ fn demo_struct_api() {
 }
 
 fn main() -> Int {
-  io.println("VMA Production Demo — v0.46");
+  io.println("VMA Production Demo -- v0.46");
   io.println("============================");
   io.println("");
 

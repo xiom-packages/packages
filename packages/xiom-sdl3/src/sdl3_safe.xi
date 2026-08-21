@@ -1,4 +1,4 @@
-// XIOM — SDL3 Safe Wrappers
+// XIOM -- SDL3 Safe Wrappers
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -72,7 +72,7 @@ pub type SdlError = {
 } derive[Clone]
 
 // =========================================================================
-// SdlContext — global SDL3 lifecycle manager
+// SdlContext -- global SDL3 lifecycle manager
 // =========================================================================
 
 pub type SdlContext = {
@@ -97,7 +97,7 @@ pub fn SdlContext.quit()
 }
 
 // =========================================================================
-// SdlWindow — an SDL_Window* resource
+// SdlWindow -- an SDL_Window* resource
 // =========================================================================
 
 pub type SdlWindow = {
@@ -181,7 +181,7 @@ pub fn SdlWindow.get_id() -> Int32
 }
 
 // =========================================================================
-// SdlRenderer — an SDL_Renderer* resource
+// SdlRenderer -- an SDL_Renderer* resource
 // =========================================================================
 
 pub type SdlRenderer = {
@@ -270,7 +270,7 @@ pub fn SdlRenderer.set_vsync(vsync: Bool) -> Bool
 }
 
 // =========================================================================
-// SdlTexture — an SDL_Texture* resource
+// SdlTexture -- an SDL_Texture* resource
 // =========================================================================
 
 pub type SdlTexture = {
@@ -318,7 +318,7 @@ pub fn SdlTexture.set_blend_mode(mode: Int32) -> Bool
 }
 
 // =========================================================================
-// SdlGamepad — an SDL_Gamepad* resource
+// SdlGamepad -- an SDL_Gamepad* resource
 // =========================================================================
 
 pub type SdlGamepad = {
@@ -368,7 +368,7 @@ pub fn SdlGamepad.get_name() -> Int
 }
 
 // =========================================================================
-// SdlApp — high-level application runner
+// SdlApp -- high-level application runner
 // =========================================================================
 
 pub type SdlApp = {

@@ -9,7 +9,7 @@
 - [x] requires contracts on all public functions (10 contracts)
 - [x] Conformance test suite (22 tests)
 
-## v0.2.0 — librdkafka FFI Bridge
+## v0.2.0 -- librdkafka FFI Bridge
 - [ ] extern "C" FFI bindings to librdkafka (rd_kafka_new, rd_kafka_produce, rd_kafka_consumer_poll)
 - [ ] Real producer handle allocation via rd_kafka_conf_t / rd_kafka_t
 - [ ] Real consumer group coordination with rd_kafka_subscribe / rd_kafka_assign
@@ -18,7 +18,7 @@
 - [ ] Build system integration for native library discovery
 - [ ] CI pipeline with librdkafka installed for integration tests
 
-## v0.3.0 — Advanced Features
+## v0.3.0 -- Advanced Features
 - [ ] Async producer with delivery report callbacks (rd_kafka_producev)
 - [ ] Consumer rebalance callbacks (rd_kafka_assign / rd_kafka_revoke)
 - [ ] Offset management (manual commit, seek, position)
@@ -28,7 +28,7 @@
 - [ ] SSL/SASL authentication (SCRAM, Kerberos, OAuth)
 - [ ] Batch produce with transactions
 
-## v1.0.0 — Production Readiness
+## v1.0.0 -- Production Readiness
 - [ ] Idempotent producer (enable.idempotence)
 - [ ] Exactly-once semantics via transactions
 - [ ] Schema Registry client integration

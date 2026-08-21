@@ -1,4 +1,4 @@
-// XIOM — meshopt Conformance Test Suite
+// XIOM -- meshopt Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -50,7 +50,7 @@ fn report(passed: Bool, name: Str) -> Int {
 }
 
 // =========================================================================
-// SECTION 1 — Constant verification (16 tests)
+// SECTION 1 -- Constant verification (16 tests)
 // =========================================================================
 
 fn run_const_simplify_lock_border() -> Int {
@@ -230,7 +230,7 @@ fn test_const_tangent_zero_fallback() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 2 — API function compile-time presence: meshopt (6 tests)
+// SECTION 2 -- API function compile-time presence: meshopt (6 tests)
 // =========================================================================
 
 fn test_api_generate_vertex_remap() -> TestResult {
@@ -258,7 +258,7 @@ fn test_api_analyze_vertex_cache() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 3 — API function compile-time presence: meshopt.safe (22 tests)
+// SECTION 3 -- API function compile-time presence: meshopt.safe (22 tests)
 // =========================================================================
 
 fn test_api_remap_pipeline_build() -> TestResult {
@@ -350,7 +350,7 @@ fn test_api_strip_pipeline_stripify() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 4 — Contract declaration presence (28 tests)
+// SECTION 4 -- Contract declaration presence (28 tests)
 // =========================================================================
 
 fn test_contract_generate_vertex_remap() -> TestResult {
@@ -466,7 +466,7 @@ fn test_contract_strip_pipeline_stripify() -> TestResult {
 }
 
 // =========================================================================
-// Main — manual test dispatch
+// Main -- manual test dispatch
 // =========================================================================
 
 pub fn main() -> Int {
@@ -565,18 +565,18 @@ pub fn main() -> Int {
 
   let passed = total - failed;
   io.println("");
-  io.println("═══════════════════════════════════════");
+  io.println("=======================================");
   if failed == 0 {
     io.println("  ALL " + int_to_str(total) + " TESTS PASSED");
     io.println("  Path:    " + "E:\\Projects\\AXIOM\\ecosystem\\xiom-meshopt\\tests\\test_conformance.xi");
     io.println("  Contracts: " + "88" + " (across 28 functions)");
-    io.println("═══════════════════════════════════════");
+    io.println("=======================================");
     return 0;
   }
   io.println("  Path:    " + "E:\\Projects\\AXIOM\\ecosystem\\xiom-meshopt\\tests\\test_conformance.xi");
   io.println("  Tests:   " + int_to_str(total));
   io.println("  Contracts: " + "88" + " (across 28 functions)");
   io.println("  " + int_to_str(failed) + " TESTS FAILED");
-  io.println("═══════════════════════════════════════");
+  io.println("=======================================");
   return 1;
 }

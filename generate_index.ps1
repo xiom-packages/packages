@@ -1,6 +1,6 @@
 #!/usr/bin/env pwsh
 # ============================================================================
-# Registry Index Generator — XIOM Package Registry
+# Registry Index Generator -- XIOM Package Registry
 # ============================================================================
 # Scans the packages/ directory and generates an index.json manifest.
 # Each package gets a version entry based on its package.xi version field.

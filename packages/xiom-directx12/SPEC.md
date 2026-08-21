@@ -1,21 +1,21 @@
-# xiom-directx12 — SPEC
+# xiom-directx12 -- SPEC
 
 **Phase**: 2 (Scientific) | **Priority**: HIGH
-**Status**: SPEC implemented (v0.1.0) — types, constants, extern block, safe wrappers, tests done. C bridge pending.
+**Status**: SPEC implemented (v0.1.0) -- types, constants, extern block, safe wrappers, tests done. C bridge pending.
 **Depends on**: xiom.ffi (stdlib)
 **Platform**: Windows only
 
 ## What it wraps
-Direct3D 12 — Microsoft's low-level graphics API. Explicit GPU control.
+Direct3D 12 -- Microsoft's low-level graphics API. Explicit GPU control.
 Used by modern AAA games and professional rendering tools.
 
 ## Dependencies
 
 | What | How | Size |
 |------|-----|------|
-| DirectX 12 SDK | Included in Windows SDK (Windows 10+). | — |
+| DirectX 12 SDK | Included in Windows SDK (Windows 10+). | -- |
 | Windows SDK | System-installed. | ~2GB |
-| C++ compiler | MSVC or clang++ | — |
+| C++ compiler | MSVC or clang++ | -- |
 
 ## Bundling strategy
 **System-installed only.** DirectX is part of Windows.

@@ -1,11 +1,11 @@
-# xiom-libpq — SPEC
+# xiom-libpq -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
-**Status**: XIOM layer implemented — FFI stubs return Err until C bridge is linked
+**Status**: XIOM layer implemented -- FFI stubs return Err until C bridge is linked
 **Depends on**: xiom.ffi (stdlib)
 
 ## What it wraps
-libpq — PostgreSQL C client library.
+libpq -- PostgreSQL C client library.
 Connection management, query execution, result parsing.
 
 ## Dependencies
@@ -13,7 +13,7 @@ Connection management, query execution, result parsing.
 | What | How | Size |
 |------|-----|------|
 | PostgreSQL client | System-installed. `winget install PostgreSQL`, `apt install libpq-dev` | ~5MB |
-| C compiler | For building bridge | — |
+| C compiler | For building bridge | -- |
 
 ## Bundling strategy
 **System-installed only.** PostgreSQL client library is small and standard.
@@ -176,8 +176,8 @@ All functions declared in `extern "C"` block within `libpq.xi`:
 
 | Phase | What | Effort | Status |
 |-------|------|--------|--------|
-| 1 | Pure SPEC layer — contracts, stubs, conformance tests | Day | **DONE** |
-| 2 | C bridge — real FFI, string marshalling, connect/exec | Day | Pending |
+| 1 | Pure SPEC layer -- contracts, stubs, conformance tests | Day | **DONE** |
+| 2 | C bridge -- real FFI, string marshalling, connect/exec | Day | Pending |
 | 3 | Parameterised queries, async pipeline | Day | Pending |
 | 4 | Prepared statements, connection pooling | 2 days | Pending |
 | 5 | LISTEN/NOTIFY, COPY I/O, large objects | 3 days | Pending |

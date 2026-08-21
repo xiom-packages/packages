@@ -1,10 +1,10 @@
-# xiom-cuda — SPEC
+# xiom-cuda -- SPEC
 
 **Phase**: 2 | **Priority**: HIGH
-**Status**: Implemented (Phase 1 — Core Foundation) | **Depends on**: xiom.ffi, xiom-libtorch (for tensor interop)
+**Status**: Implemented (Phase 1 -- Core Foundation) | **Depends on**: xiom.ffi, xiom-libtorch (for tensor interop)
 
 ## What it wraps
-CUDA Toolkit — NVIDIA GPU computing (cuBLAS, cuDNN, cuFFT, cuRAND).
+CUDA Toolkit -- NVIDIA GPU computing (cuBLAS, cuDNN, cuFFT, cuRAND).
 
 ## Dependencies
 | What | How | Size |
@@ -33,7 +33,7 @@ CUDA Toolkit — NVIDIA GPU computing (cuBLAS, cuDNN, cuFFT, cuRAND).
 ### Tests: `tests/test_conformance.xi`
 - **23 conformance tests** covering types, constants, error handling, Result propagation, struct initialization, and all safe wrapper subsystems
 
-## API (minimal — Phase 1 implemented)
+## API (minimal -- Phase 1 implemented)
 ```xiom
 // Device
 pub fn device_count() -> Result[Int, Str]

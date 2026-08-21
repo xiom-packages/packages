@@ -1,6 +1,6 @@
 # xiom-robotics
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Robot kinematics, control, and motion planning.
 > **Deps:** stdlib; may wrap C (FFI).
 

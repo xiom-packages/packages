@@ -1,6 +1,6 @@
 # xiom-upnp
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** UPnP/SSDP device discovery and control point.
 > **Deps:** stdlib; may wrap C (FFI).
 

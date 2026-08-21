@@ -1,6 +1,6 @@
 # xiom-phonon
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Phonon acoustics and spatial audio bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

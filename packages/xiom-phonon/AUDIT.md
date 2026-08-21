@@ -1,4 +1,4 @@
-# Steam Audio (Phonon) Bindings — Compiler Audit
+# Steam Audio (Phonon) Bindings -- Compiler Audit
 
 ## Package: `xiom-phonon` v0.1.0
 
@@ -43,8 +43,8 @@
 **Problem**: Several Steam Audio functions return structs by value (e.g., `iplCalculateRelativeDirection` returns `IPLVector3`, `iplProbeArrayGetProbe` returns `IPLSphere`). The XIOM FFI cannot handle C struct return values from `extern "C"` functions.
 
 **Affected functions**:
-- `iplCalculateRelativeDirection` → returns `IPLVector3`
-- `iplProbeArrayGetProbe` → returns `IPLSphere`
+- `iplCalculateRelativeDirection` -> returns `IPLVector3`
+- `iplProbeArrayGetProbe` -> returns `IPLSphere`
 
 **Workaround**: These functions are declared with `*UInt8` output parameters in the bindings, requiring the caller to provide a pre-allocated buffer for the return value. This is not ideal and a C bridge should wrap these to return individual float components.
 
@@ -87,11 +87,11 @@
 ### Ambisonics Pipeline
 
 All Ambisonics effects are declared in `extern "C"` but lack safe wrappers:
-- `IPLAmbisonicsEncodeEffect` — encode mono to ambisonics
-- `IPLAmbisonicsPanningEffect` — decode ambisonics to speakers
-- `IPLAmbisonicsBinauralEffect` — decode ambisonics to headphones
-- `IPLAmbisonicsRotationEffect` — rotate ambisonic soundfield
-- `IPLAmbisonicsDecodeEffect` — flexible decode with binaural option
+- `IPLAmbisonicsEncodeEffect` -- encode mono to ambisonics
+- `IPLAmbisonicsPanningEffect` -- decode ambisonics to speakers
+- `IPLAmbisonicsBinauralEffect` -- decode ambisonics to headphones
+- `IPLAmbisonicsRotationEffect` -- rotate ambisonic soundfield
+- `IPLAmbisonicsDecodeEffect` -- flexible decode with binaural option
 
 These follow the same Create/Apply pattern as binaural/direct and can be added by copy-pasting the existing safe wrapper templates.
 

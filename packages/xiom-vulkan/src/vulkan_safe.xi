@@ -141,7 +141,7 @@ extern "C" {
   fn xvk_allocate_command_buffers_multi(device: Int, pool: Int, level: Int32, count: Int32, out_buffers: Int) -> Int32;
   fn xvk_queue_submit_multi(queue: Int, cmd_buf_count: Int32, cmd_bufs: Int, fence: Int) -> Int32;
 
-  // Phase 7.6 — Deferred host operations
+  // Phase 7.6 -- Deferred host operations
   fn xvk_create_deferred_operation_khr(device: Int) -> Int;
   fn xvk_destroy_deferred_operation_khr(device: Int, deferred_op: Int);
   fn xvk_deferred_operation_join_khr(device: Int, deferred_op: Int) -> Int32;
@@ -779,7 +779,7 @@ pub fn VulkanCommandPool.reset(flags: Int32) -> Result[Int, VulkanError]
   return Ok(0);
 }
 
-/// Phase 7.5: Trim the command pool (VK 1.1+) — releases unused internal allocations.
+/// Phase 7.5: Trim the command pool (VK 1.1+) -- releases unused internal allocations.
 pub fn VulkanCommandPool.trim() -> Result[Int, VulkanError]
   requires: handle != 0
 {
@@ -1177,7 +1177,7 @@ pub fn VulkanSemaphore.destroy()
 }
 
 // =========================================================================
-// VulkanQueue — Phase 7.5: Typed queue abstraction for multi-threaded rendering
+// VulkanQueue -- Phase 7.5: Typed queue abstraction for multi-threaded rendering
 // =========================================================================
 
 pub type VulkanQueue = {
@@ -1746,7 +1746,7 @@ pub fn VulkanDescriptorUpdateTemplate.destroy()
 }
 
 // =========================================================================
-// Struct Builder Integration (Phase 4 — use with xiom.vulkan.structs)
+// Struct Builder Integration (Phase 4 -- use with xiom.vulkan.structs)
 // =========================================================================
 //
 // The xiom.vulkan.structs module provides typed builders for every VK create-
@@ -1818,7 +1818,7 @@ pub fn VulkanPipelineLayout.create_from_struct(device: Int, ci: Int) -> Result[V
 }
 
 // =========================================================================
-// VulkanDeferredOperationKHR — Phase 7.6
+// VulkanDeferredOperationKHR -- Phase 7.6
 // =========================================================================
 
 pub type VulkanDeferredOperationKHR = {

@@ -103,7 +103,7 @@ void xvk_free_command_buffers(int64_t device, int64_t pool, int32_t count, int64
     vkFreeCommandBuffers(dev, XVK_BC_HANDLE(VkCommandPool, pool), (uint32_t)count, cbs);
 }
 
-/* Phase 7.5: Convenience — allocate count command buffers with one call.
+/* Phase 7.5: Convenience -- allocate count command buffers with one call.
  * Builds VkCommandBufferAllocateInfo internally from the given pool, level, count.
  * out_buffers is a pre-allocated array of count int64_t handles. */
 int32_t xvk_allocate_command_buffers_multi(int64_t device, int64_t pool, int32_t level, int32_t count, int64_t out_buffers)

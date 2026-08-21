@@ -1,16 +1,16 @@
 # Error Model
 
-> Status: Design stage — specification only, not yet implemented.
+> Status: Design stage -- specification only, not yet implemented.
 
 A predictable error model is what makes an API pleasant to consume. `xiom-rest` maps typed XIOM errors onto stable HTTP status codes and a consistent, machine-readable response body. There are no silent failures: every error path is a typed value that flows through `Result`, and the mapping from domain error to HTTP response is explicit and centralized.
 
 ## The RestError type
 
-The core type is `RestError { code: Str; status: Int; message: Str; details: Option[Str]; }`. The `code` is a stable, machine-readable string (for example `"user_not_found"`) that clients can branch on without parsing prose; the `status` is the HTTP status code; `message` is a human-readable summary; and `details` optionally carries additional context. Separating a stable `code` from a human `message` is deliberate — the message can be improved or localized over time while the code remains a durable part of the contract.
+The core type is `RestError { code: Str; status: Int; message: Str; details: Option[Str]; }`. The `code` is a stable, machine-readable string (for example `"user_not_found"`) that clients can branch on without parsing prose; the `status` is the HTTP status code; `message` is a human-readable summary; and `details` optionally carries additional context. Separating a stable `code` from a human `message` is deliberate -- the message can be improved or localized over time while the code remains a durable part of the contract.
 
 ## Constructing errors
 
-Common cases have named constructors — `not_found`, `bad_request`, `conflict`, `unprocessable` — so handlers express intent directly rather than juggling raw status integers. The general constructor `RestError.new(code, status, message)` carries the contract `requires status >= 100, status < 600`, which prevents nonsensical status codes from ever reaching a client. Because these are ordinary typed values, they can be returned, matched on, and tested like any other data.
+Common cases have named constructors -- `not_found`, `bad_request`, `conflict`, `unprocessable` -- so handlers express intent directly rather than juggling raw status integers. The general constructor `RestError.new(code, status, message)` carries the contract `requires status >= 100, status < 600`, which prevents nonsensical status codes from ever reaching a client. Because these are ordinary typed values, they can be returned, matched on, and tested like any other data.
 
 ## Mapping to HTTP
 

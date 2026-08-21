@@ -1,4 +1,4 @@
-// XIOM — DirectX Shader Compiler (DXC) FFI Bindings
+// XIOM -- DirectX Shader Compiler (DXC) FFI Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -7,9 +7,9 @@
 // C bridge (dxc_bridge.c). XIOM calls plain extern "C" functions only.
 //
 // v0.46 compiler notes:
-//   - Int as *T cast: REJECTED at type checker → use C bridge for all ptr ops
-//   - Int as fn(...) cast: REJECTED → use C bridge for all vtable dispatch
-//   - Cross-module extern resolution: broken → duplicate extern block in safe
+//   - Int as *T cast: REJECTED at type checker -> use C bridge for all ptr ops
+//   - Int as fn(...) cast: REJECTED -> use C bridge for all vtable dispatch
+//   - Cross-module extern resolution: broken -> duplicate extern block in safe
 //
 // Coverage: 129 bridge functions covering 24 COM interfaces + 34 GUID resolvers
 // + 2 DxcCreateInstance exports = 165 total extern C declarations.
@@ -115,7 +115,7 @@ pub type DxcDefine = {
 } derive[Clone]
 
 // =========================================================================
-// External "C" Functions — 165 declarations across 2 DLL exports + 163 bridge
+// External "C" Functions -- 165 declarations across 2 DLL exports + 163 bridge
 // =========================================================================
 
 extern "C" {

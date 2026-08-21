@@ -1,8 +1,8 @@
-// XIOM — Direct3D 11 Bindings
+// XIOM -- Direct3D 11 Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Pure SPEC package — all FFI calls return Err until the C bridge is linked.
+// Pure SPEC package -- all FFI calls return Err until the C bridge is linked.
 // Wraps Direct3D 11 API. Requires Windows SDK (installed with Visual Studio or winget).
 // Depends on: xiom.ffi (stdlib), Windows SDK.
 //
@@ -12,7 +12,7 @@
 
 module xiom.directx11
 
-// ── Opaque handle types ────────────────────────────────────────────────────
+// -- Opaque handle types ----------------------------------------------------
 
 pub type DxDevice = Int;
 pub type DxContext = Int;
@@ -22,7 +22,7 @@ pub type DxTexture = Int;
 pub type DxShader = Int;
 pub type DxSampler = Int;
 
-// ── DXGI_FORMAT Constants ──────────────────────────────────────────────────
+// -- DXGI_FORMAT Constants --------------------------------------------------
 
 pub const DXGI_FORMAT_UNKNOWN: Int = 0;
 pub const DXGI_FORMAT_R32G32B32A32_FLOAT: Int = 2;
@@ -43,19 +43,19 @@ pub const DXGI_FORMAT_D24_UNORM_S8_UINT: Int = 45;
 pub const DXGI_FORMAT_D32_FLOAT: Int = 40;
 pub const DXGI_FORMAT_D32_FLOAT_S8X24_UINT: Int = 20;
 
-// ── D3D11_USAGE Constants ──────────────────────────────────────────────────
+// -- D3D11_USAGE Constants --------------------------------------------------
 
 pub const D3D11_USAGE_DEFAULT: Int = 0;
 pub const D3D11_USAGE_IMMUTABLE: Int = 1;
 pub const D3D11_USAGE_DYNAMIC: Int = 2;
 pub const D3D11_USAGE_STAGING: Int = 3;
 
-// ── D3D11_CPU_ACCESS_FLAG Constants ────────────────────────────────────────
+// -- D3D11_CPU_ACCESS_FLAG Constants ----------------------------------------
 
 pub const D3D11_CPU_ACCESS_WRITE: Int = 0x10000;
 pub const D3D11_CPU_ACCESS_READ: Int = 0x20000;
 
-// ── D3D11_BIND_FLAG Constants ──────────────────────────────────────────────
+// -- D3D11_BIND_FLAG Constants ----------------------------------------------
 
 pub const D3D11_BIND_VERTEX_BUFFER: Int = 0x1;
 pub const D3D11_BIND_INDEX_BUFFER: Int = 0x2;
@@ -66,7 +66,7 @@ pub const D3D11_BIND_RENDER_TARGET: Int = 0x20;
 pub const D3D11_BIND_DEPTH_STENCIL: Int = 0x40;
 pub const D3D11_BIND_UNORDERED_ACCESS: Int = 0x80;
 
-// ── D3D11_PRIMITIVE_TOPOLOGY Constants ─────────────────────────────────────
+// -- D3D11_PRIMITIVE_TOPOLOGY Constants -------------------------------------
 
 pub const D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED: Int = 0;
 pub const D3D11_PRIMITIVE_TOPOLOGY_POINTLIST: Int = 1;
@@ -75,7 +75,7 @@ pub const D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP: Int = 3;
 pub const D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST: Int = 4;
 pub const D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP: Int = 5;
 
-// ── D3D11_MAP Constants ────────────────────────────────────────────────────
+// -- D3D11_MAP Constants ----------------------------------------------------
 
 pub const D3D11_MAP_READ: Int = 1;
 pub const D3D11_MAP_WRITE: Int = 2;
@@ -83,7 +83,7 @@ pub const D3D11_MAP_READ_WRITE: Int = 3;
 pub const D3D11_MAP_WRITE_DISCARD: Int = 4;
 pub const D3D11_MAP_WRITE_NO_OVERWRITE: Int = 5;
 
-// ── D3D11_FILTER Constants ─────────────────────────────────────────────────
+// -- D3D11_FILTER Constants -------------------------------------------------
 
 pub const D3D11_FILTER_MIN_MAG_MIP_POINT: Int = 0;
 pub const D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR: Int = 0x1;
@@ -95,7 +95,7 @@ pub const D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT: Int = 0x14;
 pub const D3D11_FILTER_MIN_MAG_MIP_LINEAR: Int = 0x15;
 pub const D3D11_FILTER_ANISOTROPIC: Int = 0x55;
 
-// ── D3D11_TEXTURE_ADDRESS_MODE Constants ───────────────────────────────────
+// -- D3D11_TEXTURE_ADDRESS_MODE Constants -----------------------------------
 
 pub const D3D11_TEXTURE_ADDRESS_WRAP: Int = 1;
 pub const D3D11_TEXTURE_ADDRESS_MIRROR: Int = 2;
@@ -103,25 +103,25 @@ pub const D3D11_TEXTURE_ADDRESS_CLAMP: Int = 3;
 pub const D3D11_TEXTURE_ADDRESS_BORDER: Int = 4;
 pub const D3D11_TEXTURE_ADDRESS_MIRROR_ONCE: Int = 5;
 
-// ── D3D11_INPUT_CLASSIFICATION Constants ───────────────────────────────────
+// -- D3D11_INPUT_CLASSIFICATION Constants -----------------------------------
 
 pub const D3D11_INPUT_PER_VERTEX_DATA: Int = 0;
 pub const D3D11_INPUT_PER_INSTANCE_DATA: Int = 1;
 
-// ── D3D11_DRIVER_TYPE Constants ────────────────────────────────────────────
+// -- D3D11_DRIVER_TYPE Constants --------------------------------------------
 
 pub const D3D_DRIVER_TYPE_HARDWARE: Int = 1;
 pub const D3D_DRIVER_TYPE_WARP: Int = 5;
 pub const D3D_DRIVER_TYPE_REFERENCE: Int = 6;
 pub const D3D_DRIVER_TYPE_SOFTWARE: Int = 7;
 
-// ── D3D11_CREATE_DEVICE_FLAG Constants ─────────────────────────────────────
+// -- D3D11_CREATE_DEVICE_FLAG Constants -------------------------------------
 
 pub const D3D11_CREATE_DEVICE_DEBUG: Int = 0x2;
 pub const D3D11_CREATE_DEVICE_SINGLETHREADED: Int = 0x10;
 pub const D3D11_CREATE_DEVICE_BGRA_SUPPORT: Int = 0x20;
 
-// ── D3D11_SRV_DIMENSION Constants ──────────────────────────────────────────
+// -- D3D11_SRV_DIMENSION Constants ------------------------------------------
 
 pub const D3D11_SRV_DIMENSION_UNKNOWN: Int = 0;
 pub const D3D11_SRV_DIMENSION_BUFFER: Int = 1;
@@ -134,15 +134,15 @@ pub const D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY: Int = 7;
 pub const D3D11_SRV_DIMENSION_TEXTURE3D: Int = 8;
 pub const D3D11_SRV_DIMENSION_TEXTURECUBE: Int = 9;
 
-// ═══════════════════════════════════════════════════════════════════════════
-// extern "C" — Raw D3D11 Declarations (27 functions)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// extern "C" -- Raw D3D11 Declarations (27 functions)
+// ===========================================================================
 // These map 1:1 to d3d11.dll / dxgi.dll.
 // Pointers are typed as Int for SPEC phase; cast to concrete types when
 // the C bridge is linked.
 
 extern "C" {
-  // ── Device creation ──────────────────────────────────────────────────────
+  // -- Device creation ------------------------------------------------------
   fn D3D11CreateDevice(
     pAdapter: Int,
     driverType: Int,
@@ -171,14 +171,14 @@ extern "C" {
     ppImmediateContext: Int
   ) -> Int;
 
-  // ── Swap chain ───────────────────────────────────────────────────────────
+  // -- Swap chain -----------------------------------------------------------
   fn CreateSwapChain(
     pDevice: Int,
     pSwapChainDesc: Int,
     ppSwapChain: Int
   ) -> Int;
 
-  // ── Render target view ───────────────────────────────────────────────────
+  // -- Render target view ---------------------------------------------------
   fn CreateRenderTargetView(
     pDevice: Int,
     pResource: Int,
@@ -199,7 +199,7 @@ extern "C" {
     pDepthStencilView: Int
   );
 
-  // ── Buffer creation ──────────────────────────────────────────────────────
+  // -- Buffer creation ------------------------------------------------------
   fn CreateBuffer(
     pDevice: Int,
     pDesc: Int,
@@ -207,7 +207,7 @@ extern "C" {
     ppBuffer: Int
   ) -> Int;
 
-  // ── Texture creation ─────────────────────────────────────────────────────
+  // -- Texture creation -----------------------------------------------------
   fn CreateTexture2D(
     pDevice: Int,
     pDesc: Int,
@@ -222,14 +222,14 @@ extern "C" {
     ppSRView: Int
   ) -> Int;
 
-  // ── Sampler ──────────────────────────────────────────────────────────────
+  // -- Sampler --------------------------------------------------------------
   fn CreateSamplerState(
     pDevice: Int,
     pSamplerDesc: Int,
     ppSamplerState: Int
   ) -> Int;
 
-  // ── Shaders ──────────────────────────────────────────────────────────────
+  // -- Shaders --------------------------------------------------------------
   fn CreateVertexShader(
     pDevice: Int,
     pShaderBytecode: Int,
@@ -260,7 +260,7 @@ extern "C" {
     pInputLayout: Int
   );
 
-  // ── Vertex buffers ───────────────────────────────────────────────────────
+  // -- Vertex buffers -------------------------------------------------------
   fn IASetVertexBuffers(
     pContext: Int,
     startSlot: Int,
@@ -282,7 +282,7 @@ extern "C" {
     topology: Int
   );
 
-  // ── Shader stage binding ─────────────────────────────────────────────────
+  // -- Shader stage binding -------------------------------------------------
   fn VSSetShader(
     pContext: Int,
     pVertexShader: Int,
@@ -325,14 +325,14 @@ extern "C" {
     ppShaderResourceViews: Int
   );
 
-  // ── Viewport and rasterizer ──────────────────────────────────────────────
+  // -- Viewport and rasterizer ----------------------------------------------
   fn RSSetViewports(
     pContext: Int,
     numViewports: Int,
     pViewports: Int
   );
 
-  // ── Drawing ──────────────────────────────────────────────────────────────
+  // -- Drawing --------------------------------------------------------------
   fn Draw(
     pContext: Int,
     vertexCount: Int,
@@ -346,14 +346,14 @@ extern "C" {
     baseVertexLocation: Int
   );
 
-  // ── Present / sync ───────────────────────────────────────────────────────
+  // -- Present / sync -------------------------------------------------------
   fn Present(
     pSwapChain: Int,
     syncInterval: Int,
     flags: Int
   ) -> Int;
 
-  // ── Resource mapping ─────────────────────────────────────────────────────
+  // -- Resource mapping -----------------------------------------------------
   fn Map(
     pContext: Int,
     pResource: Int,
@@ -370,15 +370,15 @@ extern "C" {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Device
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d11_create_device(driver_type: Int, flags: Int) -> Result[(DxDevice, DxContext), Str]
   requires: driver_type == D3D_DRIVER_TYPE_HARDWARE || driver_type == D3D_DRIVER_TYPE_WARP || driver_type == D3D_DRIVER_TYPE_REFERENCE || driver_type == D3D_DRIVER_TYPE_SOFTWARE
   ensures:  result.is_ok || result.is_err
 {
-  return Err("d3d11_create_device: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_device: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
 pub fn d3d11_create_device_and_swapchain(
@@ -389,12 +389,12 @@ pub fn d3d11_create_device_and_swapchain(
   requires: height > 0
   ensures:  result.is_ok || result.is_err
 {
-  return Err("d3d11_create_device_and_swapchain: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_device_and_swapchain: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Swap Chain
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d11_present(swap: DxSwapChain, sync_interval: Int)
   requires: swap != 0
@@ -410,12 +410,12 @@ pub fn d3d11_create_swapchain(
   requires: width > 0
   requires: height > 0
 {
-  return Err("d3d11_create_swapchain: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_swapchain: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Render Target
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d11_create_render_target_view(
   dev: DxDevice, resource: DxTexture
@@ -423,7 +423,7 @@ pub fn d3d11_create_render_target_view(
   requires: dev != 0
   requires: resource != 0
 {
-  return Err("d3d11_create_render_target_view: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_render_target_view: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
 pub fn d3d11_clear_render_target_view(ctx: DxContext, rtv: DxTexture, r: Float32, g: Float32, b: Float32, a: Float32)
@@ -443,9 +443,9 @@ pub fn d3d11_om_set_render_targets(ctx: DxContext, count: Int, rtvs: Int, dsv: I
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Buffer
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d11_create_vertex_buffer(
   dev: DxDevice, size: Int, usage: Int, cpu_access: Int
@@ -454,7 +454,7 @@ pub fn d3d11_create_vertex_buffer(
   requires: size > 0
   requires: usage == D3D11_USAGE_DEFAULT || usage == D3D11_USAGE_IMMUTABLE || usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING
 {
-  return Err("d3d11_create_vertex_buffer: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_vertex_buffer: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
 pub fn d3d11_create_index_buffer(
@@ -464,7 +464,7 @@ pub fn d3d11_create_index_buffer(
   requires: size > 0
   requires: usage == D3D11_USAGE_DEFAULT || usage == D3D11_USAGE_IMMUTABLE || usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING
 {
-  return Err("d3d11_create_index_buffer: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_index_buffer: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
 pub fn d3d11_create_constant_buffer(
@@ -475,7 +475,7 @@ pub fn d3d11_create_constant_buffer(
   requires: size % 16 == 0
   requires: usage == D3D11_USAGE_DEFAULT || usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING
 {
-  return Err("d3d11_create_constant_buffer: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_constant_buffer: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
 pub fn d3d11_iaset_vertex_buffers(
@@ -502,9 +502,9 @@ pub fn d3d11_iaset_primitive_topology(ctx: DxContext, topology: Int)
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Texture
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d11_create_texture2d(
   dev: DxDevice, width: Int, height: Int, format: Int, usage: Int, bind_flags: Int, cpu_access: Int
@@ -514,7 +514,7 @@ pub fn d3d11_create_texture2d(
   requires: height > 0
   requires: usage == D3D11_USAGE_DEFAULT || usage == D3D11_USAGE_IMMUTABLE || usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING
 {
-  return Err("d3d11_create_texture2d: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_texture2d: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
 pub fn d3d11_create_shader_resource_view(
@@ -523,12 +523,12 @@ pub fn d3d11_create_shader_resource_view(
   requires: dev != 0
   requires: resource != 0
 {
-  return Err("d3d11_create_shader_resource_view: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_shader_resource_view: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Sampler
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d11_create_sampler_state(
   dev: DxDevice, filter: Int, address_u: Int, address_v: Int, address_w: Int
@@ -539,12 +539,12 @@ pub fn d3d11_create_sampler_state(
   requires: address_v == D3D11_TEXTURE_ADDRESS_WRAP || address_v == D3D11_TEXTURE_ADDRESS_MIRROR || address_v == D3D11_TEXTURE_ADDRESS_CLAMP || address_v == D3D11_TEXTURE_ADDRESS_BORDER || address_v == D3D11_TEXTURE_ADDRESS_MIRROR_ONCE
   requires: address_w == D3D11_TEXTURE_ADDRESS_WRAP || address_w == D3D11_TEXTURE_ADDRESS_MIRROR || address_w == D3D11_TEXTURE_ADDRESS_CLAMP || address_w == D3D11_TEXTURE_ADDRESS_BORDER || address_w == D3D11_TEXTURE_ADDRESS_MIRROR_ONCE
 {
-  return Err("d3d11_create_sampler_state: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_sampler_state: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Shaders
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d11_create_vertex_shader(
   dev: DxDevice, bytecode: Int, bytecode_len: Int
@@ -553,7 +553,7 @@ pub fn d3d11_create_vertex_shader(
   requires: bytecode != 0
   requires: bytecode_len > 0
 {
-  return Err("d3d11_create_vertex_shader: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_vertex_shader: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
 pub fn d3d11_create_pixel_shader(
@@ -563,7 +563,7 @@ pub fn d3d11_create_pixel_shader(
   requires: bytecode != 0
   requires: bytecode_len > 0
 {
-  return Err("d3d11_create_pixel_shader: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_pixel_shader: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
 pub fn d3d11_create_input_layout(
@@ -575,7 +575,7 @@ pub fn d3d11_create_input_layout(
   requires: bytecode != 0
   requires: bytecode_len > 0
 {
-  return Err("d3d11_create_input_layout: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_input_layout: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
 pub fn d3d11_iaset_input_layout(ctx: DxContext, layout: DxBuffer)
@@ -628,9 +628,9 @@ pub fn d3d11_psset_shader_resources(ctx: DxContext, start_slot: Int, count: Int,
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Viewport and Drawing
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d11_rsset_viewports(ctx: DxContext, x: Float32, y: Float32, w: Float32, h: Float32, min_depth: Float32, max_depth: Float32)
   requires: ctx != 0
@@ -655,9 +655,9 @@ pub fn d3d11_draw_indexed(ctx: DxContext, index_count: Int, start_index: Int, ba
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Resource Mapping
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d11_map(
   ctx: DxContext, resource: Int, subresource: Int, map_type: Int, map_flags: Int
@@ -667,7 +667,7 @@ pub fn d3d11_map(
   requires: subresource >= 0
   requires: map_type == D3D11_MAP_READ || map_type == D3D11_MAP_WRITE || map_type == D3D11_MAP_READ_WRITE || map_type == D3D11_MAP_WRITE_DISCARD || map_type == D3D11_MAP_WRITE_NO_OVERWRITE
 {
-  return Err("d3d11_map: C bridge not yet linked — xiom-directx11 is in SPEC phase");
+  return Err("d3d11_map: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
 }
 
 pub fn d3d11_unmap(ctx: DxContext, resource: Int, subresource: Int)

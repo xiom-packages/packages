@@ -1,6 +1,6 @@
 # xiom-nuclear
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Nuclear physics: decay, fission, and radiation.
 > **Deps:** stdlib; may wrap C (FFI).
 

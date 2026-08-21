@@ -1,6 +1,6 @@
 # xiom-rocksdb
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** RocksDB embedded key-value store bindings with advanced features.
 > **Deps:** stdlib; may wrap C (FFI).
 

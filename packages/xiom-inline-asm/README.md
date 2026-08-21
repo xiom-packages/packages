@@ -1,6 +1,6 @@
 # xiom-inline-asm
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Inline assembly support with operand constraints.
 > **Deps:** stdlib; may wrap C (FFI).
 

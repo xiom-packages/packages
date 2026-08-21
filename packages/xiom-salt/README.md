@@ -1,6 +1,6 @@
 # xiom-salt
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Remote execution and configuration management (states, pillars, minions).
 > **Deps:** stdlib; may wrap C (FFI).
 

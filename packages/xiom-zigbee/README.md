@@ -1,6 +1,6 @@
 # xiom-zigbee
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Zigbee network formation, joining, and application messaging.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,6 +1,6 @@
 # xiom-alerting
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Alert rules, evaluation, deduplication, and notification routing.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -7,32 +7,32 @@ XIOM-UI is an immediate-mode GUI (IMGUI) library for the XIOM programming langua
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────┐
-│                   Application                    │
-│  (src/application.xi — UIApp lifecycle)          │
-├──────────────┬──────────────────┬───────────────┤
-│   Widgets    │     Layout       │    Theme      │
-│ (widgets.xi) │  (layout.xi)    │  (theme.xi)   │
-├──────────────┴──────────────────┴───────────────┤
-│                Render Commands                   │
-│           (src/render.xi — RenderList)           │
-├─────────────────────────────────────────────────┤
-│               Core Types                         │
-│           (src/types.xi — Rect, Color, etc.)     │
-└─────────────────────────────────────────────────┘
-                         │
-                         ▼
-              ┌─────────────────────┐
-              │   FFI Backend       │
-              │ (GLFW + Vulkan/GL)  │
-              └─────────────────────┘
++-------------------------------------------------+
+|                   Application                    |
+|  (src/application.xi -- UIApp lifecycle)          |
+|--------------+------------------+---------------|
+|   Widgets    |     Layout       |    Theme      |
+| (widgets.xi) |  (layout.xi)    |  (theme.xi)   |
+|--------------+------------------+---------------|
+|                Render Commands                   |
+|           (src/render.xi -- RenderList)           |
+|-------------------------------------------------|
+|               Core Types                         |
+|           (src/types.xi -- Rect, Color, etc.)     |
+`-------------------------------------------------+
+                         |
+                         v
+              +---------------------+
+              |   FFI Backend       |
+              | (GLFW + Vulkan/GL)  |
+              `---------------------+
 ```
 
 ### Module Dependencies
 
 | Module | Depends On | Description |
 |--------|-----------|-------------|
-| `xiom.ui.types` | — | Core geometry, input, and color types |
+| `xiom.ui.types` | -- | Core geometry, input, and color types |
 | `xiom.ui.layout` | `types` | Flexbox-like immediate-mode layout engine |
 | `xiom.ui.widgets` | `types` | Widget state types (button, checkbox, etc.) |
 | `xiom.ui.render` | `types` | Platform-agnostic render command list |
@@ -44,11 +44,11 @@ XIOM-UI is an immediate-mode GUI (IMGUI) library for the XIOM programming langua
 
 ### Geometry
 
-- **Rect** — Rectangle with `(x, y, w, h)` in Float32
-- **Point** — 2D point `(x, y)` in Float32
-- **Size** — Dimensions `(w, h)` in Float32
-- **Padding** — Edges `(top, right, bottom, left)` in Float32
-- **Margin** — Edges `(top, right, bottom, left)` in Float32
+- **Rect** -- Rectangle with `(x, y, w, h)` in Float32
+- **Point** -- 2D point `(x, y)` in Float32
+- **Size** -- Dimensions `(w, h)` in Float32
+- **Padding** -- Edges `(top, right, bottom, left)` in Float32
+- **Margin** -- Edges `(top, right, bottom, left)` in Float32
 
 ### Color
 
@@ -64,10 +64,10 @@ RGBA color with Float32 components in range `[0.0, 1.0]`. Predefined constants: 
 ### Input
 
 **InputState** captures per-frame input:
-- `mouse_x`, `mouse_y` — cursor position
-- `mouse_down` — `Vec[Bool]` indexed by MouseButton ordinal
-- `keys_down` — `Vec[Int]` of currently pressed key codes
-- `scroll` — scroll delta
+- `mouse_x`, `mouse_y` -- cursor position
+- `mouse_down` -- `Vec[Bool]` indexed by MouseButton ordinal
+- `keys_down` -- `Vec[Int]` of currently pressed key codes
+- `scroll` -- scroll delta
 
 ## Widget Catalog (widgets.xi)
 
@@ -119,12 +119,12 @@ A cursor-based immediate-mode layout engine. The context maintains:
 
 Platform-agnostic enum:
 
-- `RectCmd(rect, color)` — filled rectangle
-- `TextCmd(text, pos, color, size)` — text label
-- `CircleCmd(center, radius, color)` — filled circle
-- `LineCmd(start, end, color, width)` — line segment
-- `ImageCmd(rect, image_id)` — textured quad
-- `ClipCmd(rect)` — scissor/clip rect
+- `RectCmd(rect, color)` -- filled rectangle
+- `TextCmd(text, pos, color, size)` -- text label
+- `CircleCmd(center, radius, color)` -- filled circle
+- `LineCmd(start, end, color, width)` -- line segment
+- `ImageCmd(rect, image_id)` -- textured quad
+- `ClipCmd(rect)` -- scissor/clip rect
 
 ### RenderList
 
@@ -203,12 +203,12 @@ To render XIOM-UI, a backend must implement:
 1. Set up rendering context (swapchain, shaders, vertex buffers)
 2. At end of frame, iterate `app.render_list.commands`
 3. Translate each `RenderCommand` variant to draw calls:
-   - `RectCmd` → draw filled quad (optionally with rounded corners from `theme.corner_radius`)
-   - `TextCmd` → rasterize glyphs via stb_truetype or similar, draw textured quads
-   - `CircleCmd` → draw filled circle via triangle fan
-   - `LineCmd` → draw line strip
-   - `ImageCmd` → draw textured quad from image atlas
-   - `ClipCmd` → set scissor rectangle
+   - `RectCmd` -> draw filled quad (optionally with rounded corners from `theme.corner_radius`)
+   - `TextCmd` -> rasterize glyphs via stb_truetype or similar, draw textured quads
+   - `CircleCmd` -> draw filled circle via triangle fan
+   - `LineCmd` -> draw line strip
+   - `ImageCmd` -> draw textured quad from image atlas
+   - `ClipCmd` -> set scissor rectangle
 4. Present the frame
 
 ### Example Integration (conceptual)
@@ -239,11 +239,11 @@ fn run_app(title: Str, w: Float32, h: Float32) -> Result[Unit, Str] {
 
 Three reference implementations:
 
-1. **demo_counter_app()** — Button click increments a counter. Demonstrates basic widget interaction and immediate-mode state tracking.
+1. **demo_counter_app()** -- Button click increments a counter. Demonstrates basic widget interaction and immediate-mode state tracking.
 
-2. **demo_form()** — Form with text fields (Name, Email), checkbox (Subscribe), slider (Volume), and submit button. Demonstrates multiple widget types in a form layout.
+2. **demo_form()** -- Form with text fields (Name, Email), checkbox (Subscribe), slider (Volume), and submit button. Demonstrates multiple widget types in a form layout.
 
-3. **demo_layout()** — Layout engine showcase with `layout_row` (3 columns), `layout_column` (3 rows), and `layout_grid` (4×2). Demonstrates nested layout capabilities with colored regions.
+3. **demo_layout()** -- Layout engine showcase with `layout_row` (3 columns), `layout_column` (3 rows), and `layout_grid` (4x2). Demonstrates nested layout capabilities with colored regions.
 
 ## Future Enhancements
 

@@ -1,4 +1,4 @@
-// XIOM — GLFW Bindings v0.2.0 (Production — v0.49.5: newtypes + Float32 fix)
+// XIOM -- GLFW Bindings v0.2.0 (Production -- v0.49.5: newtypes + Float32 fix)
 // Standalone package. Zero Vulkan dependency. All functions have contracts.
 
 module xiom.glwf
@@ -23,18 +23,18 @@ extern "C" {
   fn glfw_bridge_get_error() -> Str;
 }
 
-// ── Newtypes (v0.49.5: auto-convert to Int) ────────────────────────────────
+// -- Newtypes (v0.49.5: auto-convert to Int) --------------------------------
 pub type Window  = Int;
 pub type Monitor = Int;
 
-// ── Lifecycle ──
+// -- Lifecycle --
 pub fn glfw_init() -> Bool
 { return unsafe { glfw_bridge_init() != 0 }; }
 
 pub fn glfw_terminate()
 { unsafe { glfw_bridge_terminate(); }; }
 
-// ── Window ──
+// -- Window --
 pub fn glfw_create_window(title: Str, w: Int, h: Int) -> Result[Window, Str]
   requires: title.len() > 0; requires: w > 0; requires: h > 0
 {
@@ -52,7 +52,7 @@ pub fn glfw_should_close(win: Window) -> Bool requires: win != 0
 pub fn glfw_set_title(win: Window, title: Str) requires: win != 0
 { unsafe { glfw_bridge_set_window_title(win, title); }; }
 
-// ── Size ──
+// -- Size --
 pub fn glfw_get_framebuffer_size(win: Window) -> (Int, Int) requires: win != 0
 {
   var fw: Int32 = 0; var fh: Int32 = 0;
@@ -67,7 +67,7 @@ pub fn glfw_get_window_size(win: Window) -> (Int, Int) requires: win != 0
   return (w as Int, h as Int);
 }
 
-// ── Input ──
+// -- Input --
 pub fn glfw_poll_events()
 { unsafe { glfw_bridge_poll_events(); }; }
 
@@ -84,7 +84,7 @@ pub fn glfw_get_cursor_pos(win: Window) -> (Float32, Float32) requires: win != 0
   return (x, y);
 }
 
-// ── Monitors ──
+// -- Monitors --
 pub fn glfw_get_primary_monitor() -> Monitor
 { return unsafe { glfw_bridge_get_primary_monitor() }; }
 
@@ -95,7 +95,7 @@ pub fn glfw_get_video_mode(monitor: Monitor) -> (Int, Int, Int) requires: monito
   return (w as Int, h as Int, r as Int);
 }
 
-// ── Fullscreen ──
+// -- Fullscreen --
 pub fn glfw_set_fullscreen(win: Window, monitor: Monitor, w: Int, h: Int, refresh: Int) requires: win != 0
 { unsafe { glfw_bridge_set_window_monitor(win, monitor, 0, 0, w as Int32, h as Int32, refresh as Int32); }; }
 

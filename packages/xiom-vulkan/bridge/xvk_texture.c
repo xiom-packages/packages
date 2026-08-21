@@ -153,7 +153,7 @@ static void generate_mipmaps(VkCommandBuffer cb, VkImage img,
             VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
             0, 0, NULL, 0, NULL, 1, &barrier);
 
-        /* Blit mip i-1 → mip i */
+        /* Blit mip i-1 -> mip i */
         VkImageBlit blit = {0};
         blit.srcSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
         blit.srcSubresource.mipLevel       = i - 1;
@@ -307,13 +307,13 @@ int64_t xvk_texture_create(int64_t device, int64_t physical_device,
 
         if (vkBeginCommandBuffer(cb, &cbbi) != VK_SUCCESS) goto fail_gpu;
 
-        /* Transition UNDEFINED → TRANSFER_DST (all mips) */
+        /* Transition UNDEFINED -> TRANSFER_DST (all mips) */
         transition_layout(cb, gpu_image,
             VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             0, mip_levels, 0, VK_ACCESS_TRANSFER_WRITE_BIT,
             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
-        /* Copy staging buffer → image mip 0 */
+        /* Copy staging buffer -> image mip 0 */
         VkBufferImageCopy copy_region = {0};
         copy_region.bufferOffset                    = 0;
         copy_region.bufferRowLength                 = 0;
@@ -329,10 +329,10 @@ int64_t xvk_texture_create(int64_t device, int64_t physical_device,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
 
         if (generate_mips) {
-            /* Mip 0 is already in TRANSFER_DST — generate mipmaps (handles transitions internally) */
+            /* Mip 0 is already in TRANSFER_DST -- generate mipmaps (handles transitions internally) */
             generate_mipmaps(cb, gpu_image, (uint32_t)width, (uint32_t)height, mip_levels);
         } else {
-            /* Transition mip 0: TRANSFER_DST → SHADER_READ_ONLY */
+            /* Transition mip 0: TRANSFER_DST -> SHADER_READ_ONLY */
             transition_layout(cb, gpu_image,
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                 0, 1, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,

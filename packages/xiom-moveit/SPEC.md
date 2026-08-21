@@ -1,9 +1,9 @@
-# xiom-moveit — SPEC
+# xiom-moveit -- SPEC
 
 **Phase**: 3 (Robotics) | **Priority**: Medium
 **Status**: Implemented | **Depends on**: xiom.ffi
 
-MoveIt — Motion planning framework. System-installed. Week effort.
+MoveIt -- Motion planning framework. System-installed. Week effort.
 
 ## Files
 
@@ -12,14 +12,14 @@ MoveIt — Motion planning framework. System-installed. Week effort.
 | `moveit.xi` | 237 | Core module: 4 types, 10 extern "C" FFI declarations, 13 safe wrapper functions |
 | `tests/test_conformance.xi` | 274 | 16 conformance tests across 6 sections |
 | `ROADMAP.md` | 54 | Roadmap and next steps |
-| `SPEC.md` | — | This file |
+| `SPEC.md` | -- | This file |
 
 ## Types (4)
 
-- `RobotModel` — opaque handle (Int)
-- `PlanningScene` — opaque handle (Int)
-- `MotionPlan` — opaque handle (Int)
-- `CollisionObject` — opaque handle (Int)
+- `RobotModel` -- opaque handle (Int)
+- `PlanningScene` -- opaque handle (Int)
+- `MotionPlan` -- opaque handle (Int)
+- `CollisionObject` -- opaque handle (Int)
 
 ## Constants (6)
 

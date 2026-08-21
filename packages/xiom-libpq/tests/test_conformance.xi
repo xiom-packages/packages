@@ -1,4 +1,4 @@
-// XIOM — libpq Conformance Test Suite
+// XIOM -- libpq Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -7,7 +7,7 @@
 
 module libpq_conformance_tests
 
-// ── Inline test helpers ────────────────────────────────────────────────────
+// -- Inline test helpers ----------------------------------------------------
 
 fn assert(condition: Bool, name: Str) -> Int
   requires: name.len() > 0
@@ -30,7 +30,7 @@ fn assert_err(is_ok: Bool, name: Str) -> Int
   return 1;
 }
 
-// ── Type-level tests ───────────────────────────────────────────────────────
+// -- Type-level tests -------------------------------------------------------
 
 fn test_type_constants_defined() -> Int {
   let ok = libpq.CONNECTION_OK == 0 && libpq.CONNECTION_BAD == 1 && libpq.PGRES_EMPTY_QUERY == 0 && libpq.PGRES_COMMAND_OK == 1 && libpq.PGRES_TUPLES_OK == 2 && libpq.PGRES_FATAL_ERROR == 7;
@@ -49,7 +49,7 @@ fn test_pgres_tuples_ok_is_two() -> Int {
   return assert_eq_int(libpq.PGRES_TUPLES_OK, 2, "PGRES_TUPLES_OK equals 2");
 }
 
-// ── Connection error-path tests ────────────────────────────────────────────
+// -- Connection error-path tests --------------------------------------------
 
 fn test_connect_returns_err_in_stub_mode() -> Int {
   let result = libpq.connect("host=localhost dbname=test user=postgres");
@@ -76,7 +76,7 @@ fn test_error_message_returns_nonempty_str() -> Int {
   return assert(msg.len() > 0, "error_message returns non-empty string in stub mode");
 }
 
-// ── Query execution error-path tests ───────────────────────────────────────
+// -- Query execution error-path tests ---------------------------------------
 
 fn test_exec_returns_err_in_stub_mode() -> Int {
   let result = libpq.exec(1, "SELECT 1");
@@ -103,7 +103,7 @@ fn test_exec_params_with_multiple_params_returns_err() -> Int {
   return assert_err(result.is_ok, "exec_params with multiple params returns Err in stub mode");
 }
 
-// ── Result parsing stub tests ──────────────────────────────────────────────
+// -- Result parsing stub tests ----------------------------------------------
 
 fn test_ntuples_returns_zero_in_stub_mode() -> Int {
   return assert_eq_int(libpq.ntuples(1), 0, "ntuples returns 0 in stub mode");
@@ -133,7 +133,7 @@ fn test_clear_with_nonzero_res_is_noop() -> Int {
   return 0;
 }
 
-// ── Async/non-blocking stub tests ──────────────────────────────────────────
+// -- Async/non-blocking stub tests ------------------------------------------
 
 fn test_send_query_returns_err_in_stub_mode() -> Int {
   let result = libpq.send_query(1, "SELECT 1");
@@ -155,7 +155,7 @@ fn test_is_busy_returns_false_in_stub_mode() -> Int {
   return assert(!busy, "is_busy returns false in stub mode");
 }
 
-// ── Transaction helper stub tests ──────────────────────────────────────────
+// -- Transaction helper stub tests ------------------------------------------
 
 fn test_begin_returns_err_in_stub_mode() -> Int {
   let result = libpq.begin(1);
@@ -172,7 +172,7 @@ fn test_rollback_returns_err_in_stub_mode() -> Int {
   return assert_err(result.is_ok, "rollback returns Err (delegates to exec) in stub mode");
 }
 
-// ── Transaction composition test ───────────────────────────────────────────
+// -- Transaction composition test -------------------------------------------
 
 fn test_full_transaction_cycle_returns_err() -> Int {
   let begin_r = libpq.begin(1);
@@ -182,14 +182,14 @@ fn test_full_transaction_cycle_returns_err() -> Int {
   return assert(all_err, "full transaction cycle returns all Err in stub mode");
 }
 
-// ── Multiple-result round-trip test (stub path) ────────────────────────────
+// -- Multiple-result round-trip test (stub path) ----------------------------
 
 fn test_exec_to_parse_roundtrip_stub() -> Int {
   let res = libpq.exec(1, "SELECT 1");
   return assert(!res.is_ok, "exec->parse round-trip: exec returns Err in stub mode");
 }
 
-// ── Smoke: all non-result functions are callable ───────────────────────────
+// -- Smoke: all non-result functions are callable ---------------------------
 
 fn test_smoke_all_nonresult_callable() -> Int {
   libpq.close(1);
@@ -206,7 +206,7 @@ fn test_smoke_all_nonresult_callable() -> Int {
   return assert(ok, "all non-Result functions are callable and return defaults");
 }
 
-// ── Smoke: all Result-returning functions return Err ───────────────────────
+// -- Smoke: all Result-returning functions return Err -----------------------
 
 fn test_smoke_all_result_funcs_return_err() -> Int {
   var params: Vec[Str] = Vec[Str].new();
@@ -224,7 +224,7 @@ fn test_smoke_all_result_funcs_return_err() -> Int {
   return assert(all_err, "all 9 Result-returning functions return Err in stub mode");
 }
 
-// ── Test runner ────────────────────────────────────────────────────────────
+// -- Test runner ------------------------------------------------------------
 
 pub fn run_all_tests() -> Int {
   var failures: Int = 0;

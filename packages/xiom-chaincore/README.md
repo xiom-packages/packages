@@ -1,6 +1,6 @@
 # xiom-chaincore
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Core blockchain data structures and chain primitives.
 > **Deps:** stdlib; may wrap C (FFI).
 

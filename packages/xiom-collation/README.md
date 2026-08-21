@@ -1,6 +1,6 @@
 # xiom-collation
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Locale-aware string comparison and sorting according to Unicode collation rules.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,4 +1,4 @@
-// XIOM — SciPy Bridge Conformance Tests
+// XIOM -- SciPy Bridge Conformance Tests
 // Validates public API of xiom.scipy with contract verification.
 // Pure-XIOM stats functions are fully tested; FFI-dependent functions
 // have stub/error-path tests.
@@ -10,9 +10,9 @@ module conformance_tests
 use xiom.test;
 use xiom.scipy;
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 1 — Type construction (1 test)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 1 -- Type construction (1 test)
+// ===============================================================================
 
 fn test_type_scipy_result_default() -> TestResult {
   let r = scipy_result_default();
@@ -32,16 +32,16 @@ fn test_type_scipy_result_not_converged() -> TestResult {
   return test.assert(!result_converged(&r), "types: result_converged false on default failure");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 2 — norm_pdf (pure-XIOM) (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 2 -- norm_pdf (pure-XIOM) (4 tests)
+// ===============================================================================
 
 fn test_norm_pdf_zero() -> TestResult {
   let v = norm_pdf(0.0);
   let expected: Float64 = 0.3989422804014327;   // 1 / sqrt(2 * pi)
   let diff = v - expected;
   if diff < 0.0 { diff = -diff; };
-  return test.assert(diff < 1e-9, "stats: norm_pdf(0) == 1/sqrt(2π)");
+  return test.assert(diff < 1e-9, "stats: norm_pdf(0) == 1/sqrt(2pi)");
 }
 
 fn test_norm_pdf_symmetry() -> TestResult {
@@ -49,7 +49,7 @@ fn test_norm_pdf_symmetry() -> TestResult {
   let b = norm_pdf(-2.0);
   let diff = a - b;
   if diff < 0.0 { diff = -diff; };
-  return test.assert(diff < 1e-9, "stats: norm_pdf is symmetric: φ(x) == φ(-x)");
+  return test.assert(diff < 1e-9, "stats: norm_pdf is symmetric: phi(x) == phi(-x)");
 }
 
 fn test_norm_pdf_always_nonnegative() -> TestResult {
@@ -64,7 +64,7 @@ fn test_norm_pdf_always_nonnegative() -> TestResult {
 }
 
 fn test_norm_pdf_max_bound() -> TestResult {
-  // φ(x) ≤ φ(0) for all x (standard normal peaks at mean)
+  // phi(x) <= phi(0) for all x (standard normal peaks at mean)
   let max_val = norm_pdf(0.0);
   let v1 = norm_pdf(1.0);
   let v2 = norm_pdf(3.0);
@@ -75,9 +75,9 @@ fn test_norm_pdf_max_bound() -> TestResult {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 3 — norm_cdf (pure-XIOM) (6 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 3 -- norm_cdf (pure-XIOM) (6 tests)
+// ===============================================================================
 
 fn test_norm_cdf_zero() -> TestResult {
   let v = norm_cdf(0.0);
@@ -92,7 +92,7 @@ fn test_norm_cdf_symmetry() -> TestResult {
   let sum = a + b;
   let diff = sum - 1.0;
   if diff < 0.0 { diff = -diff; };
-  return test.assert(diff < 1e-3, "stats: Φ(-x) + Φ(x) == 1 (symmetry)");
+  return test.assert(diff < 1e-3, "stats: Phi(-x) + Phi(x) == 1 (symmetry)");
 }
 
 fn test_norm_cdf_bounds() -> TestResult {
@@ -120,17 +120,17 @@ fn test_norm_cdf_monotonic() -> TestResult {
 
 fn test_norm_cdf_left_tail() -> TestResult {
   let v = norm_cdf(-8.0);
-  return test.assert(v < 0.01, "stats: norm_cdf(-8) ≈ 0 (left tail)");
+  return test.assert(v < 0.01, "stats: norm_cdf(-8) ~= 0 (left tail)");
 }
 
 fn test_norm_cdf_right_tail() -> TestResult {
   let v = norm_cdf(8.0);
-  return test.assert(v > 0.99, "stats: norm_cdf(8) ≈ 1 (right tail)");
+  return test.assert(v > 0.99, "stats: norm_cdf(8) ~= 1 (right tail)");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 4 — norm_pdf_vec / norm_cdf_vec (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 4 -- norm_pdf_vec / norm_cdf_vec (2 tests)
+// ===============================================================================
 
 fn test_norm_pdf_vec_length() -> TestResult {
   var x = Vec[Float64].new();
@@ -157,15 +157,15 @@ fn test_norm_cdf_vec_length() -> TestResult {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 5 — norm_ppf (pure-XIOM quantile) (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 5 -- norm_ppf (pure-XIOM quantile) (3 tests)
+// ===============================================================================
 
 fn test_norm_ppf_median() -> TestResult {
   let v = norm_ppf(0.5);
   let diff = v - 0.0;
   if diff < 0.0 { diff = -diff; };
-  return test.assert(diff < 0.01, "stats: norm_ppf(0.5) ≈ 0 (median)");
+  return test.assert(diff < 0.01, "stats: norm_ppf(0.5) ~= 0 (median)");
 }
 
 fn test_norm_ppf_symmetry() -> TestResult {
@@ -173,7 +173,7 @@ fn test_norm_ppf_symmetry() -> TestResult {
   let b = norm_ppf(0.975);
   let sum = a + b;
   if sum < 0.0 { sum = -sum; };
-  return test.assert(sum < 0.1, "stats: norm_ppf(α) + norm_ppf(1-α) ≈ 0 (symmetry)");
+  return test.assert(sum < 0.1, "stats: norm_ppf(alpha) + norm_ppf(1-alpha) ~= 0 (symmetry)");
 }
 
 fn test_norm_ppf_cdf_roundtrip() -> TestResult {
@@ -182,12 +182,12 @@ fn test_norm_ppf_cdf_roundtrip() -> TestResult {
   let c = norm_cdf(z);
   let diff = c - p;
   if diff < 0.0 { diff = -diff; };
-  return test.assert(diff < 0.02, "stats: norm_cdf(norm_ppf(p)) ≈ p (roundtrip)");
+  return test.assert(diff < 0.02, "stats: norm_cdf(norm_ppf(p)) ~= p (roundtrip)");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 6 — Safe wrapper contract validation (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 6 -- Safe wrapper contract validation (3 tests)
+// ===============================================================================
 
 fn test_quad_contract_rejects_invalid() -> TestResult {
   let f = fn(x: Float64) -> Float64 { return x; };
@@ -201,7 +201,7 @@ fn test_interp_linear_length_mismatch() -> TestResult {
   x.push(1.0);
   var y = Vec[Float64].new();
   y.push(0.0);
-  // x.len()=2, y.len()=1 — mismatch
+  // x.len()=2, y.len()=1 -- mismatch
   let r = interp_linear(&x, &y, 0.5);
   return test.assert(r.is_err(), "contract: interp_linear rejects x/y length mismatch");
 }
@@ -215,13 +215,13 @@ fn test_interp_linear_too_few_points() -> TestResult {
   return test.assert(r.is_err(), "contract: interp_linear rejects < 2 points");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 7 — FFI stub compile-time presence (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 7 -- FFI stub compile-time presence (2 tests)
+// ===============================================================================
 
 fn test_ffi_signatures_present() -> TestResult {
   // Verify that all 10 extern "C" function signatures exist at compile time.
-  // These are compile-time only — they reference symbols that may not be
+  // These are compile-time only -- they reference symbols that may not be
   // linked unless the SciPy C backend is available.
   let ok = true;
   // Existence check: the module compiled successfully with all 10 extern fns.
@@ -230,7 +230,7 @@ fn test_ffi_signatures_present() -> TestResult {
 
 fn test_safe_wrappers_return_errors_without_backend() -> TestResult {
   // When the SciPy C backend is not linked, safe wrappers should fail gracefully.
-  // The FFI calls are stubs — in a real linked environment they'd succeed.
+  // The FFI calls are stubs -- in a real linked environment they'd succeed.
   var x = Vec[Float64].new();
   x.push(0.0);
   x.push(1.0);
@@ -243,9 +243,9 @@ fn test_safe_wrappers_return_errors_without_backend() -> TestResult {
   return test.assert(compiles, "ffi: interp_cubic Result type compiles correctly");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 8 — Edge cases / stress (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 8 -- Edge cases / stress (2 tests)
+// ===============================================================================
 
 fn test_norm_pdf_large_values() -> TestResult {
   // Very large |x| should produce near-zero PDF without overflow.
@@ -254,16 +254,16 @@ fn test_norm_pdf_large_values() -> TestResult {
 }
 
 fn test_norm_cdf_continuous_at_origin() -> TestResult {
-  // CDF should be continuous — values on either side of 0 close to 0.5.
+  // CDF should be continuous -- values on either side of 0 close to 0.5.
   let left = norm_cdf(-0.001);
   let right = norm_cdf(0.001);
   let gap = right - left;
   return test.assert(gap < 0.01, "stats: norm_cdf is continuous near x=0");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Main — test dispatch
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Main -- test dispatch
+// ===============================================================================
 
 fn main() -> Int {
   var tests = [

@@ -1,4 +1,4 @@
-# xiom-openssl — ROADMAP
+# xiom-openssl -- ROADMAP
 
 **Phase**: 4 (Enterprise) | **Priority**: Medium  
 **Status**: SPEC implemented, pending runtime integration  
@@ -6,7 +6,7 @@
 
 ## Implemented (v0.1)
 
-- [x] `openssl.xi` — core module `xiom.openssl`
+- [x] `openssl.xi` -- core module `xiom.openssl`
   - [x] Opaque types: `SslContext`, `SslConnection`, `SslBio` (all `Int`)
   - [x] Error type: `SslError { code: Int; message: Str }`
   - [x] extern "C" block: 20 OpenSSL functions declared
@@ -22,7 +22,7 @@
     - `get_error_code()`, `get_error_string(error_code)`
     - `sha256(data)`, `evp_md_ctx_new()`
     - `bio_new_connect(host, port)`, `bio_read(bio, buf)`, `bio_write(bio, data)`, `bio_free(bio)`
-- [x] `tests/test_conformance.xi` — 21 structural tests
+- [x] `tests/test_conformance.xi` -- 21 structural tests
   - 5 type-identity tests
   - 15 contract-clause-verification tests
   - 1 error-construction test
@@ -49,6 +49,6 @@
 
 ## Known Limitations
 
-- All handle types are typed `Int` — no compiler-level distinction between `SslContext`, `SslConnection`, `SslBio` at the type level (same as `TcpStream`, `TcpListener` in `xiom.net`)
-- Contracts are compile-time: `requires(host.len() > 0)` and `requires(port > 0)` are verified by `xiom` but do not generate runtime checks (by design — v0.49 contract semantics)
+- All handle types are typed `Int` -- no compiler-level distinction between `SslContext`, `SslConnection`, `SslBio` at the type level (same as `TcpStream`, `TcpListener` in `xiom.net`)
+- Contracts are compile-time: `requires(host.len() > 0)` and `requires(port > 0)` are verified by `xiom` but do not generate runtime checks (by design -- v0.49 contract semantics)
 - Tests are structural only; runtime tests require a linked OpenSSL shared library

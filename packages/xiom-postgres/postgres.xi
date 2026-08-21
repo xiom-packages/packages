@@ -16,7 +16,7 @@ pub type QueryResult = {
 pub fn connect(conn_string: Str) -> Result[Connection, Str]
   requires: conn_string.len() > 0
 {
-  return Err("xiom-postgres: libpq FFI bridge not linked — PQconnectdb requires native runtime");
+  return Err("xiom-postgres: libpq FFI bridge not linked -- PQconnectdb requires native runtime");
 }
 
 pub fn disconnect(conn: Connection)

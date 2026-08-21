@@ -1,4 +1,4 @@
-// XIOM — SQL Library Conformance Tests
+// XIOM -- SQL Library Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 

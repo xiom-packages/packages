@@ -1,6 +1,6 @@
 # xiom-sensor Specification
 
-Sensor fusion library for XIOM — IMU orientation computation, GPS navigation, pose fusion, and sensor calibration.
+Sensor fusion library for XIOM -- IMU orientation computation, GPS navigation, pose fusion, and sensor calibration.
 
 ---
 
@@ -32,7 +32,7 @@ Sensor fusion library for XIOM — IMU orientation computation, GPS navigation, 
 ### Algorithm: `imu_compute_orientation`
 
 1. Normalize accelerometer vector
-2. Compute roll = `atan2(ay, az)`, pitch = `atan2(-ax, sqrt(ay² + az²))`
+2. Compute roll = `atan2(ay, az)`, pitch = `atan2(-ax, sqrt(ay2 + az2))`
 3. Normalize magnetometer vector
 4. Tilt-compensate magnetometer using roll and pitch
 5. Compute yaw = `atan2(-mag_y_tilt, mag_x_tilt)`
@@ -65,7 +65,7 @@ Sensor fusion library for XIOM — IMU orientation computation, GPS navigation, 
 - **Haversine distance**: Great-circle distance with 6,371 km Earth radius
 - **Bearing**: Forward azimuth between two points
 - **Destination**: Direct geodesic problem (spherical Earth)
-- **UTM**: Full WGS84 ↔ UTM conversion with zone detection, false easting/northing
+- **UTM**: Full WGS84 <-> UTM conversion with zone detection, false easting/northing
 
 ---
 
@@ -99,7 +99,7 @@ Combines IMU orientation with GPS position using a weighted blend controlled by 
 ### Algorithm: Dead Reckoning
 
 ```
-heading_rad = heading * π/180
+heading_rad = heading * pi/180
 new_lat = lat + (v * cos(heading) * dt) / R_earth
 new_lon = lon + (v * sin(heading) * dt) / (R_earth * cos(lat))
 confidence *= 0.95
@@ -159,9 +159,9 @@ fn main() {
 
 ## Design Notes
 
-- **No FFI**: All algorithms are pure XIOM — no hardware/FFI dependencies
+- **No FFI**: All algorithms are pure XIOM -- no hardware/FFI dependencies
 - **No generics**: Concrete `Float64` and `Int` types throughout
 - **While loops only**: No `for` loops per XIOM language constraints
 - **Quaternion math**: Full Hamilton product, conjugation, normalization, and vector rotation
-- **UTM**: Complete WGS84 ↔ UTM conversion with zone auto-detection including Norway/Svalbard exceptions
+- **UTM**: Complete WGS84 <-> UTM conversion with zone auto-detection including Norway/Svalbard exceptions
 - **No silent failures**: All edge cases handled (zero vectors, invalid GPS fixes, empty sample sets)

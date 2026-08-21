@@ -1,6 +1,6 @@
 # xiom-terraform
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Infrastructure-as-code workflows (configuration, plan, apply, state, providers).
 > **Deps:** stdlib; may wrap C (FFI).
 

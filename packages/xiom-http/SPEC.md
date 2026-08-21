@@ -1,4 +1,4 @@
-# xiom-http — XIOM HTTP Library Specification
+# xiom-http -- XIOM HTTP Library Specification
 
 ## Overview
 
@@ -11,8 +11,8 @@
 Core HTTP protocol data types and serialization.
 
 **Enums:**
-- `HttpMethod` — GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
-- `HttpVersion` — HTTP09, HTTP10, HTTP11, HTTP20
+- `HttpMethod` -- GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
+- `HttpVersion` -- HTTP09, HTTP10, HTTP11, HTTP20
 
 **Structs:**
 - `HttpHeader { name: Str; value: Str; }`
@@ -71,7 +71,7 @@ HTTP status code classification and reason phrases.
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `http_status_text` | `(code: Int) -> Str` | Reason phrase (e.g. 200→"OK") |
+| `http_status_text` | `(code: Int) -> Str` | Reason phrase (e.g. 200->"OK") |
 | `http_is_success` | `(code: Int) -> Bool` | 2xx range |
 | `http_is_redirect` | `(code: Int) -> Bool` | 3xx range |
 | `http_is_client_error` | `(code: Int) -> Bool` | 4xx range |
@@ -88,7 +88,7 @@ MIME type mapping from file extensions.
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `mime_from_ext` | `(ext: Str) -> MimeType` | .html→text/html, .json→application/json, etc. |
+| `mime_from_ext` | `(ext: Str) -> MimeType` | .html->text/html, .json->application/json, etc. |
 | `mime_to_str` | `(mime: &MimeType) -> Str` | Format as "type/subtype" |
 
 **Covered extensions:** html/css/js/json/xml/png/jpg/gif/svg/pdf/txt/csv/zip/mp3/mp4/wasm/woff/woff2/ico/webp/ogg
@@ -167,7 +167,7 @@ High-level HTTP client that delegates to `xiom.http` functions with `Vec[Int]` b
 1. Serialize `Url` to string via internal `url_to_str`
 2. Convert `request.body` (`Vec[Int]`) to `Str`
 3. Extract `Content-Type` from `request.headers`
-4. Dispatch: GET→http_get, POST→http_post, PUT→http_put, DELETE→http_delete, PATCH→http_post with JSON content type, HEAD/OPTIONS→http_get
+4. Dispatch: GET->http_get, POST->http_post, PUT->http_put, DELETE->http_delete, PATCH->http_post with JSON content type, HEAD/OPTIONS->http_get
 
 ### `xiom.http.demo` (`src/demo.xi`)
 
@@ -216,7 +216,7 @@ sudo dnf install libcurl-devel
 ```bash
 brew install curl
 # If XIOM links against system curl:
-# No extra steps — macOS ships libcurl.
+# No extra steps -- macOS ships libcurl.
 ```
 
 #### Windows
@@ -260,8 +260,8 @@ The libcurl FFI layer requires the following runtime features from XIOM's C inte
 | `Str.c_str()` | Available | Converts XIOM `Str` to null-terminated `*UInt8` |
 | `Str.from_c_str(ptr)` | Available | Creates XIOM `Str` from C string pointer |
 | `as Int` pointer cast | Required | Casts `*UInt8` pointer to `Int` for passing through `curl_easy_setopt` (Int API surface) |
-| `malloc` / `free` | Available | Via `xiom.ffi` — used for response code extraction buffer |
-| Temp file I/O | Available | `fopen`/`fclose`/`fread`/`fwrite`/`fseek`/`ftell`/`remove` — used for response body and header capture |
+| `malloc` / `free` | Available | Via `xiom.ffi` -- used for response code extraction buffer |
+| Temp file I/O | Available | `fopen`/`fclose`/`fread`/`fwrite`/`fseek`/`ftell`/`remove` -- used for response body and header capture |
 | `curl_slist_append` | Not yet wired | Required for custom request headers (`CURLOPT_HTTPHEADER`). POST with Content-Type falls back to libcurl defaults until this is available. |
 | Function pointer callbacks | Not yet wired | `CURLOPT_WRITEFUNCTION` and `CURLOPT_HEADERFUNCTION` are not used; file-based capture via `CURLOPT_WRITEDATA`/`CURLOPT_HEADERDATA` with default `fwrite` callback is used instead. |
 
@@ -330,19 +330,19 @@ Client and server stubs in `src/client.xi` and `src/server.xi` delegate to `xiom
 
 ## Roadmap / Planned Core Modules
 
-The modules documented above are the **implemented** surface of `xiom-http`: the libcurl-backed client, HTTP message types, parser, URL, cookie, MIME, and status helpers. The following core modules are **design-stage** — specified in [ARCHITECTURE.md](ARCHITECTURE.md) but not yet built. They are listed here so the spec reflects the intended shape of the lean native core.
+The modules documented above are the **implemented** surface of `xiom-http`: the libcurl-backed client, HTTP message types, parser, URL, cookie, MIME, and status helpers. The following core modules are **design-stage** -- specified in [ARCHITECTURE.md](ARCHITECTURE.md) but not yet built. They are listed here so the spec reflects the intended shape of the lean native core.
 
 | Planned module | Directory | Responsibility | Status |
 |----------------|-----------|----------------|--------|
 | Router | `src/router/` | Method + path matching with typed path params and wildcards; per-module route tables merged explicitly at startup. | Design-stage |
 | Middleware | `src/middleware/` | Onion-model chain with explicit `next` closures; built-in middleware (logger, cors, compress, rate_limit, timeout, recover). | Design-stage |
-| Plugin | `src/plugin/` | Fastify-style scope encapsulation — child scopes inherit from parents but not the reverse; no global mutable app state. | Design-stage |
+| Plugin | `src/plugin/` | Fastify-style scope encapsulation -- child scopes inherit from parents but not the reverse; no global mutable app state. | Design-stage |
 | JSON codec | `src/json/` | Schema-first encode/decode driven by native XIOM types rather than a runtime JSON Schema interpreter. | Design-stage |
 | Contracts | `src/contracts/` | Contract-at-the-edge request/response validation via `requires`/`ensures` at the HTTP boundary. | Design-stage |
 | Static files | `src/static/` | Static file serving with MIME resolution as an explicit module (not implicit-fallthrough middleware). | Design-stage |
 
 ### Native server transport
 
-The planned native server (`src/server.xi` beyond its current stub) will accept connections and dispatch requests through the router and middleware chain using **`xiom-net` (TCP, Layer 3.1)** as its transport — not libcurl. libcurl remains exclusively the **client** transport. This keeps the server free of the libcurl dependency and allows platforms without libcurl to still run a server.
+The planned native server (`src/server.xi` beyond its current stub) will accept connections and dispatch requests through the router and middleware chain using **`xiom-net` (TCP, Layer 3.1)** as its transport -- not libcurl. libcurl remains exclusively the **client** transport. This keeps the server free of the libcurl dependency and allows platforms without libcurl to still run a server.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) → "Current State vs Target" for the full implemented-vs-planned breakdown.
+See [ARCHITECTURE.md](ARCHITECTURE.md) -> "Current State vs Target" for the full implemented-vs-planned breakdown.

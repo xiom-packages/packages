@@ -7,16 +7,16 @@ BLAS/LAPACK FFI bindings for XIOM. Provides high-performance linear algebra via 
 
 ### Layers
 ```
-┌──────────────────────────────────────┐
-│  src/linalg.xi   (Safe XIOM API)     │
-│  Matrix, vector ops with contracts   │
-├──────────────────────────────────────┤
-│  blas.xi         (Raw FFI decls)     │
-│  matmul, matvec, dot, axpy, scal     │
-├──────────────────────────────────────┤
-│  blas.xiom-bind  (C ABI mapping)     │
-│  cblas_dgemm, cblas_ddot, etc.       │
-└──────────────────────────────────────┘
++--------------------------------------+
+|  src/linalg.xi   (Safe XIOM API)     |
+|  Matrix, vector ops with contracts   |
+|--------------------------------------|
+|  blas.xi         (Raw FFI decls)     |
+|  matmul, matvec, dot, axpy, scal     |
+|--------------------------------------|
+|  blas.xiom-bind  (C ABI mapping)     |
+|  cblas_dgemm, cblas_ddot, etc.       |
+`--------------------------------------+
 ```
 
 ### Design Decisions
@@ -62,7 +62,7 @@ Every matrix-producing function enforces:
 | `matrix_multiply(a, b)` | `cblas_dgemm` | `a.cols == b.rows` |
 | `matrix_vector_multiply(m, v)` | `cblas_dgemv` | `m.cols == v.len()` |
 | `vector_dot(a, b)` | `cblas_ddot` | `a.len() == b.len()` |
-| `vector_scale(alpha, v)` | `cblas_dscal` | — |
+| `vector_scale(alpha, v)` | `cblas_dscal` | -- |
 
 ### Pure XIOM Operations
 | Function | Algorithm |
@@ -76,7 +76,7 @@ Every matrix-producing function enforces:
 | `solve_linear_system(a, b)` | Gaussian elimination with partial pivoting |
 
 ## External Dependencies
-- **Runtime:** OpenBLAS — `libopenblas.dll` / `libopenblas.so`
+- **Runtime:** OpenBLAS -- `libopenblas.dll` / `libopenblas.so`
 - **Fallback:** Any CBLAS-compatible library (Netlib BLAS, ATLAS, Intel MKL)
 - **Link flags:** `-l openblas -l lapack`
 

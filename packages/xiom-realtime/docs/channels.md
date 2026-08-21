@@ -1,8 +1,8 @@
 # Channels
 
-> Status: Design stage — specification only, not yet implemented.
+> Status: Design stage -- specification only, not yet implemented.
 
-A **channel** is the top-level abstraction in `xiom-realtime`: a communication *namespace* through which events flow. It is deliberately generic. A channel can back a chat room, a live document session, a presence-only lobby, or a notification stream — the channel does not care what the events mean, only how they are routed to subscribers.
+A **channel** is the top-level abstraction in `xiom-realtime`: a communication *namespace* through which events flow. It is deliberately generic. A channel can back a chat room, a live document session, a presence-only lobby, or a notification stream -- the channel does not care what the events mean, only how they are routed to subscribers.
 
 Channels sit in the **subscription layer** of the three-layer realtime model. They own routing, not persistence and not protocol. When a client subscribes to a channel, the channel becomes responsible for delivering every event emitted on it to that subscriber, subject to authorization and the channel's fan-out policy. The actual bytes-on-the-wire delivery is delegated down to `xiom-websocket` through the WebSocket integration bridge; the channel only decides *who* should receive *what*.
 

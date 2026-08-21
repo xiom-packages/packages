@@ -12,17 +12,17 @@ wrappers on top.
 ### Layers
 
 ```
-┌─────────────────────────────────────────────────┐
-│  XIOM Application (demo_2d, demo_3d, demo_particles, demo_shapes, demo_cubes, …) │
-├─────────────────────────────────────────────────┤
-│  src/wrapper.xi     (VulkanApp, frame_2d/3d/particles) │
-├─────────────────────────────────────────────────┤
-│  vulkan.xi          (extern "C" FFI + safe fns)  │
-├─────────────────────────────────────────────────┤
-│  bridge/xiom_vk_bridge.c/.h  (flat xvk_* C ABI) │
-├─────────────────────────────────────────────────┤
-│  vulkan-1.dll  /  libvulkan.so  /  glfw3         │
-└─────────────────────────────────────────────────┘
++-------------------------------------------------+
+|  XIOM Application (demo_2d, demo_3d, demo_particles, demo_shapes, demo_cubes, ...) |
+|-------------------------------------------------|
+|  src/wrapper.xi     (VulkanApp, frame_2d/3d/particles) |
+|-------------------------------------------------|
+|  vulkan.xi          (extern "C" FFI + safe fns)  |
+|-------------------------------------------------|
+|  bridge/xiom_vk_bridge.c/.h  (flat xvk_* C ABI) |
+|-------------------------------------------------|
+|  vulkan-1.dll  /  libvulkan.so  /  glfw3         |
+`-------------------------------------------------+
 ```
 
 ### Design Decisions
@@ -61,7 +61,7 @@ All functions are declared in `bridge/xiom_vk_bridge.h`:
 | `xvk_draw_triangle_2d(app, r, g, b)` | Draw triangle via push constant colour |
 | `xvk_draw_quad_2d(app, r, g, b, x, y, w, h)` | Draw textured quad (triangle-list, no depth) via push constant transform + colour |
 | `xvk_draw_cube_3d(app, angle)` | Draw rotating cube via push constant MVP |
-| `xvk_draw_cube_3d_at(app, angle, x, y, z, scale)` | Draw cube at world position — reuses the cube pipeline with an additional world-translation push constant |
+| `xvk_draw_cube_3d_at(app, angle, x, y, z, scale)` | Draw cube at world position -- reuses the cube pipeline with an additional world-translation push constant |
 | `xvk_particles_enable(app, max_particles)` | Allocate a host-visible vertex buffer for `max_particles` points. Initialises CPU fountain simulation state. Returns 1 on success |
 | `xvk_draw_particles(app)` | Upload particle positions from CPU simulation to the host-visible VB, then draw a point-list (particle pipeline). Each point is rendered as a screen-aligned sprite via the particle shaders |
 | `xvk_offscreen_create(w, h)` | Headless device + offscreen colour target |
@@ -137,7 +137,7 @@ guaranteed to be destroyed in the correct relative order.
 - **Frame guard**: `xvk_draw_triangle_2d` / `xvk_draw_quad_2d` /
   `xvk_draw_cube_3d` / `xvk_draw_cube_3d_at` / `xvk_draw_particles` /
   `xvk_end_frame` check `a->recording` and are no-ops outside
-  begin_frame…end_frame.
+  begin_frame...end_frame.
 - **XIOM contracts**: `requires: app != 0`, `requires: width > 0`,
   `ensures: result is Ok => result.unwrap().handle != 0`.
 - **Error propagation**: Bridge stores the last error in a static buffer;
@@ -150,7 +150,7 @@ guaranteed to be destroyed in the correct relative order.
 | Vulkan SDK | >= 1.3 | `vulkan-1.dll` / `libvulkan.so` + headers + `glslc` |
 | GLFW | >= 3.4 | Windowing, input, surface creation |
 | clang/LLVM | recent | Compiles the C bridge |
-| Rust + xiom | — | XIOM compiler (built from repo via `cargo run -p xiom`) |
+| Rust + xiom | -- | XIOM compiler (built from repo via `cargo run -p xiom`) |
 
 **Link flags** (passed via xiom `--link`):
 - `vulkan-1` (Windows) / `vulkan` (Linux)
@@ -164,22 +164,22 @@ guaranteed to be destroyed in the correct relative order.
 
 ```
                     GLSL shaders (.vert, .frag)
-                            │
+                            |
                       glslc -o .spv
-                            │
+                            |
                   xvk_shaders_generated.h
                 (uint32 arrays, computed _len)
-                            │
+                            |
         xiom_vk_bridge.c  +  generated header
-                │
+                |
           clang -c -I<vk> -I<glfw>
-                │
+                |
           xiom_vk_bridge.obj / .o
-                │
+                |
     xiom --c-source bridge/xiom_vk_bridge.obj \
           --link vulkan-1 --link glfw3          \
           --link-path <vk_lib> --link-path <glfw_lib>
-                │
+                |
           demo_2d.exe / demo_3d.exe / demo_particles.exe / demo_shapes.exe / demo_cubes.exe
 ```
 
@@ -193,7 +193,7 @@ guaranteed to be destroyed in the correct relative order.
 | `--run` | Execute the produced binary after linking (used for tests) |
 
 Shaders are compiled offline only (never at runtime). The generated header
-file is listed in `.gitignore` — it must be regenerated whenever the .glsl
+file is listed in `.gitignore` -- it must be regenerated whenever the .glsl
 sources change.
 
 ## Constants

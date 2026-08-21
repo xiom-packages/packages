@@ -1,6 +1,6 @@
 # xiom-metadata
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Media container and file metadata tagging.
 > **Deps:** stdlib; may wrap C (FFI).
 

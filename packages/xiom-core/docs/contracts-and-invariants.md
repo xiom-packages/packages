@@ -1,4 +1,4 @@
-# xiom-core — Contracts and Invariants
+# xiom-core -- Contracts and Invariants
 
 This is the machine-readable-in-prose companion to the `requires:` / `ensures:` clauses and the predicate helpers in `src/contracts.xi`. Every invariant the shared core enforces is listed here with its rationale, where it lives, and how it is checked. Downstream engines (`xiom-db`, `xiom-vector`) inherit and rely on all of these.
 
@@ -22,10 +22,10 @@ This is the machine-readable-in-prose companion to the `requires:` / `ensures:` 
 
 ## 3. WAL-before-ack (durability ordering)
 
-**Invariant.** A write may only be acknowledged after its WAL record is durable — i.e. its LSN is ≤ the writer's `synced_lsn`.
+**Invariant.** A write may only be acknowledged after its WAL record is durable -- i.e. its LSN is <= the writer's `synced_lsn`.
 
 - **Why.** This is the core crash-safety guarantee: on restart, any acknowledged write is guaranteed to be replayable from the log.
-- **Where.** `wal/wal_writer.xi` — `wal_writer_append` buffers the record and returns its LSN; `wal_writer_flush` advances `synced_lsn` to the last appended LSN.
+- **Where.** `wal/wal_writer.xi` -- `wal_writer_append` buffers the record and returns its LSN; `wal_writer_flush` advances `synced_lsn` to the last appended LSN.
 - **Check.** Callers must call `wal_writer_flush` (or confirm `wal_writer_synced_lsn(&w) >= lsn`) before returning success to the client.
 - **Phase note.** In Phase 0 the buffer is trivially durable; Phase 2 replaces `wal_writer_flush` with a real `fsync`, at which point this becomes a hard guarantee.
 
@@ -39,7 +39,7 @@ This is the machine-readable-in-prose companion to the `requires:` / `ensures:` 
 
 ## 5. Snapshot visibility
 
-**Invariant.** A record is visible to a read snapshot if and only if its LSN is ≤ the snapshot's LSN.
+**Invariant.** A record is visible to a read snapshot if and only if its LSN is <= the snapshot's LSN.
 
 - **Why.** Queries fan out across mutable and immutable data; a stable visibility horizon ensures a consistent view for the whole query.
 - **Where.** `txn/snapshot.xi::snapshot_is_visible(snap, record_lsn)` returns `record_lsn <= snap.lsn`.

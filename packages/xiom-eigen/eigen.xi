@@ -1,4 +1,4 @@
-// XIOM — xiom.eigen
+// XIOM -- xiom.eigen
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -99,7 +99,7 @@ fn __pool_mark_freed(m: EigenMatrix)
 }
 
 // ============================================================
-// extern "C" — Thin C bridge over Eigen C++ headers
+// extern "C" -- Thin C bridge over Eigen C++ headers
 // ============================================================
 //
 // The bridge (eigen_bridge.cpp) compiles against Eigen headers and
@@ -189,7 +189,7 @@ pub fn matrix_cols(m: &EigenMatrix) -> Int {
 }
 
 // ============================================================
-// Matrix multiplication — C = A × B
+// Matrix multiplication -- C = A x B
 // ============================================================
 
 pub fn matrix_multiply(a: &EigenMatrix, b: &EigenMatrix) -> Result[EigenMatrix, Str]
@@ -372,7 +372,7 @@ pub fn matrix_inverse(m: &EigenMatrix) -> Result[EigenMatrix, Str]
 }
 
 // ============================================================
-// Linear solve — A·x = b (via inverse)
+// Linear solve -- A-x = b (via inverse)
 // ============================================================
 
 pub fn solve(a: &EigenMatrix, b: &Vec[Float64]) -> Result[Vec[Float64], Str]
@@ -410,7 +410,7 @@ pub fn solve(a: &EigenMatrix, b: &Vec[Float64]) -> Result[Vec[Float64], Str]
 }
 
 // ============================================================
-// Singular Value Decomposition — A = U·S·V^T (stub)
+// Singular Value Decomposition -- A = U-S-V^T (stub)
 // ============================================================
 
 pub fn svd(a: &EigenMatrix) -> Result[(EigenMatrix, EigenMatrix, EigenMatrix), Str]

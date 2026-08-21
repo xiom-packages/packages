@@ -1,4 +1,4 @@
-// XIOM — meshoptimizer Safe Wrappers
+// XIOM -- meshoptimizer Safe Wrappers
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -24,7 +24,7 @@ pub type MeshoptError = {
 } derive[Clone]
 
 // =========================================================================
-// RemapPipeline — deduplicate vertices and rebuild buffers
+// RemapPipeline -- deduplicate vertices and rebuild buffers
 // =========================================================================
 
 pub type RemapPipeline = {
@@ -63,7 +63,7 @@ pub fn RemapPipeline.remap_indices(dest_indices: Int, src_indices: Int, index_co
 }
 
 // =========================================================================
-// OptimizePipeline — vertex cache, overdraw, and fetch optimization
+// OptimizePipeline -- vertex cache, overdraw, and fetch optimization
 // =========================================================================
 
 pub type OptimizePipeline = {
@@ -144,7 +144,7 @@ pub fn OptimizePipeline.analyze_vertex_fetch(indices_ptr: Int, vertex_size: Int)
 }
 
 // =========================================================================
-// SimplifyPipeline — mesh simplification with error measurement
+// SimplifyPipeline -- mesh simplification with error measurement
 // =========================================================================
 
 pub type SimplifyPipeline = {
@@ -184,7 +184,7 @@ pub fn SimplifyPipeline.run(dest_ptr: Int, indices_ptr: Int, target_index_count:
 }
 
 // =========================================================================
-// EncodePipeline — index/vertex buffer compression
+// EncodePipeline -- index/vertex buffer compression
 // =========================================================================
 
 pub type EncodePipeline = { } derive[Clone]
@@ -233,7 +233,7 @@ pub fn EncodePipeline.decode_vertices(dest_ptr: Int, vertex_count: Int, vertex_s
 }
 
 // =========================================================================
-// StripPipeline — triangle strip conversion
+// StripPipeline -- triangle strip conversion
 // =========================================================================
 
 pub type StripPipeline = {

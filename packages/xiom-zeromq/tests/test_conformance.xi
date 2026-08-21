@@ -1,4 +1,4 @@
-// XIOM — ZeroMQ Conformance Tests
+// XIOM -- ZeroMQ Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -74,7 +74,7 @@ fn int_to_str(n: Int) -> Str {
 }
 
 // =========================================================================
-// SECTION 1 — Socket type constants (libzmq § zmq_socket(3))
+// SECTION 1 -- Socket type constants (libzmq S zmq_socket(3))
 // =========================================================================
 
 fn test_const_pub() -> TestCase {
@@ -106,7 +106,7 @@ fn test_const_distinct_12() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 2 — FFI stub: zmq_ctx_new / zmq_ctx_destroy
+// SECTION 2 -- FFI stub: zmq_ctx_new / zmq_ctx_destroy
 // =========================================================================
 
 fn test_ctx_new_callable() -> TestCase {
@@ -126,7 +126,7 @@ fn test_ctx_destroy_valid() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 3 — FFI stub: zmq_socket / zmq_close
+// SECTION 3 -- FFI stub: zmq_socket / zmq_close
 // =========================================================================
 
 fn test_socket_callable() -> TestCase {
@@ -156,7 +156,7 @@ fn test_close_null() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 4 — FFI stub: zmq_bind / zmq_connect
+// SECTION 4 -- FFI stub: zmq_bind / zmq_connect
 // =========================================================================
 
 fn test_bind_null_socket() -> TestCase {
@@ -176,7 +176,7 @@ fn test_bind_connect_stubs() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 5 — FFI stub: zmq_send / zmq_recv
+// SECTION 5 -- FFI stub: zmq_send / zmq_recv
 // =========================================================================
 
 fn test_send_null_socket() -> TestCase {
@@ -200,7 +200,7 @@ fn test_recv_with_len() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 6 — FFI stub: zmq_setsockopt / zmq_getsockopt
+// SECTION 6 -- FFI stub: zmq_setsockopt / zmq_getsockopt
 // =========================================================================
 
 fn test_setsockopt_null() -> TestCase {
@@ -219,7 +219,7 @@ fn test_setsockopt_subscribe() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 7 — FFI stub: zmq_poll
+// SECTION 7 -- FFI stub: zmq_poll
 // =========================================================================
 
 fn test_poll_zero_items() -> TestCase {
@@ -238,7 +238,7 @@ fn test_poll_block_indefinitely() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 8 — FFI stub: zmq_version
+// SECTION 8 -- FFI stub: zmq_version
 // =========================================================================
 
 fn test_version_callable() -> TestCase {
@@ -246,11 +246,11 @@ fn test_version_callable() -> TestCase {
   var minor: Int = 0;
   var patch: Int = 0;
   unsafe { zmq_version(0, 0, 0) };
-  return xiom.test.assert_true(true, "zmq: zmq_version callable (null ptrs — no crash)");
+  return xiom.test.assert_true(true, "zmq: zmq_version callable (null ptrs -- no crash)");
 }
 
 // =========================================================================
-// SECTION 9 — API presence (compile-time verification)
+// SECTION 9 -- API presence (compile-time verification)
 // =========================================================================
 
 fn test_api_context_new() -> TestCase {
@@ -302,7 +302,7 @@ fn test_api_version() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 10 — Contract declarations
+// SECTION 10 -- Contract declarations
 // =========================================================================
 
 fn test_contract_bind_requires_addr() -> TestCase {
@@ -318,7 +318,7 @@ fn test_contract_recv_requires_len() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 11 — Type definitions
+// SECTION 11 -- Type definitions
 // =========================================================================
 
 fn test_type_zmq_context() -> TestCase {
@@ -334,7 +334,7 @@ fn test_type_zmq_socket() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 12 — Flag constants
+// SECTION 12 -- Flag constants
 // =========================================================================
 
 fn test_const_dontwait() -> TestCase {
@@ -348,7 +348,7 @@ fn test_const_sndmore() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 13 — Socket option constants
+// SECTION 13 -- Socket option constants
 // =========================================================================
 
 fn test_const_subscribe() -> TestCase {
@@ -368,7 +368,7 @@ fn test_const_sndtimeo() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 14 — Safe wrapper stubs (null checks without libzmq linked)
+// SECTION 14 -- Safe wrapper stubs (null checks without libzmq linked)
 // =========================================================================
 
 fn safe_context_new() -> Result[Int, Str] {
@@ -454,7 +454,7 @@ fn test_safe_recv_null_socket() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 15 — Extern "C" function count
+// SECTION 15 -- Extern "C" function count
 // =========================================================================
 
 fn test_extern_count() -> TestCase {
@@ -463,7 +463,7 @@ fn test_extern_count() -> TestCase {
 }
 
 // =========================================================================
-// Main — manual test dispatch
+// Main -- manual test dispatch
 // =========================================================================
 
 pub fn main() -> Int {

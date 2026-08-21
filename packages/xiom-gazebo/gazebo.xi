@@ -1,4 +1,4 @@
-// XIOM — Gazebo Simulation Bindings
+// XIOM -- Gazebo Simulation Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -39,7 +39,7 @@ pub const SENSOR_CONTACT: Int = 3;
 pub const SENSOR_FORCE_TORQUE: Int = 4;
 
 // ============================================================================
-// EXTERN "C" — Gazebo Sim C API (~12 functions)
+// EXTERN "C" -- Gazebo Sim C API (~12 functions)
 // ============================================================================
 
 extern "C" {

@@ -1,6 +1,6 @@
-# xiom-assimp — ROADMAP
+# xiom-assimp -- ROADMAP
 
-**Phase 1** (v0.1.0) — **DONE**
+**Phase 1** (v0.1.0) -- **DONE**
 - [x] Opaque handle types: AiScene, AiMesh, AiMaterial, AiAnimation, AiNode
 - [x] extern "C" stubs for 16 Assimp C API functions
 - [x] 28 post-processing flag constants (bitmask)
@@ -18,7 +18,7 @@
 
 **Phase 3** (future)
 - [ ] Scene graph builder (high-level tree over aiNode)
-- [ ] Material system bridge (xiom.assimp → engine material pipeline)
+- [ ] Material system bridge (xiom.assimp -> engine material pipeline)
 - [ ] Streaming/lazy-loading support
 - [ ] Custom file I/O (aiFileIO bridge)
 - [ ] Export support (Assimp exporter API)

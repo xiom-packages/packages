@@ -1,6 +1,6 @@
 # Reconnect
 
-> Design stage — specification only.
+> Design stage -- specification only.
 
 Because WebSocket connections live across unreliable networks, transient drops are normal rather than exceptional. The `reconnect` module makes recovery a **first-class, sequence-based** operation instead of forcing clients to rebuild state from scratch. The design borrows a write-ahead-log discipline: every outbound message carries a **monotonic sequence number**, and the server retains a bounded tail of recent messages per session so a returning client can ask for everything it missed.
 

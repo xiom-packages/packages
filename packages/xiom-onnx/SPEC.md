@@ -1,11 +1,11 @@
-# xiom-onnx — SPEC
+# xiom-onnx -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
-**Status**: SPEC only — no implementation yet
+**Status**: SPEC only -- no implementation yet
 **Depends on**: xiom.ffi (stdlib), xiom-libtorch (optional, for execution)
 
 ## What it wraps
-ONNX Runtime — cross-framework ML model inference engine.
+ONNX Runtime -- cross-framework ML model inference engine.
 Load models from PyTorch, TensorFlow, scikit-learn, etc.
 
 ## Dependencies
@@ -13,7 +13,7 @@ Load models from PyTorch, TensorFlow, scikit-learn, etc.
 | What | How | Size |
 |------|-----|------|
 | ONNX Runtime | System-installed. `winget install onnxruntime`, `apt install libonnxruntime-dev` | ~15MB |
-| C compiler | For building bridge .obj | — |
+| C compiler | For building bridge .obj | -- |
 
 ## Bundling strategy
 **System-installed only.** ONNX Runtime is available via package managers.

@@ -1,6 +1,6 @@
 # xiom-property
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Property-based testing with generators and shrinking.
 > **Deps:** stdlib; may wrap C (FFI).
 

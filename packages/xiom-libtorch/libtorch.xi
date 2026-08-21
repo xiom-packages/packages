@@ -1,4 +1,4 @@
-// XIOM — LibTorch (PyTorch C++ API) Bindings
+// XIOM -- LibTorch (PyTorch C++ API) Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -10,13 +10,13 @@
 
 module xiom.libtorch
 
-// ── Opaque Handle Types ───────────────────────────────────────────────────
+// -- Opaque Handle Types ---------------------------------------------------
 
 pub type TorchModel     = Int
 pub type TorchTensor    = Int
 pub type TorchOptimizer = Int
 
-// ── Raw LibTorch C Bridge (extern "C") ────────────────────────────────────
+// -- Raw LibTorch C Bridge (extern "C") ------------------------------------
 
 extern "C" {
   // Tensor creation
@@ -49,7 +49,7 @@ extern "C" {
   fn torch_optimizer_free(optimizer: Int);
 }
 
-// ── Safe Wrappers — Tensor Creation ───────────────────────────────────────
+// -- Safe Wrappers -- Tensor Creation ---------------------------------------
 
 pub fn tensor_new(shape: &Vec[Int]) -> Result[TorchTensor, Str]
   requires: shape.len() > 0
@@ -91,7 +91,7 @@ pub fn tensor_to_vec(t: &TorchTensor) -> Result[Vec[Float32], Str]
   Ok(out)
 }
 
-// ── Safe Wrappers — Tensor Ops ────────────────────────────────────────────
+// -- Safe Wrappers -- Tensor Ops --------------------------------------------
 
 pub fn tensor_add(a: &TorchTensor, b: &TorchTensor) -> Result[TorchTensor, Str]
   requires: a != 0
@@ -152,7 +152,7 @@ pub fn tensor_softmax(t: &TorchTensor, dim: Int) -> Result[TorchTensor, Str]
   Ok(handle)
 }
 
-// ── Safe Wrappers — Module Loading & Forward ──────────────────────────────
+// -- Safe Wrappers -- Module Loading & Forward ------------------------------
 
 pub fn jit_load(path: Str) -> Result[TorchModel, Str]
   requires: path.len() > 0
@@ -183,7 +183,7 @@ pub fn module_free(m: TorchModel)
   unsafe { torch_module_free(m) };
 }
 
-// ── Safe Wrappers — GPU ───────────────────────────────────────────────────
+// -- Safe Wrappers -- GPU ---------------------------------------------------
 
 pub fn cuda_is_available() -> Bool {
   unsafe {
@@ -213,7 +213,7 @@ pub fn tensor_to_cpu(t: &TorchTensor) -> Result[TorchTensor, Str]
   Ok(handle)
 }
 
-// ── Safe Wrappers — Optimizer ─────────────────────────────────────────────
+// -- Safe Wrappers -- Optimizer ---------------------------------------------
 
 pub fn optimizer_sgd(params: &Vec[TorchTensor], lr: Float32) -> Result[TorchOptimizer, Str]
   requires: params.len() > 0

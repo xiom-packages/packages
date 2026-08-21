@@ -1,8 +1,8 @@
 # Scaling
 
-> Design stage — specification only.
+> Design stage -- specification only.
 
-WebSocket connections are stateful and long-lived, which makes them fundamentally different to scale than stateless HTTP requests. `xiom-websocket` deliberately makes the scaling story **explicit** rather than hiding it behind a single-node abstraction that quietly breaks under load. Real systems scale WebSockets with load balancing plus **sticky routing**, then use a **pub/sub backplane** — Redis, Kafka, NATS, or similar — for cross-instance fan-out.
+WebSocket connections are stateful and long-lived, which makes them fundamentally different to scale than stateless HTTP requests. `xiom-websocket` deliberately makes the scaling story **explicit** rather than hiding it behind a single-node abstraction that quietly breaks under load. Real systems scale WebSockets with load balancing plus **sticky routing**, then use a **pub/sub backplane** -- Redis, Kafka, NATS, or similar -- for cross-instance fan-out.
 
 The recommended architecture for XIOM is:
 

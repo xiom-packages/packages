@@ -1,8 +1,8 @@
-// XIOM — Wasmtime (WebAssembly Runtime) Bindings
+// XIOM -- Wasmtime (WebAssembly Runtime) Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Pure SPEC package — all FFI calls return Err until the C bridge is linked.
+// Pure SPEC package -- all FFI calls return Err until the C bridge is linked.
 // Phase 1: Engine, Store, Module, Instance with design-by-contract wrappers.
 //
 // Dependencies: Wasmtime C API (system-installed via winget/apt/brew)
@@ -10,27 +10,27 @@
 
 module xiom.wasmtime
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Types
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub type WasmEngine = Int;
 pub type WasmStore = Int;
 pub type WasmModule = Int;
 pub type WasmInstance = Int;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Constants
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub const WASM_VALTYPE_I32: Int = 0;
 pub const WASM_VALTYPE_I64: Int = 1;
 pub const WASM_VALTYPE_F32: Int = 2;
 pub const WASM_VALTYPE_F64: Int = 3;
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Wasmtime C API — extern "C" declarations
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Wasmtime C API -- extern "C" declarations
+// ===========================================================================
 
 extern "C" {
   fn wasm_engine_new() -> Int;
@@ -46,9 +46,9 @@ extern "C" {
   fn wasm_valtype_new(kind: Int) -> Int;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Engine
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn engine_new() -> Result[WasmEngine, Str]
   ensures: result.is_ok() || result.is_err();
@@ -62,9 +62,9 @@ pub fn engine_delete(engine: WasmEngine)
   // stub: no-op until C bridge is linked
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Store
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn store_new(engine: WasmEngine) -> Result[WasmStore, Str]
   requires: engine > 0;
@@ -78,9 +78,9 @@ pub fn store_delete(store: WasmStore)
   // stub: no-op until C bridge is linked
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Module
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn module_new(store: WasmStore, wasm_bytes: &Vec[UInt8]) -> Result[WasmModule, Str]
   requires: store > 0;
@@ -95,9 +95,9 @@ pub fn module_delete(module: WasmModule)
   // stub: no-op until C bridge is linked
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Instance
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn instance_new(store: WasmStore, module: WasmModule, imports: Int) -> Result[WasmInstance, Str]
   requires: store > 0;
@@ -113,9 +113,9 @@ pub fn instance_delete(instance: WasmInstance)
   // stub: no-op until C bridge is linked
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Function Calling
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn func_call(func: Int, args: Int, results: Int) -> Result[Int, Str]
   requires: func > 0;
@@ -125,9 +125,9 @@ pub fn func_call(func: Int, args: Int, results: Int) -> Result[Int, Str]
   return Err("stub: Wasmtime C bridge not linked");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Function Types
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn functype_new(param_types: Int, result_types: Int) -> Result[Int, Str]
   requires: param_types >= 0;

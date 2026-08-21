@@ -1,4 +1,4 @@
-# xiom-rest — Specification
+# xiom-rest -- Specification
 
 > **Status: v0.1.0 implemented.** Core types, client/request builders, libcurl FFI declarations, convenience HTTP methods, response helpers, and error constructors are implemented in `rest.xi`. Full libcurl transport integration and resource routing layer are planned for future versions.
 
@@ -114,8 +114,8 @@ pub type RestError = {
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `method_to_str` | `(method: RestMethod) -> Str` | GET → "GET", etc. |
-| `method_from_str` | `(s: Str) -> RestMethod` | "POST" → POST, unknown → GET |
+| `method_to_str` | `(method: RestMethod) -> Str` | GET -> "GET", etc. |
+| `method_from_str` | `(s: Str) -> RestMethod` | "POST" -> POST, unknown -> GET |
 
 ### Convenience Methods
 
@@ -133,9 +133,9 @@ All delegate to `client_execute` which initializes libcurl, sets URL, and return
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `response_is_success` | `(resp: &RestResponse) -> Bool` | 200–299 |
-| `response_is_client_error` | `(resp: &RestResponse) -> Bool` | 400–499 |
-| `response_is_server_error` | `(resp: &RestResponse) -> Bool` | 500–599 |
+| `response_is_success` | `(resp: &RestResponse) -> Bool` | 200-299 |
+| `response_is_client_error` | `(resp: &RestResponse) -> Bool` | 400-499 |
+| `response_is_server_error` | `(resp: &RestResponse) -> Bool` | 500-599 |
 | `response_status_category` | `(resp: &RestResponse) -> Int` | 200, 400, 500, etc. |
 
 ### Error Constructors
@@ -146,7 +146,7 @@ All delegate to `client_execute` which initializes libcurl, sets URL, and return
 | `error_bad_request` | `(message: Str) -> RestError` | BAD_REQUEST | 400 |
 | `error_internal` | `(message: Str) -> RestError` | INTERNAL | 500 |
 | `error_unauthorized` | `(message: Str) -> RestError` | UNAUTHORIZED | 401 |
-| `error_to_response` | `(err: &RestError) -> RestResponse` | — | Preserves status |
+| `error_to_response` | `(err: &RestError) -> RestResponse` | -- | Preserves status |
 
 ---
 
@@ -201,7 +201,7 @@ extern "C" {
 
 ## Planned Modules (Future Versions)
 
-The modules documented below are design-stage — specified in [ARCHITECTURE.md](ARCHITECTURE.md) but not yet built.
+The modules documented below are design-stage -- specified in [ARCHITECTURE.md](ARCHITECTURE.md) but not yet built.
 
 | Module | File | Status |
 |--------|------|--------|

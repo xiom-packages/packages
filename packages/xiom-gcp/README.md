@@ -1,6 +1,6 @@
 # xiom-gcp
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Bindings for Google Cloud Platform services (storage, compute, functions, analytics).
 > **Deps:** stdlib; may wrap C (FFI).
 

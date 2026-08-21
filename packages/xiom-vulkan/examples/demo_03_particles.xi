@@ -1,5 +1,5 @@
 // ===========================================================================
-// XIOM Vulkan SDK — Example 03: Particle Fountain
+// XIOM Vulkan SDK -- Example 03: Particle Fountain
 // Shows: particles_enable, particles_update, draw_particles, delta time
 // ===========================================================================
 
@@ -8,7 +8,7 @@ use xiom.io;
 use xiom.vulkan;
 
 fn main() -> Int {
-  let app = create_app("03 — Particles", 800, 600);
+  let app = create_app("03 -- Particles", 800, 600);
   match app {
     Err(e) => { return 1; }
     Ok(a) => {

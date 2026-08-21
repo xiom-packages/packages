@@ -32,7 +32,7 @@ void     imgui_end_child(void);
 void     imgui_set_next_window_size_i32(int32_t w, int32_t h);
 void     imgui_set_next_window_pos_i32(int32_t x, int32_t y);
 
-/* Widgets — return 1 on interaction/true */
+/* Widgets -- return 1 on interaction/true */
 int32_t  imgui_button(const char* label);
 int32_t  imgui_small_button(const char* label);
 void     imgui_text(const char* text);
@@ -51,7 +51,7 @@ int32_t  imgui_color_edit4(const char* label, float r, float g, float b, float a
 int32_t  imgui_combo(const char* label, int32_t cur, const char* const* items, int32_t n);
 int32_t  imgui_list_box(const char* label, int32_t cur, const char* const* items, int32_t n);
 
-/* Widgets — extended */
+/* Widgets -- extended */
 void     imgui_progress_bar(float fraction, float w, float h);
 int32_t  imgui_radio_button(const char* label, int32_t active);
 int32_t  imgui_selectable(const char* label, int32_t selected);

@@ -1,4 +1,4 @@
-# xiom-imgui — Production-Ready Dear ImGui Package
+# xiom-imgui -- Production-Ready Dear ImGui Package
 
 Self-contained ImGui package for XIOM. Ships pre-compiled bridge .obj files
 containing Dear ImGui v1.92.9 + GLFW backend + Vulkan backend.
@@ -9,7 +9,7 @@ containing Dear ImGui v1.92.9 + GLFW backend + Vulkan backend.
 |-----------|---------|-----|
 | Vulkan SDK | 1.3+ | vulkan-1.lib at link time, vulkan-1.dll at runtime |
 | GLFW | 3.3+ | glfw3.lib at link time, glfw3.dll at runtime |
-| xiom-vulkan | — | provides `create_app()`, begin/end frame, VK handles |
+| xiom-vulkan | -- | provides `create_app()`, begin/end frame, VK handles |
 | xiom | >= 0.48.2 | XIOM compiler |
 
 **No other dependencies.** No cimgui, CMake, or imgui source download.
@@ -35,7 +35,7 @@ The entire imgui library is bundled as .obj files in `bridge/`.
 | FFI: `imgui_set_next_window_size_i32(w, h)` | `Int32, Int32 -> ()` | |
 | FFI: `imgui_set_next_window_pos_i32(x, y)` | `Int32, Int32 -> ()` | |
 
-### Widgets — Standard
+### Widgets -- Standard
 | Function | Signature | Notes |
 |----------|-----------|-------|
 | `button(label)` | `Str -> Bool` | Returns true on click |
@@ -54,7 +54,7 @@ The entire imgui library is bundled as .obj files in `bridge/`.
 | FFI: `imgui_list_box(label, cur, items, n)` | `Str, Int32, Int, Int32 -> Int32` | |
 | FFI: `imgui_small_button(label)` | `Str -> Int32` | |
 
-### Widgets — Extended (v1.1)
+### Widgets -- Extended (v1.1)
 | Function | Signature | Notes |
 |----------|-----------|-------|
 | `progress_bar(fraction)` | `Float32 -> ()` | Full-width auto-sizing bar |
@@ -160,7 +160,7 @@ The entire imgui library is bundled as .obj files in `bridge/`.
 
 | Feature | Reason |
 |---------|--------|
-| Tables (`ImGui::BeginTable`) | Complex API with column config — needs struct marshalling |
+| Tables (`ImGui::BeginTable`) | Complex API with column config -- needs struct marshalling |
 | Docking / Viewports | Requires multi-window Vulkan support; not in scope |
 | Font customization | Requires TTF loading + atlas API |
 | `ImGui::Image` / texture display | Needs descriptor set management bridge |
@@ -170,19 +170,19 @@ The entire imgui library is bundled as .obj files in `bridge/`.
 
 | ID | Issue | Workaround |
 |----|-------|------------|
-| CG-01 | `Int32 as Float32` → LLVM type mismatch | Use i32 bridge functions (e.g., `set_display_size_i32`) |
-| CG-02 | Module-scope `var x: Float32 = 0.5` → LLVM constant error | Init Float32 to `0.0`, reassign in `fn` body |
+| CG-01 | `Int32 as Float32` -> LLVM type mismatch | Use i32 bridge functions (e.g., `set_display_size_i32`) |
+| CG-02 | Module-scope `var x: Float32 = 0.5` -> LLVM constant error | Init Float32 to `0.0`, reassign in `fn` body |
 | E001 | Borrow checker false-positives on `unsafe` FFI calls | Non-fatal warnings; compilation succeeds |
 
 ## Vulkan Bridge Fixes (Production)
 
 | Issue | Fix |
 |-------|-----|
-| Surface query unchecked → garbage swapchain extents | Zero-init caps, check `VkResult`, GLFW fallback |
+| Surface query unchecked -> garbage swapchain extents | Zero-init caps, check `VkResult`, GLFW fallback |
 | Depth image/memory/view leak in `recreate_swapchain` | Save/null old handles before overwrite, free on success |
 | No `VK_ERROR_SURFACE_LOST_KHR` handling | Handle alongside `VK_ERROR_OUT_OF_DATE_KHR` |
 | `VK_SUBOPTIMAL_KHR` mid-frame recreate cascade | Defer to next `begin_frame` |
-| `pipeline_3d` static viewport → distorts after resize | Dynamic viewport + `vkCmdSetViewport` per-frame |
+| `pipeline_3d` static viewport -> distorts after resize | Dynamic viewport + `vkCmdSetViewport` per-frame |
 | Camera projection fixed 16:9 aspect | `xvk_camera_set_aspect_ratio()` per-frame from swapchain |
 | No trig functions in XIOM for orbit math | `xvk_cos`/`xvk_sin` bridge to C `cosf`/`sinf` |
 
@@ -208,20 +208,20 @@ $env:PATH = "$env:GLFW_DIR\lib-vc2022;$env:PATH"
 
 ```
 xiom-imgui/
-├── imgui.xi              XIOM FFI + safe wrappers (76+ functions)
-├── build.ps1             Build script
-├── AUDIT.md              This file
-├── SESSION_IMGUI.md      Session journal + production fixes
-├── tests/
-│   ├── test_imgui.xi     CLI conformance test
-│   └── demo_imgui.xi     Production demo (4 panels + 3D viewport)
-└── bridge/
-    ├── imgui_bridge.h/cpp  C ABI wrapper
-    ├── imgui.cpp/h         Dear ImGui v1.92.9 core
-    ├── imgui_draw.cpp      Draw list implementation
-    ├── imgui_widgets.cpp   All standard widgets
-    ├── imgui_tables.cpp    Table implementation
-    ├── imgui_impl_glfw.*   GLFW platform backend
-    ├── imgui_impl_vulkan.* Vulkan renderer backend
-    └── *.obj               Pre-compiled (7 files)
+|-- imgui.xi              XIOM FFI + safe wrappers (76+ functions)
+|-- build.ps1             Build script
+|-- AUDIT.md              This file
+|-- SESSION_IMGUI.md      Session journal + production fixes
+|-- tests/
+|   |-- test_imgui.xi     CLI conformance test
+|   `-- demo_imgui.xi     Production demo (4 panels + 3D viewport)
+`-- bridge/
+    |-- imgui_bridge.h/cpp  C ABI wrapper
+    |-- imgui.cpp/h         Dear ImGui v1.92.9 core
+    |-- imgui_draw.cpp      Draw list implementation
+    |-- imgui_widgets.cpp   All standard widgets
+    |-- imgui_tables.cpp    Table implementation
+    |-- imgui_impl_glfw.*   GLFW platform backend
+    |-- imgui_impl_vulkan.* Vulkan renderer backend
+    `-- *.obj               Pre-compiled (7 files)
 ```

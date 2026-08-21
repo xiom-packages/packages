@@ -1,12 +1,12 @@
-// XIOM — Ozz-Animation Production Demo
+// XIOM -- Ozz-Animation Production Demo
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Demonstrates full animation pipeline using xiom.ozz and xiom.ozz.safe:
 //   1. Load skeleton + animation from Ozz binary archives
 //   2. Create sampling context + pose buffers
-//   3. Sample animation at a time ratio → local-space pose
-//   4. Convert local → model-space (matrix palette for skinning)
+//   3. Sample animation at a time ratio -> local-space pose
+//   4. Convert local -> model-space (matrix palette for skinning)
 //   5. Blend two animations as layers
 //   6. Run skinning job
 //
@@ -58,7 +58,7 @@ fn demo_pipeline() {
   io.println("")
 
   io.println("Step 5: Blend two animations")
-  io.println("  // Sample anim1 → pose1, anim2 → pose2")
+  io.println("  // Sample anim1 -> pose1, anim2 -> pose2")
   io.println("  sample(anim1, skeleton, 0.3, pose1, cache1);")
   io.println("  sample(anim2, skeleton, 0.7, pose2, cache2);")
   io.println("  let layers = [BlendLayer.create(pose1, 0.6), BlendLayer.create(pose2, 0.4)];")
@@ -116,10 +116,10 @@ fn demo_explanation() {
   io.println("")
 
   io.println("=== Data flow ===")
-  io.println("  .ozz file  →  archive  →  Skeleton / Animation (runtime)")
-  io.println("  Animation + ratio  →  SamplingJob  →  SoaTransform (local pose)")
-  io.println("  Skeleton + SoaTransform  →  LocalToModelJob  →  Float4x4[] (model pose)")
-  io.println("  Skeleton + Float4x4[] + mesh  →  SkinningJob  →  vertices (world)")
+  io.println("  .ozz file  ->  archive  ->  Skeleton / Animation (runtime)")
+  io.println("  Animation + ratio  ->  SamplingJob  ->  SoaTransform (local pose)")
+  io.println("  Skeleton + SoaTransform  ->  LocalToModelJob  ->  Float4x4[] (model pose)")
+  io.println("  Skeleton + Float4x4[] + mesh  ->  SkinningJob  ->  vertices (world)")
   io.println("")
 
   io.println("=== Key types ===")

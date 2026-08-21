@@ -1,6 +1,6 @@
 # xiom-rest Architecture
 
-> **Status: Design stage — specification only, not yet implemented. Depends on xiom-http.**
+> **Status: Design stage -- specification only, not yet implemented. Depends on xiom-http.**
 
 `xiom-rest` is the REST-oriented extension package built on top of `xiom-http`. Its purpose is to provide resource-centric API conventions, pagination, filtering, content negotiation, versioning, error mapping, and documentation helpers without bloating the core HTTP foundation. REST best practices consistently emphasize resource naming, correct HTTP method usage, pagination, versioning, status codes, and content negotiation.
 
@@ -47,40 +47,40 @@ The scaffold below describes the intended module tree once implementation begins
 
 ```text
 xiom-rest/
-├── package.xi
-├── README.md
-├── ARCHITECTURE.md
-├── SPEC.md
-├── docs/
-│   ├── resource-routing.md
-│   ├── pagination.md
-│   ├── filtering-and-sorting.md
-│   ├── versioning.md
-│   ├── content-negotiation.md
-│   ├── error-model.md
-│   └── openapi.md
-├── src/                        # planned — not yet implemented
-│   ├── mod.xi
-│   ├── resource.xi
-│   ├── router.xi
-│   ├── route_builder.xi
-│   ├── versioning.xi
-│   ├── pagination.xi
-│   ├── filtering.xi
-│   ├── sorting.xi
-│   ├── negotiation.xi
-│   ├── errors.xi
-│   ├── links.xi
-│   ├── openapi.xi
-│   ├── response_shape.xi
-│   └── testing/
-│       ├── mod.xi
-│       └── fixtures.xi
-└── tests/                      # planned — not yet implemented
-    ├── routing/
-    ├── pagination/
-    ├── versioning/
-    └── negotiation/
+|-- package.xi
+|-- README.md
+|-- ARCHITECTURE.md
+|-- SPEC.md
+|-- docs/
+|   |-- resource-routing.md
+|   |-- pagination.md
+|   |-- filtering-and-sorting.md
+|   |-- versioning.md
+|   |-- content-negotiation.md
+|   |-- error-model.md
+|   `-- openapi.md
+|-- src/                        # planned -- not yet implemented
+|   |-- mod.xi
+|   |-- resource.xi
+|   |-- router.xi
+|   |-- route_builder.xi
+|   |-- versioning.xi
+|   |-- pagination.xi
+|   |-- filtering.xi
+|   |-- sorting.xi
+|   |-- negotiation.xi
+|   |-- errors.xi
+|   |-- links.xi
+|   |-- openapi.xi
+|   |-- response_shape.xi
+|   `-- testing/
+|       |-- mod.xi
+|       `-- fixtures.xi
+`-- tests/                      # planned -- not yet implemented
+    |-- routing/
+    |-- pagination/
+    |-- versioning/
+    `-- negotiation/
 ```
 
 ## Core module responsibilities
@@ -212,8 +212,8 @@ pub fn routes() -> RestModule {
 
 The conventions above are informed by widely published REST API design guidance, including:
 
-- Microsoft Azure Architecture Center — API design best practices.
-- Zuplo — API design patterns.
-- Strapi — RESTful API design guide.
-- DeepDocs — REST API best practices.
-- Grizzly Peak Software — Express.js router patterns for large applications.
+- Microsoft Azure Architecture Center -- API design best practices.
+- Zuplo -- API design patterns.
+- Strapi -- RESTful API design guide.
+- DeepDocs -- REST API best practices.
+- Grizzly Peak Software -- Express.js router patterns for large applications.

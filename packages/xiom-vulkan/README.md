@@ -1,6 +1,6 @@
 # xiom-vulkan
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Vulkan graphics API bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

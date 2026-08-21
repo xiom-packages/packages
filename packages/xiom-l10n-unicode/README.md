@@ -1,6 +1,6 @@
 # xiom-l10n-unicode
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Unicode character utilities, normalization, case folding, and grapheme segmentation.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,4 +1,4 @@
-# xiom-sdl3 — Build Dependency Audit
+# xiom-sdl3 -- Build Dependency Audit
 
 ## Required Dependencies
 
@@ -31,7 +31,7 @@ SDL3 is a traditional shared library:
 2. Link against `SDL3.dll` / `libSDL3.so` / `libSDL3.dylib`
 3. The library exports C functions with `extern SDL_DECLSPEC` (resolves to `__declspec(dllimport)` on Windows)
 
-SDL3 requires no `#define IMPLEMENTATION` — it is a pre-built library, not a single-header.
+SDL3 requires no `#define IMPLEMENTATION` -- it is a pre-built library, not a single-header.
 
 ## Platform-Specific Installation
 
@@ -67,18 +67,18 @@ brew install sdl3
 
 ```
 packages/xiom-sdl3/
-├── package.xi              # Package manifest (name, version, deps)
-├── sdl3.xi                 # Module xiom.sdl3 — raw FFI + core safe wrappers
-├── src/
-│   └── sdl3_safe.xi        # Module xiom.sdl3.safe — struct-based wrappers
-├── examples/
-│   └── demo_sdl3.xi        # Module xiom.sdl3.demo — compile-time demo
-└── AUDIT.md                # This file
+|-- package.xi              # Package manifest (name, version, deps)
+|-- sdl3.xi                 # Module xiom.sdl3 -- raw FFI + core safe wrappers
+|-- src/
+|   `-- sdl3_safe.xi        # Module xiom.sdl3.safe -- struct-based wrappers
+|-- examples/
+|   `-- demo_sdl3.xi        # Module xiom.sdl3.demo -- compile-time demo
+`-- AUDIT.md                # This file
 ```
 
 ## FFI Binding Coverage
 
-### sdl3.xi — Module `xiom.sdl3`
+### sdl3.xi -- Module `xiom.sdl3`
 
 **115 extern C function declarations** from SDL3 v3.4.8 across 17 subsystems:
 
@@ -137,7 +137,7 @@ packages/xiom-sdl3/
 
 **Safe wrapper functions: 43** covering initialization, window, renderer, event, timer, keyboard, mouse, gamepad, CPU info, and error handling.
 
-### sdl3_safe.xi — Module `xiom.sdl3.safe`
+### sdl3_safe.xi -- Module `xiom.sdl3.safe`
 
 6 struct-based resource types (with duplicate inline `extern "C"` block):
 
@@ -162,18 +162,18 @@ Utility: `SdlError` type with `{ message: Str }`.
 | String concatenation | **NEW** | `+` operator emits `@xiom_str_concat` (G-22). |
 | Function pointers (internal) | **NEW** | FNPTR: functions as values in XIOM contexts (G-26). |
 | Implicit-self methods | **NEW** | `init()` inside `fn T.init()` resolves to `self.init()` (G-10). |
-| Int → UInt8 coercion | **NEW** | `var x: UInt8 = 255` type-checks (G-04). |
+| Int -> UInt8 coercion | **NEW** | `var x: UInt8 = 255` type-checks (G-04). |
 
 ### Still Open (v0.46.0)
 
 | Gap | Severity | Status | Impact |
 |-----|----------|--------|--------|
-| **C02: Int→Int32 coercion** | Medium | **OPEN** | All Int32 params require explicit `as Int32` casts. `let x: Int32 = 0;` fails. |
+| **C02: Int->Int32 coercion** | Medium | **OPEN** | All Int32 params require explicit `as Int32` casts. `let x: Int32 = 0;` fails. |
 | **C03: Cross-module extern resolution** | High | **OPEN** | `use xiom.sdl3` does not resolve functions with extern-backed implementations. Workaround: `src/sdl3_safe.xi` duplicates extern block (~50 lines). Demo uses inline constants. |
 | **C04: C struct field access (G-17)** | High | **OPEN** | Cannot read/write C struct members from XIOM (no `offsetof`). SDL_Event, SDL_FRect, SDL_Rect all require C bridge helpers. |
 | **C05: C callback lowering (G-16)** | High | **OPEN** | XIOM functions cannot be converted to C function pointers. SDL_AddTimer, SDL_SetEventFilter, SDL_AddEventWatch, SDL_dialog callbacks unusable from pure XIOM. |
 | **C06: User-level malloc/free (G-19)** | Medium | **OPEN** | No built-in heap allocation exposed. Dynamic C buffers (SDL_Event, SDL_Surface data) require C bridge or static pre-allocation. |
-| **C07: Float32 ABI** | Low | **UNVERIFIED** | Float32 used in FFI (SDL_SetRenderDrawColorFloat, SDL_RenderPoint, SDL_RenderLine) — ABI compatibility with C `float` not verified on all calling conventions. |
+| **C07: Float32 ABI** | Low | **UNVERIFIED** | Float32 used in FFI (SDL_SetRenderDrawColorFloat, SDL_RenderPoint, SDL_RenderLine) -- ABI compatibility with C `float` not verified on all calling conventions. |
 | **C08: No `()` unit in Result** | Low | **OPEN** | Void-returning functions use `Result[Int, Error]` with `Ok(0)`. |
 | **C10: E001 borrow warnings on out-params** | Low | **NON-FATAL** | `sdl3_safe.xi` has 2 E001 borrow warnings (lines 397-398 in SdlApp.create). Non-fatal, same pattern as VMA bindings. 29 E001 in xiom-vma; 2 here indicates improvement in v0.46 borrow analysis. |
 
@@ -188,7 +188,7 @@ Utility: `SdlError` type with `{ message: Str }`.
 2. Use inline constants in demo modules (used by `demo_sdl3.xi`)
 3. Call extern functions only from the module that declares them
 
-**Status After Re-audit:** The 5c.12 fix may have resolved some cases, but `xiom.sdl3` -> `xiom.sdl3.demo` cross-module calls still fail. This gap requires further investigation — it's possible the fix only covers same-package modules, not cross-package `use`.
+**Status After Re-audit:** The 5c.12 fix may have resolved some cases, but `xiom.sdl3` -> `xiom.sdl3.demo` cross-module calls still fail. This gap requires further investigation -- it's possible the fix only covers same-package modules, not cross-package `use`.
 
 ## Build Pipeline
 
@@ -198,7 +198,7 @@ Utility: `SdlError` type with `{ message: Str }`.
 
 2. C Bridge compilation (required for struct/event allocation)
    Compile event_bridge.c with #include <SDL3/SDL.h>
-   → sdl3_bridge.obj
+   -> sdl3_bridge.obj
    Bridge must export:
      void* sdl3_alloc_event(void);       // SDL_calloc(1, sizeof(SDL_Event))
      Uint32 sdl3_event_type(void* e);    // ((SDL_Event*)e)->type
@@ -208,7 +208,7 @@ Utility: `SdlError` type with `{ message: Str }`.
 
 3. XIOM Compilation + Link (xiom + clang)
    sdl3.xi + src/sdl3_safe.xi + examples/demo_sdl3.xi + sdl3_bridge.obj + SDL3.lib
-   → final executable
+   -> final executable
 ```
 
 ## Compile Status (2026-07-17)

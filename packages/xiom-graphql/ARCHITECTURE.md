@@ -1,6 +1,6 @@
 # xiom-graphql Architecture
 
-> **Status: Design stage — specification only, not yet implemented. Depends on xiom-http, xiom-json, xiom-websocket (subscriptions).**
+> **Status: Design stage -- specification only, not yet implemented. Depends on xiom-http, xiom-json, xiom-websocket (subscriptions).**
 
 `xiom-graphql` is the schema-first GraphQL extension package built on top of `xiom-http`. Its purpose is to provide a strongly typed GraphQL server with schema-first development, explicit resolver wiring, query validation, execution planning, and subscription support without turning the core HTTP layer into a GraphQL framework.
 
@@ -39,63 +39,63 @@ Schema-first also improves separation of concerns. The schema defines the public
 
 ```text
 xiom-graphql/
-├── package.xi
-├── README.md
-├── ARCHITECTURE.md
-├── SPEC.md
-├── docs/
-│   ├── schema-first.md
-│   ├── schema-loading.md
-│   ├── validation.md
-│   ├── execution.md
-│   ├── resolvers.md
-│   ├── subscriptions.md
-│   ├── context.md
-│   ├── error-model.md
-│   └── batching-and-dataloaders.md
-├── schema/
-│   ├── root.graphql
-│   ├── scalars.graphql
-│   ├── directives.graphql
-│   └── examples.graphql
-├── src/
-│   ├── mod.xi
-│   ├── server.xi
-│   ├── schema_loader.xi
-│   ├── schema_registry.xi
-│   ├── type_system.xi
-│   ├── validation.xi
-│   ├── execution.xi
-│   ├── resolver.xi
-│   ├── field_resolver.xi
-│   ├── mutation.xi
-│   ├── query.xi
-│   ├── subscription.xi
-│   ├── context.xi
-│   ├── error.xi
-│   ├── introspection.xi
-│   ├── dataloader.xi
-│   ├── scalars.xi
-│   ├── directives.xi
-│   ├── transport/
-│   │   ├── mod.xi
-│   │   ├── websocket_bridge.xi
-│   │   └── http_bridge.xi
-│   ├── plugins/
-│   │   ├── mod.xi
-│   │   ├── auth.xi
-│   │   ├── tracing.xi
-│   │   └── persisted_queries.xi
-│   └── testing/
-│       ├── mod.xi
-│       ├── fixtures.xi
-│       └── golden_queries.xi
-└── tests/
-    ├── schema/
-    ├── validation/
-    ├── execution/
-    ├── errors/
-    └── subscriptions/
+|-- package.xi
+|-- README.md
+|-- ARCHITECTURE.md
+|-- SPEC.md
+|-- docs/
+|   |-- schema-first.md
+|   |-- schema-loading.md
+|   |-- validation.md
+|   |-- execution.md
+|   |-- resolvers.md
+|   |-- subscriptions.md
+|   |-- context.md
+|   |-- error-model.md
+|   `-- batching-and-dataloaders.md
+|-- schema/
+|   |-- root.graphql
+|   |-- scalars.graphql
+|   |-- directives.graphql
+|   `-- examples.graphql
+|-- src/
+|   |-- mod.xi
+|   |-- server.xi
+|   |-- schema_loader.xi
+|   |-- schema_registry.xi
+|   |-- type_system.xi
+|   |-- validation.xi
+|   |-- execution.xi
+|   |-- resolver.xi
+|   |-- field_resolver.xi
+|   |-- mutation.xi
+|   |-- query.xi
+|   |-- subscription.xi
+|   |-- context.xi
+|   |-- error.xi
+|   |-- introspection.xi
+|   |-- dataloader.xi
+|   |-- scalars.xi
+|   |-- directives.xi
+|   |-- transport/
+|   |   |-- mod.xi
+|   |   |-- websocket_bridge.xi
+|   |   `-- http_bridge.xi
+|   |-- plugins/
+|   |   |-- mod.xi
+|   |   |-- auth.xi
+|   |   |-- tracing.xi
+|   |   `-- persisted_queries.xi
+|   `-- testing/
+|       |-- mod.xi
+|       |-- fixtures.xi
+|       `-- golden_queries.xi
+`-- tests/
+    |-- schema/
+    |-- validation/
+    |-- execution/
+    |-- errors/
+    `-- subscriptions/
 ```
 
 > Note: the `src/`, `tests/`, and other `.xi` trees above describe the *intended* implementation layout. This package is currently design-stage and ships only documentation, specification, and `.graphql` design examples. No `.xi` implementation source is included yet.

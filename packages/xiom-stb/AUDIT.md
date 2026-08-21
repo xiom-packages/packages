@@ -1,4 +1,4 @@
-# xiom-stb — System Dependency Audit
+# xiom-stb -- System Dependency Audit
 
 ## Dependency: stb_image (Single-Header Image Library)
 
@@ -10,13 +10,13 @@ This package provides FFI bindings to the stb_image library by Sean Barrett. stb
 
 ### Fetch & Compile the Shared Library
 
-**Step 1 — Download stb_image.h**
+**Step 1 -- Download stb_image.h**
 ```
 curl -O https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
 curl -O https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h
 ```
 
-**Step 2 — Create the C wrapper (`stb_wrapper.c`)**
+**Step 2 -- Create the C wrapper (`stb_wrapper.c`)**
 ```c
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -24,7 +24,7 @@ curl -O https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h
 #include "stb_image_write.h"
 ```
 
-**Step 3 — Compile to shared library**
+**Step 3 -- Compile to shared library**
 
 Windows (MSVC):
 ```
@@ -46,7 +46,7 @@ macOS:
 gcc -shared -fPIC -o libstb_image.dylib stb_wrapper.c
 ```
 
-**Step 4 — Place the shared library**
+**Step 4 -- Place the shared library**
 - Place the resulting `.dll`/`.so`/`.dylib` alongside your compiled XIOM executable, or in a system library path.
 
 ### Build & Link
@@ -63,5 +63,5 @@ stb_image_write writes: PNG, JPG, BMP, TGA
 
 ### Version Compatibility
 
-- stb_image v2.29 (recommended — latest from `nothings/stb` master)
+- stb_image v2.29 (recommended -- latest from `nothings/stb` master)
 - stb_image v2.28+

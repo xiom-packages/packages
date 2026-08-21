@@ -1,4 +1,4 @@
-// xiom-glfw C Bridge — Production-grade GLFW ABI
+// xiom-glfw C Bridge -- Production-grade GLFW ABI
 // Flat C API for XIOM FFI. Zero dependencies beyond GLFW and OS libs.
 
 #ifndef GLFW_BRIDGE_H

@@ -1,4 +1,4 @@
-// XIOM — xiom-stb Conformance Tests
+// XIOM -- xiom-stb Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -26,7 +26,7 @@ fn report(passed: Bool, name: Str) -> Int {
   io.println("  [FAIL] " + name); return 1;
 }
 
-// ═══ 1. Image type construction + field access ═══
+// === 1. Image type construction + field access ===
 
 fn run_image_construct() -> Int {
   var d = Vec[UInt8].new();
@@ -46,7 +46,7 @@ fn t1() -> TestResult {
   return assert(false, "stb: Image construction failed");
 }
 
-// ═══ 2. Image data invariant: len == width * height * channels ═══
+// === 2. Image data invariant: len == width * height * channels ===
 
 fn run_image_invariant() -> Int {
   var d = Vec[UInt8].new();
@@ -60,7 +60,7 @@ fn t2() -> TestResult {
   return assert(false, "stb: Image invariant violated");
 }
 
-// ═══ 3. Image with single-pixel (1x1 RGBA) ═══
+// === 3. Image with single-pixel (1x1 RGBA) ===
 
 fn run_image_1x1() -> Int {
   var d = Vec[UInt8].new();
@@ -76,7 +76,7 @@ fn t3() -> TestResult {
   return assert(false, "stb: 1x1 image failed");
 }
 
-// ═══ 4. failure_reason returns a Str ═══
+// === 4. failure_reason returns a Str ===
 
 fn run_failure_reason_str() -> Int {
   let reason = failure_reason();
@@ -88,7 +88,7 @@ fn t4() -> TestResult {
   return assert(false, "stb: failure_reason failed");
 }
 
-// ═══ 5. pixel_index formula: index = (y * width + x) * channels ═══
+// === 5. pixel_index formula: index = (y * width + x) * channels ===
 
 fn run_pixel_index_formula() -> Int {
   var d = Vec[UInt8].new();
@@ -109,7 +109,7 @@ fn t5() -> TestResult {
   return assert(false, "stb: pixel_index formula wrong");
 }
 
-// ═══ 6. pixel_index on non-zero origin ═══
+// === 6. pixel_index on non-zero origin ===
 
 fn run_pixel_index_offset() -> Int {
   var d = Vec[UInt8].new();
@@ -128,7 +128,7 @@ fn t6() -> TestResult {
   return assert(false, "stb: pixel_index offset wrong");
 }
 
-// ═══ 7. pixel_at on known RGBA data ═══
+// === 7. pixel_at on known RGBA data ===
 
 fn run_pixel_at_basic() -> Int {
   var d = Vec[UInt8].new();
@@ -152,7 +152,7 @@ fn t7() -> TestResult {
   return assert(false, "stb: pixel_at values wrong");
 }
 
-// ═══ 8. pixel_at on 3-channel (RGB) image ═══
+// === 8. pixel_at on 3-channel (RGB) image ===
 
 fn run_pixel_at_rgb() -> Int {
   var d = Vec[UInt8].new();
@@ -170,7 +170,7 @@ fn t8() -> TestResult {
   return assert(false, "stb: pixel_at RGB wrong");
 }
 
-// ═══ 9. free_image on manually constructed Image ═══
+// === 9. free_image on manually constructed Image ===
 
 fn run_free_image_local() -> Int {
   var d = Vec[UInt8].new();
@@ -184,18 +184,18 @@ fn t9() -> TestResult {
   return assert(false, "stb: free_image crashed");
 }
 
-// ═══ 10. load_image with empty path (contract violation → Err) ═══
+// === 10. load_image with empty path (contract violation -> Err) ===
 
 fn run_load_empty_path() -> Int {
   let r = load_image("");
   match r { Ok(_) => return 1, Err(_) => return 0 }
 }
 fn t10() -> TestResult {
-  if run_load_empty_path() == 0 { return assert(true, "stb: load_image empty path → Err"); }
+  if run_load_empty_path() == 0 { return assert(true, "stb: load_image empty path -> Err"); }
   return assert(false, "stb: load_image empty path returned Ok");
 }
 
-// ═══ 11. load_from_memory empty data (contract violation → Err) ═══
+// === 11. load_from_memory empty data (contract violation -> Err) ===
 
 fn run_load_mem_empty() -> Int {
   var empty = Vec[UInt8].new();
@@ -203,11 +203,11 @@ fn run_load_mem_empty() -> Int {
   match r { Ok(_) => return 1, Err(_) => return 0 }
 }
 fn t11() -> TestResult {
-  if run_load_mem_empty() == 0 { return assert(true, "stb: load_from_memory empty → Err"); }
+  if run_load_mem_empty() == 0 { return assert(true, "stb: load_from_memory empty -> Err"); }
   return assert(false, "stb: load_from_memory empty returned Ok");
 }
 
-// ═══ 12. write_png with empty image data (contract violation → Err) ═══
+// === 12. write_png with empty image data (contract violation -> Err) ===
 
 fn run_write_png_empty() -> Int {
   var img = Image{ width: 0, height: 0, channels: 0, data: Vec[UInt8].new() };
@@ -215,11 +215,11 @@ fn run_write_png_empty() -> Int {
   match r { Ok(_) => return 1, Err(_) => return 0 }
 }
 fn t12() -> TestResult {
-  if run_write_png_empty() == 0 { return assert(true, "stb: write_png empty data → Err"); }
+  if run_write_png_empty() == 0 { return assert(true, "stb: write_png empty data -> Err"); }
   return assert(false, "stb: write_png empty data returned Ok");
 }
 
-// ═══ 13. write_jpg invalid quality (contract violation) ═══
+// === 13. write_jpg invalid quality (contract violation) ===
 
 fn run_write_jpg_bad_quality() -> Int {
   var d = Vec[UInt8].new(); d.push(0); d.push(0); d.push(0); d.push(255);
@@ -230,24 +230,24 @@ fn run_write_jpg_bad_quality() -> Int {
   match r2 { Ok(_) => return 2, Err(_) => return 0 }
 }
 fn t13() -> TestResult {
-  if run_write_jpg_bad_quality() == 0 { return assert(true, "stb: write_jpg invalid quality → Err"); }
+  if run_write_jpg_bad_quality() == 0 { return assert(true, "stb: write_jpg invalid quality -> Err"); }
   return assert(false, "stb: write_jpg bad quality returned Ok");
 }
 
-// ═══ 14. FFI load path round-trip error-path (no DLL → Err) ═══
+// === 14. FFI load path round-trip error-path (no DLL -> Err) ===
 
 fn run_load_nonexistent() -> Int {
   let r = load_image("/nonexistent/does_not_exist.png");
   match r { Ok(_) => return 1, Err(err) => { if err.len() >= 0 { return 0; } return 1; } }
 }
 fn t14() -> TestResult {
-  if run_load_nonexistent() == 0 { return assert(true, "stb: load_image nonexistent file → Err"); }
+  if run_load_nonexistent() == 0 { return assert(true, "stb: load_image nonexistent file -> Err"); }
   return assert(false, "stb: load_image nonexistent returned Ok");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Main
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn main() -> Int {
   io.println("=== XIOM stb Conformance Tests ===");

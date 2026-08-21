@@ -1,10 +1,10 @@
-# xiom-libsodium — SPEC
+# xiom-libsodium -- SPEC
 
 **Phase**: 2 | **Priority**: HIGH
 **Status**: SPEC only | **Depends on**: xiom.ffi
 
 ## What it wraps
-libsodium — modern cryptography library (NaCl fork).
+libsodium -- modern cryptography library (NaCl fork).
 Encryption, decryption, hashing, signatures, key exchange.
 
 ## Dependencies: System-installed. `apt install libsodium-dev`.

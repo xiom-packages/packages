@@ -1,6 +1,6 @@
 # xiom-gazebo
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Gazebo robotics simulator bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

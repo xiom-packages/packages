@@ -1,6 +1,6 @@
 # xiom-etcd
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** etcd distributed key-value store client (gRPC).
 > **Deps:** stdlib; may wrap C (FFI).
 

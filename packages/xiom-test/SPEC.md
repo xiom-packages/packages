@@ -1,4 +1,4 @@
-# xiom.test — API Reference
+# xiom.test -- API Reference
 
 Production-grade test framework for the XIOM ecosystem. Provides assertions, suite-based test organization, result aggregation, reporting, and benchmarking.
 
@@ -298,7 +298,7 @@ var tc = assert_eq_bool(a and b, c, "logical expression mismatch");
 
 ### `run_suite(suite: &TestSuite) -> TestResults`
 
-Evaluates all cases in a suite and returns aggregated results. Standalone function — use when you don't want to call the method form.
+Evaluates all cases in a suite and returns aggregated results. Standalone function -- use when you don't want to call the method form.
 
 ```
 var results = run_suite(&suite);
@@ -363,7 +363,7 @@ var line = bench_report(&b);
 
 Example output:
 ```
-Bench: fib(20) — 1000 iter, 42 ms, 23809 ops/sec
+Bench: fib(20) -- 1000 iter, 42 ms, 23809 ops/sec
 ```
 
 ---

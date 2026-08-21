@@ -1,6 +1,6 @@
 # xiom-clustering
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Unsupervised clustering algorithms.
 > **Deps:** stdlib; may wrap C (FFI).
 

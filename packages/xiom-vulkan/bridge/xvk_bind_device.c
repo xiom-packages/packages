@@ -102,8 +102,8 @@ void xvk_get_device_queue(int64_t device, int32_t family, int32_t index, int64_t
 }
 
 /* Phase 7.5: Get a device queue via VkDeviceQueueInfo2 for extended flags (e.g. protected, video).
- * queue_info_struct: VkDeviceQueueInfo2* — caller-built struct.
- * out_queue:         VkQueue* — pre-allocated 8 bytes; receives the queue handle. */
+ * queue_info_struct: VkDeviceQueueInfo2* -- caller-built struct.
+ * out_queue:         VkQueue* -- pre-allocated 8 bytes; receives the queue handle. */
 int32_t xvk_get_device_queue2(int64_t device, int64_t queue_info_struct, int64_t out_queue)
 {
     if (device == 0 || out_queue == 0) {

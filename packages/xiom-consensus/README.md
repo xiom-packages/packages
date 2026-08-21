@@ -1,6 +1,6 @@
 # xiom-consensus
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Consensus algorithm primitives.
 > **Deps:** stdlib; may wrap C (FFI).
 

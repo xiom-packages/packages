@@ -1,6 +1,6 @@
 # xiom-monitoring
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Metrics collection, aggregation, and visualization across systems and clouds.
 > **Deps:** stdlib; may wrap C (FFI).
 

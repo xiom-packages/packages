@@ -1,6 +1,6 @@
 # xiom-electronics
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Electronic circuit analysis and component modeling.
 > **Deps:** stdlib; may wrap C (FFI).
 

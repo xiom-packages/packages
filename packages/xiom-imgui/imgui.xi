@@ -1,4 +1,4 @@
-// XIOM — Dear ImGui Bindings (Immediate Mode GUI)
+// XIOM -- Dear ImGui Bindings (Immediate Mode GUI)
 // Production-grade: 85+ functions wrapping Dear ImGui v1.92.9.
 // Self-contained: links bridge/*.obj. No external imgui dependency.
 // Contracts enforce non-null handles, valid window state, and correct call order.
@@ -9,7 +9,7 @@ const TRUE_I32 : Int32 = 1;
 const FALSE_I32: Int32 = 0;
 const FLAGS_NONE: Int32 = 0;
 
-// ── extern "C" FFI declarations ────────────────────────────────────────────
+// -- extern "C" FFI declarations --------------------------------------------
 
 extern "C" {
   // Lifecycle
@@ -131,7 +131,7 @@ extern "C" {
   fn imgui_get_frame_count() -> Int32;
 }
 
-// ── Module-level state tracking for Begin/End pairing ─────────────────────
+// -- Module-level state tracking for Begin/End pairing ---------------------
 var g_win_open   : Int = 0;  // begin_window count (non-nesting: 0 or 1)
 var g_menu_open  : Int = 0;  // begin_menu count
 var g_mm_open    : Int = 0;  // main menu bar
@@ -140,7 +140,7 @@ var g_tab_item   : Int = 0;  // begin_tab_item
 var g_popup_open : Int = 0;  // begin_popup_modal / begin_popup
 var g_tree_level : Int = 0;  // tree_node nesting level (trees CAN nest)
 
-// ── Safe wrappers with contracts ───────────────────────────────────────────
+// -- Safe wrappers with contracts -------------------------------------------
 
 // Lifecycle
 pub fn create_context(win: Int) -> Bool
@@ -193,7 +193,7 @@ pub fn set_next_window_size(w: Int32, h: Int32)
 pub fn set_next_window_pos(x: Int32, y: Int32)
 { unsafe { imgui_set_next_window_pos_i32(x, y); }; }
 
-// Widgets — button, text
+// Widgets -- button, text
 pub fn button(label: Str) -> Bool
   requires: label.len() > 0
 { return unsafe { imgui_button(label) != 0 }; }
@@ -211,7 +211,7 @@ pub fn text_colored(r: Float32, g: Float32, b: Float32, a: Float32, text: Str)
 pub fn text_wrapped(text: Str)
 { unsafe { imgui_text_wrapped(text); }; }
 
-// Widgets — interactive
+// Widgets -- interactive
 pub fn checkbox(label: Str, checked: Bool) -> Bool
   requires: label.len() > 0
 { let c: Int32 = if checked { TRUE_I32 } else { FALSE_I32 };

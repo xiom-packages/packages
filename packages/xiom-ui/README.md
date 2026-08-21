@@ -1,6 +1,6 @@
 # xiom-ui
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** High-level retained-mode UI toolkit bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

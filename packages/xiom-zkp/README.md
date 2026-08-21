@@ -1,6 +1,6 @@
 # xiom-zkp
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Zero-knowledge proof primitives and verifiers.
 > **Deps:** stdlib; may wrap C (FFI).
 

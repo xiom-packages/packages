@@ -1,6 +1,6 @@
 # xiom-chromatography
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Chromatographic separation modeling and analysis.
 > **Deps:** stdlib; may wrap C (FFI).
 

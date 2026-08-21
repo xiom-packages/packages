@@ -1,13 +1,13 @@
 # xiom-net Roadmap
 
-## Current State — v0.2.0
+## Current State -- v0.2.0
 
 | Module | Status | Notes |
 |--------|--------|-------|
 | `xiom.net.types` | Complete | IPv4/IPv6 types, constructors, parsers, formatters, sockaddr_in binary encode/decode, Winsock error mapping |
 | `xiom.net.tcp` | Production | socket/connect/bind/listen/accept/send/recv/shutdown/closesocket via Winsock2 FFI |
 | `xiom.net.udp` | Production | socket/bind/sendto/recvfrom/closesocket via Winsock2 FFI |
-| `xiom.net.dns` | Stub | dns_resolve and dns_reverse return Err — need getaddrinfo/getnameinfo FFI |
+| `xiom.net.dns` | Stub | dns_resolve and dns_reverse return Err -- need getaddrinfo/getnameinfo FFI |
 | `xiom.net.demo` | Complete | HTTP GET demo + echo server demo |
 
 ### Contracts Coverage
@@ -23,7 +23,7 @@
 
 ---
 
-## v0.3.0 — DNS Resolution
+## v0.3.0 -- DNS Resolution
 
 - [ ] Wire `getaddrinfo` FFI in `dns_resolve`
 - [ ] Wire `getnameinfo` FFI in `dns_reverse`
@@ -31,7 +31,7 @@
 - [ ] Add DNS-specific error codes (NXDOMAIN, SERVFAIL, timeout)
 - [ ] Tests: resolve localhost, resolve known host, NXDOMAIN error path
 
-## v0.4.0 — IPv6 Completeness
+## v0.4.0 -- IPv6 Completeness
 
 - [ ] `ipv6_from_str` parser (colon-hex format, :: compression)
 - [ ] `ipv6_to_str` formatter (canonical form)
@@ -41,28 +41,28 @@
 - [ ] TCP/UDP bind/connect with IPv6 addresses
 - [ ] Tests: full IPv6 parsing/formatting/encoding roundtrip
 
-## v0.5.0 — Async I/O
+## v0.5.0 -- Async I/O
 
 - [ ] Non-blocking socket mode (`ioctlsocket`/`fcntl` with `O_NONBLOCK`)
 - [ ] `select`-based multiplexing (cross-platform)
 - [ ] Event-driven socket state machine
 - [ ] Timeout support for connect/read/write operations
 
-## v0.6.0 — High-Performance I/O
+## v0.6.0 -- High-Performance I/O
 
 - [ ] Windows: IOCP (I/O Completion Ports) backend
 - [ ] Linux: epoll backend
 - [ ] macOS/BSD: kqueue backend
 - [ ] Unified async `Stream` and `Listener` abstractions
 
-## v0.7.0 — POSIX Portability
+## v0.7.0 -- POSIX Portability
 
 - [ ] `#ifdef`-style platform dispatch (Winsock2 vs POSIX)
-- [ ] POSIX shim: `WSAGetLastError` → `errno`, `closesocket` → `close`
+- [ ] POSIX shim: `WSAGetLastError` -> `errno`, `closesocket` -> `close`
 - [ ] CI: build + test on Windows, Linux, macOS
 - [ ] Error code mapping table for POSIX errno values
 
-## v1.0.0 — Stable Release
+## v1.0.0 -- Stable Release
 
 - [ ] All above features complete
 - [ ] 90%+ test coverage on all modules
@@ -94,6 +94,6 @@
 
 ```
 xiom-net (this package)
-  ├── xiom-std (stdlib: string, ptr, io, collections)
-  └── OS sockets (Winsock2 / POSIX libc)
+  |-- xiom-std (stdlib: string, ptr, io, collections)
+  `-- OS sockets (Winsock2 / POSIX libc)
 ```

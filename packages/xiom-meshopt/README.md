@@ -1,6 +1,6 @@
 # xiom-meshopt
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Mesh optimization and vertex processing bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

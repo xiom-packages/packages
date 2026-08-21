@@ -1,4 +1,4 @@
-// XIOM — Assimp (Open Asset Import Library) Bindings
+// XIOM -- Assimp (Open Asset Import Library) Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -13,9 +13,9 @@
 
 module xiom.assimp
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Types — Opaque handles for Assimp data structures
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Types -- Opaque handles for Assimp data structures
+// ===============================================================================
 
 pub type AiScene     = Int;
 pub type AiMesh      = Int;
@@ -23,7 +23,7 @@ pub type AiMaterial  = Int;
 pub type AiAnimation = Int;
 pub type AiNode      = Int;
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Post-processing flag constants
 //
 // Bitmask flags passed to aiImportFile / aiImportFileEx to control
@@ -61,7 +61,7 @@ pub type AiNode      = Int;
 // aiProcess_ForceGenNormals          = 0x20000000 (536870912)
 // aiProcess_DropNormals              = 0x40000000 (1073741824)
 // aiProcess_GenBoundingBoxes         = 0x80000000 (2147483648)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 pub const aiProcess_CalcTangentSpace:         Int = 0x1;
 pub const aiProcess_JoinIdenticalVertices:    Int = 0x2;
@@ -95,9 +95,9 @@ pub const aiProcess_ForceGenNormals:          Int = 0x20000000;
 pub const aiProcess_DropNormals:              Int = 0x40000000;
 pub const aiProcess_GenBoundingBoxes:         Int = 0x80000000;
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Commonly used flag presets
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 // Default: Triangulate | FlipUVs | CalcTangentSpace
 pub const aiProcessPreset_Default: Int = 0x800009;
@@ -113,9 +113,9 @@ pub const aiProcessPreset_TargetRealtimeQuality: Int = 0x78ECB;
 // MaxQuality: Quality | FindInstances | ValidateDataStructure | OptimizeMeshes
 pub const aiProcessPreset_TargetRealtimeMaxQuality: Int = 0x378ECB;
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Raw C API — extern "C" stubs
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Raw C API -- extern "C" stubs
+// ===============================================================================
 
 extern "C" {
   fn aiImportFile(file: Str, flags: Int) -> Int;
@@ -136,9 +136,9 @@ extern "C" {
   fn aiGetMaterial(scene: Int, index: Int) -> Int;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Safe wrappers — Scene import / release
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Safe wrappers -- Scene import / release
+// ===============================================================================
 
 pub fn import_file(path: Str, flags: Int) -> Result[AiScene, Str]
   requires: path.len() > 0
@@ -149,7 +149,7 @@ pub fn import_file(path: Str, flags: Int) -> Result[AiScene, Str]
   unsafe {
     let scene: Int = aiImportFile(path, flags);
     if scene == 0 {
-      return Err("import_file: failed to import — library not linked or invalid file");
+      return Err("import_file: failed to import -- library not linked or invalid file");
     }
     Ok(scene)
   }
@@ -176,9 +176,9 @@ pub fn release_import(scene: AiScene)
   unsafe { aiReleaseImport(scene); }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Safe wrappers — Error reporting
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Safe wrappers -- Error reporting
+// ===============================================================================
 
 pub fn get_error_string() -> Str
 {
@@ -191,9 +191,9 @@ pub fn get_error_string() -> Str
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Safe wrappers — Scene queries
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Safe wrappers -- Scene queries
+// ===============================================================================
 
 pub fn get_num_meshes(scene: AiScene) -> Int
   requires: scene != 0
@@ -243,9 +243,9 @@ pub fn get_material(scene: AiScene, index: Int) -> Result[AiMaterial, Str]
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Safe wrappers — Mesh queries
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Safe wrappers -- Mesh queries
+// ===============================================================================
 
 pub fn get_num_vertices(mesh: AiMesh) -> Int
   requires: mesh != 0
@@ -327,9 +327,9 @@ pub fn get_tex_coords(mesh: AiMesh) -> Result<*Float32, Str>
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Utility
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 pub fn version() -> Str {
   "0.1.0"

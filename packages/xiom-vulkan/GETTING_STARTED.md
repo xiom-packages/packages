@@ -1,4 +1,4 @@
-# XIOM Vulkan — Getting Started
+# XIOM Vulkan -- Getting Started
 
 **Version:** v1.0.0  
 **Compiler required:** xiom v0.48.0+  
@@ -8,10 +8,10 @@
 
 | Tool | Version | Download |
 |------|---------|----------|
-| xiom | ≥ 0.48.0 | `cargo install xiom` or prebuilt in `release/` |
-| Vulkan SDK | ≥ 1.3 | [vulkan.lunarg.com](https://vulkan.lunarg.com) |
-| GLFW | 3.4 | [glfw.org](https://glfw.org/download.html) — prebuilt Windows binaries |
-| LLVM/clang | ≥ 18 | [llvm.org](https://llvm.org) — for C bridge compilation |
+| xiom | >= 0.48.0 | `cargo install xiom` or prebuilt in `release/` |
+| Vulkan SDK | >= 1.3 | [vulkan.lunarg.com](https://vulkan.lunarg.com) |
+| GLFW | 3.4 | [glfw.org](https://glfw.org/download.html) -- prebuilt Windows binaries |
+| LLVM/clang | >= 18 | [llvm.org](https://llvm.org) -- for C bridge compilation |
 | glslc | bundled with VK SDK | Compiles GLSL shaders to SPIR-V |
 
 ### Environment Variables
@@ -21,7 +21,7 @@ $env:VULKAN_SDK = "C:\VulkanSDK\1.4.350.0"
 $env:GLFW_DIR   = "C:\glfw-3.4.bin.WIN64"
 ```
 
-## Quick Start — Run a Demo (30 seconds)
+## Quick Start -- Run a Demo (30 seconds)
 
 ```powershell
 cd ecosystem\xiom-vulkan
@@ -29,7 +29,7 @@ cd ecosystem\xiom-vulkan
 ```
 
 This runs a 4-step pipeline:
-1. Compiles GLSL shaders → SPIR-V
+1. Compiles GLSL shaders -> SPIR-V
 2. Generates C header with embedded SPIR-V arrays
 3. Compiles the C bridge (30 Vulkan modules) into xvk_bridge.obj
 4. Builds + links the XIOM demo with xiom
@@ -42,7 +42,7 @@ The window opens and stays until you close it. GPU: NVIDIA RTX 3070 Ti detected.
 .\build.ps1 -Target demo2d -Run       # Color-cycling triangle
 .\build.ps1 -Target demo3d -Run       # Spinning 3D cube
 .\build.ps1 -Target particles -Run    # GPU particle fountain
-.\build.ps1 -Target cubes -Run        # 3×3 spinning cube grid
+.\build.ps1 -Target cubes -Run        # 3x3 spinning cube grid
 .\build.ps1 -Target shapes -Run       # Animated quads + triangle
 .\build.ps1 -Target vertex_buffer -Run # Vertex/index buffer workflow
 .\build.ps1 -Target models -Run       # 20 rotating model instances
@@ -73,7 +73,7 @@ xiom -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
 ### Raw bindings (755 VK functions)
 
 ```xiom
-// vulkan_extern.xi declares all VK functions — links directly to vulkan-1.lib
+// vulkan_extern.xi declares all VK functions -- links directly to vulkan-1.lib
 // Compile with: xiom app.xi vulkan_extern.xi vulkan_safe.xi vulkan_structs.xi
 use xiom.vulkan.safe;
 use xiom.vulkan.structs;
@@ -129,30 +129,30 @@ unsafe { xvk_free(buf); }
 
 ```
 XIOM .xi files
-  ├── vulkan_extern.xi        755 raw VK function declarations → vulkan-1.lib
-  ├── vulkan_safe.xi          29 resource types + 5 create_from_struct
-  ├── vulkan_structs.xi       30+ struct builders (alloc + write at offsets)
-  └── vulkan_constants_all.xi 3691 VK constants
+  |-- vulkan_extern.xi        755 raw VK function declarations -> vulkan-1.lib
+  |-- vulkan_safe.xi          29 resource types + 5 create_from_struct
+  |-- vulkan_structs.xi       30+ struct builders (alloc + write at offsets)
+  `-- vulkan_constants_all.xi 3691 VK constants
 
-FFI boundary — int64_t handles
+FFI boundary -- int64_t handles
 
 C bridge  (332KB, 30 modules, 318 functions)
-  ├── xvk_structs.c           alloc / write_u32 / write_u64 / write_f32 / write_str
-  ├── xvk_bind_instance.c     vkCreateInstance / vkEnumeratePhysicalDevices
-  ├── xvk_bind_device.c       vkCreateDevice / vkGetDeviceQueue
-  ├── xvk_bind_buffer.c       vkCreateBuffer / vkDestroyBuffer
-  ├── xvk_bind_image.c        vkCreateImage / vkCreateImageView / vkCreateSampler
-  ├── xvk_bind_memory.c       vkAllocateMemory / vkMapMemory
-  ├── xvk_bind_pipeline.c     vkCreateShaderModule / vkCreatePipelineLayout
-  ├── xvk_bind_descriptor.c   vkCreateDescriptorSetLayout / vkAllocateDescriptorSets
-  ├── xvk_bind_command.c      vkAllocateCommandBuffers / all vkCmd* functions
-  ├── xvk_bind_sync.c         vkCreateFence / vkCreateSemaphore / vkQueueSubmit
-  ├── xvk_bind_query.c        vkCreateQueryPool / vkCmdWriteTimestamp
-  ├── xvk_bind_swapchain.c    vkCreateSwapchainKHR / vkQueuePresentKHR
-  ├── xvk_bind_extensions.c   mesh shaders / video / debug / VRS / push desc / sync2
-  ├── xvk_bind_raytracing.c   KHR + NV ray tracing
-  └── Legacy (17 modules)     xvk_app_create / xvk_draw_triangle_2d / ... (demo API)
+  |-- xvk_structs.c           alloc / write_u32 / write_u64 / write_f32 / write_str
+  |-- xvk_bind_instance.c     vkCreateInstance / vkEnumeratePhysicalDevices
+  |-- xvk_bind_device.c       vkCreateDevice / vkGetDeviceQueue
+  |-- xvk_bind_buffer.c       vkCreateBuffer / vkDestroyBuffer
+  |-- xvk_bind_image.c        vkCreateImage / vkCreateImageView / vkCreateSampler
+  |-- xvk_bind_memory.c       vkAllocateMemory / vkMapMemory
+  |-- xvk_bind_pipeline.c     vkCreateShaderModule / vkCreatePipelineLayout
+  |-- xvk_bind_descriptor.c   vkCreateDescriptorSetLayout / vkAllocateDescriptorSets
+  |-- xvk_bind_command.c      vkAllocateCommandBuffers / all vkCmd* functions
+  |-- xvk_bind_sync.c         vkCreateFence / vkCreateSemaphore / vkQueueSubmit
+  |-- xvk_bind_query.c        vkCreateQueryPool / vkCmdWriteTimestamp
+  |-- xvk_bind_swapchain.c    vkCreateSwapchainKHR / vkQueuePresentKHR
+  |-- xvk_bind_extensions.c   mesh shaders / video / debug / VRS / push desc / sync2
+  |-- xvk_bind_raytracing.c   KHR + NV ray tracing
+  `-- Legacy (17 modules)     xvk_app_create / xvk_draw_triangle_2d / ... (demo API)
 
 Vulkan SDK  (vulkan-1.lib)
-  └── Driver (RTX 3070 Ti)
+  `-- Driver (RTX 3070 Ti)
 ```

@@ -1,6 +1,6 @@
 # xiom-tftp
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** TFTP client/server for trivial file transfer.
 > **Deps:** stdlib; may wrap C (FFI).
 

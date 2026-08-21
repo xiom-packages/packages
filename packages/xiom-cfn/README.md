@@ -1,6 +1,6 @@
 # xiom-cfn
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** AWS CloudFormation templating and stack lifecycle management.
 > **Deps:** stdlib; may wrap C (FFI).
 

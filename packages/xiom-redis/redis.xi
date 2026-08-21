@@ -14,7 +14,7 @@ pub fn connect(host: Str, port: Int) -> Result[Client, Str]
   requires: host.len() > 0
   requires: port > 0 && port < 65536
 {
-  return Err("xiom-redis: hiredis FFI bridge not linked — redisConnect requires native runtime");
+  return Err("xiom-redis: hiredis FFI bridge not linked -- redisConnect requires native runtime");
 }
 
 pub fn connect_timeout(host: Str, port: Int, timeout_sec: Float64) -> Result[Client, Str]

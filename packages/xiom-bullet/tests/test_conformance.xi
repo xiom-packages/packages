@@ -1,4 +1,4 @@
-// XIOM — Bullet Physics Conformance Test Suite
+// XIOM -- Bullet Physics Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -27,7 +27,7 @@ fn has_bullet() -> Bool {
 }
 
 // =========================================================================
-// SECTION 1 — Type declarations (3 tests)
+// SECTION 1 -- Type declarations (3 tests)
 // =========================================================================
 
 fn test_type_world() -> TestResult {
@@ -49,7 +49,7 @@ fn test_type_collisionshape() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 2 — API function compile-time presence (18 tests)
+// SECTION 2 -- API function compile-time presence (18 tests)
 // =========================================================================
 
 fn test_api_create_world() -> TestResult {
@@ -125,7 +125,7 @@ fn test_api_get_position() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 3 — Contract declaration presence (18 tests)
+// SECTION 3 -- Contract declaration presence (18 tests)
 // =========================================================================
 
 fn test_contract_create_world() -> TestResult {
@@ -201,7 +201,7 @@ fn test_contract_get_position() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 4 — Runtime behavior (13 tests)
+// SECTION 4 -- Runtime behavior (13 tests)
 // =========================================================================
 
 // -- World lifecycle --
@@ -520,7 +520,7 @@ fn test_runtime_multiple_worlds() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 5 — Material, position, edges, and integration (9 tests)
+// SECTION 5 -- Material, position, edges, and integration (9 tests)
 // =========================================================================
 
 fn run_edge_zero_gravity() -> Int {
@@ -599,7 +599,7 @@ fn test_runtime_large_capsule() -> TestResult {
 }
 
 // =========================================================================
-// Main — manual test dispatch
+// Main -- manual test dispatch
 // =========================================================================
 
 pub fn main() -> Int {

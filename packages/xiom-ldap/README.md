@@ -1,6 +1,6 @@
 # xiom-ldap
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** LDAP directory bind, search, and user provisioning.
 > **Deps:** stdlib; may wrap C (FFI).
 

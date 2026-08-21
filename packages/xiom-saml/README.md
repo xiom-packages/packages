@@ -1,6 +1,6 @@
 # xiom-saml
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** SAML assertions, SSO flows, and metadata handling.
 > **Deps:** stdlib; may wrap C (FFI).
 

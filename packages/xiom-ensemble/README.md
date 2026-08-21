@@ -1,6 +1,6 @@
 # xiom-ensemble
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Ensemble learning methods combining multiple models.
 > **Deps:** stdlib; may wrap C (FFI).
 

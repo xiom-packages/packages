@@ -366,7 +366,7 @@ requires: ms >= 0
 
 pub fn bench_report(result: &BenchResult) -> Str {
   var s0 = xiom.string.str_concat("Bench: ", result.name);
-  var s1 = xiom.string.str_concat(s0, " — ");
+  var s1 = xiom.string.str_concat(s0, " -- ");
   var s2 = xiom.string.str_concat(s1, xiom.convert.int_to_string(result.iterations));
   var s3 = xiom.string.str_concat(s2, " iter, ");
   var s4 = xiom.string.str_concat(s3, xiom.convert.int_to_string(result.elapsed_ms));

@@ -1,4 +1,4 @@
-// XIOM Ecosystem — Package Manifest
+// XIOM Ecosystem -- Package Manifest
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 

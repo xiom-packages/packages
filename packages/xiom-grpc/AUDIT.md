@@ -1,4 +1,4 @@
-# AUDIT.md — xiom-grpc
+# AUDIT.md -- xiom-grpc
 
 ## Compiler Compatibility
 - **Compiler version:** xiom v0.11.0 (XIOM v0.45.3)
@@ -7,10 +7,10 @@
 ## Files
 | File | Status | Notes |
 |------|--------|-------|
-| `grpc.xi` | ✓ Compiles | FFI declarations (no bodies); `pub const` works (GAP-3) |
-| `src/types.xi` | ✓ Compiles | Fixed `.to_owned()` → `.clone()`; `pub const` declared successfully |
-| `src/client.xi` | ✓ Compiles (multi-file only) | Requires `use xiom.grpc;` and compilation with `grpc.xi` |
-| `src/server.xi` | ✓ Compiles (alone or multi-file) | Requires `use xiom.grpc.types.GrpcServer;` |
+| `grpc.xi` | [OK] Compiles | FFI declarations (no bodies); `pub const` works (GAP-3) |
+| `src/types.xi` | [OK] Compiles | Fixed `.to_owned()` -> `.clone()`; `pub const` declared successfully |
+| `src/client.xi` | [OK] Compiles (multi-file only) | Requires `use xiom.grpc;` and compilation with `grpc.xi` |
+| `src/server.xi` | [OK] Compiles (alone or multi-file) | Requires `use xiom.grpc.types.GrpcServer;` |
 | `tests/test_grpc.xi` | Not tested separately | Requires `use xiom.test` (stdlib) |
 
 ## Fixes Applied

@@ -1,6 +1,6 @@
 # Subscriptions
 
-> Status: Design stage — specification only. Subscription delivery depends on `xiom-websocket`.
+> Status: Design stage -- specification only. Subscription delivery depends on `xiom-websocket`.
 
 ## Transport-agnostic at the API layer
 
@@ -18,13 +18,13 @@ pub interface Subscription[T] {
 }
 ```
 
-`subscribe` runs once per subscription operation, after the operation has been parsed and validated like any other. It returns either a typed `EventStream[T]` or a `GraphQLError`. Each event pulled from the stream is then executed against the subscription's selection set — so subscription payloads are resolved through the same execution machinery as queries.
+`subscribe` runs once per subscription operation, after the operation has been parsed and validated like any other. It returns either a typed `EventStream[T]` or a `GraphQLError`. Each event pulled from the stream is then executed against the subscription's selection set -- so subscription payloads are resolved through the same execution machinery as queries.
 
 ## The event lifecycle
 
-1. **Subscribe** — the client sends a subscription operation over the transport. After validation, the bound `Subscription` resolver produces an `EventStream[T]`.
-2. **Next** — as the underlying event source emits values, each value is resolved against the selection set and serialized into a GraphQL response frame.
-3. **Complete** — the stream ends (source closed, client unsubscribed, or error), and the transport bridge tears down the channel.
+1. **Subscribe** -- the client sends a subscription operation over the transport. After validation, the bound `Subscription` resolver produces an `EventStream[T]`.
+2. **Next** -- as the underlying event source emits values, each value is resolved against the selection set and serialized into a GraphQL response frame.
+3. **Complete** -- the stream ends (source closed, client unsubscribed, or error), and the transport bridge tears down the channel.
 
 ## The WebSocket bridge
 

@@ -1,4 +1,4 @@
-// XIOM — Pandas Conformance Tests
+// XIOM -- Pandas Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -80,7 +80,7 @@ fn int_to_str(n: Int) -> Str {
 }
 
 // =========================================================================
-// SECTION 1 — Dtype constants
+// SECTION 1 -- Dtype constants
 // =========================================================================
 
 fn test_const_dtype_int32() -> TestCase {
@@ -112,7 +112,7 @@ fn test_const_dtype_count() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 2 — CompareOp constants
+// SECTION 2 -- CompareOp constants
 // =========================================================================
 
 fn test_const_cmp_eq() -> TestCase {
@@ -144,7 +144,7 @@ fn test_const_cmp_distinct() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 3 — JoinType constants
+// SECTION 3 -- JoinType constants
 // =========================================================================
 
 fn test_const_join_inner() -> TestCase {
@@ -168,7 +168,7 @@ fn test_const_join_all_defined() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 4 — FFI stub: dataframe_new / dataframe_from_csv / dataframe_to_csv
+// SECTION 4 -- FFI stub: dataframe_new / dataframe_from_csv / dataframe_to_csv
 // =========================================================================
 
 fn test_dataframe_new_null_params() -> TestCase {
@@ -192,7 +192,7 @@ fn test_dataframe_to_csv_null() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 5 — FFI stub: dataframe_get_column / dataframe_set_column
+// SECTION 5 -- FFI stub: dataframe_get_column / dataframe_set_column
 // =========================================================================
 
 fn test_dataframe_get_column_null() -> TestCase {
@@ -216,7 +216,7 @@ fn test_dataframe_set_column_with_len() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 6 — FFI stub: dataframe_filter / dataframe_groupby
+// SECTION 6 -- FFI stub: dataframe_filter / dataframe_groupby
 // =========================================================================
 
 fn test_dataframe_filter_null() -> TestCase {
@@ -240,7 +240,7 @@ fn test_dataframe_groupby_stub() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 7 — FFI stub: dataframe_join
+// SECTION 7 -- FFI stub: dataframe_join
 // =========================================================================
 
 fn test_dataframe_join_null() -> TestCase {
@@ -260,7 +260,7 @@ fn test_dataframe_join_all_types_callable() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 8 — FFI stub: series_new / series_from_vec
+// SECTION 8 -- FFI stub: series_new / series_from_vec
 // =========================================================================
 
 fn test_series_new_null_values() -> TestCase {
@@ -284,7 +284,7 @@ fn test_series_from_vec_with_len() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 9 — FFI stub: series_to_vec / series_apply
+// SECTION 9 -- FFI stub: series_to_vec / series_apply
 // =========================================================================
 
 fn test_series_to_vec_null() -> TestCase {
@@ -308,7 +308,7 @@ fn test_series_apply_stub() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 10 — API presence (compile-time verification)
+// SECTION 10 -- API presence (compile-time verification)
 // =========================================================================
 
 fn test_api_dataframe_new() -> TestCase {
@@ -360,7 +360,7 @@ fn test_api_series_apply() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 11 — Contract declarations
+// SECTION 11 -- Contract declarations
 // =========================================================================
 
 fn test_contract_dataframe_new_requires() -> TestCase {
@@ -408,7 +408,7 @@ fn test_contract_series_apply_requires() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 12 — Type definitions
+// SECTION 12 -- Type definitions
 // =========================================================================
 
 fn test_type_dataframe() -> TestCase {
@@ -430,7 +430,7 @@ fn test_type_dtype() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 13 — Extern "C" function count
+// SECTION 13 -- Extern "C" function count
 // =========================================================================
 
 fn test_extern_count() -> TestCase {
@@ -438,7 +438,7 @@ fn test_extern_count() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 14 — dtype_name utility
+// SECTION 14 -- dtype_name utility
 // =========================================================================
 
 fn local_dtype_name(dtype: Int) -> Str {
@@ -472,7 +472,7 @@ fn test_dtype_name_unknown() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 15 — Safe wrapper stubs (null checks without bridge linked)
+// SECTION 15 -- Safe wrapper stubs (null checks without bridge linked)
 // =========================================================================
 
 fn safe_dataframe_new(col_names: Int, col_types: Int, num_cols: Int) -> Result[Int, Str] {
@@ -561,7 +561,7 @@ fn test_safe_series_apply_null_func() -> TestCase {
 }
 
 // =========================================================================
-// Main — manual test dispatch
+// Main -- manual test dispatch
 // =========================================================================
 
 pub fn main() -> Int {

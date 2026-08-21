@@ -1,6 +1,6 @@
 # Batching and DataLoaders
 
-> Status: Design stage — specification only.
+> Status: Design stage -- specification only.
 
 ## The N+1 problem
 
@@ -17,7 +17,7 @@ query {
 }
 ```
 
-Resolved naively, the `author` field runs once per post — N+1 round trips to the data source for a single request. As lists nest, the multiplication compounds. Because GraphQL lets clients shape arbitrary selections, this cannot be fixed by hand-tuning one query; it needs a systematic batching mechanism.
+Resolved naively, the `author` field runs once per post -- N+1 round trips to the data source for a single request. As lists nest, the multiplication compounds. Because GraphQL lets clients shape arbitrary selections, this cannot be fixed by hand-tuning one query; it needs a systematic batching mechanism.
 
 ## First-class batching, not convention
 
@@ -44,8 +44,8 @@ During a resolution tick, individual `load(key)` calls do not immediately hit th
 
 Loaders live on the request-scoped `GraphQLContext` (see `context.md`). This gives two properties:
 
-1. **Caching** — within a single request, loading the same key twice returns the cached value instead of re-fetching. If two posts share an author, that author is fetched once.
-2. **Isolation** — because loaders are scoped to the context, their caches clear automatically at the end of each request. There is no cross-request cache to invalidate and no stale-data hazard between clients.
+1. **Caching** -- within a single request, loading the same key twice returns the cached value instead of re-fetching. If two posts share an author, that author is fetched once.
+2. **Isolation** -- because loaders are scoped to the context, their caches clear automatically at the end of each request. There is no cross-request cache to invalidate and no stale-data hazard between clients.
 
 Resolvers reach their loaders through the context:
 

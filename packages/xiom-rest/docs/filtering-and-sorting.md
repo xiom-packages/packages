@@ -1,6 +1,6 @@
 # Filtering and Sorting
 
-> Status: Design stage — specification only, not yet implemented.
+> Status: Design stage -- specification only, not yet implemented.
 
 Filtering and sorting let clients narrow and order collection results without bespoke endpoints for every query shape. `xiom-rest` models both as typed, validated structures produced from query parameters *before* any business logic executes. This keeps handlers clean, makes queries auditable, and prevents untrusted input from flowing directly into data-access code.
 
@@ -18,4 +18,4 @@ Parsing into typed structures up front separates three concerns cleanly: transpo
 
 ## Contracts and errors
 
-`parse_filters` and `parse_sort` return `Result[_, RestError]`. Any violation — an unknown field, an unsupported operator, a malformed value — becomes a typed `400`-class error with a machine-readable code, never a panic and never a silently dropped clause. This keeps the contract with clients honest: a query is either accepted in full and understood, or rejected with a clear reason.
+`parse_filters` and `parse_sort` return `Result[_, RestError]`. Any violation -- an unknown field, an unsupported operator, a malformed value -- becomes a typed `400`-class error with a machine-readable code, never a panic and never a silently dropped clause. This keeps the contract with clients honest: a query is either accepted in full and understood, or rejected with a clear reason.

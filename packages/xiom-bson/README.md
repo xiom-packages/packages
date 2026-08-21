@@ -1,6 +1,6 @@
 # xiom-bson
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** BSON binary document encoding and decoding.
 > **Deps:** stdlib; may wrap C (FFI).
 

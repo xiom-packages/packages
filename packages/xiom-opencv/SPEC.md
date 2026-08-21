@@ -1,11 +1,11 @@
-# xiom-opencv — SPEC
+# xiom-opencv -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
-**Status**: SPEC only — no implementation yet
+**Status**: SPEC only -- no implementation yet
 **Depends on**: xiom.ffi (stdlib)
 
 ## What it wraps
-OpenCV — computer vision library (C++ API).
+OpenCV -- computer vision library (C++ API).
 Image/video I/O, processing, feature detection, object tracking.
 
 ## Dependencies
@@ -13,7 +13,7 @@ Image/video I/O, processing, feature detection, object tracking.
 | What | How | Size |
 |------|-----|------|
 | OpenCV | System-installed. `winget install OpenCV`, `apt install libopencv-dev` | ~500MB |
-| C++ compiler | For building C++ bridge | — |
+| C++ compiler | For building C++ bridge | -- |
 
 ## Bundling strategy
 **System-installed only.** OpenCV is large (500MB+). Never bundle.

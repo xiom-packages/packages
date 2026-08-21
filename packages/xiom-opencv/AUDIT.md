@@ -1,4 +1,4 @@
-# xiom-opencv — System Dependency Audit
+# xiom-opencv -- System Dependency Audit
 
 > **Version:** 0.1.0 | **Compiler:** xiom v0.45.3 | **Status:** All modules compile clean.
 
@@ -10,14 +10,14 @@ All `.xi` source files pass `xiom --check` with `{"status":"ok"}`.
 
 | File | Issue | Fix |
 |------|-------|------|
-| `src/io.xi` | `.clone()` on `Vec[Int]` — method not registered | Replaced with manual `copy_vec_int` helper using `Vec.push` loop |
-| `src/io.xi` | `Unit` type unknown; `Ok(Unit{})` parse error | Changed `Result[Unit, Str]` → `Result[Bool, Str]`, returns `Ok(true)` |
+| `src/io.xi` | `.clone()` on `Vec[Int]` -- method not registered | Replaced with manual `copy_vec_int` helper using `Vec.push` loop |
+| `src/io.xi` | `Unit` type unknown; `Ok(Unit{})` parse error | Changed `Result[Unit, Str]` -> `Result[Bool, Str]`, returns `Ok(true)` |
 
 ## System Dependency: OpenCV
 
 The FFI tier (`xiom.opencv.io`, `xiom.opencv.features`) requires **OpenCV 4.x** native library. All FFI functions are stubbed; they return dummy values until the native library is linked.
 
-**Note:** The `xiom.opencv.filters` module is **pure XIOM** — no external dependencies. Blur, grayscale, threshold, Sobel edges, and nearest-neighbor resize work without OpenCV.
+**Note:** The `xiom.opencv.filters` module is **pure XIOM** -- no external dependencies. Blur, grayscale, threshold, Sobel edges, and nearest-neighbor resize work without OpenCV.
 
 ### Install Instructions
 
@@ -62,11 +62,11 @@ xiom myprogram.xi $(pkg-config --cflags --libs opencv4)
 ```
 
 ### Library Dependencies
-- `libopencv_core.so` / `opencv_core.dll` — Core data structures
-- `libopencv_imgcodecs.so` / `opencv_imgcodecs.dll` — Image I/O (imread/imwrite)
-- `libopencv_imgproc.so` / `opencv_imgproc.dll` — Image processing (resize, cvtColor)
-- `libopencv_features2d.so` / `opencv_features2d.dll` — Feature detection/matching
-- `libopencv_calib3d.so` / `opencv_calib3d.dll` — Homography, camera calibration
+- `libopencv_core.so` / `opencv_core.dll` -- Core data structures
+- `libopencv_imgcodecs.so` / `opencv_imgcodecs.dll` -- Image I/O (imread/imwrite)
+- `libopencv_imgproc.so` / `opencv_imgproc.dll` -- Image processing (resize, cvtColor)
+- `libopencv_features2d.so` / `opencv_features2d.dll` -- Feature detection/matching
+- `libopencv_calib3d.so` / `opencv_calib3d.dll` -- Homography, camera calibration
 
 ### Without OpenCV
 - `xiom.opencv.types` works without any dependency (pure XIOM types)
@@ -80,10 +80,10 @@ The following filters require **zero** system libraries:
 
 | Function | Algorithm | Notes |
 |----------|-----------|-------|
-| `blur` | Box blur with border clamping | O(W*H*C*K²) |
+| `blur` | Box blur with border clamping | O(W*H*C*K2) |
 | `grayscale` | ITU-R BT.601 luminance | R*77 + G*150 + B*29 / 256 |
-| `threshold` | Binary threshold | Pixel > thresh → max_val, else 0 |
-| `sobel_edges` | 3×3 Sobel Gx/Gy, integer sqrt magnitude | Requires 1-channel input |
+| `threshold` | Binary threshold | Pixel > thresh -> max_val, else 0 |
+| `sobel_edges` | 3x3 Sobel Gx/Gy, integer sqrt magnitude | Requires 1-channel input |
 | `resize_nearest` | Nearest-neighbor interpolation | Simple coordinate mapping |
 
 ## Production Readiness

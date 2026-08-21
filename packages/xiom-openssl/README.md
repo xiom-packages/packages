@@ -1,6 +1,6 @@
 # xiom-openssl
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** OpenSSL FFI bindings for crypto primitives.
 > **Deps:** stdlib; may wrap C (FFI).
 

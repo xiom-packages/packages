@@ -1,6 +1,6 @@
 # xiom-proxy
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Proxy server support for HTTP and SOCKS forwarding.
 > **Deps:** stdlib; may wrap C (FFI).
 

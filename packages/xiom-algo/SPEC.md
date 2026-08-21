@@ -1,6 +1,6 @@
 # xiom-algo Specification
 
-Comprehensive algorithm library for the XIOM language — sorting, searching, math, combinatorics, and vector utilities. All implementations are concrete over `Int` to avoid codegen issues with generic constraints.
+Comprehensive algorithm library for the XIOM language -- sorting, searching, math, combinatorics, and vector utilities. All implementations are concrete over `Int` to avoid codegen issues with generic constraints.
 
 ---
 
@@ -23,13 +23,13 @@ Comprehensive algorithm library for the XIOM language — sorting, searching, ma
 
 | Function | Signature | Time | Space | Stable | Description |
 |---|---|---|---|---|---|
-| `quicksort` | `(arr: Vec[Int]) -> Vec[Int]` | O(n log n) avg / O(n²) worst | O(n) | No | In-place partition, new Vec returned |
+| `quicksort` | `(arr: Vec[Int]) -> Vec[Int]` | O(n log n) avg / O(n2) worst | O(n) | No | In-place partition, new Vec returned |
 | `merge_sort` | `(arr: Vec[Int]) -> Vec[Int]` | O(n log n) | O(n) | Yes | Divide-and-conquer, stable |
-| `insertion_sort` | `(arr: Vec[Int]) -> Vec[Int]` | O(n²) avg / O(n) best | O(1) | Yes | Efficient for small or nearly-sorted |
-| `bubble_sort` | `(arr: Vec[Int]) -> Vec[Int]` | O(n²) avg / O(n) best | O(1) | Yes | Early-exit on sorted input |
-| `selection_sort` | `(arr: Vec[Int]) -> Vec[Int]` | O(n²) | O(1) | No | Minimal swaps |
+| `insertion_sort` | `(arr: Vec[Int]) -> Vec[Int]` | O(n2) avg / O(n) best | O(1) | Yes | Efficient for small or nearly-sorted |
+| `bubble_sort` | `(arr: Vec[Int]) -> Vec[Int]` | O(n2) avg / O(n) best | O(1) | Yes | Early-exit on sorted input |
+| `selection_sort` | `(arr: Vec[Int]) -> Vec[Int]` | O(n2) | O(1) | No | Minimal swaps |
 | `counting_sort` | `(arr: Vec[Int], max_val: Int) -> Vec[Int]` | O(n + k) where k = max_val | O(k) | Yes | Integer keys only, non-comparison |
-| `is_sorted` | `(arr: &Vec[Int]) -> Bool` | O(n) | O(1) | — | Ascending-order check |
+| `is_sorted` | `(arr: &Vec[Int]) -> Bool` | O(n) | O(1) | -- | Ascending-order check |
 
 ---
 
@@ -39,7 +39,7 @@ Comprehensive algorithm library for the XIOM language — sorting, searching, ma
 |---|---|---|---|---|
 | `gcd` | `(a: Int, b: Int) -> Int` | O(log min(a,b)) | O(1) | Greatest common divisor (Euclidean) |
 | `lcm` | `(a: Int, b: Int) -> Int` | O(log min(a,b)) | O(1) | Least common multiple via `a / gcd(a,b) * b` |
-| `factorial` | `(n: Int) -> Int` | O(n) | O(1) | n!, bounded to n ≤ 20 |
+| `factorial` | `(n: Int) -> Int` | O(n) | O(1) | n!, bounded to n <= 20 |
 | `fibonacci` | `(n: Int) -> Int` | O(n) | O(1) | nth Fibonacci (0-indexed), iterative DP |
 | `power` | `(base: Int, exp: Int) -> Int` | O(log exp) | O(1) | Exponentiation by squaring |
 | `is_power_of_two` | `(n: Int) -> Bool` | O(1) | O(1) | `n & (n-1) == 0` bit test |
@@ -47,7 +47,7 @@ Comprehensive algorithm library for the XIOM language — sorting, searching, ma
 | `min_val` | `(a: Int, b: Int) -> Int` | O(1) | O(1) | Minimum of two values |
 | `max_val` | `(a: Int, b: Int) -> Int` | O(1) | O(1) | Maximum of two values |
 | `clamp` | `(value: Int, lo: Int, hi: Int) -> Int` | O(1) | O(1) | Clamp to [lo, hi] inclusive |
-| `is_prime` | `(n: Int) -> Bool` | O(√n) | O(1) | Trial division primality test |
+| `is_prime` | `(n: Int) -> Bool` | O(sqrtn) | O(1) | Trial division primality test |
 | `sieve_of_eratosthenes` | `(n: Int) -> Vec[Int]` | O(n log log n) | O(n) | All primes up to n |
 
 ---
@@ -83,7 +83,7 @@ Comprehensive algorithm library for the XIOM language — sorting, searching, ma
 | Function | Signature | Time | Space | Description |
 |---|---|---|---|---|
 | `is_palindrome` | `(arr: &Vec[Int]) -> Bool` | O(n) | O(1) | Reads same forward/backward |
-| `longest_increasing_subsequence` | `(arr: &Vec[Int]) -> Int` | O(n²) | O(n) | Length of LIS (DP solution) |
+| `longest_increasing_subsequence` | `(arr: &Vec[Int]) -> Int` | O(n2) | O(n) | Length of LIS (DP solution) |
 | `max_subarray_sum` | `(arr: &Vec[Int]) -> Int` | O(n) | O(1) | Kadane's algorithm, maximum contiguous sum |
 
 ---
@@ -108,15 +108,15 @@ Comprehensive algorithm library for the XIOM language — sorting, searching, ma
 
 ### `fibonacci`
 - **requires:** `n >= 0`
-- Behavior: 0-indexed. `fibonacci(0)` → 0, `fibonacci(1)` → 1, `fibonacci(2)` → 1.
+- Behavior: 0-indexed. `fibonacci(0)` -> 0, `fibonacci(1)` -> 1, `fibonacci(2)` -> 1.
 
 ### `power`
 - **requires:** `exp >= 0`
-- Behavior: Exponentiation by squaring. `power(2, 10)` → 1024.
+- Behavior: Exponentiation by squaring. `power(2, 10)` -> 1024.
 
 ### `is_power_of_two`
 - **requires:** `n > 0`
-- Behavior: Bitwise test. Returns false for n ≤ 0.
+- Behavior: Bitwise test. Returns false for n <= 0.
 
 ### `clamp`
 - **requires:** `lo <= hi`
@@ -124,7 +124,7 @@ Comprehensive algorithm library for the XIOM language — sorting, searching, ma
 
 ### `is_prime`
 - **requires:** `n >= 0`
-- Behavior: Trial division up to √n. Returns false for n < 2.
+- Behavior: Trial division up to sqrtn. Returns false for n < 2.
 
 ### `sieve_of_eratosthenes`
 - **requires:** `n >= 2`

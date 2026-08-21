@@ -1,24 +1,24 @@
-# xiom.protobuf — Production Roadmap
+# xiom.protobuf -- Production Roadmap
 
 **Version**: v0.2.0 | **Compiler**: xiom v0.49.7+ | **Last updated**: 2026-07-21
 
-## Current Rating: 8/10 ⚙️ PRODUCTION-READY (FFI stubs + pure-XIOM wire primitives)
+## Current Rating: 8/10 [SETTINGS] PRODUCTION-READY (FFI stubs + pure-XIOM wire primitives)
 
 | Criterion | Status |
 |-----------|--------|
-| ✅ WireType enum | 4 variants: Varint(0), Fixed64(1), LengthDelimited(2), Fixed32(5) |
-| ✅ Pure-XIOM varint | encode/decode via base-128, no FFI dependency |
-| ✅ Pure-XIOM zigzag | encode/decode signed↔unsigned, no FFI dependency |
-| ✅ Pure-XIOM wire format | tag construction, field write/read for all 4 wire types |
-| ✅ extern "C" block | 5 protobuf-c functions declared |
-| ✅ Safe wrappers | version(), encode(), decode() with contracts |
-| ✅ Design-by-contract | 14 requires contracts across 12 functions |
-| ✅ Tests | test_conformance.xi — 56 tests, 18 sections |
-| ✅ SPEC.md | Full API surface documented |
-| ✅ ROADMAP.md | This file |
-| ✅ Schema types | src/schema.xi — ProtoType, ProtoField, ProtoMessage |
-| ⚠️ Runtime encode/decode | Delegates to libprotobuf-c (stub when library absent) |
-| ⚠️ FFI marshaling | Int-based handles; pointer interop blocked on compiler typed C pointer support |
+| [OK] WireType enum | 4 variants: Varint(0), Fixed64(1), LengthDelimited(2), Fixed32(5) |
+| [OK] Pure-XIOM varint | encode/decode via base-128, no FFI dependency |
+| [OK] Pure-XIOM zigzag | encode/decode signed<->unsigned, no FFI dependency |
+| [OK] Pure-XIOM wire format | tag construction, field write/read for all 4 wire types |
+| [OK] extern "C" block | 5 protobuf-c functions declared |
+| [OK] Safe wrappers | version(), encode(), decode() with contracts |
+| [OK] Design-by-contract | 14 requires contracts across 12 functions |
+| [OK] Tests | test_conformance.xi -- 56 tests, 18 sections |
+| [OK] SPEC.md | Full API surface documented |
+| [OK] ROADMAP.md | This file |
+| [OK] Schema types | src/schema.xi -- ProtoType, ProtoField, ProtoMessage |
+| [WARN] Runtime encode/decode | Delegates to libprotobuf-c (stub when library absent) |
+| [WARN] FFI marshaling | Int-based handles; pointer interop blocked on compiler typed C pointer support |
 
 ## Dependencies
 
@@ -28,29 +28,29 @@
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────┐
-│  Pure-XIOM Wire Primitives (protobuf.xi)          │
-│  varint_encode/decode, zigzag_encode/decode        │
-│  make_wire_tag, write_field_*, read_field_*        │
-├──────────────────────────────────────────────────┤
-│  Schema Types (src/schema.xi)                      │
-│  ProtoType, ProtoField, ProtoMessage (proto3 DSL) │
-├──────────────────────────────────────────────────┤
-│  Runtime FFI (protobuf.xi extern "C")              │
-│  protobuf_c_serialize/parse → encode/decode       │
-└──────────────────────────────────────────────────┘
++--------------------------------------------------+
+|  Pure-XIOM Wire Primitives (protobuf.xi)          |
+|  varint_encode/decode, zigzag_encode/decode        |
+|  make_wire_tag, write_field_*, read_field_*        |
+|--------------------------------------------------|
+|  Schema Types (src/schema.xi)                      |
+|  ProtoType, ProtoField, ProtoMessage (proto3 DSL) |
+|--------------------------------------------------|
+|  Runtime FFI (protobuf.xi extern "C")              |
+|  protobuf_c_serialize/parse -> encode/decode       |
+`--------------------------------------------------+
 ```
 
-## API Surface — Pure-XIOM Primitives
+## API Surface -- Pure-XIOM Primitives
 
 | Function | Signature | Contracts |
 |----------|-----------|-----------|
 | `varint_encode` | `(value: Int) -> Vec[UInt8]` | requires value >= 0 |
 | `varint_decode` | `(buf: &Vec[UInt8], pos: Int) -> Result[(Int, Int), Str]` | requires pos >= 0 |
-| `zigzag_encode` | `(signed: Int) -> Int` | — |
-| `zigzag_decode` | `(encoded: Int) -> Int` | — |
+| `zigzag_encode` | `(signed: Int) -> Int` | -- |
+| `zigzag_decode` | `(encoded: Int) -> Int` | -- |
 | `make_wire_tag` | `(field_number: Int, wire_type: WireType) -> Int` | requires field_number in 1..536870911 |
-| `parse_wire_tag` | `(tag: Int) -> (Int, WireType)` | — |
+| `parse_wire_tag` | `(tag: Int) -> (Int, WireType)` | -- |
 | `write_field_varint` | `(buf: &mut Vec[UInt8], fn: Int, value: Int)` | requires fn in 1..536870911, value >= 0 |
 | `write_field_sint` | `(buf: &mut Vec[UInt8], fn: Int, signed: Int)` | requires fn in 1..536870911 |
 | `write_field_fixed64` | `(buf: &mut Vec[UInt8], fn: Int, value: Int)` | requires fn in 1..536870911 |
@@ -63,7 +63,7 @@
 | `read_field_fixed32` | `(buf: &Vec[UInt8], pos: Int) -> Result[(Int, Int), Str]` | requires pos >= 0 |
 | `read_field_length_delimited` | `(buf: &Vec[UInt8], pos: Int) -> Result[(Vec[UInt8], Int), Str]` | requires pos >= 0 |
 
-## API Surface — Runtime FFI
+## API Surface -- Runtime FFI
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -117,29 +117,29 @@
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| **P1: Schema types** | ✅ Done | ProtoType, ProtoField, ProtoMessage proto3 DSL |
-| **P1: Core FFI** | ✅ Done | extern "C" declarations for protobuf-c |
-| **P1: Safe wrappers** | ✅ Done | version(), encode(), decode() with contracts |
-| **P2: Pure wire primitives** | ✅ Done | varint, zigzag, wire format — 17 functions, zero FFI dependency |
-| **P2: Conformance tests** | ✅ Done | 56 tests covering encode/decode/roundtrip for all wire types |
+| **P1: Schema types** | [OK] Done | ProtoType, ProtoField, ProtoMessage proto3 DSL |
+| **P1: Core FFI** | [OK] Done | extern "C" declarations for protobuf-c |
+| **P1: Safe wrappers** | [OK] Done | version(), encode(), decode() with contracts |
+| **P2: Pure wire primitives** | [OK] Done | varint, zigzag, wire format -- 17 functions, zero FFI dependency |
+| **P2: Conformance tests** | [OK] Done | 56 tests covering encode/decode/roundtrip for all wire types |
 
 ## Future (Phase 3)
 
 | Feature | Priority | Effort | Blocker |
 |---------|----------|--------|---------|
-| Proto3 message encoder (pure-XIOM) | P0 | Day | — |
-| Proto3 message decoder (pure-XIOM) | P0 | Day | — |
-| skip_field (unknown field handler) | P0 | Hour | — |
+| Proto3 message encoder (pure-XIOM) | P0 | Day | -- |
+| Proto3 message decoder (pure-XIOM) | P0 | Day | -- |
+| skip_field (unknown field handler) | P0 | Hour | -- |
 | Oneof support | P1 | Day | Message decoder |
 | Map field wire format | P1 | Day | Message decoder |
 | Repeated field packed encoding | P1 | Day | Message decoder |
-| proto3 JSON serialization | P2 | Day | — |
+| proto3 JSON serialization | P2 | Day | -- |
 | Field presence tracking (proto3 optional) | P2 | Day | Message decoder |
-| Well-Known Types (Timestamp, Duration, etc.) | P2 | Day | — |
+| Well-Known Types (Timestamp, Duration, etc.) | P2 | Day | -- |
 
 ## Known Limitations
 
-- **Runtime encode/decode returns stubs** — libprotobuf-c must be linked at build time. The pure-XIOM write/read functions provide full wire format support without FFI.
-- **No field presence tracking** — proto3 `optional` keyword semantics not yet implemented.
-- **No packed repeated fields** — repeated scalar fields always use non-packed encoding.
-- **No oneof** — union field semantics not yet implemented.
+- **Runtime encode/decode returns stubs** -- libprotobuf-c must be linked at build time. The pure-XIOM write/read functions provide full wire format support without FFI.
+- **No field presence tracking** -- proto3 `optional` keyword semantics not yet implemented.
+- **No packed repeated fields** -- repeated scalar fields always use non-packed encoding.
+- **No oneof** -- union field semantics not yet implemented.

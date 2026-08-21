@@ -1,6 +1,6 @@
 # xiom-tsv
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Tab-separated value reading and writing.
 > **Deps:** stdlib; may wrap C (FFI).
 

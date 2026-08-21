@@ -1,6 +1,6 @@
 # xiom-svm
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Support vector machines for classification and regression.
 > **Deps:** stdlib; may wrap C (FFI).
 

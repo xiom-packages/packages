@@ -1,11 +1,11 @@
-# xiom-pandas — SPEC
+# xiom-pandas -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
-**Status**: Phase 1 implemented — `pandas.xi` + tests + ROADMAP
-**Depends on**: xiom.ffi (stdlib), xiom-arrow (Apache Arrow — Pandas 2.0+ backend)
+**Status**: Phase 1 implemented -- `pandas.xi` + tests + ROADMAP
+**Depends on**: xiom.ffi (stdlib), xiom-arrow (Apache Arrow -- Pandas 2.0+ backend)
 
 ## What it wraps
-Pandas — data analysis library. In Pandas 2.0+, the backend is Apache Arrow.
+Pandas -- data analysis library. In Pandas 2.0+, the backend is Apache Arrow.
 We wrap Arrow C++ directly (not Python), providing DataFrame/Series operations
 with zero Python overhead. This is the approach Polars and DuckDB use internally.
 
@@ -14,7 +14,7 @@ with zero Python overhead. This is the approach Polars and DuckDB use internally
 | What | How | Size |
 |------|-----|------|
 | Apache Arrow C++ | System-installed (via xiom-arrow) | ~50MB |
-| C++ compiler | For building bridge | — |
+| C++ compiler | For building bridge | -- |
 
 ## Bundling strategy
 **System-installed only.** Depends on Arrow which is system-installed.

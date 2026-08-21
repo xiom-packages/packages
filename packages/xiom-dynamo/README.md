@@ -1,6 +1,6 @@
 # xiom-dynamo
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Amazon DynamoDB client: tables, items, and queries.
 > **Deps:** stdlib; may wrap C (FFI).
 

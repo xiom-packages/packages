@@ -1,4 +1,4 @@
-# xiom-directx12 — ROADMAP
+# xiom-directx12 -- ROADMAP
 
 **Phase 2 (Scientific)** | **Priority: HIGH**
 **Depends on**: xiom.ffi (stdlib)
@@ -13,20 +13,20 @@ The package currently contains a full XIOM specification layer:
 - 22 safe wrapper functions with requires/ensures contracts (55 requires clauses)
 - 65 conformance tests across 21 sections covering types, constants, FFI stub behavior, and API presence
 
-All FFI calls return `Err(...)` or stub defaults — no C bridge is linked yet.
+All FFI calls return `Err(...)` or stub defaults -- no C bridge is linked yet.
 
 ## Phased Roadmap
 
 | Phase | What | Effort | Status |
 |-------|------|--------|--------|
-| 1 | **SPEC phase** — Full API surface, contracts, constants, stub tests | Weekend | **DONE** |
-| 2 | **C bridge** — Link d3d12.dll/dxgi.dll, implement extern functions, D3D12CreateDevice bridge | Weekend | TODO |
-| 3 | **Hello Triangle** — End-to-end vertex buffer, PSO, root signature, draw, present | 1 day | TODO |
-| 4 | **Textures & Descriptors** — Texture2D, SRV/UAV, descriptor heaps, sampler states | Weekend | TODO |
-| 5 | **Resource Barriers** — Transition barriers, upload/default heap sync, copy queue | Weekend | TODO |
-| 6 | **Multi-queue & Fences** — Async compute, fence-based sync, multi-frame buffering | Weekend | TODO |
-| 7 | **Bindless & Indirect** — Descriptor indexing, ExecuteIndirect, GPU-driven rendering | Weekend | TODO |
-| 8 | **Ray Tracing** — DXR state objects, acceleration structures, shader tables | Week+ | TODO |
+| 1 | **SPEC phase** -- Full API surface, contracts, constants, stub tests | Weekend | **DONE** |
+| 2 | **C bridge** -- Link d3d12.dll/dxgi.dll, implement extern functions, D3D12CreateDevice bridge | Weekend | TODO |
+| 3 | **Hello Triangle** -- End-to-end vertex buffer, PSO, root signature, draw, present | 1 day | TODO |
+| 4 | **Textures & Descriptors** -- Texture2D, SRV/UAV, descriptor heaps, sampler states | Weekend | TODO |
+| 5 | **Resource Barriers** -- Transition barriers, upload/default heap sync, copy queue | Weekend | TODO |
+| 6 | **Multi-queue & Fences** -- Async compute, fence-based sync, multi-frame buffering | Weekend | TODO |
+| 7 | **Bindless & Indirect** -- Descriptor indexing, ExecuteIndirect, GPU-driven rendering | Weekend | TODO |
+| 8 | **Ray Tracing** -- DXR state objects, acceleration structures, shader tables | Week+ | TODO |
 
 ## Phase 2 (C Bridge) Checkpoints
 
@@ -41,16 +41,16 @@ All FFI calls return `Err(...)` or stub defaults — no C bridge is linked yet.
 - [ ] Implement D3D12CreateFence + Signal/Wait fence methods
 - [ ] Implement D3D12CreateRootSignature from serialized blob
 - [ ] Implement D3D12 present / clear RTV / draw instanced wrappers
-- [ ] Error code → error message translation (HRESULT → Str)
+- [ ] Error code -> error message translation (HRESULT -> Str)
 
 ## Phase 3 (Hello Triangle) Checkpoints
 
 - [ ] Create window (via raw Win32 CreateWindowEx or xiom-windowing bridge)
 - [ ] Create D3D12 device + command queue + swap chain (3 back buffers)
 - [ ] Create root signature (empty or single CBV)
-- [ ] Compile VS/PS via xiom-dxc (HLSL → DXIL bytecode)
+- [ ] Compile VS/PS via xiom-dxc (HLSL -> DXIL bytecode)
 - [ ] Create PSO from root signature + shader bytecodes
-- [ ] Create vertex buffer via upload heap → default heap copy
+- [ ] Create vertex buffer via upload heap -> default heap copy
 - [ ] Create RTV descriptor heap for swap chain back buffers
 - [ ] Record command list: resource barrier, clear RTV, set PSO, draw, barrier to present
 - [ ] Execute command list, present, wait for GPU

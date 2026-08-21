@@ -1,4 +1,4 @@
-# AUDIT.md — xiom-protobuf
+# AUDIT.md -- xiom-protobuf
 
 ## Compiler Compatibility
 - **Compiler version:** xiom v0.11.0 (XIOM v0.45.3)
@@ -7,8 +7,8 @@
 ## Files
 | File | Status | Notes |
 |------|--------|-------|
-| `src/schema.xi` | ✓ Compiles | Fixed `.to_owned()` → `.clone()` |
-| `protobuf.xi` | ✓ Compiles | `type ProtoValue = enum{}` syntax works (GAP-9) |
+| `src/schema.xi` | [OK] Compiles | Fixed `.to_owned()` -> `.clone()` |
+| `protobuf.xi` | [OK] Compiles | `type ProtoValue = enum{}` syntax works (GAP-9) |
 | `tests/test_protobuf.xi` | Not tested separately | Requires `use xiom.test` (stdlib) |
 
 ## Compiler Gaps Found
@@ -25,5 +25,5 @@
 
 ## Notes
 - `protobuf.xi` uses FFI declarations (no function bodies). Actual linking requires libprotobuf at link time.
-- The `type ProtoValue = enum{}` variant syntax compiles correctly — GAP-9 is confirmed closed.
+- The `type ProtoValue = enum{}` variant syntax compiles correctly -- GAP-9 is confirmed closed.
 - Tests reference `xiom.test` stdlib module. Not verified independently.

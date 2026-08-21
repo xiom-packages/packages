@@ -1,6 +1,6 @@
 # xiom-bridge
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Cross-chain bridge primitives.
 > **Deps:** stdlib; may wrap C (FFI).
 

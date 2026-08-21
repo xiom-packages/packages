@@ -1,7 +1,7 @@
-# xiom-grpc — SPEC
+# xiom-grpc -- SPEC
 **Phase**: 4 (Enterprise) | **Priority**: Medium
 **Status**: Implemented (v0.1.0) | **Depends on**: xiom.ffi, xiom.protobuf
-gRPC C Core bindings for XIOM — types, FFI declarations, safe wrappers with contracts, and full status code support.
+gRPC C Core bindings for XIOM -- types, FFI declarations, safe wrappers with contracts, and full status code support.
 
 ## Modules
 
@@ -9,11 +9,11 @@ gRPC C Core bindings for XIOM — types, FFI declarations, safe wrappers with cont
 Core FFI declarations and safe wrappers.
 
 **Types:**
-- `GrpcServer = Int` — Server handle (opaque pointer)
-- `GrpcClient = Int` — Client handle (opaque pointer)
-- `GrpcChannel = Int` — Channel handle (opaque pointer)
-- `GrpcCall = Int` — Call handle (opaque pointer)
-- `GrpcStatus = { code: Int; message: Str }` — Structured gRPC status
+- `GrpcServer = Int` -- Server handle (opaque pointer)
+- `GrpcClient = Int` -- Client handle (opaque pointer)
+- `GrpcChannel = Int` -- Channel handle (opaque pointer)
+- `GrpcCall = Int` -- Call handle (opaque pointer)
+- `GrpcStatus = { code: Int; message: Str }` -- Structured gRPC status
 
 **Status Codes (17 canonical codes):**
 | Code | Name | Value |
@@ -36,7 +36,7 @@ Core FFI declarations and safe wrappers.
 | DATA_LOSS | GRPC_STATUS_DATA_LOSS | 15 |
 | UNAUTHENTICATED | GRPC_STATUS_UNAUTHENTICATED | 16 |
 
-**FFI Declarations (extern "C" — 14 functions):**
+**FFI Declarations (extern "C" -- 14 functions):**
 | C Function | Purpose |
 |------------|---------|
 | grpc_init | Initialize gRPC runtime |
@@ -83,7 +83,7 @@ Domain types for request/response and metadata handling.
 | Function | Contracts |
 |----------|-----------|
 | `grpc_request_new` | service.len() > 0, method.len() > 0 |
-| `grpc_response_ok` | — |
+| `grpc_response_ok` | -- |
 | `grpc_response_error` | code != 0 |
 | `grpc_metadata_get` | key.len() > 0 |
 | `grpc_metadata_set` | key.len() > 0 |

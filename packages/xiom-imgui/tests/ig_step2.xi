@@ -1,4 +1,4 @@
-// Step 2: Window + ImGui context only, no widgets — uses safe wrappers exclusively
+// Step 2: Window + ImGui context only, no widgets -- uses safe wrappers exclusively
 module ig_test
 use xiom.io;
 use xiom.vulkan;

@@ -1,4 +1,4 @@
-# xiom-scipy — Implementation Roadmap
+# xiom-scipy -- Implementation Roadmap
 
 **Status**: Phase 1 in progress
 **Last updated**: 2026-07-21
@@ -18,7 +18,7 @@
 
 | Task | Effort | Depends on |
 |------|--------|------------|
-| C bridge compilation (MINPACK, QUADPACK, FFTPACK, FITPACK, Cephes → .obj) | 1 day | Build system |
+| C bridge compilation (MINPACK, QUADPACK, FFTPACK, FITPACK, Cephes -> .obj) | 1 day | Build system |
 | Link FFI symbols to actual C libraries | 1 day | Bridge .obj |
 | Enable full FFI-path tests (currently stubs) | 0.5 day | Linked symbols |
 | `minimize_scalar` golden-path tests | 0.5 day | Linked symbols |

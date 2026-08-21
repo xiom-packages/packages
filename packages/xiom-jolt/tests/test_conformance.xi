@@ -1,4 +1,4 @@
-// XIOM — Jolt Physics Conformance Test Suite
+// XIOM -- Jolt Physics Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //

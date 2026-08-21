@@ -1,6 +1,6 @@
 # xiom-cloudlog
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Cloud log ingestion, aggregation, storage, and retrieval pipelines.
 > **Deps:** stdlib; may wrap C (FFI).
 

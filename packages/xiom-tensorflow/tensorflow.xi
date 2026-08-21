@@ -1,4 +1,4 @@
-// XIOM — xiom.tensorflow
+// XIOM -- xiom.tensorflow
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -17,18 +17,18 @@
 
 module xiom.tensorflow
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Types — Opaque handles for TensorFlow C API
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Types -- Opaque handles for TensorFlow C API
+// ===============================================================================
 
 pub type TfSession = Int;
 pub type TfGraph = Int;
 pub type TfTensor = Int;
 pub type TfStatus = Int;
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Error codes (mirror TF_Code enum)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 pub const TF_OK: Int = 0;
 pub const TF_CANCELLED: Int = 1;
@@ -38,9 +38,9 @@ pub const TF_NOT_FOUND: Int = 5;
 pub const TF_INTERNAL: Int = 13;
 pub const TF_UNAVAILABLE: Int = 14;
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Data type constants (mirror TF_DataType enum)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 pub const TF_FLOAT: Int = 1;
 pub const TF_DOUBLE: Int = 2;
@@ -50,9 +50,9 @@ pub const TF_INT64: Int = 9;
 pub const TF_BOOL: Int = 10;
 pub const TF_STRING: Int = 7;
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// extern "C" — TensorFlow C API (15 functions)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// extern "C" -- TensorFlow C API (15 functions)
+// ===============================================================================
 //
 // These map 1:1 to libtensorflow.so/.dylib/.dll functions.
 // Pointers are typed as Int for SPEC phase; cast to concrete types when
@@ -77,9 +77,9 @@ extern "C" {
   fn TF_Message(status: Int) -> Int;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Status management — safe wrappers
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Status management -- safe wrappers
+// ===============================================================================
 
 pub fn status_new() -> TfStatus
   ensures: result != 0
@@ -129,9 +129,9 @@ pub fn status_set(s: TfStatus, code: Int, msg: Str)
   unsafe { TF_SetStatus(s, code, 0); }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Graph management — safe wrappers
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Graph management -- safe wrappers
+// ===============================================================================
 
 pub fn graph_new() -> TfGraph
   ensures: result != 0
@@ -162,9 +162,9 @@ pub fn graph_import_graph_def(g: TfGraph, buffer: Int, status: TfStatus) -> Resu
   Ok(0)
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Session management — safe wrappers with contracts
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Session management -- safe wrappers with contracts
+// ===============================================================================
 
 pub fn session_new(graph: TfGraph) -> Result[TfSession, Str]
   requires: graph != 0
@@ -202,9 +202,9 @@ pub fn session_delete(session: TfSession)
   status_delete(s);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Tensor management — safe wrappers with contracts
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Tensor management -- safe wrappers with contracts
+// ===============================================================================
 
 pub fn tensor_create(dtype: Int, shape: &Vec[Int], data: &Vec[Int]) -> Result[TfTensor, Str]
   requires: data.len() > 0
@@ -245,9 +245,9 @@ pub fn tensor_byte_size(t: TfTensor) -> Int
   return sz;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Session execution — safe wrapper with contracts
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Session execution -- safe wrapper with contracts
+// ===============================================================================
 
 pub fn session_run(session: TfSession, inputs: &Vec[TfTensor], outputs: &Vec[TfTensor]) -> Result[Vec[TfTensor], Str]
   requires: session != 0
@@ -278,9 +278,9 @@ pub fn session_run(session: TfSession, inputs: &Vec[TfTensor], outputs: &Vec[TfT
   Ok(result)
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Model loading — safe wrapper
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Model loading -- safe wrapper
+// ===============================================================================
 
 pub fn load_model(session: TfSession, path: Str) -> Result[Int, Str]
   requires: session != 0
@@ -288,12 +288,12 @@ pub fn load_model(session: TfSession, path: Str) -> Result[Int, Str]
 {
   if session == 0 { return Err("load_model: null session"); };
   if path.len() == 0 { return Err("load_model: path must not be empty"); };
-  Err("load_model: native bridge not yet linked — requires libtensorflow at compile time")
+  Err("load_model: native bridge not yet linked -- requires libtensorflow at compile time")
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // GPU
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 pub fn gpu_available() -> Bool {
   return false;
@@ -303,9 +303,9 @@ pub fn gpu_device_count() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Utility
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 pub fn version() -> Str {
   "0.1.0"

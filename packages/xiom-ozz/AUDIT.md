@@ -1,6 +1,6 @@
-# xiom-ozz — Build Dependency Audit
+# xiom-ozz -- Build Dependency Audit
 
-## CRITICAL: Ozz-Animation Is C++ Only — No C API
+## CRITICAL: Ozz-Animation Is C++ Only -- No C API
 
 Ozz-Animation v0.16.0 is a **pure C++11 library with zero C FFI surface**. The entire
 public API uses C++ classes, templates, namespaces, and C++ standard library types
@@ -34,33 +34,33 @@ documentation** that will produce linker errors when executed.
 
 ```
 E:\repos\ozz-animation\
-├── include/ozz/
-│   ├── base/          — platform, math (SIMD), containers, I/O, memory
-│   │   ├── maths/     — Float2/3/4, Quaternion, Transform, SoaTransform,
-│   │   │                SimdFloat4, Float4x4, Box, Rect, math constants
-│   │   │   internal/  — SSE impl, reference impl
-│   │   ├── containers/— vector, string, map, set, deque, span
-│   │   ├── io/        — Stream, Archive (IArchive/OArchive)
-│   │   └── memory/    — Allocator, unique_ptr
-│   ├── animation/
-│   │   ├── runtime/   — Skeleton, Animation, SamplingJob, BlendingJob,
-│   │   │                LocalToModelJob, IKTwoBoneJob, IKAimJob,
-│   │   │                FloatTrack, QuaternionTrack, TrackSamplingJob,
-│   │   │                TrackTriggeringJob, MotionBlendingJob
-│   │   └── offline/   — RawSkeleton, RawAnimation, SkeletonBuilder,
-│   │                    AnimationBuilder, AnimationOptimizer,
-│   │                    AdditiveAnimationBuilder, TrackBuilder, TrackOptimizer
-│   └── geometry/
-│       └── runtime/   — SkinningJob
-└── src/               — implementation files
+|-- include/ozz/
+|   |-- base/          -- platform, math (SIMD), containers, I/O, memory
+|   |   |-- maths/     -- Float2/3/4, Quaternion, Transform, SoaTransform,
+|   |   |                SimdFloat4, Float4x4, Box, Rect, math constants
+|   |   |   internal/  -- SSE impl, reference impl
+|   |   |-- containers/-- vector, string, map, set, deque, span
+|   |   |-- io/        -- Stream, Archive (IArchive/OArchive)
+|   |   `-- memory/    -- Allocator, unique_ptr
+|   |-- animation/
+|   |   |-- runtime/   -- Skeleton, Animation, SamplingJob, BlendingJob,
+|   |   |                LocalToModelJob, IKTwoBoneJob, IKAimJob,
+|   |   |                FloatTrack, QuaternionTrack, TrackSamplingJob,
+|   |   |                TrackTriggeringJob, MotionBlendingJob
+|   |   `-- offline/   -- RawSkeleton, RawAnimation, SkeletonBuilder,
+|   |                    AnimationBuilder, AnimationOptimizer,
+|   |                    AdditiveAnimationBuilder, TrackBuilder, TrackOptimizer
+|   `-- geometry/
+|       `-- runtime/   -- SkinningJob
+`-- src/               -- implementation files
 ```
 
 ## Ozz Library Targets (CMake)
 
 | Library | Purpose | Dependencies |
 |---------|---------|-------------|
-| `ozz_options` | Build options header-only | — |
-| `ozz_base` | Platform, math, containers, I/O, memory | — |
+| `ozz_options` | Build options header-only | -- |
+| `ozz_base` | Platform, math, containers, I/O, memory | -- |
 | `ozz_animation` | Runtime animation (Skeleton, Animation, Sampling, Blending, IK, Tracks) | ozz_base |
 | `ozz_animation_offline` | Offline builders (Raw types, SkeletonBuilder, AnimationBuilder) | ozz_animation, ozz_base |
 | `ozz_geometry` | GPU skinning (SkinningJob) | ozz_base |
@@ -72,18 +72,18 @@ Build options: `ozz_build_tools`, `ozz_build_fbx`, `ozz_build_gltf`, `ozz_build_
 
 ```
 packages/xiom-ozz/
-├── package.xi              # Package manifest (name, version, deps)
-├── ozz.xi                  # Module xiom.ozz — raw FFI + procedural wrappers
-├── src/
-│   └── ozz_safe.xi         # Module xiom.ozz.safe — struct-based wrappers
-├── examples/
-│   └── demo_ozz.xi         # Module xiom.ozz.demo — production pipeline demo
-└── AUDIT.md                # This file
+|-- package.xi              # Package manifest (name, version, deps)
+|-- ozz.xi                  # Module xiom.ozz -- raw FFI + procedural wrappers
+|-- src/
+|   `-- ozz_safe.xi         # Module xiom.ozz.safe -- struct-based wrappers
+|-- examples/
+|   `-- demo_ozz.xi         # Module xiom.ozz.demo -- production pipeline demo
+`-- AUDIT.md                # This file
 ```
 
 ## FFI Binding Coverage
 
-### ozz.xi — Module `xiom.ozz`
+### ozz.xi -- Module `xiom.ozz`
 
 **65 extern C functions** declared in one `extern "C"` block (all provided by the C bridge):
 
@@ -113,9 +113,9 @@ packages/xiom-ozz/
 
 **3 math struct types:** `Float3`, `Float4`, `Quaternion`, `Transform`.
 
-### ozz_safe.xi — Module `xiom.ozz.safe`
+### ozz_safe.xi -- Module `xiom.ozz.safe`
 
-**7 struct-based resource types** (with inline duplicate `extern "C"` block — cross-module
+**7 struct-based resource types** (with inline duplicate `extern "C"` block -- cross-module
 resolution workaround):
 
 | Type | Methods | Contracts |
@@ -165,8 +165,8 @@ typedef struct { ozz_float3_t translation; ozz_quaternion_t rotation; ozz_float3
 - SoA transforms: `ozz::math::SoaTransform` is a SIMD-optimized structure containing
   4 transforms packed as Structure-of-Arrays. The C bridge must expose a fixed-size layout
   (e.g., `ozz::math::SoaTransform` = 3 SoaFloat3 + 1 SoaQuaternion + 1 SoaFloat3 =
-  7 × 4 × 4 bytes = 112 bytes per SoaTransform).
-- Float4x4: `ozz::math::Float4x4` is a 4×4 column-major matrix backed by SSE registers
+  7 x 4 x 4 bytes = 112 bytes per SoaTransform).
+- Float4x4: `ozz::math::Float4x4` is a 4x4 column-major matrix backed by SSE registers
   (64 bytes). The C bridge must expose a C-compatible `ozz_float4x4_t` struct of 16 floats.
 
 ### Archive I/O
@@ -198,7 +198,7 @@ symbol`) because the Ozz C bridge has not been written.
    + ozz_geometry static libraries
 4. Supply the resulting `.lib` (Windows) / `.a` (Unix) to xiom's linker step
 
-### 2. Cross-module extern resolution (T001) — PERSISTENT
+### 2. Cross-module extern resolution (T001) -- PERSISTENT
 
 **Symptom:** `extern "C"` functions declared in module A resolve to `()` when called
 from module B via `use` import.
@@ -229,16 +229,16 @@ via an external allocator. The safe wrapper `AnimationPlayer` manages these life
 ```
 1. Compile Ozz C++ libraries
    cmake -B build && cmake --build build
-   → ozz_base.lib, ozz_animation.lib, ozz_animation_offline.lib, ozz_geometry.lib
+   -> ozz_base.lib, ozz_animation.lib, ozz_animation_offline.lib, ozz_geometry.lib
 
 2. Compile C bridge
    clang -c ozz_c_bridge.cpp -I include/ -o ozz_c_bridge.obj
-   → ozz_c_bridge.obj
+   -> ozz_c_bridge.obj
 
 3. XIOM Compilation + Link (xiom + clang)
    xiom ozz.xi src/ozz_safe.xi examples/demo_ozz.xi
         ozz_c_bridge.obj ozz_base.lib ozz_animation.lib ozz_animation_offline.lib ozz_geometry.lib
-   → final executable
+   -> final executable
 ```
 
 ## Compile Status (2026-07-15)
@@ -251,7 +251,7 @@ errors expected because the C bridge `.obj`/`.lib` does not exist yet.
 | `package.xi` | PASSED | 13 | Package manifest |
 | `ozz.xi` | SYNTAX OK | ~420 | 3 constants, 4 math structs, 65 extern C FFI declarations, 45 safe wrappers |
 | `src/ozz_safe.xi` | SYNTAX OK | ~340 | 7 struct resource types with create/destroy contracts, inline extern block, AnimationPlayer |
-| `examples/demo_ozz.xi` | SYNTAX OK | ~140 | Full pipeline demo (load → sample → blend → skin → cleanup) |
+| `examples/demo_ozz.xi` | SYNTAX OK | ~140 | Full pipeline demo (load -> sample -> blend -> skin -> cleanup) |
 | `AUDIT.md` | WRITTEN | ~280 | This file |
 
 **Total: ~1,200 lines.**
@@ -280,11 +280,11 @@ errors expected because the C bridge `.obj`/`.lib` does not exist yet.
 
 ## Known Limitations
 
-- No C API in Ozz v0.16.0 — the C bridge is the single largest missing piece
-- No FBX/glTF import in the C bridge — offline pipeline needs raw data pre-processed
+- No C API in Ozz v0.16.0 -- the C bridge is the single largest missing piece
+- No FBX/glTF import in the C bridge -- offline pipeline needs raw data pre-processed
   via Ozz's `import2ozz` tool (or use the Ozz C++ library directly in a toolchain)
-- No motion blending (MotionBlendingJob) in current bindings — can be added later
-- No additive animation builder — can be added when needed
-- No animation optimizer in current bindings — offline optimization step is separate
-- All pose/matrix buffers are caller-allocated — no built-in buffer pool management
+- No motion blending (MotionBlendingJob) in current bindings -- can be added later
+- No additive animation builder -- can be added when needed
+- No animation optimizer in current bindings -- offline optimization step is separate
+- All pose/matrix buffers are caller-allocated -- no built-in buffer pool management
   (add PoolAllocator wrapper in a future revision)

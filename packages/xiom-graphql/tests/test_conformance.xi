@@ -1,4 +1,4 @@
-// XIOM — xiom-graphql Conformance Tests (10 tests)
+// XIOM -- xiom-graphql Conformance Tests (10 tests)
 module xiom.graphql.tests
 
 use xiom.graphql;
@@ -12,7 +12,7 @@ fn assert_true(condition: Bool, label: Str) -> Result[Unit, Str] {
 
 fn assert_int_eq(actual: Int, expected: Int, label: Str) -> Result[Unit, Str] {
   if actual == expected { return Ok(Unit); };
-  return Err("FAIL: " + label + " — expected " + int_to_str(expected) + " got " + int_to_str(actual));
+  return Err("FAIL: " + label + " -- expected " + int_to_str(expected) + " got " + int_to_str(actual));
 }
 
 fn assert_bool_eq(actual: Bool, expected: Bool, label: Str) -> Result[Unit, Str] {

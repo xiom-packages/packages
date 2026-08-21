@@ -1,4 +1,4 @@
-// XIOM — OpenGL Conformance Test Suite
+// XIOM -- OpenGL Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -10,7 +10,7 @@
 
 module opengl_conformance_tests
 
-// ── Test helpers ────────────────────────────────────────────────────────────
+// -- Test helpers ------------------------------------------------------------
 
 fn assert(condition: Bool, name: Str) -> Int
   requires: name.len() > 0
@@ -54,9 +54,9 @@ fn assert_nonempty(s: Str, name: Str) -> Int
   return 1;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 1 — Type Definitions (5 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 1 -- Type Definitions (5 tests)
+// ===========================================================================
 
 fn test_type_glshader_is_int() -> Int {
   return assert(true, "type: GlShader is Int alias present");
@@ -78,9 +78,9 @@ fn test_type_gltexture_is_int() -> Int {
   return assert(true, "type: GlTexture is Int alias present");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 2 — Shader Type Constants (6 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 2 -- Shader Type Constants (6 tests)
+// ===========================================================================
 
 fn test_const_vertex_shader() -> Int {
   return assert_eq_int(opengl.GL_VERTEX_SHADER, 35633, "GL_VERTEX_SHADER = 35633");
@@ -106,9 +106,9 @@ fn test_const_tess_evaluation_shader() -> Int {
   return assert_eq_int(opengl.GL_TESS_EVALUATION_SHADER, 36487, "GL_TESS_EVALUATION_SHADER = 36487");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 3 — Shader/Program Status Constants (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 3 -- Shader/Program Status Constants (4 tests)
+// ===========================================================================
 
 fn test_const_compile_status() -> Int {
   return assert_eq_int(opengl.GL_COMPILE_STATUS, 35713, "GL_COMPILE_STATUS = 35713");
@@ -126,9 +126,9 @@ fn test_const_info_log_length() -> Int {
   return assert_eq_int(opengl.GL_INFO_LOG_LENGTH, 35716, "GL_INFO_LOG_LENGTH = 35716");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 4 — Buffer Constants (5 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 4 -- Buffer Constants (5 tests)
+// ===========================================================================
 
 fn test_const_array_buffer() -> Int {
   return assert_eq_int(opengl.GL_ARRAY_BUFFER, 34962, "GL_ARRAY_BUFFER = 34962");
@@ -150,9 +150,9 @@ fn test_const_stream_draw() -> Int {
   return assert_eq_int(opengl.GL_STREAM_DRAW, 35040, "GL_STREAM_DRAW = 35040");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 5 — Draw Mode Constants (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 5 -- Draw Mode Constants (3 tests)
+// ===========================================================================
 
 fn test_const_triangles() -> Int {
   return assert_eq_int(opengl.GL_TRIANGLES, 4, "GL_TRIANGLES = 4");
@@ -166,9 +166,9 @@ fn test_const_lines() -> Int {
   return assert_eq_int(opengl.GL_LINES, 1, "GL_LINES = 1");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 6 — Boolean & Error Constants (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 6 -- Boolean & Error Constants (3 tests)
+// ===========================================================================
 
 fn test_const_false_is_zero() -> Int {
   return assert_eq_int(opengl.GL_FALSE, 0, "GL_FALSE = 0");
@@ -182,9 +182,9 @@ fn test_const_no_error_is_zero() -> Int {
   return assert_eq_int(opengl.GL_NO_ERROR, 0, "GL_NO_ERROR = 0");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 7 — Shader Compilation Stubs (5 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 7 -- Shader Compilation Stubs (5 tests)
+// ===========================================================================
 
 fn test_create_shader_returns_err_in_stub_mode() -> Int {
   let result = opengl.gl_create_shader(opengl.GL_VERTEX_SHADER);
@@ -211,9 +211,9 @@ fn test_shader_source_with_nonzero_shader_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 8 — Program Linking Stubs (5 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 8 -- Program Linking Stubs (5 tests)
+// ===========================================================================
 
 fn test_create_program_returns_err_in_stub_mode() -> Int {
   let result = opengl.gl_create_program();
@@ -240,9 +240,9 @@ fn test_delete_program_with_nonzero_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 9 — Buffer Lifecycle (5 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 9 -- Buffer Lifecycle (5 tests)
+// ===========================================================================
 
 fn test_gen_buffer_returns_err_in_stub_mode() -> Int {
   let result = opengl.gl_gen_buffer();
@@ -271,9 +271,9 @@ fn test_delete_buffer_with_nonzero_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 10 — VAO Lifecycle (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 10 -- VAO Lifecycle (4 tests)
+// ===========================================================================
 
 fn test_gen_vertex_array_returns_err_in_stub_mode() -> Int {
   let result = opengl.gl_gen_vertex_array();
@@ -295,9 +295,9 @@ fn test_vertex_attrib_pointer_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 11 — Drawing Stubs (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 11 -- Drawing Stubs (3 tests)
+// ===========================================================================
 
 fn test_draw_arrays_is_noop() -> Int {
   opengl.gl_draw_arrays(opengl.GL_TRIANGLES, 0, 3);
@@ -314,9 +314,9 @@ fn test_viewport_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 12 — Texture Stubs (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 12 -- Texture Stubs (4 tests)
+// ===========================================================================
 
 fn test_gen_texture_returns_err_in_stub_mode() -> Int {
   let result = opengl.gl_gen_texture();
@@ -340,9 +340,9 @@ fn test_tex_parameteri_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 13 — Uniform Stubs (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 13 -- Uniform Stubs (4 tests)
+// ===========================================================================
 
 fn test_get_uniform_location_returns_neg1_in_stub_mode() -> Int {
   let loc = opengl.gl_get_uniform_location(1, "uMVP");
@@ -371,9 +371,9 @@ fn test_uniform_matrix4fv_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 14 — Context & Error Stubs (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 14 -- Context & Error Stubs (3 tests)
+// ===========================================================================
 
 fn test_create_context_returns_err_in_stub_mode() -> Int {
   let result = opengl.gl_create_context(1, 4, 6);
@@ -390,9 +390,9 @@ fn test_get_error_returns_no_error_in_stub_mode() -> Int {
   return assert_eq_int(err, opengl.GL_NO_ERROR, "gl_get_error returns GL_NO_ERROR in stub mode");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 15 — Smoke: All Non-Result Functions Are Callable (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 15 -- Smoke: All Non-Result Functions Are Callable (1 test)
+// ===========================================================================
 
 fn test_smoke_all_nonresult_callable() -> Int {
   var data: Vec[Float32] = Vec[Float32].new();
@@ -418,9 +418,9 @@ fn test_smoke_all_nonresult_callable() -> Int {
   return assert(true, "all non-Result functions callable without crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 16 — Smoke: All Result Functions Return Err (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 16 -- Smoke: All Result Functions Return Err (1 test)
+// ===========================================================================
 
 fn test_smoke_all_result_funcs_return_err() -> Int {
   let r1 = opengl.gl_create_shader(opengl.GL_VERTEX_SHADER);
@@ -435,9 +435,9 @@ fn test_smoke_all_result_funcs_return_err() -> Int {
   return assert(all_err, "all 8 Result-returning functions return Err in stub mode");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Full shader lifecycle smoke test (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn test_shader_lifecycle_stubs_no_crash() -> Int {
   let shader_result = opengl.gl_create_shader(opengl.GL_VERTEX_SHADER);
@@ -456,9 +456,9 @@ fn test_shader_lifecycle_stubs_no_crash() -> Int {
   return assert(true, "full shader lifecycle stubs execute without crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Test Runner
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn run_all_tests() -> Int {
   var failures: Int = 0;

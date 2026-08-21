@@ -156,7 +156,7 @@ void imgui_bridge_new_frame_sized(int32_t fb_w, int32_t fb_h)
 {
     /* CRITICAL FIX: set DisplaySize BEFORE NewFrame() so ImGui reads
      * current dimensions for mouse hit-testing, clipping, and layout.
-     * Order: platform (GLFW) → renderer (Vulkan) → ImGui::NewFrame() */
+     * Order: platform (GLFW) -> renderer (Vulkan) -> ImGui::NewFrame() */
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2((float)fb_w, (float)fb_h);
     io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
@@ -185,7 +185,7 @@ void imgui_bridge_set_display_size_i32(int32_t fb_w, int32_t fb_h)
     imgui_bridge_set_display_size((float)fb_w, (float)fb_h);
 }
 
-/* ── Windows ── */
+/* -- Windows -- */
 int32_t imgui_begin(const char* name, int32_t flags) { return ImGui::Begin(name, nullptr, (ImGuiWindowFlags)flags) ? 1 : 0; }
 void    imgui_end(void)                { ImGui::End(); }
 int32_t imgui_begin_child(const char* id, float w, float h, int32_t border)
@@ -196,7 +196,7 @@ void imgui_set_next_window_size_i32(int32_t w, int32_t h)
 void imgui_set_next_window_pos_i32(int32_t x, int32_t y)
     { ImGui::SetNextWindowPos(ImVec2((float)x, (float)y)); }
 
-/* ── Widgets ── */
+/* -- Widgets -- */
 int32_t imgui_button(const char* label){ return ImGui::Button(label) ? 1 : 0; }
 int32_t imgui_small_button(const char* label) { return ImGui::SmallButton(label) ? 1 : 0; }
 void    imgui_text(const char* text)   { ImGui::TextUnformatted(text); }
@@ -258,7 +258,7 @@ int32_t imgui_combo(const char* l, int32_t cur, const char* const* it, int32_t n
 int32_t imgui_list_box(const char* l, int32_t cur, const char* const* it, int32_t n)
     { ImGui::ListBox(l, &cur, it, n); return cur; }
 
-/* ── Extended Widgets ── */
+/* -- Extended Widgets -- */
 void    imgui_progress_bar(float frac, float w, float h)
     { ImGui::ProgressBar(frac, w > 0 ? ImVec2(w,h) : ImVec2(-FLT_MIN, 0)); }
 int32_t imgui_radio_button(const char* l, int32_t active)
@@ -270,33 +270,33 @@ void    imgui_label_text(const char* label, const char* text) { ImGui::LabelText
 int32_t imgui_begin_disabled(int32_t d) { ImGui::BeginDisabled(d != 0); return d; }
 void    imgui_end_disabled(void) { ImGui::EndDisabled(); }
 
-/* ── Layout ── */
+/* -- Layout -- */
 void    imgui_separator(void) { ImGui::Separator(); }
 void    imgui_same_line(float off, float sp) { ImGui::SameLine(off, sp); }
 void    imgui_spacing(void)   { ImGui::Spacing(); }
 void    imgui_dummy(float w, float h) { ImGui::Dummy(ImVec2(w,h)); }
 void    imgui_new_line(void)  { ImGui::NewLine(); }
 
-/* ── Trees ── */
+/* -- Trees -- */
 int32_t imgui_tree_node(const char* l) { return ImGui::TreeNode(l) ? 1 : 0; }
 int32_t imgui_tree_node_flags(const char* l, int32_t f)
     { return ImGui::TreeNodeEx(l, (ImGuiTreeNodeFlags)f) ? 1 : 0; }
 void    imgui_tree_pop(void)  { ImGui::TreePop(); }
 int32_t imgui_collapsing_header(const char* l) { return ImGui::CollapsingHeader(l) ? 1 : 0; }
 
-/* ── Tabs ── */
+/* -- Tabs -- */
 int32_t imgui_begin_tab_bar(const char* id) { return ImGui::BeginTabBar(id) ? 1 : 0; }
 void    imgui_end_tab_bar(void)  { ImGui::EndTabBar(); }
 int32_t imgui_begin_tab_item(const char* l) { return ImGui::BeginTabItem(l) ? 1 : 0; }
 void    imgui_end_tab_item(void) { ImGui::EndTabItem(); }
 
-/* ── Plots ── */
+/* -- Plots -- */
 void imgui_plot_lines(const char* l, const float* v, int32_t n, float smin, float smax, float w, float h)
     { ImGui::PlotLines(l, v, n, 0, nullptr, smin, smax, ImVec2(w,h)); }
 void imgui_plot_histogram(const char* l, const float* v, int32_t n, float smin, float smax, float w, float h)
     { ImGui::PlotHistogram(l, v, n, 0, nullptr, smin, smax, ImVec2(w,h)); }
 
-/* ── Popups ── */
+/* -- Popups -- */
 void    imgui_open_popup(const char* id) { ImGui::OpenPopup(id); }
 int32_t imgui_begin_popup(const char* id) { return ImGui::BeginPopup(id) ? 1 : 0; }
 void    imgui_end_popup(void) { ImGui::EndPopup(); }
@@ -306,7 +306,7 @@ int32_t imgui_begin_popup_context_item(const char* id)
 int32_t imgui_begin_popup_modal(const char* n) { return ImGui::BeginPopupModal(n) ? 1 : 0; }
 void    imgui_end_popup_modal(void) { ImGui::EndPopup(); }
 
-/* ── Menus ── */
+/* -- Menus -- */
 int32_t imgui_begin_menu_bar(void) { return ImGui::BeginMenuBar() ? 1 : 0; }
 void    imgui_end_menu_bar(void)   { ImGui::EndMenuBar(); }
 int32_t imgui_begin_main_menu_bar(void) { return ImGui::BeginMainMenuBar() ? 1 : 0; }
@@ -316,17 +316,17 @@ void    imgui_end_menu(void) { ImGui::EndMenu(); }
 int32_t imgui_menu_item(const char* l, const char* s, int32_t e)
     { return ImGui::MenuItem(l, s, false, e!=0) ? 1 : 0; }
 
-/* ── Tooltips ── */
+/* -- Tooltips -- */
 void    imgui_set_tooltip(const char* t)  { ImGui::SetTooltip("%s", t); }
 void    imgui_begin_tooltip(void) { ImGui::BeginTooltip(); }
 void    imgui_end_tooltip(void)   { ImGui::EndTooltip(); }
 
-/* ── Focus/Scrolling ── */
+/* -- Focus/Scrolling -- */
 void    imgui_set_scroll_here_y(void) { ImGui::SetScrollHereY(); }
 int32_t imgui_is_item_hovered(void)   { return ImGui::IsItemHovered() ? 1 : 0; }
 int32_t imgui_is_item_clicked(void)   { return ImGui::IsItemClicked() ? 1 : 0; }
 
-/* ── Styling ── */
+/* -- Styling -- */
 void imgui_style_dark(void)    { ImGui::StyleColorsDark(); }
 void imgui_style_light(void)   { ImGui::StyleColorsLight(); }
 void imgui_style_classic(void) { ImGui::StyleColorsClassic(); }
@@ -372,6 +372,6 @@ void imgui_bridge_reinit_vulkan(int64_t render_pass, float fb_w, float fb_h)
     }
 }
 
-/* ── Utility ── */
+/* -- Utility -- */
 int32_t imgui_get_framerate(void)    { return (int32_t)ImGui::GetIO().Framerate; }
 int32_t imgui_get_frame_count(void)  { return ImGui::GetFrameCount(); }

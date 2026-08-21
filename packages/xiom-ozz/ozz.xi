@@ -1,4 +1,4 @@
-// XIOM — Ozz-Animation (v0.16.0) FFI Bindings
+// XIOM -- Ozz-Animation (v0.16.0) FFI Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -26,7 +26,7 @@ pub const OZZ_NO_PARENT: Int32 = (-1 as Int32)
 pub const OZZ_MAX_TRACKS: Int32 = 65535 as Int32
 
 // =========================================================================
-// Math types — transparent structs matching C bridge ozz_float3_t, etc.
+// Math types -- transparent structs matching C bridge ozz_float3_t, etc.
 // =========================================================================
 
 pub type Float3 = {
@@ -56,7 +56,7 @@ pub type Transform = {
 } derive[Clone]
 
 // =========================================================================
-// extern "C" declarations — provided by ozz_c_bridge (C wrapper around C++)
+// extern "C" declarations -- provided by ozz_c_bridge (C wrapper around C++)
 // =========================================================================
 
 extern "C" {

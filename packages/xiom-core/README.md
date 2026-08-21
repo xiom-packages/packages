@@ -1,6 +1,6 @@
 # xiom-core
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Core foundation types and utilities shared across XIOM.
 > **Deps:** stdlib; may wrap C (FFI).
 

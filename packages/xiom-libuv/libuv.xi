@@ -1,8 +1,8 @@
-// XIOM — libuv (Cross-platform Asynchronous I/O) Bindings
+// XIOM -- libuv (Cross-platform Asynchronous I/O) Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Pure SPEC package — all FFI calls return Err until the C bridge is linked.
+// Pure SPEC package -- all FFI calls return Err until the C bridge is linked.
 // Phase 1: Event loop, TCP, timers, file I/O function signatures + full contracts.
 //
 // Dependencies: libuv (system-installed via winget/apt)
@@ -10,25 +10,25 @@
 
 module xiom.libuv
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Types
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub type UvLoop = Int;
 pub type UvTcp = Int;
 pub type UvTimer = Int;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Constants
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub const UV_RUN_DEFAULT: Int = 0;
 pub const UV_RUN_ONCE: Int = 1;
 pub const UV_RUN_NOWAIT: Int = 2;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // libuv C FFI Declarations
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 extern "C" {
   fn uv_loop_new() -> Int;
@@ -47,9 +47,9 @@ extern "C" {
   fn uv_fs_close(loop: Int, req: Int, file: Int, cb: Int) -> Int;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Event Loop
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn loop_new() -> Result[UvLoop, Str]
   ensures: result.is_ok() || result.is_err();
@@ -70,9 +70,9 @@ pub fn loop_run(loop: UvLoop, mode: Int) -> Result[Int, Str]
   return Err("stub: libuv C bridge not linked");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: TCP
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn tcp_init(loop: UvLoop) -> Result[UvTcp, Str]
   requires: loop > 0;
@@ -102,9 +102,9 @@ pub fn tcp_write(tcp: UvTcp, data: &Vec[UInt8]) -> Result[Int, Str]
   return Err("stub: libuv C bridge not linked");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Timer
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn timer_init(loop: UvLoop) -> Result[UvTimer, Str]
   requires: loop > 0;
@@ -126,9 +126,9 @@ pub fn timer_stop(timer: UvTimer) -> Result[Int, Str]
   return Err("stub: libuv C bridge not linked");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: File I/O
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn fs_open(loop: UvLoop, path: Str, flags: Int, mode: Int) -> Result[Int, Str]
   requires: loop > 0;

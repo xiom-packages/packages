@@ -1,6 +1,6 @@
 # xiom-toml
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** TOML configuration parsing and serialization.
 > **Deps:** stdlib; may wrap C (FFI).
 

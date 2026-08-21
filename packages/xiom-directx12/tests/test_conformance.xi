@@ -1,4 +1,4 @@
-// XIOM — Direct3D 12 Conformance Tests
+// XIOM -- Direct3D 12 Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -67,7 +67,7 @@ fn int_to_str(n: Int) -> Str {
 }
 
 // =========================================================================
-// SECTION 1 — Type Construction Tests (10 tests)
+// SECTION 1 -- Type Construction Tests (10 tests)
 // =========================================================================
 
 fn test_type_dx_device() -> TestCase {
@@ -121,7 +121,7 @@ fn test_type_dx_pipeline_state() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 2 — DXGI_FORMAT Constants (5 tests)
+// SECTION 2 -- DXGI_FORMAT Constants (5 tests)
 // =========================================================================
 
 fn test_dxgi_format_unknown() -> TestCase {
@@ -150,7 +150,7 @@ fn test_dxgi_depth_formats_distinct() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 3 — Resource State Constants (4 tests)
+// SECTION 3 -- Resource State Constants (4 tests)
 // =========================================================================
 
 fn test_resource_state_common_zero() -> TestCase {
@@ -172,7 +172,7 @@ fn test_resource_state_present_is_common() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 4 — Command List Type Constants (2 tests)
+// SECTION 4 -- Command List Type Constants (2 tests)
 // =========================================================================
 
 fn test_cmd_list_type_direct() -> TestCase {
@@ -187,7 +187,7 @@ fn test_cmd_list_type_ordering() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 5 — Descriptor Heap Type Constants (2 tests)
+// SECTION 5 -- Descriptor Heap Type Constants (2 tests)
 // =========================================================================
 
 fn test_heap_type_cbv_srv_uav() -> TestCase {
@@ -200,7 +200,7 @@ fn test_heap_type_rtv_lt_dsv() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 6 — Heap Type Constants (2 tests)
+// SECTION 6 -- Heap Type Constants (2 tests)
 // =========================================================================
 
 fn test_heap_type_default() -> TestCase {
@@ -213,7 +213,7 @@ fn test_heap_type_upload_vs_default() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 7 — Primitive Topology Constants (2 tests)
+// SECTION 7 -- Primitive Topology Constants (2 tests)
 // =========================================================================
 
 fn test_topology_triangle_list() -> TestCase {
@@ -226,7 +226,7 @@ fn test_topology_triangle_strip_is_list_plus_1() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 8 — Fence Flag Constants (2 tests)
+// SECTION 8 -- Fence Flag Constants (2 tests)
 // =========================================================================
 
 fn test_fence_flag_none() -> TestCase {
@@ -239,7 +239,7 @@ fn test_fence_flag_shared_nonzero() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 9 — Clear Flags Constants (1 test)
+// SECTION 9 -- Clear Flags Constants (1 test)
 // =========================================================================
 
 fn test_clear_flags_distinct() -> TestCase {
@@ -248,7 +248,7 @@ fn test_clear_flags_distinct() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 10 — Stub Behavior: Device FFI
+// SECTION 10 -- Stub Behavior: Device FFI
 // =========================================================================
 
 fn test_ffi_create_device_null_params() -> TestCase {
@@ -264,7 +264,7 @@ fn test_ffi_get_debug_interface_null_params() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 11 — Stub Behavior: Command Queue FFI
+// SECTION 11 -- Stub Behavior: Command Queue FFI
 // =========================================================================
 
 fn test_ffi_create_cmd_queue_null_params() -> TestCase {
@@ -274,7 +274,7 @@ fn test_ffi_create_cmd_queue_null_params() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 12 — Stub Behavior: Resource FFI
+// SECTION 12 -- Stub Behavior: Resource FFI
 // =========================================================================
 
 fn test_ffi_create_committed_resource_null_params() -> TestCase {
@@ -296,7 +296,7 @@ fn test_ffi_create_default_buffer_null_params() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 13 — Stub Behavior: Descriptor Heap FFI
+// SECTION 13 -- Stub Behavior: Descriptor Heap FFI
 // =========================================================================
 
 fn test_ffi_create_descriptor_heap_null_params() -> TestCase {
@@ -306,7 +306,7 @@ fn test_ffi_create_descriptor_heap_null_params() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 14 — Stub Behavior: Command Allocator / List FFI
+// SECTION 14 -- Stub Behavior: Command Allocator / List FFI
 // =========================================================================
 
 fn test_ffi_create_cmd_allocator_null_params() -> TestCase {
@@ -328,7 +328,7 @@ fn test_ffi_close_cmd_list_null() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 15 — Stub Behavior: Fence FFI
+// SECTION 15 -- Stub Behavior: Fence FFI
 // =========================================================================
 
 fn test_ffi_create_fence_null_params() -> TestCase {
@@ -350,7 +350,7 @@ fn test_ffi_wait_fence_null() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 16 — Stub Behavior: Root Signature FFI
+// SECTION 16 -- Stub Behavior: Root Signature FFI
 // =========================================================================
 
 fn test_ffi_create_root_signature_null_params() -> TestCase {
@@ -360,7 +360,7 @@ fn test_ffi_create_root_signature_null_params() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 17 — Stub Behavior: Swap Chain / Present FFI
+// SECTION 17 -- Stub Behavior: Swap Chain / Present FFI
 // =========================================================================
 
 fn test_ffi_create_swapchain_null_params() -> TestCase {
@@ -382,7 +382,7 @@ fn test_ffi_create_dxgi_factory_null_params() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 18 — Stub Behavior: Draw / Clear FFI
+// SECTION 18 -- Stub Behavior: Draw / Clear FFI
 // =========================================================================
 
 fn test_ffi_draw_instanced_null() -> TestCase {
@@ -406,13 +406,13 @@ fn test_ffi_execute_cmd_lists_null() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 19 — Safe Wrapper: All create functions return Err (SPEC phase)
+// SECTION 19 -- Safe Wrapper: All create functions return Err (SPEC phase)
 // =========================================================================
 
 fn local_create_device(adapter: Int) -> Result[Int, Str] {
   let raw: Int = unsafe { D3D12CreateDevice(adapter, 0xC000, 0, 0) };
   if raw == 0 { return Ok(0xDEAD) }
-  return Err("d3d12_create_device: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_device: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
 fn test_safe_create_device_spec_returns_err() -> TestCase {
@@ -433,7 +433,7 @@ fn test_safe_create_root_sig_spec_returns_err() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 20 — Cross-Constant Consistency
+// SECTION 20 -- Cross-Constant Consistency
 // =========================================================================
 
 fn test_all_state_bits_unique() -> TestCase {
@@ -463,7 +463,7 @@ fn test_descriptor_heap_types_distinct() -> TestCase {
 }
 
 // =========================================================================
-// SECTION 21 — API Presence (compile-time verification)
+// SECTION 21 -- API Presence (compile-time verification)
 // =========================================================================
 
 fn test_api_create_device_present() -> TestCase {
@@ -499,7 +499,7 @@ fn test_api_present_present() -> TestCase {
 }
 
 // =========================================================================
-// Main — run all tests
+// Main -- run all tests
 // =========================================================================
 
 pub fn main() -> Int {

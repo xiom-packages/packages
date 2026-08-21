@@ -1,11 +1,11 @@
-# xiom-glfw — SPEC
+# xiom-glfw -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
-**Status**: PRODUCTION — v0.2.0, 17 safe wrappers, verified with v0.49.7
+**Status**: PRODUCTION -- v0.2.0, 17 safe wrappers, verified with v0.49.7
 **Depends on**: xiom.ffi (stdlib)
 
 ## What it wraps
-GLFW 3.4 — cross-platform windowing and input library.
+GLFW 3.4 -- cross-platform windowing and input library.
 Window creation, keyboard/mouse input, monitor management, fullscreen toggle.
 
 ## Dependencies
@@ -13,7 +13,7 @@ Window creation, keyboard/mouse input, monitor management, fullscreen toggle.
 | What | How | Size |
 |------|-----|------|
 | GLFW 3.4 | System-installed. `winget install glfw`, `apt install libglfw3-dev`. Set `GLFW_DIR`. | ~3MB DLL |
-| C compiler | clang for building `glfw_bridge.obj` | — |
+| C compiler | clang for building `glfw_bridge.obj` | -- |
 
 ## Bundling strategy
 **System-installed only.** Never bundle GLFW.
@@ -21,15 +21,15 @@ Window creation, keyboard/mouse input, monitor management, fullscreen toggle.
 ## Architecture
 ```
 xiom-glfw/
-├── glfw.xi              # 17 safe wrappers with contracts
-├── bridge/
-│   ├── glfw_bridge.h    # Flat C ABI (18 functions)
-│   ├── glfw_bridge.c    # Implementation
-│   └── glfw_bridge.obj  # Compiled
-└── tests/
-    ├── test_conformance.xi  # 18 conformance tests
-    ├── test_glfw.xi     # Lifecycle smoke
-    └── test_window.xi   # Integration smoke
+|-- glfw.xi              # 17 safe wrappers with contracts
+|-- bridge/
+|   |-- glfw_bridge.h    # Flat C ABI (18 functions)
+|   |-- glfw_bridge.c    # Implementation
+|   `-- glfw_bridge.obj  # Compiled
+`-- tests/
+    |-- test_conformance.xi  # 18 conformance tests
+    |-- test_glfw.xi     # Lifecycle smoke
+    `-- test_window.xi   # Integration smoke
 ```
 
 ## API (complete, all with requires contracts)
@@ -58,7 +58,7 @@ pub fn glfw_toggle_fullscreen(win) -> Result[Unit, Str]
 ```
 
 ## Verified
-- GLFW standalone test: 5s stable ✅
-- GLFW+Vulkan integration: 5s stable ✅
-- v0.49.5: Float32 tuple fix restored `glfw_get_cursor_pos` ✅
-- v0.49.4: Newtype auto-conversion for Window/Monitor ✅
+- GLFW standalone test: 5s stable [OK]
+- GLFW+Vulkan integration: 5s stable [OK]
+- v0.49.5: Float32 tuple fix restored `glfw_get_cursor_pos` [OK]
+- v0.49.4: Newtype auto-conversion for Window/Monitor [OK]

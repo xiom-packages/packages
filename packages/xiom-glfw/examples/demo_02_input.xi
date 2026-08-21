@@ -1,7 +1,7 @@
 // ===========================================================================
-// XIOM GLFW SDK — Example 02: Input Events
+// XIOM GLFW SDK -- Example 02: Input Events
 // Shows: glfw_get_key, glfw_get_mouse_button, glfw_get_cursor_pos
-// Press keys, click mouse, move cursor — all logged to console.
+// Press keys, click mouse, move cursor -- all logged to console.
 // ===========================================================================
 
 module glfw_input
@@ -10,7 +10,7 @@ use xiom.glwf;
 
 fn main() -> Int {
   if !glfw_init() { return 1; }
-  let win = glfw_create_window("GLFW — Input Demo", 600, 400);
+  let win = glfw_create_window("GLFW -- Input Demo", 600, 400);
   match win {
     Err(e) => { io.println(e); glfw_terminate(); return 1; }
     Ok(w) => {

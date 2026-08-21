@@ -1,4 +1,4 @@
-// XIOM — DXC Production Demo
+// XIOM -- DXC Production Demo
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -22,7 +22,7 @@ fn main() -> Int {
   let comp_result = create_compiler();
   match comp_result {
     Err(err) => {
-      io.println("(expected) Compiler creation returned error — code:");
+      io.println("(expected) Compiler creation returned error -- code:");
       io.println(result_to_string(0));
       io.println("");
       io.println("In production: ensure dxcompiler.dll is in PATH and dxc_bridge.o is linked.");

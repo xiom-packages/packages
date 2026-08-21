@@ -1,6 +1,6 @@
 # xiom-cuda
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** CUDA GPU device management and kernels.
 > **Deps:** stdlib; may wrap C (FFI).
 

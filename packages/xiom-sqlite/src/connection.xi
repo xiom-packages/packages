@@ -16,7 +16,7 @@ pub type SqliteStmt = {
 pub fn sqlite_open(path: Str) -> Result[SqliteConnection, SqliteError]
   requires: path.len() > 0
 {
-  return Err(SqliteError{ code: -1, message: "xiom-sqlite: FFI bridge (ffi_bridge.c) not linked — sqlite3_open requires native runtime" });
+  return Err(SqliteError{ code: -1, message: "xiom-sqlite: FFI bridge (ffi_bridge.c) not linked -- sqlite3_open requires native runtime" });
 }
 
 pub fn sqlite_close(conn: SqliteConnection) -> Result[Int, SqliteError] {
@@ -29,17 +29,17 @@ pub fn sqlite_close(conn: SqliteConnection) -> Result[Int, SqliteError] {
 pub fn sqlite_execute(conn: &SqliteConnection, sql: Str) -> Result[Int, SqliteError]
   requires: sql.len() > 0
 {
-  return Err(SqliteError{ code: -1, message: "xiom-sqlite: FFI bridge (ffi_bridge.c) not linked — sqlite3_exec requires native runtime" });
+  return Err(SqliteError{ code: -1, message: "xiom-sqlite: FFI bridge (ffi_bridge.c) not linked -- sqlite3_exec requires native runtime" });
 }
 
 pub fn sqlite_prepare(conn: &SqliteConnection, sql: Str) -> Result[SqliteStmt, SqliteError]
   requires: sql.len() > 0
 {
-  return Err(SqliteError{ code: -1, message: "xiom-sqlite: FFI bridge (ffi_bridge.c) not linked — sqlite3_prepare_v2 requires native runtime" });
+  return Err(SqliteError{ code: -1, message: "xiom-sqlite: FFI bridge (ffi_bridge.c) not linked -- sqlite3_prepare_v2 requires native runtime" });
 }
 
 pub fn sqlite_step(stmt: &SqliteStmt) -> Result[Bool, SqliteError] {
-  return Err(SqliteError{ code: -1, message: "xiom-sqlite: FFI bridge (ffi_bridge.c) not linked — sqlite3_step requires native runtime" });
+  return Err(SqliteError{ code: -1, message: "xiom-sqlite: FFI bridge (ffi_bridge.c) not linked -- sqlite3_step requires native runtime" });
 }
 
 pub fn sqlite_column_int(stmt: &SqliteStmt, col: Int) -> Int
@@ -70,7 +70,7 @@ pub fn sqlite_column_blob(stmt: &SqliteStmt, col: Int) -> Vec[Int]
 pub fn sqlite_query(conn: &SqliteConnection, sql: Str) -> Result[Vec[SqliteRow], SqliteError]
   requires: sql.len() > 0
 {
-  return Err(SqliteError{ code: -1, message: "xiom-sqlite: FFI bridge (ffi_bridge.c) not linked — sqlite3_query requires native runtime" });
+  return Err(SqliteError{ code: -1, message: "xiom-sqlite: FFI bridge (ffi_bridge.c) not linked -- sqlite3_query requires native runtime" });
 }
 
 pub fn sqlite_finalize(stmt: SqliteStmt) -> Result[Int, SqliteError] {

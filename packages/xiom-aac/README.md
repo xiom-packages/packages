@@ -1,6 +1,6 @@
 # xiom-aac
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** AAC audio codec: AAC-LC/HE decoding and encoding.
 > **Deps:** stdlib; may wrap C (FFI).
 

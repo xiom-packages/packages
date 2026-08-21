@@ -1,6 +1,6 @@
 # xiom-directx12
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** DirectX 12 graphics API bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

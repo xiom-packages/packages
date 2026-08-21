@@ -1,4 +1,4 @@
-/* xvk_memory_alloc.c — VMA-style sub-allocator implementation */
+/* xvk_memory_alloc.c -- VMA-style sub-allocator implementation */
 #include "xvk_memory_alloc.h"
 #include <stdlib.h>
 #include <string.h>
@@ -250,7 +250,7 @@ void xvk_ma_free_buffer(int64_t buffer, int64_t memory) {
             if (blk->memory == (VkDeviceMemory)(uint64_t)memory && !blk->is_linear) {
                 /* Free-list: add back as free chunk */
                 XvkMaBlock* free_chunk = calloc(1, sizeof(XvkMaBlock));
-                free_chunk->free_offset = 0; /* simplified — production needs offset tracking */
+                free_chunk->free_offset = 0; /* simplified -- production needs offset tracking */
                 free_chunk->free_size = blk->size;
                 free_chunk->next_free = blk->next_free;
                 blk->next_free = free_chunk;

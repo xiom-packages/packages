@@ -1,6 +1,6 @@
 # xiom-linter
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Static lint rules and diagnostics for XIOM source code.
 > **Deps:** stdlib; may wrap C (FFI).
 

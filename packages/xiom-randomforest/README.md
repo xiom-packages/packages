@@ -1,6 +1,6 @@
 # xiom-randomforest
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Random forest classification and regression.
 > **Deps:** stdlib; may wrap C (FFI).
 

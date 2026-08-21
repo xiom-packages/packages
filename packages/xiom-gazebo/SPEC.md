@@ -1,9 +1,9 @@
-# xiom-gazebo — SPEC
+# xiom-gazebo -- SPEC
 
 **Phase**: 3 (Robotics) | **Priority**: Medium
 **Status**: Implemented | **Depends on**: xiom.ffi, xiom.io, xiom.test
 
-Gazebo — Robot simulation engine (gz-sim / Ignition Gazebo). System-installed. Week effort.
+Gazebo -- Robot simulation engine (gz-sim / Ignition Gazebo). System-installed. Week effort.
 
 ## Files
 
@@ -12,14 +12,14 @@ Gazebo — Robot simulation engine (gz-sim / Ignition Gazebo). System-installed. W
 | `gazebo.xi` | 174 | Core module: 4 types, 12 extern "C" FFI declarations, 14 safe wrapper functions |
 | `tests/test_conformance.xi` | 437 | 47 conformance tests across 6 sections |
 | `ROADMAP.md` | 29 | Roadmap and next steps |
-| `SPEC.md` | — | This file |
+| `SPEC.md` | -- | This file |
 
 ## Types (4)
 
-- `World` — opaque handle (Int)
-- `Model` — opaque handle (Int)
-- `Joint` — opaque handle (Int)
-- `Sensor` — opaque handle (Int)
+- `World` -- opaque handle (Int)
+- `Model` -- opaque handle (Int)
+- `Joint` -- opaque handle (Int)
+- `Sensor` -- opaque handle (Int)
 
 ## Constants (9)
 

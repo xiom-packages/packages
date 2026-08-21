@@ -1,6 +1,6 @@
 # xiom-pop3
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** POP3 client/server for retrieving mail from a mailbox.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -17,9 +17,9 @@ All 3 source files compile on xiom v0.45.3 with stubbed FFI functions.
 4. **test_postgres.xi**: Simplified to self-contained test. Original used `xiom.test` module which is not in the stdlib. Uses inline connect stub.
 
 ## Files Modified
-- `postgres.xi` — Added stub bodies to all forward-declared functions
-- `src/client.xi` — Made self-contained with inline stub functions, types defined before use
-- `tests/test_postgres.xi` — Made self-contained, replaced `let` with `var`, added inline stub
+- `postgres.xi` -- Added stub bodies to all forward-declared functions
+- `src/client.xi` -- Made self-contained with inline stub functions, types defined before use
+- `tests/test_postgres.xi` -- Made self-contained, replaced `let` with `var`, added inline stub
 
 ## Restoring Production FFI
 To restore production functionality:

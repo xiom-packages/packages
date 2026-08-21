@@ -1,4 +1,4 @@
-// XIOM — xiom.openblas conformance test suite
+// XIOM -- xiom.openblas conformance test suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -10,7 +10,7 @@ module xiom.openblas.test_conformance
 use xiom.openblas;
 
 // ============================================================
-// Section 1 — Matrix lifecycle
+// Section 1 -- Matrix lifecycle
 // ============================================================
 
 fn test_matrix_create_valid() -> Bool {
@@ -147,7 +147,7 @@ fn test_matrix_large_allocation() -> Bool {
 }
 
 // ============================================================
-// Section 2 — BLAS Level 1 (dot, axpy)
+// Section 2 -- BLAS Level 1 (dot, axpy)
 // ============================================================
 
 fn test_dot_product_basic() -> Bool {
@@ -200,7 +200,7 @@ fn test_axpy_negative_alpha() -> Bool {
 }
 
 // ============================================================
-// Section 3 — BLAS Level 2 (gemv)
+// Section 3 -- BLAS Level 2 (gemv)
 // ============================================================
 
 fn test_gemv_no_transpose() -> Bool {
@@ -240,7 +240,7 @@ fn test_gemv_with_beta() -> Bool {
 }
 
 // ============================================================
-// Section 4 — BLAS Level 3 (gemm)
+// Section 4 -- BLAS Level 3 (gemm)
 // ============================================================
 
 fn test_gemm_2x2_identity() -> Bool {
@@ -305,7 +305,7 @@ fn test_gemm_zero_beta() -> Bool {
 }
 
 // ============================================================
-// Section 5 — LAPACK: SVD
+// Section 5 -- LAPACK: SVD
 // ============================================================
 
 fn test_svd_returns_ok() -> Bool {
@@ -372,7 +372,7 @@ fn test_svd_tall_matrix() -> Bool {
 }
 
 // ============================================================
-// Section 6 — LAPACK: symmetric eigenvalues
+// Section 6 -- LAPACK: symmetric eigenvalues
 // ============================================================
 
 fn test_eigen_sym_square_ok() -> Bool {
@@ -428,7 +428,7 @@ fn test_eigen_sym_1x1() -> Bool {
 }
 
 // ============================================================
-// Section 7 — LAPACK: linear solve
+// Section 7 -- LAPACK: linear solve
 // ============================================================
 
 fn test_solve_square_ok() -> Bool {
@@ -480,7 +480,7 @@ fn test_solve_dimension_mismatch() -> Bool {
 }
 
 // ============================================================
-// Section 8 — Test runner
+// Section 8 -- Test runner
 // ============================================================
 
 fn main() -> Int {

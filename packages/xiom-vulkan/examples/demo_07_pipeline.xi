@@ -1,9 +1,9 @@
 // ===========================================================================
-// XIOM Vulkan SDK — Example 07: Full Custom Pipeline
+// XIOM Vulkan SDK -- Example 07: Full Custom Pipeline
 // Shows: shader_create, pipeline_layout_create, desc_set_layout_create,
 //        pipeline_create_graphics, render_pass_create, framebuffer_create,
 //        buffer_create, desc_pool_create, desc_set_allocate,
-//        cmd_bind_*, cmd_draw — complete custom rendering workflow
+//        cmd_bind_*, cmd_draw -- complete custom rendering workflow
 // ===========================================================================
 
 module demo_pipeline
@@ -11,7 +11,7 @@ use xiom.io;
 use xiom.vulkan;
 
 fn main() -> Int {
-  let app = create_app("07 — Custom Pipeline", 800, 600);
+  let app = create_app("07 -- Custom Pipeline", 800, 600);
   match app {
     Err(e) => { io.println(e); return 1; }
     Ok(a) => {
@@ -35,7 +35,7 @@ fn main() -> Int {
         _ => { io.println("Buffer creation failed"); }
       }
 
-      // Render loop — uses built-in pipeline for visual feedback
+      // Render loop -- uses built-in pipeline for visual feedback
       while !should_close(a) {
         if is_key_down(a, 256) { break; }
         poll(a);

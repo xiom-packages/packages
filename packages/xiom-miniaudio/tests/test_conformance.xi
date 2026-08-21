@@ -1,4 +1,4 @@
-// XIOM — MiniAudio Conformance Tests
+// XIOM -- MiniAudio Conformance Tests
 // Validates the public API of xiom.miniaudio with contract enforcement.
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
@@ -8,7 +8,7 @@ use xiom.io
 use xiom.miniaudio
 
 // ===========================================================================
-// Helper — creates a minimal engine for test isolation
+// Helper -- creates a minimal engine for test isolation
 // ===========================================================================
 
 fn setup_engine() -> Result[Int, Str]

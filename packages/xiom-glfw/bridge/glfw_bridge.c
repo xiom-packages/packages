@@ -6,7 +6,7 @@
 
 static char g_error[256] = "";
 
-/* ── Lifecycle ── */
+/* -- Lifecycle -- */
 int32_t glfw_bridge_init(void) {
     if (!glfwInit()) {
         const char* desc;
@@ -20,7 +20,7 @@ int32_t glfw_bridge_init(void) {
 
 void glfw_bridge_terminate(void) { glfwTerminate(); }
 
-/* ── Window ── */
+/* -- Window -- */
 int64_t glfw_bridge_create_window(int32_t w, int32_t h, const char* title) {
     GLFWwindow* win = glfwCreateWindow(w, h, title ? title : "XIOM", NULL, NULL);
     if (!win) {
@@ -47,7 +47,7 @@ void glfw_bridge_set_window_title(int64_t window, const char* title) {
     if (win && title) glfwSetWindowTitle(win, title);
 }
 
-/* ── Framebuffer / size ── */
+/* -- Framebuffer / size -- */
 void glfw_bridge_get_framebuffer_size(int64_t window, int32_t* w, int32_t* h) {
     GLFWwindow* win = (GLFWwindow*)(uint64_t)window;
     if (win && w && h) glfwGetFramebufferSize(win, w, h);
@@ -58,7 +58,7 @@ void glfw_bridge_get_window_size(int64_t window, int32_t* w, int32_t* h) {
     if (win && w && h) glfwGetWindowSize(win, w, h);
 }
 
-/* ── Input ── */
+/* -- Input -- */
 void glfw_bridge_poll_events(void) { glfwPollEvents(); }
 
 int32_t glfw_bridge_get_key(int64_t window, int32_t key) {
@@ -79,7 +79,7 @@ void glfw_bridge_get_cursor_pos(int64_t window, float* x, float* y) {
     if (y) *y = (float)dy;
 }
 
-/* ── Monitors ── */
+/* -- Monitors -- */
 int64_t glfw_bridge_get_primary_monitor(void) {
     return (int64_t)(uint64_t)glfwGetPrimaryMonitor();
 }
@@ -101,7 +101,7 @@ void glfw_bridge_get_video_mode(int64_t monitor, int32_t* w, int32_t* h, int32_t
     if (refresh) *refresh = mode ? mode->refreshRate : 0;
 }
 
-/* ── Fullscreen ── */
+/* -- Fullscreen -- */
 void glfw_bridge_set_window_monitor(int64_t window, int64_t monitor,
     int32_t x, int32_t y, int32_t w, int32_t h, int32_t refresh)
 {
@@ -115,5 +115,5 @@ int64_t glfw_bridge_get_window_monitor(int64_t window) {
     return (int64_t)(uint64_t)glfwGetWindowMonitor(win);
 }
 
-/* ── Error ── */
+/* -- Error -- */
 const char* glfw_bridge_get_error(void) { return g_error; }

@@ -6,7 +6,7 @@
 #include "xvk_util.h"
 
 /*
- * Extension bindings — every VK extension entry point not covered by the
+ * Extension bindings -- every VK extension entry point not covered by the
  * core xvk_bind_* modules. All functions are resolved at runtime through
  * vkGetInstanceProcAddr / vkGetDeviceProcAddr and cached in static
  * function pointers (with automatic fallback to the core-promoted name

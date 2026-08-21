@@ -1,11 +1,11 @@
-# xiom-moveit — ROADMAP
+# xiom-moveit -- ROADMAP
 
 **Phase**: 3 (Robotics) | **Status**: In Progress
 
 ## Completed
-- [x] SPEC.md — scope and dependency declaration
-- [x] moveit.xi — `module xiom.moveit`: 4 types (RobotModel, PlanningScene, MotionPlan, CollisionObject), 4 shape constants, 10 extern "C" FFI declarations, 13 safe wrapper functions with requires/ensures contracts
-- [x] tests/test_conformance.xi — 16 conformance tests (compile-time and runtime)
+- [x] SPEC.md -- scope and dependency declaration
+- [x] moveit.xi -- `module xiom.moveit`: 4 types (RobotModel, PlanningScene, MotionPlan, CollisionObject), 4 shape constants, 10 extern "C" FFI declarations, 13 safe wrapper functions with requires/ensures contracts
+- [x] tests/test_conformance.xi -- 16 conformance tests (compile-time and runtime)
 
 ## Next Steps
 - [ ] Build C bridge library (`moveit_bridge`) for xiom FFI ABI compatibility
@@ -22,25 +22,25 @@
 - [ ] CI/CD integration with MoveIt system install
 
 ## Dependencies
-- `xiom.ffi` — FFI type definitions and marshaling
+- `xiom.ffi` -- FFI type definitions and marshaling
 - System: MoveIt 2 (ROS 2 Humble+) or standalone libmoveit
 
 ## API Surface
 
 | Function | Signature | Contracts | Status |
 |----------|-----------|-----------|--------|
-| `robot_model_load` | `(urdf: Int, srdf: Int) -> RobotModel` | `ensures result != 0` | ✅ |
-| `robot_model_free` | `(model: RobotModel)` | `requires model != 0` | ✅ |
-| `robot_model_joint_count` | `(model: RobotModel) -> Int` | `requires model != 0` | ✅ |
-| `planning_scene_create` | `() -> PlanningScene` | `ensures result != 0` | ✅ |
-| `planning_scene_free` | `(scene: PlanningScene)` | `requires scene != 0` | ✅ |
-| `scene_set_robot_model` | `(scene: PlanningScene, model: RobotModel) -> Bool` | `requires scene != 0, model != 0` | ✅ |
-| `scene_add_box` | `(scene, x, y, z, sx, sy, sz) -> CollisionObject` | `requires scene != 0, sx > 0, sy > 0, sz > 0` | ✅ |
-| `scene_add_sphere` | `(scene, x, y, z, radius) -> CollisionObject` | `requires scene != 0, radius > 0` | ✅ |
-| `plan` | `(scene, model, start, goal, time_limit) -> Result[MotionPlan, Str]` | `requires 6 preconditions` | ✅ |
-| `plan_free` | `(plan: MotionPlan)` | `requires plan != 0` | ✅ |
-| `plan_trajectory_points` | `(plan: MotionPlan) -> Int` | `requires plan != 0` | ✅ |
-| `plan_trajectory_point` | `(plan, index, joints_out)` | `requires plan != 0, index >= 0` | ✅ |
+| `robot_model_load` | `(urdf: Int, srdf: Int) -> RobotModel` | `ensures result != 0` | [OK] |
+| `robot_model_free` | `(model: RobotModel)` | `requires model != 0` | [OK] |
+| `robot_model_joint_count` | `(model: RobotModel) -> Int` | `requires model != 0` | [OK] |
+| `planning_scene_create` | `() -> PlanningScene` | `ensures result != 0` | [OK] |
+| `planning_scene_free` | `(scene: PlanningScene)` | `requires scene != 0` | [OK] |
+| `scene_set_robot_model` | `(scene: PlanningScene, model: RobotModel) -> Bool` | `requires scene != 0, model != 0` | [OK] |
+| `scene_add_box` | `(scene, x, y, z, sx, sy, sz) -> CollisionObject` | `requires scene != 0, sx > 0, sy > 0, sz > 0` | [OK] |
+| `scene_add_sphere` | `(scene, x, y, z, radius) -> CollisionObject` | `requires scene != 0, radius > 0` | [OK] |
+| `plan` | `(scene, model, start, goal, time_limit) -> Result[MotionPlan, Str]` | `requires 6 preconditions` | [OK] |
+| `plan_free` | `(plan: MotionPlan)` | `requires plan != 0` | [OK] |
+| `plan_trajectory_points` | `(plan: MotionPlan) -> Int` | `requires plan != 0` | [OK] |
+| `plan_trajectory_point` | `(plan, index, joints_out)` | `requires plan != 0, index >= 0` | [OK] |
 
 ## Extern "C" Surface
 

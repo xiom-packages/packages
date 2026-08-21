@@ -1,4 +1,4 @@
-// XIOM — Raylib Bindings v0.1.0 (Phase 5 — SPEC)
+// XIOM -- Raylib Bindings v0.1.0 (Phase 5 -- SPEC)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -8,7 +8,7 @@
 
 module xiom.raylib
 
-// ── extern "C" — Raw raylib C Declarations (26 functions) ──────────────────
+// -- extern "C" -- Raw raylib C Declarations (26 functions) ------------------
 
 extern "C" {
   fn InitWindow(width: Int32, height: Int32, title: Str);
@@ -40,7 +40,7 @@ extern "C" {
   fn DrawTextEx(font: Int, text: Str, x: Float32, y: Float32, fontSize: Float32, spacing: Float32, color: Int32);
 }
 
-// ── Newtypes — Opaque resource handles (8 types) ───────────────────────────
+// -- Newtypes -- Opaque resource handles (8 types) ---------------------------
 
 pub type RlWindow    = Int;
 pub type RlTexture   = Int;
@@ -51,7 +51,7 @@ pub type RlMusic     = Int;
 pub type RlCamera    = Int;
 pub type RlFont      = Int;
 
-// ── Color Constants (RGBA packed as Int32, little-endian byte order) ───────
+// -- Color Constants (RGBA packed as Int32, little-endian byte order) -------
 
 pub const RAYWHITE:   Int = 0xFFFFFFFF;
 pub const WHITE:      Int = 0xFFFFFFFF;
@@ -80,7 +80,7 @@ pub const BEIGE:      Int = 0xFF83B0D3;
 pub const BROWN:      Int = 0xFF4F6A7F;
 pub const DARKBROWN:  Int = 0xFF2F3F4C;
 
-// ── Keyboard Key Constants ─────────────────────────────────────────────────
+// -- Keyboard Key Constants -------------------------------------------------
 
 pub const KEY_SPACE:        Int = 32;
 pub const KEY_APOSTROPHE:   Int = 39;
@@ -189,7 +189,7 @@ pub const KEY_RIGHT_ALT:     Int = 346;
 pub const KEY_RIGHT_SUPER:   Int = 347;
 pub const KEY_MENU:          Int = 348;
 
-// ── Mouse Button Constants ─────────────────────────────────────────────────
+// -- Mouse Button Constants -------------------------------------------------
 
 pub const MOUSE_BUTTON_LEFT:   Int = 0;
 pub const MOUSE_BUTTON_RIGHT:  Int = 1;
@@ -199,14 +199,14 @@ pub const MOUSE_BUTTON_EXTRA:  Int = 4;
 pub const MOUSE_BUTTON_FORWARD: Int = 5;
 pub const MOUSE_BUTTON_BACK:   Int = 6;
 
-// ── Camera Mode Constants ──────────────────────────────────────────────────
+// -- Camera Mode Constants --------------------------------------------------
 
 pub const CAMERA_FREE:          Int = 0;
 pub const CAMERA_FIRST_PERSON:  Int = 1;
 pub const CAMERA_THIRD_PERSON:  Int = 2;
 pub const CAMERA_ORBITAL:       Int = 3;
 
-// ── FPS Constants ──────────────────────────────────────────────────────────
+// -- FPS Constants ----------------------------------------------------------
 
 pub const FPS_MIN:  Int = 1;
 pub const FPS_MAX:  Int = 1000;
@@ -214,7 +214,7 @@ pub const FPS_60:   Int = 60;
 pub const FPS_120:  Int = 120;
 pub const FPS_144:  Int = 144;
 
-// ── Color Helpers ──────────────────────────────────────────────────────────
+// -- Color Helpers ----------------------------------------------------------
 
 pub fn color_rgba(r: Int, g: Int, b: Int, a: Int) -> Int
   requires: r >= 0
@@ -258,7 +258,7 @@ pub fn color_blue(c: Int) -> Int
   return (c / 65536) % 256;
 }
 
-// ── Safe Wrappers — Window Lifecycle ────────────────────────────────────────
+// -- Safe Wrappers -- Window Lifecycle ----------------------------------------
 
 pub fn init_window(width: Int, height: Int, title: Str)
   requires: width > 0
@@ -278,7 +278,7 @@ pub fn should_close() -> Bool
   return unsafe { WindowShouldClose() != 0 };
 }
 
-// ── Safe Wrappers — Drawing ────────────────────────────────────────────────
+// -- Safe Wrappers -- Drawing ------------------------------------------------
 
 pub fn begin_drawing()
 {
@@ -319,7 +319,7 @@ pub fn draw_text(text: Str, x: Int, y: Int, fontSize: Int, color: Int)
   unsafe { DrawText(text, x as Int32, y as Int32, fontSize as Int32, color as Int32); };
 }
 
-// ── Safe Wrappers — Textures & Models ──────────────────────────────────────
+// -- Safe Wrappers -- Textures & Models --------------------------------------
 
 pub fn load_texture(path: Str) -> RlTexture
   requires: path.len() > 0
@@ -362,7 +362,7 @@ pub fn draw_model(model: RlModel, posX: Float32, posY: Float32, posZ: Float32, s
   unsafe { DrawModel(model, posX, posY, posZ, scale, color as Int32); };
 }
 
-// ── Safe Wrappers — Audio ──────────────────────────────────────────────────
+// -- Safe Wrappers -- Audio --------------------------------------------------
 
 pub fn load_sound(path: Str) -> RlSound
   requires: path.len() > 0
@@ -377,7 +377,7 @@ pub fn play_sound(sound: RlSound)
   unsafe { PlaySound(sound); };
 }
 
-// ── Safe Wrappers — Camera ─────────────────────────────────────────────────
+// -- Safe Wrappers -- Camera -------------------------------------------------
 
 pub fn set_camera_mode(camera: RlCamera, mode: Int)
   requires: camera != 0
@@ -393,7 +393,7 @@ pub fn update_camera(camera: RlCamera, mode: Int)
   unsafe { UpdateCamera(camera, mode as Int32); };
 }
 
-// ── Safe Wrappers — Input ──────────────────────────────────────────────────
+// -- Safe Wrappers -- Input --------------------------------------------------
 
 pub fn get_mouse_position() -> (Float32, Float32)
 {
@@ -414,7 +414,7 @@ pub fn is_mouse_button_down(button: Int) -> Bool
   return unsafe { IsMouseButtonDown(button as Int32) != 0 };
 }
 
-// ── Safe Wrappers — Timing ─────────────────────────────────────────────────
+// -- Safe Wrappers -- Timing -------------------------------------------------
 
 pub fn get_frame_time() -> Float32
   ensures: result >= 0.0
@@ -428,7 +428,7 @@ pub fn set_target_fps(fps: Int)
   unsafe { SetTargetFPS(fps as Int32); };
 }
 
-// ── Safe Wrappers — Text Advanced ──────────────────────────────────────────
+// -- Safe Wrappers -- Text Advanced ------------------------------------------
 
 pub fn load_font(path: Str) -> RlFont
   requires: path.len() > 0

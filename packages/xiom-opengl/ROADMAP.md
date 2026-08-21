@@ -1,4 +1,4 @@
-# xiom-opengl — ROADMAP
+# xiom-opengl -- ROADMAP
 
 **Phase 2 (Scientific)** | **Priority: HIGH**
 **Depends on**: xiom.ffi (stdlib), xiom-glfw (window creation)
@@ -13,20 +13,20 @@ The package currently contains a full XIOM specification layer:
 - 30 safe wrapper functions with requires contracts
 - 54 conformance tests (25+ test functions) covering types, constants, and stub behavior
 
-All FFI calls return `Err(...)` or stub defaults — no C bridge is linked yet.
+All FFI calls return `Err(...)` or stub defaults -- no C bridge is linked yet.
 
 ## Phased Roadmap
 
 | Phase | What | Effort | Status |
 |-------|------|--------|--------|
-| 1 | **SPEC phase** — Full API surface, contracts, constants, stub tests | Weekend | **DONE** |
-| 2 | **C bridge** — Link glad loader, implement extern functions, context creation via GLFW | Weekend | TODO |
-| 3 | **Hello Triangle** — End-to-end VAO/VBO/shader/program/draw pipeline integration test | 1 day | TODO |
-| 4 | **Textures & Uniforms** — Texture loading, uniform management, matrix passing | Weekend | TODO |
-| 5 | **Framebuffers & Depth/Stencil** — Render-to-texture, depth testing, stencil ops | Weekend | TODO |
-| 6 | **Compute Shaders** — Compute pipeline, SSBO, image load/store | Weekend | TODO |
-| 7 | **Instancing & Multi-pass** — Draw instanced, render passes, blending modes | Weekend | TODO |
-| 8 | **OpenGL ES 3.0** — Mobile/WebGL compatibility layer | Weekend | TODO |
+| 1 | **SPEC phase** -- Full API surface, contracts, constants, stub tests | Weekend | **DONE** |
+| 2 | **C bridge** -- Link glad loader, implement extern functions, context creation via GLFW | Weekend | TODO |
+| 3 | **Hello Triangle** -- End-to-end VAO/VBO/shader/program/draw pipeline integration test | 1 day | TODO |
+| 4 | **Textures & Uniforms** -- Texture loading, uniform management, matrix passing | Weekend | TODO |
+| 5 | **Framebuffers & Depth/Stencil** -- Render-to-texture, depth testing, stencil ops | Weekend | TODO |
+| 6 | **Compute Shaders** -- Compute pipeline, SSBO, image load/store | Weekend | TODO |
+| 7 | **Instancing & Multi-pass** -- Draw instanced, render passes, blending modes | Weekend | TODO |
+| 8 | **OpenGL ES 3.0** -- Mobile/WebGL compatibility layer | Weekend | TODO |
 
 ## Phase 2 (C Bridge) Checkpoints
 

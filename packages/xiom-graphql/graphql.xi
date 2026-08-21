@@ -1,4 +1,4 @@
-// XIOM — GraphQL Engine (Pure-XIOM Schema, Query Parser & Validator Stubs)
+// XIOM -- GraphQL Engine (Pure-XIOM Schema, Query Parser & Validator Stubs)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 
@@ -7,7 +7,7 @@ module xiom.graphql
 use xiom.string;
 use xiom.convert;
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// --- Types ------------------------------------------------------------------
 
 pub type GraphQLSchema = {
   types: Vec[GraphQLType];
@@ -48,7 +48,7 @@ pub type GraphQLArg = {
   default_value: Option[Str];
 } derive[Clone]
 
-// ─── Operation Types ──────────────────────────────────────────────────────
+// --- Operation Types ------------------------------------------------------
 
 pub enum OperationType {
   Query,
@@ -56,7 +56,7 @@ pub enum OperationType {
   Subscription,
 } derive[Clone]
 
-// ─── AST Nodes ──────────────────────────────────────────────────────────────
+// --- AST Nodes --------------------------------------------------------------
 
 pub type GraphQLDocument = {
   operations: Vec[GraphQLOperation];
@@ -140,7 +140,7 @@ pub type GraphQLDirective = {
   args: Vec[GraphQLArgument];
 } derive[Clone]
 
-// ─── Error Types ────────────────────────────────────────────────────────────
+// --- Error Types ------------------------------------------------------------
 
 pub type GraphQLError = {
   message: Str;
@@ -165,14 +165,14 @@ pub type ValidationError = {
   path: Vec[Str];
 } derive[Clone]
 
-// ─── Execution Result ───────────────────────────────────────────────────────
+// --- Execution Result -------------------------------------------------------
 
 pub type ExecutionResult = {
   data: Option[GraphQLValue];
   errors: Vec[GraphQLError];
 } derive[Clone]
 
-// ─── Schema Builder ─────────────────────────────────────────────────────────
+// --- Schema Builder ---------------------------------------------------------
 
 pub fn schema_new() -> GraphQLSchema {
   return GraphQLSchema{
@@ -206,7 +206,7 @@ pub fn schema_has_type(schema: &GraphQLSchema, name: Str) -> Bool {
   };
 }
 
-// ─── Type Builder ───────────────────────────────────────────────────────────
+// --- Type Builder -----------------------------------------------------------
 
 pub fn type_new(name: Str, kind: GraphQLTypeKind) -> GraphQLType {
   return GraphQLType{
@@ -232,7 +232,7 @@ pub fn type_find_field(t: &GraphQLType, name: Str) -> Option[GraphQLField] {
   return None;
 }
 
-// ─── Field Builder ──────────────────────────────────────────────────────────
+// --- Field Builder ----------------------------------------------------------
 
 pub fn field_new(name: Str, type_ref: Str) -> GraphQLField {
   return GraphQLField{
@@ -253,7 +253,7 @@ pub fn field_deprecate(field: &mut GraphQLField, reason: Str) {
   field.deprecation_reason = reason;
 }
 
-// ─── Arg Builder ────────────────────────────────────────────────────────────
+// --- Arg Builder ------------------------------------------------------------
 
 pub fn arg_new(name: Str, type_ref: Str) -> GraphQLArg {
   return GraphQLArg{
@@ -263,7 +263,7 @@ pub fn arg_new(name: Str, type_ref: Str) -> GraphQLArg {
   };
 }
 
-// ─── Operation Builder ──────────────────────────────────────────────────────
+// --- Operation Builder ------------------------------------------------------
 
 pub fn operation_new(op_type: OperationType, name: Str) -> GraphQLOperation {
   var empty_set = GraphQLSelectionSet{
@@ -283,7 +283,7 @@ pub fn operation_add_field(op: &mut GraphQLOperation, field: GraphQLFieldSelecti
   op.selection_set.selections.push(sel);
 }
 
-// ─── Value Builder ──────────────────────────────────────────────────────────
+// --- Value Builder ----------------------------------------------------------
 
 pub fn value_int(n: Int) -> GraphQLValue { return GraphQLValue.IntValue(n); }
 pub fn value_float(n: Float64) -> GraphQLValue { return GraphQLValue.FloatValue(n); }
@@ -292,7 +292,7 @@ pub fn value_bool(b: Bool) -> GraphQLValue { return GraphQLValue.BooleanValue(b)
 pub fn value_null() -> GraphQLValue { return GraphQLValue.NullValue; }
 pub fn value_variable(name: Str) -> GraphQLValue { return GraphQLValue.Variable(name); }
 
-// ─── Query Parser Stubs ─────────────────────────────────────────────────────
+// --- Query Parser Stubs -----------------------------------------------------
 
 pub fn parse_query(source: Str) -> Result[GraphQLDocument, ParseError]
   requires: string.str_len(source) > 0
@@ -335,7 +335,7 @@ pub fn parse_query(source: Str) -> Result[GraphQLDocument, ParseError]
   return Ok(doc);
 }
 
-// ─── Query Validator Stubs ──────────────────────────────────────────────────
+// --- Query Validator Stubs --------------------------------------------------
 
 pub fn validate_operation(
   schema: &GraphQLSchema,
@@ -437,7 +437,7 @@ pub fn validate_document(
   return Ok(());
 }
 
-// ─── Execution Stubs ────────────────────────────────────────────────────────
+// --- Execution Stubs --------------------------------------------------------
 
 pub fn execute(
   schema: &GraphQLSchema,
@@ -467,7 +467,7 @@ pub fn execute(
   });
 }
 
-// ─── Introspection Stubs ────────────────────────────────────────────────────
+// --- Introspection Stubs ----------------------------------------------------
 
 pub fn introspect_schema(schema: &GraphQLSchema) -> GraphQLType {
   var intro = type_new("__Schema", GraphQLTypeKind.Object);

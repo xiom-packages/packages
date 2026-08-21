@@ -1,6 +1,6 @@
 # xiom-flags
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Command-line flag and argument parsing for XIOM CLI programs.
 > **Deps:** stdlib; may wrap C (FFI).
 

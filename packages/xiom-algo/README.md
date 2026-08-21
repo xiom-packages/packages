@@ -1,6 +1,6 @@
 # xiom-algo
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** General-purpose algorithms and data structure helpers.
 > **Deps:** stdlib; may wrap C (FFI).
 

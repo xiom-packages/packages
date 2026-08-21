@@ -1,6 +1,6 @@
 # xiom-l10n-date
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Locale-aware calendar date formatting, parsing, and calendar system conversion.
 > **Deps:** stdlib; may wrap C (FFI).
 

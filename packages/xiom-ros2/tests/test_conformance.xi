@@ -1,4 +1,4 @@
-// XIOM — ROS 2 Conformance Test Suite
+// XIOM -- ROS 2 Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -16,9 +16,9 @@ use xiom.io;
 use xiom.test;
 use xiom.ros2;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Helpers
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; }
@@ -51,9 +51,9 @@ fn report(passed: Bool, name: Str) -> Int {
   return 1;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 1 — Types (5 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 1 -- Types (5 tests)
+// ===========================================================================
 
 fn test_type_node_is_int() -> TestResult {
   return assert(true, "type: Node is Int alias present");
@@ -75,9 +75,9 @@ fn test_type_message_is_int() -> TestResult {
   return assert(true, "type: Message is Int alias present");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 2 — Init / Shutdown (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 2 -- Init / Shutdown (2 tests)
+// ===========================================================================
 
 fn run_init_stub() -> Int {
   match init() {
@@ -99,9 +99,9 @@ fn test_shutdown_callable() -> TestResult {
   return assert(true, "init: shutdown(context: Int) signature present");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 3 — Node Lifecycle (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 3 -- Node Lifecycle (2 tests)
+// ===========================================================================
 
 fn run_create_node_stub() -> Int {
   match create_node("test_node") {
@@ -135,9 +135,9 @@ fn test_destroy_node_stub() -> TestResult {
   return assert(false, "node: destroy_node() returns Err stub");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 4 — Publisher (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 4 -- Publisher (3 tests)
+// ===========================================================================
 
 fn run_create_publisher_stub() -> Int {
   match create_publisher(1, "chatter") {
@@ -187,9 +187,9 @@ fn test_publish_stub() -> TestResult {
   return assert(false, "pub: publish() returns Err stub");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 5 — Subscriber (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 5 -- Subscriber (2 tests)
+// ===========================================================================
 
 fn run_create_subscription_stub() -> Int {
   match create_subscription(1, "chatter") {
@@ -223,9 +223,9 @@ fn test_destroy_subscription_stub() -> TestResult {
   return assert(false, "sub: destroy_subscription() returns Err stub");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 6 — Spin (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 6 -- Spin (1 test)
+// ===========================================================================
 
 fn run_spin_once_stub() -> Int {
   match spin_once(1, 100) {
@@ -243,9 +243,9 @@ fn test_spin_once_stub() -> TestResult {
   return assert(false, "spin: spin_once() returns Err stub");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 7 — Service (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 7 -- Service (2 tests)
+// ===========================================================================
 
 fn run_create_service_stub() -> Int {
   match create_service(1, "add_two_ints") {
@@ -279,10 +279,10 @@ fn test_destroy_service_stub() -> TestResult {
   return assert(false, "srv: destroy_service() returns Err stub");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 8 — Contract declarations (11 tests)
-// Note: contract violations trap — tests verify declaration presence only.
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 8 -- Contract declarations (11 tests)
+// Note: contract violations trap -- tests verify declaration presence only.
+// ===========================================================================
 
 fn test_contract_shutdown() -> TestResult {
   return assert(true, "contract: shutdown has requires: context > 0");
@@ -328,9 +328,9 @@ fn test_contract_destroy_service() -> TestResult {
   return assert(true, "contract: destroy_service has requires: service > 0, node > 0");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 9 — Error handling (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 9 -- Error handling (2 tests)
+// ===========================================================================
 
 fn run_error_message_non_empty() -> Int {
   match init() {
@@ -372,9 +372,9 @@ fn test_error_message_contains_stub() -> TestResult {
   return assert(false, "error: Err message contains 'stub'");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 10 — Node lifecycle simulation (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 10 -- Node lifecycle simulation (1 test)
+// ===========================================================================
 
 fn run_node_lifecycle() -> Int {
   let node_result = init();
@@ -390,9 +390,9 @@ fn test_node_lifecycle() -> TestResult {
   return assert(false, "lifecycle: init + shutdown crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 11 — Publisher-subscriber simulation (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 11 -- Publisher-subscriber simulation (1 test)
+// ===========================================================================
 
 fn run_pubsub_simulation() -> Int {
   let node = create_node("talker");
@@ -427,9 +427,9 @@ fn test_pubsub_simulation() -> TestResult {
   return assert(false, "sim: pub-sub lifecycle crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 12 — FFI Extern declaration verification (compile-time smoke)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 12 -- FFI Extern declaration verification (compile-time smoke)
+// ===========================================================================
 
 fn test_ffi_init_shutdown_present() -> TestResult {
   return assert(true, "ffi: rcl_init, rcl_shutdown present");
@@ -451,9 +451,9 @@ fn test_ffi_service_spin_present() -> TestResult {
   return assert(true, "ffi: rcl_spin_once, rcl_create_service, rcl_destroy_service present");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Main — manual test dispatch
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Main -- manual test dispatch
+// ===========================================================================
 
 pub fn main() -> Int {
   io.println("XIOM ROS 2 Conformance Suite");

@@ -1,5 +1,5 @@
 // ===========================================================================
-// XIOM GLFW SDK — Example 03: Monitors + Fullscreen
+// XIOM GLFW SDK -- Example 03: Monitors + Fullscreen
 // Shows: glfw_get_primary_monitor, glfw_get_video_mode, glfw_toggle_fullscreen
 // Press F to toggle fullscreen, M to print monitor info.
 // ===========================================================================
@@ -10,7 +10,7 @@ use xiom.glwf;
 
 fn main() -> Int {
   if !glfw_init() { return 1; }
-  let win = glfw_create_window("GLFW — Monitor Demo", 800, 600);
+  let win = glfw_create_window("GLFW -- Monitor Demo", 800, 600);
   match win {
     Err(e) => { io.println(e); glfw_terminate(); return 1; }
     Ok(w) => {

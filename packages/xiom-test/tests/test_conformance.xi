@@ -1,4 +1,4 @@
-// XIOM — xiom-test Conformance Tests
+// XIOM -- xiom-test Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Tests: All public types and functions in the xiom.test module
 module test_tests
@@ -22,7 +22,7 @@ fn report(passed: Bool, name: Str) -> Int {
   io.println("  [FAIL] " + name); return 1;
 }
 
-// ═══ assert_eq tests ═══
+// === assert_eq tests ===
 fn run_assert_eq_pass() -> Int {
   var tc = assert_eq(5, 5, "eq pass");
   if tc.passed { return 0; }
@@ -43,7 +43,7 @@ fn test_assert_eq_fail() -> TestResult {
   return assert(false, "assert_eq: 5 == 3 should have failed");
 }
 
-// ═══ assert_ne tests ═══
+// === assert_ne tests ===
 fn run_assert_ne_pass() -> Int {
   var tc = assert_ne(5, 3, "ne pass");
   if tc.passed { return 0; }
@@ -64,7 +64,7 @@ fn test_assert_ne_fail() -> TestResult {
   return assert(false, "assert_ne: 5 != 5 should have failed");
 }
 
-// ═══ assert_true tests ═══
+// === assert_true tests ===
 fn run_assert_true_pass() -> Int {
   var tc = assert_true(true, "true pass");
   if tc.passed { return 0; }
@@ -85,7 +85,7 @@ fn test_assert_true_fail() -> TestResult {
   return assert(false, "assert_true: false should have failed");
 }
 
-// ═══ assert_false tests ═══
+// === assert_false tests ===
 fn run_assert_false_pass() -> Int {
   var tc = assert_false(false, "false pass");
   if tc.passed { return 0; }
@@ -106,7 +106,7 @@ fn test_assert_false_fail() -> TestResult {
   return assert(false, "assert_false: true should have failed");
 }
 
-// ═══ assert_lt tests ═══
+// === assert_lt tests ===
 fn run_assert_lt_pass() -> Int {
   var tc = assert_lt(3, 5, "lt pass");
   if tc.passed { return 0; }
@@ -137,7 +137,7 @@ fn test_assert_lt_equal_fail() -> TestResult {
   return assert(false, "assert_lt: 5 < 5 should have failed");
 }
 
-// ═══ assert_le tests ═══
+// === assert_le tests ===
 fn run_assert_le_pass_less() -> Int {
   var tc = assert_le(3, 5, "le pass");
   if tc.passed { return 0; }
@@ -168,7 +168,7 @@ fn test_assert_le_fail() -> TestResult {
   return assert(false, "assert_le: 7 <= 5 should have failed");
 }
 
-// ═══ assert_gt tests ═══
+// === assert_gt tests ===
 fn run_assert_gt_pass() -> Int {
   var tc = assert_gt(7, 5, "gt pass");
   if tc.passed { return 0; }
@@ -199,7 +199,7 @@ fn test_assert_gt_equal_fail() -> TestResult {
   return assert(false, "assert_gt: 5 > 5 should have failed");
 }
 
-// ═══ assert_ge tests ═══
+// === assert_ge tests ===
 fn run_assert_ge_pass_greater() -> Int {
   var tc = assert_ge(7, 5, "ge pass");
   if tc.passed { return 0; }
@@ -230,7 +230,7 @@ fn test_assert_ge_fail() -> TestResult {
   return assert(false, "assert_ge: 3 >= 5 should have failed");
 }
 
-// ═══ assert_some tests ═══
+// === assert_some tests ===
 fn run_assert_some_pass() -> Int {
   var opt: Option[Int] = Some(42);
   var tc = assert_some(opt, "some pass");
@@ -253,7 +253,7 @@ fn test_assert_some_fail() -> TestResult {
   return assert(false, "assert_some: None should have failed");
 }
 
-// ═══ assert_none tests ═══
+// === assert_none tests ===
 fn run_assert_none_pass() -> Int {
   var opt: Option[Int] = None;
   var tc = assert_none(opt, "none pass");
@@ -276,7 +276,7 @@ fn test_assert_none_fail() -> TestResult {
   return assert(false, "assert_none: Some(7) should have failed");
 }
 
-// ═══ assert_ok tests ═══
+// === assert_ok tests ===
 fn run_assert_ok_pass() -> Int {
   var r: Result[Int, Str] = Ok(42);
   var tc = assert_ok(r, "ok pass");
@@ -299,7 +299,7 @@ fn test_assert_ok_fail() -> TestResult {
   return assert(false, "assert_ok: Err should have failed");
 }
 
-// ═══ assert_err tests ═══
+// === assert_err tests ===
 fn run_assert_err_pass() -> Int {
   var r: Result[Int, Str] = Err("error");
   var tc = assert_err(r, "err pass");
@@ -322,7 +322,7 @@ fn test_assert_err_fail() -> TestResult {
   return assert(false, "assert_err: Ok(42) should have failed");
 }
 
-// ═══ assert_eq_str tests ═══
+// === assert_eq_str tests ===
 fn run_assert_eq_str_pass() -> Int {
   var tc = assert_eq_str("hello", "hello", "str eq pass");
   if tc.passed { return 0; }
@@ -343,7 +343,7 @@ fn test_assert_eq_str_fail() -> TestResult {
   return assert(false, "assert_eq_str: 'hello' != 'world' should have failed");
 }
 
-// ═══ assert_eq_bool tests ═══
+// === assert_eq_bool tests ===
 fn run_assert_eq_bool_pass() -> Int {
   var tc = assert_eq_bool(true, true, "bool eq pass");
   if tc.passed { return 0; }
@@ -364,7 +364,7 @@ fn test_assert_eq_bool_fail() -> TestResult {
   return assert(false, "assert_eq_bool: true != false should have failed");
 }
 
-// ═══ TestCase name propagation ═══
+// === TestCase name propagation ===
 fn run_testcase_name() -> Int {
   var tc = assert_eq(1, 1, "my test case");
   if tc.name == "my test case" && tc.message == "my test case" { return 0; }
@@ -375,7 +375,7 @@ fn test_testcase_name() -> TestResult {
   return assert(false, "TestCase: name/message mismatch");
 }
 
-// ═══ TestSuite.new + add + run ═══
+// === TestSuite.new + add + run ===
 fn run_suite_new_add_run() -> Int {
   var suite = TestSuite.new("My Suite");
   TestSuite.add(&suite, assert_eq(2, 2, "addition"));
@@ -390,7 +390,7 @@ fn test_suite_new_add_run() -> TestResult {
   return assert(false, "TestSuite: new/add/run failed");
 }
 
-// ═══ TestSuite with mixed pass/fail ═══
+// === TestSuite with mixed pass/fail ===
 fn run_suite_mixed() -> Int {
   var suite = TestSuite.new("Mixed");
   TestSuite.add(&suite, assert_eq(3, 3, "good"));
@@ -405,7 +405,7 @@ fn test_suite_mixed() -> TestResult {
   return assert(false, "TestSuite: mixed pass/fail counts wrong");
 }
 
-// ═══ TestSuite.failed_count ═══
+// === TestSuite.failed_count ===
 fn run_suite_failed_count() -> Int {
   var suite = TestSuite.new("Counts");
   TestSuite.add(&suite, assert_eq(1, 2, "bad1"));
@@ -419,7 +419,7 @@ fn test_suite_failed_count() -> TestResult {
   return assert(false, "TestSuite: failed_count wrong");
 }
 
-// ═══ TestSuite.passed_count ═══
+// === TestSuite.passed_count ===
 fn run_suite_passed_count() -> Int {
   var suite = TestSuite.new("PCount");
   TestSuite.add(&suite, assert_eq(1, 1, "ok1"));
@@ -434,7 +434,7 @@ fn test_suite_passed_count() -> TestResult {
   return assert(false, "TestSuite: passed_count wrong");
 }
 
-// ═══ TestSuite empty ═══
+// === TestSuite empty ===
 fn run_suite_empty() -> Int {
   var suite = TestSuite.new("Empty");
   if suite.cases.len() != 0 { return 1; }
@@ -447,7 +447,7 @@ fn test_suite_empty() -> TestResult {
   return assert(false, "TestSuite: empty suite failed");
 }
 
-// ═══ TestResults.new ═══
+// === TestResults.new ===
 fn run_testresults_new() -> Int {
   var r = TestResults.new();
   if r.passed == 0 && r.failed == 0 && r.total == 0 && r.failures.len() == 0 { return 0; }
@@ -458,7 +458,7 @@ fn test_testresults_new() -> TestResult {
   return assert(false, "TestResults: new failed");
 }
 
-// ═══ TestResults.merge ═══
+// === TestResults.merge ===
 fn run_testresults_merge() -> Int {
   var a = TestResults.new();
   a.passed = 3; a.failed = 1; a.total = 4;
@@ -473,7 +473,7 @@ fn test_testresults_merge() -> TestResult {
   return assert(false, "TestResults: merge failed");
 }
 
-// ═══ TestResults.merge with failures ═══
+// === TestResults.merge with failures ===
 fn run_testresults_merge_failures() -> Int {
   var a = TestResults.new();
   a.passed = 1; a.failed = 0; a.total = 1;
@@ -489,7 +489,7 @@ fn test_testresults_merge_failures() -> TestResult {
   return assert(false, "TestResults: merge failures failed");
 }
 
-// ═══ run_suite standalone ═══
+// === run_suite standalone ===
 fn run_standalone_run_suite() -> Int {
   var suite = TestSuite.new("Standalone");
   TestSuite.add(&suite, assert_eq(10, 10, "ten"));
@@ -503,7 +503,7 @@ fn test_run_suite() -> TestResult {
   return assert(false, "run_suite: standalone failed");
 }
 
-// ═══ run_all ═══
+// === run_all ===
 fn run_standalone_run_all() -> Int {
   var s1 = TestSuite.new("A");
   TestSuite.add(&s1, assert_eq(1, 1, "a1"));
@@ -523,10 +523,10 @@ fn test_run_all() -> TestResult {
   return assert(false, "run_all: failed");
 }
 
-// ═══ run_all empty fails (contract: requires suites.len() > 0) ═══
+// === run_all empty fails (contract: requires suites.len() > 0) ===
 // Note: contract verification is compiler-checked; we test the success path only.
 
-// ═══ report ═══
+// === report ===
 fn run_report() -> Int {
   var r = TestResults.new();
   r.passed = 5; r.failed = 2; r.total = 7;
@@ -539,7 +539,7 @@ fn test_report() -> TestResult {
   return assert(false, "report: returned empty string");
 }
 
-// ═══ report_verbose no failures ═══
+// === report_verbose no failures ===
 fn run_report_verbose_pass() -> Int {
   var r = TestResults.new();
   r.passed = 3; r.failed = 0; r.total = 3;
@@ -552,7 +552,7 @@ fn test_report_verbose_pass() -> TestResult {
   return assert(false, "report_verbose: no-failures failed");
 }
 
-// ═══ report_verbose with failures ═══
+// === report_verbose with failures ===
 fn run_report_verbose_fail() -> Int {
   var r = TestResults.new();
   r.passed = 2; r.failed = 1; r.total = 3;
@@ -567,7 +567,7 @@ fn test_report_verbose_fail() -> TestResult {
   return assert(false, "report_verbose: with-failures failed");
 }
 
-// ═══ bench_result ═══
+// === bench_result ===
 fn run_bench_result() -> Int {
   var b = bench_result("fib", 1000, 50);
   if b.name == "fib" && b.iterations == 1000 && b.elapsed_ms == 50
@@ -579,7 +579,7 @@ fn test_bench_result() -> TestResult {
   return assert(false, "bench_result: fields incorrect");
 }
 
-// ═══ bench_result zero ms ═══
+// === bench_result zero ms ===
 fn run_bench_result_zero_ms() -> Int {
   var b = bench_result("fast", 100000, 0);
   if b.ops_per_sec == 0 { return 0; }
@@ -590,7 +590,7 @@ fn test_bench_result_zero_ms() -> TestResult {
   return assert(false, "bench_result: zero ms should give ops_per_sec=0");
 }
 
-// ═══ bench_report ═══
+// === bench_report ===
 fn run_bench_report() -> Int {
   var b = BenchResult{ name: "sort", iterations: 500, elapsed_ms: 10, ops_per_sec: 50000 };
   var s = bench_report(&b);
@@ -602,7 +602,7 @@ fn test_bench_report() -> TestResult {
   return assert(false, "bench_report: returned empty string");
 }
 
-// ═══ TestFailure construction ═══
+// === TestFailure construction ===
 fn run_testfailure() -> Int {
   var tf = TestFailure{ name: "test1", message: "reason" };
   if tf.name == "test1" && tf.message == "reason" { return 0; }
@@ -613,7 +613,7 @@ fn test_testfailure() -> TestResult {
   return assert(false, "TestFailure: construction failed");
 }
 
-// ═══ BenchResult construction ═══
+// === BenchResult construction ===
 fn run_benchresult_construction() -> Int {
   var br = BenchResult{ name: "b", iterations: 1, elapsed_ms: 1, ops_per_sec: 1000 };
   if br.name == "b" && br.iterations == 1 && br.elapsed_ms == 1
@@ -625,7 +625,7 @@ fn test_benchresult_construction() -> TestResult {
   return assert(false, "BenchResult: construction failed");
 }
 
-// ═══ All assertions fail ═══ (TestSuite with every assertion failing)
+// === All assertions fail === (TestSuite with every assertion failing)
 fn run_all_assertions_fail_suite() -> Int {
   var suite = TestSuite.new("All Fails");
   TestSuite.add(&suite, assert_eq(1, 2, "eq bad"));
@@ -655,7 +655,7 @@ fn test_all_assertions_fail() -> TestResult {
   return assert(false, "all assertions: fail suite count wrong");
 }
 
-// ═══ All assertions pass ═══ (TestSuite with every assertion passing)
+// === All assertions pass === (TestSuite with every assertion passing)
 fn run_all_assertions_pass_suite() -> Int {
   var suite = TestSuite.new("All Passes");
   TestSuite.add(&suite, assert_eq(1, 1, "eq good"));
@@ -685,7 +685,7 @@ fn test_all_assertions_pass() -> TestResult {
   return assert(false, "all assertions: pass suite count wrong");
 }
 
-// ═══ TestFailure in results ═══
+// === TestFailure in results ===
 fn run_testfailure_in_results() -> Int {
   var suite = TestSuite.new("Fail");
   TestSuite.add(&suite, assert_eq(1, 99, "one should equal 99"));
@@ -701,7 +701,7 @@ fn test_testfailure_in_results() -> TestResult {
   return assert(false, "TestFailure: results failure record incorrect");
 }
 
-// ═══ Main ═══
+// === Main ===
 fn main() -> Int {
   io.println("=== XIOM Test Framework Conformance Tests ===");
   var failed: Int = 0; var total: Int = 0;

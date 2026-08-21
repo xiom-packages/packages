@@ -1,6 +1,6 @@
 # xiom-summary
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Automatic text summarization.
 > **Deps:** stdlib; may wrap C (FFI).
 

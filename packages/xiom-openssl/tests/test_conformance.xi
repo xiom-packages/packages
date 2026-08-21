@@ -1,4 +1,4 @@
-// XIOM — OpenSSL Binding Conformance Tests
+// XIOM -- OpenSSL Binding Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -12,7 +12,7 @@ use xiom.openssl;
 use xiom.test;
 use xiom.core;
 
-// ── Type identity tests ─────────────────────────────────────────────────────
+// -- Type identity tests -----------------------------------------------------
 
 fn test_type_ssl_context_is_int() -> test.TestResult {
   var v: openssl.SslContext = 42;
@@ -42,7 +42,7 @@ fn test_type_ssl_error_has_message() -> test.TestResult {
   return test.assert_eq("hello", e.message, "SslError.message accessible");
 }
 
-// ── Contract verification tests ─────────────────────────────────────────────
+// -- Contract verification tests ---------------------------------------------
 
 fn test_ctx_new_requires_nonzero_method() -> test.TestResult {
   // ctx_new(0) should trigger a requires-violation at compile time.
@@ -121,14 +121,14 @@ fn test_bio_free_requires_nonzero_bio() -> test.TestResult {
   return test.assert(passes, "bio_free requires bio != 0");
 }
 
-// ── Error type construction test ────────────────────────────────────────────
+// -- Error type construction test --------------------------------------------
 
 fn test_error_construction() -> test.TestResult {
   var e: openssl.SslError = openssl.SslError{ code: 336027804; message: "error:00000000:lib(0):func(0):reason(0)"; };
   return test.assert(e.code != 0, "SslError constructed with error code");
 }
 
-// ── Runner ──────────────────────────────────────────────────────────────────
+// -- Runner ------------------------------------------------------------------
 
 fn all_tests() -> Vec[fn() -> test.TestResult] {
   var tests: Vec[fn() -> test.TestResult] = Vec[fn() -> test.TestResult].new();

@@ -1,4 +1,4 @@
-// XIOM — PortAudio Audio I/O Bindings
+// XIOM -- PortAudio Audio I/O Bindings
 // Low-level extern "C" declarations and safe wrappers for PortAudio.
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
@@ -11,7 +11,7 @@ module xiom.portaudio
 pub type PaStream = Int
 
 // ===========================================================================
-// Constants — sample formats
+// Constants -- sample formats
 // ===========================================================================
 
 pub const FORMAT_FLOAT32:      Int = 0x00000001
@@ -24,7 +24,7 @@ pub const FORMAT_CUSTOM:       Int = 0x00010000
 pub const FORMAT_NONINTERLEAVED: Int = -2147483648
 
 // ===========================================================================
-// Constants — error codes (negative values per PortAudio convention)
+// Constants -- error codes (negative values per PortAudio convention)
 // ===========================================================================
 
 pub const NO_ERROR:                          Int = 0
@@ -59,13 +59,13 @@ pub const INCOMPATIBLE_STREAM_HOST_API:      Int = -9973
 pub const BAD_BUFFER_PTR:                    Int = -9972
 
 // ===========================================================================
-// Constants — device
+// Constants -- device
 // ===========================================================================
 
 pub const NO_DEVICE:                         Int = -1
 
 // ===========================================================================
-// Constants — stream flags
+// Constants -- stream flags
 // ===========================================================================
 
 pub const NO_FLAG:                           Int = 0
@@ -76,7 +76,7 @@ pub const PRIME_OUTPUT_BUFFERS_USING_STREAM_CALLBACK: Int = 0x00000008
 pub const PLATFORM_SPECIFIC_FLAGS:           Int = 0xFFFF0000
 
 // ===========================================================================
-// Constants — defaults
+// Constants -- defaults
 // ===========================================================================
 
 pub const DEFAULT_SAMPLE_RATE:               Int = 44100
@@ -84,7 +84,7 @@ pub const DEFAULT_FRAMES_PER_BUFFER:         Int = 512
 pub const DEFAULT_CHANNELS:                  Int = 2
 
 // ===========================================================================
-// extern "C" — PortAudio C library declarations
+// extern "C" -- PortAudio C library declarations
 // ===========================================================================
 
 extern "C" {
@@ -122,7 +122,7 @@ extern "C" {
 }
 
 // ===========================================================================
-// Safe wrappers — lifecycle
+// Safe wrappers -- lifecycle
 // ===========================================================================
 
 pub fn initialize() -> Result[Unit, Str]
@@ -146,7 +146,7 @@ pub fn terminate() -> Result[Unit, Str]
 }
 
 // ===========================================================================
-// Safe wrappers — device query
+// Safe wrappers -- device query
 // ===========================================================================
 
 pub fn get_default_output_device() -> Int {
@@ -170,7 +170,7 @@ pub fn get_host_api_count() -> Int {
 }
 
 // ===========================================================================
-// Safe wrappers — stream management
+// Safe wrappers -- stream management
 // ===========================================================================
 
 pub fn open_default_stream(
@@ -279,7 +279,7 @@ pub fn is_stream_active(stream: PaStream) -> Int
 }
 
 // ===========================================================================
-// Safe wrappers — I/O
+// Safe wrappers -- I/O
 // ===========================================================================
 
 pub fn write_stream(stream: PaStream, buffer: Int, frames: Int) -> Result[Unit, Str]
@@ -307,7 +307,7 @@ pub fn read_stream(stream: PaStream, buffer: Int, frames: Int) -> Result[Unit, S
 }
 
 // ===========================================================================
-// Safe wrappers — stream info / diagnostics
+// Safe wrappers -- stream info / diagnostics
 // ===========================================================================
 
 pub fn get_stream_info(stream: PaStream) -> Int
@@ -329,7 +329,7 @@ pub fn get_stream_cpu_load(stream: PaStream) -> Float64
 }
 
 // ===========================================================================
-// Safe wrappers — utility
+// Safe wrappers -- utility
 // ===========================================================================
 
 pub fn get_error_text(code: Int) -> Str

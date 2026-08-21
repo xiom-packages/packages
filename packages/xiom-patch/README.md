@@ -1,6 +1,6 @@
 # xiom-patch
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Patch generation, application, and conflict resolution.
 > **Deps:** stdlib; may wrap C (FFI).
 

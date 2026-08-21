@@ -20,7 +20,7 @@
 - [x] Heartbeat utilities (heartbeat_interval_default, heartbeat_timeout_default, heartbeat_is_due, heartbeat_is_alive)
 - [x] Conformance test suite (10 tests)
 
-## v0.2.0 — Working Frame Codec
+## v0.2.0 -- Working Frame Codec
 - [ ] Implement actual frame encoding with mask XOR
 - [ ] Implement actual frame decoding with mask XOR
 - [ ] 16-bit and 64-bit extended payload length support
@@ -28,7 +28,7 @@
 - [ ] UTF-8 validation for text frames
 - [ ] Control frame interleaving in fragmented messages
 
-## v0.3.0 — Live Transport
+## v0.3.0 -- Live Transport
 - [ ] TCP socket integration via xiom-net
 - [ ] Server accept loop with connection registry
 - [ ] Client connect with full handshake
@@ -36,21 +36,21 @@
 - [ ] Receive loop with frame dispatch
 - [ ] Non-blocking I/O mode
 
-## v0.4.0 — Protocol Hardening
+## v0.4.0 -- Protocol Hardening
 - [ ] RFC 6455 close handshake state machine
 - [ ] Ping/pong keep-alive loop
 - [ ] Per-message deflate extension (RFC 7692)
 - [ ] Subprotocol negotiation
 - [ ] Authentication hooks (JWT, token, cookie-based)
 
-## v0.5.0 — Advanced Features
+## v0.5.0 -- Advanced Features
 - [ ] Reconnect with sequence recovery
 - [ ] Presence tracking with TTL
 - [ ] Pub/sub backplane interface
 - [ ] Redis/NATS/Kafka backplane adapters
 - [ ] Broadcast helpers (local + distributed)
 
-## v1.0.0 — Production Readiness
+## v1.0.0 -- Production Readiness
 - [ ] Full contract verification on all public functions
 - [ ] Performance benchmarks (throughput, latency, memory)
 - [ ] Load testing suite with concurrent connections

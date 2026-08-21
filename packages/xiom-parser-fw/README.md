@@ -1,6 +1,6 @@
 # xiom-parser-fw
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Framework for building recursive-descent and precedence-climbing parsers.
 > **Deps:** stdlib; may wrap C (FFI).
 

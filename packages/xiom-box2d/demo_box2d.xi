@@ -1,4 +1,4 @@
-// XIOM — Box2D Physics Demo & Test Suite
+// XIOM -- Box2D Physics Demo & Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -7,7 +7,7 @@
 // and body state flags.
 //
 // NOTE: This demo currently cannot run without the following prerequisites:
-//   1. Xiom compiler support for struct-by-value FFI (see AUDIT.md §1)
+//   1. Xiom compiler support for struct-by-value FFI (see AUDIT.md S1)
 //   2. box2d.dll / libbox2d.so available at link time
 //   3. Built-in math intrinsics (sqrt, cos, sin, atan2) wired up
 //
@@ -68,7 +68,7 @@ pub fn run_all(tests: Vec[fn() -> TestResult]) -> Int32 {
 }
 
 // ===========================================================================
-// TEST 1: World Create / Destroy — basic lifecycle
+// TEST 1: World Create / Destroy -- basic lifecycle
 // ===========================================================================
 
 fn test_world_create_destroy() -> TestResult {
@@ -88,7 +88,7 @@ fn test_world_create_destroy() -> TestResult {
 }
 
 // ===========================================================================
-// TEST 2: Static Ground — create ground plane, verify body valid
+// TEST 2: Static Ground -- create ground plane, verify body valid
 // ===========================================================================
 
 fn test_static_ground() -> TestResult {
@@ -115,7 +115,7 @@ fn test_static_ground() -> TestResult {
 }
 
 // ===========================================================================
-// TEST 3: Dynamic Falling Body — y position decreases after 60 steps
+// TEST 3: Dynamic Falling Body -- y position decreases after 60 steps
 // ===========================================================================
 
 fn test_dynamic_falling_body() -> TestResult {
@@ -165,7 +165,7 @@ fn test_dynamic_falling_body() -> TestResult {
 }
 
 // ===========================================================================
-// TEST 4: Box Stack — stack 5 boxes, step, verify contacts exist
+// TEST 4: Box Stack -- stack 5 boxes, step, verify contacts exist
 // ===========================================================================
 
 fn test_box_stack() -> TestResult {
@@ -222,7 +222,7 @@ fn test_box_stack() -> TestResult {
 }
 
 // ===========================================================================
-// TEST 5: Revolute Joint — pendulum (anchor + bob + joint), joint valid
+// TEST 5: Revolute Joint -- pendulum (anchor + bob + joint), joint valid
 // ===========================================================================
 
 fn test_revolute_joint() -> TestResult {
@@ -283,7 +283,7 @@ fn test_revolute_joint() -> TestResult {
 }
 
 // ===========================================================================
-// TEST 6: Distance Joint — two bodies connected by spring, joint valid
+// TEST 6: Distance Joint -- two bodies connected by spring, joint valid
 // ===========================================================================
 
 fn test_distance_joint() -> TestResult {
@@ -344,7 +344,7 @@ fn test_distance_joint() -> TestResult {
 }
 
 // ===========================================================================
-// TEST 7: Ray Cast — cast ray down at ground, verify hit
+// TEST 7: Ray Cast -- cast ray down at ground, verify hit
 // ===========================================================================
 
 fn test_ray_cast() -> TestResult {
@@ -379,7 +379,7 @@ fn test_ray_cast() -> TestResult {
 }
 
 // ===========================================================================
-// TEST 8: Body Properties — type, position, velocity get/set
+// TEST 8: Body Properties -- type, position, velocity get/set
 // ===========================================================================
 
 fn test_body_properties() -> TestResult {
@@ -436,7 +436,7 @@ fn test_body_properties() -> TestResult {
 }
 
 // ===========================================================================
-// TEST 9: Shape Properties — friction/restitution/density get/set
+// TEST 9: Shape Properties -- friction/restitution/density get/set
 // ===========================================================================
 
 fn test_shape_properties() -> TestResult {
@@ -500,7 +500,7 @@ fn test_shape_properties() -> TestResult {
 }
 
 // ===========================================================================
-// TEST 10: Mass — positive mass for dynamic body with shape
+// TEST 10: Mass -- positive mass for dynamic body with shape
 // ===========================================================================
 
 fn test_mass() -> TestResult {
@@ -536,7 +536,7 @@ fn test_mass() -> TestResult {
 }
 
 // ===========================================================================
-// TEST 11: World Settings — gravity, sleep, continuous
+// TEST 11: World Settings -- gravity, sleep, continuous
 // ===========================================================================
 
 fn test_world_settings() -> TestResult {
@@ -582,7 +582,7 @@ fn test_world_settings() -> TestResult {
 }
 
 // ===========================================================================
-// TEST 12: Body State — awake, enabled, bullet
+// TEST 12: Body State -- awake, enabled, bullet
 // ===========================================================================
 
 fn test_body_state() -> TestResult {

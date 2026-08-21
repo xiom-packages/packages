@@ -1,6 +1,6 @@
 # xiom-charts
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Data visualization charting library.
 > **Deps:** stdlib; may wrap C (FFI).
 

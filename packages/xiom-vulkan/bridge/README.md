@@ -53,7 +53,7 @@ Note: strings written via `xvk_write_str` are owned by the struct's builder; fre
 
 Runtime bindings for every VK extension entry point not covered by the core `xvk_bind_*` modules: `VK_EXT_debug_utils`, `VK_EXT_mesh_shader`, `VK_EXT_extended_dynamic_state`/2/3, `VK_EXT_color_write_enable`, `VK_EXT_conditional_rendering`, `VK_EXT_transform_feedback`, `VK_KHR_push_descriptor`, `VK_KHR_fragment_shading_rate`, `VK_EXT_sample_locations`, `VK_EXT_line_rasterization`, `VK_KHR_copy_commands2`, `VK_EXT_host_image_copy`, `VK_KHR_timeline_semaphore`, `VK_KHR_dynamic_rendering`, `VK_KHR_synchronization2`, `VK_EXT_shader_object`, and `VK_KHR_video_queue`/`decode`/`encode`.
 
-- Entry points are resolved lazily through `vkGetInstanceProcAddr`/`vkGetDeviceProcAddr` and cached in static function pointers; where a core-promoted alias exists (e.g. `vkCmdSetCullModeEXT` → `vkCmdSetCullMode`) both names are tried.
+- Entry points are resolved lazily through `vkGetInstanceProcAddr`/`vkGetDeviceProcAddr` and cached in static function pointers; where a core-promoted alias exists (e.g. `vkCmdSetCullModeEXT` -> `vkCmdSetCullMode`) both names are tried.
 - Call `xvk_ext_load_instance(instance)` after instance creation and `xvk_ext_load_device(device)` after device creation so command-buffer/queue-level wrappers can resolve. Wrappers that receive an instance/device parameter self-register on first use. Calling the loaders again (e.g. after device recreation) invalidates all cached pointers.
 - Handles are raw VK handles in `int64_t`; `*_struct` parameters are raw pointers to fully-built VK structs (see the struct marshalling layer above).
 - `VkResult`-returning wrappers pass the raw `VkResult` through (`0` = `VK_SUCCESS`); `VK_ERROR_EXTENSION_NOT_PRESENT` is returned when an entry point cannot be resolved. Creation wrappers (`xvk_create_video_session_khr`, `xvk_create_video_session_parameters_khr`) return the raw handle or `0`. Failures are also reported via `xvk_last_error()`.
@@ -110,7 +110,7 @@ to caller-populated Vulkan structs.
 
 Extension entry points are resolved via `vkGetDeviceProcAddr` and cached per
 device (up to 8 devices). Call `xvk_raytracing_load_device_procs(device)` once
-after device creation — it returns an `XVK_RT_CAP_*` capability bitmask and
+after device creation -- it returns an `XVK_RT_CAP_*` capability bitmask and
 binds the proc cache used by the `xvk_cmd_*` entry points. `VkResult`-returning
 functions pass the raw result through (negative = error, message via
 `xvk_last_error()`). Flat-ABI packing rules for the few calls whose Vulkan
@@ -137,10 +137,10 @@ xvk_cube_frag_spv,      xvk_cube_frag_spv_len
 
 ## Build / Link Requirements
 
-- **Vulkan SDK** ≥ 1.3 (link `vulkan-1.lib` / `libvulkan.so` / `libvulkan.dylib`)
+- **Vulkan SDK** >= 1.3 (link `vulkan-1.lib` / `libvulkan.so` / `libvulkan.dylib`)
 - **GLFW 3.4** (link `glfw3.lib`; define `GLFW_INCLUDE_VULKAN` before including GLFW headers)
 - C11 compiler (MSVC, GCC, Clang)
-- No `#pragma comment(lib, ...)` — the build system must supply the libraries.
+- No `#pragma comment(lib, ...)` -- the build system must supply the libraries.
 
 ### Quick build (MSVC, x64)
 ```
@@ -161,7 +161,7 @@ link /nologo /dll /out:xiom_vk_bridge.dll xiom_vk_bridge.obj
 | MSAA | None (single-sampled) |
 | In-flight frames | 2 (double buffering with VK_FENCE_CREATE_SIGNALED_BIT) |
 | Face winding | `VK_FRONT_FACE_COUNTER_CLOCKWISE`, cull back |
-| Projection Y flip | **Yes** — the perspective matrix negates row 1,1 (`m[5] = -1/tan(fov/2)`) to account for Vulkan's inverted Y clip space |
+| Projection Y flip | **Yes** -- the perspective matrix negates row 1,1 (`m[5] = -1/tan(fov/2)`) to account for Vulkan's inverted Y clip space |
 | Depth range | Mapped to [0,1] in the projection matrix (Vulkan convention) |
 | Validation layers | Off by default; enabled only when env var `XVK_VALIDATION=1` is set AND `VK_LAYER_KHRONOS_validation` is available (fail-soft if unavailable) |
 
@@ -176,12 +176,12 @@ Conventions (apply to `xvk_bind_command`, `xvk_bind_sync`, `xvk_bind_query` and 
 - `xvk_create_fence/semaphore/event` and `xvk_begin_command_buffer` accept `0` for the info struct and substitute a zeroed default. Timeline semaphores are created by chaining `VkSemaphoreTypeCreateInfo` via `pNext`.
 - Module split: command pools/buffers and all `vkCmd*` recording in `xvk_bind_command`; fences/semaphores/events/submit in `xvk_bind_sync` (`xvk_queue_present_khr` lives in `xvk_bind_swapchain`); query pools, timestamps and pipeline statistics in `xvk_bind_query`.
 
-> **Rename note:** the legacy app-based recording helpers were renamed to avoid ABI clashes with the raw layer: `xvk_cmd_draw` → `xvk_app_cmd_draw`, `xvk_cmd_draw_indexed` → `xvk_app_cmd_draw_indexed`, `xvk_cmd_bind_pipeline` → `xvk_app_cmd_bind_pipeline`, `xvk_cmd_bind_vertex_buffer` → `xvk_app_cmd_bind_vertex_buffer`, `xvk_cmd_bind_index_buffer` → `xvk_app_cmd_bind_index_buffer`, `xvk_cmd_bind_descriptor_sets` → `xvk_app_cmd_bind_descriptor_sets`, `xvk_cmd_push_constants` → `xvk_app_cmd_push_constants`. The `xvk_cmd_*` names now always denote raw `VkCommandBuffer`-first bindings.
+> **Rename note:** the legacy app-based recording helpers were renamed to avoid ABI clashes with the raw layer: `xvk_cmd_draw` -> `xvk_app_cmd_draw`, `xvk_cmd_draw_indexed` -> `xvk_app_cmd_draw_indexed`, `xvk_cmd_bind_pipeline` -> `xvk_app_cmd_bind_pipeline`, `xvk_cmd_bind_vertex_buffer` -> `xvk_app_cmd_bind_vertex_buffer`, `xvk_cmd_bind_index_buffer` -> `xvk_app_cmd_bind_index_buffer`, `xvk_cmd_bind_descriptor_sets` -> `xvk_app_cmd_bind_descriptor_sets`, `xvk_cmd_push_constants` -> `xvk_app_cmd_push_constants`. The `xvk_cmd_*` names now always denote raw `VkCommandBuffer`-first bindings.
 
 ## Limitations / TODOs
 
-- No text rendering, no sprites, no complex geometry — only the two hardcoded draw calls.
+- No text rendering, no sprites, no complex geometry -- only the two hardcoded draw calls.
 - Offscreen path does not support the 3D cube (only 2D triangles).
 - No swapchain recreation on window minimize (handle via `xvk_begin_frame` returning 0).
 - Error strings are stored in a single static buffer; not thread-safe but adequate for single-threaded XIOM usage.
-- The generated shader header (`xvk_shaders_generated.h`) is **not** included in this repository — a build script must produce it.
+- The generated shader header (`xvk_shaders_generated.h`) is **not** included in this repository -- a build script must produce it.

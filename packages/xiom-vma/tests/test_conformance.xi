@@ -1,4 +1,4 @@
-// XIOM — VMA Conformance Test Suite
+// XIOM -- VMA Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -15,7 +15,7 @@ use xiom.vma.safe;
 use xiom.io;
 
 // =========================================================================
-// TestResult — structured test outcome
+// TestResult -- structured test outcome
 // =========================================================================
 
 pub type TestResult = {
@@ -24,7 +24,7 @@ pub type TestResult = {
 }
 
 // =========================================================================
-// SECTION 1 — VmaMemoryUsage constants (10 values)
+// SECTION 1 -- VmaMemoryUsage constants (10 values)
 // =========================================================================
 
 fn test_memory_usage_unknown() -> TestResult {
@@ -68,7 +68,7 @@ fn test_memory_usage_auto_prefer_host() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 2 — VmaAllocationCreateFlagBits (17 values)
+// SECTION 2 -- VmaAllocationCreateFlagBits (17 values)
 // =========================================================================
 
 fn test_alloc_flag_dedicated() -> TestResult {
@@ -140,7 +140,7 @@ fn test_alloc_flag_strategy_mask() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 3 — VmaPoolCreateFlagBits (2 values)
+// SECTION 3 -- VmaPoolCreateFlagBits (2 values)
 // =========================================================================
 
 fn test_pool_flag_ignore_granularity() -> TestResult {
@@ -152,7 +152,7 @@ fn test_pool_flag_linear_algorithm() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 4 — VmaAllocatorCreateFlagBits (9 values)
+// SECTION 4 -- VmaAllocatorCreateFlagBits (9 values)
 // =========================================================================
 
 fn test_alc_flag_externally_synchronized() -> TestResult {
@@ -192,7 +192,7 @@ fn test_alc_flag_khr_maintenance5() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 5 — VmaDefragmentationMoveOperation (3 values)
+// SECTION 5 -- VmaDefragmentationMoveOperation (3 values)
 // =========================================================================
 
 fn test_defrag_move_copy() -> TestResult {
@@ -208,7 +208,7 @@ fn test_defrag_move_destroy() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 6 — VMA Stats string flags (2 values)
+// SECTION 6 -- VMA Stats string flags (2 values)
 // =========================================================================
 
 fn test_stats_detailed_false() -> TestResult {
@@ -220,7 +220,7 @@ fn test_stats_detailed_true() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 7 — result_to_string (13 branches)
+// SECTION 7 -- result_to_string (13 branches)
 // =========================================================================
 
 fn test_result_to_string_success() -> TestResult {
@@ -276,7 +276,7 @@ fn test_result_to_string_unmapped() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 8 — VulkanError type
+// SECTION 8 -- VulkanError type
 // =========================================================================
 
 fn test_vulkan_error_create() -> TestResult {
@@ -301,7 +301,7 @@ fn test_vulkan_error_clone() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 9 — VmaAllocator type
+// SECTION 9 -- VmaAllocator type
 // =========================================================================
 
 fn test_allocator_create() -> TestResult {
@@ -321,7 +321,7 @@ fn test_allocator_clone() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 10 — VmaAllocation type
+// SECTION 10 -- VmaAllocation type
 // =========================================================================
 
 fn test_allocation_create() -> TestResult {
@@ -342,7 +342,7 @@ fn test_allocation_clone() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 11 — VmaPool type
+// SECTION 11 -- VmaPool type
 // =========================================================================
 
 fn test_pool_create() -> TestResult {
@@ -357,7 +357,7 @@ fn test_pool_clone() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 12 — VmaBuffer type
+// SECTION 12 -- VmaBuffer type
 // =========================================================================
 
 fn test_buffer_create() -> TestResult {
@@ -372,7 +372,7 @@ fn test_buffer_clone() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 13 — VmaImage type
+// SECTION 13 -- VmaImage type
 // =========================================================================
 
 fn test_image_create() -> TestResult {
@@ -387,7 +387,7 @@ fn test_image_clone() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 14 — VmaContext type
+// SECTION 14 -- VmaContext type
 // =========================================================================
 
 fn test_context_create() -> TestResult {
@@ -402,7 +402,7 @@ fn test_context_clone() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 15 — xiom.vma safe wrapper signatures (compile-time type checks)
+// SECTION 15 -- xiom.vma safe wrapper signatures (compile-time type checks)
 // =========================================================================
 
 fn test_sig_create_allocator() -> TestResult {
@@ -506,7 +506,7 @@ fn test_sig_free_stats_string() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 16 — xiom.vma.safe struct method signatures
+// SECTION 16 -- xiom.vma.safe struct method signatures
 // =========================================================================
 
 fn test_sig_allocator_create() -> TestResult {
@@ -666,7 +666,7 @@ fn test_sig_context_create_pool() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 17 — Contract presence (design-by-contract verification)
+// SECTION 17 -- Contract presence (design-by-contract verification)
 // =========================================================================
 
 fn test_contract_create_allocator() -> TestResult {
@@ -714,7 +714,7 @@ fn test_contract_image_create_ensures() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 18 — Total constant count integrity check
+// SECTION 18 -- Total constant count integrity check
 // =========================================================================
 
 fn test_constant_count() -> TestResult {
@@ -729,14 +729,14 @@ fn test_constant_count() -> TestResult {
 }
 
 // =========================================================================
-// main — manual dispatch with TestResult summary
+// main -- manual dispatch with TestResult summary
 // =========================================================================
 
 fn main() -> Int {
   let failed: Int32 = 0;
   let total: Int32 = 0;
 
-  // SECTION 1 — VmaMemoryUsage (10)
+  // SECTION 1 -- VmaMemoryUsage (10)
   let r = test_memory_usage_unknown(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_memory_usage_gpu_only(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_memory_usage_cpu_only(); total = total + 1; if !r.passed { failed = failed + 1; }
@@ -748,7 +748,7 @@ fn main() -> Int {
   let r = test_memory_usage_auto_prefer_device(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_memory_usage_auto_prefer_host(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 2 — VmaAllocationCreateFlagBits (17)
+  // SECTION 2 -- VmaAllocationCreateFlagBits (17)
   let r = test_alloc_flag_dedicated(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_alloc_flag_never_allocate(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_alloc_flag_mapped(); total = total + 1; if !r.passed { failed = failed + 1; }
@@ -767,11 +767,11 @@ fn main() -> Int {
   let r = test_alloc_flag_strategy_min_offset(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_alloc_flag_strategy_mask(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 3 — VmaPoolCreateFlagBits (2)
+  // SECTION 3 -- VmaPoolCreateFlagBits (2)
   let r = test_pool_flag_ignore_granularity(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_pool_flag_linear_algorithm(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 4 — VmaAllocatorCreateFlagBits (9)
+  // SECTION 4 -- VmaAllocatorCreateFlagBits (9)
   let r = test_alc_flag_externally_synchronized(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_alc_flag_khr_dedicated_allocation(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_alc_flag_khr_bind_memory2(); total = total + 1; if !r.passed { failed = failed + 1; }
@@ -782,16 +782,16 @@ fn main() -> Int {
   let r = test_alc_flag_khr_maintenance4(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_alc_flag_khr_maintenance5(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 5 — VmaDefragmentationMoveOperation (3)
+  // SECTION 5 -- VmaDefragmentationMoveOperation (3)
   let r = test_defrag_move_copy(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_defrag_move_ignore(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_defrag_move_destroy(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 6 — VMA Stats string flags (2)
+  // SECTION 6 -- VMA Stats string flags (2)
   let r = test_stats_detailed_false(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_stats_detailed_true(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 7 — result_to_string (13)
+  // SECTION 7 -- result_to_string (13)
   let r = test_result_to_string_success(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_result_to_string_out_of_host_memory(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_result_to_string_out_of_device_memory(); total = total + 1; if !r.passed { failed = failed + 1; }
@@ -806,39 +806,39 @@ fn main() -> Int {
   let r = test_result_to_string_unknown(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_result_to_string_unmapped(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 8 — VulkanError type (4)
+  // SECTION 8 -- VulkanError type (4)
   let r = test_vulkan_error_create(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_vulkan_error_success(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_vulkan_error_unknown(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_vulkan_error_clone(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 9 — VmaAllocator type (3)
+  // SECTION 9 -- VmaAllocator type (3)
   let r = test_allocator_create(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_allocator_zero_handle(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_allocator_clone(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 10 — VmaAllocation type (3)
+  // SECTION 10 -- VmaAllocation type (3)
   let r = test_allocation_create(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_allocation_identity(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_allocation_clone(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 11 — VmaPool type (2)
+  // SECTION 11 -- VmaPool type (2)
   let r = test_pool_create(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_pool_clone(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 12 — VmaBuffer type (2)
+  // SECTION 12 -- VmaBuffer type (2)
   let r = test_buffer_create(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_buffer_clone(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 13 — VmaImage type (2)
+  // SECTION 13 -- VmaImage type (2)
   let r = test_image_create(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_image_clone(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 14 — VmaContext type (2)
+  // SECTION 14 -- VmaContext type (2)
   let r = test_context_create(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_context_clone(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 15 — xiom.vma safe wrapper signatures (25)
+  // SECTION 15 -- xiom.vma safe wrapper signatures (25)
   let r = test_sig_create_allocator(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_sig_destroy_allocator(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_sig_allocate_memory(); total = total + 1; if !r.passed { failed = failed + 1; }
@@ -865,7 +865,7 @@ fn main() -> Int {
   let r = test_sig_build_stats_string(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_sig_free_stats_string(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 16 — xiom.vma.safe struct method signatures (39)
+  // SECTION 16 -- xiom.vma.safe struct method signatures (39)
   let r = test_sig_allocator_create(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_sig_allocator_destroy(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_sig_allocator_find_memory_type_index(); total = total + 1; if !r.passed { failed = failed + 1; }
@@ -906,7 +906,7 @@ fn main() -> Int {
   let r = test_sig_context_create_image(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_sig_context_create_pool(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 17 — Contract presence (11)
+  // SECTION 17 -- Contract presence (11)
   let r = test_contract_create_allocator(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_contract_allocate_memory(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_contract_destroy_buffer(); total = total + 1; if !r.passed { failed = failed + 1; }
@@ -919,7 +919,7 @@ fn main() -> Int {
   let r = test_contract_buffer_create_ensures(); total = total + 1; if !r.passed { failed = failed + 1; }
   let r = test_contract_image_create_ensures(); total = total + 1; if !r.passed { failed = failed + 1; }
 
-  // SECTION 18 — Constant count integrity (1)
+  // SECTION 18 -- Constant count integrity (1)
   let r = test_constant_count(); total = total + 1; if !r.passed { failed = failed + 1; }
 
   if failed == 0 {

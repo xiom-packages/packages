@@ -1,13 +1,13 @@
-// XIOM — meshoptimizer Bindings
+// XIOM -- meshoptimizer Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Low-level FFI declarations for meshoptimizer v1.2 (meshoptimizer.h).
 // meshoptimizer is a mesh optimization library for rendering engines.
 //
-// Types: size_t → Int, unsigned int / uint32_t → Int32, float → Float32,
-// int → Int32, unsigned char → Int32, void* → Int, unsigned short → Int32.
-// float* (out-parameter) → Int (pass 0 for NULL).
+// Types: size_t -> Int, unsigned int / uint32_t -> Int32, float -> Float32,
+// int -> Int32, unsigned char -> Int32, void* -> Int, unsigned short -> Int32.
+// float* (out-parameter) -> Int (pass 0 for NULL).
 // Naming follows the C API verbatim.
 //
 // COVERAGE: 85 functions (100% of C API) across 24 subsystems:
@@ -115,7 +115,7 @@ pub type MeshoptMeshlet = {
 } derive[Clone]
 
 // =========================================================================
-// FFI: extern "C" declarations — full meshoptimizer.h v1.2 API surface
+// FFI: extern "C" declarations -- full meshoptimizer.h v1.2 API surface
 // =========================================================================
 
 extern "C" {
@@ -256,7 +256,7 @@ extern "C" {
 }
 
 // =========================================================================
-// Safe wrapper functions — for direct procedural use
+// Safe wrapper functions -- for direct procedural use
 // =========================================================================
 
 pub fn generate_vertex_remap(vertices_ptr: Int, vertex_count: Int, vertex_size: Int) -> Result[Int, Str]

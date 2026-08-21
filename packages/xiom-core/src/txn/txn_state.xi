@@ -26,7 +26,7 @@ pub fn txn_state_can_commit(s: &TxnStateKind) -> Bool {
   }
 }
 
-// Committed and Aborted are terminal — no further transitions are allowed.
+// Committed and Aborted are terminal -- no further transitions are allowed.
 pub fn txn_state_is_terminal(s: &TxnStateKind) -> Bool {
   match s {
     Open => false,

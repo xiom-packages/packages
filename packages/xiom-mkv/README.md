@@ -1,6 +1,6 @@
 # xiom-mkv
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** MKV/Matroska container: EBML parsing, demuxing, and muxing.
 > **Deps:** stdlib; may wrap C (FFI).
 

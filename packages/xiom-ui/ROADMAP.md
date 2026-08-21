@@ -12,7 +12,7 @@
 - [x] Safety contracts on geometry, layout, widget, and app constructors
 - [x] Conformance test suite (98 tests)
 
-## v0.2.0 — Input & Interaction
+## v0.2.0 -- Input & Interaction
 
 - [ ] Widget hit-testing: dispatch mouse events to active widget
 - [ ] Focus management: tab-focus cycling across input widgets
@@ -20,7 +20,7 @@
 - [ ] Keyboard navigation: arrow keys, Enter/Escape for widgets
 - [ ] Text selection: shift+arrow selection in TextFieldState
 
-## v0.3.0 — GLFW Window Integration
+## v0.3.0 -- GLFW Window Integration
 
 - [ ] xiom-glfw FFI binding: window creation, input polling, event translation
 - [ ] GlfwApp: concrete UIApp runner with GLFW backend
@@ -28,7 +28,7 @@
 - [ ] Multi-window support: independent UIApps per window
 - [ ] Clipboard integration: copy/paste for TextFieldState
 
-## v0.4.0 — Text Rendering
+## v0.4.0 -- Text Rendering
 
 - [ ] Font atlas generation: stb_truetype integration for glyph rasterization
 - [ ] Glyph placement: kerning, line height, word wrap
@@ -36,7 +36,7 @@
 - [ ] Rich text: inline color/style spans within TextCmd
 - [ ] Text input pipeline: keyboard events -> character composition
 
-## v0.5.0 — Styling & Theming
+## v0.5.0 -- Styling & Theming
 
 - [ ] Style sheets: JSON/XIOM-driven selectable styling
 - [ ] Widget-level style override: per-instance color/size
@@ -44,7 +44,7 @@
 - [ ] Inheritance model: style propagation through widget tree
 - [ ] Custom theme editor: in-app theme tweaking and export
 
-## v0.6.0 — Advanced Widgets
+## v0.6.0 -- Advanced Widgets
 
 - [ ] Tables: row/column data display with headers and sorting
 - [ ] Tree View: expandable hierarchical list with drag-drop reorder
@@ -54,7 +54,7 @@
 - [ ] Progress Bar: determinate and indeterminate modes
 - [ ] Combo Box: editable text field with dropdown suggestions
 
-## v0.7.0 — Layout Enhancements
+## v0.7.0 -- Layout Enhancements
 
 - [ ] Flex layout: flex-grow/shrink, justify-content, align-items
 - [ ] Grid layout: fixed/auto columns, spanning cells, gap control
@@ -62,14 +62,14 @@
 - [ ] Virtual scrolling: viewport-aware lazy widget allocation
 - [ ] Split panes: resizable drag-bar between children
 
-## v0.8.0 — Animations
+## v0.8.0 -- Animations
 
 - [ ] Tween system: animated transitions for position, size, color, opacity
 - [ ] Easing functions: linear, ease-in, ease-out, bounce, elastic
 - [ ] Animation timeline: keyframe-based animation sequences
 - [ ] Layout transitions: animate addition/removal/reorder of children
 
-## v0.9.0 — Backend Expansion
+## v0.9.0 -- Backend Expansion
 
 - [ ] Vulkan render backend: alternative to OpenGL via xiom-vulkan
 - [ ] DirectX render backend: Windows-native rendering path
@@ -77,7 +77,7 @@
 - [ ] Metal render backend: macOS-native rendering path
 - [ ] WebGPU render backend: browser/wasm target
 
-## v1.0.0 — Production Release
+## v1.0.0 -- Production Release
 
 - [ ] Full test coverage (80%+ on core logic)
 - [ ] API stability freeze and deprecation policy

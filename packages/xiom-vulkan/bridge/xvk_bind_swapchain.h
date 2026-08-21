@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /*
- * xvk_bind_swapchain — direct VkSurfaceKHR / VkSwapchainKHR API bindings.
+ * xvk_bind_swapchain -- direct VkSurfaceKHR / VkSwapchainKHR API bindings.
  *
  * Conventions (shared with all xvk_bind_* modules):
  *   - Every Vulkan handle crosses the FFI boundary as int64_t (0 = VK_NULL_HANDLE).

@@ -1,6 +1,6 @@
 # xiom-ros2
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** ROS 2 client library bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

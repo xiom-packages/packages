@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# build.sh — Build the xiom-vulkan bridge and XIOM target (demo / test).
+# build.sh -- Build the xiom-vulkan bridge and XIOM target (demo / test).
 #
 # Pipeline:
 #   1. Compile GLSL shaders to SPIR-V via glslc
@@ -200,7 +200,7 @@ SHADER_MAP["particle_frag"]="$SHADER_DIR/particle.frag"
 
 # Array to hold generated header lines
 HEADER_LINES=()
-HEADER_LINES+=("// AUTO-GENERATED — do not edit")
+HEADER_LINES+=("// AUTO-GENERATED -- do not edit")
 HEADER_LINES+=("#ifndef XVK_SHADERS_GENERATED_H_")
 HEADER_LINES+=("#define XVK_SHADERS_GENERATED_H_")
 HEADER_LINES+=("")

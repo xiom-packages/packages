@@ -7,7 +7,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-algo",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "XIOM Algorithm Library â€” sorting, searching, math utilities",
+                         "description":  "XIOM Algorithm Library -- sorting, searching, math utilities",
                          "dependencies":  [
 
                                           ],
@@ -21,7 +21,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-arrow",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Apache Arrow â€” in-memory columnar data format. Pandas backend, zero-copy data sharing between libraries.",
+                         "description":  "Apache Arrow -- in-memory columnar data format. Pandas backend, zero-copy data sharing between libraries.",
                          "dependencies":  [
 
                                           ],
@@ -35,7 +35,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-assimp",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "XIOM Assimp Bindings â€” 3D model import (OBJ, FBX, glTF, COLLADA, etc.) via Open Asset Import Library. Safe wrappers with design-by-contract.",
+                         "description":  "XIOM Assimp Bindings -- 3D model import (OBJ, FBX, glTF, COLLADA, etc.) via Open Asset Import Library. Safe wrappers with design-by-contract.",
                          "dependencies":  [
 
                                           ],
@@ -94,7 +94,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-control",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Control systems library for XIOM â€” PID, state machines, signal processing",
+                         "description":  "Control systems library for XIOM -- PID, state machines, signal processing",
                          "dependencies":  [
 
                                           ],
@@ -111,7 +111,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-core",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "XIOM shared durable-systems core â€” config, errors, IDs, storage, WAL, transactions substrate for database engines",
+                         "description":  "XIOM shared durable-systems core -- config, errors, IDs, storage, WAL, transactions substrate for database engines",
                          "dependencies":  [
 
                                           ],
@@ -145,7 +145,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-cuda",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "CUDA Toolkit â€” NVIDIA GPU computing (cuBLAS, cuDNN, cuFFT, cuRAND).",
+                         "description":  "CUDA Toolkit -- NVIDIA GPU computing (cuBLAS, cuDNN, cuFFT, cuRAND).",
                          "dependencies":  [
 
                                           ],
@@ -159,7 +159,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-directx11",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Direct3D 11 â€” Microsoft\u0027s graphics API (Windows). Part of the DirectX SDK.",
+                         "description":  "Direct3D 11 -- Microsoft\u0027s graphics API (Windows). Part of the DirectX SDK.",
                          "dependencies":  [
 
                                           ],
@@ -173,7 +173,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-directx12",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Direct3D 12 â€” Microsoft\u0027s low-level graphics API. Explicit GPU control.",
+                         "description":  "Direct3D 12 -- Microsoft\u0027s low-level graphics API. Explicit GPU control.",
                          "dependencies":  [
 
                                           ],
@@ -202,7 +202,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-eigen",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Eigen â€” C++ template library for linear algebra. Header-only.",
+                         "description":  "Eigen -- C++ template library for linear algebra. Header-only.",
                          "dependencies":  [
 
                                           ],
@@ -229,7 +229,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-ffmpeg",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "FFmpeg â€” audio/video codec library (libavcodec, libavformat, libavutil).",
+                         "description":  "FFmpeg -- audio/video codec library (libavcodec, libavformat, libavutil).",
                          "dependencies":  [
 
                                           ],
@@ -243,7 +243,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-gazebo",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Gazebo â€” Robot simulation engine (gz-sim / Ignition Gazebo).",
+                         "description":  "Gazebo -- Robot simulation engine (gz-sim / Ignition Gazebo).",
                          "dependencies":  [
 
                                           ],
@@ -257,7 +257,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-glfw",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "XIOM GLFW bindings â€” safe windowing, input, and monitor management. Zero Vulkan dependency.",
+                         "description":  "XIOM GLFW bindings -- safe windowing, input, and monitor management. Zero Vulkan dependency.",
                          "dependencies":  [
 
                                           ],
@@ -271,7 +271,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-graphql",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Schema-first GraphQL server â€” SDL loading, validation, execution, resolvers, subscriptions, built on xiom-http",
+                         "description":  "Schema-first GraphQL server -- SDL loading, validation, execution, resolvers, subscriptions, built on xiom-http",
                          "dependencies":  [
 
                                           ],
@@ -285,7 +285,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-grpc",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "gRPC C Core bindings for XIOM â€” client, server, types, and 17 canonical status codes",
+                         "description":  "gRPC C Core bindings for XIOM -- client, server, types, and 17 canonical status codes",
                          "dependencies":  [
 
                                           ],
@@ -302,7 +302,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-http",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "XIOM HTTP Library â€” types, parsing, client, and server",
+                         "description":  "XIOM HTTP Library -- types, parsing, client, and server",
                          "dependencies":  [
 
                                           ],
@@ -325,7 +325,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-imgui",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Dear ImGui v1.92.9 â€” immediate-mode GUI library.",
+                         "description":  "Dear ImGui v1.92.9 -- immediate-mode GUI library.",
                          "dependencies":  [
 
                                           ],
@@ -339,7 +339,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-jolt",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Jolt Physics rigid body dynamics bindings for XIOM â€” requires joltc C bridge",
+                         "description":  "Jolt Physics rigid body dynamics bindings for XIOM -- requires joltc C bridge",
                          "dependencies":  [
 
                                           ],
@@ -369,7 +369,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-kafka",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Apache Kafka client for XIOM â€” librdkafka bindings",
+                         "description":  "Apache Kafka client for XIOM -- librdkafka bindings",
                          "dependencies":  [
 
                                           ],
@@ -386,7 +386,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-libpq",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "libpq â€” PostgreSQL C client library.",
+                         "description":  "libpq -- PostgreSQL C client library.",
                          "dependencies":  [
 
                                           ],
@@ -414,7 +414,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-libtorch",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "LibTorch â€” PyTorch C++ API. Full ML/DL framework with CUDA support.",
+                         "description":  "LibTorch -- PyTorch C++ API. Full ML/DL framework with CUDA support.",
                          "dependencies":  [
 
                                           ],
@@ -428,7 +428,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-libuv",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "libuv â€” cross-platform asynchronous I/O library (used by Node.js).",
+                         "description":  "libuv -- cross-platform asynchronous I/O library (used by Node.js).",
                          "dependencies":  [
 
                                           ],
@@ -507,7 +507,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-micro",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Microservices resilience â€” service discovery, typed RPC, retries/budgets, circuit breakers, bulkheads, tracing, sagas, built on xiom-http",
+                         "description":  "Microservices resilience -- service discovery, typed RPC, retries/budgets, circuit breakers, bulkheads, tracing, sagas, built on xiom-http",
                          "dependencies":  [
 
                                           ],
@@ -537,7 +537,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-moveit",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "MoveIt â€” Motion planning framework.",
+                         "description":  "MoveIt -- Motion planning framework.",
                          "dependencies":  [
 
                                           ],
@@ -551,7 +551,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-net",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "XIOM Networking Library â€” TCP/UDP primitives",
+                         "description":  "XIOM Networking Library -- TCP/UDP primitives",
                          "dependencies":  [
 
                                           ],
@@ -569,7 +569,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-numpy",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "NumPy C API â€” the fundamental array computing library for scientific Python.",
+                         "description":  "NumPy C API -- the fundamental array computing library for scientific Python.",
                          "dependencies":  [
 
                                           ],
@@ -583,7 +583,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-onnx",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "ONNX Runtime bindings for XIOM â€” cross-framework model inference",
+                         "description":  "ONNX Runtime bindings for XIOM -- cross-framework model inference",
                          "dependencies":  [
 
                                           ],
@@ -613,7 +613,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-openblas",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "OpenBLAS â€” optimized Basic Linear Algebra Subprograms (BLAS) and LAPACK.",
+                         "description":  "OpenBLAS -- optimized Basic Linear Algebra Subprograms (BLAS) and LAPACK.",
                          "dependencies":  [
 
                                           ],
@@ -627,7 +627,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-opencv",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "OpenCV bindings for XIOM â€” computer vision",
+                         "description":  "OpenCV bindings for XIOM -- computer vision",
                          "dependencies":  [
 
                                           ],
@@ -644,7 +644,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-opengl",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "OpenGL 4.6 â€” cross-platform graphics API.",
+                         "description":  "OpenGL 4.6 -- cross-platform graphics API.",
                          "dependencies":  [
 
                                           ],
@@ -658,7 +658,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-openssl",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "OpenSSL â€” TLS/cryptography.",
+                         "description":  "OpenSSL -- TLS/cryptography.",
                          "dependencies":  [
 
                                           ],
@@ -672,7 +672,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-ozz",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Ozz-Animation (v0.16.0) bindings for XIOM â€” skeletal animation runtime + offline pipeline",
+                         "description":  "Ozz-Animation (v0.16.0) bindings for XIOM -- skeletal animation runtime + offline pipeline",
                          "dependencies":  [
 
                                           ],
@@ -687,7 +687,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-pandas",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Pandas â€” data analysis library. Arrow-backed DataFrame/Series operations with zero Python overhead.",
+                         "description":  "Pandas -- data analysis library. Arrow-backed DataFrame/Series operations with zero Python overhead.",
                          "dependencies":  [
 
                                           ],
@@ -717,7 +717,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-portaudio",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "PortAudio â€” cross-platform audio I/O.",
+                         "description":  "PortAudio -- cross-platform audio I/O.",
                          "dependencies":  [
 
                                           ],
@@ -761,7 +761,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-raylib",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Raylib â€” simple game framework.",
+                         "description":  "Raylib -- simple game framework.",
                          "dependencies":  [
 
                                           ],
@@ -775,7 +775,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-realtime",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Application-level realtime â€” channels, rooms, presence, broadcast, ordering, ephemeral/durable events, built on xiom-websocket and xiom-micro",
+                         "description":  "Application-level realtime -- channels, rooms, presence, broadcast, ordering, ephemeral/durable events, built on xiom-websocket and xiom-micro",
                          "dependencies":  [
 
                                           ],
@@ -818,7 +818,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-ros2",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "ROS 2 â€” Robot Operating System middleware.",
+                         "description":  "ROS 2 -- Robot Operating System middleware.",
                          "dependencies":  [
 
                                           ],
@@ -832,7 +832,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-scipy",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "SciPy â€” scientific computing library for optimization, integration, interpolation, signal processing, statistics, and sparse matrices.",
+                         "description":  "SciPy -- scientific computing library for optimization, integration, interpolation, signal processing, statistics, and sparse matrices.",
                          "dependencies":  [
 
                                           ],
@@ -861,7 +861,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-sensor",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Sensor fusion library for XIOM â€” IMU, GPS, data fusion",
+                         "description":  "Sensor fusion library for XIOM -- IMU, GPS, data fusion",
                          "dependencies":  [
 
                                           ],
@@ -878,7 +878,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-sql",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "XIOM SQL Library â€” embedded SQL database bindings.",
+                         "description":  "XIOM SQL Library -- embedded SQL database bindings.",
                          "dependencies":  [
 
                                           ],
@@ -925,7 +925,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-tensorflow",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "TensorFlow C API (libtensorflow) â€” Google\u0027s ML framework.",
+                         "description":  "TensorFlow C API (libtensorflow) -- Google\u0027s ML framework.",
                          "dependencies":  [
 
                                           ],
@@ -939,7 +939,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-test",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "XIOM Test Framework â€” lightweight unit testing",
+                         "description":  "XIOM Test Framework -- lightweight unit testing",
                          "dependencies":  [
 
                                           ],
@@ -953,7 +953,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-torch",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "LibTorch bindings for XIOM â€” PyTorch C++ inference",
+                         "description":  "LibTorch bindings for XIOM -- PyTorch C++ inference",
                          "dependencies":  [
 
                                           ],
@@ -1024,7 +1024,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-wasmtime",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Wasmtime â€” standalone WebAssembly runtime (Bytecode Alliance).",
+                         "description":  "Wasmtime -- standalone WebAssembly runtime (Bytecode Alliance).",
                          "dependencies":  [
 
                                           ],
@@ -1038,7 +1038,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-websocket",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "WebSocket transport â€” handshake, framing, connection lifecycle, heartbeat, backpressure, reconnect, pub/sub, built on xiom-http and xiom-net",
+                         "description":  "WebSocket transport -- handshake, framing, connection lifecycle, heartbeat, backpressure, reconnect, pub/sub, built on xiom-http and xiom-net",
                          "dependencies":  [
 
                                           ],
@@ -1052,7 +1052,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-zeromq",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "libzmq â€” high-performance asynchronous messaging library (ZeroMQ).",
+                         "description":  "libzmq -- high-performance asynchronous messaging library (ZeroMQ).",
                          "dependencies":  [
 
                                           ],
@@ -1066,7 +1066,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom-zstd",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "zstd â€” fast lossless compression algorithm (Facebook).",
+                         "description":  "zstd -- fast lossless compression algorithm (Facebook).",
                          "dependencies":  [
 
                                           ],

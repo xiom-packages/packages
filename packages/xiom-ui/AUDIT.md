@@ -1,4 +1,4 @@
-# xiom-ui — Build Dependency Audit
+# xiom-ui -- Build Dependency Audit
 
 ## Required Dependencies
 
@@ -43,7 +43,7 @@ xiom src/types.xi src/layout.xi src/widgets.xi src/render.xi `
 ```
 
 ## Compile Status
-- All 8 source files — **PASSED** (multi-file compile)
+- All 8 source files -- **PASSED** (multi-file compile)
 - Individual files require multi-file compilation (cross-module `use` deps)
 
 ## Fixes Applied
@@ -61,16 +61,16 @@ The following files were missing `use` statements for their types from other xio
 
 ### 2. Method call resolution (`src/layout.xi:73-84`)
 - Inlined the `advance(size)` method call body into `LayoutContext.allocate()`.
-- The compiler cannot resolve same-type method calls via implicit `self` — this is a known compiler limitation (caller-side method dispatch requires explicit receiver).
+- The compiler cannot resolve same-type method calls via implicit `self` -- this is a known compiler limitation (caller-side method dispatch requires explicit receiver).
 
 ### 3. Unit type workaround (`src/demo.xi`)
-- `Result[Unit, Str]` → `Result[Int, Str]` — the compiler does not recognize `Unit` as a type name.
-- `Ok(Unit{})` → `Ok(0)` — `Unit{}` is not a valid literal.
+- `Result[Unit, Str]` -> `Result[Int, Str]` -- the compiler does not recognize `Unit` as a type name.
+- `Ok(Unit{})` -> `Ok(0)` -- `Unit{}` is not a valid literal.
 - `()` is supported as a value but NOT as a type parameter.
 - Workaround uses `Int` as a placeholder return type for demo functions.
 
 ## Known Compiler Gaps Affecting This Package
 - **`()` type**: Supported as a value literal (GAP-12 closed) but not as a type in generics like `Result[(), Str]`.
 - **Same-type method resolution**: Calling `advance(size)` from within a `LayoutContext` method requires explicit inlining or a forwarding free function.
-- **`extern "C"`**: Working (GAP-2 closed) — `src/backend.xi` uses it.
-- **`pub const`**: Working (GAP-3 closed) — `src/backend.xi` uses it.
+- **`extern "C"`**: Working (GAP-2 closed) -- `src/backend.xi` uses it.
+- **`pub const`**: Working (GAP-3 closed) -- `src/backend.xi` uses it.

@@ -1,4 +1,4 @@
-// XIOM — Bullet Physics Bindings
+// XIOM -- Bullet Physics Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 module xiom.bullet

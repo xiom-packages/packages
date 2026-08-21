@@ -1,6 +1,6 @@
 # xiom-c-binding
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Thin FFI bindings to common C libraries umbrella.
 > **Deps:** stdlib; wraps C (FFI).
 

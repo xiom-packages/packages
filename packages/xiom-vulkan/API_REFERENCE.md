@@ -1,8 +1,8 @@
-# XIOM Vulkan — API Reference
+# XIOM Vulkan -- API Reference
 
 ## XIOM Modules
 
-### vulkan_extern.xi — Raw VK Bindings (755 functions)
+### vulkan_extern.xi -- Raw VK Bindings (755 functions)
 
 Auto-generated from vulkan_core.h (SDK 1.4.350.0). Every Vulkan 1.3 core function plus KHR/EXT/NV/AMD/ARM/INTEL/QCOM extensions. All pointer/handle params use `Int`. VkResult values are `Int32`.
 
@@ -18,45 +18,45 @@ extern "C" {
 
 **Categories:** Instance (12), Device (8), Pipeline (4), Shader (2), Descriptor (5), Command (14), Sync (5), Buffer/Image/Memory (13), RenderPass/Framebuffer (3), Sampler (2), Swapchain (8), Query (0 in core), RayTracing (30+), Mesh (3), Video (10+), Debug (10), Extensions (100+), Surface (10+)
 
-### vulkan_safe.xi — Safe Wrappers (29 types + 5 create_from_struct)
+### vulkan_safe.xi -- Safe Wrappers (29 types + 5 create_from_struct)
 
 Each type provides create/destroy with contracts, error handling, and RAII semantics.
 
 | Type | Create | Destroy | Dedicated |
 |------|--------|---------|-----------|
-| VulkanInstance | create(app, eng, layers, exts) / create_from_struct(ci) | destroy() | — |
+| VulkanInstance | create(app, eng, layers, exts) / create_from_struct(ci) | destroy() | -- |
 | VulkanDevice | create(pd, family, exts) / create_from_struct(pd, ci) | destroy() | wait_idle() |
 | VulkanBuffer | create(device, ci) / create_from_struct(device, ci) | destroy() | bind_memory(), map(), unmap() |
 | VulkanImage | create(device, ci) / create_from_struct(device, ci) | destroy() | bind_memory() |
-| VulkanImageView | create(device, ci) | destroy() | — |
-| VulkanSampler | create(device, ci) | destroy() | — |
-| VulkanShaderModule | create(device, ci) | destroy() | — |
-| VulkanPipelineLayout | create(device, ci) / create_from_struct(device, ci) | destroy() | — |
+| VulkanImageView | create(device, ci) | destroy() | -- |
+| VulkanSampler | create(device, ci) | destroy() | -- |
+| VulkanShaderModule | create(device, ci) | destroy() | -- |
+| VulkanPipelineLayout | create(device, ci) / create_from_struct(device, ci) | destroy() | -- |
 | VulkanPipeline | create_graphics(device, ci) / create_compute(device, ci) | destroy() | bind() |
-| VulkanDescriptorSetLayout | create(device, ci) | destroy() | — |
+| VulkanDescriptorSetLayout | create(device, ci) | destroy() | -- |
 | VulkanDescriptorPool | create(device, ci) | destroy() | reset() |
 | VulkanDescriptorSet | allocate(device, pool, layout) | free(pool, sets) | bind() |
 | VulkanCommandPool | create(device, ci) | destroy() | reset() |
 | VulkanCommandBuffer | allocate(device, pool, ci) | free(pool, bufs) | begin/end/submit/draw/dispatch/barrier/begin_rendering/end_rendering |
-| VulkanRenderPass | create(device, ci) | destroy() | — |
-| VulkanFramebuffer | create(device, ci) | destroy() | — |
+| VulkanRenderPass | create(device, ci) | destroy() | -- |
+| VulkanFramebuffer | create(device, ci) | destroy() | -- |
 | VulkanFence | create(device, ci) | destroy() | wait()/reset()/status() |
-| VulkanSemaphore | create(device, ci) | destroy() | — |
+| VulkanSemaphore | create(device, ci) | destroy() | -- |
 | VulkanSwapchain | create(device, ci) | destroy() | acquire()/present() |
 | VulkanEvent | create(device, ci) | destroy() | get_status()/set()/reset() |
 | VulkanQueryPool | create(device, ci) | destroy() | get_results()/begin()/end()/reset()/timestamp()/copy() |
 | VulkanPipelineCache | create(device, ci) | destroy() | get_data()/merge() |
-| VulkanBufferView | create(device, ci) | destroy() | — |
-| VulkanDebugUtilsMessenger | create(instance, ci) | destroy() | — |
-| VulkanAccelerationStructureKHR | create(device, ci) | destroy() | — |
-| VulkanSurfaceKHR | (platform-specific) | destroy() | — |
-| VulkanPhysicalDevice | from_handle(pd) | — | properties/features/memory/queue_families |
+| VulkanBufferView | create(device, ci) | destroy() | -- |
+| VulkanDebugUtilsMessenger | create(instance, ci) | destroy() | -- |
+| VulkanAccelerationStructureKHR | create(device, ci) | destroy() | -- |
+| VulkanSurfaceKHR | (platform-specific) | destroy() | -- |
+| VulkanPhysicalDevice | from_handle(pd) | -- | properties/features/memory/queue_families |
 | VulkanDeviceMemory | allocate(device, ci) | free() | map()/unmap() |
-| VulkanDescriptorUpdateTemplate | create(device, ci) | destroy() | — |
+| VulkanDescriptorUpdateTemplate | create(device, ci) | destroy() | -- |
 
-**Struct Builder Integration (create_from_struct):** The 5 `create_from_struct` variants accept pre-built struct pointers from `vulkan_structs.xi` builders. This is the recommended path for production use — builders guarantee correct memory layout.
+**Struct Builder Integration (create_from_struct):** The 5 `create_from_struct` variants accept pre-built struct pointers from `vulkan_structs.xi` builders. This is the recommended path for production use -- builders guarantee correct memory layout.
 
-### vulkan_structs.xi — Struct Builders (30+ types)
+### vulkan_structs.xi -- Struct Builders (30+ types)
 
 Typed builders for every common VK create-info struct. Each builder allocates zeroed memory, writes the correct sType tag, and populates all fields at verified byte offsets.
 
@@ -119,7 +119,7 @@ pub fn read_u64(base: Int, offset: Int) -> Int;
 pub fn read_f32(base: Int, offset: Int) -> Float32;
 ```
 
-### vulkan_constants_all.xi — Constants (3691 values)
+### vulkan_constants_all.xi -- Constants (3691 values)
 
 Every `VK_*` constant from vulkan_core.h: structure types, enum values, flags, format codes, API versions, vendor IDs.
 
@@ -134,7 +134,7 @@ pub const VK_API_VERSION_1_3: Int = 4202496;
 
 ## C Bridge Modules (318 functions across 30 modules)
 
-### xvk_structs.c — Struct Marshalling (13 functions)
+### xvk_structs.c -- Struct Marshalling (13 functions)
 
 Generic alloc/write/read for C struct creation from XIOM.
 

@@ -1,6 +1,6 @@
 # xiom-timeseries
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Time series econometric modeling and stationarity tests.
 > **Deps:** stdlib; may wrap C (FFI).
 

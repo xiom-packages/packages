@@ -1,6 +1,6 @@
 # xiom-l10n-number
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Locale-aware number formatting, parsing, and rounding for all script systems.
 > **Deps:** stdlib; may wrap C (FFI).
 

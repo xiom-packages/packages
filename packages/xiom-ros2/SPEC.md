@@ -1,20 +1,20 @@
-# xiom-ros2 — SPEC
+# xiom-ros2 -- SPEC
 **Phase**: 3 (Robotics) | **Priority**: Medium
 **Status**: SPEC + Skeleton (v0.1.0) | **Depends on**: xiom.ffi, xiom.test
-ROS 2 — Robot Operating System middleware. System-installed. Week effort.
+ROS 2 -- Robot Operating System middleware. System-installed. Week effort.
 
 ## Module: `xiom.ros2` (`ros2.xi`)
 
 | Count | Entity |
 |------:|--------|
 | 5 | Type aliases (Node, Publisher, Subscriber, Service, Message) |
-| 12 | extern "C" FFI declarations (rcl_init … rcl_destroy_service) |
+| 12 | extern "C" FFI declarations (rcl_init ... rcl_destroy_service) |
 | 12 | Public safe wrapper functions |
 | 11 | requires contracts (92% of parameterized functions) |
 | 37 | Conformance tests (`tests/test_conformance.xi`) |
 
-### Types — opaque Int handles
-- `Node`, `Publisher`, `Subscriber`, `Service`, `Message` — all `pub type X = Int`
+### Types -- opaque Int handles
+- `Node`, `Publisher`, `Subscriber`, `Service`, `Message` -- all `pub type X = Int`
 
 ### extern "C" block
 - `rcl_init`, `rcl_shutdown`

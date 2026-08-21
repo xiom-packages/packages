@@ -1,6 +1,6 @@
 # xiom-consul
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** HashiCorp Consul client: service discovery, KV, and health.
 > **Deps:** stdlib; may wrap C (FFI).
 

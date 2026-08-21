@@ -1,6 +1,6 @@
 # Versioning
 
-> Status: Design stage — specification only, not yet implemented.
+> Status: Design stage -- specification only, not yet implemented.
 
 APIs change, and versioning is how `xiom-rest` lets them change without breaking existing clients. The guiding rule is that breaking changes must never be silent: a new incompatible shape lives under a new version, and old versions are retired only with explicit, discoverable deprecation metadata. Versioning is expressed as data on a `RestModule`, so it composes naturally with resource routing.
 
@@ -15,7 +15,7 @@ Two strategies are supported through `VersionPolicy`:
 
 ## Resolving the requested version
 
-At request time, `resolve_version(req, policy)` extracts the version the client is asking for — from the path segment under URI versioning, or from the negotiated header under header versioning. It returns `Result[Str, RestError]` so that an unknown or unsupported version becomes a typed error (a `400` or `404`-class response with a clear code) rather than a fallthrough to an arbitrary default. Making resolution explicit avoids the classic bug where an unversioned request silently hits the newest, possibly incompatible, handler.
+At request time, `resolve_version(req, policy)` extracts the version the client is asking for -- from the path segment under URI versioning, or from the negotiated header under header versioning. It returns `Result[Str, RestError]` so that an unknown or unsupported version becomes a typed error (a `400` or `404`-class response with a clear code) rather than a fallthrough to an arbitrary default. Making resolution explicit avoids the classic bug where an unversioned request silently hits the newest, possibly incompatible, handler.
 
 ## Deprecation
 

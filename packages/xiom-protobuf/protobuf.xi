@@ -1,4 +1,4 @@
-// XIOM — Protocol Buffers Bindings
+// XIOM -- Protocol Buffers Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -8,7 +8,7 @@
 module xiom.protobuf
 
 // =========================================================================
-// Wire type enumeration (protobuf wire format § encoding)
+// Wire type enumeration (protobuf wire format S encoding)
 // =========================================================================
 
 pub enum WireType {
@@ -34,7 +34,7 @@ pub type ProtoValue = enum {
 // Pure-XIOM varint encoding
 //
 // Encodes a non-negative integer as a protobuf base-128 varint.
-// Each byte: bits 0–6 carry data, bit 7 is the continuation flag.
+// Each byte: bits 0-6 carry data, bit 7 is the continuation flag.
 // Returns the encoded bytes.
 // =========================================================================
 
@@ -90,7 +90,7 @@ pub fn varint_decode(buf: &Vec[UInt8], pos: Int) -> Result[(Int, Int), Str]
 // ZigZag encode: signed Int -> unsigned Int
 //
 // (n << 1) ^ (n >> 63) simplified for Int arithmetic:
-// non-negative n → 2*n, negative n → 2*|n| - 1
+// non-negative n -> 2*n, negative n -> 2*|n| - 1
 // =========================================================================
 
 pub fn zigzag_encode(signed: Int) -> Int {
@@ -141,7 +141,7 @@ pub fn wire_type_name(wt: WireType) -> Str {
 }
 
 // =========================================================================
-// Wire format: make tag — (field_number << 3) | wire_type
+// Wire format: make tag -- (field_number << 3) | wire_type
 //
 // field_number must be in valid proto3 range: 1..536870911
 // =========================================================================
@@ -154,7 +154,7 @@ pub fn make_wire_tag(field_number: Int, wire_type: WireType) -> Int
 }
 
 // =========================================================================
-// Wire format: parse tag — extract (field_number, wire_type)
+// Wire format: parse tag -- extract (field_number, wire_type)
 // =========================================================================
 
 pub fn parse_wire_tag(tag: Int) -> (Int, WireType) {
@@ -179,7 +179,7 @@ fn encode_tag(buf: &mut Vec[UInt8], field_number: Int, wire_type: WireType) {
 }
 
 // =========================================================================
-// Wire format: write field — tag + varint value
+// Wire format: write field -- tag + varint value
 // =========================================================================
 
 pub fn write_field_varint(buf: &mut Vec[UInt8], field_number: Int, value: Int)
@@ -197,7 +197,7 @@ pub fn write_field_varint(buf: &mut Vec[UInt8], field_number: Int, value: Int)
 }
 
 // =========================================================================
-// Wire format: write field — tag + zigzag-encoded sint
+// Wire format: write field -- tag + zigzag-encoded sint
 // =========================================================================
 
 pub fn write_field_sint(buf: &mut Vec[UInt8], field_number: Int, signed_value: Int)
@@ -209,7 +209,7 @@ pub fn write_field_sint(buf: &mut Vec[UInt8], field_number: Int, signed_value: I
 }
 
 // =========================================================================
-// Wire format: write field — tag + fixed64 (little-endian 8 bytes)
+// Wire format: write field -- tag + fixed64 (little-endian 8 bytes)
 // =========================================================================
 
 pub fn write_field_fixed64(buf: &mut Vec[UInt8], field_number: Int, value: Int)
@@ -227,7 +227,7 @@ pub fn write_field_fixed64(buf: &mut Vec[UInt8], field_number: Int, value: Int)
 }
 
 // =========================================================================
-// Wire format: write field — tag + fixed32 (little-endian 4 bytes)
+// Wire format: write field -- tag + fixed32 (little-endian 4 bytes)
 // =========================================================================
 
 pub fn write_field_fixed32(buf: &mut Vec[UInt8], field_number: Int, value: Int)
@@ -245,7 +245,7 @@ pub fn write_field_fixed32(buf: &mut Vec[UInt8], field_number: Int, value: Int)
 }
 
 // =========================================================================
-// Wire format: write field — tag + length-delimited (bytes/string/message)
+// Wire format: write field -- tag + length-delimited (bytes/string/message)
 // =========================================================================
 
 pub fn write_field_length_delimited(buf: &mut Vec[UInt8], field_number: Int, data: &Vec[UInt8])
@@ -267,7 +267,7 @@ pub fn write_field_length_delimited(buf: &mut Vec[UInt8], field_number: Int, dat
 }
 
 // =========================================================================
-// Wire format: write field — bool encoded as varint 0 or 1
+// Wire format: write field -- bool encoded as varint 0 or 1
 // =========================================================================
 
 pub fn write_field_bool(buf: &mut Vec[UInt8], field_number: Int, value: Bool)
@@ -280,7 +280,7 @@ pub fn write_field_bool(buf: &mut Vec[UInt8], field_number: Int, value: Bool)
 }
 
 // =========================================================================
-// Wire format: read a field header — returns (field_number, wire_type, pos_after_tag)
+// Wire format: read a field header -- returns (field_number, wire_type, pos_after_tag)
 // =========================================================================
 
 pub fn read_field_tag(buf: &Vec[UInt8], pos: Int) -> Result[(Int, WireType, Int), Str]
@@ -377,13 +377,13 @@ pub fn read_field_length_delimited(buf: &Vec[UInt8], pos: Int) -> Result[(Vec[UI
 }
 
 // =========================================================================
-// Wire format: skip an unknown field — advances past any wire type payload
+// Wire format: skip an unknown field -- advances past any wire type payload
 // =========================================================================
 
 // fn skip_field(buf: &Vec[UInt8], pos: Int, wire_type: WireType) -> Result[Int, Str] ...
 
 // =========================================================================
-// extern "C" — protobuf-c library functions
+// extern "C" -- protobuf-c library functions
 //
 // These map to the protobuf-c C bridge library (libprotobuf-c).
 // Int-based handles until the compiler supports typed C pointer interop.
@@ -398,7 +398,7 @@ extern "C" {
 }
 
 // =========================================================================
-// version — returns the linked protobuf-c library version string
+// version -- returns the linked protobuf-c library version string
 // =========================================================================
 
 pub fn version() -> Str {
@@ -410,7 +410,7 @@ pub fn version() -> Str {
 }
 
 // =========================================================================
-// encode — serialize a runtime ProtoMessage to wire-format bytes
+// encode -- serialize a runtime ProtoMessage to wire-format bytes
 //
 // Delegates to libprotobuf-c. Returns Ok(bytes) on success.
 // =========================================================================
@@ -418,11 +418,11 @@ pub fn version() -> Str {
 pub fn encode(message: &ProtoMessage) -> Result[Vec[UInt8], Str]
   requires: message.fields.len() >= 0
 {
-  return Err("encode: libprotobuf-c not linked — use pure-XIOM write_field_* primitives instead");
+  return Err("encode: libprotobuf-c not linked -- use pure-XIOM write_field_* primitives instead");
 }
 
 // =========================================================================
-// decode — parse wire-format bytes into a runtime ProtoMessage
+// decode -- parse wire-format bytes into a runtime ProtoMessage
 //
 // Delegates to libprotobuf-c. Returns Ok(message) on success.
 // =========================================================================
@@ -430,5 +430,5 @@ pub fn encode(message: &ProtoMessage) -> Result[Vec[UInt8], Str]
 pub fn decode(data: &Vec[UInt8]) -> Result[ProtoMessage, Str]
   requires: data.len() >= 0
 {
-  return Err("decode: libprotobuf-c not linked — use pure-XIOM read_field_* primitives instead");
+  return Err("decode: libprotobuf-c not linked -- use pure-XIOM read_field_* primitives instead");
 }

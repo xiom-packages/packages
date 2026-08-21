@@ -1,4 +1,4 @@
-// XIOM — libuv Conformance Test Suite
+// XIOM -- libuv Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -16,9 +16,9 @@ use xiom.io;
 use xiom.test;
 use xiom.libuv;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Helpers
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; }
@@ -51,9 +51,9 @@ fn report(passed: Bool, name: Str) -> Int {
   return 1;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 1 — Types (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 1 -- Types (3 tests)
+// ===========================================================================
 
 fn test_type_uv_loop_is_int() -> TestResult {
   return assert(true, "type: UvLoop is Int alias present");
@@ -67,9 +67,9 @@ fn test_type_uv_timer_is_int() -> TestResult {
   return assert(true, "type: UvTimer is Int alias present");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 2 — Constants (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 2 -- Constants (3 tests)
+// ===========================================================================
 
 fn run_const_run_default() -> Int {
   if UV_RUN_DEFAULT == 0 { return 0; }
@@ -104,9 +104,9 @@ fn test_const_run_nowait() -> TestResult {
   return assert(false, "const: UV_RUN_NOWAIT == 2");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 3 — Event Loop (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 3 -- Event Loop (3 tests)
+// ===========================================================================
 
 fn run_loop_new_stub() -> Int {
   match loop_new() {
@@ -144,9 +144,9 @@ fn test_loop_run_stub() -> TestResult {
   return assert(false, "loop: loop_run() returns Err stub");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 4 — TCP (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 4 -- TCP (4 tests)
+// ===========================================================================
 
 fn run_tcp_init_stub() -> Int {
   match tcp_init(1) {
@@ -218,9 +218,9 @@ fn test_tcp_write_stub() -> TestResult {
   return assert(false, "tcp: tcp_write() returns Err stub");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 5 — Timer (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 5 -- Timer (3 tests)
+// ===========================================================================
 
 fn run_timer_init_stub() -> Int {
   match timer_init(1) {
@@ -270,9 +270,9 @@ fn test_timer_stop_stub() -> TestResult {
   return assert(false, "timer: timer_stop() returns Err stub");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 6 — File I/O (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 6 -- File I/O (4 tests)
+// ===========================================================================
 
 fn run_fs_open_stub() -> Int {
   match fs_open(1, "/tmp/test.txt", 0, 438) {
@@ -345,10 +345,10 @@ fn test_fs_close_stub() -> TestResult {
   return assert(false, "fs: fs_close() returns Err stub");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 7 — Contract declarations (12 tests)
-// Note: contract violations trap — tests verify declaration presence only.
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 7 -- Contract declarations (12 tests)
+// Note: contract violations trap -- tests verify declaration presence only.
+// ===========================================================================
 
 fn test_contract_loop_close() -> TestResult {
   return assert(true, "contract: loop_close has requires: loop > 0");
@@ -398,9 +398,9 @@ fn test_contract_fs_write() -> TestResult {
   return assert(true, "contract: fs_write has requires: fd > 0, data.len() > 0");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 8 — Error handling (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 8 -- Error handling (2 tests)
+// ===========================================================================
 
 fn run_error_message_non_empty() -> Int {
   match loop_new() {
@@ -442,9 +442,9 @@ fn test_error_message_contains_stub() -> TestResult {
   return assert(false, "error: Err message contains 'stub'");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 9 — Loop lifecycle simulation (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 9 -- Loop lifecycle simulation (1 test)
+// ===========================================================================
 
 fn run_loop_lifecycle() -> Int {
   let loop_result = loop_new();
@@ -460,9 +460,9 @@ fn test_loop_lifecycle() -> TestResult {
   return assert(false, "lifecycle: loop_new + loop_close crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Main — manual test dispatch
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Main -- manual test dispatch
+// ===========================================================================
 
 pub fn main() -> Int {
   io.println("XIOM libuv Conformance Suite");

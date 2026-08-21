@@ -1,17 +1,17 @@
-# AUDIT — xiom-math
+# AUDIT -- xiom-math
 
 ## Dependency Audit
 
 | Dependency | Version | Required | Notes |
 |---|---|---|---|
 | xiom-std | 0.1.0 | Yes | Standard library (xiom.math for sqrt/sin/cos/tan/atan2/acos/abs/min/max) |
-| External / FFI | None | No | Pure XIOM — no C bindings, no native libs |
+| External / FFI | None | No | Pure XIOM -- no C bindings, no native libs |
 | Other ecosystem packages | None | No | Self-contained |
 
 ## Audit Summary
 
 - **Zero external dependencies** beyond the XIOM standard library
-- **No C FFI** — all math through the pure XIOM `xiom.math` stdlib module
+- **No C FFI** -- all math through the pure XIOM `xiom.math` stdlib module
 - **No cryptographic requirements**
 - **No network or I/O requirements**
 - **Thread safety**: All types are plain data structs (value types) with no mutable global state; safe for concurrent read access
@@ -30,10 +30,10 @@
 | Gap | Description | Status | Workaround |
 |-----|-------------|--------|------------|
 | **Gap E** | Same-type first explicit param swaps argument positions in cross-module method dispatch. `fn T.lerp(other: T, t: Float32)` called as `a.lerp(b, 0.5)` from another module gives `argument 1 type mismatch: expected Float32, found T`. | **OPEN** | Reorder params: `fn T.lerp(t: Float32, other: T)`. Applied to `Vec2.lerp`, `Vec3.lerp`, `Quat.slerp`. Single-param same-type methods (dot, cross, add, sub, etc.) are unaffected. |
-| ~~Gap F~~ | `[N]T` arrays unsupported as struct fields. Parser would reject `m: [16]Float32` in struct definitions. | **CLOSED v0.46** | — |
-| ~~Gap G~~ | Method imports require per-symbol `use` paths. `use xiom.math.vec2;` did not make `Vec2` or `Vec2.new` available. | **CLOSED v0.46** | — |
-| **Gap C** (pre-existing) | Out-parameter move semantics (E001). Passing values to methods/struct constructors triggers "use of moved value" borrow warnings. Non-fatal — compilation succeeds with `{"status":"ok"}`. | **OPEN** | None needed. Affects all modules uniformly. 7 E001 warnings in `mat4.xi` (look_at), 56+ in coverage test. |
-| — | `module xiom.math` name collision with stdlib `xiom.math`. When `math.xi` (the prelude) claimed `module xiom.math`, it shadowed stdlib math functions in joint compilation. | **FIXED** (design) | Renamed prelude to `module xiom.math.prelude`. All source files use `use xiom.math;` (stdlib) + `use xiom.math.vec2;` etc. (local). |
+| ~~Gap F~~ | `[N]T` arrays unsupported as struct fields. Parser would reject `m: [16]Float32` in struct definitions. | **CLOSED v0.46** | -- |
+| ~~Gap G~~ | Method imports require per-symbol `use` paths. `use xiom.math.vec2;` did not make `Vec2` or `Vec2.new` available. | **CLOSED v0.46** | -- |
+| **Gap C** (pre-existing) | Out-parameter move semantics (E001). Passing values to methods/struct constructors triggers "use of moved value" borrow warnings. Non-fatal -- compilation succeeds with `{"status":"ok"}`. | **OPEN** | None needed. Affects all modules uniformly. 7 E001 warnings in `mat4.xi` (look_at), 56+ in coverage test. |
+| -- | `module xiom.math` name collision with stdlib `xiom.math`. When `math.xi` (the prelude) claimed `module xiom.math`, it shadowed stdlib math functions in joint compilation. | **FIXED** (design) | Renamed prelude to `module xiom.math.prelude`. All source files use `use xiom.math;` (stdlib) + `use xiom.math.vec2;` etc. (local). |
 
 ## Compile Verification (v0.46.0)
 

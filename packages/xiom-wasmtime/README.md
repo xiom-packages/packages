@@ -1,6 +1,6 @@
 # xiom-wasmtime
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** WebAssembly runtime host bindings over Wasmtime.
 > **Deps:** stdlib; wraps C (FFI).
 

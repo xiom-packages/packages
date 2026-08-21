@@ -1,6 +1,6 @@
 # xiom-redis
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Redis client: RESP protocol, commands, and pub/sub.
 > **Deps:** stdlib; may wrap C (FFI).
 

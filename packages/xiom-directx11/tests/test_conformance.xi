@@ -1,4 +1,4 @@
-// XIOM — Direct3D 11 Conformance Test Suite
+// XIOM -- Direct3D 11 Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -10,7 +10,7 @@
 
 module directx11_conformance_tests
 
-// ── Test helpers ────────────────────────────────────────────────────────────
+// -- Test helpers ------------------------------------------------------------
 
 fn assert(condition: Bool, name: Str) -> Int
   requires: name.len() > 0
@@ -40,9 +40,9 @@ fn assert_nonzero(val: Int, name: Str) -> Int
   return 1;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 1 — Type Definitions (7 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 1 -- Type Definitions (7 tests)
+// ===========================================================================
 
 fn test_type_dx_device_is_int() -> Int {
   return assert(true, "type: DxDevice is Int alias present");
@@ -72,9 +72,9 @@ fn test_type_dx_sampler_is_int() -> Int {
   return assert(true, "type: DxSampler is Int alias present");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 2 — DXGI_FORMAT Constants (6 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 2 -- DXGI_FORMAT Constants (6 tests)
+// ===========================================================================
 
 fn test_const_r8g8b8a8_unorm() -> Int {
   return assert_eq_int(directx11.DXGI_FORMAT_R8G8B8A8_UNORM, 28, "DXGI_FORMAT_R8G8B8A8_UNORM = 28");
@@ -100,9 +100,9 @@ fn test_const_d32_float_s8x24_uint() -> Int {
   return assert_eq_int(directx11.DXGI_FORMAT_D32_FLOAT_S8X24_UINT, 20, "DXGI_FORMAT_D32_FLOAT_S8X24_UINT = 20");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 3 — D3D11_USAGE Constants (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 3 -- D3D11_USAGE Constants (4 tests)
+// ===========================================================================
 
 fn test_const_usage_default_is_zero() -> Int {
   return assert_eq_int(directx11.D3D11_USAGE_DEFAULT, 0, "D3D11_USAGE_DEFAULT = 0");
@@ -120,9 +120,9 @@ fn test_const_usage_staging() -> Int {
   return assert_eq_int(directx11.D3D11_USAGE_STAGING, 3, "D3D11_USAGE_STAGING = 3");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 4 — D3D11_BIND_FLAG Constants (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 4 -- D3D11_BIND_FLAG Constants (4 tests)
+// ===========================================================================
 
 fn test_const_bind_vertex_buffer() -> Int {
   return assert_eq_int(directx11.D3D11_BIND_VERTEX_BUFFER, 0x1, "D3D11_BIND_VERTEX_BUFFER = 0x1");
@@ -140,9 +140,9 @@ fn test_const_bind_shader_resource() -> Int {
   return assert_eq_int(directx11.D3D11_BIND_SHADER_RESOURCE, 0x8, "D3D11_BIND_SHADER_RESOURCE = 0x8");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 5 — D3D11_FILTER and Address Constants (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 5 -- D3D11_FILTER and Address Constants (4 tests)
+// ===========================================================================
 
 fn test_const_filter_min_mag_mip_linear() -> Int {
   return assert_eq_int(directx11.D3D11_FILTER_MIN_MAG_MIP_LINEAR, 0x15, "D3D11_FILTER_MIN_MAG_MIP_LINEAR = 0x15");
@@ -160,9 +160,9 @@ fn test_const_texture_address_clamp() -> Int {
   return assert_eq_int(directx11.D3D11_TEXTURE_ADDRESS_CLAMP, 3, "D3D11_TEXTURE_ADDRESS_CLAMP = 3");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 6 — D3D11_MAP Constants (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 6 -- D3D11_MAP Constants (3 tests)
+// ===========================================================================
 
 fn test_const_map_read() -> Int {
   return assert_eq_int(directx11.D3D11_MAP_READ, 1, "D3D11_MAP_READ = 1");
@@ -176,9 +176,9 @@ fn test_const_map_write_no_overwrite() -> Int {
   return assert_eq_int(directx11.D3D11_MAP_WRITE_NO_OVERWRITE, 5, "D3D11_MAP_WRITE_NO_OVERWRITE = 5");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 7 — Device Creation Stubs (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 7 -- Device Creation Stubs (3 tests)
+// ===========================================================================
 
 fn test_create_device_returns_err_in_stub_mode() -> Int {
   let result = directx11.d3d11_create_device(directx11.D3D_DRIVER_TYPE_HARDWARE, 0);
@@ -197,9 +197,9 @@ fn test_create_device_and_swapchain_returns_err() -> Int {
   return assert_err(result.is_ok, "d3d11_create_device_and_swapchain returns Err in stub mode");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 8 — Swap Chain and Present Stubs (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 8 -- Swap Chain and Present Stubs (3 tests)
+// ===========================================================================
 
 fn test_create_swapchain_returns_err_in_stub_mode() -> Int {
   let result = directx11.d3d11_create_swapchain(1, 1, 800, 600);
@@ -216,9 +216,9 @@ fn test_present_with_zero_interval_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 9 — Buffer Creation Stubs (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 9 -- Buffer Creation Stubs (4 tests)
+// ===========================================================================
 
 fn test_create_vertex_buffer_returns_err_in_stub_mode() -> Int {
   let result = directx11.d3d11_create_vertex_buffer(1, 64, directx11.D3D11_USAGE_DEFAULT, 0);
@@ -240,9 +240,9 @@ fn test_create_constant_buffer_zero_mod16_returns_err() -> Int {
   return assert_err(result.is_ok, "d3d11_create_constant_buffer with size 16 returns Err in stub mode");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 10 — Texture Creation Stubs (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 10 -- Texture Creation Stubs (3 tests)
+// ===========================================================================
 
 fn test_create_texture2d_returns_err_in_stub_mode() -> Int {
   let result = directx11.d3d11_create_texture2d(1, 256, 256, directx11.DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -260,9 +260,9 @@ fn test_create_shader_resource_view_returns_err() -> Int {
   return assert_err(result.is_ok, "d3d11_create_shader_resource_view returns Err in stub mode");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 11 — Sampler Creation Stubs (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 11 -- Sampler Creation Stubs (1 test)
+// ===========================================================================
 
 fn test_create_sampler_state_returns_err() -> Int {
   let result = directx11.d3d11_create_sampler_state(1, directx11.D3D11_FILTER_MIN_MAG_MIP_LINEAR,
@@ -270,9 +270,9 @@ fn test_create_sampler_state_returns_err() -> Int {
   return assert_err(result.is_ok, "d3d11_create_sampler_state returns Err in stub mode");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 12 — Shader Creation Stubs (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 12 -- Shader Creation Stubs (4 tests)
+// ===========================================================================
 
 fn test_create_vertex_shader_returns_err() -> Int {
   let result = directx11.d3d11_create_vertex_shader(1, 0x1000, 256);
@@ -294,9 +294,9 @@ fn test_iaset_input_layout_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 13 — Shader Stage Binding Stubs (5 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 13 -- Shader Stage Binding Stubs (5 tests)
+// ===========================================================================
 
 fn test_vsset_shader_is_noop() -> Int {
   directx11.d3d11_vsset_shader(1, 2);
@@ -323,9 +323,9 @@ fn test_psset_samplers_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 14 — Drawing Stubs (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 14 -- Drawing Stubs (3 tests)
+// ===========================================================================
 
 fn test_draw_is_noop() -> Int {
   directx11.d3d11_draw(1, 3, 0);
@@ -342,9 +342,9 @@ fn test_clear_render_target_view_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 15 — Map/Unmap Stubs (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 15 -- Map/Unmap Stubs (2 tests)
+// ===========================================================================
 
 fn test_map_returns_err() -> Int {
   let result = directx11.d3d11_map(1, 2, 0, directx11.D3D11_MAP_WRITE_DISCARD, 0);
@@ -356,9 +356,9 @@ fn test_unmap_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 16 — Vertex Buffer Binding Stubs (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 16 -- Vertex Buffer Binding Stubs (3 tests)
+// ===========================================================================
 
 fn test_iaset_vertex_buffers_is_noop() -> Int {
   directx11.d3d11_iaset_vertex_buffers(1, 0, 1, 0x7000, 0x8000, 0x9000);
@@ -375,9 +375,9 @@ fn test_iaset_primitive_topology_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 17 — PSSetShaderResources and OMSetRenderTargets (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 17 -- PSSetShaderResources and OMSetRenderTargets (2 tests)
+// ===========================================================================
 
 fn test_psset_shader_resources_is_noop() -> Int {
   directx11.d3d11_psset_shader_resources(1, 0, 1, 0xA000);
@@ -389,18 +389,18 @@ fn test_om_set_render_targets_is_noop() -> Int {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 18 — Viewport Stub (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 18 -- Viewport Stub (1 test)
+// ===========================================================================
 
 fn test_rsset_viewports_is_noop() -> Int {
   directx11.d3d11_rsset_viewports(1, 0.0, 0.0, 800.0, 600.0, 0.0, 1.0);
   return 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 19 — Smoke: All Non-Result Functions Are Callable (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 19 -- Smoke: All Non-Result Functions Are Callable (1 test)
+// ===========================================================================
 
 fn test_smoke_all_nonresult_callable() -> Int {
   directx11.d3d11_present(1, 0);
@@ -423,9 +423,9 @@ fn test_smoke_all_nonresult_callable() -> Int {
   return assert(true, "all non-Result functions callable without crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 20 — Smoke: All Result Functions Return Err (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 20 -- Smoke: All Result Functions Return Err (1 test)
+// ===========================================================================
 
 fn test_smoke_all_result_funcs_return_err() -> Int {
   let r1 = directx11.d3d11_create_device(directx11.D3D_DRIVER_TYPE_HARDWARE, 0);
@@ -448,9 +448,9 @@ fn test_smoke_all_result_funcs_return_err() -> Int {
   return assert(all_err, "all 14 Result-returning functions return Err in stub mode");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SECTION 21 — Full Pipeline Lifecycle Smoke (1 test)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// SECTION 21 -- Full Pipeline Lifecycle Smoke (1 test)
+// ===========================================================================
 
 fn test_full_pipeline_lifecycle_no_crash() -> Int {
   let dev_result = directx11.d3d11_create_device(directx11.D3D_DRIVER_TYPE_HARDWARE, 0);
@@ -495,9 +495,9 @@ fn test_full_pipeline_lifecycle_no_crash() -> Int {
   return assert(true, "full D3D11 pipeline lifecycle stubs execute without crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Test Runner
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn run_all_tests() -> Int {
   var failures: Int = 0;

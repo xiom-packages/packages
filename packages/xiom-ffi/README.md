@@ -1,6 +1,6 @@
 # xiom-ffi
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Safe foreign-function interface bindings to C libraries.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,4 +1,4 @@
-// XIOM — Box2D Safe Wrappers
+// XIOM -- Box2D Safe Wrappers
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -8,7 +8,7 @@
 //
 // Coverage:
 //   1. Null-handle predicates for all 6 Box2D ID types
-//   2. Math helpers (Box2D inline math reimplemented — see AUDIT.md §2)
+//   2. Math helpers (Box2D inline math reimplemented -- see AUDIT.md S2)
 //   3. World lifecycle and stepping
 //   4. Body lifecycle, kinematics, forces, damping, and flags
 //   5. Shape creation (box, circle, capsule) and properties
@@ -20,7 +20,7 @@
 //
 // NOTE ON STRUCT ABI: The extern declarations in box2d.xi assume the compiler
 // supports passing/returning C structs by value. Xiom's current extern "C"
-// support may be limited to primitive types. See AUDIT.md §1 for the C bridge
+// support may be limited to primitive types. See AUDIT.md S1 for the C bridge
 // fallback strategy.
 
 module xiom.box2d_safe
@@ -62,7 +62,7 @@ pub fn is_null_contact_id(id: B2ContactId) -> Bool {
 //
 // Box2D's math operations (b2Add, b2Mul, b2Normalize, etc.) are B2_INLINE
 // and NOT present in the shared library. We reimplement the core subset here.
-// See AUDIT.md §2.
+// See AUDIT.md S2.
 // ===========================================================================
 
 pub fn vec2_zero() -> B2Vec2 {
@@ -446,7 +446,7 @@ pub fn create_capsule_shape(body_id: B2BodyId, x1: Float32, y1: Float32, x2: Flo
   return Ok(shape_id);
 }
 
-// Creates a static body with a single box fixture — the classic ground plane.
+// Creates a static body with a single box fixture -- the classic ground plane.
 // Returns the body; the shape is owned by the body and destroyed with it.
 pub fn create_ground_box(world_id: B2WorldId, px: Float32, py: Float32, half_w: Float32, half_h: Float32, angle: Float32) -> Result[B2BodyId, Str]
   requires: !is_null_world_id(world_id)
@@ -523,7 +523,7 @@ pub fn shape_get_aabb(shape_id: B2ShapeId) -> B2AABB
 // CHAIN
 // ===========================================================================
 
-// Creates a closed chain loop attached to a body — typically a static body
+// Creates a closed chain loop attached to a body -- typically a static body
 // created with create_body_static, forming terrain or arena boundaries.
 // Points must be in counter-clockwise order; Box2D requires at least 4
 // points for a loop.
@@ -638,7 +638,7 @@ pub fn get_body_move_event_count(world_id: B2WorldId) -> Int32
 }
 
 // ===========================================================================
-// UTILITY — COMMON SCENARIOS
+// UTILITY -- COMMON SCENARIOS
 // ===========================================================================
 
 fn destroy_bodies(bodies: Vec[B2BodyId]) {
@@ -748,7 +748,7 @@ pub fn create_pendulum(world_id: B2WorldId, pivot_x: Float32, pivot_y: Float32, 
 // ===========================================================================
 // BUILT-IN MATH PLACEHOLDERS
 //
-// These stand in for runtime math intrinsics (see AUDIT.md §2 and the demo
+// These stand in for runtime math intrinsics (see AUDIT.md S2 and the demo
 // prerequisites). They MUST be replaced with real sqrt/cos/sin/atan2
 // implementations before vec2_length, vec2_normalize, rot_from_angle, and
 // rot_get_angle produce correct results.

@@ -1,6 +1,6 @@
 # xiom-rbac
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Role-based access control policies and checks.
 > **Deps:** stdlib; may wrap C (FFI).
 

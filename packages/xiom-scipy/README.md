@@ -1,6 +1,6 @@
 # xiom-scipy
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** SciPy-style scientific computing routines.
 > **Deps:** stdlib; may wrap C (FFI).
 

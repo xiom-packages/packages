@@ -232,7 +232,7 @@ $OutName   = $t.out
 $OutExe    = Join-Path $RootDir "$OutName.exe"
 
 # ------------------------------------------------------------------
-# STEP 1  —  Compile shaders with glslc
+# STEP 1  --  Compile shaders with glslc
 # ------------------------------------------------------------------
 Write-Host "`n=== STEP 1: Compile GLSL shaders to SPIR-V ==="
 
@@ -249,7 +249,7 @@ $ShaderFiles = @(
     @{ src = Join-Path $ShaderDir 'quad.frag';     spv = Join-Path $SpvDir 'quad_frag.spv';     name='quad_frag' }
     @{ src = Join-Path $ShaderDir 'particle.vert'; spv = Join-Path $SpvDir 'particle_vert.spv'; name='particle_vert' }
     @{ src = Join-Path $ShaderDir 'particle.frag'; spv = Join-Path $SpvDir 'particle_frag.spv'; name='particle_frag' }
-    # Phase 1 — new shaders
+    # Phase 1 -- new shaders
     @{ src = Join-Path $ShaderDir 'particle_render.vert'; spv = Join-Path $SpvDir 'particle_render_vert.spv'; name='particle_render_vert' }
     @{ src = Join-Path $ShaderDir 'particle_render.frag'; spv = Join-Path $SpvDir 'particle_render_frag.spv'; name='particle_render_frag' }
     @{ src = Join-Path $ShaderDir 'compute_particles.comp'; spv = Join-Path $SpvDir 'compute_particles.spv'; name='compute_particles'; extra='-fshader-stage=compute' }
@@ -303,7 +303,7 @@ foreach ($sf in $ShaderFiles) {
 }
 
 # ------------------------------------------------------------------
-# STEP 2  —  Generate xvk_shaders_generated.h
+# STEP 2  --  Generate xvk_shaders_generated.h
 # ------------------------------------------------------------------
 Write-Host "`n=== STEP 2: Generate $GenHeader ==="
 
@@ -329,7 +329,7 @@ $SymbolNames = @{
 }
 
 $lines = @(
-    '// AUTO-GENERATED — do not edit',
+    '// AUTO-GENERATED -- do not edit',
     '#ifndef XVK_SHADERS_GENERATED_H_',
     '#define XVK_SHADERS_GENERATED_H_',
     ''
@@ -352,7 +352,7 @@ $content = $lines -join "`r`n"
 Write-Host "  Wrote $($ShaderData.Count) shader arrays to $GenHeader"
 
 # ------------------------------------------------------------------
-# STEP 3  —  Compile C bridge to object file
+# STEP 3  --  Compile C bridge to object file
 # ------------------------------------------------------------------
 Write-Host "`n=== STEP 3: Compile C bridge ==="
 
@@ -395,7 +395,7 @@ if ($needRebuild) {
 Write-Host "  -> $BridgeObj"
 
 # ------------------------------------------------------------------
-# STEP 4  —  Build XIOM target with xiom
+# STEP 4  --  Build XIOM target with xiom
 # ------------------------------------------------------------------
 Write-Host "`n=== STEP 4: Build XIOM target ($Target) ==="
 
@@ -423,7 +423,7 @@ $xiomArgs += @(
 
 $xiomArgs += $XiFiles
 $xiomArgs += @('--c-source', $BridgeObj)
-# NOTE: xiom_runtime.c is NOT passed — xiom v0.47.7 auto-injects
+# NOTE: xiom_runtime.c is NOT passed -- xiom v0.47.7 auto-injects
 # runtime symbols; passing it again causes duplicate symbol errors.
 $xiomArgs += @('--link', 'vulkan-1')
 $xiomArgs += @('--link', 'glfw3')

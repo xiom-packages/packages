@@ -1,12 +1,12 @@
-# xiom-opengl — SPEC
+# xiom-opengl -- SPEC
 
 **Phase**: 2 (Scientific) | **Priority**: HIGH
-**Status**: SPEC layer implemented (v0.1.0) — C bridge pending
+**Status**: SPEC layer implemented (v0.1.0) -- C bridge pending
 **Depends on**: xiom.ffi (stdlib), xiom-glfw (window creation)
 **Platform**: Cross-platform (Windows, Linux, macOS)
 
 ## What it wraps
-OpenGL 4.6 — cross-platform graphics API.
+OpenGL 4.6 -- cross-platform graphics API.
 Legacy support for Linux/macOS, embedded systems (OpenGL ES), WebGL transpilation target.
 Used alongside Vulkan for compatibility fallback.
 
@@ -14,9 +14,9 @@ Used alongside Vulkan for compatibility fallback.
 
 | What | How | Size |
 |------|-----|------|
-| OpenGL | System-installed. GPU drivers include it. Windows: `opengl32.lib`. Linux: `libGL.so`. | — |
+| OpenGL | System-installed. GPU drivers include it. Windows: `opengl32.lib`. Linux: `libGL.so`. | -- |
 | GLAD or GLEW | Extension loader. **Bundle glad.c** (single file, 500KB). | ~500KB |
-| C compiler | For building bridge | — |
+| C compiler | For building bridge | -- |
 
 ## Bundling strategy
 **OpenGL is system-installed** (part of GPU drivers). Extension loader (glad) is **bundled** as a single .c file (tiny). GLFW provides the window context (via xiom-glfw).

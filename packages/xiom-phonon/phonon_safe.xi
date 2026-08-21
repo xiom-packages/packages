@@ -9,9 +9,9 @@ module xiom.phonon.safe
 
 use xiom.phonon;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Vector3 Type
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub type Vec3 = {
   x: Float32;
@@ -39,9 +39,9 @@ pub fn Vec3.normalized() -> Vec3 {
   return Vec3{ x: x / len; y: y / len; z: z / len };
 }
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  CoordinateSpace3 Type (right/up/ahead + origin)
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub type CoordSpace3 = {
   right: Vec3;
@@ -59,9 +59,9 @@ pub fn CoordSpace3.listener_default() -> CoordSpace3 {
   };
 }
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  SpeakerLayout Type
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub type SpeakerLayout = {
   type_: Int32;
@@ -84,9 +84,9 @@ pub fn SpeakerLayout.surround_7_1() -> SpeakerLayout {
   return SpeakerLayout{ type_: IPL_SPEAKERLAYOUTTYPE_SURROUND_7_1; numSpeakers: 8 };
 }
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  AudioSettings
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub type AudioSettings = {
   samplingRate: Int32;
@@ -101,9 +101,9 @@ pub fn AudioSettings.low_latency() -> AudioSettings {
   return AudioSettings{ samplingRate: 48000; frameSize: 512 };
 }
 
-// ─────────────────────────────────────────────────────────────
-//  PhononContext — Context Resource
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
+//  PhononContext -- Context Resource
+// -------------------------------------------------------------
 
 pub type PhononContext = {
   handle: IPLContext;
@@ -132,9 +132,9 @@ fn null_context_settings() -> *UInt8 {
   return 0 as *UInt8;
 }
 
-// ─────────────────────────────────────────────────────────────
-//  BinauralRenderer — Binaural Spatialization
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
+//  BinauralRenderer -- Binaural Spatialization
+// -------------------------------------------------------------
 
 pub type BinauralRenderer = {
   context: IPLContext;
@@ -199,9 +199,9 @@ fn null_effect_settings() -> *UInt8 {
   return 0 as *UInt8;
 }
 
-// ─────────────────────────────────────────────────────────────
-//  DirectEffectRenderer — Distance + Occlusion
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
+//  DirectEffectRenderer -- Distance + Occlusion
+// -------------------------------------------------------------
 
 pub type DirectEffectRenderer = {
   context: IPLContext;
@@ -235,9 +235,9 @@ pub fn DirectEffectRenderer.close() {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  Simulator — Real-Time Physics Simulation
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
+//  Simulator -- Real-Time Physics Simulation
+// -------------------------------------------------------------
 
 pub type Simulator = {
   handle: IPLSimulator;
@@ -281,9 +281,9 @@ pub fn Simulator.close() {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  SoundSource — Spatialized Source
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
+//  SoundSource -- Spatialized Source
+// -------------------------------------------------------------
 
 pub type SoundSource = {
   handle: IPLSource;
@@ -321,9 +321,9 @@ fn null_source_settings() -> *UInt8 {
   return 0 as *UInt8;
 }
 
-// ─────────────────────────────────────────────────────────────
-//  AudioBuffer — Managed Audio Buffer
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
+//  AudioBuffer -- Managed Audio Buffer
+// -------------------------------------------------------------
 
 pub type AudioBuffer = {
   handle: Int;
@@ -365,9 +365,9 @@ pub fn AudioBuffer.mix(other: AudioBuffer) {
   unsafe { iplAudioBufferMix(context, &handle as *UInt8, buf_ptr); }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  PanningRenderer — Speaker Panning
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
+//  PanningRenderer -- Speaker Panning
+// -------------------------------------------------------------
 
 pub type PanningRenderer = {
   context: IPLContext;

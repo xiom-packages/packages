@@ -1,10 +1,10 @@
-# xiom-vma — Build Dependency Audit
+# xiom-vma -- Build Dependency Audit
 
 ## Required Dependencies
 
 | Dependency | Version | Purpose |
 |-----------|---------|---------|
-| Vulkan SDK | >= 1.3 | GPU API (headers + loader) — required by VMA |
+| Vulkan SDK | >= 1.3 | GPU API (headers + loader) -- required by VMA |
 | VMA (VulkanMemoryAllocator) | >= 3.3.0 | Memory sub-allocation library (single-header) |
 | clang/LLVM | >= 14 | C bridge compilation |
 | Rust/Cargo | Latest stable | Compiler build (xiom) |
@@ -63,20 +63,20 @@ sudo apt install clang
 
 ```
 packages/xiom-vma/
-├── package.xi              # Package manifest (name, version, deps)
-├── vma.xi                  # Module xiom.vma — raw FFI + core safe wrappers
-├── src/
-│   └── vma_safe.xi         # Module xiom.vma.safe — struct-based wrappers
-├── examples/
-│   └── demo_vma.xi         # Module xiom.vma.demo — compile-time demo
-├── tests/
-│   └── test_vma.xi         # Module xiom.vma.test — 14 test functions
-└── AUDIT.md                # This file
+|-- package.xi              # Package manifest (name, version, deps)
+|-- vma.xi                  # Module xiom.vma -- raw FFI + core safe wrappers
+|-- src/
+|   `-- vma_safe.xi         # Module xiom.vma.safe -- struct-based wrappers
+|-- examples/
+|   `-- demo_vma.xi         # Module xiom.vma.demo -- compile-time demo
+|-- tests/
+|   `-- test_vma.xi         # Module xiom.vma.test -- 14 test functions
+`-- AUDIT.md                # This file
 ```
 
 ## FFI Binding Coverage
 
-### vma.xi — Module `xiom.vma`
+### vma.xi -- Module `xiom.vma`
 
 **All 72 VMA C API functions** from vk_mem_alloc.h v3.3.0 declared in `pub extern "C"` block (cross-module accessible):
 
@@ -101,9 +101,9 @@ packages/xiom-vma/
 
 **Total: 72 extern function declarations.**
 
-### vma_safe.xi — Module `xiom.vma.safe`
+### vma_safe.xi -- Module `xiom.vma.safe`
 
-5 struct‑based resource types using `use xiom.vma` for extern function resolution (cross‑module fixed in v0.46):
+5 struct-based resource types using `use xiom.vma` for extern function resolution (cross-module fixed in v0.46):
 
 | Type | Methods | Contracts |
 |------|---------|-----------|
@@ -113,14 +113,14 @@ packages/xiom-vma/
 | `VmaBuffer` | create, destroy | requires: allocator != 0; ensures: buffer != 0 |
 | `VmaImage` | create, destroy | requires: allocator != 0; ensures: image != 0 |
 
-Utility: `VmaContext` — high‑level lifecycle manager with init/destroy/create_buffer/create_image/create_pool.
+Utility: `VmaContext` -- high-level lifecycle manager with init/destroy/create_buffer/create_image/create_pool.
 
-## Compiler Gap Resolution (v0.45.3 → v0.46.0)
+## Compiler Gap Resolution (v0.45.3 -> v0.46.0)
 
 | Gap | v0.45.3 | v0.46.0 | Resolution |
 |-----|---------|---------|------------|
 | Cross-module extern resolution | T001 error | FIXED | `pub extern "C"` + multi-file compile; `use` imports resolve |
-| Int→Int32 coercion | Required `as Int32` | FIXED | `let x: Int32 = 1;` and `pub const X: Int32 = 1;` work natively |
+| Int->Int32 coercion | Required `as Int32` | FIXED | `let x: Int32 = 1;` and `pub const X: Int32 = 1;` work natively |
 | Hex literals | Caused parse errors | FIXED | `0x00000001` constants compile |
 | Out-parameter move semantics | E001 warnings | E001 (non-fatal) | 29 warnings remain; codegen correct |
 | `()` unit in Result | Not supported | Unchanged | Use `Result[Int, VulkanError]` + `Ok(0)` |
@@ -130,11 +130,11 @@ Utility: `VmaContext` — high‑level lifecycle manager with init/destroy/creat
 ```
 1. Link VMA implementation
    Compile a C file with #define VMA_IMPLEMENTATION + vk_mem_alloc.h include
-   → vma_impl.obj
+   -> vma_impl.obj
 
 2. XIOM Compilation + Link (xiom + clang)
    vma.xi + src/vma_safe.xi + examples/*.xi + vma_impl.obj + vulkan-1.lib
-   → final executable
+   -> final executable
 ```
 
 ## Compile Status (2026-07-17, v0.46.0)
@@ -172,11 +172,11 @@ All files compile with `xiom --diagnostics=json`: **`{"status":"ok"}`**, 0 T001/
 
 ### Remaining Gap (v0.46.0)
 
-Only E001 borrow warnings (29 total, all non-fatal). The root cause is the borrow checker treating extern function pointer parameters as moves rather than borrows. Codegen is correct — verified with `vulkan_safe.xi` reference which has identical E001 patterns. Tracked in `docs/ROADMAP.md §5c.14`.
+Only E001 borrow warnings (29 total, all non-fatal). The root cause is the borrow checker treating extern function pointer parameters as moves rather than borrows. Codegen is correct -- verified with `vulkan_safe.xi` reference which has identical E001 patterns. Tracked in `docs/ROADMAP.md S5c.14`.
 
 ## Known Limitations
 
-- VMA requires a valid Vulkan instance/device — compile‑time demos cannot create real allocators
+- VMA requires a valid Vulkan instance/device -- compile-time demos cannot create real allocators
 - Build requires a C compiler (clang) to compile the VMA implementation
-- No Vulkan function pointer tables are managed — VMA calls `vk*` functions through its internal dispatch
+- No Vulkan function pointer tables are managed -- VMA calls `vk*` functions through its internal dispatch
 - Statistical/JSON dump strings require `VMA_STATS_STRING_ENABLED` preprocessor define

@@ -367,7 +367,7 @@ int64_t xvk_font_render_text(int64_t font, const char* text,
         return (int64_t)(intptr_t)pixels;
     }
 
-    /* ── Built-in bitmap fallback ── */
+    /* -- Built-in bitmap fallback -- */
     int cell_w = f->glyph_cell_w;
     int cell_h = f->glyph_cell_h;
     int px_w = cell_w * text_len + 4;
@@ -422,7 +422,7 @@ void xvk_font_free_pixels(int64_t pixels)
 }
 
 /* ========================================================================
- * Procedural texture generators — RGBA8 pixel buffers.
+ * Procedural texture generators -- RGBA8 pixel buffers.
  * Useful for UI backgrounds, button faces, gradients without external files.
  * All returned buffers are malloc'd; caller must free with xvk_free_pixels.
  * ======================================================================== */

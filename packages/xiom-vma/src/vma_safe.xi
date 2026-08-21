@@ -1,4 +1,4 @@
-// XIOM — Vulkan Memory Allocator Safe Wrappers
+// XIOM -- Vulkan Memory Allocator Safe Wrappers
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -8,7 +8,7 @@
 // COVERAGE: 5 resource types spanning the full VMA lifecycle:
 //   VmaAllocator, VmaAllocation, VmaPool, VmaBuffer, VmaImage
 //
-// Compiler: XIOM v0.46.0 — cross-module extern resolution fixed.
+// Compiler: XIOM v0.46.0 -- cross-module extern resolution fixed.
 // Uses `pub extern "C"` declarations from xiom.vma via `use xiom.vma`.
 
 module xiom.vma.safe
@@ -24,7 +24,7 @@ pub type VulkanError = {
 } derive[Clone]
 
 // =========================================================================
-// VmaAllocator — central allocator object
+// VmaAllocator -- central allocator object
 // =========================================================================
 
 pub type VmaAllocator = {
@@ -116,7 +116,7 @@ pub fn VmaAllocator.get_memory_type_properties(memory_type_index: Int32, flags_p
 }
 
 // =========================================================================
-// VmaAllocation — a memory allocation
+// VmaAllocation -- a memory allocation
 // =========================================================================
 
 pub type VmaAllocation = {
@@ -220,7 +220,7 @@ pub fn VmaAllocation.bind_image(image: Int) -> Result[Int, VulkanError]
 }
 
 // =========================================================================
-// VmaPool — a custom memory pool
+// VmaPool -- a custom memory pool
 // =========================================================================
 
 pub type VmaPool = {
@@ -267,7 +267,7 @@ pub fn VmaPool.set_name(p_name: Int)
 }
 
 // =========================================================================
-// VmaBuffer — a VkBuffer created and managed by VMA
+// VmaBuffer -- a VkBuffer created and managed by VMA
 // =========================================================================
 
 pub type VmaBuffer = {
@@ -294,7 +294,7 @@ pub fn VmaBuffer.destroy()
 }
 
 // =========================================================================
-// VmaImage — a VkImage created and managed by VMA
+// VmaImage -- a VkImage created and managed by VMA
 // =========================================================================
 
 pub type VmaImage = {
@@ -340,7 +340,7 @@ pub fn end_defragmentation(allocator: Int, context: Int)
 }
 
 // =========================================================================
-// VmaContext — high-level lifecycle manager
+// VmaContext -- high-level lifecycle manager
 // =========================================================================
 
 pub type VmaContext = {

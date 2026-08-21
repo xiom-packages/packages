@@ -1,4 +1,4 @@
-# xiom-libpq — Roadmap
+# xiom-libpq -- Roadmap
 
 ## Phase 1: Pure SPEC Layer
 
@@ -6,7 +6,7 @@
 - [x] Opaque handle types (`PgConnection`, `PgResult`)
 - [x] Status/result constant definitions (CONNECTION_OK, PGRES_TUPLES_OK, etc.)
 - [x] Safe wrapper functions with full `requires` contracts
-- [x] All FFI wrappers return `Err` (stub mode — no C bridge linked)
+- [x] All FFI wrappers return `Err` (stub mode -- no C bridge linked)
 - [x] Transaction helpers: `begin`, `commit`, `rollback` delegate to `exec`
 - [x] 30 conformance tests covering types, error paths, async stubs, transactions
 - [x] SPEC.md updated to reflect implementation status
@@ -15,10 +15,10 @@
 
 ## Phase 2: C Bridge Integration
 
-- [ ] Implement `libpq_bridge.c` — thin C shim that maps XIOM opaque Int handles to `PGconn*`/`PGresult*` pointers
+- [ ] Implement `libpq_bridge.c` -- thin C shim that maps XIOM opaque Int handles to `PGconn*`/`PGresult*` pointers
 - [ ] Wire `extern "C"` stubs through the bridge: `PQconnectdb`, `PQfinish`, `PQstatus`, `PQerrorMessage`
 - [ ] Replace stub bodies with real FFI calls via `unsafe` blocks
-- [ ] String marshalling: `PQerrorMessage`/`PQfname`/`PQgetvalue` raw `*UInt8` → `Str` conversion using `xiom.string` helpers
+- [ ] String marshalling: `PQerrorMessage`/`PQfname`/`PQgetvalue` raw `*UInt8` -> `Str` conversion using `xiom.string` helpers
 - [ ] `connect` returns `Ok(handle)` on success, `Err(error_message)` on failure
 - [ ] `exec`/`exec_params` return parsed results
 
@@ -29,7 +29,7 @@
 - [ ] Full `exec_params` with OID types, binary formats, result format
 - [ ] `send_query`/`get_result` async pipeline: non-blocking I/O with `PQconsumeInput` polling
 - [ ] `PQsendQueryParams`, `PQsendPrepare`, `PQgetResult` chain for pipelined execution
-- [ ] Error mapping: `PQresultStatus` → structured error types
+- [ ] Error mapping: `PQresultStatus` -> structured error types
 - [ ] `PQcmdStatus`, `PQcmdTuples`, `PQoidValue` for DML feedback
 
 **Effort:** 1 day

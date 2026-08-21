@@ -1,6 +1,6 @@
 # xiom-diagrams
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Diagram and graph rendering formats.
 > **Deps:** stdlib; may wrap C (FFI).
 

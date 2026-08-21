@@ -1,6 +1,6 @@
 # xiom-sanitize
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Input sanitization and validation rules.
 > **Deps:** stdlib; may wrap C (FFI).
 

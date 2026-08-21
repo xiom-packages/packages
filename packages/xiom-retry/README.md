@@ -1,6 +1,6 @@
 # xiom-retry
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Retry, backoff, and circuit-breaking policies for resilient calls.
 > **Deps:** stdlib; may wrap C (FFI).
 

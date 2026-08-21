@@ -6,33 +6,33 @@ Full API reference for the XIOM shared durable-systems substrate. xiom-core is a
 
 ```
 packages/xiom-core/
-├── package.xi                       Package manifest (deps: xiom-std)
-├── README.md · ARCHITECTURE.md · ROADMAP.md · SPEC.md
-├── docs/contracts-and-invariants.md
-└── src/
-    ├── error.xi        xiom.core.error
-    ├── result.xi       xiom.core.result
-    ├── ids.xi          xiom.core.ids
-    ├── limits.xi       xiom.core.limits
-    ├── config.xi       xiom.core.config
-    ├── contracts.xi    xiom.core.contracts
-    ├── metrics.xi      xiom.core.metrics
-    ├── version.xi      xiom.core.version
-    ├── storage/        page · checksum · pager · buffer_pool
-    ├── wal/            lsn · wal_record · wal_writer · wal_reader · checkpoint · recovery
-    └── txn/            txn_state · txn_manager · snapshot
+|-- package.xi                       Package manifest (deps: xiom-std)
+|-- README.md - ARCHITECTURE.md - ROADMAP.md - SPEC.md
+|-- docs/contracts-and-invariants.md
+`-- src/
+    |-- error.xi        xiom.core.error
+    |-- result.xi       xiom.core.result
+    |-- ids.xi          xiom.core.ids
+    |-- limits.xi       xiom.core.limits
+    |-- config.xi       xiom.core.config
+    |-- contracts.xi    xiom.core.contracts
+    |-- metrics.xi      xiom.core.metrics
+    |-- version.xi      xiom.core.version
+    |-- storage/        page - checksum - pager - buffer_pool
+    |-- wal/            lsn - wal_record - wal_writer - wal_reader - checkpoint - recovery
+    `-- txn/            txn_state - txn_manager - snapshot
 ```
 
 ### Module dependency graph
 
 ```
 error, result, ids, limits, contracts, metrics, version   (foundation, self-contained)
-contracts ──► config
-storage/page ──► storage/pager
+contracts --> config
+storage/page --> storage/pager
 storage/checksum, storage/buffer_pool
-wal/lsn, wal/wal_record ──► wal/wal_writer ──► wal/wal_reader, wal/recovery
+wal/lsn, wal/wal_record --> wal/wal_writer --> wal/wal_reader, wal/recovery
 wal/checkpoint
-txn/txn_state ──► txn/txn_manager
+txn/txn_state --> txn/txn_manager
 txn/snapshot
 ```
 
@@ -43,7 +43,7 @@ txn/snapshot
 Canonical error type. No hidden failure channels; fallible functions return `Result[T, CoreError]`.
 
 ### Enum `CoreError`
-`NotFound` · `InvalidInput(msg: Str)` · `OutOfBounds` · `Corruption(msg: Str)` · `IOFailure(msg: Str)` · `Unsupported(msg: Str)` · `CapacityExceeded` · `InvalidState(msg: Str)` · `ChecksumMismatch` · `VersionMismatch`
+`NotFound` - `InvalidInput(msg: Str)` - `OutOfBounds` - `Corruption(msg: Str)` - `IOFailure(msg: Str)` - `Unsupported(msg: Str)` - `CapacityExceeded` - `InvalidState(msg: Str)` - `ChecksumMismatch` - `VersionMismatch`
 
 ### Functions
 | Signature | Returns | Description |
@@ -58,7 +58,7 @@ Canonical error type. No hidden failure channels; fallible functions return `Res
 `Result[T, E]` is built-in. Engine convention: return `Result[T, CoreError]`, propagate with `?`, construct with `Ok(v)` / `Err(e)`.
 
 ### Type `ResultInfo`
-`{ succeeded: Bool; error_code: Int; }` — plain-old-data summary for FFI/wire boundaries (`error_code == 0` on success).
+`{ succeeded: Bool; error_code: Int; }` -- plain-old-data summary for FFI/wire boundaries (`error_code == 0` on success).
 
 ### Functions
 | Signature | Returns | Description |
@@ -74,7 +74,7 @@ Canonical error type. No hidden failure channels; fallible functions return `Res
 Strong identifiers as single-field struct wrappers (bare primitive aliases do not compile). All derive `[Clone, Eq]`.
 
 ### Types
-`PageId` · `Lsn` · `SegmentId` · `TxnId` · `CollectionId` · `VectorId` · `ShardId` — each `{ value: Int; }`.
+`PageId` - `Lsn` - `SegmentId` - `TxnId` - `CollectionId` - `VectorId` - `ShardId` -- each `{ value: Int; }`.
 
 ### Functions
 | Signature | Returns | Description |
@@ -88,11 +88,11 @@ Strong identifiers as single-field struct wrappers (bare primitive aliases do no
 | `lsn_lt(a: &Lsn, b: &Lsn)` | `Bool` | `a < b` |
 | `lsn_eq(a: &Lsn, b: &Lsn)` | `Bool` | Equality |
 | `lsn_zero()` | `Lsn` | `Lsn{ value: 0 }` |
-| `segment_id / _value / _eq` | — | Construct / unwrap / equality |
-| `txn_id / _value / _eq / _next` | — | Construct / unwrap / equality / increment |
-| `collection_id / _value / _eq` | — | Construct / unwrap / equality |
-| `vector_id / _value / _eq` | — | Construct / unwrap / equality |
-| `shard_id / _value / _eq` | — | Construct / unwrap / equality |
+| `segment_id / _value / _eq` | -- | Construct / unwrap / equality |
+| `txn_id / _value / _eq / _next` | -- | Construct / unwrap / equality / increment |
+| `collection_id / _value / _eq` | -- | Construct / unwrap / equality |
+| `vector_id / _value / _eq` | -- | Construct / unwrap / equality |
+| `shard_id / _value / _eq` | -- | Construct / unwrap / equality |
 
 ---
 
@@ -137,10 +137,10 @@ Shared predicate helpers.
 | Signature | Returns | Rule |
 |-----------|---------|------|
 | `is_power_of_two(n: Int)` | `Bool` | n > 0 and a power of two |
-| `is_valid_page_size(size: Int)` | `Bool` | power of 2, 512–65536 |
-| `is_valid_dimension(dim: Int)` | `Bool` | 1–65536 |
-| `is_valid_key_size(size: Int)` | `Bool` | 1–4096 |
-| `is_valid_top_k(k: Int)` | `Bool` | 1–10000 |
+| `is_valid_page_size(size: Int)` | `Bool` | power of 2, 512-65536 |
+| `is_valid_dimension(dim: Int)` | `Bool` | 1-65536 |
+| `is_valid_key_size(size: Int)` | `Bool` | 1-4096 |
+| `is_valid_top_k(k: Int)` | `Bool` | 1-10000 |
 | `is_valid_lsn_ordering(prev: Int, next: Int)` | `Bool` | `next > prev` |
 | `is_sorted_ints(v: &Vec[Int])` | `Bool` | non-decreasing |
 
@@ -215,7 +215,7 @@ FNV-1a 32-bit over the low byte of each slot.
 | `pager_alloc_page(p: &mut Pager) -> Int` | Allocate zeroed page, return id |
 | `pager_read_page(p: &Pager, id: Int) -> Option[Page]` | Read by id, `None` if out of range |
 | `pager_page_count(p: &Pager) -> Int` | Allocated page count |
-| `pager_flush(p: &Pager) -> Bool` | **Stub** — `TODO(Phase 2)` disk fsync via FFI; returns `true` |
+| `pager_flush(p: &Pager) -> Bool` | **Stub** -- `TODO(Phase 2)` disk fsync via FFI; returns `true` |
 
 ## Module: `xiom.core.storage.buffer_pool`
 
@@ -227,7 +227,7 @@ FNV-1a 32-bit over the low byte of each slot.
 | `buffer_pool_new(capacity: Int) -> BufferPool` | Empty cache |
 | `buffer_pool_get(bp: &mut BufferPool, page_id: Int) -> Option[Page]` | Lookup; updates hit/miss |
 | `buffer_pool_put(bp: &mut BufferPool, page: Page)` | Insert/replace; placeholder eviction (`TODO(Phase 1)`) |
-| `buffer_pool_hit_ratio(bp: &BufferPool) -> Int` | Hit percentage 0–100 |
+| `buffer_pool_hit_ratio(bp: &BufferPool) -> Int` | Hit percentage 0-100 |
 
 ---
 
@@ -244,7 +244,7 @@ FNV-1a 32-bit over the low byte of each slot.
 ## Module: `xiom.core.wal.wal_record`
 
 ### Enum `WalOpKind`
-`Insert` · `Update` · `Delete` · `SegmentSeal` · `ManifestUpdate` · `Checkpoint` · `SnapshotMarker`
+`Insert` - `Update` - `Delete` - `SegmentSeal` - `ManifestUpdate` - `Checkpoint` - `SnapshotMarker`
 
 ### Type `WalRecord`
 `{ lsn: Int; op: WalOpKind; key: Int; value: Int; payload: Vec[Int]; timestamp: Int; }`
@@ -262,7 +262,7 @@ FNV-1a 32-bit over the low byte of each slot.
 |-----------|-------------|
 | `wal_writer_new() -> WalWriter` | Empty writer, `next_lsn = 1` |
 | `wal_writer_append(w: &mut WalWriter, op: WalOpKind, key: Int, value: Int) -> Int` | Append, return assigned LSN |
-| `wal_writer_flush(w: &mut WalWriter) -> Bool` | **Stub** — sets `synced_lsn = next_lsn - 1`; `TODO(Phase 2)` fsync via FFI |
+| `wal_writer_flush(w: &mut WalWriter) -> Bool` | **Stub** -- sets `synced_lsn = next_lsn - 1`; `TODO(Phase 2)` fsync via FFI |
 | `wal_writer_current_lsn(w: &WalWriter) -> Int` | Last assigned LSN |
 | `wal_writer_synced_lsn(w: &WalWriter) -> Int` | Last durable LSN |
 
@@ -295,7 +295,7 @@ FNV-1a 32-bit over the low byte of each slot.
 ## Module: `xiom.core.txn.txn_state`
 
 ### Enum `TxnStateKind`
-`Open` · `Prepared` · `Committed` · `Aborted` · `Recovered`
+`Open` - `Prepared` - `Committed` - `Aborted` - `Recovered`
 
 | Signature | Description |
 |-----------|-------------|
@@ -331,5 +331,5 @@ FNV-1a 32-bit over the low byte of each slot.
 
 - **Errors:** every fallible function returns `Result[T, CoreError]`; use `?` to propagate.
 - **IDs:** never pass raw `Int` where a typed ID exists.
-- **Durability:** honour WAL-before-ack — flush before acknowledging a write.
+- **Durability:** honour WAL-before-ack -- flush before acknowledging a write.
 - **Scaffolded surfaces** (`pager_flush`, `wal_writer_flush` fsync, `recovery_scan` torn-page, buffer-pool eviction) are marked `TODO(Phase N)` and are the only non-final APIs.

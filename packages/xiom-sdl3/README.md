@@ -1,6 +1,6 @@
 # xiom-sdl3
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** SDL3 cross-platform multimedia bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

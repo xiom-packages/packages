@@ -1,6 +1,6 @@
 # xiom-puppet
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Declarative configuration management (manifests, modules, hiera, reporting).
 > **Deps:** stdlib; may wrap C (FFI).
 

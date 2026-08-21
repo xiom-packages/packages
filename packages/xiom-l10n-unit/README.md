@@ -1,6 +1,6 @@
 # xiom-l10n-unit
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Locale-aware measurement unit formatting, conversion, and singular/plural labeling.
 > **Deps:** stdlib; may wrap C (FFI).
 

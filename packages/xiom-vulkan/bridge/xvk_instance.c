@@ -69,7 +69,7 @@ VkInstance create_instance(const char* app_name, int* have_validation)
     return inst;
 }
 
-/* Phase 8.5: Headless instance creation — no GLFW, no surface.
+/* Phase 8.5: Headless instance creation -- no GLFW, no surface.
  * Uses VK_EXT_headless_surface if available (optional, for drivers that require
  * a surface extension to create a device). Does NOT call glfwInit or
  * glfwGetRequiredInstanceExtensions. Safe to use on CI servers and headless VMs. */
@@ -86,7 +86,7 @@ VkInstance create_instance_headless(const char* app_name, int* have_validation)
     app_info.apiVersion = VK_API_VERSION_1_3;
 
     /* Minimal extensions for headless: no surface, no swapchain needed.
-     * VK_EXT_headless_surface is optional — some GPU drivers require a surface
+     * VK_EXT_headless_surface is optional -- some GPU drivers require a surface
      * extension to be enabled even for device-level operations. */
     const char* headless_exts[] = {
         "VK_EXT_headless_surface",
@@ -118,7 +118,7 @@ VkInstance create_instance_headless(const char* app_name, int* have_validation)
                 ext_count = 1;
             }
             /* If headless surface not available, proceed with zero extensions.
-             * Most GPUs handle this correctly — the device can be created
+             * Most GPUs handle this correctly -- the device can be created
              * without any instance extensions. */
         }
     }
@@ -239,7 +239,7 @@ VkDevice create_device(VkPhysicalDevice pd, uint32_t gfx_family,
     const char* dev_exts[4];
     int n_dev_exts = 0;
     dev_exts[n_dev_exts++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
-    /* VK_EXT_debug_marker is optional — skip if unavailable */
+    /* VK_EXT_debug_marker is optional -- skip if unavailable */
 
     VkPhysicalDeviceFeatures features = {0};
     features.samplerAnisotropy = VK_TRUE;

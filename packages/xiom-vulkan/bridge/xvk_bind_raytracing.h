@@ -4,14 +4,14 @@
 #include <stdint.h>
 
 /*
- * xvk_bind_raytracing — flat C ABI over the Vulkan ray tracing extensions:
+ * xvk_bind_raytracing -- flat C ABI over the Vulkan ray tracing extensions:
  *
  *   VK_KHR_acceleration_structure
  *   VK_KHR_ray_tracing_pipeline
  *   VK_NV_ray_tracing            (legacy)
  *   VK_EXT_micromap              (VK_EXT_opacity_micromap headers required)
  *
- * Conventions (raw binding layer — no bridge-side wrapper objects):
+ * Conventions (raw binding layer -- no bridge-side wrapper objects):
  *   - `device` / `cmd_buf` are raw VkDevice / VkCommandBuffer handles.
  *   - All other handle parameters (pipeline, query_pool, deferred_op, ...)
  *     are raw non-dispatchable Vulkan handles (64-bit), 0 = VK_NULL_HANDLE.
@@ -27,7 +27,7 @@
  * Extension function pointers are resolved through vkGetDeviceProcAddr and
  * cached per device. Device-level entry points (re)load the cache on demand.
  * Command-buffer entry points (`xvk_cmd_*`) use the cache of the most
- * recently referenced device — call xvk_raytracing_load_device_procs()
+ * recently referenced device -- call xvk_raytracing_load_device_procs()
  * once after device creation (or any device-level function of this module)
  * before recording ray tracing commands.
  *

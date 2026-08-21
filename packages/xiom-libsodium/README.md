@@ -1,6 +1,6 @@
 # xiom-libsodium
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** libsodium FFI bindings for modern crypto primitives.
 > **Deps:** stdlib; may wrap C (FFI).
 

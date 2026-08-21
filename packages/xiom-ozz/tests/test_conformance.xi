@@ -1,4 +1,4 @@
-// XIOM — Ozz-Animation Conformance Tests
+// XIOM -- Ozz-Animation Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -17,9 +17,9 @@ module ozz_conformance
 use xiom.io;
 use xiom.test;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Stub types matching xiom.ozz.safe public API
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub type Float3 = (Float32, Float32, Float32);
 pub type Quaternion = (Float32, Float32, Float32, Float32);
@@ -36,17 +36,17 @@ pub type OfflineBuilder = Int;
 pub type AnimationOfflineBuilder = Int;
 pub type AnimationPlayer = Int;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Constants (matching xiom.ozz public constants)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub const OZZ_MAX_JOINTS: Int32 = 1024;
 pub const OZZ_NO_PARENT: Int32 = -1;
 pub const OZZ_MAX_TRACKS: Int32 = 65535;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Helpers
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn int_to_str(n: Int) -> Str
   requires: n >= 0;
@@ -83,10 +83,10 @@ fn report(passed: Bool, name: Str) -> Int
   return 1;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // xiom.ozz.safe public function stubs with contracts
-// ═══════════════════════════════════════════════════════════════════════════
-// Documented from ozz_safe.xi — 30 public functions across 10 types
+// ===========================================================================
+// Documented from ozz_safe.xi -- 30 public functions across 10 types
 
 pub fn skeleton_from_archive(archive_data: Int, archive_size: Int) -> Result[Skeleton, OzzError]
   requires: archive_data != 0;
@@ -296,10 +296,10 @@ pub fn animation_player_destroy(player: Int)
   return;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // xiom.ozz procedural public function stubs with contracts
-// ═══════════════════════════════════════════════════════════════════════════
-// 46 public functions — documented from ozz.xi
+// ===========================================================================
+// 46 public functions -- documented from ozz.xi
 
 pub fn ozz_skeleton_load(archive_data: Int, archive_size: Int) -> Result[Int, Str]
   requires: archive_data != 0;
@@ -644,9 +644,9 @@ pub fn ozz_archive_read_close(handle: Int)
   return;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// 1. Value Types — tuple construction and field access
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// 1. Value Types -- tuple construction and field access
+// ===========================================================================
 
 fn run_float3_construct() -> Int {
   let v: Float3 = (1.0, 2.0, 3.0);
@@ -706,9 +706,9 @@ fn test_blendlayer_zero_weight() -> TestResult {
   return assert(false, "contract: blend_layer_create rejected zero weight");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// 2. Safe Module — create/destroy lifecycle (graceful failure)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// 2. Safe Module -- create/destroy lifecycle (graceful failure)
+// ===========================================================================
 
 fn run_offlinebuilder_create_destroy() -> Int {
   match offline_builder_create() {
@@ -869,9 +869,9 @@ fn test_samplingcontext_reset() -> TestResult {
   return assert(false, "safe: sampling_context_reset crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// 3. Procedural Module — create/destroy lifecycle
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// 3. Procedural Module -- create/destroy lifecycle
+// ===========================================================================
 
 fn run_skeleton_load_null() -> Int {
   match ozz_skeleton_load(0, 100) {
@@ -995,9 +995,9 @@ fn test_animation_builder_set_iframe_interval() -> TestResult {
   return assert(false, "proc: ozz_animation_builder_set_iframe_interval crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// 4. Track loaders — all 5 track types with null/zero contracts
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// 4. Track loaders -- all 5 track types with null/zero contracts
+// ===========================================================================
 
 fn run_float_track_load_null() -> Int {
   match ozz_float_track_load(0, 100) {
@@ -1064,9 +1064,9 @@ fn test_quaternion_track_load_null() -> TestResult {
   return assert(false, "proc: ozz_quaternion_track_load with null data unexpectedly succeeded");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// 5. Builder build — null/zero raw data contracts
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// 5. Builder build -- null/zero raw data contracts
+// ===========================================================================
 
 fn run_skeleton_builder_build_null() -> Int {
   match ozz_skeleton_builder_create() {
@@ -1125,9 +1125,9 @@ fn test_animation_builder_build_null() -> TestResult {
   return assert(false, "proc: ozz_animation_builder_build with null data unexpectedly succeeded");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 6. Animation time_ratio boundary test
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_animation_time_ratio_boundary() -> Int {
   match animation_from_archive(1, 100) {
@@ -1149,9 +1149,9 @@ fn test_animation_time_ratio_boundary() -> TestResult {
   return assert(false, "contract: animation_time_ratio out of bounds");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 7. Constants
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_constants() -> Int {
   if OZZ_MAX_JOINTS != 1024 { return 1; }
@@ -1166,9 +1166,9 @@ fn test_constants() -> TestResult {
   return assert(false, "constants: values incorrect");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 8. AnimationPlayer init/sample/destroy lifecycle
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_animation_player_init_failure() -> Int {
   match skeleton_from_archive(1, 100) {
@@ -1261,9 +1261,9 @@ fn test_animation_player_sample_at_time() -> TestResult {
   return assert(false, "safe: animation_player_sample_at_time crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// 9. Procedural Job Contracts — compile-time verification
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// 9. Procedural Job Contracts -- compile-time verification
+// ===========================================================================
 
 fn run_skin_vertices_contract_present() -> Int {
   let ok = ozz_skin_vertices(1, 4, 0x100, 0x200, 0x300, 16, 0x400, 16, 0x500, 12, 0x600, 12, 0x700, 12, 0x800, 12, 0x900, 12, 0xA00, 12);
@@ -1349,9 +1349,9 @@ fn test_sample_animation_contract_present() -> TestResult {
   return assert(false, "proc: ozz_sample_animation crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 10. Track sample contracts
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_float_track_sample_contract() -> Int {
   let ok = ozz_float_track_sample(0x100, 0.5, 0x200);
@@ -1377,9 +1377,9 @@ fn test_quaternion_track_sample_contract() -> TestResult {
   return assert(false, "proc: ozz_quaternion_track_sample crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 11. Track destroy contracts
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_float_track_destroy_contract() -> Int {
   match ozz_float_track_load(1, 100) {
@@ -1395,9 +1395,9 @@ fn test_float_track_destroy_contract() -> TestResult {
   return assert(false, "proc: ozz_float_track_destroy contract missing");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 12. Resize contracts (procedural)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_proc_sampling_context_resize_zero() -> Int {
   match ozz_sampling_context_create(10) {
@@ -1450,9 +1450,9 @@ fn test_archive_read_close_contract() -> TestResult {
   return assert(false, "proc: ozz_archive_read_close contract missing");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 13. Offline builder build_skeleton contract (safe API)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_offline_builder_build_null() -> Int {
   match offline_builder_create() {
@@ -1473,9 +1473,9 @@ fn test_offline_builder_build_null() -> TestResult {
   return assert(false, "safe: offline_builder_build_skeleton with null data unexpectedly succeeded");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Main
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn main() -> Int {
   io.println("=== XIOM Ozz-Animation Conformance Tests ===");

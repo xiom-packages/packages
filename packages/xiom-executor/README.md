@@ -1,6 +1,6 @@
 # xiom-executor
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Task execution engine with futures and continuation support.
 > **Deps:** stdlib; may wrap C (FFI).
 

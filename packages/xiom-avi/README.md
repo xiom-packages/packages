@@ -1,6 +1,6 @@
 # xiom-avi
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** AVI container: RIFF-based demuxing, muxing, and index handling.
 > **Deps:** stdlib; may wrap C (FFI).
 

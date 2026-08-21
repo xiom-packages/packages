@@ -1,6 +1,6 @@
 # xiom-elastic
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Elasticsearch client.
 > **Deps:** stdlib; may wrap C (FFI).
 

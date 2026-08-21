@@ -1,4 +1,4 @@
-// XIOM — Gazebo Simulation Conformance Test Suite
+// XIOM -- Gazebo Simulation Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -30,7 +30,7 @@ fn has_gazebo() -> Bool {
 }
 
 // =========================================================================
-// SECTION 1 — Type declarations (4 tests)
+// SECTION 1 -- Type declarations (4 tests)
 // =========================================================================
 
 fn test_type_world() -> TestResult {
@@ -58,7 +58,7 @@ fn test_type_sensor() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 2 — API function compile-time presence (14 tests)
+// SECTION 2 -- API function compile-time presence (14 tests)
 // =========================================================================
 
 fn test_api_init() -> TestResult {
@@ -118,7 +118,7 @@ fn test_api_sensor_read() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 3 — Contract declaration presence (14 tests)
+// SECTION 3 -- Contract declaration presence (14 tests)
 // =========================================================================
 
 fn test_contract_init() -> TestResult {
@@ -178,7 +178,7 @@ fn test_contract_constants() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 4 — Constant values (3 tests)
+// SECTION 4 -- Constant values (3 tests)
 // =========================================================================
 
 fn test_const_joint_types() -> TestResult {
@@ -196,7 +196,7 @@ fn test_const_distinct() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 5 — Runtime behavior (10 tests)
+// SECTION 5 -- Runtime behavior (10 tests)
 // =========================================================================
 
 // -- Init / Shutdown --
@@ -473,7 +473,7 @@ fn test_runtime_multiple_worlds() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 6 — Edge cases (2 tests)
+// SECTION 6 -- Edge cases (2 tests)
 // =========================================================================
 
 fn run_edge_zero_gravity() -> Int {
@@ -518,7 +518,7 @@ fn test_runtime_identity_pose() -> TestResult {
 }
 
 // =========================================================================
-// Main — manual test dispatch
+// Main -- manual test dispatch
 // =========================================================================
 
 pub fn main() -> Int {

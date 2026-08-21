@@ -197,7 +197,7 @@ void xvk_mesh_draw(int64_t app_h, int64_t mesh) {
     /* Requires caller to bind pipeline + push constants first.
      * This just binds vertex/index buffers and draws. */
     XvkMesh* m = (XvkMesh*)(intptr_t)mesh;
-    /* Stub — actual draw requires pipeline binding from caller */
+    /* Stub -- actual draw requires pipeline binding from caller */
     (void)app_h; (void)m;
 }
 

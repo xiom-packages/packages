@@ -9,7 +9,7 @@
  * Provides a self-contained texture upload pipeline that:
  *   1. Creates a staging buffer and copies pixel data from CPU memory
  *   2. Creates a device-local GPU image with TRANSFER_DST|SAMPLED usage
- *   3. Records a one-shot command buffer: layout transition → copy → transition
+ *   3. Records a one-shot command buffer: layout transition -> copy -> transition
  *   4. Optionally generates mipmaps via vkCmdBlitImage
  *   5. Creates an image view and default sampler
  *

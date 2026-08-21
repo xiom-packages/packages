@@ -1,6 +1,6 @@
 # xiom-realtime Architecture
 
-> **Status: Design stage — specification only, not yet implemented. Depends on `xiom-websocket` (transport) and `xiom-micro` (distributed fan-out).**
+> **Status: Design stage -- specification only, not yet implemented. Depends on `xiom-websocket` (transport) and `xiom-micro` (distributed fan-out).**
 
 `xiom-realtime` is the application-level realtime package for the XIOM ecosystem. It sits above `xiom-websocket` and turns low-level transport, pub/sub fan-out, and presence mechanics into reusable realtime building blocks such as channels, rooms, subscriptions, typing indicators, live updates, and broadcast orchestration.
 
@@ -41,56 +41,56 @@ The package is intentionally separate from transport because realtime product lo
 
 ```text
 xiom-realtime/
-├── package.xi
-├── README.md
-├── ARCHITECTURE.md
-├── SPEC.md
-├── docs/
-│   ├── channels.md
-│   ├── rooms.md
-│   ├── presence.md
-│   ├── fanout.md
-│   ├── ordering.md
-│   ├── ephemeral-events.md
-│   ├── authorization.md
-│   ├── offline-sync.md
-│   └── scaling.md
-├── src/
-│   ├── mod.xi
-│   ├── channel.xi
-│   ├── room.xi
-│   ├── membership.xi
-│   ├── subscription.xi
-│   ├── presence.xi
-│   ├── event.xi
-│   ├── broadcast.xi
-│   ├── fanout.xi
-│   ├── ordering.xi
-│   ├── auth.xi
-│   ├── typing.xi
-│   ├── activity.xi
-│   ├── offline.xi
-│   ├── policy.xi
-│   ├── integration/
-│   │   ├── mod.xi
-│   │   ├── websocket_bridge.xi
-│   │   ├── micro_bridge.xi
-│   │   └── storage_bridge.xi
-│   ├── workflows/
-│   │   ├── mod.xi
-│   │   ├── chat.xi
-│   │   ├── collaboration.xi
-│   │   └── notifications.xi
-│   └── testing/
-│       ├── mod.xi
-│       ├── fixtures.xi
-│       └── fake_bus.xi
-└── tests/
-    ├── channels/
-    ├── presence/
-    ├── ordering/
-    ├── fanout/
-    └── offline/
+|-- package.xi
+|-- README.md
+|-- ARCHITECTURE.md
+|-- SPEC.md
+|-- docs/
+|   |-- channels.md
+|   |-- rooms.md
+|   |-- presence.md
+|   |-- fanout.md
+|   |-- ordering.md
+|   |-- ephemeral-events.md
+|   |-- authorization.md
+|   |-- offline-sync.md
+|   `-- scaling.md
+|-- src/
+|   |-- mod.xi
+|   |-- channel.xi
+|   |-- room.xi
+|   |-- membership.xi
+|   |-- subscription.xi
+|   |-- presence.xi
+|   |-- event.xi
+|   |-- broadcast.xi
+|   |-- fanout.xi
+|   |-- ordering.xi
+|   |-- auth.xi
+|   |-- typing.xi
+|   |-- activity.xi
+|   |-- offline.xi
+|   |-- policy.xi
+|   |-- integration/
+|   |   |-- mod.xi
+|   |   |-- websocket_bridge.xi
+|   |   |-- micro_bridge.xi
+|   |   `-- storage_bridge.xi
+|   |-- workflows/
+|   |   |-- mod.xi
+|   |   |-- chat.xi
+|   |   |-- collaboration.xi
+|   |   `-- notifications.xi
+|   `-- testing/
+|       |-- mod.xi
+|       |-- fixtures.xi
+|       `-- fake_bus.xi
+`-- tests/
+    |-- channels/
+    |-- presence/
+    |-- ordering/
+    |-- fanout/
+    `-- offline/
 ```
 
 > The `src/` and `tests/` trees describe the **planned** module layout. This package is design-stage: no `.xi` implementation source exists yet.
@@ -149,9 +149,9 @@ Higher-level reusable realtime workflows such as chat, collaboration, and notifi
 
 `xiom-realtime` should think in terms of three layers:
 
-1. **Subscription layer** — who is listening to what.
-2. **Presence layer** — who is currently connected or active.
-3. **Event layer** — what gets broadcast, ordered, retained, or dropped.
+1. **Subscription layer** -- who is listening to what.
+2. **Presence layer** -- who is currently connected or active.
+3. **Event layer** -- what gets broadcast, ordered, retained, or dropped.
 
 This mirrors the way mature realtime systems separate channel delivery, presence tracking, and cluster-wide pub/sub fan-out.
 
@@ -171,10 +171,10 @@ The package should support:
 
 Realtime events should be explicitly classified:
 
-- **Durable** — should be persisted or replayable.
-- **Ephemeral** — can be dropped if the client is offline.
-- **Presence** — state updates for visibility and membership.
-- **Signal** — short-lived indicators like typing or cursor movement.
+- **Durable** -- should be persisted or replayable.
+- **Ephemeral** -- can be dropped if the client is offline.
+- **Presence** -- state updates for visibility and membership.
+- **Signal** -- short-lived indicators like typing or cursor movement.
 
 This separation keeps chat messages, typing events, and presence updates from sharing the same lifecycle rules.
 

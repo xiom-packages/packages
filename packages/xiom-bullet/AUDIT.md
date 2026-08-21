@@ -1,19 +1,19 @@
 # xiom-bullet Audit
 
 ## Compilation Status
-- `bullet.xi` — PASSES (standalone)
-- `tests/test_bullet.xi` — PASSES (with bullet.xi)
+- `bullet.xi` -- PASSES (standalone)
+- `tests/test_bullet.xi` -- PASSES (with bullet.xi)
 - All files compile together: PASS
 
 ## Changes Made
-No source changes needed. The test file compiles correctly when passed alongside `bullet.xi` (multi-file compilation per XIOM spec §17).
+No source changes needed. The test file compiles correctly when passed alongside `bullet.xi` (multi-file compilation per XIOM spec S17).
 
 ## System Dependencies
 
 ### Required: Bullet Physics SDK
-- **Linux**: `apt install libbullet-dev` → `libBulletDynamics.so`, `libBulletCollision.so`, `libLinearMath.so`
-- **macOS**: `brew install bullet` → `libBulletDynamics.dylib`, `libBulletCollision.dylib`, `libLinearMath.dylib`
-- **Windows**: Build from source or use vcpkg `vcpkg install bullet3` → `BulletDynamics.dll`, `BulletCollision.dll`, `LinearMath.dll`
+- **Linux**: `apt install libbullet-dev` -> `libBulletDynamics.so`, `libBulletCollision.so`, `libLinearMath.so`
+- **macOS**: `brew install bullet` -> `libBulletDynamics.dylib`, `libBulletCollision.dylib`, `libLinearMath.dylib`
+- **Windows**: Build from source or use vcpkg `vcpkg install bullet3` -> `BulletDynamics.dll`, `BulletCollision.dll`, `LinearMath.dll`
 
 ### Required DLLs at Runtime
 | DLL | Purpose |
@@ -56,7 +56,7 @@ xiom --link BulletDynamics --link BulletCollision --link LinearMath --link-path 
 | `get_position` | `btRigidBody_getWorldTransform` + transform read | BulletDynamics |
 
 ## Known Gaps
-- All `bullet.xi` functions are forward declarations (`;` body) — they require Bullet DLLs at link time and runtime.
+- All `bullet.xi` functions are forward declarations (`;` body) -- they require Bullet DLLs at link time and runtime.
 - Tests only verify handle validity (handle != 0). No functional physics tests are possible without DLLs.
 - `get_position` has no implementation body mapping to the FFI call chain (declared in bullet.xi but no corresponding `bullet.xiom-bind` entry for transform extraction).
 - No cleanup/shutdown for worlds, bodies, or shapes (potential memory leak in FFI allocations).

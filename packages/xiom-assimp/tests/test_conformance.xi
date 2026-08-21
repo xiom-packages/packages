@@ -1,4 +1,4 @@
-// XIOM — xiom-assimp Conformance Tests
+// XIOM -- xiom-assimp Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -15,9 +15,9 @@ use xiom.io;
 use xiom.test;
 use xiom.assimp;
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Helpers
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; }
@@ -41,9 +41,9 @@ fn int_to_str(n: Int) -> Str {
   return out;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Test 1: Type definitions — all 5 opaque handles exist
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Test 1: Type definitions -- all 5 opaque handles exist
+// ===============================================================================
 
 fn run_type_definitions() -> Int {
   let s: AiScene     = 0;
@@ -65,9 +65,9 @@ fn test_type_definitions() -> TestResult {
   return assert(false, "types: 5 type definitions failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 2: Post-processing flags are non-zero
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_flags_non_zero() -> Int {
   if aiProcess_CalcTangentSpace == 0 { return 1; }
@@ -85,9 +85,9 @@ fn test_flags_non_zero() -> TestResult {
   return assert(false, "flags: some key flags are zero");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 3: Post-processing flags are bitwise powers of two (unique)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_flags_unique() -> Int {
   if aiProcess_Triangulate == aiProcess_GenNormals { return 1; }
@@ -104,9 +104,9 @@ fn test_flags_unique() -> TestResult {
   return assert(false, "flags: pairwise distinct check failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 4: Flag presets are composed from individual flags
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_flag_presets() -> Int {
   let d = aiProcessPreset_Default;
@@ -137,9 +137,9 @@ fn test_flag_presets() -> TestResult {
   return assert(false, "flags: preset composition failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Test 5: Flag preset hierarchy — MaxQuality ⊇ Quality ⊇ Fast
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// Test 5: Flag preset hierarchy -- MaxQuality superset Quality superset Fast
+// ===============================================================================
 
 fn run_flag_hierarchy() -> Int {
   let fast    = aiProcessPreset_TargetRealtimeFast;
@@ -153,13 +153,13 @@ fn run_flag_hierarchy() -> Int {
 
 fn test_flag_hierarchy() -> TestResult {
   let rc = run_flag_hierarchy();
-  if rc == 0 { return assert(true, "flags: MaxQuality ⊇ Quality ⊇ Fast"); }
+  if rc == 0 { return assert(true, "flags: MaxQuality superset Quality superset Fast"); }
   return assert(false, "flags: preset hierarchy check failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 6: import_file rejects empty path (contract enforcement)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_import_file_empty_path() -> Int {
   let r = import_file("", aiProcessPreset_Default);
@@ -175,9 +175,9 @@ fn test_import_file_empty_path() -> TestResult {
   return assert(false, "import: import_file should reject empty path");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 7: import_file rejects negative flags (contract enforcement)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_import_file_negative_flags() -> Int {
   let r = import_file("test.obj", -1);
@@ -193,9 +193,9 @@ fn test_import_file_negative_flags() -> TestResult {
   return assert(false, "import: import_file should reject negative flags");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 8: import_file returns Err for valid params (FFI not linked)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_import_file_stub() -> Int {
   let r = import_file("nonexistent.glb", aiProcessPreset_TargetRealtimeFast);
@@ -211,9 +211,9 @@ fn test_import_file_stub() -> TestResult {
   return assert(false, "import: import_file should return Err when FFI not linked");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 9: import_file_ex rejects empty path
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_import_file_ex_empty_path() -> Int {
   let r = import_file_ex("", aiProcessPreset_Default, 0);
@@ -229,9 +229,9 @@ fn test_import_file_ex_empty_path() -> TestResult {
   return assert(false, "import: import_file_ex should reject empty path");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 10: import_file_ex returns Err (FFI not linked)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_import_file_ex_stub() -> Int {
   let r = import_file_ex("test.fbx", aiProcess_Triangulate | aiProcess_GenNormals, 0);
@@ -247,9 +247,9 @@ fn test_import_file_ex_stub() -> TestResult {
   return assert(false, "import: import_file_ex should return Err when FFI not linked");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 11: get_error_string returns non-empty string
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_error_string() -> Int {
   let err = get_error_string();
@@ -263,9 +263,9 @@ fn test_get_error_string() -> TestResult {
   return assert(false, "error: get_error_string returned empty string");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 12: get_num_meshes on null scene
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_num_meshes_null() -> Int {
   let n = get_num_meshes(0);
@@ -279,9 +279,9 @@ fn test_get_num_meshes_null() -> TestResult {
   return assert(false, "scene: get_num_meshes(0) failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 13: get_mesh rejects negative index
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_mesh_negative_index() -> Int {
   let r = get_mesh(1, -1);
@@ -297,9 +297,9 @@ fn test_get_mesh_negative_index() -> TestResult {
   return assert(false, "mesh: get_mesh should reject negative index");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 14: get_mesh on null scene returns Err
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_mesh_null_scene() -> Int {
   let r = get_mesh(0, 0);
@@ -315,9 +315,9 @@ fn test_get_mesh_null_scene() -> TestResult {
   return assert(false, "mesh: get_mesh(0, 0) should return Err");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 15: get_num_vertices on null mesh returns non-positive
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_num_vertices_null() -> Int {
   let n = get_num_vertices(0);
@@ -331,9 +331,9 @@ fn test_get_num_vertices_null() -> TestResult {
   return assert(false, "mesh: get_num_vertices(0) should be non-positive");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 16: get_vertices on null mesh returns Err
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_vertices_null_mesh() -> Int {
   let r = get_vertices(0);
@@ -349,9 +349,9 @@ fn test_get_vertices_null_mesh() -> TestResult {
   return assert(false, "mesh: get_vertices(0) should return Err");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 17: get_num_faces on null mesh
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_num_faces_null() -> Int {
   let n = get_num_faces(0);
@@ -365,9 +365,9 @@ fn test_get_num_faces_null() -> TestResult {
   return assert(false, "mesh: get_num_faces(0) should be non-positive");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 18: get_faces on null mesh returns Err
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_faces_null_mesh() -> Int {
   let r = get_faces(0);
@@ -383,9 +383,9 @@ fn test_get_faces_null_mesh() -> TestResult {
   return assert(false, "mesh: get_faces(0) should return Err");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 19: get_num_normals on null mesh
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_num_normals_null() -> Int {
   let n = get_num_normals(0);
@@ -399,9 +399,9 @@ fn test_get_num_normals_null() -> TestResult {
   return assert(false, "mesh: get_num_normals(0) should be non-positive");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 20: get_normals on null mesh returns Err
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_normals_null_mesh() -> Int {
   let r = get_normals(0);
@@ -417,9 +417,9 @@ fn test_get_normals_null_mesh() -> TestResult {
   return assert(false, "mesh: get_normals(0) should return Err");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 21: get_num_tex_coords with positive mesh, channel 0
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_num_tex_coords_channel() -> Int {
   let n = get_num_tex_coords(1, 0);
@@ -433,9 +433,9 @@ fn test_get_num_tex_coords_channel() -> TestResult {
   return assert(false, "tex: get_num_tex_coords(1, 0) failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 22: get_tex_coords on null mesh returns Err
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_tex_coords_null_mesh() -> Int {
   let r = get_tex_coords(0);
@@ -451,9 +451,9 @@ fn test_get_tex_coords_null_mesh() -> TestResult {
   return assert(false, "tex: get_tex_coords(0) should return Err");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 23: get_material_count on null scene
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_material_count_null() -> Int {
   let n = get_material_count(0);
@@ -467,9 +467,9 @@ fn test_get_material_count_null() -> TestResult {
   return assert(false, "material: get_material_count(0) failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 24: get_material rejects negative index
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_material_negative_index() -> Int {
   let r = get_material(1, -1);
@@ -485,9 +485,9 @@ fn test_get_material_negative_index() -> TestResult {
   return assert(false, "material: get_material should reject negative index");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 25: get_material on null scene returns Err
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_get_material_null_scene() -> Int {
   let r = get_material(0, 0);
@@ -503,9 +503,9 @@ fn test_get_material_null_scene() -> TestResult {
   return assert(false, "material: get_material(0, 0) should return Err");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 26: Version and link status
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_version() -> Int {
   let v = version();
@@ -530,9 +530,9 @@ fn test_is_linked() -> TestResult {
   return assert(false, "util: is_linked should be false");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 27: Round-trip: import_file + release_import stubs
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_import_release_roundtrip() -> Int {
   let r = import_file("test.obj", aiProcess_Triangulate | aiProcess_GenNormals);
@@ -551,9 +551,9 @@ fn test_import_release_roundtrip() -> TestResult {
   return assert(false, "lifecycle: import_file + release_import roundtrip failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 28: All 31 flag constants defined
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_all_flags_exist() -> Int {
   if aiProcess_CalcTangentSpace         <= 0 { return 1; }
@@ -595,9 +595,9 @@ fn test_all_flags_exist() -> TestResult {
   return assert(false, "flags: not all 31 flags defined");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 29: API presence (compile-time verification)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn test_api_import_file() -> TestResult {
   return assert(true, "api: import_file(path: Str, flags: Int) -> Result[AiScene, Str]");
@@ -631,9 +631,9 @@ fn test_api_get_material() -> TestResult {
   return assert(true, "api: get_material(scene: AiScene, index: Int) -> Result[AiMaterial, Str]");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 30: Contract declarations
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn test_contract_import_file_path() -> TestResult {
   return assert(true, "contract: import_file requires: path.len() > 0");
@@ -667,9 +667,9 @@ fn test_contract_get_material_index() -> TestResult {
   return assert(true, "contract: get_material requires: index >= 0");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 31: import_file with different flag combinations
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_import_file_flag_combos() -> Int {
   let r1 = import_file("test.fbx", aiProcess_Triangulate);
@@ -702,9 +702,9 @@ fn test_import_file_flag_combos() -> TestResult {
   return assert(false, "import: flag combinations failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test 32: GenBoundingBoxes flag is 0x80000000 (MSB set, unsigned Int edge)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn run_gen_bounding_boxes_flag() -> Int {
   if aiProcess_GenBoundingBoxes != 0x80000000 { return 1; }
@@ -717,9 +717,9 @@ fn test_gen_bounding_boxes_flag() -> TestResult {
   return assert(false, "flags: GenBoundingBoxes MSB check failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test runner
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 pub fn main() -> Int {
   io.println("=== xiom-assimp Conformance Tests ===");

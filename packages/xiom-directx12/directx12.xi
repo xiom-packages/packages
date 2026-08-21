@@ -1,8 +1,8 @@
-// XIOM — Direct3D 12 Bindings
+// XIOM -- Direct3D 12 Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Pure SPEC package — all FFI calls return Err until the C bridge is linked.
+// Pure SPEC package -- all FFI calls return Err until the C bridge is linked.
 // Wraps Direct3D 12 API. Requires Windows SDK (installed with Visual Studio or winget).
 // Depends on: xiom.ffi (stdlib), Windows SDK.
 //
@@ -12,7 +12,7 @@
 
 module xiom.directx12
 
-// ── Opaque handle types (10 types) ──────────────────────────────────────────
+// -- Opaque handle types (10 types) ------------------------------------------
 
 pub type DxDevice          = Int;
 pub type DxCommandQueue    = Int;
@@ -25,7 +25,7 @@ pub type DxFence           = Int;
 pub type DxRootSignature   = Int;
 pub type DxPipelineState   = Int;
 
-// ── DXGI_FORMAT Constants ───────────────────────────────────────────────────
+// -- DXGI_FORMAT Constants ---------------------------------------------------
 
 pub const DXGI_FORMAT_UNKNOWN:               Int = 0;
 pub const DXGI_FORMAT_R32G32B32A32_FLOAT:    Int = 2;
@@ -46,7 +46,7 @@ pub const DXGI_FORMAT_D24_UNORM_S8_UINT:     Int = 45;
 pub const DXGI_FORMAT_D32_FLOAT:             Int = 40;
 pub const DXGI_FORMAT_D32_FLOAT_S8X24_UINT:  Int = 20;
 
-// ── D3D12_RESOURCE_STATES Constants ─────────────────────────────────────────
+// -- D3D12_RESOURCE_STATES Constants -----------------------------------------
 
 pub const D3D12_RESOURCE_STATE_COMMON:                     Int = 0;
 pub const D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER: Int = 0x1;
@@ -68,34 +68,34 @@ pub const D3D12_RESOURCE_STATE_PREDICATION:                Int = 0x200;
 pub const D3D12_RESOURCE_STATE_VIDEO_DECODE_READ:          Int = 0x10000;
 pub const D3D12_RESOURCE_STATE_VIDEO_DECODE_WRITE:         Int = 0x20000;
 
-// ── D3D12_COMMAND_LIST_TYPE Constants ───────────────────────────────────────
+// -- D3D12_COMMAND_LIST_TYPE Constants ---------------------------------------
 
 pub const D3D12_COMMAND_LIST_TYPE_DIRECT:    Int = 0;
 pub const D3D12_COMMAND_LIST_TYPE_BUNDLE:    Int = 1;
 pub const D3D12_COMMAND_LIST_TYPE_COMPUTE:   Int = 2;
 pub const D3D12_COMMAND_LIST_TYPE_COPY:      Int = 3;
 
-// ── D3D12_DESCRIPTOR_HEAP_TYPE Constants ────────────────────────────────────
+// -- D3D12_DESCRIPTOR_HEAP_TYPE Constants ------------------------------------
 
 pub const D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV: Int = 0;
 pub const D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER:     Int = 1;
 pub const D3D12_DESCRIPTOR_HEAP_TYPE_RTV:         Int = 2;
 pub const D3D12_DESCRIPTOR_HEAP_TYPE_DSV:         Int = 3;
 
-// ── D3D12_FENCE_FLAGS Constants ─────────────────────────────────────────────
+// -- D3D12_FENCE_FLAGS Constants ---------------------------------------------
 
 pub const D3D12_FENCE_FLAG_NONE:  Int = 0;
 pub const D3D12_FENCE_FLAG_SHARED: Int = 0x1;
 pub const D3D12_FENCE_FLAG_SHARED_CROSS_ADAPTER: Int = 0x2;
 
-// ── D3D12_HEAP_TYPE Constants ───────────────────────────────────────────────
+// -- D3D12_HEAP_TYPE Constants -----------------------------------------------
 
 pub const D3D12_HEAP_TYPE_DEFAULT:   Int = 1;
 pub const D3D12_HEAP_TYPE_UPLOAD:    Int = 2;
 pub const D3D12_HEAP_TYPE_READBACK:  Int = 3;
 pub const D3D12_HEAP_TYPE_CUSTOM:    Int = 4;
 
-// ── D3D12_PRIMITIVE_TOPOLOGY Constants ──────────────────────────────────────
+// -- D3D12_PRIMITIVE_TOPOLOGY Constants --------------------------------------
 
 pub const D3D_PRIMITIVE_TOPOLOGY_UNDEFINED:     Int = 0;
 pub const D3D_PRIMITIVE_TOPOLOGY_POINTLIST:     Int = 1;
@@ -104,17 +104,17 @@ pub const D3D_PRIMITIVE_TOPOLOGY_LINESTRIP:     Int = 3;
 pub const D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST:  Int = 4;
 pub const D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP: Int = 5;
 
-// ── D3D12_CLEAR_FLAGS Constants ─────────────────────────────────────────────
+// -- D3D12_CLEAR_FLAGS Constants ---------------------------------------------
 
 pub const D3D12_CLEAR_FLAG_DEPTH:   Int = 0x1;
 pub const D3D12_CLEAR_FLAG_STENCIL: Int = 0x2;
 
-// ═══════════════════════════════════════════════════════════════════════════
-// extern "C" — Raw D3D12 Declarations (22 functions)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// extern "C" -- Raw D3D12 Declarations (22 functions)
+// ===========================================================================
 
 extern "C" {
-  // ── Device creation ────────────────────────────────────────────────────────
+  // -- Device creation --------------------------------------------------------
   fn D3D12CreateDevice(
     pAdapter: Int,
     minimumFeatureLevel: Int,
@@ -127,7 +127,7 @@ extern "C" {
     ppDebug: Int
   ) -> Int;
 
-  // ── Command queue ──────────────────────────────────────────────────────────
+  // -- Command queue ----------------------------------------------------------
   fn D3D12CreateCommandQueue(
     pDevice: Int,
     pDesc: Int,
@@ -135,7 +135,7 @@ extern "C" {
     ppCommandQueue: Int
   ) -> Int;
 
-  // ── Swap chain (DXGI) ──────────────────────────────────────────────────────
+  // -- Swap chain (DXGI) ------------------------------------------------------
   fn CreateDXGIFactory2(
     flags: Int,
     riid: Int,
@@ -158,7 +158,7 @@ extern "C" {
     flags: Int
   ) -> Int;
 
-  // ── Resource creation ──────────────────────────────────────────────────────
+  // -- Resource creation ------------------------------------------------------
   fn D3D12CreateCommittedResource(
     pDevice: Int,
     pHeapProperties: Int,
@@ -191,7 +191,7 @@ extern "C" {
     ppResource: Int
   ) -> Int;
 
-  // ── Descriptor heap ────────────────────────────────────────────────────────
+  // -- Descriptor heap --------------------------------------------------------
   fn D3D12CreateDescriptorHeap(
     pDevice: Int,
     pDesc: Int,
@@ -199,7 +199,7 @@ extern "C" {
     ppHeap: Int
   ) -> Int;
 
-  // ── Command allocator / list ───────────────────────────────────────────────
+  // -- Command allocator / list -----------------------------------------------
   fn D3D12CreateCommandAllocator(
     pDevice: Int,
     cmdListType: Int,
@@ -226,7 +226,7 @@ extern "C" {
     ppCommandLists: Int
   );
 
-  // ── Drawing / Rendering ────────────────────────────────────────────────────
+  // -- Drawing / Rendering ----------------------------------------------------
   fn D3D12ClearRenderTargetView(
     pCommandList: Int,
     cpuDescriptorHandle: Int,
@@ -249,7 +249,7 @@ extern "C" {
     startInstance: Int
   );
 
-  // ── Fence / Sync ───────────────────────────────────────────────────────────
+  // -- Fence / Sync -----------------------------------------------------------
   fn D3D12CreateFence(
     pDevice: Int,
     initialValue: Int,
@@ -269,7 +269,7 @@ extern "C" {
     value: Int
   ) -> Int;
 
-  // ── Root signature / Pipeline state ────────────────────────────────────────
+  // -- Root signature / Pipeline state ----------------------------------------
   fn D3D12CreateRootSignature(
     pDevice: Int,
     nodeMask: Int,
@@ -280,36 +280,36 @@ extern "C" {
   ) -> Int;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Device
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d12_create_device(adapter: Int) -> Result[DxDevice, Str]
   ensures: result.is_ok || result.is_err
 {
-  return Err("d3d12_create_device: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_device: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
 pub fn d3d12_get_debug_interface() -> Result[Int, Str]
   ensures: result.is_ok || result.is_err
 {
-  return Err("d3d12_get_debug_interface: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_get_debug_interface: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Command Queue
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d12_create_command_queue(dev: DxDevice, cmd_list_type: Int) -> Result[DxCommandQueue, Str]
   requires: dev != 0
   requires: cmd_list_type == D3D12_COMMAND_LIST_TYPE_DIRECT || cmd_list_type == D3D12_COMMAND_LIST_TYPE_COMPUTE || cmd_list_type == D3D12_COMMAND_LIST_TYPE_COPY
 {
-  return Err("d3d12_create_command_queue: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_command_queue: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Swap Chain
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn dxgi_create_swapchain(
   queue: DxCommandQueue, hwnd: Int, width: Int, height: Int
@@ -319,7 +319,7 @@ pub fn dxgi_create_swapchain(
   requires: height > 0
   requires: hwnd != 0
 {
-  return Err("dxgi_create_swapchain: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("dxgi_create_swapchain: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
 pub fn d3d12_present(swap: DxSwapChain, sync_interval: Int)
@@ -329,9 +329,9 @@ pub fn d3d12_present(swap: DxSwapChain, sync_interval: Int)
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Resources
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d12_create_committed_resource(
   dev: DxDevice, heap_type: Int, size: Int, initial_state: Int, flags: Int
@@ -340,21 +340,21 @@ pub fn d3d12_create_committed_resource(
   requires: size > 0
   requires: heap_type == D3D12_HEAP_TYPE_DEFAULT || heap_type == D3D12_HEAP_TYPE_UPLOAD || heap_type == D3D12_HEAP_TYPE_READBACK
 {
-  return Err("d3d12_create_committed_resource: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_committed_resource: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
 pub fn d3d12_create_upload_buffer(dev: DxDevice, size: Int) -> Result[DxResource, Str]
   requires: dev != 0
   requires: size > 0
 {
-  return Err("d3d12_create_upload_buffer: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_upload_buffer: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
 pub fn d3d12_create_default_buffer(dev: DxDevice, size: Int, usage: Int) -> Result[DxResource, Str]
   requires: dev != 0
   requires: size > 0
 {
-  return Err("d3d12_create_default_buffer: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_default_buffer: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
 pub fn d3d12_create_texture2d(
@@ -364,12 +364,12 @@ pub fn d3d12_create_texture2d(
   requires: width > 0
   requires: height > 0
 {
-  return Err("d3d12_create_texture2d: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_texture2d: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Descriptor Heap
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d12_create_descriptor_heap(
   dev: DxDevice, heap_type: Int, num_descriptors: Int, flags: Int
@@ -379,12 +379,12 @@ pub fn d3d12_create_descriptor_heap(
   requires: num_descriptors <= 4096
   requires: heap_type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV || heap_type == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER || heap_type == D3D12_DESCRIPTOR_HEAP_TYPE_RTV || heap_type == D3D12_DESCRIPTOR_HEAP_TYPE_DSV
 {
-  return Err("d3d12_create_descriptor_heap: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_descriptor_heap: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Command Allocator / Command List
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d12_create_command_allocator(
   dev: DxDevice, cmd_list_type: Int
@@ -392,7 +392,7 @@ pub fn d3d12_create_command_allocator(
   requires: dev != 0
   requires: cmd_list_type == D3D12_COMMAND_LIST_TYPE_DIRECT || cmd_list_type == D3D12_COMMAND_LIST_TYPE_BUNDLE || cmd_list_type == D3D12_COMMAND_LIST_TYPE_COMPUTE || cmd_list_type == D3D12_COMMAND_LIST_TYPE_COPY
 {
-  return Err("d3d12_create_command_allocator: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_command_allocator: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
 pub fn d3d12_create_graphics_command_list(
@@ -402,7 +402,7 @@ pub fn d3d12_create_graphics_command_list(
   requires: alloc != 0
   requires: cmd_list_type == D3D12_COMMAND_LIST_TYPE_DIRECT || cmd_list_type == D3D12_COMMAND_LIST_TYPE_BUNDLE || cmd_list_type == D3D12_COMMAND_LIST_TYPE_COMPUTE || cmd_list_type == D3D12_COMMAND_LIST_TYPE_COPY
 {
-  return Err("d3d12_create_graphics_command_list: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_graphics_command_list: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
 pub fn d3d12_close_command_list(cl: DxCommandList)
@@ -416,9 +416,9 @@ pub fn d3d12_execute_command_lists(queue: DxCommandQueue, lists: Vec[DxCommandLi
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Rendering
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d12_clear_rtv(
   cl: DxCommandList, rtv_handle: Int, r: Float32, g: Float32, b: Float32, a: Float32
@@ -452,15 +452,15 @@ pub fn d3d12_draw_instanced(
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Fence / Sync
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d12_create_fence(dev: DxDevice, initial_value: Int) -> Result[DxFence, Str]
   requires: dev != 0
   requires: initial_value >= 0
 {
-  return Err("d3d12_create_fence: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_fence: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
 pub fn d3d12_signal_fence(queue: DxCommandQueue, fence: DxFence, value: Int)
@@ -476,9 +476,9 @@ pub fn d3d12_wait_fence(fence: DxFence, value: Int)
 {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Safe Wrappers: Root Signature / Pipeline State
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 pub fn d3d12_create_root_signature(
   dev: DxDevice, blob: Int, blob_len: Int
@@ -487,7 +487,7 @@ pub fn d3d12_create_root_signature(
   requires: blob != 0
   requires: blob_len > 0
 {
-  return Err("d3d12_create_root_signature: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_root_signature: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }
 
 pub fn d3d12_create_pipeline_state(
@@ -497,5 +497,5 @@ pub fn d3d12_create_pipeline_state(
   requires: dev != 0
   requires: root_sig != 0
 {
-  return Err("d3d12_create_pipeline_state: C bridge not yet linked — xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_pipeline_state: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
 }

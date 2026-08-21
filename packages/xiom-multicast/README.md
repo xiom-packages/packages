@@ -1,6 +1,6 @@
 # xiom-multicast
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** IP multicast send/receive with group membership management.
 > **Deps:** stdlib; may wrap C (FFI).
 

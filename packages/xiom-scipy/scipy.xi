@@ -1,4 +1,4 @@
-// XIOM — SciPy Bridge (Scientific Computing)
+// XIOM -- SciPy Bridge (Scientific Computing)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -13,9 +13,9 @@ module xiom.scipy
 
 use xiom.math;
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Types
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 pub type ScipyResult = {
   x: Vec[Float64];
@@ -36,16 +36,16 @@ pub type Interpolator = {
   coeffs: Vec[Float64];
 } derive[Clone]
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// extern "C" — SciPy C backend functions
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// extern "C" -- SciPy C backend functions
+// ===============================================================================
 
 extern "C" {
-  // ── Optimize (MINPACK) ──
+  // -- Optimize (MINPACK) --
   /// Minimize scalar function f(x). Returns (x_min, f(x_min), iterations, converged).
   fn optimize_minimize(f: fn(Float64) -> Float64, x0: Float64, tol: Float64, maxiter: Int) -> ScipyResult;
 
-  // ── Integrate (QUADPACK/ODEPACK) ──
+  // -- Integrate (QUADPACK/ODEPACK) --
   /// Adaptive quadrature: integrate f from a to b. Returns (value, error_estimate).
   fn integrate_quad(f: fn(Float64) -> Float64, a: Float64, b: Float64, epsabs: Float64, epsrel: Float64) -> QuadResult;
 
@@ -53,7 +53,7 @@ extern "C" {
   /// Returns array of y values at each requested t point.
   fn integrate_odeint(y0: *Float64, n_eq: Int, t_start: Float64, t_end: Float64, n_steps: Int) -> *Float64;
 
-  // ── Signal (FFTPACK) ──
+  // -- Signal (FFTPACK) --
   /// 1D convolution of two arrays. Returns result array (pre-allocated by caller).
   fn signal_convolve(a: *Float64, na: Int, b: *Float64, nb: Int, result: *Float64) -> Int;
 
@@ -63,14 +63,14 @@ extern "C" {
   /// Inverse FFT (complex input as interleaved pairs, real output).
   fn signal_ifft(data: *Float64, n: Int) -> Int;
 
-  // ── Stats (Cephes) ──
-  /// Standard normal probability density function: φ(x) = (1/√(2π)) · e^(-x²/2).
+  // -- Stats (Cephes) --
+  /// Standard normal probability density function: phi(x) = (1/sqrt(2pi)) - e^(-x2/2).
   fn stats_norm_pdf(x: Float64) -> Float64;
 
-  /// Standard normal cumulative distribution function: Φ(x) = ∫₋∞ˣ φ(t) dt.
+  /// Standard normal cumulative distribution function: Phi(x) = int-infx phi(t) dt.
   fn stats_norm_cdf(x: Float64) -> Float64;
 
-  // ── Interpolate (FITPACK) ──
+  // -- Interpolate (FITPACK) --
   /// Piecewise linear interpolation. x, y: input arrays; len: array size;
   ///   x_new: evaluation point; returns interpolated y_new.
   fn interpolate_linear(x: *Float64, y: *Float64, len: Int, x_new: Float64) -> Float64;
@@ -80,18 +80,18 @@ extern "C" {
   fn interpolate_cubic(x: *Float64, y: *Float64, len: Int, x_new: Float64) -> Float64;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Pure-XIOM statistics — no FFI dependency
+// ===============================================================================
+// Pure-XIOM statistics -- no FFI dependency
 // These are fully verifiable, contract-bearing implementations of the standard
 // normal distribution functions using only xiom.math primitives.
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 /// Constants for normal distribution
 const INV_SQRT_2PI: Float64 = 0.3989422804014327;   // 1.0 / sqrt(2.0 * PI)
 const SQRT2: Float64 = 1.4142135623730951;           // sqrt(2.0)
 
 /// Internal: compute the error function erf(x) using a power series.
-/// Converges well for |x| ≤ 4. For |x| > 4, returns ±1.0.
+/// Converges well for |x| <= 4. For |x| > 4, returns +/-1.0.
 fn _erf_series(x: Float64) -> Float64 {
   var ax = x;
   if ax < 0.0 { ax = -ax; };
@@ -101,7 +101,7 @@ fn _erf_series(x: Float64) -> Float64 {
     return -1.0;
   };
 
-  // erf(x) = (2/√π) · Σ (-1)^n · x^(2n+1) / (n! · (2n+1))
+  // erf(x) = (2/sqrtpi) - Sigma (-1)^n - x^(2n+1) / (n! - (2n+1))
   let two_over_sqrt_pi: Float64 = 1.1283791670955126;
   var result = x;
   var term = x;
@@ -116,9 +116,9 @@ fn _erf_series(x: Float64) -> Float64 {
 }
 
 /// Standard normal probability density function.
-/// φ(x) = (1 / √(2π)) · exp(-x² / 2)
+/// phi(x) = (1 / sqrt(2pi)) - exp(-x2 / 2)
 ///
-/// This is a pure-XIOM implementation — no FFI call required.
+/// This is a pure-XIOM implementation -- no FFI call required.
 pub fn norm_pdf(x: Float64) -> Float64
   ensures: result >= 0.0
   ensures: result <= INV_SQRT_2PI
@@ -127,10 +127,10 @@ pub fn norm_pdf(x: Float64) -> Float64
 }
 
 /// Standard normal cumulative distribution function.
-/// Φ(x) = ½ · [1 + erf(x / √2)]
+/// Phi(x) = 1/2 - [1 + erf(x / sqrt2)]
 ///
 /// Pure-XIOM implementation using the error function series.
-/// Accurate to ~1e-7 for |x| ≤ 6.
+/// Accurate to ~1e-7 for |x| <= 6.
 pub fn norm_cdf(x: Float64) -> Float64
   ensures: result >= 0.0
   ensures: result <= 1.0
@@ -138,7 +138,7 @@ pub fn norm_cdf(x: Float64) -> Float64
   return 0.5 * (1.0 + _erf_series(x / SQRT2));
 }
 
-/// Vectorized normal PDF: computes φ(x) for each element.
+/// Vectorized normal PDF: computes phi(x) for each element.
 pub fn norm_pdf_vec(x: &Vec[Float64]) -> Vec[Float64]
   requires: x.len() > 0
   ensures:  result.len() == x.len()
@@ -152,7 +152,7 @@ pub fn norm_pdf_vec(x: &Vec[Float64]) -> Vec[Float64]
   return r;
 }
 
-/// Vectorized normal CDF: computes Φ(x) for each element.
+/// Vectorized normal CDF: computes Phi(x) for each element.
 pub fn norm_cdf_vec(x: &Vec[Float64]) -> Vec[Float64]
   requires: x.len() > 0
   ensures:  result.len() == x.len()
@@ -227,9 +227,9 @@ pub fn norm_ppf(p: Float64) -> Float64
   return x;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Safe wrappers with requires contracts
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 /// Minimize a scalar function f(x) over x in (a, b).
 /// Returns the minimum location x, function value, iterations, and convergence status.
@@ -351,9 +351,9 @@ pub fn interp_cubic(x: &Vec[Float64], y: &Vec[Float64], x_new: Float64) -> Resul
   Ok(r)
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Utility
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 /// Check if an FFI result indicates convergence.
 pub fn result_converged(r: &ScipyResult) -> Bool {

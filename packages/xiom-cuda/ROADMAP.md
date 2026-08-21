@@ -1,12 +1,12 @@
-# xiom-cuda — ROADMAP
+# xiom-cuda -- ROADMAP
 
 ## Phase 1: Core Foundation (CURRENT)
-**Status:** SPEC implemented — types, extern "C" block, safe wrappers with contracts, conformance tests.
+**Status:** SPEC implemented -- types, extern "C" block, safe wrappers with contracts, conformance tests.
 
 | Deliverable | Status |
 |---|---|
-| `cuda.xi` — module `xiom.cuda` with 6 opaque types, 19 extern "C" declarations, 21 safe wrappers | Done |
-| `tests/test_conformance.xi` — 23 conformance tests | Done |
+| `cuda.xi` -- module `xiom.cuda` with 6 opaque types, 19 extern "C" declarations, 21 safe wrappers | Done |
+| `tests/test_conformance.xi` -- 23 conformance tests | Done |
 | Opaque handle types: `CudaDevice`, `CudaStream`, `CudaMemory`, `CudaEvent`, `CudaModule`, `CudaFunction` | Done |
 | Error codes: `CUDA_SUCCESS`, `CUDA_ERROR_*` (10 codes) | Done |
 | Memcpy kind constants: `CUDA_MEMCPY_HOST_TO_DEVICE`, `*_TO_HOST`, `*_TO_DEVICE` | Done |
@@ -21,8 +21,8 @@
 | Contract enforcement: `requires:` clauses on all safe wrappers | Done |
 
 ## Phase 2: cuBLAS & cuDNN Bindings (planned)
-- `cublas.xi` — module `xiom.cublas` with cuBLAS API wrappers
-- `cudnn.xi` — module `xiom.cudnn` with cuDNN API wrappers
+- `cublas.xi` -- module `xiom.cublas` with cuBLAS API wrappers
+- `cudnn.xi` -- module `xiom.cudnn` with cuDNN API wrappers
 - `cublasCreate`, `cublasDestroy`, `cublasSgemm`, `cublasDgemm`
 - `cudnnCreate`, `cudnnDestroy`, `cudnnConvolutionForward`
 - Tensor descriptor types and creation helpers
@@ -30,8 +30,8 @@
 - `tests/test_conformance_cublas.xi`, `tests/test_conformance_cudnn.xi`
 
 ## Phase 3: cuFFT & cuRAND (planned)
-- `cufft.xi` — module `xiom.cufft` with FFT plan creation and execution
-- `curand.xi` — module `xiom.curand` with random number generation
+- `cufft.xi` -- module `xiom.cufft` with FFT plan creation and execution
+- `curand.xi` -- module `xiom.curand` with random number generation
 - Complex number support for FFT
 - RNG state lifecycle: `curandCreateGenerator`, `curandGenerateUniform`, `curandDestroyGenerator`
 

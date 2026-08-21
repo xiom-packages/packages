@@ -17,9 +17,9 @@
  * app_name:            application name string (may be NULL)
  * engine_name:         engine name string (may be NULL)
  * enabled_layer_count: number of validation layers
- * enabled_layer_names: char** — pointer to array of layer name strings (0 if none)
+ * enabled_layer_names: char** -- pointer to array of layer name strings (0 if none)
  * enabled_ext_count:   number of instance extensions
- * enabled_ext_names:   char** — pointer to array of extension name strings (0 if none)
+ * enabled_ext_names:   char** -- pointer to array of extension name strings (0 if none)
  * Returns: VkInstance handle (int64_t), or 0 on failure. */
 int64_t xvk_create_instance(
     const char* app_name,
@@ -34,13 +34,13 @@ int64_t xvk_create_instance(
 void xvk_destroy_instance(int64_t instance);
 
 /* Enumerate physical devices.
- * out_count:   uint32_t* — in: capacity of out_devices, out: number of devices
- * out_devices: VkPhysicalDevice* — array of 8-byte handles, or 0 to query count only
+ * out_count:   uint32_t* -- in: capacity of out_devices, out: number of devices
+ * out_devices: VkPhysicalDevice* -- array of 8-byte handles, or 0 to query count only
  * Returns: VkResult (0 = VK_SUCCESS, 5 = VK_INCOMPLETE, negative = error). */
 int32_t xvk_enumerate_physical_devices(int64_t instance, int64_t out_count, int64_t out_devices);
 
 /* Get physical device properties (fills a pre-allocated struct).
- * out_props: VkPhysicalDeviceProperties* — allocate sizeof = 824 bytes via xvk_alloc.
+ * out_props: VkPhysicalDeviceProperties* -- allocate sizeof = 824 bytes via xvk_alloc.
  * Key byte offsets (x64, verified by compile-time asserts):
  *   apiVersion    u32 @ 0
  *   driverVersion u32 @ 4

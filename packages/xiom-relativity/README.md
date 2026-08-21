@@ -1,6 +1,6 @@
 # xiom-relativity
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Special and general relativity calculations.
 > **Deps:** stdlib; may wrap C (FFI).
 

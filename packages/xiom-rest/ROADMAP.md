@@ -14,7 +14,7 @@
 - [x] Error-to-response mapping (error_to_response)
 - [x] Conformance test suite (10 tests)
 
-## v0.2.0 — Full libcurl Integration
+## v0.2.0 -- Full libcurl Integration
 - [ ] Working libcurl transport layer (response capture via temp files or callback)
 - [ ] Custom header injection via curl_slist_append
 - [ ] TLS/SSL configuration (verify peer, verify host, client certs)
@@ -23,7 +23,7 @@
 - [ ] Redirect following and policy
 - [ ] Response body streaming
 
-## v0.3.0 — Advanced Client Features
+## v0.3.0 -- Advanced Client Features
 - [ ] Connection pooling and reuse
 - [ ] Request retry with exponential backoff
 - [ ] Circuit breaker pattern
@@ -33,7 +33,7 @@
 - [ ] File download with progress
 - [ ] Request/response logging middleware
 
-## v0.4.0 — Resource Layer
+## v0.4.0 -- Resource Layer
 - [ ] RestModule resource builder (collection + item routes)
 - [ ] Route definition and mounting
 - [ ] Path parameter extraction
@@ -43,13 +43,13 @@
 - [ ] Content negotiation (Accept header parsing)
 - [ ] Versioning strategies (URI and header-based)
 
-## v0.5.0 — Code Generation & Docs
+## v0.5.0 -- Code Generation & Docs
 - [ ] OpenAPI document generation from resource definitions
 - [ ] JSON Schema generation from XIOM types
 - [ ] Contract-to-OpenAPI mapping
 - [ ] API client code generation stubs
 
-## v1.0.0 — Production Readiness
+## v1.0.0 -- Production Readiness
 - [ ] Full contract verification on all public functions
 - [ ] Structured error responses (RFC 7807 Problem Details)
 - [ ] HATEOAS link generation

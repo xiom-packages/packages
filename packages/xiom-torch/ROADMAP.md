@@ -1,25 +1,25 @@
 # xiom-torch ROADMAP
 
-> LibTorch bindings for XIOM — PyTorch C++ inference with compile-time safety.
+> LibTorch bindings for XIOM -- PyTorch C++ inference with compile-time safety.
 
 ## Current Status: v0.1.0 (Alpha)
 
 ### Completed
 
-- [x] **Core tensor types** — `Tensor`, `DType`, `Device`, `TensorOptions`, `ModuleDef` in `xiom.torch.types`
-- [x] **Tensor constructors** — `tensor_new`, `tensor_zeros`, `tensor_ones`, `tensor_shape`, `tensor_reshape` with requires/ensures contracts
-- [x] **Row-major stride computation** — automatic C-contiguous stride layout
-- [x] **NN layer types** — `Linear`, `Conv2d`, `BatchNorm2d`, `ReLU`, `Sigmoid`, `Tanh`, `Softmax` with fields
-- [x] **Sequential container** — `Sequential` with `LayerType` enum union of all layer types
-- [x] **Layer constructors** — `linear_new`, `conv2d_new`, `batchnorm2d_new` with requires contracts
-- [x] **FFI stubs** — `extern "C"` declarations for `torch_c_load_model`, `torch_c_forward`, `torch_c_save_model`, `torch_c_is_cuda_available`, `torch_c_free`
-- [x] **FFI public API** — `torch_load_model`, `torch_forward`, `torch_save_model`, `torch_is_cuda_available` with stub implementations
-- [x] **Conformance test suite** — 46 tests covering all public API (types/ffi/nn), contracts, and integration
-- [x] **Package manifest** — `package.xi` with module declarations
+- [x] **Core tensor types** -- `Tensor`, `DType`, `Device`, `TensorOptions`, `ModuleDef` in `xiom.torch.types`
+- [x] **Tensor constructors** -- `tensor_new`, `tensor_zeros`, `tensor_ones`, `tensor_shape`, `tensor_reshape` with requires/ensures contracts
+- [x] **Row-major stride computation** -- automatic C-contiguous stride layout
+- [x] **NN layer types** -- `Linear`, `Conv2d`, `BatchNorm2d`, `ReLU`, `Sigmoid`, `Tanh`, `Softmax` with fields
+- [x] **Sequential container** -- `Sequential` with `LayerType` enum union of all layer types
+- [x] **Layer constructors** -- `linear_new`, `conv2d_new`, `batchnorm2d_new` with requires contracts
+- [x] **FFI stubs** -- `extern "C"` declarations for `torch_c_load_model`, `torch_c_forward`, `torch_c_save_model`, `torch_c_is_cuda_available`, `torch_c_free`
+- [x] **FFI public API** -- `torch_load_model`, `torch_forward`, `torch_save_model`, `torch_is_cuda_available` with stub implementations
+- [x] **Conformance test suite** -- 46 tests covering all public API (types/ffi/nn), contracts, and integration
+- [x] **Package manifest** -- `package.xi` with module declarations
 
 ---
 
-## Short-Term (v0.2.0) — Tensor Math Primitives
+## Short-Term (v0.2.0) -- Tensor Math Primitives
 
 **Goal**: Enable actual tensor computation without LibTorch.
 
@@ -36,7 +36,7 @@
 
 ---
 
-## Medium-Term (v0.3.0) — LibTorch FFI Bridge
+## Medium-Term (v0.3.0) -- LibTorch FFI Bridge
 
 **Goal**: Link against native LibTorch for real model inference.
 
@@ -54,13 +54,13 @@
 
 ---
 
-## Long-Term (v1.0.0) — Production Readiness
+## Long-Term (v1.0.0) -- Production Readiness
 
 **Goal**: Full PyTorch model lifecycle in XIOM.
 
 | # | Task | Module | Priority |
 |---|------|--------|----------|
-| 1 | Model serialization — load/save `.pt` and `.pth` files | `xiom.torch.ffi` | High |
+| 1 | Model serialization -- load/save `.pt` and `.pth` files | `xiom.torch.ffi` | High |
 | 2 | CUDA tensor allocation and device transfer | `xiom.torch.types` | High |
 | 3 | Multi-GPU support (DataParallel) | `xiom.torch.nn` | Medium |
 | 4 | Automatic differentiation (autograd engine) | `xiom.torch.autograd` | Low |
@@ -76,17 +76,17 @@
 ## Dependency Map
 
 ```
-xiom.torch.types          ← Foundation (complete)
-        ↓
-xiom.torch.nn             ← NN types + stub forward (complete)
-        ↓
-xiom.torch.ops            ← Tensor math (v0.2.0)
-        ↓
-xiom.torch.ffi            ← LibTorch bridge (v0.3.0)
-        ↓
-xiom.torch.autograd       ← Training (v1.0.0)
-xiom.torch.optim          ← Training (v1.0.0)
-xiom.torch.data           ← Data pipeline (v1.0.0)
+xiom.torch.types          <- Foundation (complete)
+        v
+xiom.torch.nn             <- NN types + stub forward (complete)
+        v
+xiom.torch.ops            <- Tensor math (v0.2.0)
+        v
+xiom.torch.ffi            <- LibTorch bridge (v0.3.0)
+        v
+xiom.torch.autograd       <- Training (v1.0.0)
+xiom.torch.optim          <- Training (v1.0.0)
+xiom.torch.data           <- Data pipeline (v1.0.0)
 ```
 
 ## Test Coverage Goals

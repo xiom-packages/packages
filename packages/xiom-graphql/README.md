@@ -1,6 +1,6 @@
 # xiom-graphql
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** GraphQL server/client with schema and query execution.
 > **Deps:** stdlib; may wrap C (FFI).
 

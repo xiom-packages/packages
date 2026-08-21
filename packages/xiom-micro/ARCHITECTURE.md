@@ -1,6 +1,6 @@
 # xiom-micro Architecture
 
-> **Status: Design stage — specification only, not yet implemented. Depends on xiom-http (transport) and xiom-net.**
+> **Status: Design stage -- specification only, not yet implemented. Depends on xiom-http (transport) and xiom-net.**
 
 `xiom-micro` is the microservices-support package for the XIOM ecosystem. It provides service discovery abstractions, typed RPC clients, retries with budgets, circuit breakers, bulkheads, distributed tracing hooks, idempotency helpers, and workflow primitives for multi-service systems. The goal is not to build an opinionated microservices framework, but to provide the minimum infrastructure needed to make service-to-service communication resilient and explicit.
 
@@ -42,69 +42,69 @@ The scaffold below describes the intended module tree once implementation begins
 
 ```text
 xiom-micro/
-├── package.xi
-├── README.md
-├── ARCHITECTURE.md
-├── SPEC.md
-├── docs/
-│   ├── service-discovery.md
-│   ├── retries.md
-│   ├── circuit-breaker.md
-│   ├── bulkheads.md
-│   ├── rpc.md
-│   ├── tracing.md
-│   ├── outbox.md
-│   ├── saga.md
-│   └── idempotency.md
-├── src/                        # planned — not yet implemented
-│   ├── mod.xi
-│   ├── client.xi
-│   ├── request.xi
-│   ├── response.xi
-│   ├── discovery.xi
-│   ├── registry.xi
-│   ├── resolver.xi
-│   ├── endpoint.xi
-│   ├── timeout.xi
-│   ├── retry.xi
-│   ├── backoff.xi
-│   ├── breaker.xi
-│   ├── bulkhead.xi
-│   ├── idempotency.xi
-│   ├── tracing.xi
-│   ├── rpc/
-│   │   ├── mod.xi
-│   │   ├── client.xi
-│   │   ├── server.xi
-│   │   ├── codec.xi
-│   │   ├── envelope.xi
-│   │   └── errors.xi
-│   ├── workflow/
-│   │   ├── mod.xi
-│   │   ├── saga.xi
-│   │   ├── outbox.xi
-│   │   ├── compensation.xi
-│   │   └── orchestration.xi
-│   ├── health/
-│   │   ├── mod.xi
-│   │   ├── checks.xi
-│   │   └── dependency_graph.xi
-│   ├── policy/
-│   │   ├── mod.xi
-│   │   ├── routing_policy.xi
-│   │   ├── retry_policy.xi
-│   │   └── breaker_policy.xi
-│   └── testing/
-│       ├── mod.xi
-│       ├── fake_registry.xi
-│       ├── fake_transport.xi
-│       └── fixtures.xi
-└── tests/                      # planned — not yet implemented
-    ├── discovery/
-    ├── retry/
-    ├── breaker/
-    ├── workflow/
-    └── tracing/
+|-- package.xi
+|-- README.md
+|-- ARCHITECTURE.md
+|-- SPEC.md
+|-- docs/
+|   |-- service-discovery.md
+|   |-- retries.md
+|   |-- circuit-breaker.md
+|   |-- bulkheads.md
+|   |-- rpc.md
+|   |-- tracing.md
+|   |-- outbox.md
+|   |-- saga.md
+|   `-- idempotency.md
+|-- src/                        # planned -- not yet implemented
+|   |-- mod.xi
+|   |-- client.xi
+|   |-- request.xi
+|   |-- response.xi
+|   |-- discovery.xi
+|   |-- registry.xi
+|   |-- resolver.xi
+|   |-- endpoint.xi
+|   |-- timeout.xi
+|   |-- retry.xi
+|   |-- backoff.xi
+|   |-- breaker.xi
+|   |-- bulkhead.xi
+|   |-- idempotency.xi
+|   |-- tracing.xi
+|   |-- rpc/
+|   |   |-- mod.xi
+|   |   |-- client.xi
+|   |   |-- server.xi
+|   |   |-- codec.xi
+|   |   |-- envelope.xi
+|   |   `-- errors.xi
+|   |-- workflow/
+|   |   |-- mod.xi
+|   |   |-- saga.xi
+|   |   |-- outbox.xi
+|   |   |-- compensation.xi
+|   |   `-- orchestration.xi
+|   |-- health/
+|   |   |-- mod.xi
+|   |   |-- checks.xi
+|   |   `-- dependency_graph.xi
+|   |-- policy/
+|   |   |-- mod.xi
+|   |   |-- routing_policy.xi
+|   |   |-- retry_policy.xi
+|   |   `-- breaker_policy.xi
+|   `-- testing/
+|       |-- mod.xi
+|       |-- fake_registry.xi
+|       |-- fake_transport.xi
+|       `-- fixtures.xi
+`-- tests/                      # planned -- not yet implemented
+    |-- discovery/
+    |-- retry/
+    |-- breaker/
+    |-- workflow/
+    `-- tracing/
 ```
 
 ## Core module responsibilities

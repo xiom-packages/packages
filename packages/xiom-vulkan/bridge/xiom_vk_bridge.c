@@ -1,15 +1,15 @@
 #include "xvk_bridge.h"
 
-/* AAA features — memory sub-allocator (Phase 7.1) */
+/* AAA features -- memory sub-allocator (Phase 7.1) */
 #include "xvk_memory_alloc.c"
 
-/* Phase 7.3 — Runtime shader compilation toolchain */
+/* Phase 7.3 -- Runtime shader compilation toolchain */
 #include "xvk_shader_compile.c"
 
-/* Phase 7.4 — Texture loading pipeline */
+/* Phase 7.4 -- Texture loading pipeline */
 #include "xvk_texture.c"
 
-/* Phase 8.3 — Font/text rendering */
+/* Phase 8.3 -- Font/text rendering */
 #include "xvk_font.c"
 
 /* Image loader (PNG/JPG/BMP/TGA via stb_image) */

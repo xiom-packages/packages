@@ -1,6 +1,6 @@
 # xiom-hashchain
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Hash chain and hash-linked data structures.
 > **Deps:** stdlib; may wrap C (FFI).
 

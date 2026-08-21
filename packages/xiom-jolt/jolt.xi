@@ -1,8 +1,8 @@
-// XIOM — Jolt Physics Bindings (Full Coverage)
+// XIOM -- Jolt Physics Bindings (Full Coverage)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// JoltPhysics v5.6.0 — production 3D physics engine (Horizon Forbidden West).
+// JoltPhysics v5.6.0 -- production 3D physics engine (Horizon Forbidden West).
 // C++17 only. Bindings target the joltc C bridge (github.com/amerkoleci/joltc).
 //
 // Coverage: 100% of PhysicsSystem, BodyInterface, 23 shapes, 14 constraints,
@@ -218,7 +218,7 @@ pub fn body_interface_destroy_body(body_iface: Int, body_id: BodyID);
 pub fn body_interface_is_added(body_iface: Int, body_id: BodyID) -> Bool;
 
 // ============================================================================
-// BodyInterface — activation
+// BodyInterface -- activation
 // ============================================================================
 pub fn body_interface_activate_body(body_iface: Int, body_id: BodyID);
 pub fn body_interface_deactivate_body(body_iface: Int, body_id: BodyID);
@@ -226,7 +226,7 @@ pub fn body_interface_is_active(body_iface: Int, body_id: BodyID) -> Bool;
 pub fn body_interface_reset_sleep_timer(body_iface: Int, body_id: BodyID);
 
 // ============================================================================
-// BodyInterface — position / rotation / velocity
+// BodyInterface -- position / rotation / velocity
 // ============================================================================
 pub fn body_interface_get_position(body_iface: Int, body_id: BodyID) -> (Float32, Float32, Float32);
 pub fn body_interface_get_center_of_mass_position(body_iface: Int, body_id: BodyID) -> (Float32, Float32, Float32);
@@ -248,7 +248,7 @@ pub fn body_interface_set_position_rotation_and_velocity(body_iface: Int, body_i
 pub fn body_interface_move_kinematic(body_iface: Int, body_id: BodyID, target_x: Float32, target_y: Float32, target_z: Float32, target_qx: Float32, target_qy: Float32, target_qz: Float32, target_qw: Float32, delta_time: Float32);
 
 // ============================================================================
-// BodyInterface — forces / impulses / torque
+// BodyInterface -- forces / impulses / torque
 // ============================================================================
 pub fn body_interface_add_force(body_iface: Int, body_id: BodyID, fx: Float32, fy: Float32, fz: Float32);
 pub fn body_interface_add_force_at_point(body_iface: Int, body_id: BodyID, fx: Float32, fy: Float32, fz: Float32, px: Float32, py: Float32, pz: Float32);
@@ -260,7 +260,7 @@ pub fn body_interface_add_angular_impulse(body_iface: Int, body_id: BodyID, ix: 
 pub fn body_interface_apply_buoyancy_impulse(body_iface: Int, body_id: BodyID, surface_x: Float32, surface_y: Float32, surface_z: Float32, surface_nx: Float32, surface_ny: Float32, surface_nz: Float32, buoyancy: Float32, linear_drag: Float32, angular_drag: Float32, fluid_velocity_x: Float32, fluid_velocity_y: Float32, fluid_velocity_z: Float32, gravity: Float32, delta_time: Float32) -> Bool;
 
 // ============================================================================
-// BodyInterface — material / properties
+// BodyInterface -- material / properties
 // ============================================================================
 pub fn body_interface_get_friction(body_iface: Int, body_id: BodyID) -> Float32;
 pub fn body_interface_set_friction(body_iface: Int, body_id: BodyID, value: Float32);
@@ -281,7 +281,7 @@ pub fn body_interface_set_user_data(body_iface: Int, body_id: BodyID, value: Int
 pub fn body_interface_invalidate_contact_cache(body_iface: Int, body_id: BodyID);
 
 // ============================================================================
-// BodyInterface — shape / layer / type
+// BodyInterface -- shape / layer / type
 // ============================================================================
 pub fn body_interface_get_shape(body_iface: Int, body_id: BodyID) -> Shape;
 pub fn body_interface_set_shape(body_iface: Int, body_id: BodyID, shape: Shape, update_mass_props: Bool, activate: Int);
@@ -300,7 +300,7 @@ pub fn body_interface_get_collision_group(body_iface: Int, body_id: BodyID) -> I
 pub fn body_interface_set_collision_group(body_iface: Int, body_id: BodyID, group_ptr: Int);
 
 // ============================================================================
-// BodyInterface — body creation settings
+// BodyInterface -- body creation settings
 // ============================================================================
 pub fn body_creation_settings_new() -> BodyCreationSettings;
 pub fn body_creation_settings_set_shape(settings: BodyCreationSettings, shape: Shape);
@@ -335,7 +335,7 @@ pub fn body_creation_settings_get_rotation(settings: BodyCreationSettings) -> (F
 pub fn destroy_body_creation_settings(settings: BodyCreationSettings);
 
 // ============================================================================
-// Shape creation — all 23 shape types
+// Shape creation -- all 23 shape types
 // ============================================================================
 pub fn sphere_shape_settings_create(radius: Float32) -> ShapeSettings;
 pub fn box_shape_settings_create(half_x: Float32, half_y: Float32, half_z: Float32, convex_radius: Float32) -> ShapeSettings;
@@ -361,7 +361,7 @@ pub fn destroy_shape_settings(settings: ShapeSettings);
 pub fn destroy_shape(shape: Shape);
 
 // ============================================================================
-// Shape — runtime properties
+// Shape -- runtime properties
 // ============================================================================
 pub fn shape_get_type(shape: Shape) -> Int;
 pub fn shape_get_sub_type(shape: Shape) -> Int;
@@ -374,7 +374,7 @@ pub fn shape_get_inner_radius(shape: Shape) -> Float32;
 pub fn shape_scale_shape(shape: Shape, sx: Float32, sy: Float32, sz: Float32) -> Shape;
 
 // ============================================================================
-// BoxShape — type-specific accessors
+// BoxShape -- type-specific accessors
 // ============================================================================
 pub fn box_shape_get_half_extent(shape: Shape) -> (Float32, Float32, Float32);
 pub fn box_shape_get_convex_radius(shape: Shape) -> Float32;
@@ -437,7 +437,7 @@ pub fn compound_shape_get_num_sub_shapes(shape: Shape) -> Int;
 pub fn compound_shape_get_sub_shape(shape: Shape, index: Int) -> (Shape, Float32, Float32, Float32, Float32, Float32, Float32, Float32, Int);
 
 // ============================================================================
-// MutableCompoundShape — mutation
+// MutableCompoundShape -- mutation
 // ============================================================================
 pub fn mutable_compound_shape_add_shape(shape: Shape, sub_shape: Shape, px: Float32, py: Float32, pz: Float32, qx: Float32, qy: Float32, qz: Float32, qw: Float32, user_data: Int) -> Int;
 pub fn mutable_compound_shape_remove_shape(shape: Shape, index: Int);
@@ -463,12 +463,12 @@ pub fn group_filter_table_enable_collision(filter: GroupFilter, group1: Int, gro
 pub fn destroy_group_filter(filter: GroupFilter);
 
 // ============================================================================
-// Collision Queries — ray casting
+// Collision Queries -- ray casting
 // ============================================================================
 pub fn narrow_phase_query_cast_ray_closest(narrow_query: Int, ox: Float32, oy: Float32, oz: Float32, dx: Float32, dy: Float32, dz: Float32) -> (Bool, BodyID, Float32, Float32, Float32, Float32);
 
 // ============================================================================
-// Constraints — FixedConstraint
+// Constraints -- FixedConstraint
 // ============================================================================
 pub fn fixed_constraint_settings_create() -> ConstraintSettings;
 pub fn fixed_constraint_settings_set_point1(settings: ConstraintSettings, px: Float32, py: Float32, pz: Float32);
@@ -481,7 +481,7 @@ pub fn fixed_constraint_settings_set_space(settings: ConstraintSettings, space: 
 pub fn fixed_constraint_settings_set_auto_detect_point(settings: ConstraintSettings, auto_detect: Bool);
 
 // ============================================================================
-// Constraints — PointConstraint
+// Constraints -- PointConstraint
 // ============================================================================
 pub fn point_constraint_settings_create() -> ConstraintSettings;
 pub fn point_constraint_settings_set_point1(settings: ConstraintSettings, px: Float32, py: Float32, pz: Float32);
@@ -491,7 +491,7 @@ pub fn point_constraint_set_point1(constraint: Constraint, space: Int, px: Float
 pub fn point_constraint_set_point2(constraint: Constraint, space: Int, px: Float32, py: Float32, pz: Float32);
 
 // ============================================================================
-// Constraints — DistanceConstraint
+// Constraints -- DistanceConstraint
 // ============================================================================
 pub fn distance_constraint_settings_create() -> ConstraintSettings;
 pub fn distance_constraint_settings_set_point1(settings: ConstraintSettings, px: Float32, py: Float32, pz: Float32);
@@ -504,7 +504,7 @@ pub fn distance_constraint_get_min_distance(constraint: Constraint) -> Float32;
 pub fn distance_constraint_get_max_distance(constraint: Constraint) -> Float32;
 
 // ============================================================================
-// Constraints — HingeConstraint
+// Constraints -- HingeConstraint
 // ============================================================================
 pub fn hinge_constraint_settings_create() -> ConstraintSettings;
 pub fn hinge_constraint_settings_set_point1(settings: ConstraintSettings, px: Float32, py: Float32, pz: Float32);
@@ -532,7 +532,7 @@ pub fn hinge_constraint_get_limits_max(constraint: Constraint) -> Float32;
 pub fn hinge_constraint_has_limits(constraint: Constraint) -> Bool;
 
 // ============================================================================
-// Constraints — SliderConstraint
+// Constraints -- SliderConstraint
 // ============================================================================
 pub fn slider_constraint_settings_create() -> ConstraintSettings;
 pub fn slider_constraint_settings_set_point1(settings: ConstraintSettings, px: Float32, py: Float32, pz: Float32);
@@ -548,7 +548,7 @@ pub fn slider_constraint_settings_set_motor(settings: ConstraintSettings, mode: 
 pub fn slider_constraint_get_current_position(constraint: Constraint) -> Float32;
 
 // ============================================================================
-// Constraints — ConeConstraint
+// Constraints -- ConeConstraint
 // ============================================================================
 pub fn cone_constraint_settings_create() -> ConstraintSettings;
 pub fn cone_constraint_settings_set_point1(settings: ConstraintSettings, px: Float32, py: Float32, pz: Float32);
@@ -560,7 +560,7 @@ pub fn cone_constraint_settings_set_space(settings: ConstraintSettings, space: I
 pub fn cone_constraint_set_half_cone_angle(constraint: Constraint, angle: Float32);
 
 // ============================================================================
-// Constraints — SwingTwistConstraint
+// Constraints -- SwingTwistConstraint
 // ============================================================================
 pub fn swing_twist_constraint_settings_create() -> ConstraintSettings;
 pub fn swing_twist_constraint_settings_set_position1(settings: ConstraintSettings, px: Float32, py: Float32, pz: Float32);
@@ -579,7 +579,7 @@ pub fn swing_twist_constraint_settings_set_swing_motor(settings: ConstraintSetti
 pub fn swing_twist_constraint_settings_set_twist_motor(settings: ConstraintSettings, mode: Int, freq_or_stiffness: Float32, damping: Float32, min_torque: Float32, max_torque: Float32);
 
 // ============================================================================
-// Constraints — SixDOFConstraint
+// Constraints -- SixDOFConstraint
 // ============================================================================
 pub fn six_dof_constraint_settings_create() -> ConstraintSettings;
 pub fn six_dof_constraint_settings_set_position1(settings: ConstraintSettings, px: Float32, py: Float32, pz: Float32);
@@ -595,7 +595,7 @@ pub fn six_dof_constraint_settings_make_fixed_axis(settings: ConstraintSettings,
 pub fn six_dof_constraint_settings_set_limited_axis(settings: ConstraintSettings, axis: Int, limit_min: Float32, limit_max: Float32);
 
 // ============================================================================
-// Constraints — PathConstraint
+// Constraints -- PathConstraint
 // ============================================================================
 pub fn path_constraint_path_hermite_create() -> Int;
 pub fn path_constraint_path_hermite_add_point(path: Int, px: Float32, py: Float32, pz: Float32, tx: Float32, ty: Float32, tz: Float32, nx: Float32, ny: Float32, nz: Float32);
@@ -605,7 +605,7 @@ pub fn path_constraint_settings_set_path_fraction(settings: ConstraintSettings, 
 pub fn path_constraint_settings_set_rotation_constraint_type(settings: ConstraintSettings, type: Int);
 
 // ============================================================================
-// Constraints — GearConstraint
+// Constraints -- GearConstraint
 // ============================================================================
 pub fn gear_constraint_settings_create() -> ConstraintSettings;
 pub fn gear_constraint_settings_set_hinge_axis1(settings: ConstraintSettings, ax: Float32, ay: Float32, az: Float32);
@@ -614,7 +614,7 @@ pub fn gear_constraint_settings_set_ratio(settings: ConstraintSettings, ratio: F
 pub fn gear_constraint_settings_set_space(settings: ConstraintSettings, space: Int);
 
 // ============================================================================
-// Constraints — RackAndPinionConstraint
+// Constraints -- RackAndPinionConstraint
 // ============================================================================
 pub fn rack_and_pinion_constraint_settings_create() -> ConstraintSettings;
 pub fn rack_and_pinion_constraint_settings_set_hinge_axis(settings: ConstraintSettings, ax: Float32, ay: Float32, az: Float32);
@@ -622,7 +622,7 @@ pub fn rack_and_pinion_constraint_settings_set_slider_axis(settings: ConstraintS
 pub fn rack_and_pinion_constraint_settings_set_ratio(settings: ConstraintSettings, ratio: Float32);
 
 // ============================================================================
-// Constraints — PulleyConstraint
+// Constraints -- PulleyConstraint
 // ============================================================================
 pub fn pulley_constraint_settings_create() -> ConstraintSettings;
 pub fn pulley_constraint_settings_set_body_point1(settings: ConstraintSettings, px: Float32, py: Float32, pz: Float32);
@@ -633,7 +633,7 @@ pub fn pulley_constraint_settings_set_ratio(settings: ConstraintSettings, ratio:
 pub fn pulley_constraint_settings_set_length(settings: ConstraintSettings, min: Float32, max: Float32);
 
 // ============================================================================
-// Constraints — common
+// Constraints -- common
 // ============================================================================
 pub fn constraint_create(settings: ConstraintSettings, body1: BodyID, body2: BodyID) -> Constraint;
 pub fn constraint_get_sub_type(constraint: Constraint) -> Int;
@@ -648,7 +648,7 @@ pub fn destroy_constraint_settings(settings: ConstraintSettings);
 pub fn destroy_constraint(constraint: Constraint);
 
 // ============================================================================
-// Constraint — Motor & Spring settings
+// Constraint -- Motor & Spring settings
 // ============================================================================
 pub fn motor_settings_create() -> Int;
 pub fn motor_settings_set(motor_ptr: Int, mode: Int, freq_or_stiffness: Float32, damping: Float32, min_limit: Float32, max_limit: Float32);
@@ -656,7 +656,7 @@ pub fn spring_settings_create() -> Int;
 pub fn spring_settings_set(spring_ptr: Int, mode: Int, freq_or_stiffness: Float32, damping: Float32);
 
 // ============================================================================
-// Character — Character (rigid body)
+// Character -- Character (rigid body)
 // ============================================================================
 pub fn character_settings_create() -> Int;
 pub fn character_settings_set_shape(settings: Int, shape: Shape);
@@ -719,7 +719,7 @@ pub fn character_virtual_get_id(ch: CharacterVirtual) -> Int;
 pub fn destroy_character_virtual(ch: CharacterVirtual);
 
 // ============================================================================
-// Vehicle — WheeledVehicleController
+// Vehicle -- WheeledVehicleController
 // ============================================================================
 pub fn wheeled_vehicle_controller_settings_create() -> Int;
 pub fn wheeled_vehicle_controller_settings_set_engine(settings: Int, max_torque: Float32, min_rpm: Float32, max_rpm: Float32, inertia: Float32, angular_damping: Float32);
@@ -743,7 +743,7 @@ pub fn vehicle_constraint_get_wheel_rotation_angle(constraint: Constraint, wheel
 pub fn vehicle_constraint_get_wheel_has_contact(constraint: Constraint, wheel_idx: Int) -> Bool;
 
 // ============================================================================
-// Vehicle — TrackedVehicleController
+// Vehicle -- TrackedVehicleController
 // ============================================================================
 pub fn tracked_vehicle_controller_settings_create() -> Int;
 pub fn tracked_vehicle_controller_settings_set_engine(settings: Int, max_torque: Float32, min_rpm: Float32, max_rpm: Float32, inertia: Float32, angular_damping: Float32);
@@ -755,7 +755,7 @@ pub fn vehicle_constraint_create_tracked(settings: ConstraintSettings, body_id: 
 pub fn tracked_vehicle_controller_set_driver_input(controller: Int, forward: Float32, left_ratio: Float32, right_ratio: Float32, brake: Float32);
 
 // ============================================================================
-// Vehicle — MotorcycleController
+// Vehicle -- MotorcycleController
 // ============================================================================
 pub fn motorcycle_controller_settings_create() -> Int;
 pub fn motorcycle_controller_settings_set_max_lean_angle(settings: Int, angle: Float32);
@@ -790,7 +790,7 @@ pub fn destroy_soft_body_shared_settings(settings: SoftBodySharedSettings);
 pub fn destroy_soft_body_creation_settings(settings: SoftBodyCreationSettings);
 
 // ============================================================================
-// SoftBody — runtime
+// SoftBody -- runtime
 // ============================================================================
 pub fn body_interface_create_soft_body(body_iface: Int, settings: SoftBodyCreationSettings) -> BodyID;
 pub fn body_interface_create_and_add_soft_body(body_iface: Int, settings: SoftBodyCreationSettings, activate: Int) -> BodyID;
@@ -822,21 +822,21 @@ pub fn skeleton_get_joint_count(skeleton: Skeleton) -> Int;
 pub fn destroy_skeleton(skeleton: Skeleton);
 
 // ============================================================================
-// Listeners — ContactListener
+// Listeners -- ContactListener
 // ============================================================================
 pub fn contact_listener_create() -> ContactListener;
 pub fn contact_listener_set_callbacks(listener: ContactListener, on_validate: Int, on_add: Int, on_persist: Int, on_remove: Int, user_data: Int);
 pub fn destroy_contact_listener(listener: ContactListener);
 
 // ============================================================================
-// Listeners — BodyActivationListener
+// Listeners -- BodyActivationListener
 // ============================================================================
 pub fn body_activation_listener_create() -> BodyActivationListener;
 pub fn body_activation_listener_set_callbacks(listener: BodyActivationListener, on_activated: Int, on_deactivated: Int, user_data: Int);
 pub fn destroy_body_activation_listener(listener: BodyActivationListener);
 
 // ============================================================================
-// Listeners — PhysicsStepListener
+// Listeners -- PhysicsStepListener
 // ============================================================================
 pub fn physics_step_listener_create() -> PhysicsStepListener;
 pub fn physics_step_listener_set_callback(listener: PhysicsStepListener, on_step: Int, user_data: Int);
@@ -861,7 +861,7 @@ pub fn debug_renderer_draw_arrow(renderer: DebugRenderer, from_x: Float32, from_
 pub fn debug_renderer_draw_text_3d(renderer: DebugRenderer, px: Float32, py: Float32, pz: Float32, text: Str, color: Int, height: Float32);
 
 // ============================================================================
-// PhysicsSystem — debug drawing
+// PhysicsSystem -- debug drawing
 // ============================================================================
 pub fn physics_system_draw_bodies(world: World, draw_shape: Bool, draw_wireframe: Bool, draw_bounding_box: Bool, draw_com_transform: Bool, draw_velocity: Bool, renderer: DebugRenderer);
 pub fn physics_system_draw_constraints(world: World, renderer: DebugRenderer);
@@ -874,7 +874,7 @@ pub fn physics_system_save_state(world: World, out_ptr: Int, out_size_ptr: Int);
 pub fn physics_system_restore_state(world: World, state_ptr: Int, state_size: Int) -> Bool;
 
 // ============================================================================
-// Math — Vec3
+// Math -- Vec3
 // ============================================================================
 pub fn vec3_length(x: Float32, y: Float32, z: Float32) -> Float32;
 pub fn vec3_length_squared(x: Float32, y: Float32, z: Float32) -> Float32;
@@ -884,7 +884,7 @@ pub fn vec3_cross(x1: Float32, y1: Float32, z1: Float32, x2: Float32, y2: Float3
 pub fn vec3_negate(x: Float32, y: Float32, z: Float32) -> (Float32, Float32, Float32);
 
 // ============================================================================
-// Math — Quat
+// Math -- Quat
 // ============================================================================
 pub fn quat_s_identity() -> (Float32, Float32, Float32, Float32);
 pub fn quat_s_rotation(ax: Float32, ay: Float32, az: Float32, angle: Float32) -> (Float32, Float32, Float32, Float32);

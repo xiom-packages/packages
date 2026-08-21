@@ -1,4 +1,4 @@
-// CI Smoke — Legacy API + Phase 7.2 cache serialization
+// CI Smoke -- Legacy API + Phase 7.2 cache serialization
 module ci_smoke
 
 extern "C" {

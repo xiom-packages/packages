@@ -1,4 +1,4 @@
-# xiom-glfw — Build Dependency Audit
+# xiom-glfw -- Build Dependency Audit
 
 ## Required Dependencies
 
@@ -43,8 +43,8 @@ xiom glfw.xi tests/test_glfw.xi --link glfw --link GL -o test_glfw
 ```
 
 ## Compile Status
-- `glfw.xi` — PASSED (multi-file with test_glfw.xi)
-- `tests/test_glfw.xi` — PASSED (multi-file with glfw.xi)
+- `glfw.xi` -- PASSED (multi-file with test_glfw.xi)
+- `tests/test_glfw.xi` -- PASSED (multi-file with glfw.xi)
 
 ## Known Limitations
 - Test `test_init_terminate` gracefully skips in headless environments (no display).

@@ -1,6 +1,6 @@
 # xiom-blas
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** BLAS-style basic linear algebra subprograms.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,13 +1,13 @@
-// XIOM — libpq PostgreSQL C Client Library Bindings
+// XIOM -- libpq PostgreSQL C Client Library Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Phase 1 (v0.50.0): Pure SPEC layer — all FFI calls are stubs returning Err.
+// Phase 1 (v0.50.0): Pure SPEC layer -- all FFI calls are stubs returning Err.
 // Real C bridge will be linked after xiom.ffi matures.
 
 module xiom.libpq
 
-// ── Raw C interop (extern "C") ─────────────────────────────────────────────
+// -- Raw C interop (extern "C") ---------------------------------------------
 // All 17 libpq functions. Return types are Int (opaque handles / status codes).
 // String pointers are also returned as Int; safe wrappers handle conversion.
 
@@ -31,29 +31,29 @@ extern "C" {
   fn PQresultStatus(res: Int) -> Int;
 }
 
-// ── Opaque handle types ────────────────────────────────────────────────────
+// -- Opaque handle types ----------------------------------------------------
 
 pub type PgConnection = Int;
 pub type PgResult = Int;
 
-// ── Connection status constants ────────────────────────────────────────────
+// -- Connection status constants --------------------------------------------
 
 pub const CONNECTION_OK: Int = 0;
 pub const CONNECTION_BAD: Int = 1;
 
-// ── Result status constants ────────────────────────────────────────────────
+// -- Result status constants ------------------------------------------------
 
 pub const PGRES_EMPTY_QUERY: Int = 0;
 pub const PGRES_COMMAND_OK: Int = 1;
 pub const PGRES_TUPLES_OK: Int = 2;
 pub const PGRES_FATAL_ERROR: Int = 7;
 
-// ── Safe connection wrappers ───────────────────────────────────────────────
+// -- Safe connection wrappers -----------------------------------------------
 
 pub fn connect(conninfo: Str) -> Result[PgConnection, Str]
   requires: conninfo.len() > 0
 {
-  return Err("connect: C bridge not yet linked — xiom-libpq is in SPEC phase");
+  return Err("connect: C bridge not yet linked -- xiom-libpq is in SPEC phase");
 }
 
 pub fn close(conn: PgConnection)
@@ -70,26 +70,26 @@ pub fn status(conn: PgConnection) -> Int
 pub fn error_message(conn: PgConnection) -> Str
   requires: conn != 0
 {
-  return "(spec stub — no C bridge)";
+  return "(spec stub -- no C bridge)";
 }
 
-// ── Query execution ────────────────────────────────────────────────────────
+// -- Query execution --------------------------------------------------------
 
 pub fn exec(conn: PgConnection, sql: Str) -> Result[PgResult, Str]
   requires: conn != 0
   requires: sql.len() > 0
 {
-  return Err("exec: C bridge not yet linked — xiom-libpq is in SPEC phase");
+  return Err("exec: C bridge not yet linked -- xiom-libpq is in SPEC phase");
 }
 
 pub fn exec_params(conn: PgConnection, sql: Str, params: Vec[Str]) -> Result[PgResult, Str]
   requires: conn != 0
   requires: sql.len() > 0
 {
-  return Err("exec_params: C bridge not yet linked — xiom-libpq is in SPEC phase");
+  return Err("exec_params: C bridge not yet linked -- xiom-libpq is in SPEC phase");
 }
 
-// ── Result parsing ─────────────────────────────────────────────────────────
+// -- Result parsing ---------------------------------------------------------
 
 pub fn ntuples(res: PgResult) -> Int
   requires: res != 0
@@ -107,7 +107,7 @@ pub fn fname(res: PgResult, col: Int) -> Str
   requires: res != 0
   requires: col >= 0
 {
-  return "(spec stub — no C bridge)";
+  return "(spec stub -- no C bridge)";
 }
 
 pub fn get_value(res: PgResult, row: Int, col: Int) -> Str
@@ -115,7 +115,7 @@ pub fn get_value(res: PgResult, row: Int, col: Int) -> Str
   requires: row >= 0
   requires: col >= 0
 {
-  return "(spec stub — no C bridge)";
+  return "(spec stub -- no C bridge)";
 }
 
 pub fn get_is_null(res: PgResult, row: Int, col: Int) -> Bool
@@ -129,23 +129,23 @@ pub fn clear(res: PgResult)
 {
 }
 
-// ── Async / non-blocking ───────────────────────────────────────────────────
+// -- Async / non-blocking ---------------------------------------------------
 
 pub fn send_query(conn: PgConnection, sql: Str) -> Result[Int, Str]
   requires: conn != 0
   requires: sql.len() > 0
 {
-  return Err("send_query: C bridge not yet linked — xiom-libpq is in SPEC phase");
+  return Err("send_query: C bridge not yet linked -- xiom-libpq is in SPEC phase");
 }
 
 pub fn get_result(conn: PgConnection) -> Result[PgResult, Str]
 {
-  return Err("get_result: C bridge not yet linked — xiom-libpq is in SPEC phase");
+  return Err("get_result: C bridge not yet linked -- xiom-libpq is in SPEC phase");
 }
 
 pub fn consume_input(conn: PgConnection) -> Result[Int, Str]
 {
-  return Err("consume_input: C bridge not yet linked — xiom-libpq is in SPEC phase");
+  return Err("consume_input: C bridge not yet linked -- xiom-libpq is in SPEC phase");
 }
 
 pub fn is_busy(conn: PgConnection) -> Bool
@@ -153,7 +153,7 @@ pub fn is_busy(conn: PgConnection) -> Bool
   return false;
 }
 
-// ── Transaction helpers ────────────────────────────────────────────────────
+// -- Transaction helpers ----------------------------------------------------
 
 pub fn begin(conn: PgConnection) -> Result[PgResult, Str]
   requires: conn != 0

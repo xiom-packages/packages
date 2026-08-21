@@ -600,7 +600,7 @@ pub fn json_validate(input: Str) -> Result[Bool, ParseError]
 }
 
 // ============================================================
-// JSON STRINGIFY — INTERNALS
+// JSON STRINGIFY -- INTERNALS
 // ============================================================
 
 fn escape_char(ch: Int) -> Str {

@@ -1,4 +1,4 @@
-// XIOM — xiom.ffmpeg Conformance Tests
+// XIOM -- xiom.ffmpeg Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -10,9 +10,9 @@
 module tests.xiom_ffmpeg.conformance
 use xiom.ffmpeg;
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 1 – Type declarations exist (compile-time)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 1 - Type declarations exist (compile-time)
+// ===========================================================================
 
 fn test_type_declarations() -> Bool {
   var ctx: FfmpegContext = 0;
@@ -21,9 +21,9 @@ fn test_type_declarations() -> Bool {
   return true;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 2 – Constants are defined
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 2 - Constants are defined
+// ===========================================================================
 
 fn test_constants_defined() -> Bool {
   return AVMEDIA_TYPE_VIDEO == 0
@@ -31,9 +31,9 @@ fn test_constants_defined() -> Bool {
       && AV_SUCCESS       == 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 3 – alloc_packet returns Ok with non-null handle
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 3 - alloc_packet returns Ok with non-null handle
+// ===========================================================================
 
 fn test_alloc_packet_ok() -> Bool {
   let r = alloc_packet();
@@ -42,9 +42,9 @@ fn test_alloc_packet_ok() -> Bool {
   return pkt != 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 4 – free_packet does not crash
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 4 - free_packet does not crash
+// ===========================================================================
 
 fn test_free_packet_no_crash() -> Bool {
   let r = alloc_packet();
@@ -53,9 +53,9 @@ fn test_free_packet_no_crash() -> Bool {
   return true;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 5 – alloc_frame returns Ok with non-null handle
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 5 - alloc_frame returns Ok with non-null handle
+// ===========================================================================
 
 fn test_alloc_frame_ok() -> Bool {
   let r = alloc_frame();
@@ -63,9 +63,9 @@ fn test_alloc_frame_ok() -> Bool {
   return r.unwrap() != 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 6 – free_frame does not crash
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 6 - free_frame does not crash
+// ===========================================================================
 
 fn test_free_frame_no_crash() -> Bool {
   let r = alloc_frame();
@@ -74,9 +74,9 @@ fn test_free_frame_no_crash() -> Bool {
   return true;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 7 – alloc_packet + alloc_frame together (distinct handles)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 7 - alloc_packet + alloc_frame together (distinct handles)
+// ===========================================================================
 
 fn test_alloc_packet_and_frame_distinct() -> Bool {
   let pr = alloc_packet();
@@ -94,9 +94,9 @@ fn test_alloc_packet_and_frame_distinct() -> Bool {
   return distinct;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 8 – Multiple packets can be allocated and freed
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 8 - Multiple packets can be allocated and freed
+// ===========================================================================
 
 fn test_multiple_packets() -> Bool {
   let r1 = alloc_packet();
@@ -119,9 +119,9 @@ fn test_multiple_packets() -> Bool {
   return ok;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 9 – Multiple frames can be allocated and freed
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 9 - Multiple frames can be allocated and freed
+// ===========================================================================
 
 fn test_multiple_frames() -> Bool {
   let r1 = alloc_frame();
@@ -139,9 +139,9 @@ fn test_multiple_frames() -> Bool {
   return ok;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 10 – open_input with valid path (stub — FFmpeg DLL may be absent)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 10 - open_input with valid path (stub -- FFmpeg DLL may be absent)
+// ===========================================================================
 
 fn test_open_input_valid_path_stub() -> Bool {
   let r = open_input("test.mp4");
@@ -151,12 +151,12 @@ fn test_open_input_valid_path_stub() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 11 – open_input with empty path violates contract (should trap)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 11 - open_input with empty path violates contract (should trap)
+// ===========================================================================
 
 // Contract: requires path.len() > 0
-// Calling open_input("") traps at runtime — verified via manual / separate
+// Calling open_input("") traps at runtime -- verified via manual / separate
 // contract-violation harness. Here we test that non-empty path doesn't trap.
 
 fn test_open_input_nonempty_does_not_trap() -> Bool {
@@ -164,84 +164,84 @@ fn test_open_input_nonempty_does_not_trap() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 12 – close_input on a null/invalid context does not crash
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 12 - close_input on a null/invalid context does not crash
+// ===========================================================================
 
 fn test_close_input_null_no_crash() -> Bool {
   close_input(0);
   return true;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 13 – find_stream_info on null context returns Err
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 13 - find_stream_info on null context returns Err
+// ===========================================================================
 
 fn test_find_stream_info_null_context() -> Bool {
   let r = find_stream_info(0);
   return r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 14 – get_video_stream on null context returns Err
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 14 - get_video_stream on null context returns Err
+// ===========================================================================
 
 fn test_get_video_stream_null_context() -> Bool {
   let r = get_video_stream(0);
   return r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 15 – read_frame on null context/pkg returns Err (no crash)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 15 - read_frame on null context/pkg returns Err (no crash)
+// ===========================================================================
 
 fn test_read_frame_null_context() -> Bool {
   let r = read_frame(0, 0);
   return r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 16 – decode_frame on null context returns Err (no crash)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 16 - decode_frame on null context returns Err (no crash)
+// ===========================================================================
 
 fn test_decode_frame_null_context() -> Bool {
   let r = decode_frame(0, 0, 0);
   return r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 17 – encode_frame on null context returns Err (no crash)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 17 - encode_frame on null context returns Err (no crash)
+// ===========================================================================
 
 fn test_encode_frame_null_context() -> Bool {
   let r = encode_frame(0, 0, 0);
   return r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 18 – write_frame on null context returns Err (no crash)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 18 - write_frame on null context returns Err (no crash)
+// ===========================================================================
 
 fn test_write_frame_null_context() -> Bool {
   let r = write_frame(0, 0);
   return r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 19 – open_output with valid path (stub)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 19 - open_output with valid path (stub)
+// ===========================================================================
 
 fn test_open_output_valid_path_stub() -> Bool {
   let r = open_output("out.mp4", 0);
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 20 – Multiple result types propagate correctly
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 20 - Multiple result types propagate correctly
+// ===========================================================================
 
 fn test_result_chain_no_crash() -> Bool {
-  // Simulate a decode pipeline with null context — all should return Err
+  // Simulate a decode pipeline with null context -- all should return Err
   let r1 = find_stream_info(0);
   let r2 = get_video_stream(0);
   let r3 = read_frame(0, 0);
@@ -249,9 +249,9 @@ fn test_result_chain_no_crash() -> Bool {
   return r1.is_err() && r2.is_err() && r3.is_err() && r4.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 21 – int_to_str helper correctness
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 21 - int_to_str helper correctness
+// ===========================================================================
 
 fn test_int_to_str_positive() -> Bool {
   return int_to_str(42) == "42";
@@ -265,9 +265,9 @@ fn test_int_to_str_negative() -> Bool {
   return int_to_str(-5) == "-5";
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 22 – Error message contains code prefix
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 22 - Error message contains code prefix
+// ===========================================================================
 
 fn test_error_message_format() -> Bool {
   // find_stream_info on null should return Err with a message
@@ -277,25 +277,25 @@ fn test_error_message_format() -> Bool {
   return msg.len() > 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 23 – EOF constant is negative (distinct from success)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 23 - EOF constant is negative (distinct from success)
+// ===========================================================================
 
 fn test_eof_constant_negative() -> Bool {
   return AV_ERROR_EOF < 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 24 – EAGAIN constant is negative
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 24 - EAGAIN constant is negative
+// ===========================================================================
 
 fn test_eagain_constant_negative() -> Bool {
   return AV_ERROR_EAGAIN < 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Main
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn report(passed: Bool, name: Str) -> Int {
   if passed { return 0; }

@@ -1,4 +1,4 @@
-// XIOM — xiom-torch Conformance Test Suite
+// XIOM -- xiom-torch Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -50,15 +50,15 @@ fn make_opts() -> TensorOptions {
 }
 
 // =========================================================================
-// SECTION 1 — xiom.torch.types (12 tests)
+// SECTION 1 -- xiom.torch.types (12 tests)
 // =========================================================================
 
 fn test_dtype_enum_variants() -> TestResult {
-  return test.assert(true, "types: DType enum — all 6 variants defined");
+  return test.assert(true, "types: DType enum -- all 6 variants defined");
 }
 
 fn test_device_enum_variants() -> TestResult {
-  return test.assert(true, "types: Device enum — CPU and CUDA variants defined");
+  return test.assert(true, "types: Device enum -- CPU and CUDA variants defined");
 }
 
 fn test_tensor_new_1d() -> TestResult {
@@ -66,7 +66,7 @@ fn test_tensor_new_1d() -> TestResult {
   var opts = make_opts();
   var t = tensor_new(&shape, &opts);
   var ok = t.data.len() == 5 && t.shape.len() == 1 && t.shape[0] == 5;
-  return test.assert(ok, "types: tensor_new 1d — data len==5, shape==[5]");
+  return test.assert(ok, "types: tensor_new 1d -- data len==5, shape==[5]");
 }
 
 fn test_tensor_new_2d() -> TestResult {
@@ -74,7 +74,7 @@ fn test_tensor_new_2d() -> TestResult {
   var opts = make_opts();
   var t = tensor_new(&shape, &opts);
   var ok = t.data.len() == 12 && t.shape.len() == 2 && t.shape[0] == 3 && t.shape[1] == 4;
-  return test.assert(ok, "types: tensor_new 2d — data len==12, shape==[3,4]");
+  return test.assert(ok, "types: tensor_new 2d -- data len==12, shape==[3,4]");
 }
 
 fn test_tensor_new_all_zeros() -> TestResult {
@@ -82,7 +82,7 @@ fn test_tensor_new_all_zeros() -> TestResult {
   var opts = make_opts();
   var t = tensor_new(&shape, &opts);
   var all_zero = t.data[0] == 0.0 && t.data[1] == 0.0 && t.data[2] == 0.0;
-  return test.assert(all_zero, "types: tensor_new — all elements zero-initialized");
+  return test.assert(all_zero, "types: tensor_new -- all elements zero-initialized");
 }
 
 fn test_tensor_new_strides() -> TestResult {
@@ -90,21 +90,21 @@ fn test_tensor_new_strides() -> TestResult {
   var opts = make_opts();
   var t = tensor_new(&shape, &opts);
   var strides_ok = t.strides.len() == 2 && t.strides[0] == 4 && t.strides[1] == 1;
-  return test.assert(strides_ok, "types: tensor_new — row-major strides [4,1]");
+  return test.assert(strides_ok, "types: tensor_new -- row-major strides [4,1]");
 }
 
 fn test_tensor_zeros() -> TestResult {
   var shape = make_shape(4);
   var t = tensor_zeros(&shape);
   var ok = t.data.len() == 4 && t.data[0] == 0.0 && t.dtype == DType.Float32;
-  return test.assert(ok, "types: tensor_zeros — Float32 CPU zeros");
+  return test.assert(ok, "types: tensor_zeros -- Float32 CPU zeros");
 }
 
 fn test_tensor_ones() -> TestResult {
   var shape = make_shape(3);
   var t = tensor_ones(&shape);
   var ok = t.data.len() == 3 && t.data[0] == 1.0 && t.data[1] == 1.0 && t.data[2] == 1.0;
-  return test.assert(ok, "types: tensor_ones — all elements == 1.0");
+  return test.assert(ok, "types: tensor_ones -- all elements == 1.0");
 }
 
 fn test_tensor_shape() -> TestResult {
@@ -113,7 +113,7 @@ fn test_tensor_shape() -> TestResult {
   var t = tensor_new(&shape, &opts);
   var s = tensor_shape(&t);
   var ok = s.len() == 2 && s[0] == 2 && s[1] == 3;
-  return test.assert(ok, "types: tensor_shape — returns correct shape copy");
+  return test.assert(ok, "types: tensor_shape -- returns correct shape copy");
 }
 
 fn test_tensor_shape_no_alias() -> TestResult {
@@ -123,7 +123,7 @@ fn test_tensor_shape_no_alias() -> TestResult {
   var s = tensor_shape(&t);
   s[0] = 99;
   var not_aliased = t.shape[0] == 5;
-  return test.assert(not_aliased, "types: tensor_shape — returns clone, not alias");
+  return test.assert(not_aliased, "types: tensor_shape -- returns clone, not alias");
 }
 
 fn test_tensor_reshape() -> TestResult {
@@ -133,7 +133,7 @@ fn test_tensor_reshape() -> TestResult {
   var new_shape = make_shape_2d(3, 4);
   var r = tensor_reshape(&t, &new_shape);
   var ok = r.data.len() == 12 && r.shape.len() == 2 && r.shape[0] == 3 && r.shape[1] == 4;
-  return test.assert(ok, "types: tensor_reshape — same element count, new shape");
+  return test.assert(ok, "types: tensor_reshape -- same element count, new shape");
 }
 
 fn test_tensor_reshape_mismatch() -> TestResult {
@@ -143,11 +143,11 @@ fn test_tensor_reshape_mismatch() -> TestResult {
   var bad_shape = make_shape_2d(5, 5);
   var r = tensor_reshape(&t, &bad_shape);
   var ok = r.data.len() == 0 && r.shape.len() == 0;
-  return test.assert(ok, "types: tensor_reshape — element count mismatch returns empty tensor");
+  return test.assert(ok, "types: tensor_reshape -- element count mismatch returns empty tensor");
 }
 
 // =========================================================================
-// SECTION 2 — xiom.torch.ffi (5 tests)
+// SECTION 2 -- xiom.torch.ffi (5 tests)
 // =========================================================================
 
 fn test_ffi_torch_load_model_ok() -> TestResult {
@@ -185,7 +185,7 @@ fn test_ffi_torch_is_cuda_available() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 3 — xiom.torch.nn (16 tests)
+// SECTION 3 -- xiom.torch.nn (16 tests)
 // =========================================================================
 
 fn test_nn_linear_new() -> TestResult {
@@ -196,14 +196,14 @@ fn test_nn_linear_new() -> TestResult {
         && layer.weight.shape[1] == 128
         && layer.bias.shape.len() == 1
         && layer.bias.shape[0] == 10;
-  return test.assert(ok, "nn: linear_new — weight [10,128], bias [10]");
+  return test.assert(ok, "nn: linear_new -- weight [10,128], bias [10]");
 }
 
 fn test_nn_linear_new_zeros() -> TestResult {
   var layer = nn.linear_new(64, 32);
   var w_zero = layer.weight.data[0] == 0.0;
   var b_zero = layer.bias.data[0] == 0.0;
-  return test.assert(w_zero && b_zero, "nn: linear_new — weight and bias zero-initialized");
+  return test.assert(w_zero && b_zero, "nn: linear_new -- weight and bias zero-initialized");
 }
 
 fn test_nn_linear_forward_output_shape() -> TestResult {
@@ -213,7 +213,7 @@ fn test_nn_linear_forward_output_shape() -> TestResult {
   var input = tensor_new(&shape, &opts);
   var output = nn.linear_forward(&layer, &input);
   var ok = output.shape.len() == 2 && output.shape[0] == 16 && output.shape[1] == 10;
-  return test.assert(ok, "nn: linear_forward — output shape [batch, out_features]");
+  return test.assert(ok, "nn: linear_forward -- output shape [batch, out_features]");
 }
 
 fn test_nn_conv2d_new() -> TestResult {
@@ -227,14 +227,14 @@ fn test_nn_conv2d_new() -> TestResult {
         && layer.weight.shape[3] == 7
         && layer.bias.shape.len() == 1
         && layer.bias.shape[0] == 64;
-  return test.assert(ok, "nn: conv2d_new — weight [64,3,7,7], bias [64]");
+  return test.assert(ok, "nn: conv2d_new -- weight [64,3,7,7], bias [64]");
 }
 
 fn test_nn_conv2d_new_zeros() -> TestResult {
   var layer = nn.conv2d_new(3, 16, 3, 1, 1);
   var w_zero = layer.weight.data[0] == 0.0;
   var b_zero = layer.bias.data[0] == 0.0;
-  return test.assert(w_zero && b_zero, "nn: conv2d_new — weight and bias zero-initialized");
+  return test.assert(w_zero && b_zero, "nn: conv2d_new -- weight and bias zero-initialized");
 }
 
 fn test_nn_batchnorm2d_new() -> TestResult {
@@ -244,39 +244,39 @@ fn test_nn_batchnorm2d_new() -> TestResult {
         && layer.running_mean.shape.len() == 1 && layer.running_mean.shape[0] == 64
         && layer.running_var.shape.len() == 1 && layer.running_var.shape[0] == 64
         && layer.eps == 1e-5;
-  return test.assert(ok, "nn: batchnorm2d_new — all params shape [64], eps=1e-5");
+  return test.assert(ok, "nn: batchnorm2d_new -- all params shape [64], eps=1e-5");
 }
 
 fn test_nn_batchnorm2d_new_gamma_ones() -> TestResult {
   var layer = nn.batchnorm2d_new(32, 1e-5);
   var g_one = layer.gamma.data[0] == 1.0;
-  return test.assert(g_one, "nn: batchnorm2d_new — gamma initialized to ones");
+  return test.assert(g_one, "nn: batchnorm2d_new -- gamma initialized to ones");
 }
 
 fn test_nn_batchnorm2d_new_beta_zeros() -> TestResult {
   var layer = nn.batchnorm2d_new(32, 1e-5);
   var b_zero = layer.beta.data[0] == 0.0;
-  return test.assert(b_zero, "nn: batchnorm2d_new — beta initialized to zeros");
+  return test.assert(b_zero, "nn: batchnorm2d_new -- beta initialized to zeros");
 }
 
 fn test_nn_batchnorm2d_new_running_var_ones() -> TestResult {
   var layer = nn.batchnorm2d_new(32, 1e-5);
   var v_one = layer.running_var.data[0] == 1.0;
-  return test.assert(v_one, "nn: batchnorm2d_new — running_var initialized to ones");
+  return test.assert(v_one, "nn: batchnorm2d_new -- running_var initialized to ones");
 }
 
 fn test_nn_activation_types() -> TestResult {
-  return test.assert(true, "nn: activation types — ReLU, Sigmoid, Tanh, Softmax defined");
+  return test.assert(true, "nn: activation types -- ReLU, Sigmoid, Tanh, Softmax defined");
 }
 
 fn test_nn_softmax_dim() -> TestResult {
   var softmax = Softmax{ dim: 1 };
-  return test.assert_eq(1, softmax.dim, "nn: Softmax — dim field == 1");
+  return test.assert_eq(1, softmax.dim, "nn: Softmax -- dim field == 1");
 }
 
 fn test_nn_sequential_new_empty() -> TestResult {
   var seq = nn.sequential_new();
-  return test.assert(seq.layers.len() == 0, "nn: sequential_new — empty layers list");
+  return test.assert(seq.layers.len() == 0, "nn: sequential_new -- empty layers list");
 }
 
 fn test_nn_sequential_add_linear() -> TestResult {
@@ -284,14 +284,14 @@ fn test_nn_sequential_add_linear() -> TestResult {
   var linear = nn.linear_new(128, 10);
   nn.sequential_add(&mut seq, LayerType.LinearLayer(linear));
   var ok = seq.layers.len() == 1;
-  return test.assert(ok, "nn: sequential_add — linear layer appended");
+  return test.assert(ok, "nn: sequential_add -- linear layer appended");
 }
 
 fn test_nn_sequential_add_conv2d() -> TestResult {
   var seq = nn.sequential_new();
   var conv = nn.conv2d_new(3, 64, 3, 1, 1);
   nn.sequential_add(&mut seq, LayerType.Conv2dLayer(conv));
-  return test.assert(seq.layers.len() == 1, "nn: sequential_add — conv2d layer appended");
+  return test.assert(seq.layers.len() == 1, "nn: sequential_add -- conv2d layer appended");
 }
 
 fn test_nn_sequential_add_multiple() -> TestResult {
@@ -300,22 +300,22 @@ fn test_nn_sequential_add_multiple() -> TestResult {
   nn.sequential_add(&mut seq, LayerType.LinearLayer(linear));
   nn.sequential_add(&mut seq, LayerType.ReLULayer);
   nn.sequential_add(&mut seq, LayerType.SoftmaxLayer(1));
-  return test.assert(seq.layers.len() == 3, "nn: sequential_add — 3 layers appended");
+  return test.assert(seq.layers.len() == 3, "nn: sequential_add -- 3 layers appended");
 }
 
 fn test_nn_sequential_add_batchnorm() -> TestResult {
   var seq = nn.sequential_new();
   var bn = nn.batchnorm2d_new(64, 1e-5);
   nn.sequential_add(&mut seq, LayerType.BatchNorm2dLayer(bn));
-  return test.assert(seq.layers.len() == 1, "nn: sequential_add — batchnorm layer appended");
+  return test.assert(seq.layers.len() == 1, "nn: sequential_add -- batchnorm layer appended");
 }
 
 fn test_nn_layer_type_enum_variants() -> TestResult {
-  return test.assert(true, "nn: LayerType — all 7 variants defined");
+  return test.assert(true, "nn: LayerType -- all 7 variants defined");
 }
 
 // =========================================================================
-// SECTION 4 — Contract verification (11 tests)
+// SECTION 4 -- Contract verification (11 tests)
 // =========================================================================
 
 fn test_contract_tensor_new() -> TestResult {
@@ -363,7 +363,7 @@ fn test_contract_torch_save_model() -> TestResult {
 }
 
 // =========================================================================
-// SECTION 5 — Integration / end-to-end (2 tests)
+// SECTION 5 -- Integration / end-to-end (2 tests)
 // =========================================================================
 
 fn test_integration_full_pipeline() -> TestResult {
@@ -377,7 +377,7 @@ fn test_integration_full_pipeline() -> TestResult {
   nn.sequential_add(&mut seq, LayerType.BatchNorm2dLayer(bn));
   nn.sequential_add(&mut seq, LayerType.ReLULayer);
   var ok = img.data.len() == 1 * 3 * 224 * 224 && seq.layers.len() == 3;
-  return test.assert(ok, "integration: ImageNet pipeline — conv2d + batchnorm + relu");
+  return test.assert(ok, "integration: ImageNet pipeline -- conv2d + batchnorm + relu");
 }
 
 fn test_integration_linear_classifier() -> TestResult {
@@ -387,11 +387,11 @@ fn test_integration_linear_classifier() -> TestResult {
   var input = tensor_new(&shape, &opts);
   var output = nn.linear_forward(&linear, &input);
   var ok = output.shape[0] == 1 && output.shape[1] == 1000;
-  return test.assert(ok, "integration: Linear classifier — input [1,512] -> output [1,1000]");
+  return test.assert(ok, "integration: Linear classifier -- input [1,512] -> output [1,1000]");
 }
 
 // =========================================================================
-// Main — manual test dispatch
+// Main -- manual test dispatch
 // =========================================================================
 
 pub fn main() -> Int {

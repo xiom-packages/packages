@@ -1,4 +1,4 @@
-# AUDIT.md — xiom-websocket
+# AUDIT.md -- xiom-websocket
 
 ## Compiler Compatibility
 - **Compiler version:** xiom v0.11.0 (XIOM v0.45.3)
@@ -8,10 +8,10 @@
 | File | Status | Notes |
 |------|--------|-------|
 | `package.xi` | N/A | Manifest only; no source modules |
-| `SPEC.md` | ✓ Consistent | Module spec aligns with ARCHITECTURE and README |
-| `README.md` | ✓ Consistent | API references use correct XIOM types |
-| `ARCHITECTURE.md` | ✓ Consistent | Example code uses valid XIOM syntax |
-| `docs/*.md` | ✓ Consistent | Internal cross-references accurate |
+| `SPEC.md` | [OK] Consistent | Module spec aligns with ARCHITECTURE and README |
+| `README.md` | [OK] Consistent | API references use correct XIOM types |
+| `ARCHITECTURE.md` | [OK] Consistent | Example code uses valid XIOM syntax |
+| `docs/*.md` | [OK] Consistent | Internal cross-references accurate |
 
 ## System Dependencies
 | Dependency | Required | Status |
@@ -22,4 +22,4 @@
 | None (native/C) | No | Pure XIOM package, no native FFI |
 
 ## Compiler Gaps
-None applicable — no source to compile.
+None applicable -- no source to compile.

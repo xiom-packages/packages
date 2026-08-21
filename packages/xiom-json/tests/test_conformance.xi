@@ -1,4 +1,4 @@
-// XIOM — xiom-json Conformance Tests (12 tests: parse, stringify, get, set, path, schema)
+// XIOM -- xiom-json Conformance Tests (12 tests: parse, stringify, get, set, path, schema)
 module json_tests
 use xiom.io; use xiom.test; use xiom.json;
 

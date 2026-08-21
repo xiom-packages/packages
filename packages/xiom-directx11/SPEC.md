@@ -1,4 +1,4 @@
-# xiom-directx11 — SPEC
+# xiom-directx11 -- SPEC
 
 **Phase**: 2 (Scientific) | **Priority**: HIGH
 **Status**: IMPLEMENTED (v0.1.0 SPEC phase)
@@ -6,23 +6,23 @@
 **Platform**: Windows only
 
 ## What it wraps
-Direct3D 11 — Microsoft's graphics API (Windows). Part of the DirectX SDK.
+Direct3D 11 -- Microsoft's graphics API (Windows). Part of the DirectX SDK.
 Used by AAA games, CAD tools, Windows desktop apps with GPU rendering.
 
 ## Dependencies
 
 | What | How | Size |
 |------|-----|------|
-| DirectX SDK | Included in Windows SDK. No separate install needed on Windows 10+. | — |
+| DirectX SDK | Included in Windows SDK. No separate install needed on Windows 10+. | -- |
 | Windows SDK | System-installed. Part of Visual Studio or `winget install Microsoft.WindowsSDK`. | ~2GB |
-| C++ compiler | MSVC or clang++ | — |
+| C++ compiler | MSVC or clang++ | -- |
 
 ## Bundling strategy
 **System-installed only.** DirectX is part of Windows. No bundling needed.
 
 ## SPEC Phase Implementation (v0.1.0)
 
-All FFI calls return `Err(...)` or stub defaults — no C bridge is linked yet. The module provides:
+All FFI calls return `Err(...)` or stub defaults -- no C bridge is linked yet. The module provides:
 
 ### Types (7)
 DxDevice, DxContext, DxSwapChain, DxBuffer, DxTexture, DxShader, DxSampler
@@ -66,7 +66,7 @@ All wrappers include `requires` contracts for handle validation, enum checking, 
 | 1 | Device, swapchain, clear, present, basic triangle | Weekend | **DONE** (SPEC) |
 | 2 | Buffers, shaders, textures, constant buffers | Weekend | **DONE** (SPEC) |
 | 3 | Compute shaders, multi-pass rendering, deferred context | Week | TODO |
-| 4 | C bridge — Link d3d11.dll/dxgi.dll, wire extern functions | Weekend | TODO |
+| 4 | C bridge -- Link d3d11.dll/dxgi.dll, wire extern functions | Weekend | TODO |
 
 ## File Inventory
 

@@ -1,6 +1,6 @@
 # xiom-signal
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Digital signal processing: transforms and filtering.
 > **Deps:** stdlib; may wrap C (FFI).
 

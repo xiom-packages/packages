@@ -1,6 +1,6 @@
 # xiom-oauth
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** OAuth 2.0 flows, token issuance, and introspection.
 > **Deps:** stdlib; may wrap C (FFI).
 

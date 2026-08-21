@@ -1,11 +1,11 @@
-# xiom-tensorflow — SPEC
+# xiom-tensorflow -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
-**Status**: SPEC implemented — TESTS GREEN (34 conformance tests), C bridge not linked
+**Status**: SPEC implemented -- TESTS GREEN (34 conformance tests), C bridge not linked
 **Depends on**: xiom.ffi (stdlib)
 
 ## What it wraps
-TensorFlow C API (libtensorflow) — Google's ML framework.
+TensorFlow C API (libtensorflow) -- Google's ML framework.
 Alternative to PyTorch/LibTorch. Larger ecosystem, TF Serving, TF Lite.
 
 ## Dependencies
@@ -14,7 +14,7 @@ Alternative to PyTorch/LibTorch. Larger ecosystem, TF Serving, TF Lite.
 |------|-----|------|
 | TensorFlow C library | Download from tensorflow.org. Set `TF_DIR`. | ~500MB |
 | CUDA Toolkit (optional) | System-installed for GPU | ~3GB |
-| C++ compiler | For building bridge | — |
+| C++ compiler | For building bridge | -- |
 
 ## Bundling strategy
 **System-installed only.** Never bundle (500MB+).
@@ -23,12 +23,12 @@ Alternative to PyTorch/LibTorch. Larger ecosystem, TF Serving, TF Lite.
 
 | File | Purpose | Status |
 |------|---------|--------|
-| `tensorflow.xi` | Main module — types, extern "C" (16 funcs), safe wrappers, contracts | Done |
+| `tensorflow.xi` | Main module -- types, extern "C" (16 funcs), safe wrappers, contracts | Done |
 | `tests/test_conformance.xi` | 34 conformance tests (types, constants, contracts, stubs, error paths) | Done |
 | `ROADMAP.md` | Phased implementation plan | Done |
 | C bridge (`tensorflow_bridge.c`) | Native libtensorflow linkage | TODO (Phase 2) |
 
-## API surface (Phase 1 — implemented)
+## API surface (Phase 1 -- implemented)
 
 ### Types
 - `pub type TfSession = Int`

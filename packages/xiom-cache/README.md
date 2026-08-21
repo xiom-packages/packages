@@ -1,6 +1,6 @@
 # xiom-cache
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** General-purpose in-memory caching with TTL and eviction.
 > **Deps:** stdlib; may wrap C (FFI).
 

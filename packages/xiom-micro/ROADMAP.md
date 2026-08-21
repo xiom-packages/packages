@@ -16,7 +16,7 @@
 - [x] Route grouping stubs (route_group, router_group_with_prefix)
 - [x] Conformance test suite (10 tests)
 
-## v0.2.0 — Full Router
+## v0.2.0 -- Full Router
 - [ ] Pattern-based route matching (e.g. `/users/:id`)
 - [ ] Path parameter extraction
 - [ ] Method-not-allowed (405) responses
@@ -24,7 +24,7 @@
 - [ ] Wildcard and glob route patterns
 - [ ] Route ordering and priority
 
-## v0.3.0 — Middleware Engine
+## v0.3.0 -- Middleware Engine
 - [ ] Full middleware pipeline with next() chaining
 - [ ] Error-handling middleware
 - [ ] Request-scoped context propagation
@@ -34,14 +34,14 @@
 - [ ] Rate-limiting middleware with token bucket
 - [ ] Body-parsing middleware (JSON, form, multipart)
 
-## v0.4.0 — HTTP Transport Bridge
+## v0.4.0 -- HTTP Transport Bridge
 - [ ] Integration with xiom-http for network transport
 - [ ] Keep-alive connection management
 - [ ] Streaming response support
 - [ ] Request body streaming
 - [ ] Graceful shutdown
 
-## v1.0.0 — Production Readiness
+## v1.0.0 -- Production Readiness
 - [ ] Static file serving
 - [ ] Template rendering bridge
 - [ ] Request validation schemas

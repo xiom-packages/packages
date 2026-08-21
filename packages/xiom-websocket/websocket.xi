@@ -1,4 +1,4 @@
-// XIOM — WebSocket Transport (Pure-XIOM types + extern C FFI bridge)
+// XIOM -- WebSocket Transport (Pure-XIOM types + extern C FFI bridge)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 
@@ -8,7 +8,7 @@ use xiom.string;
 use xiom.ptr;
 use xiom.convert;
 
-// ─── XIOM FFI Bridge ──────────────────────────────────────────────────────
+// --- XIOM FFI Bridge ------------------------------------------------------
 
 extern "C" {
   fn xiom_str_to_cstr(xiom_str: *UInt8, len: Int) -> *UInt8;
@@ -19,7 +19,7 @@ extern "C" {
   fn xiom_read_byte(ptr: *UInt8, offset: Int) -> Int;
 }
 
-// ─── Platform Socket FFI ──────────────────────────────────────────────────
+// --- Platform Socket FFI --------------------------------------------------
 
 extern "C" {
   fn ws_socket_create() -> Int;
@@ -34,7 +34,7 @@ extern "C" {
   fn ws_socket_set_nonblocking(fd: Int, enable: Int);
 }
 
-// ─── WebSocket Handshake FFI ──────────────────────────────────────────────
+// --- WebSocket Handshake FFI ----------------------------------------------
 
 extern "C" {
   fn ws_handshake_compute_key(client_key: *UInt8, key_len: Int) -> *UInt8;
@@ -43,7 +43,7 @@ extern "C" {
   fn ws_handshake_free_result(ptr: *UInt8);
 }
 
-// ─── WebSocket Frame FFI ──────────────────────────────────────────────────
+// --- WebSocket Frame FFI --------------------------------------------------
 
 extern "C" {
   fn ws_frame_encode(opcode: Int, payload: *UInt8, len: Int, mask: Int) -> *UInt8;
@@ -55,7 +55,7 @@ extern "C" {
   fn ws_frame_is_valid(data: *UInt8, len: Int) -> Int;
 }
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// --- Types ------------------------------------------------------------------
 
 pub enum WsOpcode {
   Continuation,
@@ -134,7 +134,7 @@ pub type WsChannel = {
   subscribers: Vec[Str];
 } derive[Clone]
 
-// ─── Opcode Helpers ─────────────────────────────────────────────────────────
+// --- Opcode Helpers ---------------------------------------------------------
 
 pub fn opcode_to_int(op: WsOpcode) -> Int {
   match op {
@@ -186,7 +186,7 @@ pub fn opcode_to_str(op: WsOpcode) -> Str {
   };
 }
 
-// ─── Frame Helpers ──────────────────────────────────────────────────────────
+// --- Frame Helpers ----------------------------------------------------------
 
 pub fn frame_new(opcode: WsOpcode, payload: Vec[Int]) -> WsFrame {
   return WsFrame{
@@ -243,7 +243,7 @@ pub fn frame_payload_len(frame: &WsFrame) -> Int {
   return frame.payload.len();
 }
 
-// ─── Frame Validation ───────────────────────────────────────────────────────
+// --- Frame Validation -------------------------------------------------------
 
 pub fn frame_validate(frame: &WsFrame) -> Result[Unit, Str] {
   if opcode_is_control(frame.opcode) {
@@ -260,7 +260,7 @@ pub fn frame_validate(frame: &WsFrame) -> Result[Unit, Str] {
   return Ok(());
 }
 
-// ─── Frame Encode/Decode Stubs ──────────────────────────────────────────────
+// --- Frame Encode/Decode Stubs ----------------------------------------------
 
 pub fn frame_encode(frame: &WsFrame) -> Result[Vec[Int], Str] {
   // Stub: encode one text frame with 0-length payload pattern
@@ -313,7 +313,7 @@ pub fn frame_decode(raw: &Vec[Int]) -> Result[WsFrame, Str] {
   });
 }
 
-// ─── Connection ─────────────────────────────────────────────────────────────
+// --- Connection -------------------------------------------------------------
 
 pub fn connection_new(id: Str, host: Str, port: Int, path: Str) -> WsConnection
   requires: string.str_len(id) > 0
@@ -363,7 +363,7 @@ pub fn connection_set_heartbeat(conn: &mut WsConnection, ms: Int) {
   conn.heartbeat_interval_ms = ms;
 }
 
-// ─── Handshake Stubs ────────────────────────────────────────────────────────
+// --- Handshake Stubs --------------------------------------------------------
 
 pub fn handshake_request_new(host: Str, path: Str) -> WsHandshakeRequest {
   return WsHandshakeRequest{
@@ -408,7 +408,7 @@ pub fn handshake_is_valid(host: Str, sec_key: Str, sec_version: Str) -> Bool {
   };
 }
 
-// ─── Server ─────────────────────────────────────────────────────────────────
+// --- Server -----------------------------------------------------------------
 
 pub fn server_new(host: Str, port: Int) -> WsServer
   requires: string.str_len(host) > 0
@@ -481,7 +481,7 @@ pub fn server_broadcast_count(server: &WsServer) -> Int {
   return count;
 }
 
-// ─── Message ─────────────────────────────────────────────────────────────────
+// --- Message -----------------------------------------------------------------
 
 pub fn message_new(kind: WsMessageKind, data: Vec[Int], seq: Int) -> WsMessage {
   return WsMessage{
@@ -505,7 +505,7 @@ pub fn message_binary(data: Vec[Int], seq: Int) -> WsMessage {
   return message_new(WsMessageKind.BinaryMessage, data, seq);
 }
 
-// ─── Channel ────────────────────────────────────────────────────────────────
+// --- Channel ----------------------------------------------------------------
 
 pub fn channel_new(name: Str) -> WsChannel
   requires: string.str_len(name) > 0
@@ -551,7 +551,7 @@ pub fn channel_has_subscriber(ch: &WsChannel, conn_id: Str) -> Bool {
   return false;
 }
 
-// ─── Close Codes ────────────────────────────────────────────────────────────
+// --- Close Codes ------------------------------------------------------------
 
 pub fn close_code_normal() -> Int { return 1000; }
 pub fn close_code_going_away() -> Int { return 1001; }
@@ -584,7 +584,7 @@ pub fn close_code_text(code: Int) -> Str {
   return "Unknown";
 }
 
-// ─── Heartbeat ──────────────────────────────────────────────────────────────
+// --- Heartbeat --------------------------------------------------------------
 
 pub fn heartbeat_interval_default() -> Int { return 30000; }
 pub fn heartbeat_timeout_default() -> Int { return 10000; }

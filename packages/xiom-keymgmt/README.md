@@ -1,6 +1,6 @@
 # xiom-keymgmt
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Cryptographic key lifecycle management and rotation.
 > **Deps:** stdlib; may wrap C (FFI).
 

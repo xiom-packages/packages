@@ -1,6 +1,6 @@
 # xiom-adc
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Analog-to-digital conversion with channel selection and sampling control.
 > **Deps:** stdlib; may wrap C (FFI).
 

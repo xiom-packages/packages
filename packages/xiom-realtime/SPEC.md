@@ -1,14 +1,14 @@
-# xiom-realtime — Specification
+# xiom-realtime -- Specification
 
 > **Status: v0.1.0 implemented.** Priority type system, task state machine, priority-based scheduler with deadline enforcement, retry logic, and scheduler statistics are implemented in `realtime.xi` (pure XIOM, no extern dependencies). Room/channel/presence/event layers are planned for future versions.
 
 ## Overview
 
-`xiom-realtime` is the application-level realtime package for the XIOM ecosystem. It layers reusable realtime semantics — scheduling, channels, rooms, presence, broadcast, ordering, and ephemeral/durable events — on top of `xiom-websocket` (transport) and `xiom-micro` (distributed fan-out).
+`xiom-realtime` is the application-level realtime package for the XIOM ecosystem. It layers reusable realtime semantics -- scheduling, channels, rooms, presence, broadcast, ordering, and ephemeral/durable events -- on top of `xiom-websocket` (transport) and `xiom-micro` (distributed fan-out).
 
 The scheduling core is organized around a priority-based task queue with:
 - Five priority levels (Critical through Background)
-- State machine (Pending → Running → Completed/Failed/Skipped)
+- State machine (Pending -> Running -> Completed/Failed/Skipped)
 - Deadline enforcement with task expiry
 - Automatic retry with configurable max retries
 - Concurrent execution slots with max_concurrent limit
@@ -48,11 +48,11 @@ pub enum RtTaskState {
 ```
 
 State machine transitions:
-- `Pending` → `Running` (scheduler picks task)
-- `Running` → `Completed` (task finishes)
-- `Running` → `Failed` (retries exhausted)
-- `Running` → `Pending` (retry on failure, within max_retries)
-- `Pending` → `Skipped` (deadline expired)
+- `Pending` -> `Running` (scheduler picks task)
+- `Running` -> `Completed` (task finishes)
+- `Running` -> `Failed` (retries exhausted)
+- `Running` -> `Pending` (retry on failure, within max_retries)
+- `Pending` -> `Skipped` (deadline expired)
 
 ### `RtTask`
 
@@ -141,19 +141,19 @@ pub type RtScheduleResult = {
 | `scheduler_tick` | `(sched: &mut RtScheduler) -> RtScheduleResult` |
 
 Work flow per tick:
-1. Sort pending tasks by priority (bubble sort, O(n²), Critical first)
+1. Sort pending tasks by priority (bubble sort, O(n2), Critical first)
 2. Calculate available slots (`max_concurrent - running_count`)
 3. For each pending task (in priority order, up to available slots):
-   - If expired (deadline passed) → mark Skipped, increment stats
-   - Otherwise → mark Running, add to `executed`, increment `running_count`
-4. Remaining pending tasks → added to `deferred`
+   - If expired (deadline passed) -> mark Skipped, increment stats
+   - Otherwise -> mark Running, add to `executed`, increment `running_count`
+4. Remaining pending tasks -> added to `deferred`
 
 ### Task Lifecycle
 
 | Function | Signature | Transition |
 |----------|-----------|------------|
-| `scheduler_complete_task` | `(sched: &mut RtScheduler, task_id: Str) -> Bool` | Running → Completed |
-| `scheduler_fail_task` | `(sched: &mut RtScheduler, task_id: Str) -> Bool` | Running → Pending (retry) or Failed (exhausted) |
+| `scheduler_complete_task` | `(sched: &mut RtScheduler, task_id: Str) -> Bool` | Running -> Completed |
+| `scheduler_fail_task` | `(sched: &mut RtScheduler, task_id: Str) -> Bool` | Running -> Pending (retry) or Failed (exhausted) |
 
 ### Scheduler Query
 
@@ -184,8 +184,8 @@ Each task has an optional `deadline_ms`. A task with `deadline_ms > 0` is expire
 ### Retry Logic
 
 On failure (`scheduler_fail_task`):
-- If `retry_count < max_retries` (default: 3) → task returns to Pending, `retry_count` incremented
-- If `retry_count >= max_retries` → task transitions to Failed
+- If `retry_count < max_retries` (default: 3) -> task returns to Pending, `retry_count` incremented
+- If `retry_count >= max_retries` -> task transitions to Failed
 
 ---
 
@@ -232,7 +232,7 @@ The v0.1.0 scheduler uses no `extern "C"` declarations. All sorting, comparison,
 
 ### Bubble Sort
 
-The priority sort uses bubble sort (O(n²)) which is adequate for small task queues. Future versions will use a heap-based priority queue (`xiom.collections.BinaryHeap`) for O(log n) insert and O(1) extract-min.
+The priority sort uses bubble sort (O(n2)) which is adequate for small task queues. Future versions will use a heap-based priority queue (`xiom.collections.BinaryHeap`) for O(log n) insert and O(1) extract-min.
 
 ### No Preemption
 
@@ -240,4 +240,4 @@ v0.1.0 uses cooperative scheduling: tasks must explicitly complete or fail. Pree
 
 ### Monotonic Clock
 
-The scheduler uses an explicit `now_ms` field rather than a system call. This makes the scheduler deterministic and testable — callers set `now_ms` before each tick.
+The scheduler uses an explicit `now_ms` field rather than a system call. This makes the scheduler deterministic and testable -- callers set `now_ms` before each tick.

@@ -1,4 +1,4 @@
-// XIOM — DXC Binding Conformance Tests (28 tests)
+// XIOM -- DXC Binding Conformance Tests (28 tests)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -14,7 +14,7 @@ use xiom.dxc;
 use xiom.dxc.safe;
 
 // =========================================================================
-// 1–7  CONSTANT verification
+// 1-7  CONSTANT verification
 // =========================================================================
 
 fn test_code_page_constants() -> Bool {
@@ -94,7 +94,7 @@ fn test_hresult_constants() -> Bool {
 }
 
 // =========================================================================
-// 8–9  STRUCT types (dxc.xi procedural API)
+// 8-9  STRUCT types (dxc.xi procedural API)
 // =========================================================================
 
 fn test_dxc_buffer_struct() -> Bool {
@@ -113,7 +113,7 @@ fn test_dxc_define_struct() -> Bool {
 }
 
 // =========================================================================
-// 10–23  RESOURCE struct shape tests (dxc_safe.xi)
+// 10-23  RESOURCE struct shape tests (dxc_safe.xi)
 // =========================================================================
 
 fn test_dxc_error_type() -> Bool {
@@ -204,7 +204,7 @@ fn test_dxc_context_type() -> Bool {
 }
 
 // =========================================================================
-// 24–25  HRESULT → string pure functions
+// 24-25  HRESULT -> string pure functions
 // =========================================================================
 
 fn test_result_to_string() -> Bool {
@@ -231,7 +231,7 @@ fn test_dxc_error_to_string() -> Bool {
 }
 
 // =========================================================================
-// 26–28  EDGE cases — type + HRESULT coverage (no DLL required)
+// 26-28  EDGE cases -- type + HRESULT coverage (no DLL required)
 // =========================================================================
 
 fn test_hresult_edge_cases() -> Bool {
@@ -259,7 +259,7 @@ fn test_clone_derive_presence() -> Bool {
 }
 
 // =========================================================================
-// Main — dispatch all 28 tests sequentially
+// Main -- dispatch all 28 tests sequentially
 // =========================================================================
 
 fn main() -> Int {

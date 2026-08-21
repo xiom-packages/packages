@@ -1,4 +1,4 @@
-# xiom-graphql — Specification
+# xiom-graphql -- Specification
 
 > **Status: v0.1.0 implemented.** Core types, schema builder, query parser/validator stubs, execution stub, and introspection stub are implemented in `graphql.xi`. Full SDL parser, validation rules, and execution engine are planned for future versions.
 
@@ -6,7 +6,7 @@
 
 `xiom-graphql` is the schema-first GraphQL server package for XIOM, layered on top of `xiom-http` for transport, `xiom-json` for payload encoding, and `xiom-websocket` for subscription delivery. It owns SDL loading and composition, schema and operation validation, execution, resolver wiring, the typed error model, introspection, batching, and subscription protocol semantics.
 
-The engine is organized around four explicit phases — **parse → validate → execute → complete** — and around the rule that the schema is the single source of truth.
+The engine is organized around four explicit phases -- **parse -> validate -> execute -> complete** -- and around the rule that the schema is the single source of truth.
 
 ## Module
 
@@ -223,7 +223,7 @@ Returns empty data for valid schemas. Full execution engine planned for v0.5.0.
 
 - The schema is the public contract; nothing outside it is served.
 - Resolvers are thin and explicit, returning `Result[T, GraphQLError]`.
-- Validation always precedes execution — invalid operations fail before data fetching.
+- Validation always precedes execution -- invalid operations fail before data fetching.
 - Batching (DataLoader) is the default recommendation for nested fields.
 - Transport and GraphQL protocol are kept separate.
 - Subscriptions are transport-agnostic typed streams.

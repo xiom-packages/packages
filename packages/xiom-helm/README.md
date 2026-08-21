@@ -1,6 +1,6 @@
 # xiom-helm
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Kubernetes package management (charts, releases, repositories, values).
 > **Deps:** stdlib; may wrap C (FFI).
 

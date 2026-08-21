@@ -1,6 +1,6 @@
 # Pagination
 
-> Status: Design stage — specification only, not yet implemented.
+> Status: Design stage -- specification only, not yet implemented.
 
 Pagination keeps large collections predictable, stable, and cheap to serve. `xiom-rest` treats pagination as a first-class, typed concern rather than an ad-hoc convention buried in each handler. Two strategies are supported: page-number pagination for small or stable datasets, and cursor pagination for large or mutable ones. In both cases the request parameters are parsed into typed structures before any business logic runs.
 
@@ -10,7 +10,7 @@ The simplest model exposes `page` and `limit` query parameters and returns a sli
 
 ## Cursor pagination
 
-For large or frequently changing datasets, offset-based paging drifts: rows inserted or deleted between requests cause items to be skipped or repeated. Cursor pagination avoids this by encoding an opaque position token. `parse_cursor(query)` reads an optional `cursor` parameter, and handlers return a `CursorPage[T] { items: Vec[T]; next_cursor: Option[Str]; prev_cursor: Option[Str]; }`. The cursor is treated as opaque to clients — they echo it back rather than constructing it — which lets the server change its internal keyset strategy without breaking consumers. This is the recommended default for anything that grows or mutates.
+For large or frequently changing datasets, offset-based paging drifts: rows inserted or deleted between requests cause items to be skipped or repeated. Cursor pagination avoids this by encoding an opaque position token. `parse_cursor(query)` reads an optional `cursor` parameter, and handlers return a `CursorPage[T] { items: Vec[T]; next_cursor: Option[Str]; prev_cursor: Option[Str]; }`. The cursor is treated as opaque to clients -- they echo it back rather than constructing it -- which lets the server change its internal keyset strategy without breaking consumers. This is the recommended default for anything that grows or mutates.
 
 ## Response metadata
 

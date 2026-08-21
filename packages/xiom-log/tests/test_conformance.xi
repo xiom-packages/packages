@@ -1,4 +1,4 @@
-// XIOM — xiom-log Conformance Tests
+// XIOM -- xiom-log Conformance Tests
 module log_tests
 use xiom.io; use xiom.test;
 use xiom.log.types; use xiom.log.logger; use xiom.log.format;

@@ -904,7 +904,7 @@ void xvk_cmd_encode_video_khr(int64_t cmd_buf, int64_t encode_info_struct)
 /* Phase 8.1: Validation message capture ring buffer                       */
 /* ======================================================================== */
 
-/* ── Validation message ring buffer (thread-safe via atomics) ── */
+/* -- Validation message ring buffer (thread-safe via atomics) -- */
 
 #define XVK_VAL_MAX_MSGS 64
 #define XVK_VAL_MSG_LEN  256

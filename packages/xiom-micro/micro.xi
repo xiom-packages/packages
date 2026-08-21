@@ -1,4 +1,4 @@
-// XIOM — Microservice Framework (Pure-XIOM Router, Middleware, Request/Response)
+// XIOM -- Microservice Framework (Pure-XIOM Router, Middleware, Request/Response)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 
@@ -7,7 +7,7 @@ module xiom.micro
 use xiom.string;
 use xiom.convert;
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// --- Types ------------------------------------------------------------------
 
 pub enum HttpMethod {
   GET,
@@ -92,7 +92,7 @@ pub type MiddlewareResult = {
   message: Str;
 } derive[Clone]
 
-// ─── Method Helpers ─────────────────────────────────────────────────────────
+// --- Method Helpers ---------------------------------------------------------
 
 pub fn method_to_str(method: HttpMethod) -> Str {
   match method {
@@ -117,7 +117,7 @@ pub fn method_from_str(s: Str) -> HttpMethod {
   return HttpMethod.GET;
 }
 
-// ─── Request Builder ────────────────────────────────────────────────────────
+// --- Request Builder --------------------------------------------------------
 
 pub fn request_new(method: HttpMethod, path: Str) -> MicroRequest
   requires: string.str_len(path) > 0
@@ -165,7 +165,7 @@ pub fn request_has_header(req: &MicroRequest, name: Str) -> Bool {
   };
 }
 
-// ─── Response Builder ───────────────────────────────────────────────────────
+// --- Response Builder -------------------------------------------------------
 
 pub fn response_new(status: Int) -> MicroResponse
   requires: status >= 100
@@ -246,7 +246,7 @@ pub fn response_is_server_error(res: &MicroResponse) -> Bool {
   return res.status >= 500 && res.status < 600;
 }
 
-// ─── Router ─────────────────────────────────────────────────────────────────
+// --- Router -----------------------------------------------------------------
 
 pub fn router_new() -> MicroRouter
   requires: true
@@ -304,7 +304,7 @@ pub fn router_get_routes_by_method(router: &MicroRouter, method: HttpMethod) -> 
   return result;
 }
 
-// ─── Route Registration ─────────────────────────────────────────────────────
+// --- Route Registration -----------------------------------------------------
 
 pub fn router_register(
   router: &mut MicroRouter,
@@ -356,7 +356,7 @@ pub fn router_options(router: &mut MicroRouter, path: Str, handler: Str) -> Micr
   return router_register(router, HttpMethod.OPTIONS, path, handler);
 }
 
-// ─── Middleware Chain ────────────────────────────────────────────────────────
+// --- Middleware Chain --------------------------------------------------------
 
 pub fn middleware_new(name: Str, phase: MiddlewarePhase) -> MicroMiddleware {
   return MicroMiddleware{
@@ -431,7 +431,7 @@ pub fn router_route_with_middleware(
   return route;
 }
 
-// ─── Middleware Evaluation ───────────────────────────────────────────────────
+// --- Middleware Evaluation ---------------------------------------------------
 
 pub fn middleware_evaluate(
   middleware_list: &Vec[MicroMiddleware],
@@ -459,7 +459,7 @@ pub fn middleware_evaluate_allowed(result: &MiddlewareResult) -> Bool {
   return result.allowed;
 }
 
-// ─── Router Dispatch ────────────────────────────────────────────────────────
+// --- Router Dispatch --------------------------------------------------------
 
 pub fn router_dispatch(
   router: &MicroRouter,
@@ -475,7 +475,7 @@ pub fn router_dispatch(
   var i: Int = 0;
   while i < router.routes.len() {
     if router.routes[i].method == req.method && router.routes[i].path == req.path {
-      // Stub: invoke handler — returns 200 OK with handler name echo
+      // Stub: invoke handler -- returns 200 OK with handler name echo
       return response_ok(router.routes[i].handler);
     };
     i = i + 1;
@@ -485,7 +485,7 @@ pub fn router_dispatch(
   return response_not_found("not found");
 }
 
-// ─── App Builder ────────────────────────────────────────────────────────────
+// --- App Builder ------------------------------------------------------------
 
 pub fn app_new(host: Str, port: Int) -> MicroApp
   requires: string.str_len(host) > 0
@@ -533,14 +533,14 @@ pub fn app_post(app: &mut MicroApp, path: Str, handler: Str) -> MicroRoute {
   return router_post(app_router(app), path, handler);
 }
 
-// ─── Route Grouping ─────────────────────────────────────────────────────────
+// --- Route Grouping ---------------------------------------------------------
 
 pub fn route_group(
   router: &mut MicroRouter,
   prefix: Str,
   register_fn: Str,
 ) {
-  // Stub: group creation — prefix is stored for documentation/debugging
+  // Stub: group creation -- prefix is stored for documentation/debugging
   // Actual registration of sub-routes happens via the caller chaining
   // router_get/router_post with the already-prefixed path.
 }

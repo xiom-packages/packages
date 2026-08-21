@@ -1,4 +1,4 @@
-// XIOM — Zstandard Compression Safe Wrappers
+// XIOM -- Zstandard Compression Safe Wrappers
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -21,7 +21,7 @@ extern "C" {
 }
 
 // =========================================================================
-// compress_bound — worst-case compressed size
+// compress_bound -- worst-case compressed size
 //
 // The ZSTD_compressBound() result is guaranteed to be >= the compressed
 // size of any srcSize-byte input. Used to size the output buffer before
@@ -35,7 +35,7 @@ pub fn compress_bound(size: Int) -> Int
 }
 
 // =========================================================================
-// compress — compress data with given compression level (1..22)
+// compress -- compress data with given compression level (1..22)
 //
 // Returns Ok(compressed_data) on success or Err(message) on failure.
 // Level 1 = fastest, level 22 = maximum compression (slowest).
@@ -60,7 +60,7 @@ pub fn compress(src: &Vec[UInt8], level: Int) -> Result[Vec[UInt8], Str]
 }
 
 // =========================================================================
-// decompress — decompress zstd-compressed data
+// decompress -- decompress zstd-compressed data
 //
 // Returns Ok(original_data) on success or Err(message) on failure.
 // =========================================================================

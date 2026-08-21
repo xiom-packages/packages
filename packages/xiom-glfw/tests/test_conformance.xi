@@ -1,4 +1,4 @@
-// XIOM — GLFW Conformance Tests
+// XIOM -- GLFW Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -15,9 +15,9 @@ use xiom.io;
 use xiom.test;
 use xiom.glwf;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Helpers
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn int_to_str(n: Int) -> Str {
   if n == 0 { return "0"; }
@@ -50,9 +50,9 @@ fn report(passed: Bool, name: Str) -> Int {
   return 1;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 1. Lifecycle: init + terminate
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_init_terminate() -> Int {
   if !glfw_init() { return 2; } // skip: no display
@@ -95,9 +95,9 @@ fn test_double_init() -> TestResult {
   return assert(false, "lifecycle: double init failed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 2. Window: create + destroy
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_create_destroy() -> Int {
   if !glfw_init() { return 2; }
@@ -164,9 +164,9 @@ fn test_set_title() -> TestResult {
   return assert(false, "window: set_title crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 3. Size queries
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_framebuffer_size() -> Int {
   if !glfw_init() { return 2; }
@@ -218,9 +218,9 @@ fn test_window_size() -> TestResult {
   return assert(false, "size: window_size mismatch");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 4. Input: key, mouse button, cursor position
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_input_key() -> Int {
   if !glfw_init() { return 2; }
@@ -291,13 +291,13 @@ fn test_cursor_pos() -> TestResult {
   return assert(false, "input: get_cursor_pos crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 5. Poll events: verify doesn't crash
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_poll_events() -> Int {
   if !glfw_init() { return 2; }
-  glfw_poll_events(); // no window — should be fine
+  glfw_poll_events(); // no window -- should be fine
   glfw_terminate();
   return 0;
 }
@@ -309,16 +309,16 @@ fn test_poll_events() -> TestResult {
   return assert(false, "lifecycle: poll_events crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 6. Monitor: primary monitor + video mode
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_primary_monitor() -> Int {
   if !glfw_init() { return 2; }
   let mon = glfw_get_primary_monitor();
   // On headed systems, returns non-zero; on headless, may return 0
   glfw_terminate();
-  return 0; // always pass — just verifying no crash
+  return 0; // always pass -- just verifying no crash
 }
 
 fn test_primary_monitor() -> TestResult {
@@ -331,7 +331,7 @@ fn test_primary_monitor() -> TestResult {
 fn run_video_mode() -> Int {
   if !glfw_init() { return 2; }
   let mon = glfw_get_primary_monitor();
-  if mon == 0 { glfw_terminate(); return 0; } // headless — pass
+  if mon == 0 { glfw_terminate(); return 0; } // headless -- pass
   let (mw, mh, mr) = glfw_get_video_mode(mon);
   if mw > 0 && mh > 0 {
     glfw_terminate(); return 0;
@@ -346,9 +346,9 @@ fn test_video_mode() -> TestResult {
   return assert(false, "monitor: video_mode invalid");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 7. Fullscreen: set, windowed, toggle
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_fullscreen_windowed() -> Int {
   if !glfw_init() { return 2; }
@@ -357,7 +357,7 @@ fn run_fullscreen_windowed() -> Int {
     Err(_) => { glfw_terminate(); return 1; }
     Ok(win) => {
       let mon = glfw_get_primary_monitor();
-      // Toggle to windowed mode (even if already windowed — safe no-op)
+      // Toggle to windowed mode (even if already windowed -- safe no-op)
       glfw_set_windowed(win, 100, 100, 800, 600);
       glfw_poll_events();
       glfw_destroy_window(win);
@@ -400,9 +400,9 @@ fn test_toggle_fullscreen() -> TestResult {
   return assert(false, "fullscreen: toggle_fullscreen crashed");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // 8. Error handling / Contract enforcement
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn run_error_empty_title() -> Int {
   if !glfw_init() { return 2; }
@@ -437,9 +437,9 @@ fn test_error_zero_size() -> TestResult {
   return assert(false, "error: 0x0 window unexpectedly created");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Main
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn main() -> Int {
   io.println("=== XIOM GLFW Conformance Tests ===");

@@ -1,6 +1,6 @@
 # xiom-tensor
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** N-dimensional array and tensor primitives for numeric computation.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,6 +1,6 @@
 # xiom-grpc
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** gRPC client/server over HTTP/2 with protobuf messages.
 > **Deps:** stdlib; may wrap C (FFI).
 

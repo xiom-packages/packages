@@ -1,6 +1,6 @@
 # xiom-tls
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** TLS handshake, certificate validation, and secure session management.
 > **Deps:** stdlib; may wrap C (FFI).
 

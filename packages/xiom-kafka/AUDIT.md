@@ -15,13 +15,13 @@ All 4 source files compile on xiom v0.45.3 with stub implementations.
 2. **`let _ =` pattern removed**: The `_` identifier for unused variable bindings is not supported in `let`/`var` statements. Replaced with proper variable names or removed unused bindings.
 3. **`Unit{}` replaced**: The `Unit` type is not recognized by the compiler. Return types are now `Int` with `Ok(0)` for success or `Result[Int, KafkaError]`.
 4. **`use xiom.kafka.types` added**: Cross-module type imports added to producer, consumer, and admin modules. Original files had no imports, causing unresolved type errors.
-5. **topic_list_copy tail call**: Fixed `acc.push()` return — needs explicit `return acc` after push to comply with XIOM's move semantics.
+5. **topic_list_copy tail call**: Fixed `acc.push()` return -- needs explicit `return acc` after push to comply with XIOM's move semantics.
 
 ## Files Modified
-- `src/types.xi` — No changes needed (compiled clean)
-- `src/producer.xi` — Added `use xiom.kafka.types`, removed `let _`, fixed return types
-- `src/consumer.xi` — Added `use xiom.kafka.types`, removed `let _`, fixed return types, fixed tail recursion
-- `src/admin.xi` — Added `use xiom.kafka.types`, removed `let _`, fixed return types
+- `src/types.xi` -- No changes needed (compiled clean)
+- `src/producer.xi` -- Added `use xiom.kafka.types`, removed `let _`, fixed return types
+- `src/consumer.xi` -- Added `use xiom.kafka.types`, removed `let _`, fixed return types, fixed tail recursion
+- `src/admin.xi` -- Added `use xiom.kafka.types`, removed `let _`, fixed return types
 
 ## Restoring Production FFI
 To restore production functionality:

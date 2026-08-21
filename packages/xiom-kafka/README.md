@@ -1,6 +1,6 @@
 # xiom-kafka
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Apache Kafka client bindings (librdkafka).
 > **Deps:** stdlib; wraps C (FFI).
 

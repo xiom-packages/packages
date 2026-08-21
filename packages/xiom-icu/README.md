@@ -1,6 +1,6 @@
 # xiom-icu
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Thin, safe FFI bindings to the International Components for Unicode (ICU) library.
 > **Deps:** stdlib; may wrap C (FFI).
 

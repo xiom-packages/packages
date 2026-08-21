@@ -1,6 +1,6 @@
 # xiom-actor
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Actor model runtime for message-passing concurrency with supervision.
 > **Deps:** stdlib; may wrap C (FFI).
 

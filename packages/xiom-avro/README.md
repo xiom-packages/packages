@@ -1,6 +1,6 @@
 # xiom-avro
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Avro schema handling and data serialization.
 > **Deps:** stdlib; may wrap C (FFI).
 

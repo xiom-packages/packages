@@ -1,6 +1,6 @@
 // xiom-dxc bridge: thin COM vtable wrappers for XIOM FFI
 // Every COM method is wrapped as a plain C function taking int64_t.
-// The XIOM compiler cannot do Int→Ptr or Int→fn casts, so the C
+// The XIOM compiler cannot do Int->Ptr or Int->fn casts, so the C
 // bridge handles all vtable dispatch internally.
 //
 // Compile with:

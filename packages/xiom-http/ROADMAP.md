@@ -12,14 +12,14 @@
 - [x] Contract verification on all public functions
 - [x] Conformance test suite (36 tests across all modules)
 
-## v0.2.0 — Transport & Server
+## v0.2.0 -- Transport & Server
 - [ ] TCP transport layer (Layer 3.1 dependency)
 - [ ] Full HTTP/1.1 server listen/accept loop
 - [ ] Request routing and handler dispatch
 - [ ] Keep-alive connection pooling
 - [ ] Chunked transfer encoding
 
-## v0.3.0 — Advanced Features
+## v0.3.0 -- Advanced Features
 - [ ] TLS/SSL via OpenSSL FFI
 - [ ] HTTP/2 support
 - [ ] WebSocket upgrade
@@ -27,8 +27,8 @@
 - [ ] Request retry with exponential backoff
 - [ ] Connection pooling for client
 
-## v1.0.0 — Production Readiness
-- [ ] Full RFC 7230–7235 compliance
+## v1.0.0 -- Production Readiness
+- [ ] Full RFC 7230-7235 compliance
 - [ ] Rate limiting middleware
 - [ ] CORS middleware
 - [ ] Compression middleware (gzip/brotli)

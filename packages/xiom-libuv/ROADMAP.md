@@ -1,22 +1,22 @@
 # xiom-libuv Roadmap
 
-## Current State — v0.1.0 (SPEC)
+## Current State -- v0.1.0 (SPEC)
 
 | Component | Status | Notes |
 |-----------|--------|-------|
 | `xiom.libuv` module | SPEC | Full API surface declared: 13 public functions, 14 extern FFI stubs, 3 type aliases, 3 constants |
-| Event Loop | Stub | `loop_new`, `loop_close`, `loop_run` — all return Err until C bridge linked |
-| TCP | Stub | `tcp_init`, `tcp_connect`, `tcp_read_start`, `tcp_write` — async I/O signatures with contracts |
-| Timer | Stub | `timer_init`, `timer_start`, `timer_stop` — contracts for timeout/repeat >= 0 |
-| File I/O | Stub | `fs_open`, `fs_read`, `fs_write`, `fs_close` — contracts for path/buf/data non-empty |
-| C Bridge | Missing | `libuv_bridge.c` not yet implemented — all FFI stubs return Err |
+| Event Loop | Stub | `loop_new`, `loop_close`, `loop_run` -- all return Err until C bridge linked |
+| TCP | Stub | `tcp_init`, `tcp_connect`, `tcp_read_start`, `tcp_write` -- async I/O signatures with contracts |
+| Timer | Stub | `timer_init`, `timer_start`, `timer_stop` -- contracts for timeout/repeat >= 0 |
+| File I/O | Stub | `fs_open`, `fs_read`, `fs_write`, `fs_close` -- contracts for path/buf/data non-empty |
+| C Bridge | Missing | `libuv_bridge.c` not yet implemented -- all FFI stubs return Err |
 
 ### Contracts Coverage
 
 - **13 public functions**
 - **12 functions** guarded by `requires:` contracts (92%)
 - **14 extern "C"** function declarations for libuv FFI
-- Missing contract: `loop_new()` — returns Result, no input to validate
+- Missing contract: `loop_new()` -- returns Result, no input to validate
 
 ### Test Coverage
 
@@ -25,57 +25,57 @@
 
 ---
 
-## v0.2.0 — C Bridge Implementation
+## v0.2.0 -- C Bridge Implementation
 
 - [ ] Create `libuv_bridge.c` with thin FFI wrappers
 - [ ] Build system: CMake integration for libuv linking
-- [ ] Wire `loop_new()` → CFFI `uv_loop_new()`
-- [ ] Wire `loop_close()` → CFFI `uv_loop_close()`
-- [ ] Wire `loop_run()` → CFFI `uv_run()`
+- [ ] Wire `loop_new()` -> CFFI `uv_loop_new()`
+- [ ] Wire `loop_close()` -> CFFI `uv_loop_close()`
+- [ ] Wire `loop_run()` -> CFFI `uv_run()`
 - [ ] Replace Error stubs with actual FFI call + error translation
 - [ ] Tests: run against live libuv.dll (skip if not installed)
 
-## v0.3.0 — TCP Sockets
+## v0.3.0 -- TCP Sockets
 
-- [ ] Wire `tcp_init()` → CFFI `uv_tcp_init()`
-- [ ] Wire `tcp_connect()` → CFFI `uv_tcp_connect()` with sockaddr building
-- [ ] Wire `tcp_read_start()` → CFFI `uv_read_start()` with buffer callbacks
-- [ ] Wire `tcp_write()` → CFFI `uv_write()` with uv_buf_t marshaling
+- [ ] Wire `tcp_init()` -> CFFI `uv_tcp_init()`
+- [ ] Wire `tcp_connect()` -> CFFI `uv_tcp_connect()` with sockaddr building
+- [ ] Wire `tcp_read_start()` -> CFFI `uv_read_start()` with buffer callbacks
+- [ ] Wire `tcp_write()` -> CFFI `uv_write()` with uv_buf_t marshaling
 - [ ] Add `tcp_close()` / `tcp_shutdown()` wrappers
-- [ ] Error code mapping: uv_errno_t → human-readable Str
+- [ ] Error code mapping: uv_errno_t -> human-readable Str
 - [ ] Tests: TCP connect to echo server, read/write roundtrip
 
-## v0.4.0 — Timers
+## v0.4.0 -- Timers
 
-- [ ] Wire `timer_init()` → CFFI `uv_timer_init()`
-- [ ] Wire `timer_start()` → CFFI `uv_timer_start()` with callback
-- [ ] Wire `timer_stop()` → CFFI `uv_timer_stop()`
+- [ ] Wire `timer_init()` -> CFFI `uv_timer_init()`
+- [ ] Wire `timer_start()` -> CFFI `uv_timer_start()` with callback
+- [ ] Wire `timer_stop()` -> CFFI `uv_timer_stop()`
 - [ ] Add `timer_again()` wrapper for repeating timers
 - [ ] Tests: one-shot timer, repeating timer, timer stop mid-cycle
 
-## v0.5.0 — File I/O
+## v0.5.0 -- File I/O
 
-- [ ] Wire `fs_open()` → CFFI `uv_fs_open()`
-- [ ] Wire `fs_read()` → CFFI `uv_fs_read()` with Vec buffer bridging
-- [ ] Wire `fs_write()` → CFFI `uv_fs_write()` with Vec data bridging
-- [ ] Wire `fs_close()` → CFFI `uv_fs_close()`
+- [ ] Wire `fs_open()` -> CFFI `uv_fs_open()`
+- [ ] Wire `fs_read()` -> CFFI `uv_fs_read()` with Vec buffer bridging
+- [ ] Wire `fs_write()` -> CFFI `uv_fs_write()` with Vec data bridging
+- [ ] Wire `fs_close()` -> CFFI `uv_fs_close()`
 - [ ] Add `fs_stat()`, `fs_unlink()`, `fs_mkdir()` wrappers
 - [ ] Tests: file create/read/write/close roundtrip, error paths (ENOENT, EACCES)
 
-## v0.6.0 — UDP Sockets
+## v0.6.0 -- UDP Sockets
 
 - [ ] `udp_init()`, `udp_bind()`, `udp_send()`, `udp_recv_start()`
 - [ ] `udp_close()`
 - [ ] Tests: UDP send/receive, multicast join/leave
 
-## v0.7.0 — Async Callback Integration
+## v0.7.0 -- Async Callback Integration
 
-- [ ] Callback type system: XIOM fn ptr ↔ libuv callback marshaling
+- [ ] Callback type system: XIOM fn ptr <-> libuv callback marshaling
 - [ ] Safe handle lifecycle: Drop trait or explicit `close` with resource tracking
 - [ ] XIOM closure capture for async callbacks
 - [ ] Tests: event-driven TCP echo server, timer-driven counter
 
-## v1.0.0 — Stable Release
+## v1.0.0 -- Stable Release
 
 - [ ] All above features complete
 - [ ] 90%+ test coverage on all modules
@@ -108,7 +108,7 @@
 
 ```
 xiom-libuv (this package)
-  ├── xiom-std (stdlib: string, collections, ptr)
-  ├── libuv C library (system-installed: winget/apt/brew)
-  └── libuv_bridge.c (thin C FFI wrapper)
+  |-- xiom-std (stdlib: string, collections, ptr)
+  |-- libuv C library (system-installed: winget/apt/brew)
+  `-- libuv_bridge.c (thin C FFI wrapper)
 ```

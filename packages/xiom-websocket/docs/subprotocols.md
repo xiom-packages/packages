@@ -1,6 +1,6 @@
 # Subprotocols
 
-> Design stage — specification only.
+> Design stage -- specification only.
 
 A raw WebSocket connection defines only how bytes are framed, not what those bytes mean. Subprotocols let a client and server agree on message semantics at connection time. During the opening handshake the client may offer one or more protocol names via the `Sec-WebSocket-Protocol` header; the server selects at most one it supports and echoes it back. The `subprotocol` module models this as a **typed negotiation step** so the chosen protocol is an explicit, validated value rather than an unchecked string.
 

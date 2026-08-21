@@ -1,20 +1,20 @@
-# AUDIT — xiom-jolt (Jolt Physics Bindings)
+# AUDIT -- xiom-jolt (Jolt Physics Bindings)
 
-## Status: BLOCKED — C Bridge Required
+## Status: BLOCKED -- C Bridge Required
 
 JoltPhysics (`E:\repos\JoltPhysics`, upstream: `jrouwe/JoltPhysics` v5.6.0) is a
 **pure C++17 library with no C API**. It cannot be called from XIOM directly.
 
 | Item | Status |
 |------|--------|
-| JoltPhysics C API | **NOT PRESENT** — pure C++17 |
+| JoltPhysics C API | **NOT PRESENT** -- pure C++17 |
 | Third-party C bridge | Exists: `github.com/amerkoleci/joltc` (MIT) |
-| XIOM `extern "C"` blocks | ✅ Supported (GAP-2 closed) |
-| XIOM `unsafe { }` blocks | ✅ Supported |
-| XIOM tail expressions | ✅ Supported (GAP-11 closed) |
-| XIOM `Ok(())` unit literal | ✅ Supported (GAP-12 closed) |
-| `requires:` contracts | ✅ Supported (GAP-4 closed) |
-| Compiled C bridge binary | **MISSING** — must be built separately |
+| XIOM `extern "C"` blocks | [OK] Supported (GAP-2 closed) |
+| XIOM `unsafe { }` blocks | [OK] Supported |
+| XIOM tail expressions | [OK] Supported (GAP-11 closed) |
+| XIOM `Ok(())` unit literal | [OK] Supported (GAP-12 closed) |
+| `requires:` contracts | [OK] Supported (GAP-4 closed) |
+| Compiled C bridge binary | **MISSING** -- must be built separately |
 
 ## What Exists
 
@@ -56,52 +56,52 @@ This package should compile once the C bridge binary is available.
 
 | Gap | Relevance | Status |
 |-----|-----------|--------|
-| GAP-2 (`extern "C"` blocks) | Required for FFI | ✅ CLOSED |
-| GAP-11 (tail expressions) | Used in safe wrappers | ✅ CLOSED |
-| GAP-12 (unit literal `()`) | Used in Result[Int, Str] | ✅ CLOSED |
-| GAP-14 (bare `is Ok`/`is Err`) | Used in match arms | ✅ CLOSED |
-| GAP-10 (trailing `;` after block) | Used in if statements | ✅ CLOSED |
-| GAP-4 (`=>` in contracts) | Used in `requires:` | ✅ CLOSED |
+| GAP-2 (`extern "C"` blocks) | Required for FFI | [OK] CLOSED |
+| GAP-11 (tail expressions) | Used in safe wrappers | [OK] CLOSED |
+| GAP-12 (unit literal `()`) | Used in Result[Int, Str] | [OK] CLOSED |
+| GAP-14 (bare `is Ok`/`is Err`) | Used in match arms | [OK] CLOSED |
+| GAP-10 (trailing `;` after block) | Used in if statements | [OK] CLOSED |
+| GAP-4 (`=>` in contracts) | Used in `requires:` | [OK] CLOSED |
 
 ## API Coverage
 
 | JoltPhysics Feature | Bound | Notes |
 |---------------------|-------|-------|
-| World lifecycle | ✅ | create, destroy, step, gravity |
-| Body creation/destruction | ✅ | create, add, remove, destroy |
-| Shapes (box, sphere, capsule, cylinder, plane) | ✅ | Via settings pattern |
-| Body properties (friction, restitution, damping, gravity factor) | ✅ | setters on creation settings |
-| Force/impulse/torque | ✅ | add_force, add_impulse, add_torque |
-| Position/velocity queries | ✅ | get_position, get_velocity |
-| Ray casting | ✅ | Single ray hit |
-| Collision groups | ✅ | GroupFilterTable |
-| Constraints | ✅ | DistanceConstraint (basic) |
-| Job system | ✅ | Thread pool |
-| ConvexHullShape | ❌ | Needs mesh data upload |
-| MeshShape / HeightField | ❌ | Needs vertex/index buffer API |
-| Character controller | ❌ | Complex setup |
-| Vehicles | ❌ | Wheeled/tracked/motorcycle |
-| Soft bodies | ❌ | GPU compute pipeline |
-| Ragdolls | ❌ | Skeleton + animation |
-| Custom contact/activation listeners | ❌ | Callback bridging not yet supported in XIOM |
+| World lifecycle | [OK] | create, destroy, step, gravity |
+| Body creation/destruction | [OK] | create, add, remove, destroy |
+| Shapes (box, sphere, capsule, cylinder, plane) | [OK] | Via settings pattern |
+| Body properties (friction, restitution, damping, gravity factor) | [OK] | setters on creation settings |
+| Force/impulse/torque | [OK] | add_force, add_impulse, add_torque |
+| Position/velocity queries | [OK] | get_position, get_velocity |
+| Ray casting | [OK] | Single ray hit |
+| Collision groups | [OK] | GroupFilterTable |
+| Constraints | [OK] | DistanceConstraint (basic) |
+| Job system | [OK] | Thread pool |
+| ConvexHullShape | [FAIL] | Needs mesh data upload |
+| MeshShape / HeightField | [FAIL] | Needs vertex/index buffer API |
+| Character controller | [FAIL] | Complex setup |
+| Vehicles | [FAIL] | Wheeled/tracked/motorcycle |
+| Soft bodies | [FAIL] | GPU compute pipeline |
+| Ragdolls | [FAIL] | Skeleton + animation |
+| Custom contact/activation listeners | [FAIL] | Callback bridging not yet supported in XIOM |
 
 ## Platform Support
 
 | Platform | JoltPhysics | joltc C Bridge | XIOM bindings |
 |----------|-------------|----------------|---------------|
-| Windows x64 | ✅ (SSE/AVX) | ✅ | ✅ (expected) |
-| Linux x64 | ✅ (SSE/AVX) | ✅ | ✅ (expected) |
-| macOS (ARM/x64) | ✅ | ✅ | ✅ (expected) |
-| Android (ARM) | ✅ | ⚠️ | ⚠️ (untested) |
-| iOS | ✅ | ⚠️ | ⚠️ (untested) |
+| Windows x64 | [OK] (SSE/AVX) | [OK] | [OK] (expected) |
+| Linux x64 | [OK] (SSE/AVX) | [OK] | [OK] (expected) |
+| macOS (ARM/x64) | [OK] | [OK] | [OK] (expected) |
+| Android (ARM) | [OK] | [WARN] | [WARN] (untested) |
+| iOS | [OK] | [WARN] | [WARN] (untested) |
 
 ## Next Steps
 
-1. **Build joltc** — obtain the C bridge binary for the target platform.
-2. **Generate extern** — run `xiom ffigen` on `jolt.xiom-bind`.
-3. **Link test** — compile `demo_jolt.xi` against the bridge.
-4. **Expand API** — add ConvexHullShape, MeshShape, character controller, and vehicle bindings.
-5. **Add tests** — smoke tests for world lifecycle, body creation, and simulation stepping.
+1. **Build joltc** -- obtain the C bridge binary for the target platform.
+2. **Generate extern** -- run `xiom ffigen` on `jolt.xiom-bind`.
+3. **Link test** -- compile `demo_jolt.xi` against the bridge.
+4. **Expand API** -- add ConvexHullShape, MeshShape, character controller, and vehicle bindings.
+5. **Add tests** -- smoke tests for world lifecycle, body creation, and simulation stepping.
 
 ## References
 

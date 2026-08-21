@@ -44,10 +44,10 @@ int64_t xvk_read_u64(int64_t handle, int64_t offset);
 /* Read a float32 from byte offset. */
 float xvk_read_f32(int64_t handle, int64_t offset);
 
-/* Set the sType field (uint32 at offset 0) — convenience for all VK structs. */
+/* Set the sType field (uint32 at offset 0) -- convenience for all VK structs. */
 void xvk_set_sType(int64_t handle, int32_t sType_value);
 
-/* Set the pNext field (uint64 at offset 8 in 64-bit) — convenience. */
+/* Set the pNext field (uint64 at offset 8 in 64-bit) -- convenience. */
 void xvk_set_pNext(int64_t handle, int64_t pNext_handle);
 
 #endif

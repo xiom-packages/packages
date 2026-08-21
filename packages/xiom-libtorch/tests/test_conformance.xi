@@ -1,4 +1,4 @@
-// XIOM — xiom.libtorch Conformance Tests
+// XIOM -- xiom.libtorch Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -9,7 +9,7 @@
 
 module tests.xiom_libtorch.conformance
 
-// ── Local re-exports of the module's types and wrappers ───────────────────
+// -- Local re-exports of the module's types and wrappers -------------------
 
 type TorchModel     = Int;
 type TorchTensor    = Int;
@@ -37,7 +37,7 @@ extern "C" {
   fn torch_optimizer_free(optimizer: Int);
 }
 
-// ── Local safe wrappers (duplicated to test standalone linkage) ───────────
+// -- Local safe wrappers (duplicated to test standalone linkage) -----------
 
 fn local_tensor_new(shape: &Vec[Int]) -> Result[TorchTensor, Str] {
   let handle: Int = unsafe { torch_tensor_new(0, shape.len()) };
@@ -124,9 +124,9 @@ fn make_shape_2d(d0: Int, d1: Int) -> Vec[Int] {
   return s;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 1 — Type declarations exist (compile-time)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 1 -- Type declarations exist (compile-time)
+// ===========================================================================
 
 fn test_type_declarations() -> Bool {
   var tensor:    TorchTensor    = 0;
@@ -135,9 +135,9 @@ fn test_type_declarations() -> Bool {
   return tensor == 0 && model == 0 && optimizer == 0;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 2 — tensor_new returns Result type (stub — LibTorch DLL may be absent)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 2 -- tensor_new returns Result type (stub -- LibTorch DLL may be absent)
+// ===========================================================================
 
 fn test_tensor_new_result_type() -> Bool {
   var shape = make_shape_1d(10);
@@ -145,9 +145,9 @@ fn test_tensor_new_result_type() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 3 — tensor_from_data returns Result type
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 3 -- tensor_from_data returns Result type
+// ===========================================================================
 
 fn test_tensor_from_data_result_type() -> Bool {
   var data = Vec[Float32].new();
@@ -159,9 +159,9 @@ fn test_tensor_from_data_result_type() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 4 — tensor_add returns Result type
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 4 -- tensor_add returns Result type
+// ===========================================================================
 
 fn test_tensor_add_result_type() -> Bool {
   var a: TorchTensor = 1;
@@ -170,9 +170,9 @@ fn test_tensor_add_result_type() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 5 — tensor_mul returns Result type
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 5 -- tensor_mul returns Result type
+// ===========================================================================
 
 fn test_tensor_mul_result_type() -> Bool {
   var a: TorchTensor = 1;
@@ -181,9 +181,9 @@ fn test_tensor_mul_result_type() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 6 — tensor_matmul returns Result type
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 6 -- tensor_matmul returns Result type
+// ===========================================================================
 
 fn test_tensor_matmul_result_type() -> Bool {
   var a: TorchTensor = 1;
@@ -192,9 +192,9 @@ fn test_tensor_matmul_result_type() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 7 — tensor_relu returns Result type
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 7 -- tensor_relu returns Result type
+// ===========================================================================
 
 fn test_tensor_relu_result_type() -> Bool {
   var t: TorchTensor = 1;
@@ -202,9 +202,9 @@ fn test_tensor_relu_result_type() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 8 — tensor_softmax returns Result type
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 8 -- tensor_softmax returns Result type
+// ===========================================================================
 
 fn test_tensor_softmax_result_type() -> Bool {
   var t: TorchTensor = 1;
@@ -212,27 +212,27 @@ fn test_tensor_softmax_result_type() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 9 — jit_load returns Result type
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 9 -- jit_load returns Result type
+// ===========================================================================
 
 fn test_jit_load_result_type() -> Bool {
   let r = local_jit_load("model.pt");
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 10 — cuda_is_available returns Bool (always compiles)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 10 -- cuda_is_available returns Bool (always compiles)
+// ===========================================================================
 
 fn test_cuda_is_available_type() -> Bool {
   let b: Bool = unsafe { torch_cuda_is_available() != 0 };
   return b || !b;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 11 — tensor_to_cuda returns Result type
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 11 -- tensor_to_cuda returns Result type
+// ===========================================================================
 
 fn test_tensor_to_cuda_result_type() -> Bool {
   var t: TorchTensor = 1;
@@ -240,9 +240,9 @@ fn test_tensor_to_cuda_result_type() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 12 — tensor_to_cpu returns Result type
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 12 -- tensor_to_cpu returns Result type
+// ===========================================================================
 
 fn test_tensor_to_cpu_result_type() -> Bool {
   var t: TorchTensor = 1;
@@ -250,9 +250,9 @@ fn test_tensor_to_cpu_result_type() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 13 — optimizer_sgd returns Result type
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 13 -- optimizer_sgd returns Result type
+// ===========================================================================
 
 fn test_optimizer_sgd_result_type() -> Bool {
   var params = Vec[TorchTensor].new();
@@ -262,9 +262,9 @@ fn test_optimizer_sgd_result_type() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 14 — contract: tensor_new requires shape.len() > 0 (compile-time check)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 14 -- contract: tensor_new requires shape.len() > 0 (compile-time check)
+// ===========================================================================
 
 fn test_contract_tensor_new_shape_positive() -> Bool {
   var shape = make_shape_1d(5);
@@ -272,9 +272,9 @@ fn test_contract_tensor_new_shape_positive() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 15 — contract: tensor_from_data requires data.len() > 0
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 15 -- contract: tensor_from_data requires data.len() > 0
+// ===========================================================================
 
 fn test_contract_tensor_from_data_nonempty() -> Bool {
   var data = Vec[Float32].new();
@@ -284,9 +284,9 @@ fn test_contract_tensor_from_data_nonempty() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Test 16 — contract: optimizer_sgd requires params.len() > 0
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
+// Test 16 -- contract: optimizer_sgd requires params.len() > 0
+// ===========================================================================
 
 fn test_contract_optimizer_sgd_nonempty_params() -> Bool {
   var params = Vec[TorchTensor].new();
@@ -295,9 +295,9 @@ fn test_contract_optimizer_sgd_nonempty_params() -> Bool {
   return r.is_ok() || r.is_err();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // Main
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 fn error_string(s: Str) -> Str {
   return s;

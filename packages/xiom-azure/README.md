@@ -1,6 +1,6 @@
 # xiom-azure
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Bindings for Microsoft Azure cloud services (storage, compute, functions, databases).
 > **Deps:** stdlib; may wrap C (FFI).
 

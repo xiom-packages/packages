@@ -1,6 +1,6 @@
 # xiom-arrow
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Apache Arrow columnar memory format bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

@@ -1,6 +1,6 @@
 # xiom-amqp
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** AMQP messaging protocol client.
 > **Deps:** stdlib; may wrap C (FFI).
 

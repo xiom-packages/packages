@@ -1,6 +1,6 @@
 # Content Negotiation
 
-> Status: Design stage — specification only, not yet implemented.
+> Status: Design stage -- specification only, not yet implemented.
 
 Content negotiation lets a single endpoint serve different representations of the same resource based on what the client asks for. In `xiom-rest` this is explicit and typed: JSON is the default representation, and any alternatives (for example a compact form, CSV, or a versioned media type) are registered deliberately rather than inferred by magic. The negotiation layer only chooses *how* to encode a value; it never changes *what* the resource is.
 
@@ -18,4 +18,4 @@ Each supported format is a `Representation[T] { media_type: MediaType; encode: f
 
 ## Contracts and philosophy
 
-Negotiation follows the package's contract-first stance: inputs are parsed into typed structures, failures surface as typed errors, and there is no hidden global state deciding formats behind the developer's back. The result is content negotiation that is easy to reason about — a developer can look at the offered representations and the client's `Accept` header and predict exactly which encoder will run.
+Negotiation follows the package's contract-first stance: inputs are parsed into typed structures, failures surface as typed errors, and there is no hidden global state deciding formats behind the developer's back. The result is content negotiation that is easy to reason about -- a developer can look at the offered representations and the client's `Accept` header and predict exactly which encoder will run.

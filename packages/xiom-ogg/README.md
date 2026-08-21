@@ -1,6 +1,6 @@
 # xiom-ogg
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** OGG container: page-based multiplexing of audio/video logical streams.
 > **Deps:** stdlib; may wrap C (FFI).
 

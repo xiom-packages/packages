@@ -1,11 +1,11 @@
-# xiom-numpy — SPEC
+# xiom-numpy -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
-**Status**: Phase 1 implemented — types, extern C FFI, safe wrappers with contracts, 30 conformance tests
+**Status**: Phase 1 implemented -- types, extern C FFI, safe wrappers with contracts, 30 conformance tests
 **Depends on**: xiom.ffi (stdlib), xiom-openblas (BLAS/LAPACK backend)
 
 ## What it wraps
-NumPy C API — the fundamental array computing library for scientific Python.
+NumPy C API -- the fundamental array computing library for scientific Python.
 ND-array operations, broadcasting, linear algebra, FFT, random numbers.
 
 NumPy's C API sits on top of OpenBLAS (or MKL). We wrap the C layer directly,
@@ -17,7 +17,7 @@ bypassing Python entirely. This is what Cython/C extensions do internally.
 |------|-----|------|
 | NumPy source | Clone `github.com/numpy/numpy`. Extract `numpy/core/include/` headers. | ~5MB headers |
 | OpenBLAS | System-installed (via xiom-openblas) | ~30MB |
-| C compiler | For building bridge .obj | — |
+| C compiler | For building bridge .obj | -- |
 
 ## Bundling strategy
 **Headers only from NumPy source.** Compile the C API bridge against system OpenBLAS.

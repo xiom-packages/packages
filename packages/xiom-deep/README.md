@@ -1,6 +1,6 @@
 # xiom-deep
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Deep learning constructs for stacked and modern architectures.
 > **Deps:** stdlib; may wrap C (FFI).
 

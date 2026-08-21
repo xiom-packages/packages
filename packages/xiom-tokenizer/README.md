@@ -1,6 +1,6 @@
 # xiom-tokenizer
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Text tokenization into words, sentences, and subwords.
 > **Deps:** stdlib; may wrap C (FFI).
 

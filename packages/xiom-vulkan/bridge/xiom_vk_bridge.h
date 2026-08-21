@@ -37,7 +37,7 @@ double      xvk_now(void);
 
 /* ---- device info ---- */
 
-/* VkPhysicalDeviceType cast to int32_t (0=VK_PHYSICAL_DEVICE_TYPE_OTHER …
+/* VkPhysicalDeviceType cast to int32_t (0=VK_PHYSICAL_DEVICE_TYPE_OTHER ...
  *  4=VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU).  Returns -1 on invalid handle. */
 int32_t     xvk_device_type(int64_t app);
 
@@ -113,7 +113,7 @@ uint64_t    xvk_offscreen_hash(int64_t app);
 void        xvk_offscreen_destroy(int64_t app);
 
 /* ================================================================== */
-/*  PHASE 1 — Production Bridge API                                   */
+/*  PHASE 1 -- Production Bridge API                                   */
 /* ================================================================== */
 
 /* All resource handles are opaque int64_t values (0 = null/invalid).

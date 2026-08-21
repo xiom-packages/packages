@@ -1,6 +1,6 @@
 # xiom-pptx
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** PowerPoint OpenXML (PPTX) presentation reading and writing.
 > **Deps:** stdlib; may wrap C (FFI).
 

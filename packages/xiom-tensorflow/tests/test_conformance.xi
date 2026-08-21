@@ -1,4 +1,4 @@
-// XIOM — xiom-tensorflow Conformance Tests
+// XIOM -- xiom-tensorflow Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -15,9 +15,9 @@
 module tf_conformance
 use xiom.tensorflow as tf;
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Helpers
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 fn assert_pass(condition: Bool, name: Str) -> Int
   requires: name.len() > 0
@@ -69,9 +69,9 @@ fn int_to_str(n: Int) -> Str {
   return out;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 1 — Type Definitions (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 1 -- Type Definitions (4 tests)
+// ===============================================================================
 
 fn test_type_tfsession_is_int() -> Int {
   return assert_pass(true, "type: TfSession is Int alias present");
@@ -89,9 +89,9 @@ fn test_type_tfstatus_is_int() -> Int {
   return assert_pass(true, "type: TfStatus is Int alias present");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 2 — Error Code Constants (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 2 -- Error Code Constants (4 tests)
+// ===============================================================================
 
 fn test_const_tf_ok() -> Int {
   return assert_eq(tf.TF_OK, 0, "TF_OK = 0");
@@ -109,9 +109,9 @@ fn test_const_tf_internal() -> Int {
   return assert_eq(tf.TF_INTERNAL, 13, "TF_INTERNAL = 13");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 3 — Data Type Constants (4 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 3 -- Data Type Constants (4 tests)
+// ===============================================================================
 
 fn test_const_tf_float() -> Int {
   return assert_eq(tf.TF_FLOAT, 1, "TF_FLOAT = 1");
@@ -129,9 +129,9 @@ fn test_const_tf_bool() -> Int {
   return assert_eq(tf.TF_BOOL, 10, "TF_BOOL = 10");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 4 — Status Safe Wrappers (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 4 -- Status Safe Wrappers (3 tests)
+// ===============================================================================
 
 fn test_status_new_returns_nonnull() -> Int {
   let s = tf.status_new();
@@ -150,9 +150,9 @@ fn test_status_delete_does_not_crash() -> Int {
   return assert_pass(true, "status_delete does not crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 5 — Graph Safe Wrappers (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 5 -- Graph Safe Wrappers (2 tests)
+// ===============================================================================
 
 fn test_graph_new_returns_nonnull() -> Int {
   let g = tf.graph_new();
@@ -165,9 +165,9 @@ fn test_graph_delete_does_not_crash() -> Int {
   return assert_pass(true, "graph_delete does not crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 6 — Session Safe Wrappers (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 6 -- Session Safe Wrappers (3 tests)
+// ===============================================================================
 
 fn test_session_new_rejects_null_graph() -> Int {
   let r = tf.session_new(0);
@@ -185,9 +185,9 @@ fn test_session_close_with_nonzero_is_noop() -> Int {
   return assert_pass(true, "session_close does not crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 7 — Tensor Safe Wrappers + Contract Enforcement (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 7 -- Tensor Safe Wrappers + Contract Enforcement (3 tests)
+// ===============================================================================
 
 fn test_tensor_create_rejects_empty_data() -> Int {
   var shape = Vec[Int].new();
@@ -210,9 +210,9 @@ fn test_tensor_delete_with_nonzero_is_noop() -> Int {
   return assert_pass(true, "tensor_delete does not crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 8 — Session Run + Contract Enforcement (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 8 -- Session Run + Contract Enforcement (2 tests)
+// ===============================================================================
 
 fn test_session_run_rejects_null_session() -> Int {
   var inputs = Vec[tf.TfTensor].new();
@@ -231,9 +231,9 @@ fn test_session_run_rejects_empty_inputs() -> Int {
   return assert_err(r.is_ok, "session_run rejects empty inputs (requires: inputs.len()>0)");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 9 — Model Loading (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 9 -- Model Loading (2 tests)
+// ===============================================================================
 
 fn test_load_model_rejects_null_session() -> Int {
   let r = tf.load_model(0, "model.pb");
@@ -245,9 +245,9 @@ fn test_load_model_rejects_empty_path() -> Int {
   return assert_err(r.is_ok, "load_model rejects empty path (requires: path.len()>0)");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 10 — GPU Query Stubs (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 10 -- GPU Query Stubs (2 tests)
+// ===============================================================================
 
 fn test_gpu_available_returns_false() -> Int {
   let avail = tf.gpu_available();
@@ -260,9 +260,9 @@ fn test_gpu_device_count_returns_zero() -> Int {
   return assert_eq(count, 0, "gpu_device_count returns 0 in stub mode");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 11 — Utility (2 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 11 -- Utility (2 tests)
+// ===============================================================================
 
 fn test_version_is_valid() -> Int {
   let v = tf.version();
@@ -275,9 +275,9 @@ fn test_is_linked_returns_false() -> Int {
   return assert_eq(linked_int, 0, "is_linked returns false (no C bridge)");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 12 — Status Error Paths (3 tests)
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
+// SECTION 12 -- Status Error Paths (3 tests)
+// ===============================================================================
 
 fn test_status_get_code_on_fresh_status() -> Int {
   let s = tf.status_new();
@@ -298,9 +298,9 @@ fn test_status_message_returns_string() -> Int {
   return assert_pass(true, "status_message returns string without crash");
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 // Test Runner
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 
 pub fn main() -> Int {
   var failures: Int = 0;

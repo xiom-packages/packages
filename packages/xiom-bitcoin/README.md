@@ -1,6 +1,6 @@
 # xiom-bitcoin
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Bitcoin protocol and scripting support.
 > **Deps:** stdlib; may wrap C (FFI).
 

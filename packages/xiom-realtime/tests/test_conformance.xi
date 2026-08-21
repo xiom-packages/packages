@@ -1,4 +1,4 @@
-// XIOM — xiom-realtime Conformance Tests (10 tests)
+// XIOM -- xiom-realtime Conformance Tests (10 tests)
 module xiom.realtime.tests
 
 use xiom.realtime;
@@ -12,12 +12,12 @@ fn assert_true(condition: Bool, label: Str) -> Result[Unit, Str] {
 
 fn assert_int_eq(actual: Int, expected: Int, label: Str) -> Result[Unit, Str] {
   if actual == expected { return Ok(Unit); };
-  return Err("FAIL: " + label + " — expected " + int_to_str(expected) + " got " + int_to_str(actual));
+  return Err("FAIL: " + label + " -- expected " + int_to_str(expected) + " got " + int_to_str(actual));
 }
 
 fn assert_str_eq(actual: Str, expected: Str, label: Str) -> Result[Unit, Str] {
   if actual == expected { return Ok(Unit); };
-  return Err("FAIL: " + label + " — expected '" + expected + "' got '" + actual + "'");
+  return Err("FAIL: " + label + " -- expected '" + expected + "' got '" + actual + "'");
 }
 
 fn int_to_str(n: Int) -> Str {

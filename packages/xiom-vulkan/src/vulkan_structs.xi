@@ -1,4 +1,4 @@
-// XIOM — Vulkan Struct Builders
+// XIOM -- Vulkan Struct Builders
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -21,7 +21,7 @@
 module xiom.vulkan.structs
 
 // ---------------------------------------------------------------------------
-// C bridge externs (bridge/xvk_structs.c) — raw struct memory helpers
+// C bridge externs (bridge/xvk_structs.c) -- raw struct memory helpers
 // ---------------------------------------------------------------------------
 
 extern "C" {
@@ -715,7 +715,7 @@ pub fn build_write_descriptor_set_buffer(dst_set: Int, binding: Int32, element: 
 }
 
 // ---------------------------------------------------------------------------
-// VkRenderPassCreateInfo — simplified; the caller builds the attachment,
+// VkRenderPassCreateInfo -- simplified; the caller builds the attachment,
 // subpass, and dependency arrays separately.
 //
 // Layout (64 bytes, natural alignment):

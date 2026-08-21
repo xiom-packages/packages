@@ -21,10 +21,10 @@ The monolithic bridge was split into **two layers**:
 Consequence: **anything expressible through Vulkan create-info structs is now reachable from XIOM** (MSAA pipelines, tessellation/geometry stages, specialization constants, cube/3D/array images, pNext feature chains, arbitrary instance/device extensions), because the raw layer does not interpret the structs -- it forwards them.
 
 Legacy upgrades since last audit:
-- API version raised 1.0 → 1.3 (`xvk_instance.c:19`, `xvk_bind_instance.c:56`)
+- API version raised 1.0 -> 1.3 (`xvk_instance.c:19`, `xvk_bind_instance.c:56`)
 - Device features now enabled: `samplerAnisotropy`, `fillModeNonSolid`, `wideLines` (`xvk_instance.c:144-147`)
 - Simplified query-pool API added (`xvk_query.c`)
-- Legacy recording helpers renamed `xvk_cmd_*` → `xvk_app_cmd_*` to free the `xvk_cmd_*` namespace for raw bindings
+- Legacy recording helpers renamed `xvk_cmd_*` -> `xvk_app_cmd_*` to free the `xvk_cmd_*` namespace for raw bindings
 
 ---
 
@@ -40,9 +40,9 @@ Legacy upgrades since last audit:
 | 6 | Command Buffers | 85% | 97% | FULL (secondary, indirect, copies, clears, resolve; 1 gap: plain `vkCmdDrawIndexedIndirect`) |
 | 7 | Descriptor Sets | 90% | 100% | FULL (copies, templates, push descriptors, dynamic offsets) |
 | 8 | Vertex / Index Buffers | 90% | 100% | FULL (+ buffer views, buffer device address) |
-| 9 | Images / Views / Samplers | 85% | 98% | FULL (blit → mipmap gen possible; arbitrary create infos via raw layer) |
+| 9 | Images / Views / Samplers | 85% | 98% | FULL (blit -> mipmap gen possible; arbitrary create infos via raw layer) |
 | 10 | Synchronization | 80% | 95% | FULL (events, sync2, timeline semaphores; missing host-side event set/reset/status) |
-| 11 | Memory | 85% | 97% | FULL (flush/invalidate, arbitrary bind offsets → suballocation possible) |
+| 11 | Memory | 85% | 97% | FULL (flush/invalidate, arbitrary bind offsets -> suballocation possible) |
 | 12 | Push Constants | 90% | 100% | FULL (+ `vkCmdPushConstants2`, 1.4-gated) |
 | 13 | **Dynamic State** | **5%** | **100%** | **FULL** -- all 9 core-1.0 setters + extended dynamic state 1/2/3 |
 | 14 | Query Pools | 0% | 100% | FULL (occlusion / timestamp / pipeline-stats, host + cmd copy results) |
@@ -81,9 +81,9 @@ Missing: `vkGetPhysicalDeviceFeatures(2)`, `vkGetPhysicalDeviceProperties2`, `vk
 
 **Status: FULL+** -- exceeds typical engine bridge coverage.
 
-### 🔴 REGRESSION BUG -- `recreate_swapchain` (`xvk_swapchain.c:270-287`)
+### [RED] REGRESSION BUG -- `recreate_swapchain` (`xvk_swapchain.c:270-287`)
 
-The old monolith's `recreate_swapchain` rebuilt **swapchain → depth → framebuffers → command buffers**. The new split version only does:
+The old monolith's `recreate_swapchain` rebuilt **swapchain -> depth -> framebuffers -> command buffers**. The new split version only does:
 
 ```c
 cleanup_swapchain(a);            /* frees framebuffers (sets NULL) */
@@ -134,7 +134,7 @@ Raw layer (`xvk_bind_command.c`, 685 lines) covers:
 
 | Category | Functions |
 |---|---|
-| Lifecycle | `vkCreateCommandPool`, `vkDestroyCommandPool`, `vkResetCommandPool`, `vkAllocateCommandBuffers` (level from caller struct → **secondary CBs supported**), `vkFreeCommandBuffers`, `vkBeginCommandBuffer` (default-info fallback), `vkEndCommandBuffer` |
+| Lifecycle | `vkCreateCommandPool`, `vkDestroyCommandPool`, `vkResetCommandPool`, `vkAllocateCommandBuffers` (level from caller struct -> **secondary CBs supported**), `vkFreeCommandBuffers`, `vkBeginCommandBuffer` (default-info fallback), `vkEndCommandBuffer` |
 | Draw / dispatch | `vkCmdDraw`, `vkCmdDrawIndexed`, `vkCmdDrawIndirect`, `vkCmdDrawIndirectCount` (1.2), `vkCmdDrawIndexedIndirectCount` (1.2), `vkCmdDispatch`, `vkCmdDispatchIndirect`, `vkCmdDispatchBase` (1.1) |
 | Binds | `vkCmdBindPipeline` (any bind point), `vkCmdBindVertexBuffers` (multi-buffer), `vkCmdBindIndexBuffer`, `vkCmdBindDescriptorSets` (**dynamic offsets supported**), `vkCmdPushConstants`, `vkCmdBindDescriptorSets2` + `vkCmdPushConstants2` (1.4-gated) |
 | Secondary | `vkCmdExecuteCommands` |
@@ -160,8 +160,8 @@ Raw layer (`xvk_bind_command.c`, 685 lines) covers:
 
 ## 8. Buffers / Memory
 
-- Raw buffer: `xvk_create_buffer` (caller struct → any usage flags incl. indirect, SSBO, BDA), `xvk_bind_buffer_memory` (**arbitrary offset → sub-allocation now possible from XIOM side**), `xvk_get_buffer_memory_requirements`, **`vkCreateBufferView` / `vkDestroyBufferView`** (texel buffers -- new).
-- Raw memory (`xvk_bind_memory.c`): `vkAllocateMemory` (pNext chain via struct → dedicated allocation / BDA flags expressible), `vkFreeMemory`, `vkMapMemory` (offset/size/`VK_WHOLE_SIZE`), `vkUnmapMemory`, **`vkFlushMappedMemoryRanges` / `vkInvalidateMappedMemoryRanges`** (non-coherent memory now correctly supported -- was missing).
+- Raw buffer: `xvk_create_buffer` (caller struct -> any usage flags incl. indirect, SSBO, BDA), `xvk_bind_buffer_memory` (**arbitrary offset -> sub-allocation now possible from XIOM side**), `xvk_get_buffer_memory_requirements`, **`vkCreateBufferView` / `vkDestroyBufferView`** (texel buffers -- new).
+- Raw memory (`xvk_bind_memory.c`): `vkAllocateMemory` (pNext chain via struct -> dedicated allocation / BDA flags expressible), `vkFreeMemory`, `vkMapMemory` (offset/size/`VK_WHOLE_SIZE`), `vkUnmapMemory`, **`vkFlushMappedMemoryRanges` / `vkInvalidateMappedMemoryRanges`** (non-coherent memory now correctly supported -- was missing).
 - Legacy buffer API unchanged (1:1 alloc, host-visible map/write/read).
 
 Missing: `vkBindBufferMemory2` / `vkBindImageMemory2`, `vkGetBufferMemoryRequirements2` / `vkGetImageMemoryRequirements2`, `vkGetDeviceMemoryCommitment`, sparse binding (`vkQueueBindSparse`, `vkGetImageSparseMemoryRequirements`).
@@ -201,7 +201,7 @@ Missing: host-side `vkSetEvent` / `vkResetEvent` / `vkGetEventStatus` (events ca
 
 **Core 1.0** (`xvk_bind_command.c:426-483`): `vkCmdSetViewport` (multi, first/count), `vkCmdSetScissor`, `vkCmdSetLineWidth`, `vkCmdSetDepthBias`, `vkCmdSetBlendConstants`, `vkCmdSetDepthBounds`, `vkCmdSetStencilCompareMask` / `WriteMask` / `Reference` -- **all 9 present**.
 
-**Extended dynamic state 1/2/3 + friends** (`xvk_bind_extensions.c`, EXT→core alias fallback): cull mode, front face, primitive topology, viewport/scissor with count, depth test/write/compare enable, stencil test enable, stencil op, rasterizer discard, depth-bias enable, primitive restart, **polygon mode, rasterization samples, sample mask, alpha-to-coverage, color blend enable/equation/write mask, logic op, color write enable, vertex input (dynamic!)** -- 22 more setters.
+**Extended dynamic state 1/2/3 + friends** (`xvk_bind_extensions.c`, EXT->core alias fallback): cull mode, front face, primitive topology, viewport/scissor with count, depth test/write/compare enable, stencil test enable, stencil op, rasterizer discard, depth-bias enable, primitive restart, **polygon mode, rasterization samples, sample mask, alpha-to-coverage, color blend enable/equation/write mask, logic op, color write enable, vertex input (dynamic!)** -- 22 more setters.
 
 Note: pipelines built through the raw layer supply their own `VkPipelineDynamicStateCreateInfo`, so these setters are fully usable. The legacy app-layer pipelines still bake viewport/scissor (unchanged), acceptable for that convenience path.
 
@@ -212,7 +212,7 @@ Note: pipelines built through the raw layer supply their own `VkPipelineDynamicS
 ## 12. Query Pools -- previously absent, now dual-layer
 
 - Simplified (`xvk_query.c`): `xvk_query_pool_create` (occlusion / timestamp / pipeline-statistics), destroy, `xvk_query_write_timestamp` (hardcoded BOTTOM_OF_PIPE), `xvk_query_pool_get_results` (64-bit, WAIT).
-- Raw (`xvk_bind_query.c`): `vkCreateQueryPool` (caller struct → pipeline-statistics flags expressible), `vkGetQueryPoolResults` (any stride/flags), `vkCmdBeginQuery`, `vkCmdEndQuery`, `vkCmdWriteTimestamp` (any stage), `vkCmdResetQueryPool`, `vkCmdCopyQueryPoolResults` (GPU-side readback).
+- Raw (`xvk_bind_query.c`): `vkCreateQueryPool` (caller struct -> pipeline-statistics flags expressible), `vkGetQueryPoolResults` (any stride/flags), `vkCmdBeginQuery`, `vkCmdEndQuery`, `vkCmdWriteTimestamp` (any stage), `vkCmdResetQueryPool`, `vkCmdCopyQueryPoolResults` (GPU-side readback).
 
 Missing: host `vkResetQueryPool` (1.2), performance-query extensions.
 
@@ -226,7 +226,7 @@ Per-device proc cache (up to 8 devices) via `vkGetDeviceProcAddr`; `xvk_raytraci
 
 | Extension | Coverage |
 |---|---|
-| `VK_KHR_acceleration_structure` | create/destroy, build sizes, `vkCmdBuildAccelerationStructures(Indirect)KHR`, all 3 copy commands + host copy, properties→query pool, device address, compatibility -- **12/12 entry points** |
+| `VK_KHR_acceleration_structure` | create/destroy, build sizes, `vkCmdBuildAccelerationStructures(Indirect)KHR`, all 3 copy commands + host copy, properties->query pool, device address, compatibility -- **12/12 entry points** |
 | `VK_KHR_ray_tracing_pipeline` | pipeline creation (with deferred-op + cache params), `vkCmdTraceRaysKHR`, `vkCmdTraceRaysIndirectKHR`, shader-group handles (+ capture replay), group stack size, `vkCmdSetRayTracingPipelineStackSizeKHR` -- **7/7** |
 | `VK_NV_ray_tracing` (legacy) | pipelines, AS create/destroy/mem-reqs/bind, build/copy/trace, group + AS handles, properties, `vkCompileDeferredNV` -- **12/12** |
 | `VK_EXT_micromap` | create/destroy, build (cmd + host), 3 copies, properties, compatibility, build sizes -- **11/11**, with graceful ABI-stable stubs when SDK < 1.3.230 |
@@ -239,7 +239,7 @@ Missing: `VK_KHR_deferred_host_operations` (`vkCreateDeferredOperationKHR` / `De
 
 ## 14. Extension Modules (`xvk_bind_extensions.c`, 915 lines)
 
-Lazy proc resolution with generation-counted caches (`xvk_ext_load_instance` / `xvk_ext_load_device` invalidate on reload); EXT→core alias fallback where promoted.
+Lazy proc resolution with generation-counted caches (`xvk_ext_load_instance` / `xvk_ext_load_device` invalidate on reload); EXT->core alias fallback where promoted.
 
 | Extension | Entry points |
 |---|---|
@@ -252,7 +252,7 @@ Lazy proc resolution with generation-counted caches (`xvk_ext_load_instance` / `
 | `VK_KHR_fragment_shading_rate` | set shading rate -- 1 |
 | `VK_EXT_sample_locations` (+EDS3 enable) | 2 |
 | `VK_EXT_line_rasterization` | line stipple -- 1 |
-| `VK_KHR_copy_commands2` | copy buffer/image 2, blit2, buffer↔image 2, resolve2 -- 6 |
+| `VK_KHR_copy_commands2` | copy buffer/image 2, blit2, buffer<->image 2, resolve2 -- 6 |
 | `VK_EXT_host_image_copy` | 4 (listed in S9) |
 | `VK_KHR_timeline_semaphore` | 3 (listed in S10) |
 | `VK_KHR_dynamic_rendering` | 2 |
@@ -269,9 +269,9 @@ Lazy proc resolution with generation-counted caches (`xvk_ext_load_instance` / `
 ### Bugs
 | Severity | Issue |
 |---|---|
-| 🔴 HIGH | `recreate_swapchain` (`xvk_swapchain.c:270`) no longer rebuilds framebuffers or reallocates command buffers → **NULL deref crash after window resize** in the legacy windowed path (regression vs. the monolith) |
-| 🟡 LOW | `xvk_frame.c:18` treats both success and failure of `recreate_swapchain` as "skip frame" -- masks the above |
-| 🟡 LOW | Legacy `xvk_sampler_create` still forces `anisotropyEnable = VK_FALSE` although the device now enables `samplerAnisotropy` |
+| [RED] HIGH | `recreate_swapchain` (`xvk_swapchain.c:270`) no longer rebuilds framebuffers or reallocates command buffers -> **NULL deref crash after window resize** in the legacy windowed path (regression vs. the monolith) |
+| [YELLOW] LOW | `xvk_frame.c:18` treats both success and failure of `recreate_swapchain` as "skip frame" -- masks the above |
+| [YELLOW] LOW | Legacy `xvk_sampler_create` still forces `anisotropyEnable = VK_FALSE` although the device now enables `samplerAnisotropy` |
 
 ### Missing Vulkan entry points (raw layer)
 | Priority | Entry points |
@@ -291,7 +291,7 @@ Lazy proc resolution with generation-counted caches (`xvk_ext_load_instance` / `
 - App pipelines bake viewport/scissor; window resize requires swapchain+pipeline rebuild
 - Legacy pipelines fixed at 1x MSAA; `xvk_app_cmd_bind_descriptor_sets` graphics-bind-point only
 - `xvk_image_transition` color-aspect only; simplified timestamps pinned to BOTTOM_OF_PIPE
-- 1:1 buffer↔memory allocation in the convenience API
+- 1:1 buffer<->memory allocation in the convenience API
 
 ---
 

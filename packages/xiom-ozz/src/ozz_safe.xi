@@ -1,4 +1,4 @@
-// XIOM — Ozz-Animation Safe Wrappers
+// XIOM -- Ozz-Animation Safe Wrappers
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -12,7 +12,7 @@ module xiom.ozz.safe
 
 // =========================================================================
 // Cross-module extern block (workaround for compiler gap: cross-module
-// extern resolution is broken — T001 errors on import)
+// extern resolution is broken -- T001 errors on import)
 // =========================================================================
 
 extern "C" {
@@ -79,7 +79,7 @@ pub type Quaternion = {
 } derive[Clone]
 
 // =========================================================================
-// Skeleton — const runtime skeleton (joint hierarchy, rest poses)
+// Skeleton -- const runtime skeleton (joint hierarchy, rest poses)
 // =========================================================================
 
 pub type Skeleton = {
@@ -129,7 +129,7 @@ pub fn Skeleton.joint_name(index: Int32) -> Int
 }
 
 // =========================================================================
-// Animation — const runtime clip (keyframes, duration)
+// Animation -- const runtime clip (keyframes, duration)
 // =========================================================================
 
 pub type Animation = {
@@ -178,7 +178,7 @@ pub fn Animation.name() -> Int
 }
 
 // =========================================================================
-// SamplingContext — frame-coherent sampling cache
+// SamplingContext -- frame-coherent sampling cache
 // =========================================================================
 
 pub type SamplingContext = {
@@ -226,7 +226,7 @@ pub fn SamplingContext.sample(animation: Int, skeleton: Int, ratio: Float32, out
 }
 
 // =========================================================================
-// PoseBuffer — allocated SoA pose buffer for sample/blend output
+// PoseBuffer -- allocated SoA pose buffer for sample/blend output
 // =========================================================================
 
 pub type PoseBuffer = {
@@ -236,7 +236,7 @@ pub type PoseBuffer = {
 } derive[Clone]
 
 // =========================================================================
-// BlendLayer — a single animation layer with weight for blending
+// BlendLayer -- a single animation layer with weight for blending
 // =========================================================================
 
 pub type BlendLayer = {
@@ -252,7 +252,7 @@ pub fn BlendLayer.create(pose_ptr: Int, weight: Float32) -> BlendLayer
 }
 
 // =========================================================================
-// Skinning — vertex skinning job using matrix palette
+// Skinning -- vertex skinning job using matrix palette
 // =========================================================================
 
 pub type SkinInput = {
@@ -286,7 +286,7 @@ pub fn SkinInput.skin() -> Bool
 }
 
 // =========================================================================
-// OfflineBuilder — builds runtime Skeleton/Animation from raw data
+// OfflineBuilder -- builds runtime Skeleton/Animation from raw data
 // =========================================================================
 
 pub type OfflineBuilder = {
@@ -318,7 +318,7 @@ pub fn OfflineBuilder.build_skeleton(raw_skeleton_data: Int, raw_skeleton_size: 
 }
 
 // =========================================================================
-// AnimationOfflineBuilder — builds runtime Animation from raw data
+// AnimationOfflineBuilder -- builds runtime Animation from raw data
 // =========================================================================
 
 pub type AnimationOfflineBuilder = {
@@ -357,7 +357,7 @@ pub fn AnimationOfflineBuilder.build(raw_animation_data: Int, raw_animation_size
 }
 
 // =========================================================================
-// AnimationPlayer — high-level player managing skeleton, animation,
+// AnimationPlayer -- high-level player managing skeleton, animation,
 //                       sampling context, and pose buffers
 // =========================================================================
 

@@ -1,6 +1,6 @@
 # xiom-markdown
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Markdown parsing and rendering.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,6 +1,6 @@
 # xiom-nft
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Non-fungible token standards and metadata.
 > **Deps:** stdlib; may wrap C (FFI).
 

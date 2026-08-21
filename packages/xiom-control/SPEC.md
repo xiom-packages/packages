@@ -1,6 +1,6 @@
 # xiom-control Specification
 
-Control systems library for XIOM — PID controllers, state machines, signal processing filters, and trajectory interpolation.
+Control systems library for XIOM -- PID controllers, state machines, signal processing filters, and trajectory interpolation.
 
 ---
 
@@ -36,7 +36,7 @@ Standard PID with integral anti-windup (clamping) and output limiting:
 
 ```
 error = setpoint - measurement
-integral += error * dt  (clamped to ±integral_limit)
+integral += error * dt  (clamped to +/-integral_limit)
 derivative = (error - prev_error) / dt
 output = kp*error + ki*integral + kd*derivative  (clamped to [output_min, output_max])
 ```

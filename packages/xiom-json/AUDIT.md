@@ -1,11 +1,11 @@
-# xiom-json AUDIT — Remaining Compiler Gap Issues
+# xiom-json AUDIT -- Remaining Compiler Gap Issues
 
 **Date:** 2026-07-15
 **Status:** 0 type errors, 43 borrow-check errors remain
 
 ## Summary
 
-All type errors (140 originally) have been resolved. The remaining errors are all `E001` borrow errors caused by the XIOM compiler's branch-dependent move tracking — the compiler cannot prove that a variable is only consumed in one branch of an `if`/`else`.
+All type errors (140 originally) have been resolved. The remaining errors are all `E001` borrow errors caused by the XIOM compiler's branch-dependent move tracking -- the compiler cannot prove that a variable is only consumed in one branch of an `if`/`else`.
 
 ## Compiler Gaps
 
@@ -43,7 +43,7 @@ while i < 10 {
 
 **Workaround:** Use `var x = original + 0` to create a copy without moving, OR use separate loop counters (`var idx` for loop condition, `var i = idx + 0` for body usage). This clutters the code significantly.
 
-**Recommendation:** The compiler should treat `Int`, `Float64`, `Bool`, and `Char` as `Copy` types (trivially copyable bit patterns) — they are 64-bit-or-less primitives with no heap data.
+**Recommendation:** The compiler should treat `Int`, `Float64`, `Bool`, and `Char` as `Copy` types (trivially copyable bit patterns) -- they are 64-bit-or-less primitives with no heap data.
 
 ### 3. Immutable Method Resolution from Within Same-Type Methods
 
@@ -65,11 +65,11 @@ fn Parser.parse() -> Int {
 
 ## Files Affected
 
-- `packages/xiom-json/src/json.xi` — all internal `JsonParser` methods converted to free functions; Result/Option patterns replaced with `match`; remaining borrow errors in stringify helpers and JSONPath parser
+- `packages/xiom-json/src/json.xi` -- all internal `JsonParser` methods converted to free functions; Result/Option patterns replaced with `match`; remaining borrow errors in stringify helpers and JSONPath parser
 
 ## Workaround Patterns Used
 
-1. `var x = original + 0` — creates an `Int` copy without moving `original`
-2. `var x = original + 0.0` — same for `Float64`
+1. `var x = original + 0` -- creates an `Int` copy without moving `original`
+2. `var x = original + 0.0` -- same for `Float64`
 3. Separate `if`/`else` branches with duplicated code to avoid branch-dependent move tracking
 4. Recursive helpers instead of `while` loops with reassigned counters

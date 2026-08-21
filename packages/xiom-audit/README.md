@@ -1,6 +1,6 @@
 # xiom-audit
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Security audit event logging and tamper-evident trails.
 > **Deps:** stdlib; may wrap C (FFI).
 

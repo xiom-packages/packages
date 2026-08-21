@@ -115,7 +115,7 @@ int32_t xvk_queue_submit(int64_t queue, int32_t submit_count, int64_t submits_st
     return (int32_t)res;
 }
 
-/* Phase 7.5: Convenience multi-submit — submits count command buffers to a queue.
+/* Phase 7.5: Convenience multi-submit -- submits count command buffers to a queue.
  * Builds VkSubmitInfo internally from cmd_bufs_array (array of int64_t VK handles).
  * fence is a VkFence handle (0 for none). */
 int32_t xvk_queue_submit_multi(int64_t queue, int32_t cmd_buf_count, int64_t cmd_bufs_array, int64_t fence)

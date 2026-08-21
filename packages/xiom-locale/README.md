@@ -1,6 +1,6 @@
 # xiom-locale
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Locale identifiers: BCP-47 parsing, canonicalization, matching, and fallback resolution.
 > **Deps:** stdlib; may wrap C (FFI).
 

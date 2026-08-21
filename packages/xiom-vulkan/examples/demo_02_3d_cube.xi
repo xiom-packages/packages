@@ -1,5 +1,5 @@
 // ===========================================================================
-// XIOM Vulkan SDK — Example 02: 3D Cube + Camera
+// XIOM Vulkan SDK -- Example 02: 3D Cube + Camera
 // Shows: draw_cube_3d, camera_orbit, set_clear_color, toggle_fullscreen (F11)
 // ===========================================================================
 
@@ -8,7 +8,7 @@ use xiom.io;
 use xiom.vulkan;
 
 fn main() -> Int {
-  let app = create_app("02 — 3D Cube + Camera", 1024, 768);
+  let app = create_app("02 -- 3D Cube + Camera", 1024, 768);
   match app {
     Err(e) => { return 1; }
     Ok(a) => {

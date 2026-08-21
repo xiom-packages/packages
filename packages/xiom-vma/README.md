@@ -1,6 +1,6 @@
 # xiom-vma
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Vulkan Memory Allocator bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

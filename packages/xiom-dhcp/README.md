@@ -1,6 +1,6 @@
 # xiom-dhcp
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** DHCP client/server for dynamic IP address assignment.
 > **Deps:** stdlib; may wrap C (FFI).
 

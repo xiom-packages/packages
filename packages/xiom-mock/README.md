@@ -1,6 +1,6 @@
 # xiom-mock
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Behavioral mocking of dependencies in tests.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,6 +1,6 @@
 # xiom-ozz
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Ozz Animation skeleton and clip runtime bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

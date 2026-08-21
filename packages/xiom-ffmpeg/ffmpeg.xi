@@ -1,4 +1,4 @@
-// XIOM — xiom.ffmpeg: Safe FFmpeg Bindings (libavformat / libavcodec)
+// XIOM -- xiom.ffmpeg: Safe FFmpeg Bindings (libavformat / libavcodec)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -7,12 +7,12 @@
 
 module xiom.ffmpeg
 
-// ── Opaque handle types (raw C pointers) ──
+// -- Opaque handle types (raw C pointers) --
 pub type FfmpegContext = Int
 pub type FfmpegPacket  = Int
 pub type FfmpegFrame   = Int
 
-// ── Raw C FFI block ──
+// -- Raw C FFI block --
 extern "C" {
   fn avformat_alloc_context() -> FfmpegContext;
   fn avformat_open_input(ctx: FfmpegContext, path: *UInt8, fmt: FfmpegContext, opts: FfmpegContext) -> Int;
@@ -44,14 +44,14 @@ extern "C" {
   fn av_strerror(code: Int, buf: FfmpegContext, buf_size: Int) -> Int;
 }
 
-// ── Constants ──
+// -- Constants --
 pub const AVMEDIA_TYPE_VIDEO: Int = 0;
 pub const AVMEDIA_TYPE_AUDIO: Int = 1;
 pub const AV_ERROR_EOF:     Int = -541478725;
 pub const AV_ERROR_EAGAIN:  Int = -11;
 pub const AV_SUCCESS:       Int = 0;
 
-// ── Safe wrappers ──
+// -- Safe wrappers --
 
 pub fn open_input(path: Str) -> Result[FfmpegContext, Str]
   requires: path.len() > 0;
@@ -168,7 +168,7 @@ pub fn open_output(path: Str, _template_ctx: FfmpegContext) -> Result[FfmpegCont
   return Ok(ctx);
 }
 
-// ── Resource helpers ──
+// -- Resource helpers --
 
 pub fn alloc_packet() -> Result[FfmpegPacket, Str] {
   let pkt = av_packet_alloc();

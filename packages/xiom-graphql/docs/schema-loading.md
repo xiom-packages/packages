@@ -1,6 +1,6 @@
 # Schema Loading
 
-> Status: Design stage — specification only.
+> Status: Design stage -- specification only.
 
 ## The loading pipeline
 
@@ -20,10 +20,10 @@ The pipeline reflects a practical server design pattern: the public GraphQL sche
 
 Schemas are assembled from multiple SDL fragments so large APIs can be organized by feature:
 
-- `schema/root.graphql` — the root `Query`, `Mutation`, and `Subscription` types.
-- `schema/scalars.graphql` — custom scalar declarations such as `DateTime` and `JSON`.
-- `schema/directives.graphql` — directive definitions.
-- `schema/examples.graphql` — feature/domain type definitions.
+- `schema/root.graphql` -- the root `Query`, `Mutation`, and `Subscription` types.
+- `schema/scalars.graphql` -- custom scalar declarations such as `DateTime` and `JSON`.
+- `schema/directives.graphql` -- directive definitions.
+- `schema/examples.graphql` -- feature/domain type definitions.
 
 The loader merges these into one schema before validation. Conceptually:
 

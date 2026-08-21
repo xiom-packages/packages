@@ -1,7 +1,7 @@
 module xiom.core.storage.checksum
 
 // Corruption detection for blocks, WAL records, and snapshots. This is a real
-// FNV-1a 32-bit hash over the low byte of each slot — cheap, dependency-free,
+// FNV-1a 32-bit hash over the low byte of each slot -- cheap, dependency-free,
 // and adequate for detecting accidental corruption (not a cryptographic MAC).
 //
 // FNV-1a: hash = offset_basis; for each byte: hash ^= byte; hash *= prime.

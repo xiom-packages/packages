@@ -1,4 +1,4 @@
-// XIOM — Vulkan Bindings (C Bridge Wrapper)
+// XIOM -- Vulkan Bindings (C Bridge Wrapper)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -37,7 +37,7 @@ pub type VertexAttribute = {
 }
 
 // ===========================================================================
-// FFI declarations — existing API (native pointer types, G1/G2 fixed in v0.47.3)
+// FFI declarations -- existing API (native pointer types, G1/G2 fixed in v0.47.3)
 // ===========================================================================
 extern "C" {
   fn xvk_app_create(title: Str, width: Int32, height: Int32) -> Int;
@@ -70,13 +70,13 @@ extern "C" {
   fn xvk_particles_enable(app: Int, count: Int32) -> Int32;
   fn xvk_draw_particles(app: Int, dt: Float32);
 
-  // Phase 8.2 — Mouse/Keyboard input
+  // Phase 8.2 -- Mouse/Keyboard input
   fn xvk_get_mouse_x(app: Int) -> Float64;
   fn xvk_get_mouse_y(app: Int) -> Float64;
   fn xvk_get_mouse_button(app: Int, button: Int32) -> Int32;
   fn xvk_get_key(app: Int, key: Int32) -> Int32;
 
-  // Phase 1 — Buffers
+  // Phase 1 -- Buffers
   fn xvk_buffer_create(app: Int, size: Int, usage: Int32, memory: Int32) -> Int;
   fn xvk_buffer_destroy(app: Int, buf: Int);
   fn xvk_buffer_size(app: Int, buf: Int) -> Int;
@@ -85,34 +85,34 @@ extern "C" {
   fn xvk_buffer_write(app: Int, buf: Int, offset: Int, data: *UInt8, data_size: Int);
   fn xvk_buffer_read(app: Int, buf: Int, offset: Int, out: *UInt8, out_size: Int);
 
-  // Phase 1 — Images & Views
+  // Phase 1 -- Images & Views
   fn xvk_image_create_2d(app: Int, width: Int32, height: Int32, format: Int32, usage: Int32, mip_levels: Int32) -> Int;
   fn xvk_image_destroy(app: Int, img: Int);
   fn xvk_image_view_create(app: Int, img: Int, format: Int32, aspect: Int32) -> Int;
   fn xvk_image_view_destroy(app: Int, view: Int);
 
-  // Phase 1 — Samplers
+  // Phase 1 -- Samplers
   fn xvk_sampler_create(app: Int, filter: Int32, address_u: Int32, address_v: Int32, mip_mode: Int32, max_lod: Float32) -> Int;
   fn xvk_sampler_destroy(app: Int, sampler: Int);
 
-  // Phase 1 — Shader Modules
+  // Phase 1 -- Shader Modules
   fn xvk_shader_create(app: Int, code: *UInt8, code_size: Int32) -> Int;
   fn xvk_shader_create_named(app: Int, name: Str) -> Int;
   fn xvk_shader_destroy(app: Int, shader: Int);
 
-  // Phase 1 — Pipeline Layouts & Descriptor Set Layouts
+  // Phase 1 -- Pipeline Layouts & Descriptor Set Layouts
   fn xvk_pipeline_layout_create(app: Int, push_size: Int32, push_stages: Int32, desc_layout_count: Int32, desc_layouts: *Int) -> Int;
   fn xvk_pipeline_layout_destroy(app: Int, layout: Int);
   fn xvk_desc_set_layout_create(app: Int, bindings: *Int32, count: Int32) -> Int;
   fn xvk_desc_set_layout_destroy(app: Int, layout: Int);
 
-  // Phase 1 — Pipelines
+  // Phase 1 -- Pipelines
   fn xvk_pipeline_create_graphics(app: Int, topology: Int32, cull_mode: Int32, depth_test: Int32, depth_write: Int32, blend_enable: Int32, vertex_shader: Int, fragment_shader: Int, layout: Int, render_pass: Int, bindings: *Int32, binding_count: Int32, attributes: *Int32, attr_count: Int32) -> Int;
   fn xvk_pipeline_destroy(app: Int, pipeline: Int);
   fn xvk_pipeline_create_compute(app: Int, shader: Int, layout: Int) -> Int;
   fn xvk_compute_dispatch(app: Int, pipeline: Int, layout: Int, x: Int32, y: Int32, z: Int32);
 
-  // Phase 1 — Descriptor Pool & Sets
+  // Phase 1 -- Descriptor Pool & Sets
   fn xvk_desc_pool_create(app: Int, pool_sizes: *Int32, size_count: Int32, max_sets: Int32) -> Int;
   fn xvk_desc_pool_destroy(app: Int, pool: Int);
   fn xvk_desc_set_allocate(app: Int, pool: Int, layout: Int) -> Int;
@@ -120,13 +120,13 @@ extern "C" {
   fn xvk_desc_set_write_buffer(app: Int, set: Int, binding: Int32, buf: Int, offset: Int, range: Int, type_: Int32);
   fn xvk_desc_set_write_image(app: Int, set: Int, binding: Int32, sampler: Int, image_view: Int);
 
-  // Phase 1 — Render Passes & Framebuffers
+  // Phase 1 -- Render Passes & Framebuffers
   fn xvk_render_pass_create(app: Int, color_formats: *Int32, color_count: Int32, depth_format: Int32) -> Int;
   fn xvk_render_pass_destroy(app: Int, rp: Int);
   fn xvk_framebuffer_create(app: Int, render_pass: Int, attachments: *Int, attachment_count: Int32, width: Int32, height: Int32) -> Int;
   fn xvk_framebuffer_destroy(app: Int, fb: Int);
 
-  // Phase 1 — Command Recording
+  // Phase 1 -- Command Recording
   fn xvk_app_cmd_bind_vertex_buffer(app: Int, binding: Int32, buf: Int, offset: Int);
   fn xvk_app_cmd_bind_index_buffer(app: Int, buf: Int, offset: Int, index_type: Int32);
   fn xvk_app_cmd_bind_pipeline(app: Int, pipeline: Int);
@@ -135,17 +135,17 @@ extern "C" {
   fn xvk_app_cmd_draw_indexed(app: Int, index_count: Int32, instance_count: Int32, first_index: Int32, vertex_offset: Int32, first_instance: Int32);
   fn xvk_app_cmd_draw(app: Int, vertex_count: Int32, instance_count: Int32, first_vertex: Int32, first_instance: Int32);
 
-  // Phase 1 — Custom Render Pass
+  // Phase 1 -- Custom Render Pass
   fn xvk_begin_custom_pass(app: Int, render_pass: Int, framebuffer: Int, width: Int32, height: Int32, r: Float32, g: Float32, b: Float32) -> Int32;
   fn xvk_end_custom_pass(app: Int) -> Int32;
 
-  // Phase 1 — Layout Transitions
+  // Phase 1 -- Layout Transitions
   fn xvk_image_transition(app: Int, img: Int, old_layout: Int32, new_layout: Int32);
 
-  // Phase 1 — Utility
+  // Phase 1 -- Utility
   fn xvk_get_framebuffer_size(app: Int, out_width: *Int32, out_height: *Int32);
 
-  // Phase 7.5 — Multi-Thread Command Pools
+  // Phase 7.5 -- Multi-Thread Command Pools
   fn xvk_alloc(size: Int) -> Int;
   fn xvk_free(ptr: Int);
   fn xvk_create_command_pools(count: Int32, device: Int, queue_family: Int32, flags: Int32, out_pools: Int) -> Int;
@@ -153,14 +153,14 @@ extern "C" {
   fn xvk_queue_submit_multi(queue: Int, cmd_buf_count: Int32, cmd_bufs: Int, fence: Int) -> Int32;
   fn vkTrimCommandPool(device: Int, pool: Int, flags: Int32);
 
-  // Phase 7.3 — Shader Compilation Toolchain
+  // Phase 7.3 -- Shader Compilation Toolchain
   fn xvk_compile_glsl_to_spirv(source: Str, stage: Str, flags: Int) -> Int;
   fn xvk_compile_glsl_file_to_spirv(filepath: Str, stage: Str, flags: Int) -> Int;
   fn xvk_free_spirv_result(result_ptr: Int);
   fn xvk_read_u64(base: Int, offset: Int) -> Int;
   fn xvk_read_u32(base: Int, offset: Int) -> Int32;
 
-  // Phase 7.4 — Texture Loading Pipeline
+  // Phase 7.4 -- Texture Loading Pipeline
   fn xvk_get_physical_device(app: Int) -> Int;
   fn xvk_get_graphics_queue(app: Int) -> Int;
   fn xvk_get_command_pool(app: Int) -> Int;
@@ -181,12 +181,12 @@ extern "C" {
   fn xvk_texture_get_mip_levels(texture: Int) -> Int32;
   fn xvk_texture_destroy(device: Int, texture: Int);
 
-  // Phase 8.1 — Debug validation message capture
+  // Phase 8.1 -- Debug validation message capture
   fn xvk_create_debug_messenger_default(instance: Int, severity_mask: Int32, type_mask: Int32) -> Int;
   fn xvk_get_validation_messages(out_count: Int, out_buffer: Int) -> Int32;
   fn xvk_clear_validation_messages();
 
-  // Phase 8.3 — Font/text rendering
+  // Phase 8.3 -- Font/text rendering
   fn xvk_font_create(font_data: Int, data_size: Int32, px_height: Float32) -> Int;
   fn xvk_font_get_glyph_count(font: Int) -> Int32;
   fn xvk_font_get_glyph(font: Int, codepoint: Int32, out_glyph: Int) -> Int32;
@@ -233,7 +233,7 @@ extern "C" {
 }
 
 // ===========================================================================
-// Phase 8.2 — Mouse/Keyboard Input
+// Phase 8.2 -- Mouse/Keyboard Input
 // ===========================================================================
 
 pub fn get_mouse_pos(app: Int) -> (Float64, Float64)
@@ -257,7 +257,7 @@ pub fn is_key_down(app: Int, key: Int) -> Bool
 }
 
 // ===========================================================================
-// Safe wrappers — Lifecycle
+// Safe wrappers -- Lifecycle
 // ===========================================================================
 
 fn bool_to_i32(b: Bool) -> Int32 {
@@ -337,7 +337,7 @@ pub fn get_framebuffer_size(app: Int) -> (Int, Int)
 }
 
 // ===========================================================================
-// Safe wrappers — Frame lifecycle
+// Safe wrappers -- Frame lifecycle
 // ===========================================================================
 
 var g_in_frame: Bool = false;
@@ -368,7 +368,7 @@ pub fn end_frame(app: Int)
 }
 
 // ===========================================================================
-// Safe wrappers — Drawing (legacy, for backward compatibility)
+// Safe wrappers -- Drawing (legacy, for backward compatibility)
 // ===========================================================================
 
 pub fn draw_triangle_2d(app: Int, r: Float32, g: Float32, b: Float32)
@@ -427,7 +427,7 @@ pub fn draw_particles(app: Int, dt: Float32)
 }
 
 // ===========================================================================
-// Safe wrappers — Camera (6 functions)
+// Safe wrappers -- Camera (6 functions)
 // ===========================================================================
 
 pub fn camera_set_view(app: Int, ex: Float32, ey: Float32, ez: Float32,
@@ -456,14 +456,14 @@ pub fn camera_set_aspect_from_fb(app: Int, fb_w: Int32, fb_h: Int32)
 { unsafe { xvk_camera_set_aspect_from_fb(app, fb_w, fb_h); }; }
 
 // ===========================================================================
-// Safe wrappers — Math (2 functions)
+// Safe wrappers -- Math (2 functions)
 // ===========================================================================
 
 pub fn cos(x: Float32) -> Float32 { return unsafe { xvk_cos(x) }; }
 pub fn sin(x: Float32) -> Float32 { return unsafe { xvk_sin(x) }; }
 
 // ===========================================================================
-// Safe wrappers — Models / Meshes (6 functions)
+// Safe wrappers -- Models / Meshes (6 functions)
 // ===========================================================================
 
 pub fn mesh_load(app: Int, filepath: Str) -> Result[Int, Str]
@@ -498,7 +498,7 @@ pub fn mesh_destroy(app: Int, mesh: Int)
 }
 
 // ===========================================================================
-// Safe wrappers — Fonts / Text (3 additional functions)
+// Safe wrappers -- Fonts / Text (3 additional functions)
 // ===========================================================================
 
 pub fn font_create_from_file(filepath: Str, px_height: Float32) -> Result[Int, Str]
@@ -523,7 +523,7 @@ pub fn font_free_pixels(pixels: Int)
 { unsafe { xvk_font_free_pixels(pixels); }; }
 
 // ===========================================================================
-// Safe wrappers — Procedural Textures (3 functions)
+// Safe wrappers -- Procedural Textures (3 functions)
 // ===========================================================================
 
 pub fn proc_texture_solid(width: Int, height: Int, r: Float32, g: Float32, b: Float32) -> Result[Int, Str]
@@ -550,7 +550,7 @@ pub fn free_pixels(pixels: Int)
 { unsafe { xvk_free_pixels(pixels); }; }
 
 // ===========================================================================
-// Safe wrappers — Lifecycle helpers (4 functions)
+// Safe wrappers -- Lifecycle helpers (4 functions)
 // ===========================================================================
 
 pub fn app_did_resize(app: Int) -> Bool
@@ -570,7 +570,7 @@ pub fn app_maximize(app: Int)
 { unsafe { xvk_app_maximize(app); }; }
 
 // ===========================================================================
-// Safe wrappers — Accessors (9 functions)
+// Safe wrappers -- Accessors (9 functions)
 // Provides safe access to Vulkan/GLFW handles for interop (e.g. ImGui init).
 // ===========================================================================
 
@@ -611,7 +611,7 @@ pub fn get_fb_height(app: Int) -> Int32
 { return unsafe { xvk_get_fb_height(app) }; }
 
 // ===========================================================================
-// Safe wrappers — Audio (2 functions)
+// Safe wrappers -- Audio (2 functions)
 // ===========================================================================
 
 pub fn audio_beep()
@@ -621,7 +621,7 @@ pub fn audio_play_wav(filepath: Str)
 { unsafe { xvk_audio_play_wav(filepath); }; }
 
 // ===========================================================================
-// Safe wrappers — UI Hit-testing (1 function)
+// Safe wrappers -- UI Hit-testing (1 function)
 // ===========================================================================
 
 pub fn button_hit_state(app: Int, cx: Float32, cy: Float32, hw: Float32, hh: Float32) -> Bool
@@ -629,7 +629,7 @@ pub fn button_hit_state(app: Int, cx: Float32, cy: Float32, hw: Float32, hh: Flo
 { return unsafe { xvk_button_hit_state(app, cx, cy, hw, hh) != 0 }; }
 
 // ===========================================================================
-// Safe wrappers — Descriptor set free (1 function)
+// Safe wrappers -- Descriptor set free (1 function)
 // ===========================================================================
 
 pub fn desc_set_free(app: Int, pool: Int, set: Int)
@@ -637,7 +637,7 @@ pub fn desc_set_free(app: Int, pool: Int, set: Int)
 { unsafe { xvk_desc_set_free(app, pool, set); }; }
 
 // ===========================================================================
-// Safe wrappers — Offscreen
+// Safe wrappers -- Offscreen
 // ===========================================================================
 
 pub fn offscreen_create(width: Int, height: Int) -> Result[Int, Str]
@@ -678,7 +678,7 @@ pub fn offscreen_destroy(app: Int)
 }
 
 // ===========================================================================
-// Safe wrappers — Buffers
+// Safe wrappers -- Buffers
 // ===========================================================================
 
 pub fn buffer_create(app: Int, size: Int, usage: Int, memory: Int) -> Result[Int, Str]
@@ -729,7 +729,7 @@ pub fn buffer_read_float(app: Int, buf: Int, offset: Int, count: Int) -> Vec[Flo
 }
 
 // ===========================================================================
-// Safe wrappers — Images
+// Safe wrappers -- Images
 // ===========================================================================
 
 pub fn image_create_2d(app: Int, width: Int, height: Int, format: Int, usage: Int, mip_levels: Int) -> Result[Int, Str]
@@ -767,7 +767,7 @@ pub fn image_view_destroy(app: Int, view: Int)
 }
 
 // ===========================================================================
-// Safe wrappers — Samplers
+// Safe wrappers -- Samplers
 // ===========================================================================
 
 pub fn sampler_create(app: Int, filter: Int, address_u: Int, address_v: Int, mip_mode: Int, max_lod: Float32) -> Result[Int, Str]
@@ -787,7 +787,7 @@ pub fn sampler_destroy(app: Int, sampler: Int)
 }
 
 // ===========================================================================
-// Safe wrappers — Shader Modules
+// Safe wrappers -- Shader Modules
 // ===========================================================================
 
 pub fn shader_create(app: Int, code: Vec[UInt32]) -> Result[Int, Str]
@@ -818,7 +818,7 @@ pub fn shader_destroy(app: Int, shader: Int)
 }
 
 // ===========================================================================
-// Safe wrappers — Pipeline Layouts & Descriptor Set Layouts
+// Safe wrappers -- Pipeline Layouts & Descriptor Set Layouts
 // ===========================================================================
 
 pub fn pipeline_layout_create(app: Int, push_size: Int, push_stages: Int, desc_layouts: Vec[Int]) -> Result[Int, Str]
@@ -856,7 +856,7 @@ pub fn desc_set_layout_destroy(app: Int, layout: Int)
 }
 
 // ===========================================================================
-// Safe wrappers — Pipelines
+// Safe wrappers -- Pipelines
 // ===========================================================================
 
 pub fn pipeline_create_graphics(app: Int, topology: Int, cull_mode: Int, depth_test: Bool, depth_write: Bool, blend: Bool, vert_shader: Int, frag_shader: Int, layout: Int, render_pass: Int, bindings: Vec[Int32], attributes: Vec[Int32]) -> Result[Int, Str]
@@ -900,7 +900,7 @@ pub fn compute_dispatch(app: Int, pipeline: Int, layout: Int, x: Int, y: Int, z:
 }
 
 // ===========================================================================
-// Safe wrappers — Descriptor Pools & Sets
+// Safe wrappers -- Descriptor Pools & Sets
 // ===========================================================================
 
 pub fn desc_pool_create(app: Int, pool_sizes: Vec[Int32], max_sets: Int) -> Result[Int, Str]
@@ -942,7 +942,7 @@ pub fn desc_set_write_image(app: Int, set: Int, binding: Int, sampler: Int, imag
 }
 
 // ===========================================================================
-// Safe wrappers — Render Passes & Framebuffers
+// Safe wrappers -- Render Passes & Framebuffers
 // ===========================================================================
 
 pub fn render_pass_create(app: Int, color_formats: Vec[Int32], depth_format: Int) -> Result[Int, Str]
@@ -978,7 +978,7 @@ pub fn framebuffer_destroy(app: Int, fb: Int)
 }
 
 // ===========================================================================
-// Safe wrappers — Command Recording
+// Safe wrappers -- Command Recording
 // ===========================================================================
 
 pub fn cmd_bind_vertex_buffer(app: Int, binding: Int, buf: Int, offset: Int)
@@ -1025,7 +1025,7 @@ pub fn cmd_draw(app: Int, vertex_count: Int, instance_count: Int, first_vertex: 
 }
 
 // ===========================================================================
-// Safe wrappers — Custom Render Pass
+// Safe wrappers -- Custom Render Pass
 // ===========================================================================
 
 pub fn begin_custom_pass(app: Int, render_pass: Int, framebuffer: Int, width: Int, height: Int, r: Float32, g: Float32, b: Float32) -> Int
@@ -1041,7 +1041,7 @@ pub fn end_custom_pass(app: Int) -> Int
 }
 
 // ===========================================================================
-// Safe wrappers — Layout Transitions
+// Safe wrappers -- Layout Transitions
 // ===========================================================================
 
 pub fn image_transition(app: Int, img: Int, old_layout: Int, new_layout: Int)
@@ -1051,7 +1051,7 @@ pub fn image_transition(app: Int, img: Int, old_layout: Int, new_layout: Int)
 }
 
 // ===========================================================================
-// Phase 7.5: Multi-Thread Command Pools — High-Level API
+// Phase 7.5: Multi-Thread Command Pools -- High-Level API
 // ===========================================================================
 
 /// Create N thread-safe command pools for multi-threaded rendering.
@@ -1065,7 +1065,7 @@ pub fn threaded_command_pool_create(app: Int, thread_count: Int) -> Int
   requires: thread_count > 0
 {
   // VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT = 2
-  // queue family = 0 (graphics) — caller should know their queue family
+  // queue family = 0 (graphics) -- caller should know their queue family
   let pools_buf = unsafe { xvk_alloc(thread_count * 8) };
   let flags: Int32 = 2;  // VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
   let created: Int = unsafe { xvk_create_command_pools(thread_count as Int32, app, 0 as Int32, flags, pools_buf) };
@@ -1111,7 +1111,7 @@ pub fn trim_command_pool(app: Int, pool: Int)
 }
 
 // ===========================================================================
-// Phase 7.3: Shader Compilation Toolchain — High-Level API
+// Phase 7.3: Shader Compilation Toolchain -- High-Level API
 // ===========================================================================
 
 /// Phase 7.3: Compile a GLSL source string to SPIR-V at runtime.
@@ -1156,12 +1156,12 @@ pub fn shader_create_raw_spirv(app: Int, spirv_result: Int) -> Int
 }
 
 // ===========================================================================
-// Phase 7.4: Texture Loading Pipeline — High-Level API
+// Phase 7.4: Texture Loading Pipeline -- High-Level API
 // ===========================================================================
 
 /// Phase 7.4: Create a GPU texture from raw RGBA8 pixel data in CPU memory.
 /// Performs staging buffer creation, GPU image allocation, layout transitions,
-/// buffer-to-image copy, and optional mipmap generation — all in one call.
+/// buffer-to-image copy, and optional mipmap generation -- all in one call.
 ///
 /// pixel_data: pointer to RGBA8 pixel bytes (width * height * 4).
 /// generate_mips: 1 = generate full mip chain, 0 = single level.
@@ -1231,7 +1231,7 @@ pub fn texture_destroy(app: Int, texture: Int)
 }
 
 // ===========================================================================
-// Phase 8.1: Debug Validation Message Capture — High-Level API
+// Phase 8.1: Debug Validation Message Capture -- High-Level API
 // ===========================================================================
 
 /// Create a debug utils messenger that captures validation layer messages.
@@ -1273,7 +1273,7 @@ pub fn debug_clear_messages() {
 }
 
 // ===========================================================================
-// Phase 8.3: Font / Text Rendering — High-Level API
+// Phase 8.3: Font / Text Rendering -- High-Level API
 // ===========================================================================
 
 /// Create a font from a built-in 8x13 console font, scaled to px_height.

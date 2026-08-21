@@ -1,5 +1,5 @@
 // ===========================================================================
-// XIOM Vulkan SDK — Example 04: Procedural Textures
+// XIOM Vulkan SDK -- Example 04: Procedural Textures
 // Shows: proc_texture_solid, proc_texture_gradient, texture_create,
 //        texture_get_image_view, texture_get_sampler, draw_texture_quad
 // ===========================================================================
@@ -9,7 +9,7 @@ use xiom.io;
 use xiom.vulkan;
 
 fn main() -> Int {
-  let app = create_app("04 — Procedural Textures", 800, 600);
+  let app = create_app("04 -- Procedural Textures", 800, 600);
   match app {
     Err(e) => { io.println(e); return 1; }
     Ok(a) => {

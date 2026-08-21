@@ -1,10 +1,10 @@
-# xiom-ffmpeg — SPEC
+# xiom-ffmpeg -- SPEC
 
 **Phase**: 2 (Scientific) | **Priority**: HIGH
 **Status**: Implemented | **Depends on**: xiom.ffi
 
 ## What it wraps
-FFmpeg — audio/video codec library (libavcodec, libavformat, libavutil).
+FFmpeg -- audio/video codec library (libavcodec, libavformat, libavutil).
 Decode/encode, transcode, stream.
 
 ## Dependencies
@@ -19,7 +19,7 @@ Decode/encode, transcode, stream.
 ### Files
 | File | Lines | Purpose |
 |------|-------|---------|
-| `ffmpeg.xi` | 212 | Module `xiom.ffmpeg` — types, raw FFI, safe wrappers |
+| `ffmpeg.xi` | 212 | Module `xiom.ffmpeg` -- types, raw FFI, safe wrappers |
 | `tests/test_conformance.xi` | 277 | 26 conformance tests |
 | `ROADMAP.md` | 26 | Future phases |
 
@@ -47,18 +47,18 @@ pub type FfmpegFrame   = Int
 | Function | Returns | Contract |
 |----------|---------|----------|
 | `open_input(path)` | `Result[FfmpegContext, Str]` | `requires path.len() > 0` |
-| `close_input(ctx)` | void | — |
-| `find_stream_info(ctx)` | `Result[Int, Str]` | — |
-| `get_video_stream(ctx)` | `Result[Int, Str]` | — |
-| `read_frame(ctx, pkt)` | `Result[Int, Str]` | — |
-| `decode_frame(ctx, pkt, frame)` | `Result[Int, Str]` | — |
-| `encode_frame(ctx, frame, pkt)` | `Result[Int, Str]` | — |
-| `write_frame(ctx, pkt)` | `Result[Int, Str]` | — |
+| `close_input(ctx)` | void | -- |
+| `find_stream_info(ctx)` | `Result[Int, Str]` | -- |
+| `get_video_stream(ctx)` | `Result[Int, Str]` | -- |
+| `read_frame(ctx, pkt)` | `Result[Int, Str]` | -- |
+| `decode_frame(ctx, pkt, frame)` | `Result[Int, Str]` | -- |
+| `encode_frame(ctx, frame, pkt)` | `Result[Int, Str]` | -- |
+| `write_frame(ctx, pkt)` | `Result[Int, Str]` | -- |
 | `open_output(path, ctx)` | `Result[FfmpegContext, Str]` | `requires path.len() > 0` |
-| `alloc_packet()` | `Result[FfmpegPacket, Str]` | — |
-| `free_packet(pkt)` | void | — |
-| `alloc_frame()` | `Result[FfmpegFrame, Str]` | — |
-| `free_frame(frame)` | void | — |
+| `alloc_packet()` | `Result[FfmpegPacket, Str]` | -- |
+| `free_packet(pkt)` | void | -- |
+| `alloc_frame()` | `Result[FfmpegFrame, Str]` | -- |
+| `free_frame(frame)` | void | -- |
 
 ### Constants
 - `AVMEDIA_TYPE_VIDEO = 0`

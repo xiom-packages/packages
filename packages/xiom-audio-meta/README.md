@@ -1,6 +1,6 @@
 # xiom-audio-meta
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Chiptune and tracker audio module formats.
 > **Deps:** stdlib; may wrap C (FFI).
 

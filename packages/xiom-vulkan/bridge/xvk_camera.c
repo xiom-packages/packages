@@ -10,7 +10,7 @@ static XvkApp* cam_from_handle(int64_t app_h) {
     return (XvkApp*)(intptr_t)app_h;
 }
 
-/* ── Public API (XIOM-callable, takes app_h first) ── */
+/* -- Public API (XIOM-callable, takes app_h first) -- */
 
 void xvk_camera_set_view(int64_t app_h, float eye_x, float eye_y, float eye_z,
                           float target_x, float target_y, float target_z)
@@ -83,7 +83,7 @@ void xvk_camera_set_aspect_from_fb(int64_t app_h, int32_t fb_w, int32_t fb_h)
         a->cam_aspect = (float)fb_w / (float)fb_h;
 }
 
-/* ── Internal API (called from draw functions with direct XvkApp* access) ── */
+/* -- Internal API (called from draw functions with direct XvkApp* access) -- */
 
 void xvk_camera_get_view(int64_t app_h, int64_t out_matrix)
 {
@@ -113,6 +113,6 @@ int xvk_camera_is_active(int64_t app_h)
     return a ? a->cam_active : 0;
 }
 
-/* ── Trigonometry bridge (stateless — no app handle needed) ── */
+/* -- Trigonometry bridge (stateless -- no app handle needed) -- */
 float xvk_cos(float x) { return cosf(x); }
 float xvk_sin(float x) { return sinf(x); }

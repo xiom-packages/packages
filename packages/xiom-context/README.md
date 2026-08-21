@@ -1,6 +1,6 @@
 # xiom-context
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Immutable execution context propagation across async boundaries.
 > **Deps:** stdlib; may wrap C (FFI).
 

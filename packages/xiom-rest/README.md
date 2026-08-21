@@ -1,6 +1,6 @@
 # xiom-rest
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** RESTful API layer built on the HTTP package.
 > **Deps:** stdlib; may wrap C (FFI).
 

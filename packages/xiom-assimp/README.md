@@ -1,6 +1,6 @@
 # xiom-assimp
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Asset Import Library 3D model import/export bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

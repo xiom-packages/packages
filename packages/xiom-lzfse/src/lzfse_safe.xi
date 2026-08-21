@@ -1,4 +1,4 @@
-// XIOM — LZFSE Compression Safe Wrappers
+// XIOM -- LZFSE Compression Safe Wrappers
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -30,7 +30,7 @@ pub type LzfseError = {
 } derive[Clone]
 
 // =========================================================================
-// LzfseCompressor — manages scratch buffer for LZFSE encoding
+// LzfseCompressor -- manages scratch buffer for LZFSE encoding
 // =========================================================================
 
 pub type LzfseCompressor = {
@@ -94,7 +94,7 @@ pub fn LzfseCompressor.scratch_buffer_size() -> Int
 }
 
 // =========================================================================
-// LzfseDecompressor — manages scratch buffer for LZFSE decoding
+// LzfseDecompressor -- manages scratch buffer for LZFSE decoding
 // =========================================================================
 
 pub type LzfseDecompressor = {
@@ -158,7 +158,7 @@ pub fn LzfseDecompressor.scratch_buffer_size() -> Int
 }
 
 // =========================================================================
-// LzvnEncoder — manages scratch buffer for LZVN encoding
+// LzvnEncoder -- manages scratch buffer for LZVN encoding
 // =========================================================================
 
 pub type LzvnEncoder = {

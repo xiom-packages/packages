@@ -1,10 +1,10 @@
-// XIOM — Box2D Physics Engine FFI Bindings (v4.x — 100% API surface)
+// XIOM -- Box2D Physics Engine FFI Bindings (v4.x -- 100% API surface)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Low-level FFI declarations for the Box2D C API (box2d.dll / libbox2d.so).
 // Box2D v4+ uses a pure C handle-based API. All objects are POD structs
-// passed by value — no C++ classes, vtables, or inheritance.
+// passed by value -- no C++ classes, vtables, or inheritance.
 //
 // TARGET COMPILER: xiom v0.46.0+ "Production"
 // All struct types, fixed-size arrays, and value-type FFI are expected
@@ -816,16 +816,16 @@ pub type B2DebugDraw = {
 }
 
 // ===================================================================
-// EXTERN "C" — COMPLETE Box2D C API (100% B2_API surface)
+// EXTERN "C" -- COMPLETE Box2D C API (100% B2_API surface)
 //
 // Total: ~300 functions across world, body, shape, chain, joint,
 // collision, distance, dynamic tree, character mover, base, math.
-// Excludes B2_INLINE functions — those are reimplemented in box2d_safe.xi.
+// Excludes B2_INLINE functions -- those are reimplemented in box2d_safe.xi.
 // ===================================================================
 
 extern "C" {
 
-  // ============ base.h — Version, Allocator, Logging, Timing ============
+  // ============ base.h -- Version, Allocator, Logging, Timing ============
 
   fn b2GetVersion() -> B2Version;
   fn b2IsDoublePrecision() -> Int32;
@@ -837,7 +837,7 @@ extern "C" {
   fn b2GetMillisecondsAndReset(ticks: *UInt64) -> Float32;
   fn b2Yield();
 
-  // ============ math_functions.h — Exported Math ============
+  // ============ math_functions.h -- Exported Math ============
 
   fn b2SetLengthUnitsPerMeter(lengthUnits: Float32);
   fn b2GetLengthUnitsPerMeter() -> Float32;
@@ -853,14 +853,14 @@ extern "C" {
   fn b2ComputeCosSin(radians: Float32) -> B2CosSin;
   fn b2ComputeRotationBetweenUnitVectors(v1: B2Vec2, v2: B2Vec2) -> B2Rot;
 
-  // ============ box2d.h — World Lifecycle ============
+  // ============ box2d.h -- World Lifecycle ============
 
   fn b2DefaultWorldDef() -> B2WorldDef;
   fn b2CreateWorld(def: *B2WorldDef) -> B2WorldId;
   fn b2DestroyWorld(worldId: B2WorldId);
   fn b2World_IsValid(worldId: B2WorldId) -> Int32;
 
-  // ============ box2d.h — World Settings ============
+  // ============ box2d.h -- World Settings ============
 
   fn b2World_SetGravity(worldId: B2WorldId, gravity: B2Vec2);
   fn b2World_GetGravity(worldId: B2WorldId) -> B2Vec2;
@@ -889,7 +889,7 @@ extern "C" {
   fn b2World_SetUserData(worldId: B2WorldId, userData: *UInt8);
   fn b2World_GetUserData(worldId: B2WorldId) -> *UInt8;
 
-  // ============ box2d.h — World Stats ============
+  // ============ box2d.h -- World Stats ============
 
   fn b2World_GetAwakeBodyCount(worldId: B2WorldId) -> Int32;
   fn b2World_GetProfile(worldId: B2WorldId) -> B2Profile;
@@ -899,23 +899,23 @@ extern "C" {
   fn b2World_DumpMemoryStats(worldId: B2WorldId);
   fn b2World_RebuildStaticTree(worldId: B2WorldId);
 
-  // ============ box2d.h — Simulation ============
+  // ============ box2d.h -- Simulation ============
 
   fn b2World_Step(worldId: B2WorldId, timeStep: Float32, subStepCount: Int32);
 
-  // ============ box2d.h — Explosion ============
+  // ============ box2d.h -- Explosion ============
 
   fn b2DefaultExplosionDef() -> B2ExplosionDef;
   fn b2World_Explode(worldId: B2WorldId, def: *B2ExplosionDef);
 
-  // ============ box2d.h — Body Lifecycle ============
+  // ============ box2d.h -- Body Lifecycle ============
 
   fn b2DefaultBodyDef() -> B2BodyDef;
   fn b2CreateBody(worldId: B2WorldId, def: *B2BodyDef) -> B2BodyId;
   fn b2DestroyBody(bodyId: B2BodyId);
   fn b2Body_IsValid(bodyId: B2BodyId) -> Int32;
 
-  // ============ box2d.h — Body Properties ============
+  // ============ box2d.h -- Body Properties ============
 
   fn b2Body_GetType(bodyId: B2BodyId) -> Int32;
   fn b2Body_SetType(bodyId: B2BodyId, bodyType: Int32);
@@ -935,7 +935,7 @@ extern "C" {
   fn b2Body_GetLocalPointVelocity(bodyId: B2BodyId, localPoint: B2Vec2) -> B2Vec2;
   fn b2Body_GetWorldPointVelocity(bodyId: B2BodyId, worldPoint: B2Pos) -> B2Vec2;
 
-  // ============ box2d.h — Body Forces ============
+  // ============ box2d.h -- Body Forces ============
 
   fn b2Body_ApplyForce(bodyId: B2BodyId, force: B2Vec2, point: B2Pos, wake: Int32);
   fn b2Body_ApplyForceToCenter(bodyId: B2BodyId, force: B2Vec2, wake: Int32);
@@ -945,7 +945,7 @@ extern "C" {
   fn b2Body_ApplyLinearImpulseToCenter(bodyId: B2BodyId, impulse: B2Vec2, wake: Int32);
   fn b2Body_ApplyAngularImpulse(bodyId: B2BodyId, impulse: Float32, wake: Int32);
 
-  // ============ box2d.h — Body Mass ============
+  // ============ box2d.h -- Body Mass ============
 
   fn b2Body_GetMass(bodyId: B2BodyId) -> Float32;
   fn b2Body_GetRotationalInertia(bodyId: B2BodyId) -> Float32;
@@ -955,7 +955,7 @@ extern "C" {
   fn b2Body_GetMassData(bodyId: B2BodyId) -> B2MassData;
   fn b2Body_ApplyMassFromShapes(bodyId: B2BodyId);
 
-  // ============ box2d.h — Body Damping & Gravity ============
+  // ============ box2d.h -- Body Damping & Gravity ============
 
   fn b2Body_SetLinearDamping(bodyId: B2BodyId, linearDamping: Float32);
   fn b2Body_GetLinearDamping(bodyId: B2BodyId) -> Float32;
@@ -964,7 +964,7 @@ extern "C" {
   fn b2Body_SetGravityScale(bodyId: B2BodyId, gravityScale: Float32);
   fn b2Body_GetGravityScale(bodyId: B2BodyId) -> Float32;
 
-  // ============ box2d.h — Body Sleep ============
+  // ============ box2d.h -- Body Sleep ============
 
   fn b2Body_IsAwake(bodyId: B2BodyId) -> Int32;
   fn b2Body_SetAwake(bodyId: B2BodyId, awake: Int32);
@@ -974,7 +974,7 @@ extern "C" {
   fn b2Body_SetSleepThreshold(bodyId: B2BodyId, sleepThreshold: Float32);
   fn b2Body_GetSleepThreshold(bodyId: B2BodyId) -> Float32;
 
-  // ============ box2d.h — Body State ============
+  // ============ box2d.h -- Body State ============
 
   fn b2Body_IsEnabled(bodyId: B2BodyId) -> Int32;
   fn b2Body_Disable(bodyId: B2BodyId);
@@ -988,7 +988,7 @@ extern "C" {
   fn b2Body_EnableContactEvents(bodyId: B2BodyId, flag: Int32);
   fn b2Body_EnableHitEvents(bodyId: B2BodyId, flag: Int32);
 
-  // ============ box2d.h — Body Metadata ============
+  // ============ box2d.h -- Body Metadata ============
 
   fn b2Body_SetName(bodyId: B2BodyId, name: *UInt8);
   fn b2Body_GetName(bodyId: B2BodyId) -> *UInt8;
@@ -996,7 +996,7 @@ extern "C" {
   fn b2Body_GetUserData(bodyId: B2BodyId) -> *UInt8;
   fn b2Body_GetWorld(bodyId: B2BodyId) -> B2WorldId;
 
-  // ============ box2d.h — Body Enumeration ============
+  // ============ box2d.h -- Body Enumeration ============
 
   fn b2Body_GetShapeCount(bodyId: B2BodyId) -> Int32;
   fn b2Body_GetShapes(bodyId: B2BodyId, shapeArray: *B2ShapeId, capacity: Int32) -> Int32;
@@ -1006,7 +1006,7 @@ extern "C" {
   fn b2Body_GetContactData(bodyId: B2BodyId, contactData: *B2ContactData, capacity: Int32) -> Int32;
   fn b2Body_ComputeAABB(bodyId: B2BodyId) -> B2AABB;
 
-  // ============ box2d.h — Shape Lifecycle ============
+  // ============ box2d.h -- Shape Lifecycle ============
 
   fn b2DefaultShapeDef() -> B2ShapeDef;
   fn b2CreateCircleShape(bodyId: B2BodyId, def: *B2ShapeDef, circle: *B2Circle) -> B2ShapeId;
@@ -1022,7 +1022,7 @@ extern "C" {
   fn b2Shape_IsSensor(shapeId: B2ShapeId) -> Int32;
   fn b2Shape_GetParentChain(shapeId: B2ShapeId) -> B2ChainId;
 
-  // ============ box2d.h — Shape Properties ============
+  // ============ box2d.h -- Shape Properties ============
 
   fn b2Shape_SetUserData(shapeId: B2ShapeId, userData: *UInt8);
   fn b2Shape_GetUserData(shapeId: B2ShapeId) -> *UInt8;
@@ -1039,7 +1039,7 @@ extern "C" {
   fn b2Shape_GetFilter(shapeId: B2ShapeId) -> B2Filter;
   fn b2Shape_SetFilter(shapeId: B2ShapeId, filter: B2Filter);
 
-  // ============ box2d.h — Shape Events ============
+  // ============ box2d.h -- Shape Events ============
 
   fn b2Shape_EnableSensorEvents(shapeId: B2ShapeId, flag: Int32);
   fn b2Shape_AreSensorEventsEnabled(shapeId: B2ShapeId) -> Int32;
@@ -1050,7 +1050,7 @@ extern "C" {
   fn b2Shape_EnableHitEvents(shapeId: B2ShapeId, flag: Int32);
   fn b2Shape_AreHitEventsEnabled(shapeId: B2ShapeId) -> Int32;
 
-  // ============ box2d.h — Shape Queries ============
+  // ============ box2d.h -- Shape Queries ============
 
   fn b2Shape_TestPoint(shapeId: B2ShapeId, point: B2Pos) -> Int32;
   fn b2Shape_RayCast(shapeId: B2ShapeId, origin: B2Pos, translation: B2Vec2) -> B2WorldCastOutput;
@@ -1059,7 +1059,7 @@ extern "C" {
   fn b2Shape_GetClosestPoint(shapeId: B2ShapeId, target: B2Pos) -> B2Pos;
   fn b2Shape_ApplyWind(shapeId: B2ShapeId, wind: B2Vec2, drag: Float32, lift: Float32, wake: Int32);
 
-  // ============ box2d.h — Shape Get/Set Geometry ============
+  // ============ box2d.h -- Shape Get/Set Geometry ============
 
   fn b2Shape_GetCircle(shapeId: B2ShapeId) -> B2Circle;
   fn b2Shape_GetSegment(shapeId: B2ShapeId) -> B2Segment;
@@ -1072,19 +1072,19 @@ extern "C" {
   fn b2Shape_SetPolygon(shapeId: B2ShapeId, polygon: *B2Polygon);
   fn b2Shape_SetChainSegment(shapeId: B2ShapeId, chainSegment: *B2ChainSegment);
 
-  // ============ box2d.h — Shape Contact Data ============
+  // ============ box2d.h -- Shape Contact Data ============
 
   fn b2Shape_GetContactCapacity(shapeId: B2ShapeId) -> Int32;
   fn b2Shape_GetContactData(shapeId: B2ShapeId, contactData: *B2ContactData, capacity: Int32) -> Int32;
   fn b2Shape_GetSensorCapacity(shapeId: B2ShapeId) -> Int32;
   fn b2Shape_GetSensorData(shapeId: B2ShapeId, visitorIds: *B2ShapeId, capacity: Int32) -> Int32;
 
-  // ============ box2d.h — Filters ============
+  // ============ box2d.h -- Filters ============
 
   fn b2DefaultFilter() -> B2Filter;
   fn b2DefaultQueryFilter() -> B2QueryFilter;
 
-  // ============ collision.h — Polygon Factories ============
+  // ============ collision.h -- Polygon Factories ============
 
   fn b2MakePolygon(hull: *B2Hull, radius: Float32) -> B2Polygon;
   fn b2MakeOffsetPolygon(hull: *B2Hull, position: B2Vec2, rotation: B2Rot) -> B2Polygon;
@@ -1098,7 +1098,7 @@ extern "C" {
   fn b2ComputeHull(points: *B2Vec2, count: Int32) -> B2Hull;
   fn b2ValidateHull(hull: *B2Hull) -> Int32;
 
-  // ============ collision.h — Mass & AABB Computation ============
+  // ============ collision.h -- Mass & AABB Computation ============
 
   fn b2ComputeCircleMass(shape: *B2Circle, density: Float32) -> B2MassData;
   fn b2ComputeCapsuleMass(shape: *B2Capsule, density: Float32) -> B2MassData;
@@ -1108,28 +1108,28 @@ extern "C" {
   fn b2ComputePolygonAABB(shape: *B2Polygon, transform: B2WorldTransform) -> B2AABB;
   fn b2ComputeSegmentAABB(shape: *B2Segment, transform: B2WorldTransform) -> B2AABB;
 
-  // ============ collision.h — Point Queries ============
+  // ============ collision.h -- Point Queries ============
 
   fn b2PointInCircle(shape: *B2Circle, point: B2Vec2) -> Int32;
   fn b2PointInCapsule(shape: *B2Capsule, point: B2Vec2) -> Int32;
   fn b2PointInPolygon(shape: *B2Polygon, point: B2Vec2) -> Int32;
   fn b2IsValidRay(input: *B2RayCastInput) -> Int32;
 
-  // ============ collision.h — Ray Casts ============
+  // ============ collision.h -- Ray Casts ============
 
   fn b2RayCastCircle(shape: *B2Circle, input: *B2RayCastInput) -> B2CastOutput;
   fn b2RayCastCapsule(shape: *B2Capsule, input: *B2RayCastInput) -> B2CastOutput;
   fn b2RayCastSegment(shape: *B2Segment, input: *B2RayCastInput, oneSided: Int32) -> B2CastOutput;
   fn b2RayCastPolygon(shape: *B2Polygon, input: *B2RayCastInput) -> B2CastOutput;
 
-  // ============ collision.h — Shape Casts ============
+  // ============ collision.h -- Shape Casts ============
 
   fn b2ShapeCastCircle(shape: *B2Circle, input: *B2ShapeCastInput) -> B2CastOutput;
   fn b2ShapeCastCapsule(shape: *B2Capsule, input: *B2ShapeCastInput) -> B2CastOutput;
   fn b2ShapeCastSegment(shape: *B2Segment, input: *B2ShapeCastInput) -> B2CastOutput;
   fn b2ShapeCastPolygon(shape: *B2Polygon, input: *B2ShapeCastInput) -> B2CastOutput;
 
-  // ============ collision.h — Distance ============
+  // ============ collision.h -- Distance ============
 
   fn b2SegmentDistance(p1: B2Vec2, q1: B2Vec2, p2: B2Vec2, q2: B2Vec2) -> B2SegmentDistanceResult;
   fn b2ShapeDistance(input: *B2DistanceInput, cache: *B2SimplexCache, simplexes: *B2Simplex, simplexCapacity: Int32) -> B2DistanceOutput;
@@ -1139,7 +1139,7 @@ extern "C" {
   fn b2GetSweepTransform(sweep: *B2Sweep, time: Float32) -> B2Transform;
   fn b2TimeOfImpact(input: *B2TOIInput) -> B2TOIOutput;
 
-  // ============ collision.h — Collision ============
+  // ============ collision.h -- Collision ============
 
   fn b2CollideCircles(circleA: *B2Circle, circleB: *B2Circle, xf: B2Transform) -> B2LocalManifold;
   fn b2CollideCapsuleAndCircle(capsuleA: *B2Capsule, circleB: *B2Circle, xf: B2Transform) -> B2LocalManifold;
@@ -1154,12 +1154,12 @@ extern "C" {
   fn b2CollideChainSegmentAndCapsule(segmentA: *B2ChainSegment, capsuleB: *B2Capsule, xf: B2Transform, cache: *B2SimplexCache) -> B2LocalManifold;
   fn b2CollideChainSegmentAndPolygon(segmentA: *B2ChainSegment, polygonB: *B2Polygon, xf: B2Transform, cache: *B2SimplexCache) -> B2LocalManifold;
 
-  // ============ collision.h — Character Mover ============
+  // ============ collision.h -- Character Mover ============
 
   fn b2SolvePlanes(targetDelta: B2Vec2, planes: *B2CollisionPlane, count: Int32) -> B2PlaneSolverResult;
   fn b2ClipVector(vector: B2Vec2, planes: *B2CollisionPlane, count: Int32) -> B2Vec2;
 
-  // ============ box2d.h — Chain Shapes ============
+  // ============ box2d.h -- Chain Shapes ============
 
   fn b2DefaultChainDef() -> B2ChainDef;
   fn b2CreateChain(bodyId: B2BodyId, def: *B2ChainDef) -> B2ChainId;
@@ -1172,7 +1172,7 @@ extern "C" {
   fn b2Chain_SetSurfaceMaterial(chainId: B2ChainId, material: *B2SurfaceMaterial, materialIndex: Int32);
   fn b2Chain_GetSurfaceMaterial(chainId: B2ChainId, materialIndex: Int32) -> B2SurfaceMaterial;
 
-  // ============ box2d.h — Joint Creation ============
+  // ============ box2d.h -- Joint Creation ============
 
   fn b2DefaultDistanceJointDef() -> B2DistanceJointDef;
   fn b2CreateDistanceJoint(worldId: B2WorldId, def: *B2DistanceJointDef) -> B2JointId;
@@ -1195,7 +1195,7 @@ extern "C" {
   fn b2DefaultWheelJointDef() -> B2WheelJointDef;
   fn b2CreateWheelJoint(worldId: B2WorldId, def: *B2WheelJointDef) -> B2JointId;
 
-  // ============ box2d.h — Joint Common ============
+  // ============ box2d.h -- Joint Common ============
 
   fn b2DestroyJoint(jointId: B2JointId, wakeAttached: Int32);
   fn b2Joint_IsValid(jointId: B2JointId) -> Int32;
@@ -1222,7 +1222,7 @@ extern "C" {
   fn b2Joint_SetTorqueThreshold(jointId: B2JointId, threshold: Float32);
   fn b2Joint_GetTorqueThreshold(jointId: B2JointId) -> Float32;
 
-  // ============ box2d.h — Distance Joint ============
+  // ============ box2d.h -- Distance Joint ============
 
   fn b2DistanceJoint_SetLength(jointId: B2JointId, length: Float32);
   fn b2DistanceJoint_GetLength(jointId: B2JointId) -> Float32;
@@ -1247,7 +1247,7 @@ extern "C" {
   fn b2DistanceJoint_GetMaxMotorForce(jointId: B2JointId) -> Float32;
   fn b2DistanceJoint_GetMotorForce(jointId: B2JointId) -> Float32;
 
-  // ============ box2d.h — Motor Joint ============
+  // ============ box2d.h -- Motor Joint ============
 
   fn b2MotorJoint_SetLinearVelocity(jointId: B2JointId, velocity: B2Vec2);
   fn b2MotorJoint_GetLinearVelocity(jointId: B2JointId) -> B2Vec2;
@@ -1270,7 +1270,7 @@ extern "C" {
   fn b2MotorJoint_SetMaxSpringTorque(jointId: B2JointId, maxTorque: Float32);
   fn b2MotorJoint_GetMaxSpringTorque(jointId: B2JointId) -> Float32;
 
-  // ============ box2d.h — Prismatic Joint ============
+  // ============ box2d.h -- Prismatic Joint ============
 
   fn b2PrismaticJoint_EnableSpring(jointId: B2JointId, enableSpring: Int32);
   fn b2PrismaticJoint_IsSpringEnabled(jointId: B2JointId) -> Int32;
@@ -1295,7 +1295,7 @@ extern "C" {
   fn b2PrismaticJoint_GetTranslation(jointId: B2JointId) -> Float32;
   fn b2PrismaticJoint_GetSpeed(jointId: B2JointId) -> Float32;
 
-  // ============ box2d.h — Revolute Joint ============
+  // ============ box2d.h -- Revolute Joint ============
 
   fn b2RevoluteJoint_EnableSpring(jointId: B2JointId, enableSpring: Int32);
   fn b2RevoluteJoint_IsSpringEnabled(jointId: B2JointId) -> Int32;
@@ -1319,7 +1319,7 @@ extern "C" {
   fn b2RevoluteJoint_SetMaxMotorTorque(jointId: B2JointId, torque: Float32);
   fn b2RevoluteJoint_GetMaxMotorTorque(jointId: B2JointId) -> Float32;
 
-  // ============ box2d.h — Weld Joint ============
+  // ============ box2d.h -- Weld Joint ============
 
   fn b2WeldJoint_SetLinearHertz(jointId: B2JointId, hertz: Float32);
   fn b2WeldJoint_GetLinearHertz(jointId: B2JointId) -> Float32;
@@ -1330,7 +1330,7 @@ extern "C" {
   fn b2WeldJoint_SetAngularDampingRatio(jointId: B2JointId, dampingRatio: Float32);
   fn b2WeldJoint_GetAngularDampingRatio(jointId: B2JointId) -> Float32;
 
-  // ============ box2d.h — Wheel Joint ============
+  // ============ box2d.h -- Wheel Joint ============
 
   fn b2WheelJoint_EnableSpring(jointId: B2JointId, enableSpring: Int32);
   fn b2WheelJoint_IsSpringEnabled(jointId: B2JointId) -> Int32;
@@ -1350,36 +1350,36 @@ extern "C" {
   fn b2WheelJoint_SetMaxMotorTorque(jointId: B2JointId, torque: Float32);
   fn b2WheelJoint_GetMaxMotorTorque(jointId: B2JointId) -> Float32;
 
-  // ============ box2d.h — Event Retrieval ============
+  // ============ box2d.h -- Event Retrieval ============
 
   fn b2World_GetBodyEvents(worldId: B2WorldId) -> B2BodyEvents;
   fn b2World_GetSensorEvents(worldId: B2WorldId) -> B2SensorEvents;
   fn b2World_GetContactEvents(worldId: B2WorldId) -> B2ContactEvents;
   fn b2World_GetJointEvents(worldId: B2WorldId) -> B2JointEvents;
 
-  // ============ box2d.h — Contact Data ============
+  // ============ box2d.h -- Contact Data ============
 
   fn b2Contact_IsValid(contactId: B2ContactId) -> Int32;
   fn b2Contact_GetData(contactId: B2ContactId) -> B2ContactData;
 
-  // ============ box2d.h — Spatial Queries ============
+  // ============ box2d.h -- Spatial Queries ============
 
   fn b2World_CastRayClosest(worldId: B2WorldId, origin: B2Pos, translation: B2Vec2, filter: B2QueryFilter) -> B2RayResult;
   fn b2World_CastMover(worldId: B2WorldId, origin: B2Pos, mover: *B2Capsule, translation: B2Vec2, filter: B2QueryFilter) -> Float32;
 
-  // ============ box2d.h — Debug Draw ============
+  // ============ box2d.h -- Debug Draw ============
 
   fn b2DefaultDebugDraw() -> B2DebugDraw;
   fn b2World_Draw(worldId: B2WorldId, draw: *B2DebugDraw);
   fn b2GetGraphColor(index: Int32) -> B2HexColor;
 
-  // ============ box2d.h — Snapshot ============
+  // ============ box2d.h -- Snapshot ============
 
   fn b2World_Snapshot(worldId: B2WorldId, image: *UInt8, capacity: Int32) -> Int32;
   fn b2World_Restore(worldId: B2WorldId, image: *UInt8, size: Int32) -> Int32;
   fn b2CreateWorldFromSnapshot(image: *UInt8, size: Int32, workerCount: Int32) -> B2WorldId;
 
-  // ============ box2d.h — Recording ============
+  // ============ box2d.h -- Recording ============
 
   fn b2CreateRecording(byteCapacity: Int32) -> *UInt8;
   fn b2DestroyRecording(recording: *UInt8);
@@ -1390,7 +1390,7 @@ extern "C" {
   fn b2SaveRecordingToFile(recording: *UInt8, path: *UInt8) -> Int32;
   fn b2LoadRecordingFromFile(path: *UInt8) -> *UInt8;
 
-  // ============ box2d.h — Calibration ============
+  // ============ box2d.h -- Calibration ============
 
   fn b2DefaultSurfaceMaterial() -> B2SurfaceMaterial;
 

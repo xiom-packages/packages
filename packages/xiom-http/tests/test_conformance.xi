@@ -22,19 +22,19 @@ fn assert_str_eq(actual: Str, expected: Str, label: Str) -> Result[Unit, Str] {
   if actual == expected {
     return Ok(Unit);
   };
-  return Err("FAIL: " + label + " — expected '" + expected + "', got '" + actual + "'");
+  return Err("FAIL: " + label + " -- expected '" + expected + "', got '" + actual + "'");
 }
 
 fn assert_int_eq(actual: Int, expected: Int, label: Str) -> Result[Unit, Str] {
   if actual == expected {
     return Ok(Unit);
   };
-  return Err("FAIL: " + label + " — expected " + xiom.convert.int_to_string(expected) + ", got " + xiom.convert.int_to_string(actual));
+  return Err("FAIL: " + label + " -- expected " + xiom.convert.int_to_string(expected) + ", got " + xiom.convert.int_to_string(actual));
 }
 
 fn assert_unit_err(res: Result[Unit, Str], label: Str) -> Result[Unit, Str] {
   match res {
-    Ok(_) => { return Err("FAIL: " + label + " — expected Err, got Ok"); },
+    Ok(_) => { return Err("FAIL: " + label + " -- expected Err, got Ok"); },
     Err(_) => { return Ok(Unit); },
   };
 }
@@ -106,7 +106,7 @@ pub fn run_all_tests() -> Result[Unit, Str] {
   return Ok(Unit);
 }
 
-// ─── HttpMethod & HttpVersion ──────────────────────────────────────────────
+// --- HttpMethod & HttpVersion ----------------------------------------------
 
 fn test_http_methods() -> Result[Unit, Str] {
   var m: HttpMethod = method_from_str("POST");
@@ -124,7 +124,7 @@ fn test_http_versions() -> Result[Unit, Str] {
   };
 }
 
-// ─── HttpHeaders ───────────────────────────────────────────────────────────
+// --- HttpHeaders -----------------------------------------------------------
 
 fn test_http_headers_new_and_count() -> Result[Unit, Str] {
   var h: HttpHeaders = HttpHeaders.new();
@@ -169,7 +169,7 @@ fn test_http_headers_remove() -> Result[Unit, Str] {
   return Ok(Unit);
 }
 
-// ─── HttpRequest ───────────────────────────────────────────────────────────
+// --- HttpRequest -----------------------------------------------------------
 
 fn test_http_request_new() -> Result[Unit, Str] {
   var req: HttpRequest = HttpRequest.new(GET, "/api/test");
@@ -196,7 +196,7 @@ fn test_http_request_to_str() -> Result[Unit, Str] {
   return Ok(Unit);
 }
 
-// ─── HttpResponse ──────────────────────────────────────────────────────────
+// --- HttpResponse ----------------------------------------------------------
 
 fn test_http_response_new() -> Result[Unit, Str] {
   var resp: HttpResponse = HttpResponse.new(200);
@@ -218,7 +218,7 @@ fn test_http_response_to_str() -> Result[Unit, Str] {
   return Ok(Unit);
 }
 
-// ─── Status Codes ──────────────────────────────────────────────────────────
+// --- Status Codes ----------------------------------------------------------
 
 fn test_http_status_text() -> Result[Unit, Str] {
   try(assert_str_eq(http_status_text(200), "OK", "status_text(200)"));
@@ -277,7 +277,7 @@ fn test_http_status_category() -> Result[Unit, Str] {
   return Ok(Unit);
 }
 
-// ─── MIME Types ────────────────────────────────────────────────────────────
+// --- MIME Types ------------------------------------------------------------
 
 fn test_mime_from_ext() -> Result[Unit, Str] {
   var m1: MimeType = mime_from_ext(".html");
@@ -308,7 +308,7 @@ fn test_mime_to_str() -> Result[Unit, Str] {
   return Ok(Unit);
 }
 
-// ─── URL Parsing ───────────────────────────────────────────────────────────
+// --- URL Parsing -----------------------------------------------------------
 
 fn test_url_parse_full() -> Result[Unit, Str] {
   var res: Result[Url, Str] = url_parse("https://example.com/path/to/resource?q=1#frag");
@@ -401,7 +401,7 @@ fn test_path_join() -> Result[Unit, Str] {
   return Ok(Unit);
 }
 
-// ─── Header Parsing ────────────────────────────────────────────────────────
+// --- Header Parsing --------------------------------------------------------
 
 fn test_http_parse_headers() -> Result[Unit, Str] {
   var input: Str = "Content-Type: text/html\r\nServer: xiom\r\n\r\n";
@@ -421,7 +421,7 @@ fn test_http_parse_headers() -> Result[Unit, Str] {
   return Ok(Unit);
 }
 
-// ─── Cookie Handling ───────────────────────────────────────────────────────
+// --- Cookie Handling -------------------------------------------------------
 
 fn test_cookie_new() -> Result[Unit, Str] {
   var c: Cookie = cookie_new("session", "abc123");
@@ -470,7 +470,7 @@ fn test_cookie_parse_all() -> Result[Unit, Str] {
   return Ok(Unit);
 }
 
-// ─── Server Error Paths ────────────────────────────────────────────────────
+// --- Server Error Paths ----------------------------------------------------
 
 fn test_server_new() -> Result[Unit, Str] {
   var s: HttpServer = server_new("127.0.0.1", 8080);

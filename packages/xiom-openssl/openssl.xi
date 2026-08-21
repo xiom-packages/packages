@@ -1,30 +1,30 @@
-// XIOM — OpenSSL Binding (TLS / Cryptography)
+// XIOM -- OpenSSL Binding (TLS / Cryptography)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Phase 4 (Enterprise): Pure SPEC → implementation.
+// Phase 4 (Enterprise): Pure SPEC -> implementation.
 // Provides safe XIOM wrappers over system-installed libssl / libcrypto.
-// All C-interop goes through extern "C" → unsafe blocks.
+// All C-interop goes through extern "C" -> unsafe blocks.
 
 module xiom.openssl
 
 use xiom.string;
 use xiom.core;
 
-// ── Opaque handle types ─────────────────────────────────────────────────────
+// -- Opaque handle types -----------------------------------------------------
 
 pub type SslContext    = Int;
 pub type SslConnection = Int;
 pub type SslBio        = Int;
 
-// ── Error type ──────────────────────────────────────────────────────────────
+// -- Error type --------------------------------------------------------------
 
 pub type SslError = {
   code: Int;
   message: Str;
 }
 
-// ── Extern "C" block (libssl + libcrypto) ───────────────────────────────────
+// -- Extern "C" block (libssl + libcrypto) -----------------------------------
 
 extern "C" {
   fn malloc(size: UInt) -> *UInt8;
@@ -69,7 +69,7 @@ extern "C" {
   fn EVP_MD_CTX_new() -> Int;
 }
 
-// ── Safe wrappers ───────────────────────────────────────────────────────────
+// -- Safe wrappers -----------------------------------------------------------
 
 pub fn init() {
   unsafe {
@@ -90,7 +90,7 @@ pub fn ctx_new(method: Int) -> SslContext
 }
 
 /// Allocate a new client-side SSL context with TLS client method.
-/// Convenience wrapper — calls init() + TLS_client_method() + ctx_new().
+/// Convenience wrapper -- calls init() + TLS_client_method() + ctx_new().
 pub fn ctx_new_client() -> SslContext {
   init();
   unsafe {

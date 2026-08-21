@@ -134,7 +134,7 @@ fn u8_to_str(n: Int) -> Str {
   return result;
 }
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// --- Constants ---------------------------------------------------------------
 
 fn t_const_af_inet() -> TestResult {
   return assert(AF_INET == 2, "const: AF_INET == 2");
@@ -158,7 +158,7 @@ fn t_const_somaxconn() -> TestResult {
   return assert(SOMAXCONN == 128, "const: SOMAXCONN == 128");
 }
 
-// ─── IPv4 Constructors ───────────────────────────────────────────────────────
+// --- IPv4 Constructors -------------------------------------------------------
 
 fn t_ipv4_localhost() -> TestResult {
   var ip = ipv4(127, 0, 0, 1);
@@ -177,7 +177,7 @@ fn t_ipv4_arbitrary() -> TestResult {
   return assert(ip.version == 4 && octet_at(&ip, 1) == 168 && octet_at(&ip, 2) == 1, "ipv4: 192.168.1.100");
 }
 
-// ─── IPv6 Constructor ────────────────────────────────────────────────────────
+// --- IPv6 Constructor --------------------------------------------------------
 
 fn t_ipv6_localhost() -> TestResult {
   var ip = ipv6_from_parts(0, 0, 0, 0, 0, 0, 0, 1);
@@ -188,7 +188,7 @@ fn t_ipv6_all_zero() -> TestResult {
   return assert(ip.version == 6 && ip.octets.len() == 16 && octet_at(&ip, 15) == 0, "ipv6: ::");
 }
 
-// ─── IPv4 Parsing Valid ─────────────────────────────────────────────────────
+// --- IPv4 Parsing Valid -----------------------------------------------------
 
 fn t_parse_ipv4_localhost() -> TestResult {
   var r = ipv4_from_str("127.0.0.1");
@@ -207,7 +207,7 @@ fn t_parse_ipv4_arbitrary() -> TestResult {
   return assert(result_ok_msg(r), "parse: 192.168.1.1 ok");
 }
 
-// ─── IPv4 Parsing Errors ────────────────────────────────────────────────────
+// --- IPv4 Parsing Errors ----------------------------------------------------
 
 fn t_parse_ipv4_empty() -> TestResult {
   var r = ipv4_from_str("");
@@ -234,7 +234,7 @@ fn t_parse_ipv4_trailing_dot() -> TestResult {
   return assert(result_err_msg(r), "parse: trailing dot => Err");
 }
 
-// ─── IPv4 Formatting ────────────────────────────────────────────────────────
+// --- IPv4 Formatting --------------------------------------------------------
 
 fn t_fmt_ipv4_127() -> TestResult {
   var ip = ipv4(127, 0, 0, 1);
@@ -247,7 +247,7 @@ fn t_fmt_ipv4_all() -> TestResult {
   return assert(str_len(s) > 10, "fmt: 255.255.255.255 length > 10");
 }
 
-// ─── IP Version Checks ──────────────────────────────────────────────────────
+// --- IP Version Checks ------------------------------------------------------
 
 fn t_version_v4() -> TestResult {
   var ip = ipv4(10, 0, 0, 1);
@@ -262,7 +262,7 @@ fn t_version_v4_not_v6() -> TestResult {
   return assert(!ip.is_v6(), "version: ipv4 not is_v6");
 }
 
-// ─── SocketAddr Construction ────────────────────────────────────────────────
+// --- SocketAddr Construction ------------------------------------------------
 
 fn t_sockaddr_http() -> TestResult {
   var ip = ipv4(93, 184, 216, 34);
@@ -280,7 +280,7 @@ fn t_sockaddr_port_1() -> TestResult {
   return assert(addr.port == 1, "sockaddr: port 1");
 }
 
-// ─── SocketAddr Parsing Valid ───────────────────────────────────────────────
+// --- SocketAddr Parsing Valid -----------------------------------------------
 
 fn t_parse_sockaddr_http() -> TestResult {
   var r = socket_addr_from_str("127.0.0.1:8080");
@@ -291,7 +291,7 @@ fn t_parse_sockaddr_zero() -> TestResult {
   return assert(result_ok_msg(r), "parse sockaddr: 0.0.0.0:80 ok");
 }
 
-// ─── SocketAddr Parsing Errors ──────────────────────────────────────────────
+// --- SocketAddr Parsing Errors ----------------------------------------------
 
 fn t_parse_sockaddr_empty() -> TestResult {
   var r = socket_addr_from_str("");
@@ -318,7 +318,7 @@ fn t_parse_sockaddr_bad_port_char() -> TestResult {
   return assert(result_err_msg(r), "parse sockaddr: non-digit port => Err");
 }
 
-// ─── sockaddr_in Binary ─────────────────────────────────────────────────────
+// --- sockaddr_in Binary -----------------------------------------------------
 
 fn t_sockaddr_in_len() -> TestResult {
   var ip = ipv4(192, 168, 1, 1);
@@ -350,7 +350,7 @@ fn t_sockaddr_in_any() -> TestResult {
   return assert(vec_len(&raw) == 16, "sockaddr_in_any: 16 bytes for INADDR_ANY");
 }
 
-// ─── Error Codes ────────────────────────────────────────────────────────────
+// --- Error Codes ------------------------------------------------------------
 
 fn t_error_refused() -> TestResult {
   return assert(str_eq(ws_error_to_str(10061), "connection refused"), "err: 10061 connection refused");
@@ -369,7 +369,7 @@ fn t_error_unknown() -> TestResult {
   return assert(str_starts_with(s, "unknown"), "err: 0 => unknown");
 }
 
-// ─── DNS Stubs ──────────────────────────────────────────────────────────────
+// --- DNS Stubs --------------------------------------------------------------
 
 fn t_dns_resolve_stub() -> TestResult {
   var r = dns_resolve("example.com");
@@ -381,7 +381,7 @@ fn t_dns_reverse_stub() -> TestResult {
   return assert(result_err_msg(r), "dns: reverse returns Err (stub)");
 }
 
-// ─── TCP Types ──────────────────────────────────────────────────────────────
+// --- TCP Types --------------------------------------------------------------
 
 fn t_tcp_stream_default() -> TestResult {
   var s = TcpStream{ fd: -1, connected: false, remote: SocketAddr{ ip: ipv4(0, 0, 0, 0), port: 0 } };
@@ -401,21 +401,21 @@ fn t_tcp_remote_addr() -> TestResult {
   return assert(ra.port == 9999 && octet_at(&ra.ip, 0) == 1, "tcp: remote_addr on connected stream");
 }
 
-// ─── UDP Types ──────────────────────────────────────────────────────────────
+// --- UDP Types --------------------------------------------------------------
 
 fn t_udp_socket_default() -> TestResult {
   var s = UdpSocket{ fd: -1, bound: false };
   return assert(s.fd == -1 && !s.bound, "udp: default UdpSocket not bound");
 }
 
-// ─── DnsResult Type ─────────────────────────────────────────────────────────
+// --- DnsResult Type ---------------------------------------------------------
 
 fn t_dns_result_type() -> TestResult {
   var r = DnsResult{ hostname: "test", addresses: Vec[IpAddr].new() };
   return assert(r.addresses.len() == 0, "dns: DnsResult empty addresses");
 }
 
-// ─── IpVersion Enum ─────────────────────────────────────────────────────────
+// --- IpVersion Enum ---------------------------------------------------------
 
 fn t_ipversion_v4() -> TestResult {
   var v = IpVersion.V4;
@@ -436,7 +436,7 @@ fn t_ipversion_v6() -> TestResult {
   return assert(ok, "enum: IpVersion.V6 match");
 }
 
-// ─── Type Field Access ──────────────────────────────────────────────────────
+// --- Type Field Access ------------------------------------------------------
 
 fn t_ipaddr_octets_len() -> TestResult {
   var ip = ipv4(10, 20, 30, 40);
@@ -448,14 +448,14 @@ fn t_sockaddr_ip_access() -> TestResult {
   return assert(addr.ip.version == 4 && octet_at(&addr.ip, 0) == 8, "types: SocketAddr.ip access");
 }
 
-// ─── wsa_cleanup ────────────────────────────────────────────────────────────
+// --- wsa_cleanup ------------------------------------------------------------
 
 fn t_wsa_cleanup_noop() -> TestResult {
   wsa_cleanup();
   return assert(true, "tcp: wsa_cleanup does not crash");
 }
 
-// ─── Main ───────────────────────────────────────────────────────────────────
+// --- Main -------------------------------------------------------------------
 
 fn main() -> Int {
   io.println("=== XIOM Net Conformance ===");

@@ -1,4 +1,4 @@
-// XIOM — Apple LZFSE Compression Library Bindings
+// XIOM -- Apple LZFSE Compression Library Bindings
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -6,7 +6,7 @@
 // LZFSE is Apple's LZ-style compression with Finite State Entropy coding.
 // Reference: https://github.com/lzfse/lzfse
 //
-// Types: size_t → Int. uint8_t* → Int. void* → Int.
+// Types: size_t -> Int. uint8_t* -> Int. void* -> Int.
 // Naming follows the C API verbatim.
 
 module xiom.lzfse
@@ -25,7 +25,7 @@ extern "C" {
 }
 
 // =========================================================================
-// Compression bound — worst-case estimate for the compressed size
+// Compression bound -- worst-case estimate for the compressed size
 // =========================================================================
 
 pub fn compress_bound(src_size: Int) -> Int
@@ -35,7 +35,7 @@ pub fn compress_bound(src_size: Int) -> Int
 }
 
 // =========================================================================
-// LZFSE safe wrapper functions — for direct procedural use
+// LZFSE safe wrapper functions -- for direct procedural use
 // =========================================================================
 
 pub fn encode_scratch_size() -> Int {
@@ -99,7 +99,7 @@ pub fn decode_using_malloc(dst_buffer: Int, dst_size: Int, src_buffer: Int, src_
 }
 
 // =========================================================================
-// LZVN safe wrapper functions — simpler codec for blocks < 4096 bytes
+// LZVN safe wrapper functions -- simpler codec for blocks < 4096 bytes
 // =========================================================================
 
 pub fn lzvn_encode_scratch_size() -> Int {

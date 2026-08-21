@@ -10,18 +10,18 @@
 // Struct parameters use *UInt8 due to compiler struct-layout gap; see AUDIT.md.
 module xiom.phonon
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Version Constants
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const STEAMAUDIO_VERSION_MAJOR: Int = 4;
 pub const STEAMAUDIO_VERSION_MINOR: Int = 8;
 pub const STEAMAUDIO_VERSION_PATCH: Int = 1;
 pub const IPL_NUM_BANDS: Int = 3;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Opaque Handle Types (32 handles)
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub type IPLContext = Int;
 pub type IPLSerializedObject = Int;
@@ -55,34 +55,34 @@ pub type IPLProbeBatch = Int;
 pub type IPLSource = Int;
 pub type IPLSimulator = Int;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Error Codes
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_STATUS_SUCCESS: Int32 = 0;
 pub const IPL_STATUS_FAILURE: Int32 = 1;
 pub const IPL_STATUS_OUTOFMEMORY: Int32 = 2;
 pub const IPL_STATUS_INITIALIZATION: Int32 = 3;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Boolean Constants
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_FALSE: Int32 = 0;
 pub const IPL_TRUE: Int32 = 1;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLLogLevel
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_LOGLEVEL_INFO: Int32 = 0;
 pub const IPL_LOGLEVEL_WARNING: Int32 = 1;
 pub const IPL_LOGLEVEL_ERROR: Int32 = 2;
 pub const IPL_LOGLEVEL_DEBUG: Int32 = 3;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLSIMDLevel
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_SIMDLEVEL_SSE2: Int32 = 0;
 pub const IPL_SIMDLEVEL_SSE4: Int32 = 1;
@@ -91,32 +91,32 @@ pub const IPL_SIMDLEVEL_AVX2: Int32 = 3;
 pub const IPL_SIMDLEVEL_AVX512: Int32 = 4;
 pub const IPL_SIMDLEVEL_NEON: Int32 = 0;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLContextFlags
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_CONTEXTFLAGS_VALIDATION: Int32 = 1;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLOpenCLDeviceType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_OPENCLDEVICETYPE_ANY: Int32 = 0;
 pub const IPL_OPENCLDEVICETYPE_CPU: Int32 = 1;
 pub const IPL_OPENCLDEVICETYPE_GPU: Int32 = 2;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLSceneType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_SCENETYPE_DEFAULT: Int32 = 0;
 pub const IPL_SCENETYPE_EMBREE: Int32 = 1;
 pub const IPL_SCENETYPE_RADEONRAYS: Int32 = 2;
 pub const IPL_SCENETYPE_CUSTOM: Int32 = 3;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLSpeakerLayoutType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_SPEAKERLAYOUTTYPE_MONO: Int32 = 0;
 pub const IPL_SPEAKERLAYOUTTYPE_STEREO: Int32 = 1;
@@ -125,45 +125,45 @@ pub const IPL_SPEAKERLAYOUTTYPE_SURROUND_5_1: Int32 = 3;
 pub const IPL_SPEAKERLAYOUTTYPE_SURROUND_7_1: Int32 = 4;
 pub const IPL_SPEAKERLAYOUTTYPE_CUSTOM: Int32 = 5;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLAmbisonicsType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_AMBISONICSTYPE_N3D: Int32 = 0;
 pub const IPL_AMBISONICSTYPE_SN3D: Int32 = 1;
 pub const IPL_AMBISONICSTYPE_FUMA: Int32 = 2;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLAudioEffectState
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_AUDIOEFFECTSTATE_TAILREMAINING: Int32 = 0;
 pub const IPL_AUDIOEFFECTSTATE_TAILCOMPLETE: Int32 = 1;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLHRTFType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_HRTFTYPE_DEFAULT: Int32 = 0;
 pub const IPL_HRTFTYPE_SOFA: Int32 = 1;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLHRTFNormType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_HRTFNORMTYPE_NONE: Int32 = 0;
 pub const IPL_HRTFNORMTYPE_RMS: Int32 = 1;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLHRTFInterpolation
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_HRTFINTERPOLATION_NEAREST: Int32 = 0;
 pub const IPL_HRTFINTERPOLATION_BILINEAR: Int32 = 1;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLDirectEffectFlags
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_DIRECTEFFECTFLAGS_APPLYDISTANCEATTENUATION: Int32 = 1;
 pub const IPL_DIRECTEFFECTFLAGS_APPLYAIRABSORPTION: Int32 = 2;
@@ -171,63 +171,63 @@ pub const IPL_DIRECTEFFECTFLAGS_APPLYDIRECTIVITY: Int32 = 4;
 pub const IPL_DIRECTEFFECTFLAGS_APPLYOCCLUSION: Int32 = 8;
 pub const IPL_DIRECTEFFECTFLAGS_APPLYTRANSMISSION: Int32 = 16;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLTransmissionType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_TRANSMISSIONTYPE_FREQINDEPENDENT: Int32 = 0;
 pub const IPL_TRANSMISSIONTYPE_FREQDEPENDENT: Int32 = 1;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLReflectionEffectType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_REFLECTIONEFFECTTYPE_CONVOLUTION: Int32 = 0;
 pub const IPL_REFLECTIONEFFECTTYPE_PARAMETRIC: Int32 = 1;
 pub const IPL_REFLECTIONEFFECTTYPE_HYBRID: Int32 = 2;
 pub const IPL_REFLECTIONEFFECTTYPE_TAN: Int32 = 3;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLProbeGenerationType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_PROBEGENERATIONTYPE_CENTROID: Int32 = 0;
 pub const IPL_PROBEGENERATIONTYPE_UNIFORMFLOOR: Int32 = 1;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLBakedDataVariation
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_BAKEDDATAVARIATION_REVERB: Int32 = 0;
 pub const IPL_BAKEDDATAVARIATION_STATICSOURCE: Int32 = 1;
 pub const IPL_BAKEDDATAVARIATION_STATICLISTENER: Int32 = 2;
 pub const IPL_BAKEDDATAVARIATION_DYNAMIC: Int32 = 3;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLBakedDataType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_BAKEDDATATYPE_REFLECTIONS: Int32 = 0;
 pub const IPL_BAKEDDATATYPE_PATHING: Int32 = 1;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLReflectionsBakeFlags
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_REFLECTIONSBAKEFLAGS_BAKECONVOLUTION: Int32 = 1;
 pub const IPL_REFLECTIONSBAKEFLAGS_BAKEPARAMETRIC: Int32 = 2;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLSimulationFlags
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_SIMULATIONFLAGS_DIRECT: Int32 = 1;
 pub const IPL_SIMULATIONFLAGS_REFLECTIONS: Int32 = 2;
 pub const IPL_SIMULATIONFLAGS_PATHING: Int32 = 4;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLDirectSimulationFlags
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_DIRECTSIMULATIONFLAGS_DISTANCEATTENUATION: Int32 = 1;
 pub const IPL_DIRECTSIMULATIONFLAGS_AIRABSORPTION: Int32 = 2;
@@ -235,39 +235,39 @@ pub const IPL_DIRECTSIMULATIONFLAGS_DIRECTIVITY: Int32 = 4;
 pub const IPL_DIRECTSIMULATIONFLAGS_OCCLUSION: Int32 = 8;
 pub const IPL_DIRECTSIMULATIONFLAGS_TRANSMISSION: Int32 = 16;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLDistanceAttenuationModelType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_DISTANCEATTENUATIONTYPE_DEFAULT: Int32 = 0;
 pub const IPL_DISTANCEATTENUATIONTYPE_INVERSEDISTANCE: Int32 = 1;
 pub const IPL_DISTANCEATTENUATIONTYPE_CALLBACK: Int32 = 2;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLAirAbsorptionModelType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_AIRABSORPTIONTYPE_DEFAULT: Int32 = 0;
 pub const IPL_AIRABSORPTIONTYPE_EXPONENTIAL: Int32 = 1;
 pub const IPL_AIRABSORPTIONTYPE_CALLBACK: Int32 = 2;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLOcclusionType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_OCCLUSIONTYPE_RAYCAST: Int32 = 0;
 pub const IPL_OCCLUSIONTYPE_VOLUMETRIC: Int32 = 1;
 
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 //  Enum: IPLDeviationModelType
-// ─────────────────────────────────────────────────────────────
+// -------------------------------------------------------------
 
 pub const IPL_DEVIATIONTYPE_DEFAULT: Int32 = 0;
 pub const IPL_DEVIATIONTYPE_CALLBACK: Int32 = 1;
 
-// ═════════════════════════════════════════════════════════════
+// =============================================================
 //  extern "C" FFI Declarations
-// ═════════════════════════════════════════════════════════════
+// =============================================================
 //
 //  Conventions:
 //   - IPLContext, IPLHRTF, etc.    => Int  (opaque pointer-sized handle)
@@ -280,13 +280,13 @@ pub const IPL_DEVIATIONTYPE_CALLBACK: Int32 = 1;
 
 extern "C" {
 
-  // ── Context ──────────────────────────────────────────────
+  // -- Context ----------------------------------------------
 
   fn iplContextCreate(settings: *UInt8, context: *UInt8) -> Int32;
   fn iplContextRetain(context: Int) -> Int;
   fn iplContextRelease(context: *UInt8);
 
-  // ── Serialization ────────────────────────────────────────
+  // -- Serialization ----------------------------------------
 
   fn iplSerializedObjectCreate(context: Int, settings: *UInt8, serializedObject: *UInt8) -> Int32;
   fn iplSerializedObjectRetain(serializedObject: Int) -> Int;
@@ -294,13 +294,13 @@ extern "C" {
   fn iplSerializedObjectGetSize(serializedObject: Int) -> Int;
   fn iplSerializedObjectGetData(serializedObject: Int) -> Int;
 
-  // ── Embree Device ────────────────────────────────────────
+  // -- Embree Device ----------------------------------------
 
   fn iplEmbreeDeviceCreate(context: Int, settings: *UInt8, device: *UInt8) -> Int32;
   fn iplEmbreeDeviceRetain(device: Int) -> Int;
   fn iplEmbreeDeviceRelease(device: *UInt8);
 
-  // ── OpenCL Device ────────────────────────────────────────
+  // -- OpenCL Device ----------------------------------------
 
   fn iplOpenCLDeviceListCreate(context: Int, settings: *UInt8, deviceList: *UInt8) -> Int32;
   fn iplOpenCLDeviceListRetain(deviceList: Int) -> Int;
@@ -312,19 +312,19 @@ extern "C" {
   fn iplOpenCLDeviceRetain(device: Int) -> Int;
   fn iplOpenCLDeviceRelease(device: *UInt8);
 
-  // ── Radeon Rays Device ───────────────────────────────────
+  // -- Radeon Rays Device -----------------------------------
 
   fn iplRadeonRaysDeviceCreate(openCLDevice: Int, settings: *UInt8, rrDevice: *UInt8) -> Int32;
   fn iplRadeonRaysDeviceRetain(device: Int) -> Int;
   fn iplRadeonRaysDeviceRelease(device: *UInt8);
 
-  // ── TrueAudio Next Device ────────────────────────────────
+  // -- TrueAudio Next Device --------------------------------
 
   fn iplTrueAudioNextDeviceCreate(openCLDevice: Int, settings: *UInt8, tanDevice: *UInt8) -> Int32;
   fn iplTrueAudioNextDeviceRetain(device: Int) -> Int;
   fn iplTrueAudioNextDeviceRelease(device: *UInt8);
 
-  // ── Scene ────────────────────────────────────────────────
+  // -- Scene ------------------------------------------------
 
   fn iplSceneCreate(context: Int, settings: *UInt8, scene: *UInt8) -> Int32;
   fn iplSceneRetain(scene: Int) -> Int;
@@ -334,7 +334,7 @@ extern "C" {
   fn iplSceneSaveOBJ(scene: Int, fileBaseName: Str);
   fn iplSceneCommit(scene: Int);
 
-  // ── Static Mesh ──────────────────────────────────────────
+  // -- Static Mesh ------------------------------------------
 
   fn iplStaticMeshCreate(scene: Int, settings: *UInt8, staticMesh: *UInt8) -> Int32;
   fn iplStaticMeshRetain(staticMesh: Int) -> Int;
@@ -345,7 +345,7 @@ extern "C" {
   fn iplStaticMeshRemove(staticMesh: Int, scene: Int);
   fn iplStaticMeshSetMaterial(staticMesh: Int, scene: Int, newMaterial: *UInt8, index: Int32);
 
-  // ── Instanced Mesh ───────────────────────────────────────
+  // -- Instanced Mesh ---------------------------------------
 
   fn iplInstancedMeshCreate(scene: Int, settings: *UInt8, instancedMesh: *UInt8) -> Int32;
   fn iplInstancedMeshRetain(instancedMesh: Int) -> Int;
@@ -354,7 +354,7 @@ extern "C" {
   fn iplInstancedMeshRemove(instancedMesh: Int, scene: Int);
   fn iplInstancedMeshUpdateTransform(instancedMesh: Int, scene: Int, transform: *UInt8);
 
-  // ── Audio Buffers ────────────────────────────────────────
+  // -- Audio Buffers ----------------------------------------
 
   fn iplAudioBufferAllocate(context: Int, numChannels: Int32, numSamples: Int32, audioBuffer: *UInt8) -> Int32;
   fn iplAudioBufferFree(context: Int, audioBuffer: *UInt8);
@@ -364,13 +364,13 @@ extern "C" {
   fn iplAudioBufferDownmix(context: Int, inBuf: *UInt8, outBuf: *UInt8);
   fn iplAudioBufferConvertAmbisonics(context: Int, inType: Int32, outType: Int32, inBuf: *UInt8, outBuf: *UInt8);
 
-  // ── HRTF ─────────────────────────────────────────────────
+  // -- HRTF -------------------------------------------------
 
   fn iplHRTFCreate(context: Int, audioSettings: *UInt8, hrtfSettings: *UInt8, hrtf: *UInt8) -> Int32;
   fn iplHRTFRetain(hrtf: Int) -> Int;
   fn iplHRTFRelease(hrtf: *UInt8);
 
-  // ── Panning Effect ───────────────────────────────────────
+  // -- Panning Effect ---------------------------------------
 
   fn iplPanningEffectCreate(context: Int, audioSettings: *UInt8, effectSettings: *UInt8, effect: *UInt8) -> Int32;
   fn iplPanningEffectRetain(effect: Int) -> Int;
@@ -380,7 +380,7 @@ extern "C" {
   fn iplPanningEffectGetTailSize(effect: Int) -> Int32;
   fn iplPanningEffectGetTail(effect: Int, outBuf: *UInt8) -> Int32;
 
-  // ── Binaural Effect ──────────────────────────────────────
+  // -- Binaural Effect --------------------------------------
 
   fn iplBinauralEffectCreate(context: Int, audioSettings: *UInt8, effectSettings: *UInt8, effect: *UInt8) -> Int32;
   fn iplBinauralEffectRetain(effect: Int) -> Int;
@@ -390,7 +390,7 @@ extern "C" {
   fn iplBinauralEffectGetTailSize(effect: Int) -> Int32;
   fn iplBinauralEffectGetTail(effect: Int, outBuf: *UInt8) -> Int32;
 
-  // ── Virtual Surround Effect ──────────────────────────────
+  // -- Virtual Surround Effect ------------------------------
 
   fn iplVirtualSurroundEffectCreate(context: Int, audioSettings: *UInt8, effectSettings: *UInt8, effect: *UInt8) -> Int32;
   fn iplVirtualSurroundEffectRetain(effect: Int) -> Int;
@@ -400,7 +400,7 @@ extern "C" {
   fn iplVirtualSurroundEffectGetTailSize(effect: Int) -> Int32;
   fn iplVirtualSurroundEffectGetTail(effect: Int, outBuf: *UInt8) -> Int32;
 
-  // ── Ambisonics Encode Effect ─────────────────────────────
+  // -- Ambisonics Encode Effect -----------------------------
 
   fn iplAmbisonicsEncodeEffectCreate(context: Int, audioSettings: *UInt8, effectSettings: *UInt8, effect: *UInt8) -> Int32;
   fn iplAmbisonicsEncodeEffectRetain(effect: Int) -> Int;
@@ -410,7 +410,7 @@ extern "C" {
   fn iplAmbisonicsEncodeEffectGetTailSize(effect: Int) -> Int32;
   fn iplAmbisonicsEncodeEffectGetTail(effect: Int, outBuf: *UInt8) -> Int32;
 
-  // ── Ambisonics Panning Effect ────────────────────────────
+  // -- Ambisonics Panning Effect ----------------------------
 
   fn iplAmbisonicsPanningEffectCreate(context: Int, audioSettings: *UInt8, effectSettings: *UInt8, effect: *UInt8) -> Int32;
   fn iplAmbisonicsPanningEffectRetain(effect: Int) -> Int;
@@ -420,7 +420,7 @@ extern "C" {
   fn iplAmbisonicsPanningEffectGetTailSize(effect: Int) -> Int32;
   fn iplAmbisonicsPanningEffectGetTail(effect: Int, outBuf: *UInt8) -> Int32;
 
-  // ── Ambisonics Binaural Effect ───────────────────────────
+  // -- Ambisonics Binaural Effect ---------------------------
 
   fn iplAmbisonicsBinauralEffectCreate(context: Int, audioSettings: *UInt8, effectSettings: *UInt8, effect: *UInt8) -> Int32;
   fn iplAmbisonicsBinauralEffectRetain(effect: Int) -> Int;
@@ -430,7 +430,7 @@ extern "C" {
   fn iplAmbisonicsBinauralEffectGetTailSize(effect: Int) -> Int32;
   fn iplAmbisonicsBinauralEffectGetTail(effect: Int, outBuf: *UInt8) -> Int32;
 
-  // ── Ambisonics Rotation Effect ───────────────────────────
+  // -- Ambisonics Rotation Effect ---------------------------
 
   fn iplAmbisonicsRotationEffectCreate(context: Int, audioSettings: *UInt8, effectSettings: *UInt8, effect: *UInt8) -> Int32;
   fn iplAmbisonicsRotationEffectRetain(effect: Int) -> Int;
@@ -440,7 +440,7 @@ extern "C" {
   fn iplAmbisonicsRotationEffectGetTailSize(effect: Int) -> Int32;
   fn iplAmbisonicsRotationEffectGetTail(effect: Int, outBuf: *UInt8) -> Int32;
 
-  // ── Ambisonics Decode Effect ─────────────────────────────
+  // -- Ambisonics Decode Effect -----------------------------
 
   fn iplAmbisonicsDecodeEffectCreate(context: Int, audioSettings: *UInt8, effectSettings: *UInt8, effect: *UInt8) -> Int32;
   fn iplAmbisonicsDecodeEffectRetain(effect: Int) -> Int;
@@ -450,7 +450,7 @@ extern "C" {
   fn iplAmbisonicsDecodeEffectGetTailSize(effect: Int) -> Int32;
   fn iplAmbisonicsDecodeEffectGetTail(effect: Int, outBuf: *UInt8) -> Int32;
 
-  // ── Direct Effect ────────────────────────────────────────
+  // -- Direct Effect ----------------------------------------
 
   fn iplDirectEffectCreate(context: Int, audioSettings: *UInt8, effectSettings: *UInt8, effect: *UInt8) -> Int32;
   fn iplDirectEffectRetain(effect: Int) -> Int;
@@ -460,7 +460,7 @@ extern "C" {
   fn iplDirectEffectGetTailSize(effect: Int) -> Int32;
   fn iplDirectEffectGetTail(effect: Int, outBuf: *UInt8) -> Int32;
 
-  // ── Reflection Effect ────────────────────────────────────
+  // -- Reflection Effect ------------------------------------
 
   fn iplReflectionEffectCreate(context: Int, audioSettings: *UInt8, effectSettings: *UInt8, effect: *UInt8) -> Int32;
   fn iplReflectionEffectRetain(effect: Int) -> Int;
@@ -470,7 +470,7 @@ extern "C" {
   fn iplReflectionEffectGetTailSize(effect: Int) -> Int32;
   fn iplReflectionEffectGetTail(effect: Int, outBuf: *UInt8, mixer: Int) -> Int32;
 
-  // ── Reflection Mixer ─────────────────────────────────────
+  // -- Reflection Mixer -------------------------------------
 
   fn iplReflectionMixerCreate(context: Int, audioSettings: *UInt8, effectSettings: *UInt8, mixer: *UInt8) -> Int32;
   fn iplReflectionMixerRetain(mixer: Int) -> Int;
@@ -478,7 +478,7 @@ extern "C" {
   fn iplReflectionMixerReset(mixer: Int);
   fn iplReflectionMixerApply(mixer: Int, params: *UInt8, outBuf: *UInt8) -> Int32;
 
-  // ── Path Effect ──────────────────────────────────────────
+  // -- Path Effect ------------------------------------------
 
   fn iplPathEffectCreate(context: Int, audioSettings: *UInt8, effectSettings: *UInt8, effect: *UInt8) -> Int32;
   fn iplPathEffectRetain(effect: Int) -> Int;
@@ -488,7 +488,7 @@ extern "C" {
   fn iplPathEffectGetTailSize(effect: Int) -> Int32;
   fn iplPathEffectGetTail(effect: Int, outBuf: *UInt8) -> Int32;
 
-  // ── Energy Field ─────────────────────────────────────────
+  // -- Energy Field -----------------------------------------
 
   fn iplEnergyFieldCreate(context: Int, settings: *UInt8, energyField: *UInt8) -> Int32;
   fn iplEnergyFieldRetain(energyField: Int) -> Int;
@@ -505,7 +505,7 @@ extern "C" {
   fn iplEnergyFieldScale(inBuf: Int, scalar: Float32, out: Int);
   fn iplEnergyFieldScaleAccum(inBuf: Int, scalar: Float32, out: Int);
 
-  // ── Impulse Response ─────────────────────────────────────
+  // -- Impulse Response -------------------------------------
 
   fn iplImpulseResponseCreate(context: Int, settings: *UInt8, impulseResponse: *UInt8) -> Int32;
   fn iplImpulseResponseRetain(impulseResponse: Int) -> Int;
@@ -521,14 +521,14 @@ extern "C" {
   fn iplImpulseResponseScale(inBuf: Int, scalar: Float32, out: Int);
   fn iplImpulseResponseScaleAccum(inBuf: Int, scalar: Float32, out: Int);
 
-  // ── Reconstructor ────────────────────────────────────────
+  // -- Reconstructor ----------------------------------------
 
   fn iplReconstructorCreate(context: Int, settings: *UInt8, reconstructor: *UInt8) -> Int32;
   fn iplReconstructorRetain(reconstructor: Int) -> Int;
   fn iplReconstructorRelease(reconstructor: *UInt8);
   fn iplReconstructorReconstruct(reconstructor: Int, numInputs: Int32, inputs: *UInt8, sharedInputs: *UInt8, outputs: *UInt8);
 
-  // ── Probes ───────────────────────────────────────────────
+  // -- Probes -----------------------------------------------
 
   fn iplProbeArrayCreate(context: Int, probeArray: *UInt8) -> Int32;
   fn iplProbeArrayRetain(probeArray: Int) -> Int;
@@ -552,14 +552,14 @@ extern "C" {
   fn iplProbeBatchGetEnergyField(probeBatch: Int, identifier: *UInt8, probeIndex: Int32, energyField: Int);
   fn iplProbeBatchGetReverb(probeBatch: Int, identifier: *UInt8, probeIndex: Int32, reverbTimes: *UInt8);
 
-  // ── Baking ───────────────────────────────────────────────
+  // -- Baking -----------------------------------------------
 
   fn iplReflectionsBakerBake(context: Int, params: *UInt8, progressCallback: Int, userData: Int);
   fn iplReflectionsBakerCancelBake(context: Int);
   fn iplPathBakerBake(context: Int, params: *UInt8, progressCallback: Int, userData: Int);
   fn iplPathBakerCancelBake(context: Int);
 
-  // ── Real-Time Simulation ─────────────────────────────────
+  // -- Real-Time Simulation ---------------------------------
 
   fn iplSimulatorCreate(context: Int, settings: *UInt8, simulator: *UInt8) -> Int32;
   fn iplSimulatorRetain(simulator: Int) -> Int;
@@ -581,7 +581,7 @@ extern "C" {
   fn iplSourceSetInputs(source: Int, flags: Int32, inputs: *UInt8);
   fn iplSourceGetOutputs(source: Int, flags: Int32, outputs: *UInt8);
 
-  // ── Utility ──────────────────────────────────────────────
+  // -- Utility ----------------------------------------------
 
   fn iplCalculateRelativeDirection(context: Int, sourcePosition: *UInt8, listenerPosition: *UInt8, listenerAhead: *UInt8, listenerUp: *UInt8, relativeDirection: *UInt8);
   fn iplDistanceAttenuationCalculate(context: Int, source: *UInt8, listener: *UInt8, model: *UInt8) -> Float32;
@@ -590,9 +590,9 @@ extern "C" {
 
 } // extern "C"
 
-// ═════════════════════════════════════════════════════════════
-//  Safe Wrappers — Core Lifecycle
-// ═════════════════════════════════════════════════════════════
+// =============================================================
+//  Safe Wrappers -- Core Lifecycle
+// =============================================================
 
 pub fn error_to_string(code: Int32) -> Str {
   if code == IPL_STATUS_SUCCESS {

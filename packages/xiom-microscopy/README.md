@@ -1,6 +1,6 @@
 # xiom-microscopy
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Microscopy imaging parameters and calibration.
 > **Deps:** stdlib; may wrap C (FFI).
 

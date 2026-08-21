@@ -1,4 +1,4 @@
-// XIOM — DirectX Shader Compiler Safe Wrappers
+// XIOM -- DirectX Shader Compiler Safe Wrappers
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -14,7 +14,7 @@
 module xiom.dxc.safe
 
 // =========================================================================
-// Duplicated extern declarations (cross-module resolution bug — G003)
+// Duplicated extern declarations (cross-module resolution bug -- G003)
 // =========================================================================
 
 extern "C" {
@@ -146,7 +146,7 @@ fn create_instance(clsid: Int, iid: Int) -> Result[Int, DxcError]
 }
 
 // =========================================================================
-// DxcCompiler — IDxcCompiler3 wrapper
+// DxcCompiler -- IDxcCompiler3 wrapper
 // =========================================================================
 
 pub type DxcCompiler = {
@@ -191,7 +191,7 @@ pub fn DxcCompiler.disassemble(p_object: Int) -> Result[DxcResult, DxcError]
 }
 
 // =========================================================================
-// DxcUtils — IDxcUtils wrapper
+// DxcUtils -- IDxcUtils wrapper
 // =========================================================================
 
 pub type DxcUtils = {
@@ -295,7 +295,7 @@ pub fn DxcUtils.get_pdb_contents(p_pdb_blob: Int) -> Result[Int, DxcError]
 }
 
 // =========================================================================
-// DxcResult — IDxcResult wrapper
+// DxcResult -- IDxcResult wrapper
 // =========================================================================
 
 pub type DxcResult = {
@@ -363,7 +363,7 @@ pub fn DxcResult.primary_output() -> Int32
 }
 
 // =========================================================================
-// DxcBlob — IDxcBlob / IDxcBlobUtf8 wrapper
+// DxcBlob -- IDxcBlob / IDxcBlobUtf8 wrapper
 // =========================================================================
 
 pub type DxcBlob = {
@@ -401,7 +401,7 @@ pub fn DxcBlob.get_string_length() -> Int
 }
 
 // =========================================================================
-// DxcIncludeHandler — IDxcIncludeHandler wrapper
+// DxcIncludeHandler -- IDxcIncludeHandler wrapper
 // =========================================================================
 
 pub type DxcIncludeHandler = {
@@ -425,7 +425,7 @@ pub fn DxcIncludeHandler.load_source(p_filename: Int) -> Result[DxcBlob, DxcErro
 }
 
 // =========================================================================
-// DxcValidator — IDxcValidator / IDxcValidator2 wrapper
+// DxcValidator -- IDxcValidator / IDxcValidator2 wrapper
 // =========================================================================
 
 pub type DxcValidator = {
@@ -468,7 +468,7 @@ pub fn DxcValidator.validate_with_debug(p_shader: Int, flags: Int, p_opt_debug_b
 }
 
 // =========================================================================
-// DxcContainerBuilder — IDxcContainerBuilder wrapper
+// DxcContainerBuilder -- IDxcContainerBuilder wrapper
 // =========================================================================
 
 pub type DxcContainerBuilder = {
@@ -525,7 +525,7 @@ pub fn DxcContainerBuilder.serialize() -> Result[DxcResult, DxcError]
 }
 
 // =========================================================================
-// DxcContainerReflection — IDxcContainerReflection wrapper
+// DxcContainerReflection -- IDxcContainerReflection wrapper
 // =========================================================================
 
 pub type DxcContainerReflection = {
@@ -602,7 +602,7 @@ pub fn DxcContainerReflection.get_part_reflection(idx: Int32) -> Result[Int, Dxc
 }
 
 // =========================================================================
-// DxcCompilerArgs — IDxcCompilerArgs wrapper
+// DxcCompilerArgs -- IDxcCompilerArgs wrapper
 // =========================================================================
 
 pub type DxcCompilerArgs = {
@@ -652,7 +652,7 @@ pub fn DxcCompilerArgs.add_defines(p_defines: Int, define_count: Int) -> Result[
 }
 
 // =========================================================================
-// DxcAssembler — IDxcAssembler wrapper
+// DxcAssembler -- IDxcAssembler wrapper
 // =========================================================================
 
 pub type DxcAssembler = {
@@ -685,7 +685,7 @@ pub fn DxcAssembler.assemble_to_container(p_shader: Int) -> Result[DxcResult, Dx
 }
 
 // =========================================================================
-// DxcOptimizer — IDxcOptimizer wrapper
+// DxcOptimizer -- IDxcOptimizer wrapper
 // =========================================================================
 
 pub type DxcOptimizer = {
@@ -736,7 +736,7 @@ pub fn DxcOptimizer.run_optimizer(p_blob: Int, pp_options: Int, option_count: In
 }
 
 // =========================================================================
-// DxcPdbUtils — IDxcPdbUtils2 wrapper
+// DxcPdbUtils -- IDxcPdbUtils2 wrapper
 // =========================================================================
 
 pub type DxcPdbUtils = {
@@ -862,7 +862,7 @@ pub fn DxcPdbUtils.is_pdb_ref() -> Bool
 }
 
 // =========================================================================
-// High-level context — DxcContext
+// High-level context -- DxcContext
 // =========================================================================
 
 pub type DxcContext = {

@@ -1,6 +1,6 @@
 # xiom-fuzz
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Coverage-guided fuzzing driver and corpus management.
 > **Deps:** stdlib; may wrap C (FFI).
 

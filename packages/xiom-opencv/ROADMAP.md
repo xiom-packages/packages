@@ -1,10 +1,10 @@
-# xiom-opencv — ROADMAP
+# xiom-opencv -- ROADMAP
 
 **Version:** 0.1.0 | **Status:** In Development | **Last Updated:** 2026-07-21
 
 ---
 
-## Phase 0 — Core Foundation [DONE]
+## Phase 0 -- Core Foundation [DONE]
 
 | Task | Status |
 |------|--------|
@@ -12,34 +12,34 @@
 | Geometry types (Rect, Point2i, Size2i) | Done |
 | KeyPoint, MatchedPoints types | Done |
 | ColorSpace enum (RGB, BGR, Grayscale, HSV, YUV) | Done |
-| `image_new` — zero-initialized image | Done |
-| `image_from_vec` — wrap pixel buffer | Done |
-| `image_region` — crop ROI | Done |
-| `image_size` — dimensions accessor | Done |
+| `image_new` -- zero-initialized image | Done |
+| `image_from_vec` -- wrap pixel buffer | Done |
+| `image_region` -- crop ROI | Done |
+| `image_size` -- dimensions accessor | Done |
 | `rect_new`, `point2i_new`, `size2i_new` constructors | Done |
 | Contract coverage on all constructors and accessors | Done |
 
-## Phase 1 — Pure XIOM Filters [DONE]
+## Phase 1 -- Pure XIOM Filters [DONE]
 
 | Function | Algorithm | Status |
 |----------|-----------|--------|
 | `blur` | Box blur (mean filter), border clamping | Done |
 | `grayscale` | ITU-R BT.601 luminance (R\*77+G\*150+B\*29)/256 | Done |
 | `threshold` | Binary threshold (> thresh ? max_val : 0) | Done |
-| `sobel_edges` | 3×3 Sobel Gx/Gy, integer sqrt magnitude | Done |
+| `sobel_edges` | 3x3 Sobel Gx/Gy, integer sqrt magnitude | Done |
 | `resize_nearest` | Nearest-neighbor interpolation | Done |
 | Contracts: kernel_size odd>0, channels>=3, thresh>=0, 1-channel, w>0 h>0 | Done |
 
-## Phase 2 — FFI Bridge & I/O [IN PROGRESS]
+## Phase 2 -- FFI Bridge & I/O [IN PROGRESS]
 
 | Task | Status |
 |------|--------|
 | `extern "C"` declarations for OpenCV symbols | Done |
-| `cv_imread` — stub, returns dummy 1×1 Image | Done |
-| `cv_imwrite` — stub, returns Ok(true) | Done |
-| `cv_resize` — stub, returns empty Image at target size | Done |
-| `cv_cvt_color` — stub, identity copy or grayscale stub | Done |
-| `color_space_to_int` — enum→int mapping helper | Done |
+| `cv_imread` -- stub, returns dummy 1x1 Image | Done |
+| `cv_imwrite` -- stub, returns Ok(true) | Done |
+| `cv_resize` -- stub, returns empty Image at target size | Done |
+| `cv_cvt_color` -- stub, identity copy or grayscale stub | Done |
+| `color_space_to_int` -- enum->int mapping helper | Done |
 | Contracts: non-empty path, valid image, w>0, h>0, channels>0 | Done |
 | Native C bridge implementation (libxiom_opencv_core) | TODO |
 | Actual imread/imwrite via `cv::imread`/`cv::imwrite` | TODO |
@@ -47,22 +47,22 @@
 | Actual cvtColor via `cv::cvtColor` for all 5 color spaces | TODO |
 | OpenCV build integration (pkg-config, vcpkg, CMake) | TODO |
 
-## Phase 3 — Feature Detection [IN PROGRESS]
+## Phase 3 -- Feature Detection [IN PROGRESS]
 
 | Task | Status |
 |------|--------|
 | `extern "C"` declarations for feature symbols | Done |
-| `cv_detect_keypoints` — stub, returns empty Vec[KeyPoint] | Done |
-| `cv_match_descriptors` — stub, returns empty MatchedPoints | Done |
-| `cv_homography` — stub, returns 3×3 identity matrix | Done |
+| `cv_detect_keypoints` -- stub, returns empty Vec[KeyPoint] | Done |
+| `cv_match_descriptors` -- stub, returns empty MatchedPoints | Done |
+| `cv_homography` -- stub, returns 3x3 identity matrix | Done |
 | Contracts: threshold>0, non-empty descriptors, >=4 matches | Done |
 | Native bridge: ORB/SIFT/AKAZE keypoint detection | TODO |
 | Native bridge: descriptor matching (FLANN/BFMatcher) | TODO |
 | Native bridge: findHomography with RANSAC | TODO |
-| KeyPoint→XIOM struct conversion | TODO |
-| MatchedPoints→XIOM struct conversion | TODO |
+| KeyPoint->XIOM struct conversion | TODO |
+| MatchedPoints->XIOM struct conversion | TODO |
 
-## Phase 4 — Advanced Filters [PLANNED]
+## Phase 4 -- Advanced Filters [PLANNED]
 
 | Task | Priority |
 |------|----------|
@@ -76,7 +76,7 @@
 | Histogram equalization (`equalize_hist`) | Medium |
 | Adaptive threshold (`adaptive_threshold`) | Low |
 
-## Phase 5 — Video I/O [PLANNED]
+## Phase 5 -- Video I/O [PLANNED]
 
 | Task | Priority |
 |------|----------|
@@ -87,7 +87,7 @@
 | Frame-by-frame processing loop | High |
 | Real-time filter pipeline demo | Medium |
 
-## Phase 6 — Drawing Primitives [PLANNED]
+## Phase 6 -- Drawing Primitives [PLANNED]
 
 | Task | Priority |
 |------|----------|
@@ -97,16 +97,16 @@
 | `draw_text(img, text, org, font, scale, color)` | Medium |
 | `draw_polyline`, `draw_fill_poly` | Low |
 
-## Phase 7 — GUI Display [PLANNED]
+## Phase 7 -- GUI Display [PLANNED]
 
 | Task | Priority |
 |------|----------|
-| `imshow(window_name, img)` — HighGUI wrapper | Medium |
-| `waitKey(delay_ms)` — keyboard input | Medium |
+| `imshow(window_name, img)` -- HighGUI wrapper | Medium |
+| `waitKey(delay_ms)` -- keyboard input | Medium |
 | `namedWindow`, `destroyWindow` | Low |
 | Trackbar/slider controls | Low |
 
-## Phase 8 — DNN & Advanced [FUTURE]
+## Phase 8 -- DNN & Advanced [FUTURE]
 
 | Task | Notes |
 |------|-------|
@@ -134,9 +134,9 @@
 | Module | Functions | Has Contracts | Missing |
 |--------|-----------|---------------|---------|
 | `xiom.opencv.types` | 7 | 5 | point2i_new, image_size |
-| `xiom.opencv.io` | 4 | 4 | — |
-| `xiom.opencv.features` | 3 | 3 | — |
-| `xiom.opencv.filters` | 5 | 5 | — |
+| `xiom.opencv.io` | 4 | 4 | -- |
+| `xiom.opencv.features` | 3 | 3 | -- |
+| `xiom.opencv.filters` | 5 | 5 | -- |
 
 ---
 

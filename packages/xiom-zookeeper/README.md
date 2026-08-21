@@ -1,6 +1,6 @@
 # xiom-zookeeper
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Apache ZooKeeper client: znodes, coordination, and watches.
 > **Deps:** stdlib; may wrap C (FFI).
 

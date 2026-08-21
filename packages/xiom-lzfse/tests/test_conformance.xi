@@ -1,4 +1,4 @@
-// XIOM — LZFSE Compression Conformance Tests
+// XIOM -- LZFSE Compression Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -49,7 +49,7 @@ fn int_to_str(n: Int) -> Str {
 }
 
 // =========================================================================
-// 1. xiom.lzfse: compress_bound — pure logic, no FFI
+// 1. xiom.lzfse: compress_bound -- pure logic, no FFI
 // =========================================================================
 
 fn compress_bound(src_size: Int) -> Int {
@@ -200,10 +200,10 @@ fn test_lzfse_compressor_create() -> TestCase {
   let result = LzfseCompressor_create();
   match result {
     Ok(comp) => {
-      return xiom.test.assert_ge(comp.scratch_size, 0, "safe: LzfseCompressor.create Ok path — scratch_size >= 0");
+      return xiom.test.assert_ge(comp.scratch_size, 0, "safe: LzfseCompressor.create Ok path -- scratch_size >= 0");
     }
     Err(e) => {
-      return xiom.test.assert_eq(e.code, 1, "safe: LzfseCompressor.create Err — scratch allocation failed (FFI not linked)");
+      return xiom.test.assert_eq(e.code, 1, "safe: LzfseCompressor.create Err -- scratch allocation failed (FFI not linked)");
     }
   }
 }
@@ -238,10 +238,10 @@ fn test_lzfse_decompressor_create() -> TestCase {
   let result = LzfseDecompressor_create();
   match result {
     Ok(dec) => {
-      return xiom.test.assert_ge(dec.scratch_size, 0, "safe: LzfseDecompressor.create Ok path — scratch_size >= 0");
+      return xiom.test.assert_ge(dec.scratch_size, 0, "safe: LzfseDecompressor.create Ok path -- scratch_size >= 0");
     }
     Err(e) => {
-      return xiom.test.assert_eq(e.code, 1, "safe: LzfseDecompressor.create Err — scratch allocation failed (FFI not linked)");
+      return xiom.test.assert_eq(e.code, 1, "safe: LzfseDecompressor.create Err -- scratch allocation failed (FFI not linked)");
     }
   }
 }
@@ -276,10 +276,10 @@ fn test_lzvn_encoder_create() -> TestCase {
   let result = LzvnEncoder_create();
   match result {
     Ok(enc) => {
-      return xiom.test.assert_ge(enc.scratch_size, 0, "safe: LzvnEncoder.create Ok path — scratch_size >= 0");
+      return xiom.test.assert_ge(enc.scratch_size, 0, "safe: LzvnEncoder.create Ok path -- scratch_size >= 0");
     }
     Err(e) => {
-      return xiom.test.assert_eq(e.code, 1, "safe: LzvnEncoder.create Err — scratch allocation failed (FFI not linked)");
+      return xiom.test.assert_eq(e.code, 1, "safe: LzvnEncoder.create Err -- scratch allocation failed (FFI not linked)");
     }
   }
 }
@@ -341,7 +341,7 @@ fn test_safe_compress_bound_ge_src() -> TestCase {
 }
 
 // =========================================================================
-// Main — run all tests via xiom.test API
+// Main -- run all tests via xiom.test API
 // =========================================================================
 
 fn main() -> Int {

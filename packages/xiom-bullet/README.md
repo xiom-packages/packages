@@ -1,6 +1,6 @@
 # xiom-bullet
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Bullet Physics engine bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

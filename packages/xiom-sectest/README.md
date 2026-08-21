@@ -1,6 +1,6 @@
 # xiom-sectest
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Security testing helpers and vulnerability checks.
 > **Deps:** stdlib; may wrap C (FFI).
 

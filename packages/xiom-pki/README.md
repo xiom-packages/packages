@@ -1,6 +1,6 @@
 # xiom-pki
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Public Key Infrastructure and certificate tooling.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,6 +1,6 @@
 # xiom-onnx
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** ONNX model format parsing, export and execution.
 > **Deps:** stdlib; may wrap C (FFI).
 

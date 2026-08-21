@@ -1,6 +1,6 @@
 # xiom-l10n-address
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Locale-aware postal address formatting, field ordering, and validation templates.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,6 +1,6 @@
 # xiom-ftp
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** FTP/SFTP client and server for file transfer.
 > **Deps:** stdlib; may wrap C (FFI).
 

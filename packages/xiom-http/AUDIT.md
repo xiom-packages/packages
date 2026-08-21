@@ -1,4 +1,4 @@
-# xiom-http — System Dependencies & Build Notes
+# xiom-http -- System Dependencies & Build Notes
 
 ## System Requirements
 
@@ -28,24 +28,24 @@ xiom http.xi src/types.xi src/parser.xi ../runtime/ffi_bridge.c -l curl -o http_
 ## Compilation Status
 
 ### Pure-XIOM modules (type-check PASS):
-- `src/types.xi` — HTTP enums, structs, headers manipulation
-- `src/parser.xi` — RFC 7230 HTTP message parser
-- `src/url.xi` — URL parsing, serialization, encoding
-- `src/cookie.xi` — RFC 6265 cookie parsing
-- `src/status.xi` — Status code helpers (32 codes)
-- `src/mime.xi` — MIME type mapping (21 extensions)
-- `src/server.xi` — Server stub types (awaiting TCP layer)
+- `src/types.xi` -- HTTP enums, structs, headers manipulation
+- `src/parser.xi` -- RFC 7230 HTTP message parser
+- `src/url.xi` -- URL parsing, serialization, encoding
+- `src/cookie.xi` -- RFC 6265 cookie parsing
+- `src/status.xi` -- Status code helpers (32 codes)
+- `src/mime.xi` -- MIME type mapping (21 extensions)
+- `src/server.xi` -- Server stub types (awaiting TCP layer)
 
 ### FFI-dependent module (needs manual fix):
-- `http.xi` — libcurl-backed HTTP client (GET/POST/PUT/DELETE/download)
+- `http.xi` -- libcurl-backed HTTP client (GET/POST/PUT/DELETE/download)
   - **Known issue:** Uses `+` operator for string concatenation (`"prefix: " + err`); XIOM requires `string.str_concat(a, b)` for Str concatenation. All error/status message construction chains must be converted.
   - **Known issue:** Uses `Int as *UInt8` casts for libcurl option values. These must be replaced with `xiom_alloc`+`xiom_write_byte` buffer construction (see `int_as_ptr()` pattern in fixed version).
   - **Known issue:** CURLOPT_HTTPHEADER requires `curl_slist_append` which is not yet wired in the FFI. Content-Type headers are not sent for POST/PUT requests.
   - **Known issue:** Temp file response capture (`__xiom_http_body.tmp`, `__xiom_http_headers.tmp`). In-memory callback-based capture is planned for future versions.
 
 ### Caller modules (depend on http.xi):
-- `src/client.xi` — High-level client wrapper; uses `xiom.http.http_*` functions
-- `src/demo.xi` — Integration demos against httpbin.org
+- `src/client.xi` -- High-level client wrapper; uses `xiom.http.http_*` functions
+- `src/demo.xi` -- Integration demos against httpbin.org
 
 ## Future Work
 1. Replacing temp-file capture with in-memory CURLOPT_WRITEFUNCTION callbacks

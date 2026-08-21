@@ -1,4 +1,4 @@
-// XIOM — ZeroMQ Safe Wrappers
+// XIOM -- ZeroMQ Safe Wrappers
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -19,7 +19,7 @@ pub type ZmqContext = Int
 pub type ZmqSocket = Int
 
 // =========================================================================
-// Socket type constants — libzmq § zmq_socket(3)
+// Socket type constants -- libzmq S zmq_socket(3)
 // =========================================================================
 
 pub const ZMQ_PAIR:   Int = 0
@@ -43,7 +43,7 @@ pub const ZMQ_DONTWAIT: Int = 1
 pub const ZMQ_SNDMORE:  Int = 2
 
 // =========================================================================
-// Socket options (subset — commonly used)
+// Socket options (subset -- commonly used)
 // =========================================================================
 
 pub const ZMQ_SUBSCRIBE:   Int = 6
@@ -53,7 +53,7 @@ pub const ZMQ_RCVTIMEO:    Int = 27
 pub const ZMQ_SNDTIMEO:    Int = 28
 
 // =========================================================================
-// extern "C" — ZeroMQ C API (libzmq)
+// extern "C" -- ZeroMQ C API (libzmq)
 //
 // All pointer parameters use Int (memory address) until the compiler
 // supports typed C pointer interop.
@@ -75,7 +75,7 @@ extern "C" {
 }
 
 // =========================================================================
-// context_new — create a new ZeroMQ context
+// context_new -- create a new ZeroMQ context
 //
 // Returns Ok(context) on success or Err(message) on failure.
 // =========================================================================
@@ -89,7 +89,7 @@ pub fn context_new() -> Result[ZmqContext, Str] {
 }
 
 // =========================================================================
-// context_destroy — destroy a ZeroMQ context
+// context_destroy -- destroy a ZeroMQ context
 //
 // Returns Ok(()) or Err(message). Safe wrapper calls zmq_ctx_destroy
 // and checks the return code.
@@ -107,7 +107,7 @@ pub fn context_destroy(ctx: ZmqContext) -> Result[Int, Str] {
 }
 
 // =========================================================================
-// socket — create a ZeroMQ socket within a context
+// socket -- create a ZeroMQ socket within a context
 //
 // Returns Ok(socket) or Err(message). Type must be one of the ZMQ_*
 // socket type constants.
@@ -125,7 +125,7 @@ pub fn socket(ctx: ZmqContext, type_: Int) -> Result[ZmqSocket, Str] {
 }
 
 // =========================================================================
-// close — close a ZeroMQ socket
+// close -- close a ZeroMQ socket
 // =========================================================================
 
 pub fn close(s: ZmqSocket) -> Result[Int, Str] {
@@ -140,7 +140,7 @@ pub fn close(s: ZmqSocket) -> Result[Int, Str] {
 }
 
 // =========================================================================
-// bind — bind socket to an endpoint address
+// bind -- bind socket to an endpoint address
 //
 // addr must be a null-terminated C string (pointer). The caller is
 // responsible for allocation.
@@ -161,7 +161,7 @@ pub fn bind(s: ZmqSocket, addr: Int) -> Result[Int, Str]
 }
 
 // =========================================================================
-// connect — connect socket to an endpoint address
+// connect -- connect socket to an endpoint address
 //
 // addr must be a null-terminated C string (pointer). The caller is
 // responsible for allocation.
@@ -179,7 +179,7 @@ pub fn connect(s: ZmqSocket, addr: Int) -> Result[Int, Str] {
 }
 
 // =========================================================================
-// send — send data on a socket
+// send -- send data on a socket
 //
 // buf and len describe the raw buffer. Caller owns the memory.
 // requires: len > 0
@@ -199,7 +199,7 @@ pub fn send(s: ZmqSocket, buf: Int, len: Int, flags: Int) -> Result[Int, Str]
 }
 
 // =========================================================================
-// recv — receive data from a socket
+// recv -- receive data from a socket
 //
 // buf and len describe the receiving buffer. Caller owns the memory.
 // Returns Ok(bytes_received) or Err(message).
@@ -220,7 +220,7 @@ pub fn recv(s: ZmqSocket, buf: Int, len: Int, flags: Int) -> Result[Int, Str]
 }
 
 // =========================================================================
-// poll — poll sockets for I/O events
+// poll -- poll sockets for I/O events
 //
 // items is a pointer to an array of zmq_pollitem_t; nitems is count.
 // timeout in milliseconds (-1 = block indefinitely).
@@ -235,7 +235,7 @@ pub fn poll(items: Int, nitems: Int, timeout: Int) -> Result[Int, Str] {
 }
 
 // =========================================================================
-// setsockopt — set a socket option
+// setsockopt -- set a socket option
 //
 // option_value is a pointer to the option value.
 // =========================================================================
@@ -252,7 +252,7 @@ pub fn setsockopt(s: ZmqSocket, option_name: Int, option_value: Int, option_len:
 }
 
 // =========================================================================
-// getsockopt — get a socket option
+// getsockopt -- get a socket option
 //
 // option_value is a pointer to storage for the option value.
 // option_len is a pointer to a size_t with the storage capacity.
@@ -270,7 +270,7 @@ pub fn getsockopt(s: ZmqSocket, option_name: Int, option_value: Int, option_len:
 }
 
 // =========================================================================
-// version — query the ZeroMQ library version
+// version -- query the ZeroMQ library version
 //
 // major, minor, patch are pointers to int storage.
 // The caller allocates storage; zmq_version fills the values.

@@ -1,6 +1,6 @@
 # xiom-messaging
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Chat, presence, and realtime messaging protocols umbrella.
 > **Deps:** stdlib; may wrap C (FFI).
 

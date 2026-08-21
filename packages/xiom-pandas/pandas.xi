@@ -1,4 +1,4 @@
-// XIOM — Pandas DataFrame/Series Safe Wrappers
+// XIOM -- Pandas DataFrame/Series Safe Wrappers
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -20,7 +20,7 @@ pub type Series    = Int
 pub type Dtype     = Int
 
 // =========================================================================
-// Dtype constants — columnar type encoding
+// Dtype constants -- columnar type encoding
 // =========================================================================
 
 pub const DTYPE_INT32:   Int = 0
@@ -51,7 +51,7 @@ pub const JOIN_RIGHT: Int = 2
 pub const JOIN_OUTER: Int = 3
 
 // =========================================================================
-// extern "C" — Pandas C bridge (12 functions)
+// extern "C" -- Pandas C bridge (12 functions)
 //
 // All pointer parameters use Int (memory address) until the compiler
 // supports typed C pointer interop.
@@ -73,7 +73,7 @@ extern "C" {
 }
 
 // =========================================================================
-// dataframe_new — create a new DataFrame from column definitions
+// dataframe_new -- create a new DataFrame from column definitions
 //
 // col_names, col_types: raw pointer to arrays of Int (C strings / type enums).
 // num_cols: number of columns.
@@ -95,7 +95,7 @@ pub fn dataframe_new(col_names: Int, col_types: Int, num_cols: Int) -> Result[Da
 }
 
 // =========================================================================
-// dataframe_from_csv — read a DataFrame from a CSV file
+// dataframe_from_csv -- read a DataFrame from a CSV file
 //
 // path: raw pointer to null-terminated C string.
 // Returns Ok(DataFrame) or Err(message).
@@ -113,7 +113,7 @@ pub fn dataframe_from_csv(path: Int) -> Result[DataFrame, Str] {
 }
 
 // =========================================================================
-// dataframe_to_csv — write a DataFrame to a CSV file
+// dataframe_to_csv -- write a DataFrame to a CSV file
 //
 // Returns Ok(()) or Err(message).
 // requires: df != 0
@@ -136,7 +136,7 @@ pub fn dataframe_to_csv(df: DataFrame, path: Int) -> Result[Int, Str]
 }
 
 // =========================================================================
-// dataframe_get_column — retrieve a Series from a DataFrame by column name
+// dataframe_get_column -- retrieve a Series from a DataFrame by column name
 //
 // col_name: raw pointer to null-terminated C string.
 // Returns Ok(Series) or Err(message).
@@ -160,7 +160,7 @@ pub fn dataframe_get_column(df: DataFrame, col_name: Int) -> Result[Series, Str]
 }
 
 // =========================================================================
-// dataframe_set_column — set/replace a column in a DataFrame
+// dataframe_set_column -- set/replace a column in a DataFrame
 //
 // values: raw pointer to Float64 array; len: number of elements.
 // Returns Ok(DataFrame) or Err(message).
@@ -189,7 +189,7 @@ pub fn dataframe_set_column(df: DataFrame, col_name: Int, values: Int, len: Int)
 }
 
 // =========================================================================
-// dataframe_filter — filter DataFrame rows by column comparison
+// dataframe_filter -- filter DataFrame rows by column comparison
 //
 // col_name: raw pointer to C string; op: CMP_* constant; value: Float64.
 // Returns Ok(DataFrame) or Err(message).
@@ -213,7 +213,7 @@ pub fn dataframe_filter(df: DataFrame, col_name: Int, op: Int, value: Int) -> Re
 }
 
 // =========================================================================
-// dataframe_groupby — group DataFrame by a column, returns group handle
+// dataframe_groupby -- group DataFrame by a column, returns group handle
 //
 // Returns Ok(group_handle) or Err(message).
 // requires: df != 0
@@ -236,7 +236,7 @@ pub fn dataframe_groupby(df: DataFrame, col_name: Int) -> Result[Int, Str]
 }
 
 // =========================================================================
-// dataframe_join — join two DataFrames on a column
+// dataframe_join -- join two DataFrames on a column
 //
 // on_col: raw pointer to C string; how: JOIN_* constant.
 // Returns Ok(DataFrame) or Err(message).
@@ -262,7 +262,7 @@ pub fn dataframe_join(left: DataFrame, right: DataFrame, on_col: Int, how: Int) 
 }
 
 // =========================================================================
-// series_new — create a new Series from typed data
+// series_new -- create a new Series from typed data
 //
 // dtype: DTYPE_* constant; values: raw pointer; len: element count.
 // Returns Ok(Series) or Err(message).
@@ -283,7 +283,7 @@ pub fn series_new(dtype: Dtype, values: Int, len: Int) -> Result[Series, Str]
 }
 
 // =========================================================================
-// series_from_vec — create a Series from a Vec[Float64]
+// series_from_vec -- create a Series from a Vec[Float64]
 //
 // dtype: DTYPE_* constant; values: raw pointer; len: element count.
 // Returns Ok(Series) or Err(message).
@@ -304,7 +304,7 @@ pub fn series_from_vec(dtype: Dtype, values: Int, len: Int) -> Result[Series, St
 }
 
 // =========================================================================
-// series_to_vec — extract Series data into a raw array
+// series_to_vec -- extract Series data into a raw array
 //
 // out_len: pointer to Int (filled with output length).
 // Returns Ok(ptr to data) or Err(message).
@@ -325,7 +325,7 @@ pub fn series_to_vec(series: Series, out_len: Int) -> Result[Int, Str]
 }
 
 // =========================================================================
-// series_apply — apply a function to each element of a Series
+// series_apply -- apply a function to each element of a Series
 //
 // func_ptr: raw function pointer; returns new Series.
 // Returns Ok(Series) or Err(message).
@@ -349,7 +349,7 @@ pub fn series_apply(series: Series, func_ptr: Int) -> Result[Series, Str]
 }
 
 // =========================================================================
-// Utility: dtype_name — human-readable name for a Dtype constant
+// Utility: dtype_name -- human-readable name for a Dtype constant
 // =========================================================================
 
 pub fn dtype_name(dtype: Dtype) -> Str {

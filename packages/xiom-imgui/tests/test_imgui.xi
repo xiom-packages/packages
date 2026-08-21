@@ -1,4 +1,4 @@
-// XIOM — ImGui Conformance Tests
+// XIOM -- ImGui Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 module imgui_tests
 use xiom.test;

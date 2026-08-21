@@ -1,6 +1,6 @@
 # xiom-geography
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Geographic data, coordinates, and map projections.
 > **Deps:** stdlib; may wrap C (FFI).
 

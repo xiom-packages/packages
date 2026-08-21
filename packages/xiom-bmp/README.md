@@ -1,6 +1,6 @@
 # xiom-bmp
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** BMP image codec: decoding and encoding of Windows bitmap files.
 > **Deps:** stdlib; may wrap C (FFI).
 

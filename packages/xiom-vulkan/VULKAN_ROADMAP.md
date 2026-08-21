@@ -1,21 +1,21 @@
-# XIOM Vulkan — Production Roadmap (Updated 2026-07-19)
+# XIOM Vulkan -- Production Roadmap (Updated 2026-07-19)
 
-**Compiler:** xiom v0.48.0 | **Package:** v0.3.0 → v1.0.0 | **Target:** AAA-ready VK bindings
+**Compiler:** xiom v0.48.0 | **Package:** v0.3.0 -> v1.0.0 | **Target:** AAA-ready VK bindings
 
 ## Current State (Honest Audit)
 
 | Layer | Status | Issues |
 |-------|--------|--------|
-| `vulkan_extern.xi` | ✅ 755/755 VK functions (100%) | KHR duplicates, no docs |
-| `vulkan_safe.xi` | ⚠︝ 30 types, **6 CRITICAL bugs** | SF-01 through SF-06 crash at runtime |
-| `vulkan_structs.xi` | ✅ 30+ builders, compile-verified | Covers all common create-info types |
-| `vulkan_constants_all.xi` | ✅ 3691 constants | Complete |
-| C bridge bind modules | ✅ 303 functions across 12 modules | Compile + link verified |
-| C bridge legacy | ✅ 117KB, 17 modules | Runtime verified (20-frame test) |
-| **Total bridge** | ✅ 332KB, 30 modules | Full VK 1.3 core API |
-| AAA readiness | ⚠︝ 9/15 PRESENT, 4/15 PARTIAL, 2/15 MISSING | See SAFETY_AUDIT.md |
+| `vulkan_extern.xi` | [OK] 755/755 VK functions (100%) | KHR duplicates, no docs |
+| `vulkan_safe.xi` | [WARN][U+FE1D] 30 types, **6 CRITICAL bugs** | SF-01 through SF-06 crash at runtime |
+| `vulkan_structs.xi` | [OK] 30+ builders, compile-verified | Covers all common create-info types |
+| `vulkan_constants_all.xi` | [OK] 3691 constants | Complete |
+| C bridge bind modules | [OK] 303 functions across 12 modules | Compile + link verified |
+| C bridge legacy | [OK] 117KB, 17 modules | Runtime verified (20-frame test) |
+| **Total bridge** | [OK] 332KB, 30 modules | Full VK 1.3 core API |
+| AAA readiness | [WARN][U+FE1D] 9/15 PRESENT, 4/15 PARTIAL, 2/15 MISSING | See SAFETY_AUDIT.md |
 
-## Phase 6: FIX SAFETY BUGS — ✅ ALL 12 FIXED (2026-07-19)
+## Phase 6: FIX SAFETY BUGS -- [OK] ALL 12 FIXED (2026-07-19)
 
 All 12 safety bugs (SF-01 through SF-12) fixed. All compile v0.48.0, 11/11 demos link.
 
@@ -23,22 +23,22 @@ All 12 safety bugs (SF-01 through SF-12) fixed. All compile v0.48.0, 11/11 demos
 
 | # | Domain | Status |
 |---|--------|--------|
-| 7.1 | Memory sub-allocator | ✅ **DONE** — `xvk_memory_alloc.c` (305 lines): linear + free-list allocator, 64MB blocks, auto memory type selection |
-| 7.2 | Pipeline cache serialization | ✅ **DONE** — `xvk_get_pipeline_cache_data_size`, `xvk_get_pipeline_cache_data`, `xvk_merge_pipeline_caches` in bridge |
-| 7.3 | Shader compilation | ✅ **DONE** — `xvk_shader_compile.c` (Phase 7.3): runtime glslc subprocess for GLSL→SPIR-V compilation. High-level API: `shader_compile_glsl()`, `shader_compile_file()` in vulkan.xi |
-| 7.4 | Texture loading | ✅ **DONE** — `xvk_texture.c` (350 lines): staging buffer → GPU image → layout transition → buffer-to-image copy → mipmap generation → image view + sampler. Single `xvk_texture_create()` call from raw RGBA8 pixels. High-level API: `texture_create()`, `texture_destroy()`, `texture_get_image/view/sampler/width/height/mips` in vulkan.xi
-| 7.5 | Multi-thread command pools | ✅ **DONE** — Bridge: `xvk_create_command_pools`, `xvk_allocate_command_buffers_multi`, `xvk_queue_submit_multi`, `xvk_get_device_queue2`. Safe: `VulkanQueue` type, `VulkanCommandPool.create_threaded`, `VulkanCommandBuffer.submit_multi`. High-level API: `threaded_command_pool_create()`, `submit_multi_command_buffers()` in vulkan.xi |
-| 7.6 | Ray tracing deferred ops | ✅ **DONE** — `xvk_create_deferred_operation_khr`, `xvk_destroy_deferred_operation_khr`, `xvk_deferred_operation_join_khr`, `xvk_get_deferred_operation_result_khr`, `xvk_get_deferred_operation_max_concurrency_khr` in bridge. Safe: `VulkanDeferredOperationKHR` type with create/destroy/join/get_result/max_concurrency
+| 7.1 | Memory sub-allocator | [OK] **DONE** -- `xvk_memory_alloc.c` (305 lines): linear + free-list allocator, 64MB blocks, auto memory type selection |
+| 7.2 | Pipeline cache serialization | [OK] **DONE** -- `xvk_get_pipeline_cache_data_size`, `xvk_get_pipeline_cache_data`, `xvk_merge_pipeline_caches` in bridge |
+| 7.3 | Shader compilation | [OK] **DONE** -- `xvk_shader_compile.c` (Phase 7.3): runtime glslc subprocess for GLSL->SPIR-V compilation. High-level API: `shader_compile_glsl()`, `shader_compile_file()` in vulkan.xi |
+| 7.4 | Texture loading | [OK] **DONE** -- `xvk_texture.c` (350 lines): staging buffer -> GPU image -> layout transition -> buffer-to-image copy -> mipmap generation -> image view + sampler. Single `xvk_texture_create()` call from raw RGBA8 pixels. High-level API: `texture_create()`, `texture_destroy()`, `texture_get_image/view/sampler/width/height/mips` in vulkan.xi
+| 7.5 | Multi-thread command pools | [OK] **DONE** -- Bridge: `xvk_create_command_pools`, `xvk_allocate_command_buffers_multi`, `xvk_queue_submit_multi`, `xvk_get_device_queue2`. Safe: `VulkanQueue` type, `VulkanCommandPool.create_threaded`, `VulkanCommandBuffer.submit_multi`. High-level API: `threaded_command_pool_create()`, `submit_multi_command_buffers()` in vulkan.xi |
+| 7.6 | Ray tracing deferred ops | [OK] **DONE** -- `xvk_create_deferred_operation_khr`, `xvk_destroy_deferred_operation_khr`, `xvk_deferred_operation_join_khr`, `xvk_get_deferred_operation_result_khr`, `xvk_get_deferred_operation_max_concurrency_khr` in bridge. Safe: `VulkanDeferredOperationKHR` type with create/destroy/join/get_result/max_concurrency
 
 ## Phase 8: TOOLING & QA (P2)
 
 | # | Item | Status |
 |---|------|--------|
-| 8.1 | Debug utils validation layer output capture | ✅ **DONE** — `xvk_create_debug_messenger_default()` with built-in VKAPI callback. Captures up to 64 messages into ring buffer. High-level: `debug_messenger_create()`, `debug_get_messages()` (returns Vec[Int] of string pointers), `debug_clear_messages()` |
-| 8.2 | Mouse/keyboard input exposure from GLFW to XIOM | ✅ **DONE** — `get_mouse_pos()`, `is_mouse_down()`, `is_key_down()` in vulkan.xi. Supports WASD, Escape, Space, Left/Right/Middle mouse |
-| 8.3 | Font/text rendering module | ? DONE � Built-in 8x13 console font, scalable glyph atlas (R8, 512x512). 95 ASCII glyphs with metrics. API: font_create, font_get_glyph, font_get_atlas_pixels, font_measure_text, font_destroy |
-| 8.4 | CI smoke test suite | ✅ **DONE** — `tests/ci_smoke.xi`: app→buffer→cache→destroy in ~1s |
-| 8.5 | Offscreen headless rendering fix | ✅ **DONE** — `create_instance_headless()` bypasses GLFW. Uses VK_EXT_headless_surface when available. Offscreen rendering now works on headless systems (CI, VMs) |
+| 8.1 | Debug utils validation layer output capture | [OK] **DONE** -- `xvk_create_debug_messenger_default()` with built-in VKAPI callback. Captures up to 64 messages into ring buffer. High-level: `debug_messenger_create()`, `debug_get_messages()` (returns Vec[Int] of string pointers), `debug_clear_messages()` |
+| 8.2 | Mouse/keyboard input exposure from GLFW to XIOM | [OK] **DONE** -- `get_mouse_pos()`, `is_mouse_down()`, `is_key_down()` in vulkan.xi. Supports WASD, Escape, Space, Left/Right/Middle mouse |
+| 8.3 | Font/text rendering module | ? DONE -- Built-in 8x13 console font, scalable glyph atlas (R8, 512x512). 95 ASCII glyphs with metrics. API: font_create, font_get_glyph, font_get_atlas_pixels, font_measure_text, font_destroy |
+| 8.4 | CI smoke test suite | [OK] **DONE** -- `tests/ci_smoke.xi`: app->buffer->cache->destroy in ~1s |
+| 8.5 | Offscreen headless rendering fix | [OK] **DONE** -- `create_instance_headless()` bypasses GLFW. Uses VK_EXT_headless_surface when available. Offscreen rendering now works on headless systems (CI, VMs) |
 
 ## Bridge Growth
 
@@ -50,7 +50,7 @@ All 12 safety bugs (SF-01 through SF-12) fixed. All compile v0.48.0, 11/11 demos
 | v0.2.8 (+memory) | 338 KB | VMA-style memory allocator (305 lines) |
 | v0.2.9 (+input) | 339 KB | Mouse/keyboard input (WASD, mouse btn, pos) |
 | v0.3.0 (+thread+shaders) | 346 KB | Multi-thread command pools (7.5) + runtime shader compilation (7.3) |
-| v0.3.1 (+texture) | 351 KB | Texture loading pipeline (7.4): staging→upload→mipmap, all in one call |
+| v0.3.1 (+texture) | 351 KB | Texture loading pipeline (7.4): staging->upload->mipmap, all in one call |
 | **v0.3.2 (+deferred+headless) | 358 KB | Ray tracing deferred ops (7.6) + headless offscreen fix (8.5) |
 | **v0.3.3 (+debug+font) | 365 KB | Debug validation capture (8.1) + font/text rendering (8.3) |
 | **v0.3.3 (current)** | **365 KB** | **37 modules, 350+ functions** |

@@ -1,6 +1,6 @@
 # xiom-training
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Training loops, checkpointing and learning-rate management.
 > **Deps:** stdlib; may wrap C (FFI).
 

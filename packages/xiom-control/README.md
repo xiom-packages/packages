@@ -1,6 +1,6 @@
 # xiom-control
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Control systems and feedback loop bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

@@ -1,4 +1,4 @@
-# AUDIT.md — xiom-core
+# AUDIT.md -- xiom-core
 
 ## Compilation Status: 22/22 files OK
 

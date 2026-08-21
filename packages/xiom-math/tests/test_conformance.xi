@@ -1,6 +1,6 @@
-// XIOM — xiom-math Conformance Tests
+// XIOM -- xiom-math Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
-// Tests: Vec2, Vec3, Vec4, Mat4, Quat — all 68 public functions
+// Tests: Vec2, Vec3, Vec4, Mat4, Quat -- all 68 public functions
 module math_tests
 use xiom.io;
 use xiom.test;
@@ -36,7 +36,7 @@ fn report(passed: Bool, name: Str) -> Int {
   io.println("  [FAIL] " + name); return 1;
 }
 
-// ═══ Vec2 tests ═══
+// === Vec2 tests ===
 fn run_vec2_add() -> Int {
   var a = Vec2.new(1.0 as Float32, 2.0 as Float32);
   var b = Vec2.new(3.0 as Float32, 4.0 as Float32);
@@ -104,7 +104,7 @@ fn test_vec2_lerp() -> TestResult {
   return assert(false, "Vec2: lerp failed");
 }
 
-// ═══ Vec3 tests ═══
+// === Vec3 tests ===
 fn run_vec3_cross() -> Int {
   var a = Vec3.new(1.0 as Float32, 0.0 as Float32, 0.0 as Float32);
   var b = Vec3.new(0.0 as Float32, 1.0 as Float32, 0.0 as Float32);
@@ -113,7 +113,7 @@ fn run_vec3_cross() -> Int {
   return 1;
 }
 fn test_vec3_cross() -> TestResult {
-  if run_vec3_cross() == 0 { return assert(true, "Vec3: cross X×Y=Z"); }
+  if run_vec3_cross() == 0 { return assert(true, "Vec3: cross XxY=Z"); }
   return assert(false, "Vec3: cross failed");
 }
 
@@ -129,7 +129,7 @@ fn test_vec3_reflect() -> TestResult {
   return assert(false, "Vec3: reflect failed");
 }
 
-// ═══ Vec4 tests ═══
+// === Vec4 tests ===
 fn run_vec4_roundtrip() -> Int {
   var v3 = Vec3.new(1.0 as Float32, 2.0 as Float32, 3.0 as Float32);
   var v4 = Vec4.from_vec3(v3, 1.0 as Float32);
@@ -142,7 +142,7 @@ fn test_vec4_roundtrip() -> TestResult {
   return assert(false, "Vec4: round-trip failed");
 }
 
-// ═══ Mat4 tests ═══
+// === Mat4 tests ===
 fn run_mat4_identity_element() -> Int {
   var m = Mat4.identity();
   if float_eq(m.element(0, 0), 1.0 as Float32) && float_eq(m.element(1, 1), 1.0 as Float32)
@@ -161,7 +161,7 @@ fn run_mat4_translate() -> Int {
   return 1;
 }
 fn test_mat4_translate() -> TestResult {
-  if run_mat4_translate() == 0 { return assert(true, "Mat4: translate (5,0,0)×(0,0,0)=(5,0,0)"); }
+  if run_mat4_translate() == 0 { return assert(true, "Mat4: translate (5,0,0)x(0,0,0)=(5,0,0)"); }
   return assert(false, "Mat4: translate failed");
 }
 
@@ -174,7 +174,7 @@ fn run_mat4_mul_identity() -> Int {
   return 1;
 }
 fn test_mat4_mul_identity() -> TestResult {
-  if run_mat4_mul_identity() == 0 { return assert(true, "Mat4: M×I = M"); }
+  if run_mat4_mul_identity() == 0 { return assert(true, "Mat4: MxI = M"); }
   return assert(false, "Mat4: mul identity failed");
 }
 
@@ -190,7 +190,7 @@ fn run_mat4_inverse_identity() -> Int {
   return 1;
 }
 fn test_mat4_inverse() -> TestResult {
-  if run_mat4_inverse_identity() == 0 { return assert(true, "Mat4: M×inv(M) ≈ I"); }
+  if run_mat4_inverse_identity() == 0 { return assert(true, "Mat4: Mxinv(M) ~= I"); }
   return assert(false, "Mat4: inverse failed");
 }
 
@@ -206,7 +206,7 @@ fn test_mat4_transpose() -> TestResult {
   return assert(false, "Mat4: transpose failed");
 }
 
-// ═══ Quat tests ═══
+// === Quat tests ===
 fn run_quat_identity_rotate() -> Int {
   var q = Quat.identity();
   var v = Vec3.new(1.0 as Float32, 0.0 as Float32, 0.0 as Float32);
@@ -229,8 +229,8 @@ fn run_quat_90deg() -> Int {
   return 1;
 }
 fn test_quat_90deg() -> TestResult {
-  if run_quat_90deg() == 0 { return assert(true, "Quat: 90° Z-rotation X→Y"); }
-  return assert(false, "Quat: 90° rotation failed");
+  if run_quat_90deg() == 0 { return assert(true, "Quat: 90deg Z-rotation X->Y"); }
+  return assert(false, "Quat: 90deg rotation failed");
 }
 
 fn run_quat_slerp() -> Int {
@@ -259,11 +259,11 @@ fn run_quat_to_mat4_roundtrip() -> Int {
   return 1;
 }
 fn test_quat_mat4_roundtrip() -> TestResult {
-  if run_quat_to_mat4_roundtrip() == 0 { return assert(true, "Quat: to_mat4 × v = rotate_vec × v"); }
+  if run_quat_to_mat4_roundtrip() == 0 { return assert(true, "Quat: to_mat4 x v = rotate_vec x v"); }
   return assert(false, "Quat: mat4 round-trip failed");
 }
 
-// ═══ Main ═══
+// === Main ===
 fn main() -> Int {
   io.println("=== XIOM Math Conformance Tests ===");
   var failed: Int = 0; var total: Int = 0;

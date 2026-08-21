@@ -1,4 +1,4 @@
-// XIOM — Jolt Physics Safe Wrappers (v2 — Plain Functions)
+// XIOM -- Jolt Physics Safe Wrappers (v2 -- Plain Functions)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //

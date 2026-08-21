@@ -1,6 +1,6 @@
 # xiom-odbc
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** ODBC database connectivity.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,9 +1,9 @@
-# xiom-assimp — SPEC
+# xiom-assimp -- SPEC
 **Phase**: 5 (Nice-to-Have) | **Priority**: Low
 **Status**: Implemented (Phase 1) | **Depends on**: xiom.ffi
 
 ## Overview
-Assimp — 3D model import library. System-installed libassimp.
+Assimp -- 3D model import library. System-installed libassimp.
 
 ## Implementation (v0.1.0)
 
@@ -33,9 +33,9 @@ All wrapped with `requires:` contracts and `Result[AiXxx, Str]` error handling.
 
 ## Files
 ```
-src/assimp.xi              — module xiom.assimp (types, extern C, flags, safe wrappers)
-tests/test_conformance.xi  — 48-test conformance suite
-package.xi                 — package manifest
-ROADMAP.md                 — phased development plan
-SPEC.md                    — this file
+src/assimp.xi              -- module xiom.assimp (types, extern C, flags, safe wrappers)
+tests/test_conformance.xi  -- 48-test conformance suite
+package.xi                 -- package manifest
+ROADMAP.md                 -- phased development plan
+SPEC.md                    -- this file
 ```

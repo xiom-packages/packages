@@ -1,4 +1,4 @@
-// XIOM — REST Client Library (libcurl-backed HTTP client for REST APIs)
+// XIOM -- REST Client Library (libcurl-backed HTTP client for REST APIs)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 
@@ -8,7 +8,7 @@ use xiom.string;
 use xiom.convert;
 use xiom.ptr;
 
-// ─── libcurl FFI ──────────────────────────────────────────────────────────
+// --- libcurl FFI ----------------------------------------------------------
 
 extern "C" {
   fn curl_easy_init() -> *UInt8;
@@ -21,7 +21,7 @@ extern "C" {
   fn curl_slist_free_all(list: *UInt8);
 }
 
-// ─── XIOM FFI Bridge ──────────────────────────────────────────────────────
+// --- XIOM FFI Bridge ------------------------------------------------------
 
 extern "C" {
   fn xiom_str_to_cstr(xiom_str: *UInt8, len: Int) -> *UInt8;
@@ -32,7 +32,7 @@ extern "C" {
   fn xiom_read_byte(ptr: *UInt8, offset: Int) -> Int;
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────
+// --- Types ----------------------------------------------------------------
 
 pub enum RestMethod {
   GET,
@@ -81,7 +81,7 @@ pub type RestError = {
   message: Str;
 } derive[Clone]
 
-// ─── Client Builder ───────────────────────────────────────────────────────
+// --- Client Builder -------------------------------------------------------
 
 pub fn client_new(base_url: Str) -> RestClient
   requires: string.str_len(base_url) > 0
@@ -134,7 +134,7 @@ pub fn client_get_default_header(client: &RestClient, name: Str) -> Option[Str] 
   return None;
 }
 
-// ─── Request Builder ──────────────────────────────────────────────────────
+// --- Request Builder ------------------------------------------------------
 
 pub fn request_new(method: RestMethod, path: Str) -> RestRequest
   requires: string.str_len(path) > 0
@@ -199,7 +199,7 @@ pub fn request_build_url(req: &RestRequest, base: Str) -> Str {
   return url;
 }
 
-// ─── Method String ────────────────────────────────────────────────────────
+// --- Method String --------------------------------------------------------
 
 pub fn method_to_str(method: RestMethod) -> Str {
   match method {
@@ -224,7 +224,7 @@ pub fn method_from_str(s: Str) -> RestMethod {
   return RestMethod.GET;
 }
 
-// ─── CURL Constants ───────────────────────────────────────────────────────
+// --- CURL Constants -------------------------------------------------------
 
 fn CURLOPT_URL() -> Int { return 10002; }
 fn CURLOPT_FOLLOWLOCATION() -> Int { return 52; }
@@ -239,7 +239,7 @@ fn CURLOPT_SSL_VERIFYHOST() -> Int { return 81; }
 fn CURLOPT_USERAGENT() -> Int { return 10018; }
 fn CURLOPT_ACCEPT_ENCODING() -> Int { return 10102; }
 
-// ─── cURL Helpers ─────────────────────────────────────────────────────────
+// --- cURL Helpers ---------------------------------------------------------
 
 fn make_ptr_value(v: Int) -> *UInt8 {
   var p: *UInt8 = xiom_alloc(8);
@@ -270,7 +270,7 @@ fn curl_error_string(code: Int) -> Str {
   return "curl error";
 }
 
-// ─── Client Execute (Stub) ────────────────────────────────────────────────
+// --- Client Execute (Stub) ------------------------------------------------
 
 pub fn client_execute(
   client: &RestClient,
@@ -290,7 +290,7 @@ pub fn client_execute(
   return Ok(RestResponse{ status: 200, body: "", headers: "" });
 }
 
-// ─── Convenience Methods ──────────────────────────────────────────────────
+// --- Convenience Methods --------------------------------------------------
 
 pub fn client_get(client: &RestClient, path: Str) -> Result[RestResponse, Str] {
   var req = request_new(RestMethod.GET, path);
@@ -332,7 +332,7 @@ pub fn client_patch(
   return client_execute(client, &req);
 }
 
-// ─── Response Helpers ─────────────────────────────────────────────────────
+// --- Response Helpers -----------------------------------------------------
 
 pub fn response_is_success(resp: &RestResponse) -> Bool {
   return resp.status >= 200 && resp.status < 300;
@@ -350,7 +350,7 @@ pub fn response_status_category(resp: &RestResponse) -> Int {
   return (resp.status / 100) * 100;
 }
 
-// ─── Error Constructors ───────────────────────────────────────────────────
+// --- Error Constructors ---------------------------------------------------
 
 pub fn error_not_found(message: Str) -> RestError {
   return RestError{ code: "NOT_FOUND", status: 404, message: message };

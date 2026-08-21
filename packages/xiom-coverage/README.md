@@ -1,6 +1,6 @@
 # xiom-coverage
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Code coverage collection and report generation.
 > **Deps:** stdlib; may wrap C (FFI).
 

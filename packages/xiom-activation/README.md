@@ -1,6 +1,6 @@
 # xiom-activation
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Activation functions and their gradients.
 > **Deps:** stdlib; may wrap C (FFI).
 

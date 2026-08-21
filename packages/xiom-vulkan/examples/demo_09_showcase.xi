@@ -1,5 +1,5 @@
 // ===========================================================================
-// XIOM Vulkan SDK — Example 09: Full API Showcase (All-in-One)
+// XIOM Vulkan SDK -- Example 09: Full API Showcase (All-in-One)
 // Demonstrates every available safe wrapper in a single program.
 // ===========================================================================
 
@@ -8,7 +8,7 @@ use xiom.io;
 use xiom.vulkan;
 
 fn main() -> Int {
-  let app = create_app("09 — Full SDK Showcase", 1024, 768);
+  let app = create_app("09 -- Full SDK Showcase", 1024, 768);
   match app {
     Err(e) => { io.println(e); return 1; }
     Ok(a) => {

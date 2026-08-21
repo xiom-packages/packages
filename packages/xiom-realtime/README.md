@@ -1,6 +1,6 @@
 # xiom-realtime
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Realtime scheduling, timing, and event loop utilities.
 > **Deps:** stdlib; may wrap C (FFI).
 

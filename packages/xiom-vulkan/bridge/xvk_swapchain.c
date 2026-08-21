@@ -9,7 +9,7 @@ VkSurfaceFormatKHR pick_swapchain_fmt(VkPhysicalDevice pd,
     uint32_t n = 0;
     VkResult res = vkGetPhysicalDeviceSurfaceFormatsKHR(pd, surface, &n, NULL);
     if (res != VK_SUCCESS || n == 0) {
-        /* Surface lost or no formats — return safe default */
+        /* Surface lost or no formats -- return safe default */
         VkSurfaceFormatKHR def = { VK_FORMAT_B8G8R8A8_UNORM,
                                    VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
         return def;
@@ -335,7 +335,7 @@ int recreate_swapchain(XvkApp* a)
     VkFramebuffer* old_fb          = a->framebuffers;
     int            old_count       = a->swapchain_image_count;
 
-    /* Also save old depth resources — create_depth_resources overwrites them */
+    /* Also save old depth resources -- create_depth_resources overwrites them */
     VkImage        old_depth_img  = a->depth_image;
     VkDeviceMemory old_depth_mem  = a->depth_memory;
     VkImageView    old_depth_view = a->depth_image_view;
@@ -429,7 +429,7 @@ int recreate_swapchain(XvkApp* a)
             return 0;
         }
 
-        /* New CBs allocated — now safe to free old CBs and old swapchain */
+        /* New CBs allocated -- now safe to free old CBs and old swapchain */
         if (a->cmd_buffers) {
             vkFreeCommandBuffers(a->device, a->cmd_pool,
                                  (uint32_t)old_count, a->cmd_buffers);
@@ -438,7 +438,7 @@ int recreate_swapchain(XvkApp* a)
         a->cmd_buffers = new_cb;
     }
 
-    /* Success — wait for device idle, then free old resources */
+    /* Success -- wait for device idle, then free old resources */
     vkDeviceWaitIdle(a->device);
     for (int i = 0; i < old_count; i++) {
         if (old_fb)    vkDestroyFramebuffer(a->device, old_fb[i], NULL);

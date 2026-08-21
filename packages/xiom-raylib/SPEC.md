@@ -1,8 +1,8 @@
-# xiom-raylib — SPEC
+# xiom-raylib -- SPEC
 **Phase**: 5 (Nice-to-Have) | **Priority**: Low
 **Status**: SPEC + Implementation (v0.1.0) | **Depends on**: xiom.ffi
 
-Raylib — simple game framework. System-installed. Weekend effort.
+Raylib -- simple game framework. System-installed. Weekend effort.
 
 ## Architecture
 
@@ -10,14 +10,14 @@ Raylib — simple game framework. System-installed. Weekend effort.
 xiom-raylib/
 ??? SPEC.md                    (this file)
 ??? ROADMAP.md                 (versioned milestones)
-??? raylib.xi                  (module xiom.raylib — types, FFI, constants, safe wrappers)
+??? raylib.xi                  (module xiom.raylib -- types, FFI, constants, safe wrappers)
 ??? tests/
     ??? test_conformance.xi    (37 tests covering types, constants, helpers)
 ```
 
 ## Module: `xiom.raylib`
 
-### Types (8 newtypes — all `Int` aliases)
+### Types (8 newtypes -- all `Int` aliases)
 `RlWindow`, `RlTexture`, `RlShader`, `RlModel`, `RlSound`, `RlMusic`, `RlCamera`, `RlFont`
 
 ### extern "C" (26 functions)

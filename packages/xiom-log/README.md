@@ -1,6 +1,6 @@
 # xiom-log
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Structured and leveled logging for XIOM applications.
 > **Deps:** stdlib; may wrap C (FFI).
 

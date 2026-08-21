@@ -1,6 +1,6 @@
 # xiom-quantum
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Quantum mechanical state and operator computations.
 > **Deps:** stdlib; may wrap C (FFI).
 

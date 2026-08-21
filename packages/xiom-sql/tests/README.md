@@ -1,8 +1,8 @@
-# tests/README.md — xiom-sql conformance test suite
+# tests/README.md -- xiom-sql conformance test suite
 
 ## Error Discovered and Fixed
 
-### P001 at sql.xi:20 — Duplicate visibility modifier
+### P001 at sql.xi:20 -- Duplicate visibility modifier
 
 **Original line (20):**
 ```
@@ -21,9 +21,9 @@ The `close` function had two `pub` keywords (`pub pub`), which is an invalid vis
 ### Additional improvements
 
 - Added `requires` contracts to all three public functions:
-  - `open(path)` — `requires: path.len() > 0`
-  - `execute(db, sql)` — `requires: sql.len() > 0`
-  - `close(db)` — `requires: db.handle >= 0`
+  - `open(path)` -- `requires: path.len() > 0`
+  - `execute(db, sql)` -- `requires: sql.len() > 0`
+  - `close(db)` -- `requires: db.handle >= 0`
 - File now compiles cleanly on `xiom v0.49.7`.
 
 ## Test Suite

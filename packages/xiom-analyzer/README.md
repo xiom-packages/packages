@@ -1,6 +1,6 @@
 # xiom-analyzer
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Semantic analysis, name resolution, and type checking.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,4 +1,4 @@
-// XIOM — HTTP Client Library (Production via libcurl + FFI Bridge)
+// XIOM -- HTTP Client Library (Production via libcurl + FFI Bridge)
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 
@@ -8,7 +8,7 @@ use xiom.ptr;
 use xiom.string;
 use xiom.encoding;
 
-// ─── XIOM FFI Bridge ────────────────────────────────────────────────────────
+// --- XIOM FFI Bridge --------------------------------------------------------
 
 extern "C" {
   fn xiom_str_to_cstr(xiom_str: *UInt8, len: Int) -> *UInt8;
@@ -20,7 +20,7 @@ extern "C" {
   fn xiom_copy_from_vec(c_buf: *UInt8, vec_data: *UInt8, vec_len: Int, vec_cap: Int, offset: Int, count: Int);
 }
 
-// ─── libcurl FFI ────────────────────────────────────────────────────────────
+// --- libcurl FFI ------------------------------------------------------------
 
 extern "C" {
   fn curl_easy_init() -> *UInt8;
@@ -31,7 +31,7 @@ extern "C" {
   fn curl_easy_strerror(code: Int) -> *UInt8;
 }
 
-// ─── libc FFI (file I/O) ────────────────────────────────────────────────────
+// --- libc FFI (file I/O) ----------------------------------------------------
 
 extern "C" {
   fn fopen(path: *UInt8, mode: *UInt8) -> *UInt8;
@@ -43,7 +43,7 @@ extern "C" {
   fn remove(path: *UInt8) -> Int;
 }
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// --- Types ------------------------------------------------------------------
 
 pub type HttpClientResponse = {
   status: Int;
@@ -51,7 +51,7 @@ pub type HttpClientResponse = {
   headers: Str;
 } derive[Clone]
 
-// ─── CURL Option Constants ──────────────────────────────────────────────────
+// --- CURL Option Constants --------------------------------------------------
 
 fn CURLOPT_URL() -> Int { return 10002; }
 fn CURLOPT_FOLLOWLOCATION() -> Int { return 52; }
@@ -77,7 +77,7 @@ fn CURLOPT_BUFFERSIZE() -> Int { return 98; }
 
 fn CURLINFO_RESPONSE_CODE() -> Int { return 2097154; }
 
-// ─── Internal Constants ─────────────────────────────────────────────────────
+// --- Internal Constants -----------------------------------------------------
 
 fn SEEK_SET() -> Int { return 0; }
 fn SEEK_END() -> Int { return 2; }
@@ -86,8 +86,8 @@ fn BUF_SIZE() -> Int { return 65536; }
 fn TEMP_BODY() -> Str { return "__xiom_http_body.tmp"; }
 fn TEMP_HEADERS() -> Str { return "__xiom_http_headers.tmp"; }
 
-// ─── Pointer-sized Value Helpers ────────────────────────────────────────────
-// libcurl options take pointer-sized values. XIOM Int → *UInt8 via xiom_alloc.
+// --- Pointer-sized Value Helpers --------------------------------------------
+// libcurl options take pointer-sized values. XIOM Int -> *UInt8 via xiom_alloc.
 
 fn make_ptr_value(v: Int) -> *UInt8 {
   var p: *UInt8 = xiom_alloc(8);
@@ -107,7 +107,7 @@ fn make_ptr_value(v: Int) -> *UInt8 {
 
 fn ptr_null() -> *UInt8 { return ptr.null[UInt8](); }
 
-// ─── C String Helpers ───────────────────────────────────────────────────────
+// --- C String Helpers -------------------------------------------------------
 // The XIOM runtime provides xiom_str_to_cstr. We pass the raw string pointer
 // via the encoding module's utf8_encode, then to the FFI bridge.
 
@@ -129,7 +129,7 @@ fn str_to_cstr_or_err(s: Str, label: Str) -> Result[*UInt8, Str] {
   return Ok(c);
 }
 
-// ─── Error Helpers ──────────────────────────────────────────────────────────
+// --- Error Helpers ----------------------------------------------------------
 
 fn curl_error_string(code: Int) -> Str {
   var err_ptr: *UInt8 = curl_easy_strerror(code);
@@ -139,7 +139,7 @@ fn curl_error_string(code: Int) -> Str {
   return cstr_to_str(err_ptr);
 }
 
-// ─── C String → XIOM Str ───────────────────────────────────────────────────
+// --- C String -> XIOM Str ---------------------------------------------------
 
 fn cstr_to_str(cstr: *UInt8) -> Str {
   var result: Str = "";
@@ -171,7 +171,7 @@ fn char_to_str(c: Char) -> Str {
   return to_string(to_int_from_char(c));
 }
 
-// ─── Temp File Management ───────────────────────────────────────────────────
+// --- Temp File Management ---------------------------------------------------
 
 pub type TempFiles = {
   body: *UInt8;
@@ -220,7 +220,7 @@ fn cleanup_temp_files() {
   xiom_free_cstr(headers_path);
 }
 
-// ─── File I/O Helpers ───────────────────────────────────────────────────────
+// --- File I/O Helpers -------------------------------------------------------
 
 fn read_file_to_str(file: *UInt8) -> Str {
   var file_size: Int;
@@ -250,7 +250,7 @@ fn read_file_to_str(file: *UInt8) -> Str {
   return result;
 }
 
-// ─── Response Code Extraction ───────────────────────────────────────────────
+// --- Response Code Extraction -----------------------------------------------
 
 fn get_response_code(handle: *UInt8) -> Int {
   var status_buf: *UInt8 = xiom_alloc(8);
@@ -271,7 +271,7 @@ fn get_response_code(handle: *UInt8) -> Int {
   return status;
 }
 
-// ─── cURL Setup Helpers ─────────────────────────────────────────────────────
+// --- cURL Setup Helpers -----------------------------------------------------
 
 fn setup_common_options(handle: *UInt8, url_cstr: *UInt8) -> Result[Unit, Str] {
   var rc: Int;
@@ -327,13 +327,13 @@ fn perform_and_collect(handle: *UInt8, body_f: *UInt8, headers_f: *UInt8) -> Res
   return Ok(());
 }
 
-// ─── URL Checking ───────────────────────────────────────────────────────────
+// --- URL Checking -----------------------------------------------------------
 
 fn check_url(url_cstr: *UInt8, handle: *UInt8) -> Bool {
   return !ptr.is_null[UInt8](url_cstr) && !ptr.is_null[UInt8](handle);
 }
 
-// ─── Public HTTP API ────────────────────────────────────────────────────────
+// --- Public HTTP API --------------------------------------------------------
 
 pub fn http_get(url: Str) -> Result[HttpClientResponse, Str]
   requires: string.str_len(url) > 0

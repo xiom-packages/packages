@@ -276,7 +276,7 @@ int64_t xvk_offscreen_create(int32_t width, int32_t height)
 
 offs_fail:
     xvk_app_cleanup_internal(a);
-    /* No glfwTerminate() needed — headless path doesn't use GLFW */
+    /* No glfwTerminate() needed -- headless path doesn't use GLFW */
     free(a);
     return 0;
 }

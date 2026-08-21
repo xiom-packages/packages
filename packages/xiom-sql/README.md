@@ -1,6 +1,6 @@
 # xiom-sql
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** SQL parsing, AST modeling, and generation.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,6 +1,6 @@
 # xiom-l10n-name
 
-> **Status:** PLACEHOLDER — reserved, spec pending. No implementation yet.
+> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Locale-aware personal and language name formatting and display ordering.
 > **Deps:** stdlib; may wrap C (FFI).
 
