@@ -1,0 +1,15 @@
+# XIOM language files.
+#
+# GitHub Linguist does not know "Xiom" yet: upstream recognition is gated on
+# in-the-wild usage (2000+ files across repos not owned by the submitter) and
+# overrides to unknown languages are ignored by design. The .xi extension is
+# currently assigned to "Logos" upstream, so keep .xi out of the language
+# statistics instead of reporting a wrong language, and use a close C-like
+# grammar for in-browser highlighting.
+#
+# When Linguist merges "Xiom" (tracked in xiom-lang/.github, linguist/),
+# replace this file's mapping with:  *.xi linguist-language=Xiom
+*.xi linguist-language=Rust linguist-detectable=false
+
+# XIOM FFI binding manifests are data, not source.
+*.xiom-bind linguist-detectable=false
