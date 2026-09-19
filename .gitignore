@@ -16,3 +16,4 @@ tokens*.json
 .kilo/agent-manager.json
 .kilo/setup-script*
 .kilocode/
+kilo.jsonc
