@@ -1,4 +1,4 @@
-# xiom-directx11
+# xiom.directx11
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** DirectX 11 graphics API bindings.

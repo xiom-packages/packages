@@ -1,4 +1,4 @@
-# xiom-thrift
+# xiom.thrift
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Apache Thrift protocol, IDL, and codegen support.

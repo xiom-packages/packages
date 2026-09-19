@@ -1,4 +1,4 @@
-# xiom-smartcontract
+# xiom.smartcontract
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Smart contract bytecode and execution interface.

@@ -1,4 +1,4 @@
-# xiom-openssl -- SPEC
+# xiom.openssl -- SPEC
 **Phase**: 4 (Enterprise) | **Priority**: Medium
 **Status**: Implemented (SPEC ? code) | **Depends on**: xiom.ffi, xiom.string, xiom.core
 OpenSSL -- TLS/cryptography. System-installed. Day effort.

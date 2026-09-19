@@ -1,4 +1,4 @@
-# xiom-tensorflow -- SPEC
+# xiom.tensorflow -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
 **Status**: SPEC implemented -- TESTS GREEN (34 conformance tests), C bridge not linked

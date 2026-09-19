@@ -1,4 +1,4 @@
-# xiom-sqlite -- Production Roadmap
+# xiom.sqlite -- Production Roadmap
 
 **Version**: v0.2.0 | **Compiler**: xiom v0.49.7 | **Last updated**: 2026-07-21
 

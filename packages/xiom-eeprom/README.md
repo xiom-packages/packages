@@ -1,4 +1,4 @@
-# xiom-eeprom
+# xiom.eeprom
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Non-volatile EEPROM byte-level read/write with wear management.

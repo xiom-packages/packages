@@ -1,4 +1,4 @@
-// XIOM -- xiom-torch Conformance Test Suite
+// XIOM -- xiom.torch Conformance Test Suite
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
@@ -395,7 +395,7 @@ fn test_integration_linear_classifier() -> TestResult {
 // =========================================================================
 
 pub fn main() -> Int {
-  io.println("XIOM xiom-torch Conformance Suite");
+  io.println("XIOM xiom.torch Conformance Suite");
   io.println("==================================");
   var total: Int = 0;
   var failed: Int = 0;

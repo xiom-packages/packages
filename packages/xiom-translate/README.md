@@ -1,4 +1,4 @@
-# xiom-translate
+# xiom.translate
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Text translation utilities and language conversion.

@@ -1,4 +1,4 @@
-# xiom-postgres Specification
+# xiom.postgres Specification
 
 ## Overview
 PostgreSQL client bindings for XIOM via libpq. Provides safe, contract-enforced database connectivity with parameterized queries, transaction management, and escape utilities.

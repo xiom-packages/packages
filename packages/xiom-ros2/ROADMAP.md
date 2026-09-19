@@ -1,4 +1,4 @@
-# xiom-ros2 Roadmap
+# xiom.ros2 Roadmap
 
 ## Current State -- v0.1.0 (SPEC)
 
@@ -99,7 +99,7 @@
 ## Dependency Graph
 
 ```
-xiom-ros2 (this package)
+xiom.ros2 (this package)
   |-- xiom-std (stdlib: string, collections, ptr)
   |-- rcl + rclc C libraries (ROS 2 Humble+, system-installed)
   |-- rosidl_typesupport (message type support)

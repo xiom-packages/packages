@@ -1,4 +1,4 @@
-# xiom-tokenizer
+# xiom.tokenizer
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Text tokenization into words, sentences, and subwords.

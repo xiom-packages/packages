@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Comprehensive conformance suite for xiom-phonon bindings (xiom.phonon + xiom.phonon.safe).
+// Comprehensive conformance suite for xiom.phonon bindings (xiom.phonon + xiom.phonon.safe).
 // Covers all 66 public functions across both modules with 32 requires contracts on 26 functions.
 //
 // NOTE: Source modules reference extern "C" phonon.dll symbols -- cannot link at test time.

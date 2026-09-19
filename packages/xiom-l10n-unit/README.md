@@ -1,4 +1,4 @@
-# xiom-l10n-unit
+# xiom.l10n-unit
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Locale-aware measurement unit formatting, conversion, and singular/plural labeling.

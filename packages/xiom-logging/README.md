@@ -1,4 +1,4 @@
-# xiom-logging
+# xiom.logging
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Structured logging backends and log lifecycle tools.

@@ -1,4 +1,4 @@
-# xiom-numpy -- Roadmap
+# xiom.numpy -- Roadmap
 
 **Module**: `xiom.numpy`
 **Last updated**: 2026-07-21
@@ -12,7 +12,7 @@
 | 3 | Linear algebra -- SVD, inv, reductions (sum, mean, max) | Pending |
 | 4 | Broadcasting + reshaping -- reshape, transpose | Pending |
 | 5 | Advanced -- FFT, random, advanced indexing | Pending |
-| 6 | Interop -- zero-copy tensor sharing with xiom-libtorch, xiom-pandas | Pending |
+| 6 | Interop -- zero-copy tensor sharing with xiom.libtorch, xiom.pandas | Pending |
 
 ## Phase 1 deliverables (Done)
 
@@ -45,14 +45,14 @@
 ## Dependencies
 
 - `xiom.ffi` (stdlib) -- extern C calling convention
-- `xiom-openblas` -- BLAS/LAPACK backend for linear algebra ops
+- `xiom.openblas` -- BLAS/LAPACK backend for linear algebra ops
 - System NumPy installation -- C headers at `numpy/core/include/`
 
 ## Relationship to other packages
 
 | Package | Relationship |
 |---------|-------------|
-| `xiom-openblas` | NumPy delegates BLAS/LAPACK to OpenBLAS |
-| `xiom-libtorch` | Zero-copy tensor sharing between NDArray and LibTorch tensors |
-| `xiom-pandas` | DataFrame storage backed by NumPy arrays |
-| `xiom-scipy` | Scientific routines operating on NumPy arrays |
+| `xiom.openblas` | NumPy delegates BLAS/LAPACK to OpenBLAS |
+| `xiom.libtorch` | Zero-copy tensor sharing between NDArray and LibTorch tensors |
+| `xiom.pandas` | DataFrame storage backed by NumPy arrays |
+| `xiom.scipy` | Scientific routines operating on NumPy arrays |

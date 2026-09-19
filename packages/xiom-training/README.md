@@ -1,4 +1,4 @@
-# xiom-training
+# xiom.training
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Training loops, checkpointing and learning-rate management.

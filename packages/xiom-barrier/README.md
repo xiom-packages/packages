@@ -1,4 +1,4 @@
-# xiom-barrier
+# xiom.barrier
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Reusable synchronization barrier for coordinated multiparty phases.

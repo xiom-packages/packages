@@ -1,4 +1,4 @@
-# xiom-property
+# xiom.property
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Property-based testing with generators and shrinking.

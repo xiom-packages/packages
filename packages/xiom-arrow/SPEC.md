@@ -1,4 +1,4 @@
-# xiom-arrow -- SPEC
+# xiom.arrow -- SPEC
 
 **Phase**: 2 | **Priority**: HIGH
 **Status**: IMPLEMENTED -- v0.1.0, 27 public functions, 32 requires contracts

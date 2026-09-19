@@ -1,4 +1,4 @@
-# xiom-data
+# xiom.data
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Data loading, batching and dataset utilities.

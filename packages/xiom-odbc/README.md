@@ -1,4 +1,4 @@
-# xiom-odbc
+# xiom.odbc
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** ODBC database connectivity.

@@ -6,7 +6,7 @@
 // Wraps the CUDA Runtime API (libcudart) with contracts and safety.
 //
 // Phase 1 (SPEC): Type aliases, extern "C" declarations, safe wrappers with contracts.
-// Phase 2 (future): cuBLAS, cuDNN, cuFFT, tensor interop with xiom-libtorch.
+// Phase 2 (future): cuBLAS, cuDNN, cuFFT, tensor interop with xiom.libtorch.
 
 module xiom.cuda
 

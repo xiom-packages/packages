@@ -1,4 +1,4 @@
-# xiom-pwm
+# xiom.pwm
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Pulse-width modulation output for dimming, tone, and servo control.

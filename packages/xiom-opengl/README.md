@@ -1,4 +1,4 @@
-# xiom-opengl
+# xiom.opengl
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** OpenGL rendering API bindings.

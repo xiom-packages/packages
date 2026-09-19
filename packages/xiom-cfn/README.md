@@ -1,4 +1,4 @@
-# xiom-cfn
+# xiom.cfn
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** AWS CloudFormation templating and stack lifecycle management.

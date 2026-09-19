@@ -1,4 +1,4 @@
-# xiom-sensor
+# xiom.sensor
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Sensor data acquisition and fusion bindings.

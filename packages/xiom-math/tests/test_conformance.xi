@@ -1,4 +1,4 @@
-// XIOM -- xiom-math Conformance Tests
+// XIOM -- xiom.math Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Tests: Vec2, Vec3, Vec4, Mat4, Quat -- all 68 public functions
 module math_tests

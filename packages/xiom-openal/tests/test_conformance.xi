@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Comprehensive conformance suite for xiom-openal bindings.
+// Comprehensive conformance suite for xiom.openal bindings.
 // Covers all 23 public functions across error handling, source lifecycle,
 // source properties, buffer lifecycle, listener, WAV loading, playback,
 // constants, and contract enforcement.

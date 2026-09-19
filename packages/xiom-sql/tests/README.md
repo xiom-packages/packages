@@ -1,4 +1,4 @@
-# tests/README.md -- xiom-sql conformance test suite
+# tests/README.md -- xiom.sql conformance test suite
 
 ## Error Discovered and Fixed
 

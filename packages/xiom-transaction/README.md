@@ -1,4 +1,4 @@
-# xiom-transaction
+# xiom.transaction
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Transaction construction, signing, and serialization.

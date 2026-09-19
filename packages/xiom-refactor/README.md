@@ -1,4 +1,4 @@
-# xiom-refactor
+# xiom.refactor
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Programmatic source refactoring toolkit for editors and CLIs.

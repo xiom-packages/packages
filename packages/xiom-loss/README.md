@@ -1,4 +1,4 @@
-# xiom-loss
+# xiom.loss
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Loss functions for supervised training.

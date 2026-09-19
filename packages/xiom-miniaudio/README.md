@@ -1,4 +1,4 @@
-# xiom-miniaudio
+# xiom.miniaudio
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** miniaudio cross-platform audio playback bindings.

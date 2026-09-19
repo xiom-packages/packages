@@ -1,4 +1,4 @@
-# xiom-sqlite
+# xiom.sqlite
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** SQLite embedded SQL database bindings.

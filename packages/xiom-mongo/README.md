@@ -1,4 +1,4 @@
-# xiom-mongo
+# xiom.mongo
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** MongoDB client: BSON documents, collections, queries, and cursors.

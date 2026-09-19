@@ -1,14 +1,14 @@
-# xiom-rest Architecture
+# xiom.rest Architecture
 
-> **Status: Design stage -- specification only, not yet implemented. Depends on xiom-http.**
+> **Status: Design stage -- specification only, not yet implemented. Depends on xiom.http.**
 
-`xiom-rest` is the REST-oriented extension package built on top of `xiom-http`. Its purpose is to provide resource-centric API conventions, pagination, filtering, content negotiation, versioning, error mapping, and documentation helpers without bloating the core HTTP foundation. REST best practices consistently emphasize resource naming, correct HTTP method usage, pagination, versioning, status codes, and content negotiation.
+`xiom.rest` is the REST-oriented extension package built on top of `xiom.http`. Its purpose is to provide resource-centric API conventions, pagination, filtering, content negotiation, versioning, error mapping, and documentation helpers without bloating the core HTTP foundation. REST best practices consistently emphasize resource naming, correct HTTP method usage, pagination, versioning, status codes, and content negotiation.
 
-The guiding principle is simple: `xiom-http` gives you transport primitives; `xiom-rest` gives you opinionated REST structure. This keeps the core small and auditable while still allowing users to build ergonomic APIs quickly.
+The guiding principle is simple: `xiom.http` gives you transport primitives; `xiom.rest` gives you opinionated REST structure. This keeps the core small and auditable while still allowing users to build ergonomic APIs quickly.
 
 ## Why this package exists
 
-REST helpers are valuable, but they are not the same thing as the HTTP transport. Keeping them separate lets `xiom-http` stay minimal while `xiom-rest` evolves conventions, response shapes, and docs generation without forcing those opinions into every HTTP user.
+REST helpers are valuable, but they are not the same thing as the HTTP transport. Keeping them separate lets `xiom.http` stay minimal while `xiom.rest` evolves conventions, response shapes, and docs generation without forcing those opinions into every HTTP user.
 
 The separation also preserves XIOM's contract philosophy. Every REST helper is expected to carry `requires`/`ensures` contracts, surface failures as typed errors, and avoid framework magic or global mutable state. Users who only need raw transport pay no cost for REST conventions they do not use.
 
@@ -89,7 +89,7 @@ xiom-rest/
 Defines the resource abstraction: collection endpoints, item endpoints, nested subresources, and relationship paths.
 
 ### `src/router.xi`
-Translates resource definitions into `xiom-http` route registrations. It should remain thin and deterministic.
+Translates resource definitions into `xiom.http` route registrations. It should remain thin and deterministic.
 
 ### `src/route_builder.xi`
 Declarative builder for REST endpoints. Enables concise route definition without losing explicitness.

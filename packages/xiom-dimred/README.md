@@ -1,4 +1,4 @@
-# xiom-dimred
+# xiom.dimred
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Dimensionality reduction and manifold learning.

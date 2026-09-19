@@ -1,4 +1,4 @@
-# xiom-leveldb
+# xiom.leveldb
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** LevelDB embedded key-value store bindings.

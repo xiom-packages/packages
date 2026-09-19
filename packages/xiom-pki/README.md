@@ -1,4 +1,4 @@
-# xiom-pki
+# xiom.pki
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Public Key Infrastructure and certificate tooling.

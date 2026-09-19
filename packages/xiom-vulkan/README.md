@@ -1,4 +1,4 @@
-# xiom-vulkan
+# xiom.vulkan
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Vulkan graphics API bindings.

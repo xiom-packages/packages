@@ -1,4 +1,4 @@
-# xiom-preprocess
+# xiom.preprocess
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Data preprocessing and cleaning utilities.

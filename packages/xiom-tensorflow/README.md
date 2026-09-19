@@ -1,4 +1,4 @@
-# xiom-tensorflow
+# xiom.tensorflow
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** TensorFlow-compatible binding surface.

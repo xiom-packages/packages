@@ -1,4 +1,4 @@
-# xiom-compliance
+# xiom.compliance
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Compliance checks and policy attestation helpers.

@@ -1,4 +1,4 @@
-// XIOM -- xiom-ui Conformance Tests
+// XIOM -- xiom.ui Conformance Tests
 // 98 tests covering types, layout, theme, widgets, render, and application lifecycle
 module ui_tests
 use xiom.io;

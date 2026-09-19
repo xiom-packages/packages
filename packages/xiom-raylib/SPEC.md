@@ -1,4 +1,4 @@
-# xiom-raylib -- SPEC
+# xiom.raylib -- SPEC
 **Phase**: 5 (Nice-to-Have) | **Priority**: Low
 **Status**: SPEC + Implementation (v0.1.0) | **Depends on**: xiom.ffi
 

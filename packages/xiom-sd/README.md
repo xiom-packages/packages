@@ -1,4 +1,4 @@
-# xiom-sd
+# xiom.sd
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** SD/MMC card block storage access over SPI or SDIO.

@@ -1,4 +1,4 @@
-# xiom-moveit
+# xiom.moveit
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** ROS 2 MoveIt motion planning framework bindings.

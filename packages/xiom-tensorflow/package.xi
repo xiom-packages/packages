@@ -1,7 +1,7 @@
 package xiom_tensorflow {
-  name: "xiom_tensorflow";
+  name: "xiom.tensorflow";
   version: "0.1.0";
   description: "TensorFlow C API (libtensorflow) -- Google's ML framework.";
   authors: ["XIOM Team"];
-  deps: { "xiom-std": "0.1.0" };
+  deps: { "xiom.std": "0.1.0" };
 }

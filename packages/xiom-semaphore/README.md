@@ -1,4 +1,4 @@
-# xiom-semaphore
+# xiom.semaphore
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Counting semaphore for bounded concurrent resource access.

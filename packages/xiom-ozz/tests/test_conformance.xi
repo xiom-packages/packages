@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Comprehensive conformance suite for xiom-ozz bindings (xiom.ozz + xiom.ozz.safe).
+// Comprehensive conformance suite for xiom.ozz bindings (xiom.ozz + xiom.ozz.safe).
 // Covers all 76 public functions across both modules.
 //
 // NOTE: Source modules use legacy syntax (derive[Clone]) not parseable by xiom v0.49.7.

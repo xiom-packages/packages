@@ -1,10 +1,10 @@
-# xiom-graphql -- Specification
+# xiom.graphql -- Specification
 
 > **Status: v0.1.0 implemented.** Core types, schema builder, query parser/validator stubs, execution stub, and introspection stub are implemented in `graphql.xi`. Full SDL parser, validation rules, and execution engine are planned for future versions.
 
 ## Overview
 
-`xiom-graphql` is the schema-first GraphQL server package for XIOM, layered on top of `xiom-http` for transport, `xiom-json` for payload encoding, and `xiom-websocket` for subscription delivery. It owns SDL loading and composition, schema and operation validation, execution, resolver wiring, the typed error model, introspection, batching, and subscription protocol semantics.
+`xiom.graphql` is the schema-first GraphQL server package for XIOM, layered on top of `xiom.http` for transport, `xiom.json` for payload encoding, and `xiom.websocket` for subscription delivery. It owns SDL loading and composition, schema and operation validation, execution, resolver wiring, the typed error model, introspection, batching, and subscription protocol semantics.
 
 The engine is organized around four explicit phases -- **parse -> validate -> execute -> complete** -- and around the rule that the schema is the single source of truth.
 

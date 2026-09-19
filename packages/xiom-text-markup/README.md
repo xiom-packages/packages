@@ -1,4 +1,4 @@
-# xiom-text-markup
+# xiom.text-markup
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Text markup language parsing and rendering.

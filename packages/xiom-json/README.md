@@ -1,4 +1,4 @@
-# xiom-json
+# xiom.json
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** JSON parsing, serialization, and manipulation.

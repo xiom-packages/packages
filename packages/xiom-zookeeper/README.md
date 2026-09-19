@@ -1,4 +1,4 @@
-# xiom-zookeeper
+# xiom.zookeeper
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Apache ZooKeeper client: znodes, coordination, and watches.

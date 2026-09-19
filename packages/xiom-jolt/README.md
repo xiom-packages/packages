@@ -1,4 +1,4 @@
-# xiom-jolt
+# xiom.jolt
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Jolt Physics engine bindings.

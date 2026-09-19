@@ -1,4 +1,4 @@
-# xiom-sensor ROADMAP
+# xiom.sensor ROADMAP
 
 ## Current State (v0.1.0)
 

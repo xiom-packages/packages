@@ -1,4 +1,4 @@
-# xiom-imgui -- Production Roadmap
+# xiom.imgui -- Production Roadmap
 
 **Current rating: 6/10** -- Good C bridge, incomplete XIOM coverage. Demo confirmed stable.
 **C bridge**: 7 precompiled .obj files (Dear ImGui v1.92.9 + GLFW + Vulkan backends)
@@ -10,7 +10,7 @@
 
 ## Honest Assessment
 
-xiom-imgui wraps Dear ImGui v1.92.9 with a clean C ABI bridge. The bridge has been hardened: DisplaySize timing fixed, NewFrame order corrected (GLFW->Vulkan->ImGui), reinit_vulkan functional, color_edit3 read-back working, CheckVkResultFn registered, DPI font scale set, runtime version check added.
+xiom.imgui wraps Dear ImGui v1.92.9 with a clean C ABI bridge. The bridge has been hardened: DisplaySize timing fixed, NewFrame order corrected (GLFW->Vulkan->ImGui), reinit_vulkan functional, color_edit3 read-back working, CheckVkResultFn registered, DPI font scale set, runtime version check added.
 
 The XIOM layer (`imgui.xi`) has 48 safe wrappers with contracts -- covering all commonly-used widgets. The demo is confirmed stable with 2 panels, menu bar, 3D viewport, and modal popup.
 
@@ -131,7 +131,7 @@ Currently Vulkan errors go to stderr. Forward to XIOM runtime.
 
 ## Compiler/Stdlib Blockers
 
-| Gap | Impact on xiom-imgui | Status |
+| Gap | Impact on xiom.imgui | Status |
 |-----|---------------------|--------|
 | CG-01b Int32->Float32 | `fb_w as Float32` division | Fixed v0.48.8 |
 | CG-02 Float32 module init | `var g_*: Float32 = 0.5` | Fixed v0.48.6 |

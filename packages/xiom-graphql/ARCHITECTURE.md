@@ -1,10 +1,10 @@
-# xiom-graphql Architecture
+# xiom.graphql Architecture
 
-> **Status: Design stage -- specification only, not yet implemented. Depends on xiom-http, xiom-json, xiom-websocket (subscriptions).**
+> **Status: Design stage -- specification only, not yet implemented. Depends on xiom.http, xiom.json, xiom.websocket (subscriptions).**
 
-`xiom-graphql` is the schema-first GraphQL extension package built on top of `xiom-http`. Its purpose is to provide a strongly typed GraphQL server with schema-first development, explicit resolver wiring, query validation, execution planning, and subscription support without turning the core HTTP layer into a GraphQL framework.
+`xiom.graphql` is the schema-first GraphQL extension package built on top of `xiom.http`. Its purpose is to provide a strongly typed GraphQL server with schema-first development, explicit resolver wiring, query validation, execution planning, and subscription support without turning the core HTTP layer into a GraphQL framework.
 
-The package follows the same ecosystem rule as the other XIOM web layers: keep the transport core lean, and place higher-level opinionated behavior in separate packages. That lets `xiom-http` remain a minimal HTTP foundation while `xiom-graphql` owns GraphQL-specific concerns such as SDL, resolvers, schema composition, validation, execution, and subscription wiring.
+The package follows the same ecosystem rule as the other XIOM web layers: keep the transport core lean, and place higher-level opinionated behavior in separate packages. That lets `xiom.http` remain a minimal HTTP foundation while `xiom.graphql` owns GraphQL-specific concerns such as SDL, resolvers, schema composition, validation, execution, and subscription wiring.
 
 ## Why schema-first
 
@@ -14,7 +14,7 @@ Schema-first also improves separation of concerns. The schema defines the public
 
 ## Package responsibilities
 
-`xiom-graphql` should own:
+`xiom.graphql` should own:
 
 - SDL schema loading and composition.
 - Query, mutation, and subscription execution.
@@ -25,15 +25,15 @@ Schema-first also improves separation of concerns. The schema defines the public
 - Data loader hooks for batching.
 - Error mapping to GraphQL-compliant response payloads.
 - Introspection and schema export.
-- Subscription transport integration via `xiom-websocket`.
+- Subscription transport integration via `xiom.websocket`.
 
 ## What stays outside
 
-- Low-level HTTP server and request parsing stay in `xiom-http`.
-- REST conventions stay in `xiom-rest`.
-- WebSocket transport primitives stay in `xiom-websocket`.
-- Microservice discovery and RPC stay in `xiom-micro`.
-- Real-time room/presence semantics stay in `xiom-realtime`.
+- Low-level HTTP server and request parsing stay in `xiom.http`.
+- REST conventions stay in `xiom.rest`.
+- WebSocket transport primitives stay in `xiom.websocket`.
+- Microservice discovery and RPC stay in `xiom.micro`.
+- Real-time room/presence semantics stay in `xiom.realtime`.
 
 ## Repository scaffold
 
@@ -112,15 +112,15 @@ Resolvers should translate GraphQL fields into application calls, not contain bu
 
 ### 3. Validation happens before execution
 
-GraphQL validates an operation against the schema before it executes. `xiom-graphql` should make this explicit by separating parse, validate, and execute phases in the engine, with typed errors for each stage.
+GraphQL validates an operation against the schema before it executes. `xiom.graphql` should make this explicit by separating parse, validate, and execute phases in the engine, with typed errors for each stage.
 
 ### 4. DataLoader-style batching is first-class
 
-GraphQL's N+1 problem is a real production concern, so `xiom-graphql` should provide an explicit batching hook rather than leaving batching to convention.
+GraphQL's N+1 problem is a real production concern, so `xiom.graphql` should provide an explicit batching hook rather than leaving batching to convention.
 
 ### 5. Subscriptions are transport-agnostic at the API layer
 
-The subscription engine should be independent of the socket transport, so `xiom-websocket` can supply the transport while `xiom-graphql` owns the protocol and event semantics.
+The subscription engine should be independent of the socket transport, so `xiom.websocket` can supply the transport while `xiom.graphql` owns the protocol and event semantics.
 
 ## Idiomatic XIOM translation
 
@@ -131,7 +131,7 @@ The subscription engine should be independent of the socket transport, so `xiom-
 | Operation validation | Compiler-like schema validation phase before execution |
 | Context | Explicit request-scoped struct passed to resolvers |
 | DataLoader | Batched loader interface with ownership-safe caches |
-| Subscriptions | Typed event streams bridged to `xiom-websocket` |
+| Subscriptions | Typed event streams bridged to `xiom.websocket` |
 | Directives | Declarative behavior extensions with explicit hooks |
 | Scalars | Strongly typed scalar codecs with contract validation |
 
@@ -155,7 +155,7 @@ Finalize the response, serialize errors in GraphQL format, and apply response-le
 
 ## Schema loading model
 
-`xiom-graphql` should support a schema loading pipeline like this:
+`xiom.graphql` should support a schema loading pipeline like this:
 
 1. Load SDL files.
 2. Merge root schema, scalar definitions, directives, and feature modules.
@@ -179,7 +179,7 @@ This keeps resolver discovery explicit and works naturally with XIOM's structura
 
 ## Error model
 
-GraphQL has a well-defined validation and execution error model. `xiom-graphql` should preserve that distinction:
+GraphQL has a well-defined validation and execution error model. `xiom.graphql` should preserve that distinction:
 
 - Validation errors: request is invalid, execution does not start.
 - Execution errors: some field resolution failed, partial data may still be returned depending on nullability rules.
@@ -191,7 +191,7 @@ Subscriptions should be modeled as explicit typed streams. The GraphQL layer def
 
 ## Batching and N+1 mitigation
 
-`xiom-graphql` should expose a first-class loader abstraction so users can batch resolver-side fetches. The package should document the N+1 problem clearly and make batching the default recommendation for nested fields.
+`xiom.graphql` should expose a first-class loader abstraction so users can batch resolver-side fetches. The package should document the N+1 problem clearly and make batching the default recommendation for nested fields.
 
 ## Example structure
 
@@ -245,4 +245,4 @@ pub fn schema() -> GraphQLSchema {
 
 ## Final recommendation
 
-`xiom-graphql` should be schema-first, resolver-thin, validation-heavy, and transport-separated. That gives you the strongest combination of GraphQL ergonomics and XIOM correctness: the schema is the contract, resolvers are explicit, validation happens before execution, and higher-level capabilities remain modular instead of leaking into the HTTP foundation.
+`xiom.graphql` should be schema-first, resolver-thin, validation-heavy, and transport-separated. That gives you the strongest combination of GraphQL ergonomics and XIOM correctness: the schema is the contract, resolvers are explicit, validation happens before execution, and higher-level capabilities remain modular instead of leaking into the HTTP foundation.

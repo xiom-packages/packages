@@ -1,4 +1,4 @@
-# xiom-blas Specification
+# xiom.blas Specification
 
 ## Overview
 BLAS/LAPACK FFI bindings for XIOM. Provides high-performance linear algebra via OpenBLAS (or any CBLAS-compatible library). Targets ML, scientific computing, and numerical workflows.

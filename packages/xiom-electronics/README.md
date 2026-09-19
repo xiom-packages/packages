@@ -1,4 +1,4 @@
-# xiom-electronics
+# xiom.electronics
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Electronic circuit analysis and component modeling.

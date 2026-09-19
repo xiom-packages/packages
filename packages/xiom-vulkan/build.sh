@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# build.sh -- Build the xiom-vulkan bridge and XIOM target (demo / test).
+# build.sh -- Build the xiom.vulkan bridge and XIOM target (demo / test).
 #
 # Pipeline:
 #   1. Compile GLSL shaders to SPIR-V via glslc

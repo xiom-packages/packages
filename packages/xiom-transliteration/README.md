@@ -1,4 +1,4 @@
-# xiom-transliteration
+# xiom.transliteration
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Transliteration between writing systems and scripts.

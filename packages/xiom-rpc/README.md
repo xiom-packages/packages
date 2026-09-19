@@ -1,4 +1,4 @@
-# xiom-rpc
+# xiom.rpc
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Generic RPC framework for serialized remote procedure calls.

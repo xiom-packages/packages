@@ -1,6 +1,6 @@
-# xiom-core SPEC
+# xiom.core SPEC
 
-Full API reference for the XIOM shared durable-systems substrate. xiom-core is a pure-XIOM package providing the config, error, identity, storage, WAL, and transaction primitives reused by `xiom-db` and `xiom-vector`.
+Full API reference for the XIOM shared durable-systems substrate. xiom.core is a pure-XIOM package providing the config, error, identity, storage, WAL, and transaction primitives reused by `xiom-db` and `xiom-vector`.
 
 ## Architecture
 

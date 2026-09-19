@@ -1,4 +1,4 @@
-# xiom-irc
+# xiom.irc
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** IRC client/server for real-time multi-user chat.

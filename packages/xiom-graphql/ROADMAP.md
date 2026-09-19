@@ -1,4 +1,4 @@
-# xiom-graphql ROADMAP
+# xiom.graphql ROADMAP
 
 ## v0.1.0 (Current)
 - [x] Core type system (GraphQLSchema, GraphQLType, GraphQLField, GraphQLArg)
@@ -56,6 +56,6 @@
 - [ ] DataLoader integration for N+1 mitigation
 - [ ] Introspection query support (__schema, __type, __typename)
 - [ ] Full contract verification on all public functions
-- [ ] Transport bridge to xiom-http
+- [ ] Transport bridge to xiom.http
 - [ ] Performance benchmarks
 - [ ] Load testing suite

@@ -1,4 +1,4 @@
-# xiom-control Specification
+# xiom.control Specification
 
 Control systems library for XIOM -- PID controllers, state machines, signal processing filters, and trajectory interpolation.
 

@@ -1,4 +1,4 @@
-# xiom-pool
+# xiom.pool
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Object pooling for reuse and management of expensive resources.

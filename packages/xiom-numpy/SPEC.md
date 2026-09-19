@@ -1,8 +1,8 @@
-# xiom-numpy -- SPEC
+# xiom.numpy -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
 **Status**: Phase 1 implemented -- types, extern C FFI, safe wrappers with contracts, 30 conformance tests
-**Depends on**: xiom.ffi (stdlib), xiom-openblas (BLAS/LAPACK backend)
+**Depends on**: xiom.ffi (stdlib), xiom.openblas (BLAS/LAPACK backend)
 
 ## What it wraps
 NumPy C API -- the fundamental array computing library for scientific Python.
@@ -16,7 +16,7 @@ bypassing Python entirely. This is what Cython/C extensions do internally.
 | What | How | Size |
 |------|-----|------|
 | NumPy source | Clone `github.com/numpy/numpy`. Extract `numpy/core/include/` headers. | ~5MB headers |
-| OpenBLAS | System-installed (via xiom-openblas) | ~30MB |
+| OpenBLAS | System-installed (via xiom.openblas) | ~30MB |
 | C compiler | For building bridge .obj | -- |
 
 ## Bundling strategy
@@ -84,10 +84,10 @@ pub fn transpose(arr: &NDArray) -> Result[NDArray, Str]
 | 1 | Array create/free, basic properties, element-wise ops | Weekend |
 | 2 | Linear algebra (dot, matmul, svd), reductions | Weekend |
 | 3 | Broadcasting, advanced indexing, FFT, random | Week |
-| 4 | Interop with xiom-libtorch (zero-copy tensor sharing) | Weekend |
+| 4 | Interop with xiom.libtorch (zero-copy tensor sharing) | Weekend |
 
 ## Relationship to other packages
-- `xiom-openblas`: NumPy delegates BLAS/LAPACK to OpenBLAS.
-- `xiom-libtorch`: NumPy arrays can be converted to LibTorch tensors.
-- `xiom-pandas`: Depends on NumPy for the underlying array storage.
-- `xiom-scipy`: Depends on NumPy for array types.
+- `xiom.openblas`: NumPy delegates BLAS/LAPACK to OpenBLAS.
+- `xiom.libtorch`: NumPy arrays can be converted to LibTorch tensors.
+- `xiom.pandas`: Depends on NumPy for the underlying array storage.
+- `xiom.scipy`: Depends on NumPy for array types.

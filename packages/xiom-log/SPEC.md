@@ -1,7 +1,7 @@
-# xiom-log SPEC
+# xiom.log SPEC
 
 ## Package Overview
-`xiom-log` is a structured, leveled logging library for the XIOM language. It supports six log levels, text and JSON output formats, configurable filtering, and field-based structured data.
+`xiom.log` is a structured, leveled logging library for the XIOM language. It supports six log levels, text and JSON output formats, configurable filtering, and field-based structured data.
 
 ## Modules
 

@@ -1,4 +1,4 @@
-# xiom-charts
+# xiom.charts
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Data visualization charting library.

@@ -1,4 +1,4 @@
-# xiom-csv
+# xiom.csv
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Comma-separated value reading and writing.

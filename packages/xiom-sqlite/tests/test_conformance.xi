@@ -1,8 +1,8 @@
-// XIOM -- xiom-sqlite Conformance Tests
+// XIOM -- xiom.sqlite Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Comprehensive conformance suite for xiom-sqlite pure-XIOM components.
+// Comprehensive conformance suite for xiom.sqlite pure-XIOM components.
 // Tests: types (SqliteValue, SqliteRow, SqliteResult, SqliteError),
 // query builder (SELECT/INSERT/UPDATE/DELETE SQL generation),
 // schema builder (table DDL, index DDL, affinity rendering),

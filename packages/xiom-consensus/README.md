@@ -1,4 +1,4 @@
-# xiom-consensus
+# xiom.consensus
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Consensus algorithm primitives.

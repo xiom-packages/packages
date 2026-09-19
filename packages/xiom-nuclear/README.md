@@ -1,4 +1,4 @@
-# xiom-nuclear
+# xiom.nuclear
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Nuclear physics: decay, fission, and radiation.

@@ -1,4 +1,4 @@
-# xiom-stemming
+# xiom.stemming
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Word stemming across multiple languages.

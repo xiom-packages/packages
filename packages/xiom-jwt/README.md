@@ -1,4 +1,4 @@
-# xiom-jwt
+# xiom.jwt
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** JSON Web Token creation, verification, and claim validation.

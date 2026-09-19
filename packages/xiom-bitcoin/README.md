@@ -1,4 +1,4 @@
-# xiom-bitcoin
+# xiom.bitcoin
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Bitcoin protocol and scripting support.

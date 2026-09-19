@@ -1,4 +1,4 @@
-# xiom-vulkan Specification
+# xiom.vulkan Specification
 
 ## Overview
 

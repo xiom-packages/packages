@@ -1,4 +1,4 @@
-# xiom-timer
+# xiom.timer
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Hardware timer/counter services for delays, scheduling, and timing measurement.

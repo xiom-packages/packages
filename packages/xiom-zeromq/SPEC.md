@@ -1,4 +1,4 @@
-# xiom-zeromq -- SPEC
+# xiom.zeromq -- SPEC
 
 **Phase**: 4 (Enterprise) | **Priority**: Medium
 **Status**: PRODUCTION | **Depends on**: xiom.ffi (for CStr bridge, future)

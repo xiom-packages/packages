@@ -1,8 +1,8 @@
-# xiom-json SPEC
+# xiom.json SPEC
 
 ## Package Overview
 
-`xiom-json` is a production-grade, pure-XIOM JSON library providing parsing, serialization, manipulation, validation, and schema checking. It requires no external C dependencies and operates entirely within the XIOM Layer 1 type system.
+`xiom.json` is a production-grade, pure-XIOM JSON library providing parsing, serialization, manipulation, validation, and schema checking. It requires no external C dependencies and operates entirely within the XIOM Layer 1 type system.
 
 **Module**: `xiom.json`
 **Version**: 0.1.0

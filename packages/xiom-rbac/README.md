@@ -1,4 +1,4 @@
-# xiom-rbac
+# xiom.rbac
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Role-based access control policies and checks.

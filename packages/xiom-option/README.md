@@ -1,4 +1,4 @@
-# xiom-option
+# xiom.option
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Optional and fallible value types for safe nullable handling.

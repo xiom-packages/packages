@@ -1,4 +1,4 @@
-# xiom-torch
+# xiom.torch
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Torch-style tensor and autograd bindings.

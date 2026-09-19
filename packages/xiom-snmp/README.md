@@ -1,4 +1,4 @@
-# xiom-snmp
+# xiom.snmp
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** SNMP agent/manager for network device monitoring.

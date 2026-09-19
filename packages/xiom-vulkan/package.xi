@@ -3,11 +3,11 @@
 // Licensed under the MIT or Apache-2.0 license, at your option.
 
 package {
-  name: "xiom-vulkan"
+  name: "xiom.vulkan"
   version: "0.2.0"
   description: "Vulkan GPU bindings for XIOM"
   authors: ["XIOM Team"]
   deps: {
-    "xiom-std": "0.1.0"
+    "xiom.std": "0.1.0"
   }
 }

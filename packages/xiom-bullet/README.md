@@ -1,4 +1,4 @@
-# xiom-bullet
+# xiom.bullet
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Bullet Physics engine bindings.

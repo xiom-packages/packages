@@ -1,4 +1,4 @@
-# xiom-ble
+# xiom.ble
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Bluetooth Low Energy advertising, scanning, and GATT connectivity.

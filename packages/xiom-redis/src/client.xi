@@ -15,86 +15,86 @@ pub enum RedisValue {
 }
 
 fn connect(host: Str, port: Int) -> Result[Int, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn connect_timeout(host: Str, port: Int, timeout_sec: Float64) -> Result[Int, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn disconnect(client: Int) {
 }
 
 fn command(client: Int, cmd: Str) -> Result[RedisValue, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn get(client: Int, key: Str) -> Result[Option[Str], Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn rset(client: Int, key: Str, value: Str) -> Result[Int, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn set_ex(client: Int, key: Str, value: Str, seconds: Int) -> Result[Int, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn rdel(client: Int, keys: Vec[Str]) -> Result[Int, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn exists(client: Int, keys: Vec[Str]) -> Result[Int, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn expire(client: Int, key: Str, seconds: Int) -> Result[Bool, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn keys(client: Int, pattern: Str) -> Result[Vec[Str], Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn incr(client: Int, key: Str) -> Result[Int, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn decr(client: Int, key: Str) -> Result[Int, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn hset(client: Int, hash: Str, field: Str, value: Str) -> Result[Bool, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn hget(client: Int, hash: Str, field: Str) -> Result[Option[Str], Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn hgetall(client: Int, hash: Str) -> Result[Map[Str, Str], Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn lpush(client: Int, key: Str, values: Vec[Str]) -> Result[Int, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn rpop(client: Int, key: Str) -> Result[Option[Str], Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn lrange(client: Int, key: Str, start: Int, stop: Int) -> Result[Vec[Str], Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn publish(client: Int, channel: Str, message: Str) -> Result[Int, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn ping(client: Int) -> Result[Str, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn redis_connect(host: Str, port: Int) -> Result[RedisConn, Str] {

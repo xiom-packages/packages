@@ -1,4 +1,4 @@
-# xiom-mock
+# xiom.mock
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Behavioral mocking of dependencies in tests.

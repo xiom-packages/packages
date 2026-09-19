@@ -1,8 +1,8 @@
-# xiom-opengl -- SPEC
+# xiom.opengl -- SPEC
 
 **Phase**: 2 (Scientific) | **Priority**: HIGH
 **Status**: SPEC layer implemented (v0.1.0) -- C bridge pending
-**Depends on**: xiom.ffi (stdlib), xiom-glfw (window creation)
+**Depends on**: xiom.ffi (stdlib), xiom.glfw (window creation)
 **Platform**: Cross-platform (Windows, Linux, macOS)
 
 ## What it wraps
@@ -19,7 +19,7 @@ Used alongside Vulkan for compatibility fallback.
 | C compiler | For building bridge | -- |
 
 ## Bundling strategy
-**OpenGL is system-installed** (part of GPU drivers). Extension loader (glad) is **bundled** as a single .c file (tiny). GLFW provides the window context (via xiom-glfw).
+**OpenGL is system-installed** (part of GPU drivers). Extension loader (glad) is **bundled** as a single .c file (tiny). GLFW provides the window context (via xiom.glfw).
 
 ## API surface
 
@@ -92,6 +92,6 @@ pub fn gl_get_uniform_location(prog: Program, name: Str) -> Int
 | 5 | Compute shaders, instancing, multi-pass, OpenGL ES 3.0 | Weekend | TODO |
 
 ## Relationship to other packages
-- `xiom-glfw`: Creates the window and OpenGL context.
-- `xiom-vulkan`: Vulkan is the modern alternative. OpenGL is for compatibility.
-- `xiom-directx11/12`: Windows-only alternatives.
+- `xiom.glfw`: Creates the window and OpenGL context.
+- `xiom.vulkan`: Vulkan is the modern alternative. OpenGL is for compatibility.
+- `xiom.directx11/12`: Windows-only alternatives.

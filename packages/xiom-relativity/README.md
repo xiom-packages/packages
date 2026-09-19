@@ -1,4 +1,4 @@
-# xiom-relativity
+# xiom.relativity
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Special and general relativity calculations.

@@ -1,4 +1,4 @@
-# xiom-optimizer-fw
+# xiom.optimizer-fw
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Framework for defining and running optimization passes.

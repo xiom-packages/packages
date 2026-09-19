@@ -1,4 +1,4 @@
-# xiom-webp
+# xiom.webp
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** WebP image codec: lossy (VP8) and lossless (VP8L) decode and encode.

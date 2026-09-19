@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-Clients disconnect -- networks drop, tabs sleep, phones lose signal -- and then they come back. **Offline sync** is the part of `xiom-realtime` that makes reconnection seamless: a client that was gone for thirty seconds should return to a consistent view without the user noticing the gap. This is expressed in XIOM as a **replay cursor plus a queued-event policy**.
+Clients disconnect -- networks drop, tabs sleep, phones lose signal -- and then they come back. **Offline sync** is the part of `xiom.realtime` that makes reconnection seamless: a client that was gone for thirty seconds should return to a consistent view without the user noticing the gap. This is expressed in XIOM as a **replay cursor plus a queued-event policy**.
 
 The mechanism builds directly on the ordering layer. Every durable event a client processes advances that client's **cursor** -- the sequence number of the last event it successfully consumed. While a client is disconnected, durable events destined for it can be **queued** (subject to the room's retention policy). On reconnect, the replay path reads the client's cursor and resends exactly the durable events with a higher sequence number, in order. Because ordering guarantees monotonic sequences and the dedupe window catches repeats, replay is gap-free and duplicate-free by construction.
 

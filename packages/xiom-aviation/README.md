@@ -1,4 +1,4 @@
-# xiom-aviation
+# xiom.aviation
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Aviation, navigation, and air traffic protocols.

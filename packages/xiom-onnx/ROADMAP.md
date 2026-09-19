@@ -1,4 +1,4 @@
-# xiom-onnx -- Roadmap
+# xiom.onnx -- Roadmap
 
 > **Version:** 0.1.0 | **Spec:** SPEC.md | **Audit:** AUDIT.md
 
@@ -83,7 +83,7 @@
 
 | Step | Item | Status |
 |------|------|--------|
-| 5.1 | `onnx_preprocess_image` -- real resize/normalize (xiom-opencv) | [ ] |
+| 5.1 | `onnx_preprocess_image` -- real resize/normalize (xiom.opencv) | [ ] |
 | 5.2 | Normalize via mean/std vectors | [ ] |
 | 5.3 | Channel ordering (RGB/BGR) | [ ] |
 | 5.4 | Batch preprocessing (N images -> NCHW tensor) | [ ] |

@@ -1,4 +1,4 @@
-# xiom-packet
+# xiom.packet
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Packet capture and low-level kernel networking.

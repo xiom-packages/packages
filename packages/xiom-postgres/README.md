@@ -1,4 +1,4 @@
-# xiom-postgres
+# xiom.postgres
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** PostgreSQL client: connections, queries, prepared statements, and COPY.

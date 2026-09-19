@@ -1,4 +1,4 @@
-# xiom-mp4
+# xiom.mp4
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** MP4 container: ISO BMFF box parsing, demuxing, and muxing.

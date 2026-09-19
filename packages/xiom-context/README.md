@@ -1,4 +1,4 @@
-# xiom-context
+# xiom.context
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Immutable execution context propagation across async boundaries.

@@ -1,4 +1,4 @@
-# xiom-defi
+# xiom.defi
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Decentralized finance protocol building blocks.

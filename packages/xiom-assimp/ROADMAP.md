@@ -1,4 +1,4 @@
-# xiom-assimp -- ROADMAP
+# xiom.assimp -- ROADMAP
 
 **Phase 1** (v0.1.0) -- **DONE**
 - [x] Opaque handle types: AiScene, AiMesh, AiMaterial, AiAnimation, AiNode

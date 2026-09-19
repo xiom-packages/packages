@@ -1,4 +1,4 @@
-# xiom-rest ROADMAP
+# xiom.rest ROADMAP
 
 ## v0.1.0 (Current)
 - [x] Core type system (RestClient, RestResponse, RestHeader, RestRequest, RestMethod, RestError)

@@ -1,4 +1,4 @@
-# xiom-inference
+# xiom.inference
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Model inference execution and batch prediction.

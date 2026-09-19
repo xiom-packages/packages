@@ -1,4 +1,4 @@
-# xiom-chaincrypto
+# xiom.chaincrypto
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Cryptographic primitives for blockchain systems.

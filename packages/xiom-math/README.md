@@ -1,4 +1,4 @@
-# xiom-math
+# xiom.math
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Numerical, vector, and statistical math utilities.

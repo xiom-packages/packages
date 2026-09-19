@@ -1,4 +1,4 @@
-# xiom-pulsar
+# xiom.pulsar
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Apache Pulsar messaging client.

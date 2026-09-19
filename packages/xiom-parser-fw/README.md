@@ -1,4 +1,4 @@
-# xiom-parser-fw
+# xiom.parser-fw
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Framework for building recursive-descent and precedence-climbing parsers.

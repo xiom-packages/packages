@@ -1,12 +1,19 @@
 #!/usr/bin/env pwsh
 # ============================================================================
-# Registry Index Generator -- XIOM Package Registry
+# Registry Index Generator -- XIOM Package Registry (LEGACY local fallback)
 # ============================================================================
+# NOTE (legacy): https://registry.xiom-lang.org is the canonical package index.
+# This generator exists only for the client's offline/local fallback index;
+# keep the output shape stable (packages[] entries with name, version,
+# description, source_files, dependencies, download_url, repository).
+#
 # Scans the packages/ directory and generates an index.json manifest.
-# Each package gets a version entry based on its package.xi version field.
+# The package name is read from the package.xi `name:` field (dotted, e.g.
+# "xiom.core"); the folder name is only a fallback when the manifest has no
+# name. Release URLs stay folder-keyed because folders (and the future split
+# repos) remain hyphenated.
 #
 # Output: packages/index.json
-# Format:  { "version": 1, "packages": [{ "name": "...", "versions": [...] }] }
 #
 # Usage: .\generate_index.ps1
 #        .\generate_index.ps1 -RepoRoot "E:\Projects\AXIOM"
@@ -39,7 +46,10 @@ $registry = @{
 
 Get-ChildItem $packagesDir -Directory | ForEach-Object {
     $pkgDir = $_.FullName
-    $pkgName = $_.Name
+    $folderName = $_.Name
+    # Package names are dotted (`xiom.core`); folders stay hyphenated. The
+    # manifest `name:` is authoritative -- the registry never sees folders.
+    $pkgName = $folderName
 
     # Read package.xi for version and metadata
     $pkgXi = Join-Path $pkgDir "package.xi"
@@ -49,13 +59,20 @@ Get-ChildItem $packagesDir -Directory | ForEach-Object {
 
     if (Test-Path $pkgXi) {
         $content = Get-Content $pkgXi -Raw
+        # Package name (dotted, e.g. "xiom.core"). Folder name is only a
+        # fallback, and warns so a missing manifest is visible.
+        if ($content -match 'name:\s*"([^"]*)"') { $pkgName = $matches[1] }
+        elseif ($content -match 'name:\s*(\S+)') { $pkgName = ($matches[1] -replace '[;,"]', '') }
+        else { Write-Warning "package.xi in $folderName has no name field; using folder name '$folderName'" }
         # Extract version (handle both "0.1.0" and 0.1.0 formats)
         if ($content -match 'version:\s*"([^"]*)"') { $version = $matches[1] }
         elseif ($content -match 'version:\s*(\S+)') { $version = ($matches[1] -replace '[;,"]', '') }
         # Extract description
         if ($content -match 'description:\s*"([^"]+)"') { $description = $matches[1] }
-        # Extract dependencies
-        if ($content -match 'dependencies:\s*\{([^}]+)\}') {
+        # Extract runtime dependencies from `deps:` (not `dev-deps:`), which
+        # may be inline (`deps: { "xiom.core": "0.1.0" };`) or multiline.
+        # Dependency keys use dotted package names.
+        if ($content -match '(?<![\w-])deps\s*:\s*\{([^}]*)\}') {
             $depsBlock = $matches[1]
             $depsBlock -split ',' | ForEach-Object {
                 if ($_ -match '"([^"]+)"\s*:\s*"([^"]+)"') {
@@ -63,6 +80,8 @@ Get-ChildItem $packagesDir -Directory | ForEach-Object {
                 }
             }
         }
+    } else {
+        Write-Warning "no package.xi in $folderName; using folder name '$folderName'"
     }
 
     # Count source files
@@ -84,7 +103,9 @@ Get-ChildItem $packagesDir -Directory | ForEach-Object {
         description = $description
         source_files = $sourceFiles
         dependencies = $dependencies
-        download_url = "$REGISTRY_BASE/$pkgName/v$version/package.tar.gz"
+        # Releases stay folder-keyed: folders (and future split repos) remain
+        # hyphenated while package names are dotted.
+        download_url = "$REGISTRY_BASE/$folderName/v$version/package.tar.gz"
         repository = "https://github.com/$GITHUB_ORG/packages"
     }
 

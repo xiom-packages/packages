@@ -1,4 +1,4 @@
-# xiom-grpc ROADMAP
+# xiom.grpc ROADMAP
 
 ## v0.1.0 (Current)
 - [x] Type system (GrpcServer, GrpcClient, GrpcChannel, GrpcCall, GrpcStatus)
@@ -14,7 +14,7 @@
 - [x] Conformance test suite (36 tests)
 
 ## v0.2.0 -- gRPC C-Core FFI Bridge
-- [ ] Protobuf message serialization via xiom-protobuf
+- [ ] Protobuf message serialization via xiom.protobuf
 - [ ] Unary RPC: request/response with deadline and metadata propagation
 - [ ] Client streaming RPC (request stream, single response)
 - [ ] Server streaming RPC (single request, response stream)

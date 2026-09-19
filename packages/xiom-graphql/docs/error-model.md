@@ -4,7 +4,7 @@
 
 ## Three distinct error categories
 
-GraphQL has a well-defined error model, and `xiom-graphql` preserves its distinctions rather than collapsing everything into a single failure type. Errors fall into three categories, each surfacing at a different layer:
+GraphQL has a well-defined error model, and `xiom.graphql` preserves its distinctions rather than collapsing everything into a single failure type. Errors fall into three categories, each surfacing at a different layer:
 
 ### Validation errors
 
@@ -16,7 +16,7 @@ The request was valid, but resolving a field failed. Execution errors are per-fi
 
 ### Transport errors
 
-Failures at the HTTP or WebSocket level -- a dropped connection, a malformed HTTP frame, a closed socket. These stay in the transport layer (`xiom-http`, `xiom-websocket`) and are **not** GraphQL errors. The GraphQL engine never sees them, and they never appear in the GraphQL `errors` array.
+Failures at the HTTP or WebSocket level -- a dropped connection, a malformed HTTP frame, a closed socket. These stay in the transport layer (`xiom.http`, `xiom.websocket`) and are **not** GraphQL errors. The GraphQL engine never sees them, and they never appear in the GraphQL `errors` array.
 
 ## Typed errors throughout
 

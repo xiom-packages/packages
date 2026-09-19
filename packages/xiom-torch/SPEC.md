@@ -1,8 +1,8 @@
-xiom-torch: XIOM LibTorch Bindings v0.1.0
+xiom.torch: XIOM LibTorch Bindings v0.1.0
 
 == Overview ==
 
-xiom-torch provides XIOM bindings to the LibTorch C++ API for PyTorch model
+xiom.torch provides XIOM bindings to the LibTorch C++ API for PyTorch model
 inference. The package is organized into three layers:
 
   - xiom.torch.types: Core tensor types, device abstractions, and data type
@@ -14,7 +14,7 @@ inference. The package is organized into three layers:
     forward passes are stubbed pending tensor math primitives in xiom-std.
 
 Layer: 3.5 (Ecosystem Libraries)
-Package: xiom-torch
+Package: xiom.torch
 Namespace: xiom.torch.*
 
 == LibTorch Runtime Dependency ==
@@ -202,7 +202,7 @@ Forward passes:
 1. **LibTorch FFI bridge** -- Implement xiom_torch_bridge.c for all extern "C"
    symbols using the LibTorch C++ API.
 2. **Tensor math primitives** -- matmul, elementwise ops, convolutions in
-   xiom-std or xiom-blas.
+   xiom-std or xiom.blas.
 3. **Real forward passes** -- Use tensor math to implement linear_forward,
    conv2d_forward, batch normalization, and activation functions.
 4. **Model serialization** -- Load/save PyTorch model files (.pt, .pth).

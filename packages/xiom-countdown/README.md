@@ -1,4 +1,4 @@
-# xiom-countdown
+# xiom.countdown
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Countdown latch for waiting on completion of a fixed number of operations.

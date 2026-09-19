@@ -1,4 +1,4 @@
-# xiom-cuda -- ROADMAP
+# xiom.cuda -- ROADMAP
 
 ## Phase 1: Core Foundation (CURRENT)
 **Status:** SPEC implemented -- types, extern "C" block, safe wrappers with contracts, conformance tests.
@@ -36,7 +36,7 @@
 - RNG state lifecycle: `curandCreateGenerator`, `curandGenerateUniform`, `curandDestroyGenerator`
 
 ## Phase 4: Tensor Interop (planned)
-- Interop layer with `xiom-libtorch` for tensor GPU migration
+- Interop layer with `xiom.libtorch` for tensor GPU migration
 - `to_cuda(t: Tensor) -> Tensor` and `to_cpu(t: Tensor) -> Tensor`
 - Shared memory management across CUDA and PyTorch contexts
 - `DeviceProps` full marshalling from `cudaGetDeviceProperties` C struct

@@ -1,4 +1,4 @@
-# xiom-opencv -- SPEC
+# xiom.opencv -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
 **Status**: SPEC only -- no implementation yet

@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-A circuit breaker stops a client from hammering a downstream service that is already failing. Instead of waiting for timeout after timeout while the dependency is unhealthy, the breaker **fails fast** -- returning an error immediately -- and periodically probes to see if the service has recovered. In `xiom-micro` the breaker lives in `breaker.xi` and its thresholds are configured through `policy/breaker_policy.xi`.
+A circuit breaker stops a client from hammering a downstream service that is already failing. Instead of waiting for timeout after timeout while the dependency is unhealthy, the breaker **fails fast** -- returning an error immediately -- and periodically probes to see if the service has recovered. In `xiom.micro` the breaker lives in `breaker.xi` and its thresholds are configured through `policy/breaker_policy.xi`.
 
 The breaker is modeled as a **contract-checked state machine** with three states:
 

@@ -1,8 +1,8 @@
-// XIOM -- xiom-assimp Conformance Tests
+// XIOM -- xiom.assimp Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Comprehensive conformance suite for xiom-assimp pure-XIOM components.
+// Comprehensive conformance suite for xiom.assimp pure-XIOM components.
 // Tests: type definitions, post-processing flag constants, flag presets,
 // scene import/release wrappers, error reporting, mesh/material queries,
 // contract enforcement (requires: clauses), and error-path behavior.
@@ -722,7 +722,7 @@ fn test_gen_bounding_boxes_flag() -> TestResult {
 // ===============================================================================
 
 pub fn main() -> Int {
-  io.println("=== xiom-assimp Conformance Tests ===");
+  io.println("=== xiom.assimp Conformance Tests ===");
   io.println("");
 
   var tests: Vec[fn() -> TestResult] = Vec[fn() -> TestResult].new();

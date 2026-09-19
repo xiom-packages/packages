@@ -1,4 +1,4 @@
-# xiom-flac
+# xiom.flac
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** FLAC audio codec: lossless decoding, encoding, and metadata handling.

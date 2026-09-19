@@ -1,4 +1,4 @@
-# xiom-assimp -- SPEC
+# xiom.assimp -- SPEC
 **Phase**: 5 (Nice-to-Have) | **Priority**: Low
 **Status**: Implemented (Phase 1) | **Depends on**: xiom.ffi
 

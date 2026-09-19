@@ -1,4 +1,4 @@
-# xiom-phaser
+# xiom.phaser
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Phaser synchronization for dynamic multi-party phase barriers.

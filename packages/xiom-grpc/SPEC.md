@@ -1,4 +1,4 @@
-# xiom-grpc -- SPEC
+# xiom.grpc -- SPEC
 **Phase**: 4 (Enterprise) | **Priority**: Medium
 **Status**: Implemented (v0.1.0) | **Depends on**: xiom.ffi, xiom.protobuf
 gRPC C Core bindings for XIOM -- types, FFI declarations, safe wrappers with contracts, and full status code support.

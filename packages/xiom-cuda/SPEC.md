@@ -1,7 +1,7 @@
-# xiom-cuda -- SPEC
+# xiom.cuda -- SPEC
 
 **Phase**: 2 | **Priority**: HIGH
-**Status**: Implemented (Phase 1 -- Core Foundation) | **Depends on**: xiom.ffi, xiom-libtorch (for tensor interop)
+**Status**: Implemented (Phase 1 -- Core Foundation) | **Depends on**: xiom.ffi, xiom.libtorch (for tensor interop)
 
 ## What it wraps
 CUDA Toolkit -- NVIDIA GPU computing (cuBLAS, cuDNN, cuFFT, cuRAND).

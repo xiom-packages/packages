@@ -1,4 +1,4 @@
-# xiom-onnx
+# xiom.onnx
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** ONNX model format parsing, export and execution.

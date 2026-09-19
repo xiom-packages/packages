@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-Pagination keeps large collections predictable, stable, and cheap to serve. `xiom-rest` treats pagination as a first-class, typed concern rather than an ad-hoc convention buried in each handler. Two strategies are supported: page-number pagination for small or stable datasets, and cursor pagination for large or mutable ones. In both cases the request parameters are parsed into typed structures before any business logic runs.
+Pagination keeps large collections predictable, stable, and cheap to serve. `xiom.rest` treats pagination as a first-class, typed concern rather than an ad-hoc convention buried in each handler. Two strategies are supported: page-number pagination for small or stable datasets, and cursor pagination for large or mutable ones. In both cases the request parameters are parsed into typed structures before any business logic runs.
 
 ## Page-number pagination
 

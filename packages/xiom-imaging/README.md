@@ -1,4 +1,4 @@
-# xiom-imaging
+# xiom.imaging
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Raster imaging and high-end image formats.

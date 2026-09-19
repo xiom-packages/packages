@@ -1,4 +1,4 @@
-# xiom-algo Specification
+# xiom.algo Specification
 
 Comprehensive algorithm library for the XIOM language -- sorting, searching, math, combinatorics, and vector utilities. All implementations are concrete over `Int` to avoid codegen issues with generic constraints.
 

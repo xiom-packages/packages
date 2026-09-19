@@ -1,4 +1,4 @@
-# xiom-golden
+# xiom.golden
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Golden-file testing against checked-in expected outputs.

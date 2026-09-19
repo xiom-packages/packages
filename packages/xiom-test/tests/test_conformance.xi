@@ -1,4 +1,4 @@
-// XIOM -- xiom-test Conformance Tests
+// XIOM -- xiom.test Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Tests: All public types and functions in the xiom.test module
 module test_tests

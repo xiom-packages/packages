@@ -1,8 +1,8 @@
-# xiom-websocket Architecture
+# xiom.websocket Architecture
 
-> **Status: Design stage -- specification only, not yet implemented. Depends on xiom-http (upgrade bridge) and xiom-net (TCP transport).**
+> **Status: Design stage -- specification only, not yet implemented. Depends on xiom.http (upgrade bridge) and xiom.net (TCP transport).**
 
-`xiom-websocket` is the WebSocket extension package for the XIOM ecosystem. It provides WebSocket handshake handling, frame parsing, connection lifecycle management, pub/sub channel abstractions, presence hooks, backpressure controls, and reconnect-oriented session semantics on top of `xiom-http` and `xiom-net`.
+`xiom.websocket` is the WebSocket extension package for the XIOM ecosystem. It provides WebSocket handshake handling, frame parsing, connection lifecycle management, pub/sub channel abstractions, presence hooks, backpressure controls, and reconnect-oriented session semantics on top of `xiom.http` and `xiom.net`.
 
 The package is intentionally separate from the core HTTP layer because WebSockets are stateful, long-lived connections with protocol-specific rules that should not burden ordinary HTTP applications. In scalable architectures, WebSockets usually need sticky routing plus a pub/sub backplane or message fan-out layer, so the package should make those concerns explicit instead of hiding them.
 
@@ -23,12 +23,12 @@ At the design stage only the manifest and documentation exist; no `.xi` source f
 
 ## What stays outside
 
-- HTTP server primitives remain in `xiom-http`.
-- TCP/UDP transport primitives remain in `xiom-net`.
-- REST stays in `xiom-rest`.
-- GraphQL execution stays in `xiom-graphql`.
-- Microservice discovery stays in `xiom-micro`.
-- Realtime app semantics such as chat rooms or collaboration documents stay in `xiom-realtime`.
+- HTTP server primitives remain in `xiom.http`.
+- TCP/UDP transport primitives remain in `xiom.net`.
+- REST stays in `xiom.rest`.
+- GraphQL execution stays in `xiom.graphql`.
+- Microservice discovery stays in `xiom.micro`.
+- Realtime app semantics such as chat rooms or collaboration documents stay in `xiom.realtime`.
 
 ## Design goals
 
@@ -100,7 +100,7 @@ xiom-websocket/
 Implements the HTTP Upgrade handshake and validates required headers. The handshake should be a strict, typed state transition from HTTP request to WebSocket connection.
 
 ### `src/upgrade.xi`
-Bridges `xiom-http` request handling into WebSocket mode.
+Bridges `xiom.http` request handling into WebSocket mode.
 
 ### `src/frame.xi`
 Encodes and decodes WebSocket frames, including masking rules, fragmentation, control frames, and payload size checks.
@@ -148,11 +148,11 @@ Negotiation and validation of custom subprotocols.
 Authentication hooks for connection establishment and session binding.
 
 ### `src/transport/`
-The transport layer isolates socket ownership from protocol logic. `http_upgrade_bridge.xi` performs the handoff from an `xiom-http` request into a raw duplex socket, and `websocket_stream.xi` wraps the underlying `xiom-net` TCP stream with the framed read/write loop that the connection layer consumes.
+The transport layer isolates socket ownership from protocol logic. `http_upgrade_bridge.xi` performs the handoff from an `xiom.http` request into a raw duplex socket, and `websocket_stream.xi` wraps the underlying `xiom.net` TCP stream with the framed read/write loop that the connection layer consumes.
 
 ## WebSocket protocol responsibilities
 
-`xiom-websocket` should model the protocol as a strict state machine:
+`xiom.websocket` should model the protocol as a strict state machine:
 
 1. HTTP request received.
 2. Upgrade headers validated.
@@ -169,7 +169,7 @@ This reflects the standard RFC 6455 protocol lifecycle: opening handshake, frame
 
 WebSocket connections are stateful and long-lived, so the package should make scale architecture explicit rather than hiding it behind a single-node abstraction. Real systems usually scale WebSockets with load balancing plus sticky routing, then use a pub/sub backplane such as Redis, Kafka, or NATS for cross-instance fan-out.
 
-That means `xiom-websocket` should expose:
+That means `xiom.websocket` should expose:
 
 - Local connection registry.
 - Message bus abstraction.
@@ -216,7 +216,7 @@ pub fn handle_upgrade(req: HttpRequest) -> Result[WebSocketConnection, HttpError
 
 ## Subprotocol strategy
 
-`xiom-websocket` should support custom subprotocols via a typed negotiation step. This lets higher-level packages such as `xiom-graphql` subscriptions or `xiom-realtime` rooms reuse the same transport while defining their own message semantics.
+`xiom.websocket` should support custom subprotocols via a typed negotiation step. This lets higher-level packages such as `xiom.graphql` subscriptions or `xiom.realtime` rooms reuse the same transport while defining their own message semantics.
 
 ## Contract hotspots
 
@@ -256,4 +256,4 @@ pub fn handle_upgrade(req: HttpRequest) -> Result[WebSocketConnection, HttpError
 
 ## Final recommendation
 
-`xiom-websocket` should be a transport-and-session package, not a real-time application framework. Keep it focused on protocol correctness, connection lifecycle, heartbeat, backpressure, reconnects, and fan-out plumbing, and let `xiom-realtime` or `xiom-graphql` build the higher-level behavior on top.
+`xiom.websocket` should be a transport-and-session package, not a real-time application framework. Keep it focused on protocol correctness, connection lifecycle, heartbeat, backpressure, reconnects, and fan-out plumbing, and let `xiom.realtime` or `xiom.graphql` build the higher-level behavior on top.

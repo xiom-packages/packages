@@ -1,4 +1,4 @@
-# xiom-mp3
+# xiom.mp3
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** MP3 audio codec: MPEG audio layer III decoding and encoding.

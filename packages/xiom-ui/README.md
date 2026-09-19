@@ -1,4 +1,4 @@
-# xiom-ui
+# xiom.ui
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** High-level retained-mode UI toolkit bindings.

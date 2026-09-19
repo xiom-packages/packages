@@ -1,4 +1,4 @@
-# xiom-vulkan -- Production Roadmap
+# xiom.vulkan -- Production Roadmap
 
 **Current rating: 7/10** -- Solid C bridge, good XIOM layer. Incomplete safety coverage.
 **C bridge**: 29 files, 368 functions, 0 errors, 0 warnings (clang -O2 -Wall -Wextra)
@@ -10,12 +10,12 @@
 
 ## Honest Assessment
 
-xiom-vulkan is the most mature ecosystem package. The C bridge has been hardened through 6 production sprints -- 10+ vkBind checks, 6 vkMapMemory checks, offscreen leak fixes, QueueSubmit error handling, thread-local error buffer, camera per-app context, descriptor caching. The XIOM layer has three complete sub-modules: raw auto-generated bindings (vulkan_extern.xi, 755 functions), safe resource wrappers (vulkan_safe.xi, 24+ types with contracts), and a legacy convenience API (vulkan.xi/wrapper.xi, 100+ functions).
+xiom.vulkan is the most mature ecosystem package. The C bridge has been hardened through 6 production sprints -- 10+ vkBind checks, 6 vkMapMemory checks, offscreen leak fixes, QueueSubmit error handling, thread-local error buffer, camera per-app context, descriptor caching. The XIOM layer has three complete sub-modules: raw auto-generated bindings (vulkan_extern.xi, 755 functions), safe resource wrappers (vulkan_safe.xi, 24+ types with contracts), and a legacy convenience API (vulkan.xi/wrapper.xi, 100+ functions).
 
 The remaining gaps are:
 1. **Safety coverage**: vulkan.xi has contracts on ~60% of functions. vulkan_safe.xi covers ~40% of Vulkan entry points.
 2. **Multi-instance**: Global camera/instance state still uses old static globals in some code paths.
-3. **Struct marshalling**: 1306 lines in vulkan_structs.xi should move to xiom-ffi.
+3. **Struct marshalling**: 1306 lines in vulkan_structs.xi should move to xiom.ffi.
 4. **Demo stability**: The imgui demo has DPI/fullscreen issues -- compiler-related, not bridge-related.
 
 ---
@@ -74,13 +74,13 @@ Documented in BRIDGE_AUDIT.md: after window resize, framebuffers are not rebuilt
 **HIGH** | `vulkan.xi`, `vulkan_safe.xi`
 stdlib `xiom.ffi` already has `alloc()/free()` with contracts. Replace local inline declarations.
 
-### VK-12: Move struct marshalling primitives to xiom-ffi
+### VK-12: Move struct marshalling primitives to xiom.ffi
 **MEDIUM** | `vulkan_structs.xi` -> `xiom-ffi/src/marshal.xi`
 1306 lines of byte-offset struct builders. This is generic FFI utility, not Vulkan-specific.
 
 ### VK-13: Add `use xiom_ffi.ptr` for SafePtr wrappers on buffer/image memory
 **LOW** | `vulkan.xi`, `vulkan_safe.xi`
-Replace raw `Int` memory handles with `SafePtr` wrappers from xiom-ffi.
+Replace raw `Int` memory handles with `SafePtr` wrappers from xiom.ffi.
 
 ### VK-14: Full test suite for all 100+ public vulkan.xi functions
 **MEDIUM** | `tests/`

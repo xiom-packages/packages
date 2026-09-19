@@ -1,10 +1,10 @@
-# xiom-micro Architecture
+# xiom.micro Architecture
 
-> **Status: Design stage -- specification only, not yet implemented. Depends on xiom-http (transport) and xiom-net.**
+> **Status: Design stage -- specification only, not yet implemented. Depends on xiom.http (transport) and xiom.net.**
 
-`xiom-micro` is the microservices-support package for the XIOM ecosystem. It provides service discovery abstractions, typed RPC clients, retries with budgets, circuit breakers, bulkheads, distributed tracing hooks, idempotency helpers, and workflow primitives for multi-service systems. The goal is not to build an opinionated microservices framework, but to provide the minimum infrastructure needed to make service-to-service communication resilient and explicit.
+`xiom.micro` is the microservices-support package for the XIOM ecosystem. It provides service discovery abstractions, typed RPC clients, retries with budgets, circuit breakers, bulkheads, distributed tracing hooks, idempotency helpers, and workflow primitives for multi-service systems. The goal is not to build an opinionated microservices framework, but to provide the minimum infrastructure needed to make service-to-service communication resilient and explicit.
 
-The package is intentionally separate from `xiom-http` so that transport primitives remain simple while distributed-systems behavior stays opt-in. That matches the ecosystem rule already established for XIOM: keep the core focused, and put higher-level patterns in separate packages.
+The package is intentionally separate from `xiom.http` so that transport primitives remain simple while distributed-systems behavior stays opt-in. That matches the ecosystem rule already established for XIOM: keep the core focused, and put higher-level patterns in separate packages.
 
 ## What belongs here
 
@@ -21,11 +21,11 @@ The package is intentionally separate from `xiom-http` so that transport primiti
 
 ## What stays outside
 
-- HTTP primitives stay in `xiom-http`.
-- REST conventions stay in `xiom-rest`.
-- GraphQL stays in `xiom-graphql`.
-- WebSocket transport stays in `xiom-websocket`.
-- Real-time app semantics stay in `xiom-realtime`.
+- HTTP primitives stay in `xiom.http`.
+- REST conventions stay in `xiom.rest`.
+- GraphQL stays in `xiom.graphql`.
+- WebSocket transport stays in `xiom.websocket`.
+- Real-time app semantics stay in `xiom.realtime`.
 
 ## Design goals
 
@@ -110,7 +110,7 @@ xiom-micro/
 ## Core module responsibilities
 
 ### `src/discovery.xi`
-Defines the service discovery abstraction. `xiom-micro` should not force a specific registry; instead it should support client-side and server-side discovery adapters through a structural interface.
+Defines the service discovery abstraction. `xiom.micro` should not force a specific registry; instead it should support client-side and server-side discovery adapters through a structural interface.
 
 ### `src/registry.xi`
 Registry adapters for Kubernetes DNS/service discovery, Consul-like registries, static service maps, or test registries.
@@ -165,7 +165,7 @@ Fake registries and transports so resilience behavior can be tested without real
 
 ## Microservice architecture model
 
-`xiom-micro` should model distributed calls as a pipeline:
+`xiom.micro` should model distributed calls as a pipeline:
 
 1. Resolve service endpoint.
 2. Check health and breaker state.
@@ -212,7 +212,7 @@ These rules follow common resilient microservice practice and should be document
 
 ## Service discovery strategy
 
-`xiom-micro` should support multiple discovery modes:
+`xiom.micro` should support multiple discovery modes:
 
 - Static registry for local development.
 - Client-side discovery for internal services.
@@ -286,4 +286,4 @@ pub fn fetch_user(id: UInt) -> Result[User, ServiceError] {
 
 ## Final recommendation
 
-`xiom-micro` should be the ecosystem's resilience and distributed-call package: small, policy-driven, typed, and explicit. It should help XIOM apps survive service failures and multi-step workflows without forcing a heavy framework or hiding operational behavior behind magic.
+`xiom.micro` should be the ecosystem's resilience and distributed-call package: small, policy-driven, typed, and explicit. It should help XIOM apps survive service failures and multi-step workflows without forcing a heavy framework or hiding operational behavior behind magic.

@@ -1,4 +1,4 @@
-# xiom-randomforest
+# xiom.randomforest
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Random forest classification and regression.

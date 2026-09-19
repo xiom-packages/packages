@@ -1,8 +1,8 @@
-# xiom-imgui -- SPEC
+# xiom.imgui -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
 **Status**: PRODUCTION -- v0.3.0, 90+ FFI, 65+ safe wrappers, Begin/End tracking
-**Depends on**: xiom.ffi (stdlib), xiom-vulkan, xiom-glfw
+**Depends on**: xiom.ffi (stdlib), xiom.vulkan, xiom.glfw
 
 ## What it wraps
 Dear ImGui v1.92.9 -- immediate-mode GUI library.
@@ -13,8 +13,8 @@ Widgets, windows, tabs, popups, menus, plots, styling.
 | What | How | Size |
 |------|-----|------|
 | Dear ImGui v1.92.9 | **Bundled as .obj** (7 files: imgui, draw, widgets, tables, impl_glfw, impl_vulkan, bridge) | ~500KB source |
-| GLFW 3.4 | System-installed (via xiom-glfw) | -- |
-| Vulkan SDK | System-installed (via xiom-vulkan) | -- |
+| GLFW 3.4 | System-installed (via xiom.glfw) | -- |
+| Vulkan SDK | System-installed (via xiom.vulkan) | -- |
 
 ## Bundling strategy
 **Dear ImGui bundled only.** It's small (~500KB) and has no package manager.

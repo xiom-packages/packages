@@ -1,4 +1,4 @@
-# xiom-net
+# xiom.net
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** TCP/UDP socket networking over native OS socket APIs.

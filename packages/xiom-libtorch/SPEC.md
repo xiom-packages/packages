@@ -1,4 +1,4 @@
-# xiom-libtorch -- SPEC
+# xiom.libtorch -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
 **Status**: Phase 1 implemented -- module `xiom.libtorch` with 18 safe wrappers, 18 extern "C" decls, 16 conformance tests

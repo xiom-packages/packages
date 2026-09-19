@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-The outbox pattern solves the *dual-write problem*: a service often needs to both change its local database **and** publish a message (an event, a command, a notification) as part of the same logical operation. Doing these as two independent network/IO actions is unsafe -- if the process crashes between them, you either update the database without publishing, or publish without committing, and the system ends up inconsistent. `xiom-micro` supports the outbox as a first-class workflow helper in `workflow/outbox.xi`.
+The outbox pattern solves the *dual-write problem*: a service often needs to both change its local database **and** publish a message (an event, a command, a notification) as part of the same logical operation. Doing these as two independent network/IO actions is unsafe -- if the process crashes between them, you either update the database without publishing, or publish without committing, and the system ends up inconsistent. `xiom.micro` supports the outbox as a first-class workflow helper in `workflow/outbox.xi`.
 
 The idea is to make the publish **part of the same local transaction as the business write**. Instead of publishing directly, the service writes the outgoing message into an *outbox table* in the same database transaction that performs the business change. Because both writes commit atomically, there is no window where one succeeds without the other. A separate **relay** step then reads pending rows from the outbox and publishes them to the message broker, marking each as sent once acknowledged.
 

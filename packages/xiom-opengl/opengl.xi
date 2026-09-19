@@ -4,7 +4,7 @@
 //
 // Pure SPEC package -- all FFI calls return Err until the C bridge is linked.
 // Wraps OpenGL 4.6 Core Profile. Extension loader (glad) bundled at build time.
-// Depends on: xiom-glfw (window creation), glad (extension loader).
+// Depends on: xiom.glfw (window creation), glad (extension loader).
 //
 // Real C bridge will be linked after xiom.ffi matures.
 // Compile (when bridge ready):
@@ -210,7 +210,7 @@ extern "C" {
 pub fn gl_create_shader(typ: Int) -> Result[GlShader, Str]
   requires: typ == GL_VERTEX_SHADER || typ == GL_FRAGMENT_SHADER || typ == GL_GEOMETRY_SHADER || typ == GL_COMPUTE_SHADER || typ == GL_TESS_CONTROL_SHADER || typ == GL_TESS_EVALUATION_SHADER
 {
-  return Err("gl_create_shader: C bridge not yet linked -- xiom-opengl is in SPEC phase");
+  return Err("gl_create_shader: C bridge not yet linked -- xiom.opengl is in SPEC phase");
 }
 
 pub fn gl_shader_source(shader: GlShader, source: Str)
@@ -222,7 +222,7 @@ pub fn gl_shader_source(shader: GlShader, source: Str)
 pub fn gl_compile_shader(shader: GlShader) -> Result[Unit, Str]
   requires: shader != 0
 {
-  return Err("gl_compile_shader: C bridge not yet linked -- xiom-opengl is in SPEC phase");
+  return Err("gl_compile_shader: C bridge not yet linked -- xiom.opengl is in SPEC phase");
 }
 
 pub fn gl_delete_shader(shader: GlShader)
@@ -236,7 +236,7 @@ pub fn gl_delete_shader(shader: GlShader)
 
 pub fn gl_create_program() -> Result[GlProgram, Str]
 {
-  return Err("gl_create_program: C bridge not yet linked -- xiom-opengl is in SPEC phase");
+  return Err("gl_create_program: C bridge not yet linked -- xiom.opengl is in SPEC phase");
 }
 
 pub fn gl_attach_shader(prog: GlProgram, shader: GlShader)
@@ -248,7 +248,7 @@ pub fn gl_attach_shader(prog: GlProgram, shader: GlShader)
 pub fn gl_link_program(prog: GlProgram) -> Result[Unit, Str]
   requires: prog != 0
 {
-  return Err("gl_link_program: C bridge not yet linked -- xiom-opengl is in SPEC phase");
+  return Err("gl_link_program: C bridge not yet linked -- xiom.opengl is in SPEC phase");
 }
 
 pub fn gl_use_program(prog: GlProgram)
@@ -267,7 +267,7 @@ pub fn gl_delete_program(prog: GlProgram)
 
 pub fn gl_gen_buffer() -> Result[GlBuffer, Str]
 {
-  return Err("gl_gen_buffer: C bridge not yet linked -- xiom-opengl is in SPEC phase");
+  return Err("gl_gen_buffer: C bridge not yet linked -- xiom.opengl is in SPEC phase");
 }
 
 pub fn gl_bind_buffer(target: Int, buf: GlBuffer)
@@ -294,7 +294,7 @@ pub fn gl_delete_buffer(buf: GlBuffer)
 
 pub fn gl_gen_vertex_array() -> Result[GlVao, Str]
 {
-  return Err("gl_gen_vertex_array: C bridge not yet linked -- xiom-opengl is in SPEC phase");
+  return Err("gl_gen_vertex_array: C bridge not yet linked -- xiom.opengl is in SPEC phase");
 }
 
 pub fn gl_bind_vertex_array(vao: GlVao)
@@ -382,7 +382,7 @@ pub fn gl_viewport(x: Int, y: Int, w: Int, h: Int)
 
 pub fn gl_gen_texture() -> Result[GlTexture, Str]
 {
-  return Err("gl_gen_texture: C bridge not yet linked -- xiom-opengl is in SPEC phase");
+  return Err("gl_gen_texture: C bridge not yet linked -- xiom.opengl is in SPEC phase");
 }
 
 pub fn gl_bind_texture(target: Int, tex: GlTexture)
@@ -448,7 +448,7 @@ pub fn gl_create_context(win: Int, major: Int, minor: Int) -> Result[Int, Str]
   requires: major >= 1
   requires: minor >= 0
 {
-  return Err("gl_create_context: C bridge not yet linked -- xiom-opengl is in SPEC phase");
+  return Err("gl_create_context: C bridge not yet linked -- xiom.opengl is in SPEC phase");
 }
 
 pub fn gl_make_current(ctx: Int)

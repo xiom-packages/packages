@@ -1,4 +1,4 @@
-# xiom-rest
+# xiom.rest
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** RESTful API layer built on the HTTP package.

@@ -1,4 +1,4 @@
-# xiom-feature
+# xiom.feature
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Feature engineering and transformation helpers.

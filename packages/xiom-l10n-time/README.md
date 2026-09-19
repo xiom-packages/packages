@@ -1,4 +1,4 @@
-# xiom-l10n-time
+# xiom.l10n-time
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Locale-aware time-of-day formatting, parsing, and time zone handling.

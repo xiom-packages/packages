@@ -1,4 +1,4 @@
-# xiom-dxc
+# xiom.dxc
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** DirectX Shader Compiler (HLSL to DXIL) bindings.

@@ -1,4 +1,4 @@
-# xiom-realtime
+# xiom.realtime
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Realtime scheduling, timing, and event loop utilities.

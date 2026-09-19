@@ -1,4 +1,4 @@
-# xiom-environment
+# xiom.environment
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Environmental monitoring and impact assessment.

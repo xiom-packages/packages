@@ -1,4 +1,4 @@
-// XIOM -- xiom-algo Conformance Tests
+// XIOM -- xiom.algo Conformance Tests
 // 33 tests covering searching, sorting, math, combinatorics, arrays, sequences
 module algo_tests
 use xiom.io; use xiom.test; use xiom.algo;

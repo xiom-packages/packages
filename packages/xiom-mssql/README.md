@@ -1,4 +1,4 @@
-# xiom-mssql
+# xiom.mssql
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Microsoft SQL Server client over the TDS protocol.

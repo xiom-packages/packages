@@ -1,4 +1,4 @@
-# xiom-zstd
+# xiom.zstd
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Zstandard fast compression/decompression bindings.

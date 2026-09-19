@@ -1,4 +1,4 @@
-# xiom-websocket
+# xiom.websocket
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** WebSocket client/server with RFC 6455 framing.

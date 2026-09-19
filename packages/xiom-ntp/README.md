@@ -1,4 +1,4 @@
-# xiom-ntp
+# xiom.ntp
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** NTP client/server for network time synchronization.

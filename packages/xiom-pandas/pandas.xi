@@ -7,7 +7,7 @@
 // Links against system-installed libpandas_bridge at link time.
 //
 // Compiler gap: raw pointer marshaling uses Int (memory address).
-// Arrow C Data Interface is used for zero-copy interop with xiom-arrow.
+// Arrow C Data Interface is used for zero-copy interop with xiom.arrow.
 
 module xiom.pandas
 

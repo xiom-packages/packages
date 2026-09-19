@@ -1,4 +1,4 @@
-# xiom-codegen-fw
+# xiom.codegen-fw
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Framework for target-agnostic code generation pipelines.

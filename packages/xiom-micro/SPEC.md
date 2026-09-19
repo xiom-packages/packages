@@ -1,10 +1,10 @@
-# xiom-micro -- Specification
+# xiom.micro -- Specification
 
 > **Status: v0.1.0 -- Implemented.** Core microservice framework types, router, route registration, request/response builders, middleware chain, and app builder are implemented in `micro.xi`. See `ROADMAP.md` for planned features.
 
 ## Overview
 
-`xiom-micro` is the resilience and distributed-call package for the XIOM ecosystem. It sits above `xiom-http` (client transport) and `xiom-net` (low-level networking) and provides service discovery, typed RPC, retries with budgets, circuit breakers, bulkheads, timeouts, distributed tracing, idempotency, and multi-service workflow primitives (outbox and saga).
+`xiom.micro` is the resilience and distributed-call package for the XIOM ecosystem. It sits above `xiom.http` (client transport) and `xiom.net` (low-level networking) and provides service discovery, typed RPC, retries with budgets, circuit breakers, bulkheads, timeouts, distributed tracing, idempotency, and multi-service workflow primitives (outbox and saga).
 
 Every primitive is designed around XIOM's philosophy: contracts enforce call assumptions, failures surface as typed `Result` errors, the breaker is a contract-checked state machine, retries require an explicit budget, endpoints are typed values, and saga compensations are explicit functions -- never hidden rollback magic.
 
@@ -55,7 +55,7 @@ Shared outbound envelope carrying method/path or RPC method name, headers, typed
 Shared inbound envelope carrying status, typed body, headers, and trace metadata. Errors are mapped to typed `ServiceError` / `RpcError` variants rather than raw status codes.
 
 ### `src/discovery.xi` -- Discovery abstraction -- *Planned*
-Structural `Discovery` interface so `xiom-micro` never forces one registry. Supports client-side and server-side discovery adapters. Conceptual surface: `discover(service: Str) -> Result[Vec[Endpoint], ServiceError]`.
+Structural `Discovery` interface so `xiom.micro` never forces one registry. Supports client-side and server-side discovery adapters. Conceptual surface: `discover(service: Str) -> Result[Vec[Endpoint], ServiceError]`.
 
 ### `src/registry.xi` -- Registry adapters -- *Planned*
 Concrete adapters implementing `Discovery`: Kubernetes DNS/service discovery, Consul-like registries, static service maps, and a deterministic test registry.

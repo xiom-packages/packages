@@ -1,4 +1,4 @@
-# xiom-stub
+# xiom.stub
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Static stubs with canned responses for tests.

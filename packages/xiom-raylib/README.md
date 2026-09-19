@@ -1,4 +1,4 @@
-# xiom-raylib
+# xiom.raylib
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** raylib game development library bindings.

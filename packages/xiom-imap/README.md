@@ -1,4 +1,4 @@
-# xiom-imap
+# xiom.imap
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** IMAP client/server for mailbox access and synchronization.

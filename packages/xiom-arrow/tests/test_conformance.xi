@@ -1,8 +1,8 @@
-// XIOM -- xiom-arrow Conformance Tests
+// XIOM -- xiom.arrow Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Comprehensive conformance suite for xiom-arrow pure-XIOM components.
+// Comprehensive conformance suite for xiom.arrow pure-XIOM components.
 // Tests: DataType constructors + accessors, Field/Schema builders,
 // Array low-level wrappers (create/free/length/buffers/children),
 // Schema low-level wrappers (create/free/format/name),
@@ -596,7 +596,7 @@ fn test_dtype_all_variants() -> TestResult {
 // ===============================================================================
 
 pub fn main() -> Int {
-  io.println("=== xiom-arrow Conformance Tests ===");
+  io.println("=== xiom.arrow Conformance Tests ===");
   io.println("");
 
   var tests: Vec[fn() -> TestResult] = Vec[fn() -> TestResult].new();

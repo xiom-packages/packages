@@ -1,4 +1,4 @@
-# xiom-xml
+# xiom.xml
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** XML parsing, DOM access, and serialization.

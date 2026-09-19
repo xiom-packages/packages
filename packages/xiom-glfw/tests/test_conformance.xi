@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Comprehensive conformance suite for xiom-glfw safe wrappers.
+// Comprehensive conformance suite for xiom.glfw safe wrappers.
 // Covers all 17 public functions across lifecycle, window, size,
 // input, monitor, and fullscreen categories.
 //

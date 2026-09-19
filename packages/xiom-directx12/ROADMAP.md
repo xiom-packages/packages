@@ -1,4 +1,4 @@
-# xiom-directx12 -- ROADMAP
+# xiom.directx12 -- ROADMAP
 
 **Phase 2 (Scientific)** | **Priority: HIGH**
 **Depends on**: xiom.ffi (stdlib)
@@ -48,7 +48,7 @@ All FFI calls return `Err(...)` or stub defaults -- no C bridge is linked yet.
 - [ ] Create window (via raw Win32 CreateWindowEx or xiom-windowing bridge)
 - [ ] Create D3D12 device + command queue + swap chain (3 back buffers)
 - [ ] Create root signature (empty or single CBV)
-- [ ] Compile VS/PS via xiom-dxc (HLSL -> DXIL bytecode)
+- [ ] Compile VS/PS via xiom.dxc (HLSL -> DXIL bytecode)
 - [ ] Create PSO from root signature + shader bytecodes
 - [ ] Create vertex buffer via upload heap -> default heap copy
 - [ ] Create RTV descriptor heap for swap chain back buffers

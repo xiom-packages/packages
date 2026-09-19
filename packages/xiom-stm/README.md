@@ -1,4 +1,4 @@
-# xiom-stm
+# xiom.stm
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Software transactional memory for composable atomic operations.

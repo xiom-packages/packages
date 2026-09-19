@@ -1,4 +1,4 @@
-# xiom-ffmpeg
+# xiom.ffmpeg
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** FFI bindings to FFmpeg for media demuxing, decoding, encoding, and scaling.

@@ -1,4 +1,4 @@
-# xiom-numpy
+# xiom.numpy
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** NumPy-compatible array computing API.

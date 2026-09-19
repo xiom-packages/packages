@@ -1,4 +1,4 @@
-# xiom-libpq -- SPEC
+# xiom.libpq -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
 **Status**: XIOM layer implemented -- FFI stubs return Err until C bridge is linked

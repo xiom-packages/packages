@@ -1,4 +1,4 @@
-# xiom-meshopt
+# xiom.meshopt
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Mesh optimization and vertex processing bindings.

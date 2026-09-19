@@ -1,4 +1,4 @@
-# xiom-ui Roadmap
+# xiom.ui Roadmap
 
 ## v0.1.0 (Current)
 
@@ -22,7 +22,7 @@
 
 ## v0.3.0 -- GLFW Window Integration
 
-- [ ] xiom-glfw FFI binding: window creation, input polling, event translation
+- [ ] xiom.glfw FFI binding: window creation, input polling, event translation
 - [ ] GlfwApp: concrete UIApp runner with GLFW backend
 - [ ] Resize handling: viewport updates on window resize
 - [ ] Multi-window support: independent UIApps per window
@@ -71,7 +71,7 @@
 
 ## v0.9.0 -- Backend Expansion
 
-- [ ] Vulkan render backend: alternative to OpenGL via xiom-vulkan
+- [ ] Vulkan render backend: alternative to OpenGL via xiom.vulkan
 - [ ] DirectX render backend: Windows-native rendering path
 - [ ] Headless render target: render-to-texture for testing and caching
 - [ ] Metal render backend: macOS-native rendering path
@@ -83,7 +83,7 @@
 - [ ] API stability freeze and deprecation policy
 - [ ] Performance benchmarks: layout, rendering, memory
 - [ ] Documentation: tutorial, API reference, migration guide
-- [ ] Package registry: xiom install xiom-ui
+- [ ] Package registry: xiom install xiom.ui
 - [ ] CI/CD: automated testing across platforms (Windows, Linux, macOS)
 - [ ] Examples: counter, form, layout, image viewer, text editor demos
 
@@ -96,5 +96,5 @@
 - [ ] Localization: string tables, RTL layout support
 - [ ] Plotting: 2D chart widget (line, bar, scatter, pie)
 - [ ] Canvas widget: immediate-mode 2D drawing surface
-- [ ] WebAssembly target: xiom-ui running in browsers
+- [ ] WebAssembly target: xiom.ui running in browsers
 - [ ] Mobile touch: gesture recognition, soft keyboard integration

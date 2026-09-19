@@ -1,4 +1,4 @@
-# xiom-fuzz
+# xiom.fuzz
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Coverage-guided fuzzing driver and corpus management.

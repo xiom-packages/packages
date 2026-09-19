@@ -1,4 +1,4 @@
-# xiom-wallet
+# xiom.wallet
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Wallet key management and transaction signing.

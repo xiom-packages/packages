@@ -1,4 +1,4 @@
-# xiom-zkp
+# xiom.zkp
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Zero-knowledge proof primitives and verifiers.

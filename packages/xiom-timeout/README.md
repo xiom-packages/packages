@@ -1,4 +1,4 @@
-# xiom-timeout
+# xiom.timeout
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Timeout and deadline enforcement for bounded operations.

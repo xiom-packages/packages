@@ -21,7 +21,7 @@ Resolved naively, the `author` field runs once per post -- N+1 round trips to th
 
 ## First-class batching, not convention
 
-`xiom-graphql` treats batching as **first-class** rather than leaving it to convention. It exposes an explicit `DataLoader` abstraction so resolver-side fetches can be collected and dispatched together. The package documents batching as the *default recommendation* for nested fields, not an optional optimization.
+`xiom.graphql` treats batching as **first-class** rather than leaving it to convention. It exposes an explicit `DataLoader` abstraction so resolver-side fetches can be collected and dispatched together. The package documents batching as the *default recommendation* for nested fields, not an optional optimization.
 
 ```xiom
 pub interface DataLoader[K, V] {

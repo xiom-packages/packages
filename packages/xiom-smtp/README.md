@@ -1,4 +1,4 @@
-# xiom-smtp
+# xiom.smtp
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** SMTP client/server for sending and relaying email.

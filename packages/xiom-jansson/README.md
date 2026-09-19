@@ -1,4 +1,4 @@
-# xiom-jansson
+# xiom.jansson
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Jansson JSON library bindings.

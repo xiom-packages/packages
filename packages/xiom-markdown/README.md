@@ -1,4 +1,4 @@
-# xiom-markdown
+# xiom.markdown
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Markdown parsing and rendering.

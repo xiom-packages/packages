@@ -1,4 +1,4 @@
-# xiom-l10n-name
+# xiom.l10n-name
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Locale-aware personal and language name formatting and display ordering.

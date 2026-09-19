@@ -1,4 +1,4 @@
-# xiom-realtime ROADMAP
+# xiom.realtime ROADMAP
 
 ## v0.1.0 (Current)
 - [x] Priority system (RtPriority enum: Critical, High, Normal, Low, Background)
@@ -42,7 +42,7 @@
 - [ ] Role-based access control for rooms
 
 ## v0.5.0 -- Distributed Realtime
-- [ ] Distributed fan-out via xiom-micro
+- [ ] Distributed fan-out via xiom.micro
 - [ ] Shard-aware event routing
 - [ ] Presence reconciliation across nodes
 - [ ] Offline event queue and replay
@@ -50,7 +50,7 @@
 
 ## v1.0.0 -- Production Readiness
 - [ ] Full contract verification on all public functions
-- [ ] WebSocket transport bridge (via xiom-websocket)
+- [ ] WebSocket transport bridge (via xiom.websocket)
 - [ ] Typing indicator signals
 - [ ] Activity streams
 - [ ] Chat room workflow composition

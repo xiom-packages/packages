@@ -1,4 +1,4 @@
-# xiom-secret
+# xiom.secret
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Secrets handling, redaction, and ephemeral storage.

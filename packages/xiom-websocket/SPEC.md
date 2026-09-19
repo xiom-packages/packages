@@ -1,12 +1,12 @@
-# xiom-websocket -- WebSocket Transport Specification
+# xiom.websocket -- WebSocket Transport Specification
 
 > **Status: v0.1.0 -- Implemented.** Core types (WsOpcode, WsConnection, WsFrame, WsMessage), extern "C" FFI blocks for socket/handshake/frame operations, frame encode/decode stubs, connection lifecycle, handshake validation, server management, channel subscriptions, close codes, and heartbeat utilities are implemented in `websocket.xi`. See `ROADMAP.md` for planned features.
 
 ## Overview
 
-`xiom-websocket` is the ecosystem package providing WebSocket protocol support for XIOM, built on `xiom-http` (upgrade bridge) and `xiom-net` (TCP transport). It covers the RFC 6455 opening handshake, frame codec, connection/session lifecycle, heartbeat, backpressure, reconnect recovery, presence, channels, and a pub/sub backplane interface for cross-node fan-out.
+`xiom.websocket` is the ecosystem package providing WebSocket protocol support for XIOM, built on `xiom.http` (upgrade bridge) and `xiom.net` (TCP transport). It covers the RFC 6455 opening handshake, frame codec, connection/session lifecycle, heartbeat, backpressure, reconnect recovery, presence, channels, and a pub/sub backplane interface for cross-node fan-out.
 
-The package is a transport-and-session layer. It is responsible for protocol correctness and connection plumbing; realtime application semantics live in `xiom-realtime` and `xiom-graphql`.
+The package is a transport-and-session layer. It is responsible for protocol correctness and connection plumbing; realtime application semantics live in `xiom.realtime` and `xiom.graphql`.
 
 Design principles carried throughout:
 
@@ -17,9 +17,9 @@ Design principles carried throughout:
 
 ## RFC 6455 Protocol Lifecycle
 
-`xiom-websocket` models the connection as a strict state machine:
+`xiom.websocket` models the connection as a strict state machine:
 
-1. **HTTP request received** -- an ordinary HTTP request arrives via `xiom-http`.
+1. **HTTP request received** -- an ordinary HTTP request arrives via `xiom.http`.
 2. **Upgrade headers validated** -- `Upgrade: websocket`, `Connection: Upgrade`, `Sec-WebSocket-Key`, and `Sec-WebSocket-Version: 13` are checked with `requires` contracts.
 3. **Protocol switched** -- a `101 Switching Protocols` response is sent with the computed `Sec-WebSocket-Accept` value; the socket detaches from HTTP and enters framed mode.
 4. **Frames parsed and validated** -- the framed duplex stream is decoded frame-by-frame; control frames and data frames are dispatched.
@@ -36,7 +36,7 @@ The connection state transitions are: `Connecting -> Open -> Closing -> Closed`,
 Re-exports the public surface (handshake, connection, message, channel, pubsub) and wires transport submodules.
 
 ### `src/server.xi` -- `xiom.websocket.server`
-Server-side entry point. Accepts upgrade requests routed from `xiom-http`, produces owned `WebSocketConnection` values, and maintains the local connection registry.
+Server-side entry point. Accepts upgrade requests routed from `xiom.http`, produces owned `WebSocketConnection` values, and maintains the local connection registry.
 
 Conceptual surface:
 - `server_new(addr: Str, port: Int) -> WebSocketServer`
@@ -45,7 +45,7 @@ Conceptual surface:
 - `connections(server) -> &ConnectionRegistry`
 
 ### `src/client.xi` -- `xiom.websocket.client`
-Client-side connector. Initiates the outbound handshake over an `xiom-net` TCP stream and returns an owned connection.
+Client-side connector. Initiates the outbound handshake over an `xiom.net` TCP stream and returns an owned connection.
 
 Conceptual surface:
 - `connect(url: Str, opts: ClientOptions) -> Result[WebSocketConnection, ConnectError]`
@@ -60,7 +60,7 @@ Conceptual surface:
 - `build_response(accept_key: Str, subprotocol: Option[Str]) -> HttpResponse`
 
 ### `src/upgrade.xi` -- `xiom.websocket.upgrade`
-Bridges `xiom-http` request handling into WebSocket mode; detaches the socket from the HTTP pipeline and hands it to the transport layer.
+Bridges `xiom.http` request handling into WebSocket mode; detaches the socket from the HTTP pipeline and hands it to the transport layer.
 
 Conceptual surface:
 - `upgrade(req: HttpRequest, stream: TcpStream) -> Result[WebSocketConnection, UpgradeError]`
@@ -195,8 +195,8 @@ Conceptual surface:
 Isolates socket ownership from protocol logic.
 
 - `transport/mod.xi` -- transport re-exports.
-- `transport/http_upgrade_bridge.xi` -- performs the handoff from an `xiom-http` request into a raw duplex socket.
-- `transport/websocket_stream.xi` -- wraps the underlying `xiom-net` `TcpStream` with the framed read/write loop consumed by the connection layer.
+- `transport/http_upgrade_bridge.xi` -- performs the handoff from an `xiom.http` request into a raw duplex socket.
+- `transport/websocket_stream.xi` -- wraps the underlying `xiom.net` `TcpStream` with the framed read/write loop consumed by the connection layer.
 
 Conceptual surface:
 - `WebSocketStream { inner: TcpStream; read_buf: Vec[Int]; }`

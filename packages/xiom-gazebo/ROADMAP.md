@@ -1,4 +1,4 @@
-# xiom-gazebo -- ROADMAP
+# xiom.gazebo -- ROADMAP
 
 **Phase**: 3 (Robotics) | **Status**: In Progress
 

@@ -1,4 +1,4 @@
-# xiom-eigen -- SPEC
+# xiom.eigen -- SPEC
 
 **Phase**: 2 (Scientific) | **Priority**: HIGH
 **Status**: IMPLEMENTING -- Phase 1 (Core Foundation)

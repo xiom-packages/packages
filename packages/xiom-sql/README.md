@@ -1,4 +1,4 @@
-# xiom-sql
+# xiom.sql
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** SQL parsing, AST modeling, and generation.

@@ -1,4 +1,4 @@
-# xiom-scipy -- Implementation Roadmap
+# xiom.scipy -- Implementation Roadmap
 
 **Status**: Phase 1 in progress
 **Last updated**: 2026-07-21

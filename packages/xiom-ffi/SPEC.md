@@ -109,4 +109,4 @@ pub fn extern_c(name: Str) -> Int
 - FFIError translation: [OK]
 - SafePtr lifecycle (alloc/from_raw/free): [OK]
 - FFIBuffer write/read/clear: [OK]
-- Used by: xiom-vulkan, xiom-imgui, xiom-glfw (all production)
+- Used by: xiom.vulkan, xiom.imgui, xiom.glfw (all production)

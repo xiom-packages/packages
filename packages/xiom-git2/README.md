@@ -1,4 +1,4 @@
-# xiom-git2
+# xiom.git2
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** libgit2 git repository bindings.

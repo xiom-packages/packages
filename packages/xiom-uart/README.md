@@ -1,4 +1,4 @@
-# xiom-uart
+# xiom.uart
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** UART serial communication with baud-rate, framing, and buffered I/O.

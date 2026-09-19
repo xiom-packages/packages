@@ -1,4 +1,4 @@
-# xiom-bson
+# xiom.bson
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** BSON binary document encoding and decoding.

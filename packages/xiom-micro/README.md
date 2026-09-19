@@ -1,4 +1,4 @@
-# xiom-micro
+# xiom.micro
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Micro-benchmarking primitives for tight hot loops.

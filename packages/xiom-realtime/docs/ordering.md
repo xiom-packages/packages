@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-Realtime systems fail in characteristic ways: events arrive **twice**, arrive **late**, or arrive **out of order**. `xiom-realtime` addresses all three with explicit ordering metadata, deduplication windows, and replay cursors, rather than hoping the transport preserves order end-to-end (it does not, especially once distributed fan-out and reconnects are involved).
+Realtime systems fail in characteristic ways: events arrive **twice**, arrive **late**, or arrive **out of order**. `xiom.realtime` addresses all three with explicit ordering metadata, deduplication windows, and replay cursors, rather than hoping the transport preserves order end-to-end (it does not, especially once distributed fan-out and reconnects are involved).
 
 **Sequence numbers.** Each room maintains a monotonic sequence counter. Every durable event emitted into the room is assigned the next sequence number, and this assignment happens centrally -- before fan-out scatters the event across nodes. Sequence monotonicity is a contract hotspot: the allocation path is guarded so that the returned sequence is always strictly greater than the previous one for that room. Subscribers can therefore detect gaps (a missing sequence means a dropped or delayed event) and detect reordering (a sequence lower than one already seen).
 

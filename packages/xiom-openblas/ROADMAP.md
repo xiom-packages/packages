@@ -1,4 +1,4 @@
-# ROADMAP -- xiom-openblas
+# ROADMAP -- xiom.openblas
 
 ## Phase 1 -- Core Foundation (CURRENT)
 
@@ -56,7 +56,7 @@
 
 ## Phase 5 -- Ecosystem Integration
 
-- [ ] `package.toml` manifest for `xiom-openblas`
+- [ ] `package.toml` manifest for `xiom.openblas`
 - [ ] CI: matrix of (Linux, macOS, Windows) x (system OpenBLAS, build from source)
 - [ ] Downstream package smoke tests: verify `xiom-lapacke`, `xiom-arpack`, etc. link correctly
 - [ ] Benchmark suite: vs NumPy, vs Eigen, vs raw C -- publish in docs/benchmarks.md

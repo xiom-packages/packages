@@ -1,4 +1,4 @@
-# xiom-portaudio
+# xiom.portaudio
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** PortAudio cross-platform audio I/O bindings.

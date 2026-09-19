@@ -1,4 +1,4 @@
-# xiom-libtorch -- ROADMAP
+# xiom.libtorch -- ROADMAP
 
 ## Phase 1: Core Foundation (CURRENT)
 **Status:** SPEC implemented -- types, extern "C" block, safe wrappers with contracts, conformance tests.
@@ -36,5 +36,5 @@
 - `DataLoader` type with batching, shuffling, multi-worker support
 - `Dataset` trait for custom datasets
 - Built-in transforms: `Normalize`, `ToTensor`, `Resize`, `RandomCrop`
-- Integration with `xiom-numpy` for data preprocessing
+- Integration with `xiom.numpy` for data preprocessing
 - `tests/test_dataloader.xi`

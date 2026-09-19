@@ -1,4 +1,4 @@
-# xiom-astronomy
+# xiom.astronomy
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Celestial mechanics and astronomical observation support.

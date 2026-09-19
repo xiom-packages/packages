@@ -1,4 +1,4 @@
-# xiom-worker
+# xiom.worker
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Worker thread management with task loops and group coordination.

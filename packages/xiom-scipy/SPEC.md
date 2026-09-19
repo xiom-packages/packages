@@ -1,8 +1,8 @@
-# xiom-scipy -- SPEC
+# xiom.scipy -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
 **Status**: Phase 1 partially implemented -- FFI declarations + pure-XIOM stats done; C bridge compilation pending
-**Depends on**: xiom.ffi, xiom.math (for pure-XIOM stats), xiom-numpy (future), xiom-openblas (future)
+**Depends on**: xiom.ffi, xiom.math (for pure-XIOM stats), xiom.numpy (future), xiom.openblas (future)
 
 ## What it wraps
 SciPy -- scientific computing library. Unlike NumPy (arrays + basic ops),

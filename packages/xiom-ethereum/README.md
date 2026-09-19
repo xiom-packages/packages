@@ -1,4 +1,4 @@
-# xiom-ethereum
+# xiom.ethereum
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Ethereum network and protocol bindings.

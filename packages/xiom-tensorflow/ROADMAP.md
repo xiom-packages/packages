@@ -1,4 +1,4 @@
-# xiom-tensorflow -- ROADMAP
+# xiom.tensorflow -- ROADMAP
 
 ## Phase 1: Core Foundation (CURRENT)
 **Status:** SPEC implemented, tests pass, native bridge not yet linked.

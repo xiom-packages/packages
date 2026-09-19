@@ -1,4 +1,4 @@
-# xiom-ml
+# xiom.ml
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Statistical and Bayesian machine learning models.

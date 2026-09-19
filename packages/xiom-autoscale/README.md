@@ -1,4 +1,4 @@
-# xiom-autoscale
+# xiom.autoscale
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Auto-scaling policies, capacity decisions, and scaling actions for compute targets.

@@ -378,7 +378,7 @@ pub fn d3d11_create_device(driver_type: Int, flags: Int) -> Result[(DxDevice, Dx
   requires: driver_type == D3D_DRIVER_TYPE_HARDWARE || driver_type == D3D_DRIVER_TYPE_WARP || driver_type == D3D_DRIVER_TYPE_REFERENCE || driver_type == D3D_DRIVER_TYPE_SOFTWARE
   ensures:  result.is_ok || result.is_err
 {
-  return Err("d3d11_create_device: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_device: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 pub fn d3d11_create_device_and_swapchain(
@@ -389,7 +389,7 @@ pub fn d3d11_create_device_and_swapchain(
   requires: height > 0
   ensures:  result.is_ok || result.is_err
 {
-  return Err("d3d11_create_device_and_swapchain: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_device_and_swapchain: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 // ===========================================================================
@@ -410,7 +410,7 @@ pub fn d3d11_create_swapchain(
   requires: width > 0
   requires: height > 0
 {
-  return Err("d3d11_create_swapchain: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_swapchain: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 // ===========================================================================
@@ -423,7 +423,7 @@ pub fn d3d11_create_render_target_view(
   requires: dev != 0
   requires: resource != 0
 {
-  return Err("d3d11_create_render_target_view: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_render_target_view: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 pub fn d3d11_clear_render_target_view(ctx: DxContext, rtv: DxTexture, r: Float32, g: Float32, b: Float32, a: Float32)
@@ -454,7 +454,7 @@ pub fn d3d11_create_vertex_buffer(
   requires: size > 0
   requires: usage == D3D11_USAGE_DEFAULT || usage == D3D11_USAGE_IMMUTABLE || usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING
 {
-  return Err("d3d11_create_vertex_buffer: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_vertex_buffer: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 pub fn d3d11_create_index_buffer(
@@ -464,7 +464,7 @@ pub fn d3d11_create_index_buffer(
   requires: size > 0
   requires: usage == D3D11_USAGE_DEFAULT || usage == D3D11_USAGE_IMMUTABLE || usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING
 {
-  return Err("d3d11_create_index_buffer: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_index_buffer: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 pub fn d3d11_create_constant_buffer(
@@ -475,7 +475,7 @@ pub fn d3d11_create_constant_buffer(
   requires: size % 16 == 0
   requires: usage == D3D11_USAGE_DEFAULT || usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING
 {
-  return Err("d3d11_create_constant_buffer: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_constant_buffer: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 pub fn d3d11_iaset_vertex_buffers(
@@ -514,7 +514,7 @@ pub fn d3d11_create_texture2d(
   requires: height > 0
   requires: usage == D3D11_USAGE_DEFAULT || usage == D3D11_USAGE_IMMUTABLE || usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING
 {
-  return Err("d3d11_create_texture2d: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_texture2d: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 pub fn d3d11_create_shader_resource_view(
@@ -523,7 +523,7 @@ pub fn d3d11_create_shader_resource_view(
   requires: dev != 0
   requires: resource != 0
 {
-  return Err("d3d11_create_shader_resource_view: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_shader_resource_view: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 // ===========================================================================
@@ -539,7 +539,7 @@ pub fn d3d11_create_sampler_state(
   requires: address_v == D3D11_TEXTURE_ADDRESS_WRAP || address_v == D3D11_TEXTURE_ADDRESS_MIRROR || address_v == D3D11_TEXTURE_ADDRESS_CLAMP || address_v == D3D11_TEXTURE_ADDRESS_BORDER || address_v == D3D11_TEXTURE_ADDRESS_MIRROR_ONCE
   requires: address_w == D3D11_TEXTURE_ADDRESS_WRAP || address_w == D3D11_TEXTURE_ADDRESS_MIRROR || address_w == D3D11_TEXTURE_ADDRESS_CLAMP || address_w == D3D11_TEXTURE_ADDRESS_BORDER || address_w == D3D11_TEXTURE_ADDRESS_MIRROR_ONCE
 {
-  return Err("d3d11_create_sampler_state: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_sampler_state: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 // ===========================================================================
@@ -553,7 +553,7 @@ pub fn d3d11_create_vertex_shader(
   requires: bytecode != 0
   requires: bytecode_len > 0
 {
-  return Err("d3d11_create_vertex_shader: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_vertex_shader: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 pub fn d3d11_create_pixel_shader(
@@ -563,7 +563,7 @@ pub fn d3d11_create_pixel_shader(
   requires: bytecode != 0
   requires: bytecode_len > 0
 {
-  return Err("d3d11_create_pixel_shader: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_pixel_shader: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 pub fn d3d11_create_input_layout(
@@ -575,7 +575,7 @@ pub fn d3d11_create_input_layout(
   requires: bytecode != 0
   requires: bytecode_len > 0
 {
-  return Err("d3d11_create_input_layout: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_create_input_layout: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 pub fn d3d11_iaset_input_layout(ctx: DxContext, layout: DxBuffer)
@@ -667,7 +667,7 @@ pub fn d3d11_map(
   requires: subresource >= 0
   requires: map_type == D3D11_MAP_READ || map_type == D3D11_MAP_WRITE || map_type == D3D11_MAP_READ_WRITE || map_type == D3D11_MAP_WRITE_DISCARD || map_type == D3D11_MAP_WRITE_NO_OVERWRITE
 {
-  return Err("d3d11_map: C bridge not yet linked -- xiom-directx11 is in SPEC phase");
+  return Err("d3d11_map: C bridge not yet linked -- xiom.directx11 is in SPEC phase");
 }
 
 pub fn d3d11_unmap(ctx: DxContext, resource: Int, subresource: Int)

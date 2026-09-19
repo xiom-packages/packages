@@ -1,4 +1,4 @@
-# xiom-libtorch
+# xiom.libtorch
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** LibTorch C++ frontend bindings for PyTorch models.

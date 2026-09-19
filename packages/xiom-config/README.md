@@ -1,4 +1,4 @@
-# xiom-config
+# xiom.config
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Configuration loading, validation, and hot-reload for XIOM applications.

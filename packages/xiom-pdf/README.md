@@ -1,4 +1,4 @@
-# xiom-pdf
+# xiom.pdf
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** PDF document generation and parsing.

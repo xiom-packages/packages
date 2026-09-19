@@ -1,4 +1,4 @@
-# xiom-glfw
+# xiom.glfw
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** GLFW windowing and input bindings.

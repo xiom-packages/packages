@@ -1,4 +1,4 @@
-# xiom-summary
+# xiom.summary
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Automatic text summarization.

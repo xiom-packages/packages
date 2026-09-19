@@ -1,4 +1,4 @@
-# xiom-chemistry
+# xiom.chemistry
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Chemical computations: reactions, stoichiometry, and molecular modeling.

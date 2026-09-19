@@ -1,4 +1,4 @@
-# xiom-stb
+# xiom.stb
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** stb single-file C library bindings.

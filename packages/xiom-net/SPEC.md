@@ -1,8 +1,8 @@
-# xiom-net Specification
+# xiom.net Specification
 
 ## Package
 
-- **Name:** `xiom-net`
+- **Name:** `xiom.net`
 - **Version:** `0.2.0`
 - **Module:** `xiom.net` (submodules: `.types`, `.tcp`, `.udp`, `.dns`, `.demo`)
 - **Dependencies:** None (Layer 3 -- type definitions + FFI-backed socket operations)

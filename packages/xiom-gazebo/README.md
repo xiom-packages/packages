@@ -1,4 +1,4 @@
-# xiom-gazebo
+# xiom.gazebo
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Gazebo robotics simulator bindings.

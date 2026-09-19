@@ -1,4 +1,4 @@
-# xiom-libuv -- SPEC
+# xiom.libuv -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
 **Status**: SPEC with XIOM bindings -- all FFI stubs return Err (Phase 2 = C bridge)

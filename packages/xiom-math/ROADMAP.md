@@ -1,4 +1,4 @@
-# xiom-math -- Production Roadmap
+# xiom.math -- Production Roadmap
 
 **Version**: v0.2.0 | **Rating**: 8/10 | **Compiler**: xiom v0.49.7
 

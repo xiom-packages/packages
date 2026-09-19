@@ -1,4 +1,4 @@
-# xiom-robotics
+# xiom.robotics
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Robot kinematics, control, and motion planning.

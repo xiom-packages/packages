@@ -1,4 +1,4 @@
-# xiom-subtitle
+# xiom.subtitle
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Subtitle parsing, formatting, and timecode handling across common formats.

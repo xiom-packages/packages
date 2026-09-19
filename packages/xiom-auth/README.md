@@ -1,4 +1,4 @@
-# xiom-auth
+# xiom.auth
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Core authentication, sessions, and credential validation.

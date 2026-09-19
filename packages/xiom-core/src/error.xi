@@ -1,6 +1,6 @@
 module xiom.core.error
 
-// Canonical error type shared by every xiom-core subsystem and by the
+// Canonical error type shared by every xiom.core subsystem and by the
 // downstream engines (xiom-db, xiom-vector). XIOM models errors as types, so
 // there are no hidden failure channels: engine functions return
 // `Result[T, CoreError]` and callers must handle the failure explicitly.

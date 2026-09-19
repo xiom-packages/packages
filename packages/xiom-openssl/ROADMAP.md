@@ -1,4 +1,4 @@
-# xiom-openssl -- ROADMAP
+# xiom.openssl -- ROADMAP
 
 **Phase**: 4 (Enterprise) | **Priority**: Medium  
 **Status**: SPEC implemented, pending runtime integration  

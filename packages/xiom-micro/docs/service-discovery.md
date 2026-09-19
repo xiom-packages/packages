@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-Service discovery in `xiom-micro` answers a single question: *given a logical service name, where do I send this call right now?* The package deliberately does not hard-code any one registry. Instead it exposes a structural `Discovery` interface, and concrete registries (Kubernetes DNS, Consul-like systems, static maps, or a test registry) are adapters that satisfy it. This keeps business code registry-agnostic -- swapping infrastructure never requires touching call sites.
+Service discovery in `xiom.micro` answers a single question: *given a logical service name, where do I send this call right now?* The package deliberately does not hard-code any one registry. Instead it exposes a structural `Discovery` interface, and concrete registries (Kubernetes DNS, Consul-like systems, static maps, or a test registry) are adapters that satisfy it. This keeps business code registry-agnostic -- swapping infrastructure never requires touching call sites.
 
 Discovery is split into three cooperating pieces. `discovery.xi` defines the abstraction, `registry.xi` provides the concrete adapters, and `resolver.xi` turns registry results into a single usable `Endpoint` by filtering on health state. Endpoints are typed values (`endpoint.xi`) carrying address, port, region, health, and capability tags -- not bare strings -- so downstream policies (routing, bulkheads, breakers) can reason about them safely.
 

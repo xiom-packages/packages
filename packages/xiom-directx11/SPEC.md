@@ -1,4 +1,4 @@
-# xiom-directx11 -- SPEC
+# xiom.directx11 -- SPEC
 
 **Phase**: 2 (Scientific) | **Priority**: HIGH
 **Status**: IMPLEMENTED (v0.1.0 SPEC phase)

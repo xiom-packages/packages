@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Build and run any xiom-vulkan demo with a single command.
+  Build and run any xiom.vulkan demo with a single command.
   Uses the INSTALLED xiom (must be on PATH).
 .DESCRIPTION
   One-step: compiles GLSL shaders, generates SPIR-V header,

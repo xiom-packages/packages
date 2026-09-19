@@ -1,4 +1,4 @@
-# xiom-directx11 -- ROADMAP
+# xiom.directx11 -- ROADMAP
 
 **Phase 2 (Scientific)** | **Priority: HIGH**
 **Depends on**: xiom.ffi (stdlib)
@@ -46,7 +46,7 @@ All FFI calls return `Err(...)` or stub defaults -- no C bridge is linked yet.
 
 - [ ] Create window (via raw Win32 CreateWindowEx or xiom-windowing bridge)
 - [ ] Create D3D11 device + swap chain
-- [ ] Compile VS/PS via xiom-dxc (HLSL -> DXBC bytecode)
+- [ ] Compile VS/PS via xiom.dxc (HLSL -> DXBC bytecode)
 - [ ] Create vertex buffer with triangle positions + colors
 - [ ] Create input layout matching vertex format
 - [ ] Set render targets, viewport, clear, draw, present

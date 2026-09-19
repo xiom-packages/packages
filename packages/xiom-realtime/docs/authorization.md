@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-Realtime authorization in `xiom-realtime` is checked at **three distinct points**, and keeping them separate is a deliberate design decision:
+Realtime authorization in `xiom.realtime` is checked at **three distinct points**, and keeping them separate is a deliberate design decision:
 
 - **On join** -- may this user enter this room at all?
 - **On send** -- may this user emit this particular event into this room?

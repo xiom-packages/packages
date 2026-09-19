@@ -1,4 +1,4 @@
-# xiom-template
+# xiom.template
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** String templating and variable substitution.

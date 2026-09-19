@@ -1,10 +1,10 @@
-# xiom-realtime Architecture
+# xiom.realtime Architecture
 
-> **Status: Design stage -- specification only, not yet implemented. Depends on `xiom-websocket` (transport) and `xiom-micro` (distributed fan-out).**
+> **Status: Design stage -- specification only, not yet implemented. Depends on `xiom.websocket` (transport) and `xiom.micro` (distributed fan-out).**
 
-`xiom-realtime` is the application-level realtime package for the XIOM ecosystem. It sits above `xiom-websocket` and turns low-level transport, pub/sub fan-out, and presence mechanics into reusable realtime building blocks such as channels, rooms, subscriptions, typing indicators, live updates, and broadcast orchestration.
+`xiom.realtime` is the application-level realtime package for the XIOM ecosystem. It sits above `xiom.websocket` and turns low-level transport, pub/sub fan-out, and presence mechanics into reusable realtime building blocks such as channels, rooms, subscriptions, typing indicators, live updates, and broadcast orchestration.
 
-The package is intentionally separate from transport because realtime product logic is not the same thing as sockets. `xiom-websocket` owns protocol correctness and connection lifecycle; `xiom-realtime` owns the user-facing realtime semantics that sit on top of that transport.
+The package is intentionally separate from transport because realtime product logic is not the same thing as sockets. `xiom.websocket` owns protocol correctness and connection lifecycle; `xiom.realtime` owns the user-facing realtime semantics that sit on top of that transport.
 
 ## What belongs here
 
@@ -18,15 +18,15 @@ The package is intentionally separate from transport because realtime product lo
 - Event ordering metadata.
 - Fan-out policies.
 - Realtime authorization rules.
-- Integration with `xiom-websocket` and `xiom-micro`.
+- Integration with `xiom.websocket` and `xiom.micro`.
 
 ## What stays outside
 
-- WebSocket handshake and frame handling stay in `xiom-websocket`.
-- HTTP transport stays in `xiom-http`.
-- REST stays in `xiom-rest`.
-- GraphQL stays in `xiom-graphql`.
-- Service discovery and resilience stay in `xiom-micro`.
+- WebSocket handshake and frame handling stay in `xiom.websocket`.
+- HTTP transport stays in `xiom.http`.
+- REST stays in `xiom.rest`.
+- GraphQL stays in `xiom.graphql`.
+- Service discovery and resilience stay in `xiom.micro`.
 
 ## Design goals
 
@@ -140,14 +140,14 @@ Offline queue and replay hooks for clients that reconnect after being disconnect
 Policy objects for message retention, fan-out scope, presence TTL, and event expiry.
 
 ### `src/integration/`
-Bridges to `xiom-websocket`, `xiom-micro`, and optionally storage layers for durable event persistence.
+Bridges to `xiom.websocket`, `xiom.micro`, and optionally storage layers for durable event persistence.
 
 ### `src/workflows/`
 Higher-level reusable realtime workflows such as chat, collaboration, and notifications.
 
 ## Realtime model
 
-`xiom-realtime` should think in terms of three layers:
+`xiom.realtime` should think in terms of three layers:
 
 1. **Subscription layer** -- who is listening to what.
 2. **Presence layer** -- who is currently connected or active.
@@ -180,11 +180,11 @@ This separation keeps chat messages, typing events, and presence updates from sh
 
 ## Fan-out model
 
-`xiom-realtime` should support both local fan-out and distributed fan-out. In distributed mode, events are routed through a backplane or through `xiom-micro` service integrations so multiple instances can share the same logical room without forcing every node to process every event.
+`xiom.realtime` should support both local fan-out and distributed fan-out. In distributed mode, events are routed through a backplane or through `xiom.micro` service integrations so multiple instances can share the same logical room without forcing every node to process every event.
 
 ## Ordering and deduplication
 
-Realtime systems often fail when events arrive twice, late, or out of order. `xiom-realtime` should therefore include explicit ordering metadata, dedupe windows, and replay cursors for reconnect flows.
+Realtime systems often fail when events arrive twice, late, or out of order. `xiom.realtime` should therefore include explicit ordering metadata, dedupe windows, and replay cursors for reconnect flows.
 
 ## Authorization model
 
@@ -268,4 +268,4 @@ The package should assume that one node is not enough for serious realtime workl
 
 ## Final recommendation
 
-`xiom-realtime` should be the package that turns transport into user-facing realtime behavior. Keep it centered on channels, rooms, presence, fan-out, ordering, and ephemeral/durable event semantics, while letting `xiom-websocket` handle the actual protocol and `xiom-micro` handle the distributed-system resilience underneath.
+`xiom.realtime` should be the package that turns transport into user-facing realtime behavior. Keep it centered on channels, rooms, presence, fan-out, ordering, and ephemeral/durable event semantics, while letting `xiom.websocket` handle the actual protocol and `xiom.micro` handle the distributed-system resilience underneath.

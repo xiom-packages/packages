@@ -287,13 +287,13 @@ extern "C" {
 pub fn d3d12_create_device(adapter: Int) -> Result[DxDevice, Str]
   ensures: result.is_ok || result.is_err
 {
-  return Err("d3d12_create_device: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_device: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 pub fn d3d12_get_debug_interface() -> Result[Int, Str]
   ensures: result.is_ok || result.is_err
 {
-  return Err("d3d12_get_debug_interface: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_get_debug_interface: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 // ===========================================================================
@@ -304,7 +304,7 @@ pub fn d3d12_create_command_queue(dev: DxDevice, cmd_list_type: Int) -> Result[D
   requires: dev != 0
   requires: cmd_list_type == D3D12_COMMAND_LIST_TYPE_DIRECT || cmd_list_type == D3D12_COMMAND_LIST_TYPE_COMPUTE || cmd_list_type == D3D12_COMMAND_LIST_TYPE_COPY
 {
-  return Err("d3d12_create_command_queue: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_command_queue: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 // ===========================================================================
@@ -319,7 +319,7 @@ pub fn dxgi_create_swapchain(
   requires: height > 0
   requires: hwnd != 0
 {
-  return Err("dxgi_create_swapchain: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("dxgi_create_swapchain: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 pub fn d3d12_present(swap: DxSwapChain, sync_interval: Int)
@@ -340,21 +340,21 @@ pub fn d3d12_create_committed_resource(
   requires: size > 0
   requires: heap_type == D3D12_HEAP_TYPE_DEFAULT || heap_type == D3D12_HEAP_TYPE_UPLOAD || heap_type == D3D12_HEAP_TYPE_READBACK
 {
-  return Err("d3d12_create_committed_resource: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_committed_resource: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 pub fn d3d12_create_upload_buffer(dev: DxDevice, size: Int) -> Result[DxResource, Str]
   requires: dev != 0
   requires: size > 0
 {
-  return Err("d3d12_create_upload_buffer: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_upload_buffer: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 pub fn d3d12_create_default_buffer(dev: DxDevice, size: Int, usage: Int) -> Result[DxResource, Str]
   requires: dev != 0
   requires: size > 0
 {
-  return Err("d3d12_create_default_buffer: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_default_buffer: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 pub fn d3d12_create_texture2d(
@@ -364,7 +364,7 @@ pub fn d3d12_create_texture2d(
   requires: width > 0
   requires: height > 0
 {
-  return Err("d3d12_create_texture2d: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_texture2d: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 // ===========================================================================
@@ -379,7 +379,7 @@ pub fn d3d12_create_descriptor_heap(
   requires: num_descriptors <= 4096
   requires: heap_type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV || heap_type == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER || heap_type == D3D12_DESCRIPTOR_HEAP_TYPE_RTV || heap_type == D3D12_DESCRIPTOR_HEAP_TYPE_DSV
 {
-  return Err("d3d12_create_descriptor_heap: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_descriptor_heap: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 // ===========================================================================
@@ -392,7 +392,7 @@ pub fn d3d12_create_command_allocator(
   requires: dev != 0
   requires: cmd_list_type == D3D12_COMMAND_LIST_TYPE_DIRECT || cmd_list_type == D3D12_COMMAND_LIST_TYPE_BUNDLE || cmd_list_type == D3D12_COMMAND_LIST_TYPE_COMPUTE || cmd_list_type == D3D12_COMMAND_LIST_TYPE_COPY
 {
-  return Err("d3d12_create_command_allocator: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_command_allocator: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 pub fn d3d12_create_graphics_command_list(
@@ -402,7 +402,7 @@ pub fn d3d12_create_graphics_command_list(
   requires: alloc != 0
   requires: cmd_list_type == D3D12_COMMAND_LIST_TYPE_DIRECT || cmd_list_type == D3D12_COMMAND_LIST_TYPE_BUNDLE || cmd_list_type == D3D12_COMMAND_LIST_TYPE_COMPUTE || cmd_list_type == D3D12_COMMAND_LIST_TYPE_COPY
 {
-  return Err("d3d12_create_graphics_command_list: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_graphics_command_list: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 pub fn d3d12_close_command_list(cl: DxCommandList)
@@ -460,7 +460,7 @@ pub fn d3d12_create_fence(dev: DxDevice, initial_value: Int) -> Result[DxFence, 
   requires: dev != 0
   requires: initial_value >= 0
 {
-  return Err("d3d12_create_fence: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_fence: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 pub fn d3d12_signal_fence(queue: DxCommandQueue, fence: DxFence, value: Int)
@@ -487,7 +487,7 @@ pub fn d3d12_create_root_signature(
   requires: blob != 0
   requires: blob_len > 0
 {
-  return Err("d3d12_create_root_signature: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_root_signature: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 pub fn d3d12_create_pipeline_state(
@@ -497,5 +497,5 @@ pub fn d3d12_create_pipeline_state(
   requires: dev != 0
   requires: root_sig != 0
 {
-  return Err("d3d12_create_pipeline_state: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_pipeline_state: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }

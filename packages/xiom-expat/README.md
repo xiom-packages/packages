@@ -1,4 +1,4 @@
-# xiom-expat
+# xiom.expat
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Expat streaming XML parser bindings.

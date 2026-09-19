@@ -1,4 +1,4 @@
-# xiom-plural
+# xiom.plural
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Pluralization, singularization, and word inflection.

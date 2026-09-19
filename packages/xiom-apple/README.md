@@ -1,4 +1,4 @@
-# xiom-apple
+# xiom.apple
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Apple platform frameworks (macOS/iOS).

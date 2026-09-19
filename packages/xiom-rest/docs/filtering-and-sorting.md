@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-Filtering and sorting let clients narrow and order collection results without bespoke endpoints for every query shape. `xiom-rest` models both as typed, validated structures produced from query parameters *before* any business logic executes. This keeps handlers clean, makes queries auditable, and prevents untrusted input from flowing directly into data-access code.
+Filtering and sorting let clients narrow and order collection results without bespoke endpoints for every query shape. `xiom.rest` models both as typed, validated structures produced from query parameters *before* any business logic executes. This keeps handlers clean, makes queries auditable, and prevents untrusted input from flowing directly into data-access code.
 
 ## Typed filters
 

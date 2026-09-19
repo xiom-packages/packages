@@ -1,4 +1,4 @@
-# xiom-image
+# xiom.image
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Core image decoding/encoding dispatcher with shared pixel and color handling across formats.

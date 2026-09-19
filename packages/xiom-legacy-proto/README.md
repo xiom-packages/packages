@@ -1,4 +1,4 @@
-# xiom-legacy-proto
+# xiom.legacy-proto
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Legacy and proxy network protocols umbrella.

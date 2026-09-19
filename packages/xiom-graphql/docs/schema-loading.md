@@ -4,7 +4,7 @@
 
 ## The loading pipeline
 
-`xiom-graphql` loads a schema through an explicit, ordered pipeline. Each stage has a defined input and output, and failures produce typed errors rather than partially-initialized state:
+`xiom.graphql` loads a schema through an explicit, ordered pipeline. Each stage has a defined input and output, and failures produce typed errors rather than partially-initialized state:
 
 1. **Load SDL files.** Read one or more `.graphql` files from disk into SDL documents. Parse errors at this stage are typed and deterministic.
 2. **Merge fragments.** Compose the root schema, scalar definitions, directive definitions, and feature modules into a single candidate schema definition. Composition detects duplicate or conflicting definitions early.

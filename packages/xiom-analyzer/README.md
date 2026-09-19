@@ -1,4 +1,4 @@
-# xiom-analyzer
+# xiom.analyzer
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Semantic analysis, name resolution, and type checking.

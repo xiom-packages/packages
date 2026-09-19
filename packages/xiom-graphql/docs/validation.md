@@ -4,7 +4,7 @@
 
 ## Validate before execute
 
-The defining rule of `xiom-graphql`'s engine is that **validation happens before execution**. GraphQL validates an incoming operation against the schema, and if the operation is invalid, execution never starts -- no resolver is called and no data is fetched. `xiom-graphql` makes this explicit by separating the `parse`, `validate`, and `execute` phases, each with its own typed error type.
+The defining rule of `xiom.graphql`'s engine is that **validation happens before execution**. GraphQL validates an incoming operation against the schema, and if the operation is invalid, execution never starts -- no resolver is called and no data is fetched. `xiom.graphql` makes this explicit by separating the `parse`, `validate`, and `execute` phases, each with its own typed error type.
 
 This is the GraphQL analogue of XIOM's contract-checking philosophy: an operation is a request to run against the schema contract, and the contract is checked up front rather than discovered mid-execution.
 

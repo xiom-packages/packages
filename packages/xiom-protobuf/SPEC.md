@@ -1,4 +1,4 @@
-# xiom-protobuf Specification
+# xiom.protobuf Specification
 
 ## Overview
 Protocol Buffers serialization bindings for XIOM. Provides proto3-compatible schema definitions, pure-XIOM wire-format primitives (varint, zigzag, field encoding), and runtime encode/decode via libprotobuf-c.

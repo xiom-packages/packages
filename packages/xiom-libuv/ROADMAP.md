@@ -1,4 +1,4 @@
-# xiom-libuv Roadmap
+# xiom.libuv Roadmap
 
 ## Current State -- v0.1.0 (SPEC)
 
@@ -107,7 +107,7 @@
 ## Dependency Graph
 
 ```
-xiom-libuv (this package)
+xiom.libuv (this package)
   |-- xiom-std (stdlib: string, collections, ptr)
   |-- libuv C library (system-installed: winget/apt/brew)
   `-- libuv_bridge.c (thin C FFI wrapper)

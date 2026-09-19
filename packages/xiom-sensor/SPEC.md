@@ -1,4 +1,4 @@
-# xiom-sensor Specification
+# xiom.sensor Specification
 
 Sensor fusion library for XIOM -- IMU orientation computation, GPS navigation, pose fusion, and sensor calibration.
 

@@ -1,4 +1,4 @@
-# xiom-opencv -- ROADMAP
+# xiom.opencv -- ROADMAP
 
 **Version:** 0.1.0 | **Status:** In Development | **Last Updated:** 2026-07-21
 

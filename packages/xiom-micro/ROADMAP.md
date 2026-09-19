@@ -1,4 +1,4 @@
-# xiom-micro ROADMAP
+# xiom.micro ROADMAP
 
 ## v0.1.0 (Current)
 - [x] Core types (HttpMethod, MicroRequest, MicroResponse, MicroHeader, MicroQueryParam, MicroRouteParam)
@@ -35,7 +35,7 @@
 - [ ] Body-parsing middleware (JSON, form, multipart)
 
 ## v0.4.0 -- HTTP Transport Bridge
-- [ ] Integration with xiom-http for network transport
+- [ ] Integration with xiom.http for network transport
 - [ ] Keep-alive connection management
 - [ ] Streaming response support
 - [ ] Request body streaming

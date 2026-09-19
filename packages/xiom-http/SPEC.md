@@ -1,8 +1,8 @@
-# xiom-http -- XIOM HTTP Library Specification
+# xiom.http -- XIOM HTTP Library Specification
 
 ## Overview
 
-`xiom-http` is the Layer 3.2 ecosystem package providing HTTP protocol support for XIOM. It covers type definitions, message parsing, status codes, MIME types, URL manipulation, cookies, client/server stubs, and a production HTTP client backed by libcurl.
+`xiom.http` is the Layer 3.2 ecosystem package providing HTTP protocol support for XIOM. It covers type definitions, message parsing, status codes, MIME types, URL manipulation, cookies, client/server stubs, and a production HTTP client backed by libcurl.
 
 ## Modules
 
@@ -142,7 +142,7 @@ Production HTTP client backed by libcurl. This is the primary entry point for HT
 
 All functions:
 1. Initialize a libcurl easy handle via `curl_easy_init()`
-2. Configure common options: URL, follow redirects, timeouts (30s/10s), user agent (`xiom-http/0.1.0`), accept-encoding (gzip/deflate), no signals, buffer size 64 KiB
+2. Configure common options: URL, follow redirects, timeouts (30s/10s), user agent (`xiom.http/0.1.0`), accept-encoding (gzip/deflate), no signals, buffer size 64 KiB
 3. Set method-specific options (POST fields, custom request verb, etc.)
 4. Capture response body and headers into temporary files via `CURLOPT_WRITEDATA` / `CURLOPT_HEADERDATA`
 5. Execute via `curl_easy_perform()`
@@ -244,8 +244,8 @@ XIOM links libcurl at compile time. Ensure the linker can find `libcurl`:
 ### Verifying the Build
 
 ```bash
-# Compile the xiom-http package
-xiom build --package xiom-http
+# Compile the xiom.http package
+xiom build --package xiom.http
 
 # Run the demo
 xiom run --module xiom.http.demo --fn demo_get
@@ -330,7 +330,7 @@ Client and server stubs in `src/client.xi` and `src/server.xi` delegate to `xiom
 
 ## Roadmap / Planned Core Modules
 
-The modules documented above are the **implemented** surface of `xiom-http`: the libcurl-backed client, HTTP message types, parser, URL, cookie, MIME, and status helpers. The following core modules are **design-stage** -- specified in [ARCHITECTURE.md](ARCHITECTURE.md) but not yet built. They are listed here so the spec reflects the intended shape of the lean native core.
+The modules documented above are the **implemented** surface of `xiom.http`: the libcurl-backed client, HTTP message types, parser, URL, cookie, MIME, and status helpers. The following core modules are **design-stage** -- specified in [ARCHITECTURE.md](ARCHITECTURE.md) but not yet built. They are listed here so the spec reflects the intended shape of the lean native core.
 
 | Planned module | Directory | Responsibility | Status |
 |----------------|-----------|----------------|--------|
@@ -343,6 +343,6 @@ The modules documented above are the **implemented** surface of `xiom-http`: the
 
 ### Native server transport
 
-The planned native server (`src/server.xi` beyond its current stub) will accept connections and dispatch requests through the router and middleware chain using **`xiom-net` (TCP, Layer 3.1)** as its transport -- not libcurl. libcurl remains exclusively the **client** transport. This keeps the server free of the libcurl dependency and allows platforms without libcurl to still run a server.
+The planned native server (`src/server.xi` beyond its current stub) will accept connections and dispatch requests through the router and middleware chain using **`xiom.net` (TCP, Layer 3.1)** as its transport -- not libcurl. libcurl remains exclusively the **client** transport. This keeps the server free of the libcurl dependency and allows platforms without libcurl to still run a server.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) -> "Current State vs Target" for the full implemented-vs-planned breakdown.

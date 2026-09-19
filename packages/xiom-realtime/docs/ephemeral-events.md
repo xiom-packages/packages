@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-`xiom-realtime` classifies every event explicitly, because chat messages, typing indicators, and presence updates should not share the same lifecycle rules. Treating them uniformly is a common source of realtime bugs -- either typing noise gets persisted forever, or important messages get dropped when a client is briefly offline. Four kinds are defined:
+`xiom.realtime` classifies every event explicitly, because chat messages, typing indicators, and presence updates should not share the same lifecycle rules. Treating them uniformly is a common source of realtime bugs -- either typing noise gets persisted forever, or important messages get dropped when a client is briefly offline. Four kinds are defined:
 
 - **Durable** -- events that should be persisted or replayable. These are the messages that must survive a disconnect: chat messages, committed document edits, notifications the user must not miss. Durable events get sequence numbers, are eligible for deduplication, and are stored (via the storage bridge) so the offline/replay path can resend them.
 - **Ephemeral** -- events that can be dropped if the client is offline. They are delivered best-effort to currently connected subscribers and are never queued for later replay. If you weren't there to see it, it didn't matter.

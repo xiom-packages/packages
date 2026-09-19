@@ -1,4 +1,4 @@
-# xiom-jpeg
+# xiom.jpeg
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** JPEG image codec: baseline and progressive encode/decode with quality control.

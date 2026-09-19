@@ -1,4 +1,4 @@
-# xiom-sqlite -- SPEC
+# xiom.sqlite -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
 **Status**: PRODUCTION -- v0.2.0, 109 public functions, 32 requires contracts, verified with v0.49.7
@@ -16,7 +16,7 @@ Single-file, zero-config, public domain.
 | C compiler | For building bridge | -- |
 
 ## Bundling strategy
-**Hybrid.** SQLite amalgamation (`sqlite3.c` + `sqlite3.h`) can be compiled into the bridge .obj, making xiom-sqlite truly zero-dependency. Users don't need to install SQLite separately. Alternatively, link against system `sqlite3.dll`.
+**Hybrid.** SQLite amalgamation (`sqlite3.c` + `sqlite3.h`) can be compiled into the bridge .obj, making xiom.sqlite truly zero-dependency. Users don't need to install SQLite separately. Alternatively, link against system `sqlite3.dll`.
 
 ## API surface
 

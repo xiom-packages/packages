@@ -1,4 +1,4 @@
-# xiom-finance
+# xiom.finance
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Personal and business finance calculations and ledgering.

@@ -4,7 +4,7 @@ Production-grade test framework for the XIOM ecosystem. Provides assertions, sui
 
 ## Package
 
-- **Name:** `xiom-test`
+- **Name:** `xiom.test`
 - **Version:** `0.1.0`
 - **Module:** `xiom.test`
 

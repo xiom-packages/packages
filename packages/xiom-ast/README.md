@@ -1,4 +1,4 @@
-# xiom-ast
+# xiom.ast
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Abstract syntax tree node model and traversal utilities.

@@ -1,4 +1,4 @@
-# xiom-sectest
+# xiom.sectest
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Security testing helpers and vulnerability checks.

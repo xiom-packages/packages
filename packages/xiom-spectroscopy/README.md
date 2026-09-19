@@ -1,4 +1,4 @@
-# xiom-spectroscopy
+# xiom.spectroscopy
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Spectroscopic data processing and peak analysis.

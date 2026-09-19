@@ -1,4 +1,4 @@
-# xiom-ros2 -- SPEC
+# xiom.ros2 -- SPEC
 **Phase**: 3 (Robotics) | **Priority**: Medium
 **Status**: SPEC + Skeleton (v0.1.0) | **Depends on**: xiom.ffi, xiom.test
 ROS 2 -- Robot Operating System middleware. System-installed. Week effort.

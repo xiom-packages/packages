@@ -1,4 +1,4 @@
-# xiom-libuv
+# xiom.libuv
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Cross-platform asynchronous I/O event loop bindings over libuv.

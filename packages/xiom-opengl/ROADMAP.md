@@ -1,7 +1,7 @@
-# xiom-opengl -- ROADMAP
+# xiom.opengl -- ROADMAP
 
 **Phase 2 (Scientific)** | **Priority: HIGH**
-**Depends on**: xiom.ffi (stdlib), xiom-glfw (window creation)
+**Depends on**: xiom.ffi (stdlib), xiom.glfw (window creation)
 **Platform**: Cross-platform (Windows, Linux, macOS)
 
 ## Current Status: SPEC Implementation (v0.1.0)
@@ -32,7 +32,7 @@ All FFI calls return `Err(...)` or stub defaults -- no C bridge is linked yet.
 
 - [ ] Create `glad.c` bundling (single-file extension loader, ~500KB)
 - [ ] Create `opengl_bridge.c` with extern "C" wrappers for the 36 OpenGL functions
-- [ ] Implement context creation via GLFW bridge (`glfw_bridge_*` in xiom-glfw)
+- [ ] Implement context creation via GLFW bridge (`glfw_bridge_*` in xiom.glfw)
 - [ ] Wire up shader compilation with info log retrieval
 - [ ] Wire up program linking with info log retrieval
 - [ ] Wire up buffer, VAO, texture generation
@@ -41,7 +41,7 @@ All FFI calls return `Err(...)` or stub defaults -- no C bridge is linked yet.
 ## Phase 3 (Hello Triangle) Checkpoints
 
 - [ ] Load GLAD via bridge init
-- [ ] Create window via xiom-glfw
+- [ ] Create window via xiom.glfw
 - [ ] Compile vertex + fragment shaders
 - [ ] Link program
 - [ ] Create VAO + VBO with triangle vertices

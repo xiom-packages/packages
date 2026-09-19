@@ -1,4 +1,4 @@
-# xiom-signal
+# xiom.signal
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Digital signal processing: transforms and filtering.

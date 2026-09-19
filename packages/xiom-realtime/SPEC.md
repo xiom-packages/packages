@@ -1,10 +1,10 @@
-# xiom-realtime -- Specification
+# xiom.realtime -- Specification
 
 > **Status: v0.1.0 implemented.** Priority type system, task state machine, priority-based scheduler with deadline enforcement, retry logic, and scheduler statistics are implemented in `realtime.xi` (pure XIOM, no extern dependencies). Room/channel/presence/event layers are planned for future versions.
 
 ## Overview
 
-`xiom-realtime` is the application-level realtime package for the XIOM ecosystem. It layers reusable realtime semantics -- scheduling, channels, rooms, presence, broadcast, ordering, and ephemeral/durable events -- on top of `xiom-websocket` (transport) and `xiom-micro` (distributed fan-out).
+`xiom.realtime` is the application-level realtime package for the XIOM ecosystem. It layers reusable realtime semantics -- scheduling, channels, rooms, presence, broadcast, ordering, and ephemeral/durable events -- on top of `xiom.websocket` (transport) and `xiom.micro` (distributed fan-out).
 
 The scheduling core is organized around a priority-based task queue with:
 - Five priority levels (Critical through Background)

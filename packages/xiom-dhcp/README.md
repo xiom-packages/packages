@@ -1,4 +1,4 @@
-# xiom-dhcp
+# xiom.dhcp
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** DHCP client/server for dynamic IP address assignment.

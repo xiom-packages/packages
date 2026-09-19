@@ -1,4 +1,4 @@
-# xiom-merkle
+# xiom.merkle
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Merkle tree construction and proof verification.

@@ -1,4 +1,4 @@
-# xiom-eigen
+# xiom.eigen
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Eigen-style dense and sparse linear algebra.

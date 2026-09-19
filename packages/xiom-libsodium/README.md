@@ -1,4 +1,4 @@
-# xiom-libsodium
+# xiom.libsodium
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** libsodium FFI bindings for modern crypto primitives.

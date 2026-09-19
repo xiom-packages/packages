@@ -1,4 +1,4 @@
-# xiom-xlsx
+# xiom.xlsx
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Excel OpenXML (XLSX) spreadsheet reading and writing.

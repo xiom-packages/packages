@@ -1,4 +1,4 @@
-# xiom-scipy
+# xiom.scipy
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** SciPy-style scientific computing routines.

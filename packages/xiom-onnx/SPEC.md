@@ -1,8 +1,8 @@
-# xiom-onnx -- SPEC
+# xiom.onnx -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: HIGH
 **Status**: SPEC only -- no implementation yet
-**Depends on**: xiom.ffi (stdlib), xiom-libtorch (optional, for execution)
+**Depends on**: xiom.ffi (stdlib), xiom.libtorch (optional, for execution)
 
 ## What it wraps
 ONNX Runtime -- cross-framework ML model inference engine.

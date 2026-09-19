@@ -1,4 +1,4 @@
-# xiom-avro
+# xiom.avro
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Avro schema handling and data serialization.

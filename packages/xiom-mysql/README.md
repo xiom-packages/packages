@@ -1,4 +1,4 @@
-# xiom-mysql
+# xiom.mysql
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** MySQL client: connection, query execution, and result handling over the native protocol.

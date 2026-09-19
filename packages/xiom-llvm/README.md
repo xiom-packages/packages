@@ -1,4 +1,4 @@
-# xiom-llvm
+# xiom.llvm
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** LLVM backend integration for the XIOM compiler.

@@ -40,7 +40,7 @@ fn assert_unit_err(res: Result[Unit, Str], label: Str) -> Result[Unit, Str] {
 }
 
 pub fn run_all_tests() -> Result[Unit, Str] {
-  xiom.io.println("=== xiom-http Conformance Tests ===");
+  xiom.io.println("=== xiom.http Conformance Tests ===");
 
   var passed: Int = 0;
   var failed: Int = 0;
@@ -206,7 +206,7 @@ fn test_http_response_new() -> Result[Unit, Str] {
 
 fn test_http_response_set_header() -> Result[Unit, Str] {
   var resp: HttpResponse = HttpResponse.new(200);
-  resp.set_header("Server", "xiom-http");
+  resp.set_header("Server", "xiom.http");
   try(assert_true(resp.headers.has("Server"), "HttpResponse.set_header"));
   return Ok(Unit);
 }

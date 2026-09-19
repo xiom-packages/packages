@@ -1,4 +1,4 @@
-# xiom-upnp
+# xiom.upnp
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** UPnP/SSDP device discovery and control point.

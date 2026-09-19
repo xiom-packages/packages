@@ -1,4 +1,4 @@
-# xiom-nft
+# xiom.nft
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Non-fungible token standards and metadata.

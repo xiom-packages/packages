@@ -1,4 +1,4 @@
-# xiom-http
+# xiom.http
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** HTTP/1.1 and HTTP/2 client/server with routing.

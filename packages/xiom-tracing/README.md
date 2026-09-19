@@ -1,4 +1,4 @@
-# xiom-tracing
+# xiom.tracing
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Distributed tracing (spans, traces, propagation, context, export).

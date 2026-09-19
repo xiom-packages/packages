@@ -1,4 +1,4 @@
-# xiom-vulkan -- Production Safety Audit & AAA Readiness Report
+# xiom.vulkan -- Production Safety Audit & AAA Readiness Report
 
 **Date:** 2026-07-19 | **Compiler:** xiom v0.48.0 | **Package:** v0.3.0 -> v1.0.0
 

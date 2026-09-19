@@ -1,4 +1,4 @@
-# xiom-cancel
+# xiom.cancel
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Cooperative cancellation via linked cancellation tokens.

@@ -1,4 +1,4 @@
-# xiom-lexing
+# xiom.lexing
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Lexical analysis and token generation from source text.

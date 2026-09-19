@@ -1,4 +1,4 @@
-# xiom-salt
+# xiom.salt
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Remote execution and configuration management (states, pillars, minions).

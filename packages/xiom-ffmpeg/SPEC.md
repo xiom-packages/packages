@@ -1,4 +1,4 @@
-# xiom-ffmpeg -- SPEC
+# xiom.ffmpeg -- SPEC
 
 **Phase**: 2 (Scientific) | **Priority**: HIGH
 **Status**: Implemented | **Depends on**: xiom.ffi

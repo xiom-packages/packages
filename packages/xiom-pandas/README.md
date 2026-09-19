@@ -1,4 +1,4 @@
-# xiom-pandas
+# xiom.pandas
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Pandas-like tabular data structures.

@@ -1,4 +1,4 @@
-# xiom-geo
+# xiom.geo
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Geospatial data formats, encodings, and projections.

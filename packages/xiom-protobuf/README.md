@@ -1,4 +1,4 @@
-# xiom-protobuf
+# xiom.protobuf
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Protocol Buffers serialization bindings.

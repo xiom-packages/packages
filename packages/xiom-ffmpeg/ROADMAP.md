@@ -1,4 +1,4 @@
-# xiom-ffmpeg -- ROADMAP
+# xiom.ffmpeg -- ROADMAP
 
 ## Phase 1 (Done)
 - [x] `ffmpeg.xi` -- module `xiom.ffmpeg` with 20 extern "C" raw bindings

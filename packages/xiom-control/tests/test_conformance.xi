@@ -1,4 +1,4 @@
-// XIOM -- xiom-control Conformance Tests
+// XIOM -- xiom.control Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Tests: LowPassFilter, MovingAverage, KalmanFilter1D, PIDController,
 //        Trajectory/Waypoint, StateMachine -- all 24 public functions

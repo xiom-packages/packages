@@ -1,4 +1,4 @@
-# xiom-imgui Build Script
+# xiom.imgui Build Script
 # Compiles Dear ImGui + bridge into .obj files, then builds XIOM targets.
 
 param(

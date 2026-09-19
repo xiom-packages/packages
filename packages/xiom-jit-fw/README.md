@@ -1,4 +1,4 @@
-# xiom-jit-fw
+# xiom.jit-fw
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Framework for just-in-time compilation and execution.

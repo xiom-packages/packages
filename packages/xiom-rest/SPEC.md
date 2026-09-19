@@ -1,10 +1,10 @@
-# xiom-rest -- Specification
+# xiom.rest -- Specification
 
 > **Status: v0.1.0 implemented.** Core types, client/request builders, libcurl FFI declarations, convenience HTTP methods, response helpers, and error constructors are implemented in `rest.xi`. Full libcurl transport integration and resource routing layer are planned for future versions.
 
 ## Overview
 
-`xiom-rest` layers resource-oriented REST conventions on top of the `xiom-http` transport. It provides a typed REST client backed by libcurl, with request/response types, URL construction, method dispatch, status classification, and structured error types. Future versions will add resource routing, pagination, filtering, sorting, versioning, content negotiation, and OpenAPI generation.
+`xiom.rest` layers resource-oriented REST conventions on top of the `xiom.http` transport. It provides a typed REST client backed by libcurl, with request/response types, URL construction, method dispatch, status classification, and structured error types. Future versions will add resource routing, pagination, filtering, sorting, versioning, content negotiation, and OpenAPI generation.
 
 ## Module
 
@@ -225,11 +225,11 @@ The modules documented below are design-stage -- specified in [ARCHITECTURE.md](
 
 ### libcurl as Client Transport
 
-`xiom-rest` declares its own `extern "C"` libcurl FFI block rather than delegating to `xiom-http`. This keeps the REST client self-contained and allows it to evolve independently. The `curl_slist_append_all` / `curl_slist_free_all` functions are declared for future custom header injection support.
+`xiom.rest` declares its own `extern "C"` libcurl FFI block rather than delegating to `xiom.http`. This keeps the REST client self-contained and allows it to evolve independently. The `curl_slist_append_all` / `curl_slist_free_all` functions are declared for future custom header injection support.
 
 ### Stub Transport
 
-`client_execute` in v0.1.0 initializes a curl handle but returns a stub `Ok(200)` response without performing actual HTTP requests. Full transport integration is planned for v0.2.0 following the same temp-file response capture strategy used by `xiom-http`.
+`client_execute` in v0.1.0 initializes a curl handle but returns a stub `Ok(200)` response without performing actual HTTP requests. Full transport integration is planned for v0.2.0 following the same temp-file response capture strategy used by `xiom.http`.
 
 ### Method Enum
 

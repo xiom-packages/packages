@@ -1,4 +1,4 @@
-# xiom-meteorology
+# xiom.meteorology
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Meteorological measurements and atmospheric phenomena.

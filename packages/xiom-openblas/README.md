@@ -1,4 +1,4 @@
-# xiom-openblas
+# xiom.openblas
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** OpenBLAS backend integration and acceleration.

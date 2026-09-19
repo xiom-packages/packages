@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Build the xiom-vulkan bridge and XIOM target (demo / test).
+  Build the xiom.vulkan bridge and XIOM target (demo / test).
 
 .DESCRIPTION
   Four-step pipeline:

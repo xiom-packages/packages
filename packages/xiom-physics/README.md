@@ -1,4 +1,4 @@
-# xiom-physics
+# xiom.physics
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Classical physics simulations: motion, forces, energy, and fields.

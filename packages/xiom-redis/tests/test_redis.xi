@@ -1,7 +1,7 @@
 module redis_tests
 
 fn connect(host: Str, port: Int) -> Result[Int, Str] {
-  return Err("xiom-redis: hiredis FFI bridge not linked");
+  return Err("xiom.redis: hiredis FFI bridge not linked");
 }
 
 fn test_connect_failure() -> Int {

@@ -1,4 +1,4 @@
-# xiom-serverless
+# xiom.serverless
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Serverless compute abstractions (functions, triggers, deployments, cold starts).

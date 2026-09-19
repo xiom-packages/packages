@@ -1,4 +1,4 @@
-# xiom-spi
+# xiom.spi
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** SPI serial peripheral interface master/slave data transfer.

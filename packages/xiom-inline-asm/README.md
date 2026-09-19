@@ -1,4 +1,4 @@
-# xiom-inline-asm
+# xiom.inline-asm
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Inline assembly support with operand constraints.

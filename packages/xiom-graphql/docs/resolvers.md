@@ -4,7 +4,7 @@
 
 ## Thin bridges, not business logic
 
-Resolvers in `xiom-graphql` are **thin bridges**. Their job is to translate a GraphQL field into an application call and shape the result to match the schema -- not to contain business logic. Domain rules, persistence, and orchestration belong in the layers beneath the resolver. This preserves the three-layer separation (schema -> resolver -> data source) that keeps GraphQL servers maintainable as they grow.
+Resolvers in `xiom.graphql` are **thin bridges**. Their job is to translate a GraphQL field into an application call and shape the result to match the schema -- not to contain business logic. Domain rules, persistence, and orchestration belong in the layers beneath the resolver. This preserves the three-layer separation (schema -> resolver -> data source) that keeps GraphQL servers maintainable as they grow.
 
 A resolver that starts accumulating business logic is a signal to push that logic down into a service and keep the resolver as a pass-through.
 

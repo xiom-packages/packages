@@ -1,4 +1,4 @@
-# xiom-ffi
+# xiom.ffi
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Safe foreign-function interface bindings to C libraries.

@@ -1,4 +1,4 @@
-# xiom-aac
+# xiom.aac
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** AAC audio codec: AAC-LC/HE decoding and encoding.

@@ -1,4 +1,4 @@
-# xiom-parquet
+# xiom.parquet
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Parquet columnar file reading and writing.

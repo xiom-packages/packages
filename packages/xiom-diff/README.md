@@ -1,4 +1,4 @@
-# xiom-diff
+# xiom.diff
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Difference detection between text and sequences.

@@ -1,4 +1,4 @@
-# xiom-libsodium -- SPEC
+# xiom.libsodium -- SPEC
 
 **Phase**: 2 | **Priority**: HIGH
 **Status**: SPEC only | **Depends on**: xiom.ffi

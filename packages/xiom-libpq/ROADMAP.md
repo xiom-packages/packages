@@ -1,4 +1,4 @@
-# xiom-libpq -- Roadmap
+# xiom.libpq -- Roadmap
 
 ## Phase 1: Pure SPEC Layer
 
@@ -56,7 +56,7 @@
 
 ## Phase 6: Ecosystem Integration
 
-- [ ] `xiom-libpq` package manifest
+- [ ] `xiom.libpq` package manifest
 - [ ] CI pipeline with PostgreSQL test container
 - [ ] Benchmark suite vs. raw libpq C
 - [ ] Integration tests with `xiom.net` for socket-based connection

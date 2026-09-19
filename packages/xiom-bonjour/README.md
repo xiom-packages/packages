@@ -1,4 +1,4 @@
-# xiom-bonjour
+# xiom.bonjour
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Bonjour (mDNS/DNS-SD) zero-configuration service discovery.

@@ -4,7 +4,7 @@
 
 ## Explicit, request-scoped context
 
-Every resolver in `xiom-graphql` receives an explicit `GraphQLContext`. There is no ambient global, no thread-local lookup, and no implicit injection -- if a resolver needs something, it reads it from the context that was handed to it. This matches XIOM's preference for explicit data flow and makes resolver dependencies visible at the call boundary.
+Every resolver in `xiom.graphql` receives an explicit `GraphQLContext`. There is no ambient global, no thread-local lookup, and no implicit injection -- if a resolver needs something, it reads it from the context that was handed to it. This matches XIOM's preference for explicit data flow and makes resolver dependencies visible at the call boundary.
 
 The context is **request-scoped**: it is constructed once per incoming operation and lives for the duration of that operation's execution. It is not shared across requests, which keeps per-request state (auth, loaders, caches) properly isolated.
 

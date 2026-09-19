@@ -1,4 +1,4 @@
-# xiom-torch ROADMAP
+# xiom.torch ROADMAP
 
 > LibTorch bindings for XIOM -- PyTorch C++ inference with compile-time safety.
 

@@ -1,8 +1,8 @@
-// XIOM -- xiom-stb Conformance Tests
+// XIOM -- xiom.stb Conformance Tests
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Comprehensive conformance suite for xiom-stb pure-XIOM components.
+// Comprehensive conformance suite for xiom.stb pure-XIOM components.
 // Tests: Image type construction/invariants, pixel_at, pixel_index,
 // failure_reason, free_image, FFI stub error paths, contract enforcement.
 //

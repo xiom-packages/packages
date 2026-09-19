@@ -1,4 +1,4 @@
-# xiom-flash
+# xiom.flash
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** NOR/NAND flash memory program, erase, and status management.

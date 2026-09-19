@@ -1,4 +1,4 @@
-# xiom-wav
+# xiom.wav
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** WAV audio container: RIFF/WAVE reading and writing with PCM support.

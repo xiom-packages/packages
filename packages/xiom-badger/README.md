@@ -1,4 +1,4 @@
-# xiom-badger
+# xiom.badger
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Badger embedded key-value store bindings.

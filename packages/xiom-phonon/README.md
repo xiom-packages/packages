@@ -1,4 +1,4 @@
-# xiom-phonon
+# xiom.phonon
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Phonon acoustics and spatial audio bindings.

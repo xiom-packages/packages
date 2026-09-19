@@ -1,4 +1,4 @@
-# xiom-png
+# xiom.png
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** PNG image codec: decoding and encoding of the Portable Network Graphics format.

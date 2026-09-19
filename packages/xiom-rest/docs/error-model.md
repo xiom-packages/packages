@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-A predictable error model is what makes an API pleasant to consume. `xiom-rest` maps typed XIOM errors onto stable HTTP status codes and a consistent, machine-readable response body. There are no silent failures: every error path is a typed value that flows through `Result`, and the mapping from domain error to HTTP response is explicit and centralized.
+A predictable error model is what makes an API pleasant to consume. `xiom.rest` maps typed XIOM errors onto stable HTTP status codes and a consistent, machine-readable response body. There are no silent failures: every error path is a typed value that flows through `Result`, and the mapping from domain error to HTTP response is explicit and centralized.
 
 ## The RestError type
 

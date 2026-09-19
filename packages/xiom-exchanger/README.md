@@ -1,4 +1,4 @@
-# xiom-exchanger
+# xiom.exchanger
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Synchronous rendezvous point for pair-wise data exchange between threads.

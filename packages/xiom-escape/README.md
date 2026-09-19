@@ -1,4 +1,4 @@
-# xiom-escape
+# xiom.escape
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Context-aware output escaping to prevent injection attacks.

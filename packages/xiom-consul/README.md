@@ -1,4 +1,4 @@
-# xiom-consul
+# xiom.consul
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** HashiCorp Consul client: service discovery, KV, and health.

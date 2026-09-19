@@ -1,4 +1,4 @@
-# xiom-perf
+# xiom.perf
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Performance benchmarking and regression comparison.

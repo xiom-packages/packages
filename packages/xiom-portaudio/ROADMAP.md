@@ -1,4 +1,4 @@
-# xiom-portaudio -- ROADMAP
+# xiom.portaudio -- ROADMAP
 
 **Module**: `xiom.portaudio`
 **Phase**: 5 (Nice-to-Have)

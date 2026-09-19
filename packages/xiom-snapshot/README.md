@@ -1,4 +1,4 @@
-# xiom-snapshot
+# xiom.snapshot
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Snapshot testing: capture, compare, and update serialized values.

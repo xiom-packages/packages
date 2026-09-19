@@ -1,4 +1,4 @@
-# xiom-sanitize
+# xiom.sanitize
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Input sanitization and validation rules.

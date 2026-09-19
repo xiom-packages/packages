@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-Content negotiation lets a single endpoint serve different representations of the same resource based on what the client asks for. In `xiom-rest` this is explicit and typed: JSON is the default representation, and any alternatives (for example a compact form, CSV, or a versioned media type) are registered deliberately rather than inferred by magic. The negotiation layer only chooses *how* to encode a value; it never changes *what* the resource is.
+Content negotiation lets a single endpoint serve different representations of the same resource based on what the client asks for. In `xiom.rest` this is explicit and typed: JSON is the default representation, and any alternatives (for example a compact form, CSV, or a versioned media type) are registered deliberately rather than inferred by magic. The negotiation layer only chooses *how* to encode a value; it never changes *what* the resource is.
 
 ## Parsing the Accept header
 
@@ -14,7 +14,7 @@ Content negotiation lets a single endpoint serve different representations of th
 
 ## Encoding with typed representations
 
-Each supported format is a `Representation[T] { media_type: MediaType; encode: fn(&T) -> Vec[Int]; }`. Once negotiation picks a media type, `encode(rep, value)` produces the response bytes using that representation's encoder. Tying the encoder to the media type in one value keeps serialization honest: the `Content-Type` the server advertises is exactly the encoder that produced the body, so there is no drift between the declared and actual format. JSON encoding delegates to `xiom-json`.
+Each supported format is a `Representation[T] { media_type: MediaType; encode: fn(&T) -> Vec[Int]; }`. Once negotiation picks a media type, `encode(rep, value)` produces the response bytes using that representation's encoder. Tying the encoder to the media type in one value keeps serialization honest: the `Content-Type` the server advertises is exactly the encoder that produced the body, so there is no drift between the declared and actual format. JSON encoding delegates to `xiom.json`.
 
 ## Contracts and philosophy
 

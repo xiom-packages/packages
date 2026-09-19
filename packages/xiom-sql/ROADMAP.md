@@ -1,4 +1,4 @@
-# ROADMAP: xiom-sql
+# ROADMAP: xiom.sql
 
 ## Current State (v0.1.0 -- MVP)
 

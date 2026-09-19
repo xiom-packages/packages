@@ -1,4 +1,4 @@
-# xiom-kafka ROADMAP
+# xiom.kafka ROADMAP
 
 ## v0.1.0 (Current)
 - [x] Type system (KafkaConfig, KafkaMessage, KafkaProducer, KafkaConsumer, KafkaError)
@@ -32,7 +32,7 @@
 - [ ] Idempotent producer (enable.idempotence)
 - [ ] Exactly-once semantics via transactions
 - [ ] Schema Registry client integration
-- [ ] Avro/Protobuf serde with xiom-protobuf
+- [ ] Avro/Protobuf serde with xiom.protobuf
 - [ ] Dead letter queue support
 - [ ] Consumer health metrics (lag, throughput)
 - [ ] Admin describe/list consumer groups

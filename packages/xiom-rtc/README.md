@@ -1,4 +1,4 @@
-# xiom-rtc
+# xiom.rtc
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Real-time clock keeping wall-clock time and alarms across power cycles.

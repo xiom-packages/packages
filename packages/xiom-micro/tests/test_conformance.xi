@@ -1,4 +1,4 @@
-// XIOM -- xiom-micro Conformance Tests (10 tests)
+// XIOM -- xiom.micro Conformance Tests (10 tests)
 module xiom.micro.tests
 
 use xiom.micro;
@@ -45,7 +45,7 @@ fn int_to_str(n: Int) -> Str {
 }
 
 pub fn run_all_tests() -> Result[Unit, Str] {
-  io.println("=== xiom-micro Conformance Tests ===");
+  io.println("=== xiom.micro Conformance Tests ===");
 
   var passed: Int = 0;
   var failed: Int = 0;

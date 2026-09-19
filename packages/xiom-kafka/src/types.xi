@@ -35,5 +35,5 @@ pub type KafkaError = {
 fn kafka_config_new(brokers: Str) -> KafkaConfig
   requires: brokers.len() > 0
 {
-  KafkaConfig { brokers: brokers; client_id: "xiom-kafka"; group_id: "" }
+  KafkaConfig { brokers: brokers; client_id: "xiom.kafka"; group_id: "" }
 }

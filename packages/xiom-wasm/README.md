@@ -1,4 +1,4 @@
-# xiom-wasm
+# xiom.wasm
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** WebAssembly backend for the XIOM compiler.

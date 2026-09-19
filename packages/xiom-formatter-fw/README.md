@@ -1,4 +1,4 @@
-# xiom-formatter-fw
+# xiom.formatter-fw
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Framework for canonical source formatting and pretty-printing.

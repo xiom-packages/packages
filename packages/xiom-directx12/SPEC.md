@@ -1,4 +1,4 @@
-# xiom-directx12 -- SPEC
+# xiom.directx12 -- SPEC
 
 **Phase**: 2 (Scientific) | **Priority**: HIGH
 **Status**: SPEC implemented (v0.1.0) -- types, constants, extern block, safe wrappers, tests done. C bridge pending.

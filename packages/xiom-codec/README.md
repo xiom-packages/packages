@@ -1,4 +1,4 @@
-# xiom-codec
+# xiom.codec
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Shared codec abstractions and low-level bitstream utilities for all media packages.

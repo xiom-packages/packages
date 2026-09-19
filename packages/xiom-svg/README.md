@@ -1,4 +1,4 @@
-# xiom-svg
+# xiom.svg
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** SVG parsing and vector rendering to raster images.

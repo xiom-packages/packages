@@ -1,4 +1,4 @@
-# ROADMAP -- xiom-eigen
+# ROADMAP -- xiom.eigen
 
 ## Phase 1 -- Core Foundation (CURRENT)
 
@@ -53,7 +53,7 @@
 
 - [ ] SIMD auto-vectorization verification (SSE/AVX/NEON via Eigen)
 - [ ] Fixed-size matrix optimization (Matrix2d, Matrix3d, Matrix4d)
-- [ ] `package.toml` manifest for `xiom-eigen`
+- [ ] `package.toml` manifest for `xiom.eigen`
 - [ ] CI: matrix of (Linux, macOS, Windows) x (system Eigen headers, vendored headers)
 - [ ] Downstream package smoke tests: verify `xiom-robot`, `xiom-cv`, etc. link correctly
 - [ ] Benchmark suite: vs NumPy, vs raw C, vs OpenBLAS -- publish in docs/benchmarks.md

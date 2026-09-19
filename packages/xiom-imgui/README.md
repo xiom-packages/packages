@@ -1,4 +1,4 @@
-# xiom-imgui
+# xiom.imgui
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Dear ImGui immediate mode GUI bindings.

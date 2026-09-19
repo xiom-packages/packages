@@ -1,4 +1,4 @@
-# xiom-db2
+# xiom.db2
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** IBM Db2 client: connection, statement execution, and result handling.

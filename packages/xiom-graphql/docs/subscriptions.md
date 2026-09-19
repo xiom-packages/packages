@@ -1,12 +1,12 @@
 # Subscriptions
 
-> Status: Design stage -- specification only. Subscription delivery depends on `xiom-websocket`.
+> Status: Design stage -- specification only. Subscription delivery depends on `xiom.websocket`.
 
 ## Transport-agnostic at the API layer
 
-Subscriptions in `xiom-graphql` are **transport-agnostic at the API layer**. The GraphQL layer defines the event contract and the subscribe/next/complete protocol semantics; the WebSocket package carries the frames; and the application decides what event sources produce the payloads. The subscription engine never depends on the socket transport directly.
+Subscriptions in `xiom.graphql` are **transport-agnostic at the API layer**. The GraphQL layer defines the event contract and the subscribe/next/complete protocol semantics; the WebSocket package carries the frames; and the application decides what event sources produce the payloads. The subscription engine never depends on the socket transport directly.
 
-This separation follows the same ecosystem rule as the rest of the stack: `xiom-websocket` owns the transport primitives, while `xiom-graphql` owns only the GraphQL protocol. Either side can evolve without dragging the other along.
+This separation follows the same ecosystem rule as the rest of the stack: `xiom.websocket` owns the transport primitives, while `xiom.graphql` owns only the GraphQL protocol. Either side can evolve without dragging the other along.
 
 ## Typed event streams
 
@@ -28,8 +28,8 @@ pub interface Subscription[T] {
 
 ## The WebSocket bridge
 
-`transport/websocket_bridge.xi` adapts the transport-agnostic stream to `xiom-websocket`. It maps GraphQL subscription protocol messages onto WebSocket frames and back, without the engine ever naming the socket. Because the engine only sees `EventStream[T]`, the same subscription definitions could in principle be carried over a different transport by supplying a different bridge.
+`transport/websocket_bridge.xi` adapts the transport-agnostic stream to `xiom.websocket`. It maps GraphQL subscription protocol messages onto WebSocket frames and back, without the engine ever naming the socket. Because the engine only sees `EventStream[T]`, the same subscription definitions could in principle be carried over a different transport by supplying a different bridge.
 
 ## Where payloads come from
 
-`xiom-graphql` deliberately does not own event sources. Rooms, presence, and pub/sub semantics live in packages like `xiom-realtime`. The subscription layer simply defines *what* the event contract is and *how* it is validated and serialized; the application wires a concrete source (a channel, a queue, a domain event bus) into the stream returned by `subscribe`.
+`xiom.graphql` deliberately does not own event sources. Rooms, presence, and pub/sub semantics live in packages like `xiom.realtime`. The subscription layer simply defines *what* the event contract is and *how* it is validated and serialized; the application wires a concrete source (a channel, a queue, a domain event bus) into the stream returned by `subscribe`.

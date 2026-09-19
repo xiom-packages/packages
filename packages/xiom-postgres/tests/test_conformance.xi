@@ -1,7 +1,7 @@
 module test_conformance
 
 fn connect_stub(conn_string: Str) -> Result[Int, Str] {
-  return Err("xiom-postgres: libpq FFI bridge not linked");
+  return Err("xiom.postgres: libpq FFI bridge not linked");
 }
 
 fn test_pg_connect_empty_string() -> Int {

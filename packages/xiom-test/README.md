@@ -1,4 +1,4 @@
-# xiom-test
+# xiom.test
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Unit testing framework: assertions and test discovery.

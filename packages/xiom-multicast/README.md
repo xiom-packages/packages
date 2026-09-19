@@ -1,4 +1,4 @@
-# xiom-multicast
+# xiom.multicast
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** IP multicast send/receive with group membership management.

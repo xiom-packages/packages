@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-Retries are the most misused resilience primitive: done naively, they turn a small downstream blip into a self-inflicted retry storm that keeps the failing service down. `xiom-micro` treats retries as a budgeted, explicit policy rather than an automatic behavior. The `retry.xi` module owns the policy and stop conditions; `backoff.xi` owns the timing (exponential growth, max delay, and jitter).
+Retries are the most misused resilience primitive: done naively, they turn a small downstream blip into a self-inflicted retry storm that keeps the failing service down. `xiom.micro` treats retries as a budgeted, explicit policy rather than an automatic behavior. The `retry.xi` module owns the policy and stop conditions; `backoff.xi` owns the timing (exponential growth, max delay, and jitter).
 
 The first rule is **safety classification**. A call is only eligible for retry if it is idempotent or otherwise safe to repeat. This is enforced by contract at the call boundary -- you cannot silently retry a non-idempotent `POST` just because it failed. Pairing retries with idempotency keys (see [idempotency.md](idempotency.md)) makes even at-least-once delivery safe against duplicates.
 

@@ -1,4 +1,4 @@
-# xiom-lzfse
+# xiom.lzfse
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Apple LZFSE lossless compression bindings.

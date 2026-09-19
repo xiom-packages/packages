@@ -23,7 +23,7 @@ pub fn demo_get() -> Result[Unit, Str] {
 }
 
 pub fn demo_post() -> Result[Unit, Str] {
-  var json_body: Str = "{\"name\":\"xiom-http\",\"version\":\"0.1.0\"}";
+  var json_body: Str = "{\"name\":\"xiom.http\",\"version\":\"0.1.0\"}";
   var result: Result[HttpResponse, Str] = xiom.http.http_post(
     "https://httpbin.org/post",
     json_body,

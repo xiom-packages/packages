@@ -1,4 +1,4 @@
-# xiom-nats
+# xiom.nats
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** NATS messaging system client.

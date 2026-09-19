@@ -1,4 +1,4 @@
-# xiom-cloud
+# xiom.cloud
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Cloud provider, orchestration, and vendor API umbrella.

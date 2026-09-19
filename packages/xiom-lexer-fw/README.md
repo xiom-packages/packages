@@ -1,4 +1,4 @@
-# xiom-lexer-fw
+# xiom.lexer-fw
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Framework for building lexical analyzers and token streams.

@@ -1,4 +1,4 @@
-# xiom-hashchain
+# xiom.hashchain
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Hash chain and hash-linked data structures.

@@ -1,4 +1,4 @@
-# xiom-moveit -- SPEC
+# xiom.moveit -- SPEC
 
 **Phase**: 3 (Robotics) | **Priority**: Medium
 **Status**: Implemented | **Depends on**: xiom.ffi

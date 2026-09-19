@@ -1,4 +1,4 @@
-// XIOM -- xiom-rest Conformance Tests (10 tests)
+// XIOM -- xiom.rest Conformance Tests (10 tests)
 module xiom.rest.tests
 
 use xiom.rest;
@@ -45,7 +45,7 @@ fn int_to_str(n: Int) -> Str {
 }
 
 pub fn run_all_tests() -> Result[Unit, Str] {
-  io.println("=== xiom-rest Conformance Tests ===");
+  io.println("=== xiom.rest Conformance Tests ===");
 
   var passed: Int = 0;
   var failed: Int = 0;

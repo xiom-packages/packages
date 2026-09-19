@@ -1,4 +1,4 @@
-# xiom-websocket ROADMAP
+# xiom.websocket ROADMAP
 
 ## v0.1.0 (Current)
 - [x] Core types (WsOpcode, WsConnectionState, WsConnection, WsFrame, WsMessage, WsMessageKind)
@@ -29,7 +29,7 @@
 - [ ] Control frame interleaving in fragmented messages
 
 ## v0.3.0 -- Live Transport
-- [ ] TCP socket integration via xiom-net
+- [ ] TCP socket integration via xiom.net
 - [ ] Server accept loop with connection registry
 - [ ] Client connect with full handshake
 - [ ] Send queue with backpressure
@@ -55,4 +55,4 @@
 - [ ] Performance benchmarks (throughput, latency, memory)
 - [ ] Load testing suite with concurrent connections
 - [ ] Fuzzing harness for frame codec
-- [ ] Integration tests with xiom-http upgrade bridge
+- [ ] Integration tests with xiom.http upgrade bridge

@@ -1,12 +1,12 @@
 # XIOM HTTP -- Language-Native HTTP Foundation
 
-XIOM HTTP is the core HTTP primitives package for the XIOM ecosystem. It follows a hybrid architecture: a small, audited, dependency-free core (`xiom-http`) plus separate, optional higher-level packages (`xiom-rest`, `xiom-graphql`, `xiom-websocket`, `xiom-micro`, `xiom-realtime`) built on top of it. This mirrors how mature ecosystems separate a minimal transport/primitives layer from opinionated frameworks, the same way Rust separates `tokio` (async runtime) from `tower` (middleware/service abstraction) from `axum` (web framework).
+XIOM HTTP is the core HTTP primitives package for the XIOM ecosystem. It follows a hybrid architecture: a small, audited, dependency-free core (`xiom.http`) plus separate, optional higher-level packages (`xiom.rest`, `xiom.graphql`, `xiom.websocket`, `xiom.micro`, `xiom.realtime`) built on top of it. This mirrors how mature ecosystems separate a minimal transport/primitives layer from opinionated frameworks, the same way Rust separates `tokio` (async runtime) from `tower` (middleware/service abstraction) from `axum` (web framework).
 
 The design borrows the best proven ideas from Express, Fastify, Koa, and NestJS, then reimplements them idiomatically in XIOM using contracts, ownership, structural interfaces, and `Result`-based error handling instead of exceptions, decorators, or hidden magic.
 
 ## Current State vs Target
 
-This document describes the **target** architecture for `xiom-http`. Much of it is still at the design stage. To keep the documentation honest, here is where the package actually stands today.
+This document describes the **target** architecture for `xiom.http`. Much of it is still at the design stage. To keep the documentation honest, here is where the package actually stands today.
 
 ### Implemented today
 
@@ -33,7 +33,7 @@ In short, the current package is primarily a **libcurl-backed client plus HTTP m
 
 ### Transport direction
 
-A key design principle for the planned work: the eventual **native server** will be built on **`xiom-net` (TCP)** rather than libcurl. libcurl remains strictly the **client** transport. This keeps the server free of the libcurl dependency and lets platforms without libcurl still run a server.
+A key design principle for the planned work: the eventual **native server** will be built on **`xiom.net` (TCP)** rather than libcurl. libcurl remains strictly the **client** transport. This keeps the server free of the libcurl dependency and lets platforms without libcurl still run a server.
 
 ## Why this split
 
@@ -52,11 +52,11 @@ xiom-micro/           service discovery, RPC clients, circuit breakers, retries
 xiom-realtime/        pub/sub, presence, event channels, broadcast rooms
 ```
 
-Only `xiom-http` is mandatory. Everything else is opt-in, versioned, and independently upgradable -- matching the "smaller core, dedicated packages on top" philosophy already decided.
+Only `xiom.http` is mandatory. Everything else is opt-in, versioned, and independently upgradable -- matching the "smaller core, dedicated packages on top" philosophy already decided.
 
-## `xiom-http` scope (core, kept lean)
+## `xiom.http` scope (core, kept lean)
 
-`xiom-http` is intentionally narrow, comparable to Go's `net/http` or Node's `http` module: primitives only, no ORM, no templating, no business-logic conventions.
+`xiom.http` is intentionally narrow, comparable to Go's `net/http` or Node's `http` module: primitives only, no ORM, no templating, no business-logic conventions.
 
 - Low-level HTTP server and client
 - Basic routing (method + path matching, path params, wildcards)
@@ -158,7 +158,7 @@ A companion HTTP client sharing the same request/response types, JSON codec, and
 Immutable request view and an explicit, owned response builder. No hidden mutation of shared state -- this maps directly onto XIOM's ownership model instead of Express's mutable `req`/`res` objects.
 
 ### `src/router/`
-Basic method+path routing with typed path parameters. Deliberately simpler than Express's full regex router; complex resource routing belongs in `xiom-rest`, not the core.
+Basic method+path routing with typed path parameters. Deliberately simpler than Express's full regex router; complex resource routing belongs in `xiom.rest`, not the core.
 
 ### `src/middleware/`
 Implements the onion model: each middleware wraps the next handler, calls it explicitly, and can act before and after. This is Koa's proven execution model, expressed here as ordinary XIOM functions with explicit `next` closures instead of implicit `async/await` chaining magic.
@@ -167,7 +167,7 @@ Implements the onion model: each middleware wraps the next handler, calls it exp
 Implements Fastify-style encapsulation: each plugin gets its own scope, and child scopes inherit from parents but not the reverse. This prevents global mutable app state and keeps large route trees auditable.
 
 ### `src/json/`
-Schema-first JSON encode/decode. Fastify's biggest architectural win is compiling JSON schema into fast serializers and validators ahead of time rather than validating ad hoc -- `xiom-http` adopts the same idea, but the schema is a native XIOM `type` with `derive[Eq, Clone]` rather than a separate JSON Schema document.
+Schema-first JSON encode/decode. Fastify's biggest architectural win is compiling JSON schema into fast serializers and validators ahead of time rather than validating ad hoc -- `xiom.http` adopts the same idea, but the schema is a native XIOM `type` with `derive[Eq, Clone]` rather than a separate JSON Schema document.
 
 ### `src/contracts/`
 Turns `requires`/`ensures` into HTTP-boundary validation: a route handler's `requires` clause validates the incoming request, and `ensures` validates the outgoing response before it's sent. This is XIOM's direct answer to Fastify's schema validation, but validation is compiler-enforced rather than library-enforced.
@@ -253,24 +253,24 @@ Scopes are ordinary values with ownership rules -- a scope cannot leak into a si
 
 ## Extension packages
 
-### `xiom-rest`
-Resource-oriented routing, pagination helpers, content negotiation, and conventions similar to Express-style REST scaffolding, but built as ordinary structural interfaces over `xiom-http` routes rather than a separate router engine.
+### `xiom.rest`
+Resource-oriented routing, pagination helpers, content negotiation, and conventions similar to Express-style REST scaffolding, but built as ordinary structural interfaces over `xiom.http` routes rather than a separate router engine.
 
-### `xiom-graphql`
-Schema definition, resolvers, and an execution engine that reuses `xiom-http`'s JSON codec and contract system for input/output validation.
+### `xiom.graphql`
+Schema definition, resolvers, and an execution engine that reuses `xiom.http`'s JSON codec and contract system for input/output validation.
 
-### `xiom-websocket`
+### `xiom.websocket`
 Upgrade handshake, frame parsing, and channel abstractions built on the same connection primitives as the core server.
 
-### `xiom-micro`
+### `xiom.micro`
 Service discovery, typed RPC clients, retries, and circuit breakers -- the microservices layer, kept fully separate so monolith users never pay for it.
 
-### `xiom-realtime`
-Pub/sub channels, presence tracking, and broadcast rooms, layered on `xiom-websocket` and `xiom-micro`.
+### `xiom.realtime`
+Pub/sub channels, presence tracking, and broadcast rooms, layered on `xiom.websocket` and `xiom.micro`.
 
 ## Why no built-in dependency injection container
 
-NestJS's DI container is powerful but implicit: providers are resolved by the framework at runtime based on decorators and metadata reflection. XIOM rejects implicit resolution by design -- there are no default arguments, no hidden constructors, and no reflection-driven wiring. Instead, `xiom-http` recommends explicit composition: services are constructed once at startup and passed into route modules as plain struct fields, which keeps every dependency visible in the function signature and fully inspectable by both humans and AI tooling.
+NestJS's DI container is powerful but implicit: providers are resolved by the framework at runtime based on decorators and metadata reflection. XIOM rejects implicit resolution by design -- there are no default arguments, no hidden constructors, and no reflection-driven wiring. Instead, `xiom.http` recommends explicit composition: services are constructed once at startup and passed into route modules as plain struct fields, which keeps every dependency visible in the function signature and fully inspectable by both humans and AI tooling.
 
 ## Design principles carried from XIOM language spec
 
@@ -280,16 +280,16 @@ NestJS's DI container is powerful but implicit: providers are resolved by the fr
 - No null -- absent headers, params, or query values are `Option[Str]`.
 - Contracts replace ad hoc validation middleware -- `requires`/`ensures` are checked by the compiler-backed runtime guard layer, not a third-party schema library.
 - `derive[Eq, Clone, Display]` on request/response DTOs removes an entire class of hand-written serialization bugs.
-- The native server targets `xiom-net` (TCP) for its transport; libcurl is used only by the client.
+- The native server targets `xiom.net` (TCP) for its transport; libcurl is used only by the client.
 
 ## Summary comparison table
 
-| Concern | Express | Fastify | Koa | NestJS | Tower/Axum | xiom-http |
+| Concern | Express | Fastify | Koa | NestJS | Tower/Axum | xiom.http |
 |---|---|---|---|---|---|---|
 | Core size | Small | Small | Very small | Large (framework) | Very small | Small, dependency-free |
 | Middleware model | Callback chain | Hooks + plugins | Onion/async | Interceptors/guards | `Service`/`Layer` | Onion, explicit `next`, typed `Result` |
 | Validation | Manual/3rd-party | Schema-compiled | Manual/3rd-party | Decorator-based (`class-validator`) | Manual | Compiler-checked contracts (`requires`/`ensures`) |
 | Structure | Unopinionated | Plugin encapsulation | Unopinionated | Modules + DI | Tower layers | Modules + explicit scopes, no DI container |
-| Extension model | Middleware everywhere | Plugin registry | Middleware everywhere | Nest modules | Layer composition | Separate versioned packages (`xiom-rest`, etc.) |
+| Extension model | Middleware everywhere | Plugin registry | Middleware everywhere | Nest modules | Layer composition | Separate versioned packages (`xiom.rest`, etc.) |
 
 This gives XIOM HTTP a foundation that is as lean as Go's `net/http`, as fast-by-design as Fastify's schema compilation, as predictable as Koa's onion model, as structured as NestJS's modules -- but expressed entirely through XIOM's own contract system, ownership rules, and structural interfaces instead of borrowing any runtime-validation or reflection-based machinery.

@@ -1,4 +1,4 @@
-# xiom-lru
+# xiom.lru
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Least-recently-used cache with O(1) access and eviction.

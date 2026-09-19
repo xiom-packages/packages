@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-Documentation drifts the moment it is written by hand. `xiom-rest` avoids this by generating OpenAPI descriptions directly from the same declarative `RestModule` definitions used for routing, enriched with the `requires`/`ensures` contract metadata XIOM already carries. The specification is derived from the code, not maintained alongside it, so the docs cannot silently fall out of step with the implementation.
+Documentation drifts the moment it is written by hand. `xiom.rest` avoids this by generating OpenAPI descriptions directly from the same declarative `RestModule` definitions used for routing, enriched with the `requires`/`ensures` contract metadata XIOM already carries. The specification is derived from the code, not maintained alongside it, so the docs cannot silently fall out of step with the implementation.
 
 ## Generating from resource definitions
 
@@ -14,7 +14,7 @@ The generator draws on the typed structures the rest of the package already defi
 
 ## Serialization
 
-`to_json(doc)` serializes the document to OpenAPI JSON via `xiom-json`. The result is a standard artifact that can be served from an endpoint, checked into a repository, fed to client-generator tooling, or rendered by any OpenAPI-aware UI. Keeping serialization separate from generation means the in-memory `OpenApiDoc` can also be inspected or transformed programmatically before being emitted.
+`to_json(doc)` serializes the document to OpenAPI JSON via `xiom.json`. The result is a standard artifact that can be served from an endpoint, checked into a repository, fed to client-generator tooling, or rendered by any OpenAPI-aware UI. Keeping serialization separate from generation means the in-memory `OpenApiDoc` can also be inspected or transformed programmatically before being emitted.
 
 ## Philosophy
 

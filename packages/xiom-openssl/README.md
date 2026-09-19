@@ -1,4 +1,4 @@
-# xiom-openssl
+# xiom.openssl
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** OpenSSL FFI bindings for crypto primitives.

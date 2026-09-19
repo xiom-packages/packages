@@ -303,7 +303,7 @@ fn setup_common_options(handle: *UInt8, url_cstr: *UInt8) -> Result[Unit, Str] {
   xiom_free_cstr(encoding_cstr);
   if rc != 0 { return Err(string.str_concat("CURLOPT_ACCEPT_ENCODING failed: ", curl_error_string(rc))); };
 
-  var ua_cstr: *UInt8 = str_to_cstr("xiom-http/0.1.0");
+  var ua_cstr: *UInt8 = str_to_cstr("xiom.http/0.1.0");
   rc = curl_easy_setopt(handle, CURLOPT_USERAGENT(), ua_cstr);
   xiom_free_cstr(ua_cstr);
   if rc != 0 { return Err(string.str_concat("CURLOPT_USERAGENT failed: ", curl_error_string(rc))); };

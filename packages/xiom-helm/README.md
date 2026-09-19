@@ -1,4 +1,4 @@
-# xiom-helm
+# xiom.helm
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Kubernetes package management (charts, releases, repositories, values).

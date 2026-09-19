@@ -1,4 +1,4 @@
-# xiom-windows
+# xiom.windows
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Windows OS integration and PE tooling.

@@ -1,4 +1,4 @@
-# xiom-biology
+# xiom.biology
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Biological modeling: genetics, populations, and ecosystems.

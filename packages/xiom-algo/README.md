@@ -1,4 +1,4 @@
-# xiom-algo
+# xiom.algo
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** General-purpose algorithms and data structure helpers.

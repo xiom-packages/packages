@@ -1,4 +1,4 @@
-# xiom-wasmtime -- SPEC
+# xiom.wasmtime -- SPEC
 
 **Phase**: 5 (Nice-to-Have) | **Priority**: Low
 **Status**: SPEC with XIOM bindings -- all FFI stubs return Err (Phase 2 = C bridge)

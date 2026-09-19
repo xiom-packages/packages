@@ -322,7 +322,7 @@ fn test_contract_array_matmul() -> TestCase {
 }
 
 pub fn main() -> Int {
-  io.println("=== XIOM xiom-numpy Conformance Tests ===");
+  io.println("=== XIOM xiom.numpy Conformance Tests ===");
   io.println("");
 
   var suite = xiom.test.TestSuite.new("NumPy Conformance");

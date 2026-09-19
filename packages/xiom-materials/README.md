@@ -1,4 +1,4 @@
-# xiom-materials
+# xiom.materials
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Material properties, selection, and stress behavior.

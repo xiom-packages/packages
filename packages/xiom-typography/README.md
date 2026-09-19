@@ -1,4 +1,4 @@
-# xiom-typography
+# xiom.typography
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Font handling and text shaping.

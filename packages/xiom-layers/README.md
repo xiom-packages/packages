@@ -1,4 +1,4 @@
-# xiom-layers
+# xiom.layers
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Standard neural network layer implementations.

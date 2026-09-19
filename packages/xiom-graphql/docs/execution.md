@@ -4,7 +4,7 @@
 
 ## Four explicit phases
 
-The `xiom-graphql` engine processes every operation through four explicit phases. Keeping them separate makes the pipeline predictable and gives each stage a dedicated, typed failure mode.
+The `xiom.graphql` engine processes every operation through four explicit phases. Keeping them separate makes the pipeline predictable and gives each stage a dedicated, typed failure mode.
 
 ### Parse
 

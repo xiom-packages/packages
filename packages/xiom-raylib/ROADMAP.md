@@ -1,4 +1,4 @@
-# xiom-raylib -- ROADMAP
+# xiom.raylib -- ROADMAP
 
 ## v0.1.0 (Current -- SPEC Implementation)
 - [x] `raylib.xi`: Module `xiom.raylib` with 8 newtypes, 26 extern "C" declarations

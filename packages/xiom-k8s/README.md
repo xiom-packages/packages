@@ -1,4 +1,4 @@
-# xiom-k8s
+# xiom.k8s
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Kubernetes orchestration (workloads, services, configuration, cluster access).

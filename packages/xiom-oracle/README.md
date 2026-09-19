@@ -1,4 +1,4 @@
-# xiom-oracle
+# xiom.oracle
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Off-chain data oracles for blockchain systems.

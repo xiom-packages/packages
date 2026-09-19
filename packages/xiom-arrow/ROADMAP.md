@@ -1,4 +1,4 @@
-# xiom-arrow -- Production Roadmap
+# xiom.arrow -- Production Roadmap
 
 **Version**: v0.1.0 | **Compiler**: xiom v0.49.7 | **Last updated**: 2026-07-21
 
@@ -38,7 +38,7 @@ The FFI bridge needs:
 |------|--------|
 | Install libarrow-dev (`apt install libarrow-dev` or vcpkg) | Hour |
 | Write C bridge (arrow_array_create, arrow_schema_create, etc.) | Day |
-| Link bridge .obj to xiom-arrow package | Day |
+| Link bridge .obj to xiom.arrow package | Day |
 | Verify round-trip: create array -> get buffers -> read data | Day |
 | IPC round-trip: write -> read -> compare | Day |
 

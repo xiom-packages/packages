@@ -1,4 +1,4 @@
-# xiom-gazebo -- SPEC
+# xiom.gazebo -- SPEC
 
 **Phase**: 3 (Robotics) | **Priority**: Medium
 **Status**: Implemented | **Depends on**: xiom.ffi, xiom.io, xiom.test

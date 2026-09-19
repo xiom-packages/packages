@@ -1,4 +1,4 @@
-# xiom-lemmatization
+# xiom.lemmatization
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Word lemmatization using dictionary lookups and rules.

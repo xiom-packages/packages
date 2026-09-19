@@ -1,4 +1,4 @@
-# xiom-ftp
+# xiom.ftp
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** FTP/SFTP client and server for file transfer.

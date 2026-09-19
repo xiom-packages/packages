@@ -2,7 +2,7 @@
 
 > Status: Design stage -- specification only, not yet implemented.
 
-APIs change, and versioning is how `xiom-rest` lets them change without breaking existing clients. The guiding rule is that breaking changes must never be silent: a new incompatible shape lives under a new version, and old versions are retired only with explicit, discoverable deprecation metadata. Versioning is expressed as data on a `RestModule`, so it composes naturally with resource routing.
+APIs change, and versioning is how `xiom.rest` lets them change without breaking existing clients. The guiding rule is that breaking changes must never be silent: a new incompatible shape lives under a new version, and old versions are retired only with explicit, discoverable deprecation metadata. Versioning is expressed as data on a `RestModule`, so it composes naturally with resource routing.
 
 ## Versioning strategies
 

@@ -1,4 +1,4 @@
-# xiom-cache
+# xiom.cache
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** General-purpose in-memory caching with TTL and eviction.

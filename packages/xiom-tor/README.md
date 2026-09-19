@@ -1,4 +1,4 @@
-# xiom-tor
+# xiom.tor
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Tor anonymity network client.

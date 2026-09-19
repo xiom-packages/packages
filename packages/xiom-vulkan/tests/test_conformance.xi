@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Eleftherios Notas
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Comprehensive conformance suite for xiom-vulkan safe wrappers.
+// Comprehensive conformance suite for xiom.vulkan safe wrappers.
 // Covers: lifecycle, accessors, frame, input, utility, buffers,
 // offscreen, camera, math, textures, font, images, drawing.
 //

@@ -1,4 +1,4 @@
-# xiom-selection
+# xiom.selection
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Model and hyperparameter selection utilities.

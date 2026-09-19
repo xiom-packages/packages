@@ -1,4 +1,4 @@
-# xiom-stats-ml
+# xiom.stats-ml
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** ML evaluation metrics and diagnostic plots.

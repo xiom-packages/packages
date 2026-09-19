@@ -1,4 +1,4 @@
-# xiom-orc
+# xiom.orc
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** ORC columnar file reading and writing.

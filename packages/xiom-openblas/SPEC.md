@@ -1,4 +1,4 @@
-# xiom-openblas -- SPEC
+# xiom.openblas -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
 **Status**: Phase 1 implemented (stub computations, contracts, tests)

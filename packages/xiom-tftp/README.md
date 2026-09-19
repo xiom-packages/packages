@@ -1,4 +1,4 @@
-# xiom-tftp
+# xiom.tftp
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** TFTP client/server for trivial file transfer.

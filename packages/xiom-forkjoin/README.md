@@ -1,4 +1,4 @@
-# xiom-forkjoin
+# xiom.forkjoin
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Fork/join parallel task splitting and result combining across worker groups.

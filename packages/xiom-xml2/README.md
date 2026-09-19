@@ -1,4 +1,4 @@
-# xiom-xml2
+# xiom.xml2
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** libxml2 XML parsing bindings.

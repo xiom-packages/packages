@@ -3,9 +3,9 @@
 // Licensed under the MIT or Apache-2.0 license, at your option.
 
 package {
-  name: "xiom-libsodium"
+  name: "xiom.libsodium"
   version: "0.1.0"
   description: "libsodium secure cryptography bindings for XIOM"
   authors: ["XIOM Team"]
-  deps: { "xiom-std": "0.1.0" }
+  deps: { "xiom.std": "0.1.0" }
 }

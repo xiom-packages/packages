@@ -1,4 +1,4 @@
-# xiom-pandas -- Roadmap
+# xiom.pandas -- Roadmap
 
 **Phase 1** (v0.1.0) -- Core Foundation [OK]
 - [x] 3 opaque types: `DataFrame`, `Series`, `Dtype`
@@ -39,7 +39,7 @@
 | Dependency | Status |
 |---|---|
 | `xiom.ffi` (stdlib) | Required |
-| `xiom-arrow` (Apache Arrow C Data Interface) | Required (Phase 4) |
+| `xiom.arrow` (Apache Arrow C Data Interface) | Required (Phase 4) |
 
 ## Contract Coverage
 - 11 `requires` contracts across 11 public functions (Phase 1)

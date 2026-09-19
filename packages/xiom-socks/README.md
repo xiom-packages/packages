@@ -1,4 +1,4 @@
-# xiom-socks
+# xiom.socks
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** SOCKS proxy protocol client.

@@ -1,4 +1,4 @@
-# xiom-dynamo
+# xiom.dynamo
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Amazon DynamoDB client: tables, items, and queries.

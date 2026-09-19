@@ -1,4 +1,4 @@
-# xiom-sentiment
+# xiom.sentiment
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Sentiment analysis and opinion polarity scoring.

@@ -1,4 +1,4 @@
-# xiom-parsing
+# xiom.parsing
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** General text and grammar parsing utilities.

@@ -1,4 +1,4 @@
-# xiom-html
+# xiom.html
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** HTML parsing, manipulation, and serialization.

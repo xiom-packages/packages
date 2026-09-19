@@ -1,4 +1,4 @@
-# xiom-http ROADMAP
+# xiom.http ROADMAP
 
 ## v0.1.0 (Current)
 - [x] HTTP client via libcurl FFI (GET, POST, PUT, DELETE, download)

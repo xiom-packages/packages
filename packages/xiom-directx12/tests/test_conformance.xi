@@ -412,7 +412,7 @@ fn test_ffi_execute_cmd_lists_null() -> TestCase {
 fn local_create_device(adapter: Int) -> Result[Int, Str] {
   let raw: Int = unsafe { D3D12CreateDevice(adapter, 0xC000, 0, 0) };
   if raw == 0 { return Ok(0xDEAD) }
-  return Err("d3d12_create_device: C bridge not yet linked -- xiom-directx12 is in SPEC phase");
+  return Err("d3d12_create_device: C bridge not yet linked -- xiom.directx12 is in SPEC phase");
 }
 
 fn test_safe_create_device_spec_returns_err() -> TestCase {

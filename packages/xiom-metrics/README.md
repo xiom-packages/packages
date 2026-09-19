@@ -1,4 +1,4 @@
-# xiom-metrics
+# xiom.metrics
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Evaluation metrics for classification and regression.

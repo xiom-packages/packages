@@ -1,4 +1,4 @@
-# xiom-stats-tests
+# xiom.stats-tests
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Hypothesis testing and statistical significance.

@@ -1,4 +1,4 @@
-# xiom-msgpack
+# xiom.msgpack
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** MessagePack binary encoding and decoding.

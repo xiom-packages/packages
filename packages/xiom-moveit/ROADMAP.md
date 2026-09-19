@@ -1,4 +1,4 @@
-# xiom-moveit -- ROADMAP
+# xiom.moveit -- ROADMAP
 
 **Phase**: 3 (Robotics) | **Status**: In Progress
 

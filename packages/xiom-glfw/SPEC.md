@@ -1,4 +1,4 @@
-# xiom-glfw -- SPEC
+# xiom.glfw -- SPEC
 
 **Phase**: 1 (Core Foundation) | **Priority**: CRITICAL
 **Status**: PRODUCTION -- v0.2.0, 17 safe wrappers, verified with v0.49.7

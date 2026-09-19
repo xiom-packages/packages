@@ -1,6 +1,6 @@
-# xiom-core Architecture
+# xiom.core Architecture
 
-xiom-core is the **shared durable-systems substrate** for the XIOM data ecosystem. It exists so that the two engines that need identical crash-safety and systems plumbing -- [`xiom-db`](../xiom-db) (relational/embedded) and [`xiom-vector`](../xiom-vector) (ANN/vector) -- build on one canonical foundation instead of two drifting copies.
+xiom.core is the **shared durable-systems substrate** for the XIOM data ecosystem. It exists so that the two engines that need identical crash-safety and systems plumbing -- [`xiom-db`](../xiom-db) (relational/embedded) and [`xiom-vector`](../xiom-vector) (ANN/vector) -- build on one canonical foundation instead of two drifting copies.
 
 This document is the canonical map of the package: the module tree, the shared-core decision, ownership rules, contract hotspots, failure domains, and the implemented-vs-scaffolded status of every module.
 
@@ -24,14 +24,14 @@ Production vector databases are *not* just ANN indexes with an API -- they still
 
 What is reused vs. kept separate:
 
-| Reused from xiom-core | Built fresh downstream |
+| Reused from xiom.core | Built fresh downstream |
 |-----------------------|------------------------|
 | `config`, `error`, `result`, `ids`, `limits`, `metrics`, `version` | Access methods: B-tree (db), HNSW/IVF/PQ (vector) |
 | `storage/` page, pager, buffer_pool, checksum | Query planning, cost models, distance kernels |
 | `wal/` record, writer, reader, checkpoint, recovery | Collection schema, segment compaction, filter execution |
 | `txn/` state, manager, snapshot | SQL parser / relational algebra |
 
-Rule of thumb: **if a concern is about durability or systems plumbing, it belongs in xiom-core; if it is about the access path or data model, it belongs in the engine.**
+Rule of thumb: **if a concern is about durability or systems plumbing, it belongs in xiom.core; if it is about the access path or data model, it belongs in the engine.**
 
 ## Module tree
 

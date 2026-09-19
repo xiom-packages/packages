@@ -1,4 +1,4 @@
-# xiom-docx
+# xiom.docx
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Word OpenXML (DOCX) document reading and writing.

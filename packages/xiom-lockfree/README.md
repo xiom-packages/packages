@@ -1,4 +1,4 @@
-# xiom-lockfree
+# xiom.lockfree
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Lock-free concurrent data structures built on atomic primitives.

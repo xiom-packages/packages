@@ -1,4 +1,4 @@
-# xiom-itest
+# xiom.itest
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Integration test harness for end-to-end and system tests.

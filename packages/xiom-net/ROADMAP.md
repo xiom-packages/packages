@@ -1,4 +1,4 @@
-# xiom-net Roadmap
+# xiom.net Roadmap
 
 ## Current State -- v0.2.0
 
@@ -80,7 +80,7 @@
 | Unix domain sockets | Low | `AF_UNIX` / `AF_LOCAL` |
 | Raw sockets | Low | `SOCK_RAW`, requires admin |
 | TLS/SSL | Medium | OpenSSL / SChannel FFI |
-| HTTP/1.1 client | Medium | Separate `xiom-http` package |
+| HTTP/1.1 client | Medium | Separate `xiom.http` package |
 | WebSocket | Low | Upgrade from HTTP |
 | QUIC/HTTP3 | Future | Needs TLS 1.3 + UDP |
 | Zero-copy send/recv | Low | `WSASend`/`WSARecv` with IOCP |
@@ -93,7 +93,7 @@
 ## Dependency Graph
 
 ```
-xiom-net (this package)
+xiom.net (this package)
   |-- xiom-std (stdlib: string, ptr, io, collections)
   `-- OS sockets (Winsock2 / POSIX libc)
 ```

@@ -1,4 +1,4 @@
-# xiom-alerting
+# xiom.alerting
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Alert rules, evaluation, deduplication, and notification routing.

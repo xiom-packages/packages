@@ -1,4 +1,4 @@
-# xiom-zstd -- SPEC
+# xiom.zstd -- SPEC
 
 **Phase**: 2 | **Priority**: HIGH
 **Status**: PRODUCTION | **Depends on**: xiom.ffi (for Vec[UInt8] bridge, future)

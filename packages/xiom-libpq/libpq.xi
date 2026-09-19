@@ -53,7 +53,7 @@ pub const PGRES_FATAL_ERROR: Int = 7;
 pub fn connect(conninfo: Str) -> Result[PgConnection, Str]
   requires: conninfo.len() > 0
 {
-  return Err("connect: C bridge not yet linked -- xiom-libpq is in SPEC phase");
+  return Err("connect: C bridge not yet linked -- xiom.libpq is in SPEC phase");
 }
 
 pub fn close(conn: PgConnection)
@@ -79,14 +79,14 @@ pub fn exec(conn: PgConnection, sql: Str) -> Result[PgResult, Str]
   requires: conn != 0
   requires: sql.len() > 0
 {
-  return Err("exec: C bridge not yet linked -- xiom-libpq is in SPEC phase");
+  return Err("exec: C bridge not yet linked -- xiom.libpq is in SPEC phase");
 }
 
 pub fn exec_params(conn: PgConnection, sql: Str, params: Vec[Str]) -> Result[PgResult, Str]
   requires: conn != 0
   requires: sql.len() > 0
 {
-  return Err("exec_params: C bridge not yet linked -- xiom-libpq is in SPEC phase");
+  return Err("exec_params: C bridge not yet linked -- xiom.libpq is in SPEC phase");
 }
 
 // -- Result parsing ---------------------------------------------------------
@@ -135,17 +135,17 @@ pub fn send_query(conn: PgConnection, sql: Str) -> Result[Int, Str]
   requires: conn != 0
   requires: sql.len() > 0
 {
-  return Err("send_query: C bridge not yet linked -- xiom-libpq is in SPEC phase");
+  return Err("send_query: C bridge not yet linked -- xiom.libpq is in SPEC phase");
 }
 
 pub fn get_result(conn: PgConnection) -> Result[PgResult, Str]
 {
-  return Err("get_result: C bridge not yet linked -- xiom-libpq is in SPEC phase");
+  return Err("get_result: C bridge not yet linked -- xiom.libpq is in SPEC phase");
 }
 
 pub fn consume_input(conn: PgConnection) -> Result[Int, Str]
 {
-  return Err("consume_input: C bridge not yet linked -- xiom-libpq is in SPEC phase");
+  return Err("consume_input: C bridge not yet linked -- xiom.libpq is in SPEC phase");
 }
 
 pub fn is_busy(conn: PgConnection) -> Bool

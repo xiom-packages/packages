@@ -1,4 +1,4 @@
-# xiom-messaging
+# xiom.messaging
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Chat, presence, and realtime messaging protocols umbrella.

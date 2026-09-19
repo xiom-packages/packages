@@ -1,4 +1,4 @@
-# xiom-yaml
+# xiom.yaml
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** YAML parsing and serialization.
