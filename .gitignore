@@ -1,0 +1,18 @@
+# Editor and OS noise
+*.code-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets and local environment (never commit) -- registry publish tokens are
+# password-equivalent; see xiom-lang/ops docs/REGISTRY_TOKENS.md.
+.env
+.env.*
+!.env.example
+tokens*.json
+
+# Kilo Code agent state (worktrees and local session state)
+.kilo/worktrees/
+.kilo/agent-manager.json
+.kilo/setup-script*
+.kilocode/
