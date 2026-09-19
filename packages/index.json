@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-19T16:27:54Z",
+    "updated":  "2026-09-19T23:54:52Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -369,6 +369,20 @@
                                               "server.xi",
                                               "types.xi",
                                               "grpc.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.hello",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Minimal XIOM package -- the canonical first-publish example",
+                         "dependencies":  [
+
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hello/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "hello.xi",
                                               "package.xi"
                                           ]
                      },
