@@ -16,4 +16,8 @@ tokens*.json
 .kilo/agent-manager.json
 .kilo/setup-script*
 .kilocode/
+
+# Compiler outputs
+a.exe
+a.out
 kilo.jsonc

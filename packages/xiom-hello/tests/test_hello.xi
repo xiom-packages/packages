@@ -1,28 +1,22 @@
 // XIOM -- xiom.hello conformance tests
 // Copyright (c) 2026 Eleftherios Notas and XIOM Foundation
 // SPDX-License-Identifier: MIT OR Apache-2.0
-//
-// NOTE: assertions use assert_eq / assert_ne. The unqualified `assert` in
-// xiom.test currently resolves to the void `assert` re-exported from
-// xiom.test.assert (name collision) and returns a corrupt TestResult
-// (passed=false, name="0"). `xiom.test.assert(...)` qualified works; see the
-// compiler report from the first-publish preflight.
 
 module hello_tests
 use xiom.io; use xiom.test;
 use xiom.hello;
 
 fn t1() -> TestResult {
-  return assert_eq(greeting(), "Hello from xiom.hello!", "greeting text");
+  return assert(greeting() == "Hello from xiom.hello!", "greeting text");
 }
 fn t2() -> TestResult {
-  return assert_eq(greet("Ada"), "Hello, Ada!", "greet by name");
+  return assert(greet("Ada") == "Hello, Ada!", "greet by name");
 }
 fn t3() -> TestResult {
-  return assert_eq(greet(""), greeting(), "greet empty falls back to greeting");
+  return assert(greet("") == greeting(), "greet empty falls back to greeting");
 }
 fn t4() -> TestResult {
-  return assert_eq(greeting().len() > 0, true, "greeting is not empty");
+  return assert(greeting().len() > 0, "greeting is not empty");
 }
 
 fn main() -> Int {
