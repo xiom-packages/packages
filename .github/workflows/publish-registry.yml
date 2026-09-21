@@ -10,6 +10,12 @@
 #     v0.61.0 or newer is required because `xiom pkg` ships from v0.61.0.
 #   - Publishes every implemented package (packages/*/package.xi) whose
 #     manifest version is not already in the target registry.
+#   - Only names listed in .github/publish-allowlist.txt are published;
+#     anything else is skipped. A published version is immutable forever, so
+#     the allowlist is the readiness gate for real source.
+#   - Signing: set the XIOM_SIGNING_KEY secret (64 hex chars) for a stable
+#     first-party fingerprint; without it an ephemeral key is generated per
+#     run (fine for the canary, warned for a full batch).
 #   - xiom.std is owned by the stdlib repository and is never published here.
 #     The umbrella xiom.ecosystem is excluded: it needs its own scope and is
 #     not a library artifact.
@@ -96,10 +102,28 @@ jobs:
           compiler/bin/xiom --version
           compiler/bin/xiom pkg --help >/dev/null
 
-      - name: Generate ephemeral signing key
+      - name: Prepare signing key
+        env:
+          XIOM_SIGNING_KEY: ${{ secrets.XIOM_SIGNING_KEY }}
         run: |
           set -euo pipefail
-          xiom pkg keygen
+          mkdir -p "$HOME/.xiom/keys"
+          if [ -n "${XIOM_SIGNING_KEY:-}" ]; then
+            printf '%s' "$XIOM_SIGNING_KEY" | tr -d '\r\n' > "$HOME/.xiom/keys/default.key"
+            printf '\n' >> "$HOME/.xiom/keys/default.key"
+            chmod 600 "$HOME/.xiom/keys/default.key"
+            key_len="$(tr -d '\r\n' < "$HOME/.xiom/keys/default.key" | wc -c)"
+            if [ "$key_len" -ne 64 ]; then
+              echo "XIOM_SIGNING_KEY must be 64 hex chars (got $key_len)" >&2
+              exit 1
+            fi
+            echo "using stable XIOM_SIGNING_KEY (64 hex chars)"
+          else
+            if [ -z "${CANARY_PACKAGE:-}" ]; then
+              echo "::warning::full batch is using an ephemeral signing key; set the XIOM_SIGNING_KEY secret for a stable first-party fingerprint"
+            fi
+            xiom pkg keygen
+          fi
 
       - name: Publish packages
         run: |
@@ -127,6 +151,11 @@ jobs:
             esac
             if [ -z "$name" ] || [ -z "$version" ]; then
               echo "skip (no name/version): $manifest"
+              skipped=$((skipped+1))
+              continue
+            fi
+            if ! grep -qxF "$name" .github/publish-allowlist.txt; then
+              echo "skip (not in publish allowlist): $name@$version"
               skipped=$((skipped+1))
               continue
             fi

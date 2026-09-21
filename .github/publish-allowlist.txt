@@ -1,0 +1,80 @@
+# Packages allowed to publish to the XIOM registry. One dotted name per line;
+# blank lines and '#' comments are ignored by the workflow.
+#
+# A published version is immutable forever, so this file is the readiness
+# gate: add a name only when the implementation is real, not a placeholder.
+#
+# Criterion (2026-09-21 pass): the package has source functions with bodies
+# (not declaration-only), no stub markers dominating, and no wholesale
+# "FFI bridge not linked" error paths.
+#
+# Deliberately excluded until they have working implementations:
+#   declaration-only (no function bodies):
+#     xiom.bullet, xiom.libsodium, xiom.libuv, xiom.openal, xiom.ros2,
+#     xiom.stb, xiom.wasmtime
+#   stub body:
+#     xiom.sql
+#   no source in this repo (stdlib owns the module):
+#     xiom.ffi
+#   FFI bridge not linked (calls return "not linked"):
+#     xiom.redis, xiom.postgres, xiom.libtorch, xiom.numpy, xiom.sqlite
+#   registry policy:
+#     xiom.std (stdlib repo), xiom.ecosystem (umbrella, excluded)
+
+xiom.algo
+xiom.arrow
+xiom.assimp
+xiom.blas
+xiom.box2d
+xiom.control
+xiom.core
+xiom.cuda
+xiom.directx11
+xiom.directx12
+xiom.dxc
+xiom.eigen
+xiom.ffmpeg
+xiom.gazebo
+xiom.glfw
+xiom.graphql
+xiom.grpc
+xiom.hello
+xiom.http
+xiom.imgui
+xiom.jolt
+xiom.json
+xiom.kafka
+xiom.libpq
+xiom.log
+xiom.lzfse
+xiom.math
+xiom.meshopt
+xiom.micro
+xiom.miniaudio
+xiom.moveit
+xiom.net
+xiom.onnx
+xiom.openblas
+xiom.opencv
+xiom.opengl
+xiom.openssl
+xiom.ozz
+xiom.pandas
+xiom.phonon
+xiom.portaudio
+xiom.protobuf
+xiom.raylib
+xiom.realtime
+xiom.rest
+xiom.scipy
+xiom.sdl3
+xiom.sensor
+xiom.tensorflow
+xiom.test
+xiom.torch
+xiom.ui
+xiom.vma
+xiom.vulkan
+xiom.websocket
+xiom.zeromq
+xiom.zstd
