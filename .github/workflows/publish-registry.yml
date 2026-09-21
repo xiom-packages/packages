@@ -1,0 +1,171 @@
+# Registry publish for the xiom-packages ecosystem -- OIDC trusted publishing.
+# Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+# SPDX-License-Identifier: MIT OR Apache-2.0
+#
+# Contract:
+#   - GitHub OIDC -> short-lived registry token (audience: xiom-registry).
+#     No long-lived publish secret is stored in this repository.
+#   - The job runs in the `registry-publish` environment (required reviewers).
+#   - Tools come from the public xiom release pinned in COMPILER_VERSION;
+#     v0.61.0 or newer is required because `xiom pkg` ships from v0.61.0.
+#   - Publishes every implemented package (packages/*/package.xi) whose
+#     manifest version is not already in the target registry.
+#   - xiom.std is owned by the stdlib repository and is never published here.
+#     The umbrella xiom.ecosystem is excluded: it needs its own scope and is
+#     not a library artifact.
+#
+# Scope enumeration for the registry: the package names in packages/*/package.xi
+# (all two-segment `xiom.<x>` names), minus the exclusions above.
+name: XIOM Packages Registry Publish
+
+on:
+  push:
+    tags: ["eco-v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "ecosystem batch version (informational, e.g. 0.2.0)"
+        required: false
+      registry:
+        description: "registry base URL"
+        required: false
+        default: "https://registry.xiom-lang.org"
+      package:
+        description: "canary: publish only this package name (e.g. xiom.core); empty = full batch"
+        required: false
+
+# One batch at a time: publishes are immutable and rate limited.
+concurrency:
+  group: registry-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: publish ecosystem packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: registry-publish
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      XIOM_REGISTRY: ${{ github.event.inputs.registry || 'https://registry.xiom-lang.org' }}
+      BATCH_VERSION: ${{ github.event.inputs.version || github.ref_name }}
+      CANARY_PACKAGE: ${{ github.event.inputs.package }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Mint registry token (GitHub OIDC)
+        run: |
+          set -euo pipefail
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ] || [ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]; then
+            echo "OIDC request env is missing; the job needs id-token: write" >&2
+            exit 1
+          fi
+          response="$(curl -fsS \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=xiom-registry")"
+          token="$(printf '%s' "$response" | python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])')"
+          if [ -z "$token" ]; then
+            echo "empty OIDC token in response" >&2
+            exit 1
+          fi
+          echo "::add-mask::$token"
+          echo "XIOM_REGISTRY_TOKEN=$token" >> "$GITHUB_ENV"
+          echo "minted registry OIDC token (audience xiom-registry)"
+
+      - name: Install toolchain
+        run: |
+          set -euo pipefail
+          pin="$(tr -d '\r\n ' < COMPILER_VERSION)"
+          if [ -z "$pin" ]; then
+            echo "COMPILER_VERSION is empty" >&2
+            exit 1
+          fi
+          pv="${pin#v}"
+          curl -fsSL -o xiom-compiler.tar.gz \
+            "https://github.com/xiom-lang/xiom/releases/download/${pin}/xiom-${pv}-linux-x64.tar.gz"
+          mkdir -p compiler
+          tar -xzf xiom-compiler.tar.gz -C compiler
+          test -x compiler/bin/xiom
+          echo "$PWD/compiler/bin" >> "$GITHUB_PATH"
+          compiler/bin/xiom --version
+          compiler/bin/xiom pkg --help >/dev/null
+
+      - name: Generate ephemeral signing key
+        run: |
+          set -euo pipefail
+          xiom pkg keygen
+
+      - name: Publish packages
+        run: |
+          set -uo pipefail
+          echo "registry: $XIOM_REGISTRY"
+          echo "batch:    $BATCH_VERSION"
+          published=0
+          skipped=0
+          failed=0
+          failed_list=""
+          echo "canary:   ${CANARY_PACKAGE:-<full batch>}"
+          for manifest in packages/*/package.xi; do
+            dir="${manifest%/package.xi}"
+            name="$(sed -n 's/.*name:[[:space:]]*"\([^"]*\)".*/\1/p' "$manifest" | head -n1)"
+            version="$(sed -n 's/.*version:[[:space:]]*"\([^"]*\)".*/\1/p' "$manifest" | head -n1)"
+            if [ -n "$CANARY_PACKAGE" ] && [ "$name" != "$CANARY_PACKAGE" ]; then
+              continue
+            fi
+            case "$name" in
+              xiom.std|xiom.ecosystem)
+                echo "skip (excluded by policy): $name"
+                skipped=$((skipped+1))
+                continue
+                ;;
+            esac
+            if [ -z "$name" ] || [ -z "$version" ]; then
+              echo "skip (no name/version): $manifest"
+              skipped=$((skipped+1))
+              continue
+            fi
+            code="$(curl -s -o /tmp/pkg.json -w '%{http_code}' "$XIOM_REGISTRY/packages/$name" || true)"
+            if [ "$code" = "200" ] && python3 -c 'import json,sys; d=json.load(open("/tmp/pkg.json")); sys.exit(0 if sys.argv[1] in (d.get("versions") or {}) else 1)' "$version"; then
+              echo "skip (already published): $name@$version"
+              skipped=$((skipped+1))
+              continue
+            fi
+            echo "publish: $name@$version"
+            if (cd "$dir" && xiom pkg publish); then
+              published=$((published+1))
+            else
+              echo "retry after 30s (transient failure or rate limit): $name@$version"
+              sleep 30
+              if (cd "$dir" && xiom pkg publish); then
+                published=$((published+1))
+              else
+                echo "::error::publish failed: $name@$version"
+                failed=$((failed+1))
+                failed_list="$failed_list $name@$version"
+              fi
+            fi
+            sleep 4   # stay under the 20 publishes/minute limit
+          done
+          {
+            echo "## Registry publish summary"
+            echo ""
+            echo "- registry: \`$XIOM_REGISTRY\`"
+            echo "- batch: \`$BATCH_VERSION\`"
+            echo "- published: $published"
+            echo "- skipped (already present or excluded): $skipped"
+            echo "- failed: $failed"
+            if [ -n "$failed_list" ]; then echo "- failed packages:$failed_list"; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$CANARY_PACKAGE" ] && [ "$published" -eq 0 ] && [ "$skipped" -eq 0 ]; then
+            echo "::error::canary package not found: $CANARY_PACKAGE"
+            exit 1
+          fi
+          if [ "$failed" -ne 0 ]; then
+            exit 1
+          fi
