@@ -1,5 +1,5 @@
 // XIOM - Complete Vulkan FFI Bindings (Auto-generated from SDK 1.4.350.0)
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Generated from vulkan_core.h (SDK 1.4.350.0) - 755 functions total.

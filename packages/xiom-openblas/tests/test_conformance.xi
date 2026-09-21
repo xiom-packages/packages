@@ -1,5 +1,5 @@
 // XIOM -- xiom.openblas conformance test suite
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // 26 tests covering: matrix lifecycle, get/set roundtrip, BLAS 1-3,

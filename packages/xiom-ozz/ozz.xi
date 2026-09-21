@@ -1,5 +1,5 @@
 // XIOM -- Ozz-Animation (v0.16.0) FFI Bindings
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Low-level FFI declarations for Ozz-Animation v0.16.0 via a C bridge.

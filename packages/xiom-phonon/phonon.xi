@@ -1,5 +1,5 @@
 // XIOM - Steam Audio (Phonon) FFI Bindings
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Low-level extern "C" declarations for phonon.dll (Steam Audio SDK v4.8.1).

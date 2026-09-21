@@ -1,5 +1,5 @@
 // XIOM -- Box2D Physics Engine FFI Bindings (v4.x -- 100% API surface)
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Low-level FFI declarations for the Box2D C API (box2d.dll / libbox2d.so).

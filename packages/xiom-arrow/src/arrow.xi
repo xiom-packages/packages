@@ -1,5 +1,5 @@
 // XIOM -- Arrow Library (Apache Arrow C Data Interface Bindings)
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Production-grade Arrow columnar format bindings for the XIOM ecosystem.

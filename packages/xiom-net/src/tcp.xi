@@ -1,5 +1,5 @@
 // XIOM -- TCP Networking (Production via Winsock2 + FFI Bridge)
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 
 module xiom.net.tcp

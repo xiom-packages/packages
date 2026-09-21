@@ -1,5 +1,5 @@
 // XIOM -- LZFSE Compression Conformance Tests
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Tests all public functions in xiom.lzfse and xiom.lzfse.safe.

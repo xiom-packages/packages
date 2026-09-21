@@ -1,5 +1,5 @@
 // XIOM -- xiom.assimp Conformance Tests
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Comprehensive conformance suite for xiom.assimp pure-XIOM components.

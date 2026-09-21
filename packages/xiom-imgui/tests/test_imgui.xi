@@ -1,5 +1,5 @@
 // XIOM -- ImGui Conformance Tests
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 module imgui_tests
 use xiom.test;
 use xiom.imgui;

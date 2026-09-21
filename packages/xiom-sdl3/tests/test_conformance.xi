@@ -1,5 +1,5 @@
 // XIOM -- SDL3 Conformance Test Suite
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Compile-time verification of all public functions/types/constants in

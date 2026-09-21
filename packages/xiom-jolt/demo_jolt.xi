@@ -1,5 +1,5 @@
 // XIOM -- Jolt Physics Demo
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // NOTE: xiom v0.46.0 treats opaque FFI Int handles as move-only.

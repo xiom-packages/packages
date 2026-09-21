@@ -1,6 +1,6 @@
 // XIOM -- MiniAudio FFI Bindings (C Bridge)
 // Low-level extern "C" declarations and safe wrappers for the xma C bridge.
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 module xiom.miniaudio
 

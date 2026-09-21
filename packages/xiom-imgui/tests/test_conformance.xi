@@ -1,5 +1,5 @@
 // XIOM -- ImGui Conformance Tests
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Comprehensive safe wrapper contract and return-type conformance suite.
 // Covers: context lifecycle, window state tracking, widgets, layout,
 // tree/tab/popup pairing, menu bar lifecycle, styling, and utility.

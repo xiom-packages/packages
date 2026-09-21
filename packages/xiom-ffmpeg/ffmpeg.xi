@@ -1,5 +1,5 @@
 // XIOM -- xiom.ffmpeg: Safe FFmpeg Bindings (libavformat / libavcodec)
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Phase 2 (Scientific). Wraps FFmpeg system libraries with safe XIOM types,

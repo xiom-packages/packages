@@ -1,5 +1,5 @@
 // XIOM -- Raylib Bindings v0.1.0 (Phase 5 -- SPEC)
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Safe wrappers around raylib v5.5 via extern "C" FFI.

@@ -1,5 +1,5 @@
 // XIOM -- Jolt Physics Bindings (Full Coverage)
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // JoltPhysics v5.6.0 -- production 3D physics engine (Horizon Forbidden West).

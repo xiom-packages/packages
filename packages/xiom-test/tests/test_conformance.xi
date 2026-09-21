@@ -1,5 +1,5 @@
 // XIOM -- xiom.test Conformance Tests
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Tests: All public types and functions in the xiom.test module
 module test_tests
 use xiom.io;

@@ -1,5 +1,5 @@
 // XIOM -- Vulkan Memory Allocator (VMA) Bindings v3.3.0
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Production-grade FFI declarations for vk_mem_alloc.h (Vulkan SDK 1.4.350.0).

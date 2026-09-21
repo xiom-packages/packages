@@ -1,5 +1,5 @@
 // XIOM -- Gazebo Simulation Bindings
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Low-level FFI declarations for the Gazebo Sim C API (libgz-sim.so / gz-sim.dll).

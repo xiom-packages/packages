@@ -1,5 +1,5 @@
 // XIOM -- libpq PostgreSQL C Client Library Bindings
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Phase 1 (v0.50.0): Pure SPEC layer -- all FFI calls are stubs returning Err.

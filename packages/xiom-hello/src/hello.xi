@@ -1,5 +1,5 @@
 // XIOM -- xiom.hello: the canonical minimal package
-// Copyright (c) 2026 Eleftherios Notas and XIOM Foundation
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
 // This module is intentionally dependency-free. It is small enough to read

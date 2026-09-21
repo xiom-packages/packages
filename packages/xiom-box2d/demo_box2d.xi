@@ -1,5 +1,5 @@
 // XIOM -- Box2D Physics Demo & Test Suite
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Comprehensive test suite for the Box2D bindings: world lifecycle,

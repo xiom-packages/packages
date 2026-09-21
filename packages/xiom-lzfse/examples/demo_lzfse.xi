@@ -1,5 +1,5 @@
 // XIOM -- LZFSE Compression Demo (production-grade, self-contained)
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Self-contained demo: all extern declarations and wrappers are inlined

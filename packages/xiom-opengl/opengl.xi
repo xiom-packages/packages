@@ -1,5 +1,5 @@
 // XIOM -- OpenGL 4.6 Bindings
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Pure SPEC package -- all FFI calls return Err until the C bridge is linked.

@@ -2,7 +2,7 @@
 // Validates public API of xiom.scipy with contract verification.
 // Pure-XIOM stats functions are fully tested; FFI-dependent functions
 // have stub/error-path tests.
-// Copyright (c) 2026 Eleftherios Notas
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 
 module conformance_tests
