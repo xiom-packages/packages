@@ -6,6 +6,10 @@ package xiom_ecosystem {
   name: "xiom.ecosystem";
   version: "0.1.0";
   description: "XIOM Ecosystem Libraries";
+  categories: ["tooling"];
+  keywords: ["ecosystem", "umbrella", "packages", "monorepo"];
+  license: "MIT OR Apache-2.0";
+  repository: "https://github.com/xiom-packages/packages";
   authors: ["XIOM Team"];
   deps: {
     "xiom.std": "0.1.0"

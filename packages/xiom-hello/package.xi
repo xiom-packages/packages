@@ -11,6 +11,10 @@ package xiom_hello {
   name: "xiom.hello";
   version: "0.1.0";
   description: "Minimal XIOM package -- the canonical first-publish example";
+  categories: ["tooling"];
+  keywords: ["example", "template", "hello", "getting-started"];
+  license: "MIT OR Apache-2.0";
+  repository: "https://github.com/xiom-packages/packages";
   authors: ["Eleftherios Notas", "The XIOM Authors"];
   modules: ["xiom.hello"];
   deps: { "xiom.std": ">=0.60.0 <1.0.0" };

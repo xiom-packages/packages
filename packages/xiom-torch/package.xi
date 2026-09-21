@@ -6,6 +6,10 @@ package xiom_torch {
   name: "xiom.torch";
   version: "0.1.0";
   description: "LibTorch bindings for XIOM -- PyTorch C++ inference";
+  categories: ["ai-ml"];
+  keywords: ["torch", "pytorch", "inference", "tensors"];
+  license: "MIT OR Apache-2.0";
+  repository: "https://github.com/xiom-packages/packages";
   authors: ["XIOM Team"];
   deps: { "xiom.std": "0.1.0" };
   modules: [
