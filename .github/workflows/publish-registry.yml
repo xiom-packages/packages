@@ -19,6 +19,11 @@
 #   - Only names listed in .github/publish-allowlist.txt are published;
 #     anything else is skipped. A published version is immutable forever, so
 #     the allowlist is the readiness gate for real source.
+#   - Readiness filter (same rule as scripts/allowlist-guard.ps1): batches
+#     publish only packages whose STATUS.json is stage=stable with a recorded
+#     green suite; unready names are skipped with a warning. Per-package tags
+#     and dispatch canaries on unready names are refused (::error), and a tag
+#     outside the allowlist fails.
 #   - Signing: set the XIOM_SIGNING_KEY secret (64 hex chars) for a stable
 #     first-party fingerprint; without it an ephemeral key is generated per
 #     run (fine for the canary, warned for a full batch).
@@ -213,6 +218,30 @@ jobs:
                 exit 1
               fi
               echo "skip (not in publish allowlist): $name@$version"
+              skipped=$((skipped+1))
+              continue
+            fi
+            # Readiness filter -- the same rule scripts/allowlist-guard.ps1
+            # enforces. Batches skip unready names with a warning (baseline
+            # names stay warn-don't-fail in the guard, but they are skipped
+            # here so no unverified immutable version can ever publish);
+            # explicit targets (per-package tag or dispatch canary) are
+            # refused outright.
+            ready="no"
+            if [ -f "$dir/STATUS.json" ]; then
+              stage="$(sed -n 's/.*"stage"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$dir/STATUS.json" | head -n1)"
+              test_status="$(sed -n 's/.*"status"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$dir/STATUS.json" | head -n1)"
+              if [ "$stage" = "stable" ] && [ "$test_status" = "pass" ]; then ready="yes"; fi
+            else
+              stage="<missing STATUS.json>"
+              test_status="<missing>"
+            fi
+            if [ "$ready" != "yes" ]; then
+              if [ -n "${TAG_PACKAGE_NAME:-}" ] || [ -n "${CANARY_PACKAGE:-}" ]; then
+                echo "::error::publish target is not ready (stage=$stage tests=$test_status): $name"
+                exit 1
+              fi
+              echo "::warning::skip (not ready: stage=$stage tests=$test_status): $name@$version"
               skipped=$((skipped+1))
               continue
             fi
