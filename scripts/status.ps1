@@ -23,13 +23,14 @@
 #   .\scripts\status.ps1 -Action list
 #   .\scripts\status.ps1 -Action validate
 #   .\scripts\status.ps1 -Action seed
+#   .\scripts\status.ps1 -Action repin          # align compiler fields with COMPILER_VERSION
 #   .\scripts\status.ps1 -Action update -Package xiom.lru -TestsStatus pass `
 #       -Passed 12 -Failed 0 -RunBy "task:abc" -Commit 1234abc
 # Exit code: 0 = ok, 1 = validation/update error.
 # ============================================================================
 [CmdletBinding()]
 param(
-    [ValidateSet("list", "validate", "seed", "update")]
+    [ValidateSet("list", "validate", "seed", "repin", "update")]
     [string]$Action = "list",
     [string]$Package = "",
     [string]$Stage = "",
@@ -258,6 +259,41 @@ switch ($Action) {
             $created = $created + 1
         }
         Write-Host "status seed: created $created, skipped existing $skipped (use -Force to overwrite)"
+        exit 0
+    }
+
+    "repin" {
+        # Align every STATUS.json compiler field with COMPILER_VERSION after a
+        # toolchain pin bump. Run totals and run_by/commit are preserved.
+        $total = 0
+        $changed = 0
+        foreach ($dir in (Get-ImplementedPackages)) {
+            $statusPath = Join-Path $dir.FullName "STATUS.json"
+            if (-not (Test-Path -LiteralPath $statusPath)) { continue }
+            $total = $total + 1
+            $s = Get-StatusJson $statusPath
+            if ($s.compiler -eq $pin) { continue }
+            $status = [ordered]@{
+                package         = $s.package
+                stage           = $s.stage
+                compiler        = $pin
+                stdlib          = $s.stdlib
+                tests           = [ordered]@{
+                    suite   = $s.tests.suite
+                    status  = $s.tests.status
+                    passed  = $s.tests.passed
+                    failed  = $s.tests.failed
+                    run_by  = $s.tests.run_by
+                    commit  = $s.tests.commit
+                    checked = $s.tests.checked
+                }
+                publish         = [bool]$s.publish
+                excluded_reason = $s.excluded_reason
+            }
+            Write-StatusJson -Path $statusPath -Status $status
+            $changed = $changed + 1
+        }
+        Write-Host "status repin: $total file(s), $changed updated to $pin"
         exit 0
     }
 
