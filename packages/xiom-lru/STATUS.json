@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.lru",
+    "stage":  "incubating",
+    "compiler":  "v0.61.0",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  16,
+                  "failed":  0,
+                  "run_by":  "task:ses_f30ac2e5fffevsVUR9CkgGWhSw",
+                  "commit":  "5f11b54",
+                  "checked":  "2026-09-23T17:48:34Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "pending allowlist: registry scope addition + publish blockers (compiler pin release v0.61.0, repo protection)"
+}
