@@ -114,6 +114,7 @@ if ($suiteRel) { $suitePath = Join-Path $packageDir $suiteRel }
 $passed = 0
 $failed = 0
 $exitCode = 0
+$effectiveExit = 0
 
 Push-Location $packageDir
 try {
@@ -138,16 +139,25 @@ try {
             }
         }
         if ($failed -eq 0) { $passed = $sources.Count }
-        $exitCode = if ($failed -eq 0) { 0 } else { 1 }
+        $effectiveExit = if ($failed -eq 0) { 0 } else { 1 }
+        $exitCode = $effectiveExit
     } else {
         Write-Host "  suite:    $suiteRel"
         $result = Invoke-Compiler -Arguments @("--run", $suitePath)
         $output = $result.Output
-        $exitCode = $result.ExitCode
         Write-Host $output
         $passed = ([regex]::Matches($output, "\[PASS\]")).Count
         $failed = ([regex]::Matches($output, "\[FAIL\]")).Count
-        if ($exitCode -ne 0) { $exitCode = 1 }
+        # `xiom --run` prints the program's exit code on its own "exit code:"
+        # line and can itself exit 0 even when the program crashed (observed
+        # with an access violation, -1073741819). Trust the reported code.
+        $programExit = $null
+        $codeMatches = [regex]::Matches($output, "exit code:\s*(-?\d+)")
+        if ($codeMatches.Count -gt 0) {
+            $programExit = [int64]$codeMatches[$codeMatches.Count - 1].Groups[1].Value
+        }
+        $effectiveExit = if ($null -ne $programExit) { $programExit } else { $result.ExitCode }
+        $exitCode = if ($effectiveExit -eq 0 -and $failed -eq 0) { 0 } else { 1 }
     }
 } finally {
     Pop-Location
@@ -155,7 +165,7 @@ try {
 
 # 3. Summary.
 $verdict = if ($exitCode -eq 0 -and $failed -eq 0) { "PASS" } else { "FAIL" }
-Write-Host "port: $verdict (passed=$passed failed=$failed exit=$exitCode)"
+Write-Host "port: $verdict (passed=$passed failed=$failed program_exit=$effectiveExit exit=$exitCode)"
 if ($verdict -eq "PASS" -and -not $NoRun -and $suitePath) {
     Write-Host "record the run with:"
     Write-Host ("  .\scripts\status.ps1 -Action update -Package {0} -TestsStatus pass -Passed {1} -Failed {2} -RunBy <agent> -Commit <sha>" -f $name, $passed, $failed)
