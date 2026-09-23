@@ -172,3 +172,14 @@ fn main() {
 - **While loops only**: No `for` loops per XIOM language constraints
 - **Contracts**: `requires` guards protect against invalid inputs at compile time
 - **Anti-windup**: PID integral is clamped to prevent integrator windup
+
+## Known limitations
+
+- **Test dispatch is direct, not table-driven**: `tests/test_conformance.xi` dispatches
+  its 27 cases through `run_test_at(index)` instead of a `Vec[fn() -> TestResult]`
+  table with `tests[i]()`. Compiler 0.61.3 miscompiles indexed calls through
+  `Vec[fn]` elements (the emitted IR dereferences the function address itself and
+  calls the value loaded from the code bytes), crashing with an access violation
+  (`0xC0000005`, exit `-1073741819`) before any test output. The same defect makes
+  `xiom.test.run_all` unusable on this toolchain. The direct dispatch preserves the
+  exact same 27 tests and report output.

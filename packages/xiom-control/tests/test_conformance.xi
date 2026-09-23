@@ -296,44 +296,52 @@ fn test_sm_transition_invalid() -> TestResult {
 // Main
 // ================================================================
 
+// Direct dispatch by index. The suite must not store the test functions in a
+// Vec[fn() -> TestResult] and call them as `tests[i]()`: compiler 0.61.3
+// miscompiles indexed calls through Vec[fn] elements (it dereferences the
+// function address itself and calls the garbage loaded from it), which dies
+// with an access violation (0xC0000005) before the first test runs.
+fn run_test_at(index: Int) -> TestResult {
+  if index == 0 { return test_lpf_new_valid(); };
+  if index == 1 { return test_lpf_compute_first_sample(); };
+  if index == 2 { return test_lpf_compute_filtering(); };
+  if index == 3 { return test_lpf_reset(); };
+  if index == 4 { return test_ma_new_valid(); };
+  if index == 5 { return test_ma_compute_partial(); };
+  if index == 6 { return test_ma_compute_sliding(); };
+  if index == 7 { return test_kalman_new_valid(); };
+  if index == 8 { return test_kalman_compute_filtering(); };
+  if index == 9 { return test_pid_new_valid(); };
+  if index == 10 { return test_pid_set_limits(); };
+  if index == 11 { return test_pid_set_integral_limit(); };
+  if index == 12 { return test_pid_set_setpoint(); };
+  if index == 13 { return test_pid_compute_proportional(); };
+  if index == 14 { return test_pid_integral_windup(); };
+  if index == 15 { return test_pid_reset(); };
+  if index == 16 { return test_pid_get_error(); };
+  if index == 17 { return test_trajectory_new_empty(); };
+  if index == 18 { return test_trajectory_add_waypoint(); };
+  if index == 19 { return test_trajectory_interpolate_empty(); };
+  if index == 20 { return test_trajectory_interpolate(); };
+  if index == 21 { return test_trajectory_interpolate_boundary(); };
+  if index == 22 { return test_sm_new_empty(); };
+  if index == 23 { return test_sm_add_state(); };
+  if index == 24 { return test_sm_add_transition_and_can(); };
+  if index == 25 { return test_sm_transition_valid(); };
+  if index == 26 { return test_sm_transition_invalid(); };
+  return assert(false, "control: unknown test index");
+}
+
 fn main() -> Int {
   io.println("=== XIOM Control Conformance Tests ===");
   var failed: Int = 0; var total: Int = 0;
-
-  var tests = [
-    test_lpf_new_valid,
-    test_lpf_compute_first_sample,
-    test_lpf_compute_filtering,
-    test_lpf_reset,
-    test_ma_new_valid,
-    test_ma_compute_partial,
-    test_ma_compute_sliding,
-    test_kalman_new_valid,
-    test_kalman_compute_filtering,
-    test_pid_new_valid,
-    test_pid_set_limits,
-    test_pid_set_integral_limit,
-    test_pid_set_setpoint,
-    test_pid_compute_proportional,
-    test_pid_integral_windup,
-    test_pid_reset,
-    test_pid_get_error,
-    test_trajectory_new_empty,
-    test_trajectory_add_waypoint,
-    test_trajectory_interpolate_empty,
-    test_trajectory_interpolate,
-    test_trajectory_interpolate_boundary,
-    test_sm_new_empty,
-    test_sm_add_state,
-    test_sm_add_transition_and_can,
-    test_sm_transition_valid,
-    test_sm_transition_invalid,
-  ];
+  var test_count: Int = 27;
 
   var i = 0;
-  while i < tests.len() {
+  while i < test_count {
     total = total + 1;
-    failed = failed + report(tests[i]().passed, tests[i]().name);
+    let r = run_test_at(i);
+    failed = failed + report(r.passed, r.name);
     i = i + 1;
   }
 
