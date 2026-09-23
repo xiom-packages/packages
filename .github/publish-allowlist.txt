@@ -95,3 +95,32 @@ xiom.option
 xiom.plural
 xiom.retry
 xiom.ttl
+
+# Stable green additions (2026-09-23, owner-approved): stage: stable with recorded
+# green runs on pinned compiler v0.61.3. Registry scope addition requested; do not
+# publish a name the registry has not scoped yet.
+xiom.bson
+xiom.codec
+xiom.collation
+xiom.csv
+xiom.diff
+xiom.escape
+xiom.geo
+xiom.markdown
+xiom.msgpack
+xiom.patch
+xiom.property
+xiom.sanitize
+xiom.scheduler
+xiom.sentiment
+xiom.spell
+xiom.stemming
+xiom.summary
+xiom.svg
+xiom.template
+xiom.timeout
+xiom.tokenizer
+xiom.toml
+xiom.typography
+xiom.wav
+xiom.xml
