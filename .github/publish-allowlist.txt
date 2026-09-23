@@ -124,3 +124,7 @@ xiom.toml
 xiom.typography
 xiom.wav
 xiom.xml
+xiom.fuzz
+xiom.metrics
+xiom.packet
+xiom.timeseries
