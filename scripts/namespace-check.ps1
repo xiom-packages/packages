@@ -27,7 +27,8 @@
 [CmdletBinding()]
 param(
     [string]$Stdlib = "",
-    [string[]]$Package = @()
+    [string[]]$Package = @(),
+    [string[]]$Module = @()
 )
 
 $ErrorActionPreference = "Stop"
@@ -102,6 +103,36 @@ function Get-PackageName {
     return (Split-Path -Leaf $PackageDir)
 }
 
+function Get-NamespaceHits {
+    param([string]$Name)
+    $hits = @()
+    foreach ($s in $stdlibModules) {
+        if ((Get-CommonSegmentPrefixLength -Left $Name -Right $s) -ge 2) { $hits += $s }
+    }
+    return @($hits | Sort-Object)
+}
+
+# --- Proposed module names (before a package folder/manifest exists) --------
+
+if ($Module.Count -gt 0) {
+    Write-Host "namespace-check: stdlib $Stdlib ($($stdlibModules.Count) module namespaces)"
+    $violations = 0
+    foreach ($m in $Module) {
+        $hits = Get-NamespaceHits -Name $m
+        if ($hits.Count -gt 0) {
+            $violations = $violations + 1
+            $sample = @($hits | Select-Object -First 3) -join ", "
+            $more = if ($hits.Count -gt 3) { " (+$($hits.Count - 3) more)" } else { "" }
+            Write-Host ("  {0,-24} CONFLICT -> stdlib: {1}{2}" -f $m, $sample, $more)
+        } else {
+            Write-Host ("  {0,-24} OK" -f $m)
+        }
+    }
+    Write-Host ("namespace-check: {0} proposed module(s), {1} conflict(s)" -f $Module.Count, $violations)
+    if ($violations -gt 0) { exit 1 }
+    exit 0
+}
+
 # --- Select packages --------------------------------------------------------
 
 $dirs = @(Get-ChildItem -LiteralPath $packagesDir -Directory | Where-Object {
@@ -131,12 +162,9 @@ foreach ($dir in $dirs) {
 
     foreach ($m in $modules) {
         $checkedModules = $checkedModules + 1
-        $hits = @()
-        foreach ($s in $stdlibModules) {
-            if ((Get-CommonSegmentPrefixLength -Left $m -Right $s) -ge 2) { $hits += $s }
-        }
+        $hits = Get-NamespaceHits -Name $m
         if ($hits.Count -gt 0) {
-            $sample = @($hits | Sort-Object | Select-Object -First 3) -join ", "
+            $sample = @($hits | Select-Object -First 3) -join ", "
             $conflicts += [pscustomobject]@{ Module = $m; Stdlib = $sample; Count = $hits.Count }
         }
     }
