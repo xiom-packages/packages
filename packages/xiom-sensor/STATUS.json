@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.sensor",
+    "stage":  "incubating",
+    "compiler":  "v0.61.0",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "unknown",
+                  "passed":  null,
+                  "failed":  null,
+                  "run_by":  null,
+                  "commit":  null,
+                  "checked":  null
+              },
+    "publish":  false,
+    "excluded_reason":  null
+}
