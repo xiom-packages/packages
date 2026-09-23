@@ -1,5 +1,7 @@
 module kafka_conformance_tests
 
+use xiom.io;
+
 pub type KafkaConfig = {
   brokers: Str;
   client_id: Str;
@@ -88,7 +90,6 @@ fn kafka_consumer_new(config: &KafkaConfig, topics: &Vec[Str]) -> Result[KafkaCo
 }
 
 fn kafka_subscribe(consumer: &mut KafkaConsumer, topics: &Vec[Str]) -> Result[Int, KafkaError]
-  requires: topics.len() > 0
 {
   if topics.len() == 0 {
     return Err(KafkaError { code: -1, message: "topics must not be empty", is_retryable: false });
@@ -108,7 +109,8 @@ fn topic_list_copy(src: &Vec[Str], idx: Int, acc: Vec[Str]) -> Vec[Str] {
 fn kafka_poll(consumer: &KafkaConsumer, timeout_ms: Int) -> Result[Option[KafkaMessage], KafkaError]
   requires: timeout_ms >= 0
 {
-  return Ok(None);
+  let none: Option[KafkaMessage] = None;
+  return Ok(none);
 }
 
 fn kafka_commit(consumer: &KafkaConsumer) -> Result[Int, KafkaError] {
@@ -133,8 +135,6 @@ fn kafka_producer_new(config: &KafkaConfig) -> Result[KafkaProducer, KafkaError]
 }
 
 fn kafka_produce(producer: &KafkaProducer, topic: Str, key: &Vec[Int], value: &Vec[Int]) -> Result[Int, KafkaError]
-  requires: topic.len() > 0
-  requires: value.len() > 0
 {
   if topic == "" {
     return Err(KafkaError { code: -1, message: "topic must not be empty", is_retryable: false });
@@ -288,8 +288,9 @@ fn test_kafka_subscribe_nonempty() -> Int {
   topics.push("test-topic");
   var consumer_match = kafka_consumer_new(&config, &topics);
   match consumer_match {
-    Ok(mut c) => {
-      match kafka_subscribe(&mut c, &topics) {
+    Ok(c) => {
+      var c_mut = c;
+      match kafka_subscribe(&mut c_mut, &topics) {
         Ok(_) => { return 0; }
         Err(_) => { return 2; }
       }
@@ -304,9 +305,10 @@ fn test_kafka_subscribe_empty_topics() -> Int {
   topics.push("test-topic");
   var consumer_match = kafka_consumer_new(&config, &topics);
   match consumer_match {
-    Ok(mut c) => {
+    Ok(c) => {
+      var c_mut = c;
       var empty: Vec[Str] = Vec[Str].new();
-      match kafka_subscribe(&mut c, &empty) {
+      match kafka_subscribe(&mut c_mut, &empty) {
         Ok(_) => { return 1; }
         Err(e) => { return 0; }
       }
@@ -432,29 +434,35 @@ fn test_kafka_error_message_present() -> Int {
   return 1;
 }
 
+fn report(rc: Int, name: Str) -> Int {
+  if rc == 0 { io.println("  [PASS] " + name); return 0; }
+  io.println("  [FAIL] " + name);
+  return 1;
+}
+
 pub fn main() -> Int {
   var failures: Int = 0;
-  failures = failures + test_kafka_config_construction();
-  failures = failures + test_kafka_error_construction();
-  failures = failures + test_kafka_message_construction();
-  failures = failures + test_kafka_producer_new_ok();
-  failures = failures + test_kafka_produce_nonempty_params();
-  failures = failures + test_kafka_produce_empty_topic();
-  failures = failures + test_kafka_produce_empty_value();
-  failures = failures + test_kafka_producer_flush_ok();
-  failures = failures + test_kafka_producer_close_ok();
-  failures = failures + test_kafka_consumer_new_ok();
-  failures = failures + test_kafka_subscribe_nonempty();
-  failures = failures + test_kafka_subscribe_empty_topics();
-  failures = failures + test_kafka_poll_none();
-  failures = failures + test_kafka_commit_ok();
-  failures = failures + test_kafka_consumer_close_ok();
-  failures = failures + test_kafka_create_topic_err();
-  failures = failures + test_kafka_delete_topic_err();
-  failures = failures + test_kafka_list_topics_err();
-  failures = failures + test_producer_handle_initialized();
-  failures = failures + test_consumer_handle_initialized();
-  failures = failures + test_kafka_error_is_not_retryable();
-  failures = failures + test_kafka_error_message_present();
+  failures = failures + report(test_kafka_config_construction(), "config construction");
+  failures = failures + report(test_kafka_error_construction(), "error construction");
+  failures = failures + report(test_kafka_message_construction(), "message construction");
+  failures = failures + report(test_kafka_producer_new_ok(), "producer new ok");
+  failures = failures + report(test_kafka_produce_nonempty_params(), "produce nonempty params");
+  failures = failures + report(test_kafka_produce_empty_topic(), "produce empty topic -> Err");
+  failures = failures + report(test_kafka_produce_empty_value(), "produce empty value -> Err");
+  failures = failures + report(test_kafka_producer_flush_ok(), "producer flush ok");
+  failures = failures + report(test_kafka_producer_close_ok(), "producer close ok");
+  failures = failures + report(test_kafka_consumer_new_ok(), "consumer new ok");
+  failures = failures + report(test_kafka_subscribe_nonempty(), "subscribe nonempty");
+  failures = failures + report(test_kafka_subscribe_empty_topics(), "subscribe empty topics -> Err");
+  failures = failures + report(test_kafka_poll_none(), "poll -> None");
+  failures = failures + report(test_kafka_commit_ok(), "commit ok");
+  failures = failures + report(test_kafka_consumer_close_ok(), "consumer close ok");
+  failures = failures + report(test_kafka_create_topic_err(), "create topic -> Err(-999)");
+  failures = failures + report(test_kafka_delete_topic_err(), "delete topic -> Err(-999)");
+  failures = failures + report(test_kafka_list_topics_err(), "list topics -> Err(-999)");
+  failures = failures + report(test_producer_handle_initialized(), "producer handle initialized");
+  failures = failures + report(test_consumer_handle_initialized(), "consumer handle initialized");
+  failures = failures + report(test_kafka_error_is_not_retryable(), "error is not retryable");
+  failures = failures + report(test_kafka_error_message_present(), "error message present");
   return failures;
 }

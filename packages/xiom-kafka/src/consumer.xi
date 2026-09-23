@@ -18,7 +18,6 @@ fn kafka_consumer_new(config: &KafkaConfig, topics: &Vec[Str]) -> Result[KafkaCo
 }
 
 fn kafka_subscribe(consumer: &mut KafkaConsumer, topics: &Vec[Str]) -> Result[Int, KafkaError]
-  requires: topics.len() > 0
 {
   if topics.len() == 0 {
     return Err(KafkaError { code: -1, message: "topics must not be empty", is_retryable: false });
@@ -38,7 +37,8 @@ fn topic_list_copy(src: &Vec[Str], idx: Int, acc: Vec[Str]) -> Vec[Str] {
 fn kafka_poll(consumer: &KafkaConsumer, timeout_ms: Int) -> Result[Option[KafkaMessage], KafkaError]
   requires: timeout_ms >= 0
 {
-  return Ok(None);
+  let none: Option[KafkaMessage] = None;
+  return Ok(none);
 }
 
 fn kafka_commit(consumer: &KafkaConsumer) -> Result[Int, KafkaError] {

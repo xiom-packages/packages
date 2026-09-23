@@ -28,3 +28,21 @@ To restore production functionality:
 1. Implement librdkafka C FFI bindings (`rd_kafka_new`, `rd_kafka_produce`, `rd_kafka_consumer_poll`, etc.) via `extern "C"` blocks
 2. Link against `librdkafka` at compile time
 3. Replace stub handle=-1 with real librdkafka context handles
+
+## Port addendum (XIOM 0.61.3)
+
+The suite is green on the pinned toolchain: 22/22 tests, program exit 0
+(`& .\scripts\port.ps1 -Package xiom.kafka`).
+
+Changes needed by the port (details in SPEC.md "Port notes"):
+
+| File | Change | Reason |
+|------|--------|--------|
+| `tests/test_conformance.xi` | `Ok(mut c)` -> `Ok(c)` + `var c_mut = c;` | 0.61.3 rejects `mut` pattern bindings |
+| `tests/test_conformance.xi`, `src/consumer.xi` | `return Ok(None)` -> bind `none` then `Ok(none)` | direct `Ok(None)` with a struct Err type emits invalid LLVM `getelementptr` |
+| `tests/test_conformance.xi`, `src/producer.xi`, `src/consumer.xi` | removed `requires:` empty-input preconditions on `kafka_produce` / `kafka_subscribe` | 0.61.3 enforces `requires:` at runtime, which trapped before the suite-asserted typed-`Err` path; in-body validation kept |
+| `tests/test_conformance.xi` | `use xiom.io;` + per-test `[PASS]`/`[FAIL]` reporting in `main` | harness counts these markers; assertions unchanged |
+
+Status after the port: compile-and-run conformant stubs; librdkafka FFI still
+unimplemented (see "Known Gaps" above). Not published.
+

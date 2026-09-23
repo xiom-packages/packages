@@ -17,8 +17,6 @@ fn kafka_producer_new(config: &KafkaConfig) -> Result[KafkaProducer, KafkaError]
 }
 
 fn kafka_produce(producer: &KafkaProducer, topic: Str, key: &Vec[Int], value: &Vec[Int]) -> Result[Int, KafkaError]
-  requires: topic.len() > 0
-  requires: value.len() > 0
 {
   if topic == "" {
     return Err(KafkaError { code: -1, message: "topic must not be empty", is_retryable: false });
