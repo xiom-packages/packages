@@ -20,6 +20,15 @@
 #     xiom.redis, xiom.postgres, xiom.libtorch, xiom.numpy, xiom.sqlite
 #   registry policy:
 #     xiom.std (stdlib repo), xiom.ecosystem (umbrella, excluded)
+#
+# Namespace audit (2026-09-23): a package may not share a module namespace
+# with the stdlib. Removed from this list:
+#   xiom.math, xiom.log, xiom.net, xiom.test
+#       duplicates of stdlib modules (xiom.math/geom, xiom.log.*, xiom.net.*,
+#       xiom.test.*) -> recommended deprecation, pending owner confirmation
+#   xiom.core
+#       distinct durable-storage functionality, but stdlib owns the xiom.core
+#       namespace -> rename package and modules to xiom.durable first
 
 xiom.algo
 xiom.arrow
@@ -27,7 +36,6 @@ xiom.assimp
 xiom.blas
 xiom.box2d
 xiom.control
-xiom.core
 xiom.cuda
 xiom.directx11
 xiom.directx12
@@ -45,14 +53,11 @@ xiom.jolt
 xiom.json
 xiom.kafka
 xiom.libpq
-xiom.log
 xiom.lzfse
-xiom.math
 xiom.meshopt
 xiom.micro
 xiom.miniaudio
 xiom.moveit
-xiom.net
 xiom.onnx
 xiom.openblas
 xiom.opencv
@@ -70,7 +75,6 @@ xiom.scipy
 xiom.sdl3
 xiom.sensor
 xiom.tensorflow
-xiom.test
 xiom.torch
 xiom.ui
 xiom.vma
