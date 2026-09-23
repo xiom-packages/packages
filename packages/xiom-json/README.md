@@ -1,8 +1,13 @@
 # xiom.json
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** Implemented and ported to compiler 0.61.3 / pinned stdlib.
+> Conformance: 12/12 PASS (`scripts/port.ps1 -Package xiom.json`,
+> `program_exit=0`). **Not published** -- publication remains out of scope.
 > **Scope:** JSON parsing, serialization, and manipulation.
-> **Deps:** stdlib; may wrap C (FFI).
+> **Deps:** stdlib only (pure XIOM; no FFI).
+>
+> Port notes and known limitations are recorded in [SPEC.md](SPEC.md)
+> ("Port Notes" section).
 
 ## Libs inventory
 

@@ -456,3 +456,35 @@ The schema validator implements a pragmatic subset of JSON Schema. It supports t
 ### Int-to-Float64 Conversion
 
 Since XIOM may not support `as` type casting between `Int` and `Float64`, a manual conversion function `int_to_float64` decomposes the integer into decimal digits and builds the Float64 value through repeated multiplication and addition. The reverse operation `float64_to_int` uses repeated subtraction. Both are O(digits) and correct for values within the 32-bit integer range. Larger numbers lose precision naturally through Float64 representation.
+
+---
+
+## Port Notes (compiler 0.61.3, stdlib E:\xiom-lang\stdlib)
+
+Ported with minimal, targeted fixes. The conformance suite is green:
+`scripts/port.ps1 -Package xiom.json` -> `port: PASS (passed=12 failed=0
+program_exit=0 exit=0)`. Publication status is unchanged (not published).
+
+### Known limitations (port)
+
+| Area | Change | Reason |
+|------|--------|--------|
+| Match exhaustiveness | `json_get_path` and `json_set_path` use bare variant patterns (`Key(k)`, `Index(i)`) instead of qualified `JsonPathSegment.Key(k)` patterns | Compiler 0.61.3 T001 reports both variants as uncovered for qualified enum patterns; bare patterns are accepted and match the rest of the file. Signals and control flow are unchanged. |
+| Character mapping (`chr_byte`) | Now maps any byte through `xiom.convert.int_to_char` + `tostring.to_string_char` (new `use xiom.convert.tostring;`) | The previous body returned `" "` for every byte that is not a control character, quote, backslash or apostrophe, so parsed strings, JSONPath keys and serialized output were corrupted (e.g. the key `"key"` read back as three spaces). Behavior fix, not a semantics change: JSON text is now preserved as written. |
+| Conformance harness | `main` calls each test explicitly (`let r1 = t1(); ...`) instead of iterating `Vec[fn() -> TestResult]` | On the pinned toolchain, element calls on function-typed `Vec` elements are miscompiled: `fs[0]()` lowers to `Unit` and the array-literal form crashes at runtime (`0xC0000005`). The green sibling suites use the same explicit-call pattern. All 12 tests and their assertions are unchanged. |
+| Test t6 | `JsonType.Null` corrected to `JsonType.NullType` | Obsolete variant spelling: the enum has always declared `NullType`; the old spelling compiled to garbage codegen (clang rejected a `JsonValue` passed where `JsonType` was expected). The test's intent (parsed null reports `NullType`) is unchanged. |
+
+No test semantics were weakened or removed; the 12 checks exercise the same
+behaviors as before the port.
+
+### Toolchain issues observed
+
+- Non-exhaustive `match` is a hard error on this toolchain, but the
+  exhaustiveness checker does not recognize qualified enum variant patterns
+  (`Type.Variant(x)`) and reports every variant of the scrutinee type as
+  uncovered (6 false T001s at the three `JsonPathSegment` matches).
+- `Vec[fn() -> TestResult]` element calls are miscompiled (element call typed
+  as `()`; array-literal dispatch crashes at runtime with `0xC0000005`).
+  `xiom.test.run_all` in the stdlib has the same shape and is affected.
+- A user free function named `log` collides with libm `log` at codegen
+  (`call double @log(double %tmp)`) when the module uses `xiom.io`.

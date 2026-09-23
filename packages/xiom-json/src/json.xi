@@ -2,6 +2,7 @@ module xiom.json
 
 use xiom.string;
 use xiom.convert;
+use xiom.convert.tostring;
 use xiom.fmt;
 
 pub enum JsonValue {
@@ -102,16 +103,11 @@ fn BYTE_LOWER_X() -> Int { return 120; }
 // ============================================================
 
 fn chr_byte(b: Int) -> Str {
-  if b == 0 { return "\0"; }
-  if b == 8 { return "\b"; }
-  if b == 9 { return "\t"; }
-  if b == 10 { return "\n"; }
-  if b == 12 { return "\f"; }
-  if b == 13 { return "\r"; }
-  if b == 34 { return "\""; }
-  if b == 92 { return "\\"; }
-  if b == 39 { return "'"; }
-  return " ";
+  var ch_opt = xiom.convert.int_to_char(b);
+  match ch_opt {
+    Some(ch) => return tostring.to_string_char(ch),
+    None => return " ",
+  }
 }
 
 // ============================================================
@@ -924,14 +920,14 @@ pub fn json_get_path(root: &JsonValue, path: &JsonPath) -> Option[JsonValue]
   while i < path.segments.len() {
     var seg = &path.segments[i];
     match seg {
-      JsonPathSegment.Key(k) => {
+      Key(k) => {
         var found = json_get(&current, k);
         match found {
           Some(v) => { current = v; }
           None => return None,
         }
       }
-      JsonPathSegment.Index(idx) => {
+      Index(idx) => {
         match current {
           Array(items) => {
             if idx < 0 || idx >= items.len() { return None; }
@@ -976,7 +972,7 @@ pub fn json_set_path(root: &mut JsonValue, path: &JsonPath, value: JsonValue) ->
   while i < path.segments.len() - 1 {
     var seg = &path.segments[i];
     match seg {
-      JsonPathSegment.Key(k) => {
+      Key(k) => {
         match root {
           Object(entries) => {
             var found_entry: Int = -1;
@@ -997,7 +993,7 @@ pub fn json_set_path(root: &mut JsonValue, path: &JsonPath, value: JsonValue) ->
           _ => return false,
         }
       }
-      JsonPathSegment.Index(idx) => {
+      Index(idx) => {
         match root {
           Array(items) => {
             if idx < 0 || idx >= items.len() { return false; }
@@ -1012,10 +1008,10 @@ pub fn json_set_path(root: &mut JsonValue, path: &JsonPath, value: JsonValue) ->
   }
   var last_seg = &path.segments[path.segments.len() - 1];
   match last_seg {
-    JsonPathSegment.Key(k) => {
+    Key(k) => {
       return json_set(root, k, value);
     }
-    JsonPathSegment.Index(idx) => {
+    Index(idx) => {
       match root {
         Array(items) => {
           if idx < 0 || idx >= items.len() { return false; }

@@ -38,7 +38,7 @@ fn t5() -> TestResult {
 }
 fn t6() -> TestResult {
   let r = json_parse("null");
-  match r { Ok(v) => return assert(json_is_type(&v, JsonType.Null), "json: null is_type Null"), Err(_) => return assert(false, "json: null parse failed") }
+  match r { Ok(v) => return assert(json_is_type(&v, JsonType.NullType), "json: null is_type Null"), Err(_) => return assert(false, "json: null parse failed") }
 }
 fn t7() -> TestResult {
   let r = json_parse("{\"key\":\"val\"}");
@@ -70,8 +70,21 @@ fn t12() -> TestResult {
 fn main() -> Int {
   io.println("=== XIOM JSON Conformance ===");
   var failed: Int = 0; var total: Int = 0;
-  var tests = [t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12];
-  var i = 0; while i < tests.len() { total = total + 1; failed = failed + report(tests[i]().passed, tests[i]().name); i = i + 1; }
+  // Explicit per-test calls: `Vec[fn() -> TestResult]` element dispatch is
+  // miscompiled on the pinned toolchain (element call lowers to Unit); the
+  // green sibling suites use this same explicit pattern.
+  total = total + 1; let r1 = t1(); failed = failed + report(r1.passed, r1.name);
+  total = total + 1; let r2 = t2(); failed = failed + report(r2.passed, r2.name);
+  total = total + 1; let r3 = t3(); failed = failed + report(r3.passed, r3.name);
+  total = total + 1; let r4 = t4(); failed = failed + report(r4.passed, r4.name);
+  total = total + 1; let r5 = t5(); failed = failed + report(r5.passed, r5.name);
+  total = total + 1; let r6 = t6(); failed = failed + report(r6.passed, r6.name);
+  total = total + 1; let r7 = t7(); failed = failed + report(r7.passed, r7.name);
+  total = total + 1; let r8 = t8(); failed = failed + report(r8.passed, r8.name);
+  total = total + 1; let r9 = t9(); failed = failed + report(r9.passed, r9.name);
+  total = total + 1; let r10 = t10(); failed = failed + report(r10.passed, r10.name);
+  total = total + 1; let r11 = t11(); failed = failed + report(r11.passed, r11.name);
+  total = total + 1; let r12 = t12(); failed = failed + report(r12.passed, r12.name);
   let passed = total - failed;
   io.println(""); io.println("XIOM JSON: " + int_to_str(passed) + "/" + int_to_str(total) + " passed" + (if failed > 0 { " (" + int_to_str(failed) + " FAILED)" } else { "" }));
   return failed;

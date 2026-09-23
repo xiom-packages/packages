@@ -1,5 +1,10 @@
 # xiom-json AUDIT -- Remaining Compiler Gap Issues
 
+> **Historical (2026-07-15):** this audit predates the compiler 0.61.3 port.
+> The package now compiles and passes its conformance suite (12/12,
+> `program_exit=0`); see the "Port Notes" section in SPEC.md for the current
+> status and workarounds.
+
 **Date:** 2026-07-15
 **Status:** 0 type errors, 43 borrow-check errors remain
 
