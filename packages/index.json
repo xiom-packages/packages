@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-20T01:24:48Z",
+    "updated":  "2026-09-23T20:47:34Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -32,7 +32,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.arrow",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Apache Arrow -- in-memory columnar data format. Pandas backend, zero-copy data sharing between libraries.",
+                         "description":  "Apache Arrow in-memory columnar format with Pandas backend and zero-copy data sharing",
                          "dependencies":  [
                                               {
                                                   "version":  "0.1.0",
@@ -49,7 +49,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.assimp",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "XIOM Assimp Bindings -- 3D model import (OBJ, FBX, glTF, COLLADA, etc.) via Open Asset Import Library. Safe wrappers with design-by-contract.",
+                         "description":  "Assimp bindings for 3D model import (OBJ, FBX, glTF, COLLADA) with safe design-by-contract wrappers",
                          "dependencies":  [
                                               {
                                                   "version":  "0.1.0",
@@ -194,7 +194,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.directx11",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Direct3D 11 -- Microsoft\u0027s graphics API (Windows). Part of the DirectX SDK.",
+                         "description":  "Direct3D 11 bindings for Microsoft\u0027s Windows graphics API and the DirectX SDK",
                          "dependencies":  [
                                               {
                                                   "version":  "0.1.0",
@@ -211,7 +211,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.directx12",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Direct3D 12 -- Microsoft\u0027s low-level graphics API. Explicit GPU control.",
+                         "description":  "Direct3D 12 bindings for Microsoft\u0027s low-level explicit-GPU-control graphics API",
                          "dependencies":  [
                                               {
                                                   "version":  "0.1.0",
@@ -246,7 +246,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.eigen",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Eigen -- C++ template library for linear algebra. Header-only.",
+                         "description":  "Eigen bindings -- header-only C++ template library for linear algebra",
                          "dependencies":  [
                                               {
                                                   "version":  "0.1.0",
@@ -294,6 +294,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.flags",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Command-line flag and argument parsing with subcommand-friendly positionals and environment fallback",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-flags/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "flags.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.gazebo",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Gazebo -- Robot simulation engine (gz-sim / Ignition Gazebo).",
@@ -313,7 +330,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.glfw",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "XIOM GLFW bindings -- safe windowing, input, and monitor management. Zero Vulkan dependency.",
+                         "description":  "GLFW bindings for safe windowing, input, and monitor management with zero Vulkan dependency",
                          "dependencies":  [
 
                                           ],
@@ -542,7 +559,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.libtorch",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "LibTorch -- PyTorch C++ API. Full ML/DL framework with CUDA support.",
+                         "description":  "LibTorch bindings for the PyTorch C++ API with full ML/DL framework and CUDA support",
                          "dependencies":  [
                                               {
                                                   "version":  "0.1.0",
@@ -588,6 +605,23 @@
                                               "format.xi",
                                               "logger.xi",
                                               "types.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.lru",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Bounded least-recently-used cache with O(1) get/put and eviction statistics",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lru/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "lru.xi",
                                               "package.xi"
                                           ]
                      },
@@ -857,6 +891,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.option",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Combinators for Option and Result values: map, flat_map, filter, unwrap, conversions",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-option/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "option.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.ozz",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Ozz-Animation (v0.16.0) bindings for XIOM -- skeletal animation runtime + offline pipeline",
@@ -877,7 +928,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.pandas",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Pandas -- data analysis library. Arrow-backed DataFrame/Series operations with zero Python overhead.",
+                         "description":  "Pandas Arrow-backed DataFrame and Series operations with zero Python overhead",
                          "dependencies":  [
                                               {
                                                   "version":  "0.1.0",
@@ -1222,6 +1273,23 @@
                                               "ffi.xi",
                                               "nn.xi",
                                               "types.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.ttl",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Time-to-live cache with lazy and eager expiration and statistics",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ttl/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ttl.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2498,19 +2566,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-flags",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-flags/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-flash",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -3239,19 +3294,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-lru",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lru/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-macro",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -3701,19 +3743,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-optimizer-fw/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-option",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-option/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -4910,19 +4939,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tsv/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-ttl",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ttl/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
