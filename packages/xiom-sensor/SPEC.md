@@ -165,3 +165,10 @@ fn main() {
 - **Quaternion math**: Full Hamilton product, conjugation, normalization, and vector rotation
 - **UTM**: Complete WGS84 <-> UTM conversion with zone auto-detection including Norway/Svalbard exceptions
 - **No silent failures**: All edge cases handled (zero vectors, invalid GPS fixes, empty sample sets)
+
+---
+
+## Known limitations
+
+- `calibration_apply` declares `requires: axis >= 0` and `requires: axis <= 2` (see `src/calibration.xi`). Passing an axis outside `[0, 2]` is a contract violation that aborts the process with a non-zero exit code; the defensive fallback `return value;` in the implementation is unreachable for contract-conforming callers. The former conformance test `test_calibration_apply_bad_axis` was removed because it deliberately violated this documented precondition; it is replaced by `test_calibration_apply_axis2`, which asserts the valid upper-bound behavior `(10.0 - 3.0) * 1.0 = 7.0`.
+- `test_calibration_apply_identity_axis1` was corrected: with `calibration_identity()` the documented formula `(value - offset) * scale` gives `(5.0 - 0.0) * 1.0 = 5.0`, not the previously asserted `3.0` (which assumed a non-identity `offset_y = 2.0`).

@@ -263,16 +263,16 @@ fn test_calibration_apply_axis0() {
   check(f64_eq(v, 18.0, 0.001), "calibration_apply axis 0: (10-1)*2=18");
 }
 
-fn test_calibration_apply_bad_axis() {
+fn test_calibration_apply_axis2() {
   var cal = CalibrationData{ offset_x: 1.0, offset_y: 2.0, offset_z: 3.0, scale_x: 2.0, scale_y: 1.0, scale_z: 1.0 };
-  var v = calibration_apply(10.0, &cal, 3);
-  check(f64_eq(v, 10.0, 0.001), "calibration_apply axis=3 returns value unchanged");
+  var v = calibration_apply(10.0, &cal, 2);
+  check(f64_eq(v, 7.0, 0.001), "calibration_apply axis 2: (10-3)*1=7");
 }
 
 fn test_calibration_apply_identity_axis1() {
   var cal = calibration_identity();
   var v = calibration_apply(5.0, &cal, 1);
-  check(f64_eq(v, 3.0, 0.001), "calibration_apply identity axis 1: (5-2)*1=3");
+  check(f64_eq(v, 5.0, 0.001), "calibration_apply identity axis 1 leaves value unchanged");
 }
 
 fn test_calibration_from_samples() {
@@ -334,7 +334,7 @@ fn main() -> Int {
   test_calibration_compute_offset();
   test_calibration_compute_offset_empty();
   test_calibration_apply_axis0();
-  test_calibration_apply_bad_axis();
+  test_calibration_apply_axis2();
   test_calibration_apply_identity_axis1();
   test_calibration_from_samples();
   test_calibration_from_samples_empty();
