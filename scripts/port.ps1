@@ -27,7 +27,8 @@ param(
     [Parameter(Mandatory = $true, Position = 0)]
     [string]$Package,
     [string]$Suite = "",
-    [switch]$NoRun
+    [switch]$NoRun,
+    [switch]$Quiet
 )
 
 $ErrorActionPreference = "Stop"
@@ -145,7 +146,7 @@ try {
         Write-Host "  suite:    $suiteRel"
         $result = Invoke-Compiler -Arguments @("--run", $suitePath)
         $output = $result.Output
-        Write-Host $output
+        if (-not $Quiet) { Write-Host $output }
         $passed = ([regex]::Matches($output, "\[PASS\]")).Count
         $failed = ([regex]::Matches($output, "\[FAIL\]")).Count
         # `xiom --run` prints the program's exit code on its own "exit code:"
