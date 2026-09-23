@@ -6,3 +6,5 @@ target/
 *.dll
 *.dylib
 .DS_Store
+a.exe
+a.out
