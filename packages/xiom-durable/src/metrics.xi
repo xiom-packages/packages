@@ -1,4 +1,4 @@
-module xiom.core.metrics
+module xiom.durable.metrics
 
 // Minimal, allocation-conscious observability primitives shared by every
 // subsystem: counters, gauges, histograms, and a registry to hold them.

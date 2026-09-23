@@ -1,6 +1,6 @@
-module xiom.core.wal.lsn
+module xiom.durable.wal.lsn
 
-// WAL-local log sequence number. Mirrors xiom.core.ids.Lsn but is kept in the
+// WAL-local log sequence number. Mirrors xiom.durable.ids.Lsn but is kept in the
 // wal namespace so WAL code can evolve its ordering rules independently of the
 // engine-wide id set. LSNs are strictly monotonic and never reused.
 

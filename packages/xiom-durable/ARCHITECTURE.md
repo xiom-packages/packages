@@ -1,6 +1,6 @@
-# xiom.core Architecture
+# xiom.durable Architecture
 
-xiom.core is the **shared durable-systems substrate** for the XIOM data ecosystem. It exists so that the two engines that need identical crash-safety and systems plumbing -- [`xiom-db`](../xiom-db) (relational/embedded) and [`xiom-vector`](../xiom-vector) (ANN/vector) -- build on one canonical foundation instead of two drifting copies.
+xiom.durable is the **shared durable-systems substrate** for the XIOM data ecosystem. It exists so that the two engines that need identical crash-safety and systems plumbing -- [`xiom-db`](../xiom-db) (relational/embedded) and [`xiom-vector`](../xiom-vector) (ANN/vector) -- build on one canonical foundation instead of two drifting copies.
 
 This document is the canonical map of the package: the module tree, the shared-core decision, ownership rules, contract hotspots, failure domains, and the implemented-vs-scaffolded status of every module.
 
@@ -24,19 +24,19 @@ Production vector databases are *not* just ANN indexes with an API -- they still
 
 What is reused vs. kept separate:
 
-| Reused from xiom.core | Built fresh downstream |
+| Reused from xiom.durable | Built fresh downstream |
 |-----------------------|------------------------|
 | `config`, `error`, `result`, `ids`, `limits`, `metrics`, `version` | Access methods: B-tree (db), HNSW/IVF/PQ (vector) |
 | `storage/` page, pager, buffer_pool, checksum | Query planning, cost models, distance kernels |
 | `wal/` record, writer, reader, checkpoint, recovery | Collection schema, segment compaction, filter execution |
 | `txn/` state, manager, snapshot | SQL parser / relational algebra |
 
-Rule of thumb: **if a concern is about durability or systems plumbing, it belongs in xiom.core; if it is about the access path or data model, it belongs in the engine.**
+Rule of thumb: **if a concern is about durability or systems plumbing, it belongs in xiom.durable; if it is about the access path or data model, it belongs in the engine.**
 
 ## Module tree
 
 ```
-xiom-core/
+xiom-durable/
 |-- package.xi
 |-- README.md
 |-- ARCHITECTURE.md          <- this file
@@ -45,30 +45,30 @@ xiom-core/
 |-- docs/
 |   `-- contracts-and-invariants.md
 `-- src/
-    |-- error.xi             module xiom.core.error       -- CoreError enum, classification
-    |-- result.xi            module xiom.core.result      -- Result convention + ResultInfo
-    |-- ids.xi               module xiom.core.ids         -- strong single-field ID wrappers
-    |-- limits.xi            module xiom.core.limits      -- system-wide ceilings
-    |-- config.xi            module xiom.core.config      -- CoreConfig + validation + profiles
-    |-- contracts.xi         module xiom.core.contracts   -- shared predicate helpers
-    |-- metrics.xi           module xiom.core.metrics     -- counters/gauges/histograms
-    |-- version.xi           module xiom.core.version     -- format version constants
+    |-- error.xi             module xiom.durable.error       -- CoreError enum, classification
+    |-- result.xi            module xiom.durable.result      -- Result convention + ResultInfo
+    |-- ids.xi               module xiom.durable.ids         -- strong single-field ID wrappers
+    |-- limits.xi            module xiom.durable.limits      -- system-wide ceilings
+    |-- config.xi            module xiom.durable.config      -- CoreConfig + validation + profiles
+    |-- contracts.xi         module xiom.durable.contracts   -- shared predicate helpers
+    |-- metrics.xi           module xiom.durable.metrics     -- counters/gauges/histograms
+    |-- version.xi           module xiom.durable.version     -- format version constants
     |-- storage/
-    |   |-- page.xi          module xiom.core.storage.page        -- buffered page unit
-    |   |-- checksum.xi      module xiom.core.storage.checksum    -- FNV-1a corruption check
-    |   |-- pager.xi         module xiom.core.storage.pager       -- page allocator
-    |   `-- buffer_pool.xi   module xiom.core.storage.buffer_pool -- frame cache
+    |   |-- page.xi          module xiom.durable.storage.page        -- buffered page unit
+    |   |-- checksum.xi      module xiom.durable.storage.checksum    -- FNV-1a corruption check
+    |   |-- pager.xi         module xiom.durable.storage.pager       -- page allocator
+    |   `-- buffer_pool.xi   module xiom.durable.storage.buffer_pool -- frame cache
     |-- wal/
-    |   |-- lsn.xi           module xiom.core.wal.lsn        -- WAL log sequence number
-    |   |-- wal_record.xi    module xiom.core.wal.wal_record -- WalOpKind + WalRecord
-    |   |-- wal_writer.xi    module xiom.core.wal.wal_writer -- append + WAL-before-ack
-    |   |-- wal_reader.xi    module xiom.core.wal.wal_reader -- sequential / point-in-time
-    |   |-- checkpoint.xi    module xiom.core.wal.checkpoint -- checkpoint + truncation
-    |   `-- recovery.xi      module xiom.core.wal.recovery   -- post-checkpoint replay scan
+    |   |-- lsn.xi           module xiom.durable.wal.lsn        -- WAL log sequence number
+    |   |-- wal_record.xi    module xiom.durable.wal.wal_record -- WalOpKind + WalRecord
+    |   |-- wal_writer.xi    module xiom.durable.wal.wal_writer -- append + WAL-before-ack
+    |   |-- wal_reader.xi    module xiom.durable.wal.wal_reader -- sequential / point-in-time
+    |   |-- checkpoint.xi    module xiom.durable.wal.checkpoint -- checkpoint + truncation
+    |   `-- recovery.xi      module xiom.durable.wal.recovery   -- post-checkpoint replay scan
     `-- txn/
-        |-- txn_state.xi     module xiom.core.txn.txn_state   -- lifecycle state machine
-        |-- txn_manager.xi   module xiom.core.txn.txn_manager -- in-flight coordination
-        `-- snapshot.xi      module xiom.core.txn.snapshot    -- stable read snapshots
+        |-- txn_state.xi     module xiom.durable.txn.txn_state   -- lifecycle state machine
+        |-- txn_manager.xi   module xiom.durable.txn.txn_manager -- in-flight coordination
+        `-- snapshot.xi      module xiom.durable.txn.snapshot    -- stable read snapshots
 ```
 
 ## Layered dependency graph

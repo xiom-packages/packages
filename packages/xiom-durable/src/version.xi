@@ -1,4 +1,4 @@
-module xiom.core.version
+module xiom.durable.version
 
 // Explicit, auditable format versions. Storage engines must be able to reject
 // or migrate data written by an incompatible build, so each on-disk artifact

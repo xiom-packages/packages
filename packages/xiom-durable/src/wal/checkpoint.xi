@@ -1,4 +1,4 @@
-module xiom.core.wal.checkpoint
+module xiom.durable.wal.checkpoint
 
 // A checkpoint marks an LSN up to which all effects are known durable. WAL
 // records strictly below the checkpoint LSN can be truncated because replay

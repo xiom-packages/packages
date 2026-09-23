@@ -1,4 +1,4 @@
-module xiom.core.contracts
+module xiom.durable.contracts
 
 // Shared predicate helpers used across storage, WAL, config, and recovery.
 // These encode the engine's correctness rules as reusable boolean checks so

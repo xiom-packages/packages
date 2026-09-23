@@ -1,4 +1,4 @@
-module xiom.core.wal.wal_record
+module xiom.durable.wal.wal_record
 
 // The canonical serialized form of a durable event. Both xiom-db and
 // xiom-vector extend the operation set through tagged payloads rather than

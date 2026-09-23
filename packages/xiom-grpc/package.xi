@@ -8,5 +8,4 @@ package {
   repository: "https://github.com/xiom-packages/packages"
   authors: ["XIOM Team"]
   deps: { "xiom.std": "0.1.0" }
-  dev-deps: { "xiom.test": "0.1.0" }
 }

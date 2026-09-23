@@ -1,4 +1,4 @@
-# xiom.core Roadmap
+# xiom.durable Roadmap
 
 A phased plan for growing the shared substrate from an in-memory foundation to a fully durable, concurrent engine core. Each phase is independently useful and keeps the downstream engines (`xiom-db`, `xiom-vector`) buildable at every step.
 
@@ -80,4 +80,4 @@ Grow the transaction core from bookkeeping into real concurrency control.
 
 ## Current status
 
-**xiom.core is at the end of Phase 0.** The in-memory substrate is complete and both downstream engines can depend on it now. Phase 1 (buffer management) and Phase 2 (disk durability) are the next priorities; the FFI boundary is the single blocker for true durability.
+**xiom.durable is at the end of Phase 0.** The in-memory substrate is complete and both downstream engines can depend on it now. Phase 1 (buffer management) and Phase 2 (disk durability) are the next priorities; the FFI boundary is the single blocker for true durability.

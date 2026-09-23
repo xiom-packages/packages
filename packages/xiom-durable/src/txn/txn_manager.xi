@@ -1,6 +1,6 @@
-module xiom.core.txn.txn_manager
+module xiom.durable.txn.txn_manager
 
-use xiom.core.txn.txn_state;
+use xiom.durable.txn.txn_state;
 
 // Coordinates the small set of write transactions in flight. Intentionally
 // narrower than a relational transaction manager: it tracks identity, state,

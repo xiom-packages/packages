@@ -1,4 +1,4 @@
-module xiom.core.config
+module xiom.durable.config
 
 // Central engine configuration. Validation lives here so invalid profiles
 // fail fast at startup rather than deep inside the storage layer.

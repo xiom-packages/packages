@@ -1,23 +1,23 @@
-# xiom.core SPEC
+# xiom.durable SPEC
 
-Full API reference for the XIOM shared durable-systems substrate. xiom.core is a pure-XIOM package providing the config, error, identity, storage, WAL, and transaction primitives reused by `xiom-db` and `xiom-vector`.
+Full API reference for the XIOM shared durable-systems substrate. xiom.durable is a pure-XIOM package providing the config, error, identity, storage, WAL, and transaction primitives reused by `xiom-db` and `xiom-vector`.
 
 ## Architecture
 
 ```
-packages/xiom-core/
+packages/xiom-durable/
 |-- package.xi                       Package manifest (deps: xiom-std)
 |-- README.md - ARCHITECTURE.md - ROADMAP.md - SPEC.md
 |-- docs/contracts-and-invariants.md
 `-- src/
-    |-- error.xi        xiom.core.error
-    |-- result.xi       xiom.core.result
-    |-- ids.xi          xiom.core.ids
-    |-- limits.xi       xiom.core.limits
-    |-- config.xi       xiom.core.config
-    |-- contracts.xi    xiom.core.contracts
-    |-- metrics.xi      xiom.core.metrics
-    |-- version.xi      xiom.core.version
+    |-- error.xi        xiom.durable.error
+    |-- result.xi       xiom.durable.result
+    |-- ids.xi          xiom.durable.ids
+    |-- limits.xi       xiom.durable.limits
+    |-- config.xi       xiom.durable.config
+    |-- contracts.xi    xiom.durable.contracts
+    |-- metrics.xi      xiom.durable.metrics
+    |-- version.xi      xiom.durable.version
     |-- storage/        page - checksum - pager - buffer_pool
     |-- wal/            lsn - wal_record - wal_writer - wal_reader - checkpoint - recovery
     `-- txn/            txn_state - txn_manager - snapshot
@@ -38,7 +38,7 @@ txn/snapshot
 
 ---
 
-## Module: `xiom.core.error`
+## Module: `xiom.durable.error`
 
 Canonical error type. No hidden failure channels; fallible functions return `Result[T, CoreError]`.
 
@@ -53,7 +53,7 @@ Canonical error type. No hidden failure channels; fallible functions return `Res
 
 ---
 
-## Module: `xiom.core.result`
+## Module: `xiom.durable.result`
 
 `Result[T, E]` is built-in. Engine convention: return `Result[T, CoreError]`, propagate with `?`, construct with `Ok(v)` / `Err(e)`.
 
@@ -69,7 +69,7 @@ Canonical error type. No hidden failure channels; fallible functions return `Res
 
 ---
 
-## Module: `xiom.core.ids`
+## Module: `xiom.durable.ids`
 
 Strong identifiers as single-field struct wrappers (bare primitive aliases do not compile). All derive `[Clone, Eq]`.
 
@@ -96,7 +96,7 @@ Strong identifiers as single-field struct wrappers (bare primitive aliases do no
 
 ---
 
-## Module: `xiom.core.limits`
+## Module: `xiom.durable.limits`
 
 System-wide ceilings as functions.
 
@@ -115,7 +115,7 @@ System-wide ceilings as functions.
 
 ---
 
-## Module: `xiom.core.config`
+## Module: `xiom.durable.config`
 
 ### Type `CoreConfig`
 `{ page_size: Int; buffer_pool_size: Int; wal_enabled: Bool; sync_on_commit: Bool; data_dir: Str; max_open_files: Int; }`
@@ -130,7 +130,7 @@ System-wide ceilings as functions.
 
 ---
 
-## Module: `xiom.core.contracts`
+## Module: `xiom.durable.contracts`
 
 Shared predicate helpers.
 
@@ -146,7 +146,7 @@ Shared predicate helpers.
 
 ---
 
-## Module: `xiom.core.metrics`
+## Module: `xiom.durable.metrics`
 
 ### Types
 - `Counter { name: Str; value: Int; }`
@@ -170,7 +170,7 @@ Shared predicate helpers.
 
 ---
 
-## Module: `xiom.core.version`
+## Module: `xiom.durable.version`
 
 | Function | Returns | Value |
 |----------|---------|-------|
@@ -182,7 +182,7 @@ Shared predicate helpers.
 
 ---
 
-## Module: `xiom.core.storage.page`
+## Module: `xiom.durable.storage.page`
 
 ### Type `Page`
 `{ id: Int; data: Vec[Int]; dirty: Bool; pin_count: Int; }`
@@ -195,7 +195,7 @@ Shared predicate helpers.
 | `page_pin(p: &mut Page)` | `pin_count += 1` |
 | `page_unpin(p: &mut Page)` | `pin_count -= 1` (floored at 0) |
 
-## Module: `xiom.core.storage.checksum`
+## Module: `xiom.durable.storage.checksum`
 
 FNV-1a 32-bit over the low byte of each slot.
 
@@ -204,7 +204,7 @@ FNV-1a 32-bit over the low byte of each slot.
 | `crc32(data: &Vec[Int]) -> Int` | 32-bit FNV-1a hash |
 | `verify_checksum(data: &Vec[Int], expected: Int) -> Bool` | `crc32(data) == expected` |
 
-## Module: `xiom.core.storage.pager`
+## Module: `xiom.durable.storage.pager`
 
 ### Type `Pager`
 `{ page_size: Int; page_count: Int; pages: Vec[Page]; }`
@@ -217,7 +217,7 @@ FNV-1a 32-bit over the low byte of each slot.
 | `pager_page_count(p: &Pager) -> Int` | Allocated page count |
 | `pager_flush(p: &Pager) -> Bool` | **Stub** -- `TODO(Phase 2)` disk fsync via FFI; returns `true` |
 
-## Module: `xiom.core.storage.buffer_pool`
+## Module: `xiom.durable.storage.buffer_pool`
 
 ### Type `BufferPool`
 `{ frames: Vec[Page]; capacity: Int; hits: Int; misses: Int; }`
@@ -231,7 +231,7 @@ FNV-1a 32-bit over the low byte of each slot.
 
 ---
 
-## Module: `xiom.core.wal.lsn`
+## Module: `xiom.durable.wal.lsn`
 
 ### Type `WalLsn` `{ value: Int; } derive[Clone]`
 
@@ -241,7 +241,7 @@ FNV-1a 32-bit over the low byte of each slot.
 | `wal_lsn_value(l: &WalLsn) -> Int` | Unwrap |
 | `wal_lsn_next(l: &WalLsn) -> WalLsn` | `value + 1` |
 
-## Module: `xiom.core.wal.wal_record`
+## Module: `xiom.durable.wal.wal_record`
 
 ### Enum `WalOpKind`
 `Insert` - `Update` - `Delete` - `SegmentSeal` - `ManifestUpdate` - `Checkpoint` - `SnapshotMarker`
@@ -253,7 +253,7 @@ FNV-1a 32-bit over the low byte of each slot.
 |-----------|-------------|
 | `wal_record_new(lsn: Int, op: WalOpKind, key: Int, value: Int) -> WalRecord` | New record with empty payload, timestamp 0 |
 
-## Module: `xiom.core.wal.wal_writer`
+## Module: `xiom.durable.wal.wal_writer`
 
 ### Type `WalWriter`
 `{ records: Vec[WalRecord]; next_lsn: Int; synced_lsn: Int; }`
@@ -266,14 +266,14 @@ FNV-1a 32-bit over the low byte of each slot.
 | `wal_writer_current_lsn(w: &WalWriter) -> Int` | Last assigned LSN |
 | `wal_writer_synced_lsn(w: &WalWriter) -> Int` | Last durable LSN |
 
-## Module: `xiom.core.wal.wal_reader`
+## Module: `xiom.durable.wal.wal_reader`
 
 | Signature | Description |
 |-----------|-------------|
 | `wal_read_all(w: &WalWriter) -> Vec[WalRecord]` | Copy of all records |
 | `wal_read_from(w: &WalWriter, from_lsn: Int) -> Vec[WalRecord]` | Records with `lsn >= from_lsn` |
 
-## Module: `xiom.core.wal.checkpoint`
+## Module: `xiom.durable.wal.checkpoint`
 
 ### Type `Checkpoint` `{ lsn: Int; timestamp: Int; }`
 
@@ -282,7 +282,7 @@ FNV-1a 32-bit over the low byte of each slot.
 | `checkpoint_new(lsn: Int, timestamp: Int) -> Checkpoint` | Construct |
 | `checkpoint_can_truncate(cp: &Checkpoint, record_lsn: Int) -> Bool` | `record_lsn < cp.lsn` |
 
-## Module: `xiom.core.wal.recovery`
+## Module: `xiom.durable.wal.recovery`
 
 ### Type `RecoveryResult` `{ records_replayed: Int; last_lsn: Int; corrupted: Bool; }`
 
@@ -292,7 +292,7 @@ FNV-1a 32-bit over the low byte of each slot.
 
 ---
 
-## Module: `xiom.core.txn.txn_state`
+## Module: `xiom.durable.txn.txn_state`
 
 ### Enum `TxnStateKind`
 `Open` - `Prepared` - `Committed` - `Aborted` - `Recovered`
@@ -302,7 +302,7 @@ FNV-1a 32-bit over the low byte of each slot.
 | `txn_state_can_commit(s: &TxnStateKind) -> Bool` | `true` for Open or Prepared |
 | `txn_state_is_terminal(s: &TxnStateKind) -> Bool` | `true` for Committed or Aborted |
 
-## Module: `xiom.core.txn.txn_manager`
+## Module: `xiom.durable.txn.txn_manager`
 
 ### Types
 - `Txn { id: Int; state: TxnStateKind; start_lsn: Int; }`
@@ -316,7 +316,7 @@ FNV-1a 32-bit over the low byte of each slot.
 | `txn_abort(m: &mut TxnManager, txn_id: Int) -> Bool` | Mark Aborted; `false` if unknown |
 | `txn_active_count(m: &TxnManager) -> Int` | Tracked transaction count |
 
-## Module: `xiom.core.txn.snapshot`
+## Module: `xiom.durable.txn.snapshot`
 
 ### Type `Snapshot` `{ lsn: Int; active_txns: Vec[Int]; }`
 

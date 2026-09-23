@@ -15,7 +15,7 @@ package xiom_ecosystem {
     "xiom.std": "0.1.0"
   };
   packages: [
-    "xiom.core",
+    "xiom.durable",
     "xiom.http",
     "xiom.sql",
     "xiom.vulkan",
@@ -31,11 +31,9 @@ package xiom_ecosystem {
     "xiom.protobuf",
     "xiom.grpc",
     "xiom.json",
-    "xiom.test",
     "xiom.db",
     "xiom.vector",
     "xiom.algo",
-    "xiom.net",
     "xiom.sqlite",
     "xiom.imgui",
     "xiom.ui",
@@ -46,13 +44,11 @@ package xiom_ecosystem {
     "xiom.phonon",
     "xiom.control",
     "xiom.sensor",
-    "xiom.log",
     "xiom.kafka",
     "xiom.rest",
     "xiom.graphql",
     "xiom.websocket",
     "xiom.realtime",
     "xiom.micro",
-    "xiom.math"
   ];
 }

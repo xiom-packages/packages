@@ -1,4 +1,4 @@
-module xiom.core.storage.checksum
+module xiom.durable.storage.checksum
 
 // Corruption detection for blocks, WAL records, and snapshots. This is a real
 // FNV-1a 32-bit hash over the low byte of each slot -- cheap, dependency-free,

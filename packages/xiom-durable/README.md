@@ -1,4 +1,4 @@
-# xiom.core
+# xiom.durable
 
 > **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
 > **Scope:** Core foundation types and utilities shared across XIOM.

@@ -1,7 +1,7 @@
-module xiom.core.wal.wal_reader
+module xiom.durable.wal.wal_reader
 
-use xiom.core.wal.wal_writer;
-use xiom.core.wal.wal_record;
+use xiom.durable.wal.wal_writer;
+use xiom.durable.wal.wal_record;
 
 // Sequential and point-in-time WAL readers used by recovery, repair tooling,
 // and snapshot validation. In this phase they read straight from the writer's

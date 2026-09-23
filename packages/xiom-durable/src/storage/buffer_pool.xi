@@ -1,4 +1,4 @@
-module xiom.core.storage.buffer_pool
+module xiom.durable.storage.buffer_pool
 
 // In-memory frame cache with hit/miss accounting. `frames` holds resident
 // pages; lookups are linear for now (a hash map index lands with the real

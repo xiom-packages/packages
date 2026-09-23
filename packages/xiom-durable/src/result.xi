@@ -1,6 +1,6 @@
-module xiom.core.result
+module xiom.durable.result
 
-// Result[T, E] is a built-in type in XIOM. The xiom.core convention is that
+// Result[T, E] is a built-in type in XIOM. The xiom.durable convention is that
 // every fallible engine function returns `Result[T, CoreError]`, propagating
 // with the `?` operator and constructing with `Ok(v)` / `Err(e)`.
 //

@@ -1,3 +1,5 @@
+> Historical audit from the xiom.core era. The package was renamed to xiom.durable on 2026-09-23 (owner-confirmed namespace audit); module names below refer to the pre-rename identifiers.
+
 # AUDIT.md -- xiom-core
 
 ## Compilation Status: 22/22 files OK

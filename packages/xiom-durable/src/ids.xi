@@ -1,4 +1,4 @@
-module xiom.core.ids
+module xiom.durable.ids
 
 // Strongly-typed identifiers. XIOM does not support bare type aliases over a
 // primitive (`pub type PageId = Int` does not compile), so each identity is a

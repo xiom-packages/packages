@@ -1,4 +1,4 @@
-module xiom.core.txn.snapshot
+module xiom.durable.txn.snapshot
 
 // A read snapshot pins a consistent view of the log for the duration of a
 // query so that segment fan-out sees a stable set of records. A record is

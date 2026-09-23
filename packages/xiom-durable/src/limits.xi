@@ -1,4 +1,4 @@
-module xiom.core.limits
+module xiom.durable.limits
 
 // System-wide guardrails. Kept in one place so every subsystem enforces the
 // same ceilings. Exposed as functions because top-level `const` support is

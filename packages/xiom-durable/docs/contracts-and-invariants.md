@@ -1,4 +1,4 @@
-# xiom.core -- Contracts and Invariants
+# xiom.durable -- Contracts and Invariants
 
 This is the machine-readable-in-prose companion to the `requires:` / `ensures:` clauses and the predicate helpers in `src/contracts.xi`. Every invariant the shared core enforces is listed here with its rationale, where it lives, and how it is checked. Downstream engines (`xiom-db`, `xiom-vector`) inherit and rely on all of these.
 

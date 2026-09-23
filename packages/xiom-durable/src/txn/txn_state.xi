@@ -1,4 +1,4 @@
-module xiom.core.txn.txn_state
+module xiom.durable.txn.txn_state
 
 // The transaction lifecycle state machine. Legal transitions:
 //   Open      -> Prepared | Committed | Aborted

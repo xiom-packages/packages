@@ -1,4 +1,4 @@
-module xiom.core.storage.page
+module xiom.durable.storage.page
 
 // A Page is the unit of buffered storage. In this in-memory phase `data` holds
 // `size` zeroed slots; on disk it will map to a fixed-size block. `pin_count`
