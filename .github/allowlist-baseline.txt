@@ -1,0 +1,62 @@
+# Grandfathered publish-allowlist entries (pre-readiness baseline).
+#
+# scripts/allowlist-guard.ps1 does not fail when one of these names is not yet
+# `stage: stable` with a recorded green suite; it reports them every run. They
+# entered the allowlist under the 2026-09-21/23 manual gate pass, before the
+# readiness model existed.
+#
+# NEVER add a name here: new allowlist entries must pass the guard. Emptying
+# this file enforces full strictness (CI then fails until every allowlisted
+# name is stable with a green recorded run).
+xiom.algo
+xiom.arrow
+xiom.assimp
+xiom.blas
+xiom.box2d
+xiom.control
+xiom.cuda
+xiom.directx11
+xiom.directx12
+xiom.dxc
+xiom.eigen
+xiom.ffmpeg
+xiom.gazebo
+xiom.glfw
+xiom.graphql
+xiom.grpc
+xiom.hello
+xiom.http
+xiom.imgui
+xiom.jolt
+xiom.json
+xiom.kafka
+xiom.libpq
+xiom.lzfse
+xiom.meshopt
+xiom.micro
+xiom.miniaudio
+xiom.moveit
+xiom.onnx
+xiom.openblas
+xiom.opencv
+xiom.opengl
+xiom.openssl
+xiom.ozz
+xiom.pandas
+xiom.phonon
+xiom.portaudio
+xiom.protobuf
+xiom.raylib
+xiom.realtime
+xiom.rest
+xiom.scipy
+xiom.sdl3
+xiom.sensor
+xiom.tensorflow
+xiom.torch
+xiom.ui
+xiom.vma
+xiom.vulkan
+xiom.websocket
+xiom.zeromq
+xiom.zstd

@@ -1,0 +1,45 @@
+# Readiness guard for the publish allowlist.
+# Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+# SPDX-License-Identifier: MIT OR Apache-2.0
+#
+# Fails when a name in .github/publish-allowlist.txt is not `stage: stable`
+# with a recorded green suite in its STATUS.json (the source of truth behind
+# docs/PACKAGE_STATUS.md). Names in .github/allowlist-baseline.txt are
+# grandfathered pre-readiness entries: they are reported every run but do not
+# fail until they are ported. Adding to the allowlist is the publish approval
+# step; this workflow is what makes it auditable.
+name: Readiness Guard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/publish-allowlist.txt"
+      - ".github/allowlist-baseline.txt"
+      - "packages/*/STATUS.json"
+      - "docs/PACKAGE_STATUS.md"
+      - "scripts/allowlist-guard.ps1"
+  pull_request:
+    paths:
+      - ".github/publish-allowlist.txt"
+      - ".github/allowlist-baseline.txt"
+      - "packages/*/STATUS.json"
+      - "docs/PACKAGE_STATUS.md"
+      - "scripts/allowlist-guard.ps1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: allowlist readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Run readiness guard
+        shell: pwsh
+        run: ./scripts/allowlist-guard.ps1

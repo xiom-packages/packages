@@ -82,3 +82,16 @@ xiom.vulkan
 xiom.websocket
 xiom.zeromq
 xiom.zstd
+
+# Readiness-verified additions (2026-09-23): stage: stable with recorded green
+# runs on the pinned compiler v0.61.3 (see packages/<dir>/STATUS.json and
+# docs/PACKAGE_STATUS.md). Adding a name here is the publish approval step;
+# scripts/allowlist-guard.ps1 fails any future entry that is not stable+green.
+#   xiom.flags (18/18)   xiom.lru (16/16)    xiom.option (32/32)
+#   xiom.plural (35/35)  xiom.retry (21/21)  xiom.ttl (14/14)
+xiom.flags
+xiom.lru
+xiom.option
+xiom.plural
+xiom.retry
+xiom.ttl
