@@ -1,6 +1,6 @@
 {
     "package":  "xiom.lru",
-    "stage":  "incubating",
+    "stage":  "stable",
     "compiler":  "v0.61.3",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
@@ -13,5 +13,5 @@
                   "checked":  "2026-09-23T17:48:34Z"
               },
     "publish":  false,
-    "excluded_reason":  "pending allowlist: registry scope addition + repo protection decision"
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
 }
