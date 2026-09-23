@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-23T20:47:34Z",
+    "updated":  "2026-09-23T20:59:34Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -962,6 +962,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.plural",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "English pluralization and singularization with irregular and suffix rules",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-plural/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "plural.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.portaudio",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "PortAudio -- cross-platform audio I/O.",
@@ -1096,6 +1113,23 @@
                          "source_files":  [
                                               "package.xi",
                                               "rest.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.retry",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Retry policies with exponential backoff, deterministic jitter, and circuit-breaker state",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-retry/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "retry.xi",
+                                              "package.xi"
                                           ]
                      },
                      {
@@ -3957,19 +3991,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-plural",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-plural/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-png",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -4185,19 +4206,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-report/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-retry",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-retry/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
