@@ -9,7 +9,8 @@
 #   1. resolve the toolchain via scripts/xiom.ps1 (pin-aware, sets XIOM_STDLIB)
 #   2. enforce the section-4 namespace rule via scripts/namespace-check.ps1
 #   3. compile the package: `xiom --run tests/<suite>` when a suite exists,
-#      else compile each source module to a throwaway binary
+#      else type-check/lower each source module with `xiom --emit-ir`
+#      (no linking, so library modules without fn main are valid)
 #   4. print the suite summary and the exact `status.ps1 -Action update`
 #      command to record the run
 #
@@ -122,17 +123,15 @@ try {
         }
         Write-Host "  suite:    <none> -- compile-only check"
         $sources = @(Get-ChildItem -LiteralPath $packageDir -Recurse -Filter *.xi -File |
-            Where-Object { $_.FullName -notmatch "\\(tests|\.git)\\" } |
+            Where-Object { $_.Name -ne "package.xi" -and $_.FullName -notmatch "\\(tests|\.git)\\" } |
             Sort-Object FullName)
         if ($sources.Count -eq 0) { throw "no source modules found in $packageDir" }
-        $tmpDir = Join-Path ([System.IO.Path]::GetTempPath()) "kilo\xiom-port"
-        [void](New-Item -ItemType Directory -Force -Path $tmpDir)
-        $i = 0
         foreach ($src in $sources) {
-            $i = $i + 1
-            $outExe = Join-Path $tmpDir ("check-" + $i + ".exe")
             Write-Host "  compile:  $($src.FullName.Substring($packageDir.Length + 1))"
-            $result = Invoke-Compiler -Arguments @($src.FullName, "-o", $outExe)
+            # --emit-ir type-checks and lowers without linking, so library
+            # modules (no fn main) can be checked too (the old -o path failed
+            # with "undefined symbol: main" for every library package).
+            $result = Invoke-Compiler -Arguments @("--emit-ir", $src.FullName)
             if ($result.ExitCode -ne 0) {
                 Write-Host $result.Output
                 $failed = $failed + 1
