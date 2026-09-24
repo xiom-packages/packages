@@ -171,3 +171,13 @@ xiom.tftp
 xiom.transaction
 xiom.wasm
 xiom.yaml
+xiom.cookie
+xiom.fixed
+xiom.id3
+xiom.jwt
+xiom.midi
+xiom.pagination
+xiom.ppm
+xiom.properties
+xiom.rate
+xiom.tar

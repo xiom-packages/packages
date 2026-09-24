@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-25T00:04:30Z",
+    "updated":  "2026-09-25T00:23:46Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -270,6 +270,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.cookie",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Cookie and Set-Cookie header parsing and serialization",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cookie/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cookie.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.csv",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "CSV parsing and writing with RFC 4180-style quoting and escaping",
@@ -528,6 +545,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.fixed",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Fixed-width text table parsing and writing by column widths",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fixed/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "fixed.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.flags",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Command-line flag and argument parsing with subcommand-friendly positionals and environment fallback",
@@ -752,6 +786,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.id3",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "ID3v2 tag inspection: version, size, and text frames (TIT2/TPE1/TALB/...)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-id3/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "id3.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.imgui",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Dear ImGui v1.92.9 -- immediate-mode GUI library.",
@@ -817,6 +868,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-json/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "json.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.jwt",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "JWT structural decoding: headers, claims, timestamps (no signature verification)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jwt/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "jwt.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1047,6 +1115,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-micro/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "micro.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.midi",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Standard MIDI File structure: header, track chunks, variable-length quantities, event counts",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-midi/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "midi.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1315,6 +1400,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.pagination",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Page and offset math plus opaque cursor tokens for list endpoints",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pagination/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "pagination.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.pandas",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pandas Arrow-backed DataFrame and Series operations with zero Python overhead",
@@ -1454,6 +1556,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.ppm",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Netpbm PPM (P3/P6) parsing and building for 8-bit RGB rasters",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ppm/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ppm.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.preprocess",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Configurable text normalization pipeline: case folding, punctuation, whitespace, stopwords",
@@ -1483,6 +1602,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-profiling/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "profiling.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.properties",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Java .properties parsing and emitting with escapes and line continuations",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-properties/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "properties.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1535,6 +1671,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-query/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "query.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.rate",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic rate limiters with explicit clocks: token bucket and fixed window",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rate/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "rate.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2088,6 +2241,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-svg/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "svg.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.tar",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "POSIX ustar archive codec: parse and build uncompressed tar files",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tar/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "tar.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3925,19 +4095,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jpeg/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-jwt",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jwt/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
