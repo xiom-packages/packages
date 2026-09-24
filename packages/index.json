@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-25T02:07:56Z",
+    "updated":  "2026-09-25T02:29:01Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -55,6 +55,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-arrow/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "arrow.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.ascii85",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Adobe ASCII85 (Base85) encoding and decoding",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ascii85/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ascii85.xi",
                                               "package.xi"
                                           ]
                      },
@@ -140,6 +157,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-base58/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "base58.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.bitfield",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Bit manipulation helpers for 64-bit Ints: extract/set fields, masks, popcount, byte swap, rotate",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bitfield/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "bitfield.xi",
                                               "package.xi"
                                           ]
                      },
@@ -262,6 +296,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cidr/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "cidr.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.cobs",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "COBS framing: consistent overhead byte stuffing encode/decode with zero-byte delimiters",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cobs/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cobs.xi",
                                               "package.xi"
                                           ]
                      },
@@ -541,6 +592,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-electronics/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "electronics.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.eml",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "RFC 5322/MIME message structure: unfolded headers, body split, and multipart boundaries",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-eml/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "eml.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1326,6 +1394,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.nmea",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "NMEA 0183 sentence parsing: checksum, fields, coordinates, and GGA/RMC accessors",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nmea/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "nmea.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.numpy",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "NumPy C API -- the fundamental array computing library for scientific Python.",
@@ -1536,6 +1621,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.pack",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Format-string binary packing and unpacking of integer fields (u8/s16/u32/s64, LE/BE)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pack/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "pack.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.packet",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Length-prefixed packet framing with CRC-32 validation",
@@ -1633,6 +1735,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-patch/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "patch.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.pcap",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Classic PCAP capture file structure: magic/endianness, global header, and packet records",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pcap/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "pcap.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1825,6 +1944,23 @@
                                               "schema.xi",
                                               "package.xi",
                                               "protobuf.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.punycode",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "RFC 3492 Punycode for IDN labels: xn-- encode/decode without external tables",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-punycode/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "punycode.xi",
+                                              "package.xi"
                                           ]
                      },
                      {
@@ -2569,6 +2705,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.term",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "ANSI/VT escape handling: detect, strip, count, and visible-aware truncation",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-term/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "term.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.tftp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "TFTP packet codec (RFC 1350): RRQ, WRQ, DATA, ACK, ERROR",
@@ -2632,6 +2785,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-timeseries/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "timeseries.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.tlv",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Generic big-endian TLV parsing and building with configurable tag/length widths",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tlv/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "tlv.xi",
                                               "package.xi"
                                           ]
                      },

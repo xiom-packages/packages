@@ -201,3 +201,13 @@ xiom.roman
 xiom.stl
 xiom.uri
 xiom.varint
+xiom.ascii85
+xiom.bitfield
+xiom.cobs
+xiom.eml
+xiom.nmea
+xiom.pack
+xiom.pcap
+xiom.punycode
+xiom.term
+xiom.tlv
