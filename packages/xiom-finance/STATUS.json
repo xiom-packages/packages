@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.finance",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  31,
+                  "failed":  0,
+                  "run_by":  "task:ses_f2ba14b15ffeE4nDIN50vddZon",
+                  "commit":  "dddbf32",
+                  "checked":  "2026-09-24T17:09:47Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
