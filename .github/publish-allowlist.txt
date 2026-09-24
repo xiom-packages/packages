@@ -181,3 +181,13 @@ xiom.ppm
 xiom.properties
 xiom.rate
 xiom.tar
+xiom.avi
+xiom.envsubst
+xiom.mime
+xiom.ogg
+xiom.particle
+xiom.quantum
+xiom.rpc
+xiom.telnet
+xiom.useragent
+xiom.weather
