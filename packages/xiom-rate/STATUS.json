@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.rate",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  19,
+                  "failed":  0,
+                  "run_by":  "agentmgr:ses_f2ac364f2ffeASaYXdUXhLX2nm",
+                  "commit":  "6e9909f",
+                  "checked":  "2026-09-24T21:14:30Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
