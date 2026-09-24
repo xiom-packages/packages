@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-24T22:11:04Z",
+    "updated":  "2026-09-24T23:15:25Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -1246,6 +1246,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.optimizer",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic single-variable optimizers: hill climb, grid search, simulated annealing",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-optimizer/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "optimizer.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.option",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Combinators for Option and Result values: map, flat_map, filter, unwrap, conversions",
@@ -1315,6 +1332,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.password",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Password strength scoring and structural checks (no crypto, no dictionaries)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-password/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "password.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.patch",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Unified diff parsing and application with conflict detection",
@@ -1347,6 +1381,23 @@
                                               "package.xi",
                                               "phonon.xi",
                                               "phonon_safe.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.physics",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Introductory mechanics in SI units with Float64 scalars",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-physics/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "physics.xi",
+                                              "package.xi"
                                           ]
                      },
                      {
@@ -1498,6 +1549,57 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.refactor",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Text-level identifier renaming with word boundaries and dry-run counts",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-refactor/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "refactor.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.relativity",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Special relativity scalar helpers: Lorentz factor, dilation, contraction, velocity addition",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-relativity/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "relativity.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.report",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Plain-text report building: aligned tables, key/value blocks, bullets, and word wrap",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-report/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "report.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.rest",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "REST resource routing, pagination, filtering, content negotiation, and OpenAPI helpers built on xiom.http",
@@ -1626,6 +1728,40 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.secret",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Secret redaction for logs and text: emails, tokens, keys, and card-like digits",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-secret/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "secret.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.selection",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic selection operators for evolutionary loops: roulette, tournament, elite, rank weights",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-selection/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "selection.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.semver",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Semantic version parsing, comparison, and range satisfaction",
@@ -1692,6 +1828,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-signal/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "signal.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.snapshot",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Snapshot comparison helpers: normalization, line equality, and first-difference summaries",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-snapshot/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "snapshot.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1988,6 +2141,40 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tracing/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "tracing.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.translation",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Message catalogs: key/value translation entries with locale fallback and placeholder interpolation",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-translation/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "translation.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.transliteration",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "UTF-8 to ASCII transliteration for Latin, Greek, and Cyrillic text",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-transliteration/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "transliteration.xi",
                                               "package.xi"
                                           ]
                      },
@@ -4250,19 +4437,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-optimizer",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-optimizer/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-optimizer-fw",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -4354,19 +4528,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-password",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-password/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-pdf",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -4413,19 +4574,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-phaser/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-physics",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-physics/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -4627,45 +4775,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-refactor",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-refactor/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-relativity",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-relativity/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-report",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-report/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-robotics",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -4757,19 +4866,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-secret",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-secret/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-sectest",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -4777,19 +4873,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sectest/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-selection",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-selection/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -4842,19 +4925,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-smtp/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-snapshot",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-snapshot/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -5154,32 +5224,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-translate/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-translation",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-translation/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-transliteration",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-transliteration/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]

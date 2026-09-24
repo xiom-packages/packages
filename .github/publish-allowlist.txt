@@ -150,3 +150,14 @@ xiom.subtitle
 xiom.thermo
 xiom.tracing
 xiom.uuid
+xiom.optimizer
+xiom.password
+xiom.physics
+xiom.refactor
+xiom.relativity
+xiom.report
+xiom.secret
+xiom.selection
+xiom.snapshot
+xiom.translation
+xiom.transliteration
