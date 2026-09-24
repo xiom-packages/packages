@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.alerting",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  21,
+                  "failed":  0,
+                  "run_by":  "task:ses_f2b9978a5ffemlkQ0JW0NTo7cL",
+                  "commit":  "ba590b3",
+                  "checked":  "2026-09-24T17:16:15Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
