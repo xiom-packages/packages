@@ -1,8 +1,25 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-23T22:33:18Z",
+    "updated":  "2026-09-24T20:27:31Z",
     "packages":  [
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.alerting",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Threshold alert rules with breach streaks, firing state, and transition counts",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-alerting/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "alerting.xi",
+                                              "package.xi"
+                                          ]
+                     },
                      {
                          "version":  "0.1.0",
                          "name":  "xiom.algo",
@@ -55,6 +72,40 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-assimp/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "assimp.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.astronomy",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Julian dates, days since J2000, moon phase, and zodiac helpers (integer math)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-astronomy/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "astronomy.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.audit",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Hash-chained append-only audit log with verification and export",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-audit/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "audit.xi",
                                               "package.xi"
                                           ]
                      },
@@ -126,6 +177,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bullet/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "bullet.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.chemistry",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Chemical formula parsing with molar masses and mass fractions (integer mg/mol)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chemistry/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "chemistry.xi",
                                               "package.xi"
                                           ]
                      },
@@ -342,6 +410,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.electronics",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Resistor color codes, E24 series, voltage dividers, and LED resistors (integer math)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-electronics/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "electronics.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.escape",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "String escaping and unescaping for JSON, HTML, and URL contexts",
@@ -387,6 +472,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ffmpeg/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "ffmpeg.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.finance",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Integer time-value-of-money: interest, annuities, NPV, doubling time",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-finance/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "finance.xi",
                                               "package.xi"
                                           ]
                      },
@@ -540,6 +642,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.html",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Tolerant HTML sanitizer: tag allowlist, attribute policy, script/style removal",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-html/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "html.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.http",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "XIOM HTTP Library -- types, parsing, client, and server",
@@ -650,6 +769,23 @@
                                               "consumer.xi",
                                               "producer.xi",
                                               "types.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.lexing",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Configurable tokenizer: identifiers, keywords, integers, strings, operators",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lexing/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "lexing.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1926,19 +2062,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-alerting",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-alerting/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-amqp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -2004,19 +2127,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-astronomy",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-astronomy/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-audio-meta",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -2024,19 +2134,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-audio-meta/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-audit",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-audit/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -2388,19 +2485,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chef/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-chemistry",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chemistry/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -2771,19 +2855,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-electronics",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-electronics/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-ensemble",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -2882,19 +2953,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-feature/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-finance",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-finance/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -3103,19 +3161,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-helm/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-html",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-html/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -3532,19 +3577,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lexer-fw/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-lexing",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lexing/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]

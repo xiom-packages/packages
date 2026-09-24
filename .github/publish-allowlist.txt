@@ -128,3 +128,11 @@ xiom.fuzz
 xiom.metrics
 xiom.packet
 xiom.timeseries
+xiom.alerting
+xiom.astronomy
+xiom.audit
+xiom.chemistry
+xiom.electronics
+xiom.finance
+xiom.html
+xiom.lexing
