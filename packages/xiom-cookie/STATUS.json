@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.cookie",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  20,
+                  "failed":  0,
+                  "run_by":  "agentmgr:ses_f2ac36748ffeHu21oqUWr3yTE4",
+                  "commit":  "46e0355",
+                  "checked":  "2026-09-24T21:14:13Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
