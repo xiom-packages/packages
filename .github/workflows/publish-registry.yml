@@ -245,6 +245,14 @@ jobs:
               skipped=$((skipped+1))
               continue
             fi
+            # Badge stage: write the STATUS.json stage into the packaged
+            # manifest so the registry badge can never drift from readiness.
+            # CI-only edit on the runner checkout; never committed.
+            awk -v st="$stage" '
+              $0 ~ /^[[:space:]]*stage[[:space:]]*:/ { next }
+              { print; if (!done && $0 ~ /\{/) { print "  stage: \"" st "\";"; done=1 } }
+            ' "$dir/package.xi" > "$dir/package.xi.tmp" && mv "$dir/package.xi.tmp" "$dir/package.xi"
+            echo "stage badge: $stage"
             code="$(curl -s -o /tmp/pkg.json -w '%{http_code}' "$XIOM_REGISTRY/packages/$name" || true)"
             if [ "$code" = "200" ] && python3 -c 'import json,sys; d=json.load(open("/tmp/pkg.json")); sys.exit(0 if sys.argv[1] in (d.get("versions") or {}) else 1)' "$version"; then
               echo "skip (already published): $name@$version"
