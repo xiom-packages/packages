@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.weather",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  20,
+                  "failed":  0,
+                  "run_by":  "agentmgr:ses_f2ab15de7ffeILPezbTsTCOnd8",
+                  "commit":  "5500ddc",
+                  "checked":  "2026-09-24T22:51:49Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
