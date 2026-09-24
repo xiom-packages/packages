@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.ascii85",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  20,
+                  "failed":  0,
+                  "run_by":  "task:ses_f2a484829ffe2mXHaw77VvRF0o",
+                  "commit":  "4bcc050",
+                  "checked":  "2026-09-24T23:26:53Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
