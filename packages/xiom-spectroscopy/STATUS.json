@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.spectroscopy",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  16,
+                  "failed":  0,
+                  "run_by":  "task:ses_f2af00873ffeOKWQ7Zlh8KR5q1",
+                  "commit":  "7392466",
+                  "checked":  "2026-09-24T20:20:21Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
