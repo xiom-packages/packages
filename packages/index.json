@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-24T21:47:25Z",
+    "updated":  "2026-09-24T22:11:04Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -735,6 +735,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.humanize",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Human-readable bytes, durations, counts, ordinals, and lists",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-humanize/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "humanize.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.imgui",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Dear ImGui v1.92.9 -- immediate-mode GUI library.",
@@ -747,6 +764,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-imgui/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "imgui.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.ini",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "INI file parsing, editing, and emitting with ordered sections",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ini/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ini.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1592,6 +1626,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.semver",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Semantic version parsing, comparison, and range satisfaction",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-semver/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "semver.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.sensor",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Sensor fusion library for XIOM -- IMU, GPS, data fusion",
@@ -1624,6 +1675,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sentiment/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "sentiment.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.signal",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Integer-friendly window functions, convolution, and moving extrema for signals",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-signal/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "signal.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1719,6 +1787,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.subtitle",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "SRT and WebVTT subtitle parsing, formatting, and shifting",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-subtitle/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "subtitle.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.summary",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Extractive text summarization with frequency scoring",
@@ -1783,6 +1868,23 @@
                          "source_files":  [
                                               "package.xi",
                                               "tensorflow.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.thermo",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Exact integer unit conversions for temperature, pressure, energy, and speed",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-thermo/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "thermo.xi",
+                                              "package.xi"
                                           ]
                      },
                      {
@@ -1874,6 +1976,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.tracing",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "In-memory span trees: explicit-clock spans, durations, children, and self time",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tracing/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "tracing.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.tsv",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "IANA-style TSV with backslash escaping: parse and write",
@@ -1944,6 +2063,23 @@
                                               "theme.xi",
                                               "types.xi",
                                               "widgets.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.uuid",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "UUID formatting, parsing, validation, and v4 construction from caller-supplied randomness",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-uuid/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "uuid.xi",
                                               "package.xi"
                                           ]
                      },
@@ -4686,19 +4822,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-signal",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-signal/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-smartcontract",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -4868,19 +4991,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-subtitle",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-subtitle/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-svm",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -4959,19 +5069,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-thermo",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-thermo/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-thrift",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -5018,19 +5115,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tor/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-tracing",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tracing/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]

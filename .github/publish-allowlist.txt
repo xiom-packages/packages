@@ -142,3 +142,11 @@ xiom.l10n.number
 xiom.ngram
 xiom.tsv
 xiom.validation
+xiom.humanize
+xiom.ini
+xiom.semver
+xiom.signal
+xiom.subtitle
+xiom.thermo
+xiom.tracing
+xiom.uuid
