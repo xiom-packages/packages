@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.id3",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  21,
+                  "failed":  0,
+                  "run_by":  "agentmgr:ses_f2ac36abdffe82u8WB1tqve0cJ",
+                  "commit":  "dfe7031",
+                  "checked":  "2026-09-24T21:13:55Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
