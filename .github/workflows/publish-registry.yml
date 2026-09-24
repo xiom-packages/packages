@@ -23,7 +23,10 @@
 #     publish only packages whose STATUS.json is stage=stable with a recorded
 #     green suite; unready names are skipped with a warning. Per-package tags
 #     and dispatch canaries on unready names are refused (::error), and a tag
-#     outside the allowlist fails.
+#     outside the allowlist fails. The ONLY exception is the bounded staging
+#     badge canary: `workflow_dispatch` with `allow_unready=true` plus an
+#     explicit `package` publishes that one unready package to a *staging*
+#     registry (never tags, never batches, still needs environment approval).
 #   - Signing: set the XIOM_SIGNING_KEY secret (64 hex chars) for a stable
 #     first-party fingerprint; without it an ephemeral key is generated per
 #     run (fine for the canary, warned for a full batch).
@@ -50,6 +53,10 @@ on:
       package:
         description: "canary: publish only this package name (e.g. xiom.core); empty = full batch"
         required: false
+      allow_unready:
+        description: "staging badge canary only: allow the explicitly dispatched package even when it is not stage=stable (never applies to tags or batches; the run still needs environment approval)"
+        type: boolean
+        default: false
 
 # One batch at a time: publishes are immutable and rate limited.
 concurrency:
@@ -85,6 +92,7 @@ jobs:
       XIOM_REGISTRY: ${{ github.event.inputs.registry || 'https://registry.xiom-lang.org' }}
       BATCH_VERSION: ${{ github.event.inputs.version || github.ref_name }}
       CANARY_PACKAGE: ${{ github.event.inputs.package }}
+      ALLOW_UNREADY: ${{ github.event.inputs.allow_unready || 'false' }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -237,13 +245,27 @@ jobs:
               test_status="<missing>"
             fi
             if [ "$ready" != "yes" ]; then
-              if [ -n "${TAG_PACKAGE_NAME:-}" ] || [ -n "${CANARY_PACKAGE:-}" ]; then
+              # Bounded badge-canary exception: an explicit workflow_dispatch
+              # for a single package may publish an unready package to a
+              # staging registry so the `stage: incubating` badge can be
+              # exercised. Tags and batches can never use it, and the run
+              # still requires the registry-publish environment approval.
+              allow_unready="no"
+              if [ "${ALLOW_UNREADY:-false}" = "true" ] && [ -n "${CANARY_PACKAGE:-}" ] && [ "$name" = "$CANARY_PACKAGE" ]; then
+                case "$XIOM_REGISTRY" in
+                  *staging*) allow_unready="yes" ;;
+                esac
+              fi
+              if [ "$allow_unready" = "yes" ]; then
+                echo "::warning::stage badge canary: publishing $name with stage=$stage to staging (readiness override)"
+              elif [ -n "${TAG_PACKAGE_NAME:-}" ] || [ -n "${CANARY_PACKAGE:-}" ]; then
                 echo "::error::publish target is not ready (stage=$stage tests=$test_status): $name"
                 exit 1
+              else
+                echo "::warning::skip (not ready: stage=$stage tests=$test_status): $name@$version"
+                skipped=$((skipped+1))
+                continue
               fi
-              echo "::warning::skip (not ready: stage=$stage tests=$test_status): $name@$version"
-              skipped=$((skipped+1))
-              continue
             fi
             # Badge stage: write the STATUS.json stage into the packaged
             # manifest so the registry badge can never drift from readiness.
