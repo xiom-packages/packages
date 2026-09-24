@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-25T01:52:51Z",
+    "updated":  "2026-09-25T02:07:56Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -128,6 +128,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.base58",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Base58 (Bitcoin alphabet) encoding and decoding with leading-zero handling",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-base58/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "base58.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.blas",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "BLAS/LAPACK linear algebra bindings for XIOM",
@@ -233,6 +250,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.cidr",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "IPv4 addresses and CIDR blocks: parse, format, containment, and range math (addresses as 32-bit Ints)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cidr/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cidr.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.codec",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Base64, base64url, base32, and hex encoding and decoding",
@@ -299,6 +333,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cookie/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "cookie.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.crc",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Parameterized CRC-8/16/32 with named presets and known-answer vectors",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-crc/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "crc.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1081,6 +1132,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.macaddr",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "MAC-48 address parsing, formatting, and flag helpers (48-bit values as Int)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-macaddr/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "macaddr.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.markdown",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Markdown subset to HTML renderer",
@@ -1270,6 +1338,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-numpy/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "numpy.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.obj",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Wavefront OBJ geometry parsing: vertices and polygon faces with scaled integer coordinates",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-obj/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "obj.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1778,6 +1863,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.querystring",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "application/x-www-form-urlencoded parsing and serialization with multi-value support",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-querystring/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "querystring.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.rate",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic rate limiters with explicit clocks: token bucket and fixed window",
@@ -1977,6 +2079,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-robotics/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "robotics.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.roman",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Roman numeral parsing, formatting, and canonical validation (1..3999)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-roman/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "roman.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2309,6 +2428,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stemming/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "stemming.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.stl",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "STL mesh structure: binary triangle parsing and ASCII detection (float values kept as raw bits)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stl/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "stl.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2697,6 +2833,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.uri",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "RFC 3986 URI parsing, formatting, and component helpers",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-uri/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "uri.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.useragent",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "User-Agent heuristics: browser, version, OS, bot and mobile detection",
@@ -2743,6 +2896,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-validation/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "validation.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.varint",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "LEB128 unsigned varints and zigzag signed varints with size helpers",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-varint/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "varint.xi",
                                               "package.xi"
                                           ]
                      },

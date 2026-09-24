@@ -191,3 +191,13 @@ xiom.rpc
 xiom.telnet
 xiom.useragent
 xiom.weather
+xiom.base58
+xiom.cidr
+xiom.crc
+xiom.macaddr
+xiom.obj
+xiom.querystring
+xiom.roman
+xiom.stl
+xiom.uri
+xiom.varint
