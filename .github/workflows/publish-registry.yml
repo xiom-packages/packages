@@ -250,7 +250,7 @@ jobs:
             # CI-only edit on the runner checkout; never committed.
             awk -v st="$stage" '
               $0 ~ /^[[:space:]]*stage[[:space:]]*:/ { next }
-              { print; if (!done && $0 ~ /\{/) { print "  stage: \"" st "\";"; done=1 } }
+              { print; if (!done && $0 ~ /^[[:space:]]*package[[:space:]]/) { print "  stage: \"" st "\";"; done=1 } }
             ' "$dir/package.xi" > "$dir/package.xi.tmp" && mv "$dir/package.xi.tmp" "$dir/package.xi"
             echo "stage badge: $stage"
             code="$(curl -s -o /tmp/pkg.json -w '%{http_code}' "$XIOM_REGISTRY/packages/$name" || true)"
