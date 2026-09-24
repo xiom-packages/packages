@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.optimizer",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  24,
+                  "failed":  0,
+                  "run_by":  "agentmgr:ses_f2b23a2f5ffe1CnuQn25bo4KFC",
+                  "commit":  "77abf51",
+                  "checked":  "2026-09-24T20:15:24Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
