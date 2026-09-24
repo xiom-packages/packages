@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.wasm",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  22,
+                  "failed":  0,
+                  "run_by":  "agentmgr:ses_f2af05fb7ffeHJ53C1QktiXvvd",
+                  "commit":  "b2b461e",
+                  "checked":  "2026-09-24T20:29:25Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
