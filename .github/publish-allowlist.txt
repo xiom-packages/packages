@@ -136,3 +136,9 @@ xiom.electronics
 xiom.finance
 xiom.html
 xiom.lexing
+xiom.bmp
+xiom.dotenv
+xiom.l10n.number
+xiom.ngram
+xiom.tsv
+xiom.validation

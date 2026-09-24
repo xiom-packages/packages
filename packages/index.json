@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-24T20:27:31Z",
+    "updated":  "2026-09-24T21:47:25Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -124,6 +124,23 @@
                          "source_files":  [
                                               "linalg.xi",
                                               "blas.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.bmp",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Uncompressed BMP parsing and building (24-bit and 32-bit)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bmp/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "bmp.xi",
                                               "package.xi"
                                           ]
                      },
@@ -333,6 +350,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-directx12/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "directx12.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.dotenv",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "dotenv (.env) parsing and emitting with quoting and comment rules",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dotenv/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "dotenv.xi",
                                               "package.xi"
                                           ]
                      },
@@ -774,6 +808,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.l10n.number",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Locale-style integer and decimal number formatting and parsing (scaled integers)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-number/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "l10n_number.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.lexing",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Configurable tokenizer: identifiers, keywords, integers, strings, operators",
@@ -1015,6 +1066,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-msgpack/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "msgpack.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.ngram",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Word and character n-grams with Jaccard/Dice similarity and MinHash signatures",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ngram/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ngram.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1806,6 +1874,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.tsv",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "IANA-style TSV with backslash escaping: parse and write",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tsv/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "tsv.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.ttl",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Time-to-live cache with lazy and eager expiration and statistics",
@@ -1859,6 +1944,23 @@
                                               "theme.xi",
                                               "types.xi",
                                               "widgets.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.validation",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Format validators: email, IPv4/IPv6, hex, UUID, slug, dates, ports",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-validation/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "validation.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2303,19 +2405,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ble/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-bmp",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bmp/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -3440,19 +3529,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-l10n-number",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-number/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-l10n-phone",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -3954,19 +4030,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nft/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-ngram",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ngram/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -5033,19 +5096,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-transliteration/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-tsv",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tsv/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
