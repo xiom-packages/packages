@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.base58",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  18,
+                  "failed":  0,
+                  "run_by":  "task:ses_f2a5f3e3fffeGTyfSsFwFdlvcN",
+                  "commit":  "57243a0",
+                  "checked":  "2026-09-24T23:05:12Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
