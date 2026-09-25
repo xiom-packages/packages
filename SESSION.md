@@ -3,12 +3,13 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-09-23, by the packages session. The commit that adds this
-file is HEAD; check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-09-25, by the packages session (continuation of the
+2026-09-23 handoff). The commit that adds this file is HEAD; check
+`git log -1 --format=%h %s` before starting.
 
-**Mission:** turn this staging monorepo into real, production-grade package
-repos. Start from small packages that can reach production grade quickly,
-port the legacy code in dependency order, and graduate stable packages to
+**Mission:** turn this monorepo into real, production-grade package repos.
+Start from small packages that can reach production grade quickly, port the
+legacy code in dependency order, and graduate stable packages to
 `xiom-packages/xiom-<name>` with OIDC publishing and enumerated scopes.
 
 ---
@@ -19,278 +20,287 @@ port the legacy code in dependency order, and graduate stable packages to
   (Free org). Remote `https://github.com/xiom-packages/packages.git`.
 - Identity: repo-local `Lefteris Notas <lefterisnotas@gmail.com>`. Org-wide
   decision: gmail is the author identity in every repo; never the work email.
-- Folder inventory (2026-09-23): **366 directories = 71 implemented
-  (with `package.xi`) + 295 README-only placeholders** (no SPEC.md, no
-  manifest). All 295 placeholder names are collision-free with the stdlib
-  namespaces, so they are safe candidates for new packages.
-- Manifests: 71 package manifests + the umbrella `packages/package.xi`
-  (`xiom.ecosystem`) = 72.
-- Package names are dotted (`xiom.core`); folders, repo names and release
-  URLs stay hyphenated. The registry reserves both forms and shows the
-  official badge.
-- Registry: first real package `xiom.hello 0.1.0` is live on staging AND
-  production, signed, with metadata; installed back successfully on both.
-  - staging sha256 `b12f2a8136c5fe7707c45f2d6841998437fc79bd47350ac6a1a716900a8c83de`
-  - production sha256 `2fc7a2aa296abe93dcda09c52787b5c31d9e0b87d6bba338c69c94103ab5d6e8`
-  - publisher key `91db373fae4b2891e8aa2616ea9e2347c7c5752f70aab5d7fcdf2a2f9f9b47f1`,
-    fingerprint `91:db:37:3f:ae:4b:28:91`
-- CI publish path exists but is NOT usable yet: `.github/workflows/publish-registry.yml`
-  needs the compiler GitHub release `v0.61.0` (latest is `v0.60.1`, which
-  predates `xiom pkg`) and a repo-protection decision.
+- Folder inventory (2026-09-25): **185 implemented dirs (with `package.xi`) +
+  216 README-only placeholders + the umbrella `packages/package.xi`**.
+  Since the 2026-09-23 handoff: 118 new packages were implemented (79 by
+  converting placeholders, 39 brand-new dirs); the four deprecated dirs were
+  deleted and `xiom-core` renamed to `xiom-durable`.
+- `STATUS.json` totals: **118 stable, 4 ported, 63 incubating**;
+  **122 green suites, 2,687 recorded tests**.
+  - stable = the 118 greenfield packages (all `publish: false`, waiting on
+    allowlist/registry/protection).
+  - ported = `xiom.sensor`, `xiom.control`, `xiom.json` (pure, promotable) and
+    `xiom.kafka` (librdkafka FFI stubs remain; keep `ported`).
+  - incubating = 63 legacy packages (includes `xiom.durable`, the renamed
+    core, not yet ported).
+- `.github/publish-allowlist.txt`: **170 names** = 118 stable ready + 52
+  grandfathered legacy names (`.github/allowlist-baseline.txt`, warn-only in
+  the guard). `scripts/allowlist-guard.ps1`: 0 failures.
+- Namespace audit **resolved**: `namespace-check` reports
+  **185 packages, 283 modules, 0 conflicts** (2026-09-25).
+- Toolchain: pin `COMPILER_VERSION` = **v0.61.3**; installed compiler
+  v0.61.3 (`C:\Users\lefte\AppData\Local\xiom\bin`); repo release dir has
+  v0.61.1; GitHub releases v0.61.1 + v0.61.3 exist. Stdlib
+  `E:\xiom-lang\stdlib` (1627 module namespaces, still evolving).
+- Signing: `XIOM_SIGNING_KEY` is SET; staging/production artifacts share the
+  first-party key `4f3b47f3ae17b13c...`.
+- Licensing: `LICENSE-MIT`, `LICENSE-APACHE`, `NOTICE` and a pointer
+  `LICENSE` are committed per LICENSING.md §2. SPDX pass repo-wide and the
+  §1 `.md` header block remain .github-session scope.
+- 265 commits landed since the previous handoff (`b2bdde1..`).
 
-### Commit trail (newest first)
+### Commit trail (recent milestones)
 
 | Commit | What |
 |---|---|
-| this | handoff update: namespace audit, deprecations, phased port plan |
-| (previous handoff) | SESSION.md first version |
-| 8f17170 | readiness allowlist + stable signing-key support in the workflow |
-| bbabfa1 | OIDC publish workflow + `COMPILER_VERSION` (v0.61.0) |
-| 2d2513b | registry metadata for all 72 manifests (categories/keywords/license/repository) |
-| 8e7112f | copyright pass: 149 notices -> `Eleftherios Notas and The XIOM Authors` |
-| 7ca0cd3 | xiom.hello xiom.std platform dep; plain `assert` |
-| 0d17b1e | xiom.hello package added |
-| f743308 | dotted package names + `generate_index.ps1` fixes + index regen |
+| this | SESSION.md refresh for the next packages session |
+| e66afc7 | allowlist wave 19 + index/report regeneration |
+| bb7d18b | bounded staging badge-canary override (`allow_unready`) |
+| ad13b07 | allowlist wave 18 + index/report |
+| 7e77457 | publish loop enforces readiness (skip/refuse) |
+| c6690cb / 2080fda | badge `stage` written from STATUS.json into packaged manifests |
+| cfe2b40 | readiness guard workflow + 6 allowlist additions (registry v2 names) |
+| 8946171 / bcabb9c | `status.ps1 -Action repin` + pin bump to v0.61.3 |
+| 54c241f | LICENSE-MIT/LICENSE-APACHE/NOTICE per LICENSING.md §2 |
+| be6d1ec | Phase 0 harness (xiom/status/namespace-check/port) + STATUS seed |
+| b2bdde1 | previous handoff (2026-09-23) |
+
+Per-package commits (`feat: add <pkg>...` + `chore: record <pkg>...`) are in
+`git log`; each package's `STATUS.json` names its `run_by` subagent/session id
+and the tested commit.
 
 ---
 
-## 2. Key paths
+## 2. Key paths and harness
 
 | Path | What |
 |---|---|
-| `packages/<name>/package.xi` | manifest (name, version, description, authors, modules, deps, categories, keywords, license, repository) |
-| `packages/<name>/STATUS.json` | **to be created** (readiness file; see §5) |
-| `packages/index.json` | generated legacy fallback index; run `.\generate_index.ps1` after manifest changes |
-| `generate_index.ps1` | legacy generator: manifest name (folder fallback + warning), `deps:` parsing, folder-keyed release URLs |
-| `.github/workflows/publish-registry.yml` | OIDC batch/canary publish (dispatch + `eco-v*` tags) |
-| `.github/publish-allowlist.txt` | current publish gate, **52 names** (see §4) |
-| `COMPILER_VERSION` | `v0.61.0` (workflow toolchain pin) |
+| `scripts/xiom.ps1` | toolchain resolver (`XIOM_COMPILER` -> installed >= pin -> repo release), sets `XIOM_STDLIB`; dot-sourceable |
+| `scripts/port.ps1 -Package <name>` | namespace gate + compile + run conformance suite; `-Quiet` for scripted runs; `-NoRun` = `--emit-ir` compile-only; never writes STATUS |
+| `scripts/status.ps1` | `-Action list` / `validate` / `seed` / `repin` / `report` / `update`; `update` records runs and enforces the readiness gates |
+| `scripts/namespace-check.ps1` | the §3 rule; `-Package` for implemented names, `-Module` for proposed names |
+| `scripts/allowlist-guard.ps1` | CI guard: allowlist entries must be `stable`+green; baseline names warn-only |
+| `scripts/port.ps1` + `status.ps1` + `docs/PACKAGE_STATUS.md` | `status.ps1 -Action report` regenerates the doc |
+| `generate_index.ps1` | legacy index generator; run after manifest changes |
+| `.github/workflows/publish-registry.yml` | OIDC publish: `eco-v*` batch, `xiom-<folder>/v<version>` single package, dispatch canary |
+| `.github/workflows/readiness-guard.yml` | CI guard on allowlist/STATUS/report changes |
+| `docs/repro/generic-fnptr/` | committed compiler repros (fn-value ABI sprint evidence) |
 | `ecosystem/` | historical reports -- do NOT edit |
 | `.kilo/worktrees/second-sprout` | stale clean worktree at `7ca0cd3`; can be pruned |
 
-Toolchain on this machine:
+Standard commands (repo root):
 
-- Installed `xiom` is **v0.58.0** (`C:\Users\lefte\AppData\Local\xiom\bin`) --
-  stale, has no `xiom pkg`. Upgrade is a Phase 0 task.
-- Working v0.61.0 binaries: `E:\xiom-lang\xiom\target\release\xiom.exe` and
-  `xiom-pkg.exe` (also a newer debug build).
-- Current stdlib: `E:\xiom-lang\stdlib` (`XIOM_STDLIB`); its manifest still
-  declares the legacy `xiom-std`, the compiler resolves both names.
-- Signing key: `C:\Users\lefte\AppData\Local\xiom\keys\default.key`
-  (fingerprint `91:db:37:3f:ae:4b:28:91`).
-- Run tests: `$env:XIOM_STDLIB='E:\xiom-lang\stdlib'; xiom --run tests\<suite>.xi`
-  (run from the package dir; `a.exe` is a compiler output and gitignored).
-
----
-
-## 3. Readiness classification (2026-09-21)
-
-Criterion: README marks the package implemented, non-test source has functions
-with bodies (not declaration-only), no stub markers dominating, and no
-wholesale "FFI bridge not linked" error paths.
-
-- **62 REAL** of 71 non-umbrella manifests; 57 were publishable.
-- Excluded: 7 declaration-only (`xiom.bullet`, `xiom.libsodium`, `xiom.libuv`,
-  `xiom.openal`, `xiom.ros2`, `xiom.stb`, `xiom.wasmtime`), `xiom.sql` (stub
-  body), `xiom.ffi` (no source in this repo; stdlib owns the module), 5
-  FFI-not-linked (`xiom.redis`, `xiom.postgres`, `xiom.libtorch`, `xiom.numpy`,
-  `xiom.sqlite`), plus policy exclusions `xiom.std` + `xiom.ecosystem`.
-- "REAL" does NOT mean ported: the code targets the old stdlib (e.g.
-  `xiom.log` fails with T001 API drift). Porting is the workstream.
-
----
-
-## 4. Namespace audit (2026-09-23) -- new policy
-
-**Rule: a package may not declare modules equal to, or nested under, a stdlib
-module namespace.** stdlib has 1614 modules; a package living inside one of
-them makes `use xiom.<x>;` ambiguous (the compiler picks one silently; W001
-warnings already show this for duplicate module files).
-
-Five packages are affected:
-
-| Package | Evidence | Decision (proposed) |
-|---|---|---|
-| `xiom-math` | package modules `xiom.math.{prelude,vec2,vec3,vec4,mat4,quat}`; stdlib has `xiom.math.vectors`, `xiom.math.matrices` and `xiom.geom.{vector,matrix,quat,quaternion}` | **Deprecate** -- duplicate of stdlib math/geom |
-| `xiom-log` | package modules `xiom.log.{logger,format,types}`; stdlib has `xiom.log.{color,json,levels,sinks}` | **Deprecate** -- stdlib owns logging |
-| `xiom-net` | package modules `xiom.net.{dns,tcp,udp}` are exact duplicates; stdlib has 30 `xiom.net.*` modules | **Deprecate** -- stdlib owns networking |
-| `xiom-test` | package declares `module xiom.test`; stdlib has `xiom.test`, `.assert`, `.harness` (all suites use it) | **Deprecate** -- stdlib owns the test framework |
-| `xiom-core` | package is durable-storage/WAL/txn for db engines under `xiom.core.*`; stdlib owns `xiom.core` (error/ids/limits/contracts) | **Rename** to `xiom.durable` (package + modules) before porting; folder `packages/xiom-core` -> `packages/xiom-durable` in the same commit |
-
-Consequences already applied:
-
-- `.github/publish-allowlist.txt` is now **52 names** (the 5 above removed).
-- Registry scope enumeration must be updated (relay to the registry session):
-  71 -> 66 names (drop `xiom.math`, `xiom.log`, `xiom.net`, `xiom.test`,
-  `xiom.core`), plus `xiom.durable` if/when it is published.
-- The umbrella `packages/package.xi` `packages:` list still contains the five
-  names; clean it up together with the deprecation banners once the owner
-  confirms.
-- Deprecation handling for the four: add a `Deprecated` banner to each README,
-  set `STATUS.json` `stage: "deprecated"`, `excluded_reason: "superseded by
-  stdlib"`, keep the folder for history, never publish.
-
-Pending owner confirmation: the four deprecations and the `xiom.durable`
-rename. The allowlist change is a safety gate and is already in.
-
----
-
-## 5. Readiness model to adopt (Phase 0)
-
-Per-package `STATUS.json` inside the folder (travels with the repo split):
-
-```json
-{
-  "package": "xiom.durable",
-  "stage": "incubating",            // incubating | ported | stable | deprecated
-  "compiler": "v0.61.0",
-  "stdlib": ">=0.60.0 <1.0.0",
-  "tests": {
-    "suite": "tests/test_conformance.xi",
-    "status": "unknown",            // unknown | pass | fail
-    "passed": null, "failed": null,
-    "run_by": null,                 // subagent id/session that ran it
-    "commit": null, "checked": null
-  },
-  "publish": false,
-  "excluded_reason": null
-}
+```powershell
+& .\scripts\xiom.ps1 -Info
+& .\scripts\port.ps1 -Package xiom.lru            # verify one package
+& .\scripts\status.ps1 -Action validate           # 185/0 expected
+& .\scripts\allowlist-guard.ps1                   # 170 allowlisted, 0 failures
+& .\scripts\namespace-check.ps1                   # 0 conflicts expected
+& .\generate_index.ps1 ; & .\scripts\status.ps1 -Action report
 ```
 
-Rules:
-
-- `publish: true` requires `stage: stable`; `stable` requires a green suite on
-  the pinned compiler.
-- **The subagent that works on a package must run its conformance suite and
-  record `run_by`, `commit`, `checked`, and the pass/fail counts.** No stage
-  advance without a green run from the working agent. At graduation a second
-  agent re-runs the suite from a fresh checkout.
-- The workflow derives the publish gate from these files once every package
-  has one (keep the allowlist in sync until then).
-- Keep readiness out of `package.xi`; the registry manifest stays clean.
+Publish gate recap: only allowlisted + `STATUS.json` `stage: stable` with
+`tests.status: pass` publishes (batches skip unready with a warning; explicit
+tag/dispatch targets on unready names are refused). The one exception is the
+bounded staging badge canary (`workflow_dispatch` + `allow_unready=true` +
+explicit `package` + staging registry; tags and batches can never use it).
 
 ---
 
-## 6. Roadmap (updated 2026-09-23)
+## 3. Namespace audit -- RESOLVED (history)
 
-1. **Phase 0 -- toolchain + harness + triage.**
-   - Upgrade the local compiler to the pinned v0.61.0 (installed v0.58 is
-     stale; use the repo release meanwhile).
-   - Add `scripts/xiom.ps1` (resolve `XIOM_COMPILER` -> installed pin -> repo
-     release; set `XIOM_STDLIB`), `scripts/status.ps1` (validate/list/update
-     STATUS.json), `scripts/namespace-check.ps1` (the §4 rule),
-     `scripts/port.ps1 -Package <name>` (compile + conformance suite, print
-     diagnostics, never flip stage/publish itself).
-   - Seed `STATUS.json`: 52 allowlisted -> `incubating`; the 4 deprecations ->
-     `deprecated`; `xiom-core` -> blocked pending rename; placeholders
-     untouched.
-2. **Phase 1 -- small greenfield packages first** (no legacy debt, fast
-   production grade). Pick 4-6 from the collision-free placeholders, e.g.
-   `xiom.lru`, `xiom.ttl`, `xiom.flags`, `xiom.option`, `xiom.retry`,
-   `xiom.plural`. Each gets a SPEC (placeholders only have READMEs), source,
-   tests, `STATUS.json`, then a staging publish + install-back. These are also
-   the first graduation candidates. Note: every new name needs a registry
-   scope addition (relay via owner) before OIDC publish.
-3. **Phase 2 -- foundations port:** `xiom.durable` (renamed core) first, then
-   `xiom.algo`, `xiom.json`, and the small pure-XIOM set.
-4. **Phase 3 -- network/web port:** http, websocket, rest, graphql, realtime,
-   micro (`net` is deprecated).
-5. **Phase 4 -- data/ai port:** arrow, pandas, protobuf, kafka, onnx,
-   tensorflow, torch, opencv; numpy/sqlite when linked.
-6. **Phase 5 -- bridges + graphics/db:** freeze the FFI ABI with the
-   compiler/stdlib sessions, build ONE reference bridge (`xiom.zstd`) plus a
-   bridge CI template, then batch the rest (incl. the 5 FFI-not-linked).
-7. **Phase 6 -- graduation cohorts:** `ops/docs/REPO_MIGRATION_RUNBOOK.md`
-   §5.6 filter-repo per package into `xiom-packages/xiom-<name>` (history
-   preserved); §6 wiring (README, LICENSE-MIT/LICENSE-APACHE/NOTICE per
-   LICENSING.md §2, `.kilo/` + `kilo.json`, CI, rulesets, per-package OIDC).
+**Rule (still enforced): a package may not declare modules equal to, or
+nested under, a stdlib module namespace** (a shared first two dotted
+segments is a collision; sharing only `xiom` is not).
 
-**Publish vs promote (answer):** yes, a folder publishes without becoming a
-repo -- the workflow packs `packages/<folder>` and publishes it. Promotion is
-orthogonal. Recommended order: port -> green suite -> `STATUS: stable` ->
-staging publish + install-back -> production publish (registry scope already
-enumerated) -> make the folder repo-ready -> graduate via §5.6 -> switch that
-package's publishing to its own repo workflow. Graduate a package when its
-API is stable and it has consumers or an independent release cadence, not
-merely because it is green.
+Resolution executed 2026-09-23/24 under owner confirmation:
 
-**Port definition of done:** dotted manifest + metadata, compiles on the
-pinned compiler + current stdlib, conformance tests pass (run by the working
-subagent), no `not linked` paths, honest README/SPEC, `STATUS.json` stable +
-publish, one staging publish installed back.
+- `xiom.math`, `xiom.log`, `xiom.net`, `xiom.test`: deprecated and **deleted**
+  (folders removed; not in the allowlist).
+- `xiom.core` -> **`xiom.durable`**: folder, package ident, all 21 module
+  namespaces, docs, umbrella list; `STATUS.json` notes "port to current
+  stdlib pending". Registry scope pre-provisioned.
+
+`namespace-check` now reports 0 conflicts. New names must pass
+`namespace-check.ps1 -Module <name>` before a package is added (the wave
+prompts all did).
 
 ---
 
-## 7. Agent / MCP plan
+## 4. Readiness model (implemented)
 
-- Use the compiler's own MCP (`xiom-mcp`, specced in `xiom/docs/MCP_SERVER.md`;
-  MVP tools `compile_and_analyze`, `explain_error`, `audit_safety`) instead of
-  shell-parsing diagnostics. Coordinate with the compiler session to ship the
-  3-tool MVP.
-- Add a small read-only registry MCP later (search/package info/verify).
-  Publishing stays in the OIDC workflow; agents never publish.
-- Per-package agents in `.kilo/agent/`: `porter`, `tester`, `docs`; one
-  worktree per package; copy `.kilo/` + `kilo.json` into each graduated repo.
-- Agents must use the pinned local compiler via `scripts/xiom.ps1`; never
-  build the compiler from source unless the pin is unavailable.
+Per-package `STATUS.json` (see §5 example in the previous handoff) with
+`stage` in `incubating | ported | stable | deprecated`, `tests.status` in
+`unknown | pass | fail`, `publish`, `excluded_reason`. Enforced rules:
+`publish: true` requires `stable`; `stable` requires a recorded green run
+(`run_by` + `commit` + `checked` + counts). The working agent runs the suite;
+the coordinator records it. `status.ps1 -Action repin` realigns `compiler`
+after a pin change; `-Action report` regenerates `docs/PACKAGE_STATUS.md`,
+which is the human-facing status list (green-light checklist included).
+
+Pin change note: all recorded runs above were made on installed v0.61.3,
+which is also the current pin, so records are consistent.
 
 ---
 
-## 8. Open decisions (owner)
+## 5. Publishing / registry state (2026-09-25)
 
-1. **Confirm the four deprecations** (`xiom.math`, `xiom.log`, `xiom.net`,
-   `xiom.test`) and the `xiom.core` -> `xiom.durable` rename (or move that
-   package to the foundation db/vector repos).
-2. **Registry scope update:** 71 -> 66 names + `xiom.durable` later.
-3. **Repo protection:** private + Free org => no environment reviewers and no
-   tag rulesets. Make the repo public (registry session's recommendation) so
-   `registry-publish` gets required reviewers, or accept no GitHub-side gate.
-   The registry production OIDC entry stays disabled until settled.
-4. **Stable first-party signing key:** set the `XIOM_SIGNING_KEY` secret
-   (64 hex) so the batch shares one publisher fingerprint. Proposal: reuse the
-   key that signed `xiom.hello` (`91:db:37:3f:ae:4b:28:91`):
-   `gh secret set XIOM_SIGNING_KEY --repo xiom-packages/packages < "C:\Users\lefte\AppData\Local\xiom\keys\default.key"`
-5. **Compiler v0.61.0 GitHub release:** required for the canary and the batch
-   (`xiom-0.61.0-linux-x64.tar.gz` with `bin/xiom` + `bin/xiom-pkg`).
-6. **`eco-v0.1.0` tag:** only after the compiler release, a green Phase 1
-   cohort, and the protection decision. `xiom.ecosystem` stays excluded.
-7. **License follow-ups (separate pass):** only 3/341 `.xi` files carry the
-   dual SPDX identifier; no `LICENSE-MIT`/`LICENSE-APACHE`/`NOTICE` in the
-   monorepo (LICENSING.md §2); 71 manifests still use `authors: ["XIOM Team"]`;
-   no `.md` files carry the §1 header block.
+- **Staging is live through scope delta v5** (`eco-canary`, 151 scopes +
+  3 OIDC publisher entries). v4 covered waves 10-15; v5 covered waves 16-17.
+- **Canary coverage**: all 78 previously scoped stable names were canaried
+  43+35) and verified; the wave 16/17 sample (`xiom.tar`, `xiom.id3`,
+  `xiom.jwt`) plus the **incubating badge canary `xiom.algo`** were dispatched
+  and verified on staging (runs `36074481232`, `36074526832`, `36074580156`,
+  `36074625612`). `xiom.algo`'s staging record carries
+  `"stage": "incubating"` at package and version level -- badge path works.
+- **Scope deltas pending** (relay to the registry/ops):
+  - wave 18 (10 names): `base58, cidr, crc, macaddr, obj, querystring,
+    roman, stl, uri, varint` -> planned v6 delta (151 -> 161).
+  - wave 19 (10 names): `ascii85, bitfield, cobs, eml, nmea, pack, pcap,
+    punycode, term, tlv` -> the delta after v6.
+  - 40 names total pending enumeration before their canaries can run.
+- **Environment**: `registry-publish` requires reviewer `Lefteris-Notas`
+  (owner); the packages session approves *staging* canary deployments via the
+  API as part of dispatching them; production approvals remain owner-side.
+- **Production**: owner-account runs already succeeded for the `eco-v0.1.0`
+  batch and the `xiom-flags/v0.1.0` per-package tag. Production is gated by
+  the owner behind the staging canary + the `eco-v0.1.1` batch (one tag, one
+  approval) with the combined delta. Nothing in this repo publishes to
+  production by itself.
+- Ops note: OIDC canaries are unrelated to browser sign-in; the **OAuth
+  callback URL check remains a separate outstanding owner item** (do not fold
+  it into publish relays).
+
+---
+
+## 6. Roadmap status
+
+1. **Phase 0 -- toolchain + harness + triage: DONE.** Scripts above, STATUS
+   seeded for every implemented package, pin v0.61.3, licenses, badge/guard
+   pipeline, bounded badge canary.
+2. **Phase 1 -- small greenfield packages: DONE and expanded.** 118 packages
+   built, conformance-tested, `stable`, allowlisted (waves 1-19). All pass
+   the namespace rule; each has SPEC/README/tests and a STATUS record.
+3. **Phase 2 -- foundations port: NEXT.** `xiom.durable` (renamed; not yet
+   ported) first, then the pure legacy set (`xiom.algo` etc.). 63 incubating
+   package remain; the legacy compile triage is in the previous handoff's
+   triage report and `ecosystem/`. The pure head starts are `xiom.algo` and
+   the `graphql`/`micro`/`realtime` dependency chain; the mechanical
+   `expected ';'` cluster and the T007/FFI clusters need compiler-side
+   decisions first.
+4. **Phases 3-5 (network/data/bridges): pending**; FFI ABI freeze with the
+   compiler/stdlib sessions is the gate for the bridge batch.
+5. **Phase 6 graduation:** publish first from the monorepo, promote later
+   (filter-repo per §5.6 of the ops runbook, hooks, CI, per-repo OIDC) when a
+   package's API is stable and it has consumers/cadence.
+
+Port definition of done: dotted manifest + metadata; compiles on the pinned
+compiler + current stdlib; conformance suite green (run by the working
+agent); no not-linked paths; honest README/SPEC; `STATUS.json` stable +
+publish; one staging publish installed back.
+
+---
+
+## 7. Porter conventions and compiler traps (v0.61.3)
+
+Proven per-package recipe (see `docs/repro/generic-fnptr/`): spawn one
+background `task` subagent per package (general agent) with a self-contained
+brief: read `packages/xiom-hello` + a sibling of the same kind, deliver
+`package.xi`, `src/<x>.xi` (module `xiom.<x>`), `tests/test_conformance.xi`,
+`README.md`, `SPEC.md`, `.gitignore` (copy of xiom-hello's); iterate with
+`scripts/port.ps1 -Package <name>` until `port: PASS (program_exit=0)`.
+Subagents must not commit, must not touch STATUS.json, must not publish.
+The coordinator then: verify (re-run), commit, run on the commit, record with
+`status.ps1 -Action update ... -RunBy <task id> -Commit <sha>`, commit the
+record, allowlist the wave, regenerate index + report, push. Optional
+**Agent Manager local sessions** (visible in the UI) work the same way and
+have succeeded repeatedly; keep waves at ~10 packages.
+
+Language traps that must be in every porter brief:
+
+1. BUG-17 family: never `==` on Str values read from `Vec[Str]` elements, and
+   `str_len`/`.len()` is unreliable on them -- use `str_compare` from
+   `xiom.string.compare` and typed locals `let e: Str = v[i];`.
+2. Untyped `Vec[Int]` element reads can mis-lower to Str compares; always
+   `let x: Int = v[i];`.
+3. Never compare `byte_at(...)` directly to a UInt8 constant >= 128; widen
+   `(x as Int) & 0xFF`.
+4. Passing `&struct.field` (e.g. `&result.value`) into a `&Vec[UInt8]`
+   parameter yields an empty vector; bind to a local first.
+5. Indexed `Vec[fn]` calls miscompile (access violation): no table-driven
+   test dispatch; call tests directly or via `run_test_at(index)`.
+6. Do not construct `Ok`/`Err` inside struct-returning functions; use leaf
+   helper constructors.
+7. Generic fn-pointer limits: single-`T` generics with named callbacks are
+   fine; `[T,U]` type-changing callbacks miscompile/crash -- use concrete
+   specializations.
+8. No `mut` bindings in match patterns; matches must be exhaustive; `module`
+   headers take no `;`, `use` statements require one.
+9. No `Vec[Float64]` (scalar `Float64` is fine); prefer integer/fixed-point
+   units and document rounding.
+10. Free functions only; no `self` methods, no inline lambdas, no
+    `Vec[StructType]` (parallel `Vec` fields instead). Avoid a free function
+    named `log` (collides with libm). E001 borrow warnings are advisory.
+11. Every `.xi` starts with the copyright + SPDX lines.
+
+---
+
+## 8. Open decisions (owner) / outstanding items
+
+1. **Scope deltas** for wave 18 (v6, 151 -> 161) and wave 19 (next delta);
+   40 names total pending before those canaries.
+2. **`eco-v0.1.1` production greenlight** (one tag, one approval) for the
+   combined stable set; production is otherwise owner-gated.
+3. **Repo protection closure**: the required-reviewer environment is live;
+   confirm this satisfies the §8.3 decision.
+4. **OAuth callback URL check** (owner): both GitHub OAuth app callback URLs,
+   outstanding from the earlier relay; kept separate from publish relays.
+5. **Wave 20+ queue**: 216 placeholders remain; strong small candidates are
+   more format/protocol codecs (e.g. `ical`, `vcf`, `gbnf`, `dns`, `can`,
+   `modbus`, `bitpack`-adjacent names as they pass namespace-check).
+6. **Repo-wide SPDX/`.md` header pass** and the 71 legacy manifests still
+   using `authors: ["XIOM Team"]` -- .github-session scope.
+7. **`xiom.durable` port** (Phase 2 opener) and the pure legacy frontier.
+8. Note: the local Kilo build rejects new `.kilo/agent`/command frontmatter
+   (`No context found for instance`); persistent agent definitions were
+   removed to keep config clean. Use `task` subagents / Agent Manager local
+   sessions instead.
 
 ---
 
 ## 9. Guardrails (do not violate)
 
-- Never publish from a session manually; publish only through the workflow,
-  only allowlisted names, only with a green suite run by the working subagent.
-  Versions are immutable forever.
-- Namespace rule (§4): no package module may equal or live under a stdlib
-  module namespace; run `scripts/namespace-check.ps1` before adding a package.
-- Do not rename folders or package directories except the explicitly planned
-  `xiom-core` -> `xiom-durable` rename (one atomic commit).
-- Do not touch `deps:`/`dev-deps:` except to fix dotted names.
+- Never publish manually; publish only through the workflow, only allowlisted
+  names, only with a recorded green run. Versions are immutable forever.
+- Namespace rule: run `namespace-check.ps1 -Module` before adding a name.
+- The readiness filter stays: batches skip unready names, explicit targets
+  are refused; the only override is the staging badge canary described in §2.
+- Do not rename folders except the already-done `xiom-core` ->
+  `xiom-durable`; do not touch `deps:`/`dev-deps:` except dotted-name fixes.
 - No history rewrites, no force pushes. Conventional commits, atomic,
   commit + push to `main`.
-- No tokens in chat, repo, or commit messages. Token files live in
-  `%TEMP%\kilo\` and are never committed. Publishing uses OIDC in CI.
-- Leave `ecosystem/` historical reports and AUDIT/SESSION docs alone.
+- No tokens in chat, repo, or commit messages; publishing uses OIDC in CI.
+- Leave `ecosystem/` historical reports alone. (SESSION.md is the live
+  handoff and is updated by the packages session.)
 - PowerShell gotcha: `"$name: text"` parses as a drive-qualified variable;
   write `"${name}: text"`.
 
+---
+
 ## 10. Coordination contracts
 
-- **Registry session:** scope list 71 names accepted earlier; it must be
-  updated per §4 (66 + `xiom.durable`). New package names (Phase 1
-  greenfield) each need a scope addition before OIDC publish. `xiom.std`
-  stays with the stdlib repo; batch from `eco-v*`; trusted tokens require
-  signatures; the registry extracts
-  description/categories/keywords/license/repository from the published
-  tarball; the new server deploys before the canary.
-- **Compiler session:** fixed in `1fcb4855` (unqualified `assert`,
-  `xiom.std` platform dep, `keygen --help`, rebuilt release). Needs to cut the
-  v0.61.0 GitHub release and ship the `xiom-mcp` MVP.
-- **.github session:** licensing pass complete here (canonical holder
-  `Copyright (c) 2026 Eleftherios Notas and The XIOM Authors`); SPDX pass and
-  org protection/rulesets are their scope.
+- **Registry/ops session:** scope deltas per §8.1; staging eco-canary counts
+  (`publishers: 3`, per-label scopes); production file gated behind the
+  staging canary + `eco-v0.1.1`. Publisher identity is
+  `xiom-packages/packages`, workflow `publish-registry.yml`,
+  `refs/heads/main`, event `workflow_dispatch` (staging canaries) or tag
+  pushes (production).
+- **Compiler session:** accepted the three fn-value/ABI repros
+  (`docs/repro/generic-fnptr/`) into their unification sprint; new findings
+  from this session to relay: `&struct.field` -> `&Vec[UInt8]` empty-vector
+  misbehavior, `str_len` on `Vec[Str]` elements, and the `Vec[fn]` dispatch
+  miscompile (all with per-package SPEC notes).
+- **.github session:** licensing pass done here (LICENSE-MIT/APACHE/NOTICE,
+  canonical holder); SPDX/`.md` header pass and rulesets remain theirs.
+- **Owner:** relays, scope deltas, production greenlight, OAuth callback
+  check, Phase 2 direction.
