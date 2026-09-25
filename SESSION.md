@@ -4,7 +4,7 @@
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
 **Written:** 2026-09-25, by the packages session (continuation of the
-2026-09-23 handoff; refreshed after wave 25). Check
+2026-09-23 handoff; refreshed after wave 26). Check
 `git log -1 --format=%h %s` before starting.
 
 **Mission:** turn this monorepo into real, production-grade package repos.
@@ -20,10 +20,10 @@ legacy code in dependency order, and graduate stable packages to
   (Free org). Remote `https://github.com/xiom-packages/packages.git`.
 - Identity: repo-local `Lefteris Notas <lefterisnotas@gmail.com>`. Org-wide
   decision: gmail is the author identity in every repo; never the work email.
-- Folder inventory (2026-09-25, after wave 25): **245 implemented dirs (with
+- Folder inventory (2026-09-25, after wave 26): **255 implemented dirs (with
   `package.xi`) + 210 README-only placeholders + the umbrella
-  `packages/package.xi`**. Since the 2026-09-23 handoff: 178 new packages were
-  implemented (85 by converting placeholders, 93 brand-new dirs); the four
+  `packages/package.xi`**. Since the 2026-09-23 handoff: 188 new packages were
+  implemented (85 by converting placeholders, 103 brand-new dirs); the four
   deprecated dirs were deleted and `xiom-core` renamed to `xiom-durable`.
   Wave 20 added 10 (conversions `dhcp`, `ntp`, `socks`, `irc`, `mqtt`; new
   `ical`, `vcf`, `dns`, `modbus`, `can`). Wave 21 added 10 (conversion `ble`;
@@ -35,20 +35,22 @@ legacy code in dependency order, and graduate stable packages to
   `ulid`, `pcx`, `cue`, `pbm`, `gcode`, `lrc`, `ris`, `iban`, `fnv`), all
   balanced across the ecosystem categories. Wave 25 added 10 more all-new
   dirs (`plist`, `geohash`, `murmur3`, `tap`, `xbm`, `pam`, `srt`, `pls`,
-  `ean`, `junit`).
-- `STATUS.json` totals: **178 stable, 4 ported, 63 incubating**;
-  **182 green suites, 3,982 recorded tests**.
-  - stable = the 178 greenfield packages (all `publish: false`, waiting on
+  `ean`, `junit`). Wave 26 added 10 more all-new dirs (`smtlib`,
+  `safetensors`, `dbase`, `systemd`, `gemtext`, `radix`, `luhn`, `fletcher`,
+  `farbfeld`, `hostfile`), all balanced across the ecosystem categories.
+- `STATUS.json` totals: **188 stable, 4 ported, 63 incubating**;
+  **192 green suites, 4,196 recorded tests**.
+  - stable = the 188 greenfield packages (all `publish: false`, waiting on
     allowlist/registry/protection).
   - ported = `xiom.sensor`, `xiom.control`, `xiom.json` (pure, promotable) and
     `xiom.kafka` (librdkafka FFI stubs remain; keep `ported`).
   - incubating = 63 legacy packages (includes `xiom.durable`, the renamed
     core, not yet ported).
-- `.github/publish-allowlist.txt`: **230 names** = 178 stable ready + 52
+- `.github/publish-allowlist.txt`: **240 names** = 188 stable ready + 52
   grandfathered legacy names (`.github/allowlist-baseline.txt`, warn-only in
   the guard). `scripts/allowlist-guard.ps1`: 0 failures.
 - Namespace audit **resolved**: `namespace-check` reports
-  **245 packages, 343 modules, 0 conflicts** (2026-09-25, after wave 25).
+  **255 packages, 353 modules, 0 conflicts** (2026-09-25, after wave 26).
 - Toolchain: pin `COMPILER_VERSION` = **v0.61.3**; installed compiler
   v0.61.3 (`C:\Users\lefte\AppData\Local\xiom\bin`); repo release dir has
   v0.61.1; GitHub releases v0.61.1 + v0.61.3 exist. Stdlib
@@ -58,17 +60,17 @@ legacy code in dependency order, and graduate stable packages to
 - Licensing: `LICENSE-MIT`, `LICENSE-APACHE`, `NOTICE` and a pointer
   `LICENSE` are committed per LICENSING.md §2. SPDX pass repo-wide and the
   §1 `.md` header block remain .github-session scope.
-- 398 commits landed since the previous handoff (`b2bdde1..`).
+- 421 commits landed since the previous handoff (`b2bdde1..`).
 
 ### Commit trail (recent milestones)
 
 | Commit | What |
 |---|---|
-| this | SESSION.md refresh after wave 25 |
+| this | SESSION.md refresh after wave 26 |
+| 3c3f89e | allowlist wave 26 + index/report regeneration |
+| da9f129..cdc57fd | wave 26 per-package `feat:`/`chore:` pairs (10 packages) |
 | bf91797 | allowlist wave 25 + index/report regeneration |
-| 5bc7685..dcd481f | wave 25 per-package `feat:`/`chore:` pairs (10 packages) |
-| 09a1058 | allowlist wave 24 + index/report regeneration |
-| 6310dba | `docs/repro/struct-field-vec/` probes for compiler relay #2 |
+| b37295b | trap-4 closure status recorded (staged, not installed); bracket audit clean |
 | c3bb8d4 | allowlist wave 21 + index/report regeneration |
 | 7e76af7 | allowlist wave 20 + index/report regeneration |
 | e66afc7 | allowlist wave 19 + index/report regeneration |
@@ -110,8 +112,8 @@ Standard commands (repo root):
 ```powershell
 & .\scripts\xiom.ps1 -Info
 & .\scripts\port.ps1 -Package xiom.lru            # verify one package
-& .\scripts\status.ps1 -Action validate           # 245/0 expected
-& .\scripts\allowlist-guard.ps1                   # 230 allowlisted, 0 failures
+& .\scripts\status.ps1 -Action validate           # 255/0 expected
+& .\scripts\allowlist-guard.ps1                   # 240 allowlisted, 0 failures
 & .\scripts\namespace-check.ps1                   # 0 conflicts expected
 & .\generate_index.ps1 ; & .\scripts\status.ps1 -Action report
 ```
@@ -189,7 +191,10 @@ which is also the current pin, so records are consistent.
     ulid` -> the delta after wave 23 (green 2026-09-25; not yet scoped).
   - wave 25 (10 names): `ean, geohash, junit, murmur3, pam, plist, pls, srt,
     tap, xbm` -> the delta after wave 24 (green 2026-09-25; not yet scoped).
-  - 80 names total pending enumeration before their canaries can run.
+  - wave 26 (10 names): `smtlib, safetensors, dbase, systemd, gemtext, radix,
+    luhn, fletcher, farbfeld, hostfile` -> the delta after wave 25 (green
+    2026-09-25; not yet scoped).
+  - 90 names total pending enumeration before their canaries can run.
 - **Environment**: `registry-publish` requires reviewer `Lefteris-Notas`
   (owner); the packages session approves *staging* canary deployments via the
   API as part of dispatching them; production approvals remain owner-side.
@@ -209,8 +214,8 @@ which is also the current pin, so records are consistent.
 1. **Phase 0 -- toolchain + harness + triage: DONE.** Scripts above, STATUS
    seeded for every implemented package, pin v0.61.3, licenses, badge/guard
    pipeline, bounded badge canary.
-2. **Phase 1 -- small greenfield packages: DONE and expanded.** 178 packages
-   built, conformance-tested, `stable`, allowlisted (waves 1-25). All pass
+2. **Phase 1 -- small greenfield packages: DONE and expanded.** 188 packages
+   built, conformance-tested, `stable`, allowlisted (waves 1-26). All pass
    the namespace rule; each has SPEC/README/tests and a STATUS record.
 3. **Phase 2 -- foundations port: NEXT.** `xiom.durable` (renamed; not yet
    ported) first, then the pure legacy set (`xiom.algo` etc.). 63 incubating
@@ -257,7 +262,11 @@ Language traps that must be in every porter brief:
 3. Never compare `byte_at(...)` directly to a UInt8 constant >= 128; widen
    `(x as Int) & 0xFF`.
 4. Passing `&struct.field` (e.g. `&result.value`) into a `&Vec[UInt8]`
-   parameter yields an empty vector; bind to a local first.
+   parameter yields an empty vector on the installed compiler; bind to a local
+   first. The compiler session reports this fixed in the **next** build; it is
+   NOT yet installed (re-verified 2026-09-25, wave 26: probe B still returns
+   `result payload: 0`, exit 10, on `0.61.3` / pin `v0.61.3`). Keep the local
+   binding until the pin bump, then re-run `docs/repro/struct-field-vec/`.
 5. Indexed `Vec[fn]` calls miscompile (access violation): no table-driven
    test dispatch; call tests directly or via `run_test_at(index)`.
 6. Do not construct `Ok`/`Err` inside struct-returning functions; use leaf
@@ -282,10 +291,12 @@ Language traps that must be in every porter brief:
     sign-extends to -17; write `(C as Int) & 0xFF` for constants (wave 21
     `xiom.syslog` BOM handling).
 14. The compiler is lax about arity and punctuation: a call with fewer args
-    than declared compiles (missing args default to 0) and `-> Vec<UInt8]`
-    (mismatched bracket) compiles too (wave 22 `xiom.ar`, where the arity
-    laxness silently defeated a test). Verify argument counts and types
-    explicitly; do not rely on the compiler to reject them.
+    than declared compiles (missing args default to 0) and mixed brackets
+    (`-> Vec<UInt8]`) compile too -- including in **parameter and local**
+    type positions, not just returns (wave 22 `xiom.ar`; wave 26
+    `xiom.fletcher` found 6 such sites in its own tests). Verify argument
+    counts and types explicitly; after a green run, grep signatures for
+    `Vec<`/`Result<`; do not rely on the compiler to reject them.
 15. Never build a `Str` via `xiom.string.builder.sb_to_str` from bytes that
     may contain `0x00`: its length contract aborts at run time (wave 23
     `xiom.aiff` validates chunk ids/types/names as printable ASCII before
@@ -306,18 +317,17 @@ Language traps that must be in every porter brief:
 
 ## 8. Open decisions (owner) / outstanding items
 
-1. **Scope deltas** for wave 18 (v6, 151 -> 161) and waves 19-25 (the deltas
-   after v6); 80 names total pending before those canaries.
+1. **Scope deltas** for wave 18 (v6, 151 -> 161) and waves 19-26 (the deltas
+   after v6); 90 names total pending before those canaries.
 2. **`eco-v0.1.1` production greenlight** (one tag, one approval) for the
    combined stable set; production is otherwise owner-gated.
 3. **Repo protection closure**: the required-reviewer environment is live;
    confirm this satisfies the §8.3 decision.
 4. **OAuth callback URL check** (owner): both GitHub OAuth app callback URLs,
    outstanding from the earlier relay; kept separate from publish relays.
-5. **Wave 26+ queue**: 210 placeholders remain; strong small candidates are
-   more format/protocol codecs (`gemtext`, `radix`, `luhn`, `fletcher`,
-   `dbase`, `xpm`, `aiff`-siblings, and other names that pass
-   namespace-check). Owner
+5. **Wave 27+ queue**: 210 placeholders remain; strong small candidates are
+   more format/protocol codecs (`xpm`, `edl`, `snbt`, `marc`, `gpx`-siblings,
+   `adler32`, and other names that pass namespace-check). Owner
    relayed the ecosystem page's
    canonical categories (Data and storage; Networking and web; AI and machine
    learning; Scientific computing; Graphics and games; Systems and tooling;
@@ -399,7 +409,13 @@ Language traps that must be in every porter brief:
   stdlib-owned, incl. the `io/fs.xi` block); `xiom.cell` is not in this repo;
   the only receiver-style declaration here, `SqliteValue.is_null(val:)`, is
   called statically with exact arity (`xiom-sqlite`, so not the offset bug).
-  Working patterns (not bugs):
+  Wave 26 relay #4/#5: compiler confirmed **packages #3 = 0 mixed-bracket
+  sites, ready for the strict flip**; trap 6 refinement recorded; trap 4
+  closure claimed for the next build but **still reproduces on the installed
+  0.61.3** (see trap 4 / `docs/repro/struct-field-vec/`). New porting note
+  from the wave-26 board: mixed brackets silently compile in parameter and
+  local type positions too (`xiom.fletcher` fixed 6 in its own tests); the
+  whole repo re-scanned clean afterwards. Working patterns (not bugs):
   module-scope `pub const` resolves unqualified in importers; nested plain
   structs and `Vec[Vec[UInt8]]` struct fields compile and mutate; `--run`
   leaves a gitignored `a.exe` in the package dir.
