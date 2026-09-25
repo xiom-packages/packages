@@ -221,3 +221,13 @@ xiom.ntp
 xiom.socks
 xiom.mqtt
 xiom.can
+xiom.gbnf
+xiom.fits
+xiom.stun
+xiom.bencode
+xiom.ply
+xiom.dimacs
+xiom.syslog
+xiom.ble
+xiom.tga
+xiom.cpio

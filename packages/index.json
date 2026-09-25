@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-25T03:23:30Z",
+    "updated":  "2026-09-25T03:48:10Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -162,6 +162,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.bencode",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Strict pure-XIOM bencode codec with flat token storage and canonical encoding",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bencode/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "bencode.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.bitfield",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Bit manipulation helpers for 64-bit Ints: extract/set fields, masks, popcount, byte swap, rotate",
@@ -192,6 +209,23 @@
                          "source_files":  [
                                               "linalg.xi",
                                               "blas.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.ble",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Bluetooth Low Energy advertising-data codec with AD structure validation",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ble/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ble.xi",
                                               "package.xi"
                                           ]
                      },
@@ -406,6 +440,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.cpio",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Cpio archive header codec: parse and build newc and odc entries",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cpio/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cpio.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.crc",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Parameterized CRC-8/16/32 with named presets and known-answer vectors",
@@ -486,6 +537,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-diff/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "diff.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.dimacs",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "DIMACS CNF parsing and canonical emission with strict validation",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dimacs/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "dimacs.xi",
                                               "package.xi"
                                           ]
                      },
@@ -749,6 +817,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.fits",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "FITS header codec: 80-character cards, 2880-byte blocks, validated values",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fits/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "fits.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.fixed",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Fixed-width text table parsing and writing by column widths",
@@ -812,6 +897,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gazebo/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "gazebo.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.gbnf",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "GBNF (llama.cpp grammar) parser, validator and canonical emitter",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gbnf/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "gbnf.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1946,6 +2048,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.ply",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "PLY polygon file format (ASCII): header and body parsing, scalar text values and canonical re-emission",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ply/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ply.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.portaudio",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "PortAudio -- cross-platform audio I/O.",
@@ -2739,6 +2858,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.stun",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "RFC 5389 STUN message codec: header, attributes and address XOR",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stun/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "stun.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.subtitle",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "SRT and WebVTT subtitle parsing, formatting, and shifting",
@@ -2785,6 +2921,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-svg/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "svg.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.syslog",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "RFC 5424 syslog codec: PRI, header fields, structured data and MSG round-trip",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-syslog/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "syslog.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2887,6 +3040,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tftp/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "tftp.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.tga",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Truevision TGA header and footer codec (documented subset)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tga/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "tga.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3722,19 +3892,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bitcoin/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-ble",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ble/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
