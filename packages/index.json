@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-26T01:43:07Z",
+    "updated":  "2026-09-26T02:12:27Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -157,6 +157,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-astronomy/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "astronomy.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.au",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Sun/NeXT AU (.snd) audio header codec: big-endian header, info field, audio span",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-au/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "au.xi",
                                               "package.xi"
                                           ]
                      },
@@ -695,6 +712,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.dds",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "DirectDraw Surface (DDS) header codec (documented subset)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dds/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "dds.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.dhcp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "DHCPv4 packet codec: BOOTP fixed header, magic cookie and options TLV",
@@ -846,6 +880,23 @@
                                               "wal_reader.xi",
                                               "wal_record.xi",
                                               "wal_writer.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.duration",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Strict ISO 8601 duration parsing and canonical formatting",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-duration/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "duration.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1407,6 +1458,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.hcl",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM structural HCL2 subset parser with a canonical emitter",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hcl/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "hcl.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.hello",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Minimal XIOM package -- the canonical first-publish example",
@@ -1755,6 +1823,23 @@
                                               "consumer.xi",
                                               "producer.xi",
                                               "types.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.ktx",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "KTX 1 texture-container header, key/value and mipmap-level codec (structural subset)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ktx/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ktx.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2312,6 +2397,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.nii",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM NIfTI-1 header codec: 348-byte parse, validation and builder",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nii/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "nii.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.nmea",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "NMEA 0183 sentence parsing: checksum, fields, coordinates, and GGA/RMC accessors",
@@ -2550,6 +2652,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-option/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "option.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.osrelease",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "systemd os-release (/etc/os-release) parsing and canonical emitting",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-osrelease/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "osrelease.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3495,6 +3614,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.sbv",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "YouTube SBV subtitle parsing, canonical formatting, and accessors",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sbv/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "sbv.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.scheduler",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Cron expression parsing and next-run computation (UTC)",
@@ -4031,6 +4167,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.tcx",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Garmin TCX subset codec: parse and canonical build for activities, laps and trackpoints",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tcx/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "tcx.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.telnet",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Telnet negotiation codec: IAC verbs, subnegotiation, and 0xFF data escaping",
@@ -4368,6 +4521,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-typography/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "typography.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.tzif",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "TZif time zone file codec for RFC 8536 versions 1/2/3 with a version 1 builder",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tzif/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "tzif.xi",
                                               "package.xi"
                                           ]
                      },

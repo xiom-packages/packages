@@ -301,3 +301,13 @@ xiom.ldif
 xiom.spf
 xiom.bech32
 xiom.mbox
+xiom.nii
+xiom.hcl
+xiom.dds
+xiom.tzif
+xiom.au
+xiom.sbv
+xiom.ktx
+xiom.osrelease
+xiom.duration
+xiom.tcx
