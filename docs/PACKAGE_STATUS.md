@@ -4,14 +4,14 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.61.3` -- generated 2026-09-25T22:01:35Z.
+Toolchain pin: `v0.61.3` -- generated 2026-09-25T22:29:39Z.
 
 ## Summary
 
-- packages tracked: 264
+- packages tracked: 265
 - incubating: 63
 - ported: 4
-- stable: 197
+- stable: 198
 - publish enabled: 0
 
 ## Publish green-light checklist (per package)
@@ -86,6 +86,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.gemtext | xiom-gemtext | stable | tests/test_conformance.xi | pass 23/23 | da9f129 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.geo | xiom-geo | stable | tests/test_conformance.xi | pass 21/21 | 4dbb1e0 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.geohash | xiom-geohash | stable | tests/test_conformance.xi | pass 20/20 | 566cc78 | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.gguf | xiom-gguf | stable | tests/test_conformance.xi | pass 24/24 | 674b728 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.gpx | xiom-gpx | stable | tests/test_conformance.xi | pass 29/29 | 139b6c4 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.hl7 | xiom-hl7 | stable | tests/test_conformance.xi | pass 23/23 | b11579c | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.hostfile | xiom-hostfile | stable | tests/test_conformance.xi | pass 24/24 | a96f52b | False | publish pending: registry scope addition + repo protection decision + allowlist |

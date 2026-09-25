@@ -290,3 +290,4 @@ xiom.fstab
 xiom.marc
 xiom.fix
 xiom.xpm
+xiom.gguf

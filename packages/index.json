@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-26T01:01:33Z",
+    "updated":  "2026-09-26T01:29:36Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -1271,6 +1271,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-geohash/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "geohash.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.gguf",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "GGUF container header codec: metadata KV, tensor infos, alignment and builder",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gguf/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "gguf.xi",
                                               "package.xi"
                                           ]
                      },

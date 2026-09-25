@@ -29,8 +29,16 @@ other package; no git/STATUS/publish instructions were violated (nothing was
 created to violate them with).
 
 **Escalated:** wave-27 report to the owner/orchestrator; board INFO to `main`.
-**Status:** STOPPED per circuit breaker. Suggested options for the next session
-(owner decision): (a) coordinator implements `xiom.gguf` directly, (b) split the
-scope into `xiom.gguf` header/KV + tensor-info indexing as two smaller packages,
-(c) retry a delegate after the compiler pin bump when the subagent runtime is
-restarted. Namespace is reserved and stays unallocated until then.
+**Status:** STOPPED per circuit breaker; owner chose option (a).
+
+**RESOLVED (2026-09-25, same session):** the packages-session coordinator
+implemented `xiom.gguf` directly (option a). Two compile iterations (a
+`Result[Int, Str]` vs `Result[Str, Str]` leaf-helper mismatch in two
+branches) and one test-fixture fix (append a payload before parsing the
+round-trip buffer; emit an implicit `general.alignment` KV when the builder
+pads to a non-default alignment). Result:
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)`; integrated as
+`674b728` (package) + `631030c` (STATUS record). Lesson recorded for the
+next wave: the delegate aborts were environmental, not scope-driven --
+direct implementation by the coordinator is a working fallback after the
+circuit breaker.
