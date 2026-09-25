@@ -211,3 +211,13 @@ xiom.pcap
 xiom.punycode
 xiom.term
 xiom.tlv
+xiom.ical
+xiom.vcf
+xiom.irc
+xiom.modbus
+xiom.dns
+xiom.dhcp
+xiom.ntp
+xiom.socks
+xiom.mqtt
+xiom.can
