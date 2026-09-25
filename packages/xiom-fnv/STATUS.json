@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.fnv",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  19,
+                  "failed":  0,
+                  "run_by":  "ses_f26ec962fffep67WgwhHHLSNW8",
+                  "commit":  "7c8eead",
+                  "checked":  "2026-09-25T15:08:08Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
