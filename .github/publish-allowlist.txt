@@ -241,3 +241,13 @@ xiom.vdf
 xiom.cron
 xiom.pgn
 xiom.vtt
+xiom.cbor
+xiom.bloom
+xiom.wkt
+xiom.ico
+xiom.base32
+xiom.quotedprintable
+xiom.aiff
+xiom.m3u
+xiom.sgf
+xiom.ntriples

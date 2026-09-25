@@ -1,8 +1,25 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-25T15:36:21Z",
+    "updated":  "2026-09-25T16:02:31Z",
     "packages":  [
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.aiff",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "AIFF/AIFF-C container header codec: FORM/COMM/SSND chunks, 80-bit sample rate, chunk index",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-aiff/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "aiff.xi",
+                                              "package.xi"
+                                          ]
+                     },
                      {
                          "version":  "0.1.0",
                          "name":  "xiom.alerting",
@@ -162,6 +179,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.base32",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "RFC 4648 Base32 (standard alphabet) encoding and decoding",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-base32/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "base32.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.base58",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Base58 (Bitcoin alphabet) encoding and decoding with leading-zero handling",
@@ -265,6 +299,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.bloom",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Bloom filter over a flat byte buffer: double hashing, integer false-positive estimate, strict serialization",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bloom/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "bloom.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.bmp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Uncompressed BMP parsing and building (24-bit and 32-bit)",
@@ -347,6 +398,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-can/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "can.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.cbor",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Strict pure-XIOM CBOR subset codec with flat token storage and canonical emit",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cbor/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cbor.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1194,6 +1262,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.ico",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "ICO/CUR icon container codec: directory parse, payload slices, canonical builder",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ico/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ico.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.id3",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "ID3v2 tag inspection: version, size, and text frames (TIT2/TPE1/TALB/...)",
@@ -1467,6 +1552,23 @@
                          "source_files":  [
                                               "lzfse_safe.xi",
                                               "lzfse.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.m3u",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "M3U/M3U8 playlist parsing and canonical emitting",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-m3u/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "m3u.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1763,6 +1865,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ntp/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "ntp.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.ntriples",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "RDF N-Triples codec: parse, access and canonical emit",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ntriples/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ntriples.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2407,6 +2526,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.quotedprintable",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "RFC 2045 quoted-printable codec for bytes and text",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-quotedprintable/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "quotedprintable.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.rate",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic rate limiters with explicit clocks: token bucket and fixed window",
@@ -2814,6 +2950,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sentiment/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "sentiment.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.sgf",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Smart Game Format codec: game tree collections, nodes, properties and canonical emit",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sgf/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "sgf.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3723,6 +3876,23 @@
                          "source_files":  [
                                               "package.xi",
                                               "websocket.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.wkt",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Well-Known Text (WKT) geometry codec for a documented subset",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-wkt/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "wkt.xi",
+                                              "package.xi"
                                           ]
                      },
                      {
