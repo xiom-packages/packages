@@ -4,7 +4,7 @@
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
 **Written:** 2026-09-25, by the packages session (continuation of the
-2026-09-23 handoff). The commit that adds this file is HEAD; check
+2026-09-23 handoff; refreshed after wave 20). Check
 `git log -1 --format=%h %s` before starting.
 
 **Mission:** turn this monorepo into real, production-grade package repos.
@@ -20,24 +20,26 @@ legacy code in dependency order, and graduate stable packages to
   (Free org). Remote `https://github.com/xiom-packages/packages.git`.
 - Identity: repo-local `Lefteris Notas <lefterisnotas@gmail.com>`. Org-wide
   decision: gmail is the author identity in every repo; never the work email.
-- Folder inventory (2026-09-25): **185 implemented dirs (with `package.xi`) +
-  216 README-only placeholders + the umbrella `packages/package.xi`**.
-  Since the 2026-09-23 handoff: 118 new packages were implemented (79 by
-  converting placeholders, 39 brand-new dirs); the four deprecated dirs were
-  deleted and `xiom-core` renamed to `xiom-durable`.
-- `STATUS.json` totals: **118 stable, 4 ported, 63 incubating**;
-  **122 green suites, 2,687 recorded tests**.
-  - stable = the 118 greenfield packages (all `publish: false`, waiting on
+- Folder inventory (2026-09-25, after wave 20): **195 implemented dirs (with
+  `package.xi`) + 211 README-only placeholders + the umbrella
+  `packages/package.xi`**. Since the 2026-09-23 handoff: 128 new packages were
+  implemented (84 by converting placeholders, 44 brand-new dirs); the four
+  deprecated dirs were deleted and `xiom-core` renamed to `xiom-durable`.
+  Wave 20 alone added 10: placeholder conversions `dhcp`, `ntp`, `socks`,
+  `irc`, `mqtt` and new dirs `ical`, `vcf`, `dns`, `modbus`, `can`.
+- `STATUS.json` totals: **128 stable, 4 ported, 63 incubating**;
+  **132 green suites, 2,899 recorded tests**.
+  - stable = the 128 greenfield packages (all `publish: false`, waiting on
     allowlist/registry/protection).
   - ported = `xiom.sensor`, `xiom.control`, `xiom.json` (pure, promotable) and
     `xiom.kafka` (librdkafka FFI stubs remain; keep `ported`).
   - incubating = 63 legacy packages (includes `xiom.durable`, the renamed
     core, not yet ported).
-- `.github/publish-allowlist.txt`: **170 names** = 118 stable ready + 52
+- `.github/publish-allowlist.txt`: **180 names** = 128 stable ready + 52
   grandfathered legacy names (`.github/allowlist-baseline.txt`, warn-only in
   the guard). `scripts/allowlist-guard.ps1`: 0 failures.
 - Namespace audit **resolved**: `namespace-check` reports
-  **185 packages, 283 modules, 0 conflicts** (2026-09-25).
+  **195 packages, 293 modules, 0 conflicts** (2026-09-25, after wave 20).
 - Toolchain: pin `COMPILER_VERSION` = **v0.61.3**; installed compiler
   v0.61.3 (`C:\Users\lefte\AppData\Local\xiom\bin`); repo release dir has
   v0.61.1; GitHub releases v0.61.1 + v0.61.3 exist. Stdlib
@@ -47,13 +49,15 @@ legacy code in dependency order, and graduate stable packages to
 - Licensing: `LICENSE-MIT`, `LICENSE-APACHE`, `NOTICE` and a pointer
   `LICENSE` are committed per LICENSING.md §2. SPDX pass repo-wide and the
   §1 `.md` header block remain .github-session scope.
-- 265 commits landed since the previous handoff (`b2bdde1..`).
+- 287 commits landed since the previous handoff (`b2bdde1..`).
 
 ### Commit trail (recent milestones)
 
 | Commit | What |
 |---|---|
-| this | SESSION.md refresh for the next packages session |
+| this | SESSION.md refresh after wave 20 |
+| 7e76af7 | allowlist wave 20 + index/report regeneration |
+| 2c1376e..58b306d | wave 20 per-package `feat:`/`chore:` pairs (10 packages) |
 | e66afc7 | allowlist wave 19 + index/report regeneration |
 | bb7d18b | bounded staging badge-canary override (`allow_unready`) |
 | ad13b07 | allowlist wave 18 + index/report |
@@ -93,8 +97,8 @@ Standard commands (repo root):
 ```powershell
 & .\scripts\xiom.ps1 -Info
 & .\scripts\port.ps1 -Package xiom.lru            # verify one package
-& .\scripts\status.ps1 -Action validate           # 185/0 expected
-& .\scripts\allowlist-guard.ps1                   # 170 allowlisted, 0 failures
+& .\scripts\status.ps1 -Action validate           # 195/0 expected
+& .\scripts\allowlist-guard.ps1                   # 180 allowlisted, 0 failures
 & .\scripts\namespace-check.ps1                   # 0 conflicts expected
 & .\generate_index.ps1 ; & .\scripts\status.ps1 -Action report
 ```
@@ -158,7 +162,10 @@ which is also the current pin, so records are consistent.
     roman, stl, uri, varint` -> planned v6 delta (151 -> 161).
   - wave 19 (10 names): `ascii85, bitfield, cobs, eml, nmea, pack, pcap,
     punycode, term, tlv` -> the delta after v6.
-  - 40 names total pending enumeration before their canaries can run.
+  - wave 20 (10 names): `can, dhcp, dns, ical, irc, modbus, mqtt, ntp, socks,
+    vcf` -> the delta after wave 19 (dispatched/green 2026-09-25; not yet
+    scoped, so no canary can be dispatched).
+  - 30 names total pending enumeration before their canaries can run.
 - **Environment**: `registry-publish` requires reviewer `Lefteris-Notas`
   (owner); the packages session approves *staging* canary deployments via the
   API as part of dispatching them; production approvals remain owner-side.
@@ -178,8 +185,8 @@ which is also the current pin, so records are consistent.
 1. **Phase 0 -- toolchain + harness + triage: DONE.** Scripts above, STATUS
    seeded for every implemented package, pin v0.61.3, licenses, badge/guard
    pipeline, bounded badge canary.
-2. **Phase 1 -- small greenfield packages: DONE and expanded.** 118 packages
-   built, conformance-tested, `stable`, allowlisted (waves 1-19). All pass
+2. **Phase 1 -- small greenfield packages: DONE and expanded.** 128 packages
+   built, conformance-tested, `stable`, allowlisted (waves 1-20). All pass
    the namespace rule; each has SPEC/README/tests and a STATUS record.
 3. **Phase 2 -- foundations port: NEXT.** `xiom.durable` (renamed; not yet
    ported) first, then the pure legacy set (`xiom.algo` etc.). 63 incubating
@@ -247,17 +254,22 @@ Language traps that must be in every porter brief:
 
 ## 8. Open decisions (owner) / outstanding items
 
-1. **Scope deltas** for wave 18 (v6, 151 -> 161) and wave 19 (next delta);
-   40 names total pending before those canaries.
+1. **Scope deltas** for wave 18 (v6, 151 -> 161), wave 19 and wave 20 (the
+   deltas after v6); 30 names total pending before those canaries.
 2. **`eco-v0.1.1` production greenlight** (one tag, one approval) for the
    combined stable set; production is otherwise owner-gated.
 3. **Repo protection closure**: the required-reviewer environment is live;
    confirm this satisfies the §8.3 decision.
 4. **OAuth callback URL check** (owner): both GitHub OAuth app callback URLs,
    outstanding from the earlier relay; kept separate from publish relays.
-5. **Wave 20+ queue**: 216 placeholders remain; strong small candidates are
-   more format/protocol codecs (e.g. `ical`, `vcf`, `gbnf`, `dns`, `can`,
-   `modbus`, `bitpack`-adjacent names as they pass namespace-check).
+5. **Wave 21+ queue**: 211 placeholders remain; strong small candidates are
+   more format/protocol codecs (`gbnf`, `netstring`, `syslog`, `stun`, and
+   other names that pass namespace-check). Owner relayed the ecosystem page's
+   canonical categories (Data and storage; Networking and web; AI and machine
+   learning; Scientific computing; Graphics and games; Systems and tooling;
+   Interoperability and bridges; Verification and analysis) -- use them to
+   balance wave selection. Manifest `categories:` tokens still mix `network`
+   vs `networking` etc.; harmonizing them is an owner decision.
 6. **Repo-wide SPDX/`.md` header pass** and the 71 legacy manifests still
    using `authors: ["XIOM Team"]` -- .github-session scope.
 7. **`xiom.durable` port** (Phase 2 opener) and the pure legacy frontier.
@@ -296,10 +308,15 @@ Language traps that must be in every porter brief:
   `refs/heads/main`, event `workflow_dispatch` (staging canaries) or tag
   pushes (production).
 - **Compiler session:** accepted the three fn-value/ABI repros
-  (`docs/repro/generic-fnptr/`) into their unification sprint; new findings
-  from this session to relay: `&struct.field` -> `&Vec[UInt8]` empty-vector
-  misbehavior, `str_len` on `Vec[Str]` elements, and the `Vec[fn]` dispatch
-  miscompile (all with per-package SPEC notes).
+  (`docs/repro/generic-fnptr/`) into their unification sprint; findings to
+  relay: `&struct.field` -> `&Vec[UInt8]` empty-vector misbehavior, `str_len`
+  on `Vec[Str]` elements, the `Vec[fn]` dispatch miscompile, bitwise AND on
+  bit-31 operands (wave 20 `xiom.can` used descending subtraction instead),
+  and the ABI NUL-termination of `Str` that makes DNS wire labels containing
+  `0x00` unrepresentable (wave 20 `xiom.dns` rejects them). Wave 20 working
+  patterns (not bugs): module-scope `pub const` resolves unqualified in
+  importers; nested plain structs and `Vec[Vec[UInt8]]` struct fields compile
+  and mutate; `--run` leaves a gitignored `a.exe` in the package dir.
 - **.github session:** licensing pass done here (LICENSE-MIT/APACHE/NOTICE,
   canonical holder); SPDX/`.md` header pass and rulesets remain theirs.
 - **Owner:** relays, scope deltas, production greenlight, OAuth callback
