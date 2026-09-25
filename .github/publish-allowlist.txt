@@ -231,3 +231,13 @@ xiom.syslog
 xiom.ble
 xiom.tga
 xiom.cpio
+xiom.nbt
+xiom.hl7
+xiom.gpx
+xiom.bibtex
+xiom.netstring
+xiom.ar
+xiom.vdf
+xiom.cron
+xiom.pgn
+xiom.vtt
