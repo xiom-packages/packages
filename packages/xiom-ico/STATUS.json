@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.ico",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  16,
+                  "failed":  0,
+                  "run_by":  "ses_f276798c9ffeK0QJ7rYIc5zXTm",
+                  "commit":  "ca4f9dc",
+                  "checked":  "2026-09-25T13:01:07Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
