@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-25T16:02:31Z",
+    "updated":  "2026-09-25T18:14:53Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -627,6 +627,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.cue",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "CUE sheet parsing and canonical emitting",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cue/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cue.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.dhcp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "DHCPv4 packet codec: BOOTP fixed header, magic cookie and options TLV",
@@ -987,6 +1004,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.fnv",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "FNV-1 and FNV-1a non-cryptographic hash functions in 32-bit and 64-bit widths",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fnv/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "fnv.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.fuzz",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic byte and string mutation for fuzzing",
@@ -1033,6 +1067,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gbnf/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "gbnf.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.gcode",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "G-code parsing and canonical emission for a documented line subset",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gcode/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "gcode.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1245,6 +1296,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.iban",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "IBAN parsing, validation, formatting and MOD-97 check-digit computation",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-iban/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "iban.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.ical",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "RFC 5545-subset iCalendar codec: folding, content lines, TEXT escaping, component trees",
@@ -1342,6 +1410,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-irc/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "irc.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.iso8583",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "ISO 8583 ASCII message codec for a documented field subset",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-iso8583/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "iso8583.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1517,6 +1602,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-libuv/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "libuv.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.lrc",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "LRC synced-lyrics parsing, canonical emitting and offset accessors",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lrc/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "lrc.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2216,6 +2318,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.pbm",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Netpbm PBM (P1 ASCII / P4 binary) parsing and building for 1-bit rasters",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pbm/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "pbm.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.pcap",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Classic PCAP capture file structure: magic/endianness, global header, and packet records",
@@ -2228,6 +2347,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pcap/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "pcap.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.pcx",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "PCX header, palette-trailer and pixel-span codec (documented subset)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pcx/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "pcx.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2725,6 +2861,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-retry/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "retry.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.ris",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "RIS bibliography parser and canonical emitter",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ris/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ris.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3610,6 +3763,23 @@
                                               "theme.xi",
                                               "types.xi",
                                               "widgets.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.ulid",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "ULID codec: Crockford base32 encode/decode with caller-supplied timestamp and randomness",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ulid/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ulid.xi",
                                               "package.xi"
                                           ]
                      },

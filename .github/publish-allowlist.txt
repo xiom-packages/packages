@@ -251,3 +251,13 @@ xiom.aiff
 xiom.m3u
 xiom.sgf
 xiom.ntriples
+xiom.iso8583
+xiom.ulid
+xiom.pcx
+xiom.cue
+xiom.pbm
+xiom.gcode
+xiom.lrc
+xiom.ris
+xiom.iban
+xiom.fnv
