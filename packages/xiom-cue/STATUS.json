@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.cue",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  22,
+                  "failed":  0,
+                  "run_by":  "ses_f26ed0ee8ffebI1BTjoC4lcNwp",
+                  "commit":  "87e14d3",
+                  "checked":  "2026-09-25T15:13:06Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
