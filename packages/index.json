@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-26T01:29:36Z",
+    "updated":  "2026-09-26T01:43:07Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -225,6 +225,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-base58/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "base58.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.bech32",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Bech32 and Bech32m checksummed base32 encoding and decoding (BIP-173, BIP-350)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bech32/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "bech32.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1225,6 +1242,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.gedcom",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "GEDCOM 5.5.1 line codec: line grammar, nesting, pointers, CONT/CONC joining, canonical emission",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gedcom/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "gedcom.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.gemtext",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Gemtext line codec: parser and canonical emitter",
@@ -1760,6 +1794,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.ldif",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "LDIF (RFC 2849) content-entry parsing and canonical emitting",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ldif/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ldif.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.lexing",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Configurable tokenizer: identifiers, keywords, integers, strings, operators",
@@ -1948,6 +1999,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.maidenhead",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Integer-only Maidenhead grid locator codec over integer-microdegree coordinates",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-maidenhead/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "maidenhead.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.marc",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "MARC21 ISO 2709 record codec: parse and build library records",
@@ -1977,6 +2045,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-markdown/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "markdown.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.mbox",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "mbox mailbox codec: From-line separation, mboxrd quoting, byte-range bodies, canonical emit",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mbox/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "mbox.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2675,6 +2760,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.pem",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "PEM armor codec: BEGIN/END blocks, RFC 1421 headers, strict base64",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pem/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "pem.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.pgn",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "PGN chess notation codec: tag pairs, movetext tokens, canonical emit",
@@ -3325,6 +3427,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.rtf",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM RTF subset codec: token stream parser, canonical emitter, plain-text extraction",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rtf/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "rtf.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.safetensors",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM safetensors container codec: header parse, validation and builder",
@@ -3354,6 +3473,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sanitize/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "sanitize.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.sarif",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM SARIF 2.1.0 report codec for a documented JSON subset",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sarif/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "sarif.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3630,6 +3766,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-spell/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "spell.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.spf",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "SPF record parser (RFC 7208 syntax subset) with flat term storage and canonical emitter",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-spf/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "spf.xi",
                                               "package.xi"
                                           ]
                      },
@@ -4623,6 +4776,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zeromq/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "zeromq.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.zonefile",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "DNS zone-file (master file) codec subset: $ORIGIN/$TTL, relative names, flat records and a canonical emitter",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zonefile/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "zonefile.xi",
                                               "package.xi"
                                           ]
                      },

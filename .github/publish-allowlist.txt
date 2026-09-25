@@ -291,3 +291,13 @@ xiom.marc
 xiom.fix
 xiom.xpm
 xiom.gguf
+xiom.sarif
+xiom.zonefile
+xiom.gedcom
+xiom.pem
+xiom.maidenhead
+xiom.rtf
+xiom.ldif
+xiom.spf
+xiom.bech32
+xiom.mbox
