@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.tcx",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  23,
+                  "failed":  0,
+                  "run_by":  "ses_f2539de68ffevErZmFlVgZsSMo",
+                  "commit":  "0f885a5",
+                  "checked":  "2026-09-25T23:02:05Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
