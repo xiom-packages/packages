@@ -3,6 +3,13 @@
 
 # Struct-field / Result-payload `Vec` reference probes (v0.61.3)
 
+> **Status (2026-09-25, wave 26):** the compiler session reports trap 4
+> (Probe B) **fixed in the next build**; the fix is not yet installed here.
+> Re-run on the current install — `xiom 0.61.3 (installed)`, pin `v0.61.3` —
+> still reproduces exactly: `result payload: 0`, `bound local: 3`, exit 10.
+> Re-verify Probe B after the pin bump; only then treat the local-binding
+> workaround as optional. Traps 16/17 are recorded as informational.
+
 Requested by the compiler session (Relay #2): the exact probe for "`&struct.field`
 into a `&Vec[UInt8]` parameter reads an empty vector", with field type and
 ownership context. Three probes isolate the shape.
