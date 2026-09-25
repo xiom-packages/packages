@@ -261,3 +261,13 @@ xiom.lrc
 xiom.ris
 xiom.iban
 xiom.fnv
+xiom.plist
+xiom.geohash
+xiom.murmur3
+xiom.tap
+xiom.xbm
+xiom.pam
+xiom.srt
+xiom.pls
+xiom.ean
+xiom.junit

@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-25T18:14:53Z",
+    "updated":  "2026-09-25T19:00:00Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -818,6 +818,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.ean",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "EAN-13, EAN-8 and UPC-A validation with check-digit computation and structure access",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ean/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ean.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.eigen",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Eigen bindings -- header-only C++ template library for linear algebra",
@@ -1101,6 +1118,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-geo/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "geo.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.geohash",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Integer-only geohash codec over integer-microdegree coordinates",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-geohash/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "geohash.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1463,6 +1497,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-json/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "json.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.junit",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM JUnit XML report codec for a documented subset (parse, access, emit)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-junit/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "junit.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1887,6 +1938,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.murmur3",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "MurmurHash3 x86_32 non-cryptographic hash with seed, streaming state and hex output",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-murmur3/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "murmur3.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.nbt",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Minecraft NBT (Named Binary Tag) encoding and decoding for the XIOM ecosystem",
@@ -2250,6 +2318,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.pam",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Netpbm PAM (P7) header parsing, raster spans and building for flat tuple images",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pam/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "pam.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.pandas",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pandas Arrow-backed DataFrame and Series operations with zero Python overhead",
@@ -2417,6 +2502,40 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-physics/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "physics.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.plist",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Apple XML property-list codec for a documented subset",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-plist/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "plist.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.pls",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "PLS playlist parsing and canonical emitting",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pls/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "pls.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3249,6 +3368,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.srt",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "SubRip (SRT) subtitle parsing, canonical formatting, and accessors",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-srt/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "srt.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.stb",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "stb_image loading bindings for XIOM",
@@ -3380,6 +3516,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-syslog/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "syslog.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.tap",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Test Anything Protocol (TAP) parser and canonical emitter",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tap/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "tap.xi",
                                               "package.xi"
                                           ]
                      },
@@ -4062,6 +4215,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-wkt/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "wkt.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.xbm",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "X BitMap (XBM) X11 C-source 1-bit raster parsing and canonical building",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-xbm/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "xbm.xi",
                                               "package.xi"
                                           ]
                      },
