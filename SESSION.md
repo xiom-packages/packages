@@ -4,7 +4,7 @@
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
 **Written:** 2026-09-25, by the packages session (continuation of the
-2026-09-23 handoff; refreshed after wave 27). Check
+2026-09-23 handoff; refreshed after wave 28). Check
 `git log -1 --format=%h %s` before starting.
 
 **Mission:** turn this monorepo into real, production-grade package repos.
@@ -20,13 +20,13 @@ legacy code in dependency order, and graduate stable packages to
   (Free org). Remote `https://github.com/xiom-packages/packages.git`.
 - Identity: repo-local `Lefteris Notas <lefterisnotas@gmail.com>`. Org-wide
   decision: gmail is the author identity in every repo; never the work email.
-- Folder inventory (2026-09-25, after wave 27): **264 implemented dirs (with
+- Folder inventory (2026-09-25, after wave 28): **275 implemented dirs (with
   `package.xi`) + 210 README-only placeholders + the umbrella
-  `packages/package.xi`**. Since the 2026-09-23 handoff: 197 new packages were
-  implemented (85 by converting placeholders, 112 brand-new dirs); the four
+  `packages/package.xi`**. Since the 2026-09-23 handoff: 208 new packages were
+  implemented (85 by converting placeholders, 123 brand-new dirs); the four
   deprecated dirs were deleted and `xiom-core` renamed to `xiom-durable`.
-  Wave 27 shipped 9 of a planned 10: `gguf` hit the circuit breaker (see
-  `docs/failed_attempts.md`) and is reserved, not lost.
+  Wave 27's `gguf` circuit-breaker was resolved the same session by direct
+  coordinator implementation (`docs/failed_attempts.md`, 10/10 shipped).
   Wave 20 added 10 (conversions `dhcp`, `ntp`, `socks`, `irc`, `mqtt`; new
   `ical`, `vcf`, `dns`, `modbus`, `can`). Wave 21 added 10 (conversion `ble`;
   new `gbnf`, `fits`, `stun`, `bencode`, `ply`, `dimacs`, `syslog`, `tga`,
@@ -40,21 +40,23 @@ legacy code in dependency order, and graduate stable packages to
   `ean`, `junit`). Wave 26 added 10 more all-new dirs (`smtlib`,
   `safetensors`, `dbase`, `systemd`, `gemtext`, `radix`, `luhn`, `fletcher`,
   `farbfeld`, `hostfile`), all balanced across the ecosystem categories.
-  Wave 27 added 9 all-new dirs (`adler32`, `lcov`, `snbt`, `robots`, `edl`,
-  `fstab`, `marc`, `fix`, `xpm`).
-- `STATUS.json` totals: **197 stable, 4 ported, 63 incubating**;
-  **201 green suites, 4,393 recorded tests**.
-  - stable = the 197 greenfield packages (all `publish: false`, waiting on
+  Wave 27 added 10 all-new dirs (`adler32`, `lcov`, `snbt`, `robots`, `edl`,
+  `fstab`, `marc`, `fix`, `xpm`, `gguf`). Wave 28 added 10 more all-new dirs
+  (`sarif`, `zonefile`, `gedcom`, `pem`, `maidenhead`, `rtf`, `ldif`, `spf`,
+  `bech32`, `mbox`).
+- `STATUS.json` totals: **208 stable, 4 ported, 63 incubating**;
+  **212 green suites, 4,636 recorded tests**.
+  - stable = the 208 greenfield packages (all `publish: false`, waiting on
     allowlist/registry/protection).
   - ported = `xiom.sensor`, `xiom.control`, `xiom.json` (pure, promotable) and
     `xiom.kafka` (librdkafka FFI stubs remain; keep `ported`).
   - incubating = 63 legacy packages (includes `xiom.durable`, the renamed
     core, not yet ported).
-- `.github/publish-allowlist.txt`: **249 names** = 197 stable ready + 52
+- `.github/publish-allowlist.txt`: **260 names** = 208 stable ready + 52
   grandfathered legacy names (`.github/allowlist-baseline.txt`, warn-only in
   the guard). `scripts/allowlist-guard.ps1`: 0 failures.
 - Namespace audit **resolved**: `namespace-check` reports
-  **264 packages, 362 modules, 0 conflicts** (2026-09-25, after wave 27).
+  **275 packages, 373 modules, 0 conflicts** (2026-09-25, after wave 28).
 - Toolchain: pin `COMPILER_VERSION` = **v0.61.3**; installed compiler
   v0.61.3 (`C:\Users\lefte\AppData\Local\xiom\bin`); repo release dir has
   v0.61.1; GitHub releases v0.61.1 + v0.61.3 exist. Stdlib
@@ -64,17 +66,18 @@ legacy code in dependency order, and graduate stable packages to
 - Licensing: `LICENSE-MIT`, `LICENSE-APACHE`, `NOTICE` and a pointer
   `LICENSE` are committed per LICENSING.md §2. SPDX pass repo-wide and the
   §1 `.md` header block remain .github-session scope.
-- 442 commits landed since the previous handoff (`b2bdde1..`).
+- 467 commits landed since the previous handoff (`b2bdde1..`).
 
 ### Commit trail (recent milestones)
 
 | Commit | What |
 |---|---|
-| this | SESSION.md refresh after wave 27 |
+| this | SESSION.md refresh after wave 28 |
+| 0637303 | allowlist wave 28 + index/report regeneration |
+| 465d181..bd2ffd4 | wave 28 per-package `feat:`/`chore:` pairs (10 packages) |
+| 674b728 / 631030c / 8bff9ab | `xiom.gguf` direct implementation, record, allowlist + breaker resolution |
 | 36b25eb | allowlist wave 27 + index/report regeneration |
-| c0c1f46..4dec171 | wave 27 per-package `feat:`/`chore:` pairs (9 packages) |
 | 4b05f0f | `docs/failed_attempts.md` created (xiom.gguf triple-abort) |
-| 3c3f89e | allowlist wave 26 + index/report regeneration |
 | c3bb8d4 | allowlist wave 21 + index/report regeneration |
 | 7e76af7 | allowlist wave 20 + index/report regeneration |
 | e66afc7 | allowlist wave 19 + index/report regeneration |
@@ -116,8 +119,8 @@ Standard commands (repo root):
 ```powershell
 & .\scripts\xiom.ps1 -Info
 & .\scripts\port.ps1 -Package xiom.lru            # verify one package
-& .\scripts\status.ps1 -Action validate           # 264/0 expected
-& .\scripts\allowlist-guard.ps1                   # 249 allowlisted, 0 failures
+& .\scripts\status.ps1 -Action validate           # 275/0 expected
+& .\scripts\allowlist-guard.ps1                   # 260 allowlisted, 0 failures
 & .\scripts\namespace-check.ps1                   # 0 conflicts expected
 & .\generate_index.ps1 ; & .\scripts\status.ps1 -Action report
 ```
@@ -198,10 +201,12 @@ which is also the current pin, so records are consistent.
   - wave 26 (10 names): `smtlib, safetensors, dbase, systemd, gemtext, radix,
     luhn, fletcher, farbfeld, hostfile` -> the delta after wave 25 (green
     2026-09-25; not yet scoped).
-  - wave 27 (9 names): `adler32, lcov, snbt, robots, edl, fstab, marc, fix,
-    xpm` -> the delta after wave 26 (green 2026-09-25; not yet scoped).
-    `gguf` is reserved but NOT in this delta (circuit breaker, see item 9).
-  - 99 names total pending enumeration before their canaries can run.
+  - wave 27 (10 names): `adler32, lcov, snbt, robots, edl, fstab, marc, fix,
+    xpm, gguf` -> the delta after wave 26 (green 2026-09-25; not yet scoped).
+  - wave 28 (10 names): `sarif, zonefile, gedcom, pem, maidenhead, rtf, ldif,
+    spf, bech32, mbox` -> the delta after wave 27 (green 2026-09-25; not yet
+    scoped).
+  - 109 names total pending enumeration before their canaries can run.
 - **Environment**: `registry-publish` requires reviewer `Lefteris-Notas`
   (owner); the packages session approves *staging* canary deployments via the
   API as part of dispatching them; production approvals remain owner-side.
@@ -221,8 +226,8 @@ which is also the current pin, so records are consistent.
 1. **Phase 0 -- toolchain + harness + triage: DONE.** Scripts above, STATUS
    seeded for every implemented package, pin v0.61.3, licenses, badge/guard
    pipeline, bounded badge canary.
-2. **Phase 1 -- small greenfield packages: DONE and expanded.** 197 packages
-   built, conformance-tested, `stable`, allowlisted (waves 1-27). All pass
+2. **Phase 1 -- small greenfield packages: DONE and expanded.** 208 packages
+   built, conformance-tested, `stable`, allowlisted (waves 1-28). All pass
    the namespace rule; each has SPEC/README/tests and a STATUS record.
 3. **Phase 2 -- foundations port: NEXT.** `xiom.durable` (renamed; not yet
    ported) first, then the pure legacy set (`xiom.algo` etc.). 63 incubating
@@ -311,8 +316,10 @@ Language traps that must be in every porter brief:
     `result.value` to a local before passing it to a `&Vec[UInt8]` parameter
     (wave 23 `xiom.quotedprintable`, `xiom.aiff`). Also, `\0` inside a `Str`
     **literal** truncates it (`"abc\0def"` measures 3, and a literal NUL byte
-    cannot be represented at all) -- wave 27 `xiom.robots`; test other
-    control bytes with `\u{0001}`/`\u{000B}`/`\u{001F}`/`\u{007F}` escapes.
+    cannot be represented at all) -- wave 27 `xiom.robots`; a NUL anywhere in
+    a literal truncates from that point (`"\x00\x01"` measures 0, wave 28
+    `xiom.ldif`). Test other control bytes with
+    `\u{0001}`/`\u{000B}`/`\u{001F}`/`\u{007F}` escapes.
 16. Never let parallel Vecs drift: every push on one array must be mirrored
     on all sibling arrays, and emit/accessors must guard mismatched lengths.
     `xiom.lrc` (wave 24) crashed with an access violation when one
@@ -322,23 +329,29 @@ Language traps that must be in every porter brief:
 17. `as` is a reserved keyword (`let as: Int` is `error[P001]`), and
     `xiom.convert` re-exports `int_to_string` but not `int_to_base` (that
     lives in `xiom.convert.int`) -- wave 24 `xiom.gcode`.
+18. `Int` division truncates toward zero (LLVM sdiv), so the common
+    ceil-division idiom `(a + b - 1) / b` is WRONG for negative numerators
+    (`-28 / 3` is `-8`, ceil is `-9`). Use
+    `let q = a / b; let r = a % b; if r > 0 { q + 1 } else { q }` (wave 28
+    `xiom.maidenhead`; the naive form would have produced off-by-one cell
+    minima across the western/southern hemisphere).
 
 ---
 
 ## 8. Open decisions (owner) / outstanding items
 
-1. **Scope deltas** for wave 18 (v6, 151 -> 161) and waves 19-27 (the deltas
-   after v6); 99 names total pending before those canaries.
+1. **Scope deltas** for wave 18 (v6, 151 -> 161) and waves 19-28 (the deltas
+   after v6); 109 names total pending before those canaries.
 2. **`eco-v0.1.1` production greenlight** (one tag, one approval) for the
    combined stable set; production is otherwise owner-gated.
 3. **Repo protection closure**: the required-reviewer environment is live;
    confirm this satisfies the §8.3 decision.
 4. **OAuth callback URL check** (owner): both GitHub OAuth app callback URLs,
    outstanding from the earlier relay; kept separate from publish relays.
-5. **Wave 28+ queue**: 210 placeholders remain; strong small candidates are
-   more format/protocol codecs (`sarif`, `maidenhead`, `rtf`, `xbm`-siblings,
-   `gemtext`-siblings, and other names that pass namespace-check). Owner
-   relayed the ecosystem page's
+5. **Wave 29+ queue**: 210 placeholders remain; strong small candidates are
+   more format/protocol codecs (`hl7`-siblings, `tcx`, `sbv`, `hcl`, `pem`-
+   siblings, `adler32`-siblings, and other names that pass namespace-check).
+   Owner relayed the ecosystem page's
    canonical categories (Data and storage; Networking and web; AI and machine
    learning; Scientific computing; Graphics and games; Systems and tooling;
    Interoperability and bridges; Verification and analysis) -- use them to
@@ -351,13 +364,13 @@ Language traps that must be in every porter brief:
    (`No context found for instance`); persistent agent definitions were
    removed to keep config clean. Use `task` subagents / Agent Manager local
    sessions instead.
-9. **`xiom.gguf` circuit breaker** (wave 27): three porter workers produced
-   zero files and empty results (`ses_f258975e8ffeUokkSYbqp76R4X`,
-   `ses_f25757fecffeR0eOx7NFjXFxrT`, `ses_f2571292affeCvAExPY0TBHjNA`).
-   Logged in `docs/failed_attempts.md`; attempts STOPPED per protocol. Owner
-   options: coordinator implements directly, split scope into header/KV and
-   tensor-info packages, or retry after a compiler pin bump / runtime restart.
-   The name/namespace is reserved and unallocated.
+9. **`xiom.gguf` circuit breaker -- RESOLVED** (wave 27/28): three porter
+   workers produced zero files and empty results
+   (`ses_f258975e8ffeUokkSYbqp76R4X`, `ses_f25757fecffeR0eOx7NFjXFxrT`,
+   `ses_f2571292affeCvAExPY0TBHjNA`); owner chose direct implementation and
+   the coordinator shipped `xiom.gguf` 24/24 (`674b728`/`631030c`/`8bff9ab`,
+   resolution recorded in `docs/failed_attempts.md`). Post-breaker fallback:
+   coordinator implements directly; delegate aborts are environmental.
 
 ---
 
@@ -437,8 +450,13 @@ Language traps that must be in every porter brief:
   (3 private emit-helper params) and `xiom.fletcher` (6 sites); `xiom.robots`
   added the `\0`-literal truncation finding (now in trap 15); indexed writes
   to `Vec[Int]` struct fields (`v[i] = v[i] + 1`) work (`xiom.lcov`).
-  `xiom.gguf` triple-abort is logged in `docs/failed_attempts.md`.
-  Working patterns (not bugs):
+  `xiom.gguf` triple-abort is logged in `docs/failed_attempts.md` (resolved
+  by direct implementation). Wave 28: the ceil-division trap is now trap 18
+  (`xiom.maidenhead`); RTF semantics: the space after a control word is a
+  consumed delimiter and `\uNNNN` is DECIMAL (`\u66` = `B`); `xiom.spf`
+  confirmed nested `&mut`/`&` forwarding and `break` work; `xiom.bech32`
+  sharpened decode errors (`wrong variant` vs `bad checksum`; BIP-350
+  ambiguity cannot occur). Working patterns (not bugs):
   module-scope `pub const` resolves unqualified in importers; nested plain
   structs and `Vec[Vec[UInt8]]` struct fields compile and mutate; `--run`
   leaves a gitignored `a.exe` in the package dir.
