@@ -281,3 +281,12 @@ xiom.luhn
 xiom.fletcher
 xiom.farbfeld
 xiom.hostfile
+xiom.adler32
+xiom.lcov
+xiom.snbt
+xiom.robots
+xiom.edl
+xiom.fstab
+xiom.marc
+xiom.fix
+xiom.xpm
