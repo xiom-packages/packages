@@ -4,7 +4,7 @@
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
 **Written:** 2026-09-25, by the packages session (continuation of the
-2026-09-23 handoff; refreshed after wave 21). Check
+2026-09-23 handoff; refreshed after wave 22). Check
 `git log -1 --format=%h %s` before starting.
 
 **Mission:** turn this monorepo into real, production-grade package repos.
@@ -20,28 +20,30 @@ legacy code in dependency order, and graduate stable packages to
   (Free org). Remote `https://github.com/xiom-packages/packages.git`.
 - Identity: repo-local `Lefteris Notas <lefterisnotas@gmail.com>`. Org-wide
   decision: gmail is the author identity in every repo; never the work email.
-- Folder inventory (2026-09-25, after wave 21): **205 implemented dirs (with
+- Folder inventory (2026-09-25, after wave 22): **215 implemented dirs (with
   `package.xi`) + 210 README-only placeholders + the umbrella
-  `packages/package.xi`**. Since the 2026-09-23 handoff: 138 new packages were
-  implemented (85 by converting placeholders, 53 brand-new dirs); the four
+  `packages/package.xi`**. Since the 2026-09-23 handoff: 148 new packages were
+  implemented (85 by converting placeholders, 63 brand-new dirs); the four
   deprecated dirs were deleted and `xiom-core` renamed to `xiom-durable`.
   Wave 20 added 10 (conversions `dhcp`, `ntp`, `socks`, `irc`, `mqtt`; new
-  `ical`, `vcf`, `dns`, `modbus`, `can`). Wave 21 added 10 more (conversion
-  `ble`; new `gbnf`, `fits`, `stun`, `bencode`, `ply`, `dimacs`, `syslog`,
-  `tga`, `cpio`), balanced across the ecosystem categories.
-- `STATUS.json` totals: **138 stable, 4 ported, 63 incubating**;
-  **142 green suites, 3,118 recorded tests**.
-  - stable = the 138 greenfield packages (all `publish: false`, waiting on
+  `ical`, `vcf`, `dns`, `modbus`, `can`). Wave 21 added 10 (conversion `ble`;
+  new `gbnf`, `fits`, `stun`, `bencode`, `ply`, `dimacs`, `syslog`, `tga`,
+  `cpio`). Wave 22 added 10 all-new dirs (`netstring`, `ar`, `vdf`, `cron`,
+  `pgn`, `vtt`, `nbt`, `hl7`, `gpx`, `bibtex`), balanced across the ecosystem
+  categories.
+- `STATUS.json` totals: **148 stable, 4 ported, 63 incubating**;
+  **152 green suites, 3,356 recorded tests**.
+  - stable = the 148 greenfield packages (all `publish: false`, waiting on
     allowlist/registry/protection).
   - ported = `xiom.sensor`, `xiom.control`, `xiom.json` (pure, promotable) and
     `xiom.kafka` (librdkafka FFI stubs remain; keep `ported`).
   - incubating = 63 legacy packages (includes `xiom.durable`, the renamed
     core, not yet ported).
-- `.github/publish-allowlist.txt`: **190 names** = 138 stable ready + 52
+- `.github/publish-allowlist.txt`: **200 names** = 148 stable ready + 52
   grandfathered legacy names (`.github/allowlist-baseline.txt`, warn-only in
   the guard). `scripts/allowlist-guard.ps1`: 0 failures.
 - Namespace audit **resolved**: `namespace-check` reports
-  **205 packages, 303 modules, 0 conflicts** (2026-09-25, after wave 21).
+  **215 packages, 313 modules, 0 conflicts** (2026-09-25, after wave 22).
 - Toolchain: pin `COMPILER_VERSION` = **v0.61.3**; installed compiler
   v0.61.3 (`C:\Users\lefte\AppData\Local\xiom\bin`); repo release dir has
   v0.61.1; GitHub releases v0.61.1 + v0.61.3 exist. Stdlib
@@ -51,15 +53,16 @@ legacy code in dependency order, and graduate stable packages to
 - Licensing: `LICENSE-MIT`, `LICENSE-APACHE`, `NOTICE` and a pointer
   `LICENSE` are committed per LICENSING.md §2. SPDX pass repo-wide and the
   §1 `.md` header block remain .github-session scope.
-- 309 commits landed since the previous handoff (`b2bdde1..`).
+- 331 commits landed since the previous handoff (`b2bdde1..`).
 
 ### Commit trail (recent milestones)
 
 | Commit | What |
 |---|---|
-| this | SESSION.md refresh after wave 21 |
+| this | SESSION.md refresh after wave 22 |
+| 1f08c44 | allowlist wave 22 + index/report regeneration |
+| 49d4118..24d4986 | wave 22 per-package `feat:`/`chore:` pairs (10 packages) |
 | c3bb8d4 | allowlist wave 21 + index/report regeneration |
-| 4dadc13..bf08f0e | wave 21 per-package `feat:`/`chore:` pairs (10 packages) |
 | 7e76af7 | allowlist wave 20 + index/report regeneration |
 | e66afc7 | allowlist wave 19 + index/report regeneration |
 | bb7d18b | bounded staging badge-canary override (`allow_unready`) |
@@ -100,8 +103,8 @@ Standard commands (repo root):
 ```powershell
 & .\scripts\xiom.ps1 -Info
 & .\scripts\port.ps1 -Package xiom.lru            # verify one package
-& .\scripts\status.ps1 -Action validate           # 205/0 expected
-& .\scripts\allowlist-guard.ps1                   # 190 allowlisted, 0 failures
+& .\scripts\status.ps1 -Action validate           # 215/0 expected
+& .\scripts\allowlist-guard.ps1                   # 200 allowlisted, 0 failures
 & .\scripts\namespace-check.ps1                   # 0 conflicts expected
 & .\generate_index.ps1 ; & .\scripts\status.ps1 -Action report
 ```
@@ -170,7 +173,9 @@ which is also the current pin, so records are consistent.
     scoped, so no canary can be dispatched).
   - wave 21 (10 names): `bencode, ble, cpio, dimacs, fits, gbnf, ply, stun,
     syslog, tga` -> the delta after wave 20 (green 2026-09-25; not yet scoped).
-  - 40 names total pending enumeration before their canaries can run.
+  - wave 22 (10 names): `ar, bibtex, cron, gpx, hl7, nbt, netstring, pgn,
+    vdf, vtt` -> the delta after wave 21 (green 2026-09-25; not yet scoped).
+  - 50 names total pending enumeration before their canaries can run.
 - **Environment**: `registry-publish` requires reviewer `Lefteris-Notas`
   (owner); the packages session approves *staging* canary deployments via the
   API as part of dispatching them; production approvals remain owner-side.
@@ -190,8 +195,8 @@ which is also the current pin, so records are consistent.
 1. **Phase 0 -- toolchain + harness + triage: DONE.** Scripts above, STATUS
    seeded for every implemented package, pin v0.61.3, licenses, badge/guard
    pipeline, bounded badge canary.
-2. **Phase 1 -- small greenfield packages: DONE and expanded.** 138 packages
-   built, conformance-tested, `stable`, allowlisted (waves 1-21). All pass
+2. **Phase 1 -- small greenfield packages: DONE and expanded.** 148 packages
+   built, conformance-tested, `stable`, allowlisted (waves 1-22). All pass
    the namespace rule; each has SPEC/README/tests and a STATUS record.
 3. **Phase 2 -- foundations port: NEXT.** `xiom.durable` (renamed; not yet
    ported) first, then the pure legacy set (`xiom.algo` etc.). 63 incubating
@@ -260,22 +265,27 @@ Language traps that must be in every porter brief:
 13. Widened `UInt8` constants >= 128 must be masked too: `239u8 as Int`
     sign-extends to -17; write `(C as Int) & 0xFF` for constants (wave 21
     `xiom.syslog` BOM handling).
+14. The compiler is lax about arity and punctuation: a call with fewer args
+    than declared compiles (missing args default to 0) and `-> Vec<UInt8]`
+    (mismatched bracket) compiles too (wave 22 `xiom.ar`, where the arity
+    laxness silently defeated a test). Verify argument counts and types
+    explicitly; do not rely on the compiler to reject them.
 
 ---
 
 ## 8. Open decisions (owner) / outstanding items
 
-1. **Scope deltas** for wave 18 (v6, 151 -> 161), wave 19, wave 20 and wave 21
-   (the deltas after v6); 40 names total pending before those canaries.
+1. **Scope deltas** for wave 18 (v6, 151 -> 161) and waves 19-22 (the deltas
+   after v6); 50 names total pending before those canaries.
 2. **`eco-v0.1.1` production greenlight** (one tag, one approval) for the
    combined stable set; production is otherwise owner-gated.
 3. **Repo protection closure**: the required-reviewer environment is live;
    confirm this satisfies the §8.3 decision.
 4. **OAuth callback URL check** (owner): both GitHub OAuth app callback URLs,
    outstanding from the earlier relay; kept separate from publish relays.
-5. **Wave 22+ queue**: 210 placeholders remain; strong small candidates are
-   more format/protocol codecs (`netstring`, `hl7`, `cron`, `ar`, `fits`-like
-   scientific headers, and other names that pass namespace-check). Owner
+5. **Wave 23+ queue**: 210 placeholders remain; strong small candidates are
+   more format/protocol codecs (`pbm`, `aiff`, `ntriples`, `wkt`, `sgf`,
+   `snbt`, and other names that pass namespace-check). Owner
    relayed the ecosystem page's
    canonical categories (Data and storage; Networking and web; AI and machine
    learning; Scientific computing; Graphics and games; Systems and tooling;
@@ -327,10 +337,17 @@ Language traps that must be in every porter brief:
   the ABI NUL-termination of `Str` that makes DNS wire labels containing
   `0x00` unrepresentable (wave 20 `xiom.dns` rejects them); and wave 21's
   `&mut Vec` auto-copy at call sites (`xiom.tga`) plus `UInt8` constant
-  sign-extension (`239u8 as Int` = -17, `xiom.syslog`). Working patterns (not
-  bugs): module-scope `pub const` resolves unqualified in importers; nested
-  plain structs and `Vec[Vec[UInt8]]` struct fields compile and mutate;
-  `--run` leaves a gitignored `a.exe` in the package dir.
+  sign-extension (`239u8 as Int` = -17, `xiom.syslog`). Wave 22 added: arity
+  laxness (fewer args than declared compiles, missing args default 0) and a
+  `-> Vec<UInt8]` bracket typo compiling (`xiom.ar`); `io.println` accepts
+  only `Str` -- ints need `xiom.convert.int_to_string` (`xiom.pgn`); an
+  immutable accessor before a `&mut` call on the same struct raises an E001
+  advisory (`xiom.netstring`); `&struct.field` only misbehaves for `&Vec`
+  parameters (plain `&Struct` params are fine, `xiom.pgn`). `xiom.ar` bytes
+  were interop-checked with `llvm-ar`. Working patterns (not bugs):
+  module-scope `pub const` resolves unqualified in importers; nested plain
+  structs and `Vec[Vec[UInt8]]` struct fields compile and mutate; `--run`
+  leaves a gitignored `a.exe` in the package dir.
 - **.github session:** licensing pass done here (LICENSE-MIT/APACHE/NOTICE,
   canonical holder); SPDX/`.md` header pass and rulesets remain theirs.
 - **Owner:** relays, scope deltas, production greenlight, OAuth callback
