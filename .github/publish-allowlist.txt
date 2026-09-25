@@ -271,3 +271,13 @@ xiom.srt
 xiom.pls
 xiom.ean
 xiom.junit
+xiom.smtlib
+xiom.safetensors
+xiom.dbase
+xiom.systemd
+xiom.gemtext
+xiom.radix
+xiom.luhn
+xiom.fletcher
+xiom.farbfeld
+xiom.hostfile

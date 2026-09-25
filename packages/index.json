@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-25T19:00:00Z",
+    "updated":  "2026-09-25T20:10:09Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -644,6 +644,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.dbase",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "dBASE III/IV table header codec: parse and build .dbf tables",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dbase/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "dbase.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.dhcp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "DHCPv4 packet codec: BOOTP fixed header, magic cookie and options TLV",
@@ -920,6 +937,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.farbfeld",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Farbfeld 16-bit RGBA image parsing, pixel access and canonical building",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-farbfeld/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "farbfeld.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.ffi",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "The foundational FFI module for all XIOM C-binding packages.",
@@ -1021,6 +1055,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.fletcher",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Fletcher-16 and Fletcher-32 checksums with one-shot, incremental and hex-display APIs",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fletcher/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "fletcher.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.fnv",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "FNV-1 and FNV-1a non-cryptographic hash functions in 32-bit and 64-bit widths",
@@ -1101,6 +1152,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gcode/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "gcode.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.gemtext",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Gemtext line codec: parser and canonical emitter",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gemtext/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "gemtext.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1249,6 +1317,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hl7/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "hl7.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.hostfile",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Hosts-file parser and canonical emitter: address/hostname entries, lookups and round-trips",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hostfile/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "hostfile.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1687,6 +1772,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lru/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "lru.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.luhn",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Luhn (mod-10) check-digit validation and computation for ASCII digit strings",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-luhn/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "luhn.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2798,6 +2900,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.radix",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Base 2..36 integer text conversion with canonical lowercase digits and strict overflow detection",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-radix/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "radix.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.rate",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic rate limiters with explicit clocks: token bucket and fixed window",
@@ -3070,6 +3189,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.safetensors",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM safetensors container codec: header parse, validation and builder",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-safetensors/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "safetensors.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.sanitize",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Input sanitization: control characters, whitespace, ASCII, filenames",
@@ -3256,6 +3392,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-signal/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "signal.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.smtlib",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "SMT-LIB2 command/term parser and canonical emitter for a documented subset",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-smtlib/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "smtlib.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3516,6 +3669,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-syslog/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "syslog.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.systemd",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "systemd unit-file parsing and emitting for in-memory Str documents",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-systemd/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "systemd.xi",
                                               "package.xi"
                                           ]
                      },
