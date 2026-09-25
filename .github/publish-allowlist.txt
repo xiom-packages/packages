@@ -311,3 +311,13 @@ xiom.ktx
 xiom.osrelease
 xiom.duration
 xiom.tcx
+xiom.elf
+xiom.pe
+xiom.dtb
+xiom.pcapng
+xiom.gpt
+xiom.radiotap
+xiom.woff
+xiom.qoi
+xiom.miniseed
+xiom.ass
