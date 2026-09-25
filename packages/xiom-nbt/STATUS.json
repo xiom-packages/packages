@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.nbt",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  26,
+                  "failed":  0,
+                  "run_by":  "ses_f27858596ffezuWTwbXe8V8v0w",
+                  "commit":  "49e91ca",
+                  "checked":  "2026-09-25T12:35:25Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
