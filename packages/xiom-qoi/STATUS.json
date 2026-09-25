@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.qoi",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  20,
+                  "failed":  0,
+                  "run_by":  "ses_f25149fc6ffelWJzIg2yHNLNLq",
+                  "commit":  "ed4c0b8",
+                  "checked":  "2026-09-25T23:44:01Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
