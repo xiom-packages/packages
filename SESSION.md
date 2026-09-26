@@ -15,8 +15,13 @@ production batch resuming). Check `git log -1 --format=%h %s` before starting.
   **290** (wave-32 wrap pending); namespace 313 packages / 411 modules /
   0 conflicts. `validate` = 313/0.
 - **Wave 32: 9/10 integrated** -- `tftp, pop3, smtp, ftp` (placeholder
-  conversions) + `passwd, efi, hid, cab, pci`. `rpm` retry was running at
-  handoff (`ses_f21e9f553ffeSgTNGlDhlaN60G`).
+  conversions) + `passwd, efi, hid, cab, pci`. `xiom.rpm` has **2 silent
+  aborts** (AM session `ses_f2253eaa8...` and task retry
+  `ses_f21e9f553ffeSgTNGlDhlaN60G`, both empty, zero files, folder not
+  created). One attempt remains before the circuit breaker: re-dispatch
+  once with the skeleton-first note, and if that aborts too, implement
+  `xiom.rpm` directly (gguf precedent) or leave it for the wave-33 batch;
+  the wave-32 wrap can ship the 9 ready names and add `rpm` later.
 - **Production `eco-v0.1.1`** (waves 18-30, tag at `a6e678e`): the first
   attempt was **cancelled by the job's `timeout-minutes: 30`** after 116
   publish attempts + 16 already-published skips. The run is **idempotent**
