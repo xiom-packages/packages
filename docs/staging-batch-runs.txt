@@ -1,7 +1,7 @@
-# name	run_id	state	(rebuilt 2026-09-26T04:53:25)
-xiom.base58	36208288456	approved
-xiom.cidr	0	queued
-xiom.crc	0	queued
+# name	run_id	state	(updated 2026-09-26T04:56:56)
+xiom.base58	36208288456	success
+xiom.cidr	36210053644	success
+xiom.crc	36210070245	approved
 xiom.macaddr	0	queued
 xiom.obj	0	queued
 xiom.querystring	0	queued
@@ -128,4 +128,4 @@ xiom.radiotap	0	queued
 xiom.woff	0	queued
 xiom.qoi	0	queued
 xiom.miniseed	0	queued
-xiom.ass	36209807262	dispatched
+xiom.ass	36209807262	success
