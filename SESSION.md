@@ -23,7 +23,15 @@ production batch resuming). Check `git log -1 --format=%h %s` before starting.
   (the loop prints `skip (already published)` and continues). A `gh run
   rerun 36240424222` was approved and is **in progress** at handoff; it may
   need one more rerun+approval if 30 minutes is not enough for the
-  remainder.
+  remainder. **Ops note (2026-09-26 ~14:18 UTC): production registry was
+  recreated to 2.1.0 (service-only; publish path unchanged); index verified
+  at 131 packages / 130 artifacts digest-matched.** The resume was mid-flight
+  across that window but stayed in_progress (per-package retry after 30s);
+  if the run ends `failure`/`cancelled` or some packages report failed,
+  simply `gh run rerun 36240424222` again and re-approve the gate -- already
+  published versions are skipped. Staging is also 2.1.0 (218 packages), but
+  under the production-direct policy no staging canary is needed unless the
+  owner asks.
 - **Production-direct policy is in force** (owner standing instruction,
   section 5): one `eco-*` tag per ready batch, gate approvals handled by
   this session; staging only when the owner explicitly asks for it.
