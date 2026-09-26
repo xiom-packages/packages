@@ -42,3 +42,28 @@ pads to a non-default alignment). Result:
 next wave: the delegate aborts were environmental, not scope-driven --
 direct implementation by the coordinator is a working fallback after the
 circuit breaker.
+
+## 2026-09-26 — xiom.rpm port: 2 consecutive silent subagent aborts (resolved on attempt 3)
+
+**Issue:** two porter workers for `packages/xiom-rpm/` terminated with empty
+results and left **no files at all** (no `package.xi`, no directory). The
+namespace check for `rpm` passed before dispatch; all wave-32 siblings
+completed normally.
+
+| Attempt | Executor | Session ID | Result |
+|---|---|---|---|
+| 1 | Agent Manager local (wave 32 batch) | `ses_f2253eaa8fferajMVUwC4zUSQ6` | idle afterwards, zero files |
+| 2 | background `general` task (retry) | `ses_f21e9f553ffeSgTNGlDhlaN60G` | empty task result, zero files |
+| 3 | background `general` task with skeleton-first instruction | `ses_f21c84abeffeqLF4EpKpBBXKu7` | 19/19 PASS, all six files delivered |
+
+**Checks performed:** `packages\xiom-rpm` absent after attempts 1-2;
+`port.ps1 -Package xiom.rpm` reported package not found.
+
+**RESOLVED (2026-09-26, same session):** attempt 3 succeeded with the
+skeleton-first mandate (create all six files with minimal compiling content
+first, then iterate in place). Coordinator re-verified on the commit;
+integrated as `b7fc365` (package) + `d9f12a2` (STATUS record), `port: PASS
+(passed=19 failed=0 program_exit=0 exit=0)`. Fidelity note: the real on-disk
+RPM header prefix is a 4-byte magic/version word + 4 reserved bytes, then the
+index count and data-store size (16 bytes total), not "magic + 8 reserved";
+the implementation follows the real layout.
