@@ -126,7 +126,7 @@ function Approve-Run {
       Write-Host "  approved run $RunId (env $envId)"
       $n = $n + 1
     } else {
-      Write-Host "  approval failed for run $RunId: $res"
+      Write-Host "  approval failed for run ${RunId}: $res"
     }
   }
   return $n
