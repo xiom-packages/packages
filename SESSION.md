@@ -372,6 +372,14 @@ concurrency group). Production tags so far: `eco-v0.1.0`, `eco-v0.1.1`
   of the waves 18-30 superset, giving **299 scopes** on both
   `eco-release` (production) and `eco-canary` (staging), services recreated
   (publisher config is read at boot), ops repo re-synced to the live lists.
+- **Staging config-validation canary (2026-09-26 18:03Z)**: `xiom.rpm` was
+  dispatched to staging (`workflow_dispatch`, explicit package, staging
+  registry; run `36261177048`) to validate the patched `eco-canary` entry
+  (299 scopes, post rate-limit patch) end-to-end. Published 18:03:44Z,
+  signed with the first-party key, staging index now 219 packages. This is
+  an ops-requested config check, not a package-code gate (the
+  production-direct policy is unchanged); ops runs the staging live-check
+  on top of it.
 - **Environment**: `registry-publish` requires reviewer `Lefteris-Notas`
   (owner); per the 2026-09-26 standing instruction this session approves
   both staging canary deployments and production batch gates via the API
