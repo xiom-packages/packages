@@ -375,6 +375,15 @@ concurrency group). Production tags so far: `eco-v0.1.0`, `eco-v0.1.1`
   `eco-v0.1.1` tag; no names remain "awaiting scopes" from before wave 31.
   The wave-33 names (10) are not allowlisted yet and therefore not in any
   scope request.
+- **Ops rate-limit note (2026-09-26 ~15:39, relayed by the owner)**: ops
+  re-raised `PUBLISH_RATE_MAX=600` and deployed the trust-proxy rate-limit
+  fix in a production recreate; unexpected 429s are now genuine rate
+  limiting (the app-level per-IP limits are real again). The normal limit
+  is **20/min** and ops restores it on "batch done" (registry §21 D5).
+  Attempt 2 of run `36251091427` (rerun 15:40Z, gate approved) tests whether
+  the recreate also picked up the 19-name scope delta; attempt 1's failure
+  was **not** rate limiting (it was `scope_denied`, later
+  `oidc_token_expired`).
 - **Environment**: `registry-publish` requires reviewer `Lefteris-Notas`
   (owner); per the 2026-09-26 standing instruction this session approves
   both staging canary deployments and production batch gates via the API
