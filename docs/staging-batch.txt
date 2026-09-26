@@ -1,0 +1,159 @@
+# Staging canary batch (waves 18-30) -- generated for the registry force-recreate batch
+# 130 names; each is stage=stable, tests=pass, allowlisted; dispatch via publish-registry.yml + pending_deployments approval
+
+# wave 18
+xiom.base58
+xiom.cidr
+xiom.crc
+xiom.macaddr
+xiom.obj
+xiom.querystring
+xiom.roman
+xiom.stl
+xiom.uri
+xiom.varint
+
+# wave 19
+xiom.ascii85
+xiom.bitfield
+xiom.cobs
+xiom.eml
+xiom.nmea
+xiom.pack
+xiom.pcap
+xiom.punycode
+xiom.term
+xiom.tlv
+
+# wave 20
+xiom.ical
+xiom.vcf
+xiom.irc
+xiom.modbus
+xiom.dns
+xiom.dhcp
+xiom.ntp
+xiom.socks
+xiom.mqtt
+xiom.can
+
+# wave 21
+xiom.gbnf
+xiom.fits
+xiom.stun
+xiom.bencode
+xiom.ply
+xiom.dimacs
+xiom.syslog
+xiom.ble
+xiom.tga
+xiom.cpio
+
+# wave 22
+xiom.nbt
+xiom.hl7
+xiom.gpx
+xiom.bibtex
+xiom.netstring
+xiom.ar
+xiom.vdf
+xiom.cron
+xiom.pgn
+xiom.vtt
+
+# wave 23
+xiom.cbor
+xiom.bloom
+xiom.wkt
+xiom.ico
+xiom.base32
+xiom.quotedprintable
+xiom.aiff
+xiom.m3u
+xiom.sgf
+xiom.ntriples
+
+# wave 24
+xiom.iso8583
+xiom.ulid
+xiom.pcx
+xiom.cue
+xiom.pbm
+xiom.gcode
+xiom.lrc
+xiom.ris
+xiom.iban
+xiom.fnv
+
+# wave 25
+xiom.plist
+xiom.geohash
+xiom.murmur3
+xiom.tap
+xiom.xbm
+xiom.pam
+xiom.srt
+xiom.pls
+xiom.ean
+xiom.junit
+
+# wave 26
+xiom.smtlib
+xiom.safetensors
+xiom.dbase
+xiom.systemd
+xiom.gemtext
+xiom.radix
+xiom.luhn
+xiom.fletcher
+xiom.farbfeld
+xiom.hostfile
+
+# wave 27
+xiom.adler32
+xiom.lcov
+xiom.snbt
+xiom.robots
+xiom.edl
+xiom.fstab
+xiom.marc
+xiom.fix
+xiom.xpm
+xiom.gguf
+
+# wave 28
+xiom.sarif
+xiom.zonefile
+xiom.gedcom
+xiom.pem
+xiom.maidenhead
+xiom.rtf
+xiom.ldif
+xiom.spf
+xiom.bech32
+xiom.mbox
+
+# wave 29
+xiom.nii
+xiom.hcl
+xiom.dds
+xiom.tzif
+xiom.au
+xiom.sbv
+xiom.ktx
+xiom.osrelease
+xiom.duration
+xiom.tcx
+
+# wave 30
+xiom.elf
+xiom.pe
+xiom.dtb
+xiom.pcapng
+xiom.gpt
+xiom.radiotap
+xiom.woff
+xiom.qoi
+xiom.miniseed
+xiom.ass
+
