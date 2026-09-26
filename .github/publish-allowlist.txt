@@ -331,3 +331,12 @@ xiom.uboot
 xiom.psf
 xiom.pcf
 xiom.resolv
+xiom.pop3
+xiom.smtp
+xiom.ftp
+xiom.passwd
+xiom.efi
+xiom.hid
+xiom.cab
+xiom.pci
+xiom.rpm
