@@ -143,9 +143,12 @@ Standard commands (repo root):
 
 Publish gate recap: only allowlisted + `STATUS.json` `stage: stable` with
 `tests.status: pass` publishes (batches skip unready with a warning; explicit
-tag/dispatch targets on unready names are refused). The one exception is the
-bounded staging badge canary (`workflow_dispatch` + `allow_unready=true` +
-explicit `package` + staging registry; tags and batches can never use it).
+tag/dispatch targets on unready names are refused). Default target is
+**production** per the owner standing instruction in section 5; staging
+dispatches happen only when the owner explicitly requests a staging run
+(site/feature testing). The bounded staging badge canary
+(`workflow_dispatch` + `allow_unready=true` + explicit `package` + staging
+registry) remains available for that case; tags and batches can never use it.
 
 ---
 
@@ -186,6 +189,18 @@ which is also the current pin, so records are consistent.
 ---
 
 ## 5. Publishing / registry state (2026-09-26)
+
+**OWNER STANDING INSTRUCTION (2026-09-26, supersedes the canary-first flow):**
+publish directly to **production** by default. Staging is now only for
+site/feature testing when the owner explicitly asks for it -- it is no
+longer a package-code gate. Mechanism: after a wave wrap, cut one `eco-*`
+tag for the ready batch (the tag batch publishes every `stable` + green +
+allowlisted name at that commit; grandfathered names are skipped) and
+approve the `registry-publish` gate via the pending_deployments API
+(production approvals are handled by this session under this instruction).
+Report `name -> run ID` (batch runs report the single run ID + the
+batch commit). Never overlap a tag run with a dispatch batch (shared
+concurrency group). Production tags so far: `eco-v0.1.0`, `eco-v0.1.1`.
 
 - **Staging**: rebuilt from main (`06f6977`, registry 2.0.0) with the
   xiom-packages/packages entry carrying the **full 290-name allowlist**
@@ -254,9 +269,11 @@ which is also the current pin, so records are consistent.
   API as part of dispatching them; production approvals remain owner-side.
 - **Production**: owner-account runs already succeeded for the `eco-v0.1.0`
   batch and the `xiom-flags/v0.1.0` per-package tag. Production is gated by
-  the owner behind the staging canary + the `eco-v0.1.1` batch (one tag, one
-  approval) with the combined delta. Nothing in this repo publishes to
-  production by itself.
+  the owner behind the `eco-v0.1.1` batch (one tag, one approval) with the
+  combined delta; per the 2026-09-26 standing instruction this session now
+  handles production batch tags/gate approvals directly (section 5).
+  Nothing in this repo publishes to production without the `eco-*` tag or
+  an explicit workflow dispatch.
 - Ops note: OIDC canaries are unrelated to browser sign-in; the **OAuth
   callback URL check remains a separate outstanding owner item** (do not fold
   it into publish relays).
@@ -390,9 +407,10 @@ Language traps that must be in every porter brief:
    possible `eco-v0.1.2` (or per-name production dispatch) after the
    `eco-v0.1.1` batch completes. Waves 18-30 are fully covered by the
    290-name staging entry and the `eco-v0.1.1` tag.
-2. **`eco-v0.1.1` production approval**: tag cut, run `36240424222` waiting
-   at the `registry-publish` gate for the owner's single approval (this
-   doubles as the remaining production greenlight for waves 18-30).
+2. **`eco-v0.1.1` production: APPROVED and publishing** (run `36240424222`,
+   gate approved 2026-09-26; covers waves 18-30). Standing instruction from
+   the owner: production-direct publishing from now on (see section 5);
+   wave 31+ rides the next `eco-*` tag after the wave-32 wrap.
 3. **Repo protection closure**: the required-reviewer environment is live;
    confirm this satisfies the §8.3 decision.
 4. **OAuth callback URL check** (owner): both GitHub OAuth app callback URLs,
