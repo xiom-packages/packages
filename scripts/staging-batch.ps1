@@ -82,8 +82,8 @@ if ($Execute) {
   foreach ($n in $names) {
     $i = $i + 1
     $before = Get-DispatchRuns
-    $maxBefore = 0
-    if ($before.Count -gt 0) { $maxBefore = [int]$before[-1].databaseId }
+    $maxBefore = [long]0
+    if ($before.Count -gt 0) { $maxBefore = [long]$before[-1].databaseId }
     Invoke-Dispatch -Package $n
     # wait for the new run to appear (creation is ordered by databaseId)
     $runId = 0
@@ -92,8 +92,8 @@ if ($Execute) {
       Start-Sleep -Seconds 2
       $waited = $waited + 2
       $after = Get-DispatchRuns
-      $fresh = @($after | Where-Object { [int]$_.databaseId -gt $maxBefore })
-      if ($fresh.Count -ge 1) { $runId = [int]$fresh[0].databaseId }
+      $fresh = @($after | Where-Object { [long]$_.databaseId -gt $maxBefore })
+      if ($fresh.Count -ge 1) { $runId = [long]$fresh[0].databaseId }
     }
     if ($runId -eq 0) {
       Write-Host ("[{0}/{1}] {2}: dispatched but no run id observed" -f $i, $names.Count, $n)
@@ -120,18 +120,18 @@ if ($Approve) {
         Where-Object { $_ -match "^xiom\.[a-z0-9._-]+\t\d+\t" } |
         ForEach-Object {
           $p = $_ -split "`t"
-          [pscustomobject]@{ Name = $p[0]; RunId = [int]$p[1]; Status = $p[2] }
+          [pscustomobject]@{ Name = $p[0]; RunId = [long]$p[1]; Status = $p[2] }
         }
     )
     if ($entries.Count -eq 0) { throw "no dispatch rows in $RunsFile" }
     $runs = Get-DispatchRuns
     $byId = @{}
-    foreach ($r in $runs) { $byId[[int]$r.databaseId] = $r }
+    foreach ($r in $runs) { $byId[[long]$r.databaseId] = $r }
 
     $pending = 0
     $approvedNow = 0
     foreach ($e in $entries) {
-      $run = $byId[[int]$e.RunId]
+      $run = $byId[[long]$e.RunId]
       if (-not $run) { continue }
       if ($run.status -eq "completed") { continue }
       $pending = $pending + 1
@@ -140,7 +140,7 @@ if ($Approve) {
       $parsed = @($dep | ConvertFrom-Json)
       foreach ($d in $parsed) {
         if ($d.state -ne "pending") { continue }
-        $envId = [int]$d.environment.id
+        $envId = [long]$d.environment.id
         & gh api --method POST "repos/$repo/actions/runs/$($e.RunId)/pending_deployments" `
           -f "state=approved" -f "environment_ids[]=$envId" `
           -f "comment=staging canary batch approved by the packages session" | Out-Null
@@ -154,7 +154,7 @@ if ($Approve) {
     }
 
     $remaining = @($entries | Where-Object {
-        $r = $byId[[int]$_.RunId]
+        $r = $byId[[long]$_.RunId]
         $r -and $r.status -ne "completed"
       }).Count
     Write-Host ("approval pass: {0} approved, {1} runs not completed" -f $approvedNow, $remaining)
