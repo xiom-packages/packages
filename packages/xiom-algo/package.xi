@@ -1,6 +1,6 @@
 package xiom_algo {
   name: "xiom.algo";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "XIOM Algorithm Library -- sorting, searching, math utilities";
   categories: ["core"];
   keywords: ["algorithms", "sorting", "searching", "combinatorics"];
