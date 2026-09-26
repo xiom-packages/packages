@@ -372,6 +372,22 @@ concurrency group). Production tags so far: `eco-v0.1.0`, `eco-v0.1.1`
   of the waves 18-30 superset, giving **299 scopes** on both
   `eco-release` (production) and `eco-canary` (staging), services recreated
   (publisher config is read at boot), ops repo re-synced to the live lists.
+- **Stage-badge verification (2026-09-26 21:29Z)**: the registry lane asked
+  for a fresh badge canary. Packages side: `xiom.algo` was bumped to 0.1.1
+  and published to staging via the bounded canary path (`allow_unready=true`,
+  run `36273039745`) -- the per-version entry records
+  `stage: "incubating"` and is `latest` on staging (commit `76e64fa`).
+  Registry side: re-ran `xiom-lang/registry`'s `oidc-canary.yml` (run
+  `36272937345`); its new version `0.0.0-canary.1790457993406` records
+  `stage: ""` because the fixture manifest in `scripts/oidc-canary.js` has
+  no `stage` field (relayed back; one line there or a server-side default).
+  **Stage-override decision: yes to the audited, display-only maintainer
+  override** for historic empty-stage entries (production: 38 = 35 locally
+  stable + 1 incubating `xiom.hello` + 2 specials `xiom.staging-e2e-probe`,
+  `xiom.std`; staging: 83), sourced from `STATUS.json` at a pinned commit,
+  never affecting publish authorization; per-version stage from real
+  publishes always wins. Version-bump republishing for 35+ stable names was
+  rejected as version burn for a cosmetic badge.
 - **Staging config-validation canary (2026-09-26 18:03Z)**: `xiom.rpm` was
   dispatched to staging (`workflow_dispatch`, explicit package, staging
   registry; run `36261177048`) to validate the patched `eco-canary` entry
