@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.png",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  17,
+                  "failed":  0,
+                  "run_by":  "ses_f21c689e0ffedj15a3a4gHLwAi",
+                  "commit":  "aa0eda0",
+                  "checked":  "2026-09-26T15:58:59Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: allowlist + next eco tag"
+}
