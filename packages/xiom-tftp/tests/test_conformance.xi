@@ -1,18 +1,13 @@
 // XIOM -- xiom.tftp conformance tests (24 checks)
-// Port task: prove the pure-XIOM xiom.tftp packet codec against RFC 1350.
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
-// Covers the documented API: exact wire bytes for RRQ/WRQ/DATA/ACK/ERROR,
-// parse round-trips, the 511/512 block boundary, unicode filename bytes,
-// block clamping and the full error catalog.
-//
-// Str payloads are compared with str_compare (BUG 17 discipline: `==` on
-// Str values read from a Vec lowers to a pointer comparison). Tuple-Result
-// payloads are read through match arms, and no test function builds a Vec
-// inside a match arm (stdlib probe p_result_tuple_vec_loop). Byte reads
-// are cast to Int before comparison, so no UInt8 is compared against a
-// literal >= 128.
+// Coverage map: see SPEC.md section 9. Every check is a named
+// assert(cond, "name") call and main returns the failure count (0 = green).
+// Every Str comparison goes through compare.str_compare (BUG 17: `==` on
+// Str values read from a Vec lowers to a pointer comparison), Result
+// payloads are read through .is_ok/.value/.error, no match arms are used at
+// all, and no test function builds a Vec inside a tuple-Result.
 
 module tftp_tests
 use xiom.io; use xiom.test;
@@ -20,15 +15,18 @@ use xiom.tftp;
 use xiom.string.compare;
 use xiom.encoding.hex;
 
-// Expected bytes for a hex string ("" on malformed input; the test then
-// fails on the byte comparison).
+// --------------------------------------------------
+//  Byte and string helpers
+// --------------------------------------------------
+
+// Expected bytes for a hex string (empty on malformed input; the affected
+// check then fails on the byte comparison).
 fn hb(hexstr: Str) -> Vec[UInt8] {
   let r = hex.hex_decode(hexstr);
-  match r {
-    Ok(v) => { return v; },
-    Err(_) => {},
+  if !r.is_ok {
+    return Vec[UInt8].new();
   }
-  return Vec[UInt8].new();
+  return r.value;
 }
 
 fn bytes_equal(a: Vec[UInt8], b: Vec[UInt8]) -> Bool {
@@ -74,46 +72,249 @@ fn str_eq(a: Str, b: Str) -> Bool {
   return compare.str_compare(a, b) == 0;
 }
 
+fn no_opts() -> Vec[Str] {
+  var v = Vec[Str].new();
+  return v;
+}
+
 // --------------------------------------------------
-//  Result extractors and error assertions
+//  Result helpers
 // --------------------------------------------------
 
-fn err_int_is(r: Result[Int, Str], want: Str) -> Bool {
+fn bytes_of(r: Result[Vec[UInt8], Str]) -> Vec[UInt8] {
+  if !r.is_ok {
+    return Vec[UInt8].new();
+  }
+  return r.value;
+}
+
+fn bytes_err_is(r: Result[Vec[UInt8], Str], want: Str) -> Bool {
   if r.is_ok {
     return false;
   }
   return str_eq(r.error, want);
 }
 
-fn err_bool_is(r: Result[Bool, Str], want: Str) -> Bool {
-  if r.is_ok {
-    return false;
-  }
-  return str_eq(r.error, want);
+// Build an RRQ for "f.bin"/octet carrying exactly one option.
+fn build_rrq1(name: Str, value: Str) -> Result[Vec[UInt8], Str] {
+  var names = Vec[Str].new();
+  var values = Vec[Str].new();
+  names.push(name);
+  values.push(value);
+  return tftp_build_rrq("f.bin", "octet", &names, &values);
 }
 
-fn err_rq_is(r: Result[(Str, Str), Str], want: Str) -> Bool {
-  if r.is_ok {
-    return false;
-  }
-  return str_eq(r.error, want);
+// Build an OACK carrying exactly one option.
+fn build_oack1(name: Str, value: Str) -> Result[Vec[UInt8], Str] {
+  var names = Vec[Str].new();
+  var values = Vec[Str].new();
+  names.push(name);
+  values.push(value);
+  return tftp_build_oack(&names, &values);
 }
 
-fn err_data_is(r: Result[(Int, Vec[UInt8]), Str], want: Str) -> Bool {
+// --------------------------------------------------
+//  Parsed-packet accessors used by the checks
+// --------------------------------------------------
+
+fn p_err(data: &Vec[UInt8]) -> Str {
+  let r = tftp_parse(data);
   if r.is_ok {
-    return false;
+    return "";
   }
-  return str_eq(r.error, want);
+  return r.error;
 }
 
-fn err_error_is(r: Result[(Int, Str), Str], want: Str) -> Bool {
-  if r.is_ok {
-    return false;
+fn p_opcode(data: &Vec[UInt8]) -> Int {
+  let r = tftp_parse(data);
+  if !r.is_ok {
+    return -1;
   }
-  return str_eq(r.error, want);
+  let p: TftpPacket = r.value;
+  return tftp_opcode(&p);
 }
 
-fn op_int(data: &Vec[UInt8]) -> Int {
+fn p_filename(data: &Vec[UInt8]) -> Str {
+  let r = tftp_parse(data);
+  if !r.is_ok {
+    return "";
+  }
+  let p: TftpPacket = r.value;
+  return tftp_filename(&p);
+}
+
+fn p_mode(data: &Vec[UInt8]) -> Str {
+  let r = tftp_parse(data);
+  if !r.is_ok {
+    return "";
+  }
+  let p: TftpPacket = r.value;
+  return tftp_mode(&p);
+}
+
+fn p_block(data: &Vec[UInt8]) -> Int {
+  let r = tftp_parse(data);
+  if !r.is_ok {
+    return -1;
+  }
+  let p: TftpPacket = r.value;
+  return tftp_block(&p);
+}
+
+fn p_code(data: &Vec[UInt8]) -> Int {
+  let r = tftp_parse(data);
+  if !r.is_ok {
+    return -1;
+  }
+  let p: TftpPacket = r.value;
+  return tftp_error_code(&p);
+}
+
+fn p_msg(data: &Vec[UInt8]) -> Str {
+  let r = tftp_parse(data);
+  if !r.is_ok {
+    return "";
+  }
+  let p: TftpPacket = r.value;
+  return tftp_error_message(&p);
+}
+
+fn p_count(data: &Vec[UInt8]) -> Int {
+  let r = tftp_parse(data);
+  if !r.is_ok {
+    return -1;
+  }
+  let p: TftpPacket = r.value;
+  return tftp_option_count(&p);
+}
+
+fn p_opt_name(data: &Vec[UInt8], i: Int) -> Str {
+  let r = tftp_parse(data);
+  if !r.is_ok {
+    return "";
+  }
+  let p: TftpPacket = r.value;
+  return tftp_option_name(&p, i);
+}
+
+fn p_opt_value(data: &Vec[UInt8], i: Int) -> Str {
+  let r = tftp_parse(data);
+  if !r.is_ok {
+    return "";
+  }
+  let p: TftpPacket = r.value;
+  return tftp_option_value(&p, i);
+}
+
+fn p_plen(data: &Vec[UInt8]) -> Int {
+  let r = tftp_parse(data);
+  if !r.is_ok {
+    return -1;
+  }
+  let p: TftpPacket = r.value;
+  return tftp_payload_len(&p);
+}
+
+fn p_payload(data: &Vec[UInt8]) -> Vec[UInt8] {
+  let r = tftp_parse(data);
+  if !r.is_ok {
+    return Vec[UInt8].new();
+  }
+  let p: TftpPacket = r.value;
+  return tftp_payload_copy(&p);
+}
+
+// 1 = last at blksize, 0 = not last, -1 = parse error.
+fn p_last(data: &Vec[UInt8], blksize: Int) -> Int {
+  let r = tftp_parse(data);
+  if !r.is_ok {
+    return -1;
+  }
+  let p: TftpPacket = r.value;
+  if tftp_is_last_block(&p, blksize) {
+    return 1;
+  }
+  return 0;
+}
+
+// Parse-then-emit stability check for one packet.
+fn emit_is(data: &Vec[UInt8]) -> Bool {
+  let r = tftp_parse(data);
+  if !r.is_ok {
+    return false;
+  }
+  let p: TftpPacket = r.value;
+  let e = tftp_emit(&p);
+  if !e.is_ok {
+    return false;
+  }
+  let eb: Vec[UInt8] = e.value;
+  if eb.len() != data.len() {
+    return false;
+  }
+  var i = 0;
+  while i < eb.len() {
+    if eb[i] != data[i] {
+      return false;
+    }
+    i = i + 1;
+  }
+  return true;
+}
+
+// --------------------------------------------------
+//  Per-kind parser error helpers
+// --------------------------------------------------
+
+fn rrq_err(data: &Vec[UInt8]) -> Str {
+  let r = tftp_parse_rrq(data);
+  if r.is_ok {
+    return "";
+  }
+  return r.error;
+}
+
+fn wrq_err(data: &Vec[UInt8]) -> Str {
+  let r = tftp_parse_wrq(data);
+  if r.is_ok {
+    return "";
+  }
+  return r.error;
+}
+
+fn data_err(data: &Vec[UInt8]) -> Str {
+  let r = tftp_parse_data(data);
+  if r.is_ok {
+    return "";
+  }
+  return r.error;
+}
+
+fn ack_err(data: &Vec[UInt8]) -> Str {
+  let r = tftp_parse_ack(data);
+  if r.is_ok {
+    return "";
+  }
+  return r.error;
+}
+
+fn error_err(data: &Vec[UInt8]) -> Str {
+  let r = tftp_parse_error(data);
+  if r.is_ok {
+    return "";
+  }
+  return r.error;
+}
+
+fn oack_err(data: &Vec[UInt8]) -> Str {
+  let r = tftp_parse_oack(data);
+  if r.is_ok {
+    return "";
+  }
+  return r.error;
+}
+
+fn op_of(data: &Vec[UInt8]) -> Int {
   let r = tftp_op(data);
   if !r.is_ok {
     return -1;
@@ -121,355 +322,480 @@ fn op_int(data: &Vec[UInt8]) -> Int {
   return r.value;
 }
 
-fn rq_filename(data: &Vec[UInt8]) -> Str {
-  let r = tftp_parse_rq(data);
-  match r {
-    Ok(t) => { return t.0; },
-    Err(_) => {},
+fn op_err(data: &Vec[UInt8]) -> Str {
+  let r = tftp_op(data);
+  if r.is_ok {
+    return "";
   }
-  return "";
-}
-
-fn rq_mode(data: &Vec[UInt8]) -> Str {
-  let r = tftp_parse_rq(data);
-  match r {
-    Ok(t) => { return t.1; },
-    Err(_) => {},
-  }
-  return "";
-}
-
-fn data_block(data: &Vec[UInt8]) -> Int {
-  let r = tftp_parse_data(data);
-  match r {
-    Ok(t) => { return t.0; },
-    Err(_) => {},
-  }
-  return -1;
-}
-
-fn data_payload(data: &Vec[UInt8]) -> Vec[UInt8] {
-  let r = tftp_parse_data(data);
-  match r {
-    Ok(t) => { return t.1; },
-    Err(_) => {},
-  }
-  return Vec[UInt8].new();
-}
-
-fn ack_block(data: &Vec[UInt8]) -> Int {
-  let r = tftp_parse_ack(data);
-  if !r.is_ok {
-    return -1;
-  }
-  return r.value;
-}
-
-fn error_code(data: &Vec[UInt8]) -> Int {
-  let r = tftp_parse_error(data);
-  match r {
-    Ok(t) => { return t.0; },
-    Err(_) => {},
-  }
-  return -1;
-}
-
-fn error_message(data: &Vec[UInt8]) -> Str {
-  let r = tftp_parse_error(data);
-  match r {
-    Ok(t) => { return t.1; },
-    Err(_) => {},
-  }
-  return "";
-}
-
-// 1 = last, 0 = not last, -1 = error.
-fn last_flag(data: &Vec[UInt8]) -> Int {
-  let r = tftp_is_last_block(data);
-  if !r.is_ok {
-    return -1;
-  }
-  if r.value {
-    return 1;
-  }
-  return 0;
+  return r.error;
 }
 
 // --------------------------------------------------
-//  Tests
+//  Checks
 // --------------------------------------------------
 
 fn t1() -> TestResult {
-  let pkt = tftp_build_rrq("hello.txt", "octet");
-  var ok = pkt.len() == 18;
-  if !bytes_equal(pkt, hb("000168656c6c6f2e747874006f6374657400")) { ok = false; }
-  if op_int(&pkt) != 1 { ok = false; }
+  let none = no_opts();
+  let b = tftp_build_rrq("hello.txt", "octet", &none, &none);
+  var ok = b.is_ok;
+  if ok {
+    let pkt: Vec[UInt8] = b.value;
+    if pkt.len() != 18 { ok = false; }
+    if !bytes_equal(pkt, hb("000168656c6c6f2e747874006f6374657400")) { ok = false; }
+    if p_opcode(&pkt) != 1 { ok = false; }
+    if !str_eq(p_filename(&pkt), "hello.txt") { ok = false; }
+    if !str_eq(p_mode(&pkt), "octet") { ok = false; }
+    if p_count(&pkt) != 0 { ok = false; }
+    if !str_eq(tftp_opcode_name(1), "RRQ") { ok = false; }
+  }
   return assert(ok, "RRQ hello.txt/octet is exact 18 bytes");
 }
 
 fn t2() -> TestResult {
-  let pkt = tftp_build_wrq("upload.bin", "octet");
-  var ok = pkt.len() == 19;
-  if !bytes_equal(pkt, hb("000275706c6f61642e62696e006f6374657400")) { ok = false; }
-  if op_int(&pkt) != 2 { ok = false; }
+  let none = no_opts();
+  let b = tftp_build_wrq("upload.bin", "octet", &none, &none);
+  var ok = b.is_ok;
+  if ok {
+    let pkt: Vec[UInt8] = b.value;
+    if pkt.len() != 19 { ok = false; }
+    if !bytes_equal(pkt, hb("000275706c6f61642e62696e006f6374657400")) { ok = false; }
+    if p_opcode(&pkt) != 2 { ok = false; }
+    if !str_eq(p_filename(&pkt), "upload.bin") { ok = false; }
+    if !str_eq(p_mode(&pkt), "octet") { ok = false; }
+    if !str_eq(tftp_opcode_name(2), "WRQ") { ok = false; }
+  }
   return assert(ok, "WRQ upload.bin/octet is exact 19 bytes");
 }
 
 fn t3() -> TestResult {
-  let one = tftp_build_rrq("", "octet");
-  let both = tftp_build_rrq("", "");
-  var ok = bytes_equal(one, hb("0001006f6374657400"));
-  if !bytes_equal(both, hb("00010000")) { ok = false; }
-  if !str_eq(rq_filename(&one), "") { ok = false; }
-  if !str_eq(rq_mode(&one), "octet") { ok = false; }
-  if !str_eq(rq_filename(&both), "") { ok = false; }
-  if !str_eq(rq_mode(&both), "") { ok = false; }
-  return assert(ok, "empty filename and empty mode encode and parse");
+  let none = no_opts();
+  let mixed = hb("000161004f4354455400");
+  var ok = p_opcode(&mixed) == 1;
+  if !str_eq(p_mode(&mixed), "octet") { ok = false; }
+  if !str_eq(p_filename(&mixed), "a") { ok = false; }
+  let nat = tftp_build_rrq("a", "NeTaScIi", &none, &none);
+  if !nat.is_ok { ok = false; } else {
+    let np: Vec[UInt8] = nat.value;
+    if !bytes_equal(np, hb("000161006e6574617363696900")) { ok = false; }
+  }
+  if !bytes_err_is(tftp_build_wrq("a", "binary", &none, &none), "tftp: bad mode") { ok = false; }
+  if !str_eq(rrq_err(&hb("0001610062696e61727900")), "tftp: bad mode") { ok = false; }
+  return assert(ok, "mode matches case-insensitively and emits lowercase");
 }
 
 fn t4() -> TestResult {
-  let pkt = tftp_build_rrq("my file.txt", "netascii");
-  var ok = bytes_equal(pkt, hb("00016d792066696c652e747874006e6574617363696900"));
-  if !str_eq(rq_filename(&pkt), "my file.txt") { ok = false; }
-  if !str_eq(rq_mode(&pkt), "netascii") { ok = false; }
-  return assert(ok, "filename and mode with spaces round-trip");
+  var names = Vec[Str].new();
+  var values = Vec[Str].new();
+  names.push("blksize");
+  values.push("1428");
+  names.push("timeout");
+  values.push("5");
+  names.push("tsize");
+  values.push("1048576");
+  let b = tftp_build_rrq("f.bin", "octet", &names, &values);
+  var ok = b.is_ok;
+  if ok {
+    let pkt: Vec[UInt8] = b.value;
+    if !bytes_equal(pkt, hb("0001662e62696e006f6374657400626c6b73697a6500313432380074696d656f75740035007473697a65003130343835373600")) { ok = false; }
+    if p_count(&pkt) != 3 { ok = false; }
+    if !str_eq(p_opt_name(&pkt, 0), "blksize") { ok = false; }
+    if !str_eq(p_opt_value(&pkt, 0), "1428") { ok = false; }
+    if !str_eq(p_opt_name(&pkt, 1), "timeout") { ok = false; }
+    if !str_eq(p_opt_value(&pkt, 1), "5") { ok = false; }
+    if !str_eq(p_opt_name(&pkt, 2), "tsize") { ok = false; }
+    if !str_eq(p_opt_value(&pkt, 2), "1048576") { ok = false; }
+    let rr = tftp_parse_rrq(&pkt);
+    if !rr.is_ok { ok = false; }
+  }
+  return assert(ok, "RRQ carries blksize/timeout/tsize TLVs exactly");
 }
 
 fn t5() -> TestResult {
-  let payload = hb("010203");
-  let pkt = tftp_build_data(1, &payload);
-  var ok = bytes_equal(pkt, hb("00030001010203"));
-  if data_block(&pkt) != 1 { ok = false; }
-  if !bytes_equal(data_payload(&pkt), payload) { ok = false; }
-  return assert(ok, "DATA block 1 payload 010203 is exact bytes");
+  var names = Vec[Str].new();
+  var values = Vec[Str].new();
+  names.push("blksize");
+  values.push("512");
+  names.push("timeout");
+  values.push("3");
+  let b = tftp_build_oack(&names, &values);
+  var ok = b.is_ok;
+  if ok {
+    let pkt: Vec[UInt8] = b.value;
+    if !bytes_equal(pkt, hb("0006626c6b73697a65003531320074696d656f7574003300")) { ok = false; }
+    if p_opcode(&pkt) != 6 { ok = false; }
+    if !str_eq(tftp_opcode_name(6), "OACK") { ok = false; }
+    if p_count(&pkt) != 2 { ok = false; }
+    if !str_eq(p_opt_name(&pkt, 0), "blksize") { ok = false; }
+    if !str_eq(p_opt_value(&pkt, 0), "512") { ok = false; }
+    if !str_eq(p_opt_name(&pkt, 1), "timeout") { ok = false; }
+    if !str_eq(p_opt_value(&pkt, 1), "3") { ok = false; }
+  }
+  return assert(ok, "OACK carries the accepted TLVs exactly");
 }
 
 fn t6() -> TestResult {
-  var empty = Vec[UInt8].new();
-  let pkt = tftp_build_data(7, &empty);
-  var ok = pkt.len() == 4;
-  if !bytes_equal(pkt, hb("00030007")) { ok = false; }
-  if data_block(&pkt) != 7 { ok = false; }
-  if data_payload(&pkt).len() != 0 { ok = false; }
-  if last_flag(&pkt) != 1 { ok = false; }
-  return assert(ok, "empty DATA payload round-trips and is last");
+  let none = no_opts();
+  var ok = bytes_err_is(tftp_build_oack(&none, &none), "tftp: empty OACK");
+  if !str_eq(oack_err(&hb("0006")), "tftp: empty OACK") { ok = false; }
+  if !str_eq(oack_err(&hb("0006626c6b")), "tftp: missing NUL") { ok = false; }
+  let one = hb("0006610000");
+  if p_opcode(&one) != 6 { ok = false; }
+  if p_count(&one) != 1 { ok = false; }
+  if !str_eq(p_opt_name(&one, 0), "a") { ok = false; }
+  if !str_eq(p_opt_value(&one, 0), "") { ok = false; }
+  return assert(ok, "OACK requires at least one complete TLV");
 }
 
 fn t7() -> TestResult {
-  let payload = repeat_byte(65, 512);
-  let pkt = tftp_build_data(1, &payload);
-  var ok = pkt.len() == 516;
-  if (pkt[0] as Int) != 0 { ok = false; }
-  if (pkt[1] as Int) != 3 { ok = false; }
-  if (pkt[2] as Int) != 0 { ok = false; }
-  if (pkt[3] as Int) != 1 { ok = false; }
-  if (pkt[515] as Int) != 65 { ok = false; }
-  if !bytes_equal(data_payload(&pkt), payload) { ok = false; }
-  if last_flag(&pkt) != 0 { ok = false; }
-  return assert(ok, "512-byte DATA payload is not last and round-trips");
+  var ok = bytes_err_is(build_rrq1("blksize", "7"), "tftp: bad block size");
+  if !bytes_err_is(build_rrq1("blksize", "65465"), "tftp: bad block size") { ok = false; }
+  if !bytes_err_is(build_rrq1("blksize", "0"), "tftp: bad block size") { ok = false; }
+  if !bytes_err_is(build_rrq1("blksize", "08"), "tftp: bad block size") { ok = false; }
+  if !bytes_err_is(build_rrq1("blksize", ""), "tftp: bad block size") { ok = false; }
+  if !bytes_err_is(build_rrq1("blksize", "8x"), "tftp: bad block size") { ok = false; }
+  if !bytes_err_is(build_rrq1("timeout", "0"), "tftp: bad option value") { ok = false; }
+  if !bytes_err_is(build_rrq1("timeout", "256"), "tftp: bad option value") { ok = false; }
+  if !bytes_err_is(build_rrq1("tsize", "007"), "tftp: bad option value") { ok = false; }
+  if !bytes_err_is(build_rrq1("tsize", "4294967296"), "tftp: bad option value") { ok = false; }
+  if !bytes_err_is(build_rrq1("tsize", "-1"), "tftp: bad option value") { ok = false; }
+  if !build_rrq1("blksize", "8").is_ok { ok = false; }
+  if !build_rrq1("blksize", "65464").is_ok { ok = false; }
+  if !build_rrq1("timeout", "1").is_ok { ok = false; }
+  if !build_rrq1("timeout", "255").is_ok { ok = false; }
+  if !build_rrq1("tsize", "0").is_ok { ok = false; }
+  if !build_rrq1("tsize", "4294967295").is_ok { ok = false; }
+  if !str_eq(rrq_err(&hb("000166006f6374657400626c6b73697a65003400")), "tftp: bad block size") { ok = false; }
+  return assert(ok, "blksize/timeout/tsize ranges and canonical decimals");
 }
 
 fn t8() -> TestResult {
-  let payload = repeat_byte(66, 511);
-  let pkt = tftp_build_data(10, &payload);
-  var ok = pkt.len() == 515;
-  if !bytes_equal(data_payload(&pkt), payload) { ok = false; }
-  if last_flag(&pkt) != 1 { ok = false; }
-  let back = data_payload(&pkt);
-  if back.len() != 511 { ok = false; }
-  if (back[510] as Int) != 66 { ok = false; }
-  return assert(ok, "511-byte DATA payload is last and round-trips");
+  let w = build_rrq1("windowsize", "4");
+  var ok = w.is_ok;
+  if ok {
+    let pkt: Vec[UInt8] = w.value;
+    if !bytes_equal(pkt, hb("0001662e62696e006f637465740077696e646f7773697a65003400")) { ok = false; }
+    if p_count(&pkt) != 1 { ok = false; }
+    if !str_eq(p_opt_name(&pkt, 0), "windowsize") { ok = false; }
+    if !str_eq(p_opt_value(&pkt, 0), "4") { ok = false; }
+  }
+  var n1 = Vec[Str].new();
+  n1.push("blksize");
+  let v0 = no_opts();
+  if !bytes_err_is(tftp_build_rrq("f.bin", "octet", &n1, &v0), "tftp: option pool mismatch") { ok = false; }
+  if !bytes_err_is(tftp_build_oack(&n1, &v0), "tftp: option pool mismatch") { ok = false; }
+  let mixed = build_rrq1("BLKSIZE", "1024");
+  if !mixed.is_ok { ok = false; } else {
+    let mp: Vec[UInt8] = mixed.value;
+    if !str_eq(p_opt_name(&mp, 0), "blksize") { ok = false; }
+  }
+  if !bytes_err_is(build_rrq1("a\u{0009}b", "1"), "tftp: bad option name") { ok = false; }
+  return assert(ok, "unknown options pass through, known names canonicalize");
 }
 
 fn t9() -> TestResult {
-  let a0 = tftp_build_ack(0);
-  let a1 = tftp_build_ack(1);
-  let ahi = tftp_build_ack(65535);
-  var ok = bytes_equal(a0, hb("00040000"));
-  if !bytes_equal(a1, hb("00040001")) { ok = false; }
-  if !bytes_equal(ahi, hb("0004ffff")) { ok = false; }
-  if ack_block(&a0) != 0 { ok = false; }
-  if ack_block(&a1) != 1 { ok = false; }
-  if ack_block(&ahi) != 65535 { ok = false; }
-  return assert(ok, "ACK blocks 0, 1 and 65535 are exact bytes");
+  let payload = hb("010203");
+  let b = tftp_build_data(1, &payload);
+  var ok = b.is_ok;
+  if ok {
+    let pkt: Vec[UInt8] = b.value;
+    if !bytes_equal(pkt, hb("00030001010203")) { ok = false; }
+    if p_opcode(&pkt) != 3 { ok = false; }
+    if p_block(&pkt) != 1 { ok = false; }
+    if !bytes_equal(p_payload(&pkt), payload) { ok = false; }
+  }
+  return assert(ok, "DATA block 1 payload 010203 is exact bytes");
 }
 
 fn t10() -> TestResult {
   var empty = Vec[UInt8].new();
-  let dlo = tftp_build_data(-5, &empty);
-  let dhi = tftp_build_data(70000, &empty);
-  let alo = tftp_build_ack(-1);
-  let ahi = tftp_build_ack(100000);
-  var ok = bytes_equal(dlo, hb("00030000"));
-  if !bytes_equal(dhi, hb("0003ffff")) { ok = false; }
-  if !bytes_equal(alo, hb("00040000")) { ok = false; }
-  if !bytes_equal(ahi, hb("0004ffff")) { ok = false; }
-  if data_block(&dlo) != 0 { ok = false; }
-  if data_block(&dhi) != 65535 { ok = false; }
-  if ack_block(&alo) != 0 { ok = false; }
-  if ack_block(&ahi) != 65535 { ok = false; }
-  return assert(ok, "build_data/build_ack clamp blocks to 0..65535");
+  let b = tftp_build_data(7, &empty);
+  var ok = b.is_ok;
+  if ok {
+    let pkt: Vec[UInt8] = b.value;
+    if pkt.len() != 4 { ok = false; }
+    if !bytes_equal(pkt, hb("00030007")) { ok = false; }
+    if p_block(&pkt) != 7 { ok = false; }
+    if p_plen(&pkt) != 0 { ok = false; }
+    if p_last(&pkt, 512) != 1 { ok = false; }
+  }
+  if !str_eq(data_err(&hb("0003")), "tftp: short packet") { ok = false; }
+  if !str_eq(data_err(&hb("000300")), "tftp: short packet") { ok = false; }
+  if !str_eq(data_err(&hb("")), "tftp: short packet") { ok = false; }
+  if !str_eq(data_err(&hb("00040000")), "tftp: not a DATA packet") { ok = false; }
+  return assert(ok, "empty DATA payload round-trips; short headers rejected");
 }
 
 fn t11() -> TestResult {
-  let pkt = tftp_build_error(1, "File not found");
-  var ok = bytes_equal(pkt, hb("0005000146696c65206e6f7420666f756e6400"));
-  if error_code(&pkt) != 1 { ok = false; }
-  if !str_eq(error_message(&pkt), "File not found") { ok = false; }
-  if op_int(&pkt) != 5 { ok = false; }
-  return assert(ok, "ERROR code 1 File not found is exact bytes");
+  let full = repeat_byte(65, 65464);
+  let b = tftp_build_data(1, &full);
+  var ok = b.is_ok;
+  if ok {
+    let pkt: Vec[UInt8] = b.value;
+    if pkt.len() != 65468 { ok = false; }
+    if p_plen(&pkt) != 65464 { ok = false; }
+    if !bytes_equal(p_payload(&pkt), full) { ok = false; }
+    if p_last(&pkt, 65464) != 0 { ok = false; }
+  }
+  let over = repeat_byte(65, 65465);
+  if !bytes_err_is(tftp_build_data(1, &over), "tftp: payload too long") { ok = false; }
+  let huge = concat_bytes(hb("00030001"), over);
+  if !str_eq(data_err(&huge), "tftp: payload too long") { ok = false; }
+  return assert(ok, "DATA payload caps at the 65464-byte protocol maximum");
 }
 
 fn t12() -> TestResult {
-  let pkt = tftp_build_error(0, "");
-  var ok = bytes_equal(pkt, hb("0005000000"));
-  if error_code(&pkt) != 0 { ok = false; }
-  if !str_eq(error_message(&pkt), "") { ok = false; }
-  return assert(ok, "ERROR code 0 with empty message");
+  var ok = bytes_equal(bytes_of(tftp_build_ack(0)), hb("00040000"));
+  if !bytes_equal(bytes_of(tftp_build_ack(1)), hb("00040001")) { ok = false; }
+  if !bytes_equal(bytes_of(tftp_build_ack(65535)), hb("0004ffff")) { ok = false; }
+  if !bytes_equal(bytes_of(tftp_build_ack(-1)), hb("00040000")) { ok = false; }
+  if !bytes_equal(bytes_of(tftp_build_ack(100000)), hb("0004ffff")) { ok = false; }
+  let a300 = bytes_of(tftp_build_ack(300));
+  if p_block(&a300) != 300 { ok = false; }
+  if p_opcode(&a300) != 4 { ok = false; }
+  if !str_eq(tftp_opcode_name(4), "ACK") { ok = false; }
+  if !str_eq(ack_err(&hb("00040000ff")), "tftp: trailing bytes") { ok = false; }
+  if !str_eq(ack_err(&hb("000400")), "tftp: short packet") { ok = false; }
+  if !str_eq(ack_err(&hb("0004")), "tftp: short packet") { ok = false; }
+  if !str_eq(ack_err(&hb("")), "tftp: short packet") { ok = false; }
+  if !str_eq(ack_err(&hb("0003000102")), "tftp: not an ACK") { ok = false; }
+  return assert(ok, "ACK is exactly 4 bytes with clamped block numbers");
 }
 
 fn t13() -> TestResult {
-  let pkt = tftp_build_rrq("héllo/文件.bin", "octet");
-  var ok = bytes_equal(pkt, hb("000168c3a96c6c6f2fe69687e4bbb62e62696e006f6374657400"));
-  if !str_eq(rq_filename(&pkt), "héllo/文件.bin") { ok = false; }
-  if !str_eq(rq_mode(&pkt), "octet") { ok = false; }
-  return assert(ok, "unicode filename bytes are preserved exactly");
+  let b = tftp_build_error(1, "File not found");
+  var ok = b.is_ok;
+  if ok {
+    let pkt: Vec[UInt8] = b.value;
+    if !bytes_equal(pkt, hb("0005000146696c65206e6f7420666f756e6400")) { ok = false; }
+    if p_opcode(&pkt) != 5 { ok = false; }
+    if p_code(&pkt) != 1 { ok = false; }
+    if !str_eq(p_msg(&pkt), "File not found") { ok = false; }
+    if !str_eq(tftp_opcode_name(5), "ERROR") { ok = false; }
+  }
+  let eb = tftp_build_error(0, "");
+  if !eb.is_ok { ok = false; } else {
+    let e0: Vec[UInt8] = eb.value;
+    if !bytes_equal(e0, hb("0005000000")) { ok = false; }
+  }
+  if !bytes_equal(bytes_of(tftp_build_error(-3, "x")), hb("000500007800")) { ok = false; }
+  if !bytes_equal(bytes_of(tftp_build_error(70000, "x")), hb("0005ffff7800")) { ok = false; }
+  if !str_eq(tftp_error_name(0), "not defined") { ok = false; }
+  if !str_eq(tftp_error_name(1), "file not found") { ok = false; }
+  if !str_eq(tftp_error_name(2), "access violation") { ok = false; }
+  if !str_eq(tftp_error_name(3), "disk full") { ok = false; }
+  if !str_eq(tftp_error_name(4), "illegal operation") { ok = false; }
+  if !str_eq(tftp_error_name(5), "unknown transfer id") { ok = false; }
+  if !str_eq(tftp_error_name(6), "file already exists") { ok = false; }
+  if !str_eq(tftp_error_name(7), "no such user") { ok = false; }
+  if !str_eq(tftp_error_name(12), "unknown") { ok = false; }
+  return assert(ok, "ERROR code table and 0..65535 clamping");
 }
 
 fn t14() -> TestResult {
-  var empty = Vec[UInt8].new();
-  let dat = tftp_build_data(1, &empty);
-  let wrq = tftp_build_wrq("upload.bin", "octet");
-  var ok = err_rq_is(tftp_parse_rq(&dat), "tftp: not an RRQ or WRQ");
-  if !err_rq_is(tftp_parse_rq(&hb("")), "tftp: truncated header") { ok = false; }
-  if !err_rq_is(tftp_parse_rq(&hb("0009")), "tftp: unknown opcode") { ok = false; }
-  if !err_rq_is(tftp_parse_rq(&hb("000168656c6c6f")), "tftp: missing NUL terminator") { ok = false; }
-  if !err_rq_is(tftp_parse_rq(&hb("000168656c6c6f006f63746574")), "tftp: missing NUL terminator") { ok = false; }
-  if !str_eq(rq_filename(&wrq), "upload.bin") { ok = false; }
-  if !str_eq(rq_mode(&wrq), "octet") { ok = false; }
-  return assert(ok, "parse_rq round-trips WRQ and rejects malformed input");
+  var ok = str_eq(error_err(&hb("000500014162630000")), "tftp: trailing bytes");
+  if !str_eq(error_err(&hb("00050001416263")), "tftp: missing NUL") { ok = false; }
+  if !str_eq(error_err(&hb("00050001")), "tftp: short packet") { ok = false; }
+  if !str_eq(error_err(&hb("0005")), "tftp: short packet") { ok = false; }
+  if !str_eq(error_err(&hb("00040000")), "tftp: not an ERROR packet") { ok = false; }
+  let em = hb("0005000200");
+  if !(p_err(&em).len() == 0) { ok = false; }
+  if p_code(&em) != 2 { ok = false; }
+  if !str_eq(p_msg(&em), "") { ok = false; }
+  return assert(ok, "ERROR message is verbatim and ends exactly at its NUL");
 }
 
 fn t15() -> TestResult {
-  var ok = op_int(&hb("0001")) == 1;
-  if op_int(&hb("0002")) != 2 { ok = false; }
-  if op_int(&hb("0003")) != 3 { ok = false; }
-  if op_int(&hb("0004")) != 4 { ok = false; }
-  if op_int(&hb("0005")) != 5 { ok = false; }
-  if !err_int_is(tftp_op(&hb("0000")), "tftp: unknown opcode") { ok = false; }
-  if !err_int_is(tftp_op(&hb("0006")), "tftp: unknown opcode") { ok = false; }
-  if !err_int_is(tftp_op(&hb("ffff")), "tftp: unknown opcode") { ok = false; }
-  if !err_int_is(tftp_op(&hb("00")), "tftp: truncated header") { ok = false; }
-  if !err_int_is(tftp_op(&hb("")), "tftp: truncated header") { ok = false; }
-  return assert(ok, "tftp_op accepts 1..5 and rejects other values");
+  var ok = op_of(&hb("0001")) == 1;
+  if op_of(&hb("0002")) != 2 { ok = false; }
+  if op_of(&hb("0003")) != 3 { ok = false; }
+  if op_of(&hb("0004")) != 4 { ok = false; }
+  if op_of(&hb("0005")) != 5 { ok = false; }
+  if op_of(&hb("0006")) != 6 { ok = false; }
+  if !str_eq(op_err(&hb("0000")), "tftp: unknown opcode") { ok = false; }
+  if !str_eq(op_err(&hb("0007")), "tftp: unknown opcode") { ok = false; }
+  if !str_eq(op_err(&hb("ffff")), "tftp: unknown opcode") { ok = false; }
+  if !str_eq(op_err(&hb("00")), "tftp: short packet") { ok = false; }
+  if !str_eq(op_err(&hb("")), "tftp: short packet") { ok = false; }
+  if !str_eq(p_err(&hb("0000")), "tftp: unknown opcode") { ok = false; }
+  if !str_eq(p_err(&hb("")), "tftp: short packet") { ok = false; }
+  if !str_eq(tftp_opcode_name(0), "UNKNOWN") { ok = false; }
+  return assert(ok, "tftp_op accepts 1..6 and rejects unknown/short input");
 }
 
 fn t16() -> TestResult {
-  let payload = hb("00ff807f0102");
-  let pkt = tftp_build_data(42, &payload);
-  var ok = pkt.len() == 10;
-  if data_block(&pkt) != 42 { ok = false; }
-  if !bytes_equal(data_payload(&pkt), payload) { ok = false; }
-  let ack = tftp_build_ack(1);
-  if !err_data_is(tftp_parse_data(&ack), "tftp: not a DATA packet") { ok = false; }
-  if !err_data_is(tftp_parse_data(&hb("0003")), "tftp: truncated packet") { ok = false; }
-  if !err_data_is(tftp_parse_data(&hb("000300")), "tftp: truncated packet") { ok = false; }
-  if !err_data_is(tftp_parse_data(&hb("")), "tftp: truncated header") { ok = false; }
-  return assert(ok, "parse_data round-trips NUL and high bytes; short buffers Err");
+  let canon_in = hb("0001612e62696e004f4354455400424c4b53495a45003130323400");
+  var ok = true;
+  if emit_is(&canon_in) { ok = false; }
+  let want = hb("0001612e62696e006f6374657400626c6b73697a65003130323400");
+  let r = tftp_parse(&canon_in);
+  if !r.is_ok { ok = false; } else {
+    let p: TftpPacket = r.value;
+    let e = tftp_emit(&p);
+    if !e.is_ok { ok = false; } else {
+      let eb: Vec[UInt8] = e.value;
+      if !bytes_equal(eb, want) { ok = false; }
+    }
+  }
+  let unknown_in = hb("000161006f637465740057694e644f7753695a65003400");
+  if !emit_is(&unknown_in) { ok = false; }
+  return assert(ok, "emitter canonicalizes known names and preserves unknown ones");
 }
 
 fn t17() -> TestResult {
-  let a0 = tftp_build_ack(0);
-  let a300 = tftp_build_ack(300);
-  let ahi = tftp_build_ack(65535);
-  var ok = ack_block(&a0) == 0;
-  if ack_block(&a300) != 300 { ok = false; }
-  if ack_block(&ahi) != 65535 { ok = false; }
-  var empty = Vec[UInt8].new();
-  let dat = tftp_build_data(1, &empty);
-  if !err_int_is(tftp_parse_ack(&dat), "tftp: not an ACK") { ok = false; }
-  if !err_int_is(tftp_parse_ack(&hb("00040000ff")), "tftp: bad ACK length") { ok = false; }
-  if !err_int_is(tftp_parse_ack(&hb("000400")), "tftp: bad ACK length") { ok = false; }
-  if !err_int_is(tftp_parse_ack(&hb("")), "tftp: truncated header") { ok = false; }
-  return assert(ok, "parse_ack round-trips blocks and rejects bad lengths");
+  let none = no_opts();
+  var rn = Vec[Str].new();
+  var rv = Vec[Str].new();
+  rn.push("blksize");
+  rv.push("512");
+  let pl = hb("deadbeef");
+  let s1 = bytes_of(tftp_build_rrq("a.txt", "octet", &rn, &rv));
+  let s2 = bytes_of(tftp_build_wrq("b.txt", "netascii", &none, &none));
+  let s3 = bytes_of(tftp_build_data(7, &pl));
+  let s4 = bytes_of(tftp_build_ack(7));
+  let s5 = bytes_of(tftp_build_error(1, "File not found"));
+  let s6 = bytes_of(tftp_build_oack(&rn, &rv));
+  var ok = p_opcode(&s1) == 1;
+  if p_opcode(&s2) != 2 { ok = false; }
+  if p_opcode(&s3) != 3 { ok = false; }
+  if p_opcode(&s4) != 4 { ok = false; }
+  if p_opcode(&s5) != 5 { ok = false; }
+  if p_opcode(&s6) != 6 { ok = false; }
+  if !emit_is(&s1) { ok = false; }
+  if !emit_is(&s2) { ok = false; }
+  if !emit_is(&s3) { ok = false; }
+  if !emit_is(&s4) { ok = false; }
+  if !emit_is(&s5) { ok = false; }
+  if !emit_is(&s6) { ok = false; }
+  return assert(ok, "all six packet kinds round-trip parse->emit byte-for-byte");
 }
 
 fn t18() -> TestResult {
-  let pkt = tftp_build_error(2, "Access violation");
-  var ok = error_code(&pkt) == 2;
-  if !str_eq(error_message(&pkt), "Access violation") { ok = false; }
-  let rrq = tftp_build_rrq("a", "octet");
-  if !err_error_is(tftp_parse_error(&rrq), "tftp: not an ERROR packet") { ok = false; }
-  if !err_error_is(tftp_parse_error(&hb("0005")), "tftp: truncated packet") { ok = false; }
-  if !err_error_is(tftp_parse_error(&hb("00050001")), "tftp: truncated packet") { ok = false; }
-  if !err_error_is(tftp_parse_error(&hb("00050001416263")), "tftp: missing NUL terminator") { ok = false; }
-  if !err_error_is(tftp_parse_error(&hb("")), "tftp: truncated header") { ok = false; }
-  return assert(ok, "parse_error round-trips and rejects malformed input");
+  let none = no_opts();
+  var ok = bytes_err_is(tftp_build_rrq("", "octet", &none, &none), "tftp: bad filename");
+  if !bytes_err_is(tftp_build_wrq("", "octet", &none, &none), "tftp: bad filename") { ok = false; }
+  if !bytes_err_is(tftp_build_rrq("a\u{0009}b", "octet", &none, &none), "tftp: bad filename") { ok = false; }
+  if !bytes_err_is(tftp_build_rrq("a\u{007F}b", "octet", &none, &none), "tftp: bad filename") { ok = false; }
+  if !str_eq(rrq_err(&hb("0001006f6374657400")), "tftp: bad filename") { ok = false; }
+  if !str_eq(rrq_err(&hb("0001618062006f6374657400")), "tftp: bad filename") { ok = false; }
+  if !str_eq(rrq_err(&hb("0001610962006f6374657400")), "tftp: bad filename") { ok = false; }
+  if !str_eq(rrq_err(&hb("000168656c6c6f2e74787400")), "tftp: missing NUL") { ok = false; }
+  return assert(ok, "RRQ/WRQ filenames are non-empty printable ASCII");
 }
 
 fn t19() -> TestResult {
-  var empty = Vec[UInt8].new();
-  let last0 = tftp_build_data(1, &empty);
-  let last1 = tftp_build_data(1, &repeat_byte(65, 511));
-  let full = tftp_build_data(1, &repeat_byte(65, 512));
-  var ok = last_flag(&last0) == 1;
-  if last_flag(&last1) != 1 { ok = false; }
-  if last_flag(&full) != 0 { ok = false; }
-  return assert(ok, "is_last_block: 0 and 511 payloads last, 512 not");
+  let payload = hb("00ff807f0102");
+  let b = tftp_build_data(42, &payload);
+  var ok = b.is_ok;
+  if ok {
+    let pkt: Vec[UInt8] = b.value;
+    if !bytes_equal(pkt, hb("0003002a00ff807f0102")) { ok = false; }
+    if p_block(&pkt) != 42 { ok = false; }
+    if p_plen(&pkt) != 6 { ok = false; }
+    if !bytes_equal(p_payload(&pkt), payload) { ok = false; }
+    let r = tftp_parse(&pkt);
+    if !r.is_ok { ok = false; } else {
+      let p: TftpPacket = r.value;
+      if tftp_payload_byte(&p, 0) != 0 { ok = false; }
+      if tftp_payload_byte(&p, 1) != 255 { ok = false; }
+      if tftp_payload_byte(&p, 2) != 128 { ok = false; }
+      if tftp_payload_byte(&p, 3) != 127 { ok = false; }
+      if tftp_payload_byte(&p, 4) != 1 { ok = false; }
+      if tftp_payload_byte(&p, 5) != 2 { ok = false; }
+    }
+  }
+  return assert(ok, "DATA payload carries NUL and high bytes verbatim");
 }
 
 fn t20() -> TestResult {
-  let payload = repeat_byte(66, 511);
-  let pkt = tftp_build_data(10, &payload);
-  let want = concat_bytes(hb("0003000a"), payload);
-  var ok = bytes_equal(pkt, want);
-  if pkt.len() != 515 { ok = false; }
-  if (pkt[514] as Int) != 66 { ok = false; }
-  return assert(ok, "511-byte DATA is exact 515 bytes");
+  var empty = Vec[UInt8].new();
+  let p511 = repeat_byte(65, 511);
+  let p512 = repeat_byte(65, 512);
+  let d0 = bytes_of(tftp_build_data(1, &empty));
+  let d511 = bytes_of(tftp_build_data(1, &p511));
+  let d512 = bytes_of(tftp_build_data(1, &p512));
+  var ok = p_last(&d0, 512) == 1;
+  if p_last(&d511, 512) != 1 { ok = false; }
+  if p_last(&d512, 512) != 0 { ok = false; }
+  let p1427 = repeat_byte(66, 1427);
+  let p1428 = repeat_byte(66, 1428);
+  let d1427 = bytes_of(tftp_build_data(2, &p1427));
+  let d1428 = bytes_of(tftp_build_data(2, &p1428));
+  if p_last(&d1427, 1428) != 1 { ok = false; }
+  if p_last(&d1428, 1428) != 0 { ok = false; }
+  if p_last(&d511, 0) != 1 { ok = false; }
+  if p_last(&d512, 70000) != 0 { ok = false; }
+  let ack = bytes_of(tftp_build_ack(1));
+  if p_last(&ack, 512) != 0 { ok = false; }
+  return assert(ok, "is_last_block: 512 default, negotiated blksize, non-DATA");
 }
 
 fn t21() -> TestResult {
-  let pkt = tftp_build_ack(1);
-  var ok = err_bool_is(tftp_is_last_block(&pkt), "tftp: not a DATA packet");
-  if !err_bool_is(tftp_is_last_block(&hb("0003")), "tftp: truncated packet") { ok = false; }
-  if !err_bool_is(tftp_is_last_block(&hb("")), "tftp: truncated header") { ok = false; }
-  return assert(ok, "is_last_block propagates non-DATA and truncation errors");
+  var ok = str_eq(rrq_err(&hb("000161")), "tftp: missing NUL");
+  if !str_eq(rrq_err(&hb("000161006f63746574")), "tftp: missing NUL") { ok = false; }
+  if !str_eq(rrq_err(&hb("000161006f6374657400626c6b")), "tftp: missing NUL") { ok = false; }
+  if !str_eq(rrq_err(&hb("000161006f6374657400626c6b00")), "tftp: missing NUL") { ok = false; }
+  if !str_eq(oack_err(&hb("0006626c6b")), "tftp: missing NUL") { ok = false; }
+  if !str_eq(error_err(&hb("00050001416263")), "tftp: missing NUL") { ok = false; }
+  return assert(ok, "unterminated filename/mode/option/message report missing NUL");
 }
 
 fn t22() -> TestResult {
-  let with_options = hb("000168656c6c6f2e747874006f6374657400626c6b73697a650035313200");
-  var ok = str_eq(rq_filename(&with_options), "hello.txt");
-  if !str_eq(rq_mode(&with_options), "octet") { ok = false; }
-  return assert(ok, "parse_rq ignores RFC 2347 option bytes after the mode");
+  var ok = str_eq(ack_err(&hb("0004000000")), "tftp: trailing bytes");
+  if !str_eq(error_err(&hb("000500014162630000")), "tftp: trailing bytes") { ok = false; }
+  if !str_eq(oack_err(&hb("000600")), "tftp: missing NUL") { ok = false; }
+  let full = hb("000161006f6374657400626c6b73697a650035313200");
+  if !(p_err(&full).len() == 0) { ok = false; }
+  if p_count(&full) != 1 { ok = false; }
+  if p_opcode(&full) != 1 { ok = false; }
+  return assert(ok, "exact-size policy: consumed options, no trailing bytes");
 }
 
 fn t23() -> TestResult {
-  let pkt = tftp_build_data(65535, &hb("aabb"));
-  var ok = bytes_equal(pkt, hb("0003ffffaabb"));
-  if data_block(&pkt) != 65535 { ok = false; }
-  if !bytes_equal(data_payload(&pkt), hb("aabb")) { ok = false; }
-  return assert(ok, "DATA block 65535 round-trips with exact header bytes");
+  let optp = hb("000161006f6374657400626c6b73697a65003130323400");
+  let dp = hb("00030005010203");
+  let r = tftp_parse(&optp);
+  let dr = tftp_parse(&dp);
+  var ok = r.is_ok;
+  if !dr.is_ok { ok = false; }
+  if r.is_ok {
+    let p: TftpPacket = r.value;
+    if tftp_option_count(&p) != 1 { ok = false; }
+    if !str_eq(tftp_option_name(&p, -1), "") { ok = false; }
+    if !str_eq(tftp_option_name(&p, 1), "") { ok = false; }
+    if !str_eq(tftp_option_value(&p, 9), "") { ok = false; }
+    if tftp_payload_byte(&p, 0) != -1 { ok = false; }
+  }
+  if dr.is_ok {
+    let d: TftpPacket = dr.value;
+    if tftp_block(&d) != 5 { ok = false; }
+    if tftp_payload_len(&d) != 3 { ok = false; }
+    if tftp_payload_byte(&d, -1) != -1 { ok = false; }
+    if tftp_payload_byte(&d, 3) != -1 { ok = false; }
+    if tftp_payload_byte(&d, 2) != 3 { ok = false; }
+    if !str_eq(tftp_filename(&d), "") { ok = false; }
+  }
+  if !str_eq(tftp_opcode_name(9), "UNKNOWN") { ok = false; }
+  if !str_eq(tftp_error_name(99), "unknown") { ok = false; }
+  return assert(ok, "out-of-range accessors return empty/-1 sentinels");
 }
 
 fn t24() -> TestResult {
-  let rrq = tftp_build_rrq("readme.md", "octet");
-  let wrq = tftp_build_wrq("write.md", "octet");
+  let none = no_opts();
   var empty = Vec[UInt8].new();
-  let dat = tftp_build_data(3, &empty);
-  let ack = tftp_build_ack(3);
-  let err = tftp_build_error(1, "oops");
-  var ok = op_int(&rrq) == 1;
-  if op_int(&wrq) != 2 { ok = false; }
-  if op_int(&dat) != 3 { ok = false; }
-  if op_int(&ack) != 4 { ok = false; }
-  if op_int(&err) != 5 { ok = false; }
-  if !str_eq(rq_filename(&rrq), "readme.md") { ok = false; }
-  if !str_eq(rq_filename(&wrq), "write.md") { ok = false; }
-  if data_block(&dat) != 3 { ok = false; }
-  if ack_block(&ack) != 3 { ok = false; }
-  if error_code(&err) != 1 { ok = false; }
-  if !str_eq(error_message(&err), "oops") { ok = false; }
-  return assert(ok, "all five packet types round-trip end to end");
+  let rrq = bytes_of(tftp_build_rrq("a", "octet", &none, &none));
+  let wrq = bytes_of(tftp_build_wrq("a", "octet", &none, &none));
+  let dat = bytes_of(tftp_build_data(1, &empty));
+  let ack = bytes_of(tftp_build_ack(1));
+  let err = bytes_of(tftp_build_error(1, "e"));
+  var ok = str_eq(wrq_err(&rrq), "tftp: not a WRQ");
+  if !str_eq(rrq_err(&wrq), "tftp: not an RRQ") { ok = false; }
+  if !str_eq(data_err(&rrq), "tftp: not a DATA packet") { ok = false; }
+  if !str_eq(ack_err(&dat), "tftp: not an ACK") { ok = false; }
+  if !str_eq(error_err(&ack), "tftp: not an ERROR packet") { ok = false; }
+  if !str_eq(oack_err(&ack), "tftp: not an OACK") { ok = false; }
+  if !str_eq(p_err(&hb("0009")), "tftp: unknown opcode") { ok = false; }
+  if !str_eq(rrq_err(&hb("0009")), "tftp: not an RRQ") { ok = false; }
+  return assert(ok, "per-kind parsers reject other opcodes with stable errors");
 }
 
 fn main() -> Int {
