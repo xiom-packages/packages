@@ -4,9 +4,9 @@
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
 **Written:** 2026-09-26, by the packages session (continuation of the
-2026-09-23 handoff; refreshed during waves 32/33, after `eco-v0.1.1`
-completed and `eco-v0.1.2` hit the registry scope delta). Check
-`git log -1 --format=%h %s` before starting.
+2026-09-23 handoff; refreshed after waves 32+33 completed and both
+`eco-v0.1.1` and `eco-v0.1.2` published successfully to production).
+Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
@@ -30,23 +30,22 @@ completed and `eco-v0.1.2` hit the registry scope delta). Check
   (`f4ff9fa`), so the intended 10-name append was 9 net-new. Index/report
   regeneration was deferred to the wave-33 wrap so the wrap commit would
   not capture the ten in-flight wave-33 dirs as `(none)` rows.
-- **Production `eco-v0.1.1`: SUCCESS** -- attempt 3 (`gh run rerun` +
-  approval) completed 15:02Z, publishing the remaining waves 18-30 names;
-  the registry index now carries **231 packages**. Run `36240424222`.
-- **Production `eco-v0.1.2` (waves 31+32, 19 new names): CUT, FAILED on
-  scopes -- attempts 1, 2 and 3.** Run `36251091427` attempt 1 failed
-  15:25Z; attempt 2 (15:40Z, after the first ops recreate) failed 15:54Z;
-  attempt 3 (16:55Z, after ops deploy `394db71` declared the rate-limit
-  knobs and the registry restarted at 16:54:38Z) failed 17:08Z. All three
-  reproduce HTTP 403 `token "eco-release" is not scoped to publish
-  "xiom.<name>"` (`scope_denied`) for the delta names -- attempt 3's first
-  403 hit `xiom.acpi` at 16:55:55Z, one second into the run, with **no 429s
-  of any kind**. Later names show HTTP 401 `oidc_token_expired` only
-  because each name retries after 30 s and the job's single minted OIDC
-  token (~6 min life) expires mid-run. **BLOCKED on the registry/ops scope
-  enumeration for the 19 names**; rate-limit config is orthogonal. Rerun
-  `36251091427` after the scopes land (it skips published versions); do not
-  re-cut the tag.
+- **Production `eco-v0.1.1`: SUCCESS** -- attempt 3, 15:02Z, run
+  `36240424222`; registry index 231 packages at that point.
+- **Production `eco-v0.1.2` (waves 31+32, 19 new names): SUCCESS --
+  attempt 4, 17:23:22Z, run `36251091427`.** Attempts 1-3 failed with
+  registry `scope_denied` (403) because the publisher entry lacked the 19
+  names; ops enumerated them (299 scopes = waves 18-30 superset 280 + the
+  19; production `eco-release` and staging `eco-canary`, both services
+  recreated) and attempt 4 published all 19 in ~4 minutes. **Registry index
+  now carries 250 packages**; the waves 18-32 production set is fully
+  published. "Batch done" confirmed to ops (rate limit restores to 20/min).
+- **Scope state**: the 299 registry scopes cover the 309-name allowlist
+  *except* the 10 wave-33 names (`png, gif, mp3, mp4, mkv, snmp, imap,
+  amqp, thrift, avro`) -- the next scope request, ahead of `eco-v0.1.3` on
+  `471c5e3`. `xiom.durable` is deliberately **not** scoped: it is
+  `incubating`/`tests=unknown` and not allowlisted (Phase 2 port pending);
+  provision it only when it goes stable + allowlisted.
 - **Workflow finding (secondary):** the publish job mints **one** OIDC
   token at job start and reuses it for every package; runs longer than
   ~6 min fail every remaining publish with `oidc_token_expired` (the retry
@@ -63,24 +62,16 @@ completed and `eco-v0.1.2` hit the registry scope delta). Check
   this session; staging only when the owner explicitly asks for it.
 
 **Next actions, in order:**
-1. **Relay the scope delta to registry/ops** -- the 19 wave 31+32 names need
-   production publish scopes before `eco-v0.1.2` can succeed. Evidence is in
-   section 5 (attempts 1 and 2 of run `36251091427`, `scope_denied`, no
-   429s). Afterwards: `gh run rerun 36251091427` + approve the gate (JSON
-   body via temp file:
-   `{"state":"approved","environment_ids":[22424011031],"comment":"..."}`
-   POSTed with `--input <file>`); it skips published versions and should
-   take ~2 min with no retry storm. Then confirm "batch done" to ops (they
-   restore `PUBLISH_RATE_MAX=20` per registry §21 D5).
-2. Waves 32+33 are complete and wrapped (`dccebd1`, `471c5e3`); index and
-   report are regenerated (257 stable, no `(none)` rows).
-3. When `eco-v0.1.2` succeeds (after the scope delta), refresh this file and
-   report the run ID.
-4. Wave 34: pick ~10 collision-free names; request production scopes for the
-   wave-33 names in the same relay if convenient (`png, gif, mp3, mp4, mkv,
-   snmp, imap, amqp, thrift, avro`); run `namespace-check.ps1 -Module <each>`
-   first; split 4 Agent Manager local + 6 background tasks with the full
-   18-trap brief (section 7); integrate + wrap as usual.
+1. **Confirm "batch done" to ops** (sent 17:24Z) and **request scopes for
+   the 10 wave-33 names** (`png, gif, mp3, mp4, mkv, snmp, imap, amqp,
+   thrift, avro`) so `eco-v0.1.3` can be cut on `471c5e3`; `xiom.durable`
+   stays unscoped until it is stable + allowlisted (Phase 2).
+2. When the wave-33 scopes are live: cut `eco-v0.1.3` (annotated tag on
+   `471c5e3`), push, approve the gate, report the run ID (10 names, ~1 min
+   at 20/min).
+3. Wave 34: pick ~10 collision-free names; run `namespace-check.ps1
+   -Module <each>` first; split 4 Agent Manager local + 6 background tasks
+   with the full 18-trap brief (section 7); integrate + wrap as usual.
 
 **Copy-paste prompt for the next session:**
 
@@ -97,16 +88,13 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. eco-v0.1.2 (run 36251091427) is BLOCKED on the registry/ops scope delta
-   for the 19 wave 31+32 names (section 5; both attempts show scope_denied,
-   no 429s). Confirm the scopes are live, then gh run rerun 36251091427 +
-   approve the gate; it skips already-published versions. Never re-cut the
-   tag. On success, confirm "batch done" to ops so they restore
-   PUBLISH_RATE_MAX=20.
-2. Request production scopes for the wave-33 names (10, section 5), then
-   continue wave 34 with the standard recipe (namespace-check first,
+1. Confirm whether the 10 wave-33 names are scoped (ops was asked after
+   eco-v0.1.2 succeeded). If live: cut eco-v0.1.3 on 471c5e3 (annotated
+   tag, push), approve the registry-publish gate, report the run ID. Never
+   overlap tag runs with dispatch batches, and do not re-cut a tag.
+2. Continue wave 34 with the standard recipe (namespace-check first,
    4 Agent Manager + 6 background tasks, 18 traps in every brief,
-   integrate + wrap).
+   integrate + wrap as usual).
 ```
 
 **Mission:** turn this monorepo into real, production-grade package repos.
@@ -156,11 +144,11 @@ legacy code in dependency order, and graduate stable packages to
  `imap`, `amqp`, `thrift`, `avro`; 213 tests across the ten).
 - `STATUS.json` totals: **257 stable, 4 ported, 63 incubating**;
   **261 green suites, 5,634 recorded tests**.
-  - stable = the greenfield packages plus conversions. The wave 18-30 stable
-    set is **published to production** by `eco-v0.1.1` (231 packages in the
-    registry index); waves 31+32 (19 names) are tagged as `eco-v0.1.2` but
-    blocked on the registry scope delta (section 5). New stable packages
-    still carry `publish: false` until the next scope delta / tag.
+  - stable = the greenfield packages plus conversions. Waves 18-30 are
+    **published to production** by `eco-v0.1.1` and waves 31+32 by
+    `eco-v0.1.2` (registry index **250 packages**). Wave 33 (10 names) is
+    allowlisted and next in the scope queue for `eco-v0.1.3`. New stable
+    packages still carry `publish: false` until the next scope delta / tag.
   - ported = `xiom.sensor`, `xiom.control`, `xiom.json` (pure, promotable) and
     `xiom.kafka` (librdkafka FFI stubs remain; keep `ported`).
   - incubating = 63 legacy packages (includes `xiom.durable`, the renamed
@@ -344,20 +332,15 @@ concurrency group). Production tags so far: `eco-v0.1.0`, `eco-v0.1.1`
 - **Production: `eco-v0.1.1` SUCCESS (2026-09-26)**. Tag `eco-v0.1.1` on
   `a6e678e` (waves 18-30); run `36240424222` completed on attempt 3 at
   15:02Z after two 30-min job-ceiling cancellations (the loop is idempotent
-  and skips published versions). The registry index now carries **231
-  packages**; every wave 18-30 name that passed the readiness filter is
-  published (grandfathered names skipped).
-- **Production `eco-v0.1.2`: CUT, FAILED on scopes (2026-09-26)**. Tag
-  `eco-v0.1.2` on `dccebd1` (wave-32 wrap; waves 31+32 = 19 new names:
+  and skips published versions). Registry index 231 packages at that point.
+- **Production `eco-v0.1.2`: SUCCESS (2026-09-26)**. Tag `eco-v0.1.2` on
+  `dccebd1` (wave-32 wrap; waves 31+32 = 19 new names:
   `ext, acpi, usb, smbios, mbr, sparse, uboot, psf, pcf, resolv` plus
-  `pop3, smtp, ftp, passwd, efi, hid, cab, pci, rpm`). Run `36251091427`:
-  readiness guard success, gate approved, publish job **FAILED 15:25Z with
-  `scope_denied`** -- `token "eco-release" is not scoped to publish
-  "xiom.<name>"` (HTTP 403) for the delta names; the tail shows HTTP 401
-  `oidc_token_expired` because the job's single minted token (~6 min) aged
-  out during the 30-s retry storm. **Action: registry/ops must enumerate
-  production scopes for the 19 names; then `gh run rerun 36251091427` +
-  gate approval; it skips published versions.** Do not re-cut the tag.
+  `pop3, smtp, ftp, passwd, efi, hid, cab, pci, rpm`). Run `36251091427`
+  failed attempts 1-3 with `scope_denied` (403) because the publisher entry
+  lacked the 19 names; after ops enumerated them, **attempt 4 completed
+  17:23:22Z and published all 19** (~4 min). **Registry index now carries
+  250 packages.** "Batch done" confirmed to ops at 17:24Z.
 - **Workflow finding (secondary)**: `publish-registry.yml` mints **one**
   OIDC token at job start (`XIOM_REGISTRY_TOKEN` via `$GITHUB_ENV`) and
   reuses it for every package; runs longer than ~6 min fail all remaining
@@ -367,11 +350,12 @@ concurrency group). Production tags so far: `eco-v0.1.0`, `eco-v0.1.1`
   by `eco-v0.1.1` is the 2026-09-24 build (`be38152`); the wave-32 rewrite
   (`ae3c233`) carries the same version and cannot republish. Accept the
   published build or bump tftp to 0.1.1 in a later batch.
-- **Historical scope deltas (waves 18-30)** are fully covered by the
-  `eco-v0.1.1` tag; no names remain "awaiting scopes" from before wave 31.
-  The wave-33 names (10) are allowlisted by the wave-33 wrap (`471c5e3`);
-  they are the next scope request after the wave 31+32 delta lands (a
-  future `eco-v0.1.3` would carry them).
+- **Historical scope deltas** (waves 18-32) are fully covered: 299 scopes =
+  waves 18-30 superset (280) + the 19 wave 31+32 names, on
+  `eco-release` (production) and `eco-canary` (staging). The wave-33 names
+  (10) are allowlisted by the wave-33 wrap (`471c5e3`) and are the next
+  scope request (for `eco-v0.1.3`); ops was asked at 17:24Z. `xiom.durable`
+  is deliberately not scoped until it is stable + allowlisted (Phase 2).
 - **Ops rate-limit notes (2026-09-26, relays via the owner)**: ops first
   reported the 15:02Z stall as the restored 20/min default and "re-raised"
   `PUBLISH_RATE_MAX=600`; the corrected root cause (16:54Z relay) is that
@@ -383,17 +367,20 @@ concurrency group). Production tags so far: `eco-v0.1.0`, `eco-v0.1.1`
   16:54:38Z, v2.1.0). Ops restores **20** on "batch done" (registry §21
   D5). Rate-limit config does **not** affect the `scope_denied` 403:
   attempt 3 ran against the new config and still failed on scopes, with no
-  429s. Batch is **not** done; do not send the "batch done" confirmation
-  until `eco-v0.1.2` publishes.
+  429s. Batch **done** (confirmed to ops 17:24Z after attempt 4 succeeded);
+  ops restores 20/min. Later ops relay: the patch adds the 19 names on top
+  of the waves 18-30 superset, giving **299 scopes** on both
+  `eco-release` (production) and `eco-canary` (staging), services recreated
+  (publisher config is read at boot), ops repo re-synced to the live lists.
 - **Environment**: `registry-publish` requires reviewer `Lefteris-Notas`
   (owner); per the 2026-09-26 standing instruction this session approves
   both staging canary deployments and production batch gates via the API
   (the `eco-v0.1.1` attempt-3 and `eco-v0.1.2` gates were approved this way).
 - **Production**: `eco-v0.1.0` (owner-account), `xiom-flags/v0.1.0`
-  (per-package tag) and `eco-v0.1.1` (waves 18-30, attempt 3, 15:02Z) have
-  succeeded; `eco-v0.1.2` (waves 31+32) is cut but blocked on the registry
-  scope delta (see above). Nothing in this repo publishes to production
-  without the `eco-*` tag or an explicit workflow dispatch.
+  (per-package tag), `eco-v0.1.1` (waves 18-30, 15:02Z) and `eco-v0.1.2`
+  (waves 31+32, attempt 4, 17:23Z) have succeeded; the registry index is at
+  **250 packages**. Nothing in this repo publishes to production without
+  the `eco-*` tag or an explicit workflow dispatch.
 - Ops note: OIDC canaries are unrelated to browser sign-in; the **OAuth
   callback URL check remains a separate outstanding owner item** (do not fold
   it into publish relays).
@@ -405,12 +392,12 @@ concurrency group). Production tags so far: `eco-v0.1.0`, `eco-v0.1.1`
 1. **Phase 0 -- toolchain + harness + triage: DONE.** Scripts above, STATUS
    seeded for every implemented package, pin v0.61.3, licenses, badge/guard
    pipeline, bounded badge canary.
-2. **Phase 1 -- small greenfield packages: DONE and expanded.** 253+
-   packages built, conformance-tested, `stable`, allowlisted (waves 1-32;
-   wave 33 in flight). All pass the namespace rule; each has
-   SPEC/README/tests and a STATUS record. Waves 18-30 are published by
-   `eco-v0.1.1`; waves 31+32 (`eco-v0.1.2`) are tagged and blocked only on
-   the registry scope delta.
+2. **Phase 1 -- small greenfield packages: DONE and expanded.** 257
+   packages built, conformance-tested, `stable`, allowlisted (waves 1-33).
+   All pass the namespace rule; each has SPEC/README/tests and a STATUS
+   record. Waves 18-30 are published by `eco-v0.1.1` and waves 31+32 by
+   `eco-v0.1.2` (registry 250); wave 33 awaits its scope delta for
+   `eco-v0.1.3`.
 3. **Phase 2 -- foundations port: NEXT.** `xiom.durable` (renamed; not yet
    ported) first, then the pure legacy set (`xiom.algo` etc.). 63 incubating
    package remain; the legacy compile triage is in the previous handoff's
