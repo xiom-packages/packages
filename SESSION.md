@@ -10,7 +10,15 @@ production). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**State at handoff refresh (2026-09-26 ~23:07, waves 1-33 all published):**
+**State at handoff refresh (2026-09-26 ~23:31, waves 1-33 published; wave 34 in flight):**
+- **Wave 34 (dispatched 23:31Z, in flight):** `webp, jpeg, flac, eeprom,
+  i2c, nats, ldap, upnp, golden, meteorology` -- all `namespace-check`
+  clean; 4 Agent Manager local + 6 background tasks with the full 18-trap
+  briefs. Scope delta **pre-requested** from registry/ops (309 -> 319) so
+  `eco-v0.1.4` is not gated after the wrap; the wave-34 wrap commit will be
+  its tag base. Every brief carries the 18 traps and the XIOM MCP guidance
+  (`xiom_xiom_stdlib_reference`, `xiom_xiom_cheatsheet`,
+  `xiom_compile_and_fix`).
 - 324 implemented dirs / 197 README-only placeholders; **257 stable / 4
   ported / 63 incubating**; **261 green suites / 5,634 recorded tests**;
   allowlist **309** (wave 32 +9, wave 33 +10); namespace **324 packages /
@@ -47,9 +55,9 @@ production). Check `git log -1 --format=%h %s` before starting.
   index now carries 260 packages.**
 - **Scope state**: registry entries carry **309 scopes** = the full
   allowlist through wave 33 (production `eco-release` + staging
-  `eco-canary`). Wave-34 names will need a scope delta before their tag.
-  `xiom.durable` stays deliberately unscoped (`incubating`, not allowlisted;
-  Phase 2 port pending).
+  `eco-canary`). The wave-34 delta (309 -> 319) is **pre-requested** from
+  registry/ops ahead of the tag. `xiom.durable` stays deliberately unscoped
+  (`incubating`, not allowlisted; Phase 2 port pending).
 - **Workflow finding (secondary):** the publish job mints **one** OIDC
   token at job start and reuses it for every package; runs longer than
   ~6 min fail every remaining publish with `oidc_token_expired` (the retry
@@ -66,14 +74,16 @@ production). Check `git log -1 --format=%h %s` before starting.
   this session; staging only when the owner explicitly asks for it.
 
 **Next actions, in order:**
-1. Wave 34: pick ~10 collision-free names; run `namespace-check.ps1
-   -Module <each>` first; split 4 Agent Manager local + 6 background tasks
-   with the full 18-trap brief (section 7); integrate + wrap as usual.
-2. After the wave-34 wrap: request the wave-34 scope delta from
-   registry/ops (the batch protocol: say the word and ops raises
-   `PUBLISH_RATE_MAX` to 600 for the publish window, restores 20 on
-   "batch done", D5); then cut the next `eco-*` tag on the wrap commit,
-   approve the gate, report the run ID.
+1. Integrate the wave-34 workers as they report (port must show
+   `passed > 0`; commit feat, run on the commit, `status.ps1 -Action update
+   -Stage stable -TestsStatus pass -Passed N -Failed 0 -RunBy <session>
+   -Commit <sha> -ExcludedReason "publish pending: allowlist + next eco
+   tag"`, commit the record, push), then the wave-34 wrap (allowlist +10,
+   generate_index, report, validate, guard, commit, push).
+2. When the wave-34 scopes are live: cut the next `eco-*` tag on the wrap
+   commit, approve the gate, report the run ID; confirm "batch done" to ops
+   (D5 restore). The batch protocol: ops raises `PUBLISH_RATE_MAX` to 600
+   on request for the publish window.
 3. Badge-override follow-up (registry lane): audited, display-only
    override for historic empty-stage entries -- decision sent (`9da3143`,
    section 5); needs the generated name->stage list from `STATUS.json`
@@ -95,13 +105,18 @@ Start by running: git fetch; git status -sb; git log -1; then
 
 Then do, in order:
 1. Waves 1-33 are published (registry 260 packages; eco-v0.1.1/.2/.3 all
-   success). Wave 34 is the next build: pick ~10 collision-free names,
-   namespace-check first, 4 Agent Manager + 6 background tasks, 18 traps
-   in every brief, integrate + wrap. After the wrap, request the wave-34
-   scope delta and cut the next eco-* tag on the wrap commit (ops raises
-   PUBLISH_RATE_MAX for the window; gate approval is this session's job).
+   success). Wave 34 (`webp, jpeg, flac, eeprom, i2c, nats, ldap, upnp,
+   golden, meteorology`) was dispatched 23:31Z: integrate the workers as
+   they report, then the wave-34 wrap (allowlist +10, index, report,
+   validate, guard). Its scope delta is pre-requested; after the wrap cut
+   the next eco-* tag on the wrap commit, approve the gate, report the run
+   ID (ops raises PUBLISH_RATE_MAX for the window on request, D5 after).
 2. Keep the registry-lane badge-override follow-up (SESSION.md section 5)
    and the .github OIDC token re-mint finding.
+3. Worker briefs must keep both the 18-trap list and the XIOM MCP guidance
+   (`xiom_xiom_stdlib_reference` for exact stdlib signatures,
+   `xiom_xiom_cheatsheet`, `xiom_compile_and_fix`); they measurably reduce
+   wrong-signature and wrong-idiom retries.
 ```
 
 **Mission:** turn this monorepo into real, production-grade package repos.
