@@ -21,3 +21,7 @@ tokens*.json
 a.exe
 a.out
 kilo.jsonc
+
+# XIOM MCP tool local state (AI diagnose cache)
+.xiom_ai.json
+.xiom_ai_cache/
