@@ -321,3 +321,13 @@ xiom.woff
 xiom.qoi
 xiom.miniseed
 xiom.ass
+xiom.ext
+xiom.acpi
+xiom.usb
+xiom.smbios
+xiom.mbr
+xiom.sparse
+xiom.uboot
+xiom.psf
+xiom.pcf
+xiom.resolv
