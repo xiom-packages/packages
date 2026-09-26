@@ -34,18 +34,19 @@ completed and `eco-v0.1.2` hit the registry scope delta). Check
   approval) completed 15:02Z, publishing the remaining waves 18-30 names;
   the registry index now carries **231 packages**. Run `36240424222`.
 - **Production `eco-v0.1.2` (waves 31+32, 19 new names): CUT, FAILED on
-  scopes -- attempts 1 and 2.** Run `36251091427` attempt 1 failed 15:25Z;
-  attempt 2 (rerun 15:40Z, after the ops recreate that raised
-  `PUBLISH_RATE_MAX=600` and deployed the trust-proxy fix) failed 15:54Z,
-  reproducing `scope_denied` at 15:41-15:44Z for `acpi, cab, efi, ext` with
-  **no 429s** -- the recreate did **not** add the 19-name scope delta. The
-  registry token `eco-release` is not scoped for the delta names (HTTP 403
-  `token "eco-release" is not scoped to publish "xiom.<name>"`); later
-  names show HTTP 401 `oidc_token_expired` only because each name retries
-  after 30 s and the job's single minted OIDC token (~6 min life) expires
-  mid-run. **BLOCKED on the registry/ops scope delta for the 19 names**
-  (section 5). Rerun `36251091427` after the scopes land (it skips
-  published versions); do not re-cut the tag.
+  scopes -- attempts 1, 2 and 3.** Run `36251091427` attempt 1 failed
+  15:25Z; attempt 2 (15:40Z, after the first ops recreate) failed 15:54Z;
+  attempt 3 (16:55Z, after ops deploy `394db71` declared the rate-limit
+  knobs and the registry restarted at 16:54:38Z) failed 17:08Z. All three
+  reproduce HTTP 403 `token "eco-release" is not scoped to publish
+  "xiom.<name>"` (`scope_denied`) for the delta names -- attempt 3's first
+  403 hit `xiom.acpi` at 16:55:55Z, one second into the run, with **no 429s
+  of any kind**. Later names show HTTP 401 `oidc_token_expired` only
+  because each name retries after 30 s and the job's single minted OIDC
+  token (~6 min life) expires mid-run. **BLOCKED on the registry/ops scope
+  enumeration for the 19 names**; rate-limit config is orthogonal. Rerun
+  `36251091427` after the scopes land (it skips published versions); do not
+  re-cut the tag.
 - **Workflow finding (secondary):** the publish job mints **one** OIDC
   token at job start and reuses it for every package; runs longer than
   ~6 min fail every remaining publish with `oidc_token_expired` (the retry
@@ -371,16 +372,19 @@ concurrency group). Production tags so far: `eco-v0.1.0`, `eco-v0.1.1`
   The wave-33 names (10) are allowlisted by the wave-33 wrap (`471c5e3`);
   they are the next scope request after the wave 31+32 delta lands (a
   future `eco-v0.1.3` would carry them).
-- **Ops rate-limit note (2026-09-26 ~15:39, relayed by the owner)**: ops
-  re-raised `PUBLISH_RATE_MAX=600` and deployed the trust-proxy rate-limit
-  fix in a production recreate; unexpected 429s are now genuine rate
-  limiting (the app-level per-IP limits are real again). The normal limit
-  is **20/min** and ops restores it on "batch done" (registry §21 D5).
-  Attempt 2 of run `36251091427` (rerun 15:40Z, gate approved) **also
-  failed** and reproduced `scope_denied` (acpi/cab/efi/ext at 15:41-15:44Z,
-  no 429s): the recreate did **not** pick up the 19-name scope delta.
-  Attempt 1's failure was **not** rate limiting (it was `scope_denied`,
-  later `oidc_token_expired`).
+- **Ops rate-limit notes (2026-09-26, relays via the owner)**: ops first
+  reported the 15:02Z stall as the restored 20/min default and "re-raised"
+  `PUBLISH_RATE_MAX=600`; the corrected root cause (16:54Z relay) is that
+  `PUBLISH_RATE_MAX` was **never declared** in the production service
+  block, so both the bump and the planned restore were inert and the
+  service ran the default **20/min** all along. Deploy `394db71` declares
+  all rate-limit knobs; production now genuinely runs `PUBLISH_RATE_MAX=600`
+  (ops verified with `printenv`; registry `/health` shows the restart at
+  16:54:38Z, v2.1.0). Ops restores **20** on "batch done" (registry §21
+  D5). Rate-limit config does **not** affect the `scope_denied` 403:
+  attempt 3 ran against the new config and still failed on scopes, with no
+  429s. Batch is **not** done; do not send the "batch done" confirmation
+  until `eco-v0.1.2` publishes.
 - **Environment**: `registry-publish` requires reviewer `Lefteris-Notas`
   (owner); per the 2026-09-26 standing instruction this session approves
   both staging canary deployments and production batch gates via the API
