@@ -3,8 +3,9 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-09-25, by the packages session (continuation of the
-2026-09-23 handoff; refreshed after wave 30). Check
+**Written:** 2026-09-26, by the packages session (continuation of the
+2026-09-23 handoff; refreshed after wave 31, including the first staging
+canary batch and the `eco-v0.1.1` production release). Check
 `git log -1 --format=%h %s` before starting.
 
 **Mission:** turn this monorepo into real, production-grade package repos.
@@ -20,10 +21,10 @@ legacy code in dependency order, and graduate stable packages to
   (Free org). Remote `https://github.com/xiom-packages/packages.git`.
 - Identity: repo-local `Lefteris Notas <lefterisnotas@gmail.com>`. Org-wide
   decision: gmail is the author identity in every repo; never the work email.
-- Folder inventory (2026-09-25, after wave 30): **295 implemented dirs (with
+- Folder inventory (2026-09-26, after wave 31): **305 implemented dirs (with
   `package.xi`) + 210 README-only placeholders + the umbrella
-  `packages/package.xi`**. Since the 2026-09-23 handoff: 228 new packages were
-  implemented (85 by converting placeholders, 143 brand-new dirs); the four
+  `packages/package.xi`**. Since the 2026-09-23 handoff: 238 new packages were
+  implemented (85 by converting placeholders, 153 brand-new dirs); the four
   deprecated dirs were deleted and `xiom-core` renamed to `xiom-durable`.
   Wave 27's `gguf` circuit-breaker was resolved the same session by direct
   coordinator implementation (`docs/failed_attempts.md`, 10/10 shipped).
@@ -46,20 +47,24 @@ legacy code in dependency order, and graduate stable packages to
   `bech32`, `mbox`). Wave 29 added 10 more all-new dirs (`nii`, `hcl`, `dds`,
   `tzif`, `au`, `sbv`, `ktx`, `osrelease`, `duration`, `tcx`). Wave 30 added
   10 more all-new dirs (`elf`, `pe`, `dtb`, `pcapng`, `gpt`, `radiotap`,
-  `woff`, `qoi`, `miniseed`, `ass`).
-- `STATUS.json` totals: **228 stable, 4 ported, 63 incubating**;
-  **232 green suites, 5,037 recorded tests**.
-  - stable = the 228 greenfield packages (all `publish: false`, waiting on
-    allowlist/registry/protection).
+  `woff`, `qoi`, `miniseed`, `ass`). Wave 31 added 10 more all-new dirs
+ (`ext`, `acpi`, `usb`, `smbios`, `mbr`, `sparse`, `uboot`, `psf`, `pcf`,
+ `resolv`).
+- `STATUS.json` totals: **238 stable, 4 ported, 63 incubating**;
+  **242 green suites, 5,236 recorded tests**.
+  - stable = the 238 greenfield packages. The wave 18-30 stable set is
+    published to **staging** (130/130 in the 2026-09-26 batch) and included
+    in the **eco-v0.1.1** production batch; new stable packages still carry
+    `publish: false` until the next scope delta / tag.
   - ported = `xiom.sensor`, `xiom.control`, `xiom.json` (pure, promotable) and
     `xiom.kafka` (librdkafka FFI stubs remain; keep `ported`).
   - incubating = 63 legacy packages (includes `xiom.durable`, the renamed
     core, not yet ported).
-- `.github/publish-allowlist.txt`: **280 names** = 228 stable ready + 52
+- `.github/publish-allowlist.txt`: **290 names** = 238 stable ready + 52
   grandfathered legacy names (`.github/allowlist-baseline.txt`, warn-only in
   the guard). `scripts/allowlist-guard.ps1`: 0 failures.
 - Namespace audit **resolved**: `namespace-check` reports
-  **295 packages, 393 modules, 0 conflicts** (2026-09-25, after wave 30).
+  **305 packages, 403 modules, 0 conflicts** (2026-09-26, after wave 31).
 - Toolchain: pin `COMPILER_VERSION` = **v0.61.3**; installed compiler
   v0.61.3 (`C:\Users\lefte\AppData\Local\xiom\bin`); repo release dir has
   v0.61.1; GitHub releases v0.61.1 + v0.61.3 exist. Stdlib
@@ -69,15 +74,19 @@ legacy code in dependency order, and graduate stable packages to
 - Licensing: `LICENSE-MIT`, `LICENSE-APACHE`, `NOTICE` and a pointer
   `LICENSE` are committed per LICENSING.md §2. SPDX pass repo-wide and the
   §1 `.md` header block remain .github-session scope.
-- 511 commits landed since the previous handoff (`b2bdde1..`).
+- 542 commits landed since the previous handoff (`b2bdde1..`).
 
 ### Commit trail (recent milestones)
 
 | Commit | What |
 |---|---|
-| this | SESSION.md refresh after wave 30 |
+| this | SESSION.md refresh after wave 31 + first staging batch + eco-v0.1.1 |
+| 9ac83d3 | allowlist wave 31 + index/report regeneration |
+| b0d97fd..2bb8c14 | wave 31 per-package `feat:`/`chore:` pairs (10 packages) |
+| a0d7fc4 | `port.ps1` fails closed when a suite reports zero checks |
+| a6e678e | staging canary ledger complete (130/130 success); `eco-v0.1.1` tagged |
+| 4fb356f / c68013f / 8f7e58e | staging batch list + runner (serialized protocol) |
 | da1a851 | allowlist wave 30 + index/report regeneration |
-| 129324f..15eec94 | wave 30 per-package `feat:`/`chore:` pairs (10 packages) |
 | 7cc082a | allowlist wave 29 + index/report regeneration |
 | 456c3da..e88b8b1 | wave 29 per-package `feat:`/`chore:` pairs (10 packages) |
 | 0637303 | allowlist wave 28 + index/report regeneration |
@@ -126,8 +135,8 @@ Standard commands (repo root):
 ```powershell
 & .\scripts\xiom.ps1 -Info
 & .\scripts\port.ps1 -Package xiom.lru            # verify one package
-& .\scripts\status.ps1 -Action validate           # 295/0 expected
-& .\scripts\allowlist-guard.ps1                   # 280 allowlisted, 0 failures
+& .\scripts\status.ps1 -Action validate           # 305/0 expected
+& .\scripts\allowlist-guard.ps1                   # 290 allowlisted, 0 failures
 & .\scripts\namespace-check.ps1                   # 0 conflicts expected
 & .\generate_index.ps1 ; & .\scripts\status.ps1 -Action report
 ```
@@ -176,21 +185,41 @@ which is also the current pin, so records are consistent.
 
 ---
 
-## 5. Publishing / registry state (2026-09-25)
+## 5. Publishing / registry state (2026-09-26)
 
-- **Staging is live through scope delta v5** (`eco-canary`, 151 scopes +
-  3 OIDC publisher entries). v4 covered waves 10-15; v5 covered waves 16-17.
-- **Canary coverage**: all 78 previously scoped stable names were canaried
-  43+35) and verified; the wave 16/17 sample (`xiom.tar`, `xiom.id3`,
-  `xiom.jwt`) plus the **incubating badge canary `xiom.algo`** were dispatched
-  and verified on staging (runs `36074481232`, `36074526832`, `36074580156`,
-  `36074625612`). `xiom.algo`'s staging record carries
-  `"stage": "incubating"` at package and version level -- badge path works.
-- **Scope deltas pending** (relay to the registry/ops):
-  - wave 18 (10 names): `base58, cidr, crc, macaddr, obj, querystring,
-    roman, stl, uri, varint` -> planned v6 delta (151 -> 161).
-  - wave 19 (10 names): `ascii85, bitfield, cobs, eml, nmea, pack, pcap,
-    punycode, term, tlv` -> the delta after v6.
+- **Staging**: rebuilt from main (`06f6977`, registry 2.0.0) with the
+  xiom-packages/packages entry carrying the **full 290-name allowlist**
+  (`staging-scopes.txt/.json` from the registry lane) and
+  `PUBLISH_RATE_MAX=600`. All pre-batch canaries (78 scoped names + wave
+  16/17 samples + the `xiom.algo` badge canary) remain verified.
+- **Wave 18-30 staging batch: 130/130 SUCCESS (2026-09-26)**. Ledger with
+  every `name -> run id -> state` is committed at `docs/staging-batch-runs.txt`
+  (final commit `a6e678e`); the batch list is `docs/staging-batch.txt` (130
+  names). Runner: `scripts/staging-batch.ps1` (staging-only guard, dry-run
+  default, serialized pipeline).
+  - **Concurrency finding (important)**: the workflow has a repo-level
+    concurrency group (`registry-publish`, `cancel-in-progress: false`).
+    GitHub cancels a previously *pending* run when a newer run joins the
+    same group, so bulk-dispatching the whole batch at once cancelled 128
+    of 130 runs (only the first and last survived). Batches must be
+    dispatched through the serialized runner (at most one `pending` run),
+    and the eco tag must never overlap a dispatch batch.
+  - Approvals: staging runs are approved by this session via
+    `POST /actions/runs/<id>/pending_deployments` with a JSON body
+    `{"state":"approved","environment_ids":[<env id>],"comment":"..."}`
+    (the GET returns only pending entries and has no `state` field;
+    `-f` sends strings and fails -- use `--input <tempfile>`).
+- **Production: `eco-v0.1.1` cut (2026-09-26)** on `a6e678e` (annotated:
+  waves 18-30, 130 packages staging-verified). Tag run `36240424222`:
+  readiness guard success, publish job waiting for the **owner's single
+  approval**; it publishes the full ready batch at the tag commit (228
+  stable names; grandfathered names are skipped by the readiness filter).
+  No production tags before this one besides `eco-v0.1.0`.
+- **Wave 31 delta pending** (relay to the registry/ops for the next scope
+  update and a possible `eco-v0.1.2`): `ext, acpi, usb, smbios, mbr,
+  sparse, uboot, psf, pcf, resolv` (10 names; green, allowlisted).
+- Historical scope deltas (waves 18-30) are fully covered by the 290-name
+  staging entry; no names remain "awaiting scopes" from before wave 31.
   - wave 20 (10 names): `can, dhcp, dns, ical, irc, modbus, mqtt, ntp, socks,
     vcf` -> the delta after wave 19 (dispatched/green 2026-09-25; not yet
     scoped, so no canary can be dispatched).
@@ -239,9 +268,11 @@ which is also the current pin, so records are consistent.
 1. **Phase 0 -- toolchain + harness + triage: DONE.** Scripts above, STATUS
    seeded for every implemented package, pin v0.61.3, licenses, badge/guard
    pipeline, bounded badge canary.
-2. **Phase 1 -- small greenfield packages: DONE and expanded.** 228 packages
-   built, conformance-tested, `stable`, allowlisted (waves 1-30). All pass
+2. **Phase 1 -- small greenfield packages: DONE and expanded.** 238 packages
+   built, conformance-tested, `stable`, allowlisted (waves 1-31). All pass
    the namespace rule; each has SPEC/README/tests and a STATUS record.
+   Waves 18-30 are staging-verified and in the `eco-v0.1.1` production
+   batch; wave 31 rides the next tag/delta.
 3. **Phase 2 -- foundations port: NEXT.** `xiom.durable` (renamed; not yet
    ported) first, then the pure legacy set (`xiom.algo` etc.). 63 incubating
    package remain; the legacy compile triage is in the previous handoff's
@@ -354,17 +385,21 @@ Language traps that must be in every porter brief:
 
 ## 8. Open decisions (owner) / outstanding items
 
-1. **Scope deltas** for wave 18 (v6, 151 -> 161) and waves 19-30 (the deltas
-   after v6); 129 names total pending before those canaries.
-2. **`eco-v0.1.1` production greenlight** (one tag, one approval) for the
-   combined stable set; production is otherwise owner-gated.
+1. **Wave 31 scope delta** (next allowlist/scopes update) for
+   `ext, acpi, usb, smbios, mbr, sparse, uboot, psf, pcf, resolv`; a
+   possible `eco-v0.1.2` (or per-name production dispatch) after the
+   `eco-v0.1.1` batch completes. Waves 18-30 are fully covered by the
+   290-name staging entry and the `eco-v0.1.1` tag.
+2. **`eco-v0.1.1` production approval**: tag cut, run `36240424222` waiting
+   at the `registry-publish` gate for the owner's single approval (this
+   doubles as the remaining production greenlight for waves 18-30).
 3. **Repo protection closure**: the required-reviewer environment is live;
    confirm this satisfies the §8.3 decision.
 4. **OAuth callback URL check** (owner): both GitHub OAuth app callback URLs,
    outstanding from the earlier relay; kept separate from publish relays.
-5. **Wave 31+ queue**: 210 placeholders remain; strong small candidates are
-   more format/protocol codecs (`psf`, `pcf`, `ext`, `mbr`, `sparse`,
-   `resolv`, `passwd`, and other names that pass namespace-check).
+5. **Wave 32+ queue**: 210 placeholders remain; strong small candidates are
+   more format/protocol codecs (`passwd`, `uboot`-siblings, `fstab`-siblings,
+   `pci`, `hid`, `cab`, and other names that pass namespace-check).
    Owner relayed the ecosystem page's
    canonical categories (Data and storage; Networking and web; AI and machine
    learning; Scientific computing; Graphics and games; Systems and tooling;
@@ -488,10 +523,25 @@ Language traps that must be in every porter brief:
   0..9999, and BE-only stance; `xiom.ass` hit the benign E001
   borrow-in-struct advisory when a Vec is both borrowed and moved. Two
   more delegate silent aborts (`pcapng` #1 recovered by one retry).
-  Working patterns (not bugs):
+  Wave 31 added: trap 14 keeps recurring in **parameter** positions
+  (`xiom.usb` found 8 after a green run, `xiom.mbr` 1) -- the post-green
+  grep is mandatory. `str_len`/`byte_at` DO work on a typed local bound
+  from a `Vec[Str]` element (`xiom.usb` probe; the dtb caution was
+  over-broad), while `==` still must be avoided. USB strings:
+  `bLength = 4 + 2*text_units` (the string index counts as one UTF-16
+  unit). `xiom.gpt`: a stored CRC field must be zero while computing its
+  own CRC. `xiom.miniseed`: no sample-count field in the fixed header,
+  tenths range 0..9999, BE-only. Working patterns (not bugs):
   module-scope `pub const` resolves unqualified in importers; nested plain
   structs and `Vec[Vec[UInt8]]` struct fields compile and mutate; `--run`
   leaves a gitignored `a.exe` in the package dir.
+- **Harness/tooling (this session):** `scripts/port.ps1` now **fails closed**
+  when a suite prints zero `[PASS]` markers (a quiet run had accepted an
+  interrupted suite as green; see `a0d7fc4`). PowerShell scripting pitfalls
+  hit while running the publish lane: variable-colon parsing
+  (`"$RunId:"` needs `${RunId}:`), `[int]` overflow on GitHub run IDs
+  (use `[long]`), and `--input -` stdin pipes for JSON bodies are
+  unreliable from background PowerShell (use a temp file).
 - **.github session:** licensing pass done here (LICENSE-MIT/APACHE/NOTICE,
   canonical holder); SPDX/`.md` header pass and rulesets remain theirs.
 - **Owner:** relays, scope deltas, production greenlight, OAuth callback
