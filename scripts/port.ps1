@@ -158,7 +158,10 @@ try {
             $programExit = [int64]$codeMatches[$codeMatches.Count - 1].Groups[1].Value
         }
         $effectiveExit = if ($null -ne $programExit) { $programExit } else { $result.ExitCode }
-        $exitCode = if ($effectiveExit -eq 0 -and $failed -eq 0) { 0 } else { 1 }
+        # Fail-closed: a suite run that produced no [PASS] markers at all
+        # (empty output, interrupted run, or a program that never executed
+        # its checks) must not be accepted as green.
+        $exitCode = if ($effectiveExit -eq 0 -and $failed -eq 0 -and $passed -gt 0) { 0 } else { 1 }
     }
 } finally {
     Pop-Location
