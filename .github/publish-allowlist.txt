@@ -340,3 +340,13 @@ xiom.hid
 xiom.cab
 xiom.pci
 xiom.rpm
+xiom.png
+xiom.gif
+xiom.mp3
+xiom.mp4
+xiom.mkv
+xiom.snmp
+xiom.imap
+xiom.amqp
+xiom.thrift
+xiom.avro

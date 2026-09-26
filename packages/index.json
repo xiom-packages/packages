@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-26T15:19:54Z",
+    "updated":  "2026-09-26T18:59:28Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -89,6 +89,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-algo/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "algo.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.amqp",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM AMQP 0-9-1 frame codec: protocol header, method, content header, body and heartbeat frames",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-amqp/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "amqp.xi",
                                               "package.xi"
                                           ]
                      },
@@ -242,6 +259,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-avi/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "avi.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.avro",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Strict pure-XIOM Avro 1.11 binary primitive codecs and Object Container File header parser",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-avro/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "avro.xi",
                                               "package.xi"
                                           ]
                      },
@@ -466,6 +500,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bullet/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "bullet.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.cab",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Microsoft Cabinet header and directory codec: parse and build CAB index structures",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cab/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cab.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1005,6 +1056,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.efi",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "UEFI Firmware File System (FFS) file and section codec, documented subset",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-efi/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "efi.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.eigen",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Eigen bindings -- header-only C++ template library for linear algebra",
@@ -1310,6 +1378,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.ftp",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM FTP control-protocol codec (RFC 959): command parsing/emission and reply parsing/emission",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ftp/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ftp.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.fuzz",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic byte and string mutation for fuzzing",
@@ -1463,6 +1548,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.gif",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "GIF87a/GIF89a structure parser: canvas, color tables, frame metadata, extensions, byte offsets",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gif/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "gif.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.glfw",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "GLFW bindings for safe windowing, input, and monitor management with zero Vulkan dependency",
@@ -1589,6 +1691,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hello/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "hello.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.hid",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "USB HID report-descriptor parsing, validation and canonical emission",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hid/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "hid.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1767,6 +1886,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-id3/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "id3.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.imap",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "IMAP4rev1 protocol parser (RFC 3501): commands, responses, literals, nested lists, response codes",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-imap/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "imap.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2397,6 +2533,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.mkv",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Matroska/WebM (EBML) container reader: VINT decoding, EBML header, Info, Tracks and Cluster spans",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mkv/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "mkv.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.modbus",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Modbus RTU/TCP frame codec with CRC-16/Modbus and MBAP validation",
@@ -2426,6 +2579,40 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-moveit/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "moveit.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.mp3",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "MP3 structural parser: MPEG-1/2/2.5 frame headers, stream scan and ID3v1/v2 tags (no audio decoding)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mp3/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "mp3.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.mp4",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "ISO BMFF / MP4 box parser: recursive tree walk, ftyp/mvhd/tkhd/mdhd/hdlr/stsd/elst/stco/co64/stsz metadata and fragment detection",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mp4/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "mp4.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2930,6 +3117,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.passwd",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "passwd-file parser and canonical emitter for the seven-field /etc/passwd subset",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-passwd/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "passwd.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.password",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Password strength scoring and structural checks (no crypto, no dictionaries)",
@@ -3027,6 +3231,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pcf/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "pcf.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.pci",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "PCI configuration-space codec: decode a 256-byte function and build a canonical type-0 header",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pci/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "pci.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3199,6 +3420,40 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ply/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "ply.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.png",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "PNG (W3C PNG 1.2) container codec: signature, chunk stream, CRC-32, IHDR/PLTE/tRNS/gAMA/pHYs/sRGB/text validation",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-png/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "png.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.pop3",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "POP3 protocol codec (RFC 1939): commands, responses, dot-stuffing, flat listing pairs",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pop3/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "pop3.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3801,6 +4056,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.rpm",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "RPM package lead and header parser: tags, types and metadata lookups",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rpm/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "rpm.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.rtf",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM RTF subset codec: token stream parser, canonical emitter, plain-text extraction",
@@ -4094,6 +4366,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.smtp",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "SMTP protocol codec: RFC 5321 command lines and reply blocks, parse, build and canonical CRLF emit",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-smtp/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "smtp.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.snapshot",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Snapshot comparison helpers: normalization, line equality, and first-difference summaries",
@@ -4123,6 +4412,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-snbt/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "snbt.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.snmp",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "ASN.1 BER decoder plus SNMPv1/v2c message parser and minimal GetRequest/Response encoder (RFC 1157 / 3416 subset)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-snmp/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "snmp.xi",
                                               "package.xi"
                                           ]
                      },
@@ -4543,7 +4849,7 @@
                          "version":  "0.1.0",
                          "name":  "xiom.tftp",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "TFTP packet codec (RFC 1350): RRQ, WRQ, DATA, ACK, ERROR",
+                         "description":  "Pure-XIOM TFTP packet codec (RFC 1350) with RFC 2347 option TLVs: RRQ, WRQ, DATA, ACK, ERROR, OACK",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
@@ -4587,6 +4893,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-thermo/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "thermo.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.thrift",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Apache Thrift binary protocol codec (message headers, fields, primitives, containers, skip)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-thrift/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "thrift.xi",
                                               "package.xi"
                                           ]
                      },
@@ -5377,19 +5700,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-amqp",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-amqp/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-analyzer",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -5488,19 +5798,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-aviation/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-avro",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-avro/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -6287,19 +6584,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-ftp",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ftp/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-gcp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -6346,19 +6630,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-geom3d/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-gif",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gif/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -6489,19 +6760,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-imaging/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-imap",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-imap/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -7002,19 +7260,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-mkv",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mkv/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-ml",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7061,32 +7306,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-monitoring/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-mp3",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mp3/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-mp4",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mp4/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -7379,19 +7598,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-png",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-png/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-pool",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7399,19 +7605,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pool/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-pop3",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pop3/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -7613,32 +7806,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-smtp",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-smtp/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-snmp",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-snmp/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-spi",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7776,19 +7943,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-text-markup/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-thrift",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-thrift/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
