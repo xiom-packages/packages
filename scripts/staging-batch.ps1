@@ -120,7 +120,10 @@ function Approve-Run {
       environment_ids = @($envId)
       comment         = "staging canary batch approved by the packages session"
     } | ConvertTo-Json -Compress
-    $res = $body | & gh api --method POST "repos/$repo/actions/runs/$RunId/pending_deployments" --input - 2>&1
+    $tmp = Join-Path $env:TEMP "xiom-approve-$RunId.json"
+    Set-Content -LiteralPath $tmp -Value $body -Encoding ASCII
+    $res = & gh api --method POST "repos/$repo/actions/runs/$RunId/pending_deployments" --input $tmp 2>&1
+    Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
     Assert-No-Throttle -Output ($res -join "`n")
     if ($LASTEXITCODE -eq 0) {
       Write-Host "  approved run $RunId (env $envId)"
