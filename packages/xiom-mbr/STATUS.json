@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.mbr",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  18,
+                  "failed":  0,
+                  "run_by":  "ses_f24bbfe3affemiInHwXod7enlQ",
+                  "commit":  "0807970",
+                  "checked":  "2026-09-26T01:17:42Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+}
