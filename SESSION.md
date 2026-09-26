@@ -4,9 +4,89 @@
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
 **Written:** 2026-09-26, by the packages session (continuation of the
-2026-09-23 handoff; refreshed after wave 31, including the first staging
-canary batch and the `eco-v0.1.1` production release). Check
-`git log -1 --format=%h %s` before starting.
+2026-09-23 handoff; refreshed during wave 32, with the `eco-v0.1.1`
+production batch resuming). Check `git log -1 --format=%h %s` before starting.
+
+## 0. Current state + next-session prompt (read this first)
+
+**State at handoff (2026-09-26 ~14:20):**
+- 313 implemented / 207 README-only placeholders; **246 stable / 4 ported /
+  63 incubating**; 250 green suites / **5,402 recorded tests**; allowlist
+  **290** (wave-32 wrap pending); namespace 313 packages / 411 modules /
+  0 conflicts. `validate` = 313/0.
+- **Wave 32: 9/10 integrated** -- `tftp, pop3, smtp, ftp` (placeholder
+  conversions) + `passwd, efi, hid, cab, pci`. `rpm` retry was running at
+  handoff (`ses_f21e9f553ffeSgTNGlDhlaN60G`).
+- **Production `eco-v0.1.1`** (waves 18-30, tag at `a6e678e`): the first
+  attempt was **cancelled by the job's `timeout-minutes: 30`** after 116
+  publish attempts + 16 already-published skips. The run is **idempotent**
+  (the loop prints `skip (already published)` and continues). A `gh run
+  rerun 36240424222` was approved and is **in progress** at handoff; it may
+  need one more rerun+approval if 30 minutes is not enough for the
+  remainder.
+- **Production-direct policy is in force** (owner standing instruction,
+  section 5): one `eco-*` tag per ready batch, gate approvals handled by
+  this session; staging only when the owner explicitly asks for it.
+
+**Next actions, in order:**
+1. Verify + integrate `rpm` when its worker reports (port must show
+   `passed > 0`; commit, re-run on the commit, `status.ps1 -Action update
+   -Stage stable -TestsStatus pass -Passed N -Failed 0 -RunBy <session>
+   -Commit <sha> -ExcludedReason "publish pending: allowlist + next eco tag"`,
+   commit the record, push). If the retry failed, implement it directly
+   (see `docs/failed_attempts.md` for the gguf precedent).
+2. Wave-32 wrap: append the 10 names to `.github/publish-allowlist.txt`
+   (`tftp, pop3, smtp, ftp, passwd, efi, hid, cab, pci, rpm`), run
+   `& .\generate_index.ps1`, `& .\scripts\status.ps1 -Action report`,
+   `validate`, `allowlist-guard`, commit
+   `chore: allowlist wave 32 packages, regenerate index and status report`,
+   push.
+3. Watch production run `36240424222` to completion; if cancelled again,
+   `gh run rerun 36240424222` + approve the gate (JSON body via temp file:
+   `{"state":"approved","environment_ids":[22424011031],"comment":"..."}`
+   POSTed with `--input <file>`). It skips published versions.
+4. When `eco-v0.1.1` completes and the concurrency group is free: cut
+   **`eco-v0.1.2`** on the wave-32 wrap commit (annotated tag, push),
+   approve the gate, report the run ID. It covers waves 31+32 (20 new
+   names). Never overlap a tag run with dispatch batches (the shared
+   `registry-publish` concurrency group cancels pending runs).
+5. Refresh this file (§1 numbers, §5 publishing state, commit trail) and
+   report to the owner.
+6. Continue with wave 33: pick ~10 collision-free names, run
+   `namespace-check.ps1 -Module <each>` first, split 4 Agent Manager local
+   + 6 background tasks, each with the full 18-trap brief (section 7),
+   then integrate + wrap as usual.
+
+**Copy-paste prompt for the next session:**
+
+```text
+You are the packages session for xiom-packages/packages (local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
+private). Read SESSION.md first -- sections 0 and 5 are the live handoff.
+Repo-local identity must be "Lefteris Notas <lefterisnotas@gmail.com>".
+Publishing policy: PRODUCTION-DIRECT by default (one eco-* tag per ready
+batch; this session handles the registry-publish gate approval). Staging
+only when the owner explicitly asks.
+
+Start by running: git fetch; git status -sb; git log -1; then
+& .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
+
+Then do, in order:
+1. Verify + integrate xiom.rpm when its worker (or a retry) is green
+   (port: PASS passed>0; commit feat + run-on-commit + STATUS record with
+   RunBy/Commit + push). If no files, re-dispatch or implement directly.
+2. Wave-32 wrap: allowlist the 10 wave-32 names, generate_index, report,
+   validate, guard, commit and push.
+3. Monitor production run 36240424222 (eco-v0.1.1). If it hits the 30-min
+   job timeout again: gh run rerun 36240424222, approve the
+   pending_deployments gate (JSON body via temp file), repeat until done.
+4. Cut eco-v0.1.2 on the wave-32 wrap commit (waves 31+32, 20 names),
+   approve its gate, report the run ID. Never overlap tag runs with
+   dispatch batches (shared concurrency group).
+5. Refresh SESSION.md and report; then continue wave 33 with the standard
+   recipe (namespace-check first, 4 Agent Manager + 6 tasks, 18 traps in
+   every brief, integrate + wrap).
+```
 
 **Mission:** turn this monorepo into real, production-grade package repos.
 Start from small packages that can reach production grade quickly, port the
@@ -21,10 +101,10 @@ legacy code in dependency order, and graduate stable packages to
   (Free org). Remote `https://github.com/xiom-packages/packages.git`.
 - Identity: repo-local `Lefteris Notas <lefterisnotas@gmail.com>`. Org-wide
   decision: gmail is the author identity in every repo; never the work email.
-- Folder inventory (2026-09-26, after wave 31): **305 implemented dirs (with
-  `package.xi`) + 210 README-only placeholders + the umbrella
-  `packages/package.xi`**. Since the 2026-09-23 handoff: 238 new packages were
-  implemented (85 by converting placeholders, 153 brand-new dirs); the four
+- Folder inventory (2026-09-26, during wave 32): **313 implemented dirs (with
+  `package.xi`) + 207 README-only placeholders + the umbrella
+  `packages/package.xi`**. Since the 2026-09-23 handoff: 246 new packages were
+  implemented (89 by converting placeholders, 157 brand-new dirs); the four
   deprecated dirs were deleted and `xiom-core` renamed to `xiom-durable`.
   Wave 27's `gguf` circuit-breaker was resolved the same session by direct
   coordinator implementation (`docs/failed_attempts.md`, 10/10 shipped).
@@ -50,8 +130,8 @@ legacy code in dependency order, and graduate stable packages to
   `woff`, `qoi`, `miniseed`, `ass`). Wave 31 added 10 more all-new dirs
  (`ext`, `acpi`, `usb`, `smbios`, `mbr`, `sparse`, `uboot`, `psf`, `pcf`,
  `resolv`).
-- `STATUS.json` totals: **238 stable, 4 ported, 63 incubating**;
-  **242 green suites, 5,236 recorded tests**.
+- `STATUS.json` totals: **246 stable, 4 ported, 63 incubating**;
+  **250 green suites, 5,402 recorded tests**.
   - stable = the 238 greenfield packages. The wave 18-30 stable set is
     published to **staging** (130/130 in the 2026-09-26 batch) and included
     in the **eco-v0.1.1** production batch; new stable packages still carry
@@ -64,7 +144,7 @@ legacy code in dependency order, and graduate stable packages to
   grandfathered legacy names (`.github/allowlist-baseline.txt`, warn-only in
   the guard). `scripts/allowlist-guard.ps1`: 0 failures.
 - Namespace audit **resolved**: `namespace-check` reports
-  **305 packages, 403 modules, 0 conflicts** (2026-09-26, after wave 31).
+  **313 packages, 411 modules, 0 conflicts** (2026-09-26, during wave 32).
 - Toolchain: pin `COMPILER_VERSION` = **v0.61.3**; installed compiler
   v0.61.3 (`C:\Users\lefte\AppData\Local\xiom\bin`); repo release dir has
   v0.61.1; GitHub releases v0.61.1 + v0.61.3 exist. Stdlib
@@ -74,7 +154,7 @@ legacy code in dependency order, and graduate stable packages to
 - Licensing: `LICENSE-MIT`, `LICENSE-APACHE`, `NOTICE` and a pointer
   `LICENSE` are committed per LICENSING.md §2. SPDX pass repo-wide and the
   §1 `.md` header block remain .github-session scope.
-- 542 commits landed since the previous handoff (`b2bdde1..`).
+- 562 commits landed since the previous handoff (`b2bdde1..`).
 
 ### Commit trail (recent milestones)
 
