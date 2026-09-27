@@ -88,15 +88,16 @@ production). Check `git log -1 --format=%h %s` before starting.
   badge/visual/A1 rebuild; both publisher entries remain at **326 scopes**
   (`eco-release` production, `eco-canary` staging). Nothing pending from
   the packages side until the next wave group.
-- **Straggler checkpoint (2026-09-27 13:35Z):** `golden` is INTEGRATED
-  (feat `9ce3a53` + record `07a0022`, 35/35; its session self-committed,
-  RunBy `ses_f21c67edeffeRS7GnCxctdTg09`). jpeg + meteorology docs are
-  committed (`902dc05`, `642ea45`). `i2c` (implementation ~31 KB written,
-  tests still a skeleton) and `nats` (skeleton) were re-prompted with their
-  exact remainders. A **parallel participant** started the next-session
-  work at ~13:25Z (building wave-36 names -- `l10n-currency` active);
-  do not double-dispatch wave 36 and coordinate the wrap/tag with that
-  lane.
+- **Straggler set COMPLETE (2026-09-27 ~14:15Z):** `golden` 35/35
+  (`9ce3a53`/`07a0022`), `i2c` 20/20 and `nats` 21/21 were integrated by
+  the parallel lane (feat + records + wrap), verified independently by the
+  checkpoint session (ports re-run, trap-14 clean). Wrap commit `93a9f82`
+  (allowlist 329, index/report/`PACKAGE-NAMESPACES.txt` regenerated);
+  tag **`eco-v0.1.6`** cut on it and the run **`36325286939` is waiting at
+  the gate on purpose** -- **needs the scope delta 326 -> 329**
+  (`xiom.i2c`, `xiom.nats`, `xiom.golden`). `validate` = 344/0, guard =
+  329 allowlisted / 277 ready / 0 failures. No busy sessions; wave 36 is
+  the parallel lane's active work (`l10n-currency` first).
 - **Active lane (2026-09-27 13:52Z):** session `ses_f1cfdad42ffe`
   (started by the owner 13:16Z) is live and owns the critical path:
   i2c/nats integration, the wrap + `eco-v0.1.6` tag, and the wave-36
@@ -188,35 +189,25 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Straggler status: `golden` is integrated (9ce3a53/07a0022) and the
-   jpeg/meteorology docs are committed. If `i2c`/`nats` have delivered
-   (check `packages/xiom-i2c`, `packages/xiom-nats` + their sessions),
-   verify with `& .\scripts\port.ps1 -Package xiom.<name>`, grep for
-   `Vec<`/`Result<`, commit feat + `status.ps1 -Action update -Stage
-   stable -TestsStatus pass -Passed N -Failed 0 -RunBy <session> -Commit
-   <sha> -ExcludedReason "publish pending: next scope delta"` + record
-   commit + push; if a session is idle and unfinished, re-prompt it with
-   the exact remainder.
-2. Wrap + tag (coordinate with the parallel participant if it is already
-   wrapping): allowlist the integrated names (+`i2c`/`nats` once green),
-   `& .\generate_index.ps1`, `& .\scripts\status.ps1 -Action report`,
-   `validate`, `allowlist-guard`, `& .\scripts\export-namespaces.ps1`,
-   commit, push. Cut the next `eco-*` tag on the wrap commit and **leave it
-   waiting at the registry-publish gate**; request the scope delta from
-   registry/ops (326 -> 329/336) and approve once ops confirms. Never
-   re-cut a tag.
-3. Wave 36: `pki, merkle, apple, geology, biology, l10n-currency, gpio,
-   interrupt, flash, tls` (all namespace-check clean). A parallel
-   participant may already be building these (started ~13:25Z) -- check
-   the package dirs/session list first and continue rather than
-   re-dispatch. Standard recipe: AM-only while `task` subagents are
-   balance-dead; full 18-trap + XIOM MCP briefs; each brief asks for a
-   `stdlib gaps` section. Integrate + wrap as they report.
-4. Growth coordination: append worker-reported stdlib gaps to
+1. Wave-34 stragglers are fully integrated and tagged: `golden` 35/35,
+   `i2c` 20/20, `nats` 21/21; wrap `93a9f82`; tag `eco-v0.1.6`; run
+   `36325286939` WAITING at the gate. Request the scope delta 326 -> 329
+   (`xiom.i2c, xiom.nats, xiom.golden`) from registry/ops, then approve
+   the gate; it skips published versions. Never re-cut a tag.
+2. Wave 36: `pki, merkle, apple, geology, biology, l10n-currency, gpio,
+   interrupt, flash, tls` (all namespace-check clean). A parallel lane is
+   already building these (started ~13:25Z, `l10n-currency` active) --
+   check the package dirs and session list first; continue that lane's
+   work rather than re-dispatching. Standard recipe: AM-only while `task`
+   subagents are balance-dead; full 18-trap + XIOM MCP briefs; each brief
+   asks for a `stdlib gaps` section. Integrate + wrap (allowlist, index,
+   report, validate, guard, export-namespaces) + tag waiting at the gate
+   as they report.
+3. Growth coordination: append worker-reported stdlib gaps to
    `docs/STDLIB-WISHLIST.md` and compiler evidence to
    `docs/COMPILER-FINDINGS.md`; regenerate `docs/PACKAGE-NAMESPACES.txt`
    at every wrap so the stdlib session can cross-check names.
-5. Keep the registry-lane badge-override follow-up (section 5) and the
+4. Keep the registry-lane badge-override follow-up (section 5) and the
    .github OIDC token re-mint finding.
 ```
 
