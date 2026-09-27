@@ -121,17 +121,17 @@ production). Check `git log -1 --format=%h %s` before starting.
   **359**, validate 374/0, guard 359/0 (307 ready), namespaces 374 pkgs /
   398 modules. Growth docs: all ten wave-38 reports appended
   (`188505d`, `a96235b`).
-- **Gate queue (scope-blocked; registry still 277; owner greenlight
-  granted 21:19Z):** `eco-v0.1.6` (run `36325286939`) was **approved and
-  ran -- FAILED with `scope_denied`**: `token "eco-release" is not scoped
-  to publish "xiom.golden"/"xiom.i2c"/"xiom.nats"` (HTTP 403), i.e. ops
-  has not enumerated the delta yet. `eco-v0.1.7`/`eco-v0.1.8` were
-  concurrency-cancelled; `eco-v0.1.9` (run `36338915735`) is now the
-  **head, waiting at the gate** -- do NOT approve until ops confirms (it
-  publishes all 23 unpublished names from its ancestry: 3 stragglers +
-  wave-36 + wave-37). No rerun of 0.1.6 is needed. Scope target 326 ->
-  359; wave 39 raises it to 369 at the wrap (`eco-v0.1.10`). Never re-cut
-  tags.
+- **Gate queue (ops confirmed 2026-09-27 21:56Z):** production
+  `eco-release` = **359 scopes**, staging `eco-canary` = 359, ops HEAD
+  `525fff6`; production registry 2.3.0, publishers 2/tokens 2, migrations
+  001-008, `PUBLISH_RATE_MAX=600`, `TRUST_PROXY=1`, email disabled (one
+  post-batch recreate restores 20/min and enables SMTP). Live-check
+  staging 219/218, production 277/276. **`eco-v0.1.9` (run `36338915735`)
+  was APPROVED 21:57Z and is publishing the 23 unpublished names** (3
+  stragglers + wave-36 + wave-37). `eco-v0.1.6` failed earlier with
+  `scope_denied`; no rerun needed. Wave 39 wraps as `eco-v0.1.10` (10
+  names, scope target **369**) -- request the extra 10 scopes from ops,
+  then approve 0.1.10 when it reaches the gate. Never re-cut tags.
 - **Totals (2026-09-27 ~17:58Z):** 374 tracked / **307 stable / 4 ported /
   63 incubating**; allowlist **359**; registry 277 until the gates clear.
   Registry `/health`: last restart 12:47:16Z v2.2.0 (predates the scope
