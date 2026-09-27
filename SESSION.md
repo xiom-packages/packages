@@ -121,6 +121,14 @@ production). Check `git log -1 --format=%h %s` before starting.
   **359**, validate 374/0, guard 359/0 (307 ready), namespaces 374 pkgs /
   398 modules. Growth docs: all ten wave-38 reports appended
   (`188505d`, `a96235b`).
+- **Wave 40 dispatched (2026-09-27 22:57Z):** `parquet, pdf, etcd,
+  windows, perf, geography` (6 background `task` porters) + `dynamo,
+  keymgmt, auth, monitoring` (4 AM sessions) -- all namespace-check clean
+  on 1646 stdlib namespaces. `arrow` was skipped (it is already a
+  grandfathered implemented package) and `text-markup` was rejected
+  (module `xiom.text.markup` collides with the stdlib `xiom.text.*`
+  family). Integrate + wrap as they report; next tag `eco-v0.1.11`, scope
+  target **379**.
 - **Gate queue (ops confirmed 2026-09-27 21:56Z):** production
   `eco-release` = **359 scopes**, staging `eco-canary` = 359, ops HEAD
   `525fff6`; production registry 2.3.0, publishers 2/tokens 2, migrations
