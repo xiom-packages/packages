@@ -369,7 +369,12 @@ fn frame_bytes(b1: Int, b2: Int, b3: Int, num: &Vec[UInt8], extra: &Vec[UInt8]) 
   f.push(b3 as UInt8);
   append_bytes(&mut f, num);
   append_bytes(&mut f, extra);
-  let crc = crc8_local_range(&f, 0, f.len());
+  var crc = 0;
+  var i = 0;
+  while i < f.len() {
+    crc = crc8_local_step(crc, (f[i] as Int) & 0xFF);
+    i = i + 1;
+  }
   f.push(crc as UInt8);
   return f;
 }
