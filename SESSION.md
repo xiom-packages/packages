@@ -67,11 +67,19 @@ production). Check `git log -1 --format=%h %s` before starting.
   all 10 (`png, gif, mp3, mp4, mkv, snmp, imap, amqp, thrift, avro`) in
   ~3 min, each with `stage: "stable"` stamped from STATUS.json. **Registry
   index now carries 260 packages.**
-- **Scope state**: registry entries carry **309 scopes** = the full
-  allowlist through wave 33 (production `eco-release` + staging
-  `eco-canary`). The wave-34 delta (309 -> 319) is **pre-requested** from
-  registry/ops ahead of the tag. `xiom.durable` stays deliberately unscoped
-  (`incubating`, not allowlisted; Phase 2 port pending).
+- **Production `eco-v0.1.4` (wave-34 greens, 6 names): CUT, BLOCKED on the
+  scope delta (2026-09-27 00:34Z).** Tag `eco-v0.1.4` on the interim wrap
+  `9820db7` (allowlist + `webp, flac, jpeg, eeprom, meteorology, upnp`);
+  run `36282607173` failed 00:34Z with HTTP 403 `scope_denied` for
+  `xiom.eeprom`, `xiom.flac`, `xiom.jpeg` etc. -- the **309 -> 319 delta
+  pre-requested at 23:31Z is not live yet**. Rerun `36282607173` after ops
+  enumerates; do not re-cut the tag. The other four wave-34 names
+  (`i2c, nats, golden, ldap`) ride `eco-v0.1.5` once green.
+- **Wave 35 (dispatched 2026-09-27 ~00:45Z, 10 Agent Manager sessions):**
+  `spi, uart, adc, rtc, bonjour, multicast, orc, coverage, pgp, sd` -- all
+  `namespace-check` clean. `task` subagents are still balance-dead, so the
+  wave is AM-only (10 sessions, one per package). Scope delta for these
+  names (~319 -> 329) must go out with the wave-34 scope relay.
 - **Workflow finding (secondary):** the publish job mints **one** OIDC
   token at job start and reuses it for every package; runs longer than
   ~6 min fail every remaining publish with `oidc_token_expired` (the retry
@@ -88,17 +96,19 @@ production). Check `git log -1 --format=%h %s` before starting.
   this session; staging only when the owner explicitly asks for it.
 
 **Next actions, in order:**
-1. Integrate the wave-34 workers as they report (port must show
-   `passed > 0`; commit feat, run on the commit, `status.ps1 -Action update
-   -Stage stable -TestsStatus pass -Passed N -Failed 0 -RunBy <session>
-   -Commit <sha> -ExcludedReason "publish pending: allowlist + next eco
-   tag"`, commit the record, push), then the wave-34 wrap (allowlist +10,
-   generate_index, report, validate, guard, commit, push).
-2. When the wave-34 scopes are live: cut the next `eco-*` tag on the wrap
-   commit, approve the gate, report the run ID; confirm "batch done" to ops
-   (D5 restore). The batch protocol: ops raises `PUBLISH_RATE_MAX` to 600
-   on request for the publish window.
-3. Badge-override follow-up (registry lane): audited, display-only
+1. **Relay the registry/ops scope enumeration**: wave-34 names (at least the
+   six greens `webp, flac, jpeg, eeprom, meteorology, upnp`; ideally all ten
+   with `i2c, nats, golden, ldap`) -- the 23:31Z request is not live, so
+   `eco-v0.1.4` (`36282607173`) 403s. Add the wave-35 names in the same
+   relay: `spi, uart, adc, rtc, bonjour, multicast, orc, coverage, pgp, sd`
+   (309 -> 329 total). On confirmation: `gh run rerun 36282607173` + approve
+   the gate; it skips published versions.
+2. Integrate the wave-34 leftovers as the AM sessions report (docs for
+   flac/jpeg/meteorology/upnp; `i2c, nats, golden, ldap` implementations),
+   then allowlist those four and cut `eco-v0.1.5` when green.
+3. Integrate wave 35 (AM-only; `task` subagents still balance-dead), wrap,
+   and tag once its scopes are live.
+4. Badge-override follow-up (registry lane): audited, display-only
    override for historic empty-stage entries -- decision sent (`9da3143`,
    section 5); needs the generated name->stage list from `STATUS.json`
    handed over if they build it.
@@ -118,19 +128,20 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Waves 1-33 are published (registry 260 packages; eco-v0.1.1/.2/.3 all
-   success). Wave 34 (`webp, jpeg, flac, eeprom, i2c, nats, ldap, upnp,
-   golden, meteorology`) was dispatched 23:31Z: integrate the workers as
-   they report, then the wave-34 wrap (allowlist +10, index, report,
-   validate, guard). Its scope delta is pre-requested; after the wrap cut
-   the next eco-* tag on the wrap commit, approve the gate, report the run
-   ID (ops raises PUBLISH_RATE_MAX for the window on request, D5 after).
-2. Keep the registry-lane badge-override follow-up (SESSION.md section 5)
+1. eco-v0.1.4 (wave-34 greens, tag on 9820db7) is blocked on the
+   registry/ops scope enumeration -- run 36282607173 failed with
+   scope_denied and the 23:31Z request is not live yet. Confirm the scopes
+   (wave-34 names + wave-35 names; 309 -> 329), then gh run rerun
+   36282607173 + approve the gate. Never re-cut a tag.
+2. Integrate wave-34 leftovers (docs; i2c/nats/golden/ldap) and wave 35
+   (spi, uart, adc, rtc, bonjour, multicast, orc, coverage, pgp, sd) as the
+   Agent Manager sessions report. `task` subagents are balance-dead --
+   AM sessions only. Wrap + scope + tag as each batch completes.
+3. Keep the registry-lane badge-override follow-up (SESSION.md section 5)
    and the .github OIDC token re-mint finding.
-3. Worker briefs must keep both the 18-trap list and the XIOM MCP guidance
+4. Worker briefs must keep both the 18-trap list and the XIOM MCP guidance
    (`xiom_xiom_stdlib_reference` for exact stdlib signatures,
-   `xiom_xiom_cheatsheet`, `xiom_compile_and_fix`); they measurably reduce
-   wrong-signature and wrong-idiom retries.
+   `xiom_xiom_cheatsheet`, `xiom_compile_and_fix`).
 ```
 
 **Mission:** turn this monorepo into real, production-grade package repos.
