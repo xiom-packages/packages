@@ -185,8 +185,10 @@ production). Check `git log -1 --format=%h %s` before starting.
   10 wave-37 = **349**; wave 37 adds `xiom.mongo`, `xiom.memcached`,
   `xiom.cassandra`, `xiom.ssh2`, `xiom.tor`, `xiom.oauth`,
   `xiom.ethereum`, `xiom.zigbee`, `xiom.nlp`, `xiom.zookeeper` on top of
-  the 339 already relayed. **Approve `36325286939` (0.1.6), `36327834576`
-  (0.1.7) and `36334928264` (0.1.8) only after ops confirms 349; never
+  the 339 already relayed. **After ops confirms 349, approve
+  `36325286939` (0.1.6) first, then `36334928264` (0.1.8) when it starts;
+  `36327834576` (0.1.7) was concurrency-cancelled and needs no rerun --
+  the newest loop publishes every allowlisted unpublished name. Never
   re-cut a tag.**
 - **`task` subagent lane restored (2026-09-27):** the global
   `kilo.jsonc` still pointed `subagent_model`, `subagent_variant_overrides`
