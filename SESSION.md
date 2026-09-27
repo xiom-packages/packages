@@ -110,20 +110,28 @@ production). Check `git log -1 --format=%h %s` before starting.
   `36334928264`, pending in the concurrency group). The lane also appended
   the wave-37 stdlib gaps/compiler evidence and added a **public README**
   (`776e369`, website relay).
-- **Wave 38: DISPATCHED (parallel lane, 16:56Z), in flight:** `bitcoin,
-  bolt, dac, leveldb, logging, proxy, pulsar, timer, wireless` (+1 likely;
-  9 dirs unseeded at the monitor). Do not double-work; integrate only if
-  the lane stalls.
+- **Wave 38: COMPLETE (10/10) and wrapped (2026-09-27 17:58Z).**
+  `bitcoin` 20/20, `proxy` 20/20, `pulsar` 27/27, `bolt` 18/18,
+  `wireless` 33/33, `leveldb` 18/18, `logging` 22/22, `dac` 20/20,
+  `timer` 21/21, `aviation` 21/21 -- 220 tests, all stable with
+  RunBy/Commit records, trap-clean. `wireless` and `proxy` brief tables
+  (control subtypes, TLV registry) were corrected to the IEEE/HAProxy
+  canonical tables pre-commit; `bitcoin`/`leveldb`/`bolt` corrected
+  their own brief details to upstream. Wrap `a96235b`: allowlist 349 ->
+  **359**, validate 374/0, guard 359/0 (307 ready), namespaces 374 pkgs /
+  398 modules. Growth docs: all ten wave-38 reports appended
+  (`188505d`, `a96235b`).
 - **Gate queue (scope-blocked; registry still 277):** `eco-v0.1.6` run
-  `36325286939` **waiting at the gate** (i2c/nats/golden); `eco-v0.1.7`
-  (wave 36) was **cancelled** by the concurrency rule when 0.1.8 joined --
-  no rerun needed, the 0.1.8 loop publishes every allowlisted unpublished
-  name anyway; `eco-v0.1.8` (wave 37) **pending** in the group. **Scope
-  target now 326 -> 349** (13 + the 10 wave-37 names). After ops confirms:
-  approve 0.1.6's gate first, then 0.1.8's when it starts; both skip
-  published versions. Never re-cut tags.
-- **Totals (2026-09-27 ~17:15Z):** 364 tracked / **297 stable / 4 ported /
-  63 incubating**; allowlist **349**; registry 277 until the gates clear.
+  `36325286939` **waiting at the gate** (i2c/nats/golden). `eco-v0.1.7`
+  and `eco-v0.1.8` were **cancelled by the concurrency rule** when newer
+  pending tags joined -- no reruns needed: the newest loop republishes
+  every allowlisted unpublished name from its own ancestry. `eco-v0.1.9`
+  (run `36338915735`, wave 38) is **pending** behind 0.1.6. **Scope target
+  now 326 -> 359** (3 + 10 + 10 + 10). After ops confirms: approve 0.1.6
+  first, then 0.1.9 when it starts; both skip published versions. Never
+  re-cut tags.
+- **Totals (2026-09-27 ~17:58Z):** 374 tracked / **307 stable / 4 ported /
+  63 incubating**; allowlist **359**; registry 277 until the gates clear.
   Registry `/health`: last restart 12:47:16Z v2.2.0 (predates the scope
   requests -- scopes unconfirmed).
 - **Batch wrap 1 (2026-09-27 14:16Z, lane `ses_f1cfdad42ffe`):** `i2c`
@@ -181,15 +189,14 @@ production). Check `git log -1 --format=%h %s` before starting.
   porters** (bitcoin, proxy, pulsar, bolt, wireless, leveldb) + **4 AM
   sessions** (logging, dac, aviation, timer). Integrate + wrap as they
   report; next tag `eco-v0.1.9`, scope target 359.
-- **Scope delta: 326 -> 349 (current).** 326 + 3 stragglers + 10 wave-36 +
-  10 wave-37 = **349**; wave 37 adds `xiom.mongo`, `xiom.memcached`,
-  `xiom.cassandra`, `xiom.ssh2`, `xiom.tor`, `xiom.oauth`,
-  `xiom.ethereum`, `xiom.zigbee`, `xiom.nlp`, `xiom.zookeeper` on top of
-  the 339 already relayed. **After ops confirms 349, approve
-  `36325286939` (0.1.6) first, then `36334928264` (0.1.8) when it starts;
-  `36327834576` (0.1.7) was concurrency-cancelled and needs no rerun --
-  the newest loop publishes every allowlisted unpublished name. Never
-  re-cut a tag.**
+- **Scope delta: 326 -> 359 (current).** 326 + 3 stragglers + 10 wave-36 +
+  10 wave-37 + 10 wave-38 = **359**; wave 38 adds `xiom.bitcoin`,
+  `xiom.proxy`, `xiom.pulsar`, `xiom.bolt`, `xiom.wireless`,
+  `xiom.leveldb`, `xiom.logging`, `xiom.dac`, `xiom.aviation`,
+  `xiom.timer`. **After ops confirms 359, approve `36325286939` (0.1.6)
+  first, then `36338915735` (0.1.9) when it starts; 0.1.7/0.1.8 were
+  concurrency-cancelled and need no rerun -- the newest loop publishes
+  every allowlisted unpublished name. Never re-cut a tag.**
 - **`task` subagent lane restored (2026-09-27):** the global
   `kilo.jsonc` still pointed `subagent_model`, `subagent_variant_overrides`
   and the `explore` agent at the nonexistent
