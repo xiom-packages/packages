@@ -23,6 +23,21 @@ compiler session triages. Format: `| Date | Finding | Evidence | Workaround in p
 | 2026-09-27 | Module-level `const` arrays / table initializers mis-materialize | `merkle`: the 64 SHA-256 K constants are rebuilt into a runtime `Vec[Int]` on every hash; `l10n-currency`: the 165-row ISO 4217 table is compiled into comparison chains instead of a module table | rebuild constants at runtime; comparison chains / accessor switches | performance and code size, no correctness impact | 
 | 2026-09-27 | No function overloading; a later same-named function silently shadows an earlier definition (no redefinition error) | `l10n-currency`: two `_row` functions (different arities) produced 167 cascading `expected Int, found Str` errors at unrelated call sites until renamed to `_mk_row` | unique function names per module | confusing error storms; possible silent wrong dispatch in other shapes | 
 
+## Compiler-lane triage and incoming fixes (2026-09-27)
+
+Compiler lane triage relayed to packages (severity order for their follow-ups):
+1. `&mut Int` write-through miscompile (row above; `xiom.upnp` rewrite evidence).
+2. Loop-carried CSE miscompile (`xiom.amqp` recursive-decode workaround).
+3. Sign-bit masking and mixed-bracket silent acceptance (parser diagnostic).
+4. `byte_at(...)` vs `UInt8 >= 128` widening.
+
+**Row 8 (arity validation) is reported FIXED by the compiler item-3 batch.**
+Packages-side re-test is committed at `docs/repro/arity-laxness/`
+(`control_exact_arity.xi` must stay green; `repro_missing_arg.xi` and
+`repro_extra_arg.xi` must fail to compile once the next build is installed).
+Re-run after the commit lands and update this file; the compiler lane will
+relay a short resolution note.
+
 ## Resolved / withdrawn
 
 | Date | Finding | Resolution |
