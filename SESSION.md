@@ -155,6 +155,26 @@ production). Check `git log -1 --format=%h %s` before starting.
   `l10n-currency`'s session briefly stopped stray `xiom` processes that
   belonged to a concurrently running stdlib smoke batch (it respawned; no
   repo files touched) -- watch for cross-lane process collisions.
+- **Wave 37 dispatched (2026-09-27 ~16:20Z):** `mongo, memcached,
+  cassandra, ssh2, tor, oauth, ethereum, zigbee, nlp, zookeeper` -- all
+  namespace-check clean on 1643 stdlib namespaces. Standard recipe
+  restored: **6 background `task` porters** (mongo, memcached, ssh2, tor,
+  ethereum, zigbee) + **4 AM sessions** (cassandra, oauth, nlp,
+  zookeeper). Integrate + wrap as they report.
+- **`task` subagent lane restored (2026-09-27):** the global
+  `kilo.jsonc` still pointed `subagent_model`, `subagent_variant_overrides`
+  and the `explore` agent at the nonexistent
+  `deepseek-v4-flash/deepseek-v4-flash`; all references corrected to
+  `deepseek/deepseek-flash` (variant `max`) and the duplicate override key
+  deduped. Probe returns `PROBE OK`; wave 37 uses the 6 + 4 mix again.
+- **Compiler relay handled (2026-09-27):** compiler lane reports row 8
+  (arity validation) fixed in its item-3 batch; the packages re-test is
+  committed at `docs/repro/arity-laxness/` (v0.61.3 baseline re-confirmed:
+  control green; missing/extra-arg probes print `SILENT-ACCEPT` and exit
+  10/12). Their severity-ordered follow-ups are recorded in
+  `docs/COMPILER-FINDINGS.md`; a resolution note will be relayed once
+  item 3 is committed. Re-test and update the findings doc when the new
+  build is installed.
 - **Wave 35 (dispatched 2026-09-27 ~00:45Z; COMPLETE (10/10), AM-only):**
   `spi` 22/22, `uart` 21/21, `adc` 18/18, `rtc` 18/18, `bonjour` 24/24,
   `multicast` 18/18, `orc` 33/33, `coverage` 22/22, `pgp` 22/22, `sd`
