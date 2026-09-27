@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-09-27T20:58:12+03:00
-# packages: 374  modules: 398
+# generated: 2026-09-28T01:10:21+03:00
+# packages: 384  modules: 408
 
 ## package names
 xiom.acpi
@@ -25,6 +25,7 @@ xiom.audit
 xiom.avi
 xiom.aviation
 xiom.avro
+xiom.badger
 xiom.base32
 xiom.base58
 xiom.bech32
@@ -43,6 +44,7 @@ xiom.box2d
 xiom.bson
 xiom.bullet
 xiom.cab
+xiom.cache
 xiom.can
 xiom.cassandra
 xiom.cbor
@@ -61,6 +63,7 @@ xiom.csv
 xiom.cuda
 xiom.cue
 xiom.dac
+xiom.db2
 xiom.dbase
 xiom.dds
 xiom.dhcp
@@ -85,6 +88,7 @@ xiom.eml
 xiom.envsubst
 xiom.escape
 xiom.ethereum
+xiom.expat
 xiom.ext
 xiom.farbfeld
 xiom.ffi
@@ -111,6 +115,7 @@ xiom.geohash
 xiom.geology
 xiom.gguf
 xiom.gif
+xiom.git2
 xiom.glfw
 xiom.golden
 xiom.gpio
@@ -146,6 +151,8 @@ xiom.kafka
 xiom.ktx
 xiom.l10n.number
 xiom.l10n-currency
+xiom.l10n-phone
+xiom.l10n-unit
 xiom.lcov
 xiom.ldap
 xiom.ldif
@@ -185,8 +192,10 @@ xiom.mp3
 xiom.mp4
 xiom.mqtt
 xiom.msgpack
+xiom.mssql
 xiom.multicast
 xiom.murmur3
+xiom.mysql
 xiom.nats
 xiom.nbt
 xiom.netstring
@@ -377,6 +386,7 @@ xiom.xpm
 xiom.yaml
 xiom.zeromq
 xiom.zigbee
+xiom.zkp
 xiom.zonefile
 xiom.zookeeper
 xiom.zstd
@@ -401,6 +411,7 @@ xiom.audit
 xiom.avi
 xiom.aviation
 xiom.avro
+xiom.badger
 xiom.base32
 xiom.base58
 xiom.bech32
@@ -417,6 +428,7 @@ xiom.bolt
 xiom.bonjour
 xiom.bson
 xiom.cab
+xiom.cache
 xiom.can
 xiom.cassandra
 xiom.cbor
@@ -437,6 +449,7 @@ xiom.cron
 xiom.csv
 xiom.cue
 xiom.dac
+xiom.db2
 xiom.dbase
 xiom.dds
 xiom.dhcp
@@ -478,6 +491,7 @@ xiom.eml
 xiom.envsubst
 xiom.escape
 xiom.ethereum
+xiom.expat
 xiom.ext
 xiom.farbfeld
 xiom.finance
@@ -501,6 +515,7 @@ xiom.geohash
 xiom.geology
 xiom.gguf
 xiom.gif
+xiom.git2
 xiom.golden
 xiom.gpio
 xiom.gpt
@@ -545,6 +560,8 @@ xiom.kafka.types
 xiom.ktx
 xiom.l10n.currency
 xiom.l10n.number
+xiom.l10n.phone
+xiom.l10n.unit
 xiom.lcov
 xiom.ldap
 xiom.ldif
@@ -577,8 +594,10 @@ xiom.mp3
 xiom.mp4
 xiom.mqtt
 xiom.msgpack
+xiom.mssql
 xiom.multicast
 xiom.murmur3
+xiom.mysql
 xiom.nats
 xiom.nbt
 xiom.netstring
@@ -777,6 +796,7 @@ xiom.xpm
 xiom.yaml
 xiom.zeromq
 xiom.zigbee
+xiom.zkp
 xiom.zonefile
 xiom.zookeeper
 xiom.zstd

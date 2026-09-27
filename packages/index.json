@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-27T20:58:07Z",
+    "updated":  "2026-09-28T01:10:15Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -332,6 +332,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.badger",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM BadgerDB v1.6.2 file-format structure parser: value-log entries, key versions, SST blocks/index/bloom and manifest records (parse-only)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-badger/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "badger.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.base32",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "RFC 4648 Base32 (standard alphabet) encoding and decoding",
@@ -641,6 +658,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.cache",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic in-memory cache eviction structures over Int keys and values: LRU, LFU, CLOCK and TTL",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cache/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cache.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.can",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Classic CAN 2.0A/2.0B frame codec: identifiers, DLC, RTR and 16-byte containers",
@@ -945,6 +979,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dac/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "dac.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.db2",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "IBM Db2 DRDA/DSS wire structure codec (DSS frames, DDM codepoints and parameters, SQLCARD, SQLDTA; no network, no EBCDIC conversion)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-db2/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "db2.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1374,6 +1425,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ethereum/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "ethereum.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.expat",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Expat-style XML 1.0 parser: streaming events, entities, well-formedness checks",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-expat/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "expat.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1815,6 +1883,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gif/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "gif.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.git2",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM Git object and pack-file codec: zlib/DEFLATE decoder, loose objects, tree/commit/tag headers, pack entries with OFS/REF deltas, pack index v2",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-git2/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "git2.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2452,6 +2537,40 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-currency/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "l10n_currency.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.l10n-phone",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "E.164 / international phone-number structures: embedded country-code table, parse, validate, format, tel URI",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-phone/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "l10n_phone.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.l10n-unit",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Exact integer unit conversion over an embedded rational-factor table with affine temperatures",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-unit/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "l10n_unit.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3128,6 +3247,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.mssql",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Microsoft SQL Server TDS (Tabular Data Stream) structure codec: packet headers, PRELOGIN option table, LOGIN7 fixed layout, and RESPONSE token streams (LOGINACK/ERROR/ENVCHANGE/DONE/COLMETADATA/ROW/NBCROW/RETURNVALUE); no sockets, no login crypto",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mssql/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "mssql.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.multicast",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "IGMPv2/v3 and MLD/MLDv2 multicast group management codecs",
@@ -3157,6 +3293,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-murmur3/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "murmur3.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.mysql",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "MySQL client/server wire protocol structure codec (packet framing, handshake v10, handshake response 41, length-encoded values, OK/ERR/EOF, result sets; no sockets, no auth crypto)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mysql/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "mysql.xi",
                                               "package.xi"
                                           ]
                      },
@@ -6447,6 +6600,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.zkp",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Zero-knowledge proof serialization structures (BLS12-381 Groth16/PLONK): field/point encodings, blob decode, structural validation",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zkp/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "zkp.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.zonefile",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "DNS zone-file (master file) codec subset: $ORIGIN/$TTL, relative names, flat records and a canonical emitter",
@@ -6654,19 +6824,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-badger",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-badger/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-barrier",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -6700,19 +6857,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bridge/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-cache",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cache/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -6992,19 +7136,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-db2",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-db2/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-deep",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7187,19 +7318,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-expat",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-expat/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-feature",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7285,19 +7403,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-geom3d/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-git2",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-git2/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -7512,19 +7617,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-l10n-phone",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-phone/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-l10n-time",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7545,19 +7637,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-unicode/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-l10n-unit",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-unit/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -7792,32 +7871,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-monitoring/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-mssql",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mssql/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-mysql",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mysql/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8390,19 +8443,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-xml2/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-zkp",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zkp/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]

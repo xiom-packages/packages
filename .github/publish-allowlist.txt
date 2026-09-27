@@ -400,3 +400,13 @@ xiom.logging
 xiom.dac
 xiom.aviation
 xiom.timer
+xiom.git2
+xiom.mysql
+xiom.mssql
+xiom.db2
+xiom.expat
+xiom.zkp
+xiom.cache
+xiom.l10n-phone
+xiom.l10n-unit
+xiom.badger
