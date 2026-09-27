@@ -98,22 +98,23 @@ production). Check `git log -1 --format=%h %s` before starting.
   (`xiom.i2c`, `xiom.nats`, `xiom.golden`). `validate` = 344/0, guard =
   329 allowlisted / 277 ready / 0 failures. No busy sessions; wave 36 is
   the parallel lane's active work (`l10n-currency` first).
-- **Active lane (2026-09-27 13:52Z):** session `ses_f1cfdad42ffe`
-  (started by the owner 13:16Z) is live and owns the critical path:
-  i2c/nats integration, the wrap + `eco-v0.1.6` tag, and the wave-36
-  dispatch. Its fresh AM sessions replaced the refused re-prompts
-  (i2c `f1cf573db`, nats `f1cf55acd`, jpeg-docs `f1cf5339d`,
-  meteorology-docs `f1cf50da5`; the two docs are committed in
-  `902dc05`/`642ea45`). Wave 36 is NOT dispatched as of this note; the
-  13:35Z checkpoint lane stands down on wrap/tag/dispatch.
-- **Wave 36 (prepared, NOT dispatched):** `pki, merkle, apple, geology,
-  biology, l10n-currency, gpio, interrupt, flash, tls` -- all
-  `namespace-check` clean (2026-09-27, re-verified). Dispatch with the
-  standard recipe (AM-only while `task` subagents are dead -- the
-  provider probe now fails with `Model not found:
-  deepseek-v4-flash/deepseek-v4-flash`, not just balance: one AM session
-  per package; 4 AM + 6 background only after the provider is fixed).
-  Scope delta 326 -> 336 goes out with the next relay.
+- **Batch wrap (2026-09-27 14:16Z, lane `ses_f1cfdad42ffe`):** `i2c`
+  (feat `177a3c4` + record `d5e1bfb`, 20/20) and `nats` (feat `b3fc3f5` +
+  record `b1f228d`, 21/21; trap-14 sweep normalized 18 `Vec<...>` sites
+  pre-record) are integrated; jpeg/meteorology docs are committed
+  (`902dc05`/`642ea45`). Wrap `93a9f82`: allowlist 326 -> **329**
+  (`i2c, nats, golden`), index/report/namespaces regenerated; validate
+  344/0, allowlist-guard 329/0 (277 ready). **`eco-v0.1.6` is cut on
+  `93a9f82`; run `36325286939` is WAITING at the registry-publish gate --
+  approve only after ops confirms the 326 -> 336 scope delta. Never
+  re-cut the tag.**
+- **Wave 36 dispatched (2026-09-27 14:17Z, AM-only, one session per
+  package):** `pki, merkle, apple, geology, biology, l10n-currency,
+  gpio, interrupt, flash, tls` (namespace-check re-verified clean on
+  1642 stdlib namespaces). `task` subagents remain dead (probe fails
+  with `Model not found: deepseek-v4-flash/deepseek-v4-flash`, not just
+  balance). Integrate + wrap as they report; each brief asks for a
+  `stdlib gaps` section.
 - **Wave 35 (dispatched 2026-09-27 ~00:45Z; COMPLETE (10/10), AM-only):**
   `spi` 22/22, `uart` 21/21, `adc` 18/18, `rtc` 18/18, `bonjour` 24/24,
   `multicast` 18/18, `orc` 33/33, `coverage` 22/22, `pgp` 22/22, `sd`
