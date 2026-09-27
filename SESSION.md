@@ -97,12 +97,22 @@ production). Check `git log -1 --format=%h %s` before starting.
   work at ~13:25Z (building wave-36 names -- `l10n-currency` active);
   do not double-dispatch wave 36 and coordinate the wrap/tag with that
   lane.
+- **Active lane (2026-09-27 13:52Z):** session `ses_f1cfdad42ffe`
+  (started by the owner 13:16Z) is live and owns the critical path:
+  i2c/nats integration, the wrap + `eco-v0.1.6` tag, and the wave-36
+  dispatch. Its fresh AM sessions replaced the refused re-prompts
+  (i2c `f1cf573db`, nats `f1cf55acd`, jpeg-docs `f1cf5339d`,
+  meteorology-docs `f1cf50da5`; the two docs are committed in
+  `902dc05`/`642ea45`). Wave 36 is NOT dispatched as of this note; the
+  13:35Z checkpoint lane stands down on wrap/tag/dispatch.
 - **Wave 36 (prepared, NOT dispatched):** `pki, merkle, apple, geology,
   biology, l10n-currency, gpio, interrupt, flash, tls` -- all
-  `namespace-check` clean (2026-09-27). Dispatch with the standard recipe
-  (AM-only while `task` subagents are balance-dead: one AM session per
-  package; 4 AM + 6 background only after the balance is restored). Scope
-  delta 326 -> 336 goes out with the next relay.
+  `namespace-check` clean (2026-09-27, re-verified). Dispatch with the
+  standard recipe (AM-only while `task` subagents are dead -- the
+  provider probe now fails with `Model not found:
+  deepseek-v4-flash/deepseek-v4-flash`, not just balance: one AM session
+  per package; 4 AM + 6 background only after the provider is fixed).
+  Scope delta 326 -> 336 goes out with the next relay.
 - **Wave 35 (dispatched 2026-09-27 ~00:45Z; COMPLETE (10/10), AM-only):**
   `spi` 22/22, `uart` 21/21, `adc` 18/18, `rtc` 18/18, `bonjour` 24/24,
   `multicast` 18/18, `orc` 33/33, `coverage` 22/22, `pgp` 22/22, `sd`
