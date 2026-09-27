@@ -356,3 +356,14 @@ xiom.jpeg
 xiom.eeprom
 xiom.meteorology
 xiom.upnp
+xiom.ldap
+xiom.spi
+xiom.uart
+xiom.adc
+xiom.rtc
+xiom.bonjour
+xiom.multicast
+xiom.orc
+xiom.coverage
+xiom.pgp
+xiom.sd
