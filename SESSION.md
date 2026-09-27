@@ -10,34 +10,35 @@ production). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**State at handoff refresh (2026-09-27 ~00:15, waves 1-33 published; wave 34 recovering under a provider outage):**
-- **Wave 34 (dispatched 2026-09-26 23:31Z; recovering under a provider
-  outage):** names `webp, jpeg, flac, eeprom, i2c, nats, ldap, upnp, golden,
-  meteorology` (all namespace-check clean; scope delta pre-requested
-  309 -> 319). The `task` subagent provider hit **"Insufficient Balance"**
-  ~23:45Z and killed all six background tasks (environmental, not package
-  failures -- the nats "abort" was the same error surfacing as an empty
-  completion). **Agent Manager local sessions still work** (they use a
-  different path) -- use them while the balance is out. Six packages are
-  green and pushed: `webp` 20/20, `flac` 18/18, `jpeg` 16/16, `eeprom`
-  17/17, `meteorology` 22/22, `upnp` 18/18 (feat commits through `e511467`).
-  Coordinator-direct fixes were needed: `jpeg` (SOF-family predicate
-  rejected the supported SOF0/1/2; DRI length 4 -> 2; `app_length` stores
-  the declared segment length; in-scan FF fill followed by a non-marker
-  byte stays scan data; Nf=0 checked before the length equation; baseline
-  Se offset; several test-side fixture/offset bugs), `flac` (one test vector
-  was missing its `0xFF` sync byte), `upnp` (the v0.61.3 `&mut Int`
-  write-through miscompile in `_version_parts` replaced with a
-  value-returning `VersionParts` struct -- documented in xiom-optimizer;
-  three test offsets/counts corrected). Trap-14 bracket audits clean on all
-  six. Remaining: docs for flac/jpeg/meteorology/upnp + the four unstarted
-  names (`i2c, nats, golden, ldap`) are re-dispatched to Agent Manager
-  sessions; integrate + record + wrap as they report.
-- 324 implemented dirs / 197 README-only placeholders; **257 stable / 4
-  ported / 63 incubating**; **261 green suites / 5,634 recorded tests**;
-  allowlist **309** (wave 32 +9, wave 33 +10); namespace **324 packages /
-  422 modules / 0 conflicts**; `validate` = 324/0. Wave-33 wrap commit
-  `471c5e3`.
+**State at handoff refresh (2026-09-27 ~12:20, waves 1-33 published; waves 34+35 green and tagged, scope-blocked; i2c/nats/golden + docs in flight):**
+- **Wave 34 (dispatched 2026-09-26 23:31Z; COMPLETE for greens):** names
+  `webp, jpeg, flac, eeprom, i2c, nats, ldap, upnp, golden, meteorology`.
+  The `task` subagent provider hit **"Insufficient Balance"** ~23:45Z and
+  killed all six background tasks (environmental; Agent Manager local
+  sessions were unaffected and carried the wave). Nine packages are green
+  and pushed -- `webp` 20/20, `flac` 18/18, `jpeg` 16/16, `eeprom` 17/17,
+  `meteorology` 22/22, `upnp` 18/18, `ldap` 20/20 -- and tagged:
+  the six greens ride `eco-v0.1.4`; `ldap` rides `eco-v0.1.5`. Coordinator
+  and AM fixes were needed: `jpeg` (SOF-family predicate rejected the
+  supported SOF0/1/2; DRI length 4 -> 2; `app_length` stores the declared
+  segment length; in-scan FF fill semantics; Nf=0 order; baseline Se
+  offset; test fixtures), `flac` (test sync-byte typo + docs), `upnp`
+  (v0.61.3 `&mut Int` write-through miscompile -> value-returning
+  `VersionParts`; test offsets). Trap-14 audits clean. Still unbuilt:
+  `i2c, nats, golden` (re-dispatched to AM sessions); docs for
+  `jpeg`/`meteorology` also re-dispatched.
+- **Wave 35 (dispatched 2026-09-27 00:45Z; COMPLETE (10/10)):**
+  `spi` 22/22, `uart` 21/21, `adc` 18/18, `rtc` 18/18, `bonjour` 24/24,
+  `multicast` 18/18, `orc` 33/33, `coverage` 22/22, `pgp` 22/22, `sd`
+  21/21 -- 239 tests, all recorded, allowlisted, and tagged as `eco-v0.1.5`
+  (with `ldap`). AM-only wave (task subagents still balance-dead); one
+  trap-14 fix (`sd` had 7 malformed `Vec<UInt8]`/`Vec<UInt8>` brackets).
+  `scripts/namespace-check.ps1` now skips `.kilo`/`.git` paths (a stale
+  Agent Manager worktree inside the stdlib repo broke the scan).
+- 341 implemented dirs / 191 README-only placeholders; **274 stable / 4
+  ported / 63 incubating**; **278 green suites / ~5,984 recorded tests**;
+  allowlist **326** (274 ready + 52 grandfathered); `validate` = 341/0.
+  Wave-35 wrap commit `55cc303`; wave-33 wrap `471c5e3`.
 - **Wave 33: COMPLETE (10/10).** `imap` 18/18, `avro` 20/20, `mp3` 21/21,
   `gif` 20/20, `mkv` 20/20, `amqp` 21/21, `png` 17/17, `mp4` 33/33,
   `snmp` 19/19, `thrift` 24/24 -- 213 tests, all seeded `stable` with
@@ -75,11 +76,18 @@ production). Check `git log -1 --format=%h %s` before starting.
   pre-requested at 23:31Z is not live yet**. Rerun `36282607173` after ops
   enumerates; do not re-cut the tag. The other four wave-34 names
   (`i2c, nats, golden, ldap`) ride `eco-v0.1.5` once green.
-- **Wave 35 (dispatched 2026-09-27 ~00:45Z, 10 Agent Manager sessions):**
-  `spi, uart, adc, rtc, bonjour, multicast, orc, coverage, pgp, sd` -- all
-  `namespace-check` clean. `task` subagents are still balance-dead, so the
-  wave is AM-only (10 sessions, one per package). Scope delta for these
-  names (~319 -> 329) must go out with the wave-34 scope relay.
+- **Production `eco-v0.1.5` (wave-35 + ldap, 11 names): CUT, run waiting at
+  the gate (2026-09-27 ~12:15Z).** Tag on the wave-35 wrap `55cc303`; run
+  `36318371174` is deliberately left **unapproved** (waiting) because the
+  scopes are still missing -- approving now would only fail with
+  `scope_denied` (as `eco-v0.1.4` did). Approve the moment ops confirms; it
+  publishes 11 names and skips anything already published.
+- **Wave 35 (dispatched 2026-09-27 ~00:45Z; COMPLETE (10/10), AM-only):**
+  `spi` 22/22, `uart` 21/21, `adc` 18/18, `rtc` 18/18, `bonjour` 24/24,
+  `multicast` 18/18, `orc` 33/33, `coverage` 22/22, `pgp` 22/22, `sd`
+  21/21 -- 239 tests, recorded and allowlisted. One trap-14 fix (`sd`, 7
+  malformed brackets). `task` subagents still balance-dead; AM-only until
+  the provider balance is topped up.
 - **Workflow finding (secondary):** the publish job mints **one** OIDC
   token at job start and reuses it for every package; runs longer than
   ~6 min fail every remaining publish with `oidc_token_expired` (the retry
@@ -96,22 +104,23 @@ production). Check `git log -1 --format=%h %s` before starting.
   this session; staging only when the owner explicitly asks for it.
 
 **Next actions, in order:**
-1. **Relay the registry/ops scope enumeration**: wave-34 names (at least the
-   six greens `webp, flac, jpeg, eeprom, meteorology, upnp`; ideally all ten
-   with `i2c, nats, golden, ldap`) -- the 23:31Z request is not live, so
-   `eco-v0.1.4` (`36282607173`) 403s. Add the wave-35 names in the same
-   relay: `spi, uart, adc, rtc, bonjour, multicast, orc, coverage, pgp, sd`
-   (309 -> 329 total). On confirmation: `gh run rerun 36282607173` + approve
-   the gate; it skips published versions.
-2. Integrate the wave-34 leftovers as the AM sessions report (docs for
-   flac/jpeg/meteorology/upnp; `i2c, nats, golden, ldap` implementations),
-   then allowlist those four and cut `eco-v0.1.5` when green.
-3. Integrate wave 35 (AM-only; `task` subagents still balance-dead), wrap,
-   and tag once its scopes are live.
-4. Badge-override follow-up (registry lane): audited, display-only
+1. **Relay the registry/ops scope enumeration (blocking both tags)**: the
+   six wave-34 greens `xiom.webp, xiom.flac, xiom.jpeg, xiom.eeprom,
+   xiom.meteorology, xiom.upnp` plus the wave-35 set `xiom.ldap, xiom.spi,
+   xiom.uart, xiom.adc, xiom.rtc, xiom.bonjour, xiom.multicast, xiom.orc,
+   xiom.coverage, xiom.pgp, xiom.sd` (309 -> 326). On confirmation:
+   (a) approve the pending `eco-v0.1.5` gate (run `36318371174`, waiting
+   unapproved on purpose), and (b) `gh run rerun 36282607173` + approve
+   (`eco-v0.1.4`). Both skip published versions.
+2. Integrate the wave-34 stragglers as the AM sessions report: `i2c, nats,
+   golden` (allowlist +3, wrap, own tag) and the jpeg/meteorology docs
+   (commit `docs:` changes; no gate impact).
+3. Badge-override follow-up (registry lane): audited, display-only
    override for historic empty-stage entries -- decision sent (`9da3143`,
    section 5); needs the generated name->stage list from `STATUS.json`
    handed over if they build it.
+4. `task` subagents remain balance-dead; AM sessions only until the
+   provider balance is topped up.
 
 **Copy-paste prompt for the next session:**
 
@@ -128,15 +137,15 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. eco-v0.1.4 (wave-34 greens, tag on 9820db7) is blocked on the
-   registry/ops scope enumeration -- run 36282607173 failed with
-   scope_denied and the 23:31Z request is not live yet. Confirm the scopes
-   (wave-34 names + wave-35 names; 309 -> 329), then gh run rerun
-   36282607173 + approve the gate. Never re-cut a tag.
-2. Integrate wave-34 leftovers (docs; i2c/nats/golden/ldap) and wave 35
-   (spi, uart, adc, rtc, bonjour, multicast, orc, coverage, pgp, sd) as the
-   Agent Manager sessions report. `task` subagents are balance-dead --
-   AM sessions only. Wrap + scope + tag as each batch completes.
+1. Both tags are scope-blocked. `eco-v0.1.5` (tag on 55cc303, run
+   36318371174) is WAITING at the gate on purpose; `eco-v0.1.4` (tag on
+   9820db7, run 36282607173) failed with scope_denied. Confirm the registry
+   scopes are live (309 -> 326: the six wave-34 greens + the eleven
+   wave-35/ldap names), then approve 36318371174 and gh run rerun
+   36282607173 + approve. Both skip published versions. Never re-cut a tag.
+2. Integrate the wave-34 stragglers as the Agent Manager sessions report:
+   i2c, nats, golden (allowlist +3, wrap, own tag) and the jpeg/meteorology
+   docs (docs commits only). `task` subagents are balance-dead -- AM only.
 3. Keep the registry-lane badge-override follow-up (SESSION.md section 5)
    and the .github OIDC token re-mint finding.
 4. Worker briefs must keep both the 18-trap list and the XIOM MCP guidance
