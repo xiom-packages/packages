@@ -380,3 +380,13 @@ xiom.gpio
 xiom.interrupt
 xiom.flash
 xiom.tls
+xiom.mongo
+xiom.memcached
+xiom.cassandra
+xiom.ssh2
+xiom.tor
+xiom.oauth
+xiom.ethereum
+xiom.zigbee
+xiom.nlp
+xiom.zookeeper

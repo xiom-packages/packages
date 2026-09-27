@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-09-27T17:57:55+03:00
-# packages: 354  modules: 378
+# generated: 2026-09-27T19:53:30+03:00
+# packages: 364  modules: 388
 
 ## package names
 xiom.acpi
@@ -41,6 +41,7 @@ xiom.bson
 xiom.bullet
 xiom.cab
 xiom.can
+xiom.cassandra
 xiom.cbor
 xiom.chemistry
 xiom.cidr
@@ -79,6 +80,7 @@ xiom.elf
 xiom.eml
 xiom.envsubst
 xiom.escape
+xiom.ethereum
 xiom.ext
 xiom.farbfeld
 xiom.ffi
@@ -159,6 +161,7 @@ xiom.marc
 xiom.markdown
 xiom.mbox
 xiom.mbr
+xiom.memcached
 xiom.merkle
 xiom.meshopt
 xiom.meteorology
@@ -170,6 +173,7 @@ xiom.miniaudio
 xiom.miniseed
 xiom.mkv
 xiom.modbus
+xiom.mongo
 xiom.moveit
 xiom.mp3
 xiom.mp4
@@ -182,10 +186,12 @@ xiom.nbt
 xiom.netstring
 xiom.ngram
 xiom.nii
+xiom.nlp
 xiom.nmea
 xiom.ntp
 xiom.ntriples
 xiom.numpy
+xiom.oauth
 xiom.obj
 xiom.ogg
 xiom.onnx
@@ -294,6 +300,7 @@ xiom.spi
 xiom.sql
 xiom.sqlite
 xiom.srt
+xiom.ssh2
 xiom.stb
 xiom.stemming
 xiom.stl
@@ -320,6 +327,7 @@ xiom.tls
 xiom.tlv
 xiom.tokenizer
 xiom.toml
+xiom.tor
 xiom.torch
 xiom.tracing
 xiom.transaction
@@ -358,7 +366,9 @@ xiom.xml
 xiom.xpm
 xiom.yaml
 xiom.zeromq
+xiom.zigbee
 xiom.zonefile
+xiom.zookeeper
 xiom.zstd
 
 ## module namespaces
@@ -395,6 +405,7 @@ xiom.bonjour
 xiom.bson
 xiom.cab
 xiom.can
+xiom.cassandra
 xiom.cbor
 xiom.chemistry
 xiom.cidr
@@ -452,6 +463,7 @@ xiom.elf
 xiom.eml
 xiom.envsubst
 xiom.escape
+xiom.ethereum
 xiom.ext
 xiom.farbfeld
 xiom.finance
@@ -534,6 +546,7 @@ xiom.marc
 xiom.markdown
 xiom.mbox
 xiom.mbr
+xiom.memcached
 xiom.merkle
 xiom.meshopt.safe
 xiom.meteorology
@@ -543,6 +556,7 @@ xiom.mime
 xiom.miniseed
 xiom.mkv
 xiom.modbus
+xiom.mongo
 xiom.mp3
 xiom.mp4
 xiom.mqtt
@@ -554,10 +568,12 @@ xiom.nbt
 xiom.netstring
 xiom.ngram
 xiom.nii
+xiom.nlp
 xiom.nmea
 xiom.ntp
 xiom.ntriples
 xiom.numpy
+xiom.oauth
 xiom.obj
 xiom.ogg
 xiom.onnx.io
@@ -666,6 +682,7 @@ xiom.sqlite.query
 xiom.sqlite.schema
 xiom.sqlite.types
 xiom.srt
+xiom.ssh2
 xiom.stemming
 xiom.stl
 xiom.stun
@@ -690,6 +707,7 @@ xiom.tls
 xiom.tlv
 xiom.tokenizer
 xiom.toml
+xiom.tor
 xiom.torch.ffi
 xiom.torch.nn
 xiom.torch.types
@@ -738,6 +756,8 @@ xiom.xml
 xiom.xpm
 xiom.yaml
 xiom.zeromq
+xiom.zigbee
 xiom.zonefile
+xiom.zookeeper
 xiom.zstd
 

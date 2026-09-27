@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-27T17:57:49Z",
+    "updated":  "2026-09-27T19:53:17Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -602,6 +602,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-can/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "can.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.cassandra",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Apache Cassandra CQL native protocol v4 frame structure codec (headers, primitives, STARTUP/QUERY/RESULT/ERROR bodies; no network, no compression)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cassandra/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cassandra.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1272,6 +1289,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-escape/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "escape.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.ethereum",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Ethereum RLP and ABI encoding structures in pure XIOM (no keccak, no crypto, no network)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ethereum/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ethereum.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2679,6 +2713,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.memcached",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM memcached text and binary protocol codec (no sockets)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-memcached/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "memcached.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.merkle",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Merkle tree and inclusion proofs over caller byte buffers; RFC 6962-style domain-separated SHA-256",
@@ -2868,6 +2919,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-modbus/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "modbus.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.mongo",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM MongoDB BSON document walker and wire-message framing codec (no queries, no driver)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mongo/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "mongo.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3077,6 +3145,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.nlp",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic byte-oriented NLP core: tokenizer, sentence splitter, Porter stemmer, statistics",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nlp/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "nlp.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.nmea",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "NMEA 0183 sentence parsing: checksum, fields, coordinates, and GGA/RMC accessors",
@@ -3140,6 +3225,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-numpy/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "numpy.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.oauth",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM OAuth 2.0 / PKCE request-and-response structure codec: form-urlencoded and JSON message parsing/building, no network and no crypto",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-oauth/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "oauth.xi",
                                               "package.xi"
                                           ]
                      },
@@ -5017,6 +5119,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.ssh2",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM SSH-2 transport, authentication and connection-layer message structure codec (RFC 4251/4253/4252/4254; no crypto)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ssh2/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ssh2.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.stb",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "stb_image loading bindings for XIOM",
@@ -5454,6 +5573,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-toml/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "toml.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.tor",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM Tor link-layer cell structure codec: fixed/variable cell framing, link and relay command tables, VERSIONS/NETINFO handshake bodies and typed RELAY payload decode (BEGIN, CONNECTED, END, SENDME, RESOLVE, RESOLVED) with byte-offset errors",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tor/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "tor.xi",
                                               "package.xi"
                                           ]
                      },
@@ -6124,6 +6260,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.zigbee",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "ZigBee link-layer structure codec: IEEE 802.15.4 MAC, ZigBee NWK and APS header parsing",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zigbee/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "zigbee.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.zonefile",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "DNS zone-file (master file) codec subset: $ORIGIN/$TTL, relative names, flat records and a canonical emitter",
@@ -6136,6 +6289,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zonefile/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "zonefile.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.zookeeper",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Apache ZooKeeper jute wire-format structure codec (primitives, connect handshake, headers, opcodes, Stat/ACL/watch events, request and response records)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zookeeper/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "zookeeper.xi",
                                               "package.xi"
                                           ]
                      },
@@ -6425,19 +6595,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cancel/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-cassandra",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cassandra/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -6880,19 +7037,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-etcd/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-ethereum",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ethereum/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -7484,19 +7628,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-memcached",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-memcached/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-messaging",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7556,19 +7687,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mock/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-mongo",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mongo/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -7640,19 +7758,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-nlp",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nlp/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-nuclear",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7660,19 +7765,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nuclear/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-oauth",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-oauth/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -7991,19 +8083,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-ssh2",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ssh2/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-stats-ml",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8128,19 +8207,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-timer/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-tor",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tor/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8290,19 +8356,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-zigbee",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zigbee/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-zkp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8310,19 +8363,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zkp/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-zookeeper",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zookeeper/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
