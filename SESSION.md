@@ -211,6 +211,18 @@ production). Check `git log -1 --format=%h %s` before starting.
   `docs/COMPILER-FINDINGS.md`; a resolution note will be relayed once
   item 3 is committed. Re-test and update the findings doc when the new
   build is installed.
+- **Compiler relay #2 handled (2026-09-27 20:10Z):** row 8 is **RESOLVED**
+  by pin `0c50ac6` / commit `0f3f5083` (local-only until the release push)
+  -- moved to `docs/COMPILER-FINDINGS.md` Resolved, re-test ready at
+  `docs/repro/arity-laxness/` for the next installed build. Four repro
+  batteries added per their triage: `mut-int-write-through/` **REPRODUCED**
+  (plain calls to `&mut T` params write to a copy; 6/7 variants; explicit
+  `&mut` correct -- upnp's VersionParts family), `byte-at-128/`
+  **REPRODUCED** (direct `byte_at(...) == 195u8` compares wrong),
+  `loop-carry-cse/` (reductions clean; exact pre-fix amqp fragment
+  included) and `sign-bit-ops/` (clean incl. negatives/wrapped; family
+  evidence radiotap/can). CSE and `&mut` remain accepted compiler-lane
+  repro-first candidates; mixed-bracket strictness is planned.
 - **Wave 35 (dispatched 2026-09-27 ~00:45Z; COMPLETE (10/10), AM-only):**
   `spi` 22/22, `uart` 21/21, `adc` 18/18, `rtc` 18/18, `bonjour` 24/24,
   `multicast` 18/18, `orc` 33/33, `coverage` 22/22, `pgp` 22/22, `sd`
