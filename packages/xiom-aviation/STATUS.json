@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.aviation",
+    "stage":  "stable",
+    "compiler":  "v0.61.3",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  21,
+                  "failed":  0,
+                  "run_by":  "ses_f1c3375bdffeKgRKY6bPBs4w75",
+                  "commit":  "8b0056a",
+                  "checked":  "2026-09-27T17:57:52Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: next scope delta"
+}
