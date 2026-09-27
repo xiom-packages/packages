@@ -134,13 +134,9 @@ production). Check `git log -1 --format=%h %s` before starting.
   354/0, guard 339/0 (287 ready), namespaces 354 pkgs / 378 modules.
   **`eco-v0.1.7` is cut on `d0ecf72`; run `36327834576` is PENDING at
   the registry-publish gate.**
-- **Scope delta: 326 -> 339 (corrected).** The earlier relay said 336,
-  which forgot the 3 stragglers; the correct target is **339** (326 + 3
-  stragglers + 10 wave-36 names): `xiom.i2c`, `xiom.nats`, `xiom.golden`,
-  `xiom.pki`, `xiom.merkle`, `xiom.apple`, `xiom.geology`, `xiom.biology`,
-  `xiom.l10n-currency`, `xiom.gpio`, `xiom.interrupt`, `xiom.flash`,
-  `xiom.tls`. **Approve `36325286939` and `36327834576` only after ops
-  confirms; never re-cut a tag.**
+- **Scope delta history:** 326 -> 329 (`eco-v0.1.6`) -> 339 (requested
+  for `eco-v0.1.7`) -> **349** (current, `eco-v0.1.8`; see the scope
+  bullet below).
 - **Worker-report extraction channel (new):** AM final reports and their
   `stdlib gaps` sections are readable from
   `C:\Users\lefte\.local\share\kilo\kilo.db` (SQLite `part` table,
@@ -155,12 +151,22 @@ production). Check `git log -1 --format=%h %s` before starting.
   `l10n-currency`'s session briefly stopped stray `xiom` processes that
   belonged to a concurrently running stdlib smoke batch (it respawned; no
   repo files touched) -- watch for cross-lane process collisions.
-- **Wave 37 dispatched (2026-09-27 ~16:20Z):** `mongo, memcached,
-  cassandra, ssh2, tor, oauth, ethereum, zigbee, nlp, zookeeper` -- all
-  namespace-check clean on 1643 stdlib namespaces. Standard recipe
-  restored: **6 background `task` porters** (mongo, memcached, ssh2, tor,
-  ethereum, zigbee) + **4 AM sessions** (cassandra, oauth, nlp,
-  zookeeper). Integrate + wrap as they report.
+- **Wave 37: COMPLETE (10/10) and wrapped (2026-09-27 16:54Z).**
+  `mongo` 23/23, `memcached` 22/22, `cassandra` 24/24, `ssh2` 24/24,
+  `tor` 20/20, `oauth` 25/25, `ethereum` 23/23, `zigbee` 26/26, `nlp`
+  27/27, `zookeeper` 24/24 -- 238 tests, all stable with RunBy/Commit
+  records, trap-14 clean. Recipe restored: **6 background `task` porters +
+  4 AM sessions**. Wrap `2c13f20`: allowlist 339 -> **349**, validate
+  364/0, guard 349/0 (297 ready), namespaces 364 pkgs / 388 modules.
+  **`eco-v0.1.8` is cut on `2c13f20`; run `36334928264` is PENDING at the
+  registry-publish gate.**
+- **Scope delta: 326 -> 349 (current).** 326 + 3 stragglers + 10 wave-36 +
+  10 wave-37 = **349**; wave 37 adds `xiom.mongo`, `xiom.memcached`,
+  `xiom.cassandra`, `xiom.ssh2`, `xiom.tor`, `xiom.oauth`,
+  `xiom.ethereum`, `xiom.zigbee`, `xiom.nlp`, `xiom.zookeeper` on top of
+  the 339 already relayed. **Approve `36325286939` (0.1.6), `36327834576`
+  (0.1.7) and `36334928264` (0.1.8) only after ops confirms 349; never
+  re-cut a tag.**
 - **`task` subagent lane restored (2026-09-27):** the global
   `kilo.jsonc` still pointed `subagent_model`, `subagent_variant_overrides`
   and the `explore` agent at the nonexistent
