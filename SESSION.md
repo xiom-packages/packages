@@ -102,21 +102,30 @@ production). Check `git log -1 --format=%h %s` before starting.
   compiler evidence to the growth files (`fcd2c01`, `1380d78`). Checkpoint
   spot-verified `tls`/`pki`/`gpio` by re-running ports; trap-14 audit clean
   across all ten.
-- **Blocked on the registry/ops scope delta: 326 -> 339 (13 names).**
-  `xiom.i2c, xiom.nats, xiom.golden` + `xiom.pki, xiom.merkle, xiom.apple,
-  xiom.geology, xiom.biology, xiom.l10n-currency, xiom.gpio, xiom.interrupt,
-  xiom.flash, xiom.tls`. After ops confirms: approve the `eco-v0.1.6` gate
-  (run `36325286939`), then approve the `eco-v0.1.7` gate when its run
-  starts (`36327834576`); both skip published versions. Never re-cut tags.
-  Note: the registry restarted at **12:47:16Z to v2.2.0** (the
-  badge/visual/A1 + 20/min rebuild) -- that predates this 13-name request,
-  so the scopes cannot be assumed present until the owner relays ops'
-  confirmation.
-- **Totals (2026-09-27 ~15:00Z):** 354 tracked packages / **287 stable /
-  4 ported / 63 incubating**; allowlist **339** (287 ready + 52
-  grandfathered); registry **277** (unchanged until the two gates are
-  approved); `validate` = 354/0 (last run was 344/0 before wave 36;
-  re-run at the next touch); +288 tests from the 13 newest names.
+- **Wave 37: COMPLETE (10/10), parallel lane.** `mongo, memcached,
+  cassandra, ssh2, tor, oauth, ethereum, zigbee, nlp, zookeeper`
+  (per-package counts in STATUS records; e.g. nlp 27/27, oauth 25/25,
+  cassandra 24/24, zookeeper 24/24); wrapped in `2c13f20` (allowlist **349**,
+  index/report/namespaces regenerated), tagged **`eco-v0.1.8`** (run
+  `36334928264`, pending in the concurrency group). The lane also appended
+  the wave-37 stdlib gaps/compiler evidence and added a **public README**
+  (`776e369`, website relay).
+- **Wave 38: DISPATCHED (parallel lane, 16:56Z), in flight:** `bitcoin,
+  bolt, dac, leveldb, logging, proxy, pulsar, timer, wireless` (+1 likely;
+  9 dirs unseeded at the monitor). Do not double-work; integrate only if
+  the lane stalls.
+- **Gate queue (scope-blocked; registry still 277):** `eco-v0.1.6` run
+  `36325286939` **waiting at the gate** (i2c/nats/golden); `eco-v0.1.7`
+  (wave 36) was **cancelled** by the concurrency rule when 0.1.8 joined --
+  no rerun needed, the 0.1.8 loop publishes every allowlisted unpublished
+  name anyway; `eco-v0.1.8` (wave 37) **pending** in the group. **Scope
+  target now 326 -> 349** (13 + the 10 wave-37 names). After ops confirms:
+  approve 0.1.6's gate first, then 0.1.8's when it starts; both skip
+  published versions. Never re-cut tags.
+- **Totals (2026-09-27 ~17:15Z):** 364 tracked / **297 stable / 4 ported /
+  63 incubating**; allowlist **349**; registry 277 until the gates clear.
+  Registry `/health`: last restart 12:47:16Z v2.2.0 (predates the scope
+  requests -- scopes unconfirmed).
 - **Batch wrap 1 (2026-09-27 14:16Z, lane `ses_f1cfdad42ffe`):** `i2c`
   (feat `177a3c4` + record `d5e1bfb`, 20/20) and `nats` (feat `b3fc3f5` +
   record `b1f228d`, 21/21; trap-14 sweep normalized 18 `Vec<...>` sites
@@ -268,20 +277,20 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Wave-34 stragglers are fully integrated and tagged: `golden` 35/35,
-   `i2c` 20/20, `nats` 21/21; wrap `93a9f82`; tag `eco-v0.1.6`; run
-   `36325286939` WAITING at the gate. Request the scope delta 326 -> 329
-   (`xiom.i2c, xiom.nats, xiom.golden`) from registry/ops, then approve
-   the gate; it skips published versions. Never re-cut a tag.
-2. Wave 36: `pki, merkle, apple, geology, biology, l10n-currency, gpio,
-   interrupt, flash, tls` (all namespace-check clean). A parallel lane is
-   already building these (started ~13:25Z, `l10n-currency` active) --
-   check the package dirs and session list first; continue that lane's
-   work rather than re-dispatching. Standard recipe: AM-only while `task`
-   subagents are balance-dead; full 18-trap + XIOM MCP briefs; each brief
-   asks for a `stdlib gaps` section. Integrate + wrap (allowlist, index,
-   report, validate, guard, export-namespaces) + tag waiting at the gate
-   as they report.
+1. Gate queue: `eco-v0.1.6` (i2c/nats/golden) WAITING at the gate (run
+   `36325286939`); `eco-v0.1.7` (wave 36) was CANCELLED by the concurrency
+   rule and needs NO rerun (the 0.1.8 publish loop covers its names too);
+   `eco-v0.1.8` (wave 37) pending in the group (run `36334928264`).
+   Request the scope delta **326 -> 349** from registry/ops; on
+   confirmation approve 0.1.6's gate, then 0.1.8's when it starts; both
+   skip published versions. Never re-cut a tag.
+2. Wave 38 is in flight by the parallel lane: `bitcoin, bolt, dac,
+   leveldb, logging, proxy, pulsar, timer, wireless` (+1). Check the
+   package dirs and session list first; continue that lane's work rather
+   than re-dispatching. Standard recipe: AM-only while `task` subagents
+   are balance-dead; full 18-trap + XIOM MCP briefs; each brief asks for a
+   `stdlib gaps` section. Integrate + wrap + tag waiting at the gate as
+   they report; extend the scope request with each wave's names.
 3. Growth coordination: append worker-reported stdlib gaps to
    `docs/STDLIB-WISHLIST.md` and compiler evidence to
    `docs/COMPILER-FINDINGS.md`; regenerate `docs/PACKAGE-NAMESPACES.txt`
