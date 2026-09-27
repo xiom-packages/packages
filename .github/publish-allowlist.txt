@@ -367,3 +367,6 @@ xiom.orc
 xiom.coverage
 xiom.pgp
 xiom.sd
+xiom.i2c
+xiom.nats
+xiom.golden
