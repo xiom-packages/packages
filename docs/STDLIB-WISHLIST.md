@@ -48,7 +48,7 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-09-27 | `xiom.string.cstr`: NUL-padded fixed-size C-string field decode/encode (trim at first NUL, never build past it) + length validator | `gpio` (`_cstr32`/`_put_cstr32`), `apple` (`_scan_cstr`) | private cstr helpers per package | open |
 | 2026-09-27 | `xiom.encoding.le`: unsigned LE16/24/32/64 + BE readers/writers over `Vec[UInt8]` with bounds and range errors | `flash` (`_le32`, 24-bit pointers), `apple` (`_rdu`), `gpio` (`_u32_le`/`_u64_le`), `interrupt` (LE MMIO words), `tls` (`_read_u16/u24/u32` BE), `ssh2` (`_read_u32`, BE writers), `tor` (`_u16`/`_u32`), `mongo` (`_read_u32/i32/i64`), `memcached` (u64 CAS/delta), `ethereum` (`_be_byte`/`_push_be`), `zigbee` (`_le16`) | explicit byte composition per package | open |
 | 2026-09-27 | `xiom.bits.u32`: proven unsigned 32/64-bit word ops (rotr/shr/and/not, safe bit-get) that avoid the bit-31 masks | `merkle` (SHA-256 `rotr32`/`and32` via the `(a+b-(a^b))/2` identity), `interrupt`/`gpio`/`apple` (bitfield extraction), `memcached` (sign-safe flag/length decode) | divisor/modulo arithmetic per package | open |
-| 2026-09-27 | `xiom.hash.sha256`: pure-XIOM, byte-native SHA-256 (`hash.sha256(&Vec[UInt8]) -> Vec[UInt8]`) | `merkle` (hand-rolled FIPS 180-4, ~250 lines; `xiom.crypto.sha256` is FFI-backed, `xiom.crypto.sha` is legacy `Vec[Int]`) | internal `_sha256` in `merkle` | open |
+| 2026-09-27 | `xiom.hash.sha256`: pure-XIOM, byte-native SHA-256 (`hash.sha256(&Vec[UInt8]) -> Vec[UInt8]`) | `merkle` (hand-rolled FIPS 180-4, ~250 lines; `xiom.crypto.sha256` is FFI-backed, `xiom.crypto.sha` is legacy `Vec[Int]`), `badger` (whole-file checksum; `xiom.crypto.hash.crypto_hash_sha256` and `xiom.crypto.sha.sha256` fail to LINK on v0.61.3: `undefined symbol: xiom_sha256_hash` -- local pure-XIOM SHA-256 written and KAT-verified) | internal `_sha256` per package | open |
 | 2026-09-27 | `xiom.l10n.iso4217`: ISO 4217 data module with a compilable table | `l10n-currency` (165-row table compiled into comparison chains because module-level table initializers mis-materialize on v0.61.3) | chained comparisons + accessor switch | open |
 | 2026-09-27 | `xiom.string.bytes`: `str_bytes(s) -> Vec[UInt8]`, `sb_push_range(sb, s, start, end)`, `str_find(s, needle, from) -> Int` (no Option) | `gpio` (`byte_at` loops), `biology` (offset line scanner `_line_at`), `geology` (`_find_sub`), `pki` (dotted-OID rendering), `l10n-currency` (`_matches_ci_at`) | per-package byte loops over `str_compare`/`byte_at` | open |
 | 2026-09-27 | `xiom.err.at`: standard offset-carrying error idiom (`err_at(label, off, msg)`) | `gpio`, `interrupt`, `biology`, `pki`, `geology`, `tls`, `ssh2`, `tor`, `mongo`, `oauth` (every error rebuilt via `+` chains of `int_to_string`; `tls` also wants a typed `ErrAt { code, offset }`) | per-package `_err_at`/`_range_err` helpers | open |
@@ -64,6 +64,7 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-09-27 | `xiom.encoding.ebcdic`: EBCDIC cp037/cp500 text codec | `db2` (SRVNAM/RDBNAM/TYPDEFNAM from real Db2 are opaque without it) | payloads flagged opaque | open |
 | 2026-09-27 | `xiom.io`: `flush_stdout()` is not durable on abnormal exit -- redirected stdout loses buffered output when the program crashes | `mysql` (runtime diagnosis blind during the Vec-cap crash hunt; had to log via `io.write_file`) | write progress with `io.write_file` | open |
 | 2026-09-27 | `xiom.math.rational`: gcd, ratio type, checked mul/div/add/sub overflow helpers, big-integer for exact conversion factors | `l10n-unit` (exact eV `1602176634/10^28` needs a denominator beyond Int64; local `_gcd_abs`/`Ratio`/`_mul_div`) | local rational helpers, documented approximations for eV/pi | open |
+| 2026-09-27 | Manifest `categories` must use the registry's fixed vocabulary (unknown values are ignored with a publish warning) | `zigbee` (`protocol` ignored), `zookeeper` (none declared); repo-wide normalization pass pending | publish succeeds with warnings | open |
 
 ## Compiler-shaped requests routed to `docs/COMPILER-FINDINGS.md`
 
@@ -100,8 +101,9 @@ unit that would consume the fix.
   `time.civil`, `math.int` (`isqrt`), and the convert-ergonomics row.
 - 2026-09-27: wave-39 reports appended (all 10: `git2`, `mysql`,
   `mssql`, `db2`, `expat`, `zkp`, `cache`, `l10n-phone`, `l10n-unit`,
-  `badger` -- `badger`'s upstream v1.6.2 rewrite still in flight): new rows
-  for `containers.map`, `string.digits`, `encoding.ebcdic`, io-flush
-  durability, `math.rational`, and the module-reuse gap extended to
-  compression; requesters extended on `string.utf8`, `checksum`,
-  `core.uint64`, `text.scan`, `math.int`, `result`, `test.dispatch`.
+  `badger`; `badger` subsequently rewritten to upstream v1.6.2 layouts):
+  new rows for `containers.map`, `string.digits`, `encoding.ebcdic`,
+  io-flush durability, `math.rational`, registry categories, and the
+  module-reuse gap extended to compression; requesters extended on
+  `string.utf8`, `checksum`, `core.uint64`, `text.scan`, `math.int`,
+  `result`, `test.dispatch`, `hash.sha256`.

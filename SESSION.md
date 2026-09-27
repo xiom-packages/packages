@@ -127,11 +127,16 @@ production). Check `git log -1 --format=%h %s` before starting.
   001-008, `PUBLISH_RATE_MAX=600`, `TRUST_PROXY=1`, email disabled (one
   post-batch recreate restores 20/min and enables SMTP). Live-check
   staging 219/218, production 277/276. **`eco-v0.1.9` (run `36338915735`)
-  was APPROVED 21:57Z and is publishing the 23 unpublished names** (3
-  stragglers + wave-36 + wave-37). `eco-v0.1.6` failed earlier with
-  `scope_denied`; no rerun needed. Wave 39 wraps as `eco-v0.1.10` (10
-  names, scope target **369**) -- request the extra 10 scopes from ops,
-  then approve 0.1.10 when it reaches the gate. Never re-cut tags.
+  was APPROVED 21:57Z and COMPLETED SUCCESS: 33 names published, 0 failed**
+  (3 stragglers + wave-36 + wave-37 + wave-38; registry now ~310), each
+  signed by `4f3b47f3ae17b13c17fd5372bbd0cf411f329af5d001d374a1494a83be747ce6`.
+  **`eco-v0.1.10` (run `36354376232`, wave 39) is WAITING -- approve only
+  after ops adds the +10 scopes (369).** Registry warning class: unknown
+  `categories` values are ignored (e.g. `protocol`); the valid vocabulary
+  is `core, data, database, web, network, graphics, media, ai-ml, science,
+  crypto-security, cloud-infra, observability, concurrency, systems,
+  tooling, testing, text-nlp` -- normalize manifests over future waves.
+  Never re-cut tags.
 - **Totals (2026-09-27 ~17:58Z):** 374 tracked / **307 stable / 4 ported /
   63 incubating**; allowlist **359**; registry 277 until the gates clear.
   Registry `/health`: last restart 12:47:16Z v2.2.0 (predates the scope
@@ -234,15 +239,17 @@ production). Check `git log -1 --format=%h %s` before starting.
   included) and `sign-bit-ops/` (clean incl. negatives/wrapped; family
   evidence radiotap/can). CSE and `&mut` remain accepted compiler-lane
   repro-first candidates; mixed-bracket strictness is planned.
-- **Wave 39 dispatched (2026-09-27 20:24Z):** `git2, mysql, mssql, db2,
-  expat, zkp` (6 background `task` porters) + `cache, l10n-phone,
-  l10n-unit, badger` (4 AM sessions) -- all namespace-check clean on 1646
-  stdlib namespaces. `audio-meta` was swapped out: `xiom.mp3` already
-  covers ID3v2.3/2.4 + ID3v1, so `xiom.db2` (DRDA/DSS) took the slot.
-  Modules are hyphen-free: `xiom.git2`, `xiom.l10n.phone`,
-  `xiom.l10n.unit`. `git2` includes a self-contained DEFLATE/zlib decoder
-  for pack payloads. Integrate + wrap as they report; next tag
-  `eco-v0.1.10`, scope target 369.
+- **Wave 39: COMPLETE (10/10) and wrapped (2026-09-27 22:10Z).** `git2`
+  24/24, `mysql` 20/20, `mssql` 20/20 (MS-TDS type tokens corrected
+  pre-commit), `db2` 22/22 (verified DRDA codepoints), `expat` 25/25,
+  `zkp` 20/20, `cache` 26/26, `l10n-phone` 23/23, `l10n-unit` 24/24,
+  `badger` 21/21 -- `badger` was rewritten after integration to real
+  upstream v1.6.2 layouts (`0a881c0`, verified against fetched sources;
+  the brief-layout version was superseded pre-publish). Wrap `8286b12`:
+  allowlist 359 -> **369**, validate 384/0, guard 369/0 (317 ready),
+  namespaces 384 pkgs / 408 modules. **`eco-v0.1.10` is cut on `8286b12`;
+  run `36354376232` is WAITING at the gate -- request the +10 scopes
+  (369) from ops, then approve.**
 - **Wave 35 (dispatched 2026-09-27 ~00:45Z; COMPLETE (10/10), AM-only):**
   `spi` 22/22, `uart` 21/21, `adc` 18/18, `rtc` 18/18, `bonjour` 24/24,
   `multicast` 18/18, `orc` 33/33, `coverage` 22/22, `pgp` 22/22, `sd`
