@@ -88,12 +88,15 @@ production). Check `git log -1 --format=%h %s` before starting.
   badge/visual/A1 rebuild; both publisher entries remain at **326 scopes**
   (`eco-release` production, `eco-canary` staging). Nothing pending from
   the packages side until the next wave group.
-- **In flight (AM sessions, 2026-09-27 13:15Z):** `golden` is complete on
-  disk (package + tests + README/SPEC, NOT yet verified/recorded);
-  `i2c` and `nats` are still being built; the jpeg/meteorology docs
-  sessions have not delivered yet. A 13:35Z checkpoint on the previous
-  session integrates whatever is ready -- if this file is read instead,
-  start by integrating them (prompt below).
+- **Straggler checkpoint (2026-09-27 13:35Z):** `golden` is INTEGRATED
+  (feat `9ce3a53` + record `07a0022`, 35/35; its session self-committed,
+  RunBy `ses_f21c67edeffeRS7GnCxctdTg09`). jpeg + meteorology docs are
+  committed (`902dc05`, `642ea45`). `i2c` (implementation ~31 KB written,
+  tests still a skeleton) and `nats` (skeleton) were re-prompted with their
+  exact remainders. A **parallel participant** started the next-session
+  work at ~13:25Z (building wave-36 names -- `l10n-currency` active);
+  do not double-dispatch wave 36 and coordinate the wrap/tag with that
+  lane.
 - **Wave 36 (prepared, NOT dispatched):** `pki, merkle, apple, geology,
   biology, l10n-currency, gpio, interrupt, flash, tls` -- all
   `namespace-check` clean (2026-09-27). Dispatch with the standard recipe
@@ -175,28 +178,30 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Integrate whatever the AM sessions left in flight: `golden` is complete
-   on disk (verify with `& .\scripts\port.ps1 -Package xiom.golden`, grep
-   for `Vec<`/`Result<`, then commit feat + `status.ps1 -Action update
-   -Stage stable -TestsStatus pass -Passed N -Failed 0 -RunBy <session>
-   -Commit <sha> -ExcludedReason "publish pending: next scope delta"` +
-   commit record + push). `i2c`/`nats` may also have landed -- same flow.
-   If a session is idle and unfinished, re-prompt it with the exact
-   remainder. The jpeg/meteorology docs sessions write README/SPEC: verify
-   the sizes and that `port.ps1` is still green, then commit as `docs:`.
-2. Wrap + tag: allowlist the integrated names (+`i2c`/`nats`/`golden` once
-   green), run `& .\generate_index.ps1`, `& .\scripts\status.ps1 -Action
-   report`, `validate`, `allowlist-guard`, `& .\scripts\export-namespaces.ps1`,
+1. Straggler status: `golden` is integrated (9ce3a53/07a0022) and the
+   jpeg/meteorology docs are committed. If `i2c`/`nats` have delivered
+   (check `packages/xiom-i2c`, `packages/xiom-nats` + their sessions),
+   verify with `& .\scripts\port.ps1 -Package xiom.<name>`, grep for
+   `Vec<`/`Result<`, commit feat + `status.ps1 -Action update -Stage
+   stable -TestsStatus pass -Passed N -Failed 0 -RunBy <session> -Commit
+   <sha> -ExcludedReason "publish pending: next scope delta"` + record
+   commit + push; if a session is idle and unfinished, re-prompt it with
+   the exact remainder.
+2. Wrap + tag (coordinate with the parallel participant if it is already
+   wrapping): allowlist the integrated names (+`i2c`/`nats` once green),
+   `& .\generate_index.ps1`, `& .\scripts\status.ps1 -Action report`,
+   `validate`, `allowlist-guard`, `& .\scripts\export-namespaces.ps1`,
    commit, push. Cut the next `eco-*` tag on the wrap commit and **leave it
    waiting at the registry-publish gate**; request the scope delta from
    registry/ops (326 -> 329/336) and approve once ops confirms. Never
    re-cut a tag.
-3. Wave 36: dispatch the prepared names `pki, merkle, apple, geology,
-   biology, l10n-currency, gpio, interrupt, flash, tls` (all
-   namespace-check clean) with the standard recipe -- AM-only while `task`
-   subagents are balance-dead (one AM session per package); full 18-trap +
-   XIOM MCP briefs, each asking for a `stdlib gaps` section in the final
-   report. Integrate + wrap as they report.
+3. Wave 36: `pki, merkle, apple, geology, biology, l10n-currency, gpio,
+   interrupt, flash, tls` (all namespace-check clean). A parallel
+   participant may already be building these (started ~13:25Z) -- check
+   the package dirs/session list first and continue rather than
+   re-dispatch. Standard recipe: AM-only while `task` subagents are
+   balance-dead; full 18-trap + XIOM MCP briefs; each brief asks for a
+   `stdlib gaps` section. Integrate + wrap as they report.
 4. Growth coordination: append worker-reported stdlib gaps to
    `docs/STDLIB-WISHLIST.md` and compiler evidence to
    `docs/COMPILER-FINDINGS.md`; regenerate `docs/PACKAGE-NAMESPACES.txt`
