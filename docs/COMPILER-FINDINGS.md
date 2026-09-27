@@ -20,6 +20,8 @@ compiler session triages. Format: `| Date | Finding | Evidence | Workaround in p
 | 2026-09-22 | `Int` division truncates toward zero; `(a+b-1)/b` is wrong for negative numerators | documented trap 18 | `q=a/b; r=a%b; if r>0 {q+1} else {q}` | silent wrong ceil | 
 | 2026-09-27 | No `Vec[StructType]` (trap 10): struct payload lists need parallel `Vec` fields | `nats` (op stream parsed op-by-op), `i2c` (transaction events modeled as two mirrored `Vec[Int]` arrays) | mirrored parallel Vecs + index discipline | structural noise, drift risk (trap 16) | 
 | 2026-09-27 | No auto-borrow at call sites: `&Struct` parameters require an explicit `&op`; omitting it raises E001 moved-value advisories | `nats` tests: 57 E001 "moved value" warnings until helpers took `&NatsOp` and every call site passed `&op` | explicit `&` at every call site | advisory only, but noisy suites; easy to mistake for a real move | 
+| 2026-09-27 | Module-level `const` arrays / table initializers mis-materialize | `merkle`: the 64 SHA-256 K constants are rebuilt into a runtime `Vec[Int]` on every hash; `l10n-currency`: the 165-row ISO 4217 table is compiled into comparison chains instead of a module table | rebuild constants at runtime; comparison chains / accessor switches | performance and code size, no correctness impact | 
+| 2026-09-27 | No function overloading; a later same-named function silently shadows an earlier definition (no redefinition error) | `l10n-currency`: two `_row` functions (different arities) produced 167 cascading `expected Int, found Str` errors at unrelated call sites until renamed to `_mk_row` | unique function names per module | confusing error storms; possible silent wrong dispatch in other shapes | 
 
 ## Resolved / withdrawn
 
@@ -36,3 +38,6 @@ compiler session triages. Format: `| Date | Finding | Evidence | Workaround in p
 - 2026-09-27: wave-34 straggler evidence appended (`nats` 18 mixed-bracket
   sites, no-auto-borrow E001 behavior, mirrored parallel-Vec modeling from
   `i2c`).
+- 2026-09-27: wave-36 evidence appended (module-level const/table
+  mis-materialization from `merkle`/`l10n-currency`; same-name function
+  shadowing from `l10n-currency`).
