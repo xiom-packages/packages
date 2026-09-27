@@ -98,23 +98,44 @@ production). Check `git log -1 --format=%h %s` before starting.
   (`xiom.i2c`, `xiom.nats`, `xiom.golden`). `validate` = 344/0, guard =
   329 allowlisted / 277 ready / 0 failures. No busy sessions; wave 36 is
   the parallel lane's active work (`l10n-currency` first).
-- **Batch wrap (2026-09-27 14:16Z, lane `ses_f1cfdad42ffe`):** `i2c`
+- **Batch wrap 1 (2026-09-27 14:16Z, lane `ses_f1cfdad42ffe`):** `i2c`
   (feat `177a3c4` + record `d5e1bfb`, 20/20) and `nats` (feat `b3fc3f5` +
   record `b1f228d`, 21/21; trap-14 sweep normalized 18 `Vec<...>` sites
   pre-record) are integrated; jpeg/meteorology docs are committed
   (`902dc05`/`642ea45`). Wrap `93a9f82`: allowlist 326 -> **329**
   (`i2c, nats, golden`), index/report/namespaces regenerated; validate
   344/0, allowlist-guard 329/0 (277 ready). **`eco-v0.1.6` is cut on
-  `93a9f82`; run `36325286939` is WAITING at the registry-publish gate --
-  approve only after ops confirms the 326 -> 336 scope delta. Never
-  re-cut the tag.**
-- **Wave 36 dispatched (2026-09-27 14:17Z, AM-only, one session per
-  package):** `pki, merkle, apple, geology, biology, l10n-currency,
-  gpio, interrupt, flash, tls` (namespace-check re-verified clean on
-  1642 stdlib namespaces). `task` subagents remain dead (probe fails
-  with `Model not found: deepseek-v4-flash/deepseek-v4-flash`, not just
-  balance). Integrate + wrap as they report; each brief asks for a
-  `stdlib gaps` section.
+  `93a9f82`; run `36325286939` is WAITING at the registry-publish gate.**
+- **Wave 36: COMPLETE (10/10) and wrapped (2026-09-27 14:58Z).**
+  `pki` 20/20, `merkle` 22/22, `apple` 21/21, `geology` 26/26,
+  `biology` 18/18, `l10n-currency` 24/24, `gpio` 21/21, `interrupt`
+  20/20, `flash` 20/20, `tls` 20/20 -- 212 tests, all `stable` with
+  RunBy/Commit records, trap-14 clean (worker greps verified + re-run by
+  the coordinator). Wrap `d0ecf72`: allowlist 329 -> **339**, validate
+  354/0, guard 339/0 (287 ready), namespaces 354 pkgs / 378 modules.
+  **`eco-v0.1.7` is cut on `d0ecf72`; run `36327834576` is PENDING at
+  the registry-publish gate.**
+- **Scope delta: 326 -> 339 (corrected).** The earlier relay said 336,
+  which forgot the 3 stragglers; the correct target is **339** (326 + 3
+  stragglers + 10 wave-36 names): `xiom.i2c`, `xiom.nats`, `xiom.golden`,
+  `xiom.pki`, `xiom.merkle`, `xiom.apple`, `xiom.geology`, `xiom.biology`,
+  `xiom.l10n-currency`, `xiom.gpio`, `xiom.interrupt`, `xiom.flash`,
+  `xiom.tls`. **Approve `36325286939` and `36327834576` only after ops
+  confirms; never re-cut a tag.**
+- **Worker-report extraction channel (new):** AM final reports and their
+  `stdlib gaps` sections are readable from
+  `C:\Users\lefte\.local\share\kilo\kilo.db` (SQLite `part` table,
+  `$.text` parts joined to `message` on role; use the Android SDK
+  `sqlite3.exe`) -- avoids transcript re-reads. All straggler + wave-36
+  reports were appended to `docs/STDLIB-WISHLIST.md` and
+  `docs/COMPILER-FINDINGS.md`.
+- **Wave notes:** `l10n-currency`'s manifest is `xiom.l10n-currency` but
+  the module must be `xiom.l10n.currency` (v0.61.3 rejects `-` in module
+  names, `error[P001]`); documented in its README/SPEC. `tls` ships 7
+  benign E001 borrow warnings in tests (stable, exit 0).
+  `l10n-currency`'s session briefly stopped stray `xiom` processes that
+  belonged to a concurrently running stdlib smoke batch (it respawned; no
+  repo files touched) -- watch for cross-lane process collisions.
 - **Wave 35 (dispatched 2026-09-27 ~00:45Z; COMPLETE (10/10), AM-only):**
   `spi` 22/22, `uart` 21/21, `adc` 18/18, `rtc` 18/18, `bonjour` 24/24,
   `multicast` 18/18, `orc` 33/33, `coverage` 22/22, `pgp` 22/22, `sd`
