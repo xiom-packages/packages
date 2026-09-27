@@ -122,6 +122,26 @@ production). Check `git log -1 --format=%h %s` before starting.
 4. `task` subagents remain balance-dead; AM sessions only until the
    provider balance is topped up.
 
+**Ecosystem growth coordination (2026-09-27, owner request; hand-to-hand with the stdlib session):**
+- `docs/STDLIB-WISHLIST.md` -- the shared idea dump from packages to the
+  stdlib session: missing helpers/modules that N packages re-implement,
+  with requesters and today's local workarounds. Workers report gaps in
+  the final message of their task; the coordinator appends them (do not
+  have parallel workers edit the file directly -- it is a single-writer
+  artifact). The stdlib session pulls from it in its own lane.
+- `docs/COMPILER-FINDINGS.md` -- packages-lane compiler evidence for the
+  compiler session (`&mut Int` write-through miscompile, loop-carried CSE,
+  mixed-bracket tolerance, no `Vec[Float64]`/bitcast, bit-test signing,
+  ...) with workarounds and impact.
+- `docs/PACKAGE-NAMESPACES.txt` + `scripts/export-namespaces.ps1` -- the
+  package/module namespace snapshot the stdlib session cross-checks
+  against. **Regenerate at every wave wrap**:
+  `& .\scripts\export-namespaces.ps1`.
+- Two-way name uniqueness: packages check the stdlib (plus all package
+  manifests) with `namespace-check.ps1 -Module <name>` before dispatching
+  any new package; the stdlib session checks new module names against the
+  snapshot above. Nothing new is dispatched until both checks pass.
+
 **Copy-paste prompt for the next session:**
 
 ```text
@@ -148,7 +168,12 @@ Then do, in order:
    docs (docs commits only). `task` subagents are balance-dead -- AM only.
 3. Keep the registry-lane badge-override follow-up (SESSION.md section 5)
    and the .github OIDC token re-mint finding.
-4. Worker briefs must keep both the 18-trap list and the XIOM MCP guidance
+4. Growth coordination: append worker-reported stdlib gaps to
+   `docs/STDLIB-WISHLIST.md` and compiler evidence to
+   `docs/COMPILER-FINDINGS.md`; regenerate
+   `docs/PACKAGE-NAMESPACES.txt` (`& .\scripts\export-namespaces.ps1`) at
+   every wrap so the stdlib session can cross-check names.
+5. Worker briefs must keep both the 18-trap list and the XIOM MCP guidance
    (`xiom_xiom_stdlib_reference` for exact stdlib signatures,
    `xiom_xiom_cheatsheet`, `xiom_compile_and_fix`).
 ```
@@ -517,6 +542,9 @@ brief: read `packages/xiom-hello` + a sibling of the same kind, deliver
 `package.xi`, `src/<x>.xi` (module `xiom.<x>`), `tests/test_conformance.xi`,
 `README.md`, `SPEC.md`, `.gitignore` (copy of xiom-hello's); iterate with
 `scripts/port.ps1 -Package <name>` until `port: PASS (program_exit=0)`.
+Every brief should also ask for a short `stdlib gaps` section in the final
+report (missing helpers/modules the package had to hand-roll) -- the
+coordinator appends those to `docs/STDLIB-WISHLIST.md`.
 Subagents must not commit, must not touch STATUS.json, must not publish.
 The coordinator then: verify (re-run), commit, run on the commit, record with
 `status.ps1 -Action update ... -RunBy <task id> -Commit <sha>`, commit the
