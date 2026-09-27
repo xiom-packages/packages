@@ -223,6 +223,15 @@ production). Check `git log -1 --format=%h %s` before starting.
   included) and `sign-bit-ops/` (clean incl. negatives/wrapped; family
   evidence radiotap/can). CSE and `&mut` remain accepted compiler-lane
   repro-first candidates; mixed-bracket strictness is planned.
+- **Wave 39 dispatched (2026-09-27 20:24Z):** `git2, mysql, mssql, db2,
+  expat, zkp` (6 background `task` porters) + `cache, l10n-phone,
+  l10n-unit, badger` (4 AM sessions) -- all namespace-check clean on 1646
+  stdlib namespaces. `audio-meta` was swapped out: `xiom.mp3` already
+  covers ID3v2.3/2.4 + ID3v1, so `xiom.db2` (DRDA/DSS) took the slot.
+  Modules are hyphen-free: `xiom.git2`, `xiom.l10n.phone`,
+  `xiom.l10n.unit`. `git2` includes a self-contained DEFLATE/zlib decoder
+  for pack payloads. Integrate + wrap as they report; next tag
+  `eco-v0.1.10`, scope target 369.
 - **Wave 35 (dispatched 2026-09-27 ~00:45Z; COMPLETE (10/10), AM-only):**
   `spi` 22/22, `uart` 21/21, `adc` 18/18, `rtc` 18/18, `bonjour` 24/24,
   `multicast` 18/18, `orc` 33/33, `coverage` 22/22, `pgp` 22/22, `sd`
