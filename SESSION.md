@@ -108,6 +108,10 @@ production). Check `git log -1 --format=%h %s` before starting.
   xiom.flash, xiom.tls`. After ops confirms: approve the `eco-v0.1.6` gate
   (run `36325286939`), then approve the `eco-v0.1.7` gate when its run
   starts (`36327834576`); both skip published versions. Never re-cut tags.
+  Note: the registry restarted at **12:47:16Z to v2.2.0** (the
+  badge/visual/A1 + 20/min rebuild) -- that predates this 13-name request,
+  so the scopes cannot be assumed present until the owner relays ops'
+  confirmation.
 - **Totals (2026-09-27 ~15:00Z):** 354 tracked packages / **287 stable /
   4 ported / 63 incubating**; allowlist **339** (287 ready + 52
   grandfathered); registry **277** (unchanged until the two gates are
