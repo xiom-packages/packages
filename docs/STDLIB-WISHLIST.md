@@ -43,15 +43,15 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-09-27 | `xiom.result`: ergonomic construction for struct-payload `Result`s (per-type leaf constructors; maybe `map`/`?`) | `nats` (leaf `Ok`/`Err` per payload type: `Vec[UInt8]`, `Int`, `Bool`, `NatsOp`, `(Int,Int)`), `i2c` (`_ok_*`/`_err_*` leaves), plus every wave-36 package (`pki`, `apple`, `merkle`, `interrupt`, `flash`, `gpio`, `geology`, `l10n-currency`) | one `_ok_*`/`_err_*` leaf per payload type per package (trap 6) | open |
 | 2026-09-27 | `xiom.serialize.json`: raw-byte, format-preserving JSON key lookup (boundary-checked key spans, scalar values) | `nats` (INFO/CONNECT key lookups; `xiom.serialize.json` round-trips and cannot do raw-byte lookups) | private key-span scanner in `nats` | open |
 | 2026-09-27 | Core decimal formatting usable from dependency-free library modules (`int_to_string` without an import, zero-padded width, simple `Str` interpolation) | `i2c` re-implemented `_dec` because importing `xiom.convert.int.int_to_string` breaks the zero-import style of codec modules; `geology` `_pad3`; `apple` finds `use xiom.convert.itos; itos.itos(n)` awkward; `pki`/`interrupt`/`flash`/`biology` build every error with `+` chains of `int_to_string` | private `_dec`/`_pad*` per dependency-free package | open |
-| 2026-09-27 | `xiom.test.bytes`: conformance fixture builders (`bytes_of`/`bytes_equal`/`cat`/`bin`) plus hex-expectation helpers | `nats`, `gpio`, `flash`, `l10n-currency`, `interrupt` (hand-rolled fixtures + `xiom.encoding.hex`), repeated across most wave suites | per-suite private fixture helpers | open |
+| 2026-09-27 | `xiom.test.bytes`: conformance fixture builders (`bytes_of`/`bytes_equal`/`cat`/`bin`) plus hex-expectation helpers | `nats`, `gpio`, `flash`, `l10n-currency`, `interrupt`, `tls` (hand-rolled fixtures + `xiom.encoding.hex`), repeated across most wave suites | per-suite private fixture helpers | open |
 | 2026-09-27 | `xiom.encoding.hex`: byte<->hex encode/decode with zero-padded output | `pki`, `apple`, `gpio`, `flash`, `merkle` (all hand-rolled `_hex*`/`hb` helpers; `int_to_hex` does not pad) | private hex helpers per package | open |
 | 2026-09-27 | `xiom.string.cstr`: NUL-padded fixed-size C-string field decode/encode (trim at first NUL, never build past it) + length validator | `gpio` (`_cstr32`/`_put_cstr32`), `apple` (`_scan_cstr`) | private cstr helpers per package | open |
-| 2026-09-27 | `xiom.encoding.le`: unsigned LE16/24/32/64 + BE readers/writers over `Vec[UInt8]` with bounds and range errors | `flash` (`_le32`, 24-bit pointers), `apple` (`_rdu`), `gpio` (`_u32_le`/`_u64_le`), `interrupt` (LE MMIO words) | explicit byte composition per package | open |
+| 2026-09-27 | `xiom.encoding.le`: unsigned LE16/24/32/64 + BE readers/writers over `Vec[UInt8]` with bounds and range errors | `flash` (`_le32`, 24-bit pointers), `apple` (`_rdu`), `gpio` (`_u32_le`/`_u64_le`), `interrupt` (LE MMIO words), `tls` (`_read_u16/u24/u32` BE) | explicit byte composition per package | open |
 | 2026-09-27 | `xiom.bits.u32`: proven unsigned 32/64-bit word ops (rotr/shr/and/not, safe bit-get) that avoid the bit-31 masks | `merkle` (SHA-256 `rotr32`/`and32` via the `(a+b-(a^b))/2` identity), `interrupt`/`gpio`/`apple` (bitfield extraction) | divisor/modulo arithmetic per package | open |
 | 2026-09-27 | `xiom.hash.sha256`: pure-XIOM, byte-native SHA-256 (`hash.sha256(&Vec[UInt8]) -> Vec[UInt8]`) | `merkle` (hand-rolled FIPS 180-4, ~250 lines; `xiom.crypto.sha256` is FFI-backed, `xiom.crypto.sha` is legacy `Vec[Int]`) | internal `_sha256` in `merkle` | open |
 | 2026-09-27 | `xiom.l10n.iso4217`: ISO 4217 data module with a compilable table | `l10n-currency` (165-row table compiled into comparison chains because module-level table initializers mis-materialize on v0.61.3) | chained comparisons + accessor switch | open |
 | 2026-09-27 | `xiom.string.bytes`: `str_bytes(s) -> Vec[UInt8]`, `sb_push_range(sb, s, start, end)`, `str_find(s, needle, from) -> Int` (no Option) | `gpio` (`byte_at` loops), `biology` (offset line scanner `_line_at`), `geology` (`_find_sub`), `pki` (dotted-OID rendering), `l10n-currency` (`_matches_ci_at`) | per-package byte loops over `str_compare`/`byte_at` | open |
-| 2026-09-27 | `xiom.err.at`: standard offset-carrying error idiom (`err_at(label, off, msg)`) | `gpio`, `interrupt`, `biology`, `pki`, `geology` (every error rebuilt via `+` chains of `int_to_string`) | per-package `_err_at`/`_range_err` helpers | open |
+| 2026-09-27 | `xiom.err.at`: standard offset-carrying error idiom (`err_at(label, off, msg)`) | `gpio`, `interrupt`, `biology`, `pki`, `geology`, `tls` (every error rebuilt via `+` chains of `int_to_string`; `tls` also wants a typed `ErrAt { code, offset }`) | per-package `_err_at`/`_range_err` helpers | open |
 
 ## Compiler-shaped requests routed to `docs/COMPILER-FINDINGS.md`
 
@@ -67,10 +67,10 @@ unit that would consume the fix.
 - 2026-09-27: wave-34 straggler reports appended (`i2c`, `nats`):
   result-constructor ergonomics, raw-byte JSON key lookup, zero-import int
   formatting, conformance byte fixtures; `nats` added to `xiom.text.scan`.
-- 2026-09-27: wave-36 reports appended (9 of 10: `pki`, `merkle`, `apple`,
-  `geology`, `biology`, `l10n-currency`, `gpio`, `interrupt`, `flash`;
-  `tls` pending): new rows for `encoding.hex`, `string.cstr`,
-  `encoding.le`, `bits.u32`, `hash.sha256`, `l10n.iso4217`,
-  `string.bytes`, `err.at`; requesters extended on `bitstream`,
-  `bytes.cursor`, `math.int`, `text.scan`, `time.civil`, `buf.writer`,
-  `result`, `test.bytes`, and the convert-ergonomics row.
+- 2026-09-27: wave-36 reports appended (all 10: `pki`, `merkle`, `apple`,
+  `geology`, `biology`, `l10n-currency`, `gpio`, `interrupt`, `flash`,
+  `tls`): new rows for `encoding.hex`, `string.cstr`, `encoding.le`,
+  `bits.u32`, `hash.sha256`, `l10n.iso4217`, `string.bytes`, `err.at`;
+  requesters extended on `bitstream`, `bytes.cursor`, `math.int`,
+  `text.scan`, `time.civil`, `buf.writer`, `result`, `test.bytes`, and the
+  convert-ergonomics row.
