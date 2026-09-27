@@ -160,6 +160,18 @@ production). Check `git log -1 --format=%h %s` before starting.
   364/0, guard 349/0 (297 ready), namespaces 364 pkgs / 388 modules.
   **`eco-v0.1.8` is cut on `2c13f20`; run `36334928264` is PENDING at the
   registry-publish gate.**
+- **Public README added (2026-09-27 16:56Z, website-lane relay):**
+  `README.md` owns the method (AI-assisted porting under review, the
+  conformance/pinning/gate process) and frames `SESSION.md` + `docs/` as
+  the internal record kept public on purpose. Commit `776e369`. Tone is
+  matter-of-fact by request; if the framing needs changing, raise it with
+  the website lane rather than editing it halfway.
+- **Wave 38 dispatched (2026-09-27 ~16:56Z):** `bitcoin, proxy, pulsar,
+  bolt, wireless, leveldb, logging, dac, aviation, timer` -- all
+  namespace-check clean on 1644 stdlib namespaces. **6 background `task`
+  porters** (bitcoin, proxy, pulsar, bolt, wireless, leveldb) + **4 AM
+  sessions** (logging, dac, aviation, timer). Integrate + wrap as they
+  report; next tag `eco-v0.1.9`, scope target 359.
 - **Scope delta: 326 -> 349 (current).** 326 + 3 stragglers + 10 wave-36 +
   10 wave-37 = **349**; wave 37 adds `xiom.mongo`, `xiom.memcached`,
   `xiom.cassandra`, `xiom.ssh2`, `xiom.tor`, `xiom.oauth`,
