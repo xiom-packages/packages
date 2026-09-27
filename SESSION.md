@@ -10,7 +10,7 @@ production). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**State at handoff refresh (2026-09-27 ~12:20, waves 1-33 published; waves 34+35 green and tagged, scope-blocked; i2c/nats/golden + docs in flight):**
+**State at handoff refresh (2026-09-27 ~13:15, waves 1-35 published -- registry 277; wave-34 stragglers in flight; wave 36 prepared):**
 - **Wave 34 (dispatched 2026-09-26 23:31Z; COMPLETE for greens):** names
   `webp, jpeg, flac, eeprom, i2c, nats, ldap, upnp, golden, meteorology`.
   The `task` subagent provider hit **"Insufficient Balance"** ~23:45Z and
@@ -88,6 +88,18 @@ production). Check `git log -1 --format=%h %s` before starting.
   badge/visual/A1 rebuild; both publisher entries remain at **326 scopes**
   (`eco-release` production, `eco-canary` staging). Nothing pending from
   the packages side until the next wave group.
+- **In flight (AM sessions, 2026-09-27 13:15Z):** `golden` is complete on
+  disk (package + tests + README/SPEC, NOT yet verified/recorded);
+  `i2c` and `nats` are still being built; the jpeg/meteorology docs
+  sessions have not delivered yet. A 13:35Z checkpoint on the previous
+  session integrates whatever is ready -- if this file is read instead,
+  start by integrating them (prompt below).
+- **Wave 36 (prepared, NOT dispatched):** `pki, merkle, apple, geology,
+  biology, l10n-currency, gpio, interrupt, flash, tls` -- all
+  `namespace-check` clean (2026-09-27). Dispatch with the standard recipe
+  (AM-only while `task` subagents are balance-dead: one AM session per
+  package; 4 AM + 6 background only after the balance is restored). Scope
+  delta 326 -> 336 goes out with the next relay.
 - **Wave 35 (dispatched 2026-09-27 ~00:45Z; COMPLETE (10/10), AM-only):**
   `spi` 22/22, `uart` 21/21, `adc` 18/18, `rtc` 18/18, `bonjour` 24/24,
   `multicast` 18/18, `orc` 33/33, `coverage` 22/22, `pgp` 22/22, `sd`
@@ -163,25 +175,34 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Both tags are scope-blocked. `eco-v0.1.5` (tag on 55cc303, run
-   36318371174) is WAITING at the gate on purpose; `eco-v0.1.4` (tag on
-   9820db7, run 36282607173) failed with scope_denied. Confirm the registry
-   scopes are live (309 -> 326: the six wave-34 greens + the eleven
-   wave-35/ldap names), then approve 36318371174 and gh run rerun
-   36282607173 + approve. Both skip published versions. Never re-cut a tag.
-2. Integrate the wave-34 stragglers as the Agent Manager sessions report:
-   i2c, nats, golden (allowlist +3, wrap, own tag) and the jpeg/meteorology
-   docs (docs commits only). `task` subagents are balance-dead -- AM only.
-3. Keep the registry-lane badge-override follow-up (SESSION.md section 5)
-   and the .github OIDC token re-mint finding.
+1. Integrate whatever the AM sessions left in flight: `golden` is complete
+   on disk (verify with `& .\scripts\port.ps1 -Package xiom.golden`, grep
+   for `Vec<`/`Result<`, then commit feat + `status.ps1 -Action update
+   -Stage stable -TestsStatus pass -Passed N -Failed 0 -RunBy <session>
+   -Commit <sha> -ExcludedReason "publish pending: next scope delta"` +
+   commit record + push). `i2c`/`nats` may also have landed -- same flow.
+   If a session is idle and unfinished, re-prompt it with the exact
+   remainder. The jpeg/meteorology docs sessions write README/SPEC: verify
+   the sizes and that `port.ps1` is still green, then commit as `docs:`.
+2. Wrap + tag: allowlist the integrated names (+`i2c`/`nats`/`golden` once
+   green), run `& .\generate_index.ps1`, `& .\scripts\status.ps1 -Action
+   report`, `validate`, `allowlist-guard`, `& .\scripts\export-namespaces.ps1`,
+   commit, push. Cut the next `eco-*` tag on the wrap commit and **leave it
+   waiting at the registry-publish gate**; request the scope delta from
+   registry/ops (326 -> 329/336) and approve once ops confirms. Never
+   re-cut a tag.
+3. Wave 36: dispatch the prepared names `pki, merkle, apple, geology,
+   biology, l10n-currency, gpio, interrupt, flash, tls` (all
+   namespace-check clean) with the standard recipe -- AM-only while `task`
+   subagents are balance-dead (one AM session per package); full 18-trap +
+   XIOM MCP briefs, each asking for a `stdlib gaps` section in the final
+   report. Integrate + wrap as they report.
 4. Growth coordination: append worker-reported stdlib gaps to
    `docs/STDLIB-WISHLIST.md` and compiler evidence to
-   `docs/COMPILER-FINDINGS.md`; regenerate
-   `docs/PACKAGE-NAMESPACES.txt` (`& .\scripts\export-namespaces.ps1`) at
-   every wrap so the stdlib session can cross-check names.
-5. Worker briefs must keep both the 18-trap list and the XIOM MCP guidance
-   (`xiom_xiom_stdlib_reference` for exact stdlib signatures,
-   `xiom_xiom_cheatsheet`, `xiom_compile_and_fix`).
+   `docs/COMPILER-FINDINGS.md`; regenerate `docs/PACKAGE-NAMESPACES.txt`
+   at every wrap so the stdlib session can cross-check names.
+5. Keep the registry-lane badge-override follow-up (section 5) and the
+   .github OIDC token re-mint finding.
 ```
 
 **Mission:** turn this monorepo into real, production-grade package repos.
