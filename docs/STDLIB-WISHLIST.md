@@ -38,7 +38,7 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-09-27 | `xiom.time.civil`: civil date <-> days-since-epoch, leap-year rules, ISO weekday | `rtc`, `tzif`, `duration`, `coverage`?, `pki` (UTCTime/GeneralizedTime digit-pair parsing), `logging` (RFC 3339 split fields) | private integer math in `rtc` | open |
 | 2026-09-27 | `xiom.net.addr`: IPv4/IPv6 parse+render (inet_pton-like), pseudo-header assembly | `multicast`, `dns`, `bonjour`, `snmp`, `proxy` (v1 TCP4/TCP6 text forms) | per-package packing helpers | open |
 | 2026-09-27 | `xiom.bcd`: two-digit BCD pack/unpack with nibble validation | `rtc` (DS1307/PCF8563), `eeprom` (density tables) | private in `rtc` | open |
-| 2026-09-27 | `xiom.math.int`: `div_ceil`, half-away-from-zero rounding, fixed-point scaling helpers, integer `isqrt` | `adc` (rounding), `mkv` (milli-units), `coverage` (floor percents), `geology` (div/pad), `l10n-currency` (half-away rounding), `interrupt` (floor-div/remainder), `aviation` (local Newton `_isqrt` for ground-speed magnitude) | private expressions everywhere | open |
+| 2026-09-27 | `xiom.math.int`: `div_ceil`, half-away-from-zero rounding, fixed-point scaling helpers, integer `isqrt`, gcd/checked arithmetic | `adc` (rounding), `mkv` (milli-units), `coverage` (floor percents), `geology` (div/pad), `l10n-currency` (half-away rounding), `interrupt` (floor-div/remainder), `aviation` (local Newton `_isqrt` for ground-speed magnitude), `l10n-unit` (gcd, checked mul/div/add/sub) | private expressions everywhere | open |
 | 2026-09-27 | `xiom.buf.writer`: append helpers with capacity/length bookkeeping for parallel-Vec models | every codec's `_Acc` struct, `biology` (19-vector `BioBatch`), `geology` (`RowParse` carriers), `flash` (cat/zeros), `memcached`/`ssh2`/`tor`/`mongo` (byte appends and span copies) (see trap 16: parallel Vecs must never drift) | per-package atomic push helpers | open |
 | 2026-09-27 | `xiom.result`: ergonomic construction for struct-payload `Result`s (per-type leaf constructors; maybe `map`/`?`) | `nats` (leaf `Ok`/`Err` per payload type: `Vec[UInt8]`, `Int`, `Bool`, `NatsOp`, `(Int,Int)`), `i2c` (`_ok_*`/`_err_*` leaves), every wave-36 package (`pki`, `apple`, `merkle`, `interrupt`, `flash`, `gpio`, `geology`, `l10n-currency`), wave-37 (`ethereum` 12 helpers, `ssh2` 54 in src + 14 test helpers, `memcached`, `mongo`, `zigbee`), wave-38 (`dac`, `wireless`, `logging`, `proxy`, `bitcoin`, `timer`) | one `_ok_*`/`_err_*` leaf per payload type per package (trap 6) | open |
 | 2026-09-27 | `xiom.serialize.json`: raw-byte, format-preserving JSON key lookup (boundary-checked key spans, scalar values) | `nats` (INFO/CONNECT key lookups; `xiom.serialize.json` round-trips and cannot do raw-byte lookups), `oauth` (bounded escape-aware token-response lookup) | private key-span scanner in `nats` / `oauth_json_*` family | open |
@@ -54,7 +54,7 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-09-27 | `xiom.err.at`: standard offset-carrying error idiom (`err_at(label, off, msg)`) | `gpio`, `interrupt`, `biology`, `pki`, `geology`, `tls`, `ssh2`, `tor`, `mongo`, `oauth` (every error rebuilt via `+` chains of `int_to_string`; `tls` also wants a typed `ErrAt { code, offset }`) | per-package `_err_at`/`_range_err` helpers | open |
 | 2026-09-27 | `xiom.vec.bytes`: `Vec[UInt8]` structural ops (non-copying slice/view, pop/truncate, extend/append, prefix/tail replace, equality and suffix match) | `ssh2` (`_span_eq2`/`_push_vec`/`_copy_span`), `tor` (`_copy_span`), `mongo` (`_push_range`, `_scan_cstring`), `memcached` (CRLF/line splitter), `nlp` (`_copy_prefix`/`_drop_last`/`_replace_tail`), `zigbee` (`_copy8`/`_copy_span`), `tls` (offset/length views) | per-package byte loops over parallel Vecs | open |
 | 2026-09-27 | `xiom.core.uint64`: unsigned 64-bit integer or checked `u64 <-> Int` converters | `memcached` (wire CAS/delta/initial are u64; `Int` forces an explicit 2^63-1 rejection ceiling), `bitcoin` (services/nonce raw 8-byte LE; CompactSize capped at INT64_MAX), `pulsar` (full protobuf u64 range unrepresentable, reader fails closed at 2^63), `bolt` (FNV-1a-64 wrap arithmetic), `git2` (pack/idx 64-bit offsets and sizes), `badger` (version/id/size fields), `mssql`/`mysql`/`db2` (u64 wire fields with bit 63 set rejected) | reject above `2^63-1`, document the ceiling | open |
-| 2026-09-27 | `xiom.test.dispatch`: trap-safe conformance runner (no indexed `Vec[fn]`, no `Vec[TestResult]` struct vector) | `zigbee` (26 checks unrolled in `main`), `interrupt` (t1..t20 unrolled), `ssh2` (14 duplicated `err_*_is` test helpers), `wireless` (31->33 unrolled), `logging` (22 unrolled) | every suite unrolls its checks and hand-rolls per-test error helpers | open |
+| 2026-09-27 | `xiom.test.dispatch`: trap-safe conformance runner (no indexed `Vec[fn]`, no `Vec[TestResult]` struct vector) | `zigbee` (26 checks unrolled in `main`), `interrupt` (t1..t20 unrolled), `ssh2` (14 duplicated `err_*_is` test helpers), `wireless` (31->33 unrolled), `logging` (22 unrolled), `l10n-unit` (no Result/error assertion helpers) | every suite unrolls its checks and hand-rolls per-test error helpers | open |
 | 2026-09-27 | `xiom.bits.wrapping`: trusted 64-bit wrapping multiply and bitwise AND/XOR on high-bit values | `bolt` (FNV-1a-64 via an 8-step arithmetic XOR loop), `leveldb`/`proxy` (CRC32C bit loops), `merkle` (SHA-256 word ops), `pulsar` (varint `*128` weights), `bitcoin` (u64 helpers) | arithmetic identities plus divisor/modulo extraction everywhere | open |
 | 2026-09-27 | `xiom.tlv`: offset-carrying TLV walker (1-byte id + 1-byte length, semantic-length validation, raw unknown preservation) | `proxy` (PROXY v2 TLVs), `wireless` (802.11 information elements) | per-package cursor loops | open |
 | 2026-09-27 | `xiom.time.iso8601` field-level use: an offset-carrying RFC 3339 checker exposing parsed fields | `logging` (RFC 5424 TIMESTAMP; the stdlib helper was not usable at the required granularity) | local RFC 3339 parser in `logging` | open |
@@ -63,6 +63,7 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-09-27 | `xiom.string.digits`: digit-string grouping (3-from-the-right), mask-last-N, digit-run scanning with offsets | `l10n-phone` (`_group3`, mask, `byte_at` scan; `format.number` cannot carry leading digits or extensions) | hand-rolled `str_slice`/`str_repeat` loops | open |
 | 2026-09-27 | `xiom.encoding.ebcdic`: EBCDIC cp037/cp500 text codec | `db2` (SRVNAM/RDBNAM/TYPDEFNAM from real Db2 are opaque without it) | payloads flagged opaque | open |
 | 2026-09-27 | `xiom.io`: `flush_stdout()` is not durable on abnormal exit -- redirected stdout loses buffered output when the program crashes | `mysql` (runtime diagnosis blind during the Vec-cap crash hunt; had to log via `io.write_file`) | write progress with `io.write_file` | open |
+| 2026-09-27 | `xiom.math.rational`: gcd, ratio type, checked mul/div/add/sub overflow helpers, big-integer for exact conversion factors | `l10n-unit` (exact eV `1602176634/10^28` needs a denominator beyond Int64; local `_gcd_abs`/`Ratio`/`_mul_div`) | local rational helpers, documented approximations for eV/pi | open |
 
 ## Compiler-shaped requests routed to `docs/COMPILER-FINDINGS.md`
 
@@ -97,9 +98,10 @@ unit that would consume the fix.
   the base58/bech32 reuse gap; requesters extended on `varint`,
   `checksum`, `net.addr`, `result`, `core.uint64`, `test.dispatch`,
   `time.civil`, `math.int` (`isqrt`), and the convert-ergonomics row.
-- 2026-09-27: wave-39 reports appended (9 of 10: `git2`, `mysql`,
-  `mssql`, `db2`, `expat`, `zkp`, `cache`, `l10n-phone`, `badger`;
-  `l10n-unit` pending): new rows for `containers.map`, `string.digits`,
-  `encoding.ebcdic`, io-flush durability, and the module-reuse gap
-  extended to compression; requesters extended on `string.utf8`,
-  `checksum`, `core.uint64`, `text.scan`.
+- 2026-09-27: wave-39 reports appended (all 10: `git2`, `mysql`,
+  `mssql`, `db2`, `expat`, `zkp`, `cache`, `l10n-phone`, `l10n-unit`,
+  `badger` -- `badger`'s upstream v1.6.2 rewrite still in flight): new rows
+  for `containers.map`, `string.digits`, `encoding.ebcdic`, io-flush
+  durability, `math.rational`, and the module-reuse gap extended to
+  compression; requesters extended on `string.utf8`, `checksum`,
+  `core.uint64`, `text.scan`, `math.int`, `result`, `test.dispatch`.

@@ -27,6 +27,7 @@ compiler session triages. Format: `| Date | Finding | Evidence | Workaround in p
 | 2026-09-27 | Direct comparison of `byte_at(...)` with a `UInt8` constant >= 128 is wrong | `docs/repro/byte-at-128/`: 3 direct-compare failures on `"é"` (C3 A9); untyped/typed local and widen paths correct | bind to a typed local, or `(x as Int) & 0xFF` | silent wrong byte classification | 
 | 2026-09-27 | Transient compiler crash: empty output, `program_exit=-1`, no diagnostics | `memcached` (first port attempt), `git2` (one intermediate revision), `db2` (coordinator re-run after three green worker runs); **cross-lane corroborated**: the compiler lane sees the same empty-output signature in its e2e (31-32 spurious m35 compiles per run, 0 diagnostics, clean on re-run) -- a real flake class, not machine load | re-run the identical command; all sightings passed unchanged | flaky verification -- must never be recorded as a pass without a re-run | 
 | 2026-09-27 | `Vec` capacity cap ~2^24 elements: a single `Vec` aborts past 16,777,216 bytes (16,777,216 OK / +1 crash; two live ~16 MiB vectors also crash) | `mysql` isolated it while designing the >=16 MiB multi-packet test (23:36-23:55 crash window); the live multi-packet round-trip is not executable on v0.61.3 | keep buffers under 16 MiB; document the limit | blocks large-payload live tests (protocols with 16 MiB+ messages) | 
+| 2026-09-27 | A local variable named `fn` silently poisons its entire function: errors surface as `undefined variable '<param>'` at parameter reads and `undefined variable '<function>'` at call sites | `l10n-unit` (one local named `fn` produced cascading unrelated errors; renaming fixed the only compile failure) | never name locals after reserved words; add `fn` to the trap list | misleading error storms unrelated to the actual line | 
 
 ## Compiler-lane triage and repro status (2026-09-27, second relay)
 
@@ -86,4 +87,5 @@ installed v0.61.3; re-run against the next build):
   reduced).
 - 2026-09-27: wave-39 evidence appended (transient empty-output crash
   `program_exit=-1` across `memcached`/`git2`/`db2`; `Vec` ~2^24-element
-  cap aborting past 16 MiB isolated by `mysql`).
+  cap aborting past 16 MiB isolated by `mysql`; `fn`-named local poisoning
+  from `l10n-unit`).
