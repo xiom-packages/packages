@@ -121,15 +121,17 @@ production). Check `git log -1 --format=%h %s` before starting.
   **359**, validate 374/0, guard 359/0 (307 ready), namespaces 374 pkgs /
   398 modules. Growth docs: all ten wave-38 reports appended
   (`188505d`, `a96235b`).
-- **Gate queue (scope-blocked; registry still 277):** `eco-v0.1.6` run
-  `36325286939` **waiting at the gate** (i2c/nats/golden). `eco-v0.1.7`
-  and `eco-v0.1.8` were **cancelled by the concurrency rule** when newer
-  pending tags joined -- no reruns needed: the newest loop republishes
-  every allowlisted unpublished name from its own ancestry. `eco-v0.1.9`
-  (run `36338915735`, wave 38) is **pending** behind 0.1.6. **Scope target
-  now 326 -> 359** (3 + 10 + 10 + 10). After ops confirms: approve 0.1.6
-  first, then 0.1.9 when it starts; both skip published versions. Never
-  re-cut tags.
+- **Gate queue (scope-blocked; registry still 277; owner greenlight
+  granted 21:19Z):** `eco-v0.1.6` (run `36325286939`) was **approved and
+  ran -- FAILED with `scope_denied`**: `token "eco-release" is not scoped
+  to publish "xiom.golden"/"xiom.i2c"/"xiom.nats"` (HTTP 403), i.e. ops
+  has not enumerated the delta yet. `eco-v0.1.7`/`eco-v0.1.8` were
+  concurrency-cancelled; `eco-v0.1.9` (run `36338915735`) is now the
+  **head, waiting at the gate** -- do NOT approve until ops confirms (it
+  publishes all 23 unpublished names from its ancestry: 3 stragglers +
+  wave-36 + wave-37). No rerun of 0.1.6 is needed. Scope target 326 ->
+  359; wave 39 raises it to 369 at the wrap (`eco-v0.1.10`). Never re-cut
+  tags.
 - **Totals (2026-09-27 ~17:58Z):** 374 tracked / **307 stable / 4 ported /
   63 incubating**; allowlist **359**; registry 277 until the gates clear.
   Registry `/health`: last restart 12:47:16Z v2.2.0 (predates the scope
@@ -316,13 +318,13 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Gate queue: `eco-v0.1.6` (i2c/nats/golden) WAITING at the gate (run
-   `36325286939`); `eco-v0.1.7` (wave 36) was CANCELLED by the concurrency
-   rule and needs NO rerun (the 0.1.8 publish loop covers its names too);
-   `eco-v0.1.8` (wave 37) pending in the group (run `36334928264`).
-   Request the scope delta **326 -> 349** from registry/ops; on
-   confirmation approve 0.1.6's gate, then 0.1.8's when it starts; both
-   skip published versions. Never re-cut a tag.
+1. Gate queue: see the live **Gate queue** bullet in the current handoff
+   section at the top of this file. In short (2026-09-27 21:36Z): owner
+   greenlight granted; `eco-v0.1.6` ran and failed with `scope_denied`
+   (ops delta not live); `eco-v0.1.9` (run `36338915735`) is now the head
+   and WAITING at the gate -- approve it once ops confirms. Scope target
+   **359**, rising to **369** when wave 39 wraps as `eco-v0.1.10`. Never
+   re-cut a tag.
 2. Wave 38 is in flight by the parallel lane: `bitcoin, bolt, dac,
    leveldb, logging, proxy, pulsar, timer, wireless` (+1). Check the
    package dirs and session list first; continue that lane's work rather
