@@ -33,13 +33,17 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-09-27 | `xiom.bytes.cursor`: bounds-checked read cursor over `&Vec[UInt8]` with offset reporting | nearly every codec builds `_Cursor`/`_Acc`/`_Reader` (jpeg `_Acc`, ldap, snmp, orc, pgp, bonjour...) | private cursor structs with duplicated bounds checks | open |
 | 2026-09-27 | `xiom.encoding.base64`: encode/decode + line wrapping | `pgp` (ASCII armor), `pem` | private base64 in each | open |
 | 2026-09-27 | `xiom.string.utf8`: strict UTF-8 validation and NUL-free `Str` construction (`bytes_to_str_checked`) | `mkv`, `flac`, `png`, `meteorology`, `pgp`, `ldap` -- every codec that turns wire bytes into `Str` must re-validate because `sb_to_str` aborts on 0x00 | per-package `_valid_text`/`_printable` helpers | open |
-| 2026-09-27 | `xiom.text.scan`: digit-run parsing (with bounds), case-insensitive ASCII compare, keyword tables | `upnp` (`_digits_value`, `_str_eq_ci`), `meteorology`, `rtc`, `coverage` | private helpers; `str_compare` only does exact compare | open |
+| 2026-09-27 | `xiom.text.scan`: digit-run parsing (with bounds), case-insensitive ASCII compare, keyword tables | `upnp` (`_digits_value`, `_str_eq_ci`), `meteorology`, `rtc`, `coverage`, `nats` (capped decimal parser with overflow guard) | private helpers; `str_compare` only does exact compare | open |
 | 2026-09-27 | `xiom.float`: IEEE-754 float32/float64 encode/decode and Int<->Float64 bitcast (without `Vec[Float64]`) | `avro` (float/double raw octets), `mkv` (EBML floats as fixed-point), `amqp` (raw 32-bit patterns), `orc` (statistics) | integer fixed-point workarounds, raw octets | open (compiler-dependent, see COMPILER-FINDINGS) |
 | 2026-09-27 | `xiom.time.civil`: civil date <-> days-since-epoch, leap-year rules, ISO weekday | `rtc`, `tzif`, `duration`, `coverage`? | private integer math in `rtc` | open |
 | 2026-09-27 | `xiom.net.addr`: IPv4/IPv6 parse+render, pseudo-header assembly | `multicast`, `dns`, `bonjour`, `snmp` | per-package packing helpers | open |
 | 2026-09-27 | `xiom.bcd`: two-digit BCD pack/unpack with nibble validation | `rtc` (DS1307/PCF8563), `eeprom` (density tables) | private in `rtc` | open |
 | 2026-09-27 | `xiom.math.int`: `div_ceil`, half-away-from-zero rounding, fixed-point scaling helpers | `adc` (rounding), `mkv` (milli-units), `coverage` (floor percents) | private expressions everywhere | open |
 | 2026-09-27 | `xiom.buf.writer`: append helpers with capacity/length bookkeeping for parallel-Vec models | every codec's `_Acc` struct (see trap 16: parallel Vecs must never drift) | per-package atomic push helpers | open |
+| 2026-09-27 | `xiom.result`: ergonomic construction for struct-payload `Result`s (per-type leaf constructors; maybe `map`/`?`) | `nats` (leaf `Ok`/`Err` per payload type: `Vec[UInt8]`, `Int`, `Bool`, `NatsOp`, `(Int,Int)`), `i2c` (construction confined to `_ok_*`/`_err_*` leaves) | one `_ok_*`/`_err_*` leaf per payload type per package (trap 6) | open |
+| 2026-09-27 | `xiom.serialize.json`: raw-byte, format-preserving JSON key lookup (boundary-checked key spans, scalar values) | `nats` (INFO/CONNECT key lookups; `xiom.serialize.json` round-trips and cannot do raw-byte lookups) | private key-span scanner in `nats` | open |
+| 2026-09-27 | Core decimal formatting usable from dependency-free library modules (`int_to_string` without an import) | `i2c` re-implemented `_dec` because importing `xiom.convert.int.int_to_string` breaks the zero-import style of codec modules | private `_dec` per dependency-free package | open |
+| 2026-09-27 | `xiom.test.bytes`: conformance fixture builders (`bytes_of`/`bytes_equal`/`cat`/`bin`) plus hex-expectation helpers | `nats` (hand-rolled fixtures + `xiom.encoding.hex`), repeated across most wave suites | per-suite private fixture helpers | open |
 
 ## Compiler-shaped requests routed to `docs/COMPILER-FINDINGS.md`
 
@@ -52,3 +56,6 @@ unit that would consume the fix.
 - 2026-09-27: file created; seeded from waves 18-35 findings (coordinator
   summary of local `_crc*`, `_Cursor`, bit-loop, varint and UTF-8 helpers
   that repeat across packages).
+- 2026-09-27: wave-34 straggler reports appended (`i2c`, `nats`):
+  result-constructor ergonomics, raw-byte JSON key lookup, zero-import int
+  formatting, conformance byte fixtures; `nats` added to `xiom.text.scan`.
