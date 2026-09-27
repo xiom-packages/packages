@@ -10,15 +10,29 @@ production). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**State at handoff refresh (2026-09-26 ~23:31, waves 1-33 published; wave 34 in flight):**
-- **Wave 34 (dispatched 23:31Z, in flight):** `webp, jpeg, flac, eeprom,
-  i2c, nats, ldap, upnp, golden, meteorology` -- all `namespace-check`
-  clean; 4 Agent Manager local + 6 background tasks with the full 18-trap
-  briefs. Scope delta **pre-requested** from registry/ops (309 -> 319) so
-  `eco-v0.1.4` is not gated after the wrap; the wave-34 wrap commit will be
-  its tag base. Every brief carries the 18 traps and the XIOM MCP guidance
-  (`xiom_xiom_stdlib_reference`, `xiom_xiom_cheatsheet`,
-  `xiom_compile_and_fix`).
+**State at handoff refresh (2026-09-27 ~00:15, waves 1-33 published; wave 34 recovering under a provider outage):**
+- **Wave 34 (dispatched 2026-09-26 23:31Z; recovering under a provider
+  outage):** names `webp, jpeg, flac, eeprom, i2c, nats, ldap, upnp, golden,
+  meteorology` (all namespace-check clean; scope delta pre-requested
+  309 -> 319). The `task` subagent provider hit **"Insufficient Balance"**
+  ~23:45Z and killed all six background tasks (environmental, not package
+  failures -- the nats "abort" was the same error surfacing as an empty
+  completion). **Agent Manager local sessions still work** (they use a
+  different path) -- use them while the balance is out. Six packages are
+  green and pushed: `webp` 20/20, `flac` 18/18, `jpeg` 16/16, `eeprom`
+  17/17, `meteorology` 22/22, `upnp` 18/18 (feat commits through `e511467`).
+  Coordinator-direct fixes were needed: `jpeg` (SOF-family predicate
+  rejected the supported SOF0/1/2; DRI length 4 -> 2; `app_length` stores
+  the declared segment length; in-scan FF fill followed by a non-marker
+  byte stays scan data; Nf=0 checked before the length equation; baseline
+  Se offset; several test-side fixture/offset bugs), `flac` (one test vector
+  was missing its `0xFF` sync byte), `upnp` (the v0.61.3 `&mut Int`
+  write-through miscompile in `_version_parts` replaced with a
+  value-returning `VersionParts` struct -- documented in xiom-optimizer;
+  three test offsets/counts corrected). Trap-14 bracket audits clean on all
+  six. Remaining: docs for flac/jpeg/meteorology/upnp + the four unstarted
+  names (`i2c, nats, golden, ldap`) are re-dispatched to Agent Manager
+  sessions; integrate + record + wrap as they report.
 - 324 implemented dirs / 197 README-only placeholders; **257 stable / 4
   ported / 63 incubating**; **261 green suites / 5,634 recorded tests**;
   allowlist **309** (wave 32 +9, wave 33 +10); namespace **324 packages /
@@ -591,6 +605,11 @@ Language traps that must be in every porter brief:
    analysis) -- use them to balance wave selection. Manifest `categories:`
    tokens still mix `network` vs `networking` etc.; harmonizing them is an
    owner decision.
+6b. **Provider balance for `task` subagents is exhausted (2026-09-26
+   ~23:45Z, "Insufficient Balance")** -- background `task` workers fail
+   immediately for every model call. Agent Manager local sessions are
+   unaffected and are the current workhorse; top up the provider balance to
+   restore the 6-background-task half of the standard recipe.
 7. **Repo-wide SPDX/`.md` header pass** and the 71 legacy manifests still
    using `authors: ["XIOM Team"]` -- .github-session scope. The publish
    workflow OIDC token-lifetime finding (section 5) is also theirs.
