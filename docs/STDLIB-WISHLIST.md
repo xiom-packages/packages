@@ -32,7 +32,7 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-09-27 | `xiom.varint`: LEB128 + zigzag for 32/64-bit | `avro` (zigzag), `orc` (protobuf wire subset), `thrift` compact-style helpers | private `_uvarint`/`_zigzag` in each package | open |
 | 2026-09-27 | `xiom.bytes.cursor`: bounds-checked read cursor over `&Vec[UInt8]` with offset reporting | nearly every codec builds `_Cursor`/`_Acc`/`_Reader` (jpeg `_Acc`, ldap, snmp, orc, pgp, bonjour, `pki` DER walker, `apple` struct readers, `flash` LE readers...) | private cursor structs with duplicated bounds checks | open |
 | 2026-09-27 | `xiom.encoding.base64`: encode/decode + line wrapping | `pgp` (ASCII armor), `pem` | private base64 in each | open |
-| 2026-09-27 | `xiom.string.utf8`: strict UTF-8 validation and NUL-free `Str` construction (`bytes_to_str_checked`) | `mkv`, `flac`, `png`, `meteorology`, `pgp`, `ldap`, `ethereum` (ABI bytes stay byte-oriented), `tor` (printable-ASCII converter), `ssh2` (byte output) -- every codec that turns wire bytes into `Str` must re-validate because `sb_to_str` aborts on 0x00 | per-package `_valid_text`/`_printable` helpers | open |
+| 2026-09-27 | `xiom.string.utf8`: strict UTF-8 validation and NUL-free `Str` construction (`bytes_to_str_checked`) | `mkv`, `flac`, `png`, `meteorology`, `pgp`, `ldap`, `ethereum` (ABI bytes stay byte-oriented), `tor` (printable-ASCII converter), `ssh2` (byte output), `cassandra` (strict NUL rejection for `[string]`/`[long string]` payloads) -- every codec that turns wire bytes into `Str` must re-validate because `sb_to_str` aborts on 0x00 | per-package `_valid_text`/`_printable` helpers | open |
 | 2026-09-27 | `xiom.text.scan`: digit-run parsing (with bounds), case-insensitive ASCII compare, keyword tables | `upnp` (`_digits_value`, `_str_eq_ci`), `meteorology`, `rtc`, `coverage`, `nats` (capped decimal parser with overflow guard), `geology` (offset-carrying tokens), `l10n-currency` (`_matches_ci_at`), `biology` (offset line scanner), `oauth` (percent/param scan offsets) | private helpers; `str_compare` only does exact compare | open |
 | 2026-09-27 | `xiom.float`: IEEE-754 float32/float64 encode/decode and Int<->Float64 bitcast (without `Vec[Float64]`) | `avro` (float/double raw octets), `mkv` (EBML floats as fixed-point), `amqp` (raw 32-bit patterns), `orc` (statistics) | integer fixed-point workarounds, raw octets | open (compiler-dependent, see COMPILER-FINDINGS) |
 | 2026-09-27 | `xiom.time.civil`: civil date <-> days-since-epoch, leap-year rules, ISO weekday | `rtc`, `tzif`, `duration`, `coverage`?, `pki` (UTCTime/GeneralizedTime digit-pair parsing) | private integer math in `rtc` | open |
@@ -77,9 +77,9 @@ unit that would consume the fix.
   requesters extended on `bitstream`, `bytes.cursor`, `math.int`,
   `text.scan`, `time.civil`, `buf.writer`, `result`, `test.bytes`, and the
   convert-ergonomics row.
-- 2026-09-27: wave-37 reports appended (`zigbee`, `ethereum`, `ssh2`,
-  `tor`, `memcached`, `mongo`, `oauth`, `nlp`; `cassandra`/`zookeeper`
-  pending): new rows for `vec.bytes`, `core.uint64`, `test.dispatch`;
+- 2026-09-27: wave-37 reports appended (all 10: `zigbee`, `ethereum`,
+  `ssh2`, `tor`, `memcached`, `mongo`, `oauth`, `nlp`, `zookeeper`,
+  `cassandra`): new rows for `vec.bytes`, `core.uint64`, `test.dispatch`;
   requesters extended on `encoding.le`, `result`, `test.bytes`, `err.at`,
   `bits.u32`, `string.utf8`, `serialize.json`, `text.scan`, `buf.writer`,
   and the convert-ergonomics row.
