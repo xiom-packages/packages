@@ -211,6 +211,15 @@ production). Check `git log -1 --format=%h %s` before starting.
   `docs/COMPILER-FINDINGS.md`; a resolution note will be relayed once
   item 3 is committed. Re-test and update the findings doc when the new
   build is installed.
+- **Compiler relay #3 handled (2026-09-27 21:30Z):** compiler lane confirmed
+  the transient `program_exit=-1` flake (empty output, 0 diagnostics, green
+  on re-run) matches its own e2e silent-failure signature (31-32 spurious
+  m35 compiles per run) -- recorded in `docs/COMPILER-FINDINGS.md` as a
+  cross-lane-corroborated flake class, not machine load. Website lane was
+  told the `W001` dual-stdlib noise originates from
+  `%TEMP%\kilo\stdlib_ws\compiler_main3`. **Production greenlight granted
+  (owner, 21:19Z): `eco-v0.1.6` approved and publishing; `eco-v0.1.9`
+  approved when it reaches the gate.**
 - **Compiler relay #2 handled (2026-09-27 20:10Z):** row 8 is **RESOLVED**
   by pin `0c50ac6` / commit `0f3f5083` (local-only until the release push)
   -- moved to `docs/COMPILER-FINDINGS.md` Resolved, re-test ready at
