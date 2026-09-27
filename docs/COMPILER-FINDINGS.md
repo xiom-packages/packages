@@ -25,6 +25,8 @@ compiler session triages. Format: `| Date | Finding | Evidence | Workaround in p
 | 2026-09-27 | Omitting the explicit `&mut` at a `Vec` helper call site silently writes to a copy (no diagnostic); also `&result.value` passed into a `&Vec[UInt8]` parameter can read as empty | `bitcoin`: a helper mutating a local `Vec` through a call with no `&mut` compiled clean and did nothing (caught only by tests); `proxy`: `&result.value` binding trap cost one debug cycle | explicit `&mut` at every mutating call site; bind payloads to a local first | silent wrong code -- the most dangerous class of the v0.61.3 issues | 
 | 2026-09-27 | Calls to `&mut T` parameters with a plain local argument compile silently and write to a copy (no E001 for Int; struct args warn then corrupt) | `docs/repro/mut-int-write-through/`: 6/7 variants lost every write on v0.61.3; explicit `&mut x` correct; a `&mut Bag` push wrote `1859382800640` instead of the value | explicit `&mut` at every call site | silent wrong values -- `xiom.upnp`'s VersionParts rewrite is this family | 
 | 2026-09-27 | Direct comparison of `byte_at(...)` with a `UInt8` constant >= 128 is wrong | `docs/repro/byte-at-128/`: 3 direct-compare failures on `"é"` (C3 A9); untyped/typed local and widen paths correct | bind to a typed local, or `(x as Int) & 0xFF` | silent wrong byte classification | 
+| 2026-09-27 | Transient compiler crash: empty output, `program_exit=-1`, no diagnostics | `memcached` (first port attempt), `git2` (one intermediate revision), `db2` (coordinator re-run after three green worker runs) | re-run the identical command; all three passed unchanged | flaky verification -- must never be recorded as a pass without a re-run | 
+| 2026-09-27 | `Vec` capacity cap ~2^24 elements: a single `Vec` aborts past 16,777,216 bytes (16,777,216 OK / +1 crash; two live ~16 MiB vectors also crash) | `mysql` isolated it while designing the >=16 MiB multi-packet test (23:36-23:55 crash window); the live multi-packet round-trip is not executable on v0.61.3 | keep buffers under 16 MiB; document the limit | blocks large-payload live tests (protocols with 16 MiB+ messages) | 
 
 ## Compiler-lane triage and repro status (2026-09-27, second relay)
 
@@ -82,3 +84,6 @@ installed v0.61.3; re-run against the next build):
   `&mut`-param write-through (**reproduced**), `byte_at >= 128`
   (**reproduced**), loop-carried CSE (not reduced) and sign-bit ops (not
   reduced).
+- 2026-09-27: wave-39 evidence appended (transient empty-output crash
+  `program_exit=-1` across `memcached`/`git2`/`db2`; `Vec` ~2^24-element
+  cap aborting past 16 MiB isolated by `mysql`).
