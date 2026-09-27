@@ -82,6 +82,12 @@ production). Check `git log -1 --format=%h %s` before starting.
   scopes are still missing -- approving now would only fail with
   `scope_denied` (as `eco-v0.1.4` did). Approve the moment ops confirms; it
   publishes 11 names and skips anything already published.
+- **Ops lane settled (2026-09-27 12:50Z)**: batch-done acknowledged --
+  production index **277**, all 17 new names live, both runs clean.
+  `PUBLISH_RATE_MAX` restored to the normal **20** (D5) with a
+  badge/visual/A1 rebuild; both publisher entries remain at **326 scopes**
+  (`eco-release` production, `eco-canary` staging). Nothing pending from
+  the packages side until the next wave group.
 - **Wave 35 (dispatched 2026-09-27 ~00:45Z; COMPLETE (10/10), AM-only):**
   `spi` 22/22, `uart` 21/21, `adc` 18/18, `rtc` 18/18, `bonjour` 24/24,
   `multicast` 18/18, `orc` 33/33, `coverage` 22/22, `pgp` 22/22, `sd`
