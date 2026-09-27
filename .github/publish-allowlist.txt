@@ -390,3 +390,13 @@ xiom.ethereum
 xiom.zigbee
 xiom.nlp
 xiom.zookeeper
+xiom.bitcoin
+xiom.proxy
+xiom.pulsar
+xiom.bolt
+xiom.wireless
+xiom.leveldb
+xiom.logging
+xiom.dac
+xiom.aviation
+xiom.timer

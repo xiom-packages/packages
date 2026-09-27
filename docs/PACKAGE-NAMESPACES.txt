@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-09-27T19:53:30+03:00
-# packages: 364  modules: 388
+# generated: 2026-09-27T20:58:12+03:00
+# packages: 374  modules: 398
 
 ## package names
 xiom.acpi
@@ -23,6 +23,7 @@ xiom.astronomy
 xiom.au
 xiom.audit
 xiom.avi
+xiom.aviation
 xiom.avro
 xiom.base32
 xiom.base58
@@ -30,11 +31,13 @@ xiom.bech32
 xiom.bencode
 xiom.bibtex
 xiom.biology
+xiom.bitcoin
 xiom.bitfield
 xiom.blas
 xiom.ble
 xiom.bloom
 xiom.bmp
+xiom.bolt
 xiom.bonjour
 xiom.box2d
 xiom.bson
@@ -57,6 +60,7 @@ xiom.cron
 xiom.csv
 xiom.cuda
 xiom.cue
+xiom.dac
 xiom.dbase
 xiom.dds
 xiom.dhcp
@@ -145,11 +149,13 @@ xiom.l10n-currency
 xiom.lcov
 xiom.ldap
 xiom.ldif
+xiom.leveldb
 xiom.lexing
 xiom.libpq
 xiom.libsodium
 xiom.libtorch
 xiom.libuv
+xiom.logging
 xiom.lrc
 xiom.lru
 xiom.luhn
@@ -241,7 +247,9 @@ xiom.profiling
 xiom.properties
 xiom.property
 xiom.protobuf
+xiom.proxy
 xiom.psf
+xiom.pulsar
 xiom.punycode
 xiom.qoi
 xiom.quantum
@@ -322,6 +330,7 @@ xiom.tga
 xiom.thermo
 xiom.thrift
 xiom.timeout
+xiom.timer
 xiom.timeseries
 xiom.tls
 xiom.tlv
@@ -359,6 +368,7 @@ xiom.wav
 xiom.weather
 xiom.webp
 xiom.websocket
+xiom.wireless
 xiom.wkt
 xiom.woff
 xiom.xbm
@@ -389,6 +399,7 @@ xiom.astronomy
 xiom.au
 xiom.audit
 xiom.avi
+xiom.aviation
 xiom.avro
 xiom.base32
 xiom.base58
@@ -396,11 +407,13 @@ xiom.bech32
 xiom.bencode
 xiom.bibtex
 xiom.biology
+xiom.bitcoin
 xiom.bitfield
 xiom.blas.linalg
 xiom.ble
 xiom.bloom
 xiom.bmp
+xiom.bolt
 xiom.bonjour
 xiom.bson
 xiom.cab
@@ -423,6 +436,7 @@ xiom.crc
 xiom.cron
 xiom.csv
 xiom.cue
+xiom.dac
 xiom.dbase
 xiom.dds
 xiom.dhcp
@@ -534,7 +548,9 @@ xiom.l10n.number
 xiom.lcov
 xiom.ldap
 xiom.ldif
+xiom.leveldb
 xiom.lexing
+xiom.logging
 xiom.lrc
 xiom.lru
 xiom.luhn
@@ -621,7 +637,9 @@ xiom.profiling
 xiom.properties
 xiom.property
 xiom.protobuf.schema
+xiom.proxy
 xiom.psf
+xiom.pulsar
 xiom.punycode
 xiom.qoi
 xiom.quantum
@@ -702,6 +720,7 @@ xiom.tga
 xiom.thermo
 xiom.thrift
 xiom.timeout
+xiom.timer
 xiom.timeseries
 xiom.tls
 xiom.tlv
@@ -749,6 +768,7 @@ xiom.wasm
 xiom.wav
 xiom.weather
 xiom.webp
+xiom.wireless
 xiom.wkt
 xiom.woff
 xiom.xbm
