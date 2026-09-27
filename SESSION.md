@@ -88,16 +88,31 @@ production). Check `git log -1 --format=%h %s` before starting.
   badge/visual/A1 rebuild; both publisher entries remain at **326 scopes**
   (`eco-release` production, `eco-canary` staging). Nothing pending from
   the packages side until the next wave group.
-- **Straggler set COMPLETE (2026-09-27 ~14:15Z):** `golden` 35/35
-  (`9ce3a53`/`07a0022`), `i2c` 20/20 and `nats` 21/21 were integrated by
-  the parallel lane (feat + records + wrap), verified independently by the
-  checkpoint session (ports re-run, trap-14 clean). Wrap commit `93a9f82`
-  (allowlist 329, index/report/`PACKAGE-NAMESPACES.txt` regenerated);
-  tag **`eco-v0.1.6`** cut on it and the run **`36325286939` is waiting at
-  the gate on purpose** -- **needs the scope delta 326 -> 329**
-  (`xiom.i2c`, `xiom.nats`, `xiom.golden`). `validate` = 344/0, guard =
-  329 allowlisted / 277 ready / 0 failures. No busy sessions; wave 36 is
-  the parallel lane's active work (`l10n-currency` first).
+- **Wave-34 stragglers COMPLETE (2026-09-27 ~14:15Z):** `golden` 35/35
+  (`9ce3a53`/`07a0022`), `i2c` 20/20, `nats` 21/21 -- integrated by the
+  parallel lane, re-verified here (ports + trap-14 clean); wrap `93a9f82`,
+  tag **`eco-v0.1.6`** (run `36325286939`, waiting at the gate).
+- **Wave 36: COMPLETE (10/10), owned by the parallel lane.** `pki` 20/20,
+  `merkle` 22/22, `apple` 21/21, `geology` 26/26, `biology` 18/18,
+  `l10n-currency` 24/24, `gpio` 21/21, `interrupt` 20/20, `flash` 20/20,
+  `tls` 20/20 -- 212 tests; integrated, recorded, wrapped (allowlist 339,
+  index/report/namespaces regenerated, commit `d0ecf72`) and tagged
+  **`eco-v0.1.7`** (run `36327834576`, queued in the concurrency group
+  behind `eco-v0.1.6`). The lane also appended the wave-36 `stdlib gaps` +
+  compiler evidence to the growth files (`fcd2c01`, `1380d78`). Checkpoint
+  spot-verified `tls`/`pki`/`gpio` by re-running ports; trap-14 audit clean
+  across all ten.
+- **Blocked on the registry/ops scope delta: 326 -> 339 (13 names).**
+  `xiom.i2c, xiom.nats, xiom.golden` + `xiom.pki, xiom.merkle, xiom.apple,
+  xiom.geology, xiom.biology, xiom.l10n-currency, xiom.gpio, xiom.interrupt,
+  xiom.flash, xiom.tls`. After ops confirms: approve the `eco-v0.1.6` gate
+  (run `36325286939`), then approve the `eco-v0.1.7` gate when its run
+  starts (`36327834576`); both skip published versions. Never re-cut tags.
+- **Totals (2026-09-27 ~15:00Z):** 354 tracked packages / **287 stable /
+  4 ported / 63 incubating**; allowlist **339** (287 ready + 52
+  grandfathered); registry **277** (unchanged until the two gates are
+  approved); `validate` = 354/0 (last run was 344/0 before wave 36;
+  re-run at the next touch); +288 tests from the 13 newest names.
 - **Batch wrap 1 (2026-09-27 14:16Z, lane `ses_f1cfdad42ffe`):** `i2c`
   (feat `177a3c4` + record `d5e1bfb`, 20/20) and `nats` (feat `b3fc3f5` +
   record `b1f228d`, 21/21; trap-14 sweep normalized 18 `Vec<...>` sites
