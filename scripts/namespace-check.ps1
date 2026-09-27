@@ -45,10 +45,11 @@ if (-not $Stdlib -or -not (Test-Path -LiteralPath $Stdlib)) {
 
 # --- Collect stdlib module namespaces --------------------------------------
 
-$stdlibFiles = @(Get-ChildItem -LiteralPath $Stdlib -Recurse -Filter *.xi -File -ErrorAction SilentlyContinue)
+$stdlibFiles = @(Get-ChildItem -LiteralPath $Stdlib -Recurse -Filter *.xi -File -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName -notmatch '[\\/]\.kilo[\\/]' -and $_.FullName -notmatch '[\\/]\.git[\\/]' })
 $moduleRegex = '^\s*module\s+([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)'
 $stdlibModules = New-Object System.Collections.Generic.HashSet[string]
-foreach ($m in ($stdlibFiles | Select-String -Pattern $moduleRegex)) {
+foreach ($m in ($stdlibFiles | Select-String -Pattern $moduleRegex -ErrorAction SilentlyContinue)) {
     [void]$stdlibModules.Add($m.Matches[0].Groups[1].Value)
 }
 if ($stdlibModules.Count -eq 0) {
