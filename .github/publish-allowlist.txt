@@ -350,3 +350,9 @@ xiom.imap
 xiom.amqp
 xiom.thrift
 xiom.avro
+xiom.webp
+xiom.flac
+xiom.jpeg
+xiom.eeprom
+xiom.meteorology
+xiom.upnp
