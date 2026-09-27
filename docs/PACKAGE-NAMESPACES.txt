@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-09-27T17:13:59+03:00
-# packages: 344  modules: 368
+# generated: 2026-09-27T17:57:55+03:00
+# packages: 354  modules: 378
 
 ## package names
 xiom.acpi
@@ -13,6 +13,7 @@ xiom.aiff
 xiom.alerting
 xiom.algo
 xiom.amqp
+xiom.apple
 xiom.ar
 xiom.arrow
 xiom.ascii85
@@ -28,6 +29,7 @@ xiom.base58
 xiom.bech32
 xiom.bencode
 xiom.bibtex
+xiom.biology
 xiom.bitfield
 xiom.blas
 xiom.ble
@@ -87,6 +89,7 @@ xiom.fix
 xiom.fixed
 xiom.flac
 xiom.flags
+xiom.flash
 xiom.fletcher
 xiom.fnv
 xiom.fstab
@@ -99,10 +102,12 @@ xiom.gedcom
 xiom.gemtext
 xiom.geo
 xiom.geohash
+xiom.geology
 xiom.gguf
 xiom.gif
 xiom.glfw
 xiom.golden
+xiom.gpio
 xiom.gpt
 xiom.gpx
 xiom.graphql
@@ -123,6 +128,7 @@ xiom.id3
 xiom.imap
 xiom.imgui
 xiom.ini
+xiom.interrupt
 xiom.irc
 xiom.iso8583
 xiom.jolt
@@ -133,6 +139,7 @@ xiom.jwt
 xiom.kafka
 xiom.ktx
 xiom.l10n.number
+xiom.l10n-currency
 xiom.lcov
 xiom.ldap
 xiom.ldif
@@ -152,6 +159,7 @@ xiom.marc
 xiom.markdown
 xiom.mbox
 xiom.mbr
+xiom.merkle
 xiom.meshopt
 xiom.meteorology
 xiom.metrics
@@ -212,6 +220,7 @@ xiom.pgn
 xiom.pgp
 xiom.phonon
 xiom.physics
+xiom.pki
 xiom.plist
 xiom.pls
 xiom.plural
@@ -307,6 +316,7 @@ xiom.thermo
 xiom.thrift
 xiom.timeout
 xiom.timeseries
+xiom.tls
 xiom.tlv
 xiom.tokenizer
 xiom.toml
@@ -359,6 +369,7 @@ xiom.aiff
 xiom.alerting
 xiom.algo
 xiom.amqp
+xiom.apple
 xiom.ar
 xiom.arrow
 xiom.ascii85
@@ -374,6 +385,7 @@ xiom.base58
 xiom.bech32
 xiom.bencode
 xiom.bibtex
+xiom.biology
 xiom.bitfield
 xiom.blas.linalg
 xiom.ble
@@ -448,6 +460,7 @@ xiom.fix
 xiom.fixed
 xiom.flac
 xiom.flags
+xiom.flash
 xiom.fletcher
 xiom.fnv
 xiom.fstab
@@ -459,9 +472,11 @@ xiom.gedcom
 xiom.gemtext
 xiom.geo
 xiom.geohash
+xiom.geology
 xiom.gguf
 xiom.gif
 xiom.golden
+xiom.gpio
 xiom.gpt
 xiom.gpx
 xiom.grpc.client
@@ -490,6 +505,7 @@ xiom.ico
 xiom.id3
 xiom.imap
 xiom.ini
+xiom.interrupt
 xiom.irc
 xiom.iso8583
 xiom.jpeg
@@ -501,6 +517,7 @@ xiom.kafka.consumer
 xiom.kafka.producer
 xiom.kafka.types
 xiom.ktx
+xiom.l10n.currency
 xiom.l10n.number
 xiom.lcov
 xiom.ldap
@@ -517,6 +534,7 @@ xiom.marc
 xiom.markdown
 xiom.mbox
 xiom.mbr
+xiom.merkle
 xiom.meshopt.safe
 xiom.meteorology
 xiom.metrics
@@ -573,6 +591,7 @@ xiom.pem
 xiom.pgn
 xiom.pgp
 xiom.physics
+xiom.pki
 xiom.plist
 xiom.pls
 xiom.plural
@@ -667,6 +686,7 @@ xiom.thermo
 xiom.thrift
 xiom.timeout
 xiom.timeseries
+xiom.tls
 xiom.tlv
 xiom.tokenizer
 xiom.toml

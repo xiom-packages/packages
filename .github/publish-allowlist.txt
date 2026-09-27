@@ -370,3 +370,13 @@ xiom.sd
 xiom.i2c
 xiom.nats
 xiom.golden
+xiom.pki
+xiom.merkle
+xiom.apple
+xiom.geology
+xiom.biology
+xiom.l10n-currency
+xiom.gpio
+xiom.interrupt
+xiom.flash
+xiom.tls
