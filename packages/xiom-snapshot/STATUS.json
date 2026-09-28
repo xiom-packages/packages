@@ -1,17 +1,17 @@
 {
     "package":  "xiom.snapshot",
-    "stage":  "stable",
-    "compiler":  "v0.61.3",
+    "stage":  "incubating",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  20,
                   "failed":  0,
-                  "run_by":  "agentmgr:ses_f2b239294ffeRqysRdacwLRwnz",
-                  "commit":  "078ed1c",
-                  "checked":  "2026-09-24T19:37:41Z"
+                  "run_by":  "ses_f1cfdad42ffeB2WeOyr6XXjQ30",
+                  "commit":  "4aa858b",
+                  "checked":  "2026-09-28T16:34:10Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
+    "excluded_reason":  "publish pending: next scope delta"
 }
