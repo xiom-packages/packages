@@ -3,61 +3,74 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-09-28 21:55Z, by the packages session (continuation of
-the 2026-09-27 handoff). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-09-28 22:26Z, by the packages session (continuation of
+the 21:55Z handoff). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-09-28 21:55Z (read this block first; older bullets below are history):**
-- **VALIDATE IS RED (338 errors) until the compiler-field refresh -- DO
-  THIS FIRST:** after the pin bump, every `STATUS.json` whose `compiler`
-  still says `v0.61.3` fails `status.ps1 -Action validate`
-  (`compiler 'v0.61.3' != pin 'v0.62.0'`). Fix: one-shot refresh of all
-  `packages/*/STATUS.json` compiler fields to `v0.62.0`. Evidence: the
-  fleet sweep re-ran **every** implemented package on v0.62.0 (counts and
-  exits in `%TEMP%\kilo\sweep\v2-chunk*.log`; 329 green). Keep each
-  record's current stage (stable packages ride their next bump for the
-  incubating flip per policy; the 60 non-publishable stay as they are),
-  update `run_by` to the sweep and `commit` to the current HEAD, commit
-  once (`chore: refresh compiler field to v0.62.0 (sweep-verified)`),
-  then re-run validate + allowlist-guard. Only after green: wrap + tag
-  `eco-v0.1.12` + publish.
-- **v0.62.0 migration done:** `COMPILER_VERSION` = `v0.62.0`; toolchain
-  deployed to `E:\xiom-lang\xiom\target\release` (resolver source
-  `repo-release`). The installed copy stays 0.61.3 (below pin, bypassed);
-  backup at `%LOCALAPPDATA%\xiom\bin-0.61.3-backup`. Strict clauses ON.
-  - Batteries: arity **fixed** (`error[T001]` both directions), R53
-    `&mut` plain-local write-through **fixed** (`bad=0`), `byte-at-128`
-    still open (queued compiler-side behind their flake-capture batch),
-    CSE/sign-bit clean.
-  - Fleet sweep: **329/397 pass**; 60 failures are non-publishable
-    incubating/declaration-only; **8 verified packages broke and are
-    fixed** (`coverage`, `imap`, `l10n-currency`, `mkv`, `snapshot`,
-    `snmp` arity; `mssql` precedence; `flags` stdlib `io.parse_int`
-    C001 workaround) -- all re-recorded `incubating`.
-- **Correction batch 53/53 DONE:** every name published by today's runs
-  (0.1.9's 33 + 0.1.10's ten + 0.1.11's ten) is bumped to **0.1.1**,
-  re-run green on v0.62.0, recorded **`incubating`** (`722a912` ..
-  `a778967`). **Wrap + tag + publish remain** -- see the paste prompt.
-- **Publish lane:** `eco-v0.1.9`/`.10`/`.11` all SUCCESS (53 names, 0
-  failures; registry ~330). `eco-v0.1.6` failed `scope_denied` and is
-  superseded (no rerun). Production + staging scopes = **379**; next
-  scope ask **382** (`inline-asm`, `pool`, `backoff` + wave-41 names).
-- **Policy:** incubating-by-default for all new/next-touched records
-  (`-Stage incubating`); `stable` only by explicit promotion. README,
-  `status.ps1`, `allowlist-guard.ps1`, `publish-registry.yml` updated.
-  Registry publish-time warning: accepted, pending their 2.4.x item.
+**STATE AT 2026-09-28 22:26Z (read this block first; older bullets below are history):**
+- **Compiler field refresh DONE (`2183ac4`, pushed):** all 338 records
+  still at `v0.61.3` now say `v0.62.0`. The 275 green records were
+  re-pointed at the fleet sweep (`run_by: "fleet-sweep:v0.62.0"`,
+  `commit: "ebf8ef2"`, `checked` = that package's sweep line time from
+  `%TEMP%\kilo\sweep\v2-chunk*.log`); the 63 declaration-only/incubating
+  records changed compiler-only (`validate` forbids run fields under
+  `tests.status: unknown`). `validate` 397/0, `allowlist-guard` 379/0.
+- **Correction-batch wrap DONE (`b6b0ba1`, pushed):** index.json /
+  PACKAGE_STATUS.md / PACKAGE-NAMESPACES.txt regenerated (397 packages,
+  421 modules); **`eco-v0.1.12`** tagged on the wrap commit.
+- **`eco-v0.1.12` PUBLISHED (run `36491183775`, SUCCESS):** gate approved
+  as soon as it waited; **53/53 `Published xiom.*@0.1.1`**, 0 failures.
+  Every corrected name spot-verified in the registry at `0.1.1` with
+  version-stage **incubating**. **Registry index now 330 = 239 stable /
+  53 incubating / 38 empty** -- the stage correction is live; the 38
+  legacy empty-stage entries ride natural bumps.
+- **Wave 41 DISPATCHED (2026-09-28 22:25Z, running now):** 10 names, all
+  namespace-check clean: `l10n-date, l10n-time, l10n-address, l10n-name,
+  locale, dimred, semaphore, lockfree, hashchain, config`.
+  `xiom-stats-tests` was dropped for this wave: `xiom.stats.tests`
+  collides with stdlib `xiom.stats.*`; `locale` substituted. Recipe:
+  **6 background `task` porters** (l10n-date/time/address/name, locale,
+  config: `ses_f15e044d…`, `ses_f15e0384…`, `ses_f15e02a6…`,
+  `ses_f15e01c4…`, `ses_f15e009b…`, `ses_f15dffa7…`) + **4 AM local
+  sessions** (dimred, semaphore, lockfree, hashchain; request
+  `am-1790634381393-4e45i6`). Every brief: skeleton-first, canonical
+  18-trap list (v0.62.0 edition), XIOM MCP tools, no-commit/no-STATUS
+  rules, mandatory `stdlib gaps` report section.
+- **Next for this session:** integrate wave-41 reports as they land
+  (re-run `port.ps1` twice per package, trap-14 bracket grep, `feat:` +
+  record `incubating` like the correction batch), append their
+  `stdlib gaps` + compiler evidence to the growth docs, then wrap
+  (allowlist + index/report/namespaces) and cut the next `eco-*` tag.
+- **Scope ask PENDING (not yet relayed to ops):** next delta on BOTH
+  entries (production `eco-release`, staging `eco-canary`): 379 -> **392**
+  = +3 `inline-asm`, `pool`, `backoff` (integrated stable, not
+  allowlisted) + the 10 wave-41 names. `tap` is already allowlisted
+  (restyle only, no scope needed). Request text in the 22:26Z session
+  report.
+- **Follow-ups kept:** registry publish-time warning (accepted on the
+  registry side, pending their 2.4.x item); `byte-at-128` battery queued
+  compiler-side behind the flake-capture batch; `.github` OIDC per-run
+  token re-mint finding (one token minted per run; >6 min batches can
+  expire it); `xiom.tftp@0.1.0` version collision (owner decision: later
+  bump or accept).
+- **Policy unchanged:** incubating-by-default for new/next-touched
+  records; `stable` only by explicit promotion; strict clauses ON;
+  toolchain resolver source `repo-release` v0.62.0 (installed copy still
+  0.61.3, bypassed; backup `%LOCALAPPDATA%\xiom\bin-0.61.3-backup`).
 - **Mechanics gotchas:** gate `port.ps1` on its **exit code** (the PASS
   line is Write-Host, invisible to in-process capture); version bumps via
   the Edit tool per file; `fn`/`use`/`as` are reserved names; v0.62.0
-  binds `&` looser than `+` (parenthesize bitwise/additive mixes).
+  binds `&` looser than `+` (parenthesize bitwise/additive mixes);
+  `STATUS.json` is machine-written -- refresh it through the same
+  `ConvertTo-Json -Depth 6` shape (see `scripts/status.ps1`).
 
 **PASTE PROMPT FOR THE NEXT PACKAGES SESSION:**
 
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-09-28 21:55Z STATE block at the
+private). Read SESSION.md first -- the 2026-09-28 22:26Z STATE block at the
 top of section 0 is the live handoff. Repo-local identity must be "Lefteris
 Notas <lefterisnotas@gmail.com>". Publishing policy: PRODUCTION-DIRECT (one
 eco-* tag per ready batch; this session handles the registry-publish gate
@@ -69,39 +82,26 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Refresh the compiler field (REQUIRED -- validate is red until then):
-   every `STATUS.json` still at `compiler: "v0.61.3"` must move to
-   `v0.62.0`. The fleet sweep re-ran every implemented package green on
-   v0.62.0; counts are in `%TEMP%\kilo\sweep\v2-chunk*.log` (keep each
-   record's stage unchanged). Commit once, then re-run validate +
-   allowlist-guard until green.
-2. Wrap the correction batch: & .\generate_index.ps1;
-   & .\scripts\status.ps1 -Action report; validate; allowlist-guard;
-   & .\scripts\export-namespaces.ps1; commit ("chore: correction-batch wrap
-   (53 names at 0.1.1/incubating) + index/report/namespaces regeneration");
-   push; tag eco-v0.1.12 on the wrap commit; push the tag.
-3. Approve the eco-v0.1.12 registry-publish gate as soon as it waits (the
-   53 names are already within the live 379 scopes -- no ops ask needed).
-   Monitor the run; verify the corrected 0.1.1 incubating publishes in the
-   log ("Published xiom." lines); report the registry count.
-4. Continue the ecosystem: dispatch wave 41 -- pick ~10 README-only
-   placeholder names, run & .\scripts\namespace-check.ps1 -Module <names>
-   FIRST, then dispatch 6 background task porters + 4 AM sessions (one per
-   package; task subagents work again) with the full 18-trap + XIOM MCP
-   briefs and a `stdlib gaps` section in every final report. Integrate +
-   wrap as they report. Note `inline-asm`/`pool`/`backoff` (+ a `tap`
-   restyle) are integrated and stable but NOT allowlisted -- they head the
-   next scope request together with the wave-41 names (request the delta on
-   both entries; ~392 if wave 41 adds 10).
-5. Keep these follow-ups: registry publish-time warning (accepted on the
-   registry side); `byte-at-128` battery queued compiler-side; `.github`
-   OIDC token re-mint finding (publish job mints one token per run);
-   `xiom.tftp@0.1.0` version collision (owner decision: bump in a later
-   batch or accept).
-6. Growth coordination: append worker stdlib gaps to
+1. Wave 41 (dispatched 2026-09-28 22:25Z; 6 task porters + 4 AM sessions)
+   may be in flight or landed: `l10n-date, l10n-time, l10n-address,
+   l10n-name, locale, dimred, semaphore, lockfree, hashchain, config`.
+   Integrate as reports land: re-run `port.ps1` twice per package,
+   trap-14 bracket grep, `feat:` commit + record `incubating`
+   (`publish: false`, reason "publish pending: next scope delta") like the
+   correction batch, then append `stdlib gaps` to
    docs/STDLIB-WISHLIST.md and compiler evidence to
-   docs/COMPILER-FINDINGS.md at every wave; regenerate
-   docs/PACKAGE-NAMESPACES.txt at every wrap.
+   docs/COMPILER-FINDINGS.md.
+2. Scope ask `379 -> 392` on BOTH entries (production `eco-release` and
+   staging `eco-canary`): `inline-asm`, `pool`, `backoff` + the wave-41
+   ten. Relay it to ops and wait for enumeration before tagging.
+3. Wrap when the wave is green: allowlist append, `generate_index.ps1`,
+   `status.ps1 -Action report`, validate, allowlist-guard,
+   `export-namespaces.ps1`, commit, push, tag the next `eco-*` batch,
+   approve the registry-publish gate as soon as it waits, verify the
+   "Published xiom." lines, and report the registry count.
+4. Keep the follow-ups from the STATE block: registry publish-time
+   warning, `byte-at-128` battery, `.github` OIDC re-mint, tftp version
+   collision.
 ```
 
 - **Wave 34 (dispatched 2026-09-26 23:31Z; COMPLETE for greens):** names
