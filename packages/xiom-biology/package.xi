@@ -12,7 +12,7 @@
 
 package xiom_biology {
   name: "xiom.biology";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "FASTA and FASTQ sequence parsing: records, base composition, GC content, and Phred quality statistics";
   categories: ["science", "data"];
   keywords: ["fasta", "fastq", "bioinformatics", "sequence", "genomics"];
