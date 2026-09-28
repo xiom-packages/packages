@@ -159,6 +159,18 @@ production). Check `git log -1 --format=%h %s` before starting.
   `-Stage incubating`** unless the owner promotes a package; the 53-package
   correction batch bumps to 0.1.1, re-runs, records `incubating`, and ships
   as the next tag(s). The 38 empty-stage legacy entries ride natural bumps.
+- **v0.62.0 migration (2026-09-28 18:45Z):** compiler lane shipped v0.62.0
+  (strict clauses ON); toolchain deployed to the resolver release dir
+  (`E:\xiom-lang\xiom\target\release`; installed copy left below pin,
+  backup at `%LOCALAPPDATA%\xiom\bin-0.61.3-backup`), pin bumped to
+  `v0.62.0` (`25506bf`). Batteries re-run: **arity VERIFIED fixed**
+  (`error[T001]` both directions; control green), **R53 `&mut`
+  plain-local write-through VERIFIED fixed** (`bad=0`), `byte-at-128`
+  still open (`bad=3`), CSE/sign-bit clean (queue items). **Fleet-wide
+  strict-clause sweep running** (4 chunks over every implemented package,
+  ~99 each; logs `%TEMP%\kilo\sweep\v2-chunk*.log` + `.detail` on
+  failure). Fix any failures, then re-record affected packages on the new
+  pin; mixed-bracket strictness still pending (flip held one release).
 - **Gate queue (ops confirmed 2026-09-27 21:56Z / 379 live 22:25Z):**
   production `eco-release` = **379 scopes** (staging same), ops HEAD
   `525fff6`; registry production 2.3.0 -> **2.4.2** (accounts SQLite +
