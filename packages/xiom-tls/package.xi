@@ -9,7 +9,7 @@
 
 package xiom_tls {
   name: "xiom.tls";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM TLS record and handshake structure parser (no crypto)";
   categories: ["protocol"];
   keywords: ["tls", "handshake", "record", "parser"];
