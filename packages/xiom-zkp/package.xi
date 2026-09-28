@@ -9,7 +9,7 @@
 
 package xiom_zkp {
   name: "xiom.zkp";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Zero-knowledge proof serialization structures (BLS12-381 Groth16/PLONK): field/point encodings, blob decode, structural validation";
   categories: ["crypto-security", "data"];
   keywords: ["zkp", "zero-knowledge", "groth16", "plonk", "bls12-381", "serialization"];
