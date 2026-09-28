@@ -1,16 +1,16 @@
 {
     "package":  "xiom.mssql",
-    "stage":  "stable",
-    "compiler":  "v0.61.3",
+    "stage":  "incubating",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  20,
                   "failed":  0,
-                  "run_by":  "ses_f1b74d88cffe2uy9kysrxFbB31",
-                  "commit":  "875c32e",
-                  "checked":  "2026-09-27T21:08:06Z"
+                  "run_by":  "ses_f1cfdad42ffeB2WeOyr6XXjQ30",
+                  "commit":  "fd1bf27",
+                  "checked":  "2026-09-28T16:34:05Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"
