@@ -1,16 +1,16 @@
 {
     "package":  "xiom.windows",
-    "stage":  "stable",
-    "compiler":  "v0.61.3",
+    "stage":  "incubating",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  25,
                   "failed":  0,
-                  "run_by":  "ses_f1aeb004dffeyTSFKHtoqLlTTj",
-                  "commit":  "04ea404",
-                  "checked":  "2026-09-27T23:35:05Z"
+                  "run_by":  "ses_f1cfdad42ffeB2WeOyr6XXjQ30",
+                  "commit":  "4f87cae",
+                  "checked":  "2026-09-28T20:33:37Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"
