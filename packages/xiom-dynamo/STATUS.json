@@ -1,16 +1,16 @@
 {
     "package":  "xiom.dynamo",
-    "stage":  "stable",
-    "compiler":  "v0.61.3",
+    "stage":  "incubating",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  21,
                   "failed":  0,
-                  "run_by":  "ses_f1aea75b2ffe2aydzioV8E2S5h",
-                  "commit":  "4d32fca",
-                  "checked":  "2026-09-28T00:59:44Z"
+                  "run_by":  "ses_f1cfdad42ffeB2WeOyr6XXjQ30",
+                  "commit":  "38f459b",
+                  "checked":  "2026-09-28T20:36:19Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"
