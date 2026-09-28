@@ -132,6 +132,22 @@ production). Check `git log -1 --format=%h %s` before starting.
   cosmetic `tap` restyle, all integrated as stable in `2f0c4b0..b53215e`
   but **not allowlisted** -- they head the next scope request (target
   **382**).
+- **Publish-metadata correction (registry relay, 2026-09-28 15:10Z):** the
+  registry reports (and the production index confirms) **330 published
+  packages: 292 `stage: stable`, 38 empty, 0 incubating** -- so first-party
+  ports render as "Official package, signed by the publisher" with no
+  incubation signal. Mechanism verified: `scripts/status.ps1` records every
+  conformance-green package as `stable` (its written rule), and
+  `publish-registry.yml` writes that stage into the manifest and only
+  publishes `stage=stable && tests=pass` to production (an incubating
+  publish path exists only via the staging-only `stage badge canary`
+  override). Registry has no backfill: a real published stage beats display
+  overrides, so corrected metadata requires patch-version republishes.
+  **Decision pending (owner):** default published stage for first-party
+  packages (incubating vs stable), the affected set, and republish urgency;
+  the registry offers a publish-time warning (stable + incubator-repo
+  provenance) as a 2.4.x safety net. Evidence: `registry.xiom-lang.org/index.json`
+  (330/292/38/0).
 - **Gate queue (ops confirmed 2026-09-27 21:56Z / 379 live 22:25Z):**
   production `eco-release` = **379 scopes** (staging same), ops HEAD
   `525fff6`; registry production 2.3.0 -> **2.4.2** (accounts SQLite +
