@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.lockfree",
+    "stage":  "incubating",
+    "compiler":  "v0.62.0",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  21,
+                  "failed":  0,
+                  "run_by":  "agentmgr:ses_f15df81c6ffemAoSNGuccH77gF",
+                  "commit":  "4815569",
+                  "checked":  "2026-09-28T23:13:51Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: next scope delta"
+}
