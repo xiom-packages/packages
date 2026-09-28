@@ -9,7 +9,7 @@
 
 package xiom_mysql {
   name: "xiom.mysql";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "MySQL client/server wire protocol structure codec (packet framing, handshake v10, handshake response 41, length-encoded values, OK/ERR/EOF, result sets; no sockets, no auth crypto)";
   categories: ["network"];
   keywords: ["mysql", "mariadb", "wire", "binary", "codec", "protocol"];
