@@ -57,6 +57,12 @@ the 21:55Z handoff). Check `git log -1 --format=%h %s` before starting.
   token re-mint finding (one token minted per run; >6 min batches can
   expire it); `xiom.tftp@0.1.0` version collision (owner decision: later
   bump or accept).
+- **Maintenance loop (owner request 2026-09-28):** release-triggered and
+  targeted -- no lockstep versions. Documented in `docs/MAINTENANCE.md`:
+  compiler release -> repin + fleet sweep + fixes; stdlib release ->
+  affected/`STDLIB-WISHLIST` packages; ops change -> allowlist + wrap +
+  tag; dependents checked when a package publishes; every touch rides the
+  next batch with a patch bump.
 - **Policy unchanged:** incubating-by-default for new/next-touched
   records; `stable` only by explicit promotion; strict clauses ON;
   toolchain resolver source `repo-release` v0.62.0 (installed copy still
@@ -104,7 +110,12 @@ Then do, in order:
    `export-namespaces.ps1`, commit, push, tag the next `eco-*` batch,
    approve the registry-publish gate as soon as it waits, verify the
    "Published xiom." lines, and report the registry count.
-4. Keep the follow-ups from the STATE block: registry publish-time
+4. Growth + maintenance: append worker `stdlib gaps` / compiler evidence
+   to docs/STDLIB-WISHLIST.md / docs/COMPILER-FINDINGS.md and regenerate
+   docs/PACKAGE-NAMESPACES.txt at wrap; run the release-triggered loop in
+   docs/MAINTENANCE.md on compiler/stdlib releases (targeted, no lockstep
+   versions).
+5. Keep the follow-ups from the STATE block: registry publish-time
    warning, `byte-at-128` battery, `.github` OIDC re-mint, tftp version
    collision.
 ```
@@ -470,6 +481,10 @@ Then do, in order:
   compiler session (`&mut Int` write-through miscompile, loop-carried CSE,
   mixed-bracket tolerance, no `Vec[Float64]`/bitcast, bit-test signing,
   ...) with workarounds and impact.
+- `docs/MAINTENANCE.md` -- the release-triggered maintenance loop (owner
+  request 2026-09-28): what to touch on each compiler/stdlib/ops event,
+  the staleness triage order, cadence rules (independent versions, no
+  lockstep), and the evidence channels.
 - `docs/PACKAGE-NAMESPACES.txt` + `scripts/export-namespaces.ps1` -- the
   package/module namespace snapshot the stdlib session cross-checks
   against. **Regenerate at every wave wrap**:

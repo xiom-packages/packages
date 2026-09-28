@@ -1,7 +1,9 @@
 # Compiler findings from the packages lane
 
 Findings collected while building conformance-tested packages with the
-installed toolchain (v0.61.3). The packages lane cannot fix these; the
+pinned toolchain (v0.61.3 for findings through 2026-09-28; pin is v0.62.0
+since, and rows carrying a v0.62.0 note were re-checked on that build).
+The packages lane cannot fix these; the
 compiler session triages. Format: `| Date | Finding | Evidence | Workaround in packages | Impact |`
 
 ## Open findings
