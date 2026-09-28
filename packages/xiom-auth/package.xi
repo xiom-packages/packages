@@ -9,7 +9,7 @@
 
 package xiom_auth {
   name: "xiom.auth";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM HTTP authentication header codecs (RFC 7235 / 7617 / 7616 / 6750): Authorization and WWW-Authenticate grammar, Basic, Digest and Bearer structure helpers, no crypto and no network";
   categories: ["protocol"];
   keywords: ["http", "auth", "authorization", "www-authenticate", "basic", "digest", "bearer", "rfc7235"];
