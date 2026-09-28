@@ -9,7 +9,7 @@
 
 package xiom_bitcoin {
   name: "xiom.bitcoin";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Bitcoin wire structures and address codecs in pure XIOM (no hashing, no script execution, no network)";
   categories: ["data"];
   keywords: ["bitcoin", "wire", "transaction", "script", "base58", "bech32"];
