@@ -9,7 +9,7 @@
 
 package xiom_geography {
   name: "xiom.geography";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "ISO 3166-1 country table, UN M49 regions, ISO 3166-2 subdivision syntax, and integer coordinate text codecs";
   categories: ["data", "science"];
   keywords: ["geography", "iso3166", "m49", "countries", "coordinates", "dms"];
