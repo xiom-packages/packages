@@ -9,7 +9,7 @@
 // and xiom.convert from it; the tests additionally use xiom.test and xiom.io.
 
 package xiom_l10n_address {
-  name: "xiom.l10n.address";
+  name: "xiom.l10n-address";
   version: "0.1.0";
   description: "Country address templates and rendering (12-country illustrative dataset)";
   categories: ["text", "data"];

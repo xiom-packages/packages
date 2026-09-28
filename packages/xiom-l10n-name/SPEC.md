@@ -1,4 +1,4 @@
-# xiom.l10n.name -- specification
+# xiom.l10n-name -- specification
 
 Version: 0.1.0 (incubating). Pure XIOM, no FFI, no I/O, no `Float64`. All
 functions are free functions; the module header imports `xiom.string`,

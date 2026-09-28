@@ -1,4 +1,4 @@
-# xiom.l10n.address -- specification
+# xiom.l10n-address -- specification
 
 > **Status:** matches the implemented module `src/l10n_address.xi` and the
 > 22-check suite `tests/test_conformance.xi` (green on XIOM v0.62.0).

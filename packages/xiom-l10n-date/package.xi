@@ -10,7 +10,7 @@
 // xiom.string.compare.
 
 package xiom_l10n_date {
-  name: "xiom.l10n.date";
+  name: "xiom.l10n-date";
   version: "0.1.0";
   description: "Locale-aware civil-date formatting and parsing with caller-supplied month names";
   categories: ["text", "data"];

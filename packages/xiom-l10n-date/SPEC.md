@@ -1,4 +1,4 @@
-# xiom.l10n.date -- specification
+# xiom.l10n-date -- specification
 
 Version: 0.1.0 (incubating). Pure XIOM, no FFI, no clock, no IO, no floating
 point. All functions are free functions; the module depends on `xiom.string`,

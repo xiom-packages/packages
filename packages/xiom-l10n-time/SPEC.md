@@ -1,4 +1,4 @@
-# xiom.l10n.time -- Specification
+# xiom.l10n-time -- Specification
 
 Version: 0.1.0 (incubating, not published).
 Module: `xiom.l10n.time` (`src/l10n_time.xi`). Pure XIOM, no FFI, no clock.

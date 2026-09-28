@@ -1,9 +1,11 @@
-# xiom.l10n.address
+# xiom.l10n-address
+
+> **Naming:** registry package `xiom.l10n-address`; module namespace `xiom.l10n.address`.
 
 Country address templates, multi-line rendering and field validation for a
 built-in 12-country dataset.
 
-> **Status:** implemented, `xiom.l10n.address` v0.1.0, 22/22 conformance
+> **Status:** implemented, `xiom.l10n-address` v0.1.0, 22/22 conformance
 > checks green on the pinned compiler (v0.62.0). Pure XIOM: no FFI, no I/O
 > in the library module, no floating point.
 
@@ -135,5 +137,5 @@ validate-vs-render consistency, template parallel-array integrity, and the
 country_code fallback. Run:
 
 ```powershell
-.\scripts\port.ps1 -Package xiom.l10n.address
+.\scripts\port.ps1 -Package xiom.l10n-address
 ```

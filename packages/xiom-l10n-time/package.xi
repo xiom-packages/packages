@@ -10,7 +10,7 @@
 // and xiom.convert from it; the tests additionally use xiom.test and xiom.io.
 
 package xiom_l10n_time {
-  name: "xiom.l10n.time";
+  name: "xiom.l10n-time";
   version: "0.1.0";
   description: "Locale-style time-of-day formatting, parsing, day periods and timezone offsets (caller-supplied labels)";
   categories: ["text", "data"];

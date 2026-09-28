@@ -1,4 +1,6 @@
-# xiom.l10n.name
+# xiom.l10n-name
+
+> **Naming:** registry package `xiom.l10n-name`; module namespace `xiom.l10n.name`.
 
 > **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
 > the repo harness. **NOT published** to the XIOM registry.
@@ -91,7 +93,7 @@ fn main() -> Int {
 From the repository root:
 
 ```
-.\scripts\port.ps1 -Package xiom.l10n.name
+.\scripts\port.ps1 -Package xiom.l10n-name
 ```
 
 Expected tail: 21 `[PASS]` lines, `xiom.l10n.name: all tests passed`, then

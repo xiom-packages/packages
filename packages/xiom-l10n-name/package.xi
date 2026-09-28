@@ -11,7 +11,7 @@
 // xiom.string.compare.
 
 package xiom_l10n_name {
-  name: "xiom.l10n.name";
+  name: "xiom.l10n-name";
   version: "0.1.0";
   description: "Locale-style personal-name display ordering, lists, initials and honorifics";
   categories: ["text", "data"];

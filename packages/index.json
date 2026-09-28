@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-29T01:13:24Z",
+    "updated":  "2026-09-29T02:29:14Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -845,6 +845,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.config",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "In-memory configuration model: sectioned parsing, overlay merge, typed getters, schema validation and canonical rendering",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-config/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "config.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.control",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Control systems library for XIOM -- PID, state machines, signal processing",
@@ -1115,6 +1132,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dimacs/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "dimacs.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.dimred",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Fixed-point PCA primitives (scaled integers): covariance, power iteration, deflation, projection",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dimred/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "dimred.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2121,6 +2155,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.hashchain",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Hash-linked record chains with deterministic SHA-256 block digests and first-error integrity verification",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hashchain/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "hashchain.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.hcl",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM structural HCL2 subset parser with a canonical emitter",
@@ -2643,6 +2694,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.l10n-address",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Country address templates and rendering (12-country illustrative dataset)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-address/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "l10n_address.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.l10n-currency",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -2660,6 +2728,40 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.l10n-date",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Locale-aware civil-date formatting and parsing with caller-supplied month names",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-date/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "l10n_date.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.l10n-name",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Locale-style personal-name display ordering, lists, initials and honorifics",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-name/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "l10n_name.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.l10n-phone",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -2673,6 +2775,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-phone/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "l10n_phone.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.l10n-time",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Locale-style time-of-day formatting, parsing, day periods and timezone offsets (caller-supplied labels)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-time/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "l10n_time.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2843,6 +2962,40 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-libuv/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "libuv.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.locale",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "BCP-47 language tag parsing, canonicalization, RFC 4647 lookup and fallback chains",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-locale/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "locale.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.lockfree",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic single-threaded models of lock-free structures: Treiber stack with ABA tags, bounded MPMC ring queue, atomic counters",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lockfree/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "lockfree.xi",
                                               "package.xi"
                                           ]
                      },
@@ -5264,6 +5417,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.semaphore",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Counting semaphore as a deterministic state machine (permits, FIFO waiters, fairness trace)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-semaphore/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "semaphore.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.semver",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Semantic version parsing, comparison, and range satisfaction",
@@ -7240,19 +7410,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-config",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-config/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-consensus",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7364,19 +7521,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-diagrams/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-dimred",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dimred/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -7565,19 +7709,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-hashchain",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hashchain/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-helm",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7708,58 +7839,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-l10n-address",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-address/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-l10n-date",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-date/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-l10n-name",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-name/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-l10n-time",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-time/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-l10n-unicode",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7845,32 +7924,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-llvm/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-locale",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-locale/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-lockfree",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lockfree/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8222,19 +8275,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sectest/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-semaphore",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-semaphore/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]

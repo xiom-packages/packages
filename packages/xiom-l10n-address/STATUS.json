@@ -1,5 +1,5 @@
 {
-    "package":  "xiom.l10n.address",
+    "package":  "xiom.l10n-address",
     "stage":  "incubating",
     "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",

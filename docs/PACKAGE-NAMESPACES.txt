@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-09-29T01:13:32+03:00
-# packages: 397  modules: 421
+# generated: 2026-09-29T02:29:22+03:00
+# packages: 407  modules: 431
 
 ## package names
 xiom.acpi
@@ -55,6 +55,7 @@ xiom.cidr
 xiom.cobs
 xiom.codec
 xiom.collation
+xiom.config
 xiom.control
 xiom.cookie
 xiom.coverage
@@ -71,6 +72,7 @@ xiom.dds
 xiom.dhcp
 xiom.diff
 xiom.dimacs
+xiom.dimred
 xiom.directx11
 xiom.directx12
 xiom.dns
@@ -128,6 +130,7 @@ xiom.gpt
 xiom.gpx
 xiom.graphql
 xiom.grpc
+xiom.hashchain
 xiom.hcl
 xiom.hello
 xiom.hid
@@ -157,8 +160,12 @@ xiom.kafka
 xiom.keymgmt
 xiom.ktx
 xiom.l10n.number
+xiom.l10n-address
 xiom.l10n-currency
+xiom.l10n-date
+xiom.l10n-name
 xiom.l10n-phone
+xiom.l10n-time
 xiom.l10n-unit
 xiom.lcov
 xiom.ldap
@@ -169,6 +176,8 @@ xiom.libpq
 xiom.libsodium
 xiom.libtorch
 xiom.libuv
+xiom.locale
+xiom.lockfree
 xiom.logging
 xiom.lrc
 xiom.lru
@@ -309,6 +318,7 @@ xiom.sd
 xiom.sdl3
 xiom.secret
 xiom.selection
+xiom.semaphore
 xiom.semver
 xiom.sensor
 xiom.sentiment
@@ -452,6 +462,7 @@ xiom.cidr
 xiom.cobs
 xiom.codec
 xiom.collation
+xiom.config
 xiom.control.filter
 xiom.control.pid
 xiom.control.state_machine
@@ -470,6 +481,7 @@ xiom.dds
 xiom.dhcp
 xiom.diff
 xiom.dimacs
+xiom.dimred
 xiom.dns
 xiom.dotenv
 xiom.dtb
@@ -541,6 +553,7 @@ xiom.gpx
 xiom.grpc.client
 xiom.grpc.server
 xiom.grpc.types
+xiom.hashchain
 xiom.hcl
 xiom.hello
 xiom.hid
@@ -578,15 +591,21 @@ xiom.kafka.producer
 xiom.kafka.types
 xiom.keymgmt
 xiom.ktx
+xiom.l10n.address
 xiom.l10n.currency
+xiom.l10n.date
+xiom.l10n.name
 xiom.l10n.number
 xiom.l10n.phone
+xiom.l10n.time
 xiom.l10n.unit
 xiom.lcov
 xiom.ldap
 xiom.ldif
 xiom.leveldb
 xiom.lexing
+xiom.locale
+xiom.lockfree
 xiom.logging
 xiom.lrc
 xiom.lru
@@ -717,6 +736,7 @@ xiom.sd
 xiom.sdl3.safe
 xiom.secret
 xiom.selection
+xiom.semaphore
 xiom.semver
 xiom.sensor.calibration
 xiom.sensor.fusion

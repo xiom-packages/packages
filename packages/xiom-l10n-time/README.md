@@ -1,4 +1,6 @@
-# xiom.l10n.time
+# xiom.l10n-time
+
+> **Naming:** registry package `xiom.l10n-time`; module namespace `xiom.l10n.time`.
 
 > **Status:** `incubating` -- implemented, pure XIOM (no FFI, no clock), and
 > green under the repo harness. **NOT published** to the XIOM registry.
@@ -105,7 +107,7 @@ fn main() -> Int {
 From the repository root:
 
 ```
-.\scripts\port.ps1 -Package xiom.l10n.time
+.\scripts\port.ps1 -Package xiom.l10n-time
 ```
 
 Expected tail: 24 `[PASS]` lines, `xiom.l10n.time: all tests passed`, then

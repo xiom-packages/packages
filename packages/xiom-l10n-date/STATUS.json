@@ -1,5 +1,5 @@
 {
-    "package":  "xiom.l10n.date",
+    "package":  "xiom.l10n-date",
     "stage":  "incubating",
     "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
