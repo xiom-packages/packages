@@ -268,7 +268,7 @@ fn t3() -> TestResult {
   var ok = false;
   match r {
     Ok(d) => {
-      ok = gcov_file_line_count(&d) == 3;
+      ok = gcov_file_line_count(&d, 0) == 3;
       if gcov_file_line_number(&d, 0, 0) != 12 { ok = false; }
       if gcov_file_line_number(&d, 0, 1) != 13 { ok = false; }
       if gcov_file_line_number(&d, 0, 2) != 14 { ok = false; }
