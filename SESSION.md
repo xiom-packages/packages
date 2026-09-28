@@ -121,30 +121,27 @@ production). Check `git log -1 --format=%h %s` before starting.
   **359**, validate 374/0, guard 359/0 (307 ready), namespaces 374 pkgs /
   398 modules. Growth docs: all ten wave-38 reports appended
   (`188505d`, `a96235b`).
-- **Wave 40 dispatched (2026-09-27 22:57Z):** `parquet, pdf, etcd,
-  windows, perf, geography` (6 background `task` porters) + `dynamo,
-  keymgmt, auth, monitoring` (4 AM sessions) -- all namespace-check clean
-  on 1646 stdlib namespaces. `arrow` was skipped (it is already a
-  grandfathered implemented package) and `text-markup` was rejected
-  (module `xiom.text.markup` collides with the stdlib `xiom.text.*`
-  family). Integrate + wrap as they report; next tag `eco-v0.1.11`, scope
-  target **379**.
-- **Gate queue (ops confirmed 2026-09-27 21:56Z):** production
-  `eco-release` = **359 scopes**, staging `eco-canary` = 359, ops HEAD
-  `525fff6`; production registry 2.3.0, publishers 2/tokens 2, migrations
-  001-008, `PUBLISH_RATE_MAX=600`, `TRUST_PROXY=1`, email disabled (one
-  post-batch recreate restores 20/min and enables SMTP). Live-check
-  staging 219/218, production 277/276. **`eco-v0.1.9` (run `36338915735`)
-  was APPROVED 21:57Z and COMPLETED SUCCESS: 33 names published, 0 failed**
-  (3 stragglers + wave-36 + wave-37 + wave-38; registry now ~310), each
-  signed by `4f3b47f3ae17b13c17fd5372bbd0cf411f329af5d001d374a1494a83be747ce6`.
-  **`eco-v0.1.10` (run `36354376232`, wave 39) is WAITING -- approve only
-  after ops adds the +10 scopes (369).** Registry warning class: unknown
-  `categories` values are ignored (e.g. `protocol`); the valid vocabulary
-  is `core, data, database, web, network, graphics, media, ai-ml, science,
-  crypto-security, cloud-infra, observability, concurrency, systems,
-  tooling, testing, text-nlp` -- normalize manifests over future waves.
-  Never re-cut tags.
+- **Wave 40: COMPLETE (10/10) and PUBLISHED (2026-09-28 00:45Z).**
+  `parquet` 20/20, `pdf` 25/25, `etcd` 26/26, `windows` 25/25, `perf`
+  20/20, `geography` 21/21, `dynamo` 21/21, `keymgmt` 20/20, `auth`
+  24/24, `monitoring` 24/24 -- 226 tests. Wrap `bd4ea78`: allowlist
+  369 -> **379**, validate 397/0, guard 379/0 (327 ready), namespaces
+  397 pkgs / 421 modules. **`eco-v0.1.10` published the wave-39 ten and
+  `eco-v0.1.11` the wave-40 ten: 20 names, 0 failures.** A parallel lane
+  also left `inline-asm` (24/24), `pool` (22/22), `backoff` (22/22) and a
+  cosmetic `tap` restyle, all integrated as stable in `2f0c4b0..b53215e`
+  but **not allowlisted** -- they head the next scope request (target
+  **382**).
+- **Gate queue (ops confirmed 2026-09-27 21:56Z / 379 live 22:25Z):**
+  production `eco-release` = **379 scopes** (staging same), ops HEAD
+  `525fff6`; registry production 2.3.0 -> **2.4.2** (accounts SQLite +
+  admin hierarchy), email on, rate restored to 20 then re-opened to 600
+  for this batch window. **`eco-v0.1.9` (33 names), `eco-v0.1.10`
+  (wave-39 ten) and `eco-v0.1.11` (wave-40 ten) all completed SUCCESS --
+  53 names published across the three runs with 0 failures; production
+  registry ~330.** No runs pending; the next scope ask is **382** for
+  `inline-asm`/`pool`/`backoff` plus any wave-41 names. Never re-cut
+  tags.
 - **Totals (2026-09-27 ~17:58Z):** 374 tracked / **307 stable / 4 ported /
   63 incubating**; allowlist **359**; registry 277 until the gates clear.
   Registry `/health`: last restart 12:47:16Z v2.2.0 (predates the scope
