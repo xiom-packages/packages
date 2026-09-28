@@ -699,6 +699,7 @@ fn t6() -> TestResult {
   }
   let built: Vec[UInt8] = br.value;
   if built.len() < 94 + 70000 {
+    io.println("t6a: built.len");
     ok = false;
   }
   let pr = tds_login7_parse(&built, 0);
@@ -707,22 +708,27 @@ fn t6() -> TestResult {
   }
   let l: TdsLogin7 = pr.value;
   if l.sspi_length != 70000 {
+    io.println("t6b: sspi_length");
     ok = false;
   }
   let sp: Vec[UInt8] = l.sspi;
   if sp.len() != 70000 {
+    io.println("t6c: sp.len");
     ok = false;
   }
   if !bytes_equal(sp, big) {
+    io.println("t6d: bytes_equal");
     ok = false;
   }
   let cb_hi: Int = (built[80] as Int) & 0xFF;
   let cb_lo: Int = (built[81] as Int) & 0xFF;
   if cb_hi * 256 + cb_lo != 65535 {
+    io.println("t6e: cbSSPI");
     ok = false;
   }
-  let long_v: Int = (built[90] as Int) & 0xFF + ((built[91] as Int) & 0xFF) * 256 + ((built[92] as Int) & 0xFF) * 65536 + ((built[93] as Int) & 0xFF) * 16777216;
+  let long_v: Int = ((built[90] as Int) & 0xFF) + (((built[91] as Int) & 0xFF) * 256) + (((built[92] as Int) & 0xFF) * 65536) + (((built[93] as Int) & 0xFF) * 16777216);
   if long_v != 70000 {
+    io.println("t6f: long_v=" + int_to_string(long_v));
     ok = false;
   }
   let er = tds_login7_parse(&hb(""), 0);
@@ -730,6 +736,7 @@ fn t6() -> TestResult {
     ok = false;
   } else {
     if !str_eq(er.error, eat("mssql: truncated login7 header", 0)) {
+      io.println("t6g: truncated error");
       ok = false;
     }
   }
@@ -738,6 +745,7 @@ fn t6() -> TestResult {
     ok = false;
   } else {
     if !str_eq(er2.error, eat("mssql: bad login7 length", 0)) {
+      io.println("t6h: bad length error");
       ok = false;
     }
   }
@@ -760,6 +768,7 @@ fn t6() -> TestResult {
     ok = false;
   } else {
     if !str_eq(er3.error, eat("mssql: login7 field overruns buffer", 36)) {
+      io.println("t6i: field overrun error");
       ok = false;
     }
   }
