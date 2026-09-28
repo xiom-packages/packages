@@ -410,3 +410,13 @@ xiom.cache
 xiom.l10n-phone
 xiom.l10n-unit
 xiom.badger
+xiom.parquet
+xiom.pdf
+xiom.etcd
+xiom.windows
+xiom.perf
+xiom.geography
+xiom.dynamo
+xiom.keymgmt
+xiom.auth
+xiom.monitoring
