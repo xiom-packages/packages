@@ -1,16 +1,16 @@
 {
     "package":  "xiom.geography",
-    "stage":  "stable",
-    "compiler":  "v0.61.3",
+    "stage":  "incubating",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  21,
                   "failed":  0,
-                  "run_by":  "ses_f1aead4a7ffeKo1XE02NrmIjrr",
-                  "commit":  "c860c06",
-                  "checked":  "2026-09-28T00:15:42Z"
+                  "run_by":  "ses_f1cfdad42ffeB2WeOyr6XXjQ30",
+                  "commit":  "2c009ec",
+                  "checked":  "2026-09-28T20:35:57Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"
