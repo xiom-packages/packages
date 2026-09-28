@@ -1,17 +1,17 @@
 {
     "package":  "xiom.imap",
-    "stage":  "stable",
-    "compiler":  "v0.61.3",
+    "stage":  "incubating",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  18,
                   "failed":  0,
-                  "run_by":  "ses_f21c70daaffeBn95RgGYPCkEF1",
-                  "commit":  "c7e4412",
-                  "checked":  "2026-09-26T15:13:10Z"
+                  "run_by":  "ses_f1cfdad42ffeB2WeOyr6XXjQ30",
+                  "commit":  "9227cc5",
+                  "checked":  "2026-09-28T16:34:07Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: allowlist + next eco tag"
+    "excluded_reason":  "publish pending: next scope delta"
 }
