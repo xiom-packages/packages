@@ -9,7 +9,7 @@
 
 package xiom_cassandra {
   name: "xiom.cassandra";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Apache Cassandra CQL native protocol v4 frame structure codec (headers, primitives, STARTUP/QUERY/RESULT/ERROR bodies; no network, no compression)";
   categories: ["network"];
   keywords: ["cassandra", "cql", "wire", "binary", "codec", "protocol"];
