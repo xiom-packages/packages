@@ -1,7 +1,8 @@
 // XIOM -- xiom.tap: Test Anything Protocol (TAP) parser and canonical emitter
-// Greenfield package: pure XIOM, no FFI, no I/O (in-memory Str only).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
+//
+// Greenfield package: pure XIOM, no FFI, no I/O (in-memory Str only).
 //
 // A line-based parser and emitter for the documented TAP subset in SPEC.md:
 //   * the version line `TAP version <N>` (first non-blank line only),

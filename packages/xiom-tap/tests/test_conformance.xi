@@ -1,8 +1,9 @@
 // XIOM -- xiom.tap conformance tests (24 checks)
-// Greenfield package: prove the pure-XIOM xiom.tap module against the
-// documented TAP subset, its error catalog and its canonical emitter.
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
+//
+// Greenfield package: prove the pure-XIOM xiom.tap module against the
+// documented TAP subset, its error catalog and its canonical emitter.
 //
 // Coverage: version/plan/results happy path, SKIP/TODO directives in mixed
 // case, comments and diagnostics, blank lines and CRLF, plan-last streams,
