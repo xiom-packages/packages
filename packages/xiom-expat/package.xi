@@ -9,7 +9,7 @@
 
 package xiom_expat {
   name: "xiom.expat";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Expat-style XML 1.0 parser: streaming events, entities, well-formedness checks";
   categories: ["data"];
   keywords: ["xml", "parser", "expat", "events", "markup"];
