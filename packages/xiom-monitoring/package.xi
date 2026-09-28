@@ -9,7 +9,7 @@
 
 package xiom_monitoring {
   name: "xiom.monitoring";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Prometheus/OpenMetrics text exposition format parser";
   categories: ["data", "tooling"];
   keywords: ["prometheus", "openmetrics", "metrics", "parser", "exposition"];
