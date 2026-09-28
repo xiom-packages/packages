@@ -280,7 +280,7 @@ fn t2() -> TestResult {
   if !argt_is("A1 LOGIN alice secret\r\n", 1, "secret") { ok = false; }
   if !kind_is("A2 login Bob s3cr3t\r\n", IMAP_CMD_LOGIN) { ok = false; }
   if !argt_is("A2 login Bob s3cr3t\r\n", 0, "Bob") { ok = false; }
-  if !argk_is("A3 LOGIN {5}\r\nalice {6}\r\nsecret\r\n", IMAP_ARG_LITERAL) { ok = false; }
+  if !argk_is("A3 LOGIN {5}\r\nalice {6}\r\nsecret\r\n", 0, IMAP_ARG_LITERAL) { ok = false; }
   if !argt_is("A3 LOGIN {5}\r\nalice {6}\r\nsecret\r\n", 0, "alice") { ok = false; }
   if !argt_is("A3 LOGIN {5}\r\nalice {6}\r\nsecret\r\n", 1, "secret") { ok = false; }
   if !kind_is("A3 LOGIN {5}\r\nalice {6}\r\nsecret\r\n", IMAP_CMD_LOGIN) { ok = false; }
