@@ -175,6 +175,19 @@ production). Check `git log -1 --format=%h %s` before starting.
   looser than `+`), one stdlib workaround (`flags`: `io.parse_int` fails
   codegen with unresolved `is_empty` -- report to the stdlib lane).
   Mixed-bracket strictness still pending (flip held one release).
+- **Compiler ack (2026-09-28 20:28Z):** arity + R53 confirmations received;
+  **byte-at-128 stays queued behind the transient `program_exit=-1`
+  capture batch** (our battery at `docs/repro/byte-at-128/` stands ready).
+- **Correction batch (stage-corrected republish) -- NEXT WORK, mechanics
+  pinned:** target = the 53 names published by today's runs
+  (`36338915735` + `36354376232` + `36364462846`; re-derive from their
+  logs). Per package: bump `version: "0.1.0"` -> `"0.1.1"` in
+  `package.xi` (Edit tool per file; no scripted text munging), re-run
+  `port.ps1` until green, record `-Stage incubating -TestsStatus pass`
+  with the bump commit, commit feat+record, push per slice (~13/wakeup).
+  Then regenerate index/report, wrap, cut `eco-v0.1.12`, and publish --
+  the names are already within the live 379 scopes, so no ops ask is
+  needed for the corrected versions.
 - **Gate queue (ops confirmed 2026-09-27 21:56Z / 379 live 22:25Z):**
   production `eco-release` = **379 scopes** (staging same), ops HEAD
   `525fff6`; registry production 2.3.0 -> **2.4.2** (accounts SQLite +
