@@ -196,7 +196,7 @@ fn t20() -> TestResult {
   if !eq(n, "") { ok = false; }
   if !snapshot_equal("", "", true) { ok = false; }
   if snapshot_equal("", "x", true) { ok = false; }
-  if snapshot_first_diff_line("", "") != -1 { ok = false; }
+  if snapshot_first_diff_line("", "", true) != -1 { ok = false; }
   if snapshot_first_diff_line("", "x", true) != 1 { ok = false; }
   let s = snapshot_diff_summary("", "x", true);
   if !eq(s, "1 line(s) differ; first at line 1\n  expected: <missing>\n  actual:   x") { ok = false; }
