@@ -490,7 +490,7 @@ fn t16() -> TestResult {
   var ok = parse_err_is("92233720368547758.08", "USD", ".", ",", "l10n-currency: number too large at byte 20");
   if !parse_err_is("1.00", "us", ".", ",", "l10n-currency: bad currency code: us") { ok = false; }
   if !parse_err_is("1.00", "ZZZ", ".", ",", "l10n-currency: unknown currency: ZZZ") { ok = false; }
-  if parse_exp_of("1.2345", "CLF", ".", "", 4) != 4 { ok = false; }
+  if parse_exp_of("1.2345", "CLF", ".", "") != 4 { ok = false; }
   return assert(ok, "late overflow is reported at end of input; unknown parse codes fail via the lookup");
 }
 
