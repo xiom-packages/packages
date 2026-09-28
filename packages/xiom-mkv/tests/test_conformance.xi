@@ -794,7 +794,7 @@ fn t11() -> TestResult {
   let f = r.value;
   var ok = true;
   if mkv_track_count(&f) != 1 { ok = false; }
-  if mkv_track_offset(&f) != file.len() - entry.len() { ok = false; }
+  if mkv_track_offset(&f, 0) != file.len() - entry.len() { ok = false; }
   if mkv_track_number(&f, 0) != 1 { ok = false; }
   if mkv_track_uid(&f, 0) != 0x1234567890 { ok = false; }
   if mkv_track_type(&f, 0) != 1 { ok = false; }
