@@ -3,14 +3,88 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-09-26, by the packages session (continuation of the
-2026-09-23 handoff; refreshed after waves 32+33 completed and
-`eco-v0.1.1`, `eco-v0.1.2` and `eco-v0.1.3` published successfully to
-production). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-09-28 21:55Z, by the packages session (continuation of
+the 2026-09-27 handoff). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**State at handoff refresh (2026-09-27 ~13:15, waves 1-35 published -- registry 277; wave-34 stragglers in flight; wave 36 prepared):**
+**STATE AT 2026-09-28 21:55Z (read this block first; older bullets below are history):**
+- **v0.62.0 migration done:** `COMPILER_VERSION` = `v0.62.0`; toolchain
+  deployed to `E:\xiom-lang\xiom\target\release` (resolver source
+  `repo-release`). The installed copy stays 0.61.3 (below pin, bypassed);
+  backup at `%LOCALAPPDATA%\xiom\bin-0.61.3-backup`. Strict clauses ON.
+  - Batteries: arity **fixed** (`error[T001]` both directions), R53
+    `&mut` plain-local write-through **fixed** (`bad=0`), `byte-at-128`
+    still open (queued compiler-side behind their flake-capture batch),
+    CSE/sign-bit clean.
+  - Fleet sweep: **329/397 pass**; 60 failures are non-publishable
+    incubating/declaration-only; **8 verified packages broke and are
+    fixed** (`coverage`, `imap`, `l10n-currency`, `mkv`, `snapshot`,
+    `snmp` arity; `mssql` precedence; `flags` stdlib `io.parse_int`
+    C001 workaround) -- all re-recorded `incubating`.
+- **Correction batch 53/53 DONE:** every name published by today's runs
+  (0.1.9's 33 + 0.1.10's ten + 0.1.11's ten) is bumped to **0.1.1**,
+  re-run green on v0.62.0, recorded **`incubating`** (`722a912` ..
+  `a778967`). **Wrap + tag + publish remain** -- see the paste prompt.
+- **Publish lane:** `eco-v0.1.9`/`.10`/`.11` all SUCCESS (53 names, 0
+  failures; registry ~330). `eco-v0.1.6` failed `scope_denied` and is
+  superseded (no rerun). Production + staging scopes = **379**; next
+  scope ask **382** (`inline-asm`, `pool`, `backoff` + wave-41 names).
+- **Policy:** incubating-by-default for all new/next-touched records
+  (`-Stage incubating`); `stable` only by explicit promotion. README,
+  `status.ps1`, `allowlist-guard.ps1`, `publish-registry.yml` updated.
+  Registry publish-time warning: accepted, pending their 2.4.x item.
+- **Mechanics gotchas:** gate `port.ps1` on its **exit code** (the PASS
+  line is Write-Host, invisible to in-process capture); version bumps via
+  the Edit tool per file; `fn`/`use`/`as` are reserved names; v0.62.0
+  binds `&` looser than `+` (parenthesize bitwise/additive mixes).
+
+**PASTE PROMPT FOR THE NEXT PACKAGES SESSION:**
+
+```
+You are the packages session for xiom-packages/packages (local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
+private). Read SESSION.md first -- the 2026-09-28 21:55Z STATE block at the
+top of section 0 is the live handoff. Repo-local identity must be "Lefteris
+Notas <lefterisnotas@gmail.com>". Publishing policy: PRODUCTION-DIRECT (one
+eco-* tag per ready batch; this session handles the registry-publish gate
+approval); staging only when the owner explicitly asks. New/next-touched
+records use stage `incubating` (incubating-by-default; `stable` only by
+explicit promotion).
+
+Start by running: git fetch; git status -sb; git log -1; then
+& .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
+
+Then do, in order:
+1. Wrap the correction batch: & .\generate_index.ps1;
+   & .\scripts\status.ps1 -Action report; validate; allowlist-guard;
+   & .\scripts\export-namespaces.ps1; commit ("chore: correction-batch wrap
+   (53 names at 0.1.1/incubating) + index/report/namespaces regeneration");
+   push; tag eco-v0.1.12 on the wrap commit; push the tag.
+2. Approve the eco-v0.1.12 registry-publish gate as soon as it waits (the
+   53 names are already within the live 379 scopes -- no ops ask needed).
+   Monitor the run; verify the corrected 0.1.1 incubating publishes in the
+   log ("Published xiom." lines); report the registry count.
+3. Continue the ecosystem: dispatch wave 41 -- pick ~10 README-only
+   placeholder names, run & .\scripts\namespace-check.ps1 -Module <names>
+   FIRST, then dispatch 6 background task porters + 4 AM sessions (one per
+   package; task subagents work again) with the full 18-trap + XIOM MCP
+   briefs and a `stdlib gaps` section in every final report. Integrate +
+   wrap as they report. Note `inline-asm`/`pool`/`backoff` (+ a `tap`
+   restyle) are integrated and stable but NOT allowlisted -- they head the
+   next scope request together with the wave-41 names (request the delta on
+   both entries; ~392 if wave 41 adds 10).
+4. Keep these follow-ups: registry publish-time warning (accepted on the
+   registry side); `byte-at-128` battery queued compiler-side; `.github`
+   OIDC token re-mint finding (publish job mints one token per run);
+   `xiom.tftp@0.1.0` version collision (owner decision: bump in a later
+   batch or accept).
+5. Growth coordination: append worker stdlib gaps to
+   docs/STDLIB-WISHLIST.md and compiler evidence to
+   docs/COMPILER-FINDINGS.md at every wave; regenerate
+   docs/PACKAGE-NAMESPACES.txt at every wrap.
+```
+
 - **Wave 34 (dispatched 2026-09-26 23:31Z; COMPLETE for greens):** names
   `webp, jpeg, flac, eeprom, i2c, nats, ldap, upnp, golden, meteorology`.
   The `task` subagent provider hit **"Insufficient Balance"** ~23:45Z and
@@ -188,19 +262,14 @@ production). Check `git log -1 --format=%h %s` before starting.
   Then regenerate index/report, wrap, cut `eco-v0.1.12`, and publish --
   the names are already within the live 379 scopes, so no ops ask is
   needed for the corrected versions.
-- **Correction batch progress (2026-09-28 21:35Z): 39/53 done.** Slices
-  1-3 (`parquet`, `windows`, `pdf`, `etcd`, `perf`, `geography`, `dynamo`,
-  `keymgmt`, `auth`, `monitoring`; `golden`, `i2c`, `nats`, `pki`,
-  `merkle`, `apple`, `geology`, `biology`, `l10n-currency`, `gpio`,
-  `interrupt`, `flash`, `tls`, `mongo`, `memcached`; `cassandra`, `ssh2`,
-  `tor`, `oauth`, `ethereum`, `zigbee`, `nlp`, `zookeeper`, `bitcoin`,
-  `proxy`, `pulsar`, `bolt`, `wireless`, `leveldb`) are at `0.1.1`,
-  green on v0.62.0, recorded `incubating` (`722a912` .. `70ed321`).
-  **Slice 4 (final 14):** `logging`, `dac`, `aviation`, `timer`, `git2`,
+- **Correction batch COMPLETE (2026-09-28 21:55Z): 53/53 done.** All four
+  slices (`parquet`..`monitoring`; `golden`..`memcached`;
+  `cassandra`..`leveldb`; `logging`, `dac`, `aviation`, `timer`, `git2`,
   `mysql`, `mssql`, `db2`, `expat`, `zkp`, `cache`, `l10n-phone`,
-  `l10n-unit`, `badger` -- then regenerate index/report/namespaces,
-  wrap, cut `eco-v0.1.12`, publish (names already scoped; approve the
-  gate when it waits).
+  `l10n-unit`, `badger`) are at **0.1.1**, green on v0.62.0, recorded
+  `incubating` (`722a912` .. `a778967`). **Remaining: the final wrap
+  (regenerate + commit + push + tag `eco-v0.1.12`) and the gate approval
+  (names already scoped).**
 - **Gate queue (ops confirmed 2026-09-27 21:56Z / 379 live 22:25Z):**
   production `eco-release` = **379 scopes** (staging same), ops HEAD
   `525fff6`; registry production 2.3.0 -> **2.4.2** (accounts SQLite +
@@ -209,8 +278,10 @@ production). Check `git log -1 --format=%h %s` before starting.
   (wave-39 ten) and `eco-v0.1.11` (wave-40 ten) all completed SUCCESS --
   53 names published across the three runs with 0 failures; production
   registry ~330.** No runs pending; the next scope ask is **382** for
-  `inline-asm`/`pool`/`backoff` plus any wave-41 names. Never re-cut
-  tags.
+  `inline-asm`/`pool`/`backoff` plus any wave-41 names. **`eco-v0.1.12`
+  (correction batch, 53 names at 0.1.1/incubating) is to be cut on the
+  next wrap -- approve its gate as soon as it waits (already scoped).**
+  Never re-cut tags.
 - **Totals (2026-09-27 ~17:58Z):** 374 tracked / **307 stable / 4 ported /
   63 incubating**; allowlist **359**; registry 277 until the gates clear.
   Registry `/health`: last restart 12:47:16Z v2.2.0 (predates the scope
