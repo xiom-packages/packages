@@ -9,7 +9,7 @@
 
 package xiom_apple {
   name: "xiom.apple";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM Apple executable/container structure parser (Mach-O thin and fat/universal headers, header fields and load-command walk)";
   categories: ["systems"];
   keywords: ["mach-o", "macho", "apple", "binary", "executable", "fat", "universal"];
