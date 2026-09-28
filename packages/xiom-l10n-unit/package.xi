@@ -14,7 +14,7 @@
 
 package xiom_l10n_unit {
   name: "xiom.l10n-unit";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Exact integer unit conversion over an embedded rational-factor table with affine temperatures";
   categories: ["data", "l10n"];
   keywords: ["units", "conversion", "measurement", "l10n", "i18n", "temperature"];
