@@ -1,16 +1,16 @@
 {
     "package":  "xiom.l10n-phone",
-    "stage":  "stable",
-    "compiler":  "v0.61.3",
+    "stage":  "incubating",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  23,
                   "failed":  0,
-                  "run_by":  "ses_f1b742df0ffeKSxZidmU8WuWCp",
-                  "commit":  "5939b56",
-                  "checked":  "2026-09-27T21:12:05Z"
+                  "run_by":  "ses_f1cfdad42ffeB2WeOyr6XXjQ30",
+                  "commit":  "f85f91d",
+                  "checked":  "2026-09-28T21:57:43Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"
