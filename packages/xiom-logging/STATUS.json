@@ -1,16 +1,16 @@
 {
     "package":  "xiom.logging",
-    "stage":  "stable",
-    "compiler":  "v0.61.3",
+    "stage":  "incubating",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  22,
                   "failed":  0,
-                  "run_by":  "ses_f1c33c089ffeA60ad0qaZ8ZZGj",
-                  "commit":  "7c59fea",
-                  "checked":  "2026-09-27T17:31:21Z"
+                  "run_by":  "ses_f1cfdad42ffeB2WeOyr6XXjQ30",
+                  "commit":  "1855d62",
+                  "checked":  "2026-09-28T21:53:45Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"
