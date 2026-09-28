@@ -9,7 +9,7 @@
 
 package xiom_parquet {
   name: "xiom.parquet";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Apache Parquet file metadata codec: thrift compact-protocol footer, schema tree, row groups, statistics and page headers";
   categories: ["data"];
   keywords: ["parquet", "apache", "format", "metadata", "columnar", "thrift"];
