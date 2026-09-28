@@ -258,14 +258,56 @@ pub fn flags_value(p: &FlagParser, name: Str) -> Option[Str] {
   return env_fallback(p, i);
 }
 
+/// Local integer parse for flag values. v0.62.0 cannot codegen the stdlib's
+/// `io.parse_int` (unresolved `is_empty` symbol), so the package carries its
+/// own parser with the same contract: Err("empty input" | "no digits found"
+/// | "invalid digit" | "overflow"), otherwise the parsed Int.
+fn flags_parse_int_local(s: Str) -> Result[Int, Str] {
+  let t = s.trim();
+  if str_len(t) == 0 {
+    return Err("empty input");
+  }
+  var sign = 1;
+  var start = 0;
+  let b0: UInt8 = string.byte_at(t, 0);
+  if b0 == 45u8 {
+    sign = 0 - 1;
+    start = 1;
+  } elif b0 == 43u8 {
+    start = 1;
+  }
+  if start == str_len(t) {
+    return Err("no digits found");
+  }
+  var acc = 0;
+  var i = start;
+  let limit = 922337203685477580;
+  while i < str_len(t) {
+    let c: UInt8 = string.byte_at(t, i);
+    if c < 48u8 { return Err("invalid digit"); }
+    if c > 57u8 { return Err("invalid digit"); }
+    let d = (c as Int) - 48;
+    if acc > limit { return Err("overflow"); }
+    if acc == limit {
+      if d > 7 { return Err("overflow"); }
+    }
+    acc = acc * 10 + d;
+    i = i + 1;
+  }
+  if sign < 0 {
+    return Ok(0 - acc);
+  }
+  return Ok(acc);
+}
+
 /// Integer value of the flag: Err("flag not provided: <name>") when neither
 /// the command line nor the environment supplied a value, otherwise the
-/// xiom.convert parse result (Err carries the parser message, e.g.
+/// local parse result (Err carries the parser message, e.g.
 /// "invalid digit" or "overflow").
 pub fn flags_int_value(p: &FlagParser, name: Str) -> Result[Int, Str] {
   let v = flags_value(p, name);
   match v {
-    Some(s) => parse_int(s);
+    Some(s) => flags_parse_int_local(s);
     None => Err("flag not provided: " + name);
   }
 }
