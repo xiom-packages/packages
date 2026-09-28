@@ -9,7 +9,7 @@
 
 package xiom_ethereum {
   name: "xiom.ethereum";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Ethereum RLP and ABI encoding structures in pure XIOM (no keccak, no crypto, no network)";
   categories: ["data"];
   keywords: ["ethereum", "rlp", "abi", "encoding", "transaction"];
