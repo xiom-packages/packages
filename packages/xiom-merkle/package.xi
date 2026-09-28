@@ -9,7 +9,7 @@
 
 package xiom_merkle {
   name: "xiom.merkle";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Merkle tree and inclusion proofs over caller byte buffers; RFC 6962-style domain-separated SHA-256";
   categories: ["data", "crypto-security"];
   keywords: ["merkle", "tree", "proof", "sha256", "rfc6962"];
