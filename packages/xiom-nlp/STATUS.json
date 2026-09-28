@@ -1,16 +1,16 @@
 {
     "package":  "xiom.nlp",
-    "stage":  "stable",
-    "compiler":  "v0.61.3",
+    "stage":  "incubating",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  27,
                   "failed":  0,
-                  "run_by":  "ses_f1c5cd704ffe1TnRPRx3cAOtZH",
-                  "commit":  "fd142d5",
-                  "checked":  "2026-09-27T16:45:05Z"
+                  "run_by":  "ses_f1cfdad42ffeB2WeOyr6XXjQ30",
+                  "commit":  "8fa89a3",
+                  "checked":  "2026-09-28T21:31:01Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"
