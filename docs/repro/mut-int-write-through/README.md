@@ -5,8 +5,27 @@
 
 Minimal probes for the `&mut Int` write-through miscompile family (xiom.upnp
 replaced its out-parameters with a value-returning `VersionParts`; the
-optimizer notes are referenced from its source). **Reproduced on the
-installed v0.61.3.**
+optimizer notes are referenced from its source). **Reproduced on
+v0.61.3; VERIFIED FIXED (R53) on v0.62.0.**
+
+## v0.62.0 verification (2026-09-28, repo pin bumped)
+
+`probe_out_params.xi` now runs every variant correctly:
+
+```
+plain set_one: 7
+plain split2: 5,5
+bump: 42
+set_even: 8 ok
+loop bump: 5
+explicit set_one: 7
+explicit split2: 5,5
+bad=0
+```
+
+Plain-local calls to `&mut` parameters now write through (the former
+silent-copy behavior is gone); explicit `&mut` call sites keep working.
+Exit code 0. The v0.61.3 results below are kept as the historical record.
 
 Run from the repository root:
 

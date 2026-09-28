@@ -12,6 +12,14 @@ arguments compile (extras are dropped).
 its item-3 batch. These probes are the packages-side re-test; run them
 against the next installed build and record the result.
 
+**VERIFIED FIXED on v0.62.0 (2026-09-28, repo pin bumped):**
+
+- `control_exact_arity.xi` -> `CONTROL OK 3`, exit 0 (unchanged).
+- `repro_missing_arg.xi` -> `error[T001]: 'add3' expects 3 argument(s), found 2`;
+  compilation failed, exit 1 (no program output).
+- `repro_extra_arg.xi` -> `error[T001]: 'add2' expects 2 argument(s), found 3`;
+  compilation failed, exit 1 (no program output).
+
 Environment: `XIOM Compiler v0.61.3`, `XIOM_STDLIB=E:\xiom-lang\stdlib`.
 Run from the repository root (pass `-Stdlib` explicitly; the first bare
 token otherwise binds to that parameter):

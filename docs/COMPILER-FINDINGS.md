@@ -23,8 +23,7 @@ compiler session triages. Format: `| Date | Finding | Evidence | Workaround in p
 | 2026-09-27 | No function overloading; a later same-named function silently shadows an earlier definition (no redefinition error) | `l10n-currency`: two `_row` functions (different arities) produced 167 cascading `expected Int, found Str` errors at unrelated call sites until renamed to `_mk_row` | unique function names per module | confusing error storms; possible silent wrong dispatch in other shapes | 
 | 2026-09-27 | Bitwise `&`/`^` are unreliable on values with bit 31 or higher set | `bolt`: FNV-1a-64 and freelist/XOR work use an 8-step arithmetic XOR loop; `leveldb`/`proxy` CRC32C loops and `merkle` SHA-256 word ops stay on arithmetic identities | divisor/modulo extraction; arithmetic XOR/AND identities | performance and clarity; any missed conversion is silent wrong data | 
 | 2026-09-27 | Omitting the explicit `&mut` at a `Vec` helper call site silently writes to a copy (no diagnostic); also `&result.value` passed into a `&Vec[UInt8]` parameter can read as empty | `bitcoin`: a helper mutating a local `Vec` through a call with no `&mut` compiled clean and did nothing (caught only by tests); `proxy`: `&result.value` binding trap cost one debug cycle | explicit `&mut` at every mutating call site; bind payloads to a local first | silent wrong code -- the most dangerous class of the v0.61.3 issues | 
-| 2026-09-27 | Calls to `&mut T` parameters with a plain local argument compile silently and write to a copy (no E001 for Int; struct args warn then corrupt) | `docs/repro/mut-int-write-through/`: 6/7 variants lost every write on v0.61.3; explicit `&mut x` correct; a `&mut Bag` push wrote `1859382800640` instead of the value | explicit `&mut` at every call site | silent wrong values -- `xiom.upnp`'s VersionParts rewrite is this family | 
-| 2026-09-27 | Direct comparison of `byte_at(...)` with a `UInt8` constant >= 128 is wrong | `docs/repro/byte-at-128/`: 3 direct-compare failures on `"é"` (C3 A9); untyped/typed local and widen paths correct | bind to a typed local, or `(x as Int) & 0xFF` | silent wrong byte classification | 
+| 2026-09-27 | Direct comparison of `byte_at(...)` with a `UInt8` constant >= 128 is wrong | `docs/repro/byte-at-128/`: 3 direct-compare failures on `"é"` (C3 A9); untyped/typed local and widen paths correct; **still failing on v0.62.0** (confirmed 2026-09-28, queued) | bind to a typed local, or `(x as Int) & 0xFF` | silent wrong byte classification | 
 | 2026-09-27 | Transient compiler crash: empty output, `program_exit=-1`, no diagnostics | `memcached` (first port attempt), `git2` (one intermediate revision), `db2` (coordinator re-run after three green worker runs); **cross-lane corroborated**: the compiler lane sees the same empty-output signature in its e2e (31-32 spurious m35 compiles per run, 0 diagnostics, clean on re-run) -- a real flake class, not machine load | re-run the identical command; all sightings passed unchanged | flaky verification -- must never be recorded as a pass without a re-run | 
 | 2026-09-27 | `Vec` capacity cap ~2^24 elements: a single `Vec` aborts past 16,777,216 bytes (16,777,216 OK / +1 crash; two live ~16 MiB vectors also crash) | `mysql` isolated it while designing the >=16 MiB multi-packet test (23:36-23:55 crash window); the live multi-packet round-trip is not executable on v0.61.3 | keep buffers under 16 MiB; document the limit | blocks large-payload live tests (protocols with 16 MiB+ messages) | 
 | 2026-09-27 | A local variable named `fn` silently poisons its entire function: errors surface as `undefined variable '<param>'` at parameter reads and `undefined variable '<function>'` at call sites | `l10n-unit` (one local named `fn` produced cascading unrelated errors; renaming fixed the only compile failure) | never name locals after reserved words; add `fn` to the trap list | misleading error storms unrelated to the actual line | 
@@ -40,22 +39,22 @@ Compiler-lane triage relayed to packages:
 5. `byte_at(...)` vs `UInt8 >= 128` -- repro requested.
 6. `Vec[Float64]`/bitcast and `Vec[StructType]` -- stdlib/wishlist scale, not quick fixes.
 
-Packages-side repro batteries committed under `docs/repro/` (all run on the
-installed v0.61.3; re-run against the next build):
-- `arity-laxness/` -- row 8 re-test ready; **fixed by the item-3 batch**
-  (pin `0c50ac6`, commit `0f3f5083`, local-only until the release push).
-- `mut-int-write-through/` -- **REPRODUCED**: calls to `&mut T` parameters
-  with a plain local argument compile silently and write to a copy (6 of 7
-  variants lose every write; explicit `&mut x` is correct; a struct-bag
-  variant corrupted memory). `xiom.upnp`'s `VersionParts` rewrite is this
-  family.
-- `loop-carry-cse/` -- reductions V1/V2/V3 clean on v0.61.3; the exact
-  pre-fix amqp loop fragment is included in its README for a targeted retry.
-- `sign-bit-ops/` -- positive bit-31/62, negative and wrapped `&`/`|`/`^`
-  all correct on v0.61.3; no reduction yet (family evidence: radiotap/can
+Packages-side repro batteries committed under `docs/repro/` (status after the
+**v0.62.0 migration, 2026-09-28**; the repo pin is now `v0.62.0` with
+strict clauses on):
+- `arity-laxness/` -- **VERIFIED FIXED on v0.62.0**: control green; the
+  missing/extra-arg probes fail with `error[T001] ... expects N argument(s)`.
+- `mut-int-write-through/` -- **VERIFIED FIXED on v0.62.0 (R53)**: all
+  plain-local variants now write through (`bad=0`); explicit `&mut` still
+  correct. The former silent-copy behavior is gone.
+- `loop-carry-cse/` -- reductions V1/V2/V3 clean on both v0.61.3 and
+  v0.62.0; the exact pre-fix amqp loop fragment is included for a targeted
+  retry (still a compiler-queue item).
+- `sign-bit-ops/` -- clean on both pins (positive bit-31/62, negative and
+  wrapped); no reduction yet (family evidence: radiotap/can
   divisor-modulo, bolt's precautionary arithmetic FNV XOR).
-- `byte-at-128/` -- **REPRODUCED**: direct `byte_at(...) == 195u8` compares
-  fail (3 checks) on a two-byte UTF-8 literal; untyped/typed locals and the
+- `byte-at-128/` -- **still failing on v0.62.0** (`bad=3`): direct
+  `byte_at(...) == 195u8` compares remain wrong; typed locals and the
   `(x as Int) & 0xFF` widen path are correct.
 
 ## Resolved / withdrawn
@@ -64,7 +63,8 @@ installed v0.61.3; re-run against the next build):
 |---|---|---|
 | 2026-09-26 | "`Vec[Int]` element reads mis-lower to Str compares" | still listed as a trap; no new evidence this session -- keep the typed-local discipline |
 | 2026-09-25 | `xiom.gguf` CRC-of-self trap | package-level logic, not compiler (docs/failed_attempts.md) |
-| 2026-09-27 | Arity not validated: calls with wrong argument counts compiled (missing args defaulted to 0, extras dropped) | FIXED by the compiler item-3 batch (pin `0c50ac6`, commit `0f3f5083`, local-only until the release push); packages re-test ready at `docs/repro/arity-laxness/` -- re-run on the next installed build |
+| 2026-09-27 | Arity not validated: calls with wrong argument counts compiled (missing args defaulted to 0, extras dropped) | FIXED by the compiler item-3 batch (pin `0c50ac6`, commit `0f3f5083`); **VERIFIED FIXED on v0.62.0** -- `docs/repro/arity-laxness/` control green, missing/extra-arg probes fail with `error[T001]` |
+| 2026-09-28 | `&mut` out-params with plain-local calls resolved to a copy (writes lost; struct args corrupted) | **VERIFIED FIXED on v0.62.0 (R53)** -- `docs/repro/mut-int-write-through/` runs all variants correctly (`bad=0`) |
 
 ## Changelog
 
@@ -94,3 +94,7 @@ installed v0.61.3; re-run against the next build):
   from `keymgmt`; `windows` re-observed the extra-arg drop that the
   compiler item-3 batch fixes; transient `program_exit=-1` re-sighted by
   `monitoring`).
+- 2026-09-28: **v0.62.0 migration** -- repo pin raised to `v0.62.0`
+  (strict clauses on; toolchain deployed to the resolver's release dir).
+  Batteries re-run: arity + R53 verified fixed; byte-at still open;
+  CSE/sign-bit still queue items. Fleet-wide strict-clause sweep launched.
