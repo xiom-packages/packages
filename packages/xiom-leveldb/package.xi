@@ -9,7 +9,7 @@
 
 package xiom_leveldb {
   name: "xiom.leveldb";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "LevelDB storage-format parser: log records, block/index/footer structure and LEB128 varints (no filesystem, no compression)";
   categories: ["data"];
   keywords: ["leveldb", "log", "sstable", "block", "crc32c", "varint", "format"];
