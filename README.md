@@ -54,6 +54,15 @@ Compiler and standard-library defects found along the way are documented
 with minimal reproductions under `docs/` and filed upstream rather than
 worked around silently.
 
+### Maturity stages
+
+Every published version carries a maturity stage, and the registry badges it
+accordingly. First-party packages from this repository publish as
+**`incubating`** by default; **`stable`** is an explicit promotion for
+packages that have earned it. `deprecated` marks retired names. A corrected
+stage cannot be backfilled -- the registry stores it per published version --
+so a stage correction ships as the package's next version.
+
 ## Internal working notes
 
 `SESSION.md` and the notes under `docs/` are the internal record of that

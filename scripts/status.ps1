@@ -192,7 +192,7 @@ function Test-StatusObject {
     }
 
     if ($s.publish -eq $true) {
-        if ($s.stage -ne "stable") { $problems += "publish=true requires stage stable (is '$($s.stage)')" }
+        if ($s.stage -notin @("incubating", "stable")) { $problems += "publish=true requires stage incubating|stable (is '$($s.stage)')" }
         if ($s.tests.status -ne "pass") { $problems += "publish=true requires tests.status=pass" }
     }
     if ($s.stage -eq "stable") {

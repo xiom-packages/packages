@@ -6,8 +6,9 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 #
 # For every name in .github/publish-allowlist.txt:
-#   - the package must be `stage: stable` with `tests.status: pass` in its
-#     STATUS.json (the same record that produces docs/PACKAGE_STATUS.md),
+#   - the package must be `stage: incubating` (default first-party maturity)
+#     or `stage: stable` (explicitly promoted), with `tests.status: pass` in
+#     its STATUS.json (the same record that produces docs/PACKAGE_STATUS.md),
 #   - EXCEPT names listed in .github/allowlist-baseline.txt: those predate the
 #     readiness model (the 2026-09-21/23 gate pass), are reported loudly every
 #     run, and do not fail the build until they are ported.
@@ -67,7 +68,7 @@ $failures = @()
 
 foreach ($name in $allowlist) {
     $s = $statuses[$name]
-    $isReady = ($null -ne $s -and $s.stage -eq "stable" -and $s.tests.status -eq "pass")
+    $isReady = ($null -ne $s -and $s.stage -in @("incubating", "stable") -and $s.tests.status -eq "pass")
     if ($isReady) { $ready += $name; continue }
     $detail = if ($null -eq $s) { "no STATUS.json" } else { "stage=$($s.stage) tests=$($s.tests.status)" }
     if ($baselineSet.ContainsKey($name)) { $grandfathered += "$name ($detail)"; continue }

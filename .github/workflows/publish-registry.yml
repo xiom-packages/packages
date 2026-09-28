@@ -13,7 +13,9 @@
 #       workflow_dispatch       -> staging canary path (`package` input)
 #   - A `guard` job runs scripts/allowlist-guard.ps1 before anything is
 #     published: the allowlist may never drift ahead of readiness
-#     (stage: stable + recorded green suite in packages/<dir>/STATUS.json).
+#     (stage: incubating or stable + recorded green suite in
+#     packages/<dir>/STATUS.json; incubating is the default published
+#     maturity for first-party packages, stable means explicitly promoted).
 #   - Tools come from the public xiom release pinned in COMPILER_VERSION;
 #     v0.61.0 or newer is required because `xiom pkg` ships from v0.61.0.
 #   - Only names listed in .github/publish-allowlist.txt are published;
@@ -239,7 +241,7 @@ jobs:
             if [ -f "$dir/STATUS.json" ]; then
               stage="$(sed -n 's/.*"stage"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$dir/STATUS.json" | head -n1)"
               test_status="$(sed -n 's/.*"status"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$dir/STATUS.json" | head -n1)"
-              if [ "$stage" = "stable" ] && [ "$test_status" = "pass" ]; then ready="yes"; fi
+              if { [ "$stage" = "stable" ] || [ "$stage" = "incubating" ]; } && [ "$test_status" = "pass" ]; then ready="yes"; fi
             else
               stage="<missing STATUS.json>"
               test_status="<missing>"

@@ -148,6 +148,17 @@ production). Check `git log -1 --format=%h %s` before starting.
   the registry offers a publish-time warning (stable + incubator-repo
   provenance) as a 2.4.x safety net. Evidence: `registry.xiom-lang.org/index.json`
   (330/292/38/0).
+- **Publish-metadata policy DECIDED and implemented (2026-09-28 15:20Z):**
+  owner chose **incubating-by-default** for first-party packages; corrected
+  republishes **start with today's 53** (`0.1.9`+`0.1.10`+`0.1.11` sets) and
+  ride each package's next version bump for the rest; registry warning
+  accepted. Pipeline updated: `status.ps1` (publish=true allows
+  incubating|stable), `allowlist-guard.ps1` (ready = incubating|stable +
+  tests=pass), `publish-registry.yml` readiness rule + header, README
+  maturity section. **New integration records must use
+  `-Stage incubating`** unless the owner promotes a package; the 53-package
+  correction batch bumps to 0.1.1, re-runs, records `incubating`, and ships
+  as the next tag(s). The 38 empty-stage legacy entries ride natural bumps.
 - **Gate queue (ops confirmed 2026-09-27 21:56Z / 379 live 22:25Z):**
   production `eco-release` = **379 scopes** (staging same), ops HEAD
   `525fff6`; registry production 2.3.0 -> **2.4.2** (accounts SQLite +
