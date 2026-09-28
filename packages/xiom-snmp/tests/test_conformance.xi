@@ -205,7 +205,7 @@ fn msg_with_list(version: Int, list: Vec[UInt8]) -> Vec[UInt8] {
 }
 
 fn trap_pdu() -> Vec[UInt8] {
-  let e = oid_tlv(oid4(1, 3, 6, 1, 4));
+  let e = oid_tlv(oid4(1, 3, 6, 1));
   let a = wrap(SNMP_TAG_IPADDRESS, hb("c0000201"));
   let g = ber_int_encode(6);
   let s = ber_int_encode(2);
@@ -839,7 +839,7 @@ fn t13() -> TestResult {
   if m.specific_trap != 2 { ok = false; }
   if m.timestamp != 256 { ok = false; }
   let ent: Vec[Int] = m.enterprise;
-  if !arcs_equal(ent, oid4(1, 3, 6, 1, 4)) { ok = false; }
+  if !arcs_equal(ent, oid4(1, 3, 6, 1)) { ok = false; }
   let addr: Vec[UInt8] = m.agent_addr;
   if !bytes_equal(addr, hb("c0000201")) { ok = false; }
   if snmp_varbind_count(&m) != 0 { ok = false; }
@@ -850,7 +850,7 @@ fn t14() -> TestResult {
   let uptime = oid9(1, 3, 6, 1, 2, 1, 1, 3, 0);
   let vb1_body = concat2(oid_tlv(uptime), wrap(SNMP_TAG_TIMETICKS, hb("000100")));
   let vb1 = wrap(SNMP_TAG_SEQUENCE, vb1_body);
-  let trap_oid_name = oid4(1, 3, 6, 1, 6);
+  let trap_oid_name = oid4(1, 3, 6, 1);
   let trap_oid_value = oid4(1, 3, 6, 1);
   let vb2_body = concat2(oid_tlv(trap_oid_name), oid_tlv(trap_oid_value));
   let vb2 = wrap(SNMP_TAG_SEQUENCE, vb2_body);
