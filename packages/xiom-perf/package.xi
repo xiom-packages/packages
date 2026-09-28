@@ -9,7 +9,7 @@
 
 package xiom_perf {
   name: "xiom.perf";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM Linux perf.data structure parser: header, attrs, event records and feature sections";
   categories: ["systems", "data"];
   keywords: ["perf", "perf.data", "linux", "tracing", "profiling", "parser"];
