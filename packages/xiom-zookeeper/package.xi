@@ -9,7 +9,7 @@
 
 package xiom_zookeeper {
   name: "xiom.zookeeper";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Apache ZooKeeper jute wire-format structure codec (primitives, connect handshake, headers, opcodes, Stat/ACL/watch events, request and response records)";
   categories: ["data"];
   keywords: ["zookeeper", "jute", "serialization", "codec", "coordination"];
