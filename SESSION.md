@@ -166,11 +166,15 @@ production). Check `git log -1 --format=%h %s` before starting.
   `v0.62.0` (`25506bf`). Batteries re-run: **arity VERIFIED fixed**
   (`error[T001]` both directions; control green), **R53 `&mut`
   plain-local write-through VERIFIED fixed** (`bad=0`), `byte-at-128`
-  still open (`bad=3`), CSE/sign-bit clean (queue items). **Fleet-wide
-  strict-clause sweep running** (4 chunks over every implemented package,
-  ~99 each; logs `%TEMP%\kilo\sweep\v2-chunk*.log` + `.detail` on
-  failure). Fix any failures, then re-record affected packages on the new
-  pin; mixed-bracket strictness still pending (flip held one release).
+  still open (`bad=3`), CSE/sign-bit clean (queue items). **Fleet sweep
+  COMPLETE: 329/397 pass on v0.62.0.** 60 failures are non-publishable
+  incubating/declaration-only (expected). **8 verified packages broke
+  and are fixed + re-recorded as `incubating` (`a57f40b`):** six arity
+  restorations (`coverage`, `imap`, `l10n-currency`, `mkv`, `snapshot`,
+  `snmp`), one precedence parenthesization (`mssql`: `&` now binds
+  looser than `+`), one stdlib workaround (`flags`: `io.parse_int` fails
+  codegen with unresolved `is_empty` -- report to the stdlib lane).
+  Mixed-bracket strictness still pending (flip held one release).
 - **Gate queue (ops confirmed 2026-09-27 21:56Z / 379 live 22:25Z):**
   production `eco-release` = **379 scopes** (staging same), ops HEAD
   `525fff6`; registry production 2.3.0 -> **2.4.2** (accounts SQLite +

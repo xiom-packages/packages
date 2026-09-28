@@ -28,6 +28,8 @@ compiler session triages. Format: `| Date | Finding | Evidence | Workaround in p
 | 2026-09-27 | `Vec` capacity cap ~2^24 elements: a single `Vec` aborts past 16,777,216 bytes (16,777,216 OK / +1 crash; two live ~16 MiB vectors also crash) | `mysql` isolated it while designing the >=16 MiB multi-packet test (23:36-23:55 crash window); the live multi-packet round-trip is not executable on v0.61.3 | keep buffers under 16 MiB; document the limit | blocks large-payload live tests (protocols with 16 MiB+ messages) | 
 | 2026-09-27 | A local variable named `fn` silently poisons its entire function: errors surface as `undefined variable '<param>'` at parameter reads and `undefined variable '<function>'` at call sites | `l10n-unit` (one local named `fn` produced cascading unrelated errors; renaming fixed the only compile failure) | never name locals after reserved words; add `fn` to the trap list | misleading error storms unrelated to the actual line | 
 | 2026-09-27 | `use` is a reserved keyword as a local/field name (forces renames) | `keymgmt` stores the JWK `use` member as `use_val`; `as` is likewise reserved (trap 17) | never name locals/fields `as`, `fn`, `use` | compile errors or forced naming changes | 
+| 2026-09-28 | Operator precedence change in v0.62.0: bitwise `&` now binds looser than additive `+` (C conventions); unparenthesized mixes silently change value | `xiom.mssql` t6: `b90 & 0xFF + b91*256 + b92*65536 + b93*16777216` evaluated to `112` (exactly the C parse) where v0.61.3 produced `70000`; fixed by parenthesizing | parenthesize every bitwise/additive mix | silent wrong values in migrated code -- fleet-wide grep found no other occurrence | 
+| 2026-09-28 | Stdlib `io.parse_int` fails codegen on v0.62.0: `error[C001]` unresolved `is_empty` (method call on a trimmed `Str`); previously a silent zero auto-stub | `xiom.flags` (only affected package); `is_empty` exists in the stdlib tree (`string.xi`, `array.xi`), so this is a resolution/import bug inside the module | local `flags_parse_int_local` workaround; stdlib lane should fix `io.parse_int` | any package that codegens `io.parse_int` fails to build | 
 
 ## Compiler-lane triage and repro status (2026-09-27, second relay)
 
@@ -97,4 +99,8 @@ strict clauses on):
 - 2026-09-28: **v0.62.0 migration** -- repo pin raised to `v0.62.0`
   (strict clauses on; toolchain deployed to the resolver's release dir).
   Batteries re-run: arity + R53 verified fixed; byte-at still open;
-  CSE/sign-bit still queue items. Fleet-wide strict-clause sweep launched.
+  CSE/sign-bit still queue items. **Fleet sweep complete: 329/397
+  packages pass on v0.62.0; 60 failures are non-publishable
+  incubating/declaration-only; 8 verified packages broke and are fixed
+  (6 arity restorations, 1 precedence parenthesization, 1 stdlib
+  `io.parse_int` workaround), all re-recorded `incubating`.**
