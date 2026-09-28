@@ -1,16 +1,16 @@
 {
     "package":  "xiom.auth",
-    "stage":  "stable",
-    "compiler":  "v0.61.3",
+    "stage":  "incubating",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  24,
                   "failed":  0,
-                  "run_by":  "ses_f1aea42deffeP4dS1GalfOjSBo",
-                  "commit":  "845c890",
-                  "checked":  "2026-09-28T00:19:02Z"
+                  "run_by":  "ses_f1cfdad42ffeB2WeOyr6XXjQ30",
+                  "commit":  "107d9f7",
+                  "checked":  "2026-09-28T20:36:57Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"
