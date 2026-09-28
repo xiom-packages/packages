@@ -37,6 +37,13 @@ the 21:55Z handoff). Check `git log -1 --format=%h %s` before starting.
   `am-1790634381393-4e45i6`). Every brief: skeleton-first, canonical
   18-trap list (v0.62.0 edition), XIOM MCP tools, no-commit/no-STATUS
   rules, mandatory `stdlib gaps` report section.
+- **Wave-41 progress (2026-09-28 23:10Z):** all 10 worker sessions were
+  paused by a runtime event at 22:33Z (tests already green) and resumed
+  at ~23:08Z. Integrated so far: `semaphore` (23/23, `32b643a`/`d53081c`),
+  `l10n-address` (22/22, `1640406`/`eefd09e`), `l10n-name` (21/21,
+  `360cef3`/`f362580`), `l10n-date` (18/18, `792b7d0`/`1ea5537`) -- all
+  recorded `incubating`, trap-14 clean. Still running: l10n-time, locale,
+  config (task) + dimred, lockfree, hashchain (AM).
 - **Next for this session:** integrate wave-41 reports as they land
   (re-run `port.ps1` twice per package, trap-14 bracket grep, `feat:` +
   record `incubating` like the correction batch), append their
@@ -67,6 +74,12 @@ the 21:55Z handoff). Check `git log -1 --format=%h %s` before starting.
   records; `stable` only by explicit promotion; strict clauses ON;
   toolchain resolver source `repo-release` v0.62.0 (installed copy still
   0.61.3, bypassed; backup `%LOCALAPPDATA%\xiom\bin-0.61.3-backup`).
+- **Toolchain drift observed (~23:05Z):** the resolver now picks an
+  installed **v0.62.1** at `%LOCALAPPDATA%\xiom.new\bin` (`xiom.ps1
+  -Info` shows `0.62.1 (installed)`); the pin stays `v0.62.0` and records
+  validate against it; wave-41 evidence ran on 0.62.1 (>= pin, accepted).
+  Next maintenance event per `docs/MAINTENANCE.md`: confirm the compiler
+  release, then pin bump + targeted re-sweep.
 - **Mechanics gotchas:** gate `port.ps1` on its **exit code** (the PASS
   line is Write-Host, invisible to in-process capture); version bumps via
   the Edit tool per file; `fn`/`use`/`as` are reserved names; v0.62.0
