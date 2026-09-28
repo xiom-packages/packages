@@ -42,12 +42,15 @@ the 21:55Z handoff). Check `git log -1 --format=%h %s` before starting.
   record `incubating` like the correction batch), append their
   `stdlib gaps` + compiler evidence to the growth docs, then wrap
   (allowlist + index/report/namespaces) and cut the next `eco-*` tag.
-- **Scope ask PENDING (not yet relayed to ops):** next delta on BOTH
-  entries (production `eco-release`, staging `eco-canary`): 379 -> **392**
-  = +3 `inline-asm`, `pool`, `backoff` (integrated stable, not
-  allowlisted) + the 10 wave-41 names. `tap` is already allowlisted
-  (restyle only, no scope needed). Request text in the 22:26Z session
-  report.
+- **Scope delta LIVE (ops relay 2026-09-28 22:51Z): 392 scopes on BOTH
+  entries** (production `eco-release`, staging `eco-canary`): includes
+  `inline-asm`, `pool`, `backoff` + the wave-41 ten. Our allowlist is
+  still 379 and none of the 13 are listed yet -- append all 13 at the
+  wave wrap (379 -> 392) and have ops re-verify the sets match exactly.
+  **No rate window open** (`PUBLISH_RATE_MAX` stays 20; the workflow's
+  4s sleep kept the last 53-name batch under it) -- ping ops for the
+  batch window when the next tag is cut. `tap` is already scoped (its
+  restyle is same-version, tftp-class -- owner decision later).
 - **Follow-ups kept:** registry publish-time warning (accepted on the
   registry side, pending their 2.4.x item); `byte-at-128` battery queued
   compiler-side behind the flake-capture batch; `.github` OIDC per-run
@@ -91,9 +94,11 @@ Then do, in order:
    correction batch, then append `stdlib gaps` to
    docs/STDLIB-WISHLIST.md and compiler evidence to
    docs/COMPILER-FINDINGS.md.
-2. Scope ask `379 -> 392` on BOTH entries (production `eco-release` and
-   staging `eco-canary`): `inline-asm`, `pool`, `backoff` + the wave-41
-   ten. Relay it to ops and wait for enumeration before tagging.
+2. Scope delta **392 is LIVE on both entries** (ops relay 2026-09-28
+   22:51Z). Append the 13 names (`inline-asm`, `pool`, `backoff` + the
+   wave-41 ten) to `.github/publish-allowlist.txt` at the wrap
+   (379 -> 392) and have ops re-verify the sets match exactly; ping ops
+   for the batch rate window when the next `eco-*` tag is cut.
 3. Wrap when the wave is green: allowlist append, `generate_index.ps1`,
    `status.ps1 -Action report`, validate, allowlist-guard,
    `export-namespaces.ps1`, commit, push, tag the next `eco-*` batch,
