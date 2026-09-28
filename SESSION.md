@@ -188,21 +188,19 @@ production). Check `git log -1 --format=%h %s` before starting.
   Then regenerate index/report, wrap, cut `eco-v0.1.12`, and publish --
   the names are already within the live 379 scopes, so no ops ask is
   needed for the corrected versions.
-- **Correction batch progress (2026-09-28 21:00Z): 25/53 done. Slice 1**
-  (`parquet`, `windows`, `pdf`, `etcd`, `perf`, `geography`, `dynamo`,
-  `keymgmt`, `auth`, `monitoring`) and **slice 2** (`golden`, `i2c`,
-  `nats`, `pki`, `merkle`, `apple`, `geology`, `biology`,
-  `l10n-currency`, `gpio`, `interrupt`, `flash`, `tls`, `mongo`,
-  `memcached`) bumped to `0.1.1`, re-run green on v0.62.0, recorded
-  `incubating` (`722a912` .. `50bceea`). **Remaining 28:** slice 3
-  (`cassandra`, `ssh2`, `tor`, `oauth`, `ethereum`, `zigbee`, `nlp`,
-  `zookeeper`, `bitcoin`, `proxy`, `pulsar`, `bolt`, `wireless`,
-  `leveldb`) + slice 4 (`logging`, `dac`, `aviation`, `timer`, `git2`,
+- **Correction batch progress (2026-09-28 21:35Z): 39/53 done.** Slices
+  1-3 (`parquet`, `windows`, `pdf`, `etcd`, `perf`, `geography`, `dynamo`,
+  `keymgmt`, `auth`, `monitoring`; `golden`, `i2c`, `nats`, `pki`,
+  `merkle`, `apple`, `geology`, `biology`, `l10n-currency`, `gpio`,
+  `interrupt`, `flash`, `tls`, `mongo`, `memcached`; `cassandra`, `ssh2`,
+  `tor`, `oauth`, `ethereum`, `zigbee`, `nlp`, `zookeeper`, `bitcoin`,
+  `proxy`, `pulsar`, `bolt`, `wireless`, `leveldb`) are at `0.1.1`,
+  green on v0.62.0, recorded `incubating` (`722a912` .. `70ed321`).
+  **Slice 4 (final 14):** `logging`, `dac`, `aviation`, `timer`, `git2`,
   `mysql`, `mssql`, `db2`, `expat`, `zkp`, `cache`, `l10n-phone`,
-  `l10n-unit`, `badger`), then regenerate + wrap + `eco-v0.1.12`.
-  Mechanics note: gate port.ps1 on exit code 0 (its PASS line is
-  Write-Host, invisible to in-process capture); counts come from the
-  existing `STATUS.json`.
+  `l10n-unit`, `badger` -- then regenerate index/report/namespaces,
+  wrap, cut `eco-v0.1.12`, publish (names already scoped; approve the
+  gate when it waits).
 - **Gate queue (ops confirmed 2026-09-27 21:56Z / 379 live 22:25Z):**
   production `eco-release` = **379 scopes** (staging same), ops HEAD
   `525fff6`; registry production 2.3.0 -> **2.4.2** (accounts SQLite +
