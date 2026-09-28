@@ -188,21 +188,21 @@ production). Check `git log -1 --format=%h %s` before starting.
   Then regenerate index/report, wrap, cut `eco-v0.1.12`, and publish --
   the names are already within the live 379 scopes, so no ops ask is
   needed for the corrected versions.
-- **Correction batch progress (2026-09-28 20:35Z): slice 1 done --
-  wave-40's ten** (`parquet`, `windows`, `pdf`, `etcd`, `perf`,
-  `geography`, `dynamo`, `keymgmt`, `auth`, `monitoring`) bumped to
-  `0.1.1`, re-run green on v0.62.0, recorded `incubating` (`722a912` ..
-  `5f1997d`). **Remaining 43:** 0.1.9's 33 (`golden`, `i2c`, `nats`;
-  wave-36: `pki`, `merkle`, `apple`, `geology`, `biology`,
-  `l10n-currency`, `gpio`, `interrupt`, `flash`, `tls`; wave-37:
-  `mongo`, `memcached`, `cassandra`, `ssh2`, `tor`, `oauth`,
-  `ethereum`, `zigbee`, `nlp`, `zookeeper`; wave-38: `bitcoin`,
-  `proxy`, `pulsar`, `bolt`, `wireless`, `leveldb`, `logging`, `dac`,
-  `aviation`, `timer`) + 0.1.10's ten (`git2`, `mysql`, `mssql`,
-  `db2`, `expat`, `zkp`, `cache`, `l10n-phone`, `l10n-unit`,
-  `badger`). Mechanics note: in-process `Out-String` cannot capture
-  port.ps1's Write-Host PASS line -- gate on exit code 0 and carry the
-  expected count from the existing `STATUS.json`.
+- **Correction batch progress (2026-09-28 21:00Z): 25/53 done. Slice 1**
+  (`parquet`, `windows`, `pdf`, `etcd`, `perf`, `geography`, `dynamo`,
+  `keymgmt`, `auth`, `monitoring`) and **slice 2** (`golden`, `i2c`,
+  `nats`, `pki`, `merkle`, `apple`, `geology`, `biology`,
+  `l10n-currency`, `gpio`, `interrupt`, `flash`, `tls`, `mongo`,
+  `memcached`) bumped to `0.1.1`, re-run green on v0.62.0, recorded
+  `incubating` (`722a912` .. `50bceea`). **Remaining 28:** slice 3
+  (`cassandra`, `ssh2`, `tor`, `oauth`, `ethereum`, `zigbee`, `nlp`,
+  `zookeeper`, `bitcoin`, `proxy`, `pulsar`, `bolt`, `wireless`,
+  `leveldb`) + slice 4 (`logging`, `dac`, `aviation`, `timer`, `git2`,
+  `mysql`, `mssql`, `db2`, `expat`, `zkp`, `cache`, `l10n-phone`,
+  `l10n-unit`, `badger`), then regenerate + wrap + `eco-v0.1.12`.
+  Mechanics note: gate port.ps1 on exit code 0 (its PASS line is
+  Write-Host, invisible to in-process capture); counts come from the
+  existing `STATUS.json`.
 - **Gate queue (ops confirmed 2026-09-27 21:56Z / 379 live 22:25Z):**
   production `eco-release` = **379 scopes** (staging same), ops HEAD
   `525fff6`; registry production 2.3.0 -> **2.4.2** (accounts SQLite +
