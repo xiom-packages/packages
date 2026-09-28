@@ -106,3 +106,16 @@ strict clauses on):
   incubating/declaration-only; 8 verified packages broke and are fixed
   (6 arity restorations, 1 precedence parenthesization, 1 stdlib
   `io.parse_int` workaround), all re-recorded `incubating`.**
+- 2026-09-28: **wave-41 evidence** (10 packages: `l10n-date`, `l10n-time`,
+  `l10n-address`, `l10n-name`, `locale`, `dimred`, `semaphore`,
+  `lockfree`, `hashchain`, `config`; sessions paused mid-wave by a
+  runtime event at 22:33Z, resumed 23:08Z). Sessions resolved an
+  installed **v0.62.1** (`%LOCALAPPDATA%\xiom.new\bin`) over the v0.62.0
+  repo-release -- the resolver prefers an installed copy >= pin; all ten
+  suites are green on 0.62.1, most also forced-green on the pinned
+  repo-release 0.62.0. Pin bump + targeted re-sweep queued per
+  `docs/MAINTENANCE.md`. `hashchain` re-confirmed the stdlib FFI link
+  failure (`xiom.crypto.sha256` -> `undefined symbol: xiom_sha256_hash`
+  on both 0.62.0 and 0.62.1) and mirrored `merkle`'s private pure-XIOM
+  SHA-256. No new compiler miscompiles surfaced in wave 41; the trap list
+  is unchanged on v0.62.1.

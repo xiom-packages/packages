@@ -3,12 +3,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-09-28 22:26Z, by the packages session (continuation of
-the 21:55Z handoff). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-09-28 23:40Z, by the packages session (continuation of
+the 22:26Z handoff). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-09-28 22:26Z (read this block first; older bullets below are history):**
+**STATE AT 2026-09-28 23:40Z (read this block first; older bullets below are history):**
 - **Compiler field refresh DONE (`2183ac4`, pushed):** all 338 records
   still at `v0.61.3` now say `v0.62.0`. The 275 green records were
   re-pointed at the fleet sweep (`run_by: "fleet-sweep:v0.62.0"`,
@@ -25,39 +25,39 @@ the 21:55Z handoff). Check `git log -1 --format=%h %s` before starting.
   version-stage **incubating**. **Registry index now 330 = 239 stable /
   53 incubating / 38 empty** -- the stage correction is live; the 38
   legacy empty-stage entries ride natural bumps.
-- **Wave 41 DISPATCHED (2026-09-28 22:25Z, running now):** 10 names, all
-  namespace-check clean: `l10n-date, l10n-time, l10n-address, l10n-name,
-  locale, dimred, semaphore, lockfree, hashchain, config`.
-  `xiom-stats-tests` was dropped for this wave: `xiom.stats.tests`
-  collides with stdlib `xiom.stats.*`; `locale` substituted. Recipe:
-  **6 background `task` porters** (l10n-date/time/address/name, locale,
-  config: `ses_f15e044d…`, `ses_f15e0384…`, `ses_f15e02a6…`,
-  `ses_f15e01c4…`, `ses_f15e009b…`, `ses_f15dffa7…`) + **4 AM local
-  sessions** (dimred, semaphore, lockfree, hashchain; request
-  `am-1790634381393-4e45i6`). Every brief: skeleton-first, canonical
-  18-trap list (v0.62.0 edition), XIOM MCP tools, no-commit/no-STATUS
-  rules, mandatory `stdlib gaps` report section.
-- **Wave-41 progress (2026-09-28 23:10Z):** all 10 worker sessions were
-  paused by a runtime event at 22:33Z (tests already green) and resumed
-  at ~23:08Z. Integrated so far: `semaphore` (23/23, `32b643a`/`d53081c`),
-  `l10n-address` (22/22, `1640406`/`eefd09e`), `l10n-name` (21/21,
-  `360cef3`/`f362580`), `l10n-date` (18/18, `792b7d0`/`1ea5537`) -- all
-  recorded `incubating`, trap-14 clean. Still running: l10n-time, locale,
-  config (task) + dimred, lockfree, hashchain (AM).
-- **Next for this session:** integrate wave-41 reports as they land
-  (re-run `port.ps1` twice per package, trap-14 bracket grep, `feat:` +
-  record `incubating` like the correction batch), append their
-  `stdlib gaps` + compiler evidence to the growth docs, then wrap
-  (allowlist + index/report/namespaces) and cut the next `eco-*` tag.
+- **Wave 41 COMPLETE + WRAPPED (2026-09-28 23:31Z):** all 10 names
+  integrated and recorded `incubating`; wrap commit `f65d301` (allowlist
+  379 -> **392**: `inline-asm`, `pool`, `backoff` + `l10n-date`,
+  `l10n-time`, `l10n-address`, `l10n-name`, `locale`, `dimred`,
+  `semaphore`, `lockfree`, `hashchain`, `config`; index/report/namespaces
+  regenerated) and **tag `eco-v0.1.13`** pushed; publish run
+  `36498363143` approved at the gate. feats/records: semaphore
+  `32b643a`/`d53081c`, l10n-address `1640406`/`eefd09e`, l10n-name
+  `360cef3`/`f362580`, l10n-date `792b7d0`/`1ea5537`, locale
+  `b70591b`/`e7cb4f9`, l10n-time `bb6e135`/`c002973`, config
+  `0eb2fdd`/`d582f7c`, dimred `1cbbfe3`/`edc8323`, lockfree
+  `4815569`/`d3c4035`, hashchain `5f78df6`/`cfc2ea7`. Tests: 18-28 each,
+  double-run green; trap-14 clean on all ten. **History note:** the four
+  l10n packages were renamed to the hyphenated publish convention in the
+  wrap commit (modules stay dotted). Worker sessions were paused by a
+  runtime event at 22:33Z and resumed at ~23:08Z (recovery: resume
+  prompts via `task` and Agent Manager).
+- **`eco-v0.1.13` PUBLISHED (run `36498363143`, SUCCESS):** **13/13
+  `Published xiom.*@0.1.0`**, 0 failures (`inline-asm`, `pool`, `backoff`
+  stable + the ten wave-41 incubating; 328 already-published skips).
+  **Registry now 343 = 242 stable / 63 incubating / 38 empty.** Only
+  warning: `dimred` category `math` ignored -- manifest corrected to
+  `ai-ml`+`data` for its next bump (recorded in `STDLIB-WISHLIST`).
+  **Next: relay the 392 allowlist bump to ops for the exact set
+  re-verification; no rate window needed.**
 - **Scope delta LIVE (ops relay 2026-09-28 22:51Z): 392 scopes on BOTH
-  entries** (production `eco-release`, staging `eco-canary`): includes
-  `inline-asm`, `pool`, `backoff` + the wave-41 ten. Our allowlist is
-  still 379 and none of the 13 are listed yet -- append all 13 at the
-  wave wrap (379 -> 392) and have ops re-verify the sets match exactly.
-  **No rate window open** (`PUBLISH_RATE_MAX` stays 20; the workflow's
-  4s sleep kept the last 53-name batch under it) -- ping ops for the
-  batch window when the next tag is cut. `tap` is already scoped (its
-  restyle is same-version, tftp-class -- owner decision later).
+  entries** (production `eco-release`, staging `eco-canary`), including
+  `inline-asm`, `pool`, `backoff` + the wave-41 ten. Our allowlist is now
+  **392** too (appended in `f65d301`) -- **relay the 392 bump to ops for
+  the exact set re-verification**. No rate window was needed (13 names at
+  4s pacing stayed under the 20 limit); `PUBLISH_RATE_MAX` stays 20.
+  `tap` is already scoped (its restyle is same-version, tftp-class --
+  owner decision later).
 - **Follow-ups kept:** registry publish-time warning (accepted on the
   registry side, pending their 2.4.x item); `byte-at-128` battery queued
   compiler-side behind the flake-capture batch; `.github` OIDC per-run
@@ -92,45 +92,41 @@ the 21:55Z handoff). Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-09-28 22:26Z STATE block at the
-top of section 0 is the live handoff. Repo-local identity must be "Lefteris
-Notas <lefterisnotas@gmail.com>". Publishing policy: PRODUCTION-DIRECT (one
-eco-* tag per ready batch; this session handles the registry-publish gate
-approval); staging only when the owner explicitly asks. New/next-touched
-records use stage `incubating` (incubating-by-default; `stable` only by
-explicit promotion).
+private). Read SESSION.md first -- the 2026-09-28 23:40Z STATE block at
+the top of section 0 is the live handoff. Repo-local identity must be
+"Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
+PRODUCTION-DIRECT (one eco-* tag per ready batch; this session handles
+the registry-publish gate approval); staging only when the owner
+explicitly asks. New/next-touched records use stage `incubating`
+(incubating-by-default; `stable` only by explicit promotion).
 
 Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Wave 41 (dispatched 2026-09-28 22:25Z; 6 task porters + 4 AM sessions)
-   may be in flight or landed: `l10n-date, l10n-time, l10n-address,
-   l10n-name, locale, dimred, semaphore, lockfree, hashchain, config`.
-   Integrate as reports land: re-run `port.ps1` twice per package,
-   trap-14 bracket grep, `feat:` commit + record `incubating`
-   (`publish: false`, reason "publish pending: next scope delta") like the
-   correction batch, then append `stdlib gaps` to
-   docs/STDLIB-WISHLIST.md and compiler evidence to
-   docs/COMPILER-FINDINGS.md.
-2. Scope delta **392 is LIVE on both entries** (ops relay 2026-09-28
-   22:51Z). Append the 13 names (`inline-asm`, `pool`, `backoff` + the
-   wave-41 ten) to `.github/publish-allowlist.txt` at the wrap
-   (379 -> 392) and have ops re-verify the sets match exactly; ping ops
-   for the batch rate window when the next `eco-*` tag is cut.
-3. Wrap when the wave is green: allowlist append, `generate_index.ps1`,
-   `status.ps1 -Action report`, validate, allowlist-guard,
-   `export-namespaces.ps1`, commit, push, tag the next `eco-*` batch,
-   approve the registry-publish gate as soon as it waits, verify the
-   "Published xiom." lines, and report the registry count.
-4. Growth + maintenance: append worker `stdlib gaps` / compiler evidence
-   to docs/STDLIB-WISHLIST.md / docs/COMPILER-FINDINGS.md and regenerate
-   docs/PACKAGE-NAMESPACES.txt at wrap; run the release-triggered loop in
-   docs/MAINTENANCE.md on compiler/stdlib releases (targeted, no lockstep
-   versions).
-5. Keep the follow-ups from the STATE block: registry publish-time
-   warning, `byte-at-128` battery, `.github` OIDC re-mint, tftp version
-   collision.
+1. Wave 41 is COMPLETE (10/10 integrated, wrapped in `f65d301`, tagged
+   `eco-v0.1.13`, gate approved, publish run `36498363143`). Verify the
+   run's "Published xiom." lines (13 expected: `inline-asm`, `pool`,
+   `backoff` stable + the ten incubating) and the registry count (~343).
+2. The allowlist is at **392** and the scopes are live at 392 on both
+   entries (ops 22:51Z) -- relay the 392 bump to ops for the exact set
+   re-verification; no rate window is open (limiter 20).
+3. Maintenance event queued: an installed **v0.62.1** now wins the
+   resolver over the pinned v0.62.0. Per `docs/MAINTENANCE.md`: confirm
+   the compiler release, then bump the pin and run the targeted fleet
+   re-sweep (compiler field + provenance refresh, fix breakage,
+   validate + guard green, wrap + tag if the batch grows).
+4. Next wave (42): ~10 README-only placeholders, `namespace-check.ps1
+   -Module` FIRST, then 6 task porters + 4 AM sessions with the
+   canonical 18-trap + XIOM MCP briefs and a `stdlib gaps` section;
+   integrate as they report (the 2026-09-28 wave-41 recipe).
+5. Growth + maintenance: append worker `stdlib gaps` / compiler evidence
+   at every wave and regenerate `docs/PACKAGE-NAMESPACES.txt` at wrap;
+   run the release-triggered loop in `docs/MAINTENANCE.md` on
+   compiler/stdlib releases (targeted, no lockstep versions).
+6. Keep the follow-ups from the STATE block: registry publish-time
+   warning, `byte-at-128` battery, `.github` OIDC re-mint, `tftp`/`tap`
+   same-version republish decisions.
 ```
 
 - **Wave 34 (dispatched 2026-09-26 23:31Z; COMPLETE for greens):** names
