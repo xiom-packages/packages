@@ -1,16 +1,16 @@
 {
     "package":  "xiom.ldap",
     "stage":  "stable",
-    "compiler":  "v0.61.3",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  20,
                   "failed":  0,
-                  "run_by":  "ses_f1fefc07effe54hIk58P47C2cY",
-                  "commit":  "6bed6a3",
-                  "checked":  "2026-09-27T12:14:31Z"
+                  "run_by":  "fleet-sweep:v0.62.0",
+                  "commit":  "ebf8ef2",
+                  "checked":  "2026-09-28T16:00:20Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: wave-35 batch (eco-v0.1.5)"

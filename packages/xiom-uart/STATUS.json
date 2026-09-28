@@ -1,16 +1,16 @@
 {
     "package":  "xiom.uart",
     "stage":  "stable",
-    "compiler":  "v0.61.3",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  21,
                   "failed":  0,
-                  "run_by":  "ses_f1fb9ad06ffe92Wn29S0bRs3rB",
-                  "commit":  "1ccbc28",
-                  "checked":  "2026-09-27T12:14:31Z"
+                  "run_by":  "fleet-sweep:v0.62.0",
+                  "commit":  "ebf8ef2",
+                  "checked":  "2026-09-28T16:16:34Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: wave-35 batch (eco-v0.1.5)"

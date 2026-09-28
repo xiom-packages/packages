@@ -1,16 +1,16 @@
 {
     "package":  "xiom.adc",
     "stage":  "stable",
-    "compiler":  "v0.61.3",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  18,
                   "failed":  0,
-                  "run_by":  "ses_f1fb9a4dcffe5SSI6e53yMkJDr",
-                  "commit":  "4aa74bb",
-                  "checked":  "2026-09-27T12:14:31Z"
+                  "run_by":  "fleet-sweep:v0.62.0",
+                  "commit":  "ebf8ef2",
+                  "checked":  "2026-09-28T15:47:16Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: wave-35 batch (eco-v0.1.5)"

@@ -1,16 +1,16 @@
 {
     "package":  "xiom.json",
     "stage":  "ported",
-    "compiler":  "v0.61.3",
+    "compiler":  "v0.62.0",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
                   "passed":  12,
                   "failed":  0,
-                  "run_by":  "task:ses_f3084becdffe90IyKNBMWGAw35",
-                  "commit":  "0e0070f",
-                  "checked":  "2026-09-23T18:29:20Z"
+                  "run_by":  "fleet-sweep:v0.62.0",
+                  "commit":  "ebf8ef2",
+                  "checked":  "2026-09-28T15:56:23Z"
               },
     "publish":  false,
     "excluded_reason":  "ported: legacy port; stable promotion + publish pending (API review, registry scope, repo protection)"
