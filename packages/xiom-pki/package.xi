@@ -11,7 +11,7 @@
 
 package xiom_pki {
   name: "xiom.pki";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "X.509/PKIX certificate structure parser: DER TLV walker, ASN.1 primitives, TBS/extension decoding and PEM unwrap (no crypto verification)";
   categories: ["security"];
   keywords: ["x509", "pki", "asn1", "der", "certificate", "pem"];

@@ -9,7 +9,7 @@
 
 package xiom_pam {
   name: "xiom.pam";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Netpbm PAM (P7) header parsing, raster spans and building for flat tuple images";
   categories: ["graphics"];
   keywords: ["pam", "netpbm", "image", "format"];

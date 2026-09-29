@@ -9,7 +9,7 @@
 
 package xiom_plist {
   name: "xiom.plist";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Apple XML property-list codec for a documented subset";
   categories: ["data"];
   keywords: ["plist", "apple", "xml", "format"];

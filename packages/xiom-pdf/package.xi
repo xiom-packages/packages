@@ -10,7 +10,7 @@
 
 package xiom_pdf {
   name: "xiom.pdf";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "PDF document structure parser: objects, xref tables/streams, trailers and page tree";
   categories: ["data"];
   keywords: ["pdf", "parser", "document", "xref", "structure"];

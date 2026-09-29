@@ -9,7 +9,7 @@
 
 package xiom_password {
   name: "xiom.password";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Password strength scoring and structural checks (no crypto, no dictionaries)";
   categories: ["safety", "text"];
   keywords: ["password", "strength", "security", "score"];

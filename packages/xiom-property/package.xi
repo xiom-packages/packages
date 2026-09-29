@@ -9,7 +9,7 @@
 
 package xiom_property {
   name: "xiom.property";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Deterministic property-based testing: seeds, generators, and shrinking";
   categories: ["tooling","testing"];
   keywords: ["property","testing","generator","shrink"];

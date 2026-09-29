@@ -9,7 +9,7 @@
 
 package xiom_pci {
   name: "xiom.pci";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "PCI configuration-space codec: decode a 256-byte function and build a canonical type-0 header";
   categories: ["systems"];
   keywords: ["pci", "config", "hardware", "format"];

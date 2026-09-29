@@ -9,7 +9,7 @@
 
 package xiom_pe {
   name: "xiom.pe";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "PE/COFF header codec (documented subset): DOS header and stub, COFF file header, PE32/PE32+ optional header, data directories and section table";
   categories: ["systems"];
   keywords: ["pe", "coff", "windows", "binary"];

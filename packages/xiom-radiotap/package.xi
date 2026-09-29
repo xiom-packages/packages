@@ -8,7 +8,7 @@
 
 package xiom_radiotap {
   name: "xiom.radiotap";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "IEEE 802.11 radiotap capture header codec: base header, present words and fixed field table";
   categories: ["network"];
   keywords: ["radiotap", "wifi", "capture", "format"];

@@ -11,7 +11,7 @@
 
 package xiom_psf {
   name: "xiom.psf";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM PSF1/PSF2 console-font codec for glyph bytes and unicode tables";
   categories: ["graphics"];
   keywords: ["psf", "console", "font", "format"];

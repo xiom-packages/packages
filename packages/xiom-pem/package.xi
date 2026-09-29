@@ -4,7 +4,7 @@
 
 package xiom_pem {
   name: "xiom.pem";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "PEM armor codec: BEGIN/END blocks, RFC 1421 headers, strict base64";
   categories: ["data"];
   keywords: ["pem", "base64", "armor", "format"];

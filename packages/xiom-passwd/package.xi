@@ -9,7 +9,7 @@
 
 package xiom_passwd {
   name: "xiom.passwd";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "passwd-file parser and canonical emitter for the seven-field /etc/passwd subset";
   categories: ["systems"];
   keywords: ["passwd", "unix", "users", "parser"];

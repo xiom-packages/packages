@@ -11,7 +11,7 @@
 
 package xiom_preprocess {
   name: "xiom.preprocess";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Configurable text normalization pipeline: case folding, punctuation, whitespace, stopwords";
   categories: ["text", "data"];
   keywords: ["preprocess", "normalization", "nlp", "text"];

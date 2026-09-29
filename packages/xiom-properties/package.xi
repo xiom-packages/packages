@@ -10,7 +10,7 @@
 
 package xiom_properties {
   name: "xiom.properties";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Java .properties parsing and emitting with escapes and line continuations";
   categories: ["data", "tooling"];
   keywords: ["properties", "java", "config", "parser"];

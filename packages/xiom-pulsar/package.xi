@@ -9,7 +9,7 @@
 
 package xiom_pulsar {
   name: "xiom.pulsar";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM Apache Pulsar wire codec: protobuf-wire subset, u32/u32 frame framing and the decoded BaseCommand/MessageMetadata/MessageIdData subset (no network, no brokers)";
   categories: ["protocol"];
   keywords: ["pulsar", "protobuf", "messaging", "protocol", "codec"];

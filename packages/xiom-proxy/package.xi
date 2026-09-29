@@ -9,7 +9,7 @@
 
 package xiom_proxy {
   name: "xiom.proxy";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM HAProxy PROXY protocol structure codec: v1 text lines and v2 binary headers with TLV parsing (ALPN, authority, CRC32C, NOOP, SSL, unique id, AWS VPC), address parse/render and byte-offset errors -- no sockets";
   categories: ["protocol"];
   keywords: ["proxy-protocol", "haproxy", "load-balancer", "codec", "tlv"];

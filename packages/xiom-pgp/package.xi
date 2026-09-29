@@ -9,7 +9,7 @@
 
 package xiom_pgp {
   name: "xiom.pgp";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "OpenPGP (RFC 4880/9580 subset) packet and ASCII armor codec: packets, MPIs, v4 keys/signatures, CRC24 armor -- no crypto";
   categories: ["data"];
   keywords: ["pgp", "openpgp", "rfc4880", "armor", "packet", "mpi"];

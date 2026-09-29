@@ -10,7 +10,7 @@
 
 package xiom_relativity {
   name: "xiom.relativity";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Special relativity scalar helpers: Lorentz factor, dilation, contraction, velocity addition";
   categories: ["science"];
   keywords: ["relativity","lorentz","physics","time-dilation"];

@@ -9,7 +9,7 @@
 
 package xiom_physics {
   name: "xiom.physics";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Introductory mechanics in SI units with Float64 scalars";
   categories: ["science"];
   keywords: ["physics","mechanics","kinematics","si"];
