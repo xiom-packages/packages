@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-30T00:28:03Z",
+    "updated":  "2026-09-30T00:55:35Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -7415,7 +7415,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.zookeeper",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Apache ZooKeeper jute wire-format structure codec (primitives, connect handshake, headers, opcodes, Stat/ACL/watch events, request and response records)",
@@ -7425,7 +7425,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zookeeper/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zookeeper/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "zookeeper.xi",
                                               "package.xi"

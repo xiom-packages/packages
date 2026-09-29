@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.62.1` -- generated 2026-09-29T21:28:06Z.
+Toolchain pin: `v0.62.1` -- generated 2026-09-29T21:55:37Z.
 
 ## Summary
 
@@ -457,6 +457,6 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.zeromq | xiom-zeromq | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.zigbee | xiom-zigbee | incubating | tests/test_conformance.xi | pass 26/26 | e295e6f | False | publish pending: next scope delta |
 | xiom.zkp | xiom-zkp | incubating | tests/test_conformance.xi | pass 20/20 | e295e6f | False | publish pending: next scope delta |
-| xiom.zookeeper | xiom-zookeeper | incubating | tests/test_conformance.xi | pass 24/24 | 27560d6 | False | publish pending: next scope delta |
+| xiom.zookeeper | xiom-zookeeper | incubating | tests/test_conformance.xi | pass 24/24 | 0535dc8 | False | publish pending: next scope delta |
 | xiom.zstd | xiom-zstd | incubating | tests/test_conformance.xi | unknown |  | False |  |
 
