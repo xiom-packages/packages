@@ -121,10 +121,12 @@ through the v0.62.1 pin bump and waves 41-42). Check
   sections point at the registry; **0 stale "NOT published" remain in
   published packages**. Caveat: **registry pages render the README
   frozen inside each published version** -- a page only changes when a
-  new version is published. Decision pending (owner): **(A)** ask ops to
-  refresh stored metadata server-side (no bump), or **(B)** chunked
-  docs-refresh republishes (~325 published packages still carry stale
-  page text; patch bumps + 1-2 reruns per chunk due to the 6-min token).
+  new version is published. **Decision (owner 2026-09-29): ask ops first**
+  -- relay asks whether the registry can refresh a version's stored
+  README/metadata server-side (no version bump; ~325 affected pages, e.g.
+  `xiom.webp` shows "NOT published" while `stable`+published). Fallback
+  **(B)** chunked docs-refresh republishes (~50/batch, patch bumps) only
+  if ops cannot; do not start bumps without the go.
 - **Mechanics gotchas:** gate `port.ps1` on its **exit code** (the PASS
   line is Write-Host, invisible to in-process capture); version bumps via
   the Edit tool per file; `fn`/`use`/`as` are reserved names; v0.62.0
