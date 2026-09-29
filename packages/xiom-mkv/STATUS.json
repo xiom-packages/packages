@@ -1,6 +1,6 @@
 {
     "package":  "xiom.mkv",
-    "stage":  "incubating",
+    "stage":  "stable",
     "compiler":  "v0.62.1",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  20,
                   "failed":  0,
-                  "run_by":  "ses_f1cfdad42ffeB2WeOyr6XXjQ30",
-                  "commit":  "89d163f",
-                  "checked":  "2026-09-28T16:34:09Z"
+                  "run_by":  "readme-refresh:eco-v0.1.18",
+                  "commit":  "425d4cb",
+                  "checked":  "2026-09-29T20:31:38Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"
