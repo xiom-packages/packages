@@ -106,17 +106,15 @@ through the v0.62.1 pin bump and waves 41-42). Check
   ~00:42Z; this session re-verified (port x2 each) and integrated them so
   the gates stay green -- their records use
   `agentmgr:ses_f26cdae1…`. **Scope ask: 392 -> 402 (+10) to ops.**
-- **`eco-v0.1.14` tagged (`c54d6e3`), gate approved, run `36583479344`
-  FAILED -- 0/10 published:** every wave-42 name returned **`403
-  scope_denied`** ("token 'eco-release' is not scoped to publish
-  xiom.barrier/clustering/...") -- the **+10 scope enumeration is still
-  pending on the registry side** (the 22:51Z "392 live" did not include
-  wave 42). Secondary: `loss`/`streaming` later hit
-  `oidc_token_expired` after the scope-denied retries burned the 6-min
-  token (the known per-run mint). **Action: ops enumerates the +10 (402)
-  on both entries; then `gh run rerun 36583479344 --failed` mints a fresh
-  token -- early-alphabet names publish fast; if the token expires again
-  mid-loop, a second rerun clears the stragglers.**
+- **`eco-v0.1.14` PUBLISHED (run `36583479344`, rerun SUCCESS):** ops
+  enumerated the +10 (402 confirmed on both entries, zero diff); the
+  rerun published **10/10 `Published xiom.*@0.1.0`** (barrier,
+  clustering, ensemble, executor, feature, forkjoin, lexer-fw, linter,
+  loss, streaming), every version-stage `incubating`. **Registry now
+  353 = 242 stable / 73 incubating / 38 empty.** Lesson: the first
+  attempt failed `403 scope_denied` on all 10 because the enumeration
+  hadn't landed yet; scope-denied retries also burn the 6-min OIDC token
+  (secondary) -- confirm enumeration, then rerun.
 - **Mechanics gotchas:** gate `port.ps1` on its **exit code** (the PASS
   line is Write-Host, invisible to in-process capture); version bumps via
   the Edit tool per file; `fn`/`use`/`as` are reserved names; v0.62.0
@@ -141,12 +139,10 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Wave 42 is COMPLETE and wrapped (10/10 integrated; allowlist at
-   **402**; validate 420/0; guard 402/0; see the STATE block). **Scope
-   ask 392 -> 402 is with ops** -- when ops confirms, cut `eco-v0.1.14`
-   (tag on the wrap commit), approve the gate as soon as it waits, verify
-   the ten "Published xiom." lines, and report the registry count
-   (~353 = 343+10).
+1. Wave 42 is COMPLETE and PUBLISHED (`eco-v0.1.14` on `c54d6e3`, run
+   `36583479344` rerun SUCCESS, 10/10; registry **353 = 242 stable / 73
+   incubating / 38 empty**; allowlist at **402**; validate 420/0; guard
+   402/0). The next `eco-*` batch is wave 43.
 2. The v0.62.1 pin bump is DONE (`097d1c9`; sweep 347/407, batteries
    re-run; `byte-at` direct comparison still open -- keep the widen+mask
    workaround in briefs). No re-bump unless a new compiler release lands;
