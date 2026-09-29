@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.parsing",
+    "stage":  "incubating",
+    "compiler":  "v0.62.1",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  28,
+                  "failed":  0,
+                  "run_by":  "agentmgr:ses_f11747bc4ffeQUQzeyhYpEFcD1",
+                  "commit":  "ff29f34",
+                  "checked":  "2026-09-29T19:36:51Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: next scope delta"
+}
