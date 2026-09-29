@@ -84,6 +84,17 @@ the 22:26Z handoff). Check `git log -1 --format=%h %s` before starting.
   records refreshed (275 fleet-repointed to `fleet-sweep:v0.62.1` @
   `aec8efe`, worker provenance preserved, 132 compiler-only). validate
   407/0, guard 392/340/0.
+- **Wave 42 DISPATCHED (2026-09-29 00:19Z, running):** 10 names,
+  namespace-check clean (0 conflicts): `feature`, `loss`, `ensemble`,
+  `streaming`, `linter`, `lexer-fw` (6 background `task` porters:
+  `ses_f1578f59…`, `ses_f1578e62…`, `ses_f1578d79…`, `ses_f1578c52…`,
+  `ses_f1578b48…`, `ses_f1578a1b…`) + `clustering`, `barrier`,
+  `forkjoin`, `executor` (4 AM local sessions; request
+  `am-1790641156596-9o3vll`). Briefs: canonical 18-trap list (v0.62.1
+  edition; byte-at trap still live), XIOM MCP tools, no-commit rules,
+  `stdlib gaps` reports. Integrate as they report; wrap when green
+  (allowlist 392 -> 402 with the +10 scope ask at wrap, ops set
+  re-verification due).
 - **Mechanics gotchas:** gate `port.ps1` on its **exit code** (the PASS
   line is Write-Host, invisible to in-process capture); version bumps via
   the Edit tool per file; `fn`/`use`/`as` are reserved names; v0.62.0
