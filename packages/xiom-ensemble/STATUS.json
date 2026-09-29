@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.ensemble",
+    "stage":  "incubating",
+    "compiler":  "v0.62.1",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  24,
+                  "failed":  0,
+                  "run_by":  "task:ses_f1578d794ffenv8RngV4wadhDt",
+                  "commit":  "47502eb",
+                  "checked":  "2026-09-29T00:27:33Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: next scope delta"
+}
