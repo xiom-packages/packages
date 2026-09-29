@@ -9,7 +9,7 @@
 
 package xiom_selection {
   name: "xiom.selection";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Deterministic selection operators for evolutionary loops: roulette, tournament, elite, rank weights";
   categories: ["science","tooling"];
   keywords: ["selection","evolutionary","roulette","tournament"];

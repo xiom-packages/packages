@@ -9,7 +9,7 @@
 
 package xiom_safetensors {
   name: "xiom.safetensors";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM safetensors container codec: header parse, validation and builder";
   categories: ["ai-ml"];
   keywords: ["safetensors", "tensors", "model", "format"];

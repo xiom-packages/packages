@@ -11,7 +11,7 @@
 
 package xiom_sanitize {
   name: "xiom.sanitize";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Input sanitization: control characters, whitespace, ASCII, filenames";
   categories: ["text", "safety"];
   keywords: ["sanitize", "input", "filename", "text"];

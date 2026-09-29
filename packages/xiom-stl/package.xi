@@ -8,7 +8,7 @@
 
 package xiom_stl {
   name: "xiom.stl";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "STL mesh structure: binary triangle parsing and ASCII detection (float values kept as raw bits)";
   categories: ["graphics", "data"];
   keywords: ["stl", "mesh", "3d", "binary"];

@@ -9,7 +9,7 @@
 
 package xiom_signal {
   name: "xiom.signal";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Integer-friendly window functions, convolution, and moving extrema for signals";
   categories: ["science","data"];
   keywords: ["signal","window","convolution","smoothing"];

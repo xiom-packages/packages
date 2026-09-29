@@ -9,7 +9,7 @@
 
 package xiom_ris {
   name: "xiom.ris";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "RIS bibliography parser and canonical emitter";
   categories: ["science"];
   keywords: ["ris", "bibliography", "academic", "format"];

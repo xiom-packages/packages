@@ -10,7 +10,7 @@
 
 package xiom_robotics {
   name: "xiom.robotics";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Planar robot helpers: 2-link forward kinematics, reach checks, differential drive";
   categories: ["science","engineering"];
   keywords: ["robotics","kinematics","differential-drive","planar-arm"];

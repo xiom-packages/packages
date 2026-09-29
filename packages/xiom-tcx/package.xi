@@ -9,7 +9,7 @@
 
 package xiom_tcx {
   name: "xiom.tcx";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Garmin TCX subset codec: parse and canonical build for activities, laps and trackpoints";
   categories: ["science"];
   keywords: ["tcx", "garmin", "training", "xml"];

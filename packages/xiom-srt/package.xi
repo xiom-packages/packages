@@ -9,7 +9,7 @@
 
 package xiom_srt {
   name: "xiom.srt";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "SubRip (SRT) subtitle parsing, canonical formatting, and accessors";
   categories: ["media"];
   keywords: ["srt", "subrip", "subtitles", "captions"];

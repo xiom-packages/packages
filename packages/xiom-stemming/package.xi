@@ -9,7 +9,7 @@
 
 package xiom_stemming {
   name: "xiom.stemming";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Porter stemming algorithm for English words";
   categories: ["text"];
   keywords: ["stemming", "porter", "nlp", "text"];

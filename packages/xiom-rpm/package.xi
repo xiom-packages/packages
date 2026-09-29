@@ -10,7 +10,7 @@
 
 package xiom_rpm {
   name: "xiom.rpm";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "RPM package lead and header parser: tags, types and metadata lookups";
   categories: ["systems", "data"];
   keywords: ["rpm", "package", "redhat", "linux", "header", "lead"];

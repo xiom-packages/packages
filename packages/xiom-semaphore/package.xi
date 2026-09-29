@@ -11,7 +11,7 @@
 
 package xiom_semaphore {
   name: "xiom.semaphore";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Counting semaphore as a deterministic state machine (permits, FIFO waiters, fairness trace)";
   categories: ["core", "tooling"];
   keywords: ["semaphore", "concurrency", "permits", "fifo", "waiters"];

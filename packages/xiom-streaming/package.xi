@@ -12,7 +12,7 @@
 
 package xiom_streaming {
   name: "xiom.streaming";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "RTP/RTCP/RTSP wire-format codecs: header parse/build, wrap-safe sequence and timestamp arithmetic, interarrival jitter, report blocks, text messages";
   categories: ["media", "network"];
   keywords: ["rtp", "rtcp", "rtsp", "streaming", "jitter", "wire-format"];

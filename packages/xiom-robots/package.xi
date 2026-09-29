@@ -10,7 +10,7 @@
 
 package xiom_robots {
   name: "xiom.robots";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "robots.txt parsing, canonical emitting and rule matching";
   categories: ["web"];
   keywords: ["robots", "crawler", "seo", "parser"];

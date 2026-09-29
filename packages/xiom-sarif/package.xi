@@ -10,7 +10,7 @@
 
 package xiom_sarif {
   name: "xiom.sarif";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM SARIF 2.1.0 report codec for a documented JSON subset";
   categories: ["testing"];
   keywords: ["sarif", "static-analysis", "report", "format"];

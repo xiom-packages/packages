@@ -10,7 +10,7 @@
 
 package xiom_scheduler {
   name: "xiom.scheduler";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Cron expression parsing and next-run computation (UTC)";
   categories: ["tooling"];
   keywords: ["cron", "scheduler", "time", "schedule"];

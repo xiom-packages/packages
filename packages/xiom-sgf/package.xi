@@ -11,7 +11,7 @@
 
 package xiom_sgf {
   name: "xiom.sgf";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Smart Game Format codec: game tree collections, nodes, properties and canonical emit";
   categories: ["graphics"];
   keywords: ["sgf", "go", "game", "notation"];

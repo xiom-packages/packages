@@ -10,7 +10,7 @@
 
 package xiom_spell {
   name: "xiom.spell";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Dictionary-based spell checking: Levenshtein distance, suggestions, unknown-word scan";
   categories: ["text"];
   keywords: ["spell", "levenshtein", "suggest", "text"];

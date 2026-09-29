@@ -11,7 +11,7 @@
 
 package xiom_summary {
   name: "xiom.summary";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Extractive text summarization with frequency scoring";
   categories: ["text"];
   keywords: ["summary", "extractive", "nlp", "text"];

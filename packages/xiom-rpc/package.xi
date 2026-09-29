@@ -14,7 +14,7 @@
 
 package xiom_rpc {
   name: "xiom.rpc";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "JSON-RPC 2.0 envelope codec with a minimal response scanner (no JSON parser)";
   categories: ["networking", "data"];
   keywords: ["jsonrpc", "rpc", "envelope", "remote"];

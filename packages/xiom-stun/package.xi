@@ -9,7 +9,7 @@
 
 package xiom_stun {
   name: "xiom.stun";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "RFC 5389 STUN message codec: header, attributes and address XOR";
   categories: ["network"];
   keywords: ["stun", "nat", "wire", "network"];
