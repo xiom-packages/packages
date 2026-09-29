@@ -9,7 +9,7 @@
 
 package xiom_timeout {
   name: "xiom.timeout";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Deterministic deadline and timeout arithmetic with explicit clocks";
   categories: ["core"];
   keywords: ["timeout", "deadline", "budget", "time"];

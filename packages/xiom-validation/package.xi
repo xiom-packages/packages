@@ -9,7 +9,7 @@
 
 package xiom_validation {
   name: "xiom.validation";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Format validators: email, IPv4/IPv6, hex, UUID, slug, dates, ports";
   categories: ["text", "safety"];
   keywords: ["validation", "email", "ipv6", "uuid", "slug"];

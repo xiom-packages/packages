@@ -10,7 +10,7 @@
 
 package xiom_tokenizer {
   name: "xiom.tokenizer";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Text tokenization: words, sentences, lines, and n-grams";
   categories: ["text"];
   keywords: ["tokenizer", "nlp", "text", "ngram"];

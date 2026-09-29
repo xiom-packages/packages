@@ -8,7 +8,7 @@
 
 package xiom_timer {
   name: "xiom.timer";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure deterministic hierarchical timer wheel over integer ticks";
   categories: ["core"];
   keywords: ["timer", "wheel", "scheduler", "ticks", "deterministic"];

@@ -9,7 +9,7 @@
 
 package xiom_term {
   name: "xiom.term";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "ANSI/VT escape handling: detect, strip, count, and visible-aware truncation";
   categories: ["text","tooling"];
   keywords: ["ansi","escape","terminal","vt100"];

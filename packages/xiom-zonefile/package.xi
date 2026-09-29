@@ -9,7 +9,7 @@
 
 package xiom_zonefile {
   name: "xiom.zonefile";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "DNS zone-file (master file) codec subset: $ORIGIN/$TTL, relative names, flat records and a canonical emitter";
   categories: ["network"];
   keywords: ["dns", "zone", "master-file", "parser"];

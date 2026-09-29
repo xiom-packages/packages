@@ -12,7 +12,7 @@
 
 package xiom_vcf {
   name: "xiom.vcf";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "RFC 6350-subset vCard text codec: content lines, folding, escaping, cards and streams";
   categories: ["data"];
   keywords: ["vcf", "vcard", "contacts", "format"];

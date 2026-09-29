@@ -8,7 +8,7 @@
 
 package xiom_windows {
   name: "xiom.windows";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM Windows Registry hive (REGF) structure parser, read-only";
   categories: ["systems"];
   keywords: ["windows", "registry", "regf", "hive", "binary", "format"];

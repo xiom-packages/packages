@@ -9,7 +9,7 @@
 
 package xiom_tor {
   name: "xiom.tor";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM Tor link-layer cell structure codec: fixed/variable cell framing, link and relay command tables, VERSIONS/NETINFO handshake bodies and typed RELAY payload decode (BEGIN, CONNECTED, END, SENDME, RESOLVE, RESOLVED) with byte-offset errors";
   categories: ["protocol"];
   keywords: ["tor", "onion", "anonymity", "cell", "protocol"];

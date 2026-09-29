@@ -10,7 +10,7 @@
 
 package xiom_vdf {
   name: "xiom.vdf";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Valve KeyValues (VDF) text parsing, lookup and canonical emitting";
   categories: ["data"];
   keywords: ["vdf", "keyvalues", "valve", "format"];

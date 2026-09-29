@@ -8,7 +8,7 @@
 
 package xiom_tracing {
   name: "xiom.tracing";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "In-memory span trees: explicit-clock spans, durations, children, and self time";
   categories: ["tooling","core"];
   keywords: ["tracing","spans","timing","observability"];

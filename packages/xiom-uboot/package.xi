@@ -9,7 +9,7 @@
 
 package xiom_uboot {
   name: "xiom.uboot";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "U-Boot legacy image header codec: parse, inspect and build the 64-byte ih_ header";
   categories: ["systems"];
   keywords: ["uboot", "bootloader", "firmware", "format"];

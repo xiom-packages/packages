@@ -10,7 +10,7 @@
 
 package xiom_upnp {
   name: "xiom.upnp";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "SSDP/UPnP discovery message codec: M-SEARCH, NOTIFY and search responses";
   categories: ["network"];
   keywords: ["upnp", "ssdp", "discovery", "wire", "network"];

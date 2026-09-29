@@ -8,7 +8,7 @@
 
 package xiom_wireless {
   name: "xiom.wireless";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "IEEE 802.11 MAC frame structure parser: frame control, addressing matrix, sequence/QoS control, management bodies, information element walk";
   categories: ["network"];
   keywords: ["wifi", "802.11", "mac", "frame", "information-element"];

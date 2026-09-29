@@ -8,7 +8,7 @@
 
 package xiom_timeseries {
   name: "xiom.timeseries";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Moving averages, deltas, and range statistics over integer series";
   categories: ["data"];
   keywords: ["timeseries", "moving-average", "statistics", "data"];

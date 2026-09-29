@@ -9,7 +9,7 @@
 
 package xiom_tftp {
   name: "xiom.tftp";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM TFTP packet codec (RFC 1350) with RFC 2347 option TLVs: RRQ, WRQ, DATA, ACK, ERROR, OACK";
   categories: ["network"];
   keywords: ["tftp", "protocol", "wire", "network"];

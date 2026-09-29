@@ -9,7 +9,7 @@
 
 package xiom_usb {
   name: "xiom.usb";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "USB descriptor-tree parsing, validation and canonical emission";
   categories: ["systems"];
   keywords: ["usb", "descriptors", "firmware", "format"];

@@ -10,7 +10,7 @@
 
 package xiom_uri {
   name: "xiom.uri";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "RFC 3986 URI parsing, formatting, and component helpers";
   categories: ["networking", "text"];
   keywords: ["uri", "url", "parse", "percent-encoding"];

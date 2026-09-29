@@ -4,7 +4,7 @@
 
 package xiom_tga {
   name: "xiom.tga";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Truevision TGA header and footer codec (documented subset)";
   categories: ["graphics"];
   keywords: ["tga", "targa", "image", "format"];

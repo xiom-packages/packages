@@ -9,7 +9,7 @@
 
 package xiom_zigbee {
   name: "xiom.zigbee";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "ZigBee link-layer structure codec: IEEE 802.15.4 MAC, ZigBee NWK and APS header parsing";
   categories: ["protocol"];
   keywords: ["zigbee", "802.15.4", "mac", "nwk", "aps", "wireless"];

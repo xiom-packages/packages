@@ -11,7 +11,7 @@
 
 package xiom_typography {
   name: "xiom.typography";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Typographic prettification: smart quotes, dashes, ellipsis, spacing";
   categories: ["text"];
   keywords: ["typography", "smart-quotes", "dashes", "text"];

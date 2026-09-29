@@ -10,7 +10,7 @@
 
 package xiom_xml {
   name: "xiom.xml";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "XML subset parser with a flat node model, queries, and escaping helpers";
   categories: ["data"];
   keywords: ["xml", "parser", "markup", "text"];

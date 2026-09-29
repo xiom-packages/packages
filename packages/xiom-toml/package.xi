@@ -10,7 +10,7 @@
 
 package xiom_toml {
   name: "xiom.toml";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "TOML v1.0 subset parser with dotted-path lookups";
   categories: ["data"];
   keywords: ["toml", "parser", "config", "text"];

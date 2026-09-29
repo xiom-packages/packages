@@ -9,7 +9,7 @@
 
 package xiom_useragent {
   name: "xiom.useragent";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "User-Agent heuristics: browser, version, OS, bot and mobile detection";
   categories: ["networking", "text"];
   keywords: ["user-agent", "browser", "detection", "http"];
