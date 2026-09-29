@@ -69,13 +69,18 @@ stale.
 - `docs/PACKAGE_STATUS.md` (generated) -- the human-facing readiness list.
 - `%TEMP%\kilo\sweep\` -- raw sweep logs (session-local, not committed).
 
-## Current state (2026-09-28)
+## Current state (2026-09-29)
 
-- Pin `v0.62.0`; last full sweep 329/397 green (60 declaration-only
-  expected; 8 broken packages fixed and re-recorded at `a57f40b`).
-- Wave-41 integration in flight (10 new packages); the next wrap is the
-  eco-v0.1.13-class batch (allowlist 379 -> 392; scopes already live on
-  both entries per ops, 2026-09-28 22:51Z).
-- Open follow-ups: `byte-at-128` (compiler queue), OIDC per-run token
-  re-mint (`.github` scope), `tftp`/`tap` same-version republish decisions
-  (owner).
+- Pin `v0.62.1` (bumped 2026-09-29 from v0.62.0; compiler release
+  `f965bd1c`, stdlib stays `stdlib-v0.62.0`). Last full sweep **347/407
+  green** (60 declaration-only expected, 0 regressions; 275 fleet records
+  re-pointed to `fleet-sweep:v0.62.1`).
+- Wave 41 complete and published (`eco-v0.1.13`, 13/13; registry 343 =
+  242 stable / 63 incubating / 38 empty; allowlist 392 confirmed by ops
+  with zero diff). Wave 42 candidates namespace-checked (`feature`,
+  `clustering`, `loss`, `ensemble`, `streaming`, `linter`, `lexer-fw`,
+  `barrier`, `forkjoin`, `executor`).
+- Open follow-ups: `byte-at-128` direct comparison still open (the
+  item-10 claim covers the cast path only; battery README updated), OIDC
+  per-run token re-mint (`.github` scope), `tftp`/`tap` same-version
+  republish decisions (owner).

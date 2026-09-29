@@ -1,8 +1,9 @@
 # Compiler findings from the packages lane
 
 Findings collected while building conformance-tested packages with the
-pinned toolchain (v0.61.3 for findings through 2026-09-28; pin is v0.62.0
-since, and rows carrying a v0.62.0 note were re-checked on that build).
+pinned toolchain (v0.61.3 for findings through 2026-09-28; pins v0.62.0
+(09-28) and v0.62.1 (09-29) since, and rows carrying a v0.62.x note were
+re-checked on that build).
 The packages lane cannot fix these; the
 compiler session triages. Format: `| Date | Finding | Evidence | Workaround in packages | Impact |`
 
@@ -119,3 +120,16 @@ strict clauses on):
   on both 0.62.0 and 0.62.1) and mirrored `merkle`'s private pure-XIOM
   SHA-256. No new compiler miscompiles surfaced in wave 41; the trap list
   is unchanged on v0.62.1.
+- 2026-09-29: **pin bump v0.62.0 -> v0.62.1** (compiler release
+  `f965bd1c`: numeric parsing + foreign-call safety + tooling fixes;
+  stdlib stays `stdlib-v0.62.0`). Batteries re-run on the installed 0.62.1
+  build: arity `error[T001]` both directions, R53 `&mut` write-through
+  `bad=0`, loop-carry CSE `bad=0`, sign-bit probe exit 0 -- all hold;
+  **byte_at direct comparison still `bad=3`** (the compiler's item-10
+  "VERIFIED FIXED" covers the explicit `as Int` zext path only; the
+  direct `byte_at(x) == UInt8 >= 128` shape stays miscompiled -- battery
+  README updated, keep the widen+mask workaround). **Fleet sweep:
+  347/407 pass; 60 failures are all declaration-only (0 regressions)**;
+  275 fleet records re-pointed to `fleet-sweep:v0.62.1`, worker
+  provenance preserved, validate 407/0, guard 392 allowlisted / 0
+  failures.

@@ -41,3 +41,11 @@ bad=3
 | `(byte_at(s,0) as Int) & 255 != 195` | widen path | correct | must stay correct |
 
 Exit code: `bad` (0 when fixed, 3 today).
+
+## v0.62.1 re-run (2026-09-29, installed 0.62.1)
+
+Still **reproduced**: `bad=3`, exit 3 -- the direct-comparison shape is
+unchanged. The compiler-side `COMPILER_BUGS.md` item 10 ("VERIFIED FIXED,
+UInt8 as Int zexts") covers the explicit `as Int` cast path (this probe's
+path D, which works); the direct `byte_at(...) != 195u8` comparison stays
+miscompiled. Keep the widen+mask workaround (`(x as Int) & 0xFF`).

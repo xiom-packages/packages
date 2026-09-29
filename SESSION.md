@@ -74,12 +74,16 @@ the 22:26Z handoff). Check `git log -1 --format=%h %s` before starting.
   records; `stable` only by explicit promotion; strict clauses ON;
   toolchain resolver source `repo-release` v0.62.0 (installed copy still
   0.61.3, bypassed; backup `%LOCALAPPDATA%\xiom\bin-0.61.3-backup`).
-- **Toolchain drift observed (~23:05Z):** the resolver now picks an
-  installed **v0.62.1** at `%LOCALAPPDATA%\xiom.new\bin` (`xiom.ps1
-  -Info` shows `0.62.1 (installed)`); the pin stays `v0.62.0` and records
-  validate against it; wave-41 evidence ran on 0.62.1 (>= pin, accepted).
-  Next maintenance event per `docs/MAINTENANCE.md`: confirm the compiler
-  release, then pin bump + targeted re-sweep.
+- **Pin bumped to v0.62.1 (2026-09-29 ~00:16Z):** compiler release
+  `f965bd1c` confirmed (stdlib stays `stdlib-v0.62.0`). Batteries on the
+  installed 0.62.1: arity T001 both directions, R53 `bad=0`, loop-CSE
+  `bad=0`, sign-bit exit 0 -- all hold; **byte-at direct comparison still
+  `bad=3`** (the compiler's item-10 "VERIFIED FIXED" covers only the
+  explicit `as Int` cast path; keep the widen+mask workaround). **v3
+  fleet sweep: 347/407 pass, 60 declaration-only, 0 regressions**; 407
+  records refreshed (275 fleet-repointed to `fleet-sweep:v0.62.1` @
+  `aec8efe`, worker provenance preserved, 132 compiler-only). validate
+  407/0, guard 392/340/0.
 - **Mechanics gotchas:** gate `port.ps1` on its **exit code** (the PASS
   line is Write-Host, invisible to in-process capture); version bumps via
   the Edit tool per file; `fn`/`use`/`as` are reserved names; v0.62.0

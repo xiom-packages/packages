@@ -23,6 +23,10 @@ explicit split2: 5,5
 bad=0
 ```
 
+## v0.62.1 re-run (2026-09-29, installed 0.62.1)
+
+Still fixed: every variant correct (`bad=0`, exit 0).
+
 Plain-local calls to `&mut` parameters now write through (the former
 silent-copy behavior is gone); explicit `&mut` call sites keep working.
 Exit code 0. The v0.61.3 results below are kept as the historical record.
