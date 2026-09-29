@@ -10,7 +10,7 @@
 
 package xiom_audit {
   name: "xiom.audit";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Hash-chained append-only audit log with verification and export";
   categories: ["data","safety"];
   keywords: ["audit","hash-chain","tamper-evident","log"];

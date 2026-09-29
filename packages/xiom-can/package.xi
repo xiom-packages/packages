@@ -9,7 +9,7 @@
 
 package xiom_can {
   name: "xiom.can";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Classic CAN 2.0A/2.0B frame codec: identifiers, DLC, RTR and 16-byte containers";
   categories: ["protocol"];
   keywords: ["can", "bus", "automotive", "frame"];

@@ -9,7 +9,7 @@
 
 package xiom_bibtex {
   name: "xiom.bibtex";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "BibTeX bibliography parser and canonical emitter";
   categories: ["science"];
   keywords: ["bibtex", "bibliography", "academic", "format"];

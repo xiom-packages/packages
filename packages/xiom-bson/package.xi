@@ -9,7 +9,7 @@
 
 package xiom_bson {
   name: "xiom.bson";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "BSON document encoding and decoding (subset without doubles)";
   categories: ["data"];
   keywords: ["bson", "serialization", "binary", "codec"];

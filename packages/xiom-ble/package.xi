@@ -8,7 +8,7 @@
 
 package xiom_ble {
   name: "xiom.ble";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Bluetooth Low Energy advertising-data codec with AD structure validation";
   categories: ["network"];
   keywords: ["ble", "bluetooth", "advertising", "wireless"];

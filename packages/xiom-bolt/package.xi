@@ -9,7 +9,7 @@
 
 package xiom_bolt {
   name: "xiom.bolt";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM BoltDB (bbolt) page-file structure parser: meta, branch, leaf, freelist and tree walk";
   categories: ["systems", "data"];
   keywords: ["bolt", "bbolt", "database", "page", "b+tree", "parser"];

@@ -10,7 +10,7 @@
 
 package xiom_bonjour {
   name: "xiom.bonjour";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Bonjour (mDNS/DNS-SD) message codec: DNS framing, name compression, PTR/SRV/TXT/A/AAAA records and DNS-SD builders";
   categories: ["network"];
   keywords: ["bonjour", "mdns", "dns-sd", "zeroconf", "multicast-dns"];

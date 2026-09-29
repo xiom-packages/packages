@@ -9,7 +9,7 @@
 
 package xiom_ass {
   name: "xiom.ass";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "ASS/SSA subtitle parsing, canonical formatting, and accessors";
   categories: ["media"];
   keywords: ["ass", "ssa", "subtitles", "format"];

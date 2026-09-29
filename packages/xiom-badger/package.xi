@@ -10,7 +10,7 @@
 
 package xiom_badger {
   name: "xiom.badger";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM BadgerDB v1.6.2 file-format structure parser: value-log entries, key versions, SST blocks/index/bloom and manifest records (parse-only)";
   categories: ["data"];
   keywords: ["badger", "vlog", "sstable", "manifest", "crc32c", "bloom", "parser"];

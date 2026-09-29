@@ -9,7 +9,7 @@
 
 package xiom_avi {
   name: "xiom.avi";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "RIFF/AVI structure: chunk walking and the main AVI header (avih)";
   categories: ["data","media"];
   keywords: ["avi","riff","video","container"];

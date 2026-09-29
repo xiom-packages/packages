@@ -11,7 +11,7 @@
 
 package xiom_astronomy {
   name: "xiom.astronomy";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Julian dates, days since J2000, moon phase, and zodiac helpers (integer math)";
   categories: ["science"];
   keywords: ["astronomy", "julian-date", "moon-phase", "zodiac"];

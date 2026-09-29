@@ -12,7 +12,7 @@
 
 package xiom_cab {
   name: "xiom.cab";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Microsoft Cabinet header and directory codec: parse and build CAB index structures";
   categories: ["systems"];
   keywords: ["cab", "cabinet", "archive", "format"];

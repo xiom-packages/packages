@@ -11,7 +11,7 @@
 
 package xiom_acpi {
   name: "xiom.acpi";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "ACPI table-layer codec: RSDP, SDT headers and RSDT/XSDT table chains";
   categories: ["systems"];
   keywords: ["acpi", "firmware", "tables", "format"];

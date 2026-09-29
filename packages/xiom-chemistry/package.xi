@@ -10,7 +10,7 @@
 
 package xiom_chemistry {
   name: "xiom.chemistry";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Chemical formula parsing with molar masses and mass fractions (integer mg/mol)";
   categories: ["science"];
   keywords: ["chemistry", "molar-mass", "formula", "stoichiometry"];

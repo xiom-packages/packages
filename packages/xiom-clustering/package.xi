@@ -10,7 +10,7 @@
 
 package xiom_clustering {
   name: "xiom.clustering";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Fixed-point clustering primitives (scaled integers): k-means and DBSCAN";
   categories: ["ai-ml", "data"];
   keywords: ["kmeans", "dbscan", "clustering", "fixed-point", "unsupervised"];

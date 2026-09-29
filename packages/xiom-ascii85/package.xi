@@ -11,7 +11,7 @@
 
 package xiom_ascii85 {
   name: "xiom.ascii85";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Adobe ASCII85 (Base85) encoding and decoding";
   categories: ["data"];
   keywords: ["ascii85","base85","adobe","encoding"];

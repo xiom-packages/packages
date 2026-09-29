@@ -1,6 +1,6 @@
 package xiom_bmp {
   name: "xiom.bmp";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Uncompressed BMP parsing and building (24-bit and 32-bit)";
   categories: ["data", "graphics"];
   keywords: ["bmp", "image", "pixels", "format"];

@@ -10,7 +10,7 @@
 
 package xiom_collation {
   name: "xiom.collation";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Case-insensitive and natural (numeric-aware) string collation";
   categories: ["text"];
   keywords: ["collation", "sort", "natural", "text"];

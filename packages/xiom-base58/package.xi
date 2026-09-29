@@ -10,7 +10,7 @@
 
 package xiom_base58 {
   name: "xiom.base58";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Base58 (Bitcoin alphabet) encoding and decoding with leading-zero handling";
   categories: ["data"];
   keywords: ["base58","bitcoin","encoding","codec"];

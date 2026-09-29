@@ -9,7 +9,7 @@
 
 package xiom_aiff {
   name: "xiom.aiff";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "AIFF/AIFF-C container header codec: FORM/COMM/SSND chunks, 80-bit sample rate, chunk index";
   categories: ["media"];
   keywords: ["aiff", "audio", "container", "format"];

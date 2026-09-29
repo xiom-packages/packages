@@ -4,7 +4,7 @@
 
 package xiom_base32 {
   name: "xiom.base32";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "RFC 4648 Base32 (standard alphabet) encoding and decoding";
   categories: ["data"];
   keywords: ["base32", "encoding", "rfc4648", "format"];

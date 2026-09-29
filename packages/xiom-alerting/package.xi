@@ -9,7 +9,7 @@
 
 package xiom_alerting {
   name: "xiom.alerting";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Threshold alert rules with breach streaks, firing state, and transition counts";
   categories: ["tooling","core"];
   keywords: ["alerting","threshold","monitoring","state"];

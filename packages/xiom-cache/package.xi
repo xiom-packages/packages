@@ -8,7 +8,7 @@
 
 package xiom_cache {
   name: "xiom.cache";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Deterministic in-memory cache eviction structures over Int keys and values: LRU, LFU, CLOCK and TTL";
   categories: ["data"];
   keywords: ["cache", "lru", "lfu", "clock", "ttl", "eviction", "deterministic"];

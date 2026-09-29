@@ -11,7 +11,7 @@
 
 package xiom_barrier {
   name: "xiom.barrier";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Reusable multiparty barrier as a deterministic state machine (generations, sense reversal, trip metadata)";
   categories: ["concurrency", "core"];
   keywords: ["barrier", "concurrency", "rendezvous", "generation", "sense-reversal"];

@@ -8,7 +8,7 @@
 
 package xiom_backoff {
   name: "xiom.backoff";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Deterministic constant, linear and exponential backoff policies with jitter and a retry state machine";
   categories: ["concurrency", "tooling"];
   keywords: ["backoff", "retry", "exponential", "jitter", "resilience"];

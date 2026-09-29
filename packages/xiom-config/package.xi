@@ -12,7 +12,7 @@
 
 package xiom_config {
   name: "xiom.config";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "In-memory configuration model: sectioned parsing, overlay merge, typed getters, schema validation and canonical rendering";
   categories: ["data", "tooling"];
   keywords: ["config", "ini", "settings", "merge", "schema"];

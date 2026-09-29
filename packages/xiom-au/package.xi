@@ -9,7 +9,7 @@
 
 package xiom_au {
   name: "xiom.au";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Sun/NeXT AU (.snd) audio header codec: big-endian header, info field, audio span";
   categories: ["media"];
   keywords: ["au", "snd", "audio", "format"];

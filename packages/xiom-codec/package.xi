@@ -10,7 +10,7 @@
 
 package xiom_codec {
   name: "xiom.codec";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Base64, base64url, base32, and hex encoding and decoding";
   categories: ["data"];
   keywords: ["base64","base32","hex","encoding"];

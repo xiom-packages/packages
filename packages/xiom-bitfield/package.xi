@@ -8,7 +8,7 @@
 
 package xiom_bitfield {
   name: "xiom.bitfield";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Bit manipulation helpers for 64-bit Ints: extract/set fields, masks, popcount, byte swap, rotate";
   categories: ["data","tooling"];
   keywords: ["bits","bitfield","mask","popcount"];
