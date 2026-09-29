@@ -10,7 +10,7 @@
 
 package xiom_dimred {
   name: "xiom.dimred";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Fixed-point PCA primitives (scaled integers): covariance, power iteration, deflation, projection";
   categories: ["ai-ml", "data"];
   keywords: ["pca", "dimensionality-reduction", "eigen", "fixed-point", "covariance"];

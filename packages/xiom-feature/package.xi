@@ -10,7 +10,7 @@
 
 package xiom_feature {
   name: "xiom.feature";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Feature engineering on scaled integers: polynomial expansion, feature hashing, extraction, scaling, selection";
   categories: ["ai-ml", "data"];
   keywords: ["feature-engineering", "polynomial", "feature-hashing", "scaling", "selection"];

@@ -9,7 +9,7 @@
 
 package xiom_dtb {
   name: "xiom.dtb";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Flattened Device Tree (DTB) parsing, validation and canonical v17 emission";
   categories: ["systems"];
   keywords: ["dtb", "devicetree", "firmware", "format"];

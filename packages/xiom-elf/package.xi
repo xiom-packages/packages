@@ -8,7 +8,7 @@
 
 package xiom_elf {
   name: "xiom.elf";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM ELF header and program/section table codec (32/64-bit, LE/BE)";
   categories: ["systems"];
   keywords: ["elf", "binary", "executable", "format"];

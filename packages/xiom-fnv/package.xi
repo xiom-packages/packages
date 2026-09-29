@@ -8,7 +8,7 @@
 
 package xiom_fnv {
   name: "xiom.fnv";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "FNV-1 and FNV-1a non-cryptographic hash functions in 32-bit and 64-bit widths";
   categories: ["data"];
   keywords: ["fnv", "hash", "checksum", "non-cryptographic"];

@@ -11,7 +11,7 @@
 
 package xiom_ensemble {
   name: "xiom.ensemble";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Fixed-point ensemble combination (scaled integers): hard/soft voting, bootstrap resampling, bagging, disagreement";
   categories: ["ai-ml", "data"];
   keywords: ["ensemble", "voting", "bagging", "bootstrap", "fixed-point", "disagreement"];

@@ -4,7 +4,7 @@
 
 package xiom_flags {
   name: "xiom.flags";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Command-line flag and argument parsing with subcommand-friendly positionals and environment fallback";
   categories: ["tooling"];
   keywords: ["cli", "arguments", "flags", "parser"];

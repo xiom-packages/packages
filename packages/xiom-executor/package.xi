@@ -11,7 +11,7 @@
 
 package xiom_executor {
   name: "xiom.executor";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Task execution engine as a deterministic state machine (ready queue, futures, continuations)";
   categories: ["concurrency", "systems"];
   keywords: ["executor", "scheduler", "futures", "continuations", "ready-queue"];

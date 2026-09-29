@@ -10,7 +10,7 @@
 
 package xiom_cue {
   name: "xiom.cue";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "CUE sheet parsing and canonical emitting";
   categories: ["media"];
   keywords: ["cue", "cd", "tracks", "format"];

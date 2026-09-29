@@ -11,7 +11,7 @@
 
 package xiom_fix {
   name: "xiom.fix";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "FIX tag=value message codec: SOH framing, BodyLength and CheckSum validation, canonical emit";
   categories: ["finance"];
   keywords: ["fix", "finance", "protocol", "trading"];

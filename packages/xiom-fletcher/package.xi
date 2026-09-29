@@ -9,7 +9,7 @@
 
 package xiom_fletcher {
   name: "xiom.fletcher";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Fletcher-16 and Fletcher-32 checksums with one-shot, incremental and hex-display APIs";
   categories: ["data"];
   keywords: ["fletcher", "checksum", "hash", "integrity"];

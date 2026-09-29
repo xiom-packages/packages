@@ -9,7 +9,7 @@
 
 package xiom_dynamo {
   name: "xiom.dynamo";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM Amazon DynamoDB JSON (wire) API shape codec: AttributeValue and item codecs, request and response shapes, bounded raw-byte JSON scanner; no network and no signing";
   categories: ["database", "cloud-infra"];
   keywords: ["dynamodb", "aws", "database", "nosql", "json", "codec"];

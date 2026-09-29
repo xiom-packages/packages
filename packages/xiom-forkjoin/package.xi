@@ -12,7 +12,7 @@
 
 package xiom_forkjoin {
   name: "xiom.forkjoin";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Fork/join task modeling as a deterministic state machine: threshold splitting, ordered result combining, work-stealing deque";
   categories: ["concurrency", "systems"];
   keywords: ["fork-join", "work-stealing", "deque", "divide-and-conquer", "parallel"];

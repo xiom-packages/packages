@@ -9,7 +9,7 @@
 
 package xiom_cron {
   name: "xiom.cron";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Classic 5-field cron expression parser, validator and canonical emitter";
   categories: ["tooling"];
   keywords: ["cron", "schedule", "parser", "expression"];

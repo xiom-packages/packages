@@ -9,7 +9,7 @@
 
 package xiom_gemtext {
   name: "xiom.gemtext";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Gemtext line codec: parser and canonical emitter";
   categories: ["text"];
   keywords: ["gemtext", "gemini", "markup", "parser"];

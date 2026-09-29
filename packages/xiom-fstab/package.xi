@@ -9,7 +9,7 @@
 
 package xiom_fstab {
   name: "xiom.fstab";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "fstab parser and canonical emitter for the documented six-field subset";
   categories: ["systems"];
   keywords: ["fstab", "mount", "linux", "parser"];

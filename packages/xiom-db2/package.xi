@@ -9,7 +9,7 @@
 
 package xiom_db2 {
   name: "xiom.db2";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "IBM Db2 DRDA/DSS wire structure codec (DSS frames, DDM codepoints and parameters, SQLCARD, SQLDTA; no network, no EBCDIC conversion)";
   categories: ["database"];
   keywords: ["db2", "drda", "dss", "ddm", "wire", "codec", "protocol"];

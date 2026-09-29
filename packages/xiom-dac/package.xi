@@ -9,7 +9,7 @@
 
 package xiom_dac {
   name: "xiom.dac";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "DAC command and register codecs: MCP4725/MCP4728 I2C frames, MCP4921/MCP4922 SPI frames and integer code-to-microvolt scaling";
   categories: ["science", "engineering"];
   keywords: ["dac", "analog", "mcp4725", "mcp4728", "mcp4921", "mcp4922", "i2c", "spi", "embedded"];

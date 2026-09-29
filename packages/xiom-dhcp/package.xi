@@ -9,7 +9,7 @@
 
 package xiom_dhcp {
   name: "xiom.dhcp";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "DHCPv4 packet codec: BOOTP fixed header, magic cookie and options TLV";
   categories: ["network"];
   keywords: ["dhcp", "bootp", "wire", "network"];

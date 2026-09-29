@@ -9,7 +9,7 @@
 
 package xiom_ftp {
   name: "xiom.ftp";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM FTP control-protocol codec (RFC 959): command parsing/emission and reply parsing/emission";
   categories: ["network"];
   keywords: ["ftp", "protocol", "parser", "network"];

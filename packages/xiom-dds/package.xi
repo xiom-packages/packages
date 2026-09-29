@@ -4,7 +4,7 @@
 
 package xiom_dds {
   name: "xiom.dds";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "DirectDraw Surface (DDS) header codec (documented subset)";
   categories: ["graphics"];
   keywords: ["dds", "texture", "directx", "format"];
