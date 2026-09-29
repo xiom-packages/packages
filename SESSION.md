@@ -3,12 +3,13 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-09-28 23:40Z, by the packages session (continuation of
-the 22:26Z handoff). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-09-29 00:55Z, by the packages session (continued
+through the v0.62.1 pin bump and waves 41-42). Check
+`git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-09-28 23:40Z (read this block first; older bullets below are history):**
+**STATE AT 2026-09-29 00:55Z (read this block first; older bullets below are history):**
 - **Compiler field refresh DONE (`2183ac4`, pushed):** all 338 records
   still at `v0.61.3` now say `v0.62.0`. The 275 green records were
   re-pointed at the fleet sweep (`run_by: "fleet-sweep:v0.62.0"`,
@@ -95,6 +96,17 @@ the 22:26Z handoff). Check `git log -1 --format=%h %s` before starting.
   `stdlib gaps` reports. Integrate as they report; wrap when green
   (allowlist 392 -> 402 with the +10 scope ask at wrap, ops set
   re-verification due).
+- **Wave 42 COMPLETE + WRAPPED (2026-09-29 ~00:55Z):** all 10 integrated
+  and recorded `incubating` (feats/records on top of `e9b9fbb`); wrap
+  commit this turn (allowlist 392 -> **402**; index/report/namespaces
+  regenerated; validate **420/0**, guard **402 allowlisted / 350 ready /
+  0 failures**). Tests 20-28 each, double-run green; trap-14 clean.
+  **Rescue note:** a parallel packages lane (`ses_f26cdae1…`) ported
+  `sectest`/`mock`/`pwm` (22/22, 20/20, 20/20) and stalled unrecorded at
+  ~00:42Z; this session re-verified (port x2 each) and integrated them so
+  the gates stay green -- their records use
+  `agentmgr:ses_f26cdae1…`. **Scope ask: 392 -> 402 (+10) to ops; tag
+  `eco-v0.1.14` only after ops confirms (expect registry ~353 = 343+10).**
 - **Mechanics gotchas:** gate `port.ps1` on its **exit code** (the PASS
   line is Write-Host, invisible to in-process capture); version bumps via
   the Edit tool per file; `fn`/`use`/`as` are reserved names; v0.62.0
@@ -119,27 +131,27 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Wave 41 is COMPLETE (10/10 integrated, wrapped in `f65d301`, tagged
-   `eco-v0.1.13`, gate approved, publish run `36498363143`). Verify the
-   run's "Published xiom." lines (13 expected: `inline-asm`, `pool`,
-   `backoff` stable + the ten incubating) and the registry count (~343).
-2. The allowlist is at **392** and the scopes are live at 392 on both
-   entries (ops 22:51Z) -- relay the 392 bump to ops for the exact set
-   re-verification; no rate window is open (limiter 20).
-3. Maintenance event queued: an installed **v0.62.1** now wins the
-   resolver over the pinned v0.62.0. Per `docs/MAINTENANCE.md`: confirm
-   the compiler release, then bump the pin and run the targeted fleet
-   re-sweep (compiler field + provenance refresh, fix breakage,
-   validate + guard green, wrap + tag if the batch grows).
-4. Next wave (42): ~10 README-only placeholders, `namespace-check.ps1
-   -Module` FIRST, then 6 task porters + 4 AM sessions with the
-   canonical 18-trap + XIOM MCP briefs and a `stdlib gaps` section;
-   integrate as they report (the 2026-09-28 wave-41 recipe).
-5. Growth + maintenance: append worker `stdlib gaps` / compiler evidence
+1. Wave 42 is COMPLETE and wrapped (10/10 integrated; allowlist at
+   **402**; validate 420/0; guard 402/0; see the STATE block). **Scope
+   ask 392 -> 402 is with ops** -- when ops confirms, cut `eco-v0.1.14`
+   (tag on the wrap commit), approve the gate as soon as it waits, verify
+   the ten "Published xiom." lines, and report the registry count
+   (~353 = 343+10).
+2. The v0.62.1 pin bump is DONE (`097d1c9`; sweep 347/407, batteries
+   re-run; `byte-at` direct comparison still open -- keep the widen+mask
+   workaround in briefs). No re-bump unless a new compiler release lands;
+   `docs/MAINTENANCE.md` covers the next one.
+3. Wave 43: ~10 README-only placeholders, `namespace-check.ps1 -Module`
+   FIRST, then 6 task porters + 4 AM sessions with the canonical 18-trap
+   (v0.62.1 edition) + MCP briefs and a `stdlib gaps` section; integrate
+   as they report. If a parallel lane stalls green-but-unrecorded and
+   blocks the gates, rescue-integrate it (verify port x2 + trap-14, then
+   feat + record with the lane's session id -- the 2026-09-29 pattern).
+4. Growth + maintenance: append worker `stdlib gaps` / compiler evidence
    at every wave and regenerate `docs/PACKAGE-NAMESPACES.txt` at wrap;
    run the release-triggered loop in `docs/MAINTENANCE.md` on
    compiler/stdlib releases (targeted, no lockstep versions).
-6. Keep the follow-ups from the STATE block: registry publish-time
+5. Keep the follow-ups from the STATE block: registry publish-time
    warning, `byte-at-128` battery, `.github` OIDC re-mint, `tftp`/`tap`
    same-version republish decisions.
 ```

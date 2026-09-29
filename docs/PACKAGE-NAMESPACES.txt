@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-09-29T02:29:22+03:00
-# packages: 407  modules: 431
+# generated: 2026-09-29T03:52:04+03:00
+# packages: 420  modules: 444
 
 ## package names
 xiom.acpi
@@ -28,6 +28,7 @@ xiom.aviation
 xiom.avro
 xiom.backoff
 xiom.badger
+xiom.barrier
 xiom.base32
 xiom.base58
 xiom.bech32
@@ -52,6 +53,7 @@ xiom.cassandra
 xiom.cbor
 xiom.chemistry
 xiom.cidr
+xiom.clustering
 xiom.cobs
 xiom.codec
 xiom.collation
@@ -90,13 +92,16 @@ xiom.eigen
 xiom.electronics
 xiom.elf
 xiom.eml
+xiom.ensemble
 xiom.envsubst
 xiom.escape
 xiom.etcd
 xiom.ethereum
+xiom.executor
 xiom.expat
 xiom.ext
 xiom.farbfeld
+xiom.feature
 xiom.ffi
 xiom.ffmpeg
 xiom.finance
@@ -108,6 +113,7 @@ xiom.flags
 xiom.flash
 xiom.fletcher
 xiom.fnv
+xiom.forkjoin
 xiom.fstab
 xiom.ftp
 xiom.fuzz
@@ -171,14 +177,17 @@ xiom.lcov
 xiom.ldap
 xiom.ldif
 xiom.leveldb
+xiom.lexer-fw
 xiom.lexing
 xiom.libpq
 xiom.libsodium
 xiom.libtorch
 xiom.libuv
+xiom.linter
 xiom.locale
 xiom.lockfree
 xiom.logging
+xiom.loss
 xiom.lrc
 xiom.lru
 xiom.luhn
@@ -201,6 +210,7 @@ xiom.mime
 xiom.miniaudio
 xiom.miniseed
 xiom.mkv
+xiom.mock
 xiom.modbus
 xiom.mongo
 xiom.monitoring
@@ -281,6 +291,7 @@ xiom.proxy
 xiom.psf
 xiom.pulsar
 xiom.punycode
+xiom.pwm
 xiom.qoi
 xiom.quantum
 xiom.query
@@ -317,6 +328,7 @@ xiom.scipy
 xiom.sd
 xiom.sdl3
 xiom.secret
+xiom.sectest
 xiom.selection
 xiom.semaphore
 xiom.semver
@@ -343,6 +355,7 @@ xiom.ssh2
 xiom.stb
 xiom.stemming
 xiom.stl
+xiom.streaming
 xiom.stun
 xiom.subtitle
 xiom.summary
@@ -437,6 +450,7 @@ xiom.aviation
 xiom.avro
 xiom.backoff
 xiom.badger
+xiom.barrier
 xiom.base32
 xiom.base58
 xiom.bech32
@@ -459,6 +473,7 @@ xiom.cassandra
 xiom.cbor
 xiom.chemistry
 xiom.cidr
+xiom.clustering
 xiom.cobs
 xiom.codec
 xiom.collation
@@ -516,13 +531,16 @@ xiom.efi
 xiom.electronics
 xiom.elf
 xiom.eml
+xiom.ensemble
 xiom.envsubst
 xiom.escape
 xiom.etcd
 xiom.ethereum
+xiom.executor
 xiom.expat
 xiom.ext
 xiom.farbfeld
+xiom.feature
 xiom.finance
 xiom.fits
 xiom.fix
@@ -532,6 +550,7 @@ xiom.flags
 xiom.flash
 xiom.fletcher
 xiom.fnv
+xiom.forkjoin
 xiom.fstab
 xiom.ftp
 xiom.fuzz
@@ -603,10 +622,13 @@ xiom.lcov
 xiom.ldap
 xiom.ldif
 xiom.leveldb
+xiom.lexer
 xiom.lexing
+xiom.linter
 xiom.locale
 xiom.lockfree
 xiom.logging
+xiom.loss
 xiom.lrc
 xiom.lru
 xiom.luhn
@@ -627,6 +649,7 @@ xiom.midi
 xiom.mime
 xiom.miniseed
 xiom.mkv
+xiom.mock
 xiom.modbus
 xiom.mongo
 xiom.monitoring
@@ -704,6 +727,7 @@ xiom.proxy
 xiom.psf
 xiom.pulsar
 xiom.punycode
+xiom.pwm
 xiom.qoi
 xiom.quantum
 xiom.query
@@ -735,6 +759,7 @@ xiom.scheduler
 xiom.sd
 xiom.sdl3.safe
 xiom.secret
+xiom.sectest
 xiom.selection
 xiom.semaphore
 xiom.semver
@@ -767,6 +792,7 @@ xiom.srt
 xiom.ssh2
 xiom.stemming
 xiom.stl
+xiom.streaming
 xiom.stun
 xiom.subtitle
 xiom.summary

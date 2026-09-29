@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-29T02:29:14Z",
+    "updated":  "2026-09-29T03:51:59Z",
     "packages":  [
                      {
                          "version":  "0.1.0",
@@ -378,6 +378,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-badger/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "badger.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.barrier",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Reusable multiparty barrier as a deterministic state machine (generations, sense reversal, trip metadata)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-barrier/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "barrier.xi",
                                               "package.xi"
                                           ]
                      },
@@ -789,6 +806,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cidr/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "cidr.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.clustering",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Fixed-point clustering primitives (scaled integers): k-means and DBSCAN",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-clustering/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "clustering.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1464,6 +1498,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.ensemble",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Fixed-point ensemble combination (scaled integers): hard/soft voting, bootstrap resampling, bagging, disagreement",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ensemble/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ensemble.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.envsubst",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Shell-style ${VAR} expansion with caller-supplied variables and strict or lenient missing-value handling",
@@ -1531,6 +1582,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.executor",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Task execution engine as a deterministic state machine (ready queue, futures, continuations)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-executor/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "executor.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.expat",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -1578,6 +1646,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-farbfeld/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "farbfeld.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.feature",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Feature engineering on scaled integers: polynomial expansion, feature hashing, extraction, scaling, selection",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-feature/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "feature.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1764,6 +1849,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fnv/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "fnv.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.forkjoin",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Fork/join task modeling as a deterministic state machine: threshold splitting, ordered result combining, work-stealing deque",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-forkjoin/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "forkjoin.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2882,6 +2984,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.lexer-fw",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Lexical-analyzer framework: scan state with line/column tracking, byte matchers, keyword table, token streams",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lexer-fw/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "lexer.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.lexing",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Configurable tokenizer: identifiers, keywords, integers, strings, operators",
@@ -2967,6 +3086,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.linter",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Line-oriented lint engine: rule registry, diagnostic bag, built-in rules, config, text and CSV reports",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-linter/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "linter.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.locale",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "BCP-47 language tag parsing, canonicalization, RFC 4647 lookup and fallback chains",
@@ -3013,6 +3149,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-logging/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "logging.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.loss",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Fixed-point supervised loss functions (scaled integers): MSE, MAE, hinge, binary and categorical cross-entropy",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-loss/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "loss.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3395,6 +3548,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mkv/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "mkv.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.mock",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic expectation, call-recording and verification test doubles",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mock/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "mock.xi",
                                               "package.xi"
                                           ]
                      },
@@ -4770,6 +4940,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.pwm",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Integer PWM channel, duty-cycle, timing and servo mapping math",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pwm/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "pwm.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.qoi",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "QOI image chunk-stream codec: header, flat op records, validation, canonical re-emit",
@@ -5400,6 +5587,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.sectest",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "HTTP security-header verification with a deterministic finding report",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sectest/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "sectest.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.selection",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic selection operators for evolutionary loops: roulette, tournament, elite, rank weights",
@@ -5845,6 +6049,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stl/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "stl.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.streaming",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "RTP/RTCP/RTSP wire-format codecs: header parse/build, wrap-safe sequence and timestamp arithmetic, interarrival jitter, report blocks, text messages",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-streaming/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "streaming.xi",
                                               "package.xi"
                                           ]
                      },
@@ -7189,19 +7410,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-barrier",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-barrier/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-boosting",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7365,19 +7573,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cloudlog/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-clustering",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-clustering/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -7579,19 +7774,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-ensemble",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ensemble/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-environment",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7618,32 +7800,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-executor",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-executor/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-feature",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-feature/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-firebird",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7651,19 +7807,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-firebird/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-forkjoin",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-forkjoin/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -7891,32 +8034,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-lexer-fw",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lexer-fw/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-linter",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-linter/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-llvm",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7924,19 +8041,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-llvm/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-loss",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-loss/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8028,19 +8132,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ml/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-mock",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mock/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8203,19 +8294,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-pwm",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pwm/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-randomforest",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8262,19 +8340,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-saml/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-sectest",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sectest/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8340,19 +8405,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stm/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-streaming",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-streaming/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]

@@ -433,3 +433,13 @@ xiom.semaphore
 xiom.lockfree
 xiom.hashchain
 xiom.config
+xiom.feature
+xiom.loss
+xiom.ensemble
+xiom.streaming
+xiom.linter
+xiom.lexer-fw
+xiom.clustering
+xiom.barrier
+xiom.forkjoin
+xiom.executor
