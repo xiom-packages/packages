@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-09-29T21:52:45+03:00
-# packages: 420  modules: 444
+# generated: 2026-09-29T23:32:14+03:00
+# packages: 430  modules: 454
 
 ## package names
 xiom.acpi
@@ -19,6 +19,7 @@ xiom.arrow
 xiom.ascii85
 xiom.ass
 xiom.assimp
+xiom.ast
 xiom.astronomy
 xiom.au
 xiom.audit
@@ -49,8 +50,10 @@ xiom.bullet
 xiom.cab
 xiom.cache
 xiom.can
+xiom.cancel
 xiom.cassandra
 xiom.cbor
+xiom.charts
 xiom.chemistry
 xiom.cidr
 xiom.clustering
@@ -60,6 +63,7 @@ xiom.collation
 xiom.config
 xiom.control
 xiom.cookie
+xiom.countdown
 xiom.coverage
 xiom.cpio
 xiom.crc
@@ -72,6 +76,7 @@ xiom.db2
 xiom.dbase
 xiom.dds
 xiom.dhcp
+xiom.diagrams
 xiom.diff
 xiom.dimacs
 xiom.dimred
@@ -202,6 +207,7 @@ xiom.mbr
 xiom.memcached
 xiom.merkle
 xiom.meshopt
+xiom.messaging
 xiom.meteorology
 xiom.metrics
 xiom.micro
@@ -253,6 +259,7 @@ xiom.pagination
 xiom.pam
 xiom.pandas
 xiom.parquet
+xiom.parsing
 xiom.particle
 xiom.passwd
 xiom.password
@@ -274,6 +281,7 @@ xiom.physics
 xiom.pki
 xiom.plist
 xiom.pls
+xiom.plugin
 xiom.plural
 xiom.ply
 xiom.png
@@ -355,6 +363,7 @@ xiom.ssh2
 xiom.stb
 xiom.stemming
 xiom.stl
+xiom.stm
 xiom.streaming
 xiom.stun
 xiom.subtitle
@@ -416,6 +425,7 @@ xiom.windows
 xiom.wireless
 xiom.wkt
 xiom.woff
+xiom.worker
 xiom.xbm
 xiom.xml
 xiom.xpm
@@ -441,6 +451,7 @@ xiom.arrow
 xiom.ascii85
 xiom.ass
 xiom.assimp
+xiom.ast
 xiom.astronomy
 xiom.au
 xiom.audit
@@ -469,8 +480,10 @@ xiom.bson
 xiom.cab
 xiom.cache
 xiom.can
+xiom.cancel
 xiom.cassandra
 xiom.cbor
+xiom.charts
 xiom.chemistry
 xiom.cidr
 xiom.clustering
@@ -483,6 +496,7 @@ xiom.control.pid
 xiom.control.state_machine
 xiom.control.trajectory
 xiom.cookie
+xiom.countdown
 xiom.coverage
 xiom.cpio
 xiom.crc
@@ -494,6 +508,7 @@ xiom.db2
 xiom.dbase
 xiom.dds
 xiom.dhcp
+xiom.diagrams
 xiom.diff
 xiom.dimacs
 xiom.dimred
@@ -643,6 +658,7 @@ xiom.mbr
 xiom.memcached
 xiom.merkle
 xiom.meshopt.safe
+xiom.messaging
 xiom.meteorology
 xiom.metrics
 xiom.midi
@@ -691,6 +707,7 @@ xiom.packet
 xiom.pagination
 xiom.pam
 xiom.parquet
+xiom.parsing
 xiom.particle
 xiom.passwd
 xiom.password
@@ -711,6 +728,7 @@ xiom.physics
 xiom.pki
 xiom.plist
 xiom.pls
+xiom.plugin
 xiom.plural
 xiom.ply
 xiom.png
@@ -792,6 +810,7 @@ xiom.srt
 xiom.ssh2
 xiom.stemming
 xiom.stl
+xiom.stm
 xiom.streaming
 xiom.stun
 xiom.subtitle
@@ -862,6 +881,7 @@ xiom.windows
 xiom.wireless
 xiom.wkt
 xiom.woff
+xiom.worker
 xiom.xbm
 xiom.xml
 xiom.xpm

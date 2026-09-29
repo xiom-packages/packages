@@ -443,3 +443,13 @@ xiom.clustering
 xiom.barrier
 xiom.forkjoin
 xiom.executor
+xiom.cancel
+xiom.stm
+xiom.worker
+xiom.messaging
+xiom.plugin
+xiom.countdown
+xiom.diagrams
+xiom.charts
+xiom.parsing
+xiom.ast
