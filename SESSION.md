@@ -115,6 +115,16 @@ through the v0.62.1 pin bump and waves 41-42). Check
   attempt failed `403 scope_denied` on all 10 because the enumeration
   hadn't landed yet; scope-denied retries also burn the 6-min OIDC token
   (secondary) -- confirm enumeration, then rerun.
+- **README sync + registry-page caveat (2026-09-29):** all **420 repo
+  READMEs synced** to records + live registry (`da3289f`): status blocks
+  now state the true stage / conformance / published version; install
+  sections point at the registry; **0 stale "NOT published" remain in
+  published packages**. Caveat: **registry pages render the README
+  frozen inside each published version** -- a page only changes when a
+  new version is published. Decision pending (owner): **(A)** ask ops to
+  refresh stored metadata server-side (no bump), or **(B)** chunked
+  docs-refresh republishes (~325 published packages still carry stale
+  page text; patch bumps + 1-2 reruns per chunk due to the 6-min token).
 - **Mechanics gotchas:** gate `port.ps1` on its **exit code** (the PASS
   line is Write-Host, invisible to in-process capture); version bumps via
   the Edit tool per file; `fn`/`use`/`as` are reserved names; v0.62.0
