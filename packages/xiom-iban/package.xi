@@ -8,7 +8,7 @@
 
 package xiom_iban {
   name: "xiom.iban";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "IBAN parsing, validation, formatting and MOD-97 check-digit computation";
   categories: ["data"];
   keywords: ["iban", "finance", "validation", "banking"];

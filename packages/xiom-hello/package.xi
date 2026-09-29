@@ -9,7 +9,7 @@
 
 package xiom_hello {
   name: "xiom.hello";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Minimal XIOM package -- the canonical first-publish example";
   categories: ["tooling"];
   keywords: ["example", "template", "hello", "getting-started"];

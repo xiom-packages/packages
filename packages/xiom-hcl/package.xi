@@ -9,7 +9,7 @@
 
 package xiom_hcl {
   name: "xiom.hcl";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM structural HCL2 subset parser with a canonical emitter";
   categories: ["systems"];
   keywords: ["hcl", "terraform", "config", "parser"];

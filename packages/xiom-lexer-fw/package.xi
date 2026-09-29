@@ -13,7 +13,7 @@
 
 package xiom_lexer_fw {
   name: "xiom.lexer-fw";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Lexical-analyzer framework: scan state with line/column tracking, byte matchers, keyword table, token streams";
   categories: ["tooling", "text-nlp"];
   keywords: ["lexer", "lexing", "scanner", "tokens", "framework"];

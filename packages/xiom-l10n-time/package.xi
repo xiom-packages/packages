@@ -11,7 +11,7 @@
 
 package xiom_l10n_time {
   name: "xiom.l10n-time";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Locale-style time-of-day formatting, parsing, day periods and timezone offsets (caller-supplied labels)";
   categories: ["text", "data"];
   keywords: ["l10n", "time", "format", "timezone"];

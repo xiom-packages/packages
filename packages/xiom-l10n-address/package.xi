@@ -10,7 +10,7 @@
 
 package xiom_l10n_address {
   name: "xiom.l10n-address";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Country address templates and rendering (12-country illustrative dataset)";
   categories: ["text", "data"];
   keywords: ["l10n", "address", "postal", "locale"];

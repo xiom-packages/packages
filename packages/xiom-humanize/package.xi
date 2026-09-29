@@ -8,7 +8,7 @@
 
 package xiom_humanize {
   name: "xiom.humanize";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Human-readable bytes, durations, counts, ordinals, and lists";
   categories: ["text", "tooling"];
   keywords: ["humanize", "format", "bytes", "duration"];

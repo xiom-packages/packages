@@ -12,7 +12,7 @@
 
 package xiom_geology {
   name: "xiom.geology";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "LAS 2.0 well-log text parsing: sections, curved-headers, wrapped/unwrapped depth-indexed data, scaled fixed-point cells and null flags";
   categories: ["science", "data"];
   keywords: ["las", "well-log", "geology", "log-ascii-standard", "parsing"];

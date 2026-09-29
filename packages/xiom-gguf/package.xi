@@ -9,7 +9,7 @@
 
 package xiom_gguf {
   name: "xiom.gguf";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "GGUF container header codec: metadata KV, tensor infos, alignment and builder";
   categories: ["ai-ml"];
   keywords: ["gguf", "llm", "format", "container"];

@@ -9,7 +9,7 @@
 
 package xiom_gif {
   name: "xiom.gif";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "GIF87a/GIF89a structure parser: canvas, color tables, frame metadata, extensions, byte offsets";
   categories: ["graphics"];
   keywords: ["gif", "image", "animation", "format"];

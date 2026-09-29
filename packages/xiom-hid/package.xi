@@ -11,7 +11,7 @@
 
 package xiom_hid {
   name: "xiom.hid";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "USB HID report-descriptor parsing, validation and canonical emission";
   categories: ["systems"];
   keywords: ["hid", "usb", "descriptor", "format"];

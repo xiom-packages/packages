@@ -11,7 +11,7 @@
 
 package xiom_ical {
   name: "xiom.ical";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "RFC 5545-subset iCalendar codec: folding, content lines, TEXT escaping, component trees";
   categories: ["data"];
   keywords: ["ical", "calendar", "ics", "format"];

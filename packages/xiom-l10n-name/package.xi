@@ -12,7 +12,7 @@
 
 package xiom_l10n_name {
   name: "xiom.l10n-name";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Locale-style personal-name display ordering, lists, initials and honorifics";
   categories: ["text", "data"];
   keywords: ["l10n", "name", "personal", "display"];

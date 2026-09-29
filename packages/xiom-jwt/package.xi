@@ -12,7 +12,7 @@
 
 package xiom_jwt {
   name: "xiom.jwt";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "JWT structural decoding: headers, claims, timestamps (no signature verification)";
   categories: ["data", "safety"];
   keywords: ["jwt", "token", "claims", "decode"];

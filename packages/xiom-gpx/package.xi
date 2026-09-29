@@ -9,7 +9,7 @@
 
 package xiom_gpx {
   name: "xiom.gpx";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "GPX subset codec: parse and canonical build for waypoints, routes and tracks";
   categories: ["science"];
   keywords: ["gpx", "gps", "xml", "geo"];

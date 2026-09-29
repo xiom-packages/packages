@@ -11,7 +11,7 @@
 
 package xiom_interrupt {
   name: "xiom.interrupt";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Interrupt controller structure codecs: x86 IDT gate descriptors and ARM GICv2 distributor registers";
   categories: ["systems"];
   keywords: ["interrupt", "idt", "gic", "x86", "arm", "format"];

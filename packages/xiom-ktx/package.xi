@@ -4,7 +4,7 @@
 
 package xiom_ktx {
   name: "xiom.ktx";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "KTX 1 texture-container header, key/value and mipmap-level codec (structural subset)";
   categories: ["graphics"];
   keywords: ["ktx", "texture", "opengl", "format"];

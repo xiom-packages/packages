@@ -9,7 +9,7 @@
 
 package xiom_git2 {
   name: "xiom.git2";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM Git object and pack-file codec: zlib/DEFLATE decoder, loose objects, tree/commit/tag headers, pack entries with OFS/REF deltas, pack index v2";
   categories: ["systems"];
   keywords: ["git", "binary", "format", "deflate", "zlib"];

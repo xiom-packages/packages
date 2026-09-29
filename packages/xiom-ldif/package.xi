@@ -10,7 +10,7 @@
 
 package xiom_ldif {
   name: "xiom.ldif";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "LDIF (RFC 2849) content-entry parsing and canonical emitting";
   categories: ["data"];
   keywords: ["ldif", "ldap", "directory", "format"];

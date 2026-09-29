@@ -15,7 +15,7 @@
 
 package xiom_imap {
   name: "xiom.imap";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "IMAP4rev1 protocol parser (RFC 3501): commands, responses, literals, nested lists, response codes";
   categories: ["network"];
   keywords: ["imap", "email", "protocol", "parser"];

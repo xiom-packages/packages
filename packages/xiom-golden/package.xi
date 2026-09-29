@@ -14,7 +14,7 @@
 
 package xiom_golden {
   name: "xiom.golden";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Golden-file comparison helpers: exact byte diff, CRLF-normalized text diff, bounded summaries, NUL-safe escaping and flag/path conventions";
   categories: ["testing"];
   keywords: ["golden", "snapshot", "testing", "diff", "compare"];

@@ -11,7 +11,7 @@
 
 package xiom_l10n_number {
   name: "xiom.l10n.number";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Locale-style integer and decimal number formatting and parsing (scaled integers)";
   categories: ["text", "data"];
   keywords: ["l10n", "format", "number", "locale"];

@@ -11,7 +11,7 @@
 
 package xiom_l10n_date {
   name: "xiom.l10n-date";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Locale-aware civil-date formatting and parsing with caller-supplied month names";
   categories: ["text", "data"];
   keywords: ["l10n", "format", "date", "calendar", "locale"];

@@ -9,7 +9,7 @@
 
 package xiom_junit {
   name: "xiom.junit";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM JUnit XML report codec for a documented subset (parse, access, emit)";
   categories: ["testing"];
   keywords: ["junit", "xml", "testing", "report"];

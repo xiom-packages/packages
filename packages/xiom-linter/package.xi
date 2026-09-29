@@ -10,7 +10,7 @@
 
 package xiom_linter {
   name: "xiom.linter";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Line-oriented lint engine: rule registry, diagnostic bag, built-in rules, config, text and CSV reports";
   categories: ["tooling", "testing"];
   keywords: ["lint", "linter", "static-analysis", "diagnostics", "rules", "conformance"];

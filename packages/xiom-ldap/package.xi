@@ -10,7 +10,7 @@
 
 package xiom_ldap {
   name: "xiom.ldap";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "LDAP (RFC 4511) BER message decoder plus a minimal BindRequest/SearchRequest encoder";
   categories: ["network"];
   keywords: ["ldap", "ber", "asn1", "wire", "codec", "directory"];

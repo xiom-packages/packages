@@ -8,7 +8,7 @@
 
 package xiom_ico {
   name: "xiom.ico";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "ICO/CUR icon container codec: directory parse, payload slices, canonical builder";
   categories: ["graphics"];
   keywords: ["ico", "cursor", "icon", "format"];

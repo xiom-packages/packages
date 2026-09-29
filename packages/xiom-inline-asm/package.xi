@@ -13,7 +13,7 @@
 
 package xiom_inline_asm {
   name: "xiom.inline-asm";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Inline-assembly template parser, operand constraint classes and clobber lists";
   categories: ["tooling"];
   keywords: ["asm", "inline-asm", "template", "parser", "constraints"];

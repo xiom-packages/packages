@@ -12,7 +12,7 @@
 
 package xiom_hashchain {
   name: "xiom.hashchain";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Hash-linked record chains with deterministic SHA-256 block digests and first-error integrity verification";
   categories: ["data", "crypto-security"];
   keywords: ["hash", "chain", "hashchain", "sha256", "integrity"];
