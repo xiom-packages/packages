@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.linter",
+    "stage":  "incubating",
+    "compiler":  "v0.62.1",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  26,
+                  "failed":  0,
+                  "run_by":  "task:ses_f1578b48dffeR7cCeSC7mjR16a",
+                  "commit":  "515f6fc",
+                  "checked":  "2026-09-29T00:28:41Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: next scope delta"
+}
