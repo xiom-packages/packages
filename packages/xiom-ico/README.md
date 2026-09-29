@@ -1,6 +1,6 @@
 # xiom.ico
 
-> **Status:** `incubating` -- conformance-tested on compiler v0.61.3 (16/16); NOT published yet.
+> **Status:** `stable` -- conformance-tested (16/16); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Pure-XIOM ICO/CUR container codec for a documented subset: 6-byte ICONDIR header parse, 16-byte ICONDIRENTRY decode, resource-slice accessors, structural validation, and a canonical builder that recomputes the image count and every resource offset.
 > **Deps:** `xiom.std` only (the library module imports nothing). No FFI in v0.1.
 

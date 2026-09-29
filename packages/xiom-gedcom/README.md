@@ -1,7 +1,6 @@
 # xiom.gedcom
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
 > **Scope:** GEDCOM 5.5.1 line codec: line grammar `level [xref] tag [value]`,
 > nesting validation, parents, pointers, CONT/CONC joining and canonical
 > emission; in-memory `Str` only.

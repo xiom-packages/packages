@@ -1,7 +1,6 @@
 # xiom.ris
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** RIS bibliography text parsing into a flat record/field model,
 > plus a canonical emitter and a round-trip guarantee for the documented
 > subset.
@@ -32,7 +31,7 @@ number.
 
 ## Install / use
 
-The package is not published yet. Once it is:
+The package is published:
 
 ```
 xiom pkg install xiom.ris@0.1.0

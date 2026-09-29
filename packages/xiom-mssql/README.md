@@ -1,8 +1,6 @@
 # xiom.mssql
 
-> **Status:** `incubating` -- implemented and green on the local harness
-> (compiler v0.61.3, 20/20 conformance checks), NOT yet published to the
-> XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI, no sockets, no login crypto) structure codec
 > for Microsoft SQL Server's TDS (Tabular Data Stream) wire format: packet
 > headers and multi-packet message assembly, the PRELOGIN option table, the

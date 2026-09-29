@@ -1,7 +1,6 @@
 # xiom.ean
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness on compiler v0.61.3 (20/20). NOT published yet.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** EAN-13, EAN-8 and UPC-A parsing, validation, check-digit
 > computation, structure access, canonical formatting and the UPC-A <-> EAN-13
 > zero-prefix equivalence, for a documented digit-only subset.

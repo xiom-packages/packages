@@ -1,6 +1,6 @@
 # xiom.patch
 
-> **Status:** incubating -- implemented and tested locally, NOT published.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** single-file unified diff parsing and application in pure XIOM
 > (no FFI, no C, no external processes).
 > **Deps:** `xiom.std` only (library: `xiom.string`, `xiom.string.compare`,

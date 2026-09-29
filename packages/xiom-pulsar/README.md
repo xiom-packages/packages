@@ -1,7 +1,6 @@
 # xiom.pulsar
 
-> **Status:** `incubating` -- implemented and green on the local harness
-> (27/27 with compiler v0.61.3), NOT yet published to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM Apache Pulsar **wire codec**: the protobuf-wire subset
 > Pulsar uses, the u32/u32 frame framing, and a documented BaseCommand /
 > MessageMetadata / MessageIdData decode subset. No network, no sockets, no

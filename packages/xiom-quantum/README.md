@@ -1,7 +1,6 @@
 # xiom.quantum
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** introductory quantum formulas on scalars: de Broglie wavelength,
 > photon momentum, hydrogen energy levels and transitions, Balmer and Lyman
 > vacuum wavelengths, plus two reference lengths (Compton wavelength, Bohr

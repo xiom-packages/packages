@@ -1,7 +1,6 @@
 # xiom.config
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.0` on the XIOM registry.
 > **Scope:** in-memory configuration model: sectioned key/value parsing,
 > overlay merge, typed getters, schema validation and canonical rendering.
 > In-memory `Str` only -- no file I/O, no environment reads, no hot reload.

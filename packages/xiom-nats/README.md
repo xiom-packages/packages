@@ -1,5 +1,7 @@
 # xiom.nats
 
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
+
 Pure-XIOM codec for the NATS 1.x text protocol as spoken by clients and
 servers on the wire. No FFI, no sockets, no runtime: it encodes and parses the
 bytes, and the caller owns the transport.

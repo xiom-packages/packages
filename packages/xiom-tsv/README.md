@@ -1,7 +1,6 @@
 # xiom.tsv
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** IANA-style tab-separated values with backslash escaping: parse and
 > write. Fields are separated by raw TAB bytes, records by LF (a CRLF pair is
 > one boundary), and `\\` `\t` `\n` `\r` encode backslash, TAB, LF and CR.

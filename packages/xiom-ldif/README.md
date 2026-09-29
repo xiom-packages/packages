@@ -1,6 +1,6 @@
 # xiom.ldif
 
-> **Status:** IMPLEMENTED -- new package, incubating (not published).
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a pure-XIOM LDIF (RFC 2849) content-entry codec: records
 > separated by blank lines, `attr: value` lines, folded continuation lines,
 > comments, CRLF/LF, three value forms (plain, base64 with a strict

@@ -1,7 +1,6 @@
 # xiom.tap
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a TAP (Test Anything Protocol) parser and canonical emitter for
 > the documented flat subset: version line, plan, `ok` / `not ok` results,
 > `SKIP` / `TODO` directives, raw `#` diagnostics, `Bail out!`.

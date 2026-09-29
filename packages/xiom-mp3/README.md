@@ -1,7 +1,6 @@
 # xiom.mp3
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
 > **Scope:** MP3 structural parser: MPEG-1/2/2.5 audio frame headers,
 > consecutive-frame scan with duration, ID3v2.3/2.4 text tags and ID3v1
 > tail tags. No audio decoding.

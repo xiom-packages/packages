@@ -1,6 +1,6 @@
 # xiom.assimp
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** Asset Import Library 3D model import/export bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

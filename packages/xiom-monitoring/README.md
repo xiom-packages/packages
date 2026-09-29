@@ -6,9 +6,7 @@ Prometheus / OpenMetrics **text exposition format parser** in pure XIOM
 into a flat, fully indexed value with families, samples, labels, values,
 timestamps and exemplars.
 
-> **Status:** implemented and covered by 24 conformance tests
-> (`tests/test_conformance.xi`, run with
-> `.\scripts\port.ps1 -Package xiom.monitoring`). Version 0.1.0.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 
 ## Scope (honest)
 

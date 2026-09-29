@@ -1,7 +1,6 @@
 # xiom.snapshot
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** snapshot comparison over two in-memory texts: canonical
 > normalization, line splitting, equality, first-difference position and a
 > human-readable first-difference summary.

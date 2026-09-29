@@ -1,7 +1,6 @@
 # xiom.cobs
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) COBS (Consistent Overhead Byte Stuffing)
 > single-frame encode/decode: the 0x00-free wire form plus size and
 > validation helpers.

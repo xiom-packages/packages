@@ -1,6 +1,6 @@
 # xiom.miniaudio
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** miniaudio cross-platform audio playback bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

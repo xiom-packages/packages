@@ -1,7 +1,6 @@
 # xiom.stemming
 
-> **Status:** INCUBATING -- pure-XIOM implementation, tested against the
-> classic Porter fixtures.
+> **Status:** `stable` -- conformance-tested (34/34); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Porter stemming for lowercase ASCII English words (steps 1a, 1b,
 > 1c, 2, 3, 4, 5a, 5b of Porter's 1980 algorithm).
 > **Deps:** `xiom.std` only (the module uses `xiom.string`; the tests use

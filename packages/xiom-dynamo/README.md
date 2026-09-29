@@ -1,5 +1,7 @@
 # xiom.dynamo
 
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
+
 Pure-XIOM codec for the Amazon DynamoDB JSON (wire) API shapes. It parses,
 validates and renders the payloads a DynamoDB client exchanges over its own
 HTTPS transport: AttributeValue objects, items, request shapes and response

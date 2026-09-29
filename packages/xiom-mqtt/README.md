@@ -1,7 +1,6 @@
 # xiom.mqtt
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI, no sockets) MQTT 3.1.1 packet codec for the
 > documented subset: fixed header, CONNECT, CONNACK, PUBLISH, PUBACK,
 > SUBSCRIBE, SUBACK, PINGREQ and DISCONNECT.

@@ -1,7 +1,6 @@
 # xiom.dtb
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM Flattened Device Tree (DTB) parsing, validation and
 > canonical version-17 emission.
 > **Deps:** `xiom.std` only. The library module uses `xiom.string` and

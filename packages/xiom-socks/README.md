@@ -1,7 +1,6 @@
 # xiom.socks
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) SOCKS5 wire codec for the RFC 1928 greeting,
 > method selection, CONNECT request/reply and the RFC 1929
 > username/password sub-negotiation. Bytes in, structs out -- no sockets.

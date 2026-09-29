@@ -3,9 +3,7 @@
 Pure-XIOM, read-only **structure** parser for Windows Registry hive files
 (REGF). No FFI, no registry API access, no hive writes.
 
-> **Status:** `incubating` -- implemented, harness-green with compiler
-> v0.61.3 (`port: PASS (passed=25 failed=0 program_exit=0 exit=0)`),
-> not published.
+> **Status:** `incubating` -- conformance-tested (25/25); published at `v0.1.1` on the XIOM registry.
 > **Scope:** base block, hbin blocks, cell table (allocated and
 > free/deleted cells), nk/vk/sk records, lf/lh/li/ri subkey lists, db big
 > data, a BFS key-tree walk, key/value accessors, case-insensitive path

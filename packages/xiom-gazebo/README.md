@@ -1,6 +1,6 @@
 # xiom.gazebo
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** Gazebo robotics simulator bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

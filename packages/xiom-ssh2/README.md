@@ -1,6 +1,6 @@
 # xiom.ssh2
 
-> **Status:** implemented -- 24/24 conformance tests green (`port: PASS`).
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** SSH-2 transport, authentication and connection-layer message
 > **structure** codec (RFC 4251 / 4253 / 4252 / 4254). Pure XIOM, no FFI.
 > **Deps:** stdlib only (`xiom.convert.int`, `xiom.string`,

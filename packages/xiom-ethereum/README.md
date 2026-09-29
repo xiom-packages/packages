@@ -1,7 +1,6 @@
 # xiom.ethereum
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.1` on the XIOM registry.
 > **Scope:** Ethereum RLP and ABI encoding structures in pure XIOM: a strict
 > RLP codec, legacy transaction field listing, ABI static words plus one
 > level of dynamic types, function-call data assembly, and hex/address

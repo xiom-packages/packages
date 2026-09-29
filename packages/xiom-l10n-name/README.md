@@ -2,8 +2,7 @@
 
 > **Naming:** registry package `xiom.l10n-name`; module namespace `xiom.l10n.name`.
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Personal-name display ordering, list formatting, initials and
 > caller-supplied honorifics over a five-field `Str` model.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (module header imports `xiom.string`,

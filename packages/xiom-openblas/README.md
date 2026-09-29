@@ -1,6 +1,6 @@
 # xiom.openblas
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** OpenBLAS backend integration and acceleration.
 > **Deps:** stdlib; may wrap C (FFI).
 

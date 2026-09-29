@@ -1,7 +1,6 @@
 # xiom.uart
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM UART line codec: line configuration (baud, 5..9 data
 > bits, none/even/odd/mark/space parity, 1/1.5/2 stop bits, flow control),
 > frame bit layout (start bit, data LSB-first, parity, stop bits),

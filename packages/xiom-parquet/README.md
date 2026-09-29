@@ -1,7 +1,6 @@
 # xiom.parquet
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM Apache Parquet **file metadata structure** parser:
 > the Thrift compact-protocol footer (FileMetaData, schema tree, row
 > groups, column chunks, statistics raw bytes, page headers). Page *data*

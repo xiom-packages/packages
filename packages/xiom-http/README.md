@@ -1,6 +1,6 @@
 # xiom.http
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** HTTP/1.1 and HTTP/2 client/server with routing.
 > **Deps:** stdlib; may wrap C (FFI).
 

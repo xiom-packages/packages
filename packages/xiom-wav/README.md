@@ -1,7 +1,6 @@
 # xiom.wav
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** canonical PCM WAV (RIFF) header parsing, building and metadata.
 > **Deps:** `xiom.std` only (`xiom.string.builder`; tests add `xiom.test`,
 > `xiom.io`, `xiom.string.compare`, `xiom.encoding.hex`). No FFI.

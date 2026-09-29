@@ -1,7 +1,6 @@
 # xiom.hl7
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
 > **Scope:** an HL7 v2.x pipe-delimited message codec: segment splitting, MSH
 > separator declaration, fields, repetitions, components and subcomponents,
 > plus a segment/field builder with separator-aware escaping. In-memory `Str`

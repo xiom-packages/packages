@@ -1,6 +1,6 @@
 # xiom.hello
 
-> **Status:** IMPLEMENTED -- the canonical minimal package.
+> **Status:** `incubating` -- not yet conformance-tested; published at `v0.1.0` on the XIOM registry.
 > **Scope:** one dependency-free module that demonstrates the full XIOM
 > package lifecycle: manifest, source, conformance tests, publish, install.
 > **Deps:** none (the library imports nothing; tests use `xiom.std` modules).

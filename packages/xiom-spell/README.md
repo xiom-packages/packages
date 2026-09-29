@@ -1,7 +1,6 @@
 # xiom.spell
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 > **Scope:** dictionary-based spell checking over caller-supplied word lists:
 > byte-wise Levenshtein distance (plain and budgeted), exact dictionary
 > membership, ranked suggestions, and an unknown-word scan over free text.

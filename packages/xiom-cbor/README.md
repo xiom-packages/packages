@@ -1,7 +1,6 @@
 # xiom.cbor
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** strict pure-XIOM CBOR encoding and decoding for a documented
 > subset: unsigned/negative integers, byte strings, text strings, arrays,
 > maps, false/true/null/undefined.

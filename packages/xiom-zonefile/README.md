@@ -1,7 +1,6 @@
 # xiom.zonefile
 
-> **Status:** `incubating` -- implemented and green on the local harness
-> (compiler v0.61.3), NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI, no sockets) DNS zone-file (master file)
 > codec for a documented subset: `$ORIGIN`/`$TTL` directives, relative-name
 > completion, `@`, parenthesized multi-line records, `;` comments, quoted

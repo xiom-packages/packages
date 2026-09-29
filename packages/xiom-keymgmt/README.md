@@ -1,7 +1,6 @@
 # xiom.keymgmt
 
-> **Status:** IMPLEMENTED -- harness-green with compiler v0.61.3
-> (`port: PASS (passed=20 failed=0 program_exit=0 exit=0)`).
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** key STRUCTURE codecs: base64url, JWK/JWKS (RFC 7517/7518),
 > PKCS#8 / SPKI DER structures and PEM armor. No cryptography, no key
 > generation, no key math, no validation beyond structure.

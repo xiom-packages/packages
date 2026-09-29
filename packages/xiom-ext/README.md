@@ -1,7 +1,6 @@
 # xiom.ext
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM ext2/3/4 superblock codec: parse and build the
 > 1024-byte superblock that lives at byte offset 1024 of the volume.
 > **Deps:** `xiom.std` only. The library module uses `xiom.string` and

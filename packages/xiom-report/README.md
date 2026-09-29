@@ -1,7 +1,6 @@
 # xiom.report
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** plain-text report building: aligned tables, key/value blocks,
 > bullet lists, greedy word wrap, and horizontal rules.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.str_split`,

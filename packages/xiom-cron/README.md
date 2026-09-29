@@ -1,7 +1,6 @@
 # xiom.cron
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry.
 > **Scope:** parsing, validation, canonical emission and human-readable
 > description of classic 5-field cron expressions (plus the standard
 > `@daily`-style macros).

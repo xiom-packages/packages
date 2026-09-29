@@ -1,7 +1,6 @@
 # xiom.svg
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** SVG 1.1 document builder: element helpers, escaping, and a
 > deterministic renderer for in-memory documents.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,

@@ -1,5 +1,7 @@
 # xiom.biology
 
+> **Status:** `incubating` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
+
 Pure-XIOM FASTA and FASTQ sequence parsing: records, base composition, GC
 content, Phred quality statistics, one-record streaming with consumed byte
 counts, whole-buffer walks, and format auto-detection. No FFI, no data

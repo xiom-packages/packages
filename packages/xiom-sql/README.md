@@ -1,6 +1,6 @@
 # xiom.sql
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** SQL parsing, AST modeling, and generation.
 > **Deps:** stdlib; may wrap C (FFI).
 

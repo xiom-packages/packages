@@ -2,8 +2,7 @@
 
 > **Naming:** registry package `xiom.l10n-time`; module namespace `xiom.l10n.time`.
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI, no clock), and
-> green under the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Locale-style time-of-day formatting and parsing, 12h/24h
 > conversion, day-period classification and timezone-offset handling with
 > caller-supplied labels and boundaries.

@@ -1,7 +1,6 @@
 # xiom.lexer-fw
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a framework for building lexical analyzers: scan state with
 > 1-based line/column tracking, regex-free byte matchers, a keyword/
 > punctuation table and a parallel-Vec token stream with exact errors.

@@ -1,7 +1,6 @@
 # xiom.punycode
 
-> **Status:** `incubating` -- implemented and harness-green (compiler v0.61.3),
-> **NOT published**. The API may change before 1.0.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** RFC 3492 Punycode for IDN labels: `xn--` encode/decode of domain
 > labels with no external tables.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.builder`). No FFI.

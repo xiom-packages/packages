@@ -1,7 +1,6 @@
 # xiom.fstab
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** `/etc/fstab` parsing into a flat document, field/option access,
 > duplicate-mountpoint lookup and canonical emission for the documented
 > six-field subset.

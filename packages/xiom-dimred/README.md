@@ -1,7 +1,6 @@
 # xiom.dimred
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI, no floats), and
-> green under the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 > **Scope:** fixed-point PCA primitives (mean-centering, sample covariance,
 > power iteration, deflation, projection, explained variance) on scaled
 > integers.

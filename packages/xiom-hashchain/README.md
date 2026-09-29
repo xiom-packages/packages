@@ -1,7 +1,6 @@
 # xiom.hashchain
 
-> **Status:** IMPLEMENTED -- harness-green with compiler v0.62.1
-> (`port: PASS (passed=20 failed=0)`); not published.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** append-only hash-linked record chains over caller byte buffers:
 > deterministic SHA-256 block digests, a zero-prev genesis rule, prev links,
 > and first-error integrity verification.

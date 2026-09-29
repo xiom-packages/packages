@@ -1,7 +1,6 @@
 # xiom.auth
 
-> **Status:** Implemented -- `port.ps1 -Package xiom.auth` is green
-> (24/24 conformance checks).
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** HTTP authentication header codecs (RFC 7235 / 7617 / 7616 /
 > 6750). Pure XIOM: no FFI, no network, no crypto, no session management.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.builder`,

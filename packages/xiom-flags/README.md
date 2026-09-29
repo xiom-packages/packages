@@ -1,6 +1,6 @@
 # xiom.flags
 
-> **Status:** `incubating` -- implemented and green, **NOT published yet**.
+> **Status:** `incubating` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** one module (`xiom.flags`) for command-line flag parsing: long and
 > short flags, inline `--name=value`, spaced `--name value`, boolean presence,
 > bare positionals, a `--` terminator, required flags, and environment

@@ -1,6 +1,6 @@
 # xiom.redis
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** Redis client: RESP protocol, commands, and pub/sub.
 > **Deps:** stdlib; may wrap C (FFI).
 

@@ -1,7 +1,6 @@
 # xiom.rpm
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM, read-only parser for the RPM package lead and the
 > generic RPM header structure: magic/lead fields, index entries, tag lookup
 > for the common metadata tags.

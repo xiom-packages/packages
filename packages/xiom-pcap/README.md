@@ -1,7 +1,6 @@
 # xiom.pcap
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) reader for classic PCAP capture files: magic
 > and byte-order detection, the 24-byte global header, and the 16-byte
 > packet-record index (timestamps, captured/original lengths, payload

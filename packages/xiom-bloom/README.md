@@ -1,7 +1,6 @@
 # xiom.bloom
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a Bloom filter over a flat `Vec[UInt8]`: construction from
 > `(m, k)`, double-hashed insert/contains, `clear`, set-bit count, an integer
 > false-positive estimate, strict serialization and equal-shape union /

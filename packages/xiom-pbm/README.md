@@ -1,6 +1,6 @@
 # xiom.pbm
 
-> **Status:** `incubating` -- conformance-tested on compiler v0.61.3 (20/20); NOT published yet.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Netpbm PBM: P1 (ASCII) and P4 (binary) header/raster parsing, 1-bit raster access, and canonical builders with optional header comments.
 > **Deps:** `xiom.std` only. No FFI in v0.1.
 

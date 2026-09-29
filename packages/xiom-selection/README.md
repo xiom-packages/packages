@@ -1,7 +1,6 @@
 # xiom.selection
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic selection operators for evolutionary loops:
 > roulette-wheel, tournament, elite and linear-rank selection over Int vectors.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (platform dependency). The library

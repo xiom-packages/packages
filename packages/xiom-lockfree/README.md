@@ -1,7 +1,6 @@
 # xiom.lockfree
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic single-threaded atomic-step models of lock-free
 > structures: a Treiber stack with ABA tags over a node pool, a bounded MPMC
 > ring queue, and atomic counters with CAS-step emulation. This is a semantic

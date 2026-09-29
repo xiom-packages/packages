@@ -1,7 +1,6 @@
 # xiom.tftp
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green
-> under the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** TFTP packet codec: RRQ, WRQ, DATA, ACK, ERROR and OACK with
 > the RFC 2347/2348/2349 option extension (`blksize`, `timeout`, `tsize`
 > plus pass-through options such as `windowsize`).

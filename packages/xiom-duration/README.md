@@ -1,7 +1,6 @@
 # xiom.duration
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness on compiler v0.61.3 (22/22). NOT published yet.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** strict ISO 8601 duration parsing, canonical formatting, flat
 > accessors and a restricted whole-seconds helper.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.compare`,

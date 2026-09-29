@@ -1,7 +1,6 @@
 # xiom.relativity
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** special-relativity scalar helpers: Lorentz factor, time dilation,
 > length contraction, relativistic velocity addition, and energy/momentum
 > relations for a single collinear speed.

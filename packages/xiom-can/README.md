@@ -1,7 +1,6 @@
 # xiom.can
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM classic CAN 2.0A/2.0B frame codec: 11-bit and 29-bit
 > identifiers, DLC 0..8, remote (RTR) frames, validation, structural
 > equality and a fixed 16-byte container codec.

@@ -1,7 +1,6 @@
 # xiom.cidr
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** IPv4 addresses and CIDR blocks: parse, format, containment and
 > range math. Addresses are 32-bit `Int`s.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at` and

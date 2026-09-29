@@ -1,7 +1,6 @@
 # xiom.efi
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** UEFI Firmware File System (FFS) codec for one file: the 24-byte
 > small header, the 32-byte large-file header with the documented `0xFFFFFF`
 > extended-size rule, the section walk over the documented PI section types,
@@ -40,13 +39,13 @@ checksums when set) and `ffs_parse` never rejects a mismatch.
 
 ## Install
 
-Not yet published. Consume it from this repository with the package harness:
+Install from the XIOM registry:
 
 ```
-& .\scripts\port.ps1 -Package xiom.efi
+xiom pkg install xiom.efi@0.1.0
 ```
 
-Once published, the manifest name is `xiom.efi` version `0.1.0`.
+The manifest name is `xiom.efi` version `0.1.0`.
 
 ## API
 

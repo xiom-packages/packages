@@ -1,7 +1,6 @@
 # xiom.subtitle
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** SRT and WebVTT subtitle parsing, formatting, and shifting.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string` and
 > `xiom.string.compare`). Tests additionally use `xiom.test` and `xiom.io`.

@@ -1,7 +1,6 @@
 # xiom.midi
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Standard MIDI File structure: header, track chunks,
 > variable-length quantities and event counts.
 > **Deps:** `xiom.std` only (the library module imports nothing; the tests

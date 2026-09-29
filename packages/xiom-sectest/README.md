@@ -1,7 +1,6 @@
 # xiom.sectest
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); not yet published to the XIOM registry.
 > **Scope:** HTTP security-header verification: parse a response header block,
 > check the documented hardening policy, report deterministic findings.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,

@@ -1,7 +1,6 @@
 # xiom.radix
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) signed integer text conversion for bases
 > 2..36 over the canonical lowercase alphabet, with strict parsing, canonical
 > emission and exact overflow detection against the 64-bit `Int` range.

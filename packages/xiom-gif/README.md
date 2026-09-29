@@ -1,6 +1,6 @@
 # xiom.gif
 
-> **Status:** `incubating` -- conformance-tested on compiler v0.61.3 (20/20); NOT published yet.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** GIF87a/GIF89a container structure parser: header, logical screen
 > descriptor, global/local color tables, image descriptors, opaque LZW
 > sub-block payloads, extensions (graphic control, comment, plain text,

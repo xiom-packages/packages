@@ -1,7 +1,6 @@
 # xiom.avro
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM Avro 1.11 binary primitives (zig-zag varints,
 > null/boolean/float/double/bytes/string), the length-delimited compound
 > helpers (fixed, enum/union indices, array/map blocks, records) and the

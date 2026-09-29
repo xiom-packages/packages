@@ -1,6 +1,6 @@
 # xiom.wireless
 
-> **Status:** IMPLEMENTED -- pure-XIOM, parse-only.
+> **Status:** `incubating` -- conformance-tested (33/33); published at `v0.1.1` on the XIOM registry.
 > **Scope:** the *structure* of an IEEE 802.11 MAC frame -- Frame Control,
 > Duration/ID, the Address 1..4 matrix, Sequence Control, the optional QoS
 > control and HT control fields, the fixed fields of the common management

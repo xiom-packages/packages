@@ -4,8 +4,7 @@
 
 # xiom.ply
 
-> **Status:** `incubating` -- conformance-tested on compiler v0.61.3 (25/25);
-> pure XIOM (no FFI); NOT published yet.
+> **Status:** `stable` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry.
 > **Scope:** PLY polygon file format, ASCII subset: header and body parsing,
 > scalar value validation, structural accessors and canonical re-emission.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,
@@ -30,11 +29,10 @@ form that round-trips byte-exact for canonical input.
 
 ## Install / use
 
-The package is not published yet; build it from this repository with the
-pinned compiler:
+Install from the XIOM registry:
 
 ```
-.\scripts\port.ps1 -Package xiom.ply
+xiom pkg install xiom.ply@0.1.0
 ```
 
 Once published, consumers add it to their manifest and use the module:

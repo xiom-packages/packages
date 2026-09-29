@@ -1,7 +1,6 @@
 # xiom.sentiment
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** lexicon-based sentiment scoring with negation handling: a fixed
 > English positive/negative word lexicon, a signed-sum score, a three-word
 > negation window, and positive/negative/neutral labels.

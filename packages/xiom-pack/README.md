@@ -1,7 +1,6 @@
 # xiom.pack
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM format-string binary packing and unpacking of
 > fixed-width integer fields (`u8`/`s8`/`b8`, `u16`/`s16`, `u32`/`s32`,
 > `u64`/`s64`, little- and big-endian) over in-memory `Vec[UInt8]` buffers.

@@ -1,6 +1,6 @@
 # xiom.expat
 
-> **Status:** 0.1.0 (incubating, not published).
+> **Status:** `incubating` -- conformance-tested (25/25); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM expat-style event parser for XML 1.0.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.builder`,
 > `xiom.string.compare`, `xiom.convert`).

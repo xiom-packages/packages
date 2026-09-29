@@ -1,6 +1,6 @@
 # xiom.ktx
 
-> **Status:** `incubating` -- conformance-tested on compiler v0.61.3 (19/19); NOT published yet.
+> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.0` on the XIOM registry.
 > **Scope:** KTX 1 texture-container structural codec: 12-byte identifier, 64-byte little/big-endian header, key/value metadata with flat spans, and mipmap-level record spans for non-array, non-cubemap textures. No pixel is decoded, no compression metadata is interpreted, and KTX 2 is rejected.
 > **Deps:** `xiom.std` only (the library module imports nothing outside it). No FFI in v0.1.
 

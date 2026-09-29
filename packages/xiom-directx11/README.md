@@ -1,6 +1,6 @@
 # xiom.directx11
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** DirectX 11 graphics API bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

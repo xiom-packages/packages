@@ -1,6 +1,6 @@
 # xiom.rest
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** RESTful API layer built on the HTTP package.
 > **Deps:** stdlib; may wrap C (FFI).
 

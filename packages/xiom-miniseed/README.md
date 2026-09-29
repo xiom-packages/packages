@@ -1,7 +1,6 @@
 # xiom.miniseed
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** miniSEED 2.x fixed 48-byte data-record header codec: parse,
 > validate and build the header, locate the payload span and derive the
 > sample-rate and sample-count values.
@@ -39,13 +38,13 @@ interpretation, the error catalog and the test plan.
 
 ## Install
 
-Not yet published. Consume it from this repository with the package harness:
+Install from the XIOM registry:
 
 ```
-& .\scripts\port.ps1 -Package xiom.miniseed
+xiom pkg install xiom.miniseed@0.1.0
 ```
 
-Once published, the manifest name is `xiom.miniseed` version `0.1.0`.
+The manifest name is `xiom.miniseed` version `0.1.0`.
 
 ## API
 

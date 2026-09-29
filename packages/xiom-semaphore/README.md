@@ -1,7 +1,6 @@
 # xiom.semaphore
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a counting semaphore as a pure, deterministic state machine:
 > permit accounting, a FIFO waiter queue, wakeup grants, over-release
 > protection, stats counters, and a fairness trace. The model is the semantic

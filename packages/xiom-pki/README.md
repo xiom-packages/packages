@@ -1,5 +1,7 @@
 # xiom.pki
 
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+
 Pure-XIOM **structure parser** for X.509/PKIX certificates: a DER (X.690) TLV
 walker, ASN.1 primitives, TBSCertificate + extension decoding, and a PEM
 `CERTIFICATE` unwrap helper. No FFI; depends only on `xiom.std`.

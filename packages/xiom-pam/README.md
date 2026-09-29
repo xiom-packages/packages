@@ -1,6 +1,6 @@
 # xiom.pam
 
-> **Status:** `incubating` -- conformance-tested on compiler v0.61.3 (20/20); NOT published yet.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Netpbm PAM (P7): header parsing with comments and ordered TUPLTYPE lines, raster span access, and canonical building for flat tuple images (1- and 2-byte samples).
 > **Deps:** `xiom.std` only. No FFI in v0.1.
 

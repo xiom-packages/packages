@@ -1,7 +1,6 @@
 # xiom.perf
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM read-only STRUCTURE parser for Linux `perf.data`
 > files (magic `PERFILE2`): file header, feature sections, attrs records,
 > the record stream and typed record payloads.

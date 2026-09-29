@@ -1,7 +1,6 @@
 # xiom.l10n.phone
 
-> **Status:** IMPLEMENTED -- conformance-green with compiler v0.61.3
-> (23/23 tests), not published.
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.1` on the XIOM registry.
 > **Scope:** E.164 / international phone-number structures over an embedded
 > country calling-code subset: parse, validate, format, mask, RFC 3966
 > `tel:` URI build/parse.

@@ -1,7 +1,6 @@
 # xiom.nbt
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM Minecraft NBT (Named Binary Tag) encoding and decoding
 > for tag types 1-12: byte, short, int, long, float, double, byte array,
 > string, list, compound, int array, long array.

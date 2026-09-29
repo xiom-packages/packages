@@ -1,7 +1,6 @@
 # xiom.m3u
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** M3U/M3U8 playlist parsing and canonical emitting; in-memory
 > `Str` only.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,

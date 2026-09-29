@@ -1,7 +1,6 @@
 # xiom.etcd
 
-> **Status:** `incubating` -- implemented and green on the local harness
-> (26/26 with compiler v0.61.3), NOT yet published to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM etcd v3 **message-structure codec**: the protobuf-wire
 > subset etcd uses, the gRPC frame, and a documented decode/encode subset of
 > the `etcdserverpb` messages (Range, Put, DeleteRange, Txn, Watch, Lease,

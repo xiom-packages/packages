@@ -1,7 +1,6 @@
 # xiom.au
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Sun/NeXT AU (`.snd`) audio header codec: big-endian 24-byte
 > header, optional info field, audio span with the unknown-size sentinel.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.builder`; tests add

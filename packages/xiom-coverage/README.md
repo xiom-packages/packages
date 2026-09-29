@@ -1,5 +1,7 @@
 # xiom.coverage
 
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+
 Pure-XIOM (no FFI, no I/O) codec for the **text form** of gcov coverage data
 (`.gcov` files) plus per-file and overall coverage summary math.
 

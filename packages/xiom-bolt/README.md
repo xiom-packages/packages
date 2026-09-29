@@ -1,7 +1,6 @@
 # xiom.bolt
 
-> **Status:** implemented -- pure-XIOM BoltDB (bbolt) page-file structure
-> parser; conformance suite green under XIOM 0.61.3.
+> **Status:** `incubating` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** read-only STRUCTURE parsing of a bbolt database file. No mmap,
 > no writes, no transactions.
 

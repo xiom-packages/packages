@@ -1,7 +1,6 @@
 # xiom.iban
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness on compiler v0.61.3 (21/21). NOT published yet.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
 > **Scope:** strict IBAN parsing, validation, canonical formatting, and
 > MOD-97 check-digit computation for a documented 19-country table.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.compare`,

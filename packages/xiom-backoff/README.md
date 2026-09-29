@@ -1,7 +1,6 @@
 # xiom.backoff
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic constant, linear and exponential backoff policies
 > with cap and jitter, plus a retry state machine (attempt budget, reset).
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.convert.int_to_string`;

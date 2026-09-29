@@ -1,7 +1,6 @@
 # xiom.summary
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
 > **Scope:** extractive text summarization with frequency scoring.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,
 > `xiom.string.str_slice`, `xiom.string.str_trim`, `xiom.string.compare.str_compare`).

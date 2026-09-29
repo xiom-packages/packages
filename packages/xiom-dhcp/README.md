@@ -1,7 +1,6 @@
 # xiom.dhcp
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (16/16); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM DHCPv4 packet codec for the RFC 2131/2132 wire
 > subset: fixed BOOTP header, magic cookie, options TLV parse/build.
 > **Deps:** `xiom.std` only. The library module is dependency-free; the

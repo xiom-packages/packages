@@ -1,8 +1,6 @@
 # xiom.json
 
-> **Status:** Implemented and ported to compiler 0.61.3 / pinned stdlib.
-> Conformance: 12/12 PASS (`scripts/port.ps1 -Package xiom.json`,
-> `program_exit=0`). **Not published** -- publication remains out of scope.
+> **Status:** `ported` -- conformance-tested (12/12); not yet published to the XIOM registry.
 > **Scope:** JSON parsing, serialization, and manipulation.
 > **Deps:** stdlib only (pure XIOM; no FFI).
 >

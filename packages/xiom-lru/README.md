@@ -1,7 +1,6 @@
 # xiom.lru
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (16/16); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a bounded least-recently-used cache for `Str` keys and `Int`
 > values with O(1) amortized get/put/remove and eviction statistics.
 > **Deps:** `xiom.std` only (`xiom.collect.stringmap`).

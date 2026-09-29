@@ -1,6 +1,6 @@
 # xiom.libpq
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** Thin FFI bindings over the libpq C library for PostgreSQL access.
 > **Deps:** stdlib; may wrap C (FFI).
 

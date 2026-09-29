@@ -1,7 +1,6 @@
 # xiom.timeseries
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (29/29); published at `v0.1.0` on the XIOM registry.
 > **Scope:** moving averages, fixed-point EMA, first differences, and range
 > statistics over flat `Vec[Int]` integer series.
 > **Deps:** `xiom.std` only (`deps` declares the platform dependency; the

@@ -1,7 +1,6 @@
 # xiom.codec
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) base64, base64url, base32 and hex
 > encoding/decoding per RFC 4648, plus strict `Str` <-> UTF-8 byte
 > conversion.

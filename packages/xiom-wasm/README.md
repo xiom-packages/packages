@@ -1,7 +1,6 @@
 # xiom.wasm
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) WebAssembly binary *structure* reader:
 > magic/version detection, unsigned LEB128 u32 decoding, section walking
 > and export-name extraction. It understands the container, not the code.

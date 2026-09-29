@@ -1,7 +1,6 @@
 # xiom.rpc
 
-> **Status:** `incubating` -- implemented and green on the local harness
-> (compiler v0.61.3, 27 checks), NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (27/27); published at `v0.1.0` on the XIOM registry.
 > **Scope:** JSON-RPC 2.0 envelope codec: builds compact request /
 > notification / response / error envelopes and scans them back with a
 > minimal byte-wise scanner. No JSON parser, no transports, no batch arrays.

@@ -1,7 +1,6 @@
 # xiom.dbase
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry.
 > **Scope:** dBASE III/III+ / Visual FoxPro table header codec: parse and
 > build `.dbf` headers, field descriptors and the fixed-size record area.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.str_trim` and
@@ -28,13 +27,13 @@ order, error catalog and test plan.
 
 ## Install
 
-Not yet published. Consume it from this repository with the package harness:
+Install from the XIOM registry:
 
 ```
-& .\scripts\port.ps1 -Package xiom.dbase
+xiom pkg install xiom.dbase@0.1.0
 ```
 
-Once published, the manifest name is `xiom.dbase` version `0.1.0`.
+The manifest name is `xiom.dbase` version `0.1.0`.
 
 ## API
 

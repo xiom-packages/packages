@@ -1,6 +1,6 @@
 # xiom.webp
 
-> **Status:** `incubating` -- conformance-tested on compiler v0.61.3 (20/20); NOT published yet.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** WebP (RIFF) container parsing and validation: `RIFF`/`WEBP` header, little-endian chunk stream with padding, VP8/VP8L uncompressed headers, VP8X extended header, ALPH, ANIM, ANMF with nested sub-chunks, and opaque ICCP/EXIF/XMP presence. Structure only; no pixel or metadata decode.
 > **Deps:** `xiom.std` only (`xiom.string.builder`, `xiom.convert`). No FFI in v0.1.
 

@@ -3,10 +3,7 @@
 Pure-XIOM (no FFI) structure codec for the ZigBee protocol stack: IEEE
 802.15.4 MAC frames, ZigBee NWK headers and ZigBee APS headers.
 
-> **Status:** implemented, package version 0.1.0.
-> Verified with `scripts/port.ps1 -Package xiom.zigbee` on XIOM 0.61.3:
-> `port: PASS (passed=26 failed=0 program_exit=0 exit=0)`.
->
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.1` on the XIOM registry.
 > **Honest scope:** this package parses **structure** only. It does not
 > decrypt anything, does not verify the MAC FCS, does not implement
 > AES-CCM* or key management, and does not decode MAC/NWK/APS command

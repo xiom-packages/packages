@@ -1,7 +1,6 @@
 # xiom.netstring
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM DJB netstring framing for in-memory `Vec[UInt8]`
 > buffers: parse a concatenated stream into flat payload spans, build frames
 > with computed decimal lengths, iterate frames with a cursor.

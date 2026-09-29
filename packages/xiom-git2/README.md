@@ -5,9 +5,7 @@ DEFLATE/zlib decoder. No FFI, no stdlib compression modules: every byte
 layout is parsed and decoded inside this package over flat `Vec[UInt8]`
 buffers.
 
-> **Status:** implemented, conformance suite green (`24/24` checks against
-> compiler v0.61.3). Structure layer only -- see *Scope* for the explicit
-> non-goals.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 
 ## Scope
 

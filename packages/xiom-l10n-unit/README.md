@@ -1,5 +1,7 @@
 # xiom.l10n-unit
 
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
+
 Exact integer unit conversion over an embedded rational-factor table, with
 affine temperatures and fixed-point micro-unit values. No floating point is
 used anywhere in the conversion path.

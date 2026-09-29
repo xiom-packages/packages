@@ -1,9 +1,6 @@
 # xiom.kafka
 
-> **Status:** Ported -- conformance suite green on the pinned toolchain
-> (XIOM 0.61.3, stdlib `E:\xiom-lang\stdlib`), 22/22 tests, program exit 0.
-> Not published. librdkafka FFI is not linked yet: producer/consumer/admin are
-> pure-XIOM stubs.
+> **Status:** `ported` -- conformance-tested (22/22); not yet published to the XIOM registry.
 > **Scope:** Apache Kafka client bindings (librdkafka).
 > **Deps:** stdlib; FFI to librdkafka planned (see ROADMAP.md).
 

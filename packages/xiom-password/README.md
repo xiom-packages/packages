@@ -1,7 +1,6 @@
 # xiom.password
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
 > **Scope:** password strength scoring and structural checks: ASCII character
 > classes, byte-identical runs, a documented 0..100 heuristic score, ordered
 > feedback suggestions, a caller-supplied "common password" check, and a

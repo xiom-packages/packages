@@ -1,7 +1,6 @@
 # xiom.uboot
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (16/16); published at `v0.1.0` on the XIOM registry.
 > **Scope:** U-Boot **legacy** image header codec: parse and inspect the
 > 64-byte `image_header_t`, verify both CRC-32 fields, and build a canonical
 > header plus payload.
@@ -41,13 +40,13 @@ both CRCs recomputed. FIT images (`d00dfeed`) are detected by
 
 ## Install
 
-Not yet published. Consume it from this repository with the package harness:
+Install from the XIOM registry:
 
 ```
-& .\scripts\port.ps1 -Package xiom.uboot
+xiom pkg install xiom.uboot@0.1.0
 ```
 
-Once published, the manifest name is `xiom.uboot` version `0.1.0`.
+The manifest name is `xiom.uboot` version `0.1.0`.
 
 ## API
 

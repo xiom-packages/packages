@@ -1,6 +1,6 @@
 # xiom.libtorch
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** LibTorch C++ frontend bindings for PyTorch models.
 > **Deps:** stdlib; may wrap C (FFI).
 

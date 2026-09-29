@@ -1,7 +1,6 @@
 # xiom.gpt
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.0` on the XIOM registry.
 > **Scope:** GUID Partition Table (GPT) codec: protective-MBR detection, the
 > LBA-1 header, the partition entry array and a canonical builder for the
 > primary GPT.
@@ -36,13 +35,13 @@ to the disk size (see `SPEC.md`).
 
 ## Install
 
-Not yet published. Consume it from this repository with the package harness:
+Install from the XIOM registry:
 
 ```
-& .\scripts\port.ps1 -Package xiom.gpt
+xiom pkg install xiom.gpt@0.1.0
 ```
 
-Once published, the manifest name is `xiom.gpt` version `0.1.0`.
+The manifest name is `xiom.gpt` version `0.1.0`.
 
 ## API
 

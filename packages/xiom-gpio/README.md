@@ -1,7 +1,6 @@
 # xiom.gpio
 
-> **Status:** IMPLEMENTED -- harness-green with compiler v0.61.3
-> (`port: PASS (passed=21 failed=0)`).
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM structure codec for the Linux GPIO character-device
 > uAPI v2 (`include/uapi/linux/gpio.h`): `gpiochip_info`, the v2 line flags,
 > attributes, config, line info, line requests, line events and the

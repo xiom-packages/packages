@@ -1,7 +1,6 @@
 # xiom.fletcher
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI), Int-only Fletcher-16 and Fletcher-32
 > checksums in the classic ones'-complement form, one-shot and incremental.
 > **Deps:** `xiom.std` only. The library module imports `xiom.string` (hex

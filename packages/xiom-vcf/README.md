@@ -1,7 +1,6 @@
 # xiom.vcf
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** an RFC 6350-subset vCard text codec: content lines with optional
 > groups and parameters, CRLF folding/unfolding, text-value escaping,
 > BEGIN:VCARD/END:VCARD cards (VERSION 3.0 or 4.0), multi-card streams, card

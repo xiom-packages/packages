@@ -4,8 +4,7 @@ Line-oriented lint engine for source text: a rule registry, a parallel-Vec
 diagnostic bag, six built-in rules, a strict `key = value` configuration, and
 two deterministic report formats.
 
-Status: `incubating` -- implemented, harness-green on compiler 0.62.1, not
-published.
+Status: `incubating` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 
 Module: `xiom.linter` (`src/linter.xi`). Pure XIOM: no FFI, no file I/O, no
 clock access, no global state. The input is a source `Str` and the output is a

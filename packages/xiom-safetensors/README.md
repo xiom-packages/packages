@@ -1,8 +1,6 @@
 # xiom.safetensors
 
-> **Status:** IMPLEMENTED -- port-green with compiler 0.61.3 / pinned stdlib.
-> Conformance: 21/21 PASS (`scripts/port.ps1 -Package xiom.safetensors`,
-> `program_exit=0`). **Not published** -- publication remains out of scope.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a pure-XIOM safetensors container codec: header parsing and
 > validation, tensor-table accessors, payload extraction and a builder.
 > **Deps:** `xiom.std` only (no FFI, no third-party dependencies).

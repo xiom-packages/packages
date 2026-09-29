@@ -5,9 +5,7 @@
 Country address templates, multi-line rendering and field validation for a
 built-in 12-country dataset.
 
-> **Status:** implemented, `xiom.l10n-address` v0.1.0, 22/22 conformance
-> checks green on the pinned compiler (v0.62.0). Pure XIOM: no FFI, no I/O
-> in the library module, no floating point.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 
 ## Scope
 

@@ -1,7 +1,6 @@
 # xiom.gbnf
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (30/30); published at `v0.1.0` on the XIOM registry.
 > **Scope:** parse, validate and canonically re-emit GBNF grammars (the
 > llama.cpp grammar format) for a documented subset.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,

@@ -1,6 +1,6 @@
 # xiom.control
 
-> **Status:** `ported` -- conformance-tested on compiler v0.61.3 (27/27); NOT published yet.
+> **Status:** `ported` -- conformance-tested (27/27); not yet published to the XIOM registry.
 > **Scope:** Pure-XIOM control primitives: signal filters, PID control, trajectory interpolation, and state machines.
 > **Deps:** `xiom.std` only. No FFI in v0.1.
 

@@ -1,7 +1,6 @@
 # xiom.feature
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI, no floats), and
-> green under the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** feature engineering on scaled integers: degree-2 polynomial
 > expansion, feature hashing (the "hashing trick"), extraction
 > (mean/variance/min/max), scaling (min-max, z-score) and variance-threshold

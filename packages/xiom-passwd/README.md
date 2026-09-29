@@ -1,7 +1,6 @@
 # xiom.passwd
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** `/etc/passwd` parsing into a flat document, field/uid/name
 > access and lookups, a documented system-user count and canonical emission
 > for the seven-field subset.

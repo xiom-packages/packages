@@ -1,7 +1,6 @@
 # xiom.spf
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 > **Scope:** parsing and canonical emitting of one in-memory SPF record (the
 > RFC 7208 syntax subset described in `SPEC.md`); no DNS lookups, no
 > evaluation, no DNS TXT framing.

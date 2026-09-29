@@ -1,7 +1,6 @@
 # xiom.oauth
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (25/25); published at `v0.1.1` on the XIOM registry.
 > **Scope:** OAuth 2.0 (RFC 6749) / PKCE (RFC 7636) request-and-response
 > **structure** codec: form-urlencoded and JSON message building/parsing.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,

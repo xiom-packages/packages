@@ -1,7 +1,6 @@
 # xiom.imap
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** IMAP4rev1 protocol parser (RFC 3501): client commands and server
 > responses, with atoms, quoted strings, `{n}`/`{n+}` literals, NIL, nested
 > parenthesized lists and response text codes; in-memory `Str` buffers only,

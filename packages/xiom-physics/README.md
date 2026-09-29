@@ -1,7 +1,6 @@
 # xiom.physics
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** introductory Newtonian mechanics in SI units with scalar
 > `Float64` values: kinematics (SUVAT), energy, momentum, work and power,
 > gravitation, and two geometry helpers.

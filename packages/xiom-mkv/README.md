@@ -1,7 +1,6 @@
 # xiom.mkv
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 Manifest: `package.xi` (`xiom.mkv`, version `0.1.0`).
 Module: `src/mkv.xi` (`module xiom.mkv`).
 Depends on `xiom.std`; the library module imports `xiom.string.builder`,

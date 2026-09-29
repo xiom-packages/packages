@@ -1,7 +1,6 @@
 # xiom.tlv
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM generic big-endian TLV (tag-length-value) parsing and
 > building with caller-chosen tag/length widths of 1..4 bytes.
 > **Deps:** `xiom.std` only. The library module is dependency-free; the tests

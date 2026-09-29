@@ -1,6 +1,6 @@
 # xiom.bmp
 
-> **Status:** `incubating` -- conformance-tested on compiler v0.61.3 (18/18); NOT published yet.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Uncompressed BMP (24-bit and 32-bit) header parsing, pixel access with top-left origins, and a minimal 24-bit builder.
 > **Deps:** `xiom.std` only. No FFI in v0.1.
 

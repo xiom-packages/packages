@@ -1,6 +1,6 @@
 # xiom.mongo
 
-> **Status:** IMPLEMENTED -- 23/23 conformance tests green on XIOM v0.61.3.
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.1` on the XIOM registry.
 > **Scope:** BSON document decoding plus MongoDB wire-message structural
 > framing. No queries, no driver, no sockets, no encoders.
 > **Deps:** none (the library imports only `xiom.convert` and `xiom.string`

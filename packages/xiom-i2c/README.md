@@ -1,7 +1,6 @@
 # xiom.i2c
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM I2C/SMBus codec: 7-bit address bytes
 > (`address << 1 | R/W`) with reserved-range validation, the 10-bit two-byte
 > addressing form, a typed START / repeated START / STOP / address / data /

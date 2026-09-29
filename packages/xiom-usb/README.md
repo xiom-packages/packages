@@ -1,7 +1,6 @@
 # xiom.usb
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM USB descriptor-stream codec for a documented subset:
 > device, configuration, interface, endpoint and string descriptors parsed
 > into a hierarchy with parent links, plus raw-preserved device-qualifier,

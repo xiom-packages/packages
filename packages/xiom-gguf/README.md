@@ -4,6 +4,8 @@
 
 # xiom.gguf
 
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+
 A production-grade, dependency-free GGUF container **header** codec for
 XIOM: parse the metadata KV table and tensor-info table of llama.cpp-family
 model files (version 2 and 3), query every field, or build a byte-exact

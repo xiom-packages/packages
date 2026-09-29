@@ -1,7 +1,6 @@
 # xiom.spectroscopy
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (16/16); published at `v0.1.0` on the XIOM registry.
 > **Scope:** electromagnetic-spectrum conversions on scalar `Float64` values:
 > vacuum wavelength (nm), frequency (THz), wavenumber (cm^-1) and photon
 > energy (eV), plus a visible-range test and a spectral band-name helper.

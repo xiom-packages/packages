@@ -1,6 +1,6 @@
 # xiom.durable
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** Core foundation types and utilities shared across XIOM.
 > **Deps:** stdlib; may wrap C (FFI).
 

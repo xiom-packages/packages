@@ -1,6 +1,6 @@
 # xiom.farbfeld
 
-> **Status:** `incubating` -- conformance-tested on compiler v0.61.3 (17/17); NOT published yet.
+> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.0` on the XIOM registry.
 > **Scope:** farbfeld header parsing, exact raster-size validation, RGBA pixel/channel/span accessors, and canonical building from flat channel buffers.
 > **Deps:** `xiom.std` only. No FFI in v0.1.
 

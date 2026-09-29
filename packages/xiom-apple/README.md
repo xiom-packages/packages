@@ -1,7 +1,6 @@
 # xiom.apple
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM Apple executable/container STRUCTURE parser for thin
 > Mach-O images (32/64-bit, little- and big-endian) and fat/universal
 > archives (32-bit arch records). No code, symbols, relocations or dyld

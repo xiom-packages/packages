@@ -1,7 +1,6 @@
 # xiom.spi
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) SPI transfer codec: modes (CPOL/CPHA),
 > clock prescaler table, MSB/LSB-first bit order, 4..16-bit word sizes,
 > active-low chip-select semantics, a full-duplex MOSI/MISO transfer model

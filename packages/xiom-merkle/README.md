@@ -1,7 +1,6 @@
 # xiom.merkle
 
-> **Status:** IMPLEMENTED -- harness-green with compiler v0.61.3
-> (`port: PASS (passed=22 failed=0)`); not published.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a Merkle tree and inclusion proofs over caller-supplied leaf
 > byte buffers, with RFC 6962-style domain-separated SHA-256.
 > **Deps:** `xiom.std` (library: `xiom.string`, `xiom.string.builder`,

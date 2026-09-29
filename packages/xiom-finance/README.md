@@ -1,7 +1,6 @@
 # xiom.finance
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (31/31); published at `v0.1.0` on the XIOM registry.
 > **Scope:** integer time-value-of-money: simple and compound interest, APY,
 > annuity payments, total interest, net present value, and a rule-of-72
 > doubling indicator.

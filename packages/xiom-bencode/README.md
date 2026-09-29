@@ -1,7 +1,6 @@
 # xiom.bencode
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.0` on the XIOM registry.
 > **Scope:** strict pure-XIOM bencode encoding and decoding for a documented
 > subset: integers, byte strings, lists and dictionaries.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.builder`,

@@ -1,7 +1,6 @@
 # xiom.retry
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure deterministic retry policy engine: exponential backoff with
 > a delay ceiling, deterministic jitter, caller-driven retry state, and
 > circuit-breaker state with a half-open probe window.

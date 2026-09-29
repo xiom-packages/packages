@@ -1,7 +1,6 @@
 # xiom.logging
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** syslog message structure codecs for the two classic wire
 > formats: RFC 3164 (BSD syslog) and RFC 5424. Parse the PRI field, the
 > facility/severity tables, 3164 timestamps/hostname/TAG/pid/CONTENT, 5424

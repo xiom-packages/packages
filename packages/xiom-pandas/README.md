@@ -1,6 +1,6 @@
 # xiom.pandas
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** Pandas-like tabular data structures.
 > **Deps:** stdlib; may wrap C (FFI).
 

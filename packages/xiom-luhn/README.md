@@ -1,7 +1,6 @@
 # xiom.luhn
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness on compiler v0.61.3 (18/18). NOT published yet.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** canonical Luhn (mod-10) parsing and validation, check-digit
 > computation, check-digit appending, space/hyphen normalization of display
 > text, and structure access, for a documented digit-only subset.

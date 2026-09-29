@@ -1,7 +1,6 @@
 # xiom.fnv
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI), Int-only implementation of FNV-1 and
 > FNV-1a in 32-bit and 64-bit widths, as one-shot functions and as an
 > explicit-state incremental API.

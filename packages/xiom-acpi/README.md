@@ -1,7 +1,6 @@
 # xiom.acpi
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM ACPI table-layer codec: RSDP (revision 0/2), the
 > 36-byte SDT header, and RSDT (u32) / XSDT (u64) table-chain walking and
 > canonical building.

@@ -1,7 +1,6 @@
 # xiom.ar
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM Unix ar archive codec: parse and build the common
 > `ar(5)` member container.
 > **Deps:** `xiom.std` only (`xiom.string`; tests add `xiom.test`, `xiom.io`,

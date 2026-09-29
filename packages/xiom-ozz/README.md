@@ -1,6 +1,6 @@
 # xiom.ozz
 
-> **Status:** PLACEHOLDER -- reserved, spec pending. No implementation yet.
+> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
 > **Scope:** Ozz Animation skeleton and clip runtime bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

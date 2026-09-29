@@ -1,7 +1,6 @@
 # xiom.fuzz
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic byte and string mutation for fuzzing: a seeded
 > generator plus flip/insert/delete/duplicate operators and a multi-step
 > driver.

@@ -1,7 +1,6 @@
 # xiom.murmur3
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI), Int-only implementation of the
 > MurmurHash3 x86_32 non-cryptographic hash, as a one-shot function and as
 > an explicit streaming state with `init`/`update`/`finalize`.

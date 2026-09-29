@@ -2,7 +2,7 @@
 
 Pure, deterministic **hierarchical timer wheel** over integer ticks.
 
-> **Status:** implemented, conformance suite green (21 checks).
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Deps:** `xiom.std` only; the module itself imports nothing and calls no FFI.
 
 ## What this package is for

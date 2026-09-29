@@ -1,7 +1,6 @@
 # xiom.radiotap
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) codec for IEEE 802.11 radiotap capture
 > headers: the 8-byte base header, the present bitmap chain (max 2 words)
 > and the fixed-size data fields selected by bits 0..19, plus canonical

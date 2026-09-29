@@ -1,6 +1,6 @@
 # xiom.pcx
 
-> **Status:** `incubating` -- conformance-tested on compiler v0.61.3 (18/18); NOT published yet.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** PCX structural codec for a documented subset: 128-byte header parse/build, 16-entry header palette, optional 768-byte VGA palette trailer detection and extraction, RLE pixel-data span location, and validation. No RLE packet is ever expanded and no pixel is decoded.
 > **Deps:** `xiom.std` only (the library module imports nothing). No FFI in v0.1.
 

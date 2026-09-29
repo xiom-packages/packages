@@ -1,7 +1,6 @@
 # xiom.cab
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Microsoft Cabinet (CAB) header and directory codec: parse and
 > build the `CFHEADER`/`CFFOLDER`/`CFFILE` structures of a cabinet file.
 > **Deps:** `xiom.std` only (`xiom.string`; tests add `xiom.test`, `xiom.io`,

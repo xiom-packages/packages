@@ -1,7 +1,6 @@
 # xiom.telnet
 
-> **Status:** INCUBATING -- implemented and covered by a green conformance
-> suite, **not yet published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** the Telnet negotiation layer only: IAC verbs
 > (WILL/WONT/DO/DONT), subnegotiation (SB ... SE) framing and 0xFF data
 > escaping.

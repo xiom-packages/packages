@@ -1,7 +1,6 @@
 # xiom.base32
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) RFC 4648 Base32 encoding/decoding over the
 > standard alphabet (`A-Z`, `2-7`) with canonical `=` padding, strict
 > validation and case-insensitive decoding.

@@ -1,7 +1,6 @@
 # xiom.mbr
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Master Boot Record codec: parse and build the canonical 512-byte
 > MBR sector -- raw boot code, four primary partition entries and the 0x55AA
 > signature.
@@ -37,13 +36,13 @@ layout, policies, validation order, error catalog and test plan.
 
 ## Install
 
-Not yet published. Consume it from this repository with the package harness:
+Install from the XIOM registry:
 
 ```
-& .\scripts\port.ps1 -Package xiom.mbr
+xiom pkg install xiom.mbr@0.1.0
 ```
 
-Once published, the manifest name is `xiom.mbr` version `0.1.0`.
+The manifest name is `xiom.mbr` version `0.1.0`.
 
 ## API
 

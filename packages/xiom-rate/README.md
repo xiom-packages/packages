@@ -1,7 +1,6 @@
 # xiom.rate
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic rate limiters with explicit clocks: a token bucket
 > with millisecond refill, and a fixed-window counter.
 > **Deps:** `xiom.std` only (the library imports nothing; tests use

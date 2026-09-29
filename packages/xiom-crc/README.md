@@ -1,7 +1,6 @@
 # xiom.crc
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI), bitwise, table-free CRC-8/16/32 with the
 > classic Rocksoft / CRC-RevEng parameter model and five named presets.
 > **Deps:** `xiom.std` only. The library module imports nothing; the tests

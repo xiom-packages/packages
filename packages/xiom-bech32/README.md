@@ -1,7 +1,6 @@
 # xiom.bech32
 
-> **Status:** `incubating` -- implemented and green on the local harness,
-> NOT yet published to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) Bech32 and Bech32m codec: encode/decode with
 > the BIP-173 / BIP-350 checksums, the 5-bit data alphabet, HRP validation,
 > variant detection, and `convertbits` 8->5 / 5->8 helpers.

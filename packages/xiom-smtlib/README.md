@@ -1,7 +1,6 @@
 # xiom.smtlib
 
-> **Status:** `incubating` -- implemented, pure XIOM (no FFI), and green under
-> the repo harness. **NOT published** to the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** an SMT-LIB2 command/term reader for a documented subset plus a
 > canonical emitter, over a flat node model.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,

@@ -4,9 +4,7 @@ Deterministic in-memory cache eviction structures over `Int` keys and `Int`
 values: **LRU**, **LFU**, **CLOCK** (second chance) and **TTL**. No threads,
 no clocks, no FFI: every decision follows from the call sequence alone.
 
-> **Status:** implemented, `0.1.0`. Conformance suite: 26 checks, all green on
-> compiler v0.61.3. See `SPEC.md` for the full data model, semantics, ordering
-> guarantees and error catalog.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.1` on the XIOM registry.
 
 ## Scope
 

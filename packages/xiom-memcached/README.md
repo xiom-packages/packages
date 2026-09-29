@@ -1,5 +1,7 @@
 # xiom.memcached
 
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
+
 Pure-XIOM **memcached protocol codec** covering both the classic text protocol
 and the (modern) binary protocol. Encoding and decoding only: the package
 never opens a socket, keeps no session state and performs no connection

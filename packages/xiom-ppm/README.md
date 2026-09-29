@@ -1,6 +1,6 @@
 # xiom.ppm
 
-> **Status:** `incubating` -- conformance-tested on compiler v0.61.3 (18/18); NOT published yet.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Netpbm PPM (P3 ASCII and P6 binary) header parsing, 8-bit P6 pixel access with a top-left origin, and canonical P3/P6 builders.
 > **Deps:** `xiom.std` only. No FFI in v0.1.
 

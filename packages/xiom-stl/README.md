@@ -4,7 +4,7 @@
 
 # xiom.stl
 
-> **Status:** `incubating` -- conformance-tested on compiler v0.61.3 (17/17); NOT published yet.
+> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Binary STL structure parsing: kind classification, triangle counts, and raw normal/vertex/attribute access. ASCII files are detected only (no geometry parsing).
 > **Deps:** `xiom.std` only. No FFI in v0.1.
 
