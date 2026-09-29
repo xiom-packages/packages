@@ -121,12 +121,17 @@ through the v0.62.1 pin bump and waves 41-42). Check
   sections point at the registry; **0 stale "NOT published" remain in
   published packages**. Caveat: **registry pages render the README
   frozen inside each published version** -- a page only changes when a
-  new version is published. **Decision (owner 2026-09-29): ask ops first**
-  -- relay asks whether the registry can refresh a version's stored
-  README/metadata server-side (no version bump; ~325 affected pages, e.g.
-  `xiom.webp` shows "NOT published" while `stable`+published). Fallback
-  **(B)** chunked docs-refresh republishes (~50/batch, patch bumps) only
-  if ops cannot; do not start bumps without the go.
+  new version is published. **Decision (owner 2026-09-29): ask ops first.**
+  Ops answer (16:40Z): **no server-side metadata refresh exists** --
+  pages render the README from the stored artifact (immutable by design);
+  a refresh mechanism would be a registry-lane feature (conflicts with
+  artifacts-as-source-of-truth + the upcoming C5 index digest) and is
+  with them. **HOLD the chunked patch-bump until the registry lane
+  answers**; if they decline, the 0.1.1 republish is the
+  design-consistent fix and ops will support it with a publish-rate
+  window + staging-first checks. Affected set = published packages whose
+  READMEs changed in `da3289f` = **350 names** (recomputable:
+  `git show --name-only da3289f` intersected with the registry index).
 - **Mechanics gotchas:** gate `port.ps1` on its **exit code** (the PASS
   line is Write-Host, invisible to in-process capture); version bumps via
   the Edit tool per file; `fn`/`use`/`as` are reserved names; v0.62.0
