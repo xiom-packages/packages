@@ -32,7 +32,10 @@ stale.
    append the allowlist delta, wrap (`generate_index.ps1` +
    `status.ps1 -Action report` + `export-namespaces.ps1`), tag one
    `eco-*` batch, ping ops for the batch rate window, have ops re-verify
-   that allowlist and stacks sets match exactly.
+   that allowlist and stacks sets match exactly. After every publish
+   batch, sync the published names' README `Status` blocks (stage +
+   published version) -- README text is a build-time snapshot and lags
+   the records/registry otherwise.
 4. **Dependency-driven**: when a package publishes a new minor/major,
    schedule a check for its dependents (`deps:` in `package.xi`).
 5. **Opportunistic**: any package touched for a fix rides the next batch
@@ -80,7 +83,20 @@ stale.
   with zero diff). Wave 42 candidates namespace-checked (`feature`,
   `clustering`, `loss`, `ensemble`, `streaming`, `linter`, `lexer-fw`,
   `barrier`, `forkjoin`, `executor`).
-- Open follow-ups: `byte-at-128` direct comparison still open (the
-  item-10 claim covers the cast path only; battery README updated), OIDC
-  per-run token re-mint (`.github` scope), `tftp`/`tap` same-version
-  republish decisions (owner).
+- Open follow-ups: `byte-at-128` direct comparison **fixed on compiler
+  main (`f4af5f64`); re-run the battery at the next release before
+  retiring the workaround**, OIDC per-run token re-mint (`.github`
+  scope), `tftp`/`tap` same-version republish decisions (owner), and the
+  module-level const/table materialization row 25 (next in the compiler
+  backlog).
+- **Stage/README hygiene (2026-09-29 registry audit):** published
+  registry stages = 242 stable / 63 incubating / 36 empty-stage legacy;
+  repo records (allowlisted) = 271 stable / 127 incubating / 4 ported.
+  Real drift on the registry side: 36 legacy empty-stage entries plus 5
+  entries still shown `stable` while their records are now `incubating`
+  (`snapshot`, `mkv`, `snmp`, `imap`, `coverage`) -- all self-correct at
+  their next patch bump. README `Status` blocks lag by design (~234
+  published-stable READMEs still say "incubating -- NOT published");
+  sync on next touch and via the publish-batch trigger above. The
+  registry badge is a maturity tier, not a prerelease flag -- both tiers
+  are published and installable.

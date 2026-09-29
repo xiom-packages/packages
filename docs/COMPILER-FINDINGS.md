@@ -133,3 +133,10 @@ strict clauses on):
   275 fleet records re-pointed to `fleet-sweep:v0.62.1`, worker
   provenance preserved, validate 407/0, guard 392 allowlisted / 0
   failures.
+- 2026-09-29 (relay): compiler main `f4af5f64` **fixes the `byte_at`
+  >= 128 direct comparison** -- the fix is not in v0.62.1; re-run
+  `docs/repro/byte-at-128/probe_byte_at.xi` at the next compiler release
+  (expect `bad=0`) and retire the widen+mask workaround from the briefs
+  only after that. Compiler backlog order: **row 25 (module-level
+  const/table materialization)** is next -- the family behind the
+  per-call table rebuilding that `l10n-address`/`l10n-date` documented.

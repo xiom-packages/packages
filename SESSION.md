@@ -105,8 +105,18 @@ through the v0.62.1 pin bump and waves 41-42). Check
   `sectest`/`mock`/`pwm` (22/22, 20/20, 20/20) and stalled unrecorded at
   ~00:42Z; this session re-verified (port x2 each) and integrated them so
   the gates stay green -- their records use
-  `agentmgr:ses_f26cdae1…`. **Scope ask: 392 -> 402 (+10) to ops; tag
-  `eco-v0.1.14` only after ops confirms (expect registry ~353 = 343+10).**
+  `agentmgr:ses_f26cdae1…`. **Scope ask: 392 -> 402 (+10) to ops.**
+- **`eco-v0.1.14` tagged (`c54d6e3`), gate approved, run `36583479344`
+  FAILED -- 0/10 published:** every wave-42 name returned **`403
+  scope_denied`** ("token 'eco-release' is not scoped to publish
+  xiom.barrier/clustering/...") -- the **+10 scope enumeration is still
+  pending on the registry side** (the 22:51Z "392 live" did not include
+  wave 42). Secondary: `loss`/`streaming` later hit
+  `oidc_token_expired` after the scope-denied retries burned the 6-min
+  token (the known per-run mint). **Action: ops enumerates the +10 (402)
+  on both entries; then `gh run rerun 36583479344 --failed` mints a fresh
+  token -- early-alphabet names publish fast; if the token expires again
+  mid-loop, a second rerun clears the stragglers.**
 - **Mechanics gotchas:** gate `port.ps1` on its **exit code** (the PASS
   line is Write-Host, invisible to in-process capture); version bumps via
   the Edit tool per file; `fn`/`use`/`as` are reserved names; v0.62.0

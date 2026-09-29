@@ -49,3 +49,10 @@ unchanged. The compiler-side `COMPILER_BUGS.md` item 10 ("VERIFIED FIXED,
 UInt8 as Int zexts") covers the explicit `as Int` cast path (this probe's
 path D, which works); the direct `byte_at(...) != 195u8` comparison stays
 miscompiled. Keep the widen+mask workaround (`(x as Int) & 0xFF`).
+
+## Compiler main fix (relay 2026-09-29)
+
+The direct-comparison shape is **fixed on compiler main (`f4af5f64`)**;
+the fix is not in v0.62.1. Re-run this probe at the next compiler
+release and expect `bad=0`; only then retire the widen+mask workaround
+from the wave briefs.
