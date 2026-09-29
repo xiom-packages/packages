@@ -35,7 +35,10 @@ stale.
    that allowlist and stacks sets match exactly. After every publish
    batch, sync the published names' README `Status` blocks (stage +
    published version) -- README text is a build-time snapshot and lags
-   the records/registry otherwise.
+   the records/registry otherwise. **Registry ruling (2026-09-29): no
+   version-less metadata refresh; stale registry pages are fixed by
+   chunked patch-bump republishes (~50/batch, staging first, ops
+   supports the rate window).**
 4. **Dependency-driven**: when a package publishes a new minor/major,
    schedule a check for its dependents (`deps:` in `package.xi`).
 5. **Opportunistic**: any package touched for a fix rides the next batch

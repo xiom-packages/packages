@@ -3,13 +3,72 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-09-29 00:55Z, by the packages session (continued
-through the v0.62.1 pin bump and waves 41-42). Check
-`git log -1 --format=%h %s` before starting.
+**Written:** 2026-09-29 17:35Z, by the packages session (waves 41-42,
+v0.62.1 pin bump, eco-v0.1.13/.14 publishes, README sync, registry
+ruling). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-09-29 00:55Z (read this block first; older bullets below are history):**
+**STATE AT 2026-09-29 17:35Z (read this first):**
+- **README-refresh republishes APPROVED -- hold lifted (owner relay
+  17:31Z):** registry ruling = **no version-less refresh, no registry
+  dependency**. Proceed with **chunked patch-bump republishes from
+  `packages@da3289f`**, latest-version scope, **~50/batch, staging
+  first**; ops supports the batches (publish-rate window +
+  staging-first checks). **This is the next big task** (full recipe in
+  the paste prompt below).
+  - Affected set: **350 published packages** whose READMEs changed in
+    `da3289f` (recompute: `git show --name-only da3289f` READMEs under
+    `packages/*/`, intersected with the registry index).
+  - Per package: next version = current latest + 1 patch (0.1.0 ->
+    0.1.1; 0.1.1 -> 0.1.2); bump via the Edit tool per `package.xi`,
+    re-run `port.ps1` green, refresh the record (same stage, fresh
+    run/commit/checked), commit, wrap, tag, publish.
+  - Known quirk: the full-allowlist loop (~9 min) can outlive the 6-min
+    OIDC token; on `oidc_token_expired`, rerun the failed job once
+    (skips are fast) -- 50-name batches may need 2 runs.
+- **Current gates/state:** pin `v0.62.1`; validate **420/0**; guard
+  **402 allowlisted / 350 ready / 52 grandfathered / 0 failures**;
+  allowlist **402**; registry **353 = 242 stable / 73 incubating / 38
+  empty**; `eco-v0.1.14` published 10/10 (wave 42); all 420 repo
+  READMEs synced (`da3289f`); nothing uncommitted.
+- **Wave 43 PREPPED, NOT dispatched:** 10 names namespace-checked clean
+  (0 conflicts): `cancel`, `stm`, `worker`, `messaging`, `plugin`,
+  `countdown`, `diagrams`, `charts`, `parsing`, `ast`. Deliverables:
+  package.xi, src, conformance tests, README, SPEC, .gitignore; then
+  6 background `task` porters + 4 AM local sessions with the canonical
+  18-trap briefs (v0.62.1 edition; byte-at trap still live) + XIOM MCP
+  tools + no-commit rules + `stdlib gaps` reports; integrate as they
+  report; wrap (allowlist 402 -> 412 + scope ask to ops).
+- **Compiler relay (recorded in `COMPILER-FINDINGS`):** `byte_at >= 128`
+  direct compare **fixed on compiler main `f4af5f64`** (NOT in v0.62.1)
+  -- re-run `docs/repro/byte-at-128` at the **next release**; only then
+  retire the widen+mask workaround. **Row 25 (module-level const/table
+  materialization)** is next in the compiler backlog.
+- **Open follow-ups:** `.github` OIDC per-run token (above); `tftp`/`tap`
+  same-version republish decisions (owner); registry-stage lags
+  (`snapshot`, `mkv`, `snmp`, `imap`, `coverage`) self-correct at their
+  next bump -- the README batches trigger exactly that; registry
+  publish-time warning (accepted); `dimred` category fix rides its next
+  bump; growth docs append at every wave.
+- **Maintenance loop:** `docs/MAINTENANCE.md` (release-triggered, no
+  lockstep versions); publish-batch trigger includes README sync; the
+  registry ruling is written into it.
+- **Policy:** incubating-by-default; `stable` by explicit promotion
+  only; PRODUCTION-DIRECT batches (this lane approves the publish
+  gates); staging only on explicit ask -- README-refresh batches are
+  **staging-first** per the ruling.
+- **Mechanics gotchas:** gate `port.ps1` on exit code; version bumps via
+  the Edit tool per file; `fn`/`use`/`as` are reserved; v0.62.1 binds
+  `&` looser than `+`; `STATUS.json` is machine-written (same
+  `ConvertTo-Json -Depth 6` shape); task/AM sessions can pause (resume
+  via task id / Agent Manager prompt); a parallel packages lane may work
+  in this same tree (check `git status` before wraps; rescue
+  green-but-unrecorded work per the 2026-09-29 pattern).
+
+**--- History below (chronological, oldest first) ---**
+
+**STATE AT 2026-09-29 00:55Z (history):**
 - **Compiler field refresh DONE (`2183ac4`, pushed):** all 338 records
   still at `v0.61.3` now say `v0.62.0`. The 275 green records were
   re-pointed at the fleet sweep (`run_by: "fleet-sweep:v0.62.0"`,
@@ -144,39 +203,58 @@ through the v0.62.1 pin bump and waves 41-42). Check
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-09-28 23:40Z STATE block at
+private). Read SESSION.md first -- the 2026-09-29 17:35Z STATE block at
 the top of section 0 is the live handoff. Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
-PRODUCTION-DIRECT (one eco-* tag per ready batch; this session handles
-the registry-publish gate approval); staging only when the owner
-explicitly asks. New/next-touched records use stage `incubating`
-(incubating-by-default; `stable` only by explicit promotion).
+PRODUCTION-DIRECT batches (this session approves the registry-publish
+gates); staging only on explicit ask -- note the README-refresh batches
+are STAGING FIRST per the registry ruling. New/next-touched records use
+stage `incubating` (`stable` only by explicit promotion).
 
 Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Wave 42 is COMPLETE and PUBLISHED (`eco-v0.1.14` on `c54d6e3`, run
-   `36583479344` rerun SUCCESS, 10/10; registry **353 = 242 stable / 73
-   incubating / 38 empty**; allowlist at **402**; validate 420/0; guard
-   402/0). The next `eco-*` batch is wave 43.
-2. The v0.62.1 pin bump is DONE (`097d1c9`; sweep 347/407, batteries
-   re-run; `byte-at` direct comparison still open -- keep the widen+mask
-   workaround in briefs). No re-bump unless a new compiler release lands;
-   `docs/MAINTENANCE.md` covers the next one.
-3. Wave 43: ~10 README-only placeholders, `namespace-check.ps1 -Module`
-   FIRST, then 6 task porters + 4 AM sessions with the canonical 18-trap
-   (v0.62.1 edition) + MCP briefs and a `stdlib gaps` section; integrate
-   as they report. If a parallel lane stalls green-but-unrecorded and
-   blocks the gates, rescue-integrate it (verify port x2 + trap-14, then
-   feat + record with the lane's session id -- the 2026-09-29 pattern).
-4. Growth + maintenance: append worker `stdlib gaps` / compiler evidence
+1. README-refresh republishes (hold lifted, owner relay 17:31Z). Chunked
+   patch bumps + republishes for the 350 published packages whose READMEs
+   changed in `da3289f`; ~50 per batch; staging first; ops supports with
+   a publish-rate window.
+   Recipe per batch:
+   a. Compute the batch list: `git show --name-only da3289f` READMEs
+      intersected with the registry index; pick ~50; for each, next
+      version = current latest + 1 patch (0.1.0 -> 0.1.1, 0.1.1 -> 0.1.2).
+   b. Bump each `package.xi` with the Edit tool (one file at a time --
+      the version-bump rule), re-run
+      `& .\scripts\port.ps1 -Package <pkg>` until green (gate on exit
+      code), then refresh each record via `status.ps1 -Action update`
+      with the same stage and fresh run/commit/checked.
+   c. Commit bumps + records; wrap: `generate_index.ps1`,
+      `status.ps1 -Action report`, validate, allowlist-guard,
+      `export-namespaces.ps1`; commit.
+   d. Ping ops for the publish-rate window (relay wording in session
+      history); tag `eco-v0.1.x`; push; approve the gate as soon as it
+      waits; monitor; verify the "Published xiom." lines and the
+      registry count. The full loop (~9 min) can outlive the 6-min OIDC
+      token -- on `oidc_token_expired`, rerun the failed job once (skips
+      are fast); 50-name batches may need 2 runs. Do ops's staging
+      check first if the window instructions say so.
+2. Wave 43 (prepped, 10 names namespace-checked clean): `cancel`,
+   `stm`, `worker`, `messaging`, `plugin`, `countdown`, `diagrams`,
+   `charts`, `parsing`, `ast`. Dispatch 6 background `task` porters + 4
+   AM local sessions with the canonical 18-trap v0.62.1 briefs + XIOM
+   MCP tools + no-commit rules + `stdlib gaps` reports; integrate as
+   they report; wrap when green (allowlist 402 -> 412 + scope ask to
+   ops). If a parallel lane stalls green-but-unrecorded and blocks the
+   gates, rescue-integrate it (verify port x2 + trap-14, then feat +
+   record with the lane's session id -- the 2026-09-29 pattern).
+3. Growth + maintenance: append worker `stdlib gaps` / compiler evidence
    at every wave and regenerate `docs/PACKAGE-NAMESPACES.txt` at wrap;
    run the release-triggered loop in `docs/MAINTENANCE.md` on
    compiler/stdlib releases (targeted, no lockstep versions).
-5. Keep the follow-ups from the STATE block: registry publish-time
-   warning, `byte-at-128` battery, `.github` OIDC re-mint, `tftp`/`tap`
-   same-version republish decisions.
+4. Follow-ups: `byte_at` battery at the next compiler release (fixed on
+   main `f4af5f64`); row 25 next in the compiler backlog; OIDC per-run
+   token; `tftp`/`tap` same-version decisions; registry-stage lags
+   self-correct at the README-batch bumps; registry publish-time warning.
 ```
 
 - **Wave 34 (dispatched 2026-09-26 23:31Z; COMPLETE for greens):** names
