@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  28,
                   "failed":  0,
-                  "run_by":  "agentmgr:ses_f15dfabfbffe5uwBQlesUpbPZ7",
-                  "commit":  "1cbbfe3",
-                  "checked":  "2026-09-28T23:13:50Z"
+                  "run_by":  "readme-refresh:eco-v0.1.16",
+                  "commit":  "77d7ec3",
+                  "checked":  "2026-09-29T19:12:07Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"
