@@ -140,3 +140,24 @@ strict clauses on):
   only after that. Compiler backlog order: **row 25 (module-level
   const/table materialization)** is next -- the family behind the
   per-call table rebuilding that `l10n-address`/`l10n-date` documented.
+- 2026-09-29: **wave-43 evidence** (10 packages: `cancel`, `stm`,
+  `worker`, `messaging`, `plugin`, `countdown`, `diagrams`, `charts`,
+  `parsing`, `ast`; the four AM-session packages report no new
+  miscompiles). Two new findings:
+  - **Builtin shadowing (new, `worker`):** a user free function named
+    `size_of` silently resolved to the compiler builtin
+    `xiom.core.size_of[T]()` -- it compiled clean and returned the type
+    size (8) instead of calling the wrapper. No diagnostic; renamed the
+    wrapper. A reserved-builtin lint (or a shadow warning) is the ask.
+  - **Library-only `--emit-ir` C001 (`countdown`):** `xiom --emit-ir
+    src\countdown.xi` fails with `C001: unresolved 'Vec.clear'/'Vec.push'`
+    -- identical on `xiom.timer\src\timer.xi`, so it is a toolchain
+    artifact of emit-IR without a test harness, not a package defect;
+    the `port.ps1` suite path is authoritative and green.
+  - Tooling note (not compiler): the XIOM MCP `xiom_xiom_stdlib_reference`
+    call failed with "No stdlib directory found; Set XIOM_STDLIB" in all
+    worker sessions (and `xiom_check_xiom_syntax` timed out for some);
+    workers fell back to on-disk `E:\xiom-lang\stdlib` + the pinned CLI.
+    Worth fixing in the MCP server's stdlib discovery.
+  - `sb_push_int` INT_MIN defect and the non-trapping byte-peeker gap were
+    routed to `docs/STDLIB-WISHLIST.md` (stdlib side).
