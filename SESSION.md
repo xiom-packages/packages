@@ -3,13 +3,122 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-09-29 17:35Z, by the packages session (waves 41-42,
-v0.62.1 pin bump, eco-v0.1.13/.14 publishes, README sync, registry
-ruling). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-09-29 22:05Z, by the packages session (README-refresh
+program complete `eco-v0.1.15..22`; wave 43 built, integrated and
+published; growth docs appended). Check `git log -1 --format=%h %s`
+before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-09-29 17:35Z (read this first):**
+**STATE AT 2026-09-29 22:05Z (read this first):**
+- **README-refresh program COMPLETE (`eco-v0.1.15..eco-v0.1.22`, pushed,
+  owner window closed):** all **351** affected published names were
+  patch-bumped and republished (298 -> `0.1.1`, 53 -> `0.1.2`); the
+  `da3289f` READMEs are now live on the registry pages (7 batches of ~50
+  + a 1-name tail `xiom.zookeeper` under `eco-v0.1.22`). Staging-first
+  canaries (2 per batch, `xiom.acpi`/`adler32`/`cron`/`csv`/`geo`/
+  `geography`/`locale`/`lockfree`/`packet`/`pagination`/`resolv`/
+  `retry`/`template`/`term`) all verified before each production tag;
+  ops held `PUBLISH_RATE_MAX=600` through the program and restores 20 on
+  the "batch done" relay (sent 22:02Z).
+- **Wave 43 COMPLETE + PUBLISHED:** all 10 (`cancel` 24/24, `stm` 20/20,
+  `worker` 26/26, `messaging` 20/20, `plugin` 25/25, `countdown` 22/22,
+  `diagrams` 34/34, `charts` 28/28, `parsing` 28/28, `ast` 24/24) built
+  by 6 background `task` porters + 4 AM local sessions, rescue-integrated
+  (port x2 + trap-14, AM reports extracted from `kilo.db`), recorded
+  `incubating`, allowlist **402 -> 412**, published inside
+  `eco-v0.1.18` at `0.1.0`.
+- **Current gates/state:** pin `v0.62.1`; `validate` **430/0**; guard
+  **412 allowlisted / 361 ready / 51 grandfathered / 0 failures**;
+  registry **363 = 276 stable / 85 incubating / 2 infra**; allowlist
+  **412**; working tree clean, `main` pushed at `7080fdb`; tags
+  `eco-v0.1.15..22` (latest `eco-v0.1.22` on `7080fdb`). `xiom.hello`
+  graduated grandfathered -> ready during the batches (suite green).
+- **Publish-run quirks (recorded):** 50-name runs at 4s pacing outlive
+  the 6-min OIDC token; tail reruns needed: 3, 1, 0, 13, 1, 0 names
+  (`gh run rerun <id> --failed` + re-approve the gate; skips are fast).
+  One benign `version_exists` skip-miss (`xiom.bech32` in
+  `eco-v0.1.22`; registry index lag made the skip check think it was
+  missing) -- rerun clean, nothing to fix.
+- **New evidence recorded + committed (`9099575`):** COMPILER-FINDINGS:
+  builtin shadowing (`worker`: `fn size_of` silently bound to
+  `xiom.core.size_of[T]`), library-only `--emit-ir` C001
+  (`Vec.clear`/`Vec.push`, same on `timer`), MCP stdlib discovery failing
+  ("No stdlib directory found") + `xiom_check_xiom_syntax` timeouts;
+  STDLIB-WISHLIST: `xiom.semver`, `xiom.string.xml`, `xiom.text.pos`,
+  strict quoted-string/identifier codecs, `Vec[Str]` dedup, slot pools,
+  latch/cancellation primitives, AST traversal, `sb_push_int` INT_MIN
+  defect; `result`/`test.dispatch` requesters extended.
+- **Follow-ups (carry forward):** `byte_at >= 128` direct-compare battery
+  at the **next compiler release** (fixed on main `f4af5f64`, NOT in
+  v0.62.1; keep the widen+mask workaround until then); **row 25
+  (module-level const/table materialization)** next in the compiler
+  backlog; `.github` OIDC per-run token; `tftp`/`tap` same-version
+  decisions **RESOLVED** by the batches (both republished at bumped
+  versions); registry-stage lags **self-corrected** (0 empty-stage
+  packages remain -- 276/85/2); **README Status blocks now lag one
+  patch** ("published at `v0.1.0`" while `0.1.1` is live) -- sync
+  `published at` at the next README refresh (or next touch per
+  MAINTENANCE.md); category harmonization (109 invalid registry-category
+  tokens across ~70 manifests; registry ignores them) still owner-decided
+  -- `adc`'s "engineering" rides its next bump; growth docs append at
+  every wave.
+- **Maintenance loop:** `docs/MAINTENANCE.md` (release-triggered, no
+  lockstep versions); publish-batch trigger includes README sync; the
+  registry ruling ("no version-less refresh, no registry dependency") is
+  written into it.
+- **Policy:** incubating-by-default; `stable` by explicit promotion only;
+  PRODUCTION-DIRECT batches (this lane approves the publish gates);
+  staging only on explicit ask -- the README-refresh batches were
+  staging-first per the ruling.
+- **Mechanics gotchas:** gate `port.ps1` on exit code; version bumps via
+  the Edit tool per file; `fn`/`use`/`as` reserved; v0.62.1 binds `&`
+  looser than `+`; `STATUS.json` machine-written (`ConvertTo-Json
+  -Depth 6` shape); `status.ps1 -Action update` preserves the stage when
+  `-Stage` is omitted (pass it anyway for batch refreshes); hashtable
+  splatting when calling repo scripts from helper scripts (array splat
+  binds positionally and fails ValidateSet); task/AM sessions can pause
+  mid-wave (resume via task id / Agent Manager prompt; AM finals are
+  readable from `kilo.db` part table); batch commits must stay surgical
+  (`git add` exactly the batch's files) when other lanes write in the
+  same tree; the publish loop publishes *every* allowlisted unpublished
+  name at its tag -- never append an allowlist delta before ops confirms
+  the scope enumeration.
+
+**PASTE PROMPT FOR THE NEXT PACKAGES SESSION:**
+```
+You are the packages session for xiom-packages/packages (local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
+private). Read SESSION.md first -- the 2026-09-29 22:05Z STATE block at
+the top of section 0 is the live handoff. Repo-local identity must be
+"Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
+PRODUCTION-DIRECT batches (this session approves the registry-publish
+gates); staging only on explicit ask. New/next-touched records use stage
+`incubating` (`stable` only by explicit promotion).
+
+Start by running: git fetch; git status -sb; git log -1; then
+& .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
+
+Then do, in order:
+1. README Status-block sync for the 351 republished names ("published at
+   `v0.1.0`" now lags their `0.1.1`/`0.1.2`) -- decide with the owner
+   whether to fold it into the next wave or a final chunked refresh.
+2. Next wave from the SESSION backlog / owner ask: namespace-check new
+   names, dispatch porters with the canonical 18-trap v0.62.1 briefs +
+   XIOM MCP tools + no-commit rules + `stdlib gaps` reports, integrate
+   as they report (port x2 + trap-14), scope ask to ops BEFORE allowlist
+   append, wrap (allowlist, index/report/namespaces).
+3. Growth + maintenance: append worker evidence at every wave; run the
+   release-triggered loop in docs/MAINTENANCE.md on compiler/stdlib
+   releases (targeted, no lockstep versions).
+4. Follow-ups: `byte_at` battery at the next compiler release (fixed on
+   main f4af5f64, not v0.62.1); row 25 next in the compiler backlog; OIDC
+   per-run token; category harmonization when the owner rules.
+```
+
+**--- STATE AT 2026-09-29 17:35Z below (history; the program it
+describes is complete -- see the 22:05Z block above) ---**
+
 - **README-refresh republishes APPROVED -- hold lifted (owner relay
   17:31Z):** registry ruling = **no version-less refresh, no registry
   dependency**. Proceed with **chunked patch-bump republishes from
