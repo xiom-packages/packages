@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  20,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.62.1",
-                  "commit":  "aec8efe",
-                  "checked":  "2026-09-28T23:54:05Z"
+                  "run_by":  "readme-refresh:eco-v0.1.15",
+                  "commit":  "23b01b8",
+                  "checked":  "2026-09-29T18:52:15Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
