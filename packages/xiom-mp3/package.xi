@@ -9,7 +9,7 @@
 
 package xiom_mp3 {
   name: "xiom.mp3";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "MP3 structural parser: MPEG-1/2/2.5 frame headers, stream scan and ID3v1/v2 tags (no audio decoding)";
   categories: ["media"];
   keywords: ["mp3", "mpeg", "audio", "id3", "metadata", "format"];

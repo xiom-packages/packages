@@ -11,7 +11,7 @@
 
 package xiom_maidenhead {
   name: "xiom.maidenhead";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Integer-only Maidenhead grid locator codec over integer-microdegree coordinates";
   categories: ["science"];
   keywords: ["maidenhead", "grid", "locator", "radio"];

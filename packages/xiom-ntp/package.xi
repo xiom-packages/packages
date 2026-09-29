@@ -8,7 +8,7 @@
 
 package xiom_ntp {
   name: "xiom.ntp";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM NTPv4 packet codec (RFC 5905): 48-byte encode/decode, 32.32 timestamp math, offset/delay in microseconds";
   categories: ["network"];
   keywords: ["ntp", "time", "wire", "network"];

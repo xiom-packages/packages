@@ -9,7 +9,7 @@
 
 package xiom_ngram {
   name: "xiom.ngram";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Word and character n-grams with Jaccard/Dice similarity and MinHash signatures";
   categories: ["text", "data"];
   keywords: ["ngram", "shingles", "jaccard", "minhash", "similarity"];

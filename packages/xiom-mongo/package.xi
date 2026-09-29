@@ -8,7 +8,7 @@
 
 package xiom_mongo {
   name: "xiom.mongo";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM MongoDB BSON document walker and wire-message framing codec (no queries, no driver)";
   categories: ["protocol"];
   keywords: ["mongodb", "bson", "wire", "protocol", "codec"];

@@ -8,7 +8,7 @@
 
 package xiom_murmur3 {
   name: "xiom.murmur3";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "MurmurHash3 x86_32 non-cryptographic hash with seed, streaming state and hex output";
   categories: ["data"];
   keywords: ["murmur3", "hash", "non-cryptographic", "smhasher"];

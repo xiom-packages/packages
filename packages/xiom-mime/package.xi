@@ -11,7 +11,7 @@
 
 package xiom_mime {
   name: "xiom.mime";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Media type helpers: extension mapping, normalization, and class checks";
   categories: ["data", "networking"];
   keywords: ["mime", "media-type", "extension", "http"];

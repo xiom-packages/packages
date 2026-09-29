@@ -9,7 +9,7 @@
 
 package xiom_nlp {
   name: "xiom.nlp";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Deterministic byte-oriented NLP core: tokenizer, sentence splitter, Porter stemmer, statistics";
   categories: ["text"];
   keywords: ["nlp", "tokenizer", "stemming", "porter", "sentences", "text"];

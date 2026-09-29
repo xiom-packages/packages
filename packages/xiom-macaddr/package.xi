@@ -9,7 +9,7 @@
 
 package xiom_macaddr {
   name: "xiom.macaddr";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "MAC-48 address parsing, formatting, and flag helpers (48-bit values as Int)";
   categories: ["networking", "data"];
   keywords: ["mac", "ethernet", "address", "network"];

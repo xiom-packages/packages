@@ -8,7 +8,7 @@
 
 package xiom_marc {
   name: "xiom.marc";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "MARC21 ISO 2709 record codec: parse and build library records";
   categories: ["data"];
   keywords: ["marc", "library", "iso2709", "format"];

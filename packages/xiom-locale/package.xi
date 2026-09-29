@@ -12,7 +12,7 @@
 
 package xiom_locale {
   name: "xiom.locale";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "BCP-47 language tag parsing, canonicalization, RFC 4647 lookup and fallback chains";
   categories: ["text", "data"];
   keywords: ["locale", "bcp47", "language", "l10n", "i18n"];

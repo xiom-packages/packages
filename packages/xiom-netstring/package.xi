@@ -10,7 +10,7 @@
 
 package xiom_netstring {
   name: "xiom.netstring";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "DJB netstring framing: streaming parse, build and cursor iteration over <len>:<payload>, byte streams";
   categories: ["data"];
   keywords: ["netstring", "encoding", "wire", "format"];

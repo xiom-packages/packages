@@ -4,7 +4,7 @@
 
 package xiom_logging {
   name: "xiom.logging";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Syslog message structure codecs: RFC 3164 and RFC 5424 parser";
   categories: ["data"];
   keywords: ["syslog", "logging", "rfc3164", "rfc5424", "parser"];

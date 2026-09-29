@@ -11,7 +11,7 @@
 
 package xiom_meteorology {
   name: "xiom.meteorology";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Aviation weather report codecs: METAR observation and TAF forecast decoding";
   categories: ["science", "data"];
   keywords: ["metar", "taf", "aviation", "weather", "decoding"];

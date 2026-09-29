@@ -9,7 +9,7 @@
 
 package xiom_msgpack {
   name: "xiom.msgpack";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "MessagePack encoding and decoding for the XIOM ecosystem";
   categories: ["data"];
   keywords: ["msgpack", "serialization", "binary", "codec"];

@@ -10,7 +10,7 @@
 
 package xiom_loss {
   name: "xiom.loss";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Fixed-point supervised loss functions (scaled integers): MSE, MAE, hinge, binary and categorical cross-entropy";
   categories: ["ai-ml", "science"];
   keywords: ["loss", "mse", "mae", "hinge", "cross-entropy", "fixed-point"];

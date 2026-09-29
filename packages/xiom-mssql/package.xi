@@ -9,7 +9,7 @@
 
 package xiom_mssql {
   name: "xiom.mssql";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Microsoft SQL Server TDS (Tabular Data Stream) structure codec: packet headers, PRELOGIN option table, LOGIN7 fixed layout, and RESPONSE token streams (LOGINACK/ERROR/ENVCHANGE/DONE/COLMETADATA/ROW/NBCROW/RETURNVALUE); no sockets, no login crypto";
   categories: ["network"];
   keywords: ["mssql", "sqlserver", "tds", "wire", "binary", "codec", "protocol"];

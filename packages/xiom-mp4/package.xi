@@ -9,7 +9,7 @@
 
 package xiom_mp4 {
   name: "xiom.mp4";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "ISO BMFF / MP4 box parser: recursive tree walk, ftyp/mvhd/tkhd/mdhd/hdlr/stsd/elst/stco/co64/stsz metadata and fragment detection";
   categories: ["media"];
   keywords: ["mp4", "isobmff", "video", "container", "metadata", "format"];

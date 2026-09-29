@@ -8,7 +8,7 @@
 
 package xiom_mbr {
   name: "xiom.mbr";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Master Boot Record codec: parse and build a canonical 512-byte MBR sector";
   categories: ["systems"];
   keywords: ["mbr", "partition", "boot", "format"];

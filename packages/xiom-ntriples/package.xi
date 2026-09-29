@@ -4,7 +4,7 @@
 
 package xiom_ntriples {
   name: "xiom.ntriples";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "RDF N-Triples codec: parse, access and canonical emit";
   categories: ["data"];
   keywords: ["rdf", "ntriples", "semantic", "format"];

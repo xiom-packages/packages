@@ -9,7 +9,7 @@
 
 package xiom_pack {
   name: "xiom.pack";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Format-string binary packing and unpacking of integer fields (u8/s16/u32/s64, LE/BE)";
   categories: ["data", "tooling"];
   keywords: ["pack", "binary", "endian", "struct"];

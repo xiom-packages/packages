@@ -9,7 +9,7 @@
 
 package xiom_orc {
   name: "xiom.orc";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Apache ORC file metadata codec: postscript, protobuf footer, stripes and type tree";
   categories: ["data"];
   keywords: ["orc", "apache", "format", "metadata", "columnar"];

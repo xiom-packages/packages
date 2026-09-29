@@ -4,7 +4,7 @@
 
 package xiom_option {
   name: "xiom.option";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Combinators for Option and Result values: map, flat_map, filter, unwrap, conversions";
   categories: ["core"];
   keywords: ["option", "result", "combinators", "functional"];

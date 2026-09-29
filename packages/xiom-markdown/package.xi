@@ -10,7 +10,7 @@
 
 package xiom_markdown {
   name: "xiom.markdown";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Markdown subset to HTML renderer";
   categories: ["text"];
   keywords: ["markdown", "html", "render", "text"];

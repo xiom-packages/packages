@@ -8,7 +8,7 @@
 
 package xiom_lru {
   name: "xiom.lru";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Bounded least-recently-used cache with O(1) get/put and eviction statistics";
   categories: ["core"];
   keywords: ["cache", "lru", "eviction", "collections"];

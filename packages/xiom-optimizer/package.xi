@@ -9,7 +9,7 @@
 
 package xiom_optimizer {
   name: "xiom.optimizer";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Deterministic single-variable optimizers: hill climb, grid search, simulated annealing";
   categories: ["science","tooling"];
   keywords: ["optimizer","hill-climb","annealing","search"];

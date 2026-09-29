@@ -9,7 +9,7 @@
 
 package xiom_ogg {
   name: "xiom.ogg";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Ogg page structure: page walk, fields, and the Ogg CRC-32 checksum";
   categories: ["data","media"];
   keywords: ["ogg","page","crc32","container"];

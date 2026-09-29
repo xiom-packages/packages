@@ -10,7 +10,7 @@
 
 package xiom_obj {
   name: "xiom.obj";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Wavefront OBJ geometry parsing: vertices and polygon faces with scaled integer coordinates";
   categories: ["graphics","data"];
   keywords: ["obj","wavefront","mesh","3d"];

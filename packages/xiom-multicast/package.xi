@@ -9,7 +9,7 @@
 
 package xiom_multicast {
   name: "xiom.multicast";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "IGMPv2/v3 and MLD/MLDv2 multicast group management codecs";
   categories: ["network"];
   keywords: ["multicast", "igmp", "mld", "wire", "network"];

@@ -12,7 +12,7 @@
 
 package xiom_lockfree {
   name: "xiom.lockfree";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Deterministic single-threaded models of lock-free structures: Treiber stack with ABA tags, bounded MPMC ring queue, atomic counters";
   categories: ["concurrency", "data"];
   keywords: ["lockfree", "concurrency", "atomic", "cas", "aba", "treiber", "mpmc", "ring-buffer"];
