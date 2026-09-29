@@ -1,6 +1,6 @@
 {
     "package":  "xiom.snmp",
-    "stage":  "incubating",
+    "stage":  "stable",
     "compiler":  "v0.62.1",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  19,
                   "failed":  0,
-                  "run_by":  "ses_f1cfdad42ffeB2WeOyr6XXjQ30",
-                  "commit":  "a99f335",
-                  "checked":  "2026-09-28T16:34:11Z"
+                  "run_by":  "readme-refresh:eco-v0.1.20",
+                  "commit":  "df934ed",
+                  "checked":  "2026-09-29T21:14:53Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"
