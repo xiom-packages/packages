@@ -453,3 +453,13 @@ xiom.diagrams
 xiom.charts
 xiom.parsing
 xiom.ast
+xiom.lemmatization
+xiom.layers
+xiom.macro
+xiom.formatter-fw
+xiom.wallet
+xiom.randomforest
+xiom.smartcontract
+xiom.stats-tests
+xiom.stats-ml
+xiom.stub
