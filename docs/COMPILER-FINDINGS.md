@@ -161,3 +161,13 @@ strict clauses on):
     Worth fixing in the MCP server's stdlib discovery.
   - `sb_push_int` INT_MIN defect and the non-trapping byte-peeker gap were
     routed to `docs/STDLIB-WISHLIST.md` (stdlib side).
+- 2026-09-30: **pin bump v0.62.1 -> v0.62.2** (compiler release with the
+  byte_at direct-comparison fix from main `f4af5f64`; repo release dir
+  `E:\xiom-lang\xiom\target\release` = v0.62.2, deployed into
+  `%LOCALAPPDATA%\xiom.new\bin`; repo-local stdlib checkout tracks
+  `stdlib-perf1` / `06d0ee7`). **byte_at battery re-run:
+  `docs/repro/byte-at-128` is `bad=0`, exit 0 -- FIXED; the widen+mask
+  workaround is retired for new code.** `status.ps1 -Action repin`
+  aligned 435 records to v0.62.2; the fleet sweep re-run with
+  `run_by: fleet-sweep:v0.62.2` follows per `docs/MAINTENANCE.md`.
+

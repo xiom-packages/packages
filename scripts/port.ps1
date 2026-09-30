@@ -21,6 +21,9 @@
 #   .\scripts\port.ps1 -Package xiom-hello -Suite tests\test_hello.xi
 #   .\scripts\port.ps1 -Package xiom.hello -NoRun
 # Exit code: 0 = green, 1 = compile/test failure, 3 = namespace conflict.
+# Watchdog: every compiler invocation is capped at -TimeoutSec (default 120,
+#   normal suites finish in ~10s); on timeout the process tree is killed and
+#   the run fails closed.
 # ============================================================================
 [CmdletBinding()]
 param(
@@ -28,7 +31,8 @@ param(
     [string]$Package,
     [string]$Suite = "",
     [switch]$NoRun,
-    [switch]$Quiet
+    [switch]$Quiet,
+    [int]$TimeoutSec = 120
 )
 
 $ErrorActionPreference = "Stop"
@@ -76,16 +80,35 @@ function Invoke-Compiler {
     # Runs the compiler with stdout/stderr captured to files. PowerShell 5.1
     # turns native stderr into ErrorRecords, which aborts under
     # ErrorActionPreference=Stop, so file redirection is the reliable capture.
-    param([string[]]$Arguments)
+    #
+    # Watchdog: a suite that never terminates must not be allowed to run
+    # free (a runaway `a.exe` can allocate tens of GB within the compiler's
+    # own 300s cap). On timeout the whole process tree is killed and the
+    # result is reported as TimedOut so the caller fails closed.
+    param([string[]]$Arguments, [int]$TimeoutSec = 120)
     $base = Join-Path ([System.IO.Path]::GetTempPath()) ("xiom-run-" + [guid]::NewGuid().ToString("N"))
     $outFile = "$base.out"
     $errFile = "$base.err"
-    $proc = Start-Process -FilePath $tool.Xiom -ArgumentList $Arguments -NoNewWindow -Wait -PassThru `
+    $proc = Start-Process -FilePath $tool.Xiom -ArgumentList $Arguments -NoNewWindow -PassThru `
         -RedirectStandardOutput $outFile -RedirectStandardError $errFile
+    $timedOut = $false
+    try {
+        $proc | Wait-Process -Timeout $TimeoutSec -ErrorAction Stop
+    } catch {
+        $timedOut = $true
+    }
+    if ($timedOut -and -not $proc.HasExited) {
+        # Tree-kill the compiler and its child program, then sweep any
+        # orphaned `a.exe` left behind.
+        & taskkill /T /F /PID $proc.Id 2>$null | Out-Null
+        Start-Sleep -Milliseconds 500
+        Get-Process a -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    }
+    $exitCode = if ($timedOut) { -1 } else { $proc.ExitCode }
     $stdout = if (Test-Path -LiteralPath $outFile) { Get-Content -LiteralPath $outFile -Raw } else { "" }
     $stderr = if (Test-Path -LiteralPath $errFile) { Get-Content -LiteralPath $errFile -Raw } else { "" }
     Remove-Item -LiteralPath $outFile, $errFile -ErrorAction SilentlyContinue
-    return [pscustomobject]@{ Output = ("$stdout$stderr"); ExitCode = $proc.ExitCode }
+    return [pscustomobject]@{ Output = ("$stdout$stderr"); ExitCode = $exitCode; TimedOut = $timedOut; TimeoutSec = $TimeoutSec }
 }
 
 $packageDir = Find-PackageDir $Package
@@ -133,7 +156,12 @@ try {
             # --emit-ir type-checks and lowers without linking, so library
             # modules (no fn main) can be checked too (the old -o path failed
             # with "undefined symbol: main" for every library package).
-            $result = Invoke-Compiler -Arguments @("--emit-ir", $src.FullName)
+            $result = Invoke-Compiler -Arguments @("--emit-ir", $src.FullName) -TimeoutSec $TimeoutSec
+            if ($result.TimedOut) {
+                Write-Host "  compile:  TIMEOUT after $($result.TimeoutSec)s -- process tree killed"
+                $failed = $failed + 1
+                continue
+            }
             if ($result.ExitCode -ne 0) {
                 Write-Host $result.Output
                 $failed = $failed + 1
@@ -144,11 +172,15 @@ try {
         $exitCode = $effectiveExit
     } else {
         Write-Host "  suite:    $suiteRel"
-        $result = Invoke-Compiler -Arguments @("--run", $suitePath)
+        $result = Invoke-Compiler -Arguments @("--run", $suitePath) -TimeoutSec $TimeoutSec
         $output = $result.Output
         if (-not $Quiet) { Write-Host $output }
+        if ($result.TimedOut) {
+            Write-Host "  suite:    TIMEOUT after $($result.TimeoutSec)s -- runaway suite killed (process tree)"
+            $failed = 1
+        }
         $passed = ([regex]::Matches($output, "\[PASS\]")).Count
-        $failed = ([regex]::Matches($output, "\[FAIL\]")).Count
+        $failed = $failed + ([regex]::Matches($output, "\[FAIL\]")).Count
         # `xiom --run` prints the program's exit code on its own "exit code:"
         # line and can itself exit 0 even when the program crashed (observed
         # with an access violation, -1073741819). Trust the reported code.

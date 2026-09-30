@@ -56,3 +56,18 @@ The direct-comparison shape is **fixed on compiler main (`f4af5f64`)**;
 the fix is not in v0.62.1. Re-run this probe at the next compiler
 release and expect `bad=0`; only then retire the widen+mask workaround
 from the wave briefs.
+
+## v0.62.2 re-run (2026-09-30, installed 0.62.2) -- FIXED
+
+`bad=0`, exit 0. The direct `byte_at(...) != 195u8` / `< 128u8`
+comparisons are correct on **v0.62.2** (and the typed-local and
+`as Int`-mask paths stayed correct). **The widen+mask workaround is
+retired as of v0.62.2** -- new code may compare `byte_at` results
+directly. Existing packages keep their widen+mask forms (green, no
+drive-by refactors); they may simplify at their next touch.
+
+```powershell
+& .\scripts\xiom.ps1 -Stdlib "E:\xiom-lang\stdlib" --run docs\repro\byte-at-128\probe_byte_at.xi
+# bad=0
+```
+
