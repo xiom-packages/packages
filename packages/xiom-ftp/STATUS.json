@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  24,
                   "failed":  0,
-                  "run_by":  "readme-refresh:eco-v0.1.16",
-                  "commit":  "77d7ec3",
-                  "checked":  "2026-09-29T19:12:07Z"
+                  "run_by":  "fleet-sweep:v0.62.2",
+                  "commit":  "984fc2f",
+                  "checked":  "2026-09-30T18:09:28Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: allowlist + next eco tag"

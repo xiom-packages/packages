@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  28,
                   "failed":  0,
-                  "run_by":  "readme-refresh:eco-v0.1.17",
-                  "commit":  "fd38977",
-                  "checked":  "2026-09-29T19:28:25Z"
+                  "run_by":  "fleet-sweep:v0.62.2",
+                  "commit":  "984fc2f",
+                  "checked":  "2026-09-30T18:09:28Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"

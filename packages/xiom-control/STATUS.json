@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  27,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.62.1",
-                  "commit":  "aec8efe",
-                  "checked":  "2026-09-28T23:55:55Z"
+                  "run_by":  "fleet-sweep:v0.62.2",
+                  "commit":  "984fc2f",
+                  "checked":  "2026-09-30T18:09:28Z"
               },
     "publish":  false,
     "excluded_reason":  "ported: legacy port; stable promotion + publish pending (API review, registry scope, repo protection)"
