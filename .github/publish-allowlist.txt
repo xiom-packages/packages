@@ -463,3 +463,13 @@ xiom.stub
 xiom.formatter-fw
 xiom.randomforest
 xiom.smartcontract
+xiom.consensus
+xiom.discovery
+xiom.actor
+xiom.itest
+xiom.codegen-fw
+xiom.compliance
+xiom.legacy-proto
+xiom.environment
+xiom.boosting
+xiom.optimizer-fw

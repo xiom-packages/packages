@@ -2,11 +2,12 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-09-30T21:17:42+03:00
-# packages: 440  modules: 465
+# generated: 2026-09-30T22:21:31+03:00
+# packages: 450  modules: 475
 
 ## package names
 xiom.acpi
+xiom.actor
 xiom.adc
 xiom.adler32
 xiom.aiff
@@ -44,6 +45,7 @@ xiom.bloom
 xiom.bmp
 xiom.bolt
 xiom.bonjour
+xiom.boosting
 xiom.box2d
 xiom.bson
 xiom.bullet
@@ -59,8 +61,11 @@ xiom.cidr
 xiom.clustering
 xiom.cobs
 xiom.codec
+xiom.codegen-fw
 xiom.collation
+xiom.compliance
 xiom.config
+xiom.consensus
 xiom.control
 xiom.cookie
 xiom.countdown
@@ -82,6 +87,7 @@ xiom.dimacs
 xiom.dimred
 xiom.directx11
 xiom.directx12
+xiom.discovery
 xiom.dns
 xiom.dotenv
 xiom.dtb
@@ -98,6 +104,7 @@ xiom.electronics
 xiom.elf
 xiom.eml
 xiom.ensemble
+xiom.environment
 xiom.envsubst
 xiom.escape
 xiom.etcd
@@ -163,6 +170,7 @@ xiom.inline-asm
 xiom.interrupt
 xiom.irc
 xiom.iso8583
+xiom.itest
 xiom.jolt
 xiom.jpeg
 xiom.json
@@ -183,6 +191,7 @@ xiom.layers
 xiom.lcov
 xiom.ldap
 xiom.ldif
+xiom.legacy-proto
 xiom.lemmatization
 xiom.leveldb
 xiom.lexer-fw
@@ -253,6 +262,7 @@ xiom.opencv
 xiom.opengl
 xiom.openssl
 xiom.optimizer
+xiom.optimizer-fw
 xiom.option
 xiom.orc
 xiom.osrelease
@@ -449,6 +459,7 @@ xiom.zstd
 
 ## module namespaces
 xiom.acpi
+xiom.actor
 xiom.adc
 xiom.adler32
 xiom.aiff
@@ -486,6 +497,7 @@ xiom.bloom
 xiom.bmp
 xiom.bolt
 xiom.bonjour
+xiom.boosting
 xiom.bson
 xiom.cab
 xiom.cache
@@ -499,8 +511,11 @@ xiom.cidr
 xiom.clustering
 xiom.cobs
 xiom.codec
+xiom.codegen_fw
 xiom.collation
+xiom.compliance
 xiom.config
+xiom.consensus
 xiom.control.filter
 xiom.control.pid
 xiom.control.state_machine
@@ -522,6 +537,7 @@ xiom.diagrams
 xiom.diff
 xiom.dimacs
 xiom.dimred
+xiom.discovery
 xiom.dns
 xiom.dotenv
 xiom.dtb
@@ -557,6 +573,7 @@ xiom.electronics
 xiom.elf
 xiom.eml
 xiom.ensemble
+xiom.environment
 xiom.envsubst
 xiom.escape
 xiom.etcd
@@ -626,6 +643,7 @@ xiom.inline.asm
 xiom.interrupt
 xiom.irc
 xiom.iso8583
+xiom.itest
 xiom.jpeg
 xiom.json
 xiom.junit
@@ -648,6 +666,7 @@ xiom.layers
 xiom.lcov
 xiom.ldap
 xiom.ldif
+xiom.legacy_proto
 xiom.lemmatization
 xiom.leveldb
 xiom.lexer
@@ -712,6 +731,7 @@ xiom.opencv.filters
 xiom.opencv.io
 xiom.opencv.types
 xiom.optimizer
+xiom.optimizer_fw
 xiom.option
 xiom.orc
 xiom.osrelease
