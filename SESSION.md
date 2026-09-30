@@ -3,14 +3,55 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-09-30 (later session), by the packages session
-(v0.62.2 re-pin + byte_at battery + fleet sweep; wave 44 built,
-integrated and published; port.ps1 watchdog; growth docs appended).
-Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-09-30 (evening), by the packages session (wave 45
+built, integrated and published on v0.62.2; growth docs appended; third
+v0.62.2 compiler finding filed). Check `git log -1 --format=%h %s`
+before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-09-30 (read this first):**
+**STATE AT 2026-09-30 19:25Z (read this first):**
+- **Wave 45 COMPLETE + PUBLISHED (`eco-v0.1.26`):** all 10
+  (`consensus` 20/20, `discovery` 22/22, `actor` 28/28, `itest` 24/24,
+  `codegen-fw` 23/23, `compliance` 22/22, `legacy-proto` 24/24,
+  `environment` 23/23, `boosting` 20/20, `optimizer-fw` 25/25) built on
+  compiler **v0.62.2** + stdlib-perf1 by 5 `task` + 4 AM lanes
+  (+1 task resume, +1 AM->task re-dispatch after output-limit crashes),
+  port x2 + trap-14 verified, records `incubating`.
+- **Current gates/state:** `validate` **450/0**; guard **432
+  allowlisted / 383 ready / 49 grandfathered / 0 failures**; registry
+  **383 packages + 2 infra = 385 entries**; allowlist **432**; all
+  pushed.
+- **THIRD v0.62.2 compiler issue found (wave 45):** `Vec[Str].push(s)`
+  mis-lowers (stride 8, `i8` store -> clang rejects the IR; `--emit-ir`
+  is clean, so it only surfaces at clang). Recorded in
+  `docs/COMPILER-FINDINGS.md` with the workaround (single `Str` +
+  parallel `Vec[Int]` offsets, as in `xiom.consensus`). Already relayed
+  to ops/compiler alongside the `nbt`/`expat` silent-exit regressions
+  (still with the compiler lane to bisect).
+- **New stdlib defect row:** `xiom.string.index_of`/`str_contains`
+  empty-needle runtime contract violation (`compliance` hit it); row in
+  `docs/STDLIB-WISHLIST.md`.
+- **Session-recovery pattern that works:** output-limit crashes ("model
+  hit its output limit while reasoning") are recovered by re-running the
+  lane with reasoning `variant: low` and a files-first, short-replies
+  directive (confirmed on `lemmatization`, `consensus`, `boosting`).
+  AM sessions cannot take a variant on resume -- stop the AM session and
+  re-dispatch as a `task` with `variant: low` (done for `boosting`).
+- **Follow-ups:** compiler lane to bisect `nbt`/`expat` (silent exit -1)
+  and `Vec[Str].push`; README `Status` blocks for the 351
+  README-refresh names still lag one patch; category harmonization
+  owner-decided; ports keep the `-TimeoutSec 60` watchdog discipline.
+- **Wave-46 candidates (remaining placeholder backlog):** `itest`-style
+  utilities are exhausted; natural set: `context`, `chaincore`,
+  `chaincrypto`, `exchanger`, `defi`, `nft`, `web3`, `geom3d`,
+  `materials`, `mechanics`, `chromatography`, `metadata`, `icu`
+  /`l10n-unicode` (table-heavy -- watch the const-array materialization
+  row), `svm` (integer), `actor`-siblings.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-09-30 (morning, history):**
 - **Compiler re-pin v0.62.1 -> v0.62.2 DONE.** `COMPILER_VERSION` =
   `v0.62.2`; repo release `E:\xiom-lang\xiom\target\release` (v0.62.2)
   deployed into `%LOCALAPPDATA%\xiom.new\bin`; stdlib checkout tracks

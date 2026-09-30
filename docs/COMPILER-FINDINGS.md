@@ -195,4 +195,16 @@ strict clauses on):
     stdlib-perf1 is atomics-only and unlikely. Compiler lane to
     bisect (v0.62.1 still green for both packages in the README batch
     records).
+- 2026-09-30: **wave-45 evidence (build on v0.62.2).** `xiom.consensus`
+  found a **third v0.62.2 issue: `Vec[Str].push(s)` mis-lowers.** The
+  generated IR declares the element as stride 8 but emits an `i8` store;
+  clang rejects it (`'%tmp' defined with type 'ptr' but expected 'i8'`).
+  `--emit-ir` alone is CLEAN -- the failure only surfaces at the clang
+  link/compile stage, so library-only checks miss it. Workaround used:
+  a single `Str` plus a parallel `Vec[Int]` of line-start offsets
+  (documented in `xiom.consensus` SPEC 7/11). Repro: build
+  `xiom.consensus` without the workaround (the original trace used
+  `Vec[Str].push`). The other nine wave-45 packages ported green with no
+  new compiler findings (`compliance` added a stdlib one, see the
+  wishlist). Filed alongside the `nbt`/`expat` silent-exit regressions.
 

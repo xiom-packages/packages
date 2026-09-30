@@ -97,6 +97,16 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-09-30 | Safe amortized string builder ( `sb_to_str` aborts on 0x00 / O(n^2) `str_concat` accumulation) + `str_spaces(n)` | `formatter-fw` (renderer), `randomforest`/`stats-ml` (dumps) | `Str` concatenation | open |
 | 2026-09-30 | `Vec` truncation/drop-last discipline (`pop` returns Option, no void truncate) | `formatter-fw` (stacks), `randomforest` (frames) | length-driven pushes/pops | open |
 | 2026-09-30 | Decision-tree/forest primitives (histograms, Gini, threshold search) + pinned integer PRNG API | `randomforest`, `boosting` (placeholder) | hand-rolled CART + MINSTD | open |
+| 2026-09-30 | `xiom.string.index_of`/`str_contains` empty-needle defect: runtime contract violation when `substr` is empty despite `str_contains` ensuring empty matches | `compliance` (predicate engine), any caller | short-circuit empty operands before calling | open (stdlib defect) |
+| 2026-09-30 | Allocation-free line accessors (`str_line_at`, newline index) over a `Str` | `consensus` (trace store), `macro`, `legacy-proto` | single `Str` + `Vec[Int]` offsets, `str_slice` | open |
+| 2026-09-30 | Integer `min`/`max` helpers | `consensus` (commit bound), `boosting` | inline comparisons | open |
+| 2026-09-30 | Keyed FIFO/mailbox/bounded-queue primitives + `vec_remove_at`/`pop_at` | `actor` (mailboxes, ready queue), `discovery` | rebuild-in-place helpers | open |
+| 2026-09-30 | Stable argmax over an external key with index result + FIFO tie-break | `actor` (priority pick) | `_pick_index` scan | open |
+| 2026-09-30 | Ordered event log + subscription cursors (sequence-numbered change feed) | `discovery` (watches), `messaging` | hand-rolled log + cursors | open |
+| 2026-09-30 | Composite-key lookup over parallel vectors (name/address/port) | `discovery`, `layers` | `_index_of` scans | open |
+| 2026-09-30 | Non-aborting structured assertion catalog with expected/actual records (8+ kinds) | `itest`, `stub` (`xiom.test` asserts abort via panic) | `_record_failure` + kind catalog | open |
+| 2026-09-30 | Flat segmented-slice view over a shared `Vec` (start+count handles) | `itest` (step dep slices), `ast` | tail-relocation on add | open |
+| 2026-09-30 | Fixed-point checked MSE accumulation over scaled integer vectors | `boosting`, `stats-ml` | `_mse_res` with overflow guards | open |
 
 ## Compiler-shaped requests routed to `docs/COMPILER-FINDINGS.md`
 
@@ -186,3 +196,14 @@ unit that would consume the fix.
   checked arithmetic, `parse_int` INT64_MIN defect, safe amortized string
   builder + `str_spaces`, `Vec` truncate discipline, decision-tree
   primitives. All green on v0.62.2.
+- 2026-09-30: wave-45 reports appended (all 10: `consensus`, `discovery`,
+  `actor`, `itest`, `codegen-fw`, `compliance`, `legacy-proto`,
+  `environment`, `boosting`, `optimizer-fw`; 5 task lanes + 2 AM lanes +
+  1 task re-dispatch + 1 task resume after output-limit crashes; all
+  port x2 + trap-14 verified, records `incubating`, published in
+  `eco-v0.1.26`). New rows: empty-needle `str_contains` defect,
+  allocation-free line accessors, Int min/max, keyed FIFO/mailbox,
+  stable argmax, ordered event log + cursors, composite-key lookup,
+  non-aborting assertion catalog, flat segmented slices, fixed-point
+  MSE. Compiler side: `Vec[Str].push(s)` mis-lowering recorded in
+  `docs/COMPILER-FINDINGS.md` (third v0.62.2 issue).
