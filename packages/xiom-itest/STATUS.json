@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.itest",
+    "stage":  "incubating",
+    "compiler":  "v0.62.2",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  24,
+                  "failed":  0,
+                  "run_by":  "task:ses_f0c68bb00ffeiZ6RZk2AwdI2jL",
+                  "commit":  "110d3bb",
+                  "checked":  "2026-09-30T18:44:40Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: next scope delta"
+}
