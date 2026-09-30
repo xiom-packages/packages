@@ -13,13 +13,13 @@
 
 package xiom_formatter_fw {
   name: "xiom.formatter-fw";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Wadler/Leijen-style pretty-printing framework: explicit document model (text/line/softline/hardline/concat/nest/group/align), greedy width fitting, deterministic renderer";
   categories: ["text", "tooling"];
   keywords: ["formatter", "pretty-printer", "layout", "document", "wadler"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["Eleftherios Notas", "The XIOM Authors"];
-  modules: ["xiom.formatter-fw"];
+  modules: ["xiom.formatter_fw"];
   deps: { "xiom.std": ">=0.60.0 <1.0.0" };
 }
