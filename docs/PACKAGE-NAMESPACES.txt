@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-09-30T00:28:11+03:00
-# packages: 430  modules: 454
+# generated: 2026-09-30T21:17:42+03:00
+# packages: 440  modules: 465
 
 ## package names
 xiom.acpi
@@ -119,6 +119,7 @@ xiom.flash
 xiom.fletcher
 xiom.fnv
 xiom.forkjoin
+xiom.formatter-fw
 xiom.fstab
 xiom.ftp
 xiom.fuzz
@@ -178,9 +179,11 @@ xiom.l10n-name
 xiom.l10n-phone
 xiom.l10n-time
 xiom.l10n-unit
+xiom.layers
 xiom.lcov
 xiom.ldap
 xiom.ldif
+xiom.lemmatization
 xiom.leveldb
 xiom.lexer-fw
 xiom.lexing
@@ -199,6 +202,7 @@ xiom.luhn
 xiom.lzfse
 xiom.m3u
 xiom.macaddr
+xiom.macro
 xiom.maidenhead
 xiom.marc
 xiom.markdown
@@ -307,6 +311,7 @@ xiom.querystring
 xiom.quotedprintable
 xiom.radiotap
 xiom.radix
+xiom.randomforest
 xiom.rate
 xiom.raylib
 xiom.rbac
@@ -344,6 +349,7 @@ xiom.sensor
 xiom.sentiment
 xiom.sgf
 xiom.signal
+xiom.smartcontract
 xiom.smbios
 xiom.smtlib
 xiom.smtp
@@ -360,11 +366,14 @@ xiom.sql
 xiom.sqlite
 xiom.srt
 xiom.ssh2
+xiom.stats-ml
+xiom.stats-tests
 xiom.stb
 xiom.stemming
 xiom.stl
 xiom.stm
 xiom.streaming
+xiom.stub
 xiom.stun
 xiom.subtitle
 xiom.summary
@@ -415,6 +424,7 @@ xiom.vdf
 xiom.vma
 xiom.vtt
 xiom.vulkan
+xiom.wallet
 xiom.wasm
 xiom.wasmtime
 xiom.wav
@@ -566,6 +576,7 @@ xiom.flash
 xiom.fletcher
 xiom.fnv
 xiom.forkjoin
+xiom.formatter_fw
 xiom.fstab
 xiom.ftp
 xiom.fuzz
@@ -633,9 +644,11 @@ xiom.l10n.number
 xiom.l10n.phone
 xiom.l10n.time
 xiom.l10n.unit
+xiom.layers
 xiom.lcov
 xiom.ldap
 xiom.ldif
+xiom.lemmatization
 xiom.leveldb
 xiom.lexer
 xiom.lexing
@@ -650,6 +663,7 @@ xiom.luhn
 xiom.lzfse.safe
 xiom.m3u
 xiom.macaddr
+xiom.macro
 xiom.maidenhead
 xiom.marc
 xiom.markdown
@@ -753,6 +767,7 @@ xiom.querystring
 xiom.quotedprintable
 xiom.radiotap
 xiom.radix
+xiom.randomforest
 xiom.rate
 xiom.rbac
 xiom.redis.client
@@ -788,6 +803,7 @@ xiom.sensor.imu
 xiom.sentiment
 xiom.sgf
 xiom.signal
+xiom.smartcontract
 xiom.smbios
 xiom.smtlib
 xiom.smtp
@@ -808,10 +824,14 @@ xiom.sqlite.schema
 xiom.sqlite.types
 xiom.srt
 xiom.ssh2
+xiom.stats_ml
+xiom.stats_tests
+xiom.stats-ml
 xiom.stemming
 xiom.stl
 xiom.stm
 xiom.streaming
+xiom.stub
 xiom.stun
 xiom.subtitle
 xiom.summary
@@ -873,6 +893,7 @@ xiom.vulkan.constants
 xiom.vulkan.safe
 xiom.vulkan.structs
 xiom.vulkan.wrapper
+xiom.wallet
 xiom.wasm
 xiom.wav
 xiom.weather

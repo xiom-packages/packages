@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-30T00:55:35Z",
+    "updated":  "2026-09-30T21:17:35Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -1956,6 +1956,23 @@
                      },
                      {
                          "version":  "0.1.1",
+                         "name":  "xiom.formatter-fw",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Wadler/Leijen-style pretty-printing framework: explicit document model (text/line/softline/hardline/concat/nest/group/align), greedy width fitting, deterministic renderer",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-formatter-fw/v0.1.1/package.tar.gz",
+                         "source_files":  [
+                                              "formatter_fw.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.1",
                          "name":  "xiom.fstab",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "fstab parser and canonical emitter for the documented six-field subset",
@@ -3000,6 +3017,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.layers",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Ordered layered configuration over dotted keys: later-wins precedence, replace/append/delete sentinels, provenance, shadowed-value queries, flattening and layer diff",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-layers/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "layers.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.lcov",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -3047,6 +3081,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ldif/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "ldif.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.lemmatization",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic rule-based English lemmatizer with POS-tagged suffix rules",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lemmatization/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "lemmatization.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3354,6 +3405,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-macaddr/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "macaddr.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.macro",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure deterministic text macro-expansion processor with define/undef directives",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-macro/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "macro.xi",
                                               "package.xi"
                                           ]
                      },
@@ -5211,6 +5279,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.randomforest",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic CART-style random forest over integer features and labels: Gini split search, seeded bootstrap, forest voting, feature importance, text dump",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-randomforest/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "randomforest.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.rate",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -5861,6 +5946,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.smartcontract",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic pure-XIOM stack VM for a documented contract bytecode subset, with assembler, disassembler, gas metering and traces",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-smartcontract/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "smartcontract.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.smbios",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -6139,6 +6241,40 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.stats-ml",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Fixed-point ML evaluation metrics on integers: confusion matrix, precision/recall/F1, kappa, ROC/AUC, calibration bins, class balance",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stats-ml/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "stats_ml.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.stats-tests",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Exact integer statistical tests at fixed point 1e-4: average-tie ranks, Wilcoxon rank-sum U, chi-square goodness-of-fit and independence, sign test and a deterministic seeded permutation test, with curated p-value buckets",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stats-tests/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "stats_tests.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.stb",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "stb_image loading bindings for XIOM",
@@ -6219,6 +6355,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-streaming/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "streaming.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.stub",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Ordered programmable test stubs: canned returns, failure actions, cardinality and structured violation reports",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stub/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "stub.xi",
                                               "package.xi"
                                           ]
                      },
@@ -7088,6 +7241,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.wallet",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic wallet metadata model: BIP32-style derivation paths, account and address books, an integer balance ledger with transfer intents (no crypto, no network)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-wallet/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "wallet.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.wasm",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -7918,19 +8088,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-formatter-fw",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-formatter-fw/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-gcp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8100,19 +8257,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-layers",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-layers/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-legacy-proto",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8126,19 +8270,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-lemmatization",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lemmatization/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-llvm",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8146,19 +8277,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-llvm/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-macro",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-macro/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8360,19 +8478,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-randomforest",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-randomforest/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-rocksdb",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8419,58 +8524,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-serverless/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-smartcontract",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-smartcontract/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-stats-ml",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stats-ml/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-stats-tests",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stats-tests/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-stub",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stub/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8575,19 +8628,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-video/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-wallet",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-wallet/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]

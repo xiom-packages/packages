@@ -3,14 +3,71 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-09-29 22:05Z, by the packages session (README-refresh
-program complete `eco-v0.1.15..22`; wave 43 built, integrated and
-published; growth docs appended). Check `git log -1 --format=%h %s`
-before starting.
+**Written:** 2026-09-30 (later session), by the packages session
+(v0.62.2 re-pin + byte_at battery + fleet sweep; wave 44 built,
+integrated and published; port.ps1 watchdog; growth docs appended).
+Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-09-29 22:05Z (read this first):**
+**STATE AT 2026-09-30 (read this first):**
+- **Compiler re-pin v0.62.1 -> v0.62.2 DONE.** `COMPILER_VERSION` =
+  `v0.62.2`; repo release `E:\xiom-lang\xiom\target\release` (v0.62.2)
+  deployed into `%LOCALAPPDATA%\xiom.new\bin`; stdlib checkout tracks
+  `stdlib-perf1` (`06d0ee7`). **byte_at battery
+  `docs/repro/byte-at-128` = `bad=0`, exit 0 -- FIXED; the widen+mask
+  workaround is RETIRED for new code.** `status.ps1 -Action repin`
+  aligned 435 records to v0.62.2.
+- **v0.62.2 fleet sweep DONE (439 implemented packages):** 376 green
+  re-pointed to `fleet-sweep:v0.62.2` (`commit 984fc2f`). **2 real
+  regressions among ready packages: `xiom.nbt` + `xiom.expat`** (silent
+  `exit -1`, no stdout; flushed variants run expat 25/25 and nbt 25/26
+  with one genuine UTF-8 strings failure in nbt); reported to the
+  compiler lane via relay 2026-09-30 and documented in
+  `docs/COMPILER-FINDINGS.md`. Everything else failing = the known
+  declaration-only/FFI class (32 TYPECHECK + 9 DECL-ONLY + 14
+  FFI/system stubs) + 5 load-flakes that re-ran green
+  (`bibtex`/`badger`/`sectest`/`physics`/`xpm`).
+- **Wave 44 COMPLETE + PUBLISHED:** all 10 (`lemmatization` 44/44,
+  `layers` 22/22, `macro` 25/25, `stub` 22/22, `stats-tests` 25/25,
+  `stats-ml` 22/22, `wallet` 20/20, `randomforest` 24/24,
+  `smartcontract` 22/22, `formatter-fw` 23/23) built by 6 `task` +
+  4 AM lanes (with two PC-shutdown resume rounds), port x2 + trap-14
+  verified, recorded `incubating`, published: `eco-v0.1.23` (7),
+  `eco-v0.1.24` (formatter-fw/randomforest/smartcontract),
+  `eco-v0.1.25` (`formatter-fw` 0.1.1 manifest module normalization
+  `xiom.formatter-fw` -> `xiom.formatter_fw`).
+- **Current gates/state:** `validate` **440/0**; guard **422
+  allowlisted / 373 ready / 49 grandfathered / 0 failures**; registry
+  **373 packages + 2 infra = 375 entries**; all pushed (HEAD after the
+  final wrap commit); nothing uncommitted except generated files
+  committed at the wrap.
+- **port.ps1 watchdog (must-keep):** `scripts/port.ps1` now enforces
+  `-TimeoutSec` (default 120) per compiler invocation and tree-kills the
+  run on timeout; `formatter-fw`'s runaway suite (stale work-stack index
+  -> infinite push -> ~94GB RAM -> PC crashes) is the reason. Never run
+  a package suite without the watchdog.
+- **Follow-ups:** compiler lane to bisect `nbt`/`expat` v0.62.2
+  regressions (repro logs under `%TEMP%\kilo\sweep-v0622*`); README
+  `Status` blocks for the 351 README-refresh names still lag one patch
+  (`published at v0.1.0` vs live `0.1.1`/`0.1.2`) -- sync at next
+  refresh; category harmonization (invalid registry-category tokens)
+  still owner-decided; `macro`/`stub` final reports lost to the
+  2026-09-30 shutdowns (files verified green); wave-45 candidates from
+  the remaining placeholder backlog (`itest`, `layers`-style utility
+  names are exhausted -- next natural set: `itest`, `environment`,
+  `discovery`, `compliance`, `legacy-proto`, `chaincore`, `wallet`-
+  siblings, `codegen-fw`, `optimizer-fw`, `boosting`).
+- **Policy unchanged:** incubating-by-default; `stable` by explicit
+  promotion; PRODUCTION-DIRECT batches (this lane approves the
+  registry-publish gates); staging only on explicit ask; ops scope ask
+  BEFORE appending the allowlist delta; publish loop publishes every
+  allowlisted unpublished name at its tag; "batch done" relay closes the
+  rate window.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-09-29 22:05Z (history):**
 - **README-refresh program COMPLETE (`eco-v0.1.15..eco-v0.1.22`, pushed,
   owner window closed):** all **351** affected published names were
   patch-bumped and republished (298 -> `0.1.1`, 53 -> `0.1.2`); the

@@ -85,6 +85,18 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-09-29 | Deterministic tick-driven latch/countdown + cancellation-token primitives (reason codes, propagation, fan-out waiters) | `countdown`, `cancel` (`xiom.sync`/`xiom.async` are thread/clock-backed) | hand-rolled state machines | open |
 | 2026-09-29 | Tree/AST traversal toolkit (node-pool model, pre/post-order walks, spans/diagnostics) | `ast` (package is the gap) | package-local model | open |
 | 2026-09-29 | `xiom.string.builder.sb_push_int` INT_MIN defect: negates in place and emits just `-` | `charts` (worked around with `int_to_string`) | avoid builder for Int | open (stdlib defect) |
+| 2026-09-30 | `xiom.string` suffix/byte helpers: replace-trailing-suffix, drop-last-byte, ASCII token classifiers + phonotactic predicates (CVC, double-consonant, vowel count, all-lower/all-upper/capitalized) | `lemmatization` (rule tables), `wallet` (structural validators) | package-local helpers | open |
+| 2026-09-30 | `Vec[Str]` fresh-copy/clone + BUG-17-safe equality/index-of usable from libraries | `layers`, `wallet`, `messaging`, `cancel`, `parsing`, `stm` (all hand-roll `streq` over `str_compare`) | per-package `streq` + typed-local scans | open |
+| 2026-09-30 | Ordered string->string map with first-introduction order + per-key provenance (overlay/merge semantics) | `layers` (layer stack / FlatMap fold) | parallel-vector state fold | open |
+| 2026-09-30 | Sentinel-prefix classifier/extractor for `Str` values (replace/append/delete markers) | `layers` (merge sentinels) | `_kind_of`/`_payload_of` | open |
+| 2026-09-30 | Integer/fixed-point statistics: average-tie ranks, Wilcoxon/chi-square/sign statistics, discrete critical-value tables, KAT-stable seeded LCG | `stats-tests`, `stats-ml`, `randomforest` (`xiom.stats.*` is Float64-only; no pinned PRNG) | hand-rolled, scale 1e-4 | open |
+| 2026-09-30 | ML metric primitives: confusion matrix, per-class/macro P/R/F1, Cohen's kappa, ROC sweep + trapezoid AUC, calibration bins | `stats-ml` | hand-rolled basis-point arithmetic | open |
+| 2026-09-30 | Sorted-unique insert / distinct extraction over `Vec[Int]` | `stats-ml` (ROC thresholds), `randomforest` (split candidates) | hand-rolled insertion/dedup loops | open |
+| 2026-09-30 | Signed checked arithmetic (`add/sub/mul/div` with overflow detection, INT64_MIN-safe) | `smartcontract` (VM opcodes), `wallet` (balance guards), `countdown` | hand-rolled `_*_overflows` + guards | open |
+| 2026-09-30 | `xiom.convert.parse.parse_int` rejects magnitude 2^63 -> `INT64_MIN` unparseable | `smartcontract` (operand parser) | negative-accumulating decimal parser | open (convert defect) |
+| 2026-09-30 | Safe amortized string builder ( `sb_to_str` aborts on 0x00 / O(n^2) `str_concat` accumulation) + `str_spaces(n)` | `formatter-fw` (renderer), `randomforest`/`stats-ml` (dumps) | `Str` concatenation | open |
+| 2026-09-30 | `Vec` truncation/drop-last discipline (`pop` returns Option, no void truncate) | `formatter-fw` (stacks), `randomforest` (frames) | length-driven pushes/pops | open |
+| 2026-09-30 | Decision-tree/forest primitives (histograms, Gini, threshold search) + pinned integer PRNG API | `randomforest`, `boosting` (placeholder) | hand-rolled CART + MINSTD | open |
 
 ## Compiler-shaped requests routed to `docs/COMPILER-FINDINGS.md`
 
@@ -161,3 +173,16 @@ unit that would consume the fix.
   primitives, AST traversal, and the `sb_push_int` INT_MIN defect;
   requesters extended on `result` and `test.dispatch`. All green on the
   installed v0.62.1.
+- 2026-09-30: wave-44 reports appended (all 10: `lemmatization`, `layers`,
+  `macro`, `stub`, `stats-tests`, `stats-ml`, `wallet`, `randomforest`,
+  `smartcontract`, `formatter-fw`; 6 task/4 AM lanes, all port x2 +
+  trap-14 verified, records `incubating`, published in `eco-v0.1.23/.24`
+  (+`formatter-fw` 0.1.1 module-normalization republish in
+  `eco-v0.1.25`)). `macro`/`stub` final reports were lost to the
+  2026-09-30 PC shutdowns (their files were verified green instead). New
+  rows: suffix/byte string helpers, `Vec[Str]` clone/equality, ordered
+  keyed maps with provenance, merge sentinels, integer/fixed-point
+  statistics + pinned LCG, ML metrics, sorted-unique inserts, signed
+  checked arithmetic, `parse_int` INT64_MIN defect, safe amortized string
+  builder + `str_spaces`, `Vec` truncate discipline, decision-tree
+  primitives. All green on v0.62.2.
