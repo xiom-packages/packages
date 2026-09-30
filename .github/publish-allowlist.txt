@@ -460,3 +460,6 @@ xiom.wallet
 xiom.stats-tests
 xiom.stats-ml
 xiom.stub
+xiom.formatter-fw
+xiom.randomforest
+xiom.smartcontract

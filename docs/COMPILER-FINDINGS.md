@@ -170,4 +170,29 @@ strict clauses on):
   workaround is retired for new code.** `status.ps1 -Action repin`
   aligned 435 records to v0.62.2; the fleet sweep re-run with
   `run_by: fleet-sweep:v0.62.2` follows per `docs/MAINTENANCE.md`.
+- 2026-09-30: **v0.62.2 fleet sweep (439 implemented packages) --
+  2 real regressions among ready/published packages, 57 known-class
+  failures (32 TYPECHECK + 9 DECL-ONLY + 16 FFI/system-lib stubs),
+  4 load-flakes re-run green.** The two real ones:
+  - **`xiom.expat` silent exit -1 (whole suite).** `xiom --run
+    tests\test_conformance.xi` compiles and the binary exits `-1` with
+    no output; direct `a.exe` run reproduces. Inserting
+    `io.flush_stdout();` after every println in the SAME main makes it
+    print and pass **25/25** -- i.e. the code is fine and the failure
+    is in the exit/flush path (buffered stdout never flushed; process
+    reports exit code -1). Same shape in `xiom.nbt`.
+  - **`xiom.nbt` is the same silent -1, plus one genuine check fails
+    once flushed: `t5` "strings: u16 length prefix, UTF-8 bytes,
+    UTF-8 names" ([FAIL])** -- 25/26. A minimal probe shows
+    `Vec[UInt8]` high-byte element compares (`195u8`/`169u8`, typed
+    and direct) are all CORRECT on v0.62.2, so the failing sub-check is
+    inside nbt's string round-trip (encode/decode + name lookup), not
+    basic UInt8 compare.
+  - Repro artifacts: `%TEMP%\kilo\sweep-v0622\*.log` (original),
+    `%TEMP%\kilo\sweep-v0622-rerun\*.log` (serial),
+    `%TEMP%\kilo\expat-inst.log` / `nbt-inst2.log` (flushed variants).
+  - Suspects: v0.62.2 codegen changes m163/m164/m165 or the exit path;
+    stdlib-perf1 is atomics-only and unlikely. Compiler lane to
+    bisect (v0.62.1 still green for both packages in the README batch
+    records).
 
