@@ -202,9 +202,33 @@ strict clauses on):
   `--emit-ir` alone is CLEAN -- the failure only surfaces at the clang
   link/compile stage, so library-only checks miss it. Workaround used:
   a single `Str` plus a parallel `Vec[Int]` of line-start offsets
-  (documented in `xiom.consensus` SPEC 7/11). Repro: build
+  (documented in   `xiom.consensus` SPEC 7/11). Repro: build
   `xiom.consensus` without the workaround (the original trace used
   `Vec[Str].push`). The other nine wave-45 packages ported green with no
   new compiler findings (`compliance` added a stdlib one, see the
   wishlist). Filed alongside the `nbt`/`expat` silent-exit regressions.
+- 2026-10-01: **wave-46 evidence -- FOURTH v0.62.2 issue: `&mut Int`
+  parameters mis-lower (silent wrong results).** `xiom.svm` found it
+  empirically: `_svm_shuffle(order: &mut Vec[Int], state: &mut Int)`
+  silently dropped mutations to `state` -- every seed produced the same
+  shuffle and retraining the same seed produced *different* models
+  (state never advanced). `&mut Vec` parameters were already known to
+  need explicit call-site `&mut`; `&mut Int` requires the same *and*
+  does not propagate writes in this build. Workaround: thread scalar
+  state through the return value (`fn shuffle(v: &mut Vec[Int], state:
+  Int) -> Int`). No diagnostic; KATs were needed to catch it. Compiler
+  lane: this is another silent-miscompile for the v0.62.2 bug batch
+  (alongside `Vec[Str].push` stride/i8 and the `nbt`/`expat` silent
+  exit -1).
+- 2026-10-01: **`Vec[Str].push` trigger isolated -- MODULE-LEVEL global
+  `Vec[Str]`.** A local `Vec[Str]` with the same literal pushes compiles
+  and runs correctly; a module-level `var v: Vec[Str] = Vec[Str].new();`
+  + `v.push("alpha")` fails clang on v0.62.2 with `'%tmp1035' defined
+  with type 'ptr' but expected 'i8'` and IR `store i8 %tmp1035, i8*
+  %tmp1034` (element stride 8; only the stored value type is wrong).
+  Repro bundle: `docs/repro/v0622-regressions/` (`vec_str_push_global.xi`
+  minimal, `vec_str_push_param.xi` consensus shape; README also covers
+  the expat/nbt silent-exit repro and the registry artifact download
+  endpoints). Relayed to the compiler lane 2026-10-01.
+
 
