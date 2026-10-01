@@ -107,6 +107,13 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-09-30 | Non-aborting structured assertion catalog with expected/actual records (8+ kinds) | `itest`, `stub` (`xiom.test` asserts abort via panic) | `_record_failure` + kind catalog | open |
 | 2026-09-30 | Flat segmented-slice view over a shared `Vec` (start+count handles) | `itest` (step dep slices), `ast` | tail-relocation on add | open |
 | 2026-09-30 | Fixed-point checked MSE accumulation over scaled integer vectors | `boosting`, `stats-ml` | `_mse_res` with overflow guards | open |
+| 2026-10-01 | Saturating Int arithmetic (`add`/`sub`/`mul` clamping at MIN/MAX) on the module face | `defi`, `geom3d`, `svm`, `mechanics`, `materials`, `chaincrypto` (`xiom.convert.saturating_*` exists but pulls a heavy import) | per-package `_sat_*` helpers | open |
+| 2026-10-01 | Pinned rounding helpers: `div_round` (half away from zero) and `div_ceil` (toward zero) over signed ints | `geom3d`, `svm`, `defi`, `materials`, `boosting` | hand-rolled `q`/`r` forms per package | open |
+| 2026-10-01 | Fixed-point scale-once multiply kernels (`mul(a,b,scale)`, sums) with overflow guards | `geom3d`, `materials`, `mechanics`, `boosting` | `_mul`/`_sum*_scale` helpers | open |
+| 2026-10-01 | Fixed-point trigonometry (sin/cos with range reduction) and Newton `isqrt` (usable without the `xiom.math` barrel) | `geom3d` (rotations, ray math), `defi` (`_defi_isqrt`) | degree-11 Taylor + Newton | open |
+| 2026-10-01 | `Vec[Int]`/typed-vector copy helper (no `Vec.clone`) | `exchanger`, `chaincrypto`, `actor`, `itest` | `_copy_ints` loops | open |
+| 2026-10-01 | Linear interpolation over an ordered (tick, value) table | `materials` (temperature scaling), `discovery` | index-walk loops | open |
+| 2026-10-01 | Group-by-key fold with running aggregate (OHLCV-style buckets, top-N depth) | `exchanger` (candles, depth), `stats-ml` (bins) | `_xchg_candles`/`_xchg_depth_side` | open |
 
 ## Compiler-shaped requests routed to `docs/COMPILER-FINDINGS.md`
 
@@ -207,3 +214,14 @@ unit that would consume the fix.
   non-aborting assertion catalog, flat segmented slices, fixed-point
   MSE. Compiler side: `Vec[Str].push(s)` mis-lowering recorded in
   `docs/COMPILER-FINDINGS.md` (third v0.62.2 issue).
+- 2026-10-01: wave-46 reports appended (all 10: `chaincore`,
+  `chaincrypto`, `defi`, `exchanger`, `geom3d`, `svm`, `nft`,
+  `mechanics`, `materials`, `chromatography`; 6 task + 3 AM lanes + 1
+  AM->task re-dispatch after an output-limit crash; all port x2 +
+  trap-14 verified, records `incubating`, published in `eco-v0.1.27`
+  together with the pending `sectest`/`mock`/`pwm` (allowlist 432 ->
+  445)). New rows: saturating Int arithmetic, pinned rounding helpers,
+  fixed-point multiply kernels, fixed-point trig + isqrt, typed-vector
+  copy, table interpolation, group-by-key folds. Compiler side: the
+  fourth v0.62.2 finding (`&mut Int` write drop) recorded in
+  `docs/COMPILER-FINDINGS.md`.

@@ -3,14 +3,53 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-09-30 (evening), by the packages session (wave 45
-built, integrated and published on v0.62.2; growth docs appended; third
-v0.62.2 compiler finding filed). Check `git log -1 --format=%h %s`
-before starting.
+**Written:** 2026-10-01 (late), by the packages session (wave 46 built,
+integrated and published with the pending `sectest`/`mock`/`pwm`;
+fourth v0.62.2 compiler finding filed; growth docs appended). Check
+`git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-09-30 19:25Z (read this first):**
+**STATE AT 2026-10-01 23:00Z (read this first):**
+- **Wave 46 COMPLETE + PUBLISHED (`eco-v0.1.27`):** 10 new + the pending
+  3 = 13 names: `chaincore` 24/24, `chaincrypto` 19/19, `defi` 28/28,
+  `exchanger` 24/24, `geom3d` 27/27, `svm` 23/23, `nft` 20/20,
+  `mechanics` 24/24, `materials` 26/26, `chromatography` 24/24, plus
+  `sectest` 22/22, `mock` 20/20, `pwm` 20/20 (all verified port x2 +
+  trap-14 on v0.62.2, records `incubating`; allowlist **432 -> 445**
+  after ops confirmed the +3 was still pending from the previous day).
+- **Current gates/state:** `validate` **460/0**; guard **445
+  allowlisted / 396 ready / 49 grandfathered / 0 failures**; registry
+  **396 packages + 2 infra = 398 entries**; allowlist **445**; all
+  pushed.
+- **FOURTH v0.62.2 compiler issue (filed + relayed):** `&mut Int`
+  parameters DROP WRITES (silent wrong results; found by `xiom.svm`'s
+  shuffle state). Workaround: thread scalar state through returns.
+  `docs/COMPILER-FINDINGS.md` (2026-10-01 entry). The compiler lane's
+  v0.62.2 bug batch now holds: `nbt`/`expat` silent exit -1,
+  `Vec[Str].push` stride/i8 at clang, and this `&mut Int` write-drop.
+- **Session-recovery pattern (repeatable):** output-limit crashes
+  ("model hit its output limit while reasoning") are fixed by
+  re-dispatching the lane with reasoning `variant: low` + a files-first,
+  short-replies directive (worked for `lemmatization`, `consensus`,
+  `boosting`, `materials`). AM sessions can't take a variant on resume:
+  stop the AM session, re-dispatch as a `task` with `variant: low`.
+- **New stdlib rows (wave 46):** saturating Int arithmetic, pinned
+  rounding helpers (`div_round`/`div_ceil`), fixed-point multiply
+  kernels, fixed-point trig + `isqrt`, typed-vector copy, table
+  interpolation, group-by-key folds.
+- **Follow-ups:** compiler lane bisecting the four v0.62.2 issues;
+  README `Status` blocks for the 351 README-refresh names still lag one
+  patch; category harmonization owner-decided; keep `-TimeoutSec 60`
+  watchdog discipline; wave-47 candidates from the remaining
+  pure-XIOM backlog: `context`, `metadata`, `icu`/`l10n-unicode`
+  (table-heavy -- watch const-array materialization), `svm`-siblings,
+  `actor`-siblings, `exchanger`-siblings (insurance/risk?), `web3`/
+  `defi`-siblings, `chromatography`-siblings, `geom3d`-siblings.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-09-30 19:25Z (history):**
 - **Wave 45 COMPLETE + PUBLISHED (`eco-v0.1.26`):** all 10
   (`consensus` 20/20, `discovery` 22/22, `actor` 28/28, `itest` 24/24,
   `codegen-fw` 23/23, `compliance` 22/22, `legacy-proto` 24/24,
