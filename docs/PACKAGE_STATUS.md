@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.62.2` -- generated 2026-09-30T19:21:25Z.
+Toolchain pin: `v0.62.2` -- generated 2026-10-01T22:52:57Z.
 
 ## Summary
 
-- packages tracked: 450
-- incubating: 170
+- packages tracked: 460
+- incubating: 180
 - ported: 4
 - stable: 276
 - publish enabled: 0
@@ -329,7 +329,10 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.cache | xiom-cache | incubating | tests/test_conformance.xi | pass 26/26 | 984fc2f | False | publish pending: next scope delta |
 | xiom.cancel | xiom-cancel | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
 | xiom.cassandra | xiom-cassandra | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
+| xiom.chaincore | xiom-chaincore | incubating | tests/test_conformance.xi | pass 24/24 | 2d19c07 | False | publish pending: next scope delta |
+| xiom.chaincrypto | xiom-chaincrypto | incubating | tests/test_conformance.xi | pass 19/19 | 565e9f9 | False | publish pending: next scope delta |
 | xiom.charts | xiom-charts | incubating | tests/test_conformance.xi | pass 28/28 | 984fc2f | False | publish pending: next scope delta |
+| xiom.chromatography | xiom-chromatography | incubating | tests/test_conformance.xi | pass 24/24 | d93fafa | False | publish pending: next scope delta |
 | xiom.clustering | xiom-clustering | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.codegen-fw | xiom-codegen-fw | incubating | tests/test_conformance.xi | pass 23/23 | 7c95d27 | False | publish pending: next scope delta |
 | xiom.compliance | xiom-compliance | incubating | tests/test_conformance.xi | pass 22/22 | d00e70c | False | publish pending: next scope delta |
@@ -339,6 +342,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.cuda | xiom-cuda | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.dac | xiom-dac | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.db2 | xiom-db2 | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
+| xiom.defi | xiom-defi | incubating | tests/test_conformance.xi | pass 28/28 | 87d58c6 | False | publish pending: next scope delta |
 | xiom.diagrams | xiom-diagrams | incubating | tests/test_conformance.xi | pass 34/34 | 984fc2f | False | publish pending: next scope delta |
 | xiom.dimred | xiom-dimred | incubating | tests/test_conformance.xi | pass 28/28 | 984fc2f | False | publish pending: next scope delta |
 | xiom.directx11 | xiom-directx11 | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -352,6 +356,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.environment | xiom-environment | incubating | tests/test_conformance.xi | pass 23/23 | 65b513c | False | publish pending: next scope delta |
 | xiom.etcd | xiom-etcd | incubating | tests/test_conformance.xi | pass 26/26 | 984fc2f | False | publish pending: next scope delta |
 | xiom.ethereum | xiom-ethereum | incubating | tests/test_conformance.xi | pass 23/23 | 984fc2f | False | publish pending: next scope delta |
+| xiom.exchanger | xiom-exchanger | incubating | tests/test_conformance.xi | pass 24/24 | babba21 | False | publish pending: next scope delta |
 | xiom.executor | xiom-executor | incubating | tests/test_conformance.xi | pass 27/27 | 984fc2f | False | publish pending: next scope delta |
 | xiom.expat | xiom-expat | incubating | tests/test_conformance.xi | pass 25/25 | 77d7ec3 | False | publish pending: next scope delta |
 | xiom.feature | xiom-feature | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
@@ -364,6 +369,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.gazebo | xiom-gazebo | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.geography | xiom-geography | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
 | xiom.geology | xiom-geology | incubating | tests/test_conformance.xi | pass 26/26 | 984fc2f | False | publish pending: next scope delta |
+| xiom.geom3d | xiom-geom3d | incubating | tests/test_conformance.xi | pass 27/27 | a3fb80e | False | publish pending: next scope delta |
 | xiom.git2 | xiom-git2 | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
 | xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.golden | xiom-golden | incubating | tests/test_conformance.xi | pass 35/35 | 984fc2f | False | publish pending: next scope delta |
@@ -402,6 +408,8 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.loss | xiom-loss | incubating | tests/test_conformance.xi | pass 27/27 | 984fc2f | False | publish pending: next scope delta |
 | xiom.lzfse | xiom-lzfse | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.macro | xiom-macro | incubating | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: next scope delta |
+| xiom.materials | xiom-materials | incubating | tests/test_conformance.xi | pass 26/26 | a813ebe | False | publish pending: next scope delta |
+| xiom.mechanics | xiom-mechanics | incubating | tests/test_conformance.xi | pass 24/24 | f093389 | False | publish pending: next scope delta |
 | xiom.memcached | xiom-memcached | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.merkle | xiom-merkle | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.meshopt | xiom-meshopt | incubating | tests/test_conformance.xi | pass 72/72 | 984fc2f | False |  |
@@ -415,6 +423,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.mssql | xiom-mssql | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.mysql | xiom-mysql | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.nats | xiom-nats | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
+| xiom.nft | xiom-nft | incubating | tests/test_conformance.xi | pass 20/20 | 9e17737 | False | publish pending: next scope delta |
 | xiom.nlp | xiom-nlp | incubating | tests/test_conformance.xi | pass 27/27 | 984fc2f | False | publish pending: next scope delta |
 | xiom.numpy | xiom-numpy | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
 | xiom.oauth | xiom-oauth | incubating | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: next scope delta |
@@ -460,6 +469,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.stm | xiom-stm | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.streaming | xiom-streaming | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
 | xiom.stub | xiom-stub | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
+| xiom.svm | xiom-svm | incubating | tests/test_conformance.xi | pass 23/23 | 0d9d063 | False | publish pending: next scope delta |
 | xiom.tensorflow | xiom-tensorflow | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.timer | xiom-timer | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
 | xiom.tls | xiom-tls | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |

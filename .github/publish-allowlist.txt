@@ -473,3 +473,16 @@ xiom.legacy-proto
 xiom.environment
 xiom.boosting
 xiom.optimizer-fw
+xiom.chaincore
+xiom.chaincrypto
+xiom.defi
+xiom.exchanger
+xiom.geom3d
+xiom.svm
+xiom.nft
+xiom.mechanics
+xiom.materials
+xiom.chromatography
+xiom.sectest
+xiom.mock
+xiom.pwm

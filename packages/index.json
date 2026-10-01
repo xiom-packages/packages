@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-09-30T22:21:21Z",
+    "updated":  "2026-10-02T01:52:54Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -845,6 +845,40 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.chaincore",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure deterministic blockchain core model: block headers, transaction records, chain validation, cumulative-work fork choice, reorg undo/redo, orphan promotion and finality depth",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chaincore/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "chaincore.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.chaincrypto",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Commitment and proof structures over opaque integer hashes: accumulator, membership proofs, m-of-n gates, commit-reveal",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chaincrypto/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "chaincrypto.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.charts",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic integer line and bar charts emitted as SVG",
@@ -874,6 +908,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chemistry/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "chemistry.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.chromatography",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic fixed-point chromatography data model: peak tables, resolution, Kovats indices, QC flags and a canonical text codec",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chromatography/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "chromatography.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1268,6 +1319,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dds/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "dds.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.defi",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Integer constant-product AMM and share-index lending pool models",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-defi/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "defi.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1786,6 +1854,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.exchanger",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic integer limit order book: price-time matching, bps fees, tape, depth, OHLCV",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-exchanger/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "exchanger.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.executor",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -2291,6 +2376,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-geology/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "geology.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.geom3d",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic fixed-point 3D vectors, matrices, quaternions, and ray intersections",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-geom3d/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "geom3d.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3630,6 +3732,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.materials",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic fixed-point isotropic material model: elastic constants, Voigt stress/strain, Hooke\u0027s law, invariants, yield checks",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-materials/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "materials.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.mbox",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -3660,6 +3779,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mbr/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "mbr.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.mechanics",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic fixed-point classical mechanics: semi-implicit integration, collisions, spring-damper",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mechanics/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "mechanics.xi",
                                               "package.xi"
                                           ]
                      },
@@ -4143,6 +4279,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-netstring/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "netstring.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.nft",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic NFT registry model in pure XIOM: collections, mint/burn, approved transfers, royalties and a canonical event log (no crypto, no network)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nft/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "nft.xi",
                                               "package.xi"
                                           ]
                      },
@@ -6614,6 +6767,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.svm",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic fixed-point linear SVM over scaled integers: hinge-loss sub-gradient training with seeded LCG shuffling, decaying learning rate, decision scores, margin band support-vector counting, accuracy, text model dump",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-svm/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "svm.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.syslog",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -7933,32 +8103,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-chaincore",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chaincore/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-chaincrypto",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chaincrypto/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-chef",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -7966,19 +8110,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chef/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-chromatography",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chromatography/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8089,19 +8220,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-defi",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-defi/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-docker",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8141,19 +8259,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-exchanger",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-exchanger/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-firebird",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8174,19 +8279,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gcp/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-geom3d",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-geom3d/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8336,32 +8428,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-materials",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-materials/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-mechanics",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mechanics/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-metadata",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8408,19 +8474,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-neural/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-nft",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nft/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8564,19 +8617,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-serverless/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-svm",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-svm/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]

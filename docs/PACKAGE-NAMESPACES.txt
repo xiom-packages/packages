@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-09-30T22:21:31+03:00
-# packages: 450  modules: 475
+# generated: 2026-10-02T01:53:01+03:00
+# packages: 460  modules: 485
 
 ## package names
 xiom.acpi
@@ -55,8 +55,11 @@ xiom.can
 xiom.cancel
 xiom.cassandra
 xiom.cbor
+xiom.chaincore
+xiom.chaincrypto
 xiom.charts
 xiom.chemistry
+xiom.chromatography
 xiom.cidr
 xiom.clustering
 xiom.cobs
@@ -80,6 +83,7 @@ xiom.dac
 xiom.db2
 xiom.dbase
 xiom.dds
+xiom.defi
 xiom.dhcp
 xiom.diagrams
 xiom.diff
@@ -109,6 +113,7 @@ xiom.envsubst
 xiom.escape
 xiom.etcd
 xiom.ethereum
+xiom.exchanger
 xiom.executor
 xiom.expat
 xiom.ext
@@ -139,6 +144,7 @@ xiom.geo
 xiom.geography
 xiom.geohash
 xiom.geology
+xiom.geom3d
 xiom.gguf
 xiom.gif
 xiom.git2
@@ -215,8 +221,10 @@ xiom.macro
 xiom.maidenhead
 xiom.marc
 xiom.markdown
+xiom.materials
 xiom.mbox
 xiom.mbr
+xiom.mechanics
 xiom.memcached
 xiom.merkle
 xiom.meshopt
@@ -245,6 +253,7 @@ xiom.mysql
 xiom.nats
 xiom.nbt
 xiom.netstring
+xiom.nft
 xiom.ngram
 xiom.nii
 xiom.nlp
@@ -388,6 +397,7 @@ xiom.stun
 xiom.subtitle
 xiom.summary
 xiom.svg
+xiom.svm
 xiom.syslog
 xiom.systemd
 xiom.tap
@@ -505,8 +515,11 @@ xiom.can
 xiom.cancel
 xiom.cassandra
 xiom.cbor
+xiom.chaincore
+xiom.chaincrypto
 xiom.charts
 xiom.chemistry
+xiom.chromatography
 xiom.cidr
 xiom.clustering
 xiom.cobs
@@ -532,6 +545,7 @@ xiom.dac
 xiom.db2
 xiom.dbase
 xiom.dds
+xiom.defi
 xiom.dhcp
 xiom.diagrams
 xiom.diff
@@ -578,6 +592,7 @@ xiom.envsubst
 xiom.escape
 xiom.etcd
 xiom.ethereum
+xiom.exchanger
 xiom.executor
 xiom.expat
 xiom.ext
@@ -605,6 +620,7 @@ xiom.geo
 xiom.geography
 xiom.geohash
 xiom.geology
+xiom.geom3d
 xiom.gguf
 xiom.gif
 xiom.git2
@@ -686,8 +702,10 @@ xiom.macro
 xiom.maidenhead
 xiom.marc
 xiom.markdown
+xiom.materials
 xiom.mbox
 xiom.mbr
+xiom.mechanics
 xiom.memcached
 xiom.merkle
 xiom.meshopt.safe
@@ -713,6 +731,7 @@ xiom.mysql
 xiom.nats
 xiom.nbt
 xiom.netstring
+xiom.nft
 xiom.ngram
 xiom.nii
 xiom.nlp
@@ -856,6 +875,7 @@ xiom.stun
 xiom.subtitle
 xiom.summary
 xiom.svg
+xiom.svm
 xiom.syslog
 xiom.systemd
 xiom.tap
