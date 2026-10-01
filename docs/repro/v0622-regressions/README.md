@@ -94,3 +94,45 @@ records: expat 25/25, nbt 26/26).
 Additional artifacts on this machine: `%TEMP%\kilo\sweep-v0622\*.log`
 (original sweep runs), `%TEMP%\kilo\sweep-v0622-rerun\*.log` (serial reruns),
 `%TEMP%\kilo\expat-inst.log` / `%TEMP%\kilo\nbt-inst2.log` (flushed variants).
+
+---
+
+## 3. `&mut Int` parameter writes are silently dropped
+
+**Minimal repro:** `mut_int_write_drop.xi` (in this directory).
+
+```powershell
+& .\scripts\xiom.ps1 -Stdlib "E:\xiom-lang\stdlib" --run docs\repro\v0622-regressions\mut_int_write_drop.xi
+# program prints: st=10
+# expected:       st=99
+```
+
+```xi
+fn set99(s: &mut Int) { s = 99; }
+
+fn main() -> Int {
+  var st: Int = 10;
+  set99(&mut st);
+  io.println("st=" + int_to_string(st));   // v0.62.2: "st=10"; expected "st=99"
+  return 0;
+}
+```
+
+Exit code 0, no diagnostics. The sibling shape also fails:
+`fn bump(s: &mut Int) { let v = byval(s); s = v; }` with
+`fn byval(x: Int) -> Int { return x + 1; }` prints `st=10, st2=10` where
+`11, 12` are expected -- so the write through the `&mut Int` parameter is
+dropped regardless of how the value is produced. (`&mut Vec` writes at the
+same call sites are fine.)
+
+Origin: `xiom.svm`'s `_svm_shuffle(order: &mut Vec[Int], state: &mut Int)`
+never advanced `state`. Workaround used everywhere in wave 46: thread scalar
+state through return values.
+
+Run observations (this machine, v0.62.2):
+
+```text
+mut_int_write_drop.xi  -> st=10          (expected 99)
+mutint_probe.xi        -> st=10, st2=10  (expected 11, 12)
+```
+

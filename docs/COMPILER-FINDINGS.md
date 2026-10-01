@@ -220,6 +220,13 @@ strict clauses on):
   lane: this is another silent-miscompile for the v0.62.2 bug batch
   (alongside `Vec[Str].push` stride/i8 and the `nbt`/`expat` silent
   exit -1).
+  - **Minimal repro pinned (2026-10-01):** `fn set99(s: &mut Int) { s =
+    99; }` + `var st: Int = 10; set99(&mut st);` prints `st=10` on
+    v0.62.2 (expected 99), exit 0, no diagnostics;
+    `docs/repro/v0622-regressions/mut_int_write_drop.xi`. The
+    `let v = byval(s); s = v;` variant also drops the write (`st=10,
+    st2=10` vs expected `11, 12`), and `&mut Vec` writes at the same
+    call sites are unaffected.
 - 2026-10-01: **`Vec[Str].push` trigger isolated -- MODULE-LEVEL global
   `Vec[Str]`.** A local `Vec[Str]` with the same literal pushes compiles
   and runs correctly; a module-level `var v: Vec[Str] = Vec[Str].new();`
