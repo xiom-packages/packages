@@ -8,9 +8,9 @@
 
 package xiom_flash {
   name: "xiom.flash";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "SPI NOR flash identification codec: JEDEC ID, 25-series command set, status register 1, SFDP (JESD216) header/parameter/BFPT decode and sector maps";
-  categories: ["protocol"];
+  categories: ["systems"];
   keywords: ["flash", "spi", "nor", "jedec", "sfdp", "jesd216", "embedded"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
