@@ -8,7 +8,7 @@
 
 package xiom_dbase {
   name: "xiom.dbase";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "dBASE III/IV table header codec: parse and build .dbf tables";
   categories: ["data"];
   keywords: ["dbase", "dbf", "table", "format"];

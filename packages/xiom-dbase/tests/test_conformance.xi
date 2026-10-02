@@ -850,7 +850,7 @@ fn t21() -> TestResult {
   recs.push(rec);
   let b = dbase_build(&t, &recs);
   if !b.is_ok { return assert(false, "three-field build must succeed"); }
-  let data: Vec<UInt8> = b.value;
+  let data: Vec[UInt8] = b.value;
   var ok = data.len() == 146;
   if (data[129] as Int) != 32 { ok = false; }
   let pr = dbase_parse(&data);
@@ -928,7 +928,7 @@ fn t24() -> TestResult {
   let b11 = dbase_build(&t11, &recs);
   var ok = b11.is_ok;
   if ok {
-    let data: Vec<UInt8> = b11.value;
+    let data: Vec[UInt8] = b11.value;
     let pr = dbase_parse(&data);
     if !pr.is_ok { ok = false; }
     else {
@@ -972,7 +972,7 @@ fn t25() -> TestResult {
   let b48 = dbase_build(&t48, &recs);
   if !b48.is_ok { ok = false; }
   else {
-    let data: Vec<UInt8> = b48.value;
+    let data: Vec[UInt8] = b48.value;
     let pr = dbase_parse(&data);
     if !pr.is_ok { ok = false; }
     else {
