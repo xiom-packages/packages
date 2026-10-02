@@ -5,7 +5,8 @@
 
 **Written:** 2026-10-02 (midday), by the packages session (wave 47
 built, integrated and published; `&mut Int` narrowing filed; growth
-docs appended). Check `git log -1 --format=%h %s` before starting.
+docs appended; seamless handoff kit + paste prompt for the next session
+added at the top). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
@@ -43,8 +44,102 @@ docs appended). Check `git log -1 --format=%h %s` before starting.
   `climate`, `nuclear`, `training`, `aac`-siblings skipped (codecs),
   `image`-codec siblings, `consul`-style models (overlap discovery --
   pick carefully), `icu`/`l10n-unicode` (table-heavy, watch const-array
-  materialization), `docx`/`pptx`/`xlsx` (only if deflate exists in
+  materialization),   `docx`/`pptx`/`xlsx` (only if deflate exists in
   stdlib), `web3`.
+
+### Next-session operating kit (wave pipeline -- proven 5x)
+
+1. **Prep**: `git fetch; git status -sb; git log -1`; gates
+   `status.ps1 -Action validate` + `allowlist-guard.ps1`. Toolchain:
+   `COMPILER_VERSION` = v0.62.2; repo release already deployed into
+   `%LOCALAPPDATA%\xiom.new\bin`; stdlib checkout `E:\xiom-lang\stdlib`.
+2. **Select + check**: pick ~10 pure-XIOM placeholders; run
+   `& .\scripts\namespace-check.ps1 -Module <names>` (expect 0 conflicts).
+3. **Dispatch**: 6 background `task` porters + 4 Agent Manager local
+   sessions (`agent_manager` action=null, mode=local, versions=false).
+   Brief = the v0.62.2 edition: 18 traps + `Vec[Str].push` avoided
+   (module-level Vecs especially) + no `&mut Int` scalar params (thread
+   via returns) + builtin/generic-name shadowing avoidance + progress-
+   guaranteed loops + `port.ps1 -TimeoutSec 60` gate + `## stdlib gaps`
+   report. Crash recovery: stop the dead AM session and re-dispatch as a
+   `task` with `variant: low` + files-first/short-replies directive
+   (worked 5x).
+4. **Integrate as they report** (don't wait for all 10): write a
+   two-row CSV (Name, Dir, Session=`task:ses_...`/`agentmgr:ses_...`) and
+   run `powershell -File %TEMP%\kilo\verify-wave43.ps1 -WaveCsv <csv>`
+   (port x2 + trap-14; fix mixed brackets; kill `a.exe` leftovers).
+   Then per package: `git add` exact files -> feat commit -> `status.ps1
+   -Action update -Package X -Stage incubating -TestsStatus pass -Passed N
+   -Failed 0 -RunBy <lane id> -Commit <feat sha> -ExcludedReason "publish
+   pending: next scope delta"` -> record commit.
+5. **Wrap + publish**: ops scope ask (+N) and WAIT for "<total> live"
+   before editing the allowlist; append `.github/publish-allowlist.txt`;
+   `generate_index.ps1`, `status.ps1 -Action report`, validate,
+   `allowlist-guard.ps1`, `export-namespaces.ps1`; commit + push; `git
+   tag eco-v0.1.29` (next number) + push; approve the gate:
+   `gh api repos/xiom-packages/packages/actions/runs/<id>/pending_deployments
+   -X POST --input <{"state":"approved","environment_ids":[22424011031],
+   "comment":"..."}>`; monitor; on `oidc_token_expired` rerun the failed
+   job once + re-approve; verify each name's `latest` on the registry.
+   No rate window needed for <=20 names (ops policy).
+6. **Docs at every wrap**: append `docs/STDLIB-WISHLIST.md` rows +
+   changelog; `docs/COMPILER-FINDINGS.md` for new compiler evidence;
+   refresh this SESSION.md block + paste prompt.
+7. **Carry-forwards**: (a) compiler hotfix watch -- when a new release
+   lands (v0.62.3+), re-pin per `docs/MAINTENANCE.md`: bump
+   `COMPILER_VERSION`, deploy release -> `xiom.new\bin` (exe + wasm dll),
+   `status.ps1 -Action repin`, fleet sweep re-record, re-run
+   `docs/repro/byte-at-128` AND all `docs/repro/v0622-regressions/`
+   probes (the four v0.62.2 issues: nbt/expat silent exit -1 [first in
+   the compiler queue], Vec[Str].push global-Vec mis-lower, &mut Int
+   scalar write-drop, mixed-bracket laxness); (b) README Status-block
+   sync for the 351 README-refresh names (one patch behind); (c)
+   category harmonization = owner decision; (d) keep the port watchdog
+   discipline.
+
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION
+
+```
+You are the packages session for xiom-packages/packages (local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
+private). Read SESSION.md first -- the 2026-10-02 12:45Z STATE block and
+the "Next-session operating kit" at the top of section 0 are the live
+handoff (wave 47 complete + published eco-v0.1.28; 406 packages + 2 infra
+on the registry; allowlist 455). Repo-local identity must be
+"Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
+PRODUCTION-DIRECT batches (this session approves the registry-publish
+gates); ops opens the publish-rate window ONLY for waves >20 names
+(default 20/min otherwise); the ops scope enumeration must be confirmed
+BEFORE appending the allowlist delta. New/next-touched records use stage
+`incubating` (`stable` only by explicit promotion).
+
+Start by running: git fetch; git status -sb; git log -1; then
+& .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
+
+Then do, in order:
+1. Wave 48 (or the owner's named wave): select ~10 pure-XIOM names from
+   the remaining placeholder backlog (SESSION.md candidates: climate,
+   nuclear, training, web3, icu/l10n-unicode, docx/pptx/xlsx only if a
+   pure deflate exists, image-codec siblings); namespace-check them;
+   dispatch 6 background task porters + 4 AM local sessions with the
+   canonical v0.62.2-edition briefs (18 traps + no Vec[Str].push + no
+   &mut Int scalar params + progress-guaranteed loops + port.ps1
+   -TimeoutSec 60 gate + `## stdlib gaps`); integrate as they report via
+   %TEMP%\kilo\verify-wave43.ps1 (port x2 + trap-14); commit feat+record
+   per package.
+2. Wrap + publish per the operating kit: ops scope ask, allowlist,
+   regenerate, validate+guard, tag eco-v0.1.29, approve the gate,
+   verify live; rerun the failed job once on oidc_token_expired; report
+   "batch done" only if ops opened a window (waves >20).
+3. Growth + maintenance: append worker `stdlib gaps` / compiler evidence
+   at every wave; run the release-triggered loop in docs/MAINTENANCE.md
+   on compiler/stdlib releases (targeted, no lockstep versions).
+4. Carry-forwards: compiler hotfix watch (four v0.62.2 issues, repros in
+   docs/repro/; re-pin + re-run probes when a release lands); README
+   Status-block sync for the 351 names; category harmonization owner
+   decision; keep the port watchdog discipline; update SESSION.md at the
+   wrap with a fresh paste prompt.
+```
 
 **--- Older state below (history) ---**
 
