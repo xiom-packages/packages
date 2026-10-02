@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-02T01:52:54Z",
+    "updated":  "2026-10-02T15:37:28Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -17,6 +17,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-acpi/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "acpi.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.activation",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Fixed-point activation functions and derivatives (scale 1e-4): relu, leaky relu (slope bps), elu (alpha bps), sigmoid, tanh, softmax with an exact 10000 sum, documented integer approximations, saturation and overflow guards",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-activation/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "activation.xi",
                                               "package.xi"
                                           ]
                      },
@@ -140,6 +157,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-amqp/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "amqp.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.analyzer",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic static-analysis framework over a caller-supplied instruction list: basic blocks, CFG, reachability, dominators, register liveness, text report",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-analyzer/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "analyzer.xi",
                                               "package.xi"
                                           ]
                      },
@@ -327,6 +361,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-auth/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "auth.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.autoscale",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic autoscaling policy model: metric ring buffer, rolling-window thresholds with hysteresis, per-direction cooldowns, replica bounds and fixed/proportional steps",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-autoscale/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "autoscale.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1078,6 +1129,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-consensus/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "consensus.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.context",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Immutable context propagation as a deterministic parent chain: shadowing lookups, inherited logical-tick deadlines, cancellation reason codes and key-value flattening",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-context/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "context.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2842,6 +2910,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.imaging",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic integer grayscale image processing: 3x3 box and separable 1-2-1 Gaussian blur, Sobel magnitude, binary and Otsu threshold, nearest and integer bilinear resize, flips/rotations, histogram/percentile, integral-image box sums and alpha-free overlay copy",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-imaging/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "imaging.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.imap",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -3869,6 +3954,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.metadata",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Ordered metadata blocks with case-insensitive dotted keys: duplicate-key policies, scoping and nesting, merge with precedence and provenance, diff, canonical serialization and parse round-trip",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-metadata/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "metadata.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.meteorology",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -3920,6 +4022,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-micro/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "micro.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.microscopy",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Microscopy image-set metadata: tile grids, z-stacks, channel calibration and a canonical manifest codec",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-microscopy/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "microscopy.xi",
                                               "package.xi"
                                           ]
                      },
@@ -4279,6 +4398,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-netstring/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "netstring.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.neural",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic fixed-point MLP inference over scaled integers (1e-4): dense layers, relu/leaky/sigmoid/tanh/linear activations, guarded dot products, requantization, softmax, argmax prediction, parameter counts and a canonical text dump",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-neural/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "neural.xi",
                                               "package.xi"
                                           ]
                      },
@@ -6904,6 +7040,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.tensor",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure deterministic n-dimensional integer tensor core: validated shape construction, row-major strides, coordinate and flat get/set, reshape, rank-2 transpose, axis-0 slicing with an offset map, broadcasting add, elementwise add/multiply, axis sum/max reductions and a canonical text dump",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tensor/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "tensor.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.tensorflow",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "TensorFlow C API (libtensorflow) -- Google\u0027s ML framework.",
@@ -6933,6 +7086,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-term/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "term.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.text-markup",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "BBCode-style inline markup codec: parse with nesting validation, span records, plain-text render, canonical re-serialization",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-text-markup/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "text_markup.xi",
                                               "package.xi"
                                           ]
                      },
@@ -7973,32 +8143,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-activation",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-activation/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-analyzer",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-analyzer/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-ansible",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8019,19 +8163,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-audio-meta/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-autoscale",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-autoscale/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8162,19 +8293,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-consul/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-context",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-context/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8337,19 +8455,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-imaging",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-imaging/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-inference",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8428,32 +8533,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-metadata",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-metadata/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-microscopy",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-microscopy/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-ml",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8461,19 +8540,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ml/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-neural",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-neural/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8623,19 +8689,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-tensor",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tensor/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-terraform",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8643,19 +8696,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-terraform/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-text-markup",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-text-markup/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]

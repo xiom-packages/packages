@@ -2,11 +2,12 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-02T01:53:01+03:00
-# packages: 460  modules: 485
+# generated: 2026-10-02T15:37:39+03:00
+# packages: 470  modules: 495
 
 ## package names
 xiom.acpi
+xiom.activation
 xiom.actor
 xiom.adc
 xiom.adler32
@@ -14,6 +15,7 @@ xiom.aiff
 xiom.alerting
 xiom.algo
 xiom.amqp
+xiom.analyzer
 xiom.apple
 xiom.ar
 xiom.arrow
@@ -25,6 +27,7 @@ xiom.astronomy
 xiom.au
 xiom.audit
 xiom.auth
+xiom.autoscale
 xiom.avi
 xiom.aviation
 xiom.avro
@@ -69,6 +72,7 @@ xiom.collation
 xiom.compliance
 xiom.config
 xiom.consensus
+xiom.context
 xiom.control
 xiom.cookie
 xiom.countdown
@@ -169,6 +173,7 @@ xiom.iban
 xiom.ical
 xiom.ico
 xiom.id3
+xiom.imaging
 xiom.imap
 xiom.imgui
 xiom.ini
@@ -229,9 +234,11 @@ xiom.memcached
 xiom.merkle
 xiom.meshopt
 xiom.messaging
+xiom.metadata
 xiom.meteorology
 xiom.metrics
 xiom.micro
+xiom.microscopy
 xiom.midi
 xiom.mime
 xiom.miniaudio
@@ -253,6 +260,7 @@ xiom.mysql
 xiom.nats
 xiom.nbt
 xiom.netstring
+xiom.neural
 xiom.nft
 xiom.ngram
 xiom.nii
@@ -405,8 +413,10 @@ xiom.tar
 xiom.tcx
 xiom.telnet
 xiom.template
+xiom.tensor
 xiom.tensorflow
 xiom.term
+xiom.text-markup
 xiom.tftp
 xiom.tga
 xiom.thermo
@@ -469,6 +479,7 @@ xiom.zstd
 
 ## module namespaces
 xiom.acpi
+xiom.activation
 xiom.actor
 xiom.adc
 xiom.adler32
@@ -476,6 +487,7 @@ xiom.aiff
 xiom.alerting
 xiom.algo
 xiom.amqp
+xiom.analyzer
 xiom.apple
 xiom.ar
 xiom.arrow
@@ -487,6 +499,7 @@ xiom.astronomy
 xiom.au
 xiom.audit
 xiom.auth
+xiom.autoscale
 xiom.avi
 xiom.aviation
 xiom.avro
@@ -529,6 +542,7 @@ xiom.collation
 xiom.compliance
 xiom.config
 xiom.consensus
+xiom.context
 xiom.control.filter
 xiom.control.pid
 xiom.control.state_machine
@@ -653,6 +667,7 @@ xiom.iban
 xiom.ical
 xiom.ico
 xiom.id3
+xiom.imaging
 xiom.imap
 xiom.ini
 xiom.inline.asm
@@ -710,8 +725,10 @@ xiom.memcached
 xiom.merkle
 xiom.meshopt.safe
 xiom.messaging
+xiom.metadata
 xiom.meteorology
 xiom.metrics
+xiom.microscopy
 xiom.midi
 xiom.mime
 xiom.miniseed
@@ -731,6 +748,7 @@ xiom.mysql
 xiom.nats
 xiom.nbt
 xiom.netstring
+xiom.neural
 xiom.nft
 xiom.ngram
 xiom.nii
@@ -883,7 +901,9 @@ xiom.tar
 xiom.tcx
 xiom.telnet
 xiom.template
+xiom.tensor
 xiom.term
+xiom.text_markup
 xiom.tftp
 xiom.tga
 xiom.thermo

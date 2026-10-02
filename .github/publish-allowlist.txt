@@ -486,3 +486,13 @@ xiom.chromatography
 xiom.sectest
 xiom.mock
 xiom.pwm
+xiom.activation
+xiom.neural
+xiom.tensor
+xiom.analyzer
+xiom.autoscale
+xiom.context
+xiom.metadata
+xiom.imaging
+xiom.text-markup
+xiom.microscopy

@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.62.2` -- generated 2026-10-01T22:52:57Z.
+Toolchain pin: `v0.62.2` -- generated 2026-10-02T12:37:32Z.
 
 ## Summary
 
-- packages tracked: 460
-- incubating: 180
+- packages tracked: 470
+- incubating: 190
 - ported: 4
 - stable: 276
 - publish enabled: 0
@@ -309,13 +309,16 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.json | xiom-json | ported | tests/test_conformance.xi | pass 12/12 | 984fc2f | False | ported: legacy port; stable promotion + publish pending (API review, registry scope, repo protection) |
 | xiom.kafka | xiom-kafka | ported | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | ported only: librdkafka FFI stubs remain (handle -1, poll None, admin Err(-999)); not publishable |
 | xiom.sensor | xiom-sensor | ported | tests/test_conformance.xi | pass 38/38 | 984fc2f | False | ported: legacy port; stable promotion + publish pending (API review, registry scope, repo protection) |
+| xiom.activation | xiom-activation | incubating | tests/test_conformance.xi | pass 24/24 | 8601a49 | False | publish pending: next scope delta |
 | xiom.actor | xiom-actor | incubating | tests/test_conformance.xi | pass 28/28 | 761842c | False | publish pending: next scope delta |
 | xiom.algo | xiom-algo | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.analyzer | xiom-analyzer | incubating | tests/test_conformance.xi | pass 23/23 | a0d17c7 | False | publish pending: next scope delta |
 | xiom.apple | xiom-apple | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
 | xiom.arrow | xiom-arrow | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.assimp | xiom-assimp | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.ast | xiom-ast | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
 | xiom.auth | xiom-auth | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
+| xiom.autoscale | xiom-autoscale | incubating | tests/test_conformance.xi | pass 21/21 | 90ac95f | False | publish pending: next scope delta |
 | xiom.aviation | xiom-aviation | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
 | xiom.badger | xiom-badger | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
 | xiom.barrier | xiom-barrier | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
@@ -338,6 +341,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.compliance | xiom-compliance | incubating | tests/test_conformance.xi | pass 22/22 | d00e70c | False | publish pending: next scope delta |
 | xiom.config | xiom-config | incubating | tests/test_conformance.xi | pass 27/27 | 984fc2f | False | publish pending: next scope delta |
 | xiom.consensus | xiom-consensus | incubating | tests/test_conformance.xi | pass 20/20 | 333210a | False | publish pending: next scope delta |
+| xiom.context | xiom-context | incubating | tests/test_conformance.xi | pass 23/23 | d509e4c | False | publish pending: next scope delta |
 | xiom.countdown | xiom-countdown | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.cuda | xiom-cuda | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.dac | xiom-dac | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
@@ -380,6 +384,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.hello | xiom-hello | incubating | tests/test_hello.xi | pass 4/4 | 984fc2f | False |  |
 | xiom.http | xiom-http | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.i2c | xiom-i2c | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
+| xiom.imaging | xiom-imaging | incubating | tests/test_conformance.xi | pass 22/22 | 2d7a1b4 | False | publish pending: next scope delta |
 | xiom.imgui | xiom-imgui | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.interrupt | xiom-interrupt | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.itest | xiom-itest | incubating | tests/test_conformance.xi | pass 24/24 | 110d3bb | False | publish pending: next scope delta |
@@ -414,7 +419,9 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.merkle | xiom-merkle | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.meshopt | xiom-meshopt | incubating | tests/test_conformance.xi | pass 72/72 | 984fc2f | False |  |
 | xiom.messaging | xiom-messaging | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
+| xiom.metadata | xiom-metadata | incubating | tests/test_conformance.xi | pass 28/28 | b7c0bfb | False | publish pending: next scope delta |
 | xiom.micro | xiom-micro | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.microscopy | xiom-microscopy | incubating | tests/test_conformance.xi | pass 24/24 | d475ef4 | False | publish pending: next scope delta |
 | xiom.miniaudio | xiom-miniaudio | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.mock | xiom-mock | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.mongo | xiom-mongo | incubating | tests/test_conformance.xi | pass 23/23 | 984fc2f | False | publish pending: next scope delta |
@@ -423,6 +430,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.mssql | xiom-mssql | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.mysql | xiom-mysql | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.nats | xiom-nats | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
+| xiom.neural | xiom-neural | incubating | tests/test_conformance.xi | pass 21/21 | 29ea0e2 | False | publish pending: next scope delta |
 | xiom.nft | xiom-nft | incubating | tests/test_conformance.xi | pass 20/20 | 9e17737 | False | publish pending: next scope delta |
 | xiom.nlp | xiom-nlp | incubating | tests/test_conformance.xi | pass 27/27 | 984fc2f | False | publish pending: next scope delta |
 | xiom.numpy | xiom-numpy | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
@@ -470,7 +478,9 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.streaming | xiom-streaming | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
 | xiom.stub | xiom-stub | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.svm | xiom-svm | incubating | tests/test_conformance.xi | pass 23/23 | 0d9d063 | False | publish pending: next scope delta |
+| xiom.tensor | xiom-tensor | incubating | tests/test_conformance.xi | pass 29/29 | cd0604a | False | publish pending: next scope delta |
 | xiom.tensorflow | xiom-tensorflow | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.text-markup | xiom-text-markup | incubating | tests/test_conformance.xi | pass 26/26 | bff5da3 | False | publish pending: next scope delta |
 | xiom.timer | xiom-timer | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
 | xiom.tls | xiom-tls | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.tor | xiom-tor | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
