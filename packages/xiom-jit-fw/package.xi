@@ -15,9 +15,9 @@
 
 package xiom_jit_fw {
   name: "xiom.jit-fw";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "JIT-framework model: source hashing and artifact keys, IR lowering to an instruction stream, bounded dispatch interpreter with call frames, bounded LRU artifact cache, closure/trampoline adapters, per-site monitor and deterministic tiering policy";
-  categories: ["compiler"];
+  categories: ["tooling"];
   keywords: ["jit", "compiler", "interpreter", "cache", "tiering", "trampoline", "framework"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
