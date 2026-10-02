@@ -3,51 +3,70 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-02 (midday), by the packages session (wave 47
-built, integrated and published; `&mut Int` narrowing filed; growth
-docs appended; seamless handoff kit + paste prompt for the next session
-added at the top). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-02 (afternoon), by the packages session (wave 48
+built, integrated and published as `eco-v0.1.29`; new compiler/stdlib
+findings filed; handoff kit + paste prompt refreshed for wave 49).
+Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-02 12:45Z (read this first):**
-- **Wave 47 COMPLETE + PUBLISHED (`eco-v0.1.28`):** all 10 --
-  `activation` 24/24, `neural` 21/21, `tensor` 29/29, `analyzer` 23/23,
-  `autoscale` 21/21, `context` 23/23, `metadata` 28/28, `imaging` 22/22,
-  `text-markup` 26/26, `microscopy` 24/24 -- built on v0.62.2 by 6 task
-  + 4 AM lanes, port x2 + trap-14 verified, records `incubating`;
-  allowlist **445 -> 455**. (`text-markup` shipped two `Vec<UInt8>`
-  mixed brackets that the trap-14 grep caught -- fixed to `Vec[UInt8]`
-  and re-gated before integration.)
-- **Current gates/state:** `validate` **470/0**; guard **455
-  allowlisted / 406 ready / 49 grandfathered / 0 failures**; registry
-  **406 packages + 2 infra = 408 entries**; allowlist **455**; all
-  pushed (wave-47 publish run green/confirmed 10/10 live).
-- **Compiler finding narrowed:** the `&mut Int` write-drop is
-  **scalar-parameter-only** -- `&mut Struct` FIELD writes propagate
-  correctly (probed in `tensor` and `autoscale`). Keep threading scalar
-  state via returns; struct out-params are safe.
+**STATE AT 2026-10-02 14:15Z (read this first):**
+- **Wave 48 COMPLETE + PUBLISHED (`eco-v0.1.29`):** all 10 --
+  `climate` 24/24, `nuclear` 27/27, `training` 26/26, `web3` 28/28,
+  `l10n-unicode` 24/24, `docx` 27/27, `pptx` 26/26, `xlsx` 28/28,
+  `image` 24/24, `data` 24/24 -- built on v0.62.2 by 6 task + 4 AM
+  lanes, port x2 + trap-14 verified, records `incubating`; allowlist
+  **455 -> 465**. Publish run `37017893792` SUCCESS in 4m43s (gate
+  `22424011031` approved; no rate window needed, 10 <= 20 names);
+  ops confirmed the scope delta ("465 live on both entries") before the
+  allowlist append.
+- **Current gates/state:** `validate` **480/0**; guard **465
+  allowlisted / 416 ready / 49 grandfathered / 0 failures**; registry
+  **418 packages + 2 infra = 420 entries**; allowlist **465**; all
+  pushed; tag `eco-v0.1.29` on `81929514`.
+- **New compiler finding (wave 48, type laxness beyond brackets):**
+  `let gb: Vec[UInt8] = got.value;` where `got.value` is a `Str` field
+  compiles with ZERO diagnostics and yields wrong bytes at run time
+  (`xiom.pptx`). The bracket grep does not catch it; keep explicit
+  types on cross-value bindings and unit-test byte round-trips.
+- **Const-array probe (wave 48, `l10n-unicode`):** simple module-level
+  `[8]Int`/`[64]Int` const arrays with loop-indexed reads are CORRECT
+  on v0.62.2 (`bad=0`) -- the v0.61.3 mis-materialization did not
+  reproduce for these shapes; complex initializers untested.
+- **Stdlib defect (wave 48, `web3`):** `xiom.crypto.hash._u64_lshr(x,
+  63)` divides by `_pow2(63)` = `Int64_MIN` and returns 3 instead of 1
+  for bit-63 operands (Keccak `rotl(C[1],1)` divergence); in-package
+  copy special-cases `n == 63`. Wishlist row added.
+- **Trap 14 re-offended silently (wave 48):** `docx` 8 mixed-bracket
+  signatures in PARAMETER positions, `image` 2, `pptx` 1 -- all
+  compiled green; only the post-green `Vec<`/`Result<` grep caught
+  them. Keep the two-pass discipline.
 - **Open compiler issues (with the compiler lane):** `nbt`/`expat`
   silent exit -1 (queued first), `Vec[Str].push` global-Vec mis-lower,
-  `&mut Int` write-drop. All repros pinned in
+  `&mut Int` scalar write-drop, mixed-bracket laxness, and the new
+  type laxness beyond brackets. Repro bundle:
   `docs/repro/v0622-regressions/`.
 - **Session-recovery pattern (repeatable):** output-limit crashes ->
   stop the AM session and re-dispatch as a `task` with
-  `variant: low` + files-first directive (worked 5x now).
-- **New stdlib rows (wave 47):** `xiom.math.fixed` transcendentals,
-  exact-sum softmax, bit-set dataflow primitives, borrowed Str views,
-  dependency-free `Vec[UInt8]`->`Str` builder, `Vec.pop` ergonomics.
-- **Follow-ups:** four v0.62.2 issues with the compiler lane; README
-  `Status` blocks for the 351 README-refresh names still lag one patch;
-  category harmonization owner-decided; keep the `-TimeoutSec 60`
-  watchdog; wave-48 candidates from the remaining pure-XIOM backlog:
-  `climate`, `nuclear`, `training`, `aac`-siblings skipped (codecs),
-  `image`-codec siblings, `consul`-style models (overlap discovery --
-  pick carefully), `icu`/`l10n-unicode` (table-heavy, watch const-array
-  materialization),   `docx`/`pptx`/`xlsx` (only if deflate exists in
-  stdlib), `web3`.
+  `variant: low` + files-first directive (worked 5x; not needed in
+  wave 48).
+- **New stdlib rows (wave 48):** `xiom.compress.zip` container,
+  deflate dynamic-Huffman read path + public tables, neutral CRC32,
+  pure Keccak-256, `_u64_lshr` n=63 defect, fixed-point `log2` +
+  integer statistics, strict bounded `str_to_int`, XML tokenizer,
+  UTF-8 code-point iteration/building; requesters extended on
+  `rand.state` (`data`) and `encoding.le` (`image`).
+- **Follow-ups:** README `Status` blocks for the 351 README-refresh
+  names still lag one patch; category harmonization owner-decided
+  (`docx` shipped an unknown category token -> registry `categories:
+  []`, accepted with a warning); keep the `-TimeoutSec 60` watchdog;
+  wave-49 candidates from the remaining pure-XIOM backlog: `deep`,
+  `ml`, `inference`, `serverless`, `video`, `audio-meta`, `saml`,
+  `consul`-style models (overlap discovery -- pick carefully),
+  `docker`/`elastic`/`ansible`/`chef`/`puppet`/`salt`/`terraform`/
+  `helm` model layers (41 untracked placeholder dirs remain).
 
-### Next-session operating kit (wave pipeline -- proven 5x)
+### Next-session operating kit (wave pipeline -- proven 6x)
 
 1. **Prep**: `git fetch; git status -sb; git log -1`; gates
    `status.ps1 -Action validate` + `allowlist-guard.ps1`. Toolchain:
@@ -76,7 +95,7 @@ added at the top). Check `git log -1 --format=%h %s` before starting.
    before editing the allowlist; append `.github/publish-allowlist.txt`;
    `generate_index.ps1`, `status.ps1 -Action report`, validate,
    `allowlist-guard.ps1`, `export-namespaces.ps1`; commit + push; `git
-   tag eco-v0.1.29` (next number) + push; approve the gate:
+   tag eco-v0.1.30` (next number) + push; approve the gate:
    `gh api repos/xiom-packages/packages/actions/runs/<id>/pending_deployments
    -X POST --input <{"state":"approved","environment_ids":[22424011031],
    "comment":"..."}>`; monitor; on `oidc_token_expired` rerun the failed
@@ -89,10 +108,12 @@ added at the top). Check `git log -1 --format=%h %s` before starting.
    lands (v0.62.3+), re-pin per `docs/MAINTENANCE.md`: bump
    `COMPILER_VERSION`, deploy release -> `xiom.new\bin` (exe + wasm dll),
    `status.ps1 -Action repin`, fleet sweep re-record, re-run
-   `docs/repro/byte-at-128` AND all `docs/repro/v0622-regressions/`
-   probes (the four v0.62.2 issues: nbt/expat silent exit -1 [first in
-   the compiler queue], Vec[Str].push global-Vec mis-lower, &mut Int
-   scalar write-drop, mixed-bracket laxness); (b) README Status-block
+  `docs/repro/byte-at-128` AND all `docs/repro/v0622-regressions/`
+  probes (the v0.62.2 issues: nbt/expat silent exit -1 [first in
+  the compiler queue], Vec[Str].push global-Vec mis-lower, &mut Int
+  scalar write-drop, mixed-bracket laxness, and wave-48's type laxness
+  beyond brackets -- binding a `Str` field to a `Vec[UInt8]` local);
+  (b) README Status-block
    sync for the 351 README-refresh names (one patch behind); (c)
    category harmonization = owner decision; (d) keep the port watchdog
    discipline.
@@ -102,10 +123,10 @@ added at the top). Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-02 12:45Z STATE block and
+private). Read SESSION.md first -- the 2026-10-02 14:15Z STATE block and
 the "Next-session operating kit" at the top of section 0 are the live
-handoff (wave 47 complete + published eco-v0.1.28; 406 packages + 2 infra
-on the registry; allowlist 455). Repo-local identity must be
+handoff (wave 48 complete + published eco-v0.1.29; 418 packages + 2 infra
+on the registry; allowlist 465). Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
 gates); ops opens the publish-rate window ONLY for waves >20 names
@@ -117,28 +138,32 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Wave 48 (or the owner's named wave): select ~10 pure-XIOM names from
-   the remaining placeholder backlog (SESSION.md candidates: climate,
-   nuclear, training, web3, icu/l10n-unicode, docx/pptx/xlsx only if a
-   pure deflate exists, image-codec siblings); namespace-check them;
-   dispatch 6 background task porters + 4 AM local sessions with the
-   canonical v0.62.2-edition briefs (18 traps + no Vec[Str].push + no
-   &mut Int scalar params + progress-guaranteed loops + port.ps1
-   -TimeoutSec 60 gate + `## stdlib gaps`); integrate as they report via
-   %TEMP%\kilo\verify-wave43.ps1 (port x2 + trap-14); commit feat+record
-   per package.
+1. Wave 49 (or the owner's named wave): select ~10 pure-XIOM names from
+   the remaining placeholder backlog (SESSION.md candidates: `deep`,
+   `ml`, `inference`, `serverless`, `video`, `audio-meta`, `saml`,
+   `consul`-style models -- overlap discovery, pick carefully;
+   `docker`/`elastic`/`ansible`/`chef`/`puppet`/`salt`/`terraform`/
+   `helm` model layers); namespace-check them; dispatch 6 background
+   task porters + 4 AM local sessions with the canonical v0.62.2-edition
+   briefs (18 traps + no global/module-level Vec[Str].push + no &mut Int
+   scalar params + no Str-field -> Vec[UInt8] cross-binding + progress-
+   guaranteed loops + port.ps1 -TimeoutSec 60 gate + `## stdlib gaps`);
+   integrate as they report via %TEMP%\kilo\verify-wave43.ps1
+   (port x2 + trap-14); commit feat+record per package.
 2. Wrap + publish per the operating kit: ops scope ask, allowlist,
-   regenerate, validate+guard, tag eco-v0.1.29, approve the gate,
+   regenerate, validate+guard, tag eco-v0.1.30, approve the gate,
    verify live; rerun the failed job once on oidc_token_expired; report
    "batch done" only if ops opened a window (waves >20).
 3. Growth + maintenance: append worker `stdlib gaps` / compiler evidence
    at every wave; run the release-triggered loop in docs/MAINTENANCE.md
    on compiler/stdlib releases (targeted, no lockstep versions).
-4. Carry-forwards: compiler hotfix watch (four v0.62.2 issues, repros in
-   docs/repro/; re-pin + re-run probes when a release lands); README
+4. Carry-forwards: compiler hotfix watch (v0.62.2 issues + repros in
+   docs/repro/; re-pin + re-run probes when a release lands; retire the
+   widen+mask workaround only per the byte_at battery); README
    Status-block sync for the 351 names; category harmonization owner
-   decision; keep the port watchdog discipline; update SESSION.md at the
-   wrap with a fresh paste prompt.
+   decision (docx shipped an ignored category token -> registry
+   `categories: []`); keep the port watchdog discipline; update
+   SESSION.md at the wrap with a fresh paste prompt.
 ```
 
 **--- Older state below (history) ---**

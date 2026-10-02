@@ -14,6 +14,8 @@ compiler session triages. Format: `| Date | Finding | Evidence | Workaround in p
 | 2026-09-26 | `&mut Int` write-through miscompiles: assignments to a `&mut Int` parameter do not reach the caller | `xiom-upnp/src/upnp.xi` `_version_parts` (fixed): callers kept `-1` after the callee wrote the value; documented independently in `xiom-optimizer` ("the v0.61.3 `&mut Int` calling convention miscompiles simple write-through") | return a plain struct by value (`VersionParts`); `xiom-gbnf` uses `*pos = *pos + 1` deref writes (works there, not in upnp) | silent wrong values; one package already shipped this pattern and needed a rewrite | 
 | 2026-09-26 | Loop-carried CSE miscompile: a value derived from a loop variable reuses the first iteration's result | `xiom-amqp/src/amqp.xi:1266` (documented): `ends.push(pos + 4 + sub_len)` returned the first container's end offset in the second iteration, so any two field-tables/arrays in one parent failed `bad table`/`bad array`; found by byte-level bisection | recursive per-container decode function instead of a loop-carried stack | silent wrong offsets; hard to diagnose | 
 | 2026-09-25 | Mixed-bracket typos compile silently: `Vec<UInt8>`, `Vec<UInt8]`, `Result<Int]` are accepted | every wave: the file-write tooling reintroduced them (`gif` 16 sites, `mp3`, `flac`, `jpeg`, `sd` 7 sites, `nats` 18 sites, `mongo` 2 authoring waves, `tor` 6 sites, `wireless` 9 test signatures) | mandatory `Select-String 'Vec<|Result<'` after every write and after green | shape-only; hides real corruption risk | 
+| 2026-10-02 | Type laxness beyond brackets: binding a `Str` struct field into a `Vec[UInt8]`-typed local (`let gb: Vec[UInt8] = got.value;`) compiles with zero diagnostics and produces wrong bytes at run time | `xiom.pptx` (found while writing the ZIP reader; the suite went green and a later byte comparison exposed it) | keep explicit types on every cross-value binding; unit-test byte round-trips; the post-green bracket grep does NOT catch this shape | silent wrong code -- same family as arity/mixed-bracket laxness |
+| 2026-10-02 | Stdlib `xiom.crypto.hash._u64_lshr`/`_u64_shr(x, 63)` is wrong when `x` has bit 63 set: it divides by `_pow2(63)` = `Int64_MIN` (negative), so the quotient flips sign and the floor adjustment is skipped (`Int64_MIN` -> 3 instead of 1) | `xiom.web3`: Keccak-256 diverged only for absorbed lanes equal to `0x8000000000000000` (empty/`abc`/`eth` failed; fox/hello/long inputs passed); localized by tracing theta vs a Python oracle to `rotl(C[1], 1)` | special-case `n == 63` in the in-package copy; do not reuse the helper as a general idiom | stdlib-side defect; stdlib callers never shift by 63 (SHA-512/BLAKE2b unaffected) |
 | 2026-09-26 | No `Vec[Float64]`; no `Int <-> Float64` bitcast in v0.61.3 | `xiom-avro`, `xiom-mkv`, `xiom-amqp` docs; scalar `Float64` works | float/double exposed as raw LE octets; EBML floats decoded as integer milli-units | blocks float-bearing formats from full fidelity (see `docs/STDLIB-WISHLIST.md` `xiom.float`) | 
 | 2026-09-24 | Bit tests on values with the sign bit set are unreliable | `xiom-can`/`xiom-radiotap` notes carried into wave-34/35 briefs; `xiom-sd`/`xiom-eeprom` prefer divisor/modulo extraction | divisor/modulo arithmetic for bit extraction | silent wrong bits | 
 | 2026-09-25 | `byte_at(...)` compared to UInt8 constants >= 128 mis-lowers; widening + masking needed | documented trap 3; `png` signature byte 0x89, `jpeg` markers, `ldap` tags 0xA0+ | `(x as Int) & 0xFF` everywhere | silent false compares | 
@@ -22,7 +24,7 @@ compiler session triages. Format: `| Date | Finding | Evidence | Workaround in p
 | 2026-09-22 | `Int` division truncates toward zero; `(a+b-1)/b` is wrong for negative numerators | documented trap 18 | `q=a/b; r=a%b; if r>0 {q+1} else {q}` | silent wrong ceil | 
 | 2026-09-27 | No `Vec[StructType]` (trap 10): struct payload lists need parallel `Vec` fields | `nats` (op stream parsed op-by-op), `i2c` (transaction events modeled as two mirrored `Vec[Int]` arrays) | mirrored parallel Vecs + index discipline | structural noise, drift risk (trap 16) | 
 | 2026-09-27 | No auto-borrow at call sites: `&Struct` parameters require an explicit `&op`; omitting it raises E001 moved-value advisories; a read-then-feed-then-read pattern over a `&mut` reader also warns | `nats` tests: 57 E001 "moved value" warnings until helpers took `&NatsOp` and every call site passed `&op`; `tls` ships 7 benign borrow warnings on the reassembly loop; `cassandra` mirrors thrift's `_r_byte_mut` trick to avoid `&` then `&mut` on one reader | explicit `&` at every call site; `_r_byte_mut`-style accessor for mixed borrows | advisory only, but noisy suites; easy to mistake for a real move | 
-| 2026-09-27 | Module-level `const` arrays / table initializers mis-materialize | `merkle`: the 64 SHA-256 K constants are rebuilt into a runtime `Vec[Int]` on every hash; `l10n-currency`: the 165-row ISO 4217 table is compiled into comparison chains instead of a module table | rebuild constants at runtime; comparison chains / accessor switches | performance and code size, no correctness impact | 
+| 2026-09-27 | Module-level `const` arrays / table initializers mis-materialize | `merkle`: the 64 SHA-256 K constants are rebuilt into a runtime `Vec[Int]` on every hash; `l10n-currency`: the 165-row ISO 4217 table is compiled into comparison chains instead of a module table; **v0.62.2 probe (`xiom.l10n-unicode`, 2026-10-02): simple `[8]Int`/`[64]Int` module-level const arrays with runtime-indexed loop reads, negatives and large values are now CORRECT (`bad=0`) -- the v0.61.3 mis-materialization did not reproduce for these shapes; complex initializers (structs/Str) untested** | rebuild constants at runtime; comparison chains / accessor switches | performance and code size, no correctness impact | 
 | 2026-09-27 | No function overloading; a later same-named function silently shadows an earlier definition (no redefinition error) | `l10n-currency`: two `_row` functions (different arities) produced 167 cascading `expected Int, found Str` errors at unrelated call sites until renamed to `_mk_row` | unique function names per module | confusing error storms; possible silent wrong dispatch in other shapes | 
 | 2026-09-27 | Bitwise `&`/`^` are unreliable on values with bit 31 or higher set | `bolt`: FNV-1a-64 and freelist/XOR work use an 8-step arithmetic XOR loop; `leveldb`/`proxy` CRC32C loops and `merkle` SHA-256 word ops stay on arithmetic identities | divisor/modulo extraction; arithmetic XOR/AND identities | performance and clarity; any missed conversion is silent wrong data | 
 | 2026-09-27 | Omitting the explicit `&mut` at a `Vec` helper call site silently writes to a copy (no diagnostic); also `&result.value` passed into a `&Vec[UInt8]` parameter can read as empty | `bitcoin`: a helper mutating a local `Vec` through a call with no `&mut` compiled clean and did nothing (caught only by tests); `proxy`: `&result.value` binding trap cost one debug cycle | explicit `&mut` at every mutating call site; bind payloads to a local first | silent wrong code -- the most dangerous class of the v0.61.3 issues | 
@@ -243,5 +245,41 @@ strict clauses on):
   minimal, `vec_str_push_param.xi` consensus shape; README also covers
   the expat/nbt silent-exit repro and the registry artifact download
   endpoints). Relayed to the compiler lane 2026-10-01.
+- 2026-10-02: **wave-48 evidence (10 packages on v0.62.2: `climate`,
+  `nuclear`, `training`, `web3`, `l10n-unicode`, `docx`, `pptx`, `xlsx`,
+  `image`, `data`; 6 `task` + 4 AM lanes, all double-verified).**
+  - **Type laxness beyond brackets (new, `pptx`):** `let gb: Vec[UInt8] =
+    got.value;` with `got.value: Str` compiled clean and produced wrong
+    bytes at run time -- a silent-wrong-code shape the bracket grep
+    cannot catch. Row added to Open findings.
+  - **Stdlib `_u64_lshr` n=63 defect (new, `web3`):** see the Open
+    findings row; Keccak-256 required an in-package `n == 63` special
+    case. Routed to the wishlist as well.
+  - **Const/table materialization probe (`l10n-unicode`):** simple
+    module-level `[8]Int`/`[64]Int` const arrays with loop-indexed reads
+    are CORRECT on v0.62.2 (`bad=0`); row 25 annotated, complex shapes
+    still to test.
+  - **Trap 14 re-offended silently three times:** `docx` emitted 8
+    mixed-bracket `Vec<UInt8>,` signatures in PARAMETER positions and
+    went green; `image` 2 (`_img_is_tga`/`_img_jpeg_scan`); `pptx` 1
+    (`let rb: Vec<UInt8] = rr.value;`). All caught only by the mandatory
+    post-green `Vec<`/`Result<` grep and fixed.
+  - **Positive confirmations on v0.62.2:** concrete multi-arg fn-pointer
+    callbacks (`fn(&Int,&Int)->Int` named callbacks, `training`);
+    intra-package submodule imports + `src\<last-segment>.xi` resolution
+    and cross-module pub types (`training`, `data`, `web3`); `&mut
+    Struct` Vec-field pushes persist; `UInt32 -> Int` via `as`
+    zero-extends (CRC KAT `crc32("123456789") = 3421780262`); 4-byte
+    UTF-8 and `sb_to_str` with control bytes round-trip.
+  - **Tooling notes:** the XIOM MCP stdlib lookup still fails without
+    `XIOM_STDLIB` (workers fall back to `E:\xiom-lang\stdlib`);
+    `xiom_compile_and_analyze` compiles the whole workspace and reports
+    unrelated pre-existing broken packages, so per-file `--emit-ir` /
+    `port.ps1` remain authoritative. `namespace-check.ps1` counts any
+    `.xi` under the package tree as a module (a scratch probe file
+    inflated the count once).
+  - Deflate/ZIP porting note: block headers and length/distance extra
+    bits are LSB-first while Huffman codes are MSB-first; one shared
+    accumulator silently mis-inflates.
 
 
