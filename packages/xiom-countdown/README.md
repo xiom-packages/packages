@@ -1,6 +1,6 @@
 # xiom.countdown
 
-> **Status:** `incubating` -- conformance-tested (22/22); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** one dependency-free module of pure, deterministic countdown
 > latches: one-shot and repeating expiry, remaining/elapsed/reset/re-arm
 > queries and fan-out waiting, all driven by explicit integer ticks.

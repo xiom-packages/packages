@@ -1,6 +1,6 @@
 # xiom.cassandra
 
-> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.2` on the XIOM registry.
 > **Scope:** the 9-byte frame header, the protocol primitives and
 > containers, and the request/response bodies of STARTUP, QUERY, RESULT and
 > ERROR. No sockets, no TLS, no compression, no authentication exchange,

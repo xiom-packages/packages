@@ -1,7 +1,6 @@
 # xiom.phaser
 
-> **Status:** `incubating` -- conformance-tested (24/24) on XIOM v0.62.2;
-> registry publish pending.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a `java.util.concurrent.Phaser`-style multi-party phaser as a
 > pure, deterministic state machine: dynamic party registration
 > (`register`, `bulkRegister`, `arriveAndDeregister`), parties/arrived/

@@ -1,6 +1,6 @@
 # xiom.uri
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** RFC 3986 URI-reference parsing and formatting, percent-encoding
 > and component helpers (host, port, query lookup).
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,

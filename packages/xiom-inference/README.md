@@ -1,6 +1,6 @@
 # xiom.inference
 
-> **Status:** `incubating` -- conformance-tested (28/28); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic fixed-point inference over a parallel-vector model
 > descriptor (dense and elementwise-activation layers, precomputed weight
 > offsets, guarded forward pass, softmax and argmax predict, batched and

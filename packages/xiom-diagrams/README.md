@@ -1,6 +1,6 @@
 # xiom.diagrams
 
-> **Status:** `incubating` -- conformance-tested (34/34); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (34/34); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Graphviz DOT-subset codec: parse and serialize `graph`/`digraph`
 > documents with node, edge and attribute statements, attribute lists, quoted
 > strings, comments and a precise error catalog.

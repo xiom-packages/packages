@@ -5,7 +5,7 @@
 Country address templates, multi-line rendering and field validation for a
 built-in 12-country dataset.
 
-> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 
 ## Scope
 

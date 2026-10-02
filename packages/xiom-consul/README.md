@@ -1,6 +1,6 @@
 # xiom.consul
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic, pure-XIOM **Consul protocol model** (no HTTP, no
 > agent, no network): the KV store with CAS and monotonic indexes, the
 > service/check registry, TTL health transitions, session lifecycle with

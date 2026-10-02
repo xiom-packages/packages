@@ -1,6 +1,6 @@
 # xiom.duration
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** strict ISO 8601 duration parsing, canonical formatting, flat
 > accessors and a restricted whole-seconds helper.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.compare`,

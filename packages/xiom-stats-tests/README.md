@@ -1,6 +1,6 @@
 # xiom.stats-tests
 
-> **Status:** `incubating` -- conformance-tested (25/25); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry.
 > **Scope:** exact integer statistical tests at fixed point 1e-4 (10000 = 1.0):
 > average-tie ranks, Wilcoxon rank-sum (Mann-Whitney) U, chi-square
 > goodness-of-fit and independence against integer expected counts, the sign

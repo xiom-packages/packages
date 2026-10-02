@@ -1,6 +1,6 @@
 # xiom.plural
 
-> **Status:** `stable` -- conformance-tested (35/35); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (35/35); published at `v0.1.1` on the XIOM registry.
 > **Scope:** English pluralization and singularization for lowercase ASCII
 > words, with irregular/invariant tables and ordered suffix rules.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.compare`,

@@ -1,6 +1,6 @@
 # xiom.ftp
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a codec for the FTP control connection (RFC 959 plus common
 > extensions): parse and emit the commands `USER PASS ACCT CWD CDUP PWD QUIT
 > PORT PASV TYPE MODE STRU RETR STOR STOU APPE LIST NLST DELE RMD MKD RNFR

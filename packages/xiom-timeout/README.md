@@ -1,6 +1,6 @@
 # xiom.timeout
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** deterministic deadline and timeout arithmetic with explicit
 > clocks: timeout policies with defaults and ceilings, and deadlines that
 > track remaining time, expiry, elapsed time, extension, reset, and progress.

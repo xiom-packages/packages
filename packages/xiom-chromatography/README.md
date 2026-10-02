@@ -1,6 +1,6 @@
 # xiom.chromatography
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 
 Pure XIOM, deterministic, FFI-free chromatography data model. Everything is
 fixed-point integer math with scale 1e-4 (an Int value of `12345` means

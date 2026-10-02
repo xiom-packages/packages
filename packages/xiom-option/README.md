@@ -1,6 +1,6 @@
 # xiom.option
 
-> **Status:** `stable` -- conformance-tested (32/32); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (32/32); published at `v0.1.1` on the XIOM registry.
 > **Scope:** combinators for `Option` and `Result` values -- map, flat-map,
 > filter, unwrap, and Option/Result conversions -- as concrete `Int`/`Str`
 > specializations.

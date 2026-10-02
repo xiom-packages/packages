@@ -1,6 +1,6 @@
 # xiom.stm
 
-> **Status:** `incubating` -- conformance-tested (20/20); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic single-threaded software-transactional-memory
 > primitives: versioned cells (TVar-like), optimistic transactions with
 > read/write sets, commit validation, conflict aborts with reason codes and

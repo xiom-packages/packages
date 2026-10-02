@@ -1,6 +1,6 @@
 # xiom.optimizer-fw
 
-> **Status:** `incubating` -- conformance-tested (25/25); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a deterministic optimization framework over integer objective
 > records: sample tables and explicit value lists, exhaustive grid search,
 > first/best-improvement hill climbing, LCG simulated annealing with a

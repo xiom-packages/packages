@@ -1,6 +1,6 @@
 # xiom.ascii85
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) Adobe ASCII85 (Base85) encoding/decoding:
 > the PostScript/PDF text encoding over the `!`..`u` alphabet, with the `z`
 > four-zero-byte shorthand.

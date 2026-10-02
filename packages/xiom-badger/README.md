@@ -5,7 +5,7 @@ Pure-XIOM, parse-only reader for **BadgerDB v1.6.2** (`dgraph-io/badger`
 behaviour: the caller passes the whole file (or a block) as a `Vec[UInt8]`
 and receives scalars plus offset/size spans into that buffer.
 
-> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.2` on the XIOM registry.
 > **Byte-compatible with:** BadgerDB **v1.6.2** only. Badger v2/v3/v4
 > (`github.com/dgraph-io/badger/v2` and later) are explicitly **out of
 > scope** and are not parsed.

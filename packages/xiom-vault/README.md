@@ -1,6 +1,6 @@
 # xiom.vault
 
-> **Status:** `incubating` -- conformance-tested (28/28); not yet published.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 > **Scope:** secret-vault integration MODEL (Vault-shaped). Pure XIOM: no
 > HTTP, no FFI, no cryptography, no token generation, no I/O.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.builder`,

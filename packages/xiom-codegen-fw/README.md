@@ -1,6 +1,6 @@
 # xiom.codegen-fw
 
-> **Status:** `incubating` -- conformance-tested (23/23); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a deterministic code-generation framework: scoped symbol tables,
 > a rollback-safe label allocator, an opcode/operand IR model, an indenting
 > text emitter, a first-match-wins peephole window rewriter and a module text

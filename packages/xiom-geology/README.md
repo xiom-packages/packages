@@ -1,6 +1,6 @@
 # xiom.geology
 
-> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.2` on the XIOM registry.
 pure XIOM. 26 conformance checks pass (`passed=26 failed=0`).
 
 A dependency-free reader for LAS 2.0 text files: sections `~V`, `~W`, `~C`,

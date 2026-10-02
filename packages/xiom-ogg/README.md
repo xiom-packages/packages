@@ -1,6 +1,6 @@
 # xiom.ogg
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** Ogg container page structure: page walk, page fields and the
 > Ogg CRC-32 checksum. No codec payload parsing.
 > **Deps:** `xiom.std` only (the library module imports nothing from it; the

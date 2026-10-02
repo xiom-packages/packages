@@ -1,6 +1,6 @@
 # xiom.ast
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a deterministic abstract-syntax-tree toolkit: a parallel-array
 > node model, a cycle-safe builder, pre/post-order traversal, parent/child/
 > sibling queries, byte spans, a span/diagnostic table and a canonical

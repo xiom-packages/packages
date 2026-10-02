@@ -1,6 +1,6 @@
 # xiom.lrc
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** LRC synced-lyrics parsing and canonical emitting; in-memory `Str`
 > only, no audio, no rendering, no encoding conversion.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,

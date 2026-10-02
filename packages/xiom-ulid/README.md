@@ -1,6 +1,6 @@
 # xiom.ulid
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) ULID codec: 128 bits (48-bit millisecond
 > timestamp + 80-bit randomness) as 26 Crockford base32 characters, with
 > caller-supplied timestamp and randomness, strict validation and

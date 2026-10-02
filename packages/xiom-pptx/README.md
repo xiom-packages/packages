@@ -1,6 +1,6 @@
 # xiom.pptx
 
-> **Status:** `incubating` -- conformance-tested (26/26); not yet published.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM PowerPoint OpenXML (PPTX) reading and writing for a
 > minimal PresentationML subset: presentation/slide model, rectangular
 > text-box shapes with integer-EMU geometry, all inside a self-implemented

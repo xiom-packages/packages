@@ -1,6 +1,6 @@
 # xiom.adc
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) ADC conversion and configuration codecs:
 > integer scaling to microvolts/millivolts, channel/mux and gain selection,
 > reference selection, single-ended vs differential handling, sample-rate

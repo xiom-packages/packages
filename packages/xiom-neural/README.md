@@ -1,6 +1,6 @@
 # xiom.neural
 
-> **Status:** `incubating` -- conformance-tested (21/21); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic fixed-point MLP inference over scaled integers:
 > dense layers with guarded dot products, relu / leaky / sigmoid / tanh /
 > linear activations, requantization between layers, softmax, argmax

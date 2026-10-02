@@ -1,6 +1,6 @@
 # xiom.puppet
 
-> **Status:** `incubating` -- conformance-tested (26/26). Not yet published.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM Puppet-style declarative configuration-management
 > MODEL: a manifest-parsing subset (class and resource declarations,
 > attributes, `->`/`require`/`before`/`notify`/`subscribe` relationships), a

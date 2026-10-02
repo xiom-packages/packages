@@ -1,6 +1,6 @@
 # xiom.charts
 
-> **Status:** `incubating` -- conformance-tested (28/28); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 > **Scope:** one pure-XIOM module that turns integer data series into
 > deterministic SVG line and bar charts: integer layout, linear scaling with
 > documented rounding, axis ticks, and XML-escaped text output.

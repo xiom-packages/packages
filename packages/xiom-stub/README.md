@@ -1,6 +1,6 @@
 # xiom.stub
 
-> **Status:** `incubating` -- conformance-tested (22/22); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** ordered programmable test stubs: expectation matchers over method
 > names and Int argument tuples, canned return values, failure actions,
 > cardinality constraints and structured violation reports.

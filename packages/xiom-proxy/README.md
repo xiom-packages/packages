@@ -3,7 +3,7 @@
 HAProxy PROXY protocol **structure codec**: v1 text lines and v2 binary
 headers, byte-exact, in pure XIOM.
 
-> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
 > **Scope:** framing and field codec only. This package never opens a socket
 > and owns no connection state; callers hand it `Vec[UInt8]` buffers and get
 > typed structs plus exact `consumed` byte counts back, which is what a

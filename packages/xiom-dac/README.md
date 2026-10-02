@@ -1,6 +1,6 @@
 # xiom.dac
 
-> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI, no bus I/O, no device state) DAC command and
 > register codecs: MCP4725 and MCP4728 I2C frames, MCP4921/MCP4922 SPI frames,
 > and integer code-to-microvolt scaling for all three families.

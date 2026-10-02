@@ -1,6 +1,6 @@
 # xiom.activation
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** fixed-point activation functions and their derivatives for
 > integer neural-network code (`relu`, leaky relu, elu, `sigmoid`, `tanh`,
 > softmax) at scale `1e-4`, with documented integer approximations,

@@ -1,6 +1,6 @@
 # xiom.actor
 
-> **Status:** `incubating` -- conformance-tested (28/28); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 > **Scope:** actor-model scheduling as a pure, deterministic state machine:
 > actor records with behavior state, bounded mailboxes with overflow policies,
 > message records (sender, tag, int payloads), a ready queue with priority +

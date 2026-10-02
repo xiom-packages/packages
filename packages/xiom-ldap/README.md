@@ -1,6 +1,6 @@
 # xiom.ldap
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI, no sockets) decoder for the LDAP protocol
 > wire format (RFC 4511) plus a minimal encoder. Covers the BER subset LDAP
 > uses: one-byte tags, definite short/long-form lengths (minimal long form

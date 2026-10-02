@@ -1,6 +1,6 @@
 # xiom.autoscale
 
-> **Status:** `incubating` -- conformance-tested (21/21); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a pure deterministic autoscaling policy model -- metric ring
 > buffer, rolling-window aggregates, hysteresis thresholds, per-direction
 > cooldowns, replica bounds, fixed/proportional steps and decision records --

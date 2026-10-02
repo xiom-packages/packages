@@ -1,6 +1,6 @@
 # xiom.consensus
 
-> **Status:** `incubating` -- conformance-tested (20/20); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic, caller-driven Raft-style consensus model: terms and
 > explicit-vote elections with quorum math, log replication with next/match/commit
 > indices, leader/follower/candidate transitions, message records, a safety-invariant

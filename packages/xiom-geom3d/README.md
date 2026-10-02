@@ -1,6 +1,6 @@
 # xiom.geom3d
 
-> **Status:** `incubating` -- conformance-tested (27/27); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.0` on the XIOM registry.
 > **Scope:** one pure-XIOM module with deterministic fixed-point (scale 1e-4) 3D
 > geometry: vec3, mat3/mat4, quaternions, ray intersections, and a scene helper.
 > **Deps:** `xiom.std` only (the library imports `xiom.math` for integer

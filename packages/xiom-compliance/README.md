@@ -1,6 +1,6 @@
 # xiom.compliance
 
-> **Status:** `incubating` -- conformance-tested (22/22); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic compliance rule engine: typed evidence attributes, predicate rule sets, expiring waivers, severity rollup and a canonical text findings report.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.str_compare`/`byte_at`/`str_slice`/`str_starts_with`/`str_contains` and `xiom.convert.int_to_string`). Tests additionally use `xiom.test` and `xiom.io`.
 

@@ -1,6 +1,6 @@
 # xiom.leveldb
 
-> **Status:** `incubating` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (18/18); published at `v0.1.2` on the XIOM registry.
 > **Scope:** LevelDB storage-format parser: LEB128 varints, internal keys,
 > log records (7-byte header, 32 KiB block rule, FIRST/MIDDLE/LAST
 > reassembly, masked CRC32C), SSTable block structure (prefix-compressed

@@ -1,6 +1,6 @@
 # xiom.forkjoin
 
-> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** fork/join task modeling as a pure, deterministic state machine:
 > fixed-threshold recursive splitting of a work range into a task-node tree,
 > ordered result combining (sum, max, concatenation), a work-stealing deque

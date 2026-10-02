@@ -1,6 +1,6 @@
 # xiom.analyzer
 
-> **Status:** `incubating` -- conformance-tested (23/23); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic static-analysis framework over a caller-supplied
 > instruction list: basic blocks, CFG edges, forward reachability, dominator
 > sets with immediate dominators, register liveness with interference pairs,

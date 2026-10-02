@@ -1,6 +1,6 @@
 # xiom.sensor
 
-> **Status:** `ported` -- conformance-tested (38/38); not yet published to the XIOM registry.
+> **Status:** `ported` -- conformance-tested (38/38); not yet published.
 > **Scope:** Pure-XIOM sensor math: GPS geodesy, quaternion/attitude helpers, IMU orientation, multi-sensor fusion, and calibration.
 > **Deps:** `xiom.std` only. No FFI in v0.1.
 

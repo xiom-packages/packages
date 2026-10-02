@@ -1,6 +1,6 @@
 # xiom.meteorology
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** decode-only codecs for aviation weather reports -- one METAR/SPECI
 > observation or one TAF forecast per call: report header, wind, visibility,
 > RVR, present weather, sky cover, temperature/dewpoint, altimeter and NOSIG,

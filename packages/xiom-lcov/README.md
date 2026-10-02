@@ -1,6 +1,6 @@
 # xiom.lcov
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** an LCOV tracefile parser and canonical emitter for the documented
 > record subset: `TN`, `SF`, `FN`, `FNDA`, `FNF`, `FNH`, `DA`, `LF`, `LH`,
 > `BRDA`, `BRF`, `BRH` and `end_of_record`.

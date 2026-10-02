@@ -1,6 +1,6 @@
 # xiom.smtp
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** SMTP protocol codec: RFC 5321 command lines and reply blocks,
 > in-memory `Str` only.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,

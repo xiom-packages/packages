@@ -1,6 +1,6 @@
 # xiom.miniseed
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** miniSEED 2.x fixed 48-byte data-record header codec: parse,
 > validate and build the header, locate the payload span and derive the
 > sample-rate and sample-count values.

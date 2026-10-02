@@ -1,6 +1,6 @@
 # xiom.chef
 
-> **Status:** `incubating` -- conformance-tested (26/26). Not yet published.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM Chef-style configuration-management MODEL: cookbook /
 > recipe / resource declarations, resource-collection compile phase, runlist
 > and role expansion, attribute precedence (default/normal/override), explicit

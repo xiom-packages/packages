@@ -1,6 +1,6 @@
 # xiom.l10n-currency
 
-> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.2` on the XIOM registry.
 > **Scope:** embedded ISO 4217 currency table (165 codes), lookups by alpha /
 > numeric / name / symbol, and exact integer minor-unit amount parsing,
 > formatting and half-up rounding.

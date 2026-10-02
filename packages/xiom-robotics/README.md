@@ -1,6 +1,6 @@
 # xiom.robotics
 
-> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.1` on the XIOM registry.
 > **Scope:** planar robot helpers with scalar `Float64` and `Int` values:
 > 2-link forward kinematics, end-effector distance and reach checks, angle
 > normalization, and a differential-drive model.

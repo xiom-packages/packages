@@ -1,6 +1,6 @@
 # xiom.stun
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) codec for RFC 5389 STUN messages: the
 > 20-byte header with method/class bit packing, attribute TLVs with 4-byte
 > padding, MAPPED-ADDRESS / XOR-MAPPED-ADDRESS / USERNAME / SOFTWARE /

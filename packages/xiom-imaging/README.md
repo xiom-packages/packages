@@ -1,6 +1,6 @@
 # xiom.imaging
 
-> **Status:** `incubating` -- conformance-tested (22/22); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** one dependency-free module of deterministic, integer-only
 > grayscale image kernels over an 8-bit pixel buffer with width/height/stride
 > records: 3x3 box blur, separable 1-2-1 Gaussian blur, Sobel magnitude,

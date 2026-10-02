@@ -1,6 +1,6 @@
 # xiom.png
 
-> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.1` on the XIOM registry.
 > **Scope:** PNG (W3C PNG 1.2) container parsing and validation: signature, chunk stream, CRC-32, IHDR, PLTE, tRNS, gAMA, pHYs, sRGB, tEXt/zTXt/iTXt and IEND. Structure only; pixels and image data are never decoded.
 > **Deps:** `xiom.std` only (`xiom.string.builder`, `xiom.convert`). No FFI in v0.1.
 

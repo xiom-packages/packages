@@ -1,6 +1,6 @@
 # xiom.profiling
 
-> **Status:** `stable` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (26/26); published at `v0.1.1` on the XIOM registry.
 > **Scope:** folded-stack sampling profile analysis: parse `perf`-style folded
 > text, aggregate leaves, rank the heaviest stacks, collapse stacks by depth.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,

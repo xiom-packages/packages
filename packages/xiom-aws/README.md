@@ -1,7 +1,6 @@
 # xiom.aws
 
-> **Status:** implemented (0.1.0) -- pure-XIOM AWS request/signing model, no
-> network, no FFI, deterministic.
+> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.0` on the XIOM registry.
 > **Scope:** SigV4 signing, credential model and resolution chain, service and
 > request model, service registry, retry/backoff policy, response envelope.
 > **Deps:** stdlib only (`xiom.string`, `xiom.string.builder`,

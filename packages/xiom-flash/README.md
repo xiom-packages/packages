@@ -1,6 +1,6 @@
 # xiom.flash
 
-> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) SPI NOR flash identification and SFDP
 > (JESD216) structure parsing. Bytes in, typed values out: no device access.
 > **Deps:** `xiom.std` only; the library module imports nothing from it. The
@@ -46,7 +46,7 @@ decodes and validates. The error model is a deterministic
 ## Install / use
 
 ```
-xiom pkg install xiom.flash@0.1.0   # consumer
+xiom pkg install xiom.flash@0.1.2   # consumer
 xiom pkg publish                    # maintainer (needs XIOM_REGISTRY_TOKEN)
 ```
 

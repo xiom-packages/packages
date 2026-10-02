@@ -1,6 +1,6 @@
 # xiom.clustering
 
-> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** fixed-point clustering primitives (k-means and DBSCAN) on scaled
 > integers.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (the library imports `xiom.string` and

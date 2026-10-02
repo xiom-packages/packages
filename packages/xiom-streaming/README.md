@@ -1,6 +1,6 @@
 # xiom.streaming
 
-> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI, no sockets, no I/O) wire-format codecs for
 > RTP, RTCP, and RTSP. WebRTC (SDP/ICE/DTLS/SRTP), RTMP, HLS, and DASH are
 > explicitly out of scope (see Limitations).

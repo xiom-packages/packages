@@ -1,6 +1,6 @@
 # xiom.eeprom
 
-> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) serial EEPROM device protocol codecs for two
 > families: 24Cxx (I2C) addressing/page math and 93Cxx (Microwire) command
 > bit streams.
@@ -46,7 +46,7 @@ half-built buffer.
 ## Install / use
 
 ```
-xiom pkg install xiom.eeprom@0.1.0     # consumer
+xiom pkg install xiom.eeprom@0.1.1     # consumer
 xiom pkg publish                       # maintainer (needs XIOM_REGISTRY_TOKEN)
 ```
 

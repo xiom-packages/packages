@@ -1,6 +1,6 @@
 # xiom.image
 
-> **Status:** `stable` -- conformance-tested (24/24) at `v0.1.0`; publish pending.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** unified image front door: magic-byte format sniffing, metadata
 > extraction, a packed RGBA8 pixel model with explicit stride, RGBA/RGB/gray/
 > BGRA conversion, and a documented pure proof codec subset (BMP 24/32-bit

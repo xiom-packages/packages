@@ -2,7 +2,7 @@
 
 Bitcoin wire-format and address **structure** codec in pure XIOM (no FFI).
 
-> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
 
 ## Scope (honest)
 

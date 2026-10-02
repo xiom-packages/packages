@@ -1,6 +1,6 @@
 # xiom.sgf
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a Smart Game Format (SGF) codec for a documented subset: game
 > tree collections, nodes, properties with multi-values and escapes, nested
 > variations, accessors and canonical emit.

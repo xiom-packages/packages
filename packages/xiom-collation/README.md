@@ -1,6 +1,6 @@
 # xiom.collation
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** case-insensitive and natural (numeric-aware) string collation.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at` and
 > `xiom.string.str_len`). Tests additionally use `xiom.test`, `xiom.io` and

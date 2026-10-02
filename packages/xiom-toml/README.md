@@ -1,6 +1,6 @@
 # xiom.toml
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** TOML v1.0 subset parsing with flat, dotted-path lookups.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,
 > `xiom.string.str_slice`, `xiom.string.str_trim`,

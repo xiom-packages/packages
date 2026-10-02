@@ -1,6 +1,6 @@
 # xiom.mbox
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** mbox mailbox codec: message separation on `From ` lines,
 > mboxrd quoting, byte-range bodies into a shared pool, and a canonical
 > emitter; in-memory `Str` only, no file I/O.

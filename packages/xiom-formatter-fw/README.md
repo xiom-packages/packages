@@ -1,6 +1,6 @@
 # xiom.formatter-fw
 
-> **Status:** `incubating` -- conformance-tested (23/23); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a Wadler/Leijen-style pretty-printing framework over an explicit
 > document model: text/line/softline/hardline/concat/nest/group/align nodes,
 > greedy group fitting against an integer width, indentation tracking and a
@@ -113,14 +113,13 @@ statement and the complexity notes.
 
 ## Install / usage
 
-The package is **not yet published** on the XIOM registry; when it is, the
-consumer workflow is:
+The package is published on the XIOM registry; the consumer workflow is:
 
 ```
-xiom pkg install xiom.formatter-fw@0.1.0
+xiom pkg install xiom.formatter-fw@0.1.1
 ```
 
-Until then, use it from this repository (the module is pure XIOM, no FFI):
+Alternatively, use it from this repository (the module is pure XIOM, no FFI):
 
 ```
 use xiom.formatter_fw;

@@ -1,6 +1,6 @@
 # xiom.sarif
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a SARIF 2.1.0 report codec for a documented JSON subset: parse,
 > query and canonical re-emit.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,

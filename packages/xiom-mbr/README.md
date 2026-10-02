@@ -1,6 +1,6 @@
 # xiom.mbr
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** Master Boot Record codec: parse and build the canonical 512-byte
 > MBR sector -- raw boot code, four primary partition entries and the 0x55AA
 > signature.

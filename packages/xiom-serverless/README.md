@@ -1,6 +1,6 @@
 # xiom.serverless
 
-> **Status:** `incubating` -- implemented and harness-green, not yet published.
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
 > **Scope:** serverless compute abstractions as a pure, deterministic model:
 > function definition and invocation, trigger/event-source wiring, the deploy
 > package/rollout state machine, runtime/handler lifecycle with cold-start

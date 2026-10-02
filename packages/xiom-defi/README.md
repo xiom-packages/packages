@@ -1,6 +1,6 @@
 # xiom.defi
 
-> **Status:** `incubating` -- conformance-tested (28/28); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 > **Scope:** integer fixed-point DeFi pool models: a constant-product AMM
 > (x*y=k) with fees, slippage guards and LP shares, and a share-index lending
 > pool with per-tick accrual, health factor and liquidation math.

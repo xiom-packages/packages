@@ -1,6 +1,6 @@
 # xiom.obj
 
-> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.1` on the XIOM registry.
 > **Scope:** Wavefront OBJ geometry parsing: vertices and polygon faces with
 > scaled integer coordinates.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,

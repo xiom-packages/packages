@@ -1,6 +1,6 @@
 # xiom.audit
 
-> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.1` on the XIOM registry.
 > **Scope:** hash-chained append-only audit log with verification and export.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`/
 > `xiom.string.str_slice` and `xiom.convert.int_to_string`). Tests additionally

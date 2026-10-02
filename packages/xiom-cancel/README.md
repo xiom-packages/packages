@@ -1,6 +1,6 @@
 # xiom.cancel
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** cooperative cancellation as a pure, deterministic token tree:
 > parent/child tokens, subtree propagation with reason codes, strict and
 > idempotent cancel, logical-tick deadlines and cancellation-state

@@ -1,6 +1,6 @@
 # xiom.svm
 
-> **Status:** `incubating` -- conformance-tested (23/23); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a deterministic, fixed-point linear support vector machine
 > (hinge-loss sub-gradient training, seeded LCG shuffling, decaying learning
 > rate, decision scores, margin-band support-vector counting, accuracy) over

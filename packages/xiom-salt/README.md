@@ -1,6 +1,6 @@
 # xiom.salt
 
-> **Status:** `incubating` -- conformance-tested (28/28). Not yet published.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM Salt remote-execution / configuration MODEL: state
 > declarations (ids, state functions, names) with require / watch / onchanges
 > ordering (and the `_in` inverses), top-file targeting with layered pillar

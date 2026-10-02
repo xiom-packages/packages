@@ -1,6 +1,6 @@
 # xiom.useragent
 
-> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.1` on the XIOM registry.
 > **Scope:** User-Agent heuristics: browser family, version, operating system,
 > bot and mobile detection.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`). Tests additionally

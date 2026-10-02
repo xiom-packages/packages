@@ -1,6 +1,6 @@
 # xiom.diff
 
-> **Status:** `stable` -- conformance-tested (16/16); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (16/16); published at `v0.1.1` on the XIOM registry.
 > **Scope:** line-oriented diffing over `Vec[Str]` line slices: element-wise
 > equality, LCS length, full edit scripts, insertion/deletion counts, and
 > unified-style hunks.

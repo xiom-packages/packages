@@ -1,6 +1,6 @@
 # xiom.rtc
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) real-time clock register codecs: packed BCD
 > fields, the DS1307 7-register and PCF8563 9-register layouts (control and
 > status registers, 12/24-hour modes, the AM/PM bit, the century flag, the

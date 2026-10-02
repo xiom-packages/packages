@@ -43,14 +43,18 @@ starting.
   pre-gate stable records (`docs/PROMOTION.md`). Program order: Tier-2
   (waiting on the compiler release) > README `Status` sync > promotion
   waves > growth.
-- **Wave-53 progress:** README `Status` sync DONE (8 missing/nonconforming
-  blocks fixed: `audio-meta`, `cloud`, `elastic`, `i2p`, `k8s`, `linter`
-  -> v0.1.1, `terraform`, `translate`; the other 501 already matched the
-  stage / NOT-published checks; registry versions read via MCP
-  `xiom_package_info`). Remaining: version spot-checks of the 501 at
-  their next touch; registry-side republish folds into promotion
-  batches; prepare promotion evidence packets; do NOT flip stages
-  before Tier-2.
+- **Wave-53 COMPLETE (repo-side):** README `Status` sync program
+  finished across 10 slices -- **442 READMEs** canonicalized (stage +
+  conformance count + published version; includes the 8 previously
+  missing blocks), **445/445** README-vs-manifest version pairs now
+  match, validate **509/0**, README-only diff. Unpublished/grandfathered
+  (`json`, `control`, `sensor`, `kafka`) normalized to
+  `not yet published` (registry 404 verified via MCP). Registry PAGES
+  still embed the pre-sync README until a package is republished (no
+  version-less refresh allowed): fold page refreshes into
+  promotion/Tier-2 republish batches, or the owner may schedule a
+  chunked patch-bump republish program. Promotion evidence is ready; do
+  NOT flip stages before Tier-2.
 - **Carry-forwards:** crypto/base64 fix-first packet with the stdlib
   lane (`docs/repro/crypto-link/`); compiler hotfix watch (open rows in
   `docs/COMPILER-FINDINGS.md`); category harmonization owner decision;

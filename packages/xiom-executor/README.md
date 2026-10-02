@@ -1,6 +1,6 @@
 # xiom.executor
 
-> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a task execution engine as a pure, deterministic state machine:
 > task metadata (ids, priorities, submission order, states), a ready queue
 > with FIFO and priority selection policies, futures, continuations, a bounded

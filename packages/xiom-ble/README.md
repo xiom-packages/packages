@@ -1,6 +1,6 @@
 # xiom.ble
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM Bluetooth Low Energy advertising-data codec: a flat
 > sequence of AD structures (one length byte, one AD type byte, `length - 1`
 > data bytes) with typed builders and decoders for the common AD types, a

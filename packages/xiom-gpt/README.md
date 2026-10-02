@@ -1,6 +1,6 @@
 # xiom.gpt
 
-> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.1` on the XIOM registry.
 > **Scope:** GUID Partition Table (GPT) codec: protective-MBR detection, the
 > LBA-1 header, the partition entry array and a canonical builder for the
 > primary GPT.

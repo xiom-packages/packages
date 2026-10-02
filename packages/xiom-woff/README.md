@@ -1,6 +1,6 @@
 # xiom.woff
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM structural codec for the WOFF 1.0 font container:
 > the 44-byte header, the 20-byte table directory entries, metadata/private
 > block spans and a canonical uncompressed builder.

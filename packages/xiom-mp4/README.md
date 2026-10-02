@@ -1,6 +1,6 @@
 # xiom.mp4
 
-> **Status:** `stable` -- conformance-tested (33/33); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (33/33); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) ISO BMFF / MP4 (ISO/IEC 14496-12) box
 > parser: the recursive box tree, `ftyp` brands, `mvhd`/`tkhd`/`mdhd`/`hdlr`
 > metadata, `stsd` sample-entry fourccs and visual dimensions, `elst`/`stco`/

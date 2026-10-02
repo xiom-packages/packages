@@ -1,6 +1,6 @@
 # xiom.bonjour
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI, no sockets) Bonjour codec for mDNS
 > (RFC 6762) and DNS-SD (RFC 6763): mDNS message framing, domain names
 > with compression pointers (validated on decode, optional on encode),

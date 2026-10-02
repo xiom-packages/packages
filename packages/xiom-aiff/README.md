@@ -1,6 +1,6 @@
 # xiom.aiff
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** AIFF/AIFF-C container header codec: FORM/COMM/SSND parsing and
 > building, 80-bit extended sample rate, chunk index with raw spans.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.builder`; tests add

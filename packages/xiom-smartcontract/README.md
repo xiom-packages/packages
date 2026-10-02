@@ -1,6 +1,6 @@
 # xiom.smartcontract
 
-> **Status:** `incubating` -- conformance-tested (22/22); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** one pure, deterministic stack VM for a documented contract
 > bytecode subset: a bounds-checked integer stack, keyed memory slots,
 > checked arithmetic, per-opcode gas metering with out-of-gas aborts,

@@ -1,6 +1,6 @@
 # xiom.mechanics
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic classical mechanics on fixed-point integers: linear
 > state, constant-acceleration ticks (semi-implicit Euler), projectile
 > range/apex, 1D collisions with restitution in basis points, spring-damper

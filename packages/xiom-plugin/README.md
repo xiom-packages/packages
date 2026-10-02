@@ -1,6 +1,6 @@
 # xiom.plugin
 
-> **Status:** `incubating` -- conformance-tested (25/25); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic plugin registry and lifecycle model: registration
 > metadata, strict-semver range checks, dependency-order resolution and an
 > enable/activate state machine. Metadata and ordering only -- no dynamic

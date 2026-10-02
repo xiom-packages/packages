@@ -1,6 +1,6 @@
 # xiom.bolt
 
-> **Status:** `incubating` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (18/18); published at `v0.1.2` on the XIOM registry.
 > **Scope:** read-only STRUCTURE parsing of a bbolt database file. No mmap,
 > no writes, no transactions.
 

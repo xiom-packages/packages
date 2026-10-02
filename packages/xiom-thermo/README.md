@@ -1,6 +1,6 @@
 # xiom.thermo
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** exact integer unit conversions for temperature (Celsius /
 > Fahrenheit / Kelvin), pressure (Pa / hPa / bar / atmosphere), energy
 > (joule / calorie) and speed (km/h <-> m/s).

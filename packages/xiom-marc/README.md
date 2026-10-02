@@ -1,6 +1,6 @@
 # xiom.marc
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a pure-XIOM MARC21 ISO 2709 record codec: parse a record buffer
 > into flat field/subfield storage, and build a canonical record back.
 > **Deps:** `xiom.std` (uses `xiom.string`; tests also use `xiom.test`,

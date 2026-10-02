@@ -1,6 +1,6 @@
 # xiom.envsubst
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** shell-style `${VAR}` expansion of in-memory `Str` text against a
 > caller-supplied variable table (parallel `Vec[Str]` names/values or
 > `"NAME=VALUE"` pairs). No environment access, no file I/O.

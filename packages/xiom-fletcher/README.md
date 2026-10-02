@@ -1,6 +1,6 @@
 # xiom.fletcher
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI), Int-only Fletcher-16 and Fletcher-32
 > checksums in the classic ones'-complement form, one-shot and incremental.
 > **Deps:** `xiom.std` only. The library module imports `xiom.string` (hex
@@ -33,7 +33,7 @@ this package.
 ## Install / use
 
 ```
-xiom pkg install xiom.fletcher@0.1.0     # consumer
+xiom pkg install xiom.fletcher@0.1.1     # consumer
 ```
 
 ```xi

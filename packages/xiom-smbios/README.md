@@ -1,6 +1,6 @@
 # xiom.smbios
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM SMBIOS/DMI codec for a documented subset: both
 > entry-point variants (32-bit `_SM_`, 64-bit `_SM3_`) with a documented
 > preference rule, the structure table stream, the documented structure

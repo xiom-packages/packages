@@ -1,6 +1,6 @@
 # xiom.pdf
 
-> **Status:** `incubating` -- conformance-tested (25/25); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (25/25); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM PDF document STRUCTURE parser -- no rendering, no font
 > or colour semantics, no content-stream interpretation.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.compare`,

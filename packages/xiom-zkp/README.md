@@ -1,6 +1,6 @@
 # xiom.zkp
 
-> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
 > **Scope:** byte-level serialization structures for BLS12-381 zero-knowledge
 > proof blobs: Fp/Fp2 encodings, compressed/uncompressed G1/G2 point flag
 > rules, Groth16 and PLONK proof/verification-key layouts, structural

@@ -1,6 +1,6 @@
 # xiom.nlp
 
-> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.2` on the XIOM registry.
 > **Scope:** deterministic, byte-oriented ASCII text analysis: tokenizer,
 > sentence splitter, Porter stemmer, simple statistics.
 > **Deps:** `xiom.std` (platform dependency; the library imports

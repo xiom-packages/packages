@@ -1,6 +1,6 @@
 # xiom.ass
 
-> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a strict, in-memory ASS/SSA subtitle codec for a documented
 > subset: flat section storage, Format-driven field rows, `h:mm:ss.cc`
 > centisecond timestamps, raw Text capture, accessors, and a canonical

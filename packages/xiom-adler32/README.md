@@ -1,6 +1,6 @@
 # xiom.adler32
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI), Int-only Adler-32 checksum (RFC 1950) over
 > fully materialized `Vec[UInt8]` buffers, one-shot and incremental.
 > **Deps:** `xiom.std` only. The library module imports `xiom.string` (hex

@@ -1,6 +1,6 @@
 # xiom.merkle
 
-> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.2` on the XIOM registry.
 > **Scope:** a Merkle tree and inclusion proofs over caller-supplied leaf
 > byte buffers, with RFC 6962-style domain-separated SHA-256.
 > **Deps:** `xiom.std` (library: `xiom.string`, `xiom.string.builder`,

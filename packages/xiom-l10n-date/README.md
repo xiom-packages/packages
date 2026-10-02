@@ -2,7 +2,7 @@
 
 > **Naming:** registry package `xiom.l10n-date`; module namespace `xiom.l10n.date`.
 
-> **Status:** `incubating` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** Locale-aware civil-date formatting and parsing with
 > caller-supplied month-name tables, plus exact civil-date arithmetic
 > (validation, epoch days, weekdays, day-of-year, Julian day numbers and

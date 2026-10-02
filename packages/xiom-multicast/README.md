@@ -1,6 +1,6 @@
 # xiom.multicast
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM codecs for the multicast group-management protocols:
 > IGMPv1/v2/v3 (IPv4) and MLD/MLDv2 (IPv6) message parse/build, source
 > lists and group records, one's-complement checksums.

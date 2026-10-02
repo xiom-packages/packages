@@ -1,6 +1,6 @@
 # xiom.locale
 
-> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** BCP-47 language tag parsing, canonicalization, RFC 4647 Lookup
 > matching and fallback chains, plus a small curated language registry.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,

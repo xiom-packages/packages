@@ -1,6 +1,6 @@
 # xiom.sd
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) SD/MMC card register codec: CID, CSD
 > v1.0/v2.0, OCR, CRC7 and SPI-mode command framing.
 > **Deps:** `xiom.std` only. The library module imports `xiom.convert` and

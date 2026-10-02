@@ -1,6 +1,6 @@
 # xiom.avi
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** RIFF/AVI container structure: top-level chunk walking and the
 > main AVI header (`avih`). Header structure only -- no stream or frame
 > decoding.

@@ -1,6 +1,6 @@
 # xiom.boosting
 
-> **Status:** `incubating` -- conformance-tested (20/20); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic gradient boosting over integer data: depth-1/2
 > regression stumps, fixed-point residual updates, a basis-point learning
 > rate, caller-seeded row/feature subsampling, staged predictions and a

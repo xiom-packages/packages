@@ -1,6 +1,6 @@
 # xiom.worker
 
-> **Status:** `incubating` -- conformance-tested (26/26); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a worker-pool scheduling model as a pure, deterministic state
 > machine: fixed pool sizing, a prioritized job queue, worker leases and
 > explicit assignment, retry with backoff accounting, starvation/fairness

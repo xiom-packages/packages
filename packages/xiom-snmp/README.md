@@ -1,6 +1,6 @@
 # xiom.snmp
 
-> **Status:** `incubating` -- conformance-tested (19/19); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI, no sockets) ASN.1 BER decoder plus an
 > SNMPv1/v2c message parser and a minimal GetRequest/Response encoder, per
 > RFC 1157 and RFC 3416. Covers the BER subset SNMP uses: one-byte tags,

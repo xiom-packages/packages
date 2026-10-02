@@ -1,6 +1,6 @@
 # xiom.stats-ml
 
-> **Status:** `incubating` -- conformance-tested (22/22); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** fixed-point ML evaluation metrics over integers (multi-class
 > confusion matrix, precision/recall/F1, accuracy, Cohen's kappa, ROC/AUC,
 > calibration bins, class balance) with a deterministic text report.

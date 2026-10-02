@@ -1,6 +1,6 @@
 # xiom.resolv
 
-> **Status:** `stable` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (25/25); published at `v0.1.1` on the XIOM registry.
 > **Scope:** resolv.conf parsing, lexical address/mask validation, directive
 > access and canonical emission for the documented subset.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.str_slice`,

@@ -1,6 +1,6 @@
 # xiom.escape
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** context-aware string escaping and unescaping for JSON, HTML, URL
 > components and POSIX shell double-quoted strings.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,

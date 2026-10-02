@@ -1,6 +1,6 @@
 # xiom.semver
 
-> **Status:** `stable` -- conformance-tested (32/32); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (32/32); published at `v0.1.1` on the XIOM registry.
 > **Scope:** Strict Semantic Versioning 2.0 parsing, canonical formatting,
 > precedence comparison, and single-comparator range satisfaction.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.compare`,

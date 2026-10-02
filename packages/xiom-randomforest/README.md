@@ -1,6 +1,6 @@
 # xiom.randomforest
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic CART-style decision-tree ensemble over integer
 > features and labels: integer-threshold Gini splits, caller-seeded bootstrap
 > resampling, configurable tree count / depth / min-samples, majority voting,

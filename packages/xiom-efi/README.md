@@ -1,6 +1,6 @@
 # xiom.efi
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** UEFI Firmware File System (FFS) codec for one file: the 24-byte
 > small header, the 32-byte large-file header with the documented `0xFFFFFF`
 > extended-size rule, the section walk over the documented PI section types,
@@ -42,10 +42,10 @@ checksums when set) and `ffs_parse` never rejects a mismatch.
 Install from the XIOM registry:
 
 ```
-xiom pkg install xiom.efi@0.1.0
+xiom pkg install xiom.efi@0.1.1
 ```
 
-The manifest name is `xiom.efi` version `0.1.0`.
+The manifest name is `xiom.efi` version `0.1.1`.
 
 ## API
 

@@ -1,6 +1,6 @@
 # xiom.fixed
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** fixed-width text table parsing and writing by column widths.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.str_slice`,
 > `xiom.string.str_trim`, `xiom.string.lines` and `xiom.string.byte_at`).

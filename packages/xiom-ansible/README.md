@@ -3,7 +3,7 @@
 
 # xiom.ansible
 
-> **Status:** `incubating` -- conformance-tested (26/26), not yet published.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 > **Scope:** the semantic core of an Ansible-like configuration-management
 > tool as a pure, deterministic value machine: inventory (hosts, groups,
 > children, group/host vars with documented precedence), playbooks (plays,

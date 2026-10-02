@@ -1,6 +1,6 @@
 # xiom.dbase
 
-> **Status:** `stable` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (25/25); published at `v0.1.1` on the XIOM registry.
 > **Scope:** dBASE III/III+ / Visual FoxPro table header codec: parse and
 > build `.dbf` headers, field descriptors and the fixed-size record area.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.str_trim` and

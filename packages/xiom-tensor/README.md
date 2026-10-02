@@ -1,6 +1,6 @@
 # xiom.tensor
 
-> **Status:** `incubating` -- conformance-tested (29/29); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (29/29); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a deterministic n-dimensional integer tensor core over a flat
 > `Vec[Int]` plus a shape: validated construction, row-major strides,
 > coordinate and flat get/set, reshape, rank-2 transpose, axis-0 slicing with

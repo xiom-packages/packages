@@ -1,6 +1,6 @@
 # xiom.aviation
 
-> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) bit-oriented codec for Mode S / ADS-B
 > downlink frames: 56-bit (7-byte) and 112-bit (14-byte) frame intake, DF
 > classification, ICAO address extraction, extended-squitter ME decoding by

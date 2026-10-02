@@ -1,6 +1,6 @@
 # xiom.bitfield
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** bit manipulation helpers for 64-bit `Int` words: masks, field
 > extract/replace/clear/toggle, popcount, leading/trailing zeros, reversal,
 > byte swaps and rotations.

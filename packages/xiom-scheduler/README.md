@@ -1,6 +1,6 @@
 # xiom.scheduler
 
-> **Status:** `stable` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (28/28); published at `v0.1.1` on the XIOM registry.
 > **Scope:** 5-field cron expression parsing, canonical re-emission, UTC
 > matching and next-run computation with pure civil-date math.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,

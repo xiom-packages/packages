@@ -1,6 +1,6 @@
 # xiom.ean
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** EAN-13, EAN-8 and UPC-A parsing, validation, check-digit
 > computation, structure access, canonical formatting and the UPC-A <-> EAN-13
 > zero-prefix equivalence, for a documented digit-only subset.
@@ -33,7 +33,7 @@ validation, other symbologies (ITF, Code128, ...) and ISBN conversion.
 ## Install / use
 
 ```
-xiom pkg install xiom.ean@0.1.0
+xiom pkg install xiom.ean@0.1.1
 ```
 
 ```xi

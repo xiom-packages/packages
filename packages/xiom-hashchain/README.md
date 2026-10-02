@@ -1,6 +1,6 @@
 # xiom.hashchain
 
-> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** append-only hash-linked record chains over caller byte buffers:
 > deterministic SHA-256 block digests, a zero-prev genesis rule, prev links,
 > and first-error integrity verification.

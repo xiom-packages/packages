@@ -1,6 +1,6 @@
 # xiom.tar
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** POSIX ustar archive codec: parse and build uncompressed tar files.
 > **Deps:** `xiom.std` only (`xiom.string`; tests add `xiom.test`, `xiom.io`,
 > `xiom.string.compare`, `xiom.encoding.hex`). No FFI.

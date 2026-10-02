@@ -1,6 +1,6 @@
 # xiom.ui
 
-> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (98/98); published at `v0.1.0` on the XIOM registry.
 > **Scope:** High-level retained-mode UI toolkit bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

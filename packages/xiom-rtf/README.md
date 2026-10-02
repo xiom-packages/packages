@@ -1,6 +1,6 @@
 # xiom.rtf
 
-> **Status:** `stable` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (26/26); published at `v0.1.1` on the XIOM registry.
 > **Scope:** parse an RTF subset into a flat token stream, extract plain text,
 > and emit a canonical form. No rendering, no font/color/stylesheet table
 > interpretation, no RTF 1.9+ destination semantics.

@@ -1,6 +1,6 @@
 # xiom.wallet
 
-> **Status:** `incubating` -- conformance-tested (20/20); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a deterministic metadata model (paths, books, ledger, export).
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.compare`,
 > `xiom.convert`); the tests additionally use `xiom.test` and `xiom.io`.

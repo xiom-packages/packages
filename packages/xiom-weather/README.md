@@ -1,6 +1,6 @@
 # xiom.weather
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** decode a single METAR observation into a typed record: wind,
 > visibility, temperature/dewpoint, altimeter and cloud ceiling, plus the
 > FAA-style flight category and a one-line summary.

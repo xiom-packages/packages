@@ -1,6 +1,6 @@
 # xiom.ical
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** RFC 5545-**subset** iCalendar codec: CRLF folding/unfolding,
 > content lines with parameters, TEXT escaping, BEGIN/END component trees
 > (VCALENDAR / VEVENT and any nesting they contain), first-match property

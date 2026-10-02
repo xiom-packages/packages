@@ -1,6 +1,6 @@
 # xiom.jit-fw
 
-> **Status:** `incubating` -- conformance-tested (25/25); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a deterministic JIT-framework model: source hashing and
 > artifact keys, symbolic IR lowered to an instruction stream, a bounded
 > dispatch interpreter with call frames, a bounded LRU artifact cache,

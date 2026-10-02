@@ -1,6 +1,6 @@
 # xiom.zookeeper
 
-> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM codec for the Apache ZooKeeper **jute** wire format:
 > big-endian primitives, buffer/ustring/vector framing, the connect
 > handshake records, request/reply headers, the opcode/xid tables,

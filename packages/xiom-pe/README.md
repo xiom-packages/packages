@@ -1,6 +1,6 @@
 # xiom.pe
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** PE/COFF header codec for a documented subset: `"MZ"` DOS header and stub, `"PE\0\0"` signature, the 20-byte COFF file header, the PE32 (0x10B) / PE32+ (0x20B) optional header, up to 16 raw data directory records, the section table, and a canonical builder. No imports, exports, relocations, resources, .NET metadata or Authenticode.
 > **Deps:** `xiom.std` only (the library module imports `xiom.string` and `xiom.string.compare`). No FFI in v0.1.
 

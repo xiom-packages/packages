@@ -1,6 +1,6 @@
 # xiom.varint
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM unsigned LEB128 varints and zigzag signed varints
 > over in-memory `Vec[UInt8]` buffers, with encoded-size and canonicality
 > helpers.

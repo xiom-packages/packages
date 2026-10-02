@@ -1,6 +1,6 @@
 # xiom.interrupt
 
-> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM *structure* codecs for interrupt controller tables
 > and registers: x86 IDT gate descriptors / IDTR and ARM GICv2 distributor
 > register decode plus IRQ ID classification. No device access, no MMIO

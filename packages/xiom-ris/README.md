@@ -1,6 +1,6 @@
 # xiom.ris
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** RIS bibliography text parsing into a flat record/field model,
 > plus a canonical emitter and a round-trip guarantee for the documented
 > subset.

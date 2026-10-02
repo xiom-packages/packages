@@ -1,6 +1,6 @@
 # xiom.tcx
 
-> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.1` on the XIOM registry.
 > **Scope:** Garmin TCX (Training Center XML) subset codec: parse and
 > canonical build for activities, laps and trackpoints, with numeric values
 > kept as validated text tokens.

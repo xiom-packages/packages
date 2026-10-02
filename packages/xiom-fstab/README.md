@@ -1,6 +1,6 @@
 # xiom.fstab
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** `/etc/fstab` parsing into a flat document, field/option access,
 > duplicate-mountpoint lookup and canonical emission for the documented
 > six-field subset.
@@ -28,7 +28,7 @@ catalog.
 ## Install / use
 
 ```
-xiom pkg install xiom.fstab@0.1.0
+xiom pkg install xiom.fstab@0.1.1
 ```
 
 ```xi

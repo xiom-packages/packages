@@ -1,6 +1,6 @@
 # xiom.pci
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM PCI configuration-space codec for one function's
 > 256-byte block: identification, command/status bits, type-0 BARs,
 > type-1 bridge windows, the capability-list walk and a canonical type-0

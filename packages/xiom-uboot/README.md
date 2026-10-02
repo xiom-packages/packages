@@ -1,6 +1,6 @@
 # xiom.uboot
 
-> **Status:** `stable` -- conformance-tested (16/16); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (16/16); published at `v0.1.1` on the XIOM registry.
 > **Scope:** U-Boot **legacy** image header codec: parse and inspect the
 > 64-byte `image_header_t`, verify both CRC-32 fields, and build a canonical
 > header plus payload.

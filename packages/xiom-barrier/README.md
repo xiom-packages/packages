@@ -1,6 +1,6 @@
 # xiom.barrier
 
-> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a reusable multiparty barrier as a pure, deterministic state
 > machine: party counts, per-generation arrival tracking, trip/leader
 > outcomes, sense reversal, explicit reset, last-trip metadata and stats. The

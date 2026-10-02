@@ -1,6 +1,6 @@
 # xiom.pgn
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a PGN (Portable Game Notation) codec for a documented subset:
 > tag pairs, a flat movetext token stream (move numbers, SAN, comments, NAGs,
 > results), lexical validation and canonical emit.

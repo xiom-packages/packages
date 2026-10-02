@@ -1,6 +1,6 @@
 # xiom.snbt
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM SNBT (stringified NBT) parsing and canonical emission:
 > compounds, lists, typed arrays `[B;`/`[I;`/`[L;`, quoted and bare strings,
 > booleans and the full SNBT number forms.

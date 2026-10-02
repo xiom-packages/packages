@@ -1,6 +1,6 @@
 # xiom.iso8583
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM ISO 8583 **ASCII** message codec for a documented
 > field subset: 4-digit MTI, 16/32-digit hex bitmap (bit 1 MSB-first, so the
 > secondary bitmap is fields 65..128), fixed and LLVAR/LLLVAR fields.

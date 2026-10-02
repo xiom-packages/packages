@@ -1,6 +1,6 @@
 # xiom.geography
 
-> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.2` on the XIOM registry.
 > **Scope:** embedded ISO 3166-1 country table (249 officially assigned
 > codes), UN M49 region table (30 codes), ISO 3166-2 subdivision code
 > *syntax*, and integer coordinate text codecs (decimal degrees and DMS).

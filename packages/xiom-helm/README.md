@@ -1,6 +1,6 @@
 # xiom.helm
 
-> **Status:** `incubating` -- conformance-tested (23/23); not yet published.
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure in-memory Helm model: chart manifest subset, release
 > install/upgrade/rollback state machine, repository index subset, values
 > deep-merge precedence and a bounded Go-template-ish renderer.

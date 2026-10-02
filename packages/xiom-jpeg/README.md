@@ -1,6 +1,6 @@
 # xiom.jpeg
 
-> **Status:** `stable` -- conformance-tested (16/16); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (16/16); published at `v0.1.1` on the XIOM registry.
 > **Scope:** JPEG (ITU-T T.81 / ISO/IEC 10918-1) marker and segment layer over
 > flat `Vec[UInt8]` buffers: SOI/EOI framing, APP0 JFIF header, APP1 EXIF
 > presence, every APP0..APP15 indexed, DQT, SOF0/SOF1/SOF2 frames, DHT counts,

@@ -1,6 +1,6 @@
 # xiom.nii
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM NIfTI-1 header codec: parse, validate and build the
 > canonical 348-byte header, with little- and big-endian detection.
 > **Deps:** `xiom.std` only. The library module imports

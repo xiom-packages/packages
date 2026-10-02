@@ -1,6 +1,6 @@
 # xiom.plist
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** an Apple XML property-list (plist) codec for a documented
 > subset: parse into a flat node model, query it, and emit canonically.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,

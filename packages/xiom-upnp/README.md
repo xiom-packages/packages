@@ -1,6 +1,6 @@
 # xiom.upnp
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) codec for the SSDP messages of UPnP device
 > discovery -- M-SEARCH requests, NOTIFY notifications (`ssdp:alive`,
 > `ssdp:byebye`, `ssdp:update`) and HTTP/1.1 200 search responses. Parsing,

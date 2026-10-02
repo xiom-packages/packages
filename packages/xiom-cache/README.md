@@ -4,7 +4,7 @@ Deterministic in-memory cache eviction structures over `Int` keys and `Int`
 values: **LRU**, **LFU**, **CLOCK** (second chance) and **TTL**. No threads,
 no clocks, no FFI: every decision follows from the call sequence alone.
 
-> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.2` on the XIOM registry.
 
 ## Scope
 

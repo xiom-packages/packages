@@ -1,6 +1,6 @@
 # xiom.parsing
 
-> **Status:** `incubating` -- conformance-tested (28/28); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a spanned parser-combinator framework over a `Str` input:
 > literal, character-class, seq, alt, many/many1, optional, capture and EOF
 > combinators; half-open byte-index results; structured line/column errors

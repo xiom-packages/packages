@@ -1,6 +1,6 @@
 # xiom.db2
 
-> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.2` on the XIOM registry.
 > **Scope:** IBM Db2 DRDA / DSS wire **structure** codec. DSS frames, DDM
 > codepoints and parameters, SQLCARD and SQLDTA decoding; decode-only.
 > **Deps:** `xiom.std` only. No FFI, no sockets, no EBCDIC conversion.

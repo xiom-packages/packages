@@ -1,6 +1,6 @@
 # xiom.cab
 
-> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.1` on the XIOM registry.
 > **Scope:** Microsoft Cabinet (CAB) header and directory codec: parse and
 > build the `CFHEADER`/`CFFOLDER`/`CFFILE` structures of a cabinet file.
 > **Deps:** `xiom.std` only (`xiom.string`; tests add `xiom.test`, `xiom.io`,

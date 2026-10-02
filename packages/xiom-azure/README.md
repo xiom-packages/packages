@@ -1,7 +1,6 @@
 # xiom.azure
 
-> **Status:** implemented (0.1.0) -- pure-XIOM Microsoft Azure provider model,
-> no network, no FFI, no crypto, deterministic.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** ARM resource ids, blob storage with ETag preconditions, VM sizes
 > and the power-state machine, Functions routes/triggers, Cosmos DB partitions
 > and documents, Service Bus delivery states, Entra ID token envelopes.

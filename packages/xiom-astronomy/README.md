@@ -1,6 +1,6 @@
 # xiom.astronomy
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** integer astronomy helpers for civil dates: Julian Day Numbers,
 > days since J2000, a day-granularity moon-phase estimate, moon-phase names,
 > and tropical zodiac signs.

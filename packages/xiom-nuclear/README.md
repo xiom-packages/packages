@@ -1,6 +1,6 @@
 # xiom.nuclear
 
-> **Status:** `incubating` -- conformance-tested (27/27); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.0` on the XIOM registry.
 > **Scope:** one dependency-light module of deterministic integer/fixed-point
 > nuclear physics: decay, fission, fusion, isotope data, cross sections, and
 > radiation dose/attenuation. No floating point, no FFI, no external files.

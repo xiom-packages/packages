@@ -1,6 +1,6 @@
 # xiom.climate
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM, integer/fixed-point climate helpers: a zero-dimensional
 > energy-balance model, delta-18O paleoclimate reconstruction, CO2 emission
 > scenarios, climate-zone classification, and temperature/precipitation trend

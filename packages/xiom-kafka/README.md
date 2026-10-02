@@ -1,6 +1,6 @@
 # xiom.kafka
 
-> **Status:** `ported` -- conformance-tested (22/22); not yet published to the XIOM registry.
+> **Status:** `ported` -- conformance-tested (22/22); not yet published.
 > **Scope:** Apache Kafka client bindings (librdkafka).
 > **Deps:** stdlib; FFI to librdkafka planned (see ROADMAP.md).
 

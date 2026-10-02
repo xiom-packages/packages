@@ -1,6 +1,6 @@
 # xiom.l10n.number
 
-> **Status:** `stable` -- conformance-tested (30/30); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (30/30); published at `v0.1.1` on the XIOM registry.
 > **Scope:** Locale-style integer and decimal formatting, rounding and parsing
 > on a scaled-integer model.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,

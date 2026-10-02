@@ -1,6 +1,6 @@
 # xiom.dynamo
 
-> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.2` on the XIOM registry.
 
 Pure-XIOM codec for the Amazon DynamoDB JSON (wire) API shapes. It parses,
 validates and renders the payloads a DynamoDB client exchanges over its own
@@ -11,7 +11,7 @@ shapes.
 - **No signing**: SigV4 request signing and credentials are caller concerns.
 - **No floats**: numbers stay exact decimal text (`N`/`NS`), capacity units
   are returned as text, so no rounding is introduced anywhere.
-- Version: 0.1.0. Tests: 21 conformance checks (`port.ps1` green).
+- Version: 0.1.2. Tests: 21 conformance checks (`port.ps1` green).
 
 ## Surface
 

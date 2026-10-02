@@ -1,6 +1,6 @@
 # xiom.geohash
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** an integer-only geohash codec: encode integer-microdegree
 > coordinates to canonical lowercase base32 geohashes and decode them back to
 > exact integer-microdegree cell boxes and centers.

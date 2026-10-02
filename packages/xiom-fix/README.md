@@ -1,6 +1,6 @@
 # xiom.fix
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a FIX tag=value message codec: SOH framing, flat tag/value spans,
 > ordered duplicates, BodyLength and CheckSum validation, canonical emit. In
 > memory `Str` only.
@@ -40,7 +40,7 @@ see Limitations.
 ## Install / use
 
 ```
-xiom pkg install xiom.fix@0.1.0
+xiom pkg install xiom.fix@0.1.1
 ```
 
 or copy `src/fix.xi` into a project and `use xiom.fix;`.

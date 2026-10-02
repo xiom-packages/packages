@@ -1,6 +1,6 @@
 # xiom.environment
 
-> **Status:** `incubating` -- conformance-tested (23/23); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic environment-variable expansion over a
 > caller-supplied table; in-memory `Str` only, no process-environment access.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,

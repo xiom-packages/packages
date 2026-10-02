@@ -1,6 +1,6 @@
 # xiom.ensemble
 
-> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** fixed-point ensemble combination models (hard and soft voting,
 > deterministic bootstrap resampling, bagging, pairwise disagreement,
 > weight normalization) over scaled integers.

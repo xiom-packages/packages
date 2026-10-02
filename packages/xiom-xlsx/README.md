@@ -1,6 +1,6 @@
 # xiom.xlsx
 
-> **Status:** `incubating` -- conformance-tested (28/28), not yet published.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM Excel OpenXML (`.xlsx`) spreadsheet reader/writer:
 > a minimal ZIP container plus a minimal SpreadsheetML subset (workbook,
 > sheets, shared strings, styles). No FFI.

@@ -1,6 +1,6 @@
 # xiom.meshopt
 
-> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (72/72); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Mesh optimization and vertex processing bindings.
 > **Deps:** stdlib; wraps C (FFI).
 

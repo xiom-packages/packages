@@ -1,6 +1,6 @@
 # xiom.messaging
 
-> **Status:** `incubating` -- conformance-tested (20/20); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI, no threads, no sockets) deterministic
 > in-process message bus: dotted topics, `+`/`#` wildcard subscriptions,
 > fan-out to per-subscriber queues, acknowledgement accounting, exponential

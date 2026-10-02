@@ -1,6 +1,6 @@
 # xiom.gpx
 
-> **Status:** `stable` -- conformance-tested (29/29); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (29/29); published at `v0.1.1` on the XIOM registry.
 > **Scope:** GPX 1.1 subset codec: parse and canonical build for waypoints,
 > routes, track segments and track points, with fixed-point coordinates.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,

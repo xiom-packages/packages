@@ -1,6 +1,6 @@
 # xiom.golden
 
-> **Status:** `incubating` -- conformance-tested (35/35); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (35/35); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI, no filesystem I/O) golden-file comparison
 > helpers: exact byte diff, text diff with CRLF/LF normalization and
 > trailing-space/newline tolerance, bounded line-diff summaries, NUL-safe

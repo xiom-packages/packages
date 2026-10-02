@@ -1,7 +1,6 @@
 # xiom.video
 
-> **Status:** `incubating` -- implemented; conformance-tested (24/24) on
-> compiler v0.62.2; not yet published.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** core video container abstractions -- format-agnostic container
 > interface, elementary-stream demux/mux, frame buffers/timestamps/duration.
 > **Deps:** `xiom.std` only (`xiom.string.builder`); pure XIOM, no FFI, no

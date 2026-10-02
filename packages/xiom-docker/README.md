@@ -1,6 +1,6 @@
 # xiom.docker
 
-> **Status:** implemented -- pure XIOM, deterministic, no FFI.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Docker container lifecycle *management model*: images, containers,
 > registries, compose, volumes and networks.
 > **Deps:** stdlib only (`xiom.string`); no HTTP, no sockets, no daemon.

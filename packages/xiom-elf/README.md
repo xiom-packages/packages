@@ -1,6 +1,6 @@
 # xiom.elf
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM ELF header and program/section table codec for
 > 32/64-bit, little- and big-endian files, including section-name
 > resolution through the section-header string table.

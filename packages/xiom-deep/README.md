@@ -1,7 +1,6 @@
 # xiom.deep
 
-> **Status:** `incubating` -- pure-XIOM implementation, 24/24 conformance checks
-> passing on toolchain 0.62.2 (`scripts/port.ps1 -Package xiom-deep`).
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deep network assembly helpers, residual/skip-connection blocks
 > (resnet), convolutional building blocks (convnet), attention/transformer
 > blocks, RNN/LSTM/GRU cells, and architecture-specific initialization -- all

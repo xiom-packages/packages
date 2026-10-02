@@ -1,7 +1,6 @@
 # xiom.gcp
 
-> **Status:** implemented (0.1.0) -- pure-XIOM Google Cloud provider model, no
-> network, no FFI, no clocks, no crypto, deterministic.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 > **Scope:** project/zone/region resource-name grammar, service registry and
 > endpoint bases, GCS buckets/objects/generations/preconditions/ACL, GCE
 > machine types/instance state machine/metadata, Cloud Functions

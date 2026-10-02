@@ -1,6 +1,6 @@
 # xiom.mock
 
-> **Status:** `incubating` -- conformance-tested (20/20); not yet published to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic expectation, call-recording and verification test
 > doubles for explicit calls.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.compare` and

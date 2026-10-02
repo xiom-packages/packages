@@ -1,6 +1,6 @@
 # xiom.tga
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** Truevision TGA structural codec for a documented subset: 18-byte header parse/build, 26-byte v2 footer parse/build and version detection, image ID / color map / uncompressed raster location, and validation. No pixel decoding.
 > **Deps:** `xiom.std` only (the library module imports nothing). No FFI in v0.1.
 

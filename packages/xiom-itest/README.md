@@ -1,6 +1,6 @@
 # xiom.itest
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a deterministic integration-test harness model: suites, fixtures,
 > dependency-aware steps, retries with capped tick backoff, tick timeouts,
 > a structured assertion catalog, aggregation and a text report.

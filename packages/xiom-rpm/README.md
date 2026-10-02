@@ -1,6 +1,6 @@
 # xiom.rpm
 
-> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM, read-only parser for the RPM package lead and the
 > generic RPM header structure: magic/lead fields, index entries, tag lookup
 > for the common metadata tags.

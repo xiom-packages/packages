@@ -1,7 +1,6 @@
 # xiom.cloudlog
 
-> **Status:** `incubating` -- implemented, conformance-tested (27/27). Not yet
-> published.
+> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a pure, deterministic MODEL of a cloud log pipeline, in five
 > cooperating parts: ingest batching with sequence watermarks, structured
 > format encoding/decoding (key=value and a flat JSON-ish subset), an

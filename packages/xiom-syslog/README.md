@@ -1,6 +1,6 @@
 # xiom.syslog
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** an RFC 5424 syslog message codec: PRI parse/build, header field
 > validation, RFC 3339 timestamp validation (kept as text), structured data
 > with escape handling, and MSG with UTF-8 BOM detection -- in-memory `Str`

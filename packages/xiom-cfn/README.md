@@ -1,7 +1,6 @@
 # xiom.cfn
 
-> **Status:** `incubating` -- conformance-tested (26/26) on compiler v0.62.2;
-> publication pending. Pure XIOM, no AWS calls, no network, no FFI.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry. Pure XIOM, no AWS calls, no network, no FFI.
 > **Scope:** AWS CloudFormation templating and stack lifecycle MODEL:
 > JSON-ish template parsing, resource model and references, intrinsic
 > evaluation (Ref / Fn::GetAtt / Fn::Join / Fn::Sub / Fn::Select /

@@ -1,6 +1,6 @@
 # xiom.xpm
 
-> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.1` on the XIOM registry.
 > **Scope:** X PixMap (XPM): the `static char * name[]` C-source color pixmap -- value line, color table, symbol lookup, pixel lookup, and a canonical builder.
 > **Deps:** `xiom.std` only. No FFI in v0.1.
 

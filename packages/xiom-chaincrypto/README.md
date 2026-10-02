@@ -1,6 +1,6 @@
 # xiom.chaincrypto
 
-> **Status:** `incubating` -- conformance-tested (19/19); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (19/19); published at `v0.1.0` on the XIOM registry.
 > **Scope:** commitment and proof structures over caller-supplied opaque
 > integer hashes: append-only accumulator with root history, membership
 > proofs, m-of-n threshold gates, commit-reveal records with timelock ticks.

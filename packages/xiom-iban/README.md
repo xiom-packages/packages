@@ -1,6 +1,6 @@
 # xiom.iban
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** strict IBAN parsing, validation, canonical formatting, and
 > MOD-97 check-digit computation for a documented 19-country table.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.compare`,

@@ -1,6 +1,6 @@
 # xiom.safetensors
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a pure-XIOM safetensors container codec: header parsing and
 > validation, tensor-table accessors, payload extraction and a builder.
 > **Deps:** `xiom.std` only (no FFI, no third-party dependencies).

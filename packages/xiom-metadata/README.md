@@ -1,6 +1,6 @@
 # xiom.metadata
 
-> **Status:** `incubating` -- conformance-tested (28/28); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 > **Scope:** ordered metadata blocks (section, key, value) with
 > ASCII-case-insensitive dotted keys, duplicate-key policies, scoping and
 > nesting, merge with precedence and provenance, block diff, canonical

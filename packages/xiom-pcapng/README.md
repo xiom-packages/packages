@@ -1,6 +1,6 @@
 # xiom.pcapng
 
-> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) reader for PCAP Next Generation (pcapng)
 > capture files: the flat block index, byte-order-aware SHB/IDB/EPB/SPB/NRB/
 > ISB parsing, option TLV spans and raw-body preservation for unknown block

@@ -1,6 +1,6 @@
 # xiom.inline-asm
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** inline-assembly template parsing, operand constraint
 > classification and clobber-list parsing for the dialect-neutral subset in
 > `SPEC.md`; no codegen, no lowering, no target backends.

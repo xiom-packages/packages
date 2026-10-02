@@ -1,6 +1,6 @@
 # xiom.xml
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** an XML subset parser with a flat node model, document queries,
 > and escaping helpers.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,

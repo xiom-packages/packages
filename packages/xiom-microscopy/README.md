@@ -1,6 +1,6 @@
 # xiom.microscopy
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 
 Pure XIOM, deterministic, FFI-free microscopy image-set metadata. Everything
 is fixed-point integer math: pixel calibration is an `Int` in units of

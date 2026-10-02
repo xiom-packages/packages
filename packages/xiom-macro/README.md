@@ -1,6 +1,6 @@
 # xiom.macro
 
-> **Status:** `incubating` -- conformance-tested (25/25); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a pure, deterministic text macro-expansion processor: `define` /
 > `undef` directives, parameterized invocation with arity checking, `$1..$N`
 > and `$(name)` substitution, recursion depth limiting and cycle detection,

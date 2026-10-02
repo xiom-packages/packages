@@ -1,6 +1,6 @@
 # xiom.maidenhead
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** an integer-only Maidenhead (QTH grid) locator codec: encode
 > integer-microdegree coordinates to canonical uppercase locators of 2, 4, 6
 > or 8 characters and decode them back to exact integer-microdegree bounding

@@ -1,6 +1,6 @@
 # xiom.thrift
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM Apache Thrift **binary protocol** codec (the classic
 > `TBinaryProtocol` wire format): message headers (strict and legacy),
 > field headers, all primitive types, list/set/map headers, recursive

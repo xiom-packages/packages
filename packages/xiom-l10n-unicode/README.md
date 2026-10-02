@@ -1,6 +1,6 @@
 # xiom.l10n-unicode
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** self-contained Unicode subset for l10n: category / script / block
 > lookup, full case mapping and case folding (incl. Turkic), NFD/NFC/NFKD/NFKC
 > normalization, and grapheme / word / sentence boundary segmentation.

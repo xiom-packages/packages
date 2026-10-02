@@ -1,6 +1,6 @@
 # xiom.base58
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) Base58 encoding/decoding over the Bitcoin
 > alphabet, with Bitcoin leading-zero handling and a strict UTF-8 boundary.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.builder`; tests add

@@ -1,6 +1,6 @@
 # xiom.transaction
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** transaction lifecycle state machine with named savepoints.
 > **Deps:** `xiom.std` only (the library imports the stdlib Str comparison
 > helper; the tests use `xiom.std` modules).

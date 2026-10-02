@@ -1,6 +1,6 @@
 # xiom.hcl
 
-> **Status:** `stable` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (26/26); published at `v0.1.1` on the XIOM registry.
 > **Scope:** structural HCL2 subset parsing and canonical emitting;
 > in-memory `Str` only, expressions are captured raw and never evaluated.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,

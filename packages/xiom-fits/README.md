@@ -1,6 +1,6 @@
 # xiom.fits
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM FITS header codec: 2880-byte blocks, 80-character
 > keyword cards, validated string/logical/integer/real/undefined values,
 > COMMENT/HISTORY/blank continuation cards, END handling and space padding.
@@ -33,7 +33,7 @@ validated lexically and preserved as the exact raw token (`+0042`, `.5`,
 Declare the dependency in your package manifest:
 
 ```xi
-deps: { "xiom.std": ">=0.60.0 <1.0.0", "xiom.fits": "0.1.0" };
+deps: { "xiom.std": ">=0.60.0 <1.0.0", "xiom.fits": "0.1.1" };
 ```
 
 Then import the module:

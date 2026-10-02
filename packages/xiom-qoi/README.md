@@ -1,6 +1,6 @@
 # xiom.qoi
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
 > **Scope:** QOI header parsing, flat op-record extraction with byte spans and offsets, end-marker validation, record accessors, a bounded semantic walk and canonical byte-exact re-emission. Pixels are never materialized.
 > **Deps:** `xiom.std` only. No FFI in v0.1.
 

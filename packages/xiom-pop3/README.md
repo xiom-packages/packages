@@ -1,6 +1,6 @@
 # xiom.pop3
 
-> **Status:** `stable` -- conformance-tested (27/27); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (27/27); published at `v0.1.1` on the XIOM registry.
 > **Scope:** POP3 protocol codec (RFC 1939): the twelve commands, single-line
 > and byte-stuffed multi-line responses, and flat LIST/UIDL pair columns;
 > in-memory `Str` only, no sockets and no session state.

@@ -1,11 +1,11 @@
 # xiom.git2
 
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.2` on the XIOM registry.
+
 Pure-XIOM Git object and pack-file codec with a self-contained
 DEFLATE/zlib decoder. No FFI, no stdlib compression modules: every byte
 layout is parsed and decoded inside this package over flat `Vec[UInt8]`
 buffers.
-
-> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 
 ## Scope
 

@@ -1,6 +1,6 @@
 # xiom.pem
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) PEM armor codec: `-----BEGIN <label>-----`
 > / `-----END <label>-----` blocks with matching labels, optional RFC 1421
 > `Name: value` headers preserved as raw lines, a self-contained strict

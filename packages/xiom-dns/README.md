@@ -1,6 +1,6 @@
 # xiom.dns
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI, no sockets) DNS message wire codec
 > (RFC 1035 subset): 12-byte header, domain names with compression-pointer
 > decoding, questions, and A/AAAA/CNAME/MX/TXT resource records.

@@ -4,7 +4,7 @@
 
 # xiom.orc
 
-> **Status:** `stable` -- conformance-tested (33/33); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (33/33); published at `v0.1.1` on the XIOM registry.
 
 A production-grade, dependency-free Apache ORC **file metadata** codec for
 XIOM: parse and validate the postscript, the protobuf-encoded file footer,

@@ -1,6 +1,6 @@
 # xiom.wkt
 
-> **Status:** `stable` -- conformance-tested (27/27); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (27/27); published at `v0.1.1` on the XIOM registry.
 > **Scope:** Well-Known Text (WKT) geometry codec for a documented subset:
 > POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON and
 > GEOMETRYCOLLECTION, with EMPTY forms, Z/M/ZM markers and nested collections.

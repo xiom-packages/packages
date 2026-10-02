@@ -1,6 +1,6 @@
 # xiom.luhn
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** canonical Luhn (mod-10) parsing and validation, check-digit
 > computation, check-digit appending, space/hyphen normalization of display
 > text, and structure access, for a documented digit-only subset.

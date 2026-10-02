@@ -1,6 +1,6 @@
 # xiom.tls
 
-> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
 > **Scope:** record layer (RFC 8446 section 5) and the TLS 1.2/1.3 handshake
 > messages and extensions listed below. **No cryptography:** no key exchange
 > math, no AEAD, no signatures, no certificate validation, no session state.

@@ -1,6 +1,6 @@
 # xiom.keymgmt
 
-> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
 > **Scope:** key STRUCTURE codecs: base64url, JWK/JWKS (RFC 7517/7518),
 > PKCS#8 / SPKI DER structures and PEM armor. No cryptography, no key
 > generation, no key math, no validation beyond structure.

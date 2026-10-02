@@ -1,6 +1,6 @@
 # xiom.irc
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** an IRC message codec for a documented RFC 1459/2812 subset plus
 > IRCv3 message tags: parse and build, prefix nick/user/host split, ASCII
 > case-insensitive command comparison, numeric reply formatting/parse, and

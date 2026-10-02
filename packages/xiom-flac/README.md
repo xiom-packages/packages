@@ -1,6 +1,6 @@
 # xiom.flac
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** FLAC structural parser: the "fLaC" stream marker, every
 > metadata block type (STREAMINFO, PADDING, APPLICATION, SEEKTABLE,
 > VORBIS_COMMENT, CUESHEET, PICTURE) and the audio frame header (sync,

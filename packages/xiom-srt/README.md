@@ -1,6 +1,6 @@
 # xiom.srt
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a strict, in-memory SubRip (SRT) subtitle codec: index lines,
 > timing lines with trailing-settings pass-through, flat payload-line
 > storage, millisecond accessors, and a canonical emitter.

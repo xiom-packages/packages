@@ -1,6 +1,6 @@
 # xiom.translation
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** message catalogs: key/value translation entries with locale
 > fallback and `{name}` placeholder interpolation.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,

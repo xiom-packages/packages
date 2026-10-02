@@ -4,7 +4,7 @@
 
 # xiom.ply
 
-> **Status:** `stable` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (25/25); published at `v0.1.1` on the XIOM registry.
 > **Scope:** PLY polygon file format, ASCII subset: header and body parsing,
 > scalar value validation, structural accessors and canonical re-emission.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,

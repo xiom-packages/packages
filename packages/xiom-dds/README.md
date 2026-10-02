@@ -1,6 +1,6 @@
 # xiom.dds
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
 > **Scope:** DirectDraw Surface (DDS) header codec for a documented subset: "DDS " magic, the 124-byte `DDS_HEADER` (with its 32-byte `DDS_PIXELFORMAT`), the optional 20-byte `DDS_HEADER_DXT10` block, payload span access and a canonical builder. No pixel or block decoding.
 > **Deps:** `xiom.std` only (the library module imports `xiom.string` for fourCC text). No FFI in v0.1.
 

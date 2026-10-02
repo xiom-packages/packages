@@ -1,6 +1,6 @@
 # xiom.discovery
 
-> **Status:** `incubating` -- conformance-tested (22/22); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a pure, deterministic in-process service-discovery registry:
 > registrations keyed by (name, address, port) with tags and weights,
 > heartbeat/TTL bookkeeping on explicit integer ticks, the

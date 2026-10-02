@@ -1,6 +1,6 @@
 # xiom.chaincore
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** one dependency-light module that models a blockchain core:
 > block headers, transaction records, a chain store with append validation,
 > cumulative-work fork choice, reorg undo/redo, an orphan pool with

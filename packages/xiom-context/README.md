@@ -1,6 +1,6 @@
 # xiom.context
 
-> **Status:** `incubating` -- conformance-tested (23/23); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
 > **Scope:** immutable context propagation as a pure, deterministic parent
 > chain: shadowing key lookups, inherited logical-tick deadlines, cancellation
 > with reason codes and subtree propagation, key-value flattening, path

@@ -1,6 +1,6 @@
 # xiom.lemmatization
 
-> **Status:** `incubating` -- conformance-tested (44/44); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (44/44); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic rule-based English lemmatization: a curated
 > irregular-form map, POS-tagged suffix rules (noun / verb / adjective), a
 > small exception dictionary, and batch token-vector lemmatization.

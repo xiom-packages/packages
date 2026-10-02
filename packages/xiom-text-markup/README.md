@@ -1,6 +1,6 @@
 # xiom.text-markup
 
-> **Status:** `incubating` -- conformance-tested (26/26); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a deterministic BBCode-style inline markup codec: parse `[b]`,
 > `[i]`, `[u]`, `[code]` and `[url=...]` with proper-nesting validation, expose
 > span records over the source text, render to plain text and re-serialize

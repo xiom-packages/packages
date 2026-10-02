@@ -1,6 +1,6 @@
 # xiom.particle
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a fixed-capacity particle pool with integer positions,
 > velocities, and lifetimes -- pure simulation state, with no rendering,
 > collisions, or forces.

@@ -1,6 +1,6 @@
 # xiom.training
 
-> **Status:** `incubating` -- conformance-tested (26/26); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a pure-XIOM, fixed-point training toolkit: an epoch/step
 > training-loop driver over a flat row-major dataset (concrete named
 > callbacks, state threaded through returns), checkpoint capture/restore with

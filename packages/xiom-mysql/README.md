@@ -1,6 +1,6 @@
 # xiom.mysql
 
-> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
 > **Scope:** packet framing with the multi-packet continuation rule, the
 > initial handshake v10, the handshake response 41 and the 32-byte SSL
 > request, length-encoded integers/strings, OK/ERR/EOF/LOCAL INFILE, the

@@ -1,6 +1,6 @@
 # xiom.gcode
 
-> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.1` on the XIOM registry.
 > **Scope:** parse a documented subset of RS-274-style G-code into a flat
 > command/parameter stream: optional `Nnn` line numbers, letter+number words,
 > `;` and `( ... )` comments, `*hh` XOR checksums, case-insensitive letters,

@@ -1,6 +1,6 @@
 # xiom.materials
 
-> **Status:** `incubating` -- conformance-tested (26/26); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 > **Scope:** one dependency-free module modeling isotropic linear-elastic
 > materials in deterministic fixed-point integer arithmetic.
 > **Deps:** none (the library imports nothing; tests use `xiom.std` modules).

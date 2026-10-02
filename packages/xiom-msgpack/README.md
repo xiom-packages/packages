@@ -1,6 +1,6 @@
 # xiom.msgpack
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM MessagePack encoding and decoding for the supported
 > subset: nil, bool, Int, Str, and array/map headers.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.builder`; tests add

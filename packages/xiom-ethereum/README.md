@@ -1,6 +1,6 @@
 # xiom.ethereum
 
-> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.2` on the XIOM registry.
 > **Scope:** Ethereum RLP and ABI encoding structures in pure XIOM: a strict
 > RLP codec, legacy transaction field listing, ABI static words plus one
 > level of dynamic types, function-call data assembly, and hex/address
@@ -206,7 +206,7 @@ call-data assembly, hex rendering and address normalization.
 ## Install / publish
 
 ```
-xiom pkg install xiom.ethereum@0.1.0   # consumer
+xiom pkg install xiom.ethereum@0.1.2   # consumer
 xiom pkg publish                        # maintainer (needs XIOM_REGISTRY_TOKEN)
 ```
 

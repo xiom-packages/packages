@@ -1,6 +1,6 @@
 # xiom.ml
 
-> **Status:** complete -- pure-XIOM, deterministic, tested (20 conformance checks).
+> **Status:** `incubating` -- conformance-tested (18/18); published at `v0.1.0` on the XIOM registry.
 > **Scope:** statistical and Bayesian machine-learning primitives on scaled
 > integers only: no floats, no FFI, no I/O in the library, no external files.
 > **Deps:** stdlib (`xiom.std`); the module itself imports nothing.

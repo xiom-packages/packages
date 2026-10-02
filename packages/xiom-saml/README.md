@@ -1,6 +1,6 @@
 # xiom.saml
 
-> **Status:** `incubating` -- conformance-tested (28/28); not yet published.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 
 Pure-XIOM **structure toolkit** for SAML 2.0: a minimal XML subset reader,
 assertion/response parsing, SP-initiated AuthnRequest building, IdP metadata

@@ -1,6 +1,6 @@
 # xiom.ntriples
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a pure-XIOM RDF 1.1 N-Triples codec: parse triple lines into flat
 > parallel vectors, read terms through accessors, and emit a stable canonical
 > form.

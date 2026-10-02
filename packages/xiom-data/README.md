@@ -1,6 +1,6 @@
 # xiom.data
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-integer dataset utilities: a dataset container with
 > iterators, batch assembly/collation, a batched data loader,
 > sequential/shuffled/weighted samplers, deterministic MINSTD LCG

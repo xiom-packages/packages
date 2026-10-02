@@ -1,6 +1,6 @@
 # xiom.nft
 
-> **Status:** `incubating` -- conformance-tested (20/20); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.0` on the XIOM registry.
 > **Scope:** one dependency-free module implementing a deterministic NFT
 > registry model in pure XIOM: collections, mint/burn, approved transfers,
 > royalty splits and a canonical event log.

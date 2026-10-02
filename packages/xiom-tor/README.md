@@ -1,6 +1,6 @@
 # xiom.tor
 
-> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
 > **Scope:** Tor link-layer cell **structure** codec. Pure XIOM, no FFI.
 
 `xiom.tor` decodes the framing of Tor channel cells as defined by the public

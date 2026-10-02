@@ -1,6 +1,6 @@
 # xiom.id3
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
 > **Scope:** read-only ID3v2 tag inspection: version, declared size, and
 > text information frames (TIT2/TPE1/TALB/TXXX/...).
 > **Deps:** `xiom.std` only (`xiom.string.builder`, `xiom.string.compare`;

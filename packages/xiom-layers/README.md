@@ -1,6 +1,6 @@
 # xiom.layers
 
-> **Status:** `incubating` -- conformance-tested (22/22); not yet published on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** ordered layered configuration over dotted string keys: later-wins
 > precedence, explicit replace/append/delete sentinels, provenance, shadowed
 > value queries, flattening to a final map and layer-to-layer diff. Pure and

@@ -1,6 +1,6 @@
 # xiom.hid
 
-> **Status:** `stable` -- conformance-tested (16/16); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (16/16); published at `v0.1.1` on the XIOM registry.
 > **Scope:** pure-XIOM USB HID report-descriptor parsing, validation and
 > canonical emission for a documented item subset.
 > **Deps:** `xiom.std` only. The library module is dependency-free (no stdlib

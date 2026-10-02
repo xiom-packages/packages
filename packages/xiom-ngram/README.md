@@ -1,6 +1,6 @@
 # xiom.ngram
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
 > **Scope:** word and character n-grams, set-similarity scores (Jaccard,
 > Dice) and MinHash signatures.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,

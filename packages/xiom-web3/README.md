@@ -1,7 +1,6 @@
 # xiom.web3
 
-> **Status:** `incubating` -- conformance-tested (28/28 checks, compiler
-> v0.62.2, pinned stdlib); not yet published.
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
 > **Scope:** pure-XIOM Web3 primitives: Keccak-256, EIP-55 account
 > addresses, ENS normalization/namehash, contract selectors and a minimal
 > 32-byte-word ABI subset, plus a blockchain-provider request/response
