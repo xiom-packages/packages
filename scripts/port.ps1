@@ -102,12 +102,20 @@ function Invoke-Compiler {
         # orphaned `a.exe` left behind.
         & taskkill /T /F /PID $proc.Id 2>$null | Out-Null
         Start-Sleep -Milliseconds 500
-        Get-Process a -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+        # Deliberately NO name-based `Get-Process a | Stop-Process` sweep here:
+        # it kills OTHER concurrent package runs on the same machine
+        # (cross-lane collateral -- the cause of silent empty-output flakes).
+        # taskkill /T already reaps this run's process tree; this run's
+        # leftover binaries are removed below.
     }
     $exitCode = if ($timedOut) { -1 } else { $proc.ExitCode }
     $stdout = if (Test-Path -LiteralPath $outFile) { Get-Content -LiteralPath $outFile -Raw } else { "" }
     $stderr = if (Test-Path -LiteralPath $errFile) { Get-Content -LiteralPath $errFile -Raw } else { "" }
     Remove-Item -LiteralPath $outFile, $errFile -ErrorAction SilentlyContinue
+    # Clean this run's leftovers in the package dir (cwd): the compiler drops
+    # `a.exe` and `a.exe.ll` beside the suite. Never name-based process kills
+    # (see the watchdog comment above).
+    Remove-Item -LiteralPath "a.exe", "a.exe.ll" -ErrorAction SilentlyContinue
     return [pscustomobject]@{ Output = ("$stdout$stderr"); ExitCode = $exitCode; TimedOut = $timedOut; TimeoutSec = $TimeoutSec }
 }
 
