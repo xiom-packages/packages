@@ -4,9 +4,9 @@
 
 package xiom_smtlib {
   name: "xiom.smtlib";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "SMT-LIB2 command/term parser and canonical emitter for a documented subset";
-  categories: ["safety"];
+  categories: ["tooling"];
   keywords: ["smtlib", "smt", "parser", "verification"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
