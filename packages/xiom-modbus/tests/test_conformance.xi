@@ -871,14 +871,14 @@ fn t20() -> TestResult {
   let maxp = ModbusPdu{ function: 8; data: repeat_byte(170, 252) };
   let e2 = rtu_encode(247, &maxp);
   if !e2.is_ok { ok = false; } else {
-    let f2: Vec<UInt8> = e2.value;
+    let f2: Vec[UInt8] = e2.value;
     if f2.len() != 256 { ok = false; }
     let d2 = rtu_decode(&f2);
     if !d2.is_ok { ok = false; } else {
       let fr2: ModbusRtuFrame = d2.value;
       if fr2.address != 247 { ok = false; }
       if pdu_function(&fr2.pdu) != 8 { ok = false; }
-      let pd2: Vec<UInt8> = fr2.pdu.data;
+      let pd2: Vec[UInt8] = fr2.pdu.data;
       if pd2.len() != 252 { ok = false; }
       let b0: Int = (pd2[0] as Int) & 0xFF;
       let b251: Int = (pd2[251] as Int) & 0xFF;
@@ -923,7 +923,7 @@ fn t21() -> TestResult {
   let p1: ModbusPdu = rq.value;
   let e1 = rtu_encode(3, &p1);
   if !e1.is_ok { return assert(false, "rtu encode must succeed"); }
-  let f1: Vec<UInt8> = e1.value;
+  let f1: Vec[UInt8] = e1.value;
   let d1 = rtu_decode(&f1);
   if !d1.is_ok { return assert(false, "rtu decode must succeed"); }
   let fr1: ModbusRtuFrame = d1.value;
@@ -940,7 +940,7 @@ fn t21() -> TestResult {
     let p2: ModbusPdu = rp.value;
     let e2 = rtu_encode(3, &p2);
     if !e2.is_ok { ok = false; } else {
-      let f2: Vec<UInt8> = e2.value;
+      let f2: Vec[UInt8] = e2.value;
       let d2 = rtu_decode(&f2);
       if !d2.is_ok { ok = false; } else {
         let fr2: ModbusRtuFrame = d2.value;
@@ -957,7 +957,7 @@ fn t21() -> TestResult {
     let p3: ModbusPdu = ex.value;
     let e3 = rtu_encode(9, &p3);
     if !e3.is_ok { ok = false; } else {
-      let f3: Vec<UInt8> = e3.value;
+      let f3: Vec[UInt8] = e3.value;
       let d3 = rtu_decode(&f3);
       if !d3.is_ok { ok = false; } else {
         let fr3: ModbusRtuFrame = d3.value;
@@ -980,7 +980,7 @@ fn t22() -> TestResult {
   let p1: ModbusPdu = rq.value;
   let e1 = tcp_encode(7, 5, &p1);
   if !e1.is_ok { return assert(false, "tcp encode must succeed"); }
-  let f1: Vec<UInt8> = e1.value;
+  let f1: Vec[UInt8] = e1.value;
   let d1 = tcp_decode(&f1);
   if !d1.is_ok { return assert(false, "tcp decode must succeed"); }
   let tf1: ModbusTcpFrame = d1.value;
@@ -997,7 +997,7 @@ fn t22() -> TestResult {
     let p2: ModbusPdu = resp.value;
     let e2 = tcp_encode(7, 5, &p2);
     if !e2.is_ok { ok = false; } else {
-      let f2: Vec<UInt8> = e2.value;
+      let f2: Vec[UInt8] = e2.value;
       if !bytes_equal(f1, f2) { ok = false; }
       let d2 = tcp_decode(&f2);
       if !d2.is_ok { ok = false; } else {
@@ -1016,7 +1016,7 @@ fn t22() -> TestResult {
     let p3: ModbusPdu = ex.value;
     let e3 = tcp_encode(1, 255, &p3);
     if !e3.is_ok { ok = false; } else {
-      let f3: Vec<UInt8> = e3.value;
+      let f3: Vec[UInt8] = e3.value;
       let d3 = tcp_decode(&f3);
       if !d3.is_ok { ok = false; } else {
         let tf3: ModbusTcpFrame = d3.value;
@@ -1043,7 +1043,7 @@ fn t23() -> TestResult {
   let b = rtu_encode(1, &p);
   var ok = a.is_ok && b.is_ok;
   if ok {
-    let fa: Vec<UInt8> = a.value;
+    let fa: Vec[UInt8] = a.value;
     let fb: Vec[UInt8] = b.value;
     if !bytes_equal(fa, fb) { ok = false; }
     let da = rtu_decode(&fa);

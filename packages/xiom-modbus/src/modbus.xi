@@ -656,7 +656,7 @@ pub fn tcp_encode(transaction_id: Int, unit_id: Int, p: &ModbusPdu) -> Result[Ve
 /// number of bytes after it (unit id + PDU);
 /// pdu_decode errors are propagated unchanged. The transaction and unit
 /// identifiers are read as unsigned. Complexity: O(data.len()).
-pub fn tcp_decode(data: &Vec<UInt8>) -> Result[ModbusTcpFrame, Str] {
+pub fn tcp_decode(data: &Vec[UInt8]) -> Result[ModbusTcpFrame, Str] {
   let n = data.len();
   if n < 8 {
     return _err_tcp("modbus: truncated mbap header");

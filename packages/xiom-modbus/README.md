@@ -1,6 +1,6 @@
 # xiom.modbus
 
-> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) Modbus frame codec: PDU encode/decode, RTU
 > framing with CRC-16/Modbus validation, TCP framing with MBAP validation,
 > function 03 and 06 request/response codecs, and the exception response

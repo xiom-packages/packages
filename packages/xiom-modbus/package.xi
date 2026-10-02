@@ -8,9 +8,9 @@
 
 package xiom_modbus {
   name: "xiom.modbus";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Modbus RTU/TCP frame codec with CRC-16/Modbus and MBAP validation";
-  categories: ["protocol"];
+  categories: ["systems"];
   keywords: ["modbus", "rtu", "tcp", "industrial"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
