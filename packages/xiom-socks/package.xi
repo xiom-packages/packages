@@ -10,7 +10,7 @@
 
 package xiom_socks {
   name: "xiom.socks";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "SOCKS5 wire codec (RFC 1928 greeting/method/CONNECT request/reply and RFC 1929 username-password auth)";
   categories: ["network"];
   keywords: ["socks", "proxy", "wire", "network"];

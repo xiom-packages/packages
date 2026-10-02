@@ -580,7 +580,7 @@ pub fn socks5_reply_build(out: &mut Vec[UInt8], rep: Int, atyp: Int, addr: &Vec[
 ///     `socks: empty domain` / `socks: truncated port` -- as in
 ///     socks5_request_parse.
 /// Bytes after the reply are ignored. Complexity: O(addr bytes).
-pub fn socks5_reply_parse(data: &Vec<UInt8>) -> Result[Socks5Reply, Str] {
+pub fn socks5_reply_parse(data: &Vec[UInt8]) -> Result[Socks5Reply, Str] {
   let n = data.len();
   if n < 4 {
     return _err_reply("socks: truncated reply");
@@ -672,7 +672,7 @@ pub fn socks5_auth_build(out: &mut Vec[UInt8], uname: &Vec[UInt8], passwd: &Vec[
 ///   * `socks: truncated username` -- UNAME does not fit;
 ///   * `socks: truncated password` -- the PLEN byte or PASSWD is missing.
 /// Bytes after the request are ignored. Complexity: O(credential bytes).
-pub fn socks5_auth_parse(data: &Vec<UInt8>) -> Result[Socks5UserPass, Str] {
+pub fn socks5_auth_parse(data: &Vec[UInt8]) -> Result[Socks5UserPass, Str] {
   let n = data.len();
   if n < 2 {
     return _err_userpass("socks: truncated auth request");
