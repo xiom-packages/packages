@@ -337,7 +337,7 @@ pub fn telnet_escape_data(data: &Vec[UInt8]) -> Vec[UInt8] {
 /// Params: data - the escaped wire bytes.
 /// Returns: a fresh buffer; IAC IAC pairs collapse to one 0xFF each.
 /// Complexity: O(data length).
-pub fn telnet_unescape_data(data: &Vec<UInt8>) -> Vec[UInt8] {
+pub fn telnet_unescape_data(data: &Vec[UInt8]) -> Vec[UInt8] {
   var out = Vec[UInt8].new();
   let n = data.len();
   var i = 0;

@@ -1,6 +1,6 @@
 # xiom.telnet
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.2` on the XIOM registry.
 > **Scope:** the Telnet negotiation layer only: IAC verbs
 > (WILL/WONT/DO/DONT), subnegotiation (SB ... SE) framing and 0xFF data
 > escaping.
