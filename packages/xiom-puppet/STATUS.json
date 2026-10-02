@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.puppet",
+    "stage":  "incubating",
+    "compiler":  "v0.62.2",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  26,
+                  "failed":  0,
+                  "run_by":  "task:ses_f01c24bf2ffe4yjgaDTiYYekZ0",
+                  "commit":  "8c0ac311",
+                  "checked":  "2026-10-02T20:24:18Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: next scope delta"
+}
