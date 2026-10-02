@@ -917,7 +917,7 @@ fn _emit_prop(c: &Ical, pi: Int, out: &mut Vec[UInt8], fold: Bool) {
 
 // Append BEGIN:name, the component's properties, its children (in component
 // order) and END:name.
-fn _emit_comp(c: &Ical, comp: Int, out: &mut Vec<UInt8>, fold: Bool) {
+fn _emit_comp(c: &Ical, comp: Int, out: &mut Vec[UInt8], fold: Bool) {
   let name: Str = c.comp_names[comp];
   var head = Vec[UInt8].new();
   builder.sb_push_str(&mut head, "BEGIN:");
