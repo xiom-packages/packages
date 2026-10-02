@@ -616,7 +616,7 @@ pub fn dns_rr_encode(name: Str, rtype: Int, rclass: Int, ttl: Int, rdata: &Vec[U
 /// Err("dns: truncated rdata") when the declared RDLENGTH runs past the
 /// buffer end.
 /// Complexity: O(name length).
-pub fn dns_rr_parse(data: &Vec<UInt8>, off: Int) -> Result[DnsRecord, Str] {
+pub fn dns_rr_parse(data: &Vec[UInt8], off: Int) -> Result[DnsRecord, Str] {
   let nr = dns_name_decode(data, off);
   if !nr.is_ok {
     return _err_record(nr.error);
@@ -649,7 +649,7 @@ pub fn dns_rr_parse(data: &Vec<UInt8>, off: Int) -> Result[DnsRecord, Str] {
 /// Err("dns: rdata out of range") when the recorded span is negative or
 /// does not fit `data`; a zero-length RDATA yields an empty Ok.
 /// Complexity: O(rdata_length).
-pub fn dns_rr_rdata(data: &Vec<UInt8>, r: &DnsRecord) -> Result[Vec[UInt8], Str] {
+pub fn dns_rr_rdata(data: &Vec[UInt8], r: &DnsRecord) -> Result[Vec[UInt8], Str] {
   let off: Int = r.rdata_offset;
   let len: Int = r.rdata_length;
   if off < 0 || len < 0 {
@@ -789,7 +789,7 @@ pub fn dns_rdata_aaaa_to_str(rdata: &Vec[UInt8]) -> Result[Str, Str] {
 /// Errors: Err("dns: bad rdata name") when len < 1 or the name ends past
 /// off+len; otherwise the dns_name_decode catalog.
 /// Complexity: O(name bytes).
-pub fn dns_rdata_name(data: &Vec<UInt8>, off: Int, len: Int) -> Result[DnsName, Str] {
+pub fn dns_rdata_name(data: &Vec[UInt8], off: Int, len: Int) -> Result[DnsName, Str] {
   if len < 1 {
     return _err_name("dns: bad rdata name");
   }
@@ -807,7 +807,7 @@ pub fn dns_rdata_name(data: &Vec<UInt8>, off: Int, len: Int) -> Result[DnsName, 
 /// The 16-bit big-endian preference of MX RDATA at [off, off+len).
 /// Err("dns: bad MX rdata") when len < 3 or the field is out of bounds.
 /// Complexity: O(1).
-pub fn dns_rdata_mx_preference(data: &Vec<UInt8>, off: Int, len: Int) -> Result[Int, Str] {
+pub fn dns_rdata_mx_preference(data: &Vec[UInt8], off: Int, len: Int) -> Result[Int, Str] {
   if len < 3 {
     return _err_int("dns: bad MX rdata");
   }
@@ -821,7 +821,7 @@ pub fn dns_rdata_mx_preference(data: &Vec<UInt8>, off: Int, len: Int) -> Result[
 /// 2-byte preference). Err("dns: bad MX rdata") when len < 3; otherwise the
 /// dns_rdata_name catalog.
 /// Complexity: O(name bytes).
-pub fn dns_rdata_mx_exchange(data: &Vec<UInt8>, off: Int, len: Int) -> Result[DnsName, Str] {
+pub fn dns_rdata_mx_exchange(data: &Vec[UInt8], off: Int, len: Int) -> Result[DnsName, Str] {
   if len < 3 {
     return _err_name("dns: bad MX rdata");
   }

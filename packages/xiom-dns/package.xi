@@ -9,7 +9,7 @@
 
 package xiom_dns {
   name: "xiom.dns";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "DNS message wire codec (RFC 1035 subset): header, names, questions and A/AAAA/CNAME/MX/TXT records";
   categories: ["network"];
   keywords: ["dns", "wire", "codec", "network"];
