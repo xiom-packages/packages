@@ -1,6 +1,6 @@
 # xiom.html
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.2` on the XIOM registry.
 > **Scope:** a tolerant HTML sanitizer: tag allowlist, href/title attribute
 > policy, and script/style block removal.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string`,

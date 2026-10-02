@@ -356,7 +356,7 @@ fn _push_attr(s: Str, v_from: Int, v_to: Int, name: Str, out: &mut Vec[UInt8]) {
 // Emit a kept opening tag: '<' + lowercased name + kept attributes
 // (first href wins, first title wins; a dangerous href is dropped and blocks
 // later duplicates) + '/' when the input self-closed + '>'.
-fn _emit_open_tag(s: Str, name_from: Int, name_to: Int, gt: Int, out: &mut Vec<UInt8>) {
+fn _emit_open_tag(s: Str, name_from: Int, name_to: Int, gt: Int, out: &mut Vec[UInt8]) {
   out.push(_HTML_LT as UInt8);
   _push_lower(s, name_from, name_to, out);
   var j = name_to;
@@ -437,7 +437,7 @@ fn _emit_open_tag(s: Str, name_from: Int, name_to: Int, gt: Int, out: &mut Vec<U
 }
 
 // Emit a kept closing tag: '</' + lowercased name + '>'.
-fn _emit_close_tag(s: Str, name_from: Int, name_to: Int, out: &mut Vec<UInt8>) {
+fn _emit_close_tag(s: Str, name_from: Int, name_to: Int, out: &mut Vec[UInt8]) {
   out.push(_HTML_LT as UInt8);
   out.push(_HTML_SLASH as UInt8);
   _push_lower(s, name_from, name_to, out);
@@ -481,7 +481,7 @@ fn _skip_element_content(s: Str, from: Int, name: Str) -> Int {
 // result (if any) to out. Returns the index to resume scanning at, always
 // greater than i. Every branch that cannot find a tag end emits the '<' as
 // text and resumes right after it (documented tolerant behavior).
-fn _scan_markup(s: Str, i: Int, tags: &Vec<Str>, out: &mut Vec<UInt8>) -> Int {
+fn _scan_markup(s: Str, i: Int, tags: &Vec[Str], out: &mut Vec[UInt8]) -> Int {
   let n = s.len();
   if i + 1 >= n {
     out.push(_HTML_LT as UInt8);
