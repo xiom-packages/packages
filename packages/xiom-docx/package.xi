@@ -10,9 +10,9 @@
 
 package xiom_docx {
   name: "xiom.docx";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Word OpenXML (.docx) reader/writer: a minimal ZIP container plus a WordprocessingML paragraph/run/style subset";
-  categories: ["interoperability"];
+  categories: ["text-nlp"];
   keywords: ["docx", "word", "openxml", "office", "document", "zip"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

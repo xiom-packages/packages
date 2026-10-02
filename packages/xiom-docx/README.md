@@ -1,6 +1,6 @@
 # xiom.docx
 
-> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.1` on the XIOM registry.
 > **Scope:** minimal Word OpenXML (.docx) reader/writer: a self-contained
 > ZIP container (local headers + central directory + EOCD) plus a
 > WordprocessingML subset -- paragraphs, runs, text and the style
