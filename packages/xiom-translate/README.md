@@ -1,5 +1,7 @@
 # xiom.translate
 
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
+
 Pure-XIOM, offline translation core: an in-package phrasebook, source
 language detection, script transliteration and domain glossaries. No
 network, no translation services, no locale, no clocks, no randomness --

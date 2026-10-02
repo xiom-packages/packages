@@ -1,5 +1,7 @@
 # xiom.i2p
 
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+
 Pure-XIOM **message and state model** of the I2P SAM v3 client protocol.
 It builds and parses the text lines a SAM client exchanges with the SAM
 bridge, validates I2P destination and `.i2p` address strings, and models

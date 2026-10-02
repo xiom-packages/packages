@@ -1,5 +1,7 @@
 # xiom.k8s
 
+> **Status:** `incubating` -- conformance-tested (23/23); published at `v0.1.0` on the XIOM registry.
+
 Pure-XIOM Kubernetes orchestration **model**: the object semantics of a
 cluster as a deterministic in-memory value. No API server, no kubeconfig, no
 networking, no file I/O, no FFI. Everything in this package is a total

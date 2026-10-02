@@ -1,5 +1,7 @@
 # xiom.terraform
 
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+
 Pure-XIOM infrastructure-as-code workflow model: an HCL subset parser, an
 execution plan graph with per-attribute diffs, an apply/destroy state machine
 with revision IDs, a state model (lineage + serial) and a provider registry.

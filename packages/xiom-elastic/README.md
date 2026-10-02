@@ -1,5 +1,7 @@
 # xiom.elastic
 
+> **Status:** `incubating` -- conformance-tested (28/28); published at `v0.1.0` on the XIOM registry.
+
 A **pure** Elasticsearch client *model* for XIOM: it builds query-DSL clauses,
 request envelopes and bulk NDJSON, parses the response envelope subset, and
 models mappings, index settings and bounded scroll state. It contains **no

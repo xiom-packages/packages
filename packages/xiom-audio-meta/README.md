@@ -4,8 +4,7 @@ Chiptune and tracker module **metadata** for XIOM: structural parsers for
 MIDI SMF, MOD, XM, S3M, IT and NSF, plus a 40-entry chiptune magic registry
 with deterministic detection.
 
-Status: `incubating` (implemented, conformance-green with compiler 0.62.2;
-not published). Metadata/parse only -- no audio rendering, no sample
+> **Status:** `incubating` -- conformance-tested (25/25); published at `v0.1.0` on the XIOM registry. Metadata/parse only -- no audio rendering, no sample
 decoding, no FFI, no external files.
 
 ## Modules

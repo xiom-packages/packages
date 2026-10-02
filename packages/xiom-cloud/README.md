@@ -1,5 +1,7 @@
 # xiom.cloud
 
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
+
 Pure-XIOM cloud provider and orchestration **descriptor registry**. No SDK
 bindings, no FFI, no network, no file I/O -- the cloud/vendor umbrella is
 modeled as deterministic data plus a resolution API.
