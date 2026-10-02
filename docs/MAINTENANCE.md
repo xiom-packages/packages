@@ -81,6 +81,35 @@ Rules:
 - **Program order:** Tier-2 maintenance > README `Status` sync >
   promotion waves (`docs/PROMOTION.md`) > growth.
 
+## Category vocabulary (registry, 2026-10-02)
+
+The registry accepts exactly these 16 category tokens (from
+`registry.xiom-lang.org/index.json`):
+
+`ai-ml`, `cloud-infra`, `concurrency`, `core`, `crypto-security`,
+`data`, `database`, `graphics`, `media`, `network`, `science`,
+`systems`, `testing`, `text-nlp`, `tooling`, `web`.
+
+Unknown tokens are dropped silently -- the package page then shows
+`categories: []`. Manifests MUST use only accepted tokens. Legacy-token
+mapping used in the wave-53.5 fix:
+
+- `text` / `l10n` / `i18n` -> `text-nlp`
+- `protocol` -> `network` (comms protocols) or `systems` (embedded
+  bus/device protocols)
+- `networking` -> `network`
+- `security` -> `crypto-security`
+- `concurrent` -> `concurrency`
+- `compiler` -> `tooling`
+- `finance` -> `data`
+- `interoperability` -> `text-nlp` (documents) / `data`
+- `safety` -> `science` / `tooling` / `core` by domain
+
+Registry note: the web UI renders the README **of each published
+version**; owner chose policy **1b (opportunistic refresh, 2026-10-02)**
+-- stale README text inside already-published artifacts refreshes at
+each package's next republish, with no dedicated republish program.
+
 ## Workaround registry (retirement candidates)
 
 Each row maps a carried workaround to its probe, the packages that use
