@@ -1,8 +1,9 @@
 # xiom.control
 
-> **Status:** `ported` -- conformance-tested (27/27); not yet published to the XIOM registry.
+> **Status:** `ported` -- conformance-tested (32/32); not yet published to the XIOM registry.
 > **Scope:** Pure-XIOM control primitives: signal filters, PID control, trajectory interpolation, and state machines.
 > **Deps:** `xiom.std` only. No FFI in v0.1.
+> **Contracts:** all 24 public functions carry `requires`/`ensures` (15/36 clauses) plus 7 record-type invariants; solver status is recorded in `SPEC.md`.
 
 ## Modules
 
@@ -18,10 +19,14 @@
 From the repo root:
 
 ```
-.\scripts\port.ps1 -Package xiom.control
+.\scripts\port.ps1 -Package xiom-control
 ```
 
-The 27 conformance tests cover filter behavior, PID math and clamping, trajectory interpolation, and state-machine transitions.
+The 32 conformance tests cover filter behavior, PID math and clamping,
+trajectory interpolation, and state-machine transitions, including explicit
+error/bounds paths: invalid and wrong-state transition conditions, empty and
+single-waypoint trajectories, negative-time clamping, and PID output saturation.
+Last run: `32/32 passed`, compiler exit 0 (v0.62.2).
 
 ## Not yet implemented
 

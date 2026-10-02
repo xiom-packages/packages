@@ -191,6 +191,17 @@ fn test_pid_get_error() -> TestResult {
     "pid: pid_get_error setpoint=10, last_meas=7 => 7.0");
 }
 
+fn test_pid_compute_output_clamp() -> TestResult {
+  var ctrl = pid_new(1.0, 0.0, 0.0);
+  pid_set_limits(&mut ctrl, -1.0, 1.0);
+  pid_set_setpoint(&mut ctrl, 10.0);
+  var high = pid_compute(&mut ctrl, 0.0, 0.1);
+  pid_set_setpoint(&mut ctrl, -10.0);
+  var low = pid_compute(&mut ctrl, 0.0, 0.1);
+  return assert(float_eq(high, 1.0) && float_eq(low, -1.0),
+    "pid: pid_compute clamps output to [output_min, output_max]");
+}
+
 // ================================================================
 // Trajectory / Waypoint tests
 // ================================================================
@@ -243,6 +254,26 @@ fn test_trajectory_interpolate_boundary() -> TestResult {
     "trajectory: interpolate clamps before-first and after-last waypoint");
 }
 
+fn test_trajectory_interpolate_single_waypoint() -> TestResult {
+  var traj = trajectory_new();
+  var wp = Waypoint{ x: 7.0, y: 8.0, z: 9.0, time: 1.0 };
+  trajectory_add_waypoint(&mut traj, wp);
+  var (x, y, z) = trajectory_interpolate(&traj, 99.0);
+  return assert(float_eq(x, 7.0) && float_eq(y, 8.0) && float_eq(z, 9.0),
+    "trajectory: single waypoint returns its position for any t");
+}
+
+fn test_trajectory_interpolate_negative_time() -> TestResult {
+  var traj = trajectory_new();
+  var wp1 = Waypoint{ x: 1.0, y: 2.0, z: 3.0, time: 1.0 };
+  var wp2 = Waypoint{ x: 4.0, y: 5.0, z: 6.0, time: 4.0 };
+  trajectory_add_waypoint(&mut traj, wp1);
+  trajectory_add_waypoint(&mut traj, wp2);
+  var (x, y, z) = trajectory_interpolate(&traj, -2.0);
+  return assert(float_eq(x, 1.0) && float_eq(y, 2.0) && float_eq(z, 3.0),
+    "trajectory: negative t clamps to first waypoint");
+}
+
 // ================================================================
 // StateMachine tests
 // ================================================================
@@ -292,6 +323,24 @@ fn test_sm_transition_invalid() -> TestResult {
     "statemachine: sm_transition invalid condition rejected, current stays 0");
 }
 
+fn test_sm_transition_empty_machine() -> TestResult {
+  var sm = sm_new();
+  var can = sm_can_transition(&sm, 1);
+  var ok = sm_transition(&mut sm, 1);
+  return assert(!can && !ok && sm_current(&sm) == 0,
+    "statemachine: transitions on empty machine rejected, current stays 0");
+}
+
+fn test_sm_can_transition_wrong_state() -> TestResult {
+  var sm = sm_new();
+  sm_add_state(&mut sm, "Idle");
+  sm_add_state(&mut sm, "Running");
+  sm_add_state(&mut sm, "Stopped");
+  sm_add_transition(&mut sm, 1, 2, 100);
+  return assert(!sm_can_transition(&sm, 100),
+    "statemachine: can_transition rejects matching condition from wrong state");
+}
+
 // ================================================================
 // Main
 // ================================================================
@@ -329,13 +378,18 @@ fn run_test_at(index: Int) -> TestResult {
   if index == 24 { return test_sm_add_transition_and_can(); };
   if index == 25 { return test_sm_transition_valid(); };
   if index == 26 { return test_sm_transition_invalid(); };
+  if index == 27 { return test_pid_compute_output_clamp(); };
+  if index == 28 { return test_trajectory_interpolate_single_waypoint(); };
+  if index == 29 { return test_trajectory_interpolate_negative_time(); };
+  if index == 30 { return test_sm_transition_empty_machine(); };
+  if index == 31 { return test_sm_can_transition_wrong_state(); };
   return assert(false, "control: unknown test index");
 }
 
 fn main() -> Int {
   io.println("=== XIOM Control Conformance Tests ===");
   var failed: Int = 0; var total: Int = 0;
-  var test_count: Int = 27;
+  var test_count: Int = 32;
 
   var i = 0;
   while i < test_count {

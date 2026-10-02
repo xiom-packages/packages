@@ -10,25 +10,35 @@ pub type Waypoint = {
 pub type Trajectory = {
   waypoints: Vec[Waypoint];
   duration: Float64;
+  invariant: duration >= 0.0;
 }
 
-pub fn trajectory_new() -> Trajectory {
+pub fn trajectory_new() -> Trajectory
+  ensures: result.duration == 0.0 && result.waypoints.len() == 0;
+{
   var waypoints = Vec[Waypoint].new();
   return Trajectory{ waypoints: waypoints, duration: 0.0 };
 }
 
-pub fn trajectory_add_waypoint(traj: &mut Trajectory, wp: Waypoint) {
+pub fn trajectory_add_waypoint(traj: &mut Trajectory, wp: Waypoint)
+  requires: wp.time >= traj.duration;
+  ensures: traj.duration >= wp.time;
+{
   traj.waypoints.push(wp);
   if wp.time > traj.duration {
     traj.duration = wp.time;
   };
 }
 
-pub fn trajectory_duration(traj: &Trajectory) -> Float64 {
+pub fn trajectory_duration(traj: &Trajectory) -> Float64
+  ensures: result == traj.duration;
+{
   return traj.duration;
 }
 
-pub fn trajectory_interpolate(traj: &Trajectory, t: Float64) -> (Float64, Float64, Float64) {
+pub fn trajectory_interpolate(traj: &Trajectory, t: Float64) -> (Float64, Float64, Float64)
+  ensures: traj.waypoints.len() == 0 => (result.0 == 0.0 && result.1 == 0.0 && result.2 == 0.0);
+{
   if traj.waypoints.len() == 0 {
     return (0.0, 0.0, 0.0);
   };
