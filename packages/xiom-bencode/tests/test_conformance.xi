@@ -95,7 +95,7 @@ fn enc_err_is(r: Result[Vec[UInt8], Str], want: Str) -> Bool {
 }
 
 // Kind of the root token, or -1 when decoding fails.
-fn root_kind(data: Vec<UInt8>) -> Int {
+fn root_kind(data: Vec[UInt8]) -> Int {
   let r = bencode_decode(data);
   if !r.is_ok {
     return -1;
@@ -105,7 +105,7 @@ fn root_kind(data: Vec<UInt8>) -> Int {
 }
 
 // Integer value of the root token (0 when decoding fails).
-fn root_int(data: Vec<UInt8>) -> Int {
+fn root_int(data: Vec[UInt8]) -> Int {
   let r = bencode_decode(data);
   if !r.is_ok {
     return 0;

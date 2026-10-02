@@ -1,6 +1,6 @@
 # xiom.bencode
 
-> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (19/19); published at `v0.1.2` on the XIOM registry.
 > **Scope:** strict pure-XIOM bencode encoding and decoding for a documented
 > subset: integers, byte strings, lists and dictionaries.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.builder`,

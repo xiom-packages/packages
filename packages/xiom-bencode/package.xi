@@ -9,7 +9,7 @@
 
 package xiom_bencode {
   name: "xiom.bencode";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Strict pure-XIOM bencode codec with flat token storage and canonical encoding";
   categories: ["data"];
   keywords: ["bencode", "bittorrent", "encoding", "format"];
