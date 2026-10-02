@@ -308,7 +308,7 @@ pub fn DxcResult.destroy()
   unsafe { xiom_unknown_Release(handle); }
 }
 
-pub fn DxcResult.get_status() -> Result<Int32, DxcError>
+pub fn DxcResult.get_status() -> Result[Int32, DxcError]
   requires: handle != 0
 {
   let p_status: Int = 0;
@@ -555,7 +555,7 @@ pub fn DxcContainerReflection.load(p_container: Int) -> Result[Int, DxcError]
   return Ok(0);
 }
 
-pub fn DxcContainerReflection.get_part_count() -> Result<Int32, DxcError>
+pub fn DxcContainerReflection.get_part_count() -> Result[Int32, DxcError]
   requires: handle != 0
 {
   let p_result: Int = 0;
@@ -564,7 +564,7 @@ pub fn DxcContainerReflection.get_part_count() -> Result<Int32, DxcError>
   return Ok(p_result);
 }
 
-pub fn DxcContainerReflection.get_part_kind(idx: Int32) -> Result<Int32, DxcError>
+pub fn DxcContainerReflection.get_part_kind(idx: Int32) -> Result[Int32, DxcError]
   requires: handle != 0
 {
   let p_result: Int = 0;
@@ -766,7 +766,7 @@ pub fn DxcPdbUtils.load(p_pdb_or_dxil: Int) -> Result[Int, DxcError]
   return Ok(0);
 }
 
-pub fn DxcPdbUtils.get_source_count() -> Result<Int, DxcError>
+pub fn DxcPdbUtils.get_source_count() -> Result[Int, DxcError]
   requires: handle != 0
 {
   let p_count: Int = 0;
@@ -793,7 +793,7 @@ pub fn DxcPdbUtils.get_source_name(u_index: Int) -> Result[DxcBlob, DxcError]
   return Ok(DxcBlob{ handle: pp_result });
 }
 
-pub fn DxcPdbUtils.get_flag_count() -> Result<Int, DxcError>
+pub fn DxcPdbUtils.get_flag_count() -> Result[Int, DxcError]
   requires: handle != 0
 {
   let p_count: Int = 0;
