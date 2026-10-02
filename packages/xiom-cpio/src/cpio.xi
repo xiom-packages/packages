@@ -783,7 +783,7 @@ fn _push_hex(out: &mut Vec[UInt8], v: Int, digits: Int) {
 // exactly `digits` ASCII octal digits (no terminator). Values wider than
 // `digits` octal digits are truncated to the low `digits` digits; callers
 // validate the range first.
-fn _push_octal(out: &mut Vec<UInt8>, v: Int, digits: Int) {
+fn _push_octal(out: &mut Vec[UInt8], v: Int, digits: Int) {
   var div: Int = 1;
   var k = 1;
   while k < digits {
@@ -807,7 +807,7 @@ fn _push_octal(out: &mut Vec<UInt8>, v: Int, digits: Int) {
 // All validation runs before the first byte is written, so `out` is
 // unchanged on Err. Callers guarantee `format` is valid and `meta` holds at
 // least base + CPIO_META_LEN values.
-fn _append_at(out: &mut Vec<UInt8>, format: Int, name: Str, meta: &Vec[Int], base: Int, data: &Vec[UInt8]) -> Result[Unit, Str] {
+fn _append_at(out: &mut Vec[UInt8], format: Int, name: Str, meta: &Vec[Int], base: Int, data: &Vec[UInt8]) -> Result[Unit, Str] {
   let namesize: Int = name.len() + 1;
   let filesize: Int = data.len();
   let f_ino: Int = meta[base + CPIO_META_INO];
@@ -926,7 +926,7 @@ pub fn cpio_append(out: &mut Vec[UInt8], format: Int, name: Str, meta: &Vec[Int]
 /// CPIO_FORMAT_ODC; `out` is unchanged on Err. The result is 124 bytes for
 /// newc and 88 bytes for odc.
 /// Complexity: O(1).
-pub fn cpio_append_trailer(out: &mut Vec<UInt8>, format: Int) -> Result[Unit, Str] {
+pub fn cpio_append_trailer(out: &mut Vec[UInt8], format: Int) -> Result[Unit, Str] {
   if format != CPIO_FORMAT_NEWC && format != CPIO_FORMAT_ODC {
     return _err_unit("cpio: bad format");
   }
