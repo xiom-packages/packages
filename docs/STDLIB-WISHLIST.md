@@ -131,7 +131,7 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-10-02 | UTF-8 code-point iteration over `Str` byte offsets + code-point-vector -> `Str` builder | `l10n-unicode` (hand-rolled decode/validate with `& 0xFF` widening; `sb_to_str` after manual encoding) | local UTF-8 helpers | open |
 | 2026-10-02 | `xiom.binary`: bounds-checked byte reader/writer (LE/BE 16/24/32/64), printable-ASCII/FourCC prefix -> `Str`, byte-span copy | `audio-meta` (MIDI/MOD/tracker headers), `video` (RIFF/AVI), `image`, `docker` (digests), `inference` (binary model dump) -- every binary package re-derives these | per-package `_le*/_be*` readers | open |
 | 2026-10-02 | `xiom.string.from_bytes_span`: NUL-free `Str` from an arbitrary validated byte SPAN (not NUL-terminated) | `audio-meta` (names shorter than buffer), `saml` (base64/XML spans), `video` (FOURCC/stream names) | prefix-until-NUL policy / manual truncation | open |
-| 2026-10-02 | `xiom.tables`: runtime string table (blob + monotone `Vec[Int]` offsets) with lookup/dedup | `docker` (names/refs), `audio-meta` (registry), `helm` (keys), `web3` (hex/addresses) | per-module blob+offset helpers | open |
+| 2026-10-02 | `xiom.tables`: runtime string table (blob + monotone `Vec[Int]` offsets) with lookup/dedup | `docker` (names/refs), `audio-meta` (registry), `helm` (keys), `web3` (hex/addresses); wave-52: `cloud`, `aws`, `k8s` (descriptor tables) | per-module blob+offset helpers | open |
 | 2026-10-02 | `xiom.graph.topo`: deterministic smallest-index-first topological sort over parallel edge vectors + cycle report | `docker` (compose service order); `ansible` (group closure/depth -- also see the closure row) | hand-rolled Kahn in-package | open |
 | 2026-10-02 | `xiom.template`: action-based template engine (dotted paths, if/else/end) usable from dependency-free modules | `helm` (Go-template subset hand-rolled, ~350 lines), `formatter-fw` | local bounded renderer | open |
 | 2026-10-02 | `xiom.crypto.gf256` / Shamir: GF(256) mul/inv/div + split/combine helpers | `vault` (unseal; `xiom.crypto.curves` is ECC only) | local ~150-line GF(256) + Lagrange | open |
@@ -146,6 +146,9 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-10-02 | Span / byte-slice API for `Str` (validated subranges, no copy) | `consul` (private `ConsulSpan{start;size}` + `sb_to_str`), `puppet`, `audio-meta` | private span structs per package | open |
 | 2026-10-02 | Strict integer parsing with caller-relocatable error offsets (18+ digit cap, no silent zero) | `cloudlog` (`_cl_scan_int`), `training`, `translate` | hand-rolled digit scanners | open |
 | 2026-10-02 | Encoding codecs: RFC 4648 base32 (canonical unpadded lowercase) + percent-encoder preserving `/` with uppercase hex | `i2p` (base32 KAT-pinned local), `gcp` (GCS object paths) | hand-rolled codecs | open |
+| 2026-10-02 | Boolean `str_eq(a, b) -> Bool` | every package (hand-rolls `str_compare(a,b) == 0`; called out by `cloud`, `aws`, `k8s`) | `str_compare ... == 0` at each site | open |
+| 2026-10-02 | Contract-usable math predicates: `is_finite` / `is_nan`, plus `reciprocal` | `control`, `sensor` (NaN/Inf domains are unassertable; guarded `1.0 / x` trips verifier X7004) | local guards; clauses left solver-unproven | open |
+| 2026-10-02 | Quaternion algebra (`multiply`/`normalize`/`from_euler`/`rotate`) | `sensor` (hand-rolled Hamilton product) | in-package implementation | open |
 
 ## Compiler-shaped requests routed to `docs/COMPILER-FINDINGS.md`
 
@@ -323,3 +326,18 @@ unit that would consume the fix.
   requesters extended (`cloudlog`). Stdlib side: the crypto linkability
   repro packet now lives in `docs/repro/crypto-link/` (exact symbols,
   call shapes, KATs, retirement plan) for fix-first.
+- 2026-10-02: wave-52 reports appended (growth: `cloud` 26/26 published
+  in `eco-v0.1.33`; promotion prep: `json` 44/44 with 15 contracts,
+  `control` 32/32 with 58 clauses, `sensor` 38/38 with 28 clauses --
+  stages stay `ported` until the first promotion wave after Tier-2
+  maintenance). New rows: boolean `str_eq`, contract-usable
+  `is_finite`/`is_nan` + `reciprocal`, quaternion algebra; `xiom.tables`
+  requesters extended (`cloud`, `aws`, `k8s`). Hardening found real
+  legacy defects in `json` (0.05 parsed as 0.5, stringify recursion,
+  exponent hang, partial writes, non-atomic merge) plus two compiler
+  findings filed as Open rows: match-bound enum payload mutations
+  silently dropped, and aggregate-payload `derive[Clone]` corruption
+  (`0xC000001D`). Contract verification evidence for all three
+  candidates: annotated + runtime-checked, 0/101 solver-proven on
+  v0.62.2 (encoding gaps documented in `docs/COMPILER-FINDINGS.md`;
+  scalar-only probes 2/2 and 4/4 proven).

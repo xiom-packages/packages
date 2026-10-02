@@ -3,59 +3,53 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-02 (late night), by the packages session (wave 51
-built, integrated and published as `eco-v0.1.32`; compiler-release triage
-policy + workaround registry added to `docs/MAINTENANCE.md`; handoff kit +
-paste prompt refreshed for wave 52). Check `git log -1 --format=%h %s`
-before starting.
+**Written:** 2026-10-02 (late night), by the packages session (wave 52
+completed: `cloud` published in `eco-v0.1.33`; `json`/`control`/`sensor`
+hardened to contract-certified promotion candidates; promotion +
+maintenance policies live in `docs/PROMOTION.md`; handoff kit + paste
+prompt refreshed for wave 53). Check `git log -1 --format=%h %s` before
+starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-02 21:10Z (read this first):**
-- **Wave 51 COMPLETE + PUBLISHED (`eco-v0.1.32`):** all 8 -- `puppet`
-  26/26, `azure` 24/24, `gcp` 28/28, `salt` 28/28, `cloudlog` 27/27,
-  `consul` 24/24, `i2p` 24/24, `phaser` 24/24 -- built on v0.62.2 by
-  5 task + 3 AM lanes, port x2 + trap-14 verified, records
-  `incubating`; allowlist **485 -> 493**. Publish run `37063648647`
-  SUCCESS on **attempt 1**. Gate `22424011031`.
-- **Current gates/state:** `validate` **508/0**; guard **493
-  allowlisted / 444 ready / 49 grandfathered / 0 failures**; registry
-  **446 packages + 2 infra = 448 entries**; allowlist **493**; tag
-  `eco-v0.1.32` on `b1ff10c6`; all pushed.
-- **Maintenance policy (owner-approved):** `docs/MAINTENANCE.md` has the
-  compiler-release TRIAGE (Tier 0/1/2) + workaround registry (13 rows).
-  When the compiler lane lands fixes: apply the tiers; Tier-2 = fleet
-  sweep detector + 10-lane retirement wave; evidence-gated (probe
-  RED->GREEN + port x2 + record). Crypto fix-first repro packet:
-  `docs/repro/crypto-link/`.
-- **New compiler findings (wave 51):** qualified struct literals fail
-  T001 (`gcp`; bare imported type names required); trap-14 recurred at
-  **14 struct-FIELD sites** and passed the suite green (`cloudlog`) --
-  byte-level grep only, Read output lies about brackets; passing
-  `Result[Bool,Str]` where `Result[Int,Str]` is declared compiled
-  silently and read garbage (`consul`); `fn` is reserved as an
-  identifier like `as` (`i2p`); spurious `!bool_call(...) == 1`
-  negation diagnostic (`phaser`); one non-reproducible `--run` `-1`
-  under machine saturation (`i2p`; watch only).
-- **Session-recovery pattern (repeatable):** silent/empty aborts and
-  output-limit crashes -> stop the AM session if any, re-dispatch as a
-  `task` with `variant: low` + files-first directive (worked 3x).
-- **New stdlib rows (wave 51):** glob/fnmatch + bounded regex,
-  `Str -> Str` map, span/byte-slice API, strict integer parsing with
-  relocatable offsets, base32 + percent-encoder; `serialize.json`
-  requesters extended.
-- **Follow-ups:** remaining placeholders are all FFI-bound (`aac`,
-  `bridge`, `c-binding`, `curl`, `firebird`, `icu`, `jansson`, `llvm`,
-  `odbc`, `oracle`, `rocksdb`, `xml2`) plus `cloud` (umbrella; now that
-  `aws`/`azure`/`gcp`/`k8s`/`docker` all exist it can be modeled as a
-  provider-descriptor registry -- wave-52 candidate #1); README `Status`
-  blocks for the 351 names; category harmonization (`phaser`/
-  `parser-fw`/`jit-fw` shipped unknown category tokens -> registry
-  `categories: []`); keep the `-TimeoutSec 60` watchdog. When the
-  compiler release lands, the Tier-2 maintenance wave outranks growth;
-  the promotion program is approved (`docs/PROMOTION.md`: contracts
-  mandatory for stable; order = Tier-2 > README sync > promotion >
-  growth).
+**STATE AT 2026-10-02 22:20Z (read this first):**
+- **Wave 52 COMPLETE + PUBLISHED (`eco-v0.1.33`):** `cloud` 26/26 (the
+  last pure growth placeholder) -- run `37071807931` SUCCESS attempt 1;
+  allowlist **493 -> 494**. Promotion prep (UNPUBLISHED, stage `ported`):
+  `json` 44/44, 15 contracts on 13 entry points (suite 12 -> 44);
+  `control` 32/32, 58 clauses on 24/24 entry points; `sensor` 38/38,
+  28 clauses on 20/24 (+ documented unasserted list). All three re-verified
+  port x2 + trap-14 by the coordinator.
+- **Current gates/state:** `validate` **509/0**; guard **494
+  allowlisted / 445 ready / 49 grandfathered / 0 failures**; registry
+  **447 packages + 2 infra = 449 entries**; allowlist **494**; tag
+  `eco-v0.1.33` on `c7660a93`; all pushed.
+- **Contract tooling on the pin (validated):** contracts compile with
+  runtime checks; invoke `& "$env:LOCALAPPDATA\xiom.new\bin\xiom-verify.exe" "<file>" --check`
+  (file FIRST -- `--check` first fails) with
+  `$env:Z3_PATH="$env:LOCALAPPDATA\xiom.new\bin\z3.exe"`. Scalar-only
+  probes DO prove (2/2 and 4/4); record-heavy packages: 0 of 101 clauses
+  proven -- encoding gaps, not the solver.
+- **New severe compiler findings (filed, commit `25cf8c62`; relayable):**
+  match-bound payload mutations on `&mut` enums silently dropped;
+  aggregate-payload `derive[Clone]` corrupts (`0xC000001D` on next
+  push); `invariant:` placement ambiguity (P001 for `json`, generated
+  `invariant_check` for `control`); `xiom-verify` record-field / `&T` /
+  if-merge / X7004 / duplicate `:named` / cross-module `use` gaps.
+- **Program state:** growth backlog EXHAUSTED (only FFI placeholders
+  remain + owner decision on pure-model reinterpretations). Promotion
+  candidates ready: `json`/`control`/`sensor` -- first promotion wave
+  AFTER Tier-2 compiler maintenance. Grandfathering queue: the 276
+  pre-gate stable records (`docs/PROMOTION.md`). Program order: Tier-2
+  (waiting on the compiler release) > README `Status` sync > promotion
+  waves > growth.
+- **Wave-53 options while waiting:** README `Status` sync program
+  (repo-side; registry-side republish folds into promotion batches);
+  prepare promotion evidence packets; do NOT flip stages before Tier-2.
+- **Carry-forwards:** crypto/base64 fix-first packet with the stdlib
+  lane (`docs/repro/crypto-link/`); compiler hotfix watch (open rows in
+  `docs/COMPILER-FINDINGS.md`); category harmonization owner decision;
+  keep the `-TimeoutSec 60` watchdog.
 
 ### Next-session operating kit (wave pipeline -- proven 6x)
 
@@ -88,7 +82,7 @@ before starting.
    before editing the allowlist; append `.github/publish-allowlist.txt`;
    `generate_index.ps1`, `status.ps1 -Action report`, validate,
    `allowlist-guard.ps1`, `export-namespaces.ps1`; commit + push; `git
-   tag eco-v0.1.33` (next number) + push; approve the gate:
+   tag eco-v0.1.34` (next number) + push; approve the gate:
    `gh api repos/xiom-packages/packages/actions/runs/<id>/pending_deployments
    -X POST --input <{"state":"approved","environment_ids":[22424011031],
    "comment":"..."}>`; monitor; on `oidc_token_expired` rerun the failed
@@ -117,52 +111,51 @@ before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-02 21:10Z STATE block and
+private). Read SESSION.md first -- the 2026-10-02 22:20Z STATE block and
 the "Next-session operating kit" at the top of section 0 are the live
-handoff (wave 51 complete + published eco-v0.1.32; 446 packages + 2 infra
-on the registry; allowlist 493). Repo-local identity must be
+handoff (wave 52 complete + published eco-v0.1.33; 447 packages + 2 infra
+on the registry; allowlist 494). Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
 gates); ops opens the publish-rate window ONLY for waves >20 names
 (default 20/min otherwise); the ops scope enumeration must be confirmed
 BEFORE appending the allowlist delta. New/next-touched records use stage
-`incubating` (`stable` only by explicit promotion).
+`incubating` (`stable` only via `docs/PROMOTION.md`).
 
 Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Wave 52 (or the owner's named wave). The growth backlog is nearly
-   dry: the only unambiguously in-scope placeholder left is `cloud`
-   (umbrella; model it as a provider-descriptor registry now that
-   `aws`/`azure`/`gcp`/`k8s`/`docker` all exist). Everything else is
-   FFI-bound (`aac`, `bridge`, `c-binding`, `curl`, `firebird`, `icu`,
-   `jansson`, `llvm`, `odbc`, `oracle`, `rocksdb`, `xml2`);
-   pure-model reinterpretations of those (e.g. a pure HTTP request/
-   redirect/cookie model for `curl`, a DOM/parser model for `xml2`) are
-   an OWNER DECISION -- do not start them without it. If there is
-   nothing to grow, run hygiene instead (README `Status` sync batch;
-   implementation of category harmonization once the owner decides)
-   until the compiler release lands.
-2. Compiler release pending: apply the TRIAGE in
-   `docs/MAINTENANCE.md` first. A Tier-2 release triggers the fleet
-   sweep + 10-lane workaround-retirement wave -- it outranks growth.
-   Crypto fix-first repro packet: `docs/repro/crypto-link/`. Never
-   retire a workaround without the probe flipping RED -> GREEN + port
-   x2 + record. After Tier-2 maintenance and the README sync, run
-   PROMOTION waves per `docs/PROMOTION.md` (contracts mandatory for
-   stable; ported four first); growth is last.
-3. Wrap + publish per the operating kit (tag eco-v0.1.33 when there is
+1. Growth is EXHAUSTED: only FFI-bound placeholders remain
+   (`aac`, `bridge`, `c-binding`, `curl`, `firebird`, `icu`, `jansson`,
+   `llvm`, `odbc`, `oracle`, `rocksdb`, `xml2`). Pure-model
+   reinterpretations of those are an OWNER DECISION -- do not start
+   without it. While waiting on the compiler release, the productive
+   work is:
+   (a) README `Status` sync program (repo-side; e.g. the promotion
+       candidates first, then the stale set; registry-side republish
+       folds into promotion/republish batches);
+   (b) promotion evidence packets for `json`/`control`/`sensor`
+       (already contract-certified; keep stages `ported` until Tier-2);
+   (c) category harmonization once the owner decides.
+2. Compiler release: apply the TRIAGE in `docs/MAINTENANCE.md` first
+   (Tier-2 = fleet sweep + workaround retirement; crypto/base64
+   fix-first packet at `docs/repro/crypto-link/`). Then the README sync,
+   then the FIRST PROMOTION WAVE per `docs/PROMOTION.md` (json/control/
+   sensor get allowlist + ops scope + stage `stable` + publish; their
+   contracts and 44/32/38-check suites are ready), then the
+   grandfathering hardening queue (276 pre-gate stable records).
+3. Wrap + publish per the operating kit (tag eco-v0.1.34 when there is
    a batch): ops scope ask, allowlist, regenerate, validate+guard,
    approve the gate, verify live. Rerun-failed + re-approve on
    `oidc_token_expired` (idempotent). Report "batch done" only if ops
    opened a window (waves >20).
-4. Carry-forwards: compiler hotfix watch (open v0.62.2 issues + repros
-   in docs/repro/); README Status-block sync for the 351 names; category
-   harmonization owner decision; promotion program (`docs/PROMOTION.md`,
-   contracts mandatory for stable); at every wave append worker
-   `stdlib gaps` / compiler evidence; keep the port watchdog discipline;
-   update SESSION.md at the wrap with a fresh paste prompt.
+4. Carry-forwards: compiler hotfix watch (open rows in
+   `docs/COMPILER-FINDINGS.md`; enum-mutation/clone/invariant findings
+   are relayed); README sync; category harmonization owner decision;
+   at every wave append worker `stdlib gaps` / compiler evidence; keep
+   the `-TimeoutSec 60` watchdog; update SESSION.md at the wrap with a
+   fresh paste prompt.
 ```
 
 **--- Older state below (history) ---**

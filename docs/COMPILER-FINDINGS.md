@@ -391,5 +391,32 @@ strict clauses on):
     `Vec[Str]` writes stable (`consul`); base64/base32 hand-rolled and
     KAT-pinned pending the crypto/base64 link fix (`i2p`; see
     `docs/repro/crypto-link/`).
+- 2026-10-02: **wave-52 promotion-prep evidence (`json`, `control`,
+  `sensor` hardening; contracts mandatory for stable per
+  `docs/PROMOTION.md`).** New silent/unsafe findings (Open rows added,
+  commit `25cf8c62`):
+  - **Match-bound payload mutations on `&mut` enums are silently
+    dropped** (`json`: all six mutators no-ops until rebuilt as payload
+    replacement + `*obj = ...`).
+  - **Aggregate-payload `derive[Clone]` corruption:** deep clone of
+    Object/Array payloads returns a corrupt handle; next `push` crashes
+    `0xC000001D` (scalar payloads fine). Public derive removed from the
+    container-backed types; `json_clone` is the supported deep copy.
+  - **`invariant:` placement ambiguity:** `json` hit P001 in every
+    documented placement while `control` generated `invariant_check`
+    functions -- canonical placement ruling needed.
+  - **`xiom-verify` v0.62.2 encoding gaps (0/101 clauses proven across
+    the three packages; false-positive "violations"):** record-field
+    selectors emit `unknown constant <T>-<f>`; `&T` becomes opaque
+    `xiom_ptr_*`; if-merge leaves the merge variable unconstrained;
+    X7004 division obligations are path-insensitive; multiple
+    `requires:` emit duplicate `:named` asserts (Z3 abort, merge with
+    `&&`); cross-module `use` unresolved; writes
+    `xiom_verify_output.smt2` into cwd. Scalar-only probes verify
+    (2/2, 4/4 proven) -- encoding work, not solver availability.
+  - Hardening also fixed real legacy defects in `json` (`0.05` parsed as
+    `0.5`; `stringify_frac` recursion; exponent hang; partial-write
+    `set_path`; non-atomic merge) -- the promotion gate catching exactly
+    what it is for.
 
 
