@@ -925,7 +925,7 @@ pub fn aiff_chunk_data(data: &Vec[UInt8], info: &AiffInfo, i: Int) -> Result[Vec
 /// The SSND offset/block-size fields and the sample size are metadata only;
 /// no sample decoding or decompression is performed.
 /// Complexity: O(ssnd_data_size).
-pub fn aiff_sample_data(data: &Vec<UInt8>, info: &AiffInfo) -> Result[Vec[UInt8], Str] {
+pub fn aiff_sample_data(data: &Vec[UInt8], info: &AiffInfo) -> Result[Vec[UInt8], Str] {
   let off = info.ssnd_data_offset;
   let size = info.ssnd_data_size;
   if off < 0 {
