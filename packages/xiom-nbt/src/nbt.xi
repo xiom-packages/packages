@@ -729,7 +729,7 @@ fn _encode_payload(tree: &NbtTree, node: Int, out: &mut Vec[UInt8], depth: Int) 
 }
 
 // Write tag byte + name + payload of `node`.
-fn _encode_node(tree: &NbtTree, node: Int, out: &mut Vec<UInt8>, depth: Int) -> Result[Int, Str] {
+fn _encode_node(tree: &NbtTree, node: Int, out: &mut Vec[UInt8], depth: Int) -> Result[Int, Str] {
   if node < 0 || node >= tree.types.len() {
     return _err_int("nbt: node index out of range");
   }

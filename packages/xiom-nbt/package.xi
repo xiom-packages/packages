@@ -9,7 +9,7 @@
 
 package xiom_nbt {
   name: "xiom.nbt";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Minecraft NBT (Named Binary Tag) encoding and decoding for the XIOM ecosystem";
   categories: ["data"];
   keywords: ["nbt", "minecraft", "binary", "format"];
