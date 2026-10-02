@@ -6,12 +6,12 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  43,
+                  "passed":  44,
                   "failed":  0,
                   "run_by":  "task:ses_f016f66beffe3ynQI5kz77C77i",
-                  "commit":  "44e10fc6",
-                  "checked":  "2026-10-02T22:08:07Z"
+                  "commit":  "b74587c8",
+                  "checked":  "2026-10-02T22:13:15Z"
               },
     "publish":  false,
-    "excluded_reason":  "promotion prep: contracts + suite expansion (stable gate pending)"
+    "excluded_reason":  "promotion prep: contracts + suite expansion + clone surface fixed (stable gate pending)"
 }
