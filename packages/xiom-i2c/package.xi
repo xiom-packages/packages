@@ -9,9 +9,9 @@
 
 package xiom_i2c {
   name: "xiom.i2c";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "I2C/SMBus codec: 7-bit and 10-bit addressing, typed bus events and SMBus PEC";
-  categories: ["protocol"];
+  categories: ["systems"];
   keywords: ["i2c", "smbus", "bus", "embedded"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
