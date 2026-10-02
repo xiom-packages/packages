@@ -1,6 +1,6 @@
 # xiom.parser-fw
 
-> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (27/27); published at `v0.1.1` on the XIOM registry.
 > **Scope:** a framework for recursive-descent and precedence-climbing parsers:
 > token model and classification, grammar-rule declarations and production
 > helpers, a backtracking core engine, Pratt/precedence binding powers,

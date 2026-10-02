@@ -15,9 +15,9 @@
 
 package xiom_parser_fw {
   name: "xiom.parser-fw";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Parser framework: recursive-descent engine, precedence climbing, panic-mode recovery, parse trees";
-  categories: ["compiler"];
+  categories: ["tooling"];
   keywords: ["parser", "recursive-descent", "pratt", "precedence", "framework"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
