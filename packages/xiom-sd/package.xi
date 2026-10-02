@@ -9,9 +9,9 @@
 
 package xiom_sd {
   name: "xiom.sd";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "SD/MMC card register codec: CID, CSD v1.0/v2.0, OCR, CRC7 and SPI framing";
-  categories: ["protocol"];
+  categories: ["systems"];
   keywords: ["sd", "mmc", "cid", "csd", "ocr", "crc7", "spi", "embedded"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
