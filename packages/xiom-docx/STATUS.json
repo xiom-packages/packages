@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  27,
                   "failed":  0,
-                  "run_by":  "task:ses_f032f754cffegi3oNUj9bd9ULn",
-                  "commit":  "99c005e3",
-                  "checked":  "2026-10-02T13:43:12Z"
+                  "run_by":  "task:ses_f0114e1edffe0TDd6iTLYROUL1",
+                  "commit":  "f0f7743d",
+                  "checked":  "2026-10-02T23:26:53Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: next scope delta"
+    "excluded_reason":  "category harmonization patch bump (registry metadata)"
 }
