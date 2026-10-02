@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-02T22:56:11+03:00
-# packages: 500  modules: 564
+# generated: 2026-10-02T23:54:57+03:00
+# packages: 508  modules: 587
 
 ## package names
 xiom.acpi
@@ -34,6 +34,7 @@ xiom.avi
 xiom.aviation
 xiom.avro
 xiom.aws
+xiom.azure
 xiom.backoff
 xiom.badger
 xiom.barrier
@@ -70,6 +71,7 @@ xiom.chemistry
 xiom.chromatography
 xiom.cidr
 xiom.climate
+xiom.cloudlog
 xiom.clustering
 xiom.cobs
 xiom.codec
@@ -78,6 +80,7 @@ xiom.collation
 xiom.compliance
 xiom.config
 xiom.consensus
+xiom.consul
 xiom.context
 xiom.control
 xiom.cookie
@@ -153,6 +156,7 @@ xiom.fuzz
 xiom.gazebo
 xiom.gbnf
 xiom.gcode
+xiom.gcp
 xiom.gedcom
 xiom.gemtext
 xiom.geo
@@ -181,6 +185,7 @@ xiom.html
 xiom.http
 xiom.humanize
 xiom.i2c
+xiom.i2p
 xiom.iban
 xiom.ical
 xiom.ico
@@ -327,6 +332,7 @@ xiom.pem
 xiom.perf
 xiom.pgn
 xiom.pgp
+xiom.phaser
 xiom.phonon
 xiom.physics
 xiom.pki
@@ -351,6 +357,7 @@ xiom.proxy
 xiom.psf
 xiom.pulsar
 xiom.punycode
+xiom.puppet
 xiom.pwm
 xiom.qoi
 xiom.quantum
@@ -381,6 +388,7 @@ xiom.rpm
 xiom.rtc
 xiom.rtf
 xiom.safetensors
+xiom.salt
 xiom.saml
 xiom.sanitize
 xiom.sarif
@@ -539,6 +547,15 @@ xiom.aviation
 xiom.avro
 xiom.aws
 xiom.aws.base
+xiom.azure
+xiom.azure.arm
+xiom.azure.auth
+xiom.azure.base
+xiom.azure.compute
+xiom.azure.cosmos
+xiom.azure.functions
+xiom.azure.servicebus
+xiom.azure.storage
 xiom.backoff
 xiom.badger
 xiom.barrier
@@ -573,6 +590,7 @@ xiom.chemistry
 xiom.chromatography
 xiom.cidr
 xiom.climate
+xiom.cloudlog
 xiom.clustering
 xiom.cobs
 xiom.codec
@@ -581,6 +599,7 @@ xiom.collation
 xiom.compliance
 xiom.config
 xiom.consensus
+xiom.consul
 xiom.context
 xiom.control.filter
 xiom.control.pid
@@ -678,6 +697,14 @@ xiom.ftp
 xiom.fuzz
 xiom.gbnf
 xiom.gcode
+xiom.gcp
+xiom.gcp.auth
+xiom.gcp.bigquery
+xiom.gcp.cloudfunctions
+xiom.gcp.compute
+xiom.gcp.core
+xiom.gcp.pubsub
+xiom.gcp.storage
 xiom.gedcom
 xiom.gemtext
 xiom.geo
@@ -718,6 +745,7 @@ xiom.http.types
 xiom.http.url
 xiom.humanize
 xiom.i2c
+xiom.i2p
 xiom.iban
 xiom.ical
 xiom.ico
@@ -861,6 +889,7 @@ xiom.pem
 xiom.perf
 xiom.pgn
 xiom.pgp
+xiom.phaser
 xiom.physics
 xiom.pki
 xiom.plist
@@ -883,6 +912,7 @@ xiom.proxy
 xiom.psf
 xiom.pulsar
 xiom.punycode
+xiom.puppet
 xiom.pwm
 xiom.qoi
 xiom.quantum
@@ -909,6 +939,7 @@ xiom.rpm
 xiom.rtc
 xiom.rtf
 xiom.safetensors
+xiom.salt
 xiom.saml
 xiom.sanitize
 xiom.sarif

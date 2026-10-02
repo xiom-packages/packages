@@ -526,3 +526,11 @@ xiom.ansible
 xiom.chef
 xiom.elastic
 xiom.aws
+xiom.puppet
+xiom.azure
+xiom.gcp
+xiom.salt
+xiom.cloudlog
+xiom.consul
+xiom.i2p
+xiom.phaser

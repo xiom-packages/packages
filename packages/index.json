@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-02T22:56:04Z",
+    "updated":  "2026-10-02T23:54:53Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -483,6 +483,31 @@
                          "source_files":  [
                                               "aws.xi",
                                               "aws_base.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.azure",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM Microsoft Azure resource model: ARM resource ids, blob storage with ETag preconditions, VM power states, Functions routes/triggers, Cosmos DB partition keys, Service Bus delivery states, Entra token envelope; no network",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-azure/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "azure.xi",
+                                              "azure_arm.xi",
+                                              "azure_auth.xi",
+                                              "azure_base.xi",
+                                              "azure_compute.xi",
+                                              "azure_cosmos.xi",
+                                              "azure_functions.xi",
+                                              "azure_servicebus.xi",
+                                              "azure_storage.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1102,6 +1127,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.cloudlog",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Cloud log pipeline model: ingest batching, structured formats, tail consumers, retention store, search",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cloudlog/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cloudlog.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.clustering",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -1234,6 +1276,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-consensus/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "consensus.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.consul",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM Consul protocol model: KV store with CAS and monotonic indexes, service/check registry, TTL health transitions, session lifecycle with lock behavior, and the ACL rules subset (no HTTP, no agent, no network)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-consul/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "consul.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2542,6 +2601,30 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.gcp",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM Google Cloud provider model: resource names, GCS, GCE, Cloud Functions, BigQuery, Pub/Sub and service-account auth shapes; no network",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gcp/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "gcp.xi",
+                                              "gcp_auth.xi",
+                                              "gcp_bigquery.xi",
+                                              "gcp_cloudfunctions.xi",
+                                              "gcp_compute.xi",
+                                              "gcp_core.xi",
+                                              "gcp_pubsub.xi",
+                                              "gcp_storage.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.gedcom",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -3055,6 +3138,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-i2c/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "i2c.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.i2p",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM I2P SAM v3 message/state model: base64/base32 destination strings, .i2p naming and address book, session and stream (connect/accept/forward) lifecycle, line framing with reply codes, and lease-set shape; transport and crypto are out of scope",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-i2p/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "i2p.xi",
                                               "package.xi"
                                           ]
                      },
@@ -5564,6 +5664,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.phaser",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Multi-party phaser as a deterministic state machine (dynamic registration, phase advancement hooks, termination, tiered phasers)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-phaser/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "phaser.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.phonon",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Steam Audio (Phonon) spatial audio bindings for XIOM",
@@ -5971,6 +6088,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-punycode/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "punycode.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.puppet",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM Puppet-style configuration-management model: manifest parsing subset, module metadata, hiera lookup with interpolation, catalog dependency ordering, apply/change simulation and a run report",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-puppet/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "puppet.xi",
                                               "package.xi"
                                           ]
                      },
@@ -6498,6 +6632,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-safetensors/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "safetensors.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.salt",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM Salt remote-execution model: state ids/functions/names with require/watch/onchanges ordering, pillar targeting and merge precedence, minion targeting (glob, regex subset, grains, compound and/or/not), typed grains with precedence and aggregation, and an event bus with tags, payload framing and reactor rules",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-salt/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "salt.xi",
                                               "package.xi"
                                           ]
                      },
@@ -8692,19 +8843,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-azure",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-azure/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-bridge",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8744,32 +8882,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-cloudlog",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cloudlog/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-consul",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-consul/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-curl",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8790,32 +8902,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-firebird/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-gcp",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gcp/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-i2p",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-i2p/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8887,32 +8973,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-phaser",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-phaser/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-puppet",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-puppet/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-rocksdb",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8920,19 +8980,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rocksdb/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-salt",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-salt/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
