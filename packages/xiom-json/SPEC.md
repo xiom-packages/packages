@@ -408,22 +408,18 @@ var result2 = json_schema_validate(&invalid_data, &schema);
 
 ---
 
-## Known Limitations (Layer 2 Dependencies)
+## Known Limitations (current)
 
-The following features require runtime/stdlib support that is not available in pure XIOM Layer 1:
-
-| Feature | Limitation | Layer 2 Solution |
-|---------|-----------|-----------------|
-| Unicode escape decoding | `\uXXXX` preserves the literal escape; code-point to UTF-8 conversion needs unicode tables | stdlib unicode module |
-| Float64 string formatting | `json_stringify` uses a simple float-to-string converter that may produce long trailing digits for some values | `Float64::to_string()` with precision control |
-| Float64 parsing precision | Numbers are parsed via manual arithmetic; very large/small numbers may lose precision | `Float64::parse()` using native FPU |
-| Str indexing | `input[pos]` for byte access and `Str::len()` are assumed to work; if not, parser requires Vec[UInt8] pre-conversion | stdlib string module |
-| Str concatenation | `result = result + str` is assumed to work; if not, all string building requires Vec-based approach | stdlib string builder |
-| Vec truncation | `json_remove` builds a new Vec and replaces elements but cannot shrink the Vec without `.truncate()` or `.pop()` | Vec::truncate / Vec::pop |
-| Reference reassignment | `json_set_path` reassigns mutable references in a loop; if XIOM does not support this, the function must be restructured | Mutable pointer chains |
-| `break` in loops | Not used -- all loops rewritten with flag variables | `break` / `continue` support |
-| Generics with constraints | `sort_entries` reimplements quicksort for `JsonEntry` specifically to avoid `[T: Ord]` codegen issues | Full generics support |
-| Exact number representation | The `JsonNumber` type is defined but `json_parse` uses `Float64` for the Number variant; a `parse_exact` variant would fill `JsonNumber` | `JsonValue::NumberExact(JsonNumber)` variant |
+| Area | Limitation | Status |
+|------|-----------|--------|
+| Unicode escape decoding | `\uXXXX` is consumed and preserved as a placeholder (four hex chars skipped); real code-point decoding needs unicode tables | documented subset |
+| Float64 string formatting | Fractions format to <=15 digits; values with magnitude >= 1e15 serialize as `"0"` (saturation guard); exponent magnitude saturates at 1000 | documented limitation; large-magnitude round-trip is **unasserted** |
+| Float64 parse precision | Numbers are parsed via manual arithmetic with an `Int` digit accumulator; very long digit runs overflow/lose precision | documented; tests stay in the exact range |
+| Nesting depth | No explicit cap: parser and serializer are recursive and bounded by the process stack; 64-deep arrays and 32-deep objects are conformance-tested | tested at fixed depths; no cap semantics asserted |
+| Deep clone | `derive[Clone]` on `JsonValue`/`JsonEntry` is miscompiled on pin v0.62.2 when the value holds Object/Array (corrupt vector handle); use `json_clone` for deep copies | package workaround (`json_clone`); compiler finding |
+| Exact number representation | `JsonNumber` is defined but unused; `json_parse` produces `JsonValue.Number(Float64)`; no `parse_exact` variant | documented subset |
+| JSON Schema | Supported keywords are exactly `type`, `enum`, `properties`, `required` | documented subset |
+| Large arrays/objects | Mutation helpers rebuild the container (O(n) per operation); no in-place edit API | documented behavior |
 
 ---
 
@@ -455,15 +451,20 @@ The schema validator implements a pragmatic subset of JSON Schema. It supports t
 
 ### Int-to-Float64 Conversion
 
-Since XIOM may not support `as` type casting between `Int` and `Float64`, a manual conversion function `int_to_float64` decomposes the integer into decimal digits and builds the Float64 value through repeated multiplication and addition. The reverse operation `float64_to_int` uses repeated subtraction. Both are O(digits) and correct for values within the 32-bit integer range. Larger numbers lose precision naturally through Float64 representation.
+Numeric conversion uses the `xiom.convert` intrinsics (`int_to_float`, `float_to_int`, `int_to_string`) rather than hand-rolled digit loops. Accuracy is bounded by the Float64 representation and by the `Int` accumulator used while scanning digits.
 
 ---
 
 ## Port Notes (compiler 0.61.3, stdlib E:\xiom-lang\stdlib)
 
-Ported with minimal, targeted fixes. The conformance suite is green:
-`scripts/port.ps1 -Package xiom.json` -> `port: PASS (passed=12 failed=0
-program_exit=0 exit=0)`. Publication status is unchanged (not published).
+Ported with minimal, targeted fixes. The conformance suite (43 checks) is green:
+
+```
+.\scripts\port.ps1 -Package xiom-json -TimeoutSec 60
+-> port: PASS (passed=43 failed=0 program_exit=0 exit=0)   (x2 consecutive runs)
+```
+
+Publication status is unchanged (not published).
 
 ### Known limitations (port)
 
@@ -471,11 +472,13 @@ program_exit=0 exit=0)`. Publication status is unchanged (not published).
 |------|--------|--------|
 | Match exhaustiveness | `json_get_path` and `json_set_path` use bare variant patterns (`Key(k)`, `Index(i)`) instead of qualified `JsonPathSegment.Key(k)` patterns | Compiler 0.61.3 T001 reports both variants as uncovered for qualified enum patterns; bare patterns are accepted and match the rest of the file. Signals and control flow are unchanged. |
 | Character mapping (`chr_byte`) | Now maps any byte through `xiom.convert.int_to_char` + `tostring.to_string_char` (new `use xiom.convert.tostring;`) | The previous body returned `" "` for every byte that is not a control character, quote, backslash or apostrophe, so parsed strings, JSONPath keys and serialized output were corrupted (e.g. the key `"key"` read back as three spaces). Behavior fix, not a semantics change: JSON text is now preserved as written. |
-| Conformance harness | `main` calls each test explicitly (`let r1 = t1(); ...`) instead of iterating `Vec[fn() -> TestResult]` | On the pinned toolchain, element calls on function-typed `Vec` elements are miscompiled: `fs[0]()` lowers to `Unit` and the array-literal form crashes at runtime (`0xC0000005`). The green sibling suites use the same explicit-call pattern. All 12 tests and their assertions are unchanged. |
+| Conformance harness | `main` calls each test explicitly (`let r1 = t1(); ...`) instead of iterating `Vec[fn() -> TestResult]` | On the pinned toolchain, element calls on function-typed `Vec` elements are miscompiled: `fs[0]()` lowers to `Unit` and the array-literal form crashes at runtime (`0xC0000005`). The green sibling suites use the same explicit-call pattern. The original 12 tests and their assertions are unchanged. |
 | Test t6 | `JsonType.Null` corrected to `JsonType.NullType` | Obsolete variant spelling: the enum has always declared `NullType`; the old spelling compiled to garbage codegen (clang rejected a `JsonValue` passed where `JsonType` was expected). The test's intent (parsed null reports `NullType`) is unchanged. |
 
-No test semantics were weakened or removed; the 12 checks exercise the same
-behaviors as before the port.
+No existing check's intent was weakened or removed: t1-t12 are unchanged.
+31 checks were added during stable preparation (error paths, numeric edge
+cases, deep nesting, duplicate keys, mutation API, determinism); see the
+"Stable Preparation" section below.
 
 ### Toolchain issues observed
 
@@ -488,3 +491,154 @@ behaviors as before the port.
   `xiom.test.run_all` in the stdlib has the same shape and is affected.
 - A user free function named `log` collides with libm `log` at codegen
   (`call double @log(double %tmp)`) when the module uses `xiom.io`.
+- `invariant:` is rejected by the v0.62.2 parser in every documented
+  placement (`pub type X = T invariant: ...;`, after `}`, on its own line):
+  `error[P001] expected ';', found invariant`. No type invariant in this
+  package can be expressed on the pin.
+- Mutation through a match-bound payload of a `&mut` enum parameter is
+  silently dropped: `match v { A(items) => { items.push(x); } }` leaves the
+  caller unchanged (no diagnostic). Writing the rebuilt value back
+  (`*v = A(items)`) is required.
+- Derived deep clone is miscompiled: `Vec[JsonEntry].clone()` (and any
+  `JsonValue.clone()` whose payload is Object/Array) returns a corrupt
+  handle; a subsequent `push` crashes with `0xC000001D` (stack overflow).
+  Scalar payload clones (`Str`, `Bool`, `Number`) are fine.
+- `xiom-verify` expects the file before `--check`
+  (`xiom-verify <file> --check`); the documented order fails with
+  `Error reading --check`. It also does not resolve a package's own imports
+  from a test file (`CheckError: undefined variable 'json_parse'`), so
+  contracts are verified on the declaring `src/json.xi`.
+- `xiom-verify` contract expressions are limited: `Result`/enum patterns and
+  enum constructors (`result is Ok => ...`) report
+  `unsupported expression in contract`; struct-field reads report
+  `field access on non-datatype receiver`; any call in a clause
+  (`xiom.string.str_len`, `result.len()`) is skipped as a complex call target.
+- Duplicate private function definitions pass type-checking but standalone
+  `--emit-ir` reports `unresolved function symbol(s)` (C001); the duplicate
+  `stringify_object_item` was removed.
+
+## Stable Preparation (2026-10-03)
+
+Promotion pre-work for the `stable` gate (docs/PROMOTION.md): contracts on
+the public entry points, a 43-check deterministic conformance suite, and a
+Z3 verification pass. Stage and `STATUS.json` are untouched (the coordinator
+handles promotion).
+
+### Contract inventory
+
+15 clauses on 13 public entry points: 13 `requires:` and 2 `ensures:`.
+
+| Entry point | Clause | Kind | Verification |
+|---|---|---|---|
+| `json_parse` | `input.len() > 0` | requires | runtime; solver-unknown (complex call target) |
+| `json_validate` | `input.len() > 0` | requires | runtime; solver-unknown (complex call target) |
+| `json_stringify` | `result.len() > 0` | ensures | runtime; solver-unknown (complex call target) |
+| `json_stringify_pretty` | `config.indent >= 0` | requires | runtime; solver-unknown (field access on non-datatype receiver) |
+| `json_stringify_pretty` | `result.len() > 0` | ensures | runtime; solver-unknown (complex call target) |
+| `json_get` | `key.len() > 0` | requires | runtime; solver-unknown (complex call target) |
+| `json_get_path` | `path.segments.len() > 0` | requires | runtime; solver-unknown (complex call target) |
+| `json_set` | `key.len() > 0` | requires | runtime; solver-unknown (complex call target) |
+| `json_set_path` | `path.segments.len() > 0` | requires | runtime; solver-unknown (complex call target) |
+| `json_remove` | `key.len() > 0` | requires | runtime; solver-unknown (complex call target) |
+| `json_has_key` | `key.len() > 0` | requires | runtime; solver-unknown (complex call target) |
+| `json_object_put` | `key.len() > 0` | requires | runtime; solver-unknown (complex call target) |
+| `json_path_push_key` | `key.len() > 0` | requires | runtime; solver-unknown (complex call target) |
+| `json_path_push_index` | `index >= 0` | requires | runtime; solver-unknown (loop/body modeling) |
+| `json_path_parse` | `path_str.len() > 0` | requires | runtime; solver-unknown (complex call target) |
+
+No clause was reported violated. All clauses are runtime-checked in the
+conformance suite (which stays green, 43/43, with contracts enabled).
+
+### Solver-unproven and unasserted
+
+- **Solver-unproven:** every package clause above. The solver skips
+  `.len()` clauses as complex call targets and the config-field clause as a
+  non-datatype field access; it also cannot model the recursive tree bodies.
+  They remain annotated for runtime checking and review.
+- **Unasserted** (property not expressible safely on the pin, reason in
+  parentheses):
+  - round-trip `json_parse(json_stringify(v)) == v` (contract expressions
+    cannot call `json_parse`/`json_stringify`; no structural equality in the
+    contract language);
+  - `Ok` implies exactly one complete root value, and `Err` on malformed
+    input (Result/enum patterns in contracts are unsupported by
+    `xiom-verify`);
+  - `json_clone` result deeply equals input (no structural equality);
+  - `JsonPrettyConfig` invariant `this.indent >= 0` (parser rejects
+    `invariant:` on v0.62.2); enforced as the `requires` clause on
+    `json_stringify_pretty` instead;
+  - `JsonPath` non-empty invariant (violated by the legitimate
+    `json_path_new()` empty path; the traversals carry the `requires`
+    guard instead);
+  - mutation helpers' "true iff the value changed" (would need private
+    helpers in the contract).
+
+### Z3 verification (xiom-verify v0.62.2)
+
+```
+$env:Z3_PATH = "$env:LOCALAPPDATA\xiom.new\bin\z3.exe"
+& "$env:LOCALAPPDATA\xiom.new\bin\xiom-verify.exe" src\json.xi --check
+-> Results: 0 proven, 0 violated, 21 unknown, 16 errors
+
+& "$env:LOCALAPPDATA\xiom.new\bin\xiom-verify.exe" tests\test_conformance.xi --check
+-> CheckError: undefined variable 'json_parse' (verifier does not resolve
+   the package's own imports; verification is done on src\json.xi)
+```
+
+The 16 errors are SMT-generation limitations on the recursive bodies
+(`unknown constant ...`, `Invalid constant declaration: unknown sort
+'xiom_unknown'`), not contract violations. No clause is solver-proven on
+this pin; pure-arithmetic probes (`divide`, `grow`) are proven by the same
+verifier, so the toolchain can discharge arithmetic only.
+
+### Behavior fixes made during preparation
+
+| Area | Change | Reason |
+|------|--------|--------|
+| Fraction stringify | `stringify_frac` increments the digit position and formats digits with `int_to_string` | it previously recursed forever at the decimal point (`json_stringify(json_parse("0.5"))` crashed) and emitted control characters for digit glyphs |
+| Fraction parse | divisor derived from the actual fraction digit count | `json_parse("0.05")` produced `0.5` (leading zero lost) |
+| Exponent bound | exponent magnitude capped at 1000 before the multiply loop | `1e999999999` looped ~1e9 times (hang) |
+| Mutation API | `json_set`/`json_set_path`/`json_remove`/`json_merge`/`json_array_push`/`json_object_put` rebuild the value and write it through `*obj = ...` | match-bound payload mutations on `&mut` enums are silently dropped on the pin; all six functions were silent no-ops or corrupted callers |
+| Deep clone | new public `json_clone`; internal code no longer deep-clones via `derive[Clone]` | derived Object/Array clone returns a corrupt vector handle and crashes on push |
+| `json_set_path` | recursive atomic rebuild; missing intermediate keys create empty objects; no partial writes on failure | the old loop reassigned `&mut` references and created `null` intermediates, contradicting the documented "creates intermediate objects" |
+| `json_merge` | atomic rebuild (failure leaves the base unchanged) | the old deep merge could mutate earlier keys before failing on a later one |
+
+### Error catalog
+
+`ParseError.message` values (parser):
+
+- `unexpected end of input`, `unexpected character`
+- `unterminated string`, `unexpected end of input in string escape`,
+  `invalid escape character`, `unescaped control character in string`,
+  `unexpected end of input in unicode escape`
+- `expected digit in number`, `expected digit after decimal point`,
+  `expected digit in exponent`, `empty number`, `incomplete negative number`
+- `expected key string`, `expected ':'`, `expected '}'`, `expected ']'`
+- `expected 'true' or 'false'`, `expected 'null'`
+- `trailing data after root value`
+
+JSONPath (`Result[JsonPath, Str]` errors):
+
+- `unexpected character in path`, `unterminated bracket segment`,
+  `unterminated bracket key`, `expected ']'`, `expected ']' or digit`
+
+Schema (`Result[Bool, Str]` errors):
+
+- `type mismatch`, `value not in enum`, `schema enum must be array`,
+  `properties constraint requires object value`, `schema properties must be object`,
+  `required constraint requires object value`, `schema required must be array`,
+  `missing required key`, `property '<key>': <nested error>`
+
+### Documented subset and semantics
+
+- Duplicate keys: preserved in insertion order; `json_get` returns the
+  first matching value (tested).
+- Empty input and empty keys are `requires` violations (runtime trap in
+  debug), not `Err` results.
+- Numeric canonical form on output: `-0` -> `0`, `2.50` -> `2.5`,
+  `1E2` -> `100`, `-1.5e3` -> `-1500` (tested). Fractions are formatted
+  from Float64; magnitudes >= 1e15 serialize as `0` (see limitations).
+- Whitespace is accepted anywhere JSON allows it; output is canonical
+  compact (tested).
+- No explicit nesting cap; 64-deep arrays and 32-deep objects round-trip
+  (tested).

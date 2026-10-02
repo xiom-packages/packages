@@ -347,13 +347,16 @@ fn parser_parse_number(p: &mut JsonParser) -> Result[Float64, ParseError] {
             }
             None => return Err(parser_make_error(p, "expected digit after decimal point")),
           }
+          var frac_start = p.pos;
           var frac_digits = parser_read_digits(p);
+          var frac_len = p.pos - frac_start;
           var fd: Float64 = xiom.convert.int_to_float(frac_digits + 0);
           var divisor: Float64 = 1.0;
-          var temp = frac_digits;
+          var temp = frac_len;
           while temp > 0 {
             divisor = divisor * 10.0;
-            temp = temp / 10;
+            var next_temp = temp - 1;
+            temp = next_temp;
           }
           frac_val = fd / divisor;
         }
@@ -411,6 +414,7 @@ fn parser_parse_number(p: &mut JsonParser) -> Result[Float64, ParseError] {
     return Err(parser_make_error(p, "incomplete negative number"));
   }
   var result_val: Float64 = xiom.convert.int_to_float(int_val) + frac_val;
+  if exp_val > 1000 { exp_val = 1000; }
   if exp_val > 0 {
     var mult: Float64 = 1.0;
     var ei: Int = 0;
@@ -552,7 +556,7 @@ fn parser_parse_null_value(p: &mut JsonParser) -> Result[JsonValue, ParseError] 
 // ============================================================
 
 pub fn json_parse(input: Str) -> Result[JsonValue, ParseError]
-  requires: xiom.string.str_len(input) > 0
+  requires: input.len() > 0
 {
   var parser = JsonParser{
     input: input,
@@ -574,7 +578,7 @@ pub fn json_parse(input: Str) -> Result[JsonValue, ParseError]
 }
 
 pub fn json_validate(input: Str) -> Result[Bool, ParseError]
-  requires: xiom.string.str_len(input) > 0
+  requires: input.len() > 0
 {
   var parser = JsonParser{
     input: input,
@@ -681,19 +685,12 @@ fn stringify_frac(acc: Str, frac: Float64, digits: Int) -> Str {
   if frac <= 0.0000000001 || digits >= 15 { return acc; }
   if digits == 0 {
     var s0 = xiom.string.str_concat(acc, ".");
-    return stringify_frac(s0, frac, digits);
+    return stringify_frac(s0, frac, digits + 1);
   }
   var multiplied = frac * 10.0;
   var d_val: Int = xiom.convert.float_to_int(multiplied + 0.0);
   var d_copy = d_val + 0;
-  var ch_opt = xiom.convert.int_to_char(d_copy);
-  var dstr = "0";
-  match ch_opt {
-    Some(ch) => {
-      dstr = chr_byte(xiom.convert.char_to_int(ch));
-    }
-    None => {},
-  }
+  var dstr = xiom.convert.int_to_string(d_copy);
   var s1 = xiom.string.str_concat(acc, dstr);
   var d_val2 = d_val + 0;
   var remaining = multiplied - xiom.convert.int_to_float(d_val2);
@@ -759,36 +756,6 @@ fn stringify_array_item(items: &Vec[JsonValue], depth: Int, config: &JsonPrettyC
   var a2 = xiom.string.str_concat(base, val_str);
   var a3 = xiom.string.str_concat(a2, ",");
   return stringify_array(items, depth, config, is_pretty, next, a3);
-}
-
-fn stringify_object_item(entries: &Vec[JsonEntry], depth: Int, config: &JsonPrettyConfig, is_pretty: Bool, idx: Int, base: Str) -> Str {
-  var key_str = stringify_string(entries[idx].key);
-  var a2 = xiom.string.str_concat(base, key_str);
-  var next = idx + 1;
-  if is_pretty {
-    if idx == entries.len() - 1 {
-      var a3 = xiom.string.str_concat(a2, ": ");
-      var val_str = stringify_value_rec(&entries[idx].value, depth + 1, config, is_pretty);
-      var a4 = xiom.string.str_concat(a3, val_str);
-      return stringify_object(entries, depth, config, is_pretty, next, a4);
-    }
-    var a3 = xiom.string.str_concat(a2, ": ");
-    var val_str = stringify_value_rec(&entries[idx].value, depth + 1, config, is_pretty);
-    var a4 = xiom.string.str_concat(a3, val_str);
-    var a5 = xiom.string.str_concat(a4, ",");
-    return stringify_object(entries, depth, config, is_pretty, next, a5);
-  }
-  if idx == entries.len() - 1 {
-    var a3 = xiom.string.str_concat(a2, ":");
-    var val_str = stringify_value_rec(&entries[idx].value, depth + 1, config, is_pretty);
-    var a4 = xiom.string.str_concat(a3, val_str);
-    return stringify_object(entries, depth, config, is_pretty, next, a4);
-  }
-  var a3 = xiom.string.str_concat(a2, ":");
-  var val_str = stringify_value_rec(&entries[idx].value, depth + 1, config, is_pretty);
-  var a4 = xiom.string.str_concat(a3, val_str);
-  var a5 = xiom.string.str_concat(a4, ",");
-  return stringify_object(entries, depth, config, is_pretty, next, a5);
 }
 
 fn stringify_object(entries: &Vec[JsonEntry], depth: Int, config: &JsonPrettyConfig, is_pretty: Bool, idx: Int, acc: Str) -> Str {
@@ -880,12 +847,17 @@ fn sort_entries(entries: Vec[JsonEntry]) -> Vec[JsonEntry] {
 // PUBLIC STRINGIFY
 // ============================================================
 
-pub fn json_stringify(value: &JsonValue) -> Str {
+pub fn json_stringify(value: &JsonValue) -> Str
+  ensures: result.len() > 0
+{
   var config = JsonPrettyConfig{ indent: 2, sort_keys: false };
   return stringify_value_rec(value, 0, &config, false);
 }
 
-pub fn json_stringify_pretty(value: &JsonValue, config: &JsonPrettyConfig) -> Str {
+pub fn json_stringify_pretty(value: &JsonValue, config: &JsonPrettyConfig) -> Str
+  requires: config.indent >= 0;
+  ensures: result.len() > 0
+{
   return stringify_value_rec(value, 0, config, true);
 }
 
@@ -893,15 +865,44 @@ pub fn json_stringify_pretty(value: &JsonValue, config: &JsonPrettyConfig) -> St
 // JSON MANIPULATION API
 // ============================================================
 
+pub fn json_clone(value: &JsonValue) -> JsonValue {
+  match value {
+    Null => return JsonValue.Null,
+    Bool(v) => return JsonValue.Bool(v),
+    Number(v) => return JsonValue.Number(v),
+    String(v) => return JsonValue.String(v.clone()),
+    Array(items) => {
+      var out_items = Vec[JsonValue].new();
+      var i: Int = 0;
+      while i < items.len() {
+        out_items.push(json_clone(&items[i]));
+        var next_i = i + 1;
+        i = next_i;
+      }
+      return JsonValue.Array(out_items);
+    }
+    Object(entries) => {
+      var out_entries = Vec[JsonEntry].new();
+      var i: Int = 0;
+      while i < entries.len() {
+        out_entries.push(JsonEntry{ key: entries[i].key.clone(), value: json_clone(&entries[i].value) });
+        var next_i = i + 1;
+        i = next_i;
+      }
+      return JsonValue.Object(out_entries);
+    }
+  }
+}
+
 pub fn json_get(obj: &JsonValue, key: Str) -> Option[JsonValue]
-  requires: xiom.string.str_len(key) > 0
+  requires: key.len() > 0
 {
   match obj {
     Object(entries) => {
       var i: Int = 0;
       while i < entries.len() {
         if entries[i].key == key {
-          return Some(entries[i].value.clone());
+          return Some(json_clone(&entries[i].value));
         }
         var next_i = i + 1;
         i = next_i;
@@ -915,7 +916,7 @@ pub fn json_get(obj: &JsonValue, key: Str) -> Option[JsonValue]
 pub fn json_get_path(root: &JsonValue, path: &JsonPath) -> Option[JsonValue]
   requires: path.segments.len() > 0
 {
-  var current = root.clone();
+  var current = json_clone(root);
   var i: Int = 0;
   while i < path.segments.len() {
     var seg = &path.segments[i];
@@ -931,7 +932,7 @@ pub fn json_get_path(root: &JsonValue, path: &JsonPath) -> Option[JsonValue]
         match current {
           Array(items) => {
             if idx < 0 || idx >= items.len() { return None; }
-            current = items[idx].clone();
+            current = json_clone(&items[idx]);
           }
           _ => return None,
         }
@@ -944,23 +945,97 @@ pub fn json_get_path(root: &JsonValue, path: &JsonPath) -> Option[JsonValue]
 }
 
 pub fn json_set(obj: &mut JsonValue, key: Str, value: JsonValue) -> Bool
-  requires: xiom.string.str_len(key) > 0
+  requires: key.len() > 0
 {
   match obj {
     Object(entries) => {
+      var new_entries = Vec[JsonEntry].new();
+      var found: Int = -1;
       var i: Int = 0;
       while i < entries.len() {
-        if entries[i].key == key {
-          entries[i].value = value;
-          return true;
-        }
+        if entries[i].key == key { found = i; }
+        new_entries.push(JsonEntry{ key: entries[i].key.clone(), value: json_clone(&entries[i].value) });
         var next_i = i + 1;
         i = next_i;
       }
-      entries.push(JsonEntry{ key: key, value: value });
+      if found != -1 {
+        new_entries[found].value = value;
+        *obj = JsonValue.Object(new_entries);
+        return true;
+      }
+      new_entries.push(JsonEntry{ key: key, value: value });
+      *obj = JsonValue.Object(new_entries);
       return true;
     }
-    _ => false,
+    _ => return false,
+  }
+}
+
+fn set_path_at(node: &JsonValue, path: &JsonPath, i: Int, value: &JsonValue) -> Result[JsonValue, Bool] {
+  if i >= path.segments.len() {
+    return Ok(json_clone(value));
+  }
+  var seg = &path.segments[i];
+  match seg {
+    Key(k) => {
+      match node {
+        Object(entries) => {
+          var found: Int = -1;
+          var j: Int = 0;
+          while j < entries.len() {
+            if entries[j].key == k { found = j; }
+            var next_j = j + 1;
+            j = next_j;
+          }
+          var child = JsonValue.Object(Vec[JsonEntry].new());
+          if found != -1 { child = json_clone(&entries[found].value); }
+          var sub = set_path_at(&child, path, i + 1, value);
+          match sub {
+            Ok(sub_value) => {
+              var new_entries = Vec[JsonEntry].new();
+              var m: Int = 0;
+              while m < entries.len() {
+                new_entries.push(JsonEntry{ key: entries[m].key.clone(), value: json_clone(&entries[m].value) });
+                var next_m = m + 1;
+                m = next_m;
+              }
+              if found == -1 {
+                new_entries.push(JsonEntry{ key: k, value: sub_value });
+              } else {
+                new_entries[found].value = sub_value;
+              }
+              return Ok(JsonValue.Object(new_entries));
+            }
+            Err(e) => return Err(e),
+          }
+        }
+        _ => return Err(false),
+      }
+    }
+    Index(idx) => {
+      match node {
+        Array(items) => {
+          if idx < 0 || idx >= items.len() { return Err(false); }
+          var child2 = json_clone(&items[idx]);
+          var sub2 = set_path_at(&child2, path, i + 1, value);
+          match sub2 {
+            Ok(sub_value2) => {
+              var new_items = Vec[JsonValue].new();
+              var n: Int = 0;
+              while n < items.len() {
+                new_items.push(json_clone(&items[n]));
+                var next_n = n + 1;
+                n = next_n;
+              }
+              new_items[idx] = sub_value2;
+              return Ok(JsonValue.Array(new_items));
+            }
+            Err(e) => return Err(e),
+          }
+        }
+        _ => return Err(false),
+      }
+    }
   }
 }
 
@@ -968,94 +1043,43 @@ pub fn json_set_path(root: &mut JsonValue, path: &JsonPath, value: JsonValue) ->
   requires: path.segments.len() > 0
 {
   if path.segments.is_empty() { return false; }
-  var i: Int = 0;
-  while i < path.segments.len() - 1 {
-    var seg = &path.segments[i];
-    match seg {
-      Key(k) => {
-        match root {
-          Object(entries) => {
-            var found_entry: Int = -1;
-            var j: Int = 0;
-            while j < entries.len() {
-              if entries[j].key == k {
-                found_entry = j;
-              }
-              var next_j = j + 1;
-              j = next_j;
-            }
-            if found_entry == -1 {
-              entries.push(JsonEntry{ key: k, value: JsonValue.Null });
-              found_entry = entries.len() - 1;
-            }
-            root = &mut entries[found_entry].value;
-          }
-          _ => return false,
-        }
-      }
-      Index(idx) => {
-        match root {
-          Array(items) => {
-            if idx < 0 || idx >= items.len() { return false; }
-            root = &mut items[idx];
-          }
-          _ => return false,
-        }
-      }
+  var result = set_path_at(root, path, 0, &value);
+  match result {
+    Ok(new_value) => {
+      *root = new_value;
+      return true;
     }
-    var next_i = i + 1;
-    i = next_i;
-  }
-  var last_seg = &path.segments[path.segments.len() - 1];
-  match last_seg {
-    Key(k) => {
-      return json_set(root, k, value);
-    }
-    Index(idx) => {
-      match root {
-        Array(items) => {
-          if idx < 0 || idx >= items.len() { return false; }
-          items[idx] = value;
-          return true;
-        }
-        _ => return false,
-      }
-    }
+    Err(_) => return false,
   }
 }
 
 pub fn json_remove(obj: &mut JsonValue, key: Str) -> Bool
-  requires: xiom.string.str_len(key) > 0
+  requires: key.len() > 0
 {
   match obj {
     Object(entries) => {
+      var result = Vec[JsonEntry].new();
+      var removed = false;
       var i: Int = 0;
       while i < entries.len() {
-        if entries[i].key == key {
-          var new_entries = Vec[JsonEntry].new();
-          var j: Int = 0;
-          while j < entries.len() {
-            if j != i {
-              new_entries.push(entries[j]);
-            }
-            var j_copy = j + 0;
-            var next_j = j_copy + 1;
-            j = next_j;
-          }
-          entries = new_entries;
-          return true;
+        if !removed && entries[i].key == key {
+          removed = true;
+        } else {
+          result.push(JsonEntry{ key: entries[i].key.clone(), value: json_clone(&entries[i].value) });
         }
         var next_i = i + 1;
         i = next_i;
       }
-      return false;
+      if !removed { return false; }
+      *obj = JsonValue.Object(result);
+      return true;
     }
-    _ => false,
+    _ => return false,
   }
 }
 
 pub fn json_has_key(obj: &JsonValue, key: Str) -> Bool
-  requires: xiom.string.str_len(key) > 0
+  requires: key.len() > 0
 {
   match obj {
     Object(entries) => {
@@ -1082,48 +1106,64 @@ pub fn json_is_type(value: &JsonValue, expected: JsonType) -> Bool {
   }
 }
 
-pub fn json_merge(base: &mut JsonValue, overlay: &JsonValue) -> Bool {
+type MergeResult = {
+  value: JsonValue;
+  ok: Bool;
+}
+
+fn merge_objects(base_entries: &Vec[JsonEntry], overlay_entries: &Vec[JsonEntry]) -> MergeResult {
+  var result_entries = Vec[JsonEntry].new();
+  var i: Int = 0;
+  while i < base_entries.len() {
+    result_entries.push(JsonEntry{ key: base_entries[i].key.clone(), value: json_clone(&base_entries[i].value) });
+    var next_i = i + 1;
+    i = next_i;
+  }
+  var j: Int = 0;
+  while j < overlay_entries.len() {
+    var found: Int = -1;
+    var k: Int = 0;
+    while k < result_entries.len() {
+      if result_entries[k].key == overlay_entries[j].key { found = k; }
+      var next_k = k + 1;
+      k = next_k;
+    }
+    if found != -1 {
+      if json_is_type(&overlay_entries[j].value, JsonType.ObjectType) {
+        var sub = merge_json_values(&result_entries[found].value, &overlay_entries[j].value);
+        if !sub.ok { return MergeResult{ value: JsonValue.Null, ok: false }; }
+        result_entries[found].value = sub.value;
+      } else {
+        result_entries[found].value = json_clone(&overlay_entries[j].value);
+      }
+    } else {
+      result_entries.push(JsonEntry{ key: overlay_entries[j].key.clone(), value: json_clone(&overlay_entries[j].value) });
+    }
+    var next_j = j + 1;
+    j = next_j;
+  }
+  return MergeResult{ value: JsonValue.Object(result_entries), ok: true };
+}
+
+fn merge_json_values(base: &JsonValue, overlay: &JsonValue) -> MergeResult {
   match base {
     Object(base_entries) => {
       match overlay {
         Object(overlay_entries) => {
-          var i: Int = 0;
-          while i < overlay_entries.len() {
-            var found_idx: Int = -1;
-            var j: Int = 0;
-            while j < base_entries.len() {
-              if base_entries[j].key == overlay_entries[i].key {
-                found_idx = j;
-              }
-              var next_j = j + 1;
-              j = next_j;
-            }
-            if found_idx != -1 {
-              match overlay_entries[i].value {
-                Object(_) => {
-                  var r = json_merge(&mut base_entries[found_idx].value, &overlay_entries[i].value);
-                  if !r { return false; }
-                }
-                _ => {
-                  base_entries[found_idx].value = overlay_entries[i].value.clone();
-                }
-              }
-            } else {
-              base_entries.push(JsonEntry{
-                key: overlay_entries[i].key,
-                value: overlay_entries[i].value.clone(),
-              });
-            }
-            var next_i = i + 1;
-            i = next_i;
-          }
-          return true;
+          return merge_objects(base_entries, overlay_entries);
         }
-        _ => return false,
+        _ => return MergeResult{ value: JsonValue.Null, ok: false },
       }
     }
-    _ => false,
+    _ => return MergeResult{ value: JsonValue.Null, ok: false },
   }
+}
+
+pub fn json_merge(base: &mut JsonValue, overlay: &JsonValue) -> Bool {
+  var result = merge_json_values(base, overlay);
+  if !result.ok { return false; }
+  *base = result.value;
+  return true;
 }
 
 // ============================================================
@@ -1339,27 +1379,42 @@ pub fn json_object() -> JsonValue {
 pub fn json_array_push(arr: &mut JsonValue, value: JsonValue) {
   match arr {
     Array(items) => {
-      items.push(value);
+      var new_items = Vec[JsonValue].new();
+      var i: Int = 0;
+      while i < items.len() {
+        new_items.push(json_clone(&items[i]));
+        var next_i = i + 1;
+        i = next_i;
+      }
+      new_items.push(value);
+      *arr = JsonValue.Array(new_items);
     }
     _ => {},
   }
 }
 
 pub fn json_object_put(obj: &mut JsonValue, key: Str, value: JsonValue)
-  requires: xiom.string.str_len(key) > 0
+  requires: key.len() > 0
 {
   match obj {
     Object(entries) => {
+      var new_entries = Vec[JsonEntry].new();
+      var replaced = false;
       var i: Int = 0;
       while i < entries.len() {
-        if entries[i].key == key {
-          entries[i].value = value;
-          return;
+        if !replaced && entries[i].key == key {
+          new_entries.push(JsonEntry{ key: entries[i].key.clone(), value: json_clone(&value) });
+          replaced = true;
+        } else {
+          new_entries.push(JsonEntry{ key: entries[i].key.clone(), value: json_clone(&entries[i].value) });
         }
         var next_i = i + 1;
         i = next_i;
       }
-      entries.push(JsonEntry{ key: key, value: value });
+      if !replaced {
+        new_entries.push(JsonEntry{ key: key, value: value });
+      }
+      *obj = JsonValue.Object(new_entries);
     }
     _ => {},
   }
@@ -1374,12 +1429,14 @@ pub fn json_path_new() -> JsonPath {
 }
 
 pub fn json_path_push_key(path: &mut JsonPath, key: Str)
-  requires: xiom.string.str_len(key) > 0
+  requires: key.len() > 0
 {
   path.segments.push(JsonPathSegment.Key(key));
 }
 
-pub fn json_path_push_index(path: &mut JsonPath, index: Int) {
+pub fn json_path_push_index(path: &mut JsonPath, index: Int)
+  requires: index >= 0
+{
   path.segments.push(JsonPathSegment.Index(index));
 }
 
@@ -1505,7 +1562,7 @@ fn json_path_parse_idx_build(path_str: Str, str_len: Int, end_i: Int, j: Int, ac
 }
 
 pub fn json_path_parse(path_str: Str) -> Result[JsonPath, Str]
-  requires: xiom.string.str_len(path_str) > 0
+  requires: path_str.len() > 0
 {
   var result = JsonPath{ segments: Vec[JsonPathSegment].new() };
   var str_len = xiom.string.str_len(path_str);
