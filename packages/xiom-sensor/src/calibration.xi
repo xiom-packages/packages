@@ -11,7 +11,9 @@ pub type CalibrationData = {
   scale_z: Float64;
 }
 
-pub fn calibration_identity() -> CalibrationData {
+pub fn calibration_identity() -> CalibrationData
+  ensures: result.offset_x == 0.0 && result.offset_y == 0.0 && result.offset_z == 0.0 && result.scale_x == 1.0 && result.scale_y == 1.0 && result.scale_z == 1.0
+{
   return CalibrationData{
     offset_x: 0.0,
     offset_y: 0.0,
@@ -22,7 +24,9 @@ pub fn calibration_identity() -> CalibrationData {
   };
 }
 
-pub fn calibration_compute_offset(readings: &Vec[Float64]) -> Float64 {
+pub fn calibration_compute_offset(readings: &Vec[Float64]) -> Float64
+  ensures: readings.len() == 0 => result == 0.0
+{
   if readings.len() == 0 {
     return 0.0;
   };
@@ -36,8 +40,10 @@ pub fn calibration_compute_offset(readings: &Vec[Float64]) -> Float64 {
 }
 
 pub fn calibration_apply(value: Float64, cal: &CalibrationData, axis: Int) -> Float64
-  requires: axis >= 0
-  requires: axis <= 2
+  requires: axis >= 0 && axis <= 2
+  ensures: axis == 0 => result == (value - cal.offset_x) * cal.scale_x
+  ensures: axis == 1 => result == (value - cal.offset_y) * cal.scale_y
+  ensures: axis == 2 => result == (value - cal.offset_z) * cal.scale_z
 {
   if axis == 0 {
     return (value - cal.offset_x) * cal.scale_x;
@@ -51,7 +57,10 @@ pub fn calibration_apply(value: Float64, cal: &CalibrationData, axis: Int) -> Fl
   return value;
 }
 
-pub fn calibration_from_samples(samples: &Vec[(Float64, Float64, Float64)]) -> CalibrationData {
+pub fn calibration_from_samples(samples: &Vec[(Float64, Float64, Float64)]) -> CalibrationData
+  ensures: samples.len() == 0 => (result.offset_x == 0.0 && result.offset_y == 0.0 && result.offset_z == 0.0 && result.scale_x == 1.0 && result.scale_y == 1.0 && result.scale_z == 1.0)
+  ensures: result.scale_x > 0.0 && result.scale_y > 0.0 && result.scale_z > 0.0
+{
   if samples.len() == 0 {
     return calibration_identity();
   };

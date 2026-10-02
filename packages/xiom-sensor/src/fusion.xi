@@ -18,8 +18,8 @@ pub type FusedPose = {
 }
 
 pub fn fusion_complementary(imu: &IMUReading, gps: &GPSFix, alpha: Float64) -> FusedPose
-  requires: alpha >= 0.0
-  requires: alpha <= 1.0
+  requires: alpha >= 0.0 && alpha <= 1.0
+  ensures: result.confidence >= 0.0 && result.confidence <= 1.0
 {
   var q = imu_compute_orientation(imu);
   var euler = quat_to_euler(&q);
@@ -57,7 +57,9 @@ pub fn fusion_complementary(imu: &IMUReading, gps: &GPSFix, alpha: Float64) -> F
   };
 }
 
-pub fn fusion_weighted(poses: &Vec[FusedPose]) -> FusedPose {
+pub fn fusion_weighted(poses: &Vec[FusedPose]) -> FusedPose
+  ensures: poses.len() == 0 => result.confidence == 0.0
+{
   if poses.len() == 0 {
     return FusedPose{
       x: 0.0, y: 0.0, z: 0.0,
@@ -117,6 +119,8 @@ pub fn fusion_weighted(poses: &Vec[FusedPose]) -> FusedPose {
 
 pub fn fusion_predict(pose: &FusedPose, velocity: Float64, heading: Float64, dt: Float64) -> FusedPose
   requires: dt >= 0.0
+  ensures: result.z == pose.z && result.roll == pose.roll && result.pitch == pose.pitch && result.yaw == heading
+  ensures: result.confidence == pose.confidence * 0.95
 {
   var hr = FloatHolder{ v: heading * 0.017453292519943295 };
   var dx = velocity * xiom.math.cos(hr.v) * dt;
@@ -146,6 +150,7 @@ pub fn fusion_predict(pose: &FusedPose, velocity: Float64, heading: Float64, dt:
 
 pub fn confidence_from_hdop(hdop: Float64) -> Float64
   requires: hdop >= 0.0
+  ensures: result >= 0.0 && result <= 1.0
 {
   if hdop <= 0.0 {
     return 0.0;

@@ -28,7 +28,9 @@ pub type EulerAngles = {
   yaw: Float64;
 }
 
-pub fn imu_reading_new() -> IMUReading {
+pub fn imu_reading_new() -> IMUReading
+  ensures: result.accel_x == 0.0 && result.accel_y == 0.0 && result.accel_z == 0.0 && result.gyro_x == 0.0 && result.gyro_y == 0.0 && result.gyro_z == 0.0 && result.mag_x == 0.0 && result.mag_y == 0.0 && result.mag_z == 0.0 && result.timestamp == 0
+{
   return IMUReading{
     accel_x: 0.0, accel_y: 0.0, accel_z: 0.0,
     gyro_x: 0.0, gyro_y: 0.0, gyro_z: 0.0,
@@ -37,11 +39,15 @@ pub fn imu_reading_new() -> IMUReading {
   };
 }
 
-pub fn quat_identity() -> Quaternion {
+pub fn quat_identity() -> Quaternion
+  ensures: result.w == 1.0 && result.x == 0.0 && result.y == 0.0 && result.z == 0.0
+{
   return Quaternion{ w: 1.0, x: 0.0, y: 0.0, z: 0.0 };
 }
 
-pub fn quat_normalize(q: &Quaternion) -> Quaternion {
+pub fn quat_normalize(q: &Quaternion) -> Quaternion
+  ensures: (q.w == 0.0 && q.x == 0.0 && q.y == 0.0 && q.z == 0.0) => (result.w == 1.0 && result.x == 0.0 && result.y == 0.0 && result.z == 0.0)
+{
   var mag = xiom.math.sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
   if mag < 0.0000001 {
     return quat_identity();
@@ -54,7 +60,9 @@ pub fn quat_normalize(q: &Quaternion) -> Quaternion {
   };
 }
 
-pub fn quat_conjugate(q: &Quaternion) -> Quaternion {
+pub fn quat_conjugate(q: &Quaternion) -> Quaternion
+  ensures: result.w == q.w && result.x == -q.x && result.y == -q.y && result.z == -q.z
+{
   return Quaternion{ w: q.w, x: -q.x, y: -q.y, z: -q.z };
 }
 
@@ -87,7 +95,9 @@ pub fn euler_to_quat(roll: Float64, pitch: Float64, yaw: Float64) -> Quaternion 
   };
 }
 
-pub fn quat_to_euler(q: &Quaternion) -> EulerAngles {
+pub fn quat_to_euler(q: &Quaternion) -> EulerAngles
+  ensures: result.pitch >= -1.5707963267948966 && result.pitch <= 1.5707963267948966
+{
   var sinr_cosp: Float64 = 2.0 * (q.w * q.x + q.y * q.z);
   var cosr_cosp: Float64 = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
   var roll: Float64 = xiom.math.atan2(sinr_cosp, cosr_cosp);
@@ -119,7 +129,9 @@ pub fn quat_rotate_vector(q: &Quaternion, vx: Float64, vy: Float64, vz: Float64)
   return (q_rot.x, q_rot.y, q_rot.z);
 }
 
-pub fn imu_compute_orientation(reading: &IMUReading) -> Quaternion {
+pub fn imu_compute_orientation(reading: &IMUReading) -> Quaternion
+  ensures: (reading.accel_x == 0.0 && reading.accel_y == 0.0 && reading.accel_z == 0.0) => (result.w == 1.0 && result.x == 0.0 && result.y == 0.0 && result.z == 0.0)
+{
   var accel_norm = xiom.math.sqrt(reading.accel_x * reading.accel_x + reading.accel_y * reading.accel_y + reading.accel_z * reading.accel_z);
   if accel_norm < 0.0000001 {
     return quat_identity();

@@ -28,11 +28,15 @@ fn rad_to_deg(rad: Float64) -> Float64 {
   return rad * 57.29577951308232;
 }
 
-pub fn gps_is_valid(fix: &GPSFix) -> Bool {
+pub fn gps_is_valid(fix: &GPSFix) -> Bool
+  ensures: result == (fix.fix_quality > 0)
+{
   return fix.fix_quality > 0;
 }
 
-pub fn gps_distance_m(a: &GeoPoint, b: &GeoPoint) -> Float64 {
+pub fn gps_distance_m(a: &GeoPoint, b: &GeoPoint) -> Float64
+  ensures: result >= 0.0
+{
   var earth_radius: Float64 = 6371000.0;
   var dlat = deg_to_rad(b.lat - a.lat);
   var dlon = deg_to_rad(b.lon - a.lon);
@@ -49,7 +53,9 @@ pub fn gps_distance_m(a: &GeoPoint, b: &GeoPoint) -> Float64 {
   return earth_radius * c;
 }
 
-pub fn gps_bearing_deg(a: &GeoPoint, b: &GeoPoint) -> Float64 {
+pub fn gps_bearing_deg(a: &GeoPoint, b: &GeoPoint) -> Float64
+  ensures: result >= 0.0 && result < 360.0
+{
   var lat1_v = F64{ v: deg_to_rad(a.lat) };
   var lat2_v = F64{ v: deg_to_rad(b.lat) };
   var dlon_v = F64{ v: deg_to_rad(b.lon - a.lon) };
@@ -67,6 +73,7 @@ pub fn gps_bearing_deg(a: &GeoPoint, b: &GeoPoint) -> Float64 {
 
 pub fn gps_destination(point: &GeoPoint, bearing_deg: Float64, distance_m: Float64) -> GeoPoint
   requires: distance_m >= 0.0
+  ensures: result.alt == point.alt
 {
   var earth_radius: Float64 = 6371000.0;
   var brng_v = F64{ v: deg_to_rad(bearing_deg) };
@@ -95,10 +102,7 @@ pub fn gps_destination(point: &GeoPoint, bearing_deg: Float64, distance_m: Float
 }
 
 pub fn gps_to_utm(lat: Float64, lon: Float64) -> (Float64, Float64, Int)
-  requires: lat >= -90.0
-  requires: lat <= 90.0
-  requires: lon >= -180.0
-  requires: lon <= 180.0
+  requires: lat >= -90.0 && lat <= 90.0 && lon >= -180.0 && lon <= 180.0
 {
   var zone: Int = ((lon + 180.0) / 6.0) as Int + 1;
   if lat >= 56.0 && lat < 64.0 && lon >= 3.0 && lon < 12.0 {
@@ -173,8 +177,7 @@ pub fn gps_to_utm(lat: Float64, lon: Float64) -> (Float64, Float64, Int)
 }
 
 pub fn utm_to_gps(easting: Float64, northing: Float64, zone: Int, southern: Bool) -> (Float64, Float64)
-  requires: zone >= 1
-  requires: zone <= 60
+  requires: zone >= 1 && zone <= 60
 {
   var a: Float64 = 6378137.0;
   var f: Float64 = 1.0 / 298.257223563;
