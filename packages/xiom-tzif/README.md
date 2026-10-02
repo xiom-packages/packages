@@ -1,6 +1,6 @@
 # xiom.tzif
 
-> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) codec for TZif time zone files (RFC 8536)
 > versions 1, 2 and 3, plus a version 1 builder.
 > **Deps:** `xiom.std` only. The library module uses `xiom.string` from it

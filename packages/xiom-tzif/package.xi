@@ -9,7 +9,7 @@
 
 package xiom_tzif {
   name: "xiom.tzif";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "TZif time zone file codec for RFC 8536 versions 1/2/3 with a version 1 builder";
   categories: ["data"];
   keywords: ["tzif", "timezone", "binary", "format"];

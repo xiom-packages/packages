@@ -118,7 +118,7 @@ fn push_zero_type(v: &mut Vec[UInt8]) {
 }
 
 // The designation table of a single "UTC" type.
-fn push_utc_table(v: &mut Vec<UInt8>) {
+fn push_utc_table(v: &mut Vec[UInt8]) {
   v.push(85 as UInt8);
   v.push(84 as UInt8);
   v.push(67 as UInt8);
@@ -259,7 +259,7 @@ fn mk_utc_v1() -> Vec[UInt8] {
 
 // Same, with a one-byte standard/wall and UT/local indicator table each
 // (isstdcnt = isutcnt = typecnt = 1). 56 bytes.
-fn mk_utc_v1_ind(sv: Int, uv: Int) -> Vec<UInt8> {
+fn mk_utc_v1_ind(sv: Int, uv: Int) -> Vec[UInt8] {
   var v = head_bytes(0, 0, 1, 4, 0, 1, 1);
   push_zero_type(&mut v);
   push_utc_table(&mut v);
@@ -742,7 +742,7 @@ fn t15() -> TestResult {
   };
   let br = tzif_build_v1(&f);
   if !br.is_ok { return assert(false, "v1 build must succeed"); }
-  let built: Vec<UInt8> = br.value;
+  let built: Vec[UInt8] = br.value;
   let want = hb("545a696600000000000000000000000000000000000000020000000200000001000000020000000200000008800000003b9aca000100ffffb9b0000000000e100104455354004544540004b258000000000101000000");
   var ok = bytes_equal(built, want);
   if built.len() != want.len() { ok = false; }
