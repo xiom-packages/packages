@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-02T19:22:46Z",
+    "updated":  "2026-10-02T22:56:04Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -174,6 +174,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-analyzer/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "analyzer.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.ansible",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Configuration-management model: inventory, playbooks, module registry, typed facts, handlers and a deterministic executor",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ansible/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ansible.xi",
                                               "package.xi"
                                           ]
                      },
@@ -448,6 +465,24 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-avro/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "avro.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.aws",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM AWS request model: SigV4 signing, credential resolution, service registry, retry/backoff and response classification; no network",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-aws/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "aws.xi",
+                                              "aws_base.xi",
                                               "package.xi"
                                           ]
                      },
@@ -915,6 +950,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.cfn",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "AWS CloudFormation templating and stack lifecycle model: JSON-ish template scanning, resource model, intrinsic evaluation (Ref/GetAtt/Join/Sub/Select/Split/If/Equals/FindInMap), parameter/output handling, stack state machine, change sets",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cfn/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cfn.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.chaincore",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure deterministic blockchain core model: block headers, transaction records, chain validation, cumulative-work fork choice, reorg undo/redo, orphan promotion and finality depth",
@@ -961,6 +1013,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-charts/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "charts.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.chef",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM Chef configuration-management model: cookbook/recipe/resource declarations, runlist and role expansion, attribute precedence, explicit provider dispatch, immediate/delayed notifications and subscriptions, and a deterministic converge report",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chef/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "chef.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1875,6 +1944,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-eigen/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "eigen.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.elastic",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Elasticsearch client model: query DSL, request builders, response envelope parsing, mapping/settings and scroll state (pure, no HTTP)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-elastic/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "elastic.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3229,6 +3315,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.jit-fw",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "JIT-framework model: source hashing and artifact keys, IR lowering to an instruction stream, bounded dispatch interpreter with call frames, bounded LRU artifact cache, closure/trampoline adapters, per-site monitor and deterministic tiering policy",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jit-fw/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "jit_fw.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.jolt",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Jolt Physics rigid body dynamics bindings for XIOM -- requires joltc C bridge",
@@ -3311,6 +3414,25 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jwt/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "jwt.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.k8s",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM Kubernetes orchestration model: Pod/Deployment/Service/ConfigMap/Namespace objects, pod phase machine, rolling-update replica math, service endpoints, ingress exposure, config/secret scoping and namespace quota accounting",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-k8s/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "k8s.xi",
+                                              "rolling.xi",
+                                              "selector.xi",
                                               "package.xi"
                                           ]
                      },
@@ -5131,6 +5253,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-parquet/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "parquet.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.parser-fw",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Parser framework: recursive-descent engine, precedence climbing, panic-mode recovery, parse trees",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-parser-fw/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "parser_fw.xi",
                                               "package.xi"
                                           ]
                      },
@@ -7362,6 +7501,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.terraform",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure infrastructure-as-code workflow model: HCL subset parser, execution plan graph with diffs, apply/destroy state machine with revisions, state and provider registry",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-terraform/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "terraform.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.text-markup",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "BBCode-style inline markup codec: parse with nesting validation, span records, plain-text render, canonical re-serialization",
@@ -7652,6 +7808,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-transaction/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "transaction.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.translate",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic offline translation core: in-package phrasebook terms, stopword/n-gram language detection, Cyrillic/Greek script transliteration, domain glossaries",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-translate/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "translate.xi",
                                               "package.xi"
                                           ]
                      },
@@ -8519,32 +8692,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-ansible",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ansible/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-aws",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-aws/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-azure",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8578,32 +8725,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-c-binding/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-cfn",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cfn/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-chef",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chef/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8656,19 +8777,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-curl/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-elastic",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-elastic/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8740,32 +8848,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-jit-fw",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jit-fw/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-k8s",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-k8s/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-llvm",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8799,19 +8881,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-oracle/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-parser-fw",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-parser-fw/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8864,32 +8933,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-salt/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-terraform",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-terraform/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-translate",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-translate/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]

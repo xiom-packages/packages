@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-02T19:22:51+03:00
-# packages: 490  modules: 551
+# generated: 2026-10-02T22:56:11+03:00
+# packages: 500  modules: 564
 
 ## package names
 xiom.acpi
@@ -16,6 +16,7 @@ xiom.alerting
 xiom.algo
 xiom.amqp
 xiom.analyzer
+xiom.ansible
 xiom.apple
 xiom.ar
 xiom.arrow
@@ -32,6 +33,7 @@ xiom.autoscale
 xiom.avi
 xiom.aviation
 xiom.avro
+xiom.aws
 xiom.backoff
 xiom.badger
 xiom.barrier
@@ -59,9 +61,11 @@ xiom.can
 xiom.cancel
 xiom.cassandra
 xiom.cbor
+xiom.cfn
 xiom.chaincore
 xiom.chaincrypto
 xiom.charts
+xiom.chef
 xiom.chemistry
 xiom.chromatography
 xiom.cidr
@@ -114,6 +118,7 @@ xiom.edl
 xiom.eeprom
 xiom.efi
 xiom.eigen
+xiom.elastic
 xiom.electronics
 xiom.elf
 xiom.eml
@@ -191,11 +196,13 @@ xiom.interrupt
 xiom.irc
 xiom.iso8583
 xiom.itest
+xiom.jit-fw
 xiom.jolt
 xiom.jpeg
 xiom.json
 xiom.junit
 xiom.jwt
+xiom.k8s
 xiom.kafka
 xiom.keymgmt
 xiom.ktx
@@ -302,6 +309,7 @@ xiom.pagination
 xiom.pam
 xiom.pandas
 xiom.parquet
+xiom.parser-fw
 xiom.parsing
 xiom.particle
 xiom.passwd
@@ -431,6 +439,7 @@ xiom.template
 xiom.tensor
 xiom.tensorflow
 xiom.term
+xiom.terraform
 xiom.text-markup
 xiom.tftp
 xiom.tga
@@ -448,6 +457,7 @@ xiom.torch
 xiom.tracing
 xiom.training
 xiom.transaction
+xiom.translate
 xiom.translation
 xiom.transliteration
 xiom.tsv
@@ -508,6 +518,7 @@ xiom.alerting
 xiom.algo
 xiom.amqp
 xiom.analyzer
+xiom.ansible
 xiom.apple
 xiom.ar
 xiom.arrow
@@ -526,6 +537,8 @@ xiom.autoscale
 xiom.avi
 xiom.aviation
 xiom.avro
+xiom.aws
+xiom.aws.base
 xiom.backoff
 xiom.badger
 xiom.barrier
@@ -551,9 +564,11 @@ xiom.can
 xiom.cancel
 xiom.cassandra
 xiom.cbor
+xiom.cfn
 xiom.chaincore
 xiom.chaincrypto
 xiom.charts
+xiom.chef
 xiom.chemistry
 xiom.chromatography
 xiom.cidr
@@ -631,6 +646,7 @@ xiom.ean
 xiom.edl
 xiom.eeprom
 xiom.efi
+xiom.elastic
 xiom.electronics
 xiom.elf
 xiom.eml
@@ -716,10 +732,14 @@ xiom.interrupt
 xiom.irc
 xiom.iso8583
 xiom.itest
+xiom.jit_fw
 xiom.jpeg
 xiom.json
 xiom.junit
 xiom.jwt
+xiom.k8s
+xiom.k8s.rolling
+xiom.k8s.selector
 xiom.kafka.admin
 xiom.kafka.consumer
 xiom.kafka.producer
@@ -823,6 +843,7 @@ xiom.packet
 xiom.pagination
 xiom.pam
 xiom.parquet
+xiom.parser_fw
 xiom.parsing
 xiom.particle
 xiom.passwd
@@ -954,6 +975,7 @@ xiom.telnet
 xiom.template
 xiom.tensor
 xiom.term
+xiom.terraform
 xiom.text_markup
 xiom.tftp
 xiom.tga
@@ -977,6 +999,7 @@ xiom.training.earlystop
 xiom.training.logger
 xiom.training.schedules
 xiom.transaction
+xiom.translate
 xiom.translation
 xiom.transliteration
 xiom.tsv
