@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.ml",
+    "stage":  "incubating",
+    "compiler":  "v0.62.2",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  18,
+                  "failed":  0,
+                  "run_by":  "task:ses_f02e582b7ffeDex2a0OZrK7v31",
+                  "commit":  "6a19ce99",
+                  "checked":  "2026-10-02T14:58:10Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: next scope delta"
+}
