@@ -83,7 +83,8 @@ it, and whether the fix has landed on the pin.
 | `byte_at` widen+mask `(x as Int) & 0xFF` | `docs/repro/byte-at-128` | every binary/codec package | fix on compiler main (`f4af5f64`); retire only after the battery passes on the next release |
 | No global `Vec[Str].push` / avoid `Vec[Str]` | `docs/repro/v0622-regressions/vec_str_push_global.xi` (+ param shape) | `consensus`, all blob+offset packages | OPEN (compiler queue) |
 | No `&mut Int` scalar params (state via returns) | `docs/repro/mut-int-write-through` | numerical/stateful packages (wave-46 set, `upnp`) | OPEN (scalar-only; `&mut Struct` field writes work) |
-| Mixed/full-angle bracket grep after every write | grep `Vec<|Result<`; no probe file | all packages (authoring hazard) | OPEN; keep the two-pass grep |
+| Mixed/full-angle bracket grep after every write | byte-level grep shapes: `Vec<`, `Result<`, `Option<`, `&Vec<`, `<]`, `>]` (parameter/local/FIELD positions; never audit from Read output -- it renders `Vec<Int>` as `Vec[Int]`) | all packages (authoring hazard) | OPEN; keep the two-pass grep |
+| Bare imported type names (no qualified type references) | COMPILER-FINDINGS nominal-identity row (`saml`/`k8s` params, `gcp` struct literals) | multi-module packages | OPEN (qualified function calls resolve; qualified types fail) |
 | No cross-type bindings (Str field -> `Vec[UInt8]` local) | `xiom.pptx` probe (COMPILER-FINDINGS row) | `pptx`, potentially all | OPEN |
 | Manual arity audit (missing args accepted) | missing-arg call probe (to add) | all packages | OPEN (extra args rejected; missing args silent) |
 | No child->parent module imports (siblings only) | `probe.x4.y` minimal (COMPILER-FINDINGS row) | multi-module packages: `helm`, `docker`, `vault`, `k8s`, `training`, `data` | OPEN |

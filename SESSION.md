@@ -3,69 +3,56 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-02 (night), by the packages session (wave 50
-built, integrated and published as `eco-v0.1.31`; handoff kit + paste
-prompt refreshed for wave 51). Check `git log -1 --format=%h %s` before
-starting.
+**Written:** 2026-10-02 (late night), by the packages session (wave 51
+built, integrated and published as `eco-v0.1.32`; compiler-release triage
+policy + workaround registry added to `docs/MAINTENANCE.md`; handoff kit +
+paste prompt refreshed for wave 52). Check `git log -1 --format=%h %s`
+before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-02 20:00Z (read this first):**
-- **Wave 50 COMPLETE + PUBLISHED (`eco-v0.1.31`):** all 10 --
-  `translate` 28/28, `parser-fw` 27/27, `jit-fw` 25/25, `terraform`
-  24/24, `k8s` 23/23, `cfn` 26/26, `ansible` 26/26, `chef` 26/26,
-  `elastic` 28/28, `aws` 27/27 -- built on v0.62.2 by 6 task + 4 AM
-  lanes, port x2 + trap-14 verified, records `incubating`; allowlist
-  **475 -> 485**. `elastic` hit its output limit with zero files ->
-  session stopped + re-dispatched as a `variant: low` files-first task
-  (green on retry). Publish run `37057372614` SUCCESS on **attempt 1**.
-  Gate `22424011031`.
-- **Current gates/state:** `validate` **500/0**; guard **485
-  allowlisted / 436 ready / 49 grandfathered / 0 failures**; registry
-  **438 packages + 2 infra = 440 entries**; allowlist **485**; tag
-  `eco-v0.1.31` on `1311ff4c`; all pushed.
-- **New compiler findings (wave 50):** bare `loop { ... }` with all
-  paths returning X is typed as falling through `()` (T001 at the body
-  brace; `terraform`); **arity asymmetry** -- EXTRA args rejected,
-  MISSING args accepted silently (`ml` vs `ansible`/`parser-fw`/`cfn`/
-  `chef`; manual arity audit stays mandatory); module-qualified type
-  names across modules unreliable (`selector.LabelParts` != bare
-  `LabelParts`; `k8s` extends the `saml` nominal-identity row);
-  **stdlib crypto LINK failure** (`lld-link: undefined symbol:
-  xiom_sha256_hash` from a package -- `xiom.crypto.hash` source presence
-  is NOT linkability; `aws`/`saml` hand-roll KAT-pinned copies).
-- **Tooling notes:** MCP compile/analyze + stdlib reference fail without
-  `XIOM_STDLIB` (environmental); `xiom_compile_and_fix` timed out once;
-  `scripts/xiom.ps1 --run` positional args do not bind under PS 5.1
-  (`-Stdlib` swallows `--run`); direct compiler invocation emits W001
-  duplicate-module warnings from shadowing stdlib worktrees + a stale
-  `%TEMP%\kilo\stdlib-rel` copy (harmless).
-- **No mixed/full-angle bracket recurrences in wave 50** -- the
-  post-write + post-green literal grep held across all ten packages.
-- **Open compiler issues (with the compiler lane):** `Vec[Str].push`
-  global mis-lower, `&mut Int` write-drop, mixed + full-angle laxness,
-  cross-type bindings, child->parent module import, nominal
-  module-qualified type identity, bare-loop return typing, arity
-  asymmetry, stdlib crypto link failure. Repro bundle:
-  `docs/repro/v0622-regressions/`.
+**STATE AT 2026-10-02 21:10Z (read this first):**
+- **Wave 51 COMPLETE + PUBLISHED (`eco-v0.1.32`):** all 8 -- `puppet`
+  26/26, `azure` 24/24, `gcp` 28/28, `salt` 28/28, `cloudlog` 27/27,
+  `consul` 24/24, `i2p` 24/24, `phaser` 24/24 -- built on v0.62.2 by
+  5 task + 3 AM lanes, port x2 + trap-14 verified, records
+  `incubating`; allowlist **485 -> 493**. Publish run `37063648647`
+  SUCCESS on **attempt 1**. Gate `22424011031`.
+- **Current gates/state:** `validate` **508/0**; guard **493
+  allowlisted / 444 ready / 49 grandfathered / 0 failures**; registry
+  **446 packages + 2 infra = 448 entries**; allowlist **493**; tag
+  `eco-v0.1.32` on `b1ff10c6`; all pushed.
+- **Maintenance policy (owner-approved):** `docs/MAINTENANCE.md` has the
+  compiler-release TRIAGE (Tier 0/1/2) + workaround registry (13 rows).
+  When the compiler lane lands fixes: apply the tiers; Tier-2 = fleet
+  sweep detector + 10-lane retirement wave; evidence-gated (probe
+  RED->GREEN + port x2 + record). Crypto fix-first repro packet:
+  `docs/repro/crypto-link/`.
+- **New compiler findings (wave 51):** qualified struct literals fail
+  T001 (`gcp`; bare imported type names required); trap-14 recurred at
+  **14 struct-FIELD sites** and passed the suite green (`cloudlog`) --
+  byte-level grep only, Read output lies about brackets; passing
+  `Result[Bool,Str]` where `Result[Int,Str]` is declared compiled
+  silently and read garbage (`consul`); `fn` is reserved as an
+  identifier like `as` (`i2p`); spurious `!bool_call(...) == 1`
+  negation diagnostic (`phaser`); one non-reproducible `--run` `-1`
+  under machine saturation (`i2p`; watch only).
 - **Session-recovery pattern (repeatable):** silent/empty aborts and
   output-limit crashes -> stop the AM session if any, re-dispatch as a
-  `task` with `variant: low` + files-first directive (worked 3x: deep,
-  ml, elastic).
-- **New stdlib rows (wave 50):** crypto linkability defect, `xiom.hash`
-  FNV-1a over `Str` + masked combine, ASCII byte classifiers, delimiter
-  helpers, graph closure/depth; requesters extended on `vec.str`, `Vec`
-  truncation, `serialize.json`, `graph.topo`.
-- **Follow-ups:** README `Status` blocks for the 351 README-refresh
-  names still lag one patch; category harmonization owner-decided
-  (wave-50 `parser-fw`/`jit-fw` shipped unknown category tokens ->
-  registry `categories: []`); keep the `-TimeoutSec 60` watchdog;
-  wave-51 candidates from the remaining ~21 placeholders: `consul`
-  (careful: overlaps `discovery`), `cloud` (umbrella; wait for provider
-  sub-libs), `puppet`/`salt` (chef-siblings), `azure`/`gcp`/`k8s`-
-  provider siblings, `cloudlog`; check purity first for `aac`/`i2p`/
-  `phaser`/`bridge`/`c-binding`/`xml2`/`jansson`/`curl`/`oracle`/`odbc`/
-  `rocksdb`/`llvm`/`icu`.
+  `task` with `variant: low` + files-first directive (worked 3x).
+- **New stdlib rows (wave 51):** glob/fnmatch + bounded regex,
+  `Str -> Str` map, span/byte-slice API, strict integer parsing with
+  relocatable offsets, base32 + percent-encoder; `serialize.json`
+  requesters extended.
+- **Follow-ups:** remaining placeholders are all FFI-bound (`aac`,
+  `bridge`, `c-binding`, `curl`, `firebird`, `icu`, `jansson`, `llvm`,
+  `odbc`, `oracle`, `rocksdb`, `xml2`) plus `cloud` (umbrella; now that
+  `aws`/`azure`/`gcp`/`k8s`/`docker` all exist it can be modeled as a
+  provider-descriptor registry -- wave-52 candidate #1); README `Status`
+  blocks for the 351 names; category harmonization (`phaser`/
+  `parser-fw`/`jit-fw` shipped unknown category tokens -> registry
+  `categories: []`); keep the `-TimeoutSec 60` watchdog. When the
+  compiler release lands, the Tier-2 maintenance wave outranks growth.
 
 ### Next-session operating kit (wave pipeline -- proven 6x)
 
@@ -98,7 +85,7 @@ starting.
    before editing the allowlist; append `.github/publish-allowlist.txt`;
    `generate_index.ps1`, `status.ps1 -Action report`, validate,
    `allowlist-guard.ps1`, `export-namespaces.ps1`; commit + push; `git
-   tag eco-v0.1.32` (next number) + push; approve the gate:
+   tag eco-v0.1.33` (next number) + push; approve the gate:
    `gh api repos/xiom-packages/packages/actions/runs/<id>/pending_deployments
    -X POST --input <{"state":"approved","environment_ids":[22424011031],
    "comment":"..."}>`; monitor; on `oidc_token_expired` rerun the failed
@@ -127,10 +114,10 @@ starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-02 20:00Z STATE block and
+private). Read SESSION.md first -- the 2026-10-02 21:10Z STATE block and
 the "Next-session operating kit" at the top of section 0 are the live
-handoff (wave 50 complete + published eco-v0.1.31; 438 packages + 2 infra
-on the registry; allowlist 485). Repo-local identity must be
+handoff (wave 51 complete + published eco-v0.1.32; 446 packages + 2 infra
+on the registry; allowlist 493). Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
 gates); ops opens the publish-rate window ONLY for waves >20 names
@@ -142,34 +129,33 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Wave 51 (or the owner's named wave): select ~10 pure-XIOM names from
-   the remaining ~21 placeholder backlog (SESSION.md candidates:
-   `consul` (overlaps `discovery` -- pick carefully), `puppet`/`salt`
-   (chef siblings), `azure`/`gcp` provider models, `cloudlog`, `cloud`
-   only if its provider sub-libs exist; check purity first for
-   `aac`/`i2p`/`phaser`/`bridge`/`c-binding`/`xml2`/`jansson`/`curl`/
-   `oracle`/`odbc`/`rocksdb`/`llvm`/`icu`). Namespace-check them;
-   dispatch 6 background task porters + 4 AM local sessions with the
-   canonical v0.62.2-edition briefs (18 traps + no global/module-level
-   Vec[Str].push + no &mut Int scalar params + no Str-field ->
-   Vec[UInt8] cross-binding + NO child->parent module imports (shared
-   helpers in a sibling module) + progress-guaranteed loops + manual
-   arity audit (missing args are ACCEPTED) + `port.ps1 -TimeoutSec 60`
-   gate + full-angle bracket grep after green + `## stdlib gaps`);
-   integrate as they report via %TEMP%\kilo\verify-wave43.ps1 (port x2 +
-   trap-14); commit feat+record per package. Do NOT assume stdlib
-   `xiom.crypto` links -- it does not; hand-roll and KAT-pin.
-2. Wrap + publish per the operating kit: ops scope ask, allowlist,
-   regenerate, validate+guard, tag eco-v0.1.32, approve the gate,
-   verify live. Rerun-failed + re-approve on `oidc_token_expired`
-   (idempotent); report "batch done" only if ops opened a window
-   (waves >20).
-3. Growth + maintenance: append worker `stdlib gaps` / compiler evidence
-   at every wave; run the release-triggered loop in docs/MAINTENANCE.md
-   on compiler/stdlib releases (targeted, no lockstep versions).
+1. Wave 52 (or the owner's named wave). The growth backlog is nearly
+   dry: the only unambiguously in-scope placeholder left is `cloud`
+   (umbrella; model it as a provider-descriptor registry now that
+   `aws`/`azure`/`gcp`/`k8s`/`docker` all exist). Everything else is
+   FFI-bound (`aac`, `bridge`, `c-binding`, `curl`, `firebird`, `icu`,
+   `jansson`, `llvm`, `odbc`, `oracle`, `rocksdb`, `xml2`);
+   pure-model reinterpretations of those (e.g. a pure HTTP request/
+   redirect/cookie model for `curl`, a DOM/parser model for `xml2`) are
+   an OWNER DECISION -- do not start them without it. If there is
+   nothing to grow, run hygiene instead (README `Status` sync batch;
+   implementation of category harmonization once the owner decides)
+   until the compiler release lands.
+2. Compiler release pending: apply the TRIAGE in
+   `docs/MAINTENANCE.md` first. A Tier-2 release triggers the fleet
+   sweep + 10-lane workaround-retirement wave -- it outranks growth.
+   Crypto fix-first repro packet: `docs/repro/crypto-link/`. Never
+   retire a workaround without the probe flipping RED -> GREEN + port
+   x2 + record.
+3. Wrap + publish per the operating kit (tag eco-v0.1.33 when there is
+   a batch): ops scope ask, allowlist, regenerate, validate+guard,
+   approve the gate, verify live. Rerun-failed + re-approve on
+   `oidc_token_expired` (idempotent). Report "batch done" only if ops
+   opened a window (waves >20).
 4. Carry-forwards: compiler hotfix watch (open v0.62.2 issues + repros
    in docs/repro/); README Status-block sync for the 351 names; category
-   harmonization owner decision; keep the port watchdog discipline;
+   harmonization owner decision; at every wave append worker
+   `stdlib gaps` / compiler evidence; keep the port watchdog discipline;
    update SESSION.md at the wrap with a fresh paste prompt.
 ```
 
