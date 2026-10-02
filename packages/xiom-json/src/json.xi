@@ -12,12 +12,12 @@ pub enum JsonValue {
   String(value: Str),
   Array(items: Vec[JsonValue]),
   Object(entries: Vec[JsonEntry]),
-} derive[Clone]
+}
 
 pub type JsonEntry = {
   key: Str;
   value: JsonValue;
-} derive[Clone]
+}
 
 pub type ParseError = {
   message: Str;
@@ -39,7 +39,7 @@ pub enum JsonPathSegment {
 
 pub type JsonPath = {
   segments: Vec[JsonPathSegment];
-} derive[Clone]
+}
 
 pub type JsonPrettyConfig = {
   indent: Int;

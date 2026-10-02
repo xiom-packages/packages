@@ -1,5 +1,5 @@
 // XIOM -- xiom.json Conformance Tests
-// 43 deterministic checks: parse/stringify round-trips, manipulation API,
+// 44 deterministic checks: parse/stringify round-trips, manipulation API,
 // JSONPath, schema validation, numeric edge cases and explicit error paths
 // (malformed input, truncation, invalid escapes, wrong types, empty
 // containers, deep nesting, duplicate keys).
@@ -401,6 +401,20 @@ fn t39() -> TestResult {
   let out = json_stringify(&obj);
   return assert(out == "{\"a\":2}", "json: object_put replaces existing key");
 }
+fn t44() -> TestResult {
+  let r = json_parse("{\"a\":{\"b\":[1,2]}}");
+  match r {
+    Ok(v) => {
+      let c = json_clone(&v);
+      var v2 = v;
+      let ok = json_set(&mut v2, "a", json_number(9.0));
+      let orig = json_stringify(&v2);
+      let cl = json_stringify(&c);
+      return assert(ok && orig == "{\"a\":9}" && cl == "{\"a\":{\"b\":[1,2]}}", "json: json_clone is an independent deep copy");
+    }
+    Err(_) => return assert(false, "json: json_clone is an independent deep copy"),
+  }
+}
 
 fn main() -> Int {
   io.println("=== XIOM JSON Conformance ===");
@@ -451,6 +465,7 @@ fn main() -> Int {
   total = total + 1; let r41 = t41(); failed = failed + report(r41.passed, r41.name);
   total = total + 1; let r42 = t42(); failed = failed + report(r42.passed, r42.name);
   total = total + 1; let r43 = t43(); failed = failed + report(r43.passed, r43.name);
+  total = total + 1; let r44 = t44(); failed = failed + report(r44.passed, r44.name);
   let passed = total - failed;
   io.println(""); io.println("XIOM JSON: " + int_to_str(passed) + "/" + int_to_str(total) + " passed" + (if failed > 0 { " (" + int_to_str(failed) + " FAILED)" } else { "" }));
   return failed;

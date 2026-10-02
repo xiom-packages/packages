@@ -24,7 +24,7 @@ pub enum JsonValue {
   String(value: Str),
   Array(items: Vec[JsonValue]),
   Object(entries: Vec[JsonEntry]),
-} derive[Clone]
+}
 ```
 
 ### `JsonEntry`
@@ -35,7 +35,7 @@ A key-value pair used within JSON objects. Maintains insertion order.
 pub type JsonEntry = {
   key: Str;
   value: JsonValue;
-} derive[Clone]
+}
 ```
 
 ### `ParseError`
@@ -81,7 +81,7 @@ A sequence of path segments for navigating nested JSON structures. Supports dot-
 ```
 pub type JsonPath = {
   segments: Vec[JsonPathSegment];
-} derive[Clone]
+}
 ```
 
 ### `JsonPrettyConfig`
@@ -112,6 +112,17 @@ pub enum JsonType {
   ObjectType,
 }
 ```
+
+### Clone surface
+
+`derive[Clone]` is kept only on scalar-only types whose fields are `Str`,
+`Int` or `Bool` (no containers): `ParseError`, `JsonNumber`,
+`JsonPathSegment`, `JsonPrettyConfig`. The container-backed public types
+(`JsonValue`, `JsonEntry`, `JsonPath`) do **not** implement `Clone`:
+derived deep clones of Object/Array payloads are miscompiled on pin
+v0.62.2 (corrupt vector handle, crash on the next `push`). Use
+`json_clone` for deep copies of `JsonValue` trees; rebuild paths with the
+JSONPath constructors/parser.
 
 ---
 
@@ -197,6 +208,21 @@ var pretty = json_stringify_pretty(&value, &config);
 ---
 
 ## Manipulation API
+
+### `json_clone`
+
+```xi
+pub fn json_clone(value: &JsonValue) -> JsonValue
+```
+
+Deep-copies a `JsonValue` tree. This is the supported deep-copy API:
+`JsonValue`/`JsonEntry` do not implement `Clone` on this pin because the
+derived deep clone of Object/Array payloads is miscompiled.
+
+**Example**:
+```xi
+var copy = json_clone(&value);
+```
 
 ### `json_get`
 
@@ -416,7 +442,7 @@ var result2 = json_schema_validate(&invalid_data, &schema);
 | Float64 string formatting | Fractions format to <=15 digits; values with magnitude >= 1e15 serialize as `"0"` (saturation guard); exponent magnitude saturates at 1000 | documented limitation; large-magnitude round-trip is **unasserted** |
 | Float64 parse precision | Numbers are parsed via manual arithmetic with an `Int` digit accumulator; very long digit runs overflow/lose precision | documented; tests stay in the exact range |
 | Nesting depth | No explicit cap: parser and serializer are recursive and bounded by the process stack; 64-deep arrays and 32-deep objects are conformance-tested | tested at fixed depths; no cap semantics asserted |
-| Deep clone | `derive[Clone]` on `JsonValue`/`JsonEntry` is miscompiled on pin v0.62.2 when the value holds Object/Array (corrupt vector handle); use `json_clone` for deep copies | package workaround (`json_clone`); compiler finding |
+| Deep clone | Container-backed types (`JsonValue`, `JsonEntry`, `JsonPath`) do not implement `Clone`: derived deep clone of Object/Array payloads is miscompiled on pin v0.62.2 (corrupt vector handle); `json_clone` is the supported deep copy | derive removed; `json_clone` public; compiler finding |
 | Exact number representation | `JsonNumber` is defined but unused; `json_parse` produces `JsonValue.Number(Float64)`; no `parse_exact` variant | documented subset |
 | JSON Schema | Supported keywords are exactly `type`, `enum`, `properties`, `required` | documented subset |
 | Large arrays/objects | Mutation helpers rebuild the container (O(n) per operation); no in-place edit API | documented behavior |
@@ -457,11 +483,11 @@ Numeric conversion uses the `xiom.convert` intrinsics (`int_to_float`, `float_to
 
 ## Port Notes (compiler 0.61.3, stdlib E:\xiom-lang\stdlib)
 
-Ported with minimal, targeted fixes. The conformance suite (43 checks) is green:
+Ported with minimal, targeted fixes. The conformance suite (44 checks) is green:
 
 ```
 .\scripts\port.ps1 -Package xiom-json -TimeoutSec 60
--> port: PASS (passed=43 failed=0 program_exit=0 exit=0)   (x2 consecutive runs)
+-> port: PASS (passed=44 failed=0 program_exit=0 exit=0)   (x2 consecutive runs)
 ```
 
 Publication status is unchanged (not published).
@@ -476,9 +502,9 @@ Publication status is unchanged (not published).
 | Test t6 | `JsonType.Null` corrected to `JsonType.NullType` | Obsolete variant spelling: the enum has always declared `NullType`; the old spelling compiled to garbage codegen (clang rejected a `JsonValue` passed where `JsonType` was expected). The test's intent (parsed null reports `NullType`) is unchanged. |
 
 No existing check's intent was weakened or removed: t1-t12 are unchanged.
-31 checks were added during stable preparation (error paths, numeric edge
-cases, deep nesting, duplicate keys, mutation API, determinism); see the
-"Stable Preparation" section below.
+32 checks were added during stable preparation (error paths, numeric edge
+cases, deep nesting, duplicate keys, mutation API, deep-clone independence,
+determinism); see the "Stable Preparation" section below.
 
 ### Toolchain issues observed
 
@@ -502,7 +528,9 @@ cases, deep nesting, duplicate keys, mutation API, determinism); see the
 - Derived deep clone is miscompiled: `Vec[JsonEntry].clone()` (and any
   `JsonValue.clone()` whose payload is Object/Array) returns a corrupt
   handle; a subsequent `push` crashes with `0xC000001D` (stack overflow).
-  Scalar payload clones (`Str`, `Bool`, `Number`) are fine.
+  Scalar payload clones (`Str`, `Bool`, `Number`) are fine. The public
+  derives were removed from the container-backed types (`JsonValue`,
+  `JsonEntry`, `JsonPath`); scalar-only types keep `Clone`.
 - `xiom-verify` expects the file before `--check`
   (`xiom-verify <file> --check`); the documented order fails with
   `Error reading --check`. It also does not resolve a package's own imports
@@ -520,7 +548,7 @@ cases, deep nesting, duplicate keys, mutation API, determinism); see the
 ## Stable Preparation (2026-10-03)
 
 Promotion pre-work for the `stable` gate (docs/PROMOTION.md): contracts on
-the public entry points, a 43-check deterministic conformance suite, and a
+the public entry points, a 44-check deterministic conformance suite, and a
 Z3 verification pass. Stage and `STATUS.json` are untouched (the coordinator
 handles promotion).
 
@@ -547,7 +575,7 @@ handles promotion).
 | `json_path_parse` | `path_str.len() > 0` | requires | runtime; solver-unknown (complex call target) |
 
 No clause was reported violated. All clauses are runtime-checked in the
-conformance suite (which stays green, 43/43, with contracts enabled).
+conformance suite (which stays green, 44/44, with contracts enabled).
 
 ### Solver-unproven and unasserted
 
@@ -599,7 +627,7 @@ verifier, so the toolchain can discharge arithmetic only.
 | Fraction parse | divisor derived from the actual fraction digit count | `json_parse("0.05")` produced `0.5` (leading zero lost) |
 | Exponent bound | exponent magnitude capped at 1000 before the multiply loop | `1e999999999` looped ~1e9 times (hang) |
 | Mutation API | `json_set`/`json_set_path`/`json_remove`/`json_merge`/`json_array_push`/`json_object_put` rebuild the value and write it through `*obj = ...` | match-bound payload mutations on `&mut` enums are silently dropped on the pin; all six functions were silent no-ops or corrupted callers |
-| Deep clone | new public `json_clone`; internal code no longer deep-clones via `derive[Clone]` | derived Object/Array clone returns a corrupt vector handle and crashes on push |
+| Deep clone | `derive[Clone]` removed from `JsonValue`/`JsonEntry`/`JsonPath`; new public `json_clone`; internal code uses it | derived Object/Array clone returns a corrupt vector handle and crashes on push; public `Clone` removed so callers cannot hit it |
 | `json_set_path` | recursive atomic rebuild; missing intermediate keys create empty objects; no partial writes on failure | the old loop reassigned `&mut` references and created `null` intermediates, contradicting the documented "creates intermediate objects" |
 | `json_merge` | atomic rebuild (failure leaves the base unchanged) | the old deep merge could mutate earlier keys before failing on a later one |
 
