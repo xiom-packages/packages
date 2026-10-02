@@ -181,6 +181,7 @@ pub fn release_import(scene: AiScene)
 // ===============================================================================
 
 pub fn get_error_string() -> Str
+  requires: true
 {
   unsafe {
     let err = aiGetErrorString();
@@ -253,7 +254,7 @@ pub fn get_num_vertices(mesh: AiMesh) -> Int
   unsafe { return aiGetNumVertices(mesh); }
 }
 
-pub fn get_vertices(mesh: AiMesh) -> Result<*Float32, Str>
+pub fn get_vertices(mesh: AiMesh) -> Result[*Float32, Str>
   requires: mesh != 0
 {
   let num = get_num_vertices(mesh);
@@ -273,7 +274,7 @@ pub fn get_num_faces(mesh: AiMesh) -> Int
   unsafe { return aiGetNumFaces(mesh); }
 }
 
-pub fn get_faces(mesh: AiMesh) -> Result<Int, Str>
+pub fn get_faces(mesh: AiMesh) -> Result[Int, Str]
   requires: mesh != 0
 {
   let num = get_num_faces(mesh);
@@ -293,7 +294,7 @@ pub fn get_num_normals(mesh: AiMesh) -> Int
   unsafe { return aiGetNumNormals(mesh); }
 }
 
-pub fn get_normals(mesh: AiMesh) -> Result<*Float32, Str>
+pub fn get_normals(mesh: AiMesh) -> Result[*Float32, Str]
   requires: mesh != 0
 {
   let num = get_num_normals(mesh);
@@ -315,7 +316,7 @@ pub fn get_num_tex_coords(mesh: AiMesh, channel: Int) -> Int
   unsafe { return aiGetNumTexCoords(mesh, channel); }
 }
 
-pub fn get_tex_coords(mesh: AiMesh) -> Result<*Float32, Str>
+pub fn get_tex_coords(mesh: AiMesh) -> Result[*Float32, Str>
   requires: mesh != 0
 {
   unsafe {
