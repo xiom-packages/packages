@@ -1,6 +1,6 @@
 # xiom.xbm
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
 > **Scope:** X BitMap (XBM): the `#define` width/height pair plus the packed `static char` byte array, bit-level access, and a canonical builder.
 > **Deps:** `xiom.std` only. No FFI in v0.1.
 

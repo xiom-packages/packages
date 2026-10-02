@@ -602,7 +602,7 @@ pub fn xbm_pack(pixels: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UInt
 // must be a C identifier and `bits` must contain xbm_row_bytes(width) * height
 // bytes; errors are `xbm: invalid name`, `xbm: invalid width`,
 // `xbm: invalid height` and `xbm: byte count mismatch`.
-pub fn xbm_build(name: Str, bits: &Vec<UInt8>, width: Int, height: Int) -> Result[Vec[UInt8], Str] {
+pub fn xbm_build(name: Str, bits: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UInt8], Str] {
   if (width <= 0) { return _err_bytes("xbm: invalid width"); }
   if (width > 1000000) { return _err_bytes("xbm: invalid width"); }
   if (height <= 0) { return _err_bytes("xbm: invalid height"); }

@@ -9,7 +9,7 @@
 
 package xiom_xbm {
   name: "xiom.xbm";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "X BitMap (XBM) X11 C-source 1-bit raster parsing and canonical building";
   categories: ["graphics"];
   keywords: ["xbm", "x11", "bitmap", "format"];
