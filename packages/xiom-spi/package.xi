@@ -8,9 +8,9 @@
 
 package xiom_spi {
   name: "xiom.spi";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "SPI transfer codec: modes, prescaler table, bit order, word sizes and a chip-select event stream";
-  categories: ["protocol"];
+  categories: ["systems"];
   keywords: ["spi", "serial", "embedded", "bus"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
