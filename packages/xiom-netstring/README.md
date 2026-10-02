@@ -1,6 +1,6 @@
 # xiom.netstring
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM DJB netstring framing for in-memory `Vec[UInt8]`
 > buffers: parse a concatenated stream into flat payload spans, build frames
 > with computed decimal lengths, iterate frames with a cursor.

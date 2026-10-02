@@ -163,7 +163,7 @@ fn _push_dec(out: &mut Vec[UInt8], n: Int) {
 }
 
 // Append the bytes of `v` verbatim.
-fn _push_bytes(out: &mut Vec<UInt8>, v: &Vec[UInt8]) {
+fn _push_bytes(out: &mut Vec[UInt8], v: &Vec[UInt8]) {
   var i = 0;
   while i < v.len() {
     out.push(v[i]);
