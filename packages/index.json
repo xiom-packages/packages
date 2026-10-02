@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-02T15:37:28Z",
+    "updated":  "2026-10-02T17:08:49Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -997,6 +997,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.climate",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Integer fixed-point climate helpers: energy-balance simulation, paleoclimate proxies, emission scenarios, climate zones, and trend analysis",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-climate/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "climate.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.clustering",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -1340,6 +1357,25 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.data",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure deterministic integer dataset utilities: dataset container with iterators, deterministic LCG Fisher-Yates shuffling, sequential/shuffled/weighted samplers, a batched data loader, batch assembly/collation and train/validation/test splitting",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-data/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "batch.xi",
+                                              "data.xi",
+                                              "order.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.2",
                          "name":  "xiom.db2",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -1557,6 +1593,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dns/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "dns.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.docx",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Word OpenXML (.docx) reader/writer: a minimal ZIP container plus a WordprocessingML paragraph/run/style subset",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-docx/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "docx.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2911,6 +2964,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.image",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Unified image pipeline: magic-byte format sniffing and metadata, packed RGBA8 pixel model with stride, RGBA/RGB/gray/BGRA conversion, and a pure proof codec subset (BMP 24/32 decode+encode, PPM P6 decode+encode)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-image/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "image.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.imaging",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic integer grayscale image processing: 3x3 box and separable 1-2-1 Gaussian blur, Sobel magnitude, binary and Otsu threshold, nearest and integer bilinear resize, flips/rotations, histogram/percentile, integral-image box sums and alpha-free overlay copy",
@@ -3319,6 +3389,24 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-time/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "l10n_time.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.l10n-unicode",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Unicode subset for l10n: category/script/block data, full case mapping and folding, NFD/NFC/NFKD/NFKC, grapheme/word/sentence boundaries",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-unicode/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "l10n_unicode.xi",
+                                              "l10n_unicode_tables.xi",
                                               "package.xi"
                                           ]
                      },
@@ -4539,6 +4627,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.nuclear",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic integer nuclear physics: decay, fission/fusion Q-values, isotope data, cross sections, radiation dose",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nuclear/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "nuclear.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.numpy",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "NumPy C API -- the fundamental array computing library for scientific Python.",
@@ -5444,6 +5549,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ppm/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "ppm.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.pptx",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "PowerPoint PresentationML reader/writer: minimal ZIP container, slide/shape model and text-box shape tree",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pptx/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "pptx.xi",
                                               "package.xi"
                                           ]
                      },
@@ -7347,6 +7469,27 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.training",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Fixed-point training toolkit: epoch/step loop driver with concrete callbacks, checkpoint save/restore, learning-rate schedules with warmup, early stopping and metric logs",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-training/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "checkpoint.xi",
+                                              "earlystop.xi",
+                                              "logger.xi",
+                                              "schedules.xi",
+                                              "training.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.transaction",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -7836,6 +7979,28 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.web3",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM Web3 primitives: provider request/response model, contract selectors and minimal ABI words, ENS normalization/namehash and EIP-55 account addresses (Keccak-256 in-package, no networking)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-web3/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "accounts.xi",
+                                              "contract.xi",
+                                              "ens.xi",
+                                              "keccak.xi",
+                                              "provider.xi",
+                                              "web3.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.webp",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -7972,6 +8137,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-xbm/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "xbm.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.xlsx",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Excel OpenXML (XLSX) spreadsheet codec: minimal ZIP container plus SpreadsheetML workbook/sheet/style reader and writer",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-xlsx/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "xlsx.xi",
                                               "package.xi"
                                           ]
                      },
@@ -8247,19 +8429,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-climate",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-climate/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-cloud",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8312,19 +8481,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-data",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-data/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-deep",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8345,19 +8501,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-docker/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-docx",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-docx/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8442,19 +8585,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-image",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-image/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-inference",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8507,19 +8637,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-l10n-unicode",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-unicode/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-llvm",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8540,19 +8657,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ml/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-nuclear",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nuclear/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8605,19 +8709,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-phaser/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-pptx",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pptx/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8702,19 +8793,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-training",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-training/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-translate",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8748,32 +8826,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-video/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-web3",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-web3/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-xlsx",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-xlsx/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]

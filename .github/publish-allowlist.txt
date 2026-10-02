@@ -496,3 +496,13 @@ xiom.metadata
 xiom.imaging
 xiom.text-markup
 xiom.microscopy
+xiom.climate
+xiom.nuclear
+xiom.training
+xiom.web3
+xiom.l10n-unicode
+xiom.docx
+xiom.pptx
+xiom.xlsx
+xiom.image
+xiom.data

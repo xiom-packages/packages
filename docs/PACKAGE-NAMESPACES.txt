@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-02T15:37:39+03:00
-# packages: 470  modules: 495
+# generated: 2026-10-02T17:08:55+03:00
+# packages: 480  modules: 517
 
 ## package names
 xiom.acpi
@@ -64,6 +64,7 @@ xiom.charts
 xiom.chemistry
 xiom.chromatography
 xiom.cidr
+xiom.climate
 xiom.clustering
 xiom.cobs
 xiom.codec
@@ -84,6 +85,7 @@ xiom.csv
 xiom.cuda
 xiom.cue
 xiom.dac
+xiom.data
 xiom.db2
 xiom.dbase
 xiom.dds
@@ -97,6 +99,7 @@ xiom.directx11
 xiom.directx12
 xiom.discovery
 xiom.dns
+xiom.docx
 xiom.dotenv
 xiom.dtb
 xiom.durable
@@ -173,6 +176,7 @@ xiom.iban
 xiom.ical
 xiom.ico
 xiom.id3
+xiom.image
 xiom.imaging
 xiom.imap
 xiom.imgui
@@ -197,6 +201,7 @@ xiom.l10n-date
 xiom.l10n-name
 xiom.l10n-phone
 xiom.l10n-time
+xiom.l10n-unicode
 xiom.l10n-unit
 xiom.layers
 xiom.lcov
@@ -268,6 +273,7 @@ xiom.nlp
 xiom.nmea
 xiom.ntp
 xiom.ntriples
+xiom.nuclear
 xiom.numpy
 xiom.oauth
 xiom.obj
@@ -321,6 +327,7 @@ xiom.pop3
 xiom.portaudio
 xiom.postgres
 xiom.ppm
+xiom.pptx
 xiom.preprocess
 xiom.profiling
 xiom.properties
@@ -431,6 +438,7 @@ xiom.toml
 xiom.tor
 xiom.torch
 xiom.tracing
+xiom.training
 xiom.transaction
 xiom.translation
 xiom.transliteration
@@ -459,6 +467,7 @@ xiom.wasm
 xiom.wasmtime
 xiom.wav
 xiom.weather
+xiom.web3
 xiom.webp
 xiom.websocket
 xiom.windows
@@ -467,6 +476,7 @@ xiom.wkt
 xiom.woff
 xiom.worker
 xiom.xbm
+xiom.xlsx
 xiom.xml
 xiom.xpm
 xiom.yaml
@@ -534,6 +544,7 @@ xiom.charts
 xiom.chemistry
 xiom.chromatography
 xiom.cidr
+xiom.climate
 xiom.clustering
 xiom.cobs
 xiom.codec
@@ -556,6 +567,9 @@ xiom.cron
 xiom.csv
 xiom.cue
 xiom.dac
+xiom.data
+xiom.data.batch
+xiom.data.order
 xiom.db2
 xiom.dbase
 xiom.dds
@@ -567,6 +581,7 @@ xiom.dimacs
 xiom.dimred
 xiom.discovery
 xiom.dns
+xiom.docx
 xiom.dotenv
 xiom.dtb
 xiom.durable.config
@@ -667,6 +682,7 @@ xiom.iban
 xiom.ical
 xiom.ico
 xiom.id3
+xiom.image
 xiom.imaging
 xiom.imap
 xiom.ini
@@ -692,6 +708,8 @@ xiom.l10n.name
 xiom.l10n.number
 xiom.l10n.phone
 xiom.l10n.time
+xiom.l10n.unicode
+xiom.l10n.unicode.tables
 xiom.l10n.unit
 xiom.layers
 xiom.lcov
@@ -756,6 +774,7 @@ xiom.nlp
 xiom.nmea
 xiom.ntp
 xiom.ntriples
+xiom.nuclear
 xiom.numpy
 xiom.oauth
 xiom.obj
@@ -807,6 +826,7 @@ xiom.pool
 xiom.pop3
 xiom.postgres.client
 xiom.ppm
+xiom.pptx
 xiom.preprocess
 xiom.profiling
 xiom.properties
@@ -920,6 +940,11 @@ xiom.torch.ffi
 xiom.torch.nn
 xiom.torch.types
 xiom.tracing
+xiom.training
+xiom.training.checkpoint
+xiom.training.earlystop
+xiom.training.logger
+xiom.training.schedules
 xiom.transaction
 xiom.translation
 xiom.transliteration
@@ -957,6 +982,12 @@ xiom.wallet
 xiom.wasm
 xiom.wav
 xiom.weather
+xiom.web3
+xiom.web3.accounts
+xiom.web3.contract
+xiom.web3.ens
+xiom.web3.keccak
+xiom.web3.provider
 xiom.webp
 xiom.windows
 xiom.wireless
@@ -964,6 +995,7 @@ xiom.wkt
 xiom.woff
 xiom.worker
 xiom.xbm
+xiom.xlsx
 xiom.xml
 xiom.xpm
 xiom.yaml
