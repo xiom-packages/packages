@@ -1637,7 +1637,7 @@ fn _emit_trackpoint(d: &TcxDoc, t: Int, out: &mut Vec[UInt8]) {
 
 // Emit one <Lap> at level 3: required tokens always, optional tokens and the
 // Track only when present, in canonical order.
-fn _emit_lap(d: &TcxDoc, l: Int, out: &mut Vec<UInt8>) {
+fn _emit_lap(d: &TcxDoc, l: Int, out: &mut Vec[UInt8]) {
   let start: Str = d.lap_start_time[l];
   _push_indent(out, 3);
   builder.sb_push_str(out, "<Lap StartTime=\"");
@@ -1677,7 +1677,7 @@ fn _emit_lap(d: &TcxDoc, l: Int, out: &mut Vec<UInt8>) {
 }
 
 // Emit one <Activity> at level 2: Id first, then its laps in order.
-fn _emit_activity(d: &TcxDoc, a: Int, out: &mut Vec<UInt8>) {
+fn _emit_activity(d: &TcxDoc, a: Int, out: &mut Vec[UInt8]) {
   let sport: Str = d.act_sport[a];
   let id: Str = d.act_id[a];
   _push_indent(out, 2);
