@@ -1,6 +1,6 @@
 # xiom.eeprom
 
-> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (17/17); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) serial EEPROM device protocol codecs for two
 > families: 24Cxx (I2C) addressing/page math and 93Cxx (Microwire) command
 > bit streams.

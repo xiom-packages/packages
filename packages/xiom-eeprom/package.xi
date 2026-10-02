@@ -9,9 +9,9 @@
 
 package xiom_eeprom {
   name: "xiom.eeprom";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Serial EEPROM device protocol codecs: 24Cxx I2C and 93Cxx Microwire framing";
-  categories: ["protocol"];
+  categories: ["systems"];
   keywords: ["eeprom", "i2c", "microwire", "24cxx", "93cxx", "serial", "embedded"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
