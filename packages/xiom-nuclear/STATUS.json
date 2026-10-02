@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.nuclear",
+    "stage":  "incubating",
+    "compiler":  "v0.62.2",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  27,
+                  "failed":  0,
+                  "run_by":  "task:ses_f032f9f10ffeqRZQO6v43FboTX",
+                  "commit":  "9cd53156",
+                  "checked":  "2026-10-02T13:39:28Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "publish pending: next scope delta"
+}
