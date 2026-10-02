@@ -145,7 +145,7 @@ fn push_chunk(v: &mut Vec[UInt8], id: Str, payload: Vec[UInt8]) {
 
 // Wrap a chunk body in the 12-byte RIFF/AVI file header with the correct
 // size field (4 + body length, i.e. total - 8).
-fn riff(body: Vec<UInt8>) -> Vec[UInt8] {
+fn riff(body: Vec[UInt8]) -> Vec[UInt8] {
   var f = Vec[UInt8].new();
   push_text(&mut f, "RIFF");
   push_le32(&mut f, 4 + body.len());
