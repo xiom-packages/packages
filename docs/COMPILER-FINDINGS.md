@@ -15,9 +15,12 @@ compiler session triages. Format: `| Date | Finding | Evidence | Workaround in p
 | 2026-09-26 | Loop-carried CSE miscompile: a value derived from a loop variable reuses the first iteration's result | `xiom-amqp/src/amqp.xi:1266` (documented): `ends.push(pos + 4 + sub_len)` returned the first container's end offset in the second iteration, so any two field-tables/arrays in one parent failed `bad table`/`bad array`; found by byte-level bisection | recursive per-container decode function instead of a loop-carried stack | silent wrong offsets; hard to diagnose | 
 | 2026-09-25 | Mixed-bracket typos compile silently: `Vec<UInt8>`, `Vec<UInt8]`, `Result<Int]` are accepted | every wave: the file-write tooling reintroduced them (`gif` 16 sites, `mp3`, `flac`, `jpeg`, `sd` 7 sites, `nats` 18 sites, `mongo` 2 authoring waves, `tor` 6 sites, `wireless` 9 test signatures); wave 48/49: `docx` 8 in PARAMETER positions, `pptx` 1, `image` 2, `audio-meta` 6 -- and WIDENED: fully angle-bracket `&Vec<UInt8>` in parameter positions also compiles silently (`video`, 7 sites); all caught only by the post-green literal grep | mandatory `Select-String 'Vec<|Result<'` after every write and after green | shape-only; hides real corruption risk |
 | 2026-10-02 | A package child module cannot import or call its direct parent module (`module probe.x4.y` + `use probe.x4;` + `hello4()` -> `T001: undefined variable 'hello4'`); sibling and parent->child imports work. Module-qualified FUNCTION calls on the alias are misparsed as method calls (`cannot call 'X' on this expression`); qualified constants work | corroborated by three wave-49 lanes: `helm` (workaround: shared primitives in sibling `xiom.helm.base`), `docker` (minimal probe above; layout moved to sibling `xiom.docker.image`), `vault` (`use xiom.vault as v;` fails identically) | put shared primitives in a SIBLING module; call imported functions unqualified | structural: forces a flat sibling layout; costs a refactor per multi-module package |
-| 2026-10-02 | Nominal type identity with module qualification: a helper signature `Result[saml.XmlDoc, Str]` does not match a value of type `Result[XmlDoc, Str]` returned by the library (T001 at every call site) | `xiom.saml` (found while building the XML-DSig layer) | unqualified type names after `use xiom.saml;` | compile errors only; no silent behavior, but confusing |
+| 2026-10-02 | Nominal type identity with module qualification: a helper signature `Result[saml.XmlDoc, Str]` does not match a value of type `Result[XmlDoc, Str]` returned by the library (T001 at every call site) | `xiom.saml` (found while building the XML-DSig layer); extended by `xiom.k8s`: annotating a parameter as `selector.LabelParts` yields a distinct type from the canonical `LabelParts` declared in `xiom.k8s.selector` ("expected LabelParts, found selector.LabelParts"); bare `LabelParts` after `use xiom.k8s.selector;` unifies | unqualified type names after `use xiom.saml;` | compile errors only; no silent behavior, but confusing |
+| 2026-10-02 | A function whose body ends with a bare `loop { ... }` in which every path returns `X` is still typed as falling through `()` -- `T001` return-type mismatch reported at the body brace | `xiom.terraform` (hit 4 parser/scan loops: `_p_skip_block_comment`, `_p_parse_string`, `_p_skip_string_raw`, `_p_scan_group`) | add an explicit trailing `return <default>;` after the loop | compile errors only; forces an unreachable-looking return |
+| 2026-10-02 | Arity is asymmetric: EXTRA arguments are rejected (`T001 ... expects N argument(s)`, `xiom.ml` test code), but MISSING arguments are accepted silently (short calls compile; noted by `xiom.ansible`, `xiom.parser-fw`, `xiom.cfn`, `xiom.chef` all performing manual arity audits) | wave 48/50 reports | manual arity verification at every call site (the trap-14 pass includes it) | silent wrong values if an argument is omitted |
 | 2026-10-02 | Type laxness beyond brackets: binding a `Str` struct field into a `Vec[UInt8]`-typed local (`let gb: Vec[UInt8] = got.value;`) compiles with zero diagnostics and produces wrong bytes at run time | `xiom.pptx` (found while writing the ZIP reader; the suite went green and a later byte comparison exposed it) | keep explicit types on every cross-value binding; unit-test byte round-trips; the post-green bracket grep does NOT catch this shape | silent wrong code -- same family as arity/mixed-bracket laxness |
 | 2026-10-02 | Stdlib `xiom.crypto.hash._u64_lshr`/`_u64_shr(x, 63)` is wrong when `x` has bit 63 set: it divides by `_pow2(63)` = `Int64_MIN` (negative), so the quotient flips sign and the floor adjustment is skipped (`Int64_MIN` -> 3 instead of 1) | `xiom.web3`: Keccak-256 diverged only for absorbed lanes equal to `0x8000000000000000` (empty/`abc`/`eth` failed; fox/hello/long inputs passed); localized by tracing theta vs a Python oracle to `rotl(C[1], 1)` | special-case `n == 63` in the in-package copy; do not reuse the helper as a general idiom | stdlib-side defect; stdlib callers never shift by 63 (SHA-512/BLAKE2b unaffected) |
+| 2026-10-02 | Stdlib `xiom.crypto` / `xiom.crypto.hash` SHA-256 and HMAC SHIP IN SOURCE BUT DO NOT LINK from a package on v0.62.2: `lld-link: undefined symbol: xiom_sha256_hash` | `xiom.aws` (SigV4 needed SHA-256/HMAC; repro `use xiom.crypto; crypto.sha256_hex(&abc)`); `xiom.saml` had already hand-rolled SHA-256 before the source existed | hand-roll SHA-256/HMAC in-package and KAT-pin it (`xiom.aws.base`, `xiom.saml`) | every crypto-adjacent package duplicates crypto; source presence != linkability |
 | 2026-09-26 | No `Vec[Float64]`; no `Int <-> Float64` bitcast in v0.61.3 | `xiom-avro`, `xiom-mkv`, `xiom-amqp` docs; scalar `Float64` works | float/double exposed as raw LE octets; EBML floats decoded as integer milli-units | blocks float-bearing formats from full fidelity (see `docs/STDLIB-WISHLIST.md` `xiom.float`) | 
 | 2026-09-24 | Bit tests on values with the sign bit set are unreliable | `xiom-can`/`xiom-radiotap` notes carried into wave-34/35 briefs; `xiom-sd`/`xiom-eeprom` prefer divisor/modulo extraction | divisor/modulo arithmetic for bit extraction | silent wrong bits | 
 | 2026-09-25 | `byte_at(...)` compared to UInt8 constants >= 128 mis-lowers; widening + masking needed | documented trap 3; `png` signature byte 0x89, `jpeg` markers, `ldap` tags 0xA0+ | `(x as Int) & 0xFF` everywhere | silent false compares | 
@@ -329,5 +332,32 @@ strict clauses on):
     cross-module direct field access on `pub type`s works; intra-package
     `use` resolves via the manifest `modules:` list; local `Vec[Str]`
     pushes inside struct fields work.
+- 2026-10-02: **wave-50 evidence (10 packages on v0.62.2: `translate`,
+  `parser-fw`, `jit-fw`, `terraform`, `k8s`, `cfn`, `ansible`, `chef`,
+  `elastic`, `aws`; 6 task + 4 AM lanes, all double-verified; `elastic`
+  hit its output limit with ZERO files, was stopped and re-dispatched as
+  a `variant: low` files-first task, green on retry).** New findings:
+  - **Bare `loop` return typing** (`terraform`) -- Open row added.
+  - **Arity asymmetry** (missing args accepted, extra rejected;
+    `ml` vs `ansible`/`parser-fw`/`cfn`/`chef`) -- Open row added.
+  - **Module-qualified type names across modules unreliable** (`k8s`
+    extends the `saml` row; `selector.LabelParts` != bare `LabelParts`);
+    bare names after `use` unify.
+  - **Stdlib crypto link failure** (`lld-link: undefined symbol:
+    xiom_sha256_hash` from package context) -- Open row added;
+    `xiom.crypto`/`xiom.crypto.hash` source presence is not linkability.
+  - Tooling: MCP compile/analyze + stdlib reference fail without
+    `XIOM_STDLIB` (repeated, environmental); `xiom_compile_and_fix`
+    timed out once; `scripts/xiom.ps1 --run` positional args do not bind
+    under PowerShell 5.1 (`-Stdlib` swallows `--run`); direct compiler
+    invocation emits `W001` duplicate-module warnings from shadowing
+    stdlib worktrees plus a stale `%TEMP%\kilo\stdlib-rel` copy
+    (harmless; `port.ps1` unaffected).
+  - **No mixed/full-angle bracket recurrences in wave 50** -- the
+    post-write + post-green literal grep held across all ten packages.
+  - Positives: `Vec[Str]` struct fields + local push + indexed writes +
+    `&mut` element replacement; `&mut T` -> `&` coercion; nested struct
+    literals; single-`&mut`-struct field mutation; multi-vector
+    pop-to-truncate; field-indexed writes; `Result[Str, Int]` leaves.
 
 
