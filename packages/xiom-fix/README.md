@@ -1,6 +1,6 @@
 # xiom.fix
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
 > **Scope:** a FIX tag=value message codec: SOH framing, flat tag/value spans,
 > ordered duplicates, BodyLength and CheckSum validation, canonical emit. In
 > memory `Str` only.
