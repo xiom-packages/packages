@@ -9,9 +9,9 @@
 
 package xiom_exchanger {
   name: "xiom.exchanger";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Deterministic integer limit order book: price-time matching, bps fees, tape, depth, OHLCV";
-  categories: ["finance"];
+  categories: ["data"];
   keywords: ["orderbook", "matching-engine", "trading", "exchange"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

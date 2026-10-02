@@ -1,6 +1,6 @@
 # xiom.exchanger
 
-> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** one pure-XIOM module implementing a deterministic integer limit
 > order book: price-time matching, partial fills, maker/taker fees in basis
 > points, cancel/replace, a sequence-numbered trade tape, top-N depth
