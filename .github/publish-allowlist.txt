@@ -534,3 +534,4 @@ xiom.cloudlog
 xiom.consul
 xiom.i2p
 xiom.phaser
+xiom.cloud

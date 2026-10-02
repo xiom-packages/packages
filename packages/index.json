@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-02T23:54:53Z",
+    "updated":  "2026-10-03T01:18:17Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -1123,6 +1123,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-climate/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "climate.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.cloud",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM cloud provider/orchestration descriptor registry: provider, capability, region/zone and vendor tables plus a resolution and compatibility API; no SDK bindings, no FFI, no network",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cloud/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "cloud.xi",
                                               "package.xi"
                                           ]
                      },
@@ -8863,19 +8880,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-c-binding/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-cloud",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cloud/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]

@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.62.2` -- generated 2026-10-02T20:54:56Z.
+Toolchain pin: `v0.62.2` -- generated 2026-10-02T22:18:21Z.
 
 ## Summary
 
-- packages tracked: 508
-- incubating: 228
+- packages tracked: 509
+- incubating: 229
 - ported: 4
 - stable: 276
 - publish enabled: 0
@@ -305,10 +305,10 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.xpm | xiom-xpm | stable | tests/test_conformance.xi | pass 19/19 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.yaml | xiom-yaml | stable | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.zonefile | xiom-zonefile | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.control | xiom-control | ported | tests/test_conformance.xi | pass 27/27 | 984fc2f | False | ported: legacy port; stable promotion + publish pending (API review, registry scope, repo protection) |
-| xiom.json | xiom-json | ported | tests/test_conformance.xi | pass 12/12 | 984fc2f | False | ported: legacy port; stable promotion + publish pending (API review, registry scope, repo protection) |
+| xiom.control | xiom-control | ported | tests/test_conformance.xi | pass 32/32 | 37b4f3ca | False | promotion prep: contracts added (stable gate pending) |
+| xiom.json | xiom-json | ported | tests/test_conformance.xi | pass 44/44 | b74587c8 | False | promotion prep: contracts + suite expansion + clone surface fixed (stable gate pending) |
 | xiom.kafka | xiom-kafka | ported | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | ported only: librdkafka FFI stubs remain (handle -1, poll None, admin Err(-999)); not publishable |
-| xiom.sensor | xiom-sensor | ported | tests/test_conformance.xi | pass 38/38 | 984fc2f | False | ported: legacy port; stable promotion + publish pending (API review, registry scope, repo protection) |
+| xiom.sensor | xiom-sensor | ported | tests/test_conformance.xi | pass 38/38 | 4e7a42d8 | False | promotion prep: contracts added (stable gate pending) |
 | xiom.activation | xiom-activation | incubating | tests/test_conformance.xi | pass 24/24 | 8601a49 | False | publish pending: next scope delta |
 | xiom.actor | xiom-actor | incubating | tests/test_conformance.xi | pass 28/28 | 761842c | False | publish pending: next scope delta |
 | xiom.algo | xiom-algo | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -343,6 +343,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.chef | xiom-chef | incubating | tests/test_conformance.xi | pass 26/26 | a24861c5 | False | publish pending: next scope delta |
 | xiom.chromatography | xiom-chromatography | incubating | tests/test_conformance.xi | pass 24/24 | d93fafa | False | publish pending: next scope delta |
 | xiom.climate | xiom-climate | incubating | tests/test_conformance.xi | pass 24/24 | c6e68dae | False | publish pending: next scope delta |
+| xiom.cloud | xiom-cloud | incubating | tests/test_conformance.xi | pass 26/26 | 7cb88e40 | False | publish pending: next scope delta |
 | xiom.cloudlog | xiom-cloudlog | incubating | tests/test_conformance.xi | pass 27/27 | 6590b63e | False | publish pending: next scope delta |
 | xiom.clustering | xiom-clustering | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.codegen-fw | xiom-codegen-fw | incubating | tests/test_conformance.xi | pass 23/23 | 7c95d27 | False | publish pending: next scope delta |
