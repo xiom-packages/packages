@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-02T17:08:49Z",
+    "updated":  "2026-10-02T19:22:46Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -327,6 +327,25 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-au/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "au.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.audio-meta",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Chiptune/tracker module metadata: MIDI SMF, MOD, XM, S3M, IT and NSF structural parsers plus a chiptune magic registry (no audio rendering)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-audio-meta/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "audio_meta.xi",
+                                              "chiptune.xi",
+                                              "trackers.xi",
                                               "package.xi"
                                           ]
                      },
@@ -1428,6 +1447,23 @@
                      },
                      {
                          "version":  "0.1.0",
+                         "name":  "xiom.deep",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deep network assembly helpers: residual, convolutional, attention, recurrent blocks over fixed-point integers",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-deep/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "deep.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
                          "name":  "xiom.defi",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Integer constant-product AMM and share-index lending pool models",
@@ -1593,6 +1629,27 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dns/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "dns.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.docker",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic Docker lifecycle management model: image reference parsing, layer chains, container state machine, registry push/pull plans, compose dependency graphs, volumes and networks",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-docker/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "compose.xi",
+                                              "docker.xi",
+                                              "image.xi",
+                                              "registry.xi",
+                                              "resources.xi",
                                               "package.xi"
                                           ]
                      },
@@ -2751,6 +2808,27 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.helm",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM Helm model: chart manifests, release state machine, repository index, values deep-merge and a bounded Go-template subset",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-helm/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "helm.xi",
+                                              "helm_base.xi",
+                                              "helm_release.xi",
+                                              "helm_repo.xi",
+                                              "helm_tmpl.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.hid",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -3027,6 +3105,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-imgui/v0.1.0/package.tar.gz",
                          "source_files":  [
                                               "imgui.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.inference",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic fixed-point inference over a parallel-vector model descriptor: dense and activation layers with precomputed weight offsets, forward pass, softmax and argmax predict, batched and streaming inference, per-tensor shift quantization with a documented error bound, and lossless text/binary dump codecs",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-inference/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "inference.xi",
                                               "package.xi"
                                           ]
                      },
@@ -4214,6 +4309,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mkv/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "mkv.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.ml",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Fixed-point statistical and Bayesian ML: linear/ridge regression, Metropolis-Hastings MCMC, Beta-Binomial conjugate inference and 1-D Kalman filtering on scaled integers",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ml/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "ml.xi",
                                               "package.xi"
                                           ]
                      },
@@ -6251,6 +6363,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.saml",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "SAML 2.0 structure toolkit: XML subset reader, assertion/response parsing, AuthnRequest builder, IdP metadata, base64 and XML-DSig structural parsing (no networking, no public-key verification)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-saml/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "saml.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.sanitize",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -6489,6 +6618,26 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sentiment/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "sentiment.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.serverless",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Serverless compute abstractions as a deterministic model: functions, triggers, deploys, runtimes, sync/async invoke, cold-start accounting",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-serverless/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "check.xi",
+                                              "deploy.xi",
+                                              "invoke.xi",
+                                              "serverless.xi",
                                               "package.xi"
                                           ]
                      },
@@ -7803,6 +7952,30 @@
                                           ]
                      },
                      {
+                         "version":  "0.1.0",
+                         "name":  "xiom.vault",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM secret vault backend MODEL (no HTTP, no crypto): Vault API request/response model with a JSON-ish body builder and raw key lookup, KV v1/v2 path and version state model, Shamir secret sharing over GF(256) with unseal progress, token/AppRole login models and policy path/capability matching",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vault/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "auth.xi",
+                                              "client.xi",
+                                              "core.xi",
+                                              "json.xi",
+                                              "kv.xi",
+                                              "policy.xi",
+                                              "unseal.xi",
+                                              "vault.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.1",
                          "name":  "xiom.vcf",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -7833,6 +8006,27 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vdf/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "vdf.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.video",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Core video container abstractions: format-agnostic demux/mux, a minimal RIFF/AVI proof container (LIST/chunks, idx1 index, stream headers), a raw elementary-stream round-trip, magic sniffing for avi/mkv/mp4/ogg and integer timebase/frame math; payloads stay opaque (no codecs)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-video/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "avi.xi",
+                                              "container.xi",
+                                              "raw.xi",
+                                              "store.xi",
+                                              "video.xi",
                                               "package.xi"
                                           ]
                      },
@@ -8338,19 +8532,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-audio-meta",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-audio-meta/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-aws",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8481,32 +8662,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-deep",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-deep/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-docker",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-docker/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-elastic",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8546,19 +8701,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-helm",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-helm/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-i2p",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8579,19 +8721,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-icu/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-inference",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-inference/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8644,19 +8773,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-llvm/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-ml",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ml/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
@@ -8754,32 +8870,6 @@
                      },
                      {
                          "version":  "0.1.0",
-                         "name":  "xiom-saml",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-saml/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-serverless",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-serverless/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
                          "name":  "xiom-terraform",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "",
@@ -8800,32 +8890,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-translate/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-vault",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vault/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-video",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-video/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]

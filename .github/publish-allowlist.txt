@@ -506,3 +506,13 @@ xiom.pptx
 xiom.xlsx
 xiom.image
 xiom.data
+xiom.deep
+xiom.ml
+xiom.saml
+xiom.helm
+xiom.audio-meta
+xiom.docker
+xiom.inference
+xiom.serverless
+xiom.video
+xiom.vault

@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-02T17:08:55+03:00
-# packages: 480  modules: 517
+# generated: 2026-10-02T19:22:51+03:00
+# packages: 490  modules: 551
 
 ## package names
 xiom.acpi
@@ -25,6 +25,7 @@ xiom.assimp
 xiom.ast
 xiom.astronomy
 xiom.au
+xiom.audio-meta
 xiom.audit
 xiom.auth
 xiom.autoscale
@@ -89,6 +90,7 @@ xiom.data
 xiom.db2
 xiom.dbase
 xiom.dds
+xiom.deep
 xiom.defi
 xiom.dhcp
 xiom.diagrams
@@ -99,6 +101,7 @@ xiom.directx11
 xiom.directx12
 xiom.discovery
 xiom.dns
+xiom.docker
 xiom.docx
 xiom.dotenv
 xiom.dtb
@@ -165,6 +168,7 @@ xiom.grpc
 xiom.hashchain
 xiom.hcl
 xiom.hello
+xiom.helm
 xiom.hid
 xiom.hl7
 xiom.hostfile
@@ -180,6 +184,7 @@ xiom.image
 xiom.imaging
 xiom.imap
 xiom.imgui
+xiom.inference
 xiom.ini
 xiom.inline-asm
 xiom.interrupt
@@ -249,6 +254,7 @@ xiom.mime
 xiom.miniaudio
 xiom.miniseed
 xiom.mkv
+xiom.ml
 xiom.mock
 xiom.modbus
 xiom.mongo
@@ -367,6 +373,7 @@ xiom.rpm
 xiom.rtc
 xiom.rtf
 xiom.safetensors
+xiom.saml
 xiom.sanitize
 xiom.sarif
 xiom.sbv
@@ -381,6 +388,7 @@ xiom.semaphore
 xiom.semver
 xiom.sensor
 xiom.sentiment
+xiom.serverless
 xiom.sgf
 xiom.signal
 xiom.smartcontract
@@ -457,8 +465,10 @@ xiom.useragent
 xiom.uuid
 xiom.validation
 xiom.varint
+xiom.vault
 xiom.vcf
 xiom.vdf
+xiom.video
 xiom.vma
 xiom.vtt
 xiom.vulkan
@@ -507,6 +517,9 @@ xiom.assimp
 xiom.ast
 xiom.astronomy
 xiom.au
+xiom.audio_meta
+xiom.audio_meta.chiptune
+xiom.audio_meta.trackers
 xiom.audit
 xiom.auth
 xiom.autoscale
@@ -573,6 +586,7 @@ xiom.data.order
 xiom.db2
 xiom.dbase
 xiom.dds
+xiom.deep
 xiom.defi
 xiom.dhcp
 xiom.diagrams
@@ -581,6 +595,11 @@ xiom.dimacs
 xiom.dimred
 xiom.discovery
 xiom.dns
+xiom.docker
+xiom.docker.compose
+xiom.docker.image
+xiom.docker.registry
+xiom.docker.resources
 xiom.docx
 xiom.dotenv
 xiom.dtb
@@ -663,6 +682,11 @@ xiom.grpc.types
 xiom.hashchain
 xiom.hcl
 xiom.hello
+xiom.helm
+xiom.helm.base
+xiom.helm.release
+xiom.helm.repo
+xiom.helm.tmpl
 xiom.hid
 xiom.hl7
 xiom.hostfile
@@ -685,6 +709,7 @@ xiom.id3
 xiom.image
 xiom.imaging
 xiom.imap
+xiom.inference
 xiom.ini
 xiom.inline.asm
 xiom.interrupt
@@ -751,6 +776,7 @@ xiom.midi
 xiom.mime
 xiom.miniseed
 xiom.mkv
+xiom.ml
 xiom.mock
 xiom.modbus
 xiom.mongo
@@ -862,6 +888,7 @@ xiom.rpm
 xiom.rtc
 xiom.rtf
 xiom.safetensors
+xiom.saml
 xiom.sanitize
 xiom.sarif
 xiom.sbv
@@ -878,6 +905,10 @@ xiom.sensor.fusion
 xiom.sensor.gps
 xiom.sensor.imu
 xiom.sentiment
+xiom.serverless
+xiom.serverless.check
+xiom.serverless.deploy
+xiom.serverless.invoke
 xiom.sgf
 xiom.signal
 xiom.smartcontract
@@ -970,8 +1001,21 @@ xiom.useragent
 xiom.uuid
 xiom.validation
 xiom.varint
+xiom.vault
+xiom.vault.auth
+xiom.vault.client
+xiom.vault.core
+xiom.vault.json
+xiom.vault.kv
+xiom.vault.policy
+xiom.vault.unseal
 xiom.vcf
 xiom.vdf
+xiom.video
+xiom.video.avi
+xiom.video.container
+xiom.video.raw
+xiom.video.store
 xiom.vma.safe
 xiom.vtt
 xiom.vulkan.constants

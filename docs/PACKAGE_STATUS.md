@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.62.2` -- generated 2026-10-02T14:08:53Z.
+Toolchain pin: `v0.62.2` -- generated 2026-10-02T16:22:49Z.
 
 ## Summary
 
-- packages tracked: 480
-- incubating: 200
+- packages tracked: 490
+- incubating: 210
 - ported: 4
 - stable: 276
 - publish enabled: 0
@@ -317,6 +317,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.arrow | xiom-arrow | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.assimp | xiom-assimp | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.ast | xiom-ast | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
+| xiom.audio-meta | xiom-audio-meta | incubating | tests/test_conformance.xi | pass 25/25 | bf525d98 | False | publish pending: next scope delta |
 | xiom.auth | xiom-auth | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
 | xiom.autoscale | xiom-autoscale | incubating | tests/test_conformance.xi | pass 21/21 | 90ac95f | False | publish pending: next scope delta |
 | xiom.aviation | xiom-aviation | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
@@ -348,12 +349,14 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.dac | xiom-dac | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.data | xiom-data | incubating | tests/test_conformance.xi | pass 24/24 | 546b9bac | False | publish pending: next scope delta |
 | xiom.db2 | xiom-db2 | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
+| xiom.deep | xiom-deep | incubating | tests/test_conformance.xi | pass 24/24 | 6d6c8cd9 | False | publish pending: next scope delta |
 | xiom.defi | xiom-defi | incubating | tests/test_conformance.xi | pass 28/28 | 87d58c6 | False | publish pending: next scope delta |
 | xiom.diagrams | xiom-diagrams | incubating | tests/test_conformance.xi | pass 34/34 | 984fc2f | False | publish pending: next scope delta |
 | xiom.dimred | xiom-dimred | incubating | tests/test_conformance.xi | pass 28/28 | 984fc2f | False | publish pending: next scope delta |
 | xiom.directx11 | xiom-directx11 | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.directx12 | xiom-directx12 | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.discovery | xiom-discovery | incubating | tests/test_conformance.xi | pass 22/22 | 69b768e | False | publish pending: next scope delta |
+| xiom.docker | xiom-docker | incubating | tests/test_conformance.xi | pass 26/26 | ee890e25 | False | publish pending: next scope delta |
 | xiom.docx | xiom-docx | incubating | tests/test_conformance.xi | pass 27/27 | 99c005e3 | False | publish pending: next scope delta |
 | xiom.durable | xiom-durable | incubating | tests/test_conformance.xi | unknown |  | False | renamed from xiom.core (namespace audit, owner-confirmed 2026-09-23); port to current stdlib pending |
 | xiom.dxc | xiom-dxc | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -385,11 +388,13 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.grpc | xiom-grpc | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.hashchain | xiom-hashchain | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.hello | xiom-hello | incubating | tests/test_hello.xi | pass 4/4 | 984fc2f | False |  |
+| xiom.helm | xiom-helm | incubating | tests/test_conformance.xi | pass 23/23 | c1709e9b | False | publish pending: next scope delta |
 | xiom.http | xiom-http | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.i2c | xiom-i2c | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.image | xiom-image | incubating | tests/test_conformance.xi | pass 24/24 | 6f07e57b | False | publish pending: next scope delta |
 | xiom.imaging | xiom-imaging | incubating | tests/test_conformance.xi | pass 22/22 | 2d7a1b4 | False | publish pending: next scope delta |
 | xiom.imgui | xiom-imgui | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.inference | xiom-inference | incubating | tests/test_conformance.xi | pass 28/28 | 27a0a7ee | False | publish pending: next scope delta |
 | xiom.interrupt | xiom-interrupt | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.itest | xiom-itest | incubating | tests/test_conformance.xi | pass 24/24 | 110d3bb | False | publish pending: next scope delta |
 | xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -428,6 +433,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.micro | xiom-micro | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.microscopy | xiom-microscopy | incubating | tests/test_conformance.xi | pass 24/24 | d475ef4 | False | publish pending: next scope delta |
 | xiom.miniaudio | xiom-miniaudio | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.ml | xiom-ml | incubating | tests/test_conformance.xi | pass 18/18 | 6a19ce99 | False | publish pending: next scope delta |
 | xiom.mock | xiom-mock | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.mongo | xiom-mongo | incubating | tests/test_conformance.xi | pass 23/23 | 984fc2f | False | publish pending: next scope delta |
 | xiom.monitoring | xiom-monitoring | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
@@ -470,10 +476,12 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.redis | xiom-redis | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
 | xiom.rest | xiom-rest | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.ros2 | xiom-ros2 | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
+| xiom.saml | xiom-saml | incubating | tests/test_conformance.xi | pass 28/28 | c1cd84f8 | False | publish pending: next scope delta |
 | xiom.scipy | xiom-scipy | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.sdl3 | xiom-sdl3 | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.sectest | xiom-sectest | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.semaphore | xiom-semaphore | incubating | tests/test_conformance.xi | pass 23/23 | 984fc2f | False | publish pending: next scope delta |
+| xiom.serverless | xiom-serverless | incubating | tests/test_conformance.xi | pass 23/23 | 628a9502 | False | publish pending: next scope delta |
 | xiom.smartcontract | xiom-smartcontract | incubating | tests/test_conformance.xi | pass 22/22 | d9ea723 | False | publish pending: next scope delta |
 | xiom.sql | xiom-sql | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: stub body |
 | xiom.sqlite | xiom-sqlite | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
@@ -494,6 +502,8 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.torch | xiom-torch | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.training | xiom-training | incubating | tests/test_conformance.xi | pass 26/26 | e4e2b956 | False | publish pending: next scope delta |
 | xiom.ui | xiom-ui | incubating | tests/test_conformance.xi | pass 98/98 | 984fc2f | False |  |
+| xiom.vault | xiom-vault | incubating | tests/test_conformance.xi | pass 28/28 | 29f9419f | False | publish pending: next scope delta |
+| xiom.video | xiom-video | incubating | tests/test_conformance.xi | pass 24/24 | e23f8e3a | False | publish pending: next scope delta |
 | xiom.vma | xiom-vma | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.wallet | xiom-wallet | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
