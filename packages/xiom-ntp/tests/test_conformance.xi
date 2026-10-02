@@ -331,7 +331,7 @@ fn t6() -> TestResult {
   bp.precision = 127;
   let r2 = ntp_encode(&bp);
   if !r2.is_ok { ok = false; } else {
-    let b2: Vec<UInt8> = r2.value;
+    let b2: Vec[UInt8] = r2.value;
     if ((b2[2] as Int) & 0xFF) != 127 { ok = false; }
     if ((b2[3] as Int) & 0xFF) != 127 { ok = false; }
   }
@@ -363,7 +363,7 @@ fn t6() -> TestResult {
   bp.root_delay = 2147483647;
   let r5 = ntp_encode(&bp);
   if !r5.is_ok { ok = false; } else {
-    let b5: Vec<UInt8> = r5.value;
+    let b5: Vec[UInt8] = r5.value;
     if ((b5[4] as Int) & 0xFF) != 127 { ok = false; }
     let d5 = ntp_decode(&b5);
     if !d5.is_ok { ok = false; } else {
@@ -380,7 +380,7 @@ fn t7() -> TestResult {
   bp.reference_id = 4294967295;
   let r1 = ntp_encode(&bp);
   if !r1.is_ok { return assert(false, "max unsigned fields must encode"); }
-  let b1: Vec<UInt8> = r1.value;
+  let b1: Vec[UInt8] = r1.value;
   var ok = ((b1[8] as Int) & 0xFF) == 255;
   if ((b1[11] as Int) & 0xFF) != 255 { ok = false; }
   if ((b1[12] as Int) & 0xFF) != 255 { ok = false; }
@@ -414,7 +414,7 @@ fn t8() -> TestResult {
   let r1 = ntp_encode(&bp);
   var ok = r1.is_ok;
   if r1.is_ok {
-    let b1: Vec<UInt8> = r1.value;
+    let b1: Vec[UInt8] = r1.value;
     if ((b1[1] as Int) & 0xFF) != 255 { ok = false; }
   }
   bp.stratum = 256;
@@ -440,7 +440,7 @@ fn t9() -> TestResult {
   bp.origin = ts(0, 1);
   let r1 = ntp_encode(&bp);
   if !r1.is_ok { return assert(false, "timestamp boundaries must encode"); }
-  let b1: Vec<UInt8> = r1.value;
+  let b1: Vec[UInt8] = r1.value;
   var ok = ((b1[40] as Int) & 0xFF) == 255;
   if ((b1[47] as Int) & 0xFF) != 255 { ok = false; }
   let d1 = ntp_decode(&b1);
@@ -472,7 +472,7 @@ fn t10() -> TestResult {
   let bp = base_packet();
   let er = ntp_encode(&bp);
   if !er.is_ok { ok = false; } else {
-    let out: Vec<UInt8> = er.value;
+    let out: Vec[UInt8] = er.value;
     var k = 16;
     while k < 48 {
       if ((out[k] as Int) & 0xFF) != 0 { ok = false; }

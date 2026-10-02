@@ -1,6 +1,6 @@
 # xiom.ntp
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM NTPv4 packet codec (RFC 5905 subset): 48-byte
 > encode/decode, version/mode validation, integer-only 32.32 timestamp
 > math, and offset/delay helpers in whole microseconds.
