@@ -5,6 +5,35 @@ reported the issue "not reproducible" from a source-built v0.62.2 driver.
 These are the precise conditions of every observation, so the same
 environment can be reconstructed.
 
+## UPDATE 2026-10-02 (supersedes the hypotheses below)
+
+The compiler lane re-ran both suites and could not reproduce; the packages
+lane re-ran them on the same machine:
+
+- `xiom.expat`: **25/25 PASS, 20.0 s**, `port.ps1 -TimeoutSec 60`.
+- `xiom.nbt`: **26/26 PASS, 21.3 s** (including t5).
+
+Root cause: **the fleet-sweep harness, not the compiler.**
+`fleet-sweep.ps1` ran 4 chunks in parallel and each chunk executed
+`Get-Process a | Stop-Process -Force` after EVERY package -- that kills any
+in-flight `a.exe`, including another chunk's suite. The killed child makes
+the driver report `exit code: -1`, and its buffered stdout is lost.
+
+Supporting facts:
+
+- The `-1` in the sweep logs is the driver's own line; a green run prints
+  `exit code: 0` in the same position. port.ps1 does not print that string.
+- The sweep-time port.ps1 (`f1d34ff6`) already printed
+  `TIMEOUT after ... -- runaway suite killed` on a watchdog hit; none of the
+  four logs contains it, so no watchdog fired.
+- The "flushed variant" passing is explained by it running serially (no
+  sibling chunk killing `a.exe`), not necessarily by the flushes.
+- The nbt `t5` FAIL in the manual flushed run is not explained by the race
+  (the process printed all lines); t5 is green now; watch only.
+
+No compiler action needed for this item. The hypotheses below are kept for
+history.
+
 ## Platform and binaries (the likely differentiator)
 
 - **OS:** Windows x64 (the packages lane runs only on Windows, PowerShell 5.1).

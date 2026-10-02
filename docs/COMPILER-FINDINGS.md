@@ -13,7 +13,9 @@ compiler session triages. Format: `| Date | Finding | Evidence | Workaround in p
 |---|---|---|---|---|
 | 2026-09-26 | `&mut Int` write-through miscompiles: assignments to a `&mut Int` parameter do not reach the caller | `xiom-upnp/src/upnp.xi` `_version_parts` (fixed): callers kept `-1` after the callee wrote the value; documented independently in `xiom-optimizer` ("the v0.61.3 `&mut Int` calling convention miscompiles simple write-through") | return a plain struct by value (`VersionParts`); `xiom-gbnf` uses `*pos = *pos + 1` deref writes (works there, not in upnp) | silent wrong values; one package already shipped this pattern and needed a rewrite | 
 | 2026-09-26 | Loop-carried CSE miscompile: a value derived from a loop variable reuses the first iteration's result | `xiom-amqp/src/amqp.xi:1266` (documented): `ends.push(pos + 4 + sub_len)` returned the first container's end offset in the second iteration, so any two field-tables/arrays in one parent failed `bad table`/`bad array`; found by byte-level bisection | recursive per-container decode function instead of a loop-carried stack | silent wrong offsets; hard to diagnose | 
-| 2026-09-25 | Mixed-bracket typos compile silently: `Vec<UInt8>`, `Vec<UInt8]`, `Result<Int]` are accepted | every wave: the file-write tooling reintroduced them (`gif` 16 sites, `mp3`, `flac`, `jpeg`, `sd` 7 sites, `nats` 18 sites, `mongo` 2 authoring waves, `tor` 6 sites, `wireless` 9 test signatures) | mandatory `Select-String 'Vec<|Result<'` after every write and after green | shape-only; hides real corruption risk | 
+| 2026-09-25 | Mixed-bracket typos compile silently: `Vec<UInt8>`, `Vec<UInt8]`, `Result<Int]` are accepted | every wave: the file-write tooling reintroduced them (`gif` 16 sites, `mp3`, `flac`, `jpeg`, `sd` 7 sites, `nats` 18 sites, `mongo` 2 authoring waves, `tor` 6 sites, `wireless` 9 test signatures); wave 48/49: `docx` 8 in PARAMETER positions, `pptx` 1, `image` 2, `audio-meta` 6 -- and WIDENED: fully angle-bracket `&Vec<UInt8>` in parameter positions also compiles silently (`video`, 7 sites); all caught only by the post-green literal grep | mandatory `Select-String 'Vec<|Result<'` after every write and after green | shape-only; hides real corruption risk |
+| 2026-10-02 | A package child module cannot import or call its direct parent module (`module probe.x4.y` + `use probe.x4;` + `hello4()` -> `T001: undefined variable 'hello4'`); sibling and parent->child imports work. Module-qualified FUNCTION calls on the alias are misparsed as method calls (`cannot call 'X' on this expression`); qualified constants work | corroborated by three wave-49 lanes: `helm` (workaround: shared primitives in sibling `xiom.helm.base`), `docker` (minimal probe above; layout moved to sibling `xiom.docker.image`), `vault` (`use xiom.vault as v;` fails identically) | put shared primitives in a SIBLING module; call imported functions unqualified | structural: forces a flat sibling layout; costs a refactor per multi-module package |
+| 2026-10-02 | Nominal type identity with module qualification: a helper signature `Result[saml.XmlDoc, Str]` does not match a value of type `Result[XmlDoc, Str]` returned by the library (T001 at every call site) | `xiom.saml` (found while building the XML-DSig layer) | unqualified type names after `use xiom.saml;` | compile errors only; no silent behavior, but confusing |
 | 2026-10-02 | Type laxness beyond brackets: binding a `Str` struct field into a `Vec[UInt8]`-typed local (`let gb: Vec[UInt8] = got.value;`) compiles with zero diagnostics and produces wrong bytes at run time | `xiom.pptx` (found while writing the ZIP reader; the suite went green and a later byte comparison exposed it) | keep explicit types on every cross-value binding; unit-test byte round-trips; the post-green bracket grep does NOT catch this shape | silent wrong code -- same family as arity/mixed-bracket laxness |
 | 2026-10-02 | Stdlib `xiom.crypto.hash._u64_lshr`/`_u64_shr(x, 63)` is wrong when `x` has bit 63 set: it divides by `_pow2(63)` = `Int64_MIN` (negative), so the quotient flips sign and the floor adjustment is skipped (`Int64_MIN` -> 3 instead of 1) | `xiom.web3`: Keccak-256 diverged only for absorbed lanes equal to `0x8000000000000000` (empty/`abc`/`eth` failed; fox/hello/long inputs passed); localized by tracing theta vs a Python oracle to `rotl(C[1], 1)` | special-case `n == 63` in the in-package copy; do not reuse the helper as a general idiom | stdlib-side defect; stdlib callers never shift by 63 (SHA-512/BLAKE2b unaffected) |
 | 2026-09-26 | No `Vec[Float64]`; no `Int <-> Float64` bitcast in v0.61.3 | `xiom-avro`, `xiom-mkv`, `xiom-amqp` docs; scalar `Float64` works | float/double exposed as raw LE octets; EBML floats decoded as integer milli-units | blocks float-bearing formats from full fidelity (see `docs/STDLIB-WISHLIST.md` `xiom.float`) | 
@@ -278,8 +280,54 @@ strict clauses on):
     `port.ps1` remain authoritative. `namespace-check.ps1` counts any
     `.xi` under the package tree as a module (a scratch probe file
     inflated the count once).
-  - Deflate/ZIP porting note: block headers and length/distance extra
-    bits are LSB-first while Huffman codes are MSB-first; one shared
+  - Deflate/ZIP porting note: block headers and length/distance extra bits
+    are LSB-first while Huffman codes are MSB-first; one shared
     accumulator silently mis-inflates.
+- 2026-10-02: **expat/nbt silent `-1` ROOT-CAUSED to the sweep harness --
+  withdrawn as a compiler issue.** The compiler lane could not reproduce
+  (deployed v0.62.2, both stdlib checkouts); the packages lane re-ran both
+  on the same machine and they are green (`expat` 25/25 in 20.0 s, `nbt`
+  26/26 in 21.3 s incl. t5). Cause: `fleet-sweep.ps1` ran 4 chunks in
+  parallel and every chunk executed `Get-Process a | Stop-Process -Force`
+  after each package, killing other chunks' in-flight `a.exe`; the driver
+  then reports `exit code: -1` and the child's buffered stdout is lost. The
+  `-1` in the sweep logs is the driver's line (a green run prints
+  `exit code: 0` there); the sweep-time port.ps1 (`f1d34ff6`) already
+  printed `TIMEOUT after ...` on a watchdog hit and none of the four logs
+  contains it. The "flushed variant" passing is explained by running
+  serially. Details: `docs/repro/v0622-regressions/HARNESS-NOTES.md`
+  (UPDATE section). nbt t5 is green now; watch only.
+- 2026-10-02: **wave-49 evidence (10 packages on v0.62.2: `deep`, `ml`,
+  `saml`, `helm`, `audio-meta`, `docker`, `inference`, `serverless`,
+  `video`, `vault`; 6 task + 4 AM lanes, all double-verified; two task
+  lanes first aborted silently and passed on a `variant: low` files-first
+  retry).** New findings:
+  - **Child module importing its direct parent (T001)** -- minimal repro
+    and cross-lane corroboration; Open findings row added. Also
+    module-qualified FUNCTION calls misparse as method calls; qualified
+    constants work.
+  - **Nominal type identity with module qualification** (`saml`):
+    `Result[saml.XmlDoc, Str]` != `Result[XmlDoc, Str]`; Open findings row
+    added.
+  - **Trap-14 family widened:** fully angle-bracket `&Vec<UInt8>` in
+    parameter positions compiles silently (`video`, 7 sites post-green);
+    mixed brackets recurred in `docx` (8), `audio-meta` (6), `image` (2),
+    `pptx` (1).
+  - **Arity enforcement re-confirmed firing** (`ml` test code rejected a
+    3-arg call with `T001 ... expects N argument(s)`), consistent with the
+    v0.62.0 fix.
+  - **`--emit-ir` cannot resolve package-sibling modules** (`video`:
+    `store.xi` alone reports `VideoStream`/constants undefined; `data`
+    `batch.xi` reproduces) -- `port.ps1 -NoRun` is not a valid gate for
+    multi-module packages; the `--run` graph resolves imports fine.
+  - `var b = a; b[i] = ...` mutates `a`'s buffer (Vec handle aliasing
+    reconfirmed, `video`).
+  - MCP notes: `xiom_compile_and_analyze` lacks `XIOM_STDLIB` (all stdlib
+    symbols reported undefined) and compiles modules standalone without
+    package context; `port.ps1` remains authoritative.
+  - Positive: `&mut Struct` params + nested `&mut` forwarding work;
+    cross-module direct field access on `pub type`s works; intra-package
+    `use` resolves via the manifest `modules:` list; local `Vec[Str]`
+    pushes inside struct fields work.
 
 
