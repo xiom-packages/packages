@@ -43,6 +43,9 @@ stale.
    schedule a check for its dependents (`deps:` in `package.xi`).
 5. **Opportunistic**: any package touched for a fix rides the next batch
    (patch bump, re-run, re-record).
+6. **Promotion to stable** (owner-approved 2026-10-02): apply the gate in
+   `docs/PROMOTION.md` -- contracts mandatory; runs after Tier-2
+   maintenance and README sync, before growth.
 
 ## Compiler-release triage (2026-10-02, owner-approved)
 
@@ -72,6 +75,8 @@ Rules:
   `Get-Process a | Stop-Process`; clean shadow stdlib worktrees and
   stale `%TEMP%\kilo\stdlib-rel` copies before sweeping; serialize or
   isolate chunk temp outputs.
+- **Program order:** Tier-2 maintenance > README `Status` sync >
+  promotion waves (`docs/PROMOTION.md`) > growth.
 
 ## Workaround registry (retirement candidates)
 

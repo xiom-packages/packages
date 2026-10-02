@@ -52,7 +52,10 @@ before starting.
   blocks for the 351 names; category harmonization (`phaser`/
   `parser-fw`/`jit-fw` shipped unknown category tokens -> registry
   `categories: []`); keep the `-TimeoutSec 60` watchdog. When the
-  compiler release lands, the Tier-2 maintenance wave outranks growth.
+  compiler release lands, the Tier-2 maintenance wave outranks growth;
+  the promotion program is approved (`docs/PROMOTION.md`: contracts
+  mandatory for stable; order = Tier-2 > README sync > promotion >
+  growth).
 
 ### Next-session operating kit (wave pipeline -- proven 6x)
 
@@ -146,7 +149,9 @@ Then do, in order:
    sweep + 10-lane workaround-retirement wave -- it outranks growth.
    Crypto fix-first repro packet: `docs/repro/crypto-link/`. Never
    retire a workaround without the probe flipping RED -> GREEN + port
-   x2 + record.
+   x2 + record. After Tier-2 maintenance and the README sync, run
+   PROMOTION waves per `docs/PROMOTION.md` (contracts mandatory for
+   stable; ported four first); growth is last.
 3. Wrap + publish per the operating kit (tag eco-v0.1.33 when there is
    a batch): ops scope ask, allowlist, regenerate, validate+guard,
    approve the gate, verify live. Rerun-failed + re-approve on
@@ -154,7 +159,8 @@ Then do, in order:
    opened a window (waves >20).
 4. Carry-forwards: compiler hotfix watch (open v0.62.2 issues + repros
    in docs/repro/); README Status-block sync for the 351 names; category
-   harmonization owner decision; at every wave append worker
+   harmonization owner decision; promotion program (`docs/PROMOTION.md`,
+   contracts mandatory for stable); at every wave append worker
    `stdlib gaps` / compiler evidence; keep the port watchdog discipline;
    update SESSION.md at the wrap with a fresh paste prompt.
 ```
