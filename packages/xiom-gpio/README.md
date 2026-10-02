@@ -1,6 +1,6 @@
 # xiom.gpio
 
-> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.2` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (21/21); published at `v0.1.3` on the XIOM registry.
 > **Scope:** pure-XIOM structure codec for the Linux GPIO character-device
 > uAPI v2 (`include/uapi/linux/gpio.h`): `gpiochip_info`, the v2 line flags,
 > attributes, config, line info, line requests, line events and the

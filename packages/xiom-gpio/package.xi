@@ -10,9 +10,9 @@
 
 package xiom_gpio {
   name: "xiom.gpio";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Linux GPIO character-device uAPI (v2) structure codec: chip info, line info, requests and events";
-  categories: ["protocol"];
+  categories: ["systems"];
   keywords: ["gpio", "linux", "chardev", "uapi", "embedded"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
