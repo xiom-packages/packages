@@ -248,7 +248,7 @@ pub fn midi_varlen(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str] {
 /// length extends past the end of `data`;
 /// Err("midi: track count mismatch") when the walked count differs from the
 /// header field. Zero-length chunks and zero declared tracks are valid.
-pub fn midi_track_chunks(data: &Vec<UInt8>) -> Result[MidiTracks, Str] {
+pub fn midi_track_chunks(data: &Vec[UInt8]) -> Result[MidiTracks, Str] {
   let k = _header_kind(data);
   if k == 1 {
     return _err_tracks("midi: truncated header");
