@@ -269,7 +269,7 @@ fn _push_octal(out: &mut Vec[UInt8], v: Int, digits: Int) {
 // checksum[8] (6 octal digits + NUL + space), typeflag '0', linkname[100],
 // magic "ustar\0", version "00", uname[32], gname[32], devmajor[8],
 // devminor[8] (zeroed octal fields), prefix[155], pad[12].
-fn _write_header(out: &mut Vec<UInt8>, name: Str, size: Int) {
+fn _write_header(out: &mut Vec[UInt8], name: Str, size: Int) {
   let base = out.len();
   var i = 0;
   while i < 100 {

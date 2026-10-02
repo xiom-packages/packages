@@ -149,7 +149,7 @@ fn set_checksum(v: &mut Vec[UInt8], base: Int) {
 }
 
 // Independent octal reader for pinned-field checks (skips NUL/space).
-fn read_octal(v: &Vec<UInt8>, off: Int, len: Int) -> Int {
+fn read_octal(v: &Vec[UInt8], off: Int, len: Int) -> Int {
   var value = 0;
   var i = 0;
   while i < len {
@@ -266,7 +266,7 @@ fn mk_header(name: Str, mode: Int, size: Int, mtime: Int, tflag: Int, prefix_str
 }
 
 // Header + payload padded to a 512-byte boundary.
-fn entry(hdr: Vec<UInt8>, payload: Vec<UInt8>) -> Vec<UInt8> {
+fn entry(hdr: Vec[UInt8], payload: Vec[UInt8]) -> Vec[UInt8] {
   var out = Vec[UInt8].new();
   var i = 0;
   while i < hdr.len() {

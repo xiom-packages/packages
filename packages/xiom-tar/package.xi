@@ -11,7 +11,7 @@
 
 package xiom_tar {
   name: "xiom.tar";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "POSIX ustar archive codec: parse and build uncompressed tar files";
   categories: ["data","tooling"];
   keywords: ["tar","ustar","archive","codec"];
