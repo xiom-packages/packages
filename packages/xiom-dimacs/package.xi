@@ -9,9 +9,9 @@
 
 package xiom_dimacs {
   name: "xiom.dimacs";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "DIMACS CNF parsing and canonical emission with strict validation";
-  categories: ["safety"];
+  categories: ["science"];
   keywords: ["dimacs", "cnf", "sat", "format"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
