@@ -98,6 +98,9 @@ it, and whether the fix has landed on the pin.
 | Hand-rolled SHA-256/HMAC | `use xiom.crypto; crypto.sha256_hex(&abc)` | `aws`, `saml` | OPEN (stdlib link failure: `undefined symbol: xiom_sha256_hash`) |
 | In-package `_u64_lshr` `n == 63` special case | COMPILER-FINDINGS row (Keccak KAT) | `web3` | OPEN (stdlib defect) |
 | Stored+fixed fallback inflater (dynamic-Huffman read limit) | deflate round-trip KATs | `docx`, `pptx`, `xlsx` | OPEN (stdlib capability gap) |
+| No enum payload mutation through match bindings (silent drop) | COMPILER-FINDINGS row (`json`) | `json`; enum-heavy packages | rebuild payload + `*obj = ...` | OPEN (silent no-op) |
+| No `derive[Clone]` on aggregate-payload types (clone corrupts; crash) | COMPILER-FINDINGS row (`json`, `0xC000001D`) | `json`; any aggregate type | explicit deep-clone functions (`json_clone`) | OPEN (memory-unsafe crash) |
+| Contract verification is review-only for record-heavy packages | `xiom-verify --check` output + isolation probes | `json`, `control`, `sensor` promotion candidates | single `&&` requires; solver-unproven documented in SPEC | OPEN (tooling encoding gaps) |
 
 ## Cadence rules
 
