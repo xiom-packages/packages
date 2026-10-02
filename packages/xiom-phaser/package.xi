@@ -11,9 +11,9 @@
 
 package xiom_phaser {
   name: "xiom.phaser";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Multi-party phaser as a deterministic state machine (dynamic registration, phase advancement hooks, termination, tiered phasers)";
-  categories: ["concurrent"];
+  categories: ["concurrency"];
   keywords: ["phaser", "concurrency", "synchronization", "phase", "barrier"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
