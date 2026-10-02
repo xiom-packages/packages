@@ -227,6 +227,12 @@ strict clauses on):
     `let v = byval(s); s = v;` variant also drops the write (`st=10,
     st2=10` vs expected `11, 12`), and `&mut Vec` writes at the same
     call sites are unaffected.
+  - **Narrowing (wave 47, `xiom.tensor`/`xiom.autoscale` probes):** the
+    defect is **scalar `&mut Int` parameters only** -- `&mut Struct`
+    FIELD writes DO propagate correctly at the same call sites
+    (verified with throwaway probes in two packages). Design guidance
+    meanwhile: thread scalar state through return values; struct
+    out-params are safe.
 - 2026-10-01: **`Vec[Str].push` trigger isolated -- MODULE-LEVEL global
   `Vec[Str]`.** A local `Vec[Str]` with the same literal pushes compiles
   and runs correctly; a module-level `var v: Vec[Str] = Vec[Str].new();`

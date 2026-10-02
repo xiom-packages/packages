@@ -3,14 +3,52 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-01 (late), by the packages session (wave 46 built,
-integrated and published with the pending `sectest`/`mock`/`pwm`;
-fourth v0.62.2 compiler finding filed; growth docs appended). Check
-`git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-02 (midday), by the packages session (wave 47
+built, integrated and published; `&mut Int` narrowing filed; growth
+docs appended). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-01 23:00Z (read this first):**
+**STATE AT 2026-10-02 12:45Z (read this first):**
+- **Wave 47 COMPLETE + PUBLISHED (`eco-v0.1.28`):** all 10 --
+  `activation` 24/24, `neural` 21/21, `tensor` 29/29, `analyzer` 23/23,
+  `autoscale` 21/21, `context` 23/23, `metadata` 28/28, `imaging` 22/22,
+  `text-markup` 26/26, `microscopy` 24/24 -- built on v0.62.2 by 6 task
+  + 4 AM lanes, port x2 + trap-14 verified, records `incubating`;
+  allowlist **445 -> 455**. (`text-markup` shipped two `Vec<UInt8>`
+  mixed brackets that the trap-14 grep caught -- fixed to `Vec[UInt8]`
+  and re-gated before integration.)
+- **Current gates/state:** `validate` **470/0**; guard **455
+  allowlisted / 406 ready / 49 grandfathered / 0 failures**; registry
+  **406 packages + 2 infra = 408 entries**; allowlist **455**; all
+  pushed (wave-47 publish run green/confirmed 10/10 live).
+- **Compiler finding narrowed:** the `&mut Int` write-drop is
+  **scalar-parameter-only** -- `&mut Struct` FIELD writes propagate
+  correctly (probed in `tensor` and `autoscale`). Keep threading scalar
+  state via returns; struct out-params are safe.
+- **Open compiler issues (with the compiler lane):** `nbt`/`expat`
+  silent exit -1 (queued first), `Vec[Str].push` global-Vec mis-lower,
+  `&mut Int` write-drop. All repros pinned in
+  `docs/repro/v0622-regressions/`.
+- **Session-recovery pattern (repeatable):** output-limit crashes ->
+  stop the AM session and re-dispatch as a `task` with
+  `variant: low` + files-first directive (worked 5x now).
+- **New stdlib rows (wave 47):** `xiom.math.fixed` transcendentals,
+  exact-sum softmax, bit-set dataflow primitives, borrowed Str views,
+  dependency-free `Vec[UInt8]`->`Str` builder, `Vec.pop` ergonomics.
+- **Follow-ups:** four v0.62.2 issues with the compiler lane; README
+  `Status` blocks for the 351 README-refresh names still lag one patch;
+  category harmonization owner-decided; keep the `-TimeoutSec 60`
+  watchdog; wave-48 candidates from the remaining pure-XIOM backlog:
+  `climate`, `nuclear`, `training`, `aac`-siblings skipped (codecs),
+  `image`-codec siblings, `consul`-style models (overlap discovery --
+  pick carefully), `icu`/`l10n-unicode` (table-heavy, watch const-array
+  materialization), `docx`/`pptx`/`xlsx` (only if deflate exists in
+  stdlib), `web3`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-01 23:00Z (history):**
 - **Wave 46 COMPLETE + PUBLISHED (`eco-v0.1.27`):** 10 new + the pending
   3 = 13 names: `chaincore` 24/24, `chaincrypto` 19/19, `defi` 28/28,
   `exchanger` 24/24, `geom3d` 27/27, `svm` 23/23, `nft` 20/20,

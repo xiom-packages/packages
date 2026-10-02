@@ -114,6 +114,12 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-10-01 | `Vec[Int]`/typed-vector copy helper (no `Vec.clone`) | `exchanger`, `chaincrypto`, `actor`, `itest` | `_copy_ints` loops | open |
 | 2026-10-01 | Linear interpolation over an ordered (tick, value) table | `materials` (temperature scaling), `discovery` | index-walk loops | open |
 | 2026-10-01 | Group-by-key fold with running aggregate (OHLCV-style buckets, top-N depth) | `exchanger` (candles, depth), `stats-ml` (bins) | `_xchg_candles`/`_xchg_depth_side` | open |
+| 2026-10-02 | `xiom.math.fixed`: integer/fixed-point transcendentals (`exp`, `sigmoid`, `tanh`, `softmax`) with documented error bounds | `activation`, `neural`, `boosting`, `ensemble`, `inference` (every ML package re-rolls them) | local rational/exp-identity approximations | open |
+| 2026-10-02 | Fixed-point softmax normalize-to-exact-sum utility (floor + residue-to-max rule) | `activation`, `neural` | per-package floor/residue loops | open |
+| 2026-10-02 | Bit-set union/intersection/subset over integer sets for dataflow fixes | `analyzer` (dominators/liveness), `compiler-ish` packages | flat 0/1 `Vec[Int]` matrices, O(n^2) memory | open |
+| 2026-10-02 | Borrowed `Str` slice/view type (allocation-free substring) | `context` (hot lookups allocate per `str_slice`), `parsing`, `diagrams` | `str_slice` copies (malloc per call) | open |
+| 2026-10-02 | Dependency-free `Vec[UInt8]` -> `Str` builder (no FFI malloc/memcpy path) | `text-markup` (canonical emitter), `context`, `encoder` packages | `Str` concatenation (quadratic) or FFI-backed builder | open |
+| 2026-10-02 | `Vec[T].pop()` Option discipline ergonomics: element-returning `last`/`peek` without `match` | `analyzer` (stacks/queues), `chaincore`, `formatter-fw` | index cursors (`sp`/`head`) over append-only Vecs | open |
 
 ## Compiler-shaped requests routed to `docs/COMPILER-FINDINGS.md`
 
@@ -225,3 +231,13 @@ unit that would consume the fix.
   copy, table interpolation, group-by-key folds. Compiler side: the
   fourth v0.62.2 finding (`&mut Int` write drop) recorded in
   `docs/COMPILER-FINDINGS.md`.
+- 2026-10-02: wave-47 reports appended (all 10: `activation`, `neural`,
+  `tensor`, `analyzer`, `autoscale`, `context`, `metadata`, `imaging`,
+  `text-markup`, `microscopy`; 6 task + 4 AM lanes, all port x2 +
+  trap-14 verified -- `text-markup` had two `Vec<UInt8>` mixed-bracket
+  spellings fixed and re-gated; records `incubating`, published in
+  `eco-v0.1.28`). New rows: `xiom.math.fixed` transcendentals, exact-sum
+  softmax helper, bit-set dataflow primitives, borrowed Str views,
+  dependency-free `Vec[UInt8]`->`Str` builder, `Vec.pop` ergonomics.
+  Compiler side: `&mut Int` narrowing (`&mut Struct` field writes DO
+  propagate) added to the findings.
