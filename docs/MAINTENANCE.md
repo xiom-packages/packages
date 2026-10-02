@@ -35,7 +35,10 @@ stale.
    that allowlist and stacks sets match exactly. After every publish
    batch, sync the published names' README `Status` blocks (stage +
    published version) -- README text is a build-time snapshot and lags
-   the records/registry otherwise. **Registry ruling (2026-09-29): no
+   the records/registry otherwise. **Verify with a README-vs-manifest
+   version pair scan after each batch** (baseline 2026-10-02: 445/445
+   pairs match after the wave-53 sync; the missed sync caused that
+   442-README cleanup). **Registry ruling (2026-09-29): no
    version-less metadata refresh; stale registry pages are fixed by
    chunked patch-bump republishes (~50/batch, staging first, ops
    supports the rate window).**
@@ -148,7 +151,12 @@ it, and whether the fix has landed on the pin.
   at the next compiler release; fixes to the Open rows in
   `docs/COMPILER-FINDINGS.md` trigger a Tier-2 maintenance wave, and the
   `byte-at-128` battery gates the first retirement.
-- Stage/README hygiene: README `Status` blocks still lag (~351 names);
-  category harmonization owner-decided; the registry ruling (no
+- Stage/README hygiene: repo-side README `Status` sync COMPLETE
+  (wave-53: 442 READMEs canonicalized, 445/445 version pairs match;
+  unpublished four normalized to `not yet published`). Registry PAGES
+  still embed the pre-sync README until a package is republished --
+  fold page refreshes into promotion/Tier-2 batches, or the owner may
+  schedule a chunked patch-bump republish program; category
+  harmonization owner-decided; the registry ruling (no
   version-less metadata refresh; chunked patch-bump republishes behind
   an ops rate window) stands.
