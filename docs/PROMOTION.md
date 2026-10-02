@@ -84,6 +84,20 @@ Verification evidence:
   -Stage stable` + republish. The registry ruling stands: **no
   version-less metadata refresh** -- the badge moves on a real publish.
 
+## Grandfathering (the existing stable set)
+
+The 276 records already marked `stable` predate this gate (they were
+promoted by earlier waves). They are **grandfathered**:
+
+- No stage change and no forced republish solely for the gate.
+- They enter **hardening batches** (contracts + API review, G3/G4) over
+  time, prioritized by dependents, adoption signals, and `checked` age;
+  a hardening pass touches a package only when it is its turn or when
+  the package is touched for another reason.
+- The full gate applies to every **new** promotion from now on.
+- If a hardening pass finds a real defect, the fix is a patch/minor with
+  a fresh run + record; the tier itself does not silently downgrade.
+
 ## Wave mechanics
 
 - Batches of 10-20 like growth waves.
