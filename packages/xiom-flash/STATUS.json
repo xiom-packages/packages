@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  20,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.62.2",
-                  "commit":  "984fc2f",
-                  "checked":  "2026-09-30T18:09:28Z"
+                  "run_by":  "task:ses_f0114e698ffeHQrk1NnlmCFwpx",
+                  "commit":  "ca969acd",
+                  "checked":  "2026-10-02T23:51:56Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: next scope delta"
+    "excluded_reason":  "category harmonization patch bump (registry metadata)"
 }
