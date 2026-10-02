@@ -44,6 +44,55 @@ stale.
 5. **Opportunistic**: any package touched for a fix rides the next batch
    (patch bump, re-run, re-record).
 
+## Compiler-release triage (2026-10-02, owner-approved)
+
+Not every release deserves the same response. Classify each compiler
+release before scheduling work; reserve the expensive path for releases
+that can change existing package behavior.
+
+| Tier | Release kind | Response |
+|---|---|---|
+| 0 | Non-semantic (docs, tooling, parser) or fixes to constructs no package exercises | Pin bump + `validate` + `allowlist-guard` + re-run the relevant repro probes. No sweep, no wave. |
+| 1 | Semantic fix that does NOT unlock a workaround or change codegen for used patterns | Grep the workaround registry below, re-run only the affected packages + the fixed bug's probe. No fleet sweep. |
+| 2 | Semantic fix that unlocks workaround retirement (or plausibly changes existing generated code) | Full fleet sweep as the detector, then a **maintenance wave** (10 lanes) whose items are workaround retirements; evidence-gated; publish as one patch-bump `eco-*` batch (no allowlist delta). |
+
+Rules:
+
+- **Compiler lane provides the triage input:** each release names the
+  affected constructs and ships/points at a minimal repro probe.
+- **Evidence-gated retirement:** a workaround class is retired only when
+  its probe flips RED -> GREEN on the new pin AND each package re-runs
+  green (port x2 + trap-14). Never retire by assumption.
+- **Scope by pattern, detect by sweep:** the registry selects the wave
+  items; the sweep catches affected packages outside the pattern list.
+- **One package = one commit + record.** Workaround removal with
+  identical behavior is `refactor:`/`chore:`; patch-bump only when
+  published code changes (no lockstep versions).
+- **Sweep hygiene:** kill by PID/process tree only -- never a blanket
+  `Get-Process a | Stop-Process`; clean shadow stdlib worktrees and
+  stale `%TEMP%\kilo\stdlib-rel` copies before sweeping; serialize or
+  isolate chunk temp outputs.
+
+## Workaround registry (retirement candidates)
+
+Each row maps a carried workaround to its probe, the packages that use
+it, and whether the fix has landed on the pin.
+
+| Workaround class | Probe | Affected packages | Status on v0.62.2 |
+|---|---|---|---|
+| `byte_at` widen+mask `(x as Int) & 0xFF` | `docs/repro/byte-at-128` | every binary/codec package | fix on compiler main (`f4af5f64`); retire only after the battery passes on the next release |
+| No global `Vec[Str].push` / avoid `Vec[Str]` | `docs/repro/v0622-regressions/vec_str_push_global.xi` (+ param shape) | `consensus`, all blob+offset packages | OPEN (compiler queue) |
+| No `&mut Int` scalar params (state via returns) | `docs/repro/mut-int-write-through` | numerical/stateful packages (wave-46 set, `upnp`) | OPEN (scalar-only; `&mut Struct` field writes work) |
+| Mixed/full-angle bracket grep after every write | grep `Vec<|Result<`; no probe file | all packages (authoring hazard) | OPEN; keep the two-pass grep |
+| No cross-type bindings (Str field -> `Vec[UInt8]` local) | `xiom.pptx` probe (COMPILER-FINDINGS row) | `pptx`, potentially all | OPEN |
+| Manual arity audit (missing args accepted) | missing-arg call probe (to add) | all packages | OPEN (extra args rejected; missing args silent) |
+| No child->parent module imports (siblings only) | `probe.x4.y` minimal (COMPILER-FINDINGS row) | multi-module packages: `helm`, `docker`, `vault`, `k8s`, `training`, `data` | OPEN |
+| Bare `loop` needs trailing `return` | `terraform` probe (COMPILER-FINDINGS row) | parser/scan-heavy packages | OPEN |
+| Runtime table builders instead of module const arrays | `l10n-unicode` battery | `merkle`, `l10n-currency`, `l10n-unicode` | simple `[N]Int` shapes CORRECT (probe `bad=0`); complex shapes untested |
+| Hand-rolled SHA-256/HMAC | `use xiom.crypto; crypto.sha256_hex(&abc)` | `aws`, `saml` | OPEN (stdlib link failure: `undefined symbol: xiom_sha256_hash`) |
+| In-package `_u64_lshr` `n == 63` special case | COMPILER-FINDINGS row (Keccak KAT) | `web3` | OPEN (stdlib defect) |
+| Stored+fixed fallback inflater (dynamic-Huffman read limit) | deflate round-trip KATs | `docx`, `pptx`, `xlsx` | OPEN (stdlib capability gap) |
+
 ## Cadence rules
 
 - No lockstep versions: a package's version bumps only when its
@@ -75,31 +124,22 @@ stale.
 - `docs/PACKAGE_STATUS.md` (generated) -- the human-facing readiness list.
 - `%TEMP%\kilo\sweep\` -- raw sweep logs (session-local, not committed).
 
-## Current state (2026-09-29)
+## Current state (2026-10-02)
 
-- Pin `v0.62.1` (bumped 2026-09-29 from v0.62.0; compiler release
-  `f965bd1c`, stdlib stays `stdlib-v0.62.0`). Last full sweep **347/407
-  green** (60 declaration-only expected, 0 regressions; 275 fleet records
-  re-pointed to `fleet-sweep:v0.62.1`).
-- Wave 41 complete and published (`eco-v0.1.13`, 13/13; registry 343 =
-  242 stable / 63 incubating / 38 empty; allowlist 392 confirmed by ops
-  with zero diff). Wave 42 candidates namespace-checked (`feature`,
-  `clustering`, `loss`, `ensemble`, `streaming`, `linter`, `lexer-fw`,
-  `barrier`, `forkjoin`, `executor`).
-- Open follow-ups: `byte-at-128` direct comparison **fixed on compiler
-  main (`f4af5f64`); re-run the battery at the next release before
-  retiring the workaround**, OIDC per-run token re-mint (`.github`
-  scope), `tftp`/`tap` same-version republish decisions (owner), and the
-  module-level const/table materialization row 25 (next in the compiler
-  backlog).
-- **Stage/README hygiene (2026-09-29 registry audit):** published
-  registry stages = 242 stable / 63 incubating / 36 empty-stage legacy;
-  repo records (allowlisted) = 271 stable / 127 incubating / 4 ported.
-  Real drift on the registry side: 36 legacy empty-stage entries plus 5
-  entries still shown `stable` while their records are now `incubating`
-  (`snapshot`, `mkv`, `snmp`, `imap`, `coverage`) -- all self-correct at
-  their next patch bump. README `Status` blocks lag by design (~234
-  published-stable READMEs still say "incubating -- NOT published");
-  sync on next touch and via the publish-batch trigger above. The
-  registry badge is a maturity tier, not a prerelease flag -- both tiers
-  are published and installable.
+- Pin `v0.62.2` (deployed into `%LOCALAPPDATA%\xiom.new\bin`); stdlib
+  checkout `E:\xiom-lang\stdlib` (`stdlib-perf1`). Waves 41-50 published
+  through `eco-v0.1.31`; allowlist **485**; registry **438 packages +
+  2 infra**.
+- The v0.62.2 fleet sweep (2026-09-30, logs `%TEMP%\kilo\sweep-v0622*`)
+  re-recorded fleet runs. The expat/nbt "silent `-1`" was root-caused to
+  the 4-chunk sweep harness cross-killing in-flight `a.exe` (see
+  `docs/repro/v0622-regressions/HARNESS-NOTES.md` UPDATE), not the
+  compiler; both suites are green on the pin.
+- Open workarounds: the registry above (12 rows). Apply the triage tiers
+  at the next compiler release; fixes to the Open rows in
+  `docs/COMPILER-FINDINGS.md` trigger a Tier-2 maintenance wave, and the
+  `byte-at-128` battery gates the first retirement.
+- Stage/README hygiene: README `Status` blocks still lag (~351 names);
+  category harmonization owner-decided; the registry ruling (no
+  version-less metadata refresh; chunked patch-bump republishes behind
+  an ops rate window) stands.
