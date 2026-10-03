@@ -1,7 +1,8 @@
 # v0.62.2 regressions -- repro bundle (packages lane -> compiler lane)
 
-Two open v0.62.2 issues reported by the packages lane. Both are reproducible
-with the files here and/or the published artifacts.
+v0.62.2 issues reported by the packages lane. Sections 1 and 3 are open
+and reproducible with the files here and/or the published artifacts;
+section 2 is **RESOLVED** and kept for reference only (do not re-file).
 
 Toolchain used for every observation: `COMPILER_VERSION` = v0.62.2
 (repo release deployed to `%LOCALAPPDATA%\xiom.new\bin`), stdlib checkout
@@ -53,7 +54,13 @@ type is wrong (`i8` instead of `i8*`).
 
 ---
 
-## 2. `xiom.expat` / `xiom.nbt` silent exit `-1` (first in the compiler queue)
+## 2. `xiom.expat` / `xiom.nbt` silent exit `-1` -- RESOLVED, do not re-file
+
+**Resolution (2026-10-02): sweep-harness race, not a compiler defect.**
+Both suites pass under the PID-scoped `port.ps1 -TimeoutSec 60` watchdog.
+Re-verified 2026-10-03 on the installed v0.62.2: `xiom.expat` **25/25
+PASS**, `xiom.nbt` **26/26 PASS** (both exit 0; records already `pass`).
+Historical evidence below is kept for reference only.
 
 **Repro = the published suites.** The registry artifacts contain the full
 source including tests (verified by downloading and listing):
@@ -144,4 +151,23 @@ Run observations (this machine, v0.62.2):
 mut_int_write_drop.xi  -> st=10          (expected 99)
 mutint_probe.xi        -> st=10, st2=10  (expected 11, 12)
 ```
+
+---
+
+## Pre-release baseline (2026-10-03, installed v0.62.2)
+
+Captured before the next compiler release lands, so Tier-2 can diff
+fixed/not-fixed by re-running the same four probes on the new build:
+
+| Probe | v0.62.2 result (2026-10-03) |
+|---|---|
+| `vec_str_push_global.xi` | FAIL -- clang: `store i8 %tmp1035, i8* %tmp1034` (malformed Str store) |
+| `vec_str_push_param.xi` | FAIL -- same shape (`%tmp5035`) |
+| `mut_int_write_drop.xi` | prints `st=10` (bare write dropped), program exit 0 |
+| `mut_int_write_drop_matrix.xi` | `bad=2` -- `plain+bare: 10`, `explicit+bare: 10`, `plain+deref: 99`, `explicit+deref: 99` |
+
+Interpretation: `Vec[Str].push` on a module-level Vec still fails clang;
+the `&mut Int` drop is the BARE assignment form only (deref writes are
+correct); `expat`/`nbt` silent `-1` is resolved (sweep-harness race, not
+re-filed -- per SESSION.md).
 
