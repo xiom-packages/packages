@@ -28,9 +28,9 @@ starting.
   `mock`/`pwm`/`sectest` from the parallel lane republished.
 - **Current gates/state:** `validate` **514/0**; guard **497
   allowlisted / 448 ready / 49 grandfathered / 0 failures**; registry
-  **450 packages + 2 infra = 452 entries**; allowlist **497**; tag
-  `eco-v0.1.34` on `3f196c7b` (wrap commit) with docs at
-  `eb956eb3`-era; all pushed.
+  **448 packages + 2 infra = 450 entries** (ops ack 2026-10-03 01:04Z,
+  window closed back to 20, nothing open ops-side); allowlist **497**;
+  tag `eco-v0.1.34` on `3f196c7b`; docs wrap `00fa58ed`; all pushed.
 - **`port.ps1` watchdog FIXED (`07301ee6`):** renamed-timeout path now
   kills only the run's own PID tree -- the old global
   `Get-Process a | Stop-Process` sweep killed other lanes' in-flight
@@ -135,7 +135,7 @@ You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
 private). Read SESSION.md first -- the 2026-10-03 00:55Z STATE block and
 the "Next-session operating kit" at the top of section 0 are the live
-handoff (waves 54/55 complete + published eco-v0.1.34; 450 packages +
+handoff (waves 54/55 complete + published eco-v0.1.34; 448 packages +
 2 infra on the registry; allowlist 497). Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
