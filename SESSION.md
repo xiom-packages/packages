@@ -104,7 +104,18 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   families are FIXED on the pin, their workarounds are now **RETIRED**
   in the MAINTENANCE registry, and the probe READMEs + COMPILER-FINDINGS
   resolved table are updated (`docs/repro/struct-field-vec`,
-  `docs/repro/generic-fnptr`).
+  `docs/repro/generic-fnptr`);
+  (l) const/table materialization extended to complex shapes: **NEW
+  v0.62.2 defect** -- `const [3]Str` / `const [3]Row` module tables read
+  corrupt/zero (probe `docs/repro/const-tables/probe_const_tables.xi`,
+  `bad=5`, deterministic 3/3; Int tables and runtime controls pass);
+  COMPILER-FINDINGS row added, MAINTENANCE row 25 updated (not retirable
+  for complex shapes); packages keep runtime table builders;
+  (m) promotion candidates pre-verified on the pin: `json` 44/44,
+  `control` 32/32, `sensor` 38/38 (stages stay `ported` until Tier-2);
+  (n) crypto-link packet re-verified on the current stdlib checkout:
+  both probes still fail link with `undefined symbol: xiom_sha256_hash`
+  (packet remains valid for the stdlib lane).
 - **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
   drop is the BARE assignment form (`s = 99`) in both call forms (plain
   local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix
