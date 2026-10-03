@@ -9,9 +9,9 @@
 
 package xiom_memcached {
   name: "xiom.memcached";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Pure-XIOM memcached text and binary protocol codec (no sockets)";
-  categories: ["protocol"];
+  categories: ["network"];
   keywords: ["memcached", "cache", "protocol", "codec"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
