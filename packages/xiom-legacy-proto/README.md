@@ -1,6 +1,6 @@
 # xiom.legacy-proto
 
-> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
 > **Scope:** three legacy internet text-protocol codecs in one dependency-free
 > module: Finger queries/responses (RFC 1288), Gopher menu documents
 > (RFC 1436) and WHOIS response records (RFC 3912). Text in, text out:

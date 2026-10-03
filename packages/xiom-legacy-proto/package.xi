@@ -12,9 +12,9 @@
 
 package xiom_legacy_proto {
   name: "xiom.legacy-proto";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Finger, Gopher and WHOIS text-protocol codecs: parse, canonical render and deterministic error catalogs";
-  categories: ["protocol"];
+  categories: ["network"];
   keywords: ["finger", "gopher", "whois", "legacy", "text-protocol"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
