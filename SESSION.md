@@ -3,14 +3,45 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-03 (20:55Z), by the packages session (release day
-complete + post-release growth: v0.62.3 pinned; first promotion wave
-published as `eco-v0.1.37`; `xiom.http` restored and published as
-`eco-v0.1.39`). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-03 (23:40Z), by the packages session (release wave
+`eco-v0.1.37` + post-release growth: `xiom.http` `eco-v0.1.39`,
+`xiom.websocket` `eco-v0.1.40`; `graphql` WIP 9/10; new v0.62.3
+uninitialized-local finding). Check `git log -1 --format=%h %s` before
+starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-03 20:55Z (read this first):**
+**STATE AT 2026-10-03 23:40Z (read this first):**
+- **Post-release growth wave 2:** `xiom.websocket` RESTORED + PUBLISHED
+  (`eco-v0.1.40`, run `37159040739` SUCCESS) -- the implementation was
+  complete; the real blockers were the **nested test module**
+  (`module xiom.websocket.tests` cannot import the package root; renamed
+  to `websocket_tests`) and the missing runner (collecting harness +
+  `main`; 10/10 x2, brackets 0). Live at **`xiom.websocket@0.1.0`
+  incubating**; registry **455 packages + 2 infra = 457 entries**
+  (`xiom.http` published earlier as `eco-v0.1.39`).
+- **NEW compiler finding (v0.62.3): uninitialized local struct +
+  assignment inside a match arm corrupts the value** -- `Str` fields read
+  as garbage pointers (concat hangs), `Vec.len()` reads `4294967295`
+  (runaway loops); pre-initializing the local avoids it. Found in
+  `xiom.graphql` `validate_operation`; COMPILER-FINDINGS row + probe
+  bundle `docs/repro/uninit-local/` (standalone repro crashes pre-output
+  -- minimal repro pending). **Porter brief now says: always initialize
+  locals at declaration.**
+- **`xiom.graphql` WIP (9/10):** non-nested module rename + collecting
+  harness + `validate_operation` contract/init fixes got it running; one
+  validator defect remains (a valid operation returns a corrupted `Err`
+  payload -- likely a second distinct defect; see the findings row).
+  **`xiom.rest` untouched** -- same nested-module + runner pattern, then
+  real API work. Neither recorded/published (records still
+  `tests=unknown`).
+- **Next:** isolate the graphql validator defect (minimal repro for the
+  findings row), then `graphql`/`rest`; stable hardening batches remain
+  available; next tag `eco-v0.1.41`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-03 20:55Z (history):**
 - **Post-release growth: `xiom.http` RESTORED + PUBLISHED (`eco-v0.1.39`,
   run `37152581124` SUCCESS):** the old code was written for pre-strict
   compilers -- fixed multi-arg `str_concat` (arity T001 errors),
@@ -437,13 +468,14 @@ published as `eco-v0.1.37`; `xiom.http` restored and published as
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-03 20:55Z STATE block and
+private). Read SESSION.md first -- the 2026-10-03 23:40Z STATE block and
 the "Next-session operating kit" at the top of section 0 are the live
 handoff (release wave complete + published `eco-v0.1.37`; `xiom.http`
-restored + published as `eco-v0.1.39`; v0.62.3 pinned + SHA256-verified;
-fleet sweep 453/453; json/control/sensor promoted to `stable` 0.1.1;
-registry 454 packages + 2 infra; allowlist 499). Repo-local identity
-must be "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
+`eco-v0.1.39` + `xiom.websocket` `eco-v0.1.40` restored and published;
+`xiom.graphql` WIP 9/10; v0.62.3 pinned + SHA256-verified; fleet sweep
+453/453; json/control/sensor promoted to `stable` 0.1.1; registry 455
+packages + 2 infra; allowlist 499). Repo-local identity must be
+"Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
 gates); ops opens the publish-rate window ONLY for waves >20 names
 (default 20/min otherwise); the ops scope enumeration must be confirmed
@@ -457,15 +489,16 @@ Then do, in order:
 1. Growth and/or stable hardening: the compiler release window is
    CLOSED -- no watch pending (v0.62.3 pinned; complex `Str`/struct const
    tables are its known issue -- runtime builders only; float bitcast is
-   still a stdlib stub). `xiom.http` was restored and published
-   (`eco-v0.1.39`, 36/36); next growth candidates `graphql`/`rest`/
-   `websocket` need API reconciliation + implementation (their suites
-   target a different API generation), not restores. Stable hardening
-   batches per `docs/PROMOTION.md` (279 stable; only `bson`/`ttl` carry
-   clauses; size with `scripts/contract-coverage.ps1`) remain available.
+   still a stdlib stub). `xiom.http` (`eco-v0.1.39`, 36/36) and
+   `xiom.websocket` (`eco-v0.1.40`, 10/10) are restored and published.
+   `xiom.graphql` is WIP 9/10 (see the STATE block: isolate the validator
+   defect); `xiom.rest` needs the same nested-module + runner treatment
+   plus real API work. Stable hardening batches per `docs/PROMOTION.md`
+   (279 stable; only `bson`/`ttl` carry clauses; size with
+   `scripts/contract-coverage.ps1`) remain available.
 2. Workaround retirements are **next-touch only** (scoping decision in
    the STATE block; no drive-by refactors of green packages).
-3. Wrap + publish per the operating kit (tag `eco-v0.1.40` when there is
+3. Wrap + publish per the operating kit (tag `eco-v0.1.41` when there is
    a batch; **stage all pending STATUS.json records before tagging** -- CI
    reads the tag commit): ops scope ask only for allowlist deltas
    (>20-name waves need a rate window); regenerate, validate+guard,
