@@ -1,6 +1,6 @@
 {
     "package":  "xiom.sensor",
-    "stage":  "ported",
+    "stage":  "stable",
     "compiler":  "v0.62.3",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  38,
                   "failed":  0,
-                  "run_by":  "agentmgr:ses_f016f45b2ffezplRJto9zXNhjR",
-                  "commit":  "4e7a42d8",
-                  "checked":  "2026-10-02T22:09:57Z"
+                  "run_by":  "packages-lane:promotion-v0.62.3",
+                  "commit":  "ae2dec2c",
+                  "checked":  "2026-10-03T20:03:57Z"
               },
     "publish":  false,
-    "excluded_reason":  "promotion prep: contracts added (stable gate pending)"
+    "excluded_reason":  "publish pending: eco-v0.1.37 promotion"
 }
