@@ -1,6 +1,6 @@
 # xiom.dtb
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM Flattened Device Tree (DTB) parsing, validation and
 > canonical version-17 emission.
 > **Deps:** `xiom.std` only. The library module uses `xiom.string` and

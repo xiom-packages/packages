@@ -803,7 +803,7 @@ pub fn dtb_find_property(data: &Vec[UInt8], d: &Dtb, node: Int, name: Str) -> In
 // name is NUL-terminated inside the strings block, property owners are
 // non-decreasing and node names contain no NUL byte. A drifted store can
 // otherwise cause access violations or a non-canonical blob.
-fn _tree_well_formed(data: &Vec<UInt8>, d: &Dtb) -> Bool {
+fn _tree_well_formed(data: &Vec[UInt8], d: &Dtb) -> Bool {
   let nn = d.node_name_off.len();
   if d.node_name_len.len() != nn { return false; }
   if d.node_depth.len() != nn { return false; }
@@ -898,7 +898,7 @@ fn _sb_find(sb: &Vec[UInt8], offs: &Vec[Int], lens: &Vec[Int], data: &Vec[UInt8]
 
 // Emit one FDT_PROP token: token, u32 value length, u32 new name offset,
 // the value bytes and zero padding to 4 bytes.
-fn _emit_prop(data: &Vec<UInt8>, d: &Dtb, pi: Int, new_nameoff: Int, out: &mut Vec<UInt8>) {
+fn _emit_prop(data: &Vec[UInt8], d: &Dtb, pi: Int, new_nameoff: Int, out: &mut Vec[UInt8]) {
   let vl: Int = d.prop_value_len[pi];
   let vo: Int = d.prop_value_off[pi];
   _push_be(out, DTB_TOKEN_PROP, 4);
@@ -919,7 +919,7 @@ fn _emit_prop(data: &Vec<UInt8>, d: &Dtb, pi: Int, new_nameoff: Int, out: &mut V
 // Emit the whole structure block from the preorder node forest: close open
 // nodes before each BEGIN_NODE, emit each node's properties in order, then
 // close the remaining nodes and write FDT_END. No FDT_NOP is ever written.
-fn _emit_struct(data: &Vec[UInt8], d: &Dtb, prop_off: &Vec[Int], out: &mut Vec<UInt8>) {
+fn _emit_struct(data: &Vec[UInt8], d: &Dtb, prop_off: &Vec[Int], out: &mut Vec[UInt8]) {
   let nn = d.node_name_off.len();
   let pn = d.prop_node.len();
   var open_depth = -1;

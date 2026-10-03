@@ -241,7 +241,7 @@ fn strings1() -> Vec[UInt8] {
 
 // Assemble a canonical v17 blob from a structure block, a strings block,
 // a boot CPU id and memory reservation pairs (the terminator is added).
-fn assemble(struct_bytes: Vec[UInt8], strings: Vec<UInt8>, boot: Int, rsv_addr: Vec[Int], rsv_size: Vec<Int>) -> Vec[UInt8] {
+fn assemble(struct_bytes: Vec[UInt8], strings: Vec[UInt8], boot: Int, rsv_addr: Vec[Int], rsv_size: Vec[Int]) -> Vec[UInt8] {
   var out = Vec[UInt8].new();
   let rn = rsv_addr.len();
   let rsv_bytes = 16 * (rn + 1);
@@ -320,7 +320,7 @@ fn blob2_bytes() -> Vec[UInt8] {
 // strings block in reverse first-use order (reg, #address-cells, ranges,
 // model, compatible) with matching name offsets. Parsing then emitting
 // must reproduce the canonical blob1 bytes exactly.
-fn blob3_bytes() -> Vec<UInt8> {
+fn blob3_bytes() -> Vec[UInt8] {
   var s = Vec[UInt8].new();
   begin_node(&mut s, Vec[UInt8].new());
   nop(&mut s);
