@@ -93,7 +93,11 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   `bad=0` for elem==elem, elem==literal, runtime-derived==literal and
   `str_len`; MAINTENANCE row added as a Tier-2 retirement candidate);
   (i) stale build artifacts cleaned -- 389 leftover `a.exe` (215 MB)
-  removed; the parallel lane's dirs were left untouched.
+  removed; the parallel lane's dirs were left untouched;
+  (j) remaining probe batteries re-ran on v0.62.2 -- arity control green
+  and both error directions fail with `error[T001]`, loop-carry-cse
+  `bad=0`, sign-bit ops exit 0: all at documented status (no README
+  changes needed).
 - **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
   drop is the BARE assignment form (`s = 99`) in both call forms (plain
   local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix
