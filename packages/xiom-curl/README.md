@@ -1,6 +1,6 @@
 # xiom.curl
 
-> **Status:** `incubating` -- conformance-tested (26/26); not yet published.
+> **Status:** `incubating` -- conformance-tested (26/26); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a pure HTTP client **model**: URL parsing/normalization, request
 > and response envelopes, redirect semantics, cookies, auth header shapes,
 > retry policy and keep-alive pool accounting. No sockets, no FFI, no TLS.

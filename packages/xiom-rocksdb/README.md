@@ -1,6 +1,6 @@
 # xiom.rocksdb
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 > **Scope:** a pure-XIOM LSM storage-engine *model* -- memtable
 > (skiplist-shaped ordering, size accounting), WAL (records, sync policy,
 > replay), SST files (sorted data blocks + index + Bloom-filter shape),

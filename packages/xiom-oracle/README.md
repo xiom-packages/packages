@@ -1,6 +1,6 @@
 # xiom.oracle
 
-> **Status:** `incubating` -- conformance-tested (22/22); not yet published.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** deterministic multi-source oracle feed aggregation: quorum,
 > freshness, weighted median, deviation filter and the full aggregate
 > pipeline, in integer fixed-point arithmetic.

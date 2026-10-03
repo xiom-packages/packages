@@ -3,10 +3,11 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-03 (12:55Z), by the packages session (wave 56:
+**Written:** 2026-10-03 (13:00Z), by the packages session (wave 56:
 category-vocabulary sweep -- all 90 mixed manifests normalized, zero
 unknown tokens remain; owner-approved `firebird`/`oracle` publish scope;
-published as `eco-v0.1.35`; allowlist 497 -> 499). Check
+published as `eco-v0.1.35`; allowlist 497 -> 499; README Status-block
+sync closed -- 514/514 match the live registry). Check
 `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
@@ -39,10 +40,15 @@ published as `eco-v0.1.35`; allowlist 497 -> 499). Check
   touching mock/pwm/sectest/firebird/oracle dirs.
 - **Carry-forwards:** compiler hotfix watch (`docs/COMPILER-FINDINGS.md`);
   Tier-2 + workaround retirement on the next release; first promotion
-  wave per `docs/PROMOTION.md`; README Status-block sync for the lagging
-  names; registry page refresh = policy 1b (opportunistic);
-  `-TimeoutSec 60` watchdog; byte-level bracket grep only; bump versions
-  only when source changes.
+  wave per `docs/PROMOTION.md`; registry page refresh = policy 1b
+  (opportunistic); `-TimeoutSec 60` watchdog; byte-level bracket grep
+  only; bump versions only when source changes.
+- **README Status-block sync DONE (this session):** all 514 package
+  READMEs now match the live registry versions/stages -- 5 were stale
+  (`curl`, `xml2`, `rocksdb`, `firebird`, `oracle` said "not yet
+  published" while live at `0.1.0`); repo-side only, no republish
+  (policy 1b); the earlier "351 names lag" carry-forward is closed
+  (verify by comparing each README block against the registry index).
 
 **--- Older state below (history) ---**
 

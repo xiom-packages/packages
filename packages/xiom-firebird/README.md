@@ -1,6 +1,6 @@
 # xiom.firebird
 
-> **Status:** `incubating` -- conformance-tested (22/22); not yet published.
+> **Status:** `incubating` -- conformance-tested (22/22); published at `v0.1.0` on the XIOM registry.
 > **Scope:** structural codec for the Firebird wire protocol, canonical-XDR
 > subset: the opcode registry, the connect/accept blocks, the attach block,
 > the data block, the single-object release block and the start-transaction

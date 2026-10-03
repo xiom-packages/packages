@@ -1,6 +1,6 @@
 # xiom.xml2
 
-> **Status:** `incubating` -- conformance-tested (24/24); not yet published.
+> **Status:** `incubating` -- conformance-tested (24/24); published at `v0.1.0` on the XIOM registry.
 
 Pure-XIOM **XML model** -- no FFI, no libxml2, no external dependencies beyond
 `xiom.std`. This package replaces the old `xiom.xml2` placeholder (which
