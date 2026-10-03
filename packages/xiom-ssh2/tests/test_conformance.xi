@@ -126,6 +126,13 @@ fn err_int_is(r: Result[Int, Str], want: Str) -> Bool {
   return str_eq(r.error, want);
 }
 
+fn err_bool_is(r: Result[Bool, Str], want: Str) -> Bool {
+  if r.is_ok {
+    return false;
+  }
+  return str_eq(r.error, want);
+}
+
 fn err_bytes_is(r: Result[Vec[UInt8], Str], want: Str) -> Bool {
   if r.is_ok {
     return false;
@@ -334,7 +341,7 @@ fn t4() -> TestResult {
   let u2 = ssh2_read_uint32(&d, 12);
   if !u2.is_ok { ok = false; } else { if u2.value != 16909060 { ok = false; } }
   if !err_int_is(ssh2_read_byte(&d, 16), "ssh2: truncated byte at 16") { ok = false; }
-  if !err_int_is(ssh2_read_boolean(&d, 16), "ssh2: truncated boolean at 16") { ok = false; }
+  if !err_bool_is(ssh2_read_boolean(&d, 16), "ssh2: truncated boolean at 16") { ok = false; }
   if !err_int_is(ssh2_read_uint32(&d, 14), "ssh2: truncated uint32 at 14") { ok = false; }
   if !err_int_is(ssh2_read_byte(&d, -1), "ssh2: negative offset") { ok = false; }
   return assert(ok, "fields: byte/boolean/uint32 reads and truncation");
