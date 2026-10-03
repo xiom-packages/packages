@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-03T17:16:25Z",
+    "updated":  "2026-10-03T18:24:55Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -129,7 +129,7 @@
                          "description":  "XIOM Algorithm Library -- sorting, searching, math utilities",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               },
                                               {
@@ -235,7 +235,7 @@
                          "description":  "Apache Arrow in-memory columnar format with Pandas backend and zero-copy data sharing",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -286,7 +286,7 @@
                          "description":  "Assimp bindings for 3D model import (OBJ, FBX, glTF, COLLADA) with safe design-by-contract wrappers",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -705,7 +705,7 @@
                          "description":  "BLAS/LAPACK linear algebra bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -825,7 +825,7 @@
                          "description":  "Box2D 2D physics engine FFI bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -861,7 +861,7 @@
                          "description":  "Bullet Physics rigid body dynamics bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -1337,7 +1337,7 @@
                          "description":  "Control systems library for XIOM -- PID, state machines, signal processing",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -1476,7 +1476,7 @@
                          "description":  "CUDA Toolkit -- NVIDIA GPU computing (cuBLAS, cuDNN, cuFFT, cuRAND).",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -1733,7 +1733,7 @@
                          "description":  "Direct3D 11 bindings for Microsoft\u0027s Windows graphics API and the DirectX SDK",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -1750,7 +1750,7 @@
                          "description":  "Direct3D 12 bindings for Microsoft\u0027s low-level explicit-GPU-control graphics API",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -1873,7 +1873,7 @@
                          "description":  "XIOM shared durable-systems core -- config, errors, IDs, storage, WAL, transactions substrate for database engines",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -1927,7 +1927,7 @@
                          "description":  "DirectX Shader Compiler (DXC) bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -2030,7 +2030,7 @@
                          "description":  "Eigen bindings -- header-only C++ template library for linear algebra",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -2319,7 +2319,7 @@
                          "description":  "The foundational FFI module for all XIOM C-binding packages.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -2335,7 +2335,7 @@
                          "description":  "FFmpeg -- audio/video codec library (libavcodec, libavformat, libavutil).",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -2607,7 +2607,7 @@
                          "description":  "Gazebo -- Robot simulation engine (gz-sim / Ignition Gazebo).",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -2851,7 +2851,10 @@
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "GLFW bindings for safe windowing, input, and monitor management with zero Vulkan dependency",
                          "dependencies":  [
-
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-glfw/v0.1.0/package.tar.gz",
                          "source_files":  [
@@ -2934,7 +2937,7 @@
                          "description":  "Schema-first GraphQL server -- SDL loading, validation, execution, resolvers, subscriptions, built on xiom.http",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               },
                                               {
@@ -2963,7 +2966,7 @@
                          "description":  "gRPC C Core bindings for XIOM -- client, server, types, and 17 canonical status codes",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -3123,7 +3126,7 @@
                          "description":  "XIOM HTTP Library -- types, parsing, client, and server",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               },
                                               {
@@ -3335,7 +3338,7 @@
                          "description":  "Dear ImGui v1.92.9 -- immediate-mode GUI library.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -3488,7 +3491,7 @@
                          "description":  "Jolt Physics rigid body dynamics bindings for XIOM -- requires joltc C bridge",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -3524,7 +3527,7 @@
                          "description":  "Pure XIOM JSON Parser and Serializer",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -3594,7 +3597,7 @@
                          "description":  "Apache Kafka client for XIOM -- librdkafka bindings",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -3955,7 +3958,7 @@
                          "description":  "libpq -- PostgreSQL C client library.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -3972,7 +3975,7 @@
                          "description":  "libsodium secure cryptography bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -3989,7 +3992,7 @@
                          "description":  "LibTorch bindings for the PyTorch C++ API with full ML/DL framework and CUDA support",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -4006,7 +4009,7 @@
                          "description":  "libuv -- cross-platform asynchronous I/O library (used by Node.js).",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -4159,7 +4162,7 @@
                          "description":  "Apple LZFSE compression library bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -4381,7 +4384,7 @@
                          "description":  "meshoptimizer bindings for XIOM (mesh simplification, compression, optimization)",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -4467,7 +4470,7 @@
                          "description":  "Microservices resilience -- service discovery, typed RPC, retries/budgets, circuit breakers, bulkheads, tracing, sagas, built on xiom.http",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               },
                                               {
@@ -4539,7 +4542,7 @@
                          "description":  "MiniAudio playback, capture, and waveform synthesis bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -4677,7 +4680,7 @@
                          "description":  "MoveIt -- Motion planning framework.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -5034,7 +5037,7 @@
                          "description":  "NumPy C API -- the fundamental array computing library for scientific Python.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -5102,7 +5105,7 @@
                          "description":  "ONNX Runtime bindings for XIOM -- cross-framework model inference",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -5121,7 +5124,7 @@
                          "description":  "OpenAL 3D audio bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -5138,7 +5141,7 @@
                          "description":  "OpenBLAS -- optimized Basic Linear Algebra Subprograms (BLAS) and LAPACK.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -5155,7 +5158,7 @@
                          "description":  "OpenCV bindings for XIOM -- computer vision",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -5175,7 +5178,7 @@
                          "description":  "OpenGL 4.6 -- cross-platform graphics API.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -5192,7 +5195,7 @@
                          "description":  "OpenSSL -- TLS/cryptography.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -5311,7 +5314,7 @@
                          "description":  "Ozz-Animation (v0.16.0) bindings for XIOM -- skeletal animation runtime + offline pipeline",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -5397,7 +5400,7 @@
                          "description":  "Pandas Arrow-backed DataFrame and Series operations with zero Python overhead",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -5754,7 +5757,7 @@
                          "description":  "Steam Audio (Phonon) spatial audio bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -5943,7 +5946,7 @@
                          "description":  "PortAudio -- cross-platform audio I/O.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -5960,7 +5963,7 @@
                          "description":  "PostgreSQL database bindings for XIOM via libpq",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -6080,7 +6083,7 @@
                          "description":  "Protocol Buffers serialization bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -6353,7 +6356,7 @@
                          "description":  "Raylib -- simple game framework.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -6387,7 +6390,7 @@
                          "description":  "Application-level realtime -- channels, rooms, presence, broadcast, ordering, ephemeral/durable events, built on xiom.websocket and xiom.micro",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               },
                                               {
@@ -6412,7 +6415,7 @@
                          "description":  "Redis database bindings for XIOM via hiredis",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -6498,7 +6501,7 @@
                          "description":  "REST resource routing, pagination, filtering, content negotiation, and OpenAPI helpers built on xiom.http",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               },
                                               {
@@ -6625,7 +6628,7 @@
                          "description":  "ROS 2 -- Robot Operating System middleware.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -6829,7 +6832,7 @@
                          "description":  "SciPy -- scientific computing library for optimization, integration, interpolation, signal processing, statistics, and sparse matrices.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -6863,7 +6866,7 @@
                          "description":  "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -6966,7 +6969,7 @@
                          "description":  "Sensor fusion library for XIOM -- IMU, GPS, data fusion",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -7278,7 +7281,7 @@
                          "description":  "XIOM SQL Library -- embedded SQL database bindings.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -7295,7 +7298,7 @@
                          "description":  "SQLite Database Bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -7385,7 +7388,7 @@
                          "description":  "stb_image loading bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -7708,7 +7711,7 @@
                          "description":  "TensorFlow C API (libtensorflow) -- Google\u0027s ML framework.",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -7980,7 +7983,7 @@
                          "description":  "LibTorch bindings for XIOM -- PyTorch C++ inference",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -8207,7 +8210,7 @@
                          "description":  "XIOM Immediate-Mode GUI Library",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -8446,7 +8449,7 @@
                          "description":  "Vulkan Memory Allocator (VMA) bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -8481,7 +8484,7 @@
                          "description":  "Vulkan GPU bindings for XIOM",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -8537,7 +8540,7 @@
                          "description":  "Wasmtime -- standalone WebAssembly runtime (Bytecode Alliance).",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -8627,7 +8630,7 @@
                          "description":  "WebSocket transport -- handshake, framing, connection lifecycle, heartbeat, backpressure, reconnect, pub/sub, built on xiom.http and xiom.net",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               },
                                               {
@@ -8835,7 +8838,7 @@
                          "description":  "libzmq -- high-performance asynchronous messaging library (ZeroMQ).",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
@@ -8920,7 +8923,7 @@
                          "description":  "zstd -- fast lossless compression algorithm (Facebook).",
                          "dependencies":  [
                                               {
-                                                  "version":  "0.1.0",
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
