@@ -3,17 +3,28 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-03 (13:50Z), by the packages session (wave 56:
+**Written:** 2026-10-03 (14:30Z), by the packages session (wave 56:
 category-vocabulary sweep -- all 90 mixed manifests normalized, zero
 unknown tokens remain; owner-approved `firebird`/`oracle` publish scope;
 published as `eco-v0.1.35`; allowlist 497 -> 499; README Status-block
 sync closed -- 514/514 match the live registry; bracket re-audit 0 real
 sites; `&mut Int` write-drop boundary refined -- bare drops, deref
-works). Check `git log -1 --format=%h %s` before starting.
+works; `eco-v0.1.36` manifest module-list fixes published). Check
+`git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-03 12:55Z (read this first):**
+**STATE AT 2026-10-03 14:30Z (read this first):**
+- **`eco-v0.1.36` PUBLISHED (this session, run `37129059908` SUCCESS
+  attempt 1):** manifest module-list fixes + patch bumps -- `stats-ml`
+  `xiom.stats-ml` -> `xiom.stats_ml` (invalid hyphen module name; the
+  namespace export was double-counting it, so 593 -> 592 is a
+  correction), `vault` now declares `client`/`core`/`json`, `web3`
+  declares `accounts`/`contract`/`ens`/`keccak`/`provider`; suites
+  re-ran green (`stats-ml` 22/22, `vault` 28/28, `web3` 28/28); no ops
+  scope delta needed (all three already allowlisted/scoped); all three
+  verified live at `0.1.1` stage `incubating`; repo-wide module-list
+  re-audit = 0 issues.
 - **Wave 56 COMPLETE + PUBLISHED (`eco-v0.1.35`):** category-vocabulary
   sweep `5f469ee5` (all 90 manifests that mixed unknown tokens with
   accepted ones normalized to the 16-token registry vocabulary;
@@ -28,8 +39,8 @@ works). Check `git log -1 --format=%h %s` before starting.
 - **Current gates/state:** `validate` **514/0**; guard **499
   allowlisted / 450 ready / 49 grandfathered / 0 failures**; registry
   **450 packages + 2 infra = 452 entries** (276 stable / 174 incubating /
-  1 empty infra probe); allowlist **499**; tag `eco-v0.1.35` on
-  `4c7093f7`; all pushed.
+  1 empty infra probe); allowlist **499**; tags `eco-v0.1.35` on
+  `4c7093f7` and `eco-v0.1.36` on `5e25ee47`; all pushed.
 - **Compiler release:** pin still `v0.62.2`; deployed `xiom.new\bin`
   binaries unchanged (2026-09-30). No v0.62.3+ release observed -- Tier-2
   triage, the first promotion wave (`json`/`control`/`sensor` stay
@@ -71,7 +82,12 @@ works). Check `git log -1 --format=%h %s` before starting.
   `meteorology` got the standard header; all 7 suites re-ran green);
   299 remain in non-published/skipped dirs -- fix opportunistically at
   next touch;
-  (f) manifest-vs-registry version drift: **0 of 450**.
+  (f) manifest-vs-registry version drift: **0 of 450**;
+  (g) manifest `modules` vs source declarations: 3 packages drifted
+  (`stats-ml` hyphen name, `vault` missing `client`/`core`/`json`,
+  `web3` missing `accounts`/`contract`/`ens`/`keccak`/`provider`) --
+  fixed and republished in **`eco-v0.1.36`**; repo-wide re-audit = 0
+  issues.
 - **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
   drop is the BARE assignment form (`s = 99`) in both call forms (plain
   local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix
@@ -175,7 +191,7 @@ works). Check `git log -1 --format=%h %s` before starting.
    before editing the allowlist; append `.github/publish-allowlist.txt`;
    `generate_index.ps1`, `status.ps1 -Action report`, validate,
    `allowlist-guard.ps1`, `export-namespaces.ps1`; commit + push; `git
-   tag eco-v0.1.36` (next number) + push; approve the gate:
+   tag eco-v0.1.37` (next number) + push; approve the gate:
    `gh api repos/xiom-packages/packages/actions/runs/<id>/pending_deployments
    -X POST --input <{"state":"approved","environment_ids":[22424011031],
    "comment":"..."}>`; monitor; on `oidc_token_expired` rerun the failed
@@ -204,16 +220,17 @@ works). Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-03 12:55Z STATE block and
+private). Read SESSION.md first -- the 2026-10-03 14:30Z STATE block and
 the "Next-session operating kit" at the top of section 0 are the live
-handoff (wave 56 complete + published eco-v0.1.35; category-vocabulary
-sweep done, 0 unknown tokens; 450 packages + 2 infra on the registry;
-allowlist 499). Repo-local identity must be "Lefteris Notas
-<lefterisnotas@gmail.com>". Publishing policy: PRODUCTION-DIRECT batches
-(this session approves the registry-publish gates); ops opens the
-publish-rate window ONLY for waves >20 names (default 20/min otherwise);
-the ops scope enumeration must be confirmed BEFORE appending the
-allowlist delta. New/next-touched records use stage `incubating`
+handoff (wave 56 + `eco-v0.1.35` firebird/oracle; `eco-v0.1.36`
+manifest module-list fixes; category-vocabulary sweep done, 0 unknown
+tokens; README/SPDX/version/module audits clean; 450 packages + 2 infra
+on the registry; allowlist 499). Repo-local identity must be "Lefteris
+Notas <lefterisnotas@gmail.com>". Publishing policy: PRODUCTION-DIRECT
+batches (this session approves the registry-publish gates); ops opens
+the publish-rate window ONLY for waves >20 names (default 20/min
+otherwise); the ops scope enumeration must be confirmed BEFORE appending
+the allowlist delta. New/next-touched records use stage `incubating`
 (`stable` only via `docs/PROMOTION.md`).
 
 Start by running: git fetch; git status -sb; git log -1; then
@@ -240,7 +257,7 @@ Then do, in order:
    keep the `-TimeoutSec 60` watchdog; byte-level bracket grep ONLY
    (Read lies about `Vec<Int>`); bump versions ONLY when source changes;
    at every wave append worker `stdlib gaps` / compiler evidence.
-4. Wrap + publish per the operating kit (tag eco-v0.1.36 when there is a
+4. Wrap + publish per the operating kit (tag eco-v0.1.37 when there is a
    batch): ops scope ask, allowlist, regenerate, validate+guard, approve
    the gate, verify live. Rerun-failed + re-approve on
    `oidc_token_expired` (idempotent; large batches can lose the alphabet
