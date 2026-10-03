@@ -9,9 +9,9 @@
 
 package xiom_nats {
   name: "xiom.nats";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Pure-XIOM NATS 1.x text protocol codec: client CONNECT/PUB/HPUB/SUB/UNSUB/PING/PONG and server INFO/MSG/HMSG/+OK/-ERR ops with CRLF framing and byte-count payloads";
-  categories: ["protocol"];
+  categories: ["network"];
   keywords: ["nats", "pubsub", "messaging", "protocol"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
