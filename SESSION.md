@@ -37,6 +37,19 @@ recorded). Check `git log -1 --format=%h %s` before starting.
   nested test-module import; uninitialized-local corruption;
   enum-payload `Str` corruption; **const match arms never match**
   (minimized). Probe index: `docs/repro/README.md`.
+- **Compiler-main status (relayed 2026-10-03 23:55Z):** m184
+  (nested test-module import) and m185 (uninitialized-local -- confirmed
+  real NULL-deref UB) are **fixed and locked on compiler main**; pin
+  when the next release ships. **Next-release to-dos:** re-run the
+  `enum-payload-str` in-situ case on a build with m184+m185 (possibly a
+  symptom of the m185 UB) and drop the two porter-brief rules then.
+  Compiler lane also reports `smoke_iter_range` rc 0 on their post-m184
+  tree (promote their smoke lock when the next candidate ships) and that
+  doctor no longer warns on the stdlib version split (m187:
+  MAJOR.MINOR compare). **Stdlib-lane note:** aligning `xiom-std`'s
+  registry labels is optional (no correctness need) -- bump
+  `package.xi` and push a `stdlib-v*` tag when convenient; the stdlib
+  checkout is at version `0.62.0`, last tag `stdlib-v0.62.0`.
 - **Next:** stable hardening batches (279 stable; only `bson`/`ttl` carry
   clauses; `scripts/contract-coverage.ps1`) and/or pick up the parked
   grpc/graphql with the recorded leads; next tag `eco-v0.1.43`.
@@ -477,6 +490,8 @@ recorded). Check `git log -1 --format=%h %s` before starting.
    non-nested name like `pkg_tests`); **always initialize locals at
    declaration** (`var x: T = <default>;` -- uninitialized declaration +
    later assignment corrupts on v0.62.3, see COMPILER-FINDINGS);
+   **both rules are FIXED on compiler main (m184/m185, locked) -- keep
+   them until the next release pin, then drop them**;
    no builtin/generic-name shadowing; progress-guaranteed loops +
    full-angle bracket grep after green + `port.ps1 -TimeoutSec 60` gate
    + `## stdlib gaps` report. **Unsafe-FFI (v0.62.3):** every extern
