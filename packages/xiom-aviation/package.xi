@@ -10,7 +10,7 @@ package xiom_aviation {
   name: "xiom.aviation";
   version: "0.1.2";
   description: "Mode S / ADS-B extended squitter frame codec: bit-oriented frame intake, ME type-code decoding and CPR position helpers";
-  categories: ["networking", "science"];
+  categories: ["network", "science"];
   keywords: ["ads-b", "mode-s", "aviation", "transponder", "cpr"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

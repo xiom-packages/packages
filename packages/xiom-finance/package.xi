@@ -11,7 +11,7 @@ package xiom_finance {
   name: "xiom.finance";
   version: "0.1.1";
   description: "Integer time-value-of-money: interest, annuities, NPV, doubling time";
-  categories: ["data", "finance"];
+  categories: ["data"];
   keywords: ["finance", "interest", "annuity", "npv"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

@@ -12,7 +12,7 @@ package xiom_charts {
   name: "xiom.charts";
   version: "0.1.0";
   description: "Deterministic integer line and bar charts emitted as SVG";
-  categories: ["graphics", "text"];
+  categories: ["graphics", "text-nlp"];
   keywords: ["charts", "svg", "plot", "bar-chart", "line-chart", "visualization"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

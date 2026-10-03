@@ -16,7 +16,7 @@ package xiom_l10n_currency {
   name: "xiom.l10n-currency";
   version: "0.1.2";
   description: "ISO 4217 currency table, lookups, and exact integer minor-unit amount parse/format";
-  categories: ["data", "finance"];
+  categories: ["data"];
   keywords: ["currency", "iso4217", "money", "l10n", "i18n", "formatting"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

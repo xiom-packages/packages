@@ -10,7 +10,7 @@ package xiom_packet {
   name: "xiom.packet";
   version: "0.1.1";
   description: "Length-prefixed packet framing with CRC-32 validation";
-  categories: ["data", "networking"];
+  categories: ["data", "network"];
   keywords: ["packet", "framing", "crc32", "protocol"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

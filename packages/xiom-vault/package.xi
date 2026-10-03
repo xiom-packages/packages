@@ -11,7 +11,7 @@ package xiom_vault {
   name: "xiom.vault";
   version: "0.1.0";
   description: "Pure-XIOM secret vault backend MODEL (no HTTP, no crypto): Vault API request/response model with a JSON-ish body builder and raw key lookup, KV v1/v2 path and version state model, Shamir secret sharing over GF(256) with unseal progress, token/AppRole login models and policy path/capability matching";
-  categories: ["security"];
+  categories: ["crypto-security"];
   keywords: ["vault", "secrets", "kv", "shamir", "unseal", "policy", "approle", "token", "capabilities"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

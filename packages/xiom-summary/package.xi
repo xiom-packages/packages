@@ -13,7 +13,7 @@ package xiom_summary {
   name: "xiom.summary";
   version: "0.1.1";
   description: "Extractive text summarization with frequency scoring";
-  categories: ["text"];
+  categories: ["text-nlp"];
   keywords: ["summary", "extractive", "nlp", "text"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

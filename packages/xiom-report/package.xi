@@ -11,7 +11,7 @@ package xiom_report {
   name: "xiom.report";
   version: "0.1.1";
   description: "Plain-text report building: aligned tables, key/value blocks, bullets, and word wrap";
-  categories: ["text", "tooling"];
+  categories: ["text-nlp", "tooling"];
   keywords: ["report", "table", "format", "text"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

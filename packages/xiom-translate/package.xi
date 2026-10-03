@@ -13,7 +13,7 @@ package xiom_translate {
   name: "xiom.translate";
   version: "0.1.0";
   description: "Deterministic offline translation core: in-package phrasebook terms, stopword/n-gram language detection, Cyrillic/Greek script transliteration, domain glossaries";
-  categories: ["l10n"];
+  categories: ["text-nlp"];
   keywords: ["translation", "phrasebook", "language-detection", "transliteration", "glossary", "l10n"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

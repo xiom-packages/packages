@@ -12,7 +12,7 @@ package xiom_eml {
   name: "xiom.eml";
   version: "0.1.1";
   description: "RFC 5322/MIME message structure: unfolded headers, body split, and multipart boundaries";
-  categories: ["data", "text"];
+  categories: ["data", "text-nlp"];
   keywords: ["email", "mime", "rfc5322", "parser"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

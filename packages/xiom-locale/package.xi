@@ -14,7 +14,7 @@ package xiom_locale {
   name: "xiom.locale";
   version: "0.1.1";
   description: "BCP-47 language tag parsing, canonicalization, RFC 4647 lookup and fallback chains";
-  categories: ["text", "data"];
+  categories: ["text-nlp", "data"];
   keywords: ["locale", "bcp47", "language", "l10n", "i18n"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

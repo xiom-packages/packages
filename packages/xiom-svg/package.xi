@@ -12,7 +12,7 @@ package xiom_svg {
   name: "xiom.svg";
   version: "0.1.1";
   description: "SVG document builder with element helpers and escaping";
-  categories: ["text", "graphics"];
+  categories: ["text-nlp", "graphics"];
   keywords: ["svg", "graphics", "markup", "builder"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

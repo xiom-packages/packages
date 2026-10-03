@@ -11,7 +11,7 @@ package xiom_password {
   name: "xiom.password";
   version: "0.1.1";
   description: "Password strength scoring and structural checks (no crypto, no dictionaries)";
-  categories: ["safety", "text"];
+  categories: ["crypto-security", "text-nlp"];
   keywords: ["password", "strength", "security", "score"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

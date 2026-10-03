@@ -14,7 +14,7 @@ package xiom_saml {
   name: "xiom.saml";
   version: "0.1.0";
   description: "SAML 2.0 structure toolkit: XML subset reader, assertion/response parsing, AuthnRequest builder, IdP metadata, base64 and XML-DSig structural parsing (no networking, no public-key verification)";
-  categories: ["security"];
+  categories: ["crypto-security"];
   keywords: ["saml", "sso", "assertion", "xml", "signature", "metadata"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

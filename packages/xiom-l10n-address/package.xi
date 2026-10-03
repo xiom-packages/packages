@@ -12,7 +12,7 @@ package xiom_l10n_address {
   name: "xiom.l10n-address";
   version: "0.1.1";
   description: "Country address templates and rendering (12-country illustrative dataset)";
-  categories: ["text", "data"];
+  categories: ["text-nlp", "data"];
   keywords: ["l10n", "address", "postal", "locale"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

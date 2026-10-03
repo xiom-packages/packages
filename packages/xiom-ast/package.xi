@@ -15,7 +15,7 @@ package xiom_ast {
   name: "xiom.ast";
   version: "0.1.0";
   description: "Deterministic AST toolkit: parallel-array node model, cycle-safe builder, pre/post-order traversal, spans, pretty-printer";
-  categories: ["tooling", "text"];
+  categories: ["tooling", "text-nlp"];
   keywords: ["ast", "syntax-tree", "traversal", "spans", "pretty-printer"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

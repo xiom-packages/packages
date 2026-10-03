@@ -13,7 +13,7 @@ package xiom_wallet {
   name: "xiom.wallet";
   version: "0.1.0";
   description: "Deterministic wallet metadata model: BIP32-style derivation paths, account and address books, an integer balance ledger with transfer intents (no crypto, no network)";
-  categories: ["data", "finance"];
+  categories: ["data"];
   keywords: ["wallet", "bip32", "derivation-path", "accounts", "addresses", "ledger", "transfer", "metadata"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

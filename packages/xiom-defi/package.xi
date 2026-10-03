@@ -11,7 +11,7 @@ package xiom_defi {
   name: "xiom.defi";
   version: "0.1.0";
   description: "Integer constant-product AMM and share-index lending pool models";
-  categories: ["data", "finance"];
+  categories: ["data"];
   keywords: ["defi", "amm", "lending", "liquidity", "fixed-point"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

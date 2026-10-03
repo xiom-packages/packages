@@ -11,7 +11,7 @@ package xiom_diagrams {
   name: "xiom.diagrams";
   version: "0.1.0";
   description: "Graphviz DOT-subset parser and deterministic canonical serializer";
-  categories: ["text", "graphics"];
+  categories: ["text-nlp", "graphics"];
   keywords: ["dot", "graphviz", "graph", "digraph", "diagram", "parser", "codec"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

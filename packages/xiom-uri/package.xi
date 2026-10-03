@@ -12,7 +12,7 @@ package xiom_uri {
   name: "xiom.uri";
   version: "0.1.1";
   description: "RFC 3986 URI parsing, formatting, and component helpers";
-  categories: ["networking", "text"];
+  categories: ["network", "text-nlp"];
   keywords: ["uri", "url", "parse", "percent-encoding"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

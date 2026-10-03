@@ -11,7 +11,7 @@ package xiom_smartcontract {
   name: "xiom.smartcontract";
   version: "0.1.0";
   description: "Deterministic pure-XIOM stack VM for a documented contract bytecode subset, with assembler, disassembler, gas metering and traces";
-  categories: ["systems", "protocol"];
+  categories: ["systems", "network"];
   keywords: ["vm", "bytecode", "smart-contract", "interpreter", "assembler", "gas"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

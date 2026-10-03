@@ -103,7 +103,17 @@ mapping used in the wave-53.5 fix:
 - `compiler` -> `tooling`
 - `finance` -> `data`
 - `interoperability` -> `text-nlp` (documents) / `data`
-- `safety` -> `science` / `tooling` / `core` by domain
+- `safety` -> `crypto-security` / `tooling` / `core` by domain
+
+Wave-56 sweep (2026-10-03): all 90 manifests that mixed unknown tokens with
+accepted ones were normalized repo-side (metadata-only -- no version bumps,
+no republish; the registry already ignored the unknown tokens). Additional
+domain resolutions: `engineering` -> `systems` (embedded/hardware: adc, dac,
+electronics, robotics) or `science` (materials, thermo; deduped into the
+existing token); `safety` -> `crypto-security` (audit, html, jwt, password,
+rbac, sanitize, secret) or `tooling` (compliance, validation); `protocol` ->
+`network`. Unknown tokens that mapped onto an already-present token were
+deduped. Zero unknown category tokens remain across the 514 manifests.
 
 Registry note: the web UI renders the README **of each published
 version**; owner chose policy **1b (opportunistic refresh, 2026-10-02)**

@@ -12,7 +12,7 @@ package xiom_collation {
   name: "xiom.collation";
   version: "0.1.1";
   description: "Case-insensitive and natural (numeric-aware) string collation";
-  categories: ["text"];
+  categories: ["text-nlp"];
   keywords: ["collation", "sort", "natural", "text"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

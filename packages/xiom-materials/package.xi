@@ -11,7 +11,7 @@ package xiom_materials {
   name: "xiom.materials";
   version: "0.1.0";
   description: "Deterministic fixed-point isotropic material model: elastic constants, Voigt stress/strain, Hooke's law, invariants, yield checks";
-  categories: ["science","engineering"];
+  categories: ["science"];
   keywords: ["materials","elasticity","stress","strain","hooke","von-mises","yield"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

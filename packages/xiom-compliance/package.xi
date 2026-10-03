@@ -12,7 +12,7 @@ package xiom_compliance {
   name: "xiom.compliance";
   version: "0.1.0";
   description: "Deterministic compliance rule engine with evidence, waivers and severity rollup";
-  categories: ["safety","tooling"];
+  categories: ["tooling"];
   keywords: ["compliance","policy","rules","waivers","audit","governance"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

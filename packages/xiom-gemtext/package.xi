@@ -11,7 +11,7 @@ package xiom_gemtext {
   name: "xiom.gemtext";
   version: "0.1.1";
   description: "Gemtext line codec: parser and canonical emitter";
-  categories: ["text"];
+  categories: ["text-nlp"];
   keywords: ["gemtext", "gemini", "markup", "parser"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

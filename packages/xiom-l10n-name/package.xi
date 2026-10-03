@@ -14,7 +14,7 @@ package xiom_l10n_name {
   name: "xiom.l10n-name";
   version: "0.1.1";
   description: "Locale-style personal-name display ordering, lists, initials and honorifics";
-  categories: ["text", "data"];
+  categories: ["text-nlp", "data"];
   keywords: ["l10n", "name", "personal", "display"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

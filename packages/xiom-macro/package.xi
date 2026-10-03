@@ -13,7 +13,7 @@ package xiom_macro {
   name: "xiom.macro";
   version: "0.1.0";
   description: "Pure deterministic text macro-expansion processor with define/undef directives";
-  categories: ["text", "tooling"];
+  categories: ["text-nlp", "tooling"];
   keywords: ["macro", "preprocessor", "expand", "text", "template"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

@@ -13,7 +13,7 @@ package xiom_l10n_number {
   name: "xiom.l10n.number";
   version: "0.1.1";
   description: "Locale-style integer and decimal number formatting and parsing (scaled integers)";
-  categories: ["text", "data"];
+  categories: ["text-nlp", "data"];
   keywords: ["l10n", "format", "number", "locale"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

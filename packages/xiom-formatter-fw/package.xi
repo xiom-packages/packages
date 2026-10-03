@@ -15,7 +15,7 @@ package xiom_formatter_fw {
   name: "xiom.formatter-fw";
   version: "0.1.1";
   description: "Wadler/Leijen-style pretty-printing framework: explicit document model (text/line/softline/hardline/concat/nest/group/align), greedy width fitting, deterministic renderer";
-  categories: ["text", "tooling"];
+  categories: ["text-nlp", "tooling"];
   keywords: ["formatter", "pretty-printer", "layout", "document", "wadler"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

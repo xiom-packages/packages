@@ -16,7 +16,7 @@ package xiom_parsing {
   name: "xiom.parsing";
   version: "0.1.0";
   description: "Spanned parser-combinator framework: literal/class/seq/alt/many/optional/capture combinators, index ranges, structured errors";
-  categories: ["text", "tooling"];
+  categories: ["text-nlp", "tooling"];
   keywords: ["parser", "combinator", "grammar", "parsing", "peg"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

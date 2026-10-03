@@ -11,7 +11,7 @@ package xiom_messaging {
   name: "xiom.messaging";
   version: "0.1.0";
   description: "Deterministic in-process message bus with wildcard topics, ack accounting, backoff redelivery and dead letters";
-  categories: ["protocol", "data"];
+  categories: ["network", "data"];
   keywords: ["messaging", "pubsub", "broker", "delivery", "dead-letter"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

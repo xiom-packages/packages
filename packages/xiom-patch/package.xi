@@ -10,7 +10,7 @@ package xiom_patch {
   name: "xiom.patch";
   version: "0.1.1";
   description: "Unified diff parsing and application with conflict detection";
-  categories: ["tooling", "text"];
+  categories: ["tooling", "text-nlp"];
   keywords: ["patch", "unified", "apply", "diff"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

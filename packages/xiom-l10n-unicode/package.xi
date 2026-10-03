@@ -16,7 +16,7 @@ package xiom_l10n_unicode {
   name: "xiom.l10n-unicode";
   version: "0.1.0";
   description: "Unicode subset for l10n: category/script/block data, full case mapping and folding, NFD/NFC/NFKD/NFKC, grapheme/word/sentence boundaries";
-  categories: ["text", "data"];
+  categories: ["text-nlp", "data"];
   keywords: ["unicode", "l10n", "i18n", "normalization", "case-folding", "segmentation", "grapheme", "utf8"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

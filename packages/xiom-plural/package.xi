@@ -11,7 +11,7 @@ package xiom_plural {
   name: "xiom.plural";
   version: "0.1.1";
   description: "English pluralization and singularization with irregular and suffix rules";
-  categories: ["text"];
+  categories: ["text-nlp"];
   keywords: ["plural", "singular", "inflection", "strings"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

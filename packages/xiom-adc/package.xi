@@ -11,7 +11,7 @@ package xiom_adc {
   name: "xiom.adc";
   version: "0.1.1";
   description: "ADC codecs: integer conversion scaling, channel/gain/reference selection, sample-rate tables and ADS1x15 config registers";
-  categories: ["science", "engineering"];
+  categories: ["science", "systems"];
   keywords: ["adc", "analog", "conversion", "ads1115", "ads1015", "mux", "pga", "embedded"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

@@ -11,7 +11,7 @@ package xiom_thermo {
   name: "xiom.thermo";
   version: "0.1.1";
   description: "Exact integer unit conversions for temperature, pressure, energy, and speed";
-  categories: ["science","engineering"];
+  categories: ["science"];
   keywords: ["units","temperature","pressure","conversion"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

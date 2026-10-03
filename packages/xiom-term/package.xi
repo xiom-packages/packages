@@ -11,7 +11,7 @@ package xiom_term {
   name: "xiom.term";
   version: "0.1.1";
   description: "ANSI/VT escape handling: detect, strip, count, and visible-aware truncation";
-  categories: ["text","tooling"];
+  categories: ["text-nlp","tooling"];
   keywords: ["ansi","escape","terminal","vt100"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

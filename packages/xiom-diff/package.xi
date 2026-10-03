@@ -11,7 +11,7 @@ package xiom_diff {
   name: "xiom.diff";
   version: "0.1.1";
   description: "Line diff with longest-common-subsequence edit scripts and unified diff output";
-  categories: ["text", "tooling"];
+  categories: ["text-nlp", "tooling"];
   keywords: ["diff", "lcs", "unified", "text"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

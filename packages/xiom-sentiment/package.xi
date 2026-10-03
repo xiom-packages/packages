@@ -12,7 +12,7 @@ package xiom_sentiment {
   name: "xiom.sentiment";
   version: "0.1.1";
   description: "Lexicon-based sentiment scoring with negation handling";
-  categories: ["text"];
+  categories: ["text-nlp"];
   keywords: ["sentiment", "lexicon", "nlp", "text"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

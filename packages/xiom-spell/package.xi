@@ -12,7 +12,7 @@ package xiom_spell {
   name: "xiom.spell";
   version: "0.1.1";
   description: "Dictionary-based spell checking: Levenshtein distance, suggestions, unknown-word scan";
-  categories: ["text"];
+  categories: ["text-nlp"];
   keywords: ["spell", "levenshtein", "suggest", "text"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

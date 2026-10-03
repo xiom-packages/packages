@@ -12,7 +12,7 @@ package xiom_querystring {
   name: "xiom.querystring";
   version: "0.1.1";
   description: "application/x-www-form-urlencoded parsing and serialization with multi-value support";
-  categories: ["networking", "data"];
+  categories: ["network", "data"];
   keywords: ["querystring", "urlencoded", "form", "http"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

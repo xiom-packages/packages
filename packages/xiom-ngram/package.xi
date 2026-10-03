@@ -11,7 +11,7 @@ package xiom_ngram {
   name: "xiom.ngram";
   version: "0.1.1";
   description: "Word and character n-grams with Jaccard/Dice similarity and MinHash signatures";
-  categories: ["text", "data"];
+  categories: ["text-nlp", "data"];
   keywords: ["ngram", "shingles", "jaccard", "minhash", "similarity"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

@@ -11,7 +11,7 @@ package xiom_lemmatization {
   name: "xiom.lemmatization";
   version: "0.1.0";
   description: "Deterministic rule-based English lemmatizer with POS-tagged suffix rules";
-  categories: ["text"];
+  categories: ["text-nlp"];
   keywords: ["lemmatization", "lemma", "nlp", "morphology", "text"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

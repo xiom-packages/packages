@@ -12,7 +12,7 @@ package xiom_tokenizer {
   name: "xiom.tokenizer";
   version: "0.1.1";
   description: "Text tokenization: words, sentences, lines, and n-grams";
-  categories: ["text"];
+  categories: ["text-nlp"];
   keywords: ["tokenizer", "nlp", "text", "ngram"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

@@ -11,7 +11,7 @@ package xiom_roman {
   name: "xiom.roman";
   version: "0.1.1";
   description: "Roman numeral parsing, formatting, and canonical validation (1..3999)";
-  categories: ["text", "data"];
+  categories: ["text-nlp", "data"];
   keywords: ["roman", "numerals", "parse", "format"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

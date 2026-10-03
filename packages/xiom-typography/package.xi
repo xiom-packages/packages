@@ -13,7 +13,7 @@ package xiom_typography {
   name: "xiom.typography";
   version: "0.1.1";
   description: "Typographic prettification: smart quotes, dashes, ellipsis, spacing";
-  categories: ["text"];
+  categories: ["text-nlp"];
   keywords: ["typography", "smart-quotes", "dashes", "text"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

@@ -10,7 +10,7 @@ package xiom_cobs {
   name: "xiom.cobs";
   version: "0.1.1";
   description: "COBS framing: consistent overhead byte stuffing encode/decode with zero-byte delimiters";
-  categories: ["data", "networking"];
+  categories: ["data", "network"];
   keywords: ["cobs", "framing", "serial", "encoding"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

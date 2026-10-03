@@ -11,7 +11,7 @@ package xiom_validation {
   name: "xiom.validation";
   version: "0.1.1";
   description: "Format validators: email, IPv4/IPv6, hex, UUID, slug, dates, ports";
-  categories: ["text", "safety"];
+  categories: ["text-nlp", "tooling"];
   keywords: ["validation", "email", "ipv6", "uuid", "slug"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

@@ -11,7 +11,7 @@ package xiom_electronics {
   name: "xiom.electronics";
   version: "0.1.1";
   description: "Resistor color codes, E24 series, voltage dividers, and LED resistors (integer math)";
-  categories: ["science","engineering"];
+  categories: ["science","systems"];
   keywords: ["electronics","resistor","voltage","circuits"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

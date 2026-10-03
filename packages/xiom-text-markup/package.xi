@@ -15,7 +15,7 @@ package xiom_text_markup {
   name: "xiom.text-markup";
   version: "0.1.0";
   description: "BBCode-style inline markup codec: parse with nesting validation, span records, plain-text render, canonical re-serialization";
-  categories: ["text"];
+  categories: ["text-nlp"];
   keywords: ["markup", "bbcode", "parse", "render", "span", "text"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

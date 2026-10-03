@@ -16,7 +16,7 @@ package xiom_l10n_phone {
   name: "xiom.l10n-phone";
   version: "0.1.2";
   description: "E.164 / international phone-number structures: embedded country-code table, parse, validate, format, tel URI";
-  categories: ["data", "i18n"];
+  categories: ["data", "text-nlp"];
   keywords: ["phone", "e164", "telephone", "l10n", "i18n", "itu", "validation"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

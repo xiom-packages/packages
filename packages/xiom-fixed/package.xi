@@ -11,7 +11,7 @@ package xiom_fixed {
   name: "xiom.fixed";
   version: "0.1.1";
   description: "Fixed-width text table parsing and writing by column widths";
-  categories: ["data", "text"];
+  categories: ["data", "text-nlp"];
   keywords: ["fixed-width", "table", "parser", "columns"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";

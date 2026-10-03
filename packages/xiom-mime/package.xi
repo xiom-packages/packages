@@ -13,7 +13,7 @@ package xiom_mime {
   name: "xiom.mime";
   version: "0.1.1";
   description: "Media type helpers: extension mapping, normalization, and class checks";
-  categories: ["data", "networking"];
+  categories: ["data", "network"];
   keywords: ["mime", "media-type", "extension", "http"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
