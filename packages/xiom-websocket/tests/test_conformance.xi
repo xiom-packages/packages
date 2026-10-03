@@ -1,9 +1,13 @@
 // XIOM -- xiom.websocket Conformance Tests (10 tests)
-module xiom.websocket.tests
+module websocket_tests
 
 use xiom.websocket;
 use xiom.string;
 use xiom.io;
+
+// Assertions that fail inside a test are collected here so `run_case`
+// can report them per test (the old `try()` printed and swallowed them).
+var ws_failures: Vec[Str] = Vec[Str].new();
 
 fn assert_true(condition: Bool, label: Str) -> Result[Unit, Str] {
   if condition { return Ok(Unit); };
@@ -325,6 +329,41 @@ fn test_heartbeat() -> Result[Unit, Str] {
 fn try(res: Result[Unit, Str]) {
   match res {
     Ok(_) => {},
-    Err(e) => { io.println(e); },
+    Err(e) => { ws_failures.push(e); },
   };
+}
+
+fn run_case(label: Str, res: Result[Unit, Str]) -> Int {
+  let before: Int = ws_failures.len();
+  match res {
+    Ok(_) => {},
+    Err(e) => { ws_failures.push(e); },
+  };
+  let added: Int = ws_failures.len() - before;
+  if added == 0 {
+    io.println("[PASS] " + label);
+    return 0;
+  }
+  var k: Int = before;
+  while k < ws_failures.len() {
+    io.println("[FAIL] " + label + " -- " + ws_failures[k]);
+    k = k + 1;
+  }
+  return 1;
+}
+
+fn main() -> Int {
+  var failures: Int = 0;
+  failures = failures + run_case("opcode helpers", test_opcode_helpers());
+  failures = failures + run_case("frame create", test_frame_create());
+  failures = failures + run_case("frame encode/decode", test_frame_encode_decode());
+  failures = failures + run_case("frame validate", test_frame_validate());
+  failures = failures + run_case("connection lifecycle", test_connection_lifecycle());
+  failures = failures + run_case("handshake validation", test_handshake_validation());
+  failures = failures + run_case("server management", test_server_management());
+  failures = failures + run_case("channel subscriptions", test_channel_subscriptions());
+  failures = failures + run_case("close codes", test_close_codes());
+  failures = failures + run_case("heartbeat", test_heartbeat());
+  io.println("xiom.websocket: " + int_to_str(10 - failures) + "/10 passed");
+  return failures;
 }

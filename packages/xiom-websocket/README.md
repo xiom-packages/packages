@@ -1,6 +1,6 @@
 # xiom.websocket
 
-> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
+> **Status:** `incubating` -- conformance-tested (10/10); not yet published.
 > **Scope:** WebSocket client/server with RFC 6455 framing.
 > **Deps:** stdlib; may wrap C (FFI).
 
