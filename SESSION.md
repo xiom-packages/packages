@@ -52,6 +52,15 @@ running). Check `git log -1 --format=%h %s` before starting.
   `l10n-unicode` are pure-Int APIs (no change). Retire with identical
   behavior: `refactor:` + suite x2 + trap-14; patch-bump only when
   published code ships the change.
+- **Wave scoping decision (2026-10-03, in-session review):** the 25
+  candidates are mostly deliberate single-Str / blob+offset designs
+  adopted around the bug (`consensus`, `svm`, `cloud`/`cloudlog`/
+  `docker`/`k8s`, `pptx`, the trace models). Per the standing rule
+  "never a drive-by refactor of a green package", there is **no mass
+  refactor wave**: the retirements mean new code may use `Vec[Str]` /
+  `&mut Int` freely, and existing sites simplify only at next touch.
+  Tier-2 is therefore: sweep + re-record (detector, done when green)
+  -> first promotion wave.
 - **Current gates:** `validate` 514/0; guard expected unchanged
   **499 allowlisted / 450 ready / 49 grandfathered / 0 failures**; no
   publish pending until the promotion wave; ops needs nothing yet.
@@ -379,10 +388,9 @@ Then do, in order:
 1. Tier-2 completion on v0.62.3: finish/re-check the fleet sweep
    (`scripts/fleet-sweep.ps1`; summary under `%TEMP%\kilo\sweep\`), fix
    any non-PASS, then re-record green runs with `scripts/record-sweep.ps1`
-   (source-commit provenance). Then the workaround-retirement maintenance
-   wave (candidates in the STATE block; bug-driven `Vec[Str]` avoidance
-   only -- blob+offset models are valid designs): identical behavior,
-   suite x2 + trap-14, patch-bump only when shipped code changes.
+   (source-commit provenance). The workaround-retirement maintenance wave
+   is **next-touch only** (see the scoping decision in the STATE block;
+   no drive-by refactors of green packages).
 2. First promotion wave per `docs/PROMOTION.md`: `json`/`control`/`sensor`
    -> `stable` (contracts evidence; re-run G1 x2 on v0.62.3); `kafka`
    stays `ported` (FFI stubs). Wrap + publish the batch (`eco-v0.1.37`):
