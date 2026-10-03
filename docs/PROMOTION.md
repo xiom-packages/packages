@@ -40,8 +40,13 @@ patch/minor. The registry badge is a maturity tier, not a prerelease flag.
 ## Contracts (mandatory for stable)
 
 XIOM contracts are standard library practice -- stdlib carries 1282
-`requires:` and 5195 `ensures:` clauses across 193 files; packages
-currently carry **zero**. Stable packages close that gap.
+`requires:` and 5195 `ensures:` clauses across 193 files; package-side
+coverage is thin and uneven: only **2 of the 276 grandfathered stable
+packages** carry clauses (4 total: `bson` 3, `ttl` 1), while the
+unpublished C-binding set and the `ported` candidates carry the bulk
+(2658 clauses across 66 packages as of 2026-10-03 -- run
+`scripts/contract-coverage.ps1`). New promotions must satisfy G4;
+grandfathered records are hardened over time.
 
 Syntax (from the contracts cheatsheet):
 
@@ -97,6 +102,11 @@ promoted by earlier waves). They are **grandfathered**:
 - The full gate applies to every **new** promotion from now on.
 - If a hardening pass finds a real defect, the fix is a patch/minor with
   a fresh run + record; the tier itself does not silently downgrade.
+- Selection inputs as of 2026-10-03 are flat: all 276 stable `checked`
+  timestamps are the 2026-09-30 fleet sweep (equal age) and no published
+  package depends on another ecosystem package (published deps are
+  `xiom.std` only), so batch selection is owner-driven until those
+  signals differentiate.
 
 ## Wave mechanics
 

@@ -166,7 +166,15 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   the canonical `">=0.60.0 <1.0.0"` (448-file majority), and `glfw`
   gained its missing deps block -> **514/514 consistent**. Of the 65,
   only `meshopt`/`ui` are published (fix rides their next touch,
-  policy 1b); the rest are grandfathered.
+  policy 1b);   the rest are grandfathered;
+  (s) contract-coverage audit (new `scripts/contract-coverage.ps1`,
+  read-only, fetches the live registry): **2658 clauses across 66/514
+  packages** -- **274 of the 276 grandfathered stable packages carry
+  zero** (`bson` 3, `ttl` 1); bulk = 60 unpublished C-binding dirs
+  (2396) + 4 `ported` (114) + published `meshopt`/`ui` (144).
+  `docs/PROMOTION.md` "packages carry zero" corrected; hardening
+  selection inputs are flat (equal fleet-sweep `checked` dates, no
+  published dependents) so batch choice stays owner-driven.
 - **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
   drop is the BARE assignment form (`s = 99`) in both call forms (plain
   local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix
