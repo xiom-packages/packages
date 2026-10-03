@@ -806,7 +806,7 @@ pub fn mqtt_encode_connack(session_present: Bool, return_code: Int) -> Result[Ve
 /// non-zero return code must have session present clear (MQTT-3.2.2-4).
 /// Err("mqtt: bad payload") when the body is not exactly two bytes.
 /// Complexity: O(1).
-pub fn mqtt_parse_connack(data: &Vec<UInt8>) -> Result[MqttConnack, Str] {
+pub fn mqtt_parse_connack(data: &Vec[UInt8]) -> Result[MqttConnack, Str] {
   let br = _body_bounds(data, 2);
   if !br.is_ok {
     return _err_connack(br.error);
@@ -895,7 +895,7 @@ pub fn mqtt_encode_publish(topic: &Vec[UInt8], payload: &Vec[UInt8], qos: Int, r
 /// Err("mqtt: bad topic") for an empty topic or a topic containing '+'/'#';
 /// Err("mqtt: packet id zero") for a QoS > 0 packet whose identifier is 0.
 /// Complexity: O(packet size).
-pub fn mqtt_parse_publish(data: &Vec<UInt8>) -> Result[MqttPublish, Str] {
+pub fn mqtt_parse_publish(data: &Vec[UInt8]) -> Result[MqttPublish, Str] {
   let hr = mqtt_parse_fixed_header(data);
   if !hr.is_ok {
     return _err_publish(hr.error);
@@ -1205,7 +1205,7 @@ pub fn mqtt_encode_disconnect() -> Vec[UInt8] {
 /// Errors: the fixed-header and envelope errors, "mqtt: bad packet type"
 /// for any other type, and "mqtt: bad payload" when the body is not empty.
 /// Complexity: O(1).
-pub fn mqtt_parse_disconnect(data: &Vec<UInt8>) -> Result[Unit, Str] {
+pub fn mqtt_parse_disconnect(data: &Vec[UInt8]) -> Result[Unit, Str] {
   let br = _body_bounds(data, 14);
   if !br.is_ok {
     return _err_unit(br.error);
