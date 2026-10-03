@@ -39,12 +39,16 @@ $Only = @($Only | ForEach-Object { $_ -split ',' } | Where-Object { $_ })
 $names = @()
 Get-ChildItem (Join-Path $RepoRoot 'packages') -Directory | ForEach-Object {
     $manifest = Join-Path $_.FullName 'package.xi'
-    $suite = Join-Path $_.FullName 'tests\test_conformance.xi'
     $status = Join-Path $_.FullName 'STATUS.json'
-    if (-not ((Test-Path -LiteralPath $manifest) -and (Test-Path -LiteralPath $suite) -and (Test-Path -LiteralPath $status))) { return }
+    if (-not ((Test-Path -LiteralPath $manifest) -and (Test-Path -LiteralPath $status))) { return }
     $rec = Get-Content -LiteralPath $status -Raw | ConvertFrom-Json
     if ($rec.stage -notin @('stable', 'incubating', 'ported')) { return }
     if ($rec.tests.status -ne 'pass') { return }
+    # Honor the suite path recorded in STATUS.json (xiom.hello uses
+    # tests/test_hello.xi); fall back to the conventional name.
+    $suiteRel = $rec.tests.suite
+    $suite = if ($suiteRel) { Join-Path $_.FullName $suiteRel } else { Join-Path $_.FullName 'tests\test_conformance.xi' }
+    if (-not (Test-Path -LiteralPath $suite)) { return }
     $name = [regex]::Match((Get-Content -LiteralPath $manifest -Raw), 'name\s*:\s*"([^"]+)"').Groups[1].Value
     if ($name) { $names += $name }
 }
