@@ -57,6 +57,7 @@ FFI -- so the double is fully deterministic and portable.
 ```xi
 use xiom.mock;
 use xiom.io;
+use xiom.convert;
 
 fn main() -> Int {
   var m = mock_new();
@@ -66,10 +67,10 @@ fn main() -> Int {
   mock_record(&mut m, "GET /users", "id=7");
   mock_record(&mut m, "GET /health", "");
 
-  io.println(mock_verified(&m));                    // true
-  io.println(mock_actual(&m, "GET /users"));        // 1
-  io.println(mock_unexpected_count(&m));            // 1
-  io.println(mock_unexpected_message(&m));          // mock: unexpected call 'GET /health'
+  if mock_verified(&m) { io.println("verified"); } else { io.println("unverified"); }
+  io.println("actual " + int_to_string(mock_actual(&m, "GET /users")));   // actual 1
+  io.println("unexpected " + int_to_string(mock_unexpected_count(&m)));   // unexpected 1
+  io.println(mock_unexpected_message(&m));  // mock: unexpected call 'GET /health'
   return 0;
 }
 ```

@@ -59,7 +59,7 @@ fn main() -> Int {
       // e.g. "6 findings: 2 high, 2 medium, 2 low, 0 info"
       io.println(sectest_finding_message(&rep, 0));
       // "HSTS max-age 3600 is below 31536000"
-      io.println(sectest_passed(&rep));   // false
+      if sectest_passed(&rep) { io.println("passed"); } else { io.println("failed"); }
     },
     Err(e) => { io.println(e); },
   }

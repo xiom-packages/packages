@@ -46,15 +46,16 @@ values and hand them to their platform layer.
 ```xi
 use xiom.pwm;
 use xiom.io;
+use xiom.convert;
 
 fn main() -> Int {
   // 1 MHz clock, 1 kHz PWM, 25% duty.
   let r = pwm_channel(1000000, 1000, 250);
   match r {
     Ok(c) => {
-      io.println(pwm_period_ticks(&c));   // 1000
-      io.println(pwm_duty_ticks(&c));     // 250
-      io.println(pwm_duty_micros(&c));    // 250
+      io.println("period ticks " + int_to_string(pwm_period_ticks(&c)));  // 1000
+      io.println("duty ticks " + int_to_string(pwm_duty_ticks(&c)));      // 250
+      io.println("duty micros " + int_to_string(pwm_duty_micros(&c)));    // 250
     },
     Err(e) => { io.println(e); },
   }
@@ -62,7 +63,9 @@ fn main() -> Int {
   // Standard hobby servo: 50 Hz frame, 0..180 degrees mapped to 50..100.
   let s = pwm_servo_channel(1000000, 50, 90, 0, 180, 50, 100);
   match s {
-    Ok(servo) => { io.println(pwm_duty_ticks(&servo)); },  // 1500 of 20000
+    Ok(servo) => {
+      io.println("servo ticks " + int_to_string(pwm_duty_ticks(&servo))); // 1500
+    },
     Err(e) => { io.println(e); },
   }
   return 0;

@@ -67,10 +67,14 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   + 2 infra = 452 entries`, manifest-vs-registry version drift = 0, no
   unpublished ready names; promotion wave is the only next batch and it
   is release-gated. No ops ask is due.
-- **Parallel lane (same worktree):** `packages/xiom-mock/README.md`,
-  `xiom-pwm/README.md`, `xiom-sectest/README.md` are modified but
-  UNCOMMITTED by that lane -- do not stage them; coordinate before
-  touching mock/pwm/sectest/firebird/oracle dirs.
+- **Parallel lane (`ses_f26cdae1…`):** its stalled README example fixes
+  for `mock`/`pwm`/`sectest` were rescue-committed this session (the
+  snippets called `io.println` on Int/Bool; now `int_to_string`/`if`;
+  Agent Manager extension unreachable, lane idle ~12 h). Re-verified
+  port x2 each (20/20, 20/20, 22/22) + bracket triage (the 3 pwm raw
+  hits are doc comments). Working tree for those dirs is clean;
+  `firebird`/`oracle` completed and published in wave 56 -- coordinate
+  before touching any remaining lane dirs.
 - **Carry-forwards:** compiler hotfix watch (`docs/COMPILER-FINDINGS.md`);
   Tier-2 + workaround retirement on the next release; first promotion
   wave per `docs/PROMOTION.md`; registry page refresh = policy 1b
