@@ -8,6 +8,6 @@ package xiom_durable {
   repository: "https://github.com/xiom-packages/packages";
   authors: ["XIOM Team"];
   deps: {
-    "xiom.std": "0.1.0"
+    "xiom.std": ">=0.60.0 <1.0.0"
   };
 }

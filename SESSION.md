@@ -159,7 +159,14 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   (`xiom.num.float.float_bits`/`bits_to_float` are documented fallback
   stubs, `float_bits(1.5)=0`); findings row annotated + registry row
   added; packages keep raw-octet float encodings until the intrinsic
-  lands.
+  lands;
+  (r) `xiom.std` dependency constraint normalized (audit): 65 legacy
+  manifests pinned `"0.1.0"` -- a stdlib version that never existed
+  (the registry's stdlib entry is `xiom-std` **0.62.0**); all now use
+  the canonical `">=0.60.0 <1.0.0"` (448-file majority), and `glfw`
+  gained its missing deps block -> **514/514 consistent**. Of the 65,
+  only `meshopt`/`ui` are published (fix rides their next touch,
+  policy 1b); the rest are grandfathered.
 - **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
   drop is the BARE assignment form (`s = 99`) in both call forms (plain
   local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix
