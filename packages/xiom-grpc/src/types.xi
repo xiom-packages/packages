@@ -1,5 +1,6 @@
 module xiom.grpc.types
 use xiom.grpc;
+use xiom.convert;
 
 pub type GrpcRequest = {
   service: Str;
@@ -82,4 +83,17 @@ pub fn grpc_metadata_set(req: &mut GrpcRequest, key: Str, value: Str)
   if !found {
     req.metadata.push((key.clone(), value.clone()));
   };
+}
+
+// --- Server Config Helpers --------------------------------------------------
+
+pub fn grpc_server_config(host: Str, port: Int) -> GrpcServerConfig
+  requires: host.len() > 0
+  requires: port > 0
+{
+  return GrpcServerConfig{ addr: host, port: port };
+}
+
+pub fn grpc_server_address(cfg: &GrpcServerConfig) -> Str {
+  return cfg.addr + ":" + int_to_string(cfg.port);
 }

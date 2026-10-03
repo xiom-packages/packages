@@ -1,6 +1,7 @@
 module grpc_conformance_tests
 use xiom.grpc;
 use xiom.grpc.types;
+use xiom.io;
 
 fn test_status_code_ok() -> Int {
   if GRPC_STATUS_OK == 0 { return 0; }
@@ -253,43 +254,56 @@ fn test_mutable_request_payload() -> Int {
   return 1;
 }
 
-pub fn main() -> Int {
+fn run_case(label: Str, rc: Int) -> Int {
+  if rc == 0 {
+    io.println("[PASS] " + label);
+    io.flush_stdout();
+    return 0;
+  }
+  io.println("[FAIL] " + label);
+  io.flush_stdout();
+  return 1;
+}
+
+fn main() -> Int {
   var failures: Int = 0;
-  failures = failures + test_status_code_ok();
-  failures = failures + test_status_code_cancelled();
-  failures = failures + test_status_code_unknown();
-  failures = failures + test_status_code_invalid_argument();
-  failures = failures + test_status_code_not_found();
-  failures = failures + test_status_code_permission_denied();
-  failures = failures + test_status_code_unauthenticated();
-  failures = failures + test_all_status_codes_distinct();
-  failures = failures + test_grpc_status_construction();
-  failures = failures + test_grpc_status_error_construction();
-  failures = failures + test_status_to_str_ok();
-  failures = failures + test_status_to_str_not_found();
-  failures = failures + test_status_to_str_unauthenticated();
-  failures = failures + test_status_to_str_internal();
-  failures = failures + test_status_to_str_unknown_code();
-  failures = failures + test_status_to_str_covers_all_17();
-  failures = failures + test_status_is_ok_true();
-  failures = failures + test_status_is_ok_false();
-  failures = failures + test_grpc_request_construction();
-  failures = failures + test_grpc_response_ok_construction();
-  failures = failures + test_grpc_response_error_construction();
-  failures = failures + test_grpc_metadata_get_found();
-  failures = failures + test_grpc_metadata_get_missing();
-  failures = failures + test_grpc_metadata_set_new_key();
-  failures = failures + test_grpc_metadata_set_overwrite();
-  failures = failures + test_server_config_construction();
-  failures = failures + test_server_config_address();
-  failures = failures + test_grpc_status_all_codes_to_str();
-  failures = failures + test_grpc_status_all_codes_aborted();
-  failures = failures + test_grpc_status_all_codes_unimplemented();
-  failures = failures + test_grpc_status_all_codes_data_loss();
-  failures = failures + test_grpc_status_all_codes_failed_precondition();
-  failures = failures + test_grpc_status_all_codes_resource_exhausted();
-  failures = failures + test_grpc_status_all_codes_out_of_range();
-  failures = failures + test_response_status_field_access();
-  failures = failures + test_mutable_request_payload();
+  failures = failures + run_case("status ok", test_status_code_ok());
+  failures = failures + run_case("status cancelled", test_status_code_cancelled());
+  failures = failures + run_case("status unknown", test_status_code_unknown());
+  failures = failures + run_case("status invalid_argument", test_status_code_invalid_argument());
+  failures = failures + run_case("status not_found", test_status_code_not_found());
+  failures = failures + run_case("status permission_denied", test_status_code_permission_denied());
+  failures = failures + run_case("status unauthenticated", test_status_code_unauthenticated());
+  failures = failures + run_case("status codes distinct", test_all_status_codes_distinct());
+  failures = failures + run_case("status construction", test_grpc_status_construction());
+  failures = failures + run_case("status error construction", test_grpc_status_error_construction());
+  failures = failures + run_case("status_to_str ok", test_status_to_str_ok());
+  failures = failures + run_case("status_to_str not_found", test_status_to_str_not_found());
+  failures = failures + run_case("status_to_str unauthenticated", test_status_to_str_unauthenticated());
+  failures = failures + run_case("status_to_str internal", test_status_to_str_internal());
+  failures = failures + run_case("status_to_str unknown code", test_status_to_str_unknown_code());
+  failures = failures + run_case("status_to_str covers all 17", test_status_to_str_covers_all_17());
+  failures = failures + run_case("status_is_ok true", test_status_is_ok_true());
+  failures = failures + run_case("status_is_ok false", test_status_is_ok_false());
+  failures = failures + run_case("request construction", test_grpc_request_construction());
+  failures = failures + run_case("response ok construction", test_grpc_response_ok_construction());
+  failures = failures + run_case("response error construction", test_grpc_response_error_construction());
+  failures = failures + run_case("metadata get found", test_grpc_metadata_get_found());
+  failures = failures + run_case("metadata get missing", test_grpc_metadata_get_missing());
+  failures = failures + run_case("metadata set new key", test_grpc_metadata_set_new_key());
+  failures = failures + run_case("metadata set overwrite", test_grpc_metadata_set_overwrite());
+  failures = failures + run_case("server config construction", test_server_config_construction());
+  failures = failures + run_case("server config address", test_server_config_address());
+  failures = failures + run_case("status all codes to_str", test_grpc_status_all_codes_to_str());
+  failures = failures + run_case("status all codes aborted", test_grpc_status_all_codes_aborted());
+  failures = failures + run_case("status all codes unimplemented", test_grpc_status_all_codes_unimplemented());
+  failures = failures + run_case("status all codes data_loss", test_grpc_status_all_codes_data_loss());
+  failures = failures + run_case("status all codes failed_precondition", test_grpc_status_all_codes_failed_precondition());
+  failures = failures + run_case("status all codes resource_exhausted", test_grpc_status_all_codes_resource_exhausted());
+  failures = failures + run_case("status all codes out_of_range", test_grpc_status_all_codes_out_of_range());
+  failures = failures + run_case("response status field access", test_response_status_field_access());
+  failures = failures + run_case("mutable request payload", test_mutable_request_payload());
+  io.println("xiom.grpc: " + int_to_string(36 - failures) + "/36 passed");
+  io.flush_stdout();
   return failures;
 }

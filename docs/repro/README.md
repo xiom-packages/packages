@@ -22,6 +22,7 @@ fixed/not-fixed.
 | `byte-at-128` | `byte_at >= 128` threshold compares | **FIXED** -- battery `bad=0`; widen+mask workaround retired |
 | `child-parent-calls` | child module calls into direct parent | **RE-SCOPED** -- works with `pub` (acyclic, cyclic, alias all pass); without `pub` T001 |
 | `const-tables` | module-level const arrays | **OPEN (new)** -- `[N]Int` correct; `Str`/struct tables mis-materialize (`bad=5`, deterministic; still broken on v0.62.3, listed in its release-notes known issues) |
+| `const-match` | `const` values as match arms | **OPEN (new)** -- const arms never match (`two=other`); minimized probe; use literals/enum variants |
 | `enum-payload-str` | enum payload struct `Str` reads | **OPEN (in-situ)** -- graphql validator reads `|0|`; all standalone controls pass; minimal repro pending |
 | `uninit-local` | uninitialized local + later assignment | **OPEN (in-situ)** -- graphql hang; standalone probe crashes pre-output; minimal repro pending |
 | `crypto-link` | stdlib `xiom.crypto` SHA-256/HMAC linkability | **OPEN** -- `lld-link: undefined symbol: xiom_sha256_hash` |
