@@ -9,9 +9,9 @@
 
 package xiom_etcd {
   name: "xiom.etcd";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Pure-XIOM etcd v3 gRPC message-structure codec: protobuf-wire subset and the decoded rpc.proto message subset over gRPC frames (no network, no server)";
-  categories: ["protocol"];
+  categories: ["network"];
   keywords: ["etcd", "grpc", "protobuf", "wire", "codec", "protocol"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
