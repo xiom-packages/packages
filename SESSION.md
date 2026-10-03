@@ -3,15 +3,45 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-03 (20:20Z), by the packages session (release day
-complete: v0.62.3 pinned + SHA256-verified; fleet sweep 453/453;
-first promotion wave DONE and published as `eco-v0.1.37` --
-json/control/sensor stable 0.1.1 + ssh2 0.1.4). Check
-`git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-03 (20:55Z), by the packages session (release day
+complete + post-release growth: v0.62.3 pinned; first promotion wave
+published as `eco-v0.1.37`; `xiom.http` restored and published as
+`eco-v0.1.39`). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-03 20:20Z (read this first):**
+**STATE AT 2026-10-03 20:55Z (read this first):**
+- **Post-release growth: `xiom.http` RESTORED + PUBLISHED (`eco-v0.1.39`,
+  run `37152581124` SUCCESS):** the old code was written for pre-strict
+  compilers -- fixed multi-arg `str_concat` (arity T001 errors),
+  self-recursive `char_code` -> `xiom.string.char_at`, host:port URL
+  parsing (the colon was consumed before `host_end`), `path_join`'s
+  contradictory `requires`, and replaced the failure-swallowing `try()`
+  harness with a collecting runner (`[PASS]`/`[FAIL]`, **36/36**, suite
+  x2, bracket grep 0). Manifest gained its missing `modules` list and
+  deps were normalized to `xiom.std`. Live at **`xiom.http@0.1.0`
+  incubating**; registry **454 packages + 2 infra = 456 entries**;
+  guard **499 allowlisted / 454 ready / 45 grandfathered / 0 failures**.
+- **Ops lesson (also added to the operating kit):** `eco-v0.1.38` was
+  tagged before http's `STATUS.json` record was committed, so CI's
+  readiness guard saw `tests=unknown` and skipped it (no-op run);
+  `eco-v0.1.39` carried the record. **Wrap commits must stage all
+  pending `STATUS.json` changes.**
+- **Compiler install note:** `xiom.new\bin` lost `xiom.exe` again at
+  ~20:30Z (external cleanup); redeployed from the SHA-verified archive
+  copied at `%TEMP%\kilo\release-0623\extracted`. If `port.ps1` warns
+  "falling back to repo-release 0.62.2", redeploy before running.
+- **Growth candidates (implementation-heavy, NOT restores):**
+  `graphql`/`rest`/`websocket` suites were written against a different
+  API generation (102-163 `T001`s; undefined `client_*`/`frame_*`/
+  `response_*` names) -- they need API reconciliation + implementation.
+  The FFI-class grandfathered set stays skipped.
+- **Next:** stable hardening batches, and/or pick up
+  `graphql`/`rest`/`websocket`; next tag `eco-v0.1.40`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-03 20:20Z (history):**
 - **Release day COMPLETE + PUBLISHED (`eco-v0.1.37`):** v0.62.3 pinned
   (official archive, SHA256-verified); fleet sweep **453/453 PASS** once
   `ssh2` was fixed -- v0.62.3 rightly rejects the `Result[Bool,Str]` ->
@@ -367,9 +397,13 @@ json/control/sensor stable 0.1.1 + ssh2 0.1.4). Check
    pending: next scope delta"` -> record commit.
 5. **Wrap + publish**: ops scope ask (+N) and WAIT for "<total> live"
    before editing the allowlist; append `.github/publish-allowlist.txt`;
-   `generate_index.ps1`, `status.ps1 -Action report`, validate,
+   regenerate; **stage ALL pending `packages/*/STATUS.json` record
+   changes in the wrap commit -- the tag commit is what CI's readiness
+   guard reads (`eco-v0.1.38` tagged before `xiom.http`'s record and
+   the guard skipped it; corrected in 39)**; `generate_index.ps1`,
+   `status.ps1 -Action report`, validate,
    `allowlist-guard.ps1`, `export-namespaces.ps1`; commit + push; `git
-   tag eco-v0.1.37` (next number) + push; approve the gate:
+   tag eco-v0.1.40` (next number) + push; approve the gate:
    `gh api repos/xiom-packages/packages/actions/runs/<id>/pending_deployments
    -X POST --input <{"state":"approved","environment_ids":[22424011031],
    "comment":"..."}>`; monitor; on `oidc_token_expired` rerun the failed
@@ -398,13 +432,13 @@ json/control/sensor stable 0.1.1 + ssh2 0.1.4). Check
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-03 20:20Z STATE block and
+private). Read SESSION.md first -- the 2026-10-03 20:55Z STATE block and
 the "Next-session operating kit" at the top of section 0 are the live
-handoff (release wave complete + published `eco-v0.1.37`: v0.62.3 pinned
-+ SHA256-verified; fleet sweep 453/453; 454 records re-recorded;
-json/control/sensor promoted to `stable` 0.1.1; ssh2 0.1.4; registry
-453 packages + 2 infra; allowlist 499). Repo-local identity must be
-"Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
+handoff (release wave complete + published `eco-v0.1.37`; `xiom.http`
+restored + published as `eco-v0.1.39`; v0.62.3 pinned + SHA256-verified;
+fleet sweep 453/453; json/control/sensor promoted to `stable` 0.1.1;
+registry 454 packages + 2 infra; allowlist 499). Repo-local identity
+must be "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
 gates); ops opens the publish-rate window ONLY for waves >20 names
 (default 20/min otherwise); the ops scope enumeration must be confirmed
@@ -418,18 +452,20 @@ Then do, in order:
 1. Growth and/or stable hardening: the compiler release window is
    CLOSED -- no watch pending (v0.62.3 pinned; complex `Str`/struct const
    tables are its known issue -- runtime builders only; float bitcast is
-   still a stdlib stub). Stable hardening batches per `docs/PROMOTION.md`
-   (279 stable; only `bson`/`ttl` carry clauses; size with
-   `scripts/contract-coverage.ps1`; contracts + API review; suites x2 on
-   v0.62.3) and/or a new growth wave -- re-brief porters with the
-   v0.62.3 edition in the operating kit (`Vec[Str].push` and `&mut Int`
-   are FIXED; cross-module helpers just need `pub`).
+   still a stdlib stub). `xiom.http` was restored and published
+   (`eco-v0.1.39`, 36/36); next growth candidates `graphql`/`rest`/
+   `websocket` need API reconciliation + implementation (their suites
+   target a different API generation), not restores. Stable hardening
+   batches per `docs/PROMOTION.md` (279 stable; only `bson`/`ttl` carry
+   clauses; size with `scripts/contract-coverage.ps1`) remain available.
 2. Workaround retirements are **next-touch only** (scoping decision in
    the STATE block; no drive-by refactors of green packages).
-3. Wrap + publish per the operating kit (tag `eco-v0.1.38` when there is
-   a batch): ops scope ask only for allowlist deltas (>20-name waves need
-   a rate window); regenerate, validate+guard, approve the gate, verify
-   live; rerun-failed + re-approve on `oidc_token_expired`.
+3. Wrap + publish per the operating kit (tag `eco-v0.1.40` when there is
+   a batch; **stage all pending STATUS.json records before tagging** -- CI
+   reads the tag commit): ops scope ask only for allowlist deltas
+   (>20-name waves need a rate window); regenerate, validate+guard,
+   approve the gate, verify live; rerun-failed + re-approve on
+   `oidc_token_expired`.
 4. Carry-forwards: registry page refresh = policy 1b; keep the
    `-TimeoutSec 60` watchdog; byte-level bracket grep ONLY (Read lies
    about `Vec<Int>`); bump versions ONLY when source changes;

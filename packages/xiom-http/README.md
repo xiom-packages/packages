@@ -1,6 +1,6 @@
 # xiom.http
 
-> **Status:** `incubating` -- conformance-tested (36/36); not yet published.
+> **Status:** `incubating` -- conformance-tested (36/36); published at `v0.1.0` on the XIOM registry.
 > **Scope:** HTTP/1.1 and HTTP/2 client/server with routing.
 > **Deps:** stdlib; may wrap C (FFI).
 
