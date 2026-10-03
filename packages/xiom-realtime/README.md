@@ -1,6 +1,6 @@
 # xiom.realtime
 
-> **Status:** `incubating` -- conformance-tested (10/10); not yet published.
+> **Status:** `incubating` -- conformance-tested (10/10); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Application-level realtime -- channels, rooms, presence, broadcast, ordering, ephemeral/durable events.
 > **Deps:** stdlib; xiom.websocket, xiom.micro.
 

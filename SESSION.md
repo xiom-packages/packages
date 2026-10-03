@@ -3,15 +3,47 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-03 (23:40Z), by the packages session (release wave
-`eco-v0.1.37` + post-release growth: `xiom.http` `eco-v0.1.39`,
-`xiom.websocket` `eco-v0.1.40`; `graphql` WIP 9/10; new v0.62.3
-uninitialized-local finding). Check `git log -1 --format=%h %s` before
-starting.
+**Written:** 2026-10-04 (00:05Z), by the packages session (release wave
+`eco-v0.1.37` + post-release growth: `http`/`websocket`/`rest`/`micro`/
+`realtime` restored and published through `eco-v0.1.42`; `grpc` and
+`graphql` parked with recorded leads; four new v0.62.3 compiler findings
+recorded). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-03 23:55Z (read this first):**
+**STATE AT 2026-10-04 00:05Z (read this first):**
+- **`xiom.micro` + `xiom.realtime` RESTORED + PUBLISHED (`eco-v0.1.42`,
+  run `37162994341` SUCCESS):** same nested-module + collecting-harness
+  treatment; 10/10 x2 each; manifests gained `modules`; README scopes
+  corrected (they were stale placeholders). Both live at **`0.1.0`
+  incubating**; registry **458 packages + 2 infra = 460 entries**.
+  Network stack complete: `http` (36/36), `websocket` (10/10), `rest`
+  (10/10), `micro` (10/10), `realtime` (10/10) all published this
+  session.
+- **`xiom.grpc` PARKED (WIP, not recorded):** fixed along the way --
+  unsafe-FFI wrappers for `grpc_init`/`grpc_shutdown`; the missing
+  `grpc_server_config`/`grpc_server_address` helpers (in `src/types.xi`,
+  avoiding a module cycle); and a **NEW minimized compiler finding**:
+  **`const` values as `match` arms never match on v0.62.3**
+  (`docs/repro/const-match/`, `two=other`; `status_to_str` returned
+  "UNKNOWN" for every code -- fixed with numeric literals; repo-wide scan
+  found only grpc affected). Remaining: the suite binary crashes
+  (`0xC0000005`) pre-output when the later test group is included --
+  bisection exceeded the circuit breaker and is logged in
+  `docs/failed_attempts.md` with next hypotheses. Do NOT re-run the same
+  bisection blindly.
+- **`xiom.graphql`** remains parked 9/10 (enum-payload `Str` corruption).
+- **Compiler findings added this session (for the next release):**
+  nested test-module import; uninitialized-local corruption;
+  enum-payload `Str` corruption; **const match arms never match**
+  (minimized). Probe index: `docs/repro/README.md`.
+- **Next:** stable hardening batches (279 stable; only `bson`/`ttl` carry
+  clauses; `scripts/contract-coverage.ps1`) and/or pick up the parked
+  grpc/graphql with the recorded leads; next tag `eco-v0.1.43`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-03 23:55Z (history):**
 - **`xiom.rest` RESTORED + PUBLISHED (`eco-v0.1.41`, run `37161771429`
   SUCCESS):** same nested-module + runner treatment, plus the v0.62.3
   **unsafe-FFI pattern** from the MCP language guide (`xiom_language_guide`
@@ -499,19 +531,20 @@ starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-03 23:55Z STATE block and
+private). Read SESSION.md first -- the 2026-10-04 00:05Z STATE block and
 the "Next-session operating kit" at the top of section 0 are the live
-handoff (release wave complete + published `eco-v0.1.37`; `xiom.http`
-`eco-v0.1.39`, `xiom.websocket` `eco-v0.1.40`, `xiom.rest` `eco-v0.1.41`
-restored and published; `xiom.graphql` parked 9/10; v0.62.3 pinned +
-SHA256-verified; fleet sweep 453/453; json/control/sensor promoted to
-`stable` 0.1.1; registry 456 packages + 2 infra; allowlist 499).
-Repo-local identity must be "Lefteris Notas <lefterisnotas@gmail.com>".
-Publishing policy: PRODUCTION-DIRECT batches (this session approves the
-registry-publish gates); ops opens the publish-rate window ONLY for
-waves >20 names (default 20/min otherwise); the ops scope enumeration
-must be confirmed BEFORE appending the allowlist delta. New/next-touched
-records use stage `incubating` (`stable` only via `docs/PROMOTION.md`).
+handoff (release wave complete + published `eco-v0.1.37`; growth:
+`http`/`websocket`/`rest`/`micro`/`realtime` published through
+`eco-v0.1.42`; `grpc` + `graphql` parked with recorded leads; v0.62.3
+pinned + SHA256-verified; fleet sweep 453/453; json/control/sensor
+promoted to `stable` 0.1.1; registry 458 packages + 2 infra; allowlist
+499). Repo-local identity must be "Lefteris Notas
+<lefterisnotas@gmail.com>". Publishing policy: PRODUCTION-DIRECT batches
+(this session approves the registry-publish gates); ops opens the
+publish-rate window ONLY for waves >20 names (default 20/min otherwise);
+the ops scope enumeration must be confirmed BEFORE appending the
+allowlist delta. New/next-touched records use stage `incubating`
+(`stable` only via `docs/PROMOTION.md`).
 
 Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
@@ -520,18 +553,17 @@ Then do, in order:
 1. Growth and/or stable hardening: the compiler release window is
    CLOSED -- no watch pending (v0.62.3 pinned; complex `Str`/struct const
    tables are its known issue -- runtime builders only; float bitcast is
-   still a stdlib stub). `xiom.http` (`eco-v0.1.39`, 36/36),
-   `xiom.websocket` (`eco-v0.1.40`, 10/10) and `xiom.rest`
-   (`eco-v0.1.41`, 10/10) are restored and published. `xiom.graphql` is
-   parked 9/10 (enum-payload `Str` corruption; see the STATE block).
-   Next growth candidates with the same restore recipe:
-   `grpc`/`micro`/`realtime` (nested-module + runner + unsafe-FFI).
-   Stable hardening batches per `docs/PROMOTION.md` (279 stable; only
+   still a stdlib stub; **`const` match arms never match** -- use
+   literals). The network stack is complete (`http`/`websocket`/`rest`/
+   `micro`/`realtime` published through `eco-v0.1.42`). `grpc` is parked
+   with the crash lead in `docs/failed_attempts.md` (do not re-run the
+   same bisection); `graphql` is parked 9/10 (enum-payload `Str`). Stable
+   hardening batches per `docs/PROMOTION.md` (279 stable; only
    `bson`/`ttl` carry clauses; size with `scripts/contract-coverage.ps1`)
-   remain available.
+   are the main available track.
 2. Workaround retirements are **next-touch only** (scoping decision in
    the STATE block; no drive-by refactors of green packages).
-3. Wrap + publish per the operating kit (tag `eco-v0.1.42` when there is
+3. Wrap + publish per the operating kit (tag `eco-v0.1.43` when there is
    a batch; **stage all pending STATUS.json records before tagging** -- CI
    reads the tag commit): ops scope ask only for allowlist deltas
    (>20-name waves need a rate window); regenerate, validate+guard,

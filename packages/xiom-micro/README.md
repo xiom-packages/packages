@@ -1,6 +1,6 @@
 # xiom.micro
 
-> **Status:** `incubating` -- conformance-tested (10/10); not yet published.
+> **Status:** `incubating` -- conformance-tested (10/10); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Microservices resilience -- service discovery, typed RPC, retries/budgets, circuit breakers, bulkheads, tracing, sagas.
 > **Deps:** stdlib; xiom.http.
 
