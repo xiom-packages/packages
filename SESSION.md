@@ -56,7 +56,16 @@ works). Check `git log -1 --format=%h %s` before starting.
   sites**; the wave-54/55 repair program holds; (b) `&mut Int` audit --
   only `gbnf` (deref form, safe) and `http` (bare form, tests=unknown,
   statically exposed) carry real `&mut Int` params; every other hit is a
-  comment or a `&mut Vec` variable named `f64` (apple/mkv tests).
+  comment or a `&mut Vec` variable named `f64` (apple/mkv tests);
+  (c) `byte_at >= 128` battery re-ran `bad=0`/exit 0 on the installed
+  v0.62.2 (workaround stays RETIRED); a direct-compare scan found only
+  two documented safe sub-128 comments; (d) child->parent module calls
+  re-verified -- the boundary is `pub` visibility, not the parent
+  relation: acyclic, cyclic and alias-qualified calls all work with
+  `pub` (minimal probe bundle `docs/repro/child-parent-calls/README.md`
+  + `training` 26/26 re-run); the 2026-10-02 "siblings only" finding is
+  superseded in `docs/COMPILER-FINDINGS.md` and the workaround row is
+  re-scoped; the siblings-only rule can be relaxed at Tier-2.
 - **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
   drop is the BARE assignment form (`s = 99`) in both call forms (plain
   local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix
