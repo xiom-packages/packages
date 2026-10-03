@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.62.3` -- generated 2026-10-03T22:36:37Z.
+Toolchain pin: `v0.62.3` -- generated 2026-10-03T23:26:04Z.
 
 ## Summary
 
@@ -493,7 +493,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.raylib | xiom-raylib | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.realtime | xiom-realtime | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.redis | xiom-redis | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
-| xiom.rest | xiom-rest | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.rest | xiom-rest | incubating | tests/test_conformance.xi | pass 10/10 | a2dc225d | False | publish pending: eco-v0.1.41 |
 | xiom.rocksdb | xiom-rocksdb | incubating | tests/test_conformance.xi | pass 24/24 | a69d2dd5 | False | publish pending: next scope delta |
 | xiom.ros2 | xiom-ros2 | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.salt | xiom-salt | incubating | tests/test_conformance.xi | pass 28/28 | 425f4f71 | False | publish pending: next scope delta |
