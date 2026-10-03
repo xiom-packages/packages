@@ -3,6 +3,15 @@
 
 # Arity-laxness repros (v0.61.3)
 
+## v0.62.2 re-run (2026-10-03)
+
+- `control_exact_arity.xi`: `CONTROL OK 3`, exit 0.
+- `repro_missing_arg.xi`: `error[T001]: 'add3' expects 3 argument(s), found 2`, exit 1.
+- `repro_extra_arg.xi`: `error[T001]`, exit 1.
+
+Both directions are validated on the pin; the 2026-10-02 "missing args
+accepted" open row is superseded (see COMPILER-FINDINGS resolved table).
+
 Minimal probes for row 8 of `docs/COMPILER-FINDINGS.md`: *the compiler does
 not validate arity of user function calls*. Calls with fewer arguments than
 the declaration compile (missing arguments read as 0) and calls with extra

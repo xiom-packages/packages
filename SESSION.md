@@ -120,7 +120,12 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   `docs/repro/vec-struct/probe_vec_struct.xi`, `bad=0`: push/len/
   indexed reads with Str fields/field write/loop push/`&Vec` param all
   correct) -- new registry row + COMPILER-FINDINGS resolved row;
-  retirement candidate (parallel-Vec sites simplify at next touch).
+  retirement candidate (parallel-Vec sites simplify at next touch);
+  (p) arity contradiction resolved: the 2026-10-02 "missing args
+  accepted silently" row is stale -- on v0.62.2 missing-arg calls fail
+  `error[T001]` (`'add3' expects 3 argument(s), found 2`), extra-arg
+  likewise, exact-arity control green; MAINTENANCE row RETIRED,
+  findings open row marked superseded, arity README updated.
 - **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
   drop is the BARE assignment form (`s = 99`) in both call forms (plain
   local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix
