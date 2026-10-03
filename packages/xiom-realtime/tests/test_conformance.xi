@@ -1,9 +1,13 @@
 // XIOM -- xiom.realtime Conformance Tests (10 tests)
-module xiom.realtime.tests
+module realtime_tests
 
 use xiom.realtime;
 use xiom.string;
 use xiom.io;
+
+// Assertions that fail inside a test are collected here so `run_case`
+// can report them per test (the old `try()` printed and swallowed them).
+var realtime_failures: Vec[Str] = Vec[Str].new();
 
 fn assert_true(condition: Bool, label: Str) -> Result[Unit, Str] {
   if condition { return Ok(Unit); };
@@ -258,6 +262,41 @@ fn test_scheduler_state_counts() -> Result[Unit, Str] {
 fn try(res: Result[Unit, Str]) {
   match res {
     Ok(_) => {},
-    Err(e) => { io.println(e); },
+    Err(e) => { realtime_failures.push(e); },
   };
+}
+
+fn run_case(label: Str, res: Result[Unit, Str]) -> Int {
+  let before: Int = realtime_failures.len();
+  match res {
+    Ok(_) => {},
+    Err(e) => { realtime_failures.push(e); },
+  };
+  let added: Int = realtime_failures.len() - before;
+  if added == 0 {
+    io.println("[PASS] " + label);
+    return 0;
+  }
+  var k: Int = before;
+  while k < realtime_failures.len() {
+    io.println("[FAIL] " + label + " -- " + realtime_failures[k]);
+    k = k + 1;
+  }
+  return 1;
+}
+
+fn main() -> Int {
+  var failures: Int = 0;
+  failures = failures + run_case("task new", test_task_new());
+  failures = failures + run_case("task is_pending", test_task_is_pending());
+  failures = failures + run_case("task is_expired", test_task_is_expired());
+  failures = failures + run_case("task cmp_priority", test_task_cmp_priority());
+  failures = failures + run_case("scheduler new", test_scheduler_new());
+  failures = failures + run_case("scheduler add and sort", test_scheduler_add_and_sort());
+  failures = failures + run_case("scheduler tick executes", test_scheduler_tick_executes());
+  failures = failures + run_case("scheduler complete task", test_scheduler_complete_task());
+  failures = failures + run_case("scheduler fail task", test_scheduler_fail_task());
+  failures = failures + run_case("scheduler state counts", test_scheduler_state_counts());
+  io.println("xiom.realtime: " + int_to_str(10 - failures) + "/10 passed");
+  return failures;
 }

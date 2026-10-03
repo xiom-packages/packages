@@ -1,9 +1,13 @@
 // XIOM -- xiom.micro Conformance Tests (10 tests)
-module xiom.micro.tests
+module micro_tests
 
 use xiom.micro;
 use xiom.string;
 use xiom.io;
+
+// Assertions that fail inside a test are collected here so `run_case`
+// can report them per test (the old `try()` printed and swallowed them).
+var micro_failures: Vec[Str] = Vec[Str].new();
 
 fn assert_true(condition: Bool, label: Str) -> Result[Unit, Str] {
   if condition { return Ok(Unit); };
@@ -245,6 +249,41 @@ fn test_request_builder() -> Result[Unit, Str] {
 fn try(res: Result[Unit, Str]) {
   match res {
     Ok(_) => {},
-    Err(e) => { io.println(e); },
+    Err(e) => { micro_failures.push(e); },
   };
+}
+
+fn run_case(label: Str, res: Result[Unit, Str]) -> Int {
+  let before: Int = micro_failures.len();
+  match res {
+    Ok(_) => {},
+    Err(e) => { micro_failures.push(e); },
+  };
+  let added: Int = micro_failures.len() - before;
+  if added == 0 {
+    io.println("[PASS] " + label);
+    return 0;
+  }
+  var k: Int = before;
+  while k < micro_failures.len() {
+    io.println("[FAIL] " + label + " -- " + micro_failures[k]);
+    k = k + 1;
+  }
+  return 1;
+}
+
+fn main() -> Int {
+  var failures: Int = 0;
+  failures = failures + run_case("router new", test_router_new());
+  failures = failures + run_case("router register get", test_router_register_get());
+  failures = failures + run_case("router register post", test_router_register_post());
+  failures = failures + run_case("router route count", test_router_route_count());
+  failures = failures + run_case("router find route", test_router_find_route());
+  failures = failures + run_case("response helpers", test_response_helpers());
+  failures = failures + run_case("middleware registration", test_middleware_registration());
+  failures = failures + run_case("middleware evaluate auth", test_middleware_evaluate_auth());
+  failures = failures + run_case("app builder", test_app_builder());
+  failures = failures + run_case("request builder", test_request_builder());
+  io.println("xiom.micro: " + int_to_str(10 - failures) + "/10 passed");
+  return failures;
 }

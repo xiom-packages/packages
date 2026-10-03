@@ -1,8 +1,8 @@
 # xiom.realtime
 
-> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
-> **Scope:** Realtime scheduling, timing, and event loop utilities.
-> **Deps:** stdlib; may wrap C (FFI).
+> **Status:** `incubating` -- conformance-tested (10/10); not yet published.
+> **Scope:** Application-level realtime -- channels, rooms, presence, broadcast, ordering, ephemeral/durable events.
+> **Deps:** stdlib; xiom.websocket, xiom.micro.
 
 ## Libs inventory
 

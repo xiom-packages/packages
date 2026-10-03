@@ -1,8 +1,8 @@
 # xiom.micro
 
-> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
-> **Scope:** Micro-benchmarking primitives for tight hot loops.
-> **Deps:** stdlib; may wrap C (FFI).
+> **Status:** `incubating` -- conformance-tested (10/10); not yet published.
+> **Scope:** Microservices resilience -- service discovery, typed RPC, retries/budgets, circuit breakers, bulkheads, tracing, sagas.
+> **Deps:** stdlib; xiom.http.
 
 ## Libs inventory
 
