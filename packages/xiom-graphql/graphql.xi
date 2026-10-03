@@ -364,10 +364,9 @@ pub fn validate_operation(
     Some(_) => {},
   };
 
-  // Stub: validate each selection exists on root type
-  // NOTE: the local is pre-initialized on purpose -- `var root: GraphQLType;`
-  // followed by assignment inside the match corrupts the copied value on
-  // v0.62.3 (garbage Str pointers / Vec length -> runaway loops).
+  // Stub: validate each selection exists on root type.
+  // The local is pre-initialized defensively (see COMPILER-FINDINGS
+  // 2026-10-03 uninitialized-local note).
   var root: GraphQLType = type_new("", GraphQLTypeKind.Object);
   match root_type {
     Some(rt) => { root = rt; },
