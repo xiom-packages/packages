@@ -19,6 +19,8 @@ compiler session triages. Format: `| Date | Finding | Evidence | Workaround in p
 | 2026-10-02 | A function whose body ends with a bare `loop { ... }` in which every path returns `X` is still typed as falling through `()` -- `T001` return-type mismatch reported at the body brace | `xiom.terraform` (hit 4 parser/scan loops: `_p_skip_block_comment`, `_p_parse_string`, `_p_skip_string_raw`, `_p_scan_group`) | add an explicit trailing `return <default>;` after the loop | compile errors only; forces an unreachable-looking return |
 | 2026-10-02 | Arity is asymmetric: EXTRA arguments are rejected (`T001 ... expects N argument(s)`, `xiom.ml` test code), but MISSING arguments are accepted silently (short calls compile; noted by `xiom.ansible`, `xiom.parser-fw`, `xiom.cfn`, `xiom.chef` all performing manual arity audits) | wave 48/50 reports | manual arity verification at every call site (the trap-14 pass includes it) | silent wrong values if an argument is omitted |
 | 2026-10-02 | Spurious negation/comparison diagnostic: `if !bool_call(...) == 1` reports dual T001s ("cannot logically negate type Int" + "cannot compare Bool with Int") for a Bool-returning call | `xiom.phaser` (12/12 occurrences of the single pattern) | rewrite as `bool_call(...) != 1` | compile errors only; confusing message |
+| 2026-10-03 | `xiom --emit-ir <file>` OUTSIDE a package context (no `package.xi` ancestor, e.g. a temp-dir probe) fails silently: exit 1, zero stdout/stderr; identical bytes compile green once staged in a package dir | `xiom.xml2` probe workflow | stage probe files inside a package dir | silent failure costs probe time |
+| 2026-10-03 | Compiling sources located under `%TEMP%\kilo` can hang the compiler indefinitely (`--emit-ir` and `--run`, no output); identical bytes under the repo tree compile in ~0.6 s | `xiom.rocksdb` probe workflow | keep probes in the repo tree | directory-scanning/module-resolution pathology; needs a repro in a clean dir |
 | 2026-10-02 | Match-bound payload mutations on `&mut` enums are silently dropped (no diagnostic): `match obj { Obj(x) => { x.field = ...; } }` leaves the value unchanged | `xiom.json` hardening -- all six mutators were no-ops/corruptors until rebuilt as "construct the replacement payload + `*obj = ...`" | rebuild the payload and assign through the match binding (`*obj = ...`) | silent no-op/wrong state; needs either a diagnostic or a documented rule |
 | 2026-10-02 | Deep `clone()` of aggregate payloads returns a corrupt handle: `Vec[T].clone()` / `derive[Clone]` on a type with Object/Array payload; the next `push` crashes `0xC000001D` (scalar payload clones fine) | `xiom.json` hardening -- public `derive[Clone]` on `JsonValue`/`JsonEntry`; worked around with an explicit `json_clone`, derive removed from the public surface | explicit deep-clone functions; never derive Clone on aggregate-payload types | memory-unsafe crash on legal API use |
 | 2026-10-02 | `xiom-verify` v0.62.2 cannot encode record-field contracts (X7007 `field access on non-datatype receiver`, `unknown constant <T>-<f>`, `xiom_ptr_*` opaque `&T` sorts), if-merge leaves the merge variable unconstrained, X7004 division obligations are path-insensitive, multiple `requires:` clauses emit duplicate `:named` asserts (Z3 abort), and package/cross-module `use` is unresolved; scalar-only contracts DO verify (2/2 and 4/4 proven probes) | `xiom.json`/`xiom.control`/`xiom.sensor` hardening -- 0 of 101 clauses proven; all reported "violations" traced to these encodings (false positives) | merge predicates into single `&&` clauses; document solver-unproven clauses in SPEC; prefer scalar contracts | contract verification is a review aid for record-heavy packages on this pin, not a proof |
@@ -418,5 +420,29 @@ strict clauses on):
     `0.5`; `stringify_frac` recursion; exponent hang; partial-write
     `set_path`; non-atomic merge) -- the promotion gate catching exactly
     what it is for.
+- 2026-10-03: **wave-54/55 evidence + HARNESS ROOT CAUSE.** The wave's
+  cross-lane flake storm (silent empty-output + `program_exit=-1` on
+  first runs, retry-green) was root-caused to **`scripts/port.ps1`'s
+  watchdog cleanup**: on timeout it ran a global
+  `Get-Process a | Stop-Process -Force`, killing OTHER concurrently
+  running lanes' in-flight suites. Fixed (`07301ee6`): PID-tree kill of
+  the run's own process only, plus per-run `a.exe`/`a.exe.ll` cleanup;
+  the flake vanished in subsequent verifications. `xiom.curl` observed
+  the same signature under overlapping invocations -- consistent.
+  - Category harmonization: 34 published packages had unknown category
+    tokens (registry shows `categories: []`); all mapped to the 16-token
+    vocabulary (`docs/MAINTENANCE.md`).
+  - Legacy bracket repair: repo-wide byte-level scan found **24
+    packages / 94 real sites** (`Vec<`/`Result<`/`Option<`/`&Vec<`) --
+    all canonicalized. Note: the naive `>]` probe false-positives on
+    XML/DOCTYPE strings; scan with the four prefix forms only. Read
+    renders `Vec<Int>` as `Vec[Int]` -- byte-level grep mandatory.
+    `assimp`/`dxc` source-fixed but remain untestable (FFI bridge /
+    pre-existing test wiring).
+  - New silent-failure rows added above (`--emit-ir` outside a package;
+    `%TEMP%\kilo` hang). `fn` reserved confirmed again; mixed-bracket
+    field/local positions still compile silently.
+  - No new miscompile findings from the 27 repaired packages; all
+    bracket edits preserved behavior (counts unchanged, port x2 green).
 
 

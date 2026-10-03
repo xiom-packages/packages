@@ -138,7 +138,7 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-10-02 | Integer quantization/rescale + fixed-point `log2` + integer statistics: shift-quantize/dequantize with documented error bound and auto-shift, round-half-away rescale (negative-safe), fixed-point `log2`, mean/least-squares slope over scaled `Int` | `inference` (quantize/dequantize), `climate` (log2, slope), `ml` (normal equations), `deep` (requantization), `video` (rescale) | per-package helpers | open |
 | 2026-10-02 | `xiom.crypto`/`xiom.crypto.hash` SHA-256/HMAC **linkability**: source ships but `lld-link: undefined symbol: xiom_sha256_hash` from a package on v0.62.2 | `aws` (SigV4; hand-rolled KAT-pinned SHA-256/HMAC), `saml` (hand-rolled earlier) | per-package crypto copies | open (stdlib defect/link) |
 | 2026-10-02 | `xiom.hash`: allocation-free FNV-1a over `Str` (byte-wise) + masked 32-bit combine helper | `jit-fw` (`fnv1a32` needs `&Vec[UInt8]`; `djb2` hashes Char code points); artifact-cache keys | local FNV-1a over `byte_at` + masked combine | open |
-| 2026-10-02 | ASCII byte classifiers returning `Bool` (`is_digit`/`is_space`/`is_alpha` over bytes or widened `Int`) | `elastic` (JSON scanner), `chef` (target parsing), `translate` (token shaping), `cfn` | widened `Int` range compares at each site | open |
+| 2026-10-02 | ASCII byte classifiers returning `Bool` (`is_digit`/`is_space`/`is_alpha` over bytes or widened `Int`) | `elastic` (JSON scanner), `chef` (target parsing), `translate` (token shaping), `cfn`; wave 54: `xml2` (trim/byte-set helpers) | widened `Int` range compares at each site | open |
 | 2026-10-02 | Delimiter helpers: substring before/after delimiter and split-into-offsets over a `Str` (no `Vec[Str]`) | `chef` (`type[name]` targets), `k8s` (comma/`=` splitting; `str_split` returns `Vec[Str]`), `cfn` | byte-wise scans per package | open |
 | 2026-10-02 | `xiom.graph` closure/reachability/depth over parallel-vector edges with caller depth budgets | `ansible` (group closure/depth; `xiom.collect.graph`/`dag` are struct-node shaped, banned) | hand-rolled `_group_contains`/`_group_depth`/`_group_reaches` | open |
 | 2026-10-02 | Glob/fnmatch + bounded regex subset primitives (byte-safe, step-capped) | `salt` (hand-rolled glob O(n*m) + regex subset with a 65536-step fail-closed cap), `consul` (prefix/word helpers) | byte loops over `byte_at`/`str_slice` | open |
@@ -149,6 +149,10 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-10-02 | Boolean `str_eq(a, b) -> Bool` | every package (hand-rolls `str_compare(a,b) == 0`; called out by `cloud`, `aws`, `k8s`) | `str_compare ... == 0` at each site | open |
 | 2026-10-02 | Contract-usable math predicates: `is_finite` / `is_nan`, plus `reciprocal` | `control`, `sensor` (NaN/Inf domains are unassertable; guarded `1.0 / x` trips verifier X7004) | local guards; clauses left solver-unproven | open |
 | 2026-10-02 | Quaternion algebra (`multiply`/`normalize`/`from_euler`/`rotate`) | `sensor` (hand-rolled Hamilton product) | in-package implementation | open |
+| 2026-10-03 | `xiom.encoding.percent`: strict decode with caller-relocatable error offsets and NUL rejection | `curl` (`percent_decode` returns offset-less errors and truncates a decoded `%00` via `from_cstring`) | byte-wise decoder in-package | open |
+| 2026-10-03 | Offset-carrying search (`find_from`, `Int` with -1 sentinel) over `Str` | `curl`, `xml2` (`str_index_of` has no `from`), `consul`, `chef`, `cfn` | local `_find_*` helpers | open |
+| 2026-10-03 | Keyed/comparator sort over parallel vectors (produce an index permutation, not a `Vec[T]` sort) | `xml2` (attribute indices), `rocksdb` (LSM ordering), `docker` | insertion sort + order vector | open |
+| 2026-10-03 | Bit-array/Bloom helper + 32-bit mixing hash usable from library modules | `rocksdb` (SST Bloom shape, `_rocksdb_hash32`) | local bit set + FNV-1a | open |
 
 ## Compiler-shaped requests routed to `docs/COMPILER-FINDINGS.md`
 
@@ -341,3 +345,12 @@ unit that would consume the fix.
   candidates: annotated + runtime-checked, 0/101 solver-proven on
   v0.62.2 (encoding gaps documented in `docs/COMPILER-FINDINGS.md`;
   scalar-only probes 2/2 and 4/4 proven).
+- 2026-10-03: wave-54/55 reports appended (34 category fixes + 24-package
+  legacy bracket repair + `curl`/`xml2`/`rocksdb` growth published in
+  `eco-v0.1.34`; `firebird`/`oracle` from the parallel lane verified and
+  integrated, publish pending owner scope). New rows:
+  `xiom.encoding.percent` strict decode, offset-carrying `find_from`,
+  keyed sort over parallel vectors, bit-array/Bloom + 32-bit mixing
+  hash; ASCII-classifier requesters extended (`xml2`). Note: the wave's
+  cross-lane flake was the `port.ps1` watchdog's global `a.exe` sweep
+  (fixed `07301ee6`), not a compiler defect.

@@ -3,62 +3,75 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-02 (late night), by the packages session (wave 52
-completed: `cloud` published in `eco-v0.1.33`; `json`/`control`/`sensor`
-hardened to contract-certified promotion candidates; promotion +
-maintenance policies live in `docs/PROMOTION.md`; handoff kit + paste
-prompt refreshed for wave 53). Check `git log -1 --format=%h %s` before
+**Written:** 2026-10-03 (small hours), by the packages session (waves
+54/55 completed + published as `eco-v0.1.34`: category harmonization,
+legacy bracket-repair program, curl/xml2/rocksdb growth, firebird/oracle
+integrated; `port.ps1` cross-lane flake fixed; handoff kit + paste prompt
+refreshed for the next wave). Check `git log -1 --format=%h %s` before
 starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-02 22:20Z (read this first):**
-- **Wave 52 COMPLETE + PUBLISHED (`eco-v0.1.33`):** `cloud` 26/26 (the
-  last pure growth placeholder) -- run `37071807931` SUCCESS attempt 1;
-  allowlist **493 -> 494**. Promotion prep (UNPUBLISHED, stage `ported`):
-  `json` 44/44, 15 contracts on 13 entry points (suite 12 -> 44);
-  `control` 32/32, 58 clauses on 24/24 entry points; `sensor` 38/38,
-  28 clauses on 20/24 (+ documented unasserted list). All three re-verified
-  port x2 + trap-14 by the coordinator.
-- **Current gates/state:** `validate` **509/0**; guard **494
-  allowlisted / 445 ready / 49 grandfathered / 0 failures**; registry
-  **447 packages + 2 infra = 449 entries**; allowlist **494**; tag
-  `eco-v0.1.33` on `c7660a93`; all pushed.
-- **Contract tooling on the pin (validated):** contracts compile with
-  runtime checks; invoke `& "$env:LOCALAPPDATA\xiom.new\bin\xiom-verify.exe" "<file>" --check`
-  (file FIRST -- `--check` first fails) with
-  `$env:Z3_PATH="$env:LOCALAPPDATA\xiom.new\bin\z3.exe"`. Scalar-only
-  probes DO prove (2/2 and 4/4); record-heavy packages: 0 of 101 clauses
-  proven -- encoding gaps, not the solver.
-- **New severe compiler findings (filed, commit `25cf8c62`; relayable):**
-  match-bound payload mutations on `&mut` enums silently dropped;
-  aggregate-payload `derive[Clone]` corrupts (`0xC000001D` on next
-  push); `invariant:` placement ambiguity (P001 for `json`, generated
-  `invariant_check` for `control`); `xiom-verify` record-field / `&T` /
-  if-merge / X7004 / duplicate `:named` / cross-module `use` gaps.
-- **Program state:** growth backlog EXHAUSTED (only FFI placeholders
-  remain + owner decision on pure-model reinterpretations). Promotion
-  candidates ready: `json`/`control`/`sensor` -- first promotion wave
-  AFTER Tier-2 compiler maintenance. Grandfathering queue: the 276
-  pre-gate stable records (`docs/PROMOTION.md`). Program order: Tier-2
-  (waiting on the compiler release) > README `Status` sync > promotion
-  waves > growth.
-- **Wave-53 COMPLETE (repo-side):** README `Status` sync program
-  finished across 10 slices -- **442 READMEs** canonicalized (stage +
-  conformance count + published version; includes the 8 previously
-  missing blocks), **445/445** README-vs-manifest version pairs now
-  match, validate **509/0**, README-only diff. Unpublished/grandfathered
-  (`json`, `control`, `sensor`, `kafka`) normalized to
-  `not yet published` (registry 404 verified via MCP). Registry PAGES
-  still embed the pre-sync README until a package is republished (no
-  version-less refresh allowed): fold page refreshes into
-  promotion/Tier-2 republish batches, or the owner may schedule a
-  chunked patch-bump republish program. Promotion evidence is ready; do
-  NOT flip stages before Tier-2.
-- **Carry-forwards:** crypto/base64 fix-first packet with the stdlib
-  lane (`docs/repro/crypto-link/`); compiler hotfix watch (open rows in
-  `docs/COMPILER-FINDINGS.md`); category harmonization owner decision;
-  keep the `-TimeoutSec 60` watchdog.
+**STATE AT 2026-10-03 00:55Z (read this first):**
+- **Waves 54/55 COMPLETE + PUBLISHED (`eco-v0.1.34`):** run
+  `37081404845` SUCCESS on attempt 2 (attempt 1 lost the alphabet tail to
+  `oidc_token_expired`; rerun --failed + re-approve is idempotent). Batch
+  contents: **category harmonization 34 packages** (15 network, 11
+  systems, 8 one-offs -- registry `categories: []` fixed); **legacy
+  bracket-repair program 24 packages / 94 real sites** (+ modbus 10,
+  folded) -- the repo-wide angle-bracket debt found by the corrected
+  scan (the earlier 134-site figure was inflated by `>]` in XML
+  strings); **growth: `curl` 26/26, `xml2` 24/24, `rocksdb` 24/24**
+  (allowlist **494 -> 497**); **parallel-lane integration: `firebird`
+  22/22 (5 bracket sites fixed by coordinator), `oracle` 22/22** --
+  verified, recorded `incubating`, publish pending owner scope decision;
+  `mock`/`pwm`/`sectest` from the parallel lane republished.
+- **Current gates/state:** `validate` **514/0**; guard **497
+  allowlisted / 448 ready / 49 grandfathered / 0 failures**; registry
+  **450 packages + 2 infra = 452 entries**; allowlist **497**; tag
+  `eco-v0.1.34` on `3f196c7b` (wrap commit) with docs at
+  `eb956eb3`-era; all pushed.
+- **`port.ps1` watchdog FIXED (`07301ee6`):** renamed-timeout path now
+  kills only the run's own PID tree -- the old global
+  `Get-Process a | Stop-Process` sweep killed other lanes' in-flight
+  suites (root cause of the wave's silent empty-output/watchdog flake
+  storm, and likely a factor in the historical expat/nbt class). Also
+  removes `a.exe`/`a.exe.ll` leftovers per run.
+- **Registry category vocabulary (16 tokens, policy in
+  `docs/MAINTENANCE.md`):** ai-ml, cloud-infra, concurrency, core,
+  crypto-security, data, database, graphics, media, network, science,
+  systems, testing, text-nlp, tooling, web. Unknown tokens are dropped
+  silently. Legacy mappings documented; **manifests must use only these
+  tokens** (the ~90 packages mixing unknown+accepted tokens are
+  registry-safe and wait for an opportunistic sweep).
+- **New compiler/harness findings (wave 54/55):** `xiom --emit-ir
+  <file>` OUTSIDE a package context fails silently (exit 1, no output;
+  stage probes in a package); compiling sources under
+  `%TEMP%\kilo` can hang the compiler indefinitely (repo tree compiles
+  in ~0.6 s); `fn` reserved; mixed-bracket `Vec<X>` still silently
+  accepted in field/local positions. All in
+  `docs/COMPILER-FINDINGS.md` / the board.
+- **Rules reinforced:** bracket audits use the BYTE-LEVEL grep only
+  (Read renders `Vec<Int>` as `Vec[Int]`); bump versions ONLY when
+  source changes (no metadata-only churn); the maintenance workaround
+  registry now also covers enum-payload mutation, aggregate clone, and
+  verify-as-review-aid.
+- **Parallel lane (separate stream, same worktree):** implements the
+  remaining `tests=unknown` placeholders (mock/pwm/sectest committed
+  with "(parallel lane, verified)"; firebird/oracle now integrated).
+  Coordinate before touching their in-flight files.
+- **Program state:** growth EXHAUSTED (FFI reinterpretations done for
+  curl/xml2/rocksdb; `aac`/`bridge`/`c-binding`/`icu`/`jansson`/`llvm`/
+  `odbc`/`oracle`-DB remain skipped); promotion candidates ready
+  (`json`/`control`/`sensor`) for the FIRST PROMOTION WAVE after Tier-2
+  compiler maintenance; grandfathering queue = the 276 pre-gate stable
+  records (`docs/PROMOTION.md`).
+- **Carry-forwards:** compiler release -> Tier-2 triage +
+  workaround-retirement wave (crypto/base64 fix-first packet at
+  `docs/repro/crypto-link/`); owner decision: scope for
+  `firebird`/`oracle`; registry page refresh = policy 1b (opportunistic;
+  no dedicated republish program); category spot-sweep for the ~90 mixed
+  manifests; `-TimeoutSec 60` watchdog.
 
 ### Next-session operating kit (wave pipeline -- proven 6x)
 
@@ -91,7 +104,7 @@ starting.
    before editing the allowlist; append `.github/publish-allowlist.txt`;
    `generate_index.ps1`, `status.ps1 -Action report`, validate,
    `allowlist-guard.ps1`, `export-namespaces.ps1`; commit + push; `git
-   tag eco-v0.1.34` (next number) + push; approve the gate:
+   tag eco-v0.1.35` (next number) + push; approve the gate:
    `gh api repos/xiom-packages/packages/actions/runs/<id>/pending_deployments
    -X POST --input <{"state":"approved","environment_ids":[22424011031],
    "comment":"..."}>`; monitor; on `oidc_token_expired` rerun the failed
@@ -120,10 +133,10 @@ starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-02 22:20Z STATE block and
+private). Read SESSION.md first -- the 2026-10-03 00:55Z STATE block and
 the "Next-session operating kit" at the top of section 0 are the live
-handoff (wave 52 complete + published eco-v0.1.33; 447 packages + 2 infra
-on the registry; allowlist 494). Repo-local identity must be
+handoff (waves 54/55 complete + published eco-v0.1.34; 450 packages +
+2 infra on the registry; allowlist 497). Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
 gates); ops opens the publish-rate window ONLY for waves >20 names
@@ -135,36 +148,38 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Growth is EXHAUSTED: only FFI-bound placeholders remain
-   (`aac`, `bridge`, `c-binding`, `curl`, `firebird`, `icu`, `jansson`,
-   `llvm`, `odbc`, `oracle`, `rocksdb`, `xml2`). Pure-model
-   reinterpretations of those are an OWNER DECISION -- do not start
-   without it. While waiting on the compiler release, the productive
-   work is:
-   (a) README `Status` sync program (repo-side; e.g. the promotion
-       candidates first, then the stale set; registry-side republish
-       folds into promotion/republish batches);
-   (b) promotion evidence packets for `json`/`control`/`sensor`
-       (already contract-certified; keep stages `ported` until Tier-2);
-   (c) category harmonization once the owner decides.
+1. Growth is EXHAUSTED (curl/xml2/rocksdb done; aac/bridge/c-binding/
+   icu/jansson/llvm/odbc/DB-oracle remain skipped). A PARALLEL LANE owns
+   the remaining tests=unknown packages in this shared worktree
+   (mock/pwm/sectest/firebird/oracle observed) -- coordinate before
+   touching those dirs; never `git add -A` across packages. Non-blocked
+   work while waiting on the compiler release:
+   (a) category spot-sweep: ~90 manifests mix unknown tokens with
+       accepted ones (registry-safe today; normalize to the 16-token
+       vocabulary in `docs/MAINTENANCE.md` opportunistically);
+   (b) promotion evidence for `json`/`control`/`sensor` is ready -- keep
+       stages `ported` until Tier-2;
+   (c) owner decision: publish scope for `firebird`/`oracle` (verified
+       22/22, recorded `incubating`, publish pending).
 2. Compiler release: apply the TRIAGE in `docs/MAINTENANCE.md` first
    (Tier-2 = fleet sweep + workaround retirement; crypto/base64
-   fix-first packet at `docs/repro/crypto-link/`). Then the README sync,
-   then the FIRST PROMOTION WAVE per `docs/PROMOTION.md` (json/control/
-   sensor get allowlist + ops scope + stage `stable` + publish; their
-   contracts and 44/32/38-check suites are ready), then the
-   grandfathering hardening queue (276 pre-gate stable records).
-3. Wrap + publish per the operating kit (tag eco-v0.1.34 when there is
+   fix-first packet at `docs/repro/crypto-link/`). Then the FIRST
+   PROMOTION WAVE per `docs/PROMOTION.md` (contracts mandatory; the
+   44/32/38-check suites are ready), then the grandfathering hardening
+   queue (276 pre-gate stable records). Registry page refresh = policy
+   1b (opportunistic; no dedicated republish program).
+3. Wrap + publish per the operating kit (tag eco-v0.1.35 when there is
    a batch): ops scope ask, allowlist, regenerate, validate+guard,
    approve the gate, verify live. Rerun-failed + re-approve on
-   `oidc_token_expired` (idempotent). Report "batch done" only if ops
-   opened a window (waves >20).
+   `oidc_token_expired` (idempotent; large batches can lose the alphabet
+   tail -- the rerun skips published names). Report "batch done" only if
+   ops opened a window (waves >20).
 4. Carry-forwards: compiler hotfix watch (open rows in
-   `docs/COMPILER-FINDINGS.md`; enum-mutation/clone/invariant findings
-   are relayed); README sync; category harmonization owner decision;
-   at every wave append worker `stdlib gaps` / compiler evidence; keep
-   the `-TimeoutSec 60` watchdog; update SESSION.md at the wrap with a
-   fresh paste prompt.
+   `docs/COMPILER-FINDINGS.md`); byte-level bracket grep ONLY (Read lies
+   about `Vec<Int>`); bump versions ONLY when source changes; keep the
+   `-TimeoutSec 60` watchdog (port.ps1 now kills by PID tree only);
+   at every wave append worker `stdlib gaps` / compiler evidence; update
+   SESSION.md at the wrap with a fresh paste prompt.
 ```
 
 **--- Older state below (history) ---**

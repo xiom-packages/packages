@@ -165,12 +165,20 @@ it, and whether the fix has landed on the pin.
 - `docs/PACKAGE_STATUS.md` (generated) -- the human-facing readiness list.
 - `%TEMP%\kilo\sweep\` -- raw sweep logs (session-local, not committed).
 
-## Current state (2026-10-02)
+## Current state (2026-10-03)
 
 - Pin `v0.62.2` (deployed into `%LOCALAPPDATA%\xiom.new\bin`); stdlib
-  checkout `E:\xiom-lang\stdlib` (`stdlib-perf1`). Waves 41-50 published
-  through `eco-v0.1.31`; allowlist **485**; registry **438 packages +
+  checkout `E:\xiom-lang\stdlib` (`stdlib-perf1`). Waves 41-55 published
+  through `eco-v0.1.34`; allowlist **497**; registry **450 packages +
   2 infra**.
+- **`port.ps1` watchdog fixed (2026-10-03, `07301ee6`)**: timeout cleanup
+  now kills only the run's own PID tree (the old global
+  `Get-Process a | Stop-Process` killed other concurrent lanes' suites);
+  per-run `a.exe`/`a.exe.ll` cleanup added. Parallel lanes are stable.
+- **Legacy bracket-repair program complete**: 24 packages / 94 real
+  sites canonicalized (scan with `Vec<|Result<|Option<|&Vec<` only --
+  the `>]` probe false-positives on XML/DOCTYPE strings; byte-level
+  grep only, Read output lies).
 - The v0.62.2 fleet sweep (2026-09-30, logs `%TEMP%\kilo\sweep-v0622*`)
   re-recorded fleet runs. The expat/nbt "silent `-1`" was root-caused to
   the 4-chunk sweep harness cross-killing in-flight `a.exe` (see
