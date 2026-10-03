@@ -670,3 +670,25 @@ Schema (`Result[Bool, Str]` errors):
   compact (tested).
 - No explicit nesting cap; 64-deep arrays and 32-deep objects round-trip
   (tested).
+
+## Promotion notes (2026-10-03, v0.62.3)
+
+Promoted `ported` -> `stable` per `docs/PROMOTION.md`.
+
+- **G1**: `port.ps1 -TimeoutSec 60` x2 on the pinned v0.62.3 -- 44/44 both runs.
+- **G2**: this SPEC is current; the README `Status` block is synced after the
+  `eco-v0.1.37` publish.
+- **G3**: API review -- public entry points are free functions over typed
+  enums/structs (`JsonValue`, `JsonPath`, `ParseError`, `JsonNumber`); no
+  child->parent imports; no builtin/generic-name shadowing.
+- **G4**: contracts -- 13 `requires:` + 2 `ensures:` clauses on public entry
+  points; `xiom-verify` (Z3) attempted over the ported candidates (0 of the 101
+  clauses proven tooling-side; solver `unknown` on record-heavy clauses, see
+  COMPILER-FINDINGS) -- contract verification remains review-only.
+- **G5**: 44 conformance checks (>= 24) with explicit error paths.
+- **G6**: workarounds -- contract-verification review-only (accepted);
+  enum-payload mutation and `derive[Clone]` avoidance (accepted; revisit at the
+  next package touch); indexed `Vec[fn]` harness workaround (accepted, see the
+  harness note above).
+- **G7**: dependents re-checked -- `graphql` and `rest` declare `xiom.json` but
+  are unpublished; no published dependents.

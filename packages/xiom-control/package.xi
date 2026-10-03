@@ -3,7 +3,7 @@
 //
 package xiom_control {
   name: "xiom.control";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Control systems library for XIOM -- PID, state machines, signal processing";
   categories: ["science"];
   keywords: ["pid", "control-systems", "state-machines", "signal-processing"];

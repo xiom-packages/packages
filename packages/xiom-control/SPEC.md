@@ -303,3 +303,23 @@ conformance tests for representative inputs.
   (`0xC0000005`, exit `-1073741819`) before any test output. The same defect makes
   `xiom.test.run_all` unusable on this toolchain. The direct dispatch preserves the
   exact same 32 tests and report output.
+
+## Promotion notes (2026-10-03, v0.62.3)
+
+Promoted `ported` -> `stable` per `docs/PROMOTION.md`.
+
+- **G1**: `port.ps1 -TimeoutSec 60` x2 on the pinned v0.62.3 -- 32/32 both runs.
+- **G2**: this SPEC is current; the README `Status` block is synced after the
+  `eco-v0.1.37` publish.
+- **G3**: API review -- four modules (`pid`, `state_machine`, `filter`,
+  `trajectory`); public entry points are free functions over typed structs; no
+  child->parent imports; no builtin/generic-name shadowing.
+- **G4**: contracts -- 15 `requires:` + 36 `ensures:` + 7 `invariant:` clauses
+  on public entry points; `xiom-verify` (Z3) remains review-only (solver
+  `unknown` on record-heavy clauses, see COMPILER-FINDINGS).
+- **G5**: 32 conformance checks (>= 24) including explicit error paths.
+- **G6**: workarounds -- contract-verification review-only (accepted); the
+  direct `run_test_at` dispatch replaces indexed `Vec[fn]` calls (accepted;
+  `xiom.test.dispatch` remains open in `docs/STDLIB-WISHLIST.md`).
+- **G7**: dependents re-checked -- no package declares `xiom.control`; no
+  published dependents.

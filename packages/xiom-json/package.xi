@@ -3,7 +3,7 @@
 //
 package xiom_json {
   name: "xiom.json";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure XIOM JSON Parser and Serializer";
   categories: ["data"];
   keywords: ["json", "parser", "serialization", "encoding"];
