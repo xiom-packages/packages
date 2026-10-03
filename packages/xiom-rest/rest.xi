@@ -242,28 +242,35 @@ fn CURLOPT_ACCEPT_ENCODING() -> Int { return 10102; }
 // --- cURL Helpers ---------------------------------------------------------
 
 fn make_ptr_value(v: Int) -> *UInt8 {
-  var p: *UInt8 = xiom_alloc(8);
+  var p: *UInt8 = ptr.null[UInt8]();
+  unsafe { p = xiom_alloc(8); }
   if ptr.is_null[UInt8](p) {
     return ptr.null[UInt8]();
   };
-  xiom_write_byte(p, 0, v & 0xFF);
-  xiom_write_byte(p, 1, (v >> 8) & 0xFF);
-  xiom_write_byte(p, 2, (v >> 16) & 0xFF);
-  xiom_write_byte(p, 3, (v >> 24) & 0xFF);
+  unsafe {
+    xiom_write_byte(p, 0, v & 0xFF);
+    xiom_write_byte(p, 1, (v >> 8) & 0xFF);
+    xiom_write_byte(p, 2, (v >> 16) & 0xFF);
+    xiom_write_byte(p, 3, (v >> 24) & 0xFF);
+  }
   return p;
 }
 
-fn ptr_null() -> *UInt8 { return ptr.null[UInt8](); }
+fn ptr_null() -> *UInt8
+  requires: true
+{
+  unsafe { return ptr.null[UInt8](); }
+}
 
 fn str_to_cstr(s: Str) -> *UInt8 {
-  if s.len() == 0 {
-    return xiom_str_to_cstr(ptr_null(), 0);
-  };
-  return xiom_str_to_cstr(ptr_null(), 0);
+  var p: *UInt8 = ptr_null();
+  unsafe { p = xiom_str_to_cstr(ptr_null(), 0); }
+  return p;
 }
 
 fn curl_error_string(code: Int) -> Str {
-  var err_ptr: *UInt8 = curl_easy_strerror(code);
+  var err_ptr: *UInt8 = ptr_null();
+  unsafe { err_ptr = curl_easy_strerror(code); }
   if ptr.is_null[UInt8](err_ptr) {
     return "unknown curl error";
   };
@@ -281,12 +288,13 @@ pub fn client_execute(
     return Err("empty URL");
   };
 
-  var handle: *UInt8 = curl_easy_init();
+  var handle: *UInt8 = ptr_null();
+  unsafe { handle = curl_easy_init(); }
   if ptr.is_null[UInt8](handle) {
     return Err("curl_easy_init returned null");
   };
 
-  curl_easy_cleanup(handle);
+  unsafe { curl_easy_cleanup(handle); }
   return Ok(RestResponse{ status: 200, body: "", headers: "" });
 }
 

@@ -1,9 +1,13 @@
 // XIOM -- xiom.rest Conformance Tests (10 tests)
-module xiom.rest.tests
+module rest_tests
 
 use xiom.rest;
 use xiom.string;
 use xiom.io;
+
+// Assertions that fail inside a test are collected here so `run_case`
+// can report them per test (the old `try()` printed and swallowed them).
+var rest_failures: Vec[Str] = Vec[Str].new();
 
 fn assert_true(condition: Bool, label: Str) -> Result[Unit, Str] {
   if condition { return Ok(Unit); };
@@ -210,6 +214,41 @@ fn test_error_constructors() -> Result[Unit, Str] {
 fn try(res: Result[Unit, Str]) {
   match res {
     Ok(_) => {},
-    Err(e) => { io.println(e); },
+    Err(e) => { rest_failures.push(e); },
   };
+}
+
+fn run_case(label: Str, res: Result[Unit, Str]) -> Int {
+  let before: Int = rest_failures.len();
+  match res {
+    Ok(_) => {},
+    Err(e) => { rest_failures.push(e); },
+  };
+  let added: Int = rest_failures.len() - before;
+  if added == 0 {
+    io.println("[PASS] " + label);
+    return 0;
+  }
+  var k: Int = before;
+  while k < rest_failures.len() {
+    io.println("[FAIL] " + label + " -- " + rest_failures[k]);
+    k = k + 1;
+  }
+  return 1;
+}
+
+fn main() -> Int {
+  var failures: Int = 0;
+  failures = failures + run_case("client new", test_client_new());
+  failures = failures + run_case("client add header", test_client_add_header());
+  failures = failures + run_case("client remove header", test_client_remove_header());
+  failures = failures + run_case("request new", test_request_new());
+  failures = failures + run_case("request add header", test_request_add_header());
+  failures = failures + run_case("request add query param", test_request_add_query_param());
+  failures = failures + run_case("method to_str", test_method_to_str());
+  failures = failures + run_case("method from_str", test_method_from_str());
+  failures = failures + run_case("response is_success", test_response_is_success());
+  failures = failures + run_case("error constructors", test_error_constructors());
+  io.println("xiom.rest: " + int_to_str(10 - failures) + "/10 passed");
+  return failures;
 }
