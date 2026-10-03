@@ -15,12 +15,17 @@
 
 [CmdletBinding()]
 param(
-    [string]$RepoRoot = (Split-Path -Parent $PSScriptRoot),
+    [string]$RepoRoot,
     [string]$RegistryIndexPath,
     [switch]$Detailed
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Resolve paths in the body: $PSScriptRoot is empty in param() defaults
+# when the script is invoked with `powershell.exe -File`.
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $RepoRoot) { $RepoRoot = Split-Path -Parent $scriptDir }
 
 # Published = present in the LIVE registry index (packages/index.json is the
 # repo-side index and includes unpublished/grandfathered entries).

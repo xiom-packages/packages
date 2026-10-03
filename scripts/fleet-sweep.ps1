@@ -19,14 +19,22 @@
 
 [CmdletBinding()]
 param(
-    [string]$RepoRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$LogDir = (Join-Path $env:TEMP 'kilo/sweep'),
+    [string]$RepoRoot,
+    [string]$LogDir,
     [int]$TimeoutSec = 60,
     [string[]]$Only = @(),
     [switch]$Force
 )
 
 $ErrorActionPreference = 'Continue'
+
+# Resolve paths in the body: $PSScriptRoot is empty in param() defaults
+# when the script is invoked with `powershell.exe -File`.
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $RepoRoot) { $RepoRoot = Split-Path -Parent $scriptDir }
+if (-not $LogDir) { $LogDir = Join-Path $env:TEMP 'kilo/sweep' }
+# `powershell.exe -File` passes `-Only a,b` as one string; split it.
+$Only = @($Only | ForEach-Object { $_ -split ',' } | Where-Object { $_ })
 
 $names = @()
 Get-ChildItem (Join-Path $RepoRoot 'packages') -Directory | ForEach-Object {
@@ -73,7 +81,7 @@ foreach ($name in $names) {
     # Invoke in a child process: port.ps1 uses Write-Host, which bypasses the
     # success stream in-process but IS captured at the process boundary.
     $psExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
-    $portArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'port.ps1'), '-Package', $name, '-TimeoutSec', "$TimeoutSec")
+    $portArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $scriptDir 'port.ps1'), '-Package', $name, '-TimeoutSec', "$TimeoutSec")
     $out = & $psExe @portArgs 2>&1 | Out-String
     $code = $LASTEXITCODE
     $sw.Stop()
