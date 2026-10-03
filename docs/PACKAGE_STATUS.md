@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.62.3` -- generated 2026-10-03T23:26:04Z.
+Toolchain pin: `v0.62.3` -- generated 2026-10-03T23:49:28Z.
 
 ## Summary
 
@@ -445,7 +445,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.meshopt | xiom-meshopt | incubating | tests/test_conformance.xi | pass 72/72 | ed680f75 | False |  |
 | xiom.messaging | xiom-messaging | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.metadata | xiom-metadata | incubating | tests/test_conformance.xi | pass 28/28 | b7c0bfbf | False | publish pending: next scope delta |
-| xiom.micro | xiom-micro | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.micro | xiom-micro | incubating | tests/test_conformance.xi | pass 10/10 | 57cdac5b | False | publish pending: eco-v0.1.42 |
 | xiom.microscopy | xiom-microscopy | incubating | tests/test_conformance.xi | pass 24/24 | d475ef4b | False | publish pending: next scope delta |
 | xiom.miniaudio | xiom-miniaudio | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.ml | xiom-ml | incubating | tests/test_conformance.xi | pass 18/18 | 6a19ce99 | False | publish pending: next scope delta |
@@ -491,7 +491,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.pwm | xiom-pwm | incubating | tests/test_conformance.xi | pass 20/20 | 599f89c9 | False | publish pending: next scope delta |
 | xiom.randomforest | xiom-randomforest | incubating | tests/test_conformance.xi | pass 24/24 | 3ff86363 | False | publish pending: next scope delta |
 | xiom.raylib | xiom-raylib | incubating | tests/test_conformance.xi | unknown |  | False |  |
-| xiom.realtime | xiom-realtime | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.realtime | xiom-realtime | incubating | tests/test_conformance.xi | pass 10/10 | 57cdac5b | False | publish pending: eco-v0.1.42 |
 | xiom.redis | xiom-redis | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
 | xiom.rest | xiom-rest | incubating | tests/test_conformance.xi | pass 10/10 | a2dc225d | False | publish pending: eco-v0.1.41 |
 | xiom.rocksdb | xiom-rocksdb | incubating | tests/test_conformance.xi | pass 24/24 | a69d2dd5 | False | publish pending: next scope delta |
