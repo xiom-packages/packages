@@ -293,7 +293,7 @@ fn _read_le_int32(data: &Vec[UInt8], pos: Int) -> Result[Int, Str] {
 // Read 8 bytes at `pos` as a SIGNED little-endian int64. The accumulator
 // arithmetic wraps to the two's-complement bit pattern for high-bit
 // payloads (Int is signed 64-bit; documented in SPEC.md).
-fn _read_le_int64(data: &Vec<UInt8>, pos: Int) -> Result[Int, Str] {
+fn _read_le_int64(data: &Vec[UInt8], pos: Int) -> Result[Int, Str] {
   if pos < 0 || pos + 8 > data.len() {
     return _err_int("bson: truncated document");
   }
@@ -307,7 +307,7 @@ fn _read_le_int64(data: &Vec<UInt8>, pos: Int) -> Result[Int, Str] {
 }
 
 // Index of the NUL terminating a cstring in [start, end), or -1.
-fn _name_nul(data: &Vec<UInt8>, start: Int, end: Int) -> Int {
+fn _name_nul(data: &Vec[UInt8], start: Int, end: Int) -> Int {
   var i = start;
   while i < end {
     if (data[i] as Int) == 0 { return i; }
@@ -317,7 +317,7 @@ fn _name_nul(data: &Vec<UInt8>, start: Int, end: Int) -> Int {
 }
 
 // True when the NUL-terminated bytes in [start, nul) equal `s`.
-fn _name_equals(data: &Vec<UInt8>, start: Int, nul: Int, s: Str) -> Bool {
+fn _name_equals(data: &Vec[UInt8], start: Int, nul: Int, s: Str) -> Bool {
   if nul - start != string.str_len(s) {
     return false;
   }
@@ -335,7 +335,7 @@ fn _name_equals(data: &Vec<UInt8>, start: Int, nul: Int, s: Str) -> Bool {
 // whose terminator is at `end`; returns the position after the value.
 // Checks lengths, terminators and bounds one level deep (nested document
 // bodies are validated by _scan_body).
-fn _value_end(data: &Vec<UInt8>, vstart: Int, t: Int, end: Int) -> Result[Int, Str] {
+fn _value_end(data: &Vec[UInt8], vstart: Int, t: Int, end: Int) -> Result[Int, Str] {
   if t == 0x10 {
     if vstart + 4 > end { return _err_int("bson: truncated document"); }
     return _ok_int(vstart + 4);
@@ -380,7 +380,7 @@ fn _value_end(data: &Vec<UInt8>, vstart: Int, t: Int, end: Int) -> Result[Int, S
 
 // Position of the value of the element whose type byte is at `tpos`
 // (just past the cstring name).
-fn _value_start(data: &Vec<UInt8>, tpos: Int, end: Int) -> Result[Int, Str] {
+fn _value_start(data: &Vec[UInt8], tpos: Int, end: Int) -> Result[Int, Str] {
   let nul = _name_nul(data, tpos + 1, end);
   if nul < 0 { return _err_int("bson: truncated document"); }
   return _ok_int(nul + 1);
@@ -388,7 +388,7 @@ fn _value_start(data: &Vec<UInt8>, tpos: Int, end: Int) -> Result[Int, Str] {
 
 // Validate the matched top-level element with type byte `t` at `pos`
 // against the document terminator and return its value start.
-fn _value_ready(data: &Vec<UInt8>, pos: Int, t: Int) -> Result[Int, Str] {
+fn _value_ready(data: &Vec[UInt8], pos: Int, t: Int) -> Result[Int, Str] {
   let vsr = _value_start(data, pos, data.len() - 1);
   if !vsr.is_ok { return _err_int(vsr.error); }
   let vr = _value_end(data, vsr.value, t, data.len() - 1);
@@ -398,7 +398,7 @@ fn _value_ready(data: &Vec<UInt8>, pos: Int, t: Int) -> Result[Int, Str] {
 
 // Parse one element with its type byte at `pos` (name + value) inside a
 // document whose terminator is at `end`; returns the position after it.
-fn _element_end(data: &Vec<UInt8>, pos: Int, end: Int) -> Result[Int, Str] {
+fn _element_end(data: &Vec[UInt8], pos: Int, end: Int) -> Result[Int, Str] {
   if pos >= end { return _err_int("bson: truncated document"); }
   let t = data[pos] as Int;
   let nul = _name_nul(data, pos + 1, end);
@@ -409,7 +409,7 @@ fn _element_end(data: &Vec<UInt8>, pos: Int, end: Int) -> Result[Int, Str] {
 // Find the first element named `name` in the document body [start, end)
 // (start = first element position, end = terminator index). Returns the
 // type-byte position of the match, or an Err with the failure reason.
-fn _find_element(data: &Vec<UInt8>, start: Int, end: Int, name: Str) -> Result[Int, Str] {
+fn _find_element(data: &Vec[UInt8], start: Int, end: Int, name: Str) -> Result[Int, Str] {
   var pos = start;
   while pos < end {
     let t = data[pos] as Int;
@@ -428,7 +428,7 @@ fn _find_element(data: &Vec<UInt8>, start: Int, end: Int, name: Str) -> Result[I
 
 // Validate a document's leading length field and terminator; returns the
 // terminator index (declared length - 1) or the failure reason.
-fn _doc_end(data: &Vec<UInt8>) -> Result[Int, Str] {
+fn _doc_end(data: &Vec[UInt8]) -> Result[Int, Str] {
   if data.len() < 5 {
     return _err_int("bson: truncated document");
   }
@@ -445,14 +445,14 @@ fn _doc_end(data: &Vec<UInt8>) -> Result[Int, Str] {
 }
 
 // Find a top-level element of a complete document.
-fn _find_top(data: &Vec<UInt8>, name: Str) -> Result[Int, Str] {
+fn _find_top(data: &Vec[UInt8], name: Str) -> Result[Int, Str] {
   let er = _doc_end(data);
   if !er.is_ok { return _err_int(er.error); }
   return _find_element(data, 4, er.value, name);
 }
 
 // Count the elements of a document body [start, end).
-fn _count_body(data: &Vec<UInt8>, start: Int, end: Int) -> Result[Int, Str] {
+fn _count_body(data: &Vec[UInt8], start: Int, end: Int) -> Result[Int, Str] {
   var count = 0;
   var pos = start;
   while pos < end {
@@ -468,7 +468,7 @@ fn _count_body(data: &Vec<UInt8>, start: Int, end: Int) -> Result[Int, Str] {
 // Recursively validate a document body [start, end): every element is
 // well-formed, every nested document/array is itself valid, and the walk
 // ends exactly at the terminator. `depth` caps nesting at 100 levels.
-fn _scan_body(data: &Vec<UInt8>, start: Int, end: Int, depth: Int) -> Bool {
+fn _scan_body(data: &Vec[UInt8], start: Int, end: Int, depth: Int) -> Bool {
   var pos = start;
   while pos < end {
     let t = data[pos] as Int;
@@ -498,7 +498,7 @@ fn _scan_body(data: &Vec<UInt8>, start: Int, end: Int, depth: Int) -> Bool {
 // Find the type-byte position of array element `index` inside the array
 // (0x04) element named `name`; the array sub-document, the numeric key
 // lookup and the element's value are all validated on the way.
-fn _array_find(data: &Vec<UInt8>, name: Str, index: Int) -> Result[Int, Str] {
+fn _array_find(data: &Vec[UInt8], name: Str, index: Int) -> Result[Int, Str] {
   let fr = _find_top(data, name);
   if !fr.is_ok { return _err_int(fr.error); }
   let t = data[fr.value] as Int;
@@ -522,7 +522,7 @@ fn _array_find(data: &Vec<UInt8>, name: Str, index: Int) -> Result[Int, Str] {
 
 // Copy the string payload of the element whose VALUE starts at `vstart`
 // (the element was validated by a previous walk).
-fn _get_str_at(data: &Vec<UInt8>, vstart: Int) -> Result[Str, Str] {
+fn _get_str_at(data: &Vec[UInt8], vstart: Int) -> Result[Str, Str] {
   let lr = _read_le_int32(data, vstart);
   if !lr.is_ok { return _err_str(lr.error); }
   let slen = lr.value;
@@ -602,7 +602,7 @@ fn _keys_malformed() -> Vec[Str] {
 /// (0x10 int32, 0x12 int64, 0x02 str, 0x03 doc, 0x04 array, 0x08 bool,
 /// 0x0A null), or None when the document is malformed or the field is
 /// absent.
-pub fn bson_type_of(data: &Vec<UInt8>, name: Str) -> Option[Int] {
+pub fn bson_type_of(data: &Vec[UInt8], name: Str) -> Option[Int] {
   let fr = _find_top(data, name);
   if !fr.is_ok { return _none_int(); }
   return _some_int(data[fr.value] as Int);
@@ -610,14 +610,14 @@ pub fn bson_type_of(data: &Vec<UInt8>, name: Str) -> Option[Int] {
 
 /// True when a top-level element named `name` exists in a structurally
 /// walkable document.
-pub fn bson_has(data: &Vec<UInt8>, name: Str) -> Bool {
+pub fn bson_has(data: &Vec[UInt8], name: Str) -> Bool {
   let fr = _find_top(data, name);
   return fr.is_ok;
 }
 
 /// Value of the int32 (0x10) element named `name`.
 /// Err("bson: unexpected type 0xNN") on a different type.
-pub fn bson_get_int32(data: &Vec<UInt8>, name: Str) -> Result[Int, Str] {
+pub fn bson_get_int32(data: &Vec[UInt8], name: Str) -> Result[Int, Str] {
   let fr = _find_top(data, name);
   if !fr.is_ok { return _err_int(fr.error); }
   let t = data[fr.value] as Int;
@@ -629,7 +629,7 @@ pub fn bson_get_int32(data: &Vec<UInt8>, name: Str) -> Result[Int, Str] {
 
 /// Value of the int64 (0x12) element named `name`.
 /// Err("bson: unexpected type 0xNN") on a different type.
-pub fn bson_get_int64(data: &Vec<UInt8>, name: Str) -> Result[Int, Str] {
+pub fn bson_get_int64(data: &Vec[UInt8], name: Str) -> Result[Int, Str] {
   let fr = _find_top(data, name);
   if !fr.is_ok { return _err_int(fr.error); }
   let t = data[fr.value] as Int;
@@ -642,7 +642,7 @@ pub fn bson_get_int64(data: &Vec<UInt8>, name: Str) -> Result[Int, Str] {
 /// Value of the string (0x02) element named `name`; the UTF-8 payload
 /// bytes are copied verbatim (no validation).
 /// Err("bson: unexpected type 0xNN") on a different type.
-pub fn bson_get_str(data: &Vec<UInt8>, name: Str) -> Result[Str, Str] {
+pub fn bson_get_str(data: &Vec[UInt8], name: Str) -> Result[Str, Str] {
   let fr = _find_top(data, name);
   if !fr.is_ok { return _err_str(fr.error); }
   let t = data[fr.value] as Int;
@@ -655,7 +655,7 @@ pub fn bson_get_str(data: &Vec<UInt8>, name: Str) -> Result[Str, Str] {
 /// Value of the bool (0x08) element named `name`; any non-zero payload
 /// byte reads as true.
 /// Err("bson: unexpected type 0xNN") on a different type.
-pub fn bson_get_bool(data: &Vec<UInt8>, name: Str) -> Result[Bool, Str] {
+pub fn bson_get_bool(data: &Vec[UInt8], name: Str) -> Result[Bool, Str] {
   let fr = _find_top(data, name);
   if !fr.is_ok { return _err_bool(fr.error); }
   let t = data[fr.value] as Int;
@@ -670,7 +670,7 @@ pub fn bson_get_bool(data: &Vec<UInt8>, name: Str) -> Result[Bool, Str] {
 /// into a fresh Vec[UInt8] (the returned bytes form a complete document
 /// that the other accessors accept).
 /// Err("bson: unexpected type 0xNN") on a different type.
-pub fn bson_get_document(data: &Vec<UInt8>, name: Str) -> Result[Vec[UInt8], Str] {
+pub fn bson_get_document(data: &Vec[UInt8], name: Str) -> Result[Vec[UInt8], Str] {
   let fr = _find_top(data, name);
   if !fr.is_ok { return _err_bytes(fr.error); }
   let t = data[fr.value] as Int;
@@ -692,7 +692,7 @@ pub fn bson_get_document(data: &Vec<UInt8>, name: Str) -> Result[Vec[UInt8], Str
 
 /// Number of elements of the array (0x04) element named `name`.
 /// Err("bson: unexpected type 0xNN") on a different type.
-pub fn bson_get_array_len(data: &Vec<UInt8>, name: Str) -> Result[Int, Str] {
+pub fn bson_get_array_len(data: &Vec[UInt8], name: Str) -> Result[Int, Str] {
   let fr = _find_top(data, name);
   if !fr.is_ok { return _err_int(fr.error); }
   let t = data[fr.value] as Int;
@@ -708,7 +708,7 @@ pub fn bson_get_array_len(data: &Vec<UInt8>, name: Str) -> Result[Int, Str] {
 /// element named `name`. An index outside the array is reported as
 /// Err("bson: field not found: <index>") because BSON array keys are the
 /// decimal index strings.
-pub fn bson_get_array_str(data: &Vec<UInt8>, name: Str, index: Int) -> Result[Str, Str] {
+pub fn bson_get_array_str(data: &Vec[UInt8], name: Str, index: Int) -> Result[Str, Str] {
   let ar = _array_find(data, name, index);
   if !ar.is_ok { return _err_str(ar.error); }
   let t = data[ar.value] as Int;
@@ -721,7 +721,7 @@ pub fn bson_get_array_str(data: &Vec<UInt8>, name: Str, index: Int) -> Result[St
 /// int32 (0x10) value of array element `index` inside the array (0x04)
 /// element named `name`. An index outside the array is reported as
 /// Err("bson: field not found: <index>").
-pub fn bson_get_array_int32(data: &Vec<UInt8>, name: Str, index: Int) -> Result[Int, Str] {
+pub fn bson_get_array_int32(data: &Vec[UInt8], name: Str, index: Int) -> Result[Int, Str] {
   let ar = _array_find(data, name, index);
   if !ar.is_ok { return _err_int(ar.error); }
   let t = data[ar.value] as Int;

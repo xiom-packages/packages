@@ -1,6 +1,6 @@
 # xiom.bson
 
-> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (22/22); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM BSON document encoding and decoding for the supported
 > subset: int32, int64, UTF-8 string, embedded document, array, bool and null.
 > **Deps:** `xiom.std` only (`xiom.string`, `xiom.string.builder`,
