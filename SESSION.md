@@ -115,7 +115,12 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   `control` 32/32, `sensor` 38/38 (stages stay `ported` until Tier-2);
   (n) crypto-link packet re-verified on the current stdlib checkout:
   both probes still fail link with `undefined symbol: xiom_sha256_hash`
-  (packet remains valid for the stdlib lane).
+  (packet remains valid for the stdlib lane);
+  (o) `Vec[StructType]` (trap 10): NOT REPRODUCED on v0.62.2 (probe
+  `docs/repro/vec-struct/probe_vec_struct.xi`, `bad=0`: push/len/
+  indexed reads with Str fields/field write/loop push/`&Vec` param all
+  correct) -- new registry row + COMPILER-FINDINGS resolved row;
+  retirement candidate (parallel-Vec sites simplify at next touch).
 - **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
   drop is the BARE assignment form (`s = 99`) in both call forms (plain
   local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix

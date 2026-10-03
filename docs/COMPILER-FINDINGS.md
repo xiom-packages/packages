@@ -86,6 +86,7 @@ strict clauses on):
 | 2026-09-27 | Arity not validated: calls with wrong argument counts compiled (missing args defaulted to 0, extras dropped) | FIXED by the compiler item-3 batch (pin `0c50ac6`, commit `0f3f5083`); **VERIFIED FIXED on v0.62.0** -- `docs/repro/arity-laxness/` control green, missing/extra-arg probes fail with `error[T001]` |
 | 2026-09-28 | `&mut` out-params with plain-local calls resolved to a copy (writes lost; struct args corrupted) | **VERIFIED FIXED on v0.62.0 (R53)** -- `docs/repro/mut-int-write-through/` runs all variants correctly (`bad=0`) |
 | 2026-10-03 | `&r.value` on `Result[Vec[UInt8], Str]` payloads read an empty vector (v0.61.3 trap 4); generic fn-value / generic-mono ABI family (fn-typed struct field, `[T,U]` callback with `U = Str`, `Vec[U]` maps) | **VERIFIED CLEAN on v0.62.2** -- `docs/repro/struct-field-vec` all 3 probes exit 0 (`probe_result_value` prints `result payload: 3`, was `0`); `docs/repro/generic-fnptr` all 7 probes exit 0 (was compile-fail / corrupted values / exit 23/100 / crash). Local-binding and concrete-callback workarounds are now optional |
+| 2026-10-03 | No `Vec[StructType]` (trap 10): struct payload lists needed parallel `Vec` fields | **NOT REPRODUCED on v0.62.2** -- `docs/repro/vec-struct/probe_vec_struct.xi`: push/len/indexed reads (Int + Str fields)/field write through index/loop push with computed values/`&Vec[Row]` params all correct (`bad=0`). Keep existing parallel-Vec sites (no drive-by refactors); retire at the next release sweep |
 
 ## Changelog
 
