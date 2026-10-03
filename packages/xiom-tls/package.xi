@@ -9,9 +9,9 @@
 
 package xiom_tls {
   name: "xiom.tls";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Pure-XIOM TLS record and handshake structure parser (no crypto)";
-  categories: ["protocol"];
+  categories: ["network"];
   keywords: ["tls", "handshake", "record", "parser"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
