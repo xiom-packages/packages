@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-03T23:04:16Z",
+    "updated":  "2026-10-03T23:38:33Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -3128,22 +3128,6 @@
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
-                                              },
-                                              {
-                                                  "version":  "*",
-                                                  "name":  "xiom.string"
-                                              },
-                                              {
-                                                  "version":  "*",
-                                                  "name":  "xiom.encoding"
-                                              },
-                                              {
-                                                  "version":  "*",
-                                                  "name":  "xiom.io"
-                                              },
-                                              {
-                                                  "version":  "*",
-                                                  "name":  "xiom.convert"
                                               }
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-http/v0.1.0/package.tar.gz",
