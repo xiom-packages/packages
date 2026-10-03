@@ -9,9 +9,9 @@
 
 package xiom_oauth {
   name: "xiom.oauth";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Pure-XIOM OAuth 2.0 / PKCE request-and-response structure codec: form-urlencoded and JSON message parsing/building, no network and no crypto";
-  categories: ["protocol"];
+  categories: ["network"];
   keywords: ["oauth", "oauth2", "pkce", "authorization", "token"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
