@@ -171,3 +171,21 @@ the `&mut Int` drop is the BARE assignment form only (deref writes are
 correct); `expat`/`nbt` silent `-1` is resolved (sweep-harness race, not
 re-filed -- per SESSION.md).
 
+---
+
+## Post-release re-run (2026-10-03, installed v0.62.3) -- BOTH FIXED
+
+Same probes, same command, on the pinned official v0.62.3 archive
+(SHA256-verified):
+
+| Probe | v0.62.2 | v0.62.3 |
+|---|---|---|
+| `vec_str_push_global.xi` | clang FAIL | **PASS** (exit 0) |
+| `vec_str_push_param.xi` | clang FAIL | **PASS** (`first=alpha`, exit 0) |
+| `mut_int_write_drop.xi` | `st=10` | **`st=99`** |
+| `mut_int_write_drop_matrix.xi` | `bad=2` | **`bad=0`** (bare + deref, both call forms) |
+
+`Vec[Str].push` and `&mut Int` bare-assignment workarounds are RETIRED
+in `docs/MAINTENANCE.md`; the fleet sweep re-verifies every implemented
+package under the maintenance wave. `expat`/`nbt` remain resolved.
+

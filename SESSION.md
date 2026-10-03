@@ -3,18 +3,49 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-03 (14:30Z), by the packages session (wave 56:
-category-vocabulary sweep -- all 90 mixed manifests normalized, zero
-unknown tokens remain; owner-approved `firebird`/`oracle` publish scope;
-published as `eco-v0.1.35`; allowlist 497 -> 499; README Status-block
-sync closed -- 514/514 match the live registry; bracket re-audit 0 real
-sites; `&mut Int` write-drop boundary refined -- bare drops, deref
-works; `eco-v0.1.36` manifest module-list fixes published). Check
-`git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-03 (18:35Z), by the packages session (v0.62.3 pin:
+official archive SHA256-verified + deployed; `Vec[Str].push` and
+`&mut Int` bare-assignment workarounds retired by probe; fleet sweep
+running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-03 14:30Z (read this first):**
+**STATE AT 2026-10-03 18:35Z (read this first):**
+- **v0.62.3 PINNED (release landed 18:07Z):** official
+  `xiom-0.62.3-windows-x64.zip` downloaded from the GitHub release,
+  **SHA256 verified against the published SHA256SUMS** (`011af7dd...`
+  MATCH); deployed into `%LOCALAPPDATA%\xiom.new` (`xiom --version` =
+  v0.62.3; wrapper resolves `0.62.3 (installed)`); `vcruntime140.dll` +
+  `xiom-lsp.exe` left at the prior build (locked by the running VS Code
+  LSP, PID 60936 -- editor files only; `xiom.exe` and all tools are new).
+  `COMPILER_VERSION` bumped; `status.ps1 -Action repin` = 514 records to
+  v0.62.3.
+- **Two workaround RETIREMENTS (probe RED -> GREEN on v0.62.3):**
+  `Vec[Str].push` global/param -- both probes compile and run
+  (`vec_str_push_global` exit 0; `vec_str_push_param` `first=alpha`);
+  `&mut Int` bare assignment -- `mut_int_write_drop` prints `st=99`,
+  matrix `bad=0`. Rows RETIRED in `docs/MAINTENANCE.md`; resolved rows in
+  COMPILER-FINDINGS; repro index + packet README updated. Unchanged:
+  complex const tables still broken -- **v0.62.3 release notes list it as
+  a known issue**; float bitcast still a stdlib stub; every
+  previously-fixed battery still green (arity T001 both directions,
+  byte_at `bad=0`, str-vec-eq `bad=0`, vec-struct `bad=0`,
+  struct-field/generic-fnptr all exit 0).
+- **Fleet sweep v0.62.3 RUNNING:** new `scripts/fleet-sweep.ps1`
+  (resumable; child-process capture; per-package logs + `summary.tsv`
+  under `%TEMP%\kilo\sweep`) as background
+  `bgp_102fed501001zhJdfvwygEuN3h`, over all implemented packages
+  (~454). Next: fix non-PASS + re-record green runs, then the
+  maintenance wave (workaround removal at next touch), then the FIRST
+  PROMOTION WAVE (`json`/`control`/`sensor` -> stable; pre-flight G1-G7
+  done) + publish `eco-v0.1.37`.
+- **Current gates:** `validate` 514/0; guard expected unchanged
+  **499 allowlisted / 450 ready / 49 grandfathered / 0 failures**; no
+  publish pending until the promotion wave; ops needs nothing yet.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-03 14:30Z (history):**
 - **`eco-v0.1.36` PUBLISHED (this session, run `37129059908` SUCCESS
   attempt 1):** manifest module-list fixes + patch bumps -- `stats-ml`
   `xiom.stats-ml` -> `xiom.stats_ml` (invalid hyphen module name; the
