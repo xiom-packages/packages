@@ -5,7 +5,7 @@ schema-driven arguments, content header frames (the 13 basic properties),
 body frames and heartbeat frames. No FFI, no sockets and no session state:
 this package turns byte buffers into decoded frames and back.
 
-> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (21/21); published at `v0.1.2` on the XIOM registry.
 
 ## What is implemented
 

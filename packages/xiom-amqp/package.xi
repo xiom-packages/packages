@@ -8,9 +8,9 @@
 
 package xiom_amqp {
   name: "xiom.amqp";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM AMQP 0-9-1 frame codec: protocol header, method, content header, body and heartbeat frames";
-  categories: ["protocol"];
+  categories: ["network"];
   keywords: ["amqp", "rabbitmq", "messaging", "protocol", "codec"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
