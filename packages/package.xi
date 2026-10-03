@@ -1,6 +1,9 @@
 // XIOM Ecosystem -- Package Manifest
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Licensed under the MIT or Apache-2.0 license, at your option.
+// NOTE: legacy early-monorepo member list; current packages are one
+// directory each under packages/ and are listed in packages/index.json.
 
 package xiom_ecosystem {
   name: "xiom.ecosystem";

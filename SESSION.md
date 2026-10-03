@@ -57,9 +57,12 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   contract-verification (accepted; revisit after Tier-2), json
   enum-payload + derive-Clone (accepted). G7 -- only unpublished
   `graphql`/`rest` declare `xiom.json`; no published dependents. G3 API
-  review runs in-wave. Stages stay `ported` until Tier-2 completes; the
-  wave is 3 names (already allowlisted/scoped -- **no ops delta, no rate
-  window**), tag `eco-v0.1.37`.
+  review runs in-wave. `kafka` is the fourth `ported` record and is NOT
+  promotion-ready (`excluded_reason: ported only -- librdkafka FFI stubs
+  remain: handle -1, poll None, admin Err(-999)`), so the wave is the
+  three implemented candidates. Stages stay `ported` until Tier-2
+  completes; the wave is 3 names (already allowlisted/scoped -- **no ops
+  delta, no rate window**), tag `eco-v0.1.37`.
 - **Publish status right now: nothing pending.** Registry `450 packages
   + 2 infra = 452 entries`, manifest-vs-registry version drift = 0, no
   unpublished ready names; promotion wave is the only next batch and it
@@ -98,8 +101,10 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   (e) SPDX-header audit + fix: **0 missing** in published packages
   (20 files across `ui`/`meshopt`/`bmp`/`biology`/`streaming`/`geology`/
   `meteorology` got the standard header; all 7 suites re-ran green);
-  299 remain in non-published/skipped dirs -- fix opportunistically at
-  next touch;
+  15 more added for the promotion candidates; the umbrella
+  `packages/package.xi` now carries SPDX + a legacy-list note;
+  284 remain in 62 grandfathered/skipped dirs -- fix opportunistically
+  at next touch;
   (f) manifest-vs-registry version drift: **0 of 450**;
   (g) manifest `modules` vs source declarations: 3 packages drifted
   (`stats-ml` hyphen name, `vault` missing `client`/`core`/`json`,
