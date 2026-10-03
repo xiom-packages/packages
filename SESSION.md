@@ -39,6 +39,18 @@ running). Check `git log -1 --format=%h %s` before starting.
   maintenance wave (workaround removal at next touch), then the FIRST
   PROMOTION WAVE (`json`/`control`/`sensor` -> stable; pre-flight G1-G7
   done) + publish `eco-v0.1.37`.
+- **Tier-2 maintenance-wave candidates (for after the sweep):** 25
+  packages carry explicit `Vec[Str]`-avoidance comments. Bug-driven
+  subset (cite the v0.62.2 mis-lowering; candidates for direct
+  `Vec[Str]` use at next touch): `autoscale`, `chromatography`,
+  `consensus`, `context`, `defi`, `metadata`, `microscopy`, `svm`,
+  `tensor`, `text-markup`; also check `climate`, `docx`, `exchanger`,
+  `jpeg`, `oauth`, `pe`, `serverless`, `video`. **Blob+offset models
+  (`cloud`, `cloudlog`, `docker`, `k8s`, `pptx`) are valid designs, not
+  bug workarounds** -- leave unless touched anyway; `activation` /
+  `l10n-unicode` are pure-Int APIs (no change). Retire with identical
+  behavior: `refactor:` + suite x2 + trap-14; patch-bump only when
+  published code ships the change.
 - **Current gates:** `validate` 514/0; guard expected unchanged
   **499 allowlisted / 450 ready / 49 grandfathered / 0 failures**; no
   publish pending until the promotion wave; ops needs nothing yet.
