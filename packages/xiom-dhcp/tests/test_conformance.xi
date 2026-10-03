@@ -915,7 +915,7 @@ fn t15() -> TestResult {
   if !a.is_ok { ok = false; }
   let nr = dhcp_build_client(999, &mac, true, &opts);
   if !nr.is_ok { ok = false; } else {
-    let nb: Vec<UInt8> = nr.value;
+    let nb: Vec[UInt8] = nr.value;
     let npr = dhcp_parse(&nb);
     if !npr.is_ok { ok = false; } else {
       let np: DhcpPacket = npr.value;

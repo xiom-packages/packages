@@ -427,7 +427,7 @@ pub fn dhcp_message_type(data: &Vec[UInt8], p: &DhcpPacket) -> Int {
 /// (1, 50, 51, 54, ...), or -1 when absent, not exactly 4 bytes, or out of
 /// bounds. For multi-address options (3, 6) use the list accessors.
 /// Complexity: O(1) after the index.
-pub fn dhcp_option_u32(data: &Vec<UInt8>, p: &DhcpPacket, code: Int) -> Int {
+pub fn dhcp_option_u32(data: &Vec[UInt8], p: &DhcpPacket, code: Int) -> Int {
   let idx = dhcp_find_option(p, code);
   if idx < 0 {
     return -1;
@@ -445,13 +445,13 @@ pub fn dhcp_option_u32(data: &Vec<UInt8>, p: &DhcpPacket, code: Int) -> Int {
 
 /// Subnet mask (option 1) as an unsigned 32-bit Int; -1 when absent.
 /// Complexity: O(1) after the index.
-pub fn dhcp_subnet_mask(data: &Vec<UInt8>, p: &DhcpPacket) -> Int {
+pub fn dhcp_subnet_mask(data: &Vec[UInt8], p: &DhcpPacket) -> Int {
   return dhcp_option_u32(data, p, 1);
 }
 
 /// Requested IP address (option 50) as an unsigned 32-bit Int; -1 when
 /// absent. Complexity: O(1) after the index.
-pub fn dhcp_requested_ip(data: &Vec<UInt8>, p: &DhcpPacket) -> Int {
+pub fn dhcp_requested_ip(data: &Vec[UInt8], p: &DhcpPacket) -> Int {
   return dhcp_option_u32(data, p, 50);
 }
 
@@ -586,7 +586,7 @@ fn _client_header_err(xid: Int, chaddr: &Vec[UInt8]) -> Str {
 /// Err("dhcp: bad xid") when xid is outside 0..4294967295;
 /// Err("dhcp: bad chaddr length") when chaddr is empty or longer than 16.
 /// Nothing is written on Err. Complexity: O(chaddr + options).
-pub fn dhcp_build_client(xid: Int, chaddr: &Vec<UInt8>, broadcast: Bool, options: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn dhcp_build_client(xid: Int, chaddr: &Vec[UInt8], broadcast: Bool, options: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
   let he = _client_header_err(xid, chaddr);
   if he.len() > 0 {
     return _err_bytes(he);
@@ -646,7 +646,7 @@ pub fn dhcp_build_client(xid: Int, chaddr: &Vec<UInt8>, broadcast: Bool, options
 /// by chaddr), 55 = parameter request list {1, 3, 6, 12, 51, 54}. The
 /// broadcast bit is set. Errors are the documented client-header errors of
 /// dhcp_build_client. Complexity: O(chaddr).
-pub fn dhcp_build_discover(xid: Int, chaddr: &Vec<UInt8>) -> Result[Vec[UInt8], Str] {
+pub fn dhcp_build_discover(xid: Int, chaddr: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
   let he = _client_header_err(xid, chaddr);
   if he.len() > 0 {
     return _err_bytes(he);
@@ -695,7 +695,7 @@ pub fn dhcp_build_discover(xid: Int, chaddr: &Vec<UInt8>) -> Result[Vec[UInt8], 
 /// 4294967295 (negative values mean "omit the option"); otherwise the
 /// documented client-header errors of dhcp_build_client.
 /// Complexity: O(chaddr).
-pub fn dhcp_build_request(xid: Int, chaddr: &Vec<UInt8>, requested_ip: Int, server_id: Int) -> Result[Vec[UInt8], Str] {
+pub fn dhcp_build_request(xid: Int, chaddr: &Vec[UInt8], requested_ip: Int, server_id: Int) -> Result[Vec[UInt8], Str] {
   let he = _client_header_err(xid, chaddr);
   if he.len() > 0 {
     return _err_bytes(he);
