@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.62.3` -- generated 2026-10-03T20:38:37Z.
+Toolchain pin: `v0.62.3` -- generated 2026-10-03T22:36:37Z.
 
 ## Summary
 
@@ -532,7 +532,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.wallet | xiom-wallet | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.wasmtime | xiom-wasmtime | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.web3 | xiom-web3 | incubating | tests/test_conformance.xi | pass 28/28 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |
-| xiom.websocket | xiom-websocket | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.websocket | xiom-websocket | incubating | tests/test_conformance.xi | pass 10/10 | 8390b229 | False | publish pending: eco-v0.1.40 |
 | xiom.windows | xiom-windows | incubating | tests/test_conformance.xi | pass 25/25 | e295e6fc | False | publish pending: next scope delta |
 | xiom.wireless | xiom-wireless | incubating | tests/test_conformance.xi | pass 33/33 | e295e6fc | False | publish pending: next scope delta |
 | xiom.worker | xiom-worker | incubating | tests/test_conformance.xi | pass 26/26 | 847b5f80 | False | publish pending: next scope delta |

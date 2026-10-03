@@ -381,8 +381,13 @@ published as `eco-v0.1.37`; `xiom.http` restored and published as
    Brief = the v0.62.3 edition: `Vec[Str].push` and `&mut Int` params
    are FIXED (no avoidance; probes green) -- complex `Str`/struct const
    tables are STILL broken (runtime builders only); cross-module
-   helpers just need `pub` (child->parent calls are fine); no
-   builtin/generic-name shadowing; progress-guaranteed loops +
+   helpers just need `pub` (child->parent calls are fine); **test
+   modules must NOT be nested under the package namespace**
+   (`module xiom.pkg.tests` cannot import the package root -- use a
+   non-nested name like `pkg_tests`); **always initialize locals at
+   declaration** (`var x: T = <default>;` -- uninitialized declaration +
+   later assignment corrupts on v0.62.3, see COMPILER-FINDINGS);
+   no builtin/generic-name shadowing; progress-guaranteed loops +
    full-angle bracket grep after green + `port.ps1 -TimeoutSec 60` gate
    + `## stdlib gaps` report. Crash recovery: stop the dead AM session
    and re-dispatch as a `task` with `variant: low` +
