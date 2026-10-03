@@ -87,7 +87,13 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   (`stats-ml` hyphen name, `vault` missing `client`/`core`/`json`,
   `web3` missing `accounts`/`contract`/`ens`/`keccak`/`provider`) --
   fixed and republished in **`eco-v0.1.36`**; repo-wide re-audit = 0
-  issues.
+  issues;
+  (h) `Str` equality/`str_len` on `Vec[Str]` elements: NOT REPRODUCED
+  on v0.62.2 (probe `docs/repro/str-vec-eq/probe_str_vec_eq.xi`,
+  `bad=0` for elem==elem, elem==literal, runtime-derived==literal and
+  `str_len`; MAINTENANCE row added as a Tier-2 retirement candidate);
+  (i) stale build artifacts cleaned -- 389 leftover `a.exe` (215 MB)
+  removed; the parallel lane's dirs were left untouched.
 - **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
   drop is the BARE assignment form (`s = 99`) in both call forms (plain
   local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix
