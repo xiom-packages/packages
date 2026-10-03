@@ -9,13 +9,13 @@
 
 package xiom_web3 {
   name: "xiom.web3";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM Web3 primitives: provider request/response model, contract selectors and minimal ABI words, ENS normalization/namehash and EIP-55 account addresses (Keccak-256 in-package, no networking)";
   categories: ["web", "network"];
   keywords: ["web3", "ethereum", "keccak", "eip55", "ens", "namehash", "abi", "json-rpc", "provider"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["Eleftherios Notas", "The XIOM Authors"];
-  modules: ["xiom.web3"];
+  modules: ["xiom.web3", "xiom.web3.accounts", "xiom.web3.contract", "xiom.web3.ens", "xiom.web3.keccak", "xiom.web3.provider"];
   deps: { "xiom.std": ">=0.60.0 <1.0.0" };
 }

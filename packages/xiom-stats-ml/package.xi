@@ -11,13 +11,13 @@
 
 package xiom_stats_ml {
   name: "xiom.stats-ml";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Fixed-point ML evaluation metrics on integers: confusion matrix, precision/recall/F1, kappa, ROC/AUC, calibration bins, class balance";
   categories: ["ai-ml", "data"];
   keywords: ["metrics", "confusion-matrix", "precision", "recall", "f1", "roc", "auc", "calibration", "kappa", "fixed-point"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["Eleftherios Notas", "The XIOM Authors"];
-  modules: ["xiom.stats-ml"];
+  modules: ["xiom.stats_ml"];
   deps: { "xiom.std": ">=0.60.0 <1.0.0" };
 }

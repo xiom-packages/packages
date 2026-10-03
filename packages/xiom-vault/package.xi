@@ -9,13 +9,13 @@
 
 package xiom_vault {
   name: "xiom.vault";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM secret vault backend MODEL (no HTTP, no crypto): Vault API request/response model with a JSON-ish body builder and raw key lookup, KV v1/v2 path and version state model, Shamir secret sharing over GF(256) with unseal progress, token/AppRole login models and policy path/capability matching";
   categories: ["crypto-security"];
   keywords: ["vault", "secrets", "kv", "shamir", "unseal", "policy", "approle", "token", "capabilities"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["Eleftherios Notas", "The XIOM Authors"];
-  modules: ["xiom.vault", "xiom.vault.kv", "xiom.vault.unseal", "xiom.vault.auth", "xiom.vault.policy"];
+  modules: ["xiom.vault", "xiom.vault.kv", "xiom.vault.unseal", "xiom.vault.auth", "xiom.vault.policy", "xiom.vault.client", "xiom.vault.core", "xiom.vault.json"];
   deps: { "xiom.std": ">=0.60.0 <1.0.0" };
 }
