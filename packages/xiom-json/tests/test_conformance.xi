@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+// SPDX-License-Identifier: MIT OR Apache-2.0
+//
 // XIOM -- xiom.json Conformance Tests
 // 44 deterministic checks: parse/stringify round-trips, manipulation API,
 // JSONPath, schema validation, numeric edge cases and explicit error paths

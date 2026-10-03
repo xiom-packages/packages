@@ -42,10 +42,28 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   1 empty infra probe); allowlist **499**; tags `eco-v0.1.35` on
   `4c7093f7` and `eco-v0.1.36` on `5e25ee47`; all pushed.
 - **Compiler release:** pin still `v0.62.2`; deployed `xiom.new\bin`
-  binaries unchanged (2026-09-30). No v0.62.3+ release observed -- Tier-2
-  triage, the first promotion wave (`json`/`control`/`sensor` stay
-  `ported`), and the 276-record grandfathering queue remain
-  release-blocked.
+  binaries unchanged (2026-09-30). Compiler lane relayed "closer to
+  release but not yet" -- Tier-2 triage, the first promotion wave
+  (`json`/`control`/`sensor` stay `ported`), and the 276-record
+  grandfathering queue remain release-blocked.
+- **Promotion pre-flight (`json`/`control`/`sensor`), release-gated:**
+  G1 done -- `port.ps1` **x2 green on v0.62.2** (44/44, 32/32, 38/38);
+  byte-level bracket grep = 0 hits across all 15 `.xi` files; SPDX headers
+  added to all 15 (they ship with the promotion). G2 -- SPEC+README
+  present, no PLACEHOLDER/PENDING text. G4 -- contracts present
+  (`requires`/`ensures`: json 13/2, control 15/36, sensor 7/22);
+  solver-unproven clauses documented (xiom-verify tooling gap). G5 --
+  44/32/38 checks, error paths included. G6 -- applicable registry rows:
+  contract-verification (accepted; revisit after Tier-2), json
+  enum-payload + derive-Clone (accepted). G7 -- only unpublished
+  `graphql`/`rest` declare `xiom.json`; no published dependents. G3 API
+  review runs in-wave. Stages stay `ported` until Tier-2 completes; the
+  wave is 3 names (already allowlisted/scoped -- **no ops delta, no rate
+  window**), tag `eco-v0.1.37`.
+- **Publish status right now: nothing pending.** Registry `450 packages
+  + 2 infra = 452 entries`, manifest-vs-registry version drift = 0, no
+  unpublished ready names; promotion wave is the only next batch and it
+  is release-gated. No ops ask is due.
 - **Parallel lane (same worktree):** `packages/xiom-mock/README.md`,
   `xiom-pwm/README.md`, `xiom-sectest/README.md` are modified but
   UNCOMMITTED by that lane -- do not stage them; coordinate before
