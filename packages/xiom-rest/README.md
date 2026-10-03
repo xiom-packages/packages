@@ -1,6 +1,6 @@
 # xiom.rest
 
-> **Status:** `incubating` -- conformance-tested (10/10); not yet published.
+> **Status:** `incubating` -- conformance-tested (10/10); published at `v0.1.0` on the XIOM registry.
 > **Scope:** RESTful API layer built on the HTTP package.
 > **Deps:** stdlib; may wrap C (FFI).
 

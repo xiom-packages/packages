@@ -11,7 +11,29 @@ starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-03 23:40Z (read this first):**
+**STATE AT 2026-10-03 23:55Z (read this first):**
+- **`xiom.rest` RESTORED + PUBLISHED (`eco-v0.1.41`, run `37161771429`
+  SUCCESS):** same nested-module + runner treatment, plus the v0.62.3
+  **unsafe-FFI pattern** from the MCP language guide (`xiom_language_guide`
+  unsafe-ffi topic: extern calls need `unsafe { }` blocks; safe fns
+  returning raw pointers need `unsafe` in the body; whole-body-unsafe fns
+  need `requires`; safe-wrapper = contract + `unsafe`). 10/10 x2,
+  brackets 0.
+  Live at **`xiom.rest@0.1.0` incubating**; registry **456 packages +
+  2 infra = 458 entries** (http/websocket/rest all published this
+  session).
+- **Growth status of the network stack:** `http` (36/36),
+  `websocket` (10/10), `rest` (10/10) published; `graphql` PARKED 9/10
+  (enum-payload `Str` corruption, minimal repro pending);
+  `grpc`/`micro`/`realtime` untried (likely same nested-module + runner
+  pattern; check for the unsafe-FFI rules too).
+- **Next:** try `grpc`/`micro`/`realtime` with the established restore
+  recipe; graphql waits on the compiler finding; stable hardening
+  batches remain; next tag `eco-v0.1.42`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-03 23:40Z (history):**
 - **Post-release growth wave 2:** `xiom.websocket` RESTORED + PUBLISHED
   (`eco-v0.1.40`, run `37159040739` SUCCESS) -- the implementation was
   complete; the real blockers were the **nested test module**
@@ -425,9 +447,13 @@ starting.
    later assignment corrupts on v0.62.3, see COMPILER-FINDINGS);
    no builtin/generic-name shadowing; progress-guaranteed loops +
    full-angle bracket grep after green + `port.ps1 -TimeoutSec 60` gate
-   + `## stdlib gaps` report. Crash recovery: stop the dead AM session
-   and re-dispatch as a `task` with `variant: low` +
-   files-first/short-replies directive (worked 5x).
+   + `## stdlib gaps` report. **Unsafe-FFI (v0.62.3):** every extern
+   call needs an `unsafe { }` block; a safe fn returning a raw pointer
+   needs `unsafe` somewhere in the body; a fn whose whole body is one
+   unsafe block needs `requires`; safe-wrapper = contract + `unsafe`
+   (see the MCP `xiom_llm_language_guide` unsafe-ffi topic). Crash
+   recovery: stop the dead AM session and re-dispatch as a `task` with
+   `variant: low` + files-first/short-replies directive (worked 5x).
 4. **Integrate as they report** (don't wait for all 10): write a
    two-row CSV (Name, Dir, Session=`task:ses_...`/`agentmgr:ses_...`) and
    run `powershell -File %TEMP%\kilo\verify-wave43.ps1 -WaveCsv <csv>`
@@ -473,19 +499,19 @@ starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-03 23:40Z STATE block and
+private). Read SESSION.md first -- the 2026-10-03 23:55Z STATE block and
 the "Next-session operating kit" at the top of section 0 are the live
 handoff (release wave complete + published `eco-v0.1.37`; `xiom.http`
-`eco-v0.1.39` + `xiom.websocket` `eco-v0.1.40` restored and published;
-`xiom.graphql` WIP 9/10; v0.62.3 pinned + SHA256-verified; fleet sweep
-453/453; json/control/sensor promoted to `stable` 0.1.1; registry 455
-packages + 2 infra; allowlist 499). Repo-local identity must be
-"Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
-PRODUCTION-DIRECT batches (this session approves the registry-publish
-gates); ops opens the publish-rate window ONLY for waves >20 names
-(default 20/min otherwise); the ops scope enumeration must be confirmed
-BEFORE appending the allowlist delta. New/next-touched records use stage
-`incubating` (`stable` only via `docs/PROMOTION.md`).
+`eco-v0.1.39`, `xiom.websocket` `eco-v0.1.40`, `xiom.rest` `eco-v0.1.41`
+restored and published; `xiom.graphql` parked 9/10; v0.62.3 pinned +
+SHA256-verified; fleet sweep 453/453; json/control/sensor promoted to
+`stable` 0.1.1; registry 456 packages + 2 infra; allowlist 499).
+Repo-local identity must be "Lefteris Notas <lefterisnotas@gmail.com>".
+Publishing policy: PRODUCTION-DIRECT batches (this session approves the
+registry-publish gates); ops opens the publish-rate window ONLY for
+waves >20 names (default 20/min otherwise); the ops scope enumeration
+must be confirmed BEFORE appending the allowlist delta. New/next-touched
+records use stage `incubating` (`stable` only via `docs/PROMOTION.md`).
 
 Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
@@ -494,16 +520,18 @@ Then do, in order:
 1. Growth and/or stable hardening: the compiler release window is
    CLOSED -- no watch pending (v0.62.3 pinned; complex `Str`/struct const
    tables are its known issue -- runtime builders only; float bitcast is
-   still a stdlib stub). `xiom.http` (`eco-v0.1.39`, 36/36) and
-   `xiom.websocket` (`eco-v0.1.40`, 10/10) are restored and published.
-   `xiom.graphql` is WIP 9/10 (see the STATE block: isolate the validator
-   defect); `xiom.rest` needs the same nested-module + runner treatment
-   plus real API work. Stable hardening batches per `docs/PROMOTION.md`
-   (279 stable; only `bson`/`ttl` carry clauses; size with
-   `scripts/contract-coverage.ps1`) remain available.
+   still a stdlib stub). `xiom.http` (`eco-v0.1.39`, 36/36),
+   `xiom.websocket` (`eco-v0.1.40`, 10/10) and `xiom.rest`
+   (`eco-v0.1.41`, 10/10) are restored and published. `xiom.graphql` is
+   parked 9/10 (enum-payload `Str` corruption; see the STATE block).
+   Next growth candidates with the same restore recipe:
+   `grpc`/`micro`/`realtime` (nested-module + runner + unsafe-FFI).
+   Stable hardening batches per `docs/PROMOTION.md` (279 stable; only
+   `bson`/`ttl` carry clauses; size with `scripts/contract-coverage.ps1`)
+   remain available.
 2. Workaround retirements are **next-touch only** (scoping decision in
    the STATE block; no drive-by refactors of green packages).
-3. Wrap + publish per the operating kit (tag `eco-v0.1.41` when there is
+3. Wrap + publish per the operating kit (tag `eco-v0.1.42` when there is
    a batch; **stage all pending STATUS.json records before tagging** -- CI
    reads the tag commit): ops scope ask only for allowlist deltas
    (>20-name waves need a rate window); regenerate, validate+guard,
