@@ -1,6 +1,6 @@
 # xiom.control
 
-> **Status:** `ported` -- conformance-tested (32/32); not yet published.
+> **Status:** `stable` -- conformance-tested (32/32); published at `v0.1.1` on the XIOM registry.
 > **Scope:** Pure-XIOM control primitives: signal filters, PID control, trajectory interpolation, and state machines.
 > **Deps:** `xiom.std` only. No FFI in v0.1.
 > **Contracts:** all 24 public functions carry `requires`/`ensures` (15/36 clauses) plus 7 record-type invariants; solver status is recorded in `SPEC.md`.

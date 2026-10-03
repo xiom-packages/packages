@@ -1,6 +1,6 @@
 # xiom.json
 
-> **Status:** `ported` -- conformance-tested (44/44); not yet published.
+> **Status:** `stable` -- conformance-tested (44/44); published at `v0.1.1` on the XIOM registry.
 > **Scope:** JSON parsing, serialization, and manipulation.
 > **Deps:** stdlib only (pure XIOM; no FFI).
 >

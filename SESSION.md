@@ -3,14 +3,44 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-03 (18:35Z), by the packages session (v0.62.3 pin:
-official archive SHA256-verified + deployed; `Vec[Str].push` and
-`&mut Int` bare-assignment workarounds retired by probe; fleet sweep
-running). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-03 (20:20Z), by the packages session (release day
+complete: v0.62.3 pinned + SHA256-verified; fleet sweep 453/453;
+first promotion wave DONE and published as `eco-v0.1.37` --
+json/control/sensor stable 0.1.1 + ssh2 0.1.4). Check
+`git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-03 18:35Z (read this first):**
+**STATE AT 2026-10-03 20:20Z (read this first):**
+- **Release day COMPLETE + PUBLISHED (`eco-v0.1.37`):** v0.62.3 pinned
+  (official archive, SHA256-verified); fleet sweep **453/453 PASS** once
+  `ssh2` was fixed -- v0.62.3 rightly rejects the `Result[Bool,Str]` ->
+  `Result[Int,Str]` mismatch, so the suite gained `err_bool_is` and the
+  package bumped to 0.1.4; 454 runs re-recorded with source-commit
+  provenance (`29c906fa`); guard now **499 allowlisted / 453 ready / 46
+  grandfathered / 0 failures**.
+- **First promotion wave DONE:** `json` (44/44), `control` (32/32),
+  `sensor` (38/38) -> **`stable` 0.1.1** with SPEC promotion notes (G1-G7
+  evidence), post-bump x2 on v0.62.3, records + READMEs synced; run
+  `37150223414` **SUCCESS attempt 1** -> published
+  `xiom.json/control/sensor@0.1.1 stable` + `xiom.ssh2@0.1.4`; all
+  live-verified.
+- **Registry:** **453 packages + 2 infra = 455 entries** (279 stable /
+  174 incubating / 1 empty infra probe); allowlist unchanged 499; no ops
+  delta or window was needed.
+- **v0.62.3 retirements (next-touch only):** `Vec[Str].push` and
+  `&mut Int` rows RETIRED (probes green; no mass refactor wave -- see
+  the scoping decision below); complex `Str`/struct const tables remain
+  a v0.62.3 **known issue** (runtime builders only); float bitcast still
+  a stdlib stub; all other batteries green.
+- **Next queue:** stable hardening batches (279 stable, only `bson`/`ttl`
+  carry clauses; size with `scripts/contract-coverage.ps1`) and/or a new
+  growth wave (v0.62.3 porter brief in the operating kit); registry page
+  refresh = policy 1b; next tag `eco-v0.1.38`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-03 18:35Z (history):**
 - **v0.62.3 PINNED (release landed 18:07Z):** official
   `xiom-0.62.3-windows-x64.zip` downloaded from the GitHub release,
   **SHA256 verified against the published SHA256SUMS** (`011af7dd...`
@@ -368,43 +398,43 @@ running). Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-03 18:35Z STATE block and
+private). Read SESSION.md first -- the 2026-10-03 20:20Z STATE block and
 the "Next-session operating kit" at the top of section 0 are the live
-handoff (v0.62.3 pinned + SHA256-verified; `Vec[Str].push` and `&mut Int`
-workarounds retired; fleet sweep via `scripts/fleet-sweep.ps1` run +
-`scripts/record-sweep.ps1` re-record; 450 packages + 2 infra on the
-registry; allowlist 499). Repo-local identity must be "Lefteris Notas
-<lefterisnotas@gmail.com>". Publishing policy: PRODUCTION-DIRECT batches
-(this session approves the registry-publish gates); ops opens the
-publish-rate window ONLY for waves >20 names (default 20/min otherwise);
-the ops scope enumeration must be confirmed BEFORE appending the
-allowlist delta. New/next-touched records use stage `incubating`
-(`stable` only via `docs/PROMOTION.md`).
+handoff (release wave complete + published `eco-v0.1.37`: v0.62.3 pinned
++ SHA256-verified; fleet sweep 453/453; 454 records re-recorded;
+json/control/sensor promoted to `stable` 0.1.1; ssh2 0.1.4; registry
+453 packages + 2 infra; allowlist 499). Repo-local identity must be
+"Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
+PRODUCTION-DIRECT batches (this session approves the registry-publish
+gates); ops opens the publish-rate window ONLY for waves >20 names
+(default 20/min otherwise); the ops scope enumeration must be confirmed
+BEFORE appending the allowlist delta. New/next-touched records use stage
+`incubating` (`stable` only via `docs/PROMOTION.md`).
 
 Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Tier-2 completion on v0.62.3: finish/re-check the fleet sweep
-   (`scripts/fleet-sweep.ps1`; summary under `%TEMP%\kilo\sweep\`), fix
-   any non-PASS, then re-record green runs with `scripts/record-sweep.ps1`
-   (source-commit provenance). The workaround-retirement maintenance wave
-   is **next-touch only** (see the scoping decision in the STATE block;
-   no drive-by refactors of green packages).
-2. First promotion wave per `docs/PROMOTION.md`: `json`/`control`/`sensor`
-   -> `stable` (contracts evidence; re-run G1 x2 on v0.62.3); `kafka`
-   stays `ported` (FFI stubs). Wrap + publish the batch (`eco-v0.1.37`):
-   no allowlist delta, no rate window; regenerate, validate+guard,
-   approve the gate, verify live.
-3. Then grandfathering hardening batches (contracts; size with
-   `scripts/contract-coverage.ps1`) and normal growth.
-4. Carry-forwards: complex `Str`/struct const tables still broken
-   (v0.62.3 known issue -- runtime builders only); float bitcast still a
-   stdlib stub; `docs/repro/README.md` index for probe re-runs; registry
-   page refresh = policy 1b; keep the `-TimeoutSec 60` watchdog;
-   byte-level bracket grep ONLY (Read lies about `Vec<Int>`); bump
-   versions ONLY when source changes; update SESSION.md at the wrap with
-   a fresh paste prompt.
+1. Growth and/or stable hardening: the compiler release window is
+   CLOSED -- no watch pending (v0.62.3 pinned; complex `Str`/struct const
+   tables are its known issue -- runtime builders only; float bitcast is
+   still a stdlib stub). Stable hardening batches per `docs/PROMOTION.md`
+   (279 stable; only `bson`/`ttl` carry clauses; size with
+   `scripts/contract-coverage.ps1`; contracts + API review; suites x2 on
+   v0.62.3) and/or a new growth wave -- re-brief porters with the
+   v0.62.3 edition in the operating kit (`Vec[Str].push` and `&mut Int`
+   are FIXED; cross-module helpers just need `pub`).
+2. Workaround retirements are **next-touch only** (scoping decision in
+   the STATE block; no drive-by refactors of green packages).
+3. Wrap + publish per the operating kit (tag `eco-v0.1.38` when there is
+   a batch): ops scope ask only for allowlist deltas (>20-name waves need
+   a rate window); regenerate, validate+guard, approve the gate, verify
+   live; rerun-failed + re-approve on `oidc_token_expired`.
+4. Carry-forwards: registry page refresh = policy 1b; keep the
+   `-TimeoutSec 60` watchdog; byte-level bracket grep ONLY (Read lies
+   about `Vec<Int>`); bump versions ONLY when source changes;
+   `docs/repro/README.md` index for compiler evidence; update SESSION.md
+   at the wrap with a fresh paste prompt.
 ```
 
 **--- Older state below (history) ---**
