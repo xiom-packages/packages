@@ -11,9 +11,9 @@
 
 package xiom_irc {
   name: "xiom.irc";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "IRC message codec: RFC 1459/2812 subset plus IRCv3 tags, parse and build with round-trips";
-  categories: ["protocol"];
+  categories: ["network"];
   keywords: ["irc", "chat", "protocol", "message"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
