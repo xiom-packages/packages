@@ -9,9 +9,9 @@
 
 package xiom_auth {
   name: "xiom.auth";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Pure-XIOM HTTP authentication header codecs (RFC 7235 / 7617 / 7616 / 6750): Authorization and WWW-Authenticate grammar, Basic, Digest and Bearer structure helpers, no crypto and no network";
-  categories: ["protocol"];
+  categories: ["network"];
   keywords: ["http", "auth", "authorization", "www-authenticate", "basic", "digest", "bearer", "rfc7235"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
