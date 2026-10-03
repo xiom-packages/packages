@@ -3,16 +3,50 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-03 (small hours), by the packages session (waves
-54/55 completed + published as `eco-v0.1.34`: category harmonization,
-legacy bracket-repair program, curl/xml2/rocksdb growth, firebird/oracle
-integrated; `port.ps1` cross-lane flake fixed; handoff kit + paste prompt
-refreshed for the next wave). Check `git log -1 --format=%h %s` before
-starting.
+**Written:** 2026-10-03 (12:55Z), by the packages session (wave 56:
+category-vocabulary sweep -- all 90 mixed manifests normalized, zero
+unknown tokens remain; owner-approved `firebird`/`oracle` publish scope;
+published as `eco-v0.1.35`; allowlist 497 -> 499). Check
+`git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-03 00:55Z (read this first):**
+**STATE AT 2026-10-03 12:55Z (read this first):**
+- **Wave 56 COMPLETE + PUBLISHED (`eco-v0.1.35`):** category-vocabulary
+  sweep `5f469ee5` (all 90 manifests that mixed unknown tokens with
+  accepted ones normalized to the 16-token registry vocabulary;
+  metadata-only, no version bumps; rescan = 514 manifests / 0 unknown;
+  legacy mappings + domain resolutions recorded in `docs/MAINTENANCE.md`);
+  owner approved publishing `firebird`/`oracle` (both 22/22, recorded
+  `incubating`); ops confirmed **499 live on both entries, zero diff**;
+  allowlist **497 -> 499** (`4c7093f7`); run `37123591095` **SUCCESS
+  attempt 1** (2m50s, no OIDC expiry) -> `Published xiom.firebird@0.1.0`,
+  `Published xiom.oracle@0.1.0`; both spot-verified live at `0.1.0`
+  stage `incubating`.
+- **Current gates/state:** `validate` **514/0**; guard **499
+  allowlisted / 450 ready / 49 grandfathered / 0 failures**; registry
+  **450 packages + 2 infra = 452 entries** (276 stable / 174 incubating /
+  1 empty infra probe); allowlist **499**; tag `eco-v0.1.35` on
+  `4c7093f7`; all pushed.
+- **Compiler release:** pin still `v0.62.2`; deployed `xiom.new\bin`
+  binaries unchanged (2026-09-30). No v0.62.3+ release observed -- Tier-2
+  triage, the first promotion wave (`json`/`control`/`sensor` stay
+  `ported`), and the 276-record grandfathering queue remain
+  release-blocked.
+- **Parallel lane (same worktree):** `packages/xiom-mock/README.md`,
+  `xiom-pwm/README.md`, `xiom-sectest/README.md` are modified but
+  UNCOMMITTED by that lane -- do not stage them; coordinate before
+  touching mock/pwm/sectest/firebird/oracle dirs.
+- **Carry-forwards:** compiler hotfix watch (`docs/COMPILER-FINDINGS.md`);
+  Tier-2 + workaround retirement on the next release; first promotion
+  wave per `docs/PROMOTION.md`; README Status-block sync for the lagging
+  names; registry page refresh = policy 1b (opportunistic);
+  `-TimeoutSec 60` watchdog; byte-level bracket grep only; bump versions
+  only when source changes.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-03 00:55Z (history):**
 - **Waves 54/55 COMPLETE + PUBLISHED (`eco-v0.1.34`):** run
   `37081404845` SUCCESS on attempt 2 (attempt 1 lost the alphabet tail to
   `oidc_token_expired`; rerun --failed + re-approve is idempotent). Batch
@@ -104,7 +138,7 @@ starting.
    before editing the allowlist; append `.github/publish-allowlist.txt`;
    `generate_index.ps1`, `status.ps1 -Action report`, validate,
    `allowlist-guard.ps1`, `export-namespaces.ps1`; commit + push; `git
-   tag eco-v0.1.35` (next number) + push; approve the gate:
+   tag eco-v0.1.36` (next number) + push; approve the gate:
    `gh api repos/xiom-packages/packages/actions/runs/<id>/pending_deployments
    -X POST --input <{"state":"approved","environment_ids":[22424011031],
    "comment":"..."}>`; monitor; on `oidc_token_expired` rerun the failed
@@ -133,52 +167,52 @@ starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-03 00:55Z STATE block and
+private). Read SESSION.md first -- the 2026-10-03 12:55Z STATE block and
 the "Next-session operating kit" at the top of section 0 are the live
-handoff (waves 54/55 complete + published eco-v0.1.34; 448 packages +
-2 infra on the registry; allowlist 497). Repo-local identity must be
-"Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
-PRODUCTION-DIRECT batches (this session approves the registry-publish
-gates); ops opens the publish-rate window ONLY for waves >20 names
-(default 20/min otherwise); the ops scope enumeration must be confirmed
-BEFORE appending the allowlist delta. New/next-touched records use stage
-`incubating` (`stable` only via `docs/PROMOTION.md`).
+handoff (wave 56 complete + published eco-v0.1.35; category-vocabulary
+sweep done, 0 unknown tokens; 450 packages + 2 infra on the registry;
+allowlist 499). Repo-local identity must be "Lefteris Notas
+<lefterisnotas@gmail.com>". Publishing policy: PRODUCTION-DIRECT batches
+(this session approves the registry-publish gates); ops opens the
+publish-rate window ONLY for waves >20 names (default 20/min otherwise);
+the ops scope enumeration must be confirmed BEFORE appending the
+allowlist delta. New/next-touched records use stage `incubating`
+(`stable` only via `docs/PROMOTION.md`).
 
 Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Growth is EXHAUSTED (curl/xml2/rocksdb done; aac/bridge/c-binding/
-   icu/jansson/llvm/odbc/DB-oracle remain skipped). A PARALLEL LANE owns
-   the remaining tests=unknown packages in this shared worktree
-   (mock/pwm/sectest/firebird/oracle observed) -- coordinate before
-   touching those dirs; never `git add -A` across packages. Non-blocked
-   work while waiting on the compiler release:
-   (a) category spot-sweep: ~90 manifests mix unknown tokens with
-       accepted ones (registry-safe today; normalize to the 16-token
-       vocabulary in `docs/MAINTENANCE.md` opportunistically);
-   (b) promotion evidence for `json`/`control`/`sensor` is ready -- keep
-       stages `ported` until Tier-2;
-   (c) owner decision: publish scope for `firebird`/`oracle` (verified
-       22/22, recorded `incubating`, publish pending).
-2. Compiler release: apply the TRIAGE in `docs/MAINTENANCE.md` first
-   (Tier-2 = fleet sweep + workaround retirement; crypto/base64
-   fix-first packet at `docs/repro/crypto-link/`). Then the FIRST
-   PROMOTION WAVE per `docs/PROMOTION.md` (contracts mandatory; the
-   44/32/38-check suites are ready), then the grandfathering hardening
-   queue (276 pre-gate stable records). Registry page refresh = policy
-   1b (opportunistic; no dedicated republish program).
-3. Wrap + publish per the operating kit (tag eco-v0.1.35 when there is
-   a batch): ops scope ask, allowlist, regenerate, validate+guard,
-   approve the gate, verify live. Rerun-failed + re-approve on
+1. Compiler release watch: when v0.62.3+ lands, re-pin per
+   `docs/MAINTENANCE.md` (bump COMPILER_VERSION, deploy exe + wasm dll,
+   `status.ps1 -Action repin`, fleet sweep re-record, re-run
+   `docs/repro/byte-at-128` + all `docs/repro/v0622-regressions/`
+   probes). Then apply the TRIAGE first (Tier-2 = fleet sweep + workaround
+   retirement; crypto/base64 fix-first packet at `docs/repro/crypto-link/`),
+   then the FIRST PROMOTION WAVE per `docs/PROMOTION.md` (contracts
+   mandatory; 44/32/38-check suites ready; `json`/`control`/`sensor` stay
+   `ported` until then), then the grandfathering hardening queue (276
+   pre-gate stable records). Registry page refresh = policy 1b
+   (opportunistic; no dedicated republish program).
+2. Parallel lane: it owns the remaining tests=unknown packages in this
+   shared worktree (mock/pwm/sectest READMEs currently modified,
+   uncommitted). Coordinate before touching those dirs; never
+   `git add -A` across packages; if it stalls green-but-unrecorded,
+   rescue-integrate (verify port x2 + trap-14, record with its session id).
+3. Non-blocked work: README Status-block sync for the lagging names;
+   keep the `-TimeoutSec 60` watchdog; byte-level bracket grep ONLY
+   (Read lies about `Vec<Int>`); bump versions ONLY when source changes;
+   at every wave append worker `stdlib gaps` / compiler evidence.
+4. Wrap + publish per the operating kit (tag eco-v0.1.36 when there is a
+   batch): ops scope ask, allowlist, regenerate, validate+guard, approve
+   the gate, verify live. Rerun-failed + re-approve on
    `oidc_token_expired` (idempotent; large batches can lose the alphabet
    tail -- the rerun skips published names). Report "batch done" only if
    ops opened a window (waves >20).
-4. Carry-forwards: compiler hotfix watch (open rows in
-   `docs/COMPILER-FINDINGS.md`); byte-level bracket grep ONLY (Read lies
-   about `Vec<Int>`); bump versions ONLY when source changes; keep the
-   `-TimeoutSec 60` watchdog (port.ps1 now kills by PID tree only);
-   at every wave append worker `stdlib gaps` / compiler evidence; update
+5. Carry-forwards: compiler hotfix watch (open rows in
+   `docs/COMPILER-FINDINGS.md`); Tier-2 + workaround retirement on the
+   next release; first promotion wave per `docs/PROMOTION.md`; README
+   Status-block sync; registry page refresh = policy 1b; update
    SESSION.md at the wrap with a fresh paste prompt.
 ```
 
