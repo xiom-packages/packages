@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.62.2` -- generated 2026-10-03T00:16:34Z.
+Toolchain pin: `v0.62.2` -- generated 2026-10-03T12:39:20Z.
 
 ## Summary
 

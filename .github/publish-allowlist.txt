@@ -538,3 +538,5 @@ xiom.cloud
 xiom.curl
 xiom.xml2
 xiom.rocksdb
+xiom.firebird
+xiom.oracle
