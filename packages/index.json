@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-03T18:24:55Z",
+    "updated":  "2026-10-03T23:04:16Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -1331,7 +1331,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.control",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Control systems library for XIOM -- PID, state machines, signal processing",
@@ -1341,7 +1341,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-control/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-control/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "filter.xi",
                                               "pid.xi",
@@ -3521,7 +3521,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.json",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure XIOM JSON Parser and Serializer",
@@ -3531,7 +3531,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-json/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-json/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "json.xi",
                                               "package.xi"
@@ -6963,7 +6963,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.sensor",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Sensor fusion library for XIOM -- IMU, GPS, data fusion",
@@ -6973,7 +6973,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sensor/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sensor/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "calibration.xi",
                                               "fusion.xi",
@@ -7331,7 +7331,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.3",
+                         "version":  "0.1.4",
                          "name":  "xiom.ssh2",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM SSH-2 transport, authentication and connection-layer message structure codec (RFC 4251/4253/4252/4254; no crypto)",
@@ -7341,7 +7341,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ssh2/v0.1.3/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ssh2/v0.1.4/package.tar.gz",
                          "source_files":  [
                                               "ssh2.xi",
                                               "package.xi"
