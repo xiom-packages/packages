@@ -3,6 +3,14 @@
 
 # Struct-field / Result-payload `Vec` reference probes (v0.61.3)
 
+## v0.62.2 re-run (2026-10-03) -- FIXED
+
+All three probes exit 0 on the installed v0.62.2;
+`probe_result_value.xi` now prints **`result payload: 3`** (was `0`), so the
+`&r.value` empty-vector trap (Probe B / trap 4) is fixed. The local-binding
+workaround (`let v = r.value`) is now OPTIONAL; existing sites may simplify
+at their next touch. Traps 16/17 remain informational.
+
 > **Status (2026-09-25, wave 26):** the compiler session reports trap 4
 > (Probe B) **fixed in the next build**; the fix is not yet installed here.
 > Re-run on the current install — `xiom 0.61.3 (installed)`, pin `v0.61.3` —

@@ -3,6 +3,13 @@
 
 # Generic fn-pointer repros (v0.61.3)
 
+## v0.62.2 re-run (2026-10-03) -- FIXED
+
+All seven probes exit 0 on the installed v0.62.2 (no corrupt values, no
+crashes, no clang failures): the fn-value / generic-mono ABI unification
+sprint described below is in the pin. The matrix's "After fix" column is
+now the live result; retain these probes for the next release sweep.
+
 Minimal probes for the fn-value / generic-mono ABI defects confirmed by the
 compiler session (main @ `6c3e1cb5`, R66-R72 + m127; fixed as one ABI
 unification sprint, not per-bug patches).

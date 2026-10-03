@@ -97,7 +97,14 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   (j) remaining probe batteries re-ran on v0.62.2 -- arity control green
   and both error directions fail with `error[T001]`, loop-carry-cse
   `bad=0`, sign-bit ops exit 0: all at documented status (no README
-  changes needed).
+  changes needed);
+  (k) struct-field/Result-payload + generic fn-pointer probe families
+  re-ran on v0.62.2 -- **all 10 probes exit 0**
+  (`probe_result_value` prints `result payload: 3`, was `0`); both
+  families are FIXED on the pin, their workarounds are now **RETIRED**
+  in the MAINTENANCE registry, and the probe READMEs + COMPILER-FINDINGS
+  resolved table are updated (`docs/repro/struct-field-vec`,
+  `docs/repro/generic-fnptr`).
 - **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
   drop is the BARE assignment form (`s = 99`) in both call forms (plain
   local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix
