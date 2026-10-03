@@ -125,7 +125,14 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   accepted silently" row is stale -- on v0.62.2 missing-arg calls fail
   `error[T001]` (`'add3' expects 3 argument(s), found 2`), extra-arg
   likewise, exact-arity control green; MAINTENANCE row RETIRED,
-  findings open row marked superseded, arity README updated.
+  findings open row marked superseded, arity README updated;
+  (q) `Vec[Float64]` + bitcast: split status -- **`Vec[Float64]` WORKS**
+  on v0.62.2 (probe `docs/repro/float-vec/probe_float_vec.xi` green for
+  push/compare/arith); **bitcast still missing**
+  (`xiom.num.float.float_bits`/`bits_to_float` are documented fallback
+  stubs, `float_bits(1.5)=0`); findings row annotated + registry row
+  added; packages keep raw-octet float encodings until the intrinsic
+  lands.
 - **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
   drop is the BARE assignment form (`s = 99`) in both call forms (plain
   local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix
