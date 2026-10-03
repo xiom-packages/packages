@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-03T15:39:17Z",
+    "updated":  "2026-10-03T17:16:25Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -7345,7 +7345,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.stats-ml",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Fixed-point ML evaluation metrics on integers: confusion matrix, precision/recall/F1, kappa, ROC/AUC, calibration bins, class balance",
@@ -7355,7 +7355,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stats-ml/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stats-ml/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "stats_ml.xi",
                                               "package.xi"
@@ -8361,7 +8361,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.vault",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM secret vault backend MODEL (no HTTP, no crypto): Vault API request/response model with a JSON-ish body builder and raw key lookup, KV v1/v2 path and version state model, Shamir secret sharing over GF(256) with unseal progress, token/AppRole login models and policy path/capability matching",
@@ -8371,7 +8371,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vault/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vault/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "auth.xi",
                                               "client.xi",
@@ -8582,7 +8582,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.web3",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM Web3 primitives: provider request/response model, contract selectors and minimal ABI words, ENS normalization/namehash and EIP-55 account addresses (Keccak-256 in-package, no networking)",
@@ -8592,7 +8592,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-web3/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-web3/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "accounts.xi",
                                               "contract.xi",

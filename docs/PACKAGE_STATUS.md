@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.62.2` -- generated 2026-10-03T12:39:20Z.
+Toolchain pin: `v0.62.2` -- generated 2026-10-03T14:16:28Z.
 
 ## Summary
 
@@ -507,7 +507,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.sql | xiom-sql | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: stub body |
 | xiom.sqlite | xiom-sqlite | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
 | xiom.ssh2 | xiom-ssh2 | incubating | tests/test_conformance.xi | pass 24/24 | 0c6b8da9 | False | category harmonization patch bump (registry metadata) |
-| xiom.stats-ml | xiom-stats-ml | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
+| xiom.stats-ml | xiom-stats-ml | incubating | tests/test_conformance.xi | pass 22/22 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |
 | xiom.stats-tests | xiom-stats-tests | incubating | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: next scope delta |
 | xiom.stb | xiom-stb | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.stm | xiom-stm | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
@@ -525,13 +525,13 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.training | xiom-training | incubating | tests/test_conformance.xi | pass 26/26 | e4e2b956 | False | publish pending: next scope delta |
 | xiom.translate | xiom-translate | incubating | tests/test_conformance.xi | pass 28/28 | 8a275065 | False | publish pending: next scope delta |
 | xiom.ui | xiom-ui | incubating | tests/test_conformance.xi | pass 98/98 | 984fc2f | False |  |
-| xiom.vault | xiom-vault | incubating | tests/test_conformance.xi | pass 28/28 | 29f9419f | False | publish pending: next scope delta |
+| xiom.vault | xiom-vault | incubating | tests/test_conformance.xi | pass 28/28 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |
 | xiom.video | xiom-video | incubating | tests/test_conformance.xi | pass 24/24 | e23f8e3a | False | publish pending: next scope delta |
 | xiom.vma | xiom-vma | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.wallet | xiom-wallet | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.wasmtime | xiom-wasmtime | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
-| xiom.web3 | xiom-web3 | incubating | tests/test_conformance.xi | pass 28/28 | 51a1e102 | False | publish pending: next scope delta |
+| xiom.web3 | xiom-web3 | incubating | tests/test_conformance.xi | pass 28/28 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |
 | xiom.websocket | xiom-websocket | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.windows | xiom-windows | incubating | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: next scope delta |
 | xiom.wireless | xiom-wireless | incubating | tests/test_conformance.xi | pass 33/33 | 984fc2f | False | publish pending: next scope delta |
