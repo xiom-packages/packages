@@ -46,10 +46,14 @@ recorded). Check `git log -1 --format=%h %s` before starting.
   Compiler lane also reports `smoke_iter_range` rc 0 on their post-m184
   tree (promote their smoke lock when the next candidate ships) and that
   doctor no longer warns on the stdlib version split (m187:
-  MAJOR.MINOR compare). **Stdlib-lane note:** aligning `xiom-std`'s
-  registry labels is optional (no correctness need) -- bump
-  `package.xi` and push a `stdlib-v*` tag when convenient; the stdlib
-  checkout is at version `0.62.0`, last tag `stdlib-v0.62.0`.
+  MAJOR.MINOR compare). **Enum-payload re-run DONE (2026-10-04): built
+  main locally (m184..m187, `cargo build --release -p xiom`,
+  `target\release\xiom.exe`) -- the graphql in-situ case STILL FAILS
+  (9/10, `|0|` read persists), so it is NOT an m185 symptom; findings
+  row updated.** **Stdlib-lane note:** aligning `xiom-std`'s registry
+  labels is optional (no correctness need) -- bump `package.xi` and push
+  a `stdlib-v*` tag when convenient; the stdlib checkout is at version
+  `0.62.0`, last tag `stdlib-v0.62.0`.
 - **Next:** stable hardening batches (279 stable; only `bson`/`ttl` carry
   clauses; `scripts/contract-coverage.ps1`) and/or pick up the parked
   grpc/graphql with the recorded leads; next tag `eco-v0.1.43`.
