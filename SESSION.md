@@ -28,13 +28,18 @@ starting.
   bundle `docs/repro/uninit-local/` (standalone repro crashes pre-output
   -- minimal repro pending). **Porter brief now says: always initialize
   locals at declaration.**
-- **`xiom.graphql` WIP (9/10):** non-nested module rename + collecting
-  harness + `validate_operation` contract/init fixes got it running; one
-  validator defect remains (a valid operation returns a corrupted `Err`
-  payload -- likely a second distinct defect; see the findings row).
-  **`xiom.rest` untouched** -- same nested-module + runner pattern, then
-  real API work. Neither recorded/published (records still
-  `tests=unknown`).
+- **`xiom.graphql` WIP (9/10, PARKED):** module rename + collecting
+  harness + `validate_operation` contract fix got the suite running; the
+  remaining failure is an **enum-payload `Str` corruption** --
+  `GraphQLSelection.Field(sel).name` reads `|0|`/empty in the validator,
+  while source locals (`hello`) and `Vec[StructType]` reads (`vec`) are
+  correct controls. In-situ evidence in COMPILER-FINDINGS +
+  `docs/repro/enum-payload-str/`; **all standalone repro shapes pass**
+  (single-module, `derive[Clone]`, recursive payload->nested->Vec[enum],
+  `&mut`+push, two-module scratch), so the minimal repro is pending.
+  Workaround until isolated: parallel `Vec[Str]`/id scheme, or park.
+  `xiom.rest` untouched (same nested-module + runner pattern, then real
+  API work). Neither recorded/published (records still `tests=unknown`).
 - **Next:** isolate the graphql validator defect (minimal repro for the
   findings row), then `graphql`/`rest`; stable hardening batches remain
   available; next tag `eco-v0.1.41`.
