@@ -174,7 +174,15 @@ works; `eco-v0.1.36` manifest module-list fixes published). Check
   (2396) + 4 `ported` (114) + published `meshopt`/`ui` (144).
   `docs/PROMOTION.md` "packages carry zero" corrected; hardening
   selection inputs are flat (equal fleet-sweep `checked` dates, no
-  published dependents) so batch choice stays owner-driven.
+  published dependents) so batch choice stays owner-driven;
+  (t) pre-release documentation sync: README-vs-record conformance
+  counts = **0 drift** across all published packages (the 60 unheard
+  hits are unpublished dirs with no status marker); `docs/repro/README.md`
+  index added (14 bundles with current v0.62.2 status); six
+  `docs/STDLIB-WISHLIST.md` status cells refreshed with today's verified
+  results (`xiom.float` Vec/bitcast split, SHA link still open,
+  `str_eq` not reproduced, hardened byte access resolved, categories
+  sweep done, `l10n.iso4217` runtime builder still needed).
 - **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
   drop is the BARE assignment form (`s = 99`) in both call forms (plain
   local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix
