@@ -535,3 +535,6 @@ xiom.consul
 xiom.i2p
 xiom.phaser
 xiom.cloud
+xiom.curl
+xiom.xml2
+xiom.rocksdb

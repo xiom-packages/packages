@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-03T01:18:24+03:00
-# packages: 509  modules: 588
+# generated: 2026-10-03T03:16:36+03:00
+# packages: 514  modules: 593
 
 ## package names
 xiom.acpi
@@ -93,6 +93,7 @@ xiom.cron
 xiom.csv
 xiom.cuda
 xiom.cue
+xiom.curl
 xiom.dac
 xiom.data
 xiom.db2
@@ -141,6 +142,7 @@ xiom.feature
 xiom.ffi
 xiom.ffmpeg
 xiom.finance
+xiom.firebird
 xiom.fits
 xiom.fix
 xiom.fixed
@@ -306,6 +308,7 @@ xiom.openssl
 xiom.optimizer
 xiom.optimizer-fw
 xiom.option
+xiom.oracle
 xiom.orc
 xiom.osrelease
 xiom.ozz
@@ -382,6 +385,7 @@ xiom.retry
 xiom.ris
 xiom.robotics
 xiom.robots
+xiom.rocksdb
 xiom.roman
 xiom.ros2
 xiom.rpc
@@ -507,6 +511,7 @@ xiom.worker
 xiom.xbm
 xiom.xlsx
 xiom.xml
+xiom.xml2
 xiom.xpm
 xiom.yaml
 xiom.zeromq
@@ -615,6 +620,7 @@ xiom.crc
 xiom.cron
 xiom.csv
 xiom.cue
+xiom.curl
 xiom.dac
 xiom.data
 xiom.data.batch
@@ -684,6 +690,7 @@ xiom.ext
 xiom.farbfeld
 xiom.feature
 xiom.finance
+xiom.firebird
 xiom.fits
 xiom.fix
 xiom.fixed
@@ -865,6 +872,7 @@ xiom.opencv.types
 xiom.optimizer
 xiom.optimizer_fw
 xiom.option
+xiom.oracle
 xiom.orc
 xiom.osrelease
 xiom.ozz.safe
@@ -935,6 +943,7 @@ xiom.retry
 xiom.ris
 xiom.robotics
 xiom.robots
+xiom.rocksdb
 xiom.roman
 xiom.rpc
 xiom.rpm
@@ -1097,6 +1106,7 @@ xiom.worker
 xiom.xbm
 xiom.xlsx
 xiom.xml
+xiom.xml2
 xiom.xpm
 xiom.yaml
 xiom.zeromq

@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.62.2` -- generated 2026-10-02T22:18:21Z.
+Toolchain pin: `v0.62.2` -- generated 2026-10-03T00:16:34Z.
 
 ## Summary
 
-- packages tracked: 509
-- incubating: 229
+- packages tracked: 514
+- incubating: 234
 - ported: 4
 - stable: 276
 - publish enabled: 0
@@ -32,31 +32,31 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.acpi | xiom-acpi | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.adc | xiom-adc | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: wave-35 batch (eco-v0.1.5) |
 | xiom.adler32 | xiom-adler32 | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.aiff | xiom-aiff | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.aiff | xiom-aiff | stable | tests/test_conformance.xi | pass 22/22 | 71177e82 | False | legacy bracket repair patch bump |
 | xiom.alerting | xiom-alerting | stable | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.amqp | xiom-amqp | stable | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: allowlist + next eco tag |
+| xiom.amqp | xiom-amqp | stable | tests/test_conformance.xi | pass 21/21 | d9ce9e8c | False | category harmonization patch bump (registry metadata) |
 | xiom.ar | xiom-ar | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ascii85 | xiom-ascii85 | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ass | xiom-ass | stable | tests/test_conformance.xi | pass 23/23 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.astronomy | xiom-astronomy | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.au | xiom-au | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.audit | xiom-audit | stable | tests/test_conformance.xi | pass 23/23 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.avi | xiom-avi | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.avi | xiom-avi | stable | tests/test_conformance.xi | pass 18/18 | b2fe550d | False | legacy bracket repair patch bump |
 | xiom.avro | xiom-avro | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: allowlist + next eco tag |
 | xiom.backoff | xiom-backoff | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.base32 | xiom-base32 | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.base58 | xiom-base58 | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.bech32 | xiom-bech32 | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.bencode | xiom-bencode | stable | tests/test_conformance.xi | pass 19/19 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.bencode | xiom-bencode | stable | tests/test_conformance.xi | pass 19/19 | 9d32b223 | False | legacy bracket repair patch bump |
 | xiom.bibtex | xiom-bibtex | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.bitfield | xiom-bitfield | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ble | xiom-ble | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.bloom | xiom-bloom | stable | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.bmp | xiom-bmp | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.bonjour | xiom-bonjour | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: wave-35 batch (eco-v0.1.5) |
-| xiom.bson | xiom-bson | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.bson | xiom-bson | stable | tests/test_conformance.xi | pass 22/22 | 86fd3259 | False | legacy bracket repair patch bump |
 | xiom.cab | xiom-cab | stable | tests/test_conformance.xi | pass 17/17 | 984fc2f | False | publish pending: allowlist + next eco tag |
-| xiom.can | xiom-can | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.can | xiom-can | stable | tests/test_conformance.xi | pass 22/22 | b2617e28 | False | category harmonization patch bump (registry metadata) |
 | xiom.cbor | xiom-cbor | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.chemistry | xiom-chemistry | stable | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.cidr | xiom-cidr | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -65,23 +65,23 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.collation | xiom-collation | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.cookie | xiom-cookie | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.coverage | xiom-coverage | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
-| xiom.cpio | xiom-cpio | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.cpio | xiom-cpio | stable | tests/test_conformance.xi | pass 20/20 | 01abe66b | False | legacy bracket repair patch bump |
 | xiom.crc | xiom-crc | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.cron | xiom-cron | stable | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.csv | xiom-csv | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.cue | xiom-cue | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.dbase | xiom-dbase | stable | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.dbase | xiom-dbase | stable | tests/test_conformance.xi | pass 25/25 | eb459422 | False | legacy bracket repair patch bump |
 | xiom.dds | xiom-dds | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.dhcp | xiom-dhcp | stable | tests/test_conformance.xi | pass 16/16 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.dhcp | xiom-dhcp | stable | tests/test_conformance.xi | pass 16/16 | 814ecea7 | False | legacy bracket repair patch bump |
 | xiom.diff | xiom-diff | stable | tests/test_conformance.xi | pass 16/16 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.dimacs | xiom-dimacs | stable | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.dns | xiom-dns | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.dimacs | xiom-dimacs | stable | tests/test_conformance.xi | pass 25/25 | cdd47af9 | False | category harmonization patch bump (registry metadata) |
+| xiom.dns | xiom-dns | stable | tests/test_conformance.xi | pass 24/24 | 5102d410 | False | legacy bracket repair patch bump |
 | xiom.dotenv | xiom-dotenv | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.dtb | xiom-dtb | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.dtb | xiom-dtb | stable | tests/test_conformance.xi | pass 18/18 | 8682b659 | False | legacy bracket repair patch bump |
 | xiom.duration | xiom-duration | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ean | xiom-ean | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.edl | xiom-edl | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.eeprom | xiom-eeprom | stable | tests/test_conformance.xi | pass 17/17 | 984fc2f | False | publish pending: wave-34 batch (eco-v0.1.4) |
+| xiom.eeprom | xiom-eeprom | stable | tests/test_conformance.xi | pass 17/17 | e5e9825a | False | category harmonization patch bump (registry metadata) |
 | xiom.efi | xiom-efi | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.electronics | xiom-electronics | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.elf | xiom-elf | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -92,7 +92,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.farbfeld | xiom-farbfeld | stable | tests/test_conformance.xi | pass 17/17 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.finance | xiom-finance | stable | tests/test_conformance.xi | pass 31/31 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.fits | xiom-fits | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.fix | xiom-fix | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.fix | xiom-fix | stable | tests/test_conformance.xi | pass 20/20 | 55740922 | False | category harmonization patch bump (registry metadata) |
 | xiom.fixed | xiom-fixed | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.flac | xiom-flac | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: wave-35 batch (eco-v0.1.5) |
 | xiom.fletcher | xiom-fletcher | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -114,16 +114,16 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.hid | xiom-hid | stable | tests/test_conformance.xi | pass 16/16 | 984fc2f | False | publish pending: allowlist + next eco tag |
 | xiom.hl7 | xiom-hl7 | stable | tests/test_conformance.xi | pass 23/23 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.hostfile | xiom-hostfile | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.html | xiom-html | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.html | xiom-html | stable | tests/test_conformance.xi | pass 22/22 | 7c3a4852 | False | legacy bracket repair patch bump |
 | xiom.humanize | xiom-humanize | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.iban | xiom-iban | stable | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.ical | xiom-ical | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.ical | xiom-ical | stable | tests/test_conformance.xi | pass 22/22 | 9c7f7049 | False | legacy bracket repair patch bump |
 | xiom.ico | xiom-ico | stable | tests/test_conformance.xi | pass 16/16 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.id3 | xiom-id3 | stable | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.imap | xiom-imap | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: next scope delta |
 | xiom.ini | xiom-ini | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.inline-asm | xiom-inline-asm | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
-| xiom.irc | xiom-irc | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.irc | xiom-irc | stable | tests/test_conformance.xi | pass 24/24 | 2bcdc226 | False | category harmonization patch bump (registry metadata) |
 | xiom.iso8583 | xiom-iso8583 | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.jpeg | xiom-jpeg | stable | tests/test_conformance.xi | pass 16/16 | 984fc2f | False | publish pending: wave-34 batch (eco-v0.1.4) |
 | xiom.junit | xiom-junit | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -146,23 +146,23 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.mbr | xiom-mbr | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.meteorology | xiom-meteorology | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: wave-34 batch (eco-v0.1.4) |
 | xiom.metrics | xiom-metrics | stable | tests/test_conformance.xi | pass 23/23 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.midi | xiom-midi | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.midi | xiom-midi | stable | tests/test_conformance.xi | pass 24/24 | 89b8518a | False | legacy bracket repair patch bump |
 | xiom.mime | xiom-mime | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.miniseed | xiom-miniseed | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.mkv | xiom-mkv | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
-| xiom.modbus | xiom-modbus | stable | tests/test_conformance.xi | pass 23/23 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.modbus | xiom-modbus | stable | tests/test_conformance.xi | pass 23/23 | 0cd6896d | False | category harmonization patch bump (registry metadata) |
 | xiom.mp3 | xiom-mp3 | stable | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: allowlist + next eco tag |
 | xiom.mp4 | xiom-mp4 | stable | tests/test_conformance.xi | pass 33/33 | 984fc2f | False | publish pending: allowlist + next eco tag |
-| xiom.mqtt | xiom-mqtt | stable | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.mqtt | xiom-mqtt | stable | tests/test_conformance.xi | pass 21/21 | 5938417a | False | category harmonization patch bump (registry metadata) |
 | xiom.msgpack | xiom-msgpack | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.multicast | xiom-multicast | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: wave-35 batch (eco-v0.1.5) |
 | xiom.murmur3 | xiom-murmur3 | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.nbt | xiom-nbt | stable | tests/test_conformance.xi | pass 26/26 | 425d4cb | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.netstring | xiom-netstring | stable | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.nbt | xiom-nbt | stable | tests/test_conformance.xi | pass 26/26 | f54d3249 | False | legacy bracket repair patch bump |
+| xiom.netstring | xiom-netstring | stable | tests/test_conformance.xi | pass 21/21 | 015679e2 | False | legacy bracket repair patch bump |
 | xiom.ngram | xiom-ngram | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.nii | xiom-nii | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.nmea | xiom-nmea | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.ntp | xiom-ntp | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.ntp | xiom-ntp | stable | tests/test_conformance.xi | pass 18/18 | ad867945 | False | legacy bracket repair patch bump |
 | xiom.ntriples | xiom-ntriples | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.obj | xiom-obj | stable | tests/test_conformance.xi | pass 23/23 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ogg | xiom-ogg | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -223,14 +223,14 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.roman | xiom-roman | stable | tests/test_conformance.xi | pass 16/16 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.rpc | xiom-rpc | stable | tests/test_conformance.xi | pass 27/27 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.rpm | xiom-rpm | stable | tests/test_conformance.xi | pass 19/19 | 984fc2f | False | publish pending: allowlist + next eco tag |
-| xiom.rtc | xiom-rtc | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: wave-35 batch (eco-v0.1.5) |
+| xiom.rtc | xiom-rtc | stable | tests/test_conformance.xi | pass 18/18 | 1a098821 | False | category harmonization patch bump (registry metadata) |
 | xiom.rtf | xiom-rtf | stable | tests/test_conformance.xi | pass 26/26 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.safetensors | xiom-safetensors | stable | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.sanitize | xiom-sanitize | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.sarif | xiom-sarif | stable | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.sbv | xiom-sbv | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.scheduler | xiom-scheduler | stable | tests/test_conformance.xi | pass 28/28 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.sd | xiom-sd | stable | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: wave-35 batch (eco-v0.1.5) |
+| xiom.sd | xiom-sd | stable | tests/test_conformance.xi | pass 21/21 | 61f4b3ab | False | category harmonization patch bump (registry metadata) |
 | xiom.secret | xiom-secret | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.selection | xiom-selection | stable | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.semver | xiom-semver | stable | tests/test_conformance.xi | pass 32/32 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -238,17 +238,17 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.sgf | xiom-sgf | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.signal | xiom-signal | stable | tests/test_conformance.xi | pass 27/27 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.smbios | xiom-smbios | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.smtlib | xiom-smtlib | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.smtlib | xiom-smtlib | stable | tests/test_conformance.xi | pass 24/24 | e0e9c7d3 | False | category harmonization patch bump (registry metadata) |
 | xiom.smtp | xiom-smtp | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.snapshot | xiom-snapshot | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.snbt | xiom-snbt | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.snmp | xiom-snmp | stable | tests/test_conformance.xi | pass 19/19 | 984fc2f | False | publish pending: next scope delta |
-| xiom.socks | xiom-socks | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.socks | xiom-socks | stable | tests/test_conformance.xi | pass 18/18 | 9bcb0d68 | False | legacy bracket repair patch bump |
 | xiom.sparse | xiom-sparse | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.spectroscopy | xiom-spectroscopy | stable | tests/test_conformance.xi | pass 16/16 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.spell | xiom-spell | stable | tests/test_conformance.xi | pass 26/26 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.spf | xiom-spf | stable | tests/test_conformance.xi | pass 26/26 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.spi | xiom-spi | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: wave-35 batch (eco-v0.1.5) |
+| xiom.spi | xiom-spi | stable | tests/test_conformance.xi | pass 22/22 | 8f806e28 | False | category harmonization patch bump (registry metadata) |
 | xiom.srt | xiom-srt | stable | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.stemming | xiom-stemming | stable | tests/test_conformance.xi | pass 34/34 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.stl | xiom-stl | stable | tests/test_conformance.xi | pass 17/17 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -259,9 +259,9 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.syslog | xiom-syslog | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.systemd | xiom-systemd | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.tap | xiom-tap | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
-| xiom.tar | xiom-tar | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.tcx | xiom-tcx | stable | tests/test_conformance.xi | pass 23/23 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.telnet | xiom-telnet | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.tar | xiom-tar | stable | tests/test_conformance.xi | pass 22/22 | c6288b00 | False | legacy bracket repair patch bump |
+| xiom.tcx | xiom-tcx | stable | tests/test_conformance.xi | pass 23/23 | 33dec7fe | False | legacy bracket repair patch bump |
+| xiom.telnet | xiom-telnet | stable | tests/test_conformance.xi | pass 18/18 | 9fef1487 | False | legacy bracket repair patch bump |
 | xiom.template | xiom-template | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.term | xiom-term | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.tftp | xiom-tftp | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -280,8 +280,8 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.tsv | xiom-tsv | stable | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ttl | xiom-ttl | stable | tests/test_conformance.xi | pass 14/14 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.typography | xiom-typography | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.tzif | xiom-tzif | stable | tests/test_conformance.xi | pass 17/17 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.uart | xiom-uart | stable | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: wave-35 batch (eco-v0.1.5) |
+| xiom.tzif | xiom-tzif | stable | tests/test_conformance.xi | pass 17/17 | 7eb2da3d | False | legacy bracket repair patch bump |
+| xiom.uart | xiom-uart | stable | tests/test_conformance.xi | pass 21/21 | 6f3f387f | False | category harmonization patch bump (registry metadata) |
 | xiom.uboot | xiom-uboot | stable | tests/test_conformance.xi | pass 16/16 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ulid | xiom-ulid | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.upnp | xiom-upnp | stable | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: wave-34 batch (eco-v0.1.4) |
@@ -300,13 +300,13 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.webp | xiom-webp | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: wave-34 batch (eco-v0.1.4) |
 | xiom.wkt | xiom-wkt | stable | tests/test_conformance.xi | pass 27/27 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.woff | xiom-woff | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.xbm | xiom-xbm | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.xbm | xiom-xbm | stable | tests/test_conformance.xi | pass 20/20 | 8719c81e | False | legacy bracket repair patch bump |
 | xiom.xml | xiom-xml | stable | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.xpm | xiom-xpm | stable | tests/test_conformance.xi | pass 19/19 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.yaml | xiom-yaml | stable | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.zonefile | xiom-zonefile | stable | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.control | xiom-control | ported | tests/test_conformance.xi | pass 32/32 | 37b4f3ca | False | promotion prep: contracts added (stable gate pending) |
-| xiom.json | xiom-json | ported | tests/test_conformance.xi | pass 44/44 | b74587c8 | False | promotion prep: contracts + suite expansion + clone surface fixed (stable gate pending) |
+| xiom.json | xiom-json | ported | tests/test_conformance.xi | pass 44/44 | 72906bb1 | False | promotion prep: contracts + suite expansion + clone surface fixed (stable gate pending) |
 | xiom.kafka | xiom-kafka | ported | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | ported only: librdkafka FFI stubs remain (handle -1, poll None, admin Err(-999)); not publishable |
 | xiom.sensor | xiom-sensor | ported | tests/test_conformance.xi | pass 38/38 | 4e7a42d8 | False | promotion prep: contracts added (stable gate pending) |
 | xiom.activation | xiom-activation | incubating | tests/test_conformance.xi | pass 24/24 | 8601a49 | False | publish pending: next scope delta |
@@ -319,7 +319,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.assimp | xiom-assimp | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.ast | xiom-ast | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
 | xiom.audio-meta | xiom-audio-meta | incubating | tests/test_conformance.xi | pass 25/25 | bf525d98 | False | publish pending: next scope delta |
-| xiom.auth | xiom-auth | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
+| xiom.auth | xiom-auth | incubating | tests/test_conformance.xi | pass 24/24 | 4dec18c5 | False | category harmonization patch bump (registry metadata) |
 | xiom.autoscale | xiom-autoscale | incubating | tests/test_conformance.xi | pass 21/21 | 90ac95f | False | publish pending: next scope delta |
 | xiom.aviation | xiom-aviation | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
 | xiom.aws | xiom-aws | incubating | tests/test_conformance.xi | pass 27/27 | 4692e387 | False | publish pending: next scope delta |
@@ -354,6 +354,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.context | xiom-context | incubating | tests/test_conformance.xi | pass 23/23 | d509e4c | False | publish pending: next scope delta |
 | xiom.countdown | xiom-countdown | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.cuda | xiom-cuda | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.curl | xiom-curl | incubating | tests/test_conformance.xi | pass 26/26 | 8f231b87 | False | publish pending: next scope delta |
 | xiom.dac | xiom-dac | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.data | xiom-data | incubating | tests/test_conformance.xi | pass 24/24 | 546b9bac | False | publish pending: next scope delta |
 | xiom.db2 | xiom-db2 | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
@@ -365,7 +366,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.directx12 | xiom-directx12 | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.discovery | xiom-discovery | incubating | tests/test_conformance.xi | pass 22/22 | 69b768e | False | publish pending: next scope delta |
 | xiom.docker | xiom-docker | incubating | tests/test_conformance.xi | pass 26/26 | ee890e25 | False | publish pending: next scope delta |
-| xiom.docx | xiom-docx | incubating | tests/test_conformance.xi | pass 27/27 | 99c005e3 | False | publish pending: next scope delta |
+| xiom.docx | xiom-docx | incubating | tests/test_conformance.xi | pass 27/27 | f0f7743d | False | category harmonization patch bump (registry metadata) |
 | xiom.durable | xiom-durable | incubating | tests/test_conformance.xi | unknown |  | False | renamed from xiom.core (namespace audit, owner-confirmed 2026-09-23); port to current stdlib pending |
 | xiom.dxc | xiom-dxc | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.dynamo | xiom-dynamo | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
@@ -373,16 +374,17 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.elastic | xiom-elastic | incubating | tests/test_conformance.xi | pass 28/28 | a1a1acc5 | False | publish pending: next scope delta |
 | xiom.ensemble | xiom-ensemble | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
 | xiom.environment | xiom-environment | incubating | tests/test_conformance.xi | pass 23/23 | 65b513c | False | publish pending: next scope delta |
-| xiom.etcd | xiom-etcd | incubating | tests/test_conformance.xi | pass 26/26 | 984fc2f | False | publish pending: next scope delta |
+| xiom.etcd | xiom-etcd | incubating | tests/test_conformance.xi | pass 26/26 | 4f36c8f1 | False | category harmonization patch bump (registry metadata) |
 | xiom.ethereum | xiom-ethereum | incubating | tests/test_conformance.xi | pass 23/23 | 984fc2f | False | publish pending: next scope delta |
-| xiom.exchanger | xiom-exchanger | incubating | tests/test_conformance.xi | pass 24/24 | babba21 | False | publish pending: next scope delta |
+| xiom.exchanger | xiom-exchanger | incubating | tests/test_conformance.xi | pass 24/24 | 1c5f0a30 | False | category harmonization patch bump (registry metadata) |
 | xiom.executor | xiom-executor | incubating | tests/test_conformance.xi | pass 27/27 | 984fc2f | False | publish pending: next scope delta |
 | xiom.expat | xiom-expat | incubating | tests/test_conformance.xi | pass 25/25 | 77d7ec3 | False | publish pending: next scope delta |
 | xiom.feature | xiom-feature | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.ffi | xiom-ffi | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: no source in this repo (stdlib owns the module) |
 | xiom.ffmpeg | xiom-ffmpeg | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.firebird | xiom-firebird | incubating | tests/test_conformance.xi | pass 22/22 | 11412185 | False | publish pending: owner scope decision (parallel-lane implementation) |
 | xiom.flags | xiom-flags | incubating | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: next scope delta |
-| xiom.flash | xiom-flash | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
+| xiom.flash | xiom-flash | incubating | tests/test_conformance.xi | pass 20/20 | ca969acd | False | category harmonization patch bump (registry metadata) |
 | xiom.forkjoin | xiom-forkjoin | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.formatter-fw | xiom-formatter-fw | incubating | tests/test_conformance.xi | pass 23/23 | 51059f2 | False | publish pending: next scope delta |
 | xiom.gazebo | xiom-gazebo | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -393,14 +395,14 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.git2 | xiom-git2 | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
 | xiom.glfw | xiom-glfw | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.golden | xiom-golden | incubating | tests/test_conformance.xi | pass 35/35 | 984fc2f | False | publish pending: next scope delta |
-| xiom.gpio | xiom-gpio | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
+| xiom.gpio | xiom-gpio | incubating | tests/test_conformance.xi | pass 21/21 | 9dde8219 | False | category harmonization patch bump (registry metadata) |
 | xiom.graphql | xiom-graphql | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.grpc | xiom-grpc | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.hashchain | xiom-hashchain | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.hello | xiom-hello | incubating | tests/test_hello.xi | pass 4/4 | 984fc2f | False |  |
 | xiom.helm | xiom-helm | incubating | tests/test_conformance.xi | pass 23/23 | c1709e9b | False | publish pending: next scope delta |
 | xiom.http | xiom-http | incubating | tests/test_conformance.xi | unknown |  | False |  |
-| xiom.i2c | xiom-i2c | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
+| xiom.i2c | xiom-i2c | incubating | tests/test_conformance.xi | pass 20/20 | efa6c78a | False | category harmonization patch bump (registry metadata) |
 | xiom.i2p | xiom-i2p | incubating | tests/test_conformance.xi | pass 24/24 | 76e49956 | False | publish pending: next scope delta |
 | xiom.image | xiom-image | incubating | tests/test_conformance.xi | pass 24/24 | 6f07e57b | False | publish pending: next scope delta |
 | xiom.imaging | xiom-imaging | incubating | tests/test_conformance.xi | pass 22/22 | 2d7a1b4 | False | publish pending: next scope delta |
@@ -408,7 +410,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.inference | xiom-inference | incubating | tests/test_conformance.xi | pass 28/28 | 27a0a7ee | False | publish pending: next scope delta |
 | xiom.interrupt | xiom-interrupt | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.itest | xiom-itest | incubating | tests/test_conformance.xi | pass 24/24 | 110d3bb | False | publish pending: next scope delta |
-| xiom.jit-fw | xiom-jit-fw | incubating | tests/test_conformance.xi | pass 25/25 | 3eb43a23 | False | publish pending: next scope delta |
+| xiom.jit-fw | xiom-jit-fw | incubating | tests/test_conformance.xi | pass 25/25 | c1e35d4f | False | category harmonization patch bump (registry metadata) |
 | xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.k8s | xiom-k8s | incubating | tests/test_conformance.xi | pass 23/23 | 6e9fa56f | False | publish pending: next scope delta |
 | xiom.keymgmt | xiom-keymgmt | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
@@ -421,7 +423,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.l10n-unicode | xiom-l10n-unicode | incubating | tests/test_conformance.xi | pass 24/24 | 714d769f | False | publish pending: next scope delta |
 | xiom.l10n-unit | xiom-l10n-unit | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
 | xiom.layers | xiom-layers | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
-| xiom.legacy-proto | xiom-legacy-proto | incubating | tests/test_conformance.xi | pass 24/24 | b4f47d7 | False | publish pending: next scope delta |
+| xiom.legacy-proto | xiom-legacy-proto | incubating | tests/test_conformance.xi | pass 24/24 | 5f2954db | False | category harmonization patch bump (registry metadata) |
 | xiom.lemmatization | xiom-lemmatization | incubating | tests/test_conformance.xi | pass 44/44 | 984fc2f | False | publish pending: next scope delta |
 | xiom.leveldb | xiom-leveldb | incubating | tests/test_conformance.xi | pass 18/18 | 984fc2f | False | publish pending: next scope delta |
 | xiom.lexer-fw | xiom-lexer-fw | incubating | tests/test_conformance.xi | pass 28/28 | 984fc2f | False | publish pending: next scope delta |
@@ -438,7 +440,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.macro | xiom-macro | incubating | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: next scope delta |
 | xiom.materials | xiom-materials | incubating | tests/test_conformance.xi | pass 26/26 | a813ebe | False | publish pending: next scope delta |
 | xiom.mechanics | xiom-mechanics | incubating | tests/test_conformance.xi | pass 24/24 | f093389 | False | publish pending: next scope delta |
-| xiom.memcached | xiom-memcached | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
+| xiom.memcached | xiom-memcached | incubating | tests/test_conformance.xi | pass 22/22 | ef1c057a | False | category harmonization patch bump (registry metadata) |
 | xiom.merkle | xiom-merkle | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.meshopt | xiom-meshopt | incubating | tests/test_conformance.xi | pass 72/72 | 984fc2f | False |  |
 | xiom.messaging | xiom-messaging | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
@@ -448,18 +450,18 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.miniaudio | xiom-miniaudio | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.ml | xiom-ml | incubating | tests/test_conformance.xi | pass 18/18 | 6a19ce99 | False | publish pending: next scope delta |
 | xiom.mock | xiom-mock | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
-| xiom.mongo | xiom-mongo | incubating | tests/test_conformance.xi | pass 23/23 | 984fc2f | False | publish pending: next scope delta |
+| xiom.mongo | xiom-mongo | incubating | tests/test_conformance.xi | pass 23/23 | 6f9ebf38 | False | category harmonization patch bump (registry metadata) |
 | xiom.monitoring | xiom-monitoring | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
 | xiom.moveit | xiom-moveit | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.mssql | xiom-mssql | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.mysql | xiom-mysql | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
-| xiom.nats | xiom-nats | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
+| xiom.nats | xiom-nats | incubating | tests/test_conformance.xi | pass 21/21 | 478af2b4 | False | category harmonization patch bump (registry metadata) |
 | xiom.neural | xiom-neural | incubating | tests/test_conformance.xi | pass 21/21 | 29ea0e2 | False | publish pending: next scope delta |
 | xiom.nft | xiom-nft | incubating | tests/test_conformance.xi | pass 20/20 | 9e17737 | False | publish pending: next scope delta |
 | xiom.nlp | xiom-nlp | incubating | tests/test_conformance.xi | pass 27/27 | 984fc2f | False | publish pending: next scope delta |
 | xiom.nuclear | xiom-nuclear | incubating | tests/test_conformance.xi | pass 27/27 | 9cd53156 | False | publish pending: next scope delta |
 | xiom.numpy | xiom-numpy | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
-| xiom.oauth | xiom-oauth | incubating | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: next scope delta |
+| xiom.oauth | xiom-oauth | incubating | tests/test_conformance.xi | pass 25/25 | 72cfe406 | False | category harmonization patch bump (registry metadata) |
 | xiom.onnx | xiom-onnx | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.openal | xiom-openal | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.openblas | xiom-openblas | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -467,14 +469,15 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.opengl | xiom-opengl | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.openssl | xiom-openssl | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.optimizer-fw | xiom-optimizer-fw | incubating | tests/test_conformance.xi | pass 25/25 | ecf76d1 | False | publish pending: next scope delta |
+| xiom.oracle | xiom-oracle | incubating | tests/test_conformance.xi | pass 22/22 | f487102b | False | publish pending: owner scope decision (parallel-lane implementation) |
 | xiom.ozz | xiom-ozz | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.pandas | xiom-pandas | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.parquet | xiom-parquet | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
-| xiom.parser-fw | xiom-parser-fw | incubating | tests/test_conformance.xi | pass 27/27 | 35cb13bc | False | publish pending: next scope delta |
+| xiom.parser-fw | xiom-parser-fw | incubating | tests/test_conformance.xi | pass 27/27 | 1f0dff6d | False | category harmonization patch bump (registry metadata) |
 | xiom.parsing | xiom-parsing | incubating | tests/test_conformance.xi | pass 28/28 | 984fc2f | False | publish pending: next scope delta |
 | xiom.pdf | xiom-pdf | incubating | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: next scope delta |
 | xiom.perf | xiom-perf | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
-| xiom.phaser | xiom-phaser | incubating | tests/test_conformance.xi | pass 24/24 | 84024390 | False | publish pending: next scope delta |
+| xiom.phaser | xiom-phaser | incubating | tests/test_conformance.xi | pass 24/24 | fbc4a725 | False | category harmonization patch bump (registry metadata) |
 | xiom.phonon | xiom-phonon | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.pki | xiom-pki | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.plugin | xiom-plugin | incubating | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: next scope delta |
@@ -482,8 +485,8 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.postgres | xiom-postgres | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
 | xiom.pptx | xiom-pptx | incubating | tests/test_conformance.xi | pass 26/26 | 6b9a614d | False | publish pending: next scope delta |
 | xiom.protobuf | xiom-protobuf | incubating | tests/test_conformance.xi | unknown |  | False |  |
-| xiom.proxy | xiom-proxy | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
-| xiom.pulsar | xiom-pulsar | incubating | tests/test_conformance.xi | pass 27/27 | 984fc2f | False | publish pending: next scope delta |
+| xiom.proxy | xiom-proxy | incubating | tests/test_conformance.xi | pass 20/20 | d85a0ee6 | False | category harmonization patch bump (registry metadata) |
+| xiom.pulsar | xiom-pulsar | incubating | tests/test_conformance.xi | pass 27/27 | 00c21919 | False | category harmonization patch bump (registry metadata) |
 | xiom.puppet | xiom-puppet | incubating | tests/test_conformance.xi | pass 26/26 | 8c0ac311 | False | publish pending: next scope delta |
 | xiom.pwm | xiom-pwm | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.randomforest | xiom-randomforest | incubating | tests/test_conformance.xi | pass 24/24 | 3ff8636 | False | publish pending: next scope delta |
@@ -491,6 +494,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.realtime | xiom-realtime | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.redis | xiom-redis | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
 | xiom.rest | xiom-rest | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.rocksdb | xiom-rocksdb | incubating | tests/test_conformance.xi | pass 24/24 | a69d2dd5 | False | publish pending: next scope delta |
 | xiom.ros2 | xiom-ros2 | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.salt | xiom-salt | incubating | tests/test_conformance.xi | pass 28/28 | 425f4f71 | False | publish pending: next scope delta |
 | xiom.saml | xiom-saml | incubating | tests/test_conformance.xi | pass 28/28 | c1cd84f8 | False | publish pending: next scope delta |
@@ -502,7 +506,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.smartcontract | xiom-smartcontract | incubating | tests/test_conformance.xi | pass 22/22 | d9ea723 | False | publish pending: next scope delta |
 | xiom.sql | xiom-sql | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: stub body |
 | xiom.sqlite | xiom-sqlite | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
-| xiom.ssh2 | xiom-ssh2 | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
+| xiom.ssh2 | xiom-ssh2 | incubating | tests/test_conformance.xi | pass 24/24 | 0c6b8da9 | False | category harmonization patch bump (registry metadata) |
 | xiom.stats-ml | xiom-stats-ml | incubating | tests/test_conformance.xi | pass 22/22 | 984fc2f | False | publish pending: next scope delta |
 | xiom.stats-tests | xiom-stats-tests | incubating | tests/test_conformance.xi | pass 25/25 | 984fc2f | False | publish pending: next scope delta |
 | xiom.stb | xiom-stb | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
@@ -515,8 +519,8 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.terraform | xiom-terraform | incubating | tests/test_conformance.xi | pass 24/24 | 7f471e67 | False | publish pending: next scope delta |
 | xiom.text-markup | xiom-text-markup | incubating | tests/test_conformance.xi | pass 26/26 | bff5da3 | False | publish pending: next scope delta |
 | xiom.timer | xiom-timer | incubating | tests/test_conformance.xi | pass 21/21 | 984fc2f | False | publish pending: next scope delta |
-| xiom.tls | xiom-tls | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
-| xiom.tor | xiom-tor | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
+| xiom.tls | xiom-tls | incubating | tests/test_conformance.xi | pass 20/20 | 6bfddc16 | False | category harmonization patch bump (registry metadata) |
+| xiom.tor | xiom-tor | incubating | tests/test_conformance.xi | pass 20/20 | 0a50873e | False | category harmonization patch bump (registry metadata) |
 | xiom.torch | xiom-torch | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.training | xiom-training | incubating | tests/test_conformance.xi | pass 26/26 | e4e2b956 | False | publish pending: next scope delta |
 | xiom.translate | xiom-translate | incubating | tests/test_conformance.xi | pass 28/28 | 8a275065 | False | publish pending: next scope delta |
@@ -533,8 +537,9 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.wireless | xiom-wireless | incubating | tests/test_conformance.xi | pass 33/33 | 984fc2f | False | publish pending: next scope delta |
 | xiom.worker | xiom-worker | incubating | tests/test_conformance.xi | pass 26/26 | 984fc2f | False | publish pending: next scope delta |
 | xiom.xlsx | xiom-xlsx | incubating | tests/test_conformance.xi | pass 28/28 | f1c66dc0 | False | publish pending: next scope delta |
+| xiom.xml2 | xiom-xml2 | incubating | tests/test_conformance.xi | pass 24/24 | 16be3f46 | False | publish pending: next scope delta |
 | xiom.zeromq | xiom-zeromq | incubating | tests/test_conformance.xi | unknown |  | False |  |
-| xiom.zigbee | xiom-zigbee | incubating | tests/test_conformance.xi | pass 26/26 | 984fc2f | False | publish pending: next scope delta |
+| xiom.zigbee | xiom-zigbee | incubating | tests/test_conformance.xi | pass 26/26 | 2c6a7b88 | False | category harmonization patch bump (registry metadata) |
 | xiom.zkp | xiom-zkp | incubating | tests/test_conformance.xi | pass 20/20 | 984fc2f | False | publish pending: next scope delta |
 | xiom.zookeeper | xiom-zookeeper | incubating | tests/test_conformance.xi | pass 24/24 | 984fc2f | False | publish pending: next scope delta |
 | xiom.zstd | xiom-zstd | incubating | tests/test_conformance.xi | unknown |  | False |  |
