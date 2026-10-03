@@ -10,9 +10,9 @@
 
 package xiom_ssh2 {
   name: "xiom.ssh2";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Pure-XIOM SSH-2 transport, authentication and connection-layer message structure codec (RFC 4251/4253/4252/4254; no crypto)";
-  categories: ["protocol"];
+  categories: ["network"];
   keywords: ["ssh", "ssh2", "transport", "auth", "channel", "protocol"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
