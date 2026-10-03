@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+// SPDX-License-Identifier: MIT OR Apache-2.0
+//
 package xiom_ui {
   name: "xiom.ui";
   version: "0.1.0";

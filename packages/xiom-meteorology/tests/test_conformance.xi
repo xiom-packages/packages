@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+// SPDX-License-Identifier: MIT OR Apache-2.0
+//
 // XIOM -- xiom.meteorology conformance tests (22 checks)
 // Port task: prove the pure-XIOM xiom.meteorology METAR/TAF decoders against
 // SPEC.md: report structure, wind variants, CAVOK and statute-mile visibility,

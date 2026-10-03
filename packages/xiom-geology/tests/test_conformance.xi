@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+// SPDX-License-Identifier: MIT OR Apache-2.0
+//
 // XIOM -- xiom.geology conformance tests (26 checks)
 // Port task: prove the pure-XIOM xiom.geology LAS 2.0 parser against SPEC.md:
 // sections ~V/~W/~C/~P/~A/~O, CRLF/LF lines, comments, case-insensitive

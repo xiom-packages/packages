@@ -1,5 +1,6 @@
 // XIOM -- meshoptimizer Safe Wrappers
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+// SPDX-License-Identifier: MIT OR Apache-2.0
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
 // Struct-based safe wrappers for meshoptimizer v1.2.

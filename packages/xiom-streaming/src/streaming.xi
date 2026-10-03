@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+// SPDX-License-Identifier: MIT OR Apache-2.0
+//
 // XIOM -- xiom.streaming: RTP/RTCP/RTSP wire-format codecs
 // Port task: promote the xiom.streaming placeholder to a real, tested,
 // pure-XIOM package covering the RTP/RTCP/RTSP wire formats:

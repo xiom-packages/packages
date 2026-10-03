@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+// SPDX-License-Identifier: MIT OR Apache-2.0
+//
 // XIOM -- xiom.ui Conformance Tests
 // 98 tests covering types, layout, theme, widgets, render, and application lifecycle
 module ui_tests

@@ -65,7 +65,13 @@ works). Check `git log -1 --format=%h %s` before starting.
   `pub` (minimal probe bundle `docs/repro/child-parent-calls/README.md`
   + `training` 26/26 re-run); the 2026-10-02 "siblings only" finding is
   superseded in `docs/COMPILER-FINDINGS.md` and the workaround row is
-  re-scoped; the siblings-only rule can be relaxed at Tier-2.
+  re-scoped; the siblings-only rule can be relaxed at Tier-2;
+  (e) SPDX-header audit + fix: **0 missing** in published packages
+  (20 files across `ui`/`meshopt`/`bmp`/`biology`/`streaming`/`geology`/
+  `meteorology` got the standard header; all 7 suites re-ran green);
+  299 remain in non-published/skipped dirs -- fix opportunistically at
+  next touch;
+  (f) manifest-vs-registry version drift: **0 of 450**.
 - **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
   drop is the BARE assignment form (`s = 99`) in both call forms (plain
   local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix

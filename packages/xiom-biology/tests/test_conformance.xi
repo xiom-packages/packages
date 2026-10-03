@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+// SPDX-License-Identifier: MIT OR Apache-2.0
+//
 // XIOM -- xiom.biology conformance tests (18 checks)
 // Port task: prove the pure-XIOM xiom.biology FASTA/FASTQ codecs against
 // SPEC.md: record structure and accessors, wrapped FASTA lines with
