@@ -341,7 +341,6 @@ pub fn validate_operation(
   schema: &GraphQLSchema,
   op: &GraphQLOperation,
 ) -> Result[Unit, Vec[ValidationError]]
-  requires: schema.types.len() > 0
 {
   var errors: Vec[ValidationError] = Vec[ValidationError].new();
 
@@ -366,7 +365,10 @@ pub fn validate_operation(
   };
 
   // Stub: validate each selection exists on root type
-  var root: GraphQLType;
+  // NOTE: the local is pre-initialized on purpose -- `var root: GraphQLType;`
+  // followed by assignment inside the match corrupts the copied value on
+  // v0.62.3 (garbage Str pointers / Vec length -> runaway loops).
+  var root: GraphQLType = type_new("", GraphQLTypeKind.Object);
   match root_type {
     Some(rt) => { root = rt; },
     None => {

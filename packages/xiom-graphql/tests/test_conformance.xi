@@ -1,9 +1,13 @@
 // XIOM -- xiom.graphql Conformance Tests (10 tests)
-module xiom.graphql.tests
+module graphql_tests
 
 use xiom.graphql;
 use xiom.string;
 use xiom.io;
+
+// Assertions that fail inside a test are collected here so `run_case`
+// can report them per test (the old `try()` printed and swallowed them).
+var graphql_failures: Vec[Str] = Vec[Str].new();
 
 fn assert_true(condition: Bool, label: Str) -> Result[Unit, Str] {
   if condition { return Ok(Unit); };
@@ -44,40 +48,44 @@ fn int_to_str(n: Int) -> Str {
   return out;
 }
 
+fn run_case(label: Str, res: Result[Unit, Str]) -> Int {
+  let before: Int = graphql_failures.len();
+  match res {
+    Ok(_) => {},
+    Err(e) => { graphql_failures.push(e); },
+  };
+  let added: Int = graphql_failures.len() - before;
+  if added == 0 {
+    io.println("[PASS] " + label);
+    return 0;
+  }
+  var k: Int = before;
+  while k < graphql_failures.len() {
+    io.println("[FAIL] " + label + " -- " + graphql_failures[k]);
+    k = k + 1;
+  }
+  return 1;
+}
+
 pub fn run_all_tests() -> Result[Unit, Str] {
   io.println("=== xiom.graphql Conformance Tests ===");
 
-  var passed: Int = 0;
-  var failed: Int = 0;
-  var total: Int = 0;
+  var failures: Int = 0;
+  failures = failures + run_case("schema new", test_schema_new());
+  failures = failures + run_case("schema add/find type", test_schema_add_and_find_type());
+  failures = failures + run_case("type add field", test_type_add_field());
+  failures = failures + run_case("field deprecate", test_field_deprecate());
+  failures = failures + run_case("parse query stub", test_parse_query_stub());
+  failures = failures + run_case("parse mutation stub", test_parse_mutation_stub());
+  failures = failures + run_case("validate empty schema error", test_validate_empty_schema_error());
+  failures = failures + run_case("validate valid operation", test_validate_valid_operation());
+  failures = failures + run_case("execute empty document error", test_execute_empty_document_error());
+  failures = failures + run_case("introspect schema", test_introspect_schema());
 
-  var results: Vec[Result[Unit, Str]] = Vec[Result[Unit, Str]].new();
-  results.push(test_schema_new());
-  results.push(test_schema_add_and_find_type());
-  results.push(test_type_add_field());
-  results.push(test_field_deprecate());
-  results.push(test_parse_query_stub());
-  results.push(test_parse_mutation_stub());
-  results.push(test_validate_empty_schema_error());
-  results.push(test_validate_valid_operation());
-  results.push(test_execute_empty_document_error());
-  results.push(test_introspect_schema());
+  io.println(int_to_str(10 - failures) + " passed, " + int_to_str(failures) + " failed out of 10");
 
-  var i: Int = 0;
-  while i < results.len() {
-    total = total + 1;
-    match results[i] {
-      Ok(_) => { passed = passed + 1; },
-      Err(e) => { failed = failed + 1; io.println(e); },
-    };
-    i = i + 1;
-  };
-
-  io.println("");
-  io.println(int_to_str(passed) + " passed, " + int_to_str(failed) + " failed out of " + int_to_str(total));
-
-  if failed > 0 {
-    return Err(int_to_str(failed) + " test(s) failed");
+  if failures > 0 {
+    return Err(int_to_str(failures) + " test(s) failed");
   };
   return Ok(Unit);
 }
@@ -236,6 +244,14 @@ fn test_introspect_schema() -> Result[Unit, Str] {
 fn try(res: Result[Unit, Str]) {
   match res {
     Ok(_) => {},
-    Err(e) => { io.println(e); },
+    Err(e) => { graphql_failures.push(e); },
   };
+}
+
+fn main() -> Int {
+  let r: Result[Unit, Str] = run_all_tests();
+  match r {
+    Ok(_) => { return 0; },
+    Err(e) => { io.println(e); return 1; },
+  }
 }
