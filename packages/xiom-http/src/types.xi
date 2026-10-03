@@ -267,10 +267,10 @@ pub fn HttpRequest.set_body(new_body: Vec[Int]) {
 }
 
 pub fn HttpRequest.to_str() -> Str {
-  var s: Str = xiom.string.str_concat(method_to_str(method), " ", path, " ", version_to_str(version), "\r\n");
+  var s: Str = method_to_str(method) + " " + path + " " + version_to_str(version) + "\r\n";
   var i: Int = 0;
   while i < headers.entries.len() {
-    s = xiom.string.str_concat(s, headers.entries[i].name, ": ", headers.entries[i].value, "\r\n");
+    s = s + headers.entries[i].name + ": " + headers.entries[i].value + "\r\n";
     i = i + 1;
   }
   s = xiom.string.str_concat(s, "\r\n");
@@ -302,10 +302,10 @@ pub fn HttpResponse.set_body(new_body: Vec[Int]) {
 }
 
 pub fn HttpResponse.to_str() -> Str {
-  var s: Str = xiom.string.str_concat(version_to_str(version), " ", xiom.convert.int_to_string(status), " ", reason, "\r\n");
+  var s: Str = version_to_str(version) + " " + xiom.convert.int_to_string(status) + " " + reason + "\r\n";
   var i: Int = 0;
   while i < headers.entries.len() {
-    s = xiom.string.str_concat(s, headers.entries[i].name, ": ", headers.entries[i].value, "\r\n");
+    s = s + headers.entries[i].name + ": " + headers.entries[i].value + "\r\n";
     i = i + 1;
   }
   s = xiom.string.str_concat(s, "\r\n");

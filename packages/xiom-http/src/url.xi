@@ -170,11 +170,7 @@ pub fn url_parse(input: Str) -> Result[Url, Str]
   var host_start: Int = pos;
   while pos < len {
     var c: Int = char_code_at(input, pos);
-    if c == 58 {
-      pos = pos + 1;
-      break;
-    }
-    if c == 47 || c == 63 || c == 35 {
+    if c == 58 || c == 47 || c == 63 || c == 35 {
       break;
     }
     pos = pos + 1;
@@ -183,51 +179,27 @@ pub fn url_parse(input: Str) -> Result[Url, Str]
   var j: Int = host_start;
   host = "";
   while j < host_end {
-    var c: Int = char_code_at(input, j);
-    if c == 58 {
-      j = j + 1;
-      var port_str: Str = "";
-      while j < host_end {
-        port_str = port_str + char_to_str(char_code_at(input, j));
-        j = j + 1;
-      }
-      var pi: Int = 0;
-      var pv: Int = 0;
-      var plen: Int = xiom.string.str_len(port_str);
-      while pi < plen {
-        var pc: Int = char_code_at(port_str, pi);
-        pv = pv * 10 + (pc - 48);
-        pi = pi + 1;
-      }
-      port = pv;
-      break;
-    }
-    host = host + char_to_str(c);
+    host = host + char_to_str(char_code_at(input, j));
     j = j + 1;
   }
-  if !has_scheme {
-    if pos < len {
-      var c: Int = char_code_at(input, pos);
-      if c == 58 {
-        pos = pos + 1;
-        var port_str: Str = "";
-        while pos < len {
-          var pc: Int = char_code_at(input, pos);
-          if pc == 47 || pc == 63 || pc == 35 { break; }
-          port_str = port_str + char_to_str(pc);
-          pos = pos + 1;
-        }
-        var pi: Int = 0;
-        var pv: Int = 0;
-        var plen: Int = xiom.string.str_len(port_str);
-        while pi < plen {
-          var pc: Int = char_code_at(port_str, pi);
-          pv = pv * 10 + (pc - 48);
-          pi = pi + 1;
-        }
-        port = pv;
-      }
+  if pos < len && char_code_at(input, pos) == 58 {
+    pos = pos + 1;
+    var port_str: Str = "";
+    while pos < len {
+      var pc: Int = char_code_at(input, pos);
+      if pc == 47 || pc == 63 || pc == 35 { break; }
+      port_str = port_str + char_to_str(pc);
+      pos = pos + 1;
     }
+    var pi: Int = 0;
+    var pv: Int = 0;
+    var plen: Int = xiom.string.str_len(port_str);
+    while pi < plen {
+      var pc: Int = char_code_at(port_str, pi);
+      if is_digit_char(pc) { pv = pv * 10 + (pc - 48); }
+      pi = pi + 1;
+    }
+    port = pv;
   }
   if pos < len {
     var c: Int = char_code_at(input, pos);
@@ -336,8 +308,7 @@ pub fn url_decode(s: Str) -> Result[Str, Str]
   return xiom.encoding.url_decode(s);
 }
 
-pub fn path_join(base: Str, relative: Str) -> Str
-  requires: xiom.string.str_len(base) > 0 {
+pub fn path_join(base: Str, relative: Str) -> Str {
   var base_len: Int = xiom.string.str_len(base);
   var rel_len: Int = xiom.string.str_len(relative);
   if rel_len == 0 { return base; }

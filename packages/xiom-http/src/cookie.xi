@@ -156,15 +156,15 @@ pub fn cookie_parse(set_cookie_header: Str) -> Result[Cookie, Str]
 }
 
 pub fn cookie_to_str(cookie: &Cookie) -> Str {
-  var s: Str = xiom.string.str_concat(cookie.name, "=", cookie.value);
+  var s: Str = cookie.name + "=" + cookie.value;
   if xiom.string.str_len(cookie.path) > 0 && cookie.path != "/" {
-    s = xiom.string.str_concat(s, "; Path=", cookie.path);
+    s = s + "; Path=" + cookie.path;
   }
   if xiom.string.str_len(cookie.domain) > 0 {
-    s = xiom.string.str_concat(s, "; Domain=", cookie.domain);
+    s = s + "; Domain=" + cookie.domain;
   }
   if cookie.max_age >= 0 {
-    s = xiom.string.str_concat(s, "; Max-Age=", xiom.convert.int_to_string(cookie.max_age));
+    s = s + "; Max-Age=" + xiom.convert.int_to_string(cookie.max_age);
   }
   if cookie.secure {
     s = xiom.string.str_concat(s, "; Secure");

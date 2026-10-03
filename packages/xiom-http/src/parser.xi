@@ -3,8 +3,8 @@ module xiom.http.parser
 use xiom.string;
 
 fn char_code(s: Str, pos: Int) -> Int {
-  match char_code(s, pos) {
-    Some(c) => { return to_int_from_char(c); },
+  match xiom.string.char_at(s, pos) {
+    Some(c) => { return xiom.convert.char_to_int(c); },
     None => { return -1; },
   }
 }

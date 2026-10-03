@@ -11,6 +11,10 @@ use xiom.io;
 use xiom.string;
 use xiom.convert;
 
+// Assertions that fail inside a test are collected here so `run_case`
+// can report them per test (the old `try()` printed and swallowed them).
+var http_failures: Vec[Str] = Vec[Str].new();
+
 fn assert_true(condition: Bool, label: Str) -> Result[Unit, Str] {
   if condition {
     return Ok(Unit);
@@ -110,18 +114,14 @@ pub fn run_all_tests() -> Result[Unit, Str] {
 
 fn test_http_methods() -> Result[Unit, Str] {
   var m: HttpMethod = method_from_str("POST");
-  match m {
-    POST => { return Ok(Unit); },
-    _ => { return Err("FAIL: method_from_str('POST') did not return POST"); },
-  };
+  if m == POST { return Ok(Unit); }
+  return Err("FAIL: method_from_str('POST') did not return POST");
 }
 
 fn test_http_versions() -> Result[Unit, Str] {
   var v: HttpVersion = version_from_str("HTTP/1.1");
-  match v {
-    HTTP11 => { return Ok(Unit); },
-    _ => { return Err("FAIL: version_from_str('HTTP/1.1') did not return HTTP11"); },
-  };
+  if v == HTTP11 { return Ok(Unit); }
+  return Err("FAIL: version_from_str('HTTP/1.1') did not return HTTP11");
 }
 
 // --- HttpHeaders -----------------------------------------------------------
@@ -174,10 +174,9 @@ fn test_http_headers_remove() -> Result[Unit, Str] {
 fn test_http_request_new() -> Result[Unit, Str] {
   var req: HttpRequest = HttpRequest.new(GET, "/api/test");
   try(assert_str_eq(req.path, "/api/test", "HttpRequest.new path"));
-  match req.method {
-    GET => {},
-    _ => { return Err("FAIL: HttpRequest.new method not GET"); },
-  };
+  if req.method != GET {
+    return Err("FAIL: HttpRequest.new method not GET");
+  }
   return Ok(Unit);
 }
 
@@ -503,6 +502,67 @@ fn test_server_close() -> Result[Unit, Str] {
 fn try(res: Result[Unit, Str]) {
   match res {
     Ok(_) => {},
-    Err(e) => { xiom.io.println(e); },
+    Err(e) => { http_failures.push(e); },
   };
+}
+
+fn run_case(label: Str, res: Result[Unit, Str]) -> Int {
+  let before: Int = http_failures.len();
+  match res {
+    Ok(_) => {},
+    Err(e) => { http_failures.push(e); },
+  };
+  let added: Int = http_failures.len() - before;
+  if added == 0 {
+    xiom.io.println("[PASS] " + label);
+    return 0;
+  }
+  var k: Int = before;
+  while k < http_failures.len() {
+    xiom.io.println("[FAIL] " + label + " -- " + http_failures[k]);
+    k = k + 1;
+  }
+  return 1;
+}
+
+fn main() -> Int {
+  var failures: Int = 0;
+  failures = failures + run_case("http methods", test_http_methods());
+  failures = failures + run_case("http versions", test_http_versions());
+  failures = failures + run_case("headers new and count", test_http_headers_new_and_count());
+  failures = failures + run_case("headers add and get", test_http_headers_add_and_get());
+  failures = failures + run_case("headers has", test_http_headers_has());
+  failures = failures + run_case("headers remove", test_http_headers_remove());
+  failures = failures + run_case("request new", test_http_request_new());
+  failures = failures + run_case("request set_header", test_http_request_set_header());
+  failures = failures + run_case("request to_str", test_http_request_to_str());
+  failures = failures + run_case("response new", test_http_response_new());
+  failures = failures + run_case("response set_header", test_http_response_set_header());
+  failures = failures + run_case("response to_str", test_http_response_to_str());
+  failures = failures + run_case("status text", test_http_status_text());
+  failures = failures + run_case("status is_success", test_http_is_success());
+  failures = failures + run_case("status is_redirect", test_http_is_redirect());
+  failures = failures + run_case("status is_client_error", test_http_is_client_error());
+  failures = failures + run_case("status is_server_error", test_http_is_server_error());
+  failures = failures + run_case("status category", test_http_status_category());
+  failures = failures + run_case("mime from_ext", test_mime_from_ext());
+  failures = failures + run_case("mime to_str", test_mime_to_str());
+  failures = failures + run_case("url parse full", test_url_parse_full());
+  failures = failures + run_case("url parse no scheme", test_url_parse_no_scheme());
+  failures = failures + run_case("url parse with port", test_url_parse_with_port());
+  failures = failures + run_case("url parse with query", test_url_parse_with_query());
+  failures = failures + run_case("url parse with fragment", test_url_parse_with_fragment());
+  failures = failures + run_case("url to_str", test_url_to_str());
+  failures = failures + run_case("path join", test_path_join());
+  failures = failures + run_case("parse headers", test_http_parse_headers());
+  failures = failures + run_case("cookie new", test_cookie_new());
+  failures = failures + run_case("cookie parse", test_cookie_parse());
+  failures = failures + run_case("cookie to_str", test_cookie_to_str());
+  failures = failures + run_case("cookie parse_all", test_cookie_parse_all());
+  failures = failures + run_case("server new", test_server_new());
+  failures = failures + run_case("server listen error", test_server_listen_error());
+  failures = failures + run_case("server handle error", test_server_handle_error());
+  failures = failures + run_case("server close", test_server_close());
+  xiom.io.println("xiom.http: " + xiom.convert.int_to_string(36 - failures) + "/36 passed");
+  return failures;
 }
