@@ -38,7 +38,8 @@ running). Check `git log -1 --format=%h %s` before starting.
   (~454). Next: fix non-PASS + re-record green runs, then the
   maintenance wave (workaround removal at next touch), then the FIRST
   PROMOTION WAVE (`json`/`control`/`sensor` -> stable; pre-flight G1-G7
-  done) + publish `eco-v0.1.37`.
+  done -- **re-run G1 x2 on v0.62.3 in-wave**) + publish
+  `eco-v0.1.37`.
 - **Tier-2 maintenance-wave candidates (for after the sweep):** 25
   packages carry explicit `Vec[Str]`-avoidance comments. Bug-driven
   subset (cite the v0.62.2 mis-lowering; candidates for direct
@@ -302,21 +303,21 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 1. **Prep**: `git fetch; git status -sb; git log -1`; gates
    `status.ps1 -Action validate` + `allowlist-guard.ps1`. Toolchain:
-   `COMPILER_VERSION` = v0.62.2; repo release already deployed into
+   `COMPILER_VERSION` = v0.62.3; repo release already deployed into
    `%LOCALAPPDATA%\xiom.new\bin`; stdlib checkout `E:\xiom-lang\stdlib`.
 2. **Select + check**: pick ~10 pure-XIOM placeholders; run
    `& .\scripts\namespace-check.ps1 -Module <names>` (expect 0 conflicts).
 3. **Dispatch**: 6 background `task` porters + 4 Agent Manager local
    sessions (`agent_manager` action=null, mode=local, versions=false).
-   Brief = the v0.62.2 edition: 18 traps + `Vec[Str].push` avoided
-   (module-level Vecs especially) + no `&mut Int` scalar params (thread
-   via returns) + builtin/generic-name shadowing avoidance + no
-   child->parent module imports (shared helpers go in a sibling module)
-   + progress-guaranteed loops + full-angle bracket grep after green +
-   `port.ps1 -TimeoutSec 60` gate + `## stdlib gaps`
-   report. Crash recovery: stop the dead AM session and re-dispatch as a
-   `task` with `variant: low` + files-first/short-replies directive
-   (worked 5x).
+   Brief = the v0.62.3 edition: `Vec[Str].push` and `&mut Int` params
+   are FIXED (no avoidance; probes green) -- complex `Str`/struct const
+   tables are STILL broken (runtime builders only); cross-module
+   helpers just need `pub` (child->parent calls are fine); no
+   builtin/generic-name shadowing; progress-guaranteed loops +
+   full-angle bracket grep after green + `port.ps1 -TimeoutSec 60` gate
+   + `## stdlib gaps` report. Crash recovery: stop the dead AM session
+   and re-dispatch as a `task` with `variant: low` +
+   files-first/short-replies directive (worked 5x).
 4. **Integrate as they report** (don't wait for all 10): write a
    two-row CSV (Name, Dir, Session=`task:ses_...`/`agentmgr:ses_...`) and
    run `powershell -File %TEMP%\kilo\verify-wave43.ps1 -WaveCsv <csv>`
@@ -358,54 +359,44 @@ running). Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-03 14:30Z STATE block and
+private). Read SESSION.md first -- the 2026-10-03 18:35Z STATE block and
 the "Next-session operating kit" at the top of section 0 are the live
-handoff (wave 56 + `eco-v0.1.35` firebird/oracle; `eco-v0.1.36`
-manifest module-list fixes; category-vocabulary sweep done, 0 unknown
-tokens; README/SPDX/version/module audits clean; 450 packages + 2 infra
-on the registry; allowlist 499). Repo-local identity must be "Lefteris
-Notas <lefterisnotas@gmail.com>". Publishing policy: PRODUCTION-DIRECT
-batches (this session approves the registry-publish gates); ops opens
-the publish-rate window ONLY for waves >20 names (default 20/min
-otherwise); the ops scope enumeration must be confirmed BEFORE appending
-the allowlist delta. New/next-touched records use stage `incubating`
+handoff (v0.62.3 pinned + SHA256-verified; `Vec[Str].push` and `&mut Int`
+workarounds retired; fleet sweep via `scripts/fleet-sweep.ps1` run +
+`scripts/record-sweep.ps1` re-record; 450 packages + 2 infra on the
+registry; allowlist 499). Repo-local identity must be "Lefteris Notas
+<lefterisnotas@gmail.com>". Publishing policy: PRODUCTION-DIRECT batches
+(this session approves the registry-publish gates); ops opens the
+publish-rate window ONLY for waves >20 names (default 20/min otherwise);
+the ops scope enumeration must be confirmed BEFORE appending the
+allowlist delta. New/next-touched records use stage `incubating`
 (`stable` only via `docs/PROMOTION.md`).
 
 Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Compiler release watch: when v0.62.3+ lands, re-pin per
-   `docs/MAINTENANCE.md` (bump COMPILER_VERSION, deploy exe + wasm dll,
-   `status.ps1 -Action repin`, fleet sweep re-record, re-run
-   `docs/repro/byte-at-128` + all `docs/repro/v0622-regressions/`
-   probes). Then apply the TRIAGE first (Tier-2 = fleet sweep + workaround
-   retirement; crypto/base64 fix-first packet at `docs/repro/crypto-link/`),
-   then the FIRST PROMOTION WAVE per `docs/PROMOTION.md` (contracts
-   mandatory; 44/32/38-check suites ready; `json`/`control`/`sensor` stay
-   `ported` until then), then the grandfathering hardening queue (276
-   pre-gate stable records). Registry page refresh = policy 1b
-   (opportunistic; no dedicated republish program).
-2. Parallel lane: it owns the remaining tests=unknown packages in this
-   shared worktree (mock/pwm/sectest READMEs currently modified,
-   uncommitted). Coordinate before touching those dirs; never
-   `git add -A` across packages; if it stalls green-but-unrecorded,
-   rescue-integrate (verify port x2 + trap-14, record with its session id).
-3. Non-blocked work: README Status-block sync for the lagging names;
-   keep the `-TimeoutSec 60` watchdog; byte-level bracket grep ONLY
-   (Read lies about `Vec<Int>`); bump versions ONLY when source changes;
-   at every wave append worker `stdlib gaps` / compiler evidence.
-4. Wrap + publish per the operating kit (tag eco-v0.1.37 when there is a
-   batch): ops scope ask, allowlist, regenerate, validate+guard, approve
-   the gate, verify live. Rerun-failed + re-approve on
-   `oidc_token_expired` (idempotent; large batches can lose the alphabet
-   tail -- the rerun skips published names). Report "batch done" only if
-   ops opened a window (waves >20).
-5. Carry-forwards: compiler hotfix watch (open rows in
-   `docs/COMPILER-FINDINGS.md`); Tier-2 + workaround retirement on the
-   next release; first promotion wave per `docs/PROMOTION.md`; README
-   Status-block sync; registry page refresh = policy 1b; update
-   SESSION.md at the wrap with a fresh paste prompt.
+1. Tier-2 completion on v0.62.3: finish/re-check the fleet sweep
+   (`scripts/fleet-sweep.ps1`; summary under `%TEMP%\kilo\sweep\`), fix
+   any non-PASS, then re-record green runs with `scripts/record-sweep.ps1`
+   (source-commit provenance). Then the workaround-retirement maintenance
+   wave (candidates in the STATE block; bug-driven `Vec[Str]` avoidance
+   only -- blob+offset models are valid designs): identical behavior,
+   suite x2 + trap-14, patch-bump only when shipped code changes.
+2. First promotion wave per `docs/PROMOTION.md`: `json`/`control`/`sensor`
+   -> `stable` (contracts evidence; re-run G1 x2 on v0.62.3); `kafka`
+   stays `ported` (FFI stubs). Wrap + publish the batch (`eco-v0.1.37`):
+   no allowlist delta, no rate window; regenerate, validate+guard,
+   approve the gate, verify live.
+3. Then grandfathering hardening batches (contracts; size with
+   `scripts/contract-coverage.ps1`) and normal growth.
+4. Carry-forwards: complex `Str`/struct const tables still broken
+   (v0.62.3 known issue -- runtime builders only); float bitcast still a
+   stdlib stub; `docs/repro/README.md` index for probe re-runs; registry
+   page refresh = policy 1b; keep the `-TimeoutSec 60` watchdog;
+   byte-level bracket grep ONLY (Read lies about `Vec<Int>`); bump
+   versions ONLY when source changes; update SESSION.md at the wrap with
+   a fresh paste prompt.
 ```
 
 **--- Older state below (history) ---**
