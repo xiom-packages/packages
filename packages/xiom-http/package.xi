@@ -7,5 +7,6 @@ package xiom_http {
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["XIOM Team"];
-  deps: { "xiom.std": ">=0.60.0 <1.0.0", "xiom.string": "*", "xiom.encoding": "*", "xiom.io": "*", "xiom.convert": "*" };
+  modules: ["xiom.http", "xiom.http.client", "xiom.http.cookie", "xiom.http.demo", "xiom.http.mime", "xiom.http.parser", "xiom.http.server", "xiom.http.status", "xiom.http.types", "xiom.http.url"];
+  deps: { "xiom.std": ">=0.60.0 <1.0.0" };
 }
