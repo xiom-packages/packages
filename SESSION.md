@@ -3,12 +3,13 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-03 (13:00Z), by the packages session (wave 56:
+**Written:** 2026-10-03 (13:50Z), by the packages session (wave 56:
 category-vocabulary sweep -- all 90 mixed manifests normalized, zero
 unknown tokens remain; owner-approved `firebird`/`oracle` publish scope;
 published as `eco-v0.1.35`; allowlist 497 -> 499; README Status-block
-sync closed -- 514/514 match the live registry). Check
-`git log -1 --format=%h %s` before starting.
+sync closed -- 514/514 match the live registry; bracket re-audit 0 real
+sites; `&mut Int` write-drop boundary refined -- bare drops, deref
+works). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
@@ -49,6 +50,21 @@ sync closed -- 514/514 match the live registry). Check
   published" while live at `0.1.0`); repo-side only, no republish
   (policy 1b); the earlier "351 names lag" carry-forward is closed
   (verify by comparing each README block against the registry index).
+- **Repo-hygiene re-audits (this session):** (a) bracket-debt sweep --
+  1712 `.xi` files byte-scanned for `Vec<`/`Result<`/`Option<`/`<]`/`>]`;
+  31 raw hits, ALL in comments or XML/string literals -> **0 real
+  sites**; the wave-54/55 repair program holds; (b) `&mut Int` audit --
+  only `gbnf` (deref form, safe) and `http` (bare form, tests=unknown,
+  statically exposed) carry real `&mut Int` params; every other hit is a
+  comment or a `&mut Vec` variable named `f64` (apple/mkv tests).
+- **Compiler-evidence refinement (v0.62.2 `&mut Int` write-drop):** the
+  drop is the BARE assignment form (`s = 99`) in both call forms (plain
+  local and explicit `&mut`); DEREF writes (`*s = ...`) work. Matrix
+  probe `docs/repro/v0622-regressions/mut_int_write_drop_matrix.xi` =
+  `bad=2`; `gbnf` re-ran **30/30 PASS** on the installed v0.62.2 with
+  deref writes (production confirmation).
+  `docs/COMPILER-FINDINGS.md` + the `MAINTENANCE.md` workaround row
+  updated; Tier-2 can narrow the ban to bare assignments only.
 
 **--- Older state below (history) ---**
 

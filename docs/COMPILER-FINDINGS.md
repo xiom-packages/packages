@@ -246,6 +246,21 @@ strict clauses on):
     (verified with throwaway probes in two packages). Design guidance
     meanwhile: thread scalar state through return values; struct
     out-params are safe.
+  - **Write-form boundary pinned (2026-10-03, packages lane):** the drop
+    is the **bare assignment** through the parameter (`s = 99`) -- it
+    drops in BOTH call forms (plain local `set(st)` and explicit
+    `set(&mut st)`); **deref writes (`*s = 99`) propagate correctly in
+    both call forms**. Probe:
+    `docs/repro/v0622-regressions/mut_int_write_drop_matrix.xi`
+    (`plain+bare: 10`, `explicit+bare: 10`, `plain+deref: 99`,
+    `explicit+deref: 99`, `bad=2`, exit 2). Production confirmation:
+    `xiom.gbnf` (`*pos = *pos + 1`, plain call sites) re-ran
+    **30/30 PASS on the installed v0.62.2** (2026-10-03). Repo exposure to
+    the bare form: `xiom-http/src/parser.xi` (`pos_ref = ...`,
+    tests=unknown -- statically exposed, not yet executed); every other
+    `&mut Int` hit in the repo is a comment. Tier-2 can narrow the
+    workaround from "no `&mut Int` params" to "no bare assignments to
+    `&mut Int` params" once the compiler fixes the bare form.
 - 2026-10-01: **`Vec[Str].push` trigger isolated -- MODULE-LEVEL global
   `Vec[Str]`.** A local `Vec[Str]` with the same literal pushes compiles
   and runs correctly; a module-level `var v: Vec[Str] = Vec[Str].new();`

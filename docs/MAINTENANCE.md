@@ -129,7 +129,7 @@ it, and whether the fix has landed on the pin.
 |---|---|---|---|
 | `byte_at` widen+mask `(x as Int) & 0xFF` | `docs/repro/byte-at-128` | every binary/codec package | fix on compiler main (`f4af5f64`); retire only after the battery passes on the next release |
 | No global `Vec[Str].push` / avoid `Vec[Str]` | `docs/repro/v0622-regressions/vec_str_push_global.xi` (+ param shape) | `consensus`, all blob+offset packages | OPEN (compiler queue) |
-| No `&mut Int` scalar params (state via returns) | `docs/repro/mut-int-write-through` | numerical/stateful packages (wave-46 set, `upnp`) | OPEN (scalar-only; `&mut Struct` field writes work) |
+| No `&mut Int` scalar params (state via returns) | `docs/repro/mut-int-write-through` + `docs/repro/v0622-regressions/mut_int_write_drop_matrix.xi` | numerical/stateful packages (wave-46 set, `upnp`) | OPEN for BARE assignment (`s = 99`) in both call forms; DEREF writes (`*s = ...`) work on v0.62.2 (matrix probe `bad=2`; `gbnf` 30/30 in production with deref writes); `&mut Struct` field writes work. Tier-2 can narrow the ban accordingly |
 | Mixed/full-angle bracket grep after every write | byte-level grep shapes: `Vec<`, `Result<`, `Option<`, `&Vec<`, `<]`, `>]` (parameter/local/FIELD positions; never audit from Read output -- it renders `Vec<Int>` as `Vec[Int]`) | all packages (authoring hazard) | OPEN; keep the two-pass grep |
 | Bare imported type names (no qualified type references) | COMPILER-FINDINGS nominal-identity row (`saml`/`k8s` params, `gcp` struct literals) | multi-module packages | OPEN (qualified function calls resolve; qualified types fail) |
 | No cross-type bindings (Str field -> `Vec[UInt8]` local) | `xiom.pptx` probe (COMPILER-FINDINGS row) | `pptx`, potentially all | OPEN |

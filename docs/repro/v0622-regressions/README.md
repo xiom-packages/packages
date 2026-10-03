@@ -121,9 +121,18 @@ fn main() -> Int {
 Exit code 0, no diagnostics. The sibling shape also fails:
 `fn bump(s: &mut Int) { let v = byval(s); s = v; }` with
 `fn byval(x: Int) -> Int { return x + 1; }` prints `st=10, st2=10` where
-`11, 12` are expected -- so the write through the `&mut Int` parameter is
-dropped regardless of how the value is produced. (`&mut Vec` writes at the
-same call sites are fine.)
+`11, 12` are expected. (`&mut Vec` writes at the same call sites are fine.)
+
+**Write-form boundary (2026-10-03):** the drop is the **bare assignment**
+through the parameter (`s = 99`) -- it drops in BOTH call forms (plain
+local and explicit `&mut`) -- while **deref writes (`*s = 99`) propagate
+correctly in both call forms**. Pinned by
+`mut_int_write_drop_matrix.xi` (`plain+bare: 10`, `explicit+bare: 10`,
+`plain+deref: 99`, `explicit+deref: 99`, `bad=2`, exit 2) and confirmed in
+production by `xiom.gbnf` (deref `*pos = *pos + 1`, plain call sites,
+**30/30 PASS on the installed v0.62.2**, re-run 2026-10-03). The only
+current repo exposure to the bare form is `xiom-http/src/parser.xi`
+(`pos_ref = ...`, tests=unknown).
 
 Origin: `xiom.svm`'s `_svm_shuffle(order: &mut Vec[Int], state: &mut Int)`
 never advanced `state`. Workaround used everywhere in wave 46: thread scalar
