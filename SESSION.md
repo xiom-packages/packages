@@ -40,6 +40,14 @@ the staged v0.62.4). Check `git log -1 --format=%h %s` before starting.
 - **Next:** stable hardening batches (279 stable; `bson`/`ttl` only) and
   the remaining grandfathered set (FFI-class skipped); next tag
   `eco-v0.1.43`.
+- **Hardening batch proposal (owner pick, read-only scoping done):**
+  first batch could be the small foundational stable packages --
+  `uuid` (18 checks), `csv` (20 checks), plus clause top-ups for
+  `bson`/`ttl` (the only stable packages with clauses today). All are
+  already allowlisted/published, so a 2-4 name hardening batch needs no
+  ops scope delta and no rate window; contracts + API review per
+  `docs/PROMOTION.md`, then patch bump + x2 + record + publish in the
+  next eco tag. Owner to confirm the set before work starts.
 
 **--- Older state below (history) ---**
 
