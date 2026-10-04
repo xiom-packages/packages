@@ -1,6 +1,6 @@
 # xiom.csv -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.csv` (`src/csv.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -152,3 +152,28 @@ and `csv_write_row(&rows[i])` for element access through a `&Vec[Vec[Str]]`.
 The test suite routes every string comparison through `str_compare` to avoid
 BUG 17, and only `&` (never `&mut`) is taken of locals in call sites, so the
 E001 aliasing warning does not fire.
+
+## 8. Contracts (hardening pass, 2026-10-04)
+
+Runtime-checked contracts on the four expressible public entry points
+(v0.62.4 pin). `xiom-verify --check` (Z3 4.13.4) result: **0 proven / 0
+violated / 11 unknown / 12 tooling errors** -- `Vec`/`Str` length reads
+are "complex call targets" for the current solver bridge, so the clauses
+are annotated for review, enforced at runtime, and recorded as
+solver-unproven.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `csv_parse_line` | `ensures: result.len() >= 1` | unproven |
+| `csv_parse` | `ensures: text.len() == 0 => result.len() == 0` | unproven |
+| `csv_write` | `ensures: rows.len() == 0 => result.len() == 0` | unproven |
+| `csv_field_count` | `ensures: result >= 0`; `ensures: rows.len() == 0 => result == 0` | unproven |
+| `csv_needs_quoting` | none -- total predicate; pinned by tests t10/t11 | unasserted (documented) |
+| `csv_write_row` | none -- quoting round-trip pinned by tests t12/t14 | unasserted (documented) |
+| `csv_is_rectangular` | none -- total predicate; pinned by tests t16/t17 | unasserted (documented) |
+| `csv_get` | none -- negative/out-of-range `None` behavior pinned by t18 | unasserted (documented) |
+
+Unasserted/documented: the round-trip property
+(`csv_parse(csv_write(rows))` preserves records) is covered by tests
+t14/t15 but not expressible as a runtime contract over nested
+`Vec[Str]`; malformed-quoting leniency is documented in section 3 (rule 8).

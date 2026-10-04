@@ -31,7 +31,9 @@ const _CSV_LF: UInt8 = 10u8;
 /// records yields the first record only.
 /// Error case: none.
 /// Complexity: O(n).
-pub fn csv_parse_line(text: Str) -> Vec[Str] {
+pub fn csv_parse_line(text: Str) -> Vec[Str]
+  ensures: result.len() >= 1;
+{
   let rows = csv_parse(text);
   var out = Vec[Str].new();
   if rows.len() == 0 {
@@ -54,7 +56,9 @@ pub fn csv_parse_line(text: Str) -> Vec[Str] {
 /// one record with a single empty field. UTF-8 passes through byte-exact.
 /// Error case: none; an unterminated quoted field is closed at EOF.
 /// Complexity: O(n).
-pub fn csv_parse(text: Str) -> Vec[Vec[Str]] {
+pub fn csv_parse(text: Str) -> Vec[Vec[Str]]
+  ensures: text.len() == 0 => result.len() == 0;
+{
   var rows = Vec[Vec[Str]].new();
   let len = text.len();
   if len == 0 {
@@ -184,7 +188,9 @@ pub fn csv_write_row(fields: &Vec[Str]) -> Str {
 /// yields the empty string.
 /// Error case: none.
 /// Complexity: O(n) over the total field length.
-pub fn csv_write(rows: &Vec[Vec[Str]]) -> Str {
+pub fn csv_write(rows: &Vec[Vec[Str]]) -> Str
+  ensures: rows.len() == 0 => result.len() == 0;
+{
   var out = "";
   var i = 0;
   while i < rows.len() {
@@ -240,7 +246,10 @@ pub fn csv_get(rows: &Vec[Vec[Str]], r: Int, c: Int) -> Option[Str] {
 /// Params: rows - the records to inspect.
 /// Returns: the number of fields in rows[0], or 0 when there are no records.
 /// Complexity: O(1).
-pub fn csv_field_count(rows: &Vec[Vec[Str]]) -> Int {
+pub fn csv_field_count(rows: &Vec[Vec[Str]]) -> Int
+  ensures: result >= 0;
+  ensures: rows.len() == 0 => result == 0;
+{
   if rows.len() == 0 {
     return 0;
   }

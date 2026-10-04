@@ -9,7 +9,7 @@
 
 package xiom_csv {
   name: "xiom.csv";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "CSV parsing and writing with RFC 4180-style quoting and escaping";
   categories: ["data"];
   keywords: ["csv", "parser", "serialization", "text"];
