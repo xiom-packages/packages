@@ -99,7 +99,9 @@ pub fn ttl_new(capacity: Int, default_ttl_secs: Int) -> TtlCache
 }
 
 /// Insert or replace `key` -> `value` using the default TTL.
-pub fn ttl_insert(c: &mut TtlCache, key: Str, value: Int) {
+pub fn ttl_insert(c: &mut TtlCache, key: Str, value: Int)
+  ensures: c.count <= c.capacity;
+{
   let ttl = c.default_ttl;
   ttl_insert_with_ttl(c, key, value, ttl);
 }
@@ -108,7 +110,9 @@ pub fn ttl_insert(c: &mut TtlCache, key: Str, value: Int) {
 /// <= 0 stores an entry that is already expired. When the cache is full the
 /// stored entry with the earliest expires_at is evicted first (ties: the
 /// older insertion). Inserts do not change the hit/miss counters.
-pub fn ttl_insert_with_ttl(c: &mut TtlCache, key: Str, value: Int, ttl_secs: Int) {
+pub fn ttl_insert_with_ttl(c: &mut TtlCache, key: Str, value: Int, ttl_secs: Int)
+  ensures: c.count <= c.capacity;
+{
   let now = _now();
   let expires_at = now + ttl_secs;
   let existing = stringmap.string_map_get(&c.index, key);
@@ -132,7 +136,9 @@ pub fn ttl_insert_with_ttl(c: &mut TtlCache, key: Str, value: Int, ttl_secs: Int
 
 /// Look `key` up. An expired entry is removed lazily: the result is None and
 /// both expirations and misses increase. A live hit increases hits.
-pub fn ttl_get(c: &mut TtlCache, key: Str) -> Option[Int] {
+pub fn ttl_get(c: &mut TtlCache, key: Str) -> Option[Int]
+  ensures: c.hits + c.misses == c.hits@pre + c.misses@pre + 1;
+{
   let now = _now();
   let found = stringmap.string_map_get(&c.index, key);
   match found {
@@ -170,7 +176,9 @@ pub fn ttl_peek(c: &TtlCache, key: Str) -> Option[Int] {
 
 /// Eagerly remove every expired entry and return how many were removed.
 /// Each removal increases expirations.
-pub fn ttl_evict_expired(c: &mut TtlCache) -> Int {
+pub fn ttl_evict_expired(c: &mut TtlCache) -> Int
+  ensures: result >= 0 && result <= c.count@pre;
+{
   let now = _now();
   var removed: Int = 0;
   var i: Int = 0;
@@ -202,7 +210,9 @@ pub fn ttl_contains(c: &TtlCache, key: Str) -> Bool {
 /// Remove `key`. True only when a live (unexpired) entry was removed. A
 /// stored-but-expired entry is discarded and counted in expirations, but the
 /// result is false; an absent key is a false no-op.
-pub fn ttl_remove(c: &mut TtlCache, key: Str) -> Bool {
+pub fn ttl_remove(c: &mut TtlCache, key: Str) -> Bool
+  ensures: c.count == c.count@pre || c.count == c.count@pre - 1;
+{
   let now = _now();
   let found = stringmap.string_map_get(&c.index, key);
   match found {
@@ -218,7 +228,9 @@ pub fn ttl_remove(c: &mut TtlCache, key: Str) -> Bool {
 
 /// Remove every entry and reset hits, misses and expirations. Capacity and
 /// the default TTL are preserved.
-pub fn ttl_clear(c: &mut TtlCache) {
+pub fn ttl_clear(c: &mut TtlCache)
+  ensures: c.count == 0 && c.hits == 0 && c.misses == 0 && c.expirations == 0;
+{
   c.index = stringmap.string_map_new();
   c.keys = Vec[Str].new();
   c.values = Vec[Int].new();
@@ -231,7 +243,9 @@ pub fn ttl_clear(c: &mut TtlCache) {
 }
 
 /// Number of live (unexpired) entries. O(stored) scan.
-pub fn ttl_len(c: &TtlCache) -> Int {
+pub fn ttl_len(c: &TtlCache) -> Int
+  ensures: result >= 0 && result <= c.capacity;
+{
   let now = _now();
   var n: Int = 0;
   var i: Int = 0;
@@ -247,23 +261,31 @@ pub fn ttl_len(c: &TtlCache) -> Int {
 }
 
 /// Configured maximum number of stored entries.
-pub fn ttl_capacity(c: &TtlCache) -> Int {
+pub fn ttl_capacity(c: &TtlCache) -> Int
+  ensures: result >= 1;
+{
   return c.capacity;
 }
 
 /// Number of successful ttl_get calls.
-pub fn ttl_hits(c: &TtlCache) -> Int {
+pub fn ttl_hits(c: &TtlCache) -> Int
+  ensures: result >= 0;
+{
   return c.hits;
 }
 
 /// Number of ttl_get calls that found no live entry.
-pub fn ttl_misses(c: &TtlCache) -> Int {
+pub fn ttl_misses(c: &TtlCache) -> Int
+  ensures: result >= 0;
+{
   return c.misses;
 }
 
 /// Number of entries discarded because they had expired, by ttl_get,
 /// ttl_evict_expired, ttl_remove or a capacity eviction.
-pub fn ttl_expirations(c: &TtlCache) -> Int {
+pub fn ttl_expirations(c: &TtlCache) -> Int
+  ensures: result >= 0;
+{
   return c.expirations;
 }
 

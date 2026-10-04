@@ -4,7 +4,7 @@
 
 package xiom_ttl {
   name: "xiom.ttl";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Time-to-live cache with lazy and eager expiration and statistics";
   categories: ["core"];
   keywords: ["cache", "ttl", "expiry", "collections"];

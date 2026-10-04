@@ -1,5 +1,7 @@
 # xiom.ttl SPEC
 
+`Version 0.1.2 (stable; published on the XIOM registry).`
+
 ## Package Overview
 
 `xiom.ttl` is an in-memory time-to-live cache for `Str -> Int` entries with
@@ -150,3 +152,29 @@ Expected: `port: PASS (passed=14 failed=0 exit=0)`.
   "logically absent" choice (see Semantics).
 - **`clear` resets statistics** as well as entries; only the capacity and
   default TTL survive.
+
+## Contracts (hardening pass, 2026-10-04)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4) result:
+**0 proven / 0 violated / 21 unknown / 19 tooling errors** -- `Vec`
+length and `@pre` field comparisons are not yet expressible to the
+solver, so the clauses are enforced at runtime and recorded as
+solver-unproven.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `ttl_new` | `requires: capacity >= 1 && default_ttl_secs >= 0` (pre-existing) | unproven |
+| `ttl_insert` / `ttl_insert_with_ttl` | `ensures: c.count <= c.capacity` | unproven |
+| `ttl_get` | `ensures: c.hits + c.misses == c.hits@pre + c.misses@pre + 1` | unproven |
+| `ttl_evict_expired` | `ensures: result >= 0 && result <= c.count@pre` | unproven |
+| `ttl_remove` | `ensures: c.count == c.count@pre || c.count == c.count@pre - 1` | unproven |
+| `ttl_clear` | `ensures: c.count == 0 && c.hits == 0 && c.misses == 0 && c.expirations == 0` | unproven |
+| `ttl_len` | `ensures: result >= 0 && result <= c.capacity` | unproven |
+| `ttl_capacity` | `ensures: result >= 1` | unproven |
+| `ttl_hits` / `ttl_misses` / `ttl_expirations` | `ensures: result >= 0` | unproven |
+| `ttl_peek` / `ttl_contains` / `ttl_remaining_secs` | none -- non-mutating reads; pinned by the test plan | unasserted (documented) |
+
+The capacity invariant (`count <= capacity`) and the `hits + misses`
+accounting are now runtime-checked on every mutating entry point.
+Wall-clock non-monotonicity and second resolution remain documented
+limitations (see Known Limitations), not contract violations.
