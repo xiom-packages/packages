@@ -565,14 +565,10 @@ the staged v0.62.4). Check `git log -1 --format=%h %s` before starting.
    Brief = the v0.62.3 edition: `Vec[Str].push` and `&mut Int` params
    are FIXED (no avoidance; probes green) -- complex `Str`/struct const
    tables are STILL broken (runtime builders only); cross-module
-   helpers just need `pub` (child->parent calls are fine); **test
-   modules must NOT be nested under the package namespace**
-   (`module xiom.pkg.tests` cannot import the package root -- use a
-   non-nested name like `pkg_tests`); **always initialize locals at
-   declaration** (`var x: T = <default>;` -- uninitialized declaration +
-   later assignment corrupts on v0.62.3, see COMPILER-FINDINGS);
-   **both rules are FIXED on compiler main (m184/m185, locked) -- keep
-   them until the next release pin, then drop them**;
+   helpers just need `pub` (child->parent calls are fine); nested test
+   modules and uninitialized locals are **FIXED and shipped in v0.62.4**
+   (they used to need `pkg_tests` names / pre-initialized declarations --
+   normal usage is fine now);
    no builtin/generic-name shadowing; progress-guaranteed loops +
    full-angle bracket grep after green + `port.ps1 -TimeoutSec 60` gate
    + `## stdlib gaps` report. **Unsafe-FFI (v0.62.3):** every extern
@@ -646,15 +642,16 @@ Start by running: git fetch; git status -sb; git log -1; then
 & .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
 
 Then do, in order:
-1. Growth and/or stable hardening: the compiler release window is
-   CLOSED -- no watch pending (v0.62.3 pinned; complex `Str`/struct const
-   tables are its known issue -- runtime builders only; float bitcast is
-   still a stdlib stub; **`const` match arms never match** -- use
-   literals (fixed on compiler main m188, locked; restore named
-   constants after the next release pin)). The network stack is complete (`http`/`websocket`/`rest`/
-   `micro`/`realtime` published through `eco-v0.1.42`). `grpc` is parked
+1. Growth and/or stable hardening: v0.62.4 is pinned (released
+   2026-10-04; SHA256-verified) -- const tables, nested modules,
+   uninitialized locals and const match arms are all **fixed and
+   shipped**; float bitcast is the remaining stdlib stub. The network
+   stack is complete (`http`/`websocket`/`rest`/
+   `micro`/`realtime` published through `eco-v0.1.42`); `protobuf` is
+   prepared (49/49) and queued for `eco-v0.1.43`. `grpc` is parked
    with the crash lead in `docs/failed_attempts.md` (do not re-run the
-   same bisection); `graphql` is parked 9/10 (enum-payload `Str`). Stable
+   same bisection); `graphql` is parked 9/10 (fresh enum-payload
+   finding on v0.62.4). Stable
    hardening batches per `docs/PROMOTION.md` (279 stable; only
    `bson`/`ttl` carry clauses; size with `scripts/contract-coverage.ps1`)
    are the main available track.
