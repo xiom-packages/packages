@@ -1,6 +1,6 @@
 # xiom.uuid -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.uuid` (`src/uuid.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -161,3 +161,28 @@ independently of the module under test.
 - Imports: `xiom.string` and `xiom.string.builder` only; the tests
   additionally use `xiom.test`, `xiom.io`, `xiom.string.compare` and
   `xiom.encoding.hex`.
+
+## 10. Contracts (hardening pass, 2026-10-04)
+
+Runtime-checked contracts on the public entry points (v0.62.4 pin).
+`xiom-verify --check` (Z3 4.13.4) result: **0 proven / 0 violated / 13
+unknown / 5 tooling errors** -- `Result` payload access and call targets
+are not yet expressible to the solver ("non-datatype receiver" /
+"complex call target" gaps), so every clause below is annotated for
+review and enforced at runtime; SPEC records them as solver-unproven.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `uuid_format` | `ensures: result is Ok => string.str_len(result.value) == 36`; `ensures: result is Err => bytes.len() != 16` | unproven |
+| `uuid_parse` | `ensures: result is Ok => result.value.len() == 16` | unproven |
+| `uuid_is_valid` | `ensures: result == uuid_parse(s).is_ok` (definitional) | unproven |
+| `uuid_v4_from` | `ensures: result is Ok => string.str_len(result.value) == 36`; `ensures: result is Err => rand.len() != 16` | unproven |
+| `uuid_version` | `ensures: result is Ok => result.value >= 0 && result.value <= 15` | unproven |
+| `uuid_variant_ok` | none -- total `Bool` wrapper; behavior pinned by tests t15/t16 | unasserted (documented) |
+
+Unasserted/documented: the v4 bit rules (version nibble 4, RFC 4122
+variant bits, parse-back equality) are covered by tests t11/t13 and
+section 4; they cannot be expressed as runtime contracts over the
+formatted `Str` without bitcast helpers. The `uuid_parse` `Err` causes
+(length, hyphen placement, non-hex) are pinned by tests t5-t8 and the
+error catalog in section 5.

@@ -133,7 +133,10 @@ fn _is_group_start(i: Int) -> Bool {
 /// (e.g. "00010203-0405-0607-0809-0a0b0c0d0e0f").
 /// Error case: Err("uuid: expected 16 bytes") when bytes.len() != 16.
 /// Complexity: O(1) (fixed 16 bytes).
-pub fn uuid_format(bytes: &Vec[UInt8]) -> Result[Str, Str] {
+pub fn uuid_format(bytes: &Vec[UInt8]) -> Result[Str, Str]
+  ensures: result is Ok => string.str_len(result.value) == 36;
+  ensures: result is Err => bytes.len() != 16;
+{
   if bytes.len() != 16 {
     return _err_str("uuid: expected 16 bytes");
   }
@@ -160,7 +163,9 @@ pub fn uuid_format(bytes: &Vec[UInt8]) -> Result[Str, Str] {
 /// Err("uuid: invalid hyphen placement") for a non-hyphen at a hyphen
 /// position, Err("uuid: invalid hex digit") for a non-hex byte elsewhere.
 /// Complexity: O(s.len()).
-pub fn uuid_parse(s: Str) -> Result[Vec[UInt8], Str] {
+pub fn uuid_parse(s: Str) -> Result[Vec[UInt8], Str]
+  ensures: result is Ok => result.value.len() == 16;
+{
   if s.len() != 36 {
     return _err_bytes("uuid: expected 36 characters");
   }
@@ -191,7 +196,9 @@ pub fn uuid_parse(s: Str) -> Result[Vec[UInt8], Str] {
 /// lengths, misplaced hyphens, non-hex bytes, braces and the URN form.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn uuid_is_valid(s: Str) -> Bool {
+pub fn uuid_is_valid(s: Str) -> Bool
+  ensures: result == uuid_parse(s).is_ok;
+{
   let parsed = uuid_parse(s);
   if parsed.is_ok {
     return true;
@@ -210,7 +217,10 @@ pub fn uuid_is_valid(s: Str) -> Bool {
 /// two bits) to 10, per the RFC 4122 v4 layout.
 /// Error case: Err("uuid: expected 16 bytes") when rand.len() != 16.
 /// Complexity: O(1) (fixed 16 bytes).
-pub fn uuid_v4_from(rand: &Vec[UInt8]) -> Result[Str, Str] {
+pub fn uuid_v4_from(rand: &Vec[UInt8]) -> Result[Str, Str]
+  ensures: result is Ok => string.str_len(result.value) == 36;
+  ensures: result is Err => rand.len() != 16;
+{
   if rand.len() != 16 {
     return _err_str("uuid: expected 16 bytes");
   }
@@ -237,7 +247,9 @@ pub fn uuid_v4_from(rand: &Vec[UInt8]) -> Result[Str, Str] {
 /// (4 for uuid_v4_from output; any nibble 0..15 is accepted).
 /// Error case: Err("uuid: invalid UUID") when s does not parse.
 /// Complexity: O(s.len()).
-pub fn uuid_version(s: Str) -> Result[Int, Str] {
+pub fn uuid_version(s: Str) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0 && result.value <= 15;
+{
   let parsed = uuid_parse(s);
   if !parsed.is_ok {
     return _err_int("uuid: invalid UUID");

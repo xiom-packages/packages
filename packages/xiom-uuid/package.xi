@@ -12,7 +12,7 @@
 
 package xiom_uuid {
   name: "xiom.uuid";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "UUID formatting, parsing, validation, and v4 construction from caller-supplied randomness";
   categories: ["data","tooling"];
   keywords: ["uuid","identifier","format","v4"];
