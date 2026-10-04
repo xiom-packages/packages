@@ -3,30 +3,43 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**LIVE CLAIM 2026-10-04 17:00Z (main/debug session):** v0.63.0 re-pin
-DONE (archive SHA256 `689881f4...` MATCH; deployed, `xiom --version` =
-v0.63.0; `COMPILER_VERSION` bumped; repin 514; pin commit `e8af6291`).
-Release-response probes DONE: byte-at-128 / const-tables / mut-int /
-Vec[Str].push all green; const-match fixed; **grpc stays RED**
-(`probe_suite_min` `0xC0000005`, `probe_direct` hang) -- numeric match
-arms stay blocked; graphql still 9/10. **Fleet sweep v0.63.0 RUNNING**
-(`bgp_107d01d8a001GqKekQHt5u6Tnb`, `%TEMP%\kilo\sweep-v0630`); on
-completion: `record-sweep -RunBy fleet-sweep:v0.63.0` (`-WhatIf`
-first), validate+guard, commit, update SESSION. Parallel packages
-lanes: do NOT touch `COMPILER_VERSION`, `packages/*/STATUS.json` or
-create tags until this block is replaced; coordinate first.
-
-**Written:** 2026-10-04 (16:00Z), by the main/debug session (v0.62.4
-release flow complete; first hardening batch DONE + PUBLISHED in
-`eco-v0.1.44` -- uuid 0.1.2, csv 0.1.2, bson 0.1.3, ttl 0.1.2 with
-runtime contracts + SPEC contract inventories; `l10n-unicode` record
-stage reverted to incubating; graphql 9/10 + grpc 0xC0000005 remain
-fresh open findings with the compiler lane). Check
+**Written:** 2026-10-04 (19:10Z), by the main/debug session (v0.63.0
+pinned + SHA256-verified, repin 514, fleet sweep 460/460 and records
+re-pointed to `fleet-sweep:v0.63.0`; full probe index re-run: all green
+except the known opens -- grpc `Vec[(Str,Str)]` still red, graphql
+9/10; first hardening batch published in `eco-v0.1.44`). Check
 `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-04 16:00Z (read this first):**
+**STATE AT 2026-10-04 19:10Z (read this first):**
+- **v0.63.0 PINNED (released 2026-10-04 16:34Z):** official
+  `xiom-0.63.0-windows-x64.zip`, SHA256 `689881f4...` verified against
+  the published SHA256SUMS; deployed into `%LOCALAPPDATA%\xiom.new`
+  (`xiom --version` = v0.63.0); `COMPILER_VERSION` bumped; `repin` 514
+  records (`e8af6291`); fleet sweep **460/460** (the `l10n-unicode`
+  watchdog clip re-ran PASS 24/24 at 42s); all 460 runs re-pointed to
+  `fleet-sweep:v0.63.0` (`57fc5a05`). Guard: **499 allowlisted / 459
+  ready / 40 grandfathered / 0 failures**.
+- **Release-response probes (v0.63.0):** full 18-bundle index re-run --
+  byte-at-128, const-tables, const-match, arity, mut-int, str-vec-eq,
+  loop-cse, sign-bit, generic-fnptr, struct-field-vec, vec-struct all
+  green; **`uninit-local` moved to FIXED** (standalone `bad=0`; graphql
+  no longer hangs).
+- **grpc still RED on v0.63.0 (compiler lane predicted this):**
+  `probe_suite_min.xi` crashes `0xC0000005`; `probe_direct.xi` hangs --
+  **numeric match arms stay blocked in `grpc.xi`**; `xiom.grpc` stays
+  unpublished. graphql still 9/10 (enum-payload in-situ);
+  `crypto-link` and float bitcast remain stdlib-lane opens.
+- **No API/behavior breaks observed on the new pin** (timing-only
+  changes, as announced).
+- **Next:** parked grpc/graphql (compiler-gated), further hardening
+  (the grandfathered stable set), or new growth; next tag
+  `eco-v0.1.45`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-04 16:00Z (history):**
 - **`eco-v0.1.44` PUBLISHED (run `37214746199` SUCCESS):** first
   hardening batch -- `xiom.uuid` **0.1.2**, `xiom.csv` **0.1.2**,
   `xiom.bson` **0.1.3**, `xiom.ttl` **0.1.2**, all `stable`, x2 green on
@@ -760,14 +773,15 @@ fresh open findings with the compiler lane). Check
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-04 16:00Z STATE block and
+private). Read SESSION.md first -- the 2026-10-04 19:10Z STATE block and
 the "Next-session operating kit" in section 0 are the live handoff
-(v0.62.4 release flow complete; `eco-v0.1.44` published the first
-hardening batch: uuid 0.1.2, csv 0.1.2, bson 0.1.3, ttl 0.1.2 with
-runtime contracts; registry 459 packages + 2 infra; allowlist 499;
-`l10n-unicode` needs a >60s suite timeout and its record stage is back
-to incubating; graphql 9/10 + grpc 0xC0000005 are fresh open findings
-with the compiler lane). Repo-local identity must be
+(v0.63.0 pinned + SHA256-verified; repin 514; fleet sweep 460/460
+re-recorded `fleet-sweep:v0.63.0`; first hardening batch published in
+`eco-v0.1.44`: uuid 0.1.2, csv 0.1.2, bson 0.1.3, ttl 0.1.2; registry
+459 packages + 2 infra; allowlist 499; grpc `Vec[(Str,Str)]` STILL RED
+on v0.63.0 -- numeric match arms stay blocked; graphql 9/10;
+`l10n-unicode` needs a >60s suite timeout and stays incubating).
+Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
 gates); ops opens the publish-rate window ONLY for waves >20 names
@@ -782,14 +796,15 @@ shadowing: a v0.62.3 staging dir precedes xiom.new
 
 Then do, in order:
 1. Open findings (with the compiler lane; do NOT re-run the same
-   bisections): graphql 9/10 enum-payload in-situ (lead:
-   variable-payload ctor flattening) and grpc `Vec[(Str, Str)]`
-   0xC0000005 (minimal group `packages\xiom-grpc\tests\probe_suite_min.xi`
-   + `probe_direct.xi`, evidence `docs\repro\tuple-vec-set\`). When fixes
-   land: re-test; if green, finish grpc (restore named-constant arms per
-   m188, x2, record) and graphql (x2, record), then publish in one batch.
-   Also watch for the `l10n-unicode` slowdown follow-up (52s -> 96-107s
-   on v0.62.4; correctness green).
+   bisections -- both were re-tested RED on v0.63.0): graphql 9/10
+   enum-payload in-situ (lead: variable-payload ctor flattening) and
+   grpc `Vec[(Str, Str)]` 0xC0000005 (minimal group
+   `packages\xiom-grpc\tests\probe_suite_min.xi` + `probe_direct.xi`,
+   evidence `docs\repro\tuple-vec-set\`). When fixes land: re-test; if
+   green, finish grpc (restore named-constant arms per m188, x2, record)
+   and graphql (x2, record), then publish in one batch.
+   `l10n-unicode` stays incubating; needs a >60s suite timeout under
+   load (42-45s idle).
 2. Hardening track: first batch DONE + PUBLISHED (`eco-v0.1.44`:
    `uuid`/`csv`/`bson`/`ttl`). Next: pick the next small set from the
    grandfathered stable carriers (see `scripts/contract-coverage.ps1`)
