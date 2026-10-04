@@ -17,7 +17,9 @@ conformance suite like `http`/`websocket`/`rest`/`micro`/`realtime`.
    literals; minimized in `docs/repro/const-match/probe_const_match.xi`
    (17 const arms scanned repo-wide; only `grpc.xi` used them).
 
-**Unresolved:** the suite binary crashes with `0xC0000005`
+**Update 2026-10-04 -- minimized (compiler-lane handoff):** a new hypothesis (the crash is call-dependent, not definition-dependent) produced the smallest failing subset: `packages/xiom-grpc/tests/probe_suite_min.xi` -- imports + the exact `test_grpc_metadata_set_new_key` body + a tiny main. Calling that function crashes 0xC0000005 pre-output; replacing the call with `let rc: Int = 0;` runs. Inline in main the same ops pass until the `req.metadata[0].0` read is added, which then hangs. Fault data: `ntdll.dll`, 0xC0000005, offsets 0x1ff2a/0xc4a0f. Full matrix in `docs/repro/tuple-vec-set/README.md`; compiler lane took the handoff.
+
+**Previous unresolved write-up:** the suite binary crashes with `0xC0000005`
 (`exit -1073741819`) *before any output* when `main` includes the
 metadata/server-config test group. Bisection (6+ runs, exceeding the
 3-attempt circuit breaker):
@@ -38,3 +40,4 @@ the labeled runner so the next attempt can bisect from a complete suite.
 steps if picked up: reduce `metadata_set_new_key`/`set_overwrite` in a
 standalone probe (tuple Vec mutation), or split the suite into two
 smaller processes.
+

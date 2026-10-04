@@ -54,6 +54,15 @@ recorded). Check `git log -1 --format=%h %s` before starting.
   labels is optional (no correctness need) -- bump `package.xi` and push
   a `stdlib-v*` tag when convenient; the stdlib checkout is at version
   `0.62.0`, last tag `stdlib-v0.62.0`.
+- **grpc crash handoff (2026-10-04):** smallest failing subset found and
+  ready for the compiler lane -- `packages/xiom-grpc/tests/probe_suite_min.xi`
+  (calling the exact metadata-set test -> `0xC0000005` pre-output;
+  replacing the call with `let rc: Int = 0;` runs) plus
+  `probe_direct.xi` (inline `req.metadata[0].0` read -> hang; without the
+  read it runs). Fault data: `ntdll.dll` 0xC0000005, offsets
+  `0x1ff2a`/`0xc4a0f`; reproduces on v0.62.3 **and** local main
+  m184..m188. Full matrix: `docs/repro/tuple-vec-set/README.md`;
+  COMPILER-FINDINGS row added; grpc stays unpublished meanwhile.
 - **Next:** stable hardening batches (279 stable; only `bson`/`ttl` carry
   clauses; `scripts/contract-coverage.ps1`) and/or pick up the parked
   grpc/graphql with the recorded leads; next tag `eco-v0.1.43`.
