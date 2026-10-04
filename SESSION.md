@@ -78,9 +78,11 @@ recorded). Check `git log -1 --format=%h %s` before starting.
   placeholder null calls, blocked Vec<->ptr marshaling) -- skip them with
   the FFI class; their suites also reference a nonexistent `TestCase`
   framework, but the impls are stubs so a harness rewrite alone would not
-  help. `protobuf`
-  **compiles** (2 modules) but crashes `0xC000001D` (illegal instruction)
-  pre-output -- **suspected m189-family; add to the re-test list**.
+  help. `protobuf` **compiles** (2 modules) but crashes `0xC000001D`
+  (illegal instruction) pre-output -- fault record: `a.exe` itself,
+  exception `0xc000001d`, offset `0x1a809` (different signature from the
+  grpc ntdll `0xC0000005` case) -- **suspected m189-family; add to the
+  re-test list**.
 - **m189 re-test list (when the fix build lands):** rebuild
   (`cargo build --release -p xiom`), then `docs/repro/enum-payload-str`
   in-situ (graphql 9/10 case), `packages/xiom-grpc/tests/probe_suite_min.xi`
