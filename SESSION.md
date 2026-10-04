@@ -3,23 +3,47 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**LIVE CLAIM 2026-10-04 15:52Z (main/debug session):** the hardening
-batch is being executed by this lane right now -- `uuid` and `csv`
-contracts, `bson`/`ttl` clause top-ups, patch bumps, publish in
-`eco-v0.1.44`. Parallel packages lanes: do NOT edit
-`packages/xiom-uuid`, `packages/xiom-csv`, `packages/xiom-bson`,
-`packages/xiom-ttl`, and do not create `eco-v0.1.44`; coordinate first.
-
-**Written:** 2026-10-04 (15:45Z), by the packages session (v0.62.4
-release flow complete: fleet sweep 460/460, 460 runs re-recorded,
-`eco-v0.1.43` published with `xiom.protobuf`; `l10n-unicode` slow-suite
-observation recorded; graphql 9/10 + grpc 0xC0000005 remain fresh open
-findings with the compiler lane; hardening proposal recorded). Check
+**Written:** 2026-10-04 (16:00Z), by the main/debug session (v0.62.4
+release flow complete; first hardening batch DONE + PUBLISHED in
+`eco-v0.1.44` -- uuid 0.1.2, csv 0.1.2, bson 0.1.3, ttl 0.1.2 with
+runtime contracts + SPEC contract inventories; `l10n-unicode` record
+stage reverted to incubating; graphql 9/10 + grpc 0xC0000005 remain
+fresh open findings with the compiler lane). Check
 `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-04 15:45Z (read this first):**
+**STATE AT 2026-10-04 16:00Z (read this first):**
+- **`eco-v0.1.44` PUBLISHED (run `37214746199` SUCCESS):** first
+  hardening batch -- `xiom.uuid` **0.1.2**, `xiom.csv` **0.1.2**,
+  `xiom.bson` **0.1.3**, `xiom.ttl` **0.1.2**, all `stable`, x2 green on
+  v0.62.4, live-verified on the registry; runtime contracts + SPEC
+  contract inventories (`xiom-verify` solver-unproven -- tooling gaps
+  recorded per package). No allowlist delta, no rate window. Registry:
+  459 packages + 2 infra = 461 entries; guard 499 allowlisted / 459
+  ready / 40 grandfathered / 0 failures.
+- **`l10n-unicode` record fix (`8d026842`):** the `stable` stage flip
+  from `2d35e3c8` was reverted to `incubating` -- README and the live
+  registry both say incubating and the package carries zero contracts
+  (stable gate G4 unmet). Slow-suite note kept: watchdog-marginal (45.6s
+  idle, 96-107s under load), raise the sweep timeout at next touch. A
+  real promotion needs a contracts pass first.
+- **Concurrent-lane protocol (added after this handoff ran twice):**
+  claim a batch in SESSION.md (LIVE CLAIM block) before editing shared
+  packages; check `git log -1 --format=%h %s` before every commit; the
+  publish gate is approved per tag by the acting lane.
+- **Open findings (compiler-gated; do NOT re-bisect):** graphql 9/10
+  enum-payload in-situ; grpc `Vec[(Str, Str)]` 0xC0000005 -- evidence in
+  `docs/repro/`. When fixes land: re-test, finish + publish in one batch.
+- **Remaining hardening queue:** the grandfathered stable packages with
+  zero clauses (see `scripts/contract-coverage.ps1`); packages with
+  `tests=unknown` need a suite first.
+- **Next:** parked graphql/grpc (compiler-gated), further hardening, or
+  new growth; next tag `eco-v0.1.45`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-04 15:45Z (history):**
 - **v0.62.4 release flow COMPLETE + PUBLISHED (`eco-v0.1.43`):** pin
   SHA256-verified; **fleet sweep 460/460** (one timeout triaged: see
   below); 460 runs re-recorded (`fleet-sweep:v0.62.4`); run
@@ -723,13 +747,14 @@ findings with the compiler lane; hardening proposal recorded). Check
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-04 15:45Z STATE block and
+private). Read SESSION.md first -- the 2026-10-04 16:00Z STATE block and
 the "Next-session operating kit" in section 0 are the live handoff
-(v0.62.4 release flow complete: fleet sweep 460/460 re-recorded and
-`eco-v0.1.43` published with `xiom.protobuf`; registry 459 packages + 2
-infra; allowlist 499; `l10n-unicode` needs a >60s suite timeout;
-graphql 9/10 + grpc 0xC0000005 are fresh open findings with the compiler
-lane; hardening proposal recorded). Repo-local identity must be
+(v0.62.4 release flow complete; `eco-v0.1.44` published the first
+hardening batch: uuid 0.1.2, csv 0.1.2, bson 0.1.3, ttl 0.1.2 with
+runtime contracts; registry 459 packages + 2 infra; allowlist 499;
+`l10n-unicode` needs a >60s suite timeout and its record stage is back
+to incubating; graphql 9/10 + grpc 0xC0000005 are fresh open findings
+with the compiler lane). Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
 gates); ops opens the publish-rate window ONLY for waves >20 names
@@ -752,10 +777,12 @@ Then do, in order:
    m188, x2, record) and graphql (x2, record), then publish in one batch.
    Also watch for the `l10n-unicode` slowdown follow-up (52s -> 96-107s
    on v0.62.4; correctness green).
-2. Hardening track (owner pick; proposal recorded): first batch `uuid` +
-   `csv` + `bson`/`ttl` clause top-ups per `docs/PROMOTION.md` (contracts
-   + API review; x2 on v0.62.4; patch bump; record; publish). No ops
-   delta.
+2. Hardening track: first batch DONE + PUBLISHED (`eco-v0.1.44`:
+   `uuid`/`csv`/`bson`/`ttl`). Next: pick the next small set from the
+   grandfathered stable carriers (see `scripts/contract-coverage.ps1`)
+   per `docs/PROMOTION.md` -- contracts + API review; x2 on the pin;
+   patch bump; record; publish. No ops delta. Claim the batch in
+   SESSION.md before editing (concurrent-lane protocol).
 3. Growth (optional): the remaining grandfathered set is FFI-class
    (skipped) except `kafka` (green suite but FFI stubs; needs a pure-XIOM
    redesign) and `zstd`/`lzfse` (FFI stubs).

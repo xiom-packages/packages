@@ -1,6 +1,6 @@
 # xiom.ttl
 
-> **Status:** `stable` -- conformance-tested (14/14); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (14/14); published at `v0.1.2` on the XIOM registry.
 > **Scope:** an in-memory time-to-live cache with lazy and eager expiration,
 > capacity-bounded eviction, and hit/miss/expiration statistics.
 > **Deps:** `xiom.std` only (uses `xiom.collect.stringmap` and `xiom.time`).
