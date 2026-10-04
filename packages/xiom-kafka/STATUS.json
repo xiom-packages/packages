@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  22,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.62.3",
+                  "run_by":  "fleet-sweep:v0.62.4",
                   "commit":  "ed680f75",
-                  "checked":  "2026-10-03T20:01:39Z"
+                  "checked":  "2026-10-04T15:38:00Z"
               },
     "publish":  false,
     "excluded_reason":  "ported only: librdkafka FFI stubs remain (handle -1, poll None, admin Err(-999)); not publishable"

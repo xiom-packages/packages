@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  24,
                   "failed":  0,
-                  "run_by":  "packages-lane:v0.62.4-slow-suite",
+                  "run_by":  "fleet-sweep:v0.62.4",
                   "commit":  "5f469ee5",
-                  "checked":  "2026-10-04T14:29:53Z"
+                  "checked":  "2026-10-04T15:38:09Z"
               },
     "publish":  false,
     "excluded_reason":  "published; v0.62.4 suite needs >60s (96-107s) -- reap at next touch"

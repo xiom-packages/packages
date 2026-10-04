@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  33,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.62.3",
+                  "run_by":  "fleet-sweep:v0.62.4",
                   "commit":  "425d4cb2",
-                  "checked":  "2026-10-03T20:02:04Z"
+                  "checked":  "2026-10-04T15:36:37Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: wave-35 batch (eco-v0.1.5)"
