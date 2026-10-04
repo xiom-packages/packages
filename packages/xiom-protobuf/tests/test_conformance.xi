@@ -162,7 +162,7 @@ fn main() -> Int {
   chk(zz_enc(-1) == 1, "zz: enc(-1)=1");
   chk(zz_enc(1) == 2, "zz: enc(1)=2");
   chk(zz_enc(-2) == 3, "zz: enc(-2)=3");
-  chk(zz_enc(5) + 1 == zz_enc(-5), "zz: enc(5)+1==enc(-5)");
+  chk(zz_enc(5) - 1 == zz_enc(-5), "zz: enc(5)-1==enc(-5)");
 
   // S6: zigzag decode (4)
   chk(zz_dec(0) == 0, "zz: dec(0)=0");

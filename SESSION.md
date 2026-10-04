@@ -83,6 +83,17 @@ recorded). Check `git log -1 --format=%h %s` before starting.
   exception `0xc000001d`, offset `0x1a809` (different signature from the
   grpc ntdll `0xC0000005` case) -- **suspected m189-family; add to the
   re-test list**.
+- **m189 re-test RESULTS (build `355c69d0`, 2026-10-04):** `protobuf`
+  crash is **FIXED** -- after correcting one wrong test expectation
+  (zigzag: `enc(5)+1` should be `enc(5)-1`; `enc(5)=10`, `enc(-5)=9`)
+  the suite is **49/49 x2** on the m189 build; manifest gained its
+  `modules` list. **Held for the v0.62.4 pin** (the pinned v0.62.3 still
+  crashes; records/publish only on the official pin, then the x2 +
+  record + eco batch). **graphql in-situ STILL 9/10 and both grpc probes
+  STILL crash/hang on m189** (`355c69d0`) -- no `type Field` collision
+  exists in graphql and grpc has no enums, so these are a different,
+  still-open defect; reported back to the compiler lane with the build
+  hash.
 - **m189 re-test list (when the fix build lands):** rebuild
   (`cargo build --release -p xiom`), then `docs/repro/enum-payload-str`
   in-situ (graphql 9/10 case), `packages/xiom-grpc/tests/probe_suite_min.xi`
