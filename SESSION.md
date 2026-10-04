@@ -69,11 +69,21 @@ recorded). Check `git log -1 --format=%h %s` before starting.
   **cites our enum-payload in-situ failure** -- enum struct-payload
   construction emits invalid IR because the type registry flattens the
   payload struct's fields (payload spread into args, bogus GEP/`i8*`
-  struct load). Fix direction recorded; not yet committed. **When the
-  m189 build lands: rebuild (`cargo build --release -p xiom`), re-run
-  `docs/repro/enum-payload-str` in-situ (graphql 9/10 case) and the
-  grpc `probe_suite_min.xi`/`probe_direct.xi`; if green, finish
-  graphql + grpc and publish.**
+  struct load). Fix direction recorded; not yet committed.
+- **Grandfathered triage (2026-10-04, after the network stack):**
+  `kafka` suite is green **22/22** on v0.62.3 but stays `ported` (FFI
+  stubs: `handle -1`, `poll None`, admin `Err(-999)`) -- a pure-XIOM
+  reinterpretation would be a design job, not a restore. `zstd`/`lzfse`
+  suites (375/350 lines, non-nested) target a **nonexistent test-framework
+  API** (`TestCase`, `TestResult`, `.assert_ge/.run/.report`) -- they
+  need the collecting-harness rewrite like http/websocket. `protobuf`
+  **compiles** (2 modules) but crashes `0xC000001D` (illegal instruction)
+  pre-output -- **suspected m189-family; add to the re-test list**.
+- **m189 re-test list (when the fix build lands):** rebuild
+  (`cargo build --release -p xiom`), then `docs/repro/enum-payload-str`
+  in-situ (graphql 9/10 case), `packages/xiom-grpc/tests/probe_suite_min.xi`
+  + `probe_direct.xi`, and the `protobuf` suite. If green: finish
+  grpc (restore const arms) + graphql and publish.
 - **Next:** stable hardening batches (279 stable; only `bson`/`ttl` carry
   clauses; `scripts/contract-coverage.ps1`) and/or pick up the parked
   grpc/graphql with the recorded leads; next tag `eco-v0.1.43`.
