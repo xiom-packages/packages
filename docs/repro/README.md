@@ -11,28 +11,28 @@ matrix; run from the repo root, e.g.:
 & .\scripts\xiom.ps1 -Stdlib "E:\xiom-lang\stdlib" --run docs\repro\<bundle>\<file>.xi
 ```
 
-Status below is against the installed pin, **v0.62.3, re-verified
-2026-10-03 (post-release)** unless a bundle's README says otherwise.
+Status below is against the installed pin, **v0.63.0, re-verified
+2026-10-04 (post-release)** unless a bundle's README says otherwise.
 Re-run every bundle after the next compiler release to diff
 fixed/not-fixed.
 
-| Bundle | Purpose | v0.62.2 status |
+| Bundle | Purpose | v0.63.0 status |
 |---|---|---|
 | `arity-laxness` | wrong-argument-count calls | **FIXED** -- control green; missing/extra both `error[T001]` |
-| `byte-at-128` | `byte_at >= 128` threshold compares | **FIXED** -- battery `bad=0`; widen+mask workaround retired |
+| `byte-at-128` | `byte_at >= 128` threshold compares | **FIXED** (re-verified v0.63.0 `bad=0`) -- widen+mask workaround retired |
 | `child-parent-calls` | child module calls into direct parent | **RE-SCOPED** -- works with `pub` (acyclic, cyclic, alias all pass); without `pub` T001 |
-| `const-tables` | module-level const arrays | **FIXED on v0.62.4** -- Int, Str and struct tables all correct (`bad=0`, re-verified 2026-10-04); runtime table builders can be dropped at next touch |
-| `const-match` | `const` values as match arms | **OPEN (new)** -- const arms never match (`two=other`); minimized probe; use literals/enum variants |
-| `tuple-vec-set` | `Vec[(Str,Str)]` read-after-mutation | **OPEN (new)** -- minimal subset `probe_suite_min.xi` (crash `0xC0000005`) + `probe_direct.xi` (hang); controls pass; handed to the compiler lane |
-| `enum-payload-str` | enum payload struct `Str` reads | **OPEN (in-situ)** -- graphql validator reads `|0|`; all standalone controls pass; minimal repro pending |
+| `const-tables` | module-level const arrays | **FIXED** (v0.62.4; re-verified v0.63.0 `bad=0`) -- Int/Str/struct tables correct; runtime builders can be dropped at next touch |
+| `const-match` | `const` values as match arms | **FIXED** (v0.62.4; v0.63.0 probe exit 0, W004 overlap warning) -- const arms match; literals can return to named constants |
+| `tuple-vec-set` | `Vec[(Str,Str)]` read-after-mutation | **OPEN (v0.63.0 unchanged)** -- `probe_suite_min.xi` crashes `0xC0000005`; `probe_direct.xi` hangs; grpc keeps numeric match arms blocked |
+| `enum-payload-str` | enum payload struct `Str` reads | **OPEN (v0.63.0 unchanged)** -- graphql 9/10 (`|0|` read persists); standalone controls pass; minimal repro pending |
 | `uninit-local` | uninitialized local + later assignment | **OPEN (in-situ)** -- graphql hang; standalone probe crashes pre-output; minimal repro pending |
 | `crypto-link` | stdlib `xiom.crypto` SHA-256/HMAC linkability | **OPEN** -- `lld-link: undefined symbol: xiom_sha256_hash` |
 | `float-vec` | `Vec[Float64]` + `Int<->Float64` bitcast | **SPLIT** -- `Vec[Float64]` works; bitcast is a documented stdlib stub (`bad=2`) |
 | `generic-fnptr` | fn-value / generic-mono ABI family | **FIXED** -- all 7 probes exit 0 |
 | `loop-carry-cse` | loop-carried CSE correctness | **CLEAN** -- `bad=0` |
-| `mut-int-write-through` | `&mut Int` plain-local calls | **FIXED on v0.62.3** -- deref and bare assignment, both call forms (`bad=0`; matrix in `v0622-regressions`) |
+| `mut-int-write-through` | `&mut Int` plain-local calls | **FIXED** (v0.62.3; v0.63.0 matrix `bad=0`) -- deref and bare assignment, both call forms (matrix in `v0622-regressions`) |
 | `sign-bit-ops` | sign-bit arithmetic identities | **CLEAN** -- exit 0 |
 | `str-vec-eq` | `Str` equality / `str_len` on `Vec[Str]` elements | **NOT REPRODUCED** -- `bad=0` (probe kept as retirement evidence) |
 | `struct-field-vec` | `&r.value` empty-vector read on `Result` payloads | **FIXED** -- `result payload: 3`; all 3 probes exit 0 |
-| `v0622-regressions` | the v0.62.2 regression packet (Vec[Str].push, mut-int matrix, expat/nbt) | **FIXED on v0.62.3** -- both Vec[Str].push probes PASS; bare `&mut Int` writes propagate (`bad=0`); expat/nbt remain resolved (25/25, 26/26) |
+| `v0622-regressions` | the v0.62.2 regression packet (Vec[Str].push, mut-int matrix, expat/nbt) | **FIXED** (v0.62.3; re-verified v0.63.0) -- Vec[Str].push probes run; mut-int matrix `bad=0`; expat/nbt resolved (25/25, 26/26) |
 | `vec-struct` | `Vec[StructType]` (trap 10) | **NOT REPRODUCED** -- push/read/field-write/loop-push/`&Vec` all correct |

@@ -8,6 +8,11 @@ Found while restoring `xiom.grpc`. The suite binary crashes
 compact, call-dependent case. Reported to the compiler lane 2026-10-04;
 they asked for the smallest failing subset, which this bundle provides.
 
+**v0.63.0 (2026-10-04): UNCHANGED** -- `probe_suite_min.xi` still
+crashes `0xC0000005` pre-output and `probe_direct.xi` still hangs
+(60s watchdog). `xiom.grpc` keeps the numeric match arms blocked; the
+finding is not addressed by the v0.63.0 changes.
+
 ## Smallest failing subset
 
 `packages/xiom-grpc/tests/probe_suite_min.xi` (stays in-package so the
