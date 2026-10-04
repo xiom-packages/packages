@@ -154,21 +154,28 @@ pub fn bson_writer_new() -> BsonWriter {
 
 /// Start a top-level or embedded document: pushes the start offset and
 /// reserves the 4 little-endian length bytes (patched by bson_doc_end).
-pub fn bson_doc_start(w: &mut BsonWriter) {
+pub fn bson_doc_start(w: &mut BsonWriter)
+  ensures: w.open_docs.len() == w.open_docs.len()@pre + 1;
+  ensures: w.buf.len() == w.buf.len()@pre + 4;
+{
   let start = w.buf.len();
   w.open_docs.push(start);
   _push_le(&mut w.buf, 0, 4);
 }
 
 /// Write an int32 element (type 0x10): cstring name + 4 LE bytes.
-pub fn bson_element_int32(w: &mut BsonWriter, name: Str, v: Int) {
+pub fn bson_element_int32(w: &mut BsonWriter, name: Str, v: Int)
+  ensures: w.buf.len() > w.buf.len()@pre;
+{
   w.buf.push(0x10 as UInt8);
   _push_cstr(&mut w.buf, name);
   _push_le(&mut w.buf, v, 4);
 }
 
 /// Write an int64 element (type 0x12): cstring name + 8 LE bytes.
-pub fn bson_element_int64(w: &mut BsonWriter, name: Str, v: Int) {
+pub fn bson_element_int64(w: &mut BsonWriter, name: Str, v: Int)
+  ensures: w.buf.len() > w.buf.len()@pre;
+{
   w.buf.push(0x12 as UInt8);
   _push_cstr(&mut w.buf, name);
   _push_le(&mut w.buf, v, 8);
@@ -176,7 +183,9 @@ pub fn bson_element_int64(w: &mut BsonWriter, name: Str, v: Int) {
 
 /// Write a string element (type 0x02): cstring name, int32 LE byte
 /// length (INCLUDING the trailing NUL), the UTF-8 bytes verbatim, NUL.
-pub fn bson_element_str(w: &mut BsonWriter, name: Str, v: Str) {
+pub fn bson_element_str(w: &mut BsonWriter, name: Str, v: Str)
+  ensures: w.buf.len() > w.buf.len()@pre;
+{
   w.buf.push(0x02 as UInt8);
   _push_cstr(&mut w.buf, name);
   _push_le(&mut w.buf, string.str_len(v) + 1, 4);
@@ -185,7 +194,9 @@ pub fn bson_element_str(w: &mut BsonWriter, name: Str, v: Str) {
 }
 
 /// Write a bool element (type 0x08): cstring name + one byte 0x00/0x01.
-pub fn bson_element_bool(w: &mut BsonWriter, name: Str, v: Bool) {
+pub fn bson_element_bool(w: &mut BsonWriter, name: Str, v: Bool)
+  ensures: w.buf.len() > w.buf.len()@pre;
+{
   w.buf.push(0x08 as UInt8);
   _push_cstr(&mut w.buf, name);
   if v {
@@ -196,7 +207,9 @@ pub fn bson_element_bool(w: &mut BsonWriter, name: Str, v: Bool) {
 }
 
 /// Write a null element (type 0x0A): cstring name, no payload.
-pub fn bson_element_null(w: &mut BsonWriter, name: Str) {
+pub fn bson_element_null(w: &mut BsonWriter, name: Str)
+  ensures: w.buf.len() > w.buf.len()@pre;
+{
   w.buf.push(0x0A as UInt8);
   _push_cstr(&mut w.buf, name);
 }
@@ -207,7 +220,9 @@ pub fn bson_element_null(w: &mut BsonWriter, name: Str) {
 ///
 /// NOTE: this pair is an addition beyond the minimal API list -- without
 /// it the encoder could not emit 0x03 elements at all (only arrays).
-pub fn bson_element_doc_start(w: &mut BsonWriter, name: Str) {
+pub fn bson_element_doc_start(w: &mut BsonWriter, name: Str)
+  ensures: w.buf.len() > w.buf.len()@pre;
+{
   w.buf.push(0x03 as UInt8);
   _push_cstr(&mut w.buf, name);
   bson_doc_start(w);
@@ -215,7 +230,8 @@ pub fn bson_element_doc_start(w: &mut BsonWriter, name: Str) {
 
 /// Close an embedded document opened by bson_element_doc_start.
 pub fn bson_element_doc_end(w: &mut BsonWriter)
-  requires: w.open_docs.len() > 0
+  requires: w.open_docs.len() > 0;
+  ensures: w.open_docs.len() == w.open_docs.len()@pre - 1;
 {
   bson_doc_end(w);
 }
@@ -224,7 +240,9 @@ pub fn bson_element_doc_end(w: &mut BsonWriter)
 /// open sub-document. Array entries are added with the numeric key as
 /// their name ("0", "1", ...) -- BSON array semantics, explicit at the
 /// call site (see the module header).
-pub fn bson_element_array_start(w: &mut BsonWriter, name: Str) {
+pub fn bson_element_array_start(w: &mut BsonWriter, name: Str)
+  ensures: w.buf.len() > w.buf.len()@pre;
+{
   w.buf.push(0x04 as UInt8);
   _push_cstr(&mut w.buf, name);
   bson_doc_start(w);
@@ -232,7 +250,8 @@ pub fn bson_element_array_start(w: &mut BsonWriter, name: Str) {
 
 /// Close an array opened by bson_element_array_start.
 pub fn bson_element_array_end(w: &mut BsonWriter)
-  requires: w.open_docs.len() > 0
+  requires: w.open_docs.len() > 0;
+  ensures: w.open_docs.len() == w.open_docs.len()@pre - 1;
 {
   bson_doc_end(w);
 }
@@ -242,7 +261,8 @@ pub fn bson_element_array_end(w: &mut BsonWriter)
 /// prefix, elements and terminator included). Popping an empty stack is
 /// a programming error trapped by the `requires` contract.
 pub fn bson_doc_end(w: &mut BsonWriter)
-  requires: w.open_docs.len() > 0
+  requires: w.open_docs.len() > 0;
+  ensures: w.open_docs.len() == w.open_docs.len()@pre - 1;
 {
   w.buf.push(0 as UInt8);
   let stack_len = w.open_docs.len();
@@ -259,7 +279,9 @@ pub fn bson_doc_end(w: &mut BsonWriter)
 }
 
 /// Copy of the encoded bytes built so far.
-pub fn bson_to_bytes(w: &BsonWriter) -> Vec[UInt8] {
+pub fn bson_to_bytes(w: &BsonWriter) -> Vec[UInt8]
+  ensures: result.len() == w.buf.len();
+{
   var out = Vec[UInt8].new();
   var i = 0;
   while i < w.buf.len() {

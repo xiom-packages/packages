@@ -1,8 +1,8 @@
 # xiom.bson -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.bson`, version `0.1.0`).
+Status: `stable` (published; v0.62.4 fleet sweep green; contract top-up
+in 0.1.3).
+Manifest: `package.xi` (`xiom.bson`, version `0.1.3`).
 Module: `src/bson.xi` (`module xiom.bson`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`, `xiom.convert`).
 
@@ -192,7 +192,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.bson
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler v0.62.4, hardening pass (x2) --
 `port: PASS (passed=22 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -229,3 +229,24 @@ Last verified: compiler 0.61.3,
   allocation, ownership transfer); the package declares no `extern "C"`
   blocks (no FFI).
 - Array index keys use `xiom.convert.int_to_string`.
+
+## Contracts (hardening pass, 2026-10-04)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4) result:
+**0 proven / 0 violated / 26 unknown / 7 tooling errors** -- `Vec` length
+reads and `@pre` comparisons are not yet expressible to the solver, so
+the clauses are enforced at runtime and recorded as solver-unproven.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `bson_doc_start` | `ensures: w.open_docs.len() == w.open_docs.len()@pre + 1`; `ensures: w.buf.len() == w.buf.len()@pre + 4` | unproven |
+| `bson_element_int32` / `_int64` / `_str` / `_bool` / `_null` | `ensures: w.buf.len() > w.buf.len()@pre` | unproven |
+| `bson_element_doc_start` / `_array_start` | `ensures: w.buf.len() > w.buf.len()@pre` | unproven |
+| `bson_element_doc_end` / `_array_end` / `bson_doc_end` | `requires: w.open_docs.len() > 0`; `ensures: w.open_docs.len() == w.open_docs.len()@pre - 1` | unproven |
+| `bson_to_bytes` | `ensures: result.len() == w.buf.len()` | unproven |
+| `bson_writer_new` | none -- pinned through the writer flow by tests 1-6 | unasserted (documented) |
+| `bson_is_valid` / `bson_keys` / `bson_type_of` / `bson_has` | none -- decoder behavior pinned by tests 7-22 | unasserted (documented) |
+
+The decoder getters are total over malformed input by construction
+(`Result`/`Option` returns); their error strings are pinned by tests
+17-20 and the byte-level format table rather than contracts.
