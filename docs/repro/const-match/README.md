@@ -27,6 +27,11 @@ fn name(x: Int) -> Str {
 match arms; `==` comparisons against constants work fine. Repo-wide scan:
 only `grpc.xi` used const arms (17, now rewritten with literals).
 
+**Update 2026-10-04:** the compiler lane fixed this on main (**m188**,
+locked with an e2e fixture). After the next release pin, const-based
+match arms are usable again and the `grpc.xi` literals can be restored
+to named constants (cosmetic).
+
 Run:
 
 ```powershell

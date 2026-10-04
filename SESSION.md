@@ -39,8 +39,10 @@ recorded). Check `git log -1 --format=%h %s` before starting.
   (minimized). Probe index: `docs/repro/README.md`.
 - **Compiler-main status (relayed 2026-10-03 23:55Z):** m184
   (nested test-module import) and m185 (uninitialized-local -- confirmed
-  real NULL-deref UB) are **fixed and locked on compiler main**; pin
-  when the next release ships. **Next-release to-dos:** re-run the
+  real NULL-deref UB) are **fixed and locked on compiler main**; **m188
+  (const match arms) also fixed and locked with an e2e fixture** (restore
+  named constants in `grpc.xi` after the next pin); pin when the next
+  release ships. **Next-release to-dos:** re-run the
   `enum-payload-str` in-situ case on a build with m184+m185 (possibly a
   symptom of the m185 UB) and drop the two porter-brief rules then.
   Compiler lane also reports `smoke_iter_range` rc 0 on their post-m184
@@ -582,7 +584,8 @@ Then do, in order:
    CLOSED -- no watch pending (v0.62.3 pinned; complex `Str`/struct const
    tables are its known issue -- runtime builders only; float bitcast is
    still a stdlib stub; **`const` match arms never match** -- use
-   literals). The network stack is complete (`http`/`websocket`/`rest`/
+   literals (fixed on compiler main m188, locked; restore named
+   constants after the next release pin)). The network stack is complete (`http`/`websocket`/`rest`/
    `micro`/`realtime` published through `eco-v0.1.42`). `grpc` is parked
    with the crash lead in `docs/failed_attempts.md` (do not re-run the
    same bisection); `graphql` is parked 9/10 (enum-payload `Str`). Stable
