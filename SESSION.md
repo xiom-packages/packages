@@ -65,6 +65,15 @@ recorded). Check `git log -1 --format=%h %s` before starting.
   `0x1ff2a`/`0xc4a0f`; reproduces on v0.62.3 **and** local main
   m184..m187. Full matrix: `docs/repro/tuple-vec-set/README.md`;
   COMPILER-FINDINGS row added; grpc stays unpublished meanwhile.
+- **m189 (compiler main, in flight):** root cause localized and it
+  **cites our enum-payload in-situ failure** -- enum struct-payload
+  construction emits invalid IR because the type registry flattens the
+  payload struct's fields (payload spread into args, bogus GEP/`i8*`
+  struct load). Fix direction recorded; not yet committed. **When the
+  m189 build lands: rebuild (`cargo build --release -p xiom`), re-run
+  `docs/repro/enum-payload-str` in-situ (graphql 9/10 case) and the
+  grpc `probe_suite_min.xi`/`probe_direct.xi`; if green, finish
+  graphql + grpc and publish.**
 - **Next:** stable hardening batches (279 stable; only `bson`/`ttl` carry
   clauses; `scripts/contract-coverage.ps1`) and/or pick up the parked
   grpc/graphql with the recorded leads; next tag `eco-v0.1.43`.
