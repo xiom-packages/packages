@@ -1,6 +1,6 @@
 # xiom.protobuf
 
-> **Status:** `incubating` -- conformance-tested (49/49); not yet published.
+> **Status:** `incubating` -- conformance-tested (49/49); published at `v0.1.0` on the XIOM registry.
 > **Scope:** Protocol Buffers wire-format codec (varint/zigzag/tags, pure XIOM).
 > **Deps:** stdlib (legacy `extern "C"` declarations are unused).
 

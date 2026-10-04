@@ -3,15 +3,48 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-04 (13:50Z), by the packages session (v0.62.4
-released + pinned: const-tables fix verified, protobuf 49/49 recorded and
-queued for `eco-v0.1.43`; fleet sweep running; graphql 9/10 + grpc
-0xC0000005 are fresh open findings with the compiler lane; hardening
-proposal recorded). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-04 (15:45Z), by the packages session (v0.62.4
+release flow complete: fleet sweep 460/460, 460 runs re-recorded,
+`eco-v0.1.43` published with `xiom.protobuf`; `l10n-unicode` slow-suite
+observation recorded; graphql 9/10 + grpc 0xC0000005 remain fresh open
+findings with the compiler lane; hardening proposal recorded). Check
+`git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-04 13:50Z (read this first):**
+**STATE AT 2026-10-04 15:45Z (read this first):**
+- **v0.62.4 release flow COMPLETE + PUBLISHED (`eco-v0.1.43`):** pin
+  SHA256-verified; **fleet sweep 460/460** (one timeout triaged: see
+  below); 460 runs re-recorded (`fleet-sweep:v0.62.4`); run
+  `37213796292` SUCCESS -> **`xiom.protobuf@0.1.0` live (incubating)**;
+  registry **459 packages + 2 infra = 461 entries**; guard **499
+  allowlisted / 459 ready / 40 grandfathered / 0 failures**; READMEs
+  synced. No ops delta/window was needed.
+- **`l10n-unicode` slow-suite finding (v0.62.4, open observation):** the
+  60s watchdog flagged it TIMEOUT; it actually passes 24/24 at
+  **96-107s (manual) / 45.6s (sweep re-run)** vs 52.3s on v0.62.3 --
+  a ~2x slowdown, correctness green. Recorded; needs a >60s timeout
+  under load. Reported to the compiler lane.
+- **Fresh open findings on v0.62.4 (with the compiler lane; do NOT
+  re-run the same bisections):** `graphql` 9/10 enum-payload `Str`
+  in-situ (lead: variable-payload ctor flattening); `grpc`
+  `Vec[(Str, Str)]` probes crash `0xC0000005` (minimal group
+  `packages\xiom-grpc\tests\probe_suite_min.xi` + `probe_direct.xi`,
+  evidence `docs\repro\tuple-vec-set\`). When fixes land: re-test; if
+  green, finish grpc (restore named-constant arms per m188; x2; record)
+  and graphql (x2; record) and publish in one batch.
+- **Hardening batch proposal (owner pick):** `uuid` (18 checks) + `csv`
+  (20 checks) + `bson`/`ttl` clause top-ups per `docs/PROMOTION.md` --
+  no ops delta; owner confirms the set before work starts.
+- **Toolchain warning (unchanged):** PATH has a v0.62.3 staging dir
+  (`xiom.new-20261004-032140`) ahead of `xiom.new` -- always set
+  `$env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"`.
+- **Next:** the two parked packages (compiler-gated), hardening, or new
+  growth; next tag `eco-v0.1.44`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-04 13:50Z (history):**
 - **v0.62.4 PINNED (released 2026-10-04):** official
   `xiom-0.62.4-windows-x64.zip`, SHA256 `ab1c83d2...` verified against
   the published SHA256SUMS; deployed into `%LOCALAPPDATA%\xiom.new`;
@@ -683,20 +716,19 @@ proposal recorded). Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-04 13:50Z STATE block and
+private). Read SESSION.md first -- the 2026-10-04 15:45Z STATE block and
 the "Next-session operating kit" in section 0 are the live handoff
-(v0.62.4 released + pinned, SHA256-verified; const-tables/nested-modules/
-uninitialized-locals/const-match all fixed; protobuf recorded 49/49 and
-queued for `eco-v0.1.43`; fleet sweep running in
-`%TEMP%\kilo\sweep-v0624`; graphql 9/10 + grpc 0xC0000005 are fresh open
-findings with the compiler lane; registry 458 packages + 2 infra;
-allowlist 499). Repo-local identity must be "Lefteris Notas
-<lefterisnotas@gmail.com>". Publishing policy: PRODUCTION-DIRECT batches
-(this session approves the registry-publish gates); ops opens the
-publish-rate window ONLY for waves >20 names (default 20/min otherwise);
-the ops scope enumeration must be confirmed BEFORE appending an
-allowlist delta. New/next-touched records use stage `incubating`
-(`stable` only via `docs/PROMOTION.md`).
+(v0.62.4 release flow complete: fleet sweep 460/460 re-recorded and
+`eco-v0.1.43` published with `xiom.protobuf`; registry 459 packages + 2
+infra; allowlist 499; `l10n-unicode` needs a >60s suite timeout;
+graphql 9/10 + grpc 0xC0000005 are fresh open findings with the compiler
+lane; hardening proposal recorded). Repo-local identity must be
+"Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
+PRODUCTION-DIRECT batches (this session approves the registry-publish
+gates); ops opens the publish-rate window ONLY for waves >20 names
+(default 20/min otherwise); the ops scope enumeration must be confirmed
+BEFORE appending an allowlist delta. New/next-touched records use stage
+`incubating` (`stable` only via `docs/PROMOTION.md`).
 
 Start by running: git fetch; git status -sb; git log -1; then
 $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"   # PATH
@@ -704,34 +736,28 @@ shadowing: a v0.62.3 staging dir precedes xiom.new
 & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Finish the v0.62.4 release flow: check the fleet sweep (background
-   process `bgp_10715b01b001BT37l7PR5IYttb`; summary
-   `%TEMP%\kilo\sweep-v0624\summary.tsv`). If running, continue with
-   other items and check back; when done: fix any non-PASS (read the
-   package log, re-run `fleet-sweep.ps1 -Only ...`), re-record green
-   runs with `scripts/record-sweep.ps1 -LogDir %TEMP%\kilo\sweep-v0624`
-   (dry-run first), validate+guard, commit records, clean stray
-   `a.exe.ll` files. Then wrap + publish `eco-v0.1.43` (xiom.protobuf
-   0.1.0; no allowlist delta, no rate window):
-   generate_index/report/namespaces, **stage ALL pending STATUS.json
-   records before tagging**, tag, push, approve the gate, verify live,
-   sync the README, update SESSION.
-2. Open findings (already relayed; do NOT re-run the same bisections):
-   graphql 9/10 enum-payload in-situ (lead: variable-payload ctor
-   flattening) and grpc `Vec[(Str, Str)]` 0xC0000005 (minimal group
-   `packages\xiom-grpc\tests\probe_suite_min.xi` + `probe_direct.xi`,
-   evidence `docs\repro\tuple-vec-set\`). When the compiler fixes land,
-   re-test; if green, finish grpc (restore named-constant arms per m188,
-   x2, record) and graphql (x2, record), then publish in one batch.
-3. Hardening track (owner pick; proposal recorded): first batch `uuid` +
+1. Open findings (with the compiler lane; do NOT re-run the same
+   bisections): graphql 9/10 enum-payload in-situ (lead:
+   variable-payload ctor flattening) and grpc `Vec[(Str, Str)]`
+   0xC0000005 (minimal group `packages\xiom-grpc\tests\probe_suite_min.xi`
+   + `probe_direct.xi`, evidence `docs\repro\tuple-vec-set\`). When fixes
+   land: re-test; if green, finish grpc (restore named-constant arms per
+   m188, x2, record) and graphql (x2, record), then publish in one batch.
+   Also watch for the `l10n-unicode` slowdown follow-up (52s -> 96-107s
+   on v0.62.4; correctness green).
+2. Hardening track (owner pick; proposal recorded): first batch `uuid` +
    `csv` + `bson`/`ttl` clause top-ups per `docs/PROMOTION.md` (contracts
    + API review; x2 on v0.62.4; patch bump; record; publish). No ops
    delta.
-4. Carry-forwards: keep the `-TimeoutSec 60` watchdog; byte-level
-   bracket grep ONLY (Read lies about `Vec<Int>`); bump versions ONLY
-   when source changes; `docs/repro/README.md` probe index for compiler
-   evidence; registry page refresh = policy 1b; update SESSION.md at the
-   wrap with a fresh paste prompt.
+3. Growth (optional): the remaining grandfathered set is FFI-class
+   (skipped) except `kafka` (green suite but FFI stubs; needs a pure-XIOM
+   redesign) and `zstd`/`lzfse` (FFI stubs).
+4. Carry-forwards: keep the `-TimeoutSec 60` watchdog (raise per package
+   when needed, e.g. `l10n-unicode`); byte-level bracket grep ONLY (Read
+   lies about `Vec<Int>`); bump versions ONLY when source changes;
+   `docs/repro/README.md` probe index for compiler evidence; registry
+   page refresh = policy 1b; update SESSION.md at the wrap with a fresh
+   paste prompt.
 ```
 
 **--- Older state below (history) ---**
