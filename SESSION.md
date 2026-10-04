@@ -3,16 +3,58 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-04 (13:20Z), by the packages session (release wave
-`eco-v0.1.37` + post-release growth: `http`/`websocket`/`rest`/`micro`/
-`realtime` restored and published through `eco-v0.1.42`; `protobuf`
-prepared 49/49 on m189 and held for the v0.62.4 pin; `grpc`/`graphql`
-parked with recorded leads; four v0.62.3 findings recorded, two fixed in
-the staged v0.62.4). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-04 (13:50Z), by the packages session (v0.62.4
+released + pinned: const-tables fix verified, protobuf 49/49 recorded and
+queued for `eco-v0.1.43`; fleet sweep running; graphql 9/10 + grpc
+0xC0000005 are fresh open findings with the compiler lane; hardening
+proposal recorded). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-04 13:20Z (read this first):**
+**STATE AT 2026-10-04 13:50Z (read this first):**
+- **v0.62.4 PINNED (released 2026-10-04):** official
+  `xiom-0.62.4-windows-x64.zip`, SHA256 `ab1c83d2...` verified against
+  the published SHA256SUMS; deployed into `%LOCALAPPDATA%\xiom.new`;
+  `COMPILER_VERSION` bumped; `status.ps1 -Action repin` = 514 records.
+  **PATH WARNING:** `%LOCALAPPDATA%\xiom.new-20261004-032140\bin` (a
+  v0.62.3 staging build) precedes `xiom.new\bin` (official v0.62.4) in
+  PATH -- run everything with `$env:XIOM_COMPILER =
+  "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"`, or fix the PATH order.
+- **v0.62.4 retirements verified:** const-tables **FIXED** (probe
+  `bad=0`; Int/Str/struct all correct), nested modules, uninitialized
+  locals and const match arms all shipped -- `docs/MAINTENANCE.md`,
+  `docs/repro/README.md` and the porter brief updated; batteries green.
+- **`protobuf` READY + RECORDED (49/49 x2 on v0.62.4, incubating),
+  queued for `eco-v0.1.43`** -- already allowlisted, **no ops delta and
+  no rate window**; README says 49/49 (published-at sync after the tag).
+- **Fleet sweep v0.62.4 RUNNING:** background
+  `bgp_10715b01b001BT37l7PR5IYttb`, logs/summary
+  `%TEMP%\kilo\sweep-v0624\` (13:50Z: 81/81 PASS; ETA ~15:00-15:30Z).
+  A session wakeup `wku_10716e651001n6WstD7Cm2uEWR` (14:25Z) continues
+  the flow if this session is still alive; **if it is not, the next
+  session finishes the wrap manually**: wait for the sweep, fix any
+  non-PASS (re-run `fleet-sweep.ps1 -Only ...`), then
+  `scripts/record-sweep.ps1 -LogDir %TEMP%\kilo\sweep-v0624` (dry-run
+  first), validate+guard, commit records, clean stray `a.exe.ll` files,
+  then wrap+publish `eco-v0.1.43` (generate_index/report/namespaces,
+  **stage ALL pending STATUS.json records before tagging**, tag, push,
+  approve the gate, verify live).
+- **Fresh open findings on v0.62.4 (relayed to the compiler lane
+  2026-10-04; do NOT re-run the same bisections):** `graphql` 9/10
+  enum-payload `Str` in-situ (lead: variable-payload ctor flattening);
+  `grpc` `Vec[(Str, Str)]` probes crash `0xC0000005` (minimal group
+  `packages/xiom-grpc/tests/probe_suite_min.xi` + `probe_direct.xi`,
+  evidence `docs/repro/tuple-vec-set/`). When a fix lands: re-test, then
+  finish grpc (restore named-constant arms per m188; x2; record) and
+  graphql (x2; record) and publish in one batch.
+- **Hardening batch proposal (owner pick):** `uuid` (18 checks) + `csv`
+  (20 checks) + `bson`/`ttl` clause top-ups per `docs/PROMOTION.md` --
+  no ops delta; owner confirms the set before work starts.
+- **Ops:** nothing pending.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-04 13:20Z (history):**
 - **v0.62.4 STAGED on compiler main (release commit `959fcd95`, tag not
   yet pushed).** Highlights relevant to us: **constant tables with
   strings/structs FIXED** (our `const-tables` finding), **nested modules
@@ -564,26 +606,27 @@ the staged v0.62.4). Check `git log -1 --format=%h %s` before starting.
 
 1. **Prep**: `git fetch; git status -sb; git log -1`; gates
    `status.ps1 -Action validate` + `allowlist-guard.ps1`. Toolchain:
-   `COMPILER_VERSION` = v0.62.3; repo release already deployed into
-   `%LOCALAPPDATA%\xiom.new\bin`; stdlib checkout `E:\xiom-lang\stdlib`.
+   `COMPILER_VERSION` = v0.62.4; official install at
+   `%LOCALAPPDATA%\xiom.new\bin` -- **run with `$env:XIOM_COMPILER =
+   "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"` because a v0.62.3 staging
+   dir (`xiom.new-20261004-032140`) shadows it in PATH**; stdlib
+   checkout `E:\xiom-lang\stdlib`.
 2. **Select + check**: pick ~10 pure-XIOM placeholders; run
    `& .\scripts\namespace-check.ps1 -Module <names>` (expect 0 conflicts).
 3. **Dispatch**: 6 background `task` porters + 4 Agent Manager local
    sessions (`agent_manager` action=null, mode=local, versions=false).
-   Brief = the v0.62.3 edition: `Vec[Str].push` and `&mut Int` params
-   are FIXED (no avoidance; probes green) -- complex `Str`/struct const
-   tables are STILL broken (runtime builders only); cross-module
-   helpers just need `pub` (child->parent calls are fine); nested test
-   modules and uninitialized locals are **FIXED and shipped in v0.62.4**
-   (they used to need `pkg_tests` names / pre-initialized declarations --
-   normal usage is fine now);
+   Brief = the v0.62.4 edition: `Vec[Str].push`, `&mut Int` params,
+   nested test modules, uninitialized locals, const match arms AND
+   `Str`/struct const tables are all FIXED (probes green; no avoidance
+   needed); cross-module helpers just need `pub` (child->parent calls
+   are fine); float bitcast is the remaining stdlib stub;
    no builtin/generic-name shadowing; progress-guaranteed loops +
    full-angle bracket grep after green + `port.ps1 -TimeoutSec 60` gate
-   + `## stdlib gaps` report. **Unsafe-FFI (v0.62.3):** every extern
+   + `## stdlib gaps` report. **Unsafe-FFI:** every extern
    call needs an `unsafe { }` block; a safe fn returning a raw pointer
    needs `unsafe` somewhere in the body; a fn whose whole body is one
    unsafe block needs `requires`; safe-wrapper = contract + `unsafe`
-   (see the MCP `xiom_llm_language_guide` unsafe-ffi topic). Crash
+   (see the MCP `xiom_language_guide` unsafe-ffi topic). Crash
    recovery: stop the dead AM session and re-dispatch as a `task` with
    `variant: low` + files-first/short-replies directive (worked 5x).
 4. **Integrate as they report** (don't wait for all 10): write a
@@ -631,51 +674,55 @@ the staged v0.62.4). Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-04 00:05Z STATE block and
-the "Next-session operating kit" at the top of section 0 are the live
-handoff (release wave complete + published `eco-v0.1.37`; growth:
-`http`/`websocket`/`rest`/`micro`/`realtime` published through
-`eco-v0.1.42`; `grpc` + `graphql` parked with recorded leads; v0.62.3
-pinned + SHA256-verified; fleet sweep 453/453; json/control/sensor
-promoted to `stable` 0.1.1; registry 458 packages + 2 infra; allowlist
-499). Repo-local identity must be "Lefteris Notas
+private). Read SESSION.md first -- the 2026-10-04 13:50Z STATE block and
+the "Next-session operating kit" in section 0 are the live handoff
+(v0.62.4 released + pinned, SHA256-verified; const-tables/nested-modules/
+uninitialized-locals/const-match all fixed; protobuf recorded 49/49 and
+queued for `eco-v0.1.43`; fleet sweep running in
+`%TEMP%\kilo\sweep-v0624`; graphql 9/10 + grpc 0xC0000005 are fresh open
+findings with the compiler lane; registry 458 packages + 2 infra;
+allowlist 499). Repo-local identity must be "Lefteris Notas
 <lefterisnotas@gmail.com>". Publishing policy: PRODUCTION-DIRECT batches
 (this session approves the registry-publish gates); ops opens the
 publish-rate window ONLY for waves >20 names (default 20/min otherwise);
-the ops scope enumeration must be confirmed BEFORE appending the
+the ops scope enumeration must be confirmed BEFORE appending an
 allowlist delta. New/next-touched records use stage `incubating`
 (`stable` only via `docs/PROMOTION.md`).
 
 Start by running: git fetch; git status -sb; git log -1; then
-& .\scripts\status.ps1 -Action validate and & .\scripts\allowlist-guard.ps1.
+$env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"   # PATH
+shadowing: a v0.62.3 staging dir precedes xiom.new
+& .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Growth and/or stable hardening: v0.62.4 is pinned (released
-   2026-10-04; SHA256-verified) -- const tables, nested modules,
-   uninitialized locals and const match arms are all **fixed and
-   shipped**; float bitcast is the remaining stdlib stub. The network
-   stack is complete (`http`/`websocket`/`rest`/
-   `micro`/`realtime` published through `eco-v0.1.42`); `protobuf` is
-   prepared (49/49) and queued for `eco-v0.1.43`. `grpc` is parked
-   with the crash lead in `docs/failed_attempts.md` (do not re-run the
-   same bisection); `graphql` is parked 9/10 (fresh enum-payload
-   finding on v0.62.4). Stable
-   hardening batches per `docs/PROMOTION.md` (279 stable; only
-   `bson`/`ttl` carry clauses; size with `scripts/contract-coverage.ps1`)
-   are the main available track.
-2. Workaround retirements are **next-touch only** (scoping decision in
-   the STATE block; no drive-by refactors of green packages).
-3. Wrap + publish per the operating kit (tag `eco-v0.1.43` when there is
-   a batch; **stage all pending STATUS.json records before tagging** -- CI
-   reads the tag commit): ops scope ask only for allowlist deltas
-   (>20-name waves need a rate window); regenerate, validate+guard,
-   approve the gate, verify live; rerun-failed + re-approve on
-   `oidc_token_expired`.
-4. Carry-forwards: registry page refresh = policy 1b; keep the
-   `-TimeoutSec 60` watchdog; byte-level bracket grep ONLY (Read lies
-   about `Vec<Int>`); bump versions ONLY when source changes;
-   `docs/repro/README.md` index for compiler evidence; update SESSION.md
-   at the wrap with a fresh paste prompt.
+1. Finish the v0.62.4 release flow: check the fleet sweep (background
+   process `bgp_10715b01b001BT37l7PR5IYttb`; summary
+   `%TEMP%\kilo\sweep-v0624\summary.tsv`). If running, continue with
+   other items and check back; when done: fix any non-PASS (read the
+   package log, re-run `fleet-sweep.ps1 -Only ...`), re-record green
+   runs with `scripts/record-sweep.ps1 -LogDir %TEMP%\kilo\sweep-v0624`
+   (dry-run first), validate+guard, commit records, clean stray
+   `a.exe.ll` files. Then wrap + publish `eco-v0.1.43` (xiom.protobuf
+   0.1.0; no allowlist delta, no rate window):
+   generate_index/report/namespaces, **stage ALL pending STATUS.json
+   records before tagging**, tag, push, approve the gate, verify live,
+   sync the README, update SESSION.
+2. Open findings (already relayed; do NOT re-run the same bisections):
+   graphql 9/10 enum-payload in-situ (lead: variable-payload ctor
+   flattening) and grpc `Vec[(Str, Str)]` 0xC0000005 (minimal group
+   `packages\xiom-grpc\tests\probe_suite_min.xi` + `probe_direct.xi`,
+   evidence `docs\repro\tuple-vec-set\`). When the compiler fixes land,
+   re-test; if green, finish grpc (restore named-constant arms per m188,
+   x2, record) and graphql (x2, record), then publish in one batch.
+3. Hardening track (owner pick; proposal recorded): first batch `uuid` +
+   `csv` + `bson`/`ttl` clause top-ups per `docs/PROMOTION.md` (contracts
+   + API review; x2 on v0.62.4; patch bump; record; publish). No ops
+   delta.
+4. Carry-forwards: keep the `-TimeoutSec 60` watchdog; byte-level
+   bracket grep ONLY (Read lies about `Vec<Int>`); bump versions ONLY
+   when source changes; `docs/repro/README.md` probe index for compiler
+   evidence; registry page refresh = policy 1b; update SESSION.md at the
+   wrap with a fresh paste prompt.
 ```
 
 **--- Older state below (history) ---**
