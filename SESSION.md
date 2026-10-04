@@ -61,7 +61,7 @@ recorded). Check `git log -1 --format=%h %s` before starting.
   `probe_direct.xi` (inline `req.metadata[0].0` read -> hang; without the
   read it runs). Fault data: `ntdll.dll` 0xC0000005, offsets
   `0x1ff2a`/`0xc4a0f`; reproduces on v0.62.3 **and** local main
-  m184..m188. Full matrix: `docs/repro/tuple-vec-set/README.md`;
+  m184..m187. Full matrix: `docs/repro/tuple-vec-set/README.md`;
   COMPILER-FINDINGS row added; grpc stays unpublished meanwhile.
 - **Next:** stable hardening batches (279 stable; only `bson`/`ttl` carry
   clauses; `scripts/contract-coverage.ps1`) and/or pick up the parked

@@ -44,10 +44,10 @@ Run (from the repo root):
 
 ```powershell
 & .\scripts\xiom.ps1 -Stdlib "E:\xiom-lang\stdlib" --run packages\xiom-grpc\tests\probe_suite_min.xi
-# v0.62.3 + local main m184..m188: crash 0xC0000005, NO output (even 'start')
+# v0.62.3 + local main m184..m187: crash 0xC0000005, NO output (even 'start')
 ```
 
-## Evidence matrix (v0.62.3; main m184..m188 same results)
+## Evidence matrix (v0.62.3; main m184..m187 same results)
 
 | Variant | Result |
 |---|---|
