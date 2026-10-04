@@ -3,6 +3,15 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
+**LIVE CLAIM 2026-10-04 16:45Z (main/debug session):** v0.63.0 re-pin +
+release response in progress -- official archive SHA256-verification,
+deploy to `%LOCALAPPDATA%\xiom.new`, `COMPILER_VERSION` bump, `repin`,
+probe batteries (grpc `Vec[(Str, Str)]` retest, byte-at-128,
+v0622-regressions) and the fleet sweep re-record. Parallel packages
+lanes: do NOT touch `COMPILER_VERSION`, `packages/*/STATUS.json`, the
+compiler install under `%LOCALAPPDATA%\xiom.new`, or create tags;
+coordinate first.
+
 **Written:** 2026-10-04 (16:00Z), by the main/debug session (v0.62.4
 release flow complete; first hardening batch DONE + PUBLISHED in
 `eco-v0.1.44` -- uuid 0.1.2, csv 0.1.2, bson 0.1.3, ttl 0.1.2 with
