@@ -1,8 +1,8 @@
 # xiom.protobuf
 
-> **Status:** `incubating` -- not yet conformance-tested; not yet published to the XIOM registry.
-> **Scope:** Protocol Buffers serialization bindings.
-> **Deps:** stdlib; wraps C (FFI).
+> **Status:** `incubating` -- conformance-tested (49/49); not yet published.
+> **Scope:** Protocol Buffers wire-format codec (varint/zigzag/tags, pure XIOM).
+> **Deps:** stdlib (legacy `extern "C"` declarations are unused).
 
 ## Libs inventory
 
