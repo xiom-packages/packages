@@ -4,14 +4,14 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.62.3` -- generated 2026-10-03T23:49:28Z.
+Toolchain pin: `v0.62.4` -- generated 2026-10-04T15:38:53Z.
 
 ## Summary
 
 - packages tracked: 514
-- incubating: 234
+- incubating: 233
 - ported: 1
-- stable: 279
+- stable: 280
 - publish enabled: 0
 
 ## Publish green-light checklist (per package)
@@ -132,6 +132,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.jwt | xiom-jwt | stable | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ktx | xiom-ktx | stable | tests/test_conformance.xi | pass 19/19 | fd38977f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.l10n.number | xiom-l10n-number | stable | tests/test_conformance.xi | pass 30/30 | 5f469ee5 | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.l10n-unicode | xiom-l10n-unicode | stable | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | published; v0.62.4 suite needs >60s (96-107s) -- reap at next touch |
 | xiom.lcov | xiom-lcov | stable | tests/test_conformance.xi | pass 21/21 | fd38977f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ldap | xiom-ldap | stable | tests/test_conformance.xi | pass 20/20 | fd38977f | False | publish pending: wave-35 batch (eco-v0.1.5) |
 | xiom.ldif | xiom-ldif | stable | tests/test_conformance.xi | pass 22/22 | fd38977f | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -420,7 +421,6 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.l10n-name | xiom-l10n-name | incubating | tests/test_conformance.xi | pass 21/21 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.l10n-phone | xiom-l10n-phone | incubating | tests/test_conformance.xi | pass 23/23 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.l10n-time | xiom-l10n-time | incubating | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: next scope delta |
-| xiom.l10n-unicode | xiom-l10n-unicode | incubating | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.l10n-unit | xiom-l10n-unit | incubating | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.layers | xiom-layers | incubating | tests/test_conformance.xi | pass 22/22 | 7e2c567e | False | publish pending: next scope delta |
 | xiom.legacy-proto | xiom-legacy-proto | incubating | tests/test_conformance.xi | pass 24/24 | 5f2954db | False | category harmonization patch bump (registry metadata) |
@@ -484,7 +484,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.portaudio | xiom-portaudio | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.postgres | xiom-postgres | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: FFI bridge not linked |
 | xiom.pptx | xiom-pptx | incubating | tests/test_conformance.xi | pass 26/26 | 6b9a614d | False | publish pending: next scope delta |
-| xiom.protobuf | xiom-protobuf | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.protobuf | xiom-protobuf | incubating | tests/test_conformance.xi | pass 49/49 | 84140793 | False | publish pending: eco-v0.1.43 |
 | xiom.proxy | xiom-proxy | incubating | tests/test_conformance.xi | pass 20/20 | d85a0ee6 | False | category harmonization patch bump (registry metadata) |
 | xiom.pulsar | xiom-pulsar | incubating | tests/test_conformance.xi | pass 27/27 | 00c21919 | False | category harmonization patch bump (registry metadata) |
 | xiom.puppet | xiom-puppet | incubating | tests/test_conformance.xi | pass 26/26 | 8c0ac311 | False | publish pending: next scope delta |
