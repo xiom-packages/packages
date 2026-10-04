@@ -18,14 +18,14 @@ fixed/not-fixed.
 
 | Bundle | Purpose | v0.63.0 status |
 |---|---|---|
-| `arity-laxness` | wrong-argument-count calls | **FIXED** -- control green; missing/extra both `error[T001]` |
+| `arity-laxness` | wrong-argument-count calls | **FIXED** (re-verified v0.63.0) -- control green; missing/extra both `error[T001]` |
 | `byte-at-128` | `byte_at >= 128` threshold compares | **FIXED** (re-verified v0.63.0 `bad=0`) -- widen+mask workaround retired |
 | `child-parent-calls` | child module calls into direct parent | **RE-SCOPED** -- works with `pub` (acyclic, cyclic, alias all pass); without `pub` T001 |
 | `const-tables` | module-level const arrays | **FIXED** (v0.62.4; re-verified v0.63.0 `bad=0`) -- Int/Str/struct tables correct; runtime builders can be dropped at next touch |
 | `const-match` | `const` values as match arms | **FIXED** (v0.62.4; v0.63.0 probe exit 0, W004 overlap warning) -- const arms match; literals can return to named constants |
 | `tuple-vec-set` | `Vec[(Str,Str)]` read-after-mutation | **OPEN (v0.63.0 unchanged)** -- `probe_suite_min.xi` crashes `0xC0000005`; `probe_direct.xi` hangs; grpc keeps numeric match arms blocked |
 | `enum-payload-str` | enum payload struct `Str` reads | **OPEN (v0.63.0 unchanged)** -- graphql 9/10 (`|0|` read persists); standalone controls pass; minimal repro pending |
-| `uninit-local` | uninitialized local + later assignment | **OPEN (in-situ)** -- graphql hang; standalone probe crashes pre-output; minimal repro pending |
+| `uninit-local` | uninitialized local + later assignment | **FIXED** (v0.63.0) -- standalone probe `bad=0`; graphql no longer hangs (its remaining 9/10 failure is the enum-payload case) |
 | `crypto-link` | stdlib `xiom.crypto` SHA-256/HMAC linkability | **OPEN** -- `lld-link: undefined symbol: xiom_sha256_hash` |
 | `float-vec` | `Vec[Float64]` + `Int<->Float64` bitcast | **SPLIT** -- `Vec[Float64]` works; bitcast is a documented stdlib stub (`bad=2`) |
 | `generic-fnptr` | fn-value / generic-mono ABI family | **FIXED** -- all 7 probes exit 0 |
