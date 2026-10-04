@@ -3,6 +3,13 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
+**LIVE CLAIM 2026-10-04 15:52Z (main/debug session):** the hardening
+batch is being executed by this lane right now -- `uuid` and `csv`
+contracts, `bson`/`ttl` clause top-ups, patch bumps, publish in
+`eco-v0.1.44`. Parallel packages lanes: do NOT edit
+`packages/xiom-uuid`, `packages/xiom-csv`, `packages/xiom-bson`,
+`packages/xiom-ttl`, and do not create `eco-v0.1.44`; coordinate first.
+
 **Written:** 2026-10-04 (15:45Z), by the packages session (v0.62.4
 release flow complete: fleet sweep 460/460, 460 runs re-recorded,
 `eco-v0.1.43` published with `xiom.protobuf`; `l10n-unicode` slow-suite
