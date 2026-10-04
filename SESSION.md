@@ -3,15 +3,47 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-04 (00:05Z), by the packages session (release wave
+**Written:** 2026-10-04 (13:20Z), by the packages session (release wave
 `eco-v0.1.37` + post-release growth: `http`/`websocket`/`rest`/`micro`/
-`realtime` restored and published through `eco-v0.1.42`; `grpc` and
-`graphql` parked with recorded leads; four new v0.62.3 compiler findings
-recorded). Check `git log -1 --format=%h %s` before starting.
+`realtime` restored and published through `eco-v0.1.42`; `protobuf`
+prepared 49/49 on m189 and held for the v0.62.4 pin; `grpc`/`graphql`
+parked with recorded leads; four v0.62.3 findings recorded, two fixed in
+the staged v0.62.4). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-04 00:05Z (read this first):**
+**STATE AT 2026-10-04 13:20Z (read this first):**
+- **v0.62.4 STAGED on compiler main (release commit `959fcd95`, tag not
+  yet pushed).** Highlights relevant to us: **constant tables with
+  strings/structs FIXED** (our `const-tables` finding), **nested modules
+  + same-name payload types FIXED** (m184/m189 -- drop those porter
+  rules at the pin), plus script-cache stdin, match-arm codegen, and
+  unsigned comparisons (m186). Post-pin flow: verify the official
+  archive + SHA256SUMS, deploy, bump `COMPILER_VERSION`, `repin`, fleet
+  sweep + `record-sweep.ps1`, re-run the probe index (expect
+  `const-tables` `bad=0`; enum-payload in-situ and grpc probes re-check),
+  record + publish `protobuf` (49/49 already proven on m189), restore the
+  named-constant arms in `grpc.status_to_str` (m188), then wrap
+  `eco-v0.1.43`.
+- **Compiler-lane analysis to relay (enum-payload persists on m189):**
+  m189 fixed the *literal* disambiguation, but the second half of the
+  `51a47458` root cause likely still applies to the **variable-payload**
+  path -- graphql passes `GraphQLSelection.Field(field)` with a struct
+  *variable*, where the registry flattening + ctor spread (payload spread
+  into N args; `field_idx` past the struct end; bogus `i8*` struct load)
+  would not be reached by the literal-collision fix. Suggest probing
+  `compile_enum_constructor` with a non-literal payload arg. grpc is a
+  separate shape (`Vec[(Str, Str)]` + library mutation, no enums).
+- **protobuf held for the pin:** test expectation fixed
+  (`zz_enc(5)-1==zz_enc(-5)`), manifest modules added, **49/49 x2 on
+  m189**; record + publish only on the official v0.62.4.
+- **Next:** stable hardening batches (279 stable; `bson`/`ttl` only) and
+  the remaining grandfathered set (FFI-class skipped); next tag
+  `eco-v0.1.43`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-04 00:05Z (history):**
 - **`xiom.micro` + `xiom.realtime` RESTORED + PUBLISHED (`eco-v0.1.42`,
   run `37162994341` SUCCESS):** same nested-module + collecting-harness
   treatment; 10/10 x2 each; manifests gained `modules`; README scopes
