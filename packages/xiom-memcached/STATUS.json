@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  22,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.62.4",
+                  "run_by":  "fleet-sweep:v0.63.0",
                   "commit":  "ef1c057a",
-                  "checked":  "2026-10-04T15:38:17Z"
+                  "checked":  "2026-10-04T19:07:32Z"
               },
     "publish":  false,
     "excluded_reason":  "category harmonization patch bump (registry metadata)"

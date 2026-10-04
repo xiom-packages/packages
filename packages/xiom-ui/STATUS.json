@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  98,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.62.4",
+                  "run_by":  "fleet-sweep:v0.63.0",
                   "commit":  "ed680f75",
-                  "checked":  "2026-10-04T15:37:50Z"
+                  "checked":  "2026-10-04T19:08:00Z"
               },
     "publish":  false,
     "excluded_reason":  null

@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  32,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.62.4",
+                  "run_by":  "fleet-sweep:v0.63.0",
                   "commit":  "ae2dec2c",
-                  "checked":  "2026-10-04T15:37:03Z"
+                  "checked":  "2026-10-04T19:07:11Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: eco-v0.1.37 promotion"

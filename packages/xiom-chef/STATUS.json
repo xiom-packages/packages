@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  26,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.62.4",
+                  "run_by":  "fleet-sweep:v0.63.0",
                   "commit":  "a24861c5",
-                  "checked":  "2026-10-04T15:36:55Z"
+                  "checked":  "2026-10-04T19:07:08Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"

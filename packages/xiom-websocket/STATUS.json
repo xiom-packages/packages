@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  10,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.62.4",
+                  "run_by":  "fleet-sweep:v0.63.0",
                   "commit":  "8390b229",
-                  "checked":  "2026-10-04T15:38:00Z"
+                  "checked":  "2026-10-04T19:08:02Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: eco-v0.1.40"
