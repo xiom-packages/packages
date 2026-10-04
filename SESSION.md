@@ -39,6 +39,15 @@ proposal recorded). Check `git log -1 --format=%h %s` before starting.
   then wrap+publish `eco-v0.1.43` (generate_index/report/namespaces,
   **stage ALL pending STATUS.json records before tagging**, tag, push,
   approve the gate, verify live).
+- **`l10n-unicode` slow-suite finding (v0.62.4):** the sweep flagged it
+  TIMEOUT at the 60s watchdog; manual x2 shows **24/24 PASS but 96-107s**
+  (was 52.3s on v0.62.3) -- a ~2x slowdown under the same sweep load,
+  **not a hang**. Recorded pass (`packages-lane:v0.62.4-slow-suite`).
+  After the main sweep: re-run `fleet-sweep.ps1 -Only xiom.l10n-unicode
+  -TimeoutSec 300 -LogDir %TEMP%\kilo\sweep-v0624` to append a PASS row
+  before `record-sweep.ps1`. Reported to the compiler lane as a
+  performance observation (possible const-tables/materialization or
+  match-codegen cost).
 - **Fresh open findings on v0.62.4 (relayed to the compiler lane
   2026-10-04; do NOT re-run the same bisections):** `graphql` 9/10
   enum-payload `Str` in-situ (lead: variable-payload ctor flattening);

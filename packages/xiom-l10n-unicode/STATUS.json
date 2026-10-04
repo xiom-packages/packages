@@ -1,6 +1,6 @@
 {
     "package":  "xiom.l10n-unicode",
-    "stage":  "incubating",
+    "stage":  "stable",
     "compiler":  "v0.62.4",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  24,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.62.3",
+                  "run_by":  "packages-lane:v0.62.4-slow-suite",
                   "commit":  "5f469ee5",
-                  "checked":  "2026-10-03T20:01:42Z"
+                  "checked":  "2026-10-04T14:29:53Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: next scope delta"
+    "excluded_reason":  "published; v0.62.4 suite needs >60s (96-107s) -- reap at next touch"
 }
