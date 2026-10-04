@@ -74,9 +74,11 @@ recorded). Check `git log -1 --format=%h %s` before starting.
   `kafka` suite is green **22/22** on v0.62.3 but stays `ported` (FFI
   stubs: `handle -1`, `poll None`, admin `Err(-999)`) -- a pure-XIOM
   reinterpretation would be a design job, not a restore. `zstd`/`lzfse`
-  suites (375/350 lines, non-nested) target a **nonexistent test-framework
-  API** (`TestCase`, `TestResult`, `.assert_ge/.run/.report`) -- they
-  need the collecting-harness rewrite like http/websocket. `protobuf`
+  are **FFI wrapper packages** (libzstd/LZFSE `extern "C"` bindings with
+  placeholder null calls, blocked Vec<->ptr marshaling) -- skip them with
+  the FFI class; their suites also reference a nonexistent `TestCase`
+  framework, but the impls are stubs so a harness rewrite alone would not
+  help. `protobuf`
   **compiles** (2 modules) but crashes `0xC000001D` (illegal instruction)
   pre-output -- **suspected m189-family; add to the re-test list**.
 - **m189 re-test list (when the fix build lands):** rebuild
