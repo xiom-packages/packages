@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-05T11:47:40Z",
+    "updated":  "2026-10-05T12:29:07Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -5190,7 +5190,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.optimizer",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic single-variable optimizers: hill climb, grid search, simulated annealing",
@@ -5200,7 +5200,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-optimizer/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-optimizer/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "optimizer.xi",
                                               "package.xi"
@@ -6896,7 +6896,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.selection",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic selection operators for evolutionary loops: roulette, tournament, elite, rank weights",
@@ -6906,7 +6906,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-selection/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-selection/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "selection.xi",
                                               "package.xi"
@@ -7106,7 +7106,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.snapshot",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Snapshot comparison helpers: normalization, line equality, and first-difference summaries",
@@ -7116,7 +7116,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-snapshot/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-snapshot/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "snapshot.xi",
                                               "package.xi"
@@ -7980,7 +7980,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.tracing",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "In-memory span trees: explicit-clock spans, durations, children, and self time",
@@ -7990,7 +7990,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tracing/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tracing/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "tracing.xi",
                                               "package.xi"
