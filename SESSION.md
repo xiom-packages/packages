@@ -3,6 +3,14 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
+**LIVE CLAIM 2026-10-05 08:10Z (main/debug session):** hardening batch
+#5 in progress -- runtime contracts + SPEC inventories for `alerting`,
+`robotics`, `thermo`, `audit` (stable/published, zero clauses; patch
+bumps; x2 on v0.63.0; publish in `eco-v0.1.48`). Parallel packages
+lanes: do NOT edit `packages/xiom-alerting`, `packages/xiom-robotics`,
+`packages/xiom-thermo`, `packages/xiom-audit`,
+`packages/*/STATUS.json`, or create tags; coordinate first.
+
 **Written:** 2026-10-05 (08:00Z), by the main/debug session (v0.63.0
 pin; hardening batches #2-#4 DONE + PUBLISHED -- `eco-v0.1.45`
 crc/cobs/varint/roman, `eco-v0.1.46` bmp/rate/lru/tokenizer,
