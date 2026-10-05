@@ -3,6 +3,15 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
+**LIVE CLAIM 2026-10-05 10:15Z (main/debug session):** hardening batch
+#10 FAN-OUT (6 porters) in progress -- runtime contracts + SPEC
+inventories for `template`, `packet`, `fuzz`, `base32`, `radix`,
+`astronomy` (stable/published, zero clauses; patch bumps; x2 on
+v0.63.0; publish in `eco-v0.1.53`). One background `task` porter per
+package edits + verifies; the coordinator serializes commits, records
+(real main shas), wrap and publish. Parallel lanes: do NOT edit those
+six package dirs, `packages/*/STATUS.json`, or create tags.
+
 **Written:** 2026-10-05 (11:00Z), by the main/debug session (v0.63.0
 pin; hardening batches #1-#9 DONE + PUBLISHED across
 `eco-v0.1.44`-`eco-v0.1.52` -- 36 stable packages with runtime
