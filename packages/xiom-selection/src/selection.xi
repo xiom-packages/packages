@@ -68,7 +68,9 @@ fn _sel_rng_next(state: Int) -> Int {
 /// Returns: sum of max(weights[i], 0); 0 for an empty (or all-negative) vector.
 /// Error case: none.
 /// Complexity: O(n). Precondition (documented): the sum fits in an Int.
-pub fn sel_sum(weights: &Vec[Int]) -> Int {
+pub fn sel_sum(weights: &Vec[Int]) -> Int
+  ensures: result >= 0;
+{
   var total = 0;
   var i = 0;
   while i < weights.len() {
@@ -90,7 +92,9 @@ pub fn sel_sum(weights: &Vec[Int]) -> Int {
 /// empty or all-zero vector), so out-of-range draws are Err-free and total.
 /// Error case: none.
 /// Complexity: O(n).
-pub fn sel_roulette_index(weights: &Vec[Int], draw: Int) -> Int {
+pub fn sel_roulette_index(weights: &Vec[Int], draw: Int) -> Int
+  ensures: result >= -1 && result <= weights.len() - 1;
+{
   if draw < 0 { return -1; }
   var cumulative = 0;
   var i = 0;
@@ -114,7 +118,9 @@ pub fn sel_roulette_index(weights: &Vec[Int], draw: Int) -> Int {
 /// (empty or all-zero vector) and no draw is consumed then.
 /// Error case: none.
 /// Complexity: O(n).
-pub fn sel_roulette(weights: &Vec[Int], seed: Int) -> Int {
+pub fn sel_roulette(weights: &Vec[Int], seed: Int) -> Int
+  ensures: result >= -1 && result <= weights.len() - 1;
+{
   let total = sel_sum(weights);
   if total <= 0 { return -1; }
   let state = _sel_seed_state(seed);
@@ -136,7 +142,9 @@ pub fn sel_roulette(weights: &Vec[Int], seed: Int) -> Int {
 /// new index is smaller, so ties resolve to the smallest sampled index.
 /// Error case: none.
 /// Complexity: O(k + n) (k draws, one fitness read per contender).
-pub fn sel_tournament_index(fitness: &Vec[Int], k: Int, seed: Int) -> Int {
+pub fn sel_tournament_index(fitness: &Vec[Int], k: Int, seed: Int) -> Int
+  ensures: result >= -1 && result <= fitness.len() - 1;
+{
   let n = fitness.len();
   if n == 0 { return -1; }
   var contenders = k;
@@ -174,7 +182,9 @@ pub fn sel_tournament_index(fitness: &Vec[Int], k: Int, seed: Int) -> Int {
 /// index asc): the scan is stable, so equal keys keep ascending index order.
 /// Error case: none.
 /// Complexity: O(n^2) worst case (insertion sort; near-sorted inputs are O(n)).
-pub fn sel_elite_indices(fitness: &Vec[Int], k: Int) -> Vec[Int] {
+pub fn sel_elite_indices(fitness: &Vec[Int], k: Int) -> Vec[Int]
+  ensures: result.len() <= fitness.len();
+{
   var out = Vec[Int].new();
   let n = fitness.len();
   if k <= 0 || n == 0 { return out; }
@@ -215,7 +225,9 @@ pub fn sel_elite_indices(fitness: &Vec[Int], k: Int) -> Vec[Int] {
 /// Returns: the smallest index attaining the maximum fitness; -1 when empty.
 /// Error case: none.
 /// Complexity: O(n).
-pub fn sel_best_index(fitness: &Vec[Int]) -> Int {
+pub fn sel_best_index(fitness: &Vec[Int]) -> Int
+  ensures: result >= -1 && result <= fitness.len() - 1;
+{
   let n = fitness.len();
   if n == 0 { return -1; }
   var best = 0;
@@ -237,7 +249,9 @@ pub fn sel_best_index(fitness: &Vec[Int]) -> Int {
 /// Returns: the smallest index attaining the minimum fitness; -1 when empty.
 /// Error case: none.
 /// Complexity: O(n).
-pub fn sel_worst_index(fitness: &Vec[Int]) -> Int {
+pub fn sel_worst_index(fitness: &Vec[Int]) -> Int
+  ensures: result >= -1 && result <= fitness.len() - 1;
+{
   let n = fitness.len();
   if n == 0 { return -1; }
   var worst = 0;
@@ -261,7 +275,10 @@ pub fn sel_worst_index(fitness: &Vec[Int]) -> Int {
 /// Returns: [n, n - 1, ..., 1]; an empty vector when n < 1.
 /// Error case: none.
 /// Complexity: O(n).
-pub fn sel_rank_weights(n: Int) -> Vec[Int] {
+pub fn sel_rank_weights(n: Int) -> Vec[Int]
+  ensures: n < 1 => result.len() == 0;
+  ensures: n >= 1 => result.len() == n;
+{
   var out = Vec[Int].new();
   if n < 1 { return out; }
   var i = 0;

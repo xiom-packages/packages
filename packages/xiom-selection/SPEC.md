@@ -1,6 +1,6 @@
 # xiom.selection -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.selection` (`src/selection.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -268,3 +268,22 @@ The 100-element fitness generator is `f(i) = (i * 37) % 101 - 50` for
   tests `use xiom.io; use xiom.test; use xiom.selection;`.
 - The suite contains no string comparison (`==`) on `Str` values; only
   `assert` names are Str, and they are passed through unchanged.
+
+## 14. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **1 proven / 0 violated / 23 unknown / 3 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `sel_sum` | `ensures: result >= 0` | **proven** |
+| `sel_roulette_index` / `sel_roulette` | `ensures: result >= -1 && result <= weights.len() - 1` | unproven |
+| `sel_tournament_index` | `ensures: result >= -1 && result <= fitness.len() - 1` | unproven |
+| `sel_elite_indices` | `ensures: result.len() <= fitness.len()` | unproven |
+| `sel_best_index` / `sel_worst_index` | `ensures: result >= -1 && result <= fitness.len() - 1` | unproven |
+| `sel_rank_weights` | `ensures: n < 1 => result.len() == 0`; `ensures: n >= 1 => result.len() == n` | unproven |
+
+Unasserted/documented: the exact PRNG recipe (section 3), the tie
+rules (earliest/smallest index) and the elite ordering are pinned by the
+25-check test plan; the index-range contracts above are the
+machine-checked part of the selection model.
