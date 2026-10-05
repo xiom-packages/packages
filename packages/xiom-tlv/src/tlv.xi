@@ -178,7 +178,10 @@ fn _read_be(data: &Vec[UInt8], pos: Int, size: Int) -> Int {
 /// buffer") when a declared value length exceeds the remaining bytes.
 /// An empty buffer yields Ok with zero entries.
 /// Complexity: O(data.len()).
-pub fn tlv_parse(data: &Vec[UInt8], tag_size: Int, length_size: Int) -> Result[TlvList, Str] {
+pub fn tlv_parse(data: &Vec[UInt8], tag_size: Int, length_size: Int) -> Result[TlvList, Str]
+  ensures: tag_size < 1 || tag_size > 4 => result is Err;
+  ensures: length_size < 1 || length_size > 4 => result is Err;
+{
   if !_widths_ok(tag_size, length_size) {
     return _err_list(_width_err(tag_size, length_size));
   }
@@ -210,13 +213,20 @@ pub fn tlv_parse(data: &Vec[UInt8], tag_size: Int, length_size: Int) -> Result[T
 
 /// Number of parsed entries.
 /// Complexity: O(1).
-pub fn tlv_count(l: &TlvList) -> Int {
+pub fn tlv_count(l: &TlvList) -> Int
+  ensures: result >= 0;
+  ensures: result == l.tags.len();
+{
   return l.tags.len();
 }
 
 /// Tag of entry `i`, or -1 when i is negative or >= tlv_count(l).
 /// Complexity: O(1).
-pub fn tlv_tag(l: &TlvList, i: Int) -> Int {
+pub fn tlv_tag(l: &TlvList, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= l.tags.len() => result == -1;
+  ensures: result >= -1;
+{
   if i < 0 || i >= l.tags.len() {
     return -1;
   }
@@ -225,7 +235,10 @@ pub fn tlv_tag(l: &TlvList, i: Int) -> Int {
 
 /// First entry index whose tag equals `tag`, or -1 when absent.
 /// Complexity: O(entries).
-pub fn tlv_find(l: &TlvList, tag: Int) -> Int {
+pub fn tlv_find(l: &TlvList, tag: Int) -> Int
+  ensures: result >= -1;
+  ensures: result <= l.tags.len() - 1;
+{
   var i = 0;
   while i < l.tags.len() {
     if l.tags[i] == tag {
@@ -243,7 +256,10 @@ pub fn tlv_find(l: &TlvList, tag: Int) -> Int {
 /// negative or >= tlv_count(l); Err("tlv: value out of bounds") when the
 /// recorded span does not fit `data`.
 /// Complexity: O(value length).
-pub fn tlv_value(data: &Vec[UInt8], l: &TlvList, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn tlv_value(data: &Vec[UInt8], l: &TlvList, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= l.tags.len() => result is Err;
+{
   if i < 0 || i >= l.tags.len() {
     return _err_bytes("tlv: index out of range");
   }
@@ -278,7 +294,12 @@ pub fn tlv_value(data: &Vec[UInt8], l: &TlvList, i: Int) -> Result[Vec[UInt8], S
 /// does not fit the length width. All validation happens before any byte
 /// is written, so `out` is unchanged on Err.
 /// Complexity: O(value length).
-pub fn tlv_append(out: &mut Vec[UInt8], tag: Int, value: &Vec[UInt8], tag_size: Int, length_size: Int) -> Result[Unit, Str] {
+pub fn tlv_append(out: &mut Vec[UInt8], tag: Int, value: &Vec[UInt8], tag_size: Int, length_size: Int) -> Result[Unit, Str]
+  ensures: tag < 0 => result is Err;
+  ensures: tag_size == 1 && tag > 255 => result is Err;
+  ensures: length_size == 1 && value.len() > 255 => result is Err;
+  ensures: result is Err => out.len() == out.len()@pre;
+{
   if !_widths_ok(tag_size, length_size) {
     return _err_unit(_width_err(tag_size, length_size));
   }
@@ -306,7 +327,10 @@ pub fn tlv_append(out: &mut Vec[UInt8], tag: Int, value: &Vec[UInt8], tag_size: 
 /// vectors differ in length; otherwise the first per-entry failure of
 /// tlv_append (same messages). An empty pair of vectors yields Ok(empty).
 /// Complexity: O(total value bytes).
-pub fn tlv_build_from(tags: &Vec[Int], values: &Vec[Vec[UInt8]], tag_size: Int, length_size: Int) -> Result[Vec[UInt8], Str] {
+pub fn tlv_build_from(tags: &Vec[Int], values: &Vec[Vec[UInt8]], tag_size: Int, length_size: Int) -> Result[Vec[UInt8], Str]
+  ensures: tags.len() != values.len() => result is Err;
+  ensures: tag_size < 1 || tag_size > 4 => result is Err;
+{
   if !_widths_ok(tag_size, length_size) {
     return _err_bytes(_width_err(tag_size, length_size));
   }
@@ -330,7 +354,11 @@ pub fn tlv_build_from(tags: &Vec[Int], values: &Vec[Vec[UInt8]], tag_size: Int, 
 /// Encoded size of one entry: tag_size + length_size + value_len.
 /// Returns -1 when a width is outside 1..4 or value_len is negative.
 /// Complexity: O(1).
-pub fn tlv_size(tag_size: Int, length_size: Int, value_len: Int) -> Int {
+pub fn tlv_size(tag_size: Int, length_size: Int, value_len: Int) -> Int
+  ensures: tag_size < 1 || tag_size > 4 => result == -1;
+  ensures: value_len < 0 => result == -1;
+  ensures: result != -1 => result == tag_size + length_size + value_len;
+{
   if !_widths_ok(tag_size, length_size) {
     return -1;
   }

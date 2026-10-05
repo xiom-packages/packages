@@ -192,7 +192,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.tlv
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.63.1 (hardening pass 2026-10-05), twice in a row,
 `port: PASS (passed=18 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -225,3 +225,44 @@ Last verified: compiler 0.61.3,
   `xiom.string.compare.str_compare` (BUG 17: `==` on a Str read from a
   `Vec` lowers to a pointer comparison).
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (hardening pass, 2026-10-05)
+
+20 runtime-checked clauses on the eight public entry points, added under
+compiler v0.63.1. Two consecutive `scripts/port.ps1` runs with the clauses
+active were green: `port: PASS (passed=18 failed=0 program_exit=0 exit=0)`
+(4.9 s / 5.1 s). The `tlv_append` atomicity clause
+`ensures: result is Err => out.len() == out.len()@pre` is the first use of
+`@pre` on a `&mut Vec` parameter in this package; an inverted control clause
+was confirmed to trap (`contract violated: ensures at 301:12`, at the
+append-error test) before the correct form was restored, so the clause is
+enforced, not ignored.
+
+`xiom-verify --check` (v0.63.1 `xiom-verify`, Z3 4.13.4):
+**1 proven / 3 violated / 18 unknown / 18 errors**. The single proven
+obligation is `tlv_find`'s `ensures: result >= -1`; the three `tlv_size`
+`[FAIL] VIOLATED` lines are an emitter bug, not a proof failure of the code
+under test (the tool states exactly that): `_widths_ok` is emitted as an
+`unknown constant` (the 18 `[RED] ERROR` lines), so Z3 can choose
+`_widths_ok(tag_size, length_size) = true` for invalid widths and refute the
+implications under an encoding that does not implement the guard. The
+non-scalar clauses were skipped by the emitter (`unsupported expression in
+contract`, `complex call target`, `operator Ge/Le on non-numeric operands`,
+`equality with unresolved operand sort`), so they stay solver-unproven.
+
+| Entry point | Clause | Z3 / runtime | Solver |
+|---|---|---|---|
+| `tlv_parse` | `ensures: tag_size < 1 \|\| tag_size > 4 => result is Err`; `ensures: length_size < 1 \|\| length_size > 4 => result is Err` | runtime (guard-pair) | unproven |
+| `tlv_count` | `ensures: result >= 0`; `ensures: result == l.tags.len()` | `result >= 0` Z3 scalar; equality runtime | unproven |
+| `tlv_tag` | `ensures: i < 0 => result == -1`; `ensures: i >= l.tags.len() => result == -1`; `ensures: result >= -1` | sentinels runtime; `result >= -1` Z3 scalar | unproven |
+| `tlv_find` | `ensures: result >= -1`; `ensures: result <= l.tags.len() - 1` | `result >= -1` Z3 scalar (proven); upper bound runtime | 1 proven / 1 unproven |
+| `tlv_value` | `ensures: i < 0 => result is Err`; `ensures: i >= l.tags.len() => result is Err` | runtime (guard-pair) | unproven |
+| `tlv_append` | `ensures: tag < 0 => result is Err`; `ensures: tag_size == 1 && tag > 255 => result is Err`; `ensures: length_size == 1 && value.len() > 255 => result is Err`; `ensures: result is Err => out.len() == out.len()@pre` | runtime (guards + `@pre` atomicity) | unproven |
+| `tlv_build_from` | `ensures: tags.len() != values.len() => result is Err`; `ensures: tag_size < 1 \|\| tag_size > 4 => result is Err` | runtime (guard-pair) | unproven |
+| `tlv_size` | `ensures: tag_size < 1 \|\| tag_size > 4 => result == -1`; `ensures: value_len < 0 => result == -1`; `ensures: result != -1 => result == tag_size + length_size + value_len` | Z3 scalar (sentinel + exact) | refuted only under the emitter-bug encoding above |
+
+The forbidden v0.63.1 payload shapes (tuple-component access,
+`Result[Vec[...]]` payload-length-vs-parameter comparisons, struct-result
+field access) are deliberately absent. Value-byte contents, the exact
+`"tlv: ..."` error texts and their precedence order remain pinned by the
+18-check conformance suite, the `Semantics` section and the error catalog.

@@ -10,7 +10,7 @@
 
 package xiom_tlv {
   name: "xiom.tlv";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Generic big-endian TLV parsing and building with configurable tag/length widths";
   categories: ["data"];
   keywords: ["tlv", "encoding", "binary", "protocol"];
