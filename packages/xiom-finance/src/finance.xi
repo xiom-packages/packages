@@ -42,7 +42,9 @@ fn _finance_ceil_div(a: Int, b: Int) -> Int {
 ///         per period in permille (1% = 10); periods - number of periods.
 /// Returns: interest in cents (negative for a negative rate or principal).
 /// Complexity: O(1).
-pub fn finance_simple_interest_cents(principal_cents: Int, rate_permille: Int, periods: Int) -> Int {
+pub fn finance_simple_interest_cents(principal_cents: Int, rate_permille: Int, periods: Int) -> Int
+  ensures: result == principal_cents * rate_permille * periods / 1000;
+{
   return principal_cents * rate_permille * periods / 1000;
 }
 
@@ -58,7 +60,9 @@ pub fn finance_simple_interest_cents(principal_cents: Int, rate_permille: Int, p
 ///         periods - number of compounding periods.
 /// Returns: ending balance in cents.
 /// Complexity: O(periods).
-pub fn finance_compound_cents(principal_cents: Int, rate_permille: Int, periods: Int) -> Int {
+pub fn finance_compound_cents(principal_cents: Int, rate_permille: Int, periods: Int) -> Int
+  ensures: periods < 1 => result == principal_cents;
+{
   var p = principal_cents;
   var i = 0;
   while i < periods {
@@ -85,7 +89,9 @@ pub fn finance_compound_cents(principal_cents: Int, rate_permille: Int, periods:
 ///         periods_per_year - compounding periods per year (clamped to >= 1).
 /// Returns: effective annual rate in permille.
 /// Complexity: O(periods_per_year).
-pub fn finance_apy_permille(nominal_permille: Int, periods_per_year: Int) -> Int {
+pub fn finance_apy_permille(nominal_permille: Int, periods_per_year: Int) -> Int
+  ensures: periods_per_year <= 1 && nominal_permille > -1000 => result == nominal_permille;
+{
   var m = periods_per_year;
   if m < 1 {
     m = 1;
@@ -119,7 +125,10 @@ pub fn finance_apy_permille(nominal_permille: Int, periods_per_year: Int) -> Int
 ///         per period in permille; periods - number of payments.
 /// Returns: level payment in cents (0 for periods <= 0).
 /// Complexity: O(periods).
-pub fn finance_payment_cents(principal_cents: Int, rate_permille: Int, periods: Int) -> Int {
+pub fn finance_payment_cents(principal_cents: Int, rate_permille: Int, periods: Int) -> Int
+  ensures: periods <= 0 => result == 0;
+  ensures: rate_permille <= -1000 => result == 0;
+{
   if periods <= 0 {
     return 0;
   }
@@ -150,7 +159,9 @@ pub fn finance_payment_cents(principal_cents: Int, rate_permille: Int, periods: 
 ///         per period in permille; periods - number of payments.
 /// Returns: total interest in cents, never negative.
 /// Complexity: O(periods).
-pub fn finance_total_interest_cents(principal_cents: Int, rate_permille: Int, periods: Int) -> Int {
+pub fn finance_total_interest_cents(principal_cents: Int, rate_permille: Int, periods: Int) -> Int
+  ensures: result >= 0;
+{
   let payment = finance_payment_cents(principal_cents, rate_permille, periods);
   var total = payment * periods - principal_cents;
   if total < 0 {
@@ -173,7 +184,9 @@ pub fn finance_total_interest_cents(principal_cents: Int, rate_permille: Int, pe
 ///         flows - cash flows by period (index 0 = period 0).
 /// Returns: net present value in cents.
 /// Complexity: O(flows.len()).
-pub fn finance_npv_cents(rate_permille: Int, flows: &Vec[Int]) -> Int {
+pub fn finance_npv_cents(rate_permille: Int, flows: &Vec[Int]) -> Int
+  ensures: flows.len() == 0 => result == 0;
+{
   var divisor = 1000 + rate_permille;
   if divisor < 1 {
     divisor = 1;
@@ -201,7 +214,9 @@ pub fn finance_npv_cents(rate_permille: Int, flows: &Vec[Int]) -> Int {
 /// Params: rate_permille - rate per period in permille.
 /// Returns: periods to double, or -1 for a non-positive rate.
 /// Complexity: O(1).
-pub fn finance_rule_of_72_periods(rate_permille: Int) -> Int {
+pub fn finance_rule_of_72_periods(rate_permille: Int) -> Int
+  ensures: rate_permille <= 0 => result == -1;
+{
   if rate_permille <= 0 {
     return -1;
   }

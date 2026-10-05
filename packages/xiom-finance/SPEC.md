@@ -1,5 +1,7 @@
 # xiom.finance SPEC
 
+`Version 0.1.2 (stable; published on the XIOM registry).`
+
 ## Package Overview
 
 `xiom.finance` is a pure-XIOM, FFI-free toolkit for integer
@@ -230,3 +232,23 @@ Expected: `port: PASS (passed=31 failed=0 program_exit=0 exit=0)`.
 - **No negative periods or fractional rates.** Periods are integers; rates
   below 1 permille (0.1%) cannot be represented directly -- scale the rate
   and the periods with the same factor when needed.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **4 proven / 0 violated / 9 unknown / 2 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `finance_simple_interest_cents` | `ensures: result == principal_cents * rate_permille * periods / 1000` | **proven** |
+| `finance_compound_cents` | `ensures: periods < 1 => result == principal_cents` | unproven |
+| `finance_apy_permille` | `ensures: periods_per_year <= 1 && nominal_permille > -1000 => result == nominal_permille` | unproven |
+| `finance_payment_cents` | `ensures: periods <= 0 => result == 0`; `ensures: rate_permille <= -1000 => result == 0` | **proven** (2 discharges) |
+| `finance_total_interest_cents` | `ensures: result >= 0` | unproven |
+| `finance_npv_cents` | `ensures: flows.len() == 0 => result == 0` | unproven |
+| `finance_rule_of_72_periods` | `ensures: rate_permille <= 0 => result == -1` | **proven** |
+
+Unasserted/documented: the documented truncation points, the cumulative
+truncation of the compound recurrence, the annuity-factor iteration and
+the rule-of-72 ceiling edge are pinned by the 31-check test plan; the
+contracts above lock the sentinel paths and the headline formula.
