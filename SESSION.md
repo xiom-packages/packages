@@ -27,6 +27,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   override are green (aws 27/27).
 - The stale FAIL rows in `summary.tsv` are expected -- `record-sweep` skips them and the
   re-run appends a fresh PASS row per package.
+- Compiler-lane corrections (relayed 2026-10-05 12:38Z): **C001 fix `4bf8cf1e` IS in
+  v0.63.1** (ancestor of tag `1b972478`) -- the 12:20Z block's "not part of this
+  fixes-only release" note is wrong and the wait-for-C001 plan is void; graphql 9/10 needs
+  a distinct root cause; grpc `probe_suite_min` `0xC0000005` is a strong **m192-class**
+  candidate -- re-test on the next archive (the repro may run >262k confined entries).
+  The `runtime-link` bundle (`5b7547b0`) is not reachable from the compiler-lane machine;
+  inline details relayed to the owner.
 
 **STATE AT 2026-10-05 12:20Z (read this first):**
 - **v0.63.1 PINNED (released 11:18Z; fixes-only: contract evaluator,
