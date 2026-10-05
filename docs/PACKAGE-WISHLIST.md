@@ -24,7 +24,8 @@ Status legend: **IN-FIX** / **APPROVED-NEW** / **EXTEND** / **MERGE-INTO** / **D
 | `xiom.ratelimit` | **DONE + PUBLISHED** -- keyed layer in `xiom.rate` (0.2.0, `eco-v0.1.61`, run `37340030888`; task `ses_ef329199...`) | `xiom.rate` 0.2.0 adds per-IP/route/user keyed buckets and windows plus prune hooks; the 429 envelope lives in `xiom.http.middleware`. |
 | `xiom.metrics` | **EXTEND** `xiom.metrics` 0.1.2 -> 0.2.0 | The existing package's non-goals explicitly exclude labels/dimensions and scrape/export formats. Add labels + a Prometheus text exposition module (`xiom.metrics.prometheus`) + scrape helper inside the same package (keeps one metrics name in the ecosystem). |
 | `xiom.static` | **APPROVED-NEW** (ops delta) | MIME via stdlib `xiom.net.mime`; ETag/Last-Modified, Range, path-traversal guard, Cache-Control policy. |
-| `xiom.http.middleware` | **APPROVED-NEW** (ops delta, after router types) | composable chain over request/response envelopes: request-id, access log, recover-to-500, CORS, CSRF helpers. |
+| `xiom.kv` | **APPROVED-NEW** (ops delta; queued last) | Embedded pure-XIOM log-structured KV: append-only segments, crash-safe reopen, tombstones, compaction, optional snapshot. PULSE Step 3 needs a durable local store; `xiom.bolt` is read-only, `xiom.sql` unpublished. Build after middleware/session/static. |
+| `xiom.http.middleware` | **APPROVED-NEW** (ops delta, after router types) | composable chain over request/response envelopes: request-id, access log, recover-to-500, CORS, CSRF helpers. PULSE order: middleware NEXT, then session. |
 
 ## 3. Build order (agreed with PULSE's suggested sequence)
 
@@ -46,3 +47,12 @@ Status legend: **IN-FIX** / **APPROVED-NEW** / **EXTEND** / **MERGE-INTO** / **D
 - PULSE scope confirmation (2026-10-05): `router` first (replaces their router), then
   `session` (replaces their store), `static` and `http.middleware` as later slices; the
   registry allowlist delta remains the owner's call.
+- PULSE adoption round (2026-10-05 v2): `xiom.router` 0.1.0 adopted cleanly (probe 8/8,
+  suites x2 + smoke 44/44; their `src/router.xi` is now a thin wrapper); `xiom.jwt` 0.2.0
+  adopted (probe 11/11 + 6 app checks); `xiom.rate` 0.2.0 recorded; PULSE order now
+  **middleware next → session → rate adoption → metrics 0.2 (latency histograms) → static
+  → kv**; `metrics` 0.2 must serve latency histograms (bounds preset added to the brief).
+- PULSE cross-ref **C-PULSE-02** (installed packages absent from the compiler module
+  catalog; `xiom.toml` source-roots workaround) -- same class as the packages-lane
+  observation that raw `--run` inside a package dir can fail the catalog stage while
+  `port.ps1`/the repo-root wrapper compile the same files.
