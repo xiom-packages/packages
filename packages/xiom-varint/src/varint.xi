@@ -153,7 +153,9 @@ pub fn varint_encode_zigzag(n: Int) -> Vec[UInt8]
 /// Err("varint: truncated") when the buffer ends before the varint does;
 /// Err("varint: overflow") when the encoding would need more than 10 bytes
 /// or carries payload bits above bit 63.
-pub fn varint_decode_u(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str] {
+pub fn varint_decode_u(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str]
+  ensures: result is Ok => result.value.1 > off;
+{
   if off < 0 {
     return _err_pair("varint: negative offset");
   }
@@ -198,7 +200,9 @@ pub fn varint_decode_u(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str] {
 /// `z` decodes to `z / 2`, an odd `z` to `-(z / 2) - 1` (computed from the
 /// raw 7-bit groups, so INT64_MIN decodes correctly from `ff*9 01`).
 /// Errors are the varint_decode_u errors.
-pub fn varint_decode_zigzag(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str] {
+pub fn varint_decode_zigzag(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str]
+  ensures: result is Ok => result.value.1 > off;
+{
   let ur = varint_decode_u(data, off);
   if !ur.is_ok {
     return _err_pair(ur.error);

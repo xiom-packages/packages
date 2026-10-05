@@ -8,7 +8,7 @@
 
 package xiom_varint {
   name: "xiom.varint";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "LEB128 unsigned varints and zigzag signed varints with size helpers";
   categories: ["data"];
   keywords: ["varint", "leb128", "zigzag", "encoding"];
