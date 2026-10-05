@@ -3,6 +3,16 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
+**LIVE CLAIM 2026-10-05 12:05Z (main/debug session):** v0.63.1 release
+response in progress -- SHA256-verified re-pin + 514-record repin,
+probe batteries, grpc/graphql re-test (C001 fix expected), fleet sweep
+re-record, and the compiler-lane-requested clause restoration
+(`varint` decode tuple clauses + `cobs` decode bound; drop the
+unasserted notes) with patch bumps + publish in `eco-v0.1.55`.
+`lz4_compress_checked` rename noted OPTIONAL -- not doing it. Parallel
+lanes: do NOT touch COMPILER_VERSION, `packages/*/STATUS.json`, the
+`xiom.new` install, or create tags; coordinate first.
+
 **Written:** 2026-10-05 (12:00Z), by the main/debug session (v0.63.0
 pin; hardening batches #1-#11 DONE + PUBLISHED across
 `eco-v0.1.44`-`eco-v0.1.54` -- 46 stable packages with runtime
