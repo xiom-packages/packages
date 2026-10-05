@@ -1,6 +1,6 @@
 # xiom.astronomy -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (incubating, not published).
 Module: `xiom.astronomy` (`src/astronomy.xi`). Pure XIOM, no FFI, no floating
 point.
 
@@ -334,3 +334,41 @@ external ephemeris.** Independently verifiable anchors that are pinned:
 `JD(1970-01-01) = 2440588`, `JD(2000-01-01) = 2451545`, `JD(2026-01-01) =
 2461042`, the Unix-days cross-check of section 3.2, and the century leap
 rules.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **3 proven / 0 violated / 12 unknown / 4 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `astro_is_leap_year` | `ensures: result == (year % 4 == 0 && (year % 100 != 0 \|\| year % 400 == 0))` | unproven |
+| `astro_julian_day` | `ensures: (month < 1 \|\| month > 12) => result is Err`; `ensures: (day < 1 \|\| day > 31) => result is Err`; `ensures: (month >= 1 && month <= 12 && day >= 1 && day <= 28) => result is Ok` | unproven |
+| `astro_days_since_j2000` | `ensures: (month < 1 \|\| month > 12) => result is Err`; `ensures: (day < 1 \|\| day > 31) => result is Err`; `ensures: (month >= 1 && month <= 12 && day >= 1 && day <= 28) => result is Ok` | unproven |
+| `astro_moon_phase_permille` | `ensures: result is Ok => result.value >= 0`; `ensures: result is Ok => result.value <= 999`; `ensures: (month < 1 \|\| month > 12) => result is Err` | unproven |
+| `astro_moon_phase_name` | `ensures: result.len() >= 3`; `ensures: result.len() <= 15` | unproven |
+| `astro_zodiac_sign` | `ensures: (month < 1 \|\| month > 12) => result is Err`; `ensures: (day < 1 \|\| day > 31) => result is Err`; `ensures: (month >= 1 && month <= 12 && day >= 1 && day <= 28) => result is Ok` | unproven |
+
+15 clauses across the six entry points (1/3/3/3/2/3). All 15 are enforced by
+the v0.63.0 runtime evaluator: the 22-check conformance suite exercises both
+the happy path and every rejection path with the clauses active, and an
+isolated false-clause probe traps as expected. In the Z3 pass every contract
+axiom was skipped by the emitter (`unsupported expression in contract`, `body
+incomplete`, `equality with unresolved operand sort`), so no clause is
+machine-proven; the only Z3 obligations emitted in the generated SMT are the
+three X7004 division-by-zero side conditions of `astro_is_leap_year` (divisors
+4/100/400), which account for the 3 proven entries. The 4 errors are emitter
+artifacts (`unknown constant _days_in_month` / `_floor_mod` /
+`_month_max_days`), not violations of the code under test.
+
+Unasserted/documented: the exact Fliegel-Van Flandern JDN formula and its
+anchor values (section 3.2), the `floor_div`/`floor_mod` wrap semantics of the
+phase model (section 4.5), the phase-name interval table (section 4.6), the
+tropical zodiac table and boundary days (section 4.7), and the exact
+`"astronomy: invalid date: ..."` error strings are not expressible as runtime
+clauses without function calls, `Str` content comparison, or the forbidden
+v0.63.0 payload shapes (tuple-component access, `Result[Vec[...]]` payload
+lengths, struct-result fields). They stay pinned by the 22-check test plan
+(section 7) and sections 3-4 of this SPEC; only the validation guards, the
+phase range `0..999`, the phase-name length window `3..15`, and the
+definitional leap-year rule are runtime-asserted.

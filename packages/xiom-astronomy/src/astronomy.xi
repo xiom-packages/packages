@@ -116,7 +116,9 @@ fn _md_text(month: Int, day: Int) -> Str {
 /// Params: year - any Int (divisibility is sign-symmetric).
 /// Returns: true for a leap year: 2000 and 2024 yes; 1900 and 2100 no.
 /// Complexity: O(1).
-pub fn astro_is_leap_year(year: Int) -> Bool {
+pub fn astro_is_leap_year(year: Int) -> Bool
+  ensures: result == (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
+{
   if year % 4 != 0 { return false; }
   if year % 100 != 0 { return true; }
   return year % 400 == 0;
@@ -138,7 +140,11 @@ pub fn astro_is_leap_year(year: Int) -> Bool {
 /// outside 1..12 or the day is outside 1..days_in_month (this rejects
 /// February 30 and February 29 in a common year).
 /// Complexity: O(1).
-pub fn astro_julian_day(year: Int, month: Int, day: Int) -> Result[Int, Str] {
+pub fn astro_julian_day(year: Int, month: Int, day: Int) -> Result[Int, Str]
+  ensures: (month < 1 || month > 12) => result is Err;
+  ensures: (day < 1 || day > 31) => result is Err;
+  ensures: (month >= 1 && month <= 12 && day >= 1 && day <= 28) => result is Ok;
+{
   if month < 1 || month > 12 {
     return _err_int("astronomy: invalid date: " + _date_text(year, month, day));
   }
@@ -156,7 +162,11 @@ pub fn astro_julian_day(year: Int, month: Int, day: Int) -> Result[Int, Str] {
 /// Params: as astro_julian_day.
 /// Returns: Ok(days); Err (the astro_julian_day message) for an invalid date.
 /// Complexity: O(1).
-pub fn astro_days_since_j2000(year: Int, month: Int, day: Int) -> Result[Int, Str] {
+pub fn astro_days_since_j2000(year: Int, month: Int, day: Int) -> Result[Int, Str]
+  ensures: (month < 1 || month > 12) => result is Err;
+  ensures: (day < 1 || day > 31) => result is Err;
+  ensures: (month >= 1 && month <= 12 && day >= 1 && day <= 28) => result is Ok;
+{
   let jd = astro_julian_day(year, month, day);
   match jd {
     Ok(v) => { return _ok_int(v - _JD_J2000); },
@@ -177,7 +187,11 @@ pub fn astro_days_since_j2000(year: Int, month: Int, day: Int) -> Result[Int, St
 /// Params: as astro_julian_day.
 /// Returns: Ok(permille in 0..999); Err for an invalid date.
 /// Complexity: O(1).
-pub fn astro_moon_phase_permille(year: Int, month: Int, day: Int) -> Result[Int, Str] {
+pub fn astro_moon_phase_permille(year: Int, month: Int, day: Int) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 999;
+  ensures: (month < 1 || month > 12) => result is Err;
+{
   let jd = astro_julian_day(year, month, day);
   var elapsed_units: Int = 0;
   match jd {
@@ -200,7 +214,10 @@ pub fn astro_moon_phase_permille(year: Int, month: Int, day: Int) -> Result[Int,
 /// "waxing gibbous", "full", "waning gibbous", "last quarter",
 /// "waning crescent".
 /// Complexity: O(1).
-pub fn astro_moon_phase_name(permille: Int) -> Str {
+pub fn astro_moon_phase_name(permille: Int) -> Str
+  ensures: result.len() >= 3;
+  ensures: result.len() <= 15;
+{
   let p = _floor_mod(permille, _PERMILLE);
   if p <= 62 { return "new"; }
   if p <= 187 { return "waxing crescent"; }
@@ -278,7 +295,11 @@ fn _zodiac_name(month: Int, day: Int) -> Str {
 /// Returns: Ok(sign name); Err("astronomy: invalid date: M-D") for an
 /// out-of-range month or day.
 /// Complexity: O(1).
-pub fn astro_zodiac_sign(month: Int, day: Int) -> Result[Str, Str] {
+pub fn astro_zodiac_sign(month: Int, day: Int) -> Result[Str, Str]
+  ensures: (month < 1 || month > 12) => result is Err;
+  ensures: (day < 1 || day > 31) => result is Err;
+  ensures: (month >= 1 && month <= 12 && day >= 1 && day <= 28) => result is Ok;
+{
   if month < 1 || month > 12 {
     return _err_str("astronomy: invalid date: " + _md_text(month, day));
   }
