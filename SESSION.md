@@ -3,29 +3,53 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**LIVE CLAIM 2026-10-05 10:35Z (main/debug session):** hardening batch
-#9 in progress -- runtime contracts + SPEC inventories for `refactor`,
-`typography`, `macaddr`, `transaction` (stable/published, zero clauses;
-patch bumps; x2 on v0.63.0; publish in `eco-v0.1.52`). This wave is
-FAN-OUT per the proven wave pipeline: one agent per package edits +
-verifies (background `task` porters), while the coordinator serializes
-commits, records (with the real main-worktree shas), wrap and publish.
-Parallel packages lanes: do NOT edit those four package dirs,
-`packages/*/STATUS.json`, or create tags; coordinate first.
-
-**Written:** 2026-10-05 (10:20Z), by the main/debug session (v0.63.0
-pin; hardening batches #1-#8 DONE + PUBLISHED across
-`eco-v0.1.44`-`eco-v0.1.51` -- 32 stable packages with runtime
-contracts + SPEC contract inventories; batch #8 adds
-tracing/selection/snapshot/optimizer with span-id, index-range,
-length-bound and degenerate-range contracts; 247 stable packages still
-at zero clauses; grpc still red on v0.63.0 -- numeric match arms stay
-blocked until the next pin; graphql 9/10). Check
-`git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-05 (11:00Z), by the main/debug session (v0.63.0
+pin; hardening batches #1-#9 DONE + PUBLISHED across
+`eco-v0.1.44`-`eco-v0.1.52` -- 36 stable packages with runtime
+contracts + SPEC contract inventories; batch #9 was the first FAN-OUT
+wave (one background `task` porter per package; coordinator commits/
+records serially); 243 stable packages still at zero clauses; grpc
+still red on v0.63.0 -- numeric match arms stay blocked until the next
+pin; graphql 9/10). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-05 10:20Z (read this first):**
+**STATE AT 2026-10-05 11:00Z (read this first):**
+- **`eco-v0.1.52` PUBLISHED (`37292918906` SUCCESS):** hardening batch
+  #9 -- `xiom.typography` 0.1.2 (20/20), `xiom.transaction` 0.1.2
+  (22/22), `xiom.refactor` 0.1.2 (20/20), `xiom.macaddr` 0.1.2 (20/20);
+  all stable, x2 green on v0.63.0 (porter + coordinator runs),
+  live-verified. No allowlist delta, no rate window; guard
+  499 allowlisted / 459 ready / 40 grandfathered / 0 failures.
+- **FAN-OUT protocol (established):** each wave dispatches one agent per
+  package (background `task` porter) to edit + run port x2 + verify +
+  update SPEC/manifest; the coordinator serializes commits, records
+  with the REAL main-worktree shas (`-RunBy task:ses_...`), the wrap
+  and the publish. Agents must not run git or touch shared files
+  (SESSION/index/report/namespaces/other packages).
+- **Porter safety note (two incidents, both fully recovered):** the
+  background porters used `Get-ChildItem -Include` with `-LiteralPath`
+  for cleanup, which ignores the filter and deleted all files of
+  `refactor`/`macaddr`. Both were restored from the read-only
+  `second-sprout` Agent Manager worktree (+ a loose git object for
+  STATUS), blob-SHA-verified, edits re-applied, then re-verified x2 on
+  main by the coordinator. Porter briefs must use explicit file paths
+  (never `-Include` with `-LiteralPath`) for cleanup.
+- **Hardening progress:** batches #1-#9 = **36 packages published**;
+  243 stable packages remain at zero clauses. Batch #10 candidates:
+  `option` (presence-only clauses), `template`, `packet`, `fuzz`,
+  `base32`, `radix`, `astronomy`, `svg`, ... (check sources first).
+- **Open findings (compiler-gated; do NOT re-bisect):** grpc
+  `Vec[(Str,Str)]` crash/hang (red on v0.63.0), graphql 9/10
+  enum-payload in-situ. Compiler main has UNRELEASED fixes -- C001
+  root cause `4bf8cf1e` and verifier UNKNOWN handling `6f34e1f0` --
+  when the next release lands: re-pin, then re-test grpc/graphql first.
+- **Next:** hardening batch #10 (fan-out), or the parked grpc/graphql
+  pair on the next pin; next tag `eco-v0.1.53`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-05 10:20Z (history):**
 - **`eco-v0.1.51` PUBLISHED (`37290391384` SUCCESS):** hardening batch
   #8 -- `xiom.tracing` 0.1.2 (20/20), `xiom.selection` 0.1.2 (25/25),
   `xiom.snapshot` 0.1.2 (20/20), `xiom.optimizer` 0.1.2 (24/24, 2
@@ -964,20 +988,21 @@ blocked until the next pin; graphql 9/10). Check
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-05 10:20Z STATE block and
+private). Read SESSION.md first -- the 2026-10-05 11:00Z STATE block and
 the "Next-session operating kit" in section 0 are the live handoff
-(v0.63.0 pinned + SHA256-verified; hardening batches #1-#8 published:
+(v0.63.0 pinned + SHA256-verified; hardening batches #1-#9 published:
 `eco-v0.1.44` uuid/csv/bson/ttl, `eco-v0.1.45` crc/cobs/varint/roman,
 `eco-v0.1.46` bmp/rate/lru/tokenizer, `eco-v0.1.47`
 metrics/retry/signal/stl, `eco-v0.1.48` alerting/robotics/thermo/audit,
 `eco-v0.1.49` quantum/spectroscopy/relativity/physics, `eco-v0.1.50`
 particle/fixed/finance/collation, `eco-v0.1.51`
-tracing/selection/snapshot/optimizer -- all with runtime contracts; 247
-stable packages still at zero clauses; registry 459 packages + 2 infra;
-allowlist 499; grpc `Vec[(Str,Str)]` STILL RED on v0.63.0 -- numeric
-match arms stay blocked until a release carries the C001 root-cause
-fix; graphql 9/10; `l10n-unicode` needs a >60s suite timeout and stays
-incubating).
+tracing/selection/snapshot/optimizer, `eco-v0.1.52`
+typography/transaction/refactor/macaddr (fan-out) -- all with runtime
+contracts; 243 stable packages still at zero clauses; registry 459
+packages + 2 infra; allowlist 499; grpc `Vec[(Str,Str)]` STILL RED on
+v0.63.0 -- numeric match arms stay blocked until a release carries the
+C001 root-cause fix; graphql 9/10; `l10n-unicode` needs a >60s suite
+timeout and stays incubating).
 Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
@@ -1002,21 +1027,24 @@ Then do, in order:
    and graphql (x2, record), then publish in one batch.
    `l10n-unicode` stays incubating; needs a >60s suite timeout under
    load (42-45s idle).
-2. Hardening track: batches #1-#8 DONE + PUBLISHED (`eco-v0.1.44`
+2. Hardening track: batches #1-#9 DONE + PUBLISHED (`eco-v0.1.44`
    uuid/csv/bson/ttl; `eco-v0.1.45` crc/cobs/varint/roman;
    `eco-v0.1.46` bmp/rate/lru/tokenizer; `eco-v0.1.47`
    metrics/retry/signal/stl; `eco-v0.1.48` alerting/robotics/thermo/
    audit; `eco-v0.1.49` quantum/spectroscopy/relativity/physics;
    `eco-v0.1.50` particle/fixed/finance/collation; `eco-v0.1.51`
-   tracing/selection/snapshot/optimizer). Next: batch #9 from the
-   remaining grandfathered stable carriers (247 at zero clauses; see
-   `scripts/contract-coverage.ps1`) per `docs/PROMOTION.md` --
-   contracts + API review; x2 on the pin; patch bump; record; publish.
-   No ops delta. Claim the batch in SESSION.md before editing
-   (concurrent-lane protocol). Watch the contract runtime-evaluator
-   artifact (COMPILER-FINDINGS 2026-10-05): keep
-   payload-length-vs-parameter-length and tuple-component clauses out
-   of package sources until it is fixed.
+   tracing/selection/snapshot/optimizer; `eco-v0.1.52`
+   typography/transaction/refactor/macaddr). Next: batch #10 using the
+   FAN-OUT protocol -- dispatch one background `task` porter per
+   package (brief: proven clause patterns; avoid tuple-component /
+   payload-length-vs-parameter / struct-result clauses; port x2;
+   bracket scan; verify; SPEC + manifest bump; NO git; NO shared
+   files; explicit-path cleanup only -- never `-Include` with
+   `-LiteralPath`), then integrate each report yourself (confirm x2 on
+   main, feat commit, record with the real sha and
+   `-RunBy task:ses_...`) before wrapping + publishing. Remaining
+   grandfathered stable carriers: 243 at zero clauses (see
+   `scripts/contract-coverage.ps1`). No ops delta.
 3. Growth (optional): the remaining grandfathered set is FFI-class
    (skipped) except `kafka` (green suite but FFI stubs; needs a pure-XIOM
    redesign) and `zstd`/`lzfse` (FFI stubs).
