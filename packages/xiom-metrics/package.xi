@@ -9,7 +9,7 @@
 
 package xiom_metrics {
   name: "xiom.metrics";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Counters, gauges, and histograms for in-process metrics";
   categories: ["core","tooling"];
   keywords: ["metrics","histogram","counter","gauge"];

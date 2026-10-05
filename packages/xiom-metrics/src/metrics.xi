@@ -32,18 +32,24 @@ pub fn metric_counter_value(c: &Counter) -> Int {
 }
 
 /// Increment the counter by 1. Complexity: O(1).
-pub fn metric_counter_inc(c: &mut Counter) {
+pub fn metric_counter_inc(c: &mut Counter)
+  ensures: c.value == c.value@pre + 1;
+{
   c.value = c.value + 1;
 }
 
 /// Add `delta` to the counter; negative deltas subtract.
 /// Complexity: O(1).
-pub fn metric_counter_add(c: &mut Counter, delta: Int) {
+pub fn metric_counter_add(c: &mut Counter, delta: Int)
+  ensures: c.value == c.value@pre + delta;
+{
   c.value = c.value + delta;
 }
 
 /// Reset the counter to zero. Complexity: O(1).
-pub fn metric_counter_reset(c: &mut Counter) {
+pub fn metric_counter_reset(c: &mut Counter)
+  ensures: c.value == 0;
+{
   c.value = 0;
 }
 
@@ -67,13 +73,17 @@ pub fn metric_gauge_value(g: &Gauge) -> Int {
 }
 
 /// Set the gauge to `v`. Complexity: O(1).
-pub fn metric_gauge_set(g: &mut Gauge, v: Int) {
+pub fn metric_gauge_set(g: &mut Gauge, v: Int)
+  ensures: g.value == v;
+{
   g.value = v;
 }
 
 /// Add `delta` to the gauge; negative deltas subtract.
 /// Complexity: O(1).
-pub fn metric_gauge_add(g: &mut Gauge, delta: Int) {
+pub fn metric_gauge_add(g: &mut Gauge, delta: Int)
+  ensures: g.value == g.value@pre + delta;
+{
   g.value = g.value + delta;
 }
 
@@ -123,7 +133,11 @@ pub fn metric_histogram_new(bounds: &Vec[Int]) -> Histogram {
 /// value) and increments exactly one bucket: the first bucket i with
 /// v <= bounds[i], or the final bucket when v exceeds every bound.
 /// Complexity: O(n) in bounds (first-fit scan).
-pub fn metric_histogram_observe(h: &mut Histogram, v: Int) {
+pub fn metric_histogram_observe(h: &mut Histogram, v: Int)
+  ensures: h.count == h.count@pre + 1;
+  ensures: h.sum == h.sum@pre + v;
+  ensures: h.min <= h.max;
+{
   if h.count == 0 {
     h.min = v;
     h.max = v;
@@ -150,7 +164,9 @@ pub fn metric_histogram_observe(h: &mut Histogram, v: Int) {
 /// Params: h - the histogram; index - bucket index.
 /// Returns: the bucket count, or 0 when `index` is negative or beyond the
 /// last bucket. No error path. Complexity: O(1).
-pub fn metric_histogram_bucket_count(h: &Histogram, index: Int) -> Int {
+pub fn metric_histogram_bucket_count(h: &Histogram, index: Int) -> Int
+  ensures: result >= 0;
+{
   if index < 0 { return 0; }
   if index >= h.counts.len() { return 0; }
   let got: Int = h.counts[index];
@@ -159,12 +175,16 @@ pub fn metric_histogram_bucket_count(h: &Histogram, index: Int) -> Int {
 
 /// Number of buckets (always bounds.len() + 1, at least 1).
 /// Complexity: O(1).
-pub fn metric_histogram_bucket_len(h: &Histogram) -> Int {
+pub fn metric_histogram_bucket_len(h: &Histogram) -> Int
+  ensures: result >= 1;
+{
   return h.counts.len();
 }
 
 /// Total observations recorded. Complexity: O(1).
-pub fn metric_histogram_count(h: &Histogram) -> Int {
+pub fn metric_histogram_count(h: &Histogram) -> Int
+  ensures: result >= 0;
+{
   return h.count;
 }
 
@@ -195,7 +215,9 @@ pub fn metric_histogram_mean(h: &Histogram) -> Int {
 /// Drop every observation: zeroes all buckets and count/sum/min/max, and
 /// keeps the bounds (bucket layout is unchanged, so the histogram can be
 /// reused). Complexity: O(n) in buckets.
-pub fn metric_histogram_reset(h: &mut Histogram) {
+pub fn metric_histogram_reset(h: &mut Histogram)
+  ensures: h.count == 0 && h.sum == 0 && h.min == 0 && h.max == 0;
+{
   var i = 0;
   while i < h.counts.len() {
     h.counts[i] = 0;

@@ -1,8 +1,9 @@
 # xiom.metrics -- Specification
 
-Status: `incubating` (implemented, harness-green, not published).
+Status: `stable` (published; v0.63.0 fleet sweep green; contract hardening
+in 0.1.2).
 Module: `xiom.metrics` (`src/metrics.xi`). Manifest: `package.xi` (name
-`xiom.metrics`, version `0.1.0`). Depends on `xiom.std` for the manifest only;
+`xiom.metrics`, version `0.1.2`). Depends on `xiom.std` for the manifest only;
 the library module imports nothing.
 
 ## Scope
@@ -208,3 +209,31 @@ program_exit=0 exit=0)`.
   keep inference unambiguous.
 - `use xiom.metrics;` plus `xiom.test.assert` / `xiom.io.println` in the
   suite, matching the sibling packages' test style.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 19 unknown / 1 error** (no clause is
+refuted).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `metric_counter_inc` | `ensures: c.value == c.value@pre + 1` | unproven |
+| `metric_counter_add` | `ensures: c.value == c.value@pre + delta` | unproven |
+| `metric_counter_reset` | `ensures: c.value == 0` | unproven |
+| `metric_gauge_set` | `ensures: g.value == v` | unproven |
+| `metric_gauge_add` | `ensures: g.value == g.value@pre + delta` | unproven |
+| `metric_histogram_observe` | `ensures: h.count == h.count@pre + 1`; `ensures: h.sum == h.sum@pre + v`; `ensures: h.min <= h.max` | unproven |
+| `metric_histogram_bucket_count` | `ensures: result >= 0` | unproven |
+| `metric_histogram_bucket_len` | `ensures: result >= 1` | unproven |
+| `metric_histogram_count` | `ensures: result >= 0` | unproven |
+| `metric_histogram_reset` | `ensures: h.count == 0 && h.sum == 0 && h.min == 0 && h.max == 0` | unproven |
+| `metric_counter_new` / `metric_gauge_new` / `metric_histogram_new` | none | unasserted (documented) |
+| `metric_counter_value` / `metric_gauge_value` / `metric_histogram_sum` / `_min` / `_max` / `_mean` | none | unasserted (documented) |
+
+Unasserted/documented: constructors (struct-result field access is out
+of scope for the runtime evaluator) and pure getters (definitional) are
+pinned by the test plan. The histogram bucket-assignment rule (first
+bucket with `v <= bounds[i]`, else the +Inf bucket) and the
+`bounds.len()+1` bucket-count invariant are test-pinned; the exact
+`count`/`sum` accounting is machine-checked.
