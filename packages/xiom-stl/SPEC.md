@@ -4,6 +4,8 @@
 
 # xiom.stl SPEC
 
+`Version 0.1.2 (stable; published on the XIOM registry).`
+
 ## Scope
 
 Pure-XIOM parsing of the binary STL structure: kind classification (binary vs ASCII), the declared triangle count, and raw access to every normal/vertex component and attribute value. IEEE-754 f32 fields are exposed as their little-endian u32 bit patterns; no float interpretation happens in this package.
@@ -96,3 +98,24 @@ The heuristic is size-based; it does not validate that the 80-byte header is non
 - ASCII files are detected, never parsed.
 - No vertex dedup/normalization; repeated vertices are returned as stored.
 - The 80-byte header is opaque; title strings are not surfaced.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **3 proven / 0 violated / 10 unknown / 13 errors** (the
+`stl_binary_size` exact-formula clauses are discharged; the Ok-range
+clauses remain solver-unknown).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `stl_kind` | `ensures: result >= 0 && result <= 2` | unproven |
+| `stl_triangle_count` | `ensures: result is Ok => result.value >= 0` | unproven |
+| `stl_float_bits` / `stl_normal_bits` / `stl_vertex_bits` | `ensures: result is Ok => result.value >= 0 && result.value <= 4294967295` | unproven |
+| `stl_attribute` | `ensures: result is Ok => result.value >= 0 && result.value <= 65535` | unproven |
+| `stl_binary_size` | `ensures: triangles < 0 => result == 0`; `ensures: triangles >= 0 => result == 84 + triangles * 50` | **proven** |
+
+Unasserted/documented: the binary/ASCII classification precedence, the
+truncated/trailing-bytes error catalog, and the per-field offset layout
+are pinned by the 17-check test plan and the layout diagram in the
+module header; they are not expressible as runtime contracts over
+`Vec[UInt8]` reads.

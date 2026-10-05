@@ -105,7 +105,9 @@ fn _starts_with_solid(data: &Vec[UInt8]) -> Bool {
 /// Classify a buffer: 1 = binary STL, 2 = ASCII STL (optional whitespace
 /// then "solid"), 0 = unknown/short. Binary wins whenever the exact size
 /// matches 84 + 50*count, even if the header starts with "solid".
-pub fn stl_kind(data: &Vec[UInt8]) -> Int {
+pub fn stl_kind(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0 && result <= 2;
+{
   if _is_binary_sized(data) { return 1; }
   if _starts_with_solid(data) { return 2; }
   return 0;
@@ -115,7 +117,9 @@ pub fn stl_kind(data: &Vec[UInt8]) -> Int {
 /// Err("stl: truncated header") when n < 84, Err("stl: truncated triangle
 /// data") when the declared count needs more bytes than are present, and
 /// Err("stl: trailing bytes") when the buffer is longer than declared.
-pub fn stl_triangle_count(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn stl_triangle_count(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0;
+{
   let n = data.len();
   if n < 84 { return _err_int("stl: truncated header"); }
   let count = _le32(data, 80);
@@ -128,7 +132,9 @@ pub fn stl_triangle_count(data: &Vec[UInt8]) -> Result[Int, Str] {
 /// Little-endian u32 at an absolute offset, returned as a non-negative Int
 /// holding the raw IEEE-754 bit pattern. Err("stl: offset out of range")
 /// when offset < 0 or offset + 4 > data.len().
-pub fn stl_float_bits(data: &Vec[UInt8], offset: Int) -> Result[Int, Str] {
+pub fn stl_float_bits(data: &Vec[UInt8], offset: Int) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0 && result.value <= 4294967295;
+{
   if offset < 0 { return _err_int("stl: offset out of range"); }
   if offset + 4 > data.len() { return _err_int("stl: offset out of range"); }
   return _ok_int(_le32(data, offset));
@@ -137,7 +143,9 @@ pub fn stl_float_bits(data: &Vec[UInt8], offset: Int) -> Result[Int, Str] {
 /// Raw bits of the normal component for triangle `tri` and axis 0..2
 /// (0 = x, 1 = y, 2 = z). The triangle bounds are checked first, then the
 /// axis. Err("stl: triangle out of range") / Err("stl: axis out of range").
-pub fn stl_normal_bits(data: &Vec[UInt8], tri: Int, axis: Int) -> Result[Int, Str] {
+pub fn stl_normal_bits(data: &Vec[UInt8], tri: Int, axis: Int) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0 && result.value <= 4294967295;
+{
   let count = stl_triangle_count(data);
   if !count.is_ok { return _err_int(count.error); }
   if tri < 0 || tri >= count.value { return _err_int("stl: triangle out of range"); }
@@ -149,7 +157,9 @@ pub fn stl_normal_bits(data: &Vec[UInt8], tri: Int, axis: Int) -> Result[Int, St
 /// `tri`. The triangle bounds are checked first, then the vertex, then the
 /// axis. Err("stl: triangle out of range") / Err("stl: vertex out of
 /// range") / Err("stl: axis out of range").
-pub fn stl_vertex_bits(data: &Vec[UInt8], tri: Int, vertex: Int, axis: Int) -> Result[Int, Str] {
+pub fn stl_vertex_bits(data: &Vec[UInt8], tri: Int, vertex: Int, axis: Int) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0 && result.value <= 4294967295;
+{
   let count = stl_triangle_count(data);
   if !count.is_ok { return _err_int(count.error); }
   if tri < 0 || tri >= count.value { return _err_int("stl: triangle out of range"); }
@@ -161,7 +171,9 @@ pub fn stl_vertex_bits(data: &Vec[UInt8], tri: Int, vertex: Int, axis: Int) -> R
 /// Trailing u16 attribute byte count for triangle `tri` (0..65535).
 /// Err("stl: triangle out of range") when the index is outside the
 /// declared triangles.
-pub fn stl_attribute(data: &Vec[UInt8], tri: Int) -> Result[Int, Str] {
+pub fn stl_attribute(data: &Vec[UInt8], tri: Int) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0 && result.value <= 65535;
+{
   let count = stl_triangle_count(data);
   if !count.is_ok { return _err_int(count.error); }
   if tri < 0 || tri >= count.value { return _err_int("stl: triangle out of range"); }
@@ -170,7 +182,10 @@ pub fn stl_attribute(data: &Vec[UInt8], tri: Int) -> Result[Int, Str] {
 
 /// Exact binary size for `triangles` triangles: 84 + 50*n. Negative counts
 /// return 0 (documented sentinel; callers must treat 0 as "no binary").
-pub fn stl_binary_size(triangles: Int) -> Int {
+pub fn stl_binary_size(triangles: Int) -> Int
+  ensures: triangles < 0 => result == 0;
+  ensures: triangles >= 0 => result == 84 + triangles * 50;
+{
   if triangles < 0 { return 0; }
   return 84 + triangles * 50;
 }
