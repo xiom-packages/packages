@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-05T15:05:30Z",
+    "updated":  "2026-10-05T16:49:41Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -580,7 +580,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.base58",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Base58 (Bitcoin alphabet) encoding and decoding with leading-zero handling",
@@ -590,7 +590,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-base58/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-base58/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "base58.xi",
                                               "package.xi"
@@ -1676,7 +1676,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.diff",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Line diff with longest-common-subsequence edit scripts and unified diff output",
@@ -1686,7 +1686,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-diff/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-diff/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "diff.xi",
                                               "package.xi"
@@ -2279,7 +2279,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.farbfeld",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Farbfeld 16-bit RGBA image parsing, pixel access and canonical building",
@@ -2289,7 +2289,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-farbfeld/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-farbfeld/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "farbfeld.xi",
                                               "package.xi"
@@ -4123,7 +4123,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.luhn",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Luhn (mod-10) check-digit validation and computation for ASCII digit strings",
@@ -4133,7 +4133,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-luhn/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-luhn/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "luhn.xi",
                                               "package.xi"
@@ -5959,7 +5959,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ppm",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Netpbm PPM (P3/P6) parsing and building for 8-bit RGB rasters",
@@ -5969,7 +5969,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ppm/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ppm/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ppm.xi",
                                               "package.xi"
@@ -7893,7 +7893,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.tlv",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Generic big-endian TLV parsing and building with configurable tag/length widths",
@@ -7903,7 +7903,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tlv/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tlv/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "tlv.xi",
                                               "package.xi"
