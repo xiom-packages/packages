@@ -288,3 +288,65 @@ The implementation follows the proven v0.61.3 package idioms:
   route every comparison through `str_compare`.
 - Imports: `xiom.string` and `xiom.string.builder` only; the tests
   additionally use `xiom.test`, `xiom.io` and `xiom.string.compare`.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checkable `ensures:` clauses added to `src/ulid.xi` on compiler
+v0.63.1 (batch #13), 26 clauses across the ten entry points. All clauses are
+enforced by the v0.63.1 runtime evaluator; two clean port runs with the
+clauses active:
+
+```
+port: PASS (passed=18 failed=0 program_exit=0 exit=0)   # 15.9 s
+port: PASS (passed=18 failed=0 program_exit=0 exit=0)   # 13.3 s
+```
+
+Solver column (classification per the batch #13 pre-plan, no separate Z3
+pass run): **Z3-provable (pure scalar)** marks clauses whose shape is a pure
+scalar parameter/result formula (Z3-verifiable in principle); **runtime**
+marks clauses enforced by the v0.63.1 runtime evaluator only. No forbidden
+v0.63.1 runtime-evaluator shapes are used (no tuple-component access, no
+payload-length-vs-parameter comparisons, no struct-result payloads, no `Str`
+equality).
+
+Before adding the `ulid_alphabet` clause, the returned literal in the source
+was counted: 10 digits + 22 letters, exactly 32 characters, so
+`result.len() == 32` holds.
+
+| Entry point | Clause | Solver |
+|---|---|---|
+| `ulid_alphabet` | `ensures: result.len() == 32` | Z3-provable (pure scalar) |
+| `ulid_encode` | `ensures: (timestamp < 0 \|\| timestamp > 281474976710655) => result is Err` | Z3-provable (pure scalar) |
+| `ulid_encode` | `ensures: (rand_hi < 0 \|\| rand_hi > 1099511627775 \|\| rand_lo < 0 \|\| rand_lo > 1099511627775) => result is Err` | Z3-provable (pure scalar) |
+| `ulid_encode` | `ensures: result is Ok => string.str_len(result.value) == 26` | Z3-provable (pure scalar; constant) |
+| `ulid_timestamp` | `ensures: s.len() != 26 => result is Err` | Z3-provable (pure scalar) |
+| `ulid_timestamp` | `ensures: result is Ok => result.value >= 0` | runtime |
+| `ulid_timestamp` | `ensures: result is Ok => result.value <= 281474976710655` | runtime |
+| `ulid_random_hi` | `ensures: s.len() != 26 => result is Err` | Z3-provable (pure scalar) |
+| `ulid_random_hi` | `ensures: result is Ok => result.value >= 0` | runtime |
+| `ulid_random_hi` | `ensures: result is Ok => result.value <= 1099511627775` | runtime |
+| `ulid_random_lo` | `ensures: s.len() != 26 => result is Err` | Z3-provable (pure scalar) |
+| `ulid_random_lo` | `ensures: result is Ok => result.value >= 0` | runtime |
+| `ulid_random_lo` | `ensures: result is Ok => result.value <= 1099511627775` | runtime |
+| `ulid_is_valid` | `ensures: s.len() != 26 => !result` | Z3-provable (pure scalar) |
+| `ulid_is_valid` | `ensures: result => s.len() == 26` | Z3-provable (pure scalar) |
+| `ulid_canonical` | `ensures: s.len() != 26 => result is Err` | Z3-provable (pure scalar) |
+| `ulid_canonical` | `ensures: result is Ok => string.str_len(result.value) == 26` | Z3-provable (pure scalar; constant) |
+| `ulid_compare` | `ensures: a.len() != 26 => result is Err` | Z3-provable (pure scalar) |
+| `ulid_compare` | `ensures: b.len() != 26 => result is Err` | Z3-provable (pure scalar) |
+| `ulid_compare` | `ensures: result is Ok => result.value >= -1 && result.value <= 1` | Z3-provable (pure scalar) |
+| `ulid_equal` | `ensures: a.len() != 26 => result is Err` | Z3-provable (pure scalar) |
+| `ulid_equal` | `ensures: b.len() != 26 => result is Err` | Z3-provable (pure scalar) |
+| `ulid_equal` | `ensures: (!ulid_is_valid(a) \|\| !ulid_is_valid(b)) => result is Err` | runtime (cross-function call) |
+| `ulid_monotonic_ok` | `ensures: prev.len() != 26 => result is Err` | Z3-provable (pure scalar) |
+| `ulid_monotonic_ok` | `ensures: next.len() != 26 => result is Err` | Z3-provable (pure scalar) |
+| `ulid_monotonic_ok` | `ensures: (!ulid_is_valid(prev) \|\| !ulid_is_valid(next)) => result is Err` | runtime (cross-function call) |
+
+The payload-length clauses use `string.str_len(result.value)` (the proven
+`Result[Str, Str]` Ok-payload shape) rather than the plan's sketch
+`result.value.len()`, matching `xiom.uuid` / `xiom.radix` / `xiom.roman`.
+
+Not asserted by clauses (kept pinned by the 18-check test plan in section 8):
+canonical idempotence and the canonical/encode round-trip; decoded-value
+equality and monotonic strict progression (`Str` equality shapes excluded by
+BUG 17 and tuple semantics not expressible); error-message texts.

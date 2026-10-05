@@ -10,7 +10,7 @@
 
 package xiom_ulid {
   name: "xiom.ulid";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "ULID codec: Crockford base32 encode/decode with caller-supplied timestamp and randomness";
   categories: ["data"];
   keywords: ["ulid", "identifier", "crockford", "sortable"];

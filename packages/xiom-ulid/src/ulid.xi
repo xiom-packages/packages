@@ -56,7 +56,9 @@ use xiom.string.builder;
 /// are absent, so no character is ambiguous.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn ulid_alphabet() -> Str {
+pub fn ulid_alphabet() -> Str
+  ensures: result.len() == 32;
+{
   return "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 }
 
@@ -235,7 +237,11 @@ fn _lo_of(s: Str) -> Int {
 /// 0..2^48 - 1; Err("ulid: randomness out of range") when either half is
 /// outside 0..2^40 - 1.
 /// Complexity: O(1) (fixed 26 characters).
-pub fn ulid_encode(timestamp: Int, rand_hi: Int, rand_lo: Int) -> Result[Str, Str] {
+pub fn ulid_encode(timestamp: Int, rand_hi: Int, rand_lo: Int) -> Result[Str, Str]
+  ensures: (timestamp < 0 || timestamp > 281474976710655) => result is Err;
+  ensures: (rand_hi < 0 || rand_hi > 1099511627775 || rand_lo < 0 || rand_lo > 1099511627775) => result is Err;
+  ensures: result is Ok => string.str_len(result.value) == 26;
+{
   if timestamp < 0 || timestamp > 281474976710655 {
     return _err_str("ulid: timestamp out of range");
   }
@@ -280,7 +286,11 @@ pub fn ulid_encode(timestamp: Int, rand_hi: Int, rand_lo: Int) -> Result[Str, St
 /// "ulid: expected 26 characters", "ulid: invalid character" or
 /// "ulid: overflow".
 /// Complexity: O(s.len()).
-pub fn ulid_timestamp(s: Str) -> Result[Int, Str] {
+pub fn ulid_timestamp(s: Str) -> Result[Int, Str]
+  ensures: s.len() != 26 => result is Err;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 281474976710655;
+{
   let e: Str = _error_of(s);
   if e.len() != 0 {
     return _err_int(e);
@@ -294,7 +304,11 @@ pub fn ulid_timestamp(s: Str) -> Result[Int, Str] {
 /// (characters 10..17, most significant first).
 /// Error case: Err with the validation message when s is not a valid ULID.
 /// Complexity: O(s.len()).
-pub fn ulid_random_hi(s: Str) -> Result[Int, Str] {
+pub fn ulid_random_hi(s: Str) -> Result[Int, Str]
+  ensures: s.len() != 26 => result is Err;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 1099511627775;
+{
   let e: Str = _error_of(s);
   if e.len() != 0 {
     return _err_int(e);
@@ -308,7 +322,11 @@ pub fn ulid_random_hi(s: Str) -> Result[Int, Str] {
 /// (characters 18..25, most significant first).
 /// Error case: Err with the validation message when s is not a valid ULID.
 /// Complexity: O(s.len()).
-pub fn ulid_random_lo(s: Str) -> Result[Int, Str] {
+pub fn ulid_random_lo(s: Str) -> Result[Int, Str]
+  ensures: s.len() != 26 => result is Err;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 1099511627775;
+{
   let e: Str = _error_of(s);
   if e.len() != 0 {
     return _err_int(e);
@@ -328,7 +346,10 @@ pub fn ulid_random_lo(s: Str) -> Result[Int, Str] {
 /// character '0'..'7'); false otherwise.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn ulid_is_valid(s: Str) -> Bool {
+pub fn ulid_is_valid(s: Str) -> Bool
+  ensures: s.len() != 26 => !result;
+  ensures: result => s.len() == 26;
+{
   let e: Str = _error_of(s);
   if e.len() != 0 {
     return false;
@@ -343,7 +364,10 @@ pub fn ulid_is_valid(s: Str) -> Bool {
 /// on canonical text and an uppercase fold on lowercase input.
 /// Error case: Err with the validation message when s is not a valid ULID.
 /// Complexity: O(s.len()).
-pub fn ulid_canonical(s: Str) -> Result[Str, Str] {
+pub fn ulid_canonical(s: Str) -> Result[Str, Str]
+  ensures: s.len() != 26 => result is Err;
+  ensures: result is Ok => string.str_len(result.value) == 26;
+{
   let e: Str = _error_of(s);
   if e.len() != 0 {
     return _err_str(e);
@@ -371,7 +395,11 @@ pub fn ulid_canonical(s: Str) -> Result[Str, Str] {
 /// Error case: Err with the validation message of the first invalid
 /// argument (a is checked before b).
 /// Complexity: O(a.len() + b.len()).
-pub fn ulid_compare(a: Str, b: Str) -> Result[Int, Str] {
+pub fn ulid_compare(a: Str, b: Str) -> Result[Int, Str]
+  ensures: a.len() != 26 => result is Err;
+  ensures: b.len() != 26 => result is Err;
+  ensures: result is Ok => result.value >= -1 && result.value <= 1;
+{
   let ea: Str = _error_of(a);
   if ea.len() != 0 {
     return _err_int(ea);
@@ -415,7 +443,11 @@ pub fn ulid_compare(a: Str, b: Str) -> Result[Int, Str] {
 /// Error case: Err with the validation message of the first invalid
 /// argument (a is checked before b).
 /// Complexity: O(a.len() + b.len()).
-pub fn ulid_equal(a: Str, b: Str) -> Result[Bool, Str] {
+pub fn ulid_equal(a: Str, b: Str) -> Result[Bool, Str]
+  ensures: a.len() != 26 => result is Err;
+  ensures: b.len() != 26 => result is Err;
+  ensures: (!ulid_is_valid(a) || !ulid_is_valid(b)) => result is Err;
+{
   let r = ulid_compare(a, b);
   if !r.is_ok {
     let m: Str = r.error;
@@ -439,7 +471,11 @@ pub fn ulid_equal(a: Str, b: Str) -> Result[Bool, Str] {
 /// Error case: Err with the validation message of the first invalid
 /// argument (prev is checked before next).
 /// Complexity: O(prev.len() + next.len()).
-pub fn ulid_monotonic_ok(prev: Str, next: Str) -> Result[Bool, Str] {
+pub fn ulid_monotonic_ok(prev: Str, next: Str) -> Result[Bool, Str]
+  ensures: prev.len() != 26 => result is Err;
+  ensures: next.len() != 26 => result is Err;
+  ensures: (!ulid_is_valid(prev) || !ulid_is_valid(next)) => result is Err;
+{
   let r = ulid_compare(prev, next);
   if !r.is_ok {
     let m: Str = r.error;
