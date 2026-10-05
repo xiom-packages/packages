@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-04T18:53:48Z",
+    "updated":  "2026-10-05T09:30:39Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -1178,7 +1178,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.cobs",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "COBS framing: consistent overhead byte stuffing encode/decode with zero-byte delimiters",
@@ -1188,7 +1188,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cobs/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cobs/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "cobs.xi",
                                               "package.xi"
@@ -1419,7 +1419,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.crc",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Parameterized CRC-8/16/32 with named presets and known-answer vectors",
@@ -1429,7 +1429,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-crc/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-crc/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "crc.xi",
                                               "package.xi"
@@ -6589,7 +6589,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.roman",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Roman numeral parsing, formatting, and canonical validation (1..3999)",
@@ -6599,7 +6599,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-roman/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-roman/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "roman.xi",
                                               "package.xi"
@@ -8331,7 +8331,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.varint",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "LEB128 unsigned varints and zigzag signed varints with size helpers",
@@ -8341,7 +8341,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-varint/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-varint/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "varint.xi",
                                               "package.xi"
