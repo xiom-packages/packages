@@ -202,3 +202,45 @@ Last verified: compiler 0.61.3, `port: PASS (passed=21 failed=0 program_exit=0 e
 - No `Str` values and no `Vec[Str]` reads, so BUG 17 (`==` on Str elements
   lowering to pointer comparison) is avoided entirely; the suite does not
   import `xiom.string.compare`.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts on the seven clause-bearing entry points;
+`xiom-verify --check` (Z3 4.13.4 on v0.63.1) result: **0 proven / 0 violated /
+17 unknown / 0 errors** -- every obligation is skipped by the emitter
+(`field access ... on non-datatype receiver`, `equality with unresolved
+operand sort`, `operator Le/Ge/Lt on non-numeric operands`, `unsupported
+expression in contract`), so no clause is machine-proven and none is refuted.
+Both port runs with the clauses active:
+`port: PASS (passed=21 failed=0 program_exit=0 exit=0)` (5.3s / 4.9s).
+
+Class: **scalar** = pure scalar arithmetic/comparison over parameters and
+`result` (a Z3-provable candidate in principle, unproven here because the
+emitter skips reference-field operands); **runtime** = invokes another entry
+point and is enforced only by the v0.63.1 runtime evaluator.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `timeout_default_ms` | `ensures: result == p.default_ms`; `ensures: result >= 0` | scalar |
+| `timeout_max_ms` | `ensures: result == p.max_ms`; `ensures: result >= p.default_ms` | scalar |
+| `timeout_effective_ms` | `ensures: requested_ms < 0 => result == p.default_ms`; `ensures: (requested_ms >= 0 && requested_ms <= p.max_ms) => result == requested_ms`; `ensures: requested_ms > p.max_ms => result == p.max_ms`; `ensures: result <= p.max_ms` | scalar |
+| `deadline_remaining_ms` | `ensures: now_ms <= d.start_ms => result == d.budget_ms + (d.start_ms - now_ms)`; `ensures: (now_ms > d.start_ms && now_ms - d.start_ms >= d.budget_ms) => result == 0`; `ensures: (now_ms > d.start_ms && now_ms - d.start_ms < d.budget_ms) => result == d.budget_ms - (now_ms - d.start_ms)`; `ensures: result >= 0` | scalar |
+| `deadline_expired` | `ensures: result == (deadline_remaining_ms(d, now_ms) == 0)`; `ensures: result => now_ms >= d.start_ms`; `ensures: now_ms < d.start_ms => !result` | runtime / scalar |
+| `deadline_elapsed_ms` | `ensures: now_ms <= d.start_ms => result == 0`; `ensures: now_ms > d.start_ms => result == now_ms - d.start_ms`; `ensures: result >= 0` | scalar |
+| `deadline_progress_permille` | `ensures: result >= 0`; `ensures: result <= 1000`; `ensures: (now_ms < d.start_ms \|\| (now_ms == d.start_ms && d.budget_ms > 0)) => result == 0`; `ensures: deadline_remaining_ms(d, now_ms) == 0 => result == 1000` | scalar / runtime |
+
+22 clauses across the seven entry points (2/2/4/4/3/3/4); 20 are scalar and
+2 are runtime (the definitional equality on `deadline_expired` and the
+remaining-zero sentinel on `deadline_progress_permille`). For
+`deadline_progress_permille` the two pre-plan zero-sentinel proposals
+(`now_ms < d.start_ms => result == 0` and
+`(now_ms <= d.start_ms && d.budget_ms > 0) => result == 0`) were merged into
+one equivalent clause to keep the house cap of four clauses per function.
+
+Unasserted/documented: the direct-struct returns (`timeout_new`,
+`deadline_new`, `deadline_from_policy`, `deadline_extend`, `deadline_reset`)
+get no clauses -- struct-result field access is out of scope for the v0.63.1
+runtime evaluator (`retry_new` precedent). The constructor clamps
+(`default_ms >= 0`, `max_ms >= default_ms`, `budget_ms >= 0`) are pinned by
+the 21-check test plan; the scalar ranges above are written against
+constructor-built values, where those clamps hold.

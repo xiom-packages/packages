@@ -43,19 +43,30 @@ pub fn timeout_new(default_ms: Int, max_ms: Int) -> TimeoutPolicy {
 }
 
 /// Default budget in milliseconds (always >= 0). Complexity: O(1).
-pub fn timeout_default_ms(p: &TimeoutPolicy) -> Int {
+pub fn timeout_default_ms(p: &TimeoutPolicy) -> Int
+  ensures: result == p.default_ms;
+  ensures: result >= 0;
+{
   return p.default_ms;
 }
 
 /// Maximum budget in milliseconds (always >= default_ms). Complexity: O(1).
-pub fn timeout_max_ms(p: &TimeoutPolicy) -> Int {
+pub fn timeout_max_ms(p: &TimeoutPolicy) -> Int
+  ensures: result == p.max_ms;
+  ensures: result >= p.default_ms;
+{
   return p.max_ms;
 }
 
 /// Effective budget for one request, in milliseconds.
 /// requested_ms < 0 selects the policy default; otherwise the result is
 /// min(requested_ms, max_ms). Complexity: O(1).
-pub fn timeout_effective_ms(p: &TimeoutPolicy, requested_ms: Int) -> Int {
+pub fn timeout_effective_ms(p: &TimeoutPolicy, requested_ms: Int) -> Int
+  ensures: requested_ms < 0 => result == p.default_ms;
+  ensures: (requested_ms >= 0 && requested_ms <= p.max_ms) => result == requested_ms;
+  ensures: requested_ms > p.max_ms => result == p.max_ms;
+  ensures: result <= p.max_ms;
+{
   if requested_ms < 0 { return p.default_ms; }
   if requested_ms > p.max_ms { return p.max_ms; }
   return requested_ms;
@@ -85,7 +96,12 @@ pub fn deadline_from_policy(p: &TimeoutPolicy, start_ms: Int, requested_ms: Int)
 /// now_ms <= start_ms returns the full budget plus the lead time. The
 /// arithmetic never forms start + budget or budget - used without a guard,
 /// so large budgets stay exact. Complexity: O(1).
-pub fn deadline_remaining_ms(d: &Deadline, now_ms: Int) -> Int {
+pub fn deadline_remaining_ms(d: &Deadline, now_ms: Int) -> Int
+  ensures: now_ms <= d.start_ms => result == d.budget_ms + (d.start_ms - now_ms);
+  ensures: (now_ms > d.start_ms && now_ms - d.start_ms >= d.budget_ms) => result == 0;
+  ensures: (now_ms > d.start_ms && now_ms - d.start_ms < d.budget_ms) => result == d.budget_ms - (now_ms - d.start_ms);
+  ensures: result >= 0;
+{
   if now_ms <= d.start_ms {
     let lead = d.start_ms - now_ms;
     return d.budget_ms + lead;
@@ -97,7 +113,11 @@ pub fn deadline_remaining_ms(d: &Deadline, now_ms: Int) -> Int {
 
 /// True when now_ms is at or past start_ms + budget_ms, i.e. no time is left.
 /// Complexity: O(1).
-pub fn deadline_expired(d: &Deadline, now_ms: Int) -> Bool {
+pub fn deadline_expired(d: &Deadline, now_ms: Int) -> Bool
+  ensures: result == (deadline_remaining_ms(d, now_ms) == 0);
+  ensures: result => now_ms >= d.start_ms;
+  ensures: now_ms < d.start_ms => !result;
+{
   return deadline_remaining_ms(d, now_ms) == 0;
 }
 
@@ -105,7 +125,11 @@ pub fn deadline_expired(d: &Deadline, now_ms: Int) -> Bool {
 /// max(0, now_ms - start_ms). The value keeps growing after the budget is
 /// spent (it is not clamped to budget_ms); it is clamped at 0 for now_ms at
 /// or before start_ms. Complexity: O(1).
-pub fn deadline_elapsed_ms(d: &Deadline, now_ms: Int) -> Int {
+pub fn deadline_elapsed_ms(d: &Deadline, now_ms: Int) -> Int
+  ensures: now_ms <= d.start_ms => result == 0;
+  ensures: now_ms > d.start_ms => result == now_ms - d.start_ms;
+  ensures: result >= 0;
+{
   if now_ms <= d.start_ms { return 0; }
   return now_ms - d.start_ms;
 }
@@ -131,7 +155,12 @@ pub fn deadline_reset(d: &Deadline, now_ms: Int, budget_ms: Int) -> Deadline {
 /// 0 at or before start_ms; 1000 at or after expiry; in between it is
 /// elapsed * 1000 / (elapsed + remaining), truncated toward zero.
 /// Complexity: O(1).
-pub fn deadline_progress_permille(d: &Deadline, now_ms: Int) -> Int {
+pub fn deadline_progress_permille(d: &Deadline, now_ms: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= 1000;
+  ensures: (now_ms < d.start_ms || (now_ms == d.start_ms && d.budget_ms > 0)) => result == 0;
+  ensures: deadline_remaining_ms(d, now_ms) == 0 => result == 1000;
+{
   let remaining = deadline_remaining_ms(d, now_ms);
   if remaining == 0 { return 1000; }
   let elapsed = deadline_elapsed_ms(d, now_ms);
