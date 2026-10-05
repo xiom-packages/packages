@@ -14,16 +14,17 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-05 17:20Z (pin v0.64.0; batches #12-#14 + PULSE wave 2; v0.64.0 fleet sweep RUNNING):**
+**STATE AT 2026-10-05 19:15Z (pin v0.64.0; batches #12-#14 + PULSE wave 2; v0.64.0 fleet sweep COMPLETE 460/460):**
 - **v0.64.0 is the pin** (official `c68d91de`, SHA256-verified; deployed over
   `%LOCALAPPDATA%\xiom.new`; repin 515 records, commit `53c1fbac`). Matrix on the official
   install: **runtime-link R65 RESOLVED** (`probe_async_now` `bad=0` with `XIOM_RUNTIME_DIR`
   AND `XIOM_STDLIB` unset); **crypto-link m195 RESOLVED** (both probes, NIST KAT);
   regression battery 7/7 green; **grpc m192 NOT fixed** (`probe_suite_min` + `probe_direct`
-  both crash `0xC0000005`); graphql 9/10 unchanged. Fleet sweep `sweep-v0640` running
-  **without the runtime override** (process `bgp_10cffd41d0018uCO1I7YccNYTI`); the
-  `XIOM_RUNTIME_DIR` workaround is RETIRED. After the sweep wrap: Tier-2 `aws`/`saml`
-  hand-rolled crypto retirement.
+  both crash `0xC0000005`);   graphql 9/10 unchanged. Fleet sweep `sweep-v0640` **COMPLETE + RECORDED: 461 records**
+  (`fleet-sweep:v0.64.0`, commit `8f074f99`), 460/460 green after isolated 180s re-runs
+  (`l10n-unicode` 24/24 @62.3s, `mongo` 23/23 @49.1s); validate 515/0, guard 500/460/40/0;
+  wrap `c50aede1`. No runtime override anywhere -- the `XIOM_RUNTIME_DIR` workaround is
+  RETIRED.
 - **Fleet sweep v0.63.1 COMPLETE + RECORDED: 460/460 PASS** (`%TEMP%\kilo\sweep-v0631`;
   process `bgp_10c092df20016ZdpmvoO83ZQax`, run with `XIOM_RUNTIME_DIR`). Isolated timeout
   re-runs green: `l10n-unicode` 24/24 @57.5s, `mongo` 23/23 @32.9s. `record-sweep` wrote
@@ -94,12 +95,11 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **Compiler lane:** `0.64.0` released `c68d91de` (R65 + m195 confirmed; **m192 did not clear
   the grpc probes** -- report the crash evidence back; grpc stays unpublished, named-constant
   arms stay blocked).
-- **Next (priority):** PULSE consumer wave -- `xiom.rate` 0.2.0 published; `xiom.router`
-  0.1.0 incubating locally. Add the four new names (`router`, `session`, `static`,
-  `http.middleware`) to the allowlist once ops confirms, then publish router. Next builds:
-  `xiom.http.middleware` (uses local router types), `xiom.metrics` 0.2.0 (labels +
-  Prometheus), `xiom.static`. Hardening batch #15 resumes after (211 carriers;
-  verified-friendly set queued: `mbox`, `tga`, `murmur3`, `ntp`, `mbr`, `socks`).
+- **Next (priority):** PULSE wave 3 -- five porters dispatched: Tier-2 `aws`/`saml`
+  hand-rolled crypto retirement, `metrics` 0.2.0 (labels + Prometheus + latency preset),
+  `session` 0.1.0 and `http.middleware` 0.1.0 (both new names; allowlist appends + one ops
+  scope extension before publishing). Then `static` and `kv` (briefs staged). Publish the
+  ready set in the next `eco-*` tag. Hardening batch #15 resumes after (211 carriers).
   `xiom-verify` writes `xiom_verify_output.smt2` to the CWD -- run it with the package dir
   as CWD.
 
@@ -1158,7 +1158,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-05 15:50Z STATE block is
+private). Read SESSION.md first -- the 2026-10-05 19:15Z STATE block is
 the live handoff (v0.63.1 pinned + SHA256-verified; repin 514; **fleet
 sweep v0.63.1 COMPLETE + RECORDED 460/460**, `fleet-sweep:v0.63.1`,
 commit `43b79adb`; contract-evaluator fix live in `eco-v0.1.55`;
