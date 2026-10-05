@@ -65,7 +65,9 @@ fn _strip_trailing_cr(s: Str) -> Str {
 /// text yields ASCII-only tokens. Empty or separator-only text yields [].
 /// Error case: none.
 /// Complexity: O(n).
-pub fn tokenize_words(text: Str) -> Vec[Str] {
+pub fn tokenize_words(text: Str) -> Vec[Str]
+  ensures: result.len() <= text.len();
+{
   var out = Vec[Str].new();
   let len = text.len();
   var i = 0;
@@ -104,7 +106,9 @@ pub fn tokenize_words(text: Str) -> Vec[Str] {
 /// whitespace or end does not split ("a.b c" stays whole).
 /// Error case: none.
 /// Complexity: O(n).
-pub fn tokenize_sentences(text: Str) -> Vec[Str] {
+pub fn tokenize_sentences(text: Str) -> Vec[Str]
+  ensures: result.len() <= text.len();
+{
   var out = Vec[Str].new();
   let len = text.len();
   var start = 0;
@@ -143,7 +147,9 @@ pub fn tokenize_sentences(text: Str) -> Vec[Str] {
 /// yields []. No trimming is performed.
 /// Error case: none.
 /// Complexity: O(n).
-pub fn tokenize_lines(text: Str) -> Vec[Str] {
+pub fn tokenize_lines(text: Str) -> Vec[Str]
+  ensures: result.len() <= text.len();
+{
   var out = Vec[Str].new();
   let len = text.len();
   if len == 0 {
@@ -172,7 +178,11 @@ pub fn tokenize_lines(text: Str) -> Vec[Str] {
 /// ["a b", "b c"].
 /// Error case: none.
 /// Complexity: O(n * |words|) over the joined length.
-pub fn tokenize_ngrams(words: &Vec[Str], n: Int) -> Vec[Str] {
+pub fn tokenize_ngrams(words: &Vec[Str], n: Int) -> Vec[Str]
+  ensures: n < 1 => result.len() == 0;
+  ensures: words.len() < n => result.len() == 0;
+  ensures: n >= 1 && words.len() >= n => result.len() == words.len() - n + 1;
+{
   var out = Vec[Str].new();
   if n < 1 {
     return out;
@@ -203,6 +213,9 @@ pub fn tokenize_ngrams(words: &Vec[Str], n: Int) -> Vec[Str] {
 /// separator-only text.
 /// Error case: none.
 /// Complexity: O(n) time, O(words) temporary memory.
-pub fn tokenize_count_words(text: Str) -> Int {
+pub fn tokenize_count_words(text: Str) -> Int
+  ensures: result >= 0;
+  ensures: result <= text.len();
+{
   return tokenize_words(text).len();
 }

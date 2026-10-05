@@ -1,6 +1,6 @@
 # xiom.tokenizer -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.tokenizer` (`src/tokenizer.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -153,3 +153,24 @@ plain free functions; no methods are declared on foreign types. The test
 suite routes every string comparison through `str_compare`, and only `&`
 (never `&mut`) is taken of locals in call sites, so the E001 aliasing warning
 does not fire.
+
+## 8. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 14 unknown / 1 error** (byte-scanner
+loops; no clause is refuted).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `tokenize_words` | `ensures: result.len() <= text.len()` | unproven |
+| `tokenize_sentences` | `ensures: result.len() <= text.len()` | unproven |
+| `tokenize_lines` | `ensures: result.len() <= text.len()` | unproven |
+| `tokenize_ngrams` | `ensures: n < 1 => result.len() == 0`; `ensures: words.len() < n => result.len() == 0`; `ensures: n >= 1 && words.len() >= n => result.len() == words.len() - n + 1` | unproven |
+| `tokenize_count_words` | `ensures: result >= 0`; `ensures: result <= text.len()` | unproven |
+
+Unasserted/documented: exact token equality semantics (word alphabet,
+apostrophe rule, sentence trimming/terminator rule, CRLF normalization)
+are pinned by the 24-check test plan; they are not expressible as
+runtime contracts over the scanner loops. The `result.len() <= text.len()`
+bounds hold because every emitted token consumes at least one input byte
+and tokens are disjoint.
