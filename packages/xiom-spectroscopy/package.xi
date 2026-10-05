@@ -10,7 +10,7 @@
 
 package xiom_spectroscopy {
   name: "xiom.spectroscopy";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Electromagnetic spectrum conversions: wavelength, frequency, wavenumber, photon energy";
   categories: ["science"];
   keywords: ["spectroscopy","wavelength","frequency","photon"];

@@ -43,7 +43,10 @@ pub const SPEC_EV_J: Float64 = 1.602176634e-19;
 /// nm <= 0 (guard G1).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn spec_nm_to_thz(nm: Float64) -> Float64 {
+pub fn spec_nm_to_thz(nm: Float64) -> Float64
+  ensures: nm <= 0.0 => result == 0.0;
+  ensures: nm > 0.0 => result > 0.0;
+{
   if nm <= 0.0 { return 0.0; }
   return SPEC_C_M_PER_S / (nm * 1e-9) / 1e12;
 }
@@ -54,7 +57,10 @@ pub fn spec_nm_to_thz(nm: Float64) -> Float64 {
 /// (guard G1). Round-trips spec_nm_to_thz for positive inputs.
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn spec_thz_to_nm(thz: Float64) -> Float64 {
+pub fn spec_thz_to_nm(thz: Float64) -> Float64
+  ensures: thz <= 0.0 => result == 0.0;
+  ensures: thz > 0.0 => result > 0.0;
+{
   if thz <= 0.0 { return 0.0; }
   return SPEC_C_M_PER_S / (thz * 1e12) / 1e-9;
 }
@@ -65,7 +71,10 @@ pub fn spec_thz_to_nm(thz: Float64) -> Float64 {
 /// h * c / (nm*1e-9) / eV; 0.0 when nm <= 0 (guard G1).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn spec_nm_to_ev(nm: Float64) -> Float64 {
+pub fn spec_nm_to_ev(nm: Float64) -> Float64
+  ensures: nm <= 0.0 => result == 0.0;
+  ensures: nm > 0.0 => result > 0.0;
+{
   if nm <= 0.0 { return 0.0; }
   return SPEC_H_J_S * SPEC_C_M_PER_S / (nm * 1e-9) / SPEC_EV_J;
 }
@@ -76,7 +85,10 @@ pub fn spec_nm_to_ev(nm: Float64) -> Float64 {
 /// (guard G1). Round-trips spec_nm_to_ev for positive inputs.
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn spec_ev_to_nm(ev: Float64) -> Float64 {
+pub fn spec_ev_to_nm(ev: Float64) -> Float64
+  ensures: ev <= 0.0 => result == 0.0;
+  ensures: ev > 0.0 => result > 0.0;
+{
   if ev <= 0.0 { return 0.0; }
   return SPEC_H_J_S * SPEC_C_M_PER_S / (ev * SPEC_EV_J) / 1e-9;
 }
@@ -87,7 +99,10 @@ pub fn spec_ev_to_nm(ev: Float64) -> Float64 {
 /// nm <= 0 (guard G1).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn spec_nm_to_cm_inv(nm: Float64) -> Float64 {
+pub fn spec_nm_to_cm_inv(nm: Float64) -> Float64
+  ensures: nm <= 0.0 => result == 0.0;
+  ensures: nm > 0.0 => result > 0.0;
+{
   if nm <= 0.0 { return 0.0; }
   return 1e7 / nm;
 }
@@ -98,7 +113,10 @@ pub fn spec_nm_to_cm_inv(nm: Float64) -> Float64 {
 /// (guard G1). Round-trips spec_nm_to_cm_inv for positive inputs.
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn spec_cm_inv_to_nm(cm_inv: Float64) -> Float64 {
+pub fn spec_cm_inv_to_nm(cm_inv: Float64) -> Float64
+  ensures: cm_inv <= 0.0 => result == 0.0;
+  ensures: cm_inv > 0.0 => result > 0.0;
+{
   if cm_inv <= 0.0 { return 0.0; }
   return 1e7 / cm_inv;
 }
@@ -109,7 +127,10 @@ pub fn spec_cm_inv_to_nm(cm_inv: Float64) -> Float64 {
 /// ev <= 0 (guard G1).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn spec_ev_to_thz(ev: Float64) -> Float64 {
+pub fn spec_ev_to_thz(ev: Float64) -> Float64
+  ensures: ev <= 0.0 => result == 0.0;
+  ensures: ev > 0.0 => result > 0.0;
+{
   if ev <= 0.0 { return 0.0; }
   return ev * SPEC_EV_J / SPEC_H_J_S / 1e12;
 }
@@ -121,7 +142,10 @@ pub fn spec_ev_to_thz(ev: Float64) -> Float64 {
 /// spec_ev_to_thz for positive inputs.
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn spec_thz_to_ev(thz: Float64) -> Float64 {
+pub fn spec_thz_to_ev(thz: Float64) -> Float64
+  ensures: thz <= 0.0 => result == 0.0;
+  ensures: thz > 0.0 => result > 0.0;
+{
   if thz <= 0.0 { return 0.0; }
   return thz * 1e12 * SPEC_H_J_S / SPEC_EV_J;
 }
@@ -132,7 +156,9 @@ pub fn spec_thz_to_ev(thz: Float64) -> Float64 {
 /// nm <= 0 (guard G1 -- a non-positive wavelength is not visible either).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn spec_is_visible(nm: Float64) -> Bool {
+pub fn spec_is_visible(nm: Float64) -> Bool
+  ensures: result == (nm >= 380.0 && nm <= 750.0);
+{
   return nm >= 380.0 && nm <= 750.0;
 }
 
@@ -146,7 +172,10 @@ pub fn spec_is_visible(nm: Float64) -> Bool {
 /// "IR" and 1e6 nm is "far-IR".
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn spec_band_name(nm: Float64) -> Str {
+pub fn spec_band_name(nm: Float64) -> Str
+  ensures: nm <= 0.0 => result.len() == 0;
+  ensures: nm > 0.0 => result.len() > 0;
+{
   if nm <= 0.0 { return ""; }
   if nm < 380.0 { return "UV"; }
   if nm <= 750.0 { return "visible"; }

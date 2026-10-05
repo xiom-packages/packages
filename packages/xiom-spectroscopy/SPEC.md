@@ -1,6 +1,6 @@
 # xiom.spectroscopy -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.spectroscopy` (`src/spectroscopy.xi`). Pure XIOM, no FFI.
 Dependencies: `xiom.std` only; the module itself imports nothing (scalar
 `Float64` arithmetic and the exported constants below); the tests use
@@ -178,3 +178,19 @@ From the repository root:
 Green iff the tail is
 `port: PASS (passed=16 failed=0 program_exit=0 exit=0)` and the suite prints
 `xiom.spectroscopy: all tests passed`.
+
+## 9. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **13 proven / 0 violated / 9 unknown / 0 errors, rc=0**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `spec_nm_to_thz` / `spec_thz_to_nm` / `spec_nm_to_ev` / `spec_ev_to_nm` / `spec_nm_to_cm_inv` / `spec_cm_inv_to_nm` / `spec_ev_to_thz` / `spec_thz_to_ev` | `ensures: x <= 0.0 => result == 0.0`; `ensures: x > 0.0 => result > 0.0` (guard G1, one pair per conversion) | **proven** (13 discharges across the eight conversions) |
+| `spec_is_visible` | `ensures: result == (nm >= 380.0 && nm <= 750.0)` | unproven |
+| `spec_band_name` | `ensures: nm <= 0.0 => result.len() == 0`; `ensures: nm > 0.0 => result.len() > 0` | unproven |
+
+Unasserted/documented: the band boundary table (section 5.1), the exact
+round-trip identities for positive inputs and the exported SI constants
+stay test-pinned; the guard pair above is machine-checked for every
+conversion.
