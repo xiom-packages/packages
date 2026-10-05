@@ -170,3 +170,29 @@ The implementation follows the proven v0.61.3 package idioms:
 - A reference to a `Result` field (`&dec.value`) passed directly into a
   `&Vec[UInt8]` parameter makes the callee see an empty vector; the field is
   bound to a local first (`base58_decode_str`).
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts added in the batch #12 hardening pass (compiler
+v0.63.1); two clean port runs:
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` (5.5 s, 4.7 s).
+All 11 clauses are in the runtime-checked family -- every clause reads a
+`Str`/`Vec` length or calls `base58_is_valid`, so none is pure-scalar
+Z3-provable. The 18-check conformance suite exercises every entry point on
+both the happy path and the rejection paths with the clauses active.
+
+| Entry point | Contract | Checked |
+|---|---|---|
+| `base58_alphabet` | `ensures: result.len() == 58` | runtime |
+| `base58_encode` | `ensures: data.len() == 0 => result.len() == 0`; `ensures: data.len() > 0 => result.len() >= 1` | runtime |
+| `base58_decode` | `ensures: s.len() == 0 => result is Ok`; `ensures: !base58_is_valid(s) => result is Err` | runtime |
+| `base58_is_valid` | `ensures: s.len() == 0 => result`; `ensures: !result => s.len() > 0` | runtime |
+| `base58_encode_str` | `ensures: s.len() == 0 => result.len() == 0`; `ensures: s.len() > 0 => result.len() >= 1` | runtime |
+| `base58_decode_str` | `ensures: s.len() == 0 => result is Ok`; `ensures: !base58_is_valid(s) => result is Err` | runtime |
+
+Not asserted: payload and error-string semantics -- the exact two error
+texts, the byte content of a decoded `Ok` and the encode/decode round-trip
+property -- are not expressible without the forbidden v0.63.1
+runtime-evaluator shapes (payload-length vs parameter-length comparisons on
+`Result[Vec[UInt8], Str]`). They stay pinned by the 18-check test plan
+(section 8). No clause uses `==` on a `Str` value (BUG 17).

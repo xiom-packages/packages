@@ -52,7 +52,9 @@ use xiom.string.builder;
 /// Returns: "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".
 /// Error case: none.
 /// Complexity: O(1).
-pub fn base58_alphabet() -> Str {
+pub fn base58_alphabet() -> Str
+  ensures: result.len() == 58;
+{
   return "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 }
 
@@ -155,7 +157,10 @@ fn _utf8_valid(data: &Vec[UInt8]) -> Bool {
 /// Error case: none (total).
 /// Complexity: O(n^2) worst case (repeated long division of the working
 /// array), n = data.len().
-pub fn base58_encode(data: &Vec[UInt8]) -> Str {
+pub fn base58_encode(data: &Vec[UInt8]) -> Str
+  ensures: data.len() == 0 => result.len() == 0;
+  ensures: data.len() > 0 => result.len() >= 1;
+{
   let n = data.len();
   if n == 0 {
     return "";
@@ -220,7 +225,10 @@ pub fn base58_encode(data: &Vec[UInt8]) -> Str {
 /// Error case: Err("base58: invalid character") for any byte outside the
 /// alphabet.
 /// Complexity: O(n^2) worst case (repeated multiply-add), n = s.len().
-pub fn base58_decode(s: Str) -> Result[Vec[UInt8], Str] {
+pub fn base58_decode(s: Str) -> Result[Vec[UInt8], Str]
+  ensures: s.len() == 0 => result is Ok;
+  ensures: !base58_is_valid(s) => result is Err;
+{
   let n = s.len();
   var zeros = 0;
   while zeros < n {
@@ -274,7 +282,10 @@ pub fn base58_decode(s: Str) -> Result[Vec[UInt8], Str] {
 /// empty input (which decodes to an empty byte vector).
 /// Error case: none.
 /// Complexity: O(s.len() * 58) worst case (alphabet scan per byte).
-pub fn base58_is_valid(s: Str) -> Bool {
+pub fn base58_is_valid(s: Str) -> Bool
+  ensures: s.len() == 0 => result;
+  ensures: !result => s.len() > 0;
+{
   let n = s.len();
   var i = 0;
   while i < n {
@@ -296,7 +307,10 @@ pub fn base58_is_valid(s: Str) -> Bool {
 /// Returns: base58 of the raw UTF-8 bytes of `s`; empty input yields "".
 /// Error case: none (total; every Str has a UTF-8 byte representation).
 /// Complexity: O(s.len()^2) worst case.
-pub fn base58_encode_str(s: Str) -> Str {
+pub fn base58_encode_str(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: s.len() > 0 => result.len() >= 1;
+{
   var bytes = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -316,7 +330,10 @@ pub fn base58_encode_str(s: Str) -> Str {
 /// well-formed UTF-8 (overlong forms, surrogates and code points above
 /// U+10FFFF are rejected).
 /// Complexity: O(s.len()^2) worst case.
-pub fn base58_decode_str(s: Str) -> Result[Str, Str] {
+pub fn base58_decode_str(s: Str) -> Result[Str, Str]
+  ensures: s.len() == 0 => result is Ok;
+  ensures: !base58_is_valid(s) => result is Err;
+{
   let dec = base58_decode(s);
   if !dec.is_ok {
     return _err_str(dec.error);
