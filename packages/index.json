@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-05T11:36:42Z",
+    "updated":  "2026-10-05T11:47:40Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -1229,7 +1229,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.collation",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Case-insensitive and natural (numeric-aware) string collation",
@@ -1239,7 +1239,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-collation/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-collation/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "collation.xi",
                                               "package.xi"
@@ -2346,7 +2346,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.finance",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Integer time-value-of-money: interest, annuities, NPV, doubling time",
@@ -2356,7 +2356,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-finance/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-finance/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "finance.xi",
                                               "package.xi"
@@ -2414,7 +2414,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.fixed",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Fixed-width text table parsing and writing by column widths",
@@ -2424,7 +2424,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fixed/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fixed/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "fixed.xi",
                                               "package.xi"
@@ -5446,7 +5446,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.particle",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Fixed-capacity particle pool with integer positions, velocities, and lifetimes",
@@ -5456,7 +5456,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-particle/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-particle/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "particle.xi",
                                               "package.xi"
