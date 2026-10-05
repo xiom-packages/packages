@@ -1,18 +1,29 @@
-// XIOM -- xiom.jwt: structural JWT decoding (headers, claims, timestamps)
+// XIOM -- xiom.jwt: JWT structural decoding plus HS256 sign/verify
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
-// SECURITY: decode-only. This module performs NO signature verification, NO
-// JSON parsing, no key handling and no crypto. Never make an authentication
-// or authorization decision from its output without verifying the token's
-// signature elsewhere against a trusted key.
+// SECURITY (0.2 policy): HS256 sign/verify only.
+//   * jwt_sign_hs256 creates a compact JWS with the fixed header
+//     {"alg":"HS256","typ":"JWT"} from caller-supplied claims and secret.
+//   * jwt_signature_valid_hs256 verifies the MAC over the first two segments
+//     with xiom.crypto.hmac_sha256 and compares it in constant time
+//     (xiom.crypto.constant_time_compare). The header "alg" is an allowlist
+//     of exactly one value: anything else (including "none" and "HS512")
+//     returns Ok(false) BEFORE any MAC work.
+//   * jwt_verify_hs256 checks the signature FIRST, then requires the "exp"
+//     claim and enforces the optional "nbf" claim against a caller-supplied
+//     clock. It never reads the system clock; no clock skew is built in.
+//   * Symmetric HS256 only: no RS/ES/EdDSA, no key management, no JWKS.
+//     Claim text stays attacker-controlled until the MAC has been verified
+//     against a trusted secret.
 //
 // What this module does:
 //   * count the '.'-separated segments of a compact JWS/JWE token;
-//   * base64url-decode a segment and validate the decoded bytes as UTF-8;
+//   * base64url-encode and -decode segments (strict RFC 4648 section 5);
 //   * expose the header and payload text and the raw signature segment;
 //   * read the "alg" header value and top-level string/integer claims with a
-//     minimal scanner, then derive exp/nbf time checks.
+//     minimal scanner, then derive exp/nbf time checks;
+//   * sign and verify HS256 tokens.
 //
 // Deliberate limitations (documented in SPEC.md):
 //   * NO JSON parser. `jwt_alg`, `jwt_claim_str` and `jwt_claim_int` find the
@@ -40,6 +51,7 @@
 
 module xiom.jwt
 
+use xiom.crypto;
 use xiom.string;
 
 // --------------------------------------------------
@@ -89,6 +101,19 @@ fn _is_ws(b: Int) -> Bool {
     return true;
   }
   return false;
+}
+
+// Widen each byte of `s` into a fresh Vec. The empty string yields an empty
+// Vec (no NUL terminator is appended; Str::from_utf8 is not involved).
+fn _str_bytes(s: Str) -> Vec[UInt8] {
+  let n = s.len();
+  var out = Vec[UInt8].new();
+  var i = 0;
+  while i < n {
+    out.push(((string.byte_at(s, i) as Int) & 0xFF) as UInt8);
+    i = i + 1;
+  }
+  return out;
 }
 
 // Base64url value of one byte; -1 when the byte is not in the RFC 4648
@@ -305,6 +330,50 @@ fn _b64u_decode(s: Str) -> Result[Vec[UInt8], Str] {
   return _ok_bytes(out);
 }
 
+// Base64url alphabet byte for a 6-bit value (0..63): A-Z = 0..25,
+// a-z = 26..51, 0-9 = 52..61, '-' = 62, '_' = 63. Padding is never emitted.
+fn _b64u_char(v: Int) -> Int {
+  if v < 26 { return 65 + v; }
+  if v < 52 { return 97 + (v - 26); }
+  if v < 62 { return 48 + (v - 52); }
+  if v == 62 { return 45; }
+  return 95;
+}
+
+// Encode bytes as UNPADDED base64url (RFC 4648 section 5). The output uses
+// only `A-Z a-z 0-9 - _`; an empty input encodes to "".
+fn _b64u_encode(data: &Vec[UInt8]) -> Str {
+  let n = data.len();
+  var out = Vec[UInt8].new();
+  var i = 0;
+  while i + 3 <= n {
+    let b0 = (data[i] as Int) & 0xFF;
+    let b1 = (data[i + 1] as Int) & 0xFF;
+    let b2 = (data[i + 2] as Int) & 0xFF;
+    out.push(_b64u_char((b0 >> 2) & 0x3F) as UInt8);
+    out.push(_b64u_char(((b0 << 4) | (b1 >> 4)) & 0x3F) as UInt8);
+    out.push(_b64u_char(((b1 << 2) | (b2 >> 6)) & 0x3F) as UInt8);
+    out.push(_b64u_char(b2 & 0x3F) as UInt8);
+    i = i + 3;
+  }
+  let rem = n - i;
+  if rem == 1 {
+    let b0 = (data[i] as Int) & 0xFF;
+    out.push(_b64u_char((b0 >> 2) & 0x3F) as UInt8);
+    out.push(_b64u_char((b0 << 4) & 0x3F) as UInt8);
+  } elif rem == 2 {
+    let b0 = (data[i] as Int) & 0xFF;
+    let b1 = (data[i + 1] as Int) & 0xFF;
+    out.push(_b64u_char((b0 >> 2) & 0x3F) as UInt8);
+    out.push(_b64u_char(((b0 << 4) | (b1 >> 4)) & 0x3F) as UInt8);
+    out.push(_b64u_char((b1 << 2) & 0x3F) as UInt8);
+  }
+  if out.len() == 0 {
+    return "";
+  }
+  return Str::from_utf8(out);
+}
+
 // Decode one segment as base64url and validate the bytes as UTF-8 text.
 fn _segment_to_text(seg: Str) -> Result[Str, Str] {
   let decoded = _b64u_decode(seg);
@@ -369,6 +438,14 @@ fn _find_key(text: Str, name: Str) -> Int {
     i = i + 1;
   }
   return -1;
+}
+
+// True when the scanner finds a quoted `"name"` occurrence in `text`.
+// The key need not have a value; use _value_pos/_string_value/_int_value to
+// read one. Used by jwt_verify_hs256 to test for "exp" and "nbf" without
+// paying for an Err-driven probe.
+fn _has_key(text: Str, name: Str) -> Bool {
+  return _find_key(text, name) >= 0;
 }
 
 // Position of the value that follows key occurrence position `k`: skip
@@ -708,4 +785,143 @@ pub fn jwt_not_before_ok(token: Str, now_secs: Int) -> Result[Bool, Str] {
     return _ok_bool(true);
   }
   return _ok_bool(false);
+}
+
+// --------------------------------------------------
+//  Public API -- HS256 sign/verify
+// --------------------------------------------------
+
+/// Sign `claims` with HMAC-SHA-256 under `secret` and return a compact JWS.
+/// The header is the fixed literal {"alg":"HS256","typ":"JWT"} (exact bytes,
+/// no spaces). The payload is `claims` encoded as-is: it is NOT parsed or
+/// validated as JSON, so any non-empty UTF-8 text can be signed. All segments
+/// are unpadded base64url (RFC 4648 section 5).
+/// Params: claims - the payload text; secret - the shared HMAC key bytes.
+/// Returns: Ok(token) as `header.payload.signature`.
+/// Error case: Err("jwt: empty secret") for a zero-length key;
+/// Err("jwt: empty claims") for an empty claims string.
+/// Complexity: O(claims.len() + secret.len()).
+pub fn jwt_sign_hs256(claims: Str, secret: &Vec[UInt8]) -> Result[Str, Str] {
+  if secret.len() == 0 {
+    return _err_str("jwt: empty secret");
+  }
+  if claims.len() == 0 {
+    return _err_str("jwt: empty claims");
+  }
+  let header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
+  let header_bytes = _str_bytes(header);
+  let claims_bytes = _str_bytes(claims);
+  let payload_b64 = _b64u_encode(&claims_bytes);
+  let signing_input = _b64u_encode(&header_bytes) + "." + payload_b64;
+  let signing_bytes = _str_bytes(signing_input);
+  let mac = crypto.hmac_sha256(secret, &signing_bytes);
+  let token = signing_input + "." + _b64u_encode(&mac);
+  return _ok_str(token);
+}
+
+/// Verify the HMAC-SHA-256 signature of a compact 3-segment token without
+/// looking at the claims. The token must have exactly 3 segments and a
+/// non-empty signature segment; the header "alg" must be exactly "HS256"
+/// (an allowlist of one -- "none", "HS512" and every other value yield
+/// Ok(false), never an Err, and no MAC is computed). The signature must
+/// base64url-decode to exactly 32 bytes; the MAC is recomputed over the raw
+/// `header.payload` bytes and compared with `constant_time_compare`.
+/// Params: token - the raw token text; secret - the shared HMAC key bytes.
+/// Returns: Ok(true) on a verified MAC, Ok(false) for a well-formed token
+/// with the wrong alg, the wrong signature length or a mismatching MAC.
+/// Error case: Err("jwt: empty secret"); the 3-segment/base64url errors of
+/// the text accessors when the token shape or signature segment is invalid.
+/// Complexity: O(token.len()).
+pub fn jwt_signature_valid_hs256(token: Str, secret: &Vec[UInt8]) -> Result[Bool, Str] {
+  if secret.len() == 0 {
+    return _err_bool("jwt: empty secret");
+  }
+  let three = _require_three(token);
+  if !three.is_ok {
+    return _err_bool(three.error);
+  }
+  let sig_start = _seg_start(token, 2);
+  let sig_end = _seg_end(token, 2);
+  if sig_start < 0 || sig_end <= sig_start {
+    return _err_bool("jwt: empty segment");
+  }
+  let alg = jwt_alg(token);
+  if !alg.is_ok {
+    return _err_bool(alg.error);
+  }
+  if string.str_compare(alg.value, "HS256") != 0 {
+    return _ok_bool(false);
+  }
+  let sig_seg = string.str_slice(token, sig_start, sig_end);
+  let decoded = _b64u_decode(sig_seg);
+  if !decoded.is_ok {
+    return _err_bool(decoded.error);
+  }
+  let sig = decoded.value;
+  if sig.len() != 32 {
+    return _ok_bool(false);
+  }
+  let signed_text = string.str_slice(token, 0, _seg_end(token, 1));
+  let signed_bytes = _str_bytes(signed_text);
+  let expected = crypto.hmac_sha256(secret, &signed_bytes);
+  if crypto.constant_time_compare(&sig, &expected) {
+    return _ok_bool(true);
+  }
+  return _ok_bool(false);
+}
+
+/// Verify an HS256 token and enforce its time claims against a caller clock.
+/// Policy, in order:
+///   1. signature first -- jwt_signature_valid_hs256 errors propagate; a
+///      false result becomes Err("jwt: signature mismatch") and NO claim is
+///      read;
+///   2. "exp" is REQUIRED -- absent -> Err("jwt: missing exp"), malformed ->
+///      the jwt_claim_int error; `exp <= now_secs` -> Err("jwt: token
+///      expired") (RFC 7519: the current time must be strictly before exp);
+///   3. "nbf" is optional -- when present it must parse and `now_secs < nbf`
+///      -> Err("jwt: token not yet valid").
+/// The clock is always the caller's `now_secs`; the system clock is never
+/// read and no skew allowance is applied.
+/// Params: token - the raw token text; secret - the shared HMAC key bytes;
+/// now_secs - current Unix time in seconds, supplied by the caller.
+/// Returns: Ok(payload_text) after both the MAC and the time claims pass, so
+/// the claim accessors can be used on the verified token.
+/// Error case: signature/shape/base64url errors; Err("jwt: signature
+/// mismatch"); Err("jwt: missing exp"); the jwt_claim_int errors for a
+/// malformed exp/nbf; Err("jwt: token expired"); Err("jwt: token not yet
+/// valid").
+/// Complexity: O(token.len()).
+pub fn jwt_verify_hs256(token: Str, secret: &Vec[UInt8], now_secs: Int) -> Result[Str, Str] {
+  let valid = jwt_signature_valid_hs256(token, secret);
+  if !valid.is_ok {
+    return _err_str(valid.error);
+  }
+  if !valid.value {
+    return _err_str("jwt: signature mismatch");
+  }
+  let payload = jwt_payload_text(token);
+  if !payload.is_ok {
+    return _err_str(payload.error);
+  }
+  let text = payload.value;
+  if !_has_key(text, "exp") {
+    return _err_str("jwt: missing exp");
+  }
+  let exp = jwt_claim_int(token, "exp");
+  if !exp.is_ok {
+    return _err_str(exp.error);
+  }
+  if exp.value <= now_secs {
+    return _err_str("jwt: token expired");
+  }
+  if _has_key(text, "nbf") {
+    let nbf = jwt_claim_int(token, "nbf");
+    if !nbf.is_ok {
+      return _err_str(nbf.error);
+    }
+    if now_secs < nbf.value {
+      return _err_str("jwt: token not yet valid");
+    }
+  }
+  return _ok_str(text);
 }

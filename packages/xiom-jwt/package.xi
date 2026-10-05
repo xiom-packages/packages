@@ -12,10 +12,10 @@
 
 package xiom_jwt {
   name: "xiom.jwt";
-  version: "0.1.1";
-  description: "JWT structural decoding: headers, claims, timestamps (no signature verification)";
+  version: "0.2.0";
+  description: "JWT structural decoding and HS256 sign/verify: headers, claims, timestamps, constant-time MAC";
   categories: ["data", "crypto-security"];
-  keywords: ["jwt", "token", "claims", "decode"];
+  keywords: ["jwt", "token", "claims", "decode", "hs256", "signing"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["Eleftherios Notas", "The XIOM Authors"];

@@ -1,6 +1,8 @@
-// XIOM -- xiom.jwt conformance tests (24 checks)
+// XIOM -- xiom.jwt conformance tests (30 checks)
 // Port task: prove the pure-XIOM xiom.jwt module against its documented
-// decode-only contract (no signature verification, no JSON parsing).
+// contract -- structural decoding (no JSON parser) plus the 0.2 HS256
+// sign/verify API (alg allowlist, constant-time MAC, exp required, nbf
+// optional, caller-supplied clock).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
@@ -40,6 +42,18 @@ const P_MAX: Str = "eyJleHAiOjkyMjMzNzIwMzY4NTQ3NzU4MDd9";                  // {
 const P_OVER: Str = "eyJleHAiOjk5OTk5OTk5OTk5OTk5OTk5OTk5fQ";              // {"exp":99999999999999999999}
 const P_A1_PAD: Str = "eyJhIjoxfQ==";                                       // {"a":1} with '=' padding
 
+// HS256 fixtures. T_JWTIO is the jwt.io HS256 example token for the secret
+// "your-256-bit-secret" and the P_JWTIO_JSON claims above; the MAC was
+// checked independently (.NET HMACSHA256) and it pins the unpadded RFC 4648
+// section 5 encode of 0-, 1- and 2-byte tails (27-byte header, 55-byte
+// payload, 32-byte tag). The TAMP constants alter one payload/signature
+// character; the signature tamper changes an interior decoded byte (the
+// final character only carries ignored trailing bits).
+const T_JWTIO: Str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+const P_JWTIO_TAMP: Str = "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfR";  // last char Q -> R
+const S_JWTIO_TAMP: Str = "TflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";                             // first char S -> T (an interior decoded byte, unlike the ignored trailing bits)
+const H_HS512: Str = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9";                 // {"alg":"HS512","typ":"JWT"}
+
 // Join three raw segments into a compact token.
 fn tok(h: Str, p: Str, s: Str) -> Str {
   return h + "." + p + "." + s;
@@ -61,6 +75,24 @@ fn str_err(r: Result[Str, Str]) -> Bool {
   let m = r.error;
   if m.len() < 5 { return false; }
   return streq(string.str_slice(m, 0, 5), "jwt: ");
+}
+
+// True when r is an Err whose message equals `want` exactly.
+fn str_err_is(r: Result[Str, Str], want: Str) -> Bool {
+  if r.is_ok { return false; }
+  return streq(r.error, want);
+}
+
+// UTF-8 bytes of a Str, one Vec[UInt8] element per widened string byte.
+fn bytes_of(s: Str) -> Vec[UInt8] {
+  var out = Vec[UInt8].new();
+  let n = s.len();
+  var i = 0;
+  while i < n {
+    out.push(((string.byte_at(s, i) as Int) & 0xFF) as UInt8);
+    i = i + 1;
+  }
+  return out;
 }
 
 // True when r is Ok(v) with v equal to `want`.
@@ -89,6 +121,12 @@ fn bool_err(r: Result[Bool, Str]) -> Bool {
   let m = r.error;
   if m.len() < 5 { return false; }
   return streq(string.str_slice(m, 0, 5), "jwt: ");
+}
+
+// True when r is an Err whose message equals `want` exactly.
+fn bool_err_is(r: Result[Bool, Str], want: Str) -> Bool {
+  if r.is_ok { return false; }
+  return streq(r.error, want);
 }
 
 fn t1() -> TestResult {
@@ -275,6 +313,94 @@ fn t24() -> TestResult {
   return assert(ok, "signature_text: raw segment, empty signature allowed");
 }
 
+fn t25() -> TestResult {
+  let secret = bytes_of("your-256-bit-secret");
+  let signed = jwt_sign_hs256(P_JWTIO_JSON, &secret);
+  if !signed.is_ok {
+    return assert(false, "sign encode: b64url round-trips header/payload (rem 0/1/2)");
+  }
+  let token = signed.value;
+  var ok = str_ok_is(jwt_decode_segment(token, 0), H_HS256_JSON);
+  if !str_ok_is(jwt_decode_segment(token, 1), P_JWTIO_JSON) { ok = false; }
+  if !str_ok_is(jwt_signature_text(token), S_JWTIO) { ok = false; }
+  return assert(ok, "sign encode: b64url round-trips header/payload (rem 0/1/2)");
+}
+
+fn t26() -> TestResult {
+  let secret = bytes_of("your-256-bit-secret");
+  let signed = jwt_sign_hs256(P_JWTIO_JSON, &secret);
+  if !signed.is_ok {
+    return assert(false, "sign KAT: jwt.io HS256 vector (exact token bytes)");
+  }
+  return assert(streq(signed.value, T_JWTIO), "sign KAT: jwt.io HS256 vector (exact token bytes)");
+}
+
+fn t27() -> TestResult {
+  let secret = bytes_of("your-256-bit-secret");
+  let wrong = bytes_of("your-256-bit-secret!");
+  var ok = bool_ok_is(jwt_signature_valid_hs256(T_JWTIO, &secret), true);
+  if !bool_ok_is(jwt_signature_valid_hs256(tok(H_HS256, P_JWTIO_TAMP, S_JWTIO), &secret), false) { ok = false; }
+  if !bool_ok_is(jwt_signature_valid_hs256(tok(H_HS256, P_JWTIO, S_JWTIO_TAMP), &secret), false) { ok = false; }
+  if !bool_ok_is(jwt_signature_valid_hs256(T_JWTIO, &wrong), false) { ok = false; }
+  if !bool_ok_is(jwt_signature_valid_hs256(tok(H_NONE, P_JWTIO, S_JWTIO), &secret), false) { ok = false; }
+  if !bool_ok_is(jwt_signature_valid_hs256(tok(H_HS512, P_JWTIO, S_JWTIO), &secret), false) { ok = false; }
+  return assert(ok, "signature_valid: HS256 true; tamper, wrong secret, none/HS512 false");
+}
+
+fn t28() -> TestResult {
+  var secret = Vec[UInt8].new();
+  var i = 0;
+  while i < 32 {
+    secret.push(i as UInt8);
+    i = i + 1;
+  }
+  let claims = "{\"sub\":\"bin\",\"exp\":5000}";
+  let signed = jwt_sign_hs256(claims, &secret);
+  if !signed.is_ok {
+    return assert(false, "binary secret: sign/verify round-trip; wrong secret Err");
+  }
+  let token = signed.value;
+  var ok = str_ok_is(jwt_verify_hs256(token, &secret, 4999), claims);
+  let wrong = bytes_of("not-the-secret");
+  if !str_err_is(jwt_verify_hs256(token, &wrong, 4999), "jwt: signature mismatch") { ok = false; }
+  return assert(ok, "binary secret: sign/verify round-trip; wrong secret Err");
+}
+
+fn t29() -> TestResult {
+  let secret = bytes_of("k");
+  let exp_token = jwt_sign_hs256("{\"sub\":\"a\",\"exp\":1000}", &secret);
+  if !exp_token.is_ok {
+    return assert(false, "verify: exp required, nbf optional, caller clock boundaries");
+  }
+  let t1 = exp_token.value;
+  var ok = str_ok_is(jwt_verify_hs256(t1, &secret, 999), "{\"sub\":\"a\",\"exp\":1000}");
+  if !str_err_is(jwt_verify_hs256(t1, &secret, 1000), "jwt: token expired") { ok = false; }
+  let nbf_token = jwt_sign_hs256("{\"sub\":\"a\",\"exp\":1000,\"nbf\":500}", &secret);
+  if !nbf_token.is_ok {
+    return assert(false, "verify: exp required, nbf optional, caller clock boundaries");
+  }
+  let t2 = nbf_token.value;
+  if !str_err_is(jwt_verify_hs256(t2, &secret, 499), "jwt: token not yet valid") { ok = false; }
+  if !str_ok_is(jwt_verify_hs256(t2, &secret, 500), "{\"sub\":\"a\",\"exp\":1000,\"nbf\":500}") { ok = false; }
+  let no_exp = jwt_sign_hs256("{\"sub\":\"a\"}", &secret);
+  if !no_exp.is_ok {
+    return assert(false, "verify: exp required, nbf optional, caller clock boundaries");
+  }
+  if !str_err_is(jwt_verify_hs256(no_exp.value, &secret, 0), "jwt: missing exp") { ok = false; }
+  return assert(ok, "verify: exp required, nbf optional, caller clock boundaries");
+}
+
+fn t30() -> TestResult {
+  let empty = Vec[UInt8].new();
+  let key = bytes_of("k");
+  var ok = str_err_is(jwt_sign_hs256("{\"a\":1}", &empty), "jwt: empty secret");
+  if !str_err_is(jwt_sign_hs256("", &key), "jwt: empty claims") { ok = false; }
+  if !bool_err_is(jwt_signature_valid_hs256(T_JWTIO, &empty), "jwt: empty secret") { ok = false; }
+  let two = H_HS256 + "." + P_JWTIO;
+  if !str_err(jwt_verify_hs256(two, &key, 0)) { ok = false; }
+  return assert(ok, "empty secret/claims and 2-segment verify are Err");
+}
+
 fn main() -> Int {
   io.println("=== xiom.jwt conformance tests ===");
   var failed: Int = 0;
@@ -326,6 +452,18 @@ fn main() -> Int {
   if r23.passed { io.println("  [PASS] " + r23.name); } else { io.println("  [FAIL] " + r23.name); failed = failed + 1; }
   let r24 = t24();
   if r24.passed { io.println("  [PASS] " + r24.name); } else { io.println("  [FAIL] " + r24.name); failed = failed + 1; }
+  let r25 = t25();
+  if r25.passed { io.println("  [PASS] " + r25.name); } else { io.println("  [FAIL] " + r25.name); failed = failed + 1; }
+  let r26 = t26();
+  if r26.passed { io.println("  [PASS] " + r26.name); } else { io.println("  [FAIL] " + r26.name); failed = failed + 1; }
+  let r27 = t27();
+  if r27.passed { io.println("  [PASS] " + r27.name); } else { io.println("  [FAIL] " + r27.name); failed = failed + 1; }
+  let r28 = t28();
+  if r28.passed { io.println("  [PASS] " + r28.name); } else { io.println("  [FAIL] " + r28.name); failed = failed + 1; }
+  let r29 = t29();
+  if r29.passed { io.println("  [PASS] " + r29.name); } else { io.println("  [FAIL] " + r29.name); failed = failed + 1; }
+  let r30 = t30();
+  if r30.passed { io.println("  [PASS] " + r30.name); } else { io.println("  [FAIL] " + r30.name); failed = failed + 1; }
   if failed == 0 {
     io.println("xiom.jwt: all tests passed");
   } else {
