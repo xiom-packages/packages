@@ -159,6 +159,11 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-10-05 | `xiom.io.fs` remove parity: `fs_remove` / `fs_remove_dir` | `xiom.static` and `xiom.kv` tests + any package doing file fixtures; `fs` has write/read but no remove (only `io.remove_file`) | `io.remove_file` from the `io` module | open |
 | 2026-10-05 | Concrete stdio `Read` implementation of `read_exact` (streaming reads) | `xiom.static` (large assets), `xiom.kv` (segment scans); `read_exact` is interface-only (`io.xi:481`), `fs_read_range` returns whole buffers with Int32 offsets | chunked `fs_read_range` | open |
 
+| 2026-10-05 | Durable write path: a real `io.fsync(handle)` / flush (today `fsync`/`fdatasync`/`flush_fd`/`sync_fd`/`fsync_dir` are Err stubs and `flush_stdout` is a no-op) | `xiom.kv` (crash-consistent but not power-loss safe), PULSE store, any service writing durable state | `fclose` only flushes stdio to the OS; document "crash-consistent, never power-loss durable" | open (highest-value storage ask) |
+| 2026-10-05 | Byte-level append parity: `append_file_bytes(path, &Vec[UInt8])` | `xiom.kv` segment appends (`fs.fs_append` is the only byte append), `xiom.static` fixtures | `fs.fs_append` from the `fs` module | open |
+| 2026-10-05 | `truncate(path, len)` + `remove_dir(path)` | `xiom.kv` (torn segments cannot be reclaimed; tests cannot clean directories), `xiom.static` fixtures; `truncate` os/fs_ffi.xi:151 is a stub, `io` has `remove_file` only | rotate to a fresh segment; leave directories | open |
+| 2026-10-05 | File locking (`file_lock` is an Err stub) | `xiom.kv` single-writer is unenforced; PULSE store | documented single-writer contract | open |
+
 ## Compiler-shaped requests routed to `docs/COMPILER-FINDINGS.md`
 
 Items that only the compiler can fix (e.g. `&mut Int` write-through,
