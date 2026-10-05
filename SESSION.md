@@ -3,6 +3,14 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
+**LIVE CLAIM 2026-10-05 09:05Z (main/debug session):** hardening batch
+#7 in progress -- runtime contracts + SPEC inventories for `particle`,
+`fixed`, `finance`, `collation` (stable/published, zero clauses; patch
+bumps; x2 on v0.63.0; publish in `eco-v0.1.50`). Parallel packages
+lanes: do NOT edit `packages/xiom-particle`, `packages/xiom-fixed`,
+`packages/xiom-finance`, `packages/xiom-collation`,
+`packages/*/STATUS.json`, or create tags; coordinate first.
+
 **Written:** 2026-10-05 (09:00Z), by the main/debug session (v0.63.0
 pin; hardening batches #1-#6 DONE + PUBLISHED across
 `eco-v0.1.44`-`eco-v0.1.49` -- 24 stable packages with runtime
