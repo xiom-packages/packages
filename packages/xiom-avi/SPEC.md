@@ -1,8 +1,8 @@
 # xiom.avi -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.avi`, version `0.1.0`).
+Status: `incubating` (implemented; runtime-contract hardening pass on
+compiler v0.63.0; not published).
+Manifest: `package.xi` (`xiom.avi`, version `0.1.3`).
 Module: `src/avi.xi` (`module xiom.avi`).
 Depends on `xiom.std` (`xiom.string`).
 
@@ -239,8 +239,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.avi
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=18 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.63.0, hardening pass 2026-10-05,
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` (twice, with the
+contracts active).
 
 ## Known limitations
 
@@ -272,3 +273,42 @@ Last verified: compiler 0.61.3,
 - The tests compare error strings with `compare.str_compare` (BUG 17:
   `==` between Str values read from a `Vec` lowers to a pointer compare).
 - The module declares no `extern "C"` blocks (no FFI).
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 12 unknown / 23 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `avi_is_file` | `ensures: data.len() < 12 => !result`; `ensures: result => data.len() >= 12` | unproven |
+| `avi_riff_size` | `ensures: data.len() < 12 => result is Err`; `ensures: result is Ok => result.value >= 0 && result.value <= 4294967295` | unproven |
+| `avi_find_chunk` | `ensures: data.len() < 12 => result is Err`; `ensures: id.len() != 4 => result is Err`; `ensures: result is Ok => result.value >= start + 8` | unproven |
+| `avi_parse_avih` | `ensures: data.len() < 12 => result is Err`; `ensures: result is Ok => data.len() >= 68` | unproven |
+| `avi_duration_ms` | `ensures: result == info.total_frames * info.micro_sec_per_frame / 1000`; `ensures: info.micro_sec_per_frame == 0 => result == 0` | unproven |
+| `avi_fps_permille` | `ensures: result >= 0`; `ensures: info.micro_sec_per_frame <= 0 => result == 0` | unproven |
+
+14 clauses across the six entry points (2/2/3/2/2/3). All 14 are enforced by
+the v0.63.0 runtime evaluator: the 18-check conformance suite was run twice
+with the clauses active (`port: PASS (passed=18 failed=0 program_exit=0
+exit=0)` both times), no clause trapped and none had to be dropped.
+`avi_parse_avih`'s `result is Ok => data.len() >= 68` follows from the
+12-byte header plus the smallest readable 56-byte avih payload. In the Z3
+pass every contract axiom was skipped by the emitter (`contract axiom
+skipped`: `operator Lt/Le on non-numeric operands (sorts None/Some("Int"))`,
+`equality with unresolved operand sort`; `body incomplete`), so no clause is
+machine-proven; the 23 errors are emitter artifacts (`unknown constant
+_tag4` / `_err_int` / `_err_info` in the lowered bodies), not violations of
+the code under test (`0 violated`).
+
+Unasserted/documented: the exact `"avi: ..."` error strings and their
+precedence order (section `Error string catalog`), the byte-level magic and
+chunk-id tests (`"RIFF"`, `"AVI "`, `"hdrl"`, `_tag4`/`_id_at`), the avih
+field map and payload offsets (section `avih payload`; `AviInfo` result
+fields are the forbidden struct-result shape), the exact positive-branch
+fps formula `(1000000000 + micro / 2) / micro` (kept out because the
+division by a non-constant divisor would need an unguarded contract
+evaluation and emits a division side condition), and the `start < 12 ||
+start > data.len() => result is Err` guard stay pinned by the 18-check test
+plan and the `Semantics` section; the `avi_find_chunk` Ok clause
+`result.value >= start + 8` pins the payload-offset relation.

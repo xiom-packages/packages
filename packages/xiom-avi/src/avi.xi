@@ -176,7 +176,10 @@ fn _avih_at(data: &Vec[UInt8], off: Int) -> Result[AviInfo, Str] {
 /// 12 bytes. The stored RIFF size is returned by avi_riff_size but is never
 /// cross-checked against the buffer length (a mismatched size field does not
 /// make this predicate false).
-pub fn avi_is_file(data: &Vec[UInt8]) -> Bool {
+pub fn avi_is_file(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 12 => !result;
+  ensures: result => data.len() >= 12;
+{
   if data.len() < 12 { return false; }
   if !_tag4(data, 0, 82, 73, 70, 70) { return false; }
   if !_tag4(data, 8, 65, 86, 73, 32) { return false; }
@@ -189,7 +192,10 @@ pub fn avi_is_file(data: &Vec[UInt8]) -> Bool {
 /// magic"); "AVI " -> Err("avi: bad AVI magic"). The stored size is
 /// returned as-is (for a well-formed file it is len - 8); no cross-check is
 /// performed.
-pub fn avi_riff_size(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn avi_riff_size(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() < 12 => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 4294967295;
+{
   if data.len() < 12 { return _err_int("avi: truncated header"); }
   if !_tag4(data, 0, 82, 73, 70, 70) { return _err_int("avi: bad RIFF magic"); }
   if !_tag4(data, 8, 65, 86, 73, 32) { return _err_int("avi: bad AVI magic"); }
@@ -212,7 +218,11 @@ pub fn avi_riff_size(data: &Vec[UInt8]) -> Result[Int, Str] {
 /// chunk header at the tail -> Err("avi: chunk truncated"); no match ->
 /// Err("avi: chunk not found"). A missing final padding byte after an odd
 /// payload is tolerated (the walk simply ends).
-pub fn avi_find_chunk(data: &Vec[UInt8], id: Str, start: Int) -> Result[Int, Str] {
+pub fn avi_find_chunk(data: &Vec[UInt8], id: Str, start: Int) -> Result[Int, Str]
+  ensures: data.len() < 12 => result is Err;
+  ensures: id.len() != 4 => result is Err;
+  ensures: result is Ok => result.value >= start + 8;
+{
   if data.len() < 12 { return _err_int("avi: truncated header"); }
   if !_tag4(data, 0, 82, 73, 70, 70) { return _err_int("avi: bad RIFF magic"); }
   if !_tag4(data, 8, 65, 86, 73, 32) { return _err_int("avi: bad AVI magic"); }
@@ -239,7 +249,10 @@ pub fn avi_find_chunk(data: &Vec[UInt8], id: Str, start: Int) -> Result[Int, Str
 /// avih payload shorter than the full 56 bytes is Err("avi: truncated
 /// avih"). On success the five exposed fields are read from the payload
 /// offsets in SPEC.md.
-pub fn avi_parse_avih(data: &Vec[UInt8]) -> Result[AviInfo, Str] {
+pub fn avi_parse_avih(data: &Vec[UInt8]) -> Result[AviInfo, Str]
+  ensures: data.len() < 12 => result is Err;
+  ensures: result is Ok => data.len() >= 68;
+{
   if data.len() < 12 { return _err_info("avi: truncated header"); }
   if !_tag4(data, 0, 82, 73, 70, 70) { return _err_info("avi: bad RIFF magic"); }
   if !_tag4(data, 8, 65, 86, 73, 32) { return _err_info("avi: bad AVI magic"); }
@@ -279,7 +292,10 @@ pub fn avi_parse_avih(data: &Vec[UInt8]) -> Result[AviInfo, Str] {
 /// Play duration in whole milliseconds: total_frames * micro_sec_per_frame
 /// / 1000, truncated towards zero (integer division). A negative
 /// micro_sec_per_frame is used as given.
-pub fn avi_duration_ms(info: &AviInfo) -> Int {
+pub fn avi_duration_ms(info: &AviInfo) -> Int
+  ensures: result == info.total_frames * info.micro_sec_per_frame / 1000;
+  ensures: info.micro_sec_per_frame == 0 => result == 0;
+{
   return info.total_frames * info.micro_sec_per_frame / 1000;
 }
 
@@ -287,7 +303,10 @@ pub fn avi_duration_ms(info: &AviInfo) -> Int {
 /// (1000000000 + micro / 2) / micro. micro_sec_per_frame <= 0 yields 0.
 /// Example: 40000 us/frame -> 25000 (25.000 fps); 33367 -> 29970
 /// (29.970 fps, rounded from 29.9696).
-pub fn avi_fps_permille(info: &AviInfo) -> Int {
+pub fn avi_fps_permille(info: &AviInfo) -> Int
+  ensures: result >= 0;
+  ensures: info.micro_sec_per_frame <= 0 => result == 0;
+{
   if info.micro_sec_per_frame <= 0 {
     return 0;
   }
