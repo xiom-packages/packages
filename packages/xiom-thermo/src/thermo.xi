@@ -33,7 +33,9 @@ module xiom.thermo
 /// Returns: temperature in milli-degrees Fahrenheit.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_c_to_f_milli(c_milli: Int) -> Int {
+pub fn thermo_c_to_f_milli(c_milli: Int) -> Int
+  ensures: result == c_milli * 9 / 5 + 32000;
+{
   return c_milli * 9 / 5 + 32000;
 }
 
@@ -44,7 +46,9 @@ pub fn thermo_c_to_f_milli(c_milli: Int) -> Int {
 /// Returns: temperature in milli-degrees Celsius.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_f_to_c_milli(f_milli: Int) -> Int {
+pub fn thermo_f_to_c_milli(f_milli: Int) -> Int
+  ensures: result == (f_milli - 32000) * 5 / 9;
+{
   return (f_milli - 32000) * 5 / 9;
 }
 
@@ -54,7 +58,9 @@ pub fn thermo_f_to_c_milli(f_milli: Int) -> Int {
 /// Returns: temperature in milli-kelvin.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_c_to_k_milli(c_milli: Int) -> Int {
+pub fn thermo_c_to_k_milli(c_milli: Int) -> Int
+  ensures: result == c_milli + 273150;
+{
   return c_milli + 273150;
 }
 
@@ -64,7 +70,9 @@ pub fn thermo_c_to_k_milli(c_milli: Int) -> Int {
 /// Returns: temperature in milli-degrees Celsius.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_k_to_c_milli(k_milli: Int) -> Int {
+pub fn thermo_k_to_c_milli(k_milli: Int) -> Int
+  ensures: result == k_milli - 273150;
+{
   return k_milli - 273150;
 }
 
@@ -76,7 +84,9 @@ pub fn thermo_k_to_c_milli(k_milli: Int) -> Int {
 /// Returns: temperature in milli-kelvin.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_f_to_k_milli(f_milli: Int) -> Int {
+pub fn thermo_f_to_k_milli(f_milli: Int) -> Int
+  ensures: result == thermo_c_to_k_milli(thermo_f_to_c_milli(f_milli));
+{
   return thermo_c_to_k_milli(thermo_f_to_c_milli(f_milli));
 }
 
@@ -88,7 +98,9 @@ pub fn thermo_f_to_k_milli(f_milli: Int) -> Int {
 /// Returns: temperature in milli-degrees Fahrenheit.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_k_to_f_milli(k_milli: Int) -> Int {
+pub fn thermo_k_to_f_milli(k_milli: Int) -> Int
+  ensures: result == thermo_c_to_f_milli(thermo_k_to_c_milli(k_milli));
+{
   return thermo_c_to_f_milli(thermo_k_to_c_milli(k_milli));
 }
 
@@ -98,7 +110,9 @@ pub fn thermo_k_to_f_milli(k_milli: Int) -> Int {
 /// Returns: true iff k_milli >= 0.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_above_absolute_zero_k_milli(k_milli: Int) -> Bool {
+pub fn thermo_above_absolute_zero_k_milli(k_milli: Int) -> Bool
+  ensures: result == (k_milli >= 0);
+{
   return k_milli >= 0;
 }
 
@@ -112,7 +126,9 @@ pub fn thermo_above_absolute_zero_k_milli(k_milli: Int) -> Bool {
 /// Returns: pressure in hectopascal.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_pa_to_hpa(pa: Int) -> Int {
+pub fn thermo_pa_to_hpa(pa: Int) -> Int
+  ensures: result == pa / 100;
+{
   return pa / 100;
 }
 
@@ -122,7 +138,9 @@ pub fn thermo_pa_to_hpa(pa: Int) -> Int {
 /// Returns: pressure in micro-bar.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_pa_to_bar_micro(pa: Int) -> Int {
+pub fn thermo_pa_to_bar_micro(pa: Int) -> Int
+  ensures: result == pa * 10;
+{
   return pa * 10;
 }
 
@@ -133,7 +151,9 @@ pub fn thermo_pa_to_bar_micro(pa: Int) -> Int {
 /// Returns: pressure in micro-atmosphere.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_pa_to_atm_micro(pa: Int) -> Int {
+pub fn thermo_pa_to_atm_micro(pa: Int) -> Int
+  ensures: result == pa * 1000000 / 101325;
+{
   return pa * 1000000 / 101325;
 }
 
@@ -147,7 +167,9 @@ pub fn thermo_pa_to_atm_micro(pa: Int) -> Int {
 /// Returns: energy in milli-calories.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_j_to_cal_milli(j_milli: Int) -> Int {
+pub fn thermo_j_to_cal_milli(j_milli: Int) -> Int
+  ensures: result == j_milli * 1000 / 4184;
+{
   return j_milli * 1000 / 4184;
 }
 
@@ -157,7 +179,9 @@ pub fn thermo_j_to_cal_milli(j_milli: Int) -> Int {
 /// Returns: energy in milli-joules.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_cal_to_j_milli(cal_milli: Int) -> Int {
+pub fn thermo_cal_to_j_milli(cal_milli: Int) -> Int
+  ensures: result == cal_milli * 4184 / 1000;
+{
   return cal_milli * 4184 / 1000;
 }
 
@@ -172,7 +196,9 @@ pub fn thermo_cal_to_j_milli(cal_milli: Int) -> Int {
 /// Returns: speed in milli-m/s.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_kmh_to_ms_milli(kmh_milli: Int) -> Int {
+pub fn thermo_kmh_to_ms_milli(kmh_milli: Int) -> Int
+  ensures: result == kmh_milli * 1000 / 3600;
+{
   return kmh_milli * 1000 / 3600;
 }
 
@@ -183,6 +209,8 @@ pub fn thermo_kmh_to_ms_milli(kmh_milli: Int) -> Int {
 /// Returns: speed in milli-km/h.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn thermo_ms_to_kmh_milli(ms_milli: Int) -> Int {
+pub fn thermo_ms_to_kmh_milli(ms_milli: Int) -> Int
+  ensures: result == ms_milli * 3600 / 1000;
+{
   return ms_milli * 3600 / 1000;
 }

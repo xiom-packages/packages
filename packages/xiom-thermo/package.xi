@@ -9,7 +9,7 @@
 
 package xiom_thermo {
   name: "xiom.thermo";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Exact integer unit conversions for temperature, pressure, energy, and speed";
   categories: ["science"];
   keywords: ["units","temperature","pressure","conversion"];

@@ -1,6 +1,6 @@
 # xiom.thermo -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.thermo` (`src/thermo.xi`). Pure XIOM, no FFI, no imports.
 Dependencies: `xiom.std` only (tests use `xiom.test` and `xiom.io`).
 
@@ -200,3 +200,34 @@ discipline: free functions only (no methods), no lambdas, no `Vec[Struct]`,
 no `Result`/`Option` (every function is total), no `match` inside the module,
 `module` without a trailing semicolon, `use` lines with one, and the
 copyright + SPDX header on every `.xi` file.
+
+## 11. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **19 proven / 0 violated / 4 unknown / 0 errors, rc=0** (the
+proven count includes division side-condition obligations). The exact
+integer formulas are discharged by the solver; the two composed
+conversions and the absolute-zero identity stay solver-unknown.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `thermo_c_to_f_milli` | `ensures: result == c_milli * 9 / 5 + 32000` | **proven** |
+| `thermo_f_to_c_milli` | `ensures: result == (f_milli - 32000) * 5 / 9` | **proven** |
+| `thermo_c_to_k_milli` | `ensures: result == c_milli + 273150` | **proven** |
+| `thermo_k_to_c_milli` | `ensures: result == k_milli - 273150` | **proven** |
+| `thermo_f_to_k_milli` | `ensures: result == thermo_c_to_k_milli(thermo_f_to_c_milli(f_milli))` | unproven |
+| `thermo_k_to_f_milli` | `ensures: result == thermo_c_to_f_milli(thermo_k_to_c_milli(k_milli))` | unproven |
+| `thermo_above_absolute_zero_k_milli` | `ensures: result == (k_milli >= 0)` | unproven |
+| `thermo_pa_to_hpa` | `ensures: result == pa / 100` | **proven** |
+| `thermo_pa_to_bar_micro` | `ensures: result == pa * 10` | **proven** |
+| `thermo_pa_to_atm_micro` | `ensures: result == pa * 1000000 / 101325` | **proven** |
+| `thermo_j_to_cal_milli` | `ensures: result == j_milli * 1000 / 4184` | **proven** |
+| `thermo_cal_to_j_milli` | `ensures: result == cal_milli * 4184 / 1000` | **proven** |
+| `thermo_kmh_to_ms_milli` | `ensures: result == kmh_milli * 1000 / 3600` | **proven** |
+| `thermo_ms_to_kmh_milli` | `ensures: result == ms_milli * 3600 / 1000` | **proven** |
+
+Unasserted/documented: nothing -- every public function carries a
+contract. Truncation-toward-zero rounding (section 4) is the runtime
+semantics; the exact formulas above are the machine-checked model, and
+the 1-milli-unit deviation of the composed paths versus a
+single-rounded float formula remains documented in section 4.
