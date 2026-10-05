@@ -9,7 +9,7 @@
 
 package xiom_luhn {
   name: "xiom.luhn";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Luhn (mod-10) check-digit validation and computation for ASCII digit strings";
   categories: ["data"];
   keywords: ["luhn", "check-digit", "validation", "mod10"];

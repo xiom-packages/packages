@@ -163,7 +163,10 @@ fn _parse_canonical(s: Str) -> Result[Luhn, Str] {
 /// Error case: empty input, a non-digit byte, fewer than LUHN_MIN_DIGITS
 /// digits, or a check-digit mismatch.
 /// Complexity: O(len(s)) time, O(1) space.
-pub fn luhn_parse(s: Str) -> Result[Luhn, Str] {
+pub fn luhn_parse(s: Str) -> Result[Luhn, Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: result is Ok => s.len() >= LUHN_MIN_DIGITS;
+{
   return _parse_canonical(s);
 }
 
@@ -172,7 +175,9 @@ pub fn luhn_parse(s: Str) -> Result[Luhn, Str] {
 /// Returns: Bool.
 /// Error case: none (errors collapse to false).
 /// Complexity: O(len(s)).
-pub fn luhn_is_valid(s: Str) -> Bool {
+pub fn luhn_is_valid(s: Str) -> Bool
+  ensures: s.len() < LUHN_MIN_DIGITS => !result;
+{
   match luhn_parse(s) {
     Ok(v) => { return true; },
     Err(e) => { return false; },
@@ -187,7 +192,10 @@ pub fn luhn_is_valid(s: Str) -> Bool {
 /// Returns: `s` with every space and hyphen removed.
 /// Error case: none.
 /// Complexity: O(len(s)) time and output.
-pub fn luhn_normalize(s: Str) -> Str {
+pub fn luhn_normalize(s: Str) -> Str
+  ensures: result.len() <= s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+{
   var out = "";
   var i = 0;
   while i < s.len() {
@@ -213,7 +221,9 @@ pub fn luhn_normalize(s: Str) -> Str {
 /// outside the separator set, fewer than LUHN_MIN_DIGITS digits, or a
 /// check-digit mismatch.
 /// Complexity: O(len(s)) time and output.
-pub fn luhn_parse_normalized(s: Str) -> Result[Luhn, Str] {
+pub fn luhn_parse_normalized(s: Str) -> Result[Luhn, Str]
+  ensures: s.len() == 0 => result is Err;
+{
   if s.len() == 0 { return _luhn_err("luhn: empty input"); }
   let n = luhn_normalize(s);
   if n.len() == 0 { return _luhn_err("luhn: only separators: " + s); }
@@ -225,7 +235,9 @@ pub fn luhn_parse_normalized(s: Str) -> Result[Luhn, Str] {
 /// Returns: Bool.
 /// Error case: none (errors collapse to false).
 /// Complexity: O(len(s)).
-pub fn luhn_is_valid_normalized(s: Str) -> Bool {
+pub fn luhn_is_valid_normalized(s: Str) -> Bool
+  ensures: s.len() < LUHN_MIN_DIGITS => !result;
+{
   match luhn_parse_normalized(s) {
     Ok(v) => { return true; },
     Err(e) => { return false; },
@@ -245,7 +257,11 @@ pub fn luhn_is_valid_normalized(s: Str) -> Bool {
 /// or a non-digit byte.
 /// Error case: empty input or a non-digit byte.
 /// Complexity: O(len(body)).
-pub fn luhn_compute_check_digit(body: Str) -> Result[Int, Str] {
+pub fn luhn_compute_check_digit(body: Str) -> Result[Int, Str]
+  ensures: body.len() == 0 => result is Err;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 9;
+{
   if body.len() == 0 { return _int_err("luhn: empty input"); }
   if !_all_digits(body) { return _int_err("luhn: bad characters: " + body); }
   return _int_ok(_check_digit(body));
@@ -258,7 +274,9 @@ pub fn luhn_compute_check_digit(body: Str) -> Result[Int, Str] {
 /// catalog as luhn_compute_check_digit.
 /// Error case: empty input or a non-digit byte.
 /// Complexity: O(len(body)) time and output.
-pub fn luhn_append_check_digit(body: Str) -> Result[Str, Str] {
+pub fn luhn_append_check_digit(body: Str) -> Result[Str, Str]
+  ensures: body.len() == 0 => result is Err;
+{
   match luhn_compute_check_digit(body) {
     Ok(k) => { return _str_ok(body + convert.int_to_string(k)); },
     Err(e) => { return _str_err(e); },
@@ -275,7 +293,10 @@ pub fn luhn_append_check_digit(body: Str) -> Result[Str, Str] {
 /// Returns: at least LUHN_MIN_DIGITS ASCII digits, as validated.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn luhn_digits(v: &Luhn) -> Str {
+pub fn luhn_digits(v: &Luhn) -> Str
+  ensures: result.len() == v.digits.len();
+  ensures: result.len() >= LUHN_MIN_DIGITS;
+{
   return v.digits;
 }
 
@@ -284,7 +305,10 @@ pub fn luhn_digits(v: &Luhn) -> Str {
 /// Returns: at least LUHN_MIN_DIGITS.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn luhn_digit_count(v: &Luhn) -> Int {
+pub fn luhn_digit_count(v: &Luhn) -> Int
+  ensures: result >= LUHN_MIN_DIGITS;
+  ensures: result == v.digits.len();
+{
   return v.digits.len();
 }
 
@@ -293,7 +317,10 @@ pub fn luhn_digit_count(v: &Luhn) -> Int {
 /// Returns: digit count minus one ASCII digits.
 /// Error case: none.
 /// Complexity: O(len) time and output.
-pub fn luhn_body(v: &Luhn) -> Str {
+pub fn luhn_body(v: &Luhn) -> Str
+  ensures: result.len() == v.digits.len() - 1;
+  ensures: result.len() >= 1;
+{
   let d = v.digits;
   return string.str_slice(d, 0, d.len() - 1);
 }
@@ -303,7 +330,10 @@ pub fn luhn_body(v: &Luhn) -> Str {
 /// Returns: 0..9.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn luhn_check_digit(v: &Luhn) -> Int {
+pub fn luhn_check_digit(v: &Luhn) -> Int
+  ensures: result >= 0;
+  ensures: result <= 9;
+{
   let d = v.digits;
   return _digit_value(string.byte_at(d, d.len() - 1));
 }

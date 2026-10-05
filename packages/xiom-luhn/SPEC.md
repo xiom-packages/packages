@@ -281,8 +281,8 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.luhn
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=18 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.63.1, hardening pass (x2),
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` both runs.
 
 ## Known limitations
 
@@ -313,3 +313,47 @@ Last verified: compiler 0.61.3,
   and validated text, so no NUL-byte abort path is reachable.
 - The module declares no `extern "C"` blocks (no FFI) and imports only
   `xiom.string` and `xiom.convert`.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts. `xiom-verify --check` (Z3 4.13.4, v0.63.1):
+**0 proven / 0 violated / 24 unknown / 4 errors** -- no clause is refuted.
+The 4 errors are emitter artifacts (`unknown constant _parse_canonical
+(String)` / `_all_digits (String)`: private-helper calls the emitter cannot
+resolve); the unknowns are emitter skips (`equality with unresolved operand
+sort`, `operator Lt/Le on non-numeric operands`, `loop without invariant`,
+`field access '.digits' on non-datatype receiver`), so no clause is
+machine-discharged on v0.63.1. Enforced by the v0.63.1 runtime evaluator:
+two consecutive `scripts/port.ps1 -Package xiom.luhn -TimeoutSec 60` runs
+green (`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` both times,
+7.35 s / 7.10 s); no clause trapped and none was dropped.
+
+| Entry point | Contract | Family |
+|---|---|---|
+| `luhn_parse` | `ensures: s.len() == 0 => result is Err`; `ensures: result is Ok => s.len() >= LUHN_MIN_DIGITS` | runtime (guard-pair) |
+| `luhn_is_valid` | `ensures: s.len() < LUHN_MIN_DIGITS => !result` | runtime (Bool guard) |
+| `luhn_normalize` | `ensures: result.len() <= s.len()`; `ensures: s.len() == 0 => result.len() == 0` | runtime |
+| `luhn_parse_normalized` | `ensures: s.len() == 0 => result is Err` | runtime (guard) |
+| `luhn_is_valid_normalized` | `ensures: s.len() < LUHN_MIN_DIGITS => !result` | runtime (Bool guard) |
+| `luhn_compute_check_digit` | `ensures: body.len() == 0 => result is Err`; `ensures: result is Ok => result.value >= 0`; `ensures: result is Ok => result.value <= 9` | runtime (guard + scalar Ok payload) |
+| `luhn_append_check_digit` | `ensures: body.len() == 0 => result is Err` | runtime (guard) |
+| `luhn_digits` | `ensures: result.len() == v.digits.len()`; `ensures: result.len() >= LUHN_MIN_DIGITS` | runtime |
+| `luhn_digit_count` | `ensures: result >= LUHN_MIN_DIGITS` | scalar (Z3 shape) |
+| `luhn_digit_count` | `ensures: result == v.digits.len()` | runtime |
+| `luhn_body` | `ensures: result.len() == v.digits.len() - 1`; `ensures: result.len() >= 1` | runtime |
+| `luhn_check_digit` | `ensures: result >= 0`; `ensures: result <= 9` | scalar (Z3 shape) |
+
+19 clauses across the eleven entry points (2/1/2/1/1/3/1/2/2/2/2).
+Family key: **scalar** = pure arithmetic clause shape with no string
+payload, result tag or field read inside the clause (the family Z3 can
+discharge once the v0.63.1 emitter gap closes); **runtime** = the clause
+reads a `Str` length, a result tag/payload or a struct field, so it is
+enforced by the runtime evaluator only.
+
+Unasserted/documented (pinned by the 18-check test plan instead): the exact
+`"luhn: ..."` error strings and validation order, the `Str` content rules
+(charset, digit values, normalization byte table), and the forbidden
+v0.63.1 shapes -- struct-result payload access (`Ok(Luhn)` fields),
+payload-length-vs-parameter (comparing the `Ok` payload length to the
+`body` parameter on `luhn_append_check_digit`) and tuple-component access
+-- are deliberately not asserted.
