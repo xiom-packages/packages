@@ -1,6 +1,6 @@
 # xiom.quantum
 
-> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (18/18); published at `v0.1.2` on the XIOM registry.
 > **Scope:** introductory quantum formulas on scalars: de Broglie wavelength,
 > photon momentum, hydrogen energy levels and transitions, Balmer and Lyman
 > vacuum wavelengths, plus two reference lengths (Compton wavelength, Bohr

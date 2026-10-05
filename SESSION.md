@@ -3,27 +3,44 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**LIVE CLAIM 2026-10-05 08:40Z (main/debug session):** hardening batch
-#6 in progress -- runtime contracts + SPEC inventories for `quantum`,
-`spectroscopy`, `relativity`, `physics` (stable/published, zero clauses;
-patch bumps; x2 on v0.63.0; publish in `eco-v0.1.49`). Parallel packages
-lanes: do NOT edit `packages/xiom-quantum`,
-`packages/xiom-spectroscopy`, `packages/xiom-relativity`,
-`packages/xiom-physics`, `packages/*/STATUS.json`, or create tags;
-coordinate first.
-
-**Written:** 2026-10-05 (08:20Z), by the main/debug session (v0.63.0
-pin; hardening batches #1-#5 DONE + PUBLISHED across
-`eco-v0.1.44`-`eco-v0.1.48` -- 20 stable packages with runtime
-contracts + SPEC contract inventories; thermo alone contributes 19
-Z3-proven clauses, stl 3, crc 5; Float64 contract expressions verified
-working (robotics); 259 stable packages still at zero clauses; grpc
+**Written:** 2026-10-05 (09:00Z), by the main/debug session (v0.63.0
+pin; hardening batches #1-#6 DONE + PUBLISHED across
+`eco-v0.1.44`-`eco-v0.1.49` -- 24 stable packages with runtime
+contracts + SPEC contract inventories; Z3-proven growth: physics 13,
+spectroscopy 13, quantum 5, thermo 19, crc 5, stl 3; Float64 clause
+family fully working; 255 stable packages still at zero clauses; grpc
 still red on v0.63.0 -- numeric match arms stay blocked until the next
 pin; graphql 9/10). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-05 08:20Z (read this first):**
+**STATE AT 2026-10-05 09:00Z (read this first):**
+- **`eco-v0.1.49` PUBLISHED (`37284742449` SUCCESS):** hardening batch
+  #6 -- `xiom.quantum` 0.1.2 (18/18, 5 Z3-proven), `xiom.spectroscopy`
+  0.1.2 (16/16, 13 proven), `xiom.relativity` 0.1.2 (20/20, 3 proven),
+  `xiom.physics` 0.1.2 (22/22, 13 proven); all stable, x2 green on
+  v0.63.0, live-verified. No allowlist delta, no rate window; guard
+  499 allowlisted / 459 ready / 40 grandfathered / 0 failures.
+- **Hardening progress:** batches #1-#6 = **24 packages published**;
+  255 stable packages remain at zero clauses. Batch #7 candidates:
+  `particle`, `collation`, `fixed`, `tracing`, `finance`, `option`,
+  `selection`, `snapshot`, `optimizer`, `refactor`, ... (check each
+  source for expressible clauses before committing to a set).
+- **Contract-recipe note:** guard-pair contracts
+  (`x invalid => result == sentinel`; `x valid => result in range`)
+  plus exact formulas are the fastest Z3-provable family; use them on
+  the physics/science packages first.
+- **Open findings (compiler-gated; do NOT re-bisect):** grpc
+  `Vec[(Str,Str)]` crash/hang (red on v0.63.0), graphql 9/10
+  enum-payload in-situ. Compiler main has UNRELEASED fixes -- C001
+  root cause `4bf8cf1e` and verifier UNKNOWN handling `6f34e1f0` --
+  when the next release lands: re-pin, then re-test grpc/graphql first.
+- **Next:** hardening batch #7, or the parked grpc/graphql pair on the
+  next pin; next tag `eco-v0.1.50`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-05 08:20Z (history):**
 - **`eco-v0.1.48` PUBLISHED (`37281930706` SUCCESS):** hardening batch
   #5 -- `xiom.alerting` 0.1.2 (21/21), `xiom.robotics` 0.1.2 (19/19,
   first Float64 contract expressions), `xiom.thermo` 0.1.2 (24/24,
@@ -887,17 +904,19 @@ pin; graphql 9/10). Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-05 08:20Z STATE block and
+private). Read SESSION.md first -- the 2026-10-05 09:00Z STATE block and
 the "Next-session operating kit" in section 0 are the live handoff
-(v0.63.0 pinned + SHA256-verified; hardening batches #1-#5 published:
+(v0.63.0 pinned + SHA256-verified; hardening batches #1-#6 published:
 `eco-v0.1.44` uuid/csv/bson/ttl, `eco-v0.1.45` crc/cobs/varint/roman,
 `eco-v0.1.46` bmp/rate/lru/tokenizer, `eco-v0.1.47`
-metrics/retry/signal/stl, `eco-v0.1.48` alerting/robotics/thermo/audit
--- all with runtime contracts, thermo 19 Z3-proven; 259 stable packages
-still at zero clauses; registry 459 packages + 2 infra; allowlist 499;
-grpc `Vec[(Str,Str)]` STILL RED on v0.63.0 -- numeric match arms stay
-blocked until a release carries the C001 root-cause fix; graphql 9/10;
-`l10n-unicode` needs a >60s suite timeout and stays incubating).
+metrics/retry/signal/stl, `eco-v0.1.48` alerting/robotics/thermo/audit,
+`eco-v0.1.49` quantum/spectroscopy/relativity/physics -- all with
+runtime contracts, heavy Z3-proven counts on the science set; 255
+stable packages still at zero clauses; registry 459 packages + 2 infra;
+allowlist 499; grpc `Vec[(Str,Str)]` STILL RED on v0.63.0 -- numeric
+match arms stay blocked until a release carries the C001 root-cause
+fix; graphql 9/10; `l10n-unicode` needs a >60s suite timeout and stays
+incubating).
 Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
@@ -922,18 +941,19 @@ Then do, in order:
    and graphql (x2, record), then publish in one batch.
    `l10n-unicode` stays incubating; needs a >60s suite timeout under
    load (42-45s idle).
-2. Hardening track: batches #1-#5 DONE + PUBLISHED (`eco-v0.1.44`
+2. Hardening track: batches #1-#6 DONE + PUBLISHED (`eco-v0.1.44`
    uuid/csv/bson/ttl; `eco-v0.1.45` crc/cobs/varint/roman;
    `eco-v0.1.46` bmp/rate/lru/tokenizer; `eco-v0.1.47`
    metrics/retry/signal/stl; `eco-v0.1.48` alerting/robotics/thermo/
-   audit). Next: batch #6 from the remaining grandfathered stable
-   carriers (259 at zero clauses; see `scripts/contract-coverage.ps1`)
-   per `docs/PROMOTION.md` -- contracts + API review; x2 on the pin;
-   patch bump; record; publish. No ops delta. Claim the batch in
-   SESSION.md before editing (concurrent-lane protocol). Watch the
-   contract runtime-evaluator artifact (COMPILER-FINDINGS 2026-10-05):
-   keep payload-length-vs-parameter-length and tuple-component clauses
-   out of package sources until it is fixed.
+   audit; `eco-v0.1.49` quantum/spectroscopy/relativity/physics). Next:
+   batch #7 from the remaining grandfathered stable carriers (255 at
+   zero clauses; see `scripts/contract-coverage.ps1`) per
+   `docs/PROMOTION.md` -- contracts + API review; x2 on the pin; patch
+   bump; record; publish. No ops delta. Claim the batch in SESSION.md
+   before editing (concurrent-lane protocol). Watch the contract
+   runtime-evaluator artifact (COMPILER-FINDINGS 2026-10-05): keep
+   payload-length-vs-parameter-length and tuple-component clauses out
+   of package sources until it is fixed.
 3. Growth (optional): the remaining grandfathered set is FFI-class
    (skipped) except `kafka` (green suite but FFI stubs; needs a pure-XIOM
    redesign) and `zstd`/`lzfse` (FFI stubs).
