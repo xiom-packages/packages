@@ -7,8 +7,16 @@
 // including `now_ms`; the caller reads the clock and performs the waiting.
 // Free functions only -- XIOM v0.61.x has no methods. All times and durations
 // are integer milliseconds and every division truncates toward zero.
+//
+// Keyed layer: KeyedBuckets / KeyedWindows keep one existing limiter per Str
+// key, created on first use and bounded by rate_keyed_prune /
+// rate_window_keyed_prune. Every admission decision delegates to the
+// primitives below; the keyed code adds lookup, bookkeeping and memory
+// hygiene only.
 
 module xiom.rate
+
+use xiom.string;
 
 /// Token bucket: `capacity` tokens, refilled at `refill_per_sec` tokens per
 /// second from the last settled millisecond (`last_ms`). Fields are
@@ -206,4 +214,280 @@ pub fn rate_window_reset(w: &mut WindowLimit, now_ms: Int)
 {
   w.start_ms = now_ms;
   w.count = 0;
+}
+
+// ============================================================================
+// Keyed layer -- one limiter per string key
+// ============================================================================
+//
+// KeyedBuckets / KeyedWindows own a linear Vec of (key, limiter) entries.
+// Lookups compare keys byte-wise through `str_compare`, so any Str value is a
+// valid key and no hashing is involved. Entries are created on first use with
+// a full limiter and are only removed explicitly or by prune, which bounds
+// memory when keys come from untrusted callers. Every admission decision
+// delegates to the primitives above; the keyed layer adds lookup, bookkeeping
+// and hygiene only.
+
+/// One keyed token bucket: `key` is the caller identity and `bucket` is a
+/// plain TokenBucket owned by value.
+pub type KeyedBucketEntry = {
+  key: Str;
+  bucket: TokenBucket;
+}
+
+/// A set of token buckets keyed by Str sharing one capacity and refill rate.
+/// Fields are implementation details; construct with rate_keyed_new and use
+/// the rate_keyed_* functions.
+pub type KeyedBuckets = {
+  entries: Vec[KeyedBucketEntry];
+  capacity: Int;
+  refill_per_sec: Int;
+}
+
+/// One keyed fixed window: `key` is the caller identity and `window` is a
+/// plain WindowLimit owned by value.
+pub type KeyedWindowEntry = {
+  key: Str;
+  window: WindowLimit;
+}
+
+/// A set of fixed windows keyed by Str sharing one span and limit. Fields are
+/// implementation details; construct with rate_window_keyed_new and use the
+/// rate_window_keyed_* functions.
+pub type KeyedWindows = {
+  entries: Vec[KeyedWindowEntry];
+  window_ms: Int;
+  max_count: Int;
+}
+
+/// Entry index for `key`, or -1 when absent. Linear scan; keys compare
+/// byte-wise through str_compare. Complexity: O(n).
+fn _keyed_find(k: &KeyedBuckets, key: Str) -> Int {
+  var i = 0;
+  while i < k.entries.len() {
+    if string.str_compare(k.entries[i].key, key) == 0 {
+      return i;
+    }
+    i = i + 1;
+  }
+  return -1;
+}
+
+/// Entry index for `key`, or -1 when absent. Complexity: O(n).
+fn _window_keyed_find(w: &KeyedWindows, key: Str) -> Int {
+  var i = 0;
+  while i < w.entries.len() {
+    if string.str_compare(w.entries[i].key, key) == 0 {
+      return i;
+    }
+    i = i + 1;
+  }
+  return -1;
+}
+
+/// Create an empty keyed bucket store with the constructor policy of
+/// rate_bucket_new: `capacity` clamps to >= 1 and `refill_per_sec` to >= 0.
+/// Every bucket created for a new key inherits this capacity and rate and
+/// starts full at the caller's now_ms.
+/// Params: capacity - per-key bucket size in tokens;
+///         refill_per_sec - per-key refill rate in tokens per second.
+/// Returns: a KeyedBuckets with no entries. No error path.
+/// Complexity: O(1) + one empty Vec.
+pub fn rate_keyed_new(capacity: Int, refill_per_sec: Int) -> KeyedBuckets {
+  let template = rate_bucket_new(capacity, refill_per_sec, 0);
+  return KeyedBuckets{
+    entries: Vec[KeyedBucketEntry].new();
+    capacity: template.capacity;
+    refill_per_sec: template.refill_per_sec;
+  };
+}
+
+/// Admit one call for `key` at now_ms. An unknown key is created on first use
+/// as a full bucket at now_ms, so a key's first call always succeeds; known
+/// keys are settled with rate_bucket_refill and then spend one token through
+/// rate_bucket_allow.
+/// Params: k - the keyed store; key - caller identity; now_ms - caller clock.
+/// Returns: true when admitted, false when that key's bucket is empty after
+/// refill. Complexity: O(n) lookup + O(1) amortized insert.
+pub fn rate_keyed_allow(k: &mut KeyedBuckets, key: Str, now_ms: Int) -> Bool {
+  let at = _keyed_find(k, key);
+  if at >= 0 {
+    var b = k.entries[at].bucket;
+    rate_bucket_refill(&mut b, now_ms);
+    let admitted = rate_bucket_allow(&mut b, now_ms, 1);
+    k.entries[at].bucket = b;
+    return admitted;
+  }
+  var fresh = rate_bucket_new(k.capacity, k.refill_per_sec, now_ms);
+  let created = rate_bucket_allow(&mut fresh, now_ms, 1);
+  k.entries.push(KeyedBucketEntry{ key: key; bucket: fresh; });
+  return created;
+}
+
+/// Tokens available to `key` after settling at now_ms. The probe works on a
+/// copy of the stored bucket, so reading tokens never advances that key.
+/// Unknown keys report `capacity` (a bucket created now would be full).
+/// Complexity: O(n) lookup + O(1).
+pub fn rate_keyed_tokens(k: &KeyedBuckets, key: Str, now_ms: Int) -> Int
+  ensures: result >= 0 && result <= k.capacity;
+{
+  let at = _keyed_find(k, key);
+  if at < 0 { return k.capacity; }
+  var b = k.entries[at].bucket;
+  rate_bucket_refill(&mut b, now_ms);
+  return rate_bucket_tokens(&b);
+}
+
+/// Milliseconds until `cost` tokens are affordable for `key`, after settling
+/// the stored bucket at now_ms (the store is not mutated). Unknown keys report
+/// 0 when `cost <= capacity` (a fresh bucket is full) and -1 otherwise (a
+/// bucket created now could never meet the cost); known keys delegate to
+/// rate_bucket_retry_after_ms. Complexity: O(n) lookup + O(1).
+pub fn rate_keyed_retry_after_ms(k: &KeyedBuckets, key: Str, cost: Int, now_ms: Int) -> Int {
+  let at = _keyed_find(k, key);
+  if at < 0 {
+    if cost <= k.capacity { return 0; }
+    return -1;
+  }
+  var b = k.entries[at].bucket;
+  rate_bucket_refill(&mut b, now_ms);
+  return rate_bucket_retry_after_ms(&b, cost);
+}
+
+/// Number of tracked keys. Complexity: O(1).
+pub fn rate_keyed_count(k: &KeyedBuckets) -> Int
+  ensures: result >= 0;
+{
+  return k.entries.len();
+}
+
+/// True when `key` is tracked. Complexity: O(n).
+pub fn rate_keyed_contains(k: &KeyedBuckets, key: Str) -> Bool {
+  return _keyed_find(k, key) >= 0;
+}
+
+/// Remove `key` and its bucket. Returns: true when an entry was removed,
+/// false when the key was not tracked. Complexity: O(n).
+pub fn rate_keyed_remove(k: &mut KeyedBuckets, key: Str) -> Bool {
+  let at = _keyed_find(k, key);
+  if at < 0 { return false; }
+  k.entries.remove(at);
+  return true;
+}
+
+/// Remove every entry whose bucket, after settling at now_ms, is full (no
+/// pending debt): a saturated bucket carries no state a future call could use,
+/// so it is safe to forget. Kept entries are written back settled.
+/// Returns: the number of entries removed, >= 0. Complexity: O(n).
+pub fn rate_keyed_prune(k: &mut KeyedBuckets, now_ms: Int) -> Int
+  ensures: result >= 0;
+{
+  var removed = 0;
+  var i = 0;
+  while i < k.entries.len() {
+    var b = k.entries[i].bucket;
+    rate_bucket_refill(&mut b, now_ms);
+    if b.tokens >= b.capacity {
+      k.entries.remove(i);
+      removed = removed + 1;
+    } else {
+      k.entries[i].bucket = b;
+      i = i + 1;
+    }
+  }
+  return removed;
+}
+
+/// Create an empty keyed window store with the constructor policy of
+/// rate_window_new: `window_ms` clamps to >= 1 and `max_count` to >= 1. Every
+/// window created for a new key inherits this span and limit and starts with
+/// count 0 at the caller's now_ms.
+/// Params: window_ms - per-key span length in milliseconds;
+///         max_count - per-key admissions per span.
+/// Returns: a KeyedWindows with no entries. No error path.
+/// Complexity: O(1) + one empty Vec.
+pub fn rate_window_keyed_new(window_ms: Int, max_count: Int) -> KeyedWindows {
+  let template = rate_window_new(window_ms, max_count, 0);
+  return KeyedWindows{
+    entries: Vec[KeyedWindowEntry].new();
+    window_ms: template.window_ms;
+    max_count: template.max_count;
+  };
+}
+
+/// Admit one call for `key` at now_ms. An unknown key is created on first use
+/// with an empty span at now_ms, so a key's first call always succeeds; known
+/// keys delegate to rate_window_allow (whose boundary rule rebases an elapsed
+/// span). Complexity: O(n) lookup + O(1) amortized insert.
+pub fn rate_window_keyed_allow(w: &mut KeyedWindows, key: Str, now_ms: Int) -> Bool {
+  let at = _window_keyed_find(w, key);
+  if at >= 0 {
+    var win = w.entries[at].window;
+    let admitted = rate_window_allow(&mut win, now_ms);
+    w.entries[at].window = win;
+    return admitted;
+  }
+  var fresh = rate_window_new(w.window_ms, w.max_count, now_ms);
+  let created = rate_window_allow(&mut fresh, now_ms);
+  w.entries.push(KeyedWindowEntry{ key: key; window: fresh; });
+  return created;
+}
+
+/// Admissions counted for `key` in the current span: 0 for an unknown key and
+/// 0 once the stored span has fully elapsed (a call now would rebase it),
+/// otherwise the stored count. Read-only. Complexity: O(n) lookup + O(1).
+pub fn rate_window_keyed_count(w: &KeyedWindows, key: Str, now_ms: Int) -> Int
+  ensures: result >= 0;
+{
+  let at = _window_keyed_find(w, key);
+  if at < 0 { return 0; }
+  let win = w.entries[at].window;
+  if now_ms - win.start_ms >= win.window_ms { return 0; }
+  return rate_window_count(&win);
+}
+
+/// Milliseconds until `key` admits again (0 when an unknown key or a call
+/// would be admitted now); known keys delegate to
+/// rate_window_retry_after_ms. Read-only. Complexity: O(n) lookup + O(1).
+pub fn rate_window_keyed_retry_after_ms(w: &KeyedWindows, key: Str, now_ms: Int) -> Int {
+  let at = _window_keyed_find(w, key);
+  if at < 0 { return 0; }
+  let win = w.entries[at].window;
+  return rate_window_retry_after_ms(&win, now_ms);
+}
+
+/// Number of tracked keys. Complexity: O(1).
+pub fn rate_window_keyed_count_keys(w: &KeyedWindows) -> Int
+  ensures: result >= 0;
+{
+  return w.entries.len();
+}
+
+/// Remove `key` and its window. Returns: true when an entry was removed,
+/// false when the key was not tracked. Complexity: O(n).
+pub fn rate_window_keyed_remove(w: &mut KeyedWindows, key: Str) -> Bool {
+  let at = _window_keyed_find(w, key);
+  if at < 0 { return false; }
+  w.entries.remove(at);
+  return true;
+}
+
+/// Remove every entry whose window span has fully elapsed at now_ms
+/// (`now_ms - start_ms >= window_ms`): such a window is indistinguishable from
+/// a fresh one on the next call. Returns: the number removed, >= 0.
+/// Complexity: O(n).
+pub fn rate_window_keyed_prune(w: &mut KeyedWindows, now_ms: Int) -> Int
+  ensures: result >= 0;
+{
+  var removed = 0;
+  var i = 0;
+  while i < w.entries.len() {
+    if now_ms - w.entries[i].window.start_ms >= w.entries[i].window.window_ms {
+      w.entries.remove(i);
+      removed = removed + 1;
+    } else {
+      i = i + 1;
+    }
+  }
+  return removed;
 }

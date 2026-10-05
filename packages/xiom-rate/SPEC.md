@@ -1,10 +1,10 @@
 # xiom.rate -- Specification
 
 Status: `stable` (published; v0.63.0 fleet sweep green; contract hardening
-in 0.1.2).
+in 0.1.2; keyed limiter layer staged for 0.2.0).
 Module: `xiom.rate` (`src/rate.xi`). Manifest: `package.xi` (name `xiom.rate`,
-version `0.1.2`). Depends on `xiom.std` (no library imports; tests use
-`xiom.test` and `xiom.io`).
+version `0.1.2`). Depends on `xiom.std` (the module imports `xiom.string` for
+byte-wise key comparison; tests use `xiom.test` and `xiom.io`).
 
 ## Scope
 
@@ -14,7 +14,10 @@ A pure deterministic rate-limit policy engine with explicit clocks:
   truncation-carry policy;
 - affordability/retry queries for a requested cost;
 - fixed-window counter with a span rebased when it has fully elapsed;
-- bookkeeping accessors (tokens, capacity, window count).
+- bookkeeping accessors (tokens, capacity, window count);
+- keyed layer (`KeyedBuckets` / `KeyedWindows`): one token bucket or fixed
+  window per `Str` key, created on first use, with lookup, removal and prune
+  (memory hygiene) helpers.
 
 Everything is caller-owned values and explicit inputs; the module performs no
 I/O, no sleeping, and no clock or environment access.
@@ -35,6 +38,10 @@ All functions are free functions in module `xiom.rate`:
 ```xi
 pub type TokenBucket = { capacity: Int; tokens: Int; refill_per_sec: Int; last_ms: Int; }
 pub type WindowLimit = { window_ms: Int; max_count: Int; start_ms: Int; count: Int; }
+pub type KeyedBucketEntry = { key: Str; bucket: TokenBucket; }
+pub type KeyedBuckets = { entries: Vec[KeyedBucketEntry]; capacity: Int; refill_per_sec: Int; }
+pub type KeyedWindowEntry = { key: Str; window: WindowLimit; }
+pub type KeyedWindows = { entries: Vec[KeyedWindowEntry]; window_ms: Int; max_count: Int; }
 
 pub fn rate_bucket_new(capacity: Int, refill_per_sec: Int, now_ms: Int) -> TokenBucket
 pub fn rate_bucket_refill(b: &mut TokenBucket, now_ms: Int)
@@ -47,10 +54,27 @@ pub fn rate_window_allow(w: &mut WindowLimit, now_ms: Int) -> Bool
 pub fn rate_window_count(w: &WindowLimit) -> Int
 pub fn rate_window_retry_after_ms(w: &WindowLimit, now_ms: Int) -> Int
 pub fn rate_window_reset(w: &mut WindowLimit, now_ms: Int)
+
+pub fn rate_keyed_new(capacity: Int, refill_per_sec: Int) -> KeyedBuckets
+pub fn rate_keyed_allow(k: &mut KeyedBuckets, key: Str, now_ms: Int) -> Bool
+pub fn rate_keyed_tokens(k: &KeyedBuckets, key: Str, now_ms: Int) -> Int
+pub fn rate_keyed_retry_after_ms(k: &KeyedBuckets, key: Str, cost: Int, now_ms: Int) -> Int
+pub fn rate_keyed_count(k: &KeyedBuckets) -> Int
+pub fn rate_keyed_contains(k: &KeyedBuckets, key: Str) -> Bool
+pub fn rate_keyed_remove(k: &mut KeyedBuckets, key: Str) -> Bool
+pub fn rate_keyed_prune(k: &mut KeyedBuckets, now_ms: Int) -> Int
+pub fn rate_window_keyed_new(window_ms: Int, max_count: Int) -> KeyedWindows
+pub fn rate_window_keyed_allow(w: &mut KeyedWindows, key: Str, now_ms: Int) -> Bool
+pub fn rate_window_keyed_count(w: &KeyedWindows, key: Str, now_ms: Int) -> Int
+pub fn rate_window_keyed_retry_after_ms(w: &KeyedWindows, key: Str, now_ms: Int) -> Int
+pub fn rate_window_keyed_count_keys(w: &KeyedWindows) -> Int
+pub fn rate_window_keyed_remove(w: &mut KeyedWindows, key: Str) -> Bool
+pub fn rate_window_keyed_prune(w: &mut KeyedWindows, now_ms: Int) -> Int
 ```
 
-Both types are opaque value types: fields are internal implementation details
-and callers use the constructors and accessors.
+Both limiter types and both keyed container types are opaque value types:
+fields are internal implementation details and callers use the constructors
+and accessors.
 
 ## Algorithms
 
@@ -160,6 +184,58 @@ return 0`; otherwise `return start_ms + window_ms - now_ms`.
 - Windows rebase at the first admitted-or-rejected call at or after the
   boundary, not on a timer.
 
+## Keyed layer
+
+`KeyedBuckets` and `KeyedWindows` are linear `Vec` stores of `(key, limiter)`
+entries. Keys are compared byte-wise through `xiom.string.str_compare` (equal
+means `str_compare == 0`), so any `Str` is a valid key, including `Str` values
+read from `Vec` elements; no hashing or ordering is involved. All keyed
+operations are lookup + delegate: the limiter arithmetic (refill truncation,
+carry, saturation, window rebase) stays in the primitives above and is never
+reimplemented.
+
+- `rate_keyed_new(capacity, refill_per_sec)` builds an empty store whose
+  constructor policy is `rate_bucket_new`'s: `capacity` clamps to >= 1,
+  `refill_per_sec` to >= 0. New keys create a full bucket at the caller's
+  `now_ms`.
+- `rate_keyed_allow(k, key, now_ms)` scans for `key`; when absent it creates a
+  full bucket at `now_ms`, otherwise it copies the stored bucket, settles it
+  with `rate_bucket_refill`, spends one token with `rate_bucket_allow(b, 1,
+  now_ms)` and writes the bucket back. A key's first call always succeeds.
+- `rate_keyed_tokens(k, key, now_ms)` settles a **copy** of the stored bucket
+  at `now_ms` and returns `rate_bucket_tokens`; the stored bucket is not
+  advanced. Unknown keys report `capacity` (a bucket created now is full).
+- `rate_keyed_retry_after_ms(k, key, cost, now_ms)` settles a copy and
+  delegates to `rate_bucket_retry_after_ms`. Unknown keys report 0 when
+  `cost <= capacity` (a fresh bucket is full) and -1 otherwise (a bucket
+  created now could never meet the cost). Read-only.
+- `rate_keyed_count` / `rate_keyed_contains` / `rate_keyed_remove` are
+  bookkeeping: the number of tracked keys, membership, and removal.
+- `rate_keyed_prune(k, now_ms)` removes every entry whose bucket is full after
+  settling at `now_ms` (no pending debt); a saturated bucket carries no state
+  a future call could use. Kept entries are written back settled. Returns the
+  number removed. This is the memory-hygiene hook for untrusted keys.
+- `rate_window_keyed_new(window_ms, max_count)` applies `rate_window_new`'s
+  clamping (`window_ms >= 1`, `max_count >= 1`) to every window.
+- `rate_window_keyed_allow(w, key, now_ms)` scans for `key`; when absent it
+  creates an empty window at `now_ms` and admits, otherwise it copies the
+  stored window, delegates to `rate_window_allow` and writes it back. A key's
+  first call always succeeds.
+- `rate_window_keyed_count(w, key, now_ms)` returns 0 for an unknown key and
+  0 when the stored span has fully elapsed at `now_ms` (a call now would
+  rebase it); otherwise the stored count. Read-only.
+- `rate_window_keyed_retry_after_ms(w, key, now_ms)` returns 0 for an unknown
+  key, else delegates to `rate_window_retry_after_ms`. Read-only.
+- `rate_window_keyed_count_keys` / `rate_window_keyed_remove` are the window
+  bookkeeping (there is no separate contains; `count` is 0 for absent keys).
+- `rate_window_keyed_prune(w, now_ms)` removes every entry whose span has
+  fully elapsed (`now_ms - start_ms >= window_ms`), i.e. every window that is
+  indistinguishable from a fresh one on the next call. Returns the number
+  removed.
+
+Determinism is inherited: the same inputs and the same call sequence produce
+the same entry order and outcomes for both stores.
+
 ## Complexity
 
 | Operation | Complexity |
@@ -168,12 +244,22 @@ return 0`; otherwise `return start_ms + window_ms - now_ms`.
 | `rate_bucket_refill`, `rate_bucket_allow`, `rate_bucket_retry_after_ms` | O(1) |
 | `rate_window_new`, `rate_window_allow`, `rate_window_count` | O(1) |
 | `rate_window_retry_after_ms`, `rate_window_reset` | O(1) |
+| `rate_keyed_new`, `rate_keyed_count` | O(1) |
+| `rate_keyed_prune` | O(n) |
+| `rate_keyed_allow`, `rate_keyed_tokens`, `rate_keyed_retry_after_ms` | O(n) lookup + O(1) |
+| `rate_keyed_contains`, `rate_keyed_remove` | O(n) |
+| `rate_window_keyed_new`, `rate_window_keyed_count_keys` | O(1) setup |
+| `rate_window_keyed_allow`, `rate_window_keyed_count`, `rate_window_keyed_retry_after_ms` | O(n) lookup + O(1) |
+| `rate_window_keyed_remove`, `rate_window_keyed_prune` | O(n) |
 
-All operations are constant time; there are no loops and no allocation.
+The keyed layer is linear in the number of tracked keys (`n`), with no
+hashing and no hidden allocation beyond the `Vec` growth on insert; the
+original primitives remain constant time. Key strings are retained by value
+in each entry until removed or pruned.
 
 ## Test plan
 
-`tests/test_conformance.xi` (`module rate_tests`, 19 named checks, hello-style
+`tests/test_conformance.xi` (`module rate_tests`, 30 named checks, hello-style
 `main` that prints `[PASS]`/`[FAIL]` per check, a summary line, and returns the
 failure count):
 
@@ -202,7 +288,27 @@ failure count):
 18. bucket never accrues past capacity (saturation clamps and consumes the
     span);
 19. `allow` refills before it spends (a call exactly at the refill instant
-    succeeds).
+    succeeds);
+20. keyed buckets isolate two keys (alice exhausts, bob still allowed);
+21. a keyed bucket is created on first use (unknown key reads capacity, one
+    entry, no duplicate on the second call);
+22. keyed buckets refill per key over time (carry at 999 ms, one token at
+    1000 ms, independent clock per key);
+23. keyed tokens read is non-mutating (probe at 1000 ms does not advance the
+    stored bucket);
+24. keyed `retry_after` handles unknown keys (0 when `cost <= capacity`, -1
+    above) and known-key costs, without mutating the store;
+25. keyed count/contains/remove track keys and removal re-enables
+    create-on-first-use;
+26. keyed prune removes only full buckets and reports the count (a bucket with
+    debt survives its first prune and is removed once settled full);
+27. keyed window admits `max_count` per key independently and rebases each key
+    at its own boundary;
+28. keyed window unknown keys read count 0 / retry 0 and remove works;
+29. keyed window prune removes entries exactly after their span
+    (`now_ms - start_ms >= window_ms`);
+30. keyed inputs and call sequences stay deterministic (two keyed buckets and
+    two keyed windows compared step by step).
 
 Run from the repository root:
 
@@ -210,7 +316,8 @@ Run from the repository root:
 .\scripts\port.ps1 -Package xiom.rate
 ```
 
-Last verified: compiler 0.61.3, `port: PASS (passed=19 failed=0 exit=0)`.
+Last verified: compiler 0.63.1, `port: PASS (passed=30 failed=0 exit=0)`
+(`XIOM_COMPILER` = xiom.new 0.63.1, `XIOM_STDLIB` = E:\xiom-lang\stdlib).
 
 ## Known limitations
 
@@ -225,12 +332,19 @@ Last verified: compiler 0.61.3, `port: PASS (passed=19 failed=0 exit=0)`.
 - Extreme values wrap with the platform's 64-bit signed arithmetic rather than
   trapping; the module assumes `elapsed * refill_per_sec` and
   `gained * 1000` stay in range for realistic rate-limiter budgets.
+- Keyed stores are linear scans (O(n) per lookup) and grow one entry per
+  distinct key until `rate_keyed_prune` / `rate_window_keyed_prune` or an
+  explicit remove is called; the caller owns that hygiene policy. Entries
+  retain their key strings.
 
 ## Compiler / stdlib notes for v0.61.3
 
-- Free functions only (no methods), no lambdas, no `Vec[StructType]`, no
-  `Vec[fn]` dispatch, no `Str` comparisons: none of the v0.61.3 traps are
-  touched.
+- Free functions only (no methods), no lambdas, no `Vec[fn]` dispatch, no
+  `Str` `==` comparisons: the original primitives avoid all v0.61.3 traps.
+- The keyed layer (0.2.0 candidate) does use `Vec[StructType]` and
+  `xiom.string.str_compare`; it is verified on the xiom.new 0.63.1 compiler
+  (see Last verified), where both lower correctly. On a v0.61.3 toolchain the
+  keyed layer is not expected to compile.
 - Advisory E001 ("cannot borrow as mutable while immutably borrowed") fires
   when a `&local` call is followed by a `&mut local` call on the same local in
   one function. The tests route read-only checks through tiny helpers that
@@ -267,3 +381,22 @@ cannot be expressed as result-field contracts under the current runtime
 evaluator (struct-payload field access) and are pinned by the test plan.
 The refill truncation policy (carry of the unearned remainder) is
 likewise test-pinned; the invariant clauses hold on every mutating path.
+
+### Keyed layer clauses (0.2.0 candidate)
+
+The keyed layer adds runtime-checked clauses only on proven shapes (the
+existing Z3 sweep above predates them and was not rerun in this change; the
+port suite exercises every clause at run time):
+
+| Entry point | Contract |
+|---|---|
+| `rate_keyed_count` | `ensures: result >= 0` |
+| `rate_keyed_prune` | `ensures: result >= 0` |
+| `rate_keyed_tokens` | `ensures: result >= 0 && result <= k.capacity` |
+| `rate_window_keyed_count` | `ensures: result >= 0` |
+| `rate_window_keyed_count_keys` | `ensures: result >= 0` |
+| `rate_window_keyed_prune` | `ensures: result >= 0` |
+
+No payload-length-vs-parameter, tuple, or struct-result clauses are used, and
+`rate_keyed_remove` / `rate_window_keyed_remove` return `Bool`, so they carry
+no numeric clause.

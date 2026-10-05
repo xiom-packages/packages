@@ -1,4 +1,4 @@
-// XIOM -- xiom.rate conformance tests (19 checks)
+// XIOM -- xiom.rate conformance tests (30 checks)
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -27,6 +27,42 @@ fn window_count(w: &mut WindowLimit) -> Int {
 
 fn window_retry(w: &mut WindowLimit, now_ms: Int) -> Int {
   return rate_window_retry_after_ms(w, now_ms);
+}
+
+fn keyed_tokens(k: &mut KeyedBuckets, key: Str, now_ms: Int) -> Int {
+  return rate_keyed_tokens(k, key, now_ms);
+}
+
+fn keyed_retry(k: &mut KeyedBuckets, key: Str, cost: Int, now_ms: Int) -> Int {
+  return rate_keyed_retry_after_ms(k, key, cost, now_ms);
+}
+
+fn keyed_count(k: &mut KeyedBuckets) -> Int {
+  return rate_keyed_count(k);
+}
+
+fn keyed_contains(k: &mut KeyedBuckets, key: Str) -> Bool {
+  return rate_keyed_contains(k, key);
+}
+
+fn keyed_prune(k: &mut KeyedBuckets, now_ms: Int) -> Int {
+  return rate_keyed_prune(k, now_ms);
+}
+
+fn win_keyed_count(w: &mut KeyedWindows, key: Str, now_ms: Int) -> Int {
+  return rate_window_keyed_count(w, key, now_ms);
+}
+
+fn win_keyed_retry(w: &mut KeyedWindows, key: Str, now_ms: Int) -> Int {
+  return rate_window_keyed_retry_after_ms(w, key, now_ms);
+}
+
+fn win_keyed_keys(w: &mut KeyedWindows) -> Int {
+  return rate_window_keyed_count_keys(w);
+}
+
+fn win_keyed_prune(w: &mut KeyedWindows, now_ms: Int) -> Int {
+  return rate_window_keyed_prune(w, now_ms);
 }
 
 fn t1() -> TestResult {
@@ -311,6 +347,194 @@ fn t19() -> TestResult {
   return assert(ok, "allow refills before it spends");
 }
 
+fn t20() -> TestResult {
+  var k = rate_keyed_new(2, 1);
+  var ok = keyed_count(&mut k) == 0;
+  if !rate_keyed_allow(&mut k, "alice", 0) { ok = false; }
+  if !rate_keyed_allow(&mut k, "alice", 0) { ok = false; }
+  if rate_keyed_allow(&mut k, "alice", 0) { ok = false; }
+  if !rate_keyed_allow(&mut k, "bob", 0) { ok = false; }
+  if keyed_tokens(&mut k, "alice", 0) != 0 { ok = false; }
+  if keyed_tokens(&mut k, "bob", 0) != 1 { ok = false; }
+  if keyed_count(&mut k) != 2 { ok = false; }
+  return assert(ok, "keyed buckets isolate two keys");
+}
+
+fn t21() -> TestResult {
+  var k = rate_keyed_new(3, 1);
+  var ok = !keyed_contains(&mut k, "alice");
+  if keyed_tokens(&mut k, "alice", 0) != 3 { ok = false; }
+  if keyed_count(&mut k) != 0 { ok = false; }
+  if !rate_keyed_allow(&mut k, "alice", 0) { ok = false; }
+  if !keyed_contains(&mut k, "alice") { ok = false; }
+  if keyed_count(&mut k) != 1 { ok = false; }
+  if keyed_tokens(&mut k, "alice", 0) != 2 { ok = false; }
+  if !rate_keyed_allow(&mut k, "alice", 0) { ok = false; }
+  if keyed_count(&mut k) != 1 { ok = false; }
+  if keyed_tokens(&mut k, "alice", 0) != 1 { ok = false; }
+  return assert(ok, "keyed bucket is created on first use");
+}
+
+fn t22() -> TestResult {
+  var k = rate_keyed_new(3, 1);
+  var ok = rate_keyed_allow(&mut k, "a", 0);
+  if !rate_keyed_allow(&mut k, "a", 0) { ok = false; }
+  if !rate_keyed_allow(&mut k, "a", 0) { ok = false; }
+  if rate_keyed_allow(&mut k, "a", 0) { ok = false; }
+  if keyed_tokens(&mut k, "a", 999) != 0 { ok = false; }
+  if !rate_keyed_allow(&mut k, "a", 1000) { ok = false; }
+  if keyed_tokens(&mut k, "a", 1000) != 0 { ok = false; }
+  if !rate_keyed_allow(&mut k, "b", 1000) { ok = false; }
+  if keyed_tokens(&mut k, "b", 1000) != 2 { ok = false; }
+  if keyed_tokens(&mut k, "a", 2000) != 1 { ok = false; }
+  return assert(ok, "keyed buckets refill per key over time");
+}
+
+fn t23() -> TestResult {
+  var k = rate_keyed_new(3, 1);
+  var ok = rate_keyed_allow(&mut k, "a", 0);
+  if keyed_tokens(&mut k, "a", 1000) != 3 { ok = false; }
+  if keyed_tokens(&mut k, "a", 0) != 2 { ok = false; }
+  if !rate_keyed_allow(&mut k, "a", 0) { ok = false; }
+  if keyed_tokens(&mut k, "a", 0) != 1 { ok = false; }
+  if keyed_tokens(&mut k, "a", 1000) != 2 { ok = false; }
+  if !rate_keyed_allow(&mut k, "a", 1000) { ok = false; }
+  return assert(ok, "keyed tokens read is non-mutating");
+}
+
+fn t24() -> TestResult {
+  var k = rate_keyed_new(5, 2);
+  var ok = keyed_retry(&mut k, "ghost", 5, 0) == 0;
+  if keyed_retry(&mut k, "ghost", 6, 0) != -1 { ok = false; }
+  if keyed_retry(&mut k, "ghost", 0, 0) != 0 { ok = false; }
+  if keyed_retry(&mut k, "ghost", -3, 0) != 0 { ok = false; }
+  if !rate_keyed_allow(&mut k, "a", 0) { ok = false; }
+  if keyed_retry(&mut k, "a", 4, 0) != 0 { ok = false; }
+  if keyed_retry(&mut k, "a", 5, 0) != 500 { ok = false; }
+  if keyed_retry(&mut k, "a", 5, 250) != 500 { ok = false; }
+  if keyed_retry(&mut k, "a", 5, 500) != 0 { ok = false; }
+  if keyed_tokens(&mut k, "a", 0) != 4 { ok = false; }
+  return assert(ok, "keyed retry_after handles unknown keys and costs");
+}
+
+fn t25() -> TestResult {
+  var k = rate_keyed_new(4, 1);
+  var ok = keyed_count(&mut k) == 0;
+  if keyed_contains(&mut k, "a") { ok = false; }
+  if !rate_keyed_allow(&mut k, "a", 0) { ok = false; }
+  if !rate_keyed_allow(&mut k, "b", 0) { ok = false; }
+  if !rate_keyed_allow(&mut k, "c", 0) { ok = false; }
+  if keyed_count(&mut k) != 3 { ok = false; }
+  if !keyed_contains(&mut k, "b") { ok = false; }
+  if keyed_contains(&mut k, "ghost") { ok = false; }
+  if !rate_keyed_remove(&mut k, "b") { ok = false; }
+  if keyed_count(&mut k) != 2 { ok = false; }
+  if keyed_contains(&mut k, "b") { ok = false; }
+  if rate_keyed_remove(&mut k, "b") { ok = false; }
+  if rate_keyed_remove(&mut k, "ghost") { ok = false; }
+  if keyed_tokens(&mut k, "b", 0) != 4 { ok = false; }
+  if !rate_keyed_allow(&mut k, "b", 0) { ok = false; }
+  if keyed_count(&mut k) != 3 { ok = false; }
+  return assert(ok, "keyed count/contains/remove track keys");
+}
+
+fn t26() -> TestResult {
+  var k = rate_keyed_new(3, 1);
+  var ok = rate_keyed_allow(&mut k, "light", 0);
+  if !rate_keyed_allow(&mut k, "heavy", 0) { ok = false; }
+  if !rate_keyed_allow(&mut k, "heavy", 0) { ok = false; }
+  if !rate_keyed_allow(&mut k, "heavy", 0) { ok = false; }
+  if keyed_prune(&mut k, 0) != 0 { ok = false; }
+  if keyed_count(&mut k) != 2 { ok = false; }
+  if keyed_prune(&mut k, 1000) != 1 { ok = false; }
+  if keyed_count(&mut k) != 1 { ok = false; }
+  if keyed_contains(&mut k, "light") { ok = false; }
+  if !keyed_contains(&mut k, "heavy") { ok = false; }
+  if keyed_tokens(&mut k, "heavy", 1000) != 1 { ok = false; }
+  if keyed_prune(&mut k, 2000) != 0 { ok = false; }
+  if keyed_prune(&mut k, 3000) != 1 { ok = false; }
+  if keyed_count(&mut k) != 0 { ok = false; }
+  return assert(ok, "keyed prune removes only full buckets");
+}
+
+fn t27() -> TestResult {
+  var w = rate_window_keyed_new(1000, 2);
+  var ok = win_keyed_keys(&mut w) == 0;
+  if !rate_window_keyed_allow(&mut w, "alice", 0) { ok = false; }
+  if !rate_window_keyed_allow(&mut w, "alice", 0) { ok = false; }
+  if rate_window_keyed_allow(&mut w, "alice", 0) { ok = false; }
+  if !rate_window_keyed_allow(&mut w, "bob", 0) { ok = false; }
+  if win_keyed_keys(&mut w) != 2 { ok = false; }
+  if win_keyed_count(&mut w, "alice", 0) != 2 { ok = false; }
+  if win_keyed_count(&mut w, "bob", 0) != 1 { ok = false; }
+  if win_keyed_retry(&mut w, "alice", 0) != 1000 { ok = false; }
+  if win_keyed_retry(&mut w, "bob", 0) != 0 { ok = false; }
+  if !rate_window_keyed_allow(&mut w, "alice", 1000) { ok = false; }
+  if win_keyed_count(&mut w, "alice", 1000) != 1 { ok = false; }
+  if win_keyed_count(&mut w, "alice", 2000) != 0 { ok = false; }
+  return assert(ok, "keyed window admits max_count per key independently");
+}
+
+fn t28() -> TestResult {
+  var w = rate_window_keyed_new(500, 3);
+  var ok = win_keyed_count(&mut w, "ghost", 0) == 0;
+  if win_keyed_retry(&mut w, "ghost", 0) != 0 { ok = false; }
+  if !rate_window_keyed_allow(&mut w, "a", 0) { ok = false; }
+  if !rate_window_keyed_allow(&mut w, "b", 0) { ok = false; }
+  if !rate_window_keyed_remove(&mut w, "a") { ok = false; }
+  if rate_window_keyed_remove(&mut w, "a") { ok = false; }
+  if rate_window_keyed_remove(&mut w, "ghost") { ok = false; }
+  if win_keyed_keys(&mut w) != 1 { ok = false; }
+  if win_keyed_count(&mut w, "a", 0) != 0 { ok = false; }
+  if win_keyed_count(&mut w, "b", 0) != 1 { ok = false; }
+  return assert(ok, "keyed window unknown keys and remove");
+}
+
+fn t29() -> TestResult {
+  var w = rate_window_keyed_new(100, 1);
+  var ok = rate_window_keyed_allow(&mut w, "a", 0);
+  if !rate_window_keyed_allow(&mut w, "b", 50) { ok = false; }
+  if win_keyed_prune(&mut w, 99) != 0 { ok = false; }
+  if win_keyed_prune(&mut w, 100) != 1 { ok = false; }
+  if win_keyed_keys(&mut w) != 1 { ok = false; }
+  if win_keyed_count(&mut w, "a", 100) != 0 { ok = false; }
+  if win_keyed_prune(&mut w, 150) != 1 { ok = false; }
+  if win_keyed_keys(&mut w) != 0 { ok = false; }
+  if win_keyed_prune(&mut w, 150) != 0 { ok = false; }
+  return assert(ok, "keyed window prune removes elapsed spans");
+}
+
+fn t30() -> TestResult {
+  var k1 = rate_keyed_new(5, 2);
+  var k2 = rate_keyed_new(5, 2);
+  let a1 = rate_keyed_allow(&mut k1, "a", 0);
+  let a2 = rate_keyed_allow(&mut k2, "a", 0);
+  var ok = a1 == a2;
+  if !a1 { ok = false; }
+  let b1 = rate_keyed_allow(&mut k1, "b", 0);
+  let b2 = rate_keyed_allow(&mut k2, "b", 0);
+  if b1 != b2 { ok = false; }
+  let c1 = rate_keyed_allow(&mut k1, "a", 100);
+  let c2 = rate_keyed_allow(&mut k2, "a", 100);
+  if c1 != c2 { ok = false; }
+  if keyed_tokens(&mut k1, "a", 500) != keyed_tokens(&mut k2, "a", 500) { ok = false; }
+  if keyed_retry(&mut k1, "b", 5, 500) != keyed_retry(&mut k2, "b", 5, 500) { ok = false; }
+  if keyed_prune(&mut k1, 3000) != keyed_prune(&mut k2, 3000) { ok = false; }
+  if keyed_count(&mut k1) != keyed_count(&mut k2) { ok = false; }
+  var w1 = rate_window_keyed_new(400, 1);
+  var w2 = rate_window_keyed_new(400, 1);
+  let x1 = rate_window_keyed_allow(&mut w1, "a", 0);
+  let x2 = rate_window_keyed_allow(&mut w2, "a", 0);
+  if x1 != x2 { ok = false; }
+  if !rate_window_keyed_allow(&mut w1, "a", 400) { ok = false; }
+  if !rate_window_keyed_allow(&mut w2, "a", 400) { ok = false; }
+  if win_keyed_count(&mut w1, "a", 500) != win_keyed_count(&mut w2, "a", 500) { ok = false; }
+  if win_keyed_retry(&mut w1, "a", 500) != win_keyed_retry(&mut w2, "a", 500) { ok = false; }
+  if win_keyed_prune(&mut w1, 800) != win_keyed_prune(&mut w2, 800) { ok = false; }
+  if win_keyed_keys(&mut w1) != win_keyed_keys(&mut w2) { ok = false; }
+  return assert(ok, "keyed inputs and call sequences stay deterministic");
+}
+
 fn main() -> Int {
   io.println("=== xiom.rate conformance tests ===");
   var failed: Int = 0;
@@ -352,6 +576,28 @@ fn main() -> Int {
   if r18.passed { io.println("  [PASS] " + r18.name); } else { io.println("  [FAIL] " + r18.name); failed = failed + 1; }
   let r19 = t19();
   if r19.passed { io.println("  [PASS] " + r19.name); } else { io.println("  [FAIL] " + r19.name); failed = failed + 1; }
+  let r20 = t20();
+  if r20.passed { io.println("  [PASS] " + r20.name); } else { io.println("  [FAIL] " + r20.name); failed = failed + 1; }
+  let r21 = t21();
+  if r21.passed { io.println("  [PASS] " + r21.name); } else { io.println("  [FAIL] " + r21.name); failed = failed + 1; }
+  let r22 = t22();
+  if r22.passed { io.println("  [PASS] " + r22.name); } else { io.println("  [FAIL] " + r22.name); failed = failed + 1; }
+  let r23 = t23();
+  if r23.passed { io.println("  [PASS] " + r23.name); } else { io.println("  [FAIL] " + r23.name); failed = failed + 1; }
+  let r24 = t24();
+  if r24.passed { io.println("  [PASS] " + r24.name); } else { io.println("  [FAIL] " + r24.name); failed = failed + 1; }
+  let r25 = t25();
+  if r25.passed { io.println("  [PASS] " + r25.name); } else { io.println("  [FAIL] " + r25.name); failed = failed + 1; }
+  let r26 = t26();
+  if r26.passed { io.println("  [PASS] " + r26.name); } else { io.println("  [FAIL] " + r26.name); failed = failed + 1; }
+  let r27 = t27();
+  if r27.passed { io.println("  [PASS] " + r27.name); } else { io.println("  [FAIL] " + r27.name); failed = failed + 1; }
+  let r28 = t28();
+  if r28.passed { io.println("  [PASS] " + r28.name); } else { io.println("  [FAIL] " + r28.name); failed = failed + 1; }
+  let r29 = t29();
+  if r29.passed { io.println("  [PASS] " + r29.name); } else { io.println("  [FAIL] " + r29.name); failed = failed + 1; }
+  let r30 = t30();
+  if r30.passed { io.println("  [PASS] " + r30.name); } else { io.println("  [FAIL] " + r30.name); failed = failed + 1; }
   if failed == 0 {
     io.println("xiom.rate: all tests passed");
   } else {
