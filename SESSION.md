@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-05 13:45Z (v0.63.1 release flow COMPLETE; supersedes the 12:20Z block below):**
+**STATE AT 2026-10-05 14:00Z (v0.63.1 release flow + batch #12 COMPLETE):**
 - **Fleet sweep v0.63.1 COMPLETE + RECORDED: 460/460 PASS** (`%TEMP%\kilo\sweep-v0631`;
   process `bgp_10c092df20016ZdpmvoO83ZQax`, run with `XIOM_RUNTIME_DIR`). Isolated timeout
   re-runs green: `l10n-unicode` 24/24 @57.5s, `mongo` 23/23 @32.9s. `record-sweep` wrote
@@ -36,10 +36,18 @@ running). Check `git log -1 --format=%h %s` before starting.
   `*.lib` (`3f21385c`); no strays in the tree. Sweep environment: repo stdlib checkout
   (lane-dirty mid-edit; 1696 namespaces) + the runtime override; record provenance is the
   compiler pin + run id, as usual.
-- **Next:** batch #12 dispatch (six porters: `luhn`, `farbfeld`, `ppm`, `tlv`, `base58`,
-  `diff`; clause pre-plan `%TEMP%\kilo\batch12-clause-plan.md`); 229 zero-clause stable
-  carriers remain; next tag `eco-v0.1.56`. PULSE lane (`E:\xiom-projects\xiom-pulse`) feeds
-  findings into this pipeline.
+- **Batch #12 DONE + PUBLISHED (`eco-v0.1.56`, run `37319876010` SUCCESS):** six-porter
+  fan-out -- `xiom.ppm` (11 clauses, 18/18), `xiom.base58` (11, 18/18), `xiom.luhn`
+  (19, 18/18), `xiom.farbfeld` (30, 17/17), `xiom.diff` (13, 16/16), `xiom.tlv`
+  (20 incl. `@pre` atomicity proven by an inverted control trap, 18/18); all stable
+  bumped to **0.1.2**, x2 confirmed by the coordinator, live-verified `latest=0.1.2`.
+  feat shas: ppm `c483515c`, base58 `4001032a` (+SPEC sync `fe562c80`), luhn `2aa554c6`,
+  farbfeld `9ad7b024`, diff `301c8e7b` (+SPEC sync in-feat), tlv `20d6f112`; wrap
+  `ee2a7cd2`. Index/status/namespaces regenerated; guard 499/459/40/0; no ops delta.
+- **Next:** batch #13 from the remaining **223** zero-clause stable carriers
+  (`scripts/contract-coverage.ps1`); PULSE lane (`E:\xiom-projects\xiom-pulse`) feeds
+  findings into this pipeline. `xiom-verify` writes `xiom_verify_output.smt2` to the CWD
+  (race noted by the tlv porter) -- run it with the package dir as CWD.
 
 **--- Older state below (history) ---**
 
@@ -1100,7 +1108,7 @@ private). Read SESSION.md first -- the 2026-10-05 13:45Z STATE block is
 the live handoff (v0.63.1 pinned + SHA256-verified; repin 514; **fleet
 sweep v0.63.1 COMPLETE + RECORDED 460/460**, `fleet-sweep:v0.63.1`,
 commit `43b79adb`; contract-evaluator fix live in `eco-v0.1.55`;
-hardening batches #1-#11 published across `eco-v0.1.44`-`eco-v0.1.54`;
+hardening batches #1-#12 published across `eco-v0.1.44`-`eco-v0.1.56`;
 229 stable packages at zero clauses; registry 459 packages + 2 infra;
 allowlist 499). Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
@@ -1126,20 +1134,20 @@ above, then:
 & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Hardening batch #12 (FAN-OUT): six candidates selected with a clause
-   pre-plan (`luhn`, `farbfeld`, `ppm`, `tlv`, `base58`, `diff`; plan at
-   `%TEMP%\kilo\batch12-clause-plan.md`). Dispatch one background `task`
-   porter per package (proven clause families only; forbidden shapes:
-   tuple-component, payload-length-vs-parameter, struct-result; port x2;
-   byte-level bracket scan; SPEC + manifest; NO git; NO shared files;
-   explicit-path cleanup only). Integrate each report: coordinator re-runs
-   port x2, `feat` commit exact files, record the REAL main-worktree sha
-   with `-RunBy task:ses_...`. **Version-bump rule:** bump+publish ONLY
-   when source changed; a zero-clause pass is docs-only (no bump, excluded
-   from the publish batch). Wrap + publish the batch (`eco-v0.1.56`; <=20
-   names, no ops delta; stage ALL pending STATUS.json before tagging).
-   Remaining carriers after #12: 229 zero-clause stable
-   (`scripts/contract-coverage.ps1`).
+1. Hardening batch #13 (FAN-OUT): pick the next ~6 smallest zero-clause
+   stable carriers with `scripts/contract-coverage.ps1` (223 remain after
+   batch #12), then reuse the proven workflow: per-function clause
+   pre-plan (families only; forbidden shapes: tuple-component,
+   payload-length-vs-parameter, struct-result), one background `task`
+   porter per package (brief template `%TEMP%\kilo\batch12-porter-brief.md`;
+   port x2; byte-level bracket scan; SPEC + manifest; NO git; NO shared
+   files; explicit-path cleanup only), coordinator integrates each report
+   (re-verify port x2, `feat` commit exact files, record the REAL
+   main-worktree sha with `-RunBy task:ses_...`). **Version-bump rule:**
+   bump+publish ONLY when source changed; a zero-clause pass is docs-only.
+   Wrap + publish the batch (next tag `eco-v0.1.57`; <=20 names, no ops
+   delta). Note: `xiom-verify` writes `xiom_verify_output.smt2` to the
+   CWD -- run it with the package dir as CWD.
 2. Next compiler archive: re-pin per `docs/MAINTENANCE.md` (bump
    COMPILER_VERSION, deploy, repin 514, fleet sweep + record). First
    re-tests: grpc `probe_suite_min`/`probe_direct` (m192-class candidate;
