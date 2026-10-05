@@ -18,7 +18,7 @@ Status legend: **IN-FIX** / **APPROVED-NEW** / **EXTEND** / **MERGE-INTO** / **D
 
 | Proposed | Triage | Notes |
 |---|---|---|
-| `xiom.router` | **DONE (LOCAL)** -- 0.1.0 built + recorded `incubating` (feat `67fdb45d`, 22/22 x2); **publish pending ops allowlist delta** | exact + path-parameter routes, method matching, aggregated 404/405, deterministic first-match; stdlib-only. |
+| `xiom.router` | **DONE (LOCAL)** -- 0.1.0 built + recorded `incubating` (feat `67fdb45d`, 22/22 x2); PULSE consumer-side scope confirmed (2026-10-05, replaces their router) and publish approved from PULSE's side; **owner allowlist delta pending** | exact + path-parameter routes, method matching, aggregated 404/405, deterministic first-match; stdlib-only. |
 | `xiom.session` | **APPROVED-NEW** (ops delta) | server-side store: id gen via `xiom.crypto`, TTL/expiry, memory backend, cookie binding, rotate-on-login; deps `xiom.cookie` + `xiom.crypto`. |
 | `xiom.jwt` v0.2 (HS256) | **DONE + PUBLISHED** (0.2.0, `eco-v0.1.60`, run `37338296689`; task `ses_ef3387e5...`) | HS256 sign/verify on top of existing structural decode: alg allowlist, `exp` required / `nbf` optional, constant-time MAC compare; deps `xiom.crypto` (HMAC links under `XIOM_RUNTIME_DIR`; the 0.64.0 archive should remove that requirement). |
 | `xiom.ratelimit` | **DONE + PUBLISHED** -- keyed layer in `xiom.rate` (0.2.0, `eco-v0.1.61`, run `37340030888`; task `ses_ef329199...`) | `xiom.rate` 0.2.0 adds per-IP/route/user keyed buckets and windows plus prune hooks; the 429 envelope lives in `xiom.http.middleware`. |
@@ -40,4 +40,9 @@ Status legend: **IN-FIX** / **APPROVED-NEW** / **EXTEND** / **MERGE-INTO** / **D
 - New packages go through growth waves: port x2 + trap-14, `incubating` records, publish.
 - Extensions are minors: `jwt` 0.2.0, `metrics` 0.2.0, `rate` 0.2.0.
 - PULSE consumes the registry only; each README gets a 3-line consumer snippet (its explicit ask).
-- PULSE positives to keep: `xiom.cookie` 0.1.1 and `xiom.jwt` 0.1.1 both 8/8 consumer probes.
+- PULSE positives to keep: `xiom.cookie` 0.1.1 and `xiom.jwt` 0.1.1 both 8/8 consumer probes;
+  after the wave: `xiom.jwt` 0.2.0 (HS256) adopted/verified, `xiom.cookie` 0.1.1 verified,
+  `xiom.rate` 0.2.0 recorded for its hardening slice (PULSE relay 2026-10-05).
+- PULSE scope confirmation (2026-10-05): `router` first (replaces their router), then
+  `session` (replaces their store), `static` and `http.middleware` as later slices; the
+  registry allowlist delta remains the owner's call.
