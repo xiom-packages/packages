@@ -3,26 +3,45 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**LIVE CLAIM 2026-10-05 10:40Z (main/debug session):** hardening batch
-#11 FAN-OUT (6 porters) in progress -- runtime contracts + SPEC
-inventories for `option`, `svg`, `avi`, `password`, `pcap`,
-`electronics` (stable/published, zero clauses; patch bumps; x2 on
-v0.63.0; publish in `eco-v0.1.54`). Coordinator serializes commits,
-records (real main shas), wrap and publish. Parallel lanes: do NOT
-edit those six package dirs, `packages/*/STATUS.json`, or create tags.
-
-**Written:** 2026-10-05 (11:30Z), by the main/debug session (v0.63.0
-pin; hardening batches #1-#10 DONE + PUBLISHED across
-`eco-v0.1.44`-`eco-v0.1.53` -- 42 stable packages with runtime
-contracts + SPEC contract inventories; batch #10 was a 6-porter fan-out
-wave with zero incidents; 237 stable packages still at zero clauses;
-grpc still red on v0.63.0 -- numeric match arms stay blocked until the
-next pin; graphql 9/10). Check `git log -1 --format=%h %s` before
-starting.
+**Written:** 2026-10-05 (12:00Z), by the main/debug session (v0.63.0
+pin; hardening batches #1-#11 DONE + PUBLISHED across
+`eco-v0.1.44`-`eco-v0.1.54` -- 46 stable packages with runtime
+contracts + SPEC contract inventories, plus `option` documented
+all-unasserted without a version bump (no expressible clauses); 232
+stable packages still at zero clauses; grpc still red on v0.63.0 --
+numeric match arms stay blocked until the next pin; graphql 9/10).
+Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-05 11:30Z (read this first):**
+**STATE AT 2026-10-05 12:00Z (read this first):**
+- **`eco-v0.1.54` PUBLISHED (`37298550434` SUCCESS):** hardening batch
+  #11 (6-porter fan-out) -- `xiom.electronics` 0.1.2 (24/24),
+  `xiom.password` 0.1.2 (23/23), `xiom.svg` 0.1.2 (20/20), `xiom.avi`
+  0.1.3 (18/18), `xiom.pcap` 0.1.2 (17/17); `xiom.option` documented
+  all-unasserted (16 entry points, no source change, version stays
+  0.1.1, deliberately not republished). All live-verified; guard
+  499 allowlisted / 459 ready / 40 grandfathered / 0 failures; zero
+  incidents.
+- **Version-bump rule honored:** a hardening pass that changes source ->
+  patch bump + publish; a pass that adds no clauses and touches no
+  source -> docs-only, no bump, no publish (batch #11 `option`).
+- **FAN-OUT protocol:** 6 porters/wave; the coordinator keeps
+  single-writer git (commits, records with real main shas, wrap,
+  publish). Batch #12 candidates from the remaining 232: run
+  `scripts/contract-coverage.ps1` for the next-smallest zero-clause
+  stable carriers.
+- **Open findings (compiler-gated; do NOT re-bisect):** grpc
+  `Vec[(Str,Str)]` crash/hang (red on v0.63.0), graphql 9/10
+  enum-payload in-situ. Compiler main has UNRELEASED fixes -- C001
+  root cause `4bf8cf1e` and verifier UNKNOWN handling `6f34e1f0` --
+  when the next release lands: re-pin, then re-test grpc/graphql first.
+- **Next:** hardening batch #12 (fan-out), or the parked grpc/graphql
+  pair on the next pin; next tag `eco-v0.1.55`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-05 11:30Z (history):**
 - **`eco-v0.1.53` PUBLISHED (`37295526611` SUCCESS):** hardening batch
   #10 (6-porter fan-out) -- `xiom.template` 0.1.2 (22/22), `xiom.fuzz`
   0.1.2 (22/22), `xiom.base32` 0.1.2 (18/18), `xiom.packet` 0.1.2
@@ -1020,9 +1039,9 @@ starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-05 11:30Z STATE block and
+private). Read SESSION.md first -- the 2026-10-05 12:00Z STATE block and
 the "Next-session operating kit" in section 0 are the live handoff
-(v0.63.0 pinned + SHA256-verified; hardening batches #1-#10 published:
+(v0.63.0 pinned + SHA256-verified; hardening batches #1-#11 published:
 `eco-v0.1.44` uuid/csv/bson/ttl, `eco-v0.1.45` crc/cobs/varint/roman,
 `eco-v0.1.46` bmp/rate/lru/tokenizer, `eco-v0.1.47`
 metrics/retry/signal/stl, `eco-v0.1.48` alerting/robotics/thermo/audit,
@@ -1030,12 +1049,13 @@ metrics/retry/signal/stl, `eco-v0.1.48` alerting/robotics/thermo/audit,
 particle/fixed/finance/collation, `eco-v0.1.51`
 tracing/selection/snapshot/optimizer, `eco-v0.1.52`
 typography/transaction/refactor/macaddr, `eco-v0.1.53`
-template/fuzz/base32/packet/radix/astronomy -- all with runtime
-contracts; 237 stable packages still at zero clauses; registry 459
-packages + 2 infra; allowlist 499; grpc `Vec[(Str,Str)]` STILL RED on
-v0.63.0 -- numeric match arms stay blocked until a release carries the
-C001 root-cause fix; graphql 9/10; `l10n-unicode` needs a >60s suite
-timeout and stays incubating).
+template/fuzz/base32/packet/radix/astronomy, `eco-v0.1.54`
+electronics/password/svg/avi/pcap (plus `option` docs-only,
+all-unasserted) -- all with runtime contracts; 232 stable packages
+still at zero clauses; registry 459 packages + 2 infra; allowlist 499;
+grpc `Vec[(Str,Str)]` STILL RED on v0.63.0 -- numeric match arms stay
+blocked until a release carries the C001 root-cause fix; graphql 9/10;
+`l10n-unicode` needs a >60s suite timeout and stays incubating).
 Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
@@ -1060,23 +1080,19 @@ Then do, in order:
    and graphql (x2, record), then publish in one batch.
    `l10n-unicode` stays incubating; needs a >60s suite timeout under
    load (42-45s idle).
-2. Hardening track: batches #1-#10 DONE + PUBLISHED (`eco-v0.1.44`
-   uuid/csv/bson/ttl; `eco-v0.1.45` crc/cobs/varint/roman;
-   `eco-v0.1.46` bmp/rate/lru/tokenizer; `eco-v0.1.47`
-   metrics/retry/signal/stl; `eco-v0.1.48` alerting/robotics/thermo/
-   audit; `eco-v0.1.49` quantum/spectroscopy/relativity/physics;
-   `eco-v0.1.50` particle/fixed/finance/collation; `eco-v0.1.51`
-   tracing/selection/snapshot/optimizer; `eco-v0.1.52`
-   typography/transaction/refactor/macaddr; `eco-v0.1.53`
-   template/fuzz/base32/packet/radix/astronomy). Next: batch #11 with
-   the FAN-OUT protocol -- one background `task` porter per package
-   (proven clause patterns; forbidden shapes: tuple-component,
+2. Hardening track: batches #1-#11 DONE + PUBLISHED (`eco-v0.1.44`
+   ... `eco-v0.1.53`; `eco-v0.1.54` electronics/password/svg/avi/pcap;
+   `option` docs-only all-unasserted, no bump/no publish). Next: batch
+   #12 with the FAN-OUT protocol -- one background `task` porter per
+   package (proven clause patterns; forbidden shapes: tuple-component,
    payload-length-vs-parameter, struct-result; port x2; bracket scan;
    verify; SPEC + manifest; NO git; NO shared files; explicit-path
-   cleanup only), coordinator integrates each report (confirm x2,
-   feat commit, record real sha with `-RunBy task:ses_...`) before
-   wrapping + publishing. Remaining grandfathered stable carriers: 237
-   at zero clauses (see `scripts/contract-coverage.ps1`). No ops delta.
+   cleanup only), coordinator integrates each report (confirm x2, feat
+   commit, record real sha with `-RunBy task:ses_...`) before wrapping
+   + publishing. **Version-bump rule:** only bump+publish when source
+   changes; a zero-clause pass is docs-only (no bump, excluded from the
+   publish batch). Remaining grandfathered stable carriers: 232 at zero
+   clauses (see `scripts/contract-coverage.ps1`). No ops delta.
 3. Growth (optional): the remaining grandfathered set is FFI-class
    (skipped) except `kafka` (green suite but FFI stubs; needs a pure-XIOM
    redesign) and `zstd`/`lzfse` (FFI stubs).
