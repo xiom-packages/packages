@@ -1,6 +1,6 @@
 # xiom.tokenizer
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.2` on the XIOM registry.
 > **Scope:** text tokenization into words, sentences, lines, and n-grams.
 > **Deps:** `xiom.std >=0.60.0 <1.0.0` (uses `xiom.string.byte_at`,
 > `xiom.string.str_slice` and `xiom.string.str_trim`). Tests additionally use
