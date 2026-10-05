@@ -14,6 +14,20 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**LIVE UPDATE (2026-10-05 12:50Z, this session -- supersedes the sweep-process lines in the block below):**
+- Fleet sweep restart: the 12:05Z sweep (`bgp_10bf40470001sMCV17QsFyaps3`) was stopped at
+  [123/460]; the replacement persistent process `bgp_10c092df20016ZdpmvoO83ZQax` resumes the
+  same log dir (`%TEMP%\kilo\sweep-v0631`, skips PASS rows, re-runs the 9 FAILs) **with
+  `XIOM_RUNTIME_DIR=E:\xiom-lang\stdlib\runtime` set**.
+- New compiler finding (recorded `5b7547b0`): AOT `find_runtime_c_files()` never scans the
+  install layout `%LOCALAPPDATA%\xiom.new\lib\runtime`, so only `xiom_runtime.c` links; the
+  v0.63.1 stdlib wave's monotonic `Instant` (via the `xiom.test` harness) exposed it as
+  `lld-link: undefined symbol: xiom_async_now_ms` in 9 sweep packages. Repro:
+  `docs/repro/runtime-link/` (row in `docs/COMPILER-FINDINGS.md`). All 9 re-runs under the
+  override are green (aws 27/27).
+- The stale FAIL rows in `summary.tsv` are expected -- `record-sweep` skips them and the
+  re-run appends a fresh PASS row per package.
+
 **STATE AT 2026-10-05 12:20Z (read this first):**
 - **v0.63.1 PINNED (released 11:18Z; fixes-only: contract evaluator,
   verifier SMT, lz4 parity, catalog flush):** official archive
