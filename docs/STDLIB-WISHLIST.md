@@ -154,6 +154,11 @@ Format: `| Date | Need | Why (requesters) | Local workaround today | Status |`
 | 2026-10-03 | Keyed/comparator sort over parallel vectors (produce an index permutation, not a `Vec[T]` sort) | `xml2` (attribute indices), `rocksdb` (LSM ordering), `docker` | insertion sort + order vector | open |
 | 2026-10-03 | Bit-array/Bloom helper + 32-bit mixing hash usable from library modules | `rocksdb` (SST Bloom shape, `_rocksdb_hash32`) | local bit set + FNV-1a | open |
 
+| 2026-10-05 | HTTP-date pair: RFC 1123/7231 formatter from epoch + public IMF-fixdate parser | `xiom.static` (Last-Modified / If-Modified-Since), PULSE ops docs; `strftime` hardcodes `%H/%M/%S` to "00" and lacks `%a/%b`; the parser is private in `cookie.xi` | hand-rolled formatting (see the `xiom.static` brief) | open |
+| 2026-10-05 | Path safety: cross-platform lexical child-containment (`path_within(root, child)`), Windows-aware `is_absolute`, both-separator join | `xiom.static` (traversal guard; `io.join_paths`/`io.is_absolute` are `/`-only), PULSE server file paths | manual `..`/colon/backslash guards | open |
+| 2026-10-05 | `xiom.io.fs` remove parity: `fs_remove` / `fs_remove_dir` | `xiom.static` and `xiom.kv` tests + any package doing file fixtures; `fs` has write/read but no remove (only `io.remove_file`) | `io.remove_file` from the `io` module | open |
+| 2026-10-05 | Concrete stdio `Read` implementation of `read_exact` (streaming reads) | `xiom.static` (large assets), `xiom.kv` (segment scans); `read_exact` is interface-only (`io.xi:481`), `fs_read_range` returns whole buffers with Int32 offsets | chunked `fs_read_range` | open |
+
 ## Compiler-shaped requests routed to `docs/COMPILER-FINDINGS.md`
 
 Items that only the compiler can fix (e.g. `&mut Int` write-through,
