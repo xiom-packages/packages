@@ -51,11 +51,16 @@ fn _p32(out: &mut Vec[UInt8], v: Int) {
   out.push(((v / 16777216) % 256) as UInt8);
 }
 
-pub fn bmp_row_bytes(width: Int, bits: Int) -> Int {
+pub fn bmp_row_bytes(width: Int, bits: Int) -> Int
+  ensures: result % 4 == 0;
+  ensures: width > 0 && bits > 0 => result >= 4;
+{
   return ((width * bits + 31) / 32) * 4;
 }
 
-pub fn bmp_parse_header(data: &Vec[UInt8]) -> Result[BmpInfo, Str] {
+pub fn bmp_parse_header(data: &Vec[UInt8]) -> Result[BmpInfo, Str]
+  ensures: data.len() < 54 => !result.is_ok;
+{
   let n = data.len();
   if (n < 54) { return _err_info("bmp: truncated header"); }
   let m0: Int = (data[0] as Int) & 0xFF;
@@ -89,7 +94,9 @@ pub fn bmp_parse_header(data: &Vec[UInt8]) -> Result[BmpInfo, Str] {
   return _ok_info(info);
 }
 
-pub fn bmp_pixel_rgb(data: &Vec[UInt8], x: Int, y: Int) -> Result[Int, Str] {
+pub fn bmp_pixel_rgb(data: &Vec[UInt8], x: Int, y: Int) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0 && result.value <= 16777215;
+{
   let parsed = bmp_parse_header(data);
   match parsed {
     Ok(info) => {
@@ -112,7 +119,10 @@ pub fn bmp_pixel_rgb(data: &Vec[UInt8], x: Int, y: Int) -> Result[Int, Str] {
   }
 }
 
-pub fn bmp_build_24(rgb: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UInt8], Str] {
+pub fn bmp_build_24(rgb: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UInt8], Str]
+  ensures: result is Ok => result.value.len() >= 54;
+  ensures: result is Err => width <= 0 || height <= 0 || rgb.len() != width * height * 3;
+{
   if (width <= 0) { return _err_bytes("bmp: invalid width"); }
   if (height <= 0) { return _err_bytes("bmp: invalid height"); }
   let need = width * height * 3;

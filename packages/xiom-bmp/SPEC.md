@@ -1,5 +1,7 @@
 # xiom.bmp SPEC
 
+`Version 0.1.2 (stable; published on the XIOM registry).`
+
 ## Scope
 
 Pure-XIOM parsing and building of uncompressed BMP images, targeting 24-bit and 32-bit pixel data with the canonical 54-byte header layout (14-byte `BITMAPFILEHEADER` + 40-byte `BITMAPINFOHEADER`).
@@ -52,3 +54,24 @@ pub fn bmp_build_24(rgb: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UIn
 - No streaming; the whole image is in memory.
 - `bmp_parse_header` does not require the stored file-size field to equal the buffer length (many real-world writers pad it).
 - Integer-only API; no dithering or resampling helpers.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 8 unknown / 8 errors** (loop-heavy
+bodies; no clause is refuted).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `bmp_row_bytes` | `ensures: result % 4 == 0`; `ensures: width > 0 && bits > 0 => result >= 4` | unproven |
+| `bmp_parse_header` | `ensures: data.len() < 54 => !result.is_ok` | unproven |
+| `bmp_pixel_rgb` | `ensures: result is Ok => result.value >= 0 && result.value <= 16777215` | unproven |
+| `bmp_build_24` | `ensures: result is Ok => result.value.len() >= 54`; `ensures: result is Err => width <= 0 || height <= 0 || rgb.len() != width * height * 3` | unproven |
+
+Unasserted/documented: `BmpInfo` field ranges (width in 1..1000000,
+height non-zero with `|height| <= 1000000`, bits in {24, 32}, row_bytes
+a multiple of 4, pixel data within bounds) are enforced by the parse
+guards and pinned by the test plan; struct-payload field contracts are
+out of scope for the current runtime evaluator. `bmp_build_24`'s exact
+output length (`54 + bmp_row_bytes(width, 24) * height`) is likewise
+test-pinned.
