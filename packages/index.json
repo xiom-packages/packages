@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-05T12:52:13Z",
+    "updated":  "2026-10-05T13:16:09Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -314,7 +314,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.astronomy",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Julian dates, days since J2000, moon phase, and zodiac helpers (integer math)",
@@ -324,7 +324,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-astronomy/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-astronomy/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "astronomy.xi",
                                               "package.xi"
@@ -563,7 +563,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.base32",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "RFC 4648 Base32 (standard alphabet) encoding and decoding",
@@ -573,7 +573,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-base32/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-base32/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "base32.xi",
                                               "package.xi"
@@ -2584,7 +2584,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.fuzz",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic byte and string mutation for fuzzing",
@@ -2594,7 +2594,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fuzz/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fuzz/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "fuzz.xi",
                                               "package.xi"
@@ -5327,7 +5327,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.packet",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Length-prefixed packet framing with CRC-32 validation",
@@ -5337,7 +5337,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-packet/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-packet/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "packet.xi",
                                               "package.xi"
@@ -6283,7 +6283,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.radix",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Base 2..36 integer text conversion with canonical lowercase digits and strict overflow detection",
@@ -6293,7 +6293,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-radix/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-radix/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "radix.xi",
                                               "package.xi"
@@ -7655,7 +7655,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.template",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Mustache-style template rendering with strict and lenient key handling",
@@ -7665,7 +7665,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-template/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-template/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "template.xi",
                                               "package.xi"
