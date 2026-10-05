@@ -94,9 +94,9 @@ cannot live in a `Str` (see section 7).
 
 ## 4. SHA-256
 
-`saml_sha256(data)` implements FIPS 180-4 with 32-bit masking and integer
-arithmetic only (no floats); `saml_sha256_str(s)` hashes a `Str`'s UTF-8
-bytes; `saml_sha256_hex(data)` renders 64 lowercase hex characters.
+`saml_sha256(data)` delegates to the stdlib `xiom.crypto.sha256` (FIPS
+180-4); `saml_sha256_str(s)` hashes a `Str`'s UTF-8 bytes;
+`saml_sha256_hex(data)` renders 64 lowercase hex characters.
 Known-answer vectors for `""`, `"abc"`, the 56-byte SHA-256 sample and the
 quick-brown-fox sentence are pinned in the tests.
 

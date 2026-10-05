@@ -39,7 +39,8 @@ SHA-256 digest verification. No FFI, no networking; depends only on
   Hand-rolled in-package (the local stdlib ships base64 too; see SPEC.md
   section 7).
 * **SHA-256** (`saml_sha256`, `saml_sha256_hex`, `saml_sha256_str`):
-  FIPS 180-4, integer-only; used for XML-DSig `DigestValue` checks.
+  FIPS 180-4 via the stdlib `xiom.crypto` module; used for XML-DSig
+  `DigestValue` checks.
 * **xs:dateTime** (`saml_parse_datetime` / `saml_format_datetime`): integer
   epoch-seconds UTC model with `Z` or `(+|-)hh:mm` offsets; fractional seconds
   accepted and truncated; leap-year rules enforced; no floating point.

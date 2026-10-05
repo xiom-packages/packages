@@ -20,9 +20,9 @@
 //     bit checks) and the HTTP-POST binding helpers that carry the base64
 //     payload of a SAML message. The local stdlib ships a base64 module, but
 //     this package hand-rolls its own to stay dependency-free as briefed.
-//   * An in-package SHA-256 (FIPS 180-4) used for XML-DSig DigestValue
-//     checks. Full XML-DSig (exclusive c14n transforms and public-key
-//     signature verification) is a documented non-goal.
+//   * SHA-256 (FIPS 180-4) via the stdlib xiom.crypto module, used for
+//     XML-DSig DigestValue checks. Full XML-DSig (exclusive c14n transforms
+//     and public-key signature verification) is a documented non-goal.
 //   * xs:dateTime parsing/formatting with an Int epoch-seconds model
 //     (integer timestamps only; no floats).
 //   * SAML Assertion and Response parsing: Issuer, Subject/NameID,
@@ -62,6 +62,7 @@ module xiom.saml
 use xiom.string;
 use xiom.string.builder;
 use xiom.string.compare;
+use xiom.crypto;
 
 // --------------------------------------------------
 //  Public constants
@@ -1640,225 +1641,14 @@ pub fn saml_post_binding_decode(payload: Str) -> Result[Str, Str] {
 }
 
 // --------------------------------------------------
-//  SHA-256 (in-package, FIPS 180-4)
+//  SHA-256 (FIPS 180-4, delegated to xiom.crypto)
 // --------------------------------------------------
-
-// 32-bit rotate right; x is masked to 32 bits, n is 1..31.
-fn _rotr32(x: Int, n: Int) -> Int {
-  let a = x & 0xFFFFFFFF;
-  return ((a >> n) | ((a << (32 - n)) & 0xFFFFFFFF)) & 0xFFFFFFFF;
-}
-
-// SHA-256 round constants.
-fn _sha256_k() -> Vec[Int] {
-  var k = Vec[Int].new();
-  k.push(0x428a2f98);
-  k.push(0x71374491);
-  k.push(0xb5c0fbcf);
-  k.push(0xe9b5dba5);
-  k.push(0x3956c25b);
-  k.push(0x59f111f1);
-  k.push(0x923f82a4);
-  k.push(0xab1c5ed5);
-  k.push(0xd807aa98);
-  k.push(0x12835b01);
-  k.push(0x243185be);
-  k.push(0x550c7dc3);
-  k.push(0x72be5d74);
-  k.push(0x80deb1fe);
-  k.push(0x9bdc06a7);
-  k.push(0xc19bf174);
-  k.push(0xe49b69c1);
-  k.push(0xefbe4786);
-  k.push(0x0fc19dc6);
-  k.push(0x240ca1cc);
-  k.push(0x2de92c6f);
-  k.push(0x4a7484aa);
-  k.push(0x5cb0a9dc);
-  k.push(0x76f988da);
-  k.push(0x983e5152);
-  k.push(0xa831c66d);
-  k.push(0xb00327c8);
-  k.push(0xbf597fc7);
-  k.push(0xc6e00bf3);
-  k.push(0xd5a79147);
-  k.push(0x06ca6351);
-  k.push(0x14292967);
-  k.push(0x27b70a85);
-  k.push(0x2e1b2138);
-  k.push(0x4d2c6dfc);
-  k.push(0x53380d13);
-  k.push(0x650a7354);
-  k.push(0x766a0abb);
-  k.push(0x81c2c92e);
-  k.push(0x92722c85);
-  k.push(0xa2bfe8a1);
-  k.push(0xa81a664b);
-  k.push(0xc24b8b70);
-  k.push(0xc76c51a3);
-  k.push(0xd192e819);
-  k.push(0xd6990624);
-  k.push(0xf40e3585);
-  k.push(0x106aa070);
-  k.push(0x19a4c116);
-  k.push(0x1e376c08);
-  k.push(0x2748774c);
-  k.push(0x34b0bcb5);
-  k.push(0x391c0cb3);
-  k.push(0x4ed8aa4a);
-  k.push(0x5b9cca4f);
-  k.push(0x682e6ff3);
-  k.push(0x748f82ee);
-  k.push(0x78a5636f);
-  k.push(0x84c87814);
-  k.push(0x8cc70208);
-  k.push(0x90befffa);
-  k.push(0xa4506ceb);
-  k.push(0xbef9a3f7);
-  k.push(0xc67178f2);
-  return k;
-}
-
-// SHA-256 initial hash state.
-fn _sha256_iv() -> Vec[Int] {
-  var h = Vec[Int].new();
-  h.push(0x6a09e667);
-  h.push(0xbb67ae85);
-  h.push(0x3c6ef372);
-  h.push(0xa54ff53a);
-  h.push(0x510e527f);
-  h.push(0x9b05688c);
-  h.push(0x1f83d9ab);
-  h.push(0x5be0cd19);
-  return h;
-}
-
-// 16 big-endian words of the 64-byte block starting at off.
-fn _sha256_words(data: &Vec[UInt8], off: Int) -> Vec[Int] {
-  var w = Vec[Int].new();
-  var i = 0;
-  while i < 16 {
-    let b0: Int = (data[off + i * 4] as Int) & 0xFF;
-    let b1: Int = (data[off + i * 4 + 1] as Int) & 0xFF;
-    let b2: Int = (data[off + i * 4 + 2] as Int) & 0xFF;
-    let b3: Int = (data[off + i * 4 + 3] as Int) & 0xFF;
-    w.push((b0 * 16777216 + b1 * 65536 + b2 * 256 + b3) & 0xFFFFFFFF);
-    i = i + 1;
-  }
-  return w;
-}
-
-// One SHA-256 compression round over h with one 16-word block.
-fn _sha256_block(h: &mut Vec[Int], block: &Vec[Int]) {
-  var w = Vec[Int].new();
-  var i = 0;
-  while i < 16 {
-    let v: Int = block[i];
-    w.push(v);
-    i = i + 1;
-  }
-  while i < 64 {
-    let w15: Int = w[i - 15];
-    let w2: Int = w[i - 2];
-    let s0 = (_rotr32(w15, 7) ^ _rotr32(w15, 18) ^ (w15 >> 3)) & 0xFFFFFFFF;
-    let s1 = (_rotr32(w2, 17) ^ _rotr32(w2, 19) ^ (w2 >> 10)) & 0xFFFFFFFF;
-    let wv: Int = w[i - 16];
-    let w7: Int = w[i - 7];
-    w.push((wv + s0 + w7 + s1) & 0xFFFFFFFF);
-    i = i + 1;
-  }
-  let k = _sha256_k();
-  let h0: Int = h[0];
-  let h1: Int = h[1];
-  let h2: Int = h[2];
-  let h3: Int = h[3];
-  let h4: Int = h[4];
-  let h5: Int = h[5];
-  let h6: Int = h[6];
-  let h7: Int = h[7];
-  var va = h0;
-  var vb = h1;
-  var vc = h2;
-  var vd = h3;
-  var ve = h4;
-  var vf = h5;
-  var vg = h6;
-  var vh = h7;
-  var t = 0;
-  while t < 64 {
-    let big_s1 = _rotr32(ve, 6) ^ _rotr32(ve, 11) ^ _rotr32(ve, 25);
-    let ch = (ve & vf) ^ ((ve ^ 0xFFFFFFFF) & vg);
-    let kw: Int = k[t];
-    let ww: Int = w[t];
-    let temp1 = (vh + big_s1 + ch + kw + ww) & 0xFFFFFFFF;
-    let big_s0 = _rotr32(va, 2) ^ _rotr32(va, 13) ^ _rotr32(va, 22);
-    let maj = (va & vb) ^ (va & vc) ^ (vb & vc);
-    let temp2 = (big_s0 + maj) & 0xFFFFFFFF;
-    vh = vg;
-    vg = vf;
-    vf = ve;
-    ve = (vd + temp1) & 0xFFFFFFFF;
-    vd = vc;
-    vc = vb;
-    vb = va;
-    va = (temp1 + temp2) & 0xFFFFFFFF;
-    t = t + 1;
-  }
-  h[0] = (h0 + va) & 0xFFFFFFFF;
-  h[1] = (h1 + vb) & 0xFFFFFFFF;
-  h[2] = (h2 + vc) & 0xFFFFFFFF;
-  h[3] = (h3 + vd) & 0xFFFFFFFF;
-  h[4] = (h4 + ve) & 0xFFFFFFFF;
-  h[5] = (h5 + vf) & 0xFFFFFFFF;
-  h[6] = (h6 + vg) & 0xFFFFFFFF;
-  h[7] = (h7 + vh) & 0xFFFFFFFF;
-}
 
 /// SHA-256 digest (32 bytes) of raw bytes.
 /// Params: data - the message. Returns: the 32-byte digest.
 /// Error case: none. Complexity: O(n).
 pub fn saml_sha256(data: &Vec[UInt8]) -> Vec[UInt8] {
-  var h = _sha256_iv();
-  let n = data.len();
-  var pos = 0;
-  while pos + 64 <= n {
-    let blk = _sha256_words(data, pos);
-    _sha256_block(&mut h, &blk);
-    pos = pos + 64;
-  }
-  var tail = Vec[UInt8].new();
-  var i = pos;
-  while i < n {
-    tail.push(data[i]);
-    i = i + 1;
-  }
-  tail.push(128 as UInt8);
-  while tail.len() % 64 != 56 {
-    tail.push(0 as UInt8);
-  }
-  let bits = n * 8;
-  var s = 56;
-  while s >= 0 {
-    tail.push(((bits >> s) & 0xFF) as UInt8);
-    s = s - 8;
-  }
-  var p2 = 0;
-  while p2 < tail.len() {
-    let blk2 = _sha256_words(&tail, p2);
-    _sha256_block(&mut h, &blk2);
-    p2 = p2 + 64;
-  }
-  var out = Vec[UInt8].new();
-  var j = 0;
-  while j < 8 {
-    let word: Int = h[j];
-    out.push(((word >> 24) & 0xFF) as UInt8);
-    out.push(((word >> 16) & 0xFF) as UInt8);
-    out.push(((word >> 8) & 0xFF) as UInt8);
-    out.push((word & 0xFF) as UInt8);
-    j = j + 1;
-  }
-  return out;
+  return crypto.sha256(data);
 }
 
 /// SHA-256 digest of a Str's UTF-8 bytes.
