@@ -9,7 +9,7 @@
 
 package xiom_quantum {
   name: "xiom.quantum";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Introductory quantum formulas: de Broglie, hydrogen levels and transitions, Balmer wavelengths, photon momentum";
   categories: ["science"];
   keywords: ["quantum","hydrogen","de-broglie","photon"];

@@ -55,7 +55,10 @@ pub const QUANTUM_M_E_KG: Float64 = 9.1093837015e-31;
 /// velocity_m_s <= 0 (guard G1).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn quantum_de_broglie_m(mass_kg: Float64, velocity_m_s: Float64) -> Float64 {
+pub fn quantum_de_broglie_m(mass_kg: Float64, velocity_m_s: Float64) -> Float64
+  ensures: (mass_kg <= 0.0 || velocity_m_s <= 0.0) => result == 0.0;
+  ensures: mass_kg > 0.0 && velocity_m_s > 0.0 => result > 0.0;
+{
   if mass_kg <= 0.0 || velocity_m_s <= 0.0 { return 0.0; }
   return QUANTUM_H_J_S / (mass_kg * velocity_m_s);
 }
@@ -65,7 +68,10 @@ pub fn quantum_de_broglie_m(mass_kg: Float64, velocity_m_s: Float64) -> Float64 
 /// Returns: the momentum in kg*m/s; 0.0 when energy_j <= 0 (guard G1).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn quantum_photon_momentum(energy_j: Float64) -> Float64 {
+pub fn quantum_photon_momentum(energy_j: Float64) -> Float64
+  ensures: energy_j <= 0.0 => result == 0.0;
+  ensures: energy_j > 0.0 => result > 0.0;
+{
   if energy_j <= 0.0 { return 0.0; }
   return energy_j / QUANTUM_C_M_PER_S;
 }
@@ -77,7 +83,10 @@ pub fn quantum_photon_momentum(energy_j: Float64) -> Float64 {
 /// when n < 1 (guard G2).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn quantum_hydrogen_energy_ev(n: Int) -> Float64 {
+pub fn quantum_hydrogen_energy_ev(n: Int) -> Float64
+  ensures: n < 1 => result == 0.0;
+  ensures: n >= 1 => result < 0.0;
+{
   if n < 1 { return 0.0; }
   let nf: Float64 = xiom.convert.int_to_float(n);
   return -QUANTUM_E1_EV / (nf * nf);
@@ -94,7 +103,10 @@ pub fn quantum_hydrogen_energy_ev(n: Int) -> Float64 {
 /// quantum number.
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn quantum_hydrogen_transition_ev(n_from: Int, n_to: Int) -> Float64 {
+pub fn quantum_hydrogen_transition_ev(n_from: Int, n_to: Int) -> Float64
+  ensures: (n_to < 1 || n_from <= n_to) => result == 0.0;
+  ensures: n_from > n_to && n_to >= 1 => result > 0.0;
+{
   if n_to < 1 || n_from <= n_to { return 0.0; }
   let nf: Float64 = xiom.convert.int_to_float(n_from);
   let nt: Float64 = xiom.convert.int_to_float(n_to);
@@ -109,7 +121,10 @@ pub fn quantum_hydrogen_transition_ev(n_from: Int, n_to: Int) -> Float64 {
 /// H-alpha.
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn quantum_balmer_wavelength_nm(n: Int) -> Float64 {
+pub fn quantum_balmer_wavelength_nm(n: Int) -> Float64
+  ensures: n <= 2 => result == 0.0;
+  ensures: n > 2 => result > 0.0;
+{
   if n <= 2 { return 0.0; }
   let nf: Float64 = xiom.convert.int_to_float(n);
   return 1e9 / (QUANTUM_R_INF_PER_M * (0.25 - 1.0 / (nf * nf)));
@@ -122,7 +137,10 @@ pub fn quantum_balmer_wavelength_nm(n: Int) -> Float64 {
 /// n = 1 would divide by zero). n = 2 is Lyman-alpha.
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn quantum_lyman_wavelength_nm(n: Int) -> Float64 {
+pub fn quantum_lyman_wavelength_nm(n: Int) -> Float64
+  ensures: n <= 1 => result == 0.0;
+  ensures: n > 1 => result > 0.0;
+{
   if n <= 1 { return 0.0; }
   let nf: Float64 = xiom.convert.int_to_float(n);
   return 1e9 / (QUANTUM_R_INF_PER_M * (1.0 - 1.0 / (nf * nf)));
@@ -133,7 +151,9 @@ pub fn quantum_lyman_wavelength_nm(n: Int) -> Float64 {
 /// Returns: the Compton wavelength in metres.
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn quantum_compton_wavelength_m() -> Float64 {
+pub fn quantum_compton_wavelength_m() -> Float64
+  ensures: result == 2.42631023867e-12;
+{
   return 2.42631023867e-12;
 }
 
@@ -142,6 +162,8 @@ pub fn quantum_compton_wavelength_m() -> Float64 {
 /// Returns: the Bohr radius in metres.
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn quantum_rbohr_m() -> Float64 {
+pub fn quantum_rbohr_m() -> Float64
+  ensures: result == 5.29177210903e-11;
+{
   return 5.29177210903e-11;
 }

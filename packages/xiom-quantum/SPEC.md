@@ -1,6 +1,6 @@
 # xiom.quantum -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.quantum` (`src/quantum.xi`). Pure XIOM, no FFI.
 Dependencies: `xiom.std` only; the module itself imports `xiom.convert` (the
 `Int -> Float64` conversion) and the exported constants below; the tests use
@@ -204,3 +204,25 @@ From the repository root:
 Green iff the tail is
 `port: PASS (passed=18 failed=0 program_exit=0 exit=0)` and the suite prints
 `xiom.quantum: all tests passed`.
+
+## 9. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **5 proven / 0 violated / 7 unknown / 0 errors, rc=0**. The
+proven set includes the two literal-constant identities and simple
+guard clauses; the exact rows are listed in the verifier output.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `quantum_de_broglie_m` | `ensures: (mass_kg <= 0.0 \|\| velocity_m_s <= 0.0) => result == 0.0`; `ensures: mass_kg > 0.0 && velocity_m_s > 0.0 => result > 0.0` | unproven (guard pair) |
+| `quantum_photon_momentum` | `ensures: energy_j <= 0.0 => result == 0.0`; `ensures: energy_j > 0.0 => result > 0.0` | unproven (guard pair) |
+| `quantum_hydrogen_energy_ev` | `ensures: n < 1 => result == 0.0`; `ensures: n >= 1 => result < 0.0` | unproven (guard pair) |
+| `quantum_hydrogen_transition_ev` | `ensures: (n_to < 1 \|\| n_from <= n_to) => result == 0.0`; `ensures: n_from > n_to && n_to >= 1 => result > 0.0` | unproven (guard pair) |
+| `quantum_balmer_wavelength_nm` | `ensures: n <= 2 => result == 0.0`; `ensures: n > 2 => result > 0.0` | unproven (guard pair) |
+| `quantum_lyman_wavelength_nm` | `ensures: n <= 1 => result == 0.0`; `ensures: n > 1 => result > 0.0` | unproven (guard pair) |
+| `quantum_compton_wavelength_m` | `ensures: result == 2.42631023867e-12` | **proven** |
+| `quantum_rbohr_m` | `ensures: result == 5.29177210903e-11` | **proven** |
+
+Unasserted/documented: exact CODATA digit values beyond the two pinned
+literals (the formula constants are exported and pinned in section 5.1)
+and the guard-vs-real-zero indistinguishability note stay test-pinned.
