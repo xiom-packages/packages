@@ -68,6 +68,10 @@ running). Check `git log -1 --format=%h %s` before starting.
   (ops scope confirmation pending before the allowlist delta), extend `jwt` 0.2.0 HS256 /
   `metrics` 0.2.0 labels+Prometheus / `rate` 0.2.0 keyed layer (the proposed `ratelimit`
   merges into `xiom.rate`).
+- **Compiler lane:** `0.64.0` in preparation (R65 + m195; grpc m192 candidate). When the
+  archive is staged: deploy side-by-side, run the targeted matrix (grpc
+  `probe_suite_min`/`probe_direct`; runtime-link + crypto-link probes WITHOUT
+  `XIOM_RUNTIME_DIR`; graphql in-situ), report back, then re-pin + fleet sweep on green.
 - **Next (priority):** PULSE consumer wave -- `xiom.jwt` 0.2.0 HS256 first, then
   `router` + `http.middleware` once ops confirms the new names, then `session` /
   `rate` keyed / `metrics` 0.2 / `static`. Hardening batch #15 resumes after (211 carriers;
@@ -1186,7 +1190,11 @@ Then do, in order:
    CWD -- run it with the package dir as CWD; and never write a contract
    clause that calls a function which wraps the callee (runtime-evaluator
    recursion -> `0xC0000005`, batch #14 ascii85/iban).
-3. Next compiler archive: re-pin per `docs/MAINTENANCE.md` (bump
+3. Next compiler archive **0.64.0** (R65 + m195; m192 candidate for grpc -- compiler lane
+   2026-10-05): first deploy side-by-side and run the targeted matrix (grpc
+   `probe_suite_min`/`probe_direct`; runtime-link `probe_async_now` and both crypto-link
+   probes WITHOUT `XIOM_RUNTIME_DIR`; graphql in-situ 9/10, distinct root cause). On green:
+   re-pin per `docs/MAINTENANCE.md` (bump
    COMPILER_VERSION, deploy, repin 514, fleet sweep + record). First
    re-tests: grpc `probe_suite_min`/`probe_direct` (m192-class candidate;
    repro may run >262k confined entries) and graphql in-situ 9/10 (distinct
