@@ -1,6 +1,7 @@
 module xiom.http.parser
 
 use xiom.string;
+use xiom.http.types;
 
 fn char_code(s: Str, pos: Int) -> Int {
   match xiom.string.char_at(s, pos) {
@@ -86,20 +87,24 @@ fn str_to_int(s: Str) -> Int {
 
 fn parse_request_line(input: Str, pos_ref: &mut Int) -> Result[HttpRequest, HttpParseError] {
   var len: Int = xiom.string.str_len(input);
-  var method_str: Str = parse_until(input, pos_ref, 32);
+  var pos: Int = *pos_ref;
+  var method_str: Str = parse_until(input, pos, 32);
   var method: HttpMethod = method_from_str(method_str);
-  pos_ref = pos_ref + xiom.string.str_len(method_str) + 1;
-  if pos_ref >= len {
-    return Err(HttpParseError{ message: "Unexpected end of request line", position: pos_ref });
+  pos = pos + xiom.string.str_len(method_str) + 1;
+  if pos >= len {
+    *pos_ref = pos;
+    return Err(HttpParseError{ message: "Unexpected end of request line", position: pos });
   }
-  var path_str: Str = parse_until(input, pos_ref, 32);
-  pos_ref = pos_ref + xiom.string.str_len(path_str) + 1;
-  if pos_ref >= len {
-    return Err(HttpParseError{ message: "Unexpected end of request line", position: pos_ref });
+  var path_str: Str = parse_until(input, pos, 32);
+  pos = pos + xiom.string.str_len(path_str) + 1;
+  if pos >= len {
+    *pos_ref = pos;
+    return Err(HttpParseError{ message: "Unexpected end of request line", position: pos });
   }
-  var version_str: Str = parse_until_crlf(input, pos_ref);
-  pos_ref = pos_ref + xiom.string.str_len(version_str) + 2;
+  var version_str: Str = parse_until_crlf(input, pos);
+  pos = pos + xiom.string.str_len(version_str) + 2;
   var version: HttpVersion = version_from_str(version_str);
+  *pos_ref = pos;
   return Ok(HttpRequest{
     method: method,
     path: path_str,
@@ -111,19 +116,23 @@ fn parse_request_line(input: Str, pos_ref: &mut Int) -> Result[HttpRequest, Http
 
 fn parse_response_line(input: Str, pos_ref: &mut Int) -> Result[HttpResponse, HttpParseError] {
   var len: Int = xiom.string.str_len(input);
-  var version_str: Str = parse_until(input, pos_ref, 32);
-  pos_ref = pos_ref + xiom.string.str_len(version_str) + 1;
-  if pos_ref >= len {
-    return Err(HttpParseError{ message: "Unexpected end of response line", position: pos_ref });
+  var pos: Int = *pos_ref;
+  var version_str: Str = parse_until(input, pos, 32);
+  pos = pos + xiom.string.str_len(version_str) + 1;
+  if pos >= len {
+    *pos_ref = pos;
+    return Err(HttpParseError{ message: "Unexpected end of response line", position: pos });
   }
-  var status_str: Str = parse_until(input, pos_ref, 32);
-  pos_ref = pos_ref + xiom.string.str_len(status_str) + 1;
-  if pos_ref >= len {
-    return Err(HttpParseError{ message: "Unexpected end of response line", position: pos_ref });
+  var status_str: Str = parse_until(input, pos, 32);
+  pos = pos + xiom.string.str_len(status_str) + 1;
+  if pos >= len {
+    *pos_ref = pos;
+    return Err(HttpParseError{ message: "Unexpected end of response line", position: pos });
   }
-  var reason_str: Str = parse_until_crlf(input, pos_ref);
-  pos_ref = pos_ref + xiom.string.str_len(reason_str) + 2;
+  var reason_str: Str = parse_until_crlf(input, pos);
+  pos = pos + xiom.string.str_len(reason_str) + 2;
   var status: Int = str_to_int(status_str);
+  *pos_ref = pos;
   return Ok(HttpResponse{
     version: version_from_str(version_str),
     status: status,

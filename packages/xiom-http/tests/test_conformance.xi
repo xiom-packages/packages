@@ -79,6 +79,10 @@ pub fn run_all_tests() -> Result[Unit, Str] {
   results.push(test_url_to_str());
   results.push(test_path_join());
   results.push(test_http_parse_headers());
+  results.push(test_http_parse_headers_malformed());
+  results.push(test_http_parse_request_get());
+  results.push(test_http_parse_request_post_body());
+  results.push(test_http_parse_response_line());
   results.push(test_cookie_new());
   results.push(test_cookie_parse());
   results.push(test_cookie_to_str());
@@ -414,8 +418,80 @@ fn test_http_parse_headers() -> Result[Unit, Str] {
         Some(v) => { try(assert_str_eq(v, "text/html", "parse_headers Content-Type value")); },
         None => { return Err("FAIL: parse_headers Content-Type missing"); },
       };
+      match h.get("Server") {
+        Some(v) => { try(assert_str_eq(v, "xiom", "parse_headers Server value")); },
+        None => { return Err("FAIL: parse_headers Server missing"); },
+      };
     },
     Err(e) => { return Err("FAIL: parse_headers error: " + e.message); },
+  };
+  return Ok(Unit);
+}
+
+fn test_http_parse_headers_malformed() -> Result[Unit, Str] {
+  var input: Str = "BadHeader\r\n\r\n";
+  var res: Result[HttpHeaders, HttpParseError] = http_parse_headers(input);
+  match res {
+    Ok(_) => { return Err("FAIL: parse_headers malformed -- expected Err, got Ok"); },
+    Err(e) => { try(assert_str_eq(e.message, "Invalid header line: no colon found", "parse_headers malformed message")); },
+  };
+  return Ok(Unit);
+}
+
+fn test_http_parse_request_get() -> Result[Unit, Str] {
+  var input: Str = "GET /hello HTTP/1.1\r\nHost: x\r\n\r\n";
+  var res: Result[HttpRequest, HttpParseError] = http_parse_request(input);
+  match res {
+    Ok(req) => {
+      if req.method != GET { return Err("FAIL: parse_request GET method"); };
+      try(assert_str_eq(req.path, "/hello", "parse_request GET path"));
+      if req.version != HTTP11 { return Err("FAIL: parse_request GET version"); };
+      try(assert_int_eq(req.headers.count(), 1, "parse_request GET header count"));
+      match req.headers.get("Host") {
+        Some(v) => { try(assert_str_eq(v, "x", "parse_request GET Host value")); },
+        None => { return Err("FAIL: parse_request GET Host missing"); },
+      };
+      try(assert_int_eq(req.body.len(), 0, "parse_request GET body length"));
+    },
+    Err(e) => { return Err("FAIL: parse_request GET: " + e.message); },
+  };
+  return Ok(Unit);
+}
+
+fn test_http_parse_request_post_body() -> Result[Unit, Str] {
+  var input: Str = "POST /submit HTTP/1.1\r\nHost: x\r\n\r\nhello";
+  var res: Result[HttpRequest, HttpParseError] = http_parse_request(input);
+  match res {
+    Ok(req) => {
+      if req.method != POST { return Err("FAIL: parse_request POST method"); };
+      try(assert_int_eq(req.body.len(), 5, "parse_request POST body length"));
+      try(assert_int_eq(req.body[0], 104, "parse_request POST body[0] 'h'"));
+      try(assert_int_eq(req.body[1], 101, "parse_request POST body[1] 'e'"));
+      try(assert_int_eq(req.body[2], 108, "parse_request POST body[2] 'l'"));
+      try(assert_int_eq(req.body[3], 108, "parse_request POST body[3] 'l'"));
+      try(assert_int_eq(req.body[4], 111, "parse_request POST body[4] 'o'"));
+    },
+    Err(e) => { return Err("FAIL: parse_request POST: " + e.message); },
+  };
+  return Ok(Unit);
+}
+
+fn test_http_parse_response_line() -> Result[Unit, Str] {
+  var input: Str = "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nhi";
+  var res: Result[HttpResponse, HttpParseError] = http_parse_response(input);
+  match res {
+    Ok(resp) => {
+      try(assert_int_eq(resp.status, 200, "parse_response status"));
+      try(assert_str_eq(resp.reason, "OK", "parse_response reason"));
+      match resp.headers.get("Content-Length") {
+        Some(v) => { try(assert_str_eq(v, "2", "parse_response Content-Length value")); },
+        None => { return Err("FAIL: parse_response Content-Length missing"); },
+      };
+      try(assert_int_eq(resp.body.len(), 2, "parse_response body length"));
+      try(assert_int_eq(resp.body[0], 104, "parse_response body[0] 'h'"));
+      try(assert_int_eq(resp.body[1], 105, "parse_response body[1] 'i'"));
+    },
+    Err(e) => { return Err("FAIL: parse_response: " + e.message); },
   };
   return Ok(Unit);
 }
@@ -555,6 +631,10 @@ fn main() -> Int {
   failures = failures + run_case("url to_str", test_url_to_str());
   failures = failures + run_case("path join", test_path_join());
   failures = failures + run_case("parse headers", test_http_parse_headers());
+  failures = failures + run_case("parse headers malformed", test_http_parse_headers_malformed());
+  failures = failures + run_case("parse request GET", test_http_parse_request_get());
+  failures = failures + run_case("parse request POST body", test_http_parse_request_post_body());
+  failures = failures + run_case("parse response line", test_http_parse_response_line());
   failures = failures + run_case("cookie new", test_cookie_new());
   failures = failures + run_case("cookie parse", test_cookie_parse());
   failures = failures + run_case("cookie to_str", test_cookie_to_str());
@@ -563,6 +643,6 @@ fn main() -> Int {
   failures = failures + run_case("server listen error", test_server_listen_error());
   failures = failures + run_case("server handle error", test_server_handle_error());
   failures = failures + run_case("server close", test_server_close());
-  xiom.io.println("xiom.http: " + xiom.convert.int_to_string(36 - failures) + "/36 passed");
+  xiom.io.println("xiom.http: " + xiom.convert.int_to_string(40 - failures) + "/40 passed");
   return failures;
 }

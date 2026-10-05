@@ -1,6 +1,6 @@
 package xiom_http {
   name: "xiom.http";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "XIOM HTTP Library -- types, parsing, client, and server";
   categories: ["web", "network"];
   keywords: ["http", "client", "server", "parsing", "rest"];
