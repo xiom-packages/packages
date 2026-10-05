@@ -10,7 +10,7 @@
 
 package xiom_dotenv {
   name: "xiom.dotenv";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "dotenv (.env) parsing and emitting with quoting and comment rules";
   categories: ["data", "tooling"];
   keywords: ["dotenv", "config", "env", "parser"];

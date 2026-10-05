@@ -242,7 +242,9 @@ fn _push_quoted(out: &mut Vec[UInt8], v: Str) {
 /// wins and keeps the first position.
 /// Complexity: O(total input length * key count) because duplicate detection
 /// scans the key list per line; O(total input length) with a hash index.
-pub fn dotenv_parse(text: Str) -> Result[EnvFile, Str] {
+pub fn dotenv_parse(text: Str) -> Result[EnvFile, Str]
+  ensures: text.len() == 0 => result is Ok;
+{
   var env = EnvFile{ keys: Vec[Str].new(); values: Vec[Str].new(); };
   let len = text.len();
   var line_start = 0;
@@ -369,7 +371,10 @@ pub fn dotenv_parse(text: Str) -> Result[EnvFile, Str] {
 
 /// Value of `key`; None when the key is absent. Keys are byte-exact and
 /// case-sensitive.
-pub fn dotenv_get(e: &EnvFile, key: Str) -> Option[Str] {
+pub fn dotenv_get(e: &EnvFile, key: Str) -> Option[Str]
+  ensures: dotenv_has(e, key) => result is Some;
+  ensures: result is None => !dotenv_has(e, key);
+{
   let i = _key_index(e, key);
   if i < 0 {
     return None;
@@ -379,12 +384,18 @@ pub fn dotenv_get(e: &EnvFile, key: Str) -> Option[Str] {
 }
 
 /// True when the file contains `key`.
-pub fn dotenv_has(e: &EnvFile, key: Str) -> Bool {
+pub fn dotenv_has(e: &EnvFile, key: Str) -> Bool
+  ensures: dotenv_len(e) == 0 => !result;
+  ensures: result => dotenv_len(e) > 0;
+{
   return _key_index(e, key) >= 0;
 }
 
 /// Keys in first-occurrence order (a fresh copy).
-pub fn dotenv_keys(e: &EnvFile) -> Vec[Str] {
+pub fn dotenv_keys(e: &EnvFile) -> Vec[Str]
+  ensures: result.len() == e.keys.len();
+  ensures: dotenv_len(e) == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < e.keys.len() {
@@ -396,7 +407,10 @@ pub fn dotenv_keys(e: &EnvFile) -> Vec[Str] {
 }
 
 /// Number of distinct keys in the file.
-pub fn dotenv_len(e: &EnvFile) -> Int {
+pub fn dotenv_len(e: &EnvFile) -> Int
+  ensures: result == e.keys.len();
+  ensures: result >= 0;
+{
   return e.keys.len();
 }
 
@@ -408,7 +422,10 @@ pub fn dotenv_len(e: &EnvFile) -> Int {
 /// re-applied. Every emitted document parses back to the same keys/values.
 /// Error case: none.
 /// Complexity: O(total output length).
-pub fn dotenv_emit(e: &EnvFile) -> Str {
+pub fn dotenv_emit(e: &EnvFile) -> Str
+  ensures: result.len() >= e.keys.len();
+  ensures: e.keys.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   var i = 0;
   while i < e.keys.len() {

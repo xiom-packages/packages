@@ -186,3 +186,42 @@ idioms as `xiom.csv`/`xiom.toml` (byte-wise scanning with
 - No quoted/dotted keys, no key escaping, no `KEY` without `=`.
 - No file I/O, cascade/chained files or `process.env` integration.
 - Errors carry no line/column position (the offending line text is included).
+
+## 9. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts added in the batch #13 hardening pass (compiler
+v0.63.1); two consecutive timed port runs ended
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` (16.8 s, 13.9 s),
+with no clause trapped and none dropped. 11 clauses across the six public
+entry points (1/2/2/2/2/2).
+
+A `xiom-verify --check` pass (Z3 bundled with the 0.63.1 toolchain) reported
+**0 proven / 2 violated / 13 unknown / 2 errors**; the two `VIOLATED` entries
+are emitter artifacts for `dotenv_get` (the generated SMT references the
+private helper `_key_index` as an unknown constant, which the tool itself
+labels "not a proof failure of the code under test"), so no clause is
+machine-proven. All 11 clauses are therefore enforced by the runtime
+evaluator; the 18-check conformance suite exercises every entry point on both
+the happy and rejection paths with the clauses active.
+
+Class: **pure scalar** = the Bool/Int-scalar shapes the Z3 family targets;
+**runtime** = `Result`/`Option` tag tests or `Vec`/`Str` result lengths.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `dotenv_parse` | `ensures: text.len() == 0 => result is Ok` | runtime |
+| `dotenv_get` | `ensures: dotenv_has(e, key) => result is Some`; `ensures: result is None => !dotenv_has(e, key)` | runtime |
+| `dotenv_has` | `ensures: dotenv_len(e) == 0 => !result`; `ensures: result => dotenv_len(e) > 0` | pure scalar |
+| `dotenv_keys` | `ensures: result.len() == e.keys.len()`; `ensures: dotenv_len(e) == 0 => result.len() == 0` | runtime |
+| `dotenv_len` | `ensures: result == e.keys.len()`; `ensures: result >= 0` | pure scalar |
+| `dotenv_emit` | `ensures: result.len() >= e.keys.len()`; `ensures: e.keys.len() == 0 => result.len() == 0` | runtime |
+
+The `dotenv_get` guard pair is the lookup/has consistency statement (`Some`
+exactly when `dotenv_has`) and the only clauses that call another public
+function inside a clause. The `dotenv_keys`/`dotenv_emit` clauses pin the
+count relation at the copy and serialization boundaries. Unasserted: the
+decode/emit round-trip and the exact `"dotenv: ..."` error strings (they need
+`Str` content equality, BUG 17, or forbidden v0.63.1 payload shapes); they
+stay pinned by the 18-check test plan (section 6). No clause uses a
+tuple-component access, a `Result` payload length vs a parameter length, a
+struct-result payload, or `==` on a `Str` value.
