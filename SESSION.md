@@ -68,6 +68,11 @@ running). Check `git log -1 --format=%h %s` before starting.
   (ops scope confirmation pending before the allowlist delta), extend `jwt` 0.2.0 HS256 /
   `metrics` 0.2.0 labels+Prometheus / `rate` 0.2.0 keyed layer (the proposed `ratelimit`
   merges into `xiom.rate`).
+- **`xiom.jwt` 0.2.0 HS256 DONE + PUBLISHED (`eco-v0.1.60`, run `37338296689` SUCCESS):**
+  `jwt_sign_hs256` / `jwt_signature_valid_hs256` / `jwt_verify_hs256` (HS256-only allowlist,
+  constant-time MAC, `exp` required, `nbf` optional, caller clock, payload returned
+  post-verify); jwt.io KAT byte-exact + tamper/alg-confusion/binary-secret/exp-nbf tests;
+  suite 30/30 x2; feat `70c17525`. PULSE Step-2 auth unblocked.
 - **Compiler lane:** `0.64.0` in preparation (R65 + m195; grpc m192 candidate). When the
   archive is staged: deploy side-by-side, run the targeted matrix (grpc
   `probe_suite_min`/`probe_direct`; runtime-link + crypto-link probes WITHOUT
@@ -1138,8 +1143,8 @@ private). Read SESSION.md first -- the 2026-10-05 15:50Z STATE block is
 the live handoff (v0.63.1 pinned + SHA256-verified; repin 514; **fleet
 sweep v0.63.1 COMPLETE + RECORDED 460/460**, `fleet-sweep:v0.63.1`,
 commit `43b79adb`; contract-evaluator fix live in `eco-v0.1.55`;
-hardening batches #1-#14 published across `eco-v0.1.44`-`eco-v0.1.59` (incl. the
-`xiom.http` 0.1.1 PULSE hotfix);
+hardening batches #1-#14 published across `eco-v0.1.44`-`eco-v0.1.60` (incl. the
+`xiom.http` 0.1.1 and `xiom.jwt` 0.2.0 PULSE releases);
 211 stable packages at zero clauses; registry 459 packages + 2 infra;
 allowlist 499). Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
@@ -1165,9 +1170,9 @@ above, then:
 & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. PULSE consumer wave (intake `docs/PACKAGE-WISHLIST.md`): `xiom.http` 0.1.1 hotfix is
-   DONE + PUBLISHED (`eco-v0.1.59`). Next: `xiom.jwt` 0.2.0 (HS256 sign/verify, alg
-   allowlist, exp/nbf, constant-time MAC), then `xiom.router` + `xiom.http.middleware` --
+1. PULSE consumer wave (intake `docs/PACKAGE-WISHLIST.md`): `xiom.http` 0.1.1
+   (`eco-v0.1.59`) and `xiom.jwt` 0.2.0 HS256 (`eco-v0.1.60`) are DONE + PUBLISHED.
+   Next: `xiom.router` + `xiom.http.middleware` --
    but the four new names (`router`, `session`, `static`, `http.middleware`) need the ops
    scope enumeration confirmed BEFORE the allowlist delta. Then `xiom.session`,
    `xiom.rate` 0.2.0 keyed layer, `xiom.metrics` 0.2.0 labels + Prometheus exposition,
