@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  20,
                   "failed":  0,
-                  "run_by":  "main-lane:hardening",
-                  "commit":  "f138d729",
-                  "checked":  "2026-10-05T06:27:59Z"
+                  "run_by":  "main-lane:v0.63.1-restore",
+                  "commit":  "4fa22c65",
+                  "checked":  "2026-10-05T12:04:51Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"
