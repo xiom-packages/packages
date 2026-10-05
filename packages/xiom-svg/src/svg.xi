@@ -161,7 +161,9 @@ pub fn svg_add(d: &mut SvgDoc, element: Str) {
 /// Returns: the number of elements appended so far.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn svg_element_count(d: &SvgDoc) -> Int {
+pub fn svg_element_count(d: &SvgDoc) -> Int
+  ensures: result >= 0;
+{
   return d.elements.len();
 }
 
@@ -175,7 +177,9 @@ pub fn svg_element_count(d: &SvgDoc) -> Int {
 /// Returns: `<rect x=".." y=".." width=".." height=".." fill=".."/>`.
 /// Error case: none. Negative geometry is emitted as-is.
 /// Complexity: O(digits).
-pub fn svg_rect(x: Int, y: Int, w: Int, h: Int, fill: Str) -> Str {
+pub fn svg_rect(x: Int, y: Int, w: Int, h: Int, fill: Str) -> Str
+  ensures: result.len() >= 40;
+{
   return "<rect" + _attr_int("x", x) + _attr_int("y", y) + _attr_int("width", w) + _attr_int("height", h) + _attr_raw_opt("fill", fill) + "/>";
 }
 
@@ -185,7 +189,9 @@ pub fn svg_rect(x: Int, y: Int, w: Int, h: Int, fill: Str) -> Str {
 /// Returns: `<circle cx=".." cy=".." r=".." fill=".."/>`.
 /// Error case: none. Negative geometry is emitted as-is.
 /// Complexity: O(digits).
-pub fn svg_circle(cx: Int, cy: Int, r: Int, fill: Str) -> Str {
+pub fn svg_circle(cx: Int, cy: Int, r: Int, fill: Str) -> Str
+  ensures: result.len() >= 29;
+{
   return "<circle" + _attr_int("cx", cx) + _attr_int("cy", cy) + _attr_int("r", r) + _attr_raw_opt("fill", fill) + "/>";
 }
 
@@ -195,7 +201,9 @@ pub fn svg_circle(cx: Int, cy: Int, r: Int, fill: Str) -> Str {
 /// Returns: `<ellipse cx=".." cy=".." rx=".." ry=".." fill=".."/>`.
 /// Error case: none. Negative geometry is emitted as-is.
 /// Complexity: O(digits).
-pub fn svg_ellipse(cx: Int, cy: Int, rx: Int, ry: Int, fill: Str) -> Str {
+pub fn svg_ellipse(cx: Int, cy: Int, rx: Int, ry: Int, fill: Str) -> Str
+  ensures: result.len() >= 38;
+{
   return "<ellipse" + _attr_int("cx", cx) + _attr_int("cy", cy) + _attr_int("rx", rx) + _attr_int("ry", ry) + _attr_raw_opt("fill", fill) + "/>";
 }
 
@@ -206,7 +214,9 @@ pub fn svg_ellipse(cx: Int, cy: Int, rx: Int, ry: Int, fill: Str) -> Str {
 /// Returns: `<line x1=".." y1=".." x2=".." y2=".." stroke=".." stroke-width=".."/>`.
 /// Error case: none. Negative coordinates and widths are emitted as-is.
 /// Complexity: O(digits).
-pub fn svg_line(x1: Int, y1: Int, x2: Int, y2: Int, stroke: Str, stroke_width: Int) -> Str {
+pub fn svg_line(x1: Int, y1: Int, x2: Int, y2: Int, stroke: Str, stroke_width: Int) -> Str
+  ensures: result.len() >= 62;
+{
   return "<line" + _attr_int("x1", x1) + _attr_int("y1", y1) + _attr_int("x2", x2) + _attr_int("y2", y2) + _attr_esc("stroke", stroke) + _attr_int("stroke-width", stroke_width) + "/>";
 }
 
@@ -218,7 +228,9 @@ pub fn svg_line(x1: Int, y1: Int, x2: Int, y2: Int, stroke: Str, stroke_width: I
 /// Error case: none. Negative coordinates and non-positive font sizes are
 /// emitted as-is.
 /// Complexity: O(digits + text bytes).
-pub fn svg_text(x: Int, y: Int, text: Str, font_size: Int, fill: Str) -> Str {
+pub fn svg_text(x: Int, y: Int, text: Str, font_size: Int, fill: Str) -> Str
+  ensures: result.len() >= 39;
+{
   return "<text" + _attr_int("x", x) + _attr_int("y", y) + _attr_int("font-size", font_size) + _attr_raw_opt("fill", fill) + ">" + svg_escape(text) + "</text>";
 }
 
@@ -230,7 +242,9 @@ pub fn svg_text(x: Int, y: Int, text: Str, font_size: Int, fill: Str) -> Str {
 /// empty, in that order).
 /// Error case: none. An empty d is still emitted as d="".
 /// Complexity: O(digits + d/stroke bytes).
-pub fn svg_path(d: Str, fill: Str, stroke: Str) -> Str {
+pub fn svg_path(d: Str, fill: Str, stroke: Str) -> Str
+  ensures: result.len() >= 12;
+{
   return "<path" + _attr_esc("d", d) + _attr_raw_opt("fill", fill) + _attr_esc_opt("stroke", stroke) + "/>";
 }
 
@@ -245,7 +259,10 @@ pub fn svg_path(d: Str, fill: Str, stroke: Str) -> Str {
 /// byte-exact.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn svg_escape(s: Str) -> Str {
+pub fn svg_escape(s: Str) -> Str
+  ensures: result.len() >= s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   var i = 0;
   while i < s.len() {
@@ -281,7 +298,9 @@ pub fn svg_escape(s: Str) -> Str {
 /// line followed by the footer line.
 /// Error case: none.
 /// Complexity: O(total element bytes).
-pub fn svg_render(d: &SvgDoc) -> Str {
+pub fn svg_render(d: &SvgDoc) -> Str
+  ensures: result.len() >= 68;
+{
   var out = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"" + _int_to_str(d.width) + "\" height=\"" + _int_to_str(d.height) + "\">";
   var i = 0;
   while i < d.elements.len() {

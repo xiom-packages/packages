@@ -1,6 +1,6 @@
 # xiom.svg -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (incubating, not published).
 Module: `xiom.svg` (`src/svg.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -207,3 +207,49 @@ pointer comparison). Assertions are exact-string; none is weakened.
 - Byte constants compared against `string.byte_at` output are all `< 128`.
 - The suite pins all deterministic output byte-for-byte; the only non-ASCII
   data is a UTF-8 pass-through check in t18.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 19 unknown / 1 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `svg_element_count` | `ensures: result >= 0` | unproven |
+| `svg_rect` | `ensures: result.len() >= 40` | unproven |
+| `svg_circle` | `ensures: result.len() >= 29` | unproven |
+| `svg_ellipse` | `ensures: result.len() >= 38` | unproven |
+| `svg_line` | `ensures: result.len() >= 62` | unproven |
+| `svg_text` | `ensures: result.len() >= 39` | unproven |
+| `svg_path` | `ensures: result.len() >= 12` | unproven |
+| `svg_escape` | `ensures: result.len() >= s.len()`; `ensures: s.len() == 0 => result.len() == 0` | unproven |
+| `svg_render` | `ensures: result.len() >= 68` | unproven |
+
+10 clauses across nine entry points (1 each, 2 on `svg_escape`). The
+`result.len()` lower bounds equal each helper's structural minimum: every
+mandatory attribute and both tags are present (e.g. rect >= 40 counts
+`<rect` + the four mandatory `_attr_int` attrs at one digit + `/>`; path >= 12
+is `<path d=""/>`; render >= 68 is the header at `width="0" height="0"` plus
+`\n</svg>`). Every clause is enforced by the v0.63.0 runtime evaluator: two
+consecutive `scripts/port.ps1 -Package xiom.svg` runs finished
+`passed=20 failed=0 program_exit=0 exit=0` with the clauses active, and the
+suite exercises all default, omission, negative and large-Int paths. In the
+Z3 pass the eight `Str`-length clauses were skipped by the emitter
+(`contract axiom skipped: operator Ge on non-numeric operands (sorts
+None/Some("Int"))`; `svg_escape`'s pair reports `None/None`), leaving 0
+proven; the remainder of the 19 unknown entries are body-analysis artifacts
+(`function body incomplete`, `loop without invariant`). The 1 error is the
+checker's Z3 invocation/parse artifact (`Could not parse z3 output`), not a
+violation of the module: the checker reports **0 violated** on both runs.
+
+Unasserted/documented: `svg_new` and `svg_add` carry no clauses. `svg_new`'s
+postcondition (`width <= 0 => result.width == 1`, positives kept,
+`elements.len() == 0`) would require struct-result field access, and
+`svg_add` returns nothing, so both are inexpressible under the v0.63.0
+runtime-evaluator artifact list from the hardening brief (tuple-component
+access, `Result[Vec[...]]` payload lengths, struct-result fields). Exact
+element formats and attribute order (section 4), empty-attribute omission,
+the five-entity escape table (section 5), render layout, and byte-exact
+determinism stay pinned by the 20-check test plan (section 7) and the
+byte-level mixed-bracket scan (0 hits), not by runtime clauses.
+
