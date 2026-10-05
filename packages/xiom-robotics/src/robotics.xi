@@ -70,7 +70,9 @@ pub fn robot_fk2_at(base_x: Float64, base_y: Float64, l1_m: Float64, l2_m: Float
 /// cosines distance; 0.0 when both links are zero.
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn robot_end_distance(l1_m: Float64, l2_m: Float64, theta2_rad: Float64) -> Float64 {
+pub fn robot_end_distance(l1_m: Float64, l2_m: Float64, theta2_rad: Float64) -> Float64
+  ensures: result >= 0.0;
+{
   let a1: Float64 = xiom.math.abs_float(l1_m);
   let a2: Float64 = xiom.math.abs_float(l2_m);
   return xiom.math.sqrt(a1 * a1 + a2 * a2 + 2.0 * a1 * a2 * xiom.math.cos(theta2_rad));
@@ -84,7 +86,9 @@ pub fn robot_end_distance(l1_m: Float64, l2_m: Float64, theta2_rad: Float64) -> 
 /// G2: negative lengths and radii are rejected rather than folded).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn robot_reach_ok(l1_m: Float64, l2_m: Float64, r_m: Float64) -> Bool {
+pub fn robot_reach_ok(l1_m: Float64, l2_m: Float64, r_m: Float64) -> Bool
+  ensures: result => l1_m >= 0.0 && l2_m >= 0.0 && r_m >= 0.0;
+{
   if l1_m < 0.0 { return false; }
   if l2_m < 0.0 { return false; }
   if r_m < 0.0 { return false; }
@@ -103,7 +107,9 @@ pub fn robot_reach_ok(l1_m: Float64, l2_m: Float64, r_m: Float64) -> Bool {
 /// so the cost grows with the magnitude of the input.
 /// Errors: none for finite inputs; a non-finite input would not terminate.
 /// Complexity: O(|a| / (2*pi)) time, O(1) memory.
-pub fn robot_clamp_angle_rad(a: Float64) -> Float64 {
+pub fn robot_clamp_angle_rad(a: Float64) -> Float64
+  ensures: result >= -xiom.math.PI && result <= xiom.math.PI;
+{
   let two_pi: Float64 = 2.0 * xiom.math.PI;
   var r: Float64 = a;
   while r > xiom.math.PI {
@@ -123,7 +129,9 @@ pub fn robot_clamp_angle_rad(a: Float64) -> Float64 {
 /// toward zero (so (-3 + 0) / 2 = -1). Wheel base is not needed.
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn robot_diff_drive_v_mm_s(v_left_mm_s: Int, v_right_mm_s: Int) -> Int {
+pub fn robot_diff_drive_v_mm_s(v_left_mm_s: Int, v_right_mm_s: Int) -> Int
+  ensures: result * 2 >= v_left_mm_s + v_right_mm_s - 1 && result * 2 <= v_left_mm_s + v_right_mm_s + 1;
+{
   return (v_left_mm_s + v_right_mm_s) / 2;
 }
 
@@ -135,7 +143,9 @@ pub fn robot_diff_drive_v_mm_s(v_left_mm_s: Int, v_right_mm_s: Int) -> Int {
 /// wheel_base_mm <= 0 (guard G4).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn robot_diff_drive_omega_mrad_s(v_left_mm_s: Int, v_right_mm_s: Int, wheel_base_mm: Int) -> Int {
+pub fn robot_diff_drive_omega_mrad_s(v_left_mm_s: Int, v_right_mm_s: Int, wheel_base_mm: Int) -> Int
+  ensures: wheel_base_mm <= 0 => result == 0;
+{
   if wheel_base_mm <= 0 { return 0; }
   return (v_right_mm_s - v_left_mm_s) * 1000 / wheel_base_mm;
 }

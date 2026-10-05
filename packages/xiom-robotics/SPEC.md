@@ -1,6 +1,6 @@
 # xiom.robotics -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.robotics` (`src/robotics.xi`). Pure XIOM, no FFI.
 Dependencies: `xiom.std` only; the module imports `xiom.math` for the
 constant `PI` and the scalar helpers `sin`, `cos`, `sqrt`, `abs_float`; the
@@ -216,3 +216,27 @@ with `.x`/`.y`; no `Ok`/`Err` wrapper is used in the struct-returning
 functions. The tests use local `let` bindings for both the struct and the
 `(Int, Int)` tuple, and route all `Str` usage through `xiom.test`/`xiom.io`
 values built locally, so no `str_compare` workaround is needed.
+
+## 11. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 8 unknown / 1 error**. Float64
+comparisons and `xiom.math.PI` bounds are supported by the runtime
+evaluator (a first for the hardening passes).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `robot_end_distance` | `ensures: result >= 0.0` | unproven |
+| `robot_reach_ok` | `ensures: result => l1_m >= 0.0 && l2_m >= 0.0 && r_m >= 0.0` (guard G2) | unproven |
+| `robot_clamp_angle_rad` | `ensures: result >= -xiom.math.PI && result <= xiom.math.PI` (guard G3) | unproven |
+| `robot_diff_drive_v_mm_s` | `ensures: result * 2 >= v_left_mm_s + v_right_mm_s - 1 && result * 2 <= v_left_mm_s + v_right_mm_s + 1` | unproven |
+| `robot_diff_drive_omega_mrad_s` | `ensures: wheel_base_mm <= 0 => result == 0` (guard G4) | unproven |
+| `robot_fk2` / `robot_fk2_at` / `robot_wheel_speeds_mm_s` | none | unasserted (documented) |
+
+Unasserted/documented: the two forward-kinematics functions return a
+`RoboPose2` struct (struct-result field access is out of scope for the
+runtime evaluator) and `robot_wheel_speeds_mm_s` returns a tuple
+(tuple-component access is a known evaluator artifact, see
+COMPILER-FINDINGS 2026-10-05); both are pinned by the test plan. The
+annulus boundary semantics of `robot_reach_ok` (inclusive at both ends)
+and the truncation rules are likewise test-pinned.
