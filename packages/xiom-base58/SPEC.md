@@ -1,8 +1,7 @@
 # xiom.base58 -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.base58`, version `0.1.0`).
+Status: `stable` (published; harness-green on v0.63.1).
+Manifest: `package.xi` (`xiom.base58`, version `0.1.2`).
 Module: `src/base58.xi` (`module xiom.base58`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`). No FFI.
 
