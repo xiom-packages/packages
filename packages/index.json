@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-05T17:25:58Z",
+    "updated":  "2026-10-05T17:54:09Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -72,7 +72,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.adler32",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Adler-32 checksum with one-shot, incremental and hex-display APIs",
@@ -82,7 +82,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-adler32/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-adler32/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "adler32.xi",
                                               "package.xi"
@@ -246,7 +246,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ascii85",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Adobe ASCII85 (Base85) encoding and decoding",
@@ -256,7 +256,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ascii85/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ascii85/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ascii85.xi",
                                               "package.xi"
@@ -3197,7 +3197,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.iban",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "IBAN parsing, validation, formatting and MOD-97 check-digit computation",
@@ -3207,7 +3207,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-iban/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-iban/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "iban.xi",
                                               "package.xi"
@@ -3248,7 +3248,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.id3",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "ID3v2 tag inspection: version, size, and text frames (TIT2/TPE1/TALB/...)",
@@ -3258,7 +3258,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-id3/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-id3/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "id3.xi",
                                               "package.xi"
@@ -5066,7 +5066,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ogg",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Ogg page structure: page walk, fields, and the Ogg CRC-32 checksum",
@@ -5076,7 +5076,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ogg/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ogg/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ogg.xi",
                                               "package.xi"
@@ -7825,7 +7825,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.timeout",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic deadline and timeout arithmetic with explicit clocks",
@@ -7835,7 +7835,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-timeout/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-timeout/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "timeout.xi",
                                               "package.xi"
