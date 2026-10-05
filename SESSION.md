@@ -14,28 +14,36 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**LIVE UPDATE (2026-10-05 12:50Z, this session -- supersedes the sweep-process lines in the block below):**
-- Fleet sweep restart: the 12:05Z sweep (`bgp_10bf40470001sMCV17QsFyaps3`) was stopped at
-  [123/460]; the replacement persistent process `bgp_10c092df20016ZdpmvoO83ZQax` resumes the
-  same log dir (`%TEMP%\kilo\sweep-v0631`, skips PASS rows, re-runs the 9 FAILs) **with
-  `XIOM_RUNTIME_DIR=E:\xiom-lang\stdlib\runtime` set**.
-- New compiler finding (recorded `5b7547b0`): AOT `find_runtime_c_files()` never scans the
-  install layout `%LOCALAPPDATA%\xiom.new\lib\runtime`, so only `xiom_runtime.c` links; the
-  v0.63.1 stdlib wave's monotonic `Instant` (via the `xiom.test` harness) exposed it as
-  `lld-link: undefined symbol: xiom_async_now_ms` in 9 sweep packages. Repro:
-  `docs/repro/runtime-link/` (row in `docs/COMPILER-FINDINGS.md`). All 9 re-runs under the
-  override are green (aws 27/27).
-- The stale FAIL rows in `summary.tsv` are expected -- `record-sweep` skips them and the
-  re-run appends a fresh PASS row per package.
-- Compiler-lane corrections (relayed 2026-10-05 12:38Z): **C001 fix `4bf8cf1e` IS in
-  v0.63.1** (ancestor of tag `1b972478`) -- the 12:20Z block's "not part of this
-  fixes-only release" note is wrong and the wait-for-C001 plan is void; graphql 9/10 needs
-  a distinct root cause; grpc `probe_suite_min` `0xC0000005` is a strong **m192-class**
-  candidate -- re-test on the next archive (the repro may run >262k confined entries).
-  The `runtime-link` bundle (`5b7547b0`) is not reachable from the compiler-lane machine;
-  inline details relayed to the owner.
+**STATE AT 2026-10-05 13:45Z (v0.63.1 release flow COMPLETE; supersedes the 12:20Z block below):**
+- **Fleet sweep v0.63.1 COMPLETE + RECORDED: 460/460 PASS** (`%TEMP%\kilo\sweep-v0631`;
+  process `bgp_10c092df20016ZdpmvoO83ZQax`, run with `XIOM_RUNTIME_DIR`). Isolated timeout
+  re-runs green: `l10n-unicode` 24/24 @57.5s, `mongo` 23/23 @32.9s. `record-sweep` wrote
+  460 records (`-RunBy fleet-sweep:v0.63.1`, commit `43b79adb`); validate 514/0, guard
+  499/459/40/0. The 11 non-PASS rows left in `summary.tsv` are stale by design (the 9
+  runtime-link FAILs + the two watchdog clips), each superseded by a later PASS row.
+- **runtime-link finding (`5b7547b0`):** AOT `find_runtime_c_files()` never scans the install
+  layout `%LOCALAPPDATA%\xiom.new\lib\runtime`, so only `xiom_runtime.c` links; workaround
+  **`$env:XIOM_RUNTIME_DIR = "E:\xiom-lang\stdlib\runtime"`** (checked first in the compiler);
+  repro `docs/repro/runtime-link/`. **crypto-link confirmed fixed by the same mechanism under
+  the override (`5a57406f`):** both probes green, SHA-256("abc") NIST KAT `ba7816bf...15ad`;
+  full no-override fix expected in the next archive (`sha256_sw.c` now compiled;
+  `sha256_sw.h` verified in the install), then retire the `aws`/`saml` hand-rolled crypto.
+- **Compiler-lane corrections (`e28ac360`, `aa19f035`):** C001 `4bf8cf1e` **IS in v0.63.1**;
+  graphql 9/10 needs a distinct root cause; grpc `probe_suite_min` `0xC0000005` is a strong
+  **m192-class** candidate -- re-test on the next archive (repro may run >262k confined
+  entries). Both remain RED on v0.63.1.
+- **Housekeeping:** `.gitignore` covers `a.exe.ll`/`*.exe`/`*.o`/`*.obj`/`*.pdb`/`*.dll`/
+  `*.lib` (`3f21385c`); no strays in the tree. Sweep environment: repo stdlib checkout
+  (lane-dirty mid-edit; 1696 namespaces) + the runtime override; record provenance is the
+  compiler pin + run id, as usual.
+- **Next:** batch #12 dispatch (six porters: `luhn`, `farbfeld`, `ppm`, `tlv`, `base58`,
+  `diff`; clause pre-plan `%TEMP%\kilo\batch12-clause-plan.md`); 229 zero-clause stable
+  carriers remain; next tag `eco-v0.1.56`. PULSE lane (`E:\xiom-projects\xiom-pulse`) feeds
+  findings into this pipeline.
 
-**STATE AT 2026-10-05 12:20Z (read this first):**
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-05 12:20Z (history):**
 - **v0.63.1 PINNED (released 11:18Z; fixes-only: contract evaluator,
   verifier SMT, lz4 parity, catalog flush):** official archive
   `xiom-0.63.1-windows-x64.zip` SHA256 `f9dc9ec5...` verified; deployed
@@ -1088,18 +1096,13 @@ running). Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-05 12:20Z STATE block and
-the "Next-session operating kit" in section 0 are the live handoff
-(v0.63.1 pinned + SHA256-verified; repin 514; contract-evaluator fix
-confirmed and `varint`/`cobs` clauses restored + published in
-`eco-v0.1.55`; hardening batches #1-#11 published across
-`eco-v0.1.44`-`eco-v0.1.54` -- 46 packages + `option` all-unasserted;
-fleet sweep v0.63.1 running; 232 stable packages at zero clauses;
-registry 459 packages + 2 infra; allowlist 499; **grpc
-`Vec[(Str,Str)]` STILL RED on v0.63.1** -- numeric match arms stay
-blocked until a release carries the C001 fix; graphql 9/10;
-`l10n-unicode` needs a >60s suite timeout and stays incubating).
-Repo-local identity must be
+private). Read SESSION.md first -- the 2026-10-05 13:45Z STATE block is
+the live handoff (v0.63.1 pinned + SHA256-verified; repin 514; **fleet
+sweep v0.63.1 COMPLETE + RECORDED 460/460**, `fleet-sweep:v0.63.1`,
+commit `43b79adb`; contract-evaluator fix live in `eco-v0.1.55`;
+hardening batches #1-#11 published across `eco-v0.1.44`-`eco-v0.1.54`;
+229 stable packages at zero clauses; registry 459 packages + 2 infra;
+allowlist 499). Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
 gates); ops opens the publish-rate window ONLY for waves >20 names
@@ -1107,52 +1110,49 @@ gates); ops opens the publish-rate window ONLY for waves >20 names
 BEFORE appending an allowlist delta. New/next-touched records use stage
 `incubating` (`stable` only via `docs/PROMOTION.md`).
 
-Start by running: git fetch; git status -sb; git log -1; then
-$env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"   # PATH
-shadowing: a v0.62.3 staging dir precedes xiom.new
+REQUIRED toolchain env (PATH shadowing: a v0.62.3 staging dir precedes
+xiom.new):
+  $env:XIOM_COMPILER    = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"   # v0.63.1
+  $env:XIOM_RUNTIME_DIR = "E:\xiom-lang\stdlib\runtime"              # REQUIRED
+Without XIOM_RUNTIME_DIR the AOT link only links xiom_runtime.c, so any
+runtime-C symbol fails (`xiom_async_now_ms`, `xiom_sha256_hash`); open
+compiler finding + repro `docs/repro/runtime-link/` (`5b7547b0`), and the
+crypto matrix in `docs/repro/crypto-link/` (`5a57406f`). Expected fixed
+in the next archive -- re-test WITHOUT the override when it lands, then
+retire the `aws`/`saml` hand-rolled crypto.
+
+Start by running: git fetch; git status -sb; git log -1; then the env
+above, then:
 & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Finish the v0.63.1 release flow: check the fleet sweep (persistent
-   background `bgp_10bf40470001sMCV17QsFyaps3`; summary
-   `%TEMP%\kilo\sweep-v0631\summary.tsv`). If running, wait or
-   reschedule; when done: triage non-PASS (`l10n-unicode` is expected
-   to clip the 60s watchdog -- re-run `fleet-sweep.ps1 -Only
-   xiom.l10n-unicode -TimeoutSec 180`; record-sweep skips the stale
-   FAIL row), then `record-sweep.ps1 -LogDir %TEMP%\kilo\sweep-v0631
-   -RunBy fleet-sweep:v0.63.1` (`-WhatIf` first), validate + guard,
-   commit the records, clean strays with explicit paths, and update
-   SESSION.md.
-2. Open findings (with the compiler lane; do NOT re-run the same
-   bisections -- both were re-tested RED on v0.63.1): graphql 9/10
-   enum-payload in-situ (lead: variable-payload ctor flattening) and
-   grpc `Vec[(Str, Str)]` 0xC0000005 (minimal group
-   `packages\xiom-grpc\tests\probe_suite_min.xi` + `probe_direct.xi`,
-   evidence `docs\repro\tuple-vec-set\`). The v0.63.1 fixes did NOT
-   include the C001 codegen change -- wait for a release that does.
-   When fixes land: re-test; if green, finish grpc (restore
-   named-constant arms per m188, x2, record) and graphql (x2, record),
-   then publish in one batch. `l10n-unicode` stays incubating; needs a
-   >60s suite timeout under load (42-45s idle).
-3. Hardening track: batches #1-#11 DONE + PUBLISHED (`eco-v0.1.44`
-   ... `eco-v0.1.53`; `eco-v0.1.54` electronics/password/svg/avi/pcap;
-   `option` docs-only all-unasserted, no bump/no publish). Next: batch
-   #12 with the FAN-OUT protocol -- one background `task` porter per
-   package (proven clause patterns; forbidden shapes: tuple-component,
-   payload-length-vs-parameter, struct-result; port x2; bracket scan;
-   verify; SPEC + manifest; NO git; NO shared files; explicit-path
-   cleanup only), coordinator integrates each report (confirm x2, feat
-   commit, record real sha with `-RunBy task:ses_...`) before wrapping
-   + publishing. **Version-bump rule:** only bump+publish when source
-   changes; a zero-clause pass is docs-only (no bump, excluded from the
-   publish batch). Remaining grandfathered stable carriers: 232 at zero
-   clauses (see `scripts/contract-coverage.ps1`). No ops delta.
-4. Growth (optional): the remaining grandfathered set is FFI-class
-   (skipped) except `kafka` (green suite but FFI stubs; needs a pure-XIOM
-   redesign) and `zstd`/`lzfse` (FFI stubs).
-5. Carry-forwards: keep the `-TimeoutSec 60` watchdog (raise per package
-   when needed, e.g. `l10n-unicode`); byte-level bracket grep ONLY (Read
-   lies about `Vec<Int>`); bump versions ONLY when source changes;
+1. Hardening batch #12 (FAN-OUT): six candidates selected with a clause
+   pre-plan (`luhn`, `farbfeld`, `ppm`, `tlv`, `base58`, `diff`; plan at
+   `%TEMP%\kilo\batch12-clause-plan.md`). Dispatch one background `task`
+   porter per package (proven clause families only; forbidden shapes:
+   tuple-component, payload-length-vs-parameter, struct-result; port x2;
+   byte-level bracket scan; SPEC + manifest; NO git; NO shared files;
+   explicit-path cleanup only). Integrate each report: coordinator re-runs
+   port x2, `feat` commit exact files, record the REAL main-worktree sha
+   with `-RunBy task:ses_...`. **Version-bump rule:** bump+publish ONLY
+   when source changed; a zero-clause pass is docs-only (no bump, excluded
+   from the publish batch). Wrap + publish the batch (`eco-v0.1.56`; <=20
+   names, no ops delta; stage ALL pending STATUS.json before tagging).
+   Remaining carriers after #12: 229 zero-clause stable
+   (`scripts/contract-coverage.ps1`).
+2. Next compiler archive: re-pin per `docs/MAINTENANCE.md` (bump
+   COMPILER_VERSION, deploy, repin 514, fleet sweep + record). First
+   re-tests: grpc `probe_suite_min`/`probe_direct` (m192-class candidate;
+   repro may run >262k confined entries) and graphql in-situ 9/10 (distinct
+   root cause -- C001 `4bf8cf1e` IS already in v0.63.1); runtime-link and
+   crypto-link WITHOUT the override (expected fixed by the
+   runtime-discovery change; bundles under `docs/repro/`). If grpc goes
+   green: restore named-constant arms per m188, x2, record. If graphql
+   goes green: x2, record. Publish the pair in one batch.
+3. Carry-forwards: `XIOM_RUNTIME_DIR` in every shell until the archive
+   fix; `-TimeoutSec 60` watchdog (raise per package -- `l10n-unicode`
+   ran 57.5s and `mongo` 32.9s isolated); byte-level bracket grep ONLY
+   (Read lies about `Vec<Int>`); bump versions ONLY when source changes;
    `docs/repro/README.md` probe index for compiler evidence; registry
    page refresh = policy 1b; update SESSION.md at the wrap with a fresh
    paste prompt.
