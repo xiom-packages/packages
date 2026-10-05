@@ -1,6 +1,7 @@
 # xiom.refactor -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; v0.63.0 fleet sweep green; contract hardening in
+0.1.2; publish pending).
 Module: `xiom.refactor` (`src/refactor.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -172,3 +173,30 @@ no methods are declared on foreign types and no `Vec[StructType]` is needed.
 against the `Int` argument of `refactor_is_word_char`; `int_to_string` comes
 from `xiom.convert`. Only `&` (never `&mut`) is taken of locals in call
 sites.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **2 proven / 0 violated / 21 unknown / 0 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `refactor_word_chars_default` | `ensures: result.len() == 63` | unproven |
+| `refactor_is_word_char` | `ensures: byte < 0 => !result`; `ensures: byte > 255 => !result` | **proven** |
+| `refactor_is_word_char` | `ensures: word_chars.len() == 0 => !result` | unproven |
+| `refactor_count` | `ensures: result >= 0`; `ensures: result <= text.len()`; `ensures: old_name.len() == 0 => result == 0` | unproven |
+| `refactor_rename` | `ensures: text.len() == 0 => result.len() == 0`; `ensures: old_name.len() == 0 => result.len() == text.len()`; `ensures: old_name.len() == new_name.len() => result.len() == text.len()` | unproven |
+| `refactor_rename_dry_run` | `ensures: result.len() == renames.len()` | unproven |
+| `refactor_rename_batch` | `ensures: text.len() == 0 => result.len() == 0`; `ensures: renames.len() == 0 => result.len() == text.len()` | unproven |
+| `refactor_occurrence_lines` | `ensures: result.len() <= text.len()`; `ensures: text.len() == 0 => result.len() == 0`; `ensures: name.len() == 0 => result.len() == 0` | unproven |
+
+Unasserted/documented: **no clause was dropped** -- all 16 clauses above
+survived two green port runs (20/20). The word-character membership
+definition (the `word_chars` scan), the boundary and non-overlap rules, the
+pair grammar (`old=new`, first-`=` split, malformed-pair handling, ordered
+application), the dry-run line grammar and the line-splitting rules are
+pinned by the 20-check test plan and sections 3-5; string-content contracts
+stay out of scope for the runtime evaluator, and the remaining clauses are
+undecided by Z3 (loop without invariant / unresolved operand sort /
+complex call target) rather than violated. The two `refactor_is_word_char`
+range guards are the machine-checked part of the byte-membership model.

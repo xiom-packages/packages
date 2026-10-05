@@ -35,7 +35,9 @@ const _RF_LF: UInt8 = 10u8;
 /// (63 bytes).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn refactor_word_chars_default() -> Str {
+pub fn refactor_word_chars_default() -> Str
+  ensures: result.len() == 63;
+{
   return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_";
 }
 
@@ -47,7 +49,11 @@ pub fn refactor_word_chars_default() -> Str {
 /// every byte returns false (no byte is then a word character).
 /// Error case: none.
 /// Complexity: O(|word_chars|).
-pub fn refactor_is_word_char(byte: Int, word_chars: Str) -> Bool {
+pub fn refactor_is_word_char(byte: Int, word_chars: Str) -> Bool
+  ensures: byte < 0 => !result;
+  ensures: byte > 255 => !result;
+  ensures: word_chars.len() == 0 => !result;
+{
   if byte < 0 || byte > 255 {
     return false;
   }
@@ -105,7 +111,11 @@ fn _match_at(text: Str, at: Int, old_name: Str, word_chars: Str) -> Bool {
 /// whole-word occurrence.
 /// Error case: none.
 /// Complexity: O(n * |old_name|).
-pub fn refactor_count(text: Str, old_name: Str, word_chars: Str) -> Int {
+pub fn refactor_count(text: Str, old_name: Str, word_chars: Str) -> Int
+  ensures: result >= 0;
+  ensures: result <= text.len();
+  ensures: old_name.len() == 0 => result == 0;
+{
   let m = old_name.len();
   if m == 0 {
     return 0;
@@ -135,7 +145,11 @@ pub fn refactor_count(text: Str, old_name: Str, word_chars: Str) -> Int {
 /// through byte-exact, so UTF-8 is preserved.
 /// Error case: none.
 /// Complexity: O(n * |old_name|) plus output concatenation.
-pub fn refactor_rename(text: Str, old_name: Str, new_name: Str, word_chars: Str) -> Str {
+pub fn refactor_rename(text: Str, old_name: Str, new_name: Str, word_chars: Str) -> Str
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: old_name.len() == 0 => result.len() == text.len();
+  ensures: old_name.len() == new_name.len() => result.len() == text.len();
+{
   let m = old_name.len();
   let len = text.len();
   if m == 0 || len == 0 {
@@ -183,7 +197,9 @@ fn _eq_index(pair: Str) -> Int {
 /// 0 replacement(s).
 /// Error case: none.
 /// Complexity: O(pairs * n * |old_name|).
-pub fn refactor_rename_dry_run(text: Str, renames: &Vec[Str], word_chars: Str) -> Vec[Str] {
+pub fn refactor_rename_dry_run(text: Str, renames: &Vec[Str], word_chars: Str) -> Vec[Str]
+  ensures: result.len() == renames.len();
+{
   var out = Vec[Str].new();
   var work = text;
   var i = 0;
@@ -218,7 +234,10 @@ pub fn refactor_rename_dry_run(text: Str, renames: &Vec[Str], word_chars: Str) -
 /// malformed input never errors and never changes the text.
 /// Error case: none.
 /// Complexity: O(pairs * n * |old_name|).
-pub fn refactor_rename_batch(text: Str, renames: &Vec[Str], word_chars: Str) -> Str {
+pub fn refactor_rename_batch(text: Str, renames: &Vec[Str], word_chars: Str) -> Str
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: renames.len() == 0 => result.len() == text.len();
+{
   var work = text;
   var i = 0;
   while i < renames.len() {
@@ -245,7 +264,11 @@ pub fn refactor_rename_batch(text: Str, renames: &Vec[Str], word_chars: Str) -> 
 /// Matching is per line, so a name containing an LF byte cannot span lines.
 /// Error case: none.
 /// Complexity: O(n * |name|).
-pub fn refactor_occurrence_lines(text: Str, name: Str, word_chars: Str) -> Vec[Int] {
+pub fn refactor_occurrence_lines(text: Str, name: Str, word_chars: Str) -> Vec[Int]
+  ensures: result.len() <= text.len();
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: name.len() == 0 => result.len() == 0;
+{
   var out = Vec[Int].new();
   let len = text.len();
   if len == 0 || name.len() == 0 {

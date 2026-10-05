@@ -10,7 +10,7 @@
 
 package xiom_refactor {
   name: "xiom.refactor";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Text-level identifier renaming with word boundaries and dry-run counts";
   categories: ["tooling","text-nlp"];
   keywords: ["refactor","rename","identifier","source"];
