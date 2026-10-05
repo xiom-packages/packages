@@ -1,8 +1,9 @@
 # xiom.tracing -- Specification
 
-Status: `incubating` (implemented, harness-green, not published).
+Status: `stable` (published; v0.63.0 fleet sweep green; contract hardening
+in 0.1.2).
 Module: `xiom.tracing` (`src/tracing.xi`). Manifest: `package.xi` (name
-`xiom.tracing`, version `0.1.0`). Depends on `xiom.std` (no library imports;
+`xiom.tracing`, version `0.1.2`). Depends on `xiom.std` (no library imports;
 tests use `xiom.test`, `xiom.io` and `xiom.string.compare`).
 
 ## Scope
@@ -227,3 +228,27 @@ Last verified: compiler 0.61.3, `port: PASS (passed=20 failed=0 program_exit=0 e
 - The compiler bug where constructing `Ok(x)`/`Err(x)` inside a function whose
   return type is a struct miscompiles is avoided entirely: the module uses no
   `Result`, and the tests use plain `assert`.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **1 proven / 0 violated / 23 unknown / 2 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `trace_start_span` | `ensures: result == t.names.len() - 1`; `ensures: result >= 0` | **proven** |
+| `trace_end_span` | `ensures: id < 0 => !result`; `ensures: id >= t.names.len() => !result` | unproven |
+| `trace_span_count` / `trace_root_duration_ms` | `ensures: result >= 0` | unproven |
+| `trace_span_name` | `ensures: id < 0 => result.len() == 0`; `ensures: id >= t.names.len() => result.len() == 0` | unproven |
+| `trace_span_parent` | `ensures: id < 0 => result == -2`; `ensures: id >= t.parents.len() => result == -2` | unproven |
+| `trace_is_open` | `ensures: id < 0 => !result`; `ensures: id >= t.ends.len() => !result` | unproven |
+| `trace_duration_ms` / `trace_self_time_ms` | sentinel pair: `result == -1` for invalid ids; `result >= -1` for valid ids | unproven |
+| `trace_children` | `ensures: result.len() <= t.parents.len()` | unproven |
+| `trace_depth` | sentinel pair: `-1` for invalid ids; `result >= 0` for valid ids | unproven |
+| `trace_new` | none | unasserted (documented) |
+
+Unasserted/documented: the lockstep-vector invariants
+(`starts[i] >= 0`, `ends[i] >= starts[i]` when closed), the parent-walk
+acyclicity argument and the self-time clamp are pinned by the 20-check
+test plan; struct-result and cross-arena equality contracts stay out of
+scope for the runtime evaluator.

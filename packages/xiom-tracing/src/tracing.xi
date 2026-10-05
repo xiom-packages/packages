@@ -49,7 +49,10 @@ pub fn trace_new() -> SpanTree {
 /// Returns: the new span id (the previous span count). The span starts open
 /// (its end is -1). No error path.
 /// Complexity: O(1) amortized (four vector pushes).
-pub fn trace_start_span(t: &mut SpanTree, parent: Int, name: Str, start_ms: Int) -> Int {
+pub fn trace_start_span(t: &mut SpanTree, parent: Int, name: Str, start_ms: Int) -> Int
+  ensures: result == t.names.len() - 1;
+  ensures: result >= 0;
+{
   var actual_parent = -1;
   if parent >= 0 && parent < t.names.len() {
     actual_parent = parent;
@@ -72,7 +75,10 @@ pub fn trace_start_span(t: &mut SpanTree, parent: Int, name: Str, start_ms: Int)
 /// `end_ms >= starts[id]`; false for an unknown id, an already-closed span, or
 /// an end before the start. A false result leaves the tree unchanged.
 /// Complexity: O(1).
-pub fn trace_end_span(t: &mut SpanTree, id: Int, end_ms: Int) -> Bool {
+pub fn trace_end_span(t: &mut SpanTree, id: Int, end_ms: Int) -> Bool
+  ensures: id < 0 => !result;
+  ensures: id >= t.names.len() => !result;
+{
   if id < 0 || id >= t.names.len() {
     return false;
   }
@@ -90,13 +96,18 @@ pub fn trace_end_span(t: &mut SpanTree, id: Int, end_ms: Int) -> Bool {
 
 /// Number of spans in the tree (all four vectors have this length).
 /// Complexity: O(1).
-pub fn trace_span_count(t: &SpanTree) -> Int {
+pub fn trace_span_count(t: &SpanTree) -> Int
+  ensures: result >= 0;
+{
   return t.names.len();
 }
 
 /// Name of span `id`, stored verbatim at start; "" for an unknown id.
 /// Complexity: O(1).
-pub fn trace_span_name(t: &SpanTree, id: Int) -> Str {
+pub fn trace_span_name(t: &SpanTree, id: Int) -> Str
+  ensures: id < 0 => result.len() == 0;
+  ensures: id >= t.names.len() => result.len() == 0;
+{
   if id < 0 || id >= t.names.len() {
     return "";
   }
@@ -106,7 +117,10 @@ pub fn trace_span_name(t: &SpanTree, id: Int) -> Str {
 
 /// Parent id of span `id`: -1 for a root; -2 for an unknown id.
 /// Complexity: O(1).
-pub fn trace_span_parent(t: &SpanTree, id: Int) -> Int {
+pub fn trace_span_parent(t: &SpanTree, id: Int) -> Int
+  ensures: id < 0 => result == -2;
+  ensures: id >= t.parents.len() => result == -2;
+{
   if id < 0 || id >= t.parents.len() {
     return -2;
   }
@@ -116,7 +130,10 @@ pub fn trace_span_parent(t: &SpanTree, id: Int) -> Int {
 
 /// True while span `id` exists and has not been closed; false for an unknown
 /// id. Complexity: O(1).
-pub fn trace_is_open(t: &SpanTree, id: Int) -> Bool {
+pub fn trace_is_open(t: &SpanTree, id: Int) -> Bool
+  ensures: id < 0 => !result;
+  ensures: id >= t.ends.len() => !result;
+{
   if id < 0 || id >= t.ends.len() {
     return false;
   }
@@ -127,7 +144,11 @@ pub fn trace_is_open(t: &SpanTree, id: Int) -> Bool {
 /// Duration of span `id` in milliseconds: `ends[id] - starts[id]`.
 /// Returns -1 for an unknown id or a span that is still open.
 /// Complexity: O(1).
-pub fn trace_duration_ms(t: &SpanTree, id: Int) -> Int {
+pub fn trace_duration_ms(t: &SpanTree, id: Int) -> Int
+  ensures: id < 0 => result == -1;
+  ensures: id >= t.ends.len() => result == -1;
+  ensures: id >= 0 && id < t.ends.len() => result >= -1;
+{
   if id < 0 || id >= t.ends.len() {
     return -1;
   }
@@ -143,7 +164,9 @@ pub fn trace_duration_ms(t: &SpanTree, id: Int) -> Int {
 /// Only spans whose parent is exactly `id` are listed; grandchildren are not.
 /// Returns an empty Vec for an unknown id. The caller owns the returned Vec.
 /// Complexity: O(n) in the span count.
-pub fn trace_children(t: &SpanTree, id: Int) -> Vec[Int] {
+pub fn trace_children(t: &SpanTree, id: Int) -> Vec[Int]
+  ensures: result.len() <= t.parents.len();
+{
   var out = Vec[Int].new();
   if id < 0 || id >= t.parents.len() {
     return out;
@@ -162,7 +185,11 @@ pub fn trace_children(t: &SpanTree, id: Int) -> Vec[Int] {
 /// Depth of span `id`: 0 for a root, 1 for its child, and so on; -1 for an
 /// unknown id. Ids are created after their parent, so the walk cannot cycle.
 /// Complexity: O(depth).
-pub fn trace_depth(t: &SpanTree, id: Int) -> Int {
+pub fn trace_depth(t: &SpanTree, id: Int) -> Int
+  ensures: id < 0 => result == -1;
+  ensures: id >= t.parents.len() => result == -1;
+  ensures: id >= 0 && id < t.parents.len() => result >= 0;
+{
   if id < 0 || id >= t.parents.len() {
     return -1;
   }
@@ -189,7 +216,11 @@ pub fn trace_depth(t: &SpanTree, id: Int) -> Int {
 /// Child intervals may overlap each other or exceed the parent; the clamp
 /// keeps the result at 0 in those cases (no underflow).
 /// Complexity: O(n) in the span count.
-pub fn trace_self_time_ms(t: &SpanTree, id: Int) -> Int {
+pub fn trace_self_time_ms(t: &SpanTree, id: Int) -> Int
+  ensures: id < 0 => result == -1;
+  ensures: id >= t.ends.len() => result == -1;
+  ensures: id >= 0 && id < t.ends.len() => result >= -1;
+{
   if id < 0 || id >= t.ends.len() {
     return -1;
   }
@@ -220,7 +251,9 @@ pub fn trace_self_time_ms(t: &SpanTree, id: Int) -> Int {
 /// Longest duration among closed root spans; 0 when there is no closed root
 /// (empty tree or only open roots). Only spans with parent -1 are considered.
 /// Complexity: O(n) in the span count.
-pub fn trace_root_duration_ms(t: &SpanTree) -> Int {
+pub fn trace_root_duration_ms(t: &SpanTree) -> Int
+  ensures: result >= 0;
+{
   var best = 0;
   var i = 0;
   while i < t.parents.len() {
