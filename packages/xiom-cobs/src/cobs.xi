@@ -55,7 +55,10 @@ fn _err_bytes(m: Str) -> Result[Vec[UInt8], Str] {
 /// below 255, or, when it follows a full 255-code block or ends the input,
 /// by an explicit empty code-1 block. The exact output length is
 /// cobs_encoded_size(data).
-pub fn cobs_encode(data: &Vec[UInt8]) -> Vec[UInt8] {
+pub fn cobs_encode(data: &Vec[UInt8]) -> Vec[UInt8]
+  ensures: result.len() == cobs_encoded_size(data);
+  ensures: result.len() >= 1;
+{
   var out = Vec[UInt8].new();
   let n = data.len();
   if n == 0 {
@@ -111,7 +114,9 @@ pub fn cobs_encode(data: &Vec[UInt8]) -> Vec[UInt8] {
 /// payload bytes than remain. On Ok the result is the original payload.
 /// A padded frame whose final block is an empty code-1 block (as produced by
 /// encoders that always close with a code byte) decodes to the same payload.
-pub fn cobs_decode(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn cobs_decode(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: result is Err => data.len() > 0;
+{
   let n = data.len();
   var i = 0;
   while i < n {
@@ -149,7 +154,10 @@ pub fn cobs_decode(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 /// Exact encoded length of `data`: always equal to
 /// cobs_encode(data).len(). Computed in one pass without allocating the
 /// frame. An empty input is 1 (the lone final code byte).
-pub fn cobs_encoded_size(data: &Vec[UInt8]) -> Int {
+pub fn cobs_encoded_size(data: &Vec[UInt8]) -> Int
+  ensures: result >= data.len() + 1;
+  ensures: data.len() == 0 => result == 1;
+{
   let n = data.len();
   var size = n + 1;
   var run = 0;
@@ -194,7 +202,10 @@ pub fn cobs_is_encoded(data: &Vec[UInt8]) -> Bool {
 /// n + 1 + (n - 1) / 254 <= frame_len (n >= 1). Payloads containing 0x00
 /// bytes are never longer for the same input length. The returned value is
 /// never negative.
-pub fn cobs_max_payload_for(frame_len: Int) -> Int {
+pub fn cobs_max_payload_for(frame_len: Int) -> Int
+  ensures: result >= 0;
+  ensures: frame_len <= 1 => result == 0;
+{
   if frame_len <= 1 {
     return 0;
   }

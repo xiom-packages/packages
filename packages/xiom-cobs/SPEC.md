@@ -1,8 +1,8 @@
 # xiom.cobs -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.cobs`, version `0.1.0`).
+Status: `stable` (published; v0.63.0 fleet sweep green; contract hardening
+in 0.1.2).
+Manifest: `package.xi` (`xiom.cobs`, version `0.1.2`).
 Module: `src/cobs.xi` (`module xiom.cobs`).
 Depends on `xiom.std`; the library module imports nothing (the tests import
 stdlib modules).
@@ -223,3 +223,26 @@ Last verified: compiler 0.61.3,
 - No checksum or integrity guarantee; COBS is a transparency transform.
 - Whole payloads and frames are materialized in memory.
 - Not thread-safe; free functions over value types.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 11 unknown / 1 error** (loop-heavy
+bodies stay solver-unknown).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `cobs_encode` | `ensures: result.len() == cobs_encoded_size(data)`; `ensures: result.len() >= 1` | unproven |
+| `cobs_decode` | `ensures: result is Err => data.len() > 0` | unproven |
+| `cobs_encoded_size` | `ensures: result >= data.len() + 1`; `ensures: data.len() == 0 => result == 1` | unproven |
+| `cobs_max_payload_for` | `ensures: result >= 0`; `ensures: frame_len <= 1 => result == 0` | unproven |
+| `cobs_is_encoded` | none | unasserted (documented) |
+
+Unasserted/documented: the decode output bound
+(`result is Ok => result.value.len() <= data.len()`) is structurally true
+and was brute-forced over all 65,792 frames of length <= 2 with contract
+checks off (`bad=0`), but the v0.63.0 **runtime contract evaluator
+mis-checks `Result[Vec[UInt8]]` payload-length comparisons** (it reported
+a spurious violation), so the clause is deliberately omitted and the
+bound stays test/brute-force-pinned. `cobs_is_encoded`'s definitional
+loop property is likewise test-pinned.
