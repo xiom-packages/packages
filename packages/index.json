@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-05T10:24:11Z",
+    "updated":  "2026-10-05T10:42:21Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -4431,7 +4431,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.metrics",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Counters, gauges, and histograms for in-process metrics",
@@ -4441,7 +4441,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-metrics/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-metrics/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "metrics.xi",
                                               "package.xi"
@@ -6504,7 +6504,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.retry",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Retry policies with exponential backoff, deterministic jitter, and circuit-breaker state",
@@ -6514,7 +6514,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-retry/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-retry/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "retry.xi",
                                               "package.xi"
@@ -7021,7 +7021,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.signal",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Integer-friendly window functions, convolution, and moving extrema for signals",
@@ -7031,7 +7031,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-signal/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-signal/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "signal.xi",
                                               "package.xi"
@@ -7400,7 +7400,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.stl",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "STL mesh structure: binary triangle parsing and ASCII detection (float values kept as raw bits)",
@@ -7410,7 +7410,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stl/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stl/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "stl.xi",
                                               "package.xi"
