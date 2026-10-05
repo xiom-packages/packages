@@ -27,6 +27,7 @@ fixed/not-fixed.
 | `enum-payload-str` | enum payload struct `Str` reads | **OPEN (v0.63.0 unchanged)** -- graphql 9/10 (`|0|` read persists); standalone controls pass; minimal repro pending |
 | `uninit-local` | uninitialized local + later assignment | **FIXED** (v0.63.0) -- standalone probe `bad=0`; graphql no longer hangs (its remaining 9/10 failure is the enum-payload case) |
 | `crypto-link` | stdlib `xiom.crypto` SHA-256/HMAC linkability | **OPEN** -- `lld-link: undefined symbol: xiom_sha256_hash` |
+| `runtime-link` | AOT runtime C coverage (`async_runtime.c`) | **OPEN (v0.63.1)** -- install `lib\runtime` not scanned, `xiom_async_now_ms` undefined; `XIOM_RUNTIME_DIR` override restores the link |
 | `float-vec` | `Vec[Float64]` + `Int<->Float64` bitcast | **SPLIT** -- `Vec[Float64]` works; bitcast is a documented stdlib stub (`bad=2`) |
 | `generic-fnptr` | fn-value / generic-mono ABI family | **FIXED** -- all 7 probes exit 0 |
 | `loop-carry-cse` | loop-carried CSE correctness | **CLEAN** -- `bad=0` |
