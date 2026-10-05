@@ -3,7 +3,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-05 (12:35Z), by the main/debug session (v0.63.1
+**Written:** 2026-10-05 (12:20Z), by the main/debug session (v0.63.1
 pinned + SHA256-verified, repin 514; contract-evaluator fix confirmed:
 `varint` tuple-advance + `cobs` decode bound restored, x2-green, and
 published in `eco-v0.1.55` (0.1.3); hardening batches #1-#11 published
@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-05 12:35Z (read this first):**
+**STATE AT 2026-10-05 12:20Z (read this first):**
 - **v0.63.1 PINNED (released 11:18Z; fixes-only: contract evaluator,
   verifier SMT, lz4 parity, catalog flush):** official archive
   `xiom-0.63.1-windows-x64.zip` SHA256 `f9dc9ec5...` verified; deployed
@@ -31,7 +31,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   `probe_direct` hang) -- the C001 fix was NOT in v0.63.1; numeric
   match arms stay blocked. graphql still 9/10 (enum-payload in-situ).
 - **Fleet sweep v0.63.1 RUNNING** (`bgp_10bf40470001sMCV17QsFyaps3`,
-  `%TEMP%\kilo\sweep-v0631`); on completion: record-sweep
+  persistent; `%TEMP%\kilo\sweep-v0631`). **Handoff:** the prior
+  session's 14:45Z wakeup was cancelled, so the NEXT session owns the
+  completion flow (paste-prompt item 1): triage non-PASS, record-sweep
   `-RunBy fleet-sweep:v0.63.1` (`-WhatIf` first), validate+guard,
   commit, update SESSION.
 - **Queue:** 232 stable packages remain at zero clauses (batch #12
@@ -1065,7 +1067,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-05 12:35Z STATE block and
+private). Read SESSION.md first -- the 2026-10-05 12:20Z STATE block and
 the "Next-session operating kit" in section 0 are the live handoff
 (v0.63.1 pinned + SHA256-verified; repin 514; contract-evaluator fix
 confirmed and `varint`/`cobs` clauses restored + published in
@@ -1090,7 +1092,17 @@ shadowing: a v0.62.3 staging dir precedes xiom.new
 & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Open findings (with the compiler lane; do NOT re-run the same
+1. Finish the v0.63.1 release flow: check the fleet sweep (persistent
+   background `bgp_10bf40470001sMCV17QsFyaps3`; summary
+   `%TEMP%\kilo\sweep-v0631\summary.tsv`). If running, wait or
+   reschedule; when done: triage non-PASS (`l10n-unicode` is expected
+   to clip the 60s watchdog -- re-run `fleet-sweep.ps1 -Only
+   xiom.l10n-unicode -TimeoutSec 180`; record-sweep skips the stale
+   FAIL row), then `record-sweep.ps1 -LogDir %TEMP%\kilo\sweep-v0631
+   -RunBy fleet-sweep:v0.63.1` (`-WhatIf` first), validate + guard,
+   commit the records, clean strays with explicit paths, and update
+   SESSION.md.
+2. Open findings (with the compiler lane; do NOT re-run the same
    bisections -- both were re-tested RED on v0.63.1): graphql 9/10
    enum-payload in-situ (lead: variable-payload ctor flattening) and
    grpc `Vec[(Str, Str)]` 0xC0000005 (minimal group
@@ -1101,7 +1113,7 @@ Then do, in order:
    named-constant arms per m188, x2, record) and graphql (x2, record),
    then publish in one batch. `l10n-unicode` stays incubating; needs a
    >60s suite timeout under load (42-45s idle).
-2. Hardening track: batches #1-#11 DONE + PUBLISHED (`eco-v0.1.44`
+3. Hardening track: batches #1-#11 DONE + PUBLISHED (`eco-v0.1.44`
    ... `eco-v0.1.53`; `eco-v0.1.54` electronics/password/svg/avi/pcap;
    `option` docs-only all-unasserted, no bump/no publish). Next: batch
    #12 with the FAN-OUT protocol -- one background `task` porter per
@@ -1114,10 +1126,10 @@ Then do, in order:
    changes; a zero-clause pass is docs-only (no bump, excluded from the
    publish batch). Remaining grandfathered stable carriers: 232 at zero
    clauses (see `scripts/contract-coverage.ps1`). No ops delta.
-3. Growth (optional): the remaining grandfathered set is FFI-class
+4. Growth (optional): the remaining grandfathered set is FFI-class
    (skipped) except `kafka` (green suite but FFI stubs; needs a pure-XIOM
    redesign) and `zstd`/`lzfse` (FFI stubs).
-4. Carry-forwards: keep the `-TimeoutSec 60` watchdog (raise per package
+5. Carry-forwards: keep the `-TimeoutSec 60` watchdog (raise per package
    when needed, e.g. `l10n-unicode`); byte-level bracket grep ONLY (Read
    lies about `Vec<Int>`); bump versions ONLY when source changes;
    `docs/repro/README.md` probe index for compiler evidence; registry
