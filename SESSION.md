@@ -73,13 +73,19 @@ running). Check `git log -1 --format=%h %s` before starting.
   constant-time MAC, `exp` required, `nbf` optional, caller clock, payload returned
   post-verify); jwt.io KAT byte-exact + tamper/alg-confusion/binary-secret/exp-nbf tests;
   suite 30/30 x2; feat `70c17525`. PULSE Step-2 auth unblocked.
+- **PULSE wave 2:** `xiom.rate` 0.2.0 keyed layer DONE + PUBLISHED (`eco-v0.1.61`, run
+  `37340030888`; `KeyedBuckets`/`KeyedWindows` with prune hooks, 15 new APIs, 30/30 x2,
+  feat `957a336b`); `xiom.router` 0.1.0 built + recorded **incubating** in-repo (22/22 x2,
+  feat `67fdb45d`) -- **publish blocked on the ops allowlist delta for the new names**.
 - **Compiler lane:** `0.64.0` in preparation (R65 + m195; grpc m192 candidate). When the
   archive is staged: deploy side-by-side, run the targeted matrix (grpc
   `probe_suite_min`/`probe_direct`; runtime-link + crypto-link probes WITHOUT
   `XIOM_RUNTIME_DIR`; graphql in-situ), report back, then re-pin + fleet sweep on green.
-- **Next (priority):** PULSE consumer wave -- `xiom.jwt` 0.2.0 HS256 first, then
-  `router` + `http.middleware` once ops confirms the new names, then `session` /
-  `rate` keyed / `metrics` 0.2 / `static`. Hardening batch #15 resumes after (211 carriers;
+- **Next (priority):** PULSE consumer wave -- `xiom.rate` 0.2.0 published; `xiom.router`
+  0.1.0 incubating locally. Add the four new names (`router`, `session`, `static`,
+  `http.middleware`) to the allowlist once ops confirms, then publish router. Next builds:
+  `xiom.http.middleware` (uses local router types), `xiom.metrics` 0.2.0 (labels +
+  Prometheus), `xiom.static`. Hardening batch #15 resumes after (211 carriers;
   verified-friendly set queued: `mbox`, `tga`, `murmur3`, `ntp`, `mbr`, `socks`).
   `xiom-verify` writes `xiom_verify_output.smt2` to the CWD -- run it with the package dir
   as CWD.
@@ -1143,8 +1149,8 @@ private). Read SESSION.md first -- the 2026-10-05 15:50Z STATE block is
 the live handoff (v0.63.1 pinned + SHA256-verified; repin 514; **fleet
 sweep v0.63.1 COMPLETE + RECORDED 460/460**, `fleet-sweep:v0.63.1`,
 commit `43b79adb`; contract-evaluator fix live in `eco-v0.1.55`;
-hardening batches #1-#14 published across `eco-v0.1.44`-`eco-v0.1.60` (incl. the
-`xiom.http` 0.1.1 and `xiom.jwt` 0.2.0 PULSE releases);
+hardening batches #1-#14 published across `eco-v0.1.44`-`eco-v0.1.61` (incl. the
+`xiom.http` 0.1.1, `xiom.jwt` 0.2.0 and `xiom.rate` 0.2.0 PULSE releases);
 211 stable packages at zero clauses; registry 459 packages + 2 infra;
 allowlist 499). Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
@@ -1171,12 +1177,13 @@ above, then:
 
 Then do, in order:
 1. PULSE consumer wave (intake `docs/PACKAGE-WISHLIST.md`): `xiom.http` 0.1.1
-   (`eco-v0.1.59`) and `xiom.jwt` 0.2.0 HS256 (`eco-v0.1.60`) are DONE + PUBLISHED.
-   Next: `xiom.router` + `xiom.http.middleware` --
-   but the four new names (`router`, `session`, `static`, `http.middleware`) need the ops
-   scope enumeration confirmed BEFORE the allowlist delta. Then `xiom.session`,
-   `xiom.rate` 0.2.0 keyed layer, `xiom.metrics` 0.2.0 labels + Prometheus exposition,
-   `xiom.static`. New packages ride growth waves (port x2 + trap-14, incubating records,
+   (`eco-v0.1.59`), `xiom.jwt` 0.2.0 HS256 (`eco-v0.1.60`) and `xiom.rate` 0.2.0 keyed
+   (`eco-v0.1.61`) are DONE + PUBLISHED. `xiom.router` 0.1.0 is built + incubating in-repo
+   (`67fdb45d`); the four new names (`router`, `session`, `static`, `http.middleware`) need
+   the ops scope enumeration confirmed BEFORE the allowlist delta, then publish router and
+   build `xiom.http.middleware` (uses local router types), `xiom.metrics` 0.2.0 (labels +
+   Prometheus exposition), `xiom.static`, `xiom.session`. New packages ride growth waves
+   (port x2 + trap-14, incubating records,
    publish); extensions are minor bumps. PULSE tests from the registry and files consumer
    rows.
 2. Hardening batch #15 (FAN-OUT): pick the next ~6 smallest zero-clause
@@ -1190,7 +1197,7 @@ Then do, in order:
    (re-verify port x2, `feat` commit exact files, record the REAL
    main-worktree sha with `-RunBy task:ses_...`). **Version-bump rule:**
    bump+publish ONLY when source changed; a zero-clause pass is docs-only.
-   Wrap + publish the batch (next tag `eco-v0.1.59`; <=20 names, no ops
+   Wrap + publish the batch (next tag `eco-v0.1.62`; <=20 names, no ops
    delta). Note: `xiom-verify` writes `xiom_verify_output.smt2` to the
    CWD -- run it with the package dir as CWD; and never write a contract
    clause that calls a function which wraps the callee (runtime-evaluator
