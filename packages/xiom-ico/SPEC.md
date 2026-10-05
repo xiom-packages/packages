@@ -135,6 +135,41 @@ pub fn ico_builder_emit(b: &IcoBuilder) -> Result[Vec[UInt8], Str]
 - All functions are free functions; there are no methods and no global
   mutable state.
 
+## Contracts
+
+Runtime-checkable `ensures:` clauses were added to every public entry point in
+`src/ico.xi`. "Z3" marks clauses provable from the pure scalar model;
+"runtime" marks clauses the v0.63.1 evaluator checks at run time. No clause
+asserts a Result payload field of a struct or a parameter-relative payload
+length.
+
+| Function | Added clauses | Check |
+|---|---|---|
+| `ico_dir_bytes` | `result == 6 + count * 16`; `count >= 0 => result >= 6` | Z3 |
+| `ico_parse_header` | `data.len() < 6 => result is Err`; `result is Ok => data.len() >= 6` | Z3 |
+| `ico_parse` | `data.len() < 6 => result is Err`; `result is Ok => data.len() >= 6` | Z3 |
+| `ico_entry` | `i < 0 => result is Err`; `data.len() < 6 => result is Err` | Z3 |
+| `ico_entry` | `i >= 65535 => result is Err` (count is 16-bit) | runtime |
+| `ico_image_data` | `i < 0 => result is Err`; `data.len() < 6 => result is Err` | Z3 |
+| `ico_image_data` | `result is Ok => result.value.len() >= 1` | runtime |
+| `ico_is_ico` | `data.len() < 6 => !result`; `result => data.len() >= 6` | Z3 |
+| `ico_is_cur` | `data.len() < 6 => !result`; `result => data.len() >= 6` | Z3 |
+| `ico_builder_new` | `(kind != 1 && kind != 2) => result is Err`; `result is Ok => kind == 1 || kind == 2` | Z3 |
+| `ico_builder_count` | `result == b.widths.len()`; `result >= 0` | Z3 |
+| `ico_builder_kind` | `result == b.kind` | Z3 |
+| `ico_builder_add` | `b.kind != 1 => result is Err`; `(width < 1 || width > 256) => result is Err`; `result is Ok => result.value == b.widths.len()` | Z3 |
+| `ico_builder_add` | `result is Err => b.widths.len() == b.widths.len()@pre` | runtime |
+| `ico_builder_add_cursor` | `b.kind != 2 => result is Err`; `(width < 1 || width > 256) => result is Err`; `result is Ok => result.value == b.widths.len()` | Z3 |
+| `ico_builder_add_cursor` | `result is Err => b.widths.len() == b.widths.len()@pre` | runtime |
+| `ico_builder_emit` | `b.widths.len() == 0 => result is Err`; `(b.kind != 1 && b.kind != 2) => result is Err`; `result is Ok => result.value.len() >= 23` | Z3 |
+
+Documented but intentionally omitted: `ico_builder_kind` does not claim
+`result == 1 || result == 2`, because `kind` is a public mutable field, so a
+tampered builder can hold any Int (the `ico_builder_emit` tamper guards rely
+on exactly that). The `@pre` frame clause on `ico_builder_add` and
+`ico_builder_add_cursor` follows the live `&mut` precedent: every Err path
+runs before the append, so the builder is unchanged on Err.
+
 ## Validation order
 
 `ico_parse_header`: truncation (buffer < 6) -> reserved word -> resource

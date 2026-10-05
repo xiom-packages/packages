@@ -190,7 +190,10 @@ fn _dim_byte(dim: Int) -> Int {
 /// Bytes occupied by the 6-byte ICONDIR header plus `count` 16-byte
 /// directory entries: `6 + 16 * count`. Callers pass a non-negative count
 /// (the parsers validate the count before calling this).
-pub fn ico_dir_bytes(count: Int) -> Int {
+pub fn ico_dir_bytes(count: Int) -> Int
+  ensures: result == 6 + count * 16;
+  ensures: count >= 0 => result >= 6;
+{
   return 6 + count * 16;
 }
 
@@ -204,7 +207,10 @@ pub fn ico_dir_bytes(count: Int) -> Int {
 /// Err("ico: zero image count"); `6 + 16 * count <= data.len()` ->
 /// Err("ico: directory out of bounds"). Directory entries and payloads are
 /// not inspected here; use ico_parse for that.
-pub fn ico_parse_header(data: &Vec[UInt8]) -> Result[IcoInfo, Str] {
+pub fn ico_parse_header(data: &Vec[UInt8]) -> Result[IcoInfo, Str]
+  ensures: data.len() < 6 => result is Err;
+  ensures: result is Ok => data.len() >= 6;
+{
   let n = data.len();
   if (n < 6) { return _err_info("ico: truncated header"); }
   let reserved = _le16(data, 0);
@@ -232,7 +238,10 @@ pub fn ico_parse_header(data: &Vec[UInt8]) -> Result[IcoInfo, Str] {
 ///
 /// Two resources may point at the same bytes (that is accepted), and any
 /// bytes after the last resource are ignored. Complexity: O(count).
-pub fn ico_parse(data: &Vec[UInt8]) -> Result[IcoInfo, Str] {
+pub fn ico_parse(data: &Vec[UInt8]) -> Result[IcoInfo, Str]
+  ensures: data.len() < 6 => result is Err;
+  ensures: result is Ok => data.len() >= 6;
+{
   let hp = ico_parse_header(data);
   if (!hp.is_ok) { return _err_info(hp.error); }
   let info: IcoInfo = hp.value;
@@ -269,7 +278,11 @@ pub fn ico_parse(data: &Vec[UInt8]) -> Result[IcoInfo, Str] {
 /// returns Err("ico: entry index out of range") when `i` is negative or at
 /// least the image count. Dimensions are decoded: an on-disk 0 reads back
 /// as 256. Complexity: O(count) validation plus O(1) decode.
-pub fn ico_entry(data: &Vec[UInt8], i: Int) -> Result[IcoEntry, Str] {
+pub fn ico_entry(data: &Vec[UInt8], i: Int) -> Result[IcoEntry, Str]
+  ensures: i < 0 => result is Err;
+  ensures: data.len() < 6 => result is Err;
+  ensures: i >= 65535 => result is Err;
+{
   let pp = ico_parse(data);
   if (!pp.is_ok) { return _err_entry(pp.error); }
   let info: IcoInfo = pp.value;
@@ -296,7 +309,11 @@ pub fn ico_entry(data: &Vec[UInt8], i: Int) -> Result[IcoEntry, Str] {
 /// Err("ico: entry index out of range")) are forwarded unchanged. The copy
 /// is a pass-through: payload bytes are never interpreted. Complexity:
 /// O(count) validation plus O(bytes).
-pub fn ico_image_data(data: &Vec[UInt8], i: Int) -> Result[Vec[UInt8], Str] {
+pub fn ico_image_data(data: &Vec[UInt8], i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: data.len() < 6 => result is Err;
+  ensures: result is Ok => result.value.len() >= 1;
+{
   let ep = ico_entry(data, i);
   if (!ep.is_ok) { return _err_bytes(ep.error); }
   let e: IcoEntry = ep.value;
@@ -316,7 +333,10 @@ pub fn ico_image_data(data: &Vec[UInt8], i: Int) -> Result[Vec[UInt8], Str] {
 /// True when the buffer carries a header that ico_parse_header accepts with
 /// resource type 1 (icon). Malformed headers return false rather than an
 /// error; use ico_parse_header when the reason matters.
-pub fn ico_is_ico(data: &Vec[UInt8]) -> Bool {
+pub fn ico_is_ico(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 6 => !result;
+  ensures: result => data.len() >= 6;
+{
   let hp = ico_parse_header(data);
   if (!hp.is_ok) { return false; }
   let info: IcoInfo = hp.value;
@@ -326,7 +346,10 @@ pub fn ico_is_ico(data: &Vec[UInt8]) -> Bool {
 /// True when the buffer carries a header that ico_parse_header accepts with
 /// resource type 2 (cursor). Malformed headers return false rather than an
 /// error; use ico_parse_header when the reason matters.
-pub fn ico_is_cur(data: &Vec[UInt8]) -> Bool {
+pub fn ico_is_cur(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 6 => !result;
+  ensures: result => data.len() >= 6;
+{
   let hp = ico_parse_header(data);
   if (!hp.is_ok) { return false; }
   let info: IcoInfo = hp.value;
@@ -340,7 +363,10 @@ pub fn ico_is_cur(data: &Vec[UInt8]) -> Bool {
 /// Create an empty builder for `kind`: ICO_TYPE_ICON for an .ico container
 /// or ICO_TYPE_CURSOR for a .cur container. Any other kind (including a
 /// negative one) is Err("ico: unknown resource type").
-pub fn ico_builder_new(kind: Int) -> Result[IcoBuilder, Str] {
+pub fn ico_builder_new(kind: Int) -> Result[IcoBuilder, Str]
+  ensures: (kind != 1 && kind != 2) => result is Err;
+  ensures: result is Ok => kind == 1 || kind == 2;
+{
   if (kind != 1 && kind != 2) {
     return _err_builder("ico: unknown resource type");
   }
@@ -358,13 +384,18 @@ pub fn ico_builder_new(kind: Int) -> Result[IcoBuilder, Str] {
 }
 
 /// Number of images appended so far. Complexity: O(1).
-pub fn ico_builder_count(b: &IcoBuilder) -> Int {
+pub fn ico_builder_count(b: &IcoBuilder) -> Int
+  ensures: result == b.widths.len();
+  ensures: result >= 0;
+{
   return b.widths.len();
 }
 
 /// Resource type of the builder: ICO_TYPE_ICON or ICO_TYPE_CURSOR.
 /// Complexity: O(1).
-pub fn ico_builder_kind(b: &IcoBuilder) -> Int {
+pub fn ico_builder_kind(b: &IcoBuilder) -> Int
+  ensures: result == b.kind;
+{
   return b.kind;
 }
 
@@ -414,7 +445,12 @@ fn _append_entry(b: &mut IcoBuilder, image: &Vec[UInt8], width: Int, height: Int
 /// Err("ico: too many images") (the on-disk count is 16-bit, so at most
 /// 65535 images are accepted). The builder is unchanged on every Err.
 /// Complexity: O(image.len()).
-pub fn ico_builder_add(b: &mut IcoBuilder, image: &Vec[UInt8], width: Int, height: Int, color_count: Int, planes: Int, bit_count: Int) -> Result[Int, Str] {
+pub fn ico_builder_add(b: &mut IcoBuilder, image: &Vec[UInt8], width: Int, height: Int, color_count: Int, planes: Int, bit_count: Int) -> Result[Int, Str]
+  ensures: b.kind != 1 => result is Err;
+  ensures: (width < 1 || width > 256) => result is Err;
+  ensures: result is Ok => result.value == b.widths.len();
+  ensures: result is Err => b.widths.len() == b.widths.len()@pre;
+{
   if (b.kind != 1) { return _err_int("ico: not an icon builder"); }
   return _append_entry(b, image, width, height, color_count, planes, bit_count);
 }
@@ -427,7 +463,12 @@ pub fn ico_builder_add(b: &mut IcoBuilder, image: &Vec[UInt8], width: Int, heigh
 /// Err("ico: not a cursor builder") when the builder kind is icon;
 /// otherwise the same append catalog as ico_builder_add. The builder is
 /// unchanged on every Err. Complexity: O(image.len()).
-pub fn ico_builder_add_cursor(b: &mut IcoBuilder, image: &Vec[UInt8], width: Int, height: Int, color_count: Int, hotspot_x: Int, hotspot_y: Int) -> Result[Int, Str] {
+pub fn ico_builder_add_cursor(b: &mut IcoBuilder, image: &Vec[UInt8], width: Int, height: Int, color_count: Int, hotspot_x: Int, hotspot_y: Int) -> Result[Int, Str]
+  ensures: b.kind != 2 => result is Err;
+  ensures: (width < 1 || width > 256) => result is Err;
+  ensures: result is Ok => result.value == b.widths.len();
+  ensures: result is Err => b.widths.len() == b.widths.len()@pre;
+{
   if (b.kind != 2) { return _err_int("ico: not a cursor builder"); }
   return _append_entry(b, image, width, height, color_count, hotspot_x, hotspot_y);
 }
@@ -448,7 +489,11 @@ pub fn ico_builder_add_cursor(b: &mut IcoBuilder, image: &Vec[UInt8], width: Int
 /// Err("ico: unknown resource type") for a corrupted kind, then the append
 /// catalog (invalid width/height/color count/planes/hotspot/bit count,
 /// empty image resource) for a corrupted entry. Complexity: O(payload).
-pub fn ico_builder_emit(b: &IcoBuilder) -> Result[Vec[UInt8], Str] {
+pub fn ico_builder_emit(b: &IcoBuilder) -> Result[Vec[UInt8], Str]
+  ensures: b.widths.len() == 0 => result is Err;
+  ensures: (b.kind != 1 && b.kind != 2) => result is Err;
+  ensures: result is Ok => result.value.len() >= 23;
+{
   let count = b.widths.len();
   if (count == 0) { return _err_bytes("ico: zero image count"); }
   if (b.heights.len() != count) {
