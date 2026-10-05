@@ -173,7 +173,10 @@ fn _diff_count(a: &Vec[Str], b: &Vec[Str]) -> Int {
 /// Returns: a fresh Vec[Str], one entry per line.
 /// Errors: none.
 /// Complexity: O(n).
-pub fn snapshot_lines(text: Str) -> Vec[Str] {
+pub fn snapshot_lines(text: Str) -> Vec[Str]
+  ensures: result.len() <= text.len();
+  ensures: text.len() == 0 => result.len() == 0;
+{
   return _raw_lines(text);
 }
 
@@ -187,7 +190,9 @@ pub fn snapshot_lines(text: Str) -> Vec[Str] {
 /// Returns: the normalized text.
 /// Errors: none.
 /// Complexity: O(n).
-pub fn snapshot_normalized(text: Str, trim_trailing_ws: Bool) -> Str {
+pub fn snapshot_normalized(text: Str, trim_trailing_ws: Bool) -> Str
+  ensures: result.len() <= text.len();
+{
   let lines = _normalized_lines(text, trim_trailing_ws);
   var out = "";
   var i = 0;
@@ -206,7 +211,9 @@ pub fn snapshot_normalized(text: Str, trim_trailing_ws: Bool) -> Str {
 /// Returns: true when both normalize to the same line sequence.
 /// Errors: none.
 /// Complexity: O(n + m).
-pub fn snapshot_equal(a: Str, b: Str, trim_trailing_ws: Bool) -> Bool {
+pub fn snapshot_equal(a: Str, b: Str, trim_trailing_ws: Bool) -> Bool
+  ensures: a.len() == 0 && b.len() == 0 => result;
+{
   let al = _normalized_lines(a, trim_trailing_ws);
   let bl = _normalized_lines(b, trim_trailing_ws);
   if al.len() != bl.len() {
@@ -229,7 +236,10 @@ pub fn snapshot_equal(a: Str, b: Str, trim_trailing_ws: Bool) -> Bool {
 /// the normalized texts are equal.
 /// Errors: none.
 /// Complexity: O(n + m).
-pub fn snapshot_first_diff_line(a: Str, b: Str, trim_trailing_ws: Bool) -> Int {
+pub fn snapshot_first_diff_line(a: Str, b: Str, trim_trailing_ws: Bool) -> Int
+  ensures: result >= -1;
+  ensures: result <= a.len() + b.len();
+{
   let al = _normalized_lines(a, trim_trailing_ws);
   let bl = _normalized_lines(b, trim_trailing_ws);
   return _first_diff(&al, &bl);
@@ -245,7 +255,9 @@ pub fn snapshot_first_diff_line(a: Str, b: Str, trim_trailing_ws: Bool) -> Int {
 /// has run out of lines is shown as "<missing>".
 /// Errors: none.
 /// Complexity: O(n + m).
-pub fn snapshot_diff_summary(a: Str, b: Str, trim_trailing_ws: Bool) -> Str {
+pub fn snapshot_diff_summary(a: Str, b: Str, trim_trailing_ws: Bool) -> Str
+  ensures: result.len() >= 1;
+{
   let al = _normalized_lines(a, trim_trailing_ws);
   let bl = _normalized_lines(b, trim_trailing_ws);
   let count = _diff_count(&al, &bl);
@@ -269,6 +281,8 @@ pub fn snapshot_diff_summary(a: Str, b: Str, trim_trailing_ws: Bool) -> Str {
 /// Returns: snapshot_equal(a, b, true).
 /// Errors: none.
 /// Complexity: O(n + m).
-pub fn snapshot_is_clean(a: Str, b: Str) -> Bool {
+pub fn snapshot_is_clean(a: Str, b: Str) -> Bool
+  ensures: a.len() == 0 && b.len() == 0 => result;
+{
   return snapshot_equal(a, b, true);
 }

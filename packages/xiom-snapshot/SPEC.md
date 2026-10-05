@@ -1,8 +1,9 @@
 # xiom.snapshot -- Specification
 
-Status: `incubating` (implemented, harness-green, not published).
+Status: `stable` (published; v0.63.0 fleet sweep green; contract hardening
+in 0.1.2).
 Module: `xiom.snapshot` (`src/snapshot.xi`). Manifest: `package.xi` (name
-`xiom.snapshot`, version `0.1.0`). Depends on `xiom.std` (`xiom.string`,
+`xiom.snapshot`, version `0.1.2`). Depends on `xiom.std` (`xiom.string`,
 `xiom.string.compare`, `xiom.convert.int`).
 
 ## Scope
@@ -218,3 +219,22 @@ program_exit=0 exit=0)`.
   pure byte-constant comparisons.
 - No `Vec[StructType]`, no `Vec[fn]` dispatch, no `self` methods, no lambdas,
   no `mut` match patterns; the module is free functions and `while` loops.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 15 unknown / 8 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `snapshot_lines` | `ensures: result.len() <= text.len()`; `ensures: text.len() == 0 => result.len() == 0` | unproven |
+| `snapshot_normalized` | `ensures: result.len() <= text.len()` | unproven |
+| `snapshot_equal` / `snapshot_is_clean` | `ensures: a.len() == 0 && b.len() == 0 => result` | unproven |
+| `snapshot_first_diff_line` | `ensures: result >= -1`; `ensures: result <= a.len() + b.len()` | unproven |
+| `snapshot_diff_summary` | `ensures: result.len() >= 1` | unproven |
+
+Unasserted/documented: the exact normalization rules (CRLF handling,
+per-line trailing space/tab trim, trailing empty-line drop), the summary
+grammar and the `<missing>` convention are pinned by the 20-check test
+plan and section 3; string-content contracts stay out of scope for the
+runtime evaluator.

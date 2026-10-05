@@ -9,7 +9,7 @@
 
 package xiom_snapshot {
   name: "xiom.snapshot";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Snapshot comparison helpers: normalization, line equality, and first-difference summaries";
   categories: ["tooling", "testing"];
   keywords: ["snapshot", "golden", "testing", "diff"];
