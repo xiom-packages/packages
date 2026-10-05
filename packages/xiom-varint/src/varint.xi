@@ -53,7 +53,10 @@ fn _byte(data: &Vec[UInt8], off: Int) -> Int {
 /// non-negative values are encodable; `n < 0` yields an empty Vec[UInt8]
 /// (caller error; the API cannot return Err). 0 encodes as the single byte
 /// 0x00 and 2^63-1 as nine bytes.
-pub fn varint_encode_u(n: Int) -> Vec[UInt8] {
+pub fn varint_encode_u(n: Int) -> Vec[UInt8]
+  ensures: n < 0 => result.len() == 0;
+  ensures: n >= 0 => result.len() >= 1 && result.len() <= 10;
+{
   var out = Vec[UInt8].new();
   if n < 0 {
     return out;
@@ -76,7 +79,10 @@ pub fn varint_encode_u(n: Int) -> Vec[UInt8] {
 /// Encoded byte count of the unsigned LEB128 varint for `n`, so that
 /// `varint_size_u(n) == varint_encode_u(n).len()` for every encodable `n`.
 /// `n < 0` yields 0 (there is no encoding).
-pub fn varint_size_u(n: Int) -> Int {
+pub fn varint_size_u(n: Int) -> Int
+  ensures: n < 0 => result == 0;
+  ensures: n >= 0 => result >= 1 && result <= 10;
+{
   if n < 0 {
     return 0;
   }
@@ -95,7 +101,9 @@ pub fn varint_size_u(n: Int) -> Int {
 /// `z = 2n`, for `n < 0` `z = 2*(|n|-1) + 1`, with the +1 folded into a
 /// base-128 digit carry so INT64_MIN never overflows. INT64_MIN and
 /// INT64_MAX each encode as 10 bytes.
-pub fn varint_encode_zigzag(n: Int) -> Vec[UInt8] {
+pub fn varint_encode_zigzag(n: Int) -> Vec[UInt8]
+  ensures: result.len() >= 1 && result.len() <= 10;
+{
   var k = n;
   var carry: Int = 0;
   if n < 0 {

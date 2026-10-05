@@ -1,8 +1,8 @@
 # xiom.varint -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.varint`, version `0.1.0`).
+Status: `stable` (published; v0.63.0 fleet sweep green; contract hardening
+in 0.1.2).
+Manifest: `package.xi` (`xiom.varint`, version `0.1.2`).
 Module: `src/varint.xi` (`module xiom.varint`).
 Depends on `xiom.std` only (platform dependency; the module itself imports
 nothing).
@@ -239,3 +239,26 @@ Last verified: compiler 0.61.3,
   bit pattern.
 - Tests compare `Str` errors with `str_compare`
   (`xiom.string.compare`), never with `==`.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **2 proven / 0 violated / 8 unknown / 0 errors**. The two
+`n < 0` fast-path clauses are discharged; the size-bound clauses and the
+remaining encoder clauses stay solver-unknown (loop/body gaps).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `varint_encode_u` | `ensures: n < 0 => result.len() == 0`; `ensures: n >= 0 => result.len() >= 1 && result.len() <= 10` | proven (`n < 0`), unproven (bounds) |
+| `varint_size_u` | `ensures: n < 0 => result == 0`; `ensures: n >= 0 => result >= 1 && result <= 10` | proven (`n < 0`), unproven (bounds) |
+| `varint_encode_zigzag` | `ensures: result.len() >= 1 && result.len() <= 10` | unproven |
+| `varint_decode_u` / `varint_decode_zigzag` | none | unasserted (documented) |
+| `varint_is_canonical_u` | none | unasserted (documented) |
+
+Unasserted/documented: the decoders' `(value, next)` advance property
+(`off < next <= off + 10` on `Ok`) is not expressible today -- tuple
+component access (`result.value.1`) in a contract expression evaluates
+incorrectly on v0.63.0 (observed as a spurious violation at `off == 0`),
+so it is pinned by the test plan instead. Canonicality
+(`varint_is_canonical_u` == decode + minimal length) is likewise
+test-pinned; its definitional clause would be recursive.
