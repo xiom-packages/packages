@@ -165,6 +165,36 @@ Every other function is total: the one-shot function, `init`, the unchecked
 message is deterministic and identical across both rejection paths; the
 tests pin it with `compare.str_compare` (never `==` on `Str`).
 
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked `ensures:` clauses added to `src/adler32.xi` (compiler
+v0.63.1; no version bump). 23 clauses across the 8 public entry points
+(1/3/3/3/4/4/4/1). Two consecutive
+`.\scripts\port.ps1 -Package xiom.adler32 -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active and no clause trapped, so none was dropped. Classes follow the
+batch #14 clause plan: **Z3-provable** = pure scalar guard/form/bounds
+family (a Z3 candidate; `4293984240` is the inlined `_ADLER_MAX_STATE`
+literal, since module consts are not used inside clauses);
+**runtime-checked** = the clause's truth depends on a called function or
+on the built `Str` and is enforced by the v0.63.1 runtime evaluator.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `adler32_init` | `ensures: result == 1` | Z3-provable (pure scalar) |
+| `adler32` | `ensures: data.len() == 0 => result == 1`; `ensures: result >= 0`; `ensures: result <= 4293984240` | Z3-provable (pure scalar) |
+| `adler32_update` | `ensures: result >= 0`; `ensures: result <= 4293984240`; `ensures: data.len() == 0 => result == adler32_finalize(state)` | Z3-provable (bounds); runtime-checked (empty-update identity) |
+| `adler32_finalize` | `ensures: result >= 0`; `ensures: result <= 4293984240`; `ensures: adler32_state_valid(state) => result == state` | Z3-provable (bounds); runtime-checked (canonical identity) |
+| `adler32_state_valid` | `ensures: state < 0 => !result`; `ensures: state > 4293984240 => !result`; `ensures: result => state >= 0`; `ensures: result => state % 65536 <= 65520` | Z3-provable (pure scalar) |
+| `adler32_update_checked` | `ensures: !adler32_state_valid(state) => result is Err`; `ensures: adler32_state_valid(state) => result is Ok`; `ensures: result is Ok => result.value >= 0`; `ensures: result is Ok => result.value <= 4293984240` | runtime-checked (guard pair); Z3-provable (Ok scalar bounds) |
+| `adler32_finalize_checked` | same guard pair; same Ok scalar bounds | runtime-checked (guard pair); Z3-provable (Ok scalar bounds) |
+| `adler32_hex` | `ensures: result.len() == 8` | runtime-checked (built `Str` length) |
+
+Excluded by the plan's forbidden shapes: the `adler32_hex` digit-charset
+clause (Str equality, BUG 17 family) and full round-trip identities; the
+digit set and the pinned vectors stay guaranteed by the conformance suite
+instead.
+
 ## Test vectors
 
 All values were computed with **independent** reference implementations

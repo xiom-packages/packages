@@ -9,7 +9,7 @@
 
 package xiom_adler32 {
   name: "xiom.adler32";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Adler-32 checksum with one-shot, incremental and hex-display APIs";
   categories: ["data"];
   keywords: ["adler32", "checksum", "zlib", "integrity"];

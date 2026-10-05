@@ -173,7 +173,9 @@ fn _adler_bytes(state: Int, data: &Vec[UInt8]) -> Int {
 /// Returns: 1, the Adler-32 checksum of the empty input.
 /// Error case: none (total).
 /// Complexity: O(1).
-pub fn adler32_init() -> Int {
+pub fn adler32_init() -> Int
+  ensures: result == 1;
+{
   return 1;
 }
 
@@ -183,7 +185,11 @@ pub fn adler32_init() -> Int {
 /// [0, 4293984240]; the empty input yields 1.
 /// Error case: none (total).
 /// Complexity: O(data.len()) time, O(1) space.
-pub fn adler32(data: &Vec[UInt8]) -> Int {
+pub fn adler32(data: &Vec[UInt8]) -> Int
+  ensures: data.len() == 0 => result == 1;
+  ensures: result >= 0;
+  ensures: result <= 4293984240;
+{
   return _adler_bytes(1, data);
 }
 
@@ -198,7 +204,11 @@ pub fn adler32(data: &Vec[UInt8]) -> Int {
 /// Error case: none (total; use adler32_update_checked for strict state
 /// validation).
 /// Complexity: O(data.len()) time, O(1) space.
-pub fn adler32_update(state: Int, data: &Vec[UInt8]) -> Int {
+pub fn adler32_update(state: Int, data: &Vec[UInt8]) -> Int
+  ensures: result >= 0;
+  ensures: result <= 4293984240;
+  ensures: data.len() == 0 => result == adler32_finalize(state);
+{
   return _adler_bytes(state, data);
 }
 
@@ -213,7 +223,11 @@ pub fn adler32_update(state: Int, data: &Vec[UInt8]) -> Int {
 /// Error case: none (total; use adler32_finalize_checked for strict state
 /// validation).
 /// Complexity: O(1).
-pub fn adler32_finalize(state: Int) -> Int {
+pub fn adler32_finalize(state: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= 4293984240;
+  ensures: adler32_state_valid(state) => result == state;
+{
   return _adler_canon(state);
 }
 
@@ -226,7 +240,12 @@ pub fn adler32_finalize(state: Int) -> Int {
 /// Returns: true for the canonical range [0, 4293984240] with s1 <= 65520.
 /// Error case: none (total predicate).
 /// Complexity: O(1).
-pub fn adler32_state_valid(state: Int) -> Bool {
+pub fn adler32_state_valid(state: Int) -> Bool
+  ensures: state < 0 => !result;
+  ensures: state > 4293984240 => !result;
+  ensures: result => state >= 0;
+  ensures: result => state % 65536 <= 65520;
+{
   if state < 0 {
     return false;
   }
@@ -248,7 +267,12 @@ pub fn adler32_state_valid(state: Int) -> Bool {
 /// Error case: Err("adler32: invalid state") when the state is not canonical;
 /// `data` is not read in that case.
 /// Complexity: O(data.len()) time, O(1) space.
-pub fn adler32_update_checked(state: Int, data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn adler32_update_checked(state: Int, data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: !adler32_state_valid(state) => result is Err;
+  ensures: adler32_state_valid(state) => result is Ok;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 4293984240;
+{
   if !adler32_state_valid(state) {
     return _err_int("adler32: invalid state");
   }
@@ -263,7 +287,12 @@ pub fn adler32_update_checked(state: Int, data: &Vec[UInt8]) -> Result[Int, Str]
 /// itself for canonical states.
 /// Error case: Err("adler32: invalid state") when the state is not canonical.
 /// Complexity: O(1).
-pub fn adler32_finalize_checked(state: Int) -> Result[Int, Str] {
+pub fn adler32_finalize_checked(state: Int) -> Result[Int, Str]
+  ensures: !adler32_state_valid(state) => result is Err;
+  ensures: adler32_state_valid(state) => result is Ok;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 4293984240;
+{
   if !adler32_state_valid(state) {
     return _err_int("adler32: invalid state");
   }
@@ -289,7 +318,9 @@ fn _hex_digit(n: Int) -> Str {
 /// Error case: none (total); the output contains only hex digits, so no NUL
 /// byte can reach the string builder.
 /// Complexity: O(1).
-pub fn adler32_hex(value: Int) -> Str {
+pub fn adler32_hex(value: Int) -> Str
+  ensures: result.len() == 8;
+{
   var v = _residue(value, _ADLER_STATE_RANGE);
   var out = "";
   var i = 0;
