@@ -17,9 +17,18 @@ tokens*.json
 .kilo/setup-script*
 .kilocode/
 
-# Compiler outputs
+# Compiler outputs (ports/sweeps drop these beside the suite; cleanup is
+# best-effort on kill, so ignore them repo-wide)
 a.exe
+a.exe.ll
 a.out
+*.exe
+*.exe.ll
+*.o
+*.obj
+*.pdb
+*.dll
+*.lib
 kilo.jsonc
 
 # XIOM MCP tool local state (AI diagnose cache)
