@@ -1,6 +1,6 @@
 # xiom.audit -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.audit` (`src/audit.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -203,3 +203,28 @@ rendering. Tests route every text comparison through
 small `&mut`-taking helpers so that a `&local` call is never followed by a
 `&mut local` call in the same function body (advisory E001), matching the
 `xiom.retry` conformance idiom.
+
+## 9. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **1 proven / 0 violated / 17 unknown / 0 errors, rc=0**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `audit_hash_fnv1a` | `ensures: result >= 0 && result <= 4294967295` | **proven** |
+| `audit_append` | `ensures: result >= 0 && result <= 4294967295`; `ensures: log.entries.len() == log.entries.len()@pre + 1`; `ensures: log.hashes.len() == log.hashes.len()@pre + 1` | unproven |
+| `audit_len` | `ensures: result >= 0` | unproven |
+| `audit_entry` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= log.entries.len() => result.len() == 0` | unproven |
+| `audit_hash` | `ensures: i < 0 => result == -1`; `ensures: i >= log.hashes.len() => result == -1`; `ensures: i >= 0 && i < log.hashes.len() => result >= 0` | unproven |
+| `audit_head_hash` | `ensures: result >= 0` | unproven |
+| `audit_verify` | `ensures: log.entries.len() != log.hashes.len() => !result` | unproven |
+| `audit_verify_prefix` | `ensures: up_to < 0 => result` | unproven |
+| `audit_export` | `ensures: log.entries.len() == 0 => result.len() == 0` | unproven |
+| `audit_new` | none | unasserted (documented) |
+
+Unasserted/documented: `audit_new`'s empty state (struct-result field
+access is out of scope for the runtime evaluator) and the FNV-1a
+known-answer vectors plus the export grammar (section 5) are pinned by
+the 23-check test plan. The append invariant
+(`hashes.len() == entries.len()`) is the machine-checked part of the
+log model.

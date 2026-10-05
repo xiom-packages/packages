@@ -40,7 +40,9 @@ pub type AuditLog = {
 /// Params: s - the text to hash (byte-exact UTF-8; empty string allowed).
 /// Returns: the 32-bit hash value, always non-negative.
 /// Error case: none. Complexity: O(s.len()).
-pub fn audit_hash_fnv1a(s: Str) -> Int {
+pub fn audit_hash_fnv1a(s: Str) -> Int
+  ensures: result >= 0 && result <= 4294967295;
+{
   var hash = 2166136261;
   var i = 0;
   while i < s.len() {
@@ -65,7 +67,11 @@ pub fn audit_new() -> AuditLog {
 /// Params: log - the mutable log; entry - the payload (empty allowed).
 /// Returns: the hash of the appended entry (same value as audit_hash(log, n-1)).
 /// Error case: none. Complexity: O(|decimal(prev)| + entry.len()).
-pub fn audit_append(log: &mut AuditLog, entry: Str) -> Int {
+pub fn audit_append(log: &mut AuditLog, entry: Str) -> Int
+  ensures: result >= 0 && result <= 4294967295;
+  ensures: log.entries.len() == log.entries.len()@pre + 1;
+  ensures: log.hashes.len() == log.hashes.len()@pre + 1;
+{
   var prev: Int = 0;
   let n = log.hashes.len();
   if n > 0 {
@@ -80,7 +86,9 @@ pub fn audit_append(log: &mut AuditLog, entry: Str) -> Int {
 }
 
 /// Number of entries in the log. Complexity: O(1).
-pub fn audit_len(log: &AuditLog) -> Int {
+pub fn audit_len(log: &AuditLog) -> Int
+  ensures: result >= 0;
+{
   return log.entries.len();
 }
 
@@ -88,7 +96,10 @@ pub fn audit_len(log: &AuditLog) -> Int {
 /// Params: log - the log; i - zero-based index.
 /// Returns: the entry, or "" out of range.
 /// Error case: none. Complexity: O(1).
-pub fn audit_entry(log: &AuditLog, i: Int) -> Str {
+pub fn audit_entry(log: &AuditLog, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= log.entries.len() => result.len() == 0;
+{
   if i < 0 {
     return "";
   }
@@ -103,7 +114,11 @@ pub fn audit_entry(log: &AuditLog, i: Int) -> Str {
 /// Params: log - the log; i - zero-based index.
 /// Returns: the hash, or -1 out of range.
 /// Error case: none. Complexity: O(1).
-pub fn audit_hash(log: &AuditLog, i: Int) -> Int {
+pub fn audit_hash(log: &AuditLog, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= log.hashes.len() => result == -1;
+  ensures: i >= 0 && i < log.hashes.len() => result >= 0;
+{
   if i < 0 {
     return -1;
   }
@@ -117,7 +132,9 @@ pub fn audit_hash(log: &AuditLog, i: Int) -> Int {
 /// Hash of the most recent entry, or 0 for an empty log. 0 is also the chain
 /// seed, so an empty log and a hypothetical all-zero head are indistinguishable
 /// by design (see SPEC.md). Complexity: O(1).
-pub fn audit_head_hash(log: &AuditLog) -> Int {
+pub fn audit_head_hash(log: &AuditLog) -> Int
+  ensures: result >= 0;
+{
   let n = log.hashes.len();
   if n == 0 {
     return 0;
@@ -130,7 +147,9 @@ pub fn audit_head_hash(log: &AuditLog) -> Int {
 /// hashes. Also fails when the vectors are not index-aligned (length mismatch).
 /// Returns: true only when every stored hash equals the recomputed one.
 /// Error case: none. Complexity: O(total entry length).
-pub fn audit_verify(log: &AuditLog) -> Bool {
+pub fn audit_verify(log: &AuditLog) -> Bool
+  ensures: log.entries.len() != log.hashes.len() => !result;
+{
   if log.entries.len() != log.hashes.len() {
     return false;
   }
@@ -155,7 +174,9 @@ pub fn audit_verify(log: &AuditLog) -> Bool {
 /// A prefix that reaches past the stored hashes (a truncated hash vector)
 /// fails. Returns: true when every checked link matches.
 /// Error case: none. Complexity: O(sum of the checked entry lengths).
-pub fn audit_verify_prefix(log: &AuditLog, up_to: Int) -> Bool {
+pub fn audit_verify_prefix(log: &AuditLog, up_to: Int) -> Bool
+  ensures: up_to < 0 => result;
+{
   var limit = up_to;
   if limit < 0 {
     limit = 0;
@@ -209,7 +230,9 @@ fn _audit_export_escape(s: Str) -> Str {
 ///   - entry is escaped: LF -> "\n" and '|' -> "\|" (backslash-prefixed).
 /// An empty log exports as "". Params: log - the log.
 /// Returns: the export text. Error case: none. Complexity: O(total entry length).
-pub fn audit_export(log: &AuditLog) -> Str {
+pub fn audit_export(log: &AuditLog) -> Str
+  ensures: log.entries.len() == 0 => result.len() == 0;
+{
   var out = "";
   var i = 0;
   while i < log.entries.len() {
