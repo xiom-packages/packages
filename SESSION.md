@@ -44,10 +44,17 @@ running). Check `git log -1 --format=%h %s` before starting.
   feat shas: ppm `c483515c`, base58 `4001032a` (+SPEC sync `fe562c80`), luhn `2aa554c6`,
   farbfeld `9ad7b024`, diff `301c8e7b` (+SPEC sync in-feat), tlv `20d6f112`; wrap
   `ee2a7cd2`. Index/status/namespaces regenerated; guard 499/459/40/0; no ops delta.
-- **Next:** batch #13 from the remaining **223** zero-clause stable carriers
+- **Batch #13 DONE + PUBLISHED (`eco-v0.1.57`, run `37324749812` SUCCESS):** six-porter
+  fan-out -- `xiom.pcx` (29 clauses, 18/18), `xiom.patch` (13, 18/18), `xiom.telnet`
+  (23, 18/18, 0.1.3), `xiom.dotenv` (11, 18/18), `xiom.ulid` (26, 18/18), `xiom.ico`
+  (32 + 2 `@pre` frame clauses, 16/16; dropped a false `kind` range clause by design);
+  x2 confirmed by the coordinator, live-verified (telnet 0.1.3, others 0.1.2). feat shas:
+  pcx `7d1b286d`, patch `59de29c3`, telnet `a931e97a`, dotenv `ee7080c4`, ulid `b713828d`,
+  ico `3865ee7a`; wrap `f90d81b9`. Guard 499/459/40/0; no ops delta.
+- **Next:** batch #14 from the remaining **217** zero-clause stable carriers
   (`scripts/contract-coverage.ps1`); PULSE lane (`E:\xiom-projects\xiom-pulse`) feeds
   findings into this pipeline. `xiom-verify` writes `xiom_verify_output.smt2` to the CWD
-  (race noted by the tlv porter) -- run it with the package dir as CWD.
+  -- run it with the package dir as CWD.
 
 **--- Older state below (history) ---**
 
@@ -1108,7 +1115,7 @@ private). Read SESSION.md first -- the 2026-10-05 13:45Z STATE block is
 the live handoff (v0.63.1 pinned + SHA256-verified; repin 514; **fleet
 sweep v0.63.1 COMPLETE + RECORDED 460/460**, `fleet-sweep:v0.63.1`,
 commit `43b79adb`; contract-evaluator fix live in `eco-v0.1.55`;
-hardening batches #1-#12 published across `eco-v0.1.44`-`eco-v0.1.56`;
+hardening batches #1-#13 published across `eco-v0.1.44`-`eco-v0.1.57`;
 229 stable packages at zero clauses; registry 459 packages + 2 infra;
 allowlist 499). Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
@@ -1135,8 +1142,8 @@ above, then:
 
 Then do, in order:
 1. Hardening batch #13 (FAN-OUT): pick the next ~6 smallest zero-clause
-   stable carriers with `scripts/contract-coverage.ps1` (223 remain after
-   batch #12), then reuse the proven workflow: per-function clause
+   stable carriers with `scripts/contract-coverage.ps1` (217 remain after
+   batch #13), then reuse the proven workflow: per-function clause
    pre-plan (families only; forbidden shapes: tuple-component,
    payload-length-vs-parameter, struct-result), one background `task`
    porter per package (brief template `%TEMP%\kilo\batch12-porter-brief.md`;
@@ -1145,7 +1152,7 @@ Then do, in order:
    (re-verify port x2, `feat` commit exact files, record the REAL
    main-worktree sha with `-RunBy task:ses_...`). **Version-bump rule:**
    bump+publish ONLY when source changed; a zero-clause pass is docs-only.
-   Wrap + publish the batch (next tag `eco-v0.1.57`; <=20 names, no ops
+   Wrap + publish the batch (next tag `eco-v0.1.58`; <=20 names, no ops
    delta). Note: `xiom-verify` writes `xiom_verify_output.smt2` to the
    CWD -- run it with the package dir as CWD.
 2. Next compiler archive: re-pin per `docs/MAINTENANCE.md` (bump
