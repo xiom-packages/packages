@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.63.0` -- generated 2026-10-05T10:44:21Z.
+Toolchain pin: `v0.63.1` -- generated 2026-10-05T12:05:34Z.
 
 ## Summary
 
@@ -60,7 +60,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.cbor | xiom-cbor | stable | tests/test_conformance.xi | pass 20/20 | 23b01b82 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.chemistry | xiom-chemistry | stable | tests/test_conformance.xi | pass 25/25 | 23b01b82 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.cidr | xiom-cidr | stable | tests/test_conformance.xi | pass 22/22 | 5f469ee5 | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.cobs | xiom-cobs | stable | tests/test_conformance.xi | pass 20/20 | 37a083c2 | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.cobs | xiom-cobs | stable | tests/test_conformance.xi | pass 20/20 | 9376e622 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.codec | xiom-codec | stable | tests/test_conformance.xi | pass 24/24 | 23b01b82 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.collation | xiom-collation | stable | tests/test_conformance.xi | pass 20/20 | 33fec09a | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.control | xiom-control | stable | tests/test_conformance.xi | pass 32/32 | ae2dec2c | False | publish pending: eco-v0.1.37 promotion |
@@ -293,7 +293,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.useragent | xiom-useragent | stable | tests/test_conformance.xi | pass 19/19 | 5f469ee5 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.uuid | xiom-uuid | stable | tests/test_conformance.xi | pass 18/18 | 400040b6 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.validation | xiom-validation | stable | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.varint | xiom-varint | stable | tests/test_conformance.xi | pass 20/20 | f138d729 | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.varint | xiom-varint | stable | tests/test_conformance.xi | pass 20/20 | 4fa22c65 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.vcf | xiom-vcf | stable | tests/test_conformance.xi | pass 24/24 | e295e6fc | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.vdf | xiom-vdf | stable | tests/test_conformance.xi | pass 23/23 | e295e6fc | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.vtt | xiom-vtt | stable | tests/test_conformance.xi | pass 23/23 | e295e6fc | False | publish pending: registry scope addition + repo protection decision + allowlist |
