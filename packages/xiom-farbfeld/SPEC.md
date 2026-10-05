@@ -151,3 +151,50 @@ Semantics, in the order the implementation applies them:
   interpretation.
 - No conversion to or from other image formats and no rendering.
 - Single image only: concatenated buffers fail with `extra pixel data`.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; 30 clauses across the 15 entry points
+(1/2/2/1/1/1/1/3/2/2/3/2/1/4/4). All 30 are enforced by the v0.63.1 runtime
+evaluator: two consecutive
+`.\scripts\port.ps1 -Package xiom.farbfeld -TimeoutSec 60` runs ended
+`port: PASS (passed=17 failed=0 program_exit=0 exit=0)` with no clause
+trapped, so no clause was dropped. Classes follow the batch #12 clause plan:
+**pure scalar** = arithmetic over `Int` parameters and scalar struct fields
+(the Z3 family); **runtime** = result tag/payload or `Vec`/`Str` payload
+lengths.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `farbfeld_max_dim` | `ensures: result == 1000000` | pure scalar |
+| `farbfeld_width` | `ensures: result >= 1`; `ensures: result <= 1000000` | pure scalar |
+| `farbfeld_height` | `ensures: result >= 1`; `ensures: result <= 1000000` | pure scalar |
+| `farbfeld_data_offset` | `ensures: result == 16` | pure scalar |
+| `farbfeld_pixel_count` | `ensures: result == img.width * img.height` | pure scalar |
+| `farbfeld_row_bytes` | `ensures: result == img.width * 8` | pure scalar |
+| `farbfeld_raster_len` | `ensures: result == img.width * img.height * 8` | pure scalar |
+| `farbfeld_pixel_offset` | `ensures: (x < 0 \|\| y < 0 \|\| x >= img.width \|\| y >= img.height) => result == -1`; `ensures: result >= -1`; `ensures: result != -1 => result == img.data_offset + (y * img.width + x) * 8` | pure scalar |
+| `farbfeld_parse_header` | `ensures: data.len() < 8 => result is Err`; `ensures: result is Ok => data.len() >= 16` | runtime |
+| `farbfeld_pixel_rgba` | `ensures: x < 0 => result is Err`; `ensures: y < 0 => result is Err` | runtime |
+| `farbfeld_pixel_channel` | `ensures: c < 0 => result is Err`; `ensures: c > 3 => result is Err`; `ensures: result is Ok => result.value >= 0 && result.value <= 65535` | runtime |
+| `farbfeld_row_copy` | `ensures: y < 0 => result is Err`; `ensures: y >= img.height => result is Err` | runtime |
+| `farbfeld_raster_copy` | `ensures: result is Ok => img.data_offset >= 0` | runtime |
+| `farbfeld_build` | `ensures: width <= 0 => result is Err`; `ensures: width > 1000000 => result is Err`; `ensures: height <= 0 => result is Err`; `ensures: height > 1000000 => result is Err` | runtime |
+| `farbfeld_build_raw` | `ensures: width <= 0 => result is Err`; `ensures: width > 1000000 => result is Err`; `ensures: height <= 0 => result is Err`; `ensures: height > 1000000 => result is Err` | runtime |
+
+The width/height/data_offset range clauses state the parsed-image invariant
+(a `FarbfeldImage` returned by `farbfeld_parse_header` is always
+1..1000000 with `data_offset == 16`); under the runtime evaluator they are
+checked on every call, so a forged image outside the invariant would trap in
+a checked build. `farbfeld_pixel_offset`'s exact-offset clause is guarded by
+`result != -1`, and the sentinel clause by the out-of-range antecedent, so
+both hold on every return path.
+
+Unasserted/documented: the exact `"farbfeld: ..."` error strings and their
+precedence order (Error catalog), the byte-level header layout (Exact
+layout), the 0..65535 channel values of `farbfeld_pixel_rgba` (struct-result
+field access is out of scope), and the payload lengths of
+`farbfeld_row_copy` / `farbfeld_raster_copy` (payload-length-vs-parameter
+comparisons are a forbidden v0.63.1 runtime shape) stay pinned by the
+17-check test plan and the sections above.
+

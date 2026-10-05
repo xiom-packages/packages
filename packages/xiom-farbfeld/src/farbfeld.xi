@@ -134,45 +134,65 @@ fn _px_channel(p: FarbfeldPixel, c: Int) -> Int {
 // The documented dimension cap for both axes: 1,000,000. At the cap a full
 // raster is 8,000,000,000,000 bytes, still far below the 64-bit Int range, so
 // width*height*8 and data_offset + raster_len cannot overflow.
-pub fn farbfeld_max_dim() -> Int {
+pub fn farbfeld_max_dim() -> Int
+  ensures: result == 1000000;
+{
   return 1000000;
 }
 
 // Width in pixels of a parsed image (always 1..1000000).
-pub fn farbfeld_width(img: &FarbfeldImage) -> Int {
+pub fn farbfeld_width(img: &FarbfeldImage) -> Int
+  ensures: result >= 1;
+  ensures: result <= 1000000;
+{
   return img.width;
 }
 
 // Height in rows of a parsed image (always 1..1000000).
-pub fn farbfeld_height(img: &FarbfeldImage) -> Int {
+pub fn farbfeld_height(img: &FarbfeldImage) -> Int
+  ensures: result >= 1;
+  ensures: result <= 1000000;
+{
   return img.height;
 }
 
 // Byte offset of the first raster byte in the buffer passed to
 // farbfeld_parse_header (always 16).
-pub fn farbfeld_data_offset(img: &FarbfeldImage) -> Int {
+pub fn farbfeld_data_offset(img: &FarbfeldImage) -> Int
+  ensures: result == 16;
+{
   return img.data_offset;
 }
 
 // Pixel count of the raster: width * height.
-pub fn farbfeld_pixel_count(img: &FarbfeldImage) -> Int {
+pub fn farbfeld_pixel_count(img: &FarbfeldImage) -> Int
+  ensures: result == img.width * img.height;
+{
   return img.width * img.height;
 }
 
 // Length in bytes of one row: width * 8 (four 16-bit channels per pixel).
-pub fn farbfeld_row_bytes(img: &FarbfeldImage) -> Int {
+pub fn farbfeld_row_bytes(img: &FarbfeldImage) -> Int
+  ensures: result == img.width * 8;
+{
   return img.width * 8;
 }
 
 // Exact raster length in bytes: width * height * 8.
-pub fn farbfeld_raster_len(img: &FarbfeldImage) -> Int {
+pub fn farbfeld_raster_len(img: &FarbfeldImage) -> Int
+  ensures: result == img.width * img.height * 8;
+{
   return img.width * img.height * 8;
 }
 
 // Byte offset of pixel (x, y) with a top-left origin, or -1 when the
 // coordinate is outside the image. The sentinel is unambiguous because every
 // in-range offset is >= 16.
-pub fn farbfeld_pixel_offset(img: &FarbfeldImage, x: Int, y: Int) -> Int {
+pub fn farbfeld_pixel_offset(img: &FarbfeldImage, x: Int, y: Int) -> Int
+  ensures: (x < 0 || y < 0 || x >= img.width || y >= img.height) => result == -1;
+  ensures: result >= -1;
+  ensures: result != -1 => result == img.data_offset + (y * img.width + x) * 8;
+{
   if (x < 0) { return -1; }
   if (y < 0) { return -1; }
   if (x >= img.width) { return -1; }
@@ -188,7 +208,10 @@ pub fn farbfeld_pixel_offset(img: &FarbfeldImage, x: Int, y: Int) -> Int {
 // above farbfeld_max_dim are "farbfeld: dimension overflow", and the raster
 // must be exactly 8*width*height bytes: shorter is "farbfeld: truncated
 // pixels", longer is "farbfeld: extra pixel data".
-pub fn farbfeld_parse_header(data: &Vec[UInt8]) -> Result[FarbfeldImage, Str] {
+pub fn farbfeld_parse_header(data: &Vec[UInt8]) -> Result[FarbfeldImage, Str]
+  ensures: data.len() < 8 => result is Err;
+  ensures: result is Ok => data.len() >= 16;
+{
   let n = data.len();
   if (n < 8) { return _err_img("farbfeld: truncated header"); }
   if (!_magic_is(data)) { return _err_img("farbfeld: bad magic"); }
@@ -210,7 +233,10 @@ pub fn farbfeld_parse_header(data: &Vec[UInt8]) -> Result[FarbfeldImage, Str] {
 // B, A). Coordinates outside the image return Err("farbfeld: pixel out of
 // range"); validation errors from farbfeld_parse_header are propagated
 // unchanged, and a decoded pixel is always fully populated.
-pub fn farbfeld_pixel_rgba(data: &Vec[UInt8], x: Int, y: Int) -> Result[FarbfeldPixel, Str] {
+pub fn farbfeld_pixel_rgba(data: &Vec[UInt8], x: Int, y: Int) -> Result[FarbfeldPixel, Str]
+  ensures: x < 0 => result is Err;
+  ensures: y < 0 => result is Err;
+{
   let parsed = farbfeld_parse_header(data);
   match parsed {
     Ok(img) => {
@@ -234,7 +260,11 @@ pub fn farbfeld_pixel_rgba(data: &Vec[UInt8], x: Int, y: Int) -> Result[Farbfeld
 // One channel of pixel (x, y): c 0 = R, 1 = G, 2 = B, 3 = A. Coordinates are
 // validated exactly like farbfeld_pixel_rgba; c outside 0..3 is
 // "farbfeld: channel index out of range".
-pub fn farbfeld_pixel_channel(data: &Vec[UInt8], x: Int, y: Int, c: Int) -> Result[Int, Str] {
+pub fn farbfeld_pixel_channel(data: &Vec[UInt8], x: Int, y: Int, c: Int) -> Result[Int, Str]
+  ensures: c < 0 => result is Err;
+  ensures: c > 3 => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 65535;
+{
   let parsed = farbfeld_pixel_rgba(data, x, y);
   match parsed {
     Ok(p) => {
@@ -250,7 +280,10 @@ pub fn farbfeld_pixel_channel(data: &Vec[UInt8], x: Int, y: Int, c: Int) -> Resu
 // row index y. y outside 0..height-1 is "farbfeld: row out of range"; a forged
 // or stale image whose span falls outside `data` is
 // "farbfeld: raster out of range".
-pub fn farbfeld_row_copy(data: &Vec[UInt8], img: &FarbfeldImage, y: Int) -> Result[Vec[UInt8], Str] {
+pub fn farbfeld_row_copy(data: &Vec[UInt8], img: &FarbfeldImage, y: Int) -> Result[Vec[UInt8], Str]
+  ensures: y < 0 => result is Err;
+  ensures: y >= img.height => result is Err;
+{
   if (y < 0) { return _err_bytes("farbfeld: row out of range"); }
   if (y >= img.height) { return _err_bytes("farbfeld: row out of range"); }
   let rb = img.width * 8;
@@ -270,7 +303,9 @@ pub fn farbfeld_row_copy(data: &Vec[UInt8], img: &FarbfeldImage, y: Int) -> Resu
 // Copy the exact raster span (width * height * 8 bytes, no padding) out of
 // `data`. The span is guarded against the buffer length so a forged or stale
 // image cannot read out of bounds: "farbfeld: raster out of range".
-pub fn farbfeld_raster_copy(data: &Vec[UInt8], img: &FarbfeldImage) -> Result[Vec[UInt8], Str] {
+pub fn farbfeld_raster_copy(data: &Vec[UInt8], img: &FarbfeldImage) -> Result[Vec[UInt8], Str]
+  ensures: result is Ok => img.data_offset >= 0;
+{
   let rl = img.width * img.height * 8;
   if (img.data_offset < 0) { return _err_bytes("farbfeld: raster out of range"); }
   if (rl < 0) { return _err_bytes("farbfeld: raster out of range"); }
@@ -293,7 +328,12 @@ pub fn farbfeld_raster_copy(data: &Vec[UInt8], img: &FarbfeldImage) -> Result[Ve
 // ("farbfeld: channel buffer size mismatch"), or when any channel is outside
 // 0..65535 ("farbfeld: channel out of range"). Nothing is emitted unless the
 // whole buffer validates.
-pub fn farbfeld_build(rgba: &Vec[Int], width: Int, height: Int) -> Result[Vec[UInt8], Str] {
+pub fn farbfeld_build(rgba: &Vec[Int], width: Int, height: Int) -> Result[Vec[UInt8], Str]
+  ensures: width <= 0 => result is Err;
+  ensures: width > 1000000 => result is Err;
+  ensures: height <= 0 => result is Err;
+  ensures: height > 1000000 => result is Err;
+{
   let e = _dim_error(width, height);
   if (e.len() > 0) { return _err_bytes(e); }
   let need = width * height * 4;
@@ -322,7 +362,12 @@ pub fn farbfeld_build(rgba: &Vec[Int], width: Int, height: Int) -> Result[Vec[UI
 // copied verbatim: no channel values are interpreted or range checked.
 // Dimensions are validated exactly like farbfeld_build; a byte count other
 // than width*height*8 is "farbfeld: raster buffer size mismatch".
-pub fn farbfeld_build_raw(be_rgba: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UInt8], Str] {
+pub fn farbfeld_build_raw(be_rgba: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UInt8], Str]
+  ensures: width <= 0 => result is Err;
+  ensures: width > 1000000 => result is Err;
+  ensures: height <= 0 => result is Err;
+  ensures: height > 1000000 => result is Err;
+{
   let e = _dim_error(width, height);
   if (e.len() > 0) { return _err_bytes(e); }
   let need = width * height * 8;

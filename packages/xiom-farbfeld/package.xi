@@ -9,7 +9,7 @@
 
 package xiom_farbfeld {
   name: "xiom.farbfeld";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Farbfeld 16-bit RGBA image parsing, pixel access and canonical building";
   categories: ["graphics"];
   keywords: ["farbfeld", "image", "rgba", "format"];
