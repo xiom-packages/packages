@@ -266,3 +266,48 @@ Last verified: compiler 0.61.3,
   comparison).
 - No module-level const arrays and no `use` statements in the library
   module.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; 18 clauses across the six entry points
+(2/2/4/4/2/4). All 18 are enforced by the v0.63.1 runtime evaluator: two
+consecutive `.\scripts\port.ps1 -Package xiom.ogg -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` (6.25 s / 6.20 s)
+with no clause trapped, so no clause was dropped. `xiom-verify --check`
+(xiom-verify v0.63.1, Z3 4.13.4) result: **0 proven / 0 violated / 13
+unknown / 1 error** -- no clause is refuted. The error is the emitter
+failing on the private helper `_err_bool (String)` ("unknown constant"); the
+unknowns are emitter skips (`operator Lt`/`operator Ge` on non-numeric
+operands, `equality with unresolved operand sort`, `unsupported expression
+in contract`, `loop without invariant`, `field access '.is_ok'`), so no
+clause is machine-discharged on v0.63.1. Classes follow the batch #12
+clause plan: **pure scalar** = clause over `Int` parameters and the `Int`
+result only (the Z3 family); **runtime** = the clause reads a `Vec` length,
+a struct field or a result tag/payload, so it is enforced by the runtime
+evaluator only.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `ogg_parse_pages` | `ensures: data.len() < 27 => result is Err`; `ensures: result is Ok => data.len() >= 27` | runtime (guard-pair) |
+| `ogg_page_count` | `ensures: result == p.offsets.len()`; `ensures: result >= 0` | runtime (field length) + pure scalar (range) |
+| `ogg_page_offset` | `ensures: i < 0 => result == -1`; `ensures: i >= p.offsets.len() => result == -1`; `ensures: result >= -1`; `ensures: result != -1 => result >= 0` | pure scalar (sentinel/range) + runtime (field length) |
+| `ogg_page_serial` | `ensures: i < 0 => result == -1`; `ensures: i >= p.serials.len() => result == -1`; `ensures: result >= -1`; `ensures: result != -1 => result >= 0 && result <= 4294967295` | pure scalar (sentinel/range) + runtime (field length) |
+| `ogg_crc32` | `ensures: data.len() == 0 => result == 0`; `ensures: result >= 0 && result <= 4294967295` | runtime (`Vec` length) + pure scalar (range) |
+| `ogg_page_crc_ok` | `ensures: page_index < 0 => result is Err`; `ensures: data.len() < 27 => result is Err`; `ensures: result is Ok => page_index >= 0`; `ensures: result is Ok => data.len() >= 27` | runtime (guard-pair) |
+
+The sentinel clauses are the `pcap_caplen` pattern (`i < 0` and
+`i >= len` return the documented `-1`), and the guard pairs mirror
+`pcap_parse` (`data.len() < 24` / `result is Ok => data.len() >= 24`); the
+scalar bounds record the module invariants that page offsets are
+non-negative, serials fit in an unsigned 32-bit word, and every CRC result
+is a non-negative 32-bit value, with `ogg_crc32(empty) == 0` pinned.
+
+Unasserted/documented: the exact `"ogg: ..."` error strings and their
+precedence order, the page-walk validation rules and the pinned CRC vectors
+stay pinned by the 22-check test plan (above). The `Ok` payload of
+`ogg_parse_pages` (a six-`Vec` `OggPages` value) and the `Ok(bool)`
+checksum verdict of `ogg_page_crc_ok` are deliberately not asserted
+(struct-result payload access and payload-truth clauses have no proven
+v0.63.1 shape); granule clamping and the stored-checksum comparison stay
+documented only, because they need bit-level arithmetic and `Str`
+content comparison outside the supported clause grammar.

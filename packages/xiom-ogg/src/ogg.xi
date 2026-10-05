@@ -170,7 +170,10 @@ fn _crc_range(data: &Vec[UInt8], start: Int, size: Int, zero_from: Int, zero_to:
 /// appended to the returned OggPages index in stream order: absolute byte
 /// offset, total size, raw header-type flag, granule position (clamped to
 /// Int max, see SPEC.md), unsigned serial and unsigned sequence number.
-pub fn ogg_parse_pages(data: &Vec[UInt8]) -> Result[OggPages, Str] {
+pub fn ogg_parse_pages(data: &Vec[UInt8]) -> Result[OggPages, Str]
+  ensures: data.len() < 27 => result is Err;
+  ensures: result is Ok => data.len() >= 27;
+{
   let n = data.len();
   if n == 0 {
     return _err_pages("ogg: empty input");
@@ -235,13 +238,21 @@ pub fn ogg_parse_pages(data: &Vec[UInt8]) -> Result[OggPages, Str] {
 }
 
 /// Number of parsed pages. Complexity: O(1).
-pub fn ogg_page_count(p: &OggPages) -> Int {
+pub fn ogg_page_count(p: &OggPages) -> Int
+  ensures: result == p.offsets.len();
+  ensures: result >= 0;
+{
   return p.offsets.len();
 }
 
 /// Absolute byte offset of page `i` in the scanned buffer; -1 when `i` is
 /// negative or >= ogg_page_count(p). Complexity: O(1).
-pub fn ogg_page_offset(p: &OggPages, i: Int) -> Int {
+pub fn ogg_page_offset(p: &OggPages, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= p.offsets.len() => result == -1;
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 0;
+{
   if i < 0 {
     return -1;
   }
@@ -254,7 +265,12 @@ pub fn ogg_page_offset(p: &OggPages, i: Int) -> Int {
 
 /// Unsigned 32-bit bitstream serial of page `i`; -1 when `i` is negative or
 /// >= ogg_page_count(p). Complexity: O(1).
-pub fn ogg_page_serial(p: &OggPages, i: Int) -> Int {
+pub fn ogg_page_serial(p: &OggPages, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= p.serials.len() => result == -1;
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 0 && result <= 4294967295;
+{
   if i < 0 {
     return -1;
   }
@@ -269,7 +285,10 @@ pub fn ogg_page_serial(p: &OggPages, i: Int) -> Int {
 /// MSB-first, no input/output reflection, no final xor. All 32-bit results
 /// are returned as non-negative Int values, and ogg_crc32(empty) == 0.
 /// Complexity: O(data.len()).
-pub fn ogg_crc32(data: &Vec[UInt8]) -> Int {
+pub fn ogg_crc32(data: &Vec[UInt8]) -> Int
+  ensures: data.len() == 0 => result == 0;
+  ensures: result >= 0 && result <= 4294967295;
+{
   return _crc_range(data, 0, data.len(), 1, 0);
 }
 
@@ -282,7 +301,12 @@ pub fn ogg_crc32(data: &Vec[UInt8]) -> Int {
 /// Err carries the ogg_parse_pages error when the buffer is not a valid
 /// page walk, and Err("ogg: page index out of range") when `page_index` is
 /// negative or >= ogg_page_count(p). Complexity: O(page size).
-pub fn ogg_page_crc_ok(data: &Vec[UInt8], page_index: Int) -> Result[Bool, Str] {
+pub fn ogg_page_crc_ok(data: &Vec[UInt8], page_index: Int) -> Result[Bool, Str]
+  ensures: page_index < 0 => result is Err;
+  ensures: data.len() < 27 => result is Err;
+  ensures: result is Ok => page_index >= 0;
+  ensures: result is Ok => data.len() >= 27;
+{
   let pr = ogg_parse_pages(data);
   if !pr.is_ok {
     return _err_bool(pr.error);
