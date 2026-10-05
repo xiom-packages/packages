@@ -1,8 +1,9 @@
 # xiom.rate -- Specification
 
-Status: `incubating` (implemented, harness-green, not published).
+Status: `stable` (published; v0.63.0 fleet sweep green; contract hardening
+in 0.1.2).
 Module: `xiom.rate` (`src/rate.xi`). Manifest: `package.xi` (name `xiom.rate`,
-version `0.1.0`). Depends on `xiom.std` (no library imports; tests use
+version `0.1.2`). Depends on `xiom.std` (no library imports; tests use
 `xiom.test` and `xiom.io`).
 
 ## Scope
@@ -239,3 +240,30 @@ Last verified: compiler 0.61.3, `port: PASS (passed=19 failed=0 exit=0)`.
   miscompile is avoided entirely; the tests use plain `assert`.
 - The constructors return struct values directly and the module has no error
   path.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 16 unknown / 1 error** (struct-heavy;
+no clause is refuted).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `rate_bucket_refill` | `ensures: b.capacity >= 1`; `ensures: b.tokens >= 0 && b.tokens <= b.capacity` | unproven |
+| `rate_bucket_allow` | capacity/token invariant; `ensures: result && cost > 0 => b.tokens >= b.tokens@pre - cost`; `ensures: result && cost <= 0 => b.tokens >= b.tokens@pre` | unproven |
+| `rate_bucket_tokens` | `ensures: result >= 0 && result <= b.capacity` | unproven |
+| `rate_bucket_capacity` | `ensures: result >= 1` | unproven |
+| `rate_bucket_retry_after_ms` | `ensures: cost <= 0 => result == 0`; `ensures: b.tokens >= cost => result == 0` | unproven |
+| `rate_window_allow` | `ensures: w.count >= 0 && w.count <= w.max_count`; `ensures: result => w.count >= 1` | unproven |
+| `rate_window_count` | `ensures: result >= 0 && result <= w.max_count` | unproven |
+| `rate_window_retry_after_ms` | `ensures: result >= 0` | unproven |
+| `rate_window_reset` | `ensures: w.count == 0` | unproven |
+| `rate_bucket_new` / `rate_window_new` | none | unasserted (documented) |
+
+Unasserted/documented: the constructors' clamping and initial state
+(`capacity >= 1`, `tokens == capacity`, `last_ms == now_ms`;
+`window_ms >= 1`, `max_count >= 1`, `count == 0`, `start_ms == now_ms`)
+cannot be expressed as result-field contracts under the current runtime
+evaluator (struct-payload field access) and are pinned by the test plan.
+The refill truncation policy (carry of the unearned remainder) is
+likewise test-pinned; the invariant clauses hold on every mutating path.

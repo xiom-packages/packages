@@ -8,7 +8,7 @@
 
 package xiom_rate {
   name: "xiom.rate";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Deterministic rate limiters with explicit clocks: token bucket and fixed window";
   categories: ["core", "network"];
   keywords: ["rate-limit", "token-bucket", "throttle", "quota"];

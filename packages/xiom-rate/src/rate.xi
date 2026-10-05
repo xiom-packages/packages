@@ -49,7 +49,10 @@ pub fn rate_bucket_new(capacity: Int, refill_per_sec: Int, now_ms: Int) -> Token
 ///   consumed: `last_ms = last_ms + gained * 1000 / refill_per_sec`, and the
 ///   unearned remainder is carried to the next call.
 /// Complexity: O(1).
-pub fn rate_bucket_refill(b: &mut TokenBucket, now_ms: Int) {
+pub fn rate_bucket_refill(b: &mut TokenBucket, now_ms: Int)
+  ensures: b.capacity >= 1;
+  ensures: b.tokens >= 0 && b.tokens <= b.capacity;
+{
   if now_ms <= b.last_ms { return; }
   let elapsed = now_ms - b.last_ms;
   if b.refill_per_sec <= 0 {
@@ -78,7 +81,11 @@ pub fn rate_bucket_refill(b: &mut TokenBucket, now_ms: Int) {
 /// Returns: true when the cost was spent (or cost <= 0); false when the
 /// bucket holds fewer than `cost` tokens, in which case nothing is spent.
 /// Complexity: O(1).
-pub fn rate_bucket_allow(b: &mut TokenBucket, now_ms: Int, cost: Int) -> Bool {
+pub fn rate_bucket_allow(b: &mut TokenBucket, now_ms: Int, cost: Int) -> Bool
+  ensures: b.tokens >= 0 && b.tokens <= b.capacity;
+  ensures: result && cost > 0 => b.tokens >= b.tokens@pre - cost;
+  ensures: result && cost <= 0 => b.tokens >= b.tokens@pre;
+{
   rate_bucket_refill(b, now_ms);
   if cost <= 0 { return true; }
   if b.tokens >= cost {
@@ -89,12 +96,16 @@ pub fn rate_bucket_allow(b: &mut TokenBucket, now_ms: Int, cost: Int) -> Bool {
 }
 
 /// Tokens currently available. Complexity: O(1).
-pub fn rate_bucket_tokens(b: &TokenBucket) -> Int {
+pub fn rate_bucket_tokens(b: &TokenBucket) -> Int
+  ensures: result >= 0 && result <= b.capacity;
+{
   return b.tokens;
 }
 
 /// Configured bucket size (always >= 1). Complexity: O(1).
-pub fn rate_bucket_capacity(b: &TokenBucket) -> Int {
+pub fn rate_bucket_capacity(b: &TokenBucket) -> Int
+  ensures: result >= 1;
+{
   return b.capacity;
 }
 
@@ -105,7 +116,10 @@ pub fn rate_bucket_capacity(b: &TokenBucket) -> Int {
 /// always rounded up to a whole millisecond. The result is an upper bound
 /// while part of an unearned millisecond is still carried in `last_ms`.
 /// Complexity: O(1).
-pub fn rate_bucket_retry_after_ms(b: &TokenBucket, cost: Int) -> Int {
+pub fn rate_bucket_retry_after_ms(b: &TokenBucket, cost: Int) -> Int
+  ensures: cost <= 0 => result == 0;
+  ensures: b.tokens >= cost => result == 0;
+{
   if cost <= 0 { return 0; }
   if b.tokens >= cost { return 0; }
   if b.refill_per_sec <= 0 { return -1; }
@@ -151,7 +165,10 @@ pub fn rate_window_new(window_ms: Int, max_count: Int, now_ms: Int) -> WindowLim
 /// rebases. Then one admission is granted while `count < max_count`.
 /// Returns: true when admitted, false when the current span is full.
 /// Complexity: O(1).
-pub fn rate_window_allow(w: &mut WindowLimit, now_ms: Int) -> Bool {
+pub fn rate_window_allow(w: &mut WindowLimit, now_ms: Int) -> Bool
+  ensures: w.count >= 0 && w.count <= w.max_count;
+  ensures: result => w.count >= 1;
+{
   if now_ms - w.start_ms >= w.window_ms {
     w.start_ms = now_ms;
     w.count = 0;
@@ -164,7 +181,9 @@ pub fn rate_window_allow(w: &mut WindowLimit, now_ms: Int) -> Bool {
 }
 
 /// Admissions counted in the current span. Complexity: O(1).
-pub fn rate_window_count(w: &WindowLimit) -> Int {
+pub fn rate_window_count(w: &WindowLimit) -> Int
+  ensures: result >= 0 && result <= w.max_count;
+{
   return w.count;
 }
 
@@ -172,7 +191,9 @@ pub fn rate_window_count(w: &WindowLimit) -> Int {
 /// Returns 0 when a call would be admitted now (count below max_count, or the
 /// span has fully elapsed); otherwise `start_ms + window_ms - now_ms`.
 /// Complexity: O(1).
-pub fn rate_window_retry_after_ms(w: &WindowLimit, now_ms: Int) -> Int {
+pub fn rate_window_retry_after_ms(w: &WindowLimit, now_ms: Int) -> Int
+  ensures: result >= 0;
+{
   if w.count < w.max_count { return 0; }
   if now_ms - w.start_ms >= w.window_ms { return 0; }
   return w.start_ms + w.window_ms - now_ms;
@@ -180,7 +201,9 @@ pub fn rate_window_retry_after_ms(w: &WindowLimit, now_ms: Int) -> Int {
 
 /// Rebase the window at now_ms: start_ms = now_ms and count = 0.
 /// Complexity: O(1).
-pub fn rate_window_reset(w: &mut WindowLimit, now_ms: Int) {
+pub fn rate_window_reset(w: &mut WindowLimit, now_ms: Int)
+  ensures: w.count == 0;
+{
   w.start_ms = now_ms;
   w.count = 0;
 }
