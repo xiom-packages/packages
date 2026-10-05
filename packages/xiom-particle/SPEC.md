@@ -1,8 +1,9 @@
 # xiom.particle -- Specification
 
-Status: `incubating` (implemented, harness-green, not published).
+Status: `stable` (published; v0.63.0 fleet sweep green; contract hardening
+in 0.1.2).
 Module: `xiom.particle` (`src/particle.xi`). Manifest: `package.xi` (name
-`xiom.particle`, version `0.1.0`). Depends on `xiom.std` for the manifest
+`xiom.particle`, version `0.1.2`). Depends on `xiom.std` for the manifest
 only; the library module imports nothing.
 
 ## Scope
@@ -211,3 +212,23 @@ program_exit=0 exit=0)`.
   `module` does not.
 - `use xiom.particle;` plus `xiom.test.assert` / `xiom.io.println` in the
   suite, matching the sibling packages' test style.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **1 proven / 0 violated / 17 unknown / 0 errors, rc=0**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `particle_capacity` | `ensures: result >= 1` | **proven** |
+| `particle_alive_count` | `ensures: result >= 0`; `ensures: result <= p.alive.len()` | unproven |
+| `particle_is_alive` / `particle_kill` | `ensures: i < 0 => !result`; `ensures: i >= p.alive.len() => !result` | unproven |
+| `particle_spawn` | `ensures: result >= -1`; `ensures: result <= p.alive.len() - 1` | unproven |
+| `particle_x` / `particle_y` / `particle_life_ms` | `ensures: i < 0 => result == 0`; `ensures: i >= p.<arena>.len() => result == 0` | unproven |
+| `particle_pool_new` / `particle_update` / `particle_clear` | none | unasserted (documented) |
+
+Unasserted/documented: constructor clamping (`capacity >= 1`), the
+first-fit spawn order, the per-update truncation rule and the
+motion-before-expiry ordering are pinned by the 21-check test plan;
+arena-length equality and struct-result contracts stay out of scope for
+the runtime evaluator.

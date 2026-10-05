@@ -61,12 +61,17 @@ pub fn particle_pool_new(capacity: Int) -> ParticlePool {
 
 /// Number of slots in the pool (the capacity passed to particle_pool_new,
 /// clamped to at least 1). Complexity: O(1).
-pub fn particle_capacity(p: &ParticlePool) -> Int {
+pub fn particle_capacity(p: &ParticlePool) -> Int
+  ensures: result >= 1;
+{
   return p.xs.len();
 }
 
 /// Number of currently live slots. Complexity: O(capacity).
-pub fn particle_alive_count(p: &ParticlePool) -> Int {
+pub fn particle_alive_count(p: &ParticlePool) -> Int
+  ensures: result >= 0;
+  ensures: result <= p.alive.len();
+{
   var count = 0;
   var i = 0;
   while i < p.alive.len() {
@@ -83,7 +88,10 @@ pub fn particle_alive_count(p: &ParticlePool) -> Int {
 /// Params: p - the pool; i - slot index.
 /// Returns: true when i is in range and slot i is live; false otherwise
 /// (including every out-of-range index). Complexity: O(1).
-pub fn particle_is_alive(p: &ParticlePool, i: Int) -> Bool {
+pub fn particle_is_alive(p: &ParticlePool, i: Int) -> Bool
+  ensures: i < 0 => !result;
+  ensures: i >= p.alive.len() => !result;
+{
   if i < 0 {
     return false;
   }
@@ -101,7 +109,10 @@ pub fn particle_is_alive(p: &ParticlePool, i: Int) -> Bool {
 /// Returns: the slot index that received the particle, or -1 when every slot
 /// is live (the pool is unchanged then).
 /// Errors: none. Complexity: O(capacity) first-fit scan.
-pub fn particle_spawn(p: &mut ParticlePool, x: Int, y: Int, vx: Int, vy: Int, life_ms: Int) -> Int {
+pub fn particle_spawn(p: &mut ParticlePool, x: Int, y: Int, vx: Int, vy: Int, life_ms: Int) -> Int
+  ensures: result >= -1;
+  ensures: result <= p.alive.len() - 1;
+{
   var life = life_ms;
   if life < 1 {
     life = 1;
@@ -167,7 +178,10 @@ pub fn particle_update(p: &mut ParticlePool, dt_ms: Int) {
 /// i is out of range or the slot was already dead. A killed slot has
 /// alive = 0 and life_ms = 0 and is immediately reusable.
 /// Errors: none. Complexity: O(1).
-pub fn particle_kill(p: &mut ParticlePool, i: Int) -> Bool {
+pub fn particle_kill(p: &mut ParticlePool, i: Int) -> Bool
+  ensures: i < 0 => !result;
+  ensures: i >= p.alive.len() => !result;
+{
   if i < 0 {
     return false;
   }
@@ -201,7 +215,10 @@ pub fn particle_clear(p: &mut ParticlePool) {
 
 /// Position x of slot `i` in micro-units, or 0 when i is out of range.
 /// Complexity: O(1).
-pub fn particle_x(p: &ParticlePool, i: Int) -> Int {
+pub fn particle_x(p: &ParticlePool, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= p.xs.len() => result == 0;
+{
   if i < 0 {
     return 0;
   }
@@ -214,7 +231,10 @@ pub fn particle_x(p: &ParticlePool, i: Int) -> Int {
 
 /// Position y of slot `i` in micro-units, or 0 when i is out of range.
 /// Complexity: O(1).
-pub fn particle_y(p: &ParticlePool, i: Int) -> Int {
+pub fn particle_y(p: &ParticlePool, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= p.ys.len() => result == 0;
+{
   if i < 0 {
     return 0;
   }
@@ -229,7 +249,10 @@ pub fn particle_y(p: &ParticlePool, i: Int) -> Int {
 /// A dead slot reports its last stored value: 0 for a killed or exactly
 /// expired slot, or a negative leftover when a large dt overshot its life.
 /// Complexity: O(1).
-pub fn particle_life_ms(p: &ParticlePool, i: Int) -> Int {
+pub fn particle_life_ms(p: &ParticlePool, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= p.life_ms.len() => result == 0;
+{
   if i < 0 {
     return 0;
   }

@@ -9,7 +9,7 @@
 
 package xiom_particle {
   name: "xiom.particle";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Fixed-capacity particle pool with integer positions, velocities, and lifetimes";
   categories: ["graphics","science"];
   keywords: ["particle","simulation","pool","lifetime"];
