@@ -173,7 +173,10 @@ fn _frame_text(tags: &Id3Tags, id: Str) -> Result[Str, Str] {
 /// True when the buffer starts with the ASCII magic "ID3" at offset 0.
 /// Only the three magic bytes are checked, so a truncated 3-byte buffer
 /// still reports true (documented in SPEC.md).
-pub fn id3_has_tag(data: &Vec[UInt8]) -> Bool {
+pub fn id3_has_tag(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 3 => !result;
+  ensures: result => data.len() >= 3;
+{
   return _has_magic(data);
 }
 
@@ -182,7 +185,12 @@ pub fn id3_has_tag(data: &Vec[UInt8]) -> Bool {
 /// parses frames with the v2.3 layout unless the major is 4.
 /// Err("id3: truncated header") when the buffer is shorter than the 10-byte
 /// header; Err("id3: bad magic") when it does not start with "ID3".
-pub fn id3_version(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn id3_version(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() < 10 => result is Err;
+  ensures: !id3_has_tag(data) => result is Err;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 255;
+{
   if data.len() < 10 {
     return _err_int("id3: truncated header");
   }
@@ -198,7 +206,12 @@ pub fn id3_version(data: &Vec[UInt8]) -> Result[Int, Str] {
 /// Err("id3: truncated header") when the buffer is shorter than 10 bytes;
 /// Err("id3: bad magic") on a missing "ID3" magic; Err("id3: tag size
 /// beyond buffer") when the declared total exceeds the buffer length.
-pub fn id3_tag_size(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn id3_tag_size(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() < 10 => result is Err;
+  ensures: !id3_has_tag(data) => result is Err;
+  ensures: result is Ok => result.value >= 10;
+  ensures: result is Ok => result.value <= data.len();
+{
   if data.len() < 10 {
     return _err_int("id3: truncated header");
   }
@@ -227,7 +240,11 @@ pub fn id3_tag_size(data: &Vec[UInt8]) -> Result[Int, Str] {
 /// way, so `ids` and `texts` stay index-aligned.
 ///
 /// Structural errors are propagated from id3_tag_size.
-pub fn id3_text_frames(data: &Vec[UInt8]) -> Result[Id3Tags, Str] {
+pub fn id3_text_frames(data: &Vec[UInt8]) -> Result[Id3Tags, Str]
+  ensures: data.len() < 10 => result is Err;
+  ensures: !id3_has_tag(data) => result is Err;
+  ensures: result is Ok => data.len() >= 10;
+{
   let hdr = id3_tag_size(data);
   if !hdr.is_ok {
     return _err_tags(hdr.error);
@@ -268,7 +285,10 @@ pub fn id3_text_frames(data: &Vec[UInt8]) -> Result[Id3Tags, Str] {
 /// First text frame whose id equals `id` (byte-exact str_compare), or None
 /// when the tag has no such frame. `ids` and `texts` are walked together;
 /// the first match wins.
-pub fn id3_frame(tags: &Id3Tags, id: Str) -> Option[Str] {
+pub fn id3_frame(tags: &Id3Tags, id: Str) -> Option[Str]
+  ensures: tags.ids.len() == 0 => result is None;
+  ensures: result is Some => tags.ids.len() > 0;
+{
   var i = 0;
   while i < tags.ids.len() {
     let fid = tags.ids[i];
@@ -282,13 +302,21 @@ pub fn id3_frame(tags: &Id3Tags, id: Str) -> Option[Str] {
 }
 
 /// Number of collected text frames (== ids.len() == texts.len()).
-pub fn id3_frame_count(tags: &Id3Tags) -> Int {
+pub fn id3_frame_count(tags: &Id3Tags) -> Int
+  ensures: result == tags.ids.len();
+  ensures: result == tags.texts.len();
+  ensures: result >= 0;
+{
   return tags.ids.len();
 }
 
 /// TIT2 (song title) text. Ok("") when the tag exists but has no TIT2
 /// frame; structural errors are propagated from id3_text_frames.
-pub fn id3_title(data: &Vec[UInt8]) -> Result[Str, Str] {
+pub fn id3_title(data: &Vec[UInt8]) -> Result[Str, Str]
+  ensures: data.len() < 10 => result is Err;
+  ensures: !id3_has_tag(data) => result is Err;
+  ensures: result is Ok => data.len() >= 10;
+{
   let r = id3_text_frames(data);
   if !r.is_ok {
     return _err_str(r.error);
@@ -298,7 +326,11 @@ pub fn id3_title(data: &Vec[UInt8]) -> Result[Str, Str] {
 
 /// TPE1 (lead artist) text. Ok("") when the tag exists but has no TPE1
 /// frame; structural errors are propagated from id3_text_frames.
-pub fn id3_artist(data: &Vec[UInt8]) -> Result[Str, Str] {
+pub fn id3_artist(data: &Vec[UInt8]) -> Result[Str, Str]
+  ensures: data.len() < 10 => result is Err;
+  ensures: !id3_has_tag(data) => result is Err;
+  ensures: result is Ok => data.len() >= 10;
+{
   let r = id3_text_frames(data);
   if !r.is_ok {
     return _err_str(r.error);
@@ -308,7 +340,11 @@ pub fn id3_artist(data: &Vec[UInt8]) -> Result[Str, Str] {
 
 /// TALB (album) text. Ok("") when the tag exists but has no TALB frame;
 /// structural errors are propagated from id3_text_frames.
-pub fn id3_album(data: &Vec[UInt8]) -> Result[Str, Str] {
+pub fn id3_album(data: &Vec[UInt8]) -> Result[Str, Str]
+  ensures: data.len() < 10 => result is Err;
+  ensures: !id3_has_tag(data) => result is Err;
+  ensures: result is Ok => data.len() >= 10;
+{
   let r = id3_text_frames(data);
   if !r.is_ok {
     return _err_str(r.error);

@@ -10,7 +10,7 @@
 
 package xiom_id3 {
   name: "xiom.id3";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "ID3v2 tag inspection: version, size, and text frames (TIT2/TPE1/TALB/...)";
   categories: ["data","media"];
   keywords: ["id3","metadata","mp3","tags"];

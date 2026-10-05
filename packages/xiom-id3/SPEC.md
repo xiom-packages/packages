@@ -265,3 +265,46 @@ Last verified: compiler 0.61.3,
   pointer comparison).
 - The module declares no `extern "C"` blocks (no FFI) and uses free
   functions only: no methods, no lambdas, no `Vec[StructType]`.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked `ensures:` clauses added to `src/id3.xi` in the batch #14
+hardening pass (compiler v0.63.1; no version bump). Two consecutive
+`.\scripts\port.ps1 -Package xiom.id3 -TimeoutSec 60` runs ended
+`port: PASS (passed=21 failed=0 program_exit=0 exit=0)` with the clauses
+active and no clause trapped, so none was dropped. Classes follow the
+batch #14 clause plan: **Z3-provable** = pure scalar guard/form/bounds/count
+family over parameters, `result` and vector lengths (a Z3 candidate; the
+v0.63.1 emitter still skips reference operands, so `xiom-verify --check`
+(Z3 4.13.4) reports 0 proven / 0 violated / 21 unknown / 9 SMT-emitter
+errors on the internal helpers -- no clause is refuted);
+**runtime-checked** = the clause's truth depends on a called entry point
+(`id3_has_tag`) and is enforced only by the v0.63.1 runtime evaluator.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `id3_has_tag` | `ensures: data.len() < 3 => !result`; `ensures: result => data.len() >= 3` | Z3-provable (pure scalar) |
+| `id3_version` | `ensures: data.len() < 10 => result is Err`; `ensures: !id3_has_tag(data) => result is Err`; `ensures: result is Ok => result.value >= 0`; `ensures: result is Ok => result.value <= 255` | Z3-provable (scalar guard/bounds); runtime-checked (call guard) |
+| `id3_tag_size` | `ensures: data.len() < 10 => result is Err`; `ensures: !id3_has_tag(data) => result is Err`; `ensures: result is Ok => result.value >= 10`; `ensures: result is Ok => result.value <= data.len()` | Z3-provable (scalar guard/bounds); runtime-checked (call guard) |
+| `id3_text_frames` | `ensures: data.len() < 10 => result is Err`; `ensures: !id3_has_tag(data) => result is Err`; `ensures: result is Ok => data.len() >= 10` | Z3-provable (scalar guard); runtime-checked (call guard) |
+| `id3_frame` | `ensures: tags.ids.len() == 0 => result is None`; `ensures: result is Some => tags.ids.len() > 0` | Z3-provable (pure scalar) |
+| `id3_frame_count` | `ensures: result == tags.ids.len()`; `ensures: result == tags.texts.len()`; `ensures: result >= 0` | Z3-provable (pure scalar) |
+| `id3_title` | `ensures: data.len() < 10 => result is Err`; `ensures: !id3_has_tag(data) => result is Err`; `ensures: result is Ok => data.len() >= 10` | Z3-provable (scalar guard); runtime-checked (call guard) |
+| `id3_artist` | same clauses as `id3_title` | Z3-provable (scalar guard); runtime-checked (call guard) |
+| `id3_album` | same clauses as `id3_title` | Z3-provable (scalar guard); runtime-checked (call guard) |
+
+27 clauses across the nine clause-bearing entry points (2/4/4/3/2/3/3/3/3);
+21 are the pure-scalar guard/form/bounds/count family and 6 are the
+`!id3_has_tag(data) => result is Err` call guards (one per reader entry
+point). The `id3_frame_count` `texts` equality rides on the index-alignment
+invariant established by `id3_text_frames` (`ids` and `texts` are pushed in
+lockstep, and every `Id3Tags` in the suite is built by that walk). The
+`id3_frame` pair is the `Option` counterpart of the same length guard.
+Excluded by the plan's forbidden shapes: no `result.value.<field>` on the
+struct-bearing `Result[Id3Tags, Str]` (the `id3_text_frames` Ok side stays
+under the `data.len() >= 10` guard), no tuple-component access, and no
+payload-length-vs-parameter comparisons. The Ok-side `Str` payloads of
+`id3_title`/`id3_artist`/`id3_album` are not constrained beyond the guard:
+they are built byte-exact by `_frame_text` and pinned by the 21-check test
+plan instead (Str equality/length reasoning is out of scope for the runtime
+evaluator, BUG 17 discipline).
