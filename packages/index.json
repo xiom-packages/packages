@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-05T12:29:07Z",
+    "updated":  "2026-10-05T12:52:13Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -4175,7 +4175,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.macaddr",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "MAC-48 address parsing, formatting, and flag helpers (48-bit values as Int)",
@@ -4185,7 +4185,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-macaddr/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-macaddr/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "macaddr.xi",
                                               "package.xi"
@@ -6411,7 +6411,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.refactor",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Text-level identifier renaming with word boundaries and dry-run counts",
@@ -6421,7 +6421,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-refactor/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-refactor/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "refactor.xi",
                                               "package.xi"
@@ -8018,7 +8018,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.transaction",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Transaction lifecycle state machine with named savepoints",
@@ -8028,7 +8028,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-transaction/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-transaction/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "transaction.xi",
                                               "package.xi"
@@ -8120,7 +8120,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.typography",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Typographic prettification: smart quotes, dashes, ellipsis, spacing",
@@ -8130,7 +8130,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-typography/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-typography/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "typography.xi",
                                               "package.xi"
