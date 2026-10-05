@@ -1,6 +1,6 @@
 # xiom.optimizer
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.2` on the XIOM registry.
 > **Scope:** deterministic single-variable integer optimizers: grid search,
 > hill climbing with step halving, random-restart hill climbing, and
 > simulated annealing, all driven by named `fn(&Int) -> Int` objective

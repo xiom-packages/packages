@@ -3,26 +3,43 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**LIVE CLAIM 2026-10-05 09:30Z (main/debug session):** hardening batch
-#8 in progress -- runtime contracts + SPEC inventories for `tracing`,
-`selection`, `snapshot`, `optimizer` (stable/published, zero clauses;
-patch bumps; x2 on v0.63.0; publish in `eco-v0.1.51`). Parallel packages
-lanes: do NOT edit `packages/xiom-tracing`, `packages/xiom-selection`,
-`packages/xiom-snapshot`, `packages/xiom-optimizer`,
-`packages/*/STATUS.json`, or create tags; coordinate first.
-
-**Written:** 2026-10-05 (09:45Z), by the main/debug session (v0.63.0
-pin; hardening batches #1-#7 DONE + PUBLISHED across
-`eco-v0.1.44`-`eco-v0.1.50` -- 28 stable packages with runtime
-contracts + SPEC contract inventories; batch #7 adds particle/fixed/
-finance/collation with index+range, width/count, sentinel/formula and
-comparator contracts; 251 stable packages still at zero clauses; grpc
-still red on v0.63.0 -- numeric match arms stay blocked until the next
-pin; graphql 9/10). Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-05 (10:20Z), by the main/debug session (v0.63.0
+pin; hardening batches #1-#8 DONE + PUBLISHED across
+`eco-v0.1.44`-`eco-v0.1.51` -- 32 stable packages with runtime
+contracts + SPEC contract inventories; batch #8 adds
+tracing/selection/snapshot/optimizer with span-id, index-range,
+length-bound and degenerate-range contracts; 247 stable packages still
+at zero clauses; grpc still red on v0.63.0 -- numeric match arms stay
+blocked until the next pin; graphql 9/10). Check
+`git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-05 09:45Z (read this first):**
+**STATE AT 2026-10-05 10:20Z (read this first):**
+- **`eco-v0.1.51` PUBLISHED (`37290391384` SUCCESS):** hardening batch
+  #8 -- `xiom.tracing` 0.1.2 (20/20), `xiom.selection` 0.1.2 (25/25),
+  `xiom.snapshot` 0.1.2 (20/20), `xiom.optimizer` 0.1.2 (24/24, 2
+  Z3-proven); all stable, x2 green on v0.63.0, live-verified. No
+  allowlist delta, no rate window; guard 499 allowlisted / 459 ready /
+  40 grandfathered / 0 failures.
+- **Hardening progress:** batches #1-#8 = **32 packages published**;
+  247 stable packages remain at zero clauses. Batch #9 candidates:
+  `refactor`, `option` (combinator-only -- clauses limited to
+  presence/sentinel shapes), and remaining text/tooling leftovers
+  (check each source for expressible clauses first).
+- **No publish wave needs ops:** each batch is 4 names, already
+  allowlisted, and the session approves the registry gate itself.
+- **Open findings (compiler-gated; do NOT re-bisect):** grpc
+  `Vec[(Str,Str)]` crash/hang (red on v0.63.0), graphql 9/10
+  enum-payload in-situ. Compiler main has UNRELEASED fixes -- C001
+  root cause `4bf8cf1e` and verifier UNKNOWN handling `6f34e1f0` --
+  when the next release lands: re-pin, then re-test grpc/graphql first.
+- **Next:** hardening batch #9, or the parked grpc/graphql pair on the
+  next pin; next tag `eco-v0.1.52`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-05 09:45Z (history):**
 - **`eco-v0.1.50` PUBLISHED (`37285918598` SUCCESS):** hardening batch
   #7 -- `xiom.particle` 0.1.2 (21/21), `xiom.fixed` 0.1.2 (18/18),
   `xiom.finance` 0.1.2 (31/31, 4 Z3-proven), `xiom.collation` 0.1.2
@@ -937,14 +954,15 @@ pin; graphql 9/10). Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-05 09:45Z STATE block and
+private). Read SESSION.md first -- the 2026-10-05 10:20Z STATE block and
 the "Next-session operating kit" in section 0 are the live handoff
-(v0.63.0 pinned + SHA256-verified; hardening batches #1-#7 published:
+(v0.63.0 pinned + SHA256-verified; hardening batches #1-#8 published:
 `eco-v0.1.44` uuid/csv/bson/ttl, `eco-v0.1.45` crc/cobs/varint/roman,
 `eco-v0.1.46` bmp/rate/lru/tokenizer, `eco-v0.1.47`
 metrics/retry/signal/stl, `eco-v0.1.48` alerting/robotics/thermo/audit,
 `eco-v0.1.49` quantum/spectroscopy/relativity/physics, `eco-v0.1.50`
-particle/fixed/finance/collation -- all with runtime contracts; 251
+particle/fixed/finance/collation, `eco-v0.1.51`
+tracing/selection/snapshot/optimizer -- all with runtime contracts; 247
 stable packages still at zero clauses; registry 459 packages + 2 infra;
 allowlist 499; grpc `Vec[(Str,Str)]` STILL RED on v0.63.0 -- numeric
 match arms stay blocked until a release carries the C001 root-cause
@@ -974,14 +992,15 @@ Then do, in order:
    and graphql (x2, record), then publish in one batch.
    `l10n-unicode` stays incubating; needs a >60s suite timeout under
    load (42-45s idle).
-2. Hardening track: batches #1-#7 DONE + PUBLISHED (`eco-v0.1.44`
+2. Hardening track: batches #1-#8 DONE + PUBLISHED (`eco-v0.1.44`
    uuid/csv/bson/ttl; `eco-v0.1.45` crc/cobs/varint/roman;
    `eco-v0.1.46` bmp/rate/lru/tokenizer; `eco-v0.1.47`
    metrics/retry/signal/stl; `eco-v0.1.48` alerting/robotics/thermo/
    audit; `eco-v0.1.49` quantum/spectroscopy/relativity/physics;
-   `eco-v0.1.50` particle/fixed/finance/collation). Next: batch #8 from
-   the remaining grandfathered stable carriers (251 at zero clauses;
-   see `scripts/contract-coverage.ps1`) per `docs/PROMOTION.md` --
+   `eco-v0.1.50` particle/fixed/finance/collation; `eco-v0.1.51`
+   tracing/selection/snapshot/optimizer). Next: batch #9 from the
+   remaining grandfathered stable carriers (247 at zero clauses; see
+   `scripts/contract-coverage.ps1`) per `docs/PROMOTION.md` --
    contracts + API review; x2 on the pin; patch bump; record; publish.
    No ops delta. Claim the batch in SESSION.md before editing
    (concurrent-lane protocol). Watch the contract runtime-evaluator

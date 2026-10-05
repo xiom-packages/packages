@@ -1,6 +1,6 @@
 # xiom.snapshot
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
 > **Scope:** snapshot comparison over two in-memory texts: canonical
 > normalization, line splitting, equality, first-difference position and a
 > human-readable first-difference summary.
