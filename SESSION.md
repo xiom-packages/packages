@@ -51,8 +51,18 @@ running). Check `git log -1 --format=%h %s` before starting.
   x2 confirmed by the coordinator, live-verified (telnet 0.1.3, others 0.1.2). feat shas:
   pcx `7d1b286d`, patch `59de29c3`, telnet `a931e97a`, dotenv `ee7080c4`, ulid `b713828d`,
   ico `3865ee7a`; wrap `f90d81b9`. Guard 499/459/40/0; no ops delta.
-- **Next:** batch #14 from the remaining **217** zero-clause stable carriers
-  (`scripts/contract-coverage.ps1`); PULSE lane (`E:\xiom-projects\xiom-pulse`) feeds
+- **Batch #14 DONE + PUBLISHED (`eco-v0.1.58`, run `37328542216` SUCCESS):** six-porter
+  fan-out -- `xiom.timeout` (22 clauses, 21/21), `xiom.adler32` (23, 22/22), `xiom.ogg`
+  (18, 22/22), `xiom.ascii85` (12, 20/20), `xiom.id3` (27, 21/21), `xiom.iban` (24, 21/21);
+  all stable bumped to **0.1.2**, x2 confirmed by the coordinator, live-verified. feat shas:
+  timeout `805ea735`, adler32 `47b431cb`, ogg `d9035079`, ascii85 `e364c986`, id3 `5c6c3b83`,
+  iban `fd6b4c1a`; wrap `a26dda71`. **New evaluator finding:** postcondition call-cycles
+  crash with `0xC0000005` (ascii85 dropped its planned `!is_valid => Err`; iban avoided the
+  cycle) -- recorded in COMPILER-FINDINGS + the porter brief; never write a clause that
+  calls a function wrapping the callee. Guard 499/459/40/0; no ops delta.
+- **Next:** batch #15 from the remaining **211** zero-clause stable carriers
+  (`scripts/contract-coverage.ps1`; verified-friendly larger set queued: `mbox`, `tga`,
+  `murmur3`, `ntp`, `mbr`, `socks`); PULSE lane (`E:\xiom-projects\xiom-pulse`) feeds
   findings into this pipeline. `xiom-verify` writes `xiom_verify_output.smt2` to the CWD
   -- run it with the package dir as CWD.
 
@@ -1115,7 +1125,7 @@ private). Read SESSION.md first -- the 2026-10-05 13:45Z STATE block is
 the live handoff (v0.63.1 pinned + SHA256-verified; repin 514; **fleet
 sweep v0.63.1 COMPLETE + RECORDED 460/460**, `fleet-sweep:v0.63.1`,
 commit `43b79adb`; contract-evaluator fix live in `eco-v0.1.55`;
-hardening batches #1-#13 published across `eco-v0.1.44`-`eco-v0.1.57`;
+hardening batches #1-#14 published across `eco-v0.1.44`-`eco-v0.1.58`;
 229 stable packages at zero clauses; registry 459 packages + 2 infra;
 allowlist 499). Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
@@ -1142,8 +1152,8 @@ above, then:
 
 Then do, in order:
 1. Hardening batch #13 (FAN-OUT): pick the next ~6 smallest zero-clause
-   stable carriers with `scripts/contract-coverage.ps1` (217 remain after
-   batch #13), then reuse the proven workflow: per-function clause
+   stable carriers with `scripts/contract-coverage.ps1` (211 remain after
+   batch #14), then reuse the proven workflow: per-function clause
    pre-plan (families only; forbidden shapes: tuple-component,
    payload-length-vs-parameter, struct-result), one background `task`
    porter per package (brief template `%TEMP%\kilo\batch12-porter-brief.md`;
@@ -1152,9 +1162,11 @@ Then do, in order:
    (re-verify port x2, `feat` commit exact files, record the REAL
    main-worktree sha with `-RunBy task:ses_...`). **Version-bump rule:**
    bump+publish ONLY when source changed; a zero-clause pass is docs-only.
-   Wrap + publish the batch (next tag `eco-v0.1.58`; <=20 names, no ops
+   Wrap + publish the batch (next tag `eco-v0.1.59`; <=20 names, no ops
    delta). Note: `xiom-verify` writes `xiom_verify_output.smt2` to the
-   CWD -- run it with the package dir as CWD.
+   CWD -- run it with the package dir as CWD; and never write a contract
+   clause that calls a function which wraps the callee (runtime-evaluator
+   recursion -> `0xC0000005`, batch #14 ascii85/iban).
 2. Next compiler archive: re-pin per `docs/MAINTENANCE.md` (bump
    COMPILER_VERSION, deploy, repin 514, fleet sweep + record). First
    re-tests: grpc `probe_suite_min`/`probe_direct` (m192-class candidate;
