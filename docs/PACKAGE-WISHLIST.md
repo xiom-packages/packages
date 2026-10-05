@@ -11,8 +11,8 @@ Status legend: **IN-FIX** / **APPROVED-NEW** / **EXTEND** / **MERGE-INTO** / **D
 
 | Item | Triage | Detail |
 |---|---|---|
-| `xiom.http` 0.1.0 parser (a/b/c) | **IN-FIX** (task `ses_ef3474d7...`, 2026-10-05) | (a) missing `use xiom.http.types;` in `src/parser.xi` -> consumer T001s; (b) bare `&mut Int` cursor reads yield the address on v0.63.1 (compiler C-PULSE-04) -> `Unexpected end of request line pos=372324169712`; (c) zero parser tests. Fix = explicit import + `*pos_ref` deref + parser KATs (request/response/headers/malformed). Publish as a single-package hotfix (0.1.1) because registry consumers are blocked. |
-| `xiom.http` `src/server.xi` 32-line shell | **DECIDED**: document as a stub in 0.1.1 | No accept loop/routing; PULSE owns its server today. Owning HTTP serving would need sockets/threads and is deferred to a later scoped decision (possibly 0.2 with `xiom.router`). |
+| `xiom.http` 0.1.0 parser (a/b/c) | **FIXED + PUBLISHED** (0.1.1, `eco-v0.1.59`, run `37335349031`; task `ses_ef3474d7...`, 2026-10-05) | (a) missing `use xiom.http.types;` in `src/parser.xi` -> consumer T001s; (b) bare `&mut Int` cursor reads yield the address on v0.63.1 (compiler C-PULSE-04) -> `Unexpected end of request line pos=372324169712`; (c) zero parser tests. Fix = explicit import + `*pos_ref` deref + parser KATs (request/response/headers/malformed). Publish as a single-package hotfix (0.1.1) because registry consumers are blocked. |
+| `xiom.http` `src/server.xi` 32-line shell | **DECIDED + DOCUMENTED** (README server-stub section in 0.1.1) | No accept loop/routing; PULSE owns its server today. Owning HTTP serving would need sockets/threads and is deferred to a later scoped decision (possibly 0.2 with `xiom.router`). |
 
 ## 2. Proposed packages (PULSE intake, triaged against the registry)
 

@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-05 14:00Z (v0.63.1 release flow + batch #12 COMPLETE):**
+**STATE AT 2026-10-05 15:50Z (v0.63.1 release flow + batches #12-#14 + PULSE hotfix COMPLETE):**
 - **Fleet sweep v0.63.1 COMPLETE + RECORDED: 460/460 PASS** (`%TEMP%\kilo\sweep-v0631`;
   process `bgp_10c092df20016ZdpmvoO83ZQax`, run with `XIOM_RUNTIME_DIR`). Isolated timeout
   re-runs green: `l10n-unicode` 24/24 @57.5s, `mongo` 23/23 @32.9s. `record-sweep` wrote
@@ -60,11 +60,20 @@ running). Check `git log -1 --format=%h %s` before starting.
   crash with `0xC0000005` (ascii85 dropped its planned `!is_valid => Err`; iban avoided the
   cycle) -- recorded in COMPILER-FINDINGS + the porter brief; never write a clause that
   calls a function wrapping the callee. Guard 499/459/40/0; no ops delta.
-- **Next:** batch #15 from the remaining **211** zero-clause stable carriers
-  (`scripts/contract-coverage.ps1`; verified-friendly larger set queued: `mbox`, `tga`,
-  `murmur3`, `ntp`, `mbr`, `socks`); PULSE lane (`E:\xiom-projects\xiom-pulse`) feeds
-  findings into this pipeline. `xiom-verify` writes `xiom_verify_output.smt2` to the CWD
-  -- run it with the package dir as CWD.
+- **PULSE intake + hotfix (`eco-v0.1.59`, run `37335349031` SUCCESS):** `xiom.http`
+  0.1.0 -> **0.1.1** (consumer-visible parser defect: types import + deref cursor + 40-check
+  parser suite + README with the server-stub contract; feat `bb212ffd`); **C-PULSE-04**
+  recorded in COMPILER-FINDINGS (bare `&mut Int` read yields the pointer; IR repro). Wishlist
+  triaged in `docs/PACKAGE-WISHLIST.md`: new `router`/`session`/`static`/`http.middleware`
+  (ops scope confirmation pending before the allowlist delta), extend `jwt` 0.2.0 HS256 /
+  `metrics` 0.2.0 labels+Prometheus / `rate` 0.2.0 keyed layer (the proposed `ratelimit`
+  merges into `xiom.rate`).
+- **Next (priority):** PULSE consumer wave -- `xiom.jwt` 0.2.0 HS256 first, then
+  `router` + `http.middleware` once ops confirms the new names, then `session` /
+  `rate` keyed / `metrics` 0.2 / `static`. Hardening batch #15 resumes after (211 carriers;
+  verified-friendly set queued: `mbox`, `tga`, `murmur3`, `ntp`, `mbr`, `socks`).
+  `xiom-verify` writes `xiom_verify_output.smt2` to the CWD -- run it with the package dir
+  as CWD.
 
 **--- Older state below (history) ---**
 
@@ -1121,12 +1130,13 @@ running). Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-05 13:45Z STATE block is
+private). Read SESSION.md first -- the 2026-10-05 15:50Z STATE block is
 the live handoff (v0.63.1 pinned + SHA256-verified; repin 514; **fleet
 sweep v0.63.1 COMPLETE + RECORDED 460/460**, `fleet-sweep:v0.63.1`,
 commit `43b79adb`; contract-evaluator fix live in `eco-v0.1.55`;
-hardening batches #1-#14 published across `eco-v0.1.44`-`eco-v0.1.58`;
-229 stable packages at zero clauses; registry 459 packages + 2 infra;
+hardening batches #1-#14 published across `eco-v0.1.44`-`eco-v0.1.59` (incl. the
+`xiom.http` 0.1.1 PULSE hotfix);
+211 stable packages at zero clauses; registry 459 packages + 2 infra;
 allowlist 499). Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
@@ -1151,7 +1161,16 @@ above, then:
 & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Hardening batch #13 (FAN-OUT): pick the next ~6 smallest zero-clause
+1. PULSE consumer wave (intake `docs/PACKAGE-WISHLIST.md`): `xiom.http` 0.1.1 hotfix is
+   DONE + PUBLISHED (`eco-v0.1.59`). Next: `xiom.jwt` 0.2.0 (HS256 sign/verify, alg
+   allowlist, exp/nbf, constant-time MAC), then `xiom.router` + `xiom.http.middleware` --
+   but the four new names (`router`, `session`, `static`, `http.middleware`) need the ops
+   scope enumeration confirmed BEFORE the allowlist delta. Then `xiom.session`,
+   `xiom.rate` 0.2.0 keyed layer, `xiom.metrics` 0.2.0 labels + Prometheus exposition,
+   `xiom.static`. New packages ride growth waves (port x2 + trap-14, incubating records,
+   publish); extensions are minor bumps. PULSE tests from the registry and files consumer
+   rows.
+2. Hardening batch #15 (FAN-OUT): pick the next ~6 smallest zero-clause
    stable carriers with `scripts/contract-coverage.ps1` (211 remain after
    batch #14), then reuse the proven workflow: per-function clause
    pre-plan (families only; forbidden shapes: tuple-component,
@@ -1167,7 +1186,7 @@ Then do, in order:
    CWD -- run it with the package dir as CWD; and never write a contract
    clause that calls a function which wraps the callee (runtime-evaluator
    recursion -> `0xC0000005`, batch #14 ascii85/iban).
-2. Next compiler archive: re-pin per `docs/MAINTENANCE.md` (bump
+3. Next compiler archive: re-pin per `docs/MAINTENANCE.md` (bump
    COMPILER_VERSION, deploy, repin 514, fleet sweep + record). First
    re-tests: grpc `probe_suite_min`/`probe_direct` (m192-class candidate;
    repro may run >262k confined entries) and graphql in-situ 9/10 (distinct
@@ -1176,7 +1195,7 @@ Then do, in order:
    runtime-discovery change; bundles under `docs/repro/`). If grpc goes
    green: restore named-constant arms per m188, x2, record. If graphql
    goes green: x2, record. Publish the pair in one batch.
-3. Carry-forwards: `XIOM_RUNTIME_DIR` in every shell until the archive
+4. Carry-forwards: `XIOM_RUNTIME_DIR` in every shell until the archive
    fix; `-TimeoutSec 60` watchdog (raise per package -- `l10n-unicode`
    ran 57.5s and `mongo` 32.9s isolated); byte-level bracket grep ONLY
    (Read lies about `Vec<Int>`); bump versions ONLY when source changes;
