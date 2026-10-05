@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-05T16:49:41Z",
+    "updated":  "2026-10-05T17:25:58Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -1833,7 +1833,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.dotenv",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "dotenv (.env) parsing and emitting with quoting and comment rules",
@@ -1843,7 +1843,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dotenv/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dotenv/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "dotenv.xi",
                                               "package.xi"
@@ -3231,7 +3231,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ico",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "ICO/CUR icon container codec: directory parse, payload slices, canonical builder",
@@ -3241,7 +3241,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ico/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ico/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ico.xi",
                                               "package.xi"
@@ -5497,7 +5497,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.patch",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Unified diff parsing and application with conflict detection",
@@ -5507,7 +5507,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-patch/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-patch/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "patch.xi",
                                               "package.xi"
@@ -5599,7 +5599,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.pcx",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "PCX header, palette-trailer and pixel-span codec (documented subset)",
@@ -5609,7 +5609,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pcx/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pcx/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "pcx.xi",
                                               "package.xi"
@@ -7638,7 +7638,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.telnet",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Telnet negotiation codec: IAC verbs, subnegotiation, and 0xFF data escaping",
@@ -7648,7 +7648,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-telnet/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-telnet/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "telnet.xi",
                                               "package.xi"
@@ -8212,7 +8212,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ulid",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "ULID codec: Crockford base32 encode/decode with caller-supplied timestamp and randomness",
@@ -8222,7 +8222,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ulid/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ulid/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ulid.xi",
                                               "package.xi"
