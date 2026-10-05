@@ -540,3 +540,6 @@ xiom.xml2
 xiom.rocksdb
 xiom.firebird
 xiom.oracle
+# PULSE wave (2026-10-05): consumer-confirmed scope (router replaces theirs);
+# owner-approved delta. session/static/http.middleware append when ready.
+xiom.router
