@@ -122,7 +122,11 @@ fn _quote_opens(s: Str, i: Int) -> Bool {
 /// Returns: the converted text; no other bytes change.
 /// Error case: none.
 /// Complexity: O(n).
-pub fn typography_smart_quotes(s: Str) -> Str {
+pub fn typography_smart_quotes(s: Str) -> Str
+  ensures: result.len() >= s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= 3 * s.len();
+{
   var sb = builder.sb_new();
   let len = s.len();
   var i = 0;
@@ -167,7 +171,11 @@ pub fn typography_smart_quotes(s: Str) -> Str {
 /// Returns: the converted text; no other bytes change.
 /// Error case: none.
 /// Complexity: O(n).
-pub fn typography_smart_dashes(s: Str) -> Str {
+pub fn typography_smart_dashes(s: Str) -> Str
+  ensures: result.len() >= s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= 3 * s.len();
+{
   var sb = builder.sb_new();
   let len = s.len();
   var i = 0;
@@ -203,7 +211,9 @@ pub fn typography_smart_dashes(s: Str) -> Str {
 /// Returns: the converted text; no other bytes change.
 /// Error case: none.
 /// Complexity: O(n).
-pub fn typography_ellipsis(s: Str) -> Str {
+pub fn typography_ellipsis(s: Str) -> Str
+  ensures: result.len() == s.len();
+{
   var sb = builder.sb_new();
   let len = s.len();
   var i = 0;
@@ -236,7 +246,11 @@ pub fn typography_ellipsis(s: Str) -> Str {
 /// Returns: the collapsed text; no other bytes change.
 /// Error case: none.
 /// Complexity: O(n).
-pub fn typography_collapse_spaces(s: Str) -> Str {
+pub fn typography_collapse_spaces(s: Str) -> Str
+  ensures: result.len() <= s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: s.len() > 0 => result.len() >= 1;
+{
   var sb = builder.sb_new();
   let len = s.len();
   var i = 0;
@@ -269,7 +283,11 @@ pub fn typography_collapse_spaces(s: Str) -> Str {
 /// typography_smart_dashes(typography_ellipsis(s)))).
 /// Error case: none.
 /// Complexity: O(n).
-pub fn typography_smart(s: Str) -> Str {
+pub fn typography_smart(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: s.len() > 0 => result.len() >= 1;
+  ensures: result.len() <= 3 * s.len();
+{
   let after_ellipsis = typography_ellipsis(s);
   let after_dashes = typography_smart_dashes(after_ellipsis);
   let after_quotes = typography_smart_quotes(after_dashes);

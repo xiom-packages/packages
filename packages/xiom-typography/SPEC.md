@@ -1,6 +1,6 @@
 # xiom.typography -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (incubating, not published).
 Module: `xiom.typography` (`src/typography.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -189,3 +189,26 @@ The suite routes every string comparison through `str_compare` (BUG 17: `==`
 on `Str` values read from `Vec[Str]` elements is a pointer comparison), and it
 avoids the non-exhaustive-`match` and inline-lambda restrictions by using
 explicit per-test functions and `if`/`elif` dispatch.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 16 unknown / 1 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `typography_smart_quotes` | `ensures: result.len() >= s.len()`; `ensures: s.len() == 0 => result.len() == 0`; `ensures: result.len() <= 3 * s.len()` | unproven |
+| `typography_smart_dashes` | `ensures: result.len() >= s.len()`; `ensures: s.len() == 0 => result.len() == 0`; `ensures: result.len() <= 3 * s.len()` | unproven |
+| `typography_ellipsis` | `ensures: result.len() == s.len()` | unproven |
+| `typography_collapse_spaces` | `ensures: result.len() <= s.len()`; `ensures: s.len() == 0 => result.len() == 0`; `ensures: s.len() > 0 => result.len() >= 1` | unproven |
+| `typography_smart` | `ensures: s.len() == 0 => result.len() == 0`; `ensures: s.len() > 0 => result.len() >= 1`; `ensures: result.len() <= 3 * s.len()` | unproven |
+
+Unasserted/documented: the byte-level conversion rules (quote-direction
+context, leftmost-longest dash runs, ellipsis greed, LF/CR preservation) are
+pinned by the 20-check test plan and sections 3-4; string-content contracts
+stay out of scope for the runtime evaluator. All clauses above are enforced
+at runtime by the conformance suite (both port runs: 20 passed / 0 failed
+with the contracts active). `xiom-verify` skips every length clause with
+X7007 ("non-numeric operands"/"unresolved operand sort" on `Str`), so all are
+recorded unproven; the single error is the verifier's z3-output parse failure
+(identical on both runs), not a violated contract.
