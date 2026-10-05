@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-05T10:42:21Z",
+    "updated":  "2026-10-05T11:09:30Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -106,7 +106,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.alerting",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Threshold alert rules with breach streaks, firing state, and transition counts",
@@ -116,7 +116,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-alerting/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-alerting/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "alerting.xi",
                                               "package.xi"
@@ -367,7 +367,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.audit",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Hash-chained append-only audit log with verification and export",
@@ -377,7 +377,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-audit/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-audit/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "audit.xi",
                                               "package.xi"
@@ -6538,7 +6538,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.robotics",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Planar robot helpers: 2-link forward kinematics, reach checks, differential drive",
@@ -6548,7 +6548,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-robotics/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-robotics/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "robotics.xi",
                                               "package.xi"
@@ -7791,7 +7791,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.thermo",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Exact integer unit conversions for temperature, pressure, energy, and speed",
@@ -7801,7 +7801,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-thermo/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-thermo/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "thermo.xi",
                                               "package.xi"
