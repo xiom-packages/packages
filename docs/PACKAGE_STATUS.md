@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.63.1` -- generated 2026-10-05T14:54:13Z.
+Toolchain pin: `v0.63.1` -- generated 2026-10-05T15:44:43Z.
 
 ## Summary
 
@@ -401,7 +401,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.hashchain | xiom-hashchain | incubating | tests/test_conformance.xi | pass 20/20 | fd38977f | False | publish pending: next scope delta |
 | xiom.hello | xiom-hello | incubating | tests/test_hello.xi | pass 4/4 | fd38977f | False |  |
 | xiom.helm | xiom-helm | incubating | tests/test_conformance.xi | pass 23/23 | c1709e9b | False | publish pending: next scope delta |
-| xiom.http | xiom-http | incubating | tests/test_conformance.xi | pass 36/36 | 63a049d8 | False | publish pending: eco-v0.1.38 |
+| xiom.http | xiom-http | incubating | tests/test_conformance.xi | pass 40/40 | bb212ffd | False | publish pending: eco-v0.1.38 |
 | xiom.i2c | xiom-i2c | incubating | tests/test_conformance.xi | pass 20/20 | efa6c78a | False | category harmonization patch bump (registry metadata) |
 | xiom.i2p | xiom-i2p | incubating | tests/test_conformance.xi | pass 24/24 | 76e49956 | False | publish pending: next scope delta |
 | xiom.image | xiom-image | incubating | tests/test_conformance.xi | pass 24/24 | 6f07e57b | False | publish pending: next scope delta |

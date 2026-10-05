@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-05T17:54:09Z",
+    "updated":  "2026-10-05T18:44:40Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -3120,7 +3120,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.http",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "XIOM HTTP Library -- types, parsing, client, and server",
@@ -3130,7 +3130,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-http/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-http/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "client.xi",
                                               "cookie.xi",
