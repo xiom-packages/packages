@@ -1,6 +1,6 @@
 # xiom.template -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (incubating, not published).
 Module: `xiom.template` (`src/template.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -186,3 +186,37 @@ only. Two deliberate workarounds:
 The conformance suite avoids inline lambdas, `mut` patterns, `Vec[fn]`
 dispatch and non-exhaustive `match`es by using one explicit `fn` per check
 and explicit `main` dispatch, like the sibling suites.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 11 unknown / 4 errors**. The two port runs
+with runtime contract checking are green (22/22 checks, exit 0), so every
+clause below held on the paths the suite exercises; the solver line's
+unknowns are emitter-level (`Str` payload sorts) and its 4 errors are SMT
+emitter errors over the internal helpers `_render` / `_collect_names`, not
+violations.
+
+| Entry point | Contract | Runtime | Solver |
+|---|---|---|---|
+| `template_render` | `ensures: tmpl.len() == 0 => result is Ok` | holds | unknown |
+| `template_render` | `ensures: result is Err => tmpl.len() > 0` | holds | unknown |
+| `template_render_lenient` | `ensures: tmpl.len() == 0 => result.len() == 0` | holds | unknown |
+| `template_render_lenient` | `ensures: keys.len() == 0 && values.len() == 0 => result.len() <= tmpl.len()` | holds | unknown |
+| `template_keys` | `ensures: result.len() <= tmpl.len()` | holds | unknown |
+| `template_keys` | `ensures: tmpl.len() == 0 => result.len() == 0` | holds | unknown |
+| `template_needs_keys` | `ensures: result.len() <= tmpl.len()` | holds | unknown |
+| `template_needs_keys` | `ensures: tmpl.len() == 0 => result.len() == 0` | holds | unknown |
+
+No clause was dropped: all eight were exercised by the 22-check suite under
+the runtime evaluator on the first attempt.
+
+Unasserted/documented: the exact rendered bytes (values copied verbatim,
+comments and quadruples removed, single-pass no-rescan), the lookup rules
+(`min(keys.len(), values.len())` scan, first match for duplicates, empty
+name) and the two `Err` messages are pinned by the 22-check test plan and
+sections 3-5. A general output-length relation is deliberately unasserted:
+substituted values may be much longer than the template, so no
+`result.value.len()` / `result.len()` bound exists beyond the
+empty-template cases above; string-content contracts stay out of scope for
+the runtime evaluator.

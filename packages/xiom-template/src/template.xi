@@ -189,7 +189,10 @@ fn _render(tmpl: Str, keys: &Vec[Str], values: &Vec[Str], strict: Bool) -> Resul
 /// has no matching key/value; Err("template: unterminated placeholder") when
 /// a "{{" has no closing "}}" (including unterminated comments).
 /// Complexity: O(n) over the template plus O(placeholders * keys).
-pub fn template_render(tmpl: Str, keys: &Vec[Str], values: &Vec[Str]) -> Result[Str, Str] {
+pub fn template_render(tmpl: Str, keys: &Vec[Str], values: &Vec[Str]) -> Result[Str, Str]
+  ensures: tmpl.len() == 0 => result is Ok;
+  ensures: result is Err => tmpl.len() > 0;
+{
   return _render(tmpl, keys, values, true);
 }
 
@@ -200,7 +203,10 @@ pub fn template_render(tmpl: Str, keys: &Vec[Str], values: &Vec[Str]) -> Result[
 /// "{{" is kept).
 /// Error case: none.
 /// Complexity: O(n) over the template plus O(placeholders * keys).
-pub fn template_render_lenient(tmpl: Str, keys: &Vec[Str], values: &Vec[Str]) -> Str {
+pub fn template_render_lenient(tmpl: Str, keys: &Vec[Str], values: &Vec[Str]) -> Str
+  ensures: tmpl.len() == 0 => result.len() == 0;
+  ensures: keys.len() == 0 && values.len() == 0 => result.len() <= tmpl.len();
+{
   let r = _render(tmpl, keys, values, false);
   if r.is_ok {
     return r.value;
@@ -256,7 +262,10 @@ fn _collect_names(tmpl: Str) -> Vec[Str] {
 /// before it are still reported).
 /// Error case: none.
 /// Complexity: O(n * names).
-pub fn template_keys(tmpl: Str) -> Vec[Str] {
+pub fn template_keys(tmpl: Str) -> Vec[Str]
+  ensures: result.len() <= tmpl.len();
+  ensures: tmpl.len() == 0 => result.len() == 0;
+{
   return _collect_names(tmpl);
 }
 
@@ -267,7 +276,10 @@ pub fn template_keys(tmpl: Str) -> Vec[Str] {
 /// here but is reported missing by template_render).
 /// Error case: none.
 /// Complexity: O(n * names * keys).
-pub fn template_needs_keys(tmpl: Str, keys: &Vec[Str]) -> Vec[Str] {
+pub fn template_needs_keys(tmpl: Str, keys: &Vec[Str]) -> Vec[Str]
+  ensures: result.len() <= tmpl.len();
+  ensures: tmpl.len() == 0 => result.len() == 0;
+{
   let referenced = _collect_names(tmpl);
   var out = Vec[Str].new();
   var i = 0;

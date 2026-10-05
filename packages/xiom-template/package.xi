@@ -11,7 +11,7 @@
 
 package xiom_template {
   name: "xiom.template";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Mustache-style template rendering with strict and lenient key handling";
   categories: ["text-nlp", "tooling"];
   keywords: ["template", "mustache", "render", "text"];
