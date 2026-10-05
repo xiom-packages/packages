@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  22,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.63.1",
+                  "run_by":  "fleet-sweep:v0.64.0",
                   "commit":  "5f469ee5",
-                  "checked":  "2026-10-05T13:38:55Z"
+                  "checked":  "2026-10-05T19:12:07Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: registry scope addition + repo protection decision + allowlist"

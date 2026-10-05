@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  24,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.63.1",
+                  "run_by":  "fleet-sweep:v0.64.0",
                   "commit":  "5f469ee5",
-                  "checked":  "2026-10-05T13:41:19Z"
+                  "checked":  "2026-10-05T19:17:24Z"
               },
     "publish":  false,
     "excluded_reason":  "published at 0.1.0 (incubating); suite watchdog-marginal (45.6s idle, 96-107s under load) -- raise sweep timeout at next touch"
