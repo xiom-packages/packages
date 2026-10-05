@@ -1,6 +1,6 @@
 # xiom.metrics
 
-> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (23/23); published at `v0.1.2` on the XIOM registry.
 > **Scope:** in-process counters, gauges, and integer histograms as plain
 > value types with no registry, exporter, or background collection.
 > **Deps:** none (the library imports nothing; tests use `xiom.std` modules).
