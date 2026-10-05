@@ -148,7 +148,10 @@ fn _e24_nearest(m: Int) -> Int {
 /// empty string and any non-lowercase spelling.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn electron_color_digit(color: Str) -> Option[Int] {
+pub fn electron_color_digit(color: Str) -> Option[Int]
+  ensures: result is Some => result.value >= 0;
+  ensures: result is Some => result.value <= 9;
+{
   if _streq(color, "black") { return Some(0); }
   if _streq(color, "brown") { return Some(1); }
   if _streq(color, "red") { return Some(2); }
@@ -171,7 +174,10 @@ pub fn electron_color_digit(color: Str) -> Option[Int] {
 /// Returns: Some(exponent 0..9) for the ten digit colors; None otherwise.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn electron_color_multiplier(color: Str) -> Option[Int] {
+pub fn electron_color_multiplier(color: Str) -> Option[Int]
+  ensures: result is Some => result.value >= 0;
+  ensures: result is Some => result.value <= 9;
+{
   return electron_color_digit(color);
 }
 
@@ -183,7 +189,10 @@ pub fn electron_color_multiplier(color: Str) -> Option[Int] {
 /// (grey/gray, black, blue, ... are not tolerance colors).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn electron_resistor_tolerance(color: Str) -> Option[Int] {
+pub fn electron_resistor_tolerance(color: Str) -> Option[Int]
+  ensures: result is Some => result.value >= 0;
+  ensures: result is Some => result.value <= 100;
+{
   if _streq(color, "brown") { return Some(10); }
   if _streq(color, "red") { return Some(20); }
   if _streq(color, "gold") { return Some(50); }
@@ -204,7 +213,11 @@ pub fn electron_resistor_tolerance(color: Str) -> Option[Int] {
 /// or tolerance color, including gold/silver in the multiplier position
 /// ("electronics: unknown color code").
 /// Complexity: O(1).
-pub fn electron_resistor_value(bands: &Vec[Str]) -> Result[Int, Str] {
+pub fn electron_resistor_value(bands: &Vec[Str]) -> Result[Int, Str]
+  ensures: bands.len() < 3 => result is Err;
+  ensures: bands.len() > 4 => result is Err;
+  ensures: result is Ok => result.value >= 0;
+{
   let n = bands.len();
   if n != 3 && n != 4 {
     return _err_int("electronics: resistor bands must be 3 or 4");
@@ -229,7 +242,9 @@ pub fn electron_resistor_value(bands: &Vec[Str]) -> Result[Int, Str] {
 /// Returns: a fresh Vec[Int] with exactly those 24 values.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn electron_e24_values() -> Vec[Int] {
+pub fn electron_e24_values() -> Vec[Int]
+  ensures: result.len() == 24;
+{
   var out = Vec[Int].new();
   var i = 0;
   while i < 24 {
@@ -252,7 +267,10 @@ pub fn electron_e24_values() -> Vec[Int] {
 /// decades from 10 ohms up.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn electron_nearest_e24(value: Int) -> Int {
+pub fn electron_nearest_e24(value: Int) -> Int
+  ensures: value < 10 => result == value;
+  ensures: value >= 10 => result >= 10;
+{
   if value < 10 {
     return value;
   }
@@ -272,7 +290,10 @@ pub fn electron_nearest_e24(value: Int) -> Int {
 /// Returns: output voltage in mV; 0 when r1 + r2 == 0 (no division occurs).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn electron_voltage_divider_mv(vin_mv: Int, r1_ohm: Int, r2_ohm: Int) -> Int {
+pub fn electron_voltage_divider_mv(vin_mv: Int, r1_ohm: Int, r2_ohm: Int) -> Int
+  ensures: r1_ohm + r2_ohm == 0 => result == 0;
+  ensures: vin_mv == 0 => result == 0;
+{
   let total = r1_ohm + r2_ohm;
   if total == 0 {
     return 0;
@@ -290,7 +311,11 @@ pub fn electron_voltage_divider_mv(vin_mv: Int, r1_ohm: Int, r2_ohm: Int) -> Int
 /// ("electronics: supply must exceed forward voltage"). Both checks run
 /// before any division.
 /// Complexity: O(1).
-pub fn electron_led_resistor_ohm(supply_mv: Int, forward_mv: Int, current_ua: Int) -> Result[Int, Str] {
+pub fn electron_led_resistor_ohm(supply_mv: Int, forward_mv: Int, current_ua: Int) -> Result[Int, Str]
+  ensures: current_ua <= 0 => result is Err;
+  ensures: supply_mv <= forward_mv => result is Err;
+  ensures: result is Ok => result.value >= 0;
+{
   if current_ua <= 0 {
     return _err_int("electronics: current must be positive");
   }

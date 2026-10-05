@@ -1,6 +1,6 @@
 # xiom.electronics -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (incubating, not published).
 Module: `xiom.electronics` (`src/electronics.xi`). Pure XIOM, no FFI.
 Dependencies: `xiom.std` only (`xiom.string.compare.str_compare`).
 
@@ -230,3 +230,41 @@ module's discipline:
 - Integer math only; the test file reads `Vec[Int]` elements with typed
   `let` bindings and never uses `Vec[fn]` dispatch (tests are called
   explicitly from `main`).
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 17 unknown / 18 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `electron_color_digit` | `ensures: result is Some => result.value >= 0`; `ensures: result is Some => result.value <= 9` | unproven |
+| `electron_color_multiplier` | `ensures: result is Some => result.value >= 0`; `ensures: result is Some => result.value <= 9` | unproven |
+| `electron_resistor_tolerance` | `ensures: result is Some => result.value >= 0`; `ensures: result is Some => result.value <= 100` | unproven |
+| `electron_resistor_value` | `ensures: bands.len() < 3 => result is Err`; `ensures: bands.len() > 4 => result is Err`; `ensures: result is Ok => result.value >= 0` | unproven |
+| `electron_e24_values` | `ensures: result.len() == 24` | unproven |
+| `electron_nearest_e24` | `ensures: value < 10 => result == value`; `ensures: value >= 10 => result >= 10` | unproven |
+| `electron_voltage_divider_mv` | `ensures: r1_ohm + r2_ohm == 0 => result == 0`; `ensures: vin_mv == 0 => result == 0` | unproven |
+| `electron_led_resistor_ohm` | `ensures: current_ua <= 0 => result is Err`; `ensures: supply_mv <= forward_mv => result is Err`; `ensures: result is Ok => result.value >= 0` | unproven |
+
+17 clauses across the eight entry points (2/2/2/3/1/2/2/3). All 17 are
+enforced by the v0.63.0 runtime evaluator: the 24-check conformance suite
+exercises both the happy and the rejection paths with the clauses active
+(two consecutive `scripts/port.ps1` runs green, 24/24), so no clause was
+dropped. In the Z3 pass every contract axiom was skipped by the emitter
+(`unsupported expression in contract`, non-numeric operator sorts for the
+`Option` payload comparisons, `equality with unresolved operand sort`), so
+no clause is machine-proven; the 18 errors are emitter artifacts
+(`unknown constant _streq` / `_err_int` -- private-helper calls the emitter
+cannot resolve), not violations of the code under test.
+
+Unasserted/documented: the color tables (section 4), the E24 table and its
+tie/rounding rules (sections 5.2-5.3), the divider truncation semantics
+(section 5.4), and the exact `"electronics: ..."` error strings are not
+expressible as runtime clauses (they need `Str` content comparison or
+private-helper calls), so they stay pinned by the 24-check test plan
+(section 8) and sections 4-5. The clause set deliberately avoids the
+forbidden v0.63.0 payload shapes (tuple-component access,
+`Result[Vec[...]]` payload-length comparisons, struct-result field access);
+only payload scalar ranges, length facts and definitional guards are
+runtime-asserted.
