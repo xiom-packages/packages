@@ -1,6 +1,6 @@
 # xiom.cobs
 
-> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.2` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (20/20); published at `v0.1.3` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) COBS (Consistent Overhead Byte Stuffing)
 > single-frame encode/decode: the 0x00-free wire form plus size and
 > validation helpers.

@@ -3,28 +3,44 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**LIVE CLAIM 2026-10-05 12:05Z (main/debug session):** v0.63.1 release
-response in progress -- SHA256-verified re-pin + 514-record repin,
-probe batteries, grpc/graphql re-test (C001 fix expected), fleet sweep
-re-record, and the compiler-lane-requested clause restoration
-(`varint` decode tuple clauses + `cobs` decode bound; drop the
-unasserted notes) with patch bumps + publish in `eco-v0.1.55`.
-`lz4_compress_checked` rename noted OPTIONAL -- not doing it. Parallel
-lanes: do NOT touch COMPILER_VERSION, `packages/*/STATUS.json`, the
-`xiom.new` install, or create tags; coordinate first.
-
-**Written:** 2026-10-05 (12:00Z), by the main/debug session (v0.63.0
-pin; hardening batches #1-#11 DONE + PUBLISHED across
-`eco-v0.1.44`-`eco-v0.1.54` -- 46 stable packages with runtime
-contracts + SPEC contract inventories, plus `option` documented
-all-unasserted without a version bump (no expressible clauses); 232
-stable packages still at zero clauses; grpc still red on v0.63.0 --
-numeric match arms stay blocked until the next pin; graphql 9/10).
-Check `git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-05 (12:35Z), by the main/debug session (v0.63.1
+pinned + SHA256-verified, repin 514; contract-evaluator fix confirmed:
+`varint` tuple-advance + `cobs` decode bound restored, x2-green, and
+published in `eco-v0.1.55` (0.1.3); hardening batches #1-#11 published
+across `eco-v0.1.44`-`eco-v0.1.54` -- 46 packages + `option`
+documented all-unasserted; **grpc still RED on v0.63.1** (crash+hang;
+numeric arms stay blocked) and graphql still 9/10; fleet sweep v0.63.1
+running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-05 12:00Z (read this first):**
+**STATE AT 2026-10-05 12:35Z (read this first):**
+- **v0.63.1 PINNED (released 11:18Z; fixes-only: contract evaluator,
+  verifier SMT, lz4 parity, catalog flush):** official archive
+  `xiom-0.63.1-windows-x64.zip` SHA256 `f9dc9ec5...` verified; deployed
+  (`xiom --version` = v0.63.1); `COMPILER_VERSION` bumped; repin 514
+  (`39786132`). Probe battery green (byte-at-128, const-tables,
+  const-match, v0622-regressions -- all `bad=0`/expected).
+- **Contract-evaluator fix CONFIRMED + clauses restored
+  (`eco-v0.1.55` PUBLISHED, run `37307194316`):** `xiom.varint` 0.1.3
+  (tuple-advance `result.value.1 > off` on both decoders) and
+  `xiom.cobs` 0.1.3 (decode `result.value.len() <= data.len()`), both
+  x2-green on v0.63.1 and live; unasserted notes dropped from both
+  SPECs; COMPILER-FINDINGS row marked FIXED in v0.63.1.
+- **grpc still RED on v0.63.1** (`probe_suite_min` `0xC0000005`,
+  `probe_direct` hang) -- the C001 fix was NOT in v0.63.1; numeric
+  match arms stay blocked. graphql still 9/10 (enum-payload in-situ).
+- **Fleet sweep v0.63.1 RUNNING** (`bgp_10bf40470001sMCV17QsFyaps3`,
+  `%TEMP%\kilo\sweep-v0631`); on completion: record-sweep
+  `-RunBy fleet-sweep:v0.63.1` (`-WhatIf` first), validate+guard,
+  commit, update SESSION.
+- **Queue:** 232 stable packages remain at zero clauses (batch #12
+  next). `lz4_compress_checked` rename no longer required (compiler
+  lane). Next tag `eco-v0.1.56`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-05 12:00Z (history):**
 - **`eco-v0.1.54` PUBLISHED (`37298550434` SUCCESS):** hardening batch
   #11 (6-porter fan-out) -- `xiom.electronics` 0.1.2 (24/24),
   `xiom.password` 0.1.2 (23/23), `xiom.svg` 0.1.2 (20/20), `xiom.avi`
@@ -1049,22 +1065,16 @@ Check `git log -1 --format=%h %s` before starting.
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-05 12:00Z STATE block and
+private). Read SESSION.md first -- the 2026-10-05 12:35Z STATE block and
 the "Next-session operating kit" in section 0 are the live handoff
-(v0.63.0 pinned + SHA256-verified; hardening batches #1-#11 published:
-`eco-v0.1.44` uuid/csv/bson/ttl, `eco-v0.1.45` crc/cobs/varint/roman,
-`eco-v0.1.46` bmp/rate/lru/tokenizer, `eco-v0.1.47`
-metrics/retry/signal/stl, `eco-v0.1.48` alerting/robotics/thermo/audit,
-`eco-v0.1.49` quantum/spectroscopy/relativity/physics, `eco-v0.1.50`
-particle/fixed/finance/collation, `eco-v0.1.51`
-tracing/selection/snapshot/optimizer, `eco-v0.1.52`
-typography/transaction/refactor/macaddr, `eco-v0.1.53`
-template/fuzz/base32/packet/radix/astronomy, `eco-v0.1.54`
-electronics/password/svg/avi/pcap (plus `option` docs-only,
-all-unasserted) -- all with runtime contracts; 232 stable packages
-still at zero clauses; registry 459 packages + 2 infra; allowlist 499;
-grpc `Vec[(Str,Str)]` STILL RED on v0.63.0 -- numeric match arms stay
-blocked until a release carries the C001 root-cause fix; graphql 9/10;
+(v0.63.1 pinned + SHA256-verified; repin 514; contract-evaluator fix
+confirmed and `varint`/`cobs` clauses restored + published in
+`eco-v0.1.55`; hardening batches #1-#11 published across
+`eco-v0.1.44`-`eco-v0.1.54` -- 46 packages + `option` all-unasserted;
+fleet sweep v0.63.1 running; 232 stable packages at zero clauses;
+registry 459 packages + 2 infra; allowlist 499; **grpc
+`Vec[(Str,Str)]` STILL RED on v0.63.1** -- numeric match arms stay
+blocked until a release carries the C001 fix; graphql 9/10;
 `l10n-unicode` needs a >60s suite timeout and stays incubating).
 Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
@@ -1081,15 +1091,16 @@ shadowing: a v0.62.3 staging dir precedes xiom.new
 
 Then do, in order:
 1. Open findings (with the compiler lane; do NOT re-run the same
-   bisections -- both were re-tested RED on v0.63.0): graphql 9/10
+   bisections -- both were re-tested RED on v0.63.1): graphql 9/10
    enum-payload in-situ (lead: variable-payload ctor flattening) and
    grpc `Vec[(Str, Str)]` 0xC0000005 (minimal group
    `packages\xiom-grpc\tests\probe_suite_min.xi` + `probe_direct.xi`,
-   evidence `docs\repro\tuple-vec-set\`). When fixes land: re-test; if
-   green, finish grpc (restore named-constant arms per m188, x2, record)
-   and graphql (x2, record), then publish in one batch.
-   `l10n-unicode` stays incubating; needs a >60s suite timeout under
-   load (42-45s idle).
+   evidence `docs\repro\tuple-vec-set\`). The v0.63.1 fixes did NOT
+   include the C001 codegen change -- wait for a release that does.
+   When fixes land: re-test; if green, finish grpc (restore
+   named-constant arms per m188, x2, record) and graphql (x2, record),
+   then publish in one batch. `l10n-unicode` stays incubating; needs a
+   >60s suite timeout under load (42-45s idle).
 2. Hardening track: batches #1-#11 DONE + PUBLISHED (`eco-v0.1.44`
    ... `eco-v0.1.53`; `eco-v0.1.54` electronics/password/svg/avi/pcap;
    `option` docs-only all-unasserted, no bump/no publish). Next: batch
