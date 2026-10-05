@@ -1,8 +1,9 @@
 # xiom.optimizer -- Specification
 
-Status: `incubating` (implemented, harness-green, not published).
+Status: `stable` (published; v0.63.0 fleet sweep green; contract hardening
+in 0.1.2).
 Module: `xiom.optimizer` (`src/optimizer.xi`). Manifest: `package.xi` (name
-`xiom.optimizer`, version `0.1.0`). Depends on `xiom.std` (no library
+`xiom.optimizer`, version `0.1.2`). Depends on `xiom.std` (no library
 imports; tests use `xiom.test` and `xiom.io`).
 
 ## Scope
@@ -284,3 +285,23 @@ program_exit=0 exit=0)`.
 - The namespace rule passes: `xiom.optimizer` shares only the root `xiom`
   segment with every stdlib module, and no stdlib module lives under
   `xiom.optimizer` (`namespace-check` reports 0 conflicts).
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **2 proven / 0 violated / 12 unknown / 4 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `opt_linspace_int` | `ensures: (n < 1 \|\| hi < lo) => result.len() == 0`; `ensures: n == 1 && hi >= lo => result.len() == 1`; `ensures: n >= 2 && hi >= lo => result.len() == n` | **proven** (degenerate + `n == 1` cases) |
+| `opt_grid_best_int` | `ensures: step < 1 => result == lo`; `ensures: hi < lo => result == lo` | unproven |
+| `opt_hill_climb_int` | `ensures: step < 1 => result == start`; `ensures: max_steps < 1 => result == start` | unproven |
+| `opt_random_restart_int` | `ensures: hi < lo => result == lo`; `ensures: restarts < 1 => result == lo` | unproven |
+| `opt_anneal_int` | `ensures: hi < lo => result == start`; `ensures: steps < 1 && start >= lo && start <= hi => result == start` | unproven |
+| `opt_bounds_ok` | `ensures: result == (x >= lo && x <= hi)` | unproven |
+
+Unasserted/documented: the monotone-non-decreasing property of the
+linspace sequence (`out[n-1] == hi`), the tie-keeping rules, the
+temperature schedule and the acceptance rule are pinned by the 24-check
+test plan; objective callbacks (`fn` pointer parameters) are outside
+contract scope.

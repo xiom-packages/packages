@@ -77,7 +77,11 @@ fn _opt_seed_at(base: Int, index: Int) -> Int {
 /// n == 1 yields [lo]; n < 1 or hi < lo yield an empty vector.
 /// Error case: none.
 /// Complexity: O(n).
-pub fn opt_linspace_int(lo: Int, hi: Int, n: Int) -> Vec[Int] {
+pub fn opt_linspace_int(lo: Int, hi: Int, n: Int) -> Vec[Int]
+  ensures: (n < 1 || hi < lo) => result.len() == 0;
+  ensures: n == 1 && hi >= lo => result.len() == 1;
+  ensures: n >= 2 && hi >= lo => result.len() == n;
+{
   var out = Vec[Int].new();
   if n < 1 { return out; }
   if hi < lo { return out; }
@@ -102,7 +106,10 @@ pub fn opt_linspace_int(lo: Int, hi: Int, n: Int) -> Vec[Int] {
 /// step < 1 or hi < lo return lo (no scan; f is then evaluated once).
 /// Error case: none.
 /// Complexity: O(1 + (hi - lo) / step) calls to f.
-pub fn opt_grid_best_int(lo: Int, hi: Int, step: Int, f: fn(&Int) -> Int) -> Int {
+pub fn opt_grid_best_int(lo: Int, hi: Int, step: Int, f: fn(&Int) -> Int) -> Int
+  ensures: step < 1 => result == lo;
+  ensures: hi < lo => result == lo;
+{
   if step < 1 { return lo; }
   if hi < lo { return lo; }
   let first = lo;
@@ -133,7 +140,10 @@ pub fn opt_grid_best_int(lo: Int, hi: Int, step: Int, f: fn(&Int) -> Int) -> Int
 /// The score never decreases: every move is a strict improvement.
 /// Error case: none.
 /// Complexity: O(max_steps) calls to f (at most 3 per iteration).
-pub fn opt_hill_climb_int(start: Int, step: Int, max_steps: Int, f: fn(&Int) -> Int) -> Int {
+pub fn opt_hill_climb_int(start: Int, step: Int, max_steps: Int, f: fn(&Int) -> Int) -> Int
+  ensures: step < 1 => result == start;
+  ensures: max_steps < 1 => result == start;
+{
   var x = start;
   var s = step;
   var i = 0;
@@ -177,7 +187,10 @@ pub fn opt_hill_climb_int(start: Int, step: Int, max_steps: Int, f: fn(&Int) -> 
 /// always return the same point on a platform.
 /// Error case: none.
 /// Complexity: O(restarts * _OPT_RESTART_MAX_STEPS) calls to f.
-pub fn opt_random_restart_int(lo: Int, hi: Int, restarts: Int, step: Int, seed: Int, f: fn(&Int) -> Int) -> Int {
+pub fn opt_random_restart_int(lo: Int, hi: Int, restarts: Int, step: Int, seed: Int, f: fn(&Int) -> Int) -> Int
+  ensures: hi < lo => result == lo;
+  ensures: restarts < 1 => result == lo;
+{
   if hi < lo { return lo; }
   if restarts < 1 { return lo; }
   let first = lo;
@@ -221,7 +234,10 @@ pub fn opt_random_restart_int(lo: Int, hi: Int, restarts: Int, step: Int, seed: 
 /// the exact same walk on a platform.
 /// Error case: none.
 /// Complexity: O(steps) calls to f (at most 2 per step).
-pub fn opt_anneal_int(start: Int, lo: Int, hi: Int, steps: Int, seed: Int, temp_start: Int, f: fn(&Int) -> Int) -> Int {
+pub fn opt_anneal_int(start: Int, lo: Int, hi: Int, steps: Int, seed: Int, temp_start: Int, f: fn(&Int) -> Int) -> Int
+  ensures: hi < lo => result == start;
+  ensures: steps < 1 && start >= lo && start <= hi => result == start;
+{
   if hi < lo { return start; }
   var x = _opt_clamp(start, lo, hi);
   if steps < 1 { return x; }
@@ -269,6 +285,8 @@ pub fn opt_anneal_int(start: Int, lo: Int, hi: Int, steps: Int, seed: Int, temp_
 /// An empty range (hi < lo) is always false.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn opt_bounds_ok(x: Int, lo: Int, hi: Int) -> Bool {
+pub fn opt_bounds_ok(x: Int, lo: Int, hi: Int) -> Bool
+  ensures: result == (x >= lo && x <= hi);
+{
   return x >= lo && x <= hi;
 }
