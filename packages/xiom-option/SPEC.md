@@ -5,9 +5,13 @@
 # xiom.option -- Specification
 
 Package: `xiom.option` (folder `packages/xiom-option`)
-Version: 0.1.0
+Version: 0.1.1 (stable; published on the XIOM registry)
 Module: `xiom.option` (`src/option.xi`)
-Status: incubating -- implemented, conformance-tested locally, not published.
+Status: stable -- conformance-tested (32/32 on v0.63.0); the 2026-10-05
+hardening pass added no runtime clauses -- no truthful sentinel/definitional
+property is expressible under the v0.63.0 evaluator, so the whole public
+surface is documented unasserted in Contracts below (no source change, no
+version bump).
 
 ## 1. Scope
 
@@ -160,3 +164,48 @@ expected `port: PASS (passed=32 failed=0 exit=0)`.
    `TestResult`-returning functions is not affected, nor is `Ok`/`Err`
    construction inside functions that themselves return `Result` (as in
    `src/option.xi`).
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime contracts were attempted for every public entry point of
+`src/option.xi`; **none qualifies**, so the whole surface (the 16 `pub fn`
+entry points of section 3) is documented as unasserted instead of forcing
+clause shapes the v0.63.0 runtime evaluator does not support truthfully.
+`xiom-verify --check` (Z3 4.13.4 on v0.63.0) result: **0 proven / 0 violated /
+0 unknown / 1 error**. The single error is the verifier's z3-output parse
+artifact on a contract-free module (the emitted SMT-LIB contains only sort
+declarations, so z3 prints no verdict and the parser reports `[RED] ERROR:
+Could not parse z3 output`); it is not a violation of the code under test.
+
+| # | Entry point | Clause | Status |
+|---|---|---|---|
+| 1 | `option_map_int` | unasserted | Result payload is `f(&v)`; contracts cannot invoke callbacks or bind Option payloads, and no constant bound holds for an arbitrary `f`. |
+| 2 | `option_flat_map_int` | unasserted | Result is caller-supplied by `f`; same limits as `option_map_int`, no sentinel on `o`. |
+| 3 | `option_filter_int` | unasserted | Outcome depends on `pred`; expressing keep/drop would need forbidden Option payload patterns. |
+| 4 | `option_unwrap_or_int` | unasserted | The only truthful guard (absent `o` => `result == fallback`) requires the forbidden `o is None` parameter pattern; the present-side value is unconstrained. |
+| 5 | `option_unwrap_or_else_int` | unasserted | Same payload-or-fallback choice as #4, and the absent-side value comes from a callback contracts cannot call. |
+| 6 | `option_or_else_int` | unasserted | Option result; no guard can distinguish `o` present vs absent or relate the payloads of `o` and `alt`. |
+| 7 | `option_to_result_int` | unasserted | Option-to-Result mapping; no guard/range on `o` is expressible and the `Err` payload is `Str`. |
+| 8 | `option_from_result_int` | unasserted | Option result from a Result parameter; the only proven Result shape (`result is Ok => result.value >= CONST`) has no truthful instance here. |
+| 9 | `option_map_str` | unasserted | `Str` payload flows through a callback; `Str` content is not comparable in contract position. |
+| 10 | `option_unwrap_or_str` | unasserted | `Str` result and fallback; no `Str` comparison/guard is expressible. |
+| 11 | `option_to_result_str` | unasserted | `Result[Str, Str]`; both payloads are `Str`. |
+| 12 | `result_map_int` | unasserted | Ok payload is `f`'s output; no constant bound is truthful for an arbitrary `f`. |
+| 13 | `result_unwrap_or_int` | unasserted | Choosing payload vs `fallback` requires the forbidden `r is Ok`/`Err` parameter pattern. |
+| 14 | `result_ok_int` | unasserted | Option result from a Result parameter; no expressible sentinel or constant bound. |
+| 15 | `result_err_str` | unasserted | `Option[Str]` result; `Str` payload and absent-side both inexpressible. |
+| 16 | `result_to_option_int` | unasserted | Definitionally `result_ok_int(r)`; same limits as #14. |
+
+Unasserted/documented: every combinator is a total pass-through wrapper whose
+result value depends on a caller-supplied callback or on which side of
+`Option`/`Result` is present, so the proven v0.63.0 clause shapes (integer
+guard/sentinel, range, exact formula, `result is Ok => result.value >= CONST`,
+definitional `Bool`) have no truthful instance here, and the forbidden shapes
+(tuple-component access, `Result[Vec[...]]` payload-length comparisons,
+struct-result field access, Option payload patterns including `o is None`
+parameter guards) were not used. This matches the package's design constraint:
+all 16 entry points are monomorphic specializations taking `fn` callbacks. The
+present/absent semantics of section 4 and the 32-check conformance suite are
+therefore the sole pins. Two port runs on 2026-10-05, on the unchanged
+`src/option.xi`, each ended
+`port: PASS (passed=32 failed=0 program_exit=0 exit=0)`.
