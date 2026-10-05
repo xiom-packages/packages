@@ -9,7 +9,7 @@
 
 package xiom_pcap {
   name: "xiom.pcap";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Classic PCAP capture file structure: magic/endianness, global header, and packet records";
   categories: ["data","network"];
   keywords: ["pcap","capture","packets","binary"];

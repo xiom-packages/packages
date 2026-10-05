@@ -135,7 +135,10 @@ fn _magic_be(data: &Vec[UInt8]) -> Bool {
 /// global header and either magic byte sequence, D4 C3 B2 A1 (little-endian
 /// file, magic 0xA1B2C3D4) or A1 B2 C3 D4 (big-endian file, the byte-swapped
 /// value 0xD4C3B2A1). Record bytes are not inspected. Complexity: O(1).
-pub fn pcap_is_file(data: &Vec[UInt8]) -> Bool {
+pub fn pcap_is_file(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 24 => !result;
+  ensures: result => data.len() >= 24;
+{
   if data.len() < 24 {
     return false;
   }
@@ -165,7 +168,10 @@ pub fn pcap_is_file(data: &Vec[UInt8]) -> Bool {
 ///   * `pcap: truncated packet` -- `incl_len` runs past the buffer end.
 /// The whole call is Err on the first malformed record; no partial index is
 /// returned. Complexity: O(records + total payload) time, O(records) space.
-pub fn pcap_parse(data: &Vec[UInt8]) -> Result[PcapFile, Str] {
+pub fn pcap_parse(data: &Vec[UInt8]) -> Result[PcapFile, Str]
+  ensures: data.len() < 24 => result is Err;
+  ensures: result is Ok => data.len() >= 24;
+{
   if data.len() < 24 {
     return _err_file("pcap: truncated header");
   }
@@ -217,7 +223,10 @@ pub fn pcap_parse(data: &Vec[UInt8]) -> Result[PcapFile, Str] {
 }
 
 /// Number of packet records in the index. Complexity: O(1).
-pub fn pcap_packet_count(p: &PcapFile) -> Int {
+pub fn pcap_packet_count(p: &PcapFile) -> Int
+  ensures: result >= 0;
+  ensures: result == p.offsets.len();
+{
   return p.offsets.len();
 }
 
@@ -227,7 +236,10 @@ pub fn pcap_packet_count(p: &PcapFile) -> Int {
 /// Err("pcap: truncated packet") when the recorded range does not fit in
 /// `data` (for example when a shorter buffer is passed). A zero-length
 /// record yields an empty Ok. Complexity: O(caplen).
-pub fn pcap_packet(data: &Vec[UInt8], p: &PcapFile, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn pcap_packet(data: &Vec[UInt8], p: &PcapFile, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= p.offsets.len() => result is Err;
+{
   if i < 0 {
     return _err_bytes("pcap: packet out of range");
   }
@@ -253,7 +265,11 @@ pub fn pcap_packet(data: &Vec[UInt8], p: &PcapFile, i: Int) -> Result[Vec[UInt8]
 
 /// Captured (included) length of packet `i`; -1 when `i` is out of range.
 /// Complexity: O(1).
-pub fn pcap_caplen(p: &PcapFile, i: Int) -> Int {
+pub fn pcap_caplen(p: &PcapFile, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= p.caplens.len() => result == -1;
+  ensures: result >= -1;
+{
   if i < 0 {
     return -1;
   }
@@ -267,7 +283,11 @@ pub fn pcap_caplen(p: &PcapFile, i: Int) -> Int {
 /// Original (on-the-wire) length of packet `i`; -1 when `i` is out of
 /// range. `origlen >= caplen` when the capture was snaplen-truncated.
 /// Complexity: O(1).
-pub fn pcap_origlen(p: &PcapFile, i: Int) -> Int {
+pub fn pcap_origlen(p: &PcapFile, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= p.origlens.len() => result == -1;
+  ensures: result >= -1;
+{
   if i < 0 {
     return -1;
   }
@@ -280,7 +300,11 @@ pub fn pcap_origlen(p: &PcapFile, i: Int) -> Int {
 
 /// Capture timestamp seconds of packet `i`; -1 when `i` is out of range.
 /// The microsecond part is not indexed. Complexity: O(1).
-pub fn pcap_ts_sec(p: &PcapFile, i: Int) -> Int {
+pub fn pcap_ts_sec(p: &PcapFile, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= p.ts_secs.len() => result == -1;
+  ensures: result >= -1;
+{
   if i < 0 {
     return -1;
   }
@@ -293,6 +317,9 @@ pub fn pcap_ts_sec(p: &PcapFile, i: Int) -> Int {
 
 /// Link-layer type (the global header `network` field, e.g. 1 = Ethernet);
 /// same for every packet in the file. Complexity: O(1).
-pub fn pcap_linktype(p: &PcapFile) -> Int {
+pub fn pcap_linktype(p: &PcapFile) -> Int
+  ensures: result >= 0;
+  ensures: result == p.linktype;
+{
   return p.linktype;
 }

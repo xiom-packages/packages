@@ -1,8 +1,8 @@
 # xiom.pcap -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
+Status: `incubating` (implemented, harness-green with compiler v0.63.0; not
 published).
-Manifest: `package.xi` (`xiom.pcap`, version `0.1.0`).
+Manifest: `package.xi` (`xiom.pcap`, version `0.1.2`).
 Module: `src/pcap.xi` (`module xiom.pcap`).
 Depends on `xiom.std`; the library module imports nothing (the tests import
 `xiom.test`, `xiom.io` and `xiom.string.compare`).
@@ -231,7 +231,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.pcap
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.63.0,
 `port: PASS (passed=17 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -270,3 +270,42 @@ Last verified: compiler 0.61.3,
 - 16/32-bit reads are pure arithmetic (`+`, `*`, `/`, `%`), which avoids
   the v0.61.3 mask/bit-set miscompiles seen in bit-manipulating modules.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 18 unknown / 12 errors**. The 12 errors
+are emitter artifacts (`unknown constant _magic_le` / `_err_file` /
+`_err_bytes` in the generated SMT), not violations of the code under test.
+Both port runs with the clauses active:
+`port: PASS (passed=17 failed=0 program_exit=0 exit=0)`.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `pcap_is_file` | `ensures: data.len() < 24 => !result`; `ensures: result => data.len() >= 24` | unproven |
+| `pcap_parse` | `ensures: data.len() < 24 => result is Err`; `ensures: result is Ok => data.len() >= 24` | unproven |
+| `pcap_packet_count` | `ensures: result >= 0`; `ensures: result == p.offsets.len()` | unproven |
+| `pcap_packet` | `ensures: i < 0 => result is Err`; `ensures: i >= p.offsets.len() => result is Err` | unproven |
+| `pcap_caplen` | `ensures: i < 0 => result == -1`; `ensures: i >= p.caplens.len() => result == -1`; `ensures: result >= -1` | unproven |
+| `pcap_origlen` | `ensures: i < 0 => result == -1`; `ensures: i >= p.origlens.len() => result == -1`; `ensures: result >= -1` | unproven |
+| `pcap_ts_sec` | `ensures: i < 0 => result == -1`; `ensures: i >= p.ts_secs.len() => result == -1`; `ensures: result >= -1` | unproven |
+| `pcap_linktype` | `ensures: result >= 0`; `ensures: result == p.linktype` | unproven |
+
+18 clauses across the eight entry points (2/2/2/2/3/3/3/2). All 18 are
+enforced by the v0.63.0 runtime evaluator: the 17-check conformance suite
+exercises every entry point on both the happy path and the rejection paths
+with the clauses active. In the Z3 pass every contract axiom was skipped by
+the emitter (`operator Lt/Ge on non-numeric operands`, `equality with
+unresolved operand sort`, `unsupported expression in contract`), so no
+clause is machine-proven.
+
+Unasserted/documented: payload and error-string semantics -- the exact six
+error texts, `magic == 2712847316` on an Ok `pcap_parse`, per-record
+equality of `ts_secs`/`caplens`/`origlens`/`offsets`, and the payload
+contents and length of a `pcap_packet` result -- are not expressible
+without the forbidden v0.63.0 runtime-evaluator shapes
+(`Result[Vec[...]]` payload-length vs parameter-length comparisons,
+struct-result field access, tuple-component access). They stay pinned by
+the 17-check test plan and the sections above; the runtime clauses cover
+only length/magic guards, index sentinels (`-1` / `Err`), the `>= 0` u32
+ranges, and the trivial accessor equalities.
