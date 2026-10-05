@@ -71,7 +71,10 @@ pub fn fuzz_rng_new(seed: Int) -> FuzzRng {
 /// irrelevant). Same state always yields the same draw.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn fuzz_next(r: &mut FuzzRng) -> Int {
+pub fn fuzz_next(r: &mut FuzzRng) -> Int
+  ensures: result >= 1;
+  ensures: result <= 2147483647;
+{
   var h = r.state;
   h = h ^ (h >> 13);
   h = h ^ (h << 7);
@@ -109,7 +112,9 @@ fn _fuzz_copy(data: &Vec[UInt8]) -> Vec[UInt8] {
 /// An empty input yields an empty Vec.
 /// Error case: none.
 /// Complexity: O(|data|).
-pub fn fuzz_flip_byte(data: &Vec[UInt8], seed: Int) -> Vec[UInt8] {
+pub fn fuzz_flip_byte(data: &Vec[UInt8], seed: Int) -> Vec[UInt8]
+  ensures: result.len() == data.len();
+{
   var out = _fuzz_copy(data);
   let n = out.len();
   if n == 0 { return out; }
@@ -127,7 +132,9 @@ pub fn fuzz_flip_byte(data: &Vec[UInt8], seed: Int) -> Vec[UInt8] {
 /// bit (of one byte) is toggled. An empty input yields an empty Vec.
 /// Error case: none.
 /// Complexity: O(|data|).
-pub fn fuzz_flip_bit(data: &Vec[UInt8], seed: Int) -> Vec[UInt8] {
+pub fn fuzz_flip_bit(data: &Vec[UInt8], seed: Int) -> Vec[UInt8]
+  ensures: result.len() == data.len();
+{
   var out = _fuzz_copy(data);
   let n = out.len();
   if n == 0 { return out; }
@@ -147,7 +154,9 @@ pub fn fuzz_flip_bit(data: &Vec[UInt8], seed: Int) -> Vec[UInt8] {
 /// bytes keep their relative order. Empty input yields a 1-byte Vec.
 /// Error case: none.
 /// Complexity: O(|data|).
-pub fn fuzz_insert_byte(data: &Vec[UInt8], seed: Int) -> Vec[UInt8] {
+pub fn fuzz_insert_byte(data: &Vec[UInt8], seed: Int) -> Vec[UInt8]
+  ensures: result.len() == data.len() + 1;
+{
   let n = data.len();
   var r = fuzz_rng_new(seed);
   let pos = fuzz_next(&mut r) % (n + 1);
@@ -173,7 +182,10 @@ pub fn fuzz_insert_byte(data: &Vec[UInt8], seed: Int) -> Vec[UInt8] {
 /// `fuzz_next(seed) % |data|` removed. An empty input yields an empty Vec.
 /// Error case: none.
 /// Complexity: O(|data|).
-pub fn fuzz_delete_byte(data: &Vec[UInt8], seed: Int) -> Vec[UInt8] {
+pub fn fuzz_delete_byte(data: &Vec[UInt8], seed: Int) -> Vec[UInt8]
+  ensures: data.len() == 0 => result.len() == 0;
+  ensures: data.len() > 0 => result.len() == data.len() - 1;
+{
   let n = data.len();
   var out = Vec[UInt8].new();
   if n == 0 { return out; }
@@ -199,7 +211,10 @@ pub fn fuzz_delete_byte(data: &Vec[UInt8], seed: Int) -> Vec[UInt8] {
 /// empty input yields an empty Vec.
 /// Error case: none.
 /// Complexity: O(|data|).
-pub fn fuzz_duplicate_range(data: &Vec[UInt8], seed: Int) -> Vec[UInt8] {
+pub fn fuzz_duplicate_range(data: &Vec[UInt8], seed: Int) -> Vec[UInt8]
+  ensures: data.len() == 0 => result.len() == 0;
+  ensures: data.len() > 0 => result.len() > data.len();
+{
   let n = data.len();
   var out = Vec[UInt8].new();
   if n == 0 { return out; }
@@ -241,7 +256,10 @@ pub fn fuzz_duplicate_range(data: &Vec[UInt8], seed: Int) -> Vec[UInt8] {
 /// of `data`. Same (data, seed, mutations) always yields the same Vec.
 /// Error case: none.
 /// Complexity: O(mutations * |data|).
-pub fn fuzz_mutate(data: &Vec[UInt8], seed: Int, mutations: Int) -> Vec[UInt8] {
+pub fn fuzz_mutate(data: &Vec[UInt8], seed: Int, mutations: Int) -> Vec[UInt8]
+  ensures: mutations <= 0 => result.len() == data.len();
+  ensures: mutations > 0 => result.len() >= data.len() - mutations;
+{
   var out = _fuzz_copy(data);
   if mutations <= 0 { return out; }
   var r = fuzz_rng_new(seed);
@@ -275,7 +293,9 @@ pub fn fuzz_mutate(data: &Vec[UInt8], seed: Int, mutations: Int) -> Vec[UInt8] {
 /// pins that invariant. `mutations <= 0` returns `s` unchanged byte-for-byte.
 /// Error case: none.
 /// Complexity: O(|s| + mutations * |s|).
-pub fn fuzz_mutate_str(s: Str, seed: Int, mutations: Int) -> Str {
+pub fn fuzz_mutate_str(s: Str, seed: Int, mutations: Int) -> Str
+  ensures: mutations <= 0 => result.len() == s.len();
+{
   var bytes = Vec[UInt8].new();
   var i = 0;
   while i < s.len() {

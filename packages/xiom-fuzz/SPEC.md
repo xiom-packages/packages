@@ -1,6 +1,6 @@
 # xiom.fuzz -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (incubating, not published; contract hardening in 0.1.2).
 Module: `xiom.fuzz` (`src/fuzz.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -249,3 +249,31 @@ choreography. Coverage map:
   measures `.len()` on Str values and never compares them with `==`.
 - Self-reassignment through a `&` borrow (`out = fuzz_flip_byte(&out, s)`) is
   the stdlib-proven pattern for immutable-input transforms.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 21 unknown / 9 errors** (emitter bug: the
+generated SMT was rejected on unknown-constant errors; the clauses are
+enforced as runtime checks by the port suite, green twice).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `fuzz_rng_new` | unasserted (struct result; field access forbidden) | n/a |
+| `fuzz_next` | `ensures: result >= 1`; `ensures: result <= 2147483647` | unproven |
+| `fuzz_flip_byte` | `ensures: result.len() == data.len()` | unproven |
+| `fuzz_flip_bit` | `ensures: result.len() == data.len()` | unproven |
+| `fuzz_insert_byte` | `ensures: result.len() == data.len() + 1` | unproven |
+| `fuzz_delete_byte` | `ensures: data.len() == 0 => result.len() == 0`; `ensures: data.len() > 0 => result.len() == data.len() - 1` | unproven |
+| `fuzz_duplicate_range` | `ensures: data.len() == 0 => result.len() == 0`; `ensures: data.len() > 0 => result.len() > data.len()` | unproven |
+| `fuzz_mutate` | `ensures: mutations <= 0 => result.len() == data.len()`; `ensures: mutations > 0 => result.len() >= data.len() - mutations` | unproven |
+| `fuzz_mutate_str` | `ensures: mutations <= 0 => result.len() == s.len()` | unproven |
+
+Unasserted/documented: `fuzz_rng_new` returns a `FuzzRng` struct and
+struct-result field access (`result.state`) is a forbidden v0.63.0 runtime
+shape, so its nonzero-state postcondition is pinned by section 3.3 and the
+t1-t4 checks only. Byte-content properties (exactly one byte or bit changes,
+op/step-seed choreography, Str-wrapper byte length under real mutation) and
+the empty-input draw behavior stay with the 22-check test plan; the
+length/range clauses above are the runtime-checked part of the mutation
+model.

@@ -10,7 +10,7 @@
 
 package xiom_fuzz {
   name: "xiom.fuzz";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Deterministic byte and string mutation for fuzzing";
   categories: ["tooling","testing"];
   keywords: ["fuzz","mutation","testing","bytes"];
