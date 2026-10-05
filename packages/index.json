@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-05T19:06:26Z",
+    "updated":  "2026-10-05T19:19:42Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -6317,17 +6317,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.2.0",
                          "name":  "xiom.rate",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Deterministic rate limiters with explicit clocks: token bucket and fixed window",
+                         "description":  "Deterministic rate limiters with explicit clocks: token bucket, fixed window, and keyed multi-client layers",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rate/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rate/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "rate.xi",
                                               "package.xi"
@@ -6620,6 +6620,23 @@
                          "source_files":  [
                                               "package.xi",
                                               "ros2.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.router",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Deterministic HTTP route table: exact and :parameter patterns, method matching, 404/405 aggregation",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-router/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "router.xi",
+                                              "package.xi"
                                           ]
                      },
                      {
