@@ -48,7 +48,9 @@ use xiom.core;
 /// index 35 is 'z'.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn radix_alphabet() -> Str {
+pub fn radix_alphabet() -> Str
+  ensures: result.len() == 36;
+{
   return "0123456789abcdefghijklmnopqrstuvwxyz";
 }
 
@@ -59,7 +61,9 @@ pub fn radix_alphabet() -> Str {
 /// including whitespace, '+', '-', ':' and all bytes >= 0x80.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn radix_digit_value(c: UInt8) -> Int {
+pub fn radix_digit_value(c: UInt8) -> Int
+  ensures: result >= -1 && result <= 35;
+{
   return _digit_value((c as Int) & 0xFF);
 }
 
@@ -152,7 +156,11 @@ fn _dec_str(n: Int) -> Str {
 /// Err("radix: overflow") when the value is outside
 /// [-9223372036854775808, 9223372036854775807].
 /// Complexity: O(n), n = s.len().
-pub fn radix_to_int(s: Str, base: Int) -> Result[Int, Str] {
+pub fn radix_to_int(s: Str, base: Int) -> Result[Int, Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: result is Ok => s.len() > 0;
+  ensures: (base < 2 || base > 36) => result is Err;
+{
   if !_base_ok(base) {
     return _err_int("radix: base out of range");
   }
@@ -205,7 +213,11 @@ pub fn radix_to_int(s: Str, base: Int) -> Result[Int, Str] {
 /// zeros (zero is "0"), a '-' prefix for negative values and no '+' prefix.
 /// Error case: Err("radix: base out of range") when base < 2 or base > 36.
 /// Complexity: O(log_base |n|).
-pub fn radix_from_int(n: Int, base: Int) -> Result[Str, Str] {
+pub fn radix_from_int(n: Int, base: Int) -> Result[Str, Str]
+  ensures: n == 0 && base >= 2 && base <= 36 => result is Ok;
+  ensures: (base < 2 || base > 36) => result is Err;
+  ensures: result is Ok => string.str_len(result.value) >= 1;
+{
   if !_base_ok(base) {
     return _err_str("radix: base out of range");
   }
@@ -259,7 +271,11 @@ pub fn radix_from_int(n: Int, base: Int) -> Result[Str, Str] {
 /// the Int range cannot be converted; there is no arbitrary-precision
 /// fallback.
 /// Complexity: O(n) plus O(log_to_base |v|), n = s.len().
-pub fn radix_convert(s: Str, from_base: Int, to_base: Int) -> Result[Str, Str] {
+pub fn radix_convert(s: Str, from_base: Int, to_base: Int) -> Result[Str, Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: (from_base < 2 || from_base > 36) => result is Err;
+  ensures: (to_base < 2 || to_base > 36) => result is Err;
+{
   if !_base_ok(from_base) {
     return _err_str("radix: base out of range");
   }
@@ -284,7 +300,11 @@ pub fn radix_convert(s: Str, from_base: Int, to_base: Int) -> Result[Str, Str] {
 /// every error, including a base outside 2..36.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn radix_is_valid(s: Str, base: Int) -> Bool {
+pub fn radix_is_valid(s: Str, base: Int) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: (base < 2 || base > 36) => !result;
+  ensures: result => s.len() > 0;
+{
   let r = radix_to_int(s, base);
   return r.is_ok;
 }

@@ -1,8 +1,8 @@
 # xiom.radix -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.radix`, version `0.1.0`).
+Status: `incubating` (implemented; v0.63.0 port suite green; contract
+hardening in 0.1.2; not published).
+Manifest: `package.xi` (`xiom.radix`, version `0.1.2`).
 Module: `src/radix.xi` (`module xiom.radix`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`, `xiom.core`).
 No FFI.
@@ -272,3 +272,35 @@ The implementation follows the proven v0.61.3 package idioms:
   `str_compare`, BUG 17).
 - Negative division (`x % base`, `x / base` with `x <= 0`) is the same
   INT_MIN-safe path used by `xiom.convert.int.int_to_base`.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 14 unknown / 20 errors**. The 20 errors
+are the v0.63.0 SMT emitter rejecting the generated SMT with
+`unknown constant _base_ok/_ok_int/_err_int/_ok_str/_err_str` (the
+package-private helpers referenced from the contract path conditions); the
+solver reported **0 violated**, and the runtime port suite is the
+authoritative check.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `radix_alphabet` | `ensures: result.len() == 36` | unproven |
+| `radix_digit_value` | `ensures: result >= -1 && result <= 35` | unproven |
+| `radix_to_int` | `ensures: s.len() == 0 => result is Err`; `ensures: result is Ok => s.len() > 0`; `ensures: (base < 2 \|\| base > 36) => result is Err` | unproven |
+| `radix_from_int` | `ensures: n == 0 && base >= 2 && base <= 36 => result is Ok`; `ensures: (base < 2 \|\| base > 36) => result is Err`; `ensures: result is Ok => string.str_len(result.value) >= 1` | unproven |
+| `radix_convert` | `ensures: s.len() == 0 => result is Err`; `ensures: (from_base < 2 \|\| from_base > 36) => result is Err`; `ensures: (to_base < 2 \|\| to_base > 36) => result is Err` | unproven |
+| `radix_is_valid` | `ensures: s.len() == 0 => !result`; `ensures: (base < 2 \|\| base > 36) => !result`; `ensures: result => s.len() > 0` | unproven |
+
+Unasserted/documented: the exact digit-value table (section 3), the
+overflow boundary arithmetic (section 9), the error-message grammar
+(section 8) and the canonical round-trip guarantee (section 7) are pinned
+by the 20-check test plan (section 10); they are not expressible as runtime
+contracts without `Str`-content helpers in contract position. The
+forbidden v0.63.0 runtime-evaluator shapes (tuple-component access such as
+`result.value.1`, `Result[Vec[...]]` payload-length vs parameter-length
+comparisons, struct-result field access) and `Str` equality are not used;
+all 15 clauses above are the simple shapes proven on the fleet. Two
+consecutive port runs after hardening ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` -- no clause
+trapped, so no clause was dropped.

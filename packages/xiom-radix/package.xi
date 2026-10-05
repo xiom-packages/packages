@@ -9,7 +9,7 @@
 
 package xiom_radix {
   name: "xiom.radix";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Base 2..36 integer text conversion with canonical lowercase digits and strict overflow detection";
   categories: ["data"];
   keywords: ["radix", "base", "conversion", "numbers"];
