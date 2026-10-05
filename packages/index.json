@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-05T22:17:38Z",
+    "updated":  "2026-10-05T22:23:05Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -469,7 +469,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.aws",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM AWS request model: SigV4 signing, credential resolution, service registry, retry/backoff and response classification; no network",
@@ -479,7 +479,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-aws/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-aws/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "aws.xi",
                                               "aws_base.xi",
@@ -6742,7 +6742,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.saml",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "SAML 2.0 structure toolkit: XML subset reader, assertion/response parsing, AuthnRequest builder, IdP metadata, base64 and XML-DSig structural parsing (no networking, no public-key verification)",
@@ -6752,7 +6752,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-saml/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-saml/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "saml.xi",
                                               "package.xi"
