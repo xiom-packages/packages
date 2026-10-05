@@ -221,7 +221,10 @@ fn _apply_error(hunk: Int, line: Int) -> Str {
 /// well-formed header; None for malformed input.
 /// Error case: none (failure is None).
 /// Complexity: O(len(line)).
-pub fn patch_parse_hunk_header(line: Str) -> Option[(Int, Int, Int, Int)] {
+pub fn patch_parse_hunk_header(line: Str) -> Option[(Int, Int, Int, Int)]
+  ensures: line.len() < 5 => result is None;
+  ensures: result is Some => line.len() >= 5;
+{
   let n = line.len();
   if n < 5 {
     return None;
@@ -278,7 +281,11 @@ pub fn patch_parse_hunk_header(line: Str) -> Option[(Int, Int, Int, Int)] {
 /// "@@..." line is counted; patch_apply rejects it later).
 /// Returns: the number of hunk headers (0 for empty text).
 /// Complexity: O(len(text)).
-pub fn patch_count_hunks(text: Str) -> Int {
+pub fn patch_count_hunks(text: Str) -> Int
+  ensures: result >= 0;
+  ensures: text.len() < 2 => result == 0;
+  ensures: result <= text.len();
+{
   let lines = str_split(text, "\n");
   var count = 0;
   var i = 0;
@@ -297,7 +304,10 @@ pub fn patch_count_hunks(text: Str) -> Int {
 /// newline at end of file" markers are ignored.
 /// Returns: a fresh Vec[Str] of line contents (empty when none).
 /// Complexity: O(len(text)).
-pub fn patch_extract_removed(text: Str) -> Vec[Str] {
+pub fn patch_extract_removed(text: Str) -> Vec[Str]
+  ensures: result.len() <= text.len();
+  ensures: text.len() == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   let lines = str_split(text, "\n");
   var i = 0;
@@ -318,7 +328,10 @@ pub fn patch_extract_removed(text: Str) -> Vec[Str] {
 /// newline at end of file" markers are ignored.
 /// Returns: a fresh Vec[Str] of line contents (empty when none).
 /// Complexity: O(len(text)).
-pub fn patch_extract_added(text: Str) -> Vec[Str] {
+pub fn patch_extract_added(text: Str) -> Vec[Str]
+  ensures: result.len() <= text.len();
+  ensures: text.len() == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   let lines = str_split(text, "\n");
   var i = 0;
@@ -351,7 +364,11 @@ pub fn patch_extract_added(text: Str) -> Vec[Str] {
 ///          L") for an unapplicable hunk (N is 1-based, L is the hunk's
 ///          oldStart); Ok(source copy) for empty text or text without hunks.
 /// Complexity: O(|source| + |patch| + hunks * fuzz * hunk size).
-pub fn patch_apply(source: &Vec[Str], patch: Str) -> Result[Vec[Str], Str] {
+pub fn patch_apply(source: &Vec[Str], patch: Str) -> Result[Vec[Str], Str]
+  ensures: patch.len() == 0 => result is Ok;
+  ensures: patch_count_hunks(patch) == 0 => result is Ok;
+  ensures: result is Err => patch_count_hunks(patch) > 0;
+{
   var work = _copy_vec(source);
   let plines = str_split(patch, "\n");
   var i = 0;
@@ -428,7 +445,10 @@ pub fn patch_apply(source: &Vec[Str], patch: Str) -> Result[Vec[Str], Str] {
 /// Params: source -- whole file text; patch -- LF or CRLF unified patch text.
 /// Returns: Ok(new text) or the patch_apply error.
 /// Complexity: O(|source| + |patch| + hunks * fuzz * hunk size).
-pub fn patch_apply_text(source: Str, patch: Str) -> Result[Str, Str] {
+pub fn patch_apply_text(source: Str, patch: Str) -> Result[Str, Str]
+  ensures: patch.len() == 0 => result is Ok;
+  ensures: patch_count_hunks(patch) == 0 => result is Ok;
+{
   let src_lines = str_split(source, "\n");
   let applied = patch_apply(&src_lines, patch);
   var ok = false;

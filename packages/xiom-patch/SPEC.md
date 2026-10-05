@@ -142,3 +142,33 @@ Result vectors are compared element-wise with `str_compare` (BUG 17: `==` on
 - No enforcement of declared hunk counts; a lying header is matched by its
   body, not its numbers.
 - Large files and pathological fuzz searches are O(hunks * 41 * hunk size).
+
+## 9. Contracts
+
+Runtime-checkable `ensures:` postconditions added by the batch #13 hardening
+pass (no `requires:` clauses). "Pure scalar" clauses are expressed over
+parameters, `result` and lengths only and are candidates for Z3; "runtime"
+clauses call back into this module (`patch_count_hunks`) and are evaluated
+only at runtime.
+
+| Function | Clause | Kind |
+|---|---|---|
+| `patch_parse_hunk_header` | `line.len() < 5 => result is None` | pure scalar |
+| `patch_parse_hunk_header` | `result is Some => line.len() >= 5` | pure scalar |
+| `patch_count_hunks` | `result >= 0` | pure scalar |
+| `patch_count_hunks` | `text.len() < 2 => result == 0` | pure scalar |
+| `patch_count_hunks` | `result <= text.len()` | pure scalar |
+| `patch_extract_removed` | `result.len() <= text.len()` | pure scalar |
+| `patch_extract_removed` | `text.len() == 0 => result.len() == 0` | pure scalar |
+| `patch_extract_added` | `result.len() <= text.len()` | pure scalar |
+| `patch_extract_added` | `text.len() == 0 => result.len() == 0` | pure scalar |
+| `patch_apply` | `patch.len() == 0 => result is Ok` | pure scalar |
+| `patch_apply` | `patch_count_hunks(patch) == 0 => result is Ok` | runtime |
+| `patch_apply` | `result is Err => patch_count_hunks(patch) > 0` | runtime |
+| `patch_apply_text` | `patch.len() == 0 => result is Ok` | pure scalar |
+| `patch_apply_text` | `patch_count_hunks(patch) == 0 => result is Ok` | runtime |
+
+Tuple-component access on the `Some` payload of `patch_parse_hunk_header`,
+`Ok`-payload length relations for `patch_apply`/`patch_apply_text`, and
+`Str`-equality round-trip clauses are deliberately excluded (v0.63.1
+runtime-evaluator limitations).

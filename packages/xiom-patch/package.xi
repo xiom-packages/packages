@@ -8,7 +8,7 @@
 
 package xiom_patch {
   name: "xiom.patch";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Unified diff parsing and application with conflict detection";
   categories: ["tooling", "text-nlp"];
   keywords: ["patch", "unified", "apply", "diff"];
