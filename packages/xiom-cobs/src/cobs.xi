@@ -116,6 +116,7 @@ pub fn cobs_encode(data: &Vec[UInt8]) -> Vec[UInt8]
 /// encoders that always close with a code byte) decodes to the same payload.
 pub fn cobs_decode(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
   ensures: result is Err => data.len() > 0;
+  ensures: result is Ok => result.value.len() <= data.len();
 {
   let n = data.len();
   var i = 0;
