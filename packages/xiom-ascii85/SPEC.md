@@ -185,3 +185,30 @@ The implementation follows the proven v0.61.3 package idioms:
   value with the high bit set.
 - No `==` on `Str` values anywhere (tests route every comparison through
   `str_compare`, BUG 17).
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts added in the batch #14 hardening pass (compiler
+v0.63.1; no version bump); two clean port runs:
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)`.
+12 clauses across the four public entry points (4/2/2/4); the 20-check
+conformance suite exercises every entry point on both the accepting and
+rejecting paths with the clauses active. No clause uses `==` on a `Str`
+value (BUG 17).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `a85_encode` | `ensures: data.len() == 0 => result.len() == 0`; `ensures: data.len() > 0 => result.len() >= 1`; `ensures: data.len() % 4 == 0 => result.len() <= (data.len() / 4) * 5`; `ensures: data.len() % 4 != 0 => result.len() <= (data.len() / 4) * 5 + data.len() % 4 + 1` | runtime |
+| `a85_decode` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | Z3-provable |
+| `a85_is_valid` | `ensures: text.len() == 0 => result`; `ensures: !result => text.len() > 0` | Z3-provable |
+| `a85_max_decoded_len` | `ensures: chars <= 0 => result == 0`; `ensures: chars > 0 => result == (chars * 4 + 4) / 5`; `ensures: result >= 0`; `ensures: chars > 0 => result <= chars` | Z3-provable |
+
+Not asserted: `ensures: !a85_is_valid(text) => result is Err` on
+`a85_decode` (planned as a runtime guard) was dropped. `a85_is_valid` is
+implemented on top of `a85_decode`, so evaluating that clause inside
+`a85_decode`'s postcondition re-enters `a85_decode` through
+`a85_is_valid`; under the v0.63.1 runtime evaluator the suite dies with an
+access violation (`program_exit=-1073741819`) before any check runs. The
+equivalence is pinned instead by the 20-check test plan (t16), and the
+empty/non-empty guard pair above covers both directions of the same
+property for the concrete empty case.

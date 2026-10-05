@@ -111,7 +111,12 @@ fn _a85_value(b: Int) -> Int {
 /// wrapping are emitted.
 /// Error case: none (total).
 /// Complexity: O(data.len()).
-pub fn a85_encode(data: &Vec[UInt8]) -> Str {
+pub fn a85_encode(data: &Vec[UInt8]) -> Str
+  ensures: data.len() == 0 => result.len() == 0;
+  ensures: data.len() > 0 => result.len() >= 1;
+  ensures: data.len() % 4 == 0 => result.len() <= (data.len() / 4) * 5;
+  ensures: data.len() % 4 != 0 => result.len() <= (data.len() / 4) * 5 + data.len() % 4 + 1;
+{
   var out = Vec[UInt8].new();
   let n = data.len();
   var i = 0;
@@ -170,7 +175,10 @@ pub fn a85_encode(data: &Vec[UInt8]) -> Str {
 /// Err("ascii85: value overflows 32 bits") when a group's value exceeds
 /// 0xFFFFFFFF (for a partial group, after the implicit 'u' padding).
 /// Complexity: O(text.len()).
-pub fn a85_decode(text: Str) -> Result[Vec[UInt8], Str] {
+pub fn a85_decode(text: Str) -> Result[Vec[UInt8], Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   let n = text.len();
   var lo = 0;
   while lo < n {
@@ -277,7 +285,10 @@ pub fn a85_decode(text: Str) -> Result[Vec[UInt8], Str] {
 /// true for empty input.
 /// Error case: none.
 /// Complexity: O(text.len()).
-pub fn a85_is_valid(text: Str) -> Bool {
+pub fn a85_is_valid(text: Str) -> Bool
+  ensures: text.len() == 0 => result;
+  ensures: !result => text.len() > 0;
+{
   let r = a85_decode(text);
   if r.is_ok {
     return true;
@@ -292,7 +303,12 @@ pub fn a85_is_valid(text: Str) -> Bool {
 /// makes the bound looser, so it remains valid for any well-formed input.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn a85_max_decoded_len(chars: Int) -> Int {
+pub fn a85_max_decoded_len(chars: Int) -> Int
+  ensures: chars <= 0 => result == 0;
+  ensures: chars > 0 => result == (chars * 4 + 4) / 5;
+  ensures: result >= 0;
+  ensures: chars > 0 => result <= chars;
+{
   if chars <= 0 {
     return 0;
   }
