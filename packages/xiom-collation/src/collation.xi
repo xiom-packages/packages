@@ -52,7 +52,9 @@ fn _coll_fold(b: Int) -> Int {
 /// 1 when a sorts after b. The result is always exactly -1, 0 or 1.
 /// Error case: none.
 /// Complexity: O(min(|a|, |b|)).
-pub fn collate_compare(a: Str, b: Str) -> Int {
+pub fn collate_compare(a: Str, b: Str) -> Int
+  ensures: result >= -1 && result <= 1;
+{
   let la = string.str_len(a);
   let lb = string.str_len(b);
   var i = 0;
@@ -94,7 +96,9 @@ pub fn collate_compare(a: Str, b: Str) -> Int {
 /// variants such as "Same" and "same" are ordered, not equal; for
 /// case-insensitive equality compare collate_key results with str_compare.
 /// Complexity: O(min(|a|, |b|)).
-pub fn collate_equal(a: Str, b: Str) -> Bool {
+pub fn collate_equal(a: Str, b: Str) -> Bool
+  ensures: result == (collate_compare(a, b) == 0);
+{
   return collate_compare(a, b) == 0;
 }
 
@@ -111,7 +115,9 @@ pub fn collate_equal(a: Str, b: Str) -> Bool {
 /// Returns: -1, 0 or 1; 0 only when the strings are byte-identical.
 /// Error case: none.
 /// Complexity: O(|a| + |b|).
-pub fn collate_natural_compare(a: Str, b: Str) -> Int {
+pub fn collate_natural_compare(a: Str, b: Str) -> Int
+  ensures: result >= -1 && result <= 1;
+{
   let la = string.str_len(a);
   let lb = string.str_len(b);
   var i = 0;
@@ -203,7 +209,9 @@ pub fn collate_natural_compare(a: Str, b: Str) -> Int {
 /// input order; the input vector is not modified.
 /// Error case: none.
 /// Complexity: O(n^2) comparisons, O(n) element moves.
-pub fn collate_sort(words: &Vec[Str]) -> Vec[Str] {
+pub fn collate_sort(words: &Vec[Str]) -> Vec[Str]
+  ensures: result.len() == words.len();
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < words.len() {
@@ -227,7 +235,9 @@ pub fn collate_sort(words: &Vec[Str]) -> Vec[Str] {
 /// strings can) keep their relative input order; the input is not modified.
 /// Error case: none.
 /// Complexity: O(n^2) comparisons, O(n) element moves.
-pub fn collate_natural_sort(words: &Vec[Str]) -> Vec[Str] {
+pub fn collate_natural_sort(words: &Vec[Str]) -> Vec[Str]
+  ensures: result.len() == words.len();
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < words.len() {
@@ -255,7 +265,9 @@ pub fn collate_natural_sort(words: &Vec[Str]) -> Vec[Str] {
 /// even when collate_compare(a, b) is not.
 /// Error case: none.
 /// Complexity: O(|s|).
-pub fn collate_key(s: Str) -> Str {
+pub fn collate_key(s: Str) -> Str
+  ensures: result.len() == s.len();
+{
   var out = Vec[UInt8].new();
   var i = 0;
   while i < string.str_len(s) {

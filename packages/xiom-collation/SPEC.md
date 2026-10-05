@@ -1,6 +1,6 @@
 # xiom.collation -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.collation` (`src/collation.xi`). Pure XIOM, no FFI.
 Manifest: `package.xi` (name `xiom.collation`). Depends on `xiom.std` only
 (`xiom.string.byte_at`, `xiom.string.str_len`).
@@ -187,3 +187,22 @@ Last verified: compiler 0.61.3,
   E001 aliasing warning does not fire.
 - The module name `xiom.collation` shares only the root `xiom` segment with
   the stdlib's `xiom.string.collate`; the section-4 namespace rule passes.
+
+## 10. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 16 unknown / 1 error**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `collate_compare` | `ensures: result >= -1 && result <= 1` | unproven |
+| `collate_equal` | `ensures: result == (collate_compare(a, b) == 0)` (definitional) | unproven |
+| `collate_natural_compare` | `ensures: result >= -1 && result <= 1` | unproven |
+| `collate_sort` / `collate_natural_sort` | `ensures: result.len() == words.len()` | unproven |
+| `collate_key` | `ensures: result.len() == s.len()` | unproven |
+
+Unasserted/documented: the exact folding/order rules (ASCII case fold,
+lowercase-first tie-break, digit-run comparison with `007` < `7`,
+stability) are pinned by the 20-check test plan and the SPEC tables;
+ordering properties are not expressible as runtime contracts over byte
+loops.
