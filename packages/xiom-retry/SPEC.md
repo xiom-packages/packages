@@ -1,8 +1,9 @@
 # xiom.retry -- Specification
 
-Status: `incubating` (implemented, harness-green, not published).
+Status: `stable` (published; v0.63.0 fleet sweep green; contract hardening
+in 0.1.2).
 Module: `xiom.retry` (`src/retry.xi`). Manifest: `package.xi` (name
-`xiom.retry`, version `0.1.0`). Depends on `xiom.std` (no library imports;
+`xiom.retry`, version `0.1.2`). Depends on `xiom.std` (no library imports;
 tests use `xiom.test` and `xiom.io`).
 
 ## Scope
@@ -229,3 +230,37 @@ Last verified: compiler 0.61.3, `port: PASS (passed=21 failed=0 exit=0)`.
 - `retry_state_next` mixes a `&mut RetryState` with a `&RetryPolicy`; the
   field reads through both references compile and run correctly on 0.61.3
   (covered by test 8/10).
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 30 unknown / 1 error** (no clause is
+refuted).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `retry_max_attempts` / `retry_factor` | `ensures: result >= 1` | unproven |
+| `retry_base_delay_secs` | `ensures: result >= 0` | unproven |
+| `retry_max_delay_secs` | `ensures: result >= p.base_delay_secs` | unproven |
+| `retry_delay_secs` | `ensures: result >= 0`; `ensures: result <= p.max_delay_secs` | unproven |
+| `retry_should_retry` | `ensures: result == (attempts_done < p.max_attempts)` (definitional) | unproven |
+| `retry_jittered_delay` | `ensures: result >= retry_delay_secs(p, attempt) / 2`; `ensures: result <= retry_delay_secs(p, attempt)` | unproven |
+| `retry_state_next` | `ensures: s.attempts_done == s.attempts_done@pre || s.attempts_done == s.attempts_done@pre + 1`; `ensures: s.attempts_done <= p.max_attempts` | unproven |
+| `retry_state_attempts` / `retry_state_last_delay` | `ensures: result >= 0` | unproven |
+| `retry_state_reset` | `ensures: s.attempts_done == 0 && s.last_delay_secs == 0` | unproven |
+| `circuit_state` | `ensures: result == 0 || result == 1` | unproven |
+| `circuit_allow` | `ensures: c.state == 0 => result` | unproven |
+| `circuit_is_half_open` | `ensures: result => c.state != 0` | unproven |
+| `circuit_record_success` | `ensures: c.failures == 0 && c.state == 0` | unproven |
+| `circuit_record_failure` | `ensures: c.state == 1 || c.failures < c.failure_threshold`; `ensures: c.trips >= c.trips@pre` | unproven |
+| `circuit_failures` / `circuit_trips` | `ensures: result >= 0` | unproven |
+| `circuit_reset` | `ensures: c.state == 0 && c.failures == 0 && c.trips == 0` | unproven |
+| `retry_new` / `circuit_new` / `retry_state_new` | none | unasserted (documented) |
+
+Unasserted/documented: constructor clamping (`max_attempts >= 1`,
+`base_delay_secs >= 0`, `factor >= 1`, `max_delay_secs >= base`;
+`failure_threshold >= 1`, `reset_after_secs >= 0`, closed/zero state) is
+pinned by the test plan -- struct-result field access is out of scope
+for the runtime evaluator. The exact backoff progression and the
+documented frozen-failures behavior while open are also test-pinned;
+the invariant clauses hold on every mutating path.

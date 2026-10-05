@@ -41,22 +41,30 @@ pub fn retry_new(max_attempts: Int, base_delay_secs: Int, factor: Int, max_delay
 }
 
 /// Total attempt budget (always >= 1). Complexity: O(1).
-pub fn retry_max_attempts(p: &RetryPolicy) -> Int {
+pub fn retry_max_attempts(p: &RetryPolicy) -> Int
+  ensures: result >= 1;
+{
   return p.max_attempts;
 }
 
 /// Delay before the first retry, in seconds (always >= 0). Complexity: O(1).
-pub fn retry_base_delay_secs(p: &RetryPolicy) -> Int {
+pub fn retry_base_delay_secs(p: &RetryPolicy) -> Int
+  ensures: result >= 0;
+{
   return p.base_delay_secs;
 }
 
 /// Exponential multiplier (always >= 1). Complexity: O(1).
-pub fn retry_factor(p: &RetryPolicy) -> Int {
+pub fn retry_factor(p: &RetryPolicy) -> Int
+  ensures: result >= 1;
+{
   return p.factor;
 }
 
 /// Delay ceiling in seconds (always >= base_delay_secs). Complexity: O(1).
-pub fn retry_max_delay_secs(p: &RetryPolicy) -> Int {
+pub fn retry_max_delay_secs(p: &RetryPolicy) -> Int
+  ensures: result >= p.base_delay_secs;
+{
   return p.max_delay_secs;
 }
 
@@ -68,7 +76,10 @@ pub fn retry_max_delay_secs(p: &RetryPolicy) -> Int {
 /// doublings below the ceiling, not by `attempt`.
 /// Params: p - the policy; attempt - 1-based retry number.
 /// Complexity: O(min(attempt, log(max_delay / base_delay))) with factor > 1.
-pub fn retry_delay_secs(p: &RetryPolicy, attempt: Int) -> Int {
+pub fn retry_delay_secs(p: &RetryPolicy, attempt: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= p.max_delay_secs;
+{
   var n = attempt;
   if n < 1 { n = 1; }
   var delay = p.base_delay_secs;
@@ -94,7 +105,9 @@ pub fn retry_delay_secs(p: &RetryPolicy, attempt: Int) -> Int {
 
 /// True when one more attempt is allowed: attempts_done < max_attempts.
 /// Complexity: O(1).
-pub fn retry_should_retry(p: &RetryPolicy, attempts_done: Int) -> Bool {
+pub fn retry_should_retry(p: &RetryPolicy, attempts_done: Int) -> Bool
+  ensures: result == (attempts_done < p.max_attempts);
+{
   return attempts_done < p.max_attempts;
 }
 
@@ -118,7 +131,10 @@ fn _retry_jitter_hash(seed: Int, attempt: Int) -> Int {
 /// output, so callers can reproduce a run exactly.
 /// Params: p - the policy; attempt - 1-based retry number; seed - caller seed.
 /// Complexity: O(retry_delay_secs).
-pub fn retry_jittered_delay(p: &RetryPolicy, attempt: Int, seed: Int) -> Int {
+pub fn retry_jittered_delay(p: &RetryPolicy, attempt: Int, seed: Int) -> Int
+  ensures: result >= retry_delay_secs(p, attempt) / 2;
+  ensures: result <= retry_delay_secs(p, attempt);
+{
   let delay = retry_delay_secs(p, attempt);
   let half = delay / 2;
   let span = delay - half + 1;
@@ -145,7 +161,10 @@ pub fn retry_state_new() -> RetryState {
 /// the budget, last_delay_secs keeps its previous value).
 /// Params: s - the mutable state; p - the policy.
 /// Complexity: O(retry_delay_secs).
-pub fn retry_state_next(s: &mut RetryState, p: &RetryPolicy) -> Option[Int] {
+pub fn retry_state_next(s: &mut RetryState, p: &RetryPolicy) -> Option[Int]
+  ensures: s.attempts_done == s.attempts_done@pre || s.attempts_done == s.attempts_done@pre + 1;
+  ensures: s.attempts_done <= p.max_attempts;
+{
   if s.attempts_done >= p.max_attempts {
     return None;
   }
@@ -156,18 +175,24 @@ pub fn retry_state_next(s: &mut RetryState, p: &RetryPolicy) -> Option[Int] {
 }
 
 /// Attempts consumed so far. Complexity: O(1).
-pub fn retry_state_attempts(s: &RetryState) -> Int {
+pub fn retry_state_attempts(s: &RetryState) -> Int
+  ensures: result >= 0;
+{
   return s.attempts_done;
 }
 
 /// Delay stored by the most recent successful retry_state_next (0 before the
 /// first call). Complexity: O(1).
-pub fn retry_state_last_delay(s: &RetryState) -> Int {
+pub fn retry_state_last_delay(s: &RetryState) -> Int
+  ensures: result >= 0;
+{
   return s.last_delay_secs;
 }
 
 /// Reset to the fresh state: zero attempts, zero last delay. Complexity: O(1).
-pub fn retry_state_reset(s: &mut RetryState) {
+pub fn retry_state_reset(s: &mut RetryState)
+  ensures: s.attempts_done == 0 && s.last_delay_secs == 0;
+{
   s.attempts_done = 0;
   s.last_delay_secs = 0;
 }
@@ -199,21 +224,27 @@ pub fn circuit_new(failure_threshold: Int, reset_after_secs: Int) -> CircuitBrea
 }
 
 /// Breaker state: 0 = closed, 1 = open. Complexity: O(1).
-pub fn circuit_state(c: &CircuitBreaker) -> Int {
+pub fn circuit_state(c: &CircuitBreaker) -> Int
+  ensures: result == 0 || result == 1;
+{
   return c.state;
 }
 
 /// True when a call is allowed now. Closed: always true. Open: true only once
 /// the probe window is reached (now_secs >= opened_at + reset_after_secs).
 /// Complexity: O(1).
-pub fn circuit_allow(c: &CircuitBreaker, now_secs: Int) -> Bool {
+pub fn circuit_allow(c: &CircuitBreaker, now_secs: Int) -> Bool
+  ensures: c.state == 0 => result;
+{
   if c.state == 0 { return true; }
   return now_secs >= c.opened_at + c.reset_after_secs;
 }
 
 /// True when the breaker is open AND the probe window has been reached, i.e.
 /// the next allowed call is the half-open probe. Complexity: O(1).
-pub fn circuit_is_half_open(c: &CircuitBreaker, now_secs: Int) -> Bool {
+pub fn circuit_is_half_open(c: &CircuitBreaker, now_secs: Int) -> Bool
+  ensures: result => c.state != 0;
+{
   if c.state == 0 { return false; }
   return now_secs >= c.opened_at + c.reset_after_secs;
 }
@@ -222,7 +253,9 @@ pub fn circuit_is_half_open(c: &CircuitBreaker, now_secs: Int) -> Bool {
 /// `now_secs` is accepted for call-site symmetry and stored as the closing
 /// time in `opened_at`; the field is only read while the breaker is open, so
 /// this has no effect on allow/half-open decisions.
-pub fn circuit_record_success(c: &mut CircuitBreaker, now_secs: Int) {
+pub fn circuit_record_success(c: &mut CircuitBreaker, now_secs: Int)
+  ensures: c.failures == 0 && c.state == 0;
+{
   c.failures = 0;
   c.state = 0;
   c.opened_at = now_secs;
@@ -237,7 +270,10 @@ pub fn circuit_record_success(c: &mut CircuitBreaker, now_secs: Int) {
 /// Open, before the window: nothing changes. Documented behaviour: a stray
 /// failure report at this point cannot extend the cooldown or move opened_at
 /// (failures is frozen while open).
-pub fn circuit_record_failure(c: &mut CircuitBreaker, now_secs: Int) {
+pub fn circuit_record_failure(c: &mut CircuitBreaker, now_secs: Int)
+  ensures: c.state == 1 || c.failures < c.failure_threshold;
+  ensures: c.trips >= c.trips@pre;
+{
   if c.state == 0 {
     c.failures = c.failures + 1;
     if c.failures >= c.failure_threshold {
@@ -255,18 +291,24 @@ pub fn circuit_record_failure(c: &mut CircuitBreaker, now_secs: Int) {
 
 /// Consecutive failures since the last success or reset; frozen while open
 /// (see circuit_record_failure). Complexity: O(1).
-pub fn circuit_failures(c: &CircuitBreaker) -> Int {
+pub fn circuit_failures(c: &CircuitBreaker) -> Int
+  ensures: result >= 0;
+{
   return c.failures;
 }
 
 /// Times the breaker opened: the initial trip plus every failed probe.
 /// Complexity: O(1).
-pub fn circuit_trips(c: &CircuitBreaker) -> Int {
+pub fn circuit_trips(c: &CircuitBreaker) -> Int
+  ensures: result >= 0;
+{
   return c.trips;
 }
 
 /// Full reset: closed, zero failures, zero trips, opened_at 0. Complexity: O(1).
-pub fn circuit_reset(c: &mut CircuitBreaker) {
+pub fn circuit_reset(c: &mut CircuitBreaker)
+  ensures: c.state == 0 && c.failures == 0 && c.trips == 0;
+{
   c.state = 0;
   c.failures = 0;
   c.opened_at = 0;

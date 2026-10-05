@@ -8,7 +8,7 @@
 
 package xiom_retry {
   name: "xiom.retry";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Retry policies with exponential backoff, deterministic jitter, and circuit-breaker state";
   categories: ["core"];
   keywords: ["retry", "backoff", "resilience", "circuit-breaker"];
