@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  20,
                   "failed":  0,
-                  "run_by":  "main-lane:hardening",
+                  "run_by":  "fleet-sweep:v0.63.1",
                   "commit":  "df8073ad",
-                  "checked":  "2026-10-05T09:28:54Z"
+                  "checked":  "2026-10-05T13:40:45Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: next scope delta"
