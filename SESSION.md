@@ -3,16 +3,44 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-**Written:** 2026-10-04 (19:10Z), by the main/debug session (v0.63.0
-pinned + SHA256-verified, repin 514, fleet sweep 460/460 and records
-re-pointed to `fleet-sweep:v0.63.0`; full probe index re-run: all green
-except the known opens -- grpc `Vec[(Str,Str)]` still red, graphql
-9/10; first hardening batch published in `eco-v0.1.44`). Check
-`git log -1 --format=%h %s` before starting.
+**Written:** 2026-10-05 (06:40Z), by the main/debug session (v0.63.0
+pin; hardening batch #2 DONE + PUBLISHED in `eco-v0.1.45` -- `crc`,
+`cobs`, `varint`, `roman` 0.1.2 with runtime contracts + SPEC contract
+inventories, 8 clauses Z3-proven; v0.63.0 probe index re-run with
+`uninit-local` FIXED; grpc still red on v0.63.0 -- numeric match arms
+stay blocked; graphql 9/10). Check `git log -1 --format=%h %s` before
+starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-04 19:10Z (read this first):**
+**STATE AT 2026-10-05 06:40Z (read this first):**
+- **`eco-v0.1.45` PUBLISHED (`37272833834` SUCCESS; duplicate trigger
+  `37272835135` cancelled):** hardening batch #2 -- `xiom.crc` 0.1.2,
+  `xiom.cobs` 0.1.2, `xiom.varint` 0.1.2, `xiom.roman` 0.1.2 (all
+  stable; x2 green on v0.63.0; live-verified on the registry).
+  Contracts machine-checked: crc 5/11, varint 2/10, roman 1/13, cobs
+  0/12 Z3-proven (v0.63.0 emits valid SMT now); unasserted properties
+  recorded per package. No allowlist delta, no rate window. Guard: 499
+  allowlisted / 459 ready / 40 grandfathered / 0 failures.
+- **Runtime contract-evaluator artifact (new tooling finding,
+  2026-10-05, `docs/COMPILER-FINDINGS.md`):** spurious runtime
+  violations for (a) tuple-component access `result.value.1` on
+  `Result[(Int,Int),Str]`, (b) `Result[Vec[UInt8],Str]` payload-length
+  vs parameter-length; both properties are true (the cobs bound was
+  brute-forced `bad=0` over 65,792 frames) -- clauses omitted and
+  documented unasserted instead.
+- **Hardening queue:** 268 stable packages remain at zero clauses
+  (grandfathered set); pick batch #3 with `scripts/contract-coverage.ps1`.
+- **Open findings (compiler-gated; do NOT re-bisect):** grpc
+  `Vec[(Str,Str)]` crash/hang (still red on v0.63.0 -- numeric match
+  arms stay blocked), graphql 9/10 enum-payload in-situ; `crypto-link`
+  and float bitcast remain stdlib-lane opens.
+- **Next:** parked grpc/graphql when the compiler lane lands fixes,
+  hardening batch #3, or new growth; next tag `eco-v0.1.46`.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-04 19:10Z (history):**
 - **v0.63.0 PINNED (released 2026-10-04 16:34Z):** official
   `xiom-0.63.0-windows-x64.zip`, SHA256 `689881f4...` verified against
   the published SHA256SUMS; deployed into `%LOCALAPPDATA%\xiom.new`
@@ -773,14 +801,14 @@ except the known opens -- grpc `Vec[(Str,Str)]` still red, graphql
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages,
-private). Read SESSION.md first -- the 2026-10-04 19:10Z STATE block and
+private). Read SESSION.md first -- the 2026-10-05 06:40Z STATE block and
 the "Next-session operating kit" in section 0 are the live handoff
-(v0.63.0 pinned + SHA256-verified; repin 514; fleet sweep 460/460
-re-recorded `fleet-sweep:v0.63.0`; first hardening batch published in
-`eco-v0.1.44`: uuid 0.1.2, csv 0.1.2, bson 0.1.3, ttl 0.1.2; registry
-459 packages + 2 infra; allowlist 499; grpc `Vec[(Str,Str)]` STILL RED
-on v0.63.0 -- numeric match arms stay blocked; graphql 9/10;
-`l10n-unicode` needs a >60s suite timeout and stays incubating).
+(v0.63.0 pinned + SHA256-verified; hardening batch #2 published in
+`eco-v0.1.45`: crc/cobs/varint/roman 0.1.2 with runtime contracts;
+batch #1 in `eco-v0.1.44`: uuid/csv/bson/ttl; registry 459 packages + 2
+infra; allowlist 499; grpc `Vec[(Str,Str)]` STILL RED on v0.63.0 --
+numeric match arms stay blocked; graphql 9/10; `l10n-unicode` needs a
+>60s suite timeout and stays incubating).
 Repo-local identity must be
 "Lefteris Notas <lefterisnotas@gmail.com>". Publishing policy:
 PRODUCTION-DIRECT batches (this session approves the registry-publish
@@ -805,12 +833,16 @@ Then do, in order:
    and graphql (x2, record), then publish in one batch.
    `l10n-unicode` stays incubating; needs a >60s suite timeout under
    load (42-45s idle).
-2. Hardening track: first batch DONE + PUBLISHED (`eco-v0.1.44`:
-   `uuid`/`csv`/`bson`/`ttl`). Next: pick the next small set from the
-   grandfathered stable carriers (see `scripts/contract-coverage.ps1`)
-   per `docs/PROMOTION.md` -- contracts + API review; x2 on the pin;
-   patch bump; record; publish. No ops delta. Claim the batch in
-   SESSION.md before editing (concurrent-lane protocol).
+2. Hardening track: batches #1 (`eco-v0.1.44`: uuid/csv/bson/ttl) and
+   #2 (`eco-v0.1.45`: crc/cobs/varint/roman) DONE + PUBLISHED. Next:
+   batch #3 from the remaining grandfathered stable carriers (268 at
+   zero clauses; see `scripts/contract-coverage.ps1`) per
+   `docs/PROMOTION.md` -- contracts + API review; x2 on the pin; patch
+   bump; record; publish. No ops delta. Claim the batch in SESSION.md
+   before editing (concurrent-lane protocol). Watch the contract
+   runtime-evaluator artifact (COMPILER-FINDINGS 2026-10-05): keep
+   payload-length-vs-parameter-length and tuple-component clauses out
+   of package sources until it is fixed.
 3. Growth (optional): the remaining grandfathered set is FFI-class
    (skipped) except `kafka` (green suite but FFI stubs; needs a pure-XIOM
    redesign) and `zstd`/`lzfse` (FFI stubs).
