@@ -96,7 +96,10 @@ fn _p16(out: &mut Vec[UInt8], v: Int) {
 // Minimum bytes needed for one scanline of one plane:
 // ceil(width * bits_per_pixel / 8). Zero when width or bits is not positive.
 // pcx_parse_header requires bytes_per_line to be even and at least this large.
-pub fn pcx_scanline_bytes(width: Int, bits_per_pixel: Int) -> Int {
+pub fn pcx_scanline_bytes(width: Int, bits_per_pixel: Int) -> Int
+  ensures: (width <= 0 || bits_per_pixel <= 0) => result == 0;
+  ensures: (width > 0 && bits_per_pixel > 0) => result == (width * bits_per_pixel + 7) / 8;
+{
   if (width <= 0) { return 0; }
   if (bits_per_pixel <= 0) { return 0; }
   return (width * bits_per_pixel + 7) / 8;
@@ -105,7 +108,10 @@ pub fn pcx_scanline_bytes(width: Int, bits_per_pixel: Int) -> Int {
 // Bytes a fully decoded image occupies under this header:
 // bytes_per_line * color_planes * height. This codec never expands an RLE
 // stream, so the value is informational (buffer sizing, sanity checks).
-pub fn pcx_decoded_bytes(h: &PcxHeader) -> Int {
+pub fn pcx_decoded_bytes(h: &PcxHeader) -> Int
+  ensures: result == h.bytes_per_line * h.color_planes * h.height;
+  ensures: (h.bytes_per_line >= 0 && h.color_planes >= 0 && h.height >= 0) => result >= 0;
+{
   return h.bytes_per_line * h.color_planes * h.height;
 }
 
@@ -160,7 +166,10 @@ fn _has_vga(data: &Vec[UInt8]) -> Bool {
 // pcx_scanline_bytes(width, bits_per_pixel); palette_type must be 0, 1 or 2;
 // and the bits/planes pair must appear in the documented table. The reserved
 // byte and the 54 filler bytes are parsed/ignored, never validated.
-pub fn pcx_parse_header(data: &Vec[UInt8]) -> Result[PcxHeader, Str] {
+pub fn pcx_parse_header(data: &Vec[UInt8]) -> Result[PcxHeader, Str]
+  ensures: data.len() < 128 => result is Err;
+  ensures: result is Ok => data.len() >= 128;
+{
   let n = data.len();
   if (n < 128) { return _err_hdr("pcx: truncated header"); }
   let manufacturer = _b(data, 0);
@@ -233,7 +242,11 @@ pub fn pcx_parse_header(data: &Vec[UInt8]) -> Result[PcxHeader, Str] {
 // rest all surface with their parser message). The builder always writes
 // manufacturer 10 and reserved 0; the `manufacturer`, `reserved`, `width` and
 // `height` fields of `h` are ignored.
-pub fn pcx_build_header(h: &PcxHeader, palette: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn pcx_build_header(h: &PcxHeader, palette: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: palette.len() != 48 => result is Err;
+  ensures: (h.version < 0 || h.version > 5) => result is Err;
+  ensures: result is Ok => result.value.len() == 128;
+{
   if (palette.len() != 48) { return _err_bytes("pcx: invalid palette size"); }
   if (h.version < 0 || h.version > 5) {
     return _err_bytes("pcx: unsupported version");
@@ -322,7 +335,10 @@ pub fn pcx_build_header(h: &PcxHeader, palette: &Vec[UInt8]) -> Result[Vec[UInt8
 // otherwise the span runs to the end of the buffer. A span shorter than one
 // byte is `pcx: truncated pixel data`. The RLE bytes themselves are opaque:
 // they are located and copied, never expanded.
-pub fn pcx_parse(data: &Vec[UInt8]) -> Result[PcxInfo, Str] {
+pub fn pcx_parse(data: &Vec[UInt8]) -> Result[PcxInfo, Str]
+  ensures: data.len() < 128 => result is Err;
+  ensures: result is Ok => data.len() >= 129;
+{
   let hp = pcx_parse_header(data);
   match hp {
     Ok(h) => {
@@ -353,13 +369,19 @@ pub fn pcx_parse(data: &Vec[UInt8]) -> Result[PcxInfo, Str] {
 // followed by 768 RGB bytes. Only the length and the marker byte are
 // inspected; the header is not validated and the palette content is not
 // interpreted.
-pub fn pcx_has_vga_palette(data: &Vec[UInt8]) -> Bool {
+pub fn pcx_has_vga_palette(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 897 => !result;
+  ensures: result => data.len() >= 897;
+{
   return _has_vga(data);
 }
 
 // Offset of the first RLE pixel byte: always 128, immediately after the
 // header. Validates the buffer through pcx_parse.
-pub fn pcx_pixel_offset(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn pcx_pixel_offset(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() < 128 => result is Err;
+  ensures: result is Ok => result.value == 128;
+{
   let p = pcx_parse(data);
   match p {
     Ok(info) => { return _ok_int(info.pixel_offset); },
@@ -369,7 +391,10 @@ pub fn pcx_pixel_offset(data: &Vec[UInt8]) -> Result[Int, Str] {
 
 // Number of RLE bytes between the header and the trailer (or the end of the
 // buffer when no trailer is present). Validates the buffer through pcx_parse.
-pub fn pcx_pixel_length(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn pcx_pixel_length(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() < 128 => result is Err;
+  ensures: result is Ok => result.value >= 1;
+{
   let p = pcx_parse(data);
   match p {
     Ok(info) => { return _ok_int(info.pixel_bytes); },
@@ -379,7 +404,10 @@ pub fn pcx_pixel_length(data: &Vec[UInt8]) -> Result[Int, Str] {
 
 // Copy the RLE pixel-data span (128 .. trailer_offset). The bytes are opaque:
 // no packet is expanded and no pixel is decoded.
-pub fn pcx_pixel_data(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn pcx_pixel_data(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: data.len() < 128 => result is Err;
+  ensures: result is Ok => result.value.len() >= 1;
+{
   let p = pcx_parse(data);
   match p {
     Ok(info) => {
@@ -402,7 +430,10 @@ pub fn pcx_pixel_data(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 
 // Copy the 16-entry header palette (48 raw RGB bytes at offset 16). Validates
 // the header first. Entry i starts at byte 16 + 3*i.
-pub fn pcx_header_palette(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn pcx_header_palette(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: data.len() < 128 => result is Err;
+  ensures: result is Ok => result.value.len() == 48;
+{
   let hp = pcx_parse_header(data);
   match hp {
     Ok(h) => {
@@ -422,7 +453,10 @@ pub fn pcx_header_palette(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 // Packed 0xRRGGBB value of one of the 16 header-palette entries (0..15).
 // Validates the header first; an index outside 0..15 is
 // `pcx: palette index out of range`.
-pub fn pcx_header_palette_entry(data: &Vec[UInt8], index: Int) -> Result[Int, Str] {
+pub fn pcx_header_palette_entry(data: &Vec[UInt8], index: Int) -> Result[Int, Str]
+  ensures: (index < 0 || index > 15) => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 16777215;
+{
   if (index < 0 || index > 15) {
     return _err_int("pcx: palette index out of range");
   }
@@ -442,7 +476,11 @@ pub fn pcx_header_palette_entry(data: &Vec[UInt8], index: Int) -> Result[Int, St
 // Copy the 768 RGB bytes of the VGA palette trailer (256 entries). Validates
 // the header, then requires the trailer; without one the result is
 // `pcx: missing vga palette trailer`.
-pub fn pcx_vga_palette(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn pcx_vga_palette(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: data.len() < 897 => result is Err;
+  ensures: result is Ok => result.value.len() == 768;
+  ensures: !pcx_has_vga_palette(data) => result is Err;
+{
   let hp = pcx_parse_header(data);
   match hp {
     Ok(h) => {
@@ -467,7 +505,11 @@ pub fn pcx_vga_palette(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 // Validates the header, then requires the trailer; an index outside 0..255 is
 // `pcx: vga palette index out of range`, a missing trailer is
 // `pcx: missing vga palette trailer`.
-pub fn pcx_vga_palette_entry(data: &Vec[UInt8], index: Int) -> Result[Int, Str] {
+pub fn pcx_vga_palette_entry(data: &Vec[UInt8], index: Int) -> Result[Int, Str]
+  ensures: (index < 0 || index > 255) => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 16777215;
+  ensures: data.len() < 897 => result is Err;
+{
   if (index < 0 || index > 255) {
     return _err_int("pcx: vga palette index out of range");
   }

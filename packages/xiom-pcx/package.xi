@@ -4,7 +4,7 @@
 
 package xiom_pcx {
   name: "xiom.pcx";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "PCX header, palette-trailer and pixel-span codec (documented subset)";
   categories: ["graphics"];
   keywords: ["pcx", "image", "palette", "format"];

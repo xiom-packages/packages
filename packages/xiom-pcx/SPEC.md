@@ -169,6 +169,45 @@ pub fn pcx_vga_palette_entry(data: &Vec[UInt8], index: Int) -> Result[Int, Str]
 - `pcx_has_vga_palette` inspects only the length and the marker byte.
 - All functions are free functions; no pixel data is interpreted.
 
+## Contracts
+
+Runtime-checkable `requires:`/`ensures:` clauses added in the v0.63.1 hardening
+pass. Class `P` = Z3-provable from the function body (pure scalar reasoning on
+parameters, `result` and `@pre` state); class `R` = runtime-checked (depends
+on vector payloads or helper-call results).
+
+| Function | Clause | Class |
+|---|---|---|
+| `pcx_scanline_bytes` | `(width <= 0 \|\| bits_per_pixel <= 0) => result == 0` | P |
+| `pcx_scanline_bytes` | `(width > 0 && bits_per_pixel > 0) => result == (width * bits_per_pixel + 7) / 8` | P |
+| `pcx_decoded_bytes` | `result == h.bytes_per_line * h.color_planes * h.height` | P |
+| `pcx_decoded_bytes` | `(h.bytes_per_line >= 0 && h.color_planes >= 0 && h.height >= 0) => result >= 0` | P |
+| `pcx_parse_header` | `data.len() < 128 => result is Err` | P |
+| `pcx_parse_header` | `result is Ok => data.len() >= 128` | P |
+| `pcx_build_header` | `palette.len() != 48 => result is Err` | P |
+| `pcx_build_header` | `(h.version < 0 \|\| h.version > 5) => result is Err` | P |
+| `pcx_build_header` | `result is Ok => result.value.len() == 128` | P |
+| `pcx_parse` | `data.len() < 128 => result is Err` | P |
+| `pcx_parse` | `result is Ok => data.len() >= 129` | P |
+| `pcx_has_vga_palette` | `data.len() < 897 => !result` | P |
+| `pcx_has_vga_palette` | `result => data.len() >= 897` | P |
+| `pcx_pixel_offset` | `data.len() < 128 => result is Err` | P |
+| `pcx_pixel_offset` | `result is Ok => result.value == 128` | P |
+| `pcx_pixel_length` | `data.len() < 128 => result is Err` | P |
+| `pcx_pixel_length` | `result is Ok => result.value >= 1` | P |
+| `pcx_pixel_data` | `data.len() < 128 => result is Err` | P |
+| `pcx_pixel_data` | `result is Ok => result.value.len() >= 1` | R |
+| `pcx_header_palette` | `data.len() < 128 => result is Err` | P |
+| `pcx_header_palette` | `result is Ok => result.value.len() == 48` | P |
+| `pcx_header_palette_entry` | `(index < 0 \|\| index > 15) => result is Err` | P |
+| `pcx_header_palette_entry` | `result is Ok => result.value >= 0 && result.value <= 16777215` | P |
+| `pcx_vga_palette` | `data.len() < 897 => result is Err` | P |
+| `pcx_vga_palette` | `result is Ok => result.value.len() == 768` | P |
+| `pcx_vga_palette` | `!pcx_has_vga_palette(data) => result is Err` | R |
+| `pcx_vga_palette_entry` | `(index < 0 \|\| index > 255) => result is Err` | P |
+| `pcx_vga_palette_entry` | `result is Ok => result.value >= 0 && result.value <= 16777215` | P |
+| `pcx_vga_palette_entry` | `data.len() < 897 => result is Err` | P |
+
 ## Error catalog
 
 | Condition | Message |
