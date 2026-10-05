@@ -176,3 +176,33 @@ Command: `.\scripts\port.ps1 -Package xiom.telnet` (compiler v0.61.3,
   parse that the caller can resume.
 - Security: the codec allocates only in proportion to its input; no option
   data is interpreted, so it makes no policy decisions.
+
+## 8. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked `ensures:` clauses added to `src/telnet.xi` (compiler v0.63.1;
+no version bump). 23 clauses across the 9 public entry points
+(3/1/2/3/3/3/3/3/2). Two consecutive
+`.\scripts\port.ps1 -Package xiom.telnet -TimeoutSec 60` runs ended
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` with the clauses
+active and no clause trapped, so none was dropped. Classes follow the
+batch #13 clause plan: **Z3-provable** = pure scalar guard/form/bounds family
+(a Z3 candidate); **runtime-checked** = the clause's truth depends on stored
+event state and is enforced by the v0.63.1 runtime evaluator.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `telnet_build_negotiation` | `ensures: (verb != TELNET_WILL && verb != TELNET_WONT && verb != TELNET_DO && verb != TELNET_DONT) => result is Err`; `ensures: (option < 0 \|\| option > 255) => result is Err`; `ensures: result is Ok => result.value.len() == 3` | Z3-provable |
+| `telnet_parse` | `ensures: data.len() == 0 => result is Ok` | Z3-provable |
+| `telnet_event_count` | `ensures: result == e.kinds.len()`; `ensures: result >= 0` | Z3-provable |
+| `telnet_kind` | `ensures: index < 0 => result == -1`; `ensures: index >= e.kinds.len() => result == -1`; `ensures: result >= -1` | Z3-provable (sentinels); runtime-checked (`result >= -1`) |
+| `telnet_option` | `ensures: index < 0 => result == -1`; `ensures: index >= e.options.len() => result == -1`; `ensures: result != -1 => result >= 0 && result <= 255` | Z3-provable (sentinels); runtime-checked (option range) |
+| `telnet_payload_offset` | `ensures: index < 0 => result == -1`; `ensures: index >= e.payload_offsets.len() => result == -1`; `ensures: result >= -1` | Z3-provable (sentinels); runtime-checked (`result >= -1`) |
+| `telnet_payload_length` | `ensures: index < 0 => result == -1`; `ensures: index >= e.payload_lengths.len() => result == -1`; `ensures: result != -1 => result >= 0` | Z3-provable (sentinels); runtime-checked (non-negative length) |
+| `telnet_escape_data` | `ensures: result.len() >= data.len()`; `ensures: result.len() <= data.len() * 2`; `ensures: data.len() == 0 => result.len() == 0` | Z3-provable |
+| `telnet_unescape_data` | `ensures: result.len() <= data.len()`; `ensures: data.len() == 0 => result.len() == 0` | Z3-provable |
+
+Excluded by the plan's forbidden shapes: Ok-payload clauses on
+`telnet_parse` (struct payload) and byte-equality round-trip clauses for
+`telnet_escape_data`/`telnet_unescape_data` (Str/byte equality,
+BUG 17 family); the parser's truncation behavior is pinned by tests instead.
+

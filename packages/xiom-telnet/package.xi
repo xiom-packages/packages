@@ -9,7 +9,7 @@
 
 package xiom_telnet {
   name: "xiom.telnet";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Telnet negotiation codec: IAC verbs, subnegotiation, and 0xFF data escaping";
   categories: ["network", "data"];
   keywords: ["telnet", "negotiation", "iac", "protocol"];

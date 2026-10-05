@@ -125,7 +125,11 @@ fn _push_sb(kinds: &mut Vec[Int], options: &mut Vec[Int],
 /// Err("telnet: option out of range") for option outside 0..255. The verb is
 /// validated first, so an invalid verb wins over an invalid option.
 /// Complexity: O(1).
-pub fn telnet_build_negotiation(verb: Int, option: Int) -> Result[Vec[UInt8], Str] {
+pub fn telnet_build_negotiation(verb: Int, option: Int) -> Result[Vec[UInt8], Str]
+  ensures: (verb != TELNET_WILL && verb != TELNET_WONT && verb != TELNET_DO && verb != TELNET_DONT) => result is Err;
+  ensures: (option < 0 || option > 255) => result is Err;
+  ensures: result is Ok => result.value.len() == 3;
+{
   if verb != TELNET_WILL && verb != TELNET_WONT && verb != TELNET_DO && verb != TELNET_DONT {
     return _err_bytes("telnet: verb out of range");
   }
@@ -165,7 +169,9 @@ pub fn telnet_build_negotiation(verb: Int, option: Int) -> Result[Vec[UInt8], St
 /// modeled command set (including a stray IAC SE and RFC 854's NOP/DM/BRK/
 /// IP/AO/AYT/EC/EL/GA commands, which this codec does not model).
 /// Complexity: O(data length).
-pub fn telnet_parse(data: &Vec[UInt8]) -> Result[TelnetEvents, Str] {
+pub fn telnet_parse(data: &Vec[UInt8]) -> Result[TelnetEvents, Str]
+  ensures: data.len() == 0 => result is Ok;
+{
   var kinds = Vec[Int].new();
   var options = Vec[Int].new();
   var payload_offsets = Vec[Int].new();
@@ -249,14 +255,21 @@ pub fn telnet_parse(data: &Vec[UInt8]) -> Result[TelnetEvents, Str] {
 /// Number of events in `e`. The four vectors are index-aligned by
 /// construction, so this is the length of each.
 /// Complexity: O(1).
-pub fn telnet_event_count(e: &TelnetEvents) -> Int {
+pub fn telnet_event_count(e: &TelnetEvents) -> Int
+  ensures: result == e.kinds.len();
+  ensures: result >= 0;
+{
   return e.kinds.len();
 }
 
 /// Kind of event `index`: 1 WILL, 2 WONT, 3 DO, 4 DONT or 5 SB.
 /// Returns: the kind, or -1 when index is negative or >= event count.
 /// Complexity: O(1).
-pub fn telnet_kind(e: &TelnetEvents, index: Int) -> Int {
+pub fn telnet_kind(e: &TelnetEvents, index: Int) -> Int
+  ensures: index < 0 => result == -1;
+  ensures: index >= e.kinds.len() => result == -1;
+  ensures: result >= -1;
+{
   if index < 0 || index >= e.kinds.len() {
     return -1;
   }
@@ -267,7 +280,11 @@ pub fn telnet_kind(e: &TelnetEvents, index: Int) -> Int {
 /// Option code of event `index` (0..255).
 /// Returns: the option, or -1 when index is negative or >= event count.
 /// Complexity: O(1).
-pub fn telnet_option(e: &TelnetEvents, index: Int) -> Int {
+pub fn telnet_option(e: &TelnetEvents, index: Int) -> Int
+  ensures: index < 0 => result == -1;
+  ensures: index >= e.options.len() => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 255;
+{
   if index < 0 || index >= e.options.len() {
     return -1;
   }
@@ -280,7 +297,11 @@ pub fn telnet_option(e: &TelnetEvents, index: Int) -> Int {
 /// byte counts here), or -1 when the event is not SB or when index is
 /// negative or >= event count.
 /// Complexity: O(1).
-pub fn telnet_payload_offset(e: &TelnetEvents, index: Int) -> Int {
+pub fn telnet_payload_offset(e: &TelnetEvents, index: Int) -> Int
+  ensures: index < 0 => result == -1;
+  ensures: index >= e.payload_offsets.len() => result == -1;
+  ensures: result >= -1;
+{
   if index < 0 || index >= e.payload_offsets.len() {
     return -1;
   }
@@ -293,7 +314,11 @@ pub fn telnet_payload_offset(e: &TelnetEvents, index: Int) -> Int {
 /// Returns: the length, 0 for negotiation events, or -1 when index is
 /// negative or >= event count.
 /// Complexity: O(1).
-pub fn telnet_payload_length(e: &TelnetEvents, index: Int) -> Int {
+pub fn telnet_payload_length(e: &TelnetEvents, index: Int) -> Int
+  ensures: index < 0 => result == -1;
+  ensures: index >= e.payload_lengths.len() => result == -1;
+  ensures: result != -1 => result >= 0;
+{
   if index < 0 || index >= e.payload_lengths.len() {
     return -1;
   }
@@ -310,7 +335,11 @@ pub fn telnet_payload_length(e: &TelnetEvents, index: Int) -> Int {
 /// Params: data - the unescaped application data.
 /// Returns: a fresh buffer of length data.len() + (number of 0xFF bytes).
 /// Complexity: O(data length).
-pub fn telnet_escape_data(data: &Vec[UInt8]) -> Vec[UInt8] {
+pub fn telnet_escape_data(data: &Vec[UInt8]) -> Vec[UInt8]
+  ensures: result.len() >= data.len();
+  ensures: result.len() <= data.len() * 2;
+  ensures: data.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let n = data.len();
   var i = 0;
@@ -337,7 +366,10 @@ pub fn telnet_escape_data(data: &Vec[UInt8]) -> Vec[UInt8] {
 /// Params: data - the escaped wire bytes.
 /// Returns: a fresh buffer; IAC IAC pairs collapse to one 0xFF each.
 /// Complexity: O(data length).
-pub fn telnet_unescape_data(data: &Vec[UInt8]) -> Vec[UInt8] {
+pub fn telnet_unescape_data(data: &Vec[UInt8]) -> Vec[UInt8]
+  ensures: result.len() <= data.len();
+  ensures: data.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let n = data.len();
   var i = 0;
