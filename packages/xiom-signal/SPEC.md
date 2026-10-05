@@ -1,5 +1,7 @@
 # xiom.signal SPEC
 
+`Version 0.1.2 (stable; published on the XIOM registry).`
+
 ## Package Overview
 
 `xiom.signal` is a pure-XIOM, FFI-free toolkit for one-dimensional integer
@@ -204,3 +206,24 @@ Expected: `port: PASS (passed=27 failed=0 program_exit=0 exit=0)`.
   windows in the millions.
 - **No spectral features.** FFT, filter design, resampling, modulation and
   noise are out of scope for this incubating module.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 24 unknown / 3 errors** (no clause is
+refuted).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `signal_rect_permille` / `signal_hann_permille` / `signal_hamming_permille` | `ensures: n < 1 => result.len() == 0`; `ensures: n >= 1 => result.len() == n` | unproven |
+| `signal_apply_permille` | `ensures: result.len() <= values.len()`; `ensures: result.len() <= weights.len()` | unproven |
+| `signal_convolve` | `ensures: result.len() == values.len()` | unproven |
+| `signal_moving_max` / `signal_moving_min` | `ensures: window < 1 => result.len() == 0`; `ensures: window >= 1 => result.len() == values.len()` | unproven |
+| `signal_zero_crossings` | `ensures: result >= 0`; `ensures: result <= values.len()` | unproven |
+
+Unasserted/documented: coefficient values (Hann/Hamming rounding,
+endpoints, centre 1000), the truncation rule of `signal_apply_permille`
+(trunc toward zero), the convolution convention and the trailing-window
+semantics of the extrema helpers are pinned by the 27-check test plan;
+intra-window arithmetic is not expressible as runtime contracts over the
+loops. The result-length contracts above are the machine-checked part.

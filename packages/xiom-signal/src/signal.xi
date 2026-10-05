@@ -55,7 +55,10 @@ fn _raised_cosine_permille(n: Int, a: Float64, b: Float64) -> Vec[Int] {
 /// empty vector.
 /// Errors: none.
 /// Complexity: O(n) time, O(n) memory.
-pub fn signal_rect_permille(n: Int) -> Vec[Int] {
+pub fn signal_rect_permille(n: Int) -> Vec[Int]
+  ensures: n < 1 => result.len() == 0;
+  ensures: n >= 1 => result.len() == n;
+{
   var out = Vec[Int].new();
   var i = 0;
   while i < n {
@@ -73,7 +76,10 @@ pub fn signal_rect_permille(n: Int) -> Vec[Int] {
 /// is 1000; n == 1 yields [1000]; n < 1 yields an empty vector.
 /// Errors: none.
 /// Complexity: O(n) time, O(n) memory.
-pub fn signal_hann_permille(n: Int) -> Vec[Int] {
+pub fn signal_hann_permille(n: Int) -> Vec[Int]
+  ensures: n < 1 => result.len() == 0;
+  ensures: n >= 1 => result.len() == n;
+{
   return _raised_cosine_permille(n, 0.5, 0.5);
 }
 
@@ -86,7 +92,10 @@ pub fn signal_hann_permille(n: Int) -> Vec[Int] {
 /// empty vector.
 /// Errors: none.
 /// Complexity: O(n) time, O(n) memory.
-pub fn signal_hamming_permille(n: Int) -> Vec[Int] {
+pub fn signal_hamming_permille(n: Int) -> Vec[Int]
+  ensures: n < 1 => result.len() == 0;
+  ensures: n >= 1 => result.len() == n;
+{
   return _raised_cosine_permille(n, 0.54, 0.46);
 }
 
@@ -98,7 +107,10 @@ pub fn signal_hamming_permille(n: Int) -> Vec[Int] {
 /// either input is empty.
 /// Errors: none.
 /// Complexity: O(min(n, m)) time, O(min(n, m)) memory.
-pub fn signal_apply_permille(values: &Vec[Int], weights: &Vec[Int]) -> Vec[Int] {
+pub fn signal_apply_permille(values: &Vec[Int], weights: &Vec[Int]) -> Vec[Int]
+  ensures: result.len() <= values.len();
+  ensures: result.len() <= weights.len();
+{
   var out = Vec[Int].new();
   let n = values.len();
   let m = weights.len();
@@ -127,7 +139,9 @@ pub fn signal_apply_permille(values: &Vec[Int], weights: &Vec[Int]) -> Vec[Int] 
 /// length; empty input yields an empty vector.
 /// Errors: none.
 /// Complexity: O(n * k) time, O(n) memory.
-pub fn signal_convolve(values: &Vec[Int], kernel: &Vec[Int]) -> Vec[Int] {
+pub fn signal_convolve(values: &Vec[Int], kernel: &Vec[Int]) -> Vec[Int]
+  ensures: result.len() == values.len();
+{
   var out = Vec[Int].new();
   let n = values.len();
   let k = kernel.len();
@@ -166,7 +180,10 @@ pub fn signal_convolve(values: &Vec[Int], kernel: &Vec[Int]) -> Vec[Int] {
 /// vector; empty input yields an empty vector.
 /// Errors: none.
 /// Complexity: O(n * window) time, O(n) memory.
-pub fn signal_moving_max(values: &Vec[Int], window: Int) -> Vec[Int] {
+pub fn signal_moving_max(values: &Vec[Int], window: Int) -> Vec[Int]
+  ensures: window < 1 => result.len() == 0;
+  ensures: window >= 1 => result.len() == values.len();
+{
   var out = Vec[Int].new();
   if window < 1 {
     return out;
@@ -203,7 +220,10 @@ pub fn signal_moving_max(values: &Vec[Int], window: Int) -> Vec[Int] {
 /// vector; empty input yields an empty vector.
 /// Errors: none.
 /// Complexity: O(n * window) time, O(n) memory.
-pub fn signal_moving_min(values: &Vec[Int], window: Int) -> Vec[Int] {
+pub fn signal_moving_min(values: &Vec[Int], window: Int) -> Vec[Int]
+  ensures: window < 1 => result.len() == 0;
+  ensures: window >= 1 => result.len() == values.len();
+{
   var out = Vec[Int].new();
   if window < 1 {
     return out;
@@ -239,7 +259,10 @@ pub fn signal_moving_min(values: &Vec[Int], window: Int) -> Vec[Int] {
 /// 0 for an empty, constant-sign, or all-zero signal.
 /// Errors: none.
 /// Complexity: O(n) time, O(1) extra memory.
-pub fn signal_zero_crossings(values: &Vec[Int]) -> Int {
+pub fn signal_zero_crossings(values: &Vec[Int]) -> Int
+  ensures: result >= 0;
+  ensures: result <= values.len();
+{
   var count = 0;
   var have_prev = false;
   var prev_neg = false;
