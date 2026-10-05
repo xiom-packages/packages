@@ -1,8 +1,8 @@
 # xiom.diff -- Specification
 
-Status: `incubating` (implemented, harness-green, not published).
+Status: `stable` (published; harness-green on v0.63.1).
 Module: `xiom.diff` (`src/diff.xi`). Manifest: `package.xi` (name `xiom.diff`,
-version `0.1.0`). Depends on `xiom.std` (`xiom.string`,
+version `0.1.2`). Depends on `xiom.std` (`xiom.string`,
 `xiom.string.compare`, `xiom.convert.int`).
 
 ## Scope
@@ -274,3 +274,43 @@ program_exit=0 exit=0)`.
 - No inline lambdas, no `self` methods, no `mut` match pattern bindings; the
   module is written entirely with free functions and `while` loops, matching
   xiom.lru idioms.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts added in the batch #12 hardening pass (compiler
+v0.63.1); two clean port runs:
+`port: PASS (passed=16 failed=0 program_exit=0 exit=0)` (5.4 s, 5.6 s).
+No `requires:` clauses: every function accepts all inputs and has no error
+path.
+
+| Entry point | Contract | Checked |
+|---|---|---|
+| `diff_equal` | `ensures: a.len() != b.len() => !result`; `ensures: a.len() == 0 && b.len() == 0 => result` | runtime-checked |
+| `diff_lcs_len` | `ensures: result >= 0`; `ensures: result <= a.len() && result <= b.len()`; `ensures: (a.len() == 0 \|\| b.len() == 0) => result == 0` | runtime-checked; first clause pure scalar |
+| `diff_lines` | `ensures: result.len() == a.len() + b.len() - diff_lcs_len(a, b)`; `ensures: a.len() == 0 && b.len() == 0 => result.len() == 0` | runtime-checked |
+| `diff_insertions` | `ensures: result == b.len() - diff_lcs_len(a, b)`; `ensures: result >= 0` | runtime-checked; second clause pure scalar |
+| `diff_deletions` | `ensures: result == a.len() - diff_lcs_len(a, b)`; `ensures: result >= 0` | runtime-checked; second clause pure scalar |
+| `diff_unified` | `ensures: a.len() == 0 && b.len() == 0 => result.len() == 0` | runtime-checked |
+| `diff_text` | `ensures: a.len() == 0 && b.len() == 0 => result.len() == 0` | runtime-checked |
+
+13 clauses across the seven entry points (2/3/2/2/2/1/1). The three
+`result >= 0` clauses (`diff_lcs_len`, `diff_insertions`, `diff_deletions`)
+are the only Z3-provable (pure scalar) shapes; every other clause reads a
+`Str`/`Vec` length or calls `diff_lcs_len`, so it is runtime-checked. The
+16-check conformance suite exercises every entry point with the clauses
+active, so the v0.63.1 runtime evaluator enforces each clause during both
+green runs above. A `xiom-verify --check` pass (Z3 4.13.4) reports
+**0 proven / 0 violated / 19 unknown / 5 errors**: every clause axiom was
+skipped by the emitter (`equality with unresolved operand sort`, `operator
+Le on non-numeric operands`) and the 5 errors are emitter artifacts
+(`unknown constant _lcs_table` / `_op_kinds` / `_split_lines` in the
+generated SMT), not violations of the code under test.
+
+Unasserted/documented: the exact prefixed script text (`"  "` / `"- "` /
+`"+ "` contents), the unified hunk headers, and the `diff_text` splitting
+rule stay pinned by the 16-check test plan and the sections above. The
+`diff_unified` negative-context clamp (`context < 0`) carries no clause: a
+self-call `diff_unified(a, b, 0)` would recurse the runtime contract
+evaluator. Payload-length-vs-parameter comparisons, struct-result payload
+access and tuple-component access are avoided per the documented v0.63.1
+forbidden shapes; no clause compares `Str` values (BUG 17).

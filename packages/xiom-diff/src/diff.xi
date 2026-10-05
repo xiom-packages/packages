@@ -150,7 +150,10 @@ fn _split_lines(s: Str) -> Vec[Str] {
 /// Returns: true when the slices are equal, false otherwise.
 /// Errors: none.
 /// Complexity: O(min(n, m)) line comparisons.
-pub fn diff_equal(a: &Vec[Str], b: &Vec[Str]) -> Bool {
+pub fn diff_equal(a: &Vec[Str], b: &Vec[Str]) -> Bool
+  ensures: a.len() != b.len() => !result;
+  ensures: a.len() == 0 && b.len() == 0 => result;
+{
   if a.len() != b.len() {
     return false;
   }
@@ -169,7 +172,11 @@ pub fn diff_equal(a: &Vec[Str], b: &Vec[Str]) -> Bool {
 /// Returns: the LCS length (0 when either slice is empty).
 /// Errors: none.
 /// Complexity: O(n*m) time, O(n*m) memory (flat table).
-pub fn diff_lcs_len(a: &Vec[Str], b: &Vec[Str]) -> Int {
+pub fn diff_lcs_len(a: &Vec[Str], b: &Vec[Str]) -> Int
+  ensures: result >= 0;
+  ensures: result <= a.len() && result <= b.len();
+  ensures: (a.len() == 0 || b.len() == 0) => result == 0;
+{
   let n = a.len();
   let m = b.len();
   if n == 0 || m == 0 {
@@ -190,7 +197,10 @@ pub fn diff_lcs_len(a: &Vec[Str], b: &Vec[Str]) -> Int {
 /// slices are empty.
 /// Errors: none.
 /// Complexity: O(n*m) time and memory.
-pub fn diff_lines(a: &Vec[Str], b: &Vec[Str]) -> Vec[Str] {
+pub fn diff_lines(a: &Vec[Str], b: &Vec[Str]) -> Vec[Str]
+  ensures: result.len() == a.len() + b.len() - diff_lcs_len(a, b);
+  ensures: a.len() == 0 && b.len() == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   let kinds = _op_kinds(a, b);
   var old_line = 0;
@@ -219,7 +229,10 @@ pub fn diff_lines(a: &Vec[Str], b: &Vec[Str]) -> Vec[Str] {
 /// Returns: b.len() - diff_lcs_len(a, b), always >= 0.
 /// Errors: none.
 /// Complexity: O(n*m) (delegates to diff_lcs_len).
-pub fn diff_insertions(a: &Vec[Str], b: &Vec[Str]) -> Int {
+pub fn diff_insertions(a: &Vec[Str], b: &Vec[Str]) -> Int
+  ensures: result == b.len() - diff_lcs_len(a, b);
+  ensures: result >= 0;
+{
   return b.len() - diff_lcs_len(a, b);
 }
 
@@ -228,7 +241,10 @@ pub fn diff_insertions(a: &Vec[Str], b: &Vec[Str]) -> Int {
 /// Returns: a.len() - diff_lcs_len(a, b), always >= 0.
 /// Errors: none.
 /// Complexity: O(n*m) (delegates to diff_lcs_len).
-pub fn diff_deletions(a: &Vec[Str], b: &Vec[Str]) -> Int {
+pub fn diff_deletions(a: &Vec[Str], b: &Vec[Str]) -> Int
+  ensures: result == a.len() - diff_lcs_len(a, b);
+  ensures: result >= 0;
+{
   return a.len() - diff_lcs_len(a, b);
 }
 
@@ -246,7 +262,9 @@ pub fn diff_deletions(a: &Vec[Str], b: &Vec[Str]) -> Int {
 /// Returns: the hunk text, or "" when a and b are equal.
 /// Errors: none.
 /// Complexity: O(n*m) time and memory; string building is O(payload^2).
-pub fn diff_unified(a: &Vec[Str], b: &Vec[Str], context: Int) -> Str {
+pub fn diff_unified(a: &Vec[Str], b: &Vec[Str], context: Int) -> Str
+  ensures: a.len() == 0 && b.len() == 0 => result.len() == 0;
+{
   var ctx = context;
   if ctx < 0 {
     ctx = 0;
@@ -376,7 +394,9 @@ pub fn diff_unified(a: &Vec[Str], b: &Vec[Str], context: Int) -> Str {
 /// Returns: the prefixed edit script (see diff_lines).
 /// Errors: none.
 /// Complexity: O(lines(a) * lines(b)) time and memory.
-pub fn diff_text(a: Str, b: Str) -> Vec[Str] {
+pub fn diff_text(a: Str, b: Str) -> Vec[Str]
+  ensures: a.len() == 0 && b.len() == 0 => result.len() == 0;
+{
   let al = _split_lines(a);
   let bl = _split_lines(b);
   return diff_lines(&al, &bl);

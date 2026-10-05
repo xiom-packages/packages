@@ -9,7 +9,7 @@
 
 package xiom_diff {
   name: "xiom.diff";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Line diff with longest-common-subsequence edit scripts and unified diff output";
   categories: ["text-nlp", "tooling"];
   keywords: ["diff", "lcs", "unified", "text"];
