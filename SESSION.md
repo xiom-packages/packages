@@ -82,6 +82,12 @@ running). Check `git log -1 --format=%h %s` before starting.
   constant-time MAC, `exp` required, `nbf` optional, caller clock, payload returned
   post-verify); jwt.io KAT byte-exact + tamper/alg-confusion/binary-secret/exp-nbf tests;
   suite 30/30 x2; feat `70c17525`. PULSE Step-2 auth unblocked.
+- **Router publish blocked on ops:** owner approved the delta; `xiom.router` appended to
+  the allowlist (500 names, guard 460 ready/0 failures, commit `72a2835d`), wrap `a94f089f`,
+  tag `eco-v0.1.62` run `37350671893` -- readiness job passed, publish job failed with
+  `HTTP 403 scope_denied: token "eco-release" is not scoped to publish "xiom.router"`.
+  **Relay to ops: extend the `eco-release` registry scope to `xiom.router`, then re-run
+  `37350671893`** (no new tag). `aws`/`saml`/`metrics` are already in scope (existing names).
 - **PULSE wave 2:** `xiom.rate` 0.2.0 keyed layer DONE + PUBLISHED (`eco-v0.1.61`, run
   `37340030888`; `KeyedBuckets`/`KeyedWindows` with prune hooks, 15 new APIs, 30/30 x2,
   feat `957a336b`); `xiom.router` 0.1.0 built + recorded **incubating** in-repo (22/22 x2,
