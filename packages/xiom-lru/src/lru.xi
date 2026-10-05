@@ -105,7 +105,9 @@ fn _evict_lru(c: &mut LruCache) {
 /// when the cache is already at capacity, the LRU entry is evicted first
 /// (evictions is incremented). Hits/misses are not touched.
 /// Complexity: O(1) amortized.
-pub fn lru_put(c: &mut LruCache, key: Str, value: Int) {
+pub fn lru_put(c: &mut LruCache, key: Str, value: Int)
+  ensures: c.size >= 0 && c.size <= c.capacity;
+{
   var existing = string_map_get(&c.map, key);
   match existing {
     Some(node) => {
@@ -133,7 +135,9 @@ pub fn lru_put(c: &mut LruCache, key: Str, value: Int) {
 /// Returns: Some(value) on a hit (hits incremented) or None on a miss
 /// (misses incremented).
 /// Complexity: O(1) amortized.
-pub fn lru_get(c: &mut LruCache, key: Str) -> Option[Int] {
+pub fn lru_get(c: &mut LruCache, key: Str) -> Option[Int]
+  ensures: c.hits + c.misses == c.hits@pre + c.misses@pre + 1;
+{
   var found = string_map_get(&c.map, key);
   match found {
     Some(node) => {
@@ -174,7 +178,9 @@ pub fn lru_contains(c: &LruCache, key: Str) -> Bool {
 /// Returns: true when an entry was removed (its node slot freed), false when
 /// the key was absent. Does not touch hits/misses/evictions.
 /// Complexity: O(1) amortized.
-pub fn lru_remove(c: &mut LruCache, key: Str) -> Bool {
+pub fn lru_remove(c: &mut LruCache, key: Str) -> Bool
+  ensures: c.size == c.size@pre || c.size == c.size@pre - 1;
+{
   var found = string_map_get(&c.map, key);
   match found {
     Some(node) => {
@@ -195,7 +201,9 @@ pub fn lru_remove(c: &mut LruCache, key: Str) -> Bool {
 /// are intentionally retained (they are lifetime statistics); call lru_new
 /// for a fresh cache with zeroed counters. Recency order and the free list
 /// are reset. Complexity: O(n).
-pub fn lru_clear(c: &mut LruCache) {
+pub fn lru_clear(c: &mut LruCache)
+  ensures: c.size == 0;
+{
   var node = c.head;
   while node != -1 {
     string_map_remove(&mut c.map, c.keys[node]);
@@ -217,31 +225,41 @@ pub fn lru_clear(c: &mut LruCache) {
 
 /// Number of live entries.
 /// Params: c - the cache. Complexity: O(1).
-pub fn lru_len(c: &LruCache) -> Int {
+pub fn lru_len(c: &LruCache) -> Int
+  ensures: result >= 0 && result <= c.capacity;
+{
   return c.size;
 }
 
 /// Maximum number of live entries (always >= 1).
 /// Params: c - the cache. Complexity: O(1).
-pub fn lru_capacity(c: &LruCache) -> Int {
+pub fn lru_capacity(c: &LruCache) -> Int
+  ensures: result >= 1;
+{
   return c.capacity;
 }
 
 /// Cumulative successful lru_get calls.
 /// Params: c - the cache. Complexity: O(1).
-pub fn lru_hits(c: &LruCache) -> Int {
+pub fn lru_hits(c: &LruCache) -> Int
+  ensures: result >= 0;
+{
   return c.hits;
 }
 
 /// Cumulative failed lru_get calls.
 /// Params: c - the cache. Complexity: O(1).
-pub fn lru_misses(c: &LruCache) -> Int {
+pub fn lru_misses(c: &LruCache) -> Int
+  ensures: result >= 0;
+{
   return c.misses;
 }
 
 /// Cumulative evictions performed by lru_put.
 /// Params: c - the cache. Complexity: O(1).
-pub fn lru_evictions(c: &LruCache) -> Int {
+pub fn lru_evictions(c: &LruCache) -> Int
+  ensures: result >= 0;
+{
   return c.evictions;
 }
 

@@ -1,8 +1,9 @@
 # xiom.lru -- Specification
 
-Status: `incubating` (implemented, harness-green, not published).
+Status: `stable` (published; v0.63.0 fleet sweep green; contract hardening
+in 0.1.2).
 Module: `xiom.lru` (`src/lru.xi`). Manifest: `package.xi` (name `xiom.lru`,
-version `0.1.0`). Depends on `xiom.std` (`xiom.collect.stringmap`).
+version `0.1.2`). Depends on `xiom.std` (`xiom.collect.stringmap`).
 
 ## Scope
 
@@ -181,3 +182,29 @@ Last verified: compiler 0.61.3, `port: PASS (passed=16 failed=0 exit=0)`.
   (`string_map_put(&mut c.map, ...)`), unlike the `&mut Vec` copy issue
   documented as BUG 16 in the stdlib (which this module avoids by never
   passing its arena vectors as `&mut Vec` arguments).
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 17 unknown / 1 error** (arena-heavy;
+no clause is refuted).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `lru_put` | `ensures: c.size >= 0 && c.size <= c.capacity` | unproven |
+| `lru_get` | `ensures: c.hits + c.misses == c.hits@pre + c.misses@pre + 1` | unproven |
+| `lru_remove` | `ensures: c.size == c.size@pre || c.size == c.size@pre - 1` | unproven |
+| `lru_clear` | `ensures: c.size == 0` | unproven |
+| `lru_len` | `ensures: result >= 0 && result <= c.capacity` | unproven |
+| `lru_capacity` | `ensures: result >= 1` | unproven |
+| `lru_hits` / `lru_misses` / `lru_evictions` | `ensures: result >= 0` | unproven |
+| `lru_new` | none | unasserted (documented) |
+| `lru_peek` / `lru_contains` / `lru_keys_mru` | none | unasserted (documented) |
+
+Unasserted/documented: `lru_new`'s clamping (`capacity >= 1`, empty
+state, zero counters) is pinned by the test plan (struct-result field
+access is out of scope for the runtime evaluator). The recency-order
+contract (`lru_keys_mru().len() == lru_len` and MRU-first ordering) and
+`lru_clear`'s counter-retention policy are test-pinned: `lru_clear`
+keeps hits/misses/evictions by design, so no "all zero" clause is
+asserted.
