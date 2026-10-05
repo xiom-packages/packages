@@ -8,7 +8,7 @@
 
 package xiom_aws {
   name: "xiom.aws";
-  version: "0.1.0";
+  version: "0.1.1";
   description: "Pure-XIOM AWS request model: SigV4 signing, credential resolution, service registry, retry/backoff and response classification; no network";
   categories: ["systems"];
   keywords: ["aws", "sigv4", "signing", "credentials", "cloud"];

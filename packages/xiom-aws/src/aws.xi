@@ -10,8 +10,8 @@
 // input (region, date, credentials, response) is supplied by the caller, so
 // every result is deterministic and testable.
 //
-// SHA-256 / HMAC-SHA-256 are hand-rolled in the sibling module xiom.aws.base
-// (the v0.62.2 stdlib crypto does not link from a package; see that module).
+// SHA-256 / HMAC-SHA-256 delegate to the stdlib xiom.crypto through the
+// sibling module xiom.aws.base.
 //
 // Covered rules (see SPEC.md for the step-by-step signing description):
 //   * SigV4 URI encoding: unreserved ALPHA / DIGIT / '-' '.' '_' '~' literal,
