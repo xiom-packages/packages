@@ -159,7 +159,10 @@ fn _put_magic(out: &mut Vec[UInt8], format: Int) {
 // For P6 the raster must fit in `data` (16-bit samples need 2 bytes each);
 // for P3 every remaining token is validated and at least width*height*3
 // sample tokens must be present (trailing extra tokens are ignored).
-pub fn ppm_parse_header(data: &Vec[UInt8]) -> Result[PpmImage, Str] {
+pub fn ppm_parse_header(data: &Vec[UInt8]) -> Result[PpmImage, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: result is Ok => data.len() >= 3;
+{
   let n = data.len();
   if (n < 2) { return _err_img("ppm: truncated header"); }
   let m0 = _b(data, 0);
@@ -251,7 +254,12 @@ pub fn ppm_parse_header(data: &Vec[UInt8]) -> Result[PpmImage, Str] {
 
 // Read one pixel from a P6 image with maxval <= 255 as 0xRRGGBB using a
 // top-left origin. P3 rasters and 16-bit P6 rasters are rejected.
-pub fn ppm_pixel_rgb(data: &Vec[UInt8], x: Int, y: Int) -> Result[Int, Str] {
+pub fn ppm_pixel_rgb(data: &Vec[UInt8], x: Int, y: Int) -> Result[Int, Str]
+  ensures: x < 0 => result is Err;
+  ensures: y < 0 => result is Err;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 16777215;
+{
   let parsed = ppm_parse_header(data);
   match parsed {
     Ok(img) => {
@@ -273,7 +281,10 @@ pub fn ppm_pixel_rgb(data: &Vec[UInt8], x: Int, y: Int) -> Result[Int, Str] {
 
 // Build a canonical binary P6 image: header "P6\n<w> <h>\n255\n" followed by
 // raw RGB bytes in top-left scan order (no padding anywhere).
-pub fn ppm_build_p6(rgb: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UInt8], Str] {
+pub fn ppm_build_p6(rgb: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UInt8], Str]
+  ensures: width <= 0 => result is Err;
+  ensures: height <= 0 => result is Err;
+{
   if (width <= 0) { return _err_bytes("ppm: invalid width"); }
   if (height <= 0) { return _err_bytes("ppm: invalid height"); }
   let need = width * height * 3;
@@ -300,7 +311,10 @@ pub fn ppm_build_p6(rgb: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UIn
 // decimal samples separated by single spaces and wrapped to at most
 // `samples_per_line` samples per line (values < 1 are clamped to 1). Lines
 // are LF-terminated, with exactly one trailing LF at the end of the raster.
-pub fn ppm_build_p3(rgb: &Vec[UInt8], width: Int, height: Int, samples_per_line: Int) -> Result[Vec[UInt8], Str] {
+pub fn ppm_build_p3(rgb: &Vec[UInt8], width: Int, height: Int, samples_per_line: Int) -> Result[Vec[UInt8], Str]
+  ensures: width <= 0 => result is Err;
+  ensures: height <= 0 => result is Err;
+{
   if (width <= 0) { return _err_bytes("ppm: invalid width"); }
   if (height <= 0) { return _err_bytes("ppm: invalid height"); }
   let need = width * height * 3;
@@ -334,6 +348,8 @@ pub fn ppm_build_p3(rgb: &Vec[UInt8], width: Int, height: Int, samples_per_line:
 }
 
 // Sample count of the raster: width * height * 3 (three per pixel).
-pub fn ppm_sample_count(img: &PpmImage) -> Int {
+pub fn ppm_sample_count(img: &PpmImage) -> Int
+  ensures: result == img.width * img.height * 3;
+{
   return img.width * img.height * 3;
 }

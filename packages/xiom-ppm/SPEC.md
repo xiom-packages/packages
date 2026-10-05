@@ -85,3 +85,34 @@ After the magic there must be at least one whitespace byte (a comment is not acc
 - P3 accepts extra trailing tokens after the expected sample count (they are ignored); a non-decimal trailing token is still an error.
 - P6 with `maxval > 255` is header-parsed with 2 bytes per sample but has no pixel accessor.
 - No streaming; the whole raster is in memory.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts on all five public entry points, using only the
+proven v0.63.1 clause families (guard-pair, scalar `Ok` bounds, exact
+formula). Both port runs with the clauses active:
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` in 4.79 s and 5.23 s.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `ppm_parse_header` | `ensures: data.len() < 2 => result is Err`; `ensures: result is Ok => data.len() >= 3` | runtime-checked |
+| `ppm_pixel_rgb` | `ensures: x < 0 => result is Err`; `ensures: y < 0 => result is Err`; `ensures: result is Ok => result.value >= 0`; `ensures: result is Ok => result.value <= 16777215` | runtime-checked |
+| `ppm_build_p6` | `ensures: width <= 0 => result is Err`; `ensures: height <= 0 => result is Err` | runtime-checked |
+| `ppm_build_p3` | `ensures: width <= 0 => result is Err`; `ensures: height <= 0 => result is Err` | runtime-checked |
+| `ppm_sample_count` | `ensures: result == img.width * img.height * 3` | Z3-provable (pure scalar) |
+
+11 clauses across the five entry points (2/4/2/2/1). The 18-check
+conformance suite exercises every entry point on the happy path and on the
+rejection paths (`data.len() < 2`, `x < 0`, `y < 0`, non-positive width and
+height, out-of-range coordinates) with the clauses active, so the runtime
+evaluator enforces each clause during the suite. `ppm_sample_count` is the
+only clause whose expression is pure scalar arithmetic over parameter fields;
+the other ten quantify over the `result` tag/payload or `data.len()` and are
+runtime-checked.
+
+Unasserted/documented: `Ok` `PpmImage` payload semantics (format, width,
+height, maxval, data_offset), `Ok` `Vec[UInt8]` builder payload contents, and
+error-text identity are not expressible without the forbidden v0.63.1
+runtime-evaluator shapes (struct-result payload field access,
+payload-length-vs-parameter comparisons, tuple-component access); they stay
+pinned by the 18-check test plan and the sections above.

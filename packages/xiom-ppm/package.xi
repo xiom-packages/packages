@@ -8,7 +8,7 @@
 
 package xiom_ppm {
   name: "xiom.ppm";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Netpbm PPM (P3/P6) parsing and building for 8-bit RGB rasters";
   categories: ["data", "graphics"];
   keywords: ["ppm", "netpbm", "image", "pixels"];
