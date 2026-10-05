@@ -1,6 +1,7 @@
 # xiom.transaction -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (incubating, not published; contract hardening pass,
+2026-10-05).
 Module: `xiom.transaction` (`src/transaction.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -269,3 +270,37 @@ Verified with `.\scripts\port.ps1 -Package xiom.transaction` (v0.61.3).
   dictionary and never claims to be.
 - A `Txn` is not thread-safe and has no internal locking; sharing one across
   threads is the caller's responsibility.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 20 unknown / 4 errors** (the 4 errors are
+SMT-emitter bugs -- `unknown constant _find` -- reported by `xiom-verify`
+itself as "not a proof failure of the code under test").
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `txn_state` | `ensures: result >= 0 && result <= 3` | unproven |
+| `txn_op_count`, `txn_savepoint_count` | `ensures: result >= 0` | unproven |
+| `txn_begin` | `ensures: result => t.state == 1`; `ensures: result => t.ops == 0`; `ensures: !result => t.state == t.state@pre` | unproven |
+| `txn_add_op` | `ensures: result => t.ops == t.ops@pre + 1`; `ensures: !result => t.ops == t.ops@pre` | unproven |
+| `txn_commit` | `ensures: result is Ok => result.value >= 0`; `ensures: result is Ok => t.state == 2` | unproven |
+| `txn_rollback` | `ensures: result is Ok => result.value >= 0`; `ensures: result is Ok => t.ops == 0` | unproven |
+| `txn_savepoint` | `ensures: result => t.state == 1`; `ensures: result => t.names.len() > 0` | unproven |
+| `txn_rollback_to` | `ensures: result is Ok => result.value >= 0`; `ensures: result is Ok => t.ops == result.value` | unproven |
+| `txn_release` | `ensures: result => t.names.len() == t.names.len()@pre - 1`; `ensures: !result => t.names.len() == t.names.len()@pre` | unproven |
+| `txn_savepoint_name` | `ensures: i < 0 || i >= t.names.len() => result.len() == 0` | unproven |
+| `txn_mark` | `ensures: result >= -1` | unproven |
+
+All 20 clauses were runtime-evaluated green: two consecutive
+`.\scripts\port.ps1 -Package xiom.transaction -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)`.
+
+Unasserted/documented: `txn_new` has no clause -- its result is a struct and
+struct-result field access (`result.state`, `result.ops`) is a known
+runtime-evaluator/SMT-emitter artifact on v0.63.0, so the idle/zero-ops/
+no-savepoints facts stay pinned by check t1 only. Also unasserted: the
+non-decreasing-marks invariant, duplicate re-anchor semantics and
+inert-savepoint rules (set/order-shaped facts not expressible in the supported
+clause forms), the exact `Err` message strings and the state-machine table;
+those remain pinned by sections 4-6 and the 22-check test plan.

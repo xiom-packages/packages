@@ -9,7 +9,7 @@
 
 package xiom_transaction {
   name: "xiom.transaction";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Transaction lifecycle state machine with named savepoints";
   categories: ["core","data"];
   keywords: ["transaction","savepoint","state","database"];

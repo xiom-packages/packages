@@ -120,14 +120,18 @@ pub fn txn_new() -> Txn {
 
 /// Lifecycle state: 0 idle, 1 active, 2 committed, 3 rolled_back.
 /// Complexity: O(1).
-pub fn txn_state(t: &Txn) -> Int {
+pub fn txn_state(t: &Txn) -> Int
+  ensures: result >= 0 && result <= 3;
+{
   return t.state;
 }
 
 /// Operations recorded by txn_add_op since the last txn_begin, less any tail
 /// discarded by txn_rollback_to; 0 again after a rollback or a new begin.
 /// Complexity: O(1).
-pub fn txn_op_count(t: &Txn) -> Int {
+pub fn txn_op_count(t: &Txn) -> Int
+  ensures: result >= 0;
+{
   return t.ops;
 }
 
@@ -137,7 +141,11 @@ pub fn txn_op_count(t: &Txn) -> Int {
 /// Params: t - the record.
 /// Returns: true when the transaction became active, false when it already
 /// was. Complexity: O(n) in the number of savepoints (clearing), else O(1).
-pub fn txn_begin(t: &mut Txn) -> Bool {
+pub fn txn_begin(t: &mut Txn) -> Bool
+  ensures: result => t.state == 1;
+  ensures: result => t.ops == 0;
+  ensures: !result => t.state == t.state@pre;
+{
   if t.state == 1 {
     return false;
   }
@@ -151,7 +159,10 @@ pub fn txn_begin(t: &mut Txn) -> Bool {
 /// Params: t - the record.
 /// Returns: true and ops += 1 while active; false and no change otherwise.
 /// Complexity: O(1).
-pub fn txn_add_op(t: &mut Txn) -> Bool {
+pub fn txn_add_op(t: &mut Txn) -> Bool
+  ensures: result => t.ops == t.ops@pre + 1;
+  ensures: !result => t.ops == t.ops@pre;
+{
   if t.state != 1 {
     return false;
   }
@@ -166,7 +177,10 @@ pub fn txn_add_op(t: &mut Txn) -> Bool {
 /// "transaction: commit requires an active transaction" when the transaction
 /// is not active. Savepoints are kept as inert records until the next
 /// txn_begin. Complexity: O(1).
-pub fn txn_commit(t: &mut Txn) -> Result[Int, Str] {
+pub fn txn_commit(t: &mut Txn) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => t.state == 2;
+{
   if t.state != 1 {
     return _err_int("transaction: commit requires an active transaction");
   }
@@ -181,7 +195,10 @@ pub fn txn_commit(t: &mut Txn) -> Result[Int, Str] {
 /// is reset to 0. Err with "transaction: rollback requires an active
 /// transaction" when the transaction is not active. Savepoints are kept as
 /// inert records until the next txn_begin. Complexity: O(1).
-pub fn txn_rollback(t: &mut Txn) -> Result[Int, Str] {
+pub fn txn_rollback(t: &mut Txn) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => t.ops == 0;
+{
   if t.state != 1 {
     return _err_int("transaction: rollback requires an active transaction");
   }
@@ -198,7 +215,10 @@ pub fn txn_rollback(t: &mut Txn) -> Result[Int, Str] {
 /// current op count as its new mark (duplicates never nest). An empty name,
 /// or a call while not active, returns false and changes nothing.
 /// Complexity: O(n) in the number of savepoints.
-pub fn txn_savepoint(t: &mut Txn, name: Str) -> Bool {
+pub fn txn_savepoint(t: &mut Txn, name: Str) -> Bool
+  ensures: result => t.state == 1;
+  ensures: result => t.names.len() > 0;
+{
   if t.state != 1 {
     return false;
   }
@@ -223,7 +243,10 @@ pub fn txn_savepoint(t: &mut Txn, name: Str) -> Bool {
 /// or when the name is unknown
 /// ("transaction: unknown savepoint: <name>").
 /// Complexity: O(n) in the number of savepoints.
-pub fn txn_rollback_to(t: &mut Txn, name: Str) -> Result[Int, Str] {
+pub fn txn_rollback_to(t: &mut Txn, name: Str) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => t.ops == result.value;
+{
   if t.state != 1 {
     return _err_int("transaction: rollback_to requires an active transaction");
   }
@@ -243,7 +266,10 @@ pub fn txn_rollback_to(t: &mut Txn, name: Str) -> Result[Int, Str] {
 /// Returns: true when the savepoint existed and was removed; false when the
 /// name is unknown or the transaction is not active.
 /// Complexity: O(n) in the number of savepoints.
-pub fn txn_release(t: &mut Txn, name: Str) -> Bool {
+pub fn txn_release(t: &mut Txn, name: Str) -> Bool
+  ensures: result => t.names.len() == t.names.len()@pre - 1;
+  ensures: !result => t.names.len() == t.names.len()@pre;
+{
   if t.state != 1 {
     return false;
   }
@@ -256,13 +282,17 @@ pub fn txn_release(t: &mut Txn, name: Str) -> Bool {
 }
 
 /// Number of savepoints. Complexity: O(1).
-pub fn txn_savepoint_count(t: &Txn) -> Int {
+pub fn txn_savepoint_count(t: &Txn) -> Int
+  ensures: result >= 0;
+{
   return t.names.len();
 }
 
 /// Savepoint name at index i (in order), or "" when i is out of range.
 /// Complexity: O(1).
-pub fn txn_savepoint_name(t: &Txn, i: Int) -> Str {
+pub fn txn_savepoint_name(t: &Txn, i: Int) -> Str
+  ensures: i < 0 || i >= t.names.len() => result.len() == 0;
+{
   if i < 0 || i >= t.names.len() {
     return "";
   }
@@ -272,7 +302,9 @@ pub fn txn_savepoint_name(t: &Txn, i: Int) -> Str {
 
 /// Op count anchored by `name`, or -1 when the name is unknown.
 /// Complexity: O(n) in the number of savepoints.
-pub fn txn_mark(t: &Txn, name: Str) -> Int {
+pub fn txn_mark(t: &Txn, name: Str) -> Int
+  ensures: result >= -1;
+{
   let idx = _find(t, name);
   if idx < 0 {
     return -1;
