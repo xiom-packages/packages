@@ -80,7 +80,12 @@ fn _alert_is_breach(r: &AlertRule, value: Int) -> Bool {
 /// Params: r - the rule; s - the mutable state; value - one sample.
 /// Returns: true exactly on the sample that fires the alert.
 /// Complexity: O(1).
-pub fn alert_observe(r: &AlertRule, s: &mut AlertState, value: Int) -> Bool {
+pub fn alert_observe(r: &AlertRule, s: &mut AlertState, value: Int) -> Bool
+  ensures: s.fired_count == s.fired_count@pre || s.fired_count == s.fired_count@pre + 1;
+  ensures: s.resolved_count == s.resolved_count@pre || s.resolved_count == s.resolved_count@pre + 1;
+  ensures: result => s.fired_count == s.fired_count@pre + 1;
+  ensures: s.breaches >= 0;
+{
   if _alert_is_breach(r, value) {
     s.breaches = s.breaches + 1;
     if s.breaches >= r.consecutive {
@@ -116,23 +121,31 @@ pub fn alert_evaluate(r: &AlertRule, values: &Vec[Int]) -> AlertState {
 }
 
 /// Whether the alert is currently firing. Complexity: O(1).
-pub fn alert_is_firing(s: &AlertState) -> Bool {
+pub fn alert_is_firing(s: &AlertState) -> Bool
+  ensures: result == s.firing;
+{
   return s.firing;
 }
 
 /// Fired edges so far (transitions into firing). Complexity: O(1).
-pub fn alert_fired_count(s: &AlertState) -> Int {
+pub fn alert_fired_count(s: &AlertState) -> Int
+  ensures: result >= 0;
+{
   return s.fired_count;
 }
 
 /// Resolve edges so far (transitions out of firing). Complexity: O(1).
-pub fn alert_resolved_count(s: &AlertState) -> Int {
+pub fn alert_resolved_count(s: &AlertState) -> Int
+  ensures: result >= 0;
+{
   return s.resolved_count;
 }
 
 /// Current consecutive breach streak; 0 while not firing.
 /// Complexity: O(1).
-pub fn alert_breaches(s: &AlertState) -> Int {
+pub fn alert_breaches(s: &AlertState) -> Int
+  ensures: result >= 0;
+{
   return s.breaches;
 }
 
@@ -140,7 +153,10 @@ pub fn alert_breaches(s: &AlertState) -> Int {
 /// that would return true, in order). An empty series has zero edges.
 /// Params: r - the rule; values - the samples in observation order.
 /// No error path. Complexity: O(n) in values.
-pub fn alert_transition_count(r: &AlertRule, values: &Vec[Int]) -> Int {
+pub fn alert_transition_count(r: &AlertRule, values: &Vec[Int]) -> Int
+  ensures: result >= 0;
+  ensures: result <= values.len();
+{
   var s = alert_state_new();
   var edges = 0;
   var i = 0;

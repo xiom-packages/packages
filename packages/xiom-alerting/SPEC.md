@@ -1,6 +1,6 @@
 # xiom.alerting -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.alerting` (`src/alerting.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -136,3 +136,23 @@ constraints: free functions only, no methods on the structs, and typed
 `let v: Int = values[i];` element reads for the `Vec[Int]` folds. The module
 imports nothing; the suite uses `xiom.test` and `xiom.io` only. Verified with
 `.\scripts\port.ps1 -Package xiom.alerting` (v0.61.3).
+
+## 8. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **1 proven / 0 violated / 10 unknown / 4 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `alert_observe` | `ensures: s.fired_count == s.fired_count@pre \|\| s.fired_count == s.fired_count@pre + 1`; same for `resolved_count`; `ensures: result => s.fired_count == s.fired_count@pre + 1`; `ensures: s.breaches >= 0` | 1 proven (`breaches >= 0`), rest unproven |
+| `alert_is_firing` | `ensures: result == s.firing` (definitional) | unproven |
+| `alert_fired_count` / `alert_resolved_count` / `alert_breaches` | `ensures: result >= 0` | unproven |
+| `alert_transition_count` | `ensures: result >= 0`; `ensures: result <= values.len()` | unproven |
+| `alert_rule_new` / `alert_state_new` / `alert_evaluate` | none | unasserted (documented) |
+
+Unasserted/documented: constructor clamping (`consecutive >= 1`) and the
+fold's struct result are pinned by the test plan (struct-result field
+access is out of scope for the runtime evaluator). The semantics table
+in section 4 is the normative definition; the edge contracts above lock
+the counter behavior (each observe call changes each counter by 0 or 1,
+and a true return implies a fired edge).
