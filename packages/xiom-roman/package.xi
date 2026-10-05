@@ -9,7 +9,7 @@
 
 package xiom_roman {
   name: "xiom.roman";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Roman numeral parsing, formatting, and canonical validation (1..3999)";
   categories: ["text-nlp", "data"];
   keywords: ["roman", "numerals", "parse", "format"];

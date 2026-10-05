@@ -1,6 +1,6 @@
 # xiom.roman -- specification
 
-Version: 0.1.0 (incubating). Pure XIOM, no FFI, no floating point. All
+Version: 0.1.2 (stable; published). Pure XIOM, no FFI, no floating point. All
 functions are free functions; the module depends on `xiom.string` from
 `xiom.std` only.
 
@@ -175,3 +175,23 @@ returns the number of failing checks (0 = green). `port.ps1` must end
   clock-face mode.
 - `roman_is_canonical` is case-sensitive by design: lowercase input is never
   canonical, even when its value parses.
+
+## 12. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **1 proven / 0 violated / 9 unknown / 4 errors** -- `roman_max`'s
+exact-value clause is discharged; the `Result`-payload clauses remain
+solver-unknown (role/type gaps).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `roman_parse` | `ensures: result is Ok => result.value >= 1 && result.value <= 3999` | unproven |
+| `roman_format` | `ensures: result is Ok => string.str_len(result.value) >= 1 && string.str_len(result.value) <= 15`; `ensures: result is Err => n < 1 || n > 3999` | unproven |
+| `roman_is_canonical` | `ensures: result => roman_parse(s).is_ok` | unproven |
+| `roman_max` | `ensures: result == 3999` | **proven** |
+
+Unasserted/documented: the canonical round-trip on the `Ok` path
+(`roman_parse(s) == Ok(n)` implies `roman_format(n) == Ok(canonical(s))`)
+and the strict-uppercase rule of `roman_is_canonical` are pinned by the
+test plan (16 checks) and the error catalog; they are not expressible as
+runtime contracts without `Str`-equality helpers in contract position.

@@ -57,7 +57,9 @@ const _ROMAN_MAX: Int = 3999;
 /// Examples: ("MCMXCIV") -> Ok(1994); ("iv") -> Ok(4); ("IIII") ->
 /// Err("roman: not canonical"); ("MMMM") -> Err("roman: out of range").
 /// Complexity: O(len(s)) time, O(1) extra space.
-pub fn roman_parse(s: Str) -> Result[Int, Str] {
+pub fn roman_parse(s: Str) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 1 && result.value <= 3999;
+{
   let n = s.len();
   if n == 0 {
     return _roman_parse_err("roman: empty input");
@@ -100,7 +102,10 @@ pub fn roman_parse(s: Str) -> Result[Int, Str] {
 /// Examples: (1994) -> Ok("MCMXCIV"); (3999) -> Ok("MMMCMXCIX"); (0) ->
 /// Err("roman: out of range").
 /// Complexity: O(len(result)).
-pub fn roman_format(n: Int) -> Result[Str, Str] {
+pub fn roman_format(n: Int) -> Result[Str, Str]
+  ensures: result is Ok => string.str_len(result.value) >= 1 && string.str_len(result.value) <= 15;
+  ensures: result is Err => n < 1 || n > 3999;
+{
   if n < _ROMAN_MIN || n > _ROMAN_MAX {
     return _roman_format_err("roman: out of range");
   }
@@ -114,7 +119,9 @@ pub fn roman_format(n: Int) -> Result[Str, Str] {
 /// "IIII", "VX", "IL", "XD", "MMMM", "iv", "mcmxciv" and "" are false.
 /// Error case: none.
 /// Complexity: O(len(s)).
-pub fn roman_is_canonical(s: Str) -> Bool {
+pub fn roman_is_canonical(s: Str) -> Bool
+  ensures: result => roman_parse(s).is_ok;
+{
   let r = roman_parse(s);
   match r {
     Ok(v) => { return _roman_is_canonical_value(s, v); },
@@ -126,7 +133,9 @@ pub fn roman_is_canonical(s: Str) -> Bool {
 /// The largest representable value: 3999, written "MMMCMXCIX".
 /// Returns: 3999.
 /// Error case: none. Complexity: O(1).
-pub fn roman_max() -> Int {
+pub fn roman_max() -> Int
+  ensures: result == 3999;
+{
   return _ROMAN_MAX;
 }
 
