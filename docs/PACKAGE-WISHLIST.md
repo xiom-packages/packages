@@ -18,10 +18,10 @@ Status legend: **IN-FIX** / **APPROVED-NEW** / **EXTEND** / **MERGE-INTO** / **D
 
 | Proposed | Triage | Notes |
 |---|---|---|
-| `xiom.router` | **APPROVED-NEW** (ops delta) | exact + path-parameter routes, method matching, aggregated 404/405, deterministic first-match; stdlib-only. |
+| `xiom.router` | **IN-PROGRESS** (0.1.0 build, task `ses_ef3291de...`; ops delta still required to publish) | exact + path-parameter routes, method matching, aggregated 404/405, deterministic first-match; stdlib-only. |
 | `xiom.session` | **APPROVED-NEW** (ops delta) | server-side store: id gen via `xiom.crypto`, TTL/expiry, memory backend, cookie binding, rotate-on-login; deps `xiom.cookie` + `xiom.crypto`. |
 | `xiom.jwt` v0.2 (HS256) | **DONE + PUBLISHED** (0.2.0, `eco-v0.1.60`, run `37338296689`; task `ses_ef3387e5...`) | HS256 sign/verify on top of existing structural decode: alg allowlist, `exp` required / `nbf` optional, constant-time MAC compare; deps `xiom.crypto` (HMAC links under `XIOM_RUNTIME_DIR`; the 0.64.0 archive should remove that requirement). |
-| `xiom.ratelimit` | **MERGE-INTO** `xiom.rate` 0.1.2 | `xiom.rate` already ships token bucket + fixed window + `retry_after` with explicit clocks. Add a keyed layer (per-IP/route/user) and let the 429 envelope live in `xiom.http.middleware`. `xiom.rate` -> 0.2.0. |
+| `xiom.ratelimit` | **IN-PROGRESS** -- keyed layer in `xiom.rate` (task `ses_ef329199...`) | `xiom.rate` already ships token bucket + fixed window + `retry_after` with explicit clocks; the 0.2.0 keyed layer adds per-IP/route/user tracking plus prune hooks; the 429 envelope lives in `xiom.http.middleware`. |
 | `xiom.metrics` | **EXTEND** `xiom.metrics` 0.1.2 -> 0.2.0 | The existing package's non-goals explicitly exclude labels/dimensions and scrape/export formats. Add labels + a Prometheus text exposition module (`xiom.metrics.prometheus`) + scrape helper inside the same package (keeps one metrics name in the ecosystem). |
 | `xiom.static` | **APPROVED-NEW** (ops delta) | MIME via stdlib `xiom.net.mime`; ETag/Last-Modified, Range, path-traversal guard, Cache-Control policy. |
 | `xiom.http.middleware` | **APPROVED-NEW** (ops delta, after router types) | composable chain over request/response envelopes: request-id, access log, recover-to-500, CORS, CSRF helpers. |
