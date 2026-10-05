@@ -3,6 +3,14 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
+**LIVE CLAIM 2026-10-05 07:25Z (main/debug session):** hardening batch
+#3 in progress -- runtime contracts + SPEC inventories for `bmp`,
+`rate`, `lru`, `tokenizer` (stable/published, zero clauses; patch
+bumps; x2 on v0.63.0; publish in `eco-v0.1.46`). Parallel packages
+lanes: do NOT edit `packages/xiom-bmp`, `packages/xiom-rate`,
+`packages/xiom-lru`, `packages/xiom-tokenizer`,
+`packages/*/STATUS.json`, or create tags; coordinate first.
+
 **Written:** 2026-10-05 (06:40Z), by the main/debug session (v0.63.0
 pin; hardening batch #2 DONE + PUBLISHED in `eco-v0.1.45` -- `crc`,
 `cobs`, `varint`, `roman` 0.1.2 with runtime contracts + SPEC contract
