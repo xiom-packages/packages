@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-05T18:44:40Z",
+    "updated":  "2026-10-05T19:06:26Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -3539,17 +3539,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.2.0",
                          "name":  "xiom.jwt",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "JWT structural decoding: headers, claims, timestamps (no signature verification)",
+                         "description":  "JWT structural decoding and HS256 sign/verify: headers, claims, timestamps, constant-time MAC",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jwt/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jwt/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "jwt.xi",
                                               "package.xi"

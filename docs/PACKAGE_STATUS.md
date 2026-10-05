@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.63.1` -- generated 2026-10-05T15:44:43Z.
+Toolchain pin: `v0.63.1` -- generated 2026-10-05T16:06:32Z.
 
 ## Summary
 
@@ -129,7 +129,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.jpeg | xiom-jpeg | stable | tests/test_conformance.xi | pass 16/16 | fd38977f | False | publish pending: wave-34 batch (eco-v0.1.4) |
 | xiom.json | xiom-json | stable | tests/test_conformance.xi | pass 44/44 | ae2dec2c | False | publish pending: eco-v0.1.37 promotion |
 | xiom.junit | xiom-junit | stable | tests/test_conformance.xi | pass 22/22 | fd38977f | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.jwt | xiom-jwt | stable | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.jwt | xiom-jwt | stable | tests/test_conformance.xi | pass 30/30 | 70c17525 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ktx | xiom-ktx | stable | tests/test_conformance.xi | pass 19/19 | fd38977f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.l10n.number | xiom-l10n-number | stable | tests/test_conformance.xi | pass 30/30 | 5f469ee5 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.lcov | xiom-lcov | stable | tests/test_conformance.xi | pass 21/21 | fd38977f | False | publish pending: registry scope addition + repo protection decision + allowlist |
