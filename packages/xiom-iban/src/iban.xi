@@ -175,7 +175,12 @@ fn _two_digits(n: Int) -> Str {
 /// characters, then the MOD-97-10 check.
 /// Error case: see above.
 /// Complexity: O(len(s)).
-pub fn iban_parse(s: Str) -> Result[Iban, Str] {
+pub fn iban_parse(s: Str) -> Result[Iban, Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: s.len() < 2 => result is Err;
+  ensures: result is Ok => s.len() >= 15;
+  ensures: result is Ok => s.len() <= 28;
+{
   let n = s.len();
   if n == 0 { return _iban_err("iban: empty input"); }
   if n < 2 { return _iban_err("iban: bad characters: " + s); }
@@ -213,7 +218,9 @@ pub fn iban_parse(s: Str) -> Result[Iban, Str] {
 /// Returns: "CCkkBBAN", exactly the text iban_parse accepted.
 /// Error case: none.
 /// Complexity: O(len).
-pub fn iban_compact(v: &Iban) -> Str {
+pub fn iban_compact(v: &Iban) -> Str
+  ensures: result.len() == v.bban.len() + 4;
+{
   return v.country + _two_digits(v.check) + v.bban;
 }
 
@@ -224,7 +231,9 @@ pub fn iban_compact(v: &Iban) -> Str {
 /// be shorter than four characters.
 /// Error case: none.
 /// Complexity: O(len).
-pub fn iban_format(v: &Iban) -> Str {
+pub fn iban_format(v: &Iban) -> Str
+  ensures: result.len() == v.bban.len() + 4 + (v.bban.len() + 3) / 4;
+{
   let compact = v.country + _two_digits(v.check) + v.bban;
   var out = "";
   var i = 0;
@@ -242,7 +251,10 @@ pub fn iban_format(v: &Iban) -> Str {
 /// Returns: two uppercase ASCII letters.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn iban_country(v: &Iban) -> Str {
+pub fn iban_country(v: &Iban) -> Str
+  ensures: result.len() == v.country.len();
+  ensures: result.len() == 2;
+{
   return v.country;
 }
 
@@ -251,7 +263,11 @@ pub fn iban_country(v: &Iban) -> Str {
 /// Returns: 0..99; iban_format and iban_compact render it zero-padded.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn iban_check_digits(v: &Iban) -> Int {
+pub fn iban_check_digits(v: &Iban) -> Int
+  ensures: result == v.check;
+  ensures: result >= 0;
+  ensures: result <= 99;
+{
   return v.check;
 }
 
@@ -260,7 +276,10 @@ pub fn iban_check_digits(v: &Iban) -> Int {
 /// Returns: the basic bank account number exactly as written, uppercase.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn iban_bban(v: &Iban) -> Str {
+pub fn iban_bban(v: &Iban) -> Str
+  ensures: result.len() == v.bban.len();
+  ensures: result.len() >= 11;
+{
   return v.bban;
 }
 
@@ -269,7 +288,12 @@ pub fn iban_bban(v: &Iban) -> Str {
 /// Returns: Bool.
 /// Error case: none (errors collapse to false).
 /// Complexity: O(len(s)).
-pub fn iban_is_valid(s: Str) -> Bool {
+pub fn iban_is_valid(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: s.len() < 2 => !result;
+  ensures: result => s.len() >= 15;
+  ensures: result => s.len() <= 28;
+{
   match iban_parse(s) {
     Ok(v) => { return true; },
     Err(e) => { return false; },
@@ -282,7 +306,11 @@ pub fn iban_is_valid(s: Str) -> Bool {
 /// when the code is unknown.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn iban_length_for_country(country: Str) -> Int {
+pub fn iban_length_for_country(country: Str) -> Int
+  ensures: result >= 0;
+  ensures: result <= 28;
+  ensures: result == 0 || result >= 15;
+{
   return _country_length(country);
 }
 
@@ -295,7 +323,12 @@ pub fn iban_length_for_country(country: Str) -> Int {
 /// makes "CCkkBBAN" pass iban_parse.
 /// Error case: see above.
 /// Complexity: O(len(bban)).
-pub fn iban_compute_check_digits(country: Str, bban: Str) -> Result[Int, Str] {
+pub fn iban_compute_check_digits(country: Str, bban: Str) -> Result[Int, Str]
+  ensures: country.len() == 0 || bban.len() == 0 => result is Err;
+  ensures: country.len() != 2 => result is Err;
+  ensures: result is Ok => result.value >= 2;
+  ensures: result is Ok => result.value <= 98;
+{
   if country.len() == 0 || bban.len() == 0 { return _int_err("iban: empty input"); }
   if country.len() != 2 { return _int_err("iban: bad characters: " + country); }
   let b0 = string.byte_at(country, 0);

@@ -188,6 +188,49 @@ No other error strings exist; there are no panics and no exceptions. Messages
 are deterministic (no allocation-dependent text) and every failing input maps
 to exactly one class by the order above.
 
+## Contracts
+
+Runtime-checkable `ensures:` clauses added in the 2026-10-05 hardening pass
+(compiler v0.63.1); no `requires:` clauses. Every clause is enforced by the
+v0.63.1 runtime evaluator, so the 21-check conformance suite exercises all of
+them on both the happy paths and the rejection paths. `P` marks a pure-scalar
+or guard clause in a family the Z3 pass can attempt; `R` marks a clause whose
+expression (Str length or struct-field access) exists only for the runtime
+evaluator.
+
+| Entry point | Clause | Kind |
+|---|---|---|
+| `iban_parse` | `ensures: s.len() == 0 => result is Err`; `ensures: s.len() < 2 => result is Err`; `ensures: result is Ok => s.len() >= 15`; `ensures: result is Ok => s.len() <= 28` | P |
+| `iban_compact` | `ensures: result.len() == v.bban.len() + 4` | R |
+| `iban_format` | `ensures: result.len() == v.bban.len() + 4 + (v.bban.len() + 3) / 4` | R |
+| `iban_country` | `ensures: result.len() == v.country.len()`; `ensures: result.len() == 2` | R |
+| `iban_check_digits` | `ensures: result == v.check`; `ensures: result >= 0`; `ensures: result <= 99` | P |
+| `iban_bban` | `ensures: result.len() == v.bban.len()`; `ensures: result.len() >= 11` | R |
+| `iban_is_valid` | `ensures: s.len() == 0 => !result`; `ensures: s.len() < 2 => !result`; `ensures: result => s.len() >= 15`; `ensures: result => s.len() <= 28` | P |
+| `iban_length_for_country` | `ensures: result >= 0`; `ensures: result <= 28`; `ensures: result == 0 || result >= 15` | P |
+| `iban_compute_check_digits` | `ensures: country.len() == 0 || bban.len() == 0 => result is Err`; `ensures: country.len() != 2 => result is Err`; `ensures: result is Ok => result.value >= 2`; `ensures: result is Ok => result.value <= 98` | P |
+
+A `xiom-verify --check` pass (Z3 4.13.4 on v0.63.1) reports
+**0 proven / 3 violated / 20 unknown / 40 emitter errors**. The three
+"violated" verdicts are all on `iban_length_for_country`: the emitter leaves
+`_country_length` uninterpreted (its body is skipped as a complex call
+target), so Z3 may pick `_country_length(country) == -1`, which the real
+function never returns; the runtime evaluator and the 21-check suite are the
+enforcement mechanism here. Every other clause is skipped by the emitter
+(`complex call target`, `field access ... on non-datatype receiver`,
+unsupported `Str` comparison), so no clause in this module is machine-proven.
+
+Both port runs with the clauses active:
+`port: PASS (passed=21 failed=0 program_exit=0 exit=0)`.
+
+Unasserted/documented: the round-trip identities (`iban_compact` of a parsed
+value equals the input, `iban_format` -> strip spaces -> `iban_compact`, and
+the `iban_compute_check_digits` output being the check value that makes
+`CCkkBBAN` parse) are `Str` equality facts, which are not expressible in the
+v0.63.1 clause evaluator (BUG 17); the format/compact length formulas are the
+clause-level approximation, and the identities stay pinned by test plan
+items 6, 8, 9 and 21.
+
 ## Complexity
 
 | Operation | Time | Space |
