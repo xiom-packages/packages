@@ -27,7 +27,7 @@ to diff fixed/not-fixed.
 | `tuple-vec-set` | `Vec[(Str,Str)]` read-after-mutation | **OPEN (v0.63.1 unchanged)** -- `probe_suite_min.xi` crashes `0xC0000005`; `probe_direct.xi` hangs; strong m192-class candidate -- re-test on the next archive (>262k confined entries) |
 | `enum-payload-str` | enum payload struct `Str` reads | **OPEN (v0.63.1 unchanged)** -- graphql 9/10 (`|0|` read persists); needs a distinct root cause (C001 is already in v0.63.1); minimal repro pending |
 | `uninit-local` | uninitialized local + later assignment | **FIXED** (v0.63.0) -- standalone probe `bad=0`; graphql no longer hangs (its remaining 9/10 failure is the enum-payload case) |
-| `crypto-link` | stdlib `xiom.crypto` SHA-256/HMAC linkability | **OPEN** -- `lld-link: undefined symbol: xiom_sha256_hash` |
+| `crypto-link` | stdlib `xiom.crypto` SHA-256/HMAC linkability | **WORKAROUND GREEN (v0.63.1)** -- `undefined symbol: xiom_sha256_hash` without the override; with `XIOM_RUNTIME_DIR` both probes link (SHA-256 "abc" KAT correct); runtime-discovery fix expected in the next archive |
 | `runtime-link` | AOT runtime C coverage (`async_runtime.c`) | **OPEN (v0.63.1)** -- install `lib\runtime` not scanned, `xiom_async_now_ms` undefined; `XIOM_RUNTIME_DIR` override restores the link |
 | `float-vec` | `Vec[Float64]` + `Int<->Float64` bitcast | **SPLIT** -- `Vec[Float64]` works; bitcast is a documented stdlib stub (`bad=2`) |
 | `generic-fnptr` | fn-value / generic-mono ABI family | **FIXED** -- all 7 probes exit 0 |

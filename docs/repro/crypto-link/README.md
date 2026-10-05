@@ -81,3 +81,26 @@ before retiring the hand-rolled copies):
 "Hand-rolled SHA-256/HMAC -- `aws`, `saml`". Once the symbols link and
 the vectors pass, the packages lane retires the in-package copies in a
 Tier-2 maintenance wave (probe RED -> GREEN + port x2 green + record).
+
+## Update 2026-10-05 -- v0.63.1: fixed by the runtime-link change
+
+This is the same class as `docs/repro/runtime-link/`: the AOT link never
+scans `<install>\lib\runtime`, so `sha256_sw.c` (the provider of
+`xiom_sha256_hash`) was not linked. With the supported override
+
+```powershell
+$env:XIOM_RUNTIME_DIR = "E:\xiom-lang\stdlib\runtime"
+```
+
+both probes link and run correctly on the installed **v0.63.1**:
+
+| Probe | no override | `XIOM_RUNTIME_DIR` set |
+|---|---|---|
+| `crypto_link_probe.xi` (facade) | FAIL, `undefined symbol: xiom_sha256_hash` | exit 0, prints `ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad` (SHA-256 "abc" NIST KAT) |
+| `crypto_hash_link_probe.xi` (module) | FAIL, same symbol | exit 0, prints `linked` (digest length 32) |
+
+Compiler lane (relayed 2026-10-05): the runtime-discovery fix in the next
+archive compiles `sha256_sw.c`; its `sha256_sw.h` is verified present in
+the install. Re-test on the next archive; once green **without** the
+override, run the Tier-2 retirement of the hand-rolled `aws`/`saml`
+copies per the plan above.
