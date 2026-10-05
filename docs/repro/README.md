@@ -12,10 +12,10 @@ matrix; run from the repo root, e.g.:
 ```
 
 Status below is the last re-verification per bundle; the current pin is
-**v0.63.1 (2026-10-05)** -- grpc/graphql were re-tested RED on it (C001
-`4bf8cf1e` IS in v0.63.1: GraphQL needs a distinct root cause, grpc is an
-m192-class candidate). Re-run every bundle after the next compiler release
-to diff fixed/not-fixed.
+**v0.64.0 (2026-10-05)**: `runtime-link` and `crypto-link` are RESOLVED
+with no overrides, grpc m192 is unchanged (both probes now crash
+`0xC0000005`), graphql is 9/10 unchanged (C001 `4bf8cf1e` is in the pin;
+GraphQL needs a distinct root cause).
 
 | Bundle | Purpose | v0.63.0 status |
 |---|---|---|
@@ -24,11 +24,11 @@ to diff fixed/not-fixed.
 | `child-parent-calls` | child module calls into direct parent | **RE-SCOPED** -- works with `pub` (acyclic, cyclic, alias all pass); without `pub` T001 |
 | `const-tables` | module-level const arrays | **FIXED** (v0.62.4; re-verified v0.63.0 `bad=0`) -- Int/Str/struct tables correct; runtime builders can be dropped at next touch |
 | `const-match` | `const` values as match arms | **FIXED** (v0.62.4; v0.63.0 probe exit 0, W004 overlap warning) -- const arms match; literals can return to named constants |
-| `tuple-vec-set` | `Vec[(Str,Str)]` read-after-mutation | **OPEN (v0.63.1 unchanged)** -- `probe_suite_min.xi` crashes `0xC0000005`; `probe_direct.xi` hangs; strong m192-class candidate -- re-test on the next archive (>262k confined entries) |
+| `tuple-vec-set` | `Vec[(Str,Str)]` read-after-mutation | **OPEN (v0.64.0 unchanged)** -- `probe_suite_min.xi` crashes `0xC0000005`; `probe_direct.xi` now also crashes (previously hung); the m192 candidate did not clear it |
 | `enum-payload-str` | enum payload struct `Str` reads | **OPEN (v0.63.1 unchanged)** -- graphql 9/10 (`|0|` read persists); needs a distinct root cause (C001 is already in v0.63.1); minimal repro pending |
 | `uninit-local` | uninitialized local + later assignment | **FIXED** (v0.63.0) -- standalone probe `bad=0`; graphql no longer hangs (its remaining 9/10 failure is the enum-payload case) |
-| `crypto-link` | stdlib `xiom.crypto` SHA-256/HMAC linkability | **WORKAROUND GREEN (v0.63.1)** -- `undefined symbol: xiom_sha256_hash` without the override; with `XIOM_RUNTIME_DIR` both probes link (SHA-256 "abc" KAT correct); runtime-discovery fix expected in the next archive |
-| `runtime-link` | AOT runtime C coverage (`async_runtime.c`) | **OPEN (v0.63.1)** -- install `lib\runtime` not scanned, `xiom_async_now_ms` undefined; `XIOM_RUNTIME_DIR` override restores the link |
+| `crypto-link` | stdlib `xiom.crypto` SHA-256/HMAC linkability | **RESOLVED (v0.64.0)** -- both probes link with no overrides (NIST KAT `ba7816bf...15ad`); `aws`/`saml` hand-rolled copies retire in Tier-2 |
+| `runtime-link` | AOT runtime C coverage (`async_runtime.c`) | **RESOLVED (v0.64.0)** -- `probe_async_now` green with no overrides and no `XIOM_STDLIB` (install-layout discovery fixed); workaround retired |
 | `float-vec` | `Vec[Float64]` + `Int<->Float64` bitcast | **SPLIT** -- `Vec[Float64]` works; bitcast is a documented stdlib stub (`bad=2`) |
 | `generic-fnptr` | fn-value / generic-mono ABI family | **FIXED** -- all 7 probes exit 0 |
 | `loop-carry-cse` | loop-carried CSE correctness | **CLEAN** -- `bad=0` |

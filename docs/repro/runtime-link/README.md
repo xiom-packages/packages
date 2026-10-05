@@ -59,3 +59,11 @@ this never surfaced in JIT runs.
 Not a packages defect; fixed on the compiler side by adding
 `<install>\lib\runtime` to the `find_runtime_c_files()` candidates (or by
 setting `XIOM_RUNTIME_DIR` in the install/release tooling).
+
+## RESOLVED on v0.64.0 (2026-10-05)
+
+Official v0.64.0 (tag `c68d91de`, SHA256-verified install) fixes the
+discovery: with BOTH `XIOM_RUNTIME_DIR` and `XIOM_STDLIB` unset (true
+install-layout discriminator), `probe_async_now.xi` compiles and prints
+`now_ms=<n>` / `bad=0`, exit 0. The `XIOM_RUNTIME_DIR` workaround is
+retired; the v0.64.0 fleet sweep runs without it.

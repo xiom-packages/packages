@@ -75,3 +75,13 @@ rewrites/pushes elements); the same read pattern without the read or
 without the mutation runs.
 
 `xiom.grpc` stays unpublished until this is resolved.
+
+## v0.64.0 (2026-10-05): UNCHANGED -- m192 candidate did not clear it
+
+Official v0.64.0 (`c68d91de`, SHA256-verified): `probe_suite_min.xi`
+still crashes `0xC0000005` (exit `-1073741819`, no output);
+`probe_direct.xi` now also crashes `0xC0000005` (it previously hung).
+Both were run with the repo-root wrapper invocation;
+`port.ps1 -Package xiom.grpc` compiles then crashes the same way
+(`passed=0 failed=0 program_exit=-1073741819`). `xiom.grpc` stays
+unpublished; the named-constant arms remain blocked.

@@ -104,3 +104,12 @@ archive compiles `sha256_sw.c`; its `sha256_sw.h` is verified present in
 the install. Re-test on the next archive; once green **without** the
 override, run the Tier-2 retirement of the hand-rolled `aws`/`saml`
 copies per the plan above.
+
+## RESOLVED on v0.64.0 (2026-10-05)
+
+With no `XIOM_RUNTIME_DIR` and no `XIOM_STDLIB`, both probes link and run
+on the official v0.64.0: the facade prints the NIST KAT
+`ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad` (exit
+0), the module shape prints `linked` (digest length 32). `sha256_sw.c` is
+now linked via the fixed install-layout discovery; the `aws`/`saml`
+hand-rolled copies retire in the Tier-2 wave.

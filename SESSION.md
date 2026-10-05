@@ -14,7 +14,16 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-05 15:50Z (v0.63.1 release flow + batches #12-#14 + PULSE hotfix COMPLETE):**
+**STATE AT 2026-10-05 17:20Z (pin v0.64.0; batches #12-#14 + PULSE wave 2; v0.64.0 fleet sweep RUNNING):**
+- **v0.64.0 is the pin** (official `c68d91de`, SHA256-verified; deployed over
+  `%LOCALAPPDATA%\xiom.new`; repin 515 records, commit `53c1fbac`). Matrix on the official
+  install: **runtime-link R65 RESOLVED** (`probe_async_now` `bad=0` with `XIOM_RUNTIME_DIR`
+  AND `XIOM_STDLIB` unset); **crypto-link m195 RESOLVED** (both probes, NIST KAT);
+  regression battery 7/7 green; **grpc m192 NOT fixed** (`probe_suite_min` + `probe_direct`
+  both crash `0xC0000005`); graphql 9/10 unchanged. Fleet sweep `sweep-v0640` running
+  **without the runtime override** (process `bgp_10cffd41d0018uCO1I7YccNYTI`); the
+  `XIOM_RUNTIME_DIR` workaround is RETIRED. After the sweep wrap: Tier-2 `aws`/`saml`
+  hand-rolled crypto retirement.
 - **Fleet sweep v0.63.1 COMPLETE + RECORDED: 460/460 PASS** (`%TEMP%\kilo\sweep-v0631`;
   process `bgp_10c092df20016ZdpmvoO83ZQax`, run with `XIOM_RUNTIME_DIR`). Isolated timeout
   re-runs green: `l10n-unicode` 24/24 @57.5s, `mongo` 23/23 @32.9s. `record-sweep` wrote
@@ -77,10 +86,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   `37340030888`; `KeyedBuckets`/`KeyedWindows` with prune hooks, 15 new APIs, 30/30 x2,
   feat `957a336b`); `xiom.router` 0.1.0 built + recorded **incubating** in-repo (22/22 x2,
   feat `67fdb45d`) -- **publish blocked on the ops allowlist delta for the new names**.
-- **Compiler lane:** `0.64.0` in preparation (R65 + m195; grpc m192 candidate). When the
-  archive is staged: deploy side-by-side, run the targeted matrix (grpc
-  `probe_suite_min`/`probe_direct`; runtime-link + crypto-link probes WITHOUT
-  `XIOM_RUNTIME_DIR`; graphql in-situ), report back, then re-pin + fleet sweep on green.
+- **Compiler lane:** `0.64.0` released `c68d91de` (R65 + m195 confirmed; **m192 did not clear
+  the grpc probes** -- report the crash evidence back; grpc stays unpublished, named-constant
+  arms stay blocked).
 - **Next (priority):** PULSE consumer wave -- `xiom.rate` 0.2.0 published; `xiom.router`
   0.1.0 incubating locally. Add the four new names (`router`, `session`, `static`,
   `http.middleware`) to the allowlist once ops confirms, then publish router. Next builds:
