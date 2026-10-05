@@ -46,7 +46,9 @@ use xiom.string.builder;
 /// Returns: "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567".
 /// Error case: none.
 /// Complexity: O(1).
-pub fn base32_alphabet() -> Str {
+pub fn base32_alphabet() -> Str
+  ensures: result.len() == 32;
+{
   return "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 }
 
@@ -108,7 +110,10 @@ fn _pow2(k: Int) -> Int {
 /// length is always a multiple of 8; empty input yields "".
 /// Error case: none (total; the encoder never validates its input).
 /// Complexity: O(data.len()).
-pub fn base32_encode(data: &Vec[UInt8]) -> Str {
+pub fn base32_encode(data: &Vec[UInt8]) -> Str
+  ensures: data.len() == 0 => result.len() == 0;
+  ensures: result.len() % 8 == 0;
+{
   let alpha = base32_alphabet();
   var out = Vec[UInt8].new();
   let n = data.len();
@@ -198,7 +203,10 @@ pub fn base32_encode(data: &Vec[UInt8]) -> Str {
 /// length is not a multiple of 8; Err("base32: non-canonical trailing bits")
 /// when the unused low bits of the final group are not all zero.
 /// Complexity: O(s.len()).
-pub fn base32_decode(s: Str) -> Result[Vec[UInt8], Str] {
+pub fn base32_decode(s: Str) -> Result[Vec[UInt8], Str]
+  ensures: s.len() == 0 => result is Ok;
+  ensures: s.len() == 1 => result is Err;
+{
   let n = s.len();
   if n == 0 {
     return _ok_bytes(Vec[UInt8].new());
@@ -286,7 +294,10 @@ pub fn base32_decode(s: Str) -> Result[Vec[UInt8], Str] {
 /// trailing bits are rejected.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn base32_is_valid(s: Str) -> Bool {
+pub fn base32_is_valid(s: Str) -> Bool
+  ensures: s.len() == 0 => result;
+  ensures: result => s.len() % 8 == 0;
+{
   let r = base32_decode(s);
   if r.is_ok {
     return true;

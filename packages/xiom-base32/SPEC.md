@@ -1,8 +1,8 @@
 # xiom.base32 -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.base32`, version `0.1.0`).
+Status: `incubating` (implemented, harness-green with compiler v0.63.0;
+runtime contracts added 2026-10-05; not published).
+Manifest: `package.xi` (`xiom.base32`, version `0.1.2`).
 Module: `src/base32.xi` (`module xiom.base32`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`). No FFI.
 
@@ -237,3 +237,25 @@ The implementation follows the proven v0.61.3 package idioms:
   2^12.
 - No `==` on `Str` values anywhere (tests route every comparison through
   `str_compare`, BUG 17).
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 12 unknown / 1 errors** (the error is the
+known v0.63.0 SMT emitter bug -- "not a proof failure of the code under
+test"; the X7007 equality-sort warnings keep every clause `unknown`).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `base32_alphabet` | `ensures: result.len() == 32` | unproven |
+| `base32_encode` | `ensures: data.len() == 0 => result.len() == 0`; `ensures: result.len() % 8 == 0` | unproven |
+| `base32_decode` | `ensures: s.len() == 0 => result is Ok`; `ensures: s.len() == 1 => result is Err` | unproven |
+| `base32_is_valid` | `ensures: s.len() == 0 => result`; `ensures: result => s.len() % 8 == 0` | unproven |
+
+Unasserted/documented: the exact encoded length `8 * ceil(n/5)` and the
+decoder payload bound (`result is Ok` implies at most `s.len()` bytes) are
+not asserted -- the `Result[Vec[...]]` payload-length shape and
+tuple/struct-component access are v0.63.0 runtime-evaluator artifacts that
+produce spurious traps. Exact alphabet bytes, error message strings, and
+padding/trailing-bit rules stay pinned by the 18-check test plan (sections 4,
+5, 7) rather than by runtime clauses.
