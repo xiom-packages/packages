@@ -3,6 +3,15 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
+**LIVE CLAIM 2026-10-05 08:40Z (main/debug session):** hardening batch
+#6 in progress -- runtime contracts + SPEC inventories for `quantum`,
+`spectroscopy`, `relativity`, `physics` (stable/published, zero clauses;
+patch bumps; x2 on v0.63.0; publish in `eco-v0.1.49`). Parallel packages
+lanes: do NOT edit `packages/xiom-quantum`,
+`packages/xiom-spectroscopy`, `packages/xiom-relativity`,
+`packages/xiom-physics`, `packages/*/STATUS.json`, or create tags;
+coordinate first.
+
 **Written:** 2026-10-05 (08:20Z), by the main/debug session (v0.63.0
 pin; hardening batches #1-#5 DONE + PUBLISHED across
 `eco-v0.1.44`-`eco-v0.1.48` -- 20 stable packages with runtime
