@@ -1,6 +1,6 @@
 # xiom.packet
 
-> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.1` on the XIOM registry.
+> **Status:** `stable` -- conformance-tested (24/24); published at `v0.1.2` on the XIOM registry.
 > **Scope:** pure-XIOM (no FFI) length-prefixed packet framing with CRC-32
 > validation: framing, whole-buffer parsing and a streaming chunk decoder.
 > **Deps:** `xiom.std` only. The library module imports nothing; the tests
