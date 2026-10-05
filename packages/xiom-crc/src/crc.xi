@@ -90,7 +90,12 @@ fn _crc_reflect(value: Int, width: Int) -> Int {
 /// `refout`, when it differs from refin, reflects the final register before
 /// `xorout` is applied. Complexity: O(data.len()) time, O(1) space
 /// (8 bit-steps per byte).
-pub fn crc_compute(data: &Vec[UInt8], width: Int, poly: Int, init: Int, refin: Bool, refout: Bool, xorout: Int) -> Int {
+pub fn crc_compute(data: &Vec[UInt8], width: Int, poly: Int, init: Int, refin: Bool, refout: Bool, xorout: Int) -> Int
+  ensures: result >= 0 && result <= 4294967295;
+  ensures: (width != 8 && width != 16 && width != 32) => result == 0;
+  ensures: width == 8 => result <= 255;
+  ensures: width == 16 => result <= 65535;
+{
   if width != 8 && width != 16 && width != 32 {
     return 0;
   }
@@ -142,7 +147,9 @@ pub fn crc_compute(data: &Vec[UInt8], width: Int, poly: Int, init: Int, refin: B
 /// True when crc_compute(data, width, poly, init, refin, refout, xorout)
 /// equals `expected`. Convenience wrapper for verification paths; the
 /// parameters follow crc_compute exactly.
-pub fn crc_matches(data: &Vec[UInt8], width: Int, poly: Int, init: Int, refin: Bool, refout: Bool, xorout: Int, expected: Int) -> Bool {
+pub fn crc_matches(data: &Vec[UInt8], width: Int, poly: Int, init: Int, refin: Bool, refout: Bool, xorout: Int, expected: Int) -> Bool
+  ensures: result == (crc_compute(data, width, poly, init, refin, refout, xorout) == expected);
+{
   return crc_compute(data, width, poly, init, refin, refout, xorout) == expected;
 }
 
@@ -150,7 +157,9 @@ pub fn crc_matches(data: &Vec[UInt8], width: Int, poly: Int, init: Int, refin: B
 /// 0x04C11DB7 (reflected 0xEDB88320), init 0xFFFFFFFF, refin/refout true,
 /// xorout 0xFFFFFFFF. Check ("123456789") = 0xCBF43926 (3421780262);
 /// empty input = 0. Complexity: O(data.len()).
-pub fn crc32_ieee(data: &Vec[UInt8]) -> Int {
+pub fn crc32_ieee(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0 && result <= 4294967295;
+{
   return crc_compute(data, 32, 79764919, 4294967295, true, true, 4294967295);
 }
 
@@ -158,7 +167,9 @@ pub fn crc32_ieee(data: &Vec[UInt8]) -> Int {
 /// (reflected 0x82F63B78), init 0xFFFFFFFF, refin/refout true, xorout
 /// 0xFFFFFFFF. Check ("123456789") = 0xE3069283 (3808858755).
 /// Complexity: O(data.len()).
-pub fn crc32c(data: &Vec[UInt8]) -> Int {
+pub fn crc32c(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0 && result <= 4294967295;
+{
   return crc_compute(data, 32, 517762881, 4294967295, true, true, 4294967295);
 }
 
@@ -166,20 +177,26 @@ pub fn crc32c(data: &Vec[UInt8]) -> Int {
 /// 0xFFFF, refin/refout false, xorout 0. Check ("123456789") = 0x29B1
 /// (10673); empty input = 0xFFFF (65535, the init survives). Complexity:
 /// O(data.len()).
-pub fn crc16_ccitt_false(data: &Vec[UInt8]) -> Int {
+pub fn crc16_ccitt_false(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0 && result <= 65535;
+{
   return crc_compute(data, 16, 4129, 65535, false, false, 0);
 }
 
 /// CRC-16/ARC (CRC-16/IBM, CRC-16/LHA): normal polynomial 0x8005 (reflected
 /// 0xA001), init 0, refin/refout true, xorout 0. Check ("123456789") =
 /// 0xBB3D (47933); empty input = 0. Complexity: O(data.len()).
-pub fn crc16_arc(data: &Vec[UInt8]) -> Int {
+pub fn crc16_arc(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0 && result <= 65535;
+{
   return crc_compute(data, 16, 32773, 0, true, true, 0);
 }
 
 /// CRC-8 (CRC-8/SMBUS): normal polynomial 0x07, init 0, refin/refout false,
 /// xorout 0. Check ("123456789") = 0xF4 (244); empty input = 0.
 /// Complexity: O(data.len()).
-pub fn crc8(data: &Vec[UInt8]) -> Int {
+pub fn crc8(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0 && result <= 255;
+{
   return crc_compute(data, 8, 7, 0, false, false, 0);
 }

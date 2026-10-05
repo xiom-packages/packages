@@ -1,8 +1,8 @@
 # xiom.crc -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.crc`, version `0.1.0`).
+Status: `stable` (published; v0.63.0 fleet sweep green; contract hardening
+in 0.1.2).
+Manifest: `package.xi` (`xiom.crc`, version `0.1.2`).
 Module: `src/crc.xi` (`module xiom.crc`).
 Depends on `xiom.std`; the library module imports nothing (the tests import
 stdlib modules).
@@ -281,3 +281,26 @@ Last verified: compiler 0.61.3, twice in a row,
 - The tests avoid `Str` equality entirely and never borrow a local mutably,
   so neither BUG 17 nor the advisory E001 borrow pattern is reachable.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **5 proven / 0 violated / 6 unknown / 6 tooling errors**. The
+proven set is the bounded-output clause on each named preset wrapper; the
+`crc_compute` conditional clauses and the definitional `crc_matches`
+clause stay solver-unknown (unsupported contract expressions and
+loop/body gaps), and the remaining errors are SMT-emission gaps around
+the internal helpers.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `crc_compute` | `ensures: result >= 0 && result <= 4294967295`; `ensures: (width != 8 && width != 16 && width != 32) => result == 0`; `ensures: width == 8 => result <= 255`; `ensures: width == 16 => result <= 65535` | unproven (unsupported expression) |
+| `crc_matches` | `ensures: result == (crc_compute(...) == expected)` (definitional) | unproven (unresolved operand sort) |
+| `crc32_ieee` / `crc32c` | `ensures: result >= 0 && result <= 4294967295` | **proven** |
+| `crc16_ccitt_false` / `crc16_arc` | `ensures: result >= 0 && result <= 65535` | **proven** |
+| `crc8` | `ensures: result >= 0 && result <= 255` | **proven** |
+
+Known-answer vectors (`"123456789"` -> `0xCBF43926` for IEEE, `0xE3069283`
+for Castagnoli, `0x29B1`, `0xBB3D`, `0xF4`) and the `width`-rejection
+behavior remain pinned by the test plan; the bounded-output family is the
+machine-checked part of the model (5/11 clauses discharged).

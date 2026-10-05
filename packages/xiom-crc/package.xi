@@ -8,7 +8,7 @@
 
 package xiom_crc {
   name: "xiom.crc";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Parameterized CRC-8/16/32 with named presets and known-answer vectors";
   categories: ["data", "tooling"];
   keywords: ["crc", "checksum", "error-detection", "hash"];
