@@ -1,8 +1,8 @@
 # xiom.packet -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.packet`, version `0.1.0`).
+Status: `incubating` (implemented, harness-green with compiler v0.63.0; not
+published; contract hardening in 0.1.2).
+Manifest: `package.xi` (`xiom.packet`, version `0.1.2`).
 Module: `src/packet.xi` (`module xiom.packet`).
 Depends on `xiom.std`; the library module imports nothing (the tests import
 stdlib modules).
@@ -207,7 +207,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.packet
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.63.0,
 `port: PASS (passed=24 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -245,3 +245,29 @@ Last verified: compiler 0.61.3,
 - Str equality goes through `xiom.string.compare.str_compare` (BUG 17
   discipline); the library itself never compares `Str` values.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 12 unknown / 1 errors** (the single error
+is a z3 output-parse failure in the pinned toolchain, not a violated
+clause).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `packet_crc32` | `ensures: result >= 0`; `ensures: result <= 4294967295`; `ensures: data.len() == 0 => result == 0` | unproven |
+| `packet_frame` | `ensures: result.len() == payload.len() + 8` | unproven |
+| `packet_parse_all` | `ensures: data.len() == 0 => result is Ok` | unproven |
+| `packet_is_valid` | `ensures: data.len() < 8 => !result` | unproven |
+| `packet_decoder_buffered` | `ensures: result >= 0` | unproven |
+| `packet_decoder_available` | `ensures: result >= 0` | unproven |
+
+Unasserted/documented: `packet_decoder_new` returns a struct (struct-result
+field access traps the v0.63.0 runtime evaluator), `packet_decoder_feed`
+mutates `&mut PacketDecoder` fields, and `packet_decoder_take` returns a
+`Vec[UInt8]` payload whose only simple clause would be a trivial length
+bound; the meaningful guarantees of those three entries (initial field
+values, consumed-prefix compaction, cursor advance past a corrupt frame
+for resync, and the three stable error strings) stay pinned by the
+24-check test plan and the sections above. Payload-content and error-string
+contracts remain out of scope for the runtime evaluator.

@@ -114,7 +114,11 @@ fn _copy_range(data: &Vec[UInt8], start: Int, end: Int) -> Vec[UInt8] {
 /// (polynomial 0xEDB88320, init 0xFFFFFFFF, final XOR 0xFFFFFFFF),
 /// returned as an unsigned 32-bit value in an Int (0..4294967295).
 /// Check value: packet_crc32(b"123456789") == 0xCBF43926 (3421780262).
-pub fn packet_crc32(data: &Vec[UInt8]) -> Int {
+pub fn packet_crc32(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0;
+  ensures: result <= 4294967295;
+  ensures: data.len() == 0 => result == 0;
+{
   return _crc_range(data, 0, data.len());
 }
 
@@ -149,7 +153,9 @@ fn _crc_range(data: &Vec[UInt8], start: Int, end: Int) -> Int {
 /// The length field is the payload length, not the frame length; total
 /// frame size is 8 + payload.len(). The documented API bound is a payload
 /// of at most 2^31-1 bytes.
-pub fn packet_frame(payload: &Vec[UInt8]) -> Vec[UInt8] {
+pub fn packet_frame(payload: &Vec[UInt8]) -> Vec[UInt8]
+  ensures: result.len() == payload.len() + 8;
+{
   var out = Vec[UInt8].new();
   let n = payload.len();
   _push_le(&mut out, n, 4);
@@ -167,7 +173,9 @@ pub fn packet_frame(payload: &Vec[UInt8]) -> Vec[UInt8] {
 /// empty Ok). Err("packet: truncated frame") when a trailing partial frame
 /// is found; Err("packet: crc mismatch") when a complete frame fails CRC
 /// (the remaining bytes are then not decoded).
-pub fn packet_parse_all(data: &Vec[UInt8]) -> Result[Vec[Vec[UInt8]], Str] {
+pub fn packet_parse_all(data: &Vec[UInt8]) -> Result[Vec[Vec[UInt8]], Str]
+  ensures: data.len() == 0 => result is Ok;
+{
   var frames = Vec[Vec[UInt8]].new();
   let total = data.len();
   var pos = 0;
@@ -196,7 +204,9 @@ pub fn packet_parse_all(data: &Vec[UInt8]) -> Result[Vec[Vec[UInt8]], Str] {
 /// trailing bytes: shorthand for "packet_parse_all yields exactly one
 /// frame". False for empty input, partial frames, corruption and any
 /// multi-frame buffer.
-pub fn packet_is_valid(data: &Vec[UInt8]) -> Bool {
+pub fn packet_is_valid(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 8 => !result;
+{
   let r = packet_parse_all(data);
   if !r.is_ok {
     return false;
@@ -216,7 +226,9 @@ pub fn packet_decoder_new() -> PacketDecoder {
 
 /// Number of bytes buffered but not yet consumed by packet_decoder_take
 /// (never negative).
-pub fn packet_decoder_buffered(d: &PacketDecoder) -> Int {
+pub fn packet_decoder_buffered(d: &PacketDecoder) -> Int
+  ensures: result >= 0;
+{
   return d.buf.len() - d.pos;
 }
 
@@ -244,7 +256,9 @@ fn _dec_count(buf: &Vec[UInt8], pos: Int) -> Int {
 /// Number of complete frames currently buffered. A frame counts once its
 /// declared length is fully buffered, even if its CRC later turns out to
 /// be corrupt (packet_decoder_take reports that).
-pub fn packet_decoder_available(d: &PacketDecoder) -> Int {
+pub fn packet_decoder_available(d: &PacketDecoder) -> Int
+  ensures: result >= 0;
+{
   return _dec_count(&d.buf, d.pos);
 }
 

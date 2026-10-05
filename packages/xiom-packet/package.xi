@@ -8,7 +8,7 @@
 
 package xiom_packet {
   name: "xiom.packet";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Length-prefixed packet framing with CRC-32 validation";
   categories: ["data", "network"];
   keywords: ["packet", "framing", "crc32", "protocol"];
