@@ -136,7 +136,9 @@ fn _clamp_min_classes(min_classes: Int) -> Int {
 /// U+00E9 "e-acute", whose UTF-8 bytes are >= 128) do not count.
 /// Error case: none.
 /// Complexity: O(pw.len()).
-pub fn password_has_lower(pw: Str) -> Bool {
+pub fn password_has_lower(pw: Str) -> Bool
+  ensures: pw.len() == 0 => !result;
+{
   return _scan_class(pw, 1);
 }
 
@@ -146,7 +148,9 @@ pub fn password_has_lower(pw: Str) -> Bool {
 /// not count.
 /// Error case: none.
 /// Complexity: O(pw.len()).
-pub fn password_has_upper(pw: Str) -> Bool {
+pub fn password_has_upper(pw: Str) -> Bool
+  ensures: pw.len() == 0 => !result;
+{
   return _scan_class(pw, 2);
 }
 
@@ -156,7 +160,9 @@ pub fn password_has_upper(pw: Str) -> Bool {
 /// example U+FF11) do not count.
 /// Error case: none.
 /// Complexity: O(pw.len()).
-pub fn password_has_digit(pw: Str) -> Bool {
+pub fn password_has_digit(pw: Str) -> Bool
+  ensures: pw.len() == 0 => !result;
+{
   return _scan_class(pw, 3);
 }
 
@@ -167,7 +173,9 @@ pub fn password_has_digit(pw: Str) -> Bool {
 /// including every byte of a multi-byte UTF-8 sequence) are not symbols.
 /// Error case: none.
 /// Complexity: O(pw.len()).
-pub fn password_has_symbol(pw: Str) -> Bool {
+pub fn password_has_symbol(pw: Str) -> Bool
+  ensures: pw.len() == 0 => !result;
+{
   return _scan_class(pw, 4);
 }
 
@@ -178,7 +186,11 @@ pub fn password_has_symbol(pw: Str) -> Bool {
 /// string scores 0.
 /// Error case: none.
 /// Complexity: O(pw.len()).
-pub fn password_class_count(pw: Str) -> Int {
+pub fn password_class_count(pw: Str) -> Int
+  ensures: result >= 0;
+  ensures: result <= 4;
+  ensures: pw.len() == 0 => result == 0;
+{
   var count = 0;
   if password_has_lower(pw) { count = count + 1; }
   if password_has_upper(pw) { count = count + 1; }
@@ -195,7 +207,11 @@ pub fn password_class_count(pw: Str) -> Int {
 /// "abc" is 1, "aab" is 2, "aaabbb" is 3.
 /// Error case: none.
 /// Complexity: O(pw.len()).
-pub fn password_longest_run(pw: Str) -> Int {
+pub fn password_longest_run(pw: Str) -> Int
+  ensures: result >= 0;
+  ensures: result <= pw.len();
+  ensures: pw.len() == 0 => result == 0;
+{
   let len = pw.len();
   if len == 0 { return 0; }
   var best = 1;
@@ -225,7 +241,11 @@ pub fn password_longest_run(pw: Str) -> Int {
 /// breach-aware estimate; see SPEC.md for the pinned examples.
 /// Error case: none.
 /// Complexity: O(pw.len()).
-pub fn password_score(pw: Str) -> Int {
+pub fn password_score(pw: Str) -> Int
+  ensures: result >= 0;
+  ensures: result <= 100;
+  ensures: pw.len() == 0 => result == 0;
+{
   let len = pw.len();
   if len == 0 { return 0; }
   var score = len * 4;
@@ -248,7 +268,10 @@ pub fn password_score(pw: Str) -> Int {
 /// all-digit passwords" (non-empty and every byte an ASCII digit).
 /// Error case: none.
 /// Complexity: O(pw.len()).
-pub fn password_feedback(pw: Str) -> Vec[Str] {
+pub fn password_feedback(pw: Str) -> Vec[Str]
+  ensures: result.len() <= 7;
+  ensures: pw.len() == 0 => result.len() == 5;
+{
   var out = Vec[Str].new();
   if password_score(pw) >= 80 { return out; }
   if pw.len() < 8 { out.push("Use at least 8 characters"); }
@@ -270,7 +293,9 @@ pub fn password_feedback(pw: Str) -> Vec[Str] {
 /// password. The module bundles no dictionary of its own.
 /// Error case: none.
 /// Complexity: O(common.len() * min(pw.len(), element length)).
-pub fn password_is_common(pw: Str, common: &Vec[Str]) -> Bool {
+pub fn password_is_common(pw: Str, common: &Vec[Str]) -> Bool
+  ensures: common.len() == 0 => !result;
+{
   var i = 0;
   while i < common.len() {
     let candidate: Str = common[i];
@@ -288,7 +313,10 @@ pub fn password_is_common(pw: Str, common: &Vec[Str]) -> Bool {
 /// behaves as "all four classes"; a min_len <= 0 imposes no length minimum.
 /// Error case: none.
 /// Complexity: O(pw.len()).
-pub fn password_recommend_min(pw: Str, min_len: Int, min_classes: Int) -> Bool {
+pub fn password_recommend_min(pw: Str, min_len: Int, min_classes: Int) -> Bool
+  ensures: min_len > pw.len() => !result;
+  ensures: min_classes <= 0 && min_len <= 0 => result;
+{
   if pw.len() < min_len { return false; }
   if password_class_count(pw) < _clamp_min_classes(min_classes) { return false; }
   return true;

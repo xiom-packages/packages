@@ -1,6 +1,6 @@
 # xiom.password -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (incubating, not published).
 Module: `xiom.password` (`src/password.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -261,3 +261,41 @@ failure count (0 = green). Every `Str` comparison is routed through
 - No `Result`/`Ok`/`Err` values are constructed, so the v0.61.3
   struct-return `Ok`/`Err` codegen bug does not apply. No compiler
   workarounds required.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **0 proven / 0 violated / 22 unknown / 7 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `password_has_lower` | `ensures: pw.len() == 0 => !result` | unproven |
+| `password_has_upper` | `ensures: pw.len() == 0 => !result` | unproven |
+| `password_has_digit` | `ensures: pw.len() == 0 => !result` | unproven |
+| `password_has_symbol` | `ensures: pw.len() == 0 => !result` | unproven |
+| `password_class_count` | `ensures: result >= 0`; `ensures: result <= 4`; `ensures: pw.len() == 0 => result == 0` | unproven |
+| `password_longest_run` | `ensures: result >= 0`; `ensures: result <= pw.len()`; `ensures: pw.len() == 0 => result == 0` | unproven |
+| `password_score` | `ensures: result >= 0`; `ensures: result <= 100`; `ensures: pw.len() == 0 => result == 0` | unproven |
+| `password_feedback` | `ensures: result.len() <= 7`; `ensures: pw.len() == 0 => result.len() == 5` | unproven |
+| `password_is_common` | `ensures: common.len() == 0 => !result` | unproven |
+| `password_recommend_min` | `ensures: min_len > pw.len() => !result`; `ensures: min_classes <= 0 && min_len <= 0 => result` | unproven |
+
+18 clauses across the ten entry points (1/1/1/1/3/3/3/2/1/2). All 18 are
+enforced by the v0.63.0 runtime evaluator: the 23-check conformance suite
+passes twice with every clause active (`port: PASS (passed=23 failed=0
+program_exit=0 exit=0)`, runs of 2026-10-05), so no exercised clause traps. In
+the Z3 pass the emitter skipped every contract axiom (`equality with
+unresolved operand sort`, `operator Le/Gt on non-numeric operands`), so no
+clause is machine-proven; the 7 errors are emitter artifacts (`unknown
+constant _scan_class` / `_is_all_digits` / `_clamp_min_classes` calls from
+function bodies), not violations of the code under test.
+
+Unasserted/documented: the exact scoring formula and its run/all-digit
+penalties (section 4), the fixed feedback strings and their order (section 5),
+the ASCII case folding of `password_is_common` (section 6) and the
+class-clamping behaviour of `password_recommend_min` beyond the two asserted
+guards (section 7) are not expressible as runtime clauses without function
+calls, `Str` content comparison, or the forbidden v0.63.0 payload shapes
+(tuple-component access, `Result[Vec[...]]` payload lengths, struct-result
+fields). They stay pinned by the 23-check test plan (section 9) and sections
+3-7 of this SPEC.
