@@ -38,7 +38,9 @@ const _FIXED_LF: Int = 10;
 /// nothing). An empty layout has total width 0.
 /// Error case: none.
 /// Complexity: O(widths).
-pub fn fixed_total_width(widths: &Vec[Int]) -> Int {
+pub fn fixed_total_width(widths: &Vec[Int]) -> Int
+  ensures: result >= 0;
+{
   var total = 0;
   var i = 0;
   while i < widths.len() {
@@ -57,7 +59,9 @@ pub fn fixed_total_width(widths: &Vec[Int]) -> Int {
 /// carries. An empty layout has 0 columns.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn fixed_column_count(widths: &Vec[Int]) -> Int {
+pub fn fixed_column_count(widths: &Vec[Int]) -> Int
+  ensures: result == widths.len();
+{
   return widths.len();
 }
 
@@ -72,7 +76,9 @@ pub fn fixed_column_count(widths: &Vec[Int]) -> Int {
 /// line is one row of empty fields.
 /// Error case: none.
 /// Complexity: O(text bytes + rows * widths).
-pub fn fixed_parse(text: Str, widths: &Vec[Int]) -> Vec[Vec[Str]] {
+pub fn fixed_parse(text: Str, widths: &Vec[Int]) -> Vec[Vec[Str]]
+  ensures: result.len() <= text.len();
+{
   return _fixed_parse_all(text, widths, false);
 }
 
@@ -83,7 +89,9 @@ pub fn fixed_parse(text: Str, widths: &Vec[Int]) -> Vec[Vec[Str]] {
 /// to every field (leading and trailing ASCII whitespace removed).
 /// Error case: none.
 /// Complexity: O(text bytes + rows * widths).
-pub fn fixed_parse_trimmed(text: Str, widths: &Vec[Int]) -> Vec[Vec[Str]] {
+pub fn fixed_parse_trimmed(text: Str, widths: &Vec[Int]) -> Vec[Vec[Str]]
+  ensures: result.len() <= text.len();
+{
   return _fixed_parse_all(text, widths, true);
 }
 
@@ -98,7 +106,9 @@ pub fn fixed_parse_trimmed(text: Str, widths: &Vec[Int]) -> Vec[Vec[Str]] {
 /// no bytes for that column. An empty rows input yields "".
 /// Error case: none.
 /// Complexity: O(rows * widths + total cell bytes).
-pub fn fixed_write(rows: &Vec[Vec[Str]], widths: &Vec[Int], pad: Str) -> Str {
+pub fn fixed_write(rows: &Vec[Vec[Str]], widths: &Vec[Int], pad: Str) -> Str
+  ensures: rows.len() == 0 => result.len() == 0;
+{
   var fill = " ";
   if pad.len() > 0 {
     fill = string.str_slice(pad, 0, 1);

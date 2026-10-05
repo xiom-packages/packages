@@ -1,6 +1,6 @@
 # xiom.fixed -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.fixed` (`src/fixed.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -158,3 +158,22 @@ to `Int` for comparisons; every `Vec` element read is bound to an explicitly
 typed local; no string equality is performed at all. The test suite routes
 every string comparison through `str_compare` to avoid BUG 17 and takes only
 `&` (never `&mut`) of locals in call sites.
+
+## 11. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **1 proven / 0 violated / 10 unknown / 2 errors**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `fixed_total_width` | `ensures: result >= 0` | **proven** |
+| `fixed_column_count` | `ensures: result == widths.len()` | unproven |
+| `fixed_parse` / `fixed_parse_trimmed` | `ensures: result.len() <= text.len()` | unproven |
+| `fixed_write` | `ensures: rows.len() == 0 => result.len() == 0` | unproven |
+| `fixed_field` | none | unasserted (documented) |
+
+Unasserted/documented: the per-row field count (`widths.len()`), the
+line-terminator rules (CRLF/LF, bare CR as data), the empty-column
+convention (`width <= 0`) and the `fixed_field` `None` behavior are
+pinned by the 18-check test plan; `Option` payload contracts stay out of
+scope for the runtime evaluator.
