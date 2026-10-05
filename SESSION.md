@@ -3,6 +3,14 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
+**LIVE CLAIM 2026-10-05 07:45Z (main/debug session):** hardening batch
+#4 in progress -- runtime contracts + SPEC inventories for `metrics`,
+`retry`, `signal`, `stl` (stable/published, zero clauses; patch bumps;
+x2 on v0.63.0; publish in `eco-v0.1.47`). Parallel packages lanes: do
+NOT edit `packages/xiom-metrics`, `packages/xiom-retry`,
+`packages/xiom-signal`, `packages/xiom-stl`,
+`packages/*/STATUS.json`, or create tags; coordinate first.
+
 **Written:** 2026-10-05 (07:40Z), by the main/debug session (v0.63.0
 pin; hardening batches #2 (`eco-v0.1.45`: crc/cobs/varint/roman) and #3
 (`eco-v0.1.46`: bmp/rate/lru/tokenizer) DONE + PUBLISHED with runtime
