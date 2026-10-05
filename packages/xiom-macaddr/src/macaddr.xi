@@ -158,7 +158,11 @@ fn _parse_dotted(s: Str) -> Result[Int, Str] {
 /// Err("mac: invalid separator") for a wrong or mixed separator;
 /// Err("mac: invalid character") for a byte outside [0-9a-fA-F].
 /// Complexity: O(1).
-pub fn mac_parse(s: Str) -> Result[Int, Str] {
+pub fn mac_parse(s: Str) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 281474976710655;
+  ensures: s.len() != 12 && s.len() != 14 && s.len() != 17 => result is Err;
+{
   let n = s.len();
   if n == 17 {
     return _parse_pairs(s);
@@ -202,7 +206,9 @@ fn _format(m: Int, upper: Bool) -> Str {
 /// Returns: "xx:xx:xx:xx:xx:xx" with lowercase digits (always 17 chars).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn mac_format(m: Int) -> Str {
+pub fn mac_format(m: Int) -> Str
+  ensures: result.len() == 17;
+{
   return _format(m, false);
 }
 
@@ -211,7 +217,9 @@ pub fn mac_format(m: Int) -> Str {
 /// Returns: "XX:XX:XX:XX:XX:XX" with uppercase A-F (always 17 chars).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn mac_format_upper(m: Int) -> Str {
+pub fn mac_format_upper(m: Int) -> Str
+  ensures: result.len() == 17;
+{
   return _format(m, true);
 }
 
@@ -220,7 +228,9 @@ pub fn mac_format_upper(m: Int) -> Str {
 /// Returns: a value in [0, 2^24); mac_nic(m) holds the other 24 bits.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn mac_oui(m: Int) -> Int {
+pub fn mac_oui(m: Int) -> Int
+  ensures: result >= 0 && result <= 16777215;
+{
   return (m & 0xFFFFFFFFFFFF) >> 24;
 }
 
@@ -229,7 +239,9 @@ pub fn mac_oui(m: Int) -> Int {
 /// Returns: a value in [0, 2^24); mac_oui(m) holds the other 24 bits.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn mac_nic(m: Int) -> Int {
+pub fn mac_nic(m: Int) -> Int
+  ensures: result >= 0 && result <= 16777215;
+{
   return m & 0xFFFFFF;
 }
 
@@ -239,7 +251,10 @@ pub fn mac_nic(m: Int) -> Int {
 /// Returns: true for group/multicast addresses (e.g. 01:00:5e:...).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn mac_is_multicast(m: Int) -> Bool {
+pub fn mac_is_multicast(m: Int) -> Bool
+  ensures: m >= 0 && m < 1099511627776 => !result;
+  ensures: m == -1 => result;
+{
   let v = m & 0xFFFFFFFFFFFF;
   return ((v >> 40) & 1) == 1;
 }
@@ -250,7 +265,10 @@ pub fn mac_is_multicast(m: Int) -> Bool {
 /// Returns: true for locally administered addresses (e.g. 02:...).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn mac_is_local(m: Int) -> Bool {
+pub fn mac_is_local(m: Int) -> Bool
+  ensures: m >= 0 && m < 1099511627776 => !result;
+  ensures: m == -1 => result;
+{
   let v = m & 0xFFFFFFFFFFFF;
   return ((v >> 41) & 1) == 1;
 }
@@ -260,7 +278,9 @@ pub fn mac_is_local(m: Int) -> Bool {
 /// Returns: the complement of mac_is_multicast(m).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn mac_is_unicast(m: Int) -> Bool {
+pub fn mac_is_unicast(m: Int) -> Bool
+  ensures: result == !mac_is_multicast(m);
+{
   return !mac_is_multicast(m);
 }
 
@@ -268,7 +288,9 @@ pub fn mac_is_unicast(m: Int) -> Bool {
 /// Returns: 0xFFFFFFFFFFFF.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn mac_broadcast() -> Int {
+pub fn mac_broadcast() -> Int
+  ensures: result == 281474976710655;
+{
   return 0xFFFFFFFFFFFF;
 }
 
@@ -277,6 +299,9 @@ pub fn mac_broadcast() -> Int {
 /// Returns: true only for ff:ff:ff:ff:ff:ff (equivalently mac_broadcast()).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn mac_is_broadcast(m: Int) -> Bool {
+pub fn mac_is_broadcast(m: Int) -> Bool
+  ensures: m >= 0 && m <= 16777215 => !result;
+  ensures: m == -1 => result;
+{
   return (m & 0xFFFFFFFFFFFF) == 0xFFFFFFFFFFFF;
 }

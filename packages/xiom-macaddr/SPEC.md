@@ -1,7 +1,9 @@
 # xiom.macaddr -- Specification
 
-Version: 0.1.0 (incubating, not published).
-Module: `xiom.macaddr` (`src/macaddr.xi`). Pure XIOM, no FFI.
+Status: `stable` (not published; v0.63.0 fleet sweep green; contract hardening
+in 0.1.2).
+Module: `xiom.macaddr` (`src/macaddr.xi`). Manifest: `package.xi` (name
+`xiom.macaddr`, version `0.1.2`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`).
 
 ## 1. Scope
@@ -151,3 +153,33 @@ Follows the proven v0.61.3 package idioms:
 - Output bytes use `Vec[UInt8]` literals (`58u8`) and
   `xiom.string.builder.sb_to_str`.
 - Tests call each check explicitly and return the failure count from `main`.
+
+## Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **2 proven / 0 violated / 11 unknown / 3 errors**. The three errors
+are the v0.63.0 SMT emitter failing on the private helpers `_err_int` and
+`_format` ("unknown constant"), not proof failures of any clause below;
+both port runs are green with every clause enforced at runtime (20/20,
+twice).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `mac_parse` | `ensures: result is Ok => result.value >= 0`; `ensures: result is Ok => result.value <= 281474976710655`; `ensures: s.len() != 12 && s.len() != 14 && s.len() != 17 => result is Err` | unknown |
+| `mac_format` / `mac_format_upper` | `ensures: result.len() == 17` | unknown |
+| `mac_oui` / `mac_nic` | `ensures: result >= 0 && result <= 16777215` | unknown |
+| `mac_is_multicast` / `mac_is_local` | `ensures: m >= 0 && m < 1099511627776 => !result`; `ensures: m == -1 => result` | unknown |
+| `mac_is_unicast` | `ensures: result == !mac_is_multicast(m)` | **proven** |
+| `mac_broadcast` | `ensures: result == 281474976710655` | **proven** |
+| `mac_is_broadcast` | `ensures: m >= 0 && m <= 16777215 => !result`; `ensures: m == -1 => result` | unknown |
+
+Unasserted/documented: the exact bit formulas (`(m & 0xFFFFFFFFFFFF) >> 24`,
+`m & 0xFFFFFF`, the I/G bit `((v >> 40) & 1) == 1`, the U/L bit
+`((v >> 41) & 1) == 1` and broadcast `(m & 0xFFFFFFFFFFFF) == 0xFFFFFFFFFFFF`)
+stay unasserted: the runtime evaluator has no proven precedent for `Shr`/
+`BitAnd` in clauses (the verifier's body encoder marks both unsupported), and
+the module deliberately never compares `Str` values, so `Ok`/`Err` message
+content is out of scope. Masking semantics, the four notations, the error
+catalog and the flag rules remain pinned by sections 3-6 and the 20-check
+test plan; the range, sentinel and payload-bound clauses above are the
+machine-checked part.
