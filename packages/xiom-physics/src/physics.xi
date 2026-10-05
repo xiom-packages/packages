@@ -36,7 +36,9 @@ pub const PHYS_G: Float64 = 6.674e-11;
 /// Returns: distance_m / time_s in m/s; 0.0 when time_s <= 0 (guard G1).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn phys_velocity(distance_m: Float64, time_s: Float64) -> Float64 {
+pub fn phys_velocity(distance_m: Float64, time_s: Float64) -> Float64
+  ensures: time_s <= 0.0 => result == 0.0;
+{
   if time_s <= 0.0 { return 0.0; }
   return distance_m / time_s;
 }
@@ -47,7 +49,9 @@ pub fn phys_velocity(distance_m: Float64, time_s: Float64) -> Float64 {
 /// Returns: delta_v / delta_t in m/s^2; 0.0 when delta_t <= 0 (guard G1).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn phys_acceleration(delta_v: Float64, delta_t: Float64) -> Float64 {
+pub fn phys_acceleration(delta_v: Float64, delta_t: Float64) -> Float64
+  ensures: delta_t <= 0.0 => result == 0.0;
+{
   if delta_t <= 0.0 { return 0.0; }
   return delta_v / delta_t;
 }
@@ -60,7 +64,9 @@ pub fn phys_acceleration(delta_v: Float64, delta_t: Float64) -> Float64 {
 /// when the initial position is needed).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn phys_position(s0: Float64, v0: Float64, a: Float64, t: Float64) -> Float64 {
+pub fn phys_position(s0: Float64, v0: Float64, a: Float64, t: Float64) -> Float64
+  ensures: t <= 0.0 => result == 0.0;
+{
   if t <= 0.0 { return 0.0; }
   return s0 + v0 * t + a * t * t / 2.0;
 }
@@ -72,7 +78,9 @@ pub fn phys_position(s0: Float64, v0: Float64, a: Float64, t: Float64) -> Float6
 /// returns 0.0 rather than v0).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn phys_velocity_at(v0: Float64, a: Float64, t: Float64) -> Float64 {
+pub fn phys_velocity_at(v0: Float64, a: Float64, t: Float64) -> Float64
+  ensures: t <= 0.0 => result == 0.0;
+{
   if t <= 0.0 { return 0.0; }
   return v0 + a * t;
 }
@@ -83,7 +91,9 @@ pub fn phys_velocity_at(v0: Float64, a: Float64, t: Float64) -> Float64 {
 /// a negative mass would give a negative energy).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn phys_kinetic_energy(mass_kg: Float64, velocity: Float64) -> Float64 {
+pub fn phys_kinetic_energy(mass_kg: Float64, velocity: Float64) -> Float64
+  ensures: mass_kg < 0.0 => result == 0.0;
+{
   if mass_kg < 0.0 { return 0.0; }
   return 0.5 * mass_kg * velocity * velocity;
 }
@@ -95,7 +105,9 @@ pub fn phys_kinetic_energy(mass_kg: Float64, velocity: Float64) -> Float64 {
 /// reference is the caller's choice, so the value may be negative).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn phys_potential_energy(mass_kg: Float64, height_m: Float64, g: Float64) -> Float64 {
+pub fn phys_potential_energy(mass_kg: Float64, height_m: Float64, g: Float64) -> Float64
+  ensures: result == mass_kg * g * height_m;
+{
   return mass_kg * g * height_m;
 }
 
@@ -104,7 +116,9 @@ pub fn phys_potential_energy(mass_kg: Float64, height_m: Float64, g: Float64) ->
 /// Returns: the momentum in kg*m/s, signed by the velocity.
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn phys_momentum(mass_kg: Float64, velocity: Float64) -> Float64 {
+pub fn phys_momentum(mass_kg: Float64, velocity: Float64) -> Float64
+  ensures: result == mass_kg * velocity;
+{
   return mass_kg * velocity;
 }
 
@@ -114,7 +128,9 @@ pub fn phys_momentum(mass_kg: Float64, velocity: Float64) -> Float64 {
 /// gives negative work).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn phys_work(force_n: Float64, distance_m: Float64) -> Float64 {
+pub fn phys_work(force_n: Float64, distance_m: Float64) -> Float64
+  ensures: result == force_n * distance_m;
+{
   return force_n * distance_m;
 }
 
@@ -123,7 +139,9 @@ pub fn phys_work(force_n: Float64, distance_m: Float64) -> Float64 {
 /// Returns: work_j / time_s in watts; 0.0 when time_s <= 0 (guard G1).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn phys_power(work_j: Float64, time_s: Float64) -> Float64 {
+pub fn phys_power(work_j: Float64, time_s: Float64) -> Float64
+  ensures: time_s <= 0.0 => result == 0.0;
+{
   if time_s <= 0.0 { return 0.0; }
   return work_j / time_s;
 }
@@ -137,7 +155,9 @@ pub fn phys_power(work_j: Float64, time_s: Float64) -> Float64 {
 /// the sign of a negative separation).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn phys_gravitational_force(m1_kg: Float64, m2_kg: Float64, r_m: Float64) -> Float64 {
+pub fn phys_gravitational_force(m1_kg: Float64, m2_kg: Float64, r_m: Float64) -> Float64
+  ensures: r_m <= 0.0 => result == 0.0;
+{
   if r_m <= 0.0 { return 0.0; }
   return PHYS_G * m1_kg * m2_kg / (r_m * r_m);
 }
@@ -148,7 +168,9 @@ pub fn phys_gravitational_force(m1_kg: Float64, m2_kg: Float64, r_m: Float64) ->
 /// 0.0 by the formula).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn phys_circle_area(r_m: Float64) -> Float64 {
+pub fn phys_circle_area(r_m: Float64) -> Float64
+  ensures: r_m < 0.0 => result == 0.0;
+{
   if r_m < 0.0 { return 0.0; }
   return xiom.math.PI * r_m * r_m;
 }
@@ -159,7 +181,9 @@ pub fn phys_circle_area(r_m: Float64) -> Float64 {
 /// 0.0 by the formula).
 /// Errors: none (total).
 /// Complexity: O(1).
-pub fn phys_sphere_volume(r_m: Float64) -> Float64 {
+pub fn phys_sphere_volume(r_m: Float64) -> Float64
+  ensures: r_m < 0.0 => result == 0.0;
+{
   if r_m < 0.0 { return 0.0; }
   return 4.0 / 3.0 * xiom.math.PI * r_m * r_m * r_m;
 }

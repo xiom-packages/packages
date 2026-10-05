@@ -1,6 +1,6 @@
 # xiom.physics -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.physics` (`src/physics.xi`). Pure XIOM, no FFI.
 Dependencies: `xiom.std` only; the module imports `xiom.math` for the
 constant `PI`; the tests use `xiom.test`, `xiom.io` and `xiom.math`.
@@ -208,3 +208,25 @@ inline `mut` patterns, `module` without a trailing semicolon, `use` lines
 with one, and the copyright + SPDX header on every `.xi` file. The tests
 route all `Str` usage through `xiom.test`/`xiom.io` values built locally, so
 no `str_compare` workaround is needed.
+
+## 11. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **13 proven / 0 violated / 3 unknown / 0 errors, rc=0** (the 3
+unknowns are division side-condition obligations; every contract clause
+below is discharged).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `phys_velocity` / `phys_acceleration` / `phys_position` / `phys_velocity_at` / `phys_power` | `ensures: t_arg <= 0.0 => result == 0.0` (guard G1, one per function) | **proven** |
+| `phys_kinetic_energy` | `ensures: mass_kg < 0.0 => result == 0.0` (guard G4) | **proven** |
+| `phys_gravitational_force` | `ensures: r_m <= 0.0 => result == 0.0` (guard G3) | **proven** |
+| `phys_circle_area` / `phys_sphere_volume` | `ensures: r_m < 0.0 => result == 0.0` (guard G2) | **proven** |
+| `phys_potential_energy` | `ensures: result == mass_kg * g * height_m` | **proven** |
+| `phys_momentum` | `ensures: result == mass_kg * velocity` | **proven** |
+| `phys_work` | `ensures: result == force_n * distance_m` | **proven** |
+
+Unasserted/documented: the signed-displacement semantics and the
+`t == 0` deterministic-zero convention are documented in the header and
+pinned by the test plan; the guard and product clauses above are
+machine-checked.
