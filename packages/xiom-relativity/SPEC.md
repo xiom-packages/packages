@@ -1,6 +1,6 @@
 # xiom.relativity -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.relativity` (`src/relativity.xi`). Pure XIOM, no FFI. Scalars
 only: `Int` permille speeds, `Float64` physics quantities; no
 `Vec[Float64]`, no structs, no methods.
@@ -276,3 +276,22 @@ The exactness claims (`gamma(0) = 1`, `gamma(600) = 1.25`, `L(1 m, 0.6c) =
 0.8 m`, `E(0) = 0`, `K(..., 0) = 0`, `p(..., 0) = 0`) were verified with the
 double-precision arithmetic of the formula; no assertion was relaxed to make
 the suite pass.
+
+## 10. Contracts (hardening pass, 2026-10-05)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 4.13.4 on v0.63.0)
+result: **3 proven / 0 violated / 11 unknown / 0 errors, rc=0**.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `rel_lorentz_permille` | `ensures: (beta_permille <= -1000 \|\| beta_permille >= 1000) => result == 0.0`; `ensures: beta_permille > -1000 && beta_permille < 1000 => result >= 1.0` | unproven |
+| `rel_time_dilation_s` | invalid beta => `result == 0.0`; `ensures: proper_s == 0.0 => result == 0.0` | unproven |
+| `rel_length_contraction_m` | invalid beta => `result == 0.0` | unproven |
+| `rel_velocity_add_permille` | `ensures: result >= -1000 && result <= 1000` | unproven |
+| `rel_energy_j` | `ensures: result == mass_kg * 299792458.0 * 299792458.0` | **proven** |
+| `rel_kinetic_energy_j` / `rel_momentum_ns` | invalid beta => `result == 0.0` | unproven |
+| `rel_beta_from_bits` | `ensures: result >= -999 && result <= 999`; `ensures: bits >= -999 && bits <= 999 => result == bits` | unproven |
+
+Unasserted/documented: the permille-grid truncation rules (velocity
+addition edge 999 + 999 -> 1000), the gamma-linear product identities
+and the worked examples in section 9 stay test-pinned.

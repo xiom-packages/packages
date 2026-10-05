@@ -33,7 +33,10 @@ const _REL_C_M_PER_S: Float64 = 299792458.0;
 /// never panics.
 /// Error case: invalid beta yields 0.0 (documented sentinel).
 /// Complexity: O(1).
-pub fn rel_lorentz_permille(beta_permille: Int) -> Float64 {
+pub fn rel_lorentz_permille(beta_permille: Int) -> Float64
+  ensures: (beta_permille <= -1000 || beta_permille >= 1000) => result == 0.0;
+  ensures: beta_permille > -1000 && beta_permille < 1000 => result >= 1.0;
+{
   if beta_permille <= -1000 || beta_permille >= 1000 {
     return 0.0;
   }
@@ -50,7 +53,10 @@ pub fn rel_lorentz_permille(beta_permille: Int) -> Float64 {
 /// proper_s == 0.0 yields 0.0 for every valid beta.
 /// Error case: invalid beta yields 0.0.
 /// Complexity: O(1).
-pub fn rel_time_dilation_s(proper_s: Float64, beta_permille: Int) -> Float64 {
+pub fn rel_time_dilation_s(proper_s: Float64, beta_permille: Int) -> Float64
+  ensures: (beta_permille <= -1000 || beta_permille >= 1000) => result == 0.0;
+  ensures: proper_s == 0.0 => result == 0.0;
+{
   if beta_permille <= -1000 || beta_permille >= 1000 {
     return 0.0;
   }
@@ -66,7 +72,9 @@ pub fn rel_time_dilation_s(proper_s: Float64, beta_permille: Int) -> Float64 {
 /// beta (|beta_permille| >= 1000).
 /// Error case: invalid beta yields 0.0.
 /// Complexity: O(1).
-pub fn rel_length_contraction_m(proper_m: Float64, beta_permille: Int) -> Float64 {
+pub fn rel_length_contraction_m(proper_m: Float64, beta_permille: Int) -> Float64
+  ensures: (beta_permille <= -1000 || beta_permille >= 1000) => result == 0.0;
+{
   if beta_permille <= -1000 || beta_permille >= 1000 {
     return 0.0;
   }
@@ -88,7 +96,9 @@ pub fn rel_length_contraction_m(proper_m: Float64, beta_permille: Int) -> Float6
 /// Results never leave [-1000, 1000]. The addition is commutative.
 /// Error case: none (inputs are clamped, never rejected).
 /// Complexity: O(1).
-pub fn rel_velocity_add_permille(u_permille: Int, v_permille: Int) -> Int {
+pub fn rel_velocity_add_permille(u_permille: Int, v_permille: Int) -> Int
+  ensures: result >= -1000 && result <= 1000;
+{
   let u: Int = rel_beta_from_bits(u_permille);
   let v: Int = rel_beta_from_bits(v_permille);
   let num: Int = 1000 * (u + v);
@@ -102,7 +112,9 @@ pub fn rel_velocity_add_permille(u_permille: Int, v_permille: Int) -> Int {
 /// mass_kg == 1.0 yields c^2 = 8.987551787368176e16 J. Linear in mass.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn rel_energy_j(mass_kg: Float64) -> Float64 {
+pub fn rel_energy_j(mass_kg: Float64) -> Float64
+  ensures: result == mass_kg * 299792458.0 * 299792458.0;
+{
   return mass_kg * _REL_C_M_PER_S * _REL_C_M_PER_S;
 }
 
@@ -116,7 +128,9 @@ pub fn rel_energy_j(mass_kg: Float64) -> Float64 {
 /// even in beta.
 /// Error case: invalid beta yields 0.0.
 /// Complexity: O(1).
-pub fn rel_kinetic_energy_j(mass_kg: Float64, beta_permille: Int) -> Float64 {
+pub fn rel_kinetic_energy_j(mass_kg: Float64, beta_permille: Int) -> Float64
+  ensures: (beta_permille <= -1000 || beta_permille >= 1000) => result == 0.0;
+{
   if beta_permille <= -1000 || beta_permille >= 1000 {
     return 0.0;
   }
@@ -133,7 +147,9 @@ pub fn rel_kinetic_energy_j(mass_kg: Float64, beta_permille: Int) -> Float64 {
 /// The momentum is odd in beta: negating beta negates the result.
 /// Error case: invalid beta yields 0.0.
 /// Complexity: O(1).
-pub fn rel_momentum_ns(mass_kg: Float64, beta_permille: Int) -> Float64 {
+pub fn rel_momentum_ns(mass_kg: Float64, beta_permille: Int) -> Float64
+  ensures: (beta_permille <= -1000 || beta_permille >= 1000) => result == 0.0;
+{
   if beta_permille <= -1000 || beta_permille >= 1000 {
     return 0.0;
   }
@@ -150,7 +166,10 @@ pub fn rel_momentum_ns(mass_kg: Float64, beta_permille: Int) -> Float64 {
 /// the clamping helper used by rel_velocity_add_permille.
 /// Error case: none (total function).
 /// Complexity: O(1).
-pub fn rel_beta_from_bits(bits: Int) -> Int {
+pub fn rel_beta_from_bits(bits: Int) -> Int
+  ensures: result >= -999 && result <= 999;
+  ensures: bits >= -999 && bits <= 999 => result == bits;
+{
   if bits < -999 {
     return -999;
   }
