@@ -4,7 +4,7 @@
 
 package xiom_bech32 {
   name: "xiom.bech32";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Bech32 and Bech32m checksummed base32 encoding and decoding (BIP-173, BIP-350)";
   categories: ["data"];
   keywords: ["bech32", "bech32m", "encoding", "bitcoin"];

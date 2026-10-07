@@ -95,7 +95,9 @@ const _BECH32_MAX_SYMBOL: Int = 31;
 /// Returns: "qpzry9x8gf2tvdw0s3jn54khce6mua7l".
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bech32_charset() -> Str {
+pub fn bech32_charset() -> Str
+  ensures: result.len() == 32;
+{
   return "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
 }
 
@@ -274,7 +276,11 @@ fn _bech32_create_checksum(hrp: Str, data: &Vec[Int], constant: Int) -> Vec[Int]
 /// Err("bech32: bad length") when the resulting string would exceed 90
 /// characters (BIP-173).
 /// Complexity: O(hrp.len() + data.len()).
-pub fn bech32_encode(hrp: Str, data: &Vec[Int], variant: Int) -> Result[Str, Str] {
+pub fn bech32_encode(hrp: Str, data: &Vec[Int], variant: Int) -> Result[Str, Str]
+  ensures: variant != 0 && variant != 1 => result is Err;
+  ensures: hrp.len() == 0 || hrp.len() > 83 => result is Err;
+  ensures: result is Ok => hrp.len() + data.len() + 7 <= 90;
+{
   if variant != BECH32_VARIANT_BECH32 && variant != BECH32_VARIANT_BECH32M {
     return _err_str("bech32: bad variant");
   }
@@ -449,7 +455,10 @@ fn _bech32_parse(s: Str, want: Int) -> Result[Bech32, Str] {
 /// non-alphabet data byte; Err("bech32: bad checksum") when neither
 /// constant verifies.
 /// Complexity: O(s.len()).
-pub fn bech32_decode(s: Str) -> Result[Bech32, Str] {
+pub fn bech32_decode(s: Str) -> Result[Bech32, Str]
+  ensures: s.len() < 8 || s.len() > 90 => result is Err;
+  ensures: result is Ok => s.len() >= 8 && s.len() <= 90;
+{
   return _bech32_parse(s, -1);
 }
 
@@ -463,7 +472,11 @@ pub fn bech32_decode(s: Str) -> Result[Bech32, Str] {
 /// instead of being accepted. "bech32: bad variant" is reported when the
 /// requested variant is neither 0 nor 1.
 /// Complexity: O(s.len()).
-pub fn bech32_decode_variant(s: Str, variant: Int) -> Result[Bech32, Str] {
+pub fn bech32_decode_variant(s: Str, variant: Int) -> Result[Bech32, Str]
+  ensures: variant != 0 && variant != 1 => result is Err;
+  ensures: s.len() < 8 || s.len() > 90 => result is Err;
+  ensures: result is Ok => variant == 0 || variant == 1;
+{
   if variant != BECH32_VARIANT_BECH32 && variant != BECH32_VARIANT_BECH32M {
     return _err_bech32("bech32: bad variant");
   }
@@ -477,7 +490,10 @@ pub fn bech32_decode_variant(s: Str, variant: Int) -> Result[Bech32, Str] {
 /// not.
 /// Error case: none (errors collapse to false).
 /// Complexity: O(s.len()).
-pub fn bech32_is_valid(s: Str) -> Bool {
+pub fn bech32_is_valid(s: Str) -> Bool
+  ensures: s.len() < 8 || s.len() > 90 => !result;
+  ensures: result => s.len() >= 8 && s.len() <= 90;
+{
   let r = bech32_decode(s);
   if r.is_ok {
     return true;
@@ -494,7 +510,9 @@ pub fn bech32_is_valid(s: Str) -> Bool {
 /// Returns: the (folded) HRP.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bech32_hrp(v: &Bech32) -> Str {
+pub fn bech32_hrp(v: &Bech32) -> Str
+  ensures: result.len() == v.hrp.len();
+{
   return v.hrp;
 }
 
@@ -503,7 +521,9 @@ pub fn bech32_hrp(v: &Bech32) -> Str {
 /// Returns: BECH32_VARIANT_BECH32 (0) or BECH32_VARIANT_BECH32M (1).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bech32_variant(v: &Bech32) -> Int {
+pub fn bech32_variant(v: &Bech32) -> Int
+  ensures: result == v.variant;
+{
   return v.variant;
 }
 
@@ -512,7 +532,9 @@ pub fn bech32_variant(v: &Bech32) -> Int {
 /// Returns: a Vec[Int] of values in 0..31; may be empty.
 /// Error case: none.
 /// Complexity: O(1) (the vector is a handle copy).
-pub fn bech32_data(v: &Bech32) -> Vec[Int] {
+pub fn bech32_data(v: &Bech32) -> Vec[Int]
+  ensures: result.len() == v.data.len();
+{
   let d = v.data;
   return d;
 }
@@ -538,7 +560,10 @@ pub fn bech32_data(v: &Bech32) -> Vec[Int] {
 /// when pad=false and the trailing group has at least `frombits` bits left
 /// or its bits are not all zero.
 /// Complexity: O(data.len()).
-pub fn bech32_convertbits(data: &Vec[Int], frombits: Int, tobits: Int, pad: Bool) -> Result[Vec[Int], Str] {
+pub fn bech32_convertbits(data: &Vec[Int], frombits: Int, tobits: Int, pad: Bool) -> Result[Vec[Int], Str]
+  ensures: frombits < 1 || frombits > 8 || tobits < 1 || tobits > 8 => result is Err;
+  ensures: result is Ok => frombits >= 1 && frombits <= 8 && tobits >= 1 && tobits <= 8;
+{
   if frombits < 1 || frombits > 8 {
     return _err_ints("bech32: invalid bits");
   }
@@ -588,7 +613,10 @@ pub fn bech32_convertbits(data: &Vec[Int], frombits: Int, tobits: Int, pad: Bool
 /// output.
 /// Error case: none.
 /// Complexity: O(data.len()).
-pub fn bech32_bytes_to_symbols(data: &Vec[UInt8]) -> Vec[Int] {
+pub fn bech32_bytes_to_symbols(data: &Vec[UInt8]) -> Vec[Int]
+  ensures: data.len() == 0 => result.len() == 0;
+  ensures: result.len() == (data.len() * 8 + 4) / 5;
+{
   var ints = Vec[Int].new();
   var i = 0;
   while i < data.len() {
@@ -614,7 +642,10 @@ pub fn bech32_bytes_to_symbols(data: &Vec[UInt8]) -> Vec[Int] {
 /// trailing bits do not form a valid zero padding (at least 5 bits left, or
 /// non-zero leftovers).
 /// Complexity: O(data.len()).
-pub fn bech32_symbols_to_bytes(data: &Vec[Int]) -> Result[Vec[UInt8], Str] {
+pub fn bech32_symbols_to_bytes(data: &Vec[Int]) -> Result[Vec[UInt8], Str]
+  ensures: data.len() == 0 => result is Ok;
+  ensures: result is Err => data.len() > 0;
+{
   let conv = bech32_convertbits(data, 5, 8, false);
   if !conv.is_ok {
     return _err_bytes(conv.error);

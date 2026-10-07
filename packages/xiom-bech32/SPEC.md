@@ -1,8 +1,6 @@
 # xiom.bech32 -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.bech32`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/bech32.xi` (`module xiom.bech32`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`). No FFI.
 
@@ -339,3 +337,54 @@ The implementation follows the proven v0.61.3 package idioms:
   `str_compare` (BUG 17).
 - No NUL byte is ever passed to `builder.sb_to_str`; raw-byte test vectors
   use 0x20, 0x7F, 0x80 and 0xFF, never 0x00.
+
+## Contracts (batch #28 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/bech32.xi` in the batch #28
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 20 clauses across the 11 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.bech32 -TimeoutSec 60` runs
+ended `port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (8.4 s and 8.5 s); the 20-check conformance suite exercises every entry
+point, including the 0..24-byte convertbits round-trips, the encoder error
+catalog and the 90-character / 83-character limit checks, and no clause
+trapped.
+
+All clauses are runtime-checked: a direct `xiom-verify --check` run on this
+module reported UNKNOWN (X7007: unsupported expression in the contract
+language) for every clause, so none is claimed Z3-provable. (The same run
+also hit a known SMT emitter bug on the private leaf helpers, reported as an
+emitter error, not a contract violation.)
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `bech32_charset` | `ensures: result.len() == 32` | runtime-checked (built `Str` length) |
+| `bech32_encode` | `ensures: variant != 0 && variant != 1 => result is Err`; `ensures: hrp.len() == 0 \|\| hrp.len() > 83 => result is Err`; `ensures: result is Ok => hrp.len() + data.len() + 7 <= 90` | runtime-checked (`Result` tag + `Str`/`Vec` lengths; the BIP-173 guards) |
+| `bech32_decode` | `ensures: s.len() < 8 \|\| s.len() > 90 => result is Err`; `ensures: result is Ok => s.len() >= 8 && s.len() <= 90` | runtime-checked (`Result` tag + `Str` length) |
+| `bech32_decode_variant` | `ensures: variant != 0 && variant != 1 => result is Err`; `ensures: s.len() < 8 \|\| s.len() > 90 => result is Err`; `ensures: result is Ok => variant == 0 \|\| variant == 1` | runtime-checked (`Result` tag + lengths) |
+| `bech32_is_valid` | `ensures: s.len() < 8 \|\| s.len() > 90 => !result`; `ensures: result => s.len() >= 8 && s.len() <= 90` | runtime-checked (Bool result + `Str` length) |
+| `bech32_hrp` | `ensures: result.len() == v.hrp.len()` | runtime-checked (`Str` length vs field) |
+| `bech32_variant` | `ensures: result == v.variant` | runtime-checked (field read) |
+| `bech32_data` | `ensures: result.len() == v.data.len()` | runtime-checked (`Vec` length vs field) |
+| `bech32_convertbits` | `ensures: frombits < 1 \|\| frombits > 8 \|\| tobits < 1 \|\| tobits > 8 => result is Err`; `ensures: result is Ok => frombits >= 1 && frombits <= 8 && tobits >= 1 && tobits <= 8` | runtime-checked (`Result` tag + scalar ranges) |
+| `bech32_bytes_to_symbols` | `ensures: data.len() == 0 => result.len() == 0`; `ensures: result.len() == (data.len() * 8 + 4) / 5` | runtime-checked (`Vec` lengths, exact `ceil(8n/5)` formula) |
+| `bech32_symbols_to_bytes` | `ensures: data.len() == 0 => result is Ok`; `ensures: result is Err => data.len() > 0` | runtime-checked (`Result` tag + `Vec` length) |
+
+The exact symbol-count formula `(data.len() * 8 + 4) / 5` is the inlined
+`ceil(8n/5)` of the source's emit logic: the 8->5 loop emits one symbol per
+5 accumulated bits (so `floor(8n/5)` symbols) and the `pad=true` tail emits
+exactly one more when a partial group remains. It was exercised over the
+suite's 0..24-byte round-trips without a trap. The 90-character and
+83-character guards are the encoder's own checks and match BIP-173. No clause
+claims a payload length against a parameter (forbidden shape):
+`bech32_symbols_to_bytes` deliberately omits any payload-length-vs-`data.len()`
+claim. No clause calls any function (the `_bech32_parse` callee is never
+referenced); all conditions are parameter/`result`/field shapes or length
+counts. No clause was dropped.
+
+Deliberately not claimed: `Ok` payload lengths on the decoders (forbidden
+shape); the remaining `bech32_encode` error classes (uppercase HRP, HRP bytes
+outside `[33,126]`, out-of-range data symbols) as `ensures` antecedents would
+need byte-loop reasoning in the contract language; `Str` equality anywhere
+(BUG 17).
