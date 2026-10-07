@@ -196,6 +196,95 @@ server as the reply's origin timestamp), T2 = the reply's receive
 timestamp, T3 = the reply's transmit timestamp, T4 = the client receive
 time measured locally.
 
+## Contracts
+
+Runtime-checkable `ensures:` clauses added in the contract-hardening pass
+(compiler v0.64.0). "Z3" marks a pure-scalar clause from a fully supported
+family (parameter/field ranges, Bool predicate equivalences, exact integer
+formulas, scalar `Ok` bounds) that the contract verifier can prove;
+"runtime" marks a clause the generated runtime evaluator checks (Vec
+lengths, validation-predicate calls, nested struct reads, Result-tag
+guards). All of them passed two consecutive green port runs on 2026-10-07.
+
+- `ntp_timestamp_is_zero`
+  - `(t.seconds == 0 && t.fraction == 0) => result` — Z3
+  - `result => t.seconds == 0 && t.fraction == 0` — Z3
+- `ntp_timestamp_is_valid`
+  - `t.seconds < 0 => !result` — Z3
+  - `t.seconds > 4294967295 => !result` — Z3
+  - `t.fraction < 0 => !result` — Z3
+  - `t.fraction > 4294967295 => !result` — Z3
+- `ntp_fraction_to_micros`
+  - `fraction < 0 => result is Err` — runtime
+  - `fraction > 4294967295 => result is Err` — runtime
+  - `result is Ok => result.value == (fraction * 1000000) / 4294967296` — Z3
+  - `result is Ok => result.value >= 0` — Z3
+- `ntp_fraction_to_nanos`
+  - `fraction < 0 => result is Err` — runtime
+  - `fraction > 4294967295 => result is Err` — runtime
+  - `result is Ok => result.value == (fraction * 1000000000) / 4294967296` — Z3
+  - `result is Ok => result.value >= 0` — Z3
+- `ntp_micros_to_fraction`
+  - `micros < 0 => result is Err` — runtime
+  - `micros > 999999 => result is Err` — runtime
+  - `result is Ok => result.value == (micros * 4294967296 + 500000) / 1000000` — Z3
+  - `result is Ok => result.value <= 4294967295` — Z3
+- `ntp_nanos_to_fraction`
+  - `nanos < 0 => result is Err` — runtime
+  - `nanos > 999999999 => result is Err` — runtime
+  - `result is Ok => result.value == (nanos * 4294967296 + 500000000) / 1000000000` — Z3
+  - `result is Ok => result.value <= 4294967295` — Z3
+- `ntp_timestamp_to_micros`
+  - `!ntp_timestamp_is_valid(t) => result is Err` — runtime
+  - `ntp_timestamp_is_valid(t) => result is Ok` — runtime
+  - `result is Ok => result.value == t.seconds * 1000000 + (t.fraction * 1000000) / 4294967296` — Z3
+- `ntp_version_valid`
+  - `(vn == 3 || vn == 4) => result` — Z3
+  - `result => vn == 3 || vn == 4` — Z3
+- `ntp_mode_valid`
+  - `mode < 1 => !result` — Z3
+  - `mode > 6 => !result` — Z3
+  - `result => mode >= 1 && mode <= 6` — Z3
+- `ntp_packet_valid`
+  - `(p.li < 0 || p.li > 3) => !result` — Z3
+  - `!(p.vn == 3 || p.vn == 4) => !result` — Z3
+  - `(p.mode < 1 || p.mode > 6) => !result` — Z3
+  - `(p.stratum < 0 || p.stratum > 255) => !result` — Z3
+- `ntp_decode`
+  - `data.len() < 48 => result is Err` — runtime
+  - `result is Ok => data.len() >= 48` — runtime
+- `ntp_encode`
+  - `(p.li < 0 || p.li > 3) => result is Err` — runtime
+  - `!(p.vn == 3 || p.vn == 4) => result is Err` — runtime
+  - `(p.mode < 1 || p.mode > 6) => result is Err` — runtime
+  - `(p.stratum < 0 || p.stratum > 255) => result is Err` — runtime
+  - `(p.poll < -128 || p.poll > 127) => result is Err` — runtime
+  - `(p.precision < -128 || p.precision > 127) => result is Err` — runtime
+  - `(p.root_delay < -2147483648 || p.root_delay > 2147483647) => result is Err` — runtime
+  - `(p.root_dispersion < 0 || p.root_dispersion > 4294967295) => result is Err` — runtime
+  - `(p.reference_id < 0 || p.reference_id > 4294967295) => result is Err` — runtime
+  - `(p.reference.seconds < 0 || p.reference.seconds > 4294967295 || p.reference.fraction < 0 || p.reference.fraction > 4294967295) => result is Err` — runtime
+  - `(p.origin.seconds < 0 || p.origin.seconds > 4294967295 || p.origin.fraction < 0 || p.origin.fraction > 4294967295) => result is Err` — runtime
+  - `(p.receive.seconds < 0 || p.receive.seconds > 4294967295 || p.receive.fraction < 0 || p.receive.fraction > 4294967295) => result is Err` — runtime
+  - `(p.transmit.seconds < 0 || p.transmit.seconds > 4294967295 || p.transmit.fraction < 0 || p.transmit.fraction > 4294967295) => result is Err` — runtime
+  - `result is Ok => result.value.len() == 48` — runtime
+- `ntp_offset_micros`
+  - `(!ntp_timestamp_is_valid(t1_origin) || ntp_timestamp_is_zero(t1_origin)) => result is Err` — runtime
+  - `(!ntp_timestamp_is_valid(t2_receive) || ntp_timestamp_is_zero(t2_receive)) => result is Err` — runtime
+  - `(!ntp_timestamp_is_valid(t3_transmit) || ntp_timestamp_is_zero(t3_transmit)) => result is Err` — runtime
+  - `(!ntp_timestamp_is_valid(t4_dest) || ntp_timestamp_is_zero(t4_dest)) => result is Err` — runtime
+- `ntp_delay_micros`
+  - `(!ntp_timestamp_is_valid(t1_origin) || ntp_timestamp_is_zero(t1_origin)) => result is Err` — runtime
+  - `(!ntp_timestamp_is_valid(t2_receive) || ntp_timestamp_is_zero(t2_receive)) => result is Err` — runtime
+  - `(!ntp_timestamp_is_valid(t3_transmit) || ntp_timestamp_is_zero(t3_transmit)) => result is Err` — runtime
+  - `(!ntp_timestamp_is_valid(t4_dest) || ntp_timestamp_is_zero(t4_dest)) => result is Err` — runtime
+
+`ntp_timestamp_new` and `ntp_timestamp_zero` carry no clauses: they return a
+plain struct value, for which no clause in the supported families is
+expressible. No clause uses tuple-component access, a Result payload length
+against a parameter, a struct result payload, or a predicate call that
+re-enters the function under contract.
+
 ## Error string catalog
 
 | Condition | Error text |
@@ -278,8 +367,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.ntp
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=18 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0, contract-hardening run 2026-10-07,
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` on two consecutive
+runs.
 
 ## Known limitations
 

@@ -248,13 +248,21 @@ pub fn ntp_timestamp_zero() -> NtpTimestamp {
 /// True when `t` is the all-zero unsynchronized timestamp. A timestamp with
 /// `seconds == 0` but a nonzero fraction is NOT zero.
 /// Complexity: O(1).
-pub fn ntp_timestamp_is_zero(t: &NtpTimestamp) -> Bool {
+pub fn ntp_timestamp_is_zero(t: &NtpTimestamp) -> Bool
+  ensures: (t.seconds == 0 && t.fraction == 0) => result;
+  ensures: result => t.seconds == 0 && t.fraction == 0;
+{
   return t.seconds == 0 && t.fraction == 0;
 }
 
 /// True when both halves of `t` are in 0..2^32-1.
 /// Complexity: O(1).
-pub fn ntp_timestamp_is_valid(t: &NtpTimestamp) -> Bool {
+pub fn ntp_timestamp_is_valid(t: &NtpTimestamp) -> Bool
+  ensures: t.seconds < 0 => !result;
+  ensures: t.seconds > 4294967295 => !result;
+  ensures: t.fraction < 0 => !result;
+  ensures: t.fraction > 4294967295 => !result;
+{
   if !_u32_ok(t.seconds) {
     return false;
   }
@@ -271,7 +279,12 @@ pub fn ntp_timestamp_is_valid(t: &NtpTimestamp) -> Bool {
 /// Error case: Err("ntp: invalid timestamp") when fraction is outside
 /// 0..2^32-1.
 /// Complexity: O(1).
-pub fn ntp_fraction_to_micros(fraction: Int) -> Result[Int, Str] {
+pub fn ntp_fraction_to_micros(fraction: Int) -> Result[Int, Str]
+  ensures: fraction < 0 => result is Err;
+  ensures: fraction > 4294967295 => result is Err;
+  ensures: result is Ok => result.value == (fraction * 1000000) / 4294967296;
+  ensures: result is Ok => result.value >= 0;
+{
   if !_u32_ok(fraction) {
     return _err_int("ntp: invalid timestamp");
   }
@@ -284,7 +297,12 @@ pub fn ntp_fraction_to_micros(fraction: Int) -> Result[Int, Str] {
 /// Error case: Err("ntp: invalid timestamp") when fraction is outside
 /// 0..2^32-1.
 /// Complexity: O(1).
-pub fn ntp_fraction_to_nanos(fraction: Int) -> Result[Int, Str] {
+pub fn ntp_fraction_to_nanos(fraction: Int) -> Result[Int, Str]
+  ensures: fraction < 0 => result is Err;
+  ensures: fraction > 4294967295 => result is Err;
+  ensures: result is Ok => result.value == (fraction * 1000000000) / 4294967296;
+  ensures: result is Ok => result.value >= 0;
+{
   if !_u32_ok(fraction) {
     return _err_int("ntp: invalid timestamp");
   }
@@ -299,7 +317,12 @@ pub fn ntp_fraction_to_nanos(fraction: Int) -> Result[Int, Str] {
 /// Error case: Err("ntp: micros out of range") when micros is outside
 /// 0..999999.
 /// Complexity: O(1).
-pub fn ntp_micros_to_fraction(micros: Int) -> Result[Int, Str] {
+pub fn ntp_micros_to_fraction(micros: Int) -> Result[Int, Str]
+  ensures: micros < 0 => result is Err;
+  ensures: micros > 999999 => result is Err;
+  ensures: result is Ok => result.value == (micros * 4294967296 + 500000) / 1000000;
+  ensures: result is Ok => result.value <= 4294967295;
+{
   if micros < 0 || micros > 999999 {
     return _err_int("ntp: micros out of range");
   }
@@ -312,7 +335,12 @@ pub fn ntp_micros_to_fraction(micros: Int) -> Result[Int, Str] {
 /// Error case: Err("ntp: nanos out of range") when nanos is outside
 /// 0..999999999.
 /// Complexity: O(1).
-pub fn ntp_nanos_to_fraction(nanos: Int) -> Result[Int, Str] {
+pub fn ntp_nanos_to_fraction(nanos: Int) -> Result[Int, Str]
+  ensures: nanos < 0 => result is Err;
+  ensures: nanos > 999999999 => result is Err;
+  ensures: result is Ok => result.value == (nanos * 4294967296 + 500000000) / 1000000000;
+  ensures: result is Ok => result.value <= 4294967295;
+{
   if nanos < 0 || nanos > 999999999 {
     return _err_int("ntp: nanos out of range");
   }
@@ -327,7 +355,11 @@ pub fn ntp_nanos_to_fraction(nanos: Int) -> Result[Int, Str] {
 /// Error case: Err("ntp: invalid timestamp") when either half is outside
 /// 0..2^32-1.
 /// Complexity: O(1).
-pub fn ntp_timestamp_to_micros(t: &NtpTimestamp) -> Result[Int, Str] {
+pub fn ntp_timestamp_to_micros(t: &NtpTimestamp) -> Result[Int, Str]
+  ensures: !ntp_timestamp_is_valid(t) => result is Err;
+  ensures: ntp_timestamp_is_valid(t) => result is Ok;
+  ensures: result is Ok => result.value == t.seconds * 1000000 + (t.fraction * 1000000) / 4294967296;
+{
   if !ntp_timestamp_is_valid(t) {
     return _err_int("ntp: invalid timestamp");
   }
@@ -340,13 +372,20 @@ pub fn ntp_timestamp_to_micros(t: &NtpTimestamp) -> Result[Int, Str] {
 
 /// True when `vn` is an NTP version this codec accepts (3 or 4).
 /// Complexity: O(1).
-pub fn ntp_version_valid(vn: Int) -> Bool {
+pub fn ntp_version_valid(vn: Int) -> Bool
+  ensures: (vn == 3 || vn == 4) => result;
+  ensures: result => vn == 3 || vn == 4;
+{
   return vn == NTP_VERSION_3 || vn == NTP_VERSION_4;
 }
 
 /// True when `mode` is a defined non-reserved NTP mode (1..6).
 /// Complexity: O(1).
-pub fn ntp_mode_valid(mode: Int) -> Bool {
+pub fn ntp_mode_valid(mode: Int) -> Bool
+  ensures: mode < 1 => !result;
+  ensures: mode > 6 => !result;
+  ensures: result => mode >= 1 && mode <= 6;
+{
   return mode >= NTP_MODE_SYMMETRIC_ACTIVE && mode <= NTP_MODE_CONTROL;
 }
 
@@ -356,7 +395,12 @@ pub fn ntp_mode_valid(mode: Int) -> Bool {
 /// valid. Timestamps may be zero (unsynchronized); this predicate only
 /// checks ranges.
 /// Complexity: O(1).
-pub fn ntp_packet_valid(p: &NtpPacket) -> Bool {
+pub fn ntp_packet_valid(p: &NtpPacket) -> Bool
+  ensures: (p.li < 0 || p.li > 3) => !result;
+  ensures: !(p.vn == 3 || p.vn == 4) => !result;
+  ensures: (p.mode < 1 || p.mode > 6) => !result;
+  ensures: (p.stratum < 0 || p.stratum > 255) => !result;
+{
   if !_li_ok(p.li) {
     return false;
   }
@@ -421,7 +465,10 @@ pub fn ntp_packet_valid(p: &NtpPacket) -> Bool {
 /// Err("ntp: unsupported version") when vn is not 3 or 4;
 /// Err("ntp: invalid mode") when mode is 0 or 7.
 /// Complexity: O(1) (exactly 48 bytes are visited).
-pub fn ntp_decode(data: &Vec[UInt8]) -> Result[NtpPacket, Str] {
+pub fn ntp_decode(data: &Vec[UInt8]) -> Result[NtpPacket, Str]
+  ensures: data.len() < 48 => result is Err;
+  ensures: result is Ok => data.len() >= 48;
+{
   if data.len() < NTP_PACKET_SIZE {
     return _err_packet("ntp: truncated packet");
   }
@@ -473,7 +520,22 @@ pub fn ntp_decode(data: &Vec[UInt8]) -> Result[NtpPacket, Str] {
 /// Err("ntp: invalid root delay"), Err("ntp: invalid root dispersion"),
 /// Err("ntp: invalid reference id") or Err("ntp: invalid timestamp").
 /// Complexity: O(1).
-pub fn ntp_encode(p: &NtpPacket) -> Result[Vec[UInt8], Str] {
+pub fn ntp_encode(p: &NtpPacket) -> Result[Vec[UInt8], Str]
+  ensures: (p.li < 0 || p.li > 3) => result is Err;
+  ensures: !(p.vn == 3 || p.vn == 4) => result is Err;
+  ensures: (p.mode < 1 || p.mode > 6) => result is Err;
+  ensures: (p.stratum < 0 || p.stratum > 255) => result is Err;
+  ensures: (p.poll < -128 || p.poll > 127) => result is Err;
+  ensures: (p.precision < -128 || p.precision > 127) => result is Err;
+  ensures: (p.root_delay < -2147483648 || p.root_delay > 2147483647) => result is Err;
+  ensures: (p.root_dispersion < 0 || p.root_dispersion > 4294967295) => result is Err;
+  ensures: (p.reference_id < 0 || p.reference_id > 4294967295) => result is Err;
+  ensures: (p.reference.seconds < 0 || p.reference.seconds > 4294967295 || p.reference.fraction < 0 || p.reference.fraction > 4294967295) => result is Err;
+  ensures: (p.origin.seconds < 0 || p.origin.seconds > 4294967295 || p.origin.fraction < 0 || p.origin.fraction > 4294967295) => result is Err;
+  ensures: (p.receive.seconds < 0 || p.receive.seconds > 4294967295 || p.receive.fraction < 0 || p.receive.fraction > 4294967295) => result is Err;
+  ensures: (p.transmit.seconds < 0 || p.transmit.seconds > 4294967295 || p.transmit.fraction < 0 || p.transmit.fraction > 4294967295) => result is Err;
+  ensures: result is Ok => result.value.len() == 48;
+{
   if !_li_ok(p.li) {
     return _err_bytes("ntp: invalid leap indicator");
   }
@@ -598,7 +660,12 @@ fn _timestamps_error_code(t1: &NtpTimestamp, t2: &NtpTimestamp, t3: &NtpTimestam
 /// outside 0..2^32-1; Err("ntp: zero timestamp") when any timestamp is the
 /// all-zero unsynchronized marker.
 /// Complexity: O(1).
-pub fn ntp_offset_micros(t1_origin: &NtpTimestamp, t2_receive: &NtpTimestamp, t3_transmit: &NtpTimestamp, t4_dest: &NtpTimestamp) -> Result[Int, Str] {
+pub fn ntp_offset_micros(t1_origin: &NtpTimestamp, t2_receive: &NtpTimestamp, t3_transmit: &NtpTimestamp, t4_dest: &NtpTimestamp) -> Result[Int, Str]
+  ensures: (!ntp_timestamp_is_valid(t1_origin) || ntp_timestamp_is_zero(t1_origin)) => result is Err;
+  ensures: (!ntp_timestamp_is_valid(t2_receive) || ntp_timestamp_is_zero(t2_receive)) => result is Err;
+  ensures: (!ntp_timestamp_is_valid(t3_transmit) || ntp_timestamp_is_zero(t3_transmit)) => result is Err;
+  ensures: (!ntp_timestamp_is_valid(t4_dest) || ntp_timestamp_is_zero(t4_dest)) => result is Err;
+{
   let code = _timestamps_error_code(t1_origin, t2_receive, t3_transmit, t4_dest);
   if code == 1 {
     return _err_int("ntp: invalid timestamp");
@@ -629,7 +696,12 @@ pub fn ntp_offset_micros(t1_origin: &NtpTimestamp, t2_receive: &NtpTimestamp, t3
 /// outside 0..2^32-1; Err("ntp: zero timestamp") when any timestamp is the
 /// all-zero unsynchronized marker.
 /// Complexity: O(1).
-pub fn ntp_delay_micros(t1_origin: &NtpTimestamp, t2_receive: &NtpTimestamp, t3_transmit: &NtpTimestamp, t4_dest: &NtpTimestamp) -> Result[Int, Str] {
+pub fn ntp_delay_micros(t1_origin: &NtpTimestamp, t2_receive: &NtpTimestamp, t3_transmit: &NtpTimestamp, t4_dest: &NtpTimestamp) -> Result[Int, Str]
+  ensures: (!ntp_timestamp_is_valid(t1_origin) || ntp_timestamp_is_zero(t1_origin)) => result is Err;
+  ensures: (!ntp_timestamp_is_valid(t2_receive) || ntp_timestamp_is_zero(t2_receive)) => result is Err;
+  ensures: (!ntp_timestamp_is_valid(t3_transmit) || ntp_timestamp_is_zero(t3_transmit)) => result is Err;
+  ensures: (!ntp_timestamp_is_valid(t4_dest) || ntp_timestamp_is_zero(t4_dest)) => result is Err;
+{
   let code = _timestamps_error_code(t1_origin, t2_receive, t3_transmit, t4_dest);
   if code == 1 {
     return _err_int("ntp: invalid timestamp");
