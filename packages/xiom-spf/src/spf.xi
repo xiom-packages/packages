@@ -462,7 +462,9 @@ fn _spf_cidr_slash(s: Str, start: Int) -> Int {
 /// Examples: spf_macro_valid("%{d}.%{ir}") -> true; spf_macro_valid("%%") ->
 /// true; spf_macro_valid("%{x}") -> false; spf_macro_valid("a%") -> false.
 /// Complexity: O(s.len()).
-pub fn spf_macro_valid(s: Str) -> Bool {
+pub fn spf_macro_valid(s: Str) -> Bool
+  ensures: s.len() == 0 => result;
+{
   let n = s.len();
   var i = 0;
   while i < n {
@@ -699,7 +701,10 @@ fn _spf_term(r: &mut Spf, term: Str) -> Str {
 /// in range. No DNS, no evaluation and no DNS TXT framing is performed.
 /// Error case: see the catalog in SPEC.md; messages start with "spf: ".
 /// Complexity: O(record length).
-pub fn spf_parse(record: Str) -> Result[Spf, Str] {
+pub fn spf_parse(record: Str) -> Result[Spf, Str]
+  ensures: record.len() == 0 => result is Err;
+  ensures: result is Ok => record.len() >= 6;
+{
   if !_spf_scan_clean(record) {
     return _spf_err("spf: control byte in input");
   }
@@ -747,14 +752,19 @@ pub fn spf_parse(record: Str) -> Result[Spf, Str] {
 // --------------------------------------------------
 
 /// An empty record: zero terms. `spf_emit` on it returns "v=spf1".
-pub fn spf_new() -> Spf {
+pub fn spf_new() -> Spf
+  ensures: spf_term_count(result) == 0;
+{
   return _spf_empty();
 }
 
 /// Number of terms in `r` (mechanisms plus modifiers); 0 for an empty record.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn spf_term_count(r: &Spf) -> Int {
+pub fn spf_term_count(r: &Spf) -> Int
+  ensures: result >= 0;
+  ensures: result <= r.kind.len();
+{
   return _spf_span(r);
 }
 
@@ -763,7 +773,11 @@ pub fn spf_term_count(r: &Spf) -> Int {
 /// exactly as written ("redirect", "exp", ...). "" when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn spf_term_kind(r: &Spf, i: Int) -> Str {
+pub fn spf_term_kind(r: &Spf, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= r.kind.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < r.kind.len();
+{
   if i < 0 || i >= _spf_span(r) {
     return "";
   }
@@ -775,7 +789,11 @@ pub fn spf_term_kind(r: &Spf, i: Int) -> Str {
 /// modifiers and "" when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn spf_term_qualifier(r: &Spf, i: Int) -> Str {
+pub fn spf_term_qualifier(r: &Spf, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= r.qualifier.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < r.qualifier.len();
+{
   if i < 0 || i >= _spf_span(r) {
     return "";
   }
@@ -787,7 +805,11 @@ pub fn spf_term_qualifier(r: &Spf, i: Int) -> Str {
 /// when the term has no value or `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn spf_term_value(r: &Spf, i: Int) -> Str {
+pub fn spf_term_value(r: &Spf, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= r.value.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < r.value.len();
+{
   if i < 0 || i >= _spf_span(r) {
     return "";
   }
@@ -800,7 +822,11 @@ pub fn spf_term_value(r: &Spf, i: Int) -> Str {
 /// stored representation, so -1 is never a valid length.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn spf_term_cidr(r: &Spf, i: Int) -> Int {
+pub fn spf_term_cidr(r: &Spf, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= r.cidr.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < r.cidr.len();
+{
   if i < 0 || i >= _spf_span(r) {
     return -1;
   }
@@ -812,7 +838,11 @@ pub fn spf_term_cidr(r: &Spf, i: Int) -> Int {
 /// out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn spf_term_is_modifier(r: &Spf, i: Int) -> Bool {
+pub fn spf_term_is_modifier(r: &Spf, i: Int) -> Bool
+  ensures: i < 0 => !result;
+  ensures: i >= r.is_modifier.len() => !result;
+  ensures: result => i >= 0 && i < r.is_modifier.len();
+{
   if i < 0 || i >= _spf_span(r) {
     return false;
   }
@@ -825,7 +855,10 @@ pub fn spf_term_is_modifier(r: &Spf, i: Int) -> Bool {
 /// modifier name appears at most once.
 /// Error case: none.
 /// Complexity: O(term count).
-pub fn spf_find_modifier(r: &Spf, name: Str) -> Int {
+pub fn spf_find_modifier(r: &Spf, name: Str) -> Int
+  ensures: result >= -1;
+  ensures: result < spf_term_count(r);
+{
   let span = _spf_span(r);
   var i = 0;
   while i < span {
@@ -889,7 +922,10 @@ fn _spf_emit_term(out: &mut Vec[UInt8], r: &Spf, i: Int) {
 /// contain no control byte, SP or TAB. A hand-built value whose vectors
 /// disagree is clamped to the shortest vector.
 /// Complexity: O(total output length).
-pub fn spf_emit(r: &Spf) -> Str {
+pub fn spf_emit(r: &Spf) -> Str
+  ensures: result.len() >= 6 + spf_term_count(r);
+  ensures: spf_term_count(r) == 0 => result.len() == 6;
+{
   var out = Vec[UInt8].new();
   builder.sb_push_str(&mut out, "v=spf1");
   let count = _spf_span(r);

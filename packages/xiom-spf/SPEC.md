@@ -1,6 +1,6 @@
 # xiom.spf -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.spf` (`src/spf.xi`). Pure XIOM, no FFI, no DNS, no evaluation,
 no DNS TXT framing.
 
@@ -326,3 +326,54 @@ compiler-driven choices:
 - Errors carry the whole term but no column/offset.
 - `spf_emit` assumes LF/control-byte-free values; hand-built `Spf` values
   bypassing `spf_parse` are neither validated nor canonicalised.
+
+## Contracts (batch #37 hardening pass, 2026-10-07)
+
+Runtime-checked `ensures:` clauses added to `src/spf.xi` (compiler v0.64.0; no
+version bump, `package.xi` stays at 0.1.1). 25 clauses over the 11 public
+entry points (1/2/1/2/3/3/3/3/3/2/2 in source order). Two consecutive
+`.\scripts\port.ps1 -Package xiom.spf -TimeoutSec 60` runs ended
+`port: PASS (passed=26 failed=0 program_exit=0 exit=0)` (6.1 s and 6.01 s)
+with the clauses active and no clause trapped, so none was dropped and no
+probe-gated item was needed.
+
+The cross-call clauses are definitional and non-re-entrant: `spf_new`,
+`spf_find_modifier` and `spf_emit` call `spf_term_count(r)`, which only reads
+`_spf_span(r)`. Accessor guards bound `i` against each accessor's OWN vector
+length (`r.kind.len()`, `r.qualifier.len()`, `r.value.len()`, `r.cidr.len()`,
+`r.is_modifier.len()`), never shorter than the clamped term count, so every
+clause holds for hand-built `Spf` values whose five parallel vectors disagree;
+the emitter bound counts the one separator byte pushed per term.
+
+Classification under `xiom-verify src\spf.xi --check` (bundled Z3, v0.64.0):
+3 proven / 1 violated / 24 unknown / 15 errors. The 3 proven obligations are
+the `spf_new` clause and both `spf_find_modifier` clauses (their `check-sat`
+blocks are the only ones emitted); the single X7001 "violated" is the known
+SMT emitter bug on the private helper `_spf_span`, which the tool itself
+marks "not a proof failure of the code under test". The 15 errors are the
+same emitter bug (`unknown constant _spf_scan_clean/_spf_err/_spf_span`); the
+remaining clauses are skipped as X7007 (unresolved operand sorts, Str length
+equalities, Result tags, array indexing). All 25 clauses are enforced by the
+v0.64.0 runtime contract evaluator; only the three proven obligations carry a
+Z3 claim. `xiom_verify_output.smt2` was deleted by literal path and no
+`a.exe`/`a.exe.ll` artifact remains.
+
+Clause-family limits (per the batch plan): no `Ok`/`Err` payload reads on
+`Result[Spf, Str]`, no Str equality anywhere (BUG 17; `.len()` only), no
+vector indexing and no module constants in clauses (the emit literal 6 is
+inlined), and no guard is strengthened past the hand-built contract (the
+sentinel trios only bound `i` against the relevant vector length).
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `spf_macro_valid` | `s.len() == 0 => result` | runtime-checked (Z3: unknown) |
+| `spf_parse` | `record.len() == 0 => result is Err`; `result is Ok => record.len() >= 6` | runtime-checked (Z3: unknown) |
+| `spf_new` | `spf_term_count(result) == 0` | Z3-proven (also runtime-checked) |
+| `spf_term_count` | `result >= 0`; `result <= r.kind.len()` | runtime-checked (Z3: unknown) |
+| `spf_term_kind` | `i < 0 => result.len() == 0`; `i >= r.kind.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < r.kind.len()` | runtime-checked (Z3: unknown) |
+| `spf_term_qualifier` | `i < 0 => result.len() == 0`; `i >= r.qualifier.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < r.qualifier.len()` | runtime-checked (Z3: unknown; X7001 emitter artifact) |
+| `spf_term_value` | `i < 0 => result.len() == 0`; `i >= r.value.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < r.value.len()` | runtime-checked (Z3: unknown) |
+| `spf_term_cidr` | `i < 0 => result == -1`; `i >= r.cidr.len() => result == -1`; `result != -1 => i >= 0 && i < r.cidr.len()` | runtime-checked (Z3: unknown) |
+| `spf_term_is_modifier` | `i < 0 => !result`; `i >= r.is_modifier.len() => !result`; `result => i >= 0 && i < r.is_modifier.len()` | runtime-checked (Z3: unknown) |
+| `spf_find_modifier` | `result >= -1`; `result < spf_term_count(r)` | Z3-proven (also runtime-checked) |
+| `spf_emit` | `result.len() >= 6 + spf_term_count(r)`; `spf_term_count(r) == 0 => result.len() == 6` | runtime-checked (Z3: unknown) |

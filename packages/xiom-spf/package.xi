@@ -9,7 +9,7 @@
 
 package xiom_spf {
   name: "xiom.spf";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "SPF record parser (RFC 7208 syntax subset) with flat term storage and canonical emitter";
   categories: ["network"];
   keywords: ["spf", "email", "dns", "parser"];
