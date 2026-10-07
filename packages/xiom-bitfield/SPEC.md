@@ -1,8 +1,8 @@
 # xiom.bitfield -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.bitfield`, version `0.1.0`).
+Status: `stable` (harness-green on compiler 0.64.0; contract hardening in
+0.1.2).
+Manifest: `package.xi` (`xiom.bitfield`, version `0.1.2`).
 Module: `src/bitfield.xi` (`module xiom.bitfield`).
 Depends on `xiom.std` only (platform dependency; the module itself imports
 nothing).
@@ -185,8 +185,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.bitfield
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=20 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0, batch #18 contract-hardening pass
+(2026-10-07): `port: PASS (passed=20 failed=0 program_exit=0 exit=0)` twice
+with the contracts active.
 
 ## Known limitations
 
@@ -212,3 +213,55 @@ Last verified: compiler 0.61.3,
   carries the copyright and SPDX lines.
 - The module and this package share only the root `xiom` segment with
   `xiom.bits.*` stdlib modules, so the section-4 namespace check passes.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/bitfield.xi` in the batch
+#18 hardening pass (compiler v0.64.0; no version bump): 37 clauses across
+the 13 public entry points. `xiom --dump-contracts` lists all 37, so none
+was dropped and none trapped, and two consecutive
+`.\scripts\port.ps1 -Package xiom.bitfield -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (4.7 s and 4.4 s). The 20-check conformance suite exercises all 13
+entry points, including the invalid-field, invalid-offset and invalid-width
+paths, with the clauses active; none trapped under the suite.
+
+`xiom-verify --check` (Z3 on v0.64.0) result: **22 proven / 0 violated /
+22 unknown / 21 errors**. Every emitted verification condition is `unsat`
+(proven); the 21 errors are emitter artifacts (`unknown constant _field_ok`
+/ `_bit_at` / `_pow2` / `_byte` in the generated SMT), not violations of the
+code under test. The emitter skips contracts containing `||` disjunctions or
+function calls and gives up on bodies built from the arithmetic helpers, so
+15 of the 37 clauses have no solver check and are runtime-checked only. No
+clause was machine-falsified.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `bit_mask` | `ensures: width <= 0 => result == 0`; `ensures: width >= 64 => result == -1`; `ensures: width >= 1 && width <= 63 => result >= 0` | Z3-proven (3/3) |
+| `bit_get` | `ensures: (width <= 0 \|\| width > 64 \|\| offset < 0 \|\| offset >= 64 \|\| offset + width > 64) => result == 0` | runtime-checked (emitter skips `\|\|` contract) |
+| `bit_get` | `ensures: offset == 0 && width == 64 => result == value`; `ensures: width >= 1 && width <= 63 => result >= 0` | Z3-proven (2/2) |
+| `bit_set` | `ensures: (width <= 0 \|\| width > 64 \|\| offset < 0 \|\| offset >= 64 \|\| offset + width > 64) => result == value` | runtime-checked (emitter skips `\|\|` contract) |
+| `bit_set` | `ensures: offset == 0 && width == 64 => result == field`; `ensures: width >= 1 && width <= 64 && offset >= 0 && offset < 64 && offset + width <= 64 => bit_get(result, offset, width) == bit_get(field, 0, width)` | Z3-proven (2/2) |
+| `bit_clear` | `ensures: (width <= 0 \|\| width > 64 \|\| offset < 0 \|\| offset >= 64 \|\| offset + width > 64) => result == value` | runtime-checked (emitter skips `\|\|` contract) |
+| `bit_clear` | `ensures: offset == 0 && width == 64 => result == 0` | Z3-proven (1/1) |
+| `bit_toggle` | `ensures: offset < 0 \|\| offset >= 64 => result == value` | Z3-proven (1/1) |
+| `bit_toggle` | `ensures: offset >= 0 && offset < 64 => (bit_count_ones(result) == bit_count_ones(value) + 1 \|\| bit_count_ones(result) == bit_count_ones(value) - 1)` | runtime-checked (call-bearing contract, emitter skips) |
+| `bit_count_ones` | `ensures: result >= 0`; `ensures: result <= 64`; `ensures: value == 0 => result == 0`; `ensures: value == -1 => result == 64` | Z3-proven (4/4) |
+| `bit_leading_zeros` | `ensures: result >= 0 && result <= 64`; `ensures: value == 0 => result == 64`; `ensures: value < 0 => result == 0` | Z3-proven (3/3) |
+| `bit_trailing_zeros` | `ensures: result >= 0 && result <= 64`; `ensures: value == 0 => result == 64`; `ensures: value == 1 => result == 0` | Z3-proven (3/3) |
+| `bit_reverse` | `ensures: width <= 0 \|\| width > 64 => result == 0`; `ensures: width >= 1 && width <= 63 => result >= 0`; `ensures: width == 64 && value == 1 => result == 0 - 9223372036854775807 - 1` | Z3-proven (3/3) |
+| `bit_byte_swap16` | `ensures: result >= 0`; `ensures: result <= 65535`; `ensures: value == 0 => result == 0` | runtime-checked (body incomplete in emitter: `_byte`/`Add`) |
+| `bit_byte_swap32` | `ensures: result >= 0`; `ensures: result <= 4294967295` | runtime-checked (body incomplete in emitter: `_byte`/`Add`) |
+| `bit_rotate_left` | `ensures: width <= 0 \|\| width > 64 => result == 0`; `ensures: width >= 1 && width <= 63 => result >= 0`; `ensures: width == 1 => result == bit_get(value, 0, 1)` | runtime-checked (body incomplete in emitter) |
+| `bit_rotate_right` | `ensures: width <= 0 \|\| width > 64 => result == 0`; `ensures: width >= 1 && width <= 63 => result >= 0`; `ensures: width == 1 => result == bit_get(value, 0, 1)` | runtime-checked (body incomplete in emitter) |
+
+The invalid-field clauses inline the shared predicate
+`(width <= 0 || width > 64 || offset < 0 || offset >= 64 || offset + width > 64)`
+unchanged from `_field_ok`. No clause uses tuple-component access, a
+`Result`-payload length check, struct payload fields, or `Str` equality. The
+only cross-function clause calls are `bit_get` (from `bit_set` and both
+rotations) and `bit_count_ones` (from `bit_toggle`); none of those callees
+calls the function it guards against, so there is no postcondition
+call-cycle. No negative-operand remainder/division formulas and no
+periodicity or involution clauses are used; the full-width `INT64_MIN`
+expectation is written as `0 - 9223372036854775807 - 1`.

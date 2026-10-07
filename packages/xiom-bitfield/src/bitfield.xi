@@ -123,7 +123,11 @@ fn _field_ok(offset: Int, width: Int) -> Bool {
 
 /// Mask with the low `width` bits set. `width <= 0` yields 0; `width >= 64`
 /// yields -1 (all 64 bits). Complexity: O(width).
-pub fn bit_mask(width: Int) -> Int {
+pub fn bit_mask(width: Int) -> Int
+  ensures: width <= 0 => result == 0;
+  ensures: width >= 64 => result == -1;
+  ensures: width >= 1 && width <= 63 => result >= 0;
+{
   if width <= 0 {
     return 0;
   }
@@ -144,7 +148,11 @@ pub fn bit_mask(width: Int) -> Int {
 /// width <= 0, width > 64, or offset + width > 64) yield 0. The result is
 /// non-negative except for the full-width request (offset 0, width 64),
 /// which returns the whole two's-complement pattern. Complexity: O(width).
-pub fn bit_get(value: Int, offset: Int, width: Int) -> Int {
+pub fn bit_get(value: Int, offset: Int, width: Int) -> Int
+  ensures: (width <= 0 || width > 64 || offset < 0 || offset >= 64 || offset + width > 64) => result == 0;
+  ensures: offset == 0 && width == 64 => result == value;
+  ensures: width >= 1 && width <= 63 => result >= 0;
+{
   if !_field_ok(offset, width) {
     return 0;
   }
@@ -162,7 +170,11 @@ pub fn bit_get(value: Int, offset: Int, width: Int) -> Int {
 /// Replace the `width` bits at `offset` with `field` (masked to `width`),
 /// leaving all other bits unchanged. An invalid field (same rules as
 /// bit_get) leaves `value` unchanged. Complexity: O(width).
-pub fn bit_set(value: Int, offset: Int, width: Int, field: Int) -> Int {
+pub fn bit_set(value: Int, offset: Int, width: Int, field: Int) -> Int
+  ensures: (width <= 0 || width > 64 || offset < 0 || offset >= 64 || offset + width > 64) => result == value;
+  ensures: offset == 0 && width == 64 => result == field;
+  ensures: width >= 1 && width <= 64 && offset >= 0 && offset < 64 && offset + width <= 64 => bit_get(result, offset, width) == bit_get(field, 0, width);
+{
   if !_field_ok(offset, width) {
     return value;
   }
@@ -184,7 +196,10 @@ pub fn bit_set(value: Int, offset: Int, width: Int, field: Int) -> Int {
 /// Zero the `width` bits at `offset`, leaving all other bits unchanged. An
 /// invalid field (same rules as bit_get) leaves `value` unchanged.
 /// Complexity: O(width).
-pub fn bit_clear(value: Int, offset: Int, width: Int) -> Int {
+pub fn bit_clear(value: Int, offset: Int, width: Int) -> Int
+  ensures: (width <= 0 || width > 64 || offset < 0 || offset >= 64 || offset + width > 64) => result == value;
+  ensures: offset == 0 && width == 64 => result == 0;
+{
   if !_field_ok(offset, width) {
     return value;
   }
@@ -201,7 +216,10 @@ pub fn bit_clear(value: Int, offset: Int, width: Int) -> Int {
 
 /// Flip the single bit at `offset`. An offset outside 0..63 leaves `value`
 /// unchanged. Complexity: O(offset).
-pub fn bit_toggle(value: Int, offset: Int) -> Int {
+pub fn bit_toggle(value: Int, offset: Int) -> Int
+  ensures: offset < 0 || offset >= 64 => result == value;
+  ensures: offset >= 0 && offset < 64 => (bit_count_ones(result) == bit_count_ones(value) + 1 || bit_count_ones(result) == bit_count_ones(value) - 1);
+{
   if offset < 0 || offset >= 64 {
     return value;
   }
@@ -217,7 +235,12 @@ pub fn bit_toggle(value: Int, offset: Int) -> Int {
 
 /// Population count over the 64-bit two's-complement pattern: 64 for -1 and
 /// 1 for INT64_MIN. Complexity: O(64^2) worst case (O(64) single bits).
-pub fn bit_count_ones(value: Int) -> Int {
+pub fn bit_count_ones(value: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= 64;
+  ensures: value == 0 => result == 0;
+  ensures: value == -1 => result == 64;
+{
   var count = 0;
   var k = 0;
   while k < 64 {
@@ -232,7 +255,11 @@ pub fn bit_count_ones(value: Int) -> Int {
 /// Number of consecutive zero bits from bit 63 downwards, over the full
 /// 64-bit pattern; 64 for 0. Negative values have bit 63 set, so they yield
 /// 0. Complexity: O(64^2) worst case.
-pub fn bit_leading_zeros(value: Int) -> Int {
+pub fn bit_leading_zeros(value: Int) -> Int
+  ensures: result >= 0 && result <= 64;
+  ensures: value == 0 => result == 64;
+  ensures: value < 0 => result == 0;
+{
   if value == 0 {
     return 64;
   }
@@ -248,7 +275,11 @@ pub fn bit_leading_zeros(value: Int) -> Int {
 
 /// Number of consecutive zero bits from bit 0 upwards; 64 for 0.
 /// Complexity: O(64^2) worst case.
-pub fn bit_trailing_zeros(value: Int) -> Int {
+pub fn bit_trailing_zeros(value: Int) -> Int
+  ensures: result >= 0 && result <= 64;
+  ensures: value == 0 => result == 64;
+  ensures: value == 1 => result == 0;
+{
   if value == 0 {
     return 64;
   }
@@ -270,7 +301,11 @@ pub fn bit_trailing_zeros(value: Int) -> Int {
 /// clear the remaining high bits. The result is non-negative for
 /// width <= 63; width 64 returns the reversed full two's-complement pattern
 /// (e.g. bit_reverse(1, 64) == INT64_MIN). Complexity: O(width^2).
-pub fn bit_reverse(value: Int, width: Int) -> Int {
+pub fn bit_reverse(value: Int, width: Int) -> Int
+  ensures: width <= 0 || width > 64 => result == 0;
+  ensures: width >= 1 && width <= 63 => result >= 0;
+  ensures: width == 64 && value == 1 => result == 0 - 9223372036854775807 - 1;
+{
   if width <= 0 || width > 64 {
     return 0;
   }
@@ -286,14 +321,21 @@ pub fn bit_reverse(value: Int, width: Int) -> Int {
 }
 
 /// Swap the low two bytes, widened to 0..65535. Complexity: O(1).
-pub fn bit_byte_swap16(value: Int) -> Int {
+pub fn bit_byte_swap16(value: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= 65535;
+  ensures: value == 0 => result == 0;
+{
   let b0 = _byte(value, 0);
   let b1 = _byte(value, 1);
   return b1 + b0 * 256;
 }
 
 /// Swap the low four bytes, widened to 0..2^32-1. Complexity: O(1).
-pub fn bit_byte_swap32(value: Int) -> Int {
+pub fn bit_byte_swap32(value: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= 4294967295;
+{
   let b0 = _byte(value, 0);
   let b1 = _byte(value, 1);
   let b2 = _byte(value, 2);
@@ -305,7 +347,11 @@ pub fn bit_byte_swap32(value: Int) -> Int {
 /// other width yields 0), clearing the high bits outside the field. For
 /// width 64 the full two's-complement pattern is rotated, so the result can
 /// be negative. Complexity: O(width^2).
-pub fn bit_rotate_left(value: Int, width: Int, n: Int) -> Int {
+pub fn bit_rotate_left(value: Int, width: Int, n: Int) -> Int
+  ensures: width <= 0 || width > 64 => result == 0;
+  ensures: width >= 1 && width <= 63 => result >= 0;
+  ensures: width == 1 => result == bit_get(value, 0, 1);
+{
   if width <= 0 || width > 64 {
     return 0;
   }
@@ -332,7 +378,11 @@ pub fn bit_rotate_left(value: Int, width: Int, n: Int) -> Int {
 /// other width yields 0), clearing the high bits outside the field. For
 /// width 64 the full two's-complement pattern is rotated, so the result can
 /// be negative. Complexity: O(width^2).
-pub fn bit_rotate_right(value: Int, width: Int, n: Int) -> Int {
+pub fn bit_rotate_right(value: Int, width: Int, n: Int) -> Int
+  ensures: width <= 0 || width > 64 => result == 0;
+  ensures: width >= 1 && width <= 63 => result >= 0;
+  ensures: width == 1 => result == bit_get(value, 0, 1);
+{
   if width <= 0 || width > 64 {
     return 0;
   }
