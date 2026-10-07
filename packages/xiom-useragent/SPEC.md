@@ -177,3 +177,38 @@ All `Str` equality goes through `streq` (`str_compare`), so BUG 17 (`==` on
   `string.str_compare` and `string.str_slice`.
 - Str equality is routed through `string.str_compare` inside the module
   (`_str_eq`) and through `compare.str_compare` in the tests.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checked `ensures:` clauses added to `src/useragent.xi` (compiler
+v0.64.0; no version bump). 13 clauses across the five public entry points
+(3/3/3/2/2). Four consecutive
+`.\scripts\port.ps1 -Package xiom.useragent -TimeoutSec 60` runs ended
+`port: PASS (passed=19 failed=0 program_exit=0 exit=0)` with the clauses
+active and no clause trapped, so none was dropped (last two timed at
+5.06 s / 4.89 s). Classes follow the batch #16 clause pre-plan:
+**Z3-provable** = pure scalar guard/sentinel family (a Z3 candidate;
+literals are inlined since module consts are not used inside clauses);
+**runtime-checked** = the clause's truth depends on a called function or
+a built `Str` and is enforced by the v0.64.0 runtime evaluator. No
+`requires:` clauses: every function is total and has no error path.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `ua_browser` | `ensures: ua.len() == 0 => result.len() == 0`; `ensures: result.len() <= 15`; `ensures: result.len() == 0 \|\| result.len() >= 4` | Z3-provable (pure scalar sentinel); runtime-checked (display-name length bound and floor) |
+| `ua_version` | `ensures: ua.len() == 0 => result.len() == 0`; `ensures: result.len() <= ua.len()`; `ensures: result.len() == 0 \|\| result.len() >= 3` | Z3-provable (pure scalar sentinel); runtime-checked (slice-length bound; dotted-number floor) |
+| `ua_os` | `ensures: ua.len() == 0 => result.len() == 0`; `ensures: result.len() <= 7`; `ensures: result.len() == 0 \|\| result.len() >= 3` | Z3-provable (pure scalar sentinel); runtime-checked (name-length bound and floor) |
+| `ua_is_bot` | `ensures: ua.len() < 3 => !result`; `ensures: result => ua.len() >= 3` | Z3-provable (pure scalar short-input guard); runtime-checked (converse) |
+| `ua_is_mobile` | `ensures: ua.len() < 4 => !result`; `ensures: result => ua.len() >= 4` | Z3-provable (pure scalar short-input guard); runtime-checked (converse) |
+
+The bounds mirror section 3: the shortest non-empty `ua_browser`/
+`ua_os` results are "Edge"/"curl"/"wget" (4) and "iOS" (3), the longest
+are "python-requests" (15) and "Windows"/"Android" (7); a dotted number
+returned by `ua_version` is a slice of the lowercased input and has at
+least three bytes (`d.d`); the shortest bot token is "bot" (3) and the
+shortest mobile token is "ipad"/"ipod" (4), so shorter inputs cannot
+match. Excluded: `Str`-content comparisons (BUG 17), self/transitive
+callee calls in clauses, and `Result`/tuple/struct payload shapes (the
+module returns `Str`/`Bool` only). The 19-check suite exercises every
+entry point, including the empty string, with the clauses active in all
+green runs.

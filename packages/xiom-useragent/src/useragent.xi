@@ -190,7 +190,11 @@ fn _browser_name(tok: Str) -> Str {
 /// without Chrome) > curl > wget > python-requests.
 /// Error case: none.
 /// Complexity: O(ua.len()) per token probe.
-pub fn ua_browser(ua: Str) -> Str {
+pub fn ua_browser(ua: Str) -> Str
+  ensures: ua.len() == 0 => result.len() == 0;
+  ensures: result.len() <= 15;
+  ensures: result.len() == 0 || result.len() >= 4;
+{
   return _browser_name(_browser_token(string.str_lower(ua)));
 }
 
@@ -202,7 +206,11 @@ pub fn ua_browser(ua: Str) -> Str {
 /// dotted number after it ("curl/unknown", "curl/8").
 /// Error case: none.
 /// Complexity: O(ua.len()).
-pub fn ua_version(ua: Str) -> Str {
+pub fn ua_version(ua: Str) -> Str
+  ensures: ua.len() == 0 => result.len() == 0;
+  ensures: result.len() <= ua.len();
+  ensures: result.len() == 0 || result.len() >= 3;
+{
   let low = string.str_lower(ua);
   let tok = _browser_token(low);
   if tok.len() == 0 {
@@ -223,7 +231,11 @@ pub fn ua_version(ua: Str) -> Str {
 /// (Mac OS X) > Linux.
 /// Error case: none.
 /// Complexity: O(ua.len()) per probe.
-pub fn ua_os(ua: Str) -> Str {
+pub fn ua_os(ua: Str) -> Str
+  ensures: ua.len() == 0 => result.len() == 0;
+  ensures: result.len() <= 7;
+  ensures: result.len() == 0 || result.len() >= 3;
+{
   let low = string.str_lower(ua);
   if string.str_contains(low, "windows nt") {
     return "Windows";
@@ -253,7 +265,10 @@ pub fn ua_os(ua: Str) -> Str {
 /// "crawler", "slurp", "curl/", "wget/", "python-requests" or "headless".
 /// Error case: none.
 /// Complexity: O(ua.len()) per token probe.
-pub fn ua_is_bot(ua: Str) -> Bool {
+pub fn ua_is_bot(ua: Str) -> Bool
+  ensures: ua.len() < 3 => !result;
+  ensures: result => ua.len() >= 3;
+{
   let low = string.str_lower(ua);
   if string.str_contains(low, "bot") {
     return true;
@@ -288,7 +303,10 @@ pub fn ua_is_bot(ua: Str) -> Bool {
 /// "iphone", "ipad", "ipod" or "windows phone".
 /// Error case: none.
 /// Complexity: O(ua.len()) per token probe.
-pub fn ua_is_mobile(ua: Str) -> Bool {
+pub fn ua_is_mobile(ua: Str) -> Bool
+  ensures: ua.len() < 4 => !result;
+  ensures: result => ua.len() >= 4;
+{
   let low = string.str_lower(ua);
   if string.str_contains(low, "mobile") {
     return true;
