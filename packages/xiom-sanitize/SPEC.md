@@ -1,6 +1,6 @@
 # xiom.sanitize -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.sanitize` (`src/sanitize.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -246,3 +246,47 @@ accumulated in `Vec[UInt8]` with `xiom.string.builder.sb_push_str` /
 with `as UInt8` casts on push, and no `==` on `Str`. The module imports
 `xiom.string` and `xiom.string.builder` only; it performs no `Str` comparison,
 so `xiom.string.compare` is not imported in the library (the tests import it).
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/sanitize.xi` in the batch
+#19 hardening pass (compiler v0.64.0; no version bump): 16 clauses across
+the 7 public entry points (3/2/2/2/3/2/2 = 16). Every function returns `Str`
+and every clause constrains the result length, so all 16 are enforced by the
+runtime evaluator; none has a pure-scalar shape for the Z3 emitter. Two
+consecutive `.\scripts\port.ps1 -Package xiom.sanitize -TimeoutSec 60` runs
+ended `port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the
+clauses active (8.6 s and 8.0 s). The 20-check conformance suite exercises
+all 7 entry points, including the empty-input path on every function and the
+filename `_` fallback; no clause trapped.
+
+| Entry point | Clause | Solver |
+|---|---|---|
+| `sanitize_control_chars` | `ensures: s.len() == 0 => result.len() == 0` | runtime-checked |
+| `sanitize_control_chars` | `ensures: replacement.len() == 0 => result.len() <= s.len()` | runtime-checked |
+| `sanitize_control_chars` | `ensures: replacement.len() > 0 => result.len() >= s.len()` | runtime-checked |
+| `sanitize_ascii` | `ensures: s.len() == 0 => result.len() == 0` | runtime-checked |
+| `sanitize_ascii` | `ensures: result.len() <= s.len()` | runtime-checked |
+| `sanitize_whitespace` | `ensures: s.len() == 0 => result.len() == 0` | runtime-checked |
+| `sanitize_whitespace` | `ensures: result.len() <= s.len()` | runtime-checked |
+| `sanitize_keep` | `ensures: s.len() == 0 => result.len() == 0` | runtime-checked |
+| `sanitize_keep` | `ensures: result.len() <= s.len()` | runtime-checked |
+| `sanitize_filename` | `ensures: s.len() == 0 => result.len() == 1` | runtime-checked |
+| `sanitize_filename` | `ensures: s.len() > 0 => result.len() >= 1` | runtime-checked |
+| `sanitize_filename` | `ensures: s.len() > 0 => result.len() <= s.len()` | runtime-checked |
+| `sanitize_numeric` | `ensures: s.len() == 0 => result.len() == 0` | runtime-checked |
+| `sanitize_numeric` | `ensures: result.len() <= s.len()` | runtime-checked |
+| `sanitize_slug` | `ensures: s.len() == 0 => result.len() == 0` | runtime-checked |
+| `sanitize_slug` | `ensures: result.len() <= s.len()` | runtime-checked |
+
+The 16 clauses are the length-side characterization of each sanitizer: the
+empty-input guard pair (`s.len() == 0 => result.len() == 0`, with the
+`_` fallback `result.len() == 1` for `sanitize_filename`), the drop-only
+bound `result.len() <= s.len()` (ASCII, whitespace, allow-list, digits,
+slug), the replacement-dependent pair on `sanitize_control_chars` (an empty
+replacement can only shrink or preserve the input, a non-empty replacement
+never shrinks it), and the filename map/trim bounds (never empty for
+non-empty input, never longer than the input). No clause compares `Str`
+values (BUG 17), none reads a `Result` payload, no clause calls another
+function, and no clause reads a parameter through a `&mut` reference.
+Nothing was dropped: all 7 entry points and all 16 planned clauses landed.

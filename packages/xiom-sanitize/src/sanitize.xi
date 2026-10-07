@@ -155,7 +155,11 @@ fn _byte_in_set(b: Int, set: Str) -> Bool {
 /// Every other byte (including UTF-8 sequences) passes through byte-exact.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn sanitize_control_chars(s: Str, replacement: Str) -> Str {
+pub fn sanitize_control_chars(s: Str, replacement: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: replacement.len() == 0 => result.len() <= s.len();
+  ensures: replacement.len() > 0 => result.len() >= s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -179,7 +183,10 @@ pub fn sanitize_control_chars(s: Str, replacement: Str) -> Str {
 /// truncated mid-character.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn sanitize_ascii(s: Str) -> Str {
+pub fn sanitize_ascii(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -203,7 +210,10 @@ pub fn sanitize_ascii(s: Str) -> Str {
 ///   4. LF preserved; all other bytes (including CR) pass through unchanged.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn sanitize_whitespace(s: Str) -> Str {
+pub fn sanitize_whitespace(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var pending = false;
@@ -237,7 +247,10 @@ pub fn sanitize_whitespace(s: Str) -> Str {
 /// dropped.
 /// Error case: none.
 /// Complexity: O(s.len() * allow.len()).
-pub fn sanitize_keep(s: Str, allow: Str) -> Str {
+pub fn sanitize_keep(s: Str, allow: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -260,7 +273,11 @@ pub fn sanitize_keep(s: Str, allow: Str) -> Str {
 /// non-ASCII bytes pass through. An empty result becomes "_".
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn sanitize_filename(s: Str) -> Str {
+pub fn sanitize_filename(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 1;
+  ensures: s.len() > 0 => result.len() >= 1;
+  ensures: s.len() > 0 => result.len() <= s.len();
+{
   var mapped = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -312,7 +329,10 @@ pub fn sanitize_filename(s: Str) -> Str {
 /// validated as a number (it may be empty or leading-zero padded).
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn sanitize_numeric(s: Str) -> Str {
+pub fn sanitize_numeric(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -333,7 +353,10 @@ pub fn sanitize_numeric(s: Str) -> Str {
 /// and trailing '-' trimmed. An input with no ASCII alphanumerics yields "".
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn sanitize_slug(s: Str) -> Str {
+pub fn sanitize_slug(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var pending_dash = false;
