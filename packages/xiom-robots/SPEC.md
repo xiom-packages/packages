@@ -1,6 +1,6 @@
 # xiom.robots -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.robots` (`src/robots.xi`). Pure XIOM, no FFI, no file I/O, no
 network fetching.
 
@@ -348,3 +348,54 @@ compiler-driven choices:
 - Errors carry no line/column numbers (the offending line text is included).
 - `robots_emit` assumes values without LF or control bytes; hand-built
   `Robots` values bypassing `robots_parse` are not validated.
+
+## Contracts (batch #34 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses were added to `src/robots.xi` in the
+batch #34 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 41 clauses over the 16 contracted public entry
+points, all `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.robots -TimeoutSec 60` runs ended
+`port: PASS (passed=29 failed=0 program_exit=0 exit=0)` with the clauses
+active (6.07 s and 6.09 s), so the probe-gated third clause of `robots_new`
+(`ensures: robots_emit(result).len() == 0;`) was kept; no clause was dropped.
+
+`xiom-verify src/robots.xi --check` (Z3 bundled with v0.64.0) reported
+**10 proven / 0 violated / 34 unknown / 19 errors**. The 19 errors are SMT
+emitter bugs on bodies that call the private helpers (`unknown constant`
+`_rb_scan_clean`, `_rb_group_span`, `_rb_agent_count`, `_rb_rule_count`,
+`_rb_glob`), not clause failures; the unknown obligations are skipped because
+the emitter cannot encode the `Str`/`Vec`/`Option` operand sorts. All 41
+clauses are enforced by the v0.64.0 runtime evaluator when the suite runs.
+"Z3-provable" below marks the ten `check-sat` blocks the SMT backend
+discharged without executing the function (the two `robots_new` count
+identities, one `robots_group_count` bound, two `robots_agent_count` clauses,
+two `robots_rule_count` clauses and all three `robots_matching_group`
+clauses); every other clause is runtime-checked.
+
+Hand-built `Robots` values stay sound under these clauses:
+`robots_group_count` claims only `>= 0` and `<= r.agent_start.len()` (the
+min-clamp over the five parallel vectors, never an equality with a hand-built
+length), and every out-of-range guard is preserved exactly as the doc
+comments describe. `robots_is_allowed` claims only the matching-group
+directions; `robots_emit` claims no exact non-empty length.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `robots_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked (`Result` tag + parameter `Str` length) |
+| `robots_new` | `robots_group_count(result) == 0`; `robots_sitemap_count(result) == 0`; `robots_emit(result).len() == 0` (probe-gated, kept) | Z3-provable (count identities); runtime-checked (probe clause) |
+| `robots_group_count` | `result >= 0`; `result <= r.agent_start.len()` | Z3-provable (lower bound); runtime-checked (min-clamp `Vec` bound) |
+| `robots_agent_count` | `group < 0 => result == 0`; `result >= 0`; `result > 0 => group >= 0 && group < r.agent_start.len()` | Z3-provable (guard pair); runtime-checked (in-range converse) |
+| `robots_agent` | `index < 0 => result.len() == 0`; `index >= robots_agent_count(r, group) => result.len() == 0`; `result.len() > 0 => index >= 0 && index < robots_agent_count(r, group)` | runtime-checked (empty-`Str` trio vs cross-call) |
+| `robots_rule_count` | `group < 0 => result == 0`; `result >= 0`; `result > 0 => group >= 0 && group < r.rule_start.len()` | Z3-provable (guard pair); runtime-checked (in-range converse) |
+| `robots_rule_path` | `index < 0 => result.len() == 0`; `index >= robots_rule_count(r, group) => result.len() == 0`; `result.len() > 0 => index >= 0 && index < robots_rule_count(r, group)` | runtime-checked (empty-`Str` trio vs cross-call) |
+| `robots_rule_allow` | `index < 0 => !result`; `index >= robots_rule_count(r, group) => !result`; `result => index >= 0 && index < robots_rule_count(r, group)` | runtime-checked (`Bool` guard trio vs cross-call) |
+| `robots_crawl_delay` | `group < 0 => result is None`; `group >= robots_group_count(r) => result is None`; `result is Some => result.value >= 0` | runtime-checked (`Option` guards + payload bound) |
+| `robots_sitemap_count` | `result == r.sitemaps.len()`; `result >= 0` | runtime-checked (`Vec` length identity) |
+| `robots_sitemap` | `index < 0 => result.len() == 0`; `index >= r.sitemaps.len() => result.len() == 0`; `result.len() > 0 => index >= 0 && index < r.sitemaps.len()` | runtime-checked (empty-`Str` trio vs `sitemaps`) |
+| `robots_path_matches` | `pattern.len() == 0 => !result`; `result => pattern.len() > 0` | runtime-checked (empty-pattern guard pair) |
+| `robots_agent_matches` | `token.len() == 0 => !result`; `result => token.len() > 0` | runtime-checked (empty-token guard pair) |
+| `robots_matching_group` | `robots_group_count(r) == 0 => result == -1`; `result >= -1`; `result != -1 => result >= 0 && result < robots_group_count(r)` | Z3-provable (sentinel trio vs count) |
+| `robots_is_allowed` | `robots_matching_group(r, user_agent) < 0 => result`; `!result => robots_matching_group(r, user_agent) >= 0` | runtime-checked (matching-group directions only) |
+| `robots_emit` | `robots_group_count(r) == 0 && r.sitemaps.len() == 0 => result.len() == 0`; `r.sitemaps.len() > 0 => result.len() > 0` | runtime-checked (empty/length guard pair) |

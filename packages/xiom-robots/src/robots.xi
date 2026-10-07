@@ -376,7 +376,10 @@ fn _rb_group_has_rules(r: &Robots, g: Int) -> Bool {
 /// Error case: see the catalog in SPEC.md; messages are deterministic and
 /// start with "robots: ".
 /// Complexity: O(total input length).
-pub fn robots_parse(text: Str) -> Result[Robots, Str] {
+pub fn robots_parse(text: Str) -> Result[Robots, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   if !_rb_scan_clean(text) {
     return _rb_err("robots: control byte in input");
   }
@@ -463,25 +466,40 @@ pub fn robots_parse(text: Str) -> Result[Robots, Str] {
 
 /// Create an empty document: no groups and no sitemaps. `robots_emit` on it
 /// returns "".
-pub fn robots_new() -> Robots {
+pub fn robots_new() -> Robots
+  ensures: robots_group_count(result) == 0;
+  ensures: robots_sitemap_count(result) == 0;
+  ensures: robots_emit(result).len() == 0;
+{
   return _rb_empty();
 }
 
 /// Number of groups in `r`. Out-of-range accessors in this module never
 /// trap: they return "" / false / None and treat bad indexes as absent.
-pub fn robots_group_count(r: &Robots) -> Int {
+pub fn robots_group_count(r: &Robots) -> Int
+  ensures: result >= 0;
+  ensures: result <= r.agent_start.len();
+{
   return _rb_group_span(r);
 }
 
 /// Number of User-agent tokens in group `group`; 0 when `group` is out of
 /// range.
-pub fn robots_agent_count(r: &Robots, group: Int) -> Int {
+pub fn robots_agent_count(r: &Robots, group: Int) -> Int
+  ensures: group < 0 => result == 0;
+  ensures: result >= 0;
+  ensures: result > 0 => group >= 0 && group < r.agent_start.len();
+{
   return _rb_agent_count(r, group);
 }
 
 /// User-agent token `index` of group `group`, verbatim (for example "*").
 /// Returns "" when either index is out of range.
-pub fn robots_agent(r: &Robots, group: Int, index: Int) -> Str {
+pub fn robots_agent(r: &Robots, group: Int, index: Int) -> Str
+  ensures: index < 0 => result.len() == 0;
+  ensures: index >= robots_agent_count(r, group) => result.len() == 0;
+  ensures: result.len() > 0 => index >= 0 && index < robots_agent_count(r, group);
+{
   let c = _rb_agent_count(r, group);
   if index < 0 || index >= c {
     return "";
@@ -493,13 +511,21 @@ pub fn robots_agent(r: &Robots, group: Int, index: Int) -> Str {
 
 /// Number of Allow/Disallow rules in group `group`; 0 when `group` is out of
 /// range.
-pub fn robots_rule_count(r: &Robots, group: Int) -> Int {
+pub fn robots_rule_count(r: &Robots, group: Int) -> Int
+  ensures: group < 0 => result == 0;
+  ensures: result >= 0;
+  ensures: result > 0 => group >= 0 && group < r.rule_start.len();
+{
   return _rb_rule_count(r, group);
 }
 
 /// Pattern of rule `index` in group `group`, verbatim (may be "" for an
 /// empty Allow/Disallow). Returns "" when either index is out of range.
-pub fn robots_rule_path(r: &Robots, group: Int, index: Int) -> Str {
+pub fn robots_rule_path(r: &Robots, group: Int, index: Int) -> Str
+  ensures: index < 0 => result.len() == 0;
+  ensures: index >= robots_rule_count(r, group) => result.len() == 0;
+  ensures: result.len() > 0 => index >= 0 && index < robots_rule_count(r, group);
+{
   let c = _rb_rule_count(r, group);
   if index < 0 || index >= c {
     return "";
@@ -511,7 +537,11 @@ pub fn robots_rule_path(r: &Robots, group: Int, index: Int) -> Str {
 
 /// True when rule `index` in group `group` is an Allow rule, false when it is
 /// a Disallow rule or either index is out of range.
-pub fn robots_rule_allow(r: &Robots, group: Int, index: Int) -> Bool {
+pub fn robots_rule_allow(r: &Robots, group: Int, index: Int) -> Bool
+  ensures: index < 0 => !result;
+  ensures: index >= robots_rule_count(r, group) => !result;
+  ensures: result => index >= 0 && index < robots_rule_count(r, group);
+{
   let c = _rb_rule_count(r, group);
   if index < 0 || index >= c {
     return false;
@@ -523,7 +553,11 @@ pub fn robots_rule_allow(r: &Robots, group: Int, index: Int) -> Bool {
 
 /// Crawl-delay of group `group`: Some(value) when recorded, None when the
 /// group has none or `group` is out of range. Value is 0..2147483647.
-pub fn robots_crawl_delay(r: &Robots, group: Int) -> Option[Int] {
+pub fn robots_crawl_delay(r: &Robots, group: Int) -> Option[Int]
+  ensures: group < 0 => result is None;
+  ensures: group >= robots_group_count(r) => result is None;
+  ensures: result is Some => result.value >= 0;
+{
   if group < 0 || group >= _rb_group_span(r) {
     return None;
   }
@@ -535,12 +569,19 @@ pub fn robots_crawl_delay(r: &Robots, group: Int) -> Option[Int] {
 }
 
 /// Number of document-global Sitemap lines recorded in `r`.
-pub fn robots_sitemap_count(r: &Robots) -> Int {
+pub fn robots_sitemap_count(r: &Robots) -> Int
+  ensures: result == r.sitemaps.len();
+  ensures: result >= 0;
+{
   return r.sitemaps.len();
 }
 
 /// Sitemap URL `index`, verbatim; "" when `index` is out of range.
-pub fn robots_sitemap(r: &Robots, index: Int) -> Str {
+pub fn robots_sitemap(r: &Robots, index: Int) -> Str
+  ensures: index < 0 => result.len() == 0;
+  ensures: index >= r.sitemaps.len() => result.len() == 0;
+  ensures: result.len() > 0 => index >= 0 && index < r.sitemaps.len();
+{
   if index < 0 || index >= r.sitemaps.len() {
     return "";
   }
@@ -605,7 +646,10 @@ fn _rb_glob(pat: Str, path: Str, anchored: Bool) -> Bool {
 /// matches only the empty path.
 /// Error case: none.
 /// Complexity: O(|path| * |pattern|) worst case.
-pub fn robots_path_matches(pattern: Str, path: Str) -> Bool {
+pub fn robots_path_matches(pattern: Str, path: Str) -> Bool
+  ensures: pattern.len() == 0 => !result;
+  ensures: result => pattern.len() > 0;
+{
   let n = pattern.len();
   if n == 0 {
     return false;
@@ -627,7 +671,10 @@ pub fn robots_path_matches(pattern: Str, path: Str) -> Bool {
 /// never matches.
 /// Error case: none.
 /// Complexity: O(|token|).
-pub fn robots_agent_matches(token: Str, user_agent: Str) -> Bool {
+pub fn robots_agent_matches(token: Str, user_agent: Str) -> Bool
+  ensures: token.len() == 0 => !result;
+  ensures: result => token.len() > 0;
+{
   let tn = token.len();
   if tn == 0 {
     return false;
@@ -661,7 +708,11 @@ pub fn robots_agent_matches(token: Str, user_agent: Str) -> Bool {
 /// so a later duplicate group is inert but preserved.
 /// Error case: none.
 /// Complexity: O(agent token count * |user_agent|).
-pub fn robots_matching_group(r: &Robots, user_agent: Str) -> Int {
+pub fn robots_matching_group(r: &Robots, user_agent: Str) -> Int
+  ensures: robots_group_count(r) == 0 => result == -1;
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 0 && result < robots_group_count(r);
+{
   let groups = _rb_group_span(r);
   var best = -1;
   var best_len = -1;
@@ -705,7 +756,10 @@ pub fn robots_matching_group(r: &Robots, user_agent: Str) -> Int {
 /// nothing; when no rule matches, the path is allowed.
 /// Error case: none.
 /// Complexity: O(rules of the selected group * |path| * |pattern|).
-pub fn robots_is_allowed(r: &Robots, user_agent: Str, path: Str) -> Bool {
+pub fn robots_is_allowed(r: &Robots, user_agent: Str, path: Str) -> Bool
+  ensures: robots_matching_group(r, user_agent) < 0 => result;
+  ensures: !result => robots_matching_group(r, user_agent) >= 0;
+{
   let g = robots_matching_group(r, user_agent);
   if g < 0 {
     return true;
@@ -767,7 +821,10 @@ fn _rb_emit_field(out: &mut Vec[UInt8], name: Str, value: Str) {
 /// documents produced by `robots_parse`; it assumes no value contains a
 /// control byte or LF (parse rejects those).
 /// Complexity: O(total output length).
-pub fn robots_emit(r: &Robots) -> Str {
+pub fn robots_emit(r: &Robots) -> Str
+  ensures: robots_group_count(r) == 0 && r.sitemaps.len() == 0 => result.len() == 0;
+  ensures: r.sitemaps.len() > 0 => result.len() > 0;
+{
   var out = Vec[UInt8].new();
   let groups = _rb_group_span(r);
   var wrote = false;
