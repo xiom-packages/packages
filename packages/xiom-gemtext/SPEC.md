@@ -1,8 +1,6 @@
 # xiom.gemtext -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.gemtext`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/gemtext.xi` (`module xiom.gemtext`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.compare`,
 `xiom.string.builder`, `xiom.convert`).
@@ -263,7 +261,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.gemtext
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=23 failed=0 program_exit=0 exit=0)`.
 
 ## 10. Known limitations
@@ -303,3 +301,44 @@ Last verified: compiler 0.61.3,
   control-byte-free by construction, so no NUL can reach the builder.
 - No `extern "C"`, no `match` on new types in the library, no inline
   lambdas, no `&struct.field` passed as `&Vec` (trap 4).
+
+## Contracts (batch #28 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/gemtext.xi` in the batch
+#28 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 31 clauses over the 11 public entry points; all
+are `ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+Two consecutive
+`& .\scripts\port.ps1 -Package xiom.gemtext -TimeoutSec 60` runs ended
+`port: PASS (passed=23 failed=0 program_exit=0 exit=0)` with the clauses
+active (6.7 s and 5.5 s); the 23-check conformance suite exercises every
+entry point -- including the empty document, out-of-range accessor indices,
+the unpaired (leniently closed) span and the canonicalization round-trips --
+and no clause trapped, so none was dropped.
+
+All clauses are runtime-checked: every clause reads a struct-field `Vec`
+length, a built `Str` length, or a `Result` tag, and no clause calls any
+function. No clause in this set is a pure-scalar guard/form/bounds shape
+verified with Z3, so none is claimed Z3-provable; all are enforced by the
+v0.64.0 runtime evaluator.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `gemtext_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked (`Result` tag + `Str` length) |
+| `gemtext_line_count` | `result == d.kinds.len()`; `result >= 0` | runtime-checked (struct-field `Vec` length) |
+| `gemtext_kind` | `i < 0 => result.len() == 0`; `i >= d.kinds.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < d.kinds.len()` | runtime-checked (sentinel triple; struct-field `Vec` length) |
+| `gemtext_text` | same triple against `d.texts` | runtime-checked (sentinel triple; struct-field `Vec` length) |
+| `gemtext_link_url` | same triple against `d.urls` | runtime-checked (sentinel triple; struct-field `Vec` length) |
+| `gemtext_link_label` | same triple against `d.labels` | runtime-checked (sentinel triple; struct-field `Vec` length) |
+| `gemtext_heading_level` | `i < 0 => result == 0`; `i >= d.levels.len() => result == 0`; `result != 0 => i >= 0 && i < d.levels.len()` | runtime-checked (sentinel triple; struct-field `Vec` length) |
+| `gemtext_preformatted_span_count` | `d.pre_ends.len() < d.pre_starts.len() => result == d.pre_ends.len()`; `d.pre_starts.len() <= d.pre_ends.len() => result == d.pre_starts.len()`; `result <= d.pre_starts.len() && result <= d.pre_ends.len()` | runtime-checked (min-of-lens pair + combined bound) |
+| `gemtext_preformatted_start` | `s < 0 => result == -1`; `s >= d.pre_starts.len() \|\| s >= d.pre_ends.len() => result == -1`; `result != -1 => s >= 0 && s < d.pre_starts.len() && s < d.pre_ends.len()` | runtime-checked (sentinel triple vs both span `Vec`s) |
+| `gemtext_preformatted_end` | `s < 0 => result == -1`; `s >= d.pre_ends.len() \|\| s >= d.pre_starts.len() => result == -1`; `result != -1 => s >= 0 && s < d.pre_ends.len() && s < d.pre_starts.len()` | runtime-checked (sentinel triple vs both span `Vec`s) |
+| `gemtext_emit` | `d.kinds.len() == 0 => result.len() == 0`; `result.len() >= d.kinds.len()`; `result.len() > 0 => d.kinds.len() > 0` | runtime-checked (built `Str` length vs struct-field length) |
+
+Deliberately not claimed: `Ok` payload reads on `gemtext_parse` (parser
+payload access is out of scope for this pass); alignment invariants between
+the seven parallel `Vec`s and heading-level range invariants (`levels` in
+1..3), because the accessors are total by design and hand-built documents
+may drift; `Str` equality anywhere (BUG 17: `.len()` only). No clause was
+dropped.

@@ -348,7 +348,10 @@ fn _classify(line: Str) -> _LineInfo {
 ///     remainder is empty or whitespace-only; <pos> is the byte offset of the
 ///     line's first byte.
 /// Complexity: O(n) over the input bytes.
-pub fn gemtext_parse(text: Str) -> Result[GemtextDoc, Str] {
+pub fn gemtext_parse(text: Str) -> Result[GemtextDoc, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   let bad = _first_control_byte(text);
   if bad >= 0 {
     let b = string.byte_at(text, bad);
@@ -426,7 +429,10 @@ pub fn gemtext_parse(text: Str) -> Result[GemtextDoc, Str] {
 /// Returns: the line count; 0 for the empty document.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gemtext_line_count(d: &GemtextDoc) -> Int {
+pub fn gemtext_line_count(d: &GemtextDoc) -> Int
+  ensures: result == d.kinds.len();
+  ensures: result >= 0;
+{
   return d.kinds.len();
 }
 
@@ -435,7 +441,11 @@ pub fn gemtext_line_count(d: &GemtextDoc) -> Int {
 /// Returns: the kind string; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gemtext_kind(d: &GemtextDoc, i: Int) -> Str {
+pub fn gemtext_kind(d: &GemtextDoc, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= d.kinds.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < d.kinds.len();
+{
   if i < 0 || i >= d.kinds.len() {
     return "";
   }
@@ -450,7 +460,11 @@ pub fn gemtext_kind(d: &GemtextDoc, i: Int) -> Str {
 /// Returns: the line text; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gemtext_text(d: &GemtextDoc, i: Int) -> Str {
+pub fn gemtext_text(d: &GemtextDoc, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= d.texts.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < d.texts.len();
+{
   if i < 0 || i >= d.texts.len() {
     return "";
   }
@@ -462,7 +476,11 @@ pub fn gemtext_text(d: &GemtextDoc, i: Int) -> Str {
 /// Returns: the URL; "" when `i` is out of range or line `i` is not a link.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gemtext_link_url(d: &GemtextDoc, i: Int) -> Str {
+pub fn gemtext_link_url(d: &GemtextDoc, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= d.urls.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < d.urls.len();
+{
   if i < 0 || i >= d.urls.len() {
     return "";
   }
@@ -474,7 +492,11 @@ pub fn gemtext_link_url(d: &GemtextDoc, i: Int) -> Str {
 /// Returns: the label; "" when `i` is out of range or line `i` is not a link.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gemtext_link_label(d: &GemtextDoc, i: Int) -> Str {
+pub fn gemtext_link_label(d: &GemtextDoc, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= d.labels.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < d.labels.len();
+{
   if i < 0 || i >= d.labels.len() {
     return "";
   }
@@ -487,7 +509,11 @@ pub fn gemtext_link_label(d: &GemtextDoc, i: Int) -> Str {
 /// a heading.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gemtext_heading_level(d: &GemtextDoc, i: Int) -> Int {
+pub fn gemtext_heading_level(d: &GemtextDoc, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= d.levels.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < d.levels.len();
+{
   if i < 0 || i >= d.levels.len() {
     return 0;
   }
@@ -501,7 +527,11 @@ pub fn gemtext_heading_level(d: &GemtextDoc, i: Int) -> Int {
 /// Returns: the span count; 0 when the document has no preformatted block.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gemtext_preformatted_span_count(d: &GemtextDoc) -> Int {
+pub fn gemtext_preformatted_span_count(d: &GemtextDoc) -> Int
+  ensures: d.pre_ends.len() < d.pre_starts.len() => result == d.pre_ends.len();
+  ensures: d.pre_starts.len() <= d.pre_ends.len() => result == d.pre_starts.len();
+  ensures: result <= d.pre_starts.len() && result <= d.pre_ends.len();
+{
   var n = d.pre_starts.len();
   if d.pre_ends.len() < n { n = d.pre_ends.len(); }
   return n;
@@ -513,7 +543,11 @@ pub fn gemtext_preformatted_span_count(d: &GemtextDoc) -> Int {
 /// range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gemtext_preformatted_start(d: &GemtextDoc, s: Int) -> Int {
+pub fn gemtext_preformatted_start(d: &GemtextDoc, s: Int) -> Int
+  ensures: s < 0 => result == -1;
+  ensures: s >= d.pre_starts.len() || s >= d.pre_ends.len() => result == -1;
+  ensures: result != -1 => s >= 0 && s < d.pre_starts.len() && s < d.pre_ends.len();
+{
   if s < 0 || s >= d.pre_starts.len() { return -1; }
   if s >= d.pre_ends.len() { return -1; }
   let v: Int = d.pre_starts[s];
@@ -528,7 +562,11 @@ pub fn gemtext_preformatted_start(d: &GemtextDoc, s: Int) -> Int {
 /// range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gemtext_preformatted_end(d: &GemtextDoc, s: Int) -> Int {
+pub fn gemtext_preformatted_end(d: &GemtextDoc, s: Int) -> Int
+  ensures: s < 0 => result == -1;
+  ensures: s >= d.pre_ends.len() || s >= d.pre_starts.len() => result == -1;
+  ensures: result != -1 => s >= 0 && s < d.pre_ends.len() && s < d.pre_starts.len();
+{
   if s < 0 || s >= d.pre_ends.len() { return -1; }
   if s >= d.pre_starts.len() { return -1; }
   let v: Int = d.pre_ends[s];
@@ -551,7 +589,11 @@ pub fn gemtext_preformatted_end(d: &GemtextDoc, s: Int) -> Int {
 /// document leaves a preformatted block open, the output keeps it open (its
 /// parse would close leniently at EOF).
 /// Complexity: O(n) over the emitted bytes.
-pub fn gemtext_emit(d: &GemtextDoc) -> Str {
+pub fn gemtext_emit(d: &GemtextDoc) -> Str
+  ensures: d.kinds.len() == 0 => result.len() == 0;
+  ensures: result.len() >= d.kinds.len();
+  ensures: result.len() > 0 => d.kinds.len() > 0;
+{
   var out = Vec[UInt8].new();
   let n = d.kinds.len();
   var in_pre = false;
