@@ -1,8 +1,6 @@
 # xiom.ble -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.ble`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/ble.xi` (`module xiom.ble`).
 Depends on `xiom.std`; the library module uses `xiom.string` only (tests add
 `xiom.test`, `xiom.io`, `xiom.string.compare` and `xiom.encoding.hex`).
@@ -376,3 +374,71 @@ Last verified: compiler 0.61.3,
   indexed `Vec[fn]` dispatch; tests call their functions directly.
 - The package declares no `extern "C"` blocks (no FFI) and no new
   dependencies; the only dependency is `xiom.std`.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/ble.xi` (compiler v0.64.0;
+no version bump): 66 clauses over the 29 public entry points. Two consecutive
+`.\scripts\port.ps1 -Package xiom.ble -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` (6.60 s and 6.54 s)
+with the clauses active and no clause trapped, so none was dropped.
+
+All 66 clauses are **runtime-checked only**; no Z3 proof was attempted in this
+pass, and every clause also holds over the hand-built negative `AdList` cases
+in the conformance suite.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `ble_parse` | `data.len() == 0 => result is Ok`; `result is Err => data.len() > 0` | runtime-checked |
+| `ble_count` | `result == l.ad_types.len()`; `result >= 0` | runtime-checked |
+| `ble_type` | `i < 0 => result == -1`; `i >= l.ad_types.len() => result == -1`; `result != -1 => i >= 0 && i < l.ad_types.len()` | runtime-checked |
+| `ble_find` | `l.ad_types.len() == 0 => result == -1`; `result != -1 => result >= 0 && result < l.ad_types.len()`; `result >= -1` | runtime-checked |
+| `ble_has` | `result == (ble_find(l, ad_type) >= 0)` (sole cross-call, safe: `ble_find` never calls `ble_has`); `l.ad_types.len() == 0 => !result` | runtime-checked |
+| `ble_data` | `i < 0 => result is Err`; `i >= l.ad_types.len() => result is Err`; `result is Ok => i >= 0 && i < l.ad_types.len()` | runtime-checked |
+| `ble_ad_size` | `i < 0 => result == -1`; `i >= l.ad_types.len() => result == -1`; `result != -1 => i >= 0 && i < l.ad_types.len()` | runtime-checked |
+| `ble_total_length` | `l.data_lengths.len() == 0 => result == 0` (single clause; hand-built negative lengths are not claimed) | runtime-checked |
+| `ble_decode_flags` | `payload.len() != 1 => result is Err`; `result is Ok => result.value >= 0 && result.value <= 255` | runtime-checked |
+| `ble_decode_tx_power` | `payload.len() != 1 => result is Err`; `result is Ok => result.value >= -128 && result.value <= 127` | runtime-checked |
+| `ble_decode_uuid16` | `payload.len() != 2 => result is Err`; `result is Ok => result.value >= 0 && result.value <= 65535` | runtime-checked |
+| `ble_decode_uuid32` | `payload.len() != 4 => result is Err`; `result is Ok => result.value >= 0 && result.value <= 4294967295` | runtime-checked |
+| `ble_decode_manufacturer_id` | `payload.len() < 2 => result is Err`; `result is Ok => result.value >= 0 && result.value <= 65535` | runtime-checked |
+| `ble_decode_slave_interval` | `payload.len() != 4 => result is Err`; `result is Ok => result.value.len() == 2` | runtime-checked |
+| `ble_ad` | `ad_type < 0 || ad_type > 255 => result is Err`; `payload.len() > 254 => result is Err`; `result is Ok => result.value.len() >= 2` | runtime-checked |
+| `ble_ad_flags` | `flags < 0 || flags > 255 => result is Err`; `result is Ok => result.value.len() == 3` | runtime-checked |
+| `ble_ad_name_short` | `name.len() == 0 => result is Err`; `name.len() > 254 => result is Err`; `result is Ok => name.len() >= 1 && name.len() <= 254` | runtime-checked |
+| `ble_ad_name_complete` | `name.len() == 0 => result is Err`; `name.len() > 254 => result is Err`; `result is Ok => name.len() >= 1 && name.len() <= 254` | runtime-checked |
+| `ble_ad_tx_power` | `dbm < -128 || dbm > 127 => result is Err`; `result is Ok => result.value.len() == 3` | runtime-checked |
+| `ble_ad_service_uuid16` | `uuid < 0 || uuid > 65535 => result is Err`; `result is Ok => result.value.len() == 4` | runtime-checked |
+| `ble_ad_service_uuid32` | `uuid < 0 || uuid > 4294967295 => result is Err`; `result is Ok => result.value.len() == 6` | runtime-checked |
+| `ble_ad_service_uuid128` | `uuid.len() != 16 => result is Err`; `result is Ok => result.value.len() == 18` | runtime-checked |
+| `ble_ad_slave_interval` | `min_units < 6 || min_units > 3200 => result is Err`; `max_units < 6 || max_units > 3200 => result is Err`; `min_units > max_units => result is Err` | runtime-checked |
+| `ble_ad_service_data16` | `uuid < 0 || uuid > 65535 => result is Err`; `payload.len() > 252 => result is Err` | runtime-checked |
+| `ble_ad_manufacturer` | `id < 0 || id > 65535 => result is Err`; `payload.len() > 252 => result is Err` | runtime-checked |
+| `ble_append_ad` | `ad_type < 0 || ad_type > 255 => result is Err`; `payload.len() > 254 => result is Err` (reads only the non-`&mut` parameters) | runtime-checked |
+| `ble_build_from` | `types.len() != payloads.len() => result is Err`; `types.len() == 0 && payloads.len() == 0 => result is Ok`; `result is Ok => types.len() == payloads.len()` | runtime-checked |
+| `ble_legacy_limit` | `result == 31` | runtime-checked |
+| `ble_validate` | `data.len() == 0 => result is Ok`; `data.len() > 31 => result is Err`; `result is Ok => data.len() <= 31` | runtime-checked |
+
+Source-shape notes pinned by the clauses:
+
+- A built AD structure is always `payload.len() + 2` bytes (length byte +
+  type byte + data), so the two fixed one-byte-data builders
+  (`ble_ad_flags`, `ble_ad_tx_power`) return exactly 3 bytes; the clause
+  proposal's shorthand `2` counted the data byte rather than the structure and
+  was refined to `== 3` to match the source (the only expression refinement;
+  no proposal was dropped).
+- `ble_ad` claims only a lower bound (`result.value.len() >= 2`) because the
+  data payload may be empty.
+- The name builders claim the accepted name-length band
+  (`1..254`) against the `Str` parameter; no clause compares a `Result`
+  payload length against a parameter.
+- `ble_has` carries the only cross-call clause in the package; `ble_find`
+  never calls `ble_has`, so the call is non-re-entrant.
+- `ble_total_length` carries exactly one clause, chosen so hand-built
+  `data_lengths` with negative entries cannot falsify it.
+- No clause reads a `&mut` parameter; `ble_append_structure` (bare
+  `&mut Vec[UInt8]`, `Unit` return) is excluded from the hardening pass and
+  remains clause-free.
+- No clause-read parameter name is shadowed by a local in its function
+  (shadowing audit); `ble_append_ad` and `ble_build_from` clauses read only
+  by-value/`&` parameters.

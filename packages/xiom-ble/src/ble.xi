@@ -164,7 +164,10 @@ fn _u32_le(data: &Vec[UInt8], off: Int) -> Int {
 /// buffer") when the type byte is present but fewer than `L - 1` data bytes
 /// remain. An empty buffer yields Ok with zero entries.
 /// Complexity: O(data.len()).
-pub fn ble_parse(data: &Vec[UInt8]) -> Result[AdList, Str] {
+pub fn ble_parse(data: &Vec[UInt8]) -> Result[AdList, Str]
+  ensures: data.len() == 0 => result is Ok;
+  ensures: result is Err => data.len() > 0;
+{
   var types = Vec[Int].new();
   var offsets = Vec[Int].new();
   var lengths = Vec[Int].new();
@@ -193,13 +196,20 @@ pub fn ble_parse(data: &Vec[UInt8]) -> Result[AdList, Str] {
 
 /// Number of parsed AD structures.
 /// Complexity: O(1).
-pub fn ble_count(l: &AdList) -> Int {
+pub fn ble_count(l: &AdList) -> Int
+  ensures: result == l.ad_types.len();
+  ensures: result >= 0;
+{
   return l.ad_types.len();
 }
 
 /// AD type byte of entry `i`, or -1 when i is negative or >= ble_count(l).
 /// Complexity: O(1).
-pub fn ble_type(l: &AdList, i: Int) -> Int {
+pub fn ble_type(l: &AdList, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= l.ad_types.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < l.ad_types.len();
+{
   if i < 0 || i >= l.ad_types.len() {
     return -1;
   }
@@ -208,7 +218,11 @@ pub fn ble_type(l: &AdList, i: Int) -> Int {
 
 /// First entry index whose AD type equals `ad_type`, or -1 when absent.
 /// Complexity: O(entries).
-pub fn ble_find(l: &AdList, ad_type: Int) -> Int {
+pub fn ble_find(l: &AdList, ad_type: Int) -> Int
+  ensures: l.ad_types.len() == 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result < l.ad_types.len();
+  ensures: result >= -1;
+{
   var i = 0;
   while i < l.ad_types.len() {
     let t: Int = l.ad_types[i];
@@ -222,7 +236,10 @@ pub fn ble_find(l: &AdList, ad_type: Int) -> Int {
 
 /// True when at least one parsed entry has AD type `ad_type`.
 /// Complexity: O(entries).
-pub fn ble_has(l: &AdList, ad_type: Int) -> Bool {
+pub fn ble_has(l: &AdList, ad_type: Int) -> Bool
+  ensures: result == (ble_find(l, ad_type) >= 0);
+  ensures: l.ad_types.len() == 0 => !result;
+{
   return ble_find(l, ad_type) >= 0;
 }
 
@@ -233,7 +250,11 @@ pub fn ble_has(l: &AdList, ad_type: Int) -> Bool {
 /// negative or >= ble_count(l); Err("ble: data out of bounds") when the
 /// recorded span does not fit `data`.
 /// Complexity: O(data length).
-pub fn ble_data(data: &Vec[UInt8], l: &AdList, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn ble_data(data: &Vec[UInt8], l: &AdList, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= l.ad_types.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < l.ad_types.len();
+{
   if i < 0 || i >= l.ad_types.len() {
     return _err_bytes("ble: index out of range");
   }
@@ -257,7 +278,11 @@ pub fn ble_data(data: &Vec[UInt8], l: &AdList, i: Int) -> Result[Vec[UInt8], Str
 /// Total encoded size of entry `i`: 1 length byte + 1 type byte + data
 /// length. Returns -1 when i is negative or >= ble_count(l).
 /// Complexity: O(1).
-pub fn ble_ad_size(l: &AdList, i: Int) -> Int {
+pub fn ble_ad_size(l: &AdList, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= l.ad_types.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < l.ad_types.len();
+{
   if i < 0 || i >= l.ad_types.len() {
     return -1;
   }
@@ -268,7 +293,9 @@ pub fn ble_ad_size(l: &AdList, i: Int) -> Int {
 /// Total encoded size of every parsed entry (the byte length the buffer
 /// would have if rebuilt with ble_build_from).
 /// Complexity: O(entries).
-pub fn ble_total_length(l: &AdList) -> Int {
+pub fn ble_total_length(l: &AdList) -> Int
+  ensures: l.data_lengths.len() == 0 => result == 0;
+{
   var total: Int = 0;
   var i = 0;
   while i < l.data_lengths.len() {
@@ -286,7 +313,10 @@ pub fn ble_total_length(l: &AdList) -> Int {
 /// Flags value (AD type 0x01): exactly 1 data byte, 0..255.
 /// Err("ble: wrong data length") when payload.len() != 1.
 /// Complexity: O(1).
-pub fn ble_decode_flags(payload: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn ble_decode_flags(payload: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: payload.len() != 1 => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 255;
+{
   if payload.len() != 1 {
     return _err_int("ble: wrong data length");
   }
@@ -297,7 +327,10 @@ pub fn ble_decode_flags(payload: &Vec[UInt8]) -> Result[Int, Str] {
 /// to -128..127.
 /// Err("ble: wrong data length") when payload.len() != 1.
 /// Complexity: O(1).
-pub fn ble_decode_tx_power(payload: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn ble_decode_tx_power(payload: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: payload.len() != 1 => result is Err;
+  ensures: result is Ok => result.value >= -128 && result.value <= 127;
+{
   if payload.len() != 1 {
     return _err_int("ble: wrong data length");
   }
@@ -311,7 +344,10 @@ pub fn ble_decode_tx_power(payload: &Vec[UInt8]) -> Result[Int, Str] {
 /// 16-bit service UUID (AD types 0x02/0x03): exactly 2 little-endian bytes,
 /// 0..65535. Err("ble: wrong data length") when payload.len() != 2.
 /// Complexity: O(1).
-pub fn ble_decode_uuid16(payload: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn ble_decode_uuid16(payload: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: payload.len() != 2 => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 65535;
+{
   if payload.len() != 2 {
     return _err_int("ble: wrong data length");
   }
@@ -321,7 +357,10 @@ pub fn ble_decode_uuid16(payload: &Vec[UInt8]) -> Result[Int, Str] {
 /// 32-bit service UUID (AD types 0x04/0x05): exactly 4 little-endian bytes,
 /// 0..4294967295. Err("ble: wrong data length") when payload.len() != 4.
 /// Complexity: O(1).
-pub fn ble_decode_uuid32(payload: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn ble_decode_uuid32(payload: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: payload.len() != 4 => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 4294967295;
+{
   if payload.len() != 4 {
     return _err_int("ble: wrong data length");
   }
@@ -332,7 +371,10 @@ pub fn ble_decode_uuid32(payload: &Vec[UInt8]) -> Result[Int, Str] {
 /// bytes; the identifier is the first 2 bytes, 0..65535. Err("ble: wrong
 /// data length") when payload.len() < 2.
 /// Complexity: O(1).
-pub fn ble_decode_manufacturer_id(payload: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn ble_decode_manufacturer_id(payload: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: payload.len() < 2 => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 65535;
+{
   if payload.len() < 2 {
     return _err_int("ble: wrong data length");
   }
@@ -344,7 +386,10 @@ pub fn ble_decode_manufacturer_id(payload: &Vec[UInt8]) -> Result[Int, Str] {
 /// Err("ble: wrong data length") when payload.len() != 4; Err("ble:
 /// connection interval min above max") when min > max.
 /// Complexity: O(1).
-pub fn ble_decode_slave_interval(payload: &Vec[UInt8]) -> Result[Vec[Int], Str] {
+pub fn ble_decode_slave_interval(payload: &Vec[UInt8]) -> Result[Vec[Int], Str]
+  ensures: payload.len() != 4 => result is Err;
+  ensures: result is Ok => result.value.len() == 2;
+{
   if payload.len() != 4 {
     return _err_ints("ble: wrong data length");
   }
@@ -370,7 +415,11 @@ pub fn ble_decode_slave_interval(payload: &Vec[UInt8]) -> Result[Vec[Int], Str] 
 /// Err("ble: payload too large") when payload.len() > 254 (the length byte
 /// counts the type byte, so 254 data bytes is the maximum).
 /// Complexity: O(payload length).
-pub fn ble_ad(ad_type: Int, payload: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn ble_ad(ad_type: Int, payload: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: ad_type < 0 || ad_type > 255 => result is Err;
+  ensures: payload.len() > 254 => result is Err;
+  ensures: result is Ok => result.value.len() >= 2;
+{
   if ad_type < 0 || ad_type > 255 {
     return _err_bytes("ble: AD type out of range");
   }
@@ -388,7 +437,10 @@ pub fn ble_ad(ad_type: Int, payload: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 /// Flags (AD type 0x01) with one flags byte, 0..255.
 /// Err("ble: flags out of range") when flags is outside 0..255.
 /// Complexity: O(1).
-pub fn ble_ad_flags(flags: Int) -> Result[Vec[UInt8], Str] {
+pub fn ble_ad_flags(flags: Int) -> Result[Vec[UInt8], Str]
+  ensures: flags < 0 || flags > 255 => result is Err;
+  ensures: result is Ok => result.value.len() == 3;
+{
   if flags < 0 || flags > 255 {
     return _err_bytes("ble: flags out of range");
   }
@@ -420,7 +472,11 @@ fn _name_ad(ad_type: Int, name: Str) -> Result[Vec[UInt8], Str] {
 /// Err("ble: empty local name") when name is empty; Err("ble: name too
 /// long") when the name exceeds 254 bytes.
 /// Complexity: O(name length).
-pub fn ble_ad_name_short(name: Str) -> Result[Vec[UInt8], Str] {
+pub fn ble_ad_name_short(name: Str) -> Result[Vec[UInt8], Str]
+  ensures: name.len() == 0 => result is Err;
+  ensures: name.len() > 254 => result is Err;
+  ensures: result is Ok => name.len() >= 1 && name.len() <= 254;
+{
   return _name_ad(8, name);
 }
 
@@ -429,14 +485,21 @@ pub fn ble_ad_name_short(name: Str) -> Result[Vec[UInt8], Str] {
 /// Err("ble: empty local name") when name is empty; Err("ble: name too
 /// long") when the name exceeds 254 bytes.
 /// Complexity: O(name length).
-pub fn ble_ad_name_complete(name: Str) -> Result[Vec[UInt8], Str] {
+pub fn ble_ad_name_complete(name: Str) -> Result[Vec[UInt8], Str]
+  ensures: name.len() == 0 => result is Err;
+  ensures: name.len() > 254 => result is Err;
+  ensures: result is Ok => name.len() >= 1 && name.len() <= 254;
+{
   return _name_ad(9, name);
 }
 
 /// TX Power Level (AD type 0x0A) in dBm, -128..127.
 /// Err("ble: TX power out of range") when dbm is outside -128..127.
 /// Complexity: O(1).
-pub fn ble_ad_tx_power(dbm: Int) -> Result[Vec[UInt8], Str] {
+pub fn ble_ad_tx_power(dbm: Int) -> Result[Vec[UInt8], Str]
+  ensures: dbm < -128 || dbm > 127 => result is Err;
+  ensures: result is Ok => result.value.len() == 3;
+{
   if dbm < -128 || dbm > 127 {
     return _err_bytes("ble: TX power out of range");
   }
@@ -449,7 +512,10 @@ pub fn ble_ad_tx_power(dbm: Int) -> Result[Vec[UInt8], Str] {
 /// little-endian on the wire.
 /// Err("ble: UUID out of range") when uuid is outside 0..65535.
 /// Complexity: O(1).
-pub fn ble_ad_service_uuid16(uuid: Int, complete: Bool) -> Result[Vec[UInt8], Str] {
+pub fn ble_ad_service_uuid16(uuid: Int, complete: Bool) -> Result[Vec[UInt8], Str]
+  ensures: uuid < 0 || uuid > 65535 => result is Err;
+  ensures: result is Ok => result.value.len() == 4;
+{
   if uuid < 0 || uuid > 65535 {
     return _err_bytes("ble: UUID out of range");
   }
@@ -465,7 +531,10 @@ pub fn ble_ad_service_uuid16(uuid: Int, complete: Bool) -> Result[Vec[UInt8], St
 /// little-endian on the wire.
 /// Err("ble: UUID out of range") when uuid is outside 0..4294967295.
 /// Complexity: O(1).
-pub fn ble_ad_service_uuid32(uuid: Int, complete: Bool) -> Result[Vec[UInt8], Str] {
+pub fn ble_ad_service_uuid32(uuid: Int, complete: Bool) -> Result[Vec[UInt8], Str]
+  ensures: uuid < 0 || uuid > 4294967295 => result is Err;
+  ensures: result is Ok => result.value.len() == 6;
+{
   if uuid < 0 || uuid > 4294967295 {
     return _err_bytes("ble: UUID out of range");
   }
@@ -483,7 +552,10 @@ pub fn ble_ad_service_uuid32(uuid: Int, complete: Bool) -> Result[Vec[UInt8], St
 /// is copied verbatim.
 /// Err("ble: 128-bit UUID must be 16 bytes") when uuid.len() != 16.
 /// Complexity: O(1).
-pub fn ble_ad_service_uuid128(uuid: &Vec[UInt8], complete: Bool) -> Result[Vec[UInt8], Str] {
+pub fn ble_ad_service_uuid128(uuid: &Vec[UInt8], complete: Bool) -> Result[Vec[UInt8], Str]
+  ensures: uuid.len() != 16 => result is Err;
+  ensures: result is Ok => result.value.len() == 18;
+{
   if uuid.len() != 16 {
     return _err_bytes("ble: 128-bit UUID must be 16 bytes");
   }
@@ -499,7 +571,11 @@ pub fn ble_ad_service_uuid128(uuid: &Vec[UInt8], complete: Bool) -> Result[Vec[U
 /// 6..3200 (7.5 ms..4 s, the spec range); Err("ble: connection interval min
 /// above max") when min_units > max_units.
 /// Complexity: O(1).
-pub fn ble_ad_slave_interval(min_units: Int, max_units: Int) -> Result[Vec[UInt8], Str] {
+pub fn ble_ad_slave_interval(min_units: Int, max_units: Int) -> Result[Vec[UInt8], Str]
+  ensures: min_units < 6 || min_units > 3200 => result is Err;
+  ensures: max_units < 6 || max_units > 3200 => result is Err;
+  ensures: min_units > max_units => result is Err;
+{
   if min_units < 6 || min_units > 3200 {
     return _err_bytes("ble: connection interval out of range");
   }
@@ -521,7 +597,10 @@ pub fn ble_ad_slave_interval(min_units: Int, max_units: Int) -> Result[Vec[UInt8
 /// Err("ble: payload too large") when payload.len() > 252 (so the length
 /// byte stays <= 255).
 /// Complexity: O(payload length).
-pub fn ble_ad_service_data16(uuid: Int, payload: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn ble_ad_service_data16(uuid: Int, payload: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: uuid < 0 || uuid > 65535 => result is Err;
+  ensures: payload.len() > 252 => result is Err;
+{
   if uuid < 0 || uuid > 65535 {
     return _err_bytes("ble: UUID out of range");
   }
@@ -540,7 +619,10 @@ pub fn ble_ad_service_data16(uuid: Int, payload: &Vec[UInt8]) -> Result[Vec[UInt
 /// Err("ble: payload too large") when payload.len() > 252 (so the length
 /// byte stays <= 255).
 /// Complexity: O(payload length).
-pub fn ble_ad_manufacturer(id: Int, payload: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn ble_ad_manufacturer(id: Int, payload: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: id < 0 || id > 65535 => result is Err;
+  ensures: payload.len() > 252 => result is Err;
+{
   if id < 0 || id > 65535 {
     return _err_bytes("ble: manufacturer ID out of range");
   }
@@ -573,7 +655,10 @@ pub fn ble_append_structure(out: &mut Vec[UInt8], ad: &Vec[UInt8]) {
 /// Err. Error cases are exactly those of ble_ad: Err("ble: AD type out of
 /// range") / Err("ble: payload too large").
 /// Complexity: O(payload length).
-pub fn ble_append_ad(out: &mut Vec[UInt8], ad_type: Int, payload: &Vec[UInt8]) -> Result[Unit, Str] {
+pub fn ble_append_ad(out: &mut Vec[UInt8], ad_type: Int, payload: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: ad_type < 0 || ad_type > 255 => result is Err;
+  ensures: payload.len() > 254 => result is Err;
+{
   let built = ble_ad(ad_type, payload);
   if !built.is_ok {
     return _err_unit(built.error);
@@ -591,7 +676,11 @@ pub fn ble_append_ad(out: &mut Vec[UInt8], ad_type: Int, payload: &Vec[UInt8]) -
 /// messages). An empty pair of vectors yields Ok(empty). The 31-byte legacy
 /// limit is not enforced here; use ble_validate on the result.
 /// Complexity: O(total payload bytes).
-pub fn ble_build_from(types: &Vec[Int], payloads: &Vec[Vec[UInt8]]) -> Result[Vec[UInt8], Str] {
+pub fn ble_build_from(types: &Vec[Int], payloads: &Vec[Vec[UInt8]]) -> Result[Vec[UInt8], Str]
+  ensures: types.len() != payloads.len() => result is Err;
+  ensures: types.len() == 0 && payloads.len() == 0 => result is Ok;
+  ensures: result is Ok => types.len() == payloads.len();
+{
   if types.len() != payloads.len() {
     return _err_bytes("ble: types/payloads length mismatch");
   }
@@ -611,7 +700,9 @@ pub fn ble_build_from(types: &Vec[Int], payloads: &Vec[Vec[UInt8]]) -> Result[Ve
 
 /// The maximum payload size of legacy BLE advertising data, in bytes (31).
 /// Complexity: O(1).
-pub fn ble_legacy_limit() -> Int {
+pub fn ble_legacy_limit() -> Int
+  ensures: result == 31;
+{
   return 31;
 }
 
@@ -622,7 +713,11 @@ pub fn ble_legacy_limit() -> Int {
 /// payload longer than 31 bytes is Err("ble: payload exceeds 31-byte legacy
 /// limit"). An empty buffer is Ok.
 /// Complexity: O(data.len()).
-pub fn ble_validate(data: &Vec[UInt8]) -> Result[Unit, Str] {
+pub fn ble_validate(data: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: data.len() == 0 => result is Ok;
+  ensures: data.len() > 31 => result is Err;
+  ensures: result is Ok => data.len() <= 31;
+{
   let r = ble_parse(data);
   if !r.is_ok {
     return _err_unit(r.error);
