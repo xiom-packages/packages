@@ -390,7 +390,10 @@ fn _fmt_time(ms: Int) -> Str {
 /// "sbv: bad timestamp shape", "sbv: timestamp out of range",
 /// "sbv: end before start", "sbv: cue without payload"; see SPEC.md.
 /// Complexity: O(input length).
-pub fn sbv_parse(text: Str) -> Result[Sbv, Str] {
+pub fn sbv_parse(text: Str) -> Result[Sbv, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() > 0;
+{
   let lines = _split_lines(text);
   return _sbv_parse_lines(&lines);
 }
@@ -402,7 +405,9 @@ pub fn sbv_parse(text: Str) -> Result[Sbv, Str] {
 /// LF. An empty track (no cues) yields "". Because a parsed cue always has
 /// at least one payload line, parsed tracks round-trip.
 /// Complexity: O(total payload lines).
-pub fn sbv_format(s: &Sbv) -> Str {
+pub fn sbv_format(s: &Sbv) -> Str
+  ensures: s.starts.len() == 0 => result.len() == 0;
+{
   var n = s.starts.len();
   if s.ends.len() < n { n = s.ends.len(); }
   if s.payload_starts.len() < n { n = s.payload_starts.len(); }
@@ -448,7 +453,11 @@ pub fn sbv_format(s: &Sbv) -> Str {
 /// Errors: "sbv: bad timestamp shape" for a malformed shape (including a
 /// wrong digit count or separator), "sbv: timestamp out of range" when
 /// minutes or seconds exceed 59.
-pub fn sbv_parse_timestamp(t: Str) -> Result[Int, Str] {
+pub fn sbv_parse_timestamp(t: Str) -> Result[Int, Str]
+  ensures: t.len() == 0 => result is Err;
+  ensures: t.len() < 11 || t.len() > 12 => result is Err;
+  ensures: result is Ok => result.value >= 0;
+{
   let ms = _timestamp_ms(t);
   if ms == -1 { return _err_int("sbv: bad timestamp shape"); }
   if ms == -2 { return _err_int("sbv: timestamp out of range"); }
@@ -460,7 +469,10 @@ pub fn sbv_parse_timestamp(t: Str) -> Result[Int, Str] {
 /// no leading zeros and grows past two digits above 99 hours (such values
 /// are accepted here but rejected on parse, so they do not round-trip; see
 /// SPEC.md).
-pub fn sbv_format_timestamp(ms: Int) -> Str {
+pub fn sbv_format_timestamp(ms: Int) -> Str
+  ensures: ms < 0 => result.len() == 11;
+  ensures: result.len() >= 11;
+{
   return _fmt_time(ms);
 }
 
@@ -485,13 +497,21 @@ fn _cue_count(s: &Sbv) -> Int {
 }
 
 /// Number of cues in the track.
-pub fn sbv_cue_count(s: &Sbv) -> Int {
+pub fn sbv_cue_count(s: &Sbv) -> Int
+  ensures: result <= s.starts.len();
+  ensures: result <= s.ends.len();
+  ensures: result >= 0;
+{
   return _cue_count(s);
 }
 
 /// Start time of cue `i` in milliseconds; -1 when `i` is negative or out of
 /// range.
-pub fn sbv_cue_start_ms(s: &Sbv, i: Int) -> Int {
+pub fn sbv_cue_start_ms(s: &Sbv, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.starts.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.starts.len();
+{
   if i < 0 { return -1; }
   if i >= s.starts.len() { return -1; }
   let x: Int = s.starts[i];
@@ -500,7 +520,11 @@ pub fn sbv_cue_start_ms(s: &Sbv, i: Int) -> Int {
 
 /// End time of cue `i` in milliseconds; -1 when `i` is negative or out of
 /// range.
-pub fn sbv_cue_end_ms(s: &Sbv, i: Int) -> Int {
+pub fn sbv_cue_end_ms(s: &Sbv, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.ends.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.ends.len();
+{
   if i < 0 { return -1; }
   if i >= s.ends.len() { return -1; }
   let x: Int = s.ends[i];
@@ -511,7 +535,11 @@ pub fn sbv_cue_end_ms(s: &Sbv, i: Int) -> Int {
 /// negative or out of range. Parsed cues always have a non-negative
 /// duration; a hand-built track with `end < start` returns the computed
 /// negative difference.
-pub fn sbv_cue_duration_ms(s: &Sbv, i: Int) -> Int {
+pub fn sbv_cue_duration_ms(s: &Sbv, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.starts.len() || i >= s.ends.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.starts.len() && i < s.ends.len();
+{
   if i < 0 { return -1; }
   if i >= s.starts.len() { return -1; }
   if i >= s.ends.len() { return -1; }
@@ -522,7 +550,11 @@ pub fn sbv_cue_duration_ms(s: &Sbv, i: Int) -> Int {
 
 /// Number of payload lines of cue `i`; 0 when `i` is negative or out of
 /// range. Parsed cues always have at least one payload line.
-pub fn sbv_cue_line_count(s: &Sbv, i: Int) -> Int {
+pub fn sbv_cue_line_count(s: &Sbv, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= s.payload_starts.len() => result == 0;
+  ensures: i >= s.payload_ends.len() => result == 0;
+{
   if i < 0 { return 0; }
   if i >= s.payload_starts.len() { return 0; }
   if i >= s.payload_ends.len() { return 0; }
@@ -538,7 +570,11 @@ pub fn sbv_cue_line_count(s: &Sbv, i: Int) -> Int {
 
 /// Payload line `j` of cue `i`, verbatim; "" when `i` or `j` is negative or
 /// out of range.
-pub fn sbv_cue_line(s: &Sbv, i: Int, j: Int) -> Str {
+pub fn sbv_cue_line(s: &Sbv, i: Int, j: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: j < 0 => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < s.payload_starts.len() && i < s.payload_ends.len() && j >= 0;
+{
   if i < 0 { return ""; }
   if i >= s.payload_starts.len() { return ""; }
   if i >= s.payload_ends.len() { return ""; }
@@ -558,7 +594,11 @@ pub fn sbv_cue_line(s: &Sbv, i: Int, j: Int) -> Str {
 
 /// Payload of cue `i` as one Str, its lines joined with "\n"; "" when the
 /// cue has no lines or `i` is negative or out of range.
-pub fn sbv_cue_text(s: &Sbv, i: Int) -> Str {
+pub fn sbv_cue_text(s: &Sbv, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= s.payload_starts.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < s.payload_starts.len() && i < s.payload_ends.len();
+{
   if i < 0 { return ""; }
   if i >= s.payload_starts.len() { return ""; }
   if i >= s.payload_ends.len() { return ""; }

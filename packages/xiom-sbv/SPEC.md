@@ -1,6 +1,6 @@
 # xiom.sbv -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.sbv` (`src/sbv.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -307,3 +307,54 @@ goes through a typed local.
 - No cue ordering, overlap or per-track duration checks.
 - A leading UTF-8 BOM is not stripped.
 - Errors carry no line/column numbers.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/sbv.xi` (compiler v0.64.0;
+no version bump): 29 clauses over the 11 public entry points (2/1/3/2/3, then
+3/3/3, then 3/3/3 in source order). Two consecutive
+`.\scripts\port.ps1 -Package xiom.sbv -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` (8.62 s and 7.30 s)
+with the clauses active and no clause trapped, so none was dropped.
+
+All 29 clauses are **runtime-checked only**. `xiom-verify src\sbv.xi --check`
+(v0.64.0, Z3 on PATH) reported **0 proven / 1 violated / 26 unknown /
+5 errors**; the lone `VIOLATED` is not a proof failure of the code: z3
+rejected the generated SMT because the emitter left local helpers unresolved
+(`unknown constant _split_lines`, `_timestamp_ms`, `_ok_int`, `_fmt_time`,
+`_cue_count`), and the tool itself reports "z3 rejected the generated SMT
+(emitter bug) -- this is not a proof failure of the code under test". The
+emitter also skips field-length and `Str`-length contracts ("equality with
+unresolved operand sort", "operator Le/Ge on non-numeric operands") and `||`
+disjunctions, so no clause is claimed Z3-provable.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `sbv_parse` | `text.len() == 0 => result is Err`; `result is Ok => text.len() > 0` | runtime-checked (`Str` param length guard; result tag) |
+| `sbv_format` | `s.starts.len() == 0 => result.len() == 0` | runtime-checked (struct-field length; built `Str` length) |
+| `sbv_parse_timestamp` | `t.len() == 0 => result is Err`; `t.len() < 11 \|\| t.len() > 12 => result is Err`; `result is Ok => result.value >= 0` | runtime-checked (`Str` param length guards; `\|\|` disjunction; `Ok` payload) |
+| `sbv_format_timestamp` | `ms < 0 => result.len() == 11`; `result.len() >= 11` | runtime-checked (built `Str` length) |
+| `sbv_cue_count` | `result <= s.starts.len()`; `result <= s.ends.len()`; `result >= 0` | runtime-checked (struct-field lengths) |
+| `sbv_cue_start_ms` | `i < 0 => result == -1`; `i >= s.starts.len() => result == -1`; `result != -1 => i >= 0 && i < s.starts.len()` | runtime-checked (pure scalar guard + struct-field length) |
+| `sbv_cue_end_ms` | `i < 0 => result == -1`; `i >= s.ends.len() => result == -1`; `result != -1 => i >= 0 && i < s.ends.len()` | runtime-checked (pure scalar guard + struct-field length) |
+| `sbv_cue_duration_ms` | `i < 0 => result == -1`; `i >= s.starts.len() \|\| i >= s.ends.len() => result == -1`; `result != -1 => i >= 0 && i < s.starts.len() && i < s.ends.len()` | runtime-checked (pure scalar guard + struct-field lengths; `\|\|` disjunction) |
+| `sbv_cue_line_count` | `i < 0 => result == 0`; `i >= s.payload_starts.len() => result == 0`; `i >= s.payload_ends.len() => result == 0` | runtime-checked (struct-field lengths) |
+| `sbv_cue_line` | `i < 0 => result.len() == 0`; `j < 0 => result.len() == 0`; `result.len() > 0 => i >= 0 && i < s.payload_starts.len() && i < s.payload_ends.len() && j >= 0` | runtime-checked (built `Str` length; struct-field lengths) |
+| `sbv_cue_text` | `i < 0 => result.len() == 0`; `i >= s.payload_starts.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < s.payload_starts.len() && i < s.payload_ends.len()` | runtime-checked (built `Str` length; struct-field lengths) |
+
+Source-shape notes pinned by the clauses:
+
+- The accepted timestamp length band is exactly `11` or `12` bytes
+  (`h:mm:ss.mmm`; the two-digit hour form is 12), so any other length is
+  `Err`, and every `Ok` timestamp value is `>= 0`.
+- `sbv_format_timestamp` writes `h:mm:ss.mmm` with no sign; the clamped
+  `ms < 0` path is exactly 11 bytes (`0:00:00.000`) and every result is
+  `>= 11` bytes.
+- `sbv_cue_count` is a minimum over the four per-cue vectors, so the clauses
+  are upper bounds only (`result <= starts.len()`, `result <= ends.len()`),
+  never a per-cue minimum link.
+- No parser payload is read: `sbv_parse` and `sbv_format` clauses read only
+  the input length and the entry vector length; `sbv_format` carries no
+  per-cue minimum claim.
+- No local shadows a clause-read parameter (shadowing audit of the batch);
+  no clause calls another function.

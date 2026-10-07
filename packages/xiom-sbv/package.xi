@@ -9,7 +9,7 @@
 
 package xiom_sbv {
   name: "xiom.sbv";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "YouTube SBV subtitle parsing, canonical formatting, and accessors";
   categories: ["media"];
   keywords: ["sbv", "subtitle", "youtube", "captions"];
