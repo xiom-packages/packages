@@ -538,7 +538,10 @@ fn _find_colon(s: Str) -> Int {
 /// malformed line.
 /// Complexity: O(total input length * key count) because duplicate detection
 /// scans the seen-path list per key line; O(total input length) with a hash.
-pub fn yaml_parse(text: Str) -> Result[YamlDoc, Str] {
+pub fn yaml_parse(text: Str) -> Result[YamlDoc, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var doc = YamlDoc{
     keys: Vec[Str].new();
     values: Vec[Str].new();
@@ -820,7 +823,9 @@ pub fn yaml_get_str_list(d: &YamlDoc, key: Str) -> Vec[Str] {
 }
 
 /// Dotted keys of every leaf entry, in document order (a fresh copy).
-pub fn yaml_keys(d: &YamlDoc) -> Vec[Str] {
+pub fn yaml_keys(d: &YamlDoc) -> Vec[Str]
+  ensures: result.len() == d.keys.len();
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < d.keys.len() {
@@ -832,6 +837,9 @@ pub fn yaml_keys(d: &YamlDoc) -> Vec[Str] {
 }
 
 /// Number of leaf entries in the document.
-pub fn yaml_key_count(d: &YamlDoc) -> Int {
+pub fn yaml_key_count(d: &YamlDoc) -> Int
+  ensures: result == d.keys.len();
+  ensures: result >= 0;
+{
   return d.keys.len();
 }

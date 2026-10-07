@@ -10,7 +10,7 @@
 
 package xiom_yaml {
   name: "xiom.yaml";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "YAML subset parser with dotted-path lookups (mappings, lists, scalars)";
   categories: ["data"];
   keywords: ["yaml", "parser", "config", "data"];

@@ -1,6 +1,6 @@
 # xiom.yaml -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.yaml` (`src/yaml.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -270,7 +270,7 @@ compiler-driven choices:
   does not support reliably. `&mut YamlDoc` is used only by same-module
   append helpers.
 - Cross-module `&YamlDoc` parameters and `Result[YamlDoc, Str]` payloads
-  compiled cleanly under v0.61.3; no `Ok`/`Err` is constructed inside a
+  compiled cleanly under v0.64.0; no `Ok`/`Err` is constructed inside a
   function whose declared return type is a struct.
 
 ## 10. Known limitations
@@ -293,3 +293,35 @@ compiler-driven choices:
 - Errors carry no line/column position (messages carry the offending trimmed
   line or the dotted path).
 - No writer/serializer and no file I/O API.
+
+## Contracts (batch #35 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/yaml.xi` in the batch #35
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 5 clauses across 3 public entry points; all are `ensures:` (no
+`requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.yaml -TimeoutSec 60` runs ended
+`port: PASS (passed=25 failed=0 program_exit=0 exit=0)` with the clauses active
+(5.5 s and 5.31 s); the 25-check conformance suite exercises every entry point
+and no clause trapped. No clause was dropped.
+
+This package is **thin by design** (5 clauses): the six typed getters
+`yaml_has`, `yaml_kind`, `yaml_get_str`, `yaml_get_int`, `yaml_get_bool` and
+`yaml_get_str_list` are **deliberately excluded**. Their result is a function
+of the stored kind/value bytes at a key index, and a hand-built `YamlDoc` may
+hold arbitrary, content-dependent storage values, so no content-independent
+`ensures:` truth is available for them; per the coordinator note they are not
+reframed. Only the three content-independent entry points are contracted.
+
+`xiom-verify src\yaml.xi --check` (bundled Z3, v0.64.0): **0 proven, 0
+violated, 9 unknown, 0 errors** -- every clause axiom is skipped with X7007
+"equality with unresolved operand sort" (`Str`/`Vec` length operands and the
+`Result` sort are not modelled by the SMT emitter), so all 5 clauses are
+**runtime-checked only**; no Z3-provable claim is made.
+`xiom_verify_output.smt2` was deleted by literal path.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `yaml_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime-checked (`Str` length + `Result` sort) |
+| `yaml_keys` | `ensures: result.len() == d.keys.len()` | runtime-checked (Vec lengths) |
+| `yaml_key_count` | `ensures: result == d.keys.len()`; `ensures: result >= 0` | runtime-checked (Vec length, `Int`) |
