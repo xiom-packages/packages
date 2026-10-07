@@ -49,35 +49,47 @@ use xiom.string;
 // --------------------------------------------------
 
 /// Body multiplier c1: 0xCC9E2D51 (3432918353). Complexity: O(1).
-pub fn murmur3_x86_32_c1() -> Int {
+pub fn murmur3_x86_32_c1() -> Int
+  ensures: result == 3432918353;
+{
   return 3432918353;
 }
 
 /// Body multiplier c2: 0x1B873593 (461845907). Complexity: O(1).
-pub fn murmur3_x86_32_c2() -> Int {
+pub fn murmur3_x86_32_c2() -> Int
+  ensures: result == 461845907;
+{
   return 461845907;
 }
 
 /// First finalization (fmix32) multiplier: 0x85EBCA6B (2246822507).
 /// Complexity: O(1).
-pub fn murmur3_x86_32_fmix_c1() -> Int {
+pub fn murmur3_x86_32_fmix_c1() -> Int
+  ensures: result == 2246822507;
+{
   return 2246822507;
 }
 
 /// Second finalization (fmix32) multiplier: 0xC2B2AE35 (3266489909).
 /// Complexity: O(1).
-pub fn murmur3_x86_32_fmix_c2() -> Int {
+pub fn murmur3_x86_32_fmix_c2() -> Int
+  ensures: result == 3266489909;
+{
   return 3266489909;
 }
 
 /// The canonical default seed: 0. Complexity: O(1).
-pub fn murmur3_x86_32_default_seed() -> Int {
+pub fn murmur3_x86_32_default_seed() -> Int
+  ensures: result == 0;
+{
   return 0;
 }
 
 /// The seed used by the smhasher VerificationTest harness: 256.
 /// Complexity: O(1).
-pub fn murmur3_x86_32_smhasher_seed() -> Int {
+pub fn murmur3_x86_32_smhasher_seed() -> Int
+  ensures: result == 256;
+{
   return 256;
 }
 
@@ -86,7 +98,9 @@ pub fn murmur3_x86_32_smhasher_seed() -> Int {
 /// little-endian concatenation of the digests of the 256 prefixes
 /// {0}, {0,1}, ... of the byte ramp 0x00..0xFF, each hashed with seed
 /// 256 - length (the smhasher VerificationTest protocol). Complexity: O(1).
-pub fn murmur3_x86_32_smhasher_value() -> Int {
+pub fn murmur3_x86_32_smhasher_value() -> Int
+  ensures: result == 2968878819;
+{
   return 2968878819;
 }
 
@@ -308,7 +322,11 @@ fn _finish(h1: Int, length: Int) -> Int {
 ///         buffer with seed 0 yields 0 (fmix32(0) = 0).
 /// Error case: none (total).
 /// Complexity: O(data.len()) time, O(1) space.
-pub fn murmur3_x86_32(data: &Vec[UInt8], seed: Int) -> Int {
+pub fn murmur3_x86_32(data: &Vec[UInt8], seed: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= 4294967295;
+  ensures: data.len() == 0 && seed == 0 => result == 0;
+{
   let body = _hash_tail(_u32(seed), data, data.len());
   return _finish(body, data.len());
 }
@@ -340,7 +358,12 @@ pub type Murmur3State = {
 /// satisfies them.
 /// Error case: none (total predicate).
 /// Complexity: O(1).
-pub fn murmur3_x86_32_state_is_valid(state: &Murmur3State) -> Bool {
+pub fn murmur3_x86_32_state_is_valid(state: &Murmur3State) -> Bool
+  ensures: state.h1 < 0 => !result;
+  ensures: state.h1 >= 4294967296 => !result;
+  ensures: state.length < 0 => !result;
+  ensures: state.tail.len() > 3 => !result;
+{
   if state.h1 < 0 {
     return false;
   }
@@ -383,7 +406,12 @@ pub fn murmur3_x86_32_init(seed: Int) -> Murmur3State {
 ///         or more than 3 tail bytes); the state is left untouched in that
 ///         case. An empty chunk is a no-op that returns Ok(()).
 /// Complexity: O(data.len()) time, O(1) extra space beyond the tail buffer.
-pub fn murmur3_x86_32_update(state: &mut Murmur3State, data: &Vec[UInt8]) -> Result[Unit, Str] {
+pub fn murmur3_x86_32_update(state: &mut Murmur3State, data: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: !murmur3_x86_32_state_is_valid(state) => result is Err;
+  ensures: murmur3_x86_32_state_is_valid(state) => result is Ok;
+  ensures: result is Ok => state.length == state.length@pre + data.len();
+  ensures: result is Err => state.length == state.length@pre;
+{
   if !murmur3_x86_32_state_is_valid(state) {
     return _err_unit("murmur3: invalid streaming state");
   }
@@ -458,7 +486,12 @@ pub fn murmur3_x86_32_update(state: &mut Murmur3State, data: &Vec[UInt8]) -> Res
 /// Error case: Err("murmur3: invalid streaming state") when the state
 ///         invariants are violated.
 /// Complexity: O(1).
-pub fn murmur3_x86_32_finalize(state: &Murmur3State) -> Result[Int, Str] {
+pub fn murmur3_x86_32_finalize(state: &Murmur3State) -> Result[Int, Str]
+  ensures: !murmur3_x86_32_state_is_valid(state) => result is Err;
+  ensures: murmur3_x86_32_state_is_valid(state) => result is Ok;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 4294967295;
+{
   if !murmur3_x86_32_state_is_valid(state) {
     return _err_int("murmur3: invalid streaming state");
   }
@@ -481,26 +514,39 @@ pub fn murmur3_x86_32_finalize(state: &Murmur3State) -> Result[Int, Str] {
 }
 
 /// The running 32-bit word h1 of a streaming state. Complexity: O(1).
-pub fn murmur3_x86_32_state_h1(state: &Murmur3State) -> Int {
+pub fn murmur3_x86_32_state_h1(state: &Murmur3State) -> Int
+  ensures: result == state.h1;
+  ensures: murmur3_x86_32_state_is_valid(state) => result >= 0;
+  ensures: murmur3_x86_32_state_is_valid(state) => result <= 4294967295;
+{
   return state.h1;
 }
 
 /// The total number of bytes fed into a streaming state so far.
 /// Complexity: O(1).
-pub fn murmur3_x86_32_state_length(state: &Murmur3State) -> Int {
+pub fn murmur3_x86_32_state_length(state: &Murmur3State) -> Int
+  ensures: result == state.length;
+  ensures: murmur3_x86_32_state_is_valid(state) => result >= 0;
+{
   return state.length;
 }
 
 /// The number of bytes currently buffered in the streaming tail (0..3).
 /// Complexity: O(1).
-pub fn murmur3_x86_32_state_tail_len(state: &Murmur3State) -> Int {
+pub fn murmur3_x86_32_state_tail_len(state: &Murmur3State) -> Int
+  ensures: result == state.tail.len();
+  ensures: result >= 0;
+  ensures: murmur3_x86_32_state_is_valid(state) => result <= 3;
+{
   let t = state.tail;
   return t.len();
 }
 
 /// The streaming tail buffered so far (0..3 bytes, in stream order), as a
 /// fresh Vec[UInt8] the caller owns. Complexity: O(1) (at most 3 bytes).
-pub fn murmur3_x86_32_state_tail(state: &Murmur3State) -> Vec[UInt8] {
+pub fn murmur3_x86_32_state_tail(state: &Murmur3State) -> Vec[UInt8]
+  ensures: result.len() == state.tail.len();
+{
   let t = state.tail;
   var out = Vec[UInt8].new();
   var i = 0;
@@ -524,7 +570,12 @@ pub fn murmur3_x86_32_state_tail(state: &Murmur3State) -> Vec[UInt8] {
 ///         Int in [0, 2^32).
 /// Error case: none (total).
 /// Complexity: O(1) (two small power-of-two loops).
-pub fn murmur3_x86_32_rotl32(x: Int, r: Int) -> Int {
+pub fn murmur3_x86_32_rotl32(x: Int, r: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= 4294967295;
+  ensures: x == 0 => result == 0;
+  ensures: x >= 0 && r % 32 == 0 => result == x % 4294967296;
+{
   let v = _u32(x);
   var rr = r % 32;
   if rr < 0 {
@@ -551,7 +602,9 @@ fn _hex_digit(n: Int) -> Str {
 /// Error case: none (total). The output contains only hex digits, so no NUL
 ///         byte can reach the string builder.
 /// Complexity: O(1).
-pub fn murmur3_x86_32_hex(value: Int) -> Str {
+pub fn murmur3_x86_32_hex(value: Int) -> Str
+  ensures: result.len() == 8;
+{
   var v = value % 4294967296;
   if v < 0 {
     v = v + 4294967296;

@@ -1,8 +1,7 @@
 # xiom.murmur3 -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.murmur3`, version `0.1.0`).
+Status: `stable` (published; harness-green on v0.64.0).
+Manifest: `package.xi` (`xiom.murmur3`, version `0.1.2`).
 Module: `src/murmur3.xi` (`module xiom.murmur3`).
 Depends on `xiom.std`; the library module imports `xiom.string` (for the
 hex display helper). The tests import `xiom.test`, `xiom.io` and
@@ -326,6 +325,47 @@ The message is deterministic; tests pin it with
 `xiom.string.compare.str_compare`. `Ok`/`Err` values are constructed only
 in the four leaf helpers (`_ok_unit`, `_err_unit`, `_ok_int`,
 `_err_int`), per the v0.61.3 rules.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checked `ensures:` clauses added to `src/murmur3.xi` (compiler
+v0.64.0; no version bump). 36 clauses across the 17 public entry points
+(1/1/1/1/1/1/1/3/4/4/4/3/2/3/1/4/1). Two consecutive
+`.\scripts\port.ps1 -Package xiom.murmur3 -TimeoutSec 60` runs ended
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` with the clauses
+active and no clause trapped, so none was dropped. Classes follow the
+batch #15 clause pre-plan: **Z3-provable** = pure scalar guard/form/bounds
+family (a Z3 candidate; literals are inlined since module consts are not
+used inside clauses); **runtime-checked** = the clause's truth depends on
+a called function, a struct field or a built `Vec`/`Str` and is enforced
+by the v0.64.0 runtime evaluator.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `murmur3_x86_32_c1` | `ensures: result == 3432918353` | Z3-provable (pure scalar) |
+| `murmur3_x86_32_c2` | `ensures: result == 461845907` | Z3-provable (pure scalar) |
+| `murmur3_x86_32_fmix_c1` | `ensures: result == 2246822507` | Z3-provable (pure scalar) |
+| `murmur3_x86_32_fmix_c2` | `ensures: result == 3266489909` | Z3-provable (pure scalar) |
+| `murmur3_x86_32_default_seed` | `ensures: result == 0` | Z3-provable (pure scalar) |
+| `murmur3_x86_32_smhasher_seed` | `ensures: result == 256` | Z3-provable (pure scalar) |
+| `murmur3_x86_32_smhasher_value` | `ensures: result == 2968878819` | Z3-provable (pure scalar) |
+| `murmur3_x86_32` | `ensures: result >= 0`; `ensures: result <= 4294967295`; `ensures: data.len() == 0 && seed == 0 => result == 0` | Z3-provable (bounds/form) |
+| `murmur3_x86_32_state_is_valid` | `ensures: state.h1 < 0 => !result`; `ensures: state.h1 >= 4294967296 => !result`; `ensures: state.length < 0 => !result`; `ensures: state.tail.len() > 3 => !result` | Z3-provable (h1/length guards); runtime-checked (tail guard) |
+| `murmur3_x86_32_update` | `ensures: !murmur3_x86_32_state_is_valid(state) => result is Err`; `ensures: murmur3_x86_32_state_is_valid(state) => result is Ok`; `ensures: result is Ok => state.length == state.length@pre + data.len()`; `ensures: result is Err => state.length == state.length@pre` | runtime-checked (guard pair and `@pre` length invariants) |
+| `murmur3_x86_32_finalize` | `ensures: !murmur3_x86_32_state_is_valid(state) => result is Err`; `ensures: murmur3_x86_32_state_is_valid(state) => result is Ok`; `ensures: result is Ok => result.value >= 0`; `ensures: result is Ok => result.value <= 4294967295` | runtime-checked (guard pair); Z3-provable (Ok scalar bounds) |
+| `murmur3_x86_32_state_h1` | `ensures: result == state.h1`; `ensures: murmur3_x86_32_state_is_valid(state) => result >= 0`; `ensures: murmur3_x86_32_state_is_valid(state) => result <= 4294967295` | runtime-checked (field identity; predicate-guarded bounds) |
+| `murmur3_x86_32_state_length` | `ensures: result == state.length`; `ensures: murmur3_x86_32_state_is_valid(state) => result >= 0` | runtime-checked (field identity; predicate-guarded bound) |
+| `murmur3_x86_32_state_tail_len` | `ensures: result == state.tail.len()`; `ensures: result >= 0`; `ensures: murmur3_x86_32_state_is_valid(state) => result <= 3` | runtime-checked (tail length identity and bound) |
+| `murmur3_x86_32_state_tail` | `ensures: result.len() == state.tail.len()` | runtime-checked (copied `Vec` length) |
+| `murmur3_x86_32_rotl32` | `ensures: result >= 0`; `ensures: result <= 4294967295`; `ensures: x == 0 => result == 0`; `ensures: x >= 0 && r % 32 == 0 => result == x % 4294967296` | Z3-provable (pure scalar) |
+| `murmur3_x86_32_hex` | `ensures: result.len() == 8` | runtime-checked (built `Str` length) |
+
+`murmur3_x86_32_init` deliberately carries no clause: its result is a
+plain struct, and struct-payload postconditions are outside the proven
+shape families (the fresh-state fields are pinned by the conformance
+suite instead). Excluded by the plan's forbidden shapes: clauses on the
+private arithmetic helpers, tuple/struct/`Result`-payload length
+comparisons, and clause calls that transitively re-enter the callee.
 
 ## 11. Test vectors
 
