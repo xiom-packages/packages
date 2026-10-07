@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T17:23:36Z",
+    "updated":  "2026-10-07T18:14:59Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -682,7 +682,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.bitfield",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Bit manipulation helpers for 64-bit Ints: extract/set fields, masks, popcount, byte swap, rotate",
@@ -692,7 +692,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bitfield/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bitfield/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "bitfield.xi",
                                               "package.xi"
@@ -3367,7 +3367,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ini",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "INI file parsing, editing, and emitting with ordered sections",
@@ -3377,7 +3377,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ini/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ini/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ini.xi",
                                               "package.xi"
@@ -3953,7 +3953,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.lexing",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Configurable tokenizer: identifiers, keywords, integers, strings, operators",
@@ -3963,7 +3963,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lexing/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lexing/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "lexing.xi",
                                               "package.xi"
@@ -7791,7 +7791,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.term",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "ANSI/VT escape handling: detect, strip, count, and visible-aware truncation",
@@ -7801,7 +7801,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-term/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-term/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "term.xi",
                                               "package.xi"
@@ -8171,7 +8171,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.tsv",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "IANA-style TSV with backslash escaping: parse and write",
@@ -8181,7 +8181,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tsv/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tsv/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "tsv.xi",
                                               "package.xi"
@@ -8586,7 +8586,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.wasm",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "WebAssembly binary module structure: LEB128, section walk, export names",
@@ -8596,7 +8596,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-wasm/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-wasm/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "wasm.xi",
                                               "package.xi"
