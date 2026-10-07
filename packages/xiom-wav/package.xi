@@ -10,7 +10,7 @@
 
 package xiom_wav {
   name: "xiom.wav";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Canonical PCM WAV (RIFF) header parsing, building, and metadata";
   categories: ["data","media"];
   keywords: ["wav","riff","audio","pcm"];

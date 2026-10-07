@@ -166,7 +166,10 @@ fn _block_align(channels: Int, bits: Int) -> Int {
 /// `f.sample_rate` is written as given (as an unsigned 32-bit field).
 /// byte_rate = sample_rate * channels * bits / 8 and block_align =
 /// channels * bits / 8.
-pub fn wav_build_pcm(pcm: &Vec[UInt8], f: &WavFormat) -> Vec[UInt8] {
+pub fn wav_build_pcm(pcm: &Vec[UInt8], f: &WavFormat) -> Vec[UInt8]
+  ensures: result.len() == pcm.len() + 44;
+  ensures: result.len() >= 44;
+{
   let channels = _clamp_channels(f.channels);
   let bits = _clamp_bits(f.bits_per_sample);
   let align = _block_align(channels, bits);
@@ -252,14 +255,20 @@ fn _parse(data: &Vec[UInt8]) -> Result[WavFormat, Str] {
 /// WavFormat reflects the stored channels / sample_rate / bits_per_sample
 /// values (a structural zero channel count or zero rate is not rejected
 /// here; the derived readers report those).
-pub fn wav_header_parse(data: &Vec[UInt8]) -> Result[WavFormat, Str] {
+pub fn wav_header_parse(data: &Vec[UInt8]) -> Result[WavFormat, Str]
+  ensures: data.len() < 44 => result is Err;
+  ensures: result is Ok => data.len() >= 44;
+{
   return _parse(data);
 }
 
 /// Copy of the data chunk bytes (the PCM payload): data_size bytes starting
 /// at offset 44. Validated with the same rules as wav_header_parse first,
 /// so any structural error is reported as Err.
-pub fn wav_pcm_data(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn wav_pcm_data(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: data.len() < 44 => result is Err;
+  ensures: result is Ok => data.len() >= 44;
+{
   let pr = _parse(data);
   if !pr.is_ok {
     return _err_bytes(pr.error);
@@ -278,7 +287,11 @@ pub fn wav_pcm_data(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 /// derived from the header as channels * bits / 8 (the stored field is not
 /// trusted). Err("wav: zero block align") when the derived align is 0 (a
 /// header with 0 channels); structural errors are reported as Err.
-pub fn wav_frame_count(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn wav_frame_count(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() < 44 => result is Err;
+  ensures: result is Ok => data.len() >= 44;
+  ensures: result is Ok => result.value >= 0;
+{
   let pr = _parse(data);
   if !pr.is_ok {
     return _err_int(pr.error);
@@ -293,7 +306,11 @@ pub fn wav_frame_count(data: &Vec[UInt8]) -> Result[Int, Str] {
 /// Duration in whole milliseconds: frames * 1000 / sample_rate (floor
 /// division). Err("wav: zero sample rate") when the stored rate is 0;
 /// structural errors are reported as Err.
-pub fn wav_duration_ms(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn wav_duration_ms(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() < 44 => result is Err;
+  ensures: result is Ok => data.len() >= 44;
+  ensures: result is Ok => result.value >= 0;
+{
   let pr = _parse(data);
   if !pr.is_ok {
     return _err_int(pr.error);
@@ -310,7 +327,10 @@ pub fn wav_duration_ms(data: &Vec[UInt8]) -> Result[Int, Str] {
 }
 
 /// True when wav_header_parse succeeds.
-pub fn wav_is_valid(data: &Vec[UInt8]) -> Bool {
+pub fn wav_is_valid(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 44 => !result;
+  ensures: result => data.len() >= 44;
+{
   let pr = _parse(data);
   return pr.is_ok;
 }
@@ -318,7 +338,12 @@ pub fn wav_is_valid(data: &Vec[UInt8]) -> Bool {
 /// Unsigned 32-bit little-endian read at `offset` (each byte contributes
 /// 0..255), for tests and tools. Err("wav: offset out of range") when
 /// `offset` is negative or `offset + 4` exceeds the buffer length.
-pub fn wav_le_u32(data: &Vec[UInt8], offset: Int) -> Result[Int, Str] {
+pub fn wav_le_u32(data: &Vec[UInt8], offset: Int) -> Result[Int, Str]
+  ensures: offset < 0 => result is Err;
+  ensures: offset + 4 > data.len() => result is Err;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 4294967295;
+{
   if offset < 0 {
     return _err_int("wav: offset out of range");
   }

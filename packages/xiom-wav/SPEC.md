@@ -217,3 +217,35 @@ Last verified: compiler 0.61.3,
   `str_compare` (BUG 17: `==` between Str values read from a `Vec` lowers
   to a pointer compare).
 - The module declares no `extern "C"` blocks (no FFI).
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses on the seven public entry points
+(18 clauses total). All clauses are enforced by the v0.64.0 runtime
+evaluator; the 22-check conformance suite passes with them active, twice
+consecutively (`port: PASS (passed=22 failed=0 program_exit=0 exit=0)`).
+
+Legend: **scalar** -- pure scalar formula over parameters/`result`
+(`Int`-valued length and value properties), a Z3-verification candidate;
+**runtime** -- needs `Vec` lengths, `Result` tags or direct `Vec` results,
+so it is enforced by the runtime evaluator only.
+
+| Entry point | Contract | Check |
+|---|---|---|
+| `wav_build_pcm` | `ensures: result.len() == pcm.len() + 44` | runtime |
+| | `ensures: result.len() >= 44` | scalar |
+| `wav_header_parse` | `ensures: data.len() < 44 => result is Err`; `ensures: result is Ok => data.len() >= 44` | scalar |
+| `wav_pcm_data` | `ensures: data.len() < 44 => result is Err`; `ensures: result is Ok => data.len() >= 44` | scalar |
+| `wav_frame_count` | `ensures: data.len() < 44 => result is Err`; `ensures: result is Ok => data.len() >= 44`; `ensures: result is Ok => result.value >= 0` | scalar |
+| `wav_duration_ms` | `ensures: data.len() < 44 => result is Err`; `ensures: result is Ok => data.len() >= 44`; `ensures: result is Ok => result.value >= 0` | scalar |
+| `wav_is_valid` | `ensures: data.len() < 44 => !result` | scalar |
+| | `ensures: result => data.len() >= 44` | runtime |
+| `wav_le_u32` | `ensures: offset < 0 => result is Err` | scalar |
+| | `ensures: offset + 4 > data.len() => result is Err` | runtime |
+| | `ensures: result is Ok => result.value >= 0`; `ensures: result is Ok => result.value <= 4294967295` | scalar |
+
+No struct-payload clauses: `WavFormat` is publicly constructible, so no
+parse-produced field invariants are asserted (no drift traps). The
+`wav_pcm_data` output length is deliberately not tied to the header size
+field (forbidden payload-vs-parameter shape). The zero-channel /
+zero-sample-rate behaviours remain documented semantics, not contracts.
