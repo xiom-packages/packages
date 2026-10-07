@@ -9,7 +9,7 @@
 
 package xiom_duration {
   name: "xiom.duration";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Strict ISO 8601 duration parsing and canonical formatting";
   categories: ["data"];
   keywords: ["duration", "iso8601", "time", "parser"];

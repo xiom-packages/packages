@@ -1,6 +1,6 @@
 # xiom.duration -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.duration` (`src/duration.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -288,3 +288,48 @@ on v0.61.3:
   (`P<max>HT...`), which the parser correctly rejects as
   `bad component order`. The fix was in the test strings; the module was
   green on the next run.
+
+## Contracts (batch #22 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses on `src/duration.xi` (hardening pass
+2026-10-07, compiler v0.64.0; no manifest change in this pass). 21 clauses
+across the 13 public entry points. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.duration -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active (9.1 s and 7.9 s); the suite exercises every entry point and no
+clause trapped. The probe-gated `duration_total_seconds` guarded exact
+formula was kept: it passed both green runs. One planned clause was refined
+before the green runs: `duration_parse`'s second clause
+`result is Err => s.len() > 0` is false for the empty input (which parses
+to `Err` with `s.len() == 0`), so it became
+`result is Ok => s.len() > 0` in the same guard-pair family.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `duration_parse` | `ensures: s.len() == 0 => result is Err`; `ensures: result is Ok => s.len() > 0`; `ensures: result is Ok => s.len() >= 3` | runtime-checked (`Str` reads; Result-sort guard) |
+| `duration_format` | `ensures: result.len() >= 3`; `ensures: d.sign < 0 => result.len() >= 4` | runtime-checked (built `Str` length) |
+| `duration_sign` | `ensures: result == d.sign` | Z3-provable (pure scalar) |
+| `duration_has_years` | `ensures: result == (d.years != 0)` | Z3-provable (pure scalar) |
+| `duration_has_months` | `ensures: result == (d.months != 0)` | Z3-provable (pure scalar) |
+| `duration_has_weeks` | `ensures: result == (d.weeks != 0)` | Z3-provable (pure scalar) |
+| `duration_has_days` | `ensures: result == (d.days != 0)` | Z3-provable (pure scalar) |
+| `duration_has_hours` | `ensures: result == (d.hours != 0)` | Z3-provable (pure scalar) |
+| `duration_has_minutes` | `ensures: result == (d.minutes != 0)` | Z3-provable (pure scalar) |
+| `duration_has_seconds` | `ensures: d.seconds != 0 => result`; `ensures: result == (d.seconds != 0 \|\| d.fraction.len() > 0)` | Z3-provable (first, pure scalar); runtime-checked (fraction read) |
+| `duration_fraction` | `ensures: result.len() == d.fraction.len()` | runtime-checked (`Str` reads) |
+| `duration_value` | `ensures: component.len() == 0 => result is Err`; `ensures: result is Ok => component.len() >= 4`; `ensures: result is Ok => component.len() <= 7` | runtime-checked (`Str` reads; Result-sort guard) |
+| `duration_total_seconds` | `ensures: (d.years != 0 \|\| d.months != 0 \|\| d.weeks != 0 \|\| d.days != 0) => result is Err`; `ensures: d.fraction.len() > 0 => result is Err`; `ensures: result is Ok && (d.sign == 1 \|\| d.sign == -1) && d.hours >= 0 && d.minutes >= 0 && d.seconds >= 0 => result.value == d.sign * (d.hours * 3600 + d.minutes * 60 + d.seconds)` | runtime-checked (Result-sort guards; fraction read; guarded Ok scalar payload formula) |
+
+The `duration_parse` Ok payload is a `Duration` struct, so its clauses are
+tag/length only; no `result.value.<field>` read appears anywhere. The
+`duration_format` minimum-length claims (`>= 3`, and `>= 4` when
+`d.sign < 0`) were verified against the source: every output starts with `P`
+or `-P`, and a zero duration appends `0D`, so no output is shorter. No
+clause uses `Str` equality (BUG 17), tuple-component access, struct-result
+payload reads, or `&mut` parameters; every numeric literal is inlined and no
+clause calls a function that wraps the callee under contract.
+
+Z3-provable = pure scalar guard/form/bounds over parameters and `result` (no
+calls, no vector/`Str` reads). Runtime-checked = the clause evaluates `Str`
+or payload reads or a Result sort through the v0.64.0 runtime evaluator;
+both classes are enforced at runtime.

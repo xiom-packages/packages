@@ -285,7 +285,11 @@ fn _duration_scan(s: Str) -> Result[Duration, Str] {
 /// otherwise (see SPEC.md section 6 for the message catalog). "P0D" is
 /// accepted; "P" and "PT" are not.
 /// Complexity: O(len(s)).
-pub fn duration_parse(s: Str) -> Result[Duration, Str] {
+pub fn duration_parse(s: Str) -> Result[Duration, Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: result is Ok => s.len() > 0;
+  ensures: result is Ok => s.len() >= 3;
+{
   return _duration_scan(s);
 }
 
@@ -310,7 +314,10 @@ fn _dur_append_component(out: Str, value: Int, designator: Str) -> Str {
 /// as d.
 /// Error case: none.
 /// Complexity: O(number of non-zero components + len(fraction)).
-pub fn duration_format(d: &Duration) -> Str {
+pub fn duration_format(d: &Duration) -> Str
+  ensures: result.len() >= 3;
+  ensures: d.sign < 0 => result.len() >= 4;
+{
   var out = "P";
   if d.sign < 0 { out = "-P"; }
   var any = false;
@@ -341,49 +348,63 @@ pub fn duration_format(d: &Duration) -> Str {
 /// Sign of a duration: -1 when it was written with "-", else 1.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn duration_sign(d: &Duration) -> Int {
+pub fn duration_sign(d: &Duration) -> Int
+  ensures: result == d.sign;
+{
   return d.sign;
 }
 
 /// True when the years component is non-zero.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn duration_has_years(d: &Duration) -> Bool {
+pub fn duration_has_years(d: &Duration) -> Bool
+  ensures: result == (d.years != 0);
+{
   return d.years != 0;
 }
 
 /// True when the months component is non-zero.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn duration_has_months(d: &Duration) -> Bool {
+pub fn duration_has_months(d: &Duration) -> Bool
+  ensures: result == (d.months != 0);
+{
   return d.months != 0;
 }
 
 /// True when the weeks component is non-zero.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn duration_has_weeks(d: &Duration) -> Bool {
+pub fn duration_has_weeks(d: &Duration) -> Bool
+  ensures: result == (d.weeks != 0);
+{
   return d.weeks != 0;
 }
 
 /// True when the days component is non-zero.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn duration_has_days(d: &Duration) -> Bool {
+pub fn duration_has_days(d: &Duration) -> Bool
+  ensures: result == (d.days != 0);
+{
   return d.days != 0;
 }
 
 /// True when the hours component is non-zero.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn duration_has_hours(d: &Duration) -> Bool {
+pub fn duration_has_hours(d: &Duration) -> Bool
+  ensures: result == (d.hours != 0);
+{
   return d.hours != 0;
 }
 
 /// True when the minutes component is non-zero.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn duration_has_minutes(d: &Duration) -> Bool {
+pub fn duration_has_minutes(d: &Duration) -> Bool
+  ensures: result == (d.minutes != 0);
+{
   return d.minutes != 0;
 }
 
@@ -391,7 +412,10 @@ pub fn duration_has_minutes(d: &Duration) -> Bool {
 /// fractional-second digits (PT0.5S has no seconds value but has seconds).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn duration_has_seconds(d: &Duration) -> Bool {
+pub fn duration_has_seconds(d: &Duration) -> Bool
+  ensures: d.seconds != 0 => result;
+  ensures: result == (d.seconds != 0 || d.fraction.len() > 0);
+{
   if d.seconds != 0 { return true; }
   return d.fraction.len() > 0;
 }
@@ -400,7 +424,9 @@ pub fn duration_has_seconds(d: &Duration) -> Bool {
 /// PT0.05S); "" when the duration has no fraction.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn duration_fraction(d: &Duration) -> Str {
+pub fn duration_fraction(d: &Duration) -> Str
+  ensures: result.len() == d.fraction.len();
+{
   return d.fraction;
 }
 
@@ -412,7 +438,11 @@ pub fn duration_fraction(d: &Duration) -> Str {
 /// duration_fraction for it.
 /// Error case: see above.
 /// Complexity: O(len(component)).
-pub fn duration_value(d: &Duration, component: Str) -> Result[Int, Str] {
+pub fn duration_value(d: &Duration, component: Str) -> Result[Int, Str]
+  ensures: component.len() == 0 => result is Err;
+  ensures: result is Ok => component.len() >= 4;
+  ensures: result is Ok => component.len() <= 7;
+{
   if compare.str_compare(component, "years") == 0 { return _int_ok(d.years); }
   if compare.str_compare(component, "months") == 0 { return _int_ok(d.months); }
   if compare.str_compare(component, "weeks") == 0 { return _int_ok(d.weeks); }
@@ -435,7 +465,11 @@ pub fn duration_value(d: &Duration, component: Str) -> Result[Int, Str] {
 /// overflow: <canonical>") when the total would not fit a signed 64-bit Int.
 /// Error case: see above.
 /// Complexity: O(len(component digits) + len(fraction)).
-pub fn duration_total_seconds(d: &Duration) -> Result[Int, Str] {
+pub fn duration_total_seconds(d: &Duration) -> Result[Int, Str]
+  ensures: (d.years != 0 || d.months != 0 || d.weeks != 0 || d.days != 0) => result is Err;
+  ensures: d.fraction.len() > 0 => result is Err;
+  ensures: result is Ok && (d.sign == 1 || d.sign == -1) && d.hours >= 0 && d.minutes >= 0 && d.seconds >= 0 => result.value == d.sign * (d.hours * 3600 + d.minutes * 60 + d.seconds);
+{
   if d.years != 0 || d.months != 0 || d.weeks != 0 || d.days != 0 {
     return _int_err("duration: has date components: " + duration_format(d));
   }
