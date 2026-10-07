@@ -120,68 +120,94 @@ fn _ok_walk(v: QoiWalk) -> Result[QoiWalk, Str] { return Ok(v); }
 // implementation applies (at the worst-case 5 bytes per pixel this is about
 // 2 GB). It is enforced on the header before width*height is formed, so the
 // product cannot overflow the 64-bit Int and any op count stays inside it.
-pub fn qoi_max_pixels() -> Int {
+pub fn qoi_max_pixels() -> Int
+  ensures: result == 400000000;
+{
   return 400000000;
 }
 
 // Fixed header size in bytes: magic 4 + width 4 + height 4 + channels 1 +
 // colorspace 1.
-pub fn qoi_header_size() -> Int {
+pub fn qoi_header_size() -> Int
+  ensures: result == 14;
+{
   return 14;
 }
 
 // End-marker size in bytes: seven 0x00 bytes followed by a single 0x01.
-pub fn qoi_end_marker_size() -> Int {
+pub fn qoi_end_marker_size() -> Int
+  ensures: result == 8;
+{
   return 8;
 }
 
 // Op kind code for an explicit RGB op, 0xFE.
-pub fn qoi_kind_rgb() -> Int {
+pub fn qoi_kind_rgb() -> Int
+  ensures: result == 0;
+{
   return 0;
 }
 
 // Op kind code for an explicit RGBA op, 0xFF.
-pub fn qoi_kind_rgba() -> Int {
+pub fn qoi_kind_rgba() -> Int
+  ensures: result == 1;
+{
   return 1;
 }
 
 // Op kind code for an INDEX op, tag 0x00..0x3F.
-pub fn qoi_kind_index() -> Int {
+pub fn qoi_kind_index() -> Int
+  ensures: result == 2;
+{
   return 2;
 }
 
 // Op kind code for a DIFF op, tag 0x40..0x7F.
-pub fn qoi_kind_diff() -> Int {
+pub fn qoi_kind_diff() -> Int
+  ensures: result == 3;
+{
   return 3;
 }
 
 // Op kind code for a LUMA op, tag 0x80..0xBF.
-pub fn qoi_kind_luma() -> Int {
+pub fn qoi_kind_luma() -> Int
+  ensures: result == 4;
+{
   return 4;
 }
 
 // Op kind code for a RUN op, tag 0xC0..0xFD.
-pub fn qoi_kind_run() -> Int {
+pub fn qoi_kind_run() -> Int
+  ensures: result == 5;
+{
   return 5;
 }
 
 // Flag bit for ops whose payload carries explicit channel bytes (RGB, RGBA).
-pub fn qoi_flag_raw() -> Int {
+pub fn qoi_flag_raw() -> Int
+  ensures: result == 1;
+{
   return 1;
 }
 
 // Flag bit for ops that reference the rolling index (INDEX).
-pub fn qoi_flag_index() -> Int {
+pub fn qoi_flag_index() -> Int
+  ensures: result == 2;
+{
   return 2;
 }
 
 // Flag bit for ops that carry signed deltas (DIFF, LUMA).
-pub fn qoi_flag_delta() -> Int {
+pub fn qoi_flag_delta() -> Int
+  ensures: result == 4;
+{
   return 4;
 }
 
 // Flag bit for ops that repeat the previous pixel (RUN).
-pub fn qoi_flag_run() -> Int {
+pub fn qoi_flag_run() -> Int
+  ensures: result == 8;
+{
   return 8;
 }
 
@@ -458,7 +484,10 @@ fn _record_error(s: &QoiStream, i: Int) -> Str {
 ///      bytes that are not 7 * 0x00 + 0x01 -> "qoi: bad end marker"; bytes
 ///      after a valid marker -> "qoi: trailing data".
 /// Complexity: O(input bytes).
-pub fn qoi_parse(data: &Vec[UInt8]) -> Result[QoiStream, Str] {
+pub fn qoi_parse(data: &Vec[UInt8]) -> Result[QoiStream, Str]
+  ensures: data.len() < 14 => result is Err;
+  ensures: result is Ok => data.len() >= 23;
+{
   let n = data.len();
   if (n < 4) { return _err_stream("qoi: truncated header"); }
   if (!_magic_is(data)) { return _err_stream("qoi: bad magic"); }
@@ -502,52 +531,71 @@ pub fn qoi_parse(data: &Vec[UInt8]) -> Result[QoiStream, Str] {
 
 /// Width in pixels from the parsed header (1..400000000).
 /// Complexity: O(1).
-pub fn qoi_width(s: &QoiStream) -> Int {
+pub fn qoi_width(s: &QoiStream) -> Int
+  ensures: result == s.width;
+{
   return s.width;
 }
 
 /// Height in rows from the parsed header (1..400000000).
 /// Complexity: O(1).
-pub fn qoi_height(s: &QoiStream) -> Int {
+pub fn qoi_height(s: &QoiStream) -> Int
+  ensures: result == s.height;
+{
   return s.height;
 }
 
 /// Header channels byte: 3 = RGB, 4 = RGBA.
 /// Complexity: O(1).
-pub fn qoi_channels(s: &QoiStream) -> Int {
+pub fn qoi_channels(s: &QoiStream) -> Int
+  ensures: result == s.channels;
+{
   return s.channels;
 }
 
 /// Header colorspace byte: 0 = sRGB with linear alpha, 1 = all channels
 /// linear.
 /// Complexity: O(1).
-pub fn qoi_colorspace(s: &QoiStream) -> Int {
+pub fn qoi_colorspace(s: &QoiStream) -> Int
+  ensures: result == s.colorspace;
+{
   return s.colorspace;
 }
 
 /// Byte offset of the first op / end marker (always qoi_header_size(), 14).
 /// Complexity: O(1).
-pub fn qoi_data_offset(s: &QoiStream) -> Int {
+pub fn qoi_data_offset(s: &QoiStream) -> Int
+  ensures: result == 14;
+{
   return 14;
 }
 
 /// Total decoded pixels implied by the header: width * height.
 /// Complexity: O(1).
-pub fn qoi_pixel_count(s: &QoiStream) -> Int {
+pub fn qoi_pixel_count(s: &QoiStream) -> Int
+  ensures: result == s.width * s.height;
+{
   return s.width * s.height;
 }
 
 /// Number of op records (each record covers 1 op; a RUN record may cover up
 /// to 62 pixels).
 /// Complexity: O(1).
-pub fn qoi_op_count(s: &QoiStream) -> Int {
+pub fn qoi_op_count(s: &QoiStream) -> Int
+  ensures: result == s.op_kind.len();
+  ensures: result >= 0;
+{
   return s.op_kind.len();
 }
 
 /// Kind code of op `i` (qoi_kind_*), or -1 when `i` is outside the record
 /// range.
 /// Complexity: O(1).
-pub fn qoi_op_kind(s: &QoiStream, i: Int) -> Int {
+pub fn qoi_op_kind(s: &QoiStream, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.op_kind.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.op_kind.len();
+{
   if (i < 0 || i >= s.op_kind.len()) { return -1; }
   let k: Int = s.op_kind[i];
   return k;
@@ -557,7 +605,12 @@ pub fn qoi_op_kind(s: &QoiStream, i: Int) -> Int {
 /// INDEX, qoi_flag_delta() for DIFF/LUMA, qoi_flag_run() for RUN; -1 when
 /// `i` is outside the record range or the stored kind is not in the catalog.
 /// Complexity: O(1).
-pub fn qoi_op_flags(s: &QoiStream, i: Int) -> Int {
+pub fn qoi_op_flags(s: &QoiStream, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.op_kind.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.op_kind.len();
+  ensures: result == -1 || result == 1 || result == 2 || result == 4 || result == 8;
+{
   let k = qoi_op_kind(s, i);
   if (k == 0 || k == 1) { return qoi_flag_raw(); }
   if (k == 2) { return qoi_flag_index(); }
@@ -569,7 +622,11 @@ pub fn qoi_op_flags(s: &QoiStream, i: Int) -> Int {
 /// Absolute byte offset of op `i`'s tag byte in the buffer passed to
 /// qoi_parse, or -1 when `i` is outside the record range.
 /// Complexity: O(1).
-pub fn qoi_op_offset(s: &QoiStream, i: Int) -> Int {
+pub fn qoi_op_offset(s: &QoiStream, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.op_offset.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.op_offset.len();
+{
   if (i < 0 || i >= s.op_offset.len()) { return -1; }
   let v: Int = s.op_offset[i];
   return v;
@@ -578,7 +635,11 @@ pub fn qoi_op_offset(s: &QoiStream, i: Int) -> Int {
 /// Byte span of op `i` including the tag (1, 2, 4 or 5), or -1 when `i` is
 /// outside the record range.
 /// Complexity: O(1).
-pub fn qoi_op_span(s: &QoiStream, i: Int) -> Int {
+pub fn qoi_op_span(s: &QoiStream, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.op_span.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.op_span.len();
+{
   if (i < 0 || i >= s.op_span.len()) { return -1; }
   let v: Int = s.op_span[i];
   return v;
@@ -587,7 +648,11 @@ pub fn qoi_op_span(s: &QoiStream, i: Int) -> Int {
 /// Payload slot a of op `i` (see SPEC.md for the per-kind slot table), or -1
 /// when the slot is unused or `i` is outside the record range.
 /// Complexity: O(1).
-pub fn qoi_op_a(s: &QoiStream, i: Int) -> Int {
+pub fn qoi_op_a(s: &QoiStream, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.op_a.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.op_a.len();
+{
   if (i < 0 || i >= s.op_a.len()) { return -1; }
   let v: Int = s.op_a[i];
   return v;
@@ -596,7 +661,11 @@ pub fn qoi_op_a(s: &QoiStream, i: Int) -> Int {
 /// Payload slot b of op `i`, or -1 when the slot is unused or `i` is outside
 /// the record range.
 /// Complexity: O(1).
-pub fn qoi_op_b(s: &QoiStream, i: Int) -> Int {
+pub fn qoi_op_b(s: &QoiStream, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.op_b.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.op_b.len();
+{
   if (i < 0 || i >= s.op_b.len()) { return -1; }
   let v: Int = s.op_b[i];
   return v;
@@ -605,7 +674,11 @@ pub fn qoi_op_b(s: &QoiStream, i: Int) -> Int {
 /// Payload slot c of op `i`, or -1 when the slot is unused or `i` is outside
 /// the record range.
 /// Complexity: O(1).
-pub fn qoi_op_c(s: &QoiStream, i: Int) -> Int {
+pub fn qoi_op_c(s: &QoiStream, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.op_c.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.op_c.len();
+{
   if (i < 0 || i >= s.op_c.len()) { return -1; }
   let v: Int = s.op_c[i];
   return v;
@@ -614,7 +687,11 @@ pub fn qoi_op_c(s: &QoiStream, i: Int) -> Int {
 /// Payload slot d of op `i`, or -1 when the slot is unused or `i` is outside
 /// the record range.
 /// Complexity: O(1).
-pub fn qoi_op_d(s: &QoiStream, i: Int) -> Int {
+pub fn qoi_op_d(s: &QoiStream, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.op_d.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.op_d.len();
+{
   if (i < 0 || i >= s.op_d.len()) { return -1; }
   let v: Int = s.op_d[i];
   return v;
@@ -623,7 +700,11 @@ pub fn qoi_op_d(s: &QoiStream, i: Int) -> Int {
 /// Run length (1..62) when op `i` is a RUN op, otherwise -1 (including an
 /// out-of-range `i`).
 /// Complexity: O(1).
-pub fn qoi_run_length(s: &QoiStream, i: Int) -> Int {
+pub fn qoi_run_length(s: &QoiStream, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.op_a.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.op_a.len();
+{
   if (qoi_op_kind(s, i) != 5) { return -1; }
   if (i < 0 || i >= s.op_a.len()) { return -1; }
   let v: Int = s.op_a[i];
@@ -643,7 +724,9 @@ pub fn qoi_run_length(s: &QoiStream, i: Int) -> Int {
 /// For any buffer qoi_parse accepts, the result is byte-identical to the
 /// input.
 /// Complexity: O(emitted bytes).
-pub fn qoi_emit(s: &QoiStream) -> Result[Vec[UInt8], Str] {
+pub fn qoi_emit(s: &QoiStream) -> Result[Vec[UInt8], Str]
+  ensures: result is Ok => result.value.len() >= 23;
+{
   if (!_records_parallel(s)) { return _err_bytes("qoi: invalid record"); }
   if (!_header_ok(s)) { return _err_bytes("qoi: invalid record"); }
   let total = s.width * s.height;
@@ -720,7 +803,11 @@ pub fn qoi_emit(s: &QoiStream) -> Result[Vec[UInt8], Str] {
 /// This is a documented integer checksum of op kinds, not a pixel hash and
 /// not a cryptographic digest; it uses only Int arithmetic (no Float64).
 /// Complexity: O(op count).
-pub fn qoi_walk(s: &QoiStream) -> Result[QoiWalk, Str] {
+pub fn qoi_walk(s: &QoiStream) -> Result[QoiWalk, Str]
+  ensures: result is Ok => s.width > 0 && s.height > 0 && s.width * s.height <= 400000000;
+  ensures: result is Ok => s.op_kind.len() >= 1;
+  ensures: s.op_kind.len() == 0 && s.width > 0 && s.height > 0 => result is Err;
+{
   if (!_records_parallel(s)) { return _err_walk("qoi: invalid record"); }
   if (!_header_ok(s)) { return _err_walk("qoi: invalid record"); }
   let total = s.width * s.height;

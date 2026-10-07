@@ -8,7 +8,7 @@
 
 package xiom_qoi {
   name: "xiom.qoi";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "QOI image chunk-stream codec: header, flat op records, validation, canonical re-emit";
   categories: ["graphics"];
   keywords: ["qoi", "image", "codec", "format"];

@@ -1,5 +1,7 @@
 # xiom.qoi SPEC
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 ## Scope
 
 Pure-XIOM parsing, validation, record access and canonical re-emission of the
@@ -201,6 +203,63 @@ where `kind_i` is the kind code of op `i`. This is a documented integer
 checksum of the op-kind sequence (order-sensitive, additive, masked to 32
 bits), not a pixel hash and not a cryptographic digest; it uses Int
 arithmetic only (no Float64).
+
+## Contracts (batch #33 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/qoi.xi` in the batch #33
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator
+at integration). 55 clauses across the 32 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.qoi -TimeoutSec 60` runs
+ended `port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the
+clauses active (7.39 s and 7.66 s); the 20-check conformance suite passes
+with the clauses active and no clause trapped. No clause cross-calls
+another function: every bound is written with inline literals, so the
+runtime evaluator never re-enters a callee under contract.
+
+"Z3-provable" marks the scalar-shape family the SMT backend can discharge
+without executing the function (pure scalar guards/sentinels, comparisons of
+`result` against `Int`-typed `QoiStream` fields or `.len()` counts);
+runtime-checked clauses observe a `Result` tag or compare vector lengths,
+and all are enforced by the v0.64.0 runtime evaluator.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `qoi_max_pixels` | `ensures: result == 400000000` | Z3-provable (pure scalar) |
+| `qoi_header_size` | `ensures: result == 14` | Z3-provable (pure scalar) |
+| `qoi_end_marker_size` | `ensures: result == 8` | Z3-provable (pure scalar) |
+| `qoi_kind_rgb` ... `qoi_kind_run` (6) | one `ensures: result == 0/1/2/3/4/5` per reader | Z3-provable (pure scalar) |
+| `qoi_flag_raw` ... `qoi_flag_run` (4) | one `ensures: result == 1/2/4/8` per reader | Z3-provable (pure scalar) |
+| `qoi_parse` | `ensures: data.len() < 14 => result is Err`; `ensures: result is Ok => data.len() >= 23` | Z3-provable (pure scalar guard); runtime-checked (`Result` tag + `Vec` length) |
+| `qoi_width` / `qoi_height` / `qoi_channels` / `qoi_colorspace` | one `ensures: result == s.<field>` per reader | Z3-provable (pure scalar) |
+| `qoi_data_offset` | `ensures: result == 14` | Z3-provable (pure scalar) |
+| `qoi_pixel_count` | `ensures: result == s.width * s.height` | Z3-provable (pure scalar) |
+| `qoi_op_count` | `ensures: result == s.op_kind.len()`; `ensures: result >= 0` | Z3-provable (scalar-shape count) |
+| `qoi_op_kind` / `qoi_op_offset` / `qoi_op_span` / `qoi_op_a` / `qoi_op_b` / `qoi_op_c` / `qoi_op_d` (7 readers) | per reader: `i < 0 => result == -1`; `i >= s.<vec>.len() => result == -1`; `result != -1 => i >= 0 && i < s.<vec>.len()` | Z3-provable (scalar-shape sentinel vs. the reader's own vector) |
+| `qoi_op_flags` | the same `-1` trio against `s.op_kind.len()` plus `ensures: result == -1 \|\| result == 1 \|\| result == 2 \|\| result == 4 \|\| result == 8` | Z3-provable (scalar-shape sentinel + inline catalog) |
+| `qoi_run_length` | `i < 0 => result == -1`; `i >= s.op_a.len() => result == -1`; `result != -1 => i >= 0 && i < s.op_a.len()` | Z3-provable (scalar-shape sentinel) |
+| `qoi_emit` | `ensures: result is Ok => result.value.len() >= 23` | runtime-checked (`Result` tag + `Vec` length) |
+| `qoi_walk` | `ensures: result is Ok => s.width > 0 && s.height > 0 && s.width * s.height <= 400000000`; `ensures: result is Ok => s.op_kind.len() >= 1`; `ensures: s.op_kind.len() == 0 && s.width > 0 && s.height > 0 => result is Err` | runtime-checked (`Result` tag + parameter arithmetic) |
+
+Source-shape notes pinned by the clauses:
+
+- The sentinel families are one-way claims: an in-range entry of a hand-built
+  `QoiStream` may legitimately hold `-1` (the unused-slot value), so no
+  clause claims that an in-range index yields a non-sentinel; the third
+  clause is the contrapositive "a non-sentinel result implies an in-range
+  index". `qoi_run_length`'s `-1` guard mirrors the source's own
+  `s.op_a.len()` check after the kind test.
+- `qoi_op_flags`'s membership clause inlines the class catalog (`-1`, `1`,
+  `2`, `4`, `8`) rather than calling `qoi_flag_*`, so it links no module
+  constant and re-enters no callee.
+- `qoi_parse`'s Ok bound is the structural minimum buffer: 14 header bytes +
+  at least one op byte + 8 end-marker bytes; `qoi_emit`'s Ok bound is the
+  same minimum on the emitted side.
+- `qoi_walk`'s Ok guards pin the header domain `qoi_parse` establishes
+  (positive dimensions inside the 400,000,000-pixel cap) and that a
+  successful walk consumed at least one record; the third clause is the
+  hand-built-stream guard: zero records with positive dimensions can only
+  be `Err` (header failure or `qoi: pixel count mismatch`).
 
 ## Error catalog
 
