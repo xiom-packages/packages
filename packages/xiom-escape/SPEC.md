@@ -1,6 +1,6 @@
 # xiom.escape -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.escape` (`src/escape.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -247,3 +247,33 @@ The implementation follows the proven v0.61.3 idioms:
 - `Str` equality uses `xiom.string.compare.str_compare` (BUG 17).
 - Byte scanning uses `xiom.string.byte_at`, which returns raw bytes
   (round-14 semantics), so UTF-8 sequences are handled without decoding.
+
+## Contracts (batch #25 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/escape.xi` in the batch #25
+hardening pass (compiler v0.64.0; no version bump): 18 clauses across the
+7 public entry points. Two consecutive
+`.\scripts\port.ps1 -Package xiom.escape -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (9.02 s and 9.04 s). The 20-check conformance suite exercises all
+7 entry points with the clauses active; none trapped.
+
+All clauses are `ensures:`; no `requires:` was added, so the accepted-input
+domain is unchanged. Every clause observes a `Str`/`Vec` length or a `Result`
+tag, so none is a pure-scalar arithmetic claim and all 18 are runtime-checked
+by the v0.64.0 evaluator (none Z3-provable).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `escape_json_string` | `s.len() == 0 => result.len() == 0`; `result.len() >= s.len()`; `result.len() <= 6 * s.len()` | runtime-checked (Str length bounds; worst case `\u00XX`) |
+| `unescape_json_string` | `s.len() == 0 => result is Ok`; `result is Err => s.len() >= 1` | runtime-checked (Result tag + guard) |
+| `escape_html` | `s.len() == 0 => result.len() == 0`; `result.len() >= s.len()`; `result.len() <= 6 * s.len()` | runtime-checked (Str length bounds; worst case `&quot;`/`&apos;`) |
+| `unescape_html` | `s.len() == 0 => result.len() == 0`; `result.len() <= s.len()` | runtime-checked (decoding never grows) |
+| `escape_url_component` | `s.len() == 0 => result.len() == 0`; `result.len() >= s.len()`; `result.len() <= 3 * s.len()` | runtime-checked (Str length bounds; worst case `%XX`) |
+| `unescape_url_component` | `s.len() == 0 => result is Ok`; `result is Err => s.len() >= 1` | runtime-checked (Result tag + guard) |
+| `escape_shell_double` | `s.len() == 0 => result.len() == 0`; `result.len() >= s.len()`; `result.len() <= 2 * s.len()` | runtime-checked (Str length bounds; worst case backslash-doubling) |
+
+Deliberately not claimed: no payload-length-vs-parameter clause on the two
+`Result` unescapers (`unescape_json_string`, `unescape_url_component`); no
+`Str` equality; no clause calls another function (no transitive-callee clause
+calls); no vector indexing, tuple-component access or struct payload reads.

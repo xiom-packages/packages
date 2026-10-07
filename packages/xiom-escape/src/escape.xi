@@ -141,7 +141,11 @@ fn _push_utf8(out: &mut Vec[UInt8], code: Int) {
 /// (both are legal raw in JSON).
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn escape_json_string(s: Str) -> Str {
+pub fn escape_json_string(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() >= s.len();
+  ensures: result.len() <= 6 * s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -184,7 +188,10 @@ pub fn escape_json_string(s: Str) -> Str {
 /// sequence, truncated unicode escape, invalid unicode escape, lone
 /// surrogate, null escape not supported. See SPEC.md for the catalog.
 /// Complexity: O(s.len()).
-pub fn unescape_json_string(s: Str) -> Result[Str, Str] {
+pub fn unescape_json_string(s: Str) -> Result[Str, Str]
+  ensures: s.len() == 0 => result is Ok;
+  ensures: result is Err => s.len() >= 1;
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -261,7 +268,11 @@ pub fn unescape_json_string(s: Str) -> Result[Str, Str] {
 /// passes through.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn escape_html(s: Str) -> Str {
+pub fn escape_html(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() >= s.len();
+  ensures: result.len() <= 6 * s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -345,7 +356,10 @@ fn _numeric_code(body: Str) -> Int {
 /// byte at a time, so `&amp;lt;` decodes to `&lt;` and not to `<`.
 /// Error case: none (lenient by design; see SPEC.md).
 /// Complexity: O(s.len()).
-pub fn unescape_html(s: Str) -> Str {
+pub fn unescape_html(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -436,7 +450,11 @@ fn _is_unreserved(b: Int) -> Bool {
 /// Non-ASCII text is encoded per UTF-8 byte (e.g. "é" -> "%C3%A9").
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn escape_url_component(s: Str) -> Str {
+pub fn escape_url_component(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() >= s.len();
+  ensures: result.len() <= 3 * s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -463,7 +481,10 @@ pub fn escape_url_component(s: Str) -> Str {
 /// Error case: Err("escape: ...") - truncated percent escape (fewer than two
 /// bytes after `%`), invalid percent escape (non-hex digit). See SPEC.md.
 /// Complexity: O(s.len()).
-pub fn unescape_url_component(s: Str) -> Result[Str, Str] {
+pub fn unescape_url_component(s: Str) -> Result[Str, Str]
+  ensures: s.len() == 0 => result is Ok;
+  ensures: result is Err => s.len() >= 1;
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -500,7 +521,11 @@ pub fn unescape_url_component(s: Str) -> Result[Str, Str] {
 /// quotes, `!` history expansion and newline handling are out of scope
 /// (see SPEC.md).
 /// Complexity: O(s.len()).
-pub fn escape_shell_double(s: Str) -> Str {
+pub fn escape_shell_double(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() >= s.len();
+  ensures: result.len() <= 2 * s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;

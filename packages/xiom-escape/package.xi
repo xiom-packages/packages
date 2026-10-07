@@ -9,7 +9,7 @@
 
 package xiom_escape {
   name: "xiom.escape";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "String escaping and unescaping for JSON, HTML, and URL contexts";
   categories: ["text-nlp", "data"];
   keywords: ["escape", "unescape", "json", "html", "url"];
