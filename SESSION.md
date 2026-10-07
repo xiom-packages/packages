@@ -14,6 +14,25 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-07 17:40Z (batch #22 COMPLETE + PUBLISHED `eco-v0.1.71`; compiler main has m209+m210; grpc staged; supersedes the 17:25Z block below):**
+- **Batch #22 DONE + PUBLISHED (`eco-v0.1.71`, run `37659795241` SUCCESS; all six live):**
+  `fletcher` 0.1.2 (40 clauses; 22/22), `can` 0.1.3 (38; 22/22), `midi` 0.1.3 (22; 24/24),
+  `netstring` 0.1.3 (32; 21/21), `l10n.number` 0.1.2 (15; 30/30), `duration` 0.1.2 (21; 22/22);
+  all x2 green on v0.64.0. Feats: `c06f4fdb`, `a14419ec`, `10334223`, `2e1e6c3f`, `e6a05892`,
+  `676fc4cb`; records: `443f37f3`, `66fc6feb`, `3dfee04e`, `5e97c4c5`, `d0c9b43c`, `f20d99d3`;
+  wrap `323ed7cd`. **~163 zero-clause stable carriers remain** (next rescan: pbm 477 is smallest).
+- **Compiler:** main now carries m209 (tuple-ref destructure binds component refs) + m210
+  (`Vec[Struct].clone()` keeps the element type; `d7fe6df6`, our struct-clone relay); still
+  unpushed; no v0.64.1 archive. PER USER RELAY: at the next pin the never-destructure rule and
+  the clone-avoidance workaround can be dropped -- verify with the m209/m210 probes at repin
+  FIRST. Recorded in docs/COMPILER-FINDINGS.md.
+- **grpc** still STAGED (`95442d71`, 36/36 x2 on the candidate); record + publish held for the
+  official v0.64.1 archive.
+- **Next session priority:** batch #23 (rescan; next six smallest after duration -- pbm, cookie,
+  dimacs, scheduler, eml, ...), and the item-2 grpc flow if the v0.64.1 archive landed.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-07 17:25Z (batch #21 COMPLETE + PUBLISHED `eco-v0.1.70`; compiler m209 landed on main; grpc staged for the official pin; supersedes the 17:05Z block below):**
 - **Batch #21 DONE + PUBLISHED (`eco-v0.1.70`, run `37657205663` SUCCESS; all six live at 0.1.2):**
   `translation` 0.1.2 (16 clauses; 22/22), `ean` 0.1.2 (42; 20/20), `cidr` 0.1.2 (27; 22/22),
@@ -1290,25 +1309,24 @@ running). Check `git log -1 --format=%h %s` before starting.
    category harmonization = owner decision; (d) keep the port watchdog
    discipline.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 17:25Z)
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 17:40Z)
 
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
-Read SESSION.md first -- the 2026-10-07 17:25Z STATE block is the live handoff.
+Read SESSION.md first -- the 2026-10-07 17:40Z STATE block is the live handoff.
 Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
 NO XIOM_RUNTIME_DIR needed (runtime-link + crypto-link RESOLVED; workaround retired).
-Validate 519/0; guard 504/464/40/0. Batches #19-#21 published (eco-v0.1.68/.69/.70, 18
-packages live at 0.1.2); ~169 zero-clause stable carriers remain. `option` stays
-excluded (documented all-unasserted). `xiom.grpc` is STAGED (`95442d71`: named-constant
-arms + direct tuple reads; 36/36 x2 on the v0.64.1 candidate) -- record + publish held
-for the official v0.64.1 archive, NOT released yet (compiler main `ad94b4f1` unpushed,
-now incl. m209 tuple-ref destructure; check `gh release list --repo xiom-lang/xiom`).
-Open findings for the next release: Vec[Struct].clone() 0xC0000005; io.list_dir
-last-name-repeated; io.xi:943 unreproduced (all in docs/COMPILER-FINDINGS.md +
-docs/STDLIB-WISHLIST.md).
+Validate 519/0; guard 504/464/40/0. Batches #19-#22 published (eco-v0.1.68-.71, 24
+packages live); ~163 zero-clause stable carriers remain. `option` stays excluded.
+`xiom.grpc` is STAGED (`95442d71`: named-constant arms + direct tuple reads; 36/36 x2 on
+the v0.64.1 candidate) -- record + publish held for the official v0.64.1 archive, NOT
+released yet (check `gh release list --repo xiom-lang/xiom`). Compiler main (unpushed)
+carries m202/m206/m209/m210: grpc probes green, tuple-ref destructure fixed, Vec[Struct]
+clone fixed. PER USER RELAY: at the NEXT pin the never-destructure-a-tuple-ref rule and
+the clone-avoidance workaround can be DROPPED -- verify with the probes at repin first.
 
 Start: git fetch; git status -sb; git log -1; then
   $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
@@ -1318,33 +1336,35 @@ Then do, in order:
 1. IF the official v0.64.1 archive is released: repin per docs/MAINTENANCE.md
    (SHA256-verify, deploy to xiom.new, bump COMPILER_VERSION, status.ps1 -Action repin),
    then re-test ONLY the open findings on the official install: grpc probe_suite_min/
-   probe_direct (expect GREEN), docs/repro/struct-clone/ (expect RED -- stays open),
+   probe_direct (expect GREEN), docs/repro/struct-clone/ (expect GREEN now, m210),
    docs/repro/tuple-vec-set/ (green), %TEMP%\kilo\retest-listdir.xi (expect RED --
-   last-name repeated), the io.xi:943 scratch multi-module probe (green/unreproduced),
-   and (new) a ref-destructure probe for m209 (reuse the grpc metadata scan shape or a
-   scratch Vec[(Str,Str)] scan; expect fixed). If grpc is green: run
-   `port.ps1 -Package xiom.grpc` x2 on the official install, record 36/36 with
-   `-RunBy task:...` on the REAL commit sha, then publish it in the next eco tag
-   (generate_index, report, validate, guard, export-namespaces, tag, approve the
-   registry-publish gate, watch, live-verify). If the archive is NOT out: skip to
-   batch #22 and re-check at the wrap.
-2. Hardening batch #22 (FAN-OUT): rescan zero-clause stable carriers
-   (`scripts/contract-coverage.ps1`), skip `option`; next six smallest (fletcher, can,
-   midi, netstring, l10n.number, duration at the 17:05Z scan; verify) via a read-only
-   explore pre-plan; per-package background `task` porters (brief template
-   %TEMP%\kilo\batch21-porter-brief.md; port x2; bracket scan; SPEC Contracts + header
+   last-name repeated, stdlib), the io.xi:943 scratch probe (unreproduced), plus a
+   ref-destructure probe for m209 (e.g. the grpc metadata scan shape; expect GREEN).
+   If grpc is green: run `port.ps1 -Package xiom.grpc` x2 on the official install,
+   record 36/36 with `-RunBy task:...` on the REAL commit sha, then publish it in the
+   next eco tag (generate_index, report, validate, guard, export-namespaces, tag,
+   approve the registry-publish gate, watch, live-verify). On a fully green repin,
+   update the porter brief templates + SESSION carry-forwards to DROP the tuple-ref
+   destructure and clone-avoidance rules. If the archive is NOT out: skip to batch #23
+   and re-check at the wrap.
+2. Hardening batch #23 (FAN-OUT): rescan zero-clause stable carriers
+   (`scripts/contract-coverage.ps1`), skip `option`; next six smallest (pbm 477 is the
+   current smallest after duration; verify with the sizing scan) via a read-only explore
+   pre-plan; per-package background `task` porters (brief template
+   %TEMP%\kilo\batch22-porter-brief.md; port x2; bracket scan; SPEC Contracts + header
    sync; NO git; NO shared files; explicit-path cleanup); coordinator integrates
-   (port x2, 0.1.2 bump, feat commit exact files, record with real sha +
-   `-RunBy task:ses_...`); wrap + publish the next eco tag. Transient GitHub 500s on
-   push: wait ~60-90s and retry.
+   (port x2, patch bump -- check CURRENT version per package, feat commit exact files,
+   record with real sha + `-RunBy task:ses_...`); wrap + publish the next eco tag.
+   Transient GitHub 500s on push: wait ~60-90s and retry.
 3. PULSE support: triage new `docs/PACKAGE-WISHLIST.md` rows from consumer reports
-   (none new at 17:25Z); new package names need an allowlist append + one ops scope relay.
+   (none new at 17:40Z); new package names need an allowlist append + one ops scope relay.
 4. Carry-forwards: `-TimeoutSec 60` watchdog (raise per package); port x2 + byte-level
    bracket scan on every touched package; SPEC headers synced when touched; bump ONLY
    when source changes; `xiom-verify` writes `xiom_verify_output.smt2` to the CWD (run it
    with the package dir as CWD and clean by literal path); never use `Vec[(Str,Str)]` in
    clause shapes; never read `&mut` params bare (C-PULSE-04); never destructure
-   `let (k,v) = &vec[i]` over tuple elements (ptrtoint'd addresses; use `vec[i].0`);
+   `let (k,v) = &vec[i]` over tuple elements UNTIL the v0.64.1 repin re-test passes (then
+   drop this rule per the user relay); same for the Vec[Struct].clone() avoidance;
    update SESSION.md at the wrap with a fresh paste prompt.
 ```
 
