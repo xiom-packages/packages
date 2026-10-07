@@ -311,7 +311,11 @@ fn _mime_ext_of_type(m: Str) -> Str {
 /// input (e.g. "" or "; charset=utf-8").
 /// Error case: none.
 /// Complexity: O(m.len()).
-pub fn mime_normalize(m: Str) -> Str {
+pub fn mime_normalize(m: Str) -> Str
+  ensures: m.len() == 0 => result.len() == 0;
+  ensures: result.len() > 0 => m.len() > 0;
+  ensures: result.len() <= m.len();
+{
   let trimmed = _mime_trim(m);
   let lowered = _mime_lower(trimmed);
   let cut = _mime_semicolon_cut(lowered);
@@ -326,7 +330,11 @@ pub fn mime_normalize(m: Str) -> Str {
 /// leading dots are stripped before the lookup.
 /// Error case: none.
 /// Complexity: O(table_size + ext.len()).
-pub fn mime_type_for_extension(ext: Str) -> Str {
+pub fn mime_type_for_extension(ext: Str) -> Str
+  ensures: ext.len() == 0 => result.len() == 24;
+  ensures: result.len() >= 8;
+  ensures: result.len() <= 73;
+{
   let e = _mime_strip_leading_dots(_mime_lower(_mime_trim(ext)));
   if e.len() == 0 {
     return "application/octet-stream";
@@ -341,7 +349,11 @@ pub fn mime_type_for_extension(ext: Str) -> Str {
 /// mime_normalize, so "Text/HTML; charset=utf-8" yields "html".
 /// Error case: none.
 /// Complexity: O(table_size + m.len()).
-pub fn mime_extension_for(m: Str) -> Str {
+pub fn mime_extension_for(m: Str) -> Str
+  ensures: m.len() == 0 => result.len() == 0;
+  ensures: result.len() <= 7;
+  ensures: result.len() == 0 || result.len() >= 2;
+{
   let norm = mime_normalize(m);
   if norm.len() == 0 {
     return "";
@@ -354,7 +366,10 @@ pub fn mime_extension_for(m: Str) -> Str {
 /// Returns: true when mime_normalize(m) starts with "text/".
 /// Error case: none.
 /// Complexity: O(m.len()).
-pub fn mime_is_text(m: Str) -> Bool {
+pub fn mime_is_text(m: Str) -> Bool
+  ensures: m.len() < 5 => !result;
+  ensures: result => m.len() >= 5;
+{
   return _mime_has_prefix(mime_normalize(m), "text/");
 }
 
@@ -363,7 +378,10 @@ pub fn mime_is_text(m: Str) -> Bool {
 /// Returns: true when mime_normalize(m) starts with "image/".
 /// Error case: none.
 /// Complexity: O(m.len()).
-pub fn mime_is_image(m: Str) -> Bool {
+pub fn mime_is_image(m: Str) -> Bool
+  ensures: m.len() < 6 => !result;
+  ensures: result => m.len() >= 6;
+{
   return _mime_has_prefix(mime_normalize(m), "image/");
 }
 
@@ -372,7 +390,10 @@ pub fn mime_is_image(m: Str) -> Bool {
 /// Returns: true when mime_normalize(m) starts with "audio/".
 /// Error case: none.
 /// Complexity: O(m.len()).
-pub fn mime_is_audio(m: Str) -> Bool {
+pub fn mime_is_audio(m: Str) -> Bool
+  ensures: m.len() < 6 => !result;
+  ensures: result => m.len() >= 6;
+{
   return _mime_has_prefix(mime_normalize(m), "audio/");
 }
 
@@ -381,7 +402,10 @@ pub fn mime_is_audio(m: Str) -> Bool {
 /// Returns: true when mime_normalize(m) starts with "video/".
 /// Error case: none.
 /// Complexity: O(m.len()).
-pub fn mime_is_video(m: Str) -> Bool {
+pub fn mime_is_video(m: Str) -> Bool
+  ensures: m.len() < 6 => !result;
+  ensures: result => m.len() >= 6;
+{
   return _mime_has_prefix(mime_normalize(m), "video/");
 }
 
@@ -391,7 +415,10 @@ pub fn mime_is_video(m: Str) -> Bool {
 /// includes the unknown-extension fallback "application/octet-stream".
 /// Error case: none.
 /// Complexity: O(m.len()).
-pub fn mime_is_application(m: Str) -> Bool {
+pub fn mime_is_application(m: Str) -> Bool
+  ensures: m.len() < 12 => !result;
+  ensures: result => m.len() >= 12;
+{
   return _mime_has_prefix(mime_normalize(m), "application/");
 }
 
@@ -401,6 +428,8 @@ pub fn mime_is_application(m: Str) -> Bool {
 /// always mime_extension_for-independent: it is table.len() / 2.
 /// Error case: none.
 /// Complexity: O(table_size).
-pub fn mime_type_count() -> Int {
+pub fn mime_type_count() -> Int
+  ensures: result == 82;
+{
   return _mime_table().len() / 2;
 }

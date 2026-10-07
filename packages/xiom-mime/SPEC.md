@@ -1,6 +1,6 @@
 # xiom.mime -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.mime` (`src/mime.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -235,3 +235,42 @@ locals before use.
 - Fresh `Str` values are built with `xiom.string.builder.sb_to_str`; slices
   use `xiom.string.str_slice`.
 - No `Ok`/`Err` is constructed anywhere (no `Result`-returning API).
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/mime.xi` (compiler
+v0.64.0; no version bump). 20 clauses across the nine public entry points
+(3/3/3/2/2/2/2/2/1). Every function is total and returns `Str`, `Bool` or
+`Int` only, so there is no error channel: no `requires:` clauses and no
+`Result` shapes. All clauses are positive-form guard-pairs, exact formulas
+or bounds. All table-derived constants (24, 8, 73, 7, 2, 82) are inline
+literals; the private `_mime_*` helpers and module consts are never
+referenced inside a clause. Two consecutive
+`.\scripts\port.ps1 -Package xiom.mime -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active and no clause trapped (13.08 s / 12.06 s).
+
+Classes: **Z3-provable** = pure scalar formula (the plan's Z class; literals
+inlined); **runtime-checked** = the clause's truth depends on a called
+`_mime_*` helper or a built/sliced `Str` and is enforced by the v0.64.0
+runtime evaluator.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `mime_normalize` | `ensures: m.len() == 0 => result.len() == 0`; `ensures: result.len() > 0 => m.len() > 0`; `ensures: result.len() <= m.len()` | Runtime-checked (empty-in/empty-out guard pair; trim/lower/slice/trim never extends the string) |
+| `mime_type_for_extension` | `ensures: ext.len() == 0 => result.len() == 24`; `ensures: result.len() >= 8`; `ensures: result.len() <= 73` | Runtime-checked (octet-stream fallback is 24; shortest curated type "text/csv" is 8; longest is pptx at 73) |
+| `mime_extension_for` | `ensures: m.len() == 0 => result.len() == 0`; `ensures: result.len() <= 7`; `ensures: result.len() == 0 \|\| result.len() >= 2` | Runtime-checked (normalize("") is ""; longest primary extension "parquet" is 7; shortest primaries "js"/"md"/… are 2) |
+| `mime_is_text` | `ensures: m.len() < 5 => !result`; `ensures: result => m.len() >= 5` | Runtime-checked (prefix "text/" needs 5 bytes and normalize only shortens) |
+| `mime_is_image` | `ensures: m.len() < 6 => !result`; `ensures: result => m.len() >= 6` | Runtime-checked (prefix "image/" needs 6 bytes) |
+| `mime_is_audio` | `ensures: m.len() < 6 => !result`; `ensures: result => m.len() >= 6` | Runtime-checked (prefix "audio/" needs 6 bytes) |
+| `mime_is_video` | `ensures: m.len() < 6 => !result`; `ensures: result => m.len() >= 6` | Runtime-checked (prefix "video/" needs 6 bytes) |
+| `mime_is_application` | `ensures: m.len() < 12 => !result`; `ensures: result => m.len() >= 12` | Runtime-checked (prefix "application/" needs 12 bytes) |
+| `mime_type_count` | `ensures: result == 82` | Z3-provable (pure scalar; `table.len() / 2`, pinned to the 82-entry table in section 3.5) |
+
+The bounds mirror the curated table (section 4): the fallback and every
+mapped media type are 8..73 bytes, and every primary extension is 2..7
+bytes. Excluded by rule: `Str`-content comparisons (BUG 17), calls to the
+contract callee's own wrappers (the class checks call `mime_normalize`, so
+no clause on them calls back into the module), and `Result`/tuple/struct
+payload shapes (none exist). The 22-check suite exercises every entry point,
+including empty and parameter-only inputs, with the clauses active.
