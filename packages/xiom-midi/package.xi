@@ -9,7 +9,7 @@
 
 package xiom_midi {
   name: "xiom.midi";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Standard MIDI File structure: header, track chunks, variable-length quantities, event counts";
   categories: ["data","media"];
   keywords: ["midi","music","binary","events"];

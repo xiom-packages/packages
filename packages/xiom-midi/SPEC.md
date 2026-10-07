@@ -1,8 +1,6 @@
 # xiom.midi -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.midi`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/midi.xi` (`module xiom.midi`).
 Depends on `xiom.std` (the library module imports nothing; the tests use
 `xiom.test`, `xiom.io`, `xiom.string` and `xiom.string.compare`).
@@ -269,8 +267,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.midi
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=24 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0,
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the hardening
+contracts active (see Contracts below).
 
 ## Known limitations
 
@@ -303,3 +302,46 @@ Last verified: compiler 0.61.3,
 - Vec reads are bound to typed locals (`let off: Int = tracks.offsets[i]`)
   before comparison or arithmetic.
 - The module declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #22 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/midi.xi` in the batch #22
+hardening pass (compiler v0.64.0; the coordinator bumps `package.xi` to
+0.1.3 at integration; no `requires:` clauses -- every entry point is a total
+function or a documented parser). 22 clauses across all 8 public entry
+points, each placed directly after the signature (two-space indent, before
+`{`). Two consecutive
+`.\scripts\port.ps1 -Package xiom.midi -TimeoutSec 60` runs ended
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses
+active (11.6 s and 9.8 s); the 24-check conformance suite exercises every
+entry point on the success and the rejection paths, and none trapped.
+
+`xiom-verify --check` (Z3 on v0.64.0) result: **0 proven / 0 violated /
+22 unknown / 15 errors**. Every clause is runtime-checked: the emitter skips
+each contract axiom because `&Vec[UInt8]` parameter reads have unresolved
+sort (`Lt on non-numeric operands (sorts None/Some("Int"))`) and the
+`is Ok`/`is Err` discriminants do not lower, so no clause has a solver
+check. The 15 errors are emitter artifacts (unknown constants `_tag_is`,
+`_header_kind`, `_be_u16`, `_ok_int`, `_err_pair`, `_walk_events` in the
+generated SMT), not violations of the code under test. No clause was
+machine-falsified, and none was dropped.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `midi_is_file` | `ensures: data.len() < 4 => !result`; `ensures: result => data.len() >= 4` | runtime-checked (2/2) |
+| `midi_format` | `ensures: data.len() < 14 => result is Err`; `ensures: result is Ok => data.len() >= 14`; `ensures: result is Ok => result.value >= 0 && result.value <= 2` | runtime-checked (3/3) |
+| `midi_track_count` | `ensures: data.len() < 14 => result is Err`; `ensures: result is Ok => data.len() >= 14`; `ensures: result is Ok => result.value >= 0 && result.value <= 65535` | runtime-checked (3/3) |
+| `midi_division` | `ensures: data.len() < 14 => result is Err`; `ensures: result is Ok => data.len() >= 14`; `ensures: result is Ok => result.value >= -32768 && result.value <= 32767` | runtime-checked (3/3) |
+| `midi_varlen` | `ensures: off < 0 => result is Err`; `ensures: off >= data.len() => result is Err`; `ensures: result is Ok => off >= 0 && off < data.len()` | runtime-checked (3/3) |
+| `midi_track_chunks` | `ensures: data.len() < 14 => result is Err`; `ensures: result is Ok => data.len() >= 14` | runtime-checked (2/2) |
+| `midi_track_event_count` | `ensures: data.len() < 14 => result is Err`; `ensures: track_index < 0 => result is Err`; `ensures: result is Ok => result.value >= 0` | runtime-checked (3/3) |
+| `midi_note_events` | `ensures: data.len() < 14 => result is Err`; `ensures: track_index < 0 => result is Err`; `ensures: result is Ok => track_index >= 0` | runtime-checked (3/3) |
+
+The scalar `Ok` bounds mirror the source exactly (`_be_u16` gives 0..65535
+for the format/track-count reads; the signed decode gives -32768..32767 for
+`midi_division`; the format gate `f > 2` gives 0..2). The `Ok` tuple
+payloads of `midi_varlen`/`midi_note_events` and the `Ok(MidiTracks)`
+struct payload of `midi_track_chunks` are deliberately unobservable:
+tag-only clauses are used, with no tuple-component access, no struct-field
+access and no payload-length-vs-parameter check. No clause uses `Str`
+equality (BUG 17) or a bare `&mut` parameter.

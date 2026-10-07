@@ -130,7 +130,10 @@ fn _header_kind(data: &Vec[UInt8]) -> Int {
 /// (77 84 104 100). Only the tag is checked: a bare 4-byte prefix returns
 /// true, trailing bytes are not inspected and the rest of the header is not
 /// validated. False for fewer than 4 bytes.
-pub fn midi_is_file(data: &Vec[UInt8]) -> Bool {
+pub fn midi_is_file(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 4 => !result;
+  ensures: result => data.len() >= 4;
+{
   if data.len() < 4 {
     return false;
   }
@@ -143,7 +146,11 @@ pub fn midi_is_file(data: &Vec[UInt8]) -> Bool {
 /// Err("midi: bad MThd magic") for a wrong tag,
 /// Err("midi: bad header length") when the declared chunk length is not 6,
 /// Err("midi: invalid format") when the stored value is above 2.
-pub fn midi_format(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn midi_format(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() < 14 => result is Err;
+  ensures: result is Ok => data.len() >= 14;
+  ensures: result is Ok => result.value >= 0 && result.value <= 2;
+{
   let k = _header_kind(data);
   if k == 1 {
     return _err_int("midi: truncated header");
@@ -165,7 +172,11 @@ pub fn midi_format(data: &Vec[UInt8]) -> Result[Int, Str] {
 /// declared by the header; `midi_track_chunks` additionally walks the file
 /// and reports Err("midi: track count mismatch") when the number of "MTrk"
 /// chunks differs. Header errors are the same catalog as `midi_format`.
-pub fn midi_track_count(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn midi_track_count(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() < 14 => result is Err;
+  ensures: result is Ok => data.len() >= 14;
+  ensures: result is Ok => result.value >= 0 && result.value <= 65535;
+{
   let k = _header_kind(data);
   if k == 1 {
     return _err_int("midi: truncated header");
@@ -186,7 +197,11 @@ pub fn midi_track_count(data: &Vec[UInt8]) -> Result[Int, Str] {
 ///     high byte is a negative frames-per-second code (-24, -25, -29 or
 ///     -30) and the low byte is ticks per frame.
 /// Header errors are the same catalog as `midi_format`.
-pub fn midi_division(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn midi_division(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() < 14 => result is Err;
+  ensures: result is Ok => data.len() >= 14;
+  ensures: result is Ok => result.value >= -32768 && result.value <= 32767;
+{
   let k = _header_kind(data);
   if k == 1 {
     return _err_int("midi: truncated header");
@@ -214,7 +229,11 @@ pub fn midi_division(data: &Vec[UInt8]) -> Result[Int, Str] {
 /// past the end of `data`; Err("midi: overlong varlen") when four bytes all
 /// carry the continuation flag. Non-minimal encodings (leading 0x80 groups)
 /// are accepted, matching the usual MIDI readers.
-pub fn midi_varlen(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str] {
+pub fn midi_varlen(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str]
+  ensures: off < 0 => result is Err;
+  ensures: off >= data.len() => result is Err;
+  ensures: result is Ok => off >= 0 && off < data.len();
+{
   if off < 0 {
     return _err_pair("midi: negative offset");
   }
@@ -248,7 +267,10 @@ pub fn midi_varlen(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str] {
 /// length extends past the end of `data`;
 /// Err("midi: track count mismatch") when the walked count differs from the
 /// header field. Zero-length chunks and zero declared tracks are valid.
-pub fn midi_track_chunks(data: &Vec[UInt8]) -> Result[MidiTracks, Str] {
+pub fn midi_track_chunks(data: &Vec[UInt8]) -> Result[MidiTracks, Str]
+  ensures: data.len() < 14 => result is Err;
+  ensures: result is Ok => data.len() >= 14;
+{
   let k = _header_kind(data);
   if k == 1 {
     return _err_tracks("midi: truncated header");
@@ -424,7 +446,11 @@ fn _walk_events(data: &Vec[UInt8], track_index: Int, mode: Int) -> Result[(Int, 
 /// Err("midi: track index out of range") for an index outside
 /// 0..track_count-1, and Err("midi: truncated event") for any event read
 /// that would cross the track end.
-pub fn midi_track_event_count(data: &Vec[UInt8], track_index: Int) -> Result[Int, Str] {
+pub fn midi_track_event_count(data: &Vec[UInt8], track_index: Int) -> Result[Int, Str]
+  ensures: data.len() < 14 => result is Err;
+  ensures: track_index < 0 => result is Err;
+  ensures: result is Ok => result.value >= 0;
+{
   let r = _walk_events(data, track_index, 0);
   if !r.is_ok {
     return _err_int(r.error);
@@ -441,6 +467,10 @@ pub fn midi_track_event_count(data: &Vec[UInt8], track_index: Int) -> Result[Int
 /// not counted. Errors: the header/chunk catalog plus
 /// Err("midi: track index out of range") and
 /// Err("midi: truncated event").
-pub fn midi_note_events(data: &Vec[UInt8], track_index: Int) -> Result[(Int, Int), Str] {
+pub fn midi_note_events(data: &Vec[UInt8], track_index: Int) -> Result[(Int, Int), Str]
+  ensures: data.len() < 14 => result is Err;
+  ensures: track_index < 0 => result is Err;
+  ensures: result is Ok => track_index >= 0;
+{
   return _walk_events(data, track_index, 1);
 }
