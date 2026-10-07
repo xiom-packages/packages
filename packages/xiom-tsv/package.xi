@@ -10,7 +10,7 @@
 
 package xiom_tsv {
   name: "xiom.tsv";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "IANA-style TSV with backslash escaping: parse and write";
   categories: ["data"];
   keywords: ["tsv", "tab", "parser", "text"];

@@ -1,6 +1,7 @@
 # xiom.tsv -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; harness-green on compiler v0.64.0; contract hardening
+pass; publish pending).
 Module: `xiom.tsv` (`src/tsv.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -180,3 +181,68 @@ byte-wise scanning via `xiom.string.byte_at`, output through
 helpers `_ok_str`, `_err_str`, `_ok_fields` and `_err_fields`. The test suite
 routes every string comparison through `str_compare` to avoid BUG 17 and only
 takes `&` (never `&mut`) of locals at call sites.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/tsv.xi` in the batch #18
+hardening pass (compiler v0.64.0): 19 clauses across all eight public entry
+points (4/2/2/3/2/2/2/2). Two consecutive
+`.\scripts\port.ps1 -Package xiom.tsv -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` (4.2 s and 4.1 s)
+with the clauses active and no clause trapped, so none was dropped.
+`--dump-contracts` lists all 19.
+
+Class vocabulary follows the batch #18 clause pre-plan: **Z3-provable** =
+pure scalar guard/form family (a Z3 candidate); **runtime-checked** = the
+clause's truth depends on a built `Str`/`Vec` result or on a called function
+and is enforced by the v0.64.0 runtime evaluator. `xiom-verify --check`
+(bundled Z3) result: **0 proven / 0 violated / 23 unknown / 4 errors** (the
+errors are SMT-emission gaps around the internal helpers `_escape_ok`,
+`_err_str` and `_line_fields`, not refutations). Every contract axiom was
+skipped at SMT emission (`equality with unresolved operand sort` on `Str`/
+`Vec` lengths; `operator Le on non-numeric operands`), so no clause is
+machine-proven and none is refuted; all 19 are enforced by the runtime
+evaluator.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `tsv_escape_field` | `ensures: f.len() == 0 => result.len() == 0` | runtime-checked (empty-input sentinel) |
+| `tsv_escape_field` | `ensures: result.len() >= f.len()`; `ensures: result.len() <= 2 * f.len()` | runtime-checked (output-length bounds) |
+| `tsv_escape_field` | `ensures: tsv_unescape_field(result) is Ok` | runtime-checked (round-trip: the escaped text is strictly decodable; the inverse function does not wrap `tsv_escape_field`, so there is no postcondition call-cycle) |
+| `tsv_unescape_field` | `ensures: f.len() == 0 => result is Ok`; `ensures: result is Err => f.len() > 0` | Z3-provable (scalar guard pair) |
+| `tsv_parse_line` | `ensures: line.len() == 0 => result is Ok`; `ensures: result is Err => line.len() > 0` | Z3-provable (scalar guard pair) |
+| `tsv_parse` | `ensures: text.len() == 0 => result.len() == 0`; `ensures: text.len() > 0 => result.len() >= 1` | runtime-checked (row-count sentinel) |
+| `tsv_parse` | `ensures: result.len() <= text.len()` | runtime-checked (row-count bound) |
+| `tsv_write_row` | `ensures: fields.len() == 0 => result.len() == 0`; `ensures: fields.len() > 0 => result.len() >= fields.len() - 1` | runtime-checked (separator bound) |
+| `tsv_write` | `ensures: rows.len() == 0 => result.len() == 0`; `ensures: rows.len() > 0 => result.len() >= rows.len() - 1` | runtime-checked (separator bound) |
+| `tsv_is_rectangular` | `ensures: rows.len() <= 1 => result`; `ensures: !result => rows.len() >= 2` | Z3-provable (scalar guard pair) |
+| `tsv_field_count` | `ensures: rows.len() == 0 => result == 0` | Z3-provable (empty-input sentinel) |
+| `tsv_field_count` | `ensures: result >= 0` | Z3-provable (scalar bound) |
+
+Bound rationale:
+
+- `tsv_escape_field`: every input byte emits exactly one byte (pass-through)
+  or exactly two (`\\`, `\t`, `\n`, `\r`), so
+  `f.len() <= result.len() <= 2 * f.len()`; empty input yields the empty
+  string. Every output is a sequence of plain bytes and complete escapes, so
+  `tsv_unescape_field(result)` is `Ok`.
+- `tsv_parse`: one row is emitted per LF plus one for a non-empty tail, so
+  `result.len() <= text.len()`; non-empty text always produces at least one
+  row and empty text produces none.
+- `tsv_write_row` / `tsv_write`: a record/document with `n > 0` items emits
+  exactly `n - 1` separators plus the encoded items, so the output is at
+  least `n - 1` bytes; zero items yield the empty string.
+- `tsv_is_rectangular`: zero and one records return `true`, so a `false`
+  result forces at least two records.
+- `tsv_field_count`: `rows[0].len()` is non-negative and the empty input
+  sentinel is 0.
+
+Not asserted (left to the sections above and the 22-check test plan, per the
+batch #18 pre-plan exclusions): the exact field count of `tsv_parse_line`
+(`raw` is a helper `Vec`), `tsv_field_count == rows[0].len()` (element access
+inside a clause), decoded-field content equality and the
+`tsv_unescape_field(tsv_escape_field(f)) == f` payload-level round trip
+(`Str` equality is not used, BUG 17), the record-count formula for
+`tsv_parse` against LF counts, and the element contents of any `Vec` result.
+No clause reads a `Result` payload, accesses a tuple component, or compares
+`Str` values.

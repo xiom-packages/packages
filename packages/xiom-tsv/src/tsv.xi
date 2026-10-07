@@ -81,7 +81,12 @@ const _TSV_LOWER_T: UInt8 = 116u8;
 /// other byte (including UTF-8 multi-byte sequences) passes through untouched.
 /// Error case: none.
 /// Complexity: O(f.len()).
-pub fn tsv_escape_field(f: Str) -> Str {
+pub fn tsv_escape_field(f: Str) -> Str
+  ensures: f.len() == 0 => result.len() == 0;
+  ensures: result.len() >= f.len();
+  ensures: result.len() <= 2 * f.len();
+  ensures: tsv_unescape_field(result) is Ok;
+{
   var out = Vec[UInt8].new();
   let n = f.len();
   var i = 0;
@@ -176,7 +181,10 @@ fn _unescape_lenient(f: Str) -> Str {
 /// Error case: Err("tsv: invalid escape") - a backslash followed by any byte
 /// other than `\`, `t`, `n`, `r`, or a trailing backslash at end of input.
 /// Complexity: O(f.len()).
-pub fn tsv_unescape_field(f: Str) -> Result[Str, Str] {
+pub fn tsv_unescape_field(f: Str) -> Result[Str, Str]
+  ensures: f.len() == 0 => result is Ok;
+  ensures: result is Err => f.len() > 0;
+{
   if !_escape_ok(f) {
     return _err_str("tsv: invalid escape");
   }
@@ -220,7 +228,10 @@ fn _line_fields(line: Str) -> Vec[Str] {
 /// Error case: Err("tsv: invalid escape") when a field contains a malformed
 /// backslash escape.
 /// Complexity: O(line.len()).
-pub fn tsv_parse_line(line: Str) -> Result[Vec[Str], Str] {
+pub fn tsv_parse_line(line: Str) -> Result[Vec[Str], Str]
+  ensures: line.len() == 0 => result is Ok;
+  ensures: result is Err => line.len() > 0;
+{
   let raw = _line_fields(line);
   var out = Vec[Str].new();
   var i = 0;
@@ -258,7 +269,11 @@ fn _parse_line_lenient(line: Str) -> Vec[Str] {
 /// (use tsv_parse_line to detect it). UTF-8 passes through byte-exact.
 /// Error case: none.
 /// Complexity: O(text.len()).
-pub fn tsv_parse(text: Str) -> Vec[Vec[Str]] {
+pub fn tsv_parse(text: Str) -> Vec[Vec[Str]]
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: result.len() <= text.len();
+  ensures: text.len() > 0 => result.len() >= 1;
+{
   var rows = Vec[Vec[Str]].new();
   let n = text.len();
   if n == 0 {
@@ -288,7 +303,10 @@ pub fn tsv_parse(text: Str) -> Vec[Vec[Str]] {
 /// Returns: the encoded record; zero fields yield the empty string.
 /// Error case: none.
 /// Complexity: O(total field length).
-pub fn tsv_write_row(fields: &Vec[Str]) -> Str {
+pub fn tsv_write_row(fields: &Vec[Str]) -> Str
+  ensures: fields.len() == 0 => result.len() == 0;
+  ensures: fields.len() > 0 => result.len() >= fields.len() - 1;
+{
   var out = Vec[UInt8].new();
   var i = 0;
   while i < fields.len() {
@@ -307,7 +325,10 @@ pub fn tsv_write_row(fields: &Vec[Str]) -> Str {
 /// input yields the empty string.
 /// Error case: none.
 /// Complexity: O(total field length).
-pub fn tsv_write(rows: &Vec[Vec[Str]]) -> Str {
+pub fn tsv_write(rows: &Vec[Vec[Str]]) -> Str
+  ensures: rows.len() == 0 => result.len() == 0;
+  ensures: rows.len() > 0 => result.len() >= rows.len() - 1;
+{
   var out = Vec[UInt8].new();
   var i = 0;
   while i < rows.len() {
@@ -329,7 +350,10 @@ pub fn tsv_write(rows: &Vec[Vec[Str]]) -> Str {
 /// Returns: true for zero or one records, and for any set of equal-width
 /// records (including zero-width records); false when widths differ.
 /// Complexity: O(rows).
-pub fn tsv_is_rectangular(rows: &Vec[Vec[Str]]) -> Bool {
+pub fn tsv_is_rectangular(rows: &Vec[Vec[Str]]) -> Bool
+  ensures: rows.len() <= 1 => result;
+  ensures: !result => rows.len() >= 2;
+{
   if rows.len() <= 1 {
     return true;
   }
@@ -348,7 +372,10 @@ pub fn tsv_is_rectangular(rows: &Vec[Vec[Str]]) -> Bool {
 /// Params: rows - the records to inspect.
 /// Returns: the number of fields in rows[0], or 0 when there are no records.
 /// Complexity: O(1).
-pub fn tsv_field_count(rows: &Vec[Vec[Str]]) -> Int {
+pub fn tsv_field_count(rows: &Vec[Vec[Str]]) -> Int
+  ensures: rows.len() == 0 => result == 0;
+  ensures: result >= 0;
+{
   if rows.len() == 0 {
     return 0;
   }
