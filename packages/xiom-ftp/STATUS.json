@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  24,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.64.0",
-                  "commit":  "77d7ec35",
-                  "checked":  "2026-10-05T19:13:07Z"
+                  "run_by":  "task:ses_ee7886a15ffeSkvpQV71Dkkbno",
+                  "commit":  "84243a4c",
+                  "checked":  "2026-10-07T22:29:32Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: allowlist + next eco tag"
