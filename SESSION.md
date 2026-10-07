@@ -20,6 +20,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   attempt hung to its timeout -- transient; the rerun passed) and `xiom.aws` 0.1.1 +
   `xiom.saml` 0.1.1 are live-verified: **Tier-2 crypto retirement is DONE** (feat `cec9a155`
   aws -251 lines / `fcadeee8` saml -220 lines; FIPS/RFC 4231/SigV4 KATs green x2).
+- **Batch #15 DONE + PUBLISHED (tag `eco-v0.1.64`, run `37630233528`; exit 1 sole cause: the
+  four new PULSE names are still awaiting the ops scope extension):** six hardening packages
+  live -- `mbox` 0.1.2 (30 clauses), `socks` 0.1.3 (32), `tga` 0.1.2 (32), `murmur3` 0.1.2
+  (36), `ntp` 0.1.3 (58), `mbr` 0.1.2 (68); all 18/18 x2. Feats: `e7922d61`, `69826f44`,
+  `d9b9c2b8`, `76e6194a`, `5e3b8f0e`, `bff5d561`; wrap `fd792171`. When ops confirms
+  `session`/`http.middleware`/`static`/`kv`, `gh run rerun 37630233528 --failed` publishes
+  them (the six are skipped as already published). ~205 zero-clause stable carriers remain.
 - **Wave 3 COMPLETE (2026-10-07):** `static` 0.1.0 (`50742952`, 25/25 x2) and `kv` 0.1.0
   (`a4057093`, 28/28 x2) integrated; allowlist **504**, guard 504/464/40/0. Two new findings
   from kv: **`io.list_dir` returns garbage names on v0.64.0 Windows** (STDLIB-WISHLIST, high
