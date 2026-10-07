@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T21:55:16Z",
+    "updated":  "2026-10-07T22:14:58Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -1195,7 +1195,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.codec",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Base64, base64url, base32, and hex encoding and decoding",
@@ -1205,7 +1205,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-codec/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-codec/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "codec.xi",
                                               "package.xi"
@@ -5083,7 +5083,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.obj",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Wavefront OBJ geometry parsing: vertices and polygon faces with scaled integer coordinates",
@@ -5093,7 +5093,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-obj/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-obj/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "obj.xi",
                                               "package.xi"
@@ -5839,7 +5839,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.pls",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "PLS playlist parsing and canonical emitting",
@@ -5849,7 +5849,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pls/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pls/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "pls.xi",
                                               "package.xi"
@@ -6827,7 +6827,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.sbv",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "YouTube SBV subtitle parsing, canonical formatting, and accessors",
@@ -6837,7 +6837,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sbv/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sbv/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "sbv.xi",
                                               "package.xi"
@@ -7570,7 +7570,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.subtitle",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "SRT and WebVTT subtitle parsing, formatting, and shifting",
@@ -7580,7 +7580,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-subtitle/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-subtitle/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "subtitle.xi",
                                               "package.xi"
@@ -8399,7 +8399,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.validation",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Format validators: email, IPv4/IPv6, hex, UUID, slug, dates, ports",
@@ -8409,7 +8409,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-validation/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-validation/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "validation.xi",
                                               "package.xi"
