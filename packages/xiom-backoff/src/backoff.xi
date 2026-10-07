@@ -111,7 +111,11 @@ fn _at_least_one(v: Int) -> Int {
 /// Returns: the policy.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn backoff_constant(delay_ms: Int) -> BackoffPolicy {
+pub fn backoff_constant(delay_ms: Int) -> BackoffPolicy
+  ensures: backoff_kind(result) == 0;
+  ensures: delay_ms >= 0 => backoff_base(result) == delay_ms;
+  ensures: delay_ms < 0 => backoff_base(result) == 0;
+{
   return BackoffPolicy{
     kind: 0;
     base_ms: _at_least_zero(delay_ms);
@@ -130,7 +134,11 @@ pub fn backoff_constant(delay_ms: Int) -> BackoffPolicy {
 /// Returns: the policy with no jitter.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn backoff_linear(first_ms: Int, step_ms: Int, cap_ms: Int) -> BackoffPolicy {
+pub fn backoff_linear(first_ms: Int, step_ms: Int, cap_ms: Int) -> BackoffPolicy
+  ensures: backoff_kind(result) == 1;
+  ensures: first_ms >= 0 => backoff_base(result) == first_ms;
+  ensures: backoff_cap_ms(result) == cap_ms;
+{
   return BackoffPolicy{
     kind: 1;
     base_ms: _at_least_zero(first_ms);
@@ -151,7 +159,11 @@ pub fn backoff_linear(first_ms: Int, step_ms: Int, cap_ms: Int) -> BackoffPolicy
 /// Returns: the policy with no jitter.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn backoff_exponential(first_ms: Int, factor_num: Int, factor_den: Int, cap_ms: Int) -> BackoffPolicy {
+pub fn backoff_exponential(first_ms: Int, factor_num: Int, factor_den: Int, cap_ms: Int) -> BackoffPolicy
+  ensures: backoff_kind(result) == 2;
+  ensures: backoff_factor_num(result) >= 1;
+  ensures: backoff_factor_den(result) >= 1;
+{
   return BackoffPolicy{
     kind: 2;
     base_ms: _at_least_zero(first_ms);
@@ -170,7 +182,11 @@ pub fn backoff_exponential(first_ms: Int, factor_num: Int, factor_den: Int, cap_
 /// Returns: the updated copy.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn backoff_with_jitter(p: &BackoffPolicy, mode: Int) -> BackoffPolicy {
+pub fn backoff_with_jitter(p: &BackoffPolicy, mode: Int) -> BackoffPolicy
+  ensures: mode >= 0 && mode <= 2 => backoff_jitter_mode(result) == mode;
+  ensures: mode < 0 || mode > 2 => backoff_jitter_mode(result) == 0;
+  ensures: backoff_kind(result) == p.kind;
+{
   var m = mode;
   if m < 0 || m > 2 {
     m = 0;
@@ -191,7 +207,11 @@ pub fn backoff_with_jitter(p: &BackoffPolicy, mode: Int) -> BackoffPolicy {
 /// Returns: the updated copy.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn backoff_with_cap(p: &BackoffPolicy, cap_ms: Int) -> BackoffPolicy {
+pub fn backoff_with_cap(p: &BackoffPolicy, cap_ms: Int) -> BackoffPolicy
+  ensures: backoff_cap_ms(result) == cap_ms;
+  ensures: backoff_base(result) == p.base_ms;
+  ensures: backoff_jitter_mode(result) == p.jitter;
+{
   return BackoffPolicy{
     kind: p.kind;
     base_ms: p.base_ms;
@@ -212,7 +232,9 @@ pub fn backoff_with_cap(p: &BackoffPolicy, cap_ms: Int) -> BackoffPolicy {
 /// Returns: the kind.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn backoff_kind(p: &BackoffPolicy) -> Int {
+pub fn backoff_kind(p: &BackoffPolicy) -> Int
+  ensures: result == p.kind;
+{
   let v: Int = p.kind;
   return v;
 }
@@ -222,7 +244,9 @@ pub fn backoff_kind(p: &BackoffPolicy) -> Int {
 /// Returns: base_ms.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn backoff_base(p: &BackoffPolicy) -> Int {
+pub fn backoff_base(p: &BackoffPolicy) -> Int
+  ensures: result == p.base_ms;
+{
   let v: Int = p.base_ms;
   return v;
 }
@@ -232,7 +256,9 @@ pub fn backoff_base(p: &BackoffPolicy) -> Int {
 /// Returns: step_ms.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn backoff_step(p: &BackoffPolicy) -> Int {
+pub fn backoff_step(p: &BackoffPolicy) -> Int
+  ensures: result == p.step_ms;
+{
   let v: Int = p.step_ms;
   return v;
 }
@@ -242,7 +268,9 @@ pub fn backoff_step(p: &BackoffPolicy) -> Int {
 /// Returns: factor_num.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn backoff_factor_num(p: &BackoffPolicy) -> Int {
+pub fn backoff_factor_num(p: &BackoffPolicy) -> Int
+  ensures: result == p.factor_num;
+{
   let v: Int = p.factor_num;
   return v;
 }
@@ -252,7 +280,9 @@ pub fn backoff_factor_num(p: &BackoffPolicy) -> Int {
 /// Returns: factor_den.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn backoff_factor_den(p: &BackoffPolicy) -> Int {
+pub fn backoff_factor_den(p: &BackoffPolicy) -> Int
+  ensures: result == p.factor_den;
+{
   let v: Int = p.factor_den;
   return v;
 }
@@ -262,7 +292,9 @@ pub fn backoff_factor_den(p: &BackoffPolicy) -> Int {
 /// Returns: cap_ms; a negative value means uncapped.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn backoff_cap_ms(p: &BackoffPolicy) -> Int {
+pub fn backoff_cap_ms(p: &BackoffPolicy) -> Int
+  ensures: result == p.cap_ms;
+{
   let v: Int = p.cap_ms;
   return v;
 }
@@ -272,7 +304,9 @@ pub fn backoff_cap_ms(p: &BackoffPolicy) -> Int {
 /// Returns: the mode.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn backoff_jitter_mode(p: &BackoffPolicy) -> Int {
+pub fn backoff_jitter_mode(p: &BackoffPolicy) -> Int
+  ensures: result == p.jitter;
+{
   let v: Int = p.jitter;
   return v;
 }
@@ -282,7 +316,9 @@ pub fn backoff_jitter_mode(p: &BackoffPolicy) -> Int {
 /// Returns: 1000000000000 (ms).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn backoff_max_delay() -> Int {
+pub fn backoff_max_delay() -> Int
+  ensures: result == 1000000000000;
+{
   return _BACKOFF_MAX;
 }
 
@@ -367,7 +403,10 @@ fn _delay(p: &BackoffPolicy, attempt: Int, jitter_unit: Int) -> Result[Int, Str]
 /// backoff_max_delay(). Negative constructor inputs were already clamped.
 /// Error case: Err("backoff: bad attempt <n>") when `attempt < 1`.
 /// Complexity: O(attempt) for exponential policies, O(1) otherwise.
-pub fn backoff_raw_delay(p: &BackoffPolicy, attempt: Int) -> Result[Int, Str] {
+pub fn backoff_raw_delay(p: &BackoffPolicy, attempt: Int) -> Result[Int, Str]
+  ensures: attempt < 1 => result is Err;
+  ensures: attempt >= 1 => result is Ok;
+{
   if attempt < 1 {
     return _err_int("backoff: bad attempt " + int_to_string(attempt));
   }
@@ -387,7 +426,11 @@ pub fn backoff_raw_delay(p: &BackoffPolicy, attempt: Int) -> Result[Int, Str] {
 /// Err("backoff: bad jitter mode <m>") when the policy carries a mode
 /// outside 0..2.
 /// Complexity: O(attempt) for exponential policies, O(1) otherwise.
-pub fn backoff_delay(p: &BackoffPolicy, attempt: Int, jitter_unit: Int) -> Result[Int, Str] {
+pub fn backoff_delay(p: &BackoffPolicy, attempt: Int, jitter_unit: Int) -> Result[Int, Str]
+  ensures: attempt < 1 => result is Err;
+  ensures: p.jitter < 0 || p.jitter > 2 => result is Err;
+  ensures: result is Ok && p.cap_ms >= 0 && p.jitter == 0 => result.value <= p.cap_ms;
+{
   return _delay(p, attempt, jitter_unit);
 }
 
@@ -401,7 +444,11 @@ pub fn backoff_delay(p: &BackoffPolicy, attempt: Int, jitter_unit: Int) -> Resul
 /// Returns: the state with `used = 0`.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn retry_new(p: &BackoffPolicy, max_attempts: Int) -> RetryState {
+pub fn retry_new(p: &BackoffPolicy, max_attempts: Int) -> RetryState
+  ensures: max_attempts >= 0 => retry_max_attempts(result) == max_attempts;
+  ensures: max_attempts < 0 => retry_max_attempts(result) == 0;
+  ensures: retry_used(result) == 0;
+{
   var cap = max_attempts;
   if cap < 0 {
     cap = 0;
@@ -441,7 +488,11 @@ fn _state_policy(s: &RetryState) -> BackoffPolicy {
 /// equals `max_attempts` (the state is not modified); the backoff_delay
 /// errors for a bad jitter unit or mode (also without consuming).
 /// Complexity: O(used) for exponential policies, O(1) otherwise.
-pub fn retry_next(s: &mut RetryState, jitter_unit: Int) -> Result[Int, Str] {
+pub fn retry_next(s: &mut RetryState, jitter_unit: Int) -> Result[Int, Str]
+  ensures: s.used@pre >= s.max_attempts@pre => result is Err;
+  ensures: result is Ok => s.used == s.used@pre + 1;
+  ensures: result is Err => s.used == s.used@pre;
+{
   let used: Int = s.used;
   let max: Int = s.max_attempts;
   if used >= max {
@@ -464,7 +515,10 @@ pub fn retry_next(s: &mut RetryState, jitter_unit: Int) -> Result[Int, Str] {
 /// Returns: nothing.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn retry_reset(s: &mut RetryState) {
+pub fn retry_reset(s: &mut RetryState)
+  ensures: s.used == 0;
+  ensures: s.max_attempts == s.max_attempts@pre;
+{
   s.used = 0;
 }
 
@@ -473,7 +527,9 @@ pub fn retry_reset(s: &mut RetryState) {
 /// Returns: the count.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn retry_used(s: &RetryState) -> Int {
+pub fn retry_used(s: &RetryState) -> Int
+  ensures: result == s.used;
+{
   let v: Int = s.used;
   return v;
 }
@@ -483,7 +539,11 @@ pub fn retry_used(s: &RetryState) -> Int {
 /// Returns: max_attempts - used (never negative).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn retry_remaining(s: &RetryState) -> Int {
+pub fn retry_remaining(s: &RetryState) -> Int
+  ensures: s.max_attempts - s.used >= 0 => result == s.max_attempts - s.used;
+  ensures: s.max_attempts - s.used < 0 => result == 0;
+  ensures: result >= 0;
+{
   let v: Int = s.max_attempts - s.used;
   if v < 0 {
     return 0;
@@ -496,7 +556,9 @@ pub fn retry_remaining(s: &RetryState) -> Int {
 /// Returns: max_attempts.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn retry_max_attempts(s: &RetryState) -> Int {
+pub fn retry_max_attempts(s: &RetryState) -> Int
+  ensures: result == s.max_attempts;
+{
   let v: Int = s.max_attempts;
   return v;
 }
@@ -506,7 +568,10 @@ pub fn retry_max_attempts(s: &RetryState) -> Int {
 /// Returns: the flag (`used >= max_attempts`).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn retry_exhausted(s: &RetryState) -> Bool {
+pub fn retry_exhausted(s: &RetryState) -> Bool
+  ensures: result => s.used >= s.max_attempts;
+  ensures: s.used < s.max_attempts => !result;
+{
   let used: Int = s.used;
   let max: Int = s.max_attempts;
   return used >= max;
