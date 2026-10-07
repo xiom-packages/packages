@@ -1,8 +1,6 @@
 # xiom.html -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.html`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/html.xi` (`module xiom.html`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`,
 `xiom.string.compare`).
@@ -183,7 +181,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.html
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=22 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -219,3 +217,30 @@ Last verified: compiler 0.61.3,
   blocks (no FFI).
 - The scanner always advances (`_scan_markup` returns an index greater than
   the `<` it consumed), so the single loop cannot stall.
+
+## Contracts (batch #30 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/html.xi` (compiler v0.64.0;
+no version bump): 7 clauses over the 4 public entry points. Two consecutive
+`.\scripts\port.ps1 -Package xiom.html -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` (6.46 s and 6.50 s)
+with the clauses active and no clause trapped, so none was dropped.
+
+All clauses are `ensures:`; no `requires:` was added, so the accepted-input
+domain is unchanged. Every clause observes a `Str`/`Vec` length or a `Bool`
+result, so none is a pure-scalar arithmetic claim and all 7 are
+runtime-checked by the v0.64.0 evaluator (none Z3-provable).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `html_default_allowed_tags` | `result.len() == 21` | runtime-checked (built `Vec` length; exact count matches the 21 literal pushes) |
+| `html_sanitize` | `input.len() == 0 => result.len() == 0`; `result.len() > 0 => input.len() > 0` | runtime-checked (built `Str` length + guard) |
+| `html_strip_tags` | `input.len() == 0 => result.len() == 0`; `result.len() > 0 => input.len() > 0` | runtime-checked (built `Str` length + guard) |
+| `html_is_safe` | `input.len() == 0 => result`; `!result => input.len() > 0` | runtime-checked (`Bool` result + `Str` length guard) |
+
+Deliberately not claimed: no output upper-length bound (a kept attribute
+value can expand 1 byte to 6: `"` -> `&quot;`, `<` -> `&lt;`; the batch #30
+plan omitted the bound because of this entity expansion); no idempotence
+clause (byte-for-byte `result == input`) because `Str` equality is banned in
+clauses (BUG 17; only `.len()` comparisons are used); no clause calls another
+function; no vector indexing, tuple-component access or struct payload reads.

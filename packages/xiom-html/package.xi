@@ -10,7 +10,7 @@
 
 package xiom_html {
   name: "xiom.html";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Tolerant HTML sanitizer: tag allowlist, attribute policy, script/style removal";
   categories: ["text-nlp", "crypto-security", "web"];
   keywords: ["html", "sanitize", "security", "tags"];

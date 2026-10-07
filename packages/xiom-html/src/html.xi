@@ -564,7 +564,9 @@ fn _scan_markup(s: Str, i: Int, tags: &Vec[Str], out: &mut Vec[UInt8]) -> Int {
 /// The caller owns the vector, so it can modify or extend the list.
 /// Error case: none.
 /// Complexity: O(1) (fixed 21 pushes).
-pub fn html_default_allowed_tags() -> Vec[Str] {
+pub fn html_default_allowed_tags() -> Vec[Str]
+  ensures: result.len() == 21;
+{
   var tags = Vec[Str].new();
   tags.push("a");
   tags.push("b");
@@ -612,7 +614,10 @@ pub fn html_default_allowed_tags() -> Vec[Str] {
 /// Error case: none. The result is still HTML text and is not guaranteed to
 /// be well-formed or to re-sanitize to itself.
 /// Complexity: O(input bytes) amortized.
-pub fn html_sanitize(input: Str, allowed_tags: &Vec[Str]) -> Str {
+pub fn html_sanitize(input: Str, allowed_tags: &Vec[Str]) -> Str
+  ensures: input.len() == 0 => result.len() == 0;
+  ensures: result.len() > 0 => input.len() > 0;
+{
   var out = Vec[UInt8].new();
   let n = input.len();
   var i = 0;
@@ -635,7 +640,10 @@ pub fn html_sanitize(input: Str, allowed_tags: &Vec[Str]) -> Str {
 /// including entities and stray '<' -- is preserved verbatim.
 /// Error case: none.
 /// Complexity: O(input bytes).
-pub fn html_strip_tags(input: Str) -> Str {
+pub fn html_strip_tags(input: Str) -> Str
+  ensures: input.len() == 0 => result.len() == 0;
+  ensures: result.len() > 0 => input.len() > 0;
+{
   var empty = Vec[Str].new();
   return html_sanitize(input, &empty);
 }
@@ -649,7 +657,10 @@ pub fn html_strip_tags(input: Str) -> Str {
 /// canonical -- it does not mean the input is dangerous.
 /// Error case: none.
 /// Complexity: O(input bytes).
-pub fn html_is_safe(input: Str, allowed_tags: &Vec[Str]) -> Bool {
+pub fn html_is_safe(input: Str, allowed_tags: &Vec[Str]) -> Bool
+  ensures: input.len() == 0 => result;
+  ensures: !result => input.len() > 0;
+{
   let cleaned = html_sanitize(input, allowed_tags);
   return compare.str_compare(cleaned, input) == 0;
 }
