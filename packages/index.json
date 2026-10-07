@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T22:34:32Z",
+    "updated":  "2026-10-07T22:53:05Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -717,7 +717,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ble",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Bluetooth Low Energy advertising-data codec with AD structure validation",
@@ -727,7 +727,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ble/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ble/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ble.xi",
                                               "package.xi"
@@ -5497,7 +5497,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.passwd",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "passwd-file parser and canonical emitter for the seven-field /etc/passwd subset",
@@ -5507,7 +5507,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-passwd/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-passwd/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "passwd.xi",
                                               "package.xi"
@@ -7242,7 +7242,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.sparse",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Android sparse image codec with a flat chunk index and a canonical builder",
@@ -7252,7 +7252,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sparse/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sparse/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "sparse.xi",
                                               "package.xi"
@@ -7366,7 +7366,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.srt",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "SubRip (SRT) subtitle parsing, canonical formatting, and accessors",
@@ -7376,7 +7376,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-srt/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-srt/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "srt.xi",
                                               "package.xi"
@@ -7655,7 +7655,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.systemd",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "systemd unit-file parsing and emitting for in-memory Str documents",
@@ -7665,7 +7665,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-systemd/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-systemd/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "systemd.xi",
                                               "package.xi"
@@ -8799,7 +8799,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.xbm",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "X BitMap (XBM) X11 C-source 1-bit raster parsing and canonical building",
@@ -8809,7 +8809,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-xbm/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-xbm/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "xbm.xi",
                                               "package.xi"
