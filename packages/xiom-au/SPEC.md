@@ -1,8 +1,6 @@
 # xiom.au -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.au`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/au.xi` (`module xiom.au`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`).
 No FFI: the module declares no `extern "C"` blocks.
@@ -326,3 +324,54 @@ Last verified: compiler 0.61.3,
   and no `[T, U]` generics; it is constructed inside `au_parse` and crosses
   function boundaries only by reference or through `_ok_info`.
 - Free functions only; no `extern "C"` blocks (no FFI).
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checked `ensures:` clauses added to `src/au.xi` (compiler v0.64.0;
+no version bump). 30 clauses over the 18 public entry points
+(2/2/2/2/2, then 1/1/1, 2, 1/1/1/1/1/1, then 3/3/3 in source order). Two
+consecutive `.\scripts\port.ps1 -Package xiom.au -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` (11.57s and 11.26s)
+with the clauses active and no clause trapped, so none was dropped.
+**Z3-provable** = pure scalar guard/form/bounds family; **runtime-checked**
+= the clause reads a struct field, a built `Str`/`Vec` length, or an `Ok`
+payload, or cross-calls another function, and is enforced by the v0.64.0
+runtime evaluator. The only cross-call target, `au_encoding_bits`, is
+non-re-entrant with respect to the contracted function.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `au_encoding_name` | `result.len() == 0 \|\| result.len() >= 11`; `result.len() <= 13` | runtime-checked (built `Str` length) |
+| `au_encoding_bits` | `result >= 0 && result <= 64`; `result % 8 == 0` | Z3-provable (pure scalar bounds + literal divisor) |
+| `au_encoding_bytes` | `result == au_encoding_bits(encoding) / 8`; `result >= 0 && result <= 8` | runtime-checked (definitional cross-call); Z3-provable (`result >= 0 && result <= 8`) |
+| `au_parse` | `data.len() < 24 => result is Err`; `result is Ok => data.len() >= 24` | Z3-provable (pure scalar guard pair) |
+| `au_is_valid` | `data.len() < 24 => !result`; `result => data.len() >= 24` | Z3-provable (pure scalar Bool guard pair) |
+| `au_build` | `result.len() == 24 + info.len() + samples.len()` | runtime-checked (built `Vec` length; exact layout form) |
+| `au_build_unknown_size` | `result.len() == 24 + info.len() + samples.len()` | runtime-checked (built `Vec` length) |
+| `au_info_bytes` | `result.len() == info.info_bytes.len()` | runtime-checked (struct-field length) |
+| `au_info_text` | `info.info_bytes.len() == 0 => result is Ok`; `result is Err => info.info_bytes.len() > 0` | runtime-checked (struct-field length + tag) |
+| `au_data_offset` | `result == info.data_offset` | runtime-checked (field read) |
+| `au_data_size` | `result == info.data_size` | runtime-checked (field read) |
+| `au_size_known` | `result == info.size_known` | runtime-checked (Bool field read) |
+| `au_stored_size` | `result == info.stored_size` | runtime-checked (field read) |
+| `au_channels` | `result == info.channels` | runtime-checked (field read) |
+| `au_sample_rate` | `result == info.sample_rate` | runtime-checked (field read) |
+| `au_audio_data` | `info.data_offset < 0 => result is Err`; `info.data_size < 0 => result is Err`; `result is Ok => info.data_offset >= 0 && info.data_size >= 0` | runtime-checked (field reads; guard pair) |
+| `au_frame_count` | `info.channels <= 0 => result is Err`; `result is Ok => result.value >= 0`; `result is Ok => result.value == info.data_size / (info.channels * au_encoding_bytes(info.encoding))` | runtime-checked (field read; `Ok` payload; exact formula + cross-call) |
+| `au_duration_ms` | `info.sample_rate <= 0 => result is Err`; `result is Ok => info.sample_rate > 0`; `result is Ok => info.channels > 0` | runtime-checked (field reads; `Ok` guards) |
+
+The `au_frame_count` exact-formula clause was probe-gated. The source
+guarantees both divisors on every `Ok` path: `info.channels <= 0` returns
+`Err` first, `au_encoding_bytes(info.encoding) <= 0` (unknown encoding)
+returns `Err` next, and the `frame <= 0` guard rejects an overflowed
+product, so the divisor `channels * bytes_per_sample` is strictly positive
+whenever the result is `Ok`. The first port attempt passed (the suite
+exercises the zero-channel and unknown-encoding `Err` paths with the clause
+active and did not trap), so the formula was kept.
+
+Excluded by the plan's forbidden shapes: `AuInfo` field reads on the
+`au_parse` / `au_audio_data` / `au_frame_count` / `au_duration_ms` `Ok`
+payloads (the header fields are observed only through the accessor
+contracts), `Str` equality, vector indexing, and a non-negativity claim on
+the `au_duration_ms` payload (`frames * 1000` can overflow for hand-built
+extremes).

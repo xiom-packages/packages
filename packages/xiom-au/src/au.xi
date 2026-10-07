@@ -126,7 +126,10 @@ fn _err_str(m: Str) -> Result[Str, Str] {
 /// Known ids: 1 mu-law 8-bit, 2 linear 8-bit, 3 linear 16-bit, 4 linear
 /// 24-bit, 5 linear 32-bit, 6 float 32-bit, 7 double 64-bit, 27 A-law 8-bit.
 /// Complexity: O(1).
-pub fn au_encoding_name(encoding: Int) -> Str {
+pub fn au_encoding_name(encoding: Int) -> Str
+  ensures: result.len() == 0 || result.len() >= 11;
+  ensures: result.len() <= 13;
+{
   if encoding == 1 { return "mu-law 8-bit"; }
   if encoding == 2 { return "linear 8-bit"; }
   if encoding == 3 { return "linear 16-bit"; }
@@ -141,7 +144,10 @@ pub fn au_encoding_name(encoding: Int) -> Str {
 /// Bits per sample of an encoding id, or 0 when the id is unknown.
 /// Known sizes: 1 -> 8, 2 -> 8, 3 -> 16, 4 -> 24, 5 -> 32, 6 -> 32,
 /// 7 -> 64, 27 -> 8. Complexity: O(1).
-pub fn au_encoding_bits(encoding: Int) -> Int {
+pub fn au_encoding_bits(encoding: Int) -> Int
+  ensures: result >= 0 && result <= 64;
+  ensures: result % 8 == 0;
+{
   if encoding == 1 { return 8; }
   if encoding == 2 { return 8; }
   if encoding == 3 { return 16; }
@@ -157,7 +163,10 @@ pub fn au_encoding_bits(encoding: Int) -> Int {
 /// The value is `ceil(bits / 8)`; every known encoding has a byte-multiple
 /// size, so it is a plain division with an explicit remainder guard.
 /// Complexity: O(1).
-pub fn au_encoding_bytes(encoding: Int) -> Int {
+pub fn au_encoding_bytes(encoding: Int) -> Int
+  ensures: result == au_encoding_bits(encoding) / 8;
+  ensures: result >= 0 && result <= 8;
+{
   let bits = au_encoding_bits(encoding);
   if bits <= 0 {
     return 0;
@@ -279,7 +288,10 @@ fn _clamp_channels(c: Int) -> Int {
 /// The info field is not interpreted here; every byte from 24 to the data
 /// offset is copied raw into AuInfo.info_bytes.
 /// Complexity: O(data_offset) (the info copy).
-pub fn au_parse(data: &Vec[UInt8]) -> Result[AuInfo, Str] {
+pub fn au_parse(data: &Vec[UInt8]) -> Result[AuInfo, Str]
+  ensures: data.len() < 24 => result is Err;
+  ensures: result is Ok => data.len() >= 24;
+{
   let n = data.len();
   if n == 0 {
     return _err_info("au: empty input");
@@ -341,7 +353,10 @@ pub fn au_parse(data: &Vec[UInt8]) -> Result[AuInfo, Str] {
 }
 
 /// True when au_parse succeeds. Complexity: O(data.len()).
-pub fn au_is_valid(data: &Vec[UInt8]) -> Bool {
+pub fn au_is_valid(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 24 => !result;
+  ensures: result => data.len() >= 24;
+{
   let pr = au_parse(data);
   return pr.is_ok;
 }
@@ -377,7 +392,9 @@ fn _build(samples: &Vec[UInt8], f: &AuFormat, info: Str, size_field: Int) -> Vec
 /// ids produce output that au_parse rejects. A sample buffer of 2^32 bytes or
 /// more cannot be represented (32-bit size field; out of scope).
 /// Complexity: O(info.len() + samples.len()).
-pub fn au_build(samples: &Vec[UInt8], f: &AuFormat, info: Str) -> Vec[UInt8] {
+pub fn au_build(samples: &Vec[UInt8], f: &AuFormat, info: Str) -> Vec[UInt8]
+  ensures: result.len() == 24 + info.len() + samples.len();
+{
   return _build(samples, f, info, samples.len());
 }
 
@@ -385,7 +402,9 @@ pub fn au_build(samples: &Vec[UInt8], f: &AuFormat, info: Str) -> Vec[UInt8] {
 /// data-size field. au_parse resolves it to `data.len() - data_offset` (the
 /// rest of the buffer), which makes the round-trip exact for a file that ends
 /// with its audio data. Complexity: O(info.len() + samples.len()).
-pub fn au_build_unknown_size(samples: &Vec[UInt8], f: &AuFormat, info: Str) -> Vec[UInt8] {
+pub fn au_build_unknown_size(samples: &Vec[UInt8], f: &AuFormat, info: Str) -> Vec[UInt8]
+  ensures: result.len() == 24 + info.len() + samples.len();
+{
   return _build(samples, f, info, 4294967295);
 }
 
@@ -395,7 +414,9 @@ pub fn au_build_unknown_size(samples: &Vec[UInt8], f: &AuFormat, info: Str) -> V
 
 /// Copy of the raw info field bytes (offsets 24..data_offset), exactly as
 /// stored. Complexity: O(info_bytes.len()).
-pub fn au_info_bytes(info: &AuInfo) -> Vec[UInt8] {
+pub fn au_info_bytes(info: &AuInfo) -> Vec[UInt8]
+  ensures: result.len() == info.info_bytes.len();
+{
   let src = info.info_bytes;
   var out = Vec[UInt8].new();
   var i = 0;
@@ -410,7 +431,10 @@ pub fn au_info_bytes(info: &AuInfo) -> Vec[UInt8] {
 /// byte is printable ASCII (0x20..0x7E); Err("au: bad info text") otherwise
 /// (control bytes, DEL and non-ASCII bytes are rejected; the raw bytes remain
 /// available through au_info_bytes). Complexity: O(info_bytes.len()).
-pub fn au_info_text(info: &AuInfo) -> Result[Str, Str] {
+pub fn au_info_text(info: &AuInfo) -> Result[Str, Str]
+  ensures: info.info_bytes.len() == 0 => result is Ok;
+  ensures: result is Err => info.info_bytes.len() > 0;
+{
   let bytes = info.info_bytes;
   if !_printable_range(&bytes, 0, bytes.len()) {
     return _err_str("au: bad info text");
@@ -419,34 +443,46 @@ pub fn au_info_text(info: &AuInfo) -> Result[Str, Str] {
 }
 
 /// Absolute byte offset of the first audio byte. Complexity: O(1).
-pub fn au_data_offset(info: &AuInfo) -> Int {
+pub fn au_data_offset(info: &AuInfo) -> Int
+  ensures: result == info.data_offset;
+{
   return info.data_offset;
 }
 
 /// Resolved audio span length (`data_size`): the declared size when known,
 /// the rest of the buffer for the 0xFFFFFFFF sentinel. Complexity: O(1).
-pub fn au_data_size(info: &AuInfo) -> Int {
+pub fn au_data_size(info: &AuInfo) -> Int
+  ensures: result == info.data_size;
+{
   return info.data_size;
 }
 
 /// True when the header carried a real data size; false for the sentinel.
 /// Complexity: O(1).
-pub fn au_size_known(info: &AuInfo) -> Bool {
+pub fn au_size_known(info: &AuInfo) -> Bool
+  ensures: result == info.size_known;
+{
   return info.size_known;
 }
 
 /// Raw data-size field (0xFFFFFFFF when unknown). Complexity: O(1).
-pub fn au_stored_size(info: &AuInfo) -> Int {
+pub fn au_stored_size(info: &AuInfo) -> Int
+  ensures: result == info.stored_size;
+{
   return info.stored_size;
 }
 
 /// Channel count of a parsed header. Complexity: O(1).
-pub fn au_channels(info: &AuInfo) -> Int {
+pub fn au_channels(info: &AuInfo) -> Int
+  ensures: result == info.channels;
+{
   return info.channels;
 }
 
 /// Sample rate in Hz of a parsed header. Complexity: O(1).
-pub fn au_sample_rate(info: &AuInfo) -> Int {
+pub fn au_sample_rate(info: &AuInfo) -> Int
+  ensures: result == info.sample_rate;
+{
   return info.sample_rate;
 }
 
@@ -455,7 +491,11 @@ pub fn au_sample_rate(info: &AuInfo) -> Int {
 /// Err("au: data size overrun") when that span does not fit `data` (e.g.
 /// `info` was parsed from a different or truncated buffer).
 /// Complexity: O(data_size).
-pub fn au_audio_data(data: &Vec[UInt8], info: &AuInfo) -> Result[Vec[UInt8], Str] {
+pub fn au_audio_data(data: &Vec[UInt8], info: &AuInfo) -> Result[Vec[UInt8], Str]
+  ensures: info.data_offset < 0 => result is Err;
+  ensures: info.data_size < 0 => result is Err;
+  ensures: result is Ok => info.data_offset >= 0 && info.data_size >= 0;
+{
   let off = info.data_offset;
   let size = info.data_size;
   if off < 0 {
@@ -482,7 +522,11 @@ pub fn au_audio_data(data: &Vec[UInt8], info: &AuInfo) -> Result[Vec[UInt8], Str
 /// documented byte size, Err("au: data size overrun") for a negative span;
 /// au_parse never returns those, so they are only reachable for hand-built
 /// AuInfo values. Complexity: O(1).
-pub fn au_frame_count(info: &AuInfo) -> Result[Int, Str] {
+pub fn au_frame_count(info: &AuInfo) -> Result[Int, Str]
+  ensures: info.channels <= 0 => result is Err;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value == info.data_size / (info.channels * au_encoding_bytes(info.encoding));
+{
   if info.channels <= 0 {
     return _err_int("au: zero channels");
   }
@@ -506,7 +550,11 @@ pub fn au_frame_count(info: &AuInfo) -> Result[Int, Str] {
 /// (Err("au: unknown encoding") / Err("au: zero channels")). Both are
 /// unreachable from au_parse, so they only affect hand-built AuInfo values.
 /// Complexity: O(1).
-pub fn au_duration_ms(info: &AuInfo) -> Result[Int, Str] {
+pub fn au_duration_ms(info: &AuInfo) -> Result[Int, Str]
+  ensures: info.sample_rate <= 0 => result is Err;
+  ensures: result is Ok => info.sample_rate > 0;
+  ensures: result is Ok => info.channels > 0;
+{
   if info.sample_rate <= 0 {
     return _err_int("au: zero sample rate");
   }
