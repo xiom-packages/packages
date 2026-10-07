@@ -365,14 +365,18 @@ fn _comp_name(id: Int) -> Str {
 
 /// Size of the legacy image header in bytes: always 64.
 /// Complexity: O(1).
-pub fn uboot_header_size() -> Int {
+pub fn uboot_header_size() -> Int
+  ensures: result == 64;
+{
   return _UBOOT_HEADER_BYTES;
 }
 
 /// Offset of the image data: always the 64 bytes of the header (the legacy
 /// header has no alignment or offset field).
 /// Complexity: O(1).
-pub fn uboot_data_offset() -> Int {
+pub fn uboot_data_offset() -> Int
+  ensures: result == 64;
+{
   return _UBOOT_HEADER_BYTES;
 }
 
@@ -381,7 +385,10 @@ pub fn uboot_data_offset() -> Int {
 /// with "uboot: FIT image not supported". False for a buffer shorter than
 /// 4 bytes or any other prefix.
 /// Complexity: O(1).
-pub fn uboot_is_fit(data: &Vec[UInt8]) -> Bool {
+pub fn uboot_is_fit(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 4 => !result;
+  ensures: result => data.len() >= 4;
+{
   if data.len() < 4 { return false; }
   return _be32(data, 0) == _UBOOT_FIT_MAGIC;
 }
@@ -407,7 +414,11 @@ pub fn uboot_is_fit(data: &Vec[UInt8]) -> Bool {
 /// Params: data - image buffer, read only (at least 64 bytes).
 /// Returns: Ok(UbootHeader).
 /// Complexity: O(1).
-pub fn uboot_parse_header(data: &Vec[UInt8]) -> Result[UbootHeader, Str] {
+pub fn uboot_parse_header(data: &Vec[UInt8]) -> Result[UbootHeader, Str]
+  ensures: data.len() < 64 => result is Err;
+  ensures: uboot_is_fit(data) => result is Err;
+  ensures: result is Ok => data.len() >= 64;
+{
   if data.len() < _UBOOT_HEADER_BYTES { return _err_header("uboot: truncated header"); }
   let magic: Int = _be32(data, 0);
   if magic != _UBOOT_MAGIC {
@@ -460,7 +471,11 @@ pub fn uboot_parse_header(data: &Vec[UInt8]) -> Result[UbootHeader, Str] {
 /// Params: data - image buffer, read only (header plus payload).
 /// Returns: Ok(UbootHeader).
 /// Complexity: O(1).
-pub fn uboot_parse(data: &Vec[UInt8]) -> Result[UbootHeader, Str] {
+pub fn uboot_parse(data: &Vec[UInt8]) -> Result[UbootHeader, Str]
+  ensures: data.len() < 64 => result is Err;
+  ensures: uboot_is_fit(data) => result is Err;
+  ensures: result is Ok => data.len() >= 64;
+{
   if data.len() < _UBOOT_HEADER_BYTES { return _err_header("uboot: truncated header"); }
   let magic: Int = _be32(data, 0);
   if magic != _UBOOT_MAGIC {
@@ -478,43 +493,59 @@ pub fn uboot_parse(data: &Vec[UInt8]) -> Result[UbootHeader, Str] {
 
 /// Header magic field; always the legacy magic after a successful parse.
 /// Complexity: O(1).
-pub fn uboot_magic(h: &UbootHeader) -> Int {
+pub fn uboot_magic(h: &UbootHeader) -> Int
+  ensures: result == h.magic;
+{
   return h.magic;
 }
 
 /// Image creation timestamp field (raw 32-bit seconds, no epoch policy).
 /// Complexity: O(1).
-pub fn uboot_timestamp(h: &UbootHeader) -> Int {
+pub fn uboot_timestamp(h: &UbootHeader) -> Int
+  ensures: result == h.time;
+{
   return h.time;
 }
 
 /// Declared image data size in bytes (`ih_size`). Complexity: O(1).
-pub fn uboot_data_size(h: &UbootHeader) -> Int {
+pub fn uboot_data_size(h: &UbootHeader) -> Int
+  ensures: result == h.size;
+{
   return h.size;
 }
 
 /// Data load address field (raw 32-bit value). Complexity: O(1).
-pub fn uboot_load_addr(h: &UbootHeader) -> Int {
+pub fn uboot_load_addr(h: &UbootHeader) -> Int
+  ensures: result == h.load;
+{
   return h.load;
 }
 
 /// Entry point address field (raw 32-bit value). Complexity: O(1).
-pub fn uboot_entry_point(h: &UbootHeader) -> Int {
+pub fn uboot_entry_point(h: &UbootHeader) -> Int
+  ensures: result == h.ep;
+{
   return h.ep;
 }
 
 /// Stored header CRC-32, raw. Complexity: O(1).
-pub fn uboot_header_crc(h: &UbootHeader) -> Int {
+pub fn uboot_header_crc(h: &UbootHeader) -> Int
+  ensures: result == h.hcrc;
+{
   return h.hcrc;
 }
 
 /// Stored data CRC-32, raw. Complexity: O(1).
-pub fn uboot_data_crc(h: &UbootHeader) -> Int {
+pub fn uboot_data_crc(h: &UbootHeader) -> Int
+  ensures: result == h.dcrc;
+{
   return h.dcrc;
 }
 
 /// Operating system id byte (0..255). Complexity: O(1).
-pub fn uboot_os(h: &UbootHeader) -> Int {
+pub fn uboot_os(h: &UbootHeader) -> Int
+  ensures: result == h.os;
+{
   return h.os;
 }
 
@@ -522,24 +553,32 @@ pub fn uboot_os(h: &UbootHeader) -> Int {
 /// 0 invalid, 1 openbsd, 3 freebsd, 5 linux, 6 vxworks; every other id is
 /// passed through and reported as "unknown".
 /// Complexity: O(1).
-pub fn uboot_os_name(h: &UbootHeader) -> Str {
+pub fn uboot_os_name(h: &UbootHeader) -> Str
+  ensures: result.len() >= 5 && result.len() <= 7;
+{
   return _os_name(h.os);
 }
 
 /// CPU architecture id byte (0..255). Complexity: O(1).
-pub fn uboot_arch(h: &UbootHeader) -> Int {
+pub fn uboot_arch(h: &UbootHeader) -> Int
+  ensures: result == h.arch;
+{
   return h.arch;
 }
 
 /// Documented name of the architecture id: 2 arm, 3 i386, 5 mips, 6 mips64,
 /// 7 ppc, 22 aarch64; every other id is "unknown".
 /// Complexity: O(1).
-pub fn uboot_arch_name(h: &UbootHeader) -> Str {
+pub fn uboot_arch_name(h: &UbootHeader) -> Str
+  ensures: result.len() >= 3 && result.len() <= 7;
+{
   return _arch_name(h.arch);
 }
 
 /// Image type id byte (0..255). Complexity: O(1).
-pub fn uboot_image_type(h: &UbootHeader) -> Int {
+pub fn uboot_image_type(h: &UbootHeader) -> Int
+  ensures: result == h.image_type;
+{
   return h.image_type;
 }
 
@@ -547,33 +586,43 @@ pub fn uboot_image_type(h: &UbootHeader) -> Int {
 /// 4 multi, 5 firmware, 6 script, 8 filesystem, 14 kernel-noload; every
 /// other id is "unknown".
 /// Complexity: O(1).
-pub fn uboot_image_type_name(h: &UbootHeader) -> Str {
+pub fn uboot_image_type_name(h: &UbootHeader) -> Str
+  ensures: result.len() >= 5 && result.len() <= 13;
+{
   return _image_type_name(h.image_type);
 }
 
 /// Compression id byte (0..255). Complexity: O(1).
-pub fn uboot_compression(h: &UbootHeader) -> Int {
+pub fn uboot_compression(h: &UbootHeader) -> Int
+  ensures: result == h.comp;
+{
   return h.comp;
 }
 
 /// Documented name of the compression id: 0 none, 1 gzip, 2 bzip2, 3 lzma,
 /// 5 lzo, 6 lz4, 9 zstd; every other id is "unknown".
 /// Complexity: O(1).
-pub fn uboot_compression_name(h: &UbootHeader) -> Str {
+pub fn uboot_compression_name(h: &UbootHeader) -> Str
+  ensures: result.len() >= 3 && result.len() <= 7;
+{
   return _comp_name(h.comp);
 }
 
 /// Decoded image name: the name-field bytes up to the first NUL (or all 32
 /// when there is none). Never contains a non-printable byte after a
 /// successful parse. Complexity: O(1).
-pub fn uboot_name(h: &UbootHeader) -> Str {
+pub fn uboot_name(h: &UbootHeader) -> Str
+  ensures: result.len() == h.name.len();
+{
   let s: Str = h.name;
   return s;
 }
 
 /// End offset of the data span: `64 + ih_size` (independent of the buffer).
 /// Complexity: O(1).
-pub fn uboot_data_end(h: &UbootHeader) -> Int {
+pub fn uboot_data_end(h: &UbootHeader) -> Int
+  ensures: result == 64 + h.size;
+{
   return _UBOOT_HEADER_BYTES + h.size;
 }
 
@@ -583,7 +632,11 @@ pub fn uboot_data_end(h: &UbootHeader) -> Int {
 /// a hand-built header) or when `64 + ih_size` does not fit in `data`.
 /// Params: data - image buffer, read only; h - the parsed header.
 /// Complexity: O(ih_size).
-pub fn uboot_data_bytes(data: &Vec[UInt8], h: &UbootHeader) -> Result[Vec[UInt8], Str] {
+pub fn uboot_data_bytes(data: &Vec[UInt8], h: &UbootHeader) -> Result[Vec[UInt8], Str]
+  ensures: h.size < 0 => result is Err;
+  ensures: data.len() < 64 => result is Err;
+  ensures: h.size > data.len() - 64 => result is Err;
+{
   if h.size < 0 { return _err_bytes("uboot: truncated data"); }
   if data.len() < _UBOOT_HEADER_BYTES { return _err_bytes("uboot: truncated data"); }
   if h.size > data.len() - _UBOOT_HEADER_BYTES { return _err_bytes("uboot: truncated data"); }
@@ -603,14 +656,21 @@ pub fn uboot_data_bytes(data: &Vec[UInt8], h: &UbootHeader) -> Result[Vec[UInt8]
 /// Standard CRC-32 of the whole buffer (reflected polynomial 0xEDB88320,
 /// init 0xFFFFFFFF, final xor 0xFFFFFFFF; the check value for "123456789"
 /// is 3421780262 and the empty buffer is 0). Complexity: O(data.len()).
-pub fn uboot_crc32(data: &Vec[UInt8]) -> Int {
+pub fn uboot_crc32(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0 && result <= 4294967295;
+  ensures: data.len() == 0 => result == 0;
+{
   return _crc32_range(data, 0, data.len());
 }
 
 /// Standard CRC-32 of the `count` bytes at `start`; -1 when `start` is
 /// negative, `count` is negative, or the span does not fit in `data`.
 /// Complexity: O(count).
-pub fn uboot_crc32_range(data: &Vec[UInt8], start: Int, count: Int) -> Int {
+pub fn uboot_crc32_range(data: &Vec[UInt8], start: Int, count: Int) -> Int
+  ensures: start < 0 => result == -1;
+  ensures: count < 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 4294967295;
+{
   if start < 0 || count < 0 { return -1; }
   if start > data.len() { return -1; }
   if count > data.len() - start { return -1; }
@@ -622,7 +682,10 @@ pub fn uboot_crc32_range(data: &Vec[UInt8], start: Int, count: Int) -> Int {
 /// recomputed (the U-Boot rule: the field is not part of its own
 /// computation). `uboot_parse` never computes this; call it explicitly.
 /// False when `data` is shorter than 64 bytes. Complexity: O(1).
-pub fn uboot_header_crc_ok(data: &Vec[UInt8], h: &UbootHeader) -> Bool {
+pub fn uboot_header_crc_ok(data: &Vec[UInt8], h: &UbootHeader) -> Bool
+  ensures: data.len() < 64 => !result;
+  ensures: result => data.len() >= 64;
+{
   if data.len() < _UBOOT_HEADER_BYTES { return false; }
   return _crc32_header(data) == h.hcrc;
 }
@@ -632,7 +695,11 @@ pub fn uboot_header_crc_ok(data: &Vec[UInt8], h: &UbootHeader) -> Bool {
 /// `data` (a header-only buffer therefore fails whenever `ih_size > 0`).
 /// `uboot_parse` never computes this; call it explicitly.
 /// Complexity: O(ih_size).
-pub fn uboot_data_crc_ok(data: &Vec[UInt8], h: &UbootHeader) -> Bool {
+pub fn uboot_data_crc_ok(data: &Vec[UInt8], h: &UbootHeader) -> Bool
+  ensures: h.size < 0 => !result;
+  ensures: data.len() < 64 => !result;
+  ensures: result => h.size >= 0 && data.len() >= 64;
+{
   if h.size < 0 { return false; }
   if data.len() < _UBOOT_HEADER_BYTES { return false; }
   if h.size > data.len() - _UBOOT_HEADER_BYTES { return false; }
@@ -666,7 +733,11 @@ pub fn uboot_data_crc_ok(data: &Vec[UInt8], h: &UbootHeader) -> Bool {
 /// image data, read only (may be empty).
 /// Returns: Ok(bytes) of length 64 + payload.len().
 /// Complexity: O(payload.len()).
-pub fn uboot_build(h: &UbootHeader, payload: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn uboot_build(h: &UbootHeader, payload: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: h.time < 0 || h.time > 4294967295 || h.load < 0 || h.load > 4294967295 || h.ep < 0 || h.ep > 4294967295 => result is Err;
+  ensures: h.os < 0 || h.os > 255 || h.arch < 0 || h.arch > 255 || h.image_type < 0 || h.image_type > 255 || h.comp < 0 || h.comp > 255 => result is Err;
+  ensures: result is Ok => result.value.len() >= 64;
+{
   if h.time < 0 { return _err_bytes("uboot: bad timestamp"); }
   if h.time > _UBOOT_U32_MAX { return _err_bytes("uboot: bad timestamp"); }
   if h.load < 0 { return _err_bytes("uboot: bad address"); }

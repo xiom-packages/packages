@@ -1,8 +1,6 @@
 # xiom.uboot -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.uboot`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/uboot.xi` (`module xiom.uboot`).
 Depends on `xiom.std` (`xiom.string`: `byte_at`; `Str::from_utf8` is a
 compiler builtin). Tests additionally use `xiom.test`, `xiom.io`,
@@ -364,3 +362,47 @@ Last verified: compiler 0.61.3,
   receive the existing reference (gpt/tar/aiff precedent).
 - **Malformed bracket audit:** `Vec<` / `Result<` were grep-audited in both
   files after writing (parameter and return positions); zero occurrences.
+
+## Contracts (batch #31 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/uboot.xi` in the batch #31
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 43 clauses across the 28 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.uboot -TimeoutSec 60` runs
+ended `port: PASS (passed=16 failed=0 program_exit=0 exit=0)` with the clauses
+active (4.9 s and 5.1 s); the 16-check conformance suite exercises every entry
+point and no clause trapped.
+
+"Z3-provable" marks the scalar-shape family the SMT backend can discharge
+without executing the function; runtime-checked clauses read `Str`/`Vec`
+lengths or cross-call a public helper. Every clause holds for hand-built
+`UbootHeader` values (field reads and constant bounds only).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `uboot_header_size` | `ensures: result == 64` | Z3-provable (constant) |
+| `uboot_data_offset` | `ensures: result == 64` | Z3-provable (constant) |
+| `uboot_is_fit` | `ensures: data.len() < 4 => !result`; `ensures: result => data.len() >= 4` | runtime-checked (`Vec` length) |
+| `uboot_parse_header` | `ensures: data.len() < 64 => result is Err`; `ensures: uboot_is_fit(data) => result is Err`; `ensures: result is Ok => data.len() >= 64` | runtime-checked (`Vec` length; `uboot_is_fit` cross-call, non-re-entrant) |
+| `uboot_parse` | the same three clauses | runtime-checked (same) |
+| `uboot_magic` .. `uboot_compression` (11 scalar accessors) | `ensures: result == h.<field>` (magic/time/size/load/ep/hcrc/dcrc/os/arch/image_type/comp) | Z3-provable (pure scalar field reads) |
+| `uboot_name` | `ensures: result.len() == h.name.len()` | runtime-checked (`Str` lengths) |
+| `uboot_os_name` | `ensures: result.len() >= 5 && result.len() <= 7` | runtime-checked (`Str` band; OS table is 5..7 chars) |
+| `uboot_arch_name` | `ensures: result.len() >= 3 && result.len() <= 7` | runtime-checked (`Str` band; arch table is 3..7 chars) |
+| `uboot_image_type_name` | `ensures: result.len() >= 5 && result.len() <= 13` | runtime-checked (`Str` band; type table is 5..13 chars) |
+| `uboot_compression_name` | `ensures: result.len() >= 3 && result.len() <= 7` | runtime-checked (`Str` band; comp table is 3..7 chars) |
+| `uboot_data_end` | `ensures: result == 64 + h.size` | Z3-provable (scalar arithmetic) |
+| `uboot_data_bytes` | `ensures: h.size < 0 => result is Err`; `ensures: data.len() < 64 => result is Err`; `ensures: h.size > data.len() - 64 => result is Err` | runtime-checked (guard shape) |
+| `uboot_crc32` | `ensures: result >= 0 && result <= 4294967295`; `ensures: data.len() == 0 => result == 0` | Z3-provable (scalar range) / runtime-checked (`Vec` length) |
+| `uboot_crc32_range` | `ensures: start < 0 => result == -1`; `ensures: count < 0 => result == -1`; `ensures: result != -1 => result >= 0 && result <= 4294967295` | Z3-provable (scalar sentinel trio) |
+| `uboot_header_crc_ok` | `ensures: data.len() < 64 => !result`; `ensures: result => data.len() >= 64` | runtime-checked (`Vec` length) |
+| `uboot_data_crc_ok` | `ensures: h.size < 0 => !result`; `ensures: data.len() < 64 => !result`; `ensures: result => h.size >= 0 && data.len() >= 64` | runtime-checked (guard shape) |
+| `uboot_build` | `ensures: h.time < 0 || h.time > 4294967295 || h.load < 0 || h.load > 4294967295 || h.ep < 0 || h.ep > 4294967295 => result is Err`; `ensures: h.os < 0 || h.os > 255 || h.arch < 0 || h.arch > 255 || h.image_type < 0 || h.image_type > 255 || h.comp < 0 || h.comp > 255 => result is Err`; `ensures: result is Ok => result.value.len() >= 64` | Z3-provable (first two, scalar guards) / runtime-checked (third, Result `Vec` length) |
+
+Deliberately not claimed: the fixed magic value; CRC validity (a mismatch is
+never reported by the parsers); `uboot_build`'s exact result length
+(`64 + payload.len()`); round-trip identities; `Str` equality (BUG 17);
+tuple-component access; struct-Result payload field reads. No clause calls a
+function that wraps its callee; the only cross-calls are `uboot_is_fit` inside
+the two parser guards (safe, non-re-entrant).
