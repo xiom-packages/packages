@@ -360,7 +360,10 @@ fn _zf_push_record(z: &mut Zone, name: Str, ttl: Int, cls: Str, typ: Str, toks: 
 /// "$ORIGIN example.com.\nwww A 192.0.2.1\n" -> the owner is
 /// "www.example.com."; "    A 192.0.2.2\n" after it -> the same owner again.
 /// Complexity: O(text.len()).
-pub fn zone_parse(text: Str) -> Result[Zone, Str] {
+pub fn zone_parse(text: Str) -> Result[Zone, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var z = Zone{
     names: Vec[Str].new();
     ttls: Vec[Int].new();
@@ -484,7 +487,11 @@ pub fn zone_parse(text: Str) -> Result[Zone, Str] {
 /// of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn zone_record_count(z: &Zone) -> Int {
+pub fn zone_record_count(z: &Zone) -> Int
+  ensures: result <= z.names.len();
+  ensures: result >= 0;
+  ensures: z.names.len() == 0 => result == 0;
+{
   var n = z.names.len();
   if z.ttls.len() < n { n = z.ttls.len(); }
   if z.classes.len() < n { n = z.classes.len(); }
@@ -503,7 +510,11 @@ pub fn zone_record_count(z: &Zone) -> Int {
 /// Error case: none.
 /// Examples: "www" in example.com. -> "www.example.com.".
 /// Complexity: O(1).
-pub fn zone_name(z: &Zone, i: Int) -> Str {
+pub fn zone_name(z: &Zone, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= zone_record_count(z) => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < zone_record_count(z);
+{
   if i < 0 || i >= zone_record_count(z) { return ""; }
   let v: Str = z.names[i];
   return v;
@@ -517,7 +528,11 @@ pub fn zone_name(z: &Zone, i: Int) -> Str {
 /// TTL or the $TTL default (0 before any $TTL).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn zone_ttl(z: &Zone, i: Int) -> Int {
+pub fn zone_ttl(z: &Zone, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= zone_record_count(z) => result == -1;
+  ensures: result != -1 => i >= 0 && i < zone_record_count(z);
+{
   if i < 0 || i >= zone_record_count(z) { return -1; }
   let v: Int = z.ttls[i];
   return v;
@@ -529,7 +544,11 @@ pub fn zone_ttl(z: &Zone, i: Int) -> Int {
 /// only class in the documented subset; an omitted class defaults to it.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn zone_class(z: &Zone, i: Int) -> Str {
+pub fn zone_class(z: &Zone, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= zone_record_count(z) => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < zone_record_count(z);
+{
   if i < 0 || i >= zone_record_count(z) { return ""; }
   let v: Str = z.classes[i];
   return v;
@@ -542,7 +561,11 @@ pub fn zone_class(z: &Zone, i: Int) -> Str {
 /// any case.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn zone_type(z: &Zone, i: Int) -> Str {
+pub fn zone_type(z: &Zone, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= zone_record_count(z) => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < zone_record_count(z);
+{
   if i < 0 || i >= zone_record_count(z) { return ""; }
   let v: Str = z.types[i];
   return v;
@@ -555,7 +578,11 @@ pub fn zone_type(z: &Zone, i: Int) -> Str {
 /// reports a safe value instead of reading past `tokens`.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn zone_rdata_token_count(z: &Zone, i: Int) -> Int {
+pub fn zone_rdata_token_count(z: &Zone, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= zone_record_count(z) => result == 0;
+  ensures: result >= 0;
+{
   if i < 0 || i >= zone_record_count(z) { return 0; }
   let start: Int = z.token_starts[i];
   if start < 0 { return 0; }
@@ -576,7 +603,11 @@ pub fn zone_rdata_token_count(z: &Zone, i: Int) -> Int {
 /// a real empty TXT token; use zone_rdata_token_count to tell them apart.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn zone_rdata_token(z: &Zone, i: Int, j: Int) -> Str {
+pub fn zone_rdata_token(z: &Zone, i: Int, j: Int) -> Str
+  ensures: j < 0 => result.len() == 0;
+  ensures: j >= zone_rdata_token_count(z, i) => result.len() == 0;
+  ensures: result.len() > 0 => j >= 0 && j < zone_rdata_token_count(z, i);
+{
   let c = zone_rdata_token_count(z, i);
   if j < 0 || j >= c { return ""; }
   let start: Int = z.token_starts[i];
@@ -593,7 +624,11 @@ pub fn zone_rdata_token(z: &Zone, i: Int, j: Int) -> Str {
 /// apart.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn zone_txt_text(z: &Zone, i: Int) -> Str {
+pub fn zone_txt_text(z: &Zone, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= zone_record_count(z) => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < zone_record_count(z);
+{
   if i < 0 || i >= zone_record_count(z) { return ""; }
   let v: Str = z.texts[i];
   return v;
@@ -651,7 +686,10 @@ fn _zf_render_token(sb: &mut Vec[UInt8], tok: Str) {
 /// Examples: parse("$ORIGIN example.com.\n$TTL 300\nwww A 192.0.2.1\n")
 /// emits "www.example.com. 300 IN A 192.0.2.1\n".
 /// Complexity: O(total output length).
-pub fn zone_emit(z: &Zone) -> Str {
+pub fn zone_emit(z: &Zone) -> Str
+  ensures: result.len() >= zone_record_count(z);
+  ensures: zone_record_count(z) == 0 => result.len() == 0;
+{
   var sb = builder.sb_new();
   let count = zone_record_count(z);
   var i = 0;

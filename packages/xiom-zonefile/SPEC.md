@@ -1,8 +1,6 @@
 # xiom.zonefile -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.zonefile`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/zonefile.xi` (`module xiom.zonefile`).
 Depends on `xiom.std`; the library module imports only `xiom.string`,
 `xiom.string.builder` and `xiom.string.compare` (the tests add `xiom.test`
@@ -365,8 +363,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.zonefile
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=20 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0,
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` (5.1 s and 5.2 s in
+two consecutive runs with the batch #31 `ensures:` clauses active).
 
 ## 13. Known limitations
 
@@ -416,3 +415,50 @@ Last verified: compiler 0.61.3,
   `sb_push_byte`, `sb_push_str`, `sb_push_int`, `sb_to_str`); the emitted
   TTL uses `sb_push_int`.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #31 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/zonefile.xi` in the batch
+#31 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 28 clauses across the 10 public entry points;
+all are `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.zonefile -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.1 s and 5.2 s); the 20-check conformance suite exercises every
+entry point -- including the out-of-range accessor sentinels (t18), the
+drifted-vector clamp and the empty document -- and no clause trapped.
+
+"Z3-provable" marks the scalar-shape family the SMT backend can discharge
+without executing the function (pure scalar guards/bounds over parameters,
+`result` and field-length counts); runtime-checked clauses observe a
+`Result` tag, compare a built `Str` length, or call a public accessor, and
+all are enforced by the v0.64.0 runtime evaluator.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `zone_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | Z3-provable (pure scalar guard); runtime-checked (`Result` tag + `Str` length) |
+| `zone_record_count` | `ensures: result <= z.names.len()`; `ensures: result >= 0`; `ensures: z.names.len() == 0 => result == 0` | Z3-provable (scalar-shape counts) |
+| `zone_name` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= zone_record_count(z) => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < zone_record_count(z)` | runtime-checked (built `Str` length + public accessor cross-call) |
+| `zone_ttl` | `ensures: i < 0 => result == -1`; `ensures: i >= zone_record_count(z) => result == -1`; `ensures: result != -1 => i >= 0 && i < zone_record_count(z)` | runtime-checked (scalar-shape sentinel via public accessor cross-call) |
+| `zone_class` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= zone_record_count(z) => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < zone_record_count(z)` | runtime-checked (built `Str` length + public accessor cross-call) |
+| `zone_type` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= zone_record_count(z) => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < zone_record_count(z)` | runtime-checked (built `Str` length + public accessor cross-call) |
+| `zone_rdata_token_count` | `ensures: i < 0 => result == 0`; `ensures: i >= zone_record_count(z) => result == 0`; `ensures: result >= 0` | runtime-checked (scalar sentinels + public accessor cross-call) |
+| `zone_rdata_token` | `ensures: j < 0 => result.len() == 0`; `ensures: j >= zone_rdata_token_count(z, i) => result.len() == 0`; `ensures: result.len() > 0 => j >= 0 && j < zone_rdata_token_count(z, i)` | runtime-checked (built `Str` length + public accessor cross-call) |
+| `zone_txt_text` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= zone_record_count(z) => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < zone_record_count(z)` | runtime-checked (built `Str` length + public accessor cross-call) |
+| `zone_emit` | `ensures: result.len() >= zone_record_count(z)`; `ensures: zone_record_count(z) == 0 => result.len() == 0` | runtime-checked (built `Str` length + public accessor cross-call) |
+
+Deliberately not claimed: a `zone_ttl` result lower bound (a hand-built
+`Zone` may store negative TTLs); record-content or name-resolution
+properties (RDATA is opaque and names are stored as resolved); an emit
+round-trip or self-referential clause on `zone_emit`; `Str` equality
+(BUG 17); module consts in clauses; vector indexing inside a clause; and
+every forbidden shape from the batch #31 brief (tuple-component access,
+payload-length-vs-parameter, struct-result payload fields, postcondition
+call-cycles). The only clause cross-calls are the accessors'
+non-re-entrant `zone_record_count(z)` and `zone_rdata_token`'s
+`zone_rdata_token_count(z, i)`; no clause calls a function that wraps its
+callee. All clauses hold for hand-built `Zone` values: they compare only
+sentinels, `.len()` shapes and the safe count helpers, so a drifted or
+negative `ttls` vector reports fewer records or a valid sentinel instead of
+tripping a clause.
