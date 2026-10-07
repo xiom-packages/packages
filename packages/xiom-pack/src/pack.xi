@@ -213,7 +213,11 @@ fn _read_sint(data: &Vec[UInt8], off: Int, size: Int, be: Bool) -> Int {
 /// Byte width of one format token: 1 for u8/s8/b8, 2 for u16*/s16*, 4 for
 /// u32*/s32*, 8 for u64*/s64*. Returns 0 for an unknown token (including
 /// empty strings and case variants such as "U8").
-pub fn pack_token_size(token: Str) -> Int {
+pub fn pack_token_size(token: Str) -> Int
+  ensures: result >= 0;
+  ensures: result <= 8;
+  ensures: token.len() == 0 => result == 0;
+{
   if _token_is(token, "u8") { return 1; }
   if _token_is(token, "s8") { return 1; }
   if _token_is(token, "b8") { return 1; }
@@ -236,7 +240,11 @@ pub fn pack_token_size(token: Str) -> Int {
 /// Returns: Ok(total) when every token is known (0 for an empty format).
 /// Error case: Err("pack: unknown token '<token>'") for the first unknown
 /// token.
-pub fn pack_size(fmt: Str) -> Result[Int, Str] {
+pub fn pack_size(fmt: Str) -> Result[Int, Str]
+  ensures: fmt.len() == 0 => result is Ok;
+  ensures: result is Err => fmt.len() > 0;
+  ensures: result is Ok => result.value >= 0;
+{
   let tokens = _split_tokens(fmt);
   var total: Int = 0;
   var i = 0;
@@ -266,7 +274,11 @@ pub fn pack_size(fmt: Str) -> Result[Int, Str] {
 /// unknown token; Err("pack: <token> out of range") when a value is outside
 /// the token range (see SPEC.md). u64/s64 accept every Int as a 64-bit
 /// two's-complement bit pattern.
-pub fn pack_format(fmt: Str, values: &Vec[Int]) -> Result[Vec[UInt8], Str] {
+pub fn pack_format(fmt: Str, values: &Vec[Int]) -> Result[Vec[UInt8], Str]
+  ensures: fmt.len() == 0 && values.len() == 0 => result is Ok;
+  ensures: fmt.len() == 0 && values.len() > 0 => result is Err;
+  ensures: result is Ok => values.len() <= fmt.len();
+{
   let tokens = _split_tokens(fmt);
   if tokens.len() != values.len() {
     return _err_bytes("pack: token count mismatch");
@@ -340,7 +352,11 @@ pub fn pack_format(fmt: Str, values: &Vec[Int]) -> Result[Vec[UInt8], Str] {
 /// Err("pack: unknown token '<token>'") for an unknown token;
 /// Err("pack: truncated data") when offset + pack_size(fmt) exceeds
 /// data.len().
-pub fn unpack_format(fmt: Str, data: &Vec[UInt8], offset: Int) -> Result[Vec[Int], Str] {
+pub fn unpack_format(fmt: Str, data: &Vec[UInt8], offset: Int) -> Result[Vec[Int], Str]
+  ensures: offset < 0 => result is Err;
+  ensures: offset > data.len() => result is Err;
+  ensures: result is Ok => offset >= 0 && offset <= data.len();
+{
   if offset < 0 {
     return _err_ints("pack: negative offset");
   }
@@ -427,68 +443,92 @@ pub fn unpack_format(fmt: Str, data: &Vec[UInt8], offset: Int) -> Result[Vec[Int
 /// Append the low 2 bytes of `v` little-endian. Masked to 16 bits: bits
 /// above bit 15 (including the sign extension of a negative `v`) are
 /// dropped. No range validation; use pack_format for checked encoding.
-pub fn pack_u16_le(out: &mut Vec[UInt8], v: Int) {
+pub fn pack_u16_le(out: &mut Vec[UInt8], v: Int)
+  ensures: out.len() == out.len()@pre + 2;
+{
   _push_le(out, v, 2);
 }
 
 /// Append the low 2 bytes of `v` big-endian. Masked to 16 bits.
-pub fn pack_u16_be(out: &mut Vec[UInt8], v: Int) {
+pub fn pack_u16_be(out: &mut Vec[UInt8], v: Int)
+  ensures: out.len() == out.len()@pre + 2;
+{
   _push_be(out, v, 2);
 }
 
 /// Append the low 2 bytes of `v` little-endian (two's complement). Masked to
 /// 16 bits.
-pub fn pack_s16_le(out: &mut Vec[UInt8], v: Int) {
+pub fn pack_s16_le(out: &mut Vec[UInt8], v: Int)
+  ensures: out.len() == out.len()@pre + 2;
+{
   _push_le(out, v, 2);
 }
 
 /// Append the low 2 bytes of `v` big-endian (two's complement). Masked to
 /// 16 bits.
-pub fn pack_s16_be(out: &mut Vec[UInt8], v: Int) {
+pub fn pack_s16_be(out: &mut Vec[UInt8], v: Int)
+  ensures: out.len() == out.len()@pre + 2;
+{
   _push_be(out, v, 2);
 }
 
 /// Append the low 4 bytes of `v` little-endian. Masked to 32 bits.
-pub fn pack_u32_le(out: &mut Vec[UInt8], v: Int) {
+pub fn pack_u32_le(out: &mut Vec[UInt8], v: Int)
+  ensures: out.len() == out.len()@pre + 4;
+{
   _push_le(out, v, 4);
 }
 
 /// Append the low 4 bytes of `v` big-endian. Masked to 32 bits.
-pub fn pack_u32_be(out: &mut Vec[UInt8], v: Int) {
+pub fn pack_u32_be(out: &mut Vec[UInt8], v: Int)
+  ensures: out.len() == out.len()@pre + 4;
+{
   _push_be(out, v, 4);
 }
 
 /// Append the low 4 bytes of `v` little-endian (two's complement). Masked to
 /// 32 bits.
-pub fn pack_s32_le(out: &mut Vec[UInt8], v: Int) {
+pub fn pack_s32_le(out: &mut Vec[UInt8], v: Int)
+  ensures: out.len() == out.len()@pre + 4;
+{
   _push_le(out, v, 4);
 }
 
 /// Append the low 4 bytes of `v` big-endian (two's complement). Masked to
 /// 32 bits.
-pub fn pack_s32_be(out: &mut Vec[UInt8], v: Int) {
+pub fn pack_s32_be(out: &mut Vec[UInt8], v: Int)
+  ensures: out.len() == out.len()@pre + 4;
+{
   _push_be(out, v, 4);
 }
 
 /// Append the low 8 bytes of `v` little-endian. Masked to 64 bits (the full
 /// Int width, so the mask is the identity).
-pub fn pack_u64_le(out: &mut Vec[UInt8], v: Int) {
+pub fn pack_u64_le(out: &mut Vec[UInt8], v: Int)
+  ensures: out.len() == out.len()@pre + 8;
+{
   _push_le(out, v, 8);
 }
 
 /// Append the low 8 bytes of `v` big-endian. Masked to 64 bits.
-pub fn pack_u64_be(out: &mut Vec[UInt8], v: Int) {
+pub fn pack_u64_be(out: &mut Vec[UInt8], v: Int)
+  ensures: out.len() == out.len()@pre + 8;
+{
   _push_be(out, v, 8);
 }
 
 /// Append the low 8 bytes of `v` little-endian (two's complement). Masked to
 /// 64 bits.
-pub fn pack_s64_le(out: &mut Vec[UInt8], v: Int) {
+pub fn pack_s64_le(out: &mut Vec[UInt8], v: Int)
+  ensures: out.len() == out.len()@pre + 8;
+{
   _push_le(out, v, 8);
 }
 
 /// Append the low 8 bytes of `v` big-endian (two's complement). Masked to
 /// 64 bits.
-pub fn pack_s64_be(out: &mut Vec[UInt8], v: Int) {
+pub fn pack_s64_be(out: &mut Vec[UInt8], v: Int)
+  ensures: out.len() == out.len()@pre + 8;
+{
   _push_be(out, v, 8);
 }

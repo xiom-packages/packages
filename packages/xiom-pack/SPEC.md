@@ -1,8 +1,7 @@
 # xiom.pack -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.pack`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
+Manifest: `package.xi` (`xiom.pack`, version `0.1.2`).
 Module: `src/pack.xi` (`module xiom.pack`).
 Depends on `xiom.std` (`xiom.string`; the tests additionally use
 `xiom.test`, `xiom.io`, `xiom.string.compare`, `xiom.encoding.hex`).
@@ -219,8 +218,56 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.pack
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=22 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0,
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` in 11.9 s and 12.3 s
+(two consecutive runs with the hardening clauses active).
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/pack.xi` in the batch #24
+hardening pass (compiler v0.64.0; version bump to 0.1.2 by the coordinator):
+24 clauses across the 16 public entry points (4 core functions + 12
+appenders). `xiom --dump-contracts src/pack.xi` lists all 24, so none was
+dropped, and two consecutive
+`.\scripts\port.ps1 -Package xiom.pack -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active (11.9 s and 12.3 s). The 22-check conformance suite exercises all 16
+entry points; none of the clauses trapped under the suite.
+
+`xiom-verify src/pack.xi --check` (Z3 on v0.64.0) result: **0 proven /
+2 violated / 37 unknown / 21 errors**, with the verifier's own summary
+"z3 rejected the generated SMT (emitter bug) ... This is not a proof
+failure of the code under test." The 21 errors are emitter artifacts
+(unknown constants `_token_is` / `_split_tokens` / `_ok_int` / `_err_ints`
+in the generated SMT); the two `VIOLATED [X7001]` lines for
+`pack_token_size` are spurious consequences of the rejected SMT, not
+counterexamples (the function only returns the literal widths 0..8 and the
+suite pins them). The emitter skips every clause whose `Str`/`Vec` `.len()`
+has an unresolved operand sort or whose function body is built from the
+call/loop helpers, so all 24 clauses are runtime-checked only on this
+toolchain.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `pack_token_size` | `ensures: result >= 0`; `ensures: result <= 8`; `ensures: token.len() == 0 => result == 0` | runtime-checked (body calls `_token_is`; emitter errors) |
+| `pack_size` | `ensures: fmt.len() == 0 => result is Ok`; `ensures: result is Err => fmt.len() > 0`; `ensures: result is Ok => result.value >= 0` | runtime-checked (emitter: `Str` length sort unresolved) |
+| `pack_format` | `ensures: fmt.len() == 0 && values.len() == 0 => result is Ok`; `ensures: fmt.len() == 0 && values.len() > 0 => result is Err`; `ensures: result is Ok => values.len() <= fmt.len()` | runtime-checked (emitter: `Str` length sort unresolved) |
+| `unpack_format` | `ensures: offset < 0 => result is Err`; `ensures: offset > data.len() => result is Err`; `ensures: result is Ok => offset >= 0 && offset <= data.len()` | runtime-checked (emitter: unsupported expression) |
+| `pack_u16_le` / `pack_u16_be` / `pack_s16_le` / `pack_s16_be` | `ensures: out.len() == out.len()@pre + 2` | runtime-checked (`@pre` frame through the `&mut Vec[UInt8]` param) |
+| `pack_u32_le` / `pack_u32_be` / `pack_s32_le` / `pack_s32_be` | `ensures: out.len() == out.len()@pre + 4` | runtime-checked (`@pre` frame) |
+| `pack_u64_le` / `pack_u64_be` / `pack_s64_le` / `pack_s64_be` | `ensures: out.len() == out.len()@pre + 8` | runtime-checked (`@pre` frame) |
+
+The clauses stay inside the proven families: scalar bounds and sentinels,
+guard pairs (`x invalid => result is Err` / `Err => x invalid`), an exact
+count invariant (`values.len() <= fmt.len()` whenever `pack_format` is Ok),
+and the per-appender `@pre` frame counts. No clause uses tuple-component
+access, a `Result`-payload length check, struct payload fields, `Str`
+equality, or indexing; no clause calls the function it guards or a
+transitive callee, so there is no postcondition call-cycle. The first two
+clauses of `pack_format` are the empty-format guard pair; its third clause
+refines the token-count rule (token count == `values.len()`, tokens are
+separated by at least one non-token byte, so the count never exceeds the
+byte length of `fmt`).
 
 ## Known limitations
 
