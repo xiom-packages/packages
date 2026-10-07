@@ -109,7 +109,10 @@ fn _header_kind(data: &Vec[UInt8]) -> Int {
 /// version `01 00 00 00`. Trailing bytes (sections) are not inspected, so
 /// any valid module and any valid prefix of one is accepted. False for
 /// fewer than 8 bytes, a wrong magic, or a version other than 1.
-pub fn wasm_is_module(data: &Vec[UInt8]) -> Bool {
+pub fn wasm_is_module(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 8 => !result;
+  ensures: result => data.len() >= 8;
+{
   return _header_kind(data) == 0;
 }
 
@@ -122,7 +125,10 @@ pub fn wasm_is_module(data: &Vec[UInt8]) -> Bool {
 /// Err("wasm: leb128 overflow") when a 5th byte continues the sequence or
 /// carries payload bits above bit 31; Err("wasm: negative offset") for
 /// `off < 0`. Non-minimal encodings are accepted (structure-only).
-pub fn wasm_leb_u32(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str] {
+pub fn wasm_leb_u32(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str]
+  ensures: off < 0 || off >= data.len() => result is Err;
+  ensures: result is Ok => off >= 0 && off < data.len();
+{
   if off < 0 {
     return _err_pair("wasm: negative offset");
   }
@@ -157,7 +163,11 @@ pub fn wasm_leb_u32(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str] {
 /// Canonical name of a section id: 0 custom, 1 type, 2 import, 3 function,
 /// 4 table, 5 memory, 6 global, 7 export, 8 start, 9 element, 10 code,
 /// 11 data, 12 datacount; "unknown" for any other id.
-pub fn wasm_section_name(id: Int) -> Str {
+pub fn wasm_section_name(id: Int) -> Str
+  ensures: id < 0 || id > 12 => result.len() == 7;
+  ensures: result.len() >= 4 && result.len() <= 9;
+  ensures: id == 12 => result.len() == 9;
+{
   if id == 0 { return "custom"; }
   if id == 1 { return "type"; }
   if id == 2 { return "import"; }
@@ -186,7 +196,11 @@ pub fn wasm_section_name(id: Int) -> Str {
 /// Err("wasm: truncated section"). Section ids are recorded verbatim
 /// (0..255): unknown ids, zero-size payloads and duplicate ids are all
 /// accepted (structure-only; ordering and uniqueness are not validated).
-pub fn wasm_parse_sections(data: &Vec[UInt8]) -> Result[WasmSections, Str] {
+pub fn wasm_parse_sections(data: &Vec[UInt8]) -> Result[WasmSections, Str]
+  ensures: data.len() < 8 => result is Err;
+  ensures: result is Ok => data.len() >= 8;
+  ensures: data.len() >= 8 && !wasm_is_module(data) => result is Err;
+{
   let kind = _header_kind(data);
   if kind == 1 {
     return _err_sections("wasm: truncated header");
@@ -323,7 +337,11 @@ fn _parse_exports(data: &Vec[UInt8], start: Int, end: Int) -> Result[Vec[Str], S
 /// "wasm: truncated section" / LEB128 errors) and from the entry walk
 /// ("wasm: truncated export", "wasm: trailing export bytes",
 /// "wasm: nul in export name").
-pub fn wasm_export_names(data: &Vec[UInt8]) -> Result[Vec[Str], Str] {
+pub fn wasm_export_names(data: &Vec[UInt8]) -> Result[Vec[Str], Str]
+  ensures: data.len() < 8 => result is Err;
+  ensures: result is Ok => data.len() >= 8;
+  ensures: data.len() >= 8 && !wasm_is_module(data) => result is Err;
+{
   let secs = wasm_parse_sections(data);
   if !secs.is_ok {
     return _err_names(secs.error);

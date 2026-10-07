@@ -1,9 +1,8 @@
 # xiom.wasm -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.wasm`, version `0.1.0`).
-Module: `src/wasm.xi` (`module xiom.wasm`).
+Status: `stable` (published; harness-green on v0.64.0).
+Manifest: `package.xi` (`xiom.wasm`, version `0.1.2`).
+Module: `xiom.wasm` (`src/wasm.xi`). Pure XIOM, no FFI.
 Depends on `xiom.std` (`xiom.string.builder`).
 
 ## Scope
@@ -245,8 +244,55 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.wasm
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=22 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0,
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` (two runs, 5.4 s and
+5.5 s).
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/wasm.xi` in the batch #18
+hardening pass (compiler v0.64.0; no version bump): 13 clauses across the
+five public entry points (2/2/3/3/3). Two consecutive
+`.\scripts\port.ps1 -Package xiom.wasm -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.4 s and 5.5 s). Every clause constrains a scalar `Bool`, a sentinel
+`Err`/`Ok` discrimination without payload access, or the length of the
+returned `Str`; no clause reads a tuple/struct payload, compares `Str`
+values, or calls a function that wraps the callee.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `wasm_is_module` | `ensures: data.len() < 8 => !result`; `ensures: result => data.len() >= 8` | runtime-checked (pure scalar guard pair; `Vec.len()` is an unknown-sort operand for the SMT emitter) |
+| `wasm_leb_u32` | `ensures: off < 0 \|\| off >= data.len() => result is Err`; `ensures: result is Ok => off >= 0 && off < data.len()` | runtime-checked (guard pair; no tuple payload access) |
+| `wasm_section_name` | `ensures: id < 0 \|\| id > 12 => result.len() == 7` (the `"unknown"` sentinel); `ensures: result.len() >= 4 && result.len() <= 9`; `ensures: id == 12 => result.len() == 9` (`"datacount"`) | runtime-checked (sentinel + bounds + exact length) |
+| `wasm_parse_sections` | `ensures: data.len() < 8 => result is Err`; `ensures: result is Ok => data.len() >= 8`; `ensures: data.len() >= 8 && !wasm_is_module(data) => result is Err` | runtime-checked (guard pair + `_header_kind` guard; `wasm_is_module` does not call `wasm_parse_sections`, so no call-cycle) |
+| `wasm_export_names` | `ensures: data.len() < 8 => result is Err`; `ensures: result is Ok => data.len() >= 8`; `ensures: data.len() >= 8 && !wasm_is_module(data) => result is Err` | runtime-checked (same three guards, propagated from `wasm_parse_sections`) |
+
+No clause is claimed Z3-provable: `xiom verify --check src/wasm.xi` reports
+`0 proven, 0 violated, 16 unknown, 4 errors` (emitter bug on private helper
+constants). `Vec.len()` / `Str.len()` carry unknown sorts for the SMT
+emitter, `Result` predicates (`is_ok` / `is_err`) and loop bodies are
+unsupported, so every clause is enforced by the runtime evaluator while the
+suite runs. The `Z`/`R` tags in the batch #18 plan thus both resolve to
+runtime enforcement for this package.
+
+Deliberately excluded (documented, not asserted):
+
+- `wasm_is_module(data) => result is Ok` is **false** (a valid 8-byte header
+  can still hit a malformed/truncated section during the walk), so it is
+  never written; the `!wasm_is_module(data) => result is Err` direction is
+  the only sound header guard for the walkers.
+- No clause on `wasm_leb_u32` touches `result.value.0` / `result.value.1`
+  (tuple-component access is a forbidden v0.63.1 runtime-evaluator shape);
+  the value/offset facts stay pinned by the conformance suite instead.
+- Section-table invariants (`ids.len() == offsets.len() == sizes.len()`),
+  export counts and payload lengths are not asserted: they would read struct
+  result payloads or relate payload lengths to parameters.
+
+No clause uses the forbidden runtime-evaluator shapes (tuple-component
+access, payload-length-vs-parameter, struct-result payload fields, or
+transitive-callee calls). Nothing was dropped: all 13 planned clauses
+compiled and ran green on the first attempt.
 
 ## Known limitations
 

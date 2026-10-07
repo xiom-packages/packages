@@ -10,7 +10,7 @@
 
 package xiom_wasm {
   name: "xiom.wasm";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "WebAssembly binary module structure: LEB128, section walk, export names";
   categories: ["data", "tooling"];
   keywords: ["wasm", "webassembly", "leb128", "binary"];
