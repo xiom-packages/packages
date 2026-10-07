@@ -10,7 +10,7 @@
 
 package xiom_pls {
   name: "xiom.pls";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "PLS playlist parsing and canonical emitting";
   categories: ["media"];
   keywords: ["pls", "playlist", "format", "audio"];

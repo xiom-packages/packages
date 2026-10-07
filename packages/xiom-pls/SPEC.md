@@ -1,6 +1,6 @@
 # xiom.pls -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.pls` (`src/pls.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -338,3 +338,46 @@ Workarounds carried by this module, in the style of `xiom.m3u` and
   normalization, no playback semantics.
 - Whole-document only; no streaming and no editing API.
 - Errors carry the offending line or key text but no line/column numbers.
+
+## Contracts (batch #27 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/pls.xi` in the batch #27
+hardening pass (compiler v0.64.0; no version bump): 25 clauses across all 10
+public entry points. Two consecutive
+`.\scripts\port.ps1 -Package xiom.pls -TimeoutSec 60` runs ended
+`port: PASS (passed=23 failed=0 program_exit=0 exit=0)` with the clauses
+active (8.6 s and 7.2 s); none trapped under the suite.
+
+All clauses are `ensures:`; no `requires:` was added, so the accepted-input
+domain is unchanged. The class column records the clause shape: the
+"Z3-provable (pure scalar)" label marks clauses whose operands are `result`,
+scalar parameters and scalar struct fields only (no `Str`/`Vec` length reads,
+no calls); clauses observing `Str`/`Vec` lengths or struct-field container
+lengths are enforced by the runtime evaluator. (The label records shape, not
+a machine proof; no `xiom-verify` run backs it.)
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `pls_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked (tag-only; the `Ok` payload is the `Pls` struct, never read) |
+| `pls_emit` | `p.files.len() == 0 && p.unknown_keys.len() == 0 => result.len() == 39` | runtime-checked (`Vec` field lengths; 39 = 11 + 10 + 16 + 1 + 1 bytes of header, Version, `NumberOfEntries=`, its zero digit and LF, verified against the source emit) |
+| `pls_emit` | `result.len() >= 39` | runtime-checked (`Str`-result length) |
+| `pls_emit` | `result.len() >= p.files.len()` | runtime-checked (`Str`-result vs `Vec` field length) |
+| `pls_entry_count` | `result == p.files.len()` | runtime-checked (`Vec` field length) |
+| `pls_entry_count` | `result >= 0` | Z3-provable (pure scalar) |
+| `pls_has_header` | `result == p.has_header` | Z3-provable (pure scalar) |
+| `pls_file` | `i < 1 => result.len() == 0`; `i > p.files.len() => result.len() == 0`; `result.len() > 0 => i >= 1 && i <= p.files.len()` | runtime-checked (`Str`-result and `Vec` field lengths; 1-based accessor) |
+| `pls_title` | `i < 1 => result.len() == 0`; `i > p.titles.len() => result.len() == 0`; `result.len() > 0 => i >= 1 && i <= p.titles.len()` | runtime-checked (`Str`-result and `Vec` field lengths; 1-based accessor) |
+| `pls_length` | `i < 1 => result == -1` | Z3-provable (pure scalar) |
+| `pls_length` | `i > p.lengths.len() => result == -1` | runtime-checked (`Vec` field length) |
+| `pls_length` | `result >= 0 => i >= 1 && i <= p.lengths.len()` | runtime-checked (`Vec` field length) |
+| `pls_unknown_count` | `result == p.unknown_keys.len()` | runtime-checked (`Vec` field length) |
+| `pls_unknown_count` | `result >= 0` | Z3-provable (pure scalar) |
+| `pls_unknown_key` | `j < 0 => result.len() == 0`; `j >= p.unknown_keys.len() => result.len() == 0`; `result.len() > 0 => j >= 0 && j < p.unknown_keys.len()` | runtime-checked (`Str`-result and `Vec` field lengths) |
+| `pls_unknown_value` | `j < 0 => result.len() == 0`; `j >= p.unknown_values.len() => result.len() == 0`; `result.len() > 0 => j >= 0 && j < p.unknown_values.len()` | runtime-checked (`Str`-result and `Vec` field lengths) |
+
+4 Z3-provable (pure scalar), 21 runtime-checked; no clause dropped. No clause
+uses a tuple-component access, a `Result`/struct payload field, a
+payload-length-vs-parameter check, `Str` equality, a clause call, or vector
+indexing. `pls_parse` carries no `Ok`-payload claim, and `pls_emit` claims no
+exact length for a non-empty playlist (only the guarded empty case and the
+lower bounds), both per the batch plan.

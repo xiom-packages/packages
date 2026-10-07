@@ -279,7 +279,10 @@ fn _indexed_base(kind: Int) -> Int {
 ///     last-wins semantics. Unknown keys are preserved in document order.
 /// Errors: "pls: ..." messages; see SPEC.md for the catalog.
 /// Complexity: O(input length) plus O(entry count + indexed key count).
-pub fn pls_parse(text: Str) -> Result[Pls, Str] {
+pub fn pls_parse(text: Str) -> Result[Pls, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var has_header = false;
   var declared = -1;
   var rec_kind = Vec[Int].new();
@@ -446,7 +449,11 @@ pub fn pls_parse(text: Str) -> Result[Pls, Str] {
 /// (and Str cannot carry an embedded NUL, so sb_to_str never aborts here).
 /// Error case: none.
 /// Complexity: O(total output length).
-pub fn pls_emit(p: &Pls) -> Str {
+pub fn pls_emit(p: &Pls) -> Str
+  ensures: p.files.len() == 0 && p.unknown_keys.len() == 0 => result.len() == 39;
+  ensures: result.len() >= 39;
+  ensures: result.len() >= p.files.len();
+{
   var out = Vec[UInt8].new();
   builder.sb_push_str(&mut out, "[playlist]\n");
   builder.sb_push_str(&mut out, "Version=2\n");
@@ -502,18 +509,27 @@ pub fn pls_emit(p: &Pls) -> Str {
 
 /// Number of entries. Entry indexes for the accessors are 1-based, matching
 /// FileN..File1..N.
-pub fn pls_entry_count(p: &Pls) -> Int {
+pub fn pls_entry_count(p: &Pls) -> Int
+  ensures: result == p.files.len();
+  ensures: result >= 0;
+{
   return p.files.len();
 }
 
 /// True when the document contained a `[playlist]` section header line.
-pub fn pls_has_header(p: &Pls) -> Bool {
+pub fn pls_has_header(p: &Pls) -> Bool
+  ensures: result == p.has_header;
+{
   return p.has_header;
 }
 
 /// File path of entry `i` (1-based, verbatim after trimming); "" when `i` is
 /// out of range.
-pub fn pls_file(p: &Pls, i: Int) -> Str {
+pub fn pls_file(p: &Pls, i: Int) -> Str
+  ensures: i < 1 => result.len() == 0;
+  ensures: i > p.files.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 1 && i <= p.files.len();
+{
   if i < 1 { return ""; }
   if i > p.files.len() { return ""; }
   let v: Str = p.files[i - 1];
@@ -522,7 +538,11 @@ pub fn pls_file(p: &Pls, i: Int) -> Str {
 
 /// Title of entry `i` (1-based, verbatim after trimming); "" when `i` is out
 /// of range or the entry had no TitleN.
-pub fn pls_title(p: &Pls, i: Int) -> Str {
+pub fn pls_title(p: &Pls, i: Int) -> Str
+  ensures: i < 1 => result.len() == 0;
+  ensures: i > p.titles.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 1 && i <= p.titles.len();
+{
   if i < 1 { return ""; }
   if i > p.titles.len() { return ""; }
   let v: Str = p.titles[i - 1];
@@ -532,7 +552,11 @@ pub fn pls_title(p: &Pls, i: Int) -> Str {
 /// Whole-second length of entry `i` (1-based); -1 when `i` is out of range
 /// or the length is unknown (no LengthN, or explicit LengthN=-1, the
 /// documented live-stream sentinel).
-pub fn pls_length(p: &Pls, i: Int) -> Int {
+pub fn pls_length(p: &Pls, i: Int) -> Int
+  ensures: i < 1 => result == -1;
+  ensures: i > p.lengths.len() => result == -1;
+  ensures: result >= 0 => i >= 1 && i <= p.lengths.len();
+{
   if i < 1 { return -1; }
   if i > p.lengths.len() { return -1; }
   let v: Int = p.lengths[i - 1];
@@ -540,13 +564,20 @@ pub fn pls_length(p: &Pls, i: Int) -> Int {
 }
 
 /// Number of unknown keys preserved from the document.
-pub fn pls_unknown_count(p: &Pls) -> Int {
+pub fn pls_unknown_count(p: &Pls) -> Int
+  ensures: result == p.unknown_keys.len();
+  ensures: result >= 0;
+{
   return p.unknown_keys.len();
 }
 
 /// Name of unknown key `j` (0-based, document order); "" when `j` is out of
 /// range.
-pub fn pls_unknown_key(p: &Pls, j: Int) -> Str {
+pub fn pls_unknown_key(p: &Pls, j: Int) -> Str
+  ensures: j < 0 => result.len() == 0;
+  ensures: j >= p.unknown_keys.len() => result.len() == 0;
+  ensures: result.len() > 0 => j >= 0 && j < p.unknown_keys.len();
+{
   if j < 0 { return ""; }
   if j >= p.unknown_keys.len() { return ""; }
   let v: Str = p.unknown_keys[j];
@@ -555,7 +586,11 @@ pub fn pls_unknown_key(p: &Pls, j: Int) -> Str {
 
 /// Value of unknown key `j` (0-based, document order); "" when `j` is out of
 /// range.
-pub fn pls_unknown_value(p: &Pls, j: Int) -> Str {
+pub fn pls_unknown_value(p: &Pls, j: Int) -> Str
+  ensures: j < 0 => result.len() == 0;
+  ensures: j >= p.unknown_values.len() => result.len() == 0;
+  ensures: result.len() > 0 => j >= 0 && j < p.unknown_values.len();
+{
   if j < 0 { return ""; }
   if j >= p.unknown_values.len() { return ""; }
   let v: Str = p.unknown_values[j];
