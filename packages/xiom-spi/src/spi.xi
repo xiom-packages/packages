@@ -184,13 +184,18 @@ fn _bytes_equal(a: &Vec[UInt8], b: &Vec[UInt8]) -> Bool {
 
 /// True when `mode` is one of the four standard SPI modes 0..3.
 /// Complexity: O(1).
-pub fn spi_mode_valid(mode: Int) -> Bool {
+pub fn spi_mode_valid(mode: Int) -> Bool
+  ensures: result == (mode >= 0 && mode <= 3);
+{
   return mode >= 0 && mode <= 3;
 }
 
 /// Clock polarity of `mode`: 0 for modes 0/1, 1 for modes 2/3, -1 for an
 /// invalid mode. Complexity: O(1).
-pub fn spi_cpol(mode: Int) -> Int {
+pub fn spi_cpol(mode: Int) -> Int
+  ensures: !(mode >= 0 && mode <= 3) => result == -1;
+  ensures: (mode >= 0 && mode <= 3) => result >= 0 && result <= 1;
+{
   if !spi_mode_valid(mode) {
     return -1;
   }
@@ -199,7 +204,10 @@ pub fn spi_cpol(mode: Int) -> Int {
 
 /// Clock phase of `mode`: 0 for modes 0/2, 1 for modes 1/3, -1 for an
 /// invalid mode. Complexity: O(1).
-pub fn spi_cpha(mode: Int) -> Int {
+pub fn spi_cpha(mode: Int) -> Int
+  ensures: !(mode >= 0 && mode <= 3) => result == -1;
+  ensures: (mode >= 0 && mode <= 3) => result >= 0 && result <= 1;
+{
   if !spi_mode_valid(mode) {
     return -1;
   }
@@ -209,7 +217,10 @@ pub fn spi_cpha(mode: Int) -> Int {
 /// Mode number for a (CPOL, CPHA) pair, both 0 or 1; -1 when either input
 /// is outside 0..1. Inverse of spi_cpol/spi_cpha.
 /// Complexity: O(1).
-pub fn spi_mode_of(cpol: Int, cpha: Int) -> Int {
+pub fn spi_mode_of(cpol: Int, cpha: Int) -> Int
+  ensures: (cpol < 0 || cpol > 1 || cpha < 0 || cpha > 1) => result == -1;
+  ensures: (cpol >= 0 && cpol <= 1 && cpha >= 0 && cpha <= 1) => result == cpol * 2 + cpha;
+{
   if cpol < 0 || cpol > 1 {
     return -1;
   }
@@ -221,7 +232,10 @@ pub fn spi_mode_of(cpol: Int, cpha: Int) -> Int {
 
 /// Human-readable mode name: "CPOL=0 CPHA=0" ... "CPOL=1 CPHA=1", or
 /// "invalid mode" for a value outside 0..3. Complexity: O(1).
-pub fn spi_mode_name(mode: Int) -> Str {
+pub fn spi_mode_name(mode: Int) -> Str
+  ensures: !(mode >= 0 && mode <= 3) => result.len() == 12;
+  ensures: result.len() >= 12;
+{
   if mode == 0 {
     return "CPOL=0 CPHA=0";
   }
@@ -239,7 +253,9 @@ pub fn spi_mode_name(mode: Int) -> Str {
 
 /// The mode table as 8 Ints: for mode m, entry 2*m is its CPOL and entry
 /// 2*m+1 its CPHA. Always [0,0, 0,1, 1,0, 1,1]. Complexity: O(1).
-pub fn spi_mode_table() -> Vec[Int] {
+pub fn spi_mode_table() -> Vec[Int]
+  ensures: result.len() == 8;
+{
   var v = Vec[Int].new();
   var m = 0;
   while m < 4 {
@@ -256,13 +272,18 @@ pub fn spi_mode_table() -> Vec[Int] {
 
 /// True when `order` is 0 (MSB-first) or 1 (LSB-first).
 /// Complexity: O(1).
-pub fn spi_bit_order_valid(order: Int) -> Bool {
+pub fn spi_bit_order_valid(order: Int) -> Bool
+  ensures: result == (order == 0 || order == 1);
+{
   return order == 0 || order == 1;
 }
 
 /// "MSB-first" for 0, "LSB-first" for 1, "invalid" otherwise.
 /// Complexity: O(1).
-pub fn spi_bit_order_name(order: Int) -> Str {
+pub fn spi_bit_order_name(order: Int) -> Str
+  ensures: (order == 0 || order == 1) => result.len() == 9;
+  ensures: !(order == 0 || order == 1) => result.len() == 7;
+{
   if order == 0 {
     return "MSB-first";
   }
@@ -274,14 +295,19 @@ pub fn spi_bit_order_name(order: Int) -> Str {
 
 /// True when `word_size` is a supported word width 4..16 bits.
 /// Complexity: O(1).
-pub fn spi_word_size_valid(word_size: Int) -> Bool {
+pub fn spi_word_size_valid(word_size: Int) -> Bool
+  ensures: result == (word_size >= 4 && word_size <= 16);
+{
   return word_size >= 4 && word_size <= 16;
 }
 
 /// All-ones mask for a `word_size`-bit word: 2^word_size - 1 (15 for 4 bits,
 /// 255 for 8, 65535 for 16); -1 for an invalid word size.
 /// Complexity: O(1).
-pub fn spi_word_mask(word_size: Int) -> Int {
+pub fn spi_word_mask(word_size: Int) -> Int
+  ensures: !(word_size >= 4 && word_size <= 16) => result == -1;
+  ensures: result != -1 => result >= 15 && result <= 65535;
+{
   if !spi_word_size_valid(word_size) {
     return -1;
   }
@@ -294,13 +320,19 @@ pub fn spi_word_mask(word_size: Int) -> Int {
 
 /// True when `cs` is a chip-select line 0..7 or -1 (no chip select).
 /// Complexity: O(1).
-pub fn spi_cs_valid(cs: Int) -> Bool {
+pub fn spi_cs_valid(cs: Int) -> Bool
+  ensures: result == (cs >= -1 && cs <= 7);
+{
   return cs >= -1 && cs <= 7;
 }
 
 /// "cs0" .. "cs7" for a line, "none" for -1, "invalid" otherwise.
 /// Complexity: O(1).
-pub fn spi_cs_name(cs: Int) -> Str {
+pub fn spi_cs_name(cs: Int) -> Str
+  ensures: cs >= 0 && cs <= 7 => result.len() == 3;
+  ensures: cs == -1 => result.len() == 4;
+  ensures: !(cs >= -1 && cs <= 7) => result.len() == 7;
+{
   if cs == -1 {
     return "none";
   }
@@ -334,7 +366,11 @@ pub fn spi_cs_name(cs: Int) -> Str {
 /// Logic level a chip-select line is driven to: 0 (low) while asserted,
 /// 1 (high) while idle, -1 when `cs` is -1 (no line) or invalid. Chip-select
 /// lines are active-low. Complexity: O(1).
-pub fn spi_cs_line_level(cs: Int, asserted: Bool) -> Int {
+pub fn spi_cs_line_level(cs: Int, asserted: Bool) -> Int
+  ensures: (!(cs >= -1 && cs <= 7) || cs == -1) => result == -1;
+  ensures: asserted && cs >= 0 && cs <= 7 => result == 0;
+  ensures: !asserted && cs >= 0 && cs <= 7 => result == 1;
+{
   if !spi_cs_valid(cs) {
     return -1;
   }
@@ -349,13 +385,17 @@ pub fn spi_cs_line_level(cs: Int, asserted: Bool) -> Int {
 
 /// The level of an asserted chip-select line: 0 (active-low).
 /// Complexity: O(1).
-pub fn spi_cs_assert_level() -> Int {
+pub fn spi_cs_assert_level() -> Int
+  ensures: result == 0;
+{
   return 0;
 }
 
 /// The level of a deasserted (idle) chip-select line: 1 (high).
 /// Complexity: O(1).
-pub fn spi_cs_idle_level() -> Int {
+pub fn spi_cs_idle_level() -> Int
+  ensures: result == 1;
+{
   return 1;
 }
 
@@ -364,14 +404,18 @@ pub fn spi_cs_idle_level() -> Int {
 // --------------------------------------------------
 
 /// Number of prescaler table entries (16). Complexity: O(1).
-pub fn spi_prescaler_count() -> Int {
+pub fn spi_prescaler_count() -> Int
+  ensures: result == 16;
+{
   return 16;
 }
 
 /// The prescaler divider table: index i maps to 2^(i+1), so entry 0 is 2,
 /// entry 1 is 4 and entry 15 is 65536. Clock = bus frequency / divider.
 /// Complexity: O(1).
-pub fn spi_prescaler_table() -> Vec[Int] {
+pub fn spi_prescaler_table() -> Vec[Int]
+  ensures: result.len() == 16;
+{
   var v = Vec[Int].new();
   var d = 2;
   var i = 0;
@@ -385,7 +429,11 @@ pub fn spi_prescaler_table() -> Vec[Int] {
 
 /// Divider at prescaler `index` (0..15): 2^(index+1); -1 when the index is
 /// outside 0..15. Complexity: O(1).
-pub fn spi_clock_divider(index: Int) -> Int {
+pub fn spi_clock_divider(index: Int) -> Int
+  ensures: index < 0 || index >= 16 => result == -1;
+  ensures: index == 0 => result == 2;
+  ensures: index == 15 => result == 65536;
+{
   let table = spi_prescaler_table();
   if index < 0 || index >= table.len() {
     return -1;
@@ -397,7 +445,11 @@ pub fn spi_clock_divider(index: Int) -> Int {
 /// Table index whose divider is exactly `divider` (a power of two in
 /// 2..65536); -1 for any other value. Inverse of spi_clock_divider.
 /// Complexity: O(1).
-pub fn spi_divider_index(divider: Int) -> Int {
+pub fn spi_divider_index(divider: Int) -> Int
+  ensures: divider == 2 => result == 0;
+  ensures: divider == 65536 => result == 15;
+  ensures: result >= -1 && result <= 15;
+{
   let table = spi_prescaler_table();
   var i = 0;
   while i < table.len() {
@@ -413,7 +465,10 @@ pub fn spi_divider_index(divider: Int) -> Int {
 /// SPI clock in Hz for a bus of `bus_hz` using prescaler `index`: integer
 /// division (floor), or -1 when `bus_hz` is not positive or the index is
 /// outside 0..15. Complexity: O(1).
-pub fn spi_clock_hz(bus_hz: Int, index: Int) -> Int {
+pub fn spi_clock_hz(bus_hz: Int, index: Int) -> Int
+  ensures: (bus_hz <= 0 || index < 0 || index >= 16) => result == -1;
+  ensures: result != -1 => result >= 0 && result <= bus_hz;
+{
   if bus_hz <= 0 {
     return -1;
   }
@@ -428,7 +483,10 @@ pub fn spi_clock_hz(bus_hz: Int, index: Int) -> Int {
 /// first index i with bus_hz / divider(i) <= max_hz; -1 when `bus_hz` or
 /// `max_hz` is not positive or even index 15 is still too fast.
 /// Complexity: O(1).
-pub fn spi_prescaler_for(bus_hz: Int, max_hz: Int) -> Int {
+pub fn spi_prescaler_for(bus_hz: Int, max_hz: Int) -> Int
+  ensures: (bus_hz <= 0 || max_hz <= 0) => result == -1;
+  ensures: result >= -1 && result <= 15;
+{
   if bus_hz <= 0 || max_hz <= 0 {
     return -1;
   }
@@ -451,7 +509,11 @@ pub fn spi_prescaler_for(bus_hz: Int, max_hz: Int) -> Int {
 /// Human-readable name of a stream event type: "CONFIG", "CS_ASSERT",
 /// "CS_DEASSERT", "TX", "RX", "END", or "unknown".
 /// Complexity: O(1).
-pub fn spi_event_name(event: Int) -> Str {
+pub fn spi_event_name(event: Int) -> Str
+  ensures: event >= 1 && event <= 6 => result.len() >= 2;
+  ensures: event == 6 => result.len() == 3;
+  ensures: !(event >= 1 && event <= 6) => result.len() == 7;
+{
   if event == 1 {
     return "CONFIG";
   }
@@ -476,7 +538,11 @@ pub fn spi_event_name(event: Int) -> Str {
 /// Encoded size in bytes of a stream event: 4 for CONFIG, 2 for CS_ASSERT,
 /// CS_DEASSERT, TX and RX, 1 for END, -1 for an unknown event type.
 /// Complexity: O(1).
-pub fn spi_event_size(event: Int) -> Int {
+pub fn spi_event_size(event: Int) -> Int
+  ensures: event == 1 => result == 4;
+  ensures: event == 6 => result == 1;
+  ensures: !(event >= 1 && event <= 6) => result == -1;
+{
   if event == 1 {
     return 4;
   }
@@ -501,7 +567,11 @@ pub fn spi_event_size(event: Int) -> Int {
 /// Error case: with offset -1, Err("spi: invalid mode"), Err("spi: invalid
 /// word size"), Err("spi: invalid bit order"), Err("spi: invalid chip
 /// select") or Err("spi: length mismatch"). Complexity: O(1).
-pub fn spi_validate(t: &SpiTransfer) -> Result[Unit, SpiError] {
+pub fn spi_validate(t: &SpiTransfer) -> Result[Unit, SpiError]
+  ensures: !(t.config.mode >= 0 && t.config.mode <= 3) => result is Err;
+  ensures: !(t.config.word_size >= 4 && t.config.word_size <= 16) => result is Err;
+  ensures: !(t.config.bit_order == 0 || t.config.bit_order == 1) => result is Err;
+{
   let mode: Int = t.config.mode;
   let word_size: Int = t.config.word_size;
   let bit_order: Int = t.config.bit_order;
@@ -532,7 +602,11 @@ pub fn spi_validate(t: &SpiTransfer) -> Result[Unit, SpiError] {
 /// Build a config from three fields, validating mode 0..3, word size 4..16
 /// and bit order 0/1 (same offset -1 errors as spi_validate).
 /// Complexity: O(1).
-pub fn spi_config_new(mode: Int, word_size: Int, bit_order: Int) -> Result[SpiConfig, SpiError] {
+pub fn spi_config_new(mode: Int, word_size: Int, bit_order: Int) -> Result[SpiConfig, SpiError]
+  ensures: !(mode >= 0 && mode <= 3) => result is Err;
+  ensures: !(word_size >= 4 && word_size <= 16) => result is Err;
+  ensures: !(bit_order == 0 || bit_order == 1) => result is Err;
+{
   if !spi_mode_valid(mode) {
     return _err_cfg(-1, "spi: invalid mode");
   }
@@ -552,7 +626,12 @@ pub fn spi_config_new(mode: Int, word_size: Int, bit_order: Int) -> Result[SpiCo
 /// Returns: Ok(transfer) owning copies of `tx` and `rx`.
 /// Error case: the spi_validate catalog, with offset -1.
 /// Complexity: O(tx.len() + rx.len()).
-pub fn spi_transfer_new(cfg: &SpiConfig, cs: Int, tx: &Vec[UInt8], rx: &Vec[UInt8]) -> Result[SpiTransfer, SpiError] {
+pub fn spi_transfer_new(cfg: &SpiConfig, cs: Int, tx: &Vec[UInt8], rx: &Vec[UInt8]) -> Result[SpiTransfer, SpiError]
+  ensures: !(cfg.mode >= 0 && cfg.mode <= 3) => result is Err;
+  ensures: !(cfg.word_size >= 4 && cfg.word_size <= 16) => result is Err;
+  ensures: !(cfg.bit_order == 0 || cfg.bit_order == 1) => result is Err;
+  ensures: !(cs >= -1 && cs <= 7) => result is Err;
+{
   let mode: Int = cfg.mode;
   let word_size: Int = cfg.word_size;
   let bit_order: Int = cfg.bit_order;
@@ -577,7 +656,11 @@ pub fn spi_transfer_new(cfg: &SpiConfig, cs: Int, tx: &Vec[UInt8], rx: &Vec[UInt
 /// Returns: Ok(transfer).
 /// Error case: the spi_validate catalog, with offset -1.
 /// Complexity: O(tx.len()).
-pub fn spi_transfer(mode: Int, cs: Int, tx: &Vec[UInt8]) -> Result[SpiTransfer, SpiError] {
+pub fn spi_transfer(mode: Int, cs: Int, tx: &Vec[UInt8]) -> Result[SpiTransfer, SpiError]
+  ensures: !(mode >= 0 && mode <= 3) => result is Err;
+  ensures: !(cs >= -1 && cs <= 7) => result is Err;
+  ensures: result is Ok => cs >= -1 && cs <= 7;
+{
   let c = SpiConfig{ mode: mode; word_size: 8; bit_order: 0; };
   var empty = Vec[UInt8].new();
   return spi_transfer_new(&c, cs, tx, &empty);
@@ -595,7 +678,11 @@ pub fn spi_transfer(mode: Int, cs: Int, tx: &Vec[UInt8]) -> Result[SpiTransfer, 
 /// The transfer is validated first, so an invalid transfer is an Err with
 /// offset -1 and nothing is produced.
 /// Complexity: O(tx.len()).
-pub fn spi_encode(t: &SpiTransfer) -> Result[Vec[UInt8], SpiError] {
+pub fn spi_encode(t: &SpiTransfer) -> Result[Vec[UInt8], SpiError]
+  ensures: !(t.config.mode >= 0 && t.config.mode <= 3) => result is Err;
+  ensures: !(t.config.word_size >= 4 && t.config.word_size <= 16) => result is Err;
+  ensures: !(t.config.bit_order == 0 || t.config.bit_order == 1) => result is Err;
+{
   let vr = spi_validate(t);
   if !vr.is_ok {
     let e: SpiError = vr.error;
@@ -666,7 +753,10 @@ pub fn spi_encode(t: &SpiTransfer) -> Result[Vec[UInt8], SpiError] {
 ///                                    not a whole number of words, at END
 ///   Err("spi: trailing bytes")    -- bytes after the END event
 /// Complexity: O(stream.len()).
-pub fn spi_decode(stream: &Vec[UInt8]) -> Result[SpiTransfer, SpiError] {
+pub fn spi_decode(stream: &Vec[UInt8]) -> Result[SpiTransfer, SpiError]
+  ensures: stream.len() == 0 => result is Err;
+  ensures: result is Ok => stream.len() >= 5;
+{
   let n = stream.len();
   if n == 0 {
     return _err_transfer(0, "spi: truncated stream");
@@ -781,36 +871,48 @@ pub fn spi_decode(stream: &Vec[UInt8]) -> Result[SpiTransfer, SpiError] {
 // --------------------------------------------------
 
 /// Mode of the transfer (0..3 for a valid transfer). Complexity: O(1).
-pub fn spi_transfer_mode(t: &SpiTransfer) -> Int {
+pub fn spi_transfer_mode(t: &SpiTransfer) -> Int
+  ensures: result == t.config.mode;
+{
   return t.config.mode;
 }
 
 /// Word size of the transfer in bits (4..16 for a valid transfer).
 /// Complexity: O(1).
-pub fn spi_transfer_word_size(t: &SpiTransfer) -> Int {
+pub fn spi_transfer_word_size(t: &SpiTransfer) -> Int
+  ensures: result == t.config.word_size;
+{
   return t.config.word_size;
 }
 
 /// Bit order of the transfer (0 MSB-first, 1 LSB-first).
 /// Complexity: O(1).
-pub fn spi_transfer_bit_order(t: &SpiTransfer) -> Int {
+pub fn spi_transfer_bit_order(t: &SpiTransfer) -> Int
+  ensures: result == t.config.bit_order;
+{
   return t.config.bit_order;
 }
 
 /// Chip-select line of the transfer (-1 or 0..7). Complexity: O(1).
-pub fn spi_transfer_cs(t: &SpiTransfer) -> Int {
+pub fn spi_transfer_cs(t: &SpiTransfer) -> Int
+  ensures: result == t.cs;
+{
   return t.cs;
 }
 
 /// Number of bytes in the MOSI stream. Complexity: O(1).
-pub fn spi_tx_len(t: &SpiTransfer) -> Int {
+pub fn spi_tx_len(t: &SpiTransfer) -> Int
+  ensures: result == t.tx.len();
+{
   let tx: Vec[UInt8] = t.tx;
   return tx.len();
 }
 
 /// Number of bytes in the MISO stream (0 when not captured).
 /// Complexity: O(1).
-pub fn spi_rx_len(t: &SpiTransfer) -> Int {
+pub fn spi_rx_len(t: &SpiTransfer) -> Int
+  ensures: result == t.rx.len();
+{
   let rx: Vec[UInt8] = t.rx;
   return rx.len();
 }
@@ -818,7 +920,9 @@ pub fn spi_rx_len(t: &SpiTransfer) -> Int {
 /// True when both byte streams are present and equal in length (a captured
 /// full-duplex transfer; a zero-byte transfer is not full duplex).
 /// Complexity: O(1).
-pub fn spi_is_full_duplex(t: &SpiTransfer) -> Bool {
+pub fn spi_is_full_duplex(t: &SpiTransfer) -> Bool
+  ensures: result == (t.tx.len() > 0 && t.rx.len() == t.tx.len());
+{
   let tx: Vec[UInt8] = t.tx;
   let rx: Vec[UInt8] = t.rx;
   if tx.len() == 0 {
@@ -830,7 +934,10 @@ pub fn spi_is_full_duplex(t: &SpiTransfer) -> Bool {
 /// Number of whole words in the tx stream: tx.len() * 8 / word_size; -1 when
 /// the word size is invalid or the bit count is not a whole number of words.
 /// Complexity: O(1).
-pub fn spi_word_count(t: &SpiTransfer) -> Int {
+pub fn spi_word_count(t: &SpiTransfer) -> Int
+  ensures: !(t.config.word_size >= 4 && t.config.word_size <= 16) => result == -1;
+  ensures: result != -1 => result * t.config.word_size == t.tx.len() * 8;
+{
   let word_size: Int = t.config.word_size;
   if !spi_word_size_valid(word_size) {
     return -1;
@@ -847,7 +954,11 @@ pub fn spi_word_count(t: &SpiTransfer) -> Int {
 /// for MSB-first and the least significant bit for LSB-first. Returns -1
 /// when the word size is invalid, `index` is negative, or the word lies
 /// beyond the tx bit stream. Complexity: O(word_size).
-pub fn spi_word_at(t: &SpiTransfer, index: Int) -> Int {
+pub fn spi_word_at(t: &SpiTransfer, index: Int) -> Int
+  ensures: !(t.config.word_size >= 4 && t.config.word_size <= 16) => result == -1;
+  ensures: index < 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 65535;
+{
   let word_size: Int = t.config.word_size;
   if !spi_word_size_valid(word_size) {
     return -1;
@@ -877,7 +988,9 @@ pub fn spi_word_at(t: &SpiTransfer, index: Int) -> Int {
 
 /// Structural equality: same mode, word size, bit order, chip-select line
 /// and both byte streams. Complexity: O(tx.len() + rx.len()).
-pub fn spi_equal(a: &SpiTransfer, b: &SpiTransfer) -> Bool {
+pub fn spi_equal(a: &SpiTransfer, b: &SpiTransfer) -> Bool
+  ensures: result => (a.config.mode == b.config.mode && a.cs == b.cs && a.tx.len() == b.tx.len() && a.rx.len() == b.rx.len());
+{
   let am: Int = a.config.mode;
   let bm: Int = b.config.mode;
   if am != bm {

@@ -1,8 +1,6 @@
 # xiom.spi -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.spi`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/spi.xi` (`module xiom.spi`).
 Depends on `xiom.std`; the library module imports nothing (the tests import
 `xiom.test`, `xiom.io`, `xiom.string`, `xiom.string.compare` and
@@ -412,7 +410,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.spi
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=22 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -432,7 +430,7 @@ Last verified: compiler 0.61.3,
   equivalent streams with the same canonical layout); hand-built streams
   that reorder events are rejected as `spi: unexpected event`.
 
-## Compiler / stdlib notes for v0.61.3
+## Compiler / stdlib notes for v0.64.0
 
 - Free functions only: no methods, no lambdas, no `Vec[fn]` dispatch, no
   `Vec[StructType]`.
@@ -444,7 +442,7 @@ Last verified: compiler 0.61.3,
   entering Int arithmetic; UInt8 values are never compared against Int
   constants >= 128 without widening.
 - `&struct.field` is never passed as a `&Vec[UInt8]` parameter (that yields
-  an empty vector in v0.61.3); fields are bound to typed locals first.
+  an empty vector in v0.64.0); fields are bound to typed locals first.
 - All shifts are written as multiplication/division by powers of two and
   all bit tests use `% 2` on non-negative Ints (no shift or bitwise AND on
   potentially large values, per the xiom.can/xiom.modbus experience).
@@ -452,3 +450,95 @@ Last verified: compiler 0.61.3,
 - During this port, four `Vec<...>` mixed-bracket typos in the library and
   two in the tests compiled silently and were caught only by a
   `Vec<`/`Result<` grep (trap 14); both files audit clean now.
+- Known v0.64.0 runtime-checker trap (seen in batch #37): an `ensures:`
+  clause that reads a `Result` `Vec` payload length (`result.value.len()`)
+  on a function whose `Ok` builder loops and returns through `_ok_bytes`
+  was evaluated nondeterministically (the same compiled binary alternated
+  clean runs and `contract violated: ensures`). `spi_encode` avoids this
+  by carrying per-field config guard clauses instead of an Ok-length
+  clause; a standalone micro-reproduction confirmed the nondeterminism.
+
+## Contracts (batch #37 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/spi.xi` in the batch #37
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator
+at integration). 74 clauses over all 39 public entry points, all `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.spi -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active (4.64 s and 4.82 s); no clause trapped and none was dropped except
+the one described below. Guards read structured parameters
+(`t.config.mode`/`word_size`/`bit_order`), never `Result` payload fields;
+every constant is an inline literal (no module consts, no cross-calls).
+`spi_word_count`'s identity is claimed only under `result != -1`;
+`spi_word_at` claims only the 0..65535 word bound; `spi_decode`'s Ok clause
+reads the input `stream.len()`, not the decoded payload.
+
+Dropped: the planned `spi_encode` clause `result is Ok =>
+result.value.len() >= 5` failed the port three times at the same location
+(`contract violated: ensures at 683:12`). A standalone reproduction showed
+the v0.64.0 runtime evaluator reading that payload length
+nondeterministically (the same compiled binary alternated exit 0/1 across
+runs), so the clause was dropped and `spi_encode`'s config guard was
+re-expressed as three per-field guards (mode / word size / bit order),
+keeping the clause count and the guard family.
+
+`xiom-verify src/spi.xi --check` (Z3 bundled with v0.64.0) reported
+**14 proven / 0 violated / 85 unknown / 42 errors**; z3 then rejected the
+generated SMT (emitter bugs such as `unknown constant _byte`/`_err_*`/
+`_copy_bytes`, `unknown constant mode`, `invalid function application`), so
+the tool itself reports "not a proof failure of the code under test". The
+14 proven obligations are not attributed per clause here; all 74 clauses
+are therefore marked **runtime-checked only** (no Z3 claim) and every one
+is enforced by the v0.64.0 runtime evaluator when the conformance suite
+runs.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `spi_mode_valid` | `result == (mode >= 0 && mode <= 3)` | runtime-checked |
+| `spi_cpol` | `!(mode >= 0 && mode <= 3) => result == -1`; `(mode >= 0 && mode <= 3) => result >= 0 && result <= 1` | runtime-checked |
+| `spi_cpha` | `!(mode >= 0 && mode <= 3) => result == -1`; `(mode >= 0 && mode <= 3) => result >= 0 && result <= 1` | runtime-checked |
+| `spi_mode_of` | `(cpol < 0 \|\| cpol > 1 \|\| cpha < 0 \|\| cpha > 1) => result == -1`; `(cpol >= 0 && cpol <= 1 && cpha >= 0 && cpha <= 1) => result == cpol * 2 + cpha` | runtime-checked |
+| `spi_mode_name` | `!(mode >= 0 && mode <= 3) => result.len() == 12`; `result.len() >= 12` | runtime-checked |
+| `spi_mode_table` | `result.len() == 8` | runtime-checked |
+| `spi_bit_order_valid` | `result == (order == 0 \|\| order == 1)` | runtime-checked |
+| `spi_bit_order_name` | `(order == 0 \|\| order == 1) => result.len() == 9`; `!(order == 0 \|\| order == 1) => result.len() == 7` | runtime-checked |
+| `spi_word_size_valid` | `result == (word_size >= 4 && word_size <= 16)` | runtime-checked |
+| `spi_word_mask` | `!(word_size >= 4 && word_size <= 16) => result == -1`; `result != -1 => result >= 15 && result <= 65535` | runtime-checked |
+| `spi_cs_valid` | `result == (cs >= -1 && cs <= 7)` | runtime-checked |
+| `spi_cs_name` | `cs >= 0 && cs <= 7 => result.len() == 3`; `cs == -1 => result.len() == 4`; `!(cs >= -1 && cs <= 7) => result.len() == 7` | runtime-checked |
+| `spi_cs_line_level` | `(!(cs >= -1 && cs <= 7) \|\| cs == -1) => result == -1`; `asserted && cs >= 0 && cs <= 7 => result == 0`; `!asserted && cs >= 0 && cs <= 7 => result == 1` | runtime-checked |
+| `spi_cs_assert_level` | `result == 0` | runtime-checked |
+| `spi_cs_idle_level` | `result == 1` | runtime-checked |
+| `spi_prescaler_count` | `result == 16` | runtime-checked |
+| `spi_prescaler_table` | `result.len() == 16` | runtime-checked |
+| `spi_clock_divider` | `index < 0 \|\| index >= 16 => result == -1`; `index == 0 => result == 2`; `index == 15 => result == 65536` | runtime-checked |
+| `spi_divider_index` | `divider == 2 => result == 0`; `divider == 65536 => result == 15`; `result >= -1 && result <= 15` | runtime-checked |
+| `spi_clock_hz` | `(bus_hz <= 0 \|\| index < 0 \|\| index >= 16) => result == -1`; `result != -1 => result >= 0 && result <= bus_hz` | runtime-checked |
+| `spi_prescaler_for` | `(bus_hz <= 0 \|\| max_hz <= 0) => result == -1`; `result >= -1 && result <= 15` | runtime-checked |
+| `spi_event_name` | `event >= 1 && event <= 6 => result.len() >= 2`; `event == 6 => result.len() == 3`; `!(event >= 1 && event <= 6) => result.len() == 7` | runtime-checked |
+| `spi_event_size` | `event == 1 => result == 4`; `event == 6 => result == 1`; `!(event >= 1 && event <= 6) => result == -1` | runtime-checked |
+| `spi_validate` | `!(t.config.mode >= 0 && t.config.mode <= 3) => result is Err`; `!(t.config.word_size >= 4 && t.config.word_size <= 16) => result is Err`; `!(t.config.bit_order == 0 \|\| t.config.bit_order == 1) => result is Err` | runtime-checked |
+| `spi_config_new` | `!(mode >= 0 && mode <= 3) => result is Err`; `!(word_size >= 4 && word_size <= 16) => result is Err`; `!(bit_order == 0 \|\| bit_order == 1) => result is Err` | runtime-checked |
+| `spi_transfer_new` | `!(cfg.mode >= 0 && cfg.mode <= 3) => result is Err`; `!(cfg.word_size >= 4 && cfg.word_size <= 16) => result is Err`; `!(cfg.bit_order == 0 \|\| cfg.bit_order == 1) => result is Err`; `!(cs >= -1 && cs <= 7) => result is Err` | runtime-checked |
+| `spi_transfer` | `!(mode >= 0 && mode <= 3) => result is Err`; `!(cs >= -1 && cs <= 7) => result is Err`; `result is Ok => cs >= -1 && cs <= 7` | runtime-checked |
+| `spi_encode` | `!(t.config.mode >= 0 && t.config.mode <= 3) => result is Err`; `!(t.config.word_size >= 4 && t.config.word_size <= 16) => result is Err`; `!(t.config.bit_order == 0 \|\| t.config.bit_order == 1) => result is Err` (planned Ok-length clause dropped, see above) | runtime-checked |
+| `spi_decode` | `stream.len() == 0 => result is Err`; `result is Ok => stream.len() >= 5` | runtime-checked |
+| `spi_transfer_mode` | `result == t.config.mode` | runtime-checked |
+| `spi_transfer_word_size` | `result == t.config.word_size` | runtime-checked |
+| `spi_transfer_bit_order` | `result == t.config.bit_order` | runtime-checked |
+| `spi_transfer_cs` | `result == t.cs` | runtime-checked |
+| `spi_tx_len` | `result == t.tx.len()` | runtime-checked |
+| `spi_rx_len` | `result == t.rx.len()` | runtime-checked |
+| `spi_is_full_duplex` | `result == (t.tx.len() > 0 && t.rx.len() == t.tx.len())` | runtime-checked |
+| `spi_word_count` | `!(t.config.word_size >= 4 && t.config.word_size <= 16) => result == -1`; `result != -1 => result * t.config.word_size == t.tx.len() * 8` | runtime-checked |
+| `spi_word_at` | `!(t.config.word_size >= 4 && t.config.word_size <= 16) => result == -1`; `index < 0 => result == -1`; `result != -1 => result >= 0 && result <= 65535` | runtime-checked |
+| `spi_equal` | `result => (a.config.mode == b.config.mode && a.cs == b.cs && a.tx.len() == b.tx.len() && a.rx.len() == b.rx.len())` | runtime-checked |
+
+Deliberately not claimed: no `Ok` payload field is read anywhere (no
+struct-payload field reads); the encode output length floor is not claimed
+(clause dropped, see above); `spi_word_count` does not claim its converse
+for `-1`; `spi_word_at` does not claim which words are `0` or `-1` beyond
+the bound; `spi_equal` does not claim the word-size/bit-order conjuncts; and
+no clause calls another `xiom.spi` function (all conditions are inline).
+
