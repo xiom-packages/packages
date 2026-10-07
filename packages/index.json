@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T19:40:51Z",
+    "updated":  "2026-10-07T20:11:09Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -1059,7 +1059,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.chemistry",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Chemical formula parsing with molar masses and mass fractions (integer mg/mol)",
@@ -1069,7 +1069,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chemistry/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-chemistry/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "chemistry.xi",
                                               "package.xi"
@@ -1093,7 +1093,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.cidr",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "IPv4 addresses and CIDR blocks: parse, format, containment, and range math (addresses as 32-bit Ints)",
@@ -1103,7 +1103,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cidr/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cidr/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "cidr.xi",
                                               "package.xi"
@@ -1956,7 +1956,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ean",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "EAN-13, EAN-8 and UPC-A validation with check-digit computation and structure access",
@@ -1966,7 +1966,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ean/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ean/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ean.xi",
                                               "package.xi"
@@ -4192,7 +4192,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.m3u",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "M3U/M3U8 playlist parsing and canonical emitting",
@@ -4202,7 +4202,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-m3u/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-m3u/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "m3u.xi",
                                               "package.xi"
@@ -5378,7 +5378,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.pagination",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Page and offset math plus opaque cursor tokens for list endpoints",
@@ -5388,7 +5388,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pagination/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pagination/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "pagination.xi",
                                               "package.xi"
@@ -8137,7 +8137,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.translation",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Message catalogs: key/value translation entries with locale fallback and placeholder interpolation",
@@ -8147,7 +8147,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-translation/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-translation/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "translation.xi",
                                               "package.xi"
