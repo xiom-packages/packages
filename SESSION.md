@@ -14,6 +14,24 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-07 17:25Z (batch #21 COMPLETE + PUBLISHED `eco-v0.1.70`; compiler m209 landed on main; grpc staged for the official pin; supersedes the 17:05Z block below):**
+- **Batch #21 DONE + PUBLISHED (`eco-v0.1.70`, run `37657205663` SUCCESS; all six live at 0.1.2):**
+  `translation` 0.1.2 (16 clauses; 22/22), `ean` 0.1.2 (42; 20/20), `cidr` 0.1.2 (27; 22/22),
+  `m3u` 0.1.2 (25; 20/20), `chemistry` 0.1.2 (12; 25/25), `pagination` 0.1.2 (22; 20/20);
+  all x2 green on v0.64.0. Feats: `fdbc02a8`, `4422ca91`, `6b9b2c4b`, `e250a848`, `7136420d`,
+  `f367cd1e`; records: `05133852`, `8bd026f8`, `551a6488`, `bffcf316`, `4f362b0c`, `8ccce7a5`;
+  wrap `78a67d3e`. **~169 zero-clause stable carriers remain.**
+- **Compiler:** main advanced to `ad94b4f1` (m209: tuple-ref destructure binds component refs;
+  ref compares deref both sides -- our relayed ref-destructure finding) and is still unpushed;
+  no v0.64.1 archive. Recorded in `docs/COMPILER-FINDINGS.md`; re-test on the next archive.
+- **grpc** still STAGED (`95442d71`, 36/36 x2 on the candidate); record + publish held for the
+  official v0.64.1 archive.
+- **Next session priority:** batch #22 (next six smallest after pagination at the 17:05Z scan:
+  fletcher, can, midi, netstring, l10n.number, duration; verify with the rescan), and the item-2
+  grpc flow if the v0.64.1 archive landed.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-07 17:05Z (batch #20 COMPLETE + PUBLISHED `eco-v0.1.69`; compiler relay recorded; grpc still staged for the official pin; supersedes the 16:50Z block below):**
 - **Batch #20 DONE + PUBLISHED (`eco-v0.1.69`, run `37654012927` SUCCESS; all six live at 0.1.2):**
   `pool` 0.1.2 (31 clauses; 22/22), `spell` 0.1.2 (16; 26/26), `profiling` 0.1.2 (22; 26/26),
@@ -1272,25 +1290,25 @@ running). Check `git log -1 --format=%h %s` before starting.
    category harmonization = owner decision; (d) keep the port watchdog
    discipline.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 17:05Z)
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 17:25Z)
 
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
-Read SESSION.md first -- the 2026-10-07 17:05Z STATE block is the live handoff.
+Read SESSION.md first -- the 2026-10-07 17:25Z STATE block is the live handoff.
 Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
 NO XIOM_RUNTIME_DIR needed (runtime-link + crypto-link RESOLVED; workaround retired).
-Validate 519/0; guard 504/464/40/0. Batches #19 + #20 published (eco-v0.1.68 six live,
-eco-v0.1.69 six live -- pool/spell/profiling/mime/summary/geohash at 0.1.2); ~175
-zero-clause stable carriers remain. `option` stays excluded (documented all-unasserted).
-`xiom.grpc` is STAGED (`95442d71`: named-constant arms + direct tuple reads; 36/36 x2 on
-the v0.64.1 candidate) -- record + publish held for the official v0.64.1 archive, which
-is NOT released yet (compiler main `688932e5` unpushed; check
-`gh release list --repo xiom-lang/xiom --limit 2`). Compiler lane localized the
-ref-destructure finding (`5f453b44`/`c3e30175`); Vec[Struct].clone() and io.list_dir stay
-open; io.xi:943 not reproduced.
+Validate 519/0; guard 504/464/40/0. Batches #19-#21 published (eco-v0.1.68/.69/.70, 18
+packages live at 0.1.2); ~169 zero-clause stable carriers remain. `option` stays
+excluded (documented all-unasserted). `xiom.grpc` is STAGED (`95442d71`: named-constant
+arms + direct tuple reads; 36/36 x2 on the v0.64.1 candidate) -- record + publish held
+for the official v0.64.1 archive, NOT released yet (compiler main `ad94b4f1` unpushed,
+now incl. m209 tuple-ref destructure; check `gh release list --repo xiom-lang/xiom`).
+Open findings for the next release: Vec[Struct].clone() 0xC0000005; io.list_dir
+last-name-repeated; io.xi:943 unreproduced (all in docs/COMPILER-FINDINGS.md +
+docs/STDLIB-WISHLIST.md).
 
 Start: git fetch; git status -sb; git log -1; then
   $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
@@ -1302,24 +1320,25 @@ Then do, in order:
    then re-test ONLY the open findings on the official install: grpc probe_suite_min/
    probe_direct (expect GREEN), docs/repro/struct-clone/ (expect RED -- stays open),
    docs/repro/tuple-vec-set/ (green), %TEMP%\kilo\retest-listdir.xi (expect RED --
-   last-name repeated), the io.xi:943 scratch multi-module probe (green/unreproduced).
-   If grpc is green: run `port.ps1 -Package xiom.grpc` x2 on the official install,
-   record 36/36 with `-RunBy task:...` on the REAL commit sha, then publish it in the
-   next eco tag (generate_index, report, validate, guard, export-namespaces, tag,
-   approve the registry-publish gate, watch, live-verify). If the archive is NOT out:
-   skip to batch #21 and re-check at the wrap (candidate evidence is in
-   docs/COMPILER-FINDINGS.md).
-2. Hardening batch #21 (FAN-OUT): rescan zero-clause stable carriers
-   (`scripts/contract-coverage.ps1`), skip `option`; next six smallest (translation,
-   ean, cidr, m3u, chemistry, pagination at the 17:05Z scan; verify) via a read-only
+   last-name repeated), the io.xi:943 scratch multi-module probe (green/unreproduced),
+   and (new) a ref-destructure probe for m209 (reuse the grpc metadata scan shape or a
+   scratch Vec[(Str,Str)] scan; expect fixed). If grpc is green: run
+   `port.ps1 -Package xiom.grpc` x2 on the official install, record 36/36 with
+   `-RunBy task:...` on the REAL commit sha, then publish it in the next eco tag
+   (generate_index, report, validate, guard, export-namespaces, tag, approve the
+   registry-publish gate, watch, live-verify). If the archive is NOT out: skip to
+   batch #22 and re-check at the wrap.
+2. Hardening batch #22 (FAN-OUT): rescan zero-clause stable carriers
+   (`scripts/contract-coverage.ps1`), skip `option`; next six smallest (fletcher, can,
+   midi, netstring, l10n.number, duration at the 17:05Z scan; verify) via a read-only
    explore pre-plan; per-package background `task` porters (brief template
-   %TEMP%\kilo\batch20-porter-brief.md; port x2; bracket scan; SPEC Contracts + header
+   %TEMP%\kilo\batch21-porter-brief.md; port x2; bracket scan; SPEC Contracts + header
    sync; NO git; NO shared files; explicit-path cleanup); coordinator integrates
    (port x2, 0.1.2 bump, feat commit exact files, record with real sha +
    `-RunBy task:ses_...`); wrap + publish the next eco tag. Transient GitHub 500s on
-   push: wait ~60-90s and retry (the third attempt has succeeded repeatedly).
+   push: wait ~60-90s and retry.
 3. PULSE support: triage new `docs/PACKAGE-WISHLIST.md` rows from consumer reports
-   (none new at 17:05Z); new package names need an allowlist append + one ops scope relay.
+   (none new at 17:25Z); new package names need an allowlist append + one ops scope relay.
 4. Carry-forwards: `-TimeoutSec 60` watchdog (raise per package); port x2 + byte-level
    bracket scan on every touched package; SPEC headers synced when touched; bump ONLY
    when source changes; `xiom-verify` writes `xiom_verify_output.smt2` to the CWD (run it
