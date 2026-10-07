@@ -1,5 +1,7 @@
 # xiom.dds SPEC
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 ## Scope
 
 Pure-XIOM structural codec for DirectDraw Surface (DDS) containers: the
@@ -193,6 +195,69 @@ Public constants: `DDS_MAGIC`, `DDS_HEADER_SIZE` (124),
   `data_offset..data.len()`.
 - All functions are free functions; no function is named `log`; no
   `Vec[StructType]` is declared.
+
+## Contracts (batch #33 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/dds.xi` in the batch #33
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator
+at integration). 35 clauses across 22 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. The
+six depth-4 `img.header.pixel_format.<field>` accessors (`dds_fourcc`,
+`dds_rgb_bit_count`, `dds_red_mask`, `dds_green_mask`, `dds_blue_mask`,
+`dds_alpha_mask`) are deliberately left without clauses: no shipped
+4-token-chain precedent exists. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.dds -TimeoutSec 60` runs ended
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.83 s and 5.98 s); the 18-check conformance suite passes and no
+clause trapped, so no clause was dropped.
+
+`xiom-verify src/dds.xi --check` (Z3 bundled with v0.64.0) reported
+**0 proven / 0 violated / 48 unknown / 14 errors**: every obligation was
+skipped as X7007 (the SMT emitter cannot encode `&`-parameter struct field
+reads, `Result` tags or `Vec` lengths) and the 14 errors are the known
+emitter bug on the private byte helpers (`unknown constant _le32`,
+`_parse_pixel_format`), explicitly "not a proof failure of the code under
+test". No Z3 claim is made: all 35 clauses are enforced by the v0.64.0
+runtime evaluator when the suite runs and are classified
+**runtime-checked** below.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `dds_fourcc_recognized` | `ensures: result == (code == 827611204 \|\| code == 844388420 \|\| code == 861165636 \|\| code == 877942852 \|\| code == 894720068 \|\| code == 808540228)`; `ensures: code == 0 => !result` | runtime-checked |
+| `dds_pixel_format_supported` | `ensures: flags == 0 => !result`; `ensures: result => flags != 0` | runtime-checked |
+| `dds_fourcc_text` | `ensures: code <= 0 => result.len() == 0`; `ensures: code > 4294967295 => result.len() == 0`; `ensures: result.len() == 0 \|\| result.len() == 4` | runtime-checked |
+| `dds_parse_header` | `ensures: data.len() < 128 => result is Err`; `ensures: result is Ok => data.len() >= 128` | runtime-checked |
+| `dds_parse` | `ensures: data.len() < 128 => result is Err`; `ensures: result is Ok => data.len() >= 128` | runtime-checked |
+| `dds_is_valid` | `ensures: data.len() < 128 => !result`; `ensures: result => data.len() >= 128` | runtime-checked |
+| `dds_payload` | `ensures: data.len() < 128 => result is Err`; `ensures: result is Ok => data.len() >= 128` | runtime-checked |
+| `dds_width` / `dds_height` / `dds_depth` / `dds_mipmaps` | one `ensures: result == img.header.<field>` per reader | runtime-checked |
+| `dds_has_dx10` | `ensures: result == img.has_dx10` | runtime-checked |
+| `dds_dxgi_format` / `dds_resource_dimension` / `dds_array_size` / `dds_misc_flag` / `dds_misc_flags2` | one `ensures: result == img.dx10.<field>` per reader | runtime-checked |
+| `dds_payload_offset` | `ensures: result == img.data_offset` | runtime-checked |
+| `dds_payload_size` | `ensures: result == img.data_bytes` | runtime-checked |
+| `dds_build_header` | `ensures: h.size != 124 => result is Err`; `ensures: h.pixel_format.size != 32 => result is Err`; `ensures: result is Ok => result.value.len() == 128` | runtime-checked |
+| `dds_build_dx10` | `ensures: (d.resource_dimension < 2 \|\| d.resource_dimension > 4) => result is Err`; `ensures: d.array_size == 0 => result is Err`; `ensures: result is Ok => result.value.len() == 20` | runtime-checked |
+| `dds_build` | `ensures: payload.len() != img.data_bytes => result is Err`; `ensures: result is Ok => result.value.len() >= 128` | runtime-checked |
+
+Source-shape notes pinned by the clauses:
+
+- The fourCC recognition clause inlines the six decimal codes (DX10
+  0x30315844 = 808540228, DXT1..DXT5 0x31545844..0x35545844 =
+  827611204 / 844388420 / 861165636 / 877942852 / 894720068) rather than
+  naming the module constants, so it links no `pub const` and re-enters no
+  callee.
+- The `len() < 128` guard pairs are one-way: a short buffer is always an
+  `Err` (`!result` for the predicate), and an `Ok`/`true` result implies the
+  full 128-byte prefix was present.
+- The build clauses mirror the source check order: `dds_build_header`
+  rejects `size != 124` or `pixel_format.size != 32` before assembling, and
+  a successful header build is exactly the 128-byte prefix; `dds_build_dx10`
+  rejects a `resource_dimension` outside 2..4 or `array_size == 0` and emits
+  exactly 20 bytes; `dds_build` rejects a payload length that disagrees with
+  `img.data_bytes` and always emits at least the 128-byte prefix.
+- Accessor clauses read depth-3 chains (`img.header.<field>`,
+  `img.dx10.<field>`) following the batch precedent `ntp_encode`'s
+  `p.reference.seconds`; the six depth-4 pixel-format chains stay unclaimed.
 
 ## Error catalog
 

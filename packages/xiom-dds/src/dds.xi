@@ -277,7 +277,10 @@ fn _fourcc_char(b: Int) -> Str {
 /// True when the codec knows the fourCC: DXT1, DXT2, DXT3, DXT4, DXT5 or
 /// DX10. Unknown codes are still accepted by the parser (pass-through); this
 /// predicate is the documented way to tell the two apart.
-pub fn dds_fourcc_recognized(code: Int) -> Bool {
+pub fn dds_fourcc_recognized(code: Int) -> Bool
+  ensures: result == (code == 827611204 || code == 844388420 || code == 861165636 || code == 877942852 || code == 894720068 || code == 808540228);
+  ensures: code == 0 => !result;
+{
   if (code == DDS_FOURCC_DXT1) { return true; }
   if (code == DDS_FOURCC_DXT2) { return true; }
   if (code == DDS_FOURCC_DXT3) { return true; }
@@ -291,7 +294,10 @@ pub fn dds_fourcc_recognized(code: Int) -> Bool {
 /// exactly one of DDPF_FOURCC (with a nonzero code) and DDPF_RGB (with no
 /// fourCC), never both, never neither. The parser additionally validates the
 /// RGB bit count and masks; fourCC codes are accepted whatever their value.
-pub fn dds_pixel_format_supported(flags: Int, four_cc: Int) -> Bool {
+pub fn dds_pixel_format_supported(flags: Int, four_cc: Int) -> Bool
+  ensures: flags == 0 => !result;
+  ensures: result => flags != 0;
+{
   let has_fourcc = (flags & DDPF_FOURCC) != 0;
   let has_rgb = (flags & DDPF_RGB) != 0;
   if (has_fourcc && has_rgb) { return false; }
@@ -304,7 +310,11 @@ pub fn dds_pixel_format_supported(flags: Int, four_cc: Int) -> Bool {
 /// 0x31545844, DX10 for 0x30315844, and e.g. "UYVY" for 0x59565955.
 /// Non-printable bytes render as ".". Code 0 (no fourCC) and values outside
 /// the unsigned 32-bit range return "".
-pub fn dds_fourcc_text(code: Int) -> Str {
+pub fn dds_fourcc_text(code: Int) -> Str
+  ensures: code <= 0 => result.len() == 0;
+  ensures: code > 4294967295 => result.len() == 0;
+  ensures: result.len() == 0 || result.len() == 4;
+{
   if (code <= 0) { return ""; }
   if (code > 4294967295) { return ""; }
   let b0 = code % 256;
@@ -377,7 +387,10 @@ fn _parse_pixel_format(data: &Vec[UInt8]) -> Result[DdsPixelFormat, Str] {
 /// Parse and validate the 128-byte prefix (magic + DDS_HEADER). Structural
 /// and cross-field rules are documented in SPEC.md. The DXT10 block and the
 /// payload are not required here; use dds_parse for a whole buffer.
-pub fn dds_parse_header(data: &Vec[UInt8]) -> Result[DdsHeader, Str] {
+pub fn dds_parse_header(data: &Vec[UInt8]) -> Result[DdsHeader, Str]
+  ensures: data.len() < 128 => result is Err;
+  ensures: result is Ok => data.len() >= 128;
+{
   if (data.len() < DDS_DATA_OFFSET) { return _err_header("dds: truncated header"); }
   if (_b(data, _OFF_MAGIC) != 68) { return _err_header("dds: bad magic"); }
   if (_b(data, _OFF_MAGIC + 1) != 68) { return _err_header("dds: bad magic"); }
@@ -480,7 +493,10 @@ fn _parse_dx10(data: &Vec[UInt8]) -> Result[DdsDxt10, Str] {
 /// the pixel format uses the DX10 fourCC, and the payload span. The payload
 /// itself is opaque and may be empty. Err messages are deterministic, see
 /// SPEC.md for the catalog and the validation order.
-pub fn dds_parse(data: &Vec[UInt8]) -> Result[DdsImage, Str] {
+pub fn dds_parse(data: &Vec[UInt8]) -> Result[DdsImage, Str]
+  ensures: data.len() < 128 => result is Err;
+  ensures: result is Ok => data.len() >= 128;
+{
   let n = data.len();
   let hp = dds_parse_header(data);
   if (!hp.is_ok) { return _err_image(hp.error); }
@@ -506,7 +522,10 @@ pub fn dds_parse(data: &Vec[UInt8]) -> Result[DdsImage, Str] {
 }
 
 /// True when dds_parse succeeds. Complexity: O(data.len()).
-pub fn dds_is_valid(data: &Vec[UInt8]) -> Bool {
+pub fn dds_is_valid(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 128 => !result;
+  ensures: result => data.len() >= 128;
+{
   let r = dds_parse(data);
   return r.is_ok;
 }
@@ -516,26 +535,34 @@ pub fn dds_is_valid(data: &Vec[UInt8]) -> Bool {
 // --------------------------------------------------
 
 /// Texture width in pixels.
-pub fn dds_width(img: &DdsImage) -> Int {
+pub fn dds_width(img: &DdsImage) -> Int
+  ensures: result == img.header.width;
+{
   let h: DdsHeader = img.header;
   return h.width;
 }
 
 /// Texture height in pixels.
-pub fn dds_height(img: &DdsImage) -> Int {
+pub fn dds_height(img: &DdsImage) -> Int
+  ensures: result == img.header.height;
+{
   let h: DdsHeader = img.header;
   return h.height;
 }
 
 /// Volume depth: 0 for 2D and cube textures, >= 1 for volume textures.
-pub fn dds_depth(img: &DdsImage) -> Int {
+pub fn dds_depth(img: &DdsImage) -> Int
+  ensures: result == img.header.depth;
+{
   let h: DdsHeader = img.header;
   return h.depth;
 }
 
 /// Stored mipMapCount: 0 when DDSD_MIPMAPCOUNT is absent, which means one
 /// level; otherwise the declared number of levels (>= 1).
-pub fn dds_mipmaps(img: &DdsImage) -> Int {
+pub fn dds_mipmaps(img: &DdsImage) -> Int
+  ensures: result == img.header.mip_map_count;
+{
   let h: DdsHeader = img.header;
   return h.mip_map_count;
 }
@@ -548,36 +575,48 @@ pub fn dds_fourcc(img: &DdsImage) -> Int {
 }
 
 /// True when the file carries the 20-byte DDS_HEADER_DXT10 block.
-pub fn dds_has_dx10(img: &DdsImage) -> Bool {
+pub fn dds_has_dx10(img: &DdsImage) -> Bool
+  ensures: result == img.has_dx10;
+{
   return img.has_dx10;
 }
 
 /// DXGI format id from the DXT10 block (0 when absent; never validated).
-pub fn dds_dxgi_format(img: &DdsImage) -> Int {
+pub fn dds_dxgi_format(img: &DdsImage) -> Int
+  ensures: result == img.dx10.dxgi_format;
+{
   let d: DdsDxt10 = img.dx10;
   return d.dxgi_format;
 }
 
 /// D3D10_RESOURCE_DIMENSION from the DXT10 block: 2, 3 or 4 when present.
-pub fn dds_resource_dimension(img: &DdsImage) -> Int {
+pub fn dds_resource_dimension(img: &DdsImage) -> Int
+  ensures: result == img.dx10.resource_dimension;
+{
   let d: DdsDxt10 = img.dx10;
   return d.resource_dimension;
 }
 
 /// Array size from the DXT10 block (>= 1 when present; 0 when absent).
-pub fn dds_array_size(img: &DdsImage) -> Int {
+pub fn dds_array_size(img: &DdsImage) -> Int
+  ensures: result == img.dx10.array_size;
+{
   let d: DdsDxt10 = img.dx10;
   return d.array_size;
 }
 
 /// miscFlag from the DXT10 block (0 when absent).
-pub fn dds_misc_flag(img: &DdsImage) -> Int {
+pub fn dds_misc_flag(img: &DdsImage) -> Int
+  ensures: result == img.dx10.misc_flag;
+{
   let d: DdsDxt10 = img.dx10;
   return d.misc_flag;
 }
 
 /// miscFlags2 from the DXT10 block (0 when absent).
-pub fn dds_misc_flags2(img: &DdsImage) -> Int {
+pub fn dds_misc_flags2(img: &DdsImage) -> Int
+  ensures: result == img.dx10.misc_flags2;
+{
   let d: DdsDxt10 = img.dx10;
   return d.misc_flags2;
 }
@@ -619,19 +658,26 @@ pub fn dds_alpha_mask(img: &DdsImage) -> Int {
 
 /// Absolute offset of the first payload byte: 128 without a DXT10 block,
 /// 148 with one.
-pub fn dds_payload_offset(img: &DdsImage) -> Int {
+pub fn dds_payload_offset(img: &DdsImage) -> Int
+  ensures: result == img.data_offset;
+{
   return img.data_offset;
 }
 
 /// Payload length: everything after the header prefix (and the DXT10 block
 /// when present). The payload is opaque, mips and faces are not sliced.
-pub fn dds_payload_size(img: &DdsImage) -> Int {
+pub fn dds_payload_size(img: &DdsImage) -> Int
+  ensures: result == img.data_bytes;
+{
   return img.data_bytes;
 }
 
 /// Copy the payload span (empty for a header-only buffer). Err when the
 /// buffer does not parse.
-pub fn dds_payload(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn dds_payload(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: data.len() < 128 => result is Err;
+  ensures: result is Ok => data.len() >= 128;
+{
   let pr = dds_parse(data);
   if (!pr.is_ok) { return _err_bytes(pr.error); }
   let img: DdsImage = pr.value;
@@ -657,7 +703,11 @@ pub fn dds_payload(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 /// dds_parse_header, whose messages are forwarded unchanged. The DXT10
 /// block is not emitted here -- use dds_build_dx10, or dds_build for a whole
 /// file.
-pub fn dds_build_header(h: &DdsHeader) -> Result[Vec[UInt8], Str] {
+pub fn dds_build_header(h: &DdsHeader) -> Result[Vec[UInt8], Str]
+  ensures: h.size != 124 => result is Err;
+  ensures: h.pixel_format.size != 32 => result is Err;
+  ensures: result is Ok => result.value.len() == 128;
+{
   if (h.size != DDS_HEADER_SIZE) { return _err_bytes("dds: invalid header size"); }
   let pf: DdsPixelFormat = h.pixel_format;
   if (pf.size != DDS_PIXEL_FORMAT_SIZE) {
@@ -724,7 +774,11 @@ pub fn dds_build_header(h: &DdsHeader) -> Result[Vec[UInt8], Str] {
 /// 2, 3 or 4 and `array_size` must be >= 1; all five fields must fit their
 /// unsigned 32-bit slots. The emitted block is checked with the same rules
 /// as the parser.
-pub fn dds_build_dx10(d: &DdsDxt10) -> Result[Vec[UInt8], Str] {
+pub fn dds_build_dx10(d: &DdsDxt10) -> Result[Vec[UInt8], Str]
+  ensures: (d.resource_dimension < 2 || d.resource_dimension > 4) => result is Err;
+  ensures: d.array_size == 0 => result is Err;
+  ensures: result is Ok => result.value.len() == 20;
+{
   if (!_u32_ok(d.dxgi_format)) {
     return _err_bytes("dds: dxgi format out of range");
   }
@@ -759,7 +813,10 @@ pub fn dds_build_dx10(d: &DdsDxt10) -> Result[Vec[UInt8], Str] {
 /// `payload.len()` must equal `img.data_bytes`; the assembled bytes are
 /// re-parsed with dds_parse, whose messages are forwarded unchanged, so the
 /// result always parses back to the same fields. Complexity: O(payload.len()).
-pub fn dds_build(img: &DdsImage, payload: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn dds_build(img: &DdsImage, payload: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: payload.len() != img.data_bytes => result is Err;
+  ensures: result is Ok => result.value.len() >= 128;
+{
   let h: DdsHeader = img.header;
   let pf: DdsPixelFormat = h.pixel_format;
   let has = _is_dx10(pf.flags, pf.four_cc);
