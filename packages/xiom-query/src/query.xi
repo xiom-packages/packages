@@ -223,7 +223,10 @@ fn _tokenize(expr: Str) -> Result[Vec[Str], Str] {
 /// missing connector, connector without a following term, or an unterminated
 /// quote.
 /// Complexity: O(len(expr)).
-pub fn query_parse(expr: Str) -> Result[Query, Str] {
+pub fn query_parse(expr: Str) -> Result[Query, Str]
+  ensures: expr.len() == 0 => result is Err;
+  ensures: result is Ok => expr.len() >= 5;
+{
   let tokenized = _tokenize(expr);
   var toks = Vec[Str].new();
   match tokenized {
@@ -291,7 +294,10 @@ pub fn query_parse(expr: Str) -> Result[Query, Str] {
 /// Params: q - the query.
 /// Returns: q.fields.len(); 0 for a hand-built query with no terms.
 /// Complexity: O(1).
-pub fn query_term_count(q: &Query) -> Int {
+pub fn query_term_count(q: &Query) -> Int
+  ensures: result == q.fields.len();
+  ensures: result >= 0;
+{
   return q.fields.len();
 }
 
@@ -366,7 +372,10 @@ fn _value_text(v: Str) -> Str {
 /// Params: q - the query.
 /// Returns: the canonical expression; empty for a query with no terms.
 /// Complexity: O(total text length).
-pub fn query_to_string(q: &Query) -> Str {
+pub fn query_to_string(q: &Query) -> Str
+  ensures: q.fields.len() == 0 => result.len() == 0;
+  ensures: q.fields.len() > 0 => result.len() > 0;
+{
   var out = "";
   var i = 0;
   while i < q.fields.len() {
@@ -462,7 +471,10 @@ fn _both_ints(a: Str, b: Str) -> Option[(Int, Int)] {
 /// (an empty needle is found in every string). An unknown operator returns
 /// false.
 /// Complexity: O(len(left) + len(right)).
-pub fn query_match_one(op: Str, left: Str, right: Str) -> Bool {
+pub fn query_match_one(op: Str, left: Str, right: Str) -> Bool
+  ensures: op.len() == 0 => !result;
+  ensures: result => op.len() > 0;
+{
   if _streq(op, "=") {
     let pair = _both_ints(left, right);
     match pair {
@@ -536,7 +548,10 @@ pub fn query_match_one(op: Str, left: Str, right: Str) -> Bool {
 /// without a parallel value counts as missing. The first key equal to the
 /// term's field wins. A query with no terms matches everything.
 /// Complexity: O(terms * keys * cell length).
-pub fn query_matches(q: &Query, keys: &Vec[Str], values: &Vec[Str]) -> Bool {
+pub fn query_matches(q: &Query, keys: &Vec[Str], values: &Vec[Str]) -> Bool
+  ensures: q.fields.len() == 0 => result;
+  ensures: !result => q.fields.len() > 0;
+{
   let count = q.fields.len();
   if count == 0 {
     return true;
@@ -586,7 +601,11 @@ pub fn query_matches(q: &Query, keys: &Vec[Str], values: &Vec[Str]) -> Bool {
 /// Returns: the matching rows in their original order (empty when nothing
 /// matches, including when rows is empty).
 /// Complexity: O(rows * terms * columns * cell length).
-pub fn query_select(headers: &Vec[Str], rows: &Vec[Vec[Str]], q: &Query) -> Vec[Vec[Str]] {
+pub fn query_select(headers: &Vec[Str], rows: &Vec[Vec[Str]], q: &Query) -> Vec[Vec[Str]]
+  ensures: rows.len() == 0 => result.len() == 0;
+  ensures: result.len() <= rows.len();
+  ensures: q.fields.len() == 0 => result.len() == rows.len();
+{
   var out = Vec[Vec[Str]].new();
   var r = 0;
   while r < rows.len() {

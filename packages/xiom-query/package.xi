@@ -10,7 +10,7 @@
 
 package xiom_query {
   name: "xiom.query";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Simple filter expressions over flat key/value records with AND/OR connectors";
   categories: ["data", "tooling"];
   keywords: ["query", "filter", "expression", "records"];

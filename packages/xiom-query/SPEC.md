@@ -1,7 +1,8 @@
 # xiom.query -- specification
 
-Version: 0.1.0 (incubating). Pure XIOM, no FFI. All functions are free
-functions; the module depends on `xiom.string` from `xiom.std` only.
+Version: 0.1.2 (stable; published on the XIOM registry). Pure XIOM, no FFI.
+All functions are free functions; the module depends on `xiom.string` from
+`xiom.std` only.
 
 ## 1. Model
 
@@ -233,3 +234,49 @@ returns the number of failing checks (0 = green). `port.ps1` must end
 - Canonical text cannot represent values that contain both quote bytes
   (no escape sequences), and hand-built `Query` values must keep the four
   vectors parallel.
+
+## Contracts (batch #28 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/query.xi` in the batch #28
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator
+at integration). 13 clauses across the 6 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.query -TimeoutSec 60` runs
+ended `port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the
+clauses active (6.74 s and 6.52 s); the 22-check conformance suite exercises
+every entry point -- including the empty/hand-built `Query` and the
+empty/ragged `query_select` inputs -- and no clause trapped. `xiom
+--dump-contracts` lists all 13 clauses, so none was dropped.
+
+`xiom-verify --check` (Z3 on v0.64.0) result: **0 proven / 0 violated /
+17 unknown / 19 errors**. The contract axioms are skipped as "equality with
+unresolved operand sort" (`Result`/`Vec`/`Str` sorts are not modelled as SMT
+equality), and the errors are emitter artifacts in body VCs (`unknown
+constant _tokenize` / `_streq` / `_both_ints` in the generated SMT), not
+violations of the code under test. No clause was machine-falsified, so no
+clause is claimed Z3-provable; all 13 are enforced by the v0.64.0 runtime
+evaluator.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `query_parse` | `ensures: expr.len() == 0 => result is Err`; `ensures: result is Ok => expr.len() >= 5` | runtime-checked (`Result` tag + `Str` length) |
+| `query_term_count` | `ensures: result == q.fields.len()`; `ensures: result >= 0` | runtime-checked (scalar-shape count; SMT axiom skipped on unresolved sort) |
+| `query_to_string` | `ensures: q.fields.len() == 0 => result.len() == 0`; `ensures: q.fields.len() > 0 => result.len() > 0` | runtime-checked (built `Str` length) |
+| `query_match_one` | `ensures: op.len() == 0 => !result`; `ensures: result => op.len() > 0` | runtime-checked (`Str` length + `Bool` result) |
+| `query_matches` | `ensures: q.fields.len() == 0 => result`; `ensures: !result => q.fields.len() > 0` | runtime-checked (`Vec` length + `Bool` result) |
+| `query_select` | `ensures: rows.len() == 0 => result.len() == 0`; `ensures: result.len() <= rows.len()`; `ensures: q.fields.len() == 0 => result.len() == rows.len()` | runtime-checked (built `Vec` length) |
+
+The `expr.len() >= 5` bound in `query_parse` is the minimal `Ok` expression
+length from the section 2 grammar: a term needs three tokens (field, op,
+value), each at least one byte, separated by at least one whitespace byte --
+`a = b` is the 5-byte witness. All clauses hold for hand-built `Query`
+values under the documented parallel-vector contract: only `q.fields.len()`
+is read, and no clause indexes a vector or reads a `Result` payload.
+
+Deliberately not claimed: any `Ok`-payload access on `query_parse` (the
+`Query` struct payload is never read); `Ok`/`Err` payload lengths (forbidden
+payload-length-vs-parameter shape); `Str` equality (BUG 17; only `.len()`
+shapes); module consts in clauses (the `5` bound is inlined); clause calls
+(no clause calls any function); a `query_select` clause relating result rows
+to header width (a hand-built ragged row preserves its extra cells, so only
+the `rows.len()` bounds are asserted). No clause was dropped.
