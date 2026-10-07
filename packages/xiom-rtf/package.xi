@@ -12,7 +12,7 @@
 
 package xiom_rtf {
   name: "xiom.rtf";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM RTF subset codec: token stream parser, canonical emitter, plain-text extraction";
   categories: ["text-nlp"];
   keywords: ["rtf", "richtext", "parser", "format"];

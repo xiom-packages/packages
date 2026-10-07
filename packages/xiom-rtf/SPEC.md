@@ -1,8 +1,6 @@
 # xiom.rtf -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.rtf`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/rtf.xi` (`module xiom.rtf`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`,
 `xiom.string.compare`, `xiom.convert`).
@@ -348,3 +346,40 @@ Last verified: compiler 0.61.3,
 - `rtf_parse` consumes a whole `Str`; no streaming API.
 - Surrogate pairs are only combined by `rtf_plain_text`; the token stream
   keeps code units, and `rtf_text` of a surrogate is its 3-byte form.
+
+## Contracts (batch #31 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/rtf.xi` in the batch #31
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 24 clauses across the 11 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.rtf -TimeoutSec 60` runs
+ended `port: PASS (passed=26 failed=0 program_exit=0 exit=0)` with the clauses
+active (6.4 s and 6.5 s); the 26-check conformance suite exercises every
+entry point and no clause trapped.
+
+"Z3-provable" marks the scalar-shape family the SMT backend can discharge
+without executing the function; runtime-checked clauses read `Str`/`Vec`
+lengths or guard vector indexing with a length sentinel.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `rtf_parse` | `ensures: text.len() < 6 => result is Err`; `ensures: result is Ok => text.len() >= 6` | runtime-checked (`Str` length + Result sort; the six-byte `{\rtf1` prefix is checked first) |
+| `rtf_emit` | `ensures: tokens.kinds.len() == 0 => result.len() == 0` | runtime-checked (built `Str` length under a `Vec` length guard) |
+| `rtf_plain_text` | `ensures: tokens.kinds.len() == 0 => result.len() == 0` | runtime-checked (same shape) |
+| `rtf_no_param` | `ensures: result == 0 - 2147483649` | Z3-provable (pure scalar constant; module constant inlined) |
+| `rtf_token_count` | `ensures: result == tokens.kinds.len()`; `ensures: result >= 0` | runtime-checked (built `Vec` length) |
+| `rtf_kind` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= tokens.kinds.len() => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < tokens.kinds.len()` | runtime-checked (`Str` result length + `Vec` length sentinel) |
+| `rtf_text` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= tokens.texts.len() => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < tokens.texts.len()` | runtime-checked (`Str` result length + `Vec` length sentinel) |
+| `rtf_param` | `ensures: i < 0 => result == 0 - 2147483649`; `ensures: i >= tokens.params.len() => result == 0 - 2147483649`; `ensures: result != 0 - 2147483649 => i >= 0 && i < tokens.params.len()` | runtime-checked (`Vec` length sentinel; sentinel literal inlined) |
+| `rtf_has_param` | `ensures: i < 0 || i >= tokens.kinds.len() => !result`; `ensures: result => i >= 0 && i < tokens.kinds.len()` | runtime-checked (Bool guard-pair over `Vec` length) |
+| `rtf_depth` | `ensures: i < 0 => result == -1`; `ensures: i >= tokens.depth.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < tokens.depth.len()` | runtime-checked (`Vec` length sentinel) |
+| `rtf_hex_value` | `ensures: i < 0 => result == -1`; `ensures: i >= tokens.kinds.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < tokens.kinds.len()` | runtime-checked (`Vec` length sentinel) |
+
+Deliberately not claimed: `rtf_emit` result length versus
+`tokens.kinds.len()` (a hand-built kind can emit zero bytes); the
+`rtf_hex_value` 0..255 range (a hand-built `hex` token can hold any `Int`,
+and non-hex tokens also return -1); any round-trip clause (`rtf_parse` of
+`rtf_emit` output, self-referential); `Str` equality (BUG 17). No clause calls
+another function; every clause is a parameter/field length read or a scalar
+sentinel comparison.

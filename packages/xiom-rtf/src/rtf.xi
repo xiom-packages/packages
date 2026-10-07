@@ -452,7 +452,10 @@ fn _doc_prefix_mismatch(text: Str) -> Int {
 /// out of range at <pos>". Control-word-level positions are the offset of
 /// the introducing backslash.
 /// Complexity: O(text length).
-pub fn rtf_parse(text: Str) -> Result[RtfTokens, Str] {
+pub fn rtf_parse(text: Str) -> Result[RtfTokens, Str]
+  ensures: text.len() < 6 => result is Err;
+  ensures: result is Ok => text.len() >= 6;
+{
   let mm = _doc_prefix_mismatch(text);
   if mm >= 0 {
     return _err_rtf("rtf: text before document start at " + int_to_string(mm));
@@ -500,7 +503,9 @@ fn _push_escaped_text(out: &mut Vec[UInt8], s: Str) {
 /// stream (round-trip).
 /// Error case: none.
 /// Complexity: O(total text length).
-pub fn rtf_emit(tokens: &RtfTokens) -> Str {
+pub fn rtf_emit(tokens: &RtfTokens) -> Str
+  ensures: tokens.kinds.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let n = tokens.kinds.len();
   var i = 0;
@@ -593,7 +598,9 @@ fn _push_plain(out: &mut Vec[UInt8], t: &RtfTokens) {
 /// Returns: the extracted text ("" for a document with no visible text).
 /// Error case: none.
 /// Complexity: O(total text length).
-pub fn rtf_plain_text(tokens: &RtfTokens) -> Str {
+pub fn rtf_plain_text(tokens: &RtfTokens) -> Str
+  ensures: tokens.kinds.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   _push_plain(&mut out, tokens);
   return builder.sb_to_str(&out);
@@ -606,14 +613,19 @@ pub fn rtf_plain_text(tokens: &RtfTokens) -> Str {
 /// The sentinel stored in params[i] when token i has no numeric parameter.
 /// It is -2147483649, one below the smallest legal parameter, so no parsed
 /// parameter can collide with it.
-pub fn rtf_no_param() -> Int {
+pub fn rtf_no_param() -> Int
+  ensures: result == 0 - 2147483649;
+{
   return _NO_PARAM;
 }
 
 /// Number of tokens in `tokens` (0 for an empty stream).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn rtf_token_count(tokens: &RtfTokens) -> Int {
+pub fn rtf_token_count(tokens: &RtfTokens) -> Int
+  ensures: result == tokens.kinds.len();
+  ensures: result >= 0;
+{
   return tokens.kinds.len();
 }
 
@@ -622,7 +634,11 @@ pub fn rtf_token_count(tokens: &RtfTokens) -> Int {
 /// compare against the wanted kind, never against "").
 /// Error case: none.
 /// Complexity: O(1).
-pub fn rtf_kind(tokens: &RtfTokens, i: Int) -> Str {
+pub fn rtf_kind(tokens: &RtfTokens, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= tokens.kinds.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < tokens.kinds.len();
+{
   if i < 0 || i >= tokens.kinds.len() { return ""; }
   let x: Str = tokens.kinds[i];
   return x;
@@ -635,7 +651,11 @@ pub fn rtf_kind(tokens: &RtfTokens, i: Int) -> Str {
 /// for group tokens. Returns "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1) (the text is stored, not rebuilt).
-pub fn rtf_text(tokens: &RtfTokens, i: Int) -> Str {
+pub fn rtf_text(tokens: &RtfTokens, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= tokens.texts.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < tokens.texts.len();
+{
   if i < 0 || i >= tokens.texts.len() { return ""; }
   let x: Str = tokens.texts[i];
   return x;
@@ -648,7 +668,11 @@ pub fn rtf_text(tokens: &RtfTokens, i: Int) -> Str {
 /// Returns rtf_no_param() when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn rtf_param(tokens: &RtfTokens, i: Int) -> Int {
+pub fn rtf_param(tokens: &RtfTokens, i: Int) -> Int
+  ensures: i < 0 => result == 0 - 2147483649;
+  ensures: i >= tokens.params.len() => result == 0 - 2147483649;
+  ensures: result != 0 - 2147483649 => i >= 0 && i < tokens.params.len();
+{
   if i < 0 || i >= tokens.params.len() { return _NO_PARAM; }
   let x: Int = tokens.params[i];
   return x;
@@ -660,7 +684,10 @@ pub fn rtf_param(tokens: &RtfTokens, i: Int) -> Int {
 /// not a parameter). False when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn rtf_has_param(tokens: &RtfTokens, i: Int) -> Bool {
+pub fn rtf_has_param(tokens: &RtfTokens, i: Int) -> Bool
+  ensures: i < 0 || i >= tokens.kinds.len() => !result;
+  ensures: result => i >= 0 && i < tokens.kinds.len();
+{
   if i < 0 || i >= tokens.kinds.len() { return false; }
   let k: Str = tokens.kinds[i];
   if compare.str_compare(k, "unicode") == 0 { return true; }
@@ -676,7 +703,11 @@ pub fn rtf_has_param(tokens: &RtfTokens, i: Int) -> Bool {
 /// when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn rtf_depth(tokens: &RtfTokens, i: Int) -> Int {
+pub fn rtf_depth(tokens: &RtfTokens, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= tokens.depth.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < tokens.depth.len();
+{
   if i < 0 || i >= tokens.depth.len() { return -1; }
   let x: Int = tokens.depth[i];
   return x;
@@ -687,7 +718,11 @@ pub fn rtf_depth(tokens: &RtfTokens, i: Int) -> Int {
 /// not a hex token.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn rtf_hex_value(tokens: &RtfTokens, i: Int) -> Int {
+pub fn rtf_hex_value(tokens: &RtfTokens, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= tokens.kinds.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < tokens.kinds.len();
+{
   if i < 0 || i >= tokens.kinds.len() { return -1; }
   let k: Str = tokens.kinds[i];
   if compare.str_compare(k, "hex") != 0 { return -1; }
