@@ -52,7 +52,10 @@ use xiom.string;
 /// lines.
 /// Error case: none.
 /// Complexity: O(rows * ncols + total cell bytes).
-pub fn report_table(headers: &Vec[Str], rows: &Vec[Vec[Str]], pad: Int) -> Str {
+pub fn report_table(headers: &Vec[Str], rows: &Vec[Vec[Str]], pad: Int) -> Str
+  ensures: headers.len() == 0 && rows.len() == 0 => result.len() == 0;
+  ensures: headers.len() > 0 => result.len() >= 1;
+{
   let gap = _non_negative(pad);
   var ncols = headers.len();
   var r = 0;
@@ -143,7 +146,11 @@ pub fn report_table(headers: &Vec[Str], rows: &Vec[Vec[Str]], pad: Int) -> Str {
 /// renders "name: Ada" and "id  : 42".
 /// Error case: none.
 /// Complexity: O(rendered pairs + total key bytes).
-pub fn report_kv(keys: &Vec[Str], values: &Vec[Str], separator: Str) -> Str {
+pub fn report_kv(keys: &Vec[Str], values: &Vec[Str], separator: Str) -> Str
+  ensures: keys.len() == 0 || values.len() == 0 => result.len() == 0;
+  ensures: values.len() >= keys.len() && keys.len() > 0 => result.len() >= keys.len() - 1;
+  ensures: keys.len() >= values.len() && values.len() > 0 => result.len() >= values.len() - 1;
+{
   var count = keys.len();
   if values.len() < count {
     count = values.len();
@@ -183,7 +190,10 @@ pub fn report_kv(keys: &Vec[Str], values: &Vec[Str], separator: Str) -> Str {
 /// "  second".
 /// Error case: none.
 /// Complexity: O(total item bytes).
-pub fn report_bullets(items: &Vec[Str], marker: Str) -> Str {
+pub fn report_bullets(items: &Vec[Str], marker: Str) -> Str
+  ensures: items.len() == 0 => result.len() == 0;
+  ensures: items.len() > 0 => result.len() >= items.len() - 1;
+{
   var lines = Vec[Str].new();
   let continuation = string.str_repeat(" ", marker.len());
   var i = 0;
@@ -221,7 +231,11 @@ pub fn report_bullets(items: &Vec[Str], marker: Str) -> Str {
 /// "abc", "def", "gh".
 /// Error case: none.
 /// Complexity: O(total text bytes).
-pub fn report_wrap(text: Str, width: Int, indent: Str) -> Str {
+pub fn report_wrap(text: Str, width: Int, indent: Str) -> Str
+  ensures: width < 1 => result.len() == text.len();
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: width >= 1 && text.len() > 0 => result.len() >= indent.len();
+{
   if width < 1 {
     return text;
   }
@@ -254,7 +268,10 @@ pub fn report_wrap(text: Str, width: Int, indent: Str) -> Str {
 /// report_rule(0, "=") is "".
 /// Error case: none.
 /// Complexity: O(width).
-pub fn report_rule(width: Int, ch: Str) -> Str {
+pub fn report_rule(width: Int, ch: Str) -> Str
+  ensures: width <= 0 => result.len() == 0;
+  ensures: width > 0 => result.len() == width;
+{
   if width <= 0 {
     return "";
   }

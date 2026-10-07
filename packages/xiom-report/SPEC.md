@@ -1,6 +1,6 @@
 # xiom.report -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.report` (`src/report.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -217,3 +217,62 @@ handling uses `str_slice` to take the first byte, and padding uses
 `str_repeat(" ", n)`. Only `&` (never `&mut`) is taken of locals at call
 sites, so the E001 aliasing warning does not fire, and no compiler workaround
 was required.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses were added in the batch #19 hardening
+pass (compiler v0.64.0; no version bump): 12 clauses across the five public
+entry points (2/3/2/3/2). `xiom --dump-contracts` lists all twelve, and two
+consecutive `.\scripts\port.ps1 -Package xiom.report -TimeoutSec 60` runs
+ended `port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the
+clauses active (8.5 s and 8.5 s). The 24-check conformance suite exercises
+every entry point (empty and non-empty inputs, header/separator cases,
+wrapping edge cases, the `width < 1` short circuit and the non-positive
+rule width), so none of the clauses trapped. Every clause is enforced by the
+runtime evaluator: the module has no `Result` channel and returns only
+`Str`, so all 12 clauses inspect `result.len()` and none is Z3-provable as a
+pure scalar result.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `report_table` | `ensures: headers.len() == 0 && rows.len() == 0 => result.len() == 0` | runtime-checked |
+| `report_table` | `ensures: headers.len() > 0 => result.len() >= 1` | runtime-checked |
+| `report_kv` | `ensures: keys.len() == 0 \|\| values.len() == 0 => result.len() == 0` | runtime-checked |
+| `report_kv` | `ensures: values.len() >= keys.len() && keys.len() > 0 => result.len() >= keys.len() - 1` | runtime-checked |
+| `report_kv` | `ensures: keys.len() >= values.len() && values.len() > 0 => result.len() >= values.len() - 1` | runtime-checked |
+| `report_bullets` | `ensures: items.len() == 0 => result.len() == 0` | runtime-checked |
+| `report_bullets` | `ensures: items.len() > 0 => result.len() >= items.len() - 1` | runtime-checked |
+| `report_wrap` | `ensures: width < 1 => result.len() == text.len()` | runtime-checked |
+| `report_wrap` | `ensures: text.len() == 0 => result.len() == 0` | runtime-checked |
+| `report_wrap` | `ensures: width >= 1 && text.len() > 0 => result.len() >= indent.len()` | runtime-checked |
+| `report_rule` | `ensures: width <= 0 => result.len() == 0` | runtime-checked |
+| `report_rule` | `ensures: width > 0 => result.len() == width` | runtime-checked |
+
+Notes on the non-obvious clauses:
+
+- `report_table`: the pair mirrors section 3.1.1 (`ncols == 0` renders as
+  `""`) and the fact that a non-empty header list always emits the header
+  and separator lines, whose LF join is at least one byte even when every
+  width is 0. No `result.len() >= headers.len()` clause is claimed: it is
+  false for all-empty headers.
+- `report_kv`: rendering stops at `min(keys.len(), values.len())`; `k >= 1`
+  rendered pairs are joined with `k - 1` LFs, so the pre-joined line content
+  cannot shrink the result below `k - 1` bytes (each line is a padded key
+  plus separator plus value, all `Str` pieces).
+- `report_bullets`: every item yields at least one line
+  (`xiom.string.lines` always returns at least one part), so `n` items give
+  at least `n - 1` LF bytes even for empty items and empty markers.
+- `report_wrap`: the `width < 1` clause is the documented short circuit
+  (section 3.4.1). For the third clause, `xiom.string.lines(text)` guarantees
+  `result.len() >= 1` for any input (including `"\n"`, whose split yields two
+  empty parts), each logical line yields at least one wrapped piece, and
+  every emitted line is prefixed with `indent`, so at least one
+  `indent.len()`-byte line exists.
+- `report_rule`: `xiom.string.str_slice(ch, 0, 1)` (or the `-` default when
+  `ch` is empty) is exactly one byte, and `str_repeat(unit, width)` repeats
+  it `width` times, so a positive `width` gives `result.len() == width`
+  (section 3.5).
+
+No clause compares `Str` values (BUG 17), reads a `Result` payload or struct
+field, uses tuple-component access, or calls another function (there are no
+clause calls at all, so no postcondition call cycle is possible).
