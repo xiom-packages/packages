@@ -1,6 +1,6 @@
 # xiom.sgf -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.sgf` (`src/sgf.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -264,7 +264,7 @@ pointer comparison). Tests call the check functions directly (`t1()` ...
 ## 9. Compiler / stdlib notes
 
 No unsafe code and no FFI. The implementation documents these
-compiler-driven choices (XIOM v0.61.3):
+compiler-driven choices (XIOM v0.64.0):
 
 - Free functions only, no methods on `SgfCollection`.
 - No `Vec[StructType]`: the collection is a set of parallel `Vec` fields; the
@@ -301,3 +301,51 @@ compiler-driven choices (XIOM v0.61.3):
   and no partial result.
 - The codec is not hardened against hand-built `SgfCollection` values that
   violate the section 3 invariants; `sgf_emit` assumes parse-produced data.
+
+## Contracts (batch #36 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses were added to `src/sgf.xi` in the batch
+#36 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 52 clauses over all 19 public entry points; all
+are `ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+The two cross-call clauses (`sgf_prop_value` -> `sgf_prop_find`,
+`sgf_root_prop_value` -> `sgf_root`) are non-re-entrant definitional calls;
+`sgf_node_seq` makes no value-set claim (hand-built structs may hold anything)
+and `sgf_emit` makes no exact length claim.
+
+Two consecutive `& .\scripts\port.ps1 -Package xiom.sgf -TimeoutSec 60` runs
+ended `port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses
+active (7.38 s and 7.53 s); the 24-check conformance suite exercises every
+entry point -- including the out-of-range accessor guards (t9) -- and no
+clause trapped, so none was dropped.
+
+`xiom-verify src/sgf.xi --check` (Z3 bundled with v0.64.0) reported
+**0 proven / 0 violated / 44 unknown / 4 errors**; the 4 errors are the known
+SMT emitter bug on the private leaf helper `_prop_index` ("unknown constant",
+"not a proof failure of the code under test"), and every clause is skipped
+because the emitter cannot encode `Str`/`Vec` lengths, `Result` tags or
+cross-call expressions. All 52 clauses are enforced by the v0.64.0 runtime
+evaluator when the suite runs, so all are classified runtime-checked below
+(no Z3 claims).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `sgf_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked (`Result` tag + `Str` length; no payload read) |
+| `sgf_emit` | `c.roots.len() == 0 => result.len() == 0`; `c.roots.len() > 0 => result.len() > 0` | runtime-checked (empty/non-empty only; no length formula) |
+| `sgf_game_count` | `result == c.roots.len()`; `result >= 0` | runtime-checked (exact count) |
+| `sgf_root` | `g < 0 => result == -1`; `g >= c.roots.len() => result == -1`; `result != -1 => g >= 0 && g < c.roots.len()` | runtime-checked (scalar sentinel trio) |
+| `sgf_node_count` | `result == c.node_parent.len()`; `result >= 0` | runtime-checked (exact count) |
+| `sgf_node_parent` | `n < 0 => result == -1`; `n >= c.node_parent.len() => result == -1`; `result != -1 => n >= 0 && n < c.node_parent.len()` | runtime-checked (scalar sentinel trio) |
+| `sgf_node_depth` | `n < 0 => result == -1`; `n >= c.node_depth.len() => result == -1`; `result != -1 => n >= 0 && n < c.node_depth.len()` | runtime-checked (scalar sentinel trio) |
+| `sgf_node_seq` | `n < 0 => result == -1`; `n >= c.node_seq.len() => result == -1`; `result != -1 => n >= 0 && n < c.node_seq.len()` | runtime-checked (scalar sentinel trio; no value-set claim) |
+| `sgf_node_start` | `n < 0 => result == -1`; `n >= c.node_start.len() => result == -1`; `result != -1 => n >= 0 && n < c.node_start.len()` | runtime-checked (scalar sentinel trio) |
+| `sgf_node_child_count` | `n < 0 => result == -1`; `n >= c.node_child_count.len() => result == -1`; `result != -1 => n >= 0 && n < c.node_child_count.len()` | runtime-checked (scalar sentinel trio) |
+| `sgf_node_child` | `n < 0 || n >= c.node_child_start.len() => result == -1`; `k < 0 => result == -1`; `result != -1 => n >= 0 && n < c.node_child_start.len() && k >= 0` | runtime-checked (compound guard + scalar sentinel; the `k` upper bound needs `node_child_count[n]` indexing, not expressible in a clause) |
+| `sgf_node_prop_count` | `n < 0 => result == -1`; `n >= c.node_prop_count.len() => result == -1`; `result != -1 => n >= 0 && n < c.node_prop_count.len()` | runtime-checked (scalar sentinel trio) |
+| `sgf_node_prop_id` | `n < 0 || n >= c.node_prop_start.len() => result.len() == 0`; `p < 0 => result.len() == 0`; `result.len() > 0 => n >= 0 && n < c.node_prop_start.len() && p >= 0` | runtime-checked (`Str` length sentinel with compound guard) |
+| `sgf_node_value_count` | `n < 0 || n >= c.node_prop_start.len() => result == -1`; `p < 0 => result == -1`; `result != -1 => n >= 0 && n < c.node_prop_start.len() && p >= 0` | runtime-checked (scalar sentinel with compound guard) |
+| `sgf_node_value` | `n < 0 || n >= c.node_prop_start.len() => result.len() == 0`; `p < 0 || v < 0 => result.len() == 0`; `result.len() > 0 => n >= 0 && n < c.node_prop_start.len() && p >= 0 && v >= 0` | runtime-checked (`Str` length sentinel with compound guards) |
+| `sgf_node_value_start` | `n < 0 || n >= c.node_prop_start.len() => result == -1`; `p < 0 || v < 0 => result == -1`; `result != -1 => n >= 0 && n < c.node_prop_start.len() && p >= 0 && v >= 0` | runtime-checked (scalar sentinel with compound guards) |
+| `sgf_prop_find` | `n < 0 || n >= c.node_prop_start.len() => result == -1`; `result != -1 => n >= 0 && n < c.node_prop_start.len() && result >= 0` | runtime-checked (scalar sentinel + range) |
+| `sgf_prop_value` | `result.len() > 0 => n >= 0 && n < c.node_prop_start.len()`; `result.len() > 0 => sgf_prop_find(c, n, id) >= 0`; `sgf_prop_find(c, n, id) < 0 => result.len() == 0` | runtime-checked (non-re-entrant cross-call to `sgf_prop_find`) |
+| `sgf_root_prop_value` | `g < 0 || g >= c.roots.len() => result.len() == 0`; `result.len() > 0 => g >= 0 && g < c.roots.len()`; `result.len() > 0 => sgf_root(c, g) >= 0` | runtime-checked (non-re-entrant cross-call to `sgf_root`) |

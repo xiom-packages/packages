@@ -285,7 +285,10 @@ fn _scan_value(text: Str, at: Int, sb: &mut Vec[UInt8]) -> Result[Int, Str] {
 /// stray ), empty property id, bad property id char, unmatched ( and trailing
 /// garbage, each carrying a byte offset.
 /// Complexity: O(input length).
-pub fn sgf_parse(text: Str) -> Result[SgfCollection, Str] {
+pub fn sgf_parse(text: Str) -> Result[SgfCollection, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var coll = SgfCollection{
     node_parent: Vec[Int].new();
     node_depth: Vec[Int].new();
@@ -604,7 +607,10 @@ fn _emit_tree(c: &SgfCollection, root: Int, sb: &mut Vec[UInt8]) {
 /// Error case: none. Values that contain raw LF/CR (impossible after parsing,
 /// which normalizes them to spaces) are emitted verbatim, not re-normalized.
 /// Complexity: O(output length).
-pub fn sgf_emit(c: &SgfCollection) -> Str {
+pub fn sgf_emit(c: &SgfCollection) -> Str
+  ensures: c.roots.len() == 0 => result.len() == 0;
+  ensures: c.roots.len() > 0 => result.len() > 0;
+{
   var sb = Vec[UInt8].new();
   var g = 0;
   while g < c.roots.len() {
@@ -625,7 +631,10 @@ pub fn sgf_emit(c: &SgfCollection) -> Str {
 /// Returns: the game count; 0 for an empty collection.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_game_count(c: &SgfCollection) -> Int {
+pub fn sgf_game_count(c: &SgfCollection) -> Int
+  ensures: result == c.roots.len();
+  ensures: result >= 0;
+{
   return c.roots.len();
 }
 
@@ -635,7 +644,11 @@ pub fn sgf_game_count(c: &SgfCollection) -> Int {
 /// out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_root(c: &SgfCollection, g: Int) -> Int {
+pub fn sgf_root(c: &SgfCollection, g: Int) -> Int
+  ensures: g < 0 => result == -1;
+  ensures: g >= c.roots.len() => result == -1;
+  ensures: result != -1 => g >= 0 && g < c.roots.len();
+{
   if g < 0 || g >= c.roots.len() {
     return -1;
   }
@@ -648,7 +661,10 @@ pub fn sgf_root(c: &SgfCollection, g: Int) -> Int {
 /// Returns: the node count; 0 for an empty collection.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_node_count(c: &SgfCollection) -> Int {
+pub fn sgf_node_count(c: &SgfCollection) -> Int
+  ensures: result == c.node_parent.len();
+  ensures: result >= 0;
+{
   return c.node_parent.len();
 }
 
@@ -659,7 +675,11 @@ pub fn sgf_node_count(c: &SgfCollection) -> Int {
 /// apart from bad indices).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_node_parent(c: &SgfCollection, n: Int) -> Int {
+pub fn sgf_node_parent(c: &SgfCollection, n: Int) -> Int
+  ensures: n < 0 => result == -1;
+  ensures: n >= c.node_parent.len() => result == -1;
+  ensures: result != -1 => n >= 0 && n < c.node_parent.len();
+{
   if n < 0 || n >= c.node_parent.len() {
     return -1;
   }
@@ -672,7 +692,11 @@ pub fn sgf_node_parent(c: &SgfCollection, n: Int) -> Int {
 /// Returns: the depth; -1 when `n` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_node_depth(c: &SgfCollection, n: Int) -> Int {
+pub fn sgf_node_depth(c: &SgfCollection, n: Int) -> Int
+  ensures: n < 0 => result == -1;
+  ensures: n >= c.node_depth.len() => result == -1;
+  ensures: result != -1 => n >= 0 && n < c.node_depth.len();
+{
   if n < 0 || n >= c.node_depth.len() {
     return -1;
   }
@@ -688,7 +712,11 @@ pub fn sgf_node_depth(c: &SgfCollection, n: Int) -> Int {
 /// Returns: 1 or 0; -1 when `n` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_node_seq(c: &SgfCollection, n: Int) -> Int {
+pub fn sgf_node_seq(c: &SgfCollection, n: Int) -> Int
+  ensures: n < 0 => result == -1;
+  ensures: n >= c.node_seq.len() => result == -1;
+  ensures: result != -1 => n >= 0 && n < c.node_seq.len();
+{
   if n < 0 || n >= c.node_seq.len() {
     return -1;
   }
@@ -701,7 +729,11 @@ pub fn sgf_node_seq(c: &SgfCollection, n: Int) -> Int {
 /// Returns: the offset; -1 when `n` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_node_start(c: &SgfCollection, n: Int) -> Int {
+pub fn sgf_node_start(c: &SgfCollection, n: Int) -> Int
+  ensures: n < 0 => result == -1;
+  ensures: n >= c.node_start.len() => result == -1;
+  ensures: result != -1 => n >= 0 && n < c.node_start.len();
+{
   if n < 0 || n >= c.node_start.len() {
     return -1;
   }
@@ -715,7 +747,11 @@ pub fn sgf_node_start(c: &SgfCollection, n: Int) -> Int {
 /// Returns: the child count; -1 when `n` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_node_child_count(c: &SgfCollection, n: Int) -> Int {
+pub fn sgf_node_child_count(c: &SgfCollection, n: Int) -> Int
+  ensures: n < 0 => result == -1;
+  ensures: n >= c.node_child_count.len() => result == -1;
+  ensures: result != -1 => n >= 0 && n < c.node_child_count.len();
+{
   if n < 0 || n >= c.node_child_count.len() {
     return -1;
   }
@@ -731,7 +767,11 @@ pub fn sgf_node_child_count(c: &SgfCollection, n: Int) -> Int {
 /// Returns: the child node index; -1 when `n` or `k` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_node_child(c: &SgfCollection, n: Int, k: Int) -> Int {
+pub fn sgf_node_child(c: &SgfCollection, n: Int, k: Int) -> Int
+  ensures: n < 0 || n >= c.node_child_start.len() => result == -1;
+  ensures: k < 0 => result == -1;
+  ensures: result != -1 => n >= 0 && n < c.node_child_start.len() && k >= 0;
+{
   if n < 0 || n >= c.node_child_start.len() {
     return -1;
   }
@@ -753,7 +793,11 @@ pub fn sgf_node_child(c: &SgfCollection, n: Int, k: Int) -> Int {
 /// Returns: the property count; -1 when `n` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_node_prop_count(c: &SgfCollection, n: Int) -> Int {
+pub fn sgf_node_prop_count(c: &SgfCollection, n: Int) -> Int
+  ensures: n < 0 => result == -1;
+  ensures: n >= c.node_prop_count.len() => result == -1;
+  ensures: result != -1 => n >= 0 && n < c.node_prop_count.len();
+{
   if n < 0 || n >= c.node_prop_count.len() {
     return -1;
   }
@@ -767,7 +811,11 @@ pub fn sgf_node_prop_count(c: &SgfCollection, n: Int) -> Int {
 /// Returns: the identifier; "" when `n` or `p` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_node_prop_id(c: &SgfCollection, n: Int, p: Int) -> Str {
+pub fn sgf_node_prop_id(c: &SgfCollection, n: Int, p: Int) -> Str
+  ensures: n < 0 || n >= c.node_prop_start.len() => result.len() == 0;
+  ensures: p < 0 => result.len() == 0;
+  ensures: result.len() > 0 => n >= 0 && n < c.node_prop_start.len() && p >= 0;
+{
   let i: Int = _prop_index(c, n, p);
   if i < 0 {
     return "";
@@ -783,7 +831,11 @@ pub fn sgf_node_prop_id(c: &SgfCollection, n: Int, p: Int) -> Str {
 /// Returns: the value count; -1 when `n` or `p` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_node_value_count(c: &SgfCollection, n: Int, p: Int) -> Int {
+pub fn sgf_node_value_count(c: &SgfCollection, n: Int, p: Int) -> Int
+  ensures: n < 0 || n >= c.node_prop_start.len() => result == -1;
+  ensures: p < 0 => result == -1;
+  ensures: result != -1 => n >= 0 && n < c.node_prop_start.len() && p >= 0;
+{
   let i: Int = _prop_index(c, n, p);
   if i < 0 {
     return -1;
@@ -800,7 +852,11 @@ pub fn sgf_node_value_count(c: &SgfCollection, n: Int, p: Int) -> Int {
 /// `X[]` also returns "", so use sgf_node_value_count to tell them apart).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_node_value(c: &SgfCollection, n: Int, p: Int, v: Int) -> Str {
+pub fn sgf_node_value(c: &SgfCollection, n: Int, p: Int, v: Int) -> Str
+  ensures: n < 0 || n >= c.node_prop_start.len() => result.len() == 0;
+  ensures: p < 0 || v < 0 => result.len() == 0;
+  ensures: result.len() > 0 => n >= 0 && n < c.node_prop_start.len() && p >= 0 && v >= 0;
+{
   let i: Int = _prop_index(c, n, p);
   if i < 0 {
     return "";
@@ -820,7 +876,11 @@ pub fn sgf_node_value(c: &SgfCollection, n: Int, p: Int, v: Int) -> Str {
 /// Returns: the offset; -1 when any index is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sgf_node_value_start(c: &SgfCollection, n: Int, p: Int, v: Int) -> Int {
+pub fn sgf_node_value_start(c: &SgfCollection, n: Int, p: Int, v: Int) -> Int
+  ensures: n < 0 || n >= c.node_prop_start.len() => result == -1;
+  ensures: p < 0 || v < 0 => result == -1;
+  ensures: result != -1 => n >= 0 && n < c.node_prop_start.len() && p >= 0 && v >= 0;
+{
   let i: Int = _prop_index(c, n, p);
   if i < 0 {
     return -1;
@@ -841,7 +901,10 @@ pub fn sgf_node_value_start(c: &SgfCollection, n: Int, p: Int, v: Int) -> Int {
 /// Returns: the zero-based property index of the first match, else -1.
 /// Error case: none.
 /// Complexity: O(properties on the node).
-pub fn sgf_prop_find(c: &SgfCollection, n: Int, id: Str) -> Int {
+pub fn sgf_prop_find(c: &SgfCollection, n: Int, id: Str) -> Int
+  ensures: n < 0 || n >= c.node_prop_start.len() => result == -1;
+  ensures: result != -1 => n >= 0 && n < c.node_prop_start.len() && result >= 0;
+{
   if n < 0 || n >= c.node_prop_start.len() {
     return -1;
   }
@@ -866,7 +929,11 @@ pub fn sgf_prop_find(c: &SgfCollection, n: Int, id: Str) -> Int {
 /// no values.
 /// Error case: none.
 /// Complexity: O(properties on the node).
-pub fn sgf_prop_value(c: &SgfCollection, n: Int, id: Str) -> Str {
+pub fn sgf_prop_value(c: &SgfCollection, n: Int, id: Str) -> Str
+  ensures: result.len() > 0 => n >= 0 && n < c.node_prop_start.len();
+  ensures: result.len() > 0 => sgf_prop_find(c, n, id) >= 0;
+  ensures: sgf_prop_find(c, n, id) < 0 => result.len() == 0;
+{
   let p: Int = sgf_prop_find(c, n, id);
   if p < 0 {
     return "";
@@ -883,7 +950,11 @@ pub fn sgf_prop_value(c: &SgfCollection, n: Int, id: Str) -> Str {
 /// property is absent.
 /// Error case: none.
 /// Complexity: O(properties on the root).
-pub fn sgf_root_prop_value(c: &SgfCollection, g: Int, id: Str) -> Str {
+pub fn sgf_root_prop_value(c: &SgfCollection, g: Int, id: Str) -> Str
+  ensures: g < 0 || g >= c.roots.len() => result.len() == 0;
+  ensures: result.len() > 0 => g >= 0 && g < c.roots.len();
+  ensures: result.len() > 0 => sgf_root(c, g) >= 0;
+{
   let r: Int = sgf_root(c, g);
   if r < 0 {
     return "";
