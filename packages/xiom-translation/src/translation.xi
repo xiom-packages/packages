@@ -279,7 +279,10 @@ fn _interpolate(text: Str, names: &Vec[Str], values: &Vec[Str]) -> Str {
 /// Complexity: O(total input length * entry count) because duplicate
 /// detection scans the entry list per line; O(total input length) with a
 /// hash index.
-pub fn catalog_parse(locale: Str, text: Str) -> Result[Catalog, Str] {
+pub fn catalog_parse(locale: Str, text: Str) -> Result[Catalog, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var c = Catalog{ locales: Vec[Str].new(); keys: Vec[Str].new(); values: Vec[Str].new(); };
   let len = text.len();
   var line_start = 0;
@@ -304,7 +307,10 @@ pub fn catalog_parse(locale: Str, text: Str) -> Result[Catalog, Str] {
 
 /// Translation of `key` in `locale`; None when the pair is absent. Locales
 /// and keys are byte-exact and case-sensitive.
-pub fn catalog_get(c: &Catalog, locale: Str, key: Str) -> Option[Str] {
+pub fn catalog_get(c: &Catalog, locale: Str, key: Str) -> Option[Str]
+  ensures: c.values.len() == 0 => result is None;
+  ensures: result is Some => c.values.len() > 0;
+{
   let i = _entry_index(c, locale, key);
   if i < 0 {
     return None;
@@ -314,7 +320,11 @@ pub fn catalog_get(c: &Catalog, locale: Str, key: Str) -> Option[Str] {
 }
 
 /// Locales that have at least one entry, in first-seen order (a fresh copy).
-pub fn catalog_locales(c: &Catalog) -> Vec[Str] {
+pub fn catalog_locales(c: &Catalog) -> Vec[Str]
+  ensures: c.locales.len() == 0 => result.len() == 0;
+  ensures: result.len() <= c.locales.len();
+  ensures: c.locales.len() > 0 && c.keys.len() > 0 && c.values.len() > 0 => result.len() >= 1;
+{
   var out = Vec[Str].new();
   let lim = _entry_limit(c);
   var i = 0;
@@ -330,7 +340,11 @@ pub fn catalog_locales(c: &Catalog) -> Vec[Str] {
 
 /// Keys stored for `locale`, in entry order (a fresh copy). Duplicates cannot
 /// occur through this API, so the result is already deduplicated.
-pub fn catalog_keys(c: &Catalog, locale: Str) -> Vec[Str] {
+pub fn catalog_keys(c: &Catalog, locale: Str) -> Vec[Str]
+  ensures: c.locales.len() == 0 => result.len() == 0;
+  ensures: c.keys.len() == 0 => result.len() == 0;
+  ensures: result.len() <= c.keys.len();
+{
   var out = Vec[Str].new();
   let lim = _entry_limit(c);
   var i = 0;
@@ -352,7 +366,11 @@ pub fn catalog_keys(c: &Catalog, locale: Str) -> Vec[Str] {
 /// Returns: a new catalog; the input catalog is unchanged.
 /// Error case: none.
 /// Complexity: O(entry count + input length).
-pub fn catalog_add(c: &Catalog, locale: Str, key: Str, value: Str) -> Catalog {
+pub fn catalog_add(c: &Catalog, locale: Str, key: Str, value: Str) -> Catalog
+  ensures: catalog_get(result, locale, key) is Some;
+  ensures: catalog_keys(result, locale).len() >= 1;
+  ensures: catalog_locales(result).len() >= 1;
+{
   var out = Catalog{ locales: Vec[Str].new(); keys: Vec[Str].new(); values: Vec[Str].new(); };
   let lim = _entry_limit(c);
   var i = 0;
@@ -376,7 +394,10 @@ pub fn catalog_add(c: &Catalog, locale: Str, key: Str, value: Str) -> Catalog {
 /// reported once even when a hand-built fallback stores it repeatedly.
 /// Error case: none.
 /// Complexity: O(entries * keys).
-pub fn catalog_missing(c: &Catalog, locale: Str, fallback: Str) -> Vec[Str] {
+pub fn catalog_missing(c: &Catalog, locale: Str, fallback: Str) -> Vec[Str]
+  ensures: c.locales.len() == 0 => result.len() == 0;
+  ensures: result.len() <= c.keys.len();
+{
   var out = Vec[Str].new();
   let lim = _entry_limit(c);
   var i = 0;
@@ -406,7 +427,9 @@ pub fn catalog_missing(c: &Catalog, locale: Str, fallback: Str) -> Vec[Str] {
 /// verbatim and never re-scanned. The last-resort key is interpolated too.
 /// Error case: none; a missing key resolves to the key text.
 /// Complexity: O(entries) per lookup plus O(output) for interpolation.
-pub fn catalog_translate(c: &Catalog, locale: Str, fallback: Str, key: Str, names: &Vec[Str], values: &Vec[Str]) -> Str {
+pub fn catalog_translate(c: &Catalog, locale: Str, fallback: Str, key: Str, names: &Vec[Str], values: &Vec[Str]) -> Str
+  ensures: catalog_get(c, locale, key) is None && catalog_get(c, fallback, key) is None && values.len() == 0 => result.len() <= key.len();
+{
   let i = _entry_index(c, locale, key);
   if i >= 0 {
     let v: Str = c.values[i];

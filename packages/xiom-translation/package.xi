@@ -11,7 +11,7 @@
 
 package xiom_translation {
   name: "xiom.translation";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Message catalogs: key/value translation entries with locale fallback and placeholder interpolation";
   categories: ["text-nlp", "tooling"];
   keywords: ["translation", "i18n", "catalog", "fallback"];

@@ -1,6 +1,6 @@
 # xiom.translation -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.translation` (`src/translation.xi`). Pure XIOM, no FFI, no file
 I/O.
 
@@ -120,6 +120,37 @@ Complexity: parsing is `O(total input length * entry count)` because
 duplicate detection scans the entry list per line; lookups are `O(entries)`;
 `catalog_add` is `O(entries)` plus the copies; interpolation is `O(output)`
 plus `O(placeholders * names)` for the lookups.
+
+## Contracts
+
+Runtime-checkable `ensures:` clauses (v0.64.0 contract pass) are attached to
+every public entry point. All of them are evaluated by the runtime contract
+evaluator on each call; none is a pure-scalar formula over `Int` parameters,
+so this package has no Z3-provable (pure scalar) clauses -- every clause
+below is marked runtime-checked.
+
+| Function | Clause | Check |
+|---|---|---|
+| `catalog_parse` | `text.len() == 0 => result is Ok` | runtime-checked |
+| `catalog_parse` | `result is Err => text.len() > 0` | runtime-checked |
+| `catalog_get` | `c.values.len() == 0 => result is None` | runtime-checked |
+| `catalog_get` | `result is Some => c.values.len() > 0` | runtime-checked |
+| `catalog_locales` | `c.locales.len() == 0 => result.len() == 0` | runtime-checked |
+| `catalog_locales` | `result.len() <= c.locales.len()` | runtime-checked |
+| `catalog_locales` | `c.locales.len() > 0 && c.keys.len() > 0 && c.values.len() > 0 => result.len() >= 1` | runtime-checked |
+| `catalog_keys` | `c.locales.len() == 0 => result.len() == 0` | runtime-checked |
+| `catalog_keys` | `c.keys.len() == 0 => result.len() == 0` | runtime-checked |
+| `catalog_keys` | `result.len() <= c.keys.len()` | runtime-checked |
+| `catalog_add` | `catalog_get(result, locale, key) is Some` | runtime-checked |
+| `catalog_add` | `catalog_keys(result, locale).len() >= 1` | runtime-checked |
+| `catalog_add` | `catalog_locales(result).len() >= 1` | runtime-checked |
+| `catalog_missing` | `c.locales.len() == 0 => result.len() == 0` | runtime-checked |
+| `catalog_missing` | `result.len() <= c.keys.len()` | runtime-checked |
+| `catalog_translate` | `catalog_get(c, locale, key) is None && catalog_get(c, fallback, key) is None && values.len() == 0 => result.len() <= key.len()` | runtime-checked |
+
+The `catalog_add` postconditions observe the returned `Catalog` only through
+the non-re-entrant public readers `catalog_get` / `catalog_keys` /
+`catalog_locales`; the result struct is never field-read in a clause.
 
 ## 6. Error catalog
 
