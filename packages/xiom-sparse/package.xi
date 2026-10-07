@@ -11,7 +11,7 @@
 
 package xiom_sparse {
   name: "xiom.sparse";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Android sparse image codec with a flat chunk index and a canonical builder";
   categories: ["systems"];
   keywords: ["sparse", "android", "image", "format"];

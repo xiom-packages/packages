@@ -1,8 +1,6 @@
 # xiom.sparse -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.sparse`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/sparse.xi` (`module xiom.sparse`).
 Depends on `xiom.std`; the library module uses `xiom.convert` for the
 version string (tests add `xiom.test`, `xiom.io`, `xiom.string`,
@@ -265,8 +263,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.sparse
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=24 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0,
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` (batch #29 hardening
+pass, two consecutive runs: 6.6 s and 6.1 s).
 
 ## Known limitations
 
@@ -304,3 +303,61 @@ Last verified: compiler 0.61.3,
 - All chunk vector pushes happen together in one place; the accessors guard
   each vector separately and `_row_count` provides the safe minimum.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #29 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/sparse.xi` in the batch
+#29 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 37 clauses over the 19 public entry points; all
+are `ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+Two consecutive `& .\scripts\port.ps1 -Package xiom.sparse -TimeoutSec 60`
+runs ended `port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the
+clauses active (6.6 s and 6.1 s); the 24-check conformance suite exercises
+every entry point (parse, all header/chunk accessors, expanded size, running
+block offset, and the builder's full error catalog plus round trips) and no
+clause trapped.
+
+A direct `xiom-verify src\sparse.xi --check` run (file before `--check`,
+package dir as CWD) reported `2 proven, 2 violated, 41 unknown, 22 errors`;
+the generated SMT was rejected by the known emitter bug (unresolved operand
+sorts, `unknown constant _u32le` / `_err_image` / `_err_bytes`, and
+`unknown constant _row_count` for the `sparse_chunk_count` cross-call), and
+the tool printed "This is not a proof failure of the code under test". The
+two X7001 "violations" are the two cross-call clauses of
+`sparse_chunk_block_offset`, refuted only because the callee is unmodeled in
+the SMT -- at runtime the callee is definitionally `_row_count`, the same
+predicate the function's own guards use. No clause is claimed Z3-provable:
+all 37 are runtime-checked (`R`); `xiom_verify_output.smt2` was deleted by
+literal path after the run.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `sparse_parse` | `data.len() < 28 => result is Err`; `result is Ok => data.len() >= 28` | `R` (`Result` tag + buffer length) |
+| `sparse_major_version` | `result == t.major` | `R` (accessor equality; verify UNKNOWN) |
+| `sparse_minor_version` | `result == t.minor` | `R` (accessor equality) |
+| `sparse_version` | `result.len() >= 3`; `t.major == 1 && t.minor == 0 => result.len() == 3` | `R` (Str length shape) |
+| `sparse_file_header_size` | `result == t.file_header_size` | `R` (accessor equality) |
+| `sparse_chunk_header_size` | `result == t.chunk_header_size` | `R` (accessor equality) |
+| `sparse_block_size` | `result == t.block_size` | `R` (accessor equality) |
+| `sparse_total_blocks` | `result == t.total_blocks` | `R` (accessor equality) |
+| `sparse_total_chunks` | `result == t.total_chunks` | `R` (accessor equality) |
+| `sparse_image_checksum` | `result == t.image_checksum` | `R` (accessor equality) |
+| `sparse_expanded_size` | `t.block_size < 0 \|\| t.total_blocks < 0 => result == -1`; `result != -1 => result == t.total_blocks * t.block_size` | `R` (sentinel + exact formula) |
+| `sparse_chunk_count` | `result <= t.chunk_types.len()`; `result <= t.fill_values.len()`; `result >= 0` | `R` (min-of-lengths bound) |
+| `sparse_chunk_type` | sentinel trio vs `t.chunk_types.len()`: `i < 0 => result == -1`; `i >= len => result == -1`; `result != -1 => i >= 0 && i < len` | `R` (S/G) |
+| `sparse_chunk_blocks` | same trio vs `t.chunk_blocks.len()` | `R` (S/G) |
+| `sparse_chunk_data_offset` | same trio vs `t.data_offsets.len()` | `R` (S/G) |
+| `sparse_chunk_data_length` | same trio vs `t.data_lengths.len()` | `R` (S/G) |
+| `sparse_chunk_fill_value` | same trio vs `t.fill_values.len()` | `R` (S/G) |
+| `sparse_chunk_block_offset` | `i < 0 => result == -1`; `i >= sparse_chunk_count(t) => result == -1`; `i == 0 && sparse_chunk_count(t) > 0 => result == 0` | `R` (safe cross-call to `sparse_chunk_count`) |
+| `sparse_build` | `block_size < 1 \|\| block_size % 4 != 0 \|\| image_checksum < 0 \|\| image_checksum > 4294967295 => result is Err`; `chunk_types.len() != chunk_blocks.len() \|\| chunk_types.len() != chunk_bodies.len() => result is Err` | `R` (guard disjunctions => `Err`) |
+
+Deliberately not claimed: `Ok` payload lengths on `sparse_parse` and
+`sparse_build` (payload-length-vs-parameter on `Result` payloads is
+forbidden); struct-`Result`-payload field reads; `Str` equality anywhere
+(BUG 17; only `.len()` is used); vector indexing inside clauses; module
+constants in clauses (all literals are inlined: `28`, `4294967295`, `-1`,
+`0`, `1`); no bare `&mut` parameter is read by a clause. The only clause
+cross-call is `sparse_chunk_block_offset -> sparse_chunk_count`, which never
+re-enters the offset function. No clause was dropped (no port failure) and
+no stdlib gap was found.

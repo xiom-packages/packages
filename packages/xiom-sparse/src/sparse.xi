@@ -223,7 +223,10 @@ fn _row_count(t: &SparseImage) -> Int {
 /// Returns: Ok(SparseImage) with five parallel vectors of equal length.
 /// Error case: see the catalog above and SPEC.md.
 /// Complexity: O(data.len()).
-pub fn sparse_parse(data: &Vec[UInt8]) -> Result[SparseImage, Str] {
+pub fn sparse_parse(data: &Vec[UInt8]) -> Result[SparseImage, Str]
+  ensures: data.len() < 28 => result is Err;
+  ensures: result is Ok => data.len() >= 28;
+{
   let n = data.len();
   if n < SPARSE_FILE_HEADER_SIZE {
     return _err_image("sparse: truncated header");
@@ -357,17 +360,24 @@ pub fn sparse_parse(data: &Vec[UInt8]) -> Result[SparseImage, Str] {
 // --------------------------------------------------
 
 /// Header major version; 1 after a successful parse. Complexity: O(1).
-pub fn sparse_major_version(t: &SparseImage) -> Int {
+pub fn sparse_major_version(t: &SparseImage) -> Int
+  ensures: result == t.major;
+{
   return t.major;
 }
 
 /// Header minor version; 0 after a successful parse. Complexity: O(1).
-pub fn sparse_minor_version(t: &SparseImage) -> Int {
+pub fn sparse_minor_version(t: &SparseImage) -> Int
+  ensures: result == t.minor;
+{
   return t.minor;
 }
 
 /// Version as "major.minor" (e.g. "1.0"); never fails. Complexity: O(1).
-pub fn sparse_version(t: &SparseImage) -> Str {
+pub fn sparse_version(t: &SparseImage) -> Str
+  ensures: result.len() >= 3;
+  ensures: t.major == 1 && t.minor == 0 => result.len() == 3;
+{
   let a: Int = t.major;
   let b: Int = t.minor;
   return convert.int_to_string(a) + "." + convert.int_to_string(b);
@@ -375,45 +385,60 @@ pub fn sparse_version(t: &SparseImage) -> Str {
 
 /// File header size field in bytes; 28 after a successful parse.
 /// Complexity: O(1).
-pub fn sparse_file_header_size(t: &SparseImage) -> Int {
+pub fn sparse_file_header_size(t: &SparseImage) -> Int
+  ensures: result == t.file_header_size;
+{
   return t.file_header_size;
 }
 
 /// Chunk header size field in bytes; 12 after a successful parse.
 /// Complexity: O(1).
-pub fn sparse_chunk_header_size(t: &SparseImage) -> Int {
+pub fn sparse_chunk_header_size(t: &SparseImage) -> Int
+  ensures: result == t.chunk_header_size;
+{
   return t.chunk_header_size;
 }
 
 /// Block size in bytes (nonzero, a multiple of 4 after a successful parse).
 /// Complexity: O(1).
-pub fn sparse_block_size(t: &SparseImage) -> Int {
+pub fn sparse_block_size(t: &SparseImage) -> Int
+  ensures: result == t.block_size;
+{
   return t.block_size;
 }
 
 /// Header total block count (u32), including fill and don't-care blocks and
 /// excluding crc32 chunks. Complexity: O(1).
-pub fn sparse_total_blocks(t: &SparseImage) -> Int {
+pub fn sparse_total_blocks(t: &SparseImage) -> Int
+  ensures: result == t.total_blocks;
+{
   return t.total_blocks;
 }
 
 /// Header total chunk count (u32). A parsed image matches
 /// `sparse_chunk_count`; a hand-built image may not.
 /// Complexity: O(1).
-pub fn sparse_total_chunks(t: &SparseImage) -> Int {
+pub fn sparse_total_chunks(t: &SparseImage) -> Int
+  ensures: result == t.total_chunks;
+{
   return t.total_chunks;
 }
 
 /// Stored image checksum (u32), raw: the codec never computes or verifies
 /// it. Complexity: O(1).
-pub fn sparse_image_checksum(t: &SparseImage) -> Int {
+pub fn sparse_image_checksum(t: &SparseImage) -> Int
+  ensures: result == t.image_checksum;
+{
   return t.image_checksum;
 }
 
 /// Expanded image size in bytes: `total_blocks * block_size`; -1 when either
 /// field is negative or the product does not fit a signed 64-bit Int.
 /// Complexity: O(1).
-pub fn sparse_expanded_size(t: &SparseImage) -> Int {
+pub fn sparse_expanded_size(t: &SparseImage) -> Int
+  ensures: t.block_size < 0 || t.total_blocks < 0 => result == -1;
+  ensures: result != -1 => result == t.total_blocks * t.block_size;
+{
   let b: Int = t.block_size;
   let n: Int = t.total_blocks;
   if b < 0 { return -1; }
@@ -430,14 +455,22 @@ pub fn sparse_expanded_size(t: &SparseImage) -> Int {
 /// vectors, so a hand-built index with drifted vectors reports the safe
 /// maximum. A parsed image reports the chunk count.
 /// Complexity: O(1).
-pub fn sparse_chunk_count(t: &SparseImage) -> Int {
+pub fn sparse_chunk_count(t: &SparseImage) -> Int
+  ensures: result <= t.chunk_types.len();
+  ensures: result <= t.fill_values.len();
+  ensures: result >= 0;
+{
   return _row_count(t);
 }
 
 /// Chunk type of chunk `i` (51905 raw / 51906 fill / 51907 don't-care /
 /// 51908 crc32), or -1 when `i` is negative or out of range.
 /// Complexity: O(1).
-pub fn sparse_chunk_type(t: &SparseImage, i: Int) -> Int {
+pub fn sparse_chunk_type(t: &SparseImage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= t.chunk_types.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < t.chunk_types.len();
+{
   if i < 0 { return -1; }
   if i >= t.chunk_types.len() { return -1; }
   let v: Int = t.chunk_types[i];
@@ -446,7 +479,11 @@ pub fn sparse_chunk_type(t: &SparseImage, i: Int) -> Int {
 
 /// Block count of chunk `i` (0 for crc32 chunks), or -1 when `i` is negative
 /// or out of range. Complexity: O(1).
-pub fn sparse_chunk_blocks(t: &SparseImage, i: Int) -> Int {
+pub fn sparse_chunk_blocks(t: &SparseImage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= t.chunk_blocks.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < t.chunk_blocks.len();
+{
   if i < 0 { return -1; }
   if i >= t.chunk_blocks.len() { return -1; }
   let v: Int = t.chunk_blocks[i];
@@ -457,7 +494,11 @@ pub fn sparse_chunk_blocks(t: &SparseImage, i: Int) -> Int {
 /// chunk: the first data byte; fill: the 4-byte fill value; don't-care: the
 /// position where a body would start; crc32: the 4-byte checksum), or -1
 /// when `i` is negative or out of range. Complexity: O(1).
-pub fn sparse_chunk_data_offset(t: &SparseImage, i: Int) -> Int {
+pub fn sparse_chunk_data_offset(t: &SparseImage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= t.data_offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < t.data_offsets.len();
+{
   if i < 0 { return -1; }
   if i >= t.data_offsets.len() { return -1; }
   let v: Int = t.data_offsets[i];
@@ -466,7 +507,11 @@ pub fn sparse_chunk_data_offset(t: &SparseImage, i: Int) -> Int {
 
 /// Body length in bytes of chunk `i` (0 for don't-care chunks), or -1 when
 /// `i` is negative or out of range. Complexity: O(1).
-pub fn sparse_chunk_data_length(t: &SparseImage, i: Int) -> Int {
+pub fn sparse_chunk_data_length(t: &SparseImage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= t.data_lengths.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < t.data_lengths.len();
+{
   if i < 0 { return -1; }
   if i >= t.data_lengths.len() { return -1; }
   let v: Int = t.data_lengths[i];
@@ -475,7 +520,11 @@ pub fn sparse_chunk_data_length(t: &SparseImage, i: Int) -> Int {
 
 /// Fill value (u32) of fill chunk `i`; -1 when `i` is negative, out of
 /// range, or the chunk is not a fill chunk. Complexity: O(1).
-pub fn sparse_chunk_fill_value(t: &SparseImage, i: Int) -> Int {
+pub fn sparse_chunk_fill_value(t: &SparseImage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= t.fill_values.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < t.fill_values.len();
+{
   if i < 0 { return -1; }
   if i >= t.fill_values.len() { return -1; }
   let ctype: Int = t.chunk_types[i];
@@ -487,7 +536,11 @@ pub fn sparse_chunk_fill_value(t: &SparseImage, i: Int) -> Int {
 /// Running block offset of chunk `i`: the sum of the block counts of chunks
 /// 0..i-1 (crc32 chunks add 0). 0 for the first chunk; -1 when `i` is
 /// negative or out of range. Complexity: O(i).
-pub fn sparse_chunk_block_offset(t: &SparseImage, i: Int) -> Int {
+pub fn sparse_chunk_block_offset(t: &SparseImage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= sparse_chunk_count(t) => result == -1;
+  ensures: i == 0 && sparse_chunk_count(t) > 0 => result == 0;
+{
   if i < 0 { return -1; }
   if i >= _row_count(t) { return -1; }
   var off: Int = 0;
@@ -533,7 +586,10 @@ pub fn sparse_chunk_block_offset(t: &SparseImage, i: Int) -> Int {
 /// bytes; don't-care: exactly 0); Err("sparse: too many blocks") when the
 /// non-crc32 block sum exceeds 2^32-1.
 /// Complexity: O(total body bytes).
-pub fn sparse_build(block_size: Int, chunk_types: &Vec[Int], chunk_blocks: &Vec[Int], chunk_bodies: &Vec[Vec[UInt8]], image_checksum: Int) -> Result[Vec[UInt8], Str] {
+pub fn sparse_build(block_size: Int, chunk_types: &Vec[Int], chunk_blocks: &Vec[Int], chunk_bodies: &Vec[Vec[UInt8]], image_checksum: Int) -> Result[Vec[UInt8], Str]
+  ensures: block_size < 1 || block_size % 4 != 0 || image_checksum < 0 || image_checksum > 4294967295 => result is Err;
+  ensures: chunk_types.len() != chunk_blocks.len() || chunk_types.len() != chunk_bodies.len() => result is Err;
+{
   if block_size < 1 {
     return _err_bytes("sparse: bad block size");
   }
