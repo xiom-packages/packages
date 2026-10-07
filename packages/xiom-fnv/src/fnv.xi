@@ -48,25 +48,33 @@ use xiom.string;
 // --------------------------------------------------
 
 /// The 32-bit FNV offset basis: 2166136261 (0x811C9DC5). Complexity: O(1).
-pub fn fnv_offset_basis32() -> Int {
+pub fn fnv_offset_basis32() -> Int
+  ensures: result == 2166136261;
+{
   return 2166136261;
 }
 
 /// The 32-bit FNV prime: 16777619 = 2^24 + 2^8 + 0x93. Complexity: O(1).
-pub fn fnv_prime32() -> Int {
+pub fn fnv_prime32() -> Int
+  ensures: result == 16777619;
+{
   return 16777619;
 }
 
 /// The 64-bit FNV offset basis as a signed Int: the unsigned
 /// specification value 14695981039346656037 (0xCBF29CE484222325) minus
 /// 2^64. Complexity: O(1).
-pub fn fnv_offset_basis64() -> Int {
+pub fn fnv_offset_basis64() -> Int
+  ensures: result == 0 - 3750763034362895579;
+{
   return 0 - 3750763034362895579;
 }
 
 /// The 64-bit FNV prime: 1099511628211 = 2^40 + 2^8 + 0xB3.
 /// Complexity: O(1).
-pub fn fnv_prime64() -> Int {
+pub fn fnv_prime64() -> Int
+  ensures: result == 1099511628211;
+{
   return 1099511628211;
 }
 
@@ -217,28 +225,38 @@ fn _fnv1a_64_bytes(state: Int, data: &Vec[UInt8]) -> Int {
 /// multiply-then-XOR per byte and wraps modulo 2^32; the result is a
 /// non-negative Int in [0, 2^32 - 1]. The empty input yields the offset
 /// basis 2166136261 (0x811C9DC5). Complexity: O(data.len()).
-pub fn fnv1_32(data: &Vec[UInt8]) -> Int {
+pub fn fnv1_32(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0 && result <= 4294967295;
+  ensures: data.len() == 0 => result == 2166136261;
+{
   return _fnv1_32_bytes(fnv_offset_basis32(), data);
 }
 
 /// FNV-1a 32-bit over `data`. Same parameters and range as fnv1_32, with
 /// XOR-before-multiply per byte. The empty input yields the offset basis
 /// 2166136261 (0x811C9DC5). Complexity: O(data.len()).
-pub fn fnv1a_32(data: &Vec[UInt8]) -> Int {
+pub fn fnv1a_32(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0 && result <= 4294967295;
+  ensures: data.len() == 0 => result == 2166136261;
+{
   return _fnv1a_32_bytes(fnv_offset_basis32(), data);
 }
 
 /// FNV-1 64-bit over `data`, returned as the signed two's-complement Int
 /// of the unsigned 64-bit result (use fnv_hex64 for unsigned display).
 /// The empty input yields fnv_offset_basis64(). Complexity: O(data.len()).
-pub fn fnv1_64(data: &Vec[UInt8]) -> Int {
+pub fn fnv1_64(data: &Vec[UInt8]) -> Int
+  ensures: data.len() == 0 => result == 0 - 3750763034362895579;
+{
   return _fnv1_64_bytes(fnv_offset_basis64(), data);
 }
 
 /// FNV-1a 64-bit over `data`, returned as the signed two's-complement Int
 /// of the unsigned 64-bit result (use fnv_hex64 for unsigned display).
 /// The empty input yields fnv_offset_basis64(). Complexity: O(data.len()).
-pub fn fnv1a_64(data: &Vec[UInt8]) -> Int {
+pub fn fnv1a_64(data: &Vec[UInt8]) -> Int
+  ensures: data.len() == 0 => result == 0 - 3750763034362895579;
+{
   return _fnv1a_64_bytes(fnv_offset_basis64(), data);
 }
 
@@ -248,7 +266,9 @@ pub fn fnv1a_64(data: &Vec[UInt8]) -> Int {
 
 /// FNV-1 32-bit initial state: the 32-bit offset basis.
 /// Complexity: O(1).
-pub fn fnv1_32_init() -> Int {
+pub fn fnv1_32_init() -> Int
+  ensures: result == 2166136261;
+{
   return fnv_offset_basis32();
 }
 
@@ -256,7 +276,11 @@ pub fn fnv1_32_init() -> Int {
 /// Equivalent to hashing state || data in one shot; the state must come
 /// from fnv1_32_init or a previous fnv1_32_update (any Int is accepted and
 /// reduced modulo 2^32 by the multiply). Complexity: O(data.len()).
-pub fn fnv1_32_update(state: Int, data: &Vec[UInt8]) -> Int {
+pub fn fnv1_32_update(state: Int, data: &Vec[UInt8]) -> Int
+  ensures: result >= 0 && result <= 4294967295;
+  ensures: state == 2166136261 => result == fnv1_32(data);
+  ensures: data.len() == 0 => result == state;
+{
   return _fnv1_32_bytes(state, data);
 }
 
@@ -264,63 +288,87 @@ pub fn fnv1_32_update(state: Int, data: &Vec[UInt8]) -> Int {
 /// finalize is the identity on a well-formed state; it exists so the
 /// incremental API mirrors the classic init/update/finalize shape.
 /// Complexity: O(1).
-pub fn fnv1_32_finalize(state: Int) -> Int {
+pub fn fnv1_32_finalize(state: Int) -> Int
+  ensures: result == state;
+{
   return state;
 }
 
 /// FNV-1a 32-bit initial state: the 32-bit offset basis.
 /// Complexity: O(1).
-pub fn fnv1a_32_init() -> Int {
+pub fn fnv1a_32_init() -> Int
+  ensures: result == 2166136261;
+{
   return fnv_offset_basis32();
 }
 
 /// Continue an FNV-1a 32-bit hash with `data`, returning the new state.
 /// Equivalent to hashing state || data in one shot. Complexity:
 /// O(data.len()).
-pub fn fnv1a_32_update(state: Int, data: &Vec[UInt8]) -> Int {
+pub fn fnv1a_32_update(state: Int, data: &Vec[UInt8]) -> Int
+  ensures: result >= 0 && result <= 4294967295;
+  ensures: state == 2166136261 => result == fnv1a_32(data);
+  ensures: data.len() == 0 => result == state;
+{
   return _fnv1a_32_bytes(state, data);
 }
 
 /// Finish an FNV-1a 32-bit hash; the identity, as for fnv1_32_finalize.
 /// Complexity: O(1).
-pub fn fnv1a_32_finalize(state: Int) -> Int {
+pub fn fnv1a_32_finalize(state: Int) -> Int
+  ensures: result == state;
+{
   return state;
 }
 
 /// FNV-1 64-bit initial state: fnv_offset_basis64() (the unsigned
 /// 0xCBF29CE484222325 as a signed Int). Complexity: O(1).
-pub fn fnv1_64_init() -> Int {
+pub fn fnv1_64_init() -> Int
+  ensures: result == 0 - 3750763034362895579;
+{
   return fnv_offset_basis64();
 }
 
 /// Continue an FNV-1 64-bit hash with `data`, returning the new signed
 /// state. Equivalent to hashing state || data in one shot.
 /// Complexity: O(data.len()).
-pub fn fnv1_64_update(state: Int, data: &Vec[UInt8]) -> Int {
+pub fn fnv1_64_update(state: Int, data: &Vec[UInt8]) -> Int
+  ensures: state == 0 - 3750763034362895579 => result == fnv1_64(data);
+  ensures: data.len() == 0 => result == state;
+{
   return _fnv1_64_bytes(state, data);
 }
 
 /// Finish an FNV-1 64-bit hash; the identity, as for fnv1_32_finalize.
 /// Complexity: O(1).
-pub fn fnv1_64_finalize(state: Int) -> Int {
+pub fn fnv1_64_finalize(state: Int) -> Int
+  ensures: result == state;
+{
   return state;
 }
 
 /// FNV-1a 64-bit initial state: fnv_offset_basis64(). Complexity: O(1).
-pub fn fnv1a_64_init() -> Int {
+pub fn fnv1a_64_init() -> Int
+  ensures: result == 0 - 3750763034362895579;
+{
   return fnv_offset_basis64();
 }
 
 /// Continue an FNV-1a 64-bit hash with `data`, returning the new signed
 /// state. Equivalent to hashing state || data in one shot.
 /// Complexity: O(data.len()).
-pub fn fnv1a_64_update(state: Int, data: &Vec[UInt8]) -> Int {
+pub fn fnv1a_64_update(state: Int, data: &Vec[UInt8]) -> Int
+  ensures: state == 0 - 3750763034362895579 => result == fnv1a_64(data);
+  ensures: data.len() == 0 => result == state;
+{
   return _fnv1a_64_bytes(state, data);
 }
 
 /// Finish an FNV-1a 64-bit hash; the identity, as for fnv1_32_finalize.
 /// Complexity: O(1).
-pub fn fnv1a_64_finalize(state: Int) -> Int {
+pub fn fnv1a_64_finalize(state: Int) -> Int
+  ensures: result == state;
+{
   return state;
 }
 
@@ -338,7 +386,9 @@ fn _hex_digit(n: Int) -> Str {
 /// `value` interpreted as an unsigned 32-bit number. Any Int is accepted:
 /// the value is reduced modulo 2^32 first (so -1 renders as
 /// "ffffffff"). Complexity: O(1).
-pub fn fnv_hex32(value: Int) -> Str {
+pub fn fnv_hex32(value: Int) -> Str
+  ensures: result.len() == 8;
+{
   var v = value % 4294967296;
   if v < 0 {
     v = v + 4294967296;
@@ -357,7 +407,9 @@ pub fn fnv_hex32(value: Int) -> Str {
 /// two's-complement pattern of `value` (the form the 64-bit hashes
 /// return), i.e. the unsigned 64-bit value. Any Int is accepted
 /// (so -1 renders as "ffffffffffffffff"). Complexity: O(1).
-pub fn fnv_hex64(value: Int) -> Str {
+pub fn fnv_hex64(value: Int) -> Str
+  ensures: result.len() == 16;
+{
   var v = value;
   var out = "";
   var i = 0;

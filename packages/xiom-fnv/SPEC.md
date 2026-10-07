@@ -1,8 +1,6 @@
 # xiom.fnv -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.fnv`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/fnv.xi` (`module xiom.fnv`).
 Depends on `xiom.std`; the library module imports `xiom.string` (for the
 hex display helpers); the tests import `xiom.test`, `xiom.io` and
@@ -244,6 +242,51 @@ Guarantees:
 | Wrap exactness | Modular products are computed with bounded Int arithmetic only. |
 | Totality | No input combination produces an error, panic or trap. |
 | Purity | No FFI, no allocation beyond the returned `Str` in the hex helpers, no global state. |
+
+## Contracts
+
+Runtime-checkable `ensures:` clauses on `src/fnv.xi` (hardening pass
+2026-10-07, compiler v0.64.0; no manifest change in this pass). 30
+clauses across the 22 public entry points. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.fnv -TimeoutSec 60` runs ended
+`port: PASS (passed=19 failed=0 program_exit=0 exit=0)` with the clauses
+active; no clause was dropped.
+
+The `_update` definitional clauses call the one-shot function of the same
+variant; the one-shots call the private `_fnv*_bytes` loops and never an
+`_update`, so no clause calls a function that transitively calls the
+callee under contract (no runtime-evaluator re-entry). `_mul32`,
+`_mul64`, `_limb64` and `_xor_low_byte` are private and are not called
+from any clause.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `fnv_offset_basis32` | `ensures: result == 2166136261` | Z3-provable (pure scalar) |
+| `fnv_prime32` | `ensures: result == 16777619` | Z3-provable (pure scalar) |
+| `fnv_offset_basis64` | `ensures: result == 0 - 3750763034362895579` | Z3-provable (pure scalar) |
+| `fnv_prime64` | `ensures: result == 1099511628211` | Z3-provable (pure scalar) |
+| `fnv1_32` | `ensures: result >= 0 && result <= 4294967295`; `ensures: data.len() == 0 => result == 2166136261` | Z3-provable (bounds); runtime-checked (empty-input identity) |
+| `fnv1a_32` | `ensures: result >= 0 && result <= 4294967295`; `ensures: data.len() == 0 => result == 2166136261` | Z3-provable (bounds); runtime-checked (empty-input identity) |
+| `fnv1_64` | `ensures: data.len() == 0 => result == 0 - 3750763034362895579` | runtime-checked (empty-input identity) |
+| `fnv1a_64` | `ensures: data.len() == 0 => result == 0 - 3750763034362895579` | runtime-checked (empty-input identity) |
+| `fnv1_32_init` | `ensures: result == 2166136261` | Z3-provable (pure scalar) |
+| `fnv1a_32_init` | `ensures: result == 2166136261` | Z3-provable (pure scalar) |
+| `fnv1_64_init` | `ensures: result == 0 - 3750763034362895579` | Z3-provable (pure scalar) |
+| `fnv1a_64_init` | `ensures: result == 0 - 3750763034362895579` | Z3-provable (pure scalar) |
+| `fnv1_32_update` | `ensures: result >= 0 && result <= 4294967295`; `ensures: state == 2166136261 => result == fnv1_32(data)`; `ensures: data.len() == 0 => result == state` | Z3-provable (bounds); runtime-checked (definitional cross-call, empty-update identity) |
+| `fnv1a_32_update` | `ensures: result >= 0 && result <= 4294967295`; `ensures: state == 2166136261 => result == fnv1a_32(data)`; `ensures: data.len() == 0 => result == state` | Z3-provable (bounds); runtime-checked (definitional cross-call, empty-update identity) |
+| `fnv1_64_update` | `ensures: state == 0 - 3750763034362895579 => result == fnv1_64(data)`; `ensures: data.len() == 0 => result == state` | runtime-checked (definitional cross-call, empty-update identity) |
+| `fnv1a_64_update` | `ensures: state == 0 - 3750763034362895579 => result == fnv1a_64(data)`; `ensures: data.len() == 0 => result == state` | runtime-checked (definitional cross-call, empty-update identity) |
+| `fnv1_32_finalize`, `fnv1a_32_finalize`, `fnv1_64_finalize`, `fnv1a_64_finalize` | `ensures: result == state` | Z3-provable (pure scalar) |
+| `fnv_hex32` | `ensures: result.len() == 8` | runtime-checked (built `Str` length) |
+| `fnv_hex64` | `ensures: result.len() == 16` | runtime-checked (built `Str` length) |
+
+Z3-provable = pure scalar guard/form/bounds over parameters and `result`
+(no calls, no vector/`Str` reads). Runtime-checked = the clause evaluates
+parameters through `data.len()`/`result.len()` or calls another function,
+and is enforced by the v0.64.0 runtime evaluator. The 64-bit results are
+signed two's-complement views, so no non-negativity bound is claimed for
+them.
 
 ## Error catalog
 
