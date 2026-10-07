@@ -15,6 +15,9 @@ running). Check `git log -1 --format=%h %s` before starting.
 ## 0. Current state + next-session prompt (read this first)
 
 **STATE AT 2026-10-07 17:55Z (batch #23 COMPLETE + PUBLISHED `eco-v0.1.72`; supersedes the 17:40Z block below):**
+- **Stdlib lane relay (17:59Z):** Wave 85 contract backfill published -- modules `convert.ip` (6 clauses),
+  `convert.lossy` (4), `convert.network` (6), `convert.timestamp` (4): 31 clauses / 20 new pub;
+  `timestamp_now` intentionally clause-free (clock precedent). Informational; no packages action.
 - **Batch #23 DONE + PUBLISHED (`eco-v0.1.72`, run `37662313189` SUCCESS; all six live):**
   `pbm` 0.1.2 (18 clauses; 20/20), `cookie` 0.1.2 (15; 20/20), `dimacs` 0.1.3 (25; 25/25),
   `scheduler` 0.1.2 (14; 28/28), `eml` 0.1.2 (12; 24/24), `osrelease` 0.1.2 (24; 20/20);

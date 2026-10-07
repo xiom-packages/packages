@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T20:50:48Z",
+    "updated":  "2026-10-07T21:13:20Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -512,7 +512,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.backoff",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic constant, linear and exponential backoff policies with jitter and a retry state machine",
@@ -522,7 +522,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-backoff/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-backoff/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "backoff.xi",
                                               "package.xi"
@@ -2676,7 +2676,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.gedcom",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "GEDCOM 5.5.1 line codec: line grammar, nesting, pointers, CONT/CONC joining, canonical emission",
@@ -2686,7 +2686,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gedcom/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gedcom/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "gedcom.xi",
                                               "package.xi"
@@ -4981,7 +4981,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.nmea",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "NMEA 0183 sentence parsing: checksum, fields, coordinates, and GGA/RMC accessors",
@@ -4991,7 +4991,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nmea/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nmea/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "nmea.xi",
                                               "package.xi"
@@ -5344,7 +5344,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.pack",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Format-string binary packing and unpacking of integer fields (u8/s16/u32/s64, LE/BE)",
@@ -5354,7 +5354,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pack/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pack/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "pack.xi",
                                               "package.xi"
@@ -6130,7 +6130,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.psf",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM PSF1/PSF2 console-font codec for glyph bytes and unicode tables",
@@ -6140,7 +6140,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-psf/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-psf/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "psf.xi",
                                               "package.xi"
@@ -6674,7 +6674,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.rpc",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "JSON-RPC 2.0 envelope codec with a minimal response scanner (no JSON parser)",
@@ -6684,7 +6684,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rpc/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rpc/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "rpc.xi",
                                               "package.xi"
