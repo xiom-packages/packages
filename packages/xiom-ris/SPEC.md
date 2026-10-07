@@ -1,6 +1,6 @@
 # xiom.ris -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.ris` (`src/ris.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -253,3 +253,40 @@ v0.61.3):
 - Emitter canonicalizes layout (no blank lines, LF only) and does not
   reproduce the input formatting.
 - No citation formatting, no LaTeX, no file I/O.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/ris.xi` in the batch #19
+hardening pass (compiler v0.64.0; version 0.1.2): 17 clauses across the
+seven public entry points (2/2/2/3/3/3/2). Two clean port runs with the
+clauses active: `port: PASS (passed=20 failed=0 program_exit=0 exit=0)`
+(8.7 s and 8.7 s). All 17 are enforced by the v0.64.0 runtime evaluator; no
+clause reads a `Result` payload (the `ris_parse` Ok payload is the `RisDoc`
+struct, so tag-only clauses), no clause compares `Str` values (BUG 17), and
+no clause calls any function (no transitive call cycle). The clauses encode
+the documented sentinel behavior: out-of-range record/field indices and
+missed tag lookups yield `0`, `""` or `None`, and each condition matches the
+source's early-return path.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `ris_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime-checked |
+| `ris_record_count` | `ensures: result >= 0` | Z3-provable (pure scalar) |
+| `ris_record_count` | `ensures: result == d.field_starts.len()` | runtime-checked |
+| `ris_field_count` | `ensures: r < 0 => result == 0` | Z3-provable (pure scalar) |
+| `ris_field_count` | `ensures: r >= d.field_counts.len() => result == 0` | runtime-checked |
+| `ris_field_tag` | `ensures: r < 0 => result.len() == 0`; `ensures: j < 0 => result.len() == 0`; `ensures: r >= d.field_starts.len() => result.len() == 0` | runtime-checked |
+| `ris_field_value` | `ensures: r < 0 => result.len() == 0`; `ensures: j < 0 => result.len() == 0`; `ensures: r >= d.field_starts.len() => result.len() == 0` | runtime-checked |
+| `ris_get_field` | `ensures: r < 0 => result is None`; `ensures: r >= d.field_starts.len() => result is None`; `ensures: result is Some => r >= 0 && r < d.field_starts.len()` | runtime-checked |
+| `ris_emit` | `ensures: d.field_starts.len() == 0 => result.len() == 0`; `ensures: result.len() >= 7 * d.field_starts.len()` | runtime-checked |
+
+The `ris_emit` count bound is structural: every record closes with the
+seven-byte `ER  - ` line plus LF, so the output is at least `7 * records`
+bytes, and only an empty document emits `""`. The `Z3-provable (pure scalar)`
+labels record the pure-scalar contract shape (no struct-field, payload or
+`Str`-element reads); the other clauses read a struct field, a `Str` result
+or a `Result`/`Option` tag and are labelled runtime-checked. Deliberately not
+asserted: `result >= 0` on `ris_field_count` (hand-built documents can carry
+negative counts, returned verbatim) and `result.len() == 2` on the tag
+accessors (hand-built documents can carry arbitrary tag strings); both stay
+pinned by the 20-check conformance suite.

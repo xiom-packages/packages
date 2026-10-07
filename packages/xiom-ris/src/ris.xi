@@ -170,7 +170,10 @@ fn _ris_flush(d: &mut RisDoc, tag: Str, value: Str) {
 /// TY, a tag that is not two characters, or a duplicate ER; see SPEC.md
 /// section 6).
 /// Complexity: O(total input length).
-pub fn ris_parse(text: Str) -> Result[RisDoc, Str] {
+pub fn ris_parse(text: Str) -> Result[RisDoc, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var doc = RisDoc{
     field_starts: Vec[Int].new();
     field_counts: Vec[Int].new();
@@ -275,7 +278,10 @@ pub fn ris_parse(text: Str) -> Result[RisDoc, Str] {
 /// Returns: the record count; 0 for an empty document.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn ris_record_count(d: &RisDoc) -> Int {
+pub fn ris_record_count(d: &RisDoc) -> Int
+  ensures: result >= 0;
+  ensures: result == d.field_starts.len();
+{
   return d.field_starts.len();
 }
 
@@ -284,7 +290,10 @@ pub fn ris_record_count(d: &RisDoc) -> Int {
 /// Returns: the field count; 0 when `r` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn ris_field_count(d: &RisDoc, r: Int) -> Int {
+pub fn ris_field_count(d: &RisDoc, r: Int) -> Int
+  ensures: r < 0 => result == 0;
+  ensures: r >= d.field_counts.len() => result == 0;
+{
   if r < 0 || r >= d.field_counts.len() { return 0; }
   let c: Int = d.field_counts[r];
   return c;
@@ -296,7 +305,11 @@ pub fn ris_field_count(d: &RisDoc, r: Int) -> Int {
 /// Returns: the two-character tag; "" when `r` or `j` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn ris_field_tag(d: &RisDoc, r: Int, j: Int) -> Str {
+pub fn ris_field_tag(d: &RisDoc, r: Int, j: Int) -> Str
+  ensures: r < 0 => result.len() == 0;
+  ensures: j < 0 => result.len() == 0;
+  ensures: r >= d.field_starts.len() => result.len() == 0;
+{
   if r < 0 || r >= d.field_starts.len() { return ""; }
   let start: Int = d.field_starts[r];
   let count: Int = d.field_counts[r];
@@ -312,7 +325,11 @@ pub fn ris_field_tag(d: &RisDoc, r: Int, j: Int) -> Str {
 /// empty.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn ris_field_value(d: &RisDoc, r: Int, j: Int) -> Str {
+pub fn ris_field_value(d: &RisDoc, r: Int, j: Int) -> Str
+  ensures: r < 0 => result.len() == 0;
+  ensures: j < 0 => result.len() == 0;
+  ensures: r >= d.field_starts.len() => result.len() == 0;
+{
   if r < 0 || r >= d.field_starts.len() { return ""; }
   let start: Int = d.field_starts[r];
   let count: Int = d.field_counts[r];
@@ -329,7 +346,11 @@ pub fn ris_field_value(d: &RisDoc, r: Int, j: Int) -> Str {
 /// when the record is out of range or no field has the tag.
 /// Error case: none.
 /// Complexity: O(fields of record r).
-pub fn ris_get_field(d: &RisDoc, r: Int, tag: Str) -> Option[Str] {
+pub fn ris_get_field(d: &RisDoc, r: Int, tag: Str) -> Option[Str]
+  ensures: r < 0 => result is None;
+  ensures: r >= d.field_starts.len() => result is None;
+  ensures: result is Some => r >= 0 && r < d.field_starts.len();
+{
   if r < 0 || r >= d.field_starts.len() { return None; }
   let start: Int = d.field_starts[r];
   let count: Int = d.field_counts[r];
@@ -355,7 +376,10 @@ pub fn ris_get_field(d: &RisDoc, r: Int, tag: Str) -> Option[Str] {
 /// Returns: the canonical text; "" for an empty document.
 /// Error case: none.
 /// Complexity: O(total emitted length).
-pub fn ris_emit(d: &RisDoc) -> Str {
+pub fn ris_emit(d: &RisDoc) -> Str
+  ensures: d.field_starts.len() == 0 => result.len() == 0;
+  ensures: result.len() >= 7 * d.field_starts.len();
+{
   var out = "";
   var r = 0;
   while r < d.field_starts.len() {
