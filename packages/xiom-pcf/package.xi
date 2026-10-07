@@ -10,7 +10,7 @@
 
 package xiom_pcf {
   name: "xiom.pcf";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM X11 PCF bitmap-font codec subset: headers, tables, metrics, bitmaps and encodings";
   categories: ["graphics"];
   keywords: ["pcf", "x11", "font", "format"];

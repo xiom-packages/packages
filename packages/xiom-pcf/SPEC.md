@@ -1,8 +1,6 @@
 # xiom.pcf -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.pcf`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/pcf.xi` (`module xiom.pcf`).
 Depends on `xiom.std`; the library module imports nothing from it (tests add
 `xiom.test`, `xiom.io`, `xiom.string.compare`, `xiom.encoding.hex`).
@@ -468,3 +466,70 @@ Last verified: compiler 0.61.3,
 - Str values in the tests are compared through
   `xiom.string.compare.str_compare` (BUG 17: `==` on a Str read from a
   `Vec` lowers to a pointer comparison).
+
+## Contracts (batch #33 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/pcf.xi` in the batch #33
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 76 clauses over the 30 contracted public entry points, all
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.pcf -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses active
+(7.16 s and 7.0 s); no clause trapped and none was dropped. The guards use
+`p.glyph_count` (never `p.metrics.len()`), the encoding family combines
+`!p.has_encodings` with the index guards exactly as the source branches, and
+`pcf_bitmap_size` claims the exact source formula
+`p.bitmaps_table_size - (4 + 12 * p.glyph_count)` (module constants inlined as
+literals).
+
+`xiom-verify src/pcf.xi --check` (Z3 bundled with v0.64.0) reported
+**0 proven / 6 refuted / 74 unknown / 13 errors**. The 13 errors are SMT
+emitter bugs on bodies that call the private helpers (`unknown constant
+_metric_field` (six), `_err_ints` (two), `_err_bytes` (two), `_enc_count`
+(two), `_le32` (one)); the six X7001 refutations are exactly the six
+`pcf_metric_*` guard clauses whose bodies call the unmodeled `_metric_field`,
+so the tool itself reports "not a proof failure of the code under test". All
+76 clauses are therefore marked **runtime-checked only** (no Z3 claim); every
+clause is enforced by the v0.64.0 runtime evaluator when the conformance suite
+runs, and the cross-calls (`pcf_table_find`, `pcf_encoding_count`) are
+non-re-entrant.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `pcf_parse` | `data.len() < 8 => result is Err`; `result is Ok => data.len() >= 40` | runtime-checked |
+| `pcf_table_count` | `result == p.table_types.len()`; `result >= 0` | runtime-checked |
+| `pcf_table_type` | `i < 0 => result == -1`; `i >= p.table_types.len() => result == -1`; `result != -1 => i >= 0 && i < p.table_types.len()` | runtime-checked |
+| `pcf_table_format` | `i < 0 => result == -1`; `i >= p.table_formats.len() => result == -1`; `result != -1 => i >= 0 && i < p.table_formats.len()` | runtime-checked |
+| `pcf_table_offset` | `i < 0 => result == -1`; `i >= p.table_offsets.len() => result == -1`; `result != -1 => i >= 0 && i < p.table_offsets.len()` | runtime-checked |
+| `pcf_table_size` | `i < 0 => result == -1`; `i >= p.table_sizes.len() => result == -1`; `result != -1 => i >= 0 && i < p.table_sizes.len()` | runtime-checked |
+| `pcf_table_find` | `p.table_types.len() == 0 => result == -1`; `result != -1 => result >= 0 && result < p.table_types.len()`; `result >= -1` | runtime-checked |
+| `pcf_has_table` | `result == (pcf_table_find(p, ttype) >= 0)` (definitional cross-call; `pcf_table_find` never calls `pcf_has_table`); `p.table_types.len() == 0 => !result` | runtime-checked |
+| `pcf_table_raw` | `pcf_table_find(p, ttype) < 0 => result is Err`; `result is Ok => pcf_table_find(p, ttype) >= 0` | runtime-checked |
+| `pcf_glyph_count` | `result == p.glyph_count` | runtime-checked |
+| `pcf_metrics_format` | `result == p.metrics_format` | runtime-checked |
+| `pcf_metric_lsb` | `g < 0 => result == 0`; `g >= p.glyph_count => result == 0`; `result != 0 => g >= 0 && g < p.glyph_count` | runtime-checked |
+| `pcf_metric_rsb` | `g < 0 => result == 0`; `g >= p.glyph_count => result == 0`; `result != 0 => g >= 0 && g < p.glyph_count` | runtime-checked |
+| `pcf_metric_advance` | `g < 0 => result == 0`; `g >= p.glyph_count => result == 0`; `result != 0 => g >= 0 && g < p.glyph_count` | runtime-checked |
+| `pcf_metric_ascent` | `g < 0 => result == 0`; `g >= p.glyph_count => result == 0`; `result != 0 => g >= 0 && g < p.glyph_count` | runtime-checked |
+| `pcf_metric_descent` | `g < 0 => result == 0`; `g >= p.glyph_count => result == 0`; `result != 0 => g >= 0 && g < p.glyph_count` | runtime-checked |
+| `pcf_metric_attributes` | `g < 0 => result == 0`; `g >= p.glyph_count => result == 0`; `result != 0 => g >= 0 && g < p.glyph_count` | runtime-checked |
+| `pcf_metrics_at` | `g < 0 => result is Err`; `g >= p.glyph_count => result is Err`; `result is Ok => result.value.len() == 6` | runtime-checked |
+| `pcf_bitmap_span` | `g < 0 => result == -1`; `g >= p.glyph_count => result == -1`; `result != -1 => g >= 0 && g < p.glyph_count` | runtime-checked |
+| `pcf_bitmap_raw_offset` | `g < 0 => result == -1`; `g >= p.glyph_count => result == -1`; `result != -1 => g >= 0 && g < p.glyph_count` | runtime-checked |
+| `pcf_glyph_metrics_offset` | `g < 0 => result == -1`; `g >= p.glyph_count => result == -1`; `result != -1 => g >= 0 && g < p.glyph_count` | runtime-checked |
+| `pcf_bitmap_size` | `result == p.bitmaps_table_size - (4 + 12 * p.glyph_count)` | runtime-checked |
+| `pcf_bitmap_bytes` | `g < 0 => result is Err`; `g >= p.glyph_count => result is Err`; `result is Ok => g >= 0 && g < p.glyph_count` | runtime-checked |
+| `pcf_has_encodings` | `result == p.has_encodings` | runtime-checked |
+| `pcf_encoding_min` | `!p.has_encodings => result == -1`; `p.has_encodings => result == p.encoding_min` | runtime-checked |
+| `pcf_encoding_max` | `!p.has_encodings => result == -1`; `p.has_encodings => result == p.encoding_max` | runtime-checked |
+| `pcf_encoding_count` | `!p.has_encodings => result == 0`; `p.has_encodings && g < 0 => result == -1`; `p.has_encodings && g >= p.glyph_count => result == -1` | runtime-checked |
+| `pcf_encoding_at` | `!p.has_encodings => result == -1`; `i < 0 => result == -1`; `p.has_encodings && i >= pcf_encoding_count(p, g) => result == -1` (definitional cross-call; `pcf_encoding_count` never calls `pcf_encoding_at`) | runtime-checked |
+| `pcf_encodings_at` | `!p.has_encodings => result is Err`; `g < 0 => result is Err`; `g >= p.glyph_count => result is Err` | runtime-checked |
+| `pcf_glyph_for_encoding` | `!p.has_encodings => result == -1`; `cp < p.encoding_min => result == -1`; `cp > p.encoding_max => result == -1` | runtime-checked |
+
+Deliberately not claimed: no exact length is claimed for `pcf_table_raw` /
+`pcf_bitmap_bytes` payloads (the copied span is buffer-dependent); no
+lineage/count relation is claimed between `p.metrics` and `p.glyph_count`
+(hand-built structs may hold either); the `result != 0` / `result != -1`
+converses only state in-range-ness because `0` and `-1` are sentinels, not
+that a valid in-range read cannot itself be `0` / `-1`.

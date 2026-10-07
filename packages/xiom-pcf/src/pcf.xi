@@ -298,7 +298,10 @@ fn _copy_span(data: &Vec[UInt8], off: Int, size: Int) -> Result[Vec[UInt8], Str]
 /// Unknown table types are accepted and preserved as raw spans. On error no
 /// partial index is returned.
 /// Complexity: O(tables + glyphs + pooled encodings).
-pub fn pcf_parse(data: &Vec[UInt8]) -> Result[PcfFont, Str] {
+pub fn pcf_parse(data: &Vec[UInt8]) -> Result[PcfFont, Str]
+  ensures: data.len() < 8 => result is Err;
+  ensures: result is Ok => data.len() >= 40;
+{
   let n = data.len();
   if n < 8 { return _err_font("pcf: truncated header"); }
   let m0: Int = (data[0] as Int) & 0xFF;
@@ -472,14 +475,21 @@ pub fn pcf_parse(data: &Vec[UInt8]) -> Result[PcfFont, Str] {
 
 /// Number of table entries in the directory.
 /// Complexity: O(1).
-pub fn pcf_table_count(p: &PcfFont) -> Int {
+pub fn pcf_table_count(p: &PcfFont) -> Int
+  ensures: result == p.table_types.len();
+  ensures: result >= 0;
+{
   return p.table_types.len();
 }
 
 /// Type of table entry `i`, or -1 when `i` is outside
 /// 0..pcf_table_count(p)-1.
 /// Complexity: O(1).
-pub fn pcf_table_type(p: &PcfFont, i: Int) -> Int {
+pub fn pcf_table_type(p: &PcfFont, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= p.table_types.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < p.table_types.len();
+{
   if i < 0 { return -1; }
   if i >= p.table_types.len() { return -1; }
   let v: Int = p.table_types[i];
@@ -488,7 +498,11 @@ pub fn pcf_table_type(p: &PcfFont, i: Int) -> Int {
 
 /// Format field of table entry `i`, or -1 when `i` is out of range.
 /// Complexity: O(1).
-pub fn pcf_table_format(p: &PcfFont, i: Int) -> Int {
+pub fn pcf_table_format(p: &PcfFont, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= p.table_formats.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < p.table_formats.len();
+{
   if i < 0 { return -1; }
   if i >= p.table_formats.len() { return -1; }
   let v: Int = p.table_formats[i];
@@ -497,7 +511,11 @@ pub fn pcf_table_format(p: &PcfFont, i: Int) -> Int {
 
 /// Absolute file offset of table entry `i`, or -1 when `i` is out of range.
 /// Complexity: O(1).
-pub fn pcf_table_offset(p: &PcfFont, i: Int) -> Int {
+pub fn pcf_table_offset(p: &PcfFont, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= p.table_offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < p.table_offsets.len();
+{
   if i < 0 { return -1; }
   if i >= p.table_offsets.len() { return -1; }
   let v: Int = p.table_offsets[i];
@@ -506,7 +524,11 @@ pub fn pcf_table_offset(p: &PcfFont, i: Int) -> Int {
 
 /// Byte size of table entry `i`, or -1 when `i` is out of range.
 /// Complexity: O(1).
-pub fn pcf_table_size(p: &PcfFont, i: Int) -> Int {
+pub fn pcf_table_size(p: &PcfFont, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= p.table_sizes.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < p.table_sizes.len();
+{
   if i < 0 { return -1; }
   if i >= p.table_sizes.len() { return -1; }
   let v: Int = p.table_sizes[i];
@@ -516,14 +538,21 @@ pub fn pcf_table_size(p: &PcfFont, i: Int) -> Int {
 /// Index of the first table entry whose type equals `ttype`, or -1 when no
 /// entry matches (duplicate types keep the first occurrence).
 /// Complexity: O(tables).
-pub fn pcf_table_find(p: &PcfFont, ttype: Int) -> Int {
+pub fn pcf_table_find(p: &PcfFont, ttype: Int) -> Int
+  ensures: p.table_types.len() == 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result < p.table_types.len();
+  ensures: result >= -1;
+{
   let types: Vec[Int] = p.table_types;
   return _find_table(&types, ttype);
 }
 
 /// True when at least one table entry has type `ttype`.
 /// Complexity: O(tables).
-pub fn pcf_has_table(p: &PcfFont, ttype: Int) -> Bool {
+pub fn pcf_has_table(p: &PcfFont, ttype: Int) -> Bool
+  ensures: result == (pcf_table_find(p, ttype) >= 0);
+  ensures: p.table_types.len() == 0 => !result;
+{
   let i = pcf_table_find(p, ttype);
   return i >= 0;
 }
@@ -534,7 +563,10 @@ pub fn pcf_has_table(p: &PcfFont, ttype: Int) -> Bool {
 /// out of bounds") when the recorded span does not fit `data` (a forged or
 /// stale index, or a shorter buffer than the one that was parsed).
 /// Complexity: O(table size).
-pub fn pcf_table_raw(data: &Vec[UInt8], p: &PcfFont, ttype: Int) -> Result[Vec[UInt8], Str] {
+pub fn pcf_table_raw(data: &Vec[UInt8], p: &PcfFont, ttype: Int) -> Result[Vec[UInt8], Str]
+  ensures: pcf_table_find(p, ttype) < 0 => result is Err;
+  ensures: result is Ok => pcf_table_find(p, ttype) >= 0;
+{
   let i = pcf_table_find(p, ttype);
   if i < 0 { return _err_bytes("pcf: no such table"); }
   let off: Int = p.table_offsets[i];
@@ -548,14 +580,18 @@ pub fn pcf_table_raw(data: &Vec[UInt8], p: &PcfFont, ttype: Int) -> Result[Vec[U
 
 /// Glyph count of the font (the metrics/bitmaps table count).
 /// Complexity: O(1).
-pub fn pcf_glyph_count(p: &PcfFont) -> Int {
+pub fn pcf_glyph_count(p: &PcfFont) -> Int
+  ensures: result == p.glyph_count;
+{
   return p.glyph_count;
 }
 
 /// Metrics format of the parsed font: 0 (big-endian), 1 (little-endian) or
 /// 2 (byte-mixed).
 /// Complexity: O(1).
-pub fn pcf_metrics_format(p: &PcfFont) -> Int {
+pub fn pcf_metrics_format(p: &PcfFont) -> Int
+  ensures: result == p.metrics_format;
+{
   return p.metrics_format;
 }
 
@@ -574,39 +610,63 @@ fn _metric_field(p: &PcfFont, g: Int, field: Int) -> Int {
 /// Left side bearing of glyph `g` (signed i16); 0 when `g` is out of range
 /// (use pcf_metrics_at for an error channel).
 /// Complexity: O(1).
-pub fn pcf_metric_lsb(p: &PcfFont, g: Int) -> Int {
+pub fn pcf_metric_lsb(p: &PcfFont, g: Int) -> Int
+  ensures: g < 0 => result == 0;
+  ensures: g >= p.glyph_count => result == 0;
+  ensures: result != 0 => g >= 0 && g < p.glyph_count;
+{
   return _metric_field(p, g, 0);
 }
 
 /// Right side bearing of glyph `g` (signed i16); 0 when `g` is out of range.
 /// Complexity: O(1).
-pub fn pcf_metric_rsb(p: &PcfFont, g: Int) -> Int {
+pub fn pcf_metric_rsb(p: &PcfFont, g: Int) -> Int
+  ensures: g < 0 => result == 0;
+  ensures: g >= p.glyph_count => result == 0;
+  ensures: result != 0 => g >= 0 && g < p.glyph_count;
+{
   return _metric_field(p, g, 1);
 }
 
 /// Character width / advance of glyph `g` (signed i16); 0 when `g` is out of
 /// range.
 /// Complexity: O(1).
-pub fn pcf_metric_advance(p: &PcfFont, g: Int) -> Int {
+pub fn pcf_metric_advance(p: &PcfFont, g: Int) -> Int
+  ensures: g < 0 => result == 0;
+  ensures: g >= p.glyph_count => result == 0;
+  ensures: result != 0 => g >= 0 && g < p.glyph_count;
+{
   return _metric_field(p, g, 2);
 }
 
 /// Ascent of glyph `g` (signed i16); 0 when `g` is out of range.
 /// Complexity: O(1).
-pub fn pcf_metric_ascent(p: &PcfFont, g: Int) -> Int {
+pub fn pcf_metric_ascent(p: &PcfFont, g: Int) -> Int
+  ensures: g < 0 => result == 0;
+  ensures: g >= p.glyph_count => result == 0;
+  ensures: result != 0 => g >= 0 && g < p.glyph_count;
+{
   return _metric_field(p, g, 3);
 }
 
 /// Descent of glyph `g` (signed i16); 0 when `g` is out of range.
 /// Complexity: O(1).
-pub fn pcf_metric_descent(p: &PcfFont, g: Int) -> Int {
+pub fn pcf_metric_descent(p: &PcfFont, g: Int) -> Int
+  ensures: g < 0 => result == 0;
+  ensures: g >= p.glyph_count => result == 0;
+  ensures: result != 0 => g >= 0 && g < p.glyph_count;
+{
   return _metric_field(p, g, 4);
 }
 
 /// Attributes of glyph `g` (unsigned u16, 0..65535); 0 when `g` is out of
 /// range.
 /// Complexity: O(1).
-pub fn pcf_metric_attributes(p: &PcfFont, g: Int) -> Int {
+pub fn pcf_metric_attributes(p: &PcfFont, g: Int) -> Int
+  ensures: g < 0 => result == 0;
+  ensures: g >= p.glyph_count => result == 0;
+  ensures: result != 0 => g >= 0 && g < p.glyph_count;
+{
   return _metric_field(p, g, 5);
 }
 
@@ -617,7 +677,11 @@ pub fn pcf_metric_attributes(p: &PcfFont, g: Int) -> Int {
 /// Err("pcf: index out of range") when `g` is outside
 /// 0..pcf_glyph_count(p)-1.
 /// Complexity: O(1).
-pub fn pcf_metrics_at(p: &PcfFont, g: Int) -> Result[Vec[Int], Str] {
+pub fn pcf_metrics_at(p: &PcfFont, g: Int) -> Result[Vec[Int], Str]
+  ensures: g < 0 => result is Err;
+  ensures: g >= p.glyph_count => result is Err;
+  ensures: result is Ok => result.value.len() == 6;
+{
   if g < 0 { return _err_ints("pcf: index out of range"); }
   if g >= p.glyph_count { return _err_ints("pcf: index out of range"); }
   var out = Vec[Int].new();
@@ -638,7 +702,11 @@ pub fn pcf_metrics_at(p: &PcfFont, g: Int) -> Result[Vec[Int], Str] {
 /// 0..pcf_glyph_count(p)-1. The stored padded size is authoritative (glyph
 /// rows are documented to be padded to 4 bytes).
 /// Complexity: O(1).
-pub fn pcf_bitmap_span(p: &PcfFont, g: Int) -> Int {
+pub fn pcf_bitmap_span(p: &PcfFont, g: Int) -> Int
+  ensures: g < 0 => result == -1;
+  ensures: g >= p.glyph_count => result == -1;
+  ensures: result != -1 => g >= 0 && g < p.glyph_count;
+{
   if g < 0 { return -1; }
   if g >= p.glyph_count { return -1; }
   let v: Int = p.bitmap_spans[g];
@@ -648,7 +716,11 @@ pub fn pcf_bitmap_span(p: &PcfFont, g: Int) -> Int {
 /// Bitmaps-table-relative byte offset of glyph `g`'s bitmap bytes, or -1
 /// when `g` is out of range.
 /// Complexity: O(1).
-pub fn pcf_bitmap_raw_offset(p: &PcfFont, g: Int) -> Int {
+pub fn pcf_bitmap_raw_offset(p: &PcfFont, g: Int) -> Int
+  ensures: g < 0 => result == -1;
+  ensures: g >= p.glyph_count => result == -1;
+  ensures: result != -1 => g >= 0 && g < p.glyph_count;
+{
   if g < 0 { return -1; }
   if g >= p.glyph_count { return -1; }
   let v: Int = p.bitmap_offsets[g];
@@ -659,7 +731,11 @@ pub fn pcf_bitmap_raw_offset(p: &PcfFont, g: Int) -> Int {
 /// (the canonical 4 + 12*g value validated at parse time), or -1 when `g` is
 /// out of range.
 /// Complexity: O(1).
-pub fn pcf_glyph_metrics_offset(p: &PcfFont, g: Int) -> Int {
+pub fn pcf_glyph_metrics_offset(p: &PcfFont, g: Int) -> Int
+  ensures: g < 0 => result == -1;
+  ensures: g >= p.glyph_count => result == -1;
+  ensures: result != -1 => g >= 0 && g < p.glyph_count;
+{
   if g < 0 { return -1; }
   if g >= p.glyph_count { return -1; }
   let v: Int = p.bitmap_metrics_offsets[g];
@@ -670,7 +746,9 @@ pub fn pcf_glyph_metrics_offset(p: &PcfFont, g: Int) -> Int {
 /// (after the glyph count, offset pairs and padded sizes), including row
 /// padding.
 /// Complexity: O(1).
-pub fn pcf_bitmap_size(p: &PcfFont) -> Int {
+pub fn pcf_bitmap_size(p: &PcfFont) -> Int
+  ensures: result == p.bitmaps_table_size - (4 + 12 * p.glyph_count);
+{
   return p.bitmaps_table_size - (PCF_BITMAPS_HEADER_SIZE + (PCF_BITMAP_ENTRY_SIZE + PCF_BITMAP_SPAN_SIZE) * p.glyph_count);
 }
 
@@ -680,7 +758,11 @@ pub fn pcf_bitmap_size(p: &PcfFont) -> Int {
 /// 0..pcf_glyph_count(p)-1; Err("pcf: bitmap bytes out of bounds") when the
 /// recorded span does not fit `data`.
 /// Complexity: O(span).
-pub fn pcf_bitmap_bytes(data: &Vec[UInt8], p: &PcfFont, g: Int) -> Result[Vec[UInt8], Str] {
+pub fn pcf_bitmap_bytes(data: &Vec[UInt8], p: &PcfFont, g: Int) -> Result[Vec[UInt8], Str]
+  ensures: g < 0 => result is Err;
+  ensures: g >= p.glyph_count => result is Err;
+  ensures: result is Ok => g >= 0 && g < p.glyph_count;
+{
   if g < 0 { return _err_bytes("pcf: index out of range"); }
   if g >= p.glyph_count { return _err_bytes("pcf: index out of range"); }
   let rel: Int = p.bitmap_offsets[g];
@@ -705,14 +787,19 @@ pub fn pcf_bitmap_bytes(data: &Vec[UInt8], p: &PcfFont, g: Int) -> Result[Vec[UI
 
 /// True when the font carried an encodings table.
 /// Complexity: O(1).
-pub fn pcf_has_encodings(p: &PcfFont) -> Bool {
+pub fn pcf_has_encodings(p: &PcfFont) -> Bool
+  ensures: result == p.has_encodings;
+{
   return p.has_encodings;
 }
 
 /// Lowest mapped encoding of the encodings table, or -1 when no encodings
 /// table is present (encodings are unsigned, so -1 is unambiguous).
 /// Complexity: O(1).
-pub fn pcf_encoding_min(p: &PcfFont) -> Int {
+pub fn pcf_encoding_min(p: &PcfFont) -> Int
+  ensures: !p.has_encodings => result == -1;
+  ensures: p.has_encodings => result == p.encoding_min;
+{
   if !p.has_encodings { return -1; }
   return p.encoding_min;
 }
@@ -720,7 +807,10 @@ pub fn pcf_encoding_min(p: &PcfFont) -> Int {
 /// Highest mapped encoding of the encodings table, or -1 when no encodings
 /// table is present.
 /// Complexity: O(1).
-pub fn pcf_encoding_max(p: &PcfFont) -> Int {
+pub fn pcf_encoding_max(p: &PcfFont) -> Int
+  ensures: !p.has_encodings => result == -1;
+  ensures: p.has_encodings => result == p.encoding_max;
+{
   if !p.has_encodings { return -1; }
   return p.encoding_max;
 }
@@ -736,7 +826,11 @@ fn _enc_count(p: &PcfFont, g: Int) -> Int {
 /// Number of encodings mapped to glyph `g`: 0 when no encodings table is
 /// present, and -1 when `g` is outside 0..pcf_glyph_count(p)-1.
 /// Complexity: O(1).
-pub fn pcf_encoding_count(p: &PcfFont, g: Int) -> Int {
+pub fn pcf_encoding_count(p: &PcfFont, g: Int) -> Int
+  ensures: !p.has_encodings => result == 0;
+  ensures: p.has_encodings && g < 0 => result == -1;
+  ensures: p.has_encodings && g >= p.glyph_count => result == -1;
+{
   if !p.has_encodings { return 0; }
   return _enc_count(p, g);
 }
@@ -746,7 +840,11 @@ pub fn pcf_encoding_count(p: &PcfFont, g: Int) -> Int {
 /// than `i + 1` mappings. Encodings are unsigned u16 values, so -1 is
 /// unambiguous.
 /// Complexity: O(1).
-pub fn pcf_encoding_at(p: &PcfFont, g: Int, i: Int) -> Int {
+pub fn pcf_encoding_at(p: &PcfFont, g: Int, i: Int) -> Int
+  ensures: !p.has_encodings => result == -1;
+  ensures: i < 0 => result == -1;
+  ensures: p.has_encodings && i >= pcf_encoding_count(p, g) => result == -1;
+{
   if !p.has_encodings { return -1; }
   if i < 0 { return -1; }
   let c = _enc_count(p, g);
@@ -763,7 +861,11 @@ pub fn pcf_encoding_at(p: &PcfFont, g: Int, i: Int) -> Int {
 /// Err("pcf: index out of range") when `g` is outside
 /// 0..pcf_glyph_count(p)-1.
 /// Complexity: O(mappings).
-pub fn pcf_encodings_at(p: &PcfFont, g: Int) -> Result[Vec[Int], Str] {
+pub fn pcf_encodings_at(p: &PcfFont, g: Int) -> Result[Vec[Int], Str]
+  ensures: !p.has_encodings => result is Err;
+  ensures: g < 0 => result is Err;
+  ensures: g >= p.glyph_count => result is Err;
+{
   if !p.has_encodings { return _err_ints("pcf: no encodings table"); }
   if g < 0 { return _err_ints("pcf: index out of range"); }
   if g >= p.glyph_count { return _err_ints("pcf: index out of range"); }
@@ -788,7 +890,11 @@ pub fn pcf_encodings_at(p: &PcfFont, g: Int) -> Result[Vec[Int], Str] {
 /// duplicate mappings are tolerated. `cp` outside the table's documented
 /// [minimum, maximum] range cannot match.
 /// Complexity: O(total pooled encodings).
-pub fn pcf_glyph_for_encoding(p: &PcfFont, cp: Int) -> Int {
+pub fn pcf_glyph_for_encoding(p: &PcfFont, cp: Int) -> Int
+  ensures: !p.has_encodings => result == -1;
+  ensures: cp < p.encoding_min => result == -1;
+  ensures: cp > p.encoding_max => result == -1;
+{
   if !p.has_encodings { return -1; }
   if cp < p.encoding_min { return -1; }
   if cp > p.encoding_max { return -1; }
