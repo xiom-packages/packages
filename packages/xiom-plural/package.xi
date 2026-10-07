@@ -9,7 +9,7 @@
 
 package xiom_plural {
   name: "xiom.plural";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "English pluralization and singularization with irregular and suffix rules";
   categories: ["text-nlp"];
   keywords: ["plural", "singular", "inflection", "strings"];

@@ -217,3 +217,48 @@ Run from the repository root:
   miscompile for struct-returning functions.
 
 Last verified: compiler 0.61.3, `port: PASS (passed=35 failed=0 exit=0)`.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/plural.xi` (compiler
+v0.64.0; no version bump): 11 clauses across all 5 public entry points
+(3/2/2/2/2). Two consecutive
+`.\scripts\port.ps1 -Package xiom.plural -TimeoutSec 60` runs ended
+`port: PASS (passed=35 failed=0 program_exit=0 exit=0)` with the clauses
+active and no clause trapped, so none was dropped. Classes follow the
+batch #16 clause pre-plan: **Z3-provable (pure scalar)** marks the
+empty-input sentinels the plan classes as scalar (also enforced at
+runtime); **runtime-checked** marks clauses whose truth depends on the
+built `Str`/`Vec` state and is enforced by the v0.64.0 runtime evaluator.
+The module uses no `Result`/`Option`, so no clause reads a payload; no
+clause uses `==` on a `Str` value (BUG 17) or calls the function under
+contract, so there is no postcondition call-cycle risk.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `plural_pluralize` | `ensures: word.len() == 0 => result.len() == 0` | Z3-provable (empty-input sentinel) |
+| `plural_pluralize` | `ensures: word.len() > 0 => result.len() >= 1`; `ensures: word.len() > 0 => result.len() <= word.len() + 3` | runtime-checked (output-length bounds over the ASCII domain) |
+| `plural_singularize` | `ensures: word.len() == 0 => result.len() == 0` | Z3-provable (empty-input sentinel) |
+| `plural_singularize` | `ensures: result.len() <= word.len() + 1` | runtime-checked (output-length bound) |
+| `plural_is_irregular` | `ensures: word.len() == 0 => !result` | Z3-provable (empty-input sentinel) |
+| `plural_is_irregular` | `ensures: result => word.len() > 0` | runtime-checked (guard-pair converse) |
+| `plural_count` | `ensures: n == 1 => result.len() == singular.len() + 2`; `ensures: n != 1 => result.len() >= 2` | runtime-checked (exact formula and lower bound on the built `Str`) |
+| `plural_pluralize_all` | `ensures: result.len() == words.len()` | runtime-checked (count/state invariant) |
+| `plural_pluralize_all` | `ensures: words.len() == 0 => result.len() == 0` | Z3-provable (empty-input sentinel) |
+
+Bound rationale (from the rule tables, ASCII domain):
+
+- `plural_pluralize` adds at most three bytes over the input
+  (`child` -> `children` is the longest growth; `ies`/`ves` replacements
+  grow by two) and never returns `""` for a non-empty word.
+- `plural_singularize` never exceeds `word.len() + 1` (`mice` -> `mouse`,
+  `data` -> `datum`, `media` -> `medium` are the only `+1` cases). There
+  is no non-empty lower bound (`"s"` -> `""`), so none is asserted.
+- `plural_count` with `n == 1` returns `"1 " + singular` (an exact
+  two-byte prefix); otherwise `int_to_string(n)` plus one space is at
+  least two bytes.
+
+Not asserted: table-membership identities for `plural_is_irregular`, the
+case-preservation identities, and `Str`-equality round trips
+(`pluralize(singularize(x)) == x`), which need `xiom.string.compare`
+(BUG 17) and stay pinned by the conformance suite instead.

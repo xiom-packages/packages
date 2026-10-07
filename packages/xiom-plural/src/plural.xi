@@ -247,7 +247,11 @@ fn _singular_lower(lower: Str) -> Str {
 /// Returns: the plural form; "" for "".
 /// Error case: none (best-effort rule-table result for unknown words).
 /// Complexity: O(|word|).
-pub fn plural_pluralize(word: Str) -> Str {
+pub fn plural_pluralize(word: Str) -> Str
+  ensures: word.len() == 0 => result.len() == 0;
+  ensures: word.len() > 0 => result.len() >= 1;
+  ensures: word.len() > 0 => result.len() <= word.len() + 3;
+{
   if str_len(word) == 0 { return ""; }
   let result = _plural_lower(str_lowercase(word));
   if _starts_upper(word) { return _capitalize_first(result); }
@@ -260,7 +264,10 @@ pub fn plural_pluralize(word: Str) -> Str {
 /// Returns: the singular form; "" for "".
 /// Error case: none (best-effort rule-table result for unknown words).
 /// Complexity: O(|word|).
-pub fn plural_singularize(word: Str) -> Str {
+pub fn plural_singularize(word: Str) -> Str
+  ensures: word.len() == 0 => result.len() == 0;
+  ensures: result.len() <= word.len() + 1;
+{
   if str_len(word) == 0 { return ""; }
   let result = _singular_lower(str_lowercase(word));
   if _starts_upper(word) { return _capitalize_first(result); }
@@ -272,7 +279,10 @@ pub fn plural_singularize(word: Str) -> Str {
 /// Params: word - the word to test.
 /// Returns: false for words handled purely by suffix rules (cat, city, box).
 /// Error case: none. Complexity: O(|word|) table scans.
-pub fn plural_is_irregular(word: Str) -> Bool {
+pub fn plural_is_irregular(word: Str) -> Bool
+  ensures: word.len() == 0 => !result;
+  ensures: result => word.len() > 0;
+{
   let lower = str_lowercase(word);
   if _is_invariant(lower) { return true; }
   if str_len(_irregular_plural(lower)) > 0 { return true; }
@@ -285,7 +295,10 @@ pub fn plural_is_irregular(word: Str) -> Bool {
 /// Returns: "1 <singular>" when n == 1, otherwise "<n> <plural>" using
 /// plural_pluralize (so "2 people", "0 items", "1 person").
 /// Error case: none. Complexity: O(|singular|).
-pub fn plural_count(n: Int, singular: Str) -> Str {
+pub fn plural_count(n: Int, singular: Str) -> Str
+  ensures: n == 1 => result.len() == singular.len() + 2;
+  ensures: n != 1 => result.len() >= 2;
+{
   if n == 1 { return "1 " + singular; }
   return int_to_string(n) + " " + plural_pluralize(singular);
 }
@@ -294,7 +307,10 @@ pub fn plural_count(n: Int, singular: Str) -> Str {
 /// Params: words - the words to pluralize.
 /// Returns: a fresh Vec[Str] of the same length as `words`.
 /// Error case: none. Complexity: O(total input bytes).
-pub fn plural_pluralize_all(words: &Vec[Str]) -> Vec[Str] {
+pub fn plural_pluralize_all(words: &Vec[Str]) -> Vec[Str]
+  ensures: result.len() == words.len();
+  ensures: words.len() == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   let n = words.len();
   var i: Int = 0;
