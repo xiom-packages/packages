@@ -1,6 +1,6 @@
 # xiom.pool -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.pool` (`src/pool.xi`). Pure XIOM, no FFI, no threads.
 
 ## 1. Scope
@@ -139,6 +139,91 @@ even if a hand-built `Pool` has inconsistent counters).
 
 Complexity: `pool_new` and `pool_drain` are O(capacity); every other
 operation is O(1).
+
+## Contracts
+
+Every public entry point carries runtime-checkable `ensures:` clauses (XIOM
+v0.64.0 contract syntax). "Z3-provable" marks a pure-scalar clause the SMT
+backend can discharge without executing the function; all other clauses are
+checked at runtime by the contract evaluator (they read the post-state,
+cross-call public accessors, or use `@pre` snapshots of a `&mut` pool).
+Struct-valued results are observed only through public cross-calls
+(`pool_new` via `pool_capacity` / `pool_in_use`); no clause reads a bare
+`&mut` parameter, indexes `borrowed[id]` / `generations[id]`, or compares
+strings. 31 clauses over 14 entry points; 4 are Z3-provable.
+
+### pool_new(capacity: Int) -> Pool
+
+- `capacity >= 0 => pool_capacity(result) == capacity` -- runtime-checked (cross-call)
+- `capacity < 0 => pool_capacity(result) == 0` -- runtime-checked (cross-call; clamp)
+- `pool_in_use(result) == 0` -- runtime-checked (cross-call)
+
+### pool_capacity(p: &Pool) -> Int
+
+- `result == p.capacity` -- runtime-checked
+
+### pool_in_use(p: &Pool) -> Int
+
+- `result == p.in_use` -- runtime-checked
+
+### pool_available(p: &Pool) -> Int
+
+- `result >= 0` -- Z3-provable (pure scalar)
+- `p.capacity - p.in_use >= 0 => result == p.capacity - p.in_use` -- runtime-checked
+- `p.capacity - p.in_use < 0 => result == 0` -- runtime-checked (sentinel/clamp)
+
+### pool_high_water(p: &Pool) -> Int
+
+- `result == p.high_water` -- runtime-checked
+
+### pool_total_borrows(p: &Pool) -> Int
+
+- `result == p.borrows` -- runtime-checked
+
+### pool_total_releases(p: &Pool) -> Int
+
+- `result == p.releases` -- runtime-checked
+
+### pool_is_borrowed(p: &Pool, id: Int) -> Bool
+
+- `id < 0 => !result` -- Z3-provable (pure scalar)
+- `id >= p.capacity => !result` -- runtime-checked
+- `result => id >= 0 && id < p.capacity` -- runtime-checked
+
+### pool_generation(p: &Pool, id: Int) -> Int
+
+- `id < 0 => result == -1` -- Z3-provable (pure scalar, sentinel)
+- `id >= p.capacity => result == -1` -- runtime-checked (sentinel)
+
+### pool_borrow(p: &mut Pool) -> Result[Int, Str]
+
+- `result is Ok => result.value >= 0` -- runtime-checked (scalar Ok payload)
+- `result is Ok => p.in_use == p.in_use@pre + 1` -- runtime-checked (`@pre` field snapshot)
+- `result is Err => p.in_use == p.in_use@pre` -- runtime-checked (`@pre` field snapshot)
+
+### pool_borrow_lease(p: &mut Pool) -> Result[Int, Str]
+
+- `result is Ok => p.in_use == p.in_use@pre + 1` -- runtime-checked (`@pre` field snapshot)
+- `result is Ok => p.borrows == p.borrows@pre + 1` -- runtime-checked (`@pre` field snapshot)
+- `result is Err => p.in_use == p.in_use@pre` -- runtime-checked (`@pre` field snapshot)
+
+### pool_release(p: &mut Pool, id: Int) -> Result[Int, Str]
+
+- `result is Ok => result.value == id` -- runtime-checked (exact scalar formula)
+- `result is Ok => p.releases == p.releases@pre + 1` -- runtime-checked (`@pre` field snapshot)
+- `result is Err => p.releases == p.releases@pre` -- runtime-checked (`@pre` field snapshot)
+
+### pool_release_lease(p: &mut Pool, lease: Int) -> Result[Int, Str]
+
+- `result is Ok => result.value >= 0` -- runtime-checked (scalar Ok payload)
+- `result is Ok => p.releases == p.releases@pre + 1` -- runtime-checked (`@pre` field snapshot)
+- `result is Err => p.releases == p.releases@pre` -- runtime-checked (`@pre` field snapshot)
+
+### pool_drain(p: &mut Pool) -> Int
+
+- `result >= 0` -- Z3-provable (pure scalar)
+- `p.capacity >= 0 => result <= p.capacity` -- runtime-checked
+- `result > 0 => p.in_use == 0` -- runtime-checked (count/state invariant)
 
 ## 7. Test matrix
 

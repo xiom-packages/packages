@@ -8,7 +8,7 @@
 
 package xiom_pool {
   name: "xiom.pool";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Deterministic fixed-capacity slot pool with generation-checked leases";
   categories: ["concurrency", "systems"];
   keywords: ["pool", "slots", "lease", "reuse", "resource"];

@@ -73,7 +73,11 @@ pub type Pool = {
 /// Returns: the pool; fresh pools hand out slots in ascending order.
 /// Error case: none.
 /// Complexity: O(capacity).
-pub fn pool_new(capacity: Int) -> Pool {
+pub fn pool_new(capacity: Int) -> Pool
+  ensures: capacity >= 0 => pool_capacity(result) == capacity;
+  ensures: capacity < 0 => pool_capacity(result) == 0;
+  ensures: pool_in_use(result) == 0;
+{
   var cap = capacity;
   if cap < 0 {
     cap = 0;
@@ -107,7 +111,9 @@ pub fn pool_new(capacity: Int) -> Pool {
 /// Returns: the capacity.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pool_capacity(p: &Pool) -> Int {
+pub fn pool_capacity(p: &Pool) -> Int
+  ensures: result == p.capacity;
+{
   let v: Int = p.capacity;
   return v;
 }
@@ -117,7 +123,9 @@ pub fn pool_capacity(p: &Pool) -> Int {
 /// Returns: the borrowed count.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pool_in_use(p: &Pool) -> Int {
+pub fn pool_in_use(p: &Pool) -> Int
+  ensures: result == p.in_use;
+{
   let v: Int = p.in_use;
   return v;
 }
@@ -127,7 +135,11 @@ pub fn pool_in_use(p: &Pool) -> Int {
 /// Returns: capacity - in_use (never negative).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pool_available(p: &Pool) -> Int {
+pub fn pool_available(p: &Pool) -> Int
+  ensures: result >= 0;
+  ensures: p.capacity - p.in_use >= 0 => result == p.capacity - p.in_use;
+  ensures: p.capacity - p.in_use < 0 => result == 0;
+{
   let v: Int = p.capacity - p.in_use;
   if v < 0 {
     return 0;
@@ -140,7 +152,9 @@ pub fn pool_available(p: &Pool) -> Int {
 /// Returns: the high-water mark.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pool_high_water(p: &Pool) -> Int {
+pub fn pool_high_water(p: &Pool) -> Int
+  ensures: result == p.high_water;
+{
   let v: Int = p.high_water;
   return v;
 }
@@ -150,7 +164,9 @@ pub fn pool_high_water(p: &Pool) -> Int {
 /// Returns: the total.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pool_total_borrows(p: &Pool) -> Int {
+pub fn pool_total_borrows(p: &Pool) -> Int
+  ensures: result == p.borrows;
+{
   let v: Int = p.borrows;
   return v;
 }
@@ -160,7 +176,9 @@ pub fn pool_total_borrows(p: &Pool) -> Int {
 /// Returns: the total.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pool_total_releases(p: &Pool) -> Int {
+pub fn pool_total_releases(p: &Pool) -> Int
+  ensures: result == p.releases;
+{
   let v: Int = p.releases;
   return v;
 }
@@ -170,7 +188,11 @@ pub fn pool_total_releases(p: &Pool) -> Int {
 /// Returns: the flag; false when `id` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pool_is_borrowed(p: &Pool, id: Int) -> Bool {
+pub fn pool_is_borrowed(p: &Pool, id: Int) -> Bool
+  ensures: id < 0 => !result;
+  ensures: id >= p.capacity => !result;
+  ensures: result => id >= 0 && id < p.capacity;
+{
   if id < 0 || id >= p.capacity {
     return false;
   }
@@ -184,7 +206,10 @@ pub fn pool_is_borrowed(p: &Pool, id: Int) -> Bool {
 /// Returns: the generation; -1 when `id` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pool_generation(p: &Pool, id: Int) -> Int {
+pub fn pool_generation(p: &Pool, id: Int) -> Int
+  ensures: id < 0 => result == -1;
+  ensures: id >= p.capacity => result == -1;
+{
   if id < 0 || id >= p.capacity {
     return -1;
   }
@@ -230,7 +255,11 @@ fn _mark_borrowed(p: &mut Pool, id: Int) {
 /// a released slot is reused by the next borrow (LIFO).
 /// Error case: Err("pool: exhausted") when no slot is free.
 /// Complexity: O(1).
-pub fn pool_borrow(p: &mut Pool) -> Result[Int, Str] {
+pub fn pool_borrow(p: &mut Pool) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => p.in_use == p.in_use@pre + 1;
+  ensures: result is Err => p.in_use == p.in_use@pre;
+{
   let id = _take_free(p);
   if id < 0 {
     return _err_int("pool: exhausted");
@@ -269,7 +298,11 @@ fn _lease_slot(p: &Pool, lease: Int) -> Int {
 /// Returns: Ok(lease) with lease >= 1.
 /// Error case: Err("pool: exhausted") when no slot is free.
 /// Complexity: O(1).
-pub fn pool_borrow_lease(p: &mut Pool) -> Result[Int, Str] {
+pub fn pool_borrow_lease(p: &mut Pool) -> Result[Int, Str]
+  ensures: result is Ok => p.in_use == p.in_use@pre + 1;
+  ensures: result is Ok => p.borrows == p.borrows@pre + 1;
+  ensures: result is Err => p.in_use == p.in_use@pre;
+{
   let id = _take_free(p);
   if id < 0 {
     return _err_int("pool: exhausted");
@@ -312,7 +345,11 @@ fn _check_release(p: &Pool, id: Int) -> Str {
 /// range; Err("pool: slot <id> is not borrowed") when the slot is already
 /// free (a repeated release is rejected, never counted twice).
 /// Complexity: O(1).
-pub fn pool_release(p: &mut Pool, id: Int) -> Result[Int, Str] {
+pub fn pool_release(p: &mut Pool, id: Int) -> Result[Int, Str]
+  ensures: result is Ok => result.value == id;
+  ensures: result is Ok => p.releases == p.releases@pre + 1;
+  ensures: result is Err => p.releases == p.releases@pre;
+{
   let err = _check_release(p, id);
   if err.len() > 0 {
     return _err_int(err);
@@ -331,7 +368,11 @@ pub fn pool_release(p: &mut Pool, id: Int) -> Result[Int, Str] {
 /// decodable for this pool; Err("pool: stale lease <lease>") when it is
 /// decodable but the slot is free or its generation has moved on.
 /// Complexity: O(1).
-pub fn pool_release_lease(p: &mut Pool, lease: Int) -> Result[Int, Str] {
+pub fn pool_release_lease(p: &mut Pool, lease: Int) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => p.releases == p.releases@pre + 1;
+  ensures: result is Err => p.releases == p.releases@pre;
+{
   let id = _lease_slot(p, lease);
   if id < 0 {
     return _err_int("pool: bad lease " + int_to_string(lease));
@@ -353,7 +394,11 @@ pub fn pool_release_lease(p: &mut Pool, lease: Int) -> Result[Int, Str] {
 /// rebuilt so the next borrows follow the fresh-pool order.
 /// Error case: none.
 /// Complexity: O(capacity).
-pub fn pool_drain(p: &mut Pool) -> Int {
+pub fn pool_drain(p: &mut Pool) -> Int
+  ensures: result >= 0;
+  ensures: p.capacity >= 0 => result <= p.capacity;
+  ensures: result > 0 => p.in_use == 0;
+{
   var released = 0;
   var i = 0;
   let cap: Int = p.capacity;
