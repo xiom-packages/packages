@@ -202,7 +202,10 @@ fn _parse_seconds(s: Str) -> Int {
 /// Errors: "m3u: bad #EXTINF: <line>", "m3u: bad duration in #EXTINF: <line>",
 /// "m3u: missing path after #EXTINF"; see SPEC.md.
 /// Complexity: O(input length).
-pub fn m3u_parse(text: Str) -> Result[Playlist, Str] {
+pub fn m3u_parse(text: Str) -> Result[Playlist, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var has_header = false;
   var seen_nonblank = false;
   var durations = Vec[Int].new();
@@ -282,7 +285,10 @@ pub fn m3u_parse(text: Str) -> Result[Playlist, Str] {
 /// #EXTINF" and skipped. Blank-line input layout is not preserved.
 /// Error case: none.
 /// Complexity: O(total output length).
-pub fn m3u_emit(p: &Playlist) -> Str {
+pub fn m3u_emit(p: &Playlist) -> Str
+  ensures: result.len() >= 8;
+  ensures: m3u_entry_count(p) == 0 && m3u_tag_count(p) == 0 => result.len() == 8;
+{
   var out = Vec[UInt8].new();
   builder.sb_push_str(&mut out, "#EXTM3U\n");
   let n = p.paths.len();
@@ -328,19 +334,27 @@ pub fn m3u_emit(p: &Playlist) -> Str {
 }
 
 /// Number of entries (path lines) in the playlist.
-pub fn m3u_entry_count(p: &Playlist) -> Int {
+pub fn m3u_entry_count(p: &Playlist) -> Int
+  ensures: result == p.paths.len();
+  ensures: result >= 0;
+{
   return p.paths.len();
 }
 
 /// True when the parsed document began with a `#EXTM3U` header line.
-pub fn m3u_has_header(p: &Playlist) -> Bool {
+pub fn m3u_has_header(p: &Playlist) -> Bool
+  ensures: result == p.has_header;
+{
   return p.has_header;
 }
 
 /// Whole-second duration of entry `i`; -1 when `i` is out of range or when
 /// the entry had no `#EXTINF`. Durations are never negative after parsing,
 /// so -1 is an unambiguous "absent" sentinel.
-pub fn m3u_duration_seconds(p: &Playlist, i: Int) -> Int {
+pub fn m3u_duration_seconds(p: &Playlist, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= p.durations.len() => result == -1;
+{
   if i < 0 { return -1; }
   if i >= p.durations.len() { return -1; }
   let v: Int = p.durations[i];
@@ -349,7 +363,10 @@ pub fn m3u_duration_seconds(p: &Playlist, i: Int) -> Int {
 
 /// Title of entry `i` from its `#EXTINF` line (verbatim, possibly empty);
 /// "" when `i` is out of range.
-pub fn m3u_title(p: &Playlist, i: Int) -> Str {
+pub fn m3u_title(p: &Playlist, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= p.titles.len() => result.len() == 0;
+{
   if i < 0 { return ""; }
   if i >= p.titles.len() { return ""; }
   let v: Str = p.titles[i];
@@ -357,7 +374,10 @@ pub fn m3u_title(p: &Playlist, i: Int) -> Str {
 }
 
 /// Path of entry `i` (verbatim); "" when `i` is out of range.
-pub fn m3u_path(p: &Playlist, i: Int) -> Str {
+pub fn m3u_path(p: &Playlist, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= p.paths.len() => result.len() == 0;
+{
   if i < 0 { return ""; }
   if i >= p.paths.len() { return ""; }
   let v: Str = p.paths[i];
@@ -366,12 +386,18 @@ pub fn m3u_path(p: &Playlist, i: Int) -> Str {
 
 /// Total number of raw tag/comment lines stored in the playlist (both
 /// per-entry and trailing).
-pub fn m3u_tag_count(p: &Playlist) -> Int {
+pub fn m3u_tag_count(p: &Playlist) -> Int
+  ensures: result == p.tags.len();
+  ensures: result >= 0;
+{
   return p.tags.len();
 }
 
 /// Raw tag/comment line `j` in document order; "" when `j` is out of range.
-pub fn m3u_tag(p: &Playlist, j: Int) -> Str {
+pub fn m3u_tag(p: &Playlist, j: Int) -> Str
+  ensures: j < 0 => result.len() == 0;
+  ensures: j >= p.tags.len() => result.len() == 0;
+{
   if j < 0 { return ""; }
   if j >= p.tags.len() { return ""; }
   let v: Str = p.tags[j];
@@ -380,7 +406,10 @@ pub fn m3u_tag(p: &Playlist, j: Int) -> Str {
 
 /// Number of raw tag/comment lines directly preceding entry `i`; 0 when `i`
 /// is out of range.
-pub fn m3u_entry_tag_count(p: &Playlist, i: Int) -> Int {
+pub fn m3u_entry_tag_count(p: &Playlist, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= p.tag_starts.len() => result == 0;
+{
   if i < 0 { return 0; }
   if i >= p.tag_starts.len() { return 0; }
   let a: Int = p.tag_starts[i];
@@ -390,7 +419,11 @@ pub fn m3u_entry_tag_count(p: &Playlist, i: Int) -> Int {
 
 /// Raw tag/comment line number `j` of entry `i` (0-based within the entry);
 /// "" when `i` or `j` is out of range.
-pub fn m3u_entry_tag(p: &Playlist, i: Int, j: Int) -> Str {
+pub fn m3u_entry_tag(p: &Playlist, i: Int, j: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: j < 0 => result.len() == 0;
+  ensures: j >= m3u_entry_tag_count(p, i) => result.len() == 0;
+{
   if i < 0 { return ""; }
   if i >= p.tag_starts.len() { return ""; }
   let a: Int = p.tag_starts[i];
@@ -404,7 +437,9 @@ pub fn m3u_entry_tag(p: &Playlist, i: Int, j: Int) -> Str {
 /// Number of trailing raw tag/comment lines, i.e. tags after the last
 /// entry's range (for example a closing `#EXT-X-ENDLIST`). When there are no
 /// entries, every stored tag is trailing.
-pub fn m3u_trailing_tag_count(p: &Playlist) -> Int {
+pub fn m3u_trailing_tag_count(p: &Playlist) -> Int
+  ensures: p.tag_ends.len() == 0 => result == p.tags.len();
+{
   var base = 0;
   let n = p.tag_ends.len();
   if n > 0 {
@@ -415,7 +450,10 @@ pub fn m3u_trailing_tag_count(p: &Playlist) -> Int {
 }
 
 /// Trailing raw tag/comment line `j`; "" when `j` is out of range.
-pub fn m3u_trailing_tag(p: &Playlist, j: Int) -> Str {
+pub fn m3u_trailing_tag(p: &Playlist, j: Int) -> Str
+  ensures: j < 0 => result.len() == 0;
+  ensures: j >= m3u_trailing_tag_count(p) => result.len() == 0;
+{
   let total = m3u_trailing_tag_count(p);
   if j < 0 { return ""; }
   if j >= total { return ""; }

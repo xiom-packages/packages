@@ -1,6 +1,6 @@
 # xiom.m3u -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.m3u` (`src/m3u.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -283,3 +283,59 @@ Workarounds carried by this module, in the style of `xiom.ini` and
 - A leading UTF-8 BOM is not stripped; a BOM-prefixed `#EXTM3U` is treated
   as an ordinary tag.
 - Errors carry the offending line text but no line/column numbers.
+
+## Contracts (batch #21 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/m3u.xi` in the batch #21
+hardening pass (compiler v0.64.0; no version bump): 25 clauses across all 13
+public entry points. Two consecutive
+`.\scripts\port.ps1 -Package xiom.m3u -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.2 s each); none trapped under the suite.
+
+All clauses are `ensures:`; no `requires:` was added, so the accepted-input
+domain is unchanged. The class column records the clause shape: the
+"Z3-provable (pure scalar)" label marks clauses whose operands are `result`,
+scalar parameters and scalar struct fields only (no `Str`/`Vec` length reads,
+no calls); clauses observing `Str`/`Vec` lengths, struct-field container
+lengths or public cross-calls are enforced by the runtime evaluator. (The
+`Str`-result negative-index sentinels follow the mbr accessor model and are
+runtime-checked; the Z3-provable label records shape, not a machine proof.)
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `m3u_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime-checked (tag-only; the `Ok` payload is the `Playlist` struct, never read) |
+| `m3u_emit` | `ensures: result.len() >= 8` | runtime-checked (`Str`-result length) |
+| `m3u_emit` | `ensures: m3u_entry_count(p) == 0 && m3u_tag_count(p) == 0 => result.len() == 8` | runtime-checked (cross-calls) |
+| `m3u_entry_count` | `ensures: result == p.paths.len()` | runtime-checked (`Vec` field length) |
+| `m3u_entry_count` | `ensures: result >= 0` | Z3-provable (pure scalar) |
+| `m3u_has_header` | `ensures: result == p.has_header` | Z3-provable (pure scalar) |
+| `m3u_duration_seconds` | `ensures: i < 0 => result == -1` | Z3-provable (pure scalar) |
+| `m3u_duration_seconds` | `ensures: i >= p.durations.len() => result == -1` | runtime-checked (`Vec` field length) |
+| `m3u_title` | `ensures: i < 0 => result.len() == 0` | runtime-checked (`Str`-result length) |
+| `m3u_title` | `ensures: i >= p.titles.len() => result.len() == 0` | runtime-checked (`Vec` field length) |
+| `m3u_path` | `ensures: i < 0 => result.len() == 0` | runtime-checked (`Str`-result length) |
+| `m3u_path` | `ensures: i >= p.paths.len() => result.len() == 0` | runtime-checked (`Vec` field length) |
+| `m3u_tag_count` | `ensures: result == p.tags.len()` | runtime-checked (`Vec` field length) |
+| `m3u_tag_count` | `ensures: result >= 0` | Z3-provable (pure scalar) |
+| `m3u_tag` | `ensures: j < 0 => result.len() == 0` | runtime-checked (`Str`-result length) |
+| `m3u_tag` | `ensures: j >= p.tags.len() => result.len() == 0` | runtime-checked (`Vec` field length) |
+| `m3u_entry_tag_count` | `ensures: i < 0 => result == 0` | Z3-provable (pure scalar) |
+| `m3u_entry_tag_count` | `ensures: i >= p.tag_starts.len() => result == 0` | runtime-checked (`Vec` field length) |
+| `m3u_entry_tag` | `ensures: i < 0 => result.len() == 0`; `ensures: j < 0 => result.len() == 0` | runtime-checked (`Str`-result length) |
+| `m3u_entry_tag` | `ensures: j >= m3u_entry_tag_count(p, i) => result.len() == 0` | runtime-checked (cross-call) |
+| `m3u_trailing_tag_count` | `ensures: p.tag_ends.len() == 0 => result == p.tags.len()` | runtime-checked (`Vec` field lengths) |
+| `m3u_trailing_tag` | `ensures: j < 0 => result.len() == 0` | runtime-checked (`Str`-result length) |
+| `m3u_trailing_tag` | `ensures: j >= m3u_trailing_tag_count(p) => result.len() == 0` | runtime-checked (cross-call) |
+
+Both cross-call targets (`m3u_entry_tag_count` from `m3u_entry_tag`,
+`m3u_trailing_tag_count` from `m3u_trailing_tag`, plus `m3u_entry_count` and
+`m3u_tag_count` from `m3u_emit`) are terminal leaves: none of them calls the
+function it guards, so there is no postcondition call-cycle. No clause uses
+tuple-component access, a `Result`/struct payload field, a
+payload-length-vs-parameter check, or `Str` equality. Three parsed-domain
+clauses from the pre-plan were dropped by the coordinator for strict
+universality (a hand-built `Playlist` need not be parse-normalized):
+`m3u_duration_seconds`'s `result >= -1`, `m3u_entry_tag_count`'s in-range
+`result >= 0`, and `m3u_trailing_tag_count`'s `result <= p.tags.len()`; the
+functions stay pinned by section 6 and the 20-check conformance suite.

@@ -10,7 +10,7 @@
 
 package xiom_m3u {
   name: "xiom.m3u";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "M3U/M3U8 playlist parsing and canonical emitting";
   categories: ["media"];
   keywords: ["m3u", "m3u8", "playlist", "hls"];
