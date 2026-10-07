@@ -1,6 +1,6 @@
 # xiom.ftp -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.ftp` (`src/ftp.xi`). Pure XIOM, no FFI, no sockets, no I/O.
 
 ## 1. Scope
@@ -352,3 +352,65 @@ idioms as `xiom.eml`/`xiom.tftp` and documents these compiler-driven choices:
 - `PASS` is stored and emitted verbatim (no obfuscation, no logging policy).
 - Errors carry no line/column position; the offending line text is embedded
   where the catalog says so.
+
+## Contracts (batch #37 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/ftp.xi` in the batch #37
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator
+at integration). 31 clauses across the 19 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.ftp -TimeoutSec 60` runs
+ended `port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the
+clauses active (6.00 s and 5.62 s); the 24-test conformance suite exercises
+every entry point and no clause trapped, so none was dropped.
+
+All 31 clauses are **runtime-checked**: `xiom-verify src/ftp.xi --check`
+(v0.64.0, bundled Z3, run from the package directory) reported `0 proven,
+0 violated, 41 unknown, 2 errors`; every contract axiom was skipped in the
+SMT emitter (X7007 unresolved operand sort / non-numeric `Gt`/`Ge`/`Div`)
+and the two errors are the known emitter bug (`unknown constant _line_end
+(String Int)`, `unknown constant c`), which the tool itself labels "not a
+proof failure of the code under test". No clause makes a Z3 claim. Every
+clause also holds over hand-built `Command`/`Response` values: the
+emitter/accessor clauses are definitional or structural (lengths, field
+equalities, integer division), and the sentinel/guard-pair clauses only
+constrain out-of-range indexes, which hand-built values cannot satisfy.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `ftp_parse_command` | `text.len() > 512 => result is Err`; `text.len() < 2 => result is Err`; `result is Ok => text.len() >= 5 && text.len() <= 512` | runtime-checked |
+| `ftp_parse_response` | `text.len() > 8192 => result is Err`; `text.len() == 0 => result is Err`; `result is Ok => text.len() >= 6` | runtime-checked |
+| `ftp_emit_command` | `c.name.len() == 0 => result.len() == 0`; `c.name.len() > 0 && c.argument.len() == 0 => result.len() == c.name.len() + 2`; `c.name.len() > 0 && c.argument.len() > 0 => result.len() == c.name.len() + c.argument.len() + 3` | runtime-checked |
+| `ftp_emit_response` | `r.lines.len() == 0 => result.len() == 0`; `r.lines.len() > 0 => result.len() >= 2 * r.lines.len()` | runtime-checked |
+| `ftp_command_name` | `result.len() == c.name.len()` | runtime-checked |
+| `ftp_command_argument` | `result.len() == c.argument.len()` | runtime-checked |
+| `ftp_command_raw` | `result.len() == c.raw.len()` | runtime-checked |
+| `ftp_port_octets` | `result.len() == 0 \|\| result.len() == 6` | runtime-checked |
+| `ftp_type_code` | `result.len() == 0 \|\| result.len() == 1` | runtime-checked |
+| `ftp_mode_code` | `result.len() == 0 \|\| result.len() == 1` | runtime-checked |
+| `ftp_stru_code` | `result.len() == 0 \|\| result.len() == 1` | runtime-checked |
+| `ftp_response_code` | `result == r.code` | runtime-checked |
+| `ftp_response_class` | `result == r.code / 100` | runtime-checked |
+| `ftp_response_is_multiline` | `result == (r.lines.len() > 1)` | runtime-checked |
+| `ftp_response_line_count` | `result == r.lines.len()` | runtime-checked |
+| `ftp_response_line` | `i < 0 => result.len() == 0`; `i >= r.lines.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < r.lines.len()` | runtime-checked |
+| `ftp_response_line_code` | `i < 0 => result == -1`; `i >= r.lines.len() => result == -1`; `i >= r.codes.len() => result == -1` | runtime-checked |
+| `ftp_response_text` | `r.lines.len() == 0 => result.len() == 0`; `result.len() > 0 => r.lines.len() > 0` | runtime-checked |
+| `ftp_response_raw` | `result.len() == r.raw.len()` | runtime-checked |
+
+Design notes:
+
+- No `Command`/`Response` `Result`-payload reads on the two parsers: their
+  clauses constrain only the input (`text.len()` bands) and `result is
+  Ok`/`result is Err`, so no parse invariant is assumed about payloads.
+- `ftp_emit_command` lengths are exact, derived from the source's
+  `name + "\r\n"` (name length + 2) and `name + " " + argument + "\r\n"`
+  (name + argument length + 3) assemblies; `ftp_emit_response` claims only
+  the per-line CRLF floor (2 x `lines.len()`).
+- `ftp_response_class` restates the body's integer division
+  `r.code / 100`; `ftp_response_is_multiline` is the Bool form
+  `r.lines.len() > 1`.
+- No clause calls another function (no re-entrant cross-calls), no `Str`
+  equality (BUG 17: `.len()` only), no vector indexing, and no module const
+  in any clause (`512`/`8192` are inlined literals).
+

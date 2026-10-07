@@ -512,7 +512,11 @@ fn _opts_ok(arg: Str) -> Bool {
 /// command", "ftp: control byte in command", "ftp: bad verb: <word>",
 /// "ftp: unknown verb: <NAME>" and "ftp: bad argument shape: <NAME>".
 /// Complexity: O(len(text)).
-pub fn ftp_parse_command(text: Str) -> Result[Command, Str] {
+pub fn ftp_parse_command(text: Str) -> Result[Command, Str]
+  ensures: text.len() > 512 => result is Err;
+  ensures: text.len() < 2 => result is Err;
+  ensures: result is Ok => text.len() >= 5 && text.len() <= 512;
+{
   let n = text.len();
   if n > FTP_MAX_COMMAND_BYTES {
     return _err_cmd("ftp: command too long");
@@ -666,7 +670,11 @@ fn _parse_reply_body(text: Str, pos: Int, c0: Int, codes: &mut Vec[Int], lines: 
 /// "ftp: multiline code mismatch: <line>", "ftp: unterminated multiline
 /// response" and "ftp: trailing data after response".
 /// Complexity: O(len(text)).
-pub fn ftp_parse_response(text: Str) -> Result[Response, Str] {
+pub fn ftp_parse_response(text: Str) -> Result[Response, Str]
+  ensures: text.len() > 8192 => result is Err;
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() >= 6;
+{
   let n = text.len();
   if n > FTP_MAX_RESPONSE_BYTES {
     return _err_resp("ftp: response too long");
@@ -717,7 +725,11 @@ pub fn ftp_parse_response(text: Str) -> Result[Response, Str] {
 /// Canonical command text: `name + " " + argument + CRLF` (the space is
 /// omitted when the argument is empty); an empty `name` emits "".
 /// Complexity: O(len(name) + len(argument)).
-pub fn ftp_emit_command(c: &Command) -> Str {
+pub fn ftp_emit_command(c: &Command) -> Str
+  ensures: c.name.len() == 0 => result.len() == 0;
+  ensures: c.name.len() > 0 && c.argument.len() == 0 => result.len() == c.name.len() + 2;
+  ensures: c.name.len() > 0 && c.argument.len() > 0 => result.len() == c.name.len() + c.argument.len() + 3;
+{
   let name: Str = c.name;
   let arg: Str = c.argument;
   if name.len() == 0 {
@@ -735,7 +747,10 @@ pub fn ftp_emit_command(c: &Command) -> Str {
 /// pools is tolerated by emitting the line verbatim. `emit(parse(x)) == x`
 /// for canonical replies.
 /// Complexity: O(total line bytes).
-pub fn ftp_emit_response(r: &Response) -> Str {
+pub fn ftp_emit_response(r: &Response) -> Str
+  ensures: r.lines.len() == 0 => result.len() == 0;
+  ensures: r.lines.len() > 0 => result.len() >= 2 * r.lines.len();
+{
   let n = r.lines.len();
   if n == 0 {
     return "";
@@ -774,25 +789,33 @@ pub fn ftp_emit_response(r: &Response) -> Str {
 // --------------------------------------------------
 
 /// Uppercase verb of a parsed command. Complexity: O(1).
-pub fn ftp_command_name(c: &Command) -> Str {
+pub fn ftp_command_name(c: &Command) -> Str
+  ensures: result.len() == c.name.len();
+{
   return c.name;
 }
 
 /// Canonical argument text of a parsed command ("" when the verb takes
 /// none). Complexity: O(1).
-pub fn ftp_command_argument(c: &Command) -> Str {
+pub fn ftp_command_argument(c: &Command) -> Str
+  ensures: result.len() == c.argument.len();
+{
   return c.argument;
 }
 
 /// Verbatim input line of a parsed command, CRLF included. Complexity: O(1).
-pub fn ftp_command_raw(c: &Command) -> Str {
+pub fn ftp_command_raw(c: &Command) -> Str
+  ensures: result.len() == c.raw.len();
+{
   return c.raw;
 }
 
 /// The six PORT octets h1..p2 as a fresh Vec[Int]; an empty vector for a
 /// non-PORT command or a malformed argument (a parsed PORT is always valid).
 /// Complexity: O(len(argument)).
-pub fn ftp_port_octets(c: &Command) -> Vec[Int] {
+pub fn ftp_port_octets(c: &Command) -> Vec[Int]
+  ensures: result.len() == 0 || result.len() == 6;
+{
   var out = Vec[Int].new();
   if !_streq(c.name, "PORT") {
     return out;
@@ -805,7 +828,9 @@ pub fn ftp_port_octets(c: &Command) -> Vec[Int] {
 
 /// TYPE code letter ("A", "E", "I" or "L"), or "" when the command is not a
 /// canonical TYPE. Complexity: O(len(argument)).
-pub fn ftp_type_code(c: &Command) -> Str {
+pub fn ftp_type_code(c: &Command) -> Str
+  ensures: result.len() == 0 || result.len() == 1;
+{
   if !_streq(c.name, "TYPE") {
     return "";
   }
@@ -819,7 +844,9 @@ pub fn ftp_type_code(c: &Command) -> Str {
 
 /// MODE code letter ("S", "B" or "C"), or "" when the command is not a
 /// canonical MODE. Complexity: O(1).
-pub fn ftp_mode_code(c: &Command) -> Str {
+pub fn ftp_mode_code(c: &Command) -> Str
+  ensures: result.len() == 0 || result.len() == 1;
+{
   if !_streq(c.name, "MODE") {
     return "";
   }
@@ -832,7 +859,9 @@ pub fn ftp_mode_code(c: &Command) -> Str {
 
 /// STRU code letter ("F", "R" or "P"), or "" when the command is not a
 /// canonical STRU. Complexity: O(1).
-pub fn ftp_stru_code(c: &Command) -> Str {
+pub fn ftp_stru_code(c: &Command) -> Str
+  ensures: result.len() == 0 || result.len() == 1;
+{
   if !_streq(c.name, "STRU") {
     return "";
   }
@@ -845,31 +874,43 @@ pub fn ftp_stru_code(c: &Command) -> Str {
 
 /// Reply code of a parsed reply (100..599, equal on every reply-prefixed
 /// line). Complexity: O(1).
-pub fn ftp_response_code(r: &Response) -> Int {
+pub fn ftp_response_code(r: &Response) -> Int
+  ensures: result == r.code;
+{
   return r.code;
 }
 
 /// Reply class: code / 100, so exactly 1..5 for a parsed reply.
 /// Complexity: O(1).
-pub fn ftp_response_class(r: &Response) -> Int {
+pub fn ftp_response_class(r: &Response) -> Int
+  ensures: result == r.code / 100;
+{
   return r.code / 100;
 }
 
 /// True when the reply has more than one physical line.
 /// Complexity: O(1).
-pub fn ftp_response_is_multiline(r: &Response) -> Bool {
+pub fn ftp_response_is_multiline(r: &Response) -> Bool
+  ensures: result == (r.lines.len() > 1);
+{
   return r.lines.len() > 1;
 }
 
 /// Number of physical reply lines (always >= 1 for a parsed reply).
 /// Complexity: O(1).
-pub fn ftp_response_line_count(r: &Response) -> Int {
+pub fn ftp_response_line_count(r: &Response) -> Int
+  ensures: result == r.lines.len();
+{
   return r.lines.len();
 }
 
 /// Physical line `i` without its CRLF, or "" when `i` is out of range.
 /// Complexity: O(1).
-pub fn ftp_response_line(r: &Response, i: Int) -> Str {
+pub fn ftp_response_line(r: &Response, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= r.lines.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < r.lines.len();
+{
   if i < 0 {
     return "";
   }
@@ -883,7 +924,11 @@ pub fn ftp_response_line(r: &Response, i: Int) -> Str {
 /// Code of physical line `i`: the reply code for an `NNN `/`NNN-` line,
 /// -1 for an uncoded body line, and -1 when `i` is out of range.
 /// Complexity: O(1).
-pub fn ftp_response_line_code(r: &Response, i: Int) -> Int {
+pub fn ftp_response_line_code(r: &Response, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= r.lines.len() => result == -1;
+  ensures: i >= r.codes.len() => result == -1;
+{
   if i < 0 {
     return -1;
   }
@@ -899,7 +944,10 @@ pub fn ftp_response_line_code(r: &Response, i: Int) -> Int {
 
 /// Text of the first reply line after its code and space/dash marker
 /// ("" when there is no text). Complexity: O(1).
-pub fn ftp_response_text(r: &Response) -> Str {
+pub fn ftp_response_text(r: &Response) -> Str
+  ensures: r.lines.len() == 0 => result.len() == 0;
+  ensures: result.len() > 0 => r.lines.len() > 0;
+{
   if r.lines.len() == 0 {
     return "";
   }
@@ -908,6 +956,8 @@ pub fn ftp_response_text(r: &Response) -> Str {
 }
 
 /// Verbatim reply text, all CRLFs included. Complexity: O(1).
-pub fn ftp_response_raw(r: &Response) -> Str {
+pub fn ftp_response_raw(r: &Response) -> Str
+  ensures: result.len() == r.raw.len();
+{
   return r.raw;
 }
