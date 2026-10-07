@@ -1,8 +1,6 @@
 # xiom.hid -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.hid`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/hid.xi` (`module xiom.hid`).
 Depends on `xiom.std`; the library module is dependency-free (no stdlib
 imports). Tests add `xiom.test`, `xiom.io`, `xiom.string.compare` and
@@ -415,8 +413,55 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.hid
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=16 failed=0 program_exit=0 exit=0)`.
+
+## Contracts (batch #35 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/hid.xi` in the batch #35
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 42 clauses over all 17 public entry points; all are `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. No clause reads a
+`Result` payload; `hid_item_data_signed` deliberately carries no per-width
+bound (a hand-built store may record data wider than `item_size`), and the
+item-byte functions carry only their negative-index guards with no
+payload-length claim. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.hid -TimeoutSec 60` runs ended
+`port: PASS (passed=16 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.93 s and 5.68 s); no clause was dropped, and the package has no
+probe-gated clauses.
+
+`xiom-verify src/hid.xi --check` (file before `--check`, package dir as CWD;
+Z3 bundled with v0.64.0) reported **1 proven / 0 violated / 34 unknown /
+6 errors**. The single proven obligation is `hid_max_collection_depth`'s
+`result == 32` (the only emitted `check-sat` block); the 6 errors are the
+known SMT emitter bug on private leaf helpers (`unknown constant _ok_desc` /
+`data` / `_well_formed` / `_err_bytes`, invalid function application), which
+the tool itself reports as "not a proof failure of the code under test".
+"Z3-provable" below marks the scalar-shape family the SMT backend can
+discharge without executing the function; the runtime-checked clauses read
+`Vec` lengths, structure guards or `Result` tags that the emitter cannot
+encode.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `hid_max_collection_depth` | `ensures: result == 32` | Z3-provable (pure scalar) |
+| `hid_parse` | `ensures: data.len() == 0 => result is Ok`; `ensures: result is Err => data.len() > 0` | runtime-checked (empty-input guard pair; `Result` tag) |
+| `hid_item_count` | `ensures: result == d.item_type.len()`; `ensures: result >= 0` | runtime-checked (vector length) |
+| `hid_item_type` | `ensures: i < 0 => result == -1`; `ensures: i >= d.item_type.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < d.item_type.len()` | runtime-checked (-1 sentinel trio) |
+| `hid_item_tag` | `ensures: i < 0 => result == -1`; `ensures: i >= d.item_tag.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < d.item_tag.len()` | runtime-checked (-1 sentinel trio) |
+| `hid_item_size` | `ensures: i < 0 => result == -1`; `ensures: i >= d.item_size.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < d.item_size.len()` | runtime-checked (-1 sentinel trio) |
+| `hid_item_data` | `ensures: i < 0 => result == 0`; `ensures: i >= d.item_data.len() => result == 0`; `ensures: result != 0 => i >= 0 && i < d.item_data.len()` | runtime-checked (0 sentinel trio; no converse, 0 is a legal data value) |
+| `hid_item_data_signed` | `ensures: i < 0 => result == 0`; `ensures: i >= d.item_type.len() => result == 0`; `ensures: result != 0 => i >= 0 && i < d.item_type.len()` | runtime-checked (0 sentinel trio; no per-width bound) |
+| `hid_item_data_nibble_signed` | `ensures: i < 0 => result == 0`; `ensures: i >= d.item_data.len() => result == 0`; `ensures: result != 0 => i >= 0 && i < d.item_data.len()`; `ensures: result >= -8 && result <= 7` | runtime-checked (0 sentinel trio + nibble range) |
+| `hid_item_data_bytes` | `ensures: i < 0 => result is Err`; `ensures: i >= d.item_type.len() => result is Err` | runtime-checked (Err guard pair; no payload-length claim) |
+| `hid_item_bytes` | `ensures: i < 0 => result is Err`; `ensures: i >= d.item_type.len() => result is Err` | runtime-checked (Err guard pair; no payload-length claim) |
+| `hid_item_depth` | `ensures: i < 0 => result == -1`; `ensures: i >= d.item_depth.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < d.item_depth.len()` | runtime-checked (-1 sentinel trio) |
+| `hid_item_stack` | `ensures: i < 0 => result == -1`; `ensures: i >= d.item_stack.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < d.item_stack.len()` | runtime-checked (-1 sentinel trio) |
+| `hid_item_collection_kind` | `ensures: i < 0 => result == -1`; `ensures: result != -1 => i >= 0 && i < d.item_type.len()` | runtime-checked (-1 guard pair) |
+| `hid_item_usage` | `ensures: i < 0 => result == -1`; `ensures: result != -1 => i >= 0 && i < d.item_type.len()` | runtime-checked (-1 guard pair) |
+| `hid_item_usage_page` | `ensures: i < 0 => result == 0`; `ensures: i >= d.item_usage_page.len() => result == 0`; `ensures: result != 0 => i >= 0 && i < d.item_usage_page.len()` | runtime-checked (0 sentinel trio) |
+| `hid_emit` | `ensures: (d.item_type.len() == 0 && d.item_tag.len() == 0 && d.item_size.len() == 0 && d.item_data.len() == 0 && d.item_raw.len() == 0 && d.item_depth.len() == 0 && d.item_stack.len() == 0 && d.item_usage_page.len() == 0) => result is Ok` | runtime-checked (empty-store conjunction; no payload-length claim) |
 
 ## Known limitations
 
@@ -437,7 +482,7 @@ Last verified: compiler 0.61.3,
   can corrupt its invariants, and `hid_emit` rejects such stores instead of
   repairing them.
 
-## Compiler / stdlib notes for v0.61.3
+## Compiler / stdlib notes for v0.64.0
 
 - `Ok`/`Err` construction is confined to the tiny leaf helpers
   `_ok_desc`/`_err_desc`/`_ok_bytes`/`_err_bytes` (constructing struct

@@ -131,7 +131,9 @@ pub const HID_LOCAL_DELIMITER: Int = 10;
 /// accepted collection is opened at depth 31; opening one at depth 32 (or
 /// deeper) is rejected with
 /// `Err("hid: collection nesting exceeds limit of 32")`.
-pub fn hid_max_collection_depth() -> Int {
+pub fn hid_max_collection_depth() -> Int
+  ensures: result == 32;
+{
   return 32;
 }
 
@@ -376,7 +378,10 @@ fn _add_item(h: &mut HidDescriptor, t: Int, tag: Int, sz: Int, data: Int, raw: V
 /// first). Reserved tags are never silently accepted, and long items are
 /// preserved verbatim without interpreting their tag.
 /// Complexity: O(data.len()).
-pub fn hid_parse(data: &Vec[UInt8]) -> Result[HidDescriptor, Str] {
+pub fn hid_parse(data: &Vec[UInt8]) -> Result[HidDescriptor, Str]
+  ensures: data.len() == 0 => result is Ok;
+  ensures: result is Err => data.len() > 0;
+{
   var h = _hid_new();
   let total = data.len();
   var pos = 0;
@@ -474,14 +479,21 @@ pub fn hid_parse(data: &Vec[UInt8]) -> Result[HidDescriptor, Str] {
 
 /// Number of items in the stream (short and long).
 /// Complexity: O(1).
-pub fn hid_item_count(d: &HidDescriptor) -> Int {
+pub fn hid_item_count(d: &HidDescriptor) -> Int
+  ensures: result == d.item_type.len();
+  ensures: result >= 0;
+{
   return d.item_type.len();
 }
 
 /// Item type of item `i` (`HID_TYPE_MAIN`, `HID_TYPE_GLOBAL`,
 /// `HID_TYPE_LOCAL` or `HID_TYPE_LONG`), or -1 for an out-of-range index.
 /// Complexity: O(1).
-pub fn hid_item_type(d: &HidDescriptor, i: Int) -> Int {
+pub fn hid_item_type(d: &HidDescriptor, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= d.item_type.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < d.item_type.len();
+{
   if i < 0 || i >= d.item_type.len() {
     return -1;
   }
@@ -492,7 +504,11 @@ pub fn hid_item_type(d: &HidDescriptor, i: Int) -> Int {
 /// bTag of item `i` (the bLongItemTag for long items, 0..255), or -1 for an
 /// out-of-range index.
 /// Complexity: O(1).
-pub fn hid_item_tag(d: &HidDescriptor, i: Int) -> Int {
+pub fn hid_item_tag(d: &HidDescriptor, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= d.item_tag.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < d.item_tag.len();
+{
   if i < 0 || i >= d.item_tag.len() {
     return -1;
   }
@@ -503,7 +519,11 @@ pub fn hid_item_tag(d: &HidDescriptor, i: Int) -> Int {
 /// Number of data bytes of item `i`: 0, 1 or 2 for short items, the
 /// bDataSize value (0..255) for long items, or -1 for an out-of-range index.
 /// Complexity: O(1).
-pub fn hid_item_size(d: &HidDescriptor, i: Int) -> Int {
+pub fn hid_item_size(d: &HidDescriptor, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= d.item_size.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < d.item_size.len();
+{
   if i < 0 || i >= d.item_size.len() {
     return -1;
   }
@@ -515,7 +535,11 @@ pub fn hid_item_size(d: &HidDescriptor, i: Int) -> Int {
 /// short item, 0 for a long item), or 0 for an out-of-range index (0 is also
 /// a legal data value; check the index first when that matters).
 /// Complexity: O(1).
-pub fn hid_item_data(d: &HidDescriptor, i: Int) -> Int {
+pub fn hid_item_data(d: &HidDescriptor, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= d.item_data.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < d.item_data.len();
+{
   if i < 0 || i >= d.item_data.len() {
     return 0;
   }
@@ -529,7 +553,11 @@ pub fn hid_item_data(d: &HidDescriptor, i: Int) -> Int {
 /// Report Size/Count and the other signed integer items. Long items and
 /// out-of-range indexes yield 0.
 /// Complexity: O(1).
-pub fn hid_item_data_signed(d: &HidDescriptor, i: Int) -> Int {
+pub fn hid_item_data_signed(d: &HidDescriptor, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= d.item_type.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < d.item_type.len();
+{
   if i < 0 || i >= d.item_type.len() {
     return 0;
   }
@@ -556,7 +584,12 @@ pub fn hid_item_data_signed(d: &HidDescriptor, i: Int) -> Int {
 /// every item (and yields 0 for size 0, long items and out-of-range
 /// indexes).
 /// Complexity: O(1).
-pub fn hid_item_data_nibble_signed(d: &HidDescriptor, i: Int) -> Int {
+pub fn hid_item_data_nibble_signed(d: &HidDescriptor, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= d.item_data.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < d.item_data.len();
+  ensures: result >= -8 && result <= 7;
+{
   if i < 0 || i >= d.item_data.len() {
     return 0;
   }
@@ -576,7 +609,10 @@ pub fn hid_item_data_nibble_signed(d: &HidDescriptor, i: Int) -> Int {
 /// Err("hid: item index out of range") when `i` is negative or >=
 /// `hid_item_count(d)`.
 /// Complexity: O(data size).
-pub fn hid_item_data_bytes(d: &HidDescriptor, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn hid_item_data_bytes(d: &HidDescriptor, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= d.item_type.len() => result is Err;
+{
   if i < 0 || i >= d.item_type.len() {
     return _err_bytes("hid: item index out of range");
   }
@@ -600,7 +636,10 @@ pub fn hid_item_data_bytes(d: &HidDescriptor, i: Int) -> Result[Vec[UInt8], Str]
 /// Err("hid: item index out of range") when `i` is negative or >=
 /// `hid_item_count(d)`.
 /// Complexity: O(item size).
-pub fn hid_item_bytes(d: &HidDescriptor, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn hid_item_bytes(d: &HidDescriptor, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= d.item_type.len() => result is Err;
+{
   if i < 0 || i >= d.item_type.len() {
     return _err_bytes("hid: item index out of range");
   }
@@ -626,7 +665,11 @@ pub fn hid_item_bytes(d: &HidDescriptor, i: Int) -> Result[Vec[UInt8], Str] {
 /// this is the depth of the collection it opens, and for its End Collection
 /// the depth of the collection it closes; -1 for an out-of-range index.
 /// Complexity: O(1).
-pub fn hid_item_depth(d: &HidDescriptor, i: Int) -> Int {
+pub fn hid_item_depth(d: &HidDescriptor, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= d.item_depth.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < d.item_depth.len();
+{
   if i < 0 || i >= d.item_depth.len() {
     return -1;
   }
@@ -638,7 +681,11 @@ pub fn hid_item_depth(d: &HidDescriptor, i: Int) -> Int {
 /// by a Pop (a Push item reports the incremented balance, a Pop the
 /// decremented one), or -1 for an out-of-range index.
 /// Complexity: O(1).
-pub fn hid_item_stack(d: &HidDescriptor, i: Int) -> Int {
+pub fn hid_item_stack(d: &HidDescriptor, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= d.item_stack.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < d.item_stack.len();
+{
   if i < 0 || i >= d.item_stack.len() {
     return -1;
   }
@@ -651,7 +698,10 @@ pub fn hid_item_stack(d: &HidDescriptor, i: Int) -> Int {
 /// 6 Usage Modifier) of item `i`, or -1 when item `i` is not a Collection or
 /// the index is out of range.
 /// Complexity: O(1).
-pub fn hid_item_collection_kind(d: &HidDescriptor, i: Int) -> Int {
+pub fn hid_item_collection_kind(d: &HidDescriptor, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: result != -1 => i >= 0 && i < d.item_type.len();
+{
   if i < 0 || i >= d.item_type.len() {
     return -1;
   }
@@ -674,7 +724,10 @@ pub fn hid_item_collection_kind(d: &HidDescriptor, i: Int) -> Int {
 /// extended usages: the usage ID is always the recorded data value and the
 /// page comes from `hid_item_usage_page`.
 /// Complexity: O(1).
-pub fn hid_item_usage(d: &HidDescriptor, i: Int) -> Int {
+pub fn hid_item_usage(d: &HidDescriptor, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: result != -1 => i >= 0 && i < d.item_type.len();
+{
   if i < 0 || i >= d.item_type.len() {
     return -1;
   }
@@ -707,7 +760,11 @@ pub fn hid_item_usage(d: &HidDescriptor, i: Int) -> Int {
 /// state at every item, not just the most recent Usage Page item in stream
 /// order.
 /// Complexity: O(1).
-pub fn hid_item_usage_page(d: &HidDescriptor, i: Int) -> Int {
+pub fn hid_item_usage_page(d: &HidDescriptor, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= d.item_usage_page.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < d.item_usage_page.len();
+{
   if i < 0 || i >= d.item_usage_page.len() {
     return 0;
   }
@@ -839,7 +896,9 @@ fn _emit_item(d: &HidDescriptor, i: Int, out: &mut Vec[UInt8]) {
 /// recorded depth/push-pop/page values do not match a fresh walk of the
 /// stored items.
 /// Complexity: O(emitted size).
-pub fn hid_emit(d: &HidDescriptor) -> Result[Vec[UInt8], Str] {
+pub fn hid_emit(d: &HidDescriptor) -> Result[Vec[UInt8], Str]
+  ensures: (d.item_type.len() == 0 && d.item_tag.len() == 0 && d.item_size.len() == 0 && d.item_data.len() == 0 && d.item_raw.len() == 0 && d.item_depth.len() == 0 && d.item_stack.len() == 0 && d.item_usage_page.len() == 0) => result is Ok;
+{
   if !_well_formed(d) {
     return _err_bytes("hid: invalid store");
   }
