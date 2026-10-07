@@ -1,8 +1,6 @@
 # xiom.fletcher -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.fletcher`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/fletcher.xi` (`module xiom.fletcher`).
 Depends on `xiom.std`; the library module imports `xiom.string` (for the
 hex display helpers); the tests import `xiom.test`, `xiom.io`,
@@ -191,6 +189,53 @@ Every other function is total: the one-shot functions, `init`, the unchecked
 The message is deterministic and identical across both widths and all four
 rejection paths; the tests pin it with `compare.str_compare` (never `==` on
 `Str`).
+
+## Contracts
+
+Runtime-checkable `ensures:` clauses on `src/fletcher.xi` (hardening pass
+2026-10-07, compiler v0.64.0; no manifest change in this pass). 40 clauses
+across the 16 public entry points. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.fletcher -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active; no clause was dropped (both probe-gated empty-data definitional
+clauses passed both runs).
+
+The `_update` empty-data definitional clauses call `fletcherNN_finalize`;
+finalize calls the private canonicalizers `_f16_canon`/`_f32_canon`, not
+`_f16_bytes`/`_f32_bytes`, so no clause calls a function that transitively
+calls the callee under contract (no runtime-evaluator re-entry). The
+`*_checked` guard clauses call the total predicates
+`fletcherNN_state_valid`, which call nothing.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `fletcher16_init` | `ensures: result == 0` | Z3-provable (pure scalar) |
+| `fletcher16` | `ensures: result >= 0`; `ensures: result <= 65278`; `ensures: data.len() == 0 => result == 0` | Z3-provable (bounds); runtime-checked (empty-input identity) |
+| `fletcher16_update` | `ensures: result >= 0`; `ensures: result <= 65278`; `ensures: data.len() == 0 => result == fletcher16_finalize(state)` | Z3-provable (bounds); runtime-checked (empty-update definitional) |
+| `fletcher16_finalize` | `ensures: result >= 0`; `ensures: result <= 65278`; `ensures: fletcher16_state_valid(state) => result == state` | Z3-provable (bounds); runtime-checked (canonical identity) |
+| `fletcher16_state_valid` | `ensures: state < 0 => !result`; `ensures: state > 65278 => !result`; `ensures: result => state >= 0 && state <= 65278` | Z3-provable (pure scalar) |
+| `fletcher16_update_checked` | `ensures: !fletcher16_state_valid(state) => result is Err`; `ensures: fletcher16_state_valid(state) => result is Ok`; `ensures: result is Ok => result.value >= 0 && result.value <= 65278` | runtime-checked (guard pair); Z3-provable (Ok scalar bounds) |
+| `fletcher16_finalize_checked` | same guard pair; same Ok scalar bounds | runtime-checked (guard pair); Z3-provable (Ok scalar bounds) |
+| `fletcher16_hex` | `ensures: result.len() == 4` | runtime-checked (built `Str` length) |
+| `fletcher32_init` | `ensures: result == 0` | Z3-provable (pure scalar) |
+| `fletcher32` | `ensures: result >= 0`; `ensures: result <= 4294901758`; `ensures: data.len() == 0 => result == 0` | Z3-provable (bounds); runtime-checked (empty-input identity) |
+| `fletcher32_update` | `ensures: result >= 0`; `ensures: result <= 4294901758`; `ensures: data.len() == 0 => result == fletcher32_finalize(state)` | Z3-provable (bounds); runtime-checked (empty-update definitional) |
+| `fletcher32_finalize` | `ensures: result >= 0`; `ensures: result <= 4294901758`; `ensures: fletcher32_state_valid(state) => result == state` | Z3-provable (bounds); runtime-checked (canonical identity) |
+| `fletcher32_state_valid` | `ensures: state < 0 => !result`; `ensures: state > 4294901758 => !result`; `ensures: result => state >= 0 && state <= 4294901758` | Z3-provable (pure scalar) |
+| `fletcher32_update_checked` | `ensures: !fletcher32_state_valid(state) => result is Err`; `ensures: fletcher32_state_valid(state) => result is Ok`; `ensures: result is Ok => result.value >= 0 && result.value <= 4294901758` | runtime-checked (guard pair); Z3-provable (Ok scalar bounds) |
+| `fletcher32_finalize_checked` | same guard pair; same Ok scalar bounds | runtime-checked (guard pair); Z3-provable (Ok scalar bounds) |
+| `fletcher32_hex` | `ensures: result.len() == 8` | runtime-checked (built `Str` length) |
+
+`65278`/`4294901758` are the inlined `_F16_MAX_STATE`/`_F32_MAX_STATE`
+literals (module consts are not used inside clauses). Excluded by the
+plan's forbidden shapes: checksum-content identities (Str equality, BUG 17
+family) and the optional `state % 256`/`state % 65536` low-component
+extras; the pinned vectors stay guaranteed by the conformance suite.
+
+Z3-provable = pure scalar guard/form/bounds over parameters and `result`
+(no calls, no vector/`Str` reads). Runtime-checked = the clause evaluates
+parameters through `data.len()`/`result.len()` or calls another function;
+both classes are enforced by the v0.64.0 runtime evaluator.
 
 ## Test vectors
 

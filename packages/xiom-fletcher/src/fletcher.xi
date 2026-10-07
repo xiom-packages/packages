@@ -192,7 +192,9 @@ fn _f32_bytes(state: Int, data: &Vec[UInt8]) -> Int {
 /// Returns: 0, the Fletcher-16 checksum of the empty input.
 /// Error case: none (total).
 /// Complexity: O(1).
-pub fn fletcher16_init() -> Int {
+pub fn fletcher16_init() -> Int
+  ensures: result == 0;
+{
   return 0;
 }
 
@@ -202,7 +204,11 @@ pub fn fletcher16_init() -> Int {
 /// in [0, 65278]; the empty input yields 0.
 /// Error case: none (total).
 /// Complexity: O(data.len()) time, O(1) space.
-pub fn fletcher16(data: &Vec[UInt8]) -> Int {
+pub fn fletcher16(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0;
+  ensures: result <= 65278;
+  ensures: data.len() == 0 => result == 0;
+{
   return _f16_bytes(0, data);
 }
 
@@ -215,7 +221,11 @@ pub fn fletcher16(data: &Vec[UInt8]) -> Int {
 /// Error case: none (total; use fletcher16_update_checked for strict state
 /// validation).
 /// Complexity: O(data.len()) time, O(1) space.
-pub fn fletcher16_update(state: Int, data: &Vec[UInt8]) -> Int {
+pub fn fletcher16_update(state: Int, data: &Vec[UInt8]) -> Int
+  ensures: result >= 0;
+  ensures: result <= 65278;
+  ensures: data.len() == 0 => result == fletcher16_finalize(state);
+{
   return _f16_bytes(state, data);
 }
 
@@ -229,7 +239,11 @@ pub fn fletcher16_update(state: Int, data: &Vec[UInt8]) -> Int {
 /// Error case: none (total; use fletcher16_finalize_checked for strict state
 /// validation).
 /// Complexity: O(1).
-pub fn fletcher16_finalize(state: Int) -> Int {
+pub fn fletcher16_finalize(state: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= 65278;
+  ensures: fletcher16_state_valid(state) => result == state;
+{
   return _f16_canon(state);
 }
 
@@ -241,7 +255,11 @@ pub fn fletcher16_finalize(state: Int) -> Int {
 /// Returns: true for the canonical range [0, 65278] with sum1 <= 254.
 /// Error case: none (total predicate).
 /// Complexity: O(1).
-pub fn fletcher16_state_valid(state: Int) -> Bool {
+pub fn fletcher16_state_valid(state: Int) -> Bool
+  ensures: state < 0 => !result;
+  ensures: state > 65278 => !result;
+  ensures: result => state >= 0 && state <= 65278;
+{
   if state < 0 {
     return false;
   }
@@ -263,7 +281,11 @@ pub fn fletcher16_state_valid(state: Int) -> Bool {
 /// Error case: Err("fletcher: invalid state") when the state is not
 /// canonical; `data` is not read in that case.
 /// Complexity: O(data.len()) time, O(1) space.
-pub fn fletcher16_update_checked(state: Int, data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn fletcher16_update_checked(state: Int, data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: !fletcher16_state_valid(state) => result is Err;
+  ensures: fletcher16_state_valid(state) => result is Ok;
+  ensures: result is Ok => result.value >= 0 && result.value <= 65278;
+{
   if !fletcher16_state_valid(state) {
     return _err_int("fletcher: invalid state");
   }
@@ -279,7 +301,11 @@ pub fn fletcher16_update_checked(state: Int, data: &Vec[UInt8]) -> Result[Int, S
 /// Error case: Err("fletcher: invalid state") when the state is not
 /// canonical.
 /// Complexity: O(1).
-pub fn fletcher16_finalize_checked(state: Int) -> Result[Int, Str] {
+pub fn fletcher16_finalize_checked(state: Int) -> Result[Int, Str]
+  ensures: !fletcher16_state_valid(state) => result is Err;
+  ensures: fletcher16_state_valid(state) => result is Ok;
+  ensures: result is Ok => result.value >= 0 && result.value <= 65278;
+{
   if !fletcher16_state_valid(state) {
     return _err_int("fletcher: invalid state");
   }
@@ -294,7 +320,9 @@ pub fn fletcher16_finalize_checked(state: Int) -> Result[Int, Str] {
 /// Returns: 0, the Fletcher-32 checksum of the empty input.
 /// Error case: none (total).
 /// Complexity: O(1).
-pub fn fletcher32_init() -> Int {
+pub fn fletcher32_init() -> Int
+  ensures: result == 0;
+{
   return 0;
 }
 
@@ -304,7 +332,11 @@ pub fn fletcher32_init() -> Int {
 /// in [0, 4294901758]; the empty input yields 0.
 /// Error case: none (total).
 /// Complexity: O(data.len()) time, O(1) space.
-pub fn fletcher32(data: &Vec[UInt8]) -> Int {
+pub fn fletcher32(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0;
+  ensures: result <= 4294901758;
+  ensures: data.len() == 0 => result == 0;
+{
   return _f32_bytes(0, data);
 }
 
@@ -317,7 +349,11 @@ pub fn fletcher32(data: &Vec[UInt8]) -> Int {
 /// Error case: none (total; use fletcher32_update_checked for strict state
 /// validation).
 /// Complexity: O(data.len()) time, O(1) space.
-pub fn fletcher32_update(state: Int, data: &Vec[UInt8]) -> Int {
+pub fn fletcher32_update(state: Int, data: &Vec[UInt8]) -> Int
+  ensures: result >= 0;
+  ensures: result <= 4294901758;
+  ensures: data.len() == 0 => result == fletcher32_finalize(state);
+{
   return _f32_bytes(state, data);
 }
 
@@ -331,7 +367,11 @@ pub fn fletcher32_update(state: Int, data: &Vec[UInt8]) -> Int {
 /// Error case: none (total; use fletcher32_finalize_checked for strict state
 /// validation).
 /// Complexity: O(1).
-pub fn fletcher32_finalize(state: Int) -> Int {
+pub fn fletcher32_finalize(state: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= 4294901758;
+  ensures: fletcher32_state_valid(state) => result == state;
+{
   return _f32_canon(state);
 }
 
@@ -343,7 +383,11 @@ pub fn fletcher32_finalize(state: Int) -> Int {
 /// Returns: true for the canonical range [0, 4294901758] with sum1 <= 65534.
 /// Error case: none (total predicate).
 /// Complexity: O(1).
-pub fn fletcher32_state_valid(state: Int) -> Bool {
+pub fn fletcher32_state_valid(state: Int) -> Bool
+  ensures: state < 0 => !result;
+  ensures: state > 4294901758 => !result;
+  ensures: result => state >= 0 && state <= 4294901758;
+{
   if state < 0 {
     return false;
   }
@@ -365,7 +409,11 @@ pub fn fletcher32_state_valid(state: Int) -> Bool {
 /// Error case: Err("fletcher: invalid state") when the state is not
 /// canonical; `data` is not read in that case.
 /// Complexity: O(data.len()) time, O(1) space.
-pub fn fletcher32_update_checked(state: Int, data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn fletcher32_update_checked(state: Int, data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: !fletcher32_state_valid(state) => result is Err;
+  ensures: fletcher32_state_valid(state) => result is Ok;
+  ensures: result is Ok => result.value >= 0 && result.value <= 4294901758;
+{
   if !fletcher32_state_valid(state) {
     return _err_int("fletcher: invalid state");
   }
@@ -381,7 +429,11 @@ pub fn fletcher32_update_checked(state: Int, data: &Vec[UInt8]) -> Result[Int, S
 /// Error case: Err("fletcher: invalid state") when the state is not
 /// canonical.
 /// Complexity: O(1).
-pub fn fletcher32_finalize_checked(state: Int) -> Result[Int, Str] {
+pub fn fletcher32_finalize_checked(state: Int) -> Result[Int, Str]
+  ensures: !fletcher32_state_valid(state) => result is Err;
+  ensures: fletcher32_state_valid(state) => result is Ok;
+  ensures: result is Ok => result.value >= 0 && result.value <= 4294901758;
+{
   if !fletcher32_state_valid(state) {
     return _err_int("fletcher: invalid state");
   }
@@ -407,7 +459,9 @@ fn _hex_digit(n: Int) -> Str {
 /// Error case: none (total); the output contains only hex digits, so no NUL
 /// byte can reach the string builder.
 /// Complexity: O(1).
-pub fn fletcher16_hex(value: Int) -> Str {
+pub fn fletcher16_hex(value: Int) -> Str
+  ensures: result.len() == 4;
+{
   var v = _residue(value, _F16_STATE_RANGE);
   var out = "";
   var i = 0;
@@ -428,7 +482,9 @@ pub fn fletcher16_hex(value: Int) -> Str {
 /// Error case: none (total); the output contains only hex digits, so no NUL
 /// byte can reach the string builder.
 /// Complexity: O(1).
-pub fn fletcher32_hex(value: Int) -> Str {
+pub fn fletcher32_hex(value: Int) -> Str
+  ensures: result.len() == 8;
+{
   var v = _residue(value, _F32_STATE_RANGE);
   var out = "";
   var i = 0;
