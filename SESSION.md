@@ -14,6 +14,25 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-07 15:30Z (batch #18 COMPLETE + PULSE wave fully published; supersedes the 13:00Z block below):**
+- **Batch #18 DONE + PUBLISHED (`eco-v0.1.67`, run `37642771345` SUCCESS -- after GitHub
+  transient 500s on push; the third attempt worked):** `term` 0.1.2 (20 clauses; 2 Z3-proven),
+  `lexing` 0.1.2 (12), `wasm` 0.1.2 (13), `ini` 0.1.2 (16), `bitfield` 0.1.2 (37;
+  **22 Z3-proven / 0 violated** -- strongest Z3 yield so far), `tsv` 0.1.2 (19; incl. the
+  escape->unescape round-trip); all x2 green. Feats: `4e8bf506`, `c7641176`, `6ed7f87d`,
+  `485b4f81`, `b04d28e2`, `7986ca8a`; wrap `3910b37d`; live-verified all six at 0.1.2.
+  **~187 zero-clause stable carriers remain.**
+- **PULSE wave fully published:** `session` 0.1.0, `static` 0.1.0, `kv` 0.1.0 live after the
+  ops scope extension (503/503) and the `37636386772` rerun SUCCESS (`http.middleware` was
+  already live via the `xiom.http.*` namespace scope). No outstanding ops item.
+- **Today at a glance:** hardening batches #15-#18 = 24 packages published
+  (`eco-v0.1.64`-`.67`); Tier-2 crypto retirement (`aws`/`saml` -> `xiom.crypto`); PULSE
+  package wave (http/jwt/rate/metrics/router/middleware/session/static/kv); findings filed
+  with repros (m192 grpc RED on v0.64.0, `Vec[Struct].clone()` crash, `io.list_dir` garbage,
+  `io.xi:943` false ensures, DateTime weekday mismatch).
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-07 13:00Z (resume after 2-day idle -- state reconciled):**
 - Repo unchanged since `d19c7046` (Oct 5); validate 515/0, guard 500/460/40/0; compiler
   v0.64.0 installed. **`eco-v0.1.63` completed SUCCESS on its rerun** (the guard job's first
@@ -1200,7 +1219,59 @@ running). Check `git log -1 --format=%h %s` before starting.
    category harmonization = owner decision; (d) keep the port watchdog
    discipline.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 15:30Z)
+
+```
+You are the packages session for xiom-packages/packages (local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
+Read SESSION.md first -- the 2026-10-07 15:30Z STATE block is the live handoff.
+Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
+
+STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
+NO XIOM_RUNTIME_DIR needed (runtime-link + crypto-link RESOLVED; workaround retired).
+Validate 519/0; guard 504/464/40/0. PULSE wave fully published; hardening batches
+#15-#18 published (eco-v0.1.64-.67, 24 packages); ~187 zero-clause stable carriers
+remain. `option` stays excluded (documented all-unasserted).
+
+Start: git fetch; git status -sb; git log -1; then
+  $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
+  & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
+
+Then do, in order:
+1. Hardening batch #19 (FAN-OUT): rescan zero-clause stable carriers
+   (`scripts/contract-coverage.ps1` and the scan pattern in SESSION history), skip
+   `option`; dispatch a read-only explore pre-plan agent for the next six smallest
+   (proven families; forbidden shapes: tuple-component, payload-length-vs-parameter on
+   Result payloads, struct-result payloads, Str equality, and clause calls that
+   transitively reach the callee; inline literals; drift traps). Write
+   %TEMP%\kilo\batch19-clause-plan.md, then one background `task` porter per package
+   (brief: %TEMP%\kilo\batch12-porter-brief.md; port x2; bracket scan; SPEC Contracts +
+   header sync; NO git; NO shared files; explicit-path cleanup). Integrate each report:
+   coordinator port x2, patch bump in package.xi, `feat` commit exact files, record with
+   the real sha and `-RunBy task:ses_...`. Wrap + publish `eco-v0.1.68` (generate_index,
+   report, validate, guard, export-namespaces, tag, approve the registry-publish gate,
+   watch; all candidates already in scope -- no ops delta). If GitHub returns transient
+   500s on push, wait ~60-90s and retry (the third attempt succeeded on 2026-10-07).
+2. Next compiler archive: re-test ONLY the open findings -- grpc `probe_suite_min`/
+   `probe_direct` (m192 candidate did NOT clear it on v0.64.0; still crashes
+   0xC0000005), `docs/repro/struct-clone/` (`Vec[Struct].clone()`), `docs/repro/
+   tuple-vec-set/`, plus the reported `io.list_dir` garbage entries and the
+   `io.xi:943` false `ensures` in multi-module programs. runtime-link/crypto-link are
+   RESOLVED. On green: finish grpc (named-constant arms per m188, x2, record) and publish.
+3. PULSE support: PULSE consumes the registry (its wave is fully published: http 0.1.1,
+   jwt 0.2.0, rate 0.2.0, metrics 0.2.0, router 0.1.0, http.middleware 0.1.0, session
+   0.1.0, static 0.1.0, kv 0.1.0). Triage new `docs/PACKAGE-WISHLIST.md` rows from
+   consumer reports; new package names need an allowlist append + one ops scope relay.
+4. Carry-forwards: `-TimeoutSec 60` watchdog (raise per package); port x2 + byte-level
+   bracket scan on every touched package; SPEC headers synced when touched; bump ONLY
+   when source changes; `xiom-verify` writes `xiom_verify_output.smt2` to the CWD (run it
+   with the package dir as CWD and clean by literal path); never use `Vec[(Str,Str)]`
+   (m192 live); never read `&mut` params bare (C-PULSE-04); update SESSION.md at the wrap
+   with a fresh paste prompt.
+```
+
+### Older prompt (history, superseded 2026-10-07)
+
 
 ```
 You are the packages session for xiom-packages/packages (local
