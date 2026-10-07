@@ -12,7 +12,7 @@
 
 package xiom_jwt {
   name: "xiom.jwt";
-  version: "0.2.0";
+  version: "0.2.1";
   description: "JWT structural decoding and HS256 sign/verify: headers, claims, timestamps, constant-time MAC";
   categories: ["data", "crypto-security"];
   keywords: ["jwt", "token", "claims", "decode", "hs256", "signing"];

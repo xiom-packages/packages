@@ -1,8 +1,6 @@
 # xiom.jwt -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.63.1; not
-published).
-Manifest: `package.xi` (`xiom.jwt`, version `0.1.1`).
+Version: 0.2.1 (stable; published on the XIOM registry).
 Module: `src/jwt.xi` (`module xiom.jwt`).
 Depends on `xiom.std` (`xiom.string`, `xiom.crypto`). The package declares no
 FFI of its own; HS256 links the stdlib HMAC-SHA-256 (runtime C SHA-256), no
@@ -263,3 +261,55 @@ Expected: namespace check OK, 30 `[PASS]`, 0 `[FAIL]`, and
 - 5-segment tokens are counted, not decoded.
 - Clock access, key storage, JWKS fetching, revocation.
 - Registry integration (no `xiom pkg`, no `STATUS.json` writes by the package).
+
+## Contracts (batch #37 hardening pass, 2026-10-07)
+
+Every public entry point carries runtime-checkable `ensures:` clauses, placed
+directly after the signature (two-space indent, before `{`). No `requires:`
+clauses were added, so the accepted-input domain is unchanged. 32 clauses
+across the 14 public entry points; two consecutive
+`.\scripts\port.ps1 -Package xiom.jwt -TimeoutSec 60` runs ended
+`port: PASS (passed=30 failed=0 program_exit=0 exit=0)` with the clauses
+active (13.02 s and 13.70 s; `package.xi` stays at 0.2.0, the version in the
+header is the coordinator's next patch). Every clause observes a `Str`/`Vec`
+length or a `Result`/`Bool` guard, so none is a pure-scalar arithmetic claim:
+`xiom-verify src\jwt.xi --check` (v0.64.0, Z3) reported 0 proven / 30 unknown
+(`X7007`, unresolved operand sorts) / 1 `X7001` refutation / 31 emitter
+errors; the single refutation is the known `unknown constant _seg_count
+(String)` SMT emitter bug and the tool states it is "not a proof failure of
+the code under test". All 32 clauses are therefore runtime-checked by the
+v0.64.0 evaluator; none is Z3-provable. Tag: **[RT]** = runtime-checked.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `jwt_segment_count` | [RT] `result >= 1`; [RT] `result <= token.len() + 1` | runtime-checked (Int + Str length) |
+| `jwt_is_shaped` | [RT] `token.len() == 0 => !result`; [RT] `result => token.len() >= 5` | runtime-checked (Bool guard pair) |
+| `jwt_decode_segment` | [RT] `index < 0 => result is Err`; [RT] `token.len() == 0 => result is Err`; [RT] `result is Ok => index >= 0 && index < jwt_segment_count(token)` | runtime-checked (guard pair + non-re-entrant segment-count cross-call) |
+| `jwt_header_text` | [RT] `token.len() == 0 => result is Err`; [RT] `result is Ok => jwt_segment_count(token) == 3` | runtime-checked (Str length + Result tag + cross-call) |
+| `jwt_payload_text` | [RT] `token.len() == 0 => result is Err`; [RT] `result is Ok => jwt_segment_count(token) == 3` | runtime-checked (Str length + Result tag + cross-call) |
+| `jwt_signature_text` | [RT] `token.len() == 0 => result is Err`; [RT] `result is Ok => jwt_segment_count(token) == 3` | runtime-checked (Str length + Result tag + cross-call) |
+| `jwt_alg` | [RT] `token.len() == 0 => result is Err`; [RT] `result is Ok => jwt_segment_count(token) == 3` | runtime-checked (Str length + Result tag + cross-call) |
+| `jwt_claim_str` | [RT] `token.len() == 0 => result is Err`; [RT] `name.len() == 0 => result is Err`; [RT] `result is Ok => jwt_segment_count(token) == 3` | runtime-checked (Str lengths + Result tag + cross-call) |
+| `jwt_claim_int` | [RT] `token.len() == 0 => result is Err`; [RT] `name.len() == 0 => result is Err`; [RT] `result is Ok => jwt_segment_count(token) == 3` | runtime-checked (Str lengths + Result tag + cross-call) |
+| `jwt_expired` | [RT] `token.len() == 0 => result is Err` | runtime-checked (Str length + Result tag) |
+| `jwt_not_before_ok` | [RT] `token.len() == 0 => result is Err` | runtime-checked (Str length + Result tag) |
+| `jwt_sign_hs256` | [RT] `secret.len() == 0 => result is Err`; [RT] `claims.len() == 0 => result is Err`; [RT] `result is Ok => result.value.len() >= 83` | runtime-checked (Vec/Str lengths + Result tag) |
+| `jwt_signature_valid_hs256` | [RT] `secret.len() == 0 => result is Err`; [RT] `token.len() == 0 => result is Err`; [RT] `result is Ok => jwt_segment_count(token) == 3` | runtime-checked (Vec/Str lengths + Result tag + cross-call) |
+| `jwt_verify_hs256` | [RT] `secret.len() == 0 => result is Err`; [RT] `token.len() == 0 => result is Err`; [RT] `result is Ok => jwt_segment_count(token) == 3` | runtime-checked (Vec/Str lengths + Result tag + cross-call) |
+
+The `jwt_sign_hs256` lower bound is the exact minimum compact token: the fixed
+27-byte header `{"alg":"HS256","typ":"JWT"}` encodes to 36 base64url
+characters, the shortest accepted claims string is 1 byte (2 characters), and
+the 32-byte HMAC-SHA-256 tag encodes to 43 characters, so
+`36 + 1 + 2 + 1 + 43 = 83`. The only cross-calls used are the non-re-entrant
+`jwt_segment_count(token)`; token-shape clauses use `.len()` only.
+
+Deliberately not claimed: no `exp`/`nbf` time-semantics claims; no `.value`
+reads on `jwt_expired`/`jwt_not_before_ok`; no `Str` equality (BUG 17;
+`.len()` only); no payload-length-vs-parameter clause on any `Result` payload;
+no vector indexing, tuple-component access or struct payload reads.
+
+Hand-built rule: every clause holds for hand-built tokens/values too --
+`jwt_segment_count` counts dots in any `Str`, the `jwt_is_shaped` length floor
+of 5 follows from 3 non-empty segments plus 2 separators, and the sentinel
+clauses guard on parameters, never on parsed payload fields.

@@ -566,7 +566,10 @@ fn _int_value(text: Str, key: Str) -> Result[Int, Str] {
 /// without dots, 1 for the empty string (one empty piece).
 /// Error case: none.
 /// Complexity: O(token.len()).
-pub fn jwt_segment_count(token: Str) -> Int {
+pub fn jwt_segment_count(token: Str) -> Int
+  ensures: result >= 1;
+  ensures: result <= token.len() + 1;
+{
   return _seg_count(token);
 }
 
@@ -579,7 +582,10 @@ pub fn jwt_segment_count(token: Str) -> Int {
 /// Returns: true when the token has the exact 3-segment base64url shape.
 /// Error case: none.
 /// Complexity: O(token.len()).
-pub fn jwt_is_shaped(token: Str) -> Bool {
+pub fn jwt_is_shaped(token: Str) -> Bool
+  ensures: token.len() == 0 => !result;
+  ensures: result => token.len() >= 5;
+{
   if _seg_count(token) != 3 {
     return false;
   }
@@ -610,7 +616,11 @@ pub fn jwt_is_shaped(token: Str) -> Bool {
 /// Err("jwt: invalid base64url character"); Err("jwt: invalid base64url
 /// padding"); Err("jwt: invalid UTF-8").
 /// Complexity: O(segment.len()).
-pub fn jwt_decode_segment(token: Str, index: Int) -> Result[Str, Str] {
+pub fn jwt_decode_segment(token: Str, index: Int) -> Result[Str, Str]
+  ensures: index < 0 => result is Err;
+  ensures: token.len() == 0 => result is Err;
+  ensures: result is Ok => index >= 0 && index < jwt_segment_count(token);
+{
   if index < 0 || index >= _seg_count(token) {
     return _err_str("jwt: segment index out of range");
   }
@@ -633,7 +643,10 @@ pub fn jwt_decode_segment(token: Str, index: Int) -> Result[Str, Str] {
 /// segment count; Err("jwt: empty segment") for an empty header; plus the
 /// base64url/UTF-8 errors of jwt_decode_segment.
 /// Complexity: O(token.len()).
-pub fn jwt_header_text(token: Str) -> Result[Str, Str] {
+pub fn jwt_header_text(token: Str) -> Result[Str, Str]
+  ensures: token.len() == 0 => result is Err;
+  ensures: result is Ok => jwt_segment_count(token) == 3;
+{
   let three = _require_three(token);
   if !three.is_ok {
     return _err_str(three.error);
@@ -654,7 +667,10 @@ pub fn jwt_header_text(token: Str) -> Result[Str, Str] {
 /// segment count; Err("jwt: empty segment") for an empty payload; plus the
 /// base64url/UTF-8 errors of jwt_decode_segment.
 /// Complexity: O(token.len()).
-pub fn jwt_payload_text(token: Str) -> Result[Str, Str] {
+pub fn jwt_payload_text(token: Str) -> Result[Str, Str]
+  ensures: token.len() == 0 => result is Err;
+  ensures: result is Ok => jwt_segment_count(token) == 3;
+{
   let three = _require_three(token);
   if !three.is_ok {
     return _err_str(three.error);
@@ -675,7 +691,10 @@ pub fn jwt_payload_text(token: Str) -> Result[Str, Str] {
 /// Error case: Err("jwt: token is not a 3-segment JWT") for any other
 /// segment count.
 /// Complexity: O(token.len()).
-pub fn jwt_signature_text(token: Str) -> Result[Str, Str] {
+pub fn jwt_signature_text(token: Str) -> Result[Str, Str]
+  ensures: token.len() == 0 => result is Err;
+  ensures: result is Ok => jwt_segment_count(token) == 3;
+{
   let three = _require_three(token);
   if !three.is_ok {
     return _err_str(three.error);
@@ -698,7 +717,10 @@ pub fn jwt_signature_text(token: Str) -> Result[Str, Str] {
 /// has no quoted "alg"; Err("jwt: expected string value") when "alg" is not
 /// followed by a quoted string.
 /// Complexity: O(token.len()).
-pub fn jwt_alg(token: Str) -> Result[Str, Str] {
+pub fn jwt_alg(token: Str) -> Result[Str, Str]
+  ensures: token.len() == 0 => result is Err;
+  ensures: result is Ok => jwt_segment_count(token) == 3;
+{
   let decoded = jwt_header_text(token);
   if !decoded.is_ok {
     return _err_str(decoded.error);
@@ -715,7 +737,11 @@ pub fn jwt_alg(token: Str) -> Result[Str, Str] {
 /// Err("jwt: expected string value") when the value is not a quoted string;
 /// Err("jwt: unterminated string value") when the closing quote is missing.
 /// Complexity: O(token.len()).
-pub fn jwt_claim_str(token: Str, name: Str) -> Result[Str, Str] {
+pub fn jwt_claim_str(token: Str, name: Str) -> Result[Str, Str]
+  ensures: token.len() == 0 => result is Err;
+  ensures: name.len() == 0 => result is Err;
+  ensures: result is Ok => jwt_segment_count(token) == 3;
+{
   let decoded = jwt_payload_text(token);
   if !decoded.is_ok {
     return _err_str(decoded.error);
@@ -735,7 +761,11 @@ pub fn jwt_claim_str(token: Str, name: Str) -> Result[Str, Str] {
 /// digit or '-'; Err("jwt: malformed integer value") for junk after the
 /// digits; Err("jwt: integer out of range") beyond the signed 64-bit range.
 /// Complexity: O(token.len()).
-pub fn jwt_claim_int(token: Str, name: Str) -> Result[Int, Str] {
+pub fn jwt_claim_int(token: Str, name: Str) -> Result[Int, Str]
+  ensures: token.len() == 0 => result is Err;
+  ensures: name.len() == 0 => result is Err;
+  ensures: result is Ok => jwt_segment_count(token) == 3;
+{
   let decoded = jwt_payload_text(token);
   if !decoded.is_ok {
     return _err_int(decoded.error);
@@ -754,7 +784,9 @@ pub fn jwt_claim_int(token: Str, name: Str) -> Result[Int, Str] {
 /// Error case: the payload/decode errors of jwt_claim_int; Err when "exp" is
 /// absent or malformed (never a silent Ok(true)).
 /// Complexity: O(token.len()).
-pub fn jwt_expired(token: Str, now_secs: Int) -> Result[Bool, Str] {
+pub fn jwt_expired(token: Str, now_secs: Int) -> Result[Bool, Str]
+  ensures: token.len() == 0 => result is Err;
+{
   let exp = jwt_claim_int(token, "exp");
   if !exp.is_ok {
     return _err_bool(exp.error);
@@ -776,7 +808,9 @@ pub fn jwt_expired(token: Str, now_secs: Int) -> Result[Bool, Str] {
 /// Error case: the payload/decode errors of jwt_claim_int; Err when "nbf" is
 /// absent or malformed.
 /// Complexity: O(token.len()).
-pub fn jwt_not_before_ok(token: Str, now_secs: Int) -> Result[Bool, Str] {
+pub fn jwt_not_before_ok(token: Str, now_secs: Int) -> Result[Bool, Str]
+  ensures: token.len() == 0 => result is Err;
+{
   let nbf = jwt_claim_int(token, "nbf");
   if !nbf.is_ok {
     return _err_bool(nbf.error);
@@ -801,7 +835,11 @@ pub fn jwt_not_before_ok(token: Str, now_secs: Int) -> Result[Bool, Str] {
 /// Error case: Err("jwt: empty secret") for a zero-length key;
 /// Err("jwt: empty claims") for an empty claims string.
 /// Complexity: O(claims.len() + secret.len()).
-pub fn jwt_sign_hs256(claims: Str, secret: &Vec[UInt8]) -> Result[Str, Str] {
+pub fn jwt_sign_hs256(claims: Str, secret: &Vec[UInt8]) -> Result[Str, Str]
+  ensures: secret.len() == 0 => result is Err;
+  ensures: claims.len() == 0 => result is Err;
+  ensures: result is Ok => result.value.len() >= 83;
+{
   if secret.len() == 0 {
     return _err_str("jwt: empty secret");
   }
@@ -832,7 +870,11 @@ pub fn jwt_sign_hs256(claims: Str, secret: &Vec[UInt8]) -> Result[Str, Str] {
 /// Error case: Err("jwt: empty secret"); the 3-segment/base64url errors of
 /// the text accessors when the token shape or signature segment is invalid.
 /// Complexity: O(token.len()).
-pub fn jwt_signature_valid_hs256(token: Str, secret: &Vec[UInt8]) -> Result[Bool, Str] {
+pub fn jwt_signature_valid_hs256(token: Str, secret: &Vec[UInt8]) -> Result[Bool, Str]
+  ensures: secret.len() == 0 => result is Err;
+  ensures: token.len() == 0 => result is Err;
+  ensures: result is Ok => jwt_segment_count(token) == 3;
+{
   if secret.len() == 0 {
     return _err_bool("jwt: empty secret");
   }
@@ -891,7 +933,11 @@ pub fn jwt_signature_valid_hs256(token: Str, secret: &Vec[UInt8]) -> Result[Bool
 /// malformed exp/nbf; Err("jwt: token expired"); Err("jwt: token not yet
 /// valid").
 /// Complexity: O(token.len()).
-pub fn jwt_verify_hs256(token: Str, secret: &Vec[UInt8], now_secs: Int) -> Result[Str, Str] {
+pub fn jwt_verify_hs256(token: Str, secret: &Vec[UInt8], now_secs: Int) -> Result[Str, Str]
+  ensures: secret.len() == 0 => result is Err;
+  ensures: token.len() == 0 => result is Err;
+  ensures: result is Ok => jwt_segment_count(token) == 3;
+{
   let valid = jwt_signature_valid_hs256(token, secret);
   if !valid.is_ok {
     return _err_str(valid.error);
