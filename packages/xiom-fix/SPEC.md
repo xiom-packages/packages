@@ -1,6 +1,6 @@
 # xiom.fix -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `xiom.fix` (`src/fix.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -288,3 +288,42 @@ Written under the same constraints as its sibling packages:
 - `fix_emit` does not validate the BeginString value beyond "tag 8 exists
   and is unique"; `fix_parse` requires it non-empty but accepts any version
   spelling.
+
+## Contracts (batch #25 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/fix.xi` in the batch #25
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration): 13 clauses across the 6 public entry points. Two consecutive
+`.\scripts\port.ps1 -Package xiom.fix -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (12.0 s and 13.2 s). The 20-check conformance suite exercises all 6
+entry points with the clauses active; none trapped.
+
+All clauses are `ensures:`; no `requires:` was added, so the accepted-input
+domain is unchanged. Every clause observes a `Str`/`Vec` length or an
+`Option`/`Result` tag, so none is a pure-scalar arithmetic claim and all 13
+are runtime-checked by the v0.64.0 evaluator. A direct
+`xiom-verify src\fix.xi --check` pass classified all emitted obligations as
+`unknown` (the v0.64.0 SMT emitter reports these clause shapes as unsupported),
+so none is Z3-provable; that run also hit the emitter bug
+`unknown constant _value_at`.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `fix_parse` | `text.len() == 0 => result is Err`; `result is Ok => text.len() > 0` | runtime-checked (Str length + Result tag) |
+| `fix_tag_count` | `result == m.tags.len()`; `result >= 0` | runtime-checked (Vec length count) |
+| `fix_value` | `m.tags.len() == 0 => result is None`; `result is Some => m.tags.len() > 0` | runtime-checked (Vec length + Option tag) |
+| `fix_value_last` | `m.tags.len() == 0 => result is None`; `result is Some => m.tags.len() > 0` | runtime-checked (Vec length + Option tag) |
+| `fix_msg_type` | `m.tags.len() == 0 => result.len() == 0`; `result.len() > 0 => m.tags.len() > 0` | runtime-checked (Vec/Str lengths) |
+| `fix_emit` | `(m.tags.len() != m.starts.len() \|\| m.tags.len() != m.ends.len()) => result is Err`; `result is Ok => m.tags.len() == m.starts.len() && m.tags.len() == m.ends.len()`; `result is Ok => result.value.len() >= 14` | runtime-checked (Vec alignment + Str payload length + Result tag) |
+
+The `fix_emit` lower bound is the exact minimum canonical frame: `8=` plus a
+SOH, `9=0` plus a SOH, `10=000` plus a SOH = 14 bytes (the emit guards permit
+an empty BeginString value and an empty middle section, and the regenerated
+body length always has at least one digit).
+
+Deliberately not claimed: no `FixMessage` payload field reads on `fix_parse`;
+no payload-length-vs-parameter clause on `fix_value`/`fix_value_last`; no
+`Str` equality (BUG 17; `.len()` only); no clause calls another function (no
+transitive-callee clause calls); no vector indexing, tuple-component access
+or struct payload reads.

@@ -320,7 +320,10 @@ fn _scan_fields(raw: Str, m: &mut FixMessage) -> Str {
 /// "fix: BodyLength mismatch: declared N actual M", "fix: invalid CheckSum at
 /// offset N", "fix: CheckSum mismatch: declared N computed M".
 /// Complexity: O(text length).
-pub fn fix_parse(text: Str) -> Result[FixMessage, Str] {
+pub fn fix_parse(text: Str) -> Result[FixMessage, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() > 0;
+{
   if text.len() == 0 {
     return _err_fix("fix: empty message");
   }
@@ -348,7 +351,10 @@ pub fn fix_parse(text: Str) -> Result[FixMessage, Str] {
 /// has count 4.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn fix_tag_count(m: &FixMessage) -> Int {
+pub fn fix_tag_count(m: &FixMessage) -> Int
+  ensures: result == m.tags.len();
+  ensures: result >= 0;
+{
   return m.tags.len();
 }
 
@@ -369,7 +375,10 @@ fn _value_at(m: &FixMessage, i: Int) -> Str {
 /// earliest occurrence.
 /// Error case: none.
 /// Complexity: O(tag count).
-pub fn fix_value(m: &FixMessage, tag: Int) -> Option[Str] {
+pub fn fix_value(m: &FixMessage, tag: Int) -> Option[Str]
+  ensures: m.tags.len() == 0 => result is None;
+  ensures: result is Some => m.tags.len() > 0;
+{
   var i = 0;
   while i < m.tags.len() {
     let t: Int = m.tags[i];
@@ -385,7 +394,10 @@ pub fn fix_value(m: &FixMessage, tag: Int) -> Option[Str] {
 /// For a tag that appears once this returns the same value as `fix_value`.
 /// Error case: none.
 /// Complexity: O(tag count).
-pub fn fix_value_last(m: &FixMessage, tag: Int) -> Option[Str] {
+pub fn fix_value_last(m: &FixMessage, tag: Int) -> Option[Str]
+  ensures: m.tags.len() == 0 => result is None;
+  ensures: result is Some => m.tags.len() > 0;
+{
   var i = m.tags.len() - 1;
   while i >= 0 {
     let t: Int = m.tags[i];
@@ -402,7 +414,10 @@ pub fn fix_value_last(m: &FixMessage, tag: Int) -> Option[Str] {
 /// non-empty MsgType.
 /// Error case: none.
 /// Complexity: O(tag count).
-pub fn fix_msg_type(m: &FixMessage) -> Str {
+pub fn fix_msg_type(m: &FixMessage) -> Str
+  ensures: m.tags.len() == 0 => result.len() == 0;
+  ensures: result.len() > 0 => m.tags.len() > 0;
+{
   var i = 0;
   while i < m.tags.len() {
     let t: Int = m.tags[i];
@@ -435,7 +450,11 @@ pub fn fix_msg_type(m: &FixMessage) -> Str {
 /// "fix: cannot emit: value contains a reserved byte", "fix: cannot emit:
 /// duplicate tag 8", "fix: cannot emit without tag 8 (BeginString)".
 /// Complexity: O(total bytes).
-pub fn fix_emit(m: &FixMessage) -> Result[Str, Str] {
+pub fn fix_emit(m: &FixMessage) -> Result[Str, Str]
+  ensures: (m.tags.len() != m.starts.len() || m.tags.len() != m.ends.len()) => result is Err;
+  ensures: result is Ok => m.tags.len() == m.starts.len() && m.tags.len() == m.ends.len();
+  ensures: result is Ok => result.value.len() >= 14;
+{
   let nt = m.tags.len();
   if nt != m.starts.len() || nt != m.ends.len() {
     return _err_out("fix: cannot emit: field vectors are not aligned");
