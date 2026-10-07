@@ -156,6 +156,45 @@ pub fn tga_is_rle(image_type: Int) -> Bool
 - `tga_build_footer` accepts offsets in 0..4294967295 (0 = absent).
 - All functions are free functions; no pixel data is interpreted.
 
+## Contracts
+
+Runtime-checkable `ensures:` clauses added to the public API (batch #15).
+Clauses marked **Z3** are pure scalar and provable with the SMT verifier;
+clauses marked **runtime** involve `Vec` lengths, struct fields, or helper
+calls and are checked by the runtime contract evaluator.
+
+- `tga_is_rle`: `(image_type == 9 || image_type == 10 || image_type == 11) => result`;
+  `result => (image_type == 9 || image_type == 10 || image_type == 11)` -- Z3.
+- `tga_bytes_per_pixel`: `pixel_depth <= 0 => result == 0`;
+  `pixel_depth > 0 => result == (pixel_depth + 7) / 8`; `result >= 0` -- Z3.
+- `tga_data_bytes`: `h.image_type == 0 => result == 0`; `result >= -1`;
+  `tga_is_rle(h.image_type) => result == -1`;
+  `(h.image_type == 1 || h.image_type == 2 || h.image_type == 3) => result == tga_bytes_per_pixel(h.pixel_depth) * h.width * h.height`
+  -- runtime (the `result >= -1` bound relies on the documented unsigned
+  header field ranges).
+- `tga_parse_header`: `data.len() < 18 => result is Err`;
+  `result is Ok => data.len() >= 18` -- runtime.
+- `tga_build_header`: `(h.id_length < 0 || h.id_length > 255) => result is Err`;
+  `(h.origin_bits < 0 || h.origin_bits > 3) => result is Err`;
+  `result is Ok => result.value.len() == 18` -- runtime.
+- `tga_has_footer`: `data.len() < 26 => !result`; `result => data.len() >= 26` -- Z3.
+- `tga_detect_version`: `result == 1 || result == 2`;
+  `tga_has_footer(data) => result == 2`;
+  `!tga_has_footer(data) => result == 1` -- runtime.
+- `tga_parse_footer`: `data.len() < 26 => result is Err`;
+  `result is Ok => data.len() >= 26` -- runtime.
+- `tga_build_footer`: `(extension_offset < 0 || extension_offset > 4294967295) => result is Err`;
+  `(developer_offset < 0 || developer_offset > 4294967295) => result is Err`;
+  `result is Ok => result.value.len() == 26` -- runtime.
+- `tga_parse`: `data.len() < 18 => result is Err`;
+  `result is Ok => data.len() >= 18` -- runtime.
+- `tga_id_field`: `data.len() < 18 => result is Err`;
+  `result is Ok => data.len() >= 18` -- runtime.
+- `tga_color_map_data`: `data.len() < 18 => result is Err`;
+  `result is Ok => data.len() >= 18` -- runtime.
+- `tga_image_data`: `data.len() < 18 => result is Err`;
+  `tga_parse(data) is Err => result is Err` -- runtime.
+
 ## Error catalog
 
 | Condition | Message |

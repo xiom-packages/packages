@@ -124,7 +124,10 @@ fn _p32(out: &mut Vec[UInt8], v: Int) {
 // ---------------------------------------------------------------------------
 
 // True for the RLE image types 9, 10 and 11.
-pub fn tga_is_rle(image_type: Int) -> Bool {
+pub fn tga_is_rle(image_type: Int) -> Bool
+  ensures: (image_type == 9 || image_type == 10 || image_type == 11) => result;
+  ensures: result => (image_type == 9 || image_type == 10 || image_type == 11);
+{
   if (image_type == 9) { return true; }
   if (image_type == 10) { return true; }
   if (image_type == 11) { return true; }
@@ -132,7 +135,11 @@ pub fn tga_is_rle(image_type: Int) -> Bool {
 }
 
 // Bytes per pixel for a pixel depth: ceil(depth / 8); 0 for depth 0 or less.
-pub fn tga_bytes_per_pixel(pixel_depth: Int) -> Int {
+pub fn tga_bytes_per_pixel(pixel_depth: Int) -> Int
+  ensures: pixel_depth <= 0 => result == 0;
+  ensures: pixel_depth > 0 => result == (pixel_depth + 7) / 8;
+  ensures: result >= 0;
+{
   if (pixel_depth <= 0) { return 0; }
   return (pixel_depth + 7) / 8;
 }
@@ -140,7 +147,12 @@ pub fn tga_bytes_per_pixel(pixel_depth: Int) -> Int {
 // Raster length in bytes implied by the header: 0 for image type 0, -1 for
 // RLE types (unknown without decoding), otherwise bytes_per_pixel * width *
 // height for the uncompressed types 1, 2 and 3.
-pub fn tga_data_bytes(h: &TgaHeader) -> Int {
+pub fn tga_data_bytes(h: &TgaHeader) -> Int
+  ensures: h.image_type == 0 => result == 0;
+  ensures: result >= -1;
+  ensures: tga_is_rle(h.image_type) => result == -1;
+  ensures: (h.image_type == 1 || h.image_type == 2 || h.image_type == 3) => result == tga_bytes_per_pixel(h.pixel_depth) * h.width * h.height;
+{
   if (h.image_type == 0) { return 0; }
   if (tga_is_rle(h.image_type)) { return -1; }
   return tga_bytes_per_pixel(h.pixel_depth) * h.width * h.height;
@@ -227,7 +239,10 @@ fn _put_signature(out: &mut Vec[UInt8]) {
 // entries, a color map type of 0 requires cmap_length == 0; image types 1 and
 // 9 require a color map. The image ID and color map data are not required to
 // be present here -- tga_parse and the slice accessors check the buffer.
-pub fn tga_parse_header(data: &Vec[UInt8]) -> Result[TgaHeader, Str] {
+pub fn tga_parse_header(data: &Vec[UInt8]) -> Result[TgaHeader, Str]
+  ensures: data.len() < 18 => result is Err;
+  ensures: result is Ok => data.len() >= 18;
+{
   let n = data.len();
   if (n < 18) { return _err_hdr("tga: truncated header"); }
   let id_length = _b(data, 0);
@@ -308,7 +323,11 @@ pub fn tga_parse_header(data: &Vec[UInt8]) -> Result[TgaHeader, Str] {
 // 0..65535, attribute bits 0..15, origin bits 0..3) and the assembled header
 // must pass the same field validation as tga_parse_header, whose messages are
 // forwarded unchanged. Descriptor bits 6-7 are written as zero.
-pub fn tga_build_header(h: &TgaHeader) -> Result[Vec[UInt8], Str] {
+pub fn tga_build_header(h: &TgaHeader) -> Result[Vec[UInt8], Str]
+  ensures: (h.id_length < 0 || h.id_length > 255) => result is Err;
+  ensures: (h.origin_bits < 0 || h.origin_bits > 3) => result is Err;
+  ensures: result is Ok => result.value.len() == 18;
+{
   if (h.id_length < 0 || h.id_length > 255) {
     return _err_bytes("tga: invalid image id length");
   }
@@ -375,14 +394,21 @@ pub fn tga_build_header(h: &TgaHeader) -> Result[Vec[UInt8], Str] {
 // True when the buffer carries a TGA 2.0 footer: at least 26 bytes and the
 // exact "TRUEVISION-XFILE." signature plus NUL in the last 26 bytes. A false
 // result means the buffer is version 1 (no footer exists in TGA 1.0).
-pub fn tga_has_footer(data: &Vec[UInt8]) -> Bool {
+pub fn tga_has_footer(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 26 => !result;
+  ensures: result => data.len() >= 26;
+{
   let n = data.len();
   if (n < 26) { return false; }
   return _signature_at(data, n - 18);
 }
 
 // Detect the file version: 2 when a v2 footer signature is present, else 1.
-pub fn tga_detect_version(data: &Vec[UInt8]) -> Int {
+pub fn tga_detect_version(data: &Vec[UInt8]) -> Int
+  ensures: result == 1 || result == 2;
+  ensures: tga_has_footer(data) => result == 2;
+  ensures: !tga_has_footer(data) => result == 1;
+{
   if (tga_has_footer(data)) { return 2; }
   return 1;
 }
@@ -394,7 +420,10 @@ pub fn tga_detect_version(data: &Vec[UInt8]) -> Int {
 // tga_has_footer or tga_detect_version first). Non-zero offsets must leave
 // room for the area size field they point at, otherwise the corresponding
 // out-of-bounds error is returned.
-pub fn tga_parse_footer(data: &Vec[UInt8]) -> Result[TgaFooter, Str] {
+pub fn tga_parse_footer(data: &Vec[UInt8]) -> Result[TgaFooter, Str]
+  ensures: data.len() < 26 => result is Err;
+  ensures: result is Ok => data.len() >= 26;
+{
   let n = data.len();
   if (n < 26) { return _err_foot("tga: truncated footer"); }
   let base = n - 26;
@@ -415,7 +444,11 @@ pub fn tga_parse_footer(data: &Vec[UInt8]) -> Result[TgaFooter, Str] {
 
 // Build the 26-byte footer. Offsets are unsigned 32-bit byte offsets; 0 means
 // the area is absent. Negative or 32-bit-overflowing offsets are rejected.
-pub fn tga_build_footer(extension_offset: Int, developer_offset: Int) -> Result[Vec[UInt8], Str] {
+pub fn tga_build_footer(extension_offset: Int, developer_offset: Int) -> Result[Vec[UInt8], Str]
+  ensures: (extension_offset < 0 || extension_offset > 4294967295) => result is Err;
+  ensures: (developer_offset < 0 || developer_offset > 4294967295) => result is Err;
+  ensures: result is Ok => result.value.len() == 26;
+{
   if (extension_offset < 0 || extension_offset > 4294967295) {
     return _err_bytes("tga: invalid extension offset");
   }
@@ -440,7 +473,10 @@ pub fn tga_build_footer(extension_offset: Int, developer_offset: Int) -> Result[
 // detected -- the footer signature and the bounds of the extension/developer
 // area offsets. Uncompressed rasters must fit entirely; RLE rasters and
 // trailing data (extension areas, developer areas, padding) are left opaque.
-pub fn tga_parse(data: &Vec[UInt8]) -> Result[TgaImage, Str] {
+pub fn tga_parse(data: &Vec[UInt8]) -> Result[TgaImage, Str]
+  ensures: data.len() < 18 => result is Err;
+  ensures: result is Ok => data.len() >= 18;
+{
   let n = data.len();
   let hp = tga_parse_header(data);
   match hp {
@@ -488,7 +524,10 @@ pub fn tga_parse(data: &Vec[UInt8]) -> Result[TgaImage, Str] {
 }
 
 // Copy the image ID field (bytes 18..18+id_length; empty when id_length is 0).
-pub fn tga_id_field(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn tga_id_field(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: data.len() < 18 => result is Err;
+  ensures: result is Ok => data.len() >= 18;
+{
   let n = data.len();
   let hp = tga_parse_header(data);
   match hp {
@@ -509,7 +548,10 @@ pub fn tga_id_field(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 
 // Copy the color map data region (cmap_length entries of 2/3/4 bytes each,
 // immediately after the image ID field; empty when no color map is present).
-pub fn tga_color_map_data(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn tga_color_map_data(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: data.len() < 18 => result is Err;
+  ensures: result is Ok => data.len() >= 18;
+{
   let n = data.len();
   let hp = tga_parse_header(data);
   match hp {
@@ -535,7 +577,10 @@ pub fn tga_color_map_data(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 // Image type 0 yields an empty vector; RLE types are rejected with
 // "tga: image data length unknown for RLE" because their packet stream has no
 // declared length.
-pub fn tga_image_data(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn tga_image_data(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: data.len() < 18 => result is Err;
+  ensures: tga_parse(data) is Err => result is Err;
+{
   let parsed = tga_parse(data);
   match parsed {
     Ok(img) => {
