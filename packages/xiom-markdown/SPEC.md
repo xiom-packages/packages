@@ -1,8 +1,6 @@
 # xiom.markdown -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.markdown`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/markdown.xi` (`module xiom.markdown`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`,
 `xiom.string.compare`).
@@ -225,8 +223,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.markdown
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=27 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0,
+`port: PASS (passed=27 failed=0 program_exit=0 exit=0)` with the contract
+clauses active (two consecutive runs, 8.18 s and 8.28 s).
 
 ## 8. Known limitations
 
@@ -256,3 +255,39 @@ Last verified: compiler 0.61.3,
 - No `Vec[StructType]`, no `match` on new types, no inline lambdas, no
   `Result`/`Option` returns, free functions only.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #28 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/markdown.xi` in the batch
+#28 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration; no version bump in this pass). 5 clauses across
+the 2 public entry points; all are `ensures:` (no `requires:`), so the
+accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.markdown -TimeoutSec 60` runs ended
+`port: PASS (passed=27 failed=0 program_exit=0 exit=0)` with the clauses
+active (8.18 s and 8.28 s); the 27-check conformance suite exercises both
+entry points, including the empty- and whitespace-only-input cases, and no
+clause trapped.
+
+All five clauses observe a `Str` length or a `Str` length in a guard, so none
+is a pure-scalar arithmetic claim and all five are runtime-checked by the
+v0.64.0 evaluator (none Z3-provable).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `markdown_escape` | `ensures: s.len() == 0 => result.len() == 0`; `ensures: result.len() >= s.len()`; `ensures: result.len() <= 6 * s.len()` | runtime-checked (Str length bounds; worst case `&quot;`) |
+| `markdown_to_html` | `ensures: md.len() == 0 => result.len() == 0`; `ensures: result.len() > 0 => md.len() > 0` | runtime-checked (Str length guard; emitted-output guard) |
+
+Notes:
+
+- This package is structurally below the batch clause floor (5 clauses over
+  2 public entry points); accepted by the coordinator. `markdown_to_html`
+  carries only its two safe clauses -- no third safe clause exists for it
+  (its output length is not a bounded, family-proven function of the input
+  length: escaping, block wrappers and recursive blockquote rendering make a
+  safe upper bound unavailable).
+- Deliberately not claimed: `Str` equality anywhere (BUG 17); no clause calls
+  another function; no vector indexing, tuple-component access or struct
+  payload reads; no payload-length-vs-parameter clauses (no `Result` API in
+  this package).
+- No clause was dropped; no probe-gated clause was planned for this package.

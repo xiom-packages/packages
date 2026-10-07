@@ -154,7 +154,11 @@ fn _push_escaped(out: &mut Vec[UInt8], s: Str) {
 /// Returns: the escaped text; every other byte passes through verbatim.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn markdown_escape(s: Str) -> Str {
+pub fn markdown_escape(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() >= s.len();
+  ensures: result.len() <= 6 * s.len();
+{
   var out = Vec[UInt8].new();
   _push_escaped(&mut out, s);
   return builder.sb_to_str(&out);
@@ -579,7 +583,10 @@ fn _join_blocks(blocks: &Vec[Str]) -> Str {
 /// Error case: none.
 /// Complexity: O(n) over the input for the block scan; inline scanning is
 /// O(m^2) worst case over a text run of length m.
-pub fn markdown_to_html(md: Str) -> Str {
+pub fn markdown_to_html(md: Str) -> Str
+  ensures: md.len() == 0 => result.len() == 0;
+  ensures: result.len() > 0 => md.len() > 0;
+{
   let lines = _split_lines(md);
   var blocks = Vec[Str].new();
   var i = 0;

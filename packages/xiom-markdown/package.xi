@@ -10,7 +10,7 @@
 
 package xiom_markdown {
   name: "xiom.markdown";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Markdown subset to HTML renderer";
   categories: ["text-nlp"];
   keywords: ["markdown", "html", "render", "text"];
