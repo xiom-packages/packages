@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T23:50:43Z",
+    "updated":  "2026-10-08T00:12:18Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -1591,7 +1591,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.dds",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "DirectDraw Surface (DDS) header codec (documented subset)",
@@ -1601,7 +1601,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dds/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dds/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "dds.xi",
                                               "package.xi"
@@ -2618,7 +2618,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.gbnf",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "GBNF (llama.cpp grammar) parser, validator and canonical emitter",
@@ -2628,7 +2628,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gbnf/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gbnf/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "gbnf.xi",
                                               "package.xi"
@@ -3086,7 +3086,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.hostfile",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Hosts-file parser and canonical emitter: address/hostname entries, lookups and round-trips",
@@ -3096,7 +3096,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hostfile/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hostfile/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "hostfile.xi",
                                               "package.xi"
@@ -5599,7 +5599,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.pcf",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM X11 PCF bitmap-font codec subset: headers, tables, metrics, bitmaps and encodings",
@@ -5609,7 +5609,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pcf/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pcf/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "pcf.xi",
                                               "package.xi"
@@ -5684,7 +5684,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.pem",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "PEM armor codec: BEGIN/END blocks, RFC 1421 headers, strict base64",
@@ -5694,7 +5694,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pem/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pem/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "pem.xi",
                                               "package.xi"
@@ -6215,7 +6215,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.qoi",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "QOI image chunk-stream codec: header, flat op records, validation, canonical re-emit",
@@ -6225,7 +6225,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-qoi/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-qoi/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "qoi.xi",
                                               "package.xi"
