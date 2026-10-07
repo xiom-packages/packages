@@ -1,8 +1,7 @@
 # xiom.msgpack -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.msgpack`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
+Manifest: `package.xi` (`xiom.msgpack`, version `0.1.2`).
 Module: `src/msgpack.xi` (`module xiom.msgpack`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`).
 
@@ -182,7 +181,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.msgpack
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=24 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -224,3 +223,42 @@ Last verified: compiler 0.61.3,
 - Str materialization from bytes uses the stdlib
   `xiom.string.builder.sb_to_str` (single allocation, ownership transfer);
   the package itself declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #25 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/msgpack.xi` in the batch #25
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 29 clauses across the 15 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.msgpack -TimeoutSec 60` runs
+ended `port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses
+active (11.6 s and 15.9 s); the 24-test conformance suite exercises every entry
+point and no clause trapped. No clause was dropped.
+
+All 29 clauses are runtime-checked: every one reads a `Vec`/`Str` length, a
+struct field, an `@pre` cursor snapshot through the `&mut` reader, or an `Ok`
+payload. The v0.64.0 `xiom-verify` SMT emitter reports X7007 ("contract axiom
+skipped: unresolved operand sort" / "operator Ge on non-numeric operands") for
+every contracted function, so no clause is tagged Z3-provable in this pass.
+
+- `msgpack_encode_nil()`: [RT] `result.len() == 1`.
+- `msgpack_encode_bool(b)`: [RT] `result.len() == 1`.
+- `msgpack_encode_int(n)`: [RT] `result.len() >= 1 && result.len() <= 9`; [RT] `n >= 0 && n <= 127 => result.len() == 1`; [RT] `n >= -32 && n < 0 => result.len() == 1`.
+- `msgpack_encode_str(s)`: [RT] `result.len() >= s.len() + 1`; [RT] `result.len() <= s.len() + 5`.
+- `msgpack_encode_array_header(n)`: [RT] `n < 0 => result.len() == 0`; [RT] `n > 4294967295 => result.len() == 0`; [RT] `n >= 0 && n <= 15 => result.len() == 1`.
+- `msgpack_encode_map_header(n)`: [RT] `n < 0 => result.len() == 0`; [RT] `n > 4294967295 => result.len() == 0`; [RT] `n >= 0 && n <= 15 => result.len() == 1`.
+- `msgpack_reader_new(data)`: [RT] `result.pos == 0`; [RT] `result.data.len() == data.len()`.
+- `msgpack_reader_pos(r)`: [RT] `result == r.pos`.
+- `msgpack_reader_remaining(r)`: [RT] `result >= 0`; [RT] `r.pos <= r.data.len() => result == r.data.len() - r.pos`.
+- `msgpack_peek_type(r)`: [RT] `r.pos >= r.data.len() => result is Err`.
+- `msgpack_read_int(r)`: [RT] `r.pos >= r.pos@pre`; [RT] `result is Ok => r.pos > r.pos@pre`.
+- `msgpack_read_str(r)`: [RT] `r.pos >= r.pos@pre`; [RT] `result is Ok => r.pos > r.pos@pre`.
+- `msgpack_read_bool(r)`: [RT] `r.pos >= r.pos@pre`; [RT] `result is Ok => r.pos > r.pos@pre`.
+- `msgpack_read_array_len(r)`: [RT] `r.pos >= r.pos@pre`; [RT] `result is Ok => r.pos > r.pos@pre`.
+- `msgpack_read_map_len(r)`: [RT] `r.pos >= r.pos@pre`; [RT] `result is Ok => r.pos > r.pos@pre`.
+
+The `read_*` cursor frames hold on every return path: `Err` may leave `pos`
+unchanged or advanced past the format byte (never past the missing payload),
+and every `Ok` advances `pos` by at least one byte, so `pos >= pos@pre` always
+and `pos > pos@pre` on success. `msgpack_peek_type` asserts only the
+exhaustion guard (the `Ok` range is deliberately not constrained).

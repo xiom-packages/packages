@@ -203,14 +203,18 @@ fn _read_str_payload(r: &mut MsgpackReader, len: Int) -> Result[Str, Str] {
 // --------------------------------------------------
 
 /// Encode nil (0xc0).
-pub fn msgpack_encode_nil() -> Vec[UInt8] {
+pub fn msgpack_encode_nil() -> Vec[UInt8]
+  ensures: result.len() == 1;
+{
   var out = Vec[UInt8].new();
   out.push(0xC0 as UInt8);
   return out;
 }
 
 /// Encode a Bool (0xc2 false / 0xc3 true).
-pub fn msgpack_encode_bool(b: Bool) -> Vec[UInt8] {
+pub fn msgpack_encode_bool(b: Bool) -> Vec[UInt8]
+  ensures: result.len() == 1;
+{
   var out = Vec[UInt8].new();
   if b {
     out.push(0xC3 as UInt8);
@@ -224,7 +228,11 @@ pub fn msgpack_encode_bool(b: Bool) -> Vec[UInt8] {
 /// positive fixint 0..127; negative fixint -32..-1; uint8/uint16/uint32/
 /// uint64 for positive values above 127; int8/int16/int32/int64 for
 /// negative values below -32.
-pub fn msgpack_encode_int(n: Int) -> Vec[UInt8] {
+pub fn msgpack_encode_int(n: Int) -> Vec[UInt8]
+  ensures: result.len() >= 1 && result.len() <= 9;
+  ensures: n >= 0 && n <= 127 => result.len() == 1;
+  ensures: n >= -32 && n < 0 => result.len() == 1;
+{
   var out = Vec[UInt8].new();
   if n >= 0 && n <= 127 {
     out.push(n as UInt8);
@@ -276,7 +284,10 @@ pub fn msgpack_encode_int(n: Int) -> Vec[UInt8] {
 
 /// Encode a Str: fixstr (<= 31 bytes); str8/str16/str32 header followed by
 /// the UTF-8 bytes of `s` (copied verbatim).
-pub fn msgpack_encode_str(s: Str) -> Vec[UInt8] {
+pub fn msgpack_encode_str(s: Str) -> Vec[UInt8]
+  ensures: result.len() >= s.len() + 1;
+  ensures: result.len() <= s.len() + 5;
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   if n <= 31 {
@@ -298,7 +309,11 @@ pub fn msgpack_encode_str(s: Str) -> Vec[UInt8] {
 /// Encode an array header: fixarray (<= 15 elements); array16 (<= 65535);
 /// array32 (<= 2^32-1). A negative or > 2^32-1 count has no byte encoding
 /// and yields an empty Vec (caller error; documented in SPEC.md).
-pub fn msgpack_encode_array_header(n: Int) -> Vec[UInt8] {
+pub fn msgpack_encode_array_header(n: Int) -> Vec[UInt8]
+  ensures: n < 0 => result.len() == 0;
+  ensures: n > 4294967295 => result.len() == 0;
+  ensures: n >= 0 && n <= 15 => result.len() == 1;
+{
   var out = Vec[UInt8].new();
   if n < 0 {
     return out;
@@ -323,7 +338,11 @@ pub fn msgpack_encode_array_header(n: Int) -> Vec[UInt8] {
 /// Encode a map header: fixmap (<= 15 pairs); map16 (<= 65535); map32
 /// (<= 2^32-1). A negative or > 2^32-1 count has no byte encoding and
 /// yields an empty Vec (caller error; documented in SPEC.md).
-pub fn msgpack_encode_map_header(n: Int) -> Vec[UInt8] {
+pub fn msgpack_encode_map_header(n: Int) -> Vec[UInt8]
+  ensures: n < 0 => result.len() == 0;
+  ensures: n > 4294967295 => result.len() == 0;
+  ensures: n >= 0 && n <= 15 => result.len() == 1;
+{
   var out = Vec[UInt8].new();
   if n < 0 {
     return out;
@@ -350,17 +369,25 @@ pub fn msgpack_encode_map_header(n: Int) -> Vec[UInt8] {
 // --------------------------------------------------
 
 /// Create a reader positioned at the start of `data`.
-pub fn msgpack_reader_new(data: Vec[UInt8]) -> MsgpackReader {
+pub fn msgpack_reader_new(data: Vec[UInt8]) -> MsgpackReader
+  ensures: result.pos == 0;
+  ensures: result.data.len() == data.len();
+{
   return MsgpackReader{ data: data; pos: 0; };
 }
 
 /// Current cursor position (bytes consumed).
-pub fn msgpack_reader_pos(r: &MsgpackReader) -> Int {
+pub fn msgpack_reader_pos(r: &MsgpackReader) -> Int
+  ensures: result == r.pos;
+{
   return r.pos;
 }
 
 /// Number of unread bytes (never negative).
-pub fn msgpack_reader_remaining(r: &MsgpackReader) -> Int {
+pub fn msgpack_reader_remaining(r: &MsgpackReader) -> Int
+  ensures: result >= 0;
+  ensures: r.pos <= r.data.len() => result == r.data.len() - r.pos;
+{
   let rem = r.data.len() - r.pos;
   if rem < 0 {
     return 0;
@@ -370,13 +397,18 @@ pub fn msgpack_reader_remaining(r: &MsgpackReader) -> Int {
 
 /// Raw format byte at the cursor without advancing it.
 /// Err("msgpack: truncated buffer") when the buffer is exhausted.
-pub fn msgpack_peek_type(r: &MsgpackReader) -> Result[Int, Str] {
+pub fn msgpack_peek_type(r: &MsgpackReader) -> Result[Int, Str]
+  ensures: r.pos >= r.data.len() => result is Err;
+{
   return _peek_byte(r);
 }
 
 /// Read an Int: positive/negative fixint, uint8/16/32/64, int8/16/32/64.
 /// Err on truncation or on any other format byte.
-pub fn msgpack_read_int(r: &mut MsgpackReader) -> Result[Int, Str] {
+pub fn msgpack_read_int(r: &mut MsgpackReader) -> Result[Int, Str]
+  ensures: r.pos >= r.pos@pre;
+  ensures: result is Ok => r.pos > r.pos@pre;
+{
   let pk = _peek_byte_mut(r);
   if !pk.is_ok {
     return _err_int(pk.error);
@@ -421,7 +453,10 @@ pub fn msgpack_read_int(r: &mut MsgpackReader) -> Result[Int, Str] {
 /// Read a Str: fixstr, str8, str16 or str32. The payload bytes are copied
 /// verbatim into the result (no UTF-8 validation; documented in SPEC.md).
 /// Err on truncation or on any other format byte.
-pub fn msgpack_read_str(r: &mut MsgpackReader) -> Result[Str, Str] {
+pub fn msgpack_read_str(r: &mut MsgpackReader) -> Result[Str, Str]
+  ensures: r.pos >= r.pos@pre;
+  ensures: result is Ok => r.pos > r.pos@pre;
+{
   let pk = _peek_byte_mut(r);
   if !pk.is_ok {
     return _err_str(pk.error);
@@ -459,7 +494,10 @@ pub fn msgpack_read_str(r: &mut MsgpackReader) -> Result[Str, Str] {
 }
 
 /// Read a Bool (0xc2 / 0xc3). Err on truncation or any other format byte.
-pub fn msgpack_read_bool(r: &mut MsgpackReader) -> Result[Bool, Str] {
+pub fn msgpack_read_bool(r: &mut MsgpackReader) -> Result[Bool, Str]
+  ensures: r.pos >= r.pos@pre;
+  ensures: result is Ok => r.pos > r.pos@pre;
+{
   let pk = _peek_byte_mut(r);
   if !pk.is_ok {
     return _err_bool(pk.error);
@@ -479,7 +517,10 @@ pub fn msgpack_read_bool(r: &mut MsgpackReader) -> Result[Bool, Str] {
 /// Read an array header (fixarray / array16 / array32) and return the
 /// element count. Only the header is consumed; elements are the caller's
 /// responsibility. Err on truncation or any other format byte.
-pub fn msgpack_read_array_len(r: &mut MsgpackReader) -> Result[Int, Str] {
+pub fn msgpack_read_array_len(r: &mut MsgpackReader) -> Result[Int, Str]
+  ensures: r.pos >= r.pos@pre;
+  ensures: result is Ok => r.pos > r.pos@pre;
+{
   let pk = _peek_byte_mut(r);
   if !pk.is_ok {
     return _err_int(pk.error);
@@ -503,7 +544,10 @@ pub fn msgpack_read_array_len(r: &mut MsgpackReader) -> Result[Int, Str] {
 /// Read a map header (fixmap / map16 / map32) and return the pair count.
 /// Only the header is consumed; keys/values are the caller's
 /// responsibility. Err on truncation or any other format byte.
-pub fn msgpack_read_map_len(r: &mut MsgpackReader) -> Result[Int, Str] {
+pub fn msgpack_read_map_len(r: &mut MsgpackReader) -> Result[Int, Str]
+  ensures: r.pos >= r.pos@pre;
+  ensures: result is Ok => r.pos > r.pos@pre;
+{
   let pk = _peek_byte_mut(r);
   if !pk.is_ok {
     return _err_int(pk.error);
