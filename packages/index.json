@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T23:32:35Z",
+    "updated":  "2026-10-07T23:50:43Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -734,7 +734,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.bloom",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Bloom filter over a flat byte buffer: double hashing, integer false-positive estimate, strict serialization",
@@ -744,7 +744,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bloom/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bloom/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "bloom.xi",
                                               "package.xi"
@@ -1574,7 +1574,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.dbase",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "dBASE III/IV table header codec: parse and build .dbf tables",
@@ -1584,7 +1584,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dbase/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dbase/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "dbase.xi",
                                               "package.xi"
@@ -1642,7 +1642,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.dhcp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "DHCPv4 packet codec: BOOTP fixed header, magic cookie and options TLV",
@@ -1652,7 +1652,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dhcp/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dhcp/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "dhcp.xi",
                                               "package.xi"
@@ -3384,7 +3384,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.inline-asm",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Inline-assembly template parser, operand constraint classes and clobber lists",
@@ -3394,7 +3394,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-inline-asm/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-inline-asm/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "inline_asm.xi",
                                               "package.xi"
@@ -6300,7 +6300,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.radiotap",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "IEEE 802.11 radiotap capture header codec: base header, present words and fixed field table",
@@ -6310,7 +6310,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-radiotap/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-radiotap/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "radiotap.xi",
                                               "package.xi"
@@ -6913,7 +6913,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.secret",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Secret redaction for logs and text: emails, tokens, keys, and card-like digits",
@@ -6923,7 +6923,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-secret/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-secret/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "secret.xi",
                                               "package.xi"
