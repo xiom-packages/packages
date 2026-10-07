@@ -28,7 +28,9 @@ use xiom.string.compare;
 /// Returns: a fresh Vec[Str] holding the positive words in sorted order.
 /// Error case: none.
 /// Complexity: O(1) (constant-size vector construction).
-pub fn sentiment_positive_words() -> Vec[Str] {
+pub fn sentiment_positive_words() -> Vec[Str]
+  ensures: result.len() == 38;
+{
   var out = Vec[Str].new();
   out.push("able");
   out.push("awesome");
@@ -76,7 +78,9 @@ pub fn sentiment_positive_words() -> Vec[Str] {
 /// Returns: a fresh Vec[Str] holding the negative words in sorted order.
 /// Error case: none.
 /// Complexity: O(1) (constant-size vector construction).
-pub fn sentiment_negative_words() -> Vec[Str] {
+pub fn sentiment_negative_words() -> Vec[Str]
+  ensures: result.len() == 54;
+{
   var out = Vec[Str].new();
   out.push("afraid");
   out.push("angry");
@@ -140,7 +144,9 @@ pub fn sentiment_negative_words() -> Vec[Str] {
 /// Returns: a fresh Vec[Str] holding the negators in sorted order.
 /// Error case: none.
 /// Complexity: O(1) (constant-size vector construction).
-pub fn sentiment_negators() -> Vec[Str] {
+pub fn sentiment_negators() -> Vec[Str]
+  ensures: result.len() == 8;
+{
   var out = Vec[Str].new();
   out.push("barely");
   out.push("hardly");
@@ -242,7 +248,10 @@ fn _score_parts(text: Str) -> (Int, Int, Int, Int) {
 /// yields [].
 /// Error case: none.
 /// Complexity: O(n).
-pub fn sentiment_words(text: Str) -> Vec[Str] {
+pub fn sentiment_words(text: Str) -> Vec[Str]
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: result.len() <= text.len();
+{
   var out = Vec[Str].new();
   let len = text.len();
   var i = 0;
@@ -278,7 +287,11 @@ pub fn sentiment_words(text: Str) -> Vec[Str] {
 /// (multiple negators do not stack). Neutral text scores 0.
 /// Error case: none.
 /// Complexity: O(text.len() + words * (|pos| + |neg| + |negators|)).
-pub fn sentiment_score(text: Str) -> Int {
+pub fn sentiment_score(text: Str) -> Int
+  ensures: text.len() == 0 => result == 0;
+  ensures: result >= 0 - text.len();
+  ensures: result <= text.len();
+{
   let (score, pos_hits, neg_hits, negations) = _score_parts(text);
   return score;
 }
@@ -289,7 +302,10 @@ pub fn sentiment_score(text: Str) -> Int {
 /// "positive" when score > 0.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sentiment_label(score: Int) -> Str {
+pub fn sentiment_label(score: Int) -> Str
+  ensures: score == 0 => result.len() == 7;
+  ensures: score != 0 => result.len() == 8;
+{
   if score < 0 {
     return "negative";
   }
@@ -304,7 +320,10 @@ pub fn sentiment_label(score: Int) -> Str {
 /// Returns: sentiment_label(sentiment_score(text)).
 /// Error case: none.
 /// Complexity: O(text.len() + words * (|pos| + |neg| + |negators|)).
-pub fn sentiment_label_text(text: Str) -> Str {
+pub fn sentiment_label_text(text: Str) -> Str
+  ensures: text.len() == 0 => result.len() == 7;
+  ensures: result.len() >= 7 && result.len() <= 8;
+{
   return sentiment_label(sentiment_score(text));
 }
 

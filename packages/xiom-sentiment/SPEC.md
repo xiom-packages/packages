@@ -1,8 +1,8 @@
 # xiom.sentiment -- Specification
 
-Status: `incubating` (implemented, harness-green, not published).
+Status: `stable` (published; contract hardening in 0.1.2).
 Module: `xiom.sentiment` (`src/sentiment.xi`). Manifest: `package.xi` (name
-`xiom.sentiment`, version `0.1.0`). Depends on `xiom.std` (`xiom.string`,
+`xiom.sentiment`, version `0.1.2`). Depends on `xiom.std` (`xiom.string`,
 `xiom.string.compare`). Pure XIOM, no FFI.
 
 ## Scope
@@ -234,8 +234,34 @@ Run from the repository root:
 .\scripts\port.ps1 -Package xiom.sentiment
 ```
 
-Last verified: compiler 0.61.3, `port: PASS (passed=24 failed=0
-program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0, two consecutive
+`.\scripts\port.ps1 -Package xiom.sentiment -TimeoutSec 60` runs:
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)`.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checked `ensures:` clauses added to `src/sentiment.xi` (compiler
+v0.64.0). 13 clauses across 7 of the 8 public entry points; `sentiment_counts`
+returns a tuple and deliberately carries no clause (batch #17 clause plan).
+Two consecutive `.\scripts\port.ps1 -Package xiom.sentiment -TimeoutSec 60`
+runs ended `port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the
+clauses active and no clause trapped, so none was dropped.
+
+All clauses are **runtime-checked**: their truth depends on a built `Vec`/`Str`
+result or on the `Str.len()` of a parameter/result, not on pure scalar
+arithmetic, so none is a Z3 candidate in this pass. No clause calls another
+function, so the v0.63.1+ runtime evaluator cannot recurse.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `sentiment_positive_words` | `ensures: result.len() == 38` | runtime-checked (built `Vec` length) |
+| `sentiment_negative_words` | `ensures: result.len() == 54` | runtime-checked (built `Vec` length) |
+| `sentiment_negators` | `ensures: result.len() == 8` | runtime-checked (built `Vec` length) |
+| `sentiment_words` | `ensures: text.len() == 0 => result.len() == 0`; `ensures: result.len() <= text.len()` | runtime-checked (sentinel + `Vec`/`Str` length bound) |
+| `sentiment_score` | `ensures: text.len() == 0 => result == 0`; `ensures: result >= 0 - text.len()`; `ensures: result <= text.len()` | runtime-checked (`Str.len()` sentinel + bounds) |
+| `sentiment_label` | `ensures: score == 0 => result.len() == 7`; `ensures: score != 0 => result.len() == 8` | runtime-checked (label `Str` length) |
+| `sentiment_label_text` | `ensures: text.len() == 0 => result.len() == 7`; `ensures: result.len() >= 7 && result.len() <= 8` | runtime-checked (label `Str` length) |
+| `sentiment_counts` | none | excluded (tuple result, no clause per batch #17 plan) |
 
 ## Compiler / stdlib notes for v0.61.3
 
