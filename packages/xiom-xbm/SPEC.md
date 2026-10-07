@@ -1,5 +1,7 @@
 # xiom.xbm SPEC
 
+Version: 0.1.3 (stable; published on the XIOM registry).
+
 ## Scope
 
 Pure-XIOM parsing and building of the X BitMap (XBM) C-source 1-bit raster
@@ -129,6 +131,42 @@ pub fn xbm_build(name: Str, bits: &Vec[UInt8], width: Int, height: Int) -> Resul
   `bits`).
 - `xbm_byte_span` is `img.bits.len()`, which equals
   `xbm_row_bytes(width) * height` for parsed and built images.
+
+## Contracts
+
+Runtime-checkable `ensures:` clauses on `src/xbm.xi` (hardening pass
+2026-10-07, compiler v0.64.0; no manifest change in this pass). 18 clauses
+across the 9 public entry points. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.xbm -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.6 s and 5.5 s); no clause was dropped.
+
+No `requires:` clause is needed: every entry point is total over its
+declared types, and invalid inputs become documented `Err` values or the
+`-1` sentinel instead of traps. The `xbm_build` cross-call clause calls
+`xbm_row_bytes`, which never calls `xbm_build`, so no clause calls a
+function that transitively calls the callee under contract (no
+runtime-evaluator re-entry). The `Ok` payloads of `xbm_parse`
+(`XbmImage`), `xbm_pack` and `xbm_build` (`Vec[UInt8]`) are never read by
+a clause.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `xbm_row_bytes` | `ensures: result >= 0`; `ensures: width <= 0 => result == 0`; `ensures: width > 0 => result == (width + 7) / 8` | Z3-provable (pure scalar) |
+| `xbm_width` | `ensures: result == img.width` | Z3-provable (pure scalar field read) |
+| `xbm_height` | `ensures: result == img.height` | Z3-provable (pure scalar field read) |
+| `xbm_name` | `ensures: result.len() == img.name.len()` | runtime-checked (`Str` length) |
+| `xbm_byte_span` | `ensures: result == img.bits.len()` | runtime-checked (vector length) |
+| `xbm_bit` | `ensures: img.width <= 0 \|\| img.height <= 0 => result == -1`; `ensures: x < 0 \|\| y < 0 => result == -1` | Z3-provable (pure scalar sentinels) |
+| `xbm_bit` | `ensures: result != -1 => x >= 0 && y >= 0 && x < img.width && y < img.height` | Z3-provable (pure scalar bounds) |
+| `xbm_parse` | `ensures: data.len() == 0 => result is Err`; `ensures: result is Ok => data.len() > 0` | runtime-checked (vector length) |
+| `xbm_pack` | `ensures: width <= 0 \|\| width > 1000000 => result is Err`; `ensures: height <= 0 \|\| height > 1000000 => result is Err`; `ensures: result is Ok => pixels.len() == width * height` | Z3-provable (scalar guards); runtime-checked (pixel-buffer length) |
+| `xbm_build` | `ensures: width <= 0 \|\| width > 1000000 => result is Err`; `ensures: height <= 0 \|\| height > 1000000 => result is Err`; `ensures: result is Ok => bits.len() == xbm_row_bytes(width) * height` | Z3-provable (scalar guards); runtime-checked (bit-buffer length + definitional cross-call; no re-entry) |
+
+Z3-provable = pure scalar guard/form/bounds over parameters, struct fields
+and `result` (no calls, no vector/`Str` reads). Runtime-checked = the
+clause evaluates parameter lengths through `.len()` or calls another
+function, and is enforced by the v0.64.0 runtime evaluator.
 
 ## Validation and errors
 

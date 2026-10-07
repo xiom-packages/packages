@@ -333,30 +333,42 @@ fn _put_hex_byte(out: &mut Vec[UInt8], v: Int) {
 // Row stride of a width-`width` XBM raster in bytes: (width + 7) / 8, and 0
 // for width <= 0. Every row is padded independently to whole bytes; the
 // unused high bits of a row's final byte are padding.
-pub fn xbm_row_bytes(width: Int) -> Int {
+pub fn xbm_row_bytes(width: Int) -> Int
+  ensures: result >= 0;
+  ensures: width <= 0 => result == 0;
+  ensures: width > 0 => result == (width + 7) / 8;
+{
   if (width <= 0) { return 0; }
   return (width + 7) / 8;
 }
 
 // Raster width in pixels of a parsed image (always 1..1000000).
-pub fn xbm_width(img: &XbmImage) -> Int {
+pub fn xbm_width(img: &XbmImage) -> Int
+  ensures: result == img.width;
+{
   return img.width;
 }
 
 // Raster height in pixels of a parsed image (always 1..1000000).
-pub fn xbm_height(img: &XbmImage) -> Int {
+pub fn xbm_height(img: &XbmImage) -> Int
+  ensures: result == img.height;
+{
   return img.height;
 }
 
 // Shared base name: the `<name>` of `<name>_width`, `<name>_height` and
 // `<name>_bits`.
-pub fn xbm_name(img: &XbmImage) -> Str {
+pub fn xbm_name(img: &XbmImage) -> Str
+  ensures: result.len() == img.name.len();
+{
   return img.name;
 }
 
 // Packed raster size in bytes: xbm_row_bytes(width) * height, i.e.
 // img.bits.len() for a parsed or built image.
-pub fn xbm_byte_span(img: &XbmImage) -> Int {
+pub fn xbm_byte_span(img: &XbmImage) -> Int
+  ensures: result == img.bits.len();
+{
   return img.bits.len();
 }
 
@@ -364,7 +376,11 @@ pub fn xbm_byte_span(img: &XbmImage) -> Int {
 // background. Returns the documented sentinel -1 when (x, y) is outside the
 // image or when the image struct is internally inconsistent; callers that
 // need to tell "malformed input" from "out of range" call xbm_parse first.
-pub fn xbm_bit(img: &XbmImage, x: Int, y: Int) -> Int {
+pub fn xbm_bit(img: &XbmImage, x: Int, y: Int) -> Int
+  ensures: img.width <= 0 || img.height <= 0 => result == -1;
+  ensures: x < 0 || y < 0 => result == -1;
+  ensures: result != -1 => x >= 0 && y >= 0 && x < img.width && y < img.height;
+{
   if (img.width <= 0) { return -1; }
   if (img.height <= 0) { return -1; }
   if (x < 0) { return -1; }
@@ -386,7 +402,10 @@ pub fn xbm_bit(img: &XbmImage, x: Int, y: Int) -> Int {
 // trailing comma before `}` is allowed. The three names must agree and the
 // byte count must equal xbm_row_bytes(width) * height. Errors are the
 // deterministic `xbm: ...` strings catalogued in SPEC.md.
-pub fn xbm_parse(data: &Vec[UInt8]) -> Result[XbmImage, Str] {
+pub fn xbm_parse(data: &Vec[UInt8]) -> Result[XbmImage, Str]
+  ensures: data.len() == 0 => result is Err;
+  ensures: result is Ok => data.len() > 0;
+{
   let n = data.len();
   if (!_comments_balanced(data, n)) { return _err_img("xbm: unclosed comment"); }
   var pos = 0;
@@ -556,7 +575,11 @@ pub fn xbm_parse(data: &Vec[UInt8]) -> Result[XbmImage, Str] {
 // is the pixel (x, y), LSB first; unused high bits of a row's final byte are
 // zero. A wrong pixel count is `xbm: pixel buffer size mismatch`; any value
 // above 1 is `xbm: non-binary pixel`.
-pub fn xbm_pack(pixels: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UInt8], Str] {
+pub fn xbm_pack(pixels: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UInt8], Str]
+  ensures: width <= 0 || width > 1000000 => result is Err;
+  ensures: height <= 0 || height > 1000000 => result is Err;
+  ensures: result is Ok => pixels.len() == width * height;
+{
   if (width <= 0) { return _err_bytes("xbm: invalid width"); }
   if (width > 1000000) { return _err_bytes("xbm: invalid width"); }
   if (height <= 0) { return _err_bytes("xbm: invalid height"); }
@@ -602,7 +625,11 @@ pub fn xbm_pack(pixels: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UInt
 // must be a C identifier and `bits` must contain xbm_row_bytes(width) * height
 // bytes; errors are `xbm: invalid name`, `xbm: invalid width`,
 // `xbm: invalid height` and `xbm: byte count mismatch`.
-pub fn xbm_build(name: Str, bits: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UInt8], Str] {
+pub fn xbm_build(name: Str, bits: &Vec[UInt8], width: Int, height: Int) -> Result[Vec[UInt8], Str]
+  ensures: width <= 0 || width > 1000000 => result is Err;
+  ensures: height <= 0 || height > 1000000 => result is Err;
+  ensures: result is Ok => bits.len() == xbm_row_bytes(width) * height;
+{
   if (width <= 0) { return _err_bytes("xbm: invalid width"); }
   if (width > 1000000) { return _err_bytes("xbm: invalid width"); }
   if (height <= 0) { return _err_bytes("xbm: invalid height"); }
