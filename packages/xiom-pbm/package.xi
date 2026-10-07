@@ -8,7 +8,7 @@
 
 package xiom_pbm {
   name: "xiom.pbm";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Netpbm PBM (P1 ASCII / P4 binary) parsing and building for 1-bit rasters";
   categories: ["graphics"];
   keywords: ["pbm", "netpbm", "bitmap", "format"];

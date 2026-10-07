@@ -1,5 +1,7 @@
 # xiom.pbm SPEC
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 ## Scope
 
 Pure-XIOM parsing and building of the two bitmap Netpbm variants, one bit per
@@ -99,6 +101,43 @@ P4 exactly one whitespace byte separates the height token from the raster;
   any byte `< 32` or `127` (LF, CR, NUL, TAB, DEL, ...) is rejected with
   `pbm: invalid comment` so the emitted header stays a single well-formed
   line. Non-ASCII UTF-8 bytes pass through unchanged.
+
+## Contracts
+
+Runtime-checkable `ensures:` clauses on `src/pbm.xi` (hardening pass
+2026-10-07, compiler v0.64.0; no manifest change in this pass). 18 clauses
+across the 8 public entry points. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.pbm -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active; no clause was dropped (a probe run before the optional `pbm_bit`
+empty-buffer clause was also green).
+
+No `requires:` clause is needed: every entry point is total over its
+declared types, and invalid inputs become documented `Err` values or the
+`-1` sentinel instead of traps. The `pbm_bit` cross-call clause calls
+`pbm_parse_header`, which never calls `pbm_bit`, so no clause calls a
+function that transitively calls the callee under contract (no
+runtime-evaluator re-entry). The `Ok` payloads of `pbm_parse_header`
+(`PbmImage`) and of the builders (`Vec[UInt8]`) are never read by a
+clause.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `pbm_row_bytes` | `ensures: result >= 0`; `ensures: width <= 0 => result == 0`; `ensures: width > 0 => result == (width + 7) / 8` | Z3-provable (pure scalar) |
+| `pbm_width` | `ensures: result == img.width` | Z3-provable (pure scalar field read) |
+| `pbm_height` | `ensures: result == img.height` | Z3-provable (pure scalar field read) |
+| `pbm_format` | `ensures: result == img.format` | Z3-provable (pure scalar field read) |
+| `pbm_parse_header` | `ensures: data.len() < 2 => result is Err`; `ensures: result is Ok => data.len() >= 8` | runtime-checked (vector length) |
+| `pbm_bit` | `ensures: x < 0 => result == -1`; `ensures: y < 0 => result == -1` | Z3-provable (pure scalar sentinels) |
+| `pbm_bit` | `ensures: data.len() == 0 => result == -1` | runtime-checked (empty-buffer length) |
+| `pbm_bit` | `ensures: pbm_parse_header(data) is Err => result == -1` | runtime-checked (definitional cross-call; no re-entry) |
+| `pbm_build_p1` | `ensures: width <= 0 => result is Err`; `ensures: height <= 0 => result is Err`; `ensures: result is Ok => bits.len() == width * height` | Z3-provable (scalar guards); runtime-checked (bit-buffer length) |
+| `pbm_build_p4` | `ensures: width <= 0 => result is Err`; `ensures: height <= 0 => result is Err`; `ensures: result is Ok => bits.len() == width * height` | Z3-provable (scalar guards); runtime-checked (bit-buffer length) |
+
+Z3-provable = pure scalar guard/form/bounds over parameters, struct fields
+and `result` (no calls, no vector/`Str` reads). Runtime-checked = the
+clause evaluates parameter lengths through `.len()` or calls another
+function, and is enforced by the v0.64.0 runtime evaluator.
 
 ## Validation and errors
 

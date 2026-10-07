@@ -238,23 +238,33 @@ fn _put_comment(out: &mut Vec[UInt8], comment: Str) {
 
 // P4 row stride in bytes: (width + 7) / 8, and 0 for width <= 0. The unused
 // low bits of the final byte of every row are zero padding.
-pub fn pbm_row_bytes(width: Int) -> Int {
+pub fn pbm_row_bytes(width: Int) -> Int
+  ensures: result >= 0;
+  ensures: width <= 0 => result == 0;
+  ensures: width > 0 => result == (width + 7) / 8;
+{
   if (width <= 0) { return 0; }
   return (width + 7) / 8;
 }
 
 // Raster width in pixels (always 1..1000000 for a parsed image).
-pub fn pbm_width(img: &PbmImage) -> Int {
+pub fn pbm_width(img: &PbmImage) -> Int
+  ensures: result == img.width;
+{
   return img.width;
 }
 
 // Raster height in pixels (always 1..1000000 for a parsed image).
-pub fn pbm_height(img: &PbmImage) -> Int {
+pub fn pbm_height(img: &PbmImage) -> Int
+  ensures: result == img.height;
+{
   return img.height;
 }
 
 // Format code: 1 for ASCII (P1), 4 for binary (P4).
-pub fn pbm_format(img: &PbmImage) -> Int {
+pub fn pbm_format(img: &PbmImage) -> Int
+  ensures: result == img.format;
+{
   return img.format;
 }
 
@@ -263,7 +273,10 @@ pub fn pbm_format(img: &PbmImage) -> Int {
 // P4 buffers must contain exactly pbm_row_bytes(width) * height raster bytes,
 // optionally followed by whitespace; P1 rasters must contain exactly
 // width * height 0/1 digits, separated by optional whitespace.
-pub fn pbm_parse_header(data: &Vec[UInt8]) -> Result[PbmImage, Str] {
+pub fn pbm_parse_header(data: &Vec[UInt8]) -> Result[PbmImage, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: result is Ok => data.len() >= 8;
+{
   let n = data.len();
   if (n < 2) { return _err_img("pbm: truncated header"); }
   let m0 = _b(data, 0);
@@ -346,7 +359,12 @@ pub fn pbm_parse_header(data: &Vec[UInt8]) -> Result[PbmImage, Str] {
 // Raster bit at (x, y) with a top-left origin: 0 = white, 1 = black.
 // Sentinel: returns -1 when (x, y) is outside the image or when `data` does
 // not parse as P1/P4; call pbm_parse_header to distinguish the two cases.
-pub fn pbm_bit(data: &Vec[UInt8], x: Int, y: Int) -> Int {
+pub fn pbm_bit(data: &Vec[UInt8], x: Int, y: Int) -> Int
+  ensures: x < 0 => result == -1;
+  ensures: y < 0 => result == -1;
+  ensures: pbm_parse_header(data) is Err => result == -1;
+  ensures: data.len() == 0 => result == -1;
+{
   let parsed = pbm_parse_header(data);
   match parsed {
     Ok(img) => {
@@ -368,7 +386,11 @@ pub fn pbm_bit(data: &Vec[UInt8], x: Int, y: Int) -> Int {
 // wrapped to `bits_per_line` digits per LF-terminated line (values < 1 clamp
 // to 1), ending with exactly one LF. `comment` must be a single printable
 // line; any byte < 32 or 127 is rejected so the header stays well formed.
-pub fn pbm_build_p1(bits: &Vec[UInt8], width: Int, height: Int, bits_per_line: Int, comment: Str) -> Result[Vec[UInt8], Str] {
+pub fn pbm_build_p1(bits: &Vec[UInt8], width: Int, height: Int, bits_per_line: Int, comment: Str) -> Result[Vec[UInt8], Str]
+  ensures: width <= 0 => result is Err;
+  ensures: height <= 0 => result is Err;
+  ensures: result is Ok => bits.len() == width * height;
+{
   if (width <= 0) { return _err_bytes("pbm: invalid width"); }
   if (width > 1000000) { return _err_bytes("pbm: invalid width"); }
   if (height <= 0) { return _err_bytes("pbm: invalid height"); }
@@ -410,7 +432,11 @@ pub fn pbm_build_p1(bits: &Vec[UInt8], width: Int, height: Int, bits_per_line: I
 // significant bit first. Every row occupies pbm_row_bytes(width) whole bytes;
 // the unused low bits of the last byte of a row are written as zero. The
 // comment rules match pbm_build_p1.
-pub fn pbm_build_p4(bits: &Vec[UInt8], width: Int, height: Int, comment: Str) -> Result[Vec[UInt8], Str] {
+pub fn pbm_build_p4(bits: &Vec[UInt8], width: Int, height: Int, comment: Str) -> Result[Vec[UInt8], Str]
+  ensures: width <= 0 => result is Err;
+  ensures: height <= 0 => result is Err;
+  ensures: result is Ok => bits.len() == width * height;
+{
   if (width <= 0) { return _err_bytes("pbm: invalid width"); }
   if (width > 1000000) { return _err_bytes("pbm: invalid width"); }
   if (height <= 0) { return _err_bytes("pbm: invalid height"); }
