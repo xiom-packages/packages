@@ -9,7 +9,7 @@
 
 package xiom_lrc {
   name: "xiom.lrc";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "LRC synced-lyrics parsing, canonical emitting and offset accessors";
   categories: ["media"];
   keywords: ["lrc", "lyrics", "timed", "format"];

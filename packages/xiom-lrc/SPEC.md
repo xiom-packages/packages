@@ -1,6 +1,6 @@
 # xiom.lrc -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.lrc` (`src/lrc.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -347,3 +347,55 @@ Workarounds carried by this module, in the style of `xiom.subtitle` and
 - A leading UTF-8 BOM is not stripped and makes the first line untimed.
 - Errors carry the offending field text only for unknown tags; other errors
   carry no line or column numbers.
+
+## Contracts (batch #25 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/lrc.xi` in the batch #25
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 18 clauses across the 11 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.lrc -TimeoutSec 60` runs
+ended `port: PASS (passed=21 failed=0 program_exit=0 exit=0)` with the
+clauses active (5.91 s and 5.65 s); the 21-check conformance suite exercises
+every entry point and no clause trapped, so none was dropped.
+
+One source-level fix was required to make the `lrc_parse` clauses sound: the
+timestamp branch's local `let text = ...` (the verbatim entry text slice)
+shadowed the `text` parameter that both clauses read, and the v0.64.0 clause
+evaluator resolved `text` to the uninitialized local on the return paths
+(clean `contract violated` on the `result is Err` clause; 0xC0000005 on the
+`text.len() == 0 => result is Ok` clause). The local is now `entry_text`;
+module semantics are unchanged. With the shadow removed, both `lrc_parse`
+clauses passed and no clause was dropped.
+
+All 18 clauses are runtime-checked: every one reads a `Str`/`Vec` length
+through the `&Lyrics` parameter, a `Result` sort, the input `Str` length, or
+the built result length. The v0.64.0 `xiom-verify` SMT emitter reports X7007
+("contract axiom skipped: unresolved operand sort" / "operator Ge on
+non-numeric operands") for every contracted function, so no clause is tagged
+Z3-provable in this pass. A direct `xiom-verify --check src\lrc.xi` run
+returned `0 proven, 0 violated, 24 unknown, 1 errors` (the error is the
+emitter's failure to model the private `_split_lines` helper in SMT);
+`xiom_verify_output.smt2` was deleted by literal path.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `lrc_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked (`Result` sort + input length) |
+| `lrc_emit` | `l.title.len() == 0 && l.artist.len() == 0 && l.album.len() == 0 && l.by_text.len() == 0 && l.offset_ms == 0 && l.times.len() == 0 => result.len() == 0`; `result.len() == 0 \|\| result.len() >= 7` | runtime-checked (field reads; built-length bound) |
+| `lrc_entry_count` | `result == l.times.len()` | runtime-checked (field read) |
+| `lrc_time_ms` | `i < 0 => result == -1`; `i >= l.times.len() => result == -1` | runtime-checked (field read) |
+| `lrc_adjusted_time_ms` | `i < 0 => result == -1`; `i >= l.times.len() => result == -1`; `result != -1 => result >= 0` | runtime-checked (field read + result bound) |
+| `lrc_text` | `i < 0 => result.len() == 0`; `i >= l.texts.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < l.texts.len()` | runtime-checked (field reads) |
+| `lrc_title` | `result.len() == l.title.len()` | runtime-checked (field read) |
+| `lrc_artist` | `result.len() == l.artist.len()` | runtime-checked (field read) |
+| `lrc_album` | `result.len() == l.album.len()` | runtime-checked (field read) |
+| `lrc_by` | `result.len() == l.by_text.len()` | runtime-checked (field read) |
+| `lrc_offset_ms` | `result == l.offset_ms` | runtime-checked (field read) |
+
+Deliberately not claimed (batch #25 clause plan): the `lrc_time_ms`
+sentinel-converse `result != -1 => i >= 0 && i < l.times.len()` (a hand-built
+`Lyrics` may store `-1`); any `times`/`texts` alignment claim; struct-payload
+field reads on the `lrc_parse` result; `Str` equality (BUG 17); tuple
+components; and any clause indexing a vector. Only `lrc_adjusted_time_ms`
+carries the non-negativity converse (`result != -1 => result >= 0`) because
+its body clamps the offset-applied time at 0.

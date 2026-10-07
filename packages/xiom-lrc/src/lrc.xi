@@ -291,7 +291,10 @@ fn _offset_value(v: Str) -> Int {
 ///   * The offset is stored, not applied: see lrc_offset_ms and
 ///     lrc_adjusted_time_ms. Entries keep source order (never sorted).
 /// Complexity: O(input length).
-pub fn lrc_parse(text: Str) -> Result[Lyrics, Str] {
+pub fn lrc_parse(text: Str) -> Result[Lyrics, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var title = "";
   var artist = "";
   var album = "";
@@ -325,12 +328,12 @@ pub fn lrc_parse(text: Str) -> Result[Lyrics, Str] {
           line_times.push(ms);
           pos = close + 1;
         }
-        let text = string.str_slice(line, pos, len);
+        let entry_text = string.str_slice(line, pos, len);
         var k = 0;
         while k < line_times.len() {
           let tv: Int = line_times[k];
           times.push(tv);
-          texts.push(text);
+          texts.push(entry_text);
           k = k + 1;
         }
       } else {
@@ -439,7 +442,10 @@ fn _fmt_time(ms: Int) -> Str {
 /// parser rejects) and untimed lines are not represented.
 /// Error case: none.
 /// Complexity: O(total output length).
-pub fn lrc_emit(l: &Lyrics) -> Str {
+pub fn lrc_emit(l: &Lyrics) -> Str
+  ensures: l.title.len() == 0 && l.artist.len() == 0 && l.album.len() == 0 && l.by_text.len() == 0 && l.offset_ms == 0 && l.times.len() == 0 => result.len() == 0;
+  ensures: result.len() == 0 || result.len() >= 7;
+{
   var out = "";
   if l.title.len() > 0 { out = out + "[ti:" + l.title + "]\n"; }
   if l.artist.len() > 0 { out = out + "[ar:" + l.artist + "]\n"; }
@@ -463,14 +469,19 @@ pub fn lrc_emit(l: &Lyrics) -> Str {
 
 /// Number of timed entries. `lrc_parse` never returns a document with more
 /// than one entry per timestamp field.
-pub fn lrc_entry_count(l: &Lyrics) -> Int {
+pub fn lrc_entry_count(l: &Lyrics) -> Int
+  ensures: result == l.times.len();
+{
   return l.times.len();
 }
 
 /// Raw time of entry `i` in whole milliseconds (offset not applied); -1 when
 /// `i` is negative or out of range. Use `lrc_adjusted_time_ms` for the
 /// offset-applied time.
-pub fn lrc_time_ms(l: &Lyrics, i: Int) -> Int {
+pub fn lrc_time_ms(l: &Lyrics, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= l.times.len() => result == -1;
+{
   if i < 0 { return -1; }
   if i >= l.times.len() { return -1; }
   let v: Int = l.times[i];
@@ -479,7 +490,11 @@ pub fn lrc_time_ms(l: &Lyrics, i: Int) -> Int {
 
 /// Time of entry `i` with the document offset applied, clamped at 0; -1 when
 /// `i` is negative or out of range.
-pub fn lrc_adjusted_time_ms(l: &Lyrics, i: Int) -> Int {
+pub fn lrc_adjusted_time_ms(l: &Lyrics, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= l.times.len() => result == -1;
+  ensures: result != -1 => result >= 0;
+{
   if i < 0 { return -1; }
   if i >= l.times.len() { return -1; }
   let v: Int = l.times[i];
@@ -490,7 +505,11 @@ pub fn lrc_adjusted_time_ms(l: &Lyrics, i: Int) -> Int {
 
 /// Text of entry `i` (verbatim, possibly empty); "" when `i` is negative or
 /// out of range.
-pub fn lrc_text(l: &Lyrics, i: Int) -> Str {
+pub fn lrc_text(l: &Lyrics, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= l.texts.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < l.texts.len();
+{
   if i < 0 { return ""; }
   if i >= l.texts.len() { return ""; }
   let v: Str = l.texts[i];
@@ -498,27 +517,37 @@ pub fn lrc_text(l: &Lyrics, i: Int) -> Str {
 }
 
 /// The `[ti:...]` title; "" when the document has no title tag.
-pub fn lrc_title(l: &Lyrics) -> Str {
+pub fn lrc_title(l: &Lyrics) -> Str
+  ensures: result.len() == l.title.len();
+{
   return l.title;
 }
 
 /// The `[ar:...]` artist; "" when the document has no artist tag.
-pub fn lrc_artist(l: &Lyrics) -> Str {
+pub fn lrc_artist(l: &Lyrics) -> Str
+  ensures: result.len() == l.artist.len();
+{
   return l.artist;
 }
 
 /// The `[al:...]` album; "" when the document has no album tag.
-pub fn lrc_album(l: &Lyrics) -> Str {
+pub fn lrc_album(l: &Lyrics) -> Str
+  ensures: result.len() == l.album.len();
+{
   return l.album;
 }
 
 /// The `[by:...]` writer/attribution; "" when the document has no by tag.
-pub fn lrc_by(l: &Lyrics) -> Str {
+pub fn lrc_by(l: &Lyrics) -> Str
+  ensures: result.len() == l.by_text.len();
+{
   return l.by_text;
 }
 
 /// The signed `[offset:...]` value in milliseconds (0 when absent). The
 /// offset is stored, not applied to `lrc_time_ms`.
-pub fn lrc_offset_ms(l: &Lyrics) -> Int {
+pub fn lrc_offset_ms(l: &Lyrics) -> Int
+  ensures: result == l.offset_ms;
+{
   return l.offset_ms;
 }
