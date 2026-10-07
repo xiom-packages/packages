@@ -1,8 +1,6 @@
 # xiom.rpm -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.rpm`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/rpm.xi` (`module xiom.rpm`).
 Depends on `xiom.std` (`xiom.string`); the tests additionally use
 `xiom.test`, `xiom.io`, `xiom.string`, `xiom.string.compare` and
@@ -273,3 +271,81 @@ PACKAGER STRING (tag 1015).
 19. whole-file validation: lead cut, bad lead magic, signature cut, main
     header cut, index cut and one-byte store cut each return their
     documented error.
+
+## Contracts (batch #37 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/rpm.xi` in the batch #37
+hardening pass (compiler v0.64.0; no version bump here -- `package.xi` stays
+at 0.1.1 and the coordinator applies the 0.1.2 bump at integration). 61
+clauses over the 31 public entry points, in source order:
+2/2/2/2/2/2/2/2/2/1/2/2/2/2/2/1/2/2/2/2/3/2/2/2/2/2/2/2/2/2/2 (the plan
+header's "59" was stale arithmetic; the per-function lines sum to 61). All
+clauses are `ensures:` only (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive `& .\scripts\port.ps1 -Package xiom.rpm
+-TimeoutSec 60` runs ended `port: PASS (passed=19 failed=0 program_exit=0
+exit=0)` with the clauses active (9.52 s and 9.18 s); the 19-check
+conformance suite exercises every entry point and no clause trapped, so none
+was dropped. The plan had no probe-gated items.
+
+`xiom-verify src\rpm.xi --check` under v0.64.0 reports 8 proven / 0 violated
+/ 56 unknown / 29 errors. The 8 "proven" verdicts are the two sentinel
+clauses of each of the four entry-field accessors, but no clause here is
+claimed Z3-provable: those queries run under the emitter's skipped-axiom
+assumption set, where a sibling contract is asserted as a `forall` that
+quantifies over its own `result` (e.g. `forall h i result. i < 0 => result ==
+-1`), which is unsatisfiable by itself -- so the `unsat` answers are vacuous,
+not sound proofs. The 29 errors are the known SMT emitter bug on private
+helpers (`_byte`, `_u16be`, `_cstr`, `_err_lead`, `_err_header`,
+`_header_magic_code`, `_header_span_checked`, `_entry_field`); the tool
+itself marks them "not a proof failure of the code under test". The remaining
+56 obligations are X7007 skips (unresolved operand sorts, `field access
+'.header' on non-datatype receiver`, unsupported expression). Every clause is
+runtime-checked by the v0.64.0 evaluator on every call.
+`xiom_verify_output.smt2` was deleted by literal path.
+
+Clause-family limits (per the batch plan): no raw tag-value range claims
+(hand-built headers may hold arbitrary Ints, so `rpm_header_tag_int` and
+`rpm_get_buildtime` only claim the `-1` sentinel); no `Ok`/`Err` payload
+reads on any `Result`; no `Str` equality (BUG 17); no vector indexing; no
+module constants in clauses (16/96/128 and the numeric tag ids are inline
+literals). All shapes hold for hand-built `RpmLead` / `RpmHeader` /
+`RpmPackage` values, including the tags-vector drift case
+(`rpm_header_count` = -1 makes every entry accessor return -1 and every
+lookup return -1 / ""). The only cross-calls in clauses are
+`rpm_header_count` and `rpm_header_find`: both are non-re-entrant (count
+reads only `h.tags.len()`; find calls nothing public upward), and the getter
+clauses pass the by-value struct field `p.header`.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `rpm_is_rpm` | `data.len() < 4 => !result`; `result => data.len() >= 4` | runtime-checked (Vec length + Bool) |
+| `rpm_parse_lead` | `data.len() < 96 => result is Err`; `result is Ok => data.len() >= 96` | runtime-checked (Vec length + Result tag) |
+| `rpm_lead_arch_name` | `archnum < 0 \|\| archnum > 21 => result.len() == 7`; `result.len() >= 2` | runtime-checked (Str length; "sh" is the shortest name) |
+| `rpm_lead_type_name` | `ptype != 0 && ptype != 1 => result.len() == 7`; `result.len() >= 6` | runtime-checked (Str length) |
+| `rpm_lead_os_name` | `osnum != 1 => result.len() == 7`; `osnum == 1 => result.len() == 5` | runtime-checked (Str length) |
+| `rpm_parse_header` | `off < 0 => result is Err`; `result is Ok => data.len() >= off + 16` | runtime-checked (Vec length + Result tag) |
+| `rpm_parse` | `data.len() < 96 => result is Err`; `result is Ok => data.len() >= 128` | runtime-checked (Vec length + Result tag) |
+| `rpm_validate` | `data.len() < 96 => result is Err`; `result is Ok => data.len() >= 128` | runtime-checked (Vec length + Result tag) |
+| `rpm_header_count` | `result == -1 \|\| result * 4 == h.tags.len()`; `result >= -1` | runtime-checked (field read) |
+| `rpm_header_store_len` | `result == h.store.len()` | runtime-checked (field read) |
+| `rpm_header_entry_tag` | `i < 0 => result == -1`; `i >= rpm_header_count(h) => result == -1` | runtime-checked (scalar sentinel pair; see the verifier note) |
+| `rpm_header_entry_type` | `i < 0 => result == -1`; `i >= rpm_header_count(h) => result == -1` | runtime-checked (scalar sentinel pair; see the verifier note) |
+| `rpm_header_entry_offset` | `i < 0 => result == -1`; `i >= rpm_header_count(h) => result == -1` | runtime-checked (scalar sentinel pair; see the verifier note) |
+| `rpm_header_entry_count` | `i < 0 => result == -1`; `i >= rpm_header_count(h) => result == -1` | runtime-checked (scalar sentinel pair; see the verifier note) |
+| `rpm_header_find` | `result >= -1`; `result >= 0 => result < rpm_header_count(h)` | runtime-checked (cross-call) |
+| `rpm_header_has_tag` | `result == (rpm_header_find(h, tag) >= 0)` | runtime-checked (cross-call) |
+| `rpm_header_tag_type` | `rpm_header_find(h, tag) < 0 => result == -1`; `result != -1 => rpm_header_find(h, tag) >= 0` | runtime-checked (cross-call) |
+| `rpm_header_tag_str` | `rpm_header_find(h, tag) < 0 => result.len() == 0`; `result.len() > 0 => rpm_header_find(h, tag) >= 0` | runtime-checked (cross-call + Str length) |
+| `rpm_header_tag_int` | `rpm_header_find(h, tag) < 0 => result == -1`; `result != -1 => rpm_header_find(h, tag) >= 0` | runtime-checked (cross-call) |
+| `rpm_header_tag_str_array_count` | `rpm_header_find(h, tag) < 0 => result == -1`; `result != -1 => rpm_header_find(h, tag) >= 0` | runtime-checked (cross-call) |
+| `rpm_header_tag_str_array_at` | `idx < 0 => result.len() == 0`; `rpm_header_find(h, tag) < 0 => result.len() == 0`; `result.len() > 0 => idx >= 0` | runtime-checked (cross-call + Str length) |
+| `rpm_get_name` | `rpm_header_find(p.header, 1000) < 0 => result.len() == 0`; `result.len() > 0 => rpm_header_find(p.header, 1000) >= 0` | runtime-checked (struct-field cross-call) |
+| `rpm_get_version` | `rpm_header_find(p.header, 1001) < 0 => result.len() == 0`; `result.len() > 0 => rpm_header_find(p.header, 1001) >= 0` | runtime-checked (struct-field cross-call) |
+| `rpm_get_release` | `rpm_header_find(p.header, 1002) < 0 => result.len() == 0`; `result.len() > 0 => rpm_header_find(p.header, 1002) >= 0` | runtime-checked (struct-field cross-call) |
+| `rpm_get_summary` | `rpm_header_find(p.header, 1004) < 0 => result.len() == 0`; `result.len() > 0 => rpm_header_find(p.header, 1004) >= 0` | runtime-checked (struct-field cross-call) |
+| `rpm_get_license` | `rpm_header_find(p.header, 1014) < 0 => result.len() == 0`; `result.len() > 0 => rpm_header_find(p.header, 1014) >= 0` | runtime-checked (struct-field cross-call) |
+| `rpm_get_group` | `rpm_header_find(p.header, 1016) < 0 => result.len() == 0`; `result.len() > 0 => rpm_header_find(p.header, 1016) >= 0` | runtime-checked (struct-field cross-call) |
+| `rpm_get_os` | `rpm_header_find(p.header, 1021) < 0 => result.len() == 0`; `result.len() > 0 => rpm_header_find(p.header, 1021) >= 0` | runtime-checked (struct-field cross-call) |
+| `rpm_get_arch` | `rpm_header_find(p.header, 1022) < 0 => result.len() == 0`; `result.len() > 0 => rpm_header_find(p.header, 1022) >= 0` | runtime-checked (struct-field cross-call) |
+| `rpm_get_payload_compressor` | `rpm_header_find(p.header, 1125) < 0 => result.len() == 0`; `result.len() > 0 => rpm_header_find(p.header, 1125) >= 0` | runtime-checked (struct-field cross-call) |
+| `rpm_get_buildtime` | `rpm_header_find(p.header, 1006) < 0 => result == -1`; `result != -1 => rpm_header_find(p.header, 1006) >= 0` | runtime-checked (struct-field cross-call) |

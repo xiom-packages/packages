@@ -308,7 +308,10 @@ fn _header_span_checked(data: &Vec[UInt8], off: Int) -> Int {
 /// A buffer shorter than four bytes is false. This is a magic probe only:
 /// it does not require the full 96-byte lead and does not touch the header.
 /// Complexity: O(1).
-pub fn rpm_is_rpm(data: &Vec[UInt8]) -> Bool {
+pub fn rpm_is_rpm(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 4 => !result;
+  ensures: result => data.len() >= 4;
+{
   if data.len() < 4 {
     return false;
   }
@@ -325,7 +328,10 @@ pub fn rpm_is_rpm(data: &Vec[UInt8]) -> Bool {
 /// Err("rpm: bad lead magic") when the first four bytes are not ED AB EE DB.
 /// The 16 trailing lead bytes (the old reserved area) are not validated.
 /// Complexity: O(1).
-pub fn rpm_parse_lead(data: &Vec[UInt8]) -> Result[RpmLead, Str] {
+pub fn rpm_parse_lead(data: &Vec[UInt8]) -> Result[RpmLead, Str]
+  ensures: data.len() < 96 => result is Err;
+  ensures: result is Ok => data.len() >= 96;
+{
   if data.len() < RPM_LEAD_SIZE {
     return _err_lead("rpm: truncated lead");
   }
@@ -360,7 +366,10 @@ pub fn rpm_parse_lead(data: &Vec[UInt8]) -> Result[RpmLead, Str] {
 /// `archnum` is a legacy lead field that many writers set to 1 for every
 /// x86-family package: use the ARCH tag (RPM_TAG_ARCH) for the real
 /// architecture. Complexity: O(1).
-pub fn rpm_lead_arch_name(archnum: Int) -> Str {
+pub fn rpm_lead_arch_name(archnum: Int) -> Str
+  ensures: archnum < 0 || archnum > 21 => result.len() == 7;
+  ensures: result.len() >= 2;
+{
   if archnum == 0 { return "noarch"; }
   if archnum == 1 { return "i386"; }
   if archnum == 2 { return "alpha"; }
@@ -388,7 +397,10 @@ pub fn rpm_lead_arch_name(archnum: Int) -> Str {
 
 /// Lead `type` as a name: 0 "binary", 1 "source", anything else "unknown".
 /// Complexity: O(1).
-pub fn rpm_lead_type_name(ptype: Int) -> Str {
+pub fn rpm_lead_type_name(ptype: Int) -> Str
+  ensures: ptype != 0 && ptype != 1 => result.len() == 7;
+  ensures: result.len() >= 6;
+{
   if ptype == 0 { return "binary"; }
   if ptype == 1 { return "source"; }
   return "unknown";
@@ -396,7 +408,10 @@ pub fn rpm_lead_type_name(ptype: Int) -> Str {
 
 /// Lead `osnum` as a name: 1 "linux", anything else "unknown".
 /// Complexity: O(1).
-pub fn rpm_lead_os_name(osnum: Int) -> Str {
+pub fn rpm_lead_os_name(osnum: Int) -> Str
+  ensures: osnum != 1 => result.len() == 7;
+  ensures: osnum == 1 => result.len() == 5;
+{
   if osnum == 1 { return "linux"; }
   return "unknown";
 }
@@ -421,7 +436,10 @@ pub fn rpm_lead_os_name(osnum: Int) -> Str {
 /// Index entries are copied structurally: no type is required and no
 /// offset/count is range-checked here (rpm_validate does that).
 /// Complexity: O(count + store_size).
-pub fn rpm_parse_header(data: &Vec[UInt8], off: Int) -> Result[RpmHeader, Str] {
+pub fn rpm_parse_header(data: &Vec[UInt8], off: Int) -> Result[RpmHeader, Str]
+  ensures: off < 0 => result is Err;
+  ensures: result is Ok => data.len() >= off + 16;
+{
   if off < 0 {
     return _err_header("rpm: truncated header");
   }
@@ -484,7 +502,10 @@ pub fn rpm_parse_header(data: &Vec[UInt8], off: Int) -> Result[RpmHeader, Str] {
 /// or version, truncated index or store); then rpm_parse_header's errors
 /// for the main header. The payload after the main header is not read.
 /// Complexity: O(lead + signature header + main header).
-pub fn rpm_parse(data: &Vec[UInt8]) -> Result[RpmPackage, Str] {
+pub fn rpm_parse(data: &Vec[UInt8]) -> Result[RpmPackage, Str]
+  ensures: data.len() < 96 => result is Err;
+  ensures: result is Ok => data.len() >= 128;
+{
   let lr = rpm_parse_lead(data);
   if !lr.is_ok {
     return _err_package(lr.error);
@@ -601,7 +622,10 @@ fn _validate_entries(h: &RpmHeader) -> Result[Unit, Str] {
 /// Err("rpm: tag out of range") and Err("rpm: string missing NUL").
 /// Ok(()) carries no payload; the payload region itself is not validated.
 /// Complexity: O(main header entries + store).
-pub fn rpm_validate(data: &Vec[UInt8]) -> Result[Unit, Str] {
+pub fn rpm_validate(data: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: data.len() < 96 => result is Err;
+  ensures: result is Ok => data.len() >= 128;
+{
   let lr = rpm_parse_lead(data);
   if !lr.is_ok {
     return _err_unit(lr.error);
@@ -626,7 +650,10 @@ pub fn rpm_validate(data: &Vec[UInt8]) -> Result[Unit, Str] {
 /// when the tags vector is not a whole number of entries (a defensive guard
 /// against parallel-vector drift).
 /// Complexity: O(1).
-pub fn rpm_header_count(h: &RpmHeader) -> Int {
+pub fn rpm_header_count(h: &RpmHeader) -> Int
+  ensures: result == -1 || result * 4 == h.tags.len();
+  ensures: result >= -1;
+{
   if h.tags.len() % RPM_HDR_STRIDE != 0 {
     return -1;
   }
@@ -635,7 +662,9 @@ pub fn rpm_header_count(h: &RpmHeader) -> Int {
 
 /// Number of bytes in the header data store.
 /// Complexity: O(1).
-pub fn rpm_header_store_len(h: &RpmHeader) -> Int {
+pub fn rpm_header_store_len(h: &RpmHeader) -> Int
+  ensures: result == h.store.len();
+{
   return h.store.len();
 }
 
@@ -658,31 +687,46 @@ fn _entry_field(h: &RpmHeader, i: Int, slot: Int) -> Int {
 
 /// Tag of index entry `i`; -1 out of range.
 /// Complexity: O(1).
-pub fn rpm_header_entry_tag(h: &RpmHeader, i: Int) -> Int {
+pub fn rpm_header_entry_tag(h: &RpmHeader, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= rpm_header_count(h) => result == -1;
+{
   return _entry_field(h, i, 0);
 }
 
 /// Type of index entry `i` (RPM_TYPE_*); -1 out of range.
 /// Complexity: O(1).
-pub fn rpm_header_entry_type(h: &RpmHeader, i: Int) -> Int {
+pub fn rpm_header_entry_type(h: &RpmHeader, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= rpm_header_count(h) => result == -1;
+{
   return _entry_field(h, i, 1);
 }
 
 /// Data-store offset of index entry `i`; -1 out of range.
 /// Complexity: O(1).
-pub fn rpm_header_entry_offset(h: &RpmHeader, i: Int) -> Int {
+pub fn rpm_header_entry_offset(h: &RpmHeader, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= rpm_header_count(h) => result == -1;
+{
   return _entry_field(h, i, 2);
 }
 
 /// Element count of index entry `i`; -1 out of range.
 /// Complexity: O(1).
-pub fn rpm_header_entry_count(h: &RpmHeader, i: Int) -> Int {
+pub fn rpm_header_entry_count(h: &RpmHeader, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= rpm_header_count(h) => result == -1;
+{
   return _entry_field(h, i, 3);
 }
 
 /// Index of the first index entry whose tag is `tag`; -1 when absent.
 /// Complexity: O(entries).
-pub fn rpm_header_find(h: &RpmHeader, tag: Int) -> Int {
+pub fn rpm_header_find(h: &RpmHeader, tag: Int) -> Int
+  ensures: result >= -1;
+  ensures: result >= 0 => result < rpm_header_count(h);
+{
   let n: Int = rpm_header_count(h);
   if n < 0 {
     return -1;
@@ -700,13 +744,18 @@ pub fn rpm_header_find(h: &RpmHeader, tag: Int) -> Int {
 
 /// True when an index entry with tag `tag` exists.
 /// Complexity: O(entries).
-pub fn rpm_header_has_tag(h: &RpmHeader, tag: Int) -> Bool {
+pub fn rpm_header_has_tag(h: &RpmHeader, tag: Int) -> Bool
+  ensures: result == (rpm_header_find(h, tag) >= 0);
+{
   return rpm_header_find(h, tag) >= 0;
 }
 
 /// Type (RPM_TYPE_*) of the first entry with tag `tag`; -1 when absent.
 /// Complexity: O(entries).
-pub fn rpm_header_tag_type(h: &RpmHeader, tag: Int) -> Int {
+pub fn rpm_header_tag_type(h: &RpmHeader, tag: Int) -> Int
+  ensures: rpm_header_find(h, tag) < 0 => result == -1;
+  ensures: result != -1 => rpm_header_find(h, tag) >= 0;
+{
   let i: Int = rpm_header_find(h, tag);
   if i < 0 {
     return -1;
@@ -770,7 +819,10 @@ fn _hdr_array_str(h: &RpmHeader, off: Int, idx: Int) -> Str {
 /// rpm_validate to require the NUL). Compare the result with
 /// xiom.string.compare.str_compare, not `==`.
 /// Complexity: O(string length).
-pub fn rpm_header_tag_str(h: &RpmHeader, tag: Int) -> Str {
+pub fn rpm_header_tag_str(h: &RpmHeader, tag: Int) -> Str
+  ensures: rpm_header_find(h, tag) < 0 => result.len() == 0;
+  ensures: result.len() > 0 => rpm_header_find(h, tag) >= 0;
+{
   let i: Int = rpm_header_find(h, tag);
   if i < 0 {
     return "";
@@ -791,7 +843,10 @@ pub fn rpm_header_tag_str(h: &RpmHeader, tag: Int) -> Str {
 /// absent tag and an out-of-range store span yield -1. Use
 /// rpm_header_has_tag to tell an absent tag from a stored value of -1.
 /// Complexity: O(1).
-pub fn rpm_header_tag_int(h: &RpmHeader, tag: Int) -> Int {
+pub fn rpm_header_tag_int(h: &RpmHeader, tag: Int) -> Int
+  ensures: rpm_header_find(h, tag) < 0 => result == -1;
+  ensures: result != -1 => rpm_header_find(h, tag) >= 0;
+{
   let i: Int = rpm_header_find(h, tag);
   if i < 0 {
     return -1;
@@ -816,7 +871,10 @@ pub fn rpm_header_tag_int(h: &RpmHeader, tag: Int) -> Int {
 /// Number of elements in the STRING_ARRAY(8) value of `tag` (the entry's
 /// count field); -1 when the tag is absent or is not a STRING_ARRAY.
 /// Complexity: O(entries).
-pub fn rpm_header_tag_str_array_count(h: &RpmHeader, tag: Int) -> Int {
+pub fn rpm_header_tag_str_array_count(h: &RpmHeader, tag: Int) -> Int
+  ensures: rpm_header_find(h, tag) < 0 => result == -1;
+  ensures: result != -1 => rpm_header_find(h, tag) >= 0;
+{
   let i: Int = rpm_header_find(h, tag);
   if i < 0 {
     return -1;
@@ -834,7 +892,11 @@ pub fn rpm_header_tag_str_array_count(h: &RpmHeader, tag: Int) -> Int {
 /// the run is not NUL-terminated before the end of the store. Compare the
 /// result with xiom.string.compare.str_compare, not `==`.
 /// Complexity: O(offset + idx strings).
-pub fn rpm_header_tag_str_array_at(h: &RpmHeader, tag: Int, idx: Int) -> Str {
+pub fn rpm_header_tag_str_array_at(h: &RpmHeader, tag: Int, idx: Int) -> Str
+  ensures: idx < 0 => result.len() == 0;
+  ensures: rpm_header_find(h, tag) < 0 => result.len() == 0;
+  ensures: result.len() > 0 => idx >= 0;
+{
   let i: Int = rpm_header_find(h, tag);
   if i < 0 {
     return "";
@@ -858,19 +920,28 @@ pub fn rpm_header_tag_str_array_at(h: &RpmHeader, tag: Int, idx: Int) -> Str {
 /// NAME tag (1000) of the parsed main header; "" when absent or not a
 /// string type. Compare with str_compare, not `==`.
 /// Complexity: O(entries + string length).
-pub fn rpm_get_name(p: &RpmPackage) -> Str {
+pub fn rpm_get_name(p: &RpmPackage) -> Str
+  ensures: rpm_header_find(p.header, 1000) < 0 => result.len() == 0;
+  ensures: result.len() > 0 => rpm_header_find(p.header, 1000) >= 0;
+{
   return rpm_header_tag_str(&p.header, RPM_TAG_NAME);
 }
 
 /// VERSION tag (1001); "" when absent or not a string type.
 /// Complexity: O(entries + string length).
-pub fn rpm_get_version(p: &RpmPackage) -> Str {
+pub fn rpm_get_version(p: &RpmPackage) -> Str
+  ensures: rpm_header_find(p.header, 1001) < 0 => result.len() == 0;
+  ensures: result.len() > 0 => rpm_header_find(p.header, 1001) >= 0;
+{
   return rpm_header_tag_str(&p.header, RPM_TAG_VERSION);
 }
 
 /// RELEASE tag (1002); "" when absent or not a string type.
 /// Complexity: O(entries + string length).
-pub fn rpm_get_release(p: &RpmPackage) -> Str {
+pub fn rpm_get_release(p: &RpmPackage) -> Str
+  ensures: rpm_header_find(p.header, 1002) < 0 => result.len() == 0;
+  ensures: result.len() > 0 => rpm_header_find(p.header, 1002) >= 0;
+{
   return rpm_header_tag_str(&p.header, RPM_TAG_RELEASE);
 }
 
@@ -878,44 +949,65 @@ pub fn rpm_get_release(p: &RpmPackage) -> Str {
 /// files store SUMMARY as I18NSTRING(9), which this parser does not render;
 /// the synthetic STRING form is supported.
 /// Complexity: O(entries + string length).
-pub fn rpm_get_summary(p: &RpmPackage) -> Str {
+pub fn rpm_get_summary(p: &RpmPackage) -> Str
+  ensures: rpm_header_find(p.header, 1004) < 0 => result.len() == 0;
+  ensures: result.len() > 0 => rpm_header_find(p.header, 1004) >= 0;
+{
   return rpm_header_tag_str(&p.header, RPM_TAG_SUMMARY);
 }
 
 /// LICENSE tag (1014); "" when absent or not a string type.
 /// Complexity: O(entries + string length).
-pub fn rpm_get_license(p: &RpmPackage) -> Str {
+pub fn rpm_get_license(p: &RpmPackage) -> Str
+  ensures: rpm_header_find(p.header, 1014) < 0 => result.len() == 0;
+  ensures: result.len() > 0 => rpm_header_find(p.header, 1014) >= 0;
+{
   return rpm_header_tag_str(&p.header, RPM_TAG_LICENSE);
 }
 
 /// GROUP tag (1016); "" when absent or not a string type. Modern RPM files
 /// store GROUP as I18NSTRING(9), which this parser does not render.
 /// Complexity: O(entries + string length).
-pub fn rpm_get_group(p: &RpmPackage) -> Str {
+pub fn rpm_get_group(p: &RpmPackage) -> Str
+  ensures: rpm_header_find(p.header, 1016) < 0 => result.len() == 0;
+  ensures: result.len() > 0 => rpm_header_find(p.header, 1016) >= 0;
+{
   return rpm_header_tag_str(&p.header, RPM_TAG_GROUP);
 }
 
 /// OS tag (1021); "" when absent or not a string type.
 /// Complexity: O(entries + string length).
-pub fn rpm_get_os(p: &RpmPackage) -> Str {
+pub fn rpm_get_os(p: &RpmPackage) -> Str
+  ensures: rpm_header_find(p.header, 1021) < 0 => result.len() == 0;
+  ensures: result.len() > 0 => rpm_header_find(p.header, 1021) >= 0;
+{
   return rpm_header_tag_str(&p.header, RPM_TAG_OS);
 }
 
 /// ARCH tag (1022); "" when absent or not a string type. This is the
 /// authoritative architecture string (the lead `archnum` is legacy).
 /// Complexity: O(entries + string length).
-pub fn rpm_get_arch(p: &RpmPackage) -> Str {
+pub fn rpm_get_arch(p: &RpmPackage) -> Str
+  ensures: rpm_header_find(p.header, 1022) < 0 => result.len() == 0;
+  ensures: result.len() > 0 => rpm_header_find(p.header, 1022) >= 0;
+{
   return rpm_header_tag_str(&p.header, RPM_TAG_ARCH);
 }
 
 /// PAYLOADCOMPRESSOR tag (1125); "" when absent or not a string type.
 /// Complexity: O(entries + string length).
-pub fn rpm_get_payload_compressor(p: &RpmPackage) -> Str {
+pub fn rpm_get_payload_compressor(p: &RpmPackage) -> Str
+  ensures: rpm_header_find(p.header, 1125) < 0 => result.len() == 0;
+  ensures: result.len() > 0 => rpm_header_find(p.header, 1125) >= 0;
+{
   return rpm_header_tag_str(&p.header, RPM_TAG_PAYLOADCOMPRESSOR);
 }
 
 /// BUILDTIME tag (1006) as a signed Int32; -1 when absent or not INT32.
 /// Complexity: O(entries).
-pub fn rpm_get_buildtime(p: &RpmPackage) -> Int {
+pub fn rpm_get_buildtime(p: &RpmPackage) -> Int
+  ensures: rpm_header_find(p.header, 1006) < 0 => result == -1;
+  ensures: result != -1 => rpm_header_find(p.header, 1006) >= 0;
+{
   return rpm_header_tag_int(&p.header, RPM_TAG_BUILDTIME);
 }
