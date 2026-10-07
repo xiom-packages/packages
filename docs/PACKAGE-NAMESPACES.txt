@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-05T22:23:18+03:00
-# packages: 515  modules: 599
+# generated: 2026-10-07T16:39:09+03:00
+# packages: 519  modules: 603
 
 ## package names
 xiom.acpi
@@ -186,6 +186,7 @@ xiom.hl7
 xiom.hostfile
 xiom.html
 xiom.http
+xiom.http.middleware
 xiom.humanize
 xiom.i2c
 xiom.i2p
@@ -214,6 +215,7 @@ xiom.k8s
 xiom.kafka
 xiom.keymgmt
 xiom.ktx
+xiom.kv
 xiom.l10n.number
 xiom.l10n-address
 xiom.l10n-currency
@@ -411,6 +413,7 @@ xiom.semver
 xiom.sensor
 xiom.sentiment
 xiom.serverless
+xiom.session
 xiom.sgf
 xiom.signal
 xiom.smartcontract
@@ -430,6 +433,7 @@ xiom.sql
 xiom.sqlite
 xiom.srt
 xiom.ssh2
+xiom.static
 xiom.stats-ml
 xiom.stats-tests
 xiom.stb
@@ -748,6 +752,7 @@ xiom.http
 xiom.http.client
 xiom.http.cookie
 xiom.http.demo
+xiom.http.middleware
 xiom.http.mime
 xiom.http.parser
 xiom.http.server
@@ -785,6 +790,7 @@ xiom.kafka.producer
 xiom.kafka.types
 xiom.keymgmt
 xiom.ktx
+xiom.kv
 xiom.l10n.address
 xiom.l10n.currency
 xiom.l10n.date
@@ -979,6 +985,7 @@ xiom.serverless
 xiom.serverless.check
 xiom.serverless.deploy
 xiom.serverless.invoke
+xiom.session
 xiom.sgf
 xiom.signal
 xiom.smartcontract
@@ -1002,6 +1009,7 @@ xiom.sqlite.schema
 xiom.sqlite.types
 xiom.srt
 xiom.ssh2
+xiom.static
 xiom.stats_ml
 xiom.stats_tests
 xiom.stemming
