@@ -1,8 +1,7 @@
 # xiom.ean -- Specification
 
-Version: 0.1.0 (`incubating`; implemented, harness-green with compiler
-v0.61.3, not published).
-Manifest: `package.xi` (`xiom.ean`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
+Manifest: `package.xi` (`xiom.ean`, version `0.1.2`).
 Module: `src/ean.xi` (`module xiom.ean`).
 Depends on `xiom.std` (`xiom.string`, `xiom.convert`); no other dependencies.
 
@@ -183,6 +182,38 @@ Both directions round-trip for the same code:
 `ean13_to_upca(upca_to_ean13(s)) == s` for valid UPC-A `s`, and
 `upca_to_ean13(ean13_to_upca(s)) == s` for zero-prefixed EAN-13 `s`.
 
+## Contracts
+
+Every public entry point carries runtime-checkable `ensures:` clauses, placed
+directly after the signature (two-space indent, before `{`). No `requires:`
+clauses: every entry point is total or a documented parser. Tags: **[Z3]** =
+pure-scalar clause proved by `xiom-verify`; **[RT]** = runtime-checked.
+
+- `ean_parse(s)`: [RT] `s.len() == 0 => result is Err`; [RT] `result is Ok => (s.len() == 8 || s.len() == 12 || s.len() == 13)`.
+- `ean_is_valid(s)`: [RT] `(s.len() != 8 && s.len() != 12 && s.len() != 13) => !result`; [RT] `result => (s.len() == 8 || s.len() == 12 || s.len() == 13)`.
+- `ean13_parse(s)`: [RT] `s.len() != 13 => result is Err`; [RT] `result is Ok => s.len() == 13`.
+- `ean13_is_valid(s)`: [RT] `s.len() != 13 => !result`; [RT] `result => s.len() == 13`.
+- `upca_parse(s)`: [RT] `s.len() != 12 => result is Err`; [RT] `result is Ok => s.len() == 12`.
+- `upca_is_valid(s)`: [RT] `s.len() != 12 => !result`; [RT] `result => s.len() == 12`.
+- `ean8_parse(s)`: [RT] `s.len() != 8 => result is Err`; [RT] `result is Ok => s.len() == 8`.
+- `ean8_is_valid(s)`: [RT] `s.len() != 8 => !result`; [RT] `result => s.len() == 8`.
+- `ean13_compute_check_digit(body)`: [RT] `body.len() != 12 => result is Err`; [RT] `result is Ok => body.len() == 12`; [RT] `result is Ok => result.value >= 0 && result.value <= 9`.
+- `upca_compute_check_digit(body)`: [RT] `body.len() != 11 => result is Err`; [RT] `result is Ok => body.len() == 11`; [RT] `result is Ok => result.value >= 0 && result.value <= 9`.
+- `ean8_compute_check_digit(body)`: [RT] `body.len() != 7 => result is Err`; [RT] `result is Ok => body.len() == 7`; [RT] `result is Ok => result.value >= 0 && result.value <= 9`.
+- `ean_kind(v)`: [Z3] `result == v.kind`.
+- `ean_digits(v)`: [RT] `result.len() == v.digits.len()`.
+- `ean_body(v)`: [RT] `v.digits.len() > 0 => result.len() == v.digits.len() - 1`.
+- `ean_check_digit(v)`: [RT] `v.digits.len() > 0 => result >= -48 && result <= 207` (universal byte-domain bound: `digits` may hold any bytes on a hand-built `Ean`, so the parsed `0..9` range is not asserted).
+- `ean_country_prefix(v)`: [RT] `v.digits.len() >= 3 => result.len() == 3`.
+- `ean_compact(v)`: [RT] `result.len() == v.digits.len()`.
+- `ean_format(v)`: [RT] `v.kind == 13 && v.digits.len() >= 13 => result.len() == 15`; [RT] `v.kind == 12 && v.digits.len() >= 12 => result.len() == 15`; [RT] `v.kind != 13 && v.kind != 12 && v.digits.len() >= 8 => result.len() == 9`.
+- `upca_to_ean13(s)`: [RT] `s.len() == 0 => result is Err`; [RT] `result is Ok => s.len() == 12`; [RT] `result is Ok => result.value.len() == 13`.
+- `ean13_to_upca(s)`: [RT] `s.len() == 0 => result is Err`; [RT] `result is Ok => s.len() == 13`; [RT] `result is Ok => result.value.len() == 12`.
+- `ean13_is_upca_equivalent(s)`: [RT] `s.len() == 0 => !result`; [RT] `result => s.len() == 13`.
+
+42 clauses total (1 Z3-provable pure-scalar, 41 runtime-checked); no clause
+dropped.
+
 ## Error catalog
 
 `ean_parse`, in validation order:
@@ -275,7 +306,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.ean
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=20 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations

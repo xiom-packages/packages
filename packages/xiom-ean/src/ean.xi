@@ -141,7 +141,10 @@ fn _compute_declared(body: Str, kind: Int, body_len: Int) -> Result[Int, Str] {
 /// Error case: empty input, unsupported length, non-digit byte, or check
 /// digit mismatch.
 /// Complexity: O(1) time and space (the length is at most 13).
-pub fn ean_parse(s: Str) -> Result[Ean, Str] {
+pub fn ean_parse(s: Str) -> Result[Ean, Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: result is Ok => (s.len() == 8 || s.len() == 12 || s.len() == 13);
+{
   let n = s.len();
   if n == 0 { return _ean_err("ean: empty input"); }
   if n == EAN_KIND_EAN8 { return _parse_declared(s, EAN_KIND_EAN8); }
@@ -155,7 +158,10 @@ pub fn ean_parse(s: Str) -> Result[Ean, Str] {
 /// Returns: Bool.
 /// Error case: none (errors collapse to false).
 /// Complexity: O(1).
-pub fn ean_is_valid(s: Str) -> Bool {
+pub fn ean_is_valid(s: Str) -> Bool
+  ensures: (s.len() != 8 && s.len() != 12 && s.len() != 13) => !result;
+  ensures: result => (s.len() == 8 || s.len() == 12 || s.len() == 13);
+{
   match ean_parse(s) {
     Ok(v) => { return true; },
     Err(e) => { return false; },
@@ -173,7 +179,10 @@ pub fn ean_is_valid(s: Str) -> Bool {
 /// Error case: empty input, wrong length, non-digit byte, or check digit
 /// mismatch.
 /// Complexity: O(1).
-pub fn ean13_parse(s: Str) -> Result[Ean, Str] {
+pub fn ean13_parse(s: Str) -> Result[Ean, Str]
+  ensures: s.len() != 13 => result is Err;
+  ensures: result is Ok => s.len() == 13;
+{
   return _parse_declared(s, EAN_KIND_EAN13);
 }
 
@@ -182,7 +191,10 @@ pub fn ean13_parse(s: Str) -> Result[Ean, Str] {
 /// Returns: Bool.
 /// Error case: none (errors collapse to false).
 /// Complexity: O(1).
-pub fn ean13_is_valid(s: Str) -> Bool {
+pub fn ean13_is_valid(s: Str) -> Bool
+  ensures: s.len() != 13 => !result;
+  ensures: result => s.len() == 13;
+{
   match ean13_parse(s) {
     Ok(v) => { return true; },
     Err(e) => { return false; },
@@ -196,7 +208,10 @@ pub fn ean13_is_valid(s: Str) -> Bool {
 /// Error case: empty input, wrong length, non-digit byte, or check digit
 /// mismatch.
 /// Complexity: O(1).
-pub fn upca_parse(s: Str) -> Result[Ean, Str] {
+pub fn upca_parse(s: Str) -> Result[Ean, Str]
+  ensures: s.len() != 12 => result is Err;
+  ensures: result is Ok => s.len() == 12;
+{
   return _parse_declared(s, EAN_KIND_UPCA);
 }
 
@@ -205,7 +220,10 @@ pub fn upca_parse(s: Str) -> Result[Ean, Str] {
 /// Returns: Bool.
 /// Error case: none (errors collapse to false).
 /// Complexity: O(1).
-pub fn upca_is_valid(s: Str) -> Bool {
+pub fn upca_is_valid(s: Str) -> Bool
+  ensures: s.len() != 12 => !result;
+  ensures: result => s.len() == 12;
+{
   match upca_parse(s) {
     Ok(v) => { return true; },
     Err(e) => { return false; },
@@ -219,7 +237,10 @@ pub fn upca_is_valid(s: Str) -> Bool {
 /// Error case: empty input, wrong length, non-digit byte, or check digit
 /// mismatch.
 /// Complexity: O(1).
-pub fn ean8_parse(s: Str) -> Result[Ean, Str] {
+pub fn ean8_parse(s: Str) -> Result[Ean, Str]
+  ensures: s.len() != 8 => result is Err;
+  ensures: result is Ok => s.len() == 8;
+{
   return _parse_declared(s, EAN_KIND_EAN8);
 }
 
@@ -228,7 +249,10 @@ pub fn ean8_parse(s: Str) -> Result[Ean, Str] {
 /// Returns: Bool.
 /// Error case: none (errors collapse to false).
 /// Complexity: O(1).
-pub fn ean8_is_valid(s: Str) -> Bool {
+pub fn ean8_is_valid(s: Str) -> Bool
+  ensures: s.len() != 8 => !result;
+  ensures: result => s.len() == 8;
+{
   match ean8_parse(s) {
     Ok(v) => { return true; },
     Err(e) => { return false; },
@@ -246,7 +270,11 @@ pub fn ean8_is_valid(s: Str) -> Bool {
 /// a wrong body length, or a non-digit byte.
 /// Error case: see above.
 /// Complexity: O(1).
-pub fn ean13_compute_check_digit(body: Str) -> Result[Int, Str] {
+pub fn ean13_compute_check_digit(body: Str) -> Result[Int, Str]
+  ensures: body.len() != 12 => result is Err;
+  ensures: result is Ok => body.len() == 12;
+  ensures: result is Ok => result.value >= 0 && result.value <= 9;
+{
   return _compute_declared(body, EAN_KIND_EAN13, 12);
 }
 
@@ -256,7 +284,11 @@ pub fn ean13_compute_check_digit(body: Str) -> Result[Int, Str] {
 /// a wrong body length, or a non-digit byte.
 /// Error case: see above.
 /// Complexity: O(1).
-pub fn upca_compute_check_digit(body: Str) -> Result[Int, Str] {
+pub fn upca_compute_check_digit(body: Str) -> Result[Int, Str]
+  ensures: body.len() != 11 => result is Err;
+  ensures: result is Ok => body.len() == 11;
+  ensures: result is Ok => result.value >= 0 && result.value <= 9;
+{
   return _compute_declared(body, EAN_KIND_UPCA, 11);
 }
 
@@ -266,7 +298,11 @@ pub fn upca_compute_check_digit(body: Str) -> Result[Int, Str] {
 /// a wrong body length, or a non-digit byte.
 /// Error case: see above.
 /// Complexity: O(1).
-pub fn ean8_compute_check_digit(body: Str) -> Result[Int, Str] {
+pub fn ean8_compute_check_digit(body: Str) -> Result[Int, Str]
+  ensures: body.len() != 7 => result is Err;
+  ensures: result is Ok => body.len() == 7;
+  ensures: result is Ok => result.value >= 0 && result.value <= 9;
+{
   return _compute_declared(body, EAN_KIND_EAN8, 7);
 }
 
@@ -280,7 +316,9 @@ pub fn ean8_compute_check_digit(body: Str) -> Result[Int, Str] {
 /// Returns: 8, 12 or 13.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn ean_kind(v: &Ean) -> Int {
+pub fn ean_kind(v: &Ean) -> Int
+  ensures: result == v.kind;
+{
   return v.kind;
 }
 
@@ -289,7 +327,9 @@ pub fn ean_kind(v: &Ean) -> Int {
 /// Returns: exactly kind ASCII digits, as parsed.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn ean_digits(v: &Ean) -> Str {
+pub fn ean_digits(v: &Ean) -> Str
+  ensures: result.len() == v.digits.len();
+{
   return v.digits;
 }
 
@@ -298,7 +338,9 @@ pub fn ean_digits(v: &Ean) -> Str {
 /// Returns: kind - 1 ASCII digits.
 /// Error case: none.
 /// Complexity: O(kind) time, O(kind) output.
-pub fn ean_body(v: &Ean) -> Str {
+pub fn ean_body(v: &Ean) -> Str
+  ensures: v.digits.len() > 0 => result.len() == v.digits.len() - 1;
+{
   let d = v.digits;
   return string.str_slice(d, 0, d.len() - 1);
 }
@@ -308,7 +350,9 @@ pub fn ean_body(v: &Ean) -> Str {
 /// Returns: 0..9.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn ean_check_digit(v: &Ean) -> Int {
+pub fn ean_check_digit(v: &Ean) -> Int
+  ensures: v.digits.len() > 0 => result >= -48 && result <= 207;
+{
   let d = v.digits;
   return ((string.byte_at(d, d.len() - 1) as Int) & 255) - 48;
 }
@@ -323,7 +367,9 @@ pub fn ean_check_digit(v: &Ean) -> Int {
 /// authoritative GS1 statement. Lengths of 2 digits are not modeled.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn ean_country_prefix(v: &Ean) -> Str {
+pub fn ean_country_prefix(v: &Ean) -> Str
+  ensures: v.digits.len() >= 3 => result.len() == 3;
+{
   let d = v.digits;
   return string.str_slice(d, 0, 3);
 }
@@ -337,7 +383,9 @@ pub fn ean_country_prefix(v: &Ean) -> Str {
 /// Returns: kind ASCII digits, no separators.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn ean_compact(v: &Ean) -> Str {
+pub fn ean_compact(v: &Ean) -> Str
+  ensures: result.len() == v.digits.len();
+{
   return v.digits;
 }
 
@@ -350,7 +398,11 @@ pub fn ean_compact(v: &Ean) -> Str {
 /// "036000291452" -> "0 36000 29145 2", "96385074" -> "9638 5074".
 /// Error case: none.
 /// Complexity: O(1).
-pub fn ean_format(v: &Ean) -> Str {
+pub fn ean_format(v: &Ean) -> Str
+  ensures: v.kind == 13 && v.digits.len() >= 13 => result.len() == 15;
+  ensures: v.kind == 12 && v.digits.len() >= 12 => result.len() == 15;
+  ensures: v.kind != 13 && v.kind != 12 && v.digits.len() >= 8 => result.len() == 9;
+{
   let d = v.digits;
   if v.kind == EAN_KIND_EAN13 {
     return string.str_slice(d, 0, 1) + " " + string.str_slice(d, 1, 7) + " " + string.str_slice(d, 7, 13);
@@ -374,7 +426,11 @@ pub fn ean_format(v: &Ean) -> Str {
 /// with the upca_parse error when `s` is not a valid UPC-A.
 /// Error case: see upca_parse.
 /// Complexity: O(1).
-pub fn upca_to_ean13(s: Str) -> Result[Str, Str] {
+pub fn upca_to_ean13(s: Str) -> Result[Str, Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: result is Ok => s.len() == 12;
+  ensures: result is Ok => result.value.len() == 13;
+{
   match upca_parse(s) {
     Ok(v) => {
       let d = v.digits;
@@ -394,7 +450,11 @@ pub fn upca_to_ean13(s: Str) -> Result[Str, Str] {
 /// with "0" (and therefore is not in the UPC-A code space).
 /// Error case: see above.
 /// Complexity: O(1).
-pub fn ean13_to_upca(s: Str) -> Result[Str, Str] {
+pub fn ean13_to_upca(s: Str) -> Result[Str, Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: result is Ok => s.len() == 13;
+  ensures: result is Ok => result.value.len() == 12;
+{
   match ean13_parse(s) {
     Ok(v) => {
       let d = v.digits;
@@ -413,7 +473,10 @@ pub fn ean13_to_upca(s: Str) -> Result[Str, Str] {
 /// Returns: Bool; false for every invalid or non-zero-prefixed input.
 /// Error case: none (errors collapse to false).
 /// Complexity: O(1).
-pub fn ean13_is_upca_equivalent(s: Str) -> Bool {
+pub fn ean13_is_upca_equivalent(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: result => s.len() == 13;
+{
   match ean13_parse(s) {
     Ok(v) => {
       let d = v.digits;

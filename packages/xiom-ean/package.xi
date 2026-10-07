@@ -9,7 +9,7 @@
 
 package xiom_ean {
   name: "xiom.ean";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "EAN-13, EAN-8 and UPC-A validation with check-digit computation and structure access";
   categories: ["data"];
   keywords: ["ean", "upc", "barcode", "validation"];
