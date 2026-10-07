@@ -8,7 +8,7 @@
 
 package xiom_uart {
   name: "xiom.uart";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "UART line codec: framing bits, parity, framing errors and baud divisors";
   categories: ["systems"];
   keywords: ["uart", "serial", "baud", "framing"];

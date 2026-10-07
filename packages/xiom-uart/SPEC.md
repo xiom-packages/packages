@@ -1,8 +1,6 @@
 # xiom.uart -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.uart`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/uart.xi` (`module xiom.uart`).
 Depends on `xiom.std`; the library module imports nothing from it (tests add
 `xiom.test`, `xiom.io`, `xiom.string`, `xiom.string.compare`).
@@ -368,8 +366,8 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.uart
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=21 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0 (batch #35 hardening pass, 81 `ensures:`
+clauses active), `port: PASS (passed=21 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
 
@@ -385,7 +383,7 @@ Last verified: compiler 0.61.3,
   frame; a glitch 0 with no room for a frame is `uart: truncated frame`.
 - `UartConfig` is a plain value type; the module is not thread-safe.
 
-## Compiler / stdlib notes for v0.61.3
+## Compiler / stdlib notes for v0.64.0
 
 - `Ok`/`Err` construction is confined to the tiny leaf helpers `_ok_*` /
   `_err_*` (constructing Results directly inside other functions
@@ -401,3 +399,72 @@ Last verified: compiler 0.61.3,
   `xiom.string.compare.str_compare` (BUG 17: `==` on a Str read from a
   `Vec` lowers to a pointer comparison).
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #35 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/uart.xi` (compiler v0.64.0;
+the `package.xi` version bump is done by the coordinator at integration).
+81 clauses across 42 public entry points; all are `ensures:` (no `requires:`),
+so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.uart -TimeoutSec 60` runs ended
+`port: PASS (passed=21 failed=0 program_exit=0 exit=0)` with the clauses active
+(5.35 s and 5.11 s); the 21-check conformance suite exercises every entry
+point. No clause was dropped, and both probe-gated clauses (the
+`uart_encode_stream` empty-sequence `== 2` and the `uart_decode_stream`
+empty-stream `== 0` pins) passed both runs and are kept.
+
+`xiom-verify src\uart.xi --check` (bundled Z3, v0.64.0): **17 proven, 0
+violated, 70 unknown, 13 errors**. The unknown/error counts are SMT-emitter
+limits, not code findings: clause axioms over `Str`/`Vec` lengths and the
+`Result` sort are skipped with X7007 "equality with unresolved operand sort",
+and 13 generated queries were rejected by z3 with emitter-bug errors (the tool
+states this is not a proof failure of the code under test; per-clause
+attribution of the 17 proven axioms is not reported). Every clause in the
+table is classed **runtime-checked** and all clauses held in both port runs;
+`xiom_verify_output.smt2` was deleted by literal path. No stdlib gap was found
+for this package.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `uart_parity_none` | `ensures: result == 0` | runtime-checked (`Int`) |
+| `uart_parity_even` | `ensures: result == 1` | runtime-checked (`Int`) |
+| `uart_parity_odd` | `ensures: result == 2` | runtime-checked (`Int`) |
+| `uart_parity_mark` | `ensures: result == 3` | runtime-checked (`Int`) |
+| `uart_parity_space` | `ensures: result == 4` | runtime-checked (`Int`) |
+| `uart_flow_none` | `ensures: result == 0` | runtime-checked (`Int`) |
+| `uart_flow_rts_cts` | `ensures: result == 1` | runtime-checked (`Int`) |
+| `uart_flow_xon_xoff` | `ensures: result == 2` | runtime-checked (`Int`) |
+| `uart_version` | `ensures: result.len() == 5` | runtime-checked (`Str` length) |
+| `uart_parity_name` | out-of-range `=> result.len() == 7`; in-range `=> result.len()` 3..5 | runtime-checked (`Str` length) |
+| `uart_flow_name` | out-of-range `=> result.len() == 7`; in-range `=> result.len()` 4..8 | runtime-checked (`Str` length) |
+| `uart_stop_name` | out-of-range `=> result.len() == 7`; in-range `=> result.len()` 1..3 | runtime-checked (`Str` length) |
+| `uart_default` | `result.baud == 115200`; `result.data_bits == 8`; `result.parity == 0 && result.stop_half == 2 && result.flow == 0` | runtime-checked (struct-return field reads) |
+| `uart_config_equal` | field conjunction `=> result`; `result` `=>` field conjunction | runtime-checked (`Bool`, field reads) |
+| `uart_config_ok` | `Ok` `=>` baud/data_bits/parity valid; `Ok` `=>` stop_half/flow valid; invalid disjunction `=> Err` | runtime-checked (`Result` sort) |
+| `uart_new` | `Ok` `=>` all five parameters valid; `baud <= 0 => Err`; `data_bits` outside 5..9 `=> Err` | runtime-checked (`Result` sort) |
+| `uart_has_parity` | `result == (c.parity != 0)` | runtime-checked (field read) |
+| `uart_stop_bit_times` | `result == (stop_half + 1) / 2` | runtime-checked (`Int`) |
+| `uart_frame_len` | `parity == 0 => 1 + data_bits + uart_stop_bit_times(...)`; `parity != 0 => 2 + ...` | runtime-checked (definitional cross-call) |
+| `uart_frame_halves` | `parity == 0 => 2 + data_bits * 2 + stop_half`; `parity != 0 => 4 + ...` | runtime-checked (`Int` formula) |
+| `uart_parity_bit` | `parity == 3 => result == 1`; other non-even/odd codes `=> result == 0`; even/odd `=>` 0..1 | runtime-checked (`Int`) |
+| `uart_byte_ok` | `result == (byte >= 0 && byte <= 511)` | runtime-checked (`Bool`) |
+| `uart_byte_fits` | `result` `=>` 0..511; out-of-range `=> !result` | runtime-checked (`Bool`) |
+| `uart_encode_byte_into` | `Err => out.len() == out.len()@pre`; `Ok => out.len() == out.len()@pre + uart_frame_len(c)`; `byte < 0 => Err` | runtime-checked (`@pre` frame + `Result`) |
+| `uart_encode_byte` | `byte < 0 => Err`; `c.baud <= 0 => Err`; `Ok => result.value.len()` 7..13 | runtime-checked (`Result` payload length) |
+| `uart_encode_stream` | `c.baud <= 0 => Err`; `Ok => result.value.len() >= 2`; probe `Ok && bytes.len() == 0 => result.value.len() == 2` | runtime-checked (`Result` payload length) |
+| `uart_decode_byte_at` | `pos < 0 => Err`; `Ok => pos >= 0`; `Ok => result.value` 0..511 | runtime-checked (`Result` payload) |
+| `uart_decode_byte` | `Ok => result.value` 0..511; `bits.len() < 7 => Err` | runtime-checked (`Result` payload) |
+| `uart_decode_stream` | `c.baud <= 0 => Err`; probe `Ok && bits.len() == 0 => result.value.len() == 0` | runtime-checked (`Result` payload length) |
+| `uart_bit_get` | `i < 0 => result == -1`; `i >= bits.len() => result == -1`; in-range `=>` 0..255 | runtime-checked (`Int`, `Vec` length) |
+| `uart_bits_equal` | `a.len() != b.len() => !result`; `result => a.len() == b.len()` | runtime-checked (`Vec` lengths) |
+| `uart_idle_bit` | `result == 1` | runtime-checked (`Int`) |
+| `uart_idle_bits` | `count <= 0 => result.len() == 0`; `count > 0 => result.len() == count` | runtime-checked (`Vec` length) |
+| `uart_oversample_ok` | `result == (oversample == 4 \|\| oversample == 8 \|\| oversample == 16 \|\| oversample == 32)` | runtime-checked (`Bool`) |
+| `uart_sample_offset` | `oversample <= 0 => result == -1`; `oversample > 0 => result == oversample / 2` | runtime-checked (`Int`) |
+| `uart_bit_tick` | `result == bit * oversample` | runtime-checked (`Int`) |
+| `uart_mid_tick` | `result == bit * oversample + uart_sample_offset(oversample)` | runtime-checked (definitional cross-call) |
+| `uart_tick_bit` | `tick < 0 \|\| oversample <= 0 => result == -1`; valid `=> result >= 0` | runtime-checked (`Int`) |
+| `uart_divisor` | `clock_hz <= 0 => Err`; `Ok => result.value >= 1`; `Ok =>` baud/oversample valid | runtime-checked (`Result` payload) |
+| `uart_divisor_nearest` | same triple as `uart_divisor` | runtime-checked (`Result` payload) |
+| `uart_baud_error_ppm` | `clock_hz <= 0 => Err`; `Ok => result.value` -1000000..1000000; `Ok =>` baud/oversample valid | runtime-checked (`Result` payload) |
+| `uart_baud_ok` | `max_ppm < 0 => !result`; `result => max_ppm >= 0`; `clock_hz <= 0 => !result` | runtime-checked (`Bool`) |

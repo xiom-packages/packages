@@ -178,7 +178,7 @@ fn t1() -> TestResult {
   if uart_flow_none() != 0 { ok = false; }
   if uart_flow_rts_cts() != 1 { ok = false; }
   if uart_flow_xon_xoff() != 2 { ok = false; }
-  if !str_eq(uart_version(), "0.1.0") { ok = false; }
+  if !str_eq(uart_version(), "0.1.3") { ok = false; }
   if !str_eq(uart_parity_name(0), "none") { ok = false; }
   if !str_eq(uart_parity_name(1), "even") { ok = false; }
   if !str_eq(uart_parity_name(2), "odd") { ok = false; }

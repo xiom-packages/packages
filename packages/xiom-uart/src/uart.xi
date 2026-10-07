@@ -173,53 +173,74 @@ fn _push_idle(out: &mut Vec[UInt8]) {
 // --------------------------------------------------
 
 /// Parity code: none. Complexity: O(1).
-pub fn uart_parity_none() -> Int {
+pub fn uart_parity_none() -> Int
+  ensures: result == 0;
+{
   return 0;
 }
 
 /// Parity code: even. Complexity: O(1).
-pub fn uart_parity_even() -> Int {
+pub fn uart_parity_even() -> Int
+  ensures: result == 1;
+{
   return 1;
 }
 
 /// Parity code: odd. Complexity: O(1).
-pub fn uart_parity_odd() -> Int {
+pub fn uart_parity_odd() -> Int
+  ensures: result == 2;
+{
   return 2;
 }
 
 /// Parity code: mark (the parity bit is always 1). Complexity: O(1).
-pub fn uart_parity_mark() -> Int {
+pub fn uart_parity_mark() -> Int
+  ensures: result == 3;
+{
   return 3;
 }
 
 /// Parity code: space (the parity bit is always 0). Complexity: O(1).
-pub fn uart_parity_space() -> Int {
+pub fn uart_parity_space() -> Int
+  ensures: result == 4;
+{
   return 4;
 }
 
 /// Flow-control code: none. Complexity: O(1).
-pub fn uart_flow_none() -> Int {
+pub fn uart_flow_none() -> Int
+  ensures: result == 0;
+{
   return 0;
 }
 
 /// Flow-control code: RTS/CTS hardware handshake. Complexity: O(1).
-pub fn uart_flow_rts_cts() -> Int {
+pub fn uart_flow_rts_cts() -> Int
+  ensures: result == 1;
+{
   return 1;
 }
 
 /// Flow-control code: XON/XOFF software handshake. Complexity: O(1).
-pub fn uart_flow_xon_xoff() -> Int {
+pub fn uart_flow_xon_xoff() -> Int
+  ensures: result == 2;
+{
   return 2;
 }
 
 /// Module version string. Complexity: O(1).
-pub fn uart_version() -> Str {
-  return "0.1.0";
+pub fn uart_version() -> Str
+  ensures: result.len() == 5;
+{
+  return "0.1.3";
 }
 
 /// Human-readable parity name: "none", "even", "odd", "mark", "space";
 /// any other code is "invalid". Complexity: O(1).
-pub fn uart_parity_name(parity: Int) -> Str {
+pub fn uart_parity_name(parity: Int) -> Str
+  ensures: parity < 0 || parity > 4 => result.len() == 7;
+  ensures: parity >= 0 && parity <= 4 => result.len() >= 3 && result.len() <= 5;
+{
   if parity == 0 {
     return "none";
   }
@@ -240,7 +261,10 @@ pub fn uart_parity_name(parity: Int) -> Str {
 
 /// Human-readable flow-control name: "none", "rts_cts", "xon_xoff"; any
 /// other code is "invalid". Complexity: O(1).
-pub fn uart_flow_name(flow: Int) -> Str {
+pub fn uart_flow_name(flow: Int) -> Str
+  ensures: flow < 0 || flow > 2 => result.len() == 7;
+  ensures: flow >= 0 && flow <= 2 => result.len() >= 4 && result.len() <= 8;
+{
   if flow == 0 {
     return "none";
   }
@@ -255,7 +279,10 @@ pub fn uart_flow_name(flow: Int) -> Str {
 
 /// Human-readable stop-bit name for a half-bit-time count: "1", "1.5",
 /// "2"; any other value is "invalid". Complexity: O(1).
-pub fn uart_stop_name(stop_half: Int) -> Str {
+pub fn uart_stop_name(stop_half: Int) -> Str
+  ensures: stop_half < 2 || stop_half > 4 => result.len() == 7;
+  ensures: stop_half >= 2 && stop_half <= 4 => result.len() >= 1 && result.len() <= 3;
+{
   if stop_half == 2 {
     return "1";
   }
@@ -275,13 +302,20 @@ pub fn uart_stop_name(stop_half: Int) -> Str {
 /// The default line: 115200 baud, 8 data bits, no parity, 1 stop bit,
 /// no flow control (115200 8N1).
 /// Complexity: O(1).
-pub fn uart_default() -> UartConfig {
+pub fn uart_default() -> UartConfig
+  ensures: result.baud == 115200;
+  ensures: result.data_bits == 8;
+  ensures: result.parity == 0 && result.stop_half == 2 && result.flow == 0;
+{
   return UartConfig{ baud: 115200; data_bits: 8; parity: 0; stop_half: 2; flow: 0; };
 }
 
 /// Structural equality: all five configuration fields match.
 /// Complexity: O(1).
-pub fn uart_config_equal(a: &UartConfig, b: &UartConfig) -> Bool {
+pub fn uart_config_equal(a: &UartConfig, b: &UartConfig) -> Bool
+  ensures: (a.baud == b.baud && a.data_bits == b.data_bits && a.parity == b.parity && a.stop_half == b.stop_half && a.flow == b.flow) => result;
+  ensures: result => (a.baud == b.baud && a.data_bits == b.data_bits && a.parity == b.parity && a.stop_half == b.stop_half && a.flow == b.flow);
+{
   if a.baud != b.baud {
     return false;
   }
@@ -307,7 +341,11 @@ pub fn uart_config_equal(a: &UartConfig, b: &UartConfig) -> Bool {
 /// Error case: Err("uart: invalid baud"), Err("uart: invalid data bits"),
 /// Err("uart: invalid parity"), Err("uart: invalid stop bits") or
 /// Err("uart: invalid flow control"). Complexity: O(1).
-pub fn uart_config_ok(c: &UartConfig) -> Result[Unit, Str] {
+pub fn uart_config_ok(c: &UartConfig) -> Result[Unit, Str]
+  ensures: result is Ok => c.baud > 0 && c.data_bits >= 5 && c.data_bits <= 9 && c.parity >= 0 && c.parity <= 4;
+  ensures: result is Ok => c.stop_half >= 2 && c.stop_half <= 4 && c.flow >= 0 && c.flow <= 2;
+  ensures: (c.baud <= 0 || c.data_bits < 5 || c.data_bits > 9 || c.parity < 0 || c.parity > 4 || c.stop_half < 2 || c.stop_half > 4 || c.flow < 0 || c.flow > 2) => result is Err;
+{
   let baud: Int = c.baud;
   if baud <= 0 {
     return _err_unit("uart: invalid baud");
@@ -334,7 +372,11 @@ pub fn uart_config_ok(c: &UartConfig) -> Result[Unit, Str] {
 /// Build a configuration from the five fields and validate it with
 /// uart_config_ok (same error catalog, same order).
 /// Complexity: O(1).
-pub fn uart_new(baud: Int, data_bits: Int, parity: Int, stop_half: Int, flow: Int) -> Result[UartConfig, Str] {
+pub fn uart_new(baud: Int, data_bits: Int, parity: Int, stop_half: Int, flow: Int) -> Result[UartConfig, Str]
+  ensures: result is Ok => baud > 0 && data_bits >= 5 && data_bits <= 9 && parity >= 0 && parity <= 4 && stop_half >= 2 && stop_half <= 4 && flow >= 0 && flow <= 2;
+  ensures: baud <= 0 => result is Err;
+  ensures: data_bits < 5 || data_bits > 9 => result is Err;
+{
   let c = UartConfig{ baud: baud; data_bits: data_bits; parity: parity; stop_half: stop_half; flow: flow; };
   let vr = uart_config_ok(&c);
   if !vr.is_ok {
@@ -349,7 +391,9 @@ pub fn uart_new(baud: Int, data_bits: Int, parity: Int, stop_half: Int, flow: In
 
 /// True when the configuration uses a parity bit (parity != none).
 /// Complexity: O(1).
-pub fn uart_has_parity(c: &UartConfig) -> Bool {
+pub fn uart_has_parity(c: &UartConfig) -> Bool
+  ensures: result == (c.parity != 0);
+{
   return c.parity != 0;
 }
 
@@ -358,14 +402,19 @@ pub fn uart_has_parity(c: &UartConfig) -> Bool {
 /// is a whole bit time, so 1.5 stop bits occupies two mark elements; the
 /// exact duration is uart_frame_halves. Meaningful for stop_half 2..4.
 /// Complexity: O(1).
-pub fn uart_stop_bit_times(stop_half: Int) -> Int {
+pub fn uart_stop_bit_times(stop_half: Int) -> Int
+  ensures: result == (stop_half + 1) / 2;
+{
   return (stop_half + 1) / 2;
 }
 
 /// Number of bit-stream elements in one frame: 1 start bit + data_bits +
 /// (1 when parity is used) + uart_stop_bit_times(stop_half). For 8N1 this
 /// is 10. Meaningful for a valid configuration. Complexity: O(1).
-pub fn uart_frame_len(c: &UartConfig) -> Int {
+pub fn uart_frame_len(c: &UartConfig) -> Int
+  ensures: c.parity == 0 => result == 1 + c.data_bits + uart_stop_bit_times(c.stop_half);
+  ensures: c.parity != 0 => result == 2 + c.data_bits + uart_stop_bit_times(c.stop_half);
+{
   let db: Int = c.data_bits;
   var n = 1 + db;
   if c.parity != 0 {
@@ -378,7 +427,10 @@ pub fn uart_frame_len(c: &UartConfig) -> Int {
 /// stop_half, so 8N1 is 20 halves (10 bit times) and 8N1.5 is 21 halves
 /// (the 0.5 stop bit cannot be represented in a whole-bit stream but is
 /// counted here). Meaningful for a valid configuration. Complexity: O(1).
-pub fn uart_frame_halves(c: &UartConfig) -> Int {
+pub fn uart_frame_halves(c: &UartConfig) -> Int
+  ensures: c.parity == 0 => result == 2 + c.data_bits * 2 + c.stop_half;
+  ensures: c.parity != 0 => result == 4 + c.data_bits * 2 + c.stop_half;
+{
   let db: Int = c.data_bits;
   var n = 2 + db * 2;
   if c.parity != 0 {
@@ -398,7 +450,11 @@ pub fn uart_frame_halves(c: &UartConfig) -> Int {
 /// none -> 0, mark -> 1, space -> 0, even -> 1 when the data has an odd
 /// number of 1 bits, odd -> the complement of even. Any other parity code
 /// behaves like none (0). Complexity: O(data_bits).
-pub fn uart_parity_bit(parity: Int, byte: Int, data_bits: Int) -> Int {
+pub fn uart_parity_bit(parity: Int, byte: Int, data_bits: Int) -> Int
+  ensures: parity == 3 => result == 1;
+  ensures: parity != 1 && parity != 2 && parity != 3 => result == 0;
+  ensures: (parity == 1 || parity == 2) => result >= 0 && result <= 1;
+{
   if parity == 1 || parity == 2 {
     var v = byte;
     if data_bits >= 0 {
@@ -423,7 +479,9 @@ pub fn uart_parity_bit(parity: Int, byte: Int, data_bits: Int) -> Int {
 
 /// True when `byte` is a value a 9-data-bit frame can carry: 0..511.
 /// Complexity: O(1).
-pub fn uart_byte_ok(byte: Int) -> Bool {
+pub fn uart_byte_ok(byte: Int) -> Bool
+  ensures: result == (byte >= 0 && byte <= 511);
+{
   if byte < 0 {
     return false;
   }
@@ -434,7 +492,10 @@ pub fn uart_byte_ok(byte: Int) -> Bool {
 /// accepted only with data_bits == 9, an 8-bit value only up to 8 data
 /// bits, and so on. False for out-of-range bytes and for an invalid
 /// configuration. Complexity: O(1).
-pub fn uart_byte_fits(c: &UartConfig, byte: Int) -> Bool {
+pub fn uart_byte_fits(c: &UartConfig, byte: Int) -> Bool
+  ensures: result => byte >= 0 && byte <= 511;
+  ensures: (byte < 0 || byte > 511) => !result;
+{
   if !uart_byte_ok(byte) {
     return false;
   }
@@ -456,7 +517,11 @@ pub fn uart_byte_fits(c: &UartConfig, byte: Int) -> Bool {
 /// Returns: Ok(()) after appending uart_frame_len(c) elements.
 /// Error case: the uart_config_ok catalog, plus the two byte errors.
 /// Complexity: O(data_bits).
-pub fn uart_encode_byte_into(out: &mut Vec[UInt8], c: &UartConfig, byte: Int) -> Result[Unit, Str] {
+pub fn uart_encode_byte_into(out: &mut Vec[UInt8], c: &UartConfig, byte: Int) -> Result[Unit, Str]
+  ensures: result is Err => out.len() == out.len()@pre;
+  ensures: result is Ok => out.len() == out.len()@pre + uart_frame_len(c);
+  ensures: byte < 0 => result is Err;
+{
   let vr = uart_config_ok(c);
   if !vr.is_ok {
     return _err_unit(vr.error);
@@ -492,7 +557,11 @@ pub fn uart_encode_byte_into(out: &mut Vec[UInt8], c: &UartConfig, byte: Int) ->
 /// then data LSB-first, the parity bit when configured, then the stop
 /// bits). Same validation and error catalog as uart_encode_byte_into.
 /// Complexity: O(data_bits).
-pub fn uart_encode_byte(c: &UartConfig, byte: Int) -> Result[Vec[UInt8], Str] {
+pub fn uart_encode_byte(c: &UartConfig, byte: Int) -> Result[Vec[UInt8], Str]
+  ensures: byte < 0 => result is Err;
+  ensures: c.baud <= 0 => result is Err;
+  ensures: result is Ok => result.value.len() >= 7 && result.value.len() <= 13;
+{
   var out = Vec[UInt8].new();
   let ar = uart_encode_byte_into(&mut out, c, byte);
   if !ar.is_ok {
@@ -507,7 +576,11 @@ pub fn uart_encode_byte(c: &UartConfig, byte: Int) -> Result[Vec[UInt8], Str] {
 /// configuration before anything is written; the error catalog is the
 /// uart_encode_byte_into one. An empty sequence encodes to two idle bits.
 /// Complexity: O(bytes.len() * data_bits).
-pub fn uart_encode_stream(c: &UartConfig, bytes: &Vec[Int]) -> Result[Vec[UInt8], Str] {
+pub fn uart_encode_stream(c: &UartConfig, bytes: &Vec[Int]) -> Result[Vec[UInt8], Str]
+  ensures: c.baud <= 0 => result is Err;
+  ensures: result is Ok => result.value.len() >= 2;
+  ensures: result is Ok && bytes.len() == 0 => result.value.len() == 2;
+{
   let vr = uart_config_ok(c);
   if !vr.is_ok {
     return _err_bytes(vr.error);
@@ -557,7 +630,11 @@ pub fn uart_encode_stream(c: &UartConfig, bytes: &Vec[Int]) -> Result[Vec[UInt8]
 /// stop bit that is not 1 -> Err("uart: invalid stop bit").
 /// Returns: Ok(value) with the data value, 0..2^data_bits - 1.
 /// Complexity: O(data_bits).
-pub fn uart_decode_byte_at(bits: &Vec[UInt8], c: &UartConfig, pos: Int) -> Result[Int, Str] {
+pub fn uart_decode_byte_at(bits: &Vec[UInt8], c: &UartConfig, pos: Int) -> Result[Int, Str]
+  ensures: pos < 0 => result is Err;
+  ensures: result is Ok => pos >= 0;
+  ensures: result is Ok => result.value >= 0 && result.value <= 511;
+{
   let vr = uart_config_ok(c);
   if !vr.is_ok {
     return _err_int(vr.error);
@@ -615,7 +692,10 @@ pub fn uart_decode_byte_at(bits: &Vec[UInt8], c: &UartConfig, pos: Int) -> Resul
 
 /// Decode the frame that starts at bit index 0 of `bits`;
 /// uart_decode_byte_at(bits, c, 0). Complexity: O(data_bits).
-pub fn uart_decode_byte(bits: &Vec[UInt8], c: &UartConfig) -> Result[Int, Str] {
+pub fn uart_decode_byte(bits: &Vec[UInt8], c: &UartConfig) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0 && result.value <= 511;
+  ensures: bits.len() < 7 => result is Err;
+{
   return uart_decode_byte_at(bits, c, 0);
 }
 
@@ -630,7 +710,10 @@ pub fn uart_decode_byte(bits: &Vec[UInt8], c: &UartConfig) -> Result[Int, Str] {
 /// and a start bit at the end of the stream is Err("uart: truncated
 /// frame"). Returns every frame value in order.
 /// Complexity: O(bits.len()).
-pub fn uart_decode_stream(bits: &Vec[UInt8], c: &UartConfig) -> Result[Vec[Int], Str] {
+pub fn uart_decode_stream(bits: &Vec[UInt8], c: &UartConfig) -> Result[Vec[Int], Str]
+  ensures: c.baud <= 0 => result is Err;
+  ensures: result is Ok && bits.len() == 0 => result.value.len() == 0;
+{
   let vr = uart_config_ok(c);
   if !vr.is_ok {
     return _err_intvec(vr.error);
@@ -665,7 +748,11 @@ pub fn uart_decode_stream(bits: &Vec[UInt8], c: &UartConfig) -> Result[Vec[Int],
 /// Bit `i` of `bits` widened to 0..255, or -1 when `i` is negative or
 /// beyond the stream. A well-formed stream holds only 0 and 1.
 /// Complexity: O(1).
-pub fn uart_bit_get(bits: &Vec[UInt8], i: Int) -> Int {
+pub fn uart_bit_get(bits: &Vec[UInt8], i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= bits.len() => result == -1;
+  ensures: i >= 0 && i < bits.len() => result >= 0 && result <= 255;
+{
   if i < 0 || i >= bits.len() {
     return -1;
   }
@@ -674,7 +761,10 @@ pub fn uart_bit_get(bits: &Vec[UInt8], i: Int) -> Int {
 
 /// True when two bit streams hold the same widened element sequence.
 /// Complexity: O(length).
-pub fn uart_bits_equal(a: &Vec[UInt8], b: &Vec[UInt8]) -> Bool {
+pub fn uart_bits_equal(a: &Vec[UInt8], b: &Vec[UInt8]) -> Bool
+  ensures: a.len() != b.len() => !result;
+  ensures: result => a.len() == b.len();
+{
   if a.len() != b.len() {
     return false;
   }
@@ -691,13 +781,18 @@ pub fn uart_bits_equal(a: &Vec[UInt8], b: &Vec[UInt8]) -> Bool {
 }
 
 /// The idle line level: 1 (high). Complexity: O(1).
-pub fn uart_idle_bit() -> Int {
+pub fn uart_idle_bit() -> Int
+  ensures: result == 1;
+{
   return 1;
 }
 
 /// A fresh vector of `count` idle-high bit times (empty for count <= 0).
 /// Complexity: O(count).
-pub fn uart_idle_bits(count: Int) -> Vec[UInt8] {
+pub fn uart_idle_bits(count: Int) -> Vec[UInt8]
+  ensures: count <= 0 => result.len() == 0;
+  ensures: count > 0 => result.len() == count;
+{
   var v = Vec[UInt8].new();
   var i = 0;
   while i < count {
@@ -713,7 +808,9 @@ pub fn uart_idle_bits(count: Int) -> Vec[UInt8] {
 
 /// True for the canonical oversampling factors 4, 8, 16 and 32.
 /// Complexity: O(1).
-pub fn uart_oversample_ok(oversample: Int) -> Bool {
+pub fn uart_oversample_ok(oversample: Int) -> Bool
+  ensures: result == (oversample == 4 || oversample == 8 || oversample == 16 || oversample == 32);
+{
   if oversample == 4 {
     return true;
   }
@@ -732,7 +829,10 @@ pub fn uart_oversample_ok(oversample: Int) -> Bool {
 /// The mid-bit sample offset within one bit period: oversample / 2 (8 for
 /// the standard 16x oversampling), or -1 when oversample <= 0.
 /// Complexity: O(1).
-pub fn uart_sample_offset(oversample: Int) -> Int {
+pub fn uart_sample_offset(oversample: Int) -> Int
+  ensures: oversample <= 0 => result == -1;
+  ensures: oversample > 0 => result == oversample / 2;
+{
   if oversample <= 0 {
     return -1;
   }
@@ -741,20 +841,27 @@ pub fn uart_sample_offset(oversample: Int) -> Int {
 
 /// Tick at which bit time `bit` starts: bit * oversample.
 /// Complexity: O(1).
-pub fn uart_bit_tick(bit: Int, oversample: Int) -> Int {
+pub fn uart_bit_tick(bit: Int, oversample: Int) -> Int
+  ensures: result == bit * oversample;
+{
   return bit * oversample;
 }
 
 /// Tick of the mid-bit sample point of bit time `bit`:
 /// bit * oversample + oversample / 2. Meaningful for oversample > 0.
 /// Complexity: O(1).
-pub fn uart_mid_tick(bit: Int, oversample: Int) -> Int {
+pub fn uart_mid_tick(bit: Int, oversample: Int) -> Int
+  ensures: result == bit * oversample + uart_sample_offset(oversample);
+{
   return bit * oversample + uart_sample_offset(oversample);
 }
 
 /// Bit time a tick falls in: tick / oversample (truncating), or -1 when
 /// tick < 0 or oversample <= 0. Complexity: O(1).
-pub fn uart_tick_bit(tick: Int, oversample: Int) -> Int {
+pub fn uart_tick_bit(tick: Int, oversample: Int) -> Int
+  ensures: tick < 0 || oversample <= 0 => result == -1;
+  ensures: tick >= 0 && oversample > 0 => result >= 0;
+{
   if tick < 0 || oversample <= 0 {
     return -1;
   }
@@ -774,7 +881,11 @@ pub fn uart_tick_bit(tick: Int, oversample: Int) -> Int {
 /// Err("uart: invalid oversampling") when the factor is not 4, 8, 16 or
 /// 32; Err("uart: clock too slow") when the divider would be 0.
 /// Complexity: O(1).
-pub fn uart_divisor(clock_hz: Int, baud: Int, oversample: Int) -> Result[Int, Str] {
+pub fn uart_divisor(clock_hz: Int, baud: Int, oversample: Int) -> Result[Int, Str]
+  ensures: clock_hz <= 0 => result is Err;
+  ensures: result is Ok => result.value >= 1;
+  ensures: result is Ok => baud > 0 && oversample > 0;
+{
   let e = _rate_error(clock_hz, baud, oversample);
   if e.len() != 0 {
     return _err_int(e);
@@ -792,7 +903,11 @@ pub fn uart_divisor(clock_hz: Int, baud: Int, oversample: Int) -> Result[Int, St
 /// divider with the smallest rate error.
 ///
 /// Same error catalog as uart_divisor. Complexity: O(1).
-pub fn uart_divisor_nearest(clock_hz: Int, baud: Int, oversample: Int) -> Result[Int, Str] {
+pub fn uart_divisor_nearest(clock_hz: Int, baud: Int, oversample: Int) -> Result[Int, Str]
+  ensures: clock_hz <= 0 => result is Err;
+  ensures: result is Ok => result.value >= 1;
+  ensures: result is Ok => baud > 0 && oversample > 0;
+{
   let e = _rate_error(clock_hz, baud, oversample);
   if e.len() != 0 {
     return _err_int(e);
@@ -810,7 +925,11 @@ pub fn uart_divisor_nearest(clock_hz: Int, baud: Int, oversample: Int) -> Result
 /// 1000000 / (baud * oversample * divisor), truncated toward zero, so a
 /// divisor that runs fast gives a positive ppm and a slow one negative.
 /// Same error catalog as uart_divisor. Complexity: O(1).
-pub fn uart_baud_error_ppm(clock_hz: Int, baud: Int, oversample: Int) -> Result[Int, Str] {
+pub fn uart_baud_error_ppm(clock_hz: Int, baud: Int, oversample: Int) -> Result[Int, Str]
+  ensures: clock_hz <= 0 => result is Err;
+  ensures: result is Ok => result.value >= -1000000 && result.value <= 1000000;
+  ensures: result is Ok => baud > 0 && oversample > 0;
+{
   let dr = uart_divisor_nearest(clock_hz, baud, oversample);
   if !dr.is_ok {
     return _err_int(dr.error);
@@ -824,7 +943,11 @@ pub fn uart_baud_error_ppm(clock_hz: Int, baud: Int, oversample: Int) -> Result[
 /// True when the absolute baud error of the uart_divisor_nearest divisor
 /// is at most `max_ppm`; false for invalid inputs or a negative `max_ppm`.
 /// Complexity: O(1).
-pub fn uart_baud_ok(clock_hz: Int, baud: Int, oversample: Int, max_ppm: Int) -> Bool {
+pub fn uart_baud_ok(clock_hz: Int, baud: Int, oversample: Int, max_ppm: Int) -> Bool
+  ensures: max_ppm < 0 => !result;
+  ensures: result => max_ppm >= 0;
+  ensures: clock_hz <= 0 => !result;
+{
   let er = uart_baud_error_ppm(clock_hz, baud, oversample);
   if !er.is_ok {
     return false;
