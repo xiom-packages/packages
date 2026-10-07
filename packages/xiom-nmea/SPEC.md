@@ -1,6 +1,6 @@
 # xiom.nmea -- specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.nmea` (`src/nmea.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope and model
@@ -256,3 +256,44 @@ Written under the same constraints as its sibling packages:
   `Result` inside a larger function miscompiles;
 - `match` is not used in the library; the tests use the compiler-tested
   helpers that read `Result` directly through `.is_ok`/`.value`/`.error`.
+
+## Contracts (batch #24 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/nmea.xi` in the batch #24
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 19 clauses across the 11 public entry points; all are `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.nmea -TimeoutSec 60` runs ended
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses
+active (17.5 s and 18.2 s); the 24-check conformance suite exercises every
+entry point and no clause trapped, and no clause had to be dropped.
+
+"Z3-provable" marks the scalar-shape family the SMT backend can discharge
+without executing the function; runtime-checked clauses read `Str`/`Vec`
+lengths, built `Str` lengths, or a public cross-call result.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `nmea_compute_checksum` | `ensures: result >= 0 && result <= 255`; `ensures: s.len() == 0 => result == 0` | Z3-provable (scalar bounds; empty-input sentinel) |
+| `nmea_checksum_ok` | `ensures: s.len() < 4 => !result`; `ensures: result => s.len() >= 4` | Z3-provable (pure scalar guard pair) |
+| `nmea_sentence_type` | `ensures: s.len() == 0 => result.len() == 0`; `ensures: result.len() <= s.len()` | Z3-provable (empty-input guard); runtime-checked (built `Str` length vs parameter) |
+| `nmea_fields` | `ensures: s.len() == 0 => result.len() == 0`; `ensures: result.len() <= s.len() + 1` | Z3-provable (empty-input guard); runtime-checked (field count vs parameter) |
+| `nmea_field` | `ensures: i < 0 => result.len() == 0`; `ensures: result.len() > 0 => i >= 0` | Z3-provable (scalar sentinel + contrapositive guard) |
+| `nmea_field_count` | `ensures: result == nmea_fields(s).len()`; `ensures: result >= 0` | runtime-checked (definitional cross-call); Z3-provable (scalar bound) |
+| `nmea_dm_to_micro_deg` | `ensures: value.len() == 0 => result is Err`; `ensures: hemi.len() != 1 => result is Err`; `ensures: result is Ok => result.value >= -999999998 && result.value <= 999999998` | Z3-provable (guard pair; Ok scalar bounds) |
+| `nmea_gga_quality` | `ensures: result is Ok => result.value >= 0` | Z3-provable (Ok scalar bound) |
+| `nmea_gga_satellites` | `ensures: result is Ok => result.value >= 0` | Z3-provable (Ok scalar bound) |
+| `nmea_gga_altitude_cm` | `ensures: result is Ok => result.value >= -9223372036854775799 && result.value <= 9223372036854775799` | runtime-checked (64-bit magnitude bound) |
+| `nmea_rmc_valid` | `ensures: result is Ok => s.len() >= 7` | runtime-checked (Str length + Result sort) |
+
+The `nmea_field_count` definitional clause calls `nmea_fields`, which does not
+call `nmea_field_count` (no runtime-evaluator re-entry); the other clauses call
+no functions at all.
+
+Deliberately not claimed: no upper bounds on `nmea_gga_quality` /
+`nmea_gga_satellites` (long digit runs may wrap before the range argument);
+no exact altitude formula; no clause on the `nmea_compute_checksum` zero case
+(absent start and a genuine zero XOR are indistinguishable by the return
+value); no `Bool`-content clause on `nmea_rmc_valid` beyond the length guard;
+`Str` equality (BUG 17), tuple-component access and struct-result payload
+reads are never used.

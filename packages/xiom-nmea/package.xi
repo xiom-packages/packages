@@ -11,7 +11,7 @@
 
 package xiom_nmea {
   name: "xiom.nmea";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "NMEA 0183 sentence parsing: checksum, fields, coordinates, and GGA/RMC accessors";
   categories: ["network", "science"];
   keywords: ["nmea", "gps", "serial", "sentences"];

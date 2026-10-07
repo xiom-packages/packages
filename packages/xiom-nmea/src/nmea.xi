@@ -174,7 +174,10 @@ fn _err_bool(m: Str) -> Result[Bool, Str] {
 /// Examples: the standard GPGGA fixture -> 0x47 (71); "$GPGGA,1,2*55" -> 85.
 /// Error case: none.
 /// Complexity: O(len(s)).
-pub fn nmea_compute_checksum(s: Str) -> Int {
+pub fn nmea_compute_checksum(s: Str) -> Int
+  ensures: result >= 0 && result <= 255;
+  ensures: s.len() == 0 => result == 0;
+{
   let start = _start_index(s);
   if start < 0 { return 0; }
   var end = s.len();
@@ -200,7 +203,10 @@ pub fn nmea_compute_checksum(s: Str) -> Int {
 /// Error case: none -- missing start, missing '*', a short or non-hex suffix
 /// and a mismatch all return false.
 /// Complexity: O(len(s)).
-pub fn nmea_checksum_ok(s: Str) -> Bool {
+pub fn nmea_checksum_ok(s: Str) -> Bool
+  ensures: s.len() < 4 => !result;
+  ensures: result => s.len() >= 4;
+{
   let start = _start_index(s);
   if start < 0 { return false; }
   let star = _find_byte(s, start + 1, _NMEA_STAR);
@@ -221,7 +227,10 @@ pub fn nmea_checksum_ok(s: Str) -> Bool {
 /// (e.g. "$GPGGA*47").
 /// Error case: none.
 /// Complexity: O(len(s)).
-pub fn nmea_sentence_type(s: Str) -> Str {
+pub fn nmea_sentence_type(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= s.len();
+{
   let start = _start_index(s);
   if start < 0 { return ""; }
   let comma = _find_byte(s, start + 1, _NMEA_COMMA);
@@ -242,7 +251,10 @@ pub fn nmea_sentence_type(s: Str) -> Str {
 /// is no '$'/'!' or no ',' (a sentence with no payload at all).
 /// Error case: none.
 /// Complexity: O(len(s)).
-pub fn nmea_fields(s: Str) -> Vec[Str] {
+pub fn nmea_fields(s: Str) -> Vec[Str]
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= s.len() + 1;
+{
   var out = Vec[Str].new();
   let start = _start_index(s);
   if start < 0 { return out; }
@@ -270,7 +282,10 @@ pub fn nmea_fields(s: Str) -> Vec[Str] {
 /// a one-past-the-end probe is indistinguishable from a present empty field).
 /// Error case: none.
 /// Complexity: O(len(s)).
-pub fn nmea_field(s: Str, i: Int) -> Str {
+pub fn nmea_field(s: Str, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0;
+{
   if i < 0 { return ""; }
   let fields = nmea_fields(s);
   if i >= fields.len() { return ""; }
@@ -284,7 +299,10 @@ pub fn nmea_field(s: Str, i: Int) -> Str {
 /// '$'/'!' or no ',').
 /// Error case: none.
 /// Complexity: O(len(s)).
-pub fn nmea_field_count(s: Str) -> Int {
+pub fn nmea_field_count(s: Str) -> Int
+  ensures: result == nmea_fields(s).len();
+  ensures: result >= 0;
+{
   let fields = nmea_fields(s);
   return fields.len();
 }
@@ -309,7 +327,11 @@ pub fn nmea_field_count(s: Str) -> Int {
 /// Err("nmea: invalid hemisphere: <hemi>") when hemi is not exactly one of
 /// N/S/E/W. Value errors are reported before hemisphere errors.
 /// Complexity: O(len(value) + len(hemi)).
-pub fn nmea_dm_to_micro_deg(value: Str, hemi: Str) -> Result[Int, Str] {
+pub fn nmea_dm_to_micro_deg(value: Str, hemi: Str) -> Result[Int, Str]
+  ensures: value.len() == 0 => result is Err;
+  ensures: hemi.len() != 1 => result is Err;
+  ensures: result is Ok => result.value >= -999999998 && result.value <= 999999998;
+{
   let n = value.len();
   if n == 0 {
     return _err_int("nmea: empty coordinate");
@@ -376,7 +398,9 @@ pub fn nmea_dm_to_micro_deg(value: Str, hemi: Str) -> Result[Int, Str] {
 /// Err("nmea: missing GGA quality") when the field is empty or absent;
 /// Err("nmea: invalid GGA quality: <field>") when it is not all digits.
 /// Complexity: O(len(s)).
-pub fn nmea_gga_quality(s: Str) -> Result[Int, Str] {
+pub fn nmea_gga_quality(s: Str) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0;
+{
   if !_is_gga(s) { return _err_int("nmea: not a GGA sentence"); }
   let raw: Str = nmea_field(s, 5);
   if raw.len() == 0 { return _err_int("nmea: missing GGA quality"); }
@@ -392,7 +416,9 @@ pub fn nmea_gga_quality(s: Str) -> Result[Int, Str] {
 /// Err("nmea: missing GGA satellites") when the field is empty or absent;
 /// Err("nmea: invalid GGA satellites: <field>") when it is not all digits.
 /// Complexity: O(len(s)).
-pub fn nmea_gga_satellites(s: Str) -> Result[Int, Str] {
+pub fn nmea_gga_satellites(s: Str) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0;
+{
   if !_is_gga(s) { return _err_int("nmea: not a GGA sentence"); }
   let raw: Str = nmea_field(s, 6);
   if raw.len() == 0 { return _err_int("nmea: missing GGA satellites"); }
@@ -417,7 +443,9 @@ pub fn nmea_gga_satellites(s: Str) -> Result[Int, Str] {
 /// Err("nmea: GGA altitude too large") when the magnitude would overflow the
 /// 64-bit signed range.
 /// Complexity: O(len(s)).
-pub fn nmea_gga_altitude_cm(s: Str) -> Result[Int, Str] {
+pub fn nmea_gga_altitude_cm(s: Str) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= -9223372036854775799 && result.value <= 9223372036854775799;
+{
   if !_is_gga(s) { return _err_int("nmea: not a GGA sentence"); }
   let raw: Str = nmea_field(s, 8);
   if raw.len() == 0 { return _err_int("nmea: missing GGA altitude"); }
@@ -487,7 +515,9 @@ pub fn nmea_gga_altitude_cm(s: Str) -> Result[Int, Str] {
 /// Err("nmea: missing RMC status") when the field is empty or absent;
 /// Err("nmea: invalid RMC status: <field>") for anything else.
 /// Complexity: O(len(s)).
-pub fn nmea_rmc_valid(s: Str) -> Result[Bool, Str] {
+pub fn nmea_rmc_valid(s: Str) -> Result[Bool, Str]
+  ensures: result is Ok => s.len() >= 7;
+{
   if !_is_rmc(s) { return _err_bool("nmea: not an RMC sentence"); }
   let raw: Str = nmea_field(s, 1);
   if raw.len() == 0 { return _err_bool("nmea: missing RMC status"); }
