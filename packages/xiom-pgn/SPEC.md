@@ -1,6 +1,6 @@
 # xiom.pgn -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.pgn` (`src/pgn.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -328,3 +328,54 @@ of `xiom.eml`/`xiom.lexing` and documents these compiler-driven choices:
 - `pgn_emit` is canonical, not byte-faithful: original spacing, line breaks
   and NAG placement are normalized; comment text and SAN text are preserved.
 - Errors carry one byte position and no line/column information.
+
+## Contracts (batch #36 hardening pass, 2026-10-07)
+
+Runtime-checked `ensures:` clauses added to `src/pgn.xi` (compiler v0.64.0;
+no version bump, `package.xi` stays at 0.1.1). 29 clauses over the 12 public
+entry points (2/2/2/3/3/2/2/3/3/3/2/2 in source order). Two consecutive
+`.\scripts\port.ps1 -Package xiom.pgn -TimeoutSec 60` runs ended
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` (5.16 s and 4.64 s)
+with the clauses active and no clause trapped, so none was dropped.
+
+The two `pgn_emit` clauses were PROBE-GATED: they pass struct-valued fields
+(`g.tags`, `g.moves`) of a `&Game` parameter to `pgn_tag_count` /
+`pgn_move_count`. The probe outcome is **kept** -- the clause parser and the
+v0.64.0 runtime evaluator accepted the argument form on the first port
+attempt, and both call targets are non-re-entrant (they call nothing), so
+the definitional cross-call is in the proven family. No depth-4 chain
+substitution was needed.
+
+Classification: all 29 clauses are **runtime-checked**; none is claimed
+Z3-provable. `xiom-verify src\pgn.xi --check` under v0.64.0 reports
+0 proven / 0 violated / 31 unknown / 3 errors. The 3 errors are the known
+SMT emitter bug on private helpers (`unknown constant _parse_movetext`,
+`_err_game`, `_san_valid`), which the tool itself marks "not a proof failure
+of the code under test"; every clause axiom is skipped as X7007 (unresolved
+operand sorts, `field access '.tags' on non-datatype receiver`,
+`unsupported expression in contract`). `xiom_verify_output.smt2` was deleted
+by literal path.
+
+Clause-family limits (per the batch plan): no result token-set claim
+(`result` is not asserted to be one of the four result texts), no
+SAN-classification claim beyond the 2..7 length band, no `Ok`/`Err` payload
+reads on `Result[Game, Str]`, and no Str equality anywhere (BUG 17). All
+guard shapes hold for hand-built `TagList`/`MoveText`/`Game` values: the
+sentinel trios only bound `i` against the relevant parallel vector's length,
+the count clauses are exact vector-length identities, and the emit pair
+depends only on the two vector lengths.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `pgn_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked (Str length + Result tag) |
+| `pgn_emit` | `pgn_tag_count(g.tags) == 0 && pgn_move_count(g.moves) == 0 => result.len() == 0`; `result.len() > 0 => pgn_tag_count(g.tags) > 0 \|\| pgn_move_count(g.moves) > 0` | runtime-checked (probe-gated cross-calls on struct fields; kept) |
+| `pgn_tag_count` | `result == t.names.len()`; `result >= 0` | runtime-checked (field read + bound) |
+| `pgn_tag_name` | `i < 0 => result.len() == 0`; `i >= t.names.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < t.names.len()` | runtime-checked (field reads) |
+| `pgn_tag_value` | `i < 0 => result.len() == 0`; `i >= t.values.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < t.values.len()` | runtime-checked (field reads) |
+| `pgn_tag_of` | `t.names.len() == 0 => result is None`; `result is Some => t.names.len() > 0` | runtime-checked (field reads) |
+| `pgn_move_count` | `result == m.kinds.len()`; `result >= 0` | runtime-checked (field read + bound) |
+| `pgn_move_kind` | `i < 0 => result.len() == 0`; `i >= m.kinds.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < m.kinds.len()` | runtime-checked (field reads) |
+| `pgn_move_text` | `i < 0 => result.len() == 0`; `i >= m.texts.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < m.texts.len()` | runtime-checked (field reads) |
+| `pgn_move_start` | `i < 0 => result == -1`; `i >= m.starts.len() => result == -1`; `result != -1 => i >= 0 && i < m.starts.len()` | runtime-checked (field reads) |
+| `pgn_result` | `m.kinds.len() == 0 => result.len() == 0`; `result.len() > 0 => m.kinds.len() > 0` | runtime-checked (field reads) |
+| `pgn_is_san` | `(s.len() < 2 \|\| s.len() > 7) => !result`; `result => (s.len() >= 2 && s.len() <= 7)` | runtime-checked (Str length band; no SAN-classification claim) |

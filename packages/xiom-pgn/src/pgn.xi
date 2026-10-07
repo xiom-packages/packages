@@ -637,7 +637,10 @@ fn _parse_movetext(text: Str, start: Int) -> Result[MoveText, Str] {
 /// and "comment_line" (semicolon) tokens; move numbers, NAGs, SAN tokens and
 /// result tokens are validated lexically.
 /// Complexity: O(input length).
-pub fn pgn_parse(text: Str) -> Result[Game, Str] {
+pub fn pgn_parse(text: Str) -> Result[Game, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var tags = TagList{ names: Vec[Str].new(); values: Vec[Str].new(); };
   let n = text.len();
   var i = 0;
@@ -678,7 +681,10 @@ pub fn pgn_parse(text: Str) -> Result[Game, Str] {
 /// Returns: the canonical text; "" for an empty game.
 /// Error case: none.
 /// Complexity: O(output length).
-pub fn pgn_emit(g: &Game) -> Str {
+pub fn pgn_emit(g: &Game) -> Str
+  ensures: pgn_tag_count(g.tags) == 0 && pgn_move_count(g.moves) == 0 => result.len() == 0;
+  ensures: result.len() > 0 => pgn_tag_count(g.tags) > 0 || pgn_move_count(g.moves) > 0;
+{
   var sb = Vec[UInt8].new();
   let tag_count = g.tags.names.len();
   var i = 0;
@@ -763,7 +769,10 @@ fn _push_escaped(sb: &mut Vec[UInt8], s: Str) {
 /// Returns: the tag count; 0 for an empty list.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pgn_tag_count(t: &TagList) -> Int {
+pub fn pgn_tag_count(t: &TagList) -> Int
+  ensures: result == t.names.len();
+  ensures: result >= 0;
+{
   return t.names.len();
 }
 
@@ -772,7 +781,11 @@ pub fn pgn_tag_count(t: &TagList) -> Int {
 /// Returns: the tag name; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pgn_tag_name(t: &TagList, i: Int) -> Str {
+pub fn pgn_tag_name(t: &TagList, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= t.names.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < t.names.len();
+{
   if i < 0 || i >= t.names.len() {
     return "";
   }
@@ -785,7 +798,11 @@ pub fn pgn_tag_name(t: &TagList, i: Int) -> Str {
 /// Returns: the tag value; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pgn_tag_value(t: &TagList, i: Int) -> Str {
+pub fn pgn_tag_value(t: &TagList, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= t.values.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < t.values.len();
+{
   if i < 0 || i >= t.values.len() {
     return "";
   }
@@ -799,7 +816,10 @@ pub fn pgn_tag_value(t: &TagList, i: Int) -> Str {
 /// Returns: Some(value) for the first match in document order, else None.
 /// Error case: none.
 /// Complexity: O(tag count).
-pub fn pgn_tag_of(t: &TagList, name: Str) -> Option[Str] {
+pub fn pgn_tag_of(t: &TagList, name: Str) -> Option[Str]
+  ensures: t.names.len() == 0 => result is None;
+  ensures: result is Some => t.names.len() > 0;
+{
   var i = 0;
   while i < t.names.len() {
     let k: Str = t.names[i];
@@ -817,7 +837,10 @@ pub fn pgn_tag_of(t: &TagList, name: Str) -> Option[Str] {
 /// Returns: the token count; 0 for an empty stream.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pgn_move_count(m: &MoveText) -> Int {
+pub fn pgn_move_count(m: &MoveText) -> Int
+  ensures: result == m.kinds.len();
+  ensures: result >= 0;
+{
   return m.kinds.len();
 }
 
@@ -829,7 +852,11 @@ pub fn pgn_move_count(m: &MoveText) -> Int {
 /// empty comment apart from a missing token.)
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pgn_move_kind(m: &MoveText, i: Int) -> Str {
+pub fn pgn_move_kind(m: &MoveText, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= m.kinds.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < m.kinds.len();
+{
   if i < 0 || i >= m.kinds.len() {
     return "";
   }
@@ -845,7 +872,11 @@ pub fn pgn_move_kind(m: &MoveText, i: Int) -> Str {
 /// Returns: the token text; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pgn_move_text(m: &MoveText, i: Int) -> Str {
+pub fn pgn_move_text(m: &MoveText, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= m.texts.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < m.texts.len();
+{
   if i < 0 || i >= m.texts.len() {
     return "";
   }
@@ -860,7 +891,11 @@ pub fn pgn_move_text(m: &MoveText, i: Int) -> Str {
 /// Returns: the offset; -1 when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pgn_move_start(m: &MoveText, i: Int) -> Int {
+pub fn pgn_move_start(m: &MoveText, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= m.starts.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < m.starts.len();
+{
   if i < 0 || i >= m.starts.len() {
     return -1;
   }
@@ -874,7 +909,10 @@ pub fn pgn_move_start(m: &MoveText, i: Int) -> Int {
 /// Returns: the first "result" token's text, else "".
 /// Error case: none.
 /// Complexity: O(token count).
-pub fn pgn_result(m: &MoveText) -> Str {
+pub fn pgn_result(m: &MoveText) -> Str
+  ensures: m.kinds.len() == 0 => result.len() == 0;
+  ensures: result.len() > 0 => m.kinds.len() > 0;
+{
   var i = 0;
   while i < m.kinds.len() {
     let k: Str = m.kinds[i];
@@ -896,6 +934,9 @@ pub fn pgn_result(m: &MoveText) -> Str {
 /// Returns: true when `s` matches the lexical SAN grammar.
 /// Error case: none.
 /// Complexity: O(|s|).
-pub fn pgn_is_san(s: Str) -> Bool {
+pub fn pgn_is_san(s: Str) -> Bool
+  ensures: (s.len() < 2 || s.len() > 7) => !result;
+  ensures: result => (s.len() >= 2 && s.len() <= 7);
+{
   return _san_valid(s);
 }

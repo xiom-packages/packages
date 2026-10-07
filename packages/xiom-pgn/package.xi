@@ -11,7 +11,7 @@
 
 package xiom_pgn {
   name: "xiom.pgn";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "PGN chess notation codec: tag pairs, movetext tokens, canonical emit";
   categories: ["graphics"];
   keywords: ["pgn", "chess", "notation", "games"];
