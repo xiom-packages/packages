@@ -1,8 +1,6 @@
 # xiom.woff -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.woff`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/woff.xi` (`module xiom.woff`).
 Depends on `xiom.std`; the library module imports `xiom.string` only (tests
 add `xiom.test`, `xiom.io`, `xiom.string.compare`, `xiom.encoding.hex`).
@@ -340,7 +338,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.woff
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=24 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -381,3 +379,58 @@ Last verified: compiler 0.61.3,
   read from a `Vec` lowers to a pointer comparison (BUG 17).
 - The package declares no `extern "C"` blocks (no FFI) and no new
   dependencies; `deps` stays `{ "xiom.std": ">=0.60.0 <1.0.0" }`.
+
+## Contracts (batch #30 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/woff.xi` (compiler
+v0.64.0; no version bump): 50 clauses over the 28 public entry points. Two
+consecutive `.\scripts\port.ps1 -Package xiom.woff -TimeoutSec 60` runs
+ended `port: PASS (passed=24 failed=0 program_exit=0 exit=0)` (6.32 s and
+6.28 s) with the clauses active and no clause trapped, so none was dropped.
+Classes follow the batch #30 clause plan: **Z3-provable** = pure scalar
+guard/form/bounds family; **runtime-checked** = the clause reads a struct
+field or a `Vec`/`Str` length, and is enforced by the v0.64.0 runtime
+evaluator. No clause cross-calls another function and no clause reads an
+`Ok` payload. The two `(a || b) => result is Err` builder guards are
+runtime-checked because the emitter skips disjunction contracts (the same
+behavior noted for xiom.bitfield).
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `woff_max_tables` | `result == 4096` | Z3-provable (pure constant form) |
+| `woff_parse` | `data.len() < 44 => result is Err`; `result is Ok => data.len() >= 44` | Z3-provable (param-length guard pair) |
+| `woff_flavor` | `result == w.flavor` | runtime-checked (field read) |
+| `woff_length` | `result == w.length` | runtime-checked (field read) |
+| `woff_num_tables` | `result == w.tags.len()` | runtime-checked (field length) |
+| `woff_total_sfnt_size` | `result == w.total_sfnt_size` | runtime-checked (field read) |
+| `woff_major_version` | `result == w.major_version` | runtime-checked (field read) |
+| `woff_minor_version` | `result == w.minor_version` | runtime-checked (field read) |
+| `woff_table_tag` | `i < 0 => result == -1`; `i >= w.tags.len() => result == -1`; `result != -1 => i >= 0 && i < w.tags.len()` | Z3-provable (scalar sentinel guard); runtime-checked (field length) |
+| `woff_table_offset` | `i < 0 => result == -1`; `i >= w.offsets.len() => result == -1`; `result != -1 => i >= 0 && i < w.offsets.len()` | Z3-provable (scalar sentinel guard); runtime-checked (field length) |
+| `woff_table_comp_length` | `i < 0 => result == -1`; `i >= w.comp_lengths.len() => result == -1`; `result != -1 => i >= 0 && i < w.comp_lengths.len()` | Z3-provable (scalar sentinel guard); runtime-checked (field length) |
+| `woff_table_orig_length` | `i < 0 => result == -1`; `i >= w.orig_lengths.len() => result == -1`; `result != -1 => i >= 0 && i < w.orig_lengths.len()` | Z3-provable (scalar sentinel guard); runtime-checked (field length) |
+| `woff_table_checksum` | `i < 0 => result == -1`; `i >= w.checksums.len() => result == -1`; `result != -1 => i >= 0 && i < w.checksums.len()` | Z3-provable (scalar sentinel guard); runtime-checked (field length) |
+| `woff_table_is_compressed` | `i < 0 => !result`; `i >= w.tags.len() => !result`; `result => i >= 0 && i < w.tags.len()` | Z3-provable (scalar Bool guard); runtime-checked (field length + Bool converse) |
+| `woff_find_tag` | `w.tags.len() == 0 => result == -1`; `result >= 0 => result < w.tags.len()` | runtime-checked (field length) |
+| `woff_find_tag_str` | `w.tags.len() == 0 => result == -1`; `result >= 0 => result < w.tags.len()` | runtime-checked (field length; no `tag.len() != 4` claim) |
+| `woff_has_metadata` | `result == (w.meta_length > 0)` | runtime-checked (field read) |
+| `woff_has_private` | `result == (w.priv_length > 0)` | runtime-checked (field read) |
+| `woff_meta_offset` | `result == w.meta_offset` | runtime-checked (field read) |
+| `woff_meta_length` | `result == w.meta_length` | runtime-checked (field read) |
+| `woff_meta_orig_length` | `result == w.meta_orig_length` | runtime-checked (field read) |
+| `woff_priv_offset` | `result == w.priv_offset` | runtime-checked (field read) |
+| `woff_priv_length` | `result == w.priv_length` | runtime-checked (field read) |
+| `woff_table_data` | `i < 0 => result is Err`; `i >= w.tags.len() => result is Err`; `result is Ok => i >= 0 && i < w.tags.len()` | Z3-provable (scalar sentinel guard); runtime-checked (field length) |
+| `woff_meta_copy` | `w.meta_length <= 0 => result is Err`; `result is Ok => w.meta_length > 0` | runtime-checked (field read) |
+| `woff_priv_copy` | `w.priv_length <= 0 => result is Err`; `result is Ok => w.priv_length > 0` | runtime-checked (field read) |
+| `woff_build` | `(flavor < 0 \|\| flavor > 4294967295) => result is Err`; `(datas.len() != tags.len() \|\| checksums.len() != tags.len()) => result is Err`; `tags.len() > 4096 => result is Err` | runtime-checked (`\|\|` emitter skip; param `Vec` lengths); Z3-provable (cap guard) |
+| `woff_tag_of` | `s.len() != 4 => result == -1`; `result != -1 => s.len() == 4` | Z3-provable (Str param length + scalar sentinel) |
+
+13 of the 50 clauses are Z3-provable (scalar guard/form/bounds family) and
+37 are runtime-checked; none was dropped. Plan deviations on the source
+side: as instructed, `woff_find_tag_str` carries only the empty-vs and
+range clauses (a `tag.len() != 4 => result == -1` claim is false for a
+hand-built `-1` tag), `woff_parse` has no `Ok`-payload invariants, and the
+span copiers have no payload-length-vs-parameter claims. The `woff_build`
+4096 cap and vector-lockstep clauses were verified against the source
+guards before being ported.

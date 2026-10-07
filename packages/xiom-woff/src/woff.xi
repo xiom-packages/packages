@@ -211,7 +211,9 @@ fn _align4(v: Int) -> Int {
 /// The documented cap on the table count: 4096 entries. It bounds the
 /// 44 + 20*numTables directory arithmetic and the O(entries^2) overlap
 /// scan; real fonts carry a few dozen tables.
-pub fn woff_max_tables() -> Int {
+pub fn woff_max_tables() -> Int
+  ensures: result == 4096;
+{
   return 4096;
 }
 
@@ -227,7 +229,10 @@ pub fn woff_max_tables() -> Int {
 /// other). See SPEC.md for the exact check order and the full error
 /// catalog. On error no partial index is returned.
 /// Complexity: O(numTables^2) worst case, bounded by woff_max_tables().
-pub fn woff_parse(data: &Vec[UInt8]) -> Result[Woff, Str] {
+pub fn woff_parse(data: &Vec[UInt8]) -> Result[Woff, Str]
+  ensures: data.len() < 44 => result is Err;
+  ensures: result is Ok => data.len() >= 44;
+{
   let n = data.len();
   if n < 44 { return _err_woff("woff: truncated header"); }
   if !_signature_is(data) { return _err_woff("woff: bad signature"); }
@@ -362,35 +367,47 @@ pub fn woff_parse(data: &Vec[UInt8]) -> Result[Woff, Str] {
 /// The "sfnt version" of the wrapped font (0..4294967295): 0x00010000 for
 /// TrueType outlines or the tag 'OTTO' for CFF outlines are common, but any
 /// 32-bit value is accepted.
-pub fn woff_flavor(w: &Woff) -> Int {
+pub fn woff_flavor(w: &Woff) -> Int
+  ensures: result == w.flavor;
+{
   return w.flavor;
 }
 
 /// Declared total file size; for a parsed container this equals the buffer
 /// length (exact-length policy).
-pub fn woff_length(w: &Woff) -> Int {
+pub fn woff_length(w: &Woff) -> Int
+  ensures: result == w.length;
+{
   return w.length;
 }
 
 /// Number of table directory entries.
-pub fn woff_num_tables(w: &Woff) -> Int {
+pub fn woff_num_tables(w: &Woff) -> Int
+  ensures: result == w.tags.len();
+{
   return w.tags.len();
 }
 
 /// Total size needed for the uncompressed sfnt font: 12 + 16*numTables +
 /// the 4-byte-padded origLength of every table. woff_parse validates the
 /// header field against this formula.
-pub fn woff_total_sfnt_size(w: &Woff) -> Int {
+pub fn woff_total_sfnt_size(w: &Woff) -> Int
+  ensures: result == w.total_sfnt_size;
+{
   return w.total_sfnt_size;
 }
 
 /// WOFF major version field (0..65535); no behavior depends on it.
-pub fn woff_major_version(w: &Woff) -> Int {
+pub fn woff_major_version(w: &Woff) -> Int
+  ensures: result == w.major_version;
+{
   return w.major_version;
 }
 
 /// WOFF minor version field (0..65535); no behavior depends on it.
-pub fn woff_minor_version(w: &Woff) -> Int {
+pub fn woff_minor_version(w: &Woff) -> Int
+  ensures: result == w.minor_version;
+{
   return w.minor_version;
 }
 
@@ -400,14 +417,22 @@ pub fn woff_minor_version(w: &Woff) -> Int {
 
 /// 4-byte tag of entry `i` as a big-endian Int, or -1 when `i` is outside
 /// 0..woff_num_tables(w)-1.
-pub fn woff_table_tag(w: &Woff, i: Int) -> Int {
+pub fn woff_table_tag(w: &Woff, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= w.tags.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < w.tags.len();
+{
   if i < 0 || i >= w.tags.len() { return -1; }
   return w.tags[i];
 }
 
 /// File offset of entry `i`'s data, or -1 when `i` is out of range. Every
 /// parsed offset is 4-byte aligned.
-pub fn woff_table_offset(w: &Woff, i: Int) -> Int {
+pub fn woff_table_offset(w: &Woff, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= w.offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < w.offsets.len();
+{
   if i < 0 || i >= w.offsets.len() { return -1; }
   return w.offsets[i];
 }
@@ -415,20 +440,32 @@ pub fn woff_table_offset(w: &Woff, i: Int) -> Int {
 /// Stored length of entry `i` (compressed bytes when the entry is
 /// compressed, otherwise the raw bytes), or -1 when `i` is out of range.
 /// Padding is never included.
-pub fn woff_table_comp_length(w: &Woff, i: Int) -> Int {
+pub fn woff_table_comp_length(w: &Woff, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= w.comp_lengths.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < w.comp_lengths.len();
+{
   if i < 0 || i >= w.comp_lengths.len() { return -1; }
   return w.comp_lengths[i];
 }
 
 /// Uncompressed length of entry `i`, or -1 when `i` is out of range.
-pub fn woff_table_orig_length(w: &Woff, i: Int) -> Int {
+pub fn woff_table_orig_length(w: &Woff, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= w.orig_lengths.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < w.orig_lengths.len();
+{
   if i < 0 || i >= w.orig_lengths.len() { return -1; }
   return w.orig_lengths[i];
 }
 
 /// sfnt checksum of entry `i` (0..4294967295), or -1 when `i` is out of
 /// range. Never verified: this codec does not parse sfnt tables.
-pub fn woff_table_checksum(w: &Woff, i: Int) -> Int {
+pub fn woff_table_checksum(w: &Woff, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= w.checksums.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < w.checksums.len();
+{
   if i < 0 || i >= w.checksums.len() { return -1; }
   return w.checksums[i];
 }
@@ -437,7 +474,11 @@ pub fn woff_table_checksum(w: &Woff, i: Int) -> Int {
 /// i.e. the stored bytes are zlib data that this codec keeps raw. Equal
 /// lengths mean the table is stored uncompressed, including the zero-length
 /// case; false when `i` is out of range.
-pub fn woff_table_is_compressed(w: &Woff, i: Int) -> Bool {
+pub fn woff_table_is_compressed(w: &Woff, i: Int) -> Bool
+  ensures: i < 0 => !result;
+  ensures: i >= w.tags.len() => !result;
+  ensures: result => i >= 0 && i < w.tags.len();
+{
   if i < 0 || i >= w.tags.len() { return false; }
   let cl: Int = w.comp_lengths[i];
   let ol: Int = w.orig_lengths[i];
@@ -447,7 +488,10 @@ pub fn woff_table_is_compressed(w: &Woff, i: Int) -> Bool {
 /// Index of the first directory entry whose tag equals `tag` (a big-endian
 /// Int such as woff_tag_of("glyf")), or -1 when no entry matches. Duplicate
 /// tags are tolerated; the first match wins.
-pub fn woff_find_tag(w: &Woff, tag: Int) -> Int {
+pub fn woff_find_tag(w: &Woff, tag: Int) -> Int
+  ensures: w.tags.len() == 0 => result == -1;
+  ensures: result >= 0 => result < w.tags.len();
+{
   var i = 0;
   while i < w.tags.len() {
     let t: Int = w.tags[i];
@@ -459,7 +503,10 @@ pub fn woff_find_tag(w: &Woff, tag: Int) -> Int {
 
 /// woff_find_tag for a four-character tag string; -1 when `tag` is not four
 /// printable-ASCII bytes or no entry matches.
-pub fn woff_find_tag_str(w: &Woff, tag: Str) -> Int {
+pub fn woff_find_tag_str(w: &Woff, tag: Str) -> Int
+  ensures: w.tags.len() == 0 => result == -1;
+  ensures: result >= 0 => result < w.tags.len();
+{
   return woff_find_tag(w, _tag_of(tag));
 }
 
@@ -468,40 +515,54 @@ pub fn woff_find_tag_str(w: &Woff, tag: Str) -> Int {
 // --------------------------------------------------
 
 /// True when the container declares a metadata block (metaLength > 0).
-pub fn woff_has_metadata(w: &Woff) -> Bool {
+pub fn woff_has_metadata(w: &Woff) -> Bool
+  ensures: result == (w.meta_length > 0);
+{
   return w.meta_length > 0;
 }
 
 /// True when the container declares a private data block (privLength > 0).
-pub fn woff_has_private(w: &Woff) -> Bool {
+pub fn woff_has_private(w: &Woff) -> Bool
+  ensures: result == (w.priv_length > 0);
+{
   return w.priv_length > 0;
 }
 
 /// Metadata block offset in the parsed buffer, or 0 when absent. Validated
 /// in bounds and 4-byte aligned when present.
-pub fn woff_meta_offset(w: &Woff) -> Int {
+pub fn woff_meta_offset(w: &Woff) -> Int
+  ensures: result == w.meta_offset;
+{
   return w.meta_offset;
 }
 
 /// Compressed metadata length in bytes, or 0 when absent.
-pub fn woff_meta_length(w: &Woff) -> Int {
+pub fn woff_meta_length(w: &Woff) -> Int
+  ensures: result == w.meta_length;
+{
   return w.meta_length;
 }
 
 /// Uncompressed metadata length from the header. Never verified: metadata
 /// is zlib data this codec keeps raw.
-pub fn woff_meta_orig_length(w: &Woff) -> Int {
+pub fn woff_meta_orig_length(w: &Woff) -> Int
+  ensures: result == w.meta_orig_length;
+{
   return w.meta_orig_length;
 }
 
 /// Private data block offset in the parsed buffer, or 0 when absent.
 /// Validated in bounds and 4-byte aligned when present.
-pub fn woff_priv_offset(w: &Woff) -> Int {
+pub fn woff_priv_offset(w: &Woff) -> Int
+  ensures: result == w.priv_offset;
+{
   return w.priv_offset;
 }
 
 /// Private data length in bytes, or 0 when absent.
-pub fn woff_priv_length(w: &Woff) -> Int {
+pub fn woff_priv_length(w: &Woff) -> Int
+  ensures: result == w.priv_length;
+{
   return w.priv_length;
 }
 
@@ -517,7 +578,11 @@ pub fn woff_priv_length(w: &Woff) -> Int {
 /// Err("woff: table data out of bounds") when the recorded span does not
 /// fit `data` (forged or stale index).
 /// Complexity: O(compLength).
-pub fn woff_table_data(data: &Vec[UInt8], w: &Woff, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn woff_table_data(data: &Vec[UInt8], w: &Woff, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= w.tags.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < w.tags.len();
+{
   if i < 0 || i >= w.tags.len() { return _err_bytes("woff: index out of range"); }
   let off: Int = w.offsets[i];
   let len: Int = w.comp_lengths[i];
@@ -536,7 +601,10 @@ pub fn woff_table_data(data: &Vec[UInt8], w: &Woff, i: Int) -> Result[Vec[UInt8]
 /// inflated). Err("woff: no metadata") when the container declares none;
 /// Err("woff: metadata out of bounds") when the recorded span does not fit
 /// `data`.
-pub fn woff_meta_copy(data: &Vec[UInt8], w: &Woff) -> Result[Vec[UInt8], Str] {
+pub fn woff_meta_copy(data: &Vec[UInt8], w: &Woff) -> Result[Vec[UInt8], Str]
+  ensures: w.meta_length <= 0 => result is Err;
+  ensures: result is Ok => w.meta_length > 0;
+{
   if w.meta_length <= 0 { return _err_bytes("woff: no metadata"); }
   let off: Int = w.meta_offset;
   let len: Int = w.meta_length;
@@ -554,7 +622,10 @@ pub fn woff_meta_copy(data: &Vec[UInt8], w: &Woff) -> Result[Vec[UInt8], Str] {
 /// Copy the private data block out of `data`, verbatim. Err("woff: no
 /// private data") when the container declares none; Err("woff: private
 /// data out of bounds") when the recorded span does not fit `data`.
-pub fn woff_priv_copy(data: &Vec[UInt8], w: &Woff) -> Result[Vec[UInt8], Str] {
+pub fn woff_priv_copy(data: &Vec[UInt8], w: &Woff) -> Result[Vec[UInt8], Str]
+  ensures: w.priv_length <= 0 => result is Err;
+  ensures: result is Ok => w.priv_length > 0;
+{
   if w.priv_length <= 0 { return _err_bytes("woff: no private data"); }
   let off: Int = w.priv_offset;
   let len: Int = w.priv_length;
@@ -596,7 +667,11 @@ pub fn woff_priv_copy(data: &Vec[UInt8], w: &Woff) -> Result[Vec[UInt8], Str] {
 /// Err("woff: invalid table tag") for a tag whose bytes are not all in
 /// 0x20..0x7E; Err("woff: checksum out of range"). Nothing is emitted
 /// unless every check passes.
-pub fn woff_build(flavor: Int, tags: &Vec[Int], datas: &Vec[Vec[UInt8]], checksums: &Vec[Int]) -> Result[Vec[UInt8], Str] {
+pub fn woff_build(flavor: Int, tags: &Vec[Int], datas: &Vec[Vec[UInt8]], checksums: &Vec[Int]) -> Result[Vec[UInt8], Str]
+  ensures: (flavor < 0 || flavor > 4294967295) => result is Err;
+  ensures: (datas.len() != tags.len() || checksums.len() != tags.len()) => result is Err;
+  ensures: tags.len() > 4096 => result is Err;
+{
   if flavor < 0 || flavor > 4294967295 { return _err_bytes("woff: flavor out of range"); }
   let ntab = tags.len();
   if datas.len() != ntab { return _err_bytes("woff: table vectors length mismatch"); }
@@ -667,6 +742,9 @@ pub fn woff_build(flavor: Int, tags: &Vec[Int], datas: &Vec[Vec[UInt8]], checksu
 /// Map a four-character tag string to its big-endian Int, or -1 when `s` is
 /// not exactly four bytes in 0x20..0x7E. The inverse direction is not
 /// offered because this package never builds Str values from bytes.
-pub fn woff_tag_of(s: Str) -> Int {
+pub fn woff_tag_of(s: Str) -> Int
+  ensures: s.len() != 4 => result == -1;
+  ensures: result != -1 => s.len() == 4;
+{
   return _tag_of(s);
 }

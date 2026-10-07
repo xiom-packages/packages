@@ -11,7 +11,7 @@
 
 package xiom_woff {
   name: "xiom.woff";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM WOFF 1.0 font-container header and table directory codec";
   categories: ["graphics"];
   keywords: ["woff", "font", "container", "format"];
