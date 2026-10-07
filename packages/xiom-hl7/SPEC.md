@@ -1,6 +1,6 @@
 # xiom.hl7 -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.hl7` (`src/hl7.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -304,3 +304,67 @@ idioms as `xiom.syslog`/`xiom.vcf`:
   normalized to CR.
 - The builder cannot mutate fields after they are appended; rebuild or parse
   a template to change an existing message.
+
+## Contracts (batch #36 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses were added to `src/hl7.xi` in the batch
+#36 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 48 clauses over the 20 contracted public entry
+points, all `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive runs of `& .\scripts\port.ps1 -Package xiom.hl7
+-TimeoutSec 60` ended
+`port: PASS (passed=23 failed=0 program_exit=0 exit=0)` with the clauses
+active (6.01 s and 5.99 s).
+
+One planned clause was probe-gated and dropped:
+`hl7_builder_segment`'s success frame
+`m.fields.len() == m.fields.len()@pre + 1`. The first port attempt failed with
+`contract violated: ensures at 796:12` (t17) because the MSH success path
+appends **two** fields (MSH.1 and MSH.2) while the non-MSH success path
+appends none, so no flat `+1` frame fits the source; the dropped clause is
+reported and not replaced. The surviving builder `@pre` frames
+(`seg_names`/`seg_len` `+1` on success, equal on failure, and the scalar
+`m.seg_names.len()@pre == 0` no-open-segment guards in
+`hl7_builder_field`/`hl7_builder_field_structured`) passed both green runs.
+No exact `hl7_write` length and no MSH `+2` claim are made; Str equality is
+never used (`.len()` only, BUG 17).
+
+Accessor guards are compound and hold for hand-built `Message` values with
+drifted parallel vectors: the out-of-range/converse pairs guard on the same
+vector the accessor reads (`seg_names`, `seg_len`), and the `Some`/non-zero
+converses claim only the checks the source performs before indexing
+(`i >= 0`, `i < m.seg_len.len()`, `f >= 1`, `r >= 1`, `c >= 1`, `s >= 1`); no
+clause reads a vector element. `hl7_write` claims only the segment-count
+emptiness disjunction. No clause calls a contracted function.
+
+`xiom-verify src\hl7.xi --check` (Z3 bundled with v0.64.0) reported
+**0 proven / 0 violated / 50 unknown / 7 errors**. Every clause axiom is
+skipped with X7007 unresolved operand sorts (Str/Vec lengths, Result/Option
+sort), and the 7 errors are the known SMT emitter bug on private helpers
+(`_err_msg`, `_byte_at`, `_valid_sep_byte`, `_streq`) and are explicitly "not
+a proof failure of the code under test". All 48 clauses are therefore marked
+runtime-checked only (no Z3 claim); each is enforced by the v0.64.0 runtime
+evaluator when the conformance suite runs.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `hl7_parse` | `text.len() == 0 => result is Err`; `result is Ok => text.len() >= 8` | runtime-checked |
+| `hl7_seg_count` | `result == m.seg_names.len()`; `result >= 0` | runtime-checked |
+| `hl7_seg_name` | `i < 0 => result is None`; `i >= m.seg_names.len() => result is None`; `result is Some => i >= 0 && i < m.seg_names.len()` | runtime-checked |
+| `hl7_seg_index` | `m.seg_names.len() == 0 => result is None`; `result is Some => result.value >= 0`; `result is Some => result.value < m.seg_names.len()` | runtime-checked |
+| `hl7_seg_field_count` | `i < 0 => result == 0`; `i >= m.seg_len.len() => result == 0`; `result != 0 => i >= 0 && i < m.seg_len.len()` | runtime-checked |
+| `hl7_field_sep` | `result.len() == m.field_sep.len()` | runtime-checked |
+| `hl7_encoding` | `result.len() == m.comp_sep.len() + m.rep_sep.len() + m.esc_sep.len() + m.sub_sep.len()`; four 1-byte separators => `result.len() == 4` | runtime-checked |
+| `hl7_field` | `i < 0 \|\| i >= m.seg_len.len() \|\| f < 1 => result is None`; `result is Some => i >= 0 && i < m.seg_len.len() && f >= 1` | runtime-checked |
+| `hl7_rep_count` | `i < 0 \|\| i >= m.seg_len.len() \|\| f < 1 => result == 0`; `result != 0 => i >= 0 && i < m.seg_len.len() && f >= 1` | runtime-checked |
+| `hl7_rep` | `i < 0 \|\| i >= m.seg_len.len() \|\| f < 1 \|\| r < 1 => result is None`; `result is Some => i >= 0 && i < m.seg_len.len() && f >= 1 && r >= 1` | runtime-checked |
+| `hl7_comp_count` | `i < 0 \|\| i >= m.seg_len.len() \|\| f < 1 \|\| r < 1 => result == 0`; `result != 0 => i >= 0 && i < m.seg_len.len() && f >= 1 && r >= 1` | runtime-checked |
+| `hl7_comp` | `i < 0 \|\| i >= m.seg_len.len() \|\| f < 1 \|\| r < 1 \|\| c < 1 => result is None`; `result is Some => i >= 0 && i < m.seg_len.len() && f >= 1 && r >= 1 && c >= 1` | runtime-checked |
+| `hl7_sub_count` | `i < 0 \|\| i >= m.seg_len.len() \|\| f < 1 \|\| r < 1 \|\| c < 1 => result == 0`; `result != 0 => i >= 0 && i < m.seg_len.len() && f >= 1 && r >= 1 && c >= 1` | runtime-checked |
+| `hl7_sub` | `i < 0 \|\| i >= m.seg_len.len() \|\| f < 1 \|\| r < 1 \|\| c < 1 \|\| s < 1 => result is None`; `result is Some => i >= 0 && i < m.seg_len.len() && f >= 1 && r >= 1 && c >= 1 && s >= 1` | runtime-checked |
+| `hl7_write` | `m.seg_names.len() == 0 => result.len() == 0`; `m.seg_names.len() > 0 => result.len() > 0` | runtime-checked |
+| `hl7_builder_new` | five separator lengths sum to 5; all four vectors empty | runtime-checked |
+| `hl7_builder_with_separators` | `field_sep.len() != 1 => result is Err`; `encoding.len() != 4 => result is Err`; `result is Ok => field_sep.len() == 1 && encoding.len() == 4` | runtime-checked |
+| `hl7_builder_segment` | `name.len() == 0 => result.len() > 0`; success => `seg_names`/`seg_len` `@pre + 1`; failure => `seg_names`/`fields` equal `@pre` (the flat `fields + 1` probe was dropped) | runtime-checked |
+| `hl7_builder_field` | `m.seg_names.len()@pre == 0 => result.len() > 0`; success => `fields @pre + 1`; failure => `fields` equal `@pre` | runtime-checked |
+| `hl7_builder_field_structured` | `m.seg_names.len()@pre == 0 => result.len() > 0`; success => `fields @pre + 1`; failure => `fields` equal `@pre` | runtime-checked |

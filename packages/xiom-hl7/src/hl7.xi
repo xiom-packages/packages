@@ -347,7 +347,10 @@ fn _parse_segment_line(m: &mut Message, line: Str) -> Str {
 /// expected 4 encoding characters, got N", "hl7: invalid separator",
 /// "hl7: empty segment name".
 /// Complexity: O(text length).
-pub fn hl7_parse(text: Str) -> Result[Message, Str] {
+pub fn hl7_parse(text: Str) -> Result[Message, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() >= 8;
+{
   let n = text.len();
   var has_content = false;
   var h = 0;
@@ -428,7 +431,10 @@ pub fn hl7_parse(text: Str) -> Result[Message, Str] {
 /// Number of segments in the message.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn hl7_seg_count(m: &Message) -> Int {
+pub fn hl7_seg_count(m: &Message) -> Int
+  ensures: result == m.seg_names.len();
+  ensures: result >= 0;
+{
   return m.seg_names.len();
 }
 
@@ -436,7 +442,11 @@ pub fn hl7_seg_count(m: &Message) -> Int {
 /// returned exactly as they appear on the wire (not case-folded).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn hl7_seg_name(m: &Message, i: Int) -> Option[Str] {
+pub fn hl7_seg_name(m: &Message, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= m.seg_names.len() => result is None;
+  ensures: result is Some => i >= 0 && i < m.seg_names.len();
+{
   if i < 0 || i >= m.seg_names.len() {
     return None;
   }
@@ -448,7 +458,11 @@ pub fn hl7_seg_name(m: &Message, i: Int) -> Option[Str] {
 /// None when the message has no such segment.
 /// Error case: none.
 /// Complexity: O(segment count).
-pub fn hl7_seg_index(m: &Message, name: Str) -> Option[Int] {
+pub fn hl7_seg_index(m: &Message, name: Str) -> Option[Int]
+  ensures: m.seg_names.len() == 0 => result is None;
+  ensures: result is Some => result.value >= 0;
+  ensures: result is Some => result.value < m.seg_names.len();
+{
   var i = 0;
   while i < m.seg_names.len() {
     let k: Str = m.seg_names[i];
@@ -467,7 +481,11 @@ pub fn hl7_seg_index(m: &Message, name: Str) -> Option[Int] {
 /// the count is reported per segment.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn hl7_seg_field_count(m: &Message, i: Int) -> Int {
+pub fn hl7_seg_field_count(m: &Message, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= m.seg_len.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < m.seg_len.len();
+{
   if i < 0 || i >= m.seg_len.len() {
     return 0;
   }
@@ -478,7 +496,9 @@ pub fn hl7_seg_field_count(m: &Message, i: Int) -> Int {
 /// The field separator declared by MSH.1 (one byte).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn hl7_field_sep(m: &Message) -> Str {
+pub fn hl7_field_sep(m: &Message) -> Str
+  ensures: result.len() == m.field_sep.len();
+{
   return m.field_sep;
 }
 
@@ -486,7 +506,10 @@ pub fn hl7_field_sep(m: &Message) -> Str {
 /// escape, subcomponent.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn hl7_encoding(m: &Message) -> Str {
+pub fn hl7_encoding(m: &Message) -> Str
+  ensures: result.len() == m.comp_sep.len() + m.rep_sep.len() + m.esc_sep.len() + m.sub_sep.len();
+  ensures: m.comp_sep.len() == 1 && m.rep_sep.len() == 1 && m.esc_sep.len() == 1 && m.sub_sep.len() == 1 => result.len() == 4;
+{
   return m.comp_sep + m.rep_sep + m.esc_sep + m.sub_sep;
 }
 
@@ -497,7 +520,10 @@ pub fn hl7_encoding(m: &Message) -> Str {
 /// and field 2 the encoding characters.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn hl7_field(m: &Message, i: Int, f: Int) -> Option[Str] {
+pub fn hl7_field(m: &Message, i: Int, f: Int) -> Option[Str]
+  ensures: i < 0 || i >= m.seg_len.len() || f < 1 => result is None;
+  ensures: result is Some => i >= 0 && i < m.seg_len.len() && f >= 1;
+{
   if i < 0 || i >= m.seg_len.len() {
     return None;
   }
@@ -518,7 +544,10 @@ pub fn hl7_field(m: &Message, i: Int, f: Int) -> Option[Str] {
 /// repetitions has count 1.
 /// Error case: none.
 /// Complexity: O(field length).
-pub fn hl7_rep_count(m: &Message, i: Int, f: Int) -> Int {
+pub fn hl7_rep_count(m: &Message, i: Int, f: Int) -> Int
+  ensures: i < 0 || i >= m.seg_len.len() || f < 1 => result == 0;
+  ensures: result != 0 => i >= 0 && i < m.seg_len.len() && f >= 1;
+{
   let raw = hl7_field(m, i, f);
   match raw {
     Some(v) => { return _count_parts(v, m.rep_sep); },
@@ -532,7 +561,10 @@ pub fn hl7_rep_count(m: &Message, i: Int, f: Int) -> Int {
 /// whole field.
 /// Error case: none.
 /// Complexity: O(field length).
-pub fn hl7_rep(m: &Message, i: Int, f: Int, r: Int) -> Option[Str] {
+pub fn hl7_rep(m: &Message, i: Int, f: Int, r: Int) -> Option[Str]
+  ensures: i < 0 || i >= m.seg_len.len() || f < 1 || r < 1 => result is None;
+  ensures: result is Some => i >= 0 && i < m.seg_len.len() && f >= 1 && r >= 1;
+{
   let raw = hl7_field(m, i, f);
   match raw {
     Some(v) => { return _part(v, m.rep_sep, r); },
@@ -545,7 +577,10 @@ pub fn hl7_rep(m: &Message, i: Int, f: Int, r: Int) -> Option[Str] {
 /// the field or repetition is out of range.
 /// Error case: none.
 /// Complexity: O(field length).
-pub fn hl7_comp_count(m: &Message, i: Int, f: Int, r: Int) -> Int {
+pub fn hl7_comp_count(m: &Message, i: Int, f: Int, r: Int) -> Int
+  ensures: i < 0 || i >= m.seg_len.len() || f < 1 || r < 1 => result == 0;
+  ensures: result != 0 => i >= 0 && i < m.seg_len.len() && f >= 1 && r >= 1;
+{
   let rep = hl7_rep(m, i, f, r);
   match rep {
     Some(v) => { return _count_parts(v, m.comp_sep); },
@@ -558,7 +593,10 @@ pub fn hl7_comp_count(m: &Message, i: Int, f: Int, r: Int) -> Int {
 /// None when any index is out of range. Empty components are preserved.
 /// Error case: none.
 /// Complexity: O(field length).
-pub fn hl7_comp(m: &Message, i: Int, f: Int, r: Int, c: Int) -> Option[Str] {
+pub fn hl7_comp(m: &Message, i: Int, f: Int, r: Int, c: Int) -> Option[Str]
+  ensures: i < 0 || i >= m.seg_len.len() || f < 1 || r < 1 || c < 1 => result is None;
+  ensures: result is Some => i >= 0 && i < m.seg_len.len() && f >= 1 && r >= 1 && c >= 1;
+{
   let rep = hl7_rep(m, i, f, r);
   match rep {
     Some(v) => { return _part(v, m.comp_sep, c); },
@@ -571,7 +609,10 @@ pub fn hl7_comp(m: &Message, i: Int, f: Int, r: Int, c: Int) -> Option[Str] {
 /// segment `i`; 0 when any index is out of range.
 /// Error case: none.
 /// Complexity: O(field length).
-pub fn hl7_sub_count(m: &Message, i: Int, f: Int, r: Int, c: Int) -> Int {
+pub fn hl7_sub_count(m: &Message, i: Int, f: Int, r: Int, c: Int) -> Int
+  ensures: i < 0 || i >= m.seg_len.len() || f < 1 || r < 1 || c < 1 => result == 0;
+  ensures: result != 0 => i >= 0 && i < m.seg_len.len() && f >= 1 && r >= 1 && c >= 1;
+{
   let comp = hl7_comp(m, i, f, r, c);
   match comp {
     Some(v) => { return _count_parts(v, m.sub_sep); },
@@ -585,7 +626,10 @@ pub fn hl7_sub_count(m: &Message, i: Int, f: Int, r: Int, c: Int) -> Int {
 /// are preserved.
 /// Error case: none.
 /// Complexity: O(field length).
-pub fn hl7_sub(m: &Message, i: Int, f: Int, r: Int, c: Int, s: Int) -> Option[Str] {
+pub fn hl7_sub(m: &Message, i: Int, f: Int, r: Int, c: Int, s: Int) -> Option[Str]
+  ensures: i < 0 || i >= m.seg_len.len() || f < 1 || r < 1 || c < 1 || s < 1 => result is None;
+  ensures: result is Some => i >= 0 && i < m.seg_len.len() && f >= 1 && r >= 1 && c >= 1 && s >= 1;
+{
   let comp = hl7_comp(m, i, f, r, c);
   match comp {
     Some(v) => { return _part(v, m.sub_sep, s); },
@@ -608,7 +652,10 @@ pub fn hl7_sub(m: &Message, i: Int, f: Int, r: Int, c: Int, s: Int) -> Option[St
 /// yields "".
 /// Error case: none.
 /// Complexity: O(total field bytes).
-pub fn hl7_write(m: &Message) -> Str {
+pub fn hl7_write(m: &Message) -> Str
+  ensures: m.seg_names.len() == 0 => result.len() == 0;
+  ensures: m.seg_names.len() > 0 => result.len() > 0;
+{
   let segs = m.seg_names.len();
   if segs == 0 {
     return "";
@@ -659,7 +706,10 @@ pub fn hl7_write(m: &Message) -> Str {
 /// segment; open the first one with `hl7_builder_segment`.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn hl7_builder_new() -> Message {
+pub fn hl7_builder_new() -> Message
+  ensures: result.field_sep.len() + result.comp_sep.len() + result.rep_sep.len() + result.esc_sep.len() + result.sub_sep.len() == 5;
+  ensures: result.seg_names.len() == 0 && result.seg_off.len() == 0 && result.seg_len.len() == 0 && result.fields.len() == 0;
+{
   return Message{
     field_sep: "|";
     comp_sep: "^";
@@ -683,7 +733,11 @@ pub fn hl7_builder_new() -> Message {
 /// Error case: "hl7: invalid separator", "hl7: malformed MSH segment:
 /// expected 4 encoding characters, got N".
 /// Complexity: O(1).
-pub fn hl7_builder_with_separators(field_sep: Str, encoding: Str) -> Result[Message, Str] {
+pub fn hl7_builder_with_separators(field_sep: Str, encoding: Str) -> Result[Message, Str]
+  ensures: field_sep.len() != 1 => result is Err;
+  ensures: encoding.len() != 4 => result is Err;
+  ensures: result is Ok => field_sep.len() == 1 && encoding.len() == 4;
+{
   if field_sep.len() != 1 {
     return _err_msg("hl7: invalid separator");
   }
@@ -735,7 +789,13 @@ pub fn hl7_builder_with_separators(field_sep: Str, encoding: Str) -> Result[Mess
 /// "hl7: malformed MSH segment: MSH must be the first segment" when MSH is
 /// opened later.
 /// Complexity: O(name length).
-pub fn hl7_builder_segment(m: &mut Message, name: Str) -> Str {
+pub fn hl7_builder_segment(m: &mut Message, name: Str) -> Str
+  ensures: name.len() == 0 => result.len() > 0;
+  ensures: result.len() == 0 => m.seg_names.len() == m.seg_names.len()@pre + 1;
+  ensures: result.len() == 0 => m.seg_len.len() == m.seg_len.len()@pre + 1;
+  ensures: result.len() > 0 => m.seg_names.len() == m.seg_names.len()@pre;
+  ensures: result.len() > 0 => m.fields.len() == m.fields.len()@pre;
+{
   if name.len() == 0 {
     return "hl7: empty segment name";
   }
@@ -777,7 +837,11 @@ pub fn hl7_builder_segment(m: &mut Message, name: Str) -> Str {
 /// Returns: "" on success; "hl7: no open segment" when no segment is open;
 /// "hl7: field contains a line terminator" when `value` holds CR or LF.
 /// Complexity: O(value length).
-pub fn hl7_builder_field(m: &mut Message, value: Str) -> Str {
+pub fn hl7_builder_field(m: &mut Message, value: Str) -> Str
+  ensures: m.seg_names.len()@pre == 0 => result.len() > 0;
+  ensures: result.len() == 0 => m.fields.len() == m.fields.len()@pre + 1;
+  ensures: result.len() > 0 => m.fields.len() == m.fields.len()@pre;
+{
   if m.seg_names.len() == 0 {
     return "hl7: no open segment";
   }
@@ -813,7 +877,11 @@ pub fn hl7_builder_field(m: &mut Message, value: Str) -> Str {
 /// Returns: "" on success; "hl7: no open segment" when no segment is open;
 /// "hl7: field contains a line terminator" when `value` holds CR or LF.
 /// Complexity: O(value length).
-pub fn hl7_builder_field_structured(m: &mut Message, value: Str) -> Str {
+pub fn hl7_builder_field_structured(m: &mut Message, value: Str) -> Str
+  ensures: m.seg_names.len()@pre == 0 => result.len() > 0;
+  ensures: result.len() == 0 => m.fields.len() == m.fields.len()@pre + 1;
+  ensures: result.len() > 0 => m.fields.len() == m.fields.len()@pre;
+{
   if m.seg_names.len() == 0 {
     return "hl7: no open segment";
   }

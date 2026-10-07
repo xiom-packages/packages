@@ -9,7 +9,7 @@
 
 package xiom_hl7 {
   name: "xiom.hl7";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "HL7 v2.x pipe-delimited message codec with flat offset-based storage";
   categories: ["data"];
   keywords: ["hl7", "healthcare", "protocol", "message"];
