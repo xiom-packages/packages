@@ -384,7 +384,10 @@ fn _apply_line(u: &mut Unit, cur: Int, line: Str) -> Result[Int, Str] {
 /// Complexity: O(total input length * entry count) when sections are
 /// reopened (entries are inserted into the middle of the flat vectors);
 /// O(total input length) when every section appears once.
-pub fn unit_parse(text: Str) -> Result[Unit, Str] {
+pub fn unit_parse(text: Str) -> Result[Unit, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   let clean = _scan_bytes(text);
   match clean {
     Some(m) => { return _err_unit(m); },
@@ -454,24 +457,35 @@ pub fn unit_parse(text: Str) -> Result[Unit, Str] {
 }
 
 /// Number of distinct sections (repeated headers count once).
-pub fn unit_section_count(u: &Unit) -> Int {
+pub fn unit_section_count(u: &Unit) -> Int
+  ensures: result == u.sections.len();
+{
   return u.sections.len();
 }
 
 /// Number of key/value entries in the document across all sections, counting
 /// duplicate keys separately.
-pub fn unit_key_count(u: &Unit) -> Int {
+pub fn unit_key_count(u: &Unit) -> Int
+  ensures: result == u.keys.len();
+{
   return u.keys.len();
 }
 
 /// Index of `name` in first-seen section order, or -1 when the document has
 /// no such section. Section names are byte-exact and case-sensitive.
-pub fn unit_section_index(u: &Unit, name: Str) -> Int {
+pub fn unit_section_index(u: &Unit, name: Str) -> Int
+  ensures: u.sections.len() == 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result < u.sections.len();
+  ensures: result >= -1;
+{
   return _section_index(u, name);
 }
 
 /// Name of the section at `index`; None when the index is out of range.
-pub fn unit_section_name(u: &Unit, index: Int) -> Option[Str] {
+pub fn unit_section_name(u: &Unit, index: Int) -> Option[Str]
+  ensures: index < 0 || index >= u.sections.len() => result is None;
+  ensures: result is Some => index >= 0 && index < u.sections.len();
+{
   if index < 0 || index >= u.sections.len() {
     return None;
   }
@@ -481,7 +495,11 @@ pub fn unit_section_name(u: &Unit, index: Int) -> Option[Str] {
 
 /// Number of entries in the section at `index`, or -1 when the index is out
 /// of range. Zero means the section exists but has no entries.
-pub fn unit_section_key_count(u: &Unit, index: Int) -> Int {
+pub fn unit_section_key_count(u: &Unit, index: Int) -> Int
+  ensures: index < 0 => result == -1;
+  ensures: index >= u.sections.len() => result == -1;
+  ensures: result >= -1;
+{
   if index < 0 || index >= u.sections.len() {
     return -1;
   }
@@ -491,7 +509,11 @@ pub fn unit_section_key_count(u: &Unit, index: Int) -> Int {
 
 /// Keys of the section at `index` in entry order (a fresh copy); an empty
 /// vector when the index is out of range.
-pub fn unit_section_keys(u: &Unit, index: Int) -> Vec[Str] {
+pub fn unit_section_keys(u: &Unit, index: Int) -> Vec[Str]
+  ensures: index < 0 => result.len() == 0;
+  ensures: index >= u.sections.len() => result.len() == 0;
+  ensures: result.len() <= u.keys.len();
+{
   var out = Vec[Str].new();
   if index < 0 || index >= u.sections.len() {
     return out;
@@ -508,7 +530,10 @@ pub fn unit_section_keys(u: &Unit, index: Int) -> Vec[Str] {
 
 /// Value of the `key`-th entry of the section at `section` index; None when
 /// either index is out of range.
-pub fn unit_section_value_at(u: &Unit, section: Int, key: Int) -> Option[Str] {
+pub fn unit_section_value_at(u: &Unit, section: Int, key: Int) -> Option[Str]
+  ensures: section < 0 || section >= u.sections.len() => result is None;
+  ensures: result is Some => section >= 0 && section < u.sections.len();
+{
   if section < 0 || section >= u.sections.len() {
     return None;
   }
@@ -522,7 +547,11 @@ pub fn unit_section_value_at(u: &Unit, section: Int, key: Int) -> Option[Str] {
 
 /// Key at flat entry index `index` (document order across sections); None
 /// when the index is out of range.
-pub fn unit_key_at(u: &Unit, index: Int) -> Option[Str] {
+pub fn unit_key_at(u: &Unit, index: Int) -> Option[Str]
+  ensures: index < 0 => result is None;
+  ensures: index >= u.keys.len() => result is None;
+  ensures: result is Some => index >= 0 && index < u.keys.len();
+{
   if index < 0 || index >= u.keys.len() {
     return None;
   }
@@ -532,7 +561,11 @@ pub fn unit_key_at(u: &Unit, index: Int) -> Option[Str] {
 
 /// Value at flat entry index `index`, index-aligned with `unit_key_at`; None
 /// when the index is out of range.
-pub fn unit_value_at(u: &Unit, index: Int) -> Option[Str] {
+pub fn unit_value_at(u: &Unit, index: Int) -> Option[Str]
+  ensures: index < 0 => result is None;
+  ensures: index >= u.values.len() => result is None;
+  ensures: result is Some => index >= 0 && index < u.values.len();
+{
   if index < 0 || index >= u.values.len() {
     return None;
   }
@@ -544,7 +577,11 @@ pub fn unit_value_at(u: &Unit, index: Int) -> Option[Str] {
 /// Section names and keys are byte-exact and case-sensitive; when the key
 /// repeats, `unit_get` returns the first assignment and `unit_get_last` the
 /// last.
-pub fn unit_get(u: &Unit, section: Str, key: Str) -> Option[Str] {
+pub fn unit_get(u: &Unit, section: Str, key: Str) -> Option[Str]
+  ensures: unit_section_index(u, section) == -1 => result is None;
+  ensures: result is Some => unit_section_index(u, section) >= 0;
+  ensures: u.sections.len() == 0 => result is None;
+{
   let si = _section_index(u, section);
   if si < 0 {
     return None;
@@ -563,7 +600,11 @@ pub fn unit_get(u: &Unit, section: Str, key: Str) -> Option[Str] {
 }
 
 /// Last value assigned to (section, key); None when the pair is absent.
-pub fn unit_get_last(u: &Unit, section: Str, key: Str) -> Option[Str] {
+pub fn unit_get_last(u: &Unit, section: Str, key: Str) -> Option[Str]
+  ensures: unit_section_index(u, section) == -1 => result is None;
+  ensures: result is Some => unit_section_index(u, section) >= 0;
+  ensures: u.sections.len() == 0 => result is None;
+{
   let si = _section_index(u, section);
   if si < 0 {
     return None;
@@ -594,7 +635,11 @@ pub fn unit_get_last(u: &Unit, section: Str, key: Str) -> Option[Str] {
 /// not reconstructed).
 /// Error case: none.
 /// Complexity: O(total output length).
-pub fn unit_emit(u: &Unit) -> Str {
+pub fn unit_emit(u: &Unit) -> Str
+  ensures: u.sections.len() == 0 => result.len() == 0;
+  ensures: result.len() >= u.sections.len() * 2;
+  ensures: result.len() == 0 => u.sections.len() == 0;
+{
   var out = Vec[UInt8].new();
   let n = _min_int(u.keys.len(), u.values.len());
   var i = 0;

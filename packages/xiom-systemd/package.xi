@@ -10,7 +10,7 @@
 
 package xiom_systemd {
   name: "xiom.systemd";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "systemd unit-file parsing and emitting for in-memory Str documents";
   categories: ["systems"];
   keywords: ["systemd", "unit", "config", "parser"];

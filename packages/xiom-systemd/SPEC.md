@@ -1,6 +1,6 @@
 # xiom.systemd -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.systemd` (`src/systemd.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -307,3 +307,49 @@ idioms as `xiom.ini` / `xiom.dotenv` (byte-wise scanning with
 - No file I/O, no streaming, no directory scanning.
 - Errors carry no line/column position (the offending line text is included,
   except for control-byte errors, which carry the byte value).
+
+## Contracts (batch #29 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/systemd.xi` in the batch
+#29 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 32 clauses across the 13 public entry points; all
+are `ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+Two consecutive
+`& .\scripts\port.ps1 -Package xiom.systemd -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.6 s and 5.1 s); the 20-check conformance suite exercises every
+entry point -- including the empty document, out-of-range accessor indices
+and the canonicalization round-trips -- and no clause trapped, so none was
+dropped.
+
+"Z3-provable" marks the scalar-shape family the SMT backend can discharge
+without executing the function (pure scalar guards/bounds over parameters
+and `result`, field-length counts); runtime-checked clauses observe a
+`Result`/`Option` tag or compare a built `Str`/`Vec` length, and all are
+enforced by the v0.64.0 runtime evaluator. No clause reads a parser payload,
+uses `Str` equality (BUG 17), indexes a vector, or names a module const.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `unit_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | Z3-provable (pure scalar guard); runtime-checked (`Result` tag + `Str` length) |
+| `unit_section_count` | `result == u.sections.len()` | Z3-provable (scalar-shape count) |
+| `unit_key_count` | `result == u.keys.len()` | Z3-provable (scalar-shape count) |
+| `unit_section_index` | `u.sections.len() == 0 => result == -1`; `result != -1 => result >= 0 && result < u.sections.len()`; `result >= -1` | Z3-provable (scalar-shape sentinel) |
+| `unit_section_name` | `index < 0 \|\| index >= u.sections.len() => result is None`; `result is Some => index >= 0 && index < u.sections.len()` | runtime-checked (`Option` tag + `Vec` length) |
+| `unit_section_key_count` | `index < 0 => result == -1`; `index >= u.sections.len() => result == -1`; `result >= -1` | Z3-provable (scalar-shape sentinel) |
+| `unit_section_keys` | `index < 0 => result.len() == 0`; `index >= u.sections.len() => result.len() == 0`; `result.len() <= u.keys.len()` | runtime-checked (result `Vec` length; the bound holds for hand-built `Unit`s because `_section_span` clamps the span to `min(keys.len(), values.len())`) |
+| `unit_section_value_at` | `section < 0 \|\| section >= u.sections.len() => result is None`; `result is Some => section >= 0 && section < u.sections.len()` | runtime-checked (`Option` tag + `Vec` length) |
+| `unit_key_at` | `index < 0 => result is None`; `index >= u.keys.len() => result is None`; `result is Some => index >= 0 && index < u.keys.len()` | runtime-checked (`Option` tag + `Vec` length) |
+| `unit_value_at` | `index < 0 => result is None`; `index >= u.values.len() => result is None`; `result is Some => index >= 0 && index < u.values.len()` | runtime-checked (`Option` tag + `Vec` length) |
+| `unit_get` | `unit_section_index(u, section) == -1 => result is None`; `result is Some => unit_section_index(u, section) >= 0`; `u.sections.len() == 0 => result is None` | runtime-checked (`Option` tag + safe non-re-entrant cross-call; `unit_section_index` never calls `unit_get`) |
+| `unit_get_last` | same triple against `unit_section_index(u, section)` | runtime-checked (`Option` tag + safe non-re-entrant cross-call) |
+| `unit_emit` | `u.sections.len() == 0 => result.len() == 0`; `result.len() >= u.sections.len() * 2`; `result.len() == 0 => u.sections.len() == 0` | runtime-checked (built `Str` length; every section emits at least `[` + `]`) |
+
+Deliberately not claimed: any observation of the `unit_parse` `Ok` payload
+(a `Unit` struct -- the clause is tag-only); alignment invariants between the
+five parallel `Vec`s (`sections.len() == sec_starts.len() == sec_counts.len()`,
+`keys.len() == values.len()`, contiguous ranges) because the accessors are
+total by design and hand-built documents may drift; `Str` equality anywhere
+(BUG 17: `.len()` only); `unit_get`/`unit_get_last` key-hit completeness
+(a key absent from the section's range yields `None` even though the first
+clause's section-level guard holds). No clause was dropped.
