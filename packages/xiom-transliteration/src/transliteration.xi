@@ -571,7 +571,10 @@ fn _tl_is_slug_alnum(b: Int) -> Bool {
 /// Invalid UTF-8 input is not ASCII unless all of its bytes are < 0x80.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn translit_is_ascii(s: Str) -> Bool {
+pub fn translit_is_ascii(s: Str) -> Bool
+  ensures: s.len() == 0 => result;
+  ensures: !result => s.len() > 0;
+{
   let n = s.len();
   var i = 0;
   while i < n {
@@ -595,7 +598,11 @@ pub fn translit_is_ascii(s: Str) -> Bool {
 /// dropped or preserved, never reported.
 /// Complexity: O(s.len() * table) -- the table is built once per call and
 /// scanned linearly per non-ASCII codepoint.
-pub fn translit_to_ascii(s: Str) -> Str {
+pub fn translit_to_ascii(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= 2 * s.len();
+  ensures: result.len() > 0 => s.len() > 0;
+{
   var keys = Vec[Int].new();
   var vals = Vec[Str].new();
   _tl_fill(&mut keys, &mut vals);
@@ -632,7 +639,11 @@ pub fn translit_to_ascii(s: Str) -> Str {
 /// trimmed; "" when no alphanumeric survives.
 /// Error case: none.
 /// Complexity: O(s.len() * table) (delegates to translit_to_ascii).
-pub fn translit_slug(s: Str) -> Str {
+pub fn translit_slug(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= 2 * s.len();
+  ensures: result.len() > 0 => s.len() > 0;
+{
   let ascii: Str = translit_to_ascii(s);
   let lower: Str = string.str_lower(ascii);
   var out = Vec[UInt8].new();

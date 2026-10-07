@@ -1,6 +1,6 @@
 # xiom.transliteration -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.transliteration` (`src/transliteration.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -220,3 +220,41 @@ free functions only, byte-wise scanning via `xiom.string.byte_at`,
 locals and never compared with `==`, and no `Vec[StructType]` (the table is
 two parallel `Vec`s). The module imports `xiom.string` and
 `xiom.string.builder`; the tests import `xiom.string.compare` as well.
+
+## Contracts (batch #30 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/transliteration.xi` in the
+batch #30 hardening pass (compiler v0.64.0; `package.xi` is bumped to 0.1.2 by
+the coordinator at integration). 8 clauses across the 3 public entry points
+(2/3/3); all are `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.transliteration -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` (6.6 s and 6.3 s) with
+the clauses active and no clause trapped, so none was dropped.
+
+All 8 clauses are **runtime-checked**: a direct `xiom-verify --check` run on
+this module reported `0 proven, 0 violated, 10 unknown` (all obligations
+skipped as X7007: unresolved operand sort / loop without invariant), so none is
+claimed Z3-provable.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `translit_is_ascii` | `ensures: s.len() == 0 => result`; `ensures: !result => s.len() > 0` | runtime-checked |
+| `translit_to_ascii` | `ensures: s.len() == 0 => result.len() == 0`; `ensures: result.len() <= 2 * s.len()`; `ensures: result.len() > 0 => s.len() > 0` | runtime-checked |
+| `translit_slug` | `ensures: s.len() == 0 => result.len() == 0`; `ensures: result.len() <= 2 * s.len()`; `ensures: result.len() > 0 => s.len() > 0` | runtime-checked |
+
+The `result.len() <= 2 * s.len()` bound is tight and holds over the mapping
+table: ASCII bytes pass through 1:1, invalid bytes pass through 1:1, mapped
+2-byte codepoints expand to at most 4 ASCII bytes exactly at U+0429/U+0449
+(`Shch`/`shch`), and the only 3-byte codepoints in the table (U+2013/U+2014,
+U+2018/U+2019, U+201C/U+201D, U+2026) emit at most 3 bytes. The
+`translit_slug` bound follows because slug output is never longer than the
+lowercased transliteration (`str_lower` preserves byte length) and each dash
+replaces a non-empty separator run. The conformance suite drives both
+functions through Cyrillic `Щ`/`щ` (the 2x worst case) and the invalid-byte
+pass-through path, so the evaluator checked the bound on the tight inputs.
+
+Deliberately not claimed: the `translit_is_ascii` "ASCII input => same length"
+relational premise (not a proven family) and any mapping-content clause
+(`Str` equality is banned, BUG 17); the 359-entry table content stays pinned by
+the conformance suite.
