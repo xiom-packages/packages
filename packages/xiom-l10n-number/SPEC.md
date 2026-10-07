@@ -1,8 +1,8 @@
 # xiom.l10n.number -- specification
 
-Version: 0.1.0 (incubating). Pure XIOM, no FFI, no floating point. All
-functions are free functions; the module depends on `xiom.string` and
-`xiom.convert` from `xiom.std` only.
+Version: 0.1.2 (stable; published on the XIOM registry). Pure XIOM, no FFI,
+no floating point. All functions are free functions; the module depends on
+`xiom.string` and `xiom.convert` from `xiom.std` only.
 
 ## 1. Model
 
@@ -164,7 +164,35 @@ Examples: `(12345, 1, ",", ".")` -> `"1,234.5"`;
 
 Complexity: O(digits + decimals). Never fails.
 
-## 7. Test plan (tests/test_conformance.xi, 30 checks)
+## 7. Contracts
+
+Each public entry point carries `ensures:` clauses on its emitted result.
+`xiom-verify --check` (Z3, v0.64.0 toolchain) was run over the module and
+reported 0 proven, 0 violated, 15 unknown: the SMT emitter does not model
+private helper calls, `Str` sorts or loops without invariants, so none of the
+clauses is proven statically yet and all are runtime-checked. The
+`l10n_decimal_round` clauses are pure scalar and are the natural first
+candidates for static proof once the verifier covers the clamping branches.
+
+| Function | Clause | Kind |
+|---|---|---|
+| `l10n_int_format` | `value == 0 => result.len() == 1` | runtime-checked |
+| `l10n_int_format` | `value < 0 => result.len() >= 2` | runtime-checked |
+| `l10n_int_format` | `result.len() >= 1` | runtime-checked |
+| `l10n_decimal_format` | `decimals > 0 => result.len() >= decimals + 1` | runtime-checked |
+| `l10n_decimal_format` | `decimals <= 0 && scaled == 0 => result.len() == 1` | runtime-checked |
+| `l10n_decimal_format` | `decimals <= 0 && scaled < 0 => result.len() >= 2` | runtime-checked |
+| `l10n_decimal_round` | `to_decimals >= from_decimals => result == scaled` | runtime-checked (scalar) |
+| `l10n_decimal_round` | `from_decimals <= 0 => result == scaled` | runtime-checked (scalar) |
+| `l10n_decimal_round` | `scaled == 0 => result == 0` | runtime-checked (scalar) |
+| `l10n_decimal_parse` | `text.len() == 0 => result is Err` | runtime-checked |
+| `l10n_decimal_parse` | `result is Ok => text.len() > 0` | runtime-checked |
+| `l10n_decimal_parse` | `result is Ok => result.value >= 0 - 9223372036854775807 && result.value <= 9223372036854775807` | runtime-checked |
+| `l10n_permille_format` | `result.len() >= 1` | runtime-checked |
+| `l10n_permille_format` | `decimals > 0 => result.len() >= decimals + 1` | runtime-checked |
+| `l10n_permille_format` | `permille == 0 && decimals <= 0 => result.len() == 1` | runtime-checked |
+
+## 8. Test plan (tests/test_conformance.xi, 30 checks)
 
 | # | Name | Expectation |
 |---|---|---|
@@ -203,7 +231,7 @@ Every test folds its sub-checks into one `assert(cond, name)` and `main`
 returns the number of failing checks (0 = green). `port.ps1` must end
 `port: PASS (passed=30 failed=0 program_exit=0 exit=0)`.
 
-## 8. Compiler / stdlib notes (XIOM v0.61.3)
+## 9. Compiler / stdlib notes (XIOM v0.61.3)
 
 - Free functions only; no `self` methods, no lambdas, no `Vec[StructType]`;
   the module allocates no vectors at all.
@@ -215,7 +243,7 @@ returns the number of failing checks (0 = green). `port.ps1` must end
 - Matches over `Result` are exhaustive (`Ok`/`Err`); no `mut` patterns.
 - `use` statements end with `;`, `module` does not.
 
-## 9. Known limitations
+## 10. Known limitations
 
 - Scaled-integer values only; no `Float64`, no rationals, no arbitrary
   precision. Parsing covers `-(2^63 - 1)` .. `2^63 - 1`; `-2^63` is rejected.

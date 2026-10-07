@@ -41,7 +41,11 @@ const _L10N_INT_MAX_LAST_DIGIT: Int = 7;
 /// Examples: (1000, ",") -> "1,000"; (-999, ",") -> "-999"; (0, ",") -> "0".
 /// Error case: none.
 /// Complexity: O(number of digits).
-pub fn l10n_int_format(value: Int, group_sep: Str) -> Str {
+pub fn l10n_int_format(value: Int, group_sep: Str) -> Str
+  ensures: value == 0 => result.len() == 1;
+  ensures: value < 0 => result.len() >= 2;
+  ensures: result.len() >= 1;
+{
   let neg = value < 0;
   let grouped = _group_digits(_abs_digits(value), group_sep);
   if neg {
@@ -63,7 +67,11 @@ pub fn l10n_int_format(value: Int, group_sep: Str) -> Str {
 /// (-12345, 0, ",", ".") -> "-12,345"; (1234, 2, ",", "") -> "1234".
 /// Error case: none.
 /// Complexity: O(digits + decimals).
-pub fn l10n_decimal_format(scaled: Int, decimals: Int, group_sep: Str, decimal_sep: Str) -> Str {
+pub fn l10n_decimal_format(scaled: Int, decimals: Int, group_sep: Str, decimal_sep: Str) -> Str
+  ensures: decimals > 0 => result.len() >= decimals + 1;
+  ensures: decimals <= 0 && scaled == 0 => result.len() == 1;
+  ensures: decimals <= 0 && scaled < 0 => result.len() >= 2;
+{
   var dec = decimals;
   if dec < 0 {
     dec = 0;
@@ -99,7 +107,11 @@ pub fn l10n_decimal_format(scaled: Int, decimals: Int, group_sep: Str, decimal_s
 /// -124; (1234, 2, 5) -> 1234.
 /// Error case: none.
 /// Complexity: O(min(from - to, 19)).
-pub fn l10n_decimal_round(scaled: Int, from_decimals: Int, to_decimals: Int) -> Int {
+pub fn l10n_decimal_round(scaled: Int, from_decimals: Int, to_decimals: Int) -> Int
+  ensures: to_decimals >= from_decimals => result == scaled;
+  ensures: from_decimals <= 0 => result == scaled;
+  ensures: scaled == 0 => result == 0;
+{
   var from_d = from_decimals;
   if from_d < 0 {
     from_d = 0;
@@ -171,7 +183,11 @@ pub fn l10n_decimal_round(scaled: Int, from_decimals: Int, to_decimals: Int) -> 
 /// Ok(1230); ("-0.5", ",", 1) -> Ok(-5); ("1.234", ".", 2) ->
 /// Err("l10n: too many decimals").
 /// Complexity: O(len(text) + decimals).
-pub fn l10n_decimal_parse(text: Str, decimal_sep: Str, decimals: Int) -> Result[Int, Str] {
+pub fn l10n_decimal_parse(text: Str, decimal_sep: Str, decimals: Int) -> Result[Int, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() > 0;
+  ensures: result is Ok => result.value >= 0 - 9223372036854775807 && result.value <= 9223372036854775807;
+{
   var dec = decimals;
   if dec < 0 {
     dec = 0;
@@ -280,7 +296,11 @@ pub fn l10n_decimal_parse(text: Str, decimal_sep: Str, decimals: Int) -> Result[
 /// "1,234.50"; (5, 1, ",", ".") -> "0.5"; (-12345, 0, ",", ".") -> "-1235".
 /// Error case: none.
 /// Complexity: O(digits + decimals).
-pub fn l10n_permille_format(permille: Int, decimals: Int, group_sep: Str, decimal_sep: Str) -> Str {
+pub fn l10n_permille_format(permille: Int, decimals: Int, group_sep: Str, decimal_sep: Str) -> Str
+  ensures: result.len() >= 1;
+  ensures: decimals > 0 => result.len() >= decimals + 1;
+  ensures: permille == 0 && decimals <= 0 => result.len() == 1;
+{
   var dec = decimals;
   if dec < 0 {
     dec = 0;
