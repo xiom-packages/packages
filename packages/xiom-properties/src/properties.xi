@@ -428,7 +428,10 @@ fn _push_escaped(out: &mut Vec[UInt8], s: Str, is_key: Bool) {
 /// are not an error: the last assignment wins and keeps the first position.
 /// Complexity: O(total input length * key count) because duplicate detection
 /// scans the key list per pair; O(total input length) with a hash index.
-pub fn props_parse(text: Str) -> Result[Props, Str] {
+pub fn props_parse(text: Str) -> Result[Props, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var props = Props{ keys: Vec[Str].new(); values: Vec[Str].new(); };
   let lines = _split_lines(text);
   let n = lines.len();
@@ -478,7 +481,10 @@ pub fn props_parse(text: Str) -> Result[Props, Str] {
 
 /// Value of `key`; None when the key is absent. Keys are byte-exact and
 /// case-sensitive.
-pub fn props_get(p: &Props, key: Str) -> Option[Str] {
+pub fn props_get(p: &Props, key: Str) -> Option[Str]
+  ensures: p.keys.len() == 0 => result is None;
+  ensures: result is Some => p.keys.len() > 0;
+{
   let i = _key_index(p, key);
   if i < 0 {
     return None;
@@ -488,12 +494,16 @@ pub fn props_get(p: &Props, key: Str) -> Option[Str] {
 }
 
 /// Number of distinct keys.
-pub fn props_count(p: &Props) -> Int {
+pub fn props_count(p: &Props) -> Int
+  ensures: result == p.keys.len();
+{
   return p.keys.len();
 }
 
 /// Keys in first-occurrence order (a fresh copy).
-pub fn props_keys(p: &Props) -> Vec[Str] {
+pub fn props_keys(p: &Props) -> Vec[Str]
+  ensures: result.len() == p.keys.len();
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < p.keys.len() {
@@ -506,7 +516,10 @@ pub fn props_keys(p: &Props) -> Vec[Str] {
 
 /// Set `key` to `value` in a new Props: an existing key is replaced in place
 /// (its position is kept), a new key is appended. `p` itself is untouched.
-pub fn props_set(p: &Props, key: Str, value: Str) -> Props {
+pub fn props_set(p: &Props, key: Str, value: Str) -> Props
+  ensures: result.keys.len() == p.keys.len() || result.keys.len() == p.keys.len() + 1;
+  ensures: result.values.len() == result.keys.len();
+{
   var out = Props{ keys: Vec[Str].new(); values: Vec[Str].new(); };
   var i = 0;
   while i < p.keys.len() {
@@ -531,7 +544,10 @@ pub fn props_set(p: &Props, key: Str, value: Str) -> Props {
 /// props_emit and props_parse.
 /// Error case: none.
 /// Complexity: O(total output length).
-pub fn props_emit(p: &Props) -> Str {
+pub fn props_emit(p: &Props) -> Str
+  ensures: p.keys.len() == 0 => result.len() == 0;
+  ensures: result.len() >= p.keys.len();
+{
   var out = Vec[UInt8].new();
   var i = 0;
   while i < p.keys.len() {

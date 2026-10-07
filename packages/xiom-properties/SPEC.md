@@ -1,6 +1,6 @@
 # xiom.properties -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.properties` (`src/properties.xi`). Pure XIOM, no FFI, no file
 I/O.
 
@@ -206,3 +206,39 @@ idioms as `xiom.csv`/`xiom.dotenv` (byte-wise scanning with
 - Comments and blank lines are parsed but never emitted, so a
   parse -> emit -> parse round trip loses them (keys and values survive).
 - Errors carry the offending line text but no line/column position.
+
+## Contracts (batch #26 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/properties.xi` in the batch
+#26 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 10 clauses across the 6 public entry points; all
+are `ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+Two consecutive
+`& .\scripts\port.ps1 -Package xiom.properties -TimeoutSec 60` runs ended
+`port: PASS (passed=21 failed=0 program_exit=0 exit=0)` with the clauses
+active (8.2 s and 7.0 s); the 21-check conformance suite exercises every
+entry point and no clause trapped.
+
+All 10 clauses are runtime-checked. `xiom-verify --check` (v0.64.0, bundled
+Z3) reports `0 proven, 0 violated, 16 unknown, 2 errors` for this module:
+the `Result`/`Option` guard pairs and the `Vec`/struct field-length counts
+reach the SMT backend as unresolved-sort equalities (X7007), so no clause is
+claimed Z3-provable.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `props_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime-checked (`Result` tag + `Str` length) |
+| `props_get` | `ensures: p.keys.len() == 0 => result is None`; `ensures: result is Some => p.keys.len() > 0` | runtime-checked (`Option` tag + `Vec` length) |
+| `props_count` | `ensures: result == p.keys.len()` | runtime-checked (`Vec` length count) |
+| `props_keys` | `ensures: result.len() == p.keys.len()` | runtime-checked (`Vec` length count) |
+| `props_set` | `ensures: result.keys.len() == p.keys.len() || result.keys.len() == p.keys.len() + 1`; `ensures: result.values.len() == result.keys.len()` | runtime-checked (plain-struct field-length counts) |
+| `props_emit` | `ensures: p.keys.len() == 0 => result.len() == 0`; `ensures: result.len() >= p.keys.len()` | runtime-checked (built `Str` length) |
+
+Deliberately not claimed: a key-containment predicate for `props_get` (the
+only membership helper, `_key_index`, is private, and no clause may call a
+function); an exact `props_emit` output length (escape expansion is
+byte-dependent); element indexing or `Str` equality inside clauses (BUG 17);
+and every forbidden shape from the batch #26 brief (tuple-component access,
+payload-length-vs-parameter on `Result` payloads, struct-result payload
+fields, postcondition call-cycles). No clause calls any function; all
+conditions are parameter/`result` scalar shapes or field-length counts.
