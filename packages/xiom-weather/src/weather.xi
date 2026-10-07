@@ -373,7 +373,10 @@ fn _make_metar(station: Str, day: Int, hour: Int, minute: Int, wind_dir_deg: Int
 /// Err("metar: invalid station: <token>") when the first token is not four
 /// ASCII letters.
 /// Complexity: O(len(raw)) plus O(1) per token.
-pub fn metar_parse(raw: Str) -> Result[Metar, Str] {
+pub fn metar_parse(raw: Str) -> Result[Metar, Str]
+  ensures: raw.len() == 0 => result is Err;
+  ensures: result is Ok => raw.len() > 0;
+{
   let fields = _split_fields(raw);
   if fields.len() == 0 {
     return _err_metar("metar: empty observation");
@@ -465,7 +468,11 @@ fn _ceiling_rank(ceiling_ft: Int) -> Int {
 /// The most restrictive of the two rules wins; a missing visibility or
 /// ceiling imposes no restriction, so an observation without either is VFR.
 /// Complexity: O(1).
-pub fn metar_flight_category(m: &Metar) -> Str {
+pub fn metar_flight_category(m: &Metar) -> Str
+  ensures: result.len() == 3 || result.len() == 4;
+  ensures: (m.visibility_m >= 0 && m.visibility_m < 1600) || (m.ceiling_ft >= 0 && m.ceiling_ft < 500) => result.len() == 4;
+  ensures: (m.visibility_m < 0 || m.visibility_m >= 8000) && (m.ceiling_ft < 0 || m.ceiling_ft >= 3000) => result.len() == 3;
+{
   let vis_rank = _visibility_rank(m.visibility_m);
   let ceil_rank = _ceiling_rank(m.ceiling_ft);
   var rank = vis_rank;
@@ -481,7 +488,9 @@ pub fn metar_flight_category(m: &Metar) -> Str {
 /// Returns: the sustained wind speed (wind_speed_kt); a reported gust is
 /// exposed separately as Metar.wind_gust_kt. -1 when no wind token was seen.
 /// Complexity: O(1).
-pub fn metar_wind_kt(m: &Metar) -> Int {
+pub fn metar_wind_kt(m: &Metar) -> Int
+  ensures: result == m.wind_speed_kt;
+{
   return m.wind_speed_kt;
 }
 
@@ -490,7 +499,9 @@ pub fn metar_wind_kt(m: &Metar) -> Int {
 /// Returns: temp_c; -1 when not reported (which is also how a genuine -1 degC
 /// reading is stored; see SPEC.md section 6).
 /// Complexity: O(1).
-pub fn metar_temperature_c(m: &Metar) -> Int {
+pub fn metar_temperature_c(m: &Metar) -> Int
+  ensures: result == m.temp_c;
+{
   return m.temp_c;
 }
 
@@ -540,6 +551,8 @@ fn _altimeter_text(hpa: Int) -> Str {
 /// Example: "EGLL 240/12kt vis=9999m 18/12 Q1013 VFR"; with only a station
 /// and wind: "EGLL 240/12kt vis=/// ////// Q/// VFR".
 /// Complexity: O(1).
-pub fn metar_summary(m: &Metar) -> Str {
+pub fn metar_summary(m: &Metar) -> Str
+  ensures: result.len() >= m.station.len() + 1;
+{
   return m.station + " " + _wind_text(m) + " vis=" + _visibility_text(m.visibility_m) + " " + _temperature_text(m.temp_c) + "/" + _temperature_text(m.dewpoint_c) + " " + _altimeter_text(m.altimeter_hpa) + " " + metar_flight_category(m);
 }

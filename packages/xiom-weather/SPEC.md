@@ -1,6 +1,6 @@
 # xiom.weather -- specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.weather` (`src/weather.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope and model
@@ -179,6 +179,24 @@ Examples (pinned by the suite):
 
 Complexity: `metar_parse` is `O(len(raw))` plus `O(1)` per token; the other
 functions are `O(1)`.
+
+## Contracts (batch #26 hardening pass, 2026-10-07)
+
+Every public entry point carries runtime-checkable `ensures:` clauses, placed
+directly after the signature (two-space indent, before `{`). No `requires:`
+clauses: every entry point is total or a documented parser. Tags: **[Z3]** =
+pure-scalar clause proved by `xiom-verify`; **[RT]** = runtime-checked.
+
+- `metar_parse(raw)`: [RT] `raw.len() == 0 => result is Err`; [RT] `result is Ok => raw.len() > 0`.
+- `metar_flight_category(m)`: [RT] `result.len() == 3 || result.len() == 4`; [RT] `(m.visibility_m >= 0 && m.visibility_m < 1600) || (m.ceiling_ft >= 0 && m.ceiling_ft < 500) => result.len() == 4`; [RT] `(m.visibility_m < 0 || m.visibility_m >= 8000) && (m.ceiling_ft < 0 || m.ceiling_ft >= 3000) => result.len() == 3`.
+- `metar_wind_kt(m)`: [RT] `result == m.wind_speed_kt`.
+- `metar_temperature_c(m)`: [RT] `result == m.temp_c`.
+- `metar_summary(m)`: [RT] `result.len() >= m.station.len() + 1`.
+
+8 clauses total (0 Z3-provable, 8 runtime-checked); no clause dropped. The
+`metar_flight_category` implications were checked against `_visibility_rank` /
+`_ceiling_rank`: the LIFR implication uses the 1600 m / 500 ft pair and the VFR
+implication uses the 8000 m / 3000 ft pair, both exactly as implemented.
 
 ## 9. Non-goals and limitations
 

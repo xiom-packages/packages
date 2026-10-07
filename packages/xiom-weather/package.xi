@@ -11,7 +11,7 @@
 
 package xiom_weather {
   name: "xiom.weather";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "METAR observation decoding: wind, visibility, temperature, altimeter, flight category";
   categories: ["science", "data"];
   keywords: ["metar", "weather", "aviation", "decoding"];
