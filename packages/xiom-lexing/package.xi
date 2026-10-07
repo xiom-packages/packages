@@ -10,7 +10,7 @@
 
 package xiom_lexing {
   name: "xiom.lexing";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Configurable tokenizer: identifiers, keywords, integers, strings, operators";
   categories: ["text-nlp","tooling"];
   keywords: ["lexer","tokenizer","tokens","parsing"];

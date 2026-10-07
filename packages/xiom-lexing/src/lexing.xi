@@ -124,7 +124,10 @@ pub fn lexer_new() -> Lexer {
 /// Returns: nothing.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lexer_add_keyword(l: &mut Lexer, word: Str) {
+pub fn lexer_add_keyword(l: &mut Lexer, word: Str)
+  ensures: l.keywords.len() == l.keywords.len()@pre + 1;
+  ensures: l.operators.len() == l.operators.len()@pre;
+{
   l.keywords.push(word);
 }
 
@@ -135,7 +138,10 @@ pub fn lexer_add_keyword(l: &mut Lexer, word: Str) {
 /// Returns: nothing.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lexer_add_operator(l: &mut Lexer, op: Str) {
+pub fn lexer_add_operator(l: &mut Lexer, op: Str)
+  ensures: l.operators.len() == l.operators.len()@pre + 1;
+  ensures: l.keywords.len() == l.keywords.len()@pre;
+{
   l.operators.push(op);
 }
 
@@ -192,7 +198,10 @@ fn _match_operator_len(l: &Lexer, text: Str, at: Int) -> Int {
 /// (pos = the opening quote).
 /// Complexity: O(n * (keywords + operators)) worst case, O(n) with small
 /// configurations.
-pub fn lexer_scan(l: &Lexer, text: Str) -> Result[TokenList, Str] {
+pub fn lexer_scan(l: &Lexer, text: Str) -> Result[TokenList, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var kinds = Vec[Str].new();
   var texts = Vec[Str].new();
   var starts = Vec[Int].new();
@@ -305,7 +314,10 @@ pub fn lexer_scan(l: &Lexer, text: Str) -> Result[TokenList, Str] {
 /// Returns: the token count; 0 for an empty list.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lexer_token_count(t: &TokenList) -> Int {
+pub fn lexer_token_count(t: &TokenList) -> Int
+  ensures: result == t.kinds.len();
+  ensures: result >= 0;
+{
   return t.kinds.len();
 }
 
@@ -315,7 +327,9 @@ pub fn lexer_token_count(t: &TokenList) -> Int {
 /// out of range (so use the kind to tell an empty-string token apart).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lexer_kind(t: &TokenList, i: Int) -> Str {
+pub fn lexer_kind(t: &TokenList, i: Int) -> Str
+  ensures: i < 0 || i >= t.kinds.len() => result.len() == 0;
+{
   if i < 0 || i >= t.kinds.len() {
     return "";
   }
@@ -328,7 +342,9 @@ pub fn lexer_kind(t: &TokenList, i: Int) -> Str {
 /// tokens); "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lexer_text(t: &TokenList, i: Int) -> Str {
+pub fn lexer_text(t: &TokenList, i: Int) -> Str
+  ensures: i < 0 || i >= t.texts.len() => result.len() == 0;
+{
   if i < 0 || i >= t.texts.len() {
     return "";
   }
@@ -341,7 +357,10 @@ pub fn lexer_text(t: &TokenList, i: Int) -> Str {
 /// out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lexer_start(t: &TokenList, i: Int) -> Int {
+pub fn lexer_start(t: &TokenList, i: Int) -> Int
+  ensures: i < 0 || i >= t.starts.len() => result == -1;
+  ensures: result >= -1;
+{
   if i < 0 || i >= t.starts.len() {
     return -1;
   }

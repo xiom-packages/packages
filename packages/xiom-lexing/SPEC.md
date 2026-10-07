@@ -1,6 +1,6 @@
 # xiom.lexing -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.lexing` (`src/lexing.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -199,3 +199,43 @@ XIOM v0.61.3 workarounds used (same shape as the other ported packages):
 - No `Ok`/`Err`-returning fn takes or returns a struct by value other than
   through the leaf helpers; `lexer_scan` builds the `TokenList` and passes it
   to `_ok_tokens`.
+
+## Contracts (hardening pass, 2026-10-07, batch #18)
+
+Twelve runtime-checkable `ensures:` clauses were added to the public entry
+points of `src/lexing.xi` following the batch #18 clause plan.
+`xiom-verify src/lexing.xi --check` on v0.64.0 (bundled Z3): **0 proven / 0
+violated / 18 unknown / 0 errors** -- every obligation was skipped at SMT
+emission (unresolved operand sorts for `Vec`/`Str` length equalities, Int
+operands the emitter cannot sort, call operands, and loop bodies without
+invariants), so no clause is machine-proven and none is disproven. All twelve
+are enforced by the v0.64.0 runtime evaluator; the 24-check conformance suite
+exercises every entry point with the clauses active and two consecutive
+`scripts/port.ps1 -Package xiom.lexing -TimeoutSec 60` runs were green (24/24,
+`program_exit=0`).
+
+| Function | Added clauses | Check |
+|---|---|---|
+| `lexer_add_keyword` | `ensures: l.keywords.len() == l.keywords.len()@pre + 1`; `ensures: l.operators.len() == l.operators.len()@pre` | runtime |
+| `lexer_add_operator` | `ensures: l.operators.len() == l.operators.len()@pre + 1`; `ensures: l.keywords.len() == l.keywords.len()@pre` | runtime |
+| `lexer_scan` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime |
+| `lexer_token_count` | `ensures: result == t.kinds.len()`; `ensures: result >= 0` | runtime |
+| `lexer_kind` | `ensures: i < 0 \|\| i >= t.kinds.len() => result.len() == 0` | runtime |
+| `lexer_text` | `ensures: i < 0 \|\| i >= t.texts.len() => result.len() == 0` | runtime |
+| `lexer_start` | `ensures: i < 0 \|\| i >= t.starts.len() => result == -1`; `ensures: result >= -1` | runtime |
+
+The plan classified the scalar bounds clauses (`lexer_token_count`'s
+`result >= 0` and `lexer_start`'s `result >= -1`) and the `lexer_scan` guard
+pair as pure-scalar (Z3-provable) shapes, but the v0.64.0 emitter cannot
+discharge any obligation in this module, so all twelve are reported as
+runtime-checked.
+
+No clauses on `lexer_new` (struct result: struct-result payload access is a
+forbidden v0.64.0 runtime-evaluator shape). Deliberately excluded per the plan:
+`TokenList` alignment invariants (struct payload; constructed-drift), valid-
+token non-empty facts, and longest-operator facts. No clause calls any
+function (the runtime evaluator recurses on transitive callees), no clause
+touches a `Result` payload, and no clause compares `Str` content (`.len()`
+only, BUG 17). The frame clauses hold for every constructed `Lexer`, not only
+for scanned configurations: `lexer_add_keyword` / `lexer_add_operator` push
+exactly one element into their own vector and leave the other untouched.
