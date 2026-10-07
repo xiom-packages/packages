@@ -1,8 +1,6 @@
 # xiom.dbase -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.dbase`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/dbase.xi` (`module xiom.dbase`).
 Depends on `xiom.std` (`xiom.string`: `byte_at`, `str_trim`; `Str::from_utf8`
 is a compiler builtin). Tests additionally use `xiom.test`, `xiom.io` and
@@ -313,3 +311,70 @@ Last verified: compiler 0.61.3,
 - The test suite binds every `&` argument to a local (never
   `&result.value`, a struct field or a call result), following the
   `docs/repro/struct-field-vec` findings.
+
+## Contracts (batch #32 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/dbase.xi` in the batch #32
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 46 clauses across the 20 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.dbase -TimeoutSec 60` runs
+ended `port: PASS (passed=25 failed=0 program_exit=0 exit=0)` with the
+clauses active (5.7 s and 5.3 s); the 25-check conformance suite exercises
+every entry point -- including the out-of-range sentinels (t3/t4/t23), the
+drifted-vector clamping (t23) and the builder validation catalog (t22) -- and
+no clause trapped.
+
+"Z3-provable" marks the scalar-shape family the SMT backend can discharge
+without executing the function (pure scalar guards/sentinels, comparisons of
+`result` against `Int`-typed `DbaseTable` fields or `.len()` counts);
+runtime-checked clauses observe a `Result` tag or compare `Str`/vector
+lengths, and all are enforced by the v0.64.0 runtime evaluator.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `dbase_parse` | `ensures: data.len() < 32 => result is Err`; `ensures: result is Ok => data.len() >= 32` | Z3-provable (pure scalar guard); runtime-checked (`Result` tag + `Vec` length) |
+| `dbase_version` ... `dbase_record_size` (5 scalar readers) | one `ensures: result == t.<field>` per reader; `dbase_last_update` uses the inlined packed-date formula `t.last_update_y * 10000 + t.last_update_m * 100 + t.last_update_d` | Z3-provable (pure scalar) |
+| `dbase_field_count` | `ensures: result <= t.names.len()`; `ensures: result >= 0`; `ensures: t.names.len() == 0 => result == 0` | Z3-provable (scalar-shape counts) |
+| `dbase_field_name` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= t.names.len() => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < t.names.len()` | runtime-checked (built `Str` length) |
+| `dbase_field_type` / `length` / `decimals` / `address` / `offset` (5 `Int` readers) | per reader: `i < 0 => result == 0`; `i >= t.<vec>.len() => result == 0`; `result != 0 => i >= 0 && i < t.<vec>.len()` | Z3-provable (scalar-shape sentinel vs. the reader's own vector) |
+| `dbase_record_offset` | `r < 0 => result == -1`; `r >= t.record_count => result == -1`; `result != -1 => r >= 0 && r < t.record_count` | Z3-provable (scalar-shape sentinel) |
+| `dbase_record_span` | `r < 0 => result == 0`; `r >= t.record_count => result == 0`; `result != 0 => r >= 0 && r < t.record_count` | Z3-provable (scalar-shape sentinel) |
+| `dbase_record_bytes` | `r < 0 \|\| r >= t.record_count => result is Err`; `result is Ok => r >= 0 && r < t.record_count` | runtime-checked (`Result` tag) |
+| `dbase_field_bytes` | `f < 0 \|\| f >= dbase_field_count(t) => result is Err`; `r < 0 \|\| r >= t.record_count => result is Err`; `result is Ok => f >= 0 && f < dbase_field_count(t)` | runtime-checked (`Result` tag + public cross-call) |
+| `dbase_field_text` | `f < 0 \|\| f >= dbase_field_count(t) => result is Err`; `result is Ok => dbase_field_type(t, f) == 67` | runtime-checked (`Result` tag + public cross-call; type byte inlined) |
+| `dbase_field_number` | `f < 0 \|\| f >= dbase_field_count(t) => result is Err`; `result is Ok => dbase_field_type(t, f) == 78` | runtime-checked (`Result` tag + public cross-call; type byte inlined) |
+| `dbase_build` | `(t.version != 3 && t.version != 131 && t.version != 48) => result is Err`; `(t.types.len() != t.names.len() \|\| t.lengths.len() != t.names.len() \|\| t.decimals.len() != t.names.len()) => result is Err`; `result is Ok => t.types.len() == t.names.len() && t.lengths.len() == t.names.len() && t.decimals.len() == t.names.len()` | runtime-checked (`Result` tag + vector lengths; version bytes inlined) |
+
+Source-shape notes pinned by the clauses:
+
+- The sentinel families are one-way claims: an in-range entry of a hand-built
+  table may legitimately hold `0`/`-1`/`""`, so no clause claims that an
+  in-range index yields a non-sentinel value; the third clause is the
+  contrapositive "a non-sentinel result implies an in-range index".
+- The only clause cross-calls are `dbase_field_count(t)` (in
+  `dbase_field_bytes`, `dbase_field_text`, `dbase_field_number`) and
+  `dbase_field_type(t, f)` (in `dbase_field_text` and `dbase_field_number`);
+  neither callee calls a caller, so the calls are non-re-entrant, and both
+  are guarded O(1) reads that the function bodies already perform.
+- Type/version bytes and the packed-date multipliers are inlined literals in
+  clauses (module consts are not used inside clauses): `67`/`78` are the
+  ASCII `C`/`N` type bytes; `3`/`131`/`48` are the supported version bytes.
+- The `Ok` clauses on `dbase_field_text`/`dbase_field_number` compare the
+  recomputed `dbase_field_type(t, f)` to the inlined `67`/`78` -- exactly the
+  check the body performs before constructing the `Ok`.
+- `dbase_record_bytes`, `dbase_field_bytes`, `dbase_field_text` and
+  `dbase_field_number` keep their index guard conditions combined with `||`
+  (one clause per parameter family), matching the accepted
+  `s.len() < 8 || s.len() > 90 => result is Err` shape.
+- No clause reads a `&mut` parameter: `dbase_build`'s three clauses read only
+  `t` (never `records`), and no clause-read parameter name is shadowed by a
+  local.
+
+Deliberately not claimed: any observation of the `dbase_parse` `Ok` payload
+(a struct-result field read); `Str` equality (BUG 17); in-range converses of
+the sentinel readers; a record-range clause on `dbase_field_text`/
+`dbase_field_number`; tuple values; vector indexing in clauses; and every
+forbidden shape from the batch #32 brief. No clause was dropped: all 46
+passed both port runs on the first attempt (no probe-gated items in the
+dbase plan).

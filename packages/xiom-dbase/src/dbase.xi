@@ -282,7 +282,10 @@ fn _numeric_ok(s: Str) -> Bool {
 /// `data`; the field address words are preserved as parsed.
 /// Error case: see the catalog above and SPEC.md.
 /// Complexity: O(data bytes + fields + records).
-pub fn dbase_parse(data: &Vec[UInt8]) -> Result[DbaseTable, Str] {
+pub fn dbase_parse(data: &Vec[UInt8]) -> Result[DbaseTable, Str]
+  ensures: data.len() < 32 => result is Err;
+  ensures: result is Ok => data.len() >= 32;
+{
   let n = data.len();
   if n < 32 { return _err_table("dbase: truncated header"); }
   let version: Int = _byte(data, 0);
@@ -357,38 +360,52 @@ pub fn dbase_parse(data: &Vec[UInt8]) -> Result[DbaseTable, Str] {
 }
 
 /// Version byte of the table (0x03, 0x83 or 0x30). Complexity: O(1).
-pub fn dbase_version(t: &DbaseTable) -> Int {
+pub fn dbase_version(t: &DbaseTable) -> Int
+  ensures: result == t.version;
+{
   return t.version;
 }
 
 /// Last-update date packed as y * 10000 + m * 100 + d, for example 260925
 /// for the bytes 26 09 25 (2026-09-25). The bytes are stored, not
 /// interpreted. Complexity: O(1).
-pub fn dbase_last_update(t: &DbaseTable) -> Int {
+pub fn dbase_last_update(t: &DbaseTable) -> Int
+  ensures: result == t.last_update_y * 10000 + t.last_update_m * 100 + t.last_update_d;
+{
   return t.last_update_y * 10000 + t.last_update_m * 100 + t.last_update_d;
 }
 
 /// Header record count field (LE32). Complexity: O(1).
-pub fn dbase_record_count(t: &DbaseTable) -> Int {
+pub fn dbase_record_count(t: &DbaseTable) -> Int
+  ensures: result == t.record_count;
+{
   return t.record_count;
 }
 
 /// Header size field in bytes (LE16), including the 0x0D terminator.
 /// Complexity: O(1).
-pub fn dbase_header_size(t: &DbaseTable) -> Int {
+pub fn dbase_header_size(t: &DbaseTable) -> Int
+  ensures: result == t.header_size;
+{
   return t.header_size;
 }
 
 /// Record size field in bytes (LE16), including the 1-byte deletion flag.
 /// Complexity: O(1).
-pub fn dbase_record_size(t: &DbaseTable) -> Int {
+pub fn dbase_record_size(t: &DbaseTable) -> Int
+  ensures: result == t.record_size;
+{
   return t.record_size;
 }
 
 /// Number of fields, computed as the minimum length of the parallel
 /// descriptor vectors so a hand-built table with drifted vectors reports the
 /// safe maximum. Complexity: O(1).
-pub fn dbase_field_count(t: &DbaseTable) -> Int {
+pub fn dbase_field_count(t: &DbaseTable) -> Int
+  ensures: result <= t.names.len();
+  ensures: result >= 0;
+  ensures: t.names.len() == 0 => result == 0;
+{
   var n = t.names.len();
   if t.types.len() < n { n = t.types.len(); }
   if t.lengths.len() < n { n = t.lengths.len(); }
@@ -400,7 +417,11 @@ pub fn dbase_field_count(t: &DbaseTable) -> Int {
 
 /// Name of field `i`; "" when `i` is negative or out of range.
 /// Complexity: O(1).
-pub fn dbase_field_name(t: &DbaseTable, i: Int) -> Str {
+pub fn dbase_field_name(t: &DbaseTable, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= t.names.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < t.names.len();
+{
   if i < 0 { return ""; }
   if i >= t.names.len() { return ""; }
   let name: Str = t.names[i];
@@ -409,7 +430,11 @@ pub fn dbase_field_name(t: &DbaseTable, i: Int) -> Str {
 
 /// ASCII type byte of field `i` (C 67, N 78, D 68, L 76, M 77, F 70);
 /// 0 when `i` is negative or out of range. Complexity: O(1).
-pub fn dbase_field_type(t: &DbaseTable, i: Int) -> Int {
+pub fn dbase_field_type(t: &DbaseTable, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= t.types.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < t.types.len();
+{
   if i < 0 { return 0; }
   if i >= t.types.len() { return 0; }
   let ty: Int = t.types[i];
@@ -418,7 +443,11 @@ pub fn dbase_field_type(t: &DbaseTable, i: Int) -> Int {
 
 /// Length in bytes of field `i`; 0 when `i` is negative or out of range.
 /// Complexity: O(1).
-pub fn dbase_field_length(t: &DbaseTable, i: Int) -> Int {
+pub fn dbase_field_length(t: &DbaseTable, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= t.lengths.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < t.lengths.len();
+{
   if i < 0 { return 0; }
   if i >= t.lengths.len() { return 0; }
   let len: Int = t.lengths[i];
@@ -427,7 +456,11 @@ pub fn dbase_field_length(t: &DbaseTable, i: Int) -> Int {
 
 /// Declared decimal count of field `i`; 0 when `i` is negative or out of
 /// range. Complexity: O(1).
-pub fn dbase_field_decimals(t: &DbaseTable, i: Int) -> Int {
+pub fn dbase_field_decimals(t: &DbaseTable, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= t.decimals.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < t.decimals.len();
+{
   if i < 0 { return 0; }
   if i >= t.decimals.len() { return 0; }
   let dec: Int = t.decimals[i];
@@ -437,7 +470,11 @@ pub fn dbase_field_decimals(t: &DbaseTable, i: Int) -> Int {
 /// Field address word from descriptor `i` (LE32), preserved as parsed;
 /// 0 when `i` is negative or out of range. dBASE III writes memory
 /// addresses here, typically 0 in files. Complexity: O(1).
-pub fn dbase_field_address(t: &DbaseTable, i: Int) -> Int {
+pub fn dbase_field_address(t: &DbaseTable, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= t.addresses.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < t.addresses.len();
+{
   if i < 0 { return 0; }
   if i >= t.addresses.len() { return 0; }
   let addr: Int = t.addresses[i];
@@ -447,7 +484,11 @@ pub fn dbase_field_address(t: &DbaseTable, i: Int) -> Int {
 /// Byte offset of field `i` within a record, including the 1-byte deletion
 /// flag (so the first field is at 1); 0 when `i` is negative or out of
 /// range. Complexity: O(1).
-pub fn dbase_field_offset(t: &DbaseTable, i: Int) -> Int {
+pub fn dbase_field_offset(t: &DbaseTable, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= t.offsets.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < t.offsets.len();
+{
   if i < 0 { return 0; }
   if i >= t.offsets.len() { return 0; }
   let off: Int = t.offsets[i];
@@ -459,7 +500,11 @@ pub fn dbase_field_offset(t: &DbaseTable, i: Int) -> Int {
 /// record_offsets vector is intact it is used; a hand-built table without
 /// record spans falls back to header_size + r * record_size.
 /// Complexity: O(1).
-pub fn dbase_record_offset(t: &DbaseTable, r: Int) -> Int {
+pub fn dbase_record_offset(t: &DbaseTable, r: Int) -> Int
+  ensures: r < 0 => result == -1;
+  ensures: r >= t.record_count => result == -1;
+  ensures: result != -1 => r >= 0 && r < t.record_count;
+{
   if r < 0 { return -1; }
   if r >= t.record_count { return -1; }
   if t.record_offsets.len() == t.record_count {
@@ -473,7 +518,11 @@ pub fn dbase_record_offset(t: &DbaseTable, r: Int) -> Int {
 /// 0 when `r` is negative or >= dbase_record_count. A parsed table reports
 /// record_size; a hand-built table without record spans falls back to
 /// record_size as well. Complexity: O(1).
-pub fn dbase_record_span(t: &DbaseTable, r: Int) -> Int {
+pub fn dbase_record_span(t: &DbaseTable, r: Int) -> Int
+  ensures: r < 0 => result == 0;
+  ensures: r >= t.record_count => result == 0;
+  ensures: result != 0 => r >= 0 && r < t.record_count;
+{
   if r < 0 { return 0; }
   if r >= t.record_count { return 0; }
   if t.record_spans.len() == t.record_count {
@@ -487,7 +536,10 @@ pub fn dbase_record_span(t: &DbaseTable, r: Int) -> Int {
 /// included). Err("dbase: record out of range") when `r` is negative or
 /// >= dbase_record_count; Err("dbase: truncated data") when the recorded
 /// span does not fit in `data`. Complexity: O(record_size).
-pub fn dbase_record_bytes(data: &Vec[UInt8], t: &DbaseTable, r: Int) -> Result[Vec[UInt8], Str] {
+pub fn dbase_record_bytes(data: &Vec[UInt8], t: &DbaseTable, r: Int) -> Result[Vec[UInt8], Str]
+  ensures: r < 0 || r >= t.record_count => result is Err;
+  ensures: result is Ok => r >= 0 && r < t.record_count;
+{
   let off = dbase_record_offset(t, r);
   if off < 0 { return _err_bytes("dbase: record out of range"); }
   let span = dbase_record_span(t, r);
@@ -512,7 +564,11 @@ pub fn dbase_record_bytes(data: &Vec[UInt8], t: &DbaseTable, r: Int) -> Result[V
 /// negative or >= dbase_record_count; Err("dbase: truncated data") when the
 /// field range does not fit in `data`. A zero-length field yields an empty
 /// Ok. Complexity: O(field length).
-pub fn dbase_field_bytes(data: &Vec[UInt8], t: &DbaseTable, r: Int, f: Int) -> Result[Vec[UInt8], Str] {
+pub fn dbase_field_bytes(data: &Vec[UInt8], t: &DbaseTable, r: Int, f: Int) -> Result[Vec[UInt8], Str]
+  ensures: f < 0 || f >= dbase_field_count(t) => result is Err;
+  ensures: r < 0 || r >= t.record_count => result is Err;
+  ensures: result is Ok => f >= 0 && f < dbase_field_count(t);
+{
   if f < 0 { return _err_bytes("dbase: field out of range"); }
   if f >= dbase_field_count(t) { return _err_bytes("dbase: field out of range"); }
   let off = dbase_record_offset(t, r);
@@ -540,7 +596,10 @@ pub fn dbase_field_bytes(data: &Vec[UInt8], t: &DbaseTable, r: Int, f: Int) -> R
 /// Error case: the dbase_field_bytes errors, plus
 /// Err("dbase: field type mismatch") when field `f` is not type C.
 /// Complexity: O(field length).
-pub fn dbase_field_text(data: &Vec[UInt8], t: &DbaseTable, r: Int, f: Int) -> Result[Str, Str] {
+pub fn dbase_field_text(data: &Vec[UInt8], t: &DbaseTable, r: Int, f: Int) -> Result[Str, Str]
+  ensures: f < 0 || f >= dbase_field_count(t) => result is Err;
+  ensures: result is Ok => dbase_field_type(t, f) == 67;
+{
   let raw = dbase_field_bytes(data, t, r, f);
   if !raw.is_ok {
     let msg: Str = raw.error;
@@ -566,7 +625,10 @@ pub fn dbase_field_text(data: &Vec[UInt8], t: &DbaseTable, r: Int, f: Int) -> Re
 /// Err("dbase: field type mismatch") when field `f` is not type N, plus
 /// Err("dbase: bad numeric text") when the trimmed text is not well formed.
 /// Complexity: O(field length).
-pub fn dbase_field_number(data: &Vec[UInt8], t: &DbaseTable, r: Int, f: Int) -> Result[Str, Str] {
+pub fn dbase_field_number(data: &Vec[UInt8], t: &DbaseTable, r: Int, f: Int) -> Result[Str, Str]
+  ensures: f < 0 || f >= dbase_field_count(t) => result is Err;
+  ensures: result is Ok => dbase_field_type(t, f) == 78;
+{
   let raw = dbase_field_bytes(data, t, r, f);
   if !raw.is_ok {
     let msg: Str = raw.error;
@@ -614,7 +676,11 @@ pub fn dbase_field_number(data: &Vec[UInt8], t: &DbaseTable, r: Int, f: Int) -> 
 /// a record has the wrong number of cells; Err("dbase: field too long")
 /// when a cell exceeds its field length.
 /// Complexity: O(fields + records * record_size).
-pub fn dbase_build(t: &DbaseTable, records: &Vec[Vec[Str]]) -> Result[Vec[UInt8], Str] {
+pub fn dbase_build(t: &DbaseTable, records: &Vec[Vec[Str]]) -> Result[Vec[UInt8], Str]
+  ensures: (t.version != 3 && t.version != 131 && t.version != 48) => result is Err;
+  ensures: (t.types.len() != t.names.len() || t.lengths.len() != t.names.len() || t.decimals.len() != t.names.len()) => result is Err;
+  ensures: result is Ok => t.types.len() == t.names.len() && t.lengths.len() == t.names.len() && t.decimals.len() == t.names.len();
+{
   if !_version_supported(t.version) { return _err_bytes("dbase: unsupported version"); }
   let y: Int = t.last_update_y;
   let m: Int = t.last_update_m;
