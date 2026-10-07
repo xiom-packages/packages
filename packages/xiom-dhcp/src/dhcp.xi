@@ -199,7 +199,10 @@ fn _option_len_ok(code: Int, len: Int) -> Bool {
 /// the magic cookie) and the cookie at offset 236 is 99.130.83.99. Option
 /// bytes are not inspected, so this can be true for a packet `dhcp_parse`
 /// later rejects. Complexity: O(1).
-pub fn dhcp_is_packet(data: &Vec[UInt8]) -> Bool {
+pub fn dhcp_is_packet(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 240 => !result;
+  ensures: result => data.len() >= 240;
+{
   if data.len() < 240 {
     return false;
   }
@@ -229,7 +232,10 @@ pub fn dhcp_is_packet(data: &Vec[UInt8]) -> Bool {
 /// Precedence is: length, cookie, option walk in wire order, end marker.
 /// The whole call is Err on the first malformed option; no partial packet
 /// is returned. Complexity: O(data.len()).
-pub fn dhcp_parse(data: &Vec[UInt8]) -> Result[DhcpPacket, Str] {
+pub fn dhcp_parse(data: &Vec[UInt8]) -> Result[DhcpPacket, Str]
+  ensures: data.len() < 240 => result is Err;
+  ensures: result is Ok => data.len() >= 240;
+{
   let n = data.len();
   if n < 240 {
     return _err_packet("dhcp: short packet");
@@ -332,13 +338,19 @@ pub fn dhcp_parse(data: &Vec[UInt8]) -> Result[DhcpPacket, Str] {
 
 /// Number of indexed non-pad options (the end option is not indexed).
 /// Complexity: O(1).
-pub fn dhcp_option_count(p: &DhcpPacket) -> Int {
+pub fn dhcp_option_count(p: &DhcpPacket) -> Int
+  ensures: result == p.option_codes.len();
+{
   return p.option_codes.len();
 }
 
 /// Option code at index `i`, or -1 when `i` is negative or >= count.
 /// Complexity: O(1).
-pub fn dhcp_option_code(p: &DhcpPacket, i: Int) -> Int {
+pub fn dhcp_option_code(p: &DhcpPacket, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= p.option_codes.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < p.option_codes.len();
+{
   if i < 0 || i >= p.option_codes.len() {
     return -1;
   }
@@ -348,7 +360,11 @@ pub fn dhcp_option_code(p: &DhcpPacket, i: Int) -> Int {
 
 /// Declared value length (bytes) of option `i`, or -1 when out of range.
 /// Complexity: O(1).
-pub fn dhcp_option_length(p: &DhcpPacket, i: Int) -> Int {
+pub fn dhcp_option_length(p: &DhcpPacket, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= p.option_lengths.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < p.option_lengths.len();
+{
   if i < 0 || i >= p.option_lengths.len() {
     return -1;
   }
@@ -359,7 +375,10 @@ pub fn dhcp_option_length(p: &DhcpPacket, i: Int) -> Int {
 /// First index whose option code equals `code`, or -1 when absent. Duplicate
 /// options are preserved in wire order; the first match wins.
 /// Complexity: O(options).
-pub fn dhcp_find_option(p: &DhcpPacket, code: Int) -> Int {
+pub fn dhcp_find_option(p: &DhcpPacket, code: Int) -> Int
+  ensures: p.option_codes.len() == 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result < p.option_codes.len();
+{
   var i = 0;
   while i < p.option_codes.len() {
     let c: Int = p.option_codes[i];
@@ -378,7 +397,10 @@ pub fn dhcp_find_option(p: &DhcpPacket, code: Int) -> Int {
 /// Err("dhcp: option out of bounds") when the recorded span does not fit
 /// `data` (for example when a shorter buffer is passed). A zero-length value
 /// yields an empty Ok. Complexity: O(value length).
-pub fn dhcp_option_value(data: &Vec[UInt8], p: &DhcpPacket, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn dhcp_option_value(data: &Vec[UInt8], p: &DhcpPacket, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 || i >= p.option_codes.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < p.option_codes.len();
+{
   if i < 0 || i >= p.option_codes.len() {
     return _err_bytes("dhcp: option index out of range");
   }
@@ -407,7 +429,10 @@ pub fn dhcp_option_value(data: &Vec[UInt8], p: &DhcpPacket, i: Int) -> Result[Ve
 /// 5 ACK, 6 NAK, 7 RELEASE, 8 INFORM. The value byte is returned as-is;
 /// values outside 1..8 are not rejected (documented limitation). Returns -1
 /// when option 53 is absent or malformed. Complexity: O(1) after the index.
-pub fn dhcp_message_type(data: &Vec[UInt8], p: &DhcpPacket) -> Int {
+pub fn dhcp_message_type(data: &Vec[UInt8], p: &DhcpPacket) -> Int
+  ensures: dhcp_find_option(p, 53) < 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 255;
+{
   let idx = dhcp_find_option(p, 53);
   if idx < 0 {
     return -1;
@@ -427,7 +452,10 @@ pub fn dhcp_message_type(data: &Vec[UInt8], p: &DhcpPacket) -> Int {
 /// (1, 50, 51, 54, ...), or -1 when absent, not exactly 4 bytes, or out of
 /// bounds. For multi-address options (3, 6) use the list accessors.
 /// Complexity: O(1) after the index.
-pub fn dhcp_option_u32(data: &Vec[UInt8], p: &DhcpPacket, code: Int) -> Int {
+pub fn dhcp_option_u32(data: &Vec[UInt8], p: &DhcpPacket, code: Int) -> Int
+  ensures: dhcp_find_option(p, code) < 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 4294967295;
+{
   let idx = dhcp_find_option(p, code);
   if idx < 0 {
     return -1;
@@ -445,25 +473,37 @@ pub fn dhcp_option_u32(data: &Vec[UInt8], p: &DhcpPacket, code: Int) -> Int {
 
 /// Subnet mask (option 1) as an unsigned 32-bit Int; -1 when absent.
 /// Complexity: O(1) after the index.
-pub fn dhcp_subnet_mask(data: &Vec[UInt8], p: &DhcpPacket) -> Int {
+pub fn dhcp_subnet_mask(data: &Vec[UInt8], p: &DhcpPacket) -> Int
+  ensures: dhcp_find_option(p, 1) < 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 4294967295;
+{
   return dhcp_option_u32(data, p, 1);
 }
 
 /// Requested IP address (option 50) as an unsigned 32-bit Int; -1 when
 /// absent. Complexity: O(1) after the index.
-pub fn dhcp_requested_ip(data: &Vec[UInt8], p: &DhcpPacket) -> Int {
+pub fn dhcp_requested_ip(data: &Vec[UInt8], p: &DhcpPacket) -> Int
+  ensures: dhcp_find_option(p, 50) < 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 4294967295;
+{
   return dhcp_option_u32(data, p, 50);
 }
 
 /// Lease time in seconds (option 51) as an unsigned 32-bit Int; -1 when
 /// absent. Complexity: O(1) after the index.
-pub fn dhcp_lease_time(data: &Vec[UInt8], p: &DhcpPacket) -> Int {
+pub fn dhcp_lease_time(data: &Vec[UInt8], p: &DhcpPacket) -> Int
+  ensures: dhcp_find_option(p, 51) < 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 4294967295;
+{
   return dhcp_option_u32(data, p, 51);
 }
 
 /// Server identifier (option 54) as an unsigned 32-bit Int; -1 when absent.
 /// Complexity: O(1) after the index.
-pub fn dhcp_server_id(data: &Vec[UInt8], p: &DhcpPacket) -> Int {
+pub fn dhcp_server_id(data: &Vec[UInt8], p: &DhcpPacket) -> Int
+  ensures: dhcp_find_option(p, 54) < 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 4294967295;
+{
   return dhcp_option_u32(data, p, 54);
 }
 
@@ -504,25 +544,39 @@ fn _ip_at(data: &Vec[UInt8], p: &DhcpPacket, code: Int, k: Int) -> Int {
 
 /// Number of router addresses in option 3 (0 when absent). The option is a
 /// list of 4-byte IPv4 addresses. Complexity: O(1) after the index.
-pub fn dhcp_router_count(data: &Vec[UInt8], p: &DhcpPacket) -> Int {
+pub fn dhcp_router_count(data: &Vec[UInt8], p: &DhcpPacket) -> Int
+  ensures: dhcp_find_option(p, 3) < 0 => result == 0;
+  ensures: result >= 0;
+{
   return _ip_list_span(data, p, 3) / 4;
 }
 
 /// k-th router address (0-based) from option 3; -1 when out of range.
 /// Complexity: O(1) after the index.
-pub fn dhcp_router_at(data: &Vec[UInt8], p: &DhcpPacket, k: Int) -> Int {
+pub fn dhcp_router_at(data: &Vec[UInt8], p: &DhcpPacket, k: Int) -> Int
+  ensures: k < 0 => result == -1;
+  ensures: dhcp_find_option(p, 3) < 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 4294967295;
+{
   return _ip_at(data, p, 3, k);
 }
 
 /// Number of DNS server addresses in option 6 (0 when absent). The option is
 /// a list of 4-byte IPv4 addresses. Complexity: O(1) after the index.
-pub fn dhcp_dns_count(data: &Vec[UInt8], p: &DhcpPacket) -> Int {
+pub fn dhcp_dns_count(data: &Vec[UInt8], p: &DhcpPacket) -> Int
+  ensures: dhcp_find_option(p, 6) < 0 => result == 0;
+  ensures: result >= 0;
+{
   return _ip_list_span(data, p, 6) / 4;
 }
 
 /// k-th DNS server address (0-based) from option 6; -1 when out of range.
 /// Complexity: O(1) after the index.
-pub fn dhcp_dns_at(data: &Vec[UInt8], p: &DhcpPacket, k: Int) -> Int {
+pub fn dhcp_dns_at(data: &Vec[UInt8], p: &DhcpPacket, k: Int) -> Int
+  ensures: k < 0 => result == -1;
+  ensures: dhcp_find_option(p, 6) < 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 4294967295;
+{
   return _ip_at(data, p, 6, k);
 }
 
@@ -539,7 +593,11 @@ pub fn dhcp_dns_at(data: &Vec[UInt8], p: &DhcpPacket, k: Int) -> Int {
 /// rejects the value (same rules as dhcp_parse). All validation happens
 /// before any byte is written, so `out` is unchanged on Err.
 /// Complexity: O(value length).
-pub fn dhcp_append_option(out: &mut Vec[UInt8], code: Int, value: &Vec[UInt8]) -> Result[Unit, Str] {
+pub fn dhcp_append_option(out: &mut Vec[UInt8], code: Int, value: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: code < 1 || code > 254 || value.len() > 255 => result is Err;
+  ensures: result is Err => out.len() == out.len()@pre;
+  ensures: result is Ok => out.len() == out.len()@pre + 2 + value.len();
+{
   if code < 1 || code > 254 {
     return _err_unit("dhcp: bad option code");
   }
@@ -586,7 +644,11 @@ fn _client_header_err(xid: Int, chaddr: &Vec[UInt8]) -> Str {
 /// Err("dhcp: bad xid") when xid is outside 0..4294967295;
 /// Err("dhcp: bad chaddr length") when chaddr is empty or longer than 16.
 /// Nothing is written on Err. Complexity: O(chaddr + options).
-pub fn dhcp_build_client(xid: Int, chaddr: &Vec[UInt8], broadcast: Bool, options: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn dhcp_build_client(xid: Int, chaddr: &Vec[UInt8], broadcast: Bool, options: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: xid < 0 || xid > 4294967295 => result is Err;
+  ensures: chaddr.len() < 1 || chaddr.len() > 16 => result is Err;
+  ensures: result is Ok => xid >= 0 && xid <= 4294967295;
+{
   let he = _client_header_err(xid, chaddr);
   if he.len() > 0 {
     return _err_bytes(he);
@@ -646,7 +708,10 @@ pub fn dhcp_build_client(xid: Int, chaddr: &Vec[UInt8], broadcast: Bool, options
 /// by chaddr), 55 = parameter request list {1, 3, 6, 12, 51, 54}. The
 /// broadcast bit is set. Errors are the documented client-header errors of
 /// dhcp_build_client. Complexity: O(chaddr).
-pub fn dhcp_build_discover(xid: Int, chaddr: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn dhcp_build_discover(xid: Int, chaddr: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: xid < 0 || xid > 4294967295 => result is Err;
+  ensures: chaddr.len() < 1 || chaddr.len() > 16 => result is Err;
+{
   let he = _client_header_err(xid, chaddr);
   if he.len() > 0 {
     return _err_bytes(he);
@@ -695,7 +760,11 @@ pub fn dhcp_build_discover(xid: Int, chaddr: &Vec[UInt8]) -> Result[Vec[UInt8], 
 /// 4294967295 (negative values mean "omit the option"); otherwise the
 /// documented client-header errors of dhcp_build_client.
 /// Complexity: O(chaddr).
-pub fn dhcp_build_request(xid: Int, chaddr: &Vec[UInt8], requested_ip: Int, server_id: Int) -> Result[Vec[UInt8], Str] {
+pub fn dhcp_build_request(xid: Int, chaddr: &Vec[UInt8], requested_ip: Int, server_id: Int) -> Result[Vec[UInt8], Str]
+  ensures: xid < 0 || xid > 4294967295 => result is Err;
+  ensures: requested_ip > 4294967295 || server_id > 4294967295 => result is Err;
+  ensures: chaddr.len() < 1 || chaddr.len() > 16 => result is Err;
+{
   let he = _client_header_err(xid, chaddr);
   if he.len() > 0 {
     return _err_bytes(he);

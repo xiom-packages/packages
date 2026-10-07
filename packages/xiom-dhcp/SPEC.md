@@ -1,8 +1,6 @@
 # xiom.dhcp -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.dhcp`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/dhcp.xi` (`module xiom.dhcp`).
 Depends on `xiom.std`; the library module imports nothing (the tests use
 `xiom.test`, `xiom.io`, `xiom.string`, `xiom.string.compare` and
@@ -373,3 +371,50 @@ Last verified: compiler 0.61.3,
   BUG 17 pointer-comparison pitfall does not arise inside it; the tests
   route every error-string check through `str_compare`.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #32 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/dhcp.xi` in the batch #32
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 48 clauses across the 21 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.dhcp -TimeoutSec 60` runs
+ended `port: PASS (passed=16 failed=0 program_exit=0 exit=0)` with the clauses
+active (7.62 s and 7.55 s); the 16-test conformance suite exercises every
+entry point and no clause trapped, so none was dropped.
+
+All 48 clauses are **runtime-checked**; no Z3 proof was attempted in this
+pass (`xiom-verify` was not run), and every clause also holds over the
+hand-built packet fixtures the conformance suite constructs.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `dhcp_is_packet` | `data.len() < 240 => !result`; `result => data.len() >= 240` | runtime-checked |
+| `dhcp_parse` | `data.len() < 240 => result is Err`; `result is Ok => data.len() >= 240` | runtime-checked |
+| `dhcp_option_count` | `result == p.option_codes.len()` | runtime-checked |
+| `dhcp_option_code` | `i < 0 => result == -1`; `i >= p.option_codes.len() => result == -1`; `result != -1 => i >= 0 && i < p.option_codes.len()` | runtime-checked |
+| `dhcp_option_length` | `i < 0 => result == -1`; `i >= p.option_lengths.len() => result == -1`; `result != -1 => i >= 0 && i < p.option_lengths.len()` | runtime-checked |
+| `dhcp_find_option` | `p.option_codes.len() == 0 => result == -1`; `result != -1 => result >= 0 && result < p.option_codes.len()` | runtime-checked |
+| `dhcp_option_value` | `i < 0 \|\| i >= p.option_codes.len() => result is Err`; `result is Ok => i >= 0 && i < p.option_codes.len()` | runtime-checked |
+| `dhcp_message_type` | `dhcp_find_option(p, 53) < 0 => result == -1`; `result != -1 => result >= 0 && result <= 255` | runtime-checked (safe cross-call) |
+| `dhcp_option_u32` | `dhcp_find_option(p, code) < 0 => result == -1`; `result != -1 => result >= 0 && result <= 4294967295` | runtime-checked (safe cross-call) |
+| `dhcp_subnet_mask` | `dhcp_find_option(p, 1) < 0 => result == -1`; `result != -1 => result >= 0 && result <= 4294967295` | runtime-checked (safe cross-call) |
+| `dhcp_requested_ip` | option 50 variant of the `dhcp_subnet_mask` pair: `dhcp_find_option(p, 50) < 0 => result == -1`; `result != -1 => result >= 0 && result <= 4294967295` | runtime-checked (safe cross-call) |
+| `dhcp_lease_time` | option 51 variant of the `dhcp_subnet_mask` pair: `dhcp_find_option(p, 51) < 0 => result == -1`; `result != -1 => result >= 0 && result <= 4294967295` | runtime-checked (safe cross-call) |
+| `dhcp_server_id` | option 54 variant of the `dhcp_subnet_mask` pair: `dhcp_find_option(p, 54) < 0 => result == -1`; `result != -1 => result >= 0 && result <= 4294967295` | runtime-checked (safe cross-call) |
+| `dhcp_router_count` | `dhcp_find_option(p, 3) < 0 => result == 0`; `result >= 0` (no 63 cap claimed) | runtime-checked (safe cross-call) |
+| `dhcp_router_at` | `k < 0 => result == -1`; `dhcp_find_option(p, 3) < 0 => result == -1`; `result != -1 => result >= 0 && result <= 4294967295` | runtime-checked (safe cross-call) |
+| `dhcp_dns_count` | `dhcp_find_option(p, 6) < 0 => result == 0`; `result >= 0` (no 63 cap claimed) | runtime-checked (safe cross-call) |
+| `dhcp_dns_at` | `k < 0 => result == -1`; `dhcp_find_option(p, 6) < 0 => result == -1`; `result != -1 => result >= 0 && result <= 4294967295` | runtime-checked (safe cross-call) |
+| `dhcp_append_option` | `code < 1 \|\| code > 254 \|\| value.len() > 255 => result is Err`; `result is Err => out.len() == out.len()@pre`; `result is Ok => out.len() == out.len()@pre + 2 + value.len()` | runtime-checked (`@pre` frame through `&mut`) |
+| `dhcp_build_client` | `xid < 0 \|\| xid > 4294967295 => result is Err`; `chaddr.len() < 1 \|\| chaddr.len() > 16 => result is Err`; `result is Ok => xid >= 0 && xid <= 4294967295` | runtime-checked |
+| `dhcp_build_discover` | `xid < 0 \|\| xid > 4294967295 => result is Err`; `chaddr.len() < 1 \|\| chaddr.len() > 16 => result is Err` | runtime-checked |
+| `dhcp_build_request` | `xid < 0 \|\| xid > 4294967295 => result is Err`; `requested_ip > 4294967295 \|\| server_id > 4294967295 => result is Err`; `chaddr.len() < 1 \|\| chaddr.len() > 16 => result is Err` | runtime-checked |
+
+Deliberately not claimed: a 63-address router/DNS cap (`result >= 0` only);
+the option-shape rule outcome for unknown/documented codes (`_option_len_ok`
+is not called from any clause); `Str` equality; tuple-component access;
+struct-Result payload field reads; vector indexing in clauses; module
+constants (literals are inlined). The only clause cross-calls are the
+`dhcp_find_option(p, <code>)` lookups above (codes 53, 1, 50, 51, 54, 3, 6),
+which never reach the contract's callee.
