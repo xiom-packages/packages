@@ -478,7 +478,10 @@ fn _scan_line(text: Str) -> Result[GcodeLine, Str] {
 /// comment"), Err("gcode: trailing garbage"),
 /// Err("gcode: unexpected character at <pos>"), Err("gcode: missing command").
 /// Complexity: O(len(text)).
-pub fn gcode_parse_line(text: Str) -> Result[GcodeLine, Str] {
+pub fn gcode_parse_line(text: Str) -> Result[GcodeLine, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   let r = _scan_line(text);
   if r.is_ok { return _ok_line(r.value); }
   let e: Str = r.error;
@@ -496,7 +499,10 @@ pub fn gcode_parse_line(text: Str) -> Result[GcodeLine, Str] {
 /// Error case: Err("gcode: line <n>: <detail>") where <n> is the 1-based
 /// physical line number and <detail> is one of the gcode_parse_line details.
 /// Complexity: O(len(text)).
-pub fn gcode_parse(text: Str) -> Result[GcodeProgram, Str] {
+pub fn gcode_parse(text: Str) -> Result[GcodeProgram, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var line_numbers = Vec[Int].new();
   var letters = Vec[Str].new();
   var texts = Vec[Str].new();
@@ -612,7 +618,10 @@ fn _format_number(value: Int, scale: Int) -> Str {
 /// must respect 0 <= scale <= 18; values are exact across the full signed
 /// 64-bit range).
 /// Complexity: O(len(result)).
-pub fn gcode_emit(line: &GcodeLine) -> Str {
+pub fn gcode_emit(line: &GcodeLine) -> Str
+  ensures: line.blank => result.len() == 0;
+  ensures: !line.blank => result.len() > 0;
+{
   if line.blank { return ""; }
   var out = "";
   if line.line_number >= 0 {
@@ -649,7 +658,11 @@ pub fn gcode_emit(line: &GcodeLine) -> Str {
 /// minimum plus one, or when the multiplication for scale <= 6 would
 /// overflow the signed 64-bit range.
 /// Complexity: O(1).
-pub fn gcode_micro(value: Int, scale: Int) -> Result[Int, Str] {
+pub fn gcode_micro(value: Int, scale: Int) -> Result[Int, Str]
+  ensures: (scale < 0 || scale > 18) => result is Err;
+  ensures: result is Ok => scale >= 0 && scale <= 18;
+  ensures: result is Ok => result.value >= 0 - 9223372036854775807;
+{
   if scale < 0 || scale > _GC_MAX_SCALE { return _err_int("gcode: bad scale"); }
   if value < 0 - _GC_INT_MAX { return _err_int("gcode: value out of range"); }
   var mag = value;
@@ -676,21 +689,28 @@ pub fn gcode_micro(value: Int, scale: Int) -> Result[Int, Str] {
 /// Whether the line carried no command and no parameters (it is skipped by
 /// gcode_parse). Params: line - the parsed line. Returns: the flag.
 /// Error case: none. Complexity: O(1).
-pub fn gcode_line_is_blank(line: &GcodeLine) -> Bool {
+pub fn gcode_line_is_blank(line: &GcodeLine) -> Bool
+  ensures: line.blank => result;
+  ensures: !line.blank => !result;
+{
   return line.blank;
 }
 
 /// Line number. Params: line - the parsed line. Returns: the `N` value; -1
 /// when the line has no line number (including every blank line).
 /// Error case: none. Complexity: O(1).
-pub fn gcode_line_number(line: &GcodeLine) -> Int {
+pub fn gcode_line_number(line: &GcodeLine) -> Int
+  ensures: result == line.line_number;
+{
   return line.line_number;
 }
 
 /// Command letter. Params: line - the parsed line. Returns: the uppercase
 /// letter of the first word; "" for a blank line.
 /// Error case: none. Complexity: O(1).
-pub fn gcode_command_letter(line: &GcodeLine) -> Str {
+pub fn gcode_command_letter(line: &GcodeLine) -> Str
+  ensures: result.len() == line.command_letter.len();
+{
   return line.command_letter;
 }
 
@@ -698,28 +718,37 @@ pub fn gcode_command_letter(line: &GcodeLine) -> Str {
 /// number text of the command word (without the letter), e.g. "10.50" for
 /// `X10.50`; "" for a blank line.
 /// Error case: none. Complexity: O(1).
-pub fn gcode_command_text(line: &GcodeLine) -> Str {
+pub fn gcode_command_text(line: &GcodeLine) -> Str
+  ensures: result.len() == line.command_text.len();
+{
   return line.command_text;
 }
 
 /// Command value. Params: line - the parsed line. Returns: the signed scaled
 /// integer of the command word; 0 for a blank line.
 /// Error case: none. Complexity: O(1).
-pub fn gcode_command_value(line: &GcodeLine) -> Int {
+pub fn gcode_command_value(line: &GcodeLine) -> Int
+  ensures: result == line.command_value;
+{
   return line.command_value;
 }
 
 /// Command scale. Params: line - the parsed line. Returns: the number of
 /// decimal fraction digits of the command number (0-18); 0 for a blank line.
 /// Error case: none. Complexity: O(1).
-pub fn gcode_command_scale(line: &GcodeLine) -> Int {
+pub fn gcode_command_scale(line: &GcodeLine) -> Int
+  ensures: result == line.command_scale;
+{
   return line.command_scale;
 }
 
 /// Parameter count. Params: line - the parsed line. Returns: the number of
 /// parameter words after the command; 0 for a blank line.
 /// Error case: none. Complexity: O(1).
-pub fn gcode_param_count(line: &GcodeLine) -> Int {
+pub fn gcode_param_count(line: &GcodeLine) -> Int
+  ensures: result == line.param_letters.len();
+  ensures: result >= 0;
+{
   return line.param_letters.len();
 }
 
@@ -727,7 +756,11 @@ pub fn gcode_param_count(line: &GcodeLine) -> Int {
 /// parameter index. Returns: the uppercase letter; "" when j is negative or
 /// past the last parameter.
 /// Error case: none. Complexity: O(1).
-pub fn gcode_param_letter(line: &GcodeLine, j: Int) -> Str {
+pub fn gcode_param_letter(line: &GcodeLine, j: Int) -> Str
+  ensures: j < 0 => result.len() == 0;
+  ensures: j >= line.param_letters.len() => result.len() == 0;
+  ensures: result.len() > 0 => j >= 0 && j < line.param_letters.len();
+{
   if j < 0 || j >= line.param_letters.len() { return ""; }
   let v: Str = line.param_letters[j];
   return v;
@@ -737,7 +770,11 @@ pub fn gcode_param_letter(line: &GcodeLine, j: Int) -> Str {
 /// parameter index. Returns: the verbatim number text (without the letter);
 /// "" when j is out of range.
 /// Error case: none. Complexity: O(1).
-pub fn gcode_param_text(line: &GcodeLine, j: Int) -> Str {
+pub fn gcode_param_text(line: &GcodeLine, j: Int) -> Str
+  ensures: j < 0 => result.len() == 0;
+  ensures: j >= line.param_texts.len() => result.len() == 0;
+  ensures: result.len() > 0 => j >= 0 && j < line.param_texts.len();
+{
   if j < 0 || j >= line.param_texts.len() { return ""; }
   let v: Str = line.param_texts[j];
   return v;
@@ -746,7 +783,11 @@ pub fn gcode_param_text(line: &GcodeLine, j: Int) -> Str {
 /// Parameter value. Params: line - the parsed line; j - the 0-based parameter
 /// index. Returns: the signed scaled integer; 0 when j is out of range.
 /// Error case: none. Complexity: O(1).
-pub fn gcode_param_value(line: &GcodeLine, j: Int) -> Int {
+pub fn gcode_param_value(line: &GcodeLine, j: Int) -> Int
+  ensures: j < 0 => result == 0;
+  ensures: j >= line.param_values.len() => result == 0;
+  ensures: result != 0 => j >= 0 && j < line.param_values.len();
+{
   if j < 0 || j >= line.param_values.len() { return 0; }
   let v: Int = line.param_values[j];
   return v;
@@ -755,7 +796,11 @@ pub fn gcode_param_value(line: &GcodeLine, j: Int) -> Int {
 /// Parameter scale. Params: line - the parsed line; j - the 0-based parameter
 /// index. Returns: the fraction digit count (0-18); 0 when j is out of range.
 /// Error case: none. Complexity: O(1).
-pub fn gcode_param_scale(line: &GcodeLine, j: Int) -> Int {
+pub fn gcode_param_scale(line: &GcodeLine, j: Int) -> Int
+  ensures: j < 0 => result == 0;
+  ensures: j >= line.param_scales.len() => result == 0;
+  ensures: result != 0 => j >= 0 && j < line.param_scales.len();
+{
   if j < 0 || j >= line.param_scales.len() { return 0; }
   let v: Int = line.param_scales[j];
   return v;
@@ -768,14 +813,20 @@ pub fn gcode_param_scale(line: &GcodeLine, j: Int) -> Int {
 /// Command count. Params: program - the parsed document. Returns: the number
 /// of non-blank lines (commands); 0 for a text with no commands.
 /// Error case: none. Complexity: O(1).
-pub fn gcode_command_count(program: &GcodeProgram) -> Int {
+pub fn gcode_command_count(program: &GcodeProgram) -> Int
+  ensures: result == program.letters.len();
+  ensures: result >= 0;
+{
   return program.letters.len();
 }
 
 /// Flat parameter count. Params: program - the parsed document. Returns: the
 /// total number of parameter words across all commands.
 /// Error case: none. Complexity: O(1).
-pub fn gcode_program_param_count(program: &GcodeProgram) -> Int {
+pub fn gcode_program_param_count(program: &GcodeProgram) -> Int
+  ensures: result == program.param_letters.len();
+  ensures: result >= 0;
+{
   return program.param_letters.len();
 }
 
@@ -785,7 +836,11 @@ pub fn gcode_program_param_count(program: &GcodeProgram) -> Int {
 /// Returns: a GcodeLine equivalent to parsing that line on its own; a blank
 /// line value when i is negative or past the last command.
 /// Error case: none. Complexity: O(parameters of command i).
-pub fn gcode_program_line(program: &GcodeProgram, i: Int) -> GcodeLine {
+pub fn gcode_program_line(program: &GcodeProgram, i: Int) -> GcodeLine
+  ensures: i < 0 => gcode_line_is_blank(result);
+  ensures: i >= program.letters.len() => gcode_line_is_blank(result);
+  ensures: !gcode_line_is_blank(result) => i >= 0 && i < program.letters.len();
+{
   if i < 0 || i >= program.letters.len() { return _empty_line(); }
   let ln: Int = program.line_numbers[i];
   let lt: Str = program.letters[i];

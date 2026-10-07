@@ -9,7 +9,7 @@
 
 package xiom_gcode {
   name: "xiom.gcode";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "G-code parsing and canonical emission for a documented line subset";
   categories: ["graphics"];
   keywords: ["gcode", "cnc", "machining", "parser"];

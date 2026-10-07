@@ -1,6 +1,6 @@
 # xiom.gcode -- specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.gcode` (`src/gcode.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope and model
@@ -24,7 +24,7 @@ the command/parameter stream. All arithmetic is 64-bit signed integer
 arithmetic; there is no floating point, no locale, no I/O and no global
 state.
 
-The program type is a struct of parallel `Vec`s (XIOM v0.61.3 cannot hold a
+The program type is a struct of parallel `Vec`s (XIOM v0.64.0 cannot hold a
 `Vec[StructType]`): one entry per non-blank line for the command stream, plus
 one flat parameter stream with per-line ranges.
 
@@ -290,7 +290,7 @@ blank and comment-only lines.
 Expected harness tail: 23 `[PASS]` lines, then `xiom.gcode: all tests passed`,
 then `port: PASS (passed=23 failed=0 program_exit=0 exit=0)`.
 
-## 10. Compiler / stdlib notes (XIOM v0.61.3)
+## 10. Compiler / stdlib notes (XIOM v0.64.0)
 
 Written under the same constraints as its sibling packages:
 
@@ -310,3 +310,51 @@ Written under the same constraints as its sibling packages:
 - `result.value` / `result.error` are read through `.is_ok` rather than
   `match` in the library; the tests use `.is_ok`/`.value`/`.error` helpers as
   well.
+
+## Contracts (batch #34 hardening pass, 2026-10-07)
+
+Runtime-checked `ensures:` clauses added to `src/gcode.xi` (compiler
+v0.64.0; `package.xi` is not bumped by this pass). 37 clauses over the 18
+public entry points, in source order: 2 + 2 (parsers), 2 (emit), 3 (micro),
+2 (blank), 1 + 1 + 1 + 1 + 1 + 1 (scalar and text accessors), 2 + 3 + 3 +
+3 + 3 (param accessors), 2 + 2 (counts), 3 (program_line). Two consecutive
+`.\scripts\port.ps1 -Package xiom.gcode -TimeoutSec 60` runs ended
+`port: PASS (passed=23 failed=0 program_exit=0 exit=0)` (8.2 s and 8.2 s)
+with the clauses active and no clause trapped, so none was dropped.
+
+Every clause also holds for hand-built `GcodeLine` / `GcodeProgram` values:
+there are no scale or range bands on struct fields, only sentinel and
+definitional claims. `gcode_program_line` observes its plain-struct return
+through the non-re-entrant definitional cross-call `gcode_line_is_blank`;
+`gcode_micro` inlines the signed 64-bit bound as `0 - 9223372036854775807`
+because module constants are not usable in clauses; the emit scale caveat in
+section 5 is not a precondition, so no `requires:` clause is needed.
+
+`xiom-verify src\gcode.xi --check` (bundled Z3, run from the package
+directory) reported 0 proven / 0 violated / 39 unknown / 5 errors; the 5
+errors are the known SMT emitter bug on private helpers (`_scan_line`,
+`_pow10`, `_ok_int`, `_err_int`), explicitly "not a proof failure of the
+code under test", and every contract axiom is X7007-unknown (unresolved
+operand sorts). All 37 clauses are therefore runtime-checked, enforced by
+the v0.64.0 runtime evaluator; no Z3-provable claims are made.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `gcode_parse_line` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked |
+| `gcode_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked |
+| `gcode_emit` | `line.blank => result.len() == 0`; `!line.blank => result.len() > 0` | runtime-checked (field read) |
+| `gcode_micro` | `(scale < 0 \|\| scale > 18) => result is Err`; `result is Ok => scale >= 0 && scale <= 18`; `result is Ok => result.value >= 0 - 9223372036854775807` | runtime-checked (inline bound) |
+| `gcode_line_is_blank` | `line.blank => result`; `!line.blank => !result` | runtime-checked (field read) |
+| `gcode_line_number` | `result == line.line_number` | runtime-checked (field read) |
+| `gcode_command_letter` | `result.len() == line.command_letter.len()` | runtime-checked (field read) |
+| `gcode_command_text` | `result.len() == line.command_text.len()` | runtime-checked (field read) |
+| `gcode_command_value` | `result == line.command_value` | runtime-checked (field read) |
+| `gcode_command_scale` | `result == line.command_scale` | runtime-checked (field read) |
+| `gcode_param_count` | `result == line.param_letters.len()`; `result >= 0` | runtime-checked (field read) |
+| `gcode_param_letter` | `j < 0 => result.len() == 0`; `j >= line.param_letters.len() => result.len() == 0`; `result.len() > 0 => j >= 0 && j < line.param_letters.len()` | runtime-checked (sentinel trio) |
+| `gcode_param_text` | `j < 0 => result.len() == 0`; `j >= line.param_texts.len() => result.len() == 0`; `result.len() > 0 => j >= 0 && j < line.param_texts.len()` | runtime-checked (sentinel trio) |
+| `gcode_param_value` | `j < 0 => result == 0`; `j >= line.param_values.len() => result == 0`; `result != 0 => j >= 0 && j < line.param_values.len()` | runtime-checked (sentinel trio) |
+| `gcode_param_scale` | `j < 0 => result == 0`; `j >= line.param_scales.len() => result == 0`; `result != 0 => j >= 0 && j < line.param_scales.len()` | runtime-checked (sentinel trio) |
+| `gcode_command_count` | `result == program.letters.len()`; `result >= 0` | runtime-checked (count) |
+| `gcode_program_param_count` | `result == program.param_letters.len()`; `result >= 0` | runtime-checked (count) |
+| `gcode_program_line` | `i < 0 => gcode_line_is_blank(result)`; `i >= program.letters.len() => gcode_line_is_blank(result)`; `!gcode_line_is_blank(result) => i >= 0 && i < program.letters.len()` | runtime-checked (definitional cross-call) |
