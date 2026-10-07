@@ -242,7 +242,10 @@ fn _pw_push_entry(doc: &mut Passwd, name: Str, password: Str, uid: Int, gid: Int
 /// "root:x:0:0:root:/root\n" -> Err("passwd: wrong field count in line 1");
 /// "a:x:0:0:g:home:/bin/sh\n" -> Err("passwd: bad home: home").
 /// Complexity: O(text.len()).
-pub fn passwd_parse(text: Str) -> Result[Passwd, Str] {
+pub fn passwd_parse(text: Str) -> Result[Passwd, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var doc = Passwd{
     names: Vec[Str].new();
     passwords: Vec[Str].new();
@@ -334,7 +337,11 @@ pub fn passwd_parse(text: Str) -> Result[Passwd, Str] {
 /// out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn passwd_entry_count(d: &Passwd) -> Int {
+pub fn passwd_entry_count(d: &Passwd) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.names.len();
+  ensures: d.names.len() == 0 => result == 0;
+{
   var n = d.names.len();
   if d.passwords.len() < n { n = d.passwords.len(); }
   if d.uids.len() < n { n = d.uids.len(); }
@@ -352,7 +359,11 @@ pub fn passwd_entry_count(d: &Passwd) -> Int {
 /// Error case: none.
 /// Examples: entry "root:x:0:0:root:/root:/bin/bash" -> Some("root").
 /// Complexity: O(1).
-pub fn passwd_name(d: &Passwd, i: Int) -> Option[Str] {
+pub fn passwd_name(d: &Passwd, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= passwd_entry_count(d) => result is None;
+  ensures: result is Some => i >= 0 && i < d.names.len();
+{
   if i < 0 || i >= passwd_entry_count(d) { return None; }
   let v: Str = d.names[i];
   return Some(v);
@@ -367,7 +378,11 @@ pub fn passwd_name(d: &Passwd, i: Int) -> Option[Str] {
 /// Error case: none.
 /// Examples: entry "a::1:1:g:/h:/s" -> Some("").
 /// Complexity: O(1).
-pub fn passwd_password(d: &Passwd, i: Int) -> Option[Str] {
+pub fn passwd_password(d: &Passwd, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= passwd_entry_count(d) => result is None;
+  ensures: result is Some => i >= 0 && i < d.passwords.len();
+{
   if i < 0 || i >= passwd_entry_count(d) { return None; }
   let v: Str = d.passwords[i];
   return Some(v);
@@ -380,7 +395,11 @@ pub fn passwd_password(d: &Passwd, i: Int) -> Option[Str] {
 /// out-of-range index is reported as None rather than 0.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn passwd_uid(d: &Passwd, i: Int) -> Option[Int] {
+pub fn passwd_uid(d: &Passwd, i: Int) -> Option[Int]
+  ensures: i < 0 => result is None;
+  ensures: i >= passwd_entry_count(d) => result is None;
+  ensures: result is Some => i >= 0 && i < d.uids.len();
+{
   if i < 0 || i >= passwd_entry_count(d) { return None; }
   let v: Int = d.uids[i];
   return Some(v);
@@ -392,7 +411,11 @@ pub fn passwd_uid(d: &Passwd, i: Int) -> Option[Int] {
 /// passwd_entry_count(d), else None.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn passwd_gid(d: &Passwd, i: Int) -> Option[Int] {
+pub fn passwd_gid(d: &Passwd, i: Int) -> Option[Int]
+  ensures: i < 0 => result is None;
+  ensures: i >= passwd_entry_count(d) => result is None;
+  ensures: result is Some => i >= 0 && i < d.gids.len();
+{
   if i < 0 || i >= passwd_entry_count(d) { return None; }
   let v: Int = d.gids[i];
   return Some(v);
@@ -405,7 +428,11 @@ pub fn passwd_gid(d: &Passwd, i: Int) -> Option[Int] {
 /// commas, `#` and non-ASCII bytes are preserved.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn passwd_gecos(d: &Passwd, i: Int) -> Option[Str] {
+pub fn passwd_gecos(d: &Passwd, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= passwd_entry_count(d) => result is None;
+  ensures: result is Some => i >= 0 && i < d.gecos.len();
+{
   if i < 0 || i >= passwd_entry_count(d) { return None; }
   let v: Str = d.gecos[i];
   return Some(v);
@@ -418,7 +445,11 @@ pub fn passwd_gecos(d: &Passwd, i: Int) -> Option[Str] {
 /// real value, so it is Some("") rather than None.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn passwd_home(d: &Passwd, i: Int) -> Option[Str] {
+pub fn passwd_home(d: &Passwd, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= passwd_entry_count(d) => result is None;
+  ensures: result is Some => i >= 0 && i < d.homes.len();
+{
   if i < 0 || i >= passwd_entry_count(d) { return None; }
   let v: Str = d.homes[i];
   return Some(v);
@@ -431,7 +462,11 @@ pub fn passwd_home(d: &Passwd, i: Int) -> Option[Str] {
 /// real value, so it is Some("") rather than None.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn passwd_shell(d: &Passwd, i: Int) -> Option[Str] {
+pub fn passwd_shell(d: &Passwd, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= passwd_entry_count(d) => result is None;
+  ensures: result is Some => i >= 0 && i < d.shells.len();
+{
   if i < 0 || i >= passwd_entry_count(d) { return None; }
   let v: Str = d.shells[i];
   return Some(v);
@@ -443,7 +478,11 @@ pub fn passwd_shell(d: &Passwd, i: Int) -> Option[Str] {
 /// Blank and comment lines are counted, so this is the physical line.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn passwd_line(d: &Passwd, i: Int) -> Int {
+pub fn passwd_line(d: &Passwd, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= passwd_entry_count(d) => result == 0;
+  ensures: result != 0 => i >= 0 && i < d.lines.len();
+{
   if i < 0 || i >= passwd_entry_count(d) { return 0; }
   let v: Int = d.lines[i];
   return v;
@@ -462,7 +501,11 @@ pub fn passwd_line(d: &Passwd, i: Int) -> Int {
 /// Error case: none.
 /// Examples: two "dup" entries -> 0.
 /// Complexity: O(entries * name length).
-pub fn passwd_name_index(d: &Passwd, name: Str) -> Int {
+pub fn passwd_name_index(d: &Passwd, name: Str) -> Int
+  ensures: passwd_entry_count(d) == 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result < passwd_entry_count(d);
+  ensures: result >= -1;
+{
   let n = passwd_entry_count(d);
   var i = 0;
   while i < n {
@@ -481,7 +524,10 @@ pub fn passwd_name_index(d: &Passwd, name: Str) -> Int {
 /// Error case: none.
 /// Examples: "dup" -> Some("/home/first") when that entry comes first.
 /// Complexity: O(entries * name length).
-pub fn passwd_home_for_name(d: &Passwd, name: Str) -> Option[Str] {
+pub fn passwd_home_for_name(d: &Passwd, name: Str) -> Option[Str]
+  ensures: passwd_name_index(d, name) == -1 => result is None;
+  ensures: result is Some => passwd_name_index(d, name) >= 0;
+{
   let i = passwd_name_index(d, name);
   if i < 0 { return None; }
   let v: Str = d.homes[i];
@@ -495,7 +541,10 @@ pub fn passwd_home_for_name(d: &Passwd, name: Str) -> Option[Str] {
 /// Error case: none.
 /// Examples: "dup" -> Some("/bin/bash") when that entry comes first.
 /// Complexity: O(entries * name length).
-pub fn passwd_shell_for_name(d: &Passwd, name: Str) -> Option[Str] {
+pub fn passwd_shell_for_name(d: &Passwd, name: Str) -> Option[Str]
+  ensures: passwd_name_index(d, name) == -1 => result is None;
+  ensures: result is Some => passwd_name_index(d, name) >= 0;
+{
   let i = passwd_name_index(d, name);
   if i < 0 { return None; }
   let v: Str = d.shells[i];
@@ -509,7 +558,10 @@ pub fn passwd_shell_for_name(d: &Passwd, name: Str) -> Option[Str] {
 /// Error case: none.
 /// Examples: "dup" -> Some(1000) when that entry comes first.
 /// Complexity: O(entries * name length).
-pub fn passwd_uid_for_name(d: &Passwd, name: Str) -> Option[Int] {
+pub fn passwd_uid_for_name(d: &Passwd, name: Str) -> Option[Int]
+  ensures: passwd_name_index(d, name) == -1 => result is None;
+  ensures: result is Some => passwd_name_index(d, name) >= 0;
+{
   let i = passwd_name_index(d, name);
   if i < 0 { return None; }
   let v: Int = d.uids[i];
@@ -524,7 +576,10 @@ pub fn passwd_uid_for_name(d: &Passwd, name: Str) -> Option[Int] {
 /// Error case: none.
 /// Examples: two entries with uid 1000 -> 2.
 /// Complexity: O(entries).
-pub fn passwd_uid_count(d: &Passwd, uid: Int) -> Int {
+pub fn passwd_uid_count(d: &Passwd, uid: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= passwd_entry_count(d);
+{
   let n = passwd_entry_count(d);
   var count = 0;
   var i = 0;
@@ -543,7 +598,10 @@ pub fn passwd_uid_count(d: &Passwd, uid: Int) -> Int {
 /// Error case: none.
 /// Examples: two entries with uid 1000 -> ["a", "b"].
 /// Complexity: O(entries).
-pub fn passwd_names_for_uid(d: &Passwd, uid: Int) -> Vec[Str] {
+pub fn passwd_names_for_uid(d: &Passwd, uid: Int) -> Vec[Str]
+  ensures: result.len() <= passwd_entry_count(d);
+  ensures: passwd_entry_count(d) == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   let n = passwd_entry_count(d);
   var i = 0;
@@ -566,7 +624,10 @@ pub fn passwd_names_for_uid(d: &Passwd, uid: Int) -> Vec[Str] {
 /// Error case: none.
 /// Examples: entries "a" and "b" both with uid 1000 -> Some("a").
 /// Complexity: O(entries).
-pub fn passwd_name_for_uid(d: &Passwd, uid: Int) -> Option[Str] {
+pub fn passwd_name_for_uid(d: &Passwd, uid: Int) -> Option[Str]
+  ensures: passwd_entry_count(d) == 0 => result is None;
+  ensures: result is Some => passwd_entry_count(d) > 0;
+{
   let n = passwd_entry_count(d);
   var i = 0;
   while i < n {
@@ -589,7 +650,10 @@ pub fn passwd_name_for_uid(d: &Passwd, uid: Int) -> Option[Str] {
 /// Error case: none.
 /// Examples: uids 0, 999, 1000, 65534 -> 2.
 /// Complexity: O(entries).
-pub fn passwd_system_user_count(d: &Passwd) -> Int {
+pub fn passwd_system_user_count(d: &Passwd) -> Int
+  ensures: result >= 0;
+  ensures: result <= passwd_entry_count(d);
+{
   let n = passwd_entry_count(d);
   var count = 0;
   var i = 0;
@@ -620,7 +684,11 @@ pub fn passwd_system_user_count(d: &Passwd) -> Int {
 /// "root:x:0:0:root:/root:/bin/bash\n";
 /// parse("a:x:0001:0001:g:/h:/s\n") emits "a:x:1:1:g:/h:/s\n".
 /// Complexity: O(total output length).
-pub fn passwd_emit(d: &Passwd) -> Str {
+pub fn passwd_emit(d: &Passwd) -> Str
+  ensures: passwd_entry_count(d) == 0 => result.len() == 0;
+  ensures: result.len() >= passwd_entry_count(d);
+  ensures: result.len() > 0 => passwd_entry_count(d) > 0;
+{
   var out = "";
   let n = passwd_entry_count(d);
   var i = 0;

@@ -1,6 +1,6 @@
 # xiom.passwd -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.passwd` (`src/passwd.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -331,3 +331,64 @@ inputs are built with a `mk_ctrl` helper; byte 0x00 is never used because a
 - Only `xiom.string`, `xiom.string.compare` and `xiom.convert` are imported
   from `xiom.std` (`byte_at`, `str_slice`, `str_compare`, `int_to_string`).
   No FFI, no new dependencies.
+
+## Contracts (batch #29 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/passwd.xi` in the batch #29
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 49 clauses over the 19 public entry points; all are `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.passwd -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.6 s and 5.3 s); the 20-check conformance suite exercises every entry
+point -- including the out-of-range accessor guards (t13) and the hand-built
+and round-trip paths -- and no clause trapped, so none was dropped.
+
+`xiom-verify src/passwd.xi --check` (Z3 bundled with v0.64.0) reported
+**7 proven / 0 violated / 41 unknown / 0 errors**. The proven clauses are the
+scalar-shape sentinels and counts of `passwd_name_index`,
+`passwd_uid_count` and `passwd_system_user_count`; every other clause is
+runtime-checked, because the SMT emitter skips reference-field operands,
+`Result`/`Option` tags and cross-call expressions. All 49 are enforced by the
+v0.64.0 runtime evaluator when the suite runs.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `passwd_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked (`Result` tag + `Str` length) |
+| `passwd_entry_count` | `result >= 0`; `result <= d.names.len()`; `d.names.len() == 0 => result == 0` | runtime-checked (min-of-lens vs struct-field `Vec` length) |
+| `passwd_name` | `i < 0 => result is None`; `i >= passwd_entry_count(d) => result is None`; `result is Some => i >= 0 && i < d.names.len()` | runtime-checked (`Option` tag + struct-field `Vec` length) |
+| `passwd_password` | same sentinel triple against `d.passwords` | runtime-checked (`Option` tag + struct-field `Vec` length) |
+| `passwd_uid` | same sentinel triple against `d.uids` | runtime-checked (`Option` tag + struct-field `Vec` length) |
+| `passwd_gid` | same sentinel triple against `d.gids` | runtime-checked (`Option` tag + struct-field `Vec` length) |
+| `passwd_gecos` | same sentinel triple against `d.gecos` | runtime-checked (`Option` tag + struct-field `Vec` length) |
+| `passwd_home` | same sentinel triple against `d.homes` | runtime-checked (`Option` tag + struct-field `Vec` length) |
+| `passwd_shell` | same sentinel triple against `d.shells` | runtime-checked (`Option` tag + struct-field `Vec` length) |
+| `passwd_line` | `i < 0 => result == 0`; `i >= passwd_entry_count(d) => result == 0`; `result != 0 => i >= 0 && i < d.lines.len()` | runtime-checked (scalar sentinel + struct-field `Vec` length) |
+| `passwd_name_index` | `passwd_entry_count(d) == 0 => result == -1`; `result != -1 => result >= 0 && result < passwd_entry_count(d)`; `result >= -1` | Z3-provable (scalar sentinel + count cross-call) |
+| `passwd_home_for_name` | `passwd_name_index(d, name) == -1 => result is None`; `result is Some => passwd_name_index(d, name) >= 0` | runtime-checked (`Option` tag + definitional cross-call) |
+| `passwd_shell_for_name` | same pair of clauses as `passwd_home_for_name` | runtime-checked (`Option` tag + definitional cross-call) |
+| `passwd_uid_for_name` | same pair of clauses as `passwd_home_for_name` | runtime-checked (`Option` tag + definitional cross-call) |
+| `passwd_uid_count` | `result >= 0`; `result <= passwd_entry_count(d)` | Z3-provable (scalar-shape count) |
+| `passwd_names_for_uid` | `result.len() <= passwd_entry_count(d)`; `passwd_entry_count(d) == 0 => result.len() == 0` | runtime-checked (built `Vec` length + count cross-call) |
+| `passwd_name_for_uid` | `passwd_entry_count(d) == 0 => result is None`; `result is Some => passwd_entry_count(d) > 0` | runtime-checked (`Option` tag + count cross-call) |
+| `passwd_system_user_count` | `result >= 0`; `result <= passwd_entry_count(d)` | Z3-provable (scalar-shape count) |
+| `passwd_emit` | `passwd_entry_count(d) == 0 => result.len() == 0`; `result.len() >= passwd_entry_count(d)`; `result.len() > 0 => passwd_entry_count(d) > 0` | runtime-checked (built `Str` length + count cross-call) |
+
+All 49 clauses hold for hand-built `Passwd` documents as well: the sentinel
+and `Some` guards observe `Option` tags and `.len()` values only, and
+`passwd_entry_count` is the smallest of the eight parallel vectors, so
+`i >= passwd_entry_count(d)` is out of range for every backing vector (a
+corrupted document degrades to `None`/0/empty instead of reading past a
+vector). No uid/gid numeric range is claimed: `0..4294967295` is a parse
+invariant, and a hand-built document may hold any `Int` in `uids`/`gids`.
+The three cross-called functions (`passwd_entry_count`, `passwd_name_index`)
+never call their callers, so no clause call is re-entrant; `passwd_name_index`
+is defined before the three `*_for_name` lookups that call it, and
+`passwd_entry_count` before every clause that references it.
+
+Deliberately not claimed: the `Ok` payload of `passwd_parse` (tag-only
+clause); uid/gid value ranges (parse invariants only); `Str` equality
+anywhere (BUG 17: `.len()` only); vector indexing inside clauses; alignment
+invariants between the eight parallel vectors (hand-built documents may
+drift); module constants inside clauses (none used; `_PW_SYSTEM_ID_MAX` is
+not referenced). No clause was dropped.
