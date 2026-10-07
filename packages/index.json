@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T16:38:59Z",
+    "updated":  "2026-10-07T17:03:13Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -2143,7 +2143,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.envsubst",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Shell-style ${VAR} expansion with caller-supplied variables and strict or lenient missing-value handling",
@@ -2153,7 +2153,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-envsubst/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-envsubst/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "envsubst.xi",
                                               "package.xi"
@@ -5873,7 +5873,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.plural",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "English pluralization and singularization with irregular and suffix rules",
@@ -5883,7 +5883,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-plural/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-plural/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "plural.xi",
                                               "package.xi"
@@ -6027,7 +6027,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.preprocess",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Configurable text normalization pipeline: case folding, punctuation, whitespace, stopwords",
@@ -6037,7 +6037,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-preprocess/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-preprocess/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "preprocess.xi",
                                               "package.xi"
@@ -6385,7 +6385,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.rbac",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Role-based access rules with wildcard matching and deny-override",
@@ -6395,7 +6395,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rbac/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rbac/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "rbac.xi",
                                               "package.xi"
@@ -8365,7 +8365,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.useragent",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "User-Agent heuristics: browser, version, OS, bot and mobile detection",
@@ -8375,7 +8375,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-useragent/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-useragent/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "useragent.xi",
                                               "package.xi"
@@ -8620,7 +8620,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.wav",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Canonical PCM WAV (RIFF) header parsing, building, and metadata",
@@ -8630,7 +8630,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-wav/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-wav/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "wav.xi",
                                               "package.xi"
