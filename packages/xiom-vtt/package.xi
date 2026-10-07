@@ -9,7 +9,7 @@
 
 package xiom_vtt {
   name: "xiom.vtt";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Strict WebVTT parsing, canonical formatting, and cue building";
   categories: ["media"];
   keywords: ["vtt", "webvtt", "subtitles", "captions"];

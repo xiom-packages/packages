@@ -1,6 +1,6 @@
 # xiom.vtt -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.vtt` (`src/vtt.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -298,7 +298,7 @@ Every string comparison in the suite goes through
 `xiom.string.compare.str_compare` (BUG 17 discipline) and every element read
 goes through a typed local.
 
-## 11. Compiler / stdlib notes (v0.61.3)
+## 11. Compiler / stdlib notes (v0.64.0)
 
 - **Flat storage.** No `Vec[StructType]`: cues live in parallel vectors and
   reference payload lines by range into one shared buffer.
@@ -333,3 +333,52 @@ goes through a typed local.
   parsed document as the base if either is needed.
 - A leading UTF-8 BOM is not stripped.
 - Errors carry no line/column numbers.
+
+## Contracts (batch #36 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/vtt.xi` (compiler v0.64.0;
+no version bump): 51 clauses over the 20 public entry points (2/2/3/2/1, then
+2/3/2/3/3/3/3/3/3/3/2/3/3/2/3 in source order). Two consecutive
+`.\scripts\port.ps1 -Package xiom.vtt -TimeoutSec 60` runs ended
+`port: PASS (passed=23 failed=0 program_exit=0 exit=0)` (8.0 s and 7.42 s
+wall) with the clauses active and no clause trapped, so none was dropped.
+The examples mirrored are the sibling `xiom.srt` shapes and the sentinel
+trios of `xiom.gedcom`/`xiom.dimacs`.
+
+All 51 clauses are **runtime-checked only**. `xiom-verify src\vtt.xi --check`
+(v0.64.0, Z3 on PATH) reported **0 proven / 0 violated / 57 unknown /
+23 errors**; every ERROR is the known SMT emitter bug (unresolved local
+helpers `_split_lines`, `_timestamp_ms`, `_ok_int`, `_fmt_time`, `_err_vtt`,
+`_has_arrow`), and the tool itself reports "z3 rejected the generated SMT
+(emitter bug) -- this is not a proof failure of the code under test". No
+clause is claimed Z3-provable.
+
+Hand-built values: every clause uses only the guards the source actually
+implements, so it also holds for arbitrary hand-built `Vtt` values (e.g.
+`vtt_cue_line_count` keys its zero sentinel off `payload_starts` only, the
+vector it bounds against). No clause reads a `Result` payload, no clause
+claims a positive-`ms` format length, and `vtt_cue_start_ms` makes no
+non-negativity claim.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `vtt_parse` | `text.len() == 0 => result is Err`; `result is Ok => text.len() >= 6` | runtime-checked (`Str` param length guard; result tag) |
+| `vtt_format` | `result.len() >= v.signature.len() + 1`; `v.order.len() == 0 && v.headers.len() == 0 => result.len() == v.signature.len() + 1` | runtime-checked (struct-field lengths; built `Str` length) |
+| `vtt_timestamp_parse` | `t.len() != 9 && t.len() != 12 => result is Err`; `result is Ok => result.value >= 0`; `result is Ok => result.value <= 359999999` | runtime-checked (`Str` param length guard; `Ok` payload bounds) |
+| `vtt_timestamp_format` | `ms <= 0 => result.len() == 12`; `result.len() >= 12` | runtime-checked (built `Str` length) |
+| `vtt_signature` | `result.len() == v.signature.len()` | runtime-checked (struct-field `Str` length) |
+| `vtt_header_count` | `result == v.headers.len()`; `result >= 0` | runtime-checked (count formula) |
+| `vtt_header` | `i < 0 => result.len() == 0`; `i >= v.headers.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < v.headers.len()` | runtime-checked (`""` sentinel trio) |
+| `vtt_cue_count` | `result == v.starts.len()`; `result >= 0` | runtime-checked (count formula) |
+| `vtt_cue_id` | `i < 0 => result.len() == 0`; `i >= v.ids.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < v.ids.len()` | runtime-checked (`""` sentinel trio) |
+| `vtt_cue_start_ms` | `i < 0 => result == -1`; `i >= v.starts.len() => result == -1`; `result != -1 => i >= 0 && i < v.starts.len()` | runtime-checked (`-1` sentinel trio) |
+| `vtt_cue_end_ms` | `i < 0 => result == -1`; `i >= v.ends.len() => result == -1`; `result != -1 => i >= 0 && i < v.ends.len()` | runtime-checked (`-1` sentinel trio) |
+| `vtt_cue_settings` | `i < 0 => result.len() == 0`; `i >= v.settings.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < v.settings.len()` | runtime-checked (`""` sentinel trio) |
+| `vtt_cue_line_count` | `i < 0 => result == 0`; `i >= v.payload_starts.len() => result == 0`; `result != 0 => i >= 0 && i < v.payload_starts.len()` | runtime-checked (`0` sentinel trio) |
+| `vtt_cue_line` | `i < 0 => result.len() == 0`; `j < 0 => result.len() == 0`; `result.len() > 0 => i >= 0 && i < v.payload_starts.len() && i < v.payload_ends.len() && j >= 0` | runtime-checked (`""` sentinels; struct-field lengths) |
+| `vtt_cue_text` | `i < 0 => result.len() == 0`; `i >= v.payload_starts.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < v.payload_starts.len() && i < v.payload_ends.len()` | runtime-checked (`""` sentinels; struct-field lengths) |
+| `vtt_block_count` | `result == v.raw_texts.len()`; `result >= 0` | runtime-checked (count formula) |
+| `vtt_block_text` | `i < 0 => result.len() == 0`; `i >= v.raw_texts.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < v.raw_texts.len()` | runtime-checked (`""` sentinel trio) |
+| `vtt_block_kind` | `i < 0 => result.len() == 0`; `i >= v.raw_kinds.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < v.raw_kinds.len()` | runtime-checked (`""` sentinel trio) |
+| `vtt_new` | `result.signature.len() == 6`; `result.headers.len() == 0 && ... && result.raw_kinds.len() == 0` (all 11 vectors) | runtime-checked (struct-return field lengths) |
+| `vtt_cue_add` | `start_ms < 0 \|\| end_ms < 0 => result is Err`; `end_ms < start_ms => result is Err`; `result is Ok => start_ms >= 0 && end_ms >= start_ms` | runtime-checked (input-side scalar guards; result tag) |

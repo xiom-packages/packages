@@ -522,7 +522,10 @@ fn _fmt_time(ms: Int) -> Str {
 /// "vtt: payload before timing", "vtt: bad timestamp shape",
 /// "vtt: timestamp out of range", "vtt: end before start"; see SPEC.md.
 /// Complexity: O(input length).
-pub fn vtt_parse(text: Str) -> Result[Vtt, Str] {
+pub fn vtt_parse(text: Str) -> Result[Vtt, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() >= 6;
+{
   let lines = _split_lines(text);
   if lines.len() == 0 { return _err_vtt("vtt: missing signature"); }
   let first: Str = lines[0];
@@ -537,7 +540,10 @@ pub fn vtt_parse(text: Str) -> Result[Vtt, Str] {
 /// written "HH:MM:SS.mmm" (hours at least two digits); cue identifiers and
 /// settings are written verbatim when present; every line is terminated by
 /// LF. An empty track with the default signature serializes to "WEBVTT\n".
-pub fn vtt_format(v: &Vtt) -> Str {
+pub fn vtt_format(v: &Vtt) -> Str
+  ensures: result.len() >= v.signature.len() + 1;
+  ensures: v.order.len() == 0 && v.headers.len() == 0 => result.len() == v.signature.len() + 1;
+{
   var out = v.signature;
   out = out + "\n";
   var h = 0;
@@ -608,7 +614,11 @@ pub fn vtt_format(v: &Vtt) -> Str {
 /// ".". Leading/trailing whitespace is not allowed.
 /// Errors: "vtt: bad timestamp shape" for a malformed shape,
 /// "vtt: timestamp out of range" when minutes or seconds exceed 59.
-pub fn vtt_timestamp_parse(t: Str) -> Result[Int, Str] {
+pub fn vtt_timestamp_parse(t: Str) -> Result[Int, Str]
+  ensures: t.len() != 9 && t.len() != 12 => result is Err;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 359999999;
+{
   let ms = _timestamp_ms(t);
   if ms == -1 { return _err_int("vtt: bad timestamp shape"); }
   if ms == -2 { return _err_int("vtt: timestamp out of range"); }
@@ -620,7 +630,10 @@ pub fn vtt_timestamp_parse(t: Str) -> Result[Int, Str] {
 /// with at least two digits, and with more than two digits above 99 hours
 /// (such values are accepted here but rejected on parse, so they do not
 /// round-trip; see SPEC.md).
-pub fn vtt_timestamp_format(ms: Int) -> Str {
+pub fn vtt_timestamp_format(ms: Int) -> Str
+  ensures: ms <= 0 => result.len() == 12;
+  ensures: result.len() >= 12;
+{
   return _fmt_time(ms);
 }
 
@@ -630,18 +643,27 @@ pub fn vtt_timestamp_format(ms: Int) -> Str {
 
 /// The signature line, exactly as stored by the parser (e.g. "WEBVTT" or
 /// "WEBVTT - My captions").
-pub fn vtt_signature(v: &Vtt) -> Str {
+pub fn vtt_signature(v: &Vtt) -> Str
+  ensures: result.len() == v.signature.len();
+{
   return v.signature;
 }
 
 /// Number of header metadata lines.
-pub fn vtt_header_count(v: &Vtt) -> Int {
+pub fn vtt_header_count(v: &Vtt) -> Int
+  ensures: result == v.headers.len();
+  ensures: result >= 0;
+{
   return v.headers.len();
 }
 
 /// Header metadata line `i`, verbatim; "" when `i` is negative or out of
 /// range.
-pub fn vtt_header(v: &Vtt, i: Int) -> Str {
+pub fn vtt_header(v: &Vtt, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= v.headers.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < v.headers.len();
+{
   if i < 0 { return ""; }
   if i >= v.headers.len() { return ""; }
   let x: Str = v.headers[i];
@@ -649,13 +671,20 @@ pub fn vtt_header(v: &Vtt, i: Int) -> Str {
 }
 
 /// Number of cues.
-pub fn vtt_cue_count(v: &Vtt) -> Int {
+pub fn vtt_cue_count(v: &Vtt) -> Int
+  ensures: result == v.starts.len();
+  ensures: result >= 0;
+{
   return v.starts.len();
 }
 
 /// Identifier of cue `i` ("" when the cue has none, or when `i` is negative
 /// or out of range).
-pub fn vtt_cue_id(v: &Vtt, i: Int) -> Str {
+pub fn vtt_cue_id(v: &Vtt, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= v.ids.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < v.ids.len();
+{
   if i < 0 { return ""; }
   if i >= v.ids.len() { return ""; }
   let x: Str = v.ids[i];
@@ -664,7 +693,11 @@ pub fn vtt_cue_id(v: &Vtt, i: Int) -> Str {
 
 /// Start time of cue `i` in milliseconds; -1 when `i` is negative or out of
 /// range.
-pub fn vtt_cue_start_ms(v: &Vtt, i: Int) -> Int {
+pub fn vtt_cue_start_ms(v: &Vtt, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= v.starts.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < v.starts.len();
+{
   if i < 0 { return -1; }
   if i >= v.starts.len() { return -1; }
   let x: Int = v.starts[i];
@@ -673,7 +706,11 @@ pub fn vtt_cue_start_ms(v: &Vtt, i: Int) -> Int {
 
 /// End time of cue `i` in milliseconds; -1 when `i` is negative or out of
 /// range.
-pub fn vtt_cue_end_ms(v: &Vtt, i: Int) -> Int {
+pub fn vtt_cue_end_ms(v: &Vtt, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= v.ends.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < v.ends.len();
+{
   if i < 0 { return -1; }
   if i >= v.ends.len() { return -1; }
   let x: Int = v.ends[i];
@@ -682,7 +719,11 @@ pub fn vtt_cue_end_ms(v: &Vtt, i: Int) -> Int {
 
 /// Cue settings text of cue `i`, verbatim ("" when the cue has none, or when
 /// `i` is negative or out of range).
-pub fn vtt_cue_settings(v: &Vtt, i: Int) -> Str {
+pub fn vtt_cue_settings(v: &Vtt, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= v.settings.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < v.settings.len();
+{
   if i < 0 { return ""; }
   if i >= v.settings.len() { return ""; }
   let x: Str = v.settings[i];
@@ -691,7 +732,11 @@ pub fn vtt_cue_settings(v: &Vtt, i: Int) -> Str {
 
 /// Number of payload lines of cue `i`; 0 when `i` is negative or out of
 /// range. A cue may legitimately have zero payload lines.
-pub fn vtt_cue_line_count(v: &Vtt, i: Int) -> Int {
+pub fn vtt_cue_line_count(v: &Vtt, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= v.payload_starts.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < v.payload_starts.len();
+{
   if i < 0 { return 0; }
   if i >= v.payload_starts.len() { return 0; }
   let p0: Int = v.payload_starts[i];
@@ -701,7 +746,11 @@ pub fn vtt_cue_line_count(v: &Vtt, i: Int) -> Int {
 
 /// Payload line `j` of cue `i`, verbatim; "" when `i` or `j` is negative or
 /// out of range.
-pub fn vtt_cue_line(v: &Vtt, i: Int, j: Int) -> Str {
+pub fn vtt_cue_line(v: &Vtt, i: Int, j: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: j < 0 => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < v.payload_starts.len() && i < v.payload_ends.len() && j >= 0;
+{
   if i < 0 { return ""; }
   if i >= v.payload_starts.len() { return ""; }
   if j < 0 { return ""; }
@@ -715,7 +764,11 @@ pub fn vtt_cue_line(v: &Vtt, i: Int, j: Int) -> Str {
 
 /// Payload of cue `i` as one Str, its lines joined with "\n"; "" when the cue
 /// is empty or `i` is negative or out of range.
-pub fn vtt_cue_text(v: &Vtt, i: Int) -> Str {
+pub fn vtt_cue_text(v: &Vtt, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= v.payload_starts.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < v.payload_starts.len() && i < v.payload_ends.len();
+{
   if i < 0 { return ""; }
   if i >= v.payload_starts.len() { return ""; }
   let p0: Int = v.payload_starts[i];
@@ -732,13 +785,20 @@ pub fn vtt_cue_text(v: &Vtt, i: Int) -> Str {
 }
 
 /// Number of raw NOTE/STYLE/REGION blocks in document order.
-pub fn vtt_block_count(v: &Vtt) -> Int {
+pub fn vtt_block_count(v: &Vtt) -> Int
+  ensures: result == v.raw_texts.len();
+  ensures: result >= 0;
+{
   return v.raw_texts.len();
 }
 
 /// Raw text of block `i`: its lines joined with "\n", first line included;
 /// "" when `i` is negative or out of range.
-pub fn vtt_block_text(v: &Vtt, i: Int) -> Str {
+pub fn vtt_block_text(v: &Vtt, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= v.raw_texts.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < v.raw_texts.len();
+{
   if i < 0 { return ""; }
   if i >= v.raw_texts.len() { return ""; }
   let x: Str = v.raw_texts[i];
@@ -747,7 +807,11 @@ pub fn vtt_block_text(v: &Vtt, i: Int) -> Str {
 
 /// Keyword of raw block `i`: "NOTE", "STYLE" or "REGION"; "" when `i` is
 /// negative or out of range.
-pub fn vtt_block_kind(v: &Vtt, i: Int) -> Str {
+pub fn vtt_block_kind(v: &Vtt, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= v.raw_kinds.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < v.raw_kinds.len();
+{
   if i < 0 { return ""; }
   if i >= v.raw_kinds.len() { return ""; }
   let x: Str = v.raw_kinds[i];
@@ -760,7 +824,10 @@ pub fn vtt_block_kind(v: &Vtt, i: Int) -> Str {
 
 /// Create an empty track with the default "WEBVTT" signature line, no header
 /// metadata, no cues and no raw blocks.
-pub fn vtt_new() -> Vtt {
+pub fn vtt_new() -> Vtt
+  ensures: result.signature.len() == 6;
+  ensures: result.headers.len() == 0 && result.order.len() == 0 && result.starts.len() == 0 && result.ends.len() == 0 && result.ids.len() == 0 && result.settings.len() == 0 && result.payload_starts.len() == 0 && result.payload_ends.len() == 0 && result.lines.len() == 0 && result.raw_texts.len() == 0 && result.raw_kinds.len() == 0;
+{
   let headers = Vec[Str].new();
   let order = Vec[Int].new();
   let starts = Vec[Int].new();
@@ -786,7 +853,11 @@ pub fn vtt_new() -> Vtt {
 /// line" (text contains an empty line, which WebVTT cannot represent because
 /// a blank line ends the block). An empty `text` appends a cue with no
 /// payload lines, which is valid. The input track is not modified.
-pub fn vtt_cue_add(v: &Vtt, id: Str, start_ms: Int, end_ms: Int, settings: Str, text: Str) -> Result[Vtt, Str] {
+pub fn vtt_cue_add(v: &Vtt, id: Str, start_ms: Int, end_ms: Int, settings: Str, text: Str) -> Result[Vtt, Str]
+  ensures: start_ms < 0 || end_ms < 0 => result is Err;
+  ensures: end_ms < start_ms => result is Err;
+  ensures: result is Ok => start_ms >= 0 && end_ms >= start_ms;
+{
   if start_ms < 0 { return _err_vtt("vtt: negative time"); }
   if end_ms < 0 { return _err_vtt("vtt: negative time"); }
   if end_ms < start_ms { return _err_vtt("vtt: end before start"); }
