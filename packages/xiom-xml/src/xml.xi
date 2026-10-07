@@ -577,7 +577,10 @@ fn _close_tag(p: &mut _XmlParser) -> Bool {
 /// malformed tag/attribute, mismatched/unexpected closing tag, text outside
 /// the root element, multiple root elements).
 /// Complexity: O(n) over the document length.
-pub fn xml_parse(text: Str) -> Result[XmlDoc, Str] {
+pub fn xml_parse(text: Str) -> Result[XmlDoc, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var p = _XmlParser{
     text: text; pos: 0;
     kinds: Vec[Int].new(); names: Vec[Str].new(); texts: Vec[Str].new();
@@ -617,7 +620,11 @@ pub fn xml_parse(text: Str) -> Result[XmlDoc, Str] {
 /// Params: d - the parsed document.
 /// Returns: the node index, or -1 when the document has no top-level element.
 /// Complexity: O(nodes).
-pub fn xml_root(d: &XmlDoc) -> Int {
+pub fn xml_root(d: &XmlDoc) -> Int
+  ensures: d.kinds.len() == 0 => result == -1;
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 1 && result < d.kinds.len();
+{
   var i = 1;
   while i < d.kinds.len() {
     if d.kinds[i] == 0 {
@@ -634,7 +641,10 @@ pub fn xml_root(d: &XmlDoc) -> Int {
 /// Params: d - the parsed document.
 /// Returns: d.kinds.len(); an empty document reports 1.
 /// Complexity: O(1).
-pub fn xml_node_count(d: &XmlDoc) -> Int {
+pub fn xml_node_count(d: &XmlDoc) -> Int
+  ensures: result == d.kinds.len();
+  ensures: result >= 0;
+{
   return d.kinds.len();
 }
 
@@ -642,7 +652,11 @@ pub fn xml_node_count(d: &XmlDoc) -> Int {
 /// Params: d - the parsed document; node - the node index.
 /// Returns: the kind, or -1 when node is out of range.
 /// Complexity: O(1).
-pub fn xml_kind(d: &XmlDoc, node: Int) -> Int {
+pub fn xml_kind(d: &XmlDoc, node: Int) -> Int
+  ensures: node < 0 => result == -1;
+  ensures: node >= d.kinds.len() => result == -1;
+  ensures: result != -1 => node >= 0 && node < d.kinds.len();
+{
   if node < 0 || node >= d.kinds.len() {
     return -1;
   }
@@ -653,7 +667,11 @@ pub fn xml_kind(d: &XmlDoc, node: Int) -> Int {
 /// Params: d - the parsed document; node - the node index.
 /// Returns: the name, or "" when node is out of range.
 /// Complexity: O(1).
-pub fn xml_name(d: &XmlDoc, node: Int) -> Str {
+pub fn xml_name(d: &XmlDoc, node: Int) -> Str
+  ensures: node < 0 => result.len() == 0;
+  ensures: node >= d.names.len() => result.len() == 0;
+  ensures: result.len() > 0 => node >= 0 && node < d.names.len();
+{
   if node < 0 || node >= d.names.len() {
     return "";
   }
@@ -665,7 +683,9 @@ pub fn xml_name(d: &XmlDoc, node: Int) -> Str {
 /// Returns: the concatenated text ("" for text nodes, out-of-range indices
 /// and elements without text children). Nested element text is NOT included.
 /// Complexity: O(nodes + text bytes).
-pub fn xml_text(d: &XmlDoc, node: Int) -> Str {
+pub fn xml_text(d: &XmlDoc, node: Int) -> Str
+  ensures: d.kinds.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   var i = 1;
   while i < d.kinds.len() {
@@ -683,7 +703,10 @@ pub fn xml_text(d: &XmlDoc, node: Int) -> Str {
 /// Params: d - the parsed document; node - the node index.
 /// Returns: the child count; 0 for out-of-range nodes.
 /// Complexity: O(nodes).
-pub fn xml_child_count(d: &XmlDoc, node: Int) -> Int {
+pub fn xml_child_count(d: &XmlDoc, node: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.kinds.len();
+{
   var count = 0;
   var i = 1;
   while i < d.kinds.len() {
@@ -701,7 +724,11 @@ pub fn xml_child_count(d: &XmlDoc, node: Int) -> Int {
 /// Returns: Some(child index) on a hit; None when index is negative or out of
 /// range (and for any out-of-range node).
 /// Complexity: O(nodes).
-pub fn xml_child(d: &XmlDoc, node: Int, index: Int) -> Option[Int] {
+pub fn xml_child(d: &XmlDoc, node: Int, index: Int) -> Option[Int]
+  ensures: index < 0 => result is None;
+  ensures: d.kinds.len() == 0 => result is None;
+  ensures: result is Some => result.value >= 1 && result.value < d.kinds.len();
+{
   if index < 0 {
     return None;
   }
@@ -725,7 +752,10 @@ pub fn xml_child(d: &XmlDoc, node: Int, index: Int) -> Option[Int] {
 /// Returns: Some(value); None when the node has no such attribute. Duplicate
 /// attribute names keep the first occurrence.
 /// Complexity: O(attributes).
-pub fn xml_attr(d: &XmlDoc, node: Int, name: Str) -> Option[Str] {
+pub fn xml_attr(d: &XmlDoc, node: Int, name: Str) -> Option[Str]
+  ensures: d.attr_owners.len() == 0 => result is None;
+  ensures: result is Some => d.attr_owners.len() > 0;
+{
   var i = 0;
   while i < d.attr_owners.len() {
     if d.attr_owners[i] == node {
@@ -743,7 +773,10 @@ pub fn xml_attr(d: &XmlDoc, node: Int, name: Str) -> Option[Str] {
 /// Returns: their node indices (empty when nothing matches); the synthetic
 /// root (empty name) is never included.
 /// Complexity: O(nodes).
-pub fn xml_find(d: &XmlDoc, tag: Str) -> Vec[Int] {
+pub fn xml_find(d: &XmlDoc, tag: Str) -> Vec[Int]
+  ensures: d.kinds.len() == 0 => result.len() == 0;
+  ensures: result.len() <= d.kinds.len();
+{
   var out = Vec[Int].new();
   var i = 1;
   while i < d.kinds.len() {
@@ -762,7 +795,10 @@ pub fn xml_find(d: &XmlDoc, tag: Str) -> Vec[Int] {
 /// Returns: Some(node index) for the document-order-first match, None when
 /// nothing matches.
 /// Complexity: O(nodes).
-pub fn xml_find_first(d: &XmlDoc, tag: Str) -> Option[Int] {
+pub fn xml_find_first(d: &XmlDoc, tag: Str) -> Option[Int]
+  ensures: d.kinds.len() == 0 => result is None;
+  ensures: result is Some => result.value >= 1 && result.value < d.kinds.len();
+{
   var i = 1;
   while i < d.kinds.len() {
     if d.kinds[i] == 0 {
@@ -780,7 +816,10 @@ pub fn xml_find_first(d: &XmlDoc, tag: Str) -> Option[Int] {
 /// Returns: Some(xml_text of the first match) (which may be ""); None when
 /// nothing matches.
 /// Complexity: O(nodes + text bytes).
-pub fn xml_text_of(d: &XmlDoc, tag: Str) -> Option[Str] {
+pub fn xml_text_of(d: &XmlDoc, tag: Str) -> Option[Str]
+  ensures: d.kinds.len() == 0 => result is None;
+  ensures: result is Some => xml_find_first(d, tag) is Some;
+{
   let found = xml_find_first(d, tag);
   match found {
     Some(node) => { return Some(xml_text(d, node)); },
@@ -798,7 +837,11 @@ pub fn xml_text_of(d: &XmlDoc, tag: Str) -> Option[Str] {
 /// Returns: s with & -> &amp;, < -> &lt;, > -> &gt;, " -> &quot; and
 /// ' -> &apos;; every other byte (including UTF-8 sequences) passes through.
 /// Complexity: O(s.len()).
-pub fn xml_escape(s: Str) -> Str {
+pub fn xml_escape(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() >= s.len();
+  ensures: xml_unescape(result).len() == s.len();
+{
   var out = Vec[UInt8].new();
   var i = 0;
   while i < s.len() {
@@ -826,6 +869,9 @@ pub fn xml_escape(s: Str) -> Str {
 /// Returns: s with &amp; &lt; &gt; &quot; &apos; &#NN; and &#xHH; decoded;
 /// unknown or malformed references pass through verbatim.
 /// Complexity: O(s.len()).
-pub fn xml_unescape(s: Str) -> Str {
+pub fn xml_unescape(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= s.len();
+{
   return _decode_range(s, 0, s.len());
 }

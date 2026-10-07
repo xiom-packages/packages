@@ -1,8 +1,6 @@
 # xiom.xml -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.xml`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/xml.xi` (`module xiom.xml`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`,
 `xiom.string.compare`).
@@ -221,7 +219,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.xml
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=24 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -239,7 +237,7 @@ Last verified: compiler 0.61.3,
 - No serialization API; no streaming; input UTF-8 is not validated.
 - `xml_parse` builds all nodes in memory (no SAX-style callbacks).
 
-## Compiler / stdlib notes for v0.61.3
+## Compiler / stdlib notes for v0.64.0
 
 - The document is a flat node list (parallel `Vec` fields) because
   `Vec[StructType]` is unsupported in this compiler.
@@ -254,3 +252,58 @@ Last verified: compiler 0.61.3,
 - The parse loop sets a failure flag + message and stops at the first error
   (`_fail`), so there is exactly one `Err` construction site reachable from
   the loop.
+
+## Contracts (batch #34 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/xml.xi` in the batch #34
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator
+at integration). 32 clauses over the 14 contracted public entry points; all
+are `ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+Two consecutive
+`& .\scripts\port.ps1 -Package xiom.xml -TimeoutSec 60` runs ended
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.58 s and 5.2 s). Both probe-gated clauses passed on the first
+attempt and were kept: `xml_text_of`'s
+`ensures: result is Some => xml_find_first(d, tag) is Some;` (the sole
+non-re-entrant definitional cross-call) and `xml_escape`'s
+`ensures: xml_unescape(result).len() == s.len();` (the round-trip guarantee
+documented above). No clause was dropped. By design, `xml_text` carries
+only its empty-`kinds` clause (no sentinel claim) and `xml_kind` gets no
+0/1 band.
+
+`xiom-verify src\xml.xi --check` (Z3 bundled with v0.64.0, run from the
+package directory) reported **2 proven / 0 violated / 38 unknown / 0
+errors**. The two proven obligations are exactly the pure scalar lower
+bounds `xml_root`'s `result >= -1` and `xml_child_count`'s `result >= 0`;
+the remaining obligations are skipped as X7007 (unresolved
+`Vec`/struct/`Option` operand sorts, loops without invariants), not proof
+failures. All 32 clauses are enforced by the v0.64.0 runtime evaluator when
+the suite runs. "Z3-provable" below marks the scalar shapes the SMT backend
+can discharge; runtime-checked clauses read `Str`/`Vec` lengths, `Option`
+tags or `Option[Int]` payload scalars.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `xml_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime-checked (guard pair; `Result` tag) |
+| `xml_root` | `ensures: d.kinds.len() == 0 => result == -1`; `ensures: result >= -1`; `ensures: result != -1 => result >= 1 && result < d.kinds.len()` | Z3-provable (`result >= -1`); runtime-checked (guard + `Vec` length) |
+| `xml_node_count` | `ensures: result == d.kinds.len()`; `ensures: result >= 0` | runtime-checked (`Vec` length; scalar bound) |
+| `xml_kind` | `ensures: node < 0 => result == -1`; `ensures: node >= d.kinds.len() => result == -1`; `ensures: result != -1 => node >= 0 && node < d.kinds.len()` | runtime-checked (sentinel guard trio; no 0/1 band) |
+| `xml_name` | `ensures: node < 0 => result.len() == 0`; `ensures: node >= d.names.len() => result.len() == 0`; `ensures: result.len() > 0 => node >= 0 && node < d.names.len()` | runtime-checked (`Str` length sentinel trio) |
+| `xml_text` | `ensures: d.kinds.len() == 0 => result.len() == 0` | runtime-checked (single empty-`kinds` clause; no sentinel claim) |
+| `xml_child_count` | `ensures: result >= 0`; `ensures: result <= d.kinds.len()` | Z3-provable (`result >= 0`); runtime-checked (`Vec` length bound) |
+| `xml_child` | `ensures: index < 0 => result is None`; `ensures: d.kinds.len() == 0 => result is None`; `ensures: result is Some => result.value >= 1 && result.value < d.kinds.len()` | runtime-checked (`Option` tag + payload range) |
+| `xml_attr` | `ensures: d.attr_owners.len() == 0 => result is None`; `ensures: result is Some => d.attr_owners.len() > 0` | runtime-checked (`Option` tag + `Vec` length; no `Str` payload read) |
+| `xml_find` | `ensures: d.kinds.len() == 0 => result.len() == 0`; `ensures: result.len() <= d.kinds.len()` | runtime-checked (built `Vec` length bound) |
+| `xml_find_first` | `ensures: d.kinds.len() == 0 => result is None`; `ensures: result is Some => result.value >= 1 && result.value < d.kinds.len()` | runtime-checked (`Option` tag + payload range) |
+| `xml_text_of` | `ensures: d.kinds.len() == 0 => result is None`; `ensures: result is Some => xml_find_first(d, tag) is Some` (probe-gated, kept) | runtime-checked (definitional cross-call; `xml_find_first` never calls `xml_text_of`) |
+| `xml_escape` | `ensures: s.len() == 0 => result.len() == 0`; `ensures: result.len() >= s.len()`; `ensures: xml_unescape(result).len() == s.len()` (probe-gated, kept) | runtime-checked (`Str` lengths; round-trip cross-call; `xml_unescape` never calls `xml_escape`) |
+| `xml_unescape` | `ensures: s.len() == 0 => result.len() == 0`; `ensures: result.len() <= s.len()` | runtime-checked (`Str` length bound) |
+
+Deliberately not claimed: `Str` equality anywhere (BUG 17; `.len()` only);
+vector indexing in a clause; `Result[XmlDoc, Str]` `Ok`-payload field reads;
+`xml_text` sentinel or concatenation-length claims; a 0/1 band for
+`xml_kind`; member chains longer than three tokens. Every clause also holds
+for hand-built `XmlDoc` values: the guard antecedents only test emptiness,
+out-of-range indices or the source loop bounds, `xml_child` /
+`xml_find_first` payload ranges are bounded by `d.kinds.len()`, and no
+clause shadows a contracted parameter name.
