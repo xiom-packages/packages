@@ -255,7 +255,10 @@ fn _parse_frame(data: &Vec[UInt8], pos: Int) -> Result[FramePos, Str] {
 /// Ok with zero frames. On Err no partial list is returned; the message is
 /// one of the six parse-catalog strings in SPEC.md.
 /// Complexity: O(data.len()).
-pub fn netstring_parse(data: &Vec[UInt8]) -> Result[NetstringList, Str] {
+pub fn netstring_parse(data: &Vec[UInt8]) -> Result[NetstringList, Str]
+  ensures: data.len() == 0 => result is Ok;
+  ensures: result is Err => data.len() > 0;
+{
   var offsets = Vec[Int].new();
   var lengths = Vec[Int].new();
   let total = data.len();
@@ -275,14 +278,21 @@ pub fn netstring_parse(data: &Vec[UInt8]) -> Result[NetstringList, Str] {
 
 /// Number of frames in `l`.
 /// Complexity: O(1).
-pub fn netstring_count(l: &NetstringList) -> Int {
+pub fn netstring_count(l: &NetstringList) -> Int
+  ensures: result >= 0;
+  ensures: result == l.payload_offsets.len();
+{
   return l.payload_offsets.len();
 }
 
 /// Absolute offset of the payload of frame `i`, or -1 when `i` is negative
 /// or >= netstring_count(l).
 /// Complexity: O(1).
-pub fn netstring_offset(l: &NetstringList, i: Int) -> Int {
+pub fn netstring_offset(l: &NetstringList, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= l.payload_offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < l.payload_offsets.len();
+{
   if i < 0 || i >= l.payload_offsets.len() {
     return -1;
   }
@@ -293,7 +303,11 @@ pub fn netstring_offset(l: &NetstringList, i: Int) -> Int {
 /// Length in bytes of the payload of frame `i`, or -1 when `i` is negative
 /// or >= netstring_count(l).
 /// Complexity: O(1).
-pub fn netstring_length(l: &NetstringList, i: Int) -> Int {
+pub fn netstring_length(l: &NetstringList, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= l.payload_lengths.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < l.payload_lengths.len();
+{
   if i < 0 || i >= l.payload_lengths.len() {
     return -1;
   }
@@ -308,7 +322,11 @@ pub fn netstring_length(l: &NetstringList, i: Int) -> Int {
 /// is negative or >= netstring_count(l); Err("netstring: payload out of
 /// bounds") when the recorded span does not fit `data`.
 /// Complexity: O(payload length).
-pub fn netstring_payload(data: &Vec[UInt8], l: &NetstringList, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn netstring_payload(data: &Vec[UInt8], l: &NetstringList, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= l.payload_offsets.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < l.payload_offsets.len();
+{
   if i < 0 || i >= l.payload_offsets.len() {
     return _err_bytes("netstring: index out of range");
   }
@@ -334,7 +352,9 @@ pub fn netstring_payload(data: &Vec[UInt8], l: &NetstringList, i: Int) -> Result
 /// the payload bytes verbatim, then ','. Infallible: every payload length
 /// has a decimal form. Use netstring_build for a whole stream.
 /// Complexity: O(payload length).
-pub fn netstring_append(out: &mut Vec[UInt8], payload: &Vec[UInt8]) {
+pub fn netstring_append(out: &mut Vec[UInt8], payload: &Vec[UInt8])
+  ensures: out.len() == out.len()@pre + netstring_digit_count(payload.len()) + 2 + payload.len();
+{
   _push_dec(out, payload.len());
   out.push(58 as UInt8);
   _push_bytes(out, payload);
@@ -345,7 +365,10 @@ pub fn netstring_append(out: &mut Vec[UInt8], payload: &Vec[UInt8]) {
 /// frame, in order, exactly as if netstring_append had been called for each.
 /// Infallible; an empty input yields an empty vector.
 /// Complexity: O(total payload bytes).
-pub fn netstring_build(payloads: &Vec[Vec[UInt8]]) -> Vec[UInt8] {
+pub fn netstring_build(payloads: &Vec[Vec[UInt8]]) -> Vec[UInt8]
+  ensures: payloads.len() == 0 => result.len() == 0;
+  ensures: result.len() >= 3 * payloads.len();
+{
   var out = Vec[UInt8].new();
   var i = 0;
   while i < payloads.len() {
@@ -363,7 +386,11 @@ pub fn netstring_build(payloads: &Vec[Vec[UInt8]]) -> Vec[UInt8] {
 /// Number of decimal digits in the length field of a frame whose payload is
 /// `n` bytes: 0 -> 1, 9 -> 1, 10 -> 2, 100 -> 3. Returns -1 when n < 0.
 /// Complexity: O(digits).
-pub fn netstring_digit_count(n: Int) -> Int {
+pub fn netstring_digit_count(n: Int) -> Int
+  ensures: n < 0 => result == -1;
+  ensures: n >= 0 => result >= 1;
+  ensures: n >= 0 && n <= 9 => result == 1;
+{
   if n < 0 {
     return -1;
   }
@@ -374,7 +401,11 @@ pub fn netstring_digit_count(n: Int) -> Int {
 /// digit count + 1 (colon) + payload_len + 1 (comma). Returns -1 when
 /// payload_len < 0.
 /// Complexity: O(digits).
-pub fn netstring_frame_size(payload_len: Int) -> Int {
+pub fn netstring_frame_size(payload_len: Int) -> Int
+  ensures: payload_len < 0 => result == -1;
+  ensures: payload_len >= 0 => result == netstring_digit_count(payload_len) + 2 + payload_len;
+  ensures: payload_len == 0 => result == 3;
+{
   if payload_len < 0 {
     return -1;
   }
@@ -389,7 +420,11 @@ pub fn netstring_frame_size(payload_len: Int) -> Int {
 /// payload_offset = payload_length = -1 until the first successful
 /// netstring_cursor_next.
 /// Complexity: O(1).
-pub fn netstring_cursor_new() -> NetstringCursor {
+pub fn netstring_cursor_new() -> NetstringCursor
+  ensures: netstring_cursor_position(result) == 0;
+  ensures: netstring_cursor_index(result) == 0;
+  ensures: netstring_cursor_payload_offset(result) == -1 && netstring_cursor_payload_length(result) == -1;
+{
   return NetstringCursor{ pos: 0; index: 0; payload_offset: -1; payload_length: -1; };
 }
 
@@ -397,27 +432,35 @@ pub fn netstring_cursor_new() -> NetstringCursor {
 /// has been consumed and marks where an incomplete tail starts, so a
 /// streaming consumer can retain the tail, append more bytes and resume.
 /// Complexity: O(1).
-pub fn netstring_cursor_position(c: &NetstringCursor) -> Int {
+pub fn netstring_cursor_position(c: &NetstringCursor) -> Int
+  ensures: result == c.pos;
+{
   return c.pos;
 }
 
 /// Number of frames consumed so far.
 /// Complexity: O(1).
-pub fn netstring_cursor_index(c: &NetstringCursor) -> Int {
+pub fn netstring_cursor_index(c: &NetstringCursor) -> Int
+  ensures: result == c.index;
+{
   return c.index;
 }
 
 /// Absolute offset of the payload of the frame consumed by the last
 /// successful netstring_cursor_next, or -1 before the first one.
 /// Complexity: O(1).
-pub fn netstring_cursor_payload_offset(c: &NetstringCursor) -> Int {
+pub fn netstring_cursor_payload_offset(c: &NetstringCursor) -> Int
+  ensures: result == c.payload_offset;
+{
   return c.payload_offset;
 }
 
 /// Length in bytes of the payload of the frame consumed by the last
 /// successful netstring_cursor_next, or -1 before the first one.
 /// Complexity: O(1).
-pub fn netstring_cursor_payload_length(c: &NetstringCursor) -> Int {
+pub fn netstring_cursor_payload_length(c: &NetstringCursor) -> Int
+  ensures: result == c.payload_length;
+{
   return c.payload_length;
 }
 
@@ -430,7 +473,11 @@ pub fn netstring_cursor_payload_length(c: &NetstringCursor) -> Int {
 /// truncated tail can be retried after more bytes arrive. A cursor whose
 /// `pos` is negative is treated as exhausted.
 /// Complexity: O(frame length).
-pub fn netstring_cursor_next(data: &Vec[UInt8], c: &mut NetstringCursor) -> Result[Int, Str] {
+pub fn netstring_cursor_next(data: &Vec[UInt8], c: &mut NetstringCursor) -> Result[Int, Str]
+  ensures: c.pos < 0 || c.pos >= data.len() => result is Ok;
+  ensures: result is Ok && result.value >= 0 => c.index == c.index@pre + 1;
+  ensures: result is Err => c.index == c.index@pre;
+{
   let total = data.len();
   if c.pos < 0 || c.pos >= total {
     return _ok_int(-1);

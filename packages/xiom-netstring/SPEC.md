@@ -1,8 +1,6 @@
 # xiom.netstring -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.netstring`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/netstring.xi` (`module xiom.netstring`).
 Depends on `xiom.std`; the library module imports nothing from it (the tests
 add `xiom.test`, `xiom.io`, `xiom.string`, `xiom.string.compare`,
@@ -225,6 +223,51 @@ value or report `-1` (for negative sizes and out-of-range indices).
 | `netstring_digit_count` / `netstring_frame_size` | O(digits) |
 | `netstring_cursor_next` | O(frame length) |
 | cursor accessors | O(1) |
+
+## Contracts
+
+Runtime-checkable `ensures:` clauses on `src/netstring.xi` (hardening pass
+2026-10-07, compiler v0.64.0; no manifest change in this pass). 32 clauses
+across the 15 public entry points. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.netstring -TimeoutSec 60` runs ended
+`port: PASS (passed=21 failed=0 program_exit=0 exit=0)` with the clauses
+active; no clause was dropped. The probe-gated `netstring_append` frame-size
+clause passed both green runs and is kept.
+
+No clause calls a function that transitively calls the callee under
+contract: `netstring_append` and `netstring_frame_size` call only
+`netstring_digit_count` (which calls the private `_digit_count`), and
+`netstring_cursor_new` calls only the cursor accessors (which read cursor
+fields), so the runtime evaluator never re-enters a contract it is
+already checking.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `netstring_parse` | `ensures: data.len() == 0 => result is Ok`; `ensures: result is Err => data.len() > 0` | runtime-checked (guard pair) |
+| `netstring_count` | `ensures: result >= 0`; `ensures: result == l.payload_offsets.len()` | Z3-provable (bounds); runtime-checked (list field) |
+| `netstring_offset` | `ensures: i < 0 => result == -1`; `ensures: i >= l.payload_offsets.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < l.payload_offsets.len()` | Z3-provable (sentinel); runtime-checked (list field) |
+| `netstring_length` | `ensures: i < 0 => result == -1`; `ensures: i >= l.payload_lengths.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < l.payload_lengths.len()` | Z3-provable (sentinel); runtime-checked (list field) |
+| `netstring_payload` | `ensures: i < 0 => result is Err`; `ensures: i >= l.payload_offsets.len() => result is Err`; `ensures: result is Ok => i >= 0 && i < l.payload_offsets.len()` | Z3-provable (guard); runtime-checked (guard pair) |
+| `netstring_append` | `ensures: out.len() == out.len()@pre + netstring_digit_count(payload.len()) + 2 + payload.len()` | runtime-checked (exact frame-size formula; probe-gated, kept) |
+| `netstring_build` | `ensures: payloads.len() == 0 => result.len() == 0`; `ensures: result.len() >= 3 * payloads.len()` | runtime-checked (exact empty case; minimum frame size `3`) |
+| `netstring_digit_count` | `ensures: n < 0 => result == -1`; `ensures: n >= 0 => result >= 1`; `ensures: n >= 0 && n <= 9 => result == 1` | Z3-provable (sentinel/bounds/form) |
+| `netstring_frame_size` | `ensures: payload_len < 0 => result == -1`; `ensures: payload_len >= 0 => result == netstring_digit_count(payload_len) + 2 + payload_len`; `ensures: payload_len == 0 => result == 3` | Z3-provable (sentinel/form); runtime-checked (definitional cross-call) |
+| `netstring_cursor_new` | `ensures: netstring_cursor_position(result) == 0`; `ensures: netstring_cursor_index(result) == 0`; `ensures: netstring_cursor_payload_offset(result) == -1 && netstring_cursor_payload_length(result) == -1` | runtime-checked (public cross-calls on the result) |
+| `netstring_cursor_position` | `ensures: result == c.pos` | Z3-provable (pure scalar field) |
+| `netstring_cursor_index` | `ensures: result == c.index` | Z3-provable (pure scalar field) |
+| `netstring_cursor_payload_offset` | `ensures: result == c.payload_offset` | Z3-provable (pure scalar field) |
+| `netstring_cursor_payload_length` | `ensures: result == c.payload_length` | Z3-provable (pure scalar field) |
+| `netstring_cursor_next` | `ensures: c.pos < 0 || c.pos >= data.len() => result is Ok`; `ensures: result is Ok && result.value >= 0 => c.index == c.index@pre + 1`; `ensures: result is Err => c.index == c.index@pre` | runtime-checked (guard pair, scalar `Ok` payload, `@pre` field frames) |
+
+Z3-provable = pure scalar guard/form/bounds/sentinel over parameters and
+`result` (no calls, no vector/`Str` reads). Runtime-checked = the clause
+evaluates `data.len()`/`payload.len()`/list fields, calls another public
+function, or reads `@pre` state, and is enforced by the v0.64.0 runtime
+evaluator. The `netstring_parse` `Ok` payload (`NetstringList`) and the
+`netstring_payload` `Ok` payload (bytes copied out of a caller-supplied
+buffer) are not observable from the interface, so no clause inspects them;
+the parse clauses constrain only the `Err`/empty-input split, and the
+payload clauses constrain only the index domain.
 
 ## Test plan
 
