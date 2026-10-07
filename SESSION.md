@@ -14,6 +14,24 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-07 21:20Z (batch #33 COMPLETE + PUBLISHED `eco-v0.1.82`; supersedes the 21:00Z block below):**
+- **Batch #33 DONE + PUBLISHED (`eco-v0.1.82`, run `37687766436` SUCCESS; all six live at 0.1.2):**
+  `qoi` (55 clauses; 20/20), `hostfile` (33; 24/24), `dds` (35; 18/18), `pem` (22, 1
+  Z3-proven; 22/22), `pcf` (76 -- session-high single package; 20/20), `gbnf` (22; 30/30);
+  all x2 green on v0.64.0. Feats: `20efefff`, `cdfcf160`, `b5cd9dd7`, `6bece989`, `436024cb`,
+  `8971b2b3`; records: `8bd0ea64`, `2b0deaf3`, `b2514686`, `f626446b`, `0e56026a`, `cf700abb`;
+  wrap `899c88ea`. **~97 zero-clause stable carriers remain** (next: miniseed 834, rescan).
+- **Note:** the batch #33 porter brief carried batch #32's heading text (copy artifact);
+  all six porters correctly used `## Contracts (batch #33 ...)` after following the
+  convention. Also dds's six depth-4 pixel_format accessors stay excluded (no precedent).
+- **Compiler/grpc status unchanged:** main unpushed with m202/m206/m209/m210/m211; no
+  v0.64.1 archive; grpc staged (`95442d71`); drop-rules apply after a green repin re-test.
+- **Credential pattern unchanged:** write ops via temporary `gh auth switch` to
+  `Lefteris-Notas`, restore `Lefteris-Ngonart` afterwards.
+- **Next session priority:** batch #34 (rescan), and the item-2 grpc flow if v0.64.1 landed.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-07 21:00Z (batch #32 COMPLETE + PUBLISHED `eco-v0.1.81`; supersedes the 20:40Z block below):**
 - **Batch #32 DONE + PUBLISHED (`eco-v0.1.81`, run `37685150595` SUCCESS; all six live):**
   `bloom` 0.1.2 (41 clauses incl. no-false-negative, 7 Z3-proven; 25/25), `dbase` 0.1.3 (46,
@@ -1486,18 +1504,18 @@ running). Check `git log -1 --format=%h %s` before starting.
    category harmonization = owner decision; (d) keep the port watchdog
    discipline.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 21:00Z)
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 21:20Z)
 
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
-Read SESSION.md first -- the 2026-10-07 21:00Z STATE block is the live handoff.
+Read SESSION.md first -- the 2026-10-07 21:20Z STATE block is the live handoff.
 Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
 NO XIOM_RUNTIME_DIR needed (runtime-link + crypto-link RESOLVED; workaround retired).
-Validate 519/0; guard 504/464/40/0. Batches #19-#32 published (eco-v0.1.68-.81, 84
-packages live); ~103 zero-clause stable carriers remain. `option` stays excluded.
+Validate 519/0; guard 504/464/40/0. Batches #19-#33 published (eco-v0.1.68-.82, 90
+packages live); ~97 zero-clause stable carriers remain. `option` stays excluded.
 `xiom.grpc` is STAGED (`95442d71`; 36/36 x2 on the v0.64.1 candidate) -- record + publish
 held for the official v0.64.1 archive, NOT released yet (check
 `gh release list --repo xiom-lang/xiom`). Compiler main (unpushed) carries m202/m206/
@@ -1526,20 +1544,20 @@ Then do, in order:
    (generate_index, report, validate, guard, export-namespaces, tag, approve the
    registry-publish gate, watch, live-verify). On a fully green repin, update the porter
    brief templates + SESSION carry-forwards to DROP the tuple-ref destructure and
-   clone-avoidance rules. If the archive is NOT out: skip to batch #33 and re-check at
+   clone-avoidance rules. If the archive is NOT out: skip to batch #34 and re-check at
    the wrap.
-2. Hardening batch #33 (FAN-OUT): rescan zero-clause stable carriers
-   (`scripts/contract-coverage.ps1`), skip `option`; next six smallest (qoi 779 is the
-   current smallest after dhcp; verify with the sizing scan) via a read-only explore
+2. Hardening batch #34 (FAN-OUT): rescan zero-clause stable carriers
+   (`scripts/contract-coverage.ps1`), skip `option`; next six smallest (miniseed 834 is
+   the current smallest after gbnf; verify with the sizing scan) via a read-only explore
    pre-plan; per-package background `task` porters (brief template
-   %TEMP%\kilo\batch32-porter-brief.md; port x2; bracket scan; SPEC Contracts + header
+   %TEMP%\kilo\batch33-porter-brief.md; port x2; bracket scan; SPEC Contracts + header
    sync; NO git; NO shared files; explicit-path cleanup); coordinator integrates
    (port x2, patch bump, feat commit exact files, record with real sha +
    `-RunBy task:ses_...`; VERIFY reframed/strengthened clauses against hand-built inputs
    -- the toml key-emptiness reframe was unsound and was re-hardened); wrap + publish the
    next eco tag. Transient GitHub 500s on push: wait ~60-90s and retry.
 3. PULSE support: triage new `docs/PACKAGE-WISHLIST.md` rows from consumer reports
-   (none new at 21:00Z); new package names need an allowlist append + one ops scope relay.
+   (none new at 21:20Z); new package names need an allowlist append + one ops scope relay.
 4. Carry-forwards: `-TimeoutSec 60` watchdog (raise per package); port x2 + byte-level
    bracket scan on every touched package; SPEC headers synced when touched; bump ONLY
    when source changes; `xiom-verify` writes `xiom_verify_output.smt2` to the CWD (run it
