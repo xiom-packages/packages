@@ -1,6 +1,6 @@
 # xiom.vdf -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.vdf` (`src/vdf.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -285,3 +285,39 @@ idioms as `xiom.ini`/`xiom.toml` (byte-wise scanning with
 - Comments are dropped, not preserved or emitted.
 - Errors carry no line/column position.
 - No file I/O, no streaming, no registry integration.
+
+## Contracts (batch #31 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/vdf.xi` in the batch #31
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 10 clauses across the 8 public entry points; all are `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.vdf -TimeoutSec 60` runs ended
+`port: PASS (passed=23 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.0 s and 5.1 s); the 23-check conformance suite exercises every entry
+point and no clause trapped.
+
+Probe-gated outcome: the six probe-gated clauses on `vdf_root_keys`,
+`vdf_child_keys`, `vdf_get_str`, `vdf_get_int`, `vdf_get_bool` and `vdf_emit`
+all passed on the first port attempt and are kept. The package is **not
+clause-thin**: all 10 planned clauses were retained and none was dropped.
+
+All clauses are runtime-checked: each reads `Str`/`Vec` lengths or the
+`Result`/`Option` sort, so none is scalar-shape for the SMT backend.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `vdf_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime-checked (`Str` length + `Result` sort) |
+| `vdf_root_keys` | `ensures: result.len() <= d.keys.len()` (probe-gated, kept) | runtime-checked (Vec lengths) |
+| `vdf_child_keys` | `ensures: result.len() <= d.keys.len()` (probe-gated, kept) | runtime-checked (Vec lengths) |
+| `vdf_has` | `ensures: path.len() == 0 => result`; `ensures: !result => path.len() > 0` | runtime-checked (`Str` length + `Bool` sort) |
+| `vdf_get_str` | `ensures: result is Some => d.kinds.len() > 0 && d.values.len() > 0` (probe-gated, kept) | runtime-checked (`Option` sort + Vec lengths) |
+| `vdf_get_int` | same clause as `vdf_get_str` (probe-gated, kept) | runtime-checked (`Option` sort + Vec lengths) |
+| `vdf_get_bool` | same clause as `vdf_get_str` (probe-gated, kept) | runtime-checked (`Option` sort + Vec lengths) |
+| `vdf_emit` | `ensures: result.len() > 0 => d.keys.len() > 0` (probe-gated, kept) | runtime-checked (`Str` length + Vec length) |
+
+Deliberately not claimed: any empty-document or key-emptiness guard on the
+accessors (a hand-built `Vdf` may be key-empty); `Str` equality (BUG 17);
+tuple-component access; struct-result payload field reads. No clause calls
+another function; each reads only its own parameters and result, and no clause
+calls the private `_resolve`/`_child_end`/`_collect_keys` helpers.

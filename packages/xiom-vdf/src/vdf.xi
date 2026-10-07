@@ -379,7 +379,10 @@ fn _emit_quoted(out: &mut Vec[UInt8], s: Str) {
 /// preserved and lookup keeps the last one.
 /// Complexity: O(total input length); the temporary parse structure and the
 /// breadth-first flattening pass are both linear in the node count.
-pub fn vdf_parse(text: Str) -> Result[Vdf, Str] {
+pub fn vdf_parse(text: Str) -> Result[Vdf, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var t_keys = Vec[Str].new();
   var t_values = Vec[Str].new();
   var t_kinds = Vec[Int].new();
@@ -554,7 +557,9 @@ pub fn vdf_parse(text: Str) -> Result[Vdf, Str] {
 }
 
 /// Keys of the root block in document order, duplicates kept (a fresh copy).
-pub fn vdf_root_keys(d: &Vdf) -> Vec[Str] {
+pub fn vdf_root_keys(d: &Vdf) -> Vec[Str]
+  ensures: result.len() <= d.keys.len();
+{
   return _collect_keys(d, 0);
 }
 
@@ -562,7 +567,9 @@ pub fn vdf_root_keys(d: &Vdf) -> Vec[Str] {
 /// duplicates kept (a fresh copy). `""` addresses the root block. An absent
 /// path, a path that lands on a value node, or an empty segment yields an
 /// empty vector.
-pub fn vdf_child_keys(d: &Vdf, path: Str) -> Vec[Str] {
+pub fn vdf_child_keys(d: &Vdf, path: Str) -> Vec[Str]
+  ensures: result.len() <= d.keys.len();
+{
   let idx = _resolve(d, path);
   if idx < 0 {
     return Vec[Str].new();
@@ -576,14 +583,19 @@ pub fn vdf_child_keys(d: &Vdf, path: Str) -> Vec[Str] {
 
 /// True when `path` resolves to a node (value or block). `""` resolves to the
 /// root block, so `vdf_has(d, "")` is always true.
-pub fn vdf_has(d: &Vdf, path: Str) -> Bool {
+pub fn vdf_has(d: &Vdf, path: Str) -> Bool
+  ensures: path.len() == 0 => result;
+  ensures: !result => path.len() > 0;
+{
   return _resolve(d, path) >= 0;
 }
 
 /// Scalar value at `path`; None when the path is absent or resolves to a
 /// block. Path segments match keys ASCII case-insensitively; when a key
 /// repeats, the last occurrence wins.
-pub fn vdf_get_str(d: &Vdf, path: Str) -> Option[Str] {
+pub fn vdf_get_str(d: &Vdf, path: Str) -> Option[Str]
+  ensures: result is Some => d.kinds.len() > 0 && d.values.len() > 0;
+{
   let idx = _resolve(d, path);
   if idx < 0 {
     return None;
@@ -600,7 +612,9 @@ pub fn vdf_get_str(d: &Vdf, path: Str) -> Option[Str] {
 /// digits. None when the path is absent, resolves to a block, or the value is
 /// not a decimal integer (leading zeros are accepted, overflow is not
 /// detected).
-pub fn vdf_get_int(d: &Vdf, path: Str) -> Option[Int] {
+pub fn vdf_get_int(d: &Vdf, path: Str) -> Option[Int]
+  ensures: result is Some => d.kinds.len() > 0 && d.values.len() > 0;
+{
   let idx = _resolve(d, path);
   if idx < 0 {
     return None;
@@ -616,7 +630,9 @@ pub fn vdf_get_int(d: &Vdf, path: Str) -> Option[Int] {
 /// Boolean at `path`: "1" or "true" (ASCII case-insensitive) is true, "0" or
 /// "false" is false; None when the path is absent, resolves to a block, or
 /// the value is none of those four literals.
-pub fn vdf_get_bool(d: &Vdf, path: Str) -> Option[Bool] {
+pub fn vdf_get_bool(d: &Vdf, path: Str) -> Option[Bool]
+  ensures: result is Some => d.kinds.len() > 0 && d.values.len() > 0;
+{
   let idx = _resolve(d, path);
   if idx < 0 {
     return None;
@@ -651,7 +667,9 @@ pub fn vdf_get_bool(d: &Vdf, path: Str) -> Option[Bool] {
 /// from the root are emitted exactly once.
 /// Error case: none.
 /// Complexity: O(total output length); the traversal stack is O(depth).
-pub fn vdf_emit(d: &Vdf) -> Str {
+pub fn vdf_emit(d: &Vdf) -> Str
+  ensures: result.len() > 0 => d.keys.len() > 0;
+{
   var out = Vec[UInt8].new();
   var open_nodes = Vec[Int].new();
   var open_ends = Vec[Int].new();
