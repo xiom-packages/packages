@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T22:53:05Z",
+    "updated":  "2026-10-07T23:12:15Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -3103,7 +3103,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.html",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Tolerant HTML sanitizer: tag allowlist, attribute policy, script/style removal",
@@ -3113,7 +3113,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-html/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-html/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "html.xi",
                                               "package.xi"
@@ -4260,7 +4260,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.marc",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "MARC21 ISO 2709 record codec: parse and build library records",
@@ -4270,7 +4270,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-marc/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-marc/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "marc.xi",
                                               "package.xi"
@@ -4641,7 +4641,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.modbus",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Modbus RTU/TCP frame codec with CRC-16/Modbus and MBAP validation",
@@ -4651,7 +4651,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-modbus/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-modbus/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "modbus.xi",
                                               "package.xi"
@@ -8012,7 +8012,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.toml",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "TOML v1.0 subset parser with dotted-path lookups",
@@ -8022,7 +8022,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-toml/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-toml/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "toml.xi",
                                               "package.xi"
@@ -8154,7 +8154,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.transliteration",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "UTF-8 to ASCII transliteration for Latin, Greek, and Cyrillic text",
@@ -8164,7 +8164,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-transliteration/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-transliteration/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "transliteration.xi",
                                               "package.xi"
@@ -8765,7 +8765,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.woff",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM WOFF 1.0 font-container header and table directory codec",
@@ -8775,7 +8775,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-woff/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-woff/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "woff.xi",
                                               "package.xi"
