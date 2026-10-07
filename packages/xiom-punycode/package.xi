@@ -10,7 +10,7 @@
 
 package xiom_punycode {
   name: "xiom.punycode";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "RFC 3492 Punycode for IDN labels: xn-- encode/decode without external tables";
   categories: ["text-nlp","network"];
   keywords: ["punycode","idn","unicode","domain"];

@@ -493,7 +493,10 @@ fn _pc_has_xn_prefix(s: Str) -> Bool {
 /// Returns: true when no byte is >= 0x80; the empty label is ASCII.
 /// Error case: none.
 /// Complexity: O(label.len()).
-pub fn punycode_is_ascii_label(label: Str) -> Bool {
+pub fn punycode_is_ascii_label(label: Str) -> Bool
+  ensures: label.len() == 0 => result;
+  ensures: !result => label.len() > 0;
+{
   let n = label.len();
   var i = 0;
   while i < n {
@@ -514,7 +517,11 @@ pub fn punycode_is_ascii_label(label: Str) -> Bool {
 /// not well-formed UTF-8 (RFC 3629); Err("punycode: overflow") when the
 /// arithmetic would exceed _PC_MAXINT.
 /// Complexity: O(label.len()^2) worst case.
-pub fn punycode_encode_label(label: Str) -> Result[Str, Str] {
+pub fn punycode_encode_label(label: Str) -> Result[Str, Str]
+  ensures: label.len() == 0 => result is Ok;
+  ensures: punycode_is_ascii_label(label) => result is Ok;
+  ensures: result is Err => label.len() > 0;
+{
   if punycode_is_ascii_label(label) {
     return _pc_ok(label);
   }
@@ -549,7 +556,10 @@ pub fn punycode_encode_label(label: Str) -> Result[Str, Str] {
 /// Err("punycode: code point out of range") for non-terminating or
 /// out-of-range runs.
 /// Complexity: O(label.len()^2) worst case.
-pub fn punycode_decode_label(label: Str) -> Result[Str, Str] {
+pub fn punycode_decode_label(label: Str) -> Result[Str, Str]
+  ensures: label.len() == 0 => result is Ok;
+  ensures: result is Err => label.len() > 0;
+{
   return _pc_decode_label(label);
 }
 
@@ -560,7 +570,10 @@ pub fn punycode_decode_label(label: Str) -> Result[Str, Str] {
 /// Error case: the first Err from punycode_encode_label, propagated
 /// unchanged (invalid UTF-8 or overflow in one label).
 /// Complexity: O(sum of label encode costs).
-pub fn punycode_to_ascii(domain: Str) -> Result[Str, Str] {
+pub fn punycode_to_ascii(domain: Str) -> Result[Str, Str]
+  ensures: domain.len() == 0 => result is Ok;
+  ensures: result is Err => domain.len() > 0;
+{
   let labels = _pc_split_domain(domain);
   let n = labels.len();
   var out = Vec[UInt8].new();
@@ -597,7 +610,10 @@ pub fn punycode_to_ascii(domain: Str) -> Result[Str, Str] {
 /// Error case: the first Err from punycode_decode_label, propagated
 /// unchanged.
 /// Complexity: O(sum of label decode costs).
-pub fn punycode_to_unicode(domain: Str) -> Result[Str, Str] {
+pub fn punycode_to_unicode(domain: Str) -> Result[Str, Str]
+  ensures: domain.len() == 0 => result is Ok;
+  ensures: result is Err => domain.len() >= 5;
+{
   let labels = _pc_split_domain(domain);
   let n = labels.len();
   var out = Vec[UInt8].new();

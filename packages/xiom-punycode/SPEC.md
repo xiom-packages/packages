@@ -1,8 +1,6 @@
 # xiom.punycode -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.punycode`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/punycode.xi` (`module xiom.punycode`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`). No FFI, no
 external tables.
@@ -141,3 +139,40 @@ unchanged. Infallible functions: `punycode_is_ascii_label`.
 All string equality in the suite goes through
 `xiom.string.compare.str_compare` (BUG 17: `==` on `Str` values read from
 `Vec[Str]` lowers to a pointer comparison).
+
+## Contracts (batch #28 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/punycode.xi` in the batch
+#28 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 11 clauses across the 5 public entry points; all
+are `ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+Two consecutive `& .\scripts\port.ps1 -Package xiom.punycode -TimeoutSec 60`
+runs ended `port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the
+clauses active (7.01 s and 6.93 s); the 20-check conformance suite exercises
+every entry point, including the invalid-UTF-8, invalid-digit, overflow and
+out-of-range `Err` paths and the empty-input cases, and no clause trapped.
+
+All 11 clauses are runtime-checked: each reads a `Str` length, a `Result` tag,
+or (one clause) calls `punycode_is_ascii_label`, so none is claimed
+Z3-provable.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `punycode_is_ascii_label` | `ensures: label.len() == 0 => result`; `ensures: !result => label.len() > 0` | runtime-checked (`Str` length + Bool guard pair) |
+| `punycode_encode_label` | `ensures: label.len() == 0 => result is Ok`; `ensures: punycode_is_ascii_label(label) => result is Ok`; `ensures: result is Err => label.len() > 0` | runtime-checked (`Result` tag + `Str` length; one non-re-entrant cross-call) |
+| `punycode_decode_label` | `ensures: label.len() == 0 => result is Ok`; `ensures: result is Err => label.len() > 0` | runtime-checked (`Result` tag + `Str` length) |
+| `punycode_to_ascii` | `ensures: domain.len() == 0 => result is Ok`; `ensures: result is Err => domain.len() > 0` | runtime-checked (`Result` tag + `Str` length) |
+| `punycode_to_unicode` | `ensures: domain.len() == 0 => result is Ok`; `ensures: result is Err => domain.len() >= 5` | runtime-checked (`Result` tag + `Str` length) |
+
+The one cross-call, `punycode_is_ascii_label(label) => result is Ok` on
+`punycode_encode_label`, is safe: the predicate scans bytes only and never
+calls back into `punycode_encode_label` (non-re-entrant). The
+`punycode_to_unicode` lower bound (`result is Err => domain.len() >= 5`) was
+verified against the source's `Err` paths: `Err` can only surface through
+`punycode_decode_label` on an `xn--` label payload, and the shortest such
+label is five bytes (`xn--` plus at least one digit byte); a four-byte `xn--`
+label yields the empty payload, which decodes to `Ok("")`.
+
+Deliberately not claimed: `Ok` payload lengths on the label decoders
+(payload-length-vs-parameter is a forbidden shape); `Str` equality anywhere
+(BUG 17). No clause was dropped.
