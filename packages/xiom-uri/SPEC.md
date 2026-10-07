@@ -1,6 +1,6 @@
 # xiom.uri -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.uri` (`src/uri.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -144,6 +144,32 @@ the query once; `uri_host`/`uri_port` scan the authority once).
   `=` yields `Some("")`. The value is percent-decoded; on a decode error the
   raw value is returned literally. `None` when the query is empty or the
   name is absent.
+
+## Contracts
+
+Every public entry point carries runtime-checkable `ensures:` clauses, placed
+directly after the signature (two-space indent, before `{`). No `requires:`
+clauses: every entry point is total or a documented parser. Tags: **[Z3]** =
+pure-scalar clause proved by `xiom-verify`; **[RT]** = runtime-checked. No
+clause calls a function, reads a `Result`/`Option` payload, indexes a vector
+or compares `Str` values.
+
+- `uri_parse(s)`: [RT] `s.len() == 0 => result is Ok`; [RT] `result is Err => s.len() > 0`.
+- `uri_to_string(u)`: [RT] `u.scheme.len() == 0 && u.authority.len() == 0 && u.path.len() == 0 && u.query.len() == 0 && u.fragment.len() == 0 => result.len() == 0`; [RT] `result.len() >= u.scheme.len() + u.path.len()`; [RT] `result.len() >= u.query.len() + u.fragment.len()`.
+- `uri_percent_decode(s)`: [RT] `s.len() == 0 => result is Ok`; [RT] `result is Err => s.len() >= 1`.
+- `uri_percent_encode(s, encode_reserved)`: [RT] `s.len() == 0 => result.len() == 0`; [RT] `result.len() >= s.len()`; [RT] `result.len() <= 3 * s.len()`.
+- `uri_host(u)`: [RT] `u.authority.len() == 0 => result.len() == 0`; [RT] `result.len() <= u.authority.len()`.
+- `uri_port(u)`: [RT] `result >= -1`; [RT] `result <= 999999999999999999`; [RT] `u.authority.len() == 0 => result == -1`.
+- `uri_query_get(u, name)`: [RT] `u.query.len() == 0 => result is None`; [RT] `result is Some => u.query.len() > 0`.
+- `uri_is_absolute(u)`: [RT] `u.scheme.len() == 0 => !result`; [RT] `result => u.scheme.len() > 0`.
+
+19 clauses total (0 Z3-provable; 19 runtime-checked); no clause dropped. The
+`uri_port` upper bound is loop-derived: the accumulator stops before a run
+longer than 18 digits, so `result <= 999999999999999999` is checked at runtime,
+not by Z3. The `uri_to_string` lower bounds were re-derived from the emitter:
+`scheme` contributes `scheme.len() + 1` and the path is always pushed, while
+`query` and `fragment` each add one separator byte plus their length when
+non-empty, so both sums hold for every `Uri`.
 
 ## 7. Error catalog
 

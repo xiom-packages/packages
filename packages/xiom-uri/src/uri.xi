@@ -213,7 +213,10 @@ fn _scheme_ok(s: Str, end: Int) -> Bool {
 /// Err("uri: invalid scheme") when the scheme prefix before the first ':'
 /// is not ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ).
 /// Complexity: O(s.len()).
-pub fn uri_parse(s: Str) -> Result[Uri, Str] {
+pub fn uri_parse(s: Str) -> Result[Uri, Str]
+  ensures: s.len() == 0 => result is Ok;
+  ensures: result is Err => s.len() > 0;
+{
   let n = s.len();
   var scheme = "";
   var pos = 0;
@@ -272,7 +275,11 @@ pub fn uri_parse(s: Str) -> Result[Uri, Str] {
 /// not preserved -- see SPEC.md section 10).
 /// Error case: none.
 /// Complexity: O(output length).
-pub fn uri_to_string(u: &Uri) -> Str {
+pub fn uri_to_string(u: &Uri) -> Str
+  ensures: u.scheme.len() == 0 && u.authority.len() == 0 && u.path.len() == 0 && u.query.len() == 0 && u.fragment.len() == 0 => result.len() == 0;
+  ensures: result.len() >= u.scheme.len() + u.path.len();
+  ensures: result.len() >= u.query.len() + u.fragment.len();
+{
   let scheme: Str = u.scheme;
   let authority: Str = u.authority;
   let path: Str = u.path;
@@ -357,7 +364,10 @@ fn _hex_upper(v: Int) -> UInt8 {
 /// by two bytes, Err("uri: invalid percent escape") when either following
 /// byte is not a hex digit.
 /// Complexity: O(s.len()).
-pub fn uri_percent_decode(s: Str) -> Result[Str, Str] {
+pub fn uri_percent_decode(s: Str) -> Result[Str, Str]
+  ensures: s.len() == 0 => result is Ok;
+  ensures: result is Err => s.len() >= 1;
+{
   let n = s.len();
   var out = builder.sb_new();
   var i = 0;
@@ -390,7 +400,11 @@ pub fn uri_percent_decode(s: Str) -> Result[Str, Str] {
 /// hex. Non-ASCII input is encoded byte-wise, one %XX per UTF-8 byte.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn uri_percent_encode(s: Str, encode_reserved: Bool) -> Str {
+pub fn uri_percent_encode(s: Str, encode_reserved: Bool) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() >= s.len();
+  ensures: result.len() <= 3 * s.len();
+{
   let n = s.len();
   var out = builder.sb_new();
   var i = 0;
@@ -436,7 +450,10 @@ fn _host_part(a: Str) -> Str {
 /// is a port candidate.
 /// Error case: none.
 /// Complexity: O(authority length).
-pub fn uri_host(u: &Uri) -> Str {
+pub fn uri_host(u: &Uri) -> Str
+  ensures: u.authority.len() == 0 => result.len() == 0;
+  ensures: result.len() <= u.authority.len();
+{
   let authority: Str = u.authority;
   let hp = _host_part(authority);
   let n = hp.len();
@@ -461,7 +478,11 @@ pub fn uri_host(u: &Uri) -> Str {
 /// contains any non-digit. No range check against 65535 is performed.
 /// Error case: none.
 /// Complexity: O(authority length).
-pub fn uri_port(u: &Uri) -> Int {
+pub fn uri_port(u: &Uri) -> Int
+  ensures: result >= -1;
+  ensures: result <= 999999999999999999;
+  ensures: u.authority.len() == 0 => result == -1;
+{
   let authority: Str = u.authority;
   let hp = _host_part(authority);
   let n = hp.len();
@@ -516,7 +537,10 @@ pub fn uri_port(u: &Uri) -> Int {
 /// segments are skipped. None when the name is absent or the query is empty.
 /// Error case: none.
 /// Complexity: O(query length).
-pub fn uri_query_get(u: &Uri, name: Str) -> Option[Str] {
+pub fn uri_query_get(u: &Uri, name: Str) -> Option[Str]
+  ensures: u.query.len() == 0 => result is None;
+  ensures: result is Some => u.query.len() > 0;
+{
   let q: Str = u.query;
   let n = q.len();
   var start = 0;
@@ -554,7 +578,10 @@ pub fn uri_query_get(u: &Uri, name: Str) -> Option[Str] {
 /// reference.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn uri_is_absolute(u: &Uri) -> Bool {
+pub fn uri_is_absolute(u: &Uri) -> Bool
+  ensures: u.scheme.len() == 0 => !result;
+  ensures: result => u.scheme.len() > 0;
+{
   let scheme: Str = u.scheme;
   return scheme.len() > 0;
 }
