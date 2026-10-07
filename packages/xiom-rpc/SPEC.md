@@ -1,8 +1,6 @@
 # xiom.rpc -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.rpc`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/rpc.xi` (`module xiom.rpc`).
 Depends on `xiom.std` (`xiom.string`, `xiom.convert`). No FFI, no network,
 no clock access, no sibling-package imports.
@@ -231,3 +229,39 @@ directly. `xiom.convert.int_to_string` renders ids and codes;
 `xiom.string.str_contains` backs the two probes. The tests route every
 string comparison through `str_compare` and only take `&` of locals at call
 sites, so the E001 aliasing warning does not fire.
+
+## Contracts (batch #24 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/rpc.xi` in the batch #24
+hardening pass (compiler v0.64.0; the coordinator bumps `package.xi` to
+0.1.2 at integration): 23 clauses across all 11 public entry points, all
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+Every clause reads a `Str` length, a built-`Str` result length, a
+`Bool`/`Result` sort or the `str_contains` scan, so none is pure-scalar and
+all are runtime-checked; no Z3 proof is claimed. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.rpc -TimeoutSec 60` runs ended
+`port: PASS (passed=27 failed=0 program_exit=0 exit=0)` with the clauses
+active (10.1 s and 10.3 s); the 27-check conformance suite exercises every
+entry point and no clause trapped.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `rpc_escape` | `ensures: s.len() == 0 => result.len() == 0`; `ensures: result.len() >= s.len()`; `ensures: result.len() <= 6 * s.len()` | runtime-checked (built-`Str` length; each input byte emits 1..6 bytes) |
+| `rpc_request` | `ensures: result.len() >= method.len() + params_json.len()`; `ensures: params_json.len() == 0 => result.len() >= method.len() + 36` | runtime-checked (`Str` lengths; 36 = 35 scaffold bytes + 1..n id digits) |
+| `rpc_notification` | `ensures: result.len() >= method.len() + params_json.len()`; `ensures: params_json.len() == 0 => result.len() >= method.len() + 29` | runtime-checked (`Str` lengths; 29 scaffold bytes) |
+| `rpc_response` | `ensures: result.len() >= result_json.len()`; `ensures: result_json.len() == 0 => result.len() >= 38` | runtime-checked (`Str` lengths; 38 = 26-byte prefix + `null` + `,"id":` + 1..n id digits + `}`) |
+| `rpc_error` | `ensures: result.len() >= message.len() + data_json.len()`; `ensures: data_json.len() == 0 => result.len() >= message.len() + 56` | runtime-checked (`Str` lengths; 56 = 54 scaffold/key bytes + 1..n code and id digits, verified against the minimal data-less envelope `{"jsonrpc":"2.0","error":{"code":0,"message":""},"id":0}`) |
+| `rpc_is_request` | `ensures: text.len() < 7 => !result`; `ensures: result => text.len() >= 7` | runtime-checked (`str_contains` scan; `jsonrpc` is 7 bytes) |
+| `rpc_is_error` | `ensures: text.len() < 5 => !result`; `ensures: result => text.len() >= 5` | runtime-checked (`str_contains` scan; `error` is 5 bytes) |
+| `rpc_id` | `ensures: text.len() == 0 => result is Err`; `ensures: result is Ok => text.len() >= 6` | runtime-checked (`Str` length + scan; minimal Ok shape `"id":0`) |
+| `rpc_method` | `ensures: text.len() == 0 => result is Err`; `ensures: result is Ok => text.len() >= 11` | runtime-checked (`Str` length + scan; minimal Ok shape `"method":""`) |
+| `rpc_error_code` | `ensures: text.len() == 0 => result is Err`; `ensures: result is Ok => text.len() >= 8` | runtime-checked (`Str` length + scan; minimal Ok shape `"code":0`) |
+| `rpc_error_message` | `ensures: text.len() == 0 => result is Err`; `ensures: result is Ok => text.len() >= 12` | runtime-checked (`Str` length + scan; minimal Ok shape `"message":""`) |
+
+Deliberately not claimed: any `Int` range on `rpc_id` / `rpc_error_code`
+(the readers accept the full signed 64-bit domain); a payload-length clause
+on `rpc_method` / `rpc_error_message` (the forbidden
+`result.value.len() <= <param>.len()` shape); exact builder or escape
+lengths (`xiom.convert.int_to_string` and the per-byte escape expansion are
+not modeled); `Str` equality (BUG 17). No clause calls another function
+under contract, so the runtime evaluator cannot cycle.

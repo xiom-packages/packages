@@ -94,7 +94,11 @@ fn _hex_digit(v: Int) -> Str {
 /// through unchanged; `/` is not escaped.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn rpc_escape(s: Str) -> Str {
+pub fn rpc_escape(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() >= s.len();
+  ensures: result.len() <= 6 * s.len();
+{
   let n = s.len();
   var out = "";
   var i = 0;
@@ -132,7 +136,10 @@ pub fn rpc_escape(s: Str) -> Str {
 /// Returns: the compact envelope text.
 /// Error case: none (the caller owns the validity of params_json).
 /// Complexity: O(method.len() + params_json.len()).
-pub fn rpc_request(id: Int, method: Str, params_json: Str) -> Str {
+pub fn rpc_request(id: Int, method: Str, params_json: Str) -> Str
+  ensures: result.len() >= method.len() + params_json.len();
+  ensures: params_json.len() == 0 => result.len() >= method.len() + 36;
+{
   var out = "{\"jsonrpc\":\"2.0\",\"method\":\"" + rpc_escape(method) + "\"";
   if params_json.len() > 0 {
     out = out + ",\"params\":" + params_json;
@@ -148,7 +155,10 @@ pub fn rpc_request(id: Int, method: Str, params_json: Str) -> Str {
 /// Returns: the compact envelope text.
 /// Error case: none.
 /// Complexity: O(method.len() + params_json.len()).
-pub fn rpc_notification(method: Str, params_json: Str) -> Str {
+pub fn rpc_notification(method: Str, params_json: Str) -> Str
+  ensures: result.len() >= method.len() + params_json.len();
+  ensures: params_json.len() == 0 => result.len() >= method.len() + 29;
+{
   var out = "{\"jsonrpc\":\"2.0\",\"method\":\"" + rpc_escape(method) + "\"";
   if params_json.len() > 0 {
     out = out + ",\"params\":" + params_json;
@@ -166,7 +176,10 @@ pub fn rpc_notification(method: Str, params_json: Str) -> Str {
 /// Returns: the compact envelope text.
 /// Error case: none.
 /// Complexity: O(result_json.len()).
-pub fn rpc_response(id: Int, result_json: Str) -> Str {
+pub fn rpc_response(id: Int, result_json: Str) -> Str
+  ensures: result.len() >= result_json.len();
+  ensures: result_json.len() == 0 => result.len() >= 38;
+{
   var result = result_json;
   if result.len() == 0 {
     result = "null";
@@ -185,7 +198,10 @@ pub fn rpc_response(id: Int, result_json: Str) -> Str {
 /// Returns: the compact envelope text.
 /// Error case: none.
 /// Complexity: O(message.len() + data_json.len()).
-pub fn rpc_error(id: Int, code: Int, message: Str, data_json: Str) -> Str {
+pub fn rpc_error(id: Int, code: Int, message: Str, data_json: Str) -> Str
+  ensures: result.len() >= message.len() + data_json.len();
+  ensures: data_json.len() == 0 => result.len() >= message.len() + 56;
+{
   var out = "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":" + convert.int_to_string(code) + ",\"message\":\"" + rpc_escape(message) + "\"";
   if data_json.len() > 0 {
     out = out + ",\"data\":" + data_json;
@@ -413,7 +429,10 @@ fn _int_value(text: Str, key: Str) -> Result[Int, Str] {
 /// Returns: true when both substrings occur.
 /// Error case: none.
 /// Complexity: O(text.len()).
-pub fn rpc_is_request(text: Str) -> Bool {
+pub fn rpc_is_request(text: Str) -> Bool
+  ensures: text.len() < 7 => !result;
+  ensures: result => text.len() >= 7;
+{
   if !string.str_contains(text, "jsonrpc") {
     return false;
   }
@@ -427,7 +446,10 @@ pub fn rpc_is_request(text: Str) -> Bool {
 /// Returns: true when the substring occurs.
 /// Error case: none.
 /// Complexity: O(text.len()).
-pub fn rpc_is_error(text: Str) -> Bool {
+pub fn rpc_is_error(text: Str) -> Bool
+  ensures: text.len() < 5 => !result;
+  ensures: result => text.len() >= 5;
+{
   return string.str_contains(text, "error");
 }
 
@@ -444,7 +466,10 @@ pub fn rpc_is_error(text: Str) -> Bool {
 /// value") when the value is not `-?digit...`; Err("rpc: malformed integer
 /// value") for junk after the digits; Err("rpc: integer out of range").
 /// Complexity: O(text.len()).
-pub fn rpc_id(text: Str) -> Result[Int, Str] {
+pub fn rpc_id(text: Str) -> Result[Int, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() >= 6;
+{
   return _int_value(text, "id");
 }
 
@@ -458,7 +483,10 @@ pub fn rpc_id(text: Str) -> Result[Int, Str] {
 /// value") when the value is not a quoted string; Err("rpc: unterminated
 /// string value") when the closing quote is missing.
 /// Complexity: O(text.len()).
-pub fn rpc_method(text: Str) -> Result[Str, Str] {
+pub fn rpc_method(text: Str) -> Result[Str, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() >= 11;
+{
   return _string_value(text, "method");
 }
 
@@ -469,7 +497,10 @@ pub fn rpc_method(text: Str) -> Result[Str, Str] {
 /// Error case: Err("rpc: key not found: code") plus the integer errors of
 /// rpc_id.
 /// Complexity: O(text.len()).
-pub fn rpc_error_code(text: Str) -> Result[Int, Str] {
+pub fn rpc_error_code(text: Str) -> Result[Int, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() >= 8;
+{
   return _int_value(text, "code");
 }
 
@@ -481,6 +512,9 @@ pub fn rpc_error_code(text: Str) -> Result[Int, Str] {
 /// Error case: Err("rpc: key not found: message") plus the string errors of
 /// rpc_method.
 /// Complexity: O(text.len()).
-pub fn rpc_error_message(text: Str) -> Result[Str, Str] {
+pub fn rpc_error_message(text: Str) -> Result[Str, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() >= 12;
+{
   return _string_value(text, "message");
 }
