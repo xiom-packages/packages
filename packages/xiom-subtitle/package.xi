@@ -11,7 +11,7 @@
 
 package xiom_subtitle {
   name: "xiom.subtitle";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "SRT and WebVTT subtitle parsing, formatting, and shifting";
   categories: ["text-nlp", "media"];
   keywords: ["subtitle", "srt", "vtt", "captions"];

@@ -1,6 +1,6 @@
 # xiom.subtitle -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.subtitle` (`src/subtitle.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -243,3 +243,56 @@ Workarounds carried by this module, in the style of `xiom.wav`:
 - Cue settings are dropped on read; styled cue payloads are plain text.
 - A leading UTF-8 BOM is not stripped (the first line then fails to parse as
   an index or header).
+
+## Contracts (batch #27 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/subtitle.xi` in the batch
+#27 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 22 clauses across the 10 public entry points; all
+are `ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+Two consecutive
+`& .\scripts\port.ps1 -Package xiom.subtitle -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (12.8 s and 7.4 s); the 20-check conformance suite exercises every
+entry point -- including the out-of-range accessor sentinels, the hand-built
+`Subtitle` vectors and the empty-track operations -- and no clause trapped.
+
+All 22 clauses are runtime-checked. `xiom-verify --check` (v0.64.0, bundled
+Z3) reports `0 proven, 0 violated, 24 unknown, 2 errors` for this module: the
+`Result` guard pairs and the `Vec`/struct field-length counts reach the SMT
+backend as unresolved-sort operands (X7007), so no clause is claimed
+Z3-provable. The two errors are the known leaf-helper emitter bug
+(`unknown constant _split_lines` in the generated SMT), not proof failures of
+the clauses.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `srt_parse` | `ensures: text.len() == 0 => result is Err`; `ensures: result is Ok => text.len() > 0` | runtime-checked (`Result` tag + `Str` length) |
+| `vtt_parse` | `ensures: text.len() < 6 => result is Err`; `ensures: result is Ok => text.len() >= 6` | runtime-checked (`Result` tag + `Str` length) |
+| `srt_format` | `ensures: s.starts.len() == 0 => result.len() == 0` | runtime-checked (built `Str` length) |
+| `vtt_format` | `ensures: result.len() >= 7`; `ensures: s.starts.len() == 0 => result.len() == 7` | runtime-checked (built `Str` length; exact 7-byte `"WEBVTT\n"` header) |
+| `subtitle_shift` | `ensures: result.starts.len() == s.starts.len()`; `ensures: result.ends.len() == result.starts.len()`; `ensures: result.texts.len() == result.starts.len()` | runtime-checked (plain-struct field-length counts) |
+| `subtitle_cue_count` | `ensures: result == s.starts.len()` | runtime-checked (`Vec` length count) |
+| `subtitle_start_ms` | `ensures: i < 0 => result == -1`; `ensures: i >= s.starts.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < s.starts.len()` | runtime-checked (scalar sentinel + `Vec` length) |
+| `subtitle_end_ms` | `ensures: i < 0 => result == -1`; `ensures: i >= s.ends.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < s.ends.len()` | runtime-checked (scalar sentinel + `Vec` length) |
+| `subtitle_text` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= s.texts.len() => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < s.texts.len()` | runtime-checked (built `Str` length + `Vec` length) |
+| `subtitle_total_duration_ms` | `ensures: result >= 0`; `ensures: s.ends.len() == 0 => result == 0` | runtime-checked (scalar result + `Vec` length) |
+
+The two parser guard pairs are tag-only: they observe the `Result` constructor
+and the input `text.len()`, never the `Ok` payload. `vtt_parse`'s `< 6` lower
+bound and `vtt_format`'s `>= 7` bound with the exact-7 empty case were checked
+against the source (`"WEBVTT\n"` is the seed of every output; an empty track
+returns it unchanged). The `subtitle_shift` clauses read plain `Subtitle`
+result fields directly (blas `matrix_new` / control `filter` precedent, not
+payload access) and are phrased as `result.*` counts against `s.*` counts, so
+they hold for drifted hand-built tracks as well as parsed ones.
+`subtitle_total_duration_ms` is indexing-free (a max-fold over `s.ends`), so
+it needs no element claims.
+
+Deliberately not claimed: any parser `Ok`-payload observation (the
+`Subtitle` struct -- the clauses are tag-only); payload-length-vs-parameter
+on `Result`; element-range or per-cue minimum/maximum claims over hand-built
+vectors; vector indexing inside a clause; `Str` equality (BUG 17); and every
+forbidden shape from the batch #27 brief (tuple-component access,
+struct-result payload fields, clause calls). No clause calls any function;
+all conditions are parameter/`result` scalar shapes or field-length counts.

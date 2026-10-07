@@ -381,7 +381,10 @@ fn _vtt_parse_lines(lines: &Vec[Str]) -> Result[Subtitle, Str] {
 /// Errors: "subtitle: empty input" (no cue blocks), "subtitle: bad index",
 /// "subtitle: malformed block", "subtitle: missing arrow",
 /// "subtitle: bad time", "subtitle: missing cue text"; see SPEC.md.
-pub fn srt_parse(text: Str) -> Result[Subtitle, Str] {
+pub fn srt_parse(text: Str) -> Result[Subtitle, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() > 0;
+{
   let lines = _split_lines(text);
   if lines.len() == 0 { return _err_sub("subtitle: empty input"); }
   return _srt_parse_lines(&lines);
@@ -396,7 +399,10 @@ pub fn srt_parse(text: Str) -> Result[Subtitle, Str] {
 /// A header with no cues is a valid, empty Subtitle.
 /// Errors: "subtitle: missing WEBVTT header", "subtitle: missing arrow",
 /// "subtitle: bad time", "subtitle: missing cue text"; see SPEC.md.
-pub fn vtt_parse(text: Str) -> Result[Subtitle, Str] {
+pub fn vtt_parse(text: Str) -> Result[Subtitle, Str]
+  ensures: text.len() < 6 => result is Err;
+  ensures: result is Ok => text.len() >= 6;
+{
   let lines = _split_lines(text);
   if lines.len() == 0 { return _err_sub("subtitle: missing WEBVTT header"); }
   let header: Str = lines[0];
@@ -466,7 +472,9 @@ fn _fmt_time(ms: Int, sep: Str) -> Str {
 /// Cues are re-numbered from 1 in order; timestamps use the ',' separator;
 /// lines are joined with LF; cue blocks are separated by a blank line and
 /// the last cue's text line is terminated by LF. An empty Subtitle yields "".
-pub fn srt_format(s: &Subtitle) -> Str {
+pub fn srt_format(s: &Subtitle) -> Str
+  ensures: s.starts.len() == 0 => result.len() == 0;
+{
   var out = "";
   let n = s.starts.len();
   var i = 0;
@@ -493,7 +501,10 @@ pub fn srt_format(s: &Subtitle) -> Str {
 /// (when there is at least one cue), then the cues without indices;
 /// timestamps use the '.' separator; cue blocks are separated by a blank
 /// line. An empty Subtitle yields "WEBVTT\n".
-pub fn vtt_format(s: &Subtitle) -> Str {
+pub fn vtt_format(s: &Subtitle) -> Str
+  ensures: result.len() >= 7;
+  ensures: s.starts.len() == 0 => result.len() == 7;
+{
   var out = "WEBVTT\n";
   let n = s.starts.len();
   if n > 0 { out = out + "\n"; }
@@ -521,7 +532,11 @@ pub fn vtt_format(s: &Subtitle) -> Str {
 /// Shift every cue by `delta_ms` (positive = later, negative = earlier),
 /// clamping both times at 0. The cue count, texts and ordering are
 /// preserved.
-pub fn subtitle_shift(s: &Subtitle, delta_ms: Int) -> Subtitle {
+pub fn subtitle_shift(s: &Subtitle, delta_ms: Int) -> Subtitle
+  ensures: result.starts.len() == s.starts.len();
+  ensures: result.ends.len() == result.starts.len();
+  ensures: result.texts.len() == result.starts.len();
+{
   var ns = Vec[Int].new();
   var ne = Vec[Int].new();
   var nt = Vec[Str].new();
@@ -544,13 +559,19 @@ pub fn subtitle_shift(s: &Subtitle, delta_ms: Int) -> Subtitle {
 }
 
 /// Number of cues in the track.
-pub fn subtitle_cue_count(s: &Subtitle) -> Int {
+pub fn subtitle_cue_count(s: &Subtitle) -> Int
+  ensures: result == s.starts.len();
+{
   return s.starts.len();
 }
 
 /// Start time of cue `i` in milliseconds; -1 when `i` is negative or out of
 /// range.
-pub fn subtitle_start_ms(s: &Subtitle, i: Int) -> Int {
+pub fn subtitle_start_ms(s: &Subtitle, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.starts.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.starts.len();
+{
   if i < 0 { return -1; }
   if i >= s.starts.len() { return -1; }
   let v: Int = s.starts[i];
@@ -559,7 +580,11 @@ pub fn subtitle_start_ms(s: &Subtitle, i: Int) -> Int {
 
 /// End time of cue `i` in milliseconds; -1 when `i` is negative or out of
 /// range.
-pub fn subtitle_end_ms(s: &Subtitle, i: Int) -> Int {
+pub fn subtitle_end_ms(s: &Subtitle, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.ends.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.ends.len();
+{
   if i < 0 { return -1; }
   if i >= s.ends.len() { return -1; }
   let v: Int = s.ends[i];
@@ -568,7 +593,11 @@ pub fn subtitle_end_ms(s: &Subtitle, i: Int) -> Int {
 
 /// Text of cue `i` (lines joined with "\n"); "" when `i` is negative or out
 /// of range.
-pub fn subtitle_text(s: &Subtitle, i: Int) -> Str {
+pub fn subtitle_text(s: &Subtitle, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= s.texts.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < s.texts.len();
+{
   if i < 0 { return ""; }
   if i >= s.texts.len() { return ""; }
   let v: Str = s.texts[i];
@@ -577,7 +606,10 @@ pub fn subtitle_text(s: &Subtitle, i: Int) -> Str {
 
 /// Duration of the track in milliseconds: the maximum cue end time,
 /// clamped at 0, and 0 for an empty track.
-pub fn subtitle_total_duration_ms(s: &Subtitle) -> Int {
+pub fn subtitle_total_duration_ms(s: &Subtitle) -> Int
+  ensures: result >= 0;
+  ensures: s.ends.len() == 0 => result == 0;
+{
   var m = 0;
   let n = s.ends.len();
   var i = 0;
