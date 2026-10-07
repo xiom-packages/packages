@@ -1,6 +1,6 @@
 # xiom.dimacs -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `xiom.dimacs` (`src/dimacs.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -230,3 +230,42 @@ XIOM v0.61.3 workarounds used (same shape as the other ported codecs):
   each accumulate step.
 - `_scan_uint` returns a `(value, next, status)` tuple (the stdlib
   `xiom.convert.atoi` shape); callers bind the fields to locals.
+
+## Contracts (batch #23 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/dimacs.xi` in the batch #23
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 25 clauses across the 11 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.dimacs -TimeoutSec 60` runs
+ended `port: PASS (passed=25 failed=0 program_exit=0 exit=0)` with the clauses
+active (14.0 s and 12.5 s); the 25-check conformance suite exercises every
+entry point and no clause trapped. Both probe-gated `dimacs_add_clause`
+clauses (the two `@pre` length counts) passed the first run and are kept.
+
+"Z3-provable" marks the scalar-shape family the SMT backend can discharge
+without executing the function; runtime-checked clauses read `Str`/`Vec`
+lengths, `@pre` snapshots through `&mut`, or public accessor cross-calls on a
+struct result.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `dimacs_parse` | `ensures: text.len() == 0 => result is Err`; `ensures: result is Ok => text.len() >= 9` | Z3-provable (first, pure scalar guard); runtime-checked (second, `Str` length + Result sort) |
+| `dimacs_emit` | `ensures: result.len() >= 10`; `ensures: result.len() >= c.clauses` | runtime-checked (built `Str` length; field read) |
+| `dimacs_new` | `ensures: dimacs_var_count(result) == vars`; `ensures: dimacs_clause_count(result) == 0`; `ensures: dimacs_literal_count(result) == 0` | runtime-checked (struct result via public accessor cross-calls) |
+| `dimacs_add_clause` | `ensures: c.clauses == c.clauses@pre + 1`; `ensures: c.lits.len() == c.lits.len()@pre + clause.len()`; `ensures: c.offs.len() == c.offs.len()@pre + 1` | runtime-checked (`@pre` frame through `&mut`; both length clauses probe-gated and kept) |
+| `dimacs_var_count` | `ensures: result == c.vars` | Z3-provable (pure scalar) |
+| `dimacs_clause_count` | `ensures: result == c.clauses` | Z3-provable (pure scalar) |
+| `dimacs_literal_count` | `ensures: result == c.lits.len()`; `ensures: result >= 0` | Z3-provable (scalar-shape counts) |
+| `dimacs_literal` | `ensures: i < 0 => result == 0`; `ensures: i >= c.lits.len() => result == 0`; `ensures: result != 0 => i >= 0 && i < c.lits.len()` | Z3-provable (scalar-shape sentinel) |
+| `dimacs_clause_start` | `ensures: k < 0 => result == -1`; `ensures: k >= c.clauses => result == -1`; `ensures: result != -1 => k >= 0 && k < c.clauses` | Z3-provable (scalar-shape sentinel) |
+| `dimacs_clause_len` | `ensures: k < 0 => result == -1`; `ensures: k >= c.clauses => result == -1` | Z3-provable (scalar-shape sentinel) |
+| `dimacs_clause_literal` | `ensures: k < 0 => result == 0`; `ensures: k >= c.clauses => result == 0`; `ensures: j < 0 => result == 0` | Z3-provable (scalar-shape sentinel) |
+
+Deliberately not claimed: a roundtrip or self-referential clause on
+`dimacs_emit`; any clause indexing `c.offs[k]`; `dimacs_clause_len` result
+non-negativity (`offs[k + 1] - offs[k]` can be negative for hand-built
+`offs`); `Str` equality (BUG 17); tuple-component access; struct-result
+payload field reads. No clause calls a function that wraps its callee; the
+only cross-calls are `dimacs_new`'s three public accessor reads on its own
+result.

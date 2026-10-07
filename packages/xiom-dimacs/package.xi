@@ -9,7 +9,7 @@
 
 package xiom_dimacs {
   name: "xiom.dimacs";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "DIMACS CNF parsing and canonical emission with strict validation";
   categories: ["science"];
   keywords: ["dimacs", "cnf", "sat", "format"];

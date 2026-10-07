@@ -140,7 +140,10 @@ fn _scan_uint(text: Str, i: Int, n: Int) -> (Int, Int, Int) {
 /// Error case: Err(message) from the SPEC.md error catalog; line-local
 /// problems name the 1-based source line.
 /// Complexity: O(n) over the document with O(1) work per byte.
-pub fn dimacs_parse(text: Str) -> Result[Cnf, Str] {
+pub fn dimacs_parse(text: Str) -> Result[Cnf, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() >= 9;
+{
   let n = text.len();
   var vars: Int = 0;
   var declared: Int = 0;
@@ -311,7 +314,10 @@ pub fn dimacs_parse(text: Str) -> Result[Cnf, Str] {
 /// with LF. Zero clauses yield only the header line.
 /// Error case: none; the formula's invariants are assumed (see Cnf).
 /// Complexity: O(n) over the output.
-pub fn dimacs_emit(c: &Cnf) -> Str {
+pub fn dimacs_emit(c: &Cnf) -> Str
+  ensures: result.len() >= 10;
+  ensures: result.len() >= c.clauses;
+{
   var out = "p cnf " + int_to_string(c.vars) + " " + int_to_string(c.clauses) + "\n";
   var k = 0;
   while k < c.clauses {
@@ -338,7 +344,11 @@ pub fn dimacs_emit(c: &Cnf) -> Str {
 /// Returns: a fresh Cnf with clauses = 0 and empty flat storage.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn dimacs_new(vars: Int) -> Cnf {
+pub fn dimacs_new(vars: Int) -> Cnf
+  ensures: dimacs_var_count(result) == vars;
+  ensures: dimacs_clause_count(result) == 0;
+  ensures: dimacs_literal_count(result) == 0;
+{
   var offs = Vec[Int].new();
   offs.push(0);
   return Cnf{
@@ -356,7 +366,11 @@ pub fn dimacs_new(vars: Int) -> Cnf {
 /// clause's literals plus one boundary offset.
 /// Error case: none.
 /// Complexity: O(|clause|).
-pub fn dimacs_add_clause(c: &mut Cnf, clause: &Vec[Int]) {
+pub fn dimacs_add_clause(c: &mut Cnf, clause: &Vec[Int])
+  ensures: c.clauses == c.clauses@pre + 1;
+  ensures: c.lits.len() == c.lits.len()@pre + clause.len();
+  ensures: c.offs.len() == c.offs.len()@pre + 1;
+{
   var j = 0;
   while j < clause.len() {
     let lit: Int = clause[j];
@@ -376,7 +390,9 @@ pub fn dimacs_add_clause(c: &mut Cnf, clause: &Vec[Int]) {
 /// Returns: c.vars.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn dimacs_var_count(c: &Cnf) -> Int {
+pub fn dimacs_var_count(c: &Cnf) -> Int
+  ensures: result == c.vars;
+{
   return c.vars;
 }
 
@@ -385,7 +401,9 @@ pub fn dimacs_var_count(c: &Cnf) -> Int {
 /// Returns: c.clauses.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn dimacs_clause_count(c: &Cnf) -> Int {
+pub fn dimacs_clause_count(c: &Cnf) -> Int
+  ensures: result == c.clauses;
+{
   return c.clauses;
 }
 
@@ -394,7 +412,10 @@ pub fn dimacs_clause_count(c: &Cnf) -> Int {
 /// Returns: the flat literal count.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn dimacs_literal_count(c: &Cnf) -> Int {
+pub fn dimacs_literal_count(c: &Cnf) -> Int
+  ensures: result == c.lits.len();
+  ensures: result >= 0;
+{
   return c.lits.len();
 }
 
@@ -404,7 +425,11 @@ pub fn dimacs_literal_count(c: &Cnf) -> Int {
 /// (literals themselves are never 0, so 0 is an unambiguous sentinel).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn dimacs_literal(c: &Cnf, i: Int) -> Int {
+pub fn dimacs_literal(c: &Cnf, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= c.lits.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < c.lits.len();
+{
   if i < 0 || i >= c.lits.len() {
     return 0;
   }
@@ -417,7 +442,11 @@ pub fn dimacs_literal(c: &Cnf, i: Int) -> Int {
 /// Returns: offs[k]; -1 when `k` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn dimacs_clause_start(c: &Cnf, k: Int) -> Int {
+pub fn dimacs_clause_start(c: &Cnf, k: Int) -> Int
+  ensures: k < 0 => result == -1;
+  ensures: k >= c.clauses => result == -1;
+  ensures: result != -1 => k >= 0 && k < c.clauses;
+{
   if k < 0 || k >= c.clauses {
     return -1;
   }
@@ -431,7 +460,10 @@ pub fn dimacs_clause_start(c: &Cnf, k: Int) -> Int {
 /// negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn dimacs_clause_len(c: &Cnf, k: Int) -> Int {
+pub fn dimacs_clause_len(c: &Cnf, k: Int) -> Int
+  ensures: k < 0 => result == -1;
+  ensures: k >= c.clauses => result == -1;
+{
   if k < 0 || k >= c.clauses {
     return -1;
   }
@@ -448,7 +480,11 @@ pub fn dimacs_clause_len(c: &Cnf, k: Int) -> Int {
 /// clause's nonexistent literal reads as).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn dimacs_clause_literal(c: &Cnf, k: Int, j: Int) -> Int {
+pub fn dimacs_clause_literal(c: &Cnf, k: Int, j: Int) -> Int
+  ensures: k < 0 => result == 0;
+  ensures: k >= c.clauses => result == 0;
+  ensures: j < 0 => result == 0;
+{
   if k < 0 || k >= c.clauses {
     return 0;
   }
