@@ -342,7 +342,10 @@ fn _write_header(out: &mut Vec[UInt8], name: Str, size: Int) {
 /// otherwise; data_offsets points at the first payload byte in `data`.
 /// Padding after a payload is skipped (512-byte alignment). Bytes after
 /// the terminating zero block are ignored.
-pub fn tar_parse(data: &Vec[UInt8]) -> Result[TarArchive, Str] {
+pub fn tar_parse(data: &Vec[UInt8]) -> Result[TarArchive, Str]
+  ensures: data.len() == 0 => result is Ok;
+  ensures: result is Err => data.len() > 0;
+{
   var names = Vec[Str].new();
   var types = Vec[Int].new();
   var sizes = Vec[Int].new();
@@ -414,14 +417,21 @@ pub fn tar_parse(data: &Vec[UInt8]) -> Result[TarArchive, Str] {
 }
 
 /// Number of parsed entries. Complexity: O(1).
-pub fn tar_entry_count(a: &TarArchive) -> Int {
+pub fn tar_entry_count(a: &TarArchive) -> Int
+  ensures: result == a.names.len();
+  ensures: result >= 0;
+{
   return a.names.len();
 }
 
 /// Name of entry `i` (including the joined ustar prefix). Out-of-range
 /// indices return "" (the archive API stays infallible here; tar_entry_data
 /// reports range errors). Complexity: O(1).
-pub fn tar_entry_name(a: &TarArchive, i: Int) -> Str {
+pub fn tar_entry_name(a: &TarArchive, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= a.names.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < a.names.len();
+{
   if i < 0 {
     return "";
   }
@@ -434,7 +444,11 @@ pub fn tar_entry_name(a: &TarArchive, i: Int) -> Str {
 
 /// Declared size in bytes of entry `i`; 0 for an out-of-range index.
 /// Complexity: O(1).
-pub fn tar_entry_size(a: &TarArchive, i: Int) -> Int {
+pub fn tar_entry_size(a: &TarArchive, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= a.sizes.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < a.sizes.len();
+{
   if i < 0 {
     return 0;
   }
@@ -451,7 +465,11 @@ pub fn tar_entry_size(a: &TarArchive, i: Int) -> Int {
 /// tar_entry_count(a); Err("tar: truncated data") when the recorded range
 /// does not fit in `data` (for example when a shorter buffer is passed).
 /// A zero-size entry (directory) yields an empty Ok. Complexity: O(size).
-pub fn tar_entry_data(data: &Vec[UInt8], a: &TarArchive, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn tar_entry_data(data: &Vec[UInt8], a: &TarArchive, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= a.names.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < a.names.len();
+{
   if i < 0 {
     return _err_bytes("tar: entry out of range");
   }
@@ -490,7 +508,11 @@ pub fn tar_entry_data(data: &Vec[UInt8], a: &TarArchive, i: Int) -> Result[Vec[U
 /// are accepted and stored without a NUL terminator. An empty build (no
 /// entries) yields the 1024-byte terminator alone. Complexity: O(total
 /// payload + 512 * entries).
-pub fn tar_build(names: &Vec[Str], payloads: &Vec[Vec[UInt8]]) -> Result[Vec[UInt8], Str] {
+pub fn tar_build(names: &Vec[Str], payloads: &Vec[Vec[UInt8]]) -> Result[Vec[UInt8], Str]
+  ensures: names.len() != payloads.len() => result is Err;
+  ensures: result is Ok => names.len() == payloads.len();
+  ensures: result is Ok => result.value.len() >= 1024;
+{
   if names.len() != payloads.len() {
     return _err_bytes("tar: payload count mismatch");
   }

@@ -1,8 +1,8 @@
 # xiom.tar -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.tar`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
+Manifest: `package.xi` (`xiom.tar`, version `0.1.2`; the coordinator bumps to
+`0.1.3` at integration).
 Module: `src/tar.xi` (`module xiom.tar`).
 Depends on `xiom.std` (`xiom.string`: `byte_at`, `str_concat`).
 
@@ -267,3 +267,45 @@ Last verified: compiler 0.61.3,
 - `Str::from_utf8(Vec[UInt8])` is the stdlib byte-to-string conversion used
   for header fields; `string.byte_at` / `string.str_concat` come from
   `xiom.string`. The module declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #25 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/tar.xi` in the batch #25
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 16 clauses across the 6 public entry points; all are `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.tar -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active (11.8 s and 12.2 s); the 22-check conformance suite exercises every
+entry point -- including the out-of-range accessor sentinels and hand-built
+archives -- and no clause trapped.
+
+"Z3-provable" marks the scalar-shape family the SMT backend can discharge
+without executing the function (pure scalar guards/bounds over parameters
+and `result`, field-length counts); runtime-checked clauses observe a
+`Result` tag or compare a built `Str`/`Vec` length, and all are enforced by
+the v0.64.0 runtime evaluator.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `tar_parse` | `ensures: data.len() == 0 => result is Ok`; `ensures: result is Err => data.len() > 0` | Z3-provable (pure scalar guard); runtime-checked (`Result` tag + `Vec` length) |
+| `tar_entry_count` | `ensures: result == a.names.len()`; `ensures: result >= 0` | Z3-provable (scalar-shape counts) |
+| `tar_entry_name` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= a.names.len() => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < a.names.len()` | runtime-checked (built `Str` length + `Vec` length) |
+| `tar_entry_size` | `ensures: i < 0 => result == 0`; `ensures: i >= a.sizes.len() => result == 0`; `ensures: result != 0 => i >= 0 && i < a.sizes.len()` | Z3-provable (scalar-shape sentinel) |
+| `tar_entry_data` | `ensures: i < 0 => result is Err`; `ensures: i >= a.names.len() => result is Err`; `ensures: result is Ok => i >= 0 && i < a.names.len()` | runtime-checked (`Result` tag + `Vec` length) |
+| `tar_build` | `ensures: names.len() != payloads.len() => result is Err`; `ensures: result is Ok => names.len() == payloads.len()`; `ensures: result is Ok => result.value.len() >= 1024` | runtime-checked (`Result` tag + counts + payload length) |
+
+Deliberately not claimed: any read of the `tar_parse` `Ok` payload (the
+`TarArchive` struct fields are not read on a `Result` payload);
+`a.data_offsets[i]` or any vector indexing inside a clause; the converse of
+the `tar_entry_data` range guards (`result is Err` may also come from a
+hand-built archive's negative offset/size or from a short source buffer); the
+converse of the `tar_build` count guard (`result is Err` may also mean
+"tar: name too long" for a name above 100 bytes); and every forbidden shape
+from the batch #25 brief (tuple-component access, payload-length-vs-parameter
+comparisons, struct-result payload fields, `Str` equality, postcondition
+call-cycles). No clause calls any function; all conditions are
+parameter/`result` scalar shapes or field-length counts. The optional third
+`tar_build` clause (`result is Ok => result.value.len() >= 1024`, the
+two-zero-block terminator floor) ported cleanly on the first attempt and is
+kept.
