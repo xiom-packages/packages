@@ -170,7 +170,10 @@ fn _prof_parse_line(line: Str, line_no: Int) -> Result[ProfData, Str] {
 /// line N: ...") on the first malformed line (N counts every physical line,
 /// blank lines included).
 /// Complexity: O(text length).
-pub fn prof_parse(text: Str) -> Result[ProfData, Str] {
+pub fn prof_parse(text: Str) -> Result[ProfData, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   let len = text.len();
   var stacks = Vec[Str].new();
   var counts = Vec[Int].new();
@@ -208,7 +211,9 @@ pub fn prof_parse(text: Str) -> Result[ProfData, Str] {
 /// Total sample count: the sum of every entry's count. An empty table is 0.
 /// Params: data - the table (not merged; duplicates are each summed).
 /// Returns: the total. Complexity: O(entries).
-pub fn prof_total(data: &ProfData) -> Int {
+pub fn prof_total(data: &ProfData) -> Int
+  ensures: data.counts.len() == 0 => result == 0;
+{
   var total = 0;
   var i = 0;
   while i < data.counts.len() {
@@ -220,7 +225,10 @@ pub fn prof_total(data: &ProfData) -> Int {
 }
 
 /// Number of folded stack entries (lines), not frames. Complexity: O(1).
-pub fn prof_stack_count(data: &ProfData) -> Int {
+pub fn prof_stack_count(data: &ProfData) -> Int
+  ensures: result >= 0;
+  ensures: result == data.stacks.len();
+{
   return data.stacks.len();
 }
 
@@ -229,7 +237,10 @@ pub fn prof_stack_count(data: &ProfData) -> Int {
 /// first match's count is returned; call prof_merge_same to combine first.
 /// Params: data - the table; stack - the whole ';'-joined stack text.
 /// Returns: the count, or 0 when absent. Complexity: O(entries).
-pub fn prof_count_for(data: &ProfData, stack: Str) -> Int {
+pub fn prof_count_for(data: &ProfData, stack: Str) -> Int
+  ensures: data.stacks.len() == 0 => result == 0;
+  ensures: result != 0 => data.stacks.len() > 0;
+{
   var i = 0;
   while i < data.stacks.len() {
     let s: Str = data.stacks[i];
@@ -248,7 +259,11 @@ pub fn prof_count_for(data: &ProfData, stack: Str) -> Int {
 /// O(entries * distinct stacks).
 /// Params: data - the table to compact.
 /// Returns: a new table with distinct stacks (empty for empty input).
-pub fn prof_merge_same(data: &ProfData) -> ProfData {
+pub fn prof_merge_same(data: &ProfData) -> ProfData
+  ensures: prof_stack_count(result) <= data.stacks.len();
+  ensures: prof_total(result) == prof_total(data);
+  ensures: data.stacks.len() > 0 => prof_stack_count(result) >= 1;
+{
   var out_stacks = Vec[Str].new();
   var out_counts = Vec[Int].new();
   var i = 0;
@@ -274,7 +289,11 @@ pub fn prof_merge_same(data: &ProfData) -> ProfData {
 /// Params: data - the table.
 /// Returns: one leaf name per distinct leaf, in first-seen order.
 /// Complexity: O(entries * distinct leaves).
-pub fn prof_leaf(data: &ProfData) -> Vec[Str] {
+pub fn prof_leaf(data: &ProfData) -> Vec[Str]
+  ensures: data.stacks.len() == 0 => result.len() == 0;
+  ensures: result.len() <= data.stacks.len();
+  ensures: data.stacks.len() > 0 => result.len() >= 1;
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < data.stacks.len() {
@@ -293,7 +312,11 @@ pub fn prof_leaf(data: &ProfData) -> Vec[Str] {
 /// Empty for empty input. Params: data - the table.
 /// Returns: a new table keyed by leaf. Complexity:
 /// O(entries * distinct leaves).
-pub fn prof_leaf_totals(data: &ProfData) -> ProfData {
+pub fn prof_leaf_totals(data: &ProfData) -> ProfData
+  ensures: prof_stack_count(result) <= data.stacks.len();
+  ensures: prof_total(result) == prof_total(data);
+  ensures: data.stacks.len() > 0 => prof_stack_count(result) >= 1;
+{
   var out_stacks = Vec[Str].new();
   var out_counts = Vec[Int].new();
   var i = 0;
@@ -322,7 +345,11 @@ pub fn prof_leaf_totals(data: &ProfData) -> ProfData {
 /// Params: data - the table; k - how many lines to emit.
 /// Returns: up to min(k, size) lines; empty for empty input or k <= 0.
 /// Complexity: O(entries^2) worst case (stable insertion sort).
-pub fn prof_top(data: &ProfData, k: Int) -> Vec[Str] {
+pub fn prof_top(data: &ProfData, k: Int) -> Vec[Str]
+  ensures: k <= 0 => result.len() == 0;
+  ensures: result.len() <= data.stacks.len();
+  ensures: k > 0 => result.len() <= k;
+{
   var out = Vec[Str].new();
   let n = data.stacks.len();
   var limit = k;
@@ -373,7 +400,11 @@ pub fn prof_top(data: &ProfData, k: Int) -> Vec[Str] {
 /// unchanged. Duplicates are preserved as separate entries (not merged).
 /// Params: data - the table; depth - frames to keep from the leaf end.
 /// Returns: a new table with the same counts. Complexity: O(total length).
-pub fn prof_collapse_depth(data: &ProfData, depth: Int) -> ProfData {
+pub fn prof_collapse_depth(data: &ProfData, depth: Int) -> ProfData
+  ensures: depth < 1 => prof_stack_count(result) == 0;
+  ensures: depth >= 1 => prof_stack_count(result) == data.stacks.len();
+  ensures: depth >= 1 => prof_total(result) == prof_total(data);
+{
   var out_stacks = Vec[Str].new();
   var out_counts = Vec[Int].new();
   if depth < 1 {

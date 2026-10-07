@@ -1,6 +1,6 @@
 # xiom.profiling -- Specification
 
-Status: incubating, pure XIOM (no FFI), package version 0.1.0.
+Version: 0.1.2 (stable; published on the XIOM registry).
 This document is normative for the behavior pinned by
 `tests/test_conformance.xi`.
 
@@ -174,3 +174,44 @@ suite passes when all print `[PASS]` and `main` returns 0.
 - Frame normalization (addresses, offsets, inlining, module paths).
 - Multi-frame-precision stack traces: frames must already be collapsed and
   `;`-joined; space-joined traces are not accepted (section 3).
+
+## Contracts (batch #20 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/profiling.xi` in the
+batch #20 hardening pass (compiler v0.64.0; no version bump): 22 clauses
+across the 9 public entry points. Two consecutive
+`.\scripts\port.ps1 -Package xiom.profiling -TimeoutSec 60` runs ended
+`port: PASS (passed=26 failed=0 program_exit=0 exit=0)` with the clauses
+active (6.0 s and 5.6 s). The 26-check conformance suite exercises all 9
+entry points with the clauses active; none trapped.
+
+All clauses are `ensures:`; no `requires:` was added, so the accepted-input
+domain is unchanged. Only `prof_stack_count`'s `result >= 0` is a pure
+scalar expression (`result` arithmetic only, no calls or field reads), the
+shape the Z3 emitter can reason about; every other clause observes
+`Str`/`Vec` lengths or calls public functions, so the v0.64.0 emitter
+leaves it unchecked and it is runtime-checked.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `prof_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime-checked (tag-only; Ok payload is the `ProfData` struct, never read) |
+| `prof_total` | `ensures: data.counts.len() == 0 => result == 0` | runtime-checked |
+| `prof_stack_count` | `ensures: result >= 0` | Z3-provable (pure scalar) |
+| `prof_stack_count` | `ensures: result == data.stacks.len()` | runtime-checked (struct-field length) |
+| `prof_count_for` | `ensures: data.stacks.len() == 0 => result == 0`; `ensures: result != 0 => data.stacks.len() > 0` | runtime-checked |
+| `prof_merge_same` | `ensures: prof_stack_count(result) <= data.stacks.len()` | runtime-checked (cross-call) |
+| `prof_merge_same` | `ensures: prof_total(result) == prof_total(data)` | runtime-checked (cross-call) |
+| `prof_merge_same` | `ensures: data.stacks.len() > 0 => prof_stack_count(result) >= 1` | runtime-checked (cross-call) |
+| `prof_leaf` | `ensures: data.stacks.len() == 0 => result.len() == 0`; `ensures: result.len() <= data.stacks.len()`; `ensures: data.stacks.len() > 0 => result.len() >= 1` | runtime-checked (Vec-result lengths) |
+| `prof_leaf_totals` | `ensures: prof_stack_count(result) <= data.stacks.len()`; `ensures: prof_total(result) == prof_total(data)`; `ensures: data.stacks.len() > 0 => prof_stack_count(result) >= 1` | runtime-checked (cross-call) |
+| `prof_top` | `ensures: k <= 0 => result.len() == 0`; `ensures: result.len() <= data.stacks.len()`; `ensures: k > 0 => result.len() <= k` | runtime-checked (Vec-result lengths) |
+| `prof_collapse_depth` | `ensures: depth < 1 => prof_stack_count(result) == 0`; `ensures: depth >= 1 => prof_stack_count(result) == data.stacks.len()`; `ensures: depth >= 1 => prof_total(result) == prof_total(data)` | runtime-checked (cross-call) |
+
+Struct results (`ProfData`) are observed only through the public cross-calls
+`prof_stack_count`/`prof_total`; neither reads `result.value.*`, and both
+targets are terminal leaves (they call no other function), so there is no
+postcondition call-cycle (transitive re-entry 0). No clause uses tuple-
+component access, a `Result` payload field, a struct payload field, or `Str`
+equality. `prof_total`/`prof_count_for` deliberately carry no `result >= 0`
+claim: a hand-built `ProfData` may hold negative counts, which those
+functions return verbatim.

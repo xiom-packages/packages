@@ -10,7 +10,7 @@
 
 package xiom_profiling {
   name: "xiom.profiling";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Folded-stack sampling profile analysis: parse, aggregate leaves, top stacks";
   categories: ["tooling"];
   keywords: ["profiling","flamegraph","sampling","stacks"];
