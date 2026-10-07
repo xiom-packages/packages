@@ -1,6 +1,6 @@
 # xiom.inline-asm -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.inline.asm` (`src/inline_asm.xi`). Pure XIOM, no FFI, no
 codegen.
 
@@ -259,3 +259,49 @@ are masked (`(b as Int) & 0xFF`). No `&struct.field` is passed as a `&Vec`
 parameter; literal accumulation uses the proven `Vec[UInt8]` +
 `Str::from_utf8` pattern of the sibling packages. No compiler workarounds
 beyond these documented patterns were required.
+
+## Contracts (batch #32 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/inline_asm.xi` in the
+batch #32 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 36 clauses across the 17 public entry points;
+all are `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive `& .\scripts\port.ps1 -Package xiom.inline-asm
+-TimeoutSec 60` runs ended `port: PASS (passed=24 failed=0 program_exit=0
+exit=0)` with the clauses active (5.6 s and 5.1 s); the 24-check
+conformance suite exercises every entry point and no clause trapped. No
+clause was dropped and none was probe-gated.
+
+"Z3-provable" marks the scalar-shape family the SMT backend can discharge
+without executing the function; runtime-checked clauses read `Str`/`Vec`
+lengths, `@pre` snapshots through `&mut`, or public accessor cross-calls on
+a struct result. The only cross-call used in a clause is the public
+`asm_template_chunk_count(t)`; the private `_chunk_count` never appears in
+a clause.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `asm_template_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | Z3-provable (guard pair; `Result` tag + `Str` length) |
+| `asm_template_new` | `ensures: asm_template_chunk_count(result) == 0`; `ensures: asm_template_operand_count(result) == 0` | runtime-checked (struct result via public accessor cross-calls) |
+| `asm_template_push_literal` | `ensures: text.len() == 0 => t.kinds.len() == t.kinds.len()@pre`; `ensures: t.kinds.len() <= t.kinds.len()@pre + 1` | runtime-checked (`@pre` length frame through `&mut`) |
+| `asm_template_push_operand` | `ensures: index < 0 => t.kinds.len() == t.kinds.len()@pre`; `ensures: index >= 0 => t.kinds.len() == t.kinds.len()@pre + 1`; `ensures: t.operand_count >= t.operand_count@pre` | runtime-checked (`@pre` length/count frames through `&mut`) |
+| `asm_template_chunk_count` | `ensures: result >= 0`; `ensures: result <= t.kinds.len()` | Z3-provable (scalar-shape count) |
+| `asm_template_operand_count` | `ensures: result >= 0` | Z3-provable (pure scalar) |
+| `asm_template_kind` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= asm_template_chunk_count(t) => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < asm_template_chunk_count(t)` | runtime-checked (empty-`Str` sentinel trio; public chunk-count cross-call) |
+| `asm_template_text` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= asm_template_chunk_count(t) => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < asm_template_chunk_count(t)` | runtime-checked (empty-`Str` sentinel trio; public chunk-count cross-call) |
+| `asm_template_index` | `ensures: i < 0 => result == -1`; `ensures: i >= asm_template_chunk_count(t) => result == -1`; `ensures: result != -1 => i >= 0 && i < asm_template_chunk_count(t)` | runtime-checked (-1 sentinel trio; public chunk-count cross-call) |
+| `asm_template_uses` | `ensures: index < 0 => result == 0`; `ensures: result >= 0`; `ensures: result <= asm_template_chunk_count(t)` | runtime-checked (count + public chunk-count cross-call) |
+| `asm_template_max_operand` | `ensures: result >= -1`; `ensures: asm_template_chunk_count(t) == 0 => result == -1` | runtime-checked (empty-guard + public chunk-count cross-call) |
+| `asm_template_emit` | `ensures: asm_template_chunk_count(t) == 0 => result.len() == 0` | runtime-checked (empty-guard only) |
+| `asm_constraint_class` | `ensures: result.len() > 0`; `ensures: c.len() == 0 => result.len() == 4` | runtime-checked (`Str` lengths; `"none"` is 4 bytes) |
+| `asm_constraint_is_output` | `ensures: c.len() == 0 => !result`; `ensures: result => c.len() > 0` | Z3-provable (guard pair on `Str` length) |
+| `asm_constraint_is_valid` | `ensures: c.len() == 0 => !result`; `ensures: result => c.len() > 0` | Z3-provable (guard pair on `Str` length) |
+| `asm_clobbers_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | Z3-provable (guard pair; `Result` tag + `Str` length) |
+| `asm_clobbers_emit` | `ensures: names.len() == 0 => result.len() == 0` | runtime-checked (empty-guard only) |
+
+Deliberately not claimed: `Str` equality (BUG 17; only `.len()`); literal
+text identity or round-trip clauses; vector indexing anywhere in a clause;
+`result.value` payload field reads; struct-result payload field reads; any
+clause calling a function that wraps its callee. `asm_template_emit` and
+`asm_clobbers_emit` carry only their empty-guard clause, and no clause
+strengthens a guard beyond what hand-built structs satisfy.

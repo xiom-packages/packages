@@ -182,7 +182,10 @@ fn _parse_digits(s: Str, from: Int, to: Int) -> Int {
 /// Returns: an empty AsmTemplate.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn asm_template_new() -> AsmTemplate {
+pub fn asm_template_new() -> AsmTemplate
+  ensures: asm_template_chunk_count(result) == 0;
+  ensures: asm_template_operand_count(result) == 0;
+{
   return AsmTemplate{
     kinds: Vec[Str].new();
     texts: Vec[Str].new();
@@ -197,7 +200,10 @@ pub fn asm_template_new() -> AsmTemplate {
 /// Returns: nothing.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn asm_template_push_literal(t: &mut AsmTemplate, text: Str) {
+pub fn asm_template_push_literal(t: &mut AsmTemplate, text: Str)
+  ensures: text.len() == 0 => t.kinds.len() == t.kinds.len()@pre;
+  ensures: t.kinds.len() <= t.kinds.len()@pre + 1;
+{
   if text.len() == 0 {
     return;
   }
@@ -216,7 +222,11 @@ pub fn asm_template_push_literal(t: &mut AsmTemplate, text: Str) {
 /// Returns: nothing.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn asm_template_push_operand(t: &mut AsmTemplate, index: Int, constraint: Str) {
+pub fn asm_template_push_operand(t: &mut AsmTemplate, index: Int, constraint: Str)
+  ensures: index < 0 => t.kinds.len() == t.kinds.len()@pre;
+  ensures: index >= 0 => t.kinds.len() == t.kinds.len()@pre + 1;
+  ensures: t.operand_count >= t.operand_count@pre;
+{
   if index < 0 {
     return;
   }
@@ -245,7 +255,10 @@ pub fn asm_template_push_operand(t: &mut AsmTemplate, index: Int, constraint: St
 /// offset of the operand's "$", except "bad constraint character", which
 /// carries the offset of that character.
 /// Complexity: O(input length).
-pub fn asm_template_parse(text: Str) -> Result[AsmTemplate, Str] {
+pub fn asm_template_parse(text: Str) -> Result[AsmTemplate, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var kinds = Vec[Str].new();
   var texts = Vec[Str].new();
   var indexes = Vec[Int].new();
@@ -385,7 +398,10 @@ fn _chunk_count(t: &AsmTemplate) -> Int {
 /// Returns: the chunk count; 0 for an empty template.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn asm_template_chunk_count(t: &AsmTemplate) -> Int {
+pub fn asm_template_chunk_count(t: &AsmTemplate) -> Int
+  ensures: result >= 0;
+  ensures: result <= t.kinds.len();
+{
   return _chunk_count(t);
 }
 
@@ -396,7 +412,9 @@ pub fn asm_template_chunk_count(t: &AsmTemplate) -> Int {
 /// Returns: the operand count; never negative.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn asm_template_operand_count(t: &AsmTemplate) -> Int {
+pub fn asm_template_operand_count(t: &AsmTemplate) -> Int
+  ensures: result >= 0;
+{
   let v: Int = t.operand_count;
   if v < 0 {
     return 0;
@@ -409,7 +427,11 @@ pub fn asm_template_operand_count(t: &AsmTemplate) -> Int {
 /// Returns: "lit" or "op"; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn asm_template_kind(t: &AsmTemplate, i: Int) -> Str {
+pub fn asm_template_kind(t: &AsmTemplate, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= asm_template_chunk_count(t) => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < asm_template_chunk_count(t);
+{
   if i < 0 || i >= _chunk_count(t) {
     return "";
   }
@@ -423,7 +445,11 @@ pub fn asm_template_kind(t: &AsmTemplate, i: Int) -> Str {
 /// Returns: the text; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn asm_template_text(t: &AsmTemplate, i: Int) -> Str {
+pub fn asm_template_text(t: &AsmTemplate, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= asm_template_chunk_count(t) => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < asm_template_chunk_count(t);
+{
   if i < 0 || i >= _chunk_count(t) {
     return "";
   }
@@ -437,7 +463,11 @@ pub fn asm_template_text(t: &AsmTemplate, i: Int) -> Str {
 /// for any out-of-range `i`.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn asm_template_index(t: &AsmTemplate, i: Int) -> Int {
+pub fn asm_template_index(t: &AsmTemplate, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= asm_template_chunk_count(t) => result == -1;
+  ensures: result != -1 => i >= 0 && i < asm_template_chunk_count(t);
+{
   if i < 0 || i >= _chunk_count(t) {
     return -1;
   }
@@ -450,7 +480,11 @@ pub fn asm_template_index(t: &AsmTemplate, i: Int) -> Int {
 /// Returns: the reference count; 0 for a negative index.
 /// Error case: none.
 /// Complexity: O(chunks).
-pub fn asm_template_uses(t: &AsmTemplate, index: Int) -> Int {
+pub fn asm_template_uses(t: &AsmTemplate, index: Int) -> Int
+  ensures: index < 0 => result == 0;
+  ensures: result >= 0;
+  ensures: result <= asm_template_chunk_count(t);
+{
   if index < 0 {
     return 0;
   }
@@ -472,7 +506,10 @@ pub fn asm_template_uses(t: &AsmTemplate, index: Int) -> Int {
 /// Returns: the maximum operand index; -1 when no operand is referenced.
 /// Error case: none.
 /// Complexity: O(chunks).
-pub fn asm_template_max_operand(t: &AsmTemplate) -> Int {
+pub fn asm_template_max_operand(t: &AsmTemplate) -> Int
+  ensures: result >= -1;
+  ensures: asm_template_chunk_count(t) == 0 => result == -1;
+{
   var best = -1;
   var i = 0;
   let n = _chunk_count(t);
@@ -514,7 +551,9 @@ fn _escape_dollars(text: Str) -> Str {
 /// shortest length; a hand-built negative or oversized operand index is
 /// emitted as given and may not re-parse.
 /// Complexity: O(total output length).
-pub fn asm_template_emit(t: &AsmTemplate) -> Str {
+pub fn asm_template_emit(t: &AsmTemplate) -> Str
+  ensures: asm_template_chunk_count(t) == 0 => result.len() == 0;
+{
   var out = "";
   var i = 0;
   let n = _chunk_count(t);
@@ -549,7 +588,10 @@ pub fn asm_template_emit(t: &AsmTemplate) -> Str {
 /// stripped before the table lookup, so "=r" is "register".
 /// Error case: none.
 /// Complexity: O(len(c)).
-pub fn asm_constraint_class(c: Str) -> Str {
+pub fn asm_constraint_class(c: Str) -> Str
+  ensures: result.len() > 0;
+  ensures: c.len() == 0 => result.len() == 4;
+{
   var i = 0;
   let n = c.len();
   while i < n {
@@ -596,7 +638,10 @@ pub fn asm_constraint_class(c: Str) -> Str {
 /// Returns: the flag; false for "".
 /// Error case: none.
 /// Complexity: O(1).
-pub fn asm_constraint_is_output(c: Str) -> Bool {
+pub fn asm_constraint_is_output(c: Str) -> Bool
+  ensures: c.len() == 0 => !result;
+  ensures: result => c.len() > 0;
+{
   if c.len() == 0 {
     return false;
   }
@@ -610,7 +655,10 @@ pub fn asm_constraint_is_output(c: Str) -> Bool {
 /// Returns: the flag; false for "" and for any out-of-alphabet byte.
 /// Error case: none.
 /// Complexity: O(len(c)).
-pub fn asm_constraint_is_valid(c: Str) -> Bool {
+pub fn asm_constraint_is_valid(c: Str) -> Bool
+  ensures: c.len() == 0 => !result;
+  ensures: result => c.len() > 0;
+{
   if c.len() == 0 {
     return false;
   }
@@ -638,7 +686,10 @@ pub fn asm_constraint_is_valid(c: Str) -> Bool {
 /// alphabet, Err("asm: duplicate clobber at <pos>") for a repeated name.
 /// Positions are byte offsets of the offending entry or byte.
 /// Complexity: O(input length * entries).
-pub fn asm_clobbers_parse(text: Str) -> Result[Vec[Str], Str] {
+pub fn asm_clobbers_parse(text: Str) -> Result[Vec[Str], Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var names = Vec[Str].new();
   let n = text.len();
   var start = 0;
@@ -694,7 +745,9 @@ pub fn asm_clobbers_parse(text: Str) -> Result[Vec[Str], Str] {
 /// Returns: the joined text; "" for an empty list.
 /// Error case: none.
 /// Complexity: O(total name length).
-pub fn asm_clobbers_emit(names: &Vec[Str]) -> Str {
+pub fn asm_clobbers_emit(names: &Vec[Str]) -> Str
+  ensures: names.len() == 0 => result.len() == 0;
+{
   var out = "";
   var i = 0;
   while i < names.len() {
