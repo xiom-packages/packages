@@ -9,10 +9,10 @@
 
 package xiom_metrics {
   name: "xiom.metrics";
-  version: "0.1.2";
-  description: "Counters, gauges, and histograms for in-process metrics";
+  version: "0.2.0";
+  description: "Counters, gauges, and histograms with labels, a registry, and Prometheus text exposition";
   categories: ["core","tooling"];
-  keywords: ["metrics","histogram","counter","gauge"];
+  keywords: ["metrics","histogram","counter","gauge","labels","prometheus"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["Eleftherios Notas", "The XIOM Authors"];

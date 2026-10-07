@@ -3,15 +3,20 @@
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
-// Pure deterministic value types: no clock access, no I/O, no allocation
-// beyond the histogram bucket vectors, no FFI. Free functions only -- XIOM
-// v0.61.x has no methods. Histograms use the classic cumulative-bucket shape:
+// Pure deterministic value types: no clock access, no I/O, no FFI. The 0.2.0
+// layer adds labeled metrics (MetricLabels -- parallel Vec[Str] name/value
+// pairs, never tuples), an insertion-ordered Registry of labeled entries,
+// and Prometheus text exposition version 0.0.4. Free functions only.
+// Histograms use the classic cumulative-bucket shape:
 // `counts` has bounds.len() + 1 entries, bucket i counts observations
 // v <= bounds[i] that no earlier bucket took, and the final bucket counts
 // everything above the last bound (the +Inf bucket). The caller is
 // responsible for passing ascending bounds (see README Limitations).
 
 module xiom.metrics
+
+use xiom.string;
+use xiom.string.builder;
 
 /// Monotonic process-local counter.
 ///
@@ -227,4 +232,396 @@ pub fn metric_histogram_reset(h: &mut Histogram)
   h.sum = 0;
   h.min = 0;
   h.max = 0;
+}
+
+// ---------------------------------------------------------------------------
+// 0.2.0: labels, registry, Prometheus text exposition
+// ---------------------------------------------------------------------------
+
+/// Ordered set of name/value label pairs.
+///
+/// Pairs are stored as two parallel vectors of equal length: index i pairs
+/// names[i] with values[i]. Insertion order is preserved and is the order
+/// used by the text exposition. Every field is an internal implementation
+/// detail; build through metric_labels_new / metric_labels_add and read
+/// through the accessors below.
+pub type MetricLabels = {
+  names: Vec[Str];
+  values: Vec[Str];
+}
+
+/// Create an empty label set. No error path. Complexity: O(1).
+pub fn metric_labels_new() -> MetricLabels {
+  return MetricLabels{ names: Vec[Str].new(); values: Vec[Str].new(); };
+}
+
+/// Append the pair (`name`, `value`) to the label set, preserving order.
+/// Names and values are stored verbatim: no validation and no
+/// de-duplication. Complexity: O(1) amortized.
+pub fn metric_labels_add(l: &mut MetricLabels, name: Str, value: Str) {
+  l.names.push(name);
+  l.values.push(value);
+}
+
+/// Number of label pairs. Complexity: O(1).
+pub fn metric_labels_len(l: &MetricLabels) -> Int {
+  return l.names.len();
+}
+
+/// Label name at index `i`.
+/// Returns: Ok(name) for 0 <= i < metric_labels_len(l), else
+/// Err("metrics: label index out of range"). Complexity: O(1).
+pub fn metric_labels_name(l: &MetricLabels, i: Int) -> Result[Str, Str] {
+  if i < 0 { return Err("metrics: label index out of range"); }
+  if i >= l.names.len() { return Err("metrics: label index out of range"); }
+  return Ok(l.names[i]);
+}
+
+/// Label value at index `i`.
+/// Returns: Ok(value) for 0 <= i < metric_labels_len(l), else
+/// Err("metrics: label index out of range"). Complexity: O(1).
+pub fn metric_labels_value(l: &MetricLabels, i: Int) -> Result[Str, Str] {
+  if i < 0 { return Err("metrics: label index out of range"); }
+  if i >= l.values.len() { return Err("metrics: label index out of range"); }
+  return Ok(l.values[i]);
+}
+
+// Occurrences of the exact pair (`name`, `value`) in `l`. Complexity: O(n).
+fn _metric_label_pair_count(l: &MetricLabels, name: Str, value: Str) -> Int {
+  var count = 0;
+  var i = 0;
+  while i < l.names.len() {
+    let ln: Str = l.names[i];
+    if string.str_compare(ln, name) == 0 {
+      let lv: Str = l.values[i];
+      if string.str_compare(lv, value) == 0 {
+        count = count + 1;
+      }
+    }
+    i = i + 1;
+  }
+  return count;
+}
+
+/// True when `a` and `b` hold the same multiset of pairs, ignoring order.
+/// Duplicates are compared as counts: a pair repeated twice in `a` needs
+/// two copies in `b`. Str equality goes through xiom.string.str_compare,
+/// never `==`. Complexity: O(n^2) in the pair count.
+pub fn metric_labels_equal(a: &MetricLabels, b: &MetricLabels) -> Bool {
+  if a.names.len() != b.names.len() { return false; }
+  var i = 0;
+  while i < a.names.len() {
+    let n: Str = a.names[i];
+    let v: Str = a.values[i];
+    let ca = _metric_label_pair_count(a, n, v);
+    let cb = _metric_label_pair_count(b, n, v);
+    if ca != cb { return false; }
+    i = i + 1;
+  }
+  return true;
+}
+
+/// One registry slot: a metric identified by `name` + `labels`.
+///
+/// `kind` selects which value field is meaningful: 0 = counter (`c`),
+/// 1 = gauge (`g`), 2 = histogram (`h`). The other value fields are still
+/// initialized (zeroed) so every entry is fully formed, but only the field
+/// matching `kind` may be read through the labeled functions. Every field
+/// is an internal implementation detail.
+pub type MetricEntry = {
+  name: Str;
+  labels: MetricLabels;
+  kind: Int;
+  c: Counter;
+  g: Gauge;
+  h: Histogram;
+}
+
+/// Insertion-ordered collection of labeled entries. One entry per distinct
+/// (name, labels) pair; `entries` is an internal implementation detail.
+pub type Registry = {
+  entries: Vec[MetricEntry];
+}
+
+/// Create an empty registry. No error path. Complexity: O(1).
+pub fn metric_registry_new() -> Registry {
+  return Registry{ entries: Vec[MetricEntry].new(); };
+}
+
+/// Number of registered entries. Complexity: O(1).
+pub fn metric_registry_count(r: &Registry) -> Int {
+  return r.entries.len();
+}
+
+/// Index of the entry with exactly `name` and a label set equal to `labels`
+/// (order-insensitive, see metric_labels_equal), or -1 when absent. The
+/// first matching entry in insertion order wins. Complexity: O(n*m) for n
+/// entries with m labels each.
+pub fn metric_registry_find(r: &Registry, name: Str, labels: &MetricLabels) -> Int {
+  var i = 0;
+  while i < r.entries.len() {
+    if string.str_compare(r.entries[i].name, name) == 0 {
+      if metric_labels_equal(&r.entries[i].labels, labels) {
+        return i;
+      }
+    }
+    i = i + 1;
+  }
+  return -1;
+}
+
+// Fresh empty histogram over no bounds (one +Inf bucket), used to fill the
+// value fields that do not match an entry's kind. Complexity: O(1).
+fn _metric_empty_histogram() -> Histogram {
+  var bounds = Vec[Int].new();
+  return metric_histogram_new(&bounds);
+}
+
+/// Get-or-create the counter entry (`name`, `labels`) and add `delta`.
+/// A new entry is created at the end of the registry (kind 0, at zero) and
+/// then incremented; an existing entry is updated in place. Negative deltas
+/// subtract, as in metric_counter_add.
+/// Returns: the entry index, >= 0. Complexity: O(n*m) find + O(1) update.
+pub fn metric_counter_inc_labeled(r: &mut Registry, name: Str, labels: MetricLabels, delta: Int) -> Int {
+  let at = metric_registry_find(r, name, &labels);
+  if at >= 0 {
+    var c = r.entries[at].c;
+    metric_counter_add(&mut c, delta);
+    r.entries[at].c = c;
+    return at;
+  }
+  var fresh = metric_counter_new();
+  metric_counter_add(&mut fresh, delta);
+  r.entries.push(MetricEntry{ name: name; labels: labels; kind: 0; c: fresh; g: metric_gauge_new(0); h: _metric_empty_histogram(); });
+  return r.entries.len() - 1;
+}
+
+/// Get-or-create the gauge entry (`name`, `labels`) and set it to `value`.
+/// A new entry is created at the end of the registry holding `value`
+/// (kind 1); an existing entry is overwritten in place.
+/// Returns: the entry index, >= 0. Complexity: O(n*m) find + O(1) update.
+pub fn metric_gauge_set_labeled(r: &mut Registry, name: Str, labels: MetricLabels, value: Int) -> Int {
+  let at = metric_registry_find(r, name, &labels);
+  if at >= 0 {
+    var g = r.entries[at].g;
+    metric_gauge_set(&mut g, value);
+    r.entries[at].g = g;
+    return at;
+  }
+  r.entries.push(MetricEntry{ name: name; labels: labels; kind: 1; c: metric_counter_new(); g: metric_gauge_new(value); h: _metric_empty_histogram(); });
+  return r.entries.len() - 1;
+}
+
+/// Get-or-create the histogram entry (`name`, `labels`) and record one
+/// observation `v`. A new entry is created at the end of the registry over
+/// a copy of `bounds` (kind 2); an existing entry observes with the bounds
+/// it stored on creation, ignoring the `bounds` argument (so every sample
+/// of one series shares the first call's bucket layout).
+/// Returns: the entry index, >= 0. Complexity: O(n*m) find + O(k) observe.
+pub fn metric_histogram_observe_labeled(r: &mut Registry, name: Str, labels: MetricLabels, bounds: &Vec[Int], v: Int) -> Int {
+  let at = metric_registry_find(r, name, &labels);
+  if at >= 0 {
+    var h = r.entries[at].h;
+    metric_histogram_observe(&mut h, v);
+    r.entries[at].h = h;
+    return at;
+  }
+  var fresh = metric_histogram_new(bounds);
+  metric_histogram_observe(&mut fresh, v);
+  r.entries.push(MetricEntry{ name: name; labels: labels; kind: 2; c: metric_counter_new(); g: metric_gauge_new(0); h: fresh; });
+  return r.entries.len() - 1;
+}
+
+/// Drop every entry; the registry becomes empty and immediately reusable.
+/// Complexity: O(1) (drops the backing vector).
+pub fn metric_registry_reset(r: &mut Registry) {
+  r.entries = Vec[MetricEntry].new();
+}
+
+// Append one metric label pair `name="escaped value"` (no braces, no
+// separator). Complexity: O(name + value).
+fn _metric_exposition_label_pair(sb: &mut Vec[UInt8], l: &MetricLabels, i: Int) {
+  let n: Str = l.names[i];
+  let v: Str = l.values[i];
+  builder.sb_push_str(sb, n);
+  builder.sb_push_str(sb, "=\"");
+  _metric_exposition_escape(sb, v);
+  builder.sb_push_str(sb, "\"");
+}
+
+// Append `{...}` for the metric labels; nothing when there are none.
+// Complexity: O(labels).
+fn _metric_exposition_labels(sb: &mut Vec[UInt8], l: &MetricLabels) {
+  if l.names.len() == 0 { return; }
+  builder.sb_push_str(sb, "{");
+  var i = 0;
+  while i < l.names.len() {
+    if i > 0 { builder.sb_push_str(sb, ","); }
+    _metric_exposition_label_pair(sb, l, i);
+    i = i + 1;
+  }
+  builder.sb_push_str(sb, "}");
+}
+
+// Append `{` plus every metric label pair plus a trailing comma, leaving
+// the bucket line ready for `le="..."}`. Complexity: O(labels).
+fn _metric_exposition_bucket_open(sb: &mut Vec<UInt8>, l: &MetricLabels) {
+  builder.sb_push_str(sb, "{");
+  var i = 0;
+  while i < l.names.len() {
+    _metric_exposition_label_pair(sb, l, i);
+    builder.sb_push_str(sb, ",");
+    i = i + 1;
+  }
+}
+
+// Append `v` to `sb`, escaping for the Prometheus text format: backslash ->
+// `\\`, double quote -> `\"`, LF -> `\n` (other bytes are copied verbatim).
+// Complexity: O(v.len()).
+fn _metric_exposition_escape(sb: &mut Vec[UInt8], v: Str) {
+  var i = 0;
+  while i < v.len() {
+    let b: Int = (string.byte_at(v, i) as Int) & 0xFF;
+    if b == 92 {
+      builder.sb_push_str(sb, "\\\\");
+    } else if b == 34 {
+      builder.sb_push_str(sb, "\\\"");
+    } else if b == 10 {
+      builder.sb_push_str(sb, "\\n");
+    } else {
+      builder.sb_push_byte(sb, b as UInt8);
+    }
+    i = i + 1;
+  }
+}
+
+// Append `# TYPE <name> counter` and the counter sample line.
+// Complexity: O(name + labels).
+fn _metric_exposition_counter(sb: &mut Vec[UInt8], e: &MetricEntry) {
+  builder.sb_push_str(sb, "# TYPE ");
+  builder.sb_push_str(sb, e.name);
+  builder.sb_push_str(sb, " counter\n");
+  builder.sb_push_str(sb, e.name);
+  _metric_exposition_labels(sb, &e.labels);
+  builder.sb_push_str(sb, " ");
+  builder.sb_push_int(sb, metric_counter_value(&e.c));
+  builder.sb_push_str(sb, "\n");
+}
+
+// Append `# TYPE <name> gauge` and the gauge sample line.
+// Complexity: O(name + labels).
+fn _metric_exposition_gauge(sb: &mut Vec<UInt8>, e: &MetricEntry) {
+  builder.sb_push_str(sb, "# TYPE ");
+  builder.sb_push_str(sb, e.name);
+  builder.sb_push_str(sb, " gauge\n");
+  builder.sb_push_str(sb, e.name);
+  _metric_exposition_labels(sb, &e.labels);
+  builder.sb_push_str(sb, " ");
+  builder.sb_push_int(sb, metric_gauge_value(&e.g));
+  builder.sb_push_str(sb, "\n");
+}
+
+// Append `# TYPE <name> histogram`, the cumulative bucket lines (one per
+// stored bound, plus the +Inf bucket holding the total count), and the
+// `_sum` / `_count` lines. Metric labels come first, then `le`.
+// Complexity: O(name + labels * bounds).
+fn _metric_exposition_histogram(sb: &mut Vec<UInt8>, e: &MetricEntry) {
+  builder.sb_push_str(sb, "# TYPE ");
+  builder.sb_push_str(sb, e.name);
+  builder.sb_push_str(sb, " histogram\n");
+  var cum = 0;
+  var b = 0;
+  while b < e.h.bounds.len() {
+    let bound: Int = e.h.bounds[b];
+    cum = cum + metric_histogram_bucket_count(&e.h, b);
+    builder.sb_push_str(sb, e.name);
+    builder.sb_push_str(sb, "_bucket");
+    _metric_exposition_bucket_open(sb, &e.labels);
+    builder.sb_push_str(sb, "le=\"");
+    builder.sb_push_int(sb, bound);
+    builder.sb_push_str(sb, "\"} ");
+    builder.sb_push_int(sb, cum);
+    builder.sb_push_str(sb, "\n");
+    b = b + 1;
+  }
+  builder.sb_push_str(sb, e.name);
+  builder.sb_push_str(sb, "_bucket");
+  _metric_exposition_bucket_open(sb, &e.labels);
+  builder.sb_push_str(sb, "le=\"+Inf\"} ");
+  builder.sb_push_int(sb, metric_histogram_count(&e.h));
+  builder.sb_push_str(sb, "\n");
+  builder.sb_push_str(sb, e.name);
+  builder.sb_push_str(sb, "_sum");
+  _metric_exposition_labels(sb, &e.labels);
+  builder.sb_push_str(sb, " ");
+  builder.sb_push_int(sb, metric_histogram_sum(&e.h));
+  builder.sb_push_str(sb, "\n");
+  builder.sb_push_str(sb, e.name);
+  builder.sb_push_str(sb, "_count");
+  _metric_exposition_labels(sb, &e.labels);
+  builder.sb_push_str(sb, " ");
+  builder.sb_push_int(sb, metric_histogram_count(&e.h));
+  builder.sb_push_str(sb, "\n");
+}
+
+// Dispatch one registry entry to its kind-specific renderer.
+fn _metric_exposition_entry(sb: &mut Vec[UInt8], e: &MetricEntry) {
+  if e.kind == 0 {
+    _metric_exposition_counter(sb, e);
+  } else if e.kind == 1 {
+    _metric_exposition_gauge(sb, e);
+  } else {
+    _metric_exposition_histogram(sb, e);
+  }
+}
+
+/// Render the registry as Prometheus text exposition format 0.0.4.
+///
+/// Entries are emitted in insertion order, each as its `# TYPE` line
+/// followed by its samples:
+/// - counter / gauge: `<name>` with the current value;
+/// - histogram: cumulative `<name>_bucket{le="<bound>"}` lines for every
+///   stored bound (bucket `le` counts observations <= that bound), a final
+///   `le="+Inf"` line holding the total count, then `<name>_sum` and
+///   `<name>_count`.
+/// Metric labels precede `le` inside the braces; braces are omitted when an
+/// entry has no labels (bucket lines always show `le`). Label values are
+/// escaped per the text format: `\` -> `\\`, `"` -> `\"`, LF -> `\n`.
+/// Returns: the exposition text, "" for an empty registry.
+/// Complexity: O(total rendered size).
+pub fn metric_exposition(r: &Registry) -> Str {
+  var sb = builder.sb_new();
+  var i = 0;
+  while i < r.entries.len() {
+    _metric_exposition_entry(&mut sb, &r.entries[i]);
+    i = i + 1;
+  }
+  return builder.sb_to_str(&sb);
+}
+
+/// MIME content type of metric_exposition output.
+/// Complexity: O(1).
+pub fn metric_content_type() -> Str {
+  return "text/plain; version=0.0.4; charset=utf-8";
+}
+
+/// Recommended PULSE latency histogram bounds in milliseconds:
+/// [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000]. A fresh Vec per
+/// call; pass it to metric_histogram_new or
+/// metric_histogram_observe_labeled so services agree on one bucket layout.
+/// Complexity: O(1) (11 pushes).
+pub fn metric_latency_bounds_ms() -> Vec[Int] {
+  var bounds = Vec[Int].new();
+  bounds.push(1);
+  bounds.push(5);
+  bounds.push(10);
+  bounds.push(25);
+  bounds.push(50);
+  bounds.push(100);
+  bounds.push(250);
+  bounds.push(500);
+  bounds.push(1000);
+  bounds.push(2500);
+  bounds.push(5000);
+  return bounds;
 }
