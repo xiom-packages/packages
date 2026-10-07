@@ -1,6 +1,6 @@
 # xiom.summary -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.summary` (`src/summary.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -215,3 +215,44 @@ functions; no methods are declared on foreign types, no lambdas, no
 `Vec[StructType]`, and only `&` (never `&mut`) is taken of locals, so the
 E001 aliasing warning does not fire. The implementation follows the proven
 byte-scanning style of `xiom.tokenizer` and `xiom.stemming`.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/summary.xi` in the batch
+#20 hardening pass (compiler v0.64.0; no version bump): 26 clauses across all
+9 public entry points. `xiom --dump-contracts` lists all 26, so none was
+dropped, and two consecutive
+`.\scripts\port.ps1 -Package xiom.summary -TimeoutSec 60` runs ended
+`port: PASS (passed=23 failed=0 program_exit=0 exit=0)` with the clauses
+active (7.2 s and 7.3 s). The 23-check conformance suite exercises every
+entry point with the clauses active; none trapped.
+
+The two probe-gated cross-call length clauses (`summary_extract` vs
+`summary_sentences(text).len()` and `summary_extract_text` vs
+`summary_extract(text, max_sentences).len() - 1`) were both kept because the
+first port attempt passed.
+
+Every clause depends on `Str`/`Vec` lengths (parameter `.len()`,
+`result.len()`, or a cross-call `.len()`), so none is a pure-scalar
+Z3-provable formula; per the batch #20 pre-plan the split is 0 Z3-provable /
+26 runtime-checked.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `summary_sentences` | `ensures: text.len() == 0 => result.len() == 0`; `ensures: result.len() <= text.len()`; `ensures: result.len() > 0 => text.len() > 0` | runtime-checked |
+| `summary_words` | `ensures: text.len() == 0 => result.len() == 0`; `ensures: result.len() <= text.len()`; `ensures: result.len() > 0 => text.len() > 0` | runtime-checked |
+| `summary_stopwords` | `ensures: result.len() == 30` | runtime-checked |
+| `summary_is_stopword` | `ensures: stop.len() == 0 => !result`; `ensures: result => stop.len() > 0` | runtime-checked |
+| `summary_unique_words` | `ensures: words.len() == 0 => result.len() == 0`; `ensures: result.len() <= words.len()`; `ensures: stop.len() == 0 && words.len() > 0 => result.len() >= 1` | runtime-checked |
+| `summary_word_frequencies` | `ensures: words.len() == 0 => result.len() == 0`; `ensures: result.len() <= words.len()`; `ensures: stop.len() == 0 && words.len() > 0 => result.len() >= 1` | runtime-checked |
+| `summary_sentence_score` | `ensures: sentence.len() == 0 => result == 0`; `ensures: unique.len() == 0 => result == 0`; `ensures: freqs.len() == 0 => result == 0` | runtime-checked |
+| `summary_extract` | `ensures: max_sentences <= 0 => result.len() == 0`; `ensures: text.len() == 0 => result.len() == 0`; `ensures: max_sentences > 0 => result.len() <= max_sentences`; `ensures: result.len() <= summary_sentences(text).len()` | runtime-checked |
+| `summary_extract_text` | `ensures: max_sentences <= 0 => result.len() == 0`; `ensures: text.len() == 0 => result.len() == 0`; `ensures: result.len() <= 2 * text.len()`; `ensures: result.len() >= summary_extract(text, max_sentences).len() - 1` | runtime-checked |
+
+No clause uses `Str` equality (BUG 17), tuple-component access, a `Result`
+payload field, or a bare `&mut` parameter read. The only cross-call clauses
+call `summary_sentences` (from `summary_extract`) and `summary_extract` (from
+`summary_extract_text`); neither callee calls the function it guards, so
+there is no postcondition call-cycle. `summary_word_frequencies` deliberately
+carries no `result >= 0` element claim: hand-built `freqs` can hold negative
+counts and the function sums stored values verbatim.

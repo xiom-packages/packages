@@ -106,7 +106,11 @@ fn _contains_int(hay: &Vec[Int], needle: Int) -> Bool {
 /// [].
 /// Error case: none.
 /// Complexity: O(n).
-pub fn summary_sentences(text: Str) -> Vec[Str] {
+pub fn summary_sentences(text: Str) -> Vec[Str]
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: result.len() <= text.len();
+  ensures: result.len() > 0 => text.len() > 0;
+{
   var out = Vec[Str].new();
   let len = text.len();
   var start = 0;
@@ -146,7 +150,11 @@ pub fn summary_sentences(text: Str) -> Vec[Str] {
 /// separator-only text yields [].
 /// Error case: none.
 /// Complexity: O(n).
-pub fn summary_words(text: Str) -> Vec[Str] {
+pub fn summary_words(text: Str) -> Vec[Str]
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: result.len() <= text.len();
+  ensures: result.len() > 0 => text.len() > 0;
+{
   var out = Vec[Str].new();
   let len = text.len();
   var i = 0;
@@ -180,7 +188,9 @@ pub fn summary_words(text: Str) -> Vec[Str] {
 /// it freely.
 /// Error case: none.
 /// Complexity: O(1) apart from the fixed 30 pushes.
-pub fn summary_stopwords() -> Vec[Str] {
+pub fn summary_stopwords() -> Vec[Str]
+  ensures: result.len() == 30;
+{
   var out = Vec[Str].new();
   out.push("a");
   out.push("an");
@@ -221,7 +231,10 @@ pub fn summary_stopwords() -> Vec[Str] {
 /// stop (compared with str_compare, never `==`).
 /// Error case: none.
 /// Complexity: O(|stop| * |w|).
-pub fn summary_is_stopword(w: Str, stop: &Vec[Str]) -> Bool {
+pub fn summary_is_stopword(w: Str, stop: &Vec[Str]) -> Bool
+  ensures: stop.len() == 0 => !result;
+  ensures: result => stop.len() > 0;
+{
   let lowered = _ascii_lower(w);
   var i = 0;
   while i < stop.len() {
@@ -240,7 +253,11 @@ pub fn summary_is_stopword(w: Str, stop: &Vec[Str]) -> Bool {
 /// yields [].
 /// Error case: none.
 /// Complexity: O(n * u) with u the number of unique words.
-pub fn summary_unique_words(words: &Vec[Str], stop: &Vec[Str]) -> Vec[Str] {
+pub fn summary_unique_words(words: &Vec[Str], stop: &Vec[Str]) -> Vec[Str]
+  ensures: words.len() == 0 => result.len() == 0;
+  ensures: result.len() <= words.len();
+  ensures: stop.len() == 0 && words.len() > 0 => result.len() >= 1;
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < words.len() {
@@ -264,7 +281,11 @@ pub fn summary_unique_words(words: &Vec[Str], stop: &Vec[Str]) -> Vec[Str] {
 /// [].
 /// Error case: none.
 /// Complexity: O(n * u) with u the number of unique words.
-pub fn summary_word_frequencies(words: &Vec[Str], stop: &Vec[Str]) -> Vec[Int] {
+pub fn summary_word_frequencies(words: &Vec[Str], stop: &Vec[Str]) -> Vec[Int]
+  ensures: words.len() == 0 => result.len() == 0;
+  ensures: result.len() <= words.len();
+  ensures: stop.len() == 0 && words.len() > 0 => result.len() >= 1;
+{
   let unique = summary_unique_words(words, stop);
   var out = Vec[Int].new();
   var u = 0;
@@ -293,7 +314,11 @@ pub fn summary_word_frequencies(words: &Vec[Str], stop: &Vec[Str]) -> Vec[Int] {
 /// unique words contribute 0.
 /// Error case: none.
 /// Complexity: O(|sentence| * u) with u the number of unique words.
-pub fn summary_sentence_score(sentence: Str, unique: &Vec[Str], freqs: &Vec[Int], stop: &Vec[Str]) -> Int {
+pub fn summary_sentence_score(sentence: Str, unique: &Vec[Str], freqs: &Vec[Int], stop: &Vec[Str]) -> Int
+  ensures: sentence.len() == 0 => result == 0;
+  ensures: unique.len() == 0 => result == 0;
+  ensures: freqs.len() == 0 => result == 0;
+{
   let words = summary_words(sentence);
   var total = 0;
   var i = 0;
@@ -330,7 +355,12 @@ pub fn summary_sentence_score(sentence: Str, unique: &Vec[Str], freqs: &Vec[Int]
 /// scores exist, the earliest remaining sentences fill the gap.
 /// Error case: none.
 /// Complexity: O(n * u + s^2) with s the sentence count.
-pub fn summary_extract(text: Str, max_sentences: Int) -> Vec[Str] {
+pub fn summary_extract(text: Str, max_sentences: Int) -> Vec[Str]
+  ensures: max_sentences <= 0 => result.len() == 0;
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: max_sentences > 0 => result.len() <= max_sentences;
+  ensures: result.len() <= summary_sentences(text).len();
+{
   var out = Vec[Str].new();
   if max_sentences <= 0 {
     return out;
@@ -393,7 +423,12 @@ pub fn summary_extract(text: Str, max_sentences: Int) -> Vec[Str] {
 /// single empty result.
 /// Error case: none.
 /// Complexity: O(sum of selected sentence lengths).
-pub fn summary_extract_text(text: Str, max_sentences: Int) -> Str {
+pub fn summary_extract_text(text: Str, max_sentences: Int) -> Str
+  ensures: max_sentences <= 0 => result.len() == 0;
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: result.len() <= 2 * text.len();
+  ensures: result.len() >= summary_extract(text, max_sentences).len() - 1;
+{
   let parts = summary_extract(text, max_sentences);
   var out = "";
   var i = 0;
