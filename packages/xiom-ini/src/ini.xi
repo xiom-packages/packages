@@ -189,7 +189,10 @@ fn _emit_group(out: &mut Vec[UInt8], i: &Ini, section: Str) -> Int {
 /// Complexity: O(total input length * entry count) because duplicate
 /// detection scans the entry list per assignment; O(total input length) with
 /// a hash index.
-pub fn ini_parse(text: Str) -> Result[Ini, Str] {
+pub fn ini_parse(text: Str) -> Result[Ini, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var ini = Ini{ sections: Vec[Str].new(); keys: Vec[Str].new(); values: Vec[Str].new(); };
   var section = "";
   let len = text.len();
@@ -243,7 +246,9 @@ pub fn ini_parse(text: Str) -> Result[Ini, Str] {
 /// Value of the (section, key) pair; None when it is absent. Keys and
 /// section names are byte-exact and case-sensitive. The empty section ("")
 /// is the global/top-level area.
-pub fn ini_get(i: &Ini, section: Str, key: Str) -> Option[Str] {
+pub fn ini_get(i: &Ini, section: Str, key: Str) -> Option[Str]
+  ensures: ini_has(i, section, key) => result is Some;
+{
   let idx = _entry_index(i, section, key);
   if idx < 0 {
     return None;
@@ -253,12 +258,18 @@ pub fn ini_get(i: &Ini, section: Str, key: Str) -> Option[Str] {
 }
 
 /// True when the document contains the (section, key) pair.
-pub fn ini_has(i: &Ini, section: Str, key: Str) -> Bool {
+pub fn ini_has(i: &Ini, section: Str, key: Str) -> Bool
+  ensures: i.keys.len() == 0 => !result;
+  ensures: result => i.keys.len() > 0;
+{
   return _entry_index(i, section, key) >= 0;
 }
 
 /// Keys of `section` in entry order (a fresh copy).
-pub fn ini_keys(i: &Ini, section: Str) -> Vec[Str] {
+pub fn ini_keys(i: &Ini, section: Str) -> Vec[Str]
+  ensures: result.len() <= i.keys.len();
+  ensures: i.keys.len() == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   var j = 0;
   while j < i.keys.len() {
@@ -274,7 +285,10 @@ pub fn ini_keys(i: &Ini, section: Str) -> Vec[Str] {
 /// Sections in first-seen order (a fresh copy). The empty global section
 /// ("") appears only when it has at least one entry; a section that has lost
 /// all its entries is absent.
-pub fn ini_sections(i: &Ini) -> Vec[Str] {
+pub fn ini_sections(i: &Ini) -> Vec[Str]
+  ensures: result.len() <= i.sections.len();
+  ensures: i.sections.len() == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   var j = 0;
   while j < i.sections.len() {
@@ -300,13 +314,20 @@ pub fn ini_sections(i: &Ini) -> Vec[Str] {
 /// Set (section, key) to value: an existing pair is replaced in place (its
 /// position is kept), a new pair is appended. Arguments are stored verbatim;
 /// no validation is performed.
-pub fn ini_set(i: &mut Ini, section: Str, key: Str, value: Str) {
+pub fn ini_set(i: &mut Ini, section: Str, key: Str, value: Str)
+  ensures: i.keys.len() == i.keys.len()@pre || i.keys.len() == i.keys.len()@pre + 1;
+  ensures: i.sections.len() == i.sections.len()@pre || i.sections.len() == i.sections.len()@pre + 1;
+  ensures: i.values.len() == i.values.len()@pre || i.values.len() == i.values.len()@pre + 1;
+{
   _set_pair(i, section, key, value);
 }
 
 /// Remove (section, key). Returns false when the pair is absent; on success
 /// the three parallel vectors are compacted, so no gap remains.
-pub fn ini_remove(i: &mut Ini, section: Str, key: Str) -> Bool {
+pub fn ini_remove(i: &mut Ini, section: Str, key: Str) -> Bool
+  ensures: !result => i.keys.len() == i.keys.len()@pre;
+  ensures: result => i.keys.len() == i.keys.len()@pre - 1;
+{
   let idx = _entry_index(i, section, key);
   if idx < 0 {
     return false;
@@ -325,7 +346,10 @@ pub fn ini_remove(i: &mut Ini, section: Str, key: Str) -> Bool {
 /// not survive a parse(emit(x)) round trip (see SPEC.md).
 /// Error case: none.
 /// Complexity: O(total output length * section count + entry count).
-pub fn ini_emit(i: &Ini) -> Str {
+pub fn ini_emit(i: &Ini) -> Str
+  ensures: i.sections.len() == 0 && i.keys.len() == 0 => result.len() == 0;
+  ensures: result.len() == 0 => i.keys.len() == 0;
+{
   var out = Vec[UInt8].new();
   var wrote = _emit_group(&mut out, i, "");
   var secs = ini_sections(i);

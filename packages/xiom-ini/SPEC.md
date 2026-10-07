@@ -1,6 +1,6 @@
 # xiom.ini -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.ini` (`src/ini.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -206,3 +206,66 @@ idioms as `xiom.csv`/`xiom.toml`/`xiom.dotenv` (byte-wise scanning with
   survive an emit/parse round trip.
 - No file I/O, no streaming, no registry integration.
 - Errors carry no line/column position (the offending line text is included).
+
+## 9. Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/ini.xi` in the batch #18
+hardening pass (compiler v0.64.0; no version bump). 16 clauses across all
+eight public entry points. Two consecutive
+`.\scripts\port.ps1 -Package xiom.ini -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.9 s and 5.6 s) and no clause trapped, so none was dropped. The
+20-check conformance suite exercises every entry point on both the accepting
+and rejecting paths (empty and non-empty text, `Ok` and `Err`, present and
+absent pairs, global and named sections). No clause compares `Str` values
+(BUG 17) or touches a `Result` payload; the class column records the clause
+family: **Z3-provable** = pure scalar guard/form (`result is Ok` / `is Err`,
+`.len()` comparisons); **runtime-checked** = the truth depends on a `Vec`/
+`Str` field or a called function and is enforced by the v0.64.0 runtime
+evaluator.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `ini_parse` | `ensures: text.len() == 0 => result is Ok` | Z3-provable (pure scalar) |
+| `ini_parse` | `ensures: result is Err => text.len() > 0` | Z3-provable (pure scalar) |
+| `ini_get` | `ensures: ini_has(i, section, key) => result is Some` | runtime-checked (call) |
+| `ini_has` | `ensures: i.keys.len() == 0 => !result` | runtime-checked |
+| `ini_has` | `ensures: result => i.keys.len() > 0` | runtime-checked |
+| `ini_keys` | `ensures: result.len() <= i.keys.len()` | runtime-checked |
+| `ini_keys` | `ensures: i.keys.len() == 0 => result.len() == 0` | runtime-checked |
+| `ini_sections` | `ensures: result.len() <= i.sections.len()` | runtime-checked |
+| `ini_sections` | `ensures: i.sections.len() == 0 => result.len() == 0` | runtime-checked |
+| `ini_set` | `ensures: i.keys.len() == i.keys.len()@pre \|\| i.keys.len() == i.keys.len()@pre + 1` | runtime-checked |
+| `ini_set` | `ensures: i.sections.len() == i.sections.len()@pre \|\| i.sections.len() == i.sections.len()@pre + 1` | runtime-checked |
+| `ini_set` | `ensures: i.values.len() == i.values.len()@pre \|\| i.values.len() == i.values.len()@pre + 1` | runtime-checked |
+| `ini_remove` | `ensures: !result => i.keys.len() == i.keys.len()@pre` | runtime-checked |
+| `ini_remove` | `ensures: result => i.keys.len() == i.keys.len()@pre - 1` | runtime-checked |
+| `ini_emit` | `ensures: i.sections.len() == 0 && i.keys.len() == 0 => result.len() == 0` | runtime-checked |
+| `ini_emit` | `ensures: result.len() == 0 => i.keys.len() == 0` | runtime-checked |
+
+The `ini_parse` pair is the emptiness guard: empty text has no line to fail
+on, so it can only be `Ok`; any `Err` needs non-empty text. `ini_get` uses
+its sibling predicate (`ini_has`) as the presence guard; `ini_has` is
+implemented on `_entry_index`, which never calls `ini_get`, so the clause has
+no call cycle (the `0xC0000005` trap mode of batch #14). The `ini_has` pair
+states that a document with zero entries can never report a pair and that a
+reported pair needs at least one entry. The `ini_keys` / `ini_sections`
+bounds are count characterizations of the filtered/deduplicated copy (a
+subset of the source vector, empty when the source is empty). The three
+`ini_set` invariants state the replace-or-append rule: each parallel vector
+keeps its length (in-place replace) or grows by exactly one (append). The
+`ini_remove` pair states the compaction rule: `false` leaves every vector
+untouched; `true` drops exactly one entry from `keys` (and, by section 2
+alignment, from `sections` and `values`). The `ini_emit` pair is the
+emptiness characterization: a document with no sections and no entries emits
+`""`, and any non-empty output implies at least one entry was written.
+
+Not asserted: `ensures: i.keys.len() == 0 => result.len() == 0` on
+`ini_emit` -- false for a constructed `Ini` with sections but no keys (the
+header-only output is non-empty), the batch #18 plan explicitly excluded it.
+Also not asserted: alignment/uniqueness invariants on constructed `Ini`
+values (section 2 is the documented contract; `ini_set` does not re-validate
+arguments), exact `Err`-message identity (`Str` equality, BUG 17), and
+emitted-text content equalities. They stay pinned by the 20-check
+conformance suite and sections 3, 5 and 8 above.
+

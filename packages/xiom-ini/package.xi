@@ -10,7 +10,7 @@
 
 package xiom_ini {
   name: "xiom.ini";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "INI file parsing, editing, and emitting with ordered sections";
   categories: ["data","tooling"];
   keywords: ["ini","config","sections","parser"];
