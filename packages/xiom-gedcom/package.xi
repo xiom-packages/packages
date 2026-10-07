@@ -11,7 +11,7 @@
 
 package xiom_gedcom {
   name: "xiom.gedcom";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "GEDCOM 5.5.1 line codec: line grammar, nesting, pointers, CONT/CONC joining, canonical emission";
   categories: ["data"];
   keywords: ["gedcom", "genealogy", "parser", "format"];

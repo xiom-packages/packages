@@ -1,6 +1,6 @@
 # xiom.gedcom -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.gedcom` (`src/gedcom.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -243,3 +243,53 @@ idioms as `xiom.eml`/`xiom.ini` (byte-wise scanning with
 - Errors carry no line/column position (the offending line text is included).
 - A hand-built `Gedcom` is not validated; a value containing LF would split
   into two lines on re-parse (parsed values can never contain LF).
+
+## Contracts (batch #24 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/gedcom.xi` in the batch
+#24 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 32 clauses across the 12 public entry points;
+all are `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.gedcom -TimeoutSec 60` runs ended
+`port: PASS (passed=23 failed=0 program_exit=0 exit=0)` with the clauses
+active (11.0 s and 9.6 s); the 23-check conformance suite exercises every
+entry point -- including the out-of-range accessor sentinels (t21) and the
+hand-built `Gedcom` vectors -- and no clause trapped.
+
+"Z3-provable" marks the scalar-shape family the SMT backend can discharge
+without executing the function (pure scalar guards/bounds over parameters
+and `result`, field-length counts); runtime-checked clauses observe a
+`Result`/`Option` tag or compare a built `Str` length, and all are
+enforced by the v0.64.0 runtime evaluator.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `gedcom_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | Z3-provable (pure scalar guard); runtime-checked (`Result` tag + `Str` length) |
+| `gedcom_line_count` | `ensures: result == g.levels.len()`; `ensures: result >= 0` | Z3-provable (scalar-shape counts) |
+| `gedcom_level` | `ensures: i < 0 => result == -1`; `ensures: i >= g.levels.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < g.levels.len()` | Z3-provable (scalar-shape sentinel) |
+| `gedcom_xref` | `ensures: i < 0 => result is None`; `ensures: i >= g.xrefs.len() => result is None`; `ensures: result is Some => i >= 0 && i < g.xrefs.len()` | runtime-checked (`Option` tag + `Vec` length) |
+| `gedcom_tag` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= g.tags.len() => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < g.tags.len()` | runtime-checked (built `Str` length) |
+| `gedcom_value` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= g.values.len() => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < g.values.len()` | runtime-checked (built `Str` length) |
+| `gedcom_parent` | `ensures: i < 0 => result == -1`; `ensures: i >= g.parents.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < g.parents.len()` | Z3-provable (scalar-shape sentinel) |
+| `gedcom_first_tag` | `ensures: g.tags.len() == 0 => result is None`; `ensures: result is Some => result.value >= 0 && result.value < g.tags.len()` | runtime-checked (`Option` tag + scalar payload + `Vec` length) |
+| `gedcom_subtree_end` | `ensures: i < 0 => result == g.levels.len()`; `ensures: i >= g.levels.len() => result == g.levels.len()`; `ensures: result <= g.levels.len()` | Z3-provable (scalar-shape sentinel) |
+| `gedcom_is_pointer` | `ensures: v.len() < 3 => !result`; `ensures: v.len() > 66 => !result`; `ensures: result => v.len() >= 3 && v.len() <= 66` | runtime-checked (`Str` length, Bool result) |
+| `gedcom_join_text` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= g.levels.len() => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < g.levels.len()` | runtime-checked (built `Str` length) |
+| `gedcom_emit` | `ensures: g.levels.len() == 0 => result.len() == 0`; `ensures: result.len() >= g.levels.len()` | runtime-checked (built `Str` length) |
+
+`66` in `gedcom_is_pointer` is the inlined `_GED_MAX_XREF_LEN + 2` (`64 + 2`);
+module consts are not used inside clauses. All accessor clauses hold for
+hand-built `Gedcom` values (sentinel comparisons and `.len()` shapes only; a
+hand-built level/parent may be any `Int`).
+
+Deliberately not claimed: any observation of the `gedcom_parse` `Ok` payload
+(a `Gedcom` struct -- the clause is tag-only); the `Option[Str]` payload
+length in `gedcom_xref` (no precedent); `gedcom_first_tag` completeness
+(`result is None => ...` would need `Str` equality, BUG 17); element-range
+or sum bounds over hand-built `g.levels`/`g.parents` (arbitrary `Int`s);
+indexing a vector inside a clause (`g.levels[i]`); and every forbidden shape
+from the batch #24 brief (tuple-component access, payload-length-vs-
+parameter, struct-result payload fields, postcondition call-cycles). No
+clause calls any function; all conditions are parameter/`result` scalar
+shapes or field-length counts.

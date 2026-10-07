@@ -274,7 +274,10 @@ fn _scan_line(line: Str) -> LineScan {
 /// value such as "@I1@" is stored verbatim and recognised by
 /// `gedcom_is_pointer`. No semantic record validation is performed.
 /// Complexity: O(total input length).
-pub fn gedcom_parse(text: Str) -> Result[Gedcom, Str] {
+pub fn gedcom_parse(text: Str) -> Result[Gedcom, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var g = Gedcom{ levels: Vec[Int].new(); xrefs: Vec[Str].new(); tags: Vec[Str].new(); values: Vec[Str].new(); parents: Vec[Int].new(); };
   // last_at[L] is the index of the most recent line at level L; it grows by at
   // most one slot per parsed line because levels never jump up by more than 1.
@@ -330,13 +333,20 @@ pub fn gedcom_parse(text: Str) -> Result[Gedcom, Str] {
 }
 
 /// Number of stored lines (zero-length input lines are not counted).
-pub fn gedcom_line_count(g: &Gedcom) -> Int {
+pub fn gedcom_line_count(g: &Gedcom) -> Int
+  ensures: result == g.levels.len();
+  ensures: result >= 0;
+{
   return g.levels.len();
 }
 
 /// Level of line `i`, or -1 when `i` is out of range. Levels are always >= 0
 /// for stored lines.
-pub fn gedcom_level(g: &Gedcom, i: Int) -> Int {
+pub fn gedcom_level(g: &Gedcom, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= g.levels.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < g.levels.len();
+{
   if i < 0 || i >= g.levels.len() {
     return -1;
   }
@@ -346,7 +356,11 @@ pub fn gedcom_level(g: &Gedcom, i: Int) -> Int {
 
 /// Xref id of line `i` including both "@" delimiters; None when the line has
 /// no xref id or when `i` is out of range. Ids are never empty.
-pub fn gedcom_xref(g: &Gedcom, i: Int) -> Option[Str] {
+pub fn gedcom_xref(g: &Gedcom, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= g.xrefs.len() => result is None;
+  ensures: result is Some => i >= 0 && i < g.xrefs.len();
+{
   if i < 0 || i >= g.xrefs.len() {
     return None;
   }
@@ -358,7 +372,11 @@ pub fn gedcom_xref(g: &Gedcom, i: Int) -> Option[Str] {
 }
 
 /// Tag of line `i`; "" when `i` is out of range.
-pub fn gedcom_tag(g: &Gedcom, i: Int) -> Str {
+pub fn gedcom_tag(g: &Gedcom, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= g.tags.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < g.tags.len();
+{
   if i < 0 || i >= g.tags.len() {
     return "";
   }
@@ -368,7 +386,11 @@ pub fn gedcom_tag(g: &Gedcom, i: Int) -> Str {
 
 /// Verbatim value of line `i`; "" when the line has no value or when `i` is
 /// out of range.
-pub fn gedcom_value(g: &Gedcom, i: Int) -> Str {
+pub fn gedcom_value(g: &Gedcom, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= g.values.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < g.values.len();
+{
   if i < 0 || i >= g.values.len() {
     return "";
   }
@@ -378,7 +400,11 @@ pub fn gedcom_value(g: &Gedcom, i: Int) -> Str {
 
 /// Parent index of line `i`: the nearest preceding line whose level is one
 /// less. -1 for a level-0 line and for an out-of-range `i`.
-pub fn gedcom_parent(g: &Gedcom, i: Int) -> Int {
+pub fn gedcom_parent(g: &Gedcom, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= g.parents.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < g.parents.len();
+{
   if i < 0 || i >= g.parents.len() {
     return -1;
   }
@@ -388,7 +414,10 @@ pub fn gedcom_parent(g: &Gedcom, i: Int) -> Int {
 
 /// Index of the first line (document order) whose tag is byte-equal to `tag`;
 /// None when no line matches. Matching is case-sensitive.
-pub fn gedcom_first_tag(g: &Gedcom, tag: Str) -> Option[Int] {
+pub fn gedcom_first_tag(g: &Gedcom, tag: Str) -> Option[Int]
+  ensures: g.tags.len() == 0 => result is None;
+  ensures: result is Some => result.value >= 0 && result.value < g.tags.len();
+{
   let n = g.tags.len();
   var i = 0;
   while i < n {
@@ -405,7 +434,11 @@ pub fn gedcom_first_tag(g: &Gedcom, tag: Str) -> Option[Int] {
 /// level is <= levels[i], or the line count when no such line exists. For an
 /// out-of-range `i` the line count is returned; the subtree of `i` is the
 /// half-open range [i, subtree_end(i)).
-pub fn gedcom_subtree_end(g: &Gedcom, i: Int) -> Int {
+pub fn gedcom_subtree_end(g: &Gedcom, i: Int) -> Int
+  ensures: i < 0 => result == g.levels.len();
+  ensures: i >= g.levels.len() => result == g.levels.len();
+  ensures: result <= g.levels.len();
+{
   let n = g.levels.len();
   if i < 0 || i >= n {
     return n;
@@ -425,7 +458,11 @@ pub fn gedcom_subtree_end(g: &Gedcom, i: Int) -> Int {
 /// True when `v` is a GEDCOM pointer value: exactly "@" id "@" with an id of
 /// 1..64 bytes of [A-Za-z0-9_]. Pointer values are stored verbatim; this
 /// predicate only classifies them.
-pub fn gedcom_is_pointer(v: Str) -> Bool {
+pub fn gedcom_is_pointer(v: Str) -> Bool
+  ensures: v.len() < 3 => !result;
+  ensures: v.len() > 66 => !result;
+  ensures: result => v.len() >= 3 && v.len() <= 66;
+{
   return _ged_is_xref(v);
 }
 
@@ -435,7 +472,11 @@ pub fn gedcom_is_pointer(v: Str) -> Bool {
 /// Scanning stops at the first direct child with any other tag; descendants
 /// of continuation children are ignored. Out-of-range `i` yields "".
 /// Complexity: O(subtree size).
-pub fn gedcom_join_text(g: &Gedcom, i: Int) -> Str {
+pub fn gedcom_join_text(g: &Gedcom, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= g.levels.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < g.levels.len();
+{
   var out = Vec[UInt8].new();
   let n = g.levels.len();
   if i < 0 || i >= n {
@@ -473,7 +514,10 @@ pub fn gedcom_join_text(g: &Gedcom, i: Int) -> Str {
 /// value built by hand that contains LF is not round-trip safe (parsed values
 /// never can).
 /// Complexity: O(total output length).
-pub fn gedcom_emit(g: &Gedcom) -> Str {
+pub fn gedcom_emit(g: &Gedcom) -> Str
+  ensures: g.levels.len() == 0 => result.len() == 0;
+  ensures: result.len() >= g.levels.len();
+{
   var out = Vec[UInt8].new();
   let n = g.levels.len();
   var i = 0;
