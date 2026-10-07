@@ -164,7 +164,10 @@ fn _cron_field_hi(field: Int) -> Int {
 /// "" for any other index.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cron_field_name(field: Int) -> Str {
+pub fn cron_field_name(field: Int) -> Str
+  ensures: (field < 0 || field > 4) => result.len() == 0;
+  ensures: (field >= 0 && field <= 4) => result.len() >= 4 && result.len() <= 12;
+{
   if field == CRON_FIELD_MINUTE { return "minute"; }
   if field == CRON_FIELD_HOUR { return "hour"; }
   if field == CRON_FIELD_DAY { return "day-of-month"; }
@@ -502,7 +505,10 @@ fn _cron_from_macro(name: Str) -> Result[CronExpr, Str] {
 /// Examples: "* * * * *" -> every field full; "@weekly" -> 0 0 * * 0;
 /// "0,30 9-17 * * MON-FRI" -> minutes {0,30}, hours 9..17, dows 1..5.
 /// Complexity: O(len(expr)) plus O(field span) per wildcard/step item.
-pub fn cron_parse(expr: Str) -> Result[CronExpr, Str] {
+pub fn cron_parse(expr: Str) -> Result[CronExpr, Str]
+  ensures: expr.len() == 0 => result is Err;
+  ensures: result is Ok => expr.len() > 0;
+{
   let n = expr.len();
   var starts = Vec[Int].new();
   var ends = Vec[Int].new();
@@ -586,7 +592,10 @@ pub fn cron_parse(expr: Str) -> Result[CronExpr, Str] {
 /// Returns: true for any input cron_parse accepts, false otherwise.
 /// Error case: none (the parse error is turned into false).
 /// Complexity: same as cron_parse.
-pub fn cron_valid(expr: Str) -> Bool {
+pub fn cron_valid(expr: Str) -> Bool
+  ensures: expr.len() == 0 => !result;
+  ensures: result => expr.len() > 0;
+{
   match cron_parse(expr) {
     Ok(c) => { return true; },
     Err(e) => { return false; },
@@ -601,7 +610,10 @@ pub fn cron_valid(expr: Str) -> Bool {
 /// Error case: Err("cron: bad macro: <name>") for any other input,
 /// including "" and a name without the leading '@'.
 /// Complexity: O(field span).
-pub fn cron_expand_macro(macro_name: Str) -> Result[Str, Str] {
+pub fn cron_expand_macro(macro_name: Str) -> Result[Str, Str]
+  ensures: macro_name.len() == 0 => result is Err;
+  ensures: result is Ok => result.value.len() >= 9;
+{
   match _cron_from_macro(macro_name) {
     Ok(c) => {
       let ce = c;
@@ -621,7 +633,10 @@ pub fn cron_expand_macro(macro_name: Str) -> Result[Str, Str] {
 /// day-of-week field); 0 for an unknown field index.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cron_field_count(c: &CronExpr, field: Int) -> Int {
+pub fn cron_field_count(c: &CronExpr, field: Int) -> Int
+  ensures: (field < 0 || field > 4) => result == 0;
+  ensures: result > 0 => field >= 0 && field <= 4;
+{
   if field == CRON_FIELD_MINUTE { return c.minutes.len(); }
   if field == CRON_FIELD_HOUR { return c.hours.len(); }
   if field == CRON_FIELD_DAY { return c.days.len(); }
@@ -638,7 +653,11 @@ pub fn cron_field_count(c: &CronExpr, field: Int) -> Int {
 /// least cron_field_count(c, field).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cron_field_at(c: &CronExpr, field: Int, i: Int) -> Int {
+pub fn cron_field_at(c: &CronExpr, field: Int, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: (field < 0 || field > 4) => result == -1;
+  ensures: result != -1 => i >= 0 && field >= 0 && field <= 4;
+{
   if i < 0 { return -1; }
   if field == CRON_FIELD_MINUTE {
     let v: Vec[Int] = c.minutes;
@@ -676,70 +695,95 @@ pub fn cron_field_at(c: &CronExpr, field: Int, i: Int) -> Int {
 /// Number of allowed minutes (0..59).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cron_minute_count(c: &CronExpr) -> Int {
+pub fn cron_minute_count(c: &CronExpr) -> Int
+  ensures: result == c.minutes.len();
+{
   return cron_field_count(c, CRON_FIELD_MINUTE);
 }
 
 /// Allowed minute `i` in ascending order; -1 out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cron_minute_at(c: &CronExpr, i: Int) -> Int {
+pub fn cron_minute_at(c: &CronExpr, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= c.minutes.len() => result == -1;
+{
   return cron_field_at(c, CRON_FIELD_MINUTE, i);
 }
 
 /// Number of allowed hours (0..23).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cron_hour_count(c: &CronExpr) -> Int {
+pub fn cron_hour_count(c: &CronExpr) -> Int
+  ensures: result == c.hours.len();
+{
   return cron_field_count(c, CRON_FIELD_HOUR);
 }
 
 /// Allowed hour `i` in ascending order; -1 out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cron_hour_at(c: &CronExpr, i: Int) -> Int {
+pub fn cron_hour_at(c: &CronExpr, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= c.hours.len() => result == -1;
+{
   return cron_field_at(c, CRON_FIELD_HOUR, i);
 }
 
 /// Number of allowed days of the month (1..31).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cron_day_count(c: &CronExpr) -> Int {
+pub fn cron_day_count(c: &CronExpr) -> Int
+  ensures: result == c.days.len();
+{
   return cron_field_count(c, CRON_FIELD_DAY);
 }
 
 /// Allowed day-of-month `i` in ascending order; -1 out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cron_day_at(c: &CronExpr, i: Int) -> Int {
+pub fn cron_day_at(c: &CronExpr, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= c.days.len() => result == -1;
+{
   return cron_field_at(c, CRON_FIELD_DAY, i);
 }
 
 /// Number of allowed months (1..12).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cron_month_count(c: &CronExpr) -> Int {
+pub fn cron_month_count(c: &CronExpr) -> Int
+  ensures: result == c.months.len();
+{
   return cron_field_count(c, CRON_FIELD_MONTH);
 }
 
 /// Allowed month `i` in ascending order; -1 out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cron_month_at(c: &CronExpr, i: Int) -> Int {
+pub fn cron_month_at(c: &CronExpr, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= c.months.len() => result == -1;
+{
   return cron_field_at(c, CRON_FIELD_MONTH, i);
 }
 
 /// Number of allowed days of the week (0..6, Sunday = 0).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cron_dow_count(c: &CronExpr) -> Int {
+pub fn cron_dow_count(c: &CronExpr) -> Int
+  ensures: result == c.dows.len();
+{
   return cron_field_count(c, CRON_FIELD_DOW);
 }
 
 /// Allowed day-of-week `i` in ascending order; -1 out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cron_dow_at(c: &CronExpr, i: Int) -> Int {
+pub fn cron_dow_at(c: &CronExpr, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= c.dows.len() => result == -1;
+{
   return cron_field_at(c, CRON_FIELD_DOW, i);
 }
 
@@ -857,7 +901,9 @@ fn _cron_name_token(v: &Vec[Int], lo: Int, hi: Int, field: Int) -> Str {
 /// Examples: (0,30 9-17 * * MON-FRI) -> "0,30 9-17 * * 1-5";
 /// (* * * * *) -> "* * * * *".
 /// Complexity: O(total values).
-pub fn cron_emit(c: &CronExpr) -> Str {
+pub fn cron_emit(c: &CronExpr) -> Str
+  ensures: result.len() >= 4;
+{
   let mins: Vec[Int] = c.minutes;
   let hrs: Vec[Int] = c.hours;
   let ds: Vec[Int] = c.days;
@@ -881,7 +927,9 @@ pub fn cron_emit(c: &CronExpr) -> Str {
 /// Examples: (* * * * *) -> "minute *; hour *; day-of-month *; month *;
 /// day-of-week *".
 /// Complexity: O(total values).
-pub fn cron_describe(c: &CronExpr) -> Str {
+pub fn cron_describe(c: &CronExpr) -> Str
+  ensures: result.len() >= 50;
+{
   let mins: Vec[Int] = c.minutes;
   let hrs: Vec[Int] = c.hours;
   let ds: Vec[Int] = c.days;

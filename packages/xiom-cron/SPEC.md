@@ -1,8 +1,6 @@
 # xiom.cron -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.cron`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/cron.xi` (`module xiom.cron`).
 Depends on `xiom.std`; the library module imports `xiom.string`,
 `xiom.string.compare` and `xiom.convert` from it (tests add `xiom.test`,
@@ -324,8 +322,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.cron
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=25 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0,
+`port: PASS (passed=25 failed=0 program_exit=0 exit=0)` (batch #35 runs:
+5.1 s and 4.5 s, clauses active).
 
 ## Known limitations
 
@@ -363,3 +362,44 @@ Last verified: compiler 0.61.3,
 - `Str` equality in the library and tests goes through
   `xiom.string.compare.str_compare` (BUG 17: `==` on a `Vec[Str]` element
   lowers to a pointer comparison).
+
+## Contracts (batch #35 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses were added to `src/cron.xi` in the batch
+#35 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 30 clauses across the 18 public entry points; all
+are `ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+Two consecutive `& .\scripts\port.ps1 -Package xiom.cron -TimeoutSec 60` runs
+ended `port: PASS (passed=25 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.1 s and 4.5 s); the 25-check conformance suite passes with no clause
+trapped. No clause was dropped and none was probe-gated. No clause calls
+another function; no clause reads a struct `Result` payload value (only the
+`Ok`/`Err` tag, plus the `Str` payload length in `cron_expand_macro`); no
+clause compares `Str` values (`.len()` only). The accessor bounds are one-way
+guard pairs and count clauses carry no upper bound, so hand-built `CronExpr`
+vectors longer than a field span remain legal.
+
+`xiom-verify src/cron.xi --check` (v0.64.0, bundled Z3) reports **0 proven /
+5 violated / 40 unknown / 0 errors**. The 5 X7001 violations are exactly the
+five `i >= c.<vec>.len() => result == -1` clauses of the named `_at`
+wrappers: the SMT emitter cannot model the `&CronExpr` receiver (it logs
+"field access '.minutes' on non-datatype receiver" and "complex call target")
+and drops the delegated `cron_field_at` body, so those axioms are refuted
+against an unconstrained length, not against the code under test; the emitter
+itself marks them "contract axiom skipped: unsupported expression". All 30
+clauses are therefore **runtime-checked** and enforced by the v0.64.0
+evaluator when the conformance suite runs; no Z3 proof is claimed.
+`xiom_verify_output.smt2` was deleted by literal path.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `cron_parse` | `expr.len() == 0 => result is Err`; `result is Ok => expr.len() > 0` | runtime-checked (`Result` tag + parameter length) |
+| `cron_valid` | `expr.len() == 0 => !result`; `result => expr.len() > 0` | runtime-checked (`Bool` + parameter length) |
+| `cron_expand_macro` | `macro_name.len() == 0 => result is Err`; `result is Ok => result.value.len() >= 9` | runtime-checked (`Result` tag + payload length floor; every documented macro emits exactly 9 bytes) |
+| `cron_field_name` | `(field < 0 || field > 4) => result.len() == 0`; `(field >= 0 && field <= 4) => result.len() >= 4 && result.len() <= 12` | runtime-checked (built `Str` lengths; names are 4, 5, 6, 11 and 12 bytes) |
+| `cron_field_count` | `(field < 0 || field > 4) => result == 0`; `result > 0 => field >= 0 && field <= 4` | runtime-checked (one-way guard pair) |
+| `cron_field_at` | `i < 0 => result == -1`; `(field < 0 || field > 4) => result == -1`; `result != -1 => i >= 0 && field >= 0 && field <= 4` | runtime-checked (`-1` sentinel guards) |
+| `cron_minute_count` / `cron_hour_count` / `cron_day_count` / `cron_month_count` / `cron_dow_count` | per accessor: `result == c.<vec>.len()` | runtime-checked (field length; no count upper bound) |
+| `cron_minute_at` / `cron_hour_at` / `cron_day_at` / `cron_month_at` / `cron_dow_at` | per accessor: `i < 0 => result == -1`; `i >= c.<vec>.len() => result == -1` | runtime-checked (`-1` guard pair; the upper guard is the clause shape Z3 drops, see above) |
+| `cron_emit` | `result.len() >= 4` | runtime-checked (the four single-space separators are the fixed-byte floor) |
+| `cron_describe` | `result.len() >= 50` | runtime-checked (the 51 literal label bytes are the fixed-byte floor) |
