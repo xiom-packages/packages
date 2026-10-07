@@ -308,7 +308,10 @@ fn _boundary_of(ct: Str) -> Option[Str] {
 /// A message with no blank line has an empty body. An empty message parses
 /// as an email with no headers and an empty body.
 /// Complexity: O(total input length).
-pub fn eml_parse(text: Str) -> Result[Email, Str] {
+pub fn eml_parse(text: Str) -> Result[Email, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var e = Email{ names: Vec[Str].new(); values: Vec[Str].new(); body: ""; };
   let n = text.len();
   var line_start = 0;
@@ -351,7 +354,10 @@ pub fn eml_parse(text: Str) -> Result[Email, Str] {
 /// First value of the header `name`; None when the header is absent. The
 /// lookup is case-insensitive: both the stored names and `name` are
 /// lowercased before comparing.
-pub fn eml_header(e: &Email, name: Str) -> Option[Str] {
+pub fn eml_header(e: &Email, name: Str) -> Option[Str]
+  ensures: e.names.len() == 0 => result is None;
+  ensures: result is Some => e.names.len() >= 1;
+{
   let lname = _lower_ascii(name);
   let i = _header_index(e, lname);
   if i < 0 {
@@ -364,7 +370,10 @@ pub fn eml_header(e: &Email, name: Str) -> Option[Str] {
 /// Every value of the header `name`, in document order (a fresh copy); an
 /// empty vector when the header is absent. Case-insensitive, like
 /// `eml_header`.
-pub fn eml_headers_all(e: &Email, name: Str) -> Vec[Str] {
+pub fn eml_headers_all(e: &Email, name: Str) -> Vec[Str]
+  ensures: e.names.len() == 0 => result.len() == 0;
+  ensures: result.len() <= e.names.len();
+{
   let lname = _lower_ascii(name);
   var out = Vec[Str].new();
   var i = 0;
@@ -380,13 +389,17 @@ pub fn eml_headers_all(e: &Email, name: Str) -> Vec[Str] {
 }
 
 /// Number of header fields (duplicates counted).
-pub fn eml_header_count(e: &Email) -> Int {
+pub fn eml_header_count(e: &Email) -> Int
+  ensures: result == e.names.len();
+{
   return e.names.len();
 }
 
 /// True when the first Content-Type header starts with "multipart/"
 /// (case-insensitive).
-pub fn eml_is_multipart(e: &Email) -> Bool {
+pub fn eml_is_multipart(e: &Email) -> Bool
+  ensures: e.names.len() == 0 => !result;
+{
   let ct = eml_header(e, "content-type");
   match ct {
     Some(v) => {
@@ -402,7 +415,9 @@ pub fn eml_is_multipart(e: &Email) -> Bool {
 /// (`boundary="quoted"` or `boundary=bare`); None when there is no
 /// Content-Type header or no boundary parameter. A quoted value loses its
 /// quotes; an empty boundary is returned as Some("").
-pub fn eml_content_type_boundary(e: &Email) -> Option[Str] {
+pub fn eml_content_type_boundary(e: &Email) -> Option[Str]
+  ensures: e.names.len() == 0 => result is None;
+{
   let ct = eml_header(e, "content-type");
   match ct {
     Some(v) => { return _boundary_of(v); },
@@ -421,7 +436,11 @@ pub fn eml_content_type_boundary(e: &Email) -> Option[Str] {
 /// delimiter and is not part of the preceding part. An empty boundary yields
 /// an empty vector; a body that never opens a delimiter also yields one.
 /// Complexity: O(body length).
-pub fn eml_split_parts(e: &Email, boundary: Str) -> Vec[Str] {
+pub fn eml_split_parts(e: &Email, boundary: Str) -> Vec[Str]
+  ensures: boundary.len() == 0 => result.len() == 0;
+  ensures: e.body.len() == 0 => result.len() == 0;
+  ensures: result.len() <= e.body.len();
+{
   var parts = Vec[Str].new();
   if boundary.len() == 0 {
     return parts;

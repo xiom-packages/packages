@@ -1,6 +1,6 @@
 # xiom.eml -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.eml` (`src/eml.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -258,3 +258,33 @@ choices:
 - Header whitespace is normalized (leading/trailing OWS stripped; folds
   joined with one space); byte-exact header round-tripping is not preserved.
 - Errors carry no line/column position (the offending line text is included).
+
+## Contracts (batch #23 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/eml.xi` in the batch #23
+hardening pass (compiler v0.64.0; no version bump): 12 clauses across the 7
+public entry points, placed directly after the signature (two-space indent,
+before `{`). Two consecutive
+`.\scripts\port.ps1 -Package xiom.eml -TimeoutSec 60` runs ended
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses
+active (14.9 s and 15.0 s); the 24-check conformance suite exercises all 7
+entry points with the clauses active and none trapped.
+
+All clauses are `ensures:`; no `requires:` was added, so the accepted-input
+domain is unchanged. Every clause observes a `Str`/`Vec` length, a struct
+field, or a `Result`/`Option` tag, so none is a pure-scalar expression
+(`result` arithmetic only); the v0.64.0 Z3 emitter leaves them unchecked and
+they are runtime-checked. No clause reads the `Ok` payload (an `Email`
+struct) or uses `Str` equality (BUG 17).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `eml_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime-checked (tag-only; empty input is `Ok` per 3.10, hence this direction) |
+| `eml_header` | `ensures: e.names.len() == 0 => result is None`; `ensures: result is Some => e.names.len() >= 1` | runtime-checked |
+| `eml_headers_all` | `ensures: e.names.len() == 0 => result.len() == 0`; `ensures: result.len() <= e.names.len()` | runtime-checked (Vec-result length) |
+| `eml_header_count` | `ensures: result == e.names.len()` | runtime-checked (struct-field length) |
+| `eml_is_multipart` | `ensures: e.names.len() == 0 => !result` | runtime-checked |
+| `eml_content_type_boundary` | `ensures: e.names.len() == 0 => result is None` | runtime-checked |
+| `eml_split_parts` | `ensures: boundary.len() == 0 => result.len() == 0`; `ensures: e.body.len() == 0 => result.len() == 0`; `ensures: result.len() <= e.body.len()` | runtime-checked (Vec-result length) |
+
+12 clauses total (0 Z3-provable, 12 runtime-checked); no clause dropped.
