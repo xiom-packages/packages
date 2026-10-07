@@ -1,6 +1,6 @@
 # xiom.hcl -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.hcl` (`src/hcl.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -270,7 +270,7 @@ idioms as `xiom.ini`/`xiom.toml` (byte-wise scanning with
 - Recursive descent is avoided: the parser keeps an explicit
   `Vec[Int]` stack of open block indices, and the emitter recurses through
   `_emit_body`/`_emit_block` (self- and mutual recursion both compile on
-  v0.61.3).
+  v0.64.0).
 - Tests dispatch directly (`t1()` ... `t26()`); `Vec[fn]` indexed calls are
   not used, no match pattern binds `mut`, and every `match` is exhaustive.
 
@@ -292,3 +292,67 @@ idioms as `xiom.ini`/`xiom.toml` (byte-wise scanning with
 - NUL bytes are rejected everywhere.
 - No file I/O, no streaming, no registry integration; errors carry line
   numbers but no column positions.
+
+## Contracts (batch #36 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/hcl.xi` in the batch #36
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 68 clauses over the 27 contracted public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.hcl -TimeoutSec 60` runs ended
+`port: PASS (passed=26 failed=0 program_exit=0 exit=0)` with the clauses active
+(6.63 s and 6.36 s); no clause was dropped.
+
+`xiom-verify src/hcl.xi --check` (Z3 bundled with v0.64.0) reported
+**13 proven / 0 violated / 57 unknown / 1 error**. The error is an SMT emitter
+bug on the body of `hcl_child_total` (`unknown constant _child_total`; the tool
+states this is "not a proof failure of the code under test"); the unknown
+clauses are skipped because the emitter cannot encode `Str`/`Vec` operand
+sorts or the compound sentinel guards. Every clause is enforced by the v0.64.0
+runtime evaluator when the suite runs.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `hcl_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked (input-side guard pair; no parse-payload read) |
+| `hcl_attr_total` | `result == d.attr_names.len()`; `result >= 0` | runtime-checked (length equality + bound) |
+| `hcl_block_total` | `result == d.block_types.len()`; `result >= 0` | runtime-checked (length equality + bound) |
+| `hcl_attr_count_in` | `result >= 0`; `result <= d.attr_names.len()` | Z3-provable (scalar bound) / runtime-checked (length bound) |
+| `hcl_attr_count` | `result == hcl_attr_count_in(d, -1)`; `result >= 0` | Z3-provable (definitional cross-call; `hcl_attr_count_in` never calls `hcl_attr_count`) |
+| `hcl_block_count_in` | `result >= 0`; `result <= d.block_types.len()` | Z3-provable (scalar bound) / runtime-checked (length bound) |
+| `hcl_block_count` | `result == hcl_block_count_in(d, -1)`; `result >= 0` | Z3-provable (definitional cross-call; `hcl_block_count_in` never calls `hcl_block_count`) |
+| `hcl_child_total` | `result >= 0`; `result <= d.attr_names.len() + d.block_types.len()` | runtime-checked (private-helper SMT emitter error; both clauses enforced at runtime) |
+| `hcl_attr_name` | `idx < 0 => result.len() == 0`; `idx >= d.attr_names.len() => result.len() == 0`; `result.len() > 0 => idx >= 0 && idx < d.attr_names.len()` | runtime-checked (empty-`Str` sentinel trio) |
+| `hcl_attr_value` | `idx < 0 => result.len() == 0`; `idx >= d.attr_values.len() => result.len() == 0`; `result.len() > 0 => idx >= 0 && idx < d.attr_values.len()` | runtime-checked (empty-`Str` sentinel trio) |
+| `hcl_attr_line` | `idx < 0 => result == 0`; `idx >= d.attr_lines.len() => result == 0`; `result != 0 => idx >= 0 && idx < d.attr_lines.len()` | runtime-checked (`0` sentinel; no claim is made on the stored line value's numeric range) |
+| `hcl_attr_parent` | `idx < 0 => result == -2`; `idx >= d.attr_parents.len() => result == -2`; `result != -2 => idx >= 0 && idx < d.attr_parents.len()` | runtime-checked (`-2` sentinel trio) |
+| `hcl_block_type` | `idx < 0 => result.len() == 0`; `idx >= d.block_types.len() => result.len() == 0`; `result.len() > 0 => idx >= 0 && idx < d.block_types.len()` | runtime-checked (empty-`Str` sentinel trio) |
+| `hcl_block_line` | `idx < 0 => result == 0`; `idx >= d.block_lines.len() => result == 0`; `result != 0 => idx >= 0 && idx < d.block_lines.len()` | runtime-checked (`0` sentinel; no claim on the stored line value's numeric range) |
+| `hcl_block_parent` | `idx < 0 => result == -2`; `idx >= d.block_parents.len() => result == -2`; `result != -2 => idx >= 0 && idx < d.block_parents.len()` | runtime-checked (`-2` sentinel trio) |
+| `hcl_block_label_count` | `idx < 0 => result == 0`; `idx >= d.block_label_counts.len() => result == 0`; `result != 0 => idx >= 0 && idx < d.block_label_counts.len()` | runtime-checked (`0` sentinel trio) |
+| `hcl_block_label` | `idx < 0 => result.len() == 0`; `idx >= d.block_label_counts.len() => result.len() == 0`; `result.len() > 0 => idx >= 0 && idx < d.block_label_counts.len() && k >= 0` | runtime-checked (compound sentinel: out-of-range block or label) |
+| `hcl_block_labels` | `idx < 0 => result.len() == 0`; `idx >= d.block_label_counts.len() => result.len() == 0`; `result.len() > 0 => idx >= 0 && idx < d.block_label_counts.len()` | runtime-checked (empty-`Vec` sentinel trio) |
+| `hcl_block_body_start` | `idx < 0 => result == -1`; `idx >= d.block_body_starts.len() => result == -1`; `result != -1 => idx >= 0 && idx < d.block_body_starts.len()` | runtime-checked (`-1` sentinel trio) |
+| `hcl_block_body_end` | `idx < 0 => result == -1`; `idx >= d.block_body_ends.len() => result == -1`; `result != -1 => idx >= 0 && idx < d.block_body_ends.len()` | runtime-checked (`-1` sentinel trio) |
+| `hcl_block_body` | `idx < 0 => result.len() == 0`; `idx >= d.block_body_ends.len() => result.len() == 0`; `result.len() > 0 => idx >= 0 && idx < d.block_body_ends.len()` | runtime-checked (empty-`Str` sentinel trio) |
+| `hcl_child_block` | `k < 0 => result == -1`; `result != -1 => k >= 0 && result >= 0 && result < d.block_types.len()`; `result >= -1` | Z3-provable (`k < 0` guard and `result >= -1` bound) / runtime-checked (compound validity) |
+| `hcl_child_attr` | `k < 0 => result == -1`; `result != -1 => k >= 0 && result >= 0 && result < d.attr_names.len()`; `result >= -1` | Z3-provable (`k < 0` guard and `result >= -1` bound) / runtime-checked (compound validity) |
+| `hcl_attr_lookup_in` | `d.attr_names.len() == 0 => result == -1`; `result != -1 => result >= 0 && result < d.attr_names.len()`; `result >= -1` | Z3-provable (`result >= -1` bound) / runtime-checked (empty-document guard + result-window) |
+| `hcl_attr_lookup` | `result == hcl_attr_lookup_in(d, -1, name)` | Z3-provable (definitional cross-call; `hcl_attr_lookup_in` never calls `hcl_attr_lookup`) |
+| `hcl_attr_value_in` | `result is None => hcl_attr_lookup_in(d, parent, name) == -1`; `result is Some => hcl_attr_lookup_in(d, parent, name) >= 0` | runtime-checked (`Option` tag + cross-call; no payload read) |
+| `hcl_emit` | `d.attr_names.len() == 0 && d.block_types.len() == 0 => result.len() == 0` | runtime-checked (empty-document guard) |
+
+Cross-call safety: the four cross-call shapes (`hcl_attr_count` /
+`hcl_block_count` / `hcl_attr_lookup` / `hcl_attr_value_in`) call
+`hcl_attr_count_in` / `hcl_block_count_in` / `hcl_attr_lookup_in`, none of
+which reaches the caller again, so no clause is re-entrant.
+
+Deliberately not claimed: any read of the `Ok` payload of `hcl_parse`; an
+`hcl_emit` non-empty converse (hand-built documents whose parents do not
+match can hold statement vectors yet emit nothing); numeric-range claims on
+the stored line values (`hcl_attr_line` / `hcl_block_line` claim only the `0`
+sentinel); `Str` equality anywhere (BUG 17; `.len()` only); vector indexing
+in a clause. Every clause also holds for hand-built `HclDoc` values: the
+accessor clauses read only `Vec` lengths and the documented sentinels, the
+guard trios keep the out-of-range cases separate, and no clause shadows a
+contracted parameter (the `text`, `parent`, `name`, `idx` and `k` parameters
+are never re-bound in the bodies).

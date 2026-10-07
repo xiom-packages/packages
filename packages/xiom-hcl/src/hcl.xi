@@ -462,7 +462,10 @@ fn _emit_body(out: &mut Vec[UInt8], d: &HclDoc, parent: Int, level: Int) {
 /// evaluated; comments are parsed but not stored.
 /// Complexity: O(total input length) for a document whose expressions do not
 /// span lines; O(total input length) amortized otherwise.
-pub fn hcl_parse(text: Str) -> Result[HclDoc, Str] {
+pub fn hcl_parse(text: Str) -> Result[HclDoc, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var d = HclDoc{
     source: text;
     attr_names: Vec[Str].new();
@@ -646,17 +649,26 @@ pub fn hcl_parse(text: Str) -> Result[HclDoc, Str] {
 // --------------------------------------------------
 
 /// Total number of attributes in the document (all nesting levels).
-pub fn hcl_attr_total(d: &HclDoc) -> Int {
+pub fn hcl_attr_total(d: &HclDoc) -> Int
+  ensures: result == d.attr_names.len();
+  ensures: result >= 0;
+{
   return d.attr_names.len();
 }
 
 /// Total number of blocks in the document (all nesting levels).
-pub fn hcl_block_total(d: &HclDoc) -> Int {
+pub fn hcl_block_total(d: &HclDoc) -> Int
+  ensures: result == d.block_types.len();
+  ensures: result >= 0;
+{
   return d.block_types.len();
 }
 
 /// Number of attributes directly inside `parent` (-1 = top level).
-pub fn hcl_attr_count_in(d: &HclDoc, parent: Int) -> Int {
+pub fn hcl_attr_count_in(d: &HclDoc, parent: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.attr_names.len();
+{
   var count = 0;
   var i = 0;
   while i < d.attr_names.len() {
@@ -668,12 +680,18 @@ pub fn hcl_attr_count_in(d: &HclDoc, parent: Int) -> Int {
 }
 
 /// Number of top-level attributes.
-pub fn hcl_attr_count(d: &HclDoc) -> Int {
+pub fn hcl_attr_count(d: &HclDoc) -> Int
+  ensures: result == hcl_attr_count_in(d, -1);
+  ensures: result >= 0;
+{
   return hcl_attr_count_in(d, -1);
 }
 
 /// Number of blocks directly inside `parent` (-1 = top level).
-pub fn hcl_block_count_in(d: &HclDoc, parent: Int) -> Int {
+pub fn hcl_block_count_in(d: &HclDoc, parent: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.block_types.len();
+{
   var count = 0;
   var i = 0;
   while i < d.block_types.len() {
@@ -685,12 +703,18 @@ pub fn hcl_block_count_in(d: &HclDoc, parent: Int) -> Int {
 }
 
 /// Number of top-level blocks.
-pub fn hcl_block_count(d: &HclDoc) -> Int {
+pub fn hcl_block_count(d: &HclDoc) -> Int
+  ensures: result == hcl_block_count_in(d, -1);
+  ensures: result >= 0;
+{
   return hcl_block_count_in(d, -1);
 }
 
 /// Number of direct children (attributes plus blocks) of `parent`.
-pub fn hcl_child_total(d: &HclDoc, parent: Int) -> Int {
+pub fn hcl_child_total(d: &HclDoc, parent: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.attr_names.len() + d.block_types.len();
+{
   return _child_total(d, parent);
 }
 
@@ -699,7 +723,11 @@ pub fn hcl_child_total(d: &HclDoc, parent: Int) -> Int {
 // --------------------------------------------------
 
 /// Name of attribute `idx`; "" for an out-of-range index.
-pub fn hcl_attr_name(d: &HclDoc, idx: Int) -> Str {
+pub fn hcl_attr_name(d: &HclDoc, idx: Int) -> Str
+  ensures: idx < 0 => result.len() == 0;
+  ensures: idx >= d.attr_names.len() => result.len() == 0;
+  ensures: result.len() > 0 => idx >= 0 && idx < d.attr_names.len();
+{
   if idx < 0 || idx >= d.attr_names.len() { return ""; }
   let v: Str = d.attr_names[idx];
   return v;
@@ -707,14 +735,22 @@ pub fn hcl_attr_name(d: &HclDoc, idx: Int) -> Str {
 
 /// Raw (trimmed) expression text of attribute `idx`; "" for an out-of-range
 /// index.
-pub fn hcl_attr_value(d: &HclDoc, idx: Int) -> Str {
+pub fn hcl_attr_value(d: &HclDoc, idx: Int) -> Str
+  ensures: idx < 0 => result.len() == 0;
+  ensures: idx >= d.attr_values.len() => result.len() == 0;
+  ensures: result.len() > 0 => idx >= 0 && idx < d.attr_values.len();
+{
   if idx < 0 || idx >= d.attr_values.len() { return ""; }
   let v: Str = d.attr_values[idx];
   return v;
 }
 
 /// 1-based line on which attribute `idx` starts; 0 for an out-of-range index.
-pub fn hcl_attr_line(d: &HclDoc, idx: Int) -> Int {
+pub fn hcl_attr_line(d: &HclDoc, idx: Int) -> Int
+  ensures: idx < 0 => result == 0;
+  ensures: idx >= d.attr_lines.len() => result == 0;
+  ensures: result != 0 => idx >= 0 && idx < d.attr_lines.len();
+{
   if idx < 0 || idx >= d.attr_lines.len() { return 0; }
   let v: Int = d.attr_lines[idx];
   return v;
@@ -722,7 +758,11 @@ pub fn hcl_attr_line(d: &HclDoc, idx: Int) -> Int {
 
 /// Owning block index of attribute `idx` (-1 = top level); -2 for an
 /// out-of-range index.
-pub fn hcl_attr_parent(d: &HclDoc, idx: Int) -> Int {
+pub fn hcl_attr_parent(d: &HclDoc, idx: Int) -> Int
+  ensures: idx < 0 => result == -2;
+  ensures: idx >= d.attr_parents.len() => result == -2;
+  ensures: result != -2 => idx >= 0 && idx < d.attr_parents.len();
+{
   if idx < 0 || idx >= d.attr_parents.len() { return -2; }
   let v: Int = d.attr_parents[idx];
   return v;
@@ -733,14 +773,22 @@ pub fn hcl_attr_parent(d: &HclDoc, idx: Int) -> Int {
 // --------------------------------------------------
 
 /// Type name of block `idx`; "" for an out-of-range index.
-pub fn hcl_block_type(d: &HclDoc, idx: Int) -> Str {
+pub fn hcl_block_type(d: &HclDoc, idx: Int) -> Str
+  ensures: idx < 0 => result.len() == 0;
+  ensures: idx >= d.block_types.len() => result.len() == 0;
+  ensures: result.len() > 0 => idx >= 0 && idx < d.block_types.len();
+{
   if idx < 0 || idx >= d.block_types.len() { return ""; }
   let v: Str = d.block_types[idx];
   return v;
 }
 
 /// 1-based line on which block `idx` starts; 0 for an out-of-range index.
-pub fn hcl_block_line(d: &HclDoc, idx: Int) -> Int {
+pub fn hcl_block_line(d: &HclDoc, idx: Int) -> Int
+  ensures: idx < 0 => result == 0;
+  ensures: idx >= d.block_lines.len() => result == 0;
+  ensures: result != 0 => idx >= 0 && idx < d.block_lines.len();
+{
   if idx < 0 || idx >= d.block_lines.len() { return 0; }
   let v: Int = d.block_lines[idx];
   return v;
@@ -748,14 +796,22 @@ pub fn hcl_block_line(d: &HclDoc, idx: Int) -> Int {
 
 /// Parent block index of block `idx` (-1 = top level); -2 for an
 /// out-of-range index.
-pub fn hcl_block_parent(d: &HclDoc, idx: Int) -> Int {
+pub fn hcl_block_parent(d: &HclDoc, idx: Int) -> Int
+  ensures: idx < 0 => result == -2;
+  ensures: idx >= d.block_parents.len() => result == -2;
+  ensures: result != -2 => idx >= 0 && idx < d.block_parents.len();
+{
   if idx < 0 || idx >= d.block_parents.len() { return -2; }
   let v: Int = d.block_parents[idx];
   return v;
 }
 
 /// Number of labels of block `idx`; 0 for an out-of-range index.
-pub fn hcl_block_label_count(d: &HclDoc, idx: Int) -> Int {
+pub fn hcl_block_label_count(d: &HclDoc, idx: Int) -> Int
+  ensures: idx < 0 => result == 0;
+  ensures: idx >= d.block_label_counts.len() => result == 0;
+  ensures: result != 0 => idx >= 0 && idx < d.block_label_counts.len();
+{
   if idx < 0 || idx >= d.block_label_counts.len() { return 0; }
   let v: Int = d.block_label_counts[idx];
   return v;
@@ -763,7 +819,11 @@ pub fn hcl_block_label_count(d: &HclDoc, idx: Int) -> Int {
 
 /// Label `k` of block `idx`, decoded (\" and \\ resolved); "" for an
 /// out-of-range block or label.
-pub fn hcl_block_label(d: &HclDoc, idx: Int, k: Int) -> Str {
+pub fn hcl_block_label(d: &HclDoc, idx: Int, k: Int) -> Str
+  ensures: idx < 0 => result.len() == 0;
+  ensures: idx >= d.block_label_counts.len() => result.len() == 0;
+  ensures: result.len() > 0 => idx >= 0 && idx < d.block_label_counts.len() && k >= 0;
+{
   if idx < 0 || idx >= d.block_label_counts.len() { return ""; }
   let count: Int = d.block_label_counts[idx];
   if k < 0 || k >= count { return ""; }
@@ -773,7 +833,11 @@ pub fn hcl_block_label(d: &HclDoc, idx: Int, k: Int) -> Str {
 }
 
 /// All labels of block `idx`, decoded, in header order (a fresh copy).
-pub fn hcl_block_labels(d: &HclDoc, idx: Int) -> Vec[Str] {
+pub fn hcl_block_labels(d: &HclDoc, idx: Int) -> Vec[Str]
+  ensures: idx < 0 => result.len() == 0;
+  ensures: idx >= d.block_label_counts.len() => result.len() == 0;
+  ensures: result.len() > 0 => idx >= 0 && idx < d.block_label_counts.len();
+{
   var out = Vec[Str].new();
   if idx < 0 || idx >= d.block_label_counts.len() { return out; }
   let start: Int = d.block_label_starts[idx];
@@ -789,14 +853,22 @@ pub fn hcl_block_labels(d: &HclDoc, idx: Int) -> Vec[Str] {
 
 /// Byte offset of block `idx`'s first body byte (just after "{"); -1 for an
 /// out-of-range index.
-pub fn hcl_block_body_start(d: &HclDoc, idx: Int) -> Int {
+pub fn hcl_block_body_start(d: &HclDoc, idx: Int) -> Int
+  ensures: idx < 0 => result == -1;
+  ensures: idx >= d.block_body_starts.len() => result == -1;
+  ensures: result != -1 => idx >= 0 && idx < d.block_body_starts.len();
+{
   if idx < 0 || idx >= d.block_body_starts.len() { return -1; }
   let v: Int = d.block_body_starts[idx];
   return v;
 }
 
 /// Byte offset of block `idx`'s closing "}"; -1 for an out-of-range index.
-pub fn hcl_block_body_end(d: &HclDoc, idx: Int) -> Int {
+pub fn hcl_block_body_end(d: &HclDoc, idx: Int) -> Int
+  ensures: idx < 0 => result == -1;
+  ensures: idx >= d.block_body_ends.len() => result == -1;
+  ensures: result != -1 => idx >= 0 && idx < d.block_body_ends.len();
+{
   if idx < 0 || idx >= d.block_body_ends.len() { return -1; }
   let v: Int = d.block_body_ends[idx];
   return v;
@@ -804,7 +876,11 @@ pub fn hcl_block_body_end(d: &HclDoc, idx: Int) -> Int {
 
 /// Raw text between block `idx`'s braces, verbatim (a slice of `source`);
 /// "" for an out-of-range index.
-pub fn hcl_block_body(d: &HclDoc, idx: Int) -> Str {
+pub fn hcl_block_body(d: &HclDoc, idx: Int) -> Str
+  ensures: idx < 0 => result.len() == 0;
+  ensures: idx >= d.block_body_ends.len() => result.len() == 0;
+  ensures: result.len() > 0 => idx >= 0 && idx < d.block_body_ends.len();
+{
   if idx < 0 || idx >= d.block_body_ends.len() { return ""; }
   let start: Int = d.block_body_starts[idx];
   let end: Int = d.block_body_ends[idx];
@@ -814,7 +890,11 @@ pub fn hcl_block_body(d: &HclDoc, idx: Int) -> Str {
 
 /// Index of the `k`-th block directly inside `parent` (-1 = top level), or
 /// -1 when there is no such child.
-pub fn hcl_child_block(d: &HclDoc, parent: Int, k: Int) -> Int {
+pub fn hcl_child_block(d: &HclDoc, parent: Int, k: Int) -> Int
+  ensures: k < 0 => result == -1;
+  ensures: result != -1 => k >= 0 && result >= 0 && result < d.block_types.len();
+  ensures: result >= -1;
+{
   if k < 0 { return -1; }
   var seen = 0;
   var i = 0;
@@ -831,7 +911,11 @@ pub fn hcl_child_block(d: &HclDoc, parent: Int, k: Int) -> Int {
 
 /// Index of the `k`-th attribute directly inside `parent` (-1 = top level),
 /// or -1 when there is no such child.
-pub fn hcl_child_attr(d: &HclDoc, parent: Int, k: Int) -> Int {
+pub fn hcl_child_attr(d: &HclDoc, parent: Int, k: Int) -> Int
+  ensures: k < 0 => result == -1;
+  ensures: result != -1 => k >= 0 && result >= 0 && result < d.attr_names.len();
+  ensures: result >= -1;
+{
   if k < 0 { return -1; }
   var seen = 0;
   var i = 0;
@@ -849,7 +933,11 @@ pub fn hcl_child_attr(d: &HclDoc, parent: Int, k: Int) -> Int {
 /// Index of the first attribute named `name` directly inside `parent`
 /// (-1 = top level), or -1. Duplicate attributes are allowed at parse time;
 /// lookup always returns the first (lowest index).
-pub fn hcl_attr_lookup_in(d: &HclDoc, parent: Int, name: Str) -> Int {
+pub fn hcl_attr_lookup_in(d: &HclDoc, parent: Int, name: Str) -> Int
+  ensures: d.attr_names.len() == 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result < d.attr_names.len();
+  ensures: result >= -1;
+{
   var i = 0;
   while i < d.attr_names.len() {
     let p: Int = d.attr_parents[i];
@@ -863,13 +951,18 @@ pub fn hcl_attr_lookup_in(d: &HclDoc, parent: Int, name: Str) -> Int {
 }
 
 /// Index of the first top-level attribute named `name`, or -1.
-pub fn hcl_attr_lookup(d: &HclDoc, name: Str) -> Int {
+pub fn hcl_attr_lookup(d: &HclDoc, name: Str) -> Int
+  ensures: result == hcl_attr_lookup_in(d, -1, name);
+{
   return hcl_attr_lookup_in(d, -1, name);
 }
 
 /// Value of the first attribute named `name` inside `parent` (-1 = top
 /// level); None when absent.
-pub fn hcl_attr_value_in(d: &HclDoc, parent: Int, name: Str) -> Option[Str] {
+pub fn hcl_attr_value_in(d: &HclDoc, parent: Int, name: Str) -> Option[Str]
+  ensures: result is None => hcl_attr_lookup_in(d, parent, name) == -1;
+  ensures: result is Some => hcl_attr_lookup_in(d, parent, name) >= 0;
+{
   let idx = hcl_attr_lookup_in(d, parent, name);
   if idx < 0 { return None; }
   let v: Str = d.attr_values[idx];
@@ -888,7 +981,9 @@ pub fn hcl_attr_value_in(d: &HclDoc, parent: Int, name: Str) -> Option[Str] {
 /// document order (attributes and blocks interleaved as parsed); comments
 /// and original whitespace are not preserved. Attribute values are written
 /// verbatim, so a value containing LFs keeps its own internal indentation.
-pub fn hcl_emit(d: &HclDoc) -> Str {
+pub fn hcl_emit(d: &HclDoc) -> Str
+  ensures: d.attr_names.len() == 0 && d.block_types.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   _emit_body(&mut out, d, -1, 0);
   return builder.sb_to_str(&out);
