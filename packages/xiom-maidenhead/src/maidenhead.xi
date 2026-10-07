@@ -304,7 +304,11 @@ fn _encode_raw(lat_ud: Int, lon_ud: Int, length: Int) -> Str {
 /// Err("maidenhead: longitude out of range") when the coordinate is outside
 /// its inclusive range. Validation order is length, latitude, longitude.
 /// Complexity: O(1).
-pub fn maidenhead_encode(lat_ud: Int, lon_ud: Int, length: Int) -> Result[Str, Str] {
+pub fn maidenhead_encode(lat_ud: Int, lon_ud: Int, length: Int) -> Result[Str, Str]
+  ensures: (length != 2 && length != 4 && length != 6 && length != 8) => result is Err;
+  ensures: lat_ud < -90000000 || lat_ud > 90000000 => result is Err;
+  ensures: lon_ud < -180000000 || lon_ud > 180000000 => result is Err;
+{
   if length != 2 && length != 4 && length != 6 && length != 8 {
     return _err_str("maidenhead: invalid length");
   }
@@ -425,7 +429,11 @@ fn _decode_raw(up: Str, length: Int) -> MaidenheadBox {
 /// invalid extended square digit"). Length is checked before characters and
 /// positions are checked in locator order.
 /// Complexity: O(len(locator)).
-pub fn maidenhead_decode(locator: Str) -> Result[MaidenheadBox, Str] {
+pub fn maidenhead_decode(locator: Str) -> Result[MaidenheadBox, Str]
+  ensures: locator.len() == 0 => result is Err;
+  ensures: (locator.len() != 2 && locator.len() != 4 && locator.len() != 6 && locator.len() != 8) => result is Err;
+  ensures: result is Ok => (locator.len() == 2 || locator.len() == 4 || locator.len() == 6 || locator.len() == 8);
+{
   let checked: Result[Str, Str] = _checked_upper(locator);
   if !checked.is_ok {
     return _err_box(checked.error);
@@ -444,7 +452,11 @@ pub fn maidenhead_decode(locator: Str) -> Result[MaidenheadBox, Str] {
 /// (checked before characters) or an invalid character at the first offending
 /// position.
 /// Complexity: O(len(locator)).
-pub fn maidenhead_normalize(locator: Str) -> Result[Str, Str] {
+pub fn maidenhead_normalize(locator: Str) -> Result[Str, Str]
+  ensures: locator.len() == 0 => result is Err;
+  ensures: (locator.len() != 2 && locator.len() != 4 && locator.len() != 6 && locator.len() != 8) => result is Err;
+  ensures: result is Ok => (locator.len() == 2 || locator.len() == 4 || locator.len() == 6 || locator.len() == 8);
+{
   return _checked_upper(locator);
 }
 
@@ -457,7 +469,11 @@ pub fn maidenhead_normalize(locator: Str) -> Result[Str, Str] {
 /// Returns: Ok(2), Ok(4), Ok(6) or Ok(8), the number of characters.
 /// Error case: the same catalog as maidenhead_decode.
 /// Complexity: O(len(locator)).
-pub fn maidenhead_locator_length(locator: Str) -> Result[Int, Str] {
+pub fn maidenhead_locator_length(locator: Str) -> Result[Int, Str]
+  ensures: locator.len() == 0 => result is Err;
+  ensures: (locator.len() != 2 && locator.len() != 4 && locator.len() != 6 && locator.len() != 8) => result is Err;
+  ensures: result is Ok => (result.value == 2 || result.value == 4 || result.value == 6 || result.value == 8);
+{
   let checked: Result[Str, Str] = _checked_upper(locator);
   if !checked.is_ok {
     return _err_int(checked.error);
@@ -471,7 +487,11 @@ pub fn maidenhead_locator_length(locator: Str) -> Result[Int, Str] {
 /// Returns: Ok(field), the first two characters uppercased.
 /// Error case: the same catalog as maidenhead_decode.
 /// Complexity: O(len(locator)).
-pub fn maidenhead_field(locator: Str) -> Result[Str, Str] {
+pub fn maidenhead_field(locator: Str) -> Result[Str, Str]
+  ensures: locator.len() == 0 => result is Err;
+  ensures: (locator.len() != 2 && locator.len() != 4 && locator.len() != 6 && locator.len() != 8) => result is Err;
+  ensures: result is Ok => result.value.len() == 2;
+{
   let checked: Result[Str, Str] = _checked_upper(locator);
   if !checked.is_ok {
     return _err_str(checked.error);
@@ -488,7 +508,11 @@ pub fn maidenhead_field(locator: Str) -> Result[Str, Str] {
 /// Err("maidenhead: square part missing") for a length-2 locator, which has no
 /// square level.
 /// Complexity: O(len(locator)).
-pub fn maidenhead_square(locator: Str) -> Result[Str, Str] {
+pub fn maidenhead_square(locator: Str) -> Result[Str, Str]
+  ensures: locator.len() == 0 => result is Err;
+  ensures: (locator.len() != 2 && locator.len() != 4 && locator.len() != 6 && locator.len() != 8) => result is Err;
+  ensures: result is Ok => result.value.len() == 2;
+{
   let checked: Result[Str, Str] = _checked_upper(locator);
   if !checked.is_ok {
     return _err_str(checked.error);
@@ -508,7 +532,11 @@ pub fn maidenhead_square(locator: Str) -> Result[Str, Str] {
 /// Err("maidenhead: subsquare part missing") for a length-2 or length-4
 /// locator, which has no subsquare level.
 /// Complexity: O(len(locator)).
-pub fn maidenhead_subsquare(locator: Str) -> Result[Str, Str] {
+pub fn maidenhead_subsquare(locator: Str) -> Result[Str, Str]
+  ensures: locator.len() == 0 => result is Err;
+  ensures: (locator.len() != 2 && locator.len() != 4 && locator.len() != 6 && locator.len() != 8) => result is Err;
+  ensures: result is Ok => result.value.len() == 2;
+{
   let checked: Result[Str, Str] = _checked_upper(locator);
   if !checked.is_ok {
     return _err_str(checked.error);
@@ -528,7 +556,11 @@ pub fn maidenhead_subsquare(locator: Str) -> Result[Str, Str] {
 /// Err("maidenhead: extended square part missing") for a locator shorter than
 /// 8 characters, which has no extended square level.
 /// Complexity: O(len(locator)).
-pub fn maidenhead_ext_square(locator: Str) -> Result[Str, Str] {
+pub fn maidenhead_ext_square(locator: Str) -> Result[Str, Str]
+  ensures: locator.len() == 0 => result is Err;
+  ensures: (locator.len() != 2 && locator.len() != 4 && locator.len() != 6 && locator.len() != 8) => result is Err;
+  ensures: result is Ok => result.value.len() == 2;
+{
   let checked: Result[Str, Str] = _checked_upper(locator);
   if !checked.is_ok {
     return _err_str(checked.error);
@@ -549,7 +581,9 @@ pub fn maidenhead_ext_square(locator: Str) -> Result[Str, Str] {
 /// Returns: b.length, one of 2, 4, 6, 8.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn maidenhead_box_length(b: MaidenheadBox) -> Int {
+pub fn maidenhead_box_length(b: MaidenheadBox) -> Int
+  ensures: result == b.length;
+{
   return b.length;
 }
 
@@ -558,7 +592,9 @@ pub fn maidenhead_box_length(b: MaidenheadBox) -> Int {
 /// Returns: b.min_lat_ud, at least -90_000_000.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn maidenhead_box_min_lat(b: MaidenheadBox) -> Int {
+pub fn maidenhead_box_min_lat(b: MaidenheadBox) -> Int
+  ensures: result == b.min_lat_ud;
+{
   return b.min_lat_ud;
 }
 
@@ -567,7 +603,9 @@ pub fn maidenhead_box_min_lat(b: MaidenheadBox) -> Int {
 /// Returns: b.min_lon_ud, at least -180_000_000.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn maidenhead_box_min_lon(b: MaidenheadBox) -> Int {
+pub fn maidenhead_box_min_lon(b: MaidenheadBox) -> Int
+  ensures: result == b.min_lon_ud;
+{
   return b.min_lon_ud;
 }
 
@@ -576,7 +614,9 @@ pub fn maidenhead_box_min_lon(b: MaidenheadBox) -> Int {
 /// Returns: b.max_lat_ud, at most 90_000_000.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn maidenhead_box_max_lat(b: MaidenheadBox) -> Int {
+pub fn maidenhead_box_max_lat(b: MaidenheadBox) -> Int
+  ensures: result == b.max_lat_ud;
+{
   return b.max_lat_ud;
 }
 
@@ -585,7 +625,9 @@ pub fn maidenhead_box_max_lat(b: MaidenheadBox) -> Int {
 /// Returns: b.max_lon_ud, at most 180_000_000.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn maidenhead_box_max_lon(b: MaidenheadBox) -> Int {
+pub fn maidenhead_box_max_lon(b: MaidenheadBox) -> Int
+  ensures: result == b.max_lon_ud;
+{
   return b.max_lon_ud;
 }
 
@@ -598,7 +640,10 @@ pub fn maidenhead_box_max_lon(b: MaidenheadBox) -> Int {
 /// box's locator at the box's length (all boxes are non-empty).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn maidenhead_box_contains(b: MaidenheadBox, lat_ud: Int, lon_ud: Int) -> Bool {
+pub fn maidenhead_box_contains(b: MaidenheadBox, lat_ud: Int, lon_ud: Int) -> Bool
+  ensures: result == (lat_ud >= b.min_lat_ud && lat_ud <= b.max_lat_ud && lon_ud >= b.min_lon_ud && lon_ud <= b.max_lon_ud);
+  ensures: (lat_ud < b.min_lat_ud || lat_ud > b.max_lat_ud || lon_ud < b.min_lon_ud || lon_ud > b.max_lon_ud) => !result;
+{
   if lat_ud < b.min_lat_ud || lat_ud > b.max_lat_ud {
     return false;
   }

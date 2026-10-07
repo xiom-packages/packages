@@ -1,6 +1,6 @@
 # xiom.maidenhead -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.maidenhead` (`src/maidenhead.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -321,3 +321,61 @@ The module follows the v0.61.3 idioms proven by the sibling ports:
   the current borrow checker. The warnings are benign (struct values are
   copied) and the suite is green: `port.ps1` ends
   `port: PASS (passed=21 failed=0 program_exit=0 exit=0)`.
+
+## Contracts (batch #28 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/maidenhead.xi` in the batch
+#28 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 31 clauses across the 14 public entry points; all
+are `ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+Two consecutive
+`& .\scripts\port.ps1 -Package xiom.maidenhead -TimeoutSec 60` runs ended
+`port: PASS (passed=21 failed=0 program_exit=0 exit=0)` with the clauses
+active (9.5 s and 9.6 s); the 21-check conformance suite exercises every
+entry point (encode, decode, normalize, the locator accessors, the box
+accessors and containment, plus round-trip sweeps), and no clause trapped.
+
+A direct `xiom-verify src\maidenhead.xi --check` run (package dir as CWD)
+reported `5 proven, 0 violated, 23 unknown, 11 errors`. The five proven
+clauses are exactly the by-value struct-parameter accessor equalities
+`result == b.<field>` (the only functions with emitted `check-sat` blocks in
+the generated SMT); no other clause is claimed Z3-provable -- the rest are
+UNKNOWN (X7007: unsupported expression / equality with unresolved operand
+sort) or were skipped where the emitter errored, so they are runtime-checked
+only. The run also hit the known SMT emitter bug on the
+private leaf helpers (`unknown constant _err_str`, reported as emitter
+errors, not contract violations); `xiom_verify_output.smt2` was deleted after
+inspection.
+
+The five by-value accessor clauses were probe-gated because they have no
+in-repo precedent for reading a by-value struct parameter (all struct-field
+clause precedents use `&` references). They compiled, ran, and were the only
+Z3-proven clauses on the first port attempt, so they are kept as written
+(signatures unchanged); the `warning[E001] use of moved value 'b'` lines are
+the pre-existing advisory calling pattern and the suite is green.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `maidenhead_encode` | `ensures: (length != 2 && length != 4 && length != 6 && length != 8) => result is Err`; `ensures: lat_ud < -90000000 \|\| lat_ud > 90000000 => result is Err`; `ensures: lon_ud < -180000000 \|\| lon_ud > 180000000 => result is Err` | runtime-checked (`Result` tag; guard => Err; literals inlined) |
+| `maidenhead_decode` | `ensures: locator.len() == 0 => result is Err`; `ensures: (locator.len() != 2 && locator.len() != 4 && locator.len() != 6 && locator.len() != 8) => result is Err`; `ensures: result is Ok => (locator.len() == 2 \|\| locator.len() == 4 \|\| locator.len() == 6 \|\| locator.len() == 8)` | runtime-checked (`Result` tag + `Str` length) |
+| `maidenhead_normalize` | `ensures: locator.len() == 0 => result is Err`; `ensures: (locator.len() != 2 && locator.len() != 4 && locator.len() != 6 && locator.len() != 8) => result is Err`; `ensures: result is Ok => (locator.len() == 2 \|\| locator.len() == 4 \|\| locator.len() == 6 \|\| locator.len() == 8)` | runtime-checked (`Result` tag + `Str` length) |
+| `maidenhead_locator_length` | `ensures: locator.len() == 0 => result is Err`; `ensures: (locator.len() != 2 && locator.len() != 4 && locator.len() != 6 && locator.len() != 8) => result is Err`; `ensures: result is Ok => (result.value == 2 \|\| result.value == 4 \|\| result.value == 6 \|\| result.value == 8)` | runtime-checked (`Result` tag + scalar payload) |
+| `maidenhead_field` | `ensures: locator.len() == 0 => result is Err`; `ensures: (locator.len() != 2 && locator.len() != 4 && locator.len() != 6 && locator.len() != 8) => result is Err`; `ensures: result is Ok => result.value.len() == 2` | runtime-checked (`Result` tag + `Str` payload length) |
+| `maidenhead_square` | same three as `maidenhead_field` | runtime-checked (`Result` tag + `Str` payload length) |
+| `maidenhead_subsquare` | same three as `maidenhead_field` | runtime-checked (`Result` tag + `Str` payload length) |
+| `maidenhead_ext_square` | same three as `maidenhead_field` | runtime-checked (`Result` tag + `Str` payload length) |
+| `maidenhead_box_length` | `ensures: result == b.length` | Z3-proven (`xiom-verify --check`; by-value struct param) |
+| `maidenhead_box_min_lat` | `ensures: result == b.min_lat_ud` | Z3-proven (`xiom-verify --check`; by-value struct param) |
+| `maidenhead_box_min_lon` | `ensures: result == b.min_lon_ud` | Z3-proven (`xiom-verify --check`; by-value struct param) |
+| `maidenhead_box_max_lat` | `ensures: result == b.max_lat_ud` | Z3-proven (`xiom-verify --check`; by-value struct param) |
+| `maidenhead_box_max_lon` | `ensures: result == b.max_lon_ud` | Z3-proven (`xiom-verify --check`; by-value struct param) |
+| `maidenhead_box_contains` | `ensures: result == (lat_ud >= b.min_lat_ud && lat_ud <= b.max_lat_ud && lon_ud >= b.min_lon_ud && lon_ud <= b.max_lon_ud)`; `ensures: (lat_ud < b.min_lat_ud \|\| lat_ud > b.max_lat_ud \|\| lon_ud < b.min_lon_ud \|\| lon_ud > b.max_lon_ud) => !result` | runtime-checked (`Bool` result vs field reads; verify UNKNOWN X7007) |
+
+Deliberately not claimed: `Ok` payload lengths on the decoders and the
+locator accessors (payload-length-vs-parameter and struct-`Result`-payload
+shapes are forbidden); the `maidenhead_square`/`subsquare`/`ext_square`
+missing-part errors as antecedents (the length rule is already covered by the
+length guard); `Str` equality anywhere (BUG 17). All clauses use only
+parameter/`result`/`b` field reads, `.len()` counts and inlined literals
+(module constants are never referenced). No clause was dropped and no stdlib
+gap was found.
