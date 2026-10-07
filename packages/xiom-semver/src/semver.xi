@@ -311,7 +311,10 @@ fn _version_parse(s: Str, allow_partial: Bool) -> Result[SemVer, Str] {
 /// Examples: "1.2.3" parses as 1/2/3; "1.0.0-alpha.1+7" keeps pre "alpha.1"
 /// and build "7".
 /// Complexity: O(len(s)).
-pub fn semver_parse(s: Str) -> Result[SemVer, Str] {
+pub fn semver_parse(s: Str) -> Result[SemVer, Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: result is Ok => s.len() >= 5;
+{
   return _version_parse(s, false);
 }
 
@@ -321,7 +324,9 @@ pub fn semver_parse(s: Str) -> Result[SemVer, Str] {
 /// "+build" when build is non-empty.
 /// Error case: none.
 /// Complexity: O(digits + len(pre) + len(build)).
-pub fn semver_format(v: &SemVer) -> Str {
+pub fn semver_format(v: &SemVer) -> Str
+  ensures: result.len() >= v.pre.len() + v.build.len() + 2;
+{
   var out = convert.int_to_string(v.major) + "." + convert.int_to_string(v.minor) + "." + convert.int_to_string(v.patch);
   if v.pre.len() > 0 { out = out + "-" + v.pre; }
   if v.build.len() > 0 { out = out + "+" + v.build; }
@@ -391,7 +396,11 @@ fn _compare_pre(a: Str, b: Str) -> Int {
 /// identifiers are compared left to right. Build metadata is ignored.
 /// Error case: none.
 /// Complexity: O(digits + len(pre)).
-pub fn semver_compare(a: &SemVer, b: &SemVer) -> Int {
+pub fn semver_compare(a: &SemVer, b: &SemVer) -> Int
+  ensures: result >= -1 && result <= 1;
+  ensures: a.major < b.major => result == -1;
+  ensures: result == 0 => a.major == b.major && a.minor == b.minor && a.patch == b.patch;
+{
   if a.major != b.major {
     if a.major < b.major { return -1; }
     return 1;
@@ -415,7 +424,10 @@ pub fn semver_compare(a: &SemVer, b: &SemVer) -> Int {
 /// True when the version carries a pre-release part (`pre` is non-empty).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn semver_is_prerelease(v: &SemVer) -> Bool {
+pub fn semver_is_prerelease(v: &SemVer) -> Bool
+  ensures: v.pre.len() == 0 => !result;
+  ensures: result => v.pre.len() > 0;
+{
   return v.pre.len() > 0;
 }
 
@@ -486,7 +498,10 @@ fn _range_check(v: &SemVer, b: SemVer, op: Int, specified: Int) -> Bool {
 /// included).
 /// Error case: see above.
 /// Complexity: O(len(range) + len(pre)).
-pub fn semver_satisfies(v: &SemVer, range: Str) -> Result[Bool, Str] {
+pub fn semver_satisfies(v: &SemVer, range: Str) -> Result[Bool, Str]
+  ensures: range.len() == 0 => result is Err;
+  ensures: result is Ok => range.len() > 0;
+{
   let n = range.len();
   if n == 0 { return _bool_err("semver: empty range"); }
   if compare.str_compare(range, "*") == 0 { return _bool_ok(true); }
@@ -534,7 +549,10 @@ pub fn semver_satisfies(v: &SemVer, range: Str) -> Result[Bool, Str] {
 /// matched.
 /// Error case: first malformed range error.
 /// Complexity: O(sum of range lengths + len(pre)).
-pub fn semver_satisfies_any(v: &SemVer, ranges: &Vec[Str]) -> Result[Bool, Str] {
+pub fn semver_satisfies_any(v: &SemVer, ranges: &Vec[Str]) -> Result[Bool, Str]
+  ensures: ranges.len() == 0 => result is Ok;
+  ensures: result is Err => ranges.len() > 0;
+{
   var any = false;
   var i = 0;
   while i < ranges.len() {

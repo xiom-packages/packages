@@ -1,6 +1,6 @@
 # xiom.semver SPEC
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 
 ## Scope
 
@@ -104,6 +104,32 @@ matched).
 | bad byte in a build identifier | `semver: malformed build: <s>` |
 | `semver_satisfies(v, "")` | `semver: empty range` |
 | not exactly one valid comparator | `semver: malformed range: <range>` |
+
+## Contracts (batch #26 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/semver.xi` in the batch #26
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 12 clauses across the 6 public entry points; all are `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.semver -TimeoutSec 60` runs ended
+`port: PASS (passed=32 failed=0 program_exit=0 exit=0)` with the clauses active
+(11.0 s and 8.2 s); the 32-check conformance suite exercises every entry point
+and no clause trapped, so none was dropped.
+
+"Z3-provable" marks the scalar-shape family the SMT backend can discharge
+without executing the function (pure scalar guards, bounds and identities over
+parameters and `result`); runtime-checked clauses observe a `Result` tag, read
+a `Str`/`Vec` length, or derive from a called helper, and all are enforced by
+the v0.64.0 runtime evaluator.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `semver_parse` | `ensures: s.len() == 0 => result is Err`; `ensures: result is Ok => s.len() >= 5` | Z3-provable (pure scalar guard); runtime-checked (`Result` tag + `Str` length + parser internals) |
+| `semver_format` | `ensures: result.len() >= v.pre.len() + v.build.len() + 2` | runtime-checked (built `Str` length + field reads) |
+| `semver_compare` | `ensures: result >= -1 && result <= 1`; `ensures: a.major < b.major => result == -1`; `ensures: result == 0 => a.major == b.major && a.minor == b.minor && a.patch == b.patch` | Z3-provable (scalar bounds); Z3-provable (pure scalar guard, first branch); runtime-checked (value may derive from the pre-release comparator) |
+| `semver_is_prerelease` | `ensures: v.pre.len() == 0 => !result`; `ensures: result => v.pre.len() > 0` | Z3-provable (pure scalar guard pair) |
+| `semver_satisfies` | `ensures: range.len() == 0 => result is Err`; `ensures: result is Ok => range.len() > 0` | Z3-provable (pure scalar guard); runtime-checked (`Result` tag + `Str` length + range parser) |
+| `semver_satisfies_any` | `ensures: ranges.len() == 0 => result is Ok`; `ensures: result is Err => ranges.len() > 0` | Z3-provable (pure scalar guard); runtime-checked (`Result` tag + `Vec` length) |
 
 ## Test plan
 

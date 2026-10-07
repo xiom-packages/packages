@@ -8,7 +8,7 @@
 
 package xiom_semver {
   name: "xiom.semver";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Semantic version parsing, comparison, and range satisfaction";
   categories: ["tooling", "data"];
   keywords: ["semver", "version", "range", "compare"];
