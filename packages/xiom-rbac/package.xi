@@ -10,7 +10,7 @@
 
 package xiom_rbac {
   name: "xiom.rbac";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Role-based access rules with wildcard matching and deny-override";
   categories: ["crypto-security","tooling"];
   keywords: ["rbac","permissions","roles","access"];

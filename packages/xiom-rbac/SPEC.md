@@ -171,3 +171,40 @@ assembled with `xiom.string.builder`. The module imports `xiom.string.builder`
 and `xiom.string.compare`; the suite uses `xiom.test`, `xiom.io` and
 `xiom.string.compare`. Verified with `.\scripts\port.ps1 -Package xiom.rbac`
 (v0.61.3): 22 passed, 0 failed, `program_exit=0`.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/rbac.xi` (compiler
+v0.64.0; no version bump): 21 clauses across all 10 public entry points.
+Two consecutive
+`.\scripts\port.ps1 -Package xiom.rbac -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active and no clause trapped, so none was dropped. Classes follow the
+batch #16 clause plan: **Z3-provable (pure scalar)** marks the bounds
+clauses that are pure-scalar Z3 candidates; **runtime-checked** marks
+clauses whose truth depends on a vector length, a `@pre` state, or a token
+length and is enforced by the v0.64.0 runtime evaluator. No clause reads a
+`Result` payload (the module has no `Result`), uses `==` on a `Str` value
+(BUG 17) -- only `.len()` comparisons -- or calls back into the function
+under contract; `rbac_new`'s clause calls `rbac_rule_count`, which does not
+call `rbac_new` (non-cyclic), and was accepted and evaluated cleanly by the
+v0.64.0 evaluator; no struct-field fallback was needed.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `rbac_new` | `ensures: rbac_rule_count(result) == 0` | runtime-checked (non-cyclic cross-call; accepted, no trap) |
+| `rbac_matches` | `ensures: (pattern.len() != value.len() && pattern.len() != 1) => !result`; `ensures: result => pattern.len() == 1 || pattern.len() == value.len()`; `ensures: pattern.len() == 0 && value.len() > 0 => !result` | runtime-checked (guard/sentinel length characterizations) |
+| `rbac_allow` | `ensures: p.roles.len() == p.roles.len()@pre + 1`; `ensures: p.kinds.len() == p.kinds.len()@pre + 1` | runtime-checked (`@pre` parallel-vector growth) |
+| `rbac_deny` | `ensures: p.roles.len() == p.roles.len()@pre + 1`; `ensures: p.kinds.len() == p.kinds.len()@pre + 1` | runtime-checked (`@pre` parallel-vector growth) |
+| `rbac_allows` | `ensures: p.roles.len() == 0 => !result`; `ensures: result => p.roles.len() > 0` | runtime-checked (guard pair) |
+| `rbac_roles` | `ensures: result.len() <= p.roles.len()`; `ensures: p.roles.len() == 0 => result.len() == 0` | runtime-checked (distinct-subset bound; empty-policy sentinel) |
+| `rbac_role_rules` | `ensures: result.len() <= p.roles.len()`; `ensures: p.roles.len() == 0 => result.len() == 0` | runtime-checked (matching-subset bound; empty-policy sentinel) |
+| `rbac_rule_count` | `ensures: result == p.roles.len()`; `ensures: result >= 0` | runtime-checked (parallel-vector identity); Z3-provable (`>= 0`) |
+| `rbac_clear_role` | `ensures: p.roles.len() == p.roles.len()@pre - result`; `ensures: result >= 0`; `ensures: result == 0 => p.roles.len() == p.roles.len()@pre` | runtime-checked (`@pre` compaction identity, idempotence sentinel); Z3-provable (`>= 0`) |
+| `rbac_allowed_actions` | `ensures: result.len() <= p.roles.len()`; `ensures: p.roles.len() == 0 => result.len() == 0` | runtime-checked (matching-allow subset bound; empty-policy sentinel) |
+
+Not asserted: `Str`-content identities (wildcard/exact token equality) stay
+pinned by conformance tests t2-t4, t9-t13, t16 because `==` on `Str` is
+BUG 17 and would have to route through `xiom.string.compare.str_compare`;
+`Vec[StructType]` and struct-result payload clauses are forbidden shapes
+and unused.

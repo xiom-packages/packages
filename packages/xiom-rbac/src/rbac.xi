@@ -68,7 +68,9 @@ pub type RolePolicy = {
 /// Fresh empty policy: no rules, so every request is denied.
 /// Returns: a RolePolicy with four empty parallel vectors.
 /// Error case: none. Complexity: O(1).
-pub fn rbac_new() -> RolePolicy {
+pub fn rbac_new() -> RolePolicy
+  ensures: rbac_rule_count(result) == 0;
+{
   return RolePolicy{
     roles: Vec[Str].new();
     kinds: Vec[Int].new();
@@ -84,7 +86,11 @@ pub fn rbac_new() -> RolePolicy {
 /// byte string (str_compare == 0). Empty pattern matches only empty value.
 /// No prefix/suffix/character globs: "read*" matches nothing but "read*".
 /// Error case: none. Complexity: O(min(|pattern|, |value|)).
-pub fn rbac_matches(pattern: Str, value: Str) -> Bool {
+pub fn rbac_matches(pattern: Str, value: Str) -> Bool
+  ensures: (pattern.len() != value.len() && pattern.len() != 1) => !result;
+  ensures: result => pattern.len() == 1 || pattern.len() == value.len();
+  ensures: pattern.len() == 0 && value.len() > 0 => !result;
+{
   if compare.str_compare(pattern, "*") == 0 {
     return true;
   }
@@ -130,7 +136,10 @@ fn _rbac_rule_hits(p: &RolePolicy, i: Int, role: Str, action: Str, resource: Str
 /// appended verbatim: duplicates are kept, never collapsed (documented).
 /// Params: p - the policy to mutate; role, action, resource - the rule tokens.
 /// Error case: none. Complexity: O(1) amortized.
-pub fn rbac_allow(p: &mut RolePolicy, role: Str, action: Str, resource: Str) {
+pub fn rbac_allow(p: &mut RolePolicy, role: Str, action: Str, resource: Str)
+  ensures: p.roles.len() == p.roles.len()@pre + 1;
+  ensures: p.kinds.len() == p.kinds.len()@pre + 1;
+{
   p.roles.push(role);
   p.kinds.push(_RBAC_ALLOW);
   p.actions.push(action);
@@ -141,7 +150,10 @@ pub fn rbac_allow(p: &mut RolePolicy, role: Str, action: Str, resource: Str) {
 /// matching deny always overrides every matching allow (deny-override).
 /// Params: p - the policy to mutate; role, action, resource - the rule tokens.
 /// Error case: none. Complexity: O(1) amortized.
-pub fn rbac_deny(p: &mut RolePolicy, role: Str, action: Str, resource: Str) {
+pub fn rbac_deny(p: &mut RolePolicy, role: Str, action: Str, resource: Str)
+  ensures: p.roles.len() == p.roles.len()@pre + 1;
+  ensures: p.kinds.len() == p.kinds.len()@pre + 1;
+{
   p.roles.push(role);
   p.kinds.push(_RBAC_DENY);
   p.actions.push(action);
@@ -159,7 +171,10 @@ pub fn rbac_deny(p: &mut RolePolicy, role: Str, action: Str, resource: Str) {
 /// scanned in recorded order but the result does not depend on that order:
 /// deny wins over allow regardless of position.
 /// Error case: none. Complexity: O(rule count * token length).
-pub fn rbac_allows(p: &RolePolicy, role: Str, action: Str, resource: Str) -> Bool {
+pub fn rbac_allows(p: &RolePolicy, role: Str, action: Str, resource: Str) -> Bool
+  ensures: p.roles.len() == 0 => !result;
+  ensures: result => p.roles.len() > 0;
+{
   var i = 0;
   while i < p.roles.len() {
     let k: Int = p.kinds[i];
@@ -193,7 +208,10 @@ pub fn rbac_allows(p: &RolePolicy, role: Str, action: Str, resource: Str) -> Boo
 /// rule. The wildcard role "*" is listed as itself when present. A policy
 /// with no rules yields an empty vector.
 /// Error case: none. Complexity: O(rule count^2) str_compare calls.
-pub fn rbac_roles(p: &RolePolicy) -> Vec[Str] {
+pub fn rbac_roles(p: &RolePolicy) -> Vec[Str]
+  ensures: result.len() <= p.roles.len();
+  ensures: p.roles.len() == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < p.roles.len() {
@@ -231,7 +249,10 @@ fn _rbac_rule_text(p: &RolePolicy, i: Int) -> Str {
 /// query role; a query of "*" matches only rules recorded under "*" (the
 /// wildcard is a property of the rule token, not of the query).
 /// Error case: none. Complexity: O(rule count * token length).
-pub fn rbac_role_rules(p: &RolePolicy, role: Str) -> Vec[Str] {
+pub fn rbac_role_rules(p: &RolePolicy, role: Str) -> Vec[Str]
+  ensures: result.len() <= p.roles.len();
+  ensures: p.roles.len() == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < p.roles.len() {
@@ -248,7 +269,10 @@ pub fn rbac_role_rules(p: &RolePolicy, role: Str) -> Vec[Str] {
 /// Params: p - the policy.
 /// Returns: the common length of the four parallel vectors.
 /// Error case: none. Complexity: O(1).
-pub fn rbac_rule_count(p: &RolePolicy) -> Int {
+pub fn rbac_rule_count(p: &RolePolicy) -> Int
+  ensures: result == p.roles.len();
+  ensures: result >= 0;
+{
   return p.roles.len();
 }
 
@@ -260,7 +284,11 @@ pub fn rbac_rule_count(p: &RolePolicy) -> Int {
 /// makes repeated calls idempotent. The four parallel vectors are compacted,
 /// so the recorded order of the surviving rules is preserved.
 /// Error case: none. Complexity: O(rule count * token length).
-pub fn rbac_clear_role(p: &mut RolePolicy, role: Str) -> Int {
+pub fn rbac_clear_role(p: &mut RolePolicy, role: Str) -> Int
+  ensures: p.roles.len() == p.roles.len()@pre - result;
+  ensures: result >= 0;
+  ensures: result == 0 => p.roles.len() == p.roles.len()@pre;
+{
   var removed = 0;
   var write = 0;
   var i = 0;
@@ -300,7 +328,10 @@ pub fn rbac_clear_role(p: &mut RolePolicy, role: Str) -> Int {
 /// decision (use rbac_allows for the deny-override verdict). A policy with no
 /// matching allow rule yields an empty vector.
 /// Error case: none. Complexity: O(rule count * (token length + output size)).
-pub fn rbac_allowed_actions(p: &RolePolicy, role: Str, resource: Str) -> Vec[Str] {
+pub fn rbac_allowed_actions(p: &RolePolicy, role: Str, resource: Str) -> Vec[Str]
+  ensures: result.len() <= p.roles.len();
+  ensures: p.roles.len() == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < p.roles.len() {
