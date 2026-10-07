@@ -20,6 +20,11 @@ running). Check `git log -1 --format=%h %s` before starting.
   attempt hung to its timeout -- transient; the rerun passed) and `xiom.aws` 0.1.1 +
   `xiom.saml` 0.1.1 are live-verified: **Tier-2 crypto retirement is DONE** (feat `cec9a155`
   aws -251 lines / `fcadeee8` saml -220 lines; FIPS/RFC 4231/SigV4 KATs green x2).
+- **Batch #16 DONE + PUBLISHED (tag `eco-v0.1.65`, run `37633545099`; exit 1 sole cause again:
+  the four PULSE names pending the ops scope):** `preprocess` 0.1.2 (16 clauses), `rbac`
+  0.1.2 (21), `useragent` 0.1.2 (13), `plural` 0.1.2 (11), `wav` 0.1.2 (18), `envsubst`
+  0.1.2 (10); all x2 green. Feats: `ee520b4f`, `71aaf0e8`, `e0c19e3a`, `9ffa99c2`,
+  `01a8e278`, `eaa82ba0`; wrap `77da500f`. ~199 zero-clause stable carriers remain.
 - **Batch #15 DONE + PUBLISHED (tag `eco-v0.1.64`, run `37630233528`; exit 1 sole cause: the
   four new PULSE names are still awaiting the ops scope extension):** six hardening packages
   live -- `mbox` 0.1.2 (30 clauses), `socks` 0.1.3 (32), `tga` 0.1.2 (32), `murmur3` 0.1.2
