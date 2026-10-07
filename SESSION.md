@@ -14,6 +14,35 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-07 16:50Z (batch #19 COMPLETE + PUBLISHED `eco-v0.1.68`; v0.64.1 candidate re-tests done; grpc staged for the official pin; supersedes the 15:30Z block below):**
+- **Batch #19 DONE + PUBLISHED (`eco-v0.1.68`, run `37649772789` SUCCESS; all six live at 0.1.2):**
+  `sanitize` 0.1.2 (16 clauses; 20/20), `report` 0.1.2 (12; 24/24), `querystring` 0.1.2 (23; 20/20),
+  `geo` 0.1.2 (16; 21/21), `ris` 0.1.2 (17; 20/20), `fnv` 0.1.2 (30; 19/19); all x2 green on
+  v0.64.0. Feats: `ec0e70b8`, `061caa75`, `052bfe4e`, `2110d9f1`, `8388ca23`, `11756541`;
+  records: `7ba6739e`, `b31b1329`, `f8b773b0`, `097abbd9`, `f4988be7`, `c2da3451`; wrap
+  `c0f1fa9d`. **~181 zero-clause stable carriers remain.**
+- **v0.64.1 candidate re-tests (compiler main `688932e5`, m199..m207, local release build; no
+  official archive yet):** grpc `probe_suite_min` + `probe_direct` **GREEN** (m202); `tuple-vec-set`
+  probes green; `Vec[Struct].clone()` **STILL RED** (`docs/repro/struct-clone/`, 0xC0000005;
+  no-clone control passes); `io.list_dir` **STILL BROKEN and identical to the pin** (correct count,
+  every entry = the LAST directory name repeated; `%TEMP%\kilo\retest-listdir.xi`); the
+  `io.xi:943` multi-module false ensures could NOT be reproduced (scratch 2-module probe green on
+  BOTH the pin and the candidate; original `xiom.kv` shape not minimized). New finding documented:
+  reference-destructure `let (k, v) = &vec[i]` yields pointer-like values (`k=2175265691024`);
+  direct tuple reads are the fix.
+- **grpc STAGED for the pin (commit `95442d71`, pushed):** named-constant arms restored (m188),
+  metadata scans rewritten to direct tuple reads, `covers-all-17` expectation fixed; suite
+  **36/36 x2** on the candidate. Record + publish held for the official v0.64.1 archive (a record
+  now would claim a pass under pin v0.64.0); grpc stays `tests=unknown`/grandfathered until then.
+- **Docs updated:** `docs/COMPILER-FINDINGS.md` (new ref-destructure row + candidate notes on the
+  `Vec[(Str,Str)]`/const-match/struct-clone/io-943 rows) and `docs/STDLIB-WISHLIST.md` (list_dir
+  re-test). PULSE wishlist: no new rows at 16:50Z.
+- **Next session priority:** if the v0.64.1 archive landed, repin per `docs/MAINTENANCE.md`, re-run
+  the open-finding probes on the official install, record grpc 36/36 and publish it in the next eco
+  tag; otherwise run hardening batch #20 (fan-out) and check the release at the wrap.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-07 15:30Z (batch #18 COMPLETE + PULSE wave fully published; supersedes the 13:00Z block below):**
 - **Batch #18 DONE + PUBLISHED (`eco-v0.1.67`, run `37642771345` SUCCESS -- after GitHub
   transient 500s on push; the third attempt worked):** `term` 0.1.2 (20 clauses; 2 Z3-proven),
@@ -1219,55 +1248,57 @@ running). Check `git log -1 --format=%h %s` before starting.
    category harmonization = owner decision; (d) keep the port watchdog
    discipline.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 15:30Z)
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 16:50Z)
 
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
-Read SESSION.md first -- the 2026-10-07 15:30Z STATE block is the live handoff.
+Read SESSION.md first -- the 2026-10-07 16:50Z STATE block is the live handoff.
 Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
 NO XIOM_RUNTIME_DIR needed (runtime-link + crypto-link RESOLVED; workaround retired).
-Validate 519/0; guard 504/464/40/0. PULSE wave fully published; hardening batches
-#15-#18 published (eco-v0.1.64-.67, 24 packages); ~187 zero-clause stable carriers
-remain. `option` stays excluded (documented all-unasserted).
+Validate 519/0; guard 504/464/40/0. Batch #19 published (eco-v0.1.68, six packages
+live at 0.1.2); ~181 zero-clause stable carriers remain. `option` stays excluded
+(documented all-unasserted). `xiom.grpc` is STAGED (`95442d71`: named-constant arms +
+direct tuple reads; 36/36 x2 on the v0.64.1 candidate) -- record + publish held for the
+official v0.64.1 archive. v0.64.1 is NOT released yet (compiler main `688932e5`
+unpushed; check `gh release list --repo xiom-lang/xiom --limit 2`).
 
 Start: git fetch; git status -sb; git log -1; then
   $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
   & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Hardening batch #19 (FAN-OUT): rescan zero-clause stable carriers
-   (`scripts/contract-coverage.ps1` and the scan pattern in SESSION history), skip
-   `option`; dispatch a read-only explore pre-plan agent for the next six smallest
-   (proven families; forbidden shapes: tuple-component, payload-length-vs-parameter on
-   Result payloads, struct-result payloads, Str equality, and clause calls that
-   transitively reach the callee; inline literals; drift traps). Write
-   %TEMP%\kilo\batch19-clause-plan.md, then one background `task` porter per package
-   (brief: %TEMP%\kilo\batch12-porter-brief.md; port x2; bracket scan; SPEC Contracts +
-   header sync; NO git; NO shared files; explicit-path cleanup). Integrate each report:
-   coordinator port x2, patch bump in package.xi, `feat` commit exact files, record with
-   the real sha and `-RunBy task:ses_...`. Wrap + publish `eco-v0.1.68` (generate_index,
-   report, validate, guard, export-namespaces, tag, approve the registry-publish gate,
-   watch; all candidates already in scope -- no ops delta). If GitHub returns transient
-   500s on push, wait ~60-90s and retry (the third attempt succeeded on 2026-10-07).
-2. Next compiler archive: re-test ONLY the open findings -- grpc `probe_suite_min`/
-   `probe_direct` (m192 candidate did NOT clear it on v0.64.0; still crashes
-   0xC0000005), `docs/repro/struct-clone/` (`Vec[Struct].clone()`), `docs/repro/
-   tuple-vec-set/`, plus the reported `io.list_dir` garbage entries and the
-   `io.xi:943` false `ensures` in multi-module programs. runtime-link/crypto-link are
-   RESOLVED. On green: finish grpc (named-constant arms per m188, x2, record) and publish.
-3. PULSE support: PULSE consumes the registry (its wave is fully published: http 0.1.1,
-   jwt 0.2.0, rate 0.2.0, metrics 0.2.0, router 0.1.0, http.middleware 0.1.0, session
-   0.1.0, static 0.1.0, kv 0.1.0). Triage new `docs/PACKAGE-WISHLIST.md` rows from
-   consumer reports; new package names need an allowlist append + one ops scope relay.
+1. IF the official v0.64.1 archive is released: repin per docs/MAINTENANCE.md
+   (SHA256-verify, deploy to xiom.new, bump COMPILER_VERSION, status.ps1 -Action repin),
+   then re-test ONLY the open findings on the official install: grpc probe_suite_min/
+   probe_direct (expect GREEN), docs/repro/struct-clone/ (expect RED -- stays open),
+   docs/repro/tuple-vec-set/ (green), %TEMP%\kilo\retest-listdir.xi (expect RED --
+   last-name repeated), the io.xi:943 scratch multi-module probe (green/unreproduced).
+   If grpc is green: run `port.ps1 -Package xiom.grpc` x2 on the official install,
+   record 36/36 with `-RunBy task:...` on the REAL commit sha, then publish it in the
+   next eco tag (generate_index, report, validate, guard, export-namespaces, tag,
+   approve the registry-publish gate, watch, live-verify). If the archive is NOT out:
+   skip to batch #20 and re-check at the wrap (candidate evidence is in
+   docs/COMPILER-FINDINGS.md).
+2. Hardening batch #20 (FAN-OUT): rescan zero-clause stable carriers
+   (`scripts/contract-coverage.ps1`), skip `option`; next six smallest via a read-only
+   explore pre-plan; per-package background `task` porters (brief template
+   %TEMP%\kilo\batch19-porter-brief.md; port x2; bracket scan; SPEC Contracts + header
+   sync; NO git; NO shared files; explicit-path cleanup); coordinator integrates
+   (port x2, 0.1.2 bump, feat commit exact files, record with real sha +
+   `-RunBy task:ses_...`); wrap + publish the next eco tag. Transient GitHub 500s on
+   push: wait ~60-90s and retry (the third attempt has succeeded twice).
+3. PULSE support: triage new `docs/PACKAGE-WISHLIST.md` rows from consumer reports
+   (none new at 16:50Z); new package names need an allowlist append + one ops scope relay.
 4. Carry-forwards: `-TimeoutSec 60` watchdog (raise per package); port x2 + byte-level
    bracket scan on every touched package; SPEC headers synced when touched; bump ONLY
    when source changes; `xiom-verify` writes `xiom_verify_output.smt2` to the CWD (run it
-   with the package dir as CWD and clean by literal path); never use `Vec[(Str,Str)]`
-   (m192 live); never read `&mut` params bare (C-PULSE-04); update SESSION.md at the wrap
-   with a fresh paste prompt.
+   with the package dir as CWD and clean by literal path); never use `Vec[(Str,Str)]` in
+   clause shapes (m192 history); never read `&mut` params bare (C-PULSE-04); never
+   destructure `let (k,v) = &vec[i]` over tuple elements (pointer-like values; use
+   `vec[i].0` / `vec[i].1`); update SESSION.md at the wrap with a fresh paste prompt.
 ```
 
 ### Older prompt (history, superseded 2026-10-07)
