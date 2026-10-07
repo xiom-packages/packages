@@ -34,7 +34,11 @@ use xiom.convert;
 /// (-1536, 1, false) -> "-1.5 KB"; (1536, 9, false) -> "1.536 KB" (clamped).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn humanize_bytes(n: Int, decimals: Int, binary: Bool) -> Str {
+pub fn humanize_bytes(n: Int, decimals: Int, binary: Bool) -> Str
+  ensures: result.len() >= 3;
+  ensures: result.len() <= 13;
+  ensures: n == 0 && decimals <= 0 => result.len() == 3;
+{
   let dec = _clamp_decimals(decimals);
   let base = _base_for(binary);
   let unit = _byte_unit(n, base);
@@ -60,7 +64,11 @@ pub fn humanize_bytes(n: Int, decimals: Int, binary: Bool) -> Str {
 /// (-5) -> "0ms".
 /// Error case: none.
 /// Complexity: O(1).
-pub fn humanize_duration_ms(ms: Int) -> Str {
+pub fn humanize_duration_ms(ms: Int) -> Str
+  ensures: ms <= 0 => result.len() == 3;
+  ensures: ms > 0 => result.len() >= 2;
+  ensures: ms > 0 && ms < 1000 => result.len() <= 5;
+{
   if ms <= 0 {
     return "0ms";
   }
@@ -102,7 +110,11 @@ pub fn humanize_duration_ms(ms: Int) -> Str {
 /// "0 items".
 /// Error case: none.
 /// Complexity: O(digits(n)).
-pub fn humanize_count(n: Int, singular: Str, plural_form: Str) -> Str {
+pub fn humanize_count(n: Int, singular: Str, plural_form: Str) -> Str
+  ensures: n == 1 => result.len() == singular.len() + 2;
+  ensures: n == -1 => result.len() == singular.len() + 3;
+  ensures: n == 0 => result.len() == plural_form.len() + 2;
+{
   if n == 1 || n == -1 {
     return int_to_string(n) + " " + singular;
   }
@@ -117,7 +129,11 @@ pub fn humanize_count(n: Int, singular: Str, plural_form: Str) -> Str {
 /// suffix ("-21st").
 /// Error case: none.
 /// Complexity: O(digits(n)).
-pub fn humanize_ordinal(n: Int) -> Str {
+pub fn humanize_ordinal(n: Int) -> Str
+  ensures: n >= 0 && n < 10 => result.len() == 3;
+  ensures: n >= 10 && n < 100 => result.len() == 4;
+  ensures: n < 0 && n > -10 => result.len() == 4;
+{
   var mag = n % 100;
   if mag < 0 {
     mag = 0 - mag;
@@ -147,7 +163,10 @@ pub fn humanize_ordinal(n: Int) -> Str {
 /// (["a", "b", "c"], "or") -> "a, b or c".
 /// Error case: none.
 /// Complexity: O(total bytes of items).
-pub fn humanize_list(items: &Vec[Str], conjunction: Str) -> Str {
+pub fn humanize_list(items: &Vec[Str], conjunction: Str) -> Str
+  ensures: items.len() == 0 => result.len() == 0;
+  ensures: items.len() >= 2 => result.len() >= 2;
+{
   let n = items.len();
   if n == 0 {
     return "";

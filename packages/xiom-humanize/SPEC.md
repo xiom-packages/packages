@@ -1,6 +1,7 @@
 # xiom.humanize -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Status: `stable` (published; harness-green on v0.64.0).
+Manifest: `package.xi` (`xiom.humanize`, version `0.1.2`).
 Module: `xiom.humanize` (`src/humanize.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -176,3 +177,56 @@ failure count (0 = green). Every `Str` comparison is routed through
   intermediate can overflow and the 64-bit minimum is handled exactly.
 - No `Result`/`Ok`/`Err` values are constructed, so the v0.61.3 struct-return
   `Ok`/`Err` codegen bug does not apply. No compiler workarounds required.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/humanize.xi` in the batch
+#17 hardening pass (compiler v0.64.0; no version bump): 14 clauses across the
+five public entry points (3/3/3/3/2). Two consecutive
+`.\scripts\port.ps1 -Package xiom.humanize -TimeoutSec 60` runs ended
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses
+active (24.1 s and 23.7 s), and `xiom --dump-contracts` lists all 14, so none
+was dropped and none trapped. Every clause constrains the built `Str`'s
+length (`result.len()`) or relates it to a `Str`/`Vec` parameter length, so
+all 14 are enforced by the runtime evaluator and **runtime-checked**; none is
+claimed Z3-provable because the solver would have to model string
+construction. The module constructs no `Result`/`Option`, so no clause reads
+a payload; no clause compares `Str` values (BUG 17) and no clause calls any
+function, so there is no postcondition call-cycle risk.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `humanize_bytes` | `ensures: result.len() >= 3`; `ensures: result.len() <= 13` | runtime-checked (output-length bounds) |
+| `humanize_bytes` | `ensures: n == 0 && decimals <= 0 => result.len() == 3` | runtime-checked (zero-input sentinel: `"0 B"`) |
+| `humanize_duration_ms` | `ensures: ms <= 0 => result.len() == 3` | runtime-checked (non-positive sentinel: `"0ms"`) |
+| `humanize_duration_ms` | `ensures: ms > 0 => result.len() >= 2`; `ensures: ms > 0 && ms < 1000 => result.len() <= 5` | runtime-checked (output-length bounds) |
+| `humanize_count` | `ensures: n == 1 => result.len() == singular.len() + 2`; `ensures: n == -1 => result.len() == singular.len() + 3` | runtime-checked (exact formulas) |
+| `humanize_count` | `ensures: n == 0 => result.len() == plural_form.len() + 2` | runtime-checked (exact formula) |
+| `humanize_ordinal` | `ensures: n >= 0 && n < 10 => result.len() == 3`; `ensures: n >= 10 && n < 100 => result.len() == 4`; `ensures: n < 0 && n > -10 => result.len() == 4` | runtime-checked (exact digit + suffix formulas) |
+| `humanize_list` | `ensures: items.len() == 0 => result.len() == 0` | runtime-checked (empty-input sentinel) |
+| `humanize_list` | `ensures: items.len() >= 2 => result.len() >= 2` | runtime-checked (output-length bound) |
+
+Bound rationale:
+
+- `humanize_bytes`: the shortest output is `"0 B"` (3 bytes) and the longest
+  is `"-8192.000 PiB"` at the 64-bit minimum with binary units and 3
+  decimals (13 bytes); `n == 0` with `decimals <= 0` (clamped to 0) prints
+  exactly `"0 B"`.
+- `humanize_duration_ms`: non-positive input yields exactly `"0ms"`; every
+  positive input yields at least `"1s"`/`"1m"`/`"1h"`/`"1d"` (2 bytes) and
+  the sub-second bucket prints at most `"999ms"` (5 bytes).
+- `humanize_count`: `int_to_string(1)` is one byte and `int_to_string(-1)`
+  two bytes, each plus one space plus the form.
+- `humanize_ordinal`: single-digit magnitudes print one digit plus a
+  two-byte suffix (3 bytes); 10..99 and -1..-9 print two bytes plus a
+  two-byte suffix (4 bytes).
+- `humanize_list`: two or more items always separate the leading item, the
+  conjunction and the last item with at least two joining spaces (2 bytes
+  minimum even when every element and the conjunction are empty). A single
+  empty element returns `""` (rule 3.5.2), so the batch #17 plan's proposed
+  `items.len() >= 1 => result.len() >= 1` is false and was refined to the
+  two-item lower bound.
+
+Not asserted (stays pinned by `tests/test_conformance.xi`): exact rendered
+content (`Str` equality, BUG 17), the unit-suffix ladder, half-away
+rounding, and the duration trailing-component omission.
