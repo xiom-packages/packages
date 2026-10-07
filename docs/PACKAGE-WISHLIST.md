@@ -19,12 +19,12 @@ Status legend: **IN-FIX** / **APPROVED-NEW** / **EXTEND** / **MERGE-INTO** / **D
 | Proposed | Triage | Notes |
 |---|---|---|
 | `xiom.router` | **DONE + PUBLISHED** (0.1.0, `eco-v0.1.62`, run `37350671893` rerun SUCCESS after the ops scope extension; feat `67fdb45d`, live-verified) | exact + path-parameter routes, method matching, aggregated 404/405, deterministic first-match; stdlib-only. |
-| `xiom.session` | **DONE (LOCAL) + ALLOWLISTED** (0.1.0, feat `7b7da18c`, 24/24 x2; **publish pending: ops scope extension**) | server-side store: CSPRNG ids with collision retries, absolute TTL, memory backend, cookie headers, rotate/prune; deps `xiom.std` only. |
+| `xiom.session` | **DONE + PUBLISHED** (0.1.0, run `37636386772` rerun SUCCESS; feat `7b7da18c`, 24/24 x2) | server-side store: CSPRNG ids with collision retries, absolute TTL, memory backend, cookie headers, rotate/prune; deps `xiom.std` only. |
 | `xiom.jwt` v0.2 (HS256) | **DONE + PUBLISHED** (0.2.0, `eco-v0.1.60`, run `37338296689`; task `ses_ef3387e5...`) | HS256 sign/verify on top of existing structural decode: alg allowlist, `exp` required / `nbf` optional, constant-time MAC compare; deps `xiom.crypto` (HMAC links under `XIOM_RUNTIME_DIR`; the 0.64.0 archive should remove that requirement). |
 | `xiom.ratelimit` | **DONE + PUBLISHED** -- keyed layer in `xiom.rate` (0.2.0, `eco-v0.1.61`, run `37340030888`; task `ses_ef329199...`) | `xiom.rate` 0.2.0 adds per-IP/route/user keyed buckets and windows plus prune hooks; the 429 envelope lives in `xiom.http.middleware`. |
 | `xiom.metrics` | **EXTEND DONE** (0.2.0, feat `1680104b`, 40/40 x2; publish batch staged) | labels + registry + Prometheus 0.0.4 text exposition (`metric_exposition`) + `metric_latency_bounds_ms`; existing 0.1.x primitives unchanged. |
-| `xiom.static` | **DONE (LOCAL) + ALLOWLISTED** (0.1.0, feat `50742952`, 25/25 x2; **publish pending: ops scope extension**) | MIME/ETag/Last-Modified/Range/cache-control + traversal guard + byte-safe serve pipeline (200/206/304/404/416). |
-| `xiom.kv` | **DONE (LOCAL) + ALLOWLISTED** (0.1.0, feat `a4057093`, 28/28 x2; **publish pending: ops scope extension**) | log-structured KV: crc32c-framed segments, torn-tail repair, tombstones, compaction via atomic rename, snapshots; `io.list_dir` workaround documented. |
+| `xiom.static` | **DONE + PUBLISHED** (0.1.0, run `37636386772` rerun; feat `50742952`, 25/25 x2) | MIME/ETag/Last-Modified/Range/cache-control + traversal guard + byte-safe serve pipeline (200/206/304/404/416). |
+| `xiom.kv` | **DONE + PUBLISHED** (0.1.0, run `37636386772` rerun; feat `a4057093`, 28/28 x2) | log-structured KV: crc32c-framed segments, torn-tail repair, tombstones, compaction via atomic rename, snapshots; `io.list_dir` workaround documented. |
 | `xiom.http.middleware` | **DONE + PUBLISHED** (0.1.0 already live -- the existing `xiom.http.*` registry scope covered it; feat `0bbd50c4`, 22/22 x2) | envelope-agnostic helpers: request-id, access log, CORS header lines, constant-time CSRF, JSON error body. |
 
 ## 3. Build order (agreed with PULSE's suggested sequence)
