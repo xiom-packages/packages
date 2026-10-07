@@ -10,7 +10,7 @@
 
 package xiom_osrelease {
   name: "xiom.osrelease";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "systemd os-release (/etc/os-release) parsing and canonical emitting";
   categories: ["systems"];
   keywords: ["os-release", "systemd", "config", "linux"];

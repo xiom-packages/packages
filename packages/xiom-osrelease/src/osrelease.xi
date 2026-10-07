@@ -331,7 +331,10 @@ fn _osr_push_quoted(out: &mut Vec[UInt8], v: Str) {
 /// unquoted whitespace byte. Repeated keys are not an error: every
 /// assignment is preserved in document order.
 /// Complexity: O(total input length).
-pub fn osrelease_parse(text: Str) -> Result[OsRelease, Str] {
+pub fn osrelease_parse(text: Str) -> Result[OsRelease, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var rel = OsRelease{ keys: Vec[Str].new(); values: Vec[Str].new(); };
   let len = text.len();
   var line_start = 0;
@@ -383,12 +386,19 @@ pub fn osrelease_parse(text: Str) -> Result[OsRelease, Str] {
 }
 
 /// Number of assignments, repeats included.
-pub fn osrelease_len(r: &OsRelease) -> Int {
+pub fn osrelease_len(r: &OsRelease) -> Int
+  ensures: result == r.keys.len();
+  ensures: result >= 0;
+{
   return r.keys.len();
 }
 
 /// Key of assignment `index`; None when index < 0 or index >= len.
-pub fn osrelease_key_at(r: &OsRelease, index: Int) -> Option[Str] {
+pub fn osrelease_key_at(r: &OsRelease, index: Int) -> Option[Str]
+  ensures: index < 0 => result is None;
+  ensures: index >= r.keys.len() => result is None;
+  ensures: result is Some => index >= 0 && index < r.keys.len();
+{
   if index < 0 || index >= r.keys.len() {
     return None;
   }
@@ -397,7 +407,11 @@ pub fn osrelease_key_at(r: &OsRelease, index: Int) -> Option[Str] {
 }
 
 /// Decoded value of assignment `index`; None when index < 0 or index >= len.
-pub fn osrelease_value_at(r: &OsRelease, index: Int) -> Option[Str] {
+pub fn osrelease_value_at(r: &OsRelease, index: Int) -> Option[Str]
+  ensures: index < 0 => result is None;
+  ensures: index >= r.values.len() => result is None;
+  ensures: result is Some => index >= 0 && index < r.values.len();
+{
   if index < 0 || index >= r.values.len() {
     return None;
   }
@@ -407,7 +421,10 @@ pub fn osrelease_value_at(r: &OsRelease, index: Int) -> Option[Str] {
 
 /// First value assigned to `key`; None when the key is absent. Keys are
 /// byte-exact and case-sensitive.
-pub fn osrelease_first(r: &OsRelease, key: Str) -> Option[Str] {
+pub fn osrelease_first(r: &OsRelease, key: Str) -> Option[Str]
+  ensures: r.keys.len() == 0 => result is None;
+  ensures: result is Some => r.keys.len() >= 1;
+{
   let idx = _osr_first_index(r, key);
   if idx < 0 {
     return None;
@@ -418,7 +435,10 @@ pub fn osrelease_first(r: &OsRelease, key: Str) -> Option[Str] {
 
 /// Last value assigned to `key`; None when the key is absent. This is the
 /// spec-recommended reader behavior for a repeated key.
-pub fn osrelease_last(r: &OsRelease, key: Str) -> Option[Str] {
+pub fn osrelease_last(r: &OsRelease, key: Str) -> Option[Str]
+  ensures: r.keys.len() == 0 => result is None;
+  ensures: result is Some => r.keys.len() >= 1;
+{
   let idx = _osr_last_index(r, key);
   if idx < 0 {
     return None;
@@ -428,23 +448,35 @@ pub fn osrelease_last(r: &OsRelease, key: Str) -> Option[Str] {
 }
 
 /// True when the file contains `key` (repeats included).
-pub fn osrelease_has(r: &OsRelease, key: Str) -> Bool {
+pub fn osrelease_has(r: &OsRelease, key: Str) -> Bool
+  ensures: r.keys.len() == 0 => !result;
+  ensures: result => r.keys.len() >= 1;
+{
   return _osr_first_index(r, key) >= 0;
 }
 
 /// Convenience for the `ID` field: its last value (spec readers prefer the
 /// later entry), None when unset.
-pub fn osrelease_id(r: &OsRelease) -> Option[Str] {
+pub fn osrelease_id(r: &OsRelease) -> Option[Str]
+  ensures: r.keys.len() == 0 => result is None;
+  ensures: result is Some => r.keys.len() >= 1;
+{
   return osrelease_last(r, "ID");
 }
 
 /// Convenience for the `ID_LIKE` field: its last value, None when unset.
-pub fn osrelease_id_like(r: &OsRelease) -> Option[Str] {
+pub fn osrelease_id_like(r: &OsRelease) -> Option[Str]
+  ensures: r.keys.len() == 0 => result is None;
+  ensures: result is Some => r.keys.len() >= 1;
+{
   return osrelease_last(r, "ID_LIKE");
 }
 
 /// Convenience for the `VERSION_ID` field: its last value, None when unset.
-pub fn osrelease_version_id(r: &OsRelease) -> Option[Str] {
+pub fn osrelease_version_id(r: &OsRelease) -> Option[Str]
+  ensures: r.keys.len() == 0 => result is None;
+  ensures: result is Some => r.keys.len() >= 1;
+{
   return osrelease_last(r, "VERSION_ID");
 }
 
@@ -459,7 +491,10 @@ pub fn osrelease_version_id(r: &OsRelease) -> Option[Str] {
 /// quotes and are outside the accepted value domain (SPEC.md).
 /// Error case: none.
 /// Complexity: O(total output length).
-pub fn osrelease_emit(r: &OsRelease) -> Str {
+pub fn osrelease_emit(r: &OsRelease) -> Str
+  ensures: r.keys.len() == 0 => result.len() == 0;
+  ensures: result.len() >= r.keys.len();
+{
   var out = Vec[UInt8].new();
   var i = 0;
   while i < r.keys.len() {

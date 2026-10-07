@@ -1,6 +1,6 @@
 # xiom.osrelease -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.osrelease` (`src/osrelease.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -249,3 +249,47 @@ idioms as `xiom.dotenv`/`xiom.ini` (byte-wise scanning with
 - The emitter does not validate keys: a hand-built `OsRelease` with an
   invalid key produces text this parser rejects.
 - Errors carry the offending line text but no line/column numbers.
+
+## Contracts (batch #23 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/osrelease.xi` in the batch
+#23 hardening pass (compiler v0.64.0; the coordinator bumps `package.xi` at
+integration): 24 clauses across the 11 public entry points. Two consecutive
+`.\scripts\port.ps1 -Package xiom.osrelease -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (14.51 s and 13.91 s). The 20-check conformance suite exercises all 11
+entry points with the clauses active; none trapped.
+
+All clauses are `ensures:`; no `requires:` was added, so the accepted-input
+domain is unchanged. `xiom-verify --check` (Z3 on v0.64.0) reports
+**0 proven / 0 violated / 28 unknown / 3 errors**: the emitted verification
+conditions observe `Str`/`Vec` lengths and `Result`/`Option` tags that the
+v0.64.0 emitter cannot resolve ("equality with unresolved operand sort",
+"unsupported expression in contract"), and the 3 errors are unknown-constant
+emitter artifacts (`_osr_first_index` / `_osr_last_index` in the generated
+SMT), not violations of the code under test. No clause is machine-proven, so
+all 24 are **runtime-checked** by the v0.64.0 evaluator; none was
+machine-falsified.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `osrelease_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime-checked (`Str` length + `Result` tag) |
+| `osrelease_len` | `ensures: result == r.keys.len()`; `ensures: result >= 0` | runtime-checked (`Vec` length; verifier skipped) |
+| `osrelease_key_at` | `ensures: index < 0 => result is None`; `ensures: index >= r.keys.len() => result is None`; `ensures: result is Some => index >= 0 && index < r.keys.len()` | runtime-checked (`Option` tag + `Vec` length) |
+| `osrelease_value_at` | `ensures: index < 0 => result is None`; `ensures: index >= r.values.len() => result is None`; `ensures: result is Some => index >= 0 && index < r.values.len()` | runtime-checked (`Option` tag + `Vec` length) |
+| `osrelease_first` | `ensures: r.keys.len() == 0 => result is None`; `ensures: result is Some => r.keys.len() >= 1` | runtime-checked |
+| `osrelease_last` | same pair as `osrelease_first` | runtime-checked |
+| `osrelease_has` | `ensures: r.keys.len() == 0 => !result`; `ensures: result => r.keys.len() >= 1` | runtime-checked (Bool guard-pair) |
+| `osrelease_id` | same pair as `osrelease_first` | runtime-checked |
+| `osrelease_id_like` | same pair as `osrelease_first` | runtime-checked |
+| `osrelease_version_id` | same pair as `osrelease_first` | runtime-checked |
+| `osrelease_emit` | `ensures: r.keys.len() == 0 => result.len() == 0`; `ensures: result.len() >= r.keys.len()` | runtime-checked (`Vec`/`Str` lengths) |
+
+`osrelease_parse`'s guard-pair points the opposite way from the error-parser
+packages: an empty document is valid (`Ok` with zero entries), so
+`text.len() == 0 => result is Ok` and the `Err` case implies non-empty text.
+The `Ok` payload is the struct `OsRelease` and the `Option[Str]` payloads are
+string contents (BUG 17), so every clause is tag-only or length-only: no
+`result.value` reads, no struct-payload field reads and no `Str` equality
+anywhere. No clause calls a function that wraps its callee, and no tuple
+component is accessed.
