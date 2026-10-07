@@ -1,8 +1,6 @@
 # xiom.marc -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.marc`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/marc.xi` (`module xiom.marc`).
 Depends on `xiom.std` (`xiom.string`: `byte_at`, `str_compare`; `Str::from_utf8`
 is a compiler builtin). Tests additionally use `xiom.test`, `xiom.io` and
@@ -323,8 +321,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.marc
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=22 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0,
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` (6.4 s and 6.0 s in
+two consecutive runs with the batch #30 `ensures:` clauses active).
 
 ## 10. Known limitations
 
@@ -365,3 +364,54 @@ Last verified: compiler 0.61.3,
   or a call result), following the `docs/repro/struct-field-vec` findings.
 - Tag equality is `string.str_compare`, and fixture bytes are written
   through `string.byte_at`, so no comparison depends on implicit lowering.
+
+## Contracts (batch #30 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/marc.xi` in the batch #30
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator
+at integration). 41 clauses across the 24 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.marc -TimeoutSec 60` runs
+ended `port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the
+clauses active (6.4 s and 6.0 s); the 22-check conformance suite exercises
+every entry point -- including the out-of-range accessor sentinels (t6), the
+drifted-vector clamping (t22) and the 8332-field builder cap (t19) -- and no
+clause trapped.
+
+"Z3-provable" marks the scalar-shape family the SMT backend can discharge
+without executing the function (pure scalar guards/sentinels, comparisons of
+`result` against `Int`-typed `MarcRecord` fields or `.len()` counts);
+runtime-checked clauses observe a `Result` tag or compare `Str`/vector
+lengths, and all are enforced by the v0.64.0 runtime evaluator.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `marc_parse` | `ensures: data.len() < 24 => result is Err`; `ensures: result is Ok => data.len() >= 24` | Z3-provable (pure scalar guard); runtime-checked (`Result` tag + `Vec` length) |
+| `marc_record_length` ... `marc_multipart_level` (12 scalar leader readers) | one `ensures: result == t.<field>` per reader | Z3-provable (pure scalar) |
+| `marc_entry_map` | `ensures: result.len() == t.entry_map.len()` | runtime-checked (`Str` length) |
+| `marc_field_count` | `ensures: result <= t.tags.len()`; `ensures: result >= 0`; `ensures: t.tags.len() == 0 => result == 0` | Z3-provable (scalar-shape counts) |
+| `marc_tag` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= marc_field_count(t) => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < marc_field_count(t)` | runtime-checked (built `Str` length + public cross-call) |
+| `marc_field_data` | same three clauses as `marc_tag` | runtime-checked (built `Str` length + public cross-call) |
+| `marc_field_offset` | `ensures: i < 0 => result == -1`; `ensures: i >= marc_field_count(t) => result == -1` | Z3-provable (scalar-shape sentinel + public cross-call) |
+| `marc_field_span` | `ensures: i < 0 => result == 0`; `ensures: i >= marc_field_count(t) => result == 0` | Z3-provable (scalar-shape sentinel + public cross-call) |
+| `marc_subfield_count` | `ensures: i < 0 => result == 0`; `ensures: i >= marc_field_count(t) => result == 0`; `ensures: result >= 0` | Z3-provable (scalar-shape sentinel + public cross-call) |
+| `marc_subfield_code` | `ensures: j < 0 => result == 0`; `ensures: j >= marc_subfield_count(t, i) => result == 0` | Z3-provable (scalar-shape sentinel + public cross-call) |
+| `marc_subfield_value` | `ensures: j < 0 => result.len() == 0`; `ensures: j >= marc_subfield_count(t, i) => result.len() == 0` | runtime-checked (built `Str` length + public cross-call) |
+| `marc_subfield_value_by_code` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= marc_field_count(t) => result.len() == 0` | runtime-checked (`Str` length + public cross-call) |
+| `marc_build` | `ensures: (template.record_status < 0 \|\| ... \|\| template.multipart_level > 255) => result is Err` (all eight pass-through leader bytes); `ensures: tags.len() != field_data.len() => result is Err`; `ensures: tags.len() != sub_counts.len() => result is Err`; `ensures: tags.len() >= 8332 => result is Err` | runtime-checked (`Result` tag + vector lengths) |
+
+`8332` in `marc_build` is the inlined derived form of the source guard
+`_MARC_MIN_BASE + 12 * n > _MARC_MAX_RECORD_LEN` (`25 + 12 * 8332 = 100009 >
+99999`); module consts are not used inside clauses. `marc_field_offset` and
+`marc_field_span` get sentinel-only clauses: a hand-built in-range entry may
+legitimately hold `-1`/`0`, so no converses are claimed. The only clause
+cross-calls are `marc_field_count(t)` and `marc_subfield_count(t, i)`, and
+neither callee calls its callers (`marc_subfield_count` itself calls only
+`marc_field_count`).
+
+Deliberately not claimed: any observation of the `marc_parse` `Ok` payload
+(a `MarcRecord` struct field read); `marc_field_offset`/`marc_field_span`
+in-range converses; a sum bound over hand-built `sub_counts` (arbitrary
+`Int` elements); `marc_subfield_code`/`marc_subfield_value` in-range
+converses; `Str` equality (BUG 17); vector indexing in clauses; tuple
+values; and every forbidden shape from the batch #30 brief.

@@ -245,7 +245,10 @@ fn _push_str(out: &mut Vec[UInt8], s: Str) {
 /// parallel; field_offsets are absolute indices into `data`.
 /// Error case: see the catalog above and SPEC.md.
 /// Complexity: O(data bytes).
-pub fn marc_parse(data: &Vec[UInt8]) -> Result[MarcRecord, Str] {
+pub fn marc_parse(data: &Vec[UInt8]) -> Result[MarcRecord, Str]
+  ensures: data.len() < 24 => result is Err;
+  ensures: result is Ok => data.len() >= 24;
+{
   let n = data.len();
   if n < _MARC_LEADER_LEN { return _err_record("marc: truncated leader"); }
   if !_digits_ok(data, 0, 5) { return _err_record("marc: bad record length"); }
@@ -357,74 +360,100 @@ pub fn marc_parse(data: &Vec[UInt8]) -> Result[MarcRecord, Str] {
 }
 
 /// Record length field of the leader (bytes 0..4). Complexity: O(1).
-pub fn marc_record_length(t: &MarcRecord) -> Int {
+pub fn marc_record_length(t: &MarcRecord) -> Int
+  ensures: result == t.record_length;
+{
   return t.record_length;
 }
 
 /// Record status byte (leader 5), stored verbatim. Complexity: O(1).
-pub fn marc_record_status(t: &MarcRecord) -> Int {
+pub fn marc_record_status(t: &MarcRecord) -> Int
+  ensures: result == t.record_status;
+{
   return t.record_status;
 }
 
 /// Type of record byte (leader 6), stored verbatim. Complexity: O(1).
-pub fn marc_record_type(t: &MarcRecord) -> Int {
+pub fn marc_record_type(t: &MarcRecord) -> Int
+  ensures: result == t.record_type;
+{
   return t.record_type;
 }
 
 /// Bibliographic level byte (leader 7), stored verbatim. Complexity: O(1).
-pub fn marc_bib_level(t: &MarcRecord) -> Int {
+pub fn marc_bib_level(t: &MarcRecord) -> Int
+  ensures: result == t.bib_level;
+{
   return t.bib_level;
 }
 
 /// Type of control byte (leader 8), stored verbatim. Complexity: O(1).
-pub fn marc_type_of_control(t: &MarcRecord) -> Int {
+pub fn marc_type_of_control(t: &MarcRecord) -> Int
+  ensures: result == t.type_of_control;
+{
   return t.type_of_control;
 }
 
 /// Character coding scheme byte (leader 9), stored verbatim.
 /// Complexity: O(1).
-pub fn marc_char_coding(t: &MarcRecord) -> Int {
+pub fn marc_char_coding(t: &MarcRecord) -> Int
+  ensures: result == t.char_coding;
+{
   return t.char_coding;
 }
 
 /// Indicator count byte (leader 10); a parsed record pins it to '2' (50).
 /// Complexity: O(1).
-pub fn marc_indicator_count(t: &MarcRecord) -> Int {
+pub fn marc_indicator_count(t: &MarcRecord) -> Int
+  ensures: result == t.indicator_count;
+{
   return t.indicator_count;
 }
 
 /// Subfield code count byte (leader 11); a parsed record pins it to '2'
 /// (50). Complexity: O(1).
-pub fn marc_subfield_code_count(t: &MarcRecord) -> Int {
+pub fn marc_subfield_code_count(t: &MarcRecord) -> Int
+  ensures: result == t.subfield_code_count;
+{
   return t.subfield_code_count;
 }
 
 /// Base address of data (leader 12..16): the absolute offset of the first
 /// data-area byte. Complexity: O(1).
-pub fn marc_base_address(t: &MarcRecord) -> Int {
+pub fn marc_base_address(t: &MarcRecord) -> Int
+  ensures: result == t.base_address;
+{
   return t.base_address;
 }
 
 /// Encoding level byte (leader 17), stored verbatim. Complexity: O(1).
-pub fn marc_encoding_level(t: &MarcRecord) -> Int {
+pub fn marc_encoding_level(t: &MarcRecord) -> Int
+  ensures: result == t.encoding_level;
+{
   return t.encoding_level;
 }
 
 /// Descriptive cataloging form byte (leader 18), stored verbatim.
 /// Complexity: O(1).
-pub fn marc_cataloging_form(t: &MarcRecord) -> Int {
+pub fn marc_cataloging_form(t: &MarcRecord) -> Int
+  ensures: result == t.cataloging_form;
+{
   return t.cataloging_form;
 }
 
 /// Multipart resource record level byte (leader 19), stored verbatim.
 /// Complexity: O(1).
-pub fn marc_multipart_level(t: &MarcRecord) -> Int {
+pub fn marc_multipart_level(t: &MarcRecord) -> Int
+  ensures: result == t.multipart_level;
+{
   return t.multipart_level;
 }
 
 /// Entry map text (leader 20..23); a parsed record always reports "4500".
 /// Complexity: O(1).
-pub fn marc_entry_map(t: &MarcRecord) -> Str {
+pub fn marc_entry_map(t: &MarcRecord) -> Str
+  ensures: result.len() == t.entry_map.len();
+{
   let map: Str = t.entry_map;
   return map;
 }
@@ -432,7 +461,11 @@ pub fn marc_entry_map(t: &MarcRecord) -> Str {
 /// Number of variable fields, computed as the minimum length of the six
 /// parallel field vectors so a hand-built record with drifted vectors
 /// reports the safe maximum. Complexity: O(1).
-pub fn marc_field_count(t: &MarcRecord) -> Int {
+pub fn marc_field_count(t: &MarcRecord) -> Int
+  ensures: result <= t.tags.len();
+  ensures: result >= 0;
+  ensures: t.tags.len() == 0 => result == 0;
+{
   var n = t.tags.len();
   if t.field_data.len() < n { n = t.field_data.len(); }
   if t.field_offsets.len() < n { n = t.field_offsets.len(); }
@@ -444,7 +477,11 @@ pub fn marc_field_count(t: &MarcRecord) -> Int {
 
 /// Three-digit tag of field `i`; "" when `i` is negative or out of range.
 /// Complexity: O(1).
-pub fn marc_tag(t: &MarcRecord, i: Int) -> Str {
+pub fn marc_tag(t: &MarcRecord, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= marc_field_count(t) => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < marc_field_count(t);
+{
   if i < 0 { return ""; }
   if i >= marc_field_count(t) { return ""; }
   let tag: Str = t.tags[i];
@@ -454,7 +491,11 @@ pub fn marc_tag(t: &MarcRecord, i: Int) -> Str {
 /// Field data of field `i`: the bytes before its first 0x1F, with the two
 /// indicator bytes first for a MARC data field. "" when `i` is negative or
 /// out of range. Complexity: O(1).
-pub fn marc_field_data(t: &MarcRecord, i: Int) -> Str {
+pub fn marc_field_data(t: &MarcRecord, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= marc_field_count(t) => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < marc_field_count(t);
+{
   if i < 0 { return ""; }
   if i >= marc_field_count(t) { return ""; }
   let data: Str = t.field_data[i];
@@ -463,7 +504,10 @@ pub fn marc_field_data(t: &MarcRecord, i: Int) -> Str {
 
 /// Absolute offset of field `i` in the buffer passed to `marc_parse`; -1
 /// when `i` is negative or out of range. Complexity: O(1).
-pub fn marc_field_offset(t: &MarcRecord, i: Int) -> Int {
+pub fn marc_field_offset(t: &MarcRecord, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= marc_field_count(t) => result == -1;
+{
   if i < 0 { return -1; }
   if i >= marc_field_count(t) { return -1; }
   let off: Int = t.field_offsets[i];
@@ -472,7 +516,10 @@ pub fn marc_field_offset(t: &MarcRecord, i: Int) -> Int {
 
 /// Byte span of field `i`, including its trailing 0x1E terminator; 0 when
 /// `i` is negative or out of range. Complexity: O(1).
-pub fn marc_field_span(t: &MarcRecord, i: Int) -> Int {
+pub fn marc_field_span(t: &MarcRecord, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= marc_field_count(t) => result == 0;
+{
   if i < 0 { return 0; }
   if i >= marc_field_count(t) { return 0; }
   let span: Int = t.field_spans[i];
@@ -483,7 +530,11 @@ pub fn marc_field_span(t: &MarcRecord, i: Int) -> Int {
 /// range. The count is clamped to what the flat subfield vectors actually
 /// hold, so a hand-built record with drifted vectors stays in bounds.
 /// Complexity: O(1).
-pub fn marc_subfield_count(t: &MarcRecord, i: Int) -> Int {
+pub fn marc_subfield_count(t: &MarcRecord, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= marc_field_count(t) => result == 0;
+  ensures: result >= 0;
+{
   if i < 0 { return 0; }
   if i >= marc_field_count(t) { return 0; }
   let start: Int = t.sub_offsets[i];
@@ -499,7 +550,10 @@ pub fn marc_subfield_count(t: &MarcRecord, i: Int) -> Int {
 /// One-byte subfield code of subfield `j` of field `i`, as a byte value
 /// 0..255; 0 when `i` or `j` is negative or out of range.
 /// Complexity: O(1).
-pub fn marc_subfield_code(t: &MarcRecord, i: Int, j: Int) -> Int {
+pub fn marc_subfield_code(t: &MarcRecord, i: Int, j: Int) -> Int
+  ensures: j < 0 => result == 0;
+  ensures: j >= marc_subfield_count(t, i) => result == 0;
+{
   if j < 0 { return 0; }
   if j >= marc_subfield_count(t, i) { return 0; }
   let start: Int = t.sub_offsets[i];
@@ -511,7 +565,10 @@ pub fn marc_subfield_code(t: &MarcRecord, i: Int, j: Int) -> Int {
 /// and the next 0x1F or the field terminator); "" when `i` or `j` is
 /// negative or out of range. An empty subfield value yields "".
 /// Complexity: O(1) (the value was copied at parse time).
-pub fn marc_subfield_value(t: &MarcRecord, i: Int, j: Int) -> Str {
+pub fn marc_subfield_value(t: &MarcRecord, i: Int, j: Int) -> Str
+  ensures: j < 0 => result.len() == 0;
+  ensures: j >= marc_subfield_count(t, i) => result.len() == 0;
+{
   if j < 0 { return ""; }
   if j >= marc_subfield_count(t, i) { return ""; }
   let start: Int = t.sub_offsets[i];
@@ -524,7 +581,10 @@ pub fn marc_subfield_value(t: &MarcRecord, i: Int, j: Int) -> Str {
 /// of range. First match wins when a code repeats, and the returned value
 /// is the text stored at parse time (empty for an empty subfield).
 /// Complexity: O(subfields of field i).
-pub fn marc_subfield_value_by_code(t: &MarcRecord, i: Int, code: Int) -> Str {
+pub fn marc_subfield_value_by_code(t: &MarcRecord, i: Int, code: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= marc_field_count(t) => result.len() == 0;
+{
   let count = marc_subfield_count(t, i);
   var j = 0;
   while j < count {
@@ -570,7 +630,12 @@ pub fn marc_subfield_value_by_code(t: &MarcRecord, i: Int, code: Int) -> Str {
 /// ("marc: field too long") when a field exceeds 9999 bytes; Err("marc:
 /// record too long") when the record exceeds 99999 bytes.
 /// Complexity: O(fields + subfields + output bytes).
-pub fn marc_build(template: &MarcRecord, tags: &Vec[Str], field_data: &Vec[Str], sub_counts: &Vec[Int], sub_codes: &Vec[Int], sub_values: &Vec[Str]) -> Result[Vec[UInt8], Str] {
+pub fn marc_build(template: &MarcRecord, tags: &Vec[Str], field_data: &Vec[Str], sub_counts: &Vec[Int], sub_codes: &Vec[Int], sub_values: &Vec[Str]) -> Result[Vec[UInt8], Str]
+  ensures: (template.record_status < 0 || template.record_status > 255 || template.record_type < 0 || template.record_type > 255 || template.bib_level < 0 || template.bib_level > 255 || template.type_of_control < 0 || template.type_of_control > 255 || template.char_coding < 0 || template.char_coding > 255 || template.encoding_level < 0 || template.encoding_level > 255 || template.cataloging_form < 0 || template.cataloging_form > 255 || template.multipart_level < 0 || template.multipart_level > 255) => result is Err;
+  ensures: tags.len() != field_data.len() => result is Err;
+  ensures: tags.len() != sub_counts.len() => result is Err;
+  ensures: tags.len() >= 8332 => result is Err;
+{
   if template.record_status < 0 || template.record_status > 255 { return _err_bytes("marc: bad leader byte"); }
   if template.record_type < 0 || template.record_type > 255 { return _err_bytes("marc: bad leader byte"); }
   if template.bib_level < 0 || template.bib_level > 255 { return _err_bytes("marc: bad leader byte"); }
