@@ -9,7 +9,7 @@
 
 package xiom_geo {
   name: "xiom.geo";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Geohash encoding/decoding and latitude/longitude helpers";
   categories: ["science","data"];
   keywords: ["geohash","geo","coordinates","spatial"];

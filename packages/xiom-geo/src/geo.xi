@@ -130,7 +130,10 @@ fn _wrap_lon(lon: Float64) -> Float64 {
 /// unchanged (including the bounds themselves).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn geo_clamp_lat(lat: Float64) -> Float64 {
+pub fn geo_clamp_lat(lat: Float64) -> Float64
+  ensures: result >= -90.0 && result <= 90.0;
+  ensures: lat >= -90.0 && lat <= 90.0 => result == lat;
+{
   return _clamp_lat(lat);
 }
 
@@ -141,7 +144,10 @@ pub fn geo_clamp_lat(lat: Float64) -> Float64 {
 /// 200 becomes 180, not -160.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn geo_clamp_lon(lon: Float64) -> Float64 {
+pub fn geo_clamp_lon(lon: Float64) -> Float64
+  ensures: result >= -180.0 && result <= 180.0;
+  ensures: lon >= -180.0 && lon <= 180.0 => result == lon;
+{
   return _clamp_lon(lon);
 }
 
@@ -203,7 +209,11 @@ fn _encode_raw(lat: Float64, lon: Float64, precision: Int) -> Str {
 /// Err("geo: longitude out of range") when the coordinate is outside its
 /// inclusive range.
 /// Complexity: O(precision).
-pub fn geo_geohash_encode(lat: Float64, lon: Float64, precision: Int) -> Result[Str, Str] {
+pub fn geo_geohash_encode(lat: Float64, lon: Float64, precision: Int) -> Result[Str, Str]
+  ensures: precision < 1 || precision > 12 => result is Err;
+  ensures: lat < -90.0 || lat > 90.0 => result is Err;
+  ensures: lon < -180.0 || lon > 180.0 => result is Err;
+{
   if precision < _GEO_PRECISION_MIN || precision > _GEO_PRECISION_MAX {
     return _err_str("geo: invalid precision");
   }
@@ -228,7 +238,11 @@ pub fn geo_geohash_encode(lat: Float64, lon: Float64, precision: Int) -> Result[
 /// long") for more than 12 characters; Err("geo: invalid geohash
 /// character") for any byte outside the alphabet.
 /// Complexity: O(len(hash)).
-pub fn geo_geohash_decode(hash: Str) -> Result[GeoPoint, Str] {
+pub fn geo_geohash_decode(hash: Str) -> Result[GeoPoint, Str]
+  ensures: hash.len() == 0 => result is Err;
+  ensures: hash.len() > 12 => result is Err;
+  ensures: result is Ok => hash.len() >= 1 && hash.len() <= 12;
+{
   let len = hash.len();
   if len == 0 {
     return _err_point("geo: empty geohash");
@@ -319,7 +333,11 @@ fn _cell_span(precision: Int) -> (Float64, Float64) {
 /// distinct.
 /// Error case: an invalid hash yields an empty Vec[Str].
 /// Complexity: O(len(hash)) per neighbor.
-pub fn geo_geohash_neighbors(hash: Str) -> Vec[Str] {
+pub fn geo_geohash_neighbors(hash: Str) -> Vec[Str]
+  ensures: hash.len() == 0 => result.len() == 0;
+  ensures: hash.len() > 12 => result.len() == 0;
+  ensures: result.len() == 0 || result.len() == 8;
+{
   var out = Vec[Str].new();
   let decoded = geo_geohash_decode(hash);
   if !decoded.is_ok {
@@ -355,7 +373,11 @@ pub fn geo_geohash_neighbors(hash: Str) -> Vec[Str] {
 /// Returns: true when the point lies inside the box, bounds included.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn geo_geo_bbox_contains(min_lat: Float64, min_lon: Float64, max_lat: Float64, max_lon: Float64, lat: Float64, lon: Float64) -> Bool {
+pub fn geo_geo_bbox_contains(min_lat: Float64, min_lon: Float64, max_lat: Float64, max_lon: Float64, lat: Float64, lon: Float64) -> Bool
+  ensures: lat < min_lat || lat > max_lat => !result;
+  ensures: min_lon <= max_lon && lat >= min_lat && lat <= max_lat && lon >= min_lon && lon <= max_lon => result;
+  ensures: min_lon > max_lon && lat >= min_lat && lat <= max_lat && (lon >= min_lon || lon <= max_lon) => result;
+{
   if lat < min_lat || lat > max_lat {
     return false;
   }

@@ -1,6 +1,6 @@
 # xiom.geo -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.geo` (`src/geo.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -241,3 +241,43 @@ The module follows the v0.61.3 idioms proven by the sibling ports:
   report correct lengths.
 - No compiler workarounds beyond the above; `port.ps1` ends
   `port: PASS (passed=21 failed=0 program_exit=0 exit=0)`.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/geo.xi` in the batch #19
+hardening pass (compiler v0.64.0; no version bump): 16 clauses across the 6
+public entry points. `xiom --dump-contracts` lists all 16, so none was
+dropped, and two consecutive
+`.\scripts\port.ps1 -Package xiom.geo -TimeoutSec 60` runs ended
+`port: PASS (passed=21 failed=0 program_exit=0 exit=0)` with the clauses
+active (8.0 s and 7.6 s). The 21-check conformance suite exercises every
+entry point on both the success and the rejection paths with the clauses
+active; none trapped.
+
+`xiom-verify --check` (Z3 on v0.64.0) result: **6 proven / 0 violated /
+11 unknown / 6 errors**. The 6 proven are the four clamp clauses and two of
+the bbox clauses. The 11 unknown are skipped contract axioms (Result/Vec
+equality sorts, `||` disjunctions, helper calls) plus body incompleteness
+and loop-invariant gaps. The 6 errors are emitter artifacts in body VCs
+(`unknown constant _clamp_lat` / `_clamp_lon` / `_err_str` / `_encode_raw`
+in the generated SMT), not violations of the code under test. No clause was
+machine-falsified.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `geo_clamp_lat` | `ensures: result >= -90.0 && result <= 90.0`; `ensures: lat >= -90.0 && lat <= 90.0 => result == lat` | Z3-proven (2/2) |
+| `geo_clamp_lon` | `ensures: result >= -180.0 && result <= 180.0`; `ensures: lon >= -180.0 && lon <= 180.0 => result == lon` | Z3-proven (2/2) |
+| `geo_geohash_encode` | `ensures: precision < 1 \|\| precision > 12 => result is Err`; `ensures: lat < -90.0 \|\| lat > 90.0 => result is Err`; `ensures: lon < -180.0 \|\| lon > 180.0 => result is Err` | runtime-checked (emitter skips `\|\|` contracts) |
+| `geo_geohash_decode` | `ensures: hash.len() == 0 => result is Err`; `ensures: hash.len() > 12 => result is Err`; `ensures: result is Ok => hash.len() >= 1 && hash.len() <= 12` | runtime-checked (Result-sort equality unresolved) |
+| `geo_geohash_neighbors` | `ensures: hash.len() == 0 => result.len() == 0`; `ensures: hash.len() > 12 => result.len() == 0`; `ensures: result.len() == 0 \|\| result.len() == 8` | runtime-checked (Vec-sort equality unresolved) |
+| `geo_geo_bbox_contains` | `ensures: lat < min_lat \|\| lat > max_lat => !result`; `ensures: min_lon <= max_lon && lat >= min_lat && lat <= max_lat && lon >= min_lon && lon <= max_lon => result` | Z3-proven (2/2) |
+| `geo_geo_bbox_contains` | `ensures: min_lon > max_lon && lat >= min_lat && lat <= max_lat && (lon >= min_lon \|\| lon <= max_lon) => result` | runtime-checked (emitter skips parenthesized `\|\|` branch) |
+
+The clamp bounds clauses are IEEE-false only for `NaN` input, which §7 and
+§9 document as outside the supported contract; the suite never calls them
+with NaN. Decode clauses never read the `GeoPoint` Ok payload
+(`result.value.lat/lon`), encode clauses add no payload-length check, and no
+clause uses `Str` equality, tuple-component access, or a `&mut` parameter.
+The clamp and bbox clauses are pure scalar expressions of the parameters;
+the encode/decode/neighbors clauses are the documented guard pairs enforced
+by the runtime evaluator.
