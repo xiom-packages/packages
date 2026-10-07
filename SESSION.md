@@ -14,6 +14,20 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-07 13:00Z (resume after 2-day idle -- state reconciled):**
+- Repo unchanged since `d19c7046` (Oct 5); validate 515/0, guard 500/460/40/0; compiler
+  v0.64.0 installed. **`eco-v0.1.63` completed SUCCESS on its rerun** (the guard job's first
+  attempt hung to its timeout -- transient; the rerun passed) and `xiom.aws` 0.1.1 +
+  `xiom.saml` 0.1.1 are live-verified: **Tier-2 crypto retirement is DONE** (feat `cec9a155`
+  aws -251 lines / `fcadeee8` saml -220 lines; FIPS/RFC 4231/SigV4 KATs green x2).
+- **Wave 3 dispatched (2026-10-07):** porters for `xiom.metrics` 0.2.0 (labels + Prometheus +
+  `metric_latency_bounds_ms`), `xiom.session` 0.1.0, `xiom.http.middleware` 0.1.0. Next:
+  integrate, then `static`/`kv` builds; `session`/`middleware` are new names and need
+  allowlist appends (owner go given) + one ops scope extension at publish. Hardening batch
+  #15 (211 carriers) stays queued behind the PULSE wave.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-05 19:15Z (pin v0.64.0; batches #12-#14 + PULSE wave 2; v0.64.0 fleet sweep COMPLETE 460/460):**
 - **v0.64.0 is the pin** (official `c68d91de`, SHA256-verified; deployed over
   `%LOCALAPPDATA%\xiom.new`; repin 515 records, commit `53c1fbac`). Matrix on the official
