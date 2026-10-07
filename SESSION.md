@@ -14,6 +14,24 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-07 20:40Z (batch #31 COMPLETE + PUBLISHED `eco-v0.1.80`; supersedes the 20:20Z block below):**
+- **Batch #31 DONE + PUBLISHED (`eco-v0.1.80`, run `37682841435` SUCCESS; all six live at 0.1.2):**
+  `ktx` (51 clauses incl. orphan-block removal; 19/19), `zonefile` (28; 20/20), `fstab` (42,
+  2 Z3-proven; 20/20), `rtf` (24; 26/26), `uboot` (43; 16/16), `vdf` (10, all probe-gated
+  kept; 23/23); all x2 green on v0.64.0. Feats: `c1ad32be`, `e46d4899`, `0e3387c1`,
+  `4a8839a5`, `e7ac6050`, `69d0d1a0`; records: `e40c24a7`, `567724b6`, `2c795fae`,
+  `aa374c0c`, `d822fbcb`, `39f763e2`; wrap `3a3486be`. **~109 zero-clause stable carriers
+  remain** (next: bloom 731, rescan).
+- **Coordinator pre-work:** removed ktx's orphan duplicate block (dead statements after
+  `_identifier_kind`'s brace) before the batch; the ktx feat commit carries the removal.
+- **Compiler/grpc status unchanged:** main unpushed with m202/m206/m209/m210/m211; no
+  v0.64.1 archive; grpc staged (`95442d71`); drop-rules apply after a green repin re-test.
+- **Credential pattern unchanged:** write ops via temporary `gh auth switch` to
+  `Lefteris-Notas`, restore `Lefteris-Ngonart` afterwards.
+- **Next session priority:** batch #32 (rescan), and the item-2 grpc flow if v0.64.1 landed.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-07 20:20Z (batch #30 COMPLETE + PUBLISHED `eco-v0.1.79`; supersedes the 20:00Z block below):**
 - **Batch #30 DONE + PUBLISHED (`eco-v0.1.79`, run `37680279310` SUCCESS; all six live):**
   `toml` 0.1.2 (16 clauses; 21/21), `html` 0.1.3 (7; 22/22), `transliteration` 0.1.2 (8;
@@ -1197,7 +1215,7 @@ running). Check `git log -1 --format=%h %s` before starting.
   + 2 infra = 452 entries`, manifest-vs-registry version drift = 0, no
   unpublished ready names; promotion wave is the only next batch and it
   is release-gated. No ops ask is due.
-- **Parallel lane (`ses_f26cdae1…`):** its stalled README example fixes
+- **Parallel lane (`ses_f26cdae1â€¦`):** its stalled README example fixes
   for `mock`/`pwm`/`sectest` were rescue-committed this session (the
   snippets called `io.println` on Int/Bool; now `int_to_string`/`if`;
   Agent Manager extension unreachable, lane idle ~12 h). Re-verified
@@ -1452,18 +1470,18 @@ running). Check `git log -1 --format=%h %s` before starting.
    category harmonization = owner decision; (d) keep the port watchdog
    discipline.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 20:20Z)
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 20:40Z)
 
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
-Read SESSION.md first -- the 2026-10-07 20:20Z STATE block is the live handoff.
+Read SESSION.md first -- the 2026-10-07 20:40Z STATE block is the live handoff.
 Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
 NO XIOM_RUNTIME_DIR needed (runtime-link + crypto-link RESOLVED; workaround retired).
-Validate 519/0; guard 504/464/40/0. Batches #19-#30 published (eco-v0.1.68-.79, 72
-packages live); ~115 zero-clause stable carriers remain. `option` stays excluded.
+Validate 519/0; guard 504/464/40/0. Batches #19-#31 published (eco-v0.1.68-.80, 78
+packages live); ~109 zero-clause stable carriers remain. `option` stays excluded.
 `xiom.grpc` is STAGED (`95442d71`; 36/36 x2 on the v0.64.1 candidate) -- record + publish
 held for the official v0.64.1 archive, NOT released yet (check
 `gh release list --repo xiom-lang/xiom`). Compiler main (unpushed) carries m202/m206/
@@ -1492,20 +1510,20 @@ Then do, in order:
    (generate_index, report, validate, guard, export-namespaces, tag, approve the
    registry-publish gate, watch, live-verify). On a fully green repin, update the porter
    brief templates + SESSION carry-forwards to DROP the tuple-ref destructure and
-   clone-avoidance rules. If the archive is NOT out: skip to batch #31 and re-check at
+   clone-avoidance rules. If the archive is NOT out: skip to batch #32 and re-check at
    the wrap.
-2. Hardening batch #31 (FAN-OUT): rescan zero-clause stable carriers
-   (`scripts/contract-coverage.ps1`), skip `option`; next six smallest (ktx 701 is the
-   current smallest after modbus; verify with the sizing scan) via a read-only explore
+2. Hardening batch #32 (FAN-OUT): rescan zero-clause stable carriers
+   (`scripts/contract-coverage.ps1`), skip `option`; next six smallest (bloom 731 is the
+   current smallest after vdf; verify with the sizing scan) via a read-only explore
    pre-plan; per-package background `task` porters (brief template
-   %TEMP%\kilo\batch30-porter-brief.md; port x2; bracket scan; SPEC Contracts + header
+   %TEMP%\kilo\batch31-porter-brief.md; port x2; bracket scan; SPEC Contracts + header
    sync; NO git; NO shared files; explicit-path cleanup); coordinator integrates
    (port x2, patch bump, feat commit exact files, record with real sha +
    `-RunBy task:ses_...`; VERIFY reframed/strengthened clauses against hand-built inputs
    -- the toml key-emptiness reframe was unsound and was re-hardened); wrap + publish the
    next eco tag. Transient GitHub 500s on push: wait ~60-90s and retry.
 3. PULSE support: triage new `docs/PACKAGE-WISHLIST.md` rows from consumer reports
-   (none new at 20:20Z); new package names need an allowlist append + one ops scope relay.
+   (none new at 20:40Z); new package names need an allowlist append + one ops scope relay.
 4. Carry-forwards: `-TimeoutSec 60` watchdog (raise per package); port x2 + byte-level
    bracket scan on every touched package; SPEC headers synced when touched; bump ONLY
    when source changes; `xiom-verify` writes `xiom_verify_output.smt2` to the CWD (run it
@@ -1989,8 +2007,8 @@ describes is complete -- see the 22:05Z block above) ---**
 - **Wave 42 DISPATCHED (2026-09-29 00:19Z, running):** 10 names,
   namespace-check clean (0 conflicts): `feature`, `loss`, `ensemble`,
   `streaming`, `linter`, `lexer-fw` (6 background `task` porters:
-  `ses_f1578f59…`, `ses_f1578e62…`, `ses_f1578d79…`, `ses_f1578c52…`,
-  `ses_f1578b48…`, `ses_f1578a1b…`) + `clustering`, `barrier`,
+  `ses_f1578f59â€¦`, `ses_f1578e62â€¦`, `ses_f1578d79â€¦`, `ses_f1578c52â€¦`,
+  `ses_f1578b48â€¦`, `ses_f1578a1bâ€¦`) + `clustering`, `barrier`,
   `forkjoin`, `executor` (4 AM local sessions; request
   `am-1790641156596-9o3vll`). Briefs: canonical 18-trap list (v0.62.1
   edition; byte-at trap still live), XIOM MCP tools, no-commit rules,
@@ -2002,11 +2020,11 @@ describes is complete -- see the 22:05Z block above) ---**
   commit this turn (allowlist 392 -> **402**; index/report/namespaces
   regenerated; validate **420/0**, guard **402 allowlisted / 350 ready /
   0 failures**). Tests 20-28 each, double-run green; trap-14 clean.
-  **Rescue note:** a parallel packages lane (`ses_f26cdae1…`) ported
+  **Rescue note:** a parallel packages lane (`ses_f26cdae1â€¦`) ported
   `sectest`/`mock`/`pwm` (22/22, 20/20, 20/20) and stalled unrecorded at
   ~00:42Z; this session re-verified (port x2 each) and integrated them so
   the gates stay green -- their records use
-  `agentmgr:ses_f26cdae1…`. **Scope ask: 392 -> 402 (+10) to ops.**
+  `agentmgr:ses_f26cdae1â€¦`. **Scope ask: 392 -> 402 (+10) to ops.**
 - **`eco-v0.1.14` PUBLISHED (run `36583479344`, rerun SUCCESS):** ops
   enumerated the +10 (402 confirmed on both entries, zero diff); the
   rerun published **10/10 `Published xiom.*@0.1.0`** (barrier,
@@ -2578,8 +2596,8 @@ legacy code in dependency order, and graduate stable packages to
 - Signing: `XIOM_SIGNING_KEY` is SET; staging/production artifacts share the
   first-party key `4f3b47f3ae17b13c...`.
 - Licensing: `LICENSE-MIT`, `LICENSE-APACHE`, `NOTICE` and a pointer
-  `LICENSE` are committed per LICENSING.md §2. SPDX pass repo-wide and the
-  §1 `.md` header block remain .github-session scope.
+  `LICENSE` are committed per LICENSING.md Â§2. SPDX pass repo-wide and the
+  Â§1 `.md` header block remain .github-session scope.
 - 562 commits landed since the previous handoff (`b2bdde1..`).
 
 ### Commit trail (recent milestones)
@@ -2623,7 +2641,7 @@ legacy code in dependency order, and graduate stable packages to
 | c6690cb / 2080fda | badge `stage` written from STATUS.json into packaged manifests |
 | cfe2b40 | readiness guard workflow + 6 allowlist additions (registry v2 names) |
 | 8946171 / bcabb9c | `status.ps1 -Action repin` + pin bump to v0.61.3 |
-| 54c241f | LICENSE-MIT/LICENSE-APACHE/NOTICE per LICENSING.md §2 |
+| 54c241f | LICENSE-MIT/LICENSE-APACHE/NOTICE per LICENSING.md Â§2 |
 | be6d1ec | Phase 0 harness (xiom/status/namespace-check/port) + STATUS seed |
 | b2bdde1 | previous handoff (2026-09-23) |
 
@@ -2640,7 +2658,7 @@ and the tested commit.
 | `scripts/xiom.ps1` | toolchain resolver (`XIOM_COMPILER` -> installed >= pin -> repo release), sets `XIOM_STDLIB`; dot-sourceable |
 | `scripts/port.ps1 -Package <name>` | namespace gate + compile + run conformance suite; `-Quiet` for scripted runs; `-NoRun` = `--emit-ir` compile-only; never writes STATUS |
 | `scripts/status.ps1` | `-Action list` / `validate` / `seed` / `repin` / `report` / `update`; `update` records runs and enforces the readiness gates |
-| `scripts/namespace-check.ps1` | the §3 rule; `-Package` for implemented names, `-Module` for proposed names |
+| `scripts/namespace-check.ps1` | the Â§3 rule; `-Package` for implemented names, `-Module` for proposed names |
 | `scripts/allowlist-guard.ps1` | CI guard: allowlist entries must be `stable`+green; baseline names warn-only |
 | `scripts/port.ps1` + `status.ps1` + `docs/PACKAGE_STATUS.md` | `status.ps1 -Action report` regenerates the doc |
 | `generate_index.ps1` | legacy index generator; run after manifest changes |
@@ -2694,7 +2712,7 @@ prompts all did).
 
 ## 4. Readiness model (implemented)
 
-Per-package `STATUS.json` (see §5 example in the previous handoff) with
+Per-package `STATUS.json` (see Â§5 example in the previous handoff) with
 `stage` in `incubating | ported | stable | deprecated`, `tests.status` in
 `unknown | pass | fail`, `publish`, `excluded_reason`. Enforced rules:
 `publish: true` requires `stable`; `stable` requires a recorded green run
@@ -2785,7 +2803,7 @@ concurrency group). Production tags so far: `eco-v0.1.0`, `eco-v0.1.1`
   service ran the default **20/min** all along. Deploy `394db71` declares
   all rate-limit knobs; production now genuinely runs `PUBLISH_RATE_MAX=600`
   (ops verified with `printenv`; registry `/health` shows the restart at
-  16:54:38Z, v2.1.0). Ops restores **20** on "batch done" (registry §21
+  16:54:38Z, v2.1.0). Ops restores **20** on "batch done" (registry Â§21
   D5). Rate-limit config does **not** affect the `scope_denied` 403:
   attempt 3 ran against the new config and still failed on scopes, with no
   429s. Batches **done** (`eco-v0.1.2` 17:24Z, `eco-v0.1.3` 23:07Z); ops
@@ -2856,7 +2874,7 @@ concurrency group). Production tags so far: `eco-v0.1.0`, `eco-v0.1.1`
 4. **Phases 3-5 (network/data/bridges): pending**; FFI ABI freeze with the
    compiler/stdlib sessions is the gate for the bridge batch.
 5. **Phase 6 graduation:** publish first from the monorepo, promote later
-   (filter-repo per §5.6 of the ops runbook, hooks, CI, per-repo OIDC) when a
+   (filter-repo per Â§5.6 of the ops runbook, hooks, CI, per-repo OIDC) when a
    package's API is stable and it has consumers/cadence.
 
 Port definition of done: dotted manifest + metadata; compiles on the pinned
@@ -2971,7 +2989,7 @@ Language traps that must be in every porter brief:
    (section 5); waves 31+32 ride `eco-v0.1.2` (cut; blocked on item 1);
    wave 33 rides the next tag after its wrap.
 3. **Repo protection closure**: the required-reviewer environment is live;
-   confirm this satisfies the §8.3 decision.
+   confirm this satisfies the Â§8.3 decision.
 4. **OAuth callback URL check** (owner): both GitHub OAuth app callback URLs,
    outstanding from the earlier relay; kept separate from publish relays.
 5. **tftp version decision (owner)**: accept the published 2026-09-24
@@ -3011,7 +3029,7 @@ Language traps that must be in every porter brief:
   names, only with a recorded green run. Versions are immutable forever.
 - Namespace rule: run `namespace-check.ps1 -Module` before adding a name.
 - The readiness filter stays: batches skip unready names, explicit targets
-  are refused; the only override is the staging badge canary described in §2.
+  are refused; the only override is the staging badge canary described in Â§2.
 - Do not rename folders except the already-done `xiom-core` ->
   `xiom-durable`; do not touch `deps:`/`dev-deps:` except dotted-name fixes.
 - No history rewrites, no force pushes. Conventional commits, atomic,
@@ -3150,3 +3168,4 @@ Language traps that must be in every porter brief:
 - **Owner:** relays, scope deltas, production greenlight, OAuth callback
   check, Phase 2 direction; new decisions queued: tftp 0.1.0 collision and
   the registry scope delta for waves 31+32.
+
