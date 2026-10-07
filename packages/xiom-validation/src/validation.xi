@@ -213,7 +213,10 @@ fn _v6_scan_groups(s: Str, start: Int, stop: Int) -> Int {
 /// 0x80 anywhere make the result false (ASCII only).
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn valid_is_email(s: Str) -> Bool {
+pub fn valid_is_email(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: result => s.len() >= 6;
+{
   let n = s.len();
   if n == 0 {
     return false;
@@ -344,7 +347,10 @@ pub fn valid_is_email(s: Str) -> Bool {
 /// fail). Empty parts, missing/extra parts, signs and non-digits fail.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn valid_is_ipv4(s: Str) -> Bool {
+pub fn valid_is_ipv4(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: result => s.len() >= 7;
+{
   let n = s.len();
   if n == 0 {
     return false;
@@ -407,7 +413,10 @@ pub fn valid_is_ipv4(s: Str) -> Bool {
 /// embedded dotted-quad tail (e.g. "::ffff:192.168.0.1") is NOT accepted.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn valid_is_ipv6(s: Str) -> Bool {
+pub fn valid_is_ipv6(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: result => s.len() >= 2;
+{
   let n = s.len();
   if n == 0 {
     return false;
@@ -469,7 +478,10 @@ pub fn valid_is_ipv6(s: Str) -> Bool {
 /// Returns: true when every byte is in [0-9A-Fa-f] and s is non-empty.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn valid_is_hex(s: Str) -> Bool {
+pub fn valid_is_hex(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: result => s.len() >= 1;
+{
   let n = s.len();
   if n == 0 {
     return false;
@@ -491,7 +503,10 @@ pub fn valid_is_hex(s: Str) -> Bool {
 /// case is not significant.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn valid_is_uuid(s: Str) -> Bool {
+pub fn valid_is_uuid(s: Str) -> Bool
+  ensures: s.len() != 36 => !result;
+  ensures: result => s.len() == 36;
+{
   if s.len() != 36 {
     return false;
   }
@@ -523,7 +538,10 @@ pub fn valid_is_uuid(s: Str) -> Bool {
 /// uppercase, underscore, space or non-ASCII byte.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn valid_is_slug(s: Str) -> Bool {
+pub fn valid_is_slug(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: result => s.len() >= 1;
+{
   let n = s.len();
   if n == 0 {
     return false;
@@ -560,7 +578,11 @@ pub fn valid_is_slug(s: Str) -> Bool {
 /// (2000 and 2024 yes; 1900 and 2100 no).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn valid_is_date_ymd(y: Int, m: Int, d: Int) -> Bool {
+pub fn valid_is_date_ymd(y: Int, m: Int, d: Int) -> Bool
+  ensures: y < 1 => !result;
+  ensures: m < 1 || m > 12 => !result;
+  ensures: result => d >= 1 && d <= 31;
+{
   if y < 1 {
     return false;
   }
@@ -579,7 +601,11 @@ pub fn valid_is_date_ymd(y: Int, m: Int, d: Int) -> Bool {
 /// above 65535.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn valid_is_port(n: Int) -> Bool {
+pub fn valid_is_port(n: Int) -> Bool
+  ensures: n < 1 => !result;
+  ensures: n > 65535 => !result;
+  ensures: result => n >= 1 && n <= 65535;
+{
   if n < 1 {
     return false;
   }

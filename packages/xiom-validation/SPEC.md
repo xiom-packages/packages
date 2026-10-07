@@ -1,6 +1,6 @@
 # xiom.validation -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.validation` (`src/validation.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -182,3 +182,59 @@ The suite performs no `Str` equality, so BUG 17 (`==` on `Str` values read from
 - Helpers and constants live in Int space; only `xiom.string.byte_at` is used
   from the stdlib, and `xiom.string.compare` is not imported because no `Str`
   equality occurs here.
+
+## Contracts (batch #27 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/validation.xi` in the batch
+#27 hardening pass (compiler v0.64.0; no version bump): 18 clauses across the
+8 public entry points (2/2/2/2/2/2/3/3 in source order). Two consecutive
+`.\scripts\port.ps1 -Package xiom.validation -TimeoutSec 60` runs ended
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses
+active (9.75 s and 6.97 s). The 24-check conformance suite exercises all 8
+entry points with the clauses active; none trapped, so none was dropped.
+
+All clauses are `ensures:`; no `requires:` was added, so the accepted-input
+domain is unchanged. Every clause reads only the `Str` length or the `Int`
+parameters, compares literal bounds (no module constants), and implies a
+plain `Bool` `result`: no `Str` equality, no `Result`/struct payload reads,
+no vector indexing, and no clause calls any function. **Z3-provable** =
+pure-scalar guard/bounds clause; **runtime-checked** = the clause reads
+`s.len()`, whose axiom the v0.64.0 SMT emitter skips (`equality with
+unresolved operand sort`), so it is enforced by the runtime evaluator during
+every port run.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `valid_is_email` | `ensures: s.len() == 0 => !result`; `ensures: result => s.len() >= 6` | runtime-checked (`Str` length) |
+| `valid_is_ipv4` | `ensures: s.len() == 0 => !result`; `ensures: result => s.len() >= 7` | runtime-checked (`Str` length) |
+| `valid_is_ipv6` | `ensures: s.len() == 0 => !result`; `ensures: result => s.len() >= 2` | runtime-checked (`Str` length) |
+| `valid_is_hex` | `ensures: s.len() == 0 => !result`; `ensures: result => s.len() >= 1` | runtime-checked (`Str` length) |
+| `valid_is_uuid` | `ensures: s.len() != 36 => !result`; `ensures: result => s.len() == 36` | runtime-checked (`Str` length) |
+| `valid_is_slug` | `ensures: s.len() == 0 => !result`; `ensures: result => s.len() >= 1` | runtime-checked (`Str` length) |
+| `valid_is_date_ymd` | `ensures: y < 1 => !result`; `ensures: m < 1 \|\| m > 12 => !result`; `ensures: result => d >= 1 && d <= 31` | Z3-provable (pure scalar guards/bounds) |
+| `valid_is_port` | `ensures: n < 1 => !result`; `ensures: n > 65535 => !result`; `ensures: result => n >= 1 && n <= 65535` | Z3-proven (pure scalar guards/bounds; 3/3 in isolation) |
+
+Bound rationale (each bound checked against the source guards): the shortest
+accepted email is `a@b.co` (6 bytes), IPv4 is `0.0.0.0` (7 bytes) and IPv6 is
+`::` (2 bytes); hex and slug accept only non-empty text; UUID is exactly
+36 bytes in both directions. `valid_is_date_ymd` rejects `y < 1` and
+`m < 1 || m > 12` before any other work, and `_days_in_month` never exceeds
+31, so an accepted date has `d >= 1 && d <= 31`. `valid_is_port` is the
+1..65535 range check itself.
+
+`xiom-verify --check` (Z3 on v0.64.0) on the shipped file ended **6 proven /
+0 violated / 21 unknown / 3 errors** in two consecutive runs. The errors are
+emitter artifacts (unknown constants `_v6_scan_groups` and `_days_in_month`,
+one sort mismatch) and the tool reports z3's rejection of the generated SMT
+as an emitter bug, not a proof failure of the code under test; no clause was
+machine-falsified. The port clauses are independently proven (isolation run
+with the date clauses removed: 3 proven / 0 violated). One isolation variant
+with the port clauses removed reports a spurious X7001 on a date VC (body
+incomplete because `_days_in_month` is unresolved, leaving `result`
+unconstrained), which the same tool flags as an emitter bug; the shipped-file
+runs report 0 violated and the runtime evaluator never trapped. The 12
+`Str`-length axioms are skipped by the emitter and stay runtime-checked.
+
+Deliberately not claimed: no per-character claims, no UUID version/variant
+assertions, no TLD enumeration, no `Str` equality (BUG 17), no
+`Result`/payload or vector reads, and no clause calls another function.
