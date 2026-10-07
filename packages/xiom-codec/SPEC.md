@@ -1,8 +1,6 @@
 # xiom.codec -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.codec`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/codec.xi` (`module xiom.codec`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`). No FFI.
 
@@ -177,3 +175,48 @@ The implementation follows the proven v0.61.3 package idioms:
 - Int values read from `Vec[Int]` are bound with explicit `let v: Int = ...`.
 - No `==` on `Str` values anywhere (tests route every comparison through
   `str_compare`, BUG 17).
+
+## Contracts (batch #27 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/codec.xi` in the batch #27
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator
+at integration). 19 clauses across the 10 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.codec -TimeoutSec 60` runs
+ended `port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the
+clauses active (7.8 s and 15.6 s); the 24-check conformance suite exercises
+every entry point, including the 0..8-byte round-trips that span every
+padding tail and the empty-input cases, and no clause trapped.
+
+All clauses are runtime-checked: no clause in this set is a pure-scalar
+shape (the encoders compare a built `Str` length, the decoders observe a
+`Result` tag), so none is claimed Z3-provable.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `codec_str_to_bytes` | `ensures: result.len() == s.len()` | runtime-checked (built `Vec` length vs `Str` length) |
+| `codec_bytes_to_str` | `ensures: data.len() == 0 => result is Ok`; `ensures: result is Err => data.len() > 0` | runtime-checked (`Result` tag + `Vec` length) |
+| `codec_b64_encode` | `ensures: result.len() == 4 * ((data.len() + 2) / 3)` | runtime-checked (built `Str` length, exact formula) |
+| `codec_b64url_encode` | `ensures: data.len() == 0 => result.len() == 0`; `ensures: result.len() >= data.len()`; `ensures: result.len() <= 4 * ((data.len() + 2) / 3)` | runtime-checked (built `Str` length) |
+| `codec_b64_decode` | `ensures: s.len() == 0 => result is Ok`; `ensures: result is Err => s.len() > 0` | runtime-checked (`Result` tag + `Str` length) |
+| `codec_b64url_decode` | `ensures: s.len() == 0 => result is Ok`; `ensures: result is Err => s.len() > 0` | runtime-checked (`Result` tag + `Str` length) |
+| `codec_base32_encode` | `ensures: result.len() == 8 * ((data.len() + 4) / 5)`; `ensures: result.len() % 8 == 0` | runtime-checked (built `Str` length, exact formula) |
+| `codec_base32_decode` | `ensures: s.len() == 0 => result is Ok`; `ensures: result is Err => s.len() > 0` | runtime-checked (`Result` tag + `Str` length) |
+| `codec_hex_encode` | `ensures: result.len() == 2 * data.len()` | runtime-checked (built `Str` length, exact formula) |
+| `codec_hex_decode` | `ensures: s.len() % 2 != 0 => result is Err`; `ensures: s.len() == 0 => result is Ok`; `ensures: result is Err => s.len() > 0` | runtime-checked (`Result` tag + `Str` length) |
+
+The exact-length formulas are inlined versions of the source's emit/pad
+logic: `4 * ((n + 2) / 3)` for the padded base64 encoder, `8 * ((n + 4) / 5)`
+for the base32 encoder (whose output length is always a multiple of 8) and
+`2 * n` for hex. All three were exercised over the suite's 0..8-byte
+round-trips without a trap. No decoder clause claims a payload length
+against its input (forbidden shape); `codec_b64url_encode` has only a lower
+bound plus the padded-form upper bound because its output is unpadded. No
+clause calls any function; all conditions are parameter/`result` shapes or
+length counts.
+
+Deliberately not claimed: `Ok` payload lengths on the decoders
+(payload-length-vs-parameter is a forbidden shape); the unpadded
+`codec_b64url_encode` exact length (no green `/`-formula precedent for the
+`n % 3` tail split); `Str` equality anywhere (BUG 17). No clause was
+dropped.

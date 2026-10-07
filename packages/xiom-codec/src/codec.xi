@@ -209,7 +209,9 @@ fn _utf8_valid(data: &Vec[UInt8]) -> Bool {
 /// Returns: the bytes verbatim, one push per byte.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn codec_str_to_bytes(s: Str) -> Vec[UInt8] {
+pub fn codec_str_to_bytes(s: Str) -> Vec[UInt8]
+  ensures: result.len() == s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -226,7 +228,10 @@ pub fn codec_str_to_bytes(s: Str) -> Vec[UInt8] {
 /// forms, surrogates and code points above U+10FFFF are rejected).
 /// Error case: Err("codec: invalid UTF-8").
 /// Complexity: O(data.len()).
-pub fn codec_bytes_to_str(data: &Vec[UInt8]) -> Result[Str, Str] {
+pub fn codec_bytes_to_str(data: &Vec[UInt8]) -> Result[Str, Str]
+  ensures: data.len() == 0 => result is Ok;
+  ensures: result is Err => data.len() > 0;
+{
   if !_utf8_valid(data) {
     return _err_str("codec: invalid UTF-8");
   }
@@ -281,7 +286,9 @@ fn _b64_encode(data: &Vec[UInt8], url: Bool) -> Str {
 /// empty input yields "". Two '=' pad a 1-byte tail, one '=' a 2-byte tail.
 /// Error case: none.
 /// Complexity: O(data.len()).
-pub fn codec_b64_encode(data: &Vec[UInt8]) -> Str {
+pub fn codec_b64_encode(data: &Vec[UInt8]) -> Str
+  ensures: result.len() == 4 * ((data.len() + 2) / 3);
+{
   return _b64_encode(data, false);
 }
 
@@ -292,7 +299,11 @@ pub fn codec_b64_encode(data: &Vec[UInt8]) -> Str {
 /// 1- or 2-byte tail.
 /// Error case: none.
 /// Complexity: O(data.len()).
-pub fn codec_b64url_encode(data: &Vec[UInt8]) -> Str {
+pub fn codec_b64url_encode(data: &Vec[UInt8]) -> Str
+  ensures: data.len() == 0 => result.len() == 0;
+  ensures: result.len() >= data.len();
+  ensures: result.len() <= 4 * ((data.len() + 2) / 3);
+{
   return _b64_encode(data, true);
 }
 
@@ -371,7 +382,10 @@ fn _b64_decode(s: Str, url: Bool) -> Result[Vec[UInt8], Str] {
 /// standard alphabet, Err("codec: invalid base64 padding") for misplaced or
 /// inconsistent '='.
 /// Complexity: O(s.len()).
-pub fn codec_b64_decode(s: Str) -> Result[Vec[UInt8], Str] {
+pub fn codec_b64_decode(s: Str) -> Result[Vec[UInt8], Str]
+  ensures: s.len() == 0 => result is Ok;
+  ensures: result is Err => s.len() > 0;
+{
   return _b64_decode(s, false);
 }
 
@@ -382,7 +396,10 @@ pub fn codec_b64_decode(s: Str) -> Result[Vec[UInt8], Str] {
 /// Error case: Err("codec: invalid base64 character") and
 /// Err("codec: invalid base64 padding"), same rules as codec_b64_decode.
 /// Complexity: O(s.len()).
-pub fn codec_b64url_decode(s: Str) -> Result[Vec[UInt8], Str] {
+pub fn codec_b64url_decode(s: Str) -> Result[Vec[UInt8], Str]
+  ensures: s.len() == 0 => result is Ok;
+  ensures: result is Err => s.len() > 0;
+{
   return _b64_decode(s, true);
 }
 
@@ -396,7 +413,10 @@ pub fn codec_b64url_decode(s: Str) -> Result[Vec[UInt8], Str] {
 /// yields "". The output is always padded to a multiple of 8 characters.
 /// Error case: none.
 /// Complexity: O(data.len()).
-pub fn codec_base32_encode(data: &Vec[UInt8]) -> Str {
+pub fn codec_base32_encode(data: &Vec[UInt8]) -> Str
+  ensures: result.len() == 8 * ((data.len() + 4) / 5);
+  ensures: result.len() % 8 == 0;
+{
   var out = Vec[UInt8].new();
   let n = data.len();
   var acc = 0;
@@ -431,7 +451,10 @@ pub fn codec_base32_encode(data: &Vec[UInt8]) -> Str {
 /// A-Z a-z 2-7, Err("codec: invalid base32 padding") for misplaced or
 /// inconsistent '='.
 /// Complexity: O(s.len()).
-pub fn codec_base32_decode(s: Str) -> Result[Vec[UInt8], Str] {
+pub fn codec_base32_decode(s: Str) -> Result[Vec[UInt8], Str]
+  ensures: s.len() == 0 => result is Ok;
+  ensures: result is Err => s.len() > 0;
+{
   var vals = Vec[Int].new();
   let n = s.len();
   var pad = 0;
@@ -539,7 +562,9 @@ fn _hex_value(b: Int) -> Int {
 /// Returns: the lowercase hex text; empty input yields "".
 /// Error case: none.
 /// Complexity: O(data.len()).
-pub fn codec_hex_encode(data: &Vec[UInt8]) -> Str {
+pub fn codec_hex_encode(data: &Vec[UInt8]) -> Str
+  ensures: result.len() == 2 * data.len();
+{
   var out = Vec[UInt8].new();
   let n = data.len();
   var i = 0;
@@ -560,7 +585,11 @@ pub fn codec_hex_encode(data: &Vec[UInt8]) -> Str {
 /// Error case: Err("codec: odd-length hex input") when s.len() is odd,
 /// Err("codec: invalid hex character") for any byte outside 0-9 a-f A-F.
 /// Complexity: O(s.len()).
-pub fn codec_hex_decode(s: Str) -> Result[Vec[UInt8], Str] {
+pub fn codec_hex_decode(s: Str) -> Result[Vec[UInt8], Str]
+  ensures: s.len() % 2 != 0 => result is Err;
+  ensures: s.len() == 0 => result is Ok;
+  ensures: result is Err => s.len() > 0;
+{
   let n = s.len();
   if n % 2 != 0 {
     return _err_bytes("codec: odd-length hex input");
