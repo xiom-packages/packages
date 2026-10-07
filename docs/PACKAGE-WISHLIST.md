@@ -24,7 +24,7 @@ Status legend: **IN-FIX** / **APPROVED-NEW** / **EXTEND** / **MERGE-INTO** / **D
 | `xiom.ratelimit` | **DONE + PUBLISHED** -- keyed layer in `xiom.rate` (0.2.0, `eco-v0.1.61`, run `37340030888`; task `ses_ef329199...`) | `xiom.rate` 0.2.0 adds per-IP/route/user keyed buckets and windows plus prune hooks; the 429 envelope lives in `xiom.http.middleware`. |
 | `xiom.metrics` | **EXTEND DONE** (0.2.0, feat `1680104b`, 40/40 x2; publish batch staged) | labels + registry + Prometheus 0.0.4 text exposition (`metric_exposition`) + `metric_latency_bounds_ms`; existing 0.1.x primitives unchanged. |
 | `xiom.static` | **DONE (LOCAL) + ALLOWLISTED** (0.1.0, feat `50742952`, 25/25 x2; publish batch staged) | MIME/ETag/Last-Modified/Range/cache-control + traversal guard + byte-safe serve pipeline (200/206/304/404/416). |
-| `xiom.kv` | **APPROVED-NEW** (ops delta; queued last) | Embedded pure-XIOM log-structured KV: append-only segments, crash-safe reopen, tombstones, compaction, optional snapshot. PULSE Step 3 needs a durable local store; `xiom.bolt` is read-only, `xiom.sql` unpublished. Build after middleware/session/static. |
+| `xiom.kv` | **DONE (LOCAL) + ALLOWLISTED** (0.1.0, feat `a4057093`, 28/28 x2; publish batch staged) | log-structured KV: crc32c-framed segments, torn-tail repair, tombstones, compaction via atomic rename, snapshots; `io.list_dir` workaround documented. |
 | `xiom.http.middleware` | **DONE (LOCAL) + ALLOWLISTED** (0.1.0, feat `0bbd50c4`, 22/22 x2; publish batch staged) | envelope-agnostic helpers: request-id, access log, CORS header lines, constant-time CSRF, JSON error body. |
 
 ## 3. Build order (agreed with PULSE's suggested sequence)

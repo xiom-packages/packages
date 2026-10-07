@@ -548,3 +548,4 @@ xiom.router
 xiom.session
 xiom.http.middleware
 xiom.static
+xiom.kv

@@ -20,6 +20,12 @@ running). Check `git log -1 --format=%h %s` before starting.
   attempt hung to its timeout -- transient; the rerun passed) and `xiom.aws` 0.1.1 +
   `xiom.saml` 0.1.1 are live-verified: **Tier-2 crypto retirement is DONE** (feat `cec9a155`
   aws -251 lines / `fcadeee8` saml -220 lines; FIPS/RFC 4231/SigV4 KATs green x2).
+- **Wave 3 COMPLETE (2026-10-07):** `static` 0.1.0 (`50742952`, 25/25 x2) and `kv` 0.1.0
+  (`a4057093`, 28/28 x2) integrated; allowlist **504**, guard 504/464/40/0. Two new findings
+  from kv: **`io.list_dir` returns garbage names on v0.64.0 Windows** (STDLIB-WISHLIST, high
+  severity) and a **false `ensures` at `io.xi:943` in multi-module programs**
+  (COMPILER-FINDINGS). Publish: batch A (metrics 0.2.0 + session + middleware) and batch B
+  (static + kv) are staged on the ops scope extension for the four new names.
 - **Wave 3 integrated (2026-10-07):** `metrics` 0.2.0 (`1680104b`, 40/40), `session` 0.1.0
   (`7b7da18c`, 24/24), `http.middleware` 0.1.0 (`0bbd50c4`, 22/22) -- all x2 green.
   `static` + `kv` builds in flight. New compiler finding from session:
