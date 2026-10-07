@@ -14,6 +14,21 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-07 19:20Z (batch #27 COMPLETE + PUBLISHED `eco-v0.1.76`; supersedes the 19:00Z block below):**
+- **Batch #27 DONE + PUBLISHED (`eco-v0.1.76`, run `37673109696` SUCCESS; all six live at 0.1.2):**
+  `pls` (25 clauses; 23/23), `obj` (22; 23/23), `codec` (19; 24/24), `sbv` (29; 20/20),
+  `validation` (18, 6 Z3-proven; 24/24), `subtitle` (22; 20/20); all x2 green on v0.64.0.
+  Feats: `f21291c9`, `96e967f9`, `3e28f917`, `5cff8217`, `65cb9119`, `040728ad`; records:
+  `52dcc86e`, `a9bf70cd`, `467fcee4`, `c10eb4ec`, `a31c646d`, `133567f5`; wrap `06dcd8e0`.
+  **~133 zero-clause stable carriers remain** (next candidates: markdown 631, rescan).
+- **Compiler/grpc status unchanged:** main unpushed with m202/m206/m209/m210/m211; no
+  v0.64.1 archive; grpc staged (`95442d71`); drop-rules apply after a green repin re-test.
+- **Credential pattern unchanged:** write ops via temporary `gh auth switch` to
+  `Lefteris-Notas`, restore `Lefteris-Ngonart` afterwards.
+- **Next session priority:** batch #28 (rescan), and the item-2 grpc flow if v0.64.1 landed.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-07 19:00Z (batch #26 COMPLETE + PUBLISHED `eco-v0.1.75`; supersedes the 18:45Z block below):**
 - **Batch #26 DONE + PUBLISHED (`eco-v0.1.75`, run `37670580574` SUCCESS; all six live at 0.1.2):**
   `pam` (23 clauses; 20/20), `weather` (8; 20/20), `semver` (12; 32/32), `properties` (10;
@@ -1384,18 +1399,18 @@ running). Check `git log -1 --format=%h %s` before starting.
    category harmonization = owner decision; (d) keep the port watchdog
    discipline.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 19:00Z)
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 19:20Z)
 
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
-Read SESSION.md first -- the 2026-10-07 19:00Z STATE block is the live handoff.
+Read SESSION.md first -- the 2026-10-07 19:20Z STATE block is the live handoff.
 Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
 NO XIOM_RUNTIME_DIR needed (runtime-link + crypto-link RESOLVED; workaround retired).
-Validate 519/0; guard 504/464/40/0. Batches #19-#26 published (eco-v0.1.68-.75, 48
-packages live); ~139 zero-clause stable carriers remain. `option` stays excluded.
+Validate 519/0; guard 504/464/40/0. Batches #19-#27 published (eco-v0.1.68-.76, 54
+packages live); ~133 zero-clause stable carriers remain. `option` stays excluded.
 `xiom.grpc` is STAGED (`95442d71`; 36/36 x2 on the v0.64.1 candidate) -- record + publish
 held for the official v0.64.1 archive, NOT released yet (check
 `gh release list --repo xiom-lang/xiom`). Compiler main (unpushed) carries m202/m206/
@@ -1424,19 +1439,19 @@ Then do, in order:
    (generate_index, report, validate, guard, export-namespaces, tag, approve the
    registry-publish gate, watch, live-verify). On a fully green repin, update the porter
    brief templates + SESSION carry-forwards to DROP the tuple-ref destructure and
-   clone-avoidance rules. If the archive is NOT out: skip to batch #27 and re-check at
+   clone-avoidance rules. If the archive is NOT out: skip to batch #28 and re-check at
    the wrap.
-2. Hardening batch #27 (FAN-OUT): rescan zero-clause stable carriers
-   (`scripts/contract-coverage.ps1`), skip `option`; next six smallest (pls 585 is the
-   current smallest after uri; verify with the sizing scan) via a read-only explore
-   pre-plan; per-package background `task` porters (brief template
-   %TEMP%\kilo\batch26-porter-brief.md; port x2; bracket scan; SPEC Contracts + header
+2. Hardening batch #28 (FAN-OUT): rescan zero-clause stable carriers
+   (`scripts/contract-coverage.ps1`), skip `option`; next six smallest (markdown 631 is
+   the current smallest after subtitle; verify with the sizing scan) via a read-only
+   explore pre-plan; per-package background `task` porters (brief template
+   %TEMP%\kilo\batch27-porter-brief.md; port x2; bracket scan; SPEC Contracts + header
    sync; NO git; NO shared files; explicit-path cleanup); coordinator integrates
    (port x2, patch bump, feat commit exact files, record with real sha +
    `-RunBy task:ses_...`); wrap + publish the next eco tag. Transient GitHub 500s on
    push: wait ~60-90s and retry.
 3. PULSE support: triage new `docs/PACKAGE-WISHLIST.md` rows from consumer reports
-   (none new at 19:00Z); new package names need an allowlist append + one ops scope relay.
+   (none new at 19:20Z); new package names need an allowlist append + one ops scope relay.
 4. Carry-forwards: `-TimeoutSec 60` watchdog (raise per package); port x2 + byte-level
    bracket scan on every touched package; SPEC headers synced when touched; bump ONLY
    when source changes; `xiom-verify` writes `xiom_verify_output.smt2` to the CWD (run it
