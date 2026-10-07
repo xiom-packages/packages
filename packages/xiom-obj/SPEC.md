@@ -1,6 +1,6 @@
 # xiom.obj -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.obj` (`src/obj.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -272,3 +272,42 @@ XIOM v0.61.3 workarounds used (same shape as the other ported packages):
 - A `#` byte anywhere starts a comment (there is no escaping), and the input is
   treated as bytes, so a UTF-8 BOM is not stripped.
 - The whole document is parsed in one pass into memory.
+
+## Contracts (batch #27 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/obj.xi` in the batch #27
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 22 clauses across the 8 public entry points
+(3/2/2/3/3/3/3/3 in source order); all are `ensures:` (no `requires:`), so the
+accepted-input domain is unchanged, and no clause calls a function. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.obj -TimeoutSec 60` runs ended
+`port: PASS (passed=23 failed=0 program_exit=0 exit=0)` with the clauses active
+(7.81 s and 18.05 s); the 23-check conformance suite exercises every entry
+point, including the out-of-range accessor paths, and no clause trapped, so
+none was dropped.
+
+"Z3-provable" marks the scalar-shape family (guards, sentinels and bounds over
+`Int` parameters, parameter lengths and `result`); "runtime-checked" marks
+clauses that read an `ObjMesh` struct field or a struct-field vector length and
+are enforced by the v0.64.0 runtime evaluator. The scale bound is inlined as
+`1..=1000000` to match the source guard `scale < 1 || scale > _OBJ_MAX_SCALE`
+exactly.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `obj_parse` | `scale < 1 \|\| scale > 1000000 => result is Err`; `scale >= 1 && scale <= 1000000 && text.len() == 0 => result is Ok`; `result is Ok => scale >= 1 && scale <= 1000000` | Z3-provable (pure scalar guard trio; no mesh payload reads) |
+| `obj_vertex_count` | `result == m.xs.len()`; `result >= 0` | runtime-checked (struct-field length); Z3-provable (scalar bound) |
+| `obj_face_count` | `result == m.face_starts.len()`; `result >= 0` | runtime-checked (struct-field length); Z3-provable (scalar bound) |
+| `obj_vertex_x` | `i < 0 => result == 0`; `i >= m.xs.len() => result == 0`; `result != 0 => i >= 0 && i < m.xs.len()` | Z3-provable (negative-index sentinel); runtime-checked (field length; sentinel containment) |
+| `obj_vertex_y` | same triple reading `m.ys` | as `obj_vertex_x` |
+| `obj_vertex_z` | same triple reading `m.zs` | as `obj_vertex_x` |
+| `obj_face_len` | `f < 0 => result == 0`; `f >= m.face_starts.len() => result == 0`; `result != 0 => f >= 0 && f < m.face_starts.len() && f < m.face_ends.len()` | Z3-provable (negative-face sentinel); runtime-checked (field lengths; sentinel containment) |
+| `obj_face_index` | `f < 0 => result == -1`; `j < 0 => result == -1`; `result != -1 => f >= 0 && f < m.face_starts.len() && f < m.face_ends.len() && j >= 0` | Z3-provable (scalar sentinel pair); runtime-checked (field lengths; sentinel containment) |
+
+Deliberately not claimed: any `result >= 0` bound on `obj_face_len`
+(`face_ends[f] - face_starts[f]` can be negative for hand-built meshes); any
+mesh payload read on `obj_parse`; packed-index containment inside
+`face_indices` (it would need vector indexing, which is forbidden); `Str`
+equality (BUG 17); tuple-component access; struct-result payload field reads.
+No clause indexes a vector or calls a function, and no local shadows a
+clause-read parameter.

@@ -121,7 +121,11 @@ fn _obj_is_digit(b: Int) -> Bool {
 /// at line N"), where N is the 1-based physical line number (blank and
 /// comment lines count).
 /// Complexity: O(text bytes).
-pub fn obj_parse(text: Str, scale: Int) -> Result[ObjMesh, Str] {
+pub fn obj_parse(text: Str, scale: Int) -> Result[ObjMesh, Str]
+  ensures: scale < 1 || scale > 1000000 => result is Err;
+  ensures: scale >= 1 && scale <= 1000000 && text.len() == 0 => result is Ok;
+  ensures: result is Ok => scale >= 1 && scale <= 1000000;
+{
   if scale < 1 || scale > _OBJ_MAX_SCALE {
     return _obj_err_mesh("obj: scale out of range");
   }
@@ -163,7 +167,10 @@ pub fn obj_parse(text: Str, scale: Int) -> Result[ObjMesh, Str] {
 /// Returns: xs.len(); 0 for an empty mesh.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn obj_vertex_count(m: &ObjMesh) -> Int {
+pub fn obj_vertex_count(m: &ObjMesh) -> Int
+  ensures: result == m.xs.len();
+  ensures: result >= 0;
+{
   return m.xs.len();
 }
 
@@ -172,7 +179,10 @@ pub fn obj_vertex_count(m: &ObjMesh) -> Int {
 /// Returns: face_starts.len(); 0 for an empty mesh.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn obj_face_count(m: &ObjMesh) -> Int {
+pub fn obj_face_count(m: &ObjMesh) -> Int
+  ensures: result == m.face_starts.len();
+  ensures: result >= 0;
+{
   return m.face_starts.len();
 }
 
@@ -181,7 +191,11 @@ pub fn obj_face_count(m: &ObjMesh) -> Int {
 /// Returns: the scaled x; 0 when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn obj_vertex_x(m: &ObjMesh, i: Int) -> Int {
+pub fn obj_vertex_x(m: &ObjMesh, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= m.xs.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < m.xs.len();
+{
   if i < 0 || i >= m.xs.len() {
     return 0;
   }
@@ -194,7 +208,11 @@ pub fn obj_vertex_x(m: &ObjMesh, i: Int) -> Int {
 /// Returns: the scaled y; 0 when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn obj_vertex_y(m: &ObjMesh, i: Int) -> Int {
+pub fn obj_vertex_y(m: &ObjMesh, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= m.ys.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < m.ys.len();
+{
   if i < 0 || i >= m.ys.len() {
     return 0;
   }
@@ -207,7 +225,11 @@ pub fn obj_vertex_y(m: &ObjMesh, i: Int) -> Int {
 /// Returns: the scaled z; 0 when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn obj_vertex_z(m: &ObjMesh, i: Int) -> Int {
+pub fn obj_vertex_z(m: &ObjMesh, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= m.zs.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < m.zs.len();
+{
   if i < 0 || i >= m.zs.len() {
     return 0;
   }
@@ -221,7 +243,11 @@ pub fn obj_vertex_z(m: &ObjMesh, i: Int) -> Int {
 /// range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn obj_face_len(m: &ObjMesh, f: Int) -> Int {
+pub fn obj_face_len(m: &ObjMesh, f: Int) -> Int
+  ensures: f < 0 => result == 0;
+  ensures: f >= m.face_starts.len() => result == 0;
+  ensures: result != 0 => f >= 0 && f < m.face_starts.len() && f < m.face_ends.len();
+{
   if f < 0 || f >= m.face_starts.len() {
     return 0;
   }
@@ -241,7 +267,11 @@ pub fn obj_face_len(m: &ObjMesh, f: Int) -> Int {
 /// range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn obj_face_index(m: &ObjMesh, f: Int, j: Int) -> Int {
+pub fn obj_face_index(m: &ObjMesh, f: Int, j: Int) -> Int
+  ensures: f < 0 => result == -1;
+  ensures: j < 0 => result == -1;
+  ensures: result != -1 => f >= 0 && f < m.face_starts.len() && f < m.face_ends.len() && j >= 0;
+{
   let len = obj_face_len(m, f);
   if j < 0 || j >= len {
     return -1;
