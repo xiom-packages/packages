@@ -176,3 +176,59 @@ scanner idioms as `xiom.template`/`xiom.dotenv`:
 - No environment, process or file integration; the table is caller-supplied.
 - `NAME` is ASCII-only; no Unicode identifiers.
 - Errors carry no byte offset or line/column position.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable clauses added in the batch #16 hardening pass (compiler
+v0.64.0; no version bump). 10 clauses across the four public entry points
+(4/2/2/2); two clean port runs with the clauses active:
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` (6.4 s and 5.5 s).
+All ten clauses are enforced by the runtime evaluator: the 22-check
+conformance suite exercises every entry point on both the accepting and
+rejecting paths (empty and non-empty text, Ok and Err, strict and lenient),
+and `xiom --dump-contracts` lists all ten. No clause compares `Str` values
+(BUG 17), none touches a `Result` payload, and no clause calls a function
+that wraps the function under contract: the only clause calls are on
+`envsubst_has_vars`, a pure raw scanner that never calls `_expand`/
+`envsubst_expand` (no call cycle).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `envsubst_expand` | `ensures: text.len() == 0 => result is Ok` | Z3-provable (pure scalar) |
+| `envsubst_expand` | `ensures: result is Err => text.len() > 0` | Z3-provable (pure scalar) |
+| `envsubst_expand` | `ensures: result is Err => envsubst_has_vars(text)` | runtime-checked |
+| `envsubst_expand` | `ensures: !envsubst_has_vars(text) => result is Ok` | runtime-checked |
+| `envsubst_expand_pairs` | `ensures: text.len() == 0 => result is Ok` | Z3-provable (pure scalar) |
+| `envsubst_expand_pairs` | `ensures: result is Err => text.len() > 0` | Z3-provable (pure scalar) |
+| `envsubst_has_vars` | `ensures: text.len() < 2 => !result` | Z3-provable (pure scalar) |
+| `envsubst_has_vars` | `ensures: result => text.len() >= 2` | runtime-checked |
+| `envsubst_names` | `ensures: text.len() < 4 => result.len() == 0` | runtime-checked |
+| `envsubst_names` | `ensures: result.len() <= text.len() / 4` | runtime-checked |
+
+The `envsubst_has_vars` pair states that a zero/one-byte text can never
+report a `$`-`{` pair and that a reported pair needs at least two bytes.
+The `envsubst_names` bound is a sentinel/count characterization: every
+reported name consumes a non-overlapping `${NAME}` construct of at least
+four bytes (`${A}`), so at most `text.len() / 4` distinct names can be
+reported, and text shorter than four bytes can report none. The two
+call-bearing `envsubst_expand` clauses are the length-side characterization
+of the three error paths: every `Err` (unterminated, invalid name,
+undefined variable) requires a `${` pair, and no `${` pair can only expand
+to `Ok`. The empty/`Err` pair on both expanders is the same emptiness
+guard: empty text can only be `Ok` (no reference to fail on); any `Err`
+needs non-empty text.
+
+`xiom-verify --check` (Z3 on v0.64.0) result: **0 proven / 0 violated /
+14 unknown / 2 errors**. The errors are emitter artifacts (unknown
+constants `_expand` / `_collect_names` in the generated SMT), and every
+scalar axiom was skipped by the emitter (`equality with unresolved operand
+sort`, `operator Lt on non-numeric operands`), so no clause is
+machine-proven under this toolchain; the Z3-provable label records the
+pure-scalar contract shape, and all ten clauses stay enforced by the
+runtime evaluator.
+
+Not asserted: output-length formulas for the two expanders and error-text
+identity. `result is Ok => result.value.len()` relations are excluded
+(payload-length-vs-parameter shape on a `Result` payload), and the exact
+`Err` messages are `Str` equality (BUG 17); both stay pinned by the
+22-check conformance suite and sections 3 and 5 above.

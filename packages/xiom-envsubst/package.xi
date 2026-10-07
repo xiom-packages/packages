@@ -12,7 +12,7 @@
 
 package xiom_envsubst {
   name: "xiom.envsubst";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Shell-style ${VAR} expansion with caller-supplied variables and strict or lenient missing-value handling";
   categories: ["text-nlp", "tooling"];
   keywords: ["envsubst", "variables", "expansion", "template"];

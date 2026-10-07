@@ -223,7 +223,12 @@ fn _expand(text: Str, names: &Vec[Str], values: &Vec[Str], missing_empty: Bool) 
 /// variable name") when the brace content is not [A-Za-z_][A-Za-z0-9_]*.
 /// The last two errors are raised in both modes.
 /// Complexity: O(input length + references * table length).
-pub fn envsubst_expand(text: Str, names: &Vec[Str], values: &Vec[Str], missing_empty: Bool) -> Result[Str, Str] {
+pub fn envsubst_expand(text: Str, names: &Vec[Str], values: &Vec[Str], missing_empty: Bool) -> Result[Str, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+  ensures: result is Err => envsubst_has_vars(text);
+  ensures: !envsubst_has_vars(text) => result is Ok;
+{
   return _expand(text, names, values, missing_empty);
 }
 
@@ -236,7 +241,10 @@ pub fn envsubst_expand(text: Str, names: &Vec[Str], values: &Vec[Str], missing_e
 /// part may itself contain "="; the first pair for a repeated name wins.
 /// Error case: same as envsubst_expand.
 /// Complexity: O(text + pair bytes + references * table length).
-pub fn envsubst_expand_pairs(text: Str, pairs: &Vec[Str], missing_empty: Bool) -> Result[Str, Str] {
+pub fn envsubst_expand_pairs(text: Str, pairs: &Vec[Str], missing_empty: Bool) -> Result[Str, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var names = Vec[Str].new();
   var values = Vec[Str].new();
   var i = 0;
@@ -265,7 +273,10 @@ pub fn envsubst_expand_pairs(text: Str, pairs: &Vec[Str], missing_empty: Bool) -
 /// literal "$${" sequence that envsubst_expand duplicates into "${".
 /// Error case: none.
 /// Complexity: O(input length).
-pub fn envsubst_has_vars(text: Str) -> Bool {
+pub fn envsubst_has_vars(text: Str) -> Bool
+  ensures: text.len() < 2 => !result;
+  ensures: result => text.len() >= 2;
+{
   let len = text.len();
   var i = 0;
   while i + 1 < len {
@@ -313,6 +324,9 @@ fn _collect_names(text: Str) -> Vec[Str] {
 /// before it are still reported.
 /// Error case: none.
 /// Complexity: O(input length * distinct names).
-pub fn envsubst_names(text: Str) -> Vec[Str] {
+pub fn envsubst_names(text: Str) -> Vec[Str]
+  ensures: text.len() < 4 => result.len() == 0;
+  ensures: result.len() <= text.len() / 4;
+{
   return _collect_names(text);
 }
