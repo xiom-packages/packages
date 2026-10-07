@@ -209,11 +209,6 @@ fn _identifier_kind(data: &Vec[UInt8]) -> Int {
   }
   return 0;
 }
-  if (_b(data, 5) == 50 && _b(data, 6) == 48 && _b(data, 7) == 0xBB) {
-    return 2;
-  }
-  return 0;
-}
 
 // Append the 12 identifier bytes of KTX 1.
 fn _put_identifier(out: &mut Vec[UInt8]) {
@@ -303,7 +298,10 @@ fn _parse_kv(data: &Vec[UInt8], h: &KtxHeader) -> Result[KtxKeyValues, Str] {
 /// True when `data` starts with the 12-byte KTX 1 identifier ("AB KTX 11 BB
 /// CR LF 1A LF"). False for short buffers, corrupt identifiers and KTX 2
 /// ("KTX 20") files.
-pub fn ktx_is_ktx(data: &Vec[UInt8]) -> Bool {
+pub fn ktx_is_ktx(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 12 => !result;
+  ensures: result => data.len() >= 12;
+{
   return _identifier_kind(data) == 1;
 }
 
@@ -323,7 +321,11 @@ pub fn ktx_is_ktx(data: &Vec[UInt8]) -> Bool {
 /// The height/depth shape rules of the specification (0 for absent axes) are
 /// not enforced, glInternalFormat is never interpreted, and the key/value
 /// region and level records are not required to be present here.
-pub fn ktx_parse_header(data: &Vec[UInt8]) -> Result[KtxHeader, Str] {
+pub fn ktx_parse_header(data: &Vec[UInt8]) -> Result[KtxHeader, Str]
+  ensures: data.len() < 64 => result is Err;
+  ensures: !ktx_is_ktx(data) => result is Err;
+  ensures: result is Ok => data.len() >= 64;
+{
   let n = data.len();
   if (n < KTX_ID_BYTES) { return _err_hdr("ktx: truncated header"); }
   let kind = _identifier_kind(data);
@@ -387,7 +389,11 @@ pub fn ktx_parse_header(data: &Vec[UInt8]) -> Result[KtxHeader, Str] {
 /// of range"; glTypeSize must be 1..8, numberOfFaces 1 or 6 and pixelWidth
 /// at least 1. The assembled bytes are re-validated through
 /// ktx_parse_header, whose messages are forwarded unchanged.
-pub fn ktx_build_header(h: &KtxHeader) -> Result[Vec[UInt8], Str] {
+pub fn ktx_build_header(h: &KtxHeader) -> Result[Vec[UInt8], Str]
+  ensures: h.gl_type_size < 1 || h.gl_type_size > 8 => result is Err;
+  ensures: h.faces != 1 && h.faces != 6 => result is Err;
+  ensures: result is Ok => result.value.len() == 64;
+{
   if (!_u32_ok(h.gl_type)) { return _err_bytes("ktx: field out of range"); }
   if (!_u32_ok(h.gl_type_size)) { return _err_bytes("ktx: field out of range"); }
   if (!_u32_ok(h.gl_format)) { return _err_bytes("ktx: field out of range"); }
@@ -441,7 +447,11 @@ pub fn ktx_build_header(h: &KtxHeader) -> Result[Vec[UInt8], Str] {
 /// Parse the header and then the full key/value region. Works for every
 /// header shape (cubemaps and arrays included); only the pair structure is
 /// validated, never the value contents.
-pub fn ktx_parse_key_values(data: &Vec[UInt8]) -> Result[KtxKeyValues, Str] {
+pub fn ktx_parse_key_values(data: &Vec[UInt8]) -> Result[KtxKeyValues, Str]
+  ensures: data.len() < 64 => result is Err;
+  ensures: !ktx_is_ktx(data) => result is Err;
+  ensures: result is Ok => ktx_is_ktx(data);
+{
   let hp = ktx_parse_header(data);
   match hp {
     Ok(h) => { return _parse_kv(data, &h); },
@@ -450,21 +460,32 @@ pub fn ktx_parse_key_values(data: &Vec[UInt8]) -> Result[KtxKeyValues, Str] {
 }
 
 /// Number of key/value pairs (0 when the region is empty).
-pub fn ktx_kv_count(kv: &KtxKeyValues) -> Int {
+pub fn ktx_kv_count(kv: &KtxKeyValues) -> Int
+  ensures: result == kv.keys.len();
+  ensures: result >= 0;
+{
   return kv.keys.len();
 }
 
 /// Key of pair `i`, or "" when `i` is out of range. The result is a Str read
 /// from a Vec[Str] field: callers must compare it with
 /// xiom.string.compare.str_compare rather than `==`.
-pub fn ktx_kv_key(kv: &KtxKeyValues, i: Int) -> Str {
+pub fn ktx_kv_key(kv: &KtxKeyValues, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= kv.keys.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < kv.keys.len();
+{
   if (i < 0 || i >= kv.keys.len()) { return ""; }
   let k: Str = kv.keys[i];
   return k;
 }
 
 /// Absolute offset of pair `i`'s first value byte, or -1 out of range.
-pub fn ktx_kv_value_offset(kv: &KtxKeyValues, i: Int) -> Int {
+pub fn ktx_kv_value_offset(kv: &KtxKeyValues, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= kv.value_offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < kv.value_offsets.len();
+{
   if (i < 0 || i >= kv.value_offsets.len()) { return -1; }
   let off: Int = kv.value_offsets[i];
   return off;
@@ -472,7 +493,11 @@ pub fn ktx_kv_value_offset(kv: &KtxKeyValues, i: Int) -> Int {
 
 /// Length in bytes of pair `i`'s value, or -1 out of range. Zero is a valid
 /// length (an empty value).
-pub fn ktx_kv_value_bytes(kv: &KtxKeyValues, i: Int) -> Int {
+pub fn ktx_kv_value_bytes(kv: &KtxKeyValues, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= kv.value_bytes.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < kv.value_bytes.len();
+{
   if (i < 0 || i >= kv.value_bytes.len()) { return -1; }
   let len: Int = kv.value_bytes[i];
   return len;
@@ -482,7 +507,10 @@ pub fn ktx_kv_value_bytes(kv: &KtxKeyValues, i: Int) -> Int {
 /// any other byte value are copied verbatim. An out-of-range index is
 /// "ktx: key/value index out of range"; value bytes that do not fit the
 /// given buffer are "ktx: truncated key/value data".
-pub fn ktx_kv_value(data: &Vec[UInt8], kv: &KtxKeyValues, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn ktx_kv_value(data: &Vec[UInt8], kv: &KtxKeyValues, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 || i >= kv.keys.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < kv.keys.len();
+{
   if (i < 0 || i >= kv.keys.len()) {
     return _err_bytes("ktx: key/value index out of range");
   }
@@ -507,65 +535,90 @@ pub fn ktx_kv_value(data: &Vec[UInt8], kv: &KtxKeyValues, i: Int) -> Result[Vec[
 
 /// Effective level count: numberOfMipmapLevels is 0 when the file asks the
 /// loader to generate a full pyramid, and the level loop treats 0 as 1.
-pub fn ktx_level_count(h: &KtxHeader) -> Int {
+pub fn ktx_level_count(h: &KtxHeader) -> Int
+  ensures: h.mipmap_levels == 0 => result == 1;
+  ensures: h.mipmap_levels != 0 => result == h.mipmap_levels;
+{
   if (h.mipmap_levels == 0) { return 1; }
   return h.mipmap_levels;
 }
 
 /// True when glType is 0, the marker for a compressed texture.
-pub fn ktx_is_compressed(h: &KtxHeader) -> Bool {
+pub fn ktx_is_compressed(h: &KtxHeader) -> Bool
+  ensures: result == (h.gl_type == 0);
+{
   return h.gl_type == 0;
 }
 
 /// True when numberOfFaces is 6.
-pub fn ktx_is_cubemap(h: &KtxHeader) -> Bool {
+pub fn ktx_is_cubemap(h: &KtxHeader) -> Bool
+  ensures: result == (h.faces == 6);
+{
   return h.faces == 6;
 }
 
 /// True when numberOfArrayElements is nonzero.
-pub fn ktx_is_array(h: &KtxHeader) -> Bool {
+pub fn ktx_is_array(h: &KtxHeader) -> Bool
+  ensures: result == (h.array_elements != 0);
+{
   return h.array_elements != 0;
 }
 
 /// Absolute offset of the first level record: KTX_HEADER_BYTES +
 /// bytesOfKeyValueData.
-pub fn ktx_data_offset(h: &KtxHeader) -> Int {
+pub fn ktx_data_offset(h: &KtxHeader) -> Int
+  ensures: result == 64 + h.kv_bytes;
+{
   return KTX_HEADER_BYTES + h.kv_bytes;
 }
 
 /// Level-0 width in pixels (always at least 1 in a parsed header).
-pub fn ktx_width(h: &KtxHeader) -> Int {
+pub fn ktx_width(h: &KtxHeader) -> Int
+  ensures: result == h.pixel_width;
+{
   return h.pixel_width;
 }
 
 /// Level-0 height in pixels (0 for 1D textures).
-pub fn ktx_height(h: &KtxHeader) -> Int {
+pub fn ktx_height(h: &KtxHeader) -> Int
+  ensures: result == h.pixel_height;
+{
   return h.pixel_height;
 }
 
 /// Level-0 depth in pixels (0 for 1D/2D textures).
-pub fn ktx_depth(h: &KtxHeader) -> Int {
+pub fn ktx_depth(h: &KtxHeader) -> Int
+  ensures: result == h.pixel_depth;
+{
   return h.pixel_depth;
 }
 
 /// The glType field, carried through verbatim (0 = compressed).
-pub fn ktx_gl_type(h: &KtxHeader) -> Int {
+pub fn ktx_gl_type(h: &KtxHeader) -> Int
+  ensures: result == h.gl_type;
+{
   return h.gl_type;
 }
 
 /// The glFormat field, carried through verbatim (0 = compressed).
-pub fn ktx_gl_format(h: &KtxHeader) -> Int {
+pub fn ktx_gl_format(h: &KtxHeader) -> Int
+  ensures: result == h.gl_format;
+{
   return h.gl_format;
 }
 
 /// The glInternalFormat field. For compressed textures this is the
 /// compressed format; the value is opaque compression metadata here.
-pub fn ktx_gl_internal_format(h: &KtxHeader) -> Int {
+pub fn ktx_gl_internal_format(h: &KtxHeader) -> Int
+  ensures: result == h.gl_internal_format;
+{
   return h.gl_internal_format;
 }
 
 /// The glBaseInternalFormat field.
-pub fn ktx_gl_base_internal_format(h: &KtxHeader) -> Int {
+pub fn ktx_gl_base_internal_format(h: &KtxHeader) -> Int
+  ensures: result == h.gl_base_internal_format;
+{
   return h.gl_base_internal_format;
 }
 
@@ -584,7 +637,11 @@ pub fn ktx_gl_base_internal_format(h: &KtxHeader) -> Int {
 /// key/value data through the other entry points but are rejected here with
 /// "ktx: unsupported level layout", because the per-level span rule for
 /// them is out of this codec's scope.
-pub fn ktx_parse(data: &Vec[UInt8]) -> Result[KtxInfo, Str] {
+pub fn ktx_parse(data: &Vec[UInt8]) -> Result[KtxInfo, Str]
+  ensures: data.len() < 64 => result is Err;
+  ensures: !ktx_is_ktx(data) => result is Err;
+  ensures: result is Ok => ktx_is_ktx(data);
+{
   let hp = ktx_parse_header(data);
   match hp {
     Ok(h) => {
@@ -640,14 +697,22 @@ pub fn ktx_parse(data: &Vec[UInt8]) -> Result[KtxInfo, Str] {
 }
 
 /// Absolute offset of level `i`'s u32 imageSize field, or -1 out of range.
-pub fn ktx_level_offset(info: &KtxInfo, i: Int) -> Int {
+pub fn ktx_level_offset(info: &KtxInfo, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= info.size_offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < info.size_offsets.len();
+{
   if (i < 0 || i >= info.size_offsets.len()) { return -1; }
   let off: Int = info.size_offsets[i];
   return off;
 }
 
 /// imageSize of level `i`, or -1 out of range.
-pub fn ktx_level_size(info: &KtxInfo, i: Int) -> Int {
+pub fn ktx_level_size(info: &KtxInfo, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= info.image_sizes.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < info.image_sizes.len();
+{
   if (i < 0 || i >= info.image_sizes.len()) { return -1; }
   let size: Int = info.image_sizes[i];
   return size;
@@ -655,7 +720,11 @@ pub fn ktx_level_size(info: &KtxInfo, i: Int) -> Int {
 
 /// Absolute offset of level `i`'s first image byte (the offset of its u32
 /// imageSize field plus 4), or -1 out of range.
-pub fn ktx_payload_offset(info: &KtxInfo, i: Int) -> Int {
+pub fn ktx_payload_offset(info: &KtxInfo, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= info.size_offsets.len() => result == -1;
+  ensures: result != -1 => result == ktx_level_offset(info, i) + 4;
+{
   let off: Int = ktx_level_offset(info, i);
   if (off < 0) { return -1; }
   return off + 4;
@@ -665,7 +734,10 @@ pub fn ktx_payload_offset(info: &KtxInfo, i: Int) -> Int {
 /// excluded). An out-of-range index is "ktx: level index out of range";
 /// image bytes that do not fit the given buffer are
 /// "ktx: truncated level data". Pixels are never decoded.
-pub fn ktx_level_data(data: &Vec[UInt8], info: &KtxInfo, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn ktx_level_data(data: &Vec[UInt8], info: &KtxInfo, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 || i >= info.image_sizes.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < info.image_sizes.len();
+{
   if (i < 0 || i >= info.image_sizes.len()) {
     return _err_bytes("ktx: level index out of range");
   }

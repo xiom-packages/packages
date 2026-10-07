@@ -1,4 +1,9 @@
-# xiom.ktx SPEC
+# xiom.ktx -- Specification
+
+Version: 0.1.2 (stable; published on the XIOM registry).
+Module: `src/ktx.xi` (`module xiom.ktx`).
+Depends on `xiom.std`; the library module uses `xiom.string` only (tests add
+`xiom.test`, `xiom.io`, `xiom.string` and `xiom.string.compare`).
 
 ## Scope
 
@@ -325,3 +330,61 @@ pub fn ktx_level_data(data: &Vec[UInt8], info: &KtxInfo, i: Int) -> Result[Vec[U
 - Bytes after the final level are ignored; no trailing-data validation is
   performed.
 - The whole file is held in memory; there is no streaming API.
+
+## Contracts (batch #31 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/ktx.xi` in the batch #31
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 51 clauses across the 26 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.ktx -TimeoutSec 60` runs
+ended `port: PASS (passed=19 failed=0 program_exit=0 exit=0)` with the clauses
+active (6.3 s and 6.0 s); the 19-check conformance suite exercises every entry
+point and no clause trapped.
+
+All clauses are runtime-checked: a direct `xiom-verify --check` run on this
+module reported UNKNOWN (X7007: unsupported expression in the contract
+language) for every clause, so none is claimed Z3-provable (0 proven, 0
+violated, 59 unknown). The same run also hit a known SMT emitter bug on the
+private byte-reader leaf helpers (`unknown constant _identifier_kind` /
+`_u32`), reported as an emitter error, not a contract violation.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `ktx_is_ktx` | `ensures: data.len() < 12 => !result`; `ensures: result => data.len() >= 12` | runtime-checked (`Vec` length + `Bool`) |
+| `ktx_parse_header` | `ensures: data.len() < 64 => result is Err`; `ensures: !ktx_is_ktx(data) => result is Err`; `ensures: result is Ok => data.len() >= 64` | runtime-checked (`Vec` length + `Result` tag + public cross-call) |
+| `ktx_build_header` | `ensures: h.gl_type_size < 1 \|\| h.gl_type_size > 8 => result is Err`; `ensures: h.faces != 1 && h.faces != 6 => result is Err`; `ensures: result is Ok => result.value.len() == 64` | runtime-checked (scalar guards + `Result` payload length) |
+| `ktx_parse_key_values` | `ensures: data.len() < 64 => result is Err`; `ensures: !ktx_is_ktx(data) => result is Err`; `ensures: result is Ok => ktx_is_ktx(data)` | runtime-checked (`Vec` length + `Result` tag + public cross-call) |
+| `ktx_kv_count` | `ensures: result == kv.keys.len()`; `ensures: result >= 0` | runtime-checked (field length read; scalar bound) |
+| `ktx_kv_key` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= kv.keys.len() => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < kv.keys.len()` | runtime-checked (`Str` length + field length) |
+| `ktx_kv_value_offset` | `ensures: i < 0 => result == -1`; `ensures: i >= kv.value_offsets.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < kv.value_offsets.len()` | runtime-checked (field length + scalar sentinel) |
+| `ktx_kv_value_bytes` | `ensures: i < 0 => result == -1`; `ensures: i >= kv.value_bytes.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < kv.value_bytes.len()` | runtime-checked (field length + scalar sentinel) |
+| `ktx_kv_value` | `ensures: i < 0 \|\| i >= kv.keys.len() => result is Err`; `ensures: result is Ok => i >= 0 && i < kv.keys.len()` | runtime-checked (field length + `Result` tag) |
+| `ktx_level_count` | `ensures: h.mipmap_levels == 0 => result == 1`; `ensures: h.mipmap_levels != 0 => result == h.mipmap_levels` | runtime-checked (field read) |
+| `ktx_is_compressed` | `ensures: result == (h.gl_type == 0)` | runtime-checked (field read) |
+| `ktx_is_cubemap` | `ensures: result == (h.faces == 6)` | runtime-checked (field read) |
+| `ktx_is_array` | `ensures: result == (h.array_elements != 0)` | runtime-checked (field read) |
+| `ktx_data_offset` | `ensures: result == 64 + h.kv_bytes` | runtime-checked (field read; `KTX_HEADER_BYTES` inlined as 64) |
+| `ktx_width` | `ensures: result == h.pixel_width` | runtime-checked (field read) |
+| `ktx_height` | `ensures: result == h.pixel_height` | runtime-checked (field read) |
+| `ktx_depth` | `ensures: result == h.pixel_depth` | runtime-checked (field read) |
+| `ktx_gl_type` | `ensures: result == h.gl_type` | runtime-checked (field read) |
+| `ktx_gl_format` | `ensures: result == h.gl_format` | runtime-checked (field read) |
+| `ktx_gl_internal_format` | `ensures: result == h.gl_internal_format` | runtime-checked (field read) |
+| `ktx_gl_base_internal_format` | `ensures: result == h.gl_base_internal_format` | runtime-checked (field read) |
+| `ktx_parse` | `ensures: data.len() < 64 => result is Err`; `ensures: !ktx_is_ktx(data) => result is Err`; `ensures: result is Ok => ktx_is_ktx(data)` | runtime-checked (`Vec` length + `Result` tag + public cross-call) |
+| `ktx_level_offset` | `ensures: i < 0 => result == -1`; `ensures: i >= info.size_offsets.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < info.size_offsets.len()` | runtime-checked (field length + scalar sentinel) |
+| `ktx_level_size` | `ensures: i < 0 => result == -1`; `ensures: i >= info.image_sizes.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < info.image_sizes.len()` | runtime-checked (field length + scalar sentinel) |
+| `ktx_payload_offset` | `ensures: i < 0 => result == -1`; `ensures: i >= info.size_offsets.len() => result == -1`; `ensures: result != -1 => result == ktx_level_offset(info, i) + 4` | runtime-checked (definitional cross-call + field length) |
+| `ktx_level_data` | `ensures: i < 0 \|\| i >= info.image_sizes.len() => result is Err`; `ensures: result is Ok => i >= 0 && i < info.image_sizes.len()` | runtime-checked (field length + `Result` tag) |
+
+Deliberately not claimed: `ktx_kv_count(kv) == kv.count` and any
+`pixel_width >= 1` / `ktx_level_count(h) >= 1` lower bound (hand-built headers
+and indexes may store zero or negative values); struct-`Result` payload field
+reads (`result.value.gl_type` and friends); `Str` key equality (BUG 17); tuple
+components; vector indexing; module constants inside clauses (literals are
+inlined); any `Result` payload length compared against a parameter. The only
+cross-calls are `ktx_is_ktx` from the three parse entry points (it does not
+reach its callers) and `ktx_level_offset` from `ktx_payload_offset`
+(definitional, non-re-entrant). No clause was dropped and no probe-gated
+clause was proposed for this package.
