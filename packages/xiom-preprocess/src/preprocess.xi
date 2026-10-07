@@ -111,7 +111,10 @@ fn _pp_keeps_token(folded: Str, folded_stops: &Vec[Str]) -> Bool {
 /// through byte-exact, so the result has the same length as the input.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn pp_fold_ascii(s: Str) -> Str {
+pub fn pp_fold_ascii(s: Str) -> Str
+  ensures: result.len() == s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -136,7 +139,10 @@ pub fn pp_fold_ascii(s: Str) -> Str {
 /// "ab") and a tab-separated pair loses its separator ("a\tb" -> "ab").
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn pp_strip_punct(s: Str) -> Str {
+pub fn pp_strip_punct(s: Str) -> Str
+  ensures: result.len() <= s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -160,7 +166,10 @@ pub fn pp_strip_punct(s: Str) -> Str {
 /// so the function is idempotent.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn pp_collapse_ws(s: Str) -> Str {
+pub fn pp_collapse_ws(s: Str) -> Str
+  ensures: result.len() <= s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var pending = false;
@@ -194,7 +203,10 @@ pub fn pp_collapse_ws(s: Str) -> Str {
 /// never empty, so an empty stopword matches nothing.
 /// Error case: none.
 /// Complexity: O(s.len() + |s| * |stop| * word length).
-pub fn pp_remove_stopwords(s: Str, stop: &Vec[Str]) -> Str {
+pub fn pp_remove_stopwords(s: Str, stop: &Vec[Str]) -> Str
+  ensures: result.len() <= s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+{
   // Fold the stop list once; all further matching uses these copies.
   var folded_stops = Vec[Str].new();
   var si = 0;
@@ -253,7 +265,11 @@ pub fn pp_remove_stopwords(s: Str, stop: &Vec[Str]) -> Str {
 /// number of single spaces plus one otherwise.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn pp_word_count(s: Str) -> Int {
+pub fn pp_word_count(s: Str) -> Int
+  ensures: result >= 0;
+  ensures: s.len() == 0 => result == 0;
+  ensures: result <= s.len();
+{
   let c = pp_collapse_ws(s);
   let n = c.len();
   if n == 0 {
@@ -285,7 +301,11 @@ pub fn pp_word_count(s: Str) -> Int {
 /// All steps are infallible.
 /// Error case: none.
 /// Complexity: the sum of the enabled steps' complexity.
-pub fn pp_pipeline(s: Str, stop: &Vec[Str], fold: Bool, punct: Bool, ws: Bool, stopw: Bool) -> Str {
+pub fn pp_pipeline(s: Str, stop: &Vec[Str], fold: Bool, punct: Bool, ws: Bool, stopw: Bool) -> Str
+  ensures: result.len() <= s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: (!fold && !punct && !ws && !stopw) => result.len() == s.len();
+{
   var out = s;
   if fold {
     out = pp_fold_ascii(out);
@@ -309,6 +329,9 @@ pub fn pp_pipeline(s: Str, stop: &Vec[Str], fold: Bool, punct: Bool, ws: Bool, s
 /// pp_pipeline(s, <empty stop list>, true, true, true, false).
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn pp_normalize_default(s: Str) -> Str {
+pub fn pp_normalize_default(s: Str) -> Str
+  ensures: result.len() <= s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+{
   return pp_collapse_ws(pp_strip_punct(pp_fold_ascii(s)));
 }

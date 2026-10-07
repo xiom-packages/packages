@@ -212,3 +212,32 @@ guards (`(byte as Int) & 0xFF`), output accumulated in `Vec[UInt8]` and
 materialized once with `xiom.string.builder.sb_to_str`, and no `==` on `Str`.
 The module imports `xiom.string`, `xiom.string.builder` and
 `xiom.string.compare`.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checked contracts on v0.64.0; `xiom-verify --check` (bundled Z3)
+result: **0 proven / 0 violated / 25 unknown / 0 errors**. Every obligation
+was skipped as UNKNOWN at SMT emission (Str-length operands have unresolved
+sorts: `operator Le on non-numeric operands`, `equality with unresolved
+operand sort`; loop bodies carry no invariants), so no clause is
+machine-proven and none is disproven. All 16 clauses are enforced by the
+v0.64.0 runtime evaluator: the 21-check conformance suite exercises every
+entry point with the clauses active, and two consecutive `scripts/port.ps1`
+runs were green (`passed=21 failed=0 program_exit=0 exit=0`, ~5s each).
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `pp_fold_ascii` | `ensures: result.len() == s.len()`; `ensures: s.len() == 0 => result.len() == 0` | runtime-checked (unknown) |
+| `pp_strip_punct` | `ensures: result.len() <= s.len()`; `ensures: s.len() == 0 => result.len() == 0` | runtime-checked (unknown) |
+| `pp_collapse_ws` | `ensures: result.len() <= s.len()`; `ensures: s.len() == 0 => result.len() == 0` | runtime-checked (unknown) |
+| `pp_remove_stopwords` | `ensures: result.len() <= s.len()`; `ensures: s.len() == 0 => result.len() == 0` | runtime-checked (unknown) |
+| `pp_word_count` | `ensures: result >= 0`; `ensures: s.len() == 0 => result == 0`; `ensures: result <= s.len()` | runtime-checked (unknown) |
+| `pp_pipeline` | `ensures: result.len() <= s.len()`; `ensures: s.len() == 0 => result.len() == 0`; `ensures: (!fold && !punct && !ws && !stopw) => result.len() == s.len()` | runtime-checked (unknown) |
+| `pp_normalize_default` | `ensures: result.len() <= s.len()`; `ensures: s.len() == 0 => result.len() == 0` | runtime-checked (unknown) |
+
+16 clauses across the seven public entry points (2/2/2/2/3/3/2). The
+empty-input sentinel family was classified scalar-provable in the hardening
+plan, but the v0.64.0 emitter cannot discharge any `Str`-length obligation,
+so every clause is reported as runtime-checked. Clauses deliberately not
+written: step idempotence/equivalence (self/transitive calls are forbidden
+in clauses) and character-class output invariants (not expressible).
