@@ -1,8 +1,6 @@
 # xiom.gpt -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.gpt`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/gpt.xi` (`module xiom.gpt`).
 Depends on `xiom.std` (`xiom.string`: `byte_at`; `Str::from_utf8` is a
 compiler builtin). Tests additionally use `xiom.test`, `xiom.io`,
@@ -373,7 +371,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.gpt
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=17 failed=0 program_exit=0 exit=0)`.
 
 ## 12. Known limitations
@@ -400,7 +398,7 @@ Last verified: compiler 0.61.3,
 - Not thread-safe; `GptTable` is a plain value type holding six parallel
   vectors (no `Vec` of structs).
 
-## 13. Compiler / stdlib notes for v0.61.3
+## 13. Compiler / stdlib notes for v0.64.0
 
 - `Ok`/`Err` construction is confined to the leaf helpers `_ok_table`,
   `_err_table`, `_ok_bytes`, `_err_bytes`; every other function returns
@@ -427,3 +425,56 @@ Last verified: compiler 0.61.3,
   `Result<...>` in parameter and local type positions (wave-20
   trap-14 extension). Both files were grep-audited for `Vec<` / `Result<`
   after writing and the occurrences found were fixed before the green run.
+
+## Contracts (batch #36 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/gpt.xi` in the batch #36
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration): 53 clauses over the 27 public entry points (2/2/3/3/3/2, then
+12x1 scalar/`Str` accessors, then 2/3/3/3/3/3/3/3 in source order). All are
+`ensures:` only (no `requires:`), so the accepted-input domain is unchanged.
+Two consecutive `.\scripts\port.ps1 -Package xiom.gpt -TimeoutSec 60` runs
+ended `port: PASS (passed=17 failed=0 program_exit=0 exit=0)` with the clauses
+active (6.67 s and 6.73 s wall); the 17-check conformance suite exercises every
+entry point and no clause trapped, so none was dropped.
+
+`xiom-verify src\gpt.xi --check` (v0.64.0, Z3 on PATH) reported **0 proven /
+0 violated / 58 unknown / 31 errors**; every ERROR is the known SMT emitter
+bug (unknown private constants `_byte`, `_crc32_range`, `_sig_ok`,
+`_err_table`, `_entry_vec_equal`, `_err_bytes`), and the tool itself reports
+"z3 rejected the generated SMT (emitter bug) -- this is not a proof failure of
+the code under test". No clause is claimed Z3-provable; every clause is
+checked by the v0.64.0 runtime evaluator.
+
+Hand-built values: every clause uses only the guards the source implements, so
+it also holds for arbitrary hand-built `GptTable` fixtures (`table_of`,
+`table_empty`, the drifted `mismatch_table`): `gpt_entry_count` claims only
+upper bounds against the declared count and the six vectors, each entry
+accessor keys its sentinel off its own vector, no clause reads a `Result`
+payload except the constant `result.value.len() >= 1024` build bound, and no
+clause calls a function.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `gpt_has_protective_mbr` | `ensures: data.len() < 512 => !result`; `ensures: result => data.len() >= 512` | runtime-checked (`Vec` length) |
+| `gpt_crc32` | `ensures: result >= 0 && result <= 4294967295`; `ensures: data.len() == 0 => result == 0` | runtime-checked (scalar range; `Vec` length) |
+| `gpt_crc32_range` | `ensures: start < 0 => result == -1`; `ensures: count < 0 => result == -1`; `ensures: result != -1 => result >= 0 && result <= 4294967295` | runtime-checked (scalar sentinel trio) |
+| `gpt_header_crc_ok` | `ensures: t.header_size < 92 => !result`; `ensures: t.header_size > 512 => !result`; `ensures: result => data.len() >= 512 + t.header_size` | runtime-checked (field guards; `Vec` length) |
+| `gpt_entries_crc_ok` | `ensures: t.entry_count < 1 => !result`; `ensures: t.entry_count > 4096 => !result`; `ensures: t.entry_size < 128 => !result` | runtime-checked (field guards) |
+| `gpt_parse` | `ensures: data.len() < 1024 => result is Err`; `ensures: result is Ok => data.len() >= 1024` | runtime-checked (`Vec` length; result tag) |
+| `gpt_revision` .. `gpt_entries_crc` (11 scalar accessors) | `ensures: result == t.<field>` | runtime-checked (scalar field reads) |
+| `gpt_disk_guid` | `ensures: result.len() == t.disk_guid.len()` | runtime-checked (`Str` lengths) |
+| `gpt_entry_count` | `ensures: result <= t.entry_count`; `ensures: result <= t.type_guids.len() && result <= t.unique_guids.len() && result <= t.first_lbas.len() && result <= t.last_lbas.len() && result <= t.attributes.len() && result <= t.names.len()` | runtime-checked (six `Vec` lengths) |
+| `gpt_type_guid` / `gpt_unique_guid` / `gpt_entry_name` | `""` sentinel trios: negative -> `len() == 0`; past its own vector -> `len() == 0`; non-empty -> index in range | runtime-checked (`Str` lengths) |
+| `gpt_entry_first_lba` / `gpt_entry_last_lba` | `-1` sentinel trios: negative -> `-1`; past its own vector -> `-1`; `result != -1` -> index in range | runtime-checked (scalar sentinels) |
+| `gpt_entry_attributes` | `0` sentinel trio: negative -> `0`; past the vector -> `0`; `result != 0` -> index in range | runtime-checked (scalar sentinels) |
+| `gpt_entry_in_use` | `ensures: i < 0 => !result`; `ensures: i >= t.type_guids.len() => !result`; `ensures: result => i >= 0 && i < t.type_guids.len()` | runtime-checked (`Bool` guard pair; `Vec` length) |
+| `gpt_build` | `ensures: t.revision < 0 \|\| t.revision > 4294967295 => result is Err`; `ensures: t.entry_size < 128 \|\| t.entry_size > 4294967295 \|\| t.entry_size % 8 != 0 \|\| t.entry_count < 1 \|\| t.entry_count > 4096 \|\| total_sectors <= 0 => result is Err`; `ensures: result is Ok => result.value.len() >= 1024 && t.entry_count >= 1 && t.entry_count <= 4096` | runtime-checked (scalar guards; `Result` `Vec` length + count range) |
+
+Deliberately not claimed: `gpt_build`'s exact result length
+(`1024 + t.entry_count * t.entry_size`); a `gpt_entry_count >= 0` claim;
+span-fit guards inside `gpt_crc32_range` beyond the two negative-argument
+sentinels; CRC validity (a mismatch is never reported by `gpt_parse`); `Str`
+equality (BUG 17); tuple-component access; struct-`Result` payload field
+reads. No clause calls a function, so a clause can never re-enter a
+contracted function.

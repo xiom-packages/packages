@@ -410,7 +410,10 @@ fn _entry_vec_equal(t: &GptTable) -> Bool {
 /// A false result means "not the documented protective MBR shape"; it is not
 /// an error channel. `gpt_parse` does not require a protective MBR.
 /// Complexity: O(1).
-pub fn gpt_has_protective_mbr(data: &Vec[UInt8]) -> Bool {
+pub fn gpt_has_protective_mbr(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 512 => !result;
+  ensures: result => data.len() >= 512;
+{
   if data.len() < _GPT_LBA_BYTES { return false; }
   if _byte(data, 510) != _GPT_MBR_SIG_A { return false; }
   if _byte(data, 511) != _GPT_MBR_SIG_B { return false; }
@@ -435,14 +438,21 @@ pub fn gpt_has_protective_mbr(data: &Vec[UInt8]) -> Bool {
 /// init 0xFFFFFFFF, final xor 0xFFFFFFFF; the xiom.crc check value for
 /// "123456789" is 3421780262 and the empty buffer is 0). Complexity:
 /// O(data.len()).
-pub fn gpt_crc32(data: &Vec[UInt8]) -> Int {
+pub fn gpt_crc32(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0 && result <= 4294967295;
+  ensures: data.len() == 0 => result == 0;
+{
   return _crc32_range(data, 0, data.len());
 }
 
 /// Standard CRC-32 of the `count` bytes at `start`; -1 when `start` is
 /// negative, `count` is negative, or the span does not fit in `data`.
 /// Complexity: O(count).
-pub fn gpt_crc32_range(data: &Vec[UInt8], start: Int, count: Int) -> Int {
+pub fn gpt_crc32_range(data: &Vec[UInt8], start: Int, count: Int) -> Int
+  ensures: start < 0 => result == -1;
+  ensures: count < 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 4294967295;
+{
   if start < 0 || count < 0 { return -1; }
   if start > data.len() { return -1; }
   if count > data.len() - start { return -1; }
@@ -456,7 +466,11 @@ pub fn gpt_crc32_range(data: &Vec[UInt8], start: Int, count: Int) -> Int {
 /// `gpt_parse` never computes this; call it explicitly. False when the
 /// recorded header_size is outside 92..512 or the span does not fit in
 /// `data`. Complexity: O(header_size).
-pub fn gpt_header_crc_ok(data: &Vec[UInt8], t: &GptTable) -> Bool {
+pub fn gpt_header_crc_ok(data: &Vec[UInt8], t: &GptTable) -> Bool
+  ensures: t.header_size < 92 => !result;
+  ensures: t.header_size > 512 => !result;
+  ensures: result => data.len() >= 512 + t.header_size;
+{
   if t.header_size < _GPT_HEADER_MIN { return false; }
   if t.header_size > _GPT_HEADER_MAX { return false; }
   if _GPT_HEADER_OFF + t.header_size > data.len() { return false; }
@@ -467,7 +481,11 @@ pub fn gpt_header_crc_ok(data: &Vec[UInt8], t: &GptTable) -> Bool {
 /// recorded entry count/size/LBA fields are outside the documented ranges or
 /// the array does not fit in `data`. Complexity: O(entry_count *
 /// entry_size).
-pub fn gpt_entries_crc_ok(data: &Vec[UInt8], t: &GptTable) -> Bool {
+pub fn gpt_entries_crc_ok(data: &Vec[UInt8], t: &GptTable) -> Bool
+  ensures: t.entry_count < 1 => !result;
+  ensures: t.entry_count > 4096 => !result;
+  ensures: t.entry_size < 128 => !result;
+{
   if t.entry_count < 1 { return false; }
   if t.entry_count > _GPT_ENTRY_MAX_COUNT { return false; }
   if t.entry_size < _GPT_ENTRY_MIN { return false; }
@@ -509,7 +527,10 @@ pub fn gpt_entries_crc_ok(data: &Vec[UInt8], t: &GptTable) -> Bool {
 /// vector.
 /// Error case: see the catalog above and SPEC.md.
 /// Complexity: O(entries) plus the header.
-pub fn gpt_parse(data: &Vec[UInt8]) -> Result[GptTable, Str] {
+pub fn gpt_parse(data: &Vec[UInt8]) -> Result[GptTable, Str]
+  ensures: data.len() < 1024 => result is Err;
+  ensures: result is Ok => data.len() >= 1024;
+{
   let n = data.len();
   if n < 1024 { return _err_table("gpt: truncated header"); }
   if !_sig_ok(data, _GPT_HEADER_OFF) { return _err_table("gpt: bad signature"); }
@@ -600,68 +621,92 @@ pub fn gpt_parse(data: &Vec[UInt8]) -> Result[GptTable, Str] {
 
 /// Header revision field (LE32); stored raw, never validated.
 /// Complexity: O(1).
-pub fn gpt_revision(t: &GptTable) -> Int {
+pub fn gpt_revision(t: &GptTable) -> Int
+  ensures: result == t.revision;
+{
   return t.revision;
 }
 
 /// Header size field in bytes (LE32), 92..512 after a successful parse.
 /// Complexity: O(1).
-pub fn gpt_header_size(t: &GptTable) -> Int {
+pub fn gpt_header_size(t: &GptTable) -> Int
+  ensures: result == t.header_size;
+{
   return t.header_size;
 }
 
 /// Stored header CRC-32, raw. Complexity: O(1).
-pub fn gpt_header_crc(t: &GptTable) -> Int {
+pub fn gpt_header_crc(t: &GptTable) -> Int
+  ensures: result == t.header_crc;
+{
   return t.header_crc;
 }
 
 /// Header reserved field (LE32), preserved as parsed. Complexity: O(1).
-pub fn gpt_reserved(t: &GptTable) -> Int {
+pub fn gpt_reserved(t: &GptTable) -> Int
+  ensures: result == t.reserved;
+{
   return t.reserved;
 }
 
 /// MyLBA field: the LBA the header was read from (1 for a primary GPT).
 /// Complexity: O(1).
-pub fn gpt_current_lba(t: &GptTable) -> Int {
+pub fn gpt_current_lba(t: &GptTable) -> Int
+  ensures: result == t.current_lba;
+{
   return t.current_lba;
 }
 
 /// AlternateLBA field: the backup header LBA. No backup consistency check is
 /// performed. Complexity: O(1).
-pub fn gpt_backup_lba(t: &GptTable) -> Int {
+pub fn gpt_backup_lba(t: &GptTable) -> Int
+  ensures: result == t.backup_lba;
+{
   return t.backup_lba;
 }
 
 /// FirstUsableLBA field. Complexity: O(1).
-pub fn gpt_first_usable_lba(t: &GptTable) -> Int {
+pub fn gpt_first_usable_lba(t: &GptTable) -> Int
+  ensures: result == t.first_usable_lba;
+{
   return t.first_usable_lba;
 }
 
 /// LastUsableLBA field. Complexity: O(1).
-pub fn gpt_last_usable_lba(t: &GptTable) -> Int {
+pub fn gpt_last_usable_lba(t: &GptTable) -> Int
+  ensures: result == t.last_usable_lba;
+{
   return t.last_usable_lba;
 }
 
 /// Disk GUID as the 32 lowercase hex characters of the 16 raw bytes.
 /// Complexity: O(1).
-pub fn gpt_disk_guid(t: &GptTable) -> Str {
+pub fn gpt_disk_guid(t: &GptTable) -> Str
+  ensures: result.len() == t.disk_guid.len();
+{
   let g: Str = t.disk_guid;
   return g;
 }
 
 /// PartitionEntryLBA field. Complexity: O(1).
-pub fn gpt_entries_lba(t: &GptTable) -> Int {
+pub fn gpt_entries_lba(t: &GptTable) -> Int
+  ensures: result == t.entries_lba;
+{
   return t.entries_lba;
 }
 
 /// SizeOfPartitionEntry field in bytes (>= 128, a multiple of 8 after a
 /// successful parse). Complexity: O(1).
-pub fn gpt_entry_size(t: &GptTable) -> Int {
+pub fn gpt_entry_size(t: &GptTable) -> Int
+  ensures: result == t.entry_size;
+{
   return t.entry_size;
 }
 
 /// Stored entry-array CRC-32, raw. Complexity: O(1).
-pub fn gpt_entries_crc(t: &GptTable) -> Int {
+pub fn gpt_entries_crc(t: &GptTable) -> Int
+  ensures: result == t.entries_crc;
+{
   return t.entries_crc;
 }
 
@@ -669,7 +714,10 @@ pub fn gpt_entries_crc(t: &GptTable) -> Int {
 /// parallel entry vector lengths, so a hand-built table with drifted vectors
 /// reports the indexing maximum. A parsed table reports the header count.
 /// Complexity: O(1).
-pub fn gpt_entry_count(t: &GptTable) -> Int {
+pub fn gpt_entry_count(t: &GptTable) -> Int
+  ensures: result <= t.entry_count;
+  ensures: result <= t.type_guids.len() && result <= t.unique_guids.len() && result <= t.first_lbas.len() && result <= t.last_lbas.len() && result <= t.attributes.len() && result <= t.names.len();
+{
   var n = t.entry_count;
   if t.type_guids.len() < n { n = t.type_guids.len(); }
   if t.unique_guids.len() < n { n = t.unique_guids.len(); }
@@ -683,7 +731,11 @@ pub fn gpt_entry_count(t: &GptTable) -> Int {
 /// Type GUID of entry `i` as 32 lowercase hex characters; "" when `i` is
 /// negative or out of range. The all-zero GUID marks an unused slot.
 /// Complexity: O(1).
-pub fn gpt_type_guid(t: &GptTable, i: Int) -> Str {
+pub fn gpt_type_guid(t: &GptTable, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= t.type_guids.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < t.type_guids.len();
+{
   if i < 0 { return ""; }
   if i >= t.type_guids.len() { return ""; }
   let g: Str = t.type_guids[i];
@@ -692,7 +744,11 @@ pub fn gpt_type_guid(t: &GptTable, i: Int) -> Str {
 
 /// Unique GUID of entry `i` as 32 lowercase hex characters; "" when `i` is
 /// negative or out of range. Complexity: O(1).
-pub fn gpt_unique_guid(t: &GptTable, i: Int) -> Str {
+pub fn gpt_unique_guid(t: &GptTable, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= t.unique_guids.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < t.unique_guids.len();
+{
   if i < 0 { return ""; }
   if i >= t.unique_guids.len() { return ""; }
   let g: Str = t.unique_guids[i];
@@ -701,7 +757,11 @@ pub fn gpt_unique_guid(t: &GptTable, i: Int) -> Str {
 
 /// FirstLBA of entry `i`; -1 when `i` is negative or out of range.
 /// Complexity: O(1).
-pub fn gpt_entry_first_lba(t: &GptTable, i: Int) -> Int {
+pub fn gpt_entry_first_lba(t: &GptTable, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= t.first_lbas.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < t.first_lbas.len();
+{
   if i < 0 { return -1; }
   if i >= t.first_lbas.len() { return -1; }
   let v: Int = t.first_lbas[i];
@@ -710,7 +770,11 @@ pub fn gpt_entry_first_lba(t: &GptTable, i: Int) -> Int {
 
 /// LastLBA of entry `i`; -1 when `i` is negative or out of range.
 /// Complexity: O(1).
-pub fn gpt_entry_last_lba(t: &GptTable, i: Int) -> Int {
+pub fn gpt_entry_last_lba(t: &GptTable, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= t.last_lbas.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < t.last_lbas.len();
+{
   if i < 0 { return -1; }
   if i >= t.last_lbas.len() { return -1; }
   let v: Int = t.last_lbas[i];
@@ -720,7 +784,11 @@ pub fn gpt_entry_last_lba(t: &GptTable, i: Int) -> Int {
 /// Attributes of entry `i` (raw 64-bit flags); 0 when `i` is negative or out
 /// of range. Bit 63 set makes the value negative (documented limitation).
 /// Complexity: O(1).
-pub fn gpt_entry_attributes(t: &GptTable, i: Int) -> Int {
+pub fn gpt_entry_attributes(t: &GptTable, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= t.attributes.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < t.attributes.len();
+{
   if i < 0 { return 0; }
   if i >= t.attributes.len() { return 0; }
   let v: Int = t.attributes[i];
@@ -730,7 +798,11 @@ pub fn gpt_entry_attributes(t: &GptTable, i: Int) -> Int {
 /// Name of entry `i` decoded to printable ASCII (UTF-16LE, stop at the first
 /// 0x0000, non-ASCII code units replaced with '?'); "" when `i` is negative
 /// or out of range. Complexity: O(1).
-pub fn gpt_entry_name(t: &GptTable, i: Int) -> Str {
+pub fn gpt_entry_name(t: &GptTable, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= t.names.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < t.names.len();
+{
   if i < 0 { return ""; }
   if i >= t.names.len() { return ""; }
   let s: Str = t.names[i];
@@ -741,7 +813,11 @@ pub fn gpt_entry_name(t: &GptTable, i: Int) -> Str {
 /// characters and not the all-zero GUID. False when `i` is negative, out of
 /// range, or the stored type GUID is malformed (not 32 characters).
 /// Complexity: O(1).
-pub fn gpt_entry_in_use(t: &GptTable, i: Int) -> Bool {
+pub fn gpt_entry_in_use(t: &GptTable, i: Int) -> Bool
+  ensures: i < 0 => !result;
+  ensures: i >= t.type_guids.len() => !result;
+  ensures: result => i >= 0 && i < t.type_guids.len();
+{
   if i < 0 { return false; }
   if i >= t.type_guids.len() { return false; }
   let g: Str = t.type_guids[i];
@@ -792,7 +868,11 @@ pub fn gpt_entry_in_use(t: &GptTable, i: Int) -> Bool {
 /// small") when total_sectors cannot hold the primary array plus the backup
 /// region.
 /// Complexity: O(entry_count * entry_size).
-pub fn gpt_build(t: &GptTable, total_sectors: Int) -> Result[Vec[UInt8], Str] {
+pub fn gpt_build(t: &GptTable, total_sectors: Int) -> Result[Vec[UInt8], Str]
+  ensures: t.revision < 0 || t.revision > 4294967295 => result is Err;
+  ensures: t.entry_size < 128 || t.entry_size > 4294967295 || t.entry_size % 8 != 0 || t.entry_count < 1 || t.entry_count > 4096 || total_sectors <= 0 => result is Err;
+  ensures: result is Ok => result.value.len() >= 1024 && t.entry_count >= 1 && t.entry_count <= 4096;
+{
   if t.revision < 0 { return _err_bytes("gpt: bad revision"); }
   if t.revision > _GPT_U32_MAX { return _err_bytes("gpt: bad revision"); }
   if t.entry_size < _GPT_ENTRY_MIN { return _err_bytes("gpt: bad entry size"); }

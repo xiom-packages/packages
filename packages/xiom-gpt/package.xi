@@ -9,7 +9,7 @@
 
 package xiom_gpt {
   name: "xiom.gpt";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "GUID Partition Table codec: parse and build a canonical primary GPT";
   categories: ["systems"];
   keywords: ["gpt", "partition", "disk", "format"];
