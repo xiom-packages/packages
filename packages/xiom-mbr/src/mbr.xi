@@ -267,7 +267,10 @@ fn _vecs_min(m: &Mbr) -> Int {
 /// Returns: Ok(Mbr) with four elements in every entry vector.
 /// Error case: see the catalog above and SPEC.md.
 /// Complexity: O(512).
-pub fn mbr_parse(data: &Vec[UInt8]) -> Result[Mbr, Str] {
+pub fn mbr_parse(data: &Vec[UInt8]) -> Result[Mbr, Str]
+  ensures: data.len() < 512 => result is Err;
+  ensures: result is Ok => data.len() >= 512;
+{
   if data.len() < _MBR_SECTOR_BYTES { return _err_table("mbr: truncated sector"); }
   if !_sig_ok(data) { return _err_table("mbr: bad signature"); }
   var boot_code = Vec[UInt8].new();
@@ -340,7 +343,11 @@ pub fn mbr_parse(data: &Vec[UInt8]) -> Result[Mbr, Str] {
 /// Error case: the `mbr_parse` errors plus "mbr: bad disk size" and
 /// "mbr: entry beyond disk".
 /// Complexity: O(512).
-pub fn mbr_parse_sized(data: &Vec[UInt8], total_sectors: Int) -> Result[Mbr, Str] {
+pub fn mbr_parse_sized(data: &Vec[UInt8], total_sectors: Int) -> Result[Mbr, Str]
+  ensures: data.len() < 512 => result is Err;
+  ensures: total_sectors <= 0 => result is Err;
+  ensures: mbr_parse(data) is Err => result is Err;
+{
   let pr = mbr_parse(data);
   if !pr.is_ok {
     let msg: Str = pr.error;
@@ -365,7 +372,11 @@ pub fn mbr_parse_sized(data: &Vec[UInt8], total_sectors: Int) -> Result[Mbr, Str
 /// `data` is shorter than 512 bytes. The canonical MBR byte sequence
 /// 0x55 0xAA therefore reads back as 0xAA55 = 43605; `mbr_signature_ok` is
 /// the normative byte check. Complexity: O(1).
-pub fn mbr_signature(data: &Vec[UInt8]) -> Int {
+pub fn mbr_signature(data: &Vec[UInt8]) -> Int
+  ensures: data.len() < 512 => result == -1;
+  ensures: data.len() >= 512 => result >= 0;
+  ensures: result <= 65535;
+{
   if data.len() < _MBR_SECTOR_BYTES { return -1; }
   return _le16(data, _MBR_SIG_OFF);
 }
@@ -374,14 +385,19 @@ pub fn mbr_signature(data: &Vec[UInt8]) -> Int {
 /// exactly 0x55 at 0x1FE and 0xAA at 0x1FF (the documented MBR signature).
 /// This is the byte-order-exact check; compare with `mbr_signature` only if
 /// you need the raw numeric value. Complexity: O(1).
-pub fn mbr_signature_ok(data: &Vec[UInt8]) -> Bool {
+pub fn mbr_signature_ok(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 512 => !result;
+  ensures: result => data.len() >= 512;
+{
   return mbr_signature(data) == _MBR_SIG_VALUE;
 }
 
 /// The 440 raw boot code bytes (0x000..0x1B7 inclusive) of `m`. The span is
 /// preserved verbatim by `mbr_parse` and written back verbatim by
 /// `mbr_build`. Complexity: O(440).
-pub fn mbr_boot_code_span(m: &Mbr) -> Vec[UInt8] {
+pub fn mbr_boot_code_span(m: &Mbr) -> Vec[UInt8]
+  ensures: result.len() == m.boot_code.len();
+{
   var out = Vec[UInt8].new();
   let src: Vec[UInt8] = m.boot_code;
   var i = 0;
@@ -396,7 +412,9 @@ pub fn mbr_boot_code_span(m: &Mbr) -> Vec[UInt8] {
 /// signature followed by two reserved bytes. The codec preserves the bytes
 /// but never interprets them (the disk signature is not exposed as a
 /// number). Complexity: O(6).
-pub fn mbr_disk_area_span(m: &Mbr) -> Vec[UInt8] {
+pub fn mbr_disk_area_span(m: &Mbr) -> Vec[UInt8]
+  ensures: result.len() == m.disk_area.len();
+{
   var out = Vec[UInt8].new();
   let src: Vec[UInt8] = m.disk_area;
   var i = 0;
@@ -410,7 +428,10 @@ pub fn mbr_disk_area_span(m: &Mbr) -> Vec[UInt8] {
 /// Safe entry count: the minimum length of the six parallel entry vectors,
 /// so a hand-built table with drifted vectors reports the indexing maximum.
 /// A parsed table reports 4. Complexity: O(1).
-pub fn mbr_entry_count(m: &Mbr) -> Int {
+pub fn mbr_entry_count(m: &Mbr) -> Int
+  ensures: result >= 0;
+  ensures: result <= m.boot_flags.len();
+{
   return _vecs_min(m);
 }
 
@@ -424,7 +445,11 @@ pub fn mbr_entry_count(m: &Mbr) -> Int {
 /// 0xEF "EFI system". Any other value in 0..255 is "unknown" (unknown types
 /// pass through untouched: `mbr_entry_type` still reports the raw byte).
 /// Values outside 0..255 return "". Complexity: O(1).
-pub fn mbr_type_name(code: Int) -> Str {
+pub fn mbr_type_name(code: Int) -> Str
+  ensures: code < 0 => result.len() == 0;
+  ensures: code > 255 => result.len() == 0;
+  ensures: code >= 0 && code <= 255 => result.len() > 0;
+{
   if code == 0 { return "unused"; }
   if code == 7 { return "NTFS/exFAT"; }
   if code == 11 { return "FAT32 (CHS)"; }
@@ -445,7 +470,11 @@ pub fn mbr_type_name(code: Int) -> Str {
 
 /// Raw boot flag byte of entry `i` (0x00 inactive, 0x80 active); -1 when `i`
 /// is negative or out of range. Complexity: O(1).
-pub fn mbr_entry_boot_flag(m: &Mbr, i: Int) -> Int {
+pub fn mbr_entry_boot_flag(m: &Mbr, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= m.boot_flags.len() => result == -1;
+  ensures: result >= -1;
+{
   if i < 0 { return -1; }
   if i >= m.boot_flags.len() { return -1; }
   let v: Int = m.boot_flags[i];
@@ -454,14 +483,21 @@ pub fn mbr_entry_boot_flag(m: &Mbr, i: Int) -> Int {
 
 /// True when entry `i` is marked bootable (boot flag 0x80); false when `i`
 /// is negative, out of range or the flag is 0x00. Complexity: O(1).
-pub fn mbr_entry_bootable(m: &Mbr, i: Int) -> Bool {
+pub fn mbr_entry_bootable(m: &Mbr, i: Int) -> Bool
+  ensures: i < 0 => !result;
+  ensures: result => mbr_entry_boot_flag(m, i) == 128;
+{
   let f: Int = mbr_entry_boot_flag(m, i);
   return f == _MBR_FLAG_ACTIVE;
 }
 
 /// Raw partition type byte of entry `i`; -1 when `i` is negative or out of
 /// range. Type 0x00 marks an unused slot. Complexity: O(1).
-pub fn mbr_entry_type(m: &Mbr, i: Int) -> Int {
+pub fn mbr_entry_type(m: &Mbr, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= m.types.len() => result == -1;
+  ensures: result >= -1;
+{
   if i < 0 { return -1; }
   if i >= m.types.len() { return -1; }
   let v: Int = m.types[i];
@@ -470,7 +506,10 @@ pub fn mbr_entry_type(m: &Mbr, i: Int) -> Int {
 
 /// Documented name of entry `i`'s type byte (see `mbr_type_name`); "" when
 /// `i` is negative or out of range. Complexity: O(1).
-pub fn mbr_entry_type_name(m: &Mbr, i: Int) -> Str {
+pub fn mbr_entry_type_name(m: &Mbr, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= m.types.len() => result.len() == 0;
+{
   if i < 0 { return ""; }
   if i >= m.types.len() { return ""; }
   let ty: Int = m.types[i];
@@ -479,7 +518,11 @@ pub fn mbr_entry_type_name(m: &Mbr, i: Int) -> Str {
 
 /// Packed raw start CHS triple of entry `i` (head * 65536 + byte2 * 256 +
 /// byte3); -1 when `i` is negative or out of range. Complexity: O(1).
-pub fn mbr_entry_start_chs(m: &Mbr, i: Int) -> Int {
+pub fn mbr_entry_start_chs(m: &Mbr, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= m.start_chs.len() => result == -1;
+  ensures: result >= -1;
+{
   if i < 0 { return -1; }
   if i >= m.start_chs.len() { return -1; }
   let v: Int = m.start_chs[i];
@@ -489,7 +532,10 @@ pub fn mbr_entry_start_chs(m: &Mbr, i: Int) -> Int {
 /// Decoded start head (u8, 0..255) of entry `i`; -1 when `i` is negative,
 /// out of range or the stored triple is negative (hand-built drift).
 /// Complexity: O(1).
-pub fn mbr_entry_start_chs_head(m: &Mbr, i: Int) -> Int {
+pub fn mbr_entry_start_chs_head(m: &Mbr, i: Int) -> Int
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 0;
+{
   let p: Int = mbr_entry_start_chs(m, i);
   if p < 0 { return -1; }
   return _chs_head(p);
@@ -498,7 +544,11 @@ pub fn mbr_entry_start_chs_head(m: &Mbr, i: Int) -> Int {
 /// Decoded start sector (low 6 bits, 0..63) of entry `i`; -1 when `i` is
 /// negative, out of range or the stored triple is negative. Complexity:
 /// O(1).
-pub fn mbr_entry_start_chs_sector(m: &Mbr, i: Int) -> Int {
+pub fn mbr_entry_start_chs_sector(m: &Mbr, i: Int) -> Int
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 0;
+  ensures: result <= 63;
+{
   let p: Int = mbr_entry_start_chs(m, i);
   if p < 0 { return -1; }
   return _chs_sector(p);
@@ -507,7 +557,11 @@ pub fn mbr_entry_start_chs_sector(m: &Mbr, i: Int) -> Int {
 /// Decoded start cylinder (10 bits, 0..1023) of entry `i`; -1 when `i` is
 /// negative, out of range or the stored triple is negative. Complexity:
 /// O(1).
-pub fn mbr_entry_start_chs_cylinder(m: &Mbr, i: Int) -> Int {
+pub fn mbr_entry_start_chs_cylinder(m: &Mbr, i: Int) -> Int
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 0;
+  ensures: result <= 1023;
+{
   let p: Int = mbr_entry_start_chs(m, i);
   if p < 0 { return -1; }
   return _chs_cylinder(p);
@@ -515,7 +569,11 @@ pub fn mbr_entry_start_chs_cylinder(m: &Mbr, i: Int) -> Int {
 
 /// Packed raw end CHS triple of entry `i`; -1 when `i` is negative or out
 /// of range. Complexity: O(1).
-pub fn mbr_entry_end_chs(m: &Mbr, i: Int) -> Int {
+pub fn mbr_entry_end_chs(m: &Mbr, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= m.end_chs.len() => result == -1;
+  ensures: result >= -1;
+{
   if i < 0 { return -1; }
   if i >= m.end_chs.len() { return -1; }
   let v: Int = m.end_chs[i];
@@ -524,7 +582,10 @@ pub fn mbr_entry_end_chs(m: &Mbr, i: Int) -> Int {
 
 /// Decoded end head (u8, 0..255) of entry `i`; -1 when `i` is negative, out
 /// of range or the stored triple is negative. Complexity: O(1).
-pub fn mbr_entry_end_chs_head(m: &Mbr, i: Int) -> Int {
+pub fn mbr_entry_end_chs_head(m: &Mbr, i: Int) -> Int
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 0;
+{
   let p: Int = mbr_entry_end_chs(m, i);
   if p < 0 { return -1; }
   return _chs_head(p);
@@ -533,7 +594,11 @@ pub fn mbr_entry_end_chs_head(m: &Mbr, i: Int) -> Int {
 /// Decoded end sector (low 6 bits, 0..63) of entry `i`; -1 when `i` is
 /// negative, out of range or the stored triple is negative. Complexity:
 /// O(1).
-pub fn mbr_entry_end_chs_sector(m: &Mbr, i: Int) -> Int {
+pub fn mbr_entry_end_chs_sector(m: &Mbr, i: Int) -> Int
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 0;
+  ensures: result <= 63;
+{
   let p: Int = mbr_entry_end_chs(m, i);
   if p < 0 { return -1; }
   return _chs_sector(p);
@@ -542,7 +607,11 @@ pub fn mbr_entry_end_chs_sector(m: &Mbr, i: Int) -> Int {
 /// Decoded end cylinder (10 bits, 0..1023) of entry `i`; -1 when `i` is
 /// negative, out of range or the stored triple is negative. Complexity:
 /// O(1).
-pub fn mbr_entry_end_chs_cylinder(m: &Mbr, i: Int) -> Int {
+pub fn mbr_entry_end_chs_cylinder(m: &Mbr, i: Int) -> Int
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 0;
+  ensures: result <= 1023;
+{
   let p: Int = mbr_entry_end_chs(m, i);
   if p < 0 { return -1; }
   return _chs_cylinder(p);
@@ -550,7 +619,11 @@ pub fn mbr_entry_end_chs_cylinder(m: &Mbr, i: Int) -> Int {
 
 /// First LBA of entry `i` (LE32, 0..2^32-1); -1 when `i` is negative or out
 /// of range. Complexity: O(1).
-pub fn mbr_entry_lba_start(m: &Mbr, i: Int) -> Int {
+pub fn mbr_entry_lba_start(m: &Mbr, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= m.lba_starts.len() => result == -1;
+  ensures: result >= -1;
+{
   if i < 0 { return -1; }
   if i >= m.lba_starts.len() { return -1; }
   let v: Int = m.lba_starts[i];
@@ -559,7 +632,11 @@ pub fn mbr_entry_lba_start(m: &Mbr, i: Int) -> Int {
 
 /// Sector count of entry `i` (LE32, 0..2^32-1); -1 when `i` is negative or
 /// out of range. Complexity: O(1).
-pub fn mbr_entry_lba_count(m: &Mbr, i: Int) -> Int {
+pub fn mbr_entry_lba_count(m: &Mbr, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= m.lba_counts.len() => result == -1;
+  ensures: result >= -1;
+{
   if i < 0 { return -1; }
   if i >= m.lba_counts.len() { return -1; }
   let v: Int = m.lba_counts[i];
@@ -570,7 +647,11 @@ pub fn mbr_entry_lba_count(m: &Mbr, i: Int) -> Int {
 /// when `i` is negative or out of range. The predicate deliberately ignores
 /// the LBA fields: the type 0 policy already pins them to zero for a parsed
 /// table. Complexity: O(1).
-pub fn mbr_entry_in_use(m: &Mbr, i: Int) -> Bool {
+pub fn mbr_entry_in_use(m: &Mbr, i: Int) -> Bool
+  ensures: i < 0 => !result;
+  ensures: mbr_entry_type(m, i) <= 0 => !result;
+  ensures: result => mbr_entry_type(m, i) > 0;
+{
   let ty: Int = mbr_entry_type(m, i);
   if ty <= 0 { return false; }
   return true;
@@ -586,7 +667,12 @@ pub fn mbr_entry_in_use(m: &Mbr, i: Int) -> Bool {
 /// when `a == b`, when either index is negative or out of range, when
 /// either entry is unused and when either count is zero (a zero-length
 /// extent covers nothing). Complexity: O(1).
-pub fn mbr_entries_overlap(m: &Mbr, a: Int, b: Int) -> Bool {
+pub fn mbr_entries_overlap(m: &Mbr, a: Int, b: Int) -> Bool
+  ensures: a < 0 => !result;
+  ensures: a == b => !result;
+  ensures: mbr_entry_lba_count(m, a) <= 0 => !result;
+  ensures: !mbr_entry_in_use(m, a) => !result;
+{
   if a < 0 { return false; }
   if b < 0 { return false; }
   if a == b { return false; }
@@ -610,7 +696,10 @@ pub fn mbr_entries_overlap(m: &Mbr, a: Int, b: Int) -> Bool {
 /// adjacency (end == next start) is not an overlap. Both sums stay below
 /// 2^33, so no overflow is possible on 64-bit Int. Complexity: O(1) (at
 /// most six pairs).
-pub fn mbr_has_overlap(m: &Mbr) -> Bool {
+pub fn mbr_has_overlap(m: &Mbr) -> Bool
+  ensures: mbr_entry_count(m) <= 1 => !result;
+  ensures: result => mbr_entry_count(m) >= 2;
+{
   var i = 0;
   let n: Int = mbr_entry_count(m);
   while i < n {
@@ -650,7 +739,12 @@ pub fn mbr_has_overlap(m: &Mbr) -> Bool {
 /// Returns: Ok(bytes) of length 512.
 /// Error case: see the catalog above and SPEC.md.
 /// Complexity: O(512).
-pub fn mbr_build(m: &Mbr) -> Result[Vec[UInt8], Str] {
+pub fn mbr_build(m: &Mbr) -> Result[Vec[UInt8], Str]
+  ensures: m.boot_code.len() != 440 => result is Err;
+  ensures: m.disk_area.len() != 6 => result is Err;
+  ensures: m.boot_flags.len() > 4 => result is Err;
+  ensures: result is Ok => result.value.len() == 512;
+{
   let bc: Vec[UInt8] = m.boot_code;
   if bc.len() != _MBR_BOOT_BYTES { return _err_bytes("mbr: bad boot code"); }
   let da: Vec[UInt8] = m.disk_area;

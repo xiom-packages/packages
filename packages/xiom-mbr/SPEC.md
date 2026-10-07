@@ -309,7 +309,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.mbr
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=18 failed=0 program_exit=0 exit=0)`.
 
 ## 12. Known limitations
@@ -352,7 +352,73 @@ Last verified: compiler 0.61.3,
   and bind every `&` argument to a local.
 - All `&mut Vec[UInt8]` calls pass `&mut` at the call site and receive the
   existing reference in nested helpers.
-- **Malformed bracket audit:** v0.61.3 silently accepts `Vec<UInt8>` /
-  `Result<...>` in parameter and local type positions. The first test run
+- **Malformed bracket audit:** v0.61.3 silently accepts angle-bracket
+  generic syntax in parameter and local type positions. The first test run
   caught one such parameter (`push_entry`) because the angle-bracket grep
   was run before the compile; both files are grep-clean now.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checked contracts; `xiom-verify --check` (Z3 on v0.64.0) result:
+**3 proven / 0 violated / 53 unknown / 19 errors**. The 19 errors are
+emitter artifacts (`unknown constant _sig_ok` / `_err_table` / `_le16` /
+`_vecs_min` / `_vecs_equal` / `_chs_*` in the generated SMT), not violations
+of the code under test (`0 violated`). Both port runs with the clauses
+active: `port: PASS (passed=18 failed=0 program_exit=0 exit=0)`.
+
+68 clauses across the 26 contract-bearing entry points. Legend: **scalar**
+-- pure scalar formula over parameters/`result` (Z3-verification candidate;
+also enforced at runtime); **runtime** -- needs `Vec` lengths, `Result`
+payloads or helper calls, so it is enforced by the v0.64.0 runtime evaluator
+only.
+
+| Entry point | Contract | Check |
+|---|---|---|
+| `mbr_parse` | `ensures: data.len() < 512 => result is Err`; `ensures: result is Ok => data.len() >= 512` | runtime |
+| `mbr_parse_sized` | `ensures: data.len() < 512 => result is Err`; `ensures: total_sectors <= 0 => result is Err`; `ensures: mbr_parse(data) is Err => result is Err` | runtime |
+| `mbr_signature` | `ensures: data.len() < 512 => result == -1`; `ensures: data.len() >= 512 => result >= 0`; `ensures: result <= 65535` | scalar |
+| `mbr_signature_ok` | `ensures: data.len() < 512 => !result`; `ensures: result => data.len() >= 512` | scalar |
+| `mbr_boot_code_span` | `ensures: result.len() == m.boot_code.len()` | runtime |
+| `mbr_disk_area_span` | `ensures: result.len() == m.disk_area.len()` | runtime |
+| `mbr_entry_count` | `ensures: result >= 0`; `ensures: result <= m.boot_flags.len()` | scalar + runtime |
+| `mbr_type_name` | `ensures: code < 0 => result.len() == 0`; `ensures: code > 255 => result.len() == 0`; `ensures: code >= 0 && code <= 255 => result.len() > 0` | runtime |
+| `mbr_entry_boot_flag` | `ensures: i < 0 => result == -1`; `ensures: i >= m.boot_flags.len() => result == -1`; `ensures: result >= -1` | runtime |
+| `mbr_entry_bootable` | `ensures: i < 0 => !result`; `ensures: result => mbr_entry_boot_flag(m, i) == 128` | runtime |
+| `mbr_entry_type` | `ensures: i < 0 => result == -1`; `ensures: i >= m.types.len() => result == -1`; `ensures: result >= -1` | runtime |
+| `mbr_entry_type_name` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= m.types.len() => result.len() == 0` | runtime |
+| `mbr_entry_start_chs` | `ensures: i < 0 => result == -1`; `ensures: i >= m.start_chs.len() => result == -1`; `ensures: result >= -1` | runtime |
+| `mbr_entry_start_chs_head` | `ensures: result >= -1`; `ensures: result != -1 => result >= 0` | scalar |
+| `mbr_entry_start_chs_sector` | `ensures: result >= -1`; `ensures: result != -1 => result >= 0`; `ensures: result <= 63` | scalar |
+| `mbr_entry_start_chs_cylinder` | `ensures: result >= -1`; `ensures: result != -1 => result >= 0`; `ensures: result <= 1023` | scalar |
+| `mbr_entry_end_chs` | `ensures: i < 0 => result == -1`; `ensures: i >= m.end_chs.len() => result == -1`; `ensures: result >= -1` | runtime |
+| `mbr_entry_end_chs_head` | `ensures: result >= -1`; `ensures: result != -1 => result >= 0` | scalar |
+| `mbr_entry_end_chs_sector` | `ensures: result >= -1`; `ensures: result != -1 => result >= 0`; `ensures: result <= 63` | scalar |
+| `mbr_entry_end_chs_cylinder` | `ensures: result >= -1`; `ensures: result != -1 => result >= 0`; `ensures: result <= 1023` | scalar |
+| `mbr_entry_lba_start` | `ensures: i < 0 => result == -1`; `ensures: i >= m.lba_starts.len() => result == -1`; `ensures: result >= -1` | runtime |
+| `mbr_entry_lba_count` | `ensures: i < 0 => result == -1`; `ensures: i >= m.lba_counts.len() => result == -1`; `ensures: result >= -1` | runtime |
+| `mbr_entry_in_use` | `ensures: i < 0 => !result`; `ensures: mbr_entry_type(m, i) <= 0 => !result`; `ensures: result => mbr_entry_type(m, i) > 0` | runtime |
+| `mbr_entries_overlap` | `ensures: a < 0 => !result`; `ensures: a == b => !result`; `ensures: mbr_entry_lba_count(m, a) <= 0 => !result`; `ensures: !mbr_entry_in_use(m, a) => !result` | scalar + runtime |
+| `mbr_has_overlap` | `ensures: mbr_entry_count(m) <= 1 => !result`; `ensures: result => mbr_entry_count(m) >= 2` | runtime |
+| `mbr_build` | `ensures: m.boot_code.len() != 440 => result is Err`; `ensures: m.disk_area.len() != 6 => result is Err`; `ensures: m.boot_flags.len() > 4 => result is Err`; `ensures: result is Ok => result.value.len() == 512` | runtime |
+
+All 68 clauses are enforced by the v0.64.0 runtime evaluator: the 18-check
+conformance suite exercises every entry point on both the happy path and the
+rejection paths with the clauses active (two consecutive `scripts/port.ps1`
+runs green, 18/18), so no clause was dropped. In the Z3 pass the emitter
+skipped most axioms (`operator Lt/Ge/Le/Gt on non-numeric operands`,
+`equality with unresolved operand sort`) and hit unresolved private helpers
+(`_sig_ok`, `_err_table`, `_le16`, `_vecs_min`, `_vecs_equal`, `_chs_*`);
+only 3 SMT queries were reachable and all 3 were proven, while the 19 SMT
+errors are emitter artifacts, not violations of the code under test
+(`0 violated`).
+
+Unasserted/documented: the exact `"mbr: ..."` error strings and their
+precedence (section 9); the 440/6/512 layout facts beyond the `mbr_build`
+guards and the build payload length (a hand-built table's span lengths are
+whatever the table holds, section 8); payload contents of `mbr_parse` /
+`mbr_build` (struct-result payloads are the forbidden runtime-evaluator
+shape); the CHS decode formulas (section 3.2; the decoded contracts pin the
+numeric ranges only); the type name table contents (section 5; no `Str`
+equality is used); and the overlap extent arithmetic beyond the guard
+clauses (section 4.4). They stay pinned by the 18-check test plan and the
+sections above.
