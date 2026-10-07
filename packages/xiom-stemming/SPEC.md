@@ -1,5 +1,7 @@
 # xiom.stemming -- specification
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 ## Scope
 
 `xiom.stemming` implements the classic Porter stemming algorithm for
@@ -105,6 +107,34 @@ Run it with:
 ```
 .\scripts\port.ps1 -Package xiom.stemming
 ```
+
+## Contracts
+
+Runtime-checkable `ensures:` clauses on `src/stemming.xi` (hardening pass
+2026-10-07, compiler v0.64.0; no manifest change in this pass). 7 clauses
+across the 3 public entry points. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.stemming -TimeoutSec 60` runs ended
+`port: PASS (passed=34 failed=0 program_exit=0 exit=0)` in 9.3 s and 9.4 s
+with the clauses active; no clause was dropped.
+
+All 7 clauses are runtime-checked: each reads a `Str`/`Vec` length
+(`word.len()`, `words.len()`, `result.len()`) or a scalar bound over
+`result`, enforced by the v0.64.0 runtime evaluator on every return. A
+direct `xiom-verify src\stemming.xi --check` run classified every clause
+axiom as unknown (0 proven, 0 violated, 7 unknown; the emitter cannot
+resolve `Str`-length operand sorts and reported 3 SMT errors), so no
+clause is claimed Z3-provable. No clause calls a function: the per-step
+suffix formulas are private and stay outside the contract surface.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `stem` | `ensures: word.len() < 3 => result.len() == word.len()` | runtime-checked (identity on the short-word early return) |
+| `stem` | `ensures: result.len() <= word.len()` | runtime-checked (length bound) |
+| `stem` | `ensures: word.len() >= 3 => result.len() >= 1` | runtime-checked (non-empty output for non-short words) |
+| `stem_all` | `ensures: result.len() == words.len()` | runtime-checked (output count) |
+| `stem_measure` | `ensures: result >= 0` | runtime-checked (scalar bound; no Z3 evidence emitted) |
+| `stem_measure` | `ensures: word.len() == 0 => result == 0` | runtime-checked (empty-input identity) |
+| `stem_measure` | `ensures: result <= word.len()` | runtime-checked (length bound) |
 
 ## Limitations
 

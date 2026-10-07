@@ -503,7 +503,11 @@ fn _step5b(buf: &Vec[UInt8], j: Int) -> Vec[UInt8] {
 /// Returns: the stem, a prefix of the input; stem("") is "".
 /// Error case: none.
 /// Complexity: O(|word|) per step, O(|word|) in total.
-pub fn stem(word: Str) -> Str {
+pub fn stem(word: Str) -> Str
+  ensures: word.len() < 3 => result.len() == word.len();
+  ensures: result.len() <= word.len();
+  ensures: word.len() >= 3 => result.len() >= 1;
+{
   if word.len() < 3 {
     return word;
   }
@@ -527,7 +531,9 @@ pub fn stem(word: Str) -> Str {
 /// Returns: a fresh Vec[Str] with one stem per input word.
 /// Error case: none.
 /// Complexity: O(total input bytes).
-pub fn stem_all(words: &Vec[Str]) -> Vec[Str] {
+pub fn stem_all(words: &Vec[Str]) -> Vec[Str]
+  ensures: result.len() == words.len();
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < words.len() {
@@ -545,7 +551,11 @@ pub fn stem_all(words: &Vec[Str]) -> Vec[Str] {
 /// stem_measure("trouble") == 1.
 /// Error case: none.
 /// Complexity: O(|word|).
-pub fn stem_measure(word: Str) -> Int {
+pub fn stem_measure(word: Str) -> Int
+  ensures: result >= 0;
+  ensures: word.len() == 0 => result == 0;
+  ensures: result <= word.len();
+{
   if word.len() == 0 {
     return 0;
   }
