@@ -60,7 +60,11 @@ const _MAX_INT_LAST_DIGIT: Int = 7;
 /// 9223372036854775807.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn page_offset(page: Int, per_page: Int) -> Int {
+pub fn page_offset(page: Int, per_page: Int) -> Int
+  ensures: page < 1 || per_page < 1 => result == 0;
+  ensures: result >= 0;
+  ensures: result <= 9223372036854775807;
+{
   if page < 1 {
     return 0;
   }
@@ -82,7 +86,11 @@ pub fn page_offset(page: Int, per_page: Int) -> Int {
 /// Examples: (100, 10) -> 10; (101, 10) -> 11; (0, 10) -> 0.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn page_count(total: Int, per_page: Int) -> Int {
+pub fn page_count(total: Int, per_page: Int) -> Int
+  ensures: total <= 0 || per_page < 1 => result == 0;
+  ensures: result >= 0;
+  ensures: per_page >= 1 && total > 0 => result <= total;
+{
   if total <= 0 {
     return 0;
   }
@@ -141,7 +149,11 @@ pub fn page_bounds(page: Int, per_page: Int, total: Int) -> (Int, Int) {
 /// Examples: (1, 10, 100) -> true; (10, 10, 100) -> false.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn page_has_next(page: Int, per_page: Int, total: Int) -> Bool {
+pub fn page_has_next(page: Int, per_page: Int, total: Int) -> Bool
+  ensures: page < 1 => !result;
+  ensures: result => page >= 1;
+  ensures: result => page < page_count(total, per_page);
+{
   if page < 1 {
     return false;
   }
@@ -154,7 +166,9 @@ pub fn page_has_next(page: Int, per_page: Int, total: Int) -> Bool {
 /// Examples: (2) -> true; (1) -> false.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn page_has_prev(page: Int) -> Bool {
+pub fn page_has_prev(page: Int) -> Bool
+  ensures: result == (page > 1);
+{
   return page > 1;
 }
 
@@ -164,7 +178,11 @@ pub fn page_has_prev(page: Int) -> Bool {
 /// Examples: (100, 10) -> 10; (0, 10) -> 0.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn page_last(total: Int, per_page: Int) -> Int {
+pub fn page_last(total: Int, per_page: Int) -> Int
+  ensures: total <= 0 || per_page < 1 => result == 0;
+  ensures: result >= 0;
+  ensures: per_page >= 1 && total > 0 => result <= total;
+{
   return page_count(total, per_page);
 }
 
@@ -180,7 +198,11 @@ pub fn page_last(total: Int, per_page: Int) -> Int {
 /// (5, 0, 10) -> 1.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn page_clamp(page: Int, total: Int, per_page: Int) -> Int {
+pub fn page_clamp(page: Int, total: Int, per_page: Int) -> Int
+  ensures: result >= 1;
+  ensures: total <= 0 || per_page < 1 => result == 1;
+  ensures: page < 1 => result == 1;
+{
   let last = page_count(total, per_page);
   if last < 1 {
     return 1;
@@ -351,7 +373,11 @@ fn _cursor_err(m: Str) -> Result[(Int, Int), Str] {
 /// Examples: (0, 10) -> "MDoxMA"; (123, 50) -> "MTIzOjUw".
 /// Error case: none.
 /// Complexity: O(digits).
-pub fn cursor_encode(offset: Int, limit: Int) -> Str {
+pub fn cursor_encode(offset: Int, limit: Int) -> Str
+  ensures: result.len() >= 4;
+  ensures: result.len() <= 52;
+  ensures: result.len() % 4 != 1;
+{
   var off = offset;
   if off < 0 {
     off = 0;
@@ -378,7 +404,11 @@ pub fn cursor_encode(offset: Int, limit: Int) -> Str {
 /// above the 64-bit signed maximum ("cursor value out of range").
 /// Examples: "MDoxMA" -> Ok((0, 10)); "YWJj" -> Err; "" -> Err.
 /// Complexity: O(token.len()).
-pub fn cursor_decode(token: Str) -> Result[(Int, Int), Str] {
+pub fn cursor_decode(token: Str) -> Result[(Int, Int), Str]
+  ensures: token.len() == 0 => result is Err;
+  ensures: result is Ok => token.len() >= 4;
+  ensures: result is Ok => token.len() <= 52;
+{
   let n = token.len();
   if n == 0 {
     return _cursor_err("pagination: empty cursor");

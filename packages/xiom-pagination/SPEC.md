@@ -1,6 +1,6 @@
 # xiom.pagination -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.pagination` (`src/pagination.xi`). Pure XIOM, no FFI. Depends
 only on `xiom.std` (`xiom.string`, `xiom.string.builder`, `xiom.convert`).
 
@@ -180,3 +180,37 @@ Expected tail: 20 `[PASS]` lines, `xiom.pagination: all tests passed`, then
 Note: check 19 asserts the mathematically correct end-exclusive window size
 `end - start == per_page`; the task brief's "per_page - 1" wording matches an
 inclusive-end reading, which this package does not use.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses were added to `src/pagination.xi` in the
+batch #21 hardening pass (compiler v0.64.0; no version bump): 22 clauses
+across the 8 public entry points below, using only proven clause families
+(guard-pair, exact formula, bounds/range). `page_bounds` is deliberately
+excluded: it returns a bare `(Int, Int)`, and tuple-component reads are not a
+supported clause shape. No tuple payload is read by any clause:
+`cursor_decode` clauses check the result tag and parameter length only.
+
+Classification: **Z3-provable** marks clauses over pure scalar parameters
+(guards and value bounds, the shape `xiom-verify` can model); **runtime-checked**
+marks clauses over `Str` lengths, result tags or cross-calls, which the
+portable checker evaluates at run time.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `page_offset` | `ensures: page < 1 \|\| per_page < 1 => result == 0`; `ensures: result >= 0`; `ensures: result <= 9223372036854775807` | Z3-provable (3/3) |
+| `page_count` | `ensures: total <= 0 \|\| per_page < 1 => result == 0`; `ensures: result >= 0`; `ensures: per_page >= 1 && total > 0 => result <= total` | Z3-provable (3/3) |
+| `page_has_next` | `ensures: page < 1 => !result`; `ensures: result => page >= 1` | Z3-provable (2/2) |
+| `page_has_next` | `ensures: result => page < page_count(total, per_page)` | runtime-checked (cross-call; `page_count` does not re-enter `page_has_next`) |
+| `page_has_prev` | `ensures: result == (page > 1)` | Z3-provable (1/1) |
+| `page_last` | `ensures: total <= 0 \|\| per_page < 1 => result == 0`; `ensures: result >= 0`; `ensures: per_page >= 1 && total > 0 => result <= total` | Z3-provable (3/3) |
+| `page_clamp` | `ensures: result >= 1`; `ensures: total <= 0 \|\| per_page < 1 => result == 1`; `ensures: page < 1 => result == 1` | Z3-provable (3/3) |
+| `cursor_encode` | `ensures: result.len() >= 4`; `ensures: result.len() <= 52`; `ensures: result.len() % 4 != 1` | runtime-checked (Str length; 3-byte minimum pair and 39-byte maximum pair) |
+| `cursor_decode` | `ensures: token.len() == 0 => result is Err` | runtime-checked (Str length + result tag) |
+| `cursor_decode` | `ensures: result is Ok => token.len() >= 4`; `ensures: result is Ok => token.len() <= 52` | runtime-checked (result tag + Str length) |
+
+Verification: two consecutive
+`.\scripts\port.ps1 -Package xiom.pagination -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with all 22 clauses
+active (4.8 s and 4.7 s), and a byte-level scan of `src/pagination.xi` found
+0 hits for the five forbidden angle-bracket patterns.

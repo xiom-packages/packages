@@ -10,7 +10,7 @@
 
 package xiom_pagination {
   name: "xiom.pagination";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Page and offset math plus opaque cursor tokens for list endpoints";
   categories: ["data","tooling"];
   keywords: ["pagination","page","offset","cursor"];
