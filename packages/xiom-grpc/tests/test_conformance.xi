@@ -103,7 +103,11 @@ fn test_status_to_str_covers_all_17() -> Int {
   var i = 0;
   while i < codes.len() {
     var s = status_to_str(codes[i]);
-    if s == "UNKNOWN" { return 1; };
+    if codes[i] == GRPC_STATUS_UNKNOWN {
+      if s != "UNKNOWN" { return 1; };
+    } else {
+      if s == "UNKNOWN" { return 1; };
+    };
     i = i + 1;
   };
   return 0;

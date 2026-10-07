@@ -156,27 +156,27 @@ pub fn shutdown()
 
 pub fn status_to_str(status: Int) -> Str
 {
-  // Numeric literals on purpose: `pub const` values do not work as match
-  // patterns on v0.62.3 (every arm fell through to the wildcard; see
-  // docs/repro/const-match/). `status_is_ok` below uses `==`, which is fine.
+  // Named-constant arms are restored: the v0.62.3 const-match defect that
+  // forced numeric literals here is fixed since the m188 compiler lock
+  // (docs/repro/const-match/). `status_is_ok` below uses `==` as before.
   match status {
-    0 => "OK",
-    1 => "CANCELLED",
-    2 => "UNKNOWN",
-    3 => "INVALID_ARGUMENT",
-    4 => "DEADLINE_EXCEEDED",
-    5 => "NOT_FOUND",
-    6 => "ALREADY_EXISTS",
-    7 => "PERMISSION_DENIED",
-    8 => "RESOURCE_EXHAUSTED",
-    9 => "FAILED_PRECONDITION",
-    10 => "ABORTED",
-    11 => "OUT_OF_RANGE",
-    12 => "UNIMPLEMENTED",
-    13 => "INTERNAL",
-    14 => "UNAVAILABLE",
-    15 => "DATA_LOSS",
-    16 => "UNAUTHENTICATED",
+    GRPC_STATUS_OK => "OK",
+    GRPC_STATUS_CANCELLED => "CANCELLED",
+    GRPC_STATUS_UNKNOWN => "UNKNOWN",
+    GRPC_STATUS_INVALID_ARGUMENT => "INVALID_ARGUMENT",
+    GRPC_STATUS_DEADLINE_EXCEEDED => "DEADLINE_EXCEEDED",
+    GRPC_STATUS_NOT_FOUND => "NOT_FOUND",
+    GRPC_STATUS_ALREADY_EXISTS => "ALREADY_EXISTS",
+    GRPC_STATUS_PERMISSION_DENIED => "PERMISSION_DENIED",
+    GRPC_STATUS_RESOURCE_EXHAUSTED => "RESOURCE_EXHAUSTED",
+    GRPC_STATUS_FAILED_PRECONDITION => "FAILED_PRECONDITION",
+    GRPC_STATUS_ABORTED => "ABORTED",
+    GRPC_STATUS_OUT_OF_RANGE => "OUT_OF_RANGE",
+    GRPC_STATUS_UNIMPLEMENTED => "UNIMPLEMENTED",
+    GRPC_STATUS_INTERNAL => "INTERNAL",
+    GRPC_STATUS_UNAVAILABLE => "UNAVAILABLE",
+    GRPC_STATUS_DATA_LOSS => "DATA_LOSS",
+    GRPC_STATUS_UNAUTHENTICATED => "UNAUTHENTICATED",
     _ => "UNKNOWN",
   }
 }

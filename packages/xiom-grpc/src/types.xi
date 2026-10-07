@@ -56,11 +56,12 @@ pub fn grpc_response_error(code: Int, message: Str) -> GrpcResponse
 pub fn grpc_metadata_get(resp: &GrpcResponse, key: Str) -> Option[Str]
   requires: key.len() > 0
 {
+  // Direct component reads: destructuring `let (k, v) = &vec[i]` yields
+  // pointer-like values on v0.64.0/main (see docs/COMPILER-FINDINGS.md).
   var i = 0;
   while i < resp.metadata.len() {
-    let (k, v) = &resp.metadata[i];
-    if k == &key {
-      return Some(v.clone());
+    if resp.metadata[i].0 == key {
+      return Some(resp.metadata[i].1.clone());
     };
     i = i + 1;
   };
@@ -70,11 +71,11 @@ pub fn grpc_metadata_get(resp: &GrpcResponse, key: Str) -> Option[Str]
 pub fn grpc_metadata_set(req: &mut GrpcRequest, key: Str, value: Str)
   requires: key.len() > 0
 {
+  // Direct component reads (same reason as grpc_metadata_get).
   var found = false;
   var i = 0;
   while i < req.metadata.len() {
-    let (k, v) = &req.metadata[i];
-    if k == &key {
+    if req.metadata[i].0 == key {
       req.metadata[i] = (key.clone(), value.clone());
       found = true;
     };
