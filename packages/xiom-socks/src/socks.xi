@@ -333,7 +333,11 @@ fn _read_addr(data: &Vec[UInt8], apos: Int, alen: Int) -> Vec[UInt8] {
 /// All validation happens before any byte is written, so `out` is
 /// byte-for-byte unchanged on Err (atomic failure).
 /// Complexity: O(methods.len()).
-pub fn socks5_greeting_build(out: &mut Vec[UInt8], methods: &Vec[Int]) -> Result[Unit, Str] {
+pub fn socks5_greeting_build(out: &mut Vec[UInt8], methods: &Vec[Int]) -> Result[Unit, Str]
+  ensures: methods.len() > 255 => result is Err;
+  ensures: result is Err => out.len() == out.len()@pre;
+  ensures: result is Ok => out.len() == out.len()@pre + 2 + methods.len();
+{
   let n = methods.len();
   if n > 255 {
     return _err_unit("socks: too many methods");
@@ -367,7 +371,10 @@ pub fn socks5_greeting_build(out: &mut Vec[UInt8], methods: &Vec[Int]) -> Result
 ///     remain.
 /// Bytes after the greeting are ignored (the caller frames the stream).
 /// Complexity: O(NMETHODS).
-pub fn socks5_greeting_parse(data: &Vec[UInt8]) -> Result[Socks5Greeting, Str] {
+pub fn socks5_greeting_parse(data: &Vec[UInt8]) -> Result[Socks5Greeting, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: result is Ok => data.len() >= 2;
+{
   let n = data.len();
   if n < 2 {
     return _err_greeting("socks: truncated greeting");
@@ -397,7 +404,10 @@ pub fn socks5_greeting_parse(data: &Vec[UInt8]) -> Result[Socks5Greeting, Str] {
 /// Err("socks: method out of range") when `method` is negative or > 255
 /// (0xFF = no acceptable methods is valid). `out` is unchanged on Err.
 /// Complexity: O(1).
-pub fn socks5_choice_build(out: &mut Vec[UInt8], method: Int) -> Result[Unit, Str] {
+pub fn socks5_choice_build(out: &mut Vec[UInt8], method: Int) -> Result[Unit, Str]
+  ensures: method < 0 || method > 255 => result is Err;
+  ensures: result is Ok => out.len() == out.len()@pre + 2;
+{
   if method < 0 || method > 255 {
     return _err_unit("socks: method out of range");
   }
@@ -414,7 +424,10 @@ pub fn socks5_choice_build(out: &mut Vec[UInt8], method: Int) -> Result[Unit, St
 ///   * `socks: bad version` -- VER is not 5.
 /// Bytes after the selection are ignored.
 /// Complexity: O(1).
-pub fn socks5_choice_parse(data: &Vec[UInt8]) -> Result[Socks5Choice, Str] {
+pub fn socks5_choice_parse(data: &Vec[UInt8]) -> Result[Socks5Choice, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: result is Ok => data.len() >= 2;
+{
   if data.len() < 2 {
     return _err_choice("socks: truncated choice");
   }
@@ -443,7 +456,12 @@ pub fn socks5_choice_parse(data: &Vec[UInt8]) -> Result[Socks5Choice, Str] {
 /// All validation happens before any byte is written, so `out` is
 /// byte-for-byte unchanged on Err (atomic failure).
 /// Complexity: O(addr.len()).
-pub fn socks5_request_build(out: &mut Vec[UInt8], cmd: Int, atyp: Int, addr: &Vec[UInt8], port: Int) -> Result[Unit, Str] {
+pub fn socks5_request_build(out: &mut Vec[UInt8], cmd: Int, atyp: Int, addr: &Vec[UInt8], port: Int) -> Result[Unit, Str]
+  ensures: cmd < 1 || cmd > 3 => result is Err;
+  ensures: atyp == 1 && addr.len() != 4 => result is Err;
+  ensures: port < 0 || port > 65535 => result is Err;
+  ensures: result is Ok && atyp == 1 => out.len() == out.len()@pre + 10;
+{
   if !_cmd_ok(cmd) {
     return _err_unit("socks: unknown command");
   }
@@ -482,7 +500,10 @@ pub fn socks5_request_build(out: &mut Vec[UInt8], cmd: Int, atyp: Int, addr: &Ve
 ///   * `socks: empty domain` -- a domain length of 0;
 ///   * `socks: truncated port` -- fewer than 2 port bytes remain.
 /// Bytes after the request are ignored. Complexity: O(addr bytes).
-pub fn socks5_request_parse(data: &Vec[UInt8]) -> Result[Socks5Request, Str] {
+pub fn socks5_request_parse(data: &Vec[UInt8]) -> Result[Socks5Request, Str]
+  ensures: data.len() < 4 => result is Err;
+  ensures: result is Ok => data.len() >= 8;
+{
   let n = data.len();
   if n < 4 {
     return _err_request("socks: truncated request");
@@ -545,7 +566,12 @@ pub fn socks5_request_parse(data: &Vec[UInt8]) -> Result[Socks5Request, Str] {
 /// All validation happens before any byte is written, so `out` is
 /// byte-for-byte unchanged on Err (atomic failure).
 /// Complexity: O(addr.len()).
-pub fn socks5_reply_build(out: &mut Vec[UInt8], rep: Int, atyp: Int, addr: &Vec[UInt8], port: Int) -> Result[Unit, Str] {
+pub fn socks5_reply_build(out: &mut Vec[UInt8], rep: Int, atyp: Int, addr: &Vec[UInt8], port: Int) -> Result[Unit, Str]
+  ensures: rep < 0 || rep > 8 => result is Err;
+  ensures: port < 0 || port > 65535 => result is Err;
+  ensures: result is Err => out.len() == out.len()@pre;
+  ensures: result is Ok && atyp == 1 => out.len() == out.len()@pre + 10;
+{
   if !_rep_ok(rep) {
     return _err_unit("socks: unknown reply code");
   }
@@ -580,7 +606,10 @@ pub fn socks5_reply_build(out: &mut Vec[UInt8], rep: Int, atyp: Int, addr: &Vec[
 ///     `socks: empty domain` / `socks: truncated port` -- as in
 ///     socks5_request_parse.
 /// Bytes after the reply are ignored. Complexity: O(addr bytes).
-pub fn socks5_reply_parse(data: &Vec[UInt8]) -> Result[Socks5Reply, Str] {
+pub fn socks5_reply_parse(data: &Vec[UInt8]) -> Result[Socks5Reply, Str]
+  ensures: data.len() < 4 => result is Err;
+  ensures: result is Ok => data.len() >= 8;
+{
   let n = data.len();
   if n < 4 {
     return _err_reply("socks: truncated reply");
@@ -640,7 +669,12 @@ pub fn socks5_reply_parse(data: &Vec[UInt8]) -> Result[Socks5Reply, Str] {
 /// Err("socks: empty username") / Err("socks: username too long") /
 /// Err("socks: password too long"). All validation happens before any byte
 /// is written, so `out` is unchanged on Err. Complexity: O(credentials).
-pub fn socks5_auth_build(out: &mut Vec[UInt8], uname: &Vec[UInt8], passwd: &Vec[UInt8]) -> Result[Unit, Str] {
+pub fn socks5_auth_build(out: &mut Vec[UInt8], uname: &Vec[UInt8], passwd: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: uname.len() == 0 => result is Err;
+  ensures: uname.len() > 255 => result is Err;
+  ensures: passwd.len() > 255 => result is Err;
+  ensures: result is Ok => out.len() == out.len()@pre + uname.len() + passwd.len() + 3;
+{
   let ulen = uname.len();
   if ulen == 0 {
     return _err_unit("socks: empty username");
@@ -672,7 +706,10 @@ pub fn socks5_auth_build(out: &mut Vec[UInt8], uname: &Vec[UInt8], passwd: &Vec[
 ///   * `socks: truncated username` -- UNAME does not fit;
 ///   * `socks: truncated password` -- the PLEN byte or PASSWD is missing.
 /// Bytes after the request are ignored. Complexity: O(credential bytes).
-pub fn socks5_auth_parse(data: &Vec[UInt8]) -> Result[Socks5UserPass, Str] {
+pub fn socks5_auth_parse(data: &Vec[UInt8]) -> Result[Socks5UserPass, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: result is Ok => data.len() >= 4;
+{
   let n = data.len();
   if n < 2 {
     return _err_userpass("socks: truncated auth request");
@@ -716,7 +753,10 @@ pub fn socks5_auth_parse(data: &Vec[UInt8]) -> Result[Socks5UserPass, Str] {
 /// Err("socks: status out of range") when `status` is negative or > 255
 /// (0 = success, nonzero = failure). `out` is unchanged on Err.
 /// Complexity: O(1).
-pub fn socks5_auth_reply_build(out: &mut Vec[UInt8], status: Int) -> Result[Unit, Str] {
+pub fn socks5_auth_reply_build(out: &mut Vec[UInt8], status: Int) -> Result[Unit, Str]
+  ensures: status < 0 || status > 255 => result is Err;
+  ensures: result is Ok => out.len() == out.len()@pre + 2;
+{
   if status < 0 || status > 255 {
     return _err_unit("socks: status out of range");
   }
@@ -732,7 +772,10 @@ pub fn socks5_auth_reply_build(out: &mut Vec[UInt8], status: Int) -> Result[Unit
 ///   * `socks: truncated auth reply` -- fewer than 2 bytes;
 ///   * `socks: bad auth version` -- VER is not 1.
 /// Bytes after the reply are ignored. Complexity: O(1).
-pub fn socks5_auth_reply_parse(data: &Vec[UInt8]) -> Result[Socks5AuthReply, Str] {
+pub fn socks5_auth_reply_parse(data: &Vec[UInt8]) -> Result[Socks5AuthReply, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: result is Ok => data.len() >= 2;
+{
   if data.len() < 2 {
     return _err_auth_reply("socks: truncated auth reply");
   }
@@ -747,7 +790,9 @@ pub fn socks5_auth_reply_parse(data: &Vec[UInt8]) -> Result[Socks5AuthReply, Str
 /// `addr` argument of socks5_request_build / socks5_reply_build with
 /// ATYP=3. The one-byte length prefix is added by the builders; validation
 /// (1..255 bytes) happens there. Complexity: O(name.len()).
-pub fn socks5_domain_bytes(name: Str) -> Vec[UInt8] {
+pub fn socks5_domain_bytes(name: Str) -> Vec[UInt8]
+  ensures: result.len() == name.len();
+{
   var v = Vec[UInt8].new();
   var i = 0;
   while i < name.len() {

@@ -209,6 +209,40 @@ codes `REP_SUCCEEDED` .. `REP_ADDRESS_TYPE_NOT_SUPPORTED` (0..8).
 All builders are atomic: every condition is checked before the first byte
 is appended, so `out` is byte-for-byte unchanged when a builder fails.
 
+## Contracts (hardening pass, 2026-10-07, batch #15)
+
+Runtime-checkable `ensures:` clauses were added to all thirteen public entry
+points in `src/socks.xi` following the batch #15 clause plan. All clauses are
+runtime-checked by the v0.64.0 evaluator: the guard-pair clauses observe a
+`Result` with a `Str` payload and the frame clauses use `@pre`, so no clause
+is a pure-scalar Z3 clause. No clause asserts a struct/Result payload field or
+a parameter-relative payload length. `@pre` is used only on the mutable `out`
+parameter of the builders (tlv.xi:301 precedent) and asserts that `out` is
+unchanged on `Err`, or grew by the exact message size on `Ok`.
+
+| Function | Added clauses | Check |
+|---|---|---|
+| `socks5_greeting_build` | `methods.len() > 255 => result is Err`; `result is Err => out.len() == out.len()@pre`; `result is Ok => out.len() == out.len()@pre + 2 + methods.len()` | runtime |
+| `socks5_greeting_parse` | `data.len() < 2 => result is Err`; `result is Ok => data.len() >= 2` | runtime |
+| `socks5_choice_build` | `method < 0 \|\| method > 255 => result is Err`; `result is Ok => out.len() == out.len()@pre + 2` | runtime |
+| `socks5_choice_parse` | `data.len() < 2 => result is Err`; `result is Ok => data.len() >= 2` | runtime |
+| `socks5_request_build` | `cmd < 1 \|\| cmd > 3 => result is Err`; `atyp == 1 && addr.len() != 4 => result is Err`; `port < 0 \|\| port > 65535 => result is Err`; `result is Ok && atyp == 1 => out.len() == out.len()@pre + 10` | runtime |
+| `socks5_request_parse` | `data.len() < 4 => result is Err`; `result is Ok => data.len() >= 8` | runtime |
+| `socks5_reply_build` | `rep < 0 \|\| rep > 8 => result is Err`; `port < 0 \|\| port > 65535 => result is Err`; `result is Err => out.len() == out.len()@pre`; `result is Ok && atyp == 1 => out.len() == out.len()@pre + 10` | runtime |
+| `socks5_reply_parse` | `data.len() < 4 => result is Err`; `result is Ok => data.len() >= 8` | runtime |
+| `socks5_auth_build` | `uname.len() == 0 => result is Err`; `uname.len() > 255 => result is Err`; `passwd.len() > 255 => result is Err`; `result is Ok => out.len() == out.len()@pre + uname.len() + passwd.len() + 3` | runtime |
+| `socks5_auth_parse` | `data.len() < 2 => result is Err`; `result is Ok => data.len() >= 4` | runtime |
+| `socks5_auth_reply_build` | `status < 0 \|\| status > 255 => result is Err`; `result is Ok => out.len() == out.len()@pre + 2` | runtime |
+| `socks5_auth_reply_parse` | `data.len() < 2 => result is Err`; `result is Ok => data.len() >= 2` | runtime |
+| `socks5_domain_bytes` | `result.len() == name.len()` | runtime |
+
+Documented but intentionally omitted: `socks5_greeting_build` has no
+per-element method-range clause (an element quantifier is not expressible in
+the clause language); the private helpers (`_byte`, `_push_*`, `_read_addr`,
+`_addr_ok`, the `_ok_*`/`_err_*` constructors) carry no clauses. The parser
+`Ok` clauses are lower bounds only, because parsers accept trailing bytes
+after the first message.
+
 ## Error string catalog
 
 All errors are `Err(Str)` with these exact messages:
