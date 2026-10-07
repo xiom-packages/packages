@@ -350,7 +350,10 @@ fn _u8_ok(v: Int) -> Bool {
 /// to `data.len()`.
 /// Error case: see the catalog above and SPEC.md.
 /// Complexity: O(48).
-pub fn miniseed_parse(data: &Vec[UInt8]) -> Result[MseedHeader, Str] {
+pub fn miniseed_parse(data: &Vec[UInt8]) -> Result[MseedHeader, Str]
+  ensures: data.len() < 48 => result is Err;
+  ensures: result is Ok => data.len() >= 48;
+{
   let n = data.len();
   if n < _MS_HEADER_LEN { return _err_header("miniseed: truncated header"); }
   let quality: Int = _byte(data, 6);
@@ -434,101 +437,137 @@ pub fn miniseed_parse(data: &Vec[UInt8]) -> Result[MseedHeader, Str] {
 
 /// Sequence number (bytes 0..5), trimmed of leading/trailing spaces; an
 /// all-space field yields "". Complexity: O(1).
-pub fn miniseed_sequence(h: &MseedHeader) -> Str {
+pub fn miniseed_sequence(h: &MseedHeader) -> Str
+  ensures: result.len() == h.sequence.len();
+{
   let s: Str = h.sequence;
   return s;
 }
 
 /// Quality indicator as its raw ASCII byte: D 68, R 82, Q 81, M 77 or
 /// space 32. Complexity: O(1).
-pub fn miniseed_quality(h: &MseedHeader) -> Int {
+pub fn miniseed_quality(h: &MseedHeader) -> Int
+  ensures: result == h.quality;
+{
   return h.quality;
 }
 
 /// Byte 7 (reserved) exactly as parsed: 0x00 or 0x20. Complexity: O(1).
-pub fn miniseed_reserved(h: &MseedHeader) -> Int {
+pub fn miniseed_reserved(h: &MseedHeader) -> Int
+  ensures: result == h.reserved;
+{
   return h.reserved;
 }
 
 /// Station identifier (bytes 8..12), trimmed. Complexity: O(1).
-pub fn miniseed_station(h: &MseedHeader) -> Str {
+pub fn miniseed_station(h: &MseedHeader) -> Str
+  ensures: result.len() == h.station.len();
+{
   let s: Str = h.station;
   return s;
 }
 
 /// Channel identifier (bytes 13..15), trimmed. Complexity: O(1).
-pub fn miniseed_channel(h: &MseedHeader) -> Str {
+pub fn miniseed_channel(h: &MseedHeader) -> Str
+  ensures: result.len() == h.channel.len();
+{
   let s: Str = h.channel;
   return s;
 }
 
 /// Network identifier (bytes 16..17), trimmed. Complexity: O(1).
-pub fn miniseed_network(h: &MseedHeader) -> Str {
+pub fn miniseed_network(h: &MseedHeader) -> Str
+  ensures: result.len() == h.network.len();
+{
   let s: Str = h.network;
   return s;
 }
 
 /// Location identifier (bytes 18..19), trimmed; an all-space field yields
 /// "". Complexity: O(1).
-pub fn miniseed_location(h: &MseedHeader) -> Str {
+pub fn miniseed_location(h: &MseedHeader) -> Str
+  ensures: result.len() == h.location.len();
+{
   let s: Str = h.location;
   return s;
 }
 
 /// Start year (big-endian u16, bytes 20..21). Complexity: O(1).
-pub fn miniseed_year(h: &MseedHeader) -> Int {
+pub fn miniseed_year(h: &MseedHeader) -> Int
+  ensures: result == h.year;
+{
   return h.year;
 }
 
 /// Start day-of-year (big-endian u16, bytes 22..23), 1..366. Complexity:
 /// O(1).
-pub fn miniseed_day(h: &MseedHeader) -> Int {
+pub fn miniseed_day(h: &MseedHeader) -> Int
+  ensures: result == h.day;
+{
   return h.day;
 }
 
 /// Start hour (byte 24), 0..23. Complexity: O(1).
-pub fn miniseed_hour(h: &MseedHeader) -> Int {
+pub fn miniseed_hour(h: &MseedHeader) -> Int
+  ensures: result == h.hour;
+{
   return h.hour;
 }
 
 /// Start minute (byte 25), 0..59. Complexity: O(1).
-pub fn miniseed_minute(h: &MseedHeader) -> Int {
+pub fn miniseed_minute(h: &MseedHeader) -> Int
+  ensures: result == h.minute;
+{
   return h.minute;
 }
 
 /// Start second (byte 26), 0..60; 60 is the documented leap-second value.
 /// Complexity: O(1).
-pub fn miniseed_second(h: &MseedHeader) -> Int {
+pub fn miniseed_second(h: &MseedHeader) -> Int
+  ensures: result == h.second;
+{
   return h.second;
 }
 
 /// Byte 27 (unused), preserved as parsed and never validated. Complexity:
 /// O(1).
-pub fn miniseed_unused(h: &MseedHeader) -> Int {
+pub fn miniseed_unused(h: &MseedHeader) -> Int
+  ensures: result == h.unused;
+{
   return h.unused;
 }
 
 /// Tenths of milliseconds (big-endian u16, bytes 28..29): 0..9999, i.e. the
 /// sub-second offset in units of 0.0001 s. Complexity: O(1).
-pub fn miniseed_tenths(h: &MseedHeader) -> Int {
+pub fn miniseed_tenths(h: &MseedHeader) -> Int
+  ensures: result == h.tenths;
+{
   return h.tenths;
 }
 
 /// Sample rate factor (big-endian i16, bytes 30..31), raw. Complexity: O(1).
-pub fn miniseed_sample_rate_factor(h: &MseedHeader) -> Int {
+pub fn miniseed_sample_rate_factor(h: &MseedHeader) -> Int
+  ensures: result == h.sample_rate_factor;
+{
   return h.sample_rate_factor;
 }
 
 /// Sample rate multiplier (big-endian i16, bytes 32..33), raw. Complexity:
 /// O(1).
-pub fn miniseed_sample_rate_multiplier(h: &MseedHeader) -> Int {
+pub fn miniseed_sample_rate_multiplier(h: &MseedHeader) -> Int
+  ensures: result == h.sample_rate_multiplier;
+{
   return h.sample_rate_multiplier;
 }
 
 /// Exact sample-rate numerator in Hz: rate = num / den with den >= 1. A zero
 /// factor yields 0/1; a zero multiplier is treated as 1. The pair is not
 /// reduced to lowest terms. Complexity: O(1).
-pub fn miniseed_rate_num(h: &MseedHeader) -> Int {
+pub fn miniseed_rate_num(h: &MseedHeader) -> Int
+  ensures: result >= 0;
+  ensures: h.sample_rate_factor == 0 => result == 0;
+  ensures: h.sample_rate_factor > 0 && h.sample_rate_multiplier > 0 => result == h.sample_rate_factor * h.sample_rate_multiplier;
+{
   let f: Int = h.sample_rate_factor;
   var m: Int = h.sample_rate_multiplier;
   if f == 0 { return 0; }
@@ -543,7 +582,11 @@ pub fn miniseed_rate_num(h: &MseedHeader) -> Int {
 
 /// Exact sample-rate denominator in Hz (>= 1) for miniseed_rate_num.
 /// Complexity: O(1).
-pub fn miniseed_rate_den(h: &MseedHeader) -> Int {
+pub fn miniseed_rate_den(h: &MseedHeader) -> Int
+  ensures: result >= 1;
+  ensures: h.sample_rate_factor == 0 => result == 1;
+  ensures: h.sample_rate_factor > 0 && h.sample_rate_multiplier > 0 => result == 1;
+{
   let f: Int = h.sample_rate_factor;
   var m: Int = h.sample_rate_multiplier;
   if f == 0 { return 1; }
@@ -560,7 +603,11 @@ pub fn miniseed_rate_den(h: &MseedHeader) -> Int {
 /// exact positive rational truncated toward zero. A zero factor yields 0.
 /// All intermediate products fit an Int for any i16 factor/multiplier pair.
 /// Complexity: O(1).
-pub fn miniseed_rate_microhz(h: &MseedHeader) -> Int {
+pub fn miniseed_rate_microhz(h: &MseedHeader) -> Int
+  ensures: miniseed_rate_num(h) == 0 => result == 0;
+  ensures: result >= 0;
+  ensures: result == miniseed_rate_num(h) * 1000000 / miniseed_rate_den(h);
+{
   let num = miniseed_rate_num(h);
   if num == 0 { return 0; }
   let den = miniseed_rate_den(h);
@@ -568,61 +615,83 @@ pub fn miniseed_rate_microhz(h: &MseedHeader) -> Int {
 }
 
 /// Activity flags byte (34), raw. Complexity: O(1).
-pub fn miniseed_activity_flags(h: &MseedHeader) -> Int {
+pub fn miniseed_activity_flags(h: &MseedHeader) -> Int
+  ensures: result == h.activity_flags;
+{
   return h.activity_flags;
 }
 
 /// I/O and clock flags byte (35), raw. Complexity: O(1).
-pub fn miniseed_io_flags(h: &MseedHeader) -> Int {
+pub fn miniseed_io_flags(h: &MseedHeader) -> Int
+  ensures: result == h.io_flags;
+{
   return h.io_flags;
 }
 
 /// Data quality flags byte (36), raw. Complexity: O(1).
-pub fn miniseed_data_quality_flags(h: &MseedHeader) -> Int {
+pub fn miniseed_data_quality_flags(h: &MseedHeader) -> Int
+  ensures: result == h.data_quality_flags;
+{
   return h.data_quality_flags;
 }
 
 /// Number of blockettes that follow the fixed header (byte 37), raw.
 /// Complexity: O(1).
-pub fn miniseed_num_blockettes(h: &MseedHeader) -> Int {
+pub fn miniseed_num_blockettes(h: &MseedHeader) -> Int
+  ensures: result == h.num_blockettes;
+{
   return h.num_blockettes;
 }
 
 /// Time correction (big-endian i32, bytes 38..41) in 0.0001 s units.
 /// Complexity: O(1).
-pub fn miniseed_time_correction(h: &MseedHeader) -> Int {
+pub fn miniseed_time_correction(h: &MseedHeader) -> Int
+  ensures: result == h.time_correction;
+{
   return h.time_correction;
 }
 
 /// Beginning of data offset (big-endian u16, bytes 42..43): byte 0 of the
 /// record is index 0, so a value of 48 means the payload starts immediately
 /// after the fixed header. Complexity: O(1).
-pub fn miniseed_begin_data_offset(h: &MseedHeader) -> Int {
+pub fn miniseed_begin_data_offset(h: &MseedHeader) -> Int
+  ensures: result == h.begin_data_offset;
+{
   return h.begin_data_offset;
 }
 
 /// First blockette offset (big-endian u16, bytes 44..45), 0 when there is
 /// none. Complexity: O(1).
-pub fn miniseed_begin_blockette_offset(h: &MseedHeader) -> Int {
+pub fn miniseed_begin_blockette_offset(h: &MseedHeader) -> Int
+  ensures: result == h.begin_blockette_offset;
+{
   return h.begin_blockette_offset;
 }
 
 /// Bytes 46..47 (reserved, big-endian u16), preserved as parsed and never
 /// validated. Complexity: O(1).
-pub fn miniseed_reserved2(h: &MseedHeader) -> Int {
+pub fn miniseed_reserved2(h: &MseedHeader) -> Int
+  ensures: result == h.reserved2;
+{
   return h.reserved2;
 }
 
 /// Record size in bytes supplied to miniseed_parse (the buffer length).
 /// Complexity: O(1).
-pub fn miniseed_record_size(h: &MseedHeader) -> Int {
+pub fn miniseed_record_size(h: &MseedHeader) -> Int
+  ensures: result == h.record_size;
+{
   return h.record_size;
 }
 
 /// Payload span in bytes: record_size - begin_data_offset, or 0 when a
 /// hand-built header has begin_data_offset outside 0..record_size.
 /// Complexity: O(1).
-pub fn miniseed_data_span(h: &MseedHeader) -> Int {
+pub fn miniseed_data_span(h: &MseedHeader) -> Int
+  ensures: h.begin_data_offset < 0 => result == 0;
+  ensures: h.begin_data_offset > h.record_size => result == 0;
+  ensures: h.begin_data_offset >= 0 && h.begin_data_offset <= h.record_size => result == h.record_size - h.begin_data_offset;
+{
   let rs: Int = h.record_size;
   let bdo: Int = h.begin_data_offset;
   if bdo < 0 { return 0; }
@@ -633,7 +702,11 @@ pub fn miniseed_data_span(h: &MseedHeader) -> Int {
 /// Number of whole samples that fit the payload span: floor(span /
 /// sample_size). Zero when sample_size <= 0 (bytes per sample unknown) or
 /// the span is empty; trailing pad bytes are not samples. Complexity: O(1).
-pub fn miniseed_sample_count(h: &MseedHeader, sample_size: Int) -> Int {
+pub fn miniseed_sample_count(h: &MseedHeader, sample_size: Int) -> Int
+  ensures: sample_size <= 0 => result == 0;
+  ensures: result >= 0;
+  ensures: sample_size > 0 => result == miniseed_data_span(h) / sample_size;
+{
   if sample_size <= 0 { return 0; }
   return miniseed_data_span(h) / sample_size;
 }
@@ -643,7 +716,11 @@ pub fn miniseed_sample_count(h: &MseedHeader, sample_size: Int) -> Int {
 /// `num_samples <= span / sample_size` so no multiplication can overflow.
 /// False for a negative count or a non-positive sample size. Complexity:
 /// O(1).
-pub fn miniseed_samples_fit(h: &MseedHeader, num_samples: Int, sample_size: Int) -> Bool {
+pub fn miniseed_samples_fit(h: &MseedHeader, num_samples: Int, sample_size: Int) -> Bool
+  ensures: num_samples < 0 => !result;
+  ensures: sample_size <= 0 => !result;
+  ensures: result => num_samples >= 0 && sample_size > 0;
+{
   if num_samples < 0 { return false; }
   if sample_size <= 0 { return false; }
   return num_samples <= miniseed_data_span(h) / sample_size;
@@ -652,7 +729,10 @@ pub fn miniseed_samples_fit(h: &MseedHeader, num_samples: Int, sample_size: Int)
 /// Record size needed to hold `num_samples` samples of `sample_size` bytes
 /// starting at `begin_data_offset`: offset + samples * sample_size; 0 when
 /// any argument is negative (or sample_size is zero). Complexity: O(1).
-pub fn miniseed_required_record_size(begin_data_offset: Int, num_samples: Int, sample_size: Int) -> Int {
+pub fn miniseed_required_record_size(begin_data_offset: Int, num_samples: Int, sample_size: Int) -> Int
+  ensures: begin_data_offset < 0 || num_samples < 0 || sample_size <= 0 => result == 0;
+  ensures: begin_data_offset >= 0 && num_samples >= 0 && sample_size > 0 => result == begin_data_offset + num_samples * sample_size;
+{
   if begin_data_offset < 0 { return 0; }
   if num_samples < 0 { return 0; }
   if sample_size <= 0 { return 0; }
@@ -662,7 +742,11 @@ pub fn miniseed_required_record_size(begin_data_offset: Int, num_samples: Int, s
 /// Proleptic Gregorian leap-year rule used by the day-of-year validation:
 /// divisible by 4, except centuries that are not divisible by 400.
 /// Complexity: O(1).
-pub fn miniseed_is_leap_year(year: Int) -> Bool {
+pub fn miniseed_is_leap_year(year: Int) -> Bool
+  ensures: year % 400 == 0 => result;
+  ensures: year % 4 != 0 => !result;
+  ensures: year % 100 == 0 && year % 400 != 0 => !result;
+{
   return _is_leap(year);
 }
 
@@ -678,7 +762,11 @@ pub fn miniseed_is_leap_year(year: Int) -> Bool {
 /// size or data offset does not fit `data`, or when a hand-built header has
 /// an offset outside 48..record_size.
 /// Complexity: O(span).
-pub fn miniseed_data_bytes(data: &Vec[UInt8], h: &MseedHeader) -> Result[Vec[UInt8], Str] {
+pub fn miniseed_data_bytes(data: &Vec[UInt8], h: &MseedHeader) -> Result[Vec[UInt8], Str]
+  ensures: h.record_size < 48 => result is Err;
+  ensures: data.len() < h.record_size => result is Err;
+  ensures: result is Ok => h.record_size >= 48 && data.len() >= h.record_size && h.begin_data_offset >= 48 && h.begin_data_offset <= h.record_size;
+{
   let rs: Int = h.record_size;
   if rs < _MS_HEADER_LEN { return _err_bytes("miniseed: truncated data"); }
   if data.len() < rs { return _err_bytes("miniseed: truncated data"); }
@@ -725,7 +813,11 @@ pub fn miniseed_data_bytes(data: &Vec[UInt8], h: &MseedHeader) -> Result[Vec[UIn
 /// Returns: Ok(bytes), exactly 48 bytes, big-endian.
 /// Error case: see the catalog above and SPEC.md.
 /// Complexity: O(48).
-pub fn miniseed_build(h: &MseedHeader) -> Result[Vec[UInt8], Str] {
+pub fn miniseed_build(h: &MseedHeader) -> Result[Vec[UInt8], Str]
+  ensures: h.sequence.len() > 6 => result is Err;
+  ensures: h.year < 0 || h.year > 65535 => result is Err;
+  ensures: result is Ok => result.value.len() == 48;
+{
   let seq: Str = h.sequence;
   if seq.len() > _MS_SEQ_LEN { return _err_bytes("miniseed: bad sequence number"); }
   var i = 0;

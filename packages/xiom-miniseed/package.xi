@@ -9,7 +9,7 @@
 
 package xiom_miniseed {
   name: "xiom.miniseed";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "miniSEED fixed 48-byte record header codec: parse, validate and build";
   categories: ["science"];
   keywords: ["miniseed", "seismic", "records", "format"];
