@@ -1,8 +1,6 @@
 # xiom.pem -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.pem`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/pem.xi` (`module xiom.pem`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`). No FFI, no
 base64 dependency (the codec is self-contained).
@@ -318,7 +316,7 @@ Scripted expectation from the repository root:
 
 ## 10. Compiler / stdlib notes
 
-The implementation follows the proven v0.61.3 package idioms:
+The implementation follows the proven v0.64.0 package idioms:
 
 - Free functions only; no methods, no lambdas, no `Vec[StructType]`, no
   `Vec[fn]` dispatch, no `match` in the library.
@@ -332,3 +330,45 @@ The implementation follows the proven v0.61.3 package idioms:
   function boundaries by reference or through `_ok_doc`.
 - No `==` on `Str` anywhere in the library: label comparison is the
   byte-wise `_str_eq`.
+
+## Contracts (batch #33 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/pem.xi` in the batch #33
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 22 clauses across the 10 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.pem -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.46 s and 5.70 s); the 22-test conformance suite exercises every
+entry point and no clause trapped, so none was dropped.
+
+All but one clause are **runtime-checked**: `xiom-verify src/pem.xi --check`
+(v0.64.0, bundled Z3, run from the package directory) proved exactly one
+clause (`pem_line_width`: `result == 64`), reported `0 violated`, and skipped
+the remaining 21 axioms in the SMT emitter (X7007 unresolved operand sort /
+unsupported expression in contract / non-numeric `Ge`), plus its known
+`unknown constant _err_doc` / `unknown constant text` emitter errors, which
+the tool itself labels "not a proof failure of the code under test". Every
+clause also holds over the hand-built document fixtures the conformance suite
+constructs. No clause calls `pem_decode` or `pem_encode` (no re-entrant
+cross-calls).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `pem_base64_alphabet` | `result.len() == 64` | runtime-checked |
+| `pem_decode` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked |
+| `pem_encode` | `result is Ok => result.value.len() == 0 \|\| result.value.len() >= 34` | runtime-checked |
+| `pem_block_count` | `result == d.labels.len()`; `result >= 0` | runtime-checked |
+| `pem_label` | `i < 0 => result.len() == 0`; `i >= d.labels.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < d.labels.len()` | runtime-checked |
+| `pem_header_count` | `i < 0 => result == 0`; `i >= d.header_counts.len() => result == 0`; `result != 0 => i >= 0 && i < d.header_counts.len()` | runtime-checked |
+| `pem_header_line` | `i < 0 => result.len() == 0`; `j < 0 => result.len() == 0`; `result.len() > 0 => i >= 0 && i < d.header_counts.len() && j >= 0` | runtime-checked |
+| `pem_decoded_len` | `i < 0 => result == -1`; `i >= d.data_lens.len() => result == -1`; `result != -1 => i >= 0 && i < d.data_lens.len()` | runtime-checked |
+| `pem_decoded_bytes` | `i < 0 => result.len() == 0`; `i >= d.data_lens.len() => result.len() == 0`; `result.len() <= d.data.len()` | runtime-checked |
+| `pem_line_width` | `result == 64` | Z3-provable (proven by xiom-verify) |
+
+Deliberately not claimed: no exact non-empty `pem_encode` output length (the
+plan's `>= 34` floor holds: a valid label is at least 1 byte, so one block
+emits at least 2 x 18 = 36 bytes, and an empty document emits `""`); no
+positive-index converse on `pem_decoded_bytes` beyond the two `""`-sentinel
+guards plus the pool bound `result.len() <= d.data.len()` (verified against
+the source: the copy path requires `off + len <= d.data.len()`).

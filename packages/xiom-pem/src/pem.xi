@@ -180,7 +180,9 @@ fn _line_end(text: Str, pos: Int) -> Int {
 /// Returns: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".
 /// Error case: none.
 /// Complexity: O(1).
-pub fn pem_base64_alphabet() -> Str {
+pub fn pem_base64_alphabet() -> Str
+  ensures: result.len() == 64;
+{
   return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 }
 
@@ -513,7 +515,10 @@ fn _b64_emit_wrapped(src: &Vec[UInt8], start: Int, len: Int, out: &mut Vec[UInt8
 /// block marker, nested block not allowed, blank line in body, bad body line
 /// length, header after body, header section not terminated.
 /// Complexity: O(text.len()).
-pub fn pem_decode(text: Str) -> Result[PemDocument, Str] {
+pub fn pem_decode(text: Str) -> Result[PemDocument, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var labels = Vec[Str].new();
   var header_starts = Vec[Int].new();
   var header_counts = Vec[Int].new();
@@ -660,7 +665,9 @@ pub fn pem_decode(text: Str) -> Result[PemDocument, Str] {
 /// vectors disagree in length, a header or data range does not fit its pool,
 /// or a stored header line lacks `Name: value` shape.
 /// Complexity: O(total header + data bytes).
-pub fn pem_encode(doc: &PemDocument) -> Result[Str, Str] {
+pub fn pem_encode(doc: &PemDocument) -> Result[Str, Str]
+  ensures: result is Ok => result.value.len() == 0 || result.value.len() >= 34;
+{
   let count: Int = doc.labels.len();
   if doc.header_starts.len() != count || doc.header_counts.len() != count {
     return _err_str("pem: malformed document");
@@ -732,14 +739,21 @@ pub fn pem_encode(doc: &PemDocument) -> Result[Str, Str] {
 // --------------------------------------------------
 
 /// Number of blocks in `d`. Complexity: O(1).
-pub fn pem_block_count(d: &PemDocument) -> Int {
+pub fn pem_block_count(d: &PemDocument) -> Int
+  ensures: result == d.labels.len();
+  ensures: result >= 0;
+{
   return d.labels.len();
 }
 
 /// Label of block `i`, or "" when `i` is out of range. The result is read
 /// from a Vec[Str]: callers must compare it with
 /// xiom.string.compare.str_compare rather than `==`. Complexity: O(1).
-pub fn pem_label(d: &PemDocument, i: Int) -> Str {
+pub fn pem_label(d: &PemDocument, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= d.labels.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < d.labels.len();
+{
   if i < 0 || i >= d.labels.len() {
     return "";
   }
@@ -749,7 +763,11 @@ pub fn pem_label(d: &PemDocument, i: Int) -> Str {
 
 /// Number of raw header lines of block `i`, or 0 when `i` is out of range.
 /// Complexity: O(1).
-pub fn pem_header_count(d: &PemDocument, i: Int) -> Int {
+pub fn pem_header_count(d: &PemDocument, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= d.header_counts.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < d.header_counts.len();
+{
   if i < 0 || i >= d.header_counts.len() {
     return 0;
   }
@@ -763,7 +781,11 @@ pub fn pem_header_count(d: &PemDocument, i: Int) -> Int {
 /// Raw header line `j` of block `i` (no terminator), or "" when either index
 /// is out of range. The result is read from a Vec[Str]: compare it with
 /// xiom.string.compare.str_compare. Complexity: O(1).
-pub fn pem_header_line(d: &PemDocument, i: Int, j: Int) -> Str {
+pub fn pem_header_line(d: &PemDocument, i: Int, j: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: j < 0 => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < d.header_counts.len() && j >= 0;
+{
   if i < 0 || i >= d.header_counts.len() || i >= d.header_starts.len() {
     return "";
   }
@@ -778,7 +800,11 @@ pub fn pem_header_line(d: &PemDocument, i: Int, j: Int) -> Str {
 
 /// Decoded body length in bytes of block `i`; -1 when `i` is out of range.
 /// Complexity: O(1).
-pub fn pem_decoded_len(d: &PemDocument, i: Int) -> Int {
+pub fn pem_decoded_len(d: &PemDocument, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= d.data_lens.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < d.data_lens.len();
+{
   if i < 0 || i >= d.data_lens.len() {
     return -1;
   }
@@ -788,7 +814,11 @@ pub fn pem_decoded_len(d: &PemDocument, i: Int) -> Int {
 
 /// Copy of the decoded body bytes of block `i`, or an empty vector when `i`
 /// is out of range. Complexity: O(len).
-pub fn pem_decoded_bytes(d: &PemDocument, i: Int) -> Vec[UInt8] {
+pub fn pem_decoded_bytes(d: &PemDocument, i: Int) -> Vec[UInt8]
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= d.data_lens.len() => result.len() == 0;
+  ensures: result.len() <= d.data.len();
+{
   var out = Vec[UInt8].new();
   if i < 0 || i >= d.data_lens.len() || i >= d.data_starts.len() {
     return out;
@@ -808,6 +838,8 @@ pub fn pem_decoded_bytes(d: &PemDocument, i: Int) -> Vec[UInt8] {
 
 /// The canonical body line width in characters: 64 (PEM_LINE_WIDTH).
 /// Complexity: O(1).
-pub fn pem_line_width() -> Int {
+pub fn pem_line_width() -> Int
+  ensures: result == 64;
+{
   return PEM_LINE_WIDTH;
 }
