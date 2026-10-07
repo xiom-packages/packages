@@ -162,7 +162,12 @@ fn _str_bytes(s: Str) -> Vec[UInt8] {
 /// empty output.
 /// Error case: none (total).
 /// Complexity: O(data.len()).
-pub fn qp_encode(data: &Vec[UInt8]) -> Vec[UInt8] {
+pub fn qp_encode(data: &Vec[UInt8]) -> Vec[UInt8]
+  ensures: data.len() == 0 => result.len() == 0;
+  ensures: data.len() > 0 => result.len() >= 1;
+  ensures: result.len() >= data.len();
+  ensures: result.len() <= 6 * data.len();
+{
   var out = Vec[UInt8].new();
   let n = data.len();
   var line_len = 0;
@@ -223,7 +228,10 @@ pub fn qp_encode(data: &Vec[UInt8]) -> Vec[UInt8] {
 /// '=' plus one hex digit), "quotedprintable: invalid line break" (raw LF,
 /// raw CR without LF, '=' + LF, '=' + CR not followed by LF).
 /// Complexity: O(data.len()).
-pub fn qp_decode(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn qp_decode(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: data.len() == 0 => result is Ok;
+  ensures: result is Err => data.len() > 0;
+{
   let n = data.len();
   var out = Vec[UInt8].new();
   var i = 0;
@@ -291,7 +299,11 @@ pub fn qp_decode(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 /// input yields "". See qp_encode for the encoding rules.
 /// Error case: none (total).
 /// Complexity: O(s.len()).
-pub fn qp_encode_str(s: Str) -> Str {
+pub fn qp_encode_str(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() >= s.len();
+  ensures: result.len() <= 6 * s.len();
+{
   let data = _str_bytes(s);
   let enc = qp_encode(&data);
   return builder.sb_to_str(&enc);
@@ -303,7 +315,10 @@ pub fn qp_encode_str(s: Str) -> Str {
 /// Error case: the qp_decode catalog applies unchanged; Err(...) carries the
 /// same message.
 /// Complexity: O(s.len()).
-pub fn qp_decode_str(s: Str) -> Result[Str, Str] {
+pub fn qp_decode_str(s: Str) -> Result[Str, Str]
+  ensures: s.len() == 0 => result is Ok;
+  ensures: result is Err => s.len() > 0;
+{
   let data = _str_bytes(s);
   let dec = qp_decode(&data);
   if !dec.is_ok {
@@ -325,7 +340,10 @@ pub fn qp_decode_str(s: Str) -> Result[Str, Str] {
 /// Returns: true when qp_decode(data) would return Ok; true for empty input.
 /// Error case: none.
 /// Complexity: O(data.len()).
-pub fn qp_is_valid(data: &Vec[UInt8]) -> Bool {
+pub fn qp_is_valid(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() == 0 => result;
+  ensures: !result => data.len() > 0;
+{
   let r = qp_decode(data);
   if r.is_ok {
     return true;
@@ -339,6 +357,8 @@ pub fn qp_is_valid(data: &Vec[UInt8]) -> Bool {
 /// Returns: 76.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn qp_line_limit() -> Int {
+pub fn qp_line_limit() -> Int
+  ensures: result == 76;
+{
   return _QP_LINE_LIMIT;
 }

@@ -9,7 +9,7 @@
 
 package xiom_quotedprintable {
   name: "xiom.quotedprintable";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "RFC 2045 quoted-printable codec for bytes and text";
   categories: ["data"];
   keywords: ["quoted-printable", "mime", "encoding", "email"];

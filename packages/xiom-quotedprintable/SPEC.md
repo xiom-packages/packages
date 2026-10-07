@@ -246,3 +246,56 @@ Last verified: compiler 0.61.3,
 - No streaming/incremental API; whole buffers are materialized in memory.
 - Thread-safety is the caller's concern; the API is stateless free
   functions over value types.
+
+## 11. Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/quotedprintable.xi` in the
+batch #17 hardening pass (compiler v0.64.0; no version bump). 14 clauses
+across all six public entry points (4/2/3/2/2/1). Two consecutive
+`.\scripts\port.ps1 -Package xiom.quotedprintable -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (17.6 s and 18.6 s) and no clause trapped, so none was dropped. The
+20-check conformance suite exercises every entry point on both the accepting
+and rejecting paths (empty and non-empty input, `Ok` and `Err`). No clause
+compares `Str` values (BUG 17), touches a `Result` payload, or calls a
+function; the class column records the clause family: **Z3-provable** = pure
+scalar guard/form (`result is Ok` / `is Err`, `.len()` comparisons, literal
+equality); **runtime-checked** = the truth depends on a built `Vec`/`Str`
+and is enforced by the v0.64.0 runtime evaluator.
+
+| Entry point | Contract | Class |
+|---|---|---|
+| `qp_encode` | `ensures: data.len() == 0 => result.len() == 0` | runtime-checked |
+| `qp_encode` | `ensures: data.len() > 0 => result.len() >= 1` | runtime-checked |
+| `qp_encode` | `ensures: result.len() >= data.len()` | runtime-checked |
+| `qp_encode` | `ensures: result.len() <= 6 * data.len()` | runtime-checked |
+| `qp_decode` | `ensures: data.len() == 0 => result is Ok` | Z3-provable (pure scalar) |
+| `qp_decode` | `ensures: result is Err => data.len() > 0` | Z3-provable (pure scalar) |
+| `qp_encode_str` | `ensures: s.len() == 0 => result.len() == 0` | runtime-checked |
+| `qp_encode_str` | `ensures: result.len() >= s.len()` | runtime-checked |
+| `qp_encode_str` | `ensures: result.len() <= 6 * s.len()` | runtime-checked |
+| `qp_decode_str` | `ensures: s.len() == 0 => result is Ok` | Z3-provable (pure scalar) |
+| `qp_decode_str` | `ensures: result is Err => s.len() > 0` | Z3-provable (pure scalar) |
+| `qp_is_valid` | `ensures: data.len() == 0 => result` | Z3-provable (pure scalar) |
+| `qp_is_valid` | `ensures: !result => data.len() > 0` | Z3-provable (pure scalar) |
+| `qp_line_limit` | `ensures: result == 76` | Z3-provable (pure scalar) |
+
+The `qp_encode` / `qp_encode_str` length windows state the codec's per-byte
+cost: one input byte produces 1 to 3 characters, plus one `=` + CRLF soft
+break per at most 75 payload characters, so the built output is never
+shorter than its input and stays under six characters per input byte. The
+`qp_decode` / `qp_decode_str` pair is the emptiness guard: empty input can
+only be `Ok` (nothing to fail on), so any `Err` needs non-empty input;
+`qp_is_valid` states the same property in `Bool` form. `qp_line_limit` pins
+the RFC 2045 section 6.7 rule #4 limit as a literal (module consts are not
+used inside clauses).
+
+Not asserted: `ensures: !qp_is_valid(data) => result is Err` on `qp_decode`.
+`qp_is_valid` is implemented on top of `qp_decode`, so a clause calling it
+inside `qp_decode`'s postcondition re-enters `qp_decode` through
+`qp_is_valid`; under the runtime evaluator this aborts with an access
+violation (`0xC0000005`, exit `-1073741819`), the batch #14 ascii85/iban
+failure mode. The equivalence is pinned by the 20-check test plan (t20) and
+the empty/non-empty guard pair above. Also not asserted:
+`result is Ok => result.value.len()` relations (payload-length-vs-parameter
+shape on a `Result` payload).
