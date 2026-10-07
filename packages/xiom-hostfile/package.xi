@@ -8,7 +8,7 @@
 
 package xiom_hostfile {
   name: "xiom.hostfile";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Hosts-file parser and canonical emitter: address/hostname entries, lookups and round-trips";
   categories: ["systems"];
   keywords: ["hosts", "network", "parser", "unix"];

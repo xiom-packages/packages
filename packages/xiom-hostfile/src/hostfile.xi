@@ -397,7 +397,11 @@ fn _hf_ipv6_canonical(s: Str) -> Option[Str] {
 /// Examples: "localhost", "a-b.example" and "123" -> true; "" , "-a",
 /// "a-", "a..b", "a." and "under_score" -> false.
 /// Complexity: O(s.len()).
-pub fn hostfile_hostname_valid(s: Str) -> Bool {
+pub fn hostfile_hostname_valid(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: s.len() > 253 => !result;
+  ensures: result => s.len() >= 1 && s.len() <= 253;
+{
   let n = s.len();
   if n == 0 || n > _HF_MAX_HOSTNAME { return false; }
   var label = 0;
@@ -444,7 +448,10 @@ pub fn hostfile_hostname_valid(s: Str) -> Bool {
 /// "2001:0DB8:0:0:0:0:0:1" -> Some("2001:db8::1");
 /// "::ffff:192.168.1.1" -> Some("::ffff:c0a8:101"); "256.0.0.1" -> None.
 /// Complexity: O(s.len()).
-pub fn hostfile_address_normalize(s: Str) -> Option[Str] {
+pub fn hostfile_address_normalize(s: Str) -> Option[Str]
+  ensures: s.len() == 0 => result is None;
+  ensures: result is Some => s.len() >= 2;
+{
   if _hf_find_colon(s) >= 0 {
     return _hf_ipv6_canonical(s);
   }
@@ -463,7 +470,10 @@ pub fn hostfile_address_normalize(s: Str) -> Option[Str] {
 /// Examples: "1.2.3.4" -> true; "::1" -> true; "::ffff:1.2.3.4" -> true;
 /// "1.2.3.256" -> false; "1.2.3.4/24" -> false.
 /// Complexity: O(s.len()).
-pub fn hostfile_address_valid(s: Str) -> Bool {
+pub fn hostfile_address_valid(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: result => s.len() >= 2;
+{
   let o = hostfile_address_normalize(s);
   return o.is_some;
 }
@@ -533,7 +543,10 @@ fn _hf_push_entry(doc: &mut HostsFile, address: Str, names: &Vec[Str], line: Int
 /// Examples: "127.0.0.1 localhost\n" -> Ok with one entry;
 /// "10.0.0.1\n" -> Err("hostfile: entry with no hostname: 10.0.0.1").
 /// Complexity: O(text.len()).
-pub fn hostfile_parse(text: Str) -> Result[HostsFile, Str] {
+pub fn hostfile_parse(text: Str) -> Result[HostsFile, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var doc = HostsFile{
     addresses: Vec[Str].new();
     hosts: Vec[Str].new();
@@ -610,7 +623,11 @@ pub fn hostfile_parse(text: Str) -> Result[HostsFile, Str] {
 /// than read out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn hostfile_entry_count(h: &HostsFile) -> Int {
+pub fn hostfile_entry_count(h: &HostsFile) -> Int
+  ensures: result >= 0;
+  ensures: result <= h.addresses.len();
+  ensures: h.addresses.len() == 0 => result == 0;
+{
   var n = h.addresses.len();
   if h.host_starts.len() < n { n = h.host_starts.len(); }
   if h.host_counts.len() < n { n = h.host_counts.len(); }
@@ -626,7 +643,11 @@ pub fn hostfile_entry_count(h: &HostsFile) -> Int {
 /// Error case: none.
 /// Examples: entry "0:0:0:0:0:0:0:1 lo" -> Some("::1").
 /// Complexity: O(1).
-pub fn hostfile_address(h: &HostsFile, i: Int) -> Option[Str] {
+pub fn hostfile_address(h: &HostsFile, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= hostfile_entry_count(h) => result is None;
+  ensures: result is Some => i >= 0 && i < h.addresses.len();
+{
   if i < 0 || i >= hostfile_entry_count(h) { return None; }
   let a: Str = h.addresses[i];
   return Some(a);
@@ -637,7 +658,11 @@ pub fn hostfile_address(h: &HostsFile, i: Int) -> Option[Str] {
 /// Returns: the line number for 0 <= i < hostfile_entry_count(h), else 0.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn hostfile_line(h: &HostsFile, i: Int) -> Int {
+pub fn hostfile_line(h: &HostsFile, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= hostfile_entry_count(h) => result == 0;
+  ensures: result != 0 => i >= 0 && i < h.lines.len();
+{
   if i < 0 || i >= hostfile_entry_count(h) { return 0; }
   let v: Int = h.lines[i];
   return v;
@@ -650,7 +675,11 @@ pub fn hostfile_line(h: &HostsFile, i: Int) -> Int {
 /// 0 rather than reading past `hosts`.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn hostfile_hostname_count(h: &HostsFile, i: Int) -> Int {
+pub fn hostfile_hostname_count(h: &HostsFile, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= hostfile_entry_count(h) => result == 0;
+  ensures: result >= 0;
+{
   if i < 0 || i >= hostfile_entry_count(h) { return 0; }
   let start: Int = h.host_starts[i];
   if start < 0 { return 0; }
@@ -668,7 +697,11 @@ pub fn hostfile_hostname_count(h: &HostsFile, i: Int) -> Int {
 /// lowercased; mutating the result does not change the document.
 /// Error case: none.
 /// Complexity: O(hostnames).
-pub fn hostfile_hostnames(h: &HostsFile, i: Int) -> Vec[Str] {
+pub fn hostfile_hostnames(h: &HostsFile, i: Int) -> Vec[Str]
+  ensures: result.len() == hostfile_hostname_count(h, i);
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= hostfile_entry_count(h) => result.len() == 0;
+{
   var out = Vec[Str].new();
   let count = hostfile_hostname_count(h, i);
   if count == 0 { return out; }
@@ -691,7 +724,11 @@ pub fn hostfile_hostnames(h: &HostsFile, i: Int) -> Vec[Str] {
 /// Error case: none.
 /// Examples: "DUP" matches an entry holding "dup".
 /// Complexity: O(entries * hostnames * name length).
-pub fn hostfile_lookup_index(h: &HostsFile, hostname: Str) -> Int {
+pub fn hostfile_lookup_index(h: &HostsFile, hostname: Str) -> Int
+  ensures: hostfile_entry_count(h) == 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result < hostfile_entry_count(h);
+  ensures: result >= -1;
+{
   let needle = string.str_lower(hostname);
   let n = hostfile_entry_count(h);
   var i = 0;
@@ -716,7 +753,10 @@ pub fn hostfile_lookup_index(h: &HostsFile, hostname: Str) -> Int {
 /// Error case: none.
 /// Examples: "LOCALHOST" -> Some("127.0.0.1") when that entry comes first.
 /// Complexity: O(entries * hostnames * name length).
-pub fn hostfile_lookup(h: &HostsFile, hostname: Str) -> Option[Str] {
+pub fn hostfile_lookup(h: &HostsFile, hostname: Str) -> Option[Str]
+  ensures: hostfile_lookup_index(h, hostname) < 0 => result is None;
+  ensures: result is Some => hostfile_lookup_index(h, hostname) >= 0;
+{
   let i = hostfile_lookup_index(h, hostname);
   if i < 0 { return None; }
   let a: Str = h.addresses[i];
@@ -732,7 +772,10 @@ pub fn hostfile_lookup(h: &HostsFile, hostname: Str) -> Option[Str] {
 /// Error case: none.
 /// Examples: two "10.0.0.1" entries -> [0, 1].
 /// Complexity: O(entries * address length).
-pub fn hostfile_entries_for_address(h: &HostsFile, address: Str) -> Vec[Int] {
+pub fn hostfile_entries_for_address(h: &HostsFile, address: Str) -> Vec[Int]
+  ensures: result.len() <= hostfile_entry_count(h);
+  ensures: hostfile_entry_count(h) == 0 => result.len() == 0;
+{
   var out = Vec[Int].new();
   var canon = "";
   let norm = hostfile_address_normalize(address);
@@ -764,7 +807,10 @@ pub fn hostfile_entries_for_address(h: &HostsFile, address: Str) -> Vec[Int] {
 /// Examples: parse("127.0.0.1  localhost\n\n::1\tip6\n") emits
 /// "127.0.0.1 localhost\n::1 ip6\n".
 /// Complexity: O(total output length).
-pub fn hostfile_emit(h: &HostsFile) -> Str {
+pub fn hostfile_emit(h: &HostsFile) -> Str
+  ensures: hostfile_entry_count(h) == 0 => result.len() == 0;
+  ensures: result.len() >= hostfile_entry_count(h);
+{
   var out = "";
   let n = hostfile_entry_count(h);
   var i = 0;

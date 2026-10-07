@@ -1,6 +1,6 @@
 # xiom.hostfile -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.hostfile` (`src/hostfile.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -293,3 +293,52 @@ string comparison uses `xiom.string.compare.str_compare` (BUG 17).
 - Only `xiom.string`, `xiom.string.compare` and `xiom.convert` are imported
   from `xiom.std` (`str_slice`, `str_lower`, `str_compare`,
   `int_to_string`). No FFI, no new dependencies.
+
+## Contracts (batch #33 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/hostfile.xi` in the batch
+#33 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 33 clauses over all 13 public entry points; all
+are `ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+Two consecutive `& .\scripts\port.ps1 -Package xiom.hostfile -TimeoutSec 60`
+runs ended `port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the
+clauses active (5.51 s and 5.30 s); the 24-check conformance suite exercises
+every entry point -- including the out-of-range accessor guards (t24), the
+lookup and emit paths (t13-t17) and the hostname-length boundaries (t23) --
+and no clause trapped, so none was dropped.
+
+`xiom-verify src/hostfile.xi --check` (Z3 bundled with v0.64.0) reported
+**0 proven / 0 violated / 31 unknown / 3 errors**; the 3 errors are the known
+SMT emitter bug on the private leaf helpers (`unknown constant
+_hf_find_colon` / `_hf_ipv6_canonical`, "not a proof failure of the code
+under test"), and every clause is skipped because the emitter cannot encode
+`Str`/`Vec` lengths, `Option`/`Result` tags or cross-call expressions. All 33
+are enforced by the v0.64.0 runtime evaluator when the suite runs.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `hostfile_hostname_valid` | `s.len() == 0 => !result`; `s.len() > 253 => !result`; `result => s.len() >= 1 && s.len() <= 253` | runtime-checked (`Bool` guard pair + `Str` length band, 253 inlined) |
+| `hostfile_address_normalize` | `s.len() == 0 => result is None`; `result is Some => s.len() >= 2` | runtime-checked (`Option` tag + `Str` length; 2 is the `::` minimum) |
+| `hostfile_address_valid` | `s.len() == 0 => !result`; `result => s.len() >= 2` | runtime-checked (`Bool` guard pair + `Str` length) |
+| `hostfile_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked (`Result` tag + `Str` length; no payload read) |
+| `hostfile_entry_count` | `result >= 0`; `result <= h.addresses.len()`; `h.addresses.len() == 0 => result == 0` | runtime-checked (min-of-lens vs struct-field `Vec` length) |
+| `hostfile_address` | `i < 0 => result is None`; `i >= hostfile_entry_count(h) => result is None`; `result is Some => i >= 0 && i < h.addresses.len()` | runtime-checked (`Option` tag + count cross-call) |
+| `hostfile_line` | `i < 0 => result == 0`; `i >= hostfile_entry_count(h) => result == 0`; `result != 0 => i >= 0 && i < h.lines.len()` | runtime-checked (scalar sentinel + count cross-call) |
+| `hostfile_hostname_count` | `i < 0 => result == 0`; `i >= hostfile_entry_count(h) => result == 0`; `result >= 0` | runtime-checked (scalar sentinel + count cross-call) |
+| `hostfile_hostnames` | `result.len() == hostfile_hostname_count(h, i)`; `i < 0 => result.len() == 0`; `i >= hostfile_entry_count(h) => result.len() == 0` | runtime-checked (built `Vec` length + count cross-call) |
+| `hostfile_lookup_index` | `hostfile_entry_count(h) == 0 => result == -1`; `result != -1 => result >= 0 && result < hostfile_entry_count(h)`; `result >= -1` | runtime-checked (scalar sentinel + count cross-call) |
+| `hostfile_lookup` | `hostfile_lookup_index(h, hostname) < 0 => result is None`; `result is Some => hostfile_lookup_index(h, hostname) >= 0` | runtime-checked (`Option` tag + index cross-call) |
+| `hostfile_entries_for_address` | `result.len() <= hostfile_entry_count(h)`; `hostfile_entry_count(h) == 0 => result.len() == 0` | runtime-checked (built `Vec` length + count cross-call) |
+| `hostfile_emit` | `hostfile_entry_count(h) == 0 => result.len() == 0`; `result.len() >= hostfile_entry_count(h)` | runtime-checked (built `Str` length + count cross-call) |
+
+All 33 clauses hold for hand-built `HostsFile` documents as well: the sentinel
+and `Some` guards observe `Option` tags and `.len()` values only,
+`hostfile_entry_count` is the smallest of the four parallel entry vectors (so
+the count cross-call clauses see the clamped indices), and `hostfile_emit`
+writes at least one LF per reported entry even when the stored address is
+empty and the entry's hostname slice clamps to zero, so
+`result.len() >= hostfile_entry_count(h)` is retained. Only the three public
+non-re-entrant cross-calls (`hostfile_entry_count`,
+`hostfile_hostname_count`, `hostfile_lookup_index`) appear in clauses; no
+clause reads a parse `Ok` payload, and no `@pre` frame is claimed (no public
+`&mut` parameter exists).
