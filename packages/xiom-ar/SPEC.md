@@ -1,8 +1,6 @@
 # xiom.ar -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.ar`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/ar.xi` (`module xiom.ar`).
 Depends on `xiom.std` (`xiom.string`: `byte_at`, `str_slice`); the tests
 additionally use `xiom.test`, `xiom.io`, `xiom.string`, `xiom.string.compare`
@@ -319,7 +317,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.ar
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=20 failed=0 program_exit=0 exit=0)`.
 
 The pinned canonical bytes were additionally cross-checked with
@@ -371,3 +369,47 @@ non-goals).
   and fills the missing argument with 0. Test helpers therefore build
   short vectors with explicit `Vec[Int]` pushes.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #34 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/ar.xi` in the batch #34
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 31 clauses across the 14 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.ar -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses active
+(6.75 s and 6.67 s); the 20-check conformance suite exercises every entry
+point and no clause trapped. No clause was dropped and none was probe-gated.
+No clause calls a function, none reads a `Result` payload, and none touches
+the `&mut Vec[UInt8] out` parameter of `ar_append` (C-PULSE-04); the accessor
+sentinels are one-way guard pairs.
+
+`xiom-verify src/ar.xi --check` (Z3 bundled with v0.64.0) reported
+**0 proven / 0 violated / 31 unknown / 5 errors**; the 5 errors are the known
+SMT emitter bug (`unknown constant _magic_ok` / `_err_archive` / `out`,
+"invalid function application"), not clause failures, and the output states
+"not a proof failure of the code under test". Every clause has at least one
+operand (field lengths, `Result` tags) whose sort the emitter cannot resolve,
+so all 31 clauses are **runtime-checked** and enforced by the v0.64.0
+evaluator when the suite runs; no Z3 proof is claimed. The generated
+`xiom_verify_output.smt2` was deleted by literal path.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `ar_global` | `ensures: result.len() == 8` | runtime-checked (built vector length) |
+| `ar_parse` | `ensures: data.len() < 8 => result is Err`; `ensures: result is Ok => data.len() >= 8` | runtime-checked (parameter length + `Result` tag) |
+| `ar_count` | `ensures: result == a.names.len()`; `ensures: result >= 0` | runtime-checked (field length) |
+| `ar_entry_name` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= a.names.len() => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < a.names.len()` | runtime-checked (built `Str` length; one-way sentinel) |
+| `ar_entry_header_offset` / `ar_entry_size` / `ar_entry_data_offset` / `ar_entry_mtime` / `ar_entry_uid` / `ar_entry_gid` / `ar_entry_mode` | `ensures: i < 0 => result == -1`; `ensures: i >= a.<vector>.len() => result == -1` (each accessor against its own vector) | runtime-checked (`-1` guard pair on a field length) |
+| `ar_entry_data` | `ensures: i < 0 => result is Err`; `ensures: i >= a.names.len() => result is Err`; `ensures: result is Ok => i >= 0 && i < a.names.len()` | runtime-checked (`Result` tag + field length) |
+| `ar_append` | `ensures: meta.len() != 4 => result is Err`; `ensures: name.len() == 0 => result is Err`; `ensures: name.len() > 255 => result is Err` | runtime-checked (parameter lengths; the `out` buffer is never read) |
+| `ar_build` | `ensures: names.len() != datas.len() => result is Err`; `ensures: metas.len() != names.len() * 4 => result is Err`; `ensures: names.len() == 0 && datas.len() == 0 && metas.len() == 0 => result is Ok` | runtime-checked (parallel vector lengths + `Result` tag) |
+
+Source-shape notes pinned by the clauses:
+
+- The accessor sentinels are one-way guard pairs (`i < 0` and `i >= len`
+  imply `-1`), matching the `dimacs_literal` / `ble_type` family.
+- The guards hold for hand-built archives too: only vector lengths are read,
+  never payloads and never `@pre` frames.
+- The constants `8`, `4` and `255` are inlined because module constants are
+  not usable in clauses.

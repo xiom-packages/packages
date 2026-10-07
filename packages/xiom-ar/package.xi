@@ -9,7 +9,7 @@
 
 package xiom_ar {
   name: "xiom.ar";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Unix ar archive codec: parse and build common-format member headers";
   categories: ["data"];
   keywords: ["ar", "archive", "unix", "format"];

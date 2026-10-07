@@ -468,7 +468,9 @@ fn _write_member(out: &mut Vec[UInt8], name: Str, mtime: Int, uid: Int, gid: Int
 /// The eight global magic bytes, "!<arch>\n". Every archive starts with
 /// them; `ar_append` writes members only, so compose it with `ar_append` for
 /// streaming builds or use `ar_build`. Complexity: O(1).
-pub fn ar_global() -> Vec[UInt8] {
+pub fn ar_global() -> Vec[UInt8]
+  ensures: result.len() == 8;
+{
   var out = Vec[UInt8].new();
   out.push(33 as UInt8);
   out.push(60 as UInt8);
@@ -509,7 +511,10 @@ pub fn ar_global() -> Vec[UInt8] {
 /// are read from the start of the member data and excluded from
 /// `sizes`/`data_offsets`. A magic-only buffer parses to zero entries.
 /// Complexity: O(data.len()).
-pub fn ar_parse(data: &Vec[UInt8]) -> Result[ArArchive, Str] {
+pub fn ar_parse(data: &Vec[UInt8]) -> Result[ArArchive, Str]
+  ensures: data.len() < 8 => result is Err;
+  ensures: result is Ok => data.len() >= 8;
+{
   if !_magic_ok(data) {
     return _err_archive("ar: bad global magic");
   }
@@ -637,14 +642,21 @@ pub fn ar_parse(data: &Vec[UInt8]) -> Result[ArArchive, Str] {
 }
 
 /// Number of parsed members. Complexity: O(1).
-pub fn ar_count(a: &ArArchive) -> Int {
+pub fn ar_count(a: &ArArchive) -> Int
+  ensures: result == a.names.len();
+  ensures: result >= 0;
+{
   return a.names.len();
 }
 
 /// Name of entry `i`, or "" when `i` is out of range. The result is a Str
 /// read from a Vec[Str] field: callers must compare it with
 /// xiom.string.compare.str_compare rather than `==`. Complexity: O(1).
-pub fn ar_entry_name(a: &ArArchive, i: Int) -> Str {
+pub fn ar_entry_name(a: &ArArchive, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= a.names.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < a.names.len();
+{
   if i < 0 || i >= a.names.len() {
     return "";
   }
@@ -654,7 +666,10 @@ pub fn ar_entry_name(a: &ArArchive, i: Int) -> Str {
 
 /// Absolute offset of entry `i`'s 60-byte member header in the parse buffer;
 /// -1 out of range. Complexity: O(1).
-pub fn ar_entry_header_offset(a: &ArArchive, i: Int) -> Int {
+pub fn ar_entry_header_offset(a: &ArArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.header_offsets.len() => result == -1;
+{
   if i < 0 || i >= a.header_offsets.len() {
     return -1;
   }
@@ -664,7 +679,10 @@ pub fn ar_entry_header_offset(a: &ArArchive, i: Int) -> Int {
 
 /// Payload size of entry `i` in bytes (BSD name bytes excluded); -1 out of
 /// range. Complexity: O(1).
-pub fn ar_entry_size(a: &ArArchive, i: Int) -> Int {
+pub fn ar_entry_size(a: &ArArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.sizes.len() => result == -1;
+{
   if i < 0 || i >= a.sizes.len() {
     return -1;
   }
@@ -675,7 +693,10 @@ pub fn ar_entry_size(a: &ArArchive, i: Int) -> Int {
 /// Absolute offset of entry `i`'s first payload byte in the parse buffer
 /// (just past the BSD name bytes when used); -1 out of range.
 /// Complexity: O(1).
-pub fn ar_entry_data_offset(a: &ArArchive, i: Int) -> Int {
+pub fn ar_entry_data_offset(a: &ArArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.data_offsets.len() => result == -1;
+{
   if i < 0 || i >= a.data_offsets.len() {
     return -1;
   }
@@ -685,7 +706,10 @@ pub fn ar_entry_data_offset(a: &ArArchive, i: Int) -> Int {
 
 /// Modification time of entry `i` (seconds since the epoch, as stored);
 /// -1 out of range. Complexity: O(1).
-pub fn ar_entry_mtime(a: &ArArchive, i: Int) -> Int {
+pub fn ar_entry_mtime(a: &ArArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.mtimes.len() => result == -1;
+{
   if i < 0 || i >= a.mtimes.len() {
     return -1;
   }
@@ -694,7 +718,10 @@ pub fn ar_entry_mtime(a: &ArArchive, i: Int) -> Int {
 }
 
 /// User id of entry `i`; -1 out of range. Complexity: O(1).
-pub fn ar_entry_uid(a: &ArArchive, i: Int) -> Int {
+pub fn ar_entry_uid(a: &ArArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.uids.len() => result == -1;
+{
   if i < 0 || i >= a.uids.len() {
     return -1;
   }
@@ -703,7 +730,10 @@ pub fn ar_entry_uid(a: &ArArchive, i: Int) -> Int {
 }
 
 /// Group id of entry `i`; -1 out of range. Complexity: O(1).
-pub fn ar_entry_gid(a: &ArArchive, i: Int) -> Int {
+pub fn ar_entry_gid(a: &ArArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.gids.len() => result == -1;
+{
   if i < 0 || i >= a.gids.len() {
     return -1;
   }
@@ -713,7 +743,10 @@ pub fn ar_entry_gid(a: &ArArchive, i: Int) -> Int {
 
 /// File mode of entry `i` (decoded from the ASCII octal mode field); -1 out
 /// of range. Complexity: O(1).
-pub fn ar_entry_mode(a: &ArArchive, i: Int) -> Int {
+pub fn ar_entry_mode(a: &ArArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.modes.len() => result == -1;
+{
   if i < 0 || i >= a.modes.len() {
     return -1;
   }
@@ -728,7 +761,11 @@ pub fn ar_entry_mode(a: &ArArchive, i: Int) -> Int {
 /// (or a hand-built archive carries a negative offset/size);
 /// Err("ar: truncated data") when the recorded range does not fit in `data`.
 /// A zero-size member yields an empty Ok. Complexity: O(size).
-pub fn ar_entry_data(data: &Vec[UInt8], a: &ArArchive, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn ar_entry_data(data: &Vec[UInt8], a: &ArArchive, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= a.names.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < a.names.len();
+{
   if i < 0 || i >= a.names.len() {
     return _err_bytes("ar: entry out of range");
   }
@@ -763,7 +800,11 @@ pub fn ar_entry_data(data: &Vec[UInt8], a: &ArArchive, i: Int) -> Result[Vec[UIn
 /// Err("ar: bad name") for an empty name; Err("ar: name too long") above
 /// AR_MAX_NAME bytes; Err("ar: field overflow") when a metadata value is
 /// negative or does not fit its field. Complexity: O(name + data).
-pub fn ar_append(out: &mut Vec[UInt8], name: Str, meta: &Vec[Int], data: &Vec[UInt8]) -> Result[Unit, Str] {
+pub fn ar_append(out: &mut Vec[UInt8], name: Str, meta: &Vec[Int], data: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: meta.len() != 4 => result is Err;
+  ensures: name.len() == 0 => result is Err;
+  ensures: name.len() > 255 => result is Err;
+{
   if meta.len() != AR_META_LEN {
     return _err_unit("ar: metadata length mismatch");
   }
@@ -788,7 +829,11 @@ pub fn ar_append(out: &mut Vec[UInt8], name: Str, meta: &Vec[Int], data: &Vec[UI
 /// metas.len() != names.len() * AR_META_LEN; otherwise the first per-entry
 /// error (the ar_append catalog). An empty build yields exactly the 8-byte
 /// global magic. Complexity: O(total name + data bytes).
-pub fn ar_build(names: &Vec[Str], datas: &Vec[Vec[UInt8]], metas: &Vec[Int]) -> Result[Vec[UInt8], Str] {
+pub fn ar_build(names: &Vec[Str], datas: &Vec[Vec[UInt8]], metas: &Vec[Int]) -> Result[Vec[UInt8], Str]
+  ensures: names.len() != datas.len() => result is Err;
+  ensures: metas.len() != names.len() * 4 => result is Err;
+  ensures: names.len() == 0 && datas.len() == 0 && metas.len() == 0 => result is Ok;
+{
   let count: Int = names.len();
   if datas.len() != count {
     return _err_bytes("ar: entry count mismatch");
