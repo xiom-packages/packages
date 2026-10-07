@@ -1,6 +1,6 @@
 # xiom.property -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.property` (`src/property.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -278,3 +278,41 @@ Coverage map:
   comparison with UInt8 constants >= 128 occurs.
 - Struct-returning functions build their report in locals and use a single
   `return PropReport{...}`; no `Ok`/`Err` constructors appear in them.
+
+## Contracts (hardening pass, 2026-10-07, batch #17)
+
+Thirteen runtime-checkable `requires:` / `ensures:` clauses were added to the
+public entry points of `src/property.xi` following the batch #17 clause plan.
+`xiom-verify --check` on v0.64.0 (bundled Z3): **0 proven / 0 violated /
+13 unknown / 0 errors** -- every obligation was skipped at SMT emission
+(unresolved operand sorts from `Rng` field access on a borrowed receiver,
+Str/Vec length obligations, call operands, and loop bodies without
+invariants), so no clause is machine-proven and none is disproven. All
+thirteen are enforced by the v0.64.0 runtime evaluator; the 26-check
+conformance suite exercises every entry point with the clauses active and two
+consecutive `scripts/port.ps1` runs were green (26/26, `program_exit=0`).
+
+| Function | Added clauses | Check |
+|---|---|---|
+| `prop_rng_next` | `ensures: result >= 1`; `ensures: result <= 2147483647`; `ensures: r.state == result` | runtime |
+| `prop_rng_range` | `requires: hi < lo \|\| hi - lo + 1 >= 1`; `ensures: hi < lo => result == lo`; `ensures: hi >= lo => result >= lo`; `ensures: hi >= lo => result <= hi` | runtime |
+| `prop_rng_string` | `ensures: len <= 0 => result.len() == 0`; `ensures: alphabet.len() == 0 => result.len() == 0`; `ensures: len > 0 => result.len() <= 4 * len` | runtime |
+| `prop_seeds` | `ensures: count <= 0 => result.len() == 0`; `ensures: count > 0 => result.len() == count` | runtime |
+| `prop_report_ok` | `ensures: result == (r.failed == 0)` | runtime |
+
+The plan classified the scalar bounds clauses (`prop_rng_next`'s
+`result >= 1` / `result <= 2147483647` and `prop_rng_range`'s three ensures)
+as Z3-provable, but the v0.64.0 emitter cannot discharge any obligation in
+this module, so all thirteen are reported as runtime-checked.
+
+No clauses on `prop_rng_new`, `prop_run_int`, `prop_run_range` or
+`prop_run_str` (struct `Rng`/`PropReport` results: struct-result payload
+access is a forbidden v0.64.0 runtime-evaluator shape), `prop_rng_bool`
+(side-effecting frame), `prop_shrink_int` (callback `f`), or the private
+helpers `_prop_mix` / `_prop_seed_at`. No clause calls another function (the
+runtime evaluator recurses on transitive callees, so `prop_rng_next` must not
+call `prop_rng_range`), no clause touches a `Result` payload, and no clause
+compares Str content (`.len()` only). The clauses are generic over any
+constructed `Rng` (no parsed-only invariants): the `prop_rng_next` bounds hold
+because of the final `& 0x7FFFFFFF` mask plus the zero safety valve, and
+`r.state == result` holds for every constructed state.

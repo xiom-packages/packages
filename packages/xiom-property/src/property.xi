@@ -76,7 +76,11 @@ pub fn prop_rng_new(seed: Int) -> Rng {
 /// irrelevant). Same state always yields the same draw.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn prop_rng_next(r: &mut Rng) -> Int {
+pub fn prop_rng_next(r: &mut Rng) -> Int
+  ensures: result >= 1;
+  ensures: result <= 2147483647;
+  ensures: r.state == result;
+{
   var h = r.state;
   h = h ^ (h >> 13);
   h = h ^ (h << 7);
@@ -104,7 +108,12 @@ pub fn prop_rng_bool(r: &mut Rng) -> Bool {
 /// + 1 must fit in an Int.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn prop_rng_range(r: &mut Rng, lo: Int, hi: Int) -> Int {
+pub fn prop_rng_range(r: &mut Rng, lo: Int, hi: Int) -> Int
+  requires: hi < lo || hi - lo + 1 >= 1;
+  ensures: hi < lo => result == lo;
+  ensures: hi >= lo => result >= lo;
+  ensures: hi >= lo => result <= hi;
+{
   if hi < lo { return lo; }
   let span = hi - lo + 1;
   let v = prop_rng_next(r);
@@ -122,7 +131,11 @@ pub fn prop_rng_range(r: &mut Rng, lo: Int, hi: Int) -> Int {
 /// characters are copied whole and never split.
 /// Error case: none.
 /// Complexity: O(|alphabet| + result length).
-pub fn prop_rng_string(r: &mut Rng, len: Int, alphabet: Str) -> Str {
+pub fn prop_rng_string(r: &mut Rng, len: Int, alphabet: Str) -> Str
+  ensures: len <= 0 => result.len() == 0;
+  ensures: alphabet.len() == 0 => result.len() == 0;
+  ensures: len > 0 => result.len() <= 4 * len;
+{
   if len <= 0 { return ""; }
   let alen = alphabet.len();
   if alen == 0 { return ""; }
@@ -184,7 +197,10 @@ fn _prop_seed_at(base: Int, index: Int) -> Int {
 /// distinct for arbitrary inputs).
 /// Error case: none.
 /// Complexity: O(count).
-pub fn prop_seeds(count: Int, base: Int) -> Vec[Int] {
+pub fn prop_seeds(count: Int, base: Int) -> Vec[Int]
+  ensures: count <= 0 => result.len() == 0;
+  ensures: count > 0 => result.len() == count;
+{
   var out = Vec[Int].new();
   var i = 0;
   while i < count {
@@ -293,7 +309,9 @@ pub fn prop_run_str(f: fn(&Str) -> Bool, seeds: &Vec[Int], max_len: Int, alphabe
 }
 
 /// True when the run recorded no failure. Complexity: O(1).
-pub fn prop_report_ok(r: &PropReport) -> Bool {
+pub fn prop_report_ok(r: &PropReport) -> Bool
+  ensures: result == (r.failed == 0);
+{
   return r.failed == 0;
 }
 
