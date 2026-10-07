@@ -1,8 +1,6 @@
 # xiom.radiotap -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.radiotap`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/radiotap.xi` (`module xiom.radiotap`).
 Depends on `xiom.std`; the library module imports nothing (the tests import
 `xiom.test`, `xiom.io` and `xiom.string.compare`).
@@ -378,7 +376,58 @@ Last verified: compiler 0.61.3,
   `xiom.string.compare.str_compare` (BUG 17: `==` on a Str read from a
   `Vec` lowers to a pointer comparison).
 - Note for reviewers: a previous revision of `_push_field` used
-  `Vec<UInt8>` (angle brackets) in a parameter type; v0.61.3 accepted it
-  silently, so the whole package is grep-audited for `Vec<`/`Result<`
+  angle-bracket generic syntax in a parameter type; v0.61.3 accepted it
+  silently, so the whole package is audited for angle-bracket generics
   instead of relying on the compiler.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #32 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/radiotap.xi` (compiler
+v0.64.0; no version bump): 30 clauses over the 16 public entry points. Two
+consecutive `.\scripts\port.ps1 -Package xiom.radiotap -TimeoutSec 60` runs
+ended `port: PASS (passed=19 failed=0 program_exit=0 exit=0)` (5.69 s and
+5.51 s) with the clauses active and no clause trapped, so none was dropped.
+
+All 30 clauses are **runtime-checked only**; no Z3 proof was attempted in
+this pass, and every clause also holds over the hand-built negative
+`RadiotapHeader` cases in the conformance suite.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `radiotap_parse` | `data.len() < 8 => result is Err`; `result is Ok => data.len() >= 8` | runtime-checked |
+| `radiotap_emit` | `h.version != 0 => result is Err`; `h.bits.len() != h.values.len() => result is Err`; `result is Ok => h.bits.len() == h.values.len()` | runtime-checked |
+| `radiotap_version` | `result == h.version` | runtime-checked |
+| `radiotap_length` | `result == h.length` | runtime-checked |
+| `radiotap_present_count` | `result == h.present_words` | runtime-checked |
+| `radiotap_present_word` | `i < 0 => result == -1`; `i >= h.present_words => result == -1`; `result != -1 => i >= 0 && i < h.present_words` | runtime-checked |
+| `radiotap_field_count` | `result == h.bits.len()` | runtime-checked |
+| `radiotap_field_bit` | `i < 0 => result == -1`; `i >= h.bits.len() => result == -1`; `result != -1 => i >= 0 && i < h.bits.len()` | runtime-checked |
+| `radiotap_field_value_at` | `i < 0 => result is Err`; `i >= h.values.len() => result is Err`; `result is Ok => i >= 0 && i < h.values.len()` | runtime-checked |
+| `radiotap_find` | `h.bits.len() == 0 => result == -1`; `result != -1 => result >= 0 && result < h.bits.len()` | runtime-checked |
+| `radiotap_value` | `h.bits.len() == 0 => result is Err`; `radiotap_find(h, bit) < 0 => result is Err` (sole cross-call, safe: `radiotap_find` never calls `radiotap_value`) | runtime-checked |
+| `radiotap_channel_freq` | `radiotap_find(h, 3) < 0 => result == -1`; `result != -1 => result <= 65535` (no `>= 0` claim: hand-built stored values may be negative) | runtime-checked |
+| `radiotap_channel_flags` | `radiotap_find(h, 3) < 0 => result == -1` (absence guard only) | runtime-checked |
+| `radiotap_frame_offset` | `result == h.frame_off` | runtime-checked |
+| `radiotap_frame_length` | `result == h.frame_len` | runtime-checked |
+| `radiotap_frame` | `h.frame_off < 0 || h.frame_len < 0 => result is Err`; `h.frame_off + h.frame_len > data.len() => result is Err`; `result is Ok => h.frame_off >= 0 && h.frame_len >= 0` | runtime-checked |
+
+Source-shape notes pinned by the clauses:
+
+- The parse gate is claimed only as `data.len() < 8 => Err` plus the
+  contrapositive reading `Ok => data.len() >= 8`; emit carries no encoded
+  length claim, matching the plan.
+- The sentinel trios mirror their source fields exactly: `present_word`
+  guards on `h.present_words`, `field_bit` on `h.bits`, and
+  `field_value_at` on `h.values`.
+- `radiotap_value` carries the only cross-call clause in the package;
+  `radiotap_find` never calls `radiotap_value`, so the call is
+  non-re-entrant.
+- `radiotap_channel_freq` deliberately claims only `<= 65535`: a hand-built
+  stored CHANNEL value may be negative, so a `>= 0` claim would be
+  falsifiable. `radiotap_channel_flags` keeps the absence guard only
+  (`v / 65536` of a hand-built negative is unbounded below).
+- No clause reads a `&mut` parameter, a `Result` payload, a tuple component
+  or a struct-`Result` payload field; the non-`&mut` parameters and
+  `RadiotapHeader` fields are the only clause inputs.
+- No clause-read parameter name is shadowed by a local in its function.

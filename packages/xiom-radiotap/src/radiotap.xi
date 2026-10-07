@@ -417,7 +417,10 @@ fn _push_field(out: &mut Vec[UInt8], bit: Int, v: Int) {
 ///     the signed Int result);
 ///   * `radiotap: length mismatch` -- fields end before `length`.
 /// Complexity: O(fields + length) time, O(fields) space.
-pub fn radiotap_parse(data: &Vec[UInt8]) -> Result[RadiotapHeader, Str] {
+pub fn radiotap_parse(data: &Vec[UInt8]) -> Result[RadiotapHeader, Str]
+  ensures: data.len() < 8 => result is Err;
+  ensures: result is Ok => data.len() >= 8;
+{
   let n = data.len();
   if n < 8 {
     return _err_header("radiotap: truncated header");
@@ -521,7 +524,11 @@ pub fn radiotap_parse(data: &Vec[UInt8]) -> Result[RadiotapHeader, Str] {
 ///   * `radiotap: field value out of range` -- value not representable by
 ///     the field's width/signedness.
 /// Complexity: O(fields + encoded size) time.
-pub fn radiotap_emit(h: &RadiotapHeader) -> Result[Vec[UInt8], Str] {
+pub fn radiotap_emit(h: &RadiotapHeader) -> Result[Vec[UInt8], Str]
+  ensures: h.version != 0 => result is Err;
+  ensures: h.bits.len() != h.values.len() => result is Err;
+  ensures: result is Ok => h.bits.len() == h.values.len();
+{
   if h.version != 0 {
     return _err_bytes("radiotap: bad version");
   }
@@ -595,26 +602,36 @@ pub fn radiotap_emit(h: &RadiotapHeader) -> Result[Vec[UInt8], Str] {
 
 /// Version byte of a parsed header (0 for every accepted header).
 /// Complexity: O(1).
-pub fn radiotap_version(h: &RadiotapHeader) -> Int {
+pub fn radiotap_version(h: &RadiotapHeader) -> Int
+  ensures: result == h.version;
+{
   return h.version;
 }
 
 /// Declared header length in bytes: the offset of the first 802.11 frame
 /// byte. Complexity: O(1).
-pub fn radiotap_length(h: &RadiotapHeader) -> Int {
+pub fn radiotap_length(h: &RadiotapHeader) -> Int
+  ensures: result == h.length;
+{
   return h.length;
 }
 
 /// Number of present bitmap words (1, or 2 when word 0 chained).
 /// Complexity: O(1).
-pub fn radiotap_present_count(h: &RadiotapHeader) -> Int {
+pub fn radiotap_present_count(h: &RadiotapHeader) -> Int
+  ensures: result == h.present_words;
+{
   return h.present_words;
 }
 
 /// Present bitmap word `i` (0 or 1), or -1 when `i` is out of range for
 /// this header. Word 1 of a two-word header may legitimately be 0, so -1 is
 /// the only out-of-range marker. Complexity: O(1).
-pub fn radiotap_present_word(h: &RadiotapHeader, i: Int) -> Int {
+pub fn radiotap_present_word(h: &RadiotapHeader, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= h.present_words => result == -1;
+  ensures: result != -1 => i >= 0 && i < h.present_words;
+{
   if i < 0 {
     return -1;
   }
@@ -629,13 +646,19 @@ pub fn radiotap_present_word(h: &RadiotapHeader, i: Int) -> Int {
 
 /// Number of parsed fields (one per set, supported present bit).
 /// Complexity: O(1).
-pub fn radiotap_field_count(h: &RadiotapHeader) -> Int {
+pub fn radiotap_field_count(h: &RadiotapHeader) -> Int
+  ensures: result == h.bits.len();
+{
   return h.bits.len();
 }
 
 /// Present bit of field `i` in pool order (ascending), or -1 when `i` is
 /// negative or >= radiotap_field_count(h). Complexity: O(1).
-pub fn radiotap_field_bit(h: &RadiotapHeader, i: Int) -> Int {
+pub fn radiotap_field_bit(h: &RadiotapHeader, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= h.bits.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < h.bits.len();
+{
   if i < 0 {
     return -1;
   }
@@ -649,7 +672,11 @@ pub fn radiotap_field_bit(h: &RadiotapHeader, i: Int) -> Int {
 /// Value of field `i` in pool order. Err("radiotap: field index out of
 /// range") when `i` is negative or >= radiotap_field_count(h).
 /// Complexity: O(1).
-pub fn radiotap_field_value_at(h: &RadiotapHeader, i: Int) -> Result[Int, Str] {
+pub fn radiotap_field_value_at(h: &RadiotapHeader, i: Int) -> Result[Int, Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= h.values.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < h.values.len();
+{
   if i < 0 {
     return _err_int("radiotap: field index out of range");
   }
@@ -665,7 +692,10 @@ pub fn radiotap_field_value_at(h: &RadiotapHeader, i: Int) -> Result[Int, Str] {
 /// so the first match is the only match for parsed headers; for a
 /// hand-built header with duplicates the lowest index wins.
 /// Complexity: O(fields).
-pub fn radiotap_find(h: &RadiotapHeader, bit: Int) -> Int {
+pub fn radiotap_find(h: &RadiotapHeader, bit: Int) -> Int
+  ensures: h.bits.len() == 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result < h.bits.len();
+{
   var i = 0;
   let n = h.bits.len();
   while i < n {
@@ -681,7 +711,10 @@ pub fn radiotap_find(h: &RadiotapHeader, bit: Int) -> Int {
 /// Value recorded for the first field with present bit `bit`.
 /// Err("radiotap: field absent") when no parsed field has that bit.
 /// Complexity: O(fields).
-pub fn radiotap_value(h: &RadiotapHeader, bit: Int) -> Result[Int, Str] {
+pub fn radiotap_value(h: &RadiotapHeader, bit: Int) -> Result[Int, Str]
+  ensures: h.bits.len() == 0 => result is Err;
+  ensures: radiotap_find(h, bit) < 0 => result is Err;
+{
   let i: Int = radiotap_find(h, bit);
   if i < 0 {
     return _err_int("radiotap: field absent");
@@ -692,7 +725,10 @@ pub fn radiotap_value(h: &RadiotapHeader, bit: Int) -> Result[Int, Str] {
 
 /// Frequency in MHz of the CHANNEL field (bit 3, low 16 bits of the stored
 /// value), or -1 when the header has no CHANNEL field. Complexity: O(fields).
-pub fn radiotap_channel_freq(h: &RadiotapHeader) -> Int {
+pub fn radiotap_channel_freq(h: &RadiotapHeader) -> Int
+  ensures: radiotap_find(h, 3) < 0 => result == -1;
+  ensures: result != -1 => result <= 65535;
+{
   let i: Int = radiotap_find(h, 3);
   if i < 0 {
     return -1;
@@ -703,7 +739,9 @@ pub fn radiotap_channel_freq(h: &RadiotapHeader) -> Int {
 
 /// Channel flags of the CHANNEL field (bit 3, high 16 bits of the stored
 /// value), or -1 when the header has no CHANNEL field. Complexity: O(fields).
-pub fn radiotap_channel_flags(h: &RadiotapHeader) -> Int {
+pub fn radiotap_channel_flags(h: &RadiotapHeader) -> Int
+  ensures: radiotap_find(h, 3) < 0 => result == -1;
+{
   let i: Int = radiotap_find(h, 3);
   if i < 0 {
     return -1;
@@ -714,13 +752,17 @@ pub fn radiotap_channel_flags(h: &RadiotapHeader) -> Int {
 
 /// Absolute offset of the first 802.11 frame byte in the parsed buffer
 /// (equal to the header length). Complexity: O(1).
-pub fn radiotap_frame_offset(h: &RadiotapHeader) -> Int {
+pub fn radiotap_frame_offset(h: &RadiotapHeader) -> Int
+  ensures: result == h.frame_off;
+{
   return h.frame_off;
 }
 
 /// Number of 802.11 frame bytes after the header in the buffer that was
 /// parsed. Complexity: O(1).
-pub fn radiotap_frame_length(h: &RadiotapHeader) -> Int {
+pub fn radiotap_frame_length(h: &RadiotapHeader) -> Int
+  ensures: result == h.frame_len;
+{
   return h.frame_len;
 }
 
@@ -729,7 +771,11 @@ pub fn radiotap_frame_length(h: &RadiotapHeader) -> Int {
 /// Err("radiotap: frame out of bounds") when the recorded span does not fit
 /// in `data` (for example when a shorter buffer is passed). A header with
 /// no trailing frame yields an empty Ok. Complexity: O(frame_len).
-pub fn radiotap_frame(data: &Vec[UInt8], h: &RadiotapHeader) -> Result[Vec[UInt8], Str] {
+pub fn radiotap_frame(data: &Vec[UInt8], h: &RadiotapHeader) -> Result[Vec[UInt8], Str]
+  ensures: h.frame_off < 0 || h.frame_len < 0 => result is Err;
+  ensures: h.frame_off + h.frame_len > data.len() => result is Err;
+  ensures: result is Ok => h.frame_off >= 0 && h.frame_len >= 0;
+{
   let off: Int = h.frame_off;
   let len: Int = h.frame_len;
   if off < 0 || len < 0 {
