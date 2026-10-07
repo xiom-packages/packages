@@ -1,8 +1,9 @@
 # xiom.ngram -- Specification
 
-Status: `incubating` (implemented, harness-green, not published).
+Status: `stable` (harness-green on compiler 0.64.0; contract hardening in
+0.1.2).
 Module: `xiom.ngram` (`src/ngram.xi`). Manifest: `package.xi` (name
-`xiom.ngram`, version `0.1.0`). Pure XIOM, no FFI. Depends on `xiom.std`
+`xiom.ngram`, version `0.1.2`). Pure XIOM, no FFI. Depends on `xiom.std`
 (`xiom.string`, `xiom.string.compare`, `xiom.convert.int`).
 
 ## 1. Scope
@@ -240,3 +241,44 @@ program_exit=0 exit=0)`.
   `2^32`; the subsequent `% 4294967296` keeps every intermediate below `2^56`.
 - Only `&` (never `&mut`) is taken of locals in call sites, so the E001
   borrow-order warning does not fire.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checked contracts on all eight public entry points, using only the
+proven v0.63.1 clause families (sentinel/empty guard, exact formula, bounds,
+count invariant). Both port runs with the clauses active were green:
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` on compiler 0.64.0
+(pinned via `XIOM_COMPILER`) in 18.5 s and 16.6 s.
+
+| Entry point | Contract | Solver |
+|---|---|---|
+| `ngram_words` | `ensures: text.len() == 0 => result.len() == 0`; `ensures: result.len() <= text.len()` | runtime-checked |
+| `ngram_shingles` | `ensures: n < 1 => result.len() == 0`; `ensures: words.len() < n => result.len() == 0`; `ensures: n >= 1 && words.len() >= n => result.len() == words.len() - n + 1` | runtime-checked |
+| `ngram_char_shingles` | `ensures: n < 1 => result.len() == 0`; `ensures: text.len() < n => result.len() == 0`; `ensures: n >= 1 && text.len() >= n => result.len() == text.len() - n + 1` | runtime-checked |
+| `ngram_unique` | `ensures: result.len() <= shingles.len()`; `ensures: shingles.len() == 0 => result.len() == 0` | runtime-checked |
+| `ngram_jaccard` | `ensures: result >= 0`; `ensures: result <= 1000`; `ensures: a.len() == 0 && b.len() == 0 => result == 0` | runtime-checked |
+| `ngram_dice` | `ensures: result >= 0`; `ensures: result <= 1000`; `ensures: a.len() == 0 && b.len() == 0 => result == 0` | runtime-checked |
+| `ngram_minhash_signature` | `ensures: hashes < 1 => result.len() == 0`; `ensures: hashes >= 1 => result.len() == hashes` | runtime-checked |
+| `ngram_signature_similarity` | `ensures: a.len() != b.len() => result == 0`; `ensures: a.len() == 0 && b.len() == 0 => result == 0`; `ensures: a.len() == b.len() => result >= 0 && result <= 1000` | runtime-checked |
+
+21 clauses across the eight entry points (2/3/3/2/3/3/2/3), all from the
+batch #17 plan with no deviations and none dropped. The 22-check conformance
+suite exercises every entry point on the happy path and on the degenerate
+paths (`""`, separator-only text, `n < 1`, `words.len() < n`, empty
+shingle/signature pairs, `hashes < 1`) with the clauses active, so the
+runtime evaluator enforces each clause during the suite.
+
+No clause is marked Z3-provable: every one quantifies over `result.len()` or
+a `Vec` parameter `.len()` (unsupported-length unknowns for the SMT emitter),
+and the `Int`-returning similarity bounds would need body reasoning over the
+`ngram_unique` / `_intersection_size` helpers, which the solver does not
+unfold. This matches the batch plan's `R` (runtime) marking for all 21.
+
+Deliberately excluded (documented, not asserted): element-level facts
+(shingle string values, MinHash slot ranges `0..2^32-1`, signature element
+equality) and any clause that would call a sibling function
+(`ngram_unique`, `_intersection_size`) from `ngram_jaccard` / `ngram_dice` /
+`ngram_signature_similarity`; those stay pinned by the test plan in
+section 9. No clause uses the forbidden v0.63.1 runtime-evaluator shapes
+(tuple-component access, payload-length-vs-parameter, struct-result payload
+fields, or transitive-callee calls).

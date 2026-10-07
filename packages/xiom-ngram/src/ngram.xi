@@ -114,7 +114,10 @@ fn _minhash_hash(seed: Int, slot: Int, shingle: Str) -> Int {
 /// separator-only text.
 /// Errors: none.
 /// Complexity: O(n).
-pub fn ngram_words(text: Str) -> Vec[Str] {
+pub fn ngram_words(text: Str) -> Vec[Str]
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: result.len() <= text.len();
+{
   var out = Vec[Str].new();
   let len = text.len();
   var i = 0;
@@ -146,7 +149,11 @@ pub fn ngram_words(text: Str) -> Vec[Str] {
 /// at least n words; [] when n < 1 or words.len() < n.
 /// Errors: none.
 /// Complexity: O(n * window length) over the joined output.
-pub fn ngram_shingles(words: &Vec[Str], n: Int) -> Vec[Str] {
+pub fn ngram_shingles(words: &Vec[Str], n: Int) -> Vec[Str]
+  ensures: n < 1 => result.len() == 0;
+  ensures: words.len() < n => result.len() == 0;
+  ensures: n >= 1 && words.len() >= n => result.len() == words.len() - n + 1;
+{
   var out = Vec[Str].new();
   if n < 1 {
     return out;
@@ -181,7 +188,11 @@ pub fn ngram_shingles(words: &Vec[Str], n: Int) -> Vec[Str] {
 /// text.len() >= n; [] otherwise.
 /// Errors: none.
 /// Complexity: O(n * (len - n + 1)) over the copied bytes.
-pub fn ngram_char_shingles(text: Str, n: Int) -> Vec[Str] {
+pub fn ngram_char_shingles(text: Str, n: Int) -> Vec[Str]
+  ensures: n < 1 => result.len() == 0;
+  ensures: text.len() < n => result.len() == 0;
+  ensures: n >= 1 && text.len() >= n => result.len() == text.len() - n + 1;
+{
   var out = Vec[Str].new();
   if n < 1 {
     return out;
@@ -204,7 +215,10 @@ pub fn ngram_char_shingles(text: Str, n: Int) -> Vec[Str] {
 /// first occurrence; [] for an empty input.
 /// Errors: none.
 /// Complexity: O(n^2) str_compare calls, O(n) output.
-pub fn ngram_unique(shingles: &Vec[Str]) -> Vec[Str] {
+pub fn ngram_unique(shingles: &Vec[Str]) -> Vec[Str]
+  ensures: result.len() <= shingles.len();
+  ensures: shingles.len() == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < shingles.len() {
@@ -225,7 +239,11 @@ pub fn ngram_unique(shingles: &Vec[Str]) -> Vec[Str] {
 /// empty) or when either union side is empty.
 /// Errors: none.
 /// Complexity: O(n*m) str_compare calls (n, m = distinct sizes).
-pub fn ngram_jaccard(a: &Vec[Str], b: &Vec[Str]) -> Int {
+pub fn ngram_jaccard(a: &Vec[Str], b: &Vec[Str]) -> Int
+  ensures: result >= 0;
+  ensures: result <= 1000;
+  ensures: a.len() == 0 && b.len() == 0 => result == 0;
+{
   let ua = ngram_unique(a);
   let ub = ngram_unique(b);
   let inter = _intersection_size(&ua, &ub);
@@ -244,7 +262,11 @@ pub fn ngram_jaccard(a: &Vec[Str], b: &Vec[Str]) -> Int {
 /// set is empty.
 /// Errors: none.
 /// Complexity: O(n*m) str_compare calls (n, m = distinct sizes).
-pub fn ngram_dice(a: &Vec[Str], b: &Vec[Str]) -> Int {
+pub fn ngram_dice(a: &Vec[Str], b: &Vec[Str]) -> Int
+  ensures: result >= 0;
+  ensures: result <= 1000;
+  ensures: a.len() == 0 && b.len() == 0 => result == 0;
+{
   let ua = ngram_unique(a);
   let ub = ngram_unique(b);
   let inter = _intersection_size(&ua, &ub);
@@ -266,7 +288,10 @@ pub fn ngram_dice(a: &Vec[Str], b: &Vec[Str]) -> Int {
 /// when `shingles` is empty; [] when hashes < 1.
 /// Errors: none.
 /// Complexity: O(hashes * shingles * key length).
-pub fn ngram_minhash_signature(shingles: &Vec[Str], hashes: Int, seed: Int) -> Vec[Int] {
+pub fn ngram_minhash_signature(shingles: &Vec[Str], hashes: Int, seed: Int) -> Vec[Int]
+  ensures: hashes < 1 => result.len() == 0;
+  ensures: hashes >= 1 => result.len() == hashes;
+{
   var out = Vec[Int].new();
   if hashes < 1 {
     return out;
@@ -307,7 +332,11 @@ pub fn ngram_minhash_signature(shingles: &Vec[Str], hashes: Int, seed: Int) -> V
 /// when both are empty.
 /// Errors: none.
 /// Complexity: O(length).
-pub fn ngram_signature_similarity(a: &Vec[Int], b: &Vec[Int]) -> Int {
+pub fn ngram_signature_similarity(a: &Vec[Int], b: &Vec[Int]) -> Int
+  ensures: a.len() != b.len() => result == 0;
+  ensures: a.len() == 0 && b.len() == 0 => result == 0;
+  ensures: a.len() == b.len() => result >= 0 && result <= 1000;
+{
   let n = a.len();
   if n != b.len() {
     return 0;
