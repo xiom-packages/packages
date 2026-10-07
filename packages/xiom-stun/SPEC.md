@@ -1,8 +1,6 @@
 # xiom.stun -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.stun`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/stun.xi` (`module xiom.stun`).
 Depends on `xiom.std`; the library module imports `xiom.string` (the tests
 add `xiom.test`, `xiom.io`, `xiom.string.compare` and
@@ -395,8 +393,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.stun
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=18 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0,
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` (batch #35 contract
+clauses active).
 
 ## Known limitations
 
@@ -420,7 +419,7 @@ Last verified: compiler 0.61.3,
 - Not thread-safe; `StunMessage` is a plain value type over shared
   source bytes.
 
-## Compiler / stdlib notes for v0.61.3
+## Compiler / stdlib notes for v0.64.0
 
 - `Ok`/`Err` construction is confined to the tiny leaf helpers
   `_ok_msg`/`_err_msg`/`_ok_addr`/`_err_addr`/`_ok_bytes`/`_err_bytes`/
@@ -444,3 +443,68 @@ Last verified: compiler 0.61.3,
 - The package declares no `extern "C"` blocks (no FFI).
 - `tests/test_conformance.xi` calls its 18 test functions directly from
   `main`; there is no indexed `Vec[fn]` dispatch (which miscompiles).
+
+## Contracts (batch #35 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/stun.xi` in the batch #35
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 52 clauses across the 24 public entry points; all are `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.stun -TimeoutSec 60` runs ended
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` with the clauses active
+(5.68 s and 5.57 s); the 18-check conformance suite exercises every entry point
+and no clause trapped. No clause was dropped (the plan lists no probe-gated
+items for this package).
+
+`xiom-verify src\stun.xi --check` (bundled Z3, v0.64.0): **1 proven, 0
+violated, 59 unknown, 15 errors**. The single Z3-provable clause is
+`stun_find_attr`'s `result >= -1` (pure scalar sentinel bound); the other 51
+clauses are skipped with X7007 (unresolved `Str`/`Vec`/`Result` operand sorts
+or unsupported expressions) and are **runtime-checked only**. The 15 error
+lines are the known SMT-emitter bug on private helpers (`_u16`, `_u32`,
+`_err_bytes`, `_str_bytes`, `_xor_byte`), explicitly "not a proof failure of
+the code under test". `xiom_verify_output.smt2` was deleted by literal path.
+
+Guard refinement verified against the source: the planned "Ok => addr len
+4||16" claim on `stun_encode_mapped_address` was refined to the actual encoded
+value length `result.value.len() == 8 || result.value.len() == 20` (the 4-byte
+reserved/family/port prefix plus the 4/16 address bytes); the clause family
+(Ok payload length) is unchanged.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `stun_padded_len` | `n < 0 => result == -1`; `n >= 0 => result == (n + 3) / 4 * 4` | runtime-checked (arithmetic axiom unsupported) |
+| `stun_message_type` | `(method < 0 || method > 4095 || msg_class < 0 || msg_class > 3) => result == -1`; `result != -1 => method 0..4095 && msg_class 0..3` | runtime-checked |
+| `stun_type_method` | `(msg_type < 0 || msg_type > 16383) => result == -1`; `result != -1 => result 0..4095` | runtime-checked |
+| `stun_type_class` | `(msg_type < 0 || msg_type > 16383) => result == -1`; `result != -1 => result 0..3` | runtime-checked |
+| `stun_class_name` | `(msg_class < 0 || msg_class > 3) => result.len() == 7`; `msg_class 0..3 => result.len() 7..16` | runtime-checked (`Str` length) |
+| `stun_method_name` | `result.len() == 7` | runtime-checked (`Str` length) |
+| `stun_attr_name` | `attr_type == 32802 => result.len() == 8`; `attr_type` not in {1, 6, 9, 32, 32802} `=> result.len() == 7` | runtime-checked (`Str` length) |
+| `stun_is_message` | `data.len() < 20 => !result`; `result => data.len() >= 20` | runtime-checked (Bool guard pair) |
+| `stun_parse` | `data.len() < 20 => result is Err`; `result is Ok => data.len() >= 20` | runtime-checked (`Result` sort + length) |
+| `stun_attr_count` | `result == m.attr_types.len()`; `result >= 0` | runtime-checked (field length) |
+| `stun_attr_type` | `i < 0 => result == -1`; `i >= m.attr_types.len() => result == -1`; `result != -1 => i in range` | runtime-checked (field length) |
+| `stun_find_attr` | `m.attr_types.len() == 0 => result == -1`; `result >= -1`; `result != -1 => result in range` | Z3-provable (`result >= -1`); runtime-checked (other two) |
+| `stun_attr_value` | `i < 0 => result is Err`; `i >= m.attr_types.len() => result is Err` | runtime-checked (`Result` sort) |
+| `stun_attr_text` | `i < 0 => result is Err`; `i >= m.attr_types.len() => result is Err` | runtime-checked (`Result` sort) |
+| `stun_attr_mapped_address` | `i < 0 => result is Err`; `i >= m.attr_types.len() => result is Err` | runtime-checked (`Result` sort) |
+| `stun_attr_xor_mapped_address` | two `i` Err guards; `m.transaction_id.len() != 12 => result is Err` | runtime-checked |
+| `stun_attr_error_code` | two `i` Err guards; `result is Ok => result.value 0..25755` | runtime-checked (`Result` sort) |
+| `stun_attr_error_reason` | `i < 0 => result is Err`; `i >= m.attr_types.len() => result is Err` | runtime-checked (`Result` sort) |
+| `stun_build` | type outside 0..16383 / ID != 12 bytes / `attr_types.len() != attr_values.len()` `=> result is Err` | runtime-checked |
+| `stun_encode_mapped_address` | family not 1/2 `=> result is Err`; port outside 0..65535 `=> result is Err`; `result is Ok => result.value.len() == 8 \|\| result.value.len() == 20` | runtime-checked |
+| `stun_encode_xor_mapped_address` | family not 1/2 / port outside 0..65535 / `transaction_id.len() != 12` `=> result is Err` | runtime-checked |
+| `stun_encode_error_code` | `code outside 300..699 => result is Err`; `result is Ok => result.value.len() >= 4` | runtime-checked |
+| `stun_encode_username` | `result.len() == name.len()` | runtime-checked (Vec/Str lengths) |
+| `stun_encode_software` | `result.len() == text.len()` | runtime-checked (Vec/Str lengths) |
+
+Deliberately not claimed (per the batch plan and coordinator notes): no
+payload-length or indexing claims on `stun_attr_value` (the copied span is not
+constrained against `data` or `value_lengths`); no `StunAddress`-payload field
+reads (`family`/`port`/`address` of an Ok result); no converse Ok-range claims
+on the attribute decoders beyond the `i` guards; no `Str` equality (BUG 17);
+no module constants in clauses (literals are inlined); no clause calls a
+function (the `i >= m.attr_types.len()` guards match `stun_attr_count`
+definitionally without a cross-call). Hand-built `StunMessage` values with
+inconsistent parallel vectors stay outside every claim: only the `attr_types`
+length is read, never `value_offsets`/`value_lengths`.

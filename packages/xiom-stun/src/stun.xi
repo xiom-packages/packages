@@ -349,7 +349,10 @@ fn _decode_address(v: &Vec[UInt8], xor: Bool, tid: &Vec[UInt8]) -> Result[StunAd
 /// Encoded length of an attribute value of `n` bytes after 4-byte padding:
 /// `(n + 3) / 4 * 4`. Returns -1 when `n` is negative.
 /// Complexity: O(1).
-pub fn stun_padded_len(n: Int) -> Int {
+pub fn stun_padded_len(n: Int) -> Int
+  ensures: n < 0 => result == -1;
+  ensures: n >= 0 => result == (n + 3) / 4 * 4;
+{
   if n < 0 {
     return -1;
   }
@@ -360,7 +363,10 @@ pub fn stun_padded_len(n: Int) -> Int {
 /// `method` is outside 0..4095 or `msg_class` outside 0..3. The class
 /// occupies bit 4 (C0) and bit 8 (C1) between the method nibbles, exactly
 /// as in RFC 5389 section 6. Complexity: O(1).
-pub fn stun_message_type(method: Int, msg_class: Int) -> Int {
+pub fn stun_message_type(method: Int, msg_class: Int) -> Int
+  ensures: (method < 0 || method > 4095 || msg_class < 0 || msg_class > 3) => result == -1;
+  ensures: result != -1 => method >= 0 && method <= 4095 && msg_class >= 0 && msg_class <= 3;
+{
   if method < 0 || method > 4095 {
     return -1;
   }
@@ -376,7 +382,10 @@ pub fn stun_message_type(method: Int, msg_class: Int) -> Int {
 /// Decode the 12-bit method from a message type; -1 when `msg_type` is
 /// outside 0..16383 (the two most significant bits of a STUN type are
 /// always zero). Complexity: O(1).
-pub fn stun_type_method(msg_type: Int) -> Int {
+pub fn stun_type_method(msg_type: Int) -> Int
+  ensures: (msg_type < 0 || msg_type > 16383) => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 4095;
+{
   if msg_type < 0 || msg_type > 16383 {
     return -1;
   }
@@ -390,7 +399,10 @@ pub fn stun_type_method(msg_type: Int) -> Int {
 /// Decode the 2-bit class (0 request, 1 indication, 2 success response,
 /// 3 error response) from a message type; -1 when `msg_type` is outside
 /// 0..16383. Complexity: O(1).
-pub fn stun_type_class(msg_type: Int) -> Int {
+pub fn stun_type_class(msg_type: Int) -> Int
+  ensures: (msg_type < 0 || msg_type > 16383) => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 3;
+{
   if msg_type < 0 || msg_type > 16383 {
     return -1;
   }
@@ -402,7 +414,10 @@ pub fn stun_type_class(msg_type: Int) -> Int {
 /// Short name of a message class: "request", "indication",
 /// "success response" or "error response"; "unknown" otherwise.
 /// Complexity: O(1).
-pub fn stun_class_name(msg_class: Int) -> Str {
+pub fn stun_class_name(msg_class: Int) -> Str
+  ensures: (msg_class < 0 || msg_class > 3) => result.len() == 7;
+  ensures: msg_class >= 0 && msg_class <= 3 => result.len() >= 7 && result.len() <= 16;
+{
   if msg_class == STUN_CLASS_REQUEST { return "request"; }
   if msg_class == STUN_CLASS_INDICATION { return "indication"; }
   if msg_class == STUN_CLASS_SUCCESS { return "success response"; }
@@ -413,7 +428,9 @@ pub fn stun_class_name(msg_class: Int) -> Str {
 /// Name of a method from the documented set of this package: "binding"
 /// for 0x001 and "unknown" for everything else (there is no method
 /// registry beyond Binding). Complexity: O(1).
-pub fn stun_method_name(method: Int) -> Str {
+pub fn stun_method_name(method: Int) -> Str
+  ensures: result.len() == 7;
+{
   if method == STUN_METHOD_BINDING { return "binding"; }
   return "unknown";
 }
@@ -422,7 +439,10 @@ pub fn stun_method_name(method: Int) -> Str {
 /// "MAPPED-ADDRESS", "USERNAME", "ERROR-CODE", "XOR-MAPPED-ADDRESS" or
 /// "SOFTWARE"; "unknown" for every other type (which is not an error --
 /// unknown attributes are preserved as raw TLVs). Complexity: O(1).
-pub fn stun_attr_name(attr_type: Int) -> Str {
+pub fn stun_attr_name(attr_type: Int) -> Str
+  ensures: attr_type == 32802 => result.len() == 8;
+  ensures: (attr_type != 1 && attr_type != 6 && attr_type != 9 && attr_type != 32 && attr_type != 32802) => result.len() == 7;
+{
   if attr_type == STUN_ATTR_MAPPED_ADDRESS { return "MAPPED-ADDRESS"; }
   if attr_type == STUN_ATTR_USERNAME { return "USERNAME"; }
   if attr_type == STUN_ATTR_ERROR_CODE { return "ERROR-CODE"; }
@@ -438,7 +458,10 @@ pub fn stun_attr_name(attr_type: Int) -> Str {
 /// Cheap sniff: `data.len() >= 20`, the two most significant bits of the
 /// message type are zero and the magic cookie matches. Attribute bytes are
 /// not inspected. Complexity: O(1).
-pub fn stun_is_message(data: &Vec[UInt8]) -> Bool {
+pub fn stun_is_message(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 20 => !result;
+  ensures: result => data.len() >= 20;
+{
   if data.len() < 20 {
     return false;
   }
@@ -473,7 +496,10 @@ pub fn stun_is_message(data: &Vec[UInt8]) -> Bool {
 ///     of 4).
 /// The whole call is Err on the first malformed attribute; no partial
 /// index is returned. Complexity: O(message length).
-pub fn stun_parse(data: &Vec[UInt8]) -> Result[StunMessage, Str] {
+pub fn stun_parse(data: &Vec[UInt8]) -> Result[StunMessage, Str]
+  ensures: data.len() < 20 => result is Err;
+  ensures: result is Ok => data.len() >= 20;
+{
   if data.len() < 20 {
     return _err_msg("stun: truncated header");
   }
@@ -538,13 +564,20 @@ pub fn stun_parse(data: &Vec[UInt8]) -> Result[StunMessage, Str] {
 // --------------------------------------------------
 
 /// Number of attributes in the index. Complexity: O(1).
-pub fn stun_attr_count(m: &StunMessage) -> Int {
+pub fn stun_attr_count(m: &StunMessage) -> Int
+  ensures: result == m.attr_types.len();
+  ensures: result >= 0;
+{
   return m.attr_types.len();
 }
 
 /// Type of attribute `i`, or -1 when `i` is negative or beyond the count.
 /// Complexity: O(1).
-pub fn stun_attr_type(m: &StunMessage, i: Int) -> Int {
+pub fn stun_attr_type(m: &StunMessage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= m.attr_types.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < m.attr_types.len();
+{
   if i < 0 {
     return -1;
   }
@@ -557,7 +590,11 @@ pub fn stun_attr_type(m: &StunMessage, i: Int) -> Int {
 
 /// First attribute index whose type equals `attr_type`, or -1 when absent
 /// (including on an empty index). Complexity: O(attributes).
-pub fn stun_find_attr(m: &StunMessage, attr_type: Int) -> Int {
+pub fn stun_find_attr(m: &StunMessage, attr_type: Int) -> Int
+  ensures: m.attr_types.len() == 0 => result == -1;
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 0 && result < m.attr_types.len();
+{
   var i = 0;
   while i < m.attr_types.len() {
     let t: Int = m.attr_types[i];
@@ -576,7 +613,10 @@ pub fn stun_find_attr(m: &StunMessage, attr_type: Int) -> Int {
 /// count; Err("stun: attribute out of bounds") when the recorded span does
 /// not fit `data` (for example a shorter buffer). A zero-length value
 /// yields an empty Ok. Complexity: O(value length).
-pub fn stun_attr_value(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn stun_attr_value(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= m.attr_types.len() => result is Err;
+{
   if i < 0 || i >= m.attr_types.len() {
     return _err_bytes("stun: attribute out of range");
   }
@@ -608,7 +648,10 @@ pub fn stun_attr_value(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[Vec
 /// matter. Err("stun: attribute out of range") /
 /// Err("stun: attribute out of bounds") as in stun_attr_value.
 /// Complexity: O(value length).
-pub fn stun_attr_text(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[Str, Str] {
+pub fn stun_attr_text(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[Str, Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= m.attr_types.len() => result is Err;
+{
   let vr = stun_attr_value(data, m, i);
   if !vr.is_ok {
     return _err_str(vr.error);
@@ -629,7 +672,10 @@ pub fn stun_attr_text(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[Str,
 /// for a family other than 1/2, and Err("stun: bad address length") when
 /// the value length does not match the family (8 or 20 bytes).
 /// Complexity: O(value length).
-pub fn stun_attr_mapped_address(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[StunAddress, Str] {
+pub fn stun_attr_mapped_address(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[StunAddress, Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= m.attr_types.len() => result is Err;
+{
   let vr = stun_attr_value(data, m, i);
   if !vr.is_ok {
     return _err_addr(vr.error);
@@ -646,7 +692,11 @@ pub fn stun_attr_mapped_address(data: &Vec[UInt8], m: &StunMessage, i: Int) -> R
 /// Errors: the stun_attr_mapped_address errors plus
 /// Err("stun: bad transaction id") when the index does not carry a 12-byte
 /// transaction ID. Complexity: O(value length).
-pub fn stun_attr_xor_mapped_address(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[StunAddress, Str] {
+pub fn stun_attr_xor_mapped_address(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[StunAddress, Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= m.attr_types.len() => result is Err;
+  ensures: m.transaction_id.len() != 12 => result is Err;
+{
   let vr = stun_attr_value(data, m, i);
   if !vr.is_ok {
     return _err_addr(vr.error);
@@ -663,7 +713,11 @@ pub fn stun_attr_xor_mapped_address(data: &Vec[UInt8], m: &StunMessage, i: Int) 
 /// Err("stun: truncated error code") when the value is shorter than the
 /// 4-byte prefix; otherwise the stun_attr_value errors.
 /// Complexity: O(1) after the value copy.
-pub fn stun_attr_error_code(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[Int, Str] {
+pub fn stun_attr_error_code(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[Int, Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= m.attr_types.len() => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 25755;
+{
   let vr = stun_attr_value(data, m, i);
   if !vr.is_ok {
     return _err_int(vr.error);
@@ -684,7 +738,10 @@ pub fn stun_attr_error_code(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Resul
 /// Err("stun: truncated error code") when the value is shorter than the
 /// 4-byte prefix; otherwise the stun_attr_value errors.
 /// Complexity: O(value length).
-pub fn stun_attr_error_reason(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[Str, Str] {
+pub fn stun_attr_error_reason(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Result[Str, Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= m.attr_types.len() => result is Err;
+{
   let vr = stun_attr_value(data, m, i);
   if !vr.is_ok {
     return _err_str(vr.error);
@@ -720,7 +777,11 @@ pub fn stun_attr_error_reason(data: &Vec[UInt8], m: &StunMessage, i: Int) -> Res
 /// Err("stun: attribute too large") for a value over 65535 bytes and
 /// Err("stun: message too large") when the padded total exceeds 65535.
 /// Complexity: O(total value bytes).
-pub fn stun_build(msg_type: Int, transaction_id: &Vec[UInt8], attr_types: &Vec[Int], attr_values: &Vec[Vec[UInt8]]) -> Result[Vec[UInt8], Str] {
+pub fn stun_build(msg_type: Int, transaction_id: &Vec[UInt8], attr_types: &Vec[Int], attr_values: &Vec[Vec[UInt8]]) -> Result[Vec[UInt8], Str]
+  ensures: (msg_type < 0 || msg_type > 16383) => result is Err;
+  ensures: transaction_id.len() != 12 => result is Err;
+  ensures: attr_types.len() != attr_values.len() => result is Err;
+{
   if msg_type < 0 || msg_type > 16383 {
     return _err_bytes("stun: bad message type");
   }
@@ -778,7 +839,11 @@ pub fn stun_build(msg_type: Int, transaction_id: &Vec[UInt8], attr_types: &Vec[I
 /// length") when the address bytes do not match the family, and
 /// Err("stun: bad port") when the port is outside 0..65535.
 /// Complexity: O(address length).
-pub fn stun_encode_mapped_address(family: Int, port: Int, address: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn stun_encode_mapped_address(family: Int, port: Int, address: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: (family != 1 && family != 2) => result is Err;
+  ensures: (port < 0 || port > 65535) => result is Err;
+  ensures: result is Ok => result.value.len() == 8 || result.value.len() == 20;
+{
   if family != STUN_FAMILY_IPV4 && family != STUN_FAMILY_IPV6 {
     return _err_bytes("stun: bad address family");
   }
@@ -805,7 +870,11 @@ pub fn stun_encode_mapped_address(family: Int, port: Int, address: &Vec[UInt8]) 
 /// Errors: as stun_encode_mapped_address, plus
 /// Err("stun: bad transaction id") for an ID that is not 12 bytes.
 /// Complexity: O(address length).
-pub fn stun_encode_xor_mapped_address(family: Int, port: Int, address: &Vec[UInt8], transaction_id: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn stun_encode_xor_mapped_address(family: Int, port: Int, address: &Vec[UInt8], transaction_id: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: (family != 1 && family != 2) => result is Err;
+  ensures: (port < 0 || port > 65535) => result is Err;
+  ensures: transaction_id.len() != 12 => result is Err;
+{
   if family != STUN_FAMILY_IPV4 && family != STUN_FAMILY_IPV6 {
     return _err_bytes("stun: bad address family");
   }
@@ -839,7 +908,10 @@ pub fn stun_encode_xor_mapped_address(family: Int, port: Int, address: &Vec[UInt
 ///
 /// Err("stun: bad error code") when `code` is outside 300..699.
 /// Complexity: O(reason length).
-pub fn stun_encode_error_code(code: Int, reason: Str) -> Result[Vec[UInt8], Str] {
+pub fn stun_encode_error_code(code: Int, reason: Str) -> Result[Vec[UInt8], Str]
+  ensures: (code < 300 || code > 699) => result is Err;
+  ensures: result is Ok => result.value.len() >= 4;
+{
   if code < 300 || code > 699 {
     return _err_bytes("stun: bad error code");
   }
@@ -856,12 +928,16 @@ pub fn stun_encode_error_code(code: Int, reason: Str) -> Result[Vec[UInt8], Str]
 /// UTF-8 bytes of a USERNAME value. The name is not validated (STUN
 /// leaves its length and normalization rules to the application).
 /// Complexity: O(name length).
-pub fn stun_encode_username(name: Str) -> Vec[UInt8] {
+pub fn stun_encode_username(name: Str) -> Vec[UInt8]
+  ensures: result.len() == name.len();
+{
   return _str_bytes(name);
 }
 
 /// UTF-8 bytes of a SOFTWARE value. The text is not validated.
 /// Complexity: O(text length).
-pub fn stun_encode_software(text: Str) -> Vec[UInt8] {
+pub fn stun_encode_software(text: Str) -> Vec[UInt8]
+  ensures: result.len() == text.len();
+{
   return _str_bytes(text);
 }
