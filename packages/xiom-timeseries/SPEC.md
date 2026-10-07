@@ -122,10 +122,12 @@ Let `v` be the input series, `n = v.len()`.
 
 ## Error Paths
 
-The API is total: no `Result` returns, no contracts, no panics. Every
-function is defined for every `Vec[Int]` and every `Int` argument, including
-empty series, non-positive windows, out-of-range `alpha_permille`, and
-constant ranges.
+The API is total: no `Result` returns, no panics. Every function is defined
+for every `Vec[Int]` and every `Int` argument, including empty series,
+non-positive windows, out-of-range `alpha_permille`, and constant ranges.
+The `ensures:` clauses (see `## Contracts`) are runtime-checked
+postconditions that assert the documented behavior after the call; they
+never reject inputs or turn a call into an error.
 
 ## Complexity
 
@@ -205,3 +207,43 @@ Expected: `port: PASS (passed=29 failed=0 program_exit=0 exit=0)`.
   represented, and there is no windowing by time.
 - **Differentiable/statistical extras absent.** No variance, standard
   deviation, median, quantiles or rolling min/max-with-window.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/timeseries.xi` (compiler
+v0.64.0; no version bump): 18 clauses across the 11 entry points that can
+carry them (2/1/1/1/2/1/1/2/2/2/3); `ts_bounds` intentionally has none
+(tuple result). The module stays total: the clauses are postconditions
+asserted by the runtime evaluator, never input validation. Two consecutive
+`.\scripts\port.ps1 -Package xiom.timeseries -TimeoutSec 60` runs ended
+`port: PASS (passed=29 failed=0 program_exit=0 exit=0)` (14.8 s and 16.7 s)
+with the clauses active and no clause trapped, so none was dropped.
+
+`xiom-verify --check` (bundled Z3) result: **0 proven / 0 violated /
+33 unknown / 0 errors**. Every contract axiom was skipped as UNKNOWN at SMT
+emission (`equality with unresolved operand sort` on `Vec` lengths; loop
+bodies carry no invariants), so no clause is machine-proven and none is
+disproven; all 18 are enforced by the v0.64.0 runtime evaluator. No clause
+touches a tuple component or `Result` payload, uses `==` on a `Str`, or
+calls a function that wraps the one under contract; `ts_mean`'s
+single-element clause calls `ts_sum`, a non-cyclic callee.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `ts_moving_average` | `ensures: window < 1 => result.len() == 0`; `ensures: window >= 1 => result.len() == values.len()` | runtime-checked (empty-result sentinel + length invariant) |
+| `ts_ema` | `ensures: result.len() == values.len()` | runtime-checked (length invariant) |
+| `ts_delta` | `ensures: result.len() == values.len()` | runtime-checked (length invariant) |
+| `ts_sum` | `ensures: values.len() == 0 => result == 0` | runtime-checked (empty-series sentinel) |
+| `ts_mean` | `ensures: values.len() == 0 => result == 0`; `ensures: values.len() == 1 => result == ts_sum(values)` | runtime-checked (sentinel + exact formula) |
+| `ts_min` | `ensures: values.len() == 0 => result == 0` | runtime-checked (empty-series sentinel) |
+| `ts_max` | `ensures: values.len() == 0 => result == 0` | runtime-checked (empty-series sentinel) |
+| `ts_argmin` | `ensures: values.len() == 0 => result == -1`; `ensures: values.len() > 0 => result >= 0 && result < values.len()` | runtime-checked (sentinel + index bounds) |
+| `ts_argmax` | `ensures: values.len() == 0 => result == -1`; `ensures: values.len() > 0 => result >= 0 && result < values.len()` | runtime-checked (sentinel + index bounds) |
+| `ts_normalize_permille` | `ensures: values.len() == 0 => result.len() == 0`; `ensures: values.len() > 0 => result.len() == values.len()` | runtime-checked (empty-result sentinel + length invariant) |
+| `ts_threshold_crossings` | `ensures: values.len() == 0 => result == 0`; `ensures: result >= 0`; `ensures: result <= values.len()` | runtime-checked (sentinel + count bounds) |
+
+Not asserted: the numeric element-level facts of the series (`result` vs
+`values[i]` ranges in `ts_min`/`ts_max`/`ts_sum` and the normalization
+mapping), suppressed by the batch #17 plan because intermediate arithmetic
+can overflow (`Int` overflow is documented under Known Limitations); and
+`ts_bounds`, whose tuple result has no runtime-checkable shape.

@@ -39,7 +39,10 @@ fn _floor_div(a: Int, b: Int) -> Int {
 /// A window below 1 yields an empty vector (no positions are averaged).
 /// Errors: none.
 /// Complexity: O(n) time, O(n) memory (single running sum).
-pub fn ts_moving_average(values: &Vec[Int], window: Int) -> Vec[Int] {
+pub fn ts_moving_average(values: &Vec[Int], window: Int) -> Vec[Int]
+  ensures: window < 1 => result.len() == 0;
+  ensures: window >= 1 => result.len() == values.len();
+{
   var out = Vec[Int].new();
   if window < 1 {
     return out;
@@ -74,7 +77,9 @@ pub fn ts_moving_average(values: &Vec[Int], window: Int) -> Vec[Int] {
 /// constant for every position.
 /// Errors: none.
 /// Complexity: O(n) time, O(n) memory.
-pub fn ts_ema(values: &Vec[Int], alpha_permille: Int) -> Vec[Int] {
+pub fn ts_ema(values: &Vec[Int], alpha_permille: Int) -> Vec[Int]
+  ensures: result.len() == values.len();
+{
   var out = Vec[Int].new();
   let n = values.len();
   if n == 0 {
@@ -109,7 +114,9 @@ pub fn ts_ema(values: &Vec[Int], alpha_permille: Int) -> Vec[Int] {
 /// out[i] = values[i] - values[i-1]. An empty series maps to empty.
 /// Errors: none.
 /// Complexity: O(n) time, O(n) memory.
-pub fn ts_delta(values: &Vec[Int]) -> Vec[Int] {
+pub fn ts_delta(values: &Vec[Int]) -> Vec[Int]
+  ensures: result.len() == values.len();
+{
   var out = Vec[Int].new();
   let n = values.len();
   if n == 0 {
@@ -132,7 +139,9 @@ pub fn ts_delta(values: &Vec[Int]) -> Vec[Int] {
 /// Returns: the total, 0 for an empty series.
 /// Errors: none.
 /// Complexity: O(n) time, O(1) extra memory.
-pub fn ts_sum(values: &Vec[Int]) -> Int {
+pub fn ts_sum(values: &Vec[Int]) -> Int
+  ensures: values.len() == 0 => result == 0;
+{
   var total: Int = 0;
   let n = values.len();
   var i = 0;
@@ -149,7 +158,10 @@ pub fn ts_sum(values: &Vec[Int]) -> Int {
 /// Returns: floor(ts_sum(values) / values.len()), 0 for an empty series.
 /// Errors: none.
 /// Complexity: O(n) time, O(1) extra memory.
-pub fn ts_mean(values: &Vec[Int]) -> Int {
+pub fn ts_mean(values: &Vec[Int]) -> Int
+  ensures: values.len() == 0 => result == 0;
+  ensures: values.len() == 1 => result == ts_sum(values);
+{
   let n = values.len();
   if n == 0 {
     return 0;
@@ -163,7 +175,9 @@ pub fn ts_mean(values: &Vec[Int]) -> Int {
 /// Returns: the minimum, 0 for an empty series.
 /// Errors: none.
 /// Complexity: O(n) time, O(1) extra memory.
-pub fn ts_min(values: &Vec[Int]) -> Int {
+pub fn ts_min(values: &Vec[Int]) -> Int
+  ensures: values.len() == 0 => result == 0;
+{
   let n = values.len();
   if n == 0 {
     return 0;
@@ -186,7 +200,9 @@ pub fn ts_min(values: &Vec[Int]) -> Int {
 /// Returns: the maximum, 0 for an empty series.
 /// Errors: none.
 /// Complexity: O(n) time, O(1) extra memory.
-pub fn ts_max(values: &Vec[Int]) -> Int {
+pub fn ts_max(values: &Vec[Int]) -> Int
+  ensures: values.len() == 0 => result == 0;
+{
   let n = values.len();
   if n == 0 {
     return 0;
@@ -209,7 +225,10 @@ pub fn ts_max(values: &Vec[Int]) -> Int {
 /// Returns: the 0-based index of the first minimum, -1 for an empty series.
 /// Errors: none.
 /// Complexity: O(n) time, O(1) extra memory.
-pub fn ts_argmin(values: &Vec[Int]) -> Int {
+pub fn ts_argmin(values: &Vec[Int]) -> Int
+  ensures: values.len() == 0 => result == -1;
+  ensures: values.len() > 0 => result >= 0 && result < values.len();
+{
   let n = values.len();
   if n == 0 {
     return -1;
@@ -234,7 +253,10 @@ pub fn ts_argmin(values: &Vec[Int]) -> Int {
 /// Returns: the 0-based index of the first maximum, -1 for an empty series.
 /// Errors: none.
 /// Complexity: O(n) time, O(1) extra memory.
-pub fn ts_argmax(values: &Vec[Int]) -> Int {
+pub fn ts_argmax(values: &Vec[Int]) -> Int
+  ensures: values.len() == 0 => result == -1;
+  ensures: values.len() > 0 => result >= 0 && result < values.len();
+{
   let n = values.len();
   if n == 0 {
     return -1;
@@ -272,7 +294,10 @@ pub fn ts_bounds(values: &Vec[Int]) -> (Int, Int) {
 /// series maps to all zeros; an empty series maps to an empty vector.
 /// Errors: none.
 /// Complexity: O(n) time, O(n) memory.
-pub fn ts_normalize_permille(values: &Vec[Int]) -> Vec[Int] {
+pub fn ts_normalize_permille(values: &Vec[Int]) -> Vec[Int]
+  ensures: values.len() == 0 => result.len() == 0;
+  ensures: values.len() > 0 => result.len() == values.len();
+{
   var out = Vec[Int].new();
   let n = values.len();
   if n == 0 {
@@ -310,7 +335,11 @@ pub fn ts_normalize_permille(values: &Vec[Int]) -> Vec[Int] {
 /// Returns: the crossing count, 0 for an empty series.
 /// Errors: none.
 /// Complexity: O(n) time, O(1) extra memory.
-pub fn ts_threshold_crossings(values: &Vec[Int], threshold: Int) -> Int {
+pub fn ts_threshold_crossings(values: &Vec[Int], threshold: Int) -> Int
+  ensures: values.len() == 0 => result == 0;
+  ensures: result >= 0;
+  ensures: result <= values.len();
+{
   let n = values.len();
   if n == 0 {
     return 0;
