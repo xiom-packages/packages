@@ -533,7 +533,10 @@ fn _parse_preamble_cmd(text: Str, i: Int, d: &mut BibDoc) -> Result[Int, Str] {
 /// duplicate key/field/macro, undefined macro, concatenation and text outside
 /// entries.
 /// Complexity: O(total input length).
-pub fn bib_parse(text: Str) -> Result[BibDoc, Str] {
+pub fn bib_parse(text: Str) -> Result[BibDoc, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var doc = BibDoc{
     entry_types: Vec[Str].new();
     entry_keys: Vec[Str].new();
@@ -591,7 +594,10 @@ pub fn bib_parse(text: Str) -> Result[BibDoc, Str] {
 /// Returns: the entry count; 0 for an empty document.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bib_entry_count(d: &BibDoc) -> Int {
+pub fn bib_entry_count(d: &BibDoc) -> Int
+  ensures: result == d.entry_keys.len();
+  ensures: result >= 0;
+{
   return d.entry_keys.len();
 }
 
@@ -600,7 +606,11 @@ pub fn bib_entry_count(d: &BibDoc) -> Int {
 /// Returns: the type; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bib_entry_type(d: &BibDoc, i: Int) -> Str {
+pub fn bib_entry_type(d: &BibDoc, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= d.entry_types.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < d.entry_types.len();
+{
   if i < 0 || i >= d.entry_types.len() { return ""; }
   let t: Str = d.entry_types[i];
   return t;
@@ -611,7 +621,11 @@ pub fn bib_entry_type(d: &BibDoc, i: Int) -> Str {
 /// Returns: the key; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bib_entry_key(d: &BibDoc, i: Int) -> Str {
+pub fn bib_entry_key(d: &BibDoc, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= d.entry_keys.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < d.entry_keys.len();
+{
   if i < 0 || i >= d.entry_keys.len() { return ""; }
   let k: Str = d.entry_keys[i];
   return k;
@@ -623,7 +637,11 @@ pub fn bib_entry_key(d: &BibDoc, i: Int) -> Str {
 /// Returns: the zero-based entry index, or -1 when no entry matches.
 /// Error case: none.
 /// Complexity: O(entries).
-pub fn bib_find_entry(d: &BibDoc, key: Str) -> Int {
+pub fn bib_find_entry(d: &BibDoc, key: Str) -> Int
+  ensures: d.entry_keys.len() == 0 => result == -1;
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 0 && result < d.entry_keys.len();
+{
   return _find_entry(d, key);
 }
 
@@ -632,7 +650,11 @@ pub fn bib_find_entry(d: &BibDoc, key: Str) -> Int {
 /// Returns: the field count; 0 when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bib_field_count(d: &BibDoc, i: Int) -> Int {
+pub fn bib_field_count(d: &BibDoc, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= d.field_counts.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < d.field_counts.len();
+{
   if i < 0 || i >= d.field_counts.len() { return 0; }
   let c: Int = d.field_counts[i];
   return c;
@@ -644,7 +666,11 @@ pub fn bib_field_count(d: &BibDoc, i: Int) -> Int {
 /// Returns: the field name; "" when `i` or `j` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bib_field_name(d: &BibDoc, i: Int, j: Int) -> Str {
+pub fn bib_field_name(d: &BibDoc, i: Int, j: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= d.entry_keys.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < d.entry_keys.len() && j >= 0 && j < bib_field_count(d, i);
+{
   if i < 0 || i >= d.entry_keys.len() { return ""; }
   let start: Int = d.field_starts[i];
   let count: Int = d.field_counts[i];
@@ -660,7 +686,11 @@ pub fn bib_field_name(d: &BibDoc, i: Int, j: Int) -> Str {
 /// Returns: the value; "" when `i` or `j` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bib_field_value(d: &BibDoc, i: Int, j: Int) -> Str {
+pub fn bib_field_value(d: &BibDoc, i: Int, j: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= d.entry_keys.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < d.entry_keys.len() && j >= 0 && j < bib_field_count(d, i);
+{
   if i < 0 || i >= d.entry_keys.len() { return ""; }
   let start: Int = d.field_starts[i];
   let count: Int = d.field_counts[i];
@@ -676,7 +706,11 @@ pub fn bib_field_value(d: &BibDoc, i: Int, j: Int) -> Str {
 /// out of range or the field is absent.
 /// Error case: none.
 /// Complexity: O(fields of entry i).
-pub fn bib_get_field(d: &BibDoc, i: Int, name: Str) -> Option[Str] {
+pub fn bib_get_field(d: &BibDoc, i: Int, name: Str) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= d.entry_keys.len() => result is None;
+  ensures: result is Some => i >= 0 && i < d.entry_keys.len();
+{
   if i < 0 || i >= d.entry_keys.len() { return None; }
   let start: Int = d.field_starts[i];
   let count: Int = d.field_counts[i];
@@ -691,7 +725,10 @@ pub fn bib_get_field(d: &BibDoc, i: Int, name: Str) -> Option[Str] {
 /// Returns: the macro count; 0 when none are defined.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bib_macro_count(d: &BibDoc) -> Int {
+pub fn bib_macro_count(d: &BibDoc) -> Int
+  ensures: result == d.macro_names.len();
+  ensures: result >= 0;
+{
   return d.macro_names.len();
 }
 
@@ -700,7 +737,11 @@ pub fn bib_macro_count(d: &BibDoc) -> Int {
 /// Returns: the name; "" when `k` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bib_macro_name(d: &BibDoc, k: Int) -> Str {
+pub fn bib_macro_name(d: &BibDoc, k: Int) -> Str
+  ensures: k < 0 => result.len() == 0;
+  ensures: k >= d.macro_names.len() => result.len() == 0;
+  ensures: result.len() > 0 => k >= 0 && k < d.macro_names.len();
+{
   if k < 0 || k >= d.macro_names.len() { return ""; }
   let nm: Str = d.macro_names[k];
   return nm;
@@ -711,7 +752,11 @@ pub fn bib_macro_name(d: &BibDoc, k: Int) -> Str {
 /// Returns: the value; "" when `k` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bib_macro_value(d: &BibDoc, k: Int) -> Str {
+pub fn bib_macro_value(d: &BibDoc, k: Int) -> Str
+  ensures: k < 0 => result.len() == 0;
+  ensures: k >= d.macro_values.len() => result.len() == 0;
+  ensures: result.len() > 0 => k >= 0 && k < d.macro_values.len();
+{
   if k < 0 || k >= d.macro_values.len() { return ""; }
   let v: Str = d.macro_values[k];
   return v;
@@ -722,7 +767,10 @@ pub fn bib_macro_value(d: &BibDoc, k: Int) -> Str {
 /// Returns: Some(value) when the macro is defined; None otherwise.
 /// Error case: none.
 /// Complexity: O(macros).
-pub fn bib_get_macro(d: &BibDoc, name: Str) -> Option[Str] {
+pub fn bib_get_macro(d: &BibDoc, name: Str) -> Option[Str]
+  ensures: d.macro_names.len() == 0 => result is None;
+  ensures: result is Some => d.macro_names.len() > 0;
+{
   let k = _find_macro(d, name);
   if k < 0 { return None; }
   let v: Str = d.macro_values[k];
@@ -734,7 +782,10 @@ pub fn bib_get_macro(d: &BibDoc, name: Str) -> Option[Str] {
 /// Returns: the count; 0 when none.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bib_preamble_count(d: &BibDoc) -> Int {
+pub fn bib_preamble_count(d: &BibDoc) -> Int
+  ensures: result == d.preambles.len();
+  ensures: result >= 0;
+{
   return d.preambles.len();
 }
 
@@ -743,7 +794,11 @@ pub fn bib_preamble_count(d: &BibDoc) -> Int {
 /// Returns: the value; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bib_preamble(d: &BibDoc, i: Int) -> Str {
+pub fn bib_preamble(d: &BibDoc, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= d.preambles.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < d.preambles.len();
+{
   if i < 0 || i >= d.preambles.len() { return ""; }
   let v: Str = d.preambles[i];
   return v;
@@ -754,7 +809,10 @@ pub fn bib_preamble(d: &BibDoc, i: Int) -> Str {
 /// Returns: the count; 0 when none.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bib_comment_count(d: &BibDoc) -> Int {
+pub fn bib_comment_count(d: &BibDoc) -> Int
+  ensures: result == d.comments.len();
+  ensures: result >= 0;
+{
   return d.comments.len();
 }
 
@@ -763,7 +821,11 @@ pub fn bib_comment_count(d: &BibDoc) -> Int {
 /// Returns: the body text; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn bib_comment(d: &BibDoc, i: Int) -> Str {
+pub fn bib_comment(d: &BibDoc, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= d.comments.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < d.comments.len();
+{
   if i < 0 || i >= d.comments.len() { return ""; }
   let v: Str = d.comments[i];
   return v;
@@ -778,7 +840,11 @@ pub fn bib_comment(d: &BibDoc, i: Int) -> Str {
 /// Returns: the canonical text; "" for an empty document.
 /// Error case: none.
 /// Complexity: O(total emitted length).
-pub fn bib_emit(d: &BibDoc) -> Str {
+pub fn bib_emit(d: &BibDoc) -> Str
+  ensures: d.macro_names.len() == 0 && d.preambles.len() == 0 && d.comments.len() == 0 && d.entry_types.len() == 0 => result.len() == 0;
+  ensures: d.entry_types.len() > 0 => result.len() > 0;
+  ensures: d.macro_names.len() > 0 => result.len() > 0;
+{
   var out = "";
   var k = 0;
   while k < d.macro_names.len() {

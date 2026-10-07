@@ -1,6 +1,6 @@
 # xiom.bibtex -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.bibtex` (`src/bibtex.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -260,7 +260,7 @@ No unsafe code and no FFI. The implementation follows the `xiom.toml` /
 `xiom.lexing` pure-parser idioms (byte-wise scanning with
 `xiom.string.byte_at`, `Vec[UInt8]` accumulation with `Str::from_utf8`,
 `&Vec[...]`/`&mut Vec[...]` parameters) and documents these compiler-driven
-choices (XIOM v0.61.3):
+choices (XIOM v0.64.0):
 
 - `Vec[StructType]` is unsupported, so the document is ten parallel
   homogeneous vectors (no `Vec[BibEntry]`, no `Vec[BibField]`).
@@ -291,3 +291,58 @@ choices (XIOM v0.61.3):
 - Emitter canonicalizes layout and pool order; it does not reproduce the
   original formatting.
 - Errors carry no line/column position.
+
+## Contracts (batch #34 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/bibtex.xi` in the batch #34
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator
+at integration). 48 clauses across the 18 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.bibtex -TimeoutSec 60` runs
+ended `port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the
+clauses active (5.37 s each); the 24-check conformance suite passes with the
+clauses active and no clause trapped. Only `bib_field_name`/`bib_field_value`
+cross-call another function (`bib_field_count`, non-re-entrant,
+definitional); every other bound is written against the reader's own vectors.
+
+`xiom-verify src/bibtex.xi --check` (v0.64.0, bundled Z3) reports 0 proven /
+1 refuted / 44 unknown / 2 errors: the SMT emitter skips every clause with
+X7007 ("equality with unresolved operand sort" / "operator Ge on non-numeric
+operands (sorts Some("Int")/None)"), and the single X7001 refutation on
+`bib_find_entry` is caused by the known emitter bug (`unknown constant
+_find_entry (xiom_ptr_BibDoc String)` -- the private lookup helper is not
+modeled; the tool itself says "z3 rejected the generated SMT (emitter bug)
+... This is not a proof failure of the code under test"). All 48 clauses are
+therefore tagged runtime-checked and enforced by the v0.64.0 evaluator; no
+Z3 claims are made. `xiom_verify_output.smt2` was removed by literal path.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `bib_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked (`Result` tag + `Str` length) |
+| `bib_entry_count` | `result == d.entry_keys.len()`; `result >= 0` | runtime-checked |
+| `bib_entry_type` / `bib_entry_key` | per reader: `i < 0 => result.len() == 0`; `i >= d.<vec>.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < d.<vec>.len()` | runtime-checked (`""` trio vs. the reader's own vector) |
+| `bib_find_entry` | `d.entry_keys.len() == 0 => result == -1`; `result >= -1`; `result != -1 => result >= 0 && result < d.entry_keys.len()` | runtime-checked (`-1` sentinel trio) |
+| `bib_field_count` | `i < 0 => result == 0`; `i >= d.field_counts.len() => result == 0`; `result != 0 => i >= 0 && i < d.field_counts.len()` | runtime-checked (`0` sentinel trio) |
+| `bib_field_name` / `bib_field_value` | per reader: `i < 0 => result.len() == 0`; `i >= d.entry_keys.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < d.entry_keys.len() && j >= 0 && j < bib_field_count(d, i)` | runtime-checked (`""` trio; third clause uses the safe non-re-entrant cross-call) |
+| `bib_get_field` | `i < 0 => result is None`; `i >= d.entry_keys.len() => result is None`; `result is Some => i >= 0 && i < d.entry_keys.len()` | runtime-checked (`Option` trio) |
+| `bib_macro_count` | `result == d.macro_names.len()`; `result >= 0` | runtime-checked |
+| `bib_macro_name` / `bib_macro_value` | per reader: the same `""` trio against `d.macro_names.len()` / `d.macro_values.len()` | runtime-checked |
+| `bib_get_macro` | `d.macro_names.len() == 0 => result is None`; `result is Some => d.macro_names.len() > 0` | runtime-checked (`Option` pair; no empty-name claim) |
+| `bib_preamble_count` / `bib_comment_count` | `result == d.<vec>.len()`; `result >= 0` | runtime-checked |
+| `bib_preamble` / `bib_comment` | per reader: the same `""` trio against `d.preambles.len()` / `d.comments.len()` | runtime-checked |
+| `bib_emit` | `d.macro_names.len() == 0 && d.preambles.len() == 0 && d.comments.len() == 0 && d.entry_types.len() == 0 => result.len() == 0`; `d.entry_types.len() > 0 => result.len() > 0`; `d.macro_names.len() > 0 => result.len() > 0` | runtime-checked (raw own-vector guards; no emit cross-call) |
+
+Source-shape notes pinned by the clauses:
+
+- The `""` trios are one-way claims: a stored name, key or value is never
+  claimed non-empty at an in-range index (an empty field value is
+  legitimate), so the third clause only says a non-empty result proves the
+  index was in range.
+- `bib_field_count`'s third clause is `result != 0 => ...` rather than
+  `result >= 0`: a hand-built `BibDoc` may carry a negative stored count, so
+  the clause claims only the range that the zero sentinel identifies.
+- `bib_get_macro` deliberately carries no `name.len() == 0 => result is None`
+  claim; an empty name simply matches no stored macro.
+- `bib_field_name`/`bib_field_value` are the only contracted cross-calls
+  (`bib_field_count`, non-re-entrant); `bib_emit` uses only its own vector
+  lengths, since a cross-call into `bib_emit` would be re-entrant.
