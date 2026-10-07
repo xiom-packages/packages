@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T19:07:57Z",
+    "updated":  "2026-10-07T19:40:51Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -2744,7 +2744,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.geohash",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Integer-only geohash codec over integer-microdegree coordinates",
@@ -2754,7 +2754,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-geohash/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-geohash/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "geohash.xi",
                                               "package.xi"
@@ -4537,7 +4537,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.mime",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Media type helpers: extension mapping, normalization, and class checks",
@@ -4547,7 +4547,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mime/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mime/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "mime.xi",
                                               "package.xi"
@@ -5924,7 +5924,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.pool",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic fixed-capacity slot pool with generation-checked leases",
@@ -5934,7 +5934,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pool/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pool/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "pool.xi",
                                               "package.xi"
@@ -6044,7 +6044,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.profiling",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Folded-stack sampling profile analysis: parse, aggregate leaves, top stacks",
@@ -6054,7 +6054,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-profiling/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-profiling/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "profiling.xi",
                                               "package.xi"
@@ -7276,7 +7276,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.spell",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Dictionary-based spell checking: Levenshtein distance, suggestions, unknown-word scan",
@@ -7286,7 +7286,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-spell/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-spell/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "spell.xi",
                                               "package.xi"
@@ -7587,7 +7587,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.summary",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Extractive text summarization with frequency scoring",
@@ -7597,7 +7597,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-summary/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-summary/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "summary.xi",
                                               "package.xi"
