@@ -1,8 +1,6 @@
 # xiom.modbus -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.modbus`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/modbus.xi` (`module xiom.modbus`).
 Depends on `xiom.std`; the library module imports nothing (the tests import
 `xiom.test`, `xiom.io`, `xiom.string`, `xiom.string.compare`,
@@ -401,7 +399,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.modbus
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=23 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -417,6 +415,60 @@ Last verified: compiler 0.61.3,
 - `rtu_decode` does not verify that a decoded request is semantically valid
   (that is the function-specific decoder's job), and `tcp_decode` does not
   correlate the transaction id with anything.
+
+## Contracts (batch #30 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/modbus.xi` in the batch #30
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 51 clauses across the 21 public entry points; all are `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.modbus -TimeoutSec 60` runs ended
+`port: PASS (passed=23 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.89 s and 5.73 s); the 23-check conformance suite exercises every
+entry point and no clause trapped, so none was dropped.
+
+All 51 clauses are **runtime-checked only**; no Z3 proof was attempted in this
+pass.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `modbus_crc16` | `data.len() == 0 => result == 65535`; `result >= 0 && result <= 65535` | runtime-checked |
+| `pdu_function` | `result == p.function` | runtime-checked |
+| `pdu_data_len` | `result == p.data.len()` | runtime-checked |
+| `pdu_is_exception` | `result == (p.function >= 128)` | runtime-checked |
+| `pdu_encode` | `p.function < 0 || p.function > 255 => result is Err`; `p.data.len() > 252 => result is Err`; `result is Ok => p.function >= 0 && p.function <= 255 && p.data.len() <= 252` | runtime-checked |
+| `pdu_decode` | `data.len() == 0 => result is Err`; `data.len() > 253 => result is Err`; `result is Ok => data.len() >= 1 && data.len() <= 253` | runtime-checked |
+| `read_holding_registers_request_pdu` | `start_address < 0 || start_address > 65535 => result is Err`; `quantity < 1 || quantity > 125 => result is Err`; `start_address + quantity > 65536 => result is Err` | runtime-checked |
+| `read_holding_registers_request_from_pdu` | `p.function != 3 => result is Err`; `p.data.len() != 4 => result is Err`; `result is Ok => p.function == 3 && p.data.len() == 4` | runtime-checked |
+| `read_holding_registers_response_pdu` | `registers.len() < 1 || registers.len() > 125 => result is Err`; `result is Ok => registers.len() >= 1 && registers.len() <= 125` | runtime-checked |
+| `read_holding_registers_response_from_pdu` | `p.function != 3 => result is Err`; `p.data.len() == 0 => result is Err`; `result is Ok => p.function == 3 && p.data.len() >= 1` | runtime-checked |
+| `write_single_register_request_pdu` | `address < 0 || address > 65535 => result is Err`; `value < 0 || value > 65535 => result is Err` | runtime-checked |
+| `write_single_register_response_pdu` | `address < 0 || address > 65535 => result is Err`; `value < 0 || value > 65535 => result is Err` | runtime-checked |
+| `write_single_register_request_from_pdu` | `p.function != 6 => result is Err`; `p.data.len() != 4 => result is Err`; `result is Ok => p.function == 6 && p.data.len() == 4` | runtime-checked |
+| `write_single_register_response_from_pdu` | `p.function != 6 => result is Err`; `p.data.len() != 4 => result is Err`; `result is Ok => p.function == 6 && p.data.len() == 4` | runtime-checked |
+| `exception_pdu` | `base_function < 1 || base_function > 127 => result is Err`; `code < 1 || code > 4 => result is Err`; `result is Ok => base_function >= 1 && base_function <= 127 && code >= 1 && code <= 4` | runtime-checked |
+| `exception_from_pdu` | `p.function < 128 => result is Err`; `p.data.len() != 1 => result is Err`; `result is Ok => p.function >= 128 && p.data.len() == 1` | runtime-checked |
+| `exception_name` | `code == 1 => result.len() == 16`; `code == 4 => result.len() == 21`; `code < 1 || code > 4 => result.len() == 17` | runtime-checked |
+| `rtu_encode` | `address < 1 || address > 247 => result is Err`; `p.function < 0 || p.function > 255 || p.data.len() > 252 => result is Err` | runtime-checked |
+| `rtu_decode` | `data.len() < 4 => result is Err`; `data.len() > 256 => result is Err`; `result is Ok => data.len() >= 4 && data.len() <= 256` | runtime-checked |
+| `tcp_encode` | `transaction_id < 0 || transaction_id > 65535 => result is Err`; `unit_id < 0 || unit_id > 255 => result is Err`; `p.function < 0 || p.function > 255 || p.data.len() > 252 => result is Err` | runtime-checked |
+| `tcp_decode` | `data.len() < 8 => result is Err`; `result is Ok => data.len() >= 8` | runtime-checked |
+
+Source-shape notes pinned by the clauses:
+
+- `modbus_crc16` keeps the risk-flagged pair: empty input pins the init
+  `0xFFFF` (65535) and the range clause states the 16-bit register invariant
+  `0 <= result <= 65535` (the result is never negative or above 16 bits);
+  both clauses held on both port runs.
+- The `exception_name` lengths are pinned against the source strings:
+  `code == 1` ("illegal function") is 16, `code == 4` ("server device
+  failure") is 21, and codes outside 1..4 ("unknown exception") are 17.
+- `rtu_encode` and `tcp_encode` carry one combined PDU guard each over the
+  two `pdu_encode` error classes (function outside 0..255 or `data.len()`
+  over 252); the framings propagate those errors unchanged.
+- No clause reads a `&mut` parameter, indexes a vector, compares a `Str`,
+  calls any function, or reads a struct Result payload; the shadowing audit
+  is clean (no contracted parameter is shadowed by a local in its function).
 
 ## Compiler / stdlib notes for v0.61.3
 

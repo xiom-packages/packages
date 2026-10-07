@@ -222,7 +222,10 @@ fn _push_bytes(out: &mut Vec[UInt8], v: &Vec[UInt8]) {
 /// returns 0xFFFF (the init survives). This is the checksum RTU frames
 /// carry over address + PDU. "123456789" = 0x4B37 (19255).
 /// Complexity: O(data.len()) time, O(1) space (8 bit-steps per byte).
-pub fn modbus_crc16(data: &Vec[UInt8]) -> Int {
+pub fn modbus_crc16(data: &Vec[UInt8]) -> Int
+  ensures: data.len() == 0 => result == 65535;
+  ensures: result >= 0 && result <= 65535;
+{
   var reg = 65535;
   var i = 0;
   while i < data.len() {
@@ -248,13 +251,17 @@ pub fn modbus_crc16(data: &Vec[UInt8]) -> Int {
 
 /// Function code of the PDU (0..255 as carried on the wire).
 /// Complexity: O(1).
-pub fn pdu_function(p: &ModbusPdu) -> Int {
+pub fn pdu_function(p: &ModbusPdu) -> Int
+  ensures: result == p.function;
+{
   return p.function;
 }
 
 /// Number of data bytes in the PDU (0..252 for an encodable PDU).
 /// Complexity: O(1).
-pub fn pdu_data_len(p: &ModbusPdu) -> Int {
+pub fn pdu_data_len(p: &ModbusPdu) -> Int
+  ensures: result == p.data.len();
+{
   let d: Vec[UInt8] = p.data;
   return d.len();
 }
@@ -262,7 +269,9 @@ pub fn pdu_data_len(p: &ModbusPdu) -> Int {
 /// True when the function code has the exception bit set (function >= 128,
 /// i.e. the server rejected the original request).
 /// Complexity: O(1).
-pub fn pdu_is_exception(p: &ModbusPdu) -> Bool {
+pub fn pdu_is_exception(p: &ModbusPdu) -> Bool
+  ensures: result == (p.function >= 128);
+{
   return p.function >= 128;
 }
 
@@ -272,7 +281,11 @@ pub fn pdu_is_exception(p: &ModbusPdu) -> Bool {
 /// Err("modbus: pdu too long") when `data.len()` exceeds 252 (the 253-byte
 /// Modbus PDU limit). Nothing is written on Err.
 /// Complexity: O(data.len()).
-pub fn pdu_encode(p: &ModbusPdu) -> Result[Vec[UInt8], Str] {
+pub fn pdu_encode(p: &ModbusPdu) -> Result[Vec[UInt8], Str]
+  ensures: p.function < 0 || p.function > 255 => result is Err;
+  ensures: p.data.len() > 252 => result is Err;
+  ensures: result is Ok => p.function >= 0 && p.function <= 255 && p.data.len() <= 252;
+{
   let f: Int = p.function;
   if f < 0 || f > 255 {
     return _err_bytes("modbus: invalid function code");
@@ -292,7 +305,11 @@ pub fn pdu_encode(p: &ModbusPdu) -> Result[Vec[UInt8], Str] {
 /// Err("modbus: empty pdu") when `data` has no function code;
 /// Err("modbus: pdu too long") when `data` exceeds the 253-byte PDU limit.
 /// Complexity: O(data.len()).
-pub fn pdu_decode(data: &Vec[UInt8]) -> Result[ModbusPdu, Str] {
+pub fn pdu_decode(data: &Vec[UInt8]) -> Result[ModbusPdu, Str]
+  ensures: data.len() == 0 => result is Err;
+  ensures: data.len() > 253 => result is Err;
+  ensures: result is Ok => data.len() >= 1 && data.len() <= 253;
+{
   let n = data.len();
   if n == 0 {
     return _err_pdu("modbus: empty pdu");
@@ -317,7 +334,11 @@ pub fn pdu_decode(data: &Vec[UInt8]) -> Result[ModbusPdu, Str] {
 /// outside 1..125; Err("modbus: address range overflow") when
 /// start_address + quantity exceeds 65536.
 /// Complexity: O(1).
-pub fn read_holding_registers_request_pdu(start_address: Int, quantity: Int) -> Result[ModbusPdu, Str] {
+pub fn read_holding_registers_request_pdu(start_address: Int, quantity: Int) -> Result[ModbusPdu, Str]
+  ensures: start_address < 0 || start_address > 65535 => result is Err;
+  ensures: quantity < 1 || quantity > 125 => result is Err;
+  ensures: start_address + quantity > 65536 => result is Err;
+{
   if start_address < 0 || start_address > 65535 {
     return _err_pdu("modbus: invalid register address");
   }
@@ -341,7 +362,11 @@ pub fn read_holding_registers_request_pdu(start_address: Int, quantity: Int) -> 
 /// Err("modbus: address range overflow") when start_address + quantity
 /// exceeds 65536.
 /// Complexity: O(1).
-pub fn read_holding_registers_request_from_pdu(p: &ModbusPdu) -> Result[ReadHoldingRegistersRequest, Str] {
+pub fn read_holding_registers_request_from_pdu(p: &ModbusPdu) -> Result[ReadHoldingRegistersRequest, Str]
+  ensures: p.function != 3 => result is Err;
+  ensures: p.data.len() != 4 => result is Err;
+  ensures: result is Ok => p.function == 3 && p.data.len() == 4;
+{
   if p.function != 3 {
     return _err_read("modbus: wrong function");
   }
@@ -368,7 +393,10 @@ pub fn read_holding_registers_request_from_pdu(p: &ModbusPdu) -> Result[ReadHold
 /// value is outside 0..65535. Each value is validated before it is written
 /// and an Err discards the partially built local PDU.
 /// Complexity: O(registers.len()).
-pub fn read_holding_registers_response_pdu(registers: &Vec[Int]) -> Result[ModbusPdu, Str] {
+pub fn read_holding_registers_response_pdu(registers: &Vec[Int]) -> Result[ModbusPdu, Str]
+  ensures: registers.len() < 1 || registers.len() > 125 => result is Err;
+  ensures: result is Ok => registers.len() >= 1 && registers.len() <= 125;
+{
   let n = registers.len();
   if n < 1 || n > 125 {
     return _err_pdu("modbus: invalid register count");
@@ -396,7 +424,11 @@ pub fn read_holding_registers_response_pdu(registers: &Vec[Int]) -> Result[Modbu
 /// Err("modbus: invalid register count") when byte_count/2 is outside
 /// 1..125. Values are returned in wire order, each in 0..65535.
 /// Complexity: O(registers).
-pub fn read_holding_registers_response_from_pdu(p: &ModbusPdu) -> Result[Vec[Int], Str] {
+pub fn read_holding_registers_response_from_pdu(p: &ModbusPdu) -> Result[Vec[Int], Str]
+  ensures: p.function != 3 => result is Err;
+  ensures: p.data.len() == 0 => result is Err;
+  ensures: result is Ok => p.function == 3 && p.data.len() >= 1;
+{
   if p.function != 3 {
     return _err_regs("modbus: wrong function");
   }
@@ -433,7 +465,10 @@ pub fn read_holding_registers_response_from_pdu(p: &ModbusPdu) -> Result[Vec[Int
 /// 0..65535; Err("modbus: invalid register value") when `value` is outside
 /// 0..65535.
 /// Complexity: O(1).
-pub fn write_single_register_request_pdu(address: Int, value: Int) -> Result[ModbusPdu, Str] {
+pub fn write_single_register_request_pdu(address: Int, value: Int) -> Result[ModbusPdu, Str]
+  ensures: address < 0 || address > 65535 => result is Err;
+  ensures: value < 0 || value > 65535 => result is Err;
+{
   if address < 0 || address > 65535 {
     return _err_pdu("modbus: invalid register address");
   }
@@ -451,7 +486,10 @@ pub fn write_single_register_request_pdu(address: Int, value: Int) -> Result[Mod
 /// write_single_register_request_pdu and delegates to it; the separate name
 /// documents the direction at the call site.
 /// Complexity: O(1).
-pub fn write_single_register_response_pdu(address: Int, value: Int) -> Result[ModbusPdu, Str] {
+pub fn write_single_register_response_pdu(address: Int, value: Int) -> Result[ModbusPdu, Str]
+  ensures: address < 0 || address > 65535 => result is Err;
+  ensures: value < 0 || value > 65535 => result is Err;
+{
   return write_single_register_request_pdu(address, value);
 }
 
@@ -460,7 +498,11 @@ pub fn write_single_register_response_pdu(address: Int, value: Int) -> Result[Mo
 /// Err("modbus: wrong function") when `function` is not 6;
 /// Err("modbus: bad pdu length") when the data is not exactly 4 bytes.
 /// Complexity: O(1).
-pub fn write_single_register_request_from_pdu(p: &ModbusPdu) -> Result[WriteSingleRegister, Str] {
+pub fn write_single_register_request_from_pdu(p: &ModbusPdu) -> Result[WriteSingleRegister, Str]
+  ensures: p.function != 6 => result is Err;
+  ensures: p.data.len() != 4 => result is Err;
+  ensures: result is Ok => p.function == 6 && p.data.len() == 4;
+{
   if p.function != 6 {
     return _err_write("modbus: wrong function");
   }
@@ -477,7 +519,11 @@ pub fn write_single_register_request_from_pdu(p: &ModbusPdu) -> Result[WriteSing
 /// this is the same layout as write_single_register_request_from_pdu and
 /// delegates to it.
 /// Complexity: O(1).
-pub fn write_single_register_response_from_pdu(p: &ModbusPdu) -> Result[WriteSingleRegister, Str] {
+pub fn write_single_register_response_from_pdu(p: &ModbusPdu) -> Result[WriteSingleRegister, Str]
+  ensures: p.function != 6 => result is Err;
+  ensures: p.data.len() != 4 => result is Err;
+  ensures: result is Ok => p.function == 6 && p.data.len() == 4;
+{
   return write_single_register_request_from_pdu(p);
 }
 
@@ -492,7 +538,11 @@ pub fn write_single_register_response_from_pdu(p: &ModbusPdu) -> Result[WriteSin
 /// 1..127; Err("modbus: invalid exception code") when `code` is outside
 /// 1..4.
 /// Complexity: O(1).
-pub fn exception_pdu(base_function: Int, code: Int) -> Result[ModbusPdu, Str] {
+pub fn exception_pdu(base_function: Int, code: Int) -> Result[ModbusPdu, Str]
+  ensures: base_function < 1 || base_function > 127 => result is Err;
+  ensures: code < 1 || code > 4 => result is Err;
+  ensures: result is Ok => base_function >= 1 && base_function <= 127 && code >= 1 && code <= 4;
+{
   if base_function < 1 || base_function > 127 {
     return _err_pdu("modbus: invalid function code");
   }
@@ -511,7 +561,11 @@ pub fn exception_pdu(base_function: Int, code: Int) -> Result[ModbusPdu, Str] {
 /// Err("modbus: bad pdu length") when the data is not exactly 1 byte;
 /// Err("modbus: invalid exception code") when the code is outside 1..4.
 /// Complexity: O(1).
-pub fn exception_from_pdu(p: &ModbusPdu) -> Result[ModbusException, Str] {
+pub fn exception_from_pdu(p: &ModbusPdu) -> Result[ModbusException, Str]
+  ensures: p.function < 128 => result is Err;
+  ensures: p.data.len() != 1 => result is Err;
+  ensures: result is Ok => p.function >= 128 && p.data.len() == 1;
+{
   if p.function < 128 {
     return _err_exc("modbus: wrong function");
   }
@@ -530,7 +584,11 @@ pub fn exception_from_pdu(p: &ModbusPdu) -> Result[ModbusException, Str] {
 /// 2 = "illegal data address", 3 = "illegal data value",
 /// 4 = "server device failure"; any other value is "unknown exception".
 /// Complexity: O(1).
-pub fn exception_name(code: Int) -> Str {
+pub fn exception_name(code: Int) -> Str
+  ensures: code == 1 => result.len() == 16;
+  ensures: code == 4 => result.len() == 21;
+  ensures: code < 1 || code > 4 => result.len() == 17;
+{
   if code == 1 {
     return "illegal function";
   }
@@ -557,7 +615,10 @@ pub fn exception_name(code: Int) -> Str {
 /// pdu_encode errors are propagated unchanged (the PDU is validated before
 /// any byte is written). A maximum PDU (253 bytes) yields the maximum RTU
 /// frame of 256 bytes. Complexity: O(PDU length).
-pub fn rtu_encode(address: Int, p: &ModbusPdu) -> Result[Vec[UInt8], Str] {
+pub fn rtu_encode(address: Int, p: &ModbusPdu) -> Result[Vec[UInt8], Str]
+  ensures: address < 1 || address > 247 => result is Err;
+  ensures: p.function < 0 || p.function > 255 || p.data.len() > 252 => result is Err;
+{
   if address < 1 || address > 247 {
     return _err_bytes("modbus: invalid rtu address");
   }
@@ -587,7 +648,11 @@ pub fn rtu_encode(address: Int, p: &ModbusPdu) -> Result[Vec[UInt8], Str] {
 /// pdu_decode errors are propagated unchanged (a frame of at least 4 bytes
 /// always leaves a 1..253-byte PDU).
 /// Complexity: O(data.len()).
-pub fn rtu_decode(data: &Vec[UInt8]) -> Result[ModbusRtuFrame, Str] {
+pub fn rtu_decode(data: &Vec[UInt8]) -> Result[ModbusRtuFrame, Str]
+  ensures: data.len() < 4 => result is Err;
+  ensures: data.len() > 256 => result is Err;
+  ensures: result is Ok => data.len() >= 4 && data.len() <= 256;
+{
   let n = data.len();
   if n < 4 {
     return _err_rtu("modbus: truncated rtu frame");
@@ -626,7 +691,11 @@ pub fn rtu_decode(data: &Vec[UInt8]) -> Result[ModbusRtuFrame, Str] {
 /// 0..65535; Err("modbus: invalid unit id") when `unit_id` is outside
 /// 0..255; pdu_encode errors are propagated unchanged.
 /// Complexity: O(PDU length).
-pub fn tcp_encode(transaction_id: Int, unit_id: Int, p: &ModbusPdu) -> Result[Vec[UInt8], Str] {
+pub fn tcp_encode(transaction_id: Int, unit_id: Int, p: &ModbusPdu) -> Result[Vec[UInt8], Str]
+  ensures: transaction_id < 0 || transaction_id > 65535 => result is Err;
+  ensures: unit_id < 0 || unit_id > 255 => result is Err;
+  ensures: p.function < 0 || p.function > 255 || p.data.len() > 252 => result is Err;
+{
   if transaction_id < 0 || transaction_id > 65535 {
     return _err_bytes("modbus: invalid transaction id");
   }
@@ -656,7 +725,10 @@ pub fn tcp_encode(transaction_id: Int, unit_id: Int, p: &ModbusPdu) -> Result[Ve
 /// number of bytes after it (unit id + PDU);
 /// pdu_decode errors are propagated unchanged. The transaction and unit
 /// identifiers are read as unsigned. Complexity: O(data.len()).
-pub fn tcp_decode(data: &Vec[UInt8]) -> Result[ModbusTcpFrame, Str] {
+pub fn tcp_decode(data: &Vec[UInt8]) -> Result[ModbusTcpFrame, Str]
+  ensures: data.len() < 8 => result is Err;
+  ensures: result is Ok => data.len() >= 8;
+{
   let n = data.len();
   if n < 8 {
     return _err_tcp("modbus: truncated mbap header");
