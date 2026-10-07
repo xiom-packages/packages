@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T22:14:58Z",
+    "updated":  "2026-10-07T22:34:32Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -597,7 +597,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.bech32",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Bech32 and Bech32m checksummed base32 encoding and decoding (BIP-173, BIP-350)",
@@ -607,7 +607,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bech32/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bech32/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "bech32.xi",
                                               "package.xi"
@@ -2693,7 +2693,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.gemtext",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Gemtext line codec: parser and canonical emitter",
@@ -2703,7 +2703,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gemtext/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gemtext/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "gemtext.xi",
                                               "package.xi"
@@ -4243,7 +4243,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.maidenhead",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Integer-only Maidenhead grid locator codec over integer-microdegree coordinates",
@@ -4253,7 +4253,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-maidenhead/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-maidenhead/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "maidenhead.xi",
                                               "package.xi"
@@ -4277,7 +4277,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.markdown",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Markdown subset to HTML renderer",
@@ -4287,7 +4287,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-markdown/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-markdown/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "markdown.xi",
                                               "package.xi"
@@ -6164,7 +6164,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.punycode",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "RFC 3492 Punycode for IDN labels: xn-- encode/decode without external tables",
@@ -6174,7 +6174,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-punycode/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-punycode/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "punycode.xi",
                                               "package.xi"
@@ -6249,7 +6249,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.query",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Simple filter expressions over flat key/value records with AND/OR connectors",
@@ -6259,7 +6259,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-query/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-query/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "query.xi",
                                               "package.xi"
