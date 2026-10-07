@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T18:14:59Z",
+    "updated":  "2026-10-07T19:07:57Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -2499,7 +2499,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.fnv",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "FNV-1 and FNV-1a non-cryptographic hash functions in 32-bit and 64-bit widths",
@@ -2509,7 +2509,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fnv/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fnv/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "fnv.xi",
                                               "package.xi"
@@ -2710,7 +2710,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.geo",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Geohash encoding/decoding and latitude/longitude helpers",
@@ -2720,7 +2720,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-geo/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-geo/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "geo.xi",
                                               "package.xi"
@@ -6266,7 +6266,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.querystring",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "application/x-www-form-urlencoded parsing and serialization with multi-value support",
@@ -6276,7 +6276,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-querystring/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-querystring/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "querystring.xi",
                                               "package.xi"
@@ -6479,7 +6479,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.report",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Plain-text report building: aligned tables, key/value blocks, bullets, and word wrap",
@@ -6489,7 +6489,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-report/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-report/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "report.xi",
                                               "package.xi"
@@ -6555,7 +6555,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ris",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "RIS bibliography parser and canonical emitter",
@@ -6565,7 +6565,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ris/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ris/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ris.xi",
                                               "package.xi"
@@ -6793,7 +6793,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.sanitize",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Input sanitization: control characters, whitespace, ASCII, filenames",
@@ -6803,7 +6803,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sanitize/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sanitize/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "sanitize.xi",
                                               "package.xi"
