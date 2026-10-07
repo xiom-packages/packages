@@ -1,5 +1,7 @@
 # xiom.pam SPEC
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 ## Scope
 
 Pure-XIOM parsing and building of single-image Netpbm PAM (P7) files, with
@@ -200,3 +202,42 @@ Notes:
   not validated.
 - `pam_parse_header` fully validates the raster, but only for the single
   buffer passed in; there is no incremental or streaming parse.
+
+## Contracts (batch #26 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/pam.xi` in the batch #26
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration): 23 clauses across the 13 public entry points. Two consecutive
+`.\scripts\port.ps1 -Package xiom.pam -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (7.51 s and 7.85 s). The 20-check conformance suite exercises all 13
+entry points with the clauses active; none trapped.
+
+All clauses are `ensures:`; no `requires:` was added, so the accepted-input
+domain is unchanged. A direct `xiom-verify src\pam.xi --check` pass reported
+0 proven / 0 violated / 31 unknown / 2 emitter errors (`unknown constant _b`,
+`unknown constant img`), so the v0.64.0 SMT emitter discharges none of these
+clause shapes; all 23 are checked at runtime by the v0.64.0 evaluator and no
+clause is claimed Z3-provable.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `pam_bytes_per_sample` | `ensures: maxval >= 1 && maxval <= 255 => result == 1`; `ensures: maxval >= 256 && maxval <= 65535 => result == 2`; `ensures: maxval <= 0 \|\| maxval > 65535 => result == 0` | runtime-checked (pure-scalar guard formulas) |
+| `pam_width` | `ensures: result == img.width` | runtime-checked (struct scalar field read) |
+| `pam_height` | `ensures: result == img.height` | runtime-checked (struct scalar field read) |
+| `pam_depth` | `ensures: result == img.depth` | runtime-checked (struct scalar field read) |
+| `pam_maxval` | `ensures: result == img.maxval` | runtime-checked (struct scalar field read) |
+| `pam_raster_offset` | `ensures: result == img.data_offset` | runtime-checked (struct scalar field read) |
+| `pam_raster_len` | `ensures: result == img.raster_len` | runtime-checked (struct scalar field read) |
+| `pam_tupltype_count` | `ensures: result == img.tupltypes.len()` | runtime-checked (Vec length count) |
+| `pam_tupltype` | `ensures: index < 0 => result.len() == 0`; `ensures: index >= img.tupltypes.len() => result.len() == 0`; `ensures: result.len() > 0 => index >= 0 && index < img.tupltypes.len()` | runtime-checked (Str length + Vec length sentinel) |
+| `pam_tuple_type` | `ensures: img.tupltypes.len() == 0 => result.len() == 0`; `ensures: img.tupltypes.len() >= 1 => result.len() >= img.tupltypes.len() - 1` | runtime-checked (Str/Vec length join bound) |
+| `pam_parse_header` | `ensures: data.len() < 3 => result is Err`; `ensures: result is Ok => data.len() >= 3` | runtime-checked (Vec length + Result tag) |
+| `pam_raster_copy` | `ensures: img.data_offset < 0 => result is Err`; `ensures: img.raster_len < 0 => result is Err`; `ensures: result is Ok => img.data_offset >= 0 && img.raster_len >= 0` | runtime-checked (struct field guards + Result tag) |
+| `pam_build` | `ensures: width <= 0 \|\| width > 1000000 \|\| height <= 0 \|\| height > 1000000 \|\| depth <= 0 \|\| depth > 1000000 => result is Err`; `ensures: maxval <= 0 \|\| maxval > 65535 => result is Err`; `ensures: result is Ok => width >= 1 && width <= 1000000 && height >= 1 && height <= 1000000 && depth >= 1 && depth <= 1000000 && maxval >= 1 && maxval <= 65535` | runtime-checked (scalar parameter guards + Result tag) |
+
+Deliberately not claimed: no Ok-payload span reads on `pam_parse_header`; no
+payload-length-vs-parameter clause on `pam_raster_copy`; no element indexing
+on `pam_tuple_type`; no `Str` equality (BUG 17; `.len()` only); no clause
+calls another function (no transitive-callee clause calls); no vector
+indexing, tuple-component access or struct payload reads.

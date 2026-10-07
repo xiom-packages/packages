@@ -243,7 +243,11 @@ fn _put_str(out: &mut Vec[UInt8], s: Str) {
 // Bytes per raster sample for `maxval`: 1 for 1..255, 2 for 256..65535, and 0
 // when maxval is outside the PAM range (bad bytes-per-sample). A parsed or
 // built image therefore always has 1 or 2.
-pub fn pam_bytes_per_sample(maxval: Int) -> Int {
+pub fn pam_bytes_per_sample(maxval: Int) -> Int
+  ensures: maxval >= 1 && maxval <= 255 => result == 1;
+  ensures: maxval >= 256 && maxval <= 65535 => result == 2;
+  ensures: maxval <= 0 || maxval > 65535 => result == 0;
+{
   if (maxval <= 0) { return 0; }
   if (maxval <= 255) { return 1; }
   if (maxval <= 65535) { return 2; }
@@ -251,37 +255,51 @@ pub fn pam_bytes_per_sample(maxval: Int) -> Int {
 }
 
 // Raster width in pixels (always 1..1000000 for a parsed image).
-pub fn pam_width(img: &PamImage) -> Int {
+pub fn pam_width(img: &PamImage) -> Int
+  ensures: result == img.width;
+{
   return img.width;
 }
 
 // Raster height in rows (always 1..1000000 for a parsed image).
-pub fn pam_height(img: &PamImage) -> Int {
+pub fn pam_height(img: &PamImage) -> Int
+  ensures: result == img.height;
+{
   return img.height;
 }
 
 // Tuple depth (samples per tuple, always 1..1000000 for a parsed image).
-pub fn pam_depth(img: &PamImage) -> Int {
+pub fn pam_depth(img: &PamImage) -> Int
+  ensures: result == img.depth;
+{
   return img.depth;
 }
 
 // Sample maximum (always 1..65535 for a parsed image).
-pub fn pam_maxval(img: &PamImage) -> Int {
+pub fn pam_maxval(img: &PamImage) -> Int
+  ensures: result == img.maxval;
+{
   return img.maxval;
 }
 
 // Offset of the first raster byte in the buffer passed to pam_parse_header.
-pub fn pam_raster_offset(img: &PamImage) -> Int {
+pub fn pam_raster_offset(img: &PamImage) -> Int
+  ensures: result == img.data_offset;
+{
   return img.data_offset;
 }
 
 // Exact raster span length in bytes: width * height * depth * bytes-per-sample.
-pub fn pam_raster_len(img: &PamImage) -> Int {
+pub fn pam_raster_len(img: &PamImage) -> Int
+  ensures: result == img.raster_len;
+{
   return img.raster_len;
 }
 
 // Number of TUPLTYPE header lines (0 or more).
-pub fn pam_tupltype_count(img: &PamImage) -> Int {
+pub fn pam_tupltype_count(img: &PamImage) -> Int
+  ensures: result == img.tupltypes.len();
+{
   let ts: Vec[Str] = img.tupltypes;
   return ts.len();
 }
@@ -289,7 +307,11 @@ pub fn pam_tupltype_count(img: &PamImage) -> Int {
 // The `index`-th TUPLTYPE value in header order. Returns "" when `index` is
 // negative or at/above pam_tupltype_count: parsed values are never empty, so
 // the sentinel is unambiguous.
-pub fn pam_tupltype(img: &PamImage, index: Int) -> Str {
+pub fn pam_tupltype(img: &PamImage, index: Int) -> Str
+  ensures: index < 0 => result.len() == 0;
+  ensures: index >= img.tupltypes.len() => result.len() == 0;
+  ensures: result.len() > 0 => index >= 0 && index < img.tupltypes.len();
+{
   let ts: Vec[Str] = img.tupltypes;
   if (index < 0) { return ""; }
   if (index >= ts.len()) { return ""; }
@@ -299,7 +321,10 @@ pub fn pam_tupltype(img: &PamImage, index: Int) -> Str {
 
 // The effective tuple type: the TUPLTYPE values joined with a single SPACE in
 // header order, or "" when the header had none.
-pub fn pam_tuple_type(img: &PamImage) -> Str {
+pub fn pam_tuple_type(img: &PamImage) -> Str
+  ensures: img.tupltypes.len() == 0 => result.len() == 0;
+  ensures: img.tupltypes.len() >= 1 => result.len() >= img.tupltypes.len() - 1;
+{
   let ts: Vec[Str] = img.tupltypes;
   let n = ts.len();
   if (n == 0) { return ""; }
@@ -319,7 +344,10 @@ pub fn pam_tuple_type(img: &PamImage) -> Str {
 // (data_offset, raster_len). The buffer must contain exactly that span after
 // ENDHDR: shorter input is "pam: truncated raster", longer input is
 // "pam: extra raster bytes". Multi-image PAM streams are out of scope.
-pub fn pam_parse_header(data: &Vec[UInt8]) -> Result[PamImage, Str] {
+pub fn pam_parse_header(data: &Vec[UInt8]) -> Result[PamImage, Str]
+  ensures: data.len() < 3 => result is Err;
+  ensures: result is Ok => data.len() >= 3;
+{
   let n = data.len();
   if (n < 3) { return _err_img("pam: truncated header"); }
   if (_b(data, 0) != 80) { return _err_img("pam: bad magic"); }
@@ -469,7 +497,11 @@ pub fn pam_parse_header(data: &Vec[UInt8]) -> Result[PamImage, Str] {
 // Copy the exact raster span of `img` out of `data` (flat bytes, no padding).
 // Guards the span against `data` so a forged or stale image cannot read out of
 // bounds; that is "pam: raster out of range".
-pub fn pam_raster_copy(data: &Vec[UInt8], img: &PamImage) -> Result[Vec[UInt8], Str] {
+pub fn pam_raster_copy(data: &Vec[UInt8], img: &PamImage) -> Result[Vec[UInt8], Str]
+  ensures: img.data_offset < 0 => result is Err;
+  ensures: img.raster_len < 0 => result is Err;
+  ensures: result is Ok => img.data_offset >= 0 && img.raster_len >= 0;
+{
   if (img.data_offset < 0) { return _err_bytes("pam: raster out of range"); }
   if (img.raster_len < 0) { return _err_bytes("pam: raster out of range"); }
   if (img.data_offset + img.raster_len > data.len()) {
@@ -491,7 +523,11 @@ pub fn pam_raster_copy(data: &Vec[UInt8], img: &PamImage) -> Result[Vec[UInt8], 
 // verbatim (no padding). `raster` must be exactly
 // width*height*depth*bytes-per-sample bytes long; tuple type values must be
 // single-line printable strings with no leading or trailing space.
-pub fn pam_build(width: Int, height: Int, depth: Int, maxval: Int, tupltypes: &Vec[Str], raster: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn pam_build(width: Int, height: Int, depth: Int, maxval: Int, tupltypes: &Vec[Str], raster: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: width <= 0 || width > 1000000 || height <= 0 || height > 1000000 || depth <= 0 || depth > 1000000 => result is Err;
+  ensures: maxval <= 0 || maxval > 65535 => result is Err;
+  ensures: result is Ok => width >= 1 && width <= 1000000 && height >= 1 && height <= 1000000 && depth >= 1 && depth <= 1000000 && maxval >= 1 && maxval <= 65535;
+{
   if (width <= 0) { return _err_bytes("pam: invalid width"); }
   if (width > 1000000) { return _err_bytes("pam: invalid width"); }
   if (height <= 0) { return _err_bytes("pam: invalid height"); }
