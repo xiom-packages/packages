@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T20:11:09Z",
+    "updated":  "2026-10-07T20:31:28Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -906,7 +906,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.can",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Classic CAN 2.0A/2.0B frame codec: identifiers, DLC, RTR and 16-byte containers",
@@ -916,7 +916,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-can/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-can/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "can.xi",
                                               "package.xi"
@@ -1904,7 +1904,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.duration",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Strict ISO 8601 duration parsing and canonical formatting",
@@ -1914,7 +1914,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-duration/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-duration/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "duration.xi",
                                               "package.xi"
@@ -2482,7 +2482,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.fletcher",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Fletcher-16 and Fletcher-32 checksums with one-shot, incremental and hex-display APIs",
@@ -2492,7 +2492,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fletcher/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fletcher/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "fletcher.xi",
                                               "package.xi"
@@ -3663,7 +3663,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.l10n.number",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Locale-style integer and decimal number formatting and parsing (scaled integers)",
@@ -3673,7 +3673,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-number/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-l10n-number/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "l10n_number.xi",
                                               "package.xi"
@@ -4520,7 +4520,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.midi",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Standard MIDI File structure: header, track chunks, variable-length quantities, event counts",
@@ -4530,7 +4530,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-midi/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-midi/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "midi.xi",
                                               "package.xi"
@@ -4879,7 +4879,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.netstring",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "DJB netstring framing: streaming parse, build and cursor iteration over \u003clen\u003e:\u003cpayload\u003e, byte streams",
@@ -4889,7 +4889,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-netstring/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-netstring/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "netstring.xi",
                                               "package.xi"
