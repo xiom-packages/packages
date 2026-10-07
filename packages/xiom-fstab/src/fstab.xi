@@ -320,7 +320,10 @@ fn _fs_push_entry(doc: &mut Fstab, device: Str, mountpoint: Str, fstype: Str, op
 /// "/dev/disk one"; "dev mnt ext4 defaults 3 0\n" ->
 /// Err("fstab: bad dump: 3").
 /// Complexity: O(text.len()).
-pub fn fstab_parse(text: Str) -> Result[Fstab, Str] {
+pub fn fstab_parse(text: Str) -> Result[Fstab, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var doc = Fstab{
     devices: Vec[Str].new();
     mountpoints: Vec[Str].new();
@@ -430,7 +433,11 @@ pub fn fstab_parse(text: Str) -> Result[Fstab, Str] {
 /// out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn fstab_entry_count(d: &Fstab) -> Int {
+pub fn fstab_entry_count(d: &Fstab) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.devices.len();
+  ensures: d.devices.len() == 0 => result == 0;
+{
   var n = d.devices.len();
   if d.mountpoints.len() < n { n = d.mountpoints.len(); }
   if d.fstypes.len() < n { n = d.fstypes.len(); }
@@ -450,7 +457,11 @@ pub fn fstab_entry_count(d: &Fstab) -> Int {
 /// Error case: none.
 /// Examples: entry "/dev/disk\040one ..." -> Some("/dev/disk one").
 /// Complexity: O(1).
-pub fn fstab_device(d: &Fstab, i: Int) -> Option[Str] {
+pub fn fstab_device(d: &Fstab, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= fstab_entry_count(d) => result is None;
+  ensures: result is Some => i >= 0 && i < d.devices.len();
+{
   if i < 0 || i >= fstab_entry_count(d) { return None; }
   let v: Str = d.devices[i];
   return Some(v);
@@ -461,7 +472,11 @@ pub fn fstab_device(d: &Fstab, i: Int) -> Option[Str] {
 /// Returns: Some(mountpoint) for 0 <= i < fstab_entry_count(d), else None.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn fstab_mountpoint(d: &Fstab, i: Int) -> Option[Str] {
+pub fn fstab_mountpoint(d: &Fstab, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= fstab_entry_count(d) => result is None;
+  ensures: result is Some => i >= 0 && i < d.mountpoints.len();
+{
   if i < 0 || i >= fstab_entry_count(d) { return None; }
   let v: Str = d.mountpoints[i];
   return Some(v);
@@ -472,7 +487,11 @@ pub fn fstab_mountpoint(d: &Fstab, i: Int) -> Option[Str] {
 /// Returns: Some(fstype) for 0 <= i < fstab_entry_count(d), else None.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn fstab_fstype(d: &Fstab, i: Int) -> Option[Str] {
+pub fn fstab_fstype(d: &Fstab, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= fstab_entry_count(d) => result is None;
+  ensures: result is Some => i >= 0 && i < d.fstypes.len();
+{
   if i < 0 || i >= fstab_entry_count(d) { return None; }
   let v: Str = d.fstypes[i];
   return Some(v);
@@ -484,7 +503,11 @@ pub fn fstab_fstype(d: &Fstab, i: Int) -> Option[Str] {
 /// is the raw comma-separated field; see fstab_options for the split list.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn fstab_options_string(d: &Fstab, i: Int) -> Option[Str] {
+pub fn fstab_options_string(d: &Fstab, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= fstab_entry_count(d) => result is None;
+  ensures: result is Some => i >= 0 && i < d.options_text.len();
+{
   if i < 0 || i >= fstab_entry_count(d) { return None; }
   let v: Str = d.options_text[i];
   return Some(v);
@@ -497,7 +520,11 @@ pub fn fstab_options_string(d: &Fstab, i: Int) -> Option[Str] {
 /// rather than reading past `option_pool`.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn fstab_option_count(d: &Fstab, i: Int) -> Int {
+pub fn fstab_option_count(d: &Fstab, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= fstab_entry_count(d) => result == 0;
+  ensures: result >= 0;
+{
   if i < 0 || i >= fstab_entry_count(d) { return 0; }
   let start: Int = d.option_starts[i];
   if start < 0 { return 0; }
@@ -516,7 +543,11 @@ pub fn fstab_option_count(d: &Fstab, i: Int) -> Int {
 /// Error case: none.
 /// Examples: "rw,noatime" -> j 0 "rw", j 1 "noatime".
 /// Complexity: O(1).
-pub fn fstab_option(d: &Fstab, i: Int, j: Int) -> Option[Str] {
+pub fn fstab_option(d: &Fstab, i: Int, j: Int) -> Option[Str]
+  ensures: j < 0 => result is None;
+  ensures: j >= fstab_option_count(d, i) => result is None;
+  ensures: result is Some => j >= 0 && j < d.option_pool.len();
+{
   let c = fstab_option_count(d, i);
   if j < 0 || j >= c { return None; }
   let start: Int = d.option_starts[i];
@@ -531,7 +562,10 @@ pub fn fstab_option(d: &Fstab, i: Int, j: Int) -> Option[Str] {
 /// change the document.
 /// Error case: none.
 /// Complexity: O(options).
-pub fn fstab_options(d: &Fstab, i: Int) -> Vec[Str] {
+pub fn fstab_options(d: &Fstab, i: Int) -> Vec[Str]
+  ensures: result.len() == fstab_option_count(d, i);
+  ensures: result.len() <= d.option_pool.len();
+{
   var out = Vec[Str].new();
   let c = fstab_option_count(d, i);
   if c == 0 { return out; }
@@ -555,7 +589,10 @@ pub fn fstab_options(d: &Fstab, i: Int) -> Vec[Str] {
 /// Error case: none.
 /// Examples: "rw,noatime" has "rw" and "noatime" but not "atime" or "RW".
 /// Complexity: O(options * name length).
-pub fn fstab_has_option(d: &Fstab, i: Int, name: Str) -> Bool {
+pub fn fstab_has_option(d: &Fstab, i: Int, name: Str) -> Bool
+  ensures: fstab_option_count(d, i) == 0 => !result;
+  ensures: result => i >= 0 && i < fstab_entry_count(d);
+{
   let c = fstab_option_count(d, i);
   if c == 0 { return false; }
   let start: Int = d.option_starts[i];
@@ -575,7 +612,11 @@ pub fn fstab_has_option(d: &Fstab, i: Int, name: Str) -> Bool {
 /// reported as None rather than 0.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn fstab_dump(d: &Fstab, i: Int) -> Option[Int] {
+pub fn fstab_dump(d: &Fstab, i: Int) -> Option[Int]
+  ensures: i < 0 => result is None;
+  ensures: i >= fstab_entry_count(d) => result is None;
+  ensures: result is Some => i >= 0 && i < d.dumps.len();
+{
   if i < 0 || i >= fstab_entry_count(d) { return None; }
   let v: Int = d.dumps[i];
   return Some(v);
@@ -588,7 +629,11 @@ pub fn fstab_dump(d: &Fstab, i: Int) -> Option[Int] {
 /// reported as None rather than 0.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn fstab_pass(d: &Fstab, i: Int) -> Option[Int] {
+pub fn fstab_pass(d: &Fstab, i: Int) -> Option[Int]
+  ensures: i < 0 => result is None;
+  ensures: i >= fstab_entry_count(d) => result is None;
+  ensures: result is Some => i >= 0 && i < d.passes.len();
+{
   if i < 0 || i >= fstab_entry_count(d) { return None; }
   let v: Int = d.passes[i];
   return Some(v);
@@ -599,7 +644,11 @@ pub fn fstab_pass(d: &Fstab, i: Int) -> Option[Int] {
 /// Returns: the line number for 0 <= i < fstab_entry_count(d), else 0.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn fstab_line(d: &Fstab, i: Int) -> Int {
+pub fn fstab_line(d: &Fstab, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= fstab_entry_count(d) => result == 0;
+  ensures: result != 0 => i >= 0 && i < d.lines.len();
+{
   if i < 0 || i >= fstab_entry_count(d) { return 0; }
   let v: Int = d.lines[i];
   return v;
@@ -616,7 +665,10 @@ pub fn fstab_line(d: &Fstab, i: Int) -> Int {
 /// Error case: none.
 /// Examples: two "/mnt/dup" entries -> 0.
 /// Complexity: O(entries * mountpoint length).
-pub fn fstab_mountpoint_index(d: &Fstab, mountpoint: Str) -> Int {
+pub fn fstab_mountpoint_index(d: &Fstab, mountpoint: Str) -> Int
+  ensures: fstab_entry_count(d) == 0 => result == -1;
+  ensures: result >= 0 => result < fstab_entry_count(d);
+{
   let n = fstab_entry_count(d);
   var i = 0;
   while i < n {
@@ -634,7 +686,10 @@ pub fn fstab_mountpoint_index(d: &Fstab, mountpoint: Str) -> Int {
 /// Error case: none.
 /// Examples: two "/mnt/dup" entries -> [0, 2].
 /// Complexity: O(entries * mountpoint length).
-pub fn fstab_entries_for_mountpoint(d: &Fstab, mountpoint: Str) -> Vec[Int] {
+pub fn fstab_entries_for_mountpoint(d: &Fstab, mountpoint: Str) -> Vec[Int]
+  ensures: result.len() <= fstab_entry_count(d);
+  ensures: fstab_entry_count(d) == 0 => result.len() == 0;
+{
   var out = Vec[Int].new();
   let n = fstab_entry_count(d);
   var i = 0;
@@ -666,7 +721,10 @@ pub fn fstab_entries_for_mountpoint(d: &Fstab, mountpoint: Str) -> Vec[Int] {
 /// Examples: parse("dev mnt ext4 defaults 0 0\n") emits
 /// "dev<TAB>mnt<TAB>ext4<TAB>defaults<TAB>0<TAB>0\n".
 /// Complexity: O(total output length).
-pub fn fstab_emit(d: &Fstab) -> Str {
+pub fn fstab_emit(d: &Fstab) -> Str
+  ensures: fstab_entry_count(d) == 0 => result.len() == 0;
+  ensures: result.len() >= fstab_entry_count(d);
+{
   var out = "";
   let n = fstab_entry_count(d);
   var i = 0;

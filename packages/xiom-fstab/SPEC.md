@@ -1,6 +1,6 @@
 # xiom.fstab -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.fstab` (`src/fstab.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -321,3 +321,64 @@ comparison uses `xiom.string.compare.str_compare` (BUG 17).
 - Only `xiom.string`, `xiom.string.compare` and `xiom.convert` are imported
   from `xiom.std` (`byte_at`, `str_slice`, `str_compare`, `int_to_string`). No
   FFI, no new dependencies.
+
+## Contracts (batch #31 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/fstab.xi` in the batch #31
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 42 clauses over the 16 public entry points; all are `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.fstab -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (4.8 s and 4.7 s); the 20-check conformance suite exercises every entry
+point -- including the out-of-range accessor guards (t18), the duplicate
+mountpoint lookups (t15) and the round-trip paths (t5, t17) -- and no clause
+trapped, so none was dropped.
+
+`xiom-verify src/fstab.xi --check` (Z3 bundled with v0.64.0) reported
+**2 proven / 0 violated / 35 unknown / 0 errors**. The proven clauses are the
+two scalar-shape sentinels of `fstab_mountpoint_index`; every other clause is
+runtime-checked, because the SMT emitter skips reference-field operands,
+`Result`/`Option` tags and cross-call expressions. All 42 are enforced by the
+v0.64.0 runtime evaluator when the suite runs.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `fstab_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked (`Result` tag + `Str` length) |
+| `fstab_entry_count` | `result >= 0`; `result <= d.devices.len()`; `d.devices.len() == 0 => result == 0` | runtime-checked (min-of-lens vs struct-field `Vec` length) |
+| `fstab_device` | `i < 0 => result is None`; `i >= fstab_entry_count(d) => result is None`; `result is Some => i >= 0 && i < d.devices.len()` | runtime-checked (`Option` tag + struct-field `Vec` length) |
+| `fstab_mountpoint` | same sentinel triple against `d.mountpoints` | runtime-checked (`Option` tag + struct-field `Vec` length) |
+| `fstab_fstype` | same sentinel triple against `d.fstypes` | runtime-checked (`Option` tag + struct-field `Vec` length) |
+| `fstab_options_string` | same sentinel triple against `d.options_text` | runtime-checked (`Option` tag + struct-field `Vec` length) |
+| `fstab_option_count` | `i < 0 => result == 0`; `i >= fstab_entry_count(d) => result == 0`; `result >= 0` | runtime-checked (scalar sentinel + count cross-call) |
+| `fstab_option` | `j < 0 => result is None`; `j >= fstab_option_count(d, i) => result is None`; `result is Some => j >= 0 && j < d.option_pool.len()` | runtime-checked (`Option` tag + count cross-call) |
+| `fstab_options` | `result.len() == fstab_option_count(d, i)`; `result.len() <= d.option_pool.len()` | runtime-checked (built `Vec` length + count cross-call) |
+| `fstab_has_option` | `fstab_option_count(d, i) == 0 => !result`; `result => i >= 0 && i < fstab_entry_count(d)` | runtime-checked (`Bool` guard + count cross-call) |
+| `fstab_dump` | `i < 0 => result is None`; `i >= fstab_entry_count(d) => result is None`; `result is Some => i >= 0 && i < d.dumps.len()` | runtime-checked (`Option` tag + struct-field `Vec` length) |
+| `fstab_pass` | same sentinel triple against `d.passes` | runtime-checked (`Option` tag + struct-field `Vec` length) |
+| `fstab_line` | `i < 0 => result == 0`; `i >= fstab_entry_count(d) => result == 0`; `result != 0 => i >= 0 && i < d.lines.len()` | runtime-checked (scalar sentinel + struct-field `Vec` length) |
+| `fstab_mountpoint_index` | `fstab_entry_count(d) == 0 => result == -1`; `result >= 0 => result < fstab_entry_count(d)` | Z3-provable (scalar sentinel + count cross-call) |
+| `fstab_entries_for_mountpoint` | `result.len() <= fstab_entry_count(d)`; `fstab_entry_count(d) == 0 => result.len() == 0` | runtime-checked (built `Vec` length + count cross-call) |
+| `fstab_emit` | `fstab_entry_count(d) == 0 => result.len() == 0`; `result.len() >= fstab_entry_count(d)` | runtime-checked (built `Str` length + count cross-call) |
+
+All 42 clauses hold for hand-built `Fstab` documents as well: the sentinel
+and `Some` guards observe `Option` tags and `.len()` values only, and
+`fstab_entry_count` is the smallest of the nine parallel vectors, so
+`i >= fstab_entry_count(d)` is out of range for every backing vector (a
+corrupted document degrades to `None`/0/empty instead of reading past a
+vector). No dump/pass value range is claimed: `0..2` is a parse invariant,
+and a hand-built document may hold any `Int` in `dumps`/`passes`. No
+count-vs-`options_text` claim is made (the split count is not derivable from
+the raw text without re-checking commas). The cross-called functions
+(`fstab_entry_count`, `fstab_option_count`) never call their callers, so no
+clause call is re-entrant; `fstab_entry_count` is defined before every clause
+that references it, and `fstab_option_count` before `fstab_option`,
+`fstab_options` and `fstab_has_option`.
+
+Deliberately not claimed: the `Ok` payload of `fstab_parse` (tag-only
+clause); dump/pass value ranges (parse invariants only; hand-built documents
+may hold any `Int`); `Str` equality anywhere (BUG 17: `.len()` only); vector
+indexing inside clauses; alignment invariants between the nine parallel
+vectors (hand-built documents may drift); first-match semantics of
+`fstab_mountpoint_index`; module constants inside clauses (none used). No
+clause was dropped.
