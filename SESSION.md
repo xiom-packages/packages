@@ -20,6 +20,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   attempt hung to its timeout -- transient; the rerun passed) and `xiom.aws` 0.1.1 +
   `xiom.saml` 0.1.1 are live-verified: **Tier-2 crypto retirement is DONE** (feat `cec9a155`
   aws -251 lines / `fcadeee8` saml -220 lines; FIPS/RFC 4231/SigV4 KATs green x2).
+- **Wave 3 integrated (2026-10-07):** `metrics` 0.2.0 (`1680104b`, 40/40), `session` 0.1.0
+  (`7b7da18c`, 24/24), `http.middleware` 0.1.0 (`0bbd50c4`, 22/22) -- all x2 green.
+  `static` + `kv` builds in flight. New compiler finding from session:
+  `Vec[Struct].clone()` crashes `0xC0000005` on v0.64.0 (`docs/repro/struct-clone/`;
+  isolated vs a push-only control; the aggregate-clone findings row is widened). The
+  publish batch (metrics/session/middleware) is staged on the ops scope extension for
+  `session` + `http.middleware`; allowlist is now 502.
 - **Wave 3 dispatched (2026-10-07):** porters for `xiom.metrics` 0.2.0 (labels + Prometheus +
   `metric_latency_bounds_ms`), `xiom.session` 0.1.0, `xiom.http.middleware` 0.1.0. Next:
   integrate, then `static`/`kv` builds; `session`/`middleware` are new names and need

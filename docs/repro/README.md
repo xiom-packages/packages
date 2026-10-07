@@ -25,6 +25,7 @@ GraphQL needs a distinct root cause).
 | `const-tables` | module-level const arrays | **FIXED** (v0.62.4; re-verified v0.63.0 `bad=0`) -- Int/Str/struct tables correct; runtime builders can be dropped at next touch |
 | `const-match` | `const` values as match arms | **FIXED** (v0.62.4; v0.63.0 probe exit 0, W004 overlap warning) -- const arms match; literals can return to named constants |
 | `tuple-vec-set` | `Vec[(Str,Str)]` read-after-mutation | **OPEN (v0.64.0 unchanged)** -- `probe_suite_min.xi` crashes `0xC0000005`; `probe_direct.xi` now also crashes (previously hung); the m192 candidate did not clear it |
+| `struct-clone` | `Vec[Struct].clone()` codegen | **OPEN (v0.64.0)** -- crash `0xC0000005`; push/read control green; copy element-wise |
 | `enum-payload-str` | enum payload struct `Str` reads | **OPEN (v0.63.1 unchanged)** -- graphql 9/10 (`|0|` read persists); needs a distinct root cause (C001 is already in v0.63.1); minimal repro pending |
 | `uninit-local` | uninitialized local + later assignment | **FIXED** (v0.63.0) -- standalone probe `bad=0`; graphql no longer hangs (its remaining 9/10 failure is the enum-payload case) |
 | `crypto-link` | stdlib `xiom.crypto` SHA-256/HMAC linkability | **RESOLVED (v0.64.0)** -- both probes link with no overrides (NIST KAT `ba7816bf...15ad`); `aws`/`saml` hand-rolled copies retire in Tier-2 |

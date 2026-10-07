@@ -19,13 +19,13 @@ Status legend: **IN-FIX** / **APPROVED-NEW** / **EXTEND** / **MERGE-INTO** / **D
 | Proposed | Triage | Notes |
 |---|---|---|
 | `xiom.router` | **DONE + PUBLISHED** (0.1.0, `eco-v0.1.62`, run `37350671893` rerun SUCCESS after the ops scope extension; feat `67fdb45d`, live-verified) | exact + path-parameter routes, method matching, aggregated 404/405, deterministic first-match; stdlib-only. |
-| `xiom.session` | **APPROVED-NEW** (ops delta) | server-side store: id gen via `xiom.crypto`, TTL/expiry, memory backend, cookie binding, rotate-on-login; deps `xiom.cookie` + `xiom.crypto`. |
+| `xiom.session` | **DONE (LOCAL) + ALLOWLISTED** (0.1.0, feat `7b7da18c`, 24/24 x2; publish batch staged) | server-side store: CSPRNG ids with collision retries, absolute TTL, memory backend, cookie headers, rotate/prune; deps `xiom.std` only. |
 | `xiom.jwt` v0.2 (HS256) | **DONE + PUBLISHED** (0.2.0, `eco-v0.1.60`, run `37338296689`; task `ses_ef3387e5...`) | HS256 sign/verify on top of existing structural decode: alg allowlist, `exp` required / `nbf` optional, constant-time MAC compare; deps `xiom.crypto` (HMAC links under `XIOM_RUNTIME_DIR`; the 0.64.0 archive should remove that requirement). |
 | `xiom.ratelimit` | **DONE + PUBLISHED** -- keyed layer in `xiom.rate` (0.2.0, `eco-v0.1.61`, run `37340030888`; task `ses_ef329199...`) | `xiom.rate` 0.2.0 adds per-IP/route/user keyed buckets and windows plus prune hooks; the 429 envelope lives in `xiom.http.middleware`. |
-| `xiom.metrics` | **EXTEND** `xiom.metrics` 0.1.2 -> 0.2.0 | The existing package's non-goals explicitly exclude labels/dimensions and scrape/export formats. Add labels + a Prometheus text exposition module (`xiom.metrics.prometheus`) + scrape helper inside the same package (keeps one metrics name in the ecosystem). |
+| `xiom.metrics` | **EXTEND DONE** (0.2.0, feat `1680104b`, 40/40 x2; publish batch staged) | labels + registry + Prometheus 0.0.4 text exposition (`metric_exposition`) + `metric_latency_bounds_ms`; existing 0.1.x primitives unchanged. |
 | `xiom.static` | **APPROVED-NEW** (ops delta) | MIME via stdlib `xiom.net.mime`; ETag/Last-Modified, Range, path-traversal guard, Cache-Control policy. |
 | `xiom.kv` | **APPROVED-NEW** (ops delta; queued last) | Embedded pure-XIOM log-structured KV: append-only segments, crash-safe reopen, tombstones, compaction, optional snapshot. PULSE Step 3 needs a durable local store; `xiom.bolt` is read-only, `xiom.sql` unpublished. Build after middleware/session/static. |
-| `xiom.http.middleware` | **APPROVED-NEW** (ops delta, after router types) | composable chain over request/response envelopes: request-id, access log, recover-to-500, CORS, CSRF helpers. PULSE order: middleware NEXT, then session. |
+| `xiom.http.middleware` | **DONE (LOCAL) + ALLOWLISTED** (0.1.0, feat `0bbd50c4`, 22/22 x2; publish batch staged) | envelope-agnostic helpers: request-id, access log, CORS header lines, constant-time CSRF, JSON error body. |
 
 ## 3. Build order (agreed with PULSE's suggested sequence)
 
