@@ -1,6 +1,6 @@
 # xiom.cidr -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.cidr` (`src/cidr.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -195,3 +195,51 @@ comparison) cannot apply; all string comparisons go through
 - All `Ok`/`Err` values are constructed in the tiny leaf helpers
   `_ip_ok`/`_ip_err`/`_cidr_ok`/`_cidr_err`.
 - Only `xiom.string` and `xiom.convert` are imported from `xiom.std`.
+
+## 10. Contracts
+
+`src/cidr.xi` carries runtime-checkable `ensures:` clauses on all 12 public
+functions (27 clauses). "Z3-provable" marks pure scalar clauses the verifier
+can discharge with SMT reasoning; "runtime-checked" marks clauses whose
+subject is `Str` length (the parsers and formatters), which are evaluated on
+every call by the runtime contract checker.
+
+| Function | Clause | Check |
+|---|---|---|
+| `cidr_ip_parse` | `s.len() == 0 => result is Err;` | runtime-checked |
+| | `result is Ok => s.len() >= 7 && s.len() <= 15;` | runtime-checked |
+| | `result is Ok => result.value >= 0 && result.value <= 4294967295;` | runtime-checked |
+| `cidr_ip_format` | `result.len() >= 7;` | runtime-checked |
+| | `result.len() <= 15;` | runtime-checked |
+| `cidr_parse` | `s.len() == 0 => result is Err;` | runtime-checked |
+| | `result is Ok => s.len() >= 9 && s.len() <= 18;` | runtime-checked |
+| `cidr_format` | `result.len() >= 9;` | runtime-checked |
+| | `result.len() <= 36;` | runtime-checked |
+| `cidr_mask` | `prefix < 0 || prefix > 32 => result == 0;` | Z3-provable |
+| | `prefix == 0 => result == 0;` | Z3-provable |
+| | `prefix == 32 => result == 4294967295;` | Z3-provable |
+| `cidr_network` | `prefix < 0 || prefix > 32 => result == 0;` | Z3-provable |
+| | `result >= 0 && result <= 4294967295;` | Z3-provable |
+| `cidr_broadcast` | `prefix < 0 || prefix > 32 => result == 4294967295;` | Z3-provable |
+| | `result >= 0 && result <= 4294967295;` | Z3-provable |
+| `cidr_contains` | `prefix < 0 || prefix > 32 => result;` | Z3-provable |
+| | `network == ip => result;` | Z3-provable |
+| `cidr_overlap` | `a_prefix < 0 || a_prefix > 32 || b_prefix < 0 || b_prefix > 32 => result;` | Z3-provable |
+| | `a_net == b_net && a_prefix == b_prefix => result;` | Z3-provable |
+| `cidr_host_count` | `prefix < 0 || prefix > 32 => result == 4294967296;` | Z3-provable |
+| | `result >= 1 && result <= 4294967296;` | Z3-provable |
+| | `prefix == 32 => result == 1;` | Z3-provable |
+| `cidr_first_host` | `prefix < 0 || prefix > 32 => result == 1;` | Z3-provable |
+| | `result >= 0 && result <= 4294967295;` | Z3-provable |
+| `cidr_last_host` | `prefix < 0 || prefix > 32 => result == 4294967294;` | Z3-provable |
+| | `result >= 0 && result <= 4294967295;` | Z3-provable |
+
+Notes:
+
+- `cidr_last_host`'s upper bound is `4294967295`, not `4294967294`: the `/32`
+  special case returns the network address itself, so
+  `cidr_last_host(4294967295, 32) == 4294967295` (test t19 pins this).
+- Clauses on `cidr_parse`/`cidr_ip_parse` assert only tags and input lengths;
+  the tuple payload components of `cidr_parse` are never read.
+- No clause uses `Str` equality (BUG 17); string-text clauses use `.len()`
+  only.

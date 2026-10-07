@@ -10,7 +10,7 @@
 
 package xiom_cidr {
   name: "xiom.cidr";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "IPv4 addresses and CIDR blocks: parse, format, containment, and range math (addresses as 32-bit Ints)";
   categories: ["network", "data"];
   keywords: ["cidr", "ipv4", "subnet", "networking"];

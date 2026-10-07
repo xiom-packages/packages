@@ -202,7 +202,11 @@ fn _cidr_err(m: Str) -> Result[(Int, Int), Str] {
 /// Examples: "1.2.3.4" -> Ok(16909060); "192.168.1.1" -> Ok(3232235777);
 /// "01.2.3.4" -> Err; "1.2.3" -> Err.
 /// Complexity: O(s.len()).
-pub fn cidr_ip_parse(s: Str) -> Result[Int, Str] {
+pub fn cidr_ip_parse(s: Str) -> Result[Int, Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: result is Ok => s.len() >= 7 && s.len() <= 15;
+  ensures: result is Ok => result.value >= 0 && result.value <= 4294967295;
+{
   let n = s.len();
   if n == 0 {
     return _ip_err("cidr: empty address");
@@ -225,7 +229,10 @@ pub fn cidr_ip_parse(s: Str) -> Result[Int, Str] {
 /// Error case: none.
 /// Examples: 3232235777 -> "192.168.1.1"; 0 -> "0.0.0.0".
 /// Complexity: O(1).
-pub fn cidr_ip_format(ip: Int) -> Str {
+pub fn cidr_ip_format(ip: Int) -> Str
+  ensures: result.len() >= 7;
+  ensures: result.len() <= 15;
+{
   let v = ip & _CIDR_MAX32;
   let a = (v >> 24) & 255;
   let b = (v >> 16) & 255;
@@ -248,7 +255,10 @@ pub fn cidr_ip_format(ip: Int) -> Str {
 /// Examples: "10.0.0.0/8" -> Ok((167772160, 8)); "1.2.3.4/32" ->
 /// Ok((16909060, 32)); "1.2.3.4" -> Err; "1.2.3.4/33" -> Err.
 /// Complexity: O(s.len()).
-pub fn cidr_parse(s: Str) -> Result[(Int, Int), Str] {
+pub fn cidr_parse(s: Str) -> Result[(Int, Int), Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: result is Ok => s.len() >= 9 && s.len() <= 18;
+{
   let n = s.len();
   if n == 0 {
     return _cidr_err("cidr: empty input");
@@ -282,7 +292,10 @@ pub fn cidr_parse(s: Str) -> Result[(Int, Int), Str] {
 /// Error case: none.
 /// Examples: (3232235776, 24) -> "192.168.1.0/24"; (0, 0) -> "0.0.0.0/0".
 /// Complexity: O(1).
-pub fn cidr_format(network: Int, prefix: Int) -> Str {
+pub fn cidr_format(network: Int, prefix: Int) -> Str
+  ensures: result.len() >= 9;
+  ensures: result.len() <= 36;
+{
   let net = (network & _CIDR_MAX32) & cidr_mask(prefix);
   return cidr_ip_format(net) + "/" + convert.int_to_string(prefix);
 }
@@ -300,7 +313,11 @@ pub fn cidr_format(network: Int, prefix: Int) -> Str {
 /// Error case: none.
 /// Examples: (24) -> 4294967040; (32) -> 4294967295; (33) -> 0.
 /// Complexity: O(1).
-pub fn cidr_mask(prefix: Int) -> Int {
+pub fn cidr_mask(prefix: Int) -> Int
+  ensures: prefix < 0 || prefix > 32 => result == 0;
+  ensures: prefix == 0 => result == 0;
+  ensures: prefix == 32 => result == 4294967295;
+{
   if prefix < 0 || prefix > 32 {
     return 0;
   }
@@ -317,7 +334,10 @@ pub fn cidr_mask(prefix: Int) -> Int {
 /// Examples: (3232235777, 24) -> 3232235776; (3232235777, 16) ->
 /// 3232235520; (16909060, 32) -> 16909060; (16909060, 33) -> 0.
 /// Complexity: O(1).
-pub fn cidr_network(ip: Int, prefix: Int) -> Int {
+pub fn cidr_network(ip: Int, prefix: Int) -> Int
+  ensures: prefix < 0 || prefix > 32 => result == 0;
+  ensures: result >= 0 && result <= 4294967295;
+{
   return (ip & _CIDR_MAX32) & cidr_mask(prefix);
 }
 
@@ -330,7 +350,10 @@ pub fn cidr_network(ip: Int, prefix: Int) -> Int {
 /// Error case: none.
 /// Examples: (3232235776, 24) -> 3232236031; (0, 0) -> 4294967295.
 /// Complexity: O(1).
-pub fn cidr_broadcast(network: Int, prefix: Int) -> Int {
+pub fn cidr_broadcast(network: Int, prefix: Int) -> Int
+  ensures: prefix < 0 || prefix > 32 => result == 4294967295;
+  ensures: result >= 0 && result <= 4294967295;
+{
   let m = cidr_mask(prefix);
   return ((network & _CIDR_MAX32) & m) | (_CIDR_MAX32 - m);
 }
@@ -347,7 +370,10 @@ pub fn cidr_broadcast(network: Int, prefix: Int) -> Int {
 /// (3232235776, 24, 3232236032) -> false; (3232235776, 31, 3232235777) ->
 /// true.
 /// Complexity: O(1).
-pub fn cidr_contains(network: Int, prefix: Int, ip: Int) -> Bool {
+pub fn cidr_contains(network: Int, prefix: Int, ip: Int) -> Bool
+  ensures: prefix < 0 || prefix > 32 => result;
+  ensures: network == ip => result;
+{
   let m = cidr_mask(prefix);
   let net = (network & _CIDR_MAX32) & m;
   let target = (ip & _CIDR_MAX32) & m;
@@ -365,7 +391,10 @@ pub fn cidr_contains(network: Int, prefix: Int, ip: Int) -> Bool {
 /// Examples: (10.0.0.0/8, 10.1.0.0/16) -> true (containment);
 /// (10.0.0.0/8, 11.0.0.0/8) -> false (disjoint).
 /// Complexity: O(1).
-pub fn cidr_overlap(a_net: Int, a_prefix: Int, b_net: Int, b_prefix: Int) -> Bool {
+pub fn cidr_overlap(a_net: Int, a_prefix: Int, b_net: Int, b_prefix: Int) -> Bool
+  ensures: a_prefix < 0 || a_prefix > 32 || b_prefix < 0 || b_prefix > 32 => result;
+  ensures: a_net == b_net && a_prefix == b_prefix => result;
+{
   let a_lo = cidr_network(a_net, a_prefix);
   let a_hi = cidr_broadcast(a_net, a_prefix);
   let b_lo = cidr_network(b_net, b_prefix);
@@ -382,7 +411,11 @@ pub fn cidr_overlap(a_net: Int, a_prefix: Int, b_net: Int, b_prefix: Int) -> Boo
 /// Error case: none.
 /// Examples: (0) -> 4294967296; (24) -> 256; (32) -> 1.
 /// Complexity: O(1).
-pub fn cidr_host_count(prefix: Int) -> Int {
+pub fn cidr_host_count(prefix: Int) -> Int
+  ensures: prefix < 0 || prefix > 32 => result == 4294967296;
+  ensures: result >= 1 && result <= 4294967296;
+  ensures: prefix == 32 => result == 1;
+{
   return _CIDR_MAX32 - cidr_mask(prefix) + 1;
 }
 
@@ -396,7 +429,10 @@ pub fn cidr_host_count(prefix: Int) -> Int {
 /// Error case: none.
 /// Examples: (3232235776, 24) -> 3232235777; (16909060, 32) -> 16909060.
 /// Complexity: O(1).
-pub fn cidr_first_host(network: Int, prefix: Int) -> Int {
+pub fn cidr_first_host(network: Int, prefix: Int) -> Int
+  ensures: prefix < 0 || prefix > 32 => result == 1;
+  ensures: result >= 0 && result <= 4294967295;
+{
   let net = (network & _CIDR_MAX32) & cidr_mask(prefix);
   if prefix == 31 || prefix == 32 {
     return net;
@@ -416,7 +452,10 @@ pub fn cidr_first_host(network: Int, prefix: Int) -> Int {
 /// Error case: none.
 /// Examples: (3232235776, 24) -> 3232236030; (16909060, 32) -> 16909060.
 /// Complexity: O(1).
-pub fn cidr_last_host(network: Int, prefix: Int) -> Int {
+pub fn cidr_last_host(network: Int, prefix: Int) -> Int
+  ensures: prefix < 0 || prefix > 32 => result == 4294967294;
+  ensures: result >= 0 && result <= 4294967295;
+{
   let net = (network & _CIDR_MAX32) & cidr_mask(prefix);
   if prefix == 31 || prefix == 32 {
     return net;
