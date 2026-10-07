@@ -42,8 +42,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   (`a4057093`, 28/28 x2) integrated; allowlist **504**, guard 504/464/40/0. Two new findings
   from kv: **`io.list_dir` returns garbage names on v0.64.0 Windows** (STDLIB-WISHLIST, high
   severity) and a **false `ensures` at `io.xi:943` in multi-module programs**
-  (COMPILER-FINDINGS). Publish: batch A (metrics 0.2.0 + session + middleware) and batch B
-  (static + kv) are staged on the ops scope extension for the four new names.
+  (COMPILER-FINDINGS). Publish: **`http.middleware` 0.1.0 is already live** (the existing
+  `xiom.http.*` scope covered it); the remaining three names (`session`, `static`, `kv`) await
+  the ops scope extension, then `gh run rerun 37636386772 --failed` publishes them.
 - **Wave 3 integrated (2026-10-07):** `metrics` 0.2.0 (`1680104b`, 40/40), `session` 0.1.0
   (`7b7da18c`, 24/24), `http.middleware` 0.1.0 (`0bbd50c4`, 22/22) -- all x2 green.
   `static` + `kv` builds in flight. New compiler finding from session:
