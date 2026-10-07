@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T21:36:52Z",
+    "updated":  "2026-10-07T21:55:16Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -5395,7 +5395,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.pam",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Netpbm PAM (P7) header parsing, raster spans and building for flat tuple images",
@@ -5405,7 +5405,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pam/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pam/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "pam.xi",
                                               "package.xi"
@@ -6061,7 +6061,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.properties",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Java .properties parsing and emitting with escapes and line continuations",
@@ -6071,7 +6071,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-properties/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-properties/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "properties.xi",
                                               "package.xi"
@@ -6981,7 +6981,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.semver",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Semantic version parsing, comparison, and range satisfaction",
@@ -6991,7 +6991,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-semver/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-semver/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "semver.xi",
                                               "package.xi"
@@ -7468,7 +7468,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.stemming",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Porter stemming algorithm for English words",
@@ -7478,7 +7478,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stemming/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-stemming/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "stemming.xi",
                                               "package.xi"
@@ -8331,7 +8331,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.uri",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "RFC 3986 URI parsing, formatting, and component helpers",
@@ -8341,7 +8341,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-uri/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-uri/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "uri.xi",
                                               "package.xi"
@@ -8637,7 +8637,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.weather",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "METAR observation decoding: wind, visibility, temperature, altimeter, flight category",
@@ -8647,7 +8647,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-weather/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-weather/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "weather.xi",
                                               "package.xi"
