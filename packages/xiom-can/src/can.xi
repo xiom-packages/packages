@@ -124,7 +124,10 @@ fn _low_byte(v: Int, k: Int) -> Int {
 /// Largest identifier accepted for the given type: 2047 (0x7FF) for a
 /// standard 11-bit identifier, 536870911 (0x1FFFFFFF) for an extended
 /// 29-bit one. Complexity: O(1).
-pub fn can_max_id(extended: Bool) -> Int {
+pub fn can_max_id(extended: Bool) -> Int
+  ensures: extended => result == 536870911;
+  ensures: !extended => result == 2047;
+{
   if extended {
     return 536870911;
   }
@@ -133,7 +136,11 @@ pub fn can_max_id(extended: Bool) -> Int {
 
 /// True when `id` is a valid identifier of the given type: 0..2047 for a
 /// standard identifier, 0..536870911 for an extended one. Complexity: O(1).
-pub fn can_id_ok(id: Int, extended: Bool) -> Bool {
+pub fn can_id_ok(id: Int, extended: Bool) -> Bool
+  ensures: id < 0 => !result;
+  ensures: !extended && id > 2047 => !result;
+  ensures: extended && id > 536870911 => !result;
+{
   if id < 0 {
     return false;
   }
@@ -143,7 +150,11 @@ pub fn can_id_ok(id: Int, extended: Bool) -> Bool {
 /// The raw 32-bit CAN ID word of a frame: bit 31 set when `extended`, bit 30
 /// set when `rtr`, identifier in bits 28..0. No validation is performed; the
 /// result is meaningful for a valid frame. Complexity: O(1).
-pub fn can_id_word(f: &CanFrame) -> Int {
+pub fn can_id_word(f: &CanFrame) -> Int
+  ensures: !f.extended && !f.rtr => result == f.id;
+  ensures: f.extended && !f.rtr && f.id >= 0 => result == f.id + 2147483648;
+  ensures: !f.extended && f.rtr && f.id >= 0 => result == f.id + 1073741824;
+{
   var word = f.id;
   if f.extended {
     word = word + 2147483648;
@@ -160,7 +171,9 @@ pub fn can_id_word(f: &CanFrame) -> Int {
 
 /// Encoded container size in bytes (16: four ID-word bytes, the DLC byte,
 /// three reserved bytes and eight data bytes). Complexity: O(1).
-pub fn can_encoded_size() -> Int {
+pub fn can_encoded_size() -> Int
+  ensures: result == 16;
+{
   return 16;
 }
 
@@ -178,7 +191,11 @@ pub fn can_encoded_size() -> Int {
 /// Err("can: payload exceeds 8 bytes"), Err("can: invalid dlc"),
 /// Err("can: remote frame carries data") or Err("can: data length does not
 /// match dlc"). Complexity: O(payload).
-pub fn can_validate(f: &CanFrame) -> Result[Unit, Str] {
+pub fn can_validate(f: &CanFrame) -> Result[Unit, Str]
+  ensures: f.id < 0 => result is Err;
+  ensures: result is Ok => f.id >= 0;
+  ensures: result is Ok => f.data.len() <= 8;
+{
   if f.id < 0 {
     return _err_unit("can: negative identifier");
   }
@@ -214,7 +231,11 @@ pub fn can_validate(f: &CanFrame) -> Result[Unit, Str] {
 /// result with can_validate (same error catalog and order). For a data
 /// frame `dlc` must equal `data.len()`; for a remote frame `data` must be
 /// empty. Complexity: O(payload).
-pub fn can_new(id: Int, extended: Bool, rtr: Bool, dlc: Int, data: &Vec[UInt8]) -> Result[CanFrame, Str] {
+pub fn can_new(id: Int, extended: Bool, rtr: Bool, dlc: Int, data: &Vec[UInt8]) -> Result[CanFrame, Str]
+  ensures: !can_id_ok(id, extended) => result is Err;
+  ensures: data.len() > 8 => result is Err;
+  ensures: result is Ok => data.len() <= 8;
+{
   var d = Vec[UInt8].new();
   var i = 0;
   while i < data.len() {
@@ -235,7 +256,11 @@ pub fn can_new(id: Int, extended: Bool, rtr: Bool, dlc: Int, data: &Vec[UInt8]) 
 /// Error case: can_validate's catalog -- a payload longer than 8 bytes is
 /// Err("can: payload exceeds 8 bytes"), an out-of-range identifier its range
 /// error. Complexity: O(payload).
-pub fn can_data_frame(id: Int, extended: Bool, data: &Vec[UInt8]) -> Result[CanFrame, Str] {
+pub fn can_data_frame(id: Int, extended: Bool, data: &Vec[UInt8]) -> Result[CanFrame, Str]
+  ensures: !can_id_ok(id, extended) => result is Err;
+  ensures: data.len() > 8 => result is Err;
+  ensures: result is Ok => data.len() <= 8;
+{
   return can_new(id, extended, false, data.len(), data);
 }
 
@@ -245,7 +270,11 @@ pub fn can_data_frame(id: Int, extended: Bool, data: &Vec[UInt8]) -> Result[CanF
 /// Error case: can_validate's catalog -- an out-of-range identifier its
 /// range error, a DLC outside 0..8 Err("can: invalid dlc").
 /// Complexity: O(1).
-pub fn can_remote_frame(id: Int, extended: Bool, dlc: Int) -> Result[CanFrame, Str] {
+pub fn can_remote_frame(id: Int, extended: Bool, dlc: Int) -> Result[CanFrame, Str]
+  ensures: dlc < 0 || dlc > 8 => result is Err;
+  ensures: !can_id_ok(id, extended) => result is Err;
+  ensures: result is Ok => dlc >= 0 && dlc <= 8;
+{
   var empty = Vec[UInt8].new();
   return can_new(id, extended, true, dlc, &empty);
 }
@@ -263,7 +292,11 @@ pub fn can_remote_frame(id: Int, extended: Bool, dlc: Int) -> Result[CanFrame, S
 /// bytes.
 /// Returns: Ok(()) on success.
 /// Error case: the can_validate catalog. Complexity: O(payload).
-pub fn can_encode_into(out: &mut Vec[UInt8], f: &CanFrame) -> Result[Unit, Str] {
+pub fn can_encode_into(out: &mut Vec[UInt8], f: &CanFrame) -> Result[Unit, Str]
+  ensures: result is Ok => out.len() == out.len()@pre + 16;
+  ensures: result is Err => out.len() == out.len()@pre;
+  ensures: f.id < 0 => result is Err;
+{
   let vr = can_validate(f);
   if !vr.is_ok {
     return _err_unit(vr.error);
@@ -292,7 +325,10 @@ pub fn can_encode_into(out: &mut Vec[UInt8], f: &CanFrame) -> Result[Unit, Str] 
 /// Encode `f` into a fresh 16-byte container (can_encoded_size()). Same
 /// validation and error catalog as can_encode_into.
 /// Complexity: O(payload).
-pub fn can_encode(f: &CanFrame) -> Result[Vec[UInt8], Str] {
+pub fn can_encode(f: &CanFrame) -> Result[Vec[UInt8], Str]
+  ensures: result is Ok => result.value.len() == 16;
+  ensures: f.id < 0 => result is Err;
+{
   var out = Vec[UInt8].new();
   let ar = can_encode_into(&mut out, f);
   if !ar.is_ok {
@@ -318,7 +354,10 @@ pub fn can_encode(f: &CanFrame) -> Result[Vec[UInt8], Str] {
 /// Err("can: nonzero padding byte") for a data frame with a nonzero byte
 /// beyond its DLC. A remote frame decodes with an empty payload and its DLC
 /// preserved. Complexity: O(payload).
-pub fn can_decode(bytes: &Vec[UInt8]) -> Result[CanFrame, Str] {
+pub fn can_decode(bytes: &Vec[UInt8]) -> Result[CanFrame, Str]
+  ensures: bytes.len() < 16 => result is Err;
+  ensures: result is Ok => bytes.len() >= 16;
+{
   if bytes.len() < 16 {
     return _err_frame("can: truncated frame");
   }
@@ -385,26 +424,37 @@ pub fn can_decode(bytes: &Vec[UInt8]) -> Result[CanFrame, Str] {
 
 /// True when the frame carries a 29-bit extended identifier (CAN 2.0B).
 /// Complexity: O(1).
-pub fn can_is_extended(f: &CanFrame) -> Bool {
+pub fn can_is_extended(f: &CanFrame) -> Bool
+  ensures: result == f.extended;
+{
   return f.extended;
 }
 
 /// True when the frame is a remote transmission request (RTR).
 /// Complexity: O(1).
-pub fn can_is_remote(f: &CanFrame) -> Bool {
+pub fn can_is_remote(f: &CanFrame) -> Bool
+  ensures: result == f.rtr;
+{
   return f.rtr;
 }
 
 /// Number of payload bytes carried by the frame: `data.len()`, which is 0
 /// for a canonical remote frame. Complexity: O(1).
-pub fn can_payload_len(f: &CanFrame) -> Int {
+pub fn can_payload_len(f: &CanFrame) -> Int
+  ensures: result >= 0;
+  ensures: result == f.data.len();
+{
   let d: Vec[UInt8] = f.data;
   return d.len();
 }
 
 /// Payload byte `i` widened to 0..255, or -1 when `i` is negative or beyond
 /// the payload. Complexity: O(1).
-pub fn can_data_get(f: &CanFrame, i: Int) -> Int {
+pub fn can_data_get(f: &CanFrame, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= f.data.len() => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 255;
+{
   let d: Vec[UInt8] = f.data;
   if i < 0 || i >= d.len() {
     return -1;
@@ -414,7 +464,11 @@ pub fn can_data_get(f: &CanFrame, i: Int) -> Int {
 
 /// Structural equality: same identifier, type, RTR flag, DLC and payload
 /// byte sequence. Complexity: O(payload).
-pub fn can_equal(a: &CanFrame, b: &CanFrame) -> Bool {
+pub fn can_equal(a: &CanFrame, b: &CanFrame) -> Bool
+  ensures: a.id != b.id => !result;
+  ensures: result => a.id == b.id;
+  ensures: result => a.data.len() == b.data.len();
+{
   if a.id != b.id {
     return false;
   }

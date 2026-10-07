@@ -1,8 +1,6 @@
 # xiom.can -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.can`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/can.xi` (`module xiom.can`).
 Depends on `xiom.std`; the library module imports nothing from it (tests add
 `xiom.test`, `xiom.io`, `xiom.string`, `xiom.string.compare`,
@@ -246,6 +244,53 @@ index as `-1`.
 | `can_decode` | O(payload) |
 | `can_equal` | O(payload) |
 
+## Contracts
+
+Runtime-checkable `ensures:` clauses added to `src/can.xi` in the batch #22
+hardening pass (2026-10-07, compiler v0.64.0; no `requires:` clauses -- every
+entry point is total; the coordinator bumps `package.xi` to 0.1.3 at
+integration). 38 clauses across all 16 public entry points, each placed
+directly after the signature (two-space indent, before `{`). Two consecutive
+`& .\scripts\port.ps1 -Package xiom.can -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active (11.0 s and 12.1 s); no clause was dropped.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `can_max_id` | `ensures: extended => result == 536870911`; `ensures: !extended => result == 2047` | Z3-provable (pure scalar) |
+| `can_id_ok` | `ensures: id < 0 => !result`; `ensures: !extended && id > 2047 => !result`; `ensures: extended && id > 536870911 => !result` | Z3-provable (pure scalar) |
+| `can_id_word` | `ensures: !f.extended && !f.rtr => result == f.id`; `ensures: f.extended && !f.rtr && f.id >= 0 => result == f.id + 2147483648`; `ensures: !f.extended && f.rtr && f.id >= 0 => result == f.id + 1073741824` | Z3-provable (pure scalar) |
+| `can_encoded_size` | `ensures: result == 16` | Z3-provable (pure scalar) |
+| `can_validate` | `ensures: f.id < 0 => result is Err`; `ensures: result is Ok => f.id >= 0`; `ensures: result is Ok => f.data.len() <= 8` | Z3-provable (pure scalar); runtime-checked (payload length on the `Ok` branch) |
+| `can_new` | `ensures: !can_id_ok(id, extended) => result is Err`; `ensures: data.len() > 8 => result is Err`; `ensures: result is Ok => data.len() <= 8` | runtime-checked (guard pair; `can_id_ok` cross-call and payload length) |
+| `can_data_frame` | `ensures: !can_id_ok(id, extended) => result is Err`; `ensures: data.len() > 8 => result is Err`; `ensures: result is Ok => data.len() <= 8` | runtime-checked (guard pair; `can_id_ok` cross-call and payload length) |
+| `can_remote_frame` | `ensures: dlc < 0 \|\| dlc > 8 => result is Err`; `ensures: !can_id_ok(id, extended) => result is Err`; `ensures: result is Ok => dlc >= 0 && dlc <= 8` | Z3-provable (bounds guards); runtime-checked (`can_id_ok` cross-call) |
+| `can_encode_into` | `ensures: result is Ok => out.len() == out.len()@pre + 16`; `ensures: result is Err => out.len() == out.len()@pre`; `ensures: f.id < 0 => result is Err` | runtime-checked (`@pre` append/frame); Z3-provable (negative-id guard) |
+| `can_encode` | `ensures: result is Ok => result.value.len() == 16`; `ensures: f.id < 0 => result is Err` | runtime-checked (payload length); Z3-provable (negative-id guard) |
+| `can_decode` | `ensures: bytes.len() < 16 => result is Err`; `ensures: result is Ok => bytes.len() >= 16` | runtime-checked (guard pair on `bytes.len()`) |
+| `can_is_extended` | `ensures: result == f.extended` | Z3-provable (pure scalar) |
+| `can_is_remote` | `ensures: result == f.rtr` | Z3-provable (pure scalar) |
+| `can_payload_len` | `ensures: result >= 0`; `ensures: result == f.data.len()` | Z3-provable (non-negativity); runtime-checked (payload length) |
+| `can_data_get` | `ensures: i < 0 => result == -1`; `ensures: i >= f.data.len() => result == -1`; `ensures: result != -1 => result >= 0 && result <= 255` | Z3-provable (negative-index sentinel and byte bounds); runtime-checked (payload length) |
+| `can_equal` | `ensures: a.id != b.id => !result`; `ensures: result => a.id == b.id`; `ensures: result => a.data.len() == b.data.len()` | Z3-provable (id guards); runtime-checked (payload lengths) |
+
+`can_id_word`'s formula clauses mirror the source's exact operator and branch
+guards (arithmetic `+` under `if f.extended` / `if f.rtr`; verified against
+`can.xi` before adding); the `extended && rtr` both-set branch is omitted by
+the three-clause cap. The `can_new` / `can_data_frame` / `can_remote_frame`
+guard clauses call the total predicate `can_id_ok`, which calls only
+`can_max_id` and never wraps the callee under contract, so no clause triggers
+re-entrant clause evaluation. `can_encode_into` uses the canonical `@pre`
+append/frame shape (`out.len() == out.len()@pre + 16`, `bson.xi:159`
+precedent). No clause uses tuple-component access, struct-result payloads,
+`Str` equality (BUG 17), payload-length-vs-parameter, or a bare `&mut`
+parameter.
+
+Z3-provable = pure scalar guard/form/bounds over parameters and `result`
+(no calls, no `len()` reads). Runtime-checked = the clause evaluates a
+`len()` read or calls another function; both classes are enforced by the
+v0.64.0 runtime evaluator.
+
 ## Test plan
 
 `tests/test_conformance.xi` (`module can_tests`, 22 named tests; the
@@ -290,8 +335,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.can
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=22 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0,
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the contract
+clauses active (two consecutive runs, 11.0 s and 12.1 s).
 
 ## Known limitations
 
