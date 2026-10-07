@@ -135,7 +135,10 @@ fn _has_sgr_from(s: Str, from: Int) -> Bool {
 /// Returns: true when any byte equals 0x1B; false otherwise (including "").
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn term_has_escapes(s: Str) -> Bool {
+pub fn term_has_escapes(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: result => s.len() >= 1;
+{
   let n = s.len();
   var i = 0;
   while i < n {
@@ -153,7 +156,10 @@ pub fn term_has_escapes(s: Str) -> Bool {
 /// Returns: false when any byte equals 0x1B; true otherwise (including "").
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn term_is_plain(s: Str) -> Bool {
+pub fn term_is_plain(s: Str) -> Bool
+  ensures: term_has_escapes(s) => !result;
+  ensures: !term_has_escapes(s) => result;
+{
   if term_has_escapes(s) {
     return false;
   }
@@ -169,7 +175,11 @@ pub fn term_is_plain(s: Str) -> Bool {
 /// byte is rewritten, so non-ASCII bytes pass through byte-exact.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn term_strip(s: Str) -> Str {
+pub fn term_strip(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: !term_has_escapes(s) => result.len() == s.len();
+  ensures: result.len() <= s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -194,7 +204,12 @@ pub fn term_strip(s: Str) -> Str {
 /// ESC inside a CSI parameter region) still counts once.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn term_count_escapes(s: Str) -> Int {
+pub fn term_count_escapes(s: Str) -> Int
+  ensures: s.len() == 0 => result == 0;
+  ensures: result >= 0;
+  ensures: !term_has_escapes(s) => result == 0;
+  ensures: result <= s.len();
+{
   let n = s.len();
   var count = 0;
   var i = 0;
@@ -215,7 +230,11 @@ pub fn term_count_escapes(s: Str) -> Int {
 /// Returns: the number of bytes term_strip(s) would emit.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn term_visible_len(s: Str) -> Int {
+pub fn term_visible_len(s: Str) -> Int
+  ensures: result == term_strip(s).len();
+  ensures: result <= s.len();
+  ensures: s.len() == 0 => result == 0;
+{
   let stripped = term_strip(s);
   return stripped.len();
 }
@@ -234,7 +253,11 @@ pub fn term_visible_len(s: Str) -> Int {
 ///     byte is returned unchanged (no truncation, no reset).
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn term_truncate_visible(s: Str, n: Int) -> Str {
+pub fn term_truncate_visible(s: Str, n: Int) -> Str
+  ensures: n <= 0 => result.len() == 0;
+  ensures: result.len() <= s.len() + 4;
+  ensures: n > 0 => term_visible_len(result) <= n;
+{
   if n <= 0 {
     return "";
   }
@@ -285,7 +308,11 @@ pub fn term_truncate_visible(s: Str, n: Int) -> Str {
 /// A sequence with no parameter bytes (ESC '[' 'm') contributes one 0.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn term_parse_sgr(s: Str) -> Vec[Int] {
+pub fn term_parse_sgr(s: Str) -> Vec[Int]
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: !term_has_escapes(s) => result.len() == 0;
+  ensures: result.len() <= s.len();
+{
   var out = Vec[Int].new();
   let n = s.len();
   var i = 0;

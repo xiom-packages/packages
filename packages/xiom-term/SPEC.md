@@ -1,6 +1,6 @@
 # xiom.term -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.term` (`src/term.xi`). Pure XIOM, no FFI, no `Result` channel.
 
 ## 1. Scope
@@ -257,3 +257,64 @@ materialized once with `xiom.string.builder.sb_to_str`, and no `==` on
 `Str`. The module imports `xiom.string` and `xiom.string.builder` only; it
 performs no `Str` comparison, so `xiom.string.compare` is imported by the
 tests, not by the library.
+
+## Contracts (hardening pass, 2026-10-07, batch #18)
+
+Twenty runtime-checkable `ensures:` clauses were added to the public entry
+points of `src/term.xi` following the batch #18 clause plan (compiler
+v0.64.0; no version bump): 20 clauses across the seven entry points
+(2/2/3/4/3/3/3). Two consecutive
+`.\scripts\port.ps1 -Package xiom.term -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.9 s and 5.6 s), and `xiom --dump-contracts` lists all 20, so none
+was dropped and none trapped. `xiom-verify <src> --check` (bundled Z3)
+reports **2 proven / 0 violated / 17 unknown / 1 error**:
+
+- the two proven obligations are `term_is_plain`'s pair: Z3 discharges them
+  from the branch structure with `term_has_escapes` as an uninterpreted
+  predicate, so they are **Z3-provable (pure scalar)**;
+- the single error is an emitter artifact (`unknown constant _has_sgr_from`
+  in the generated SMT for `term_truncate_visible`'s body), not a violation
+  of the code under test;
+- the remaining seventeen obligations were skipped at SMT emission
+  (`equality with unresolved operand sort` on `Str`/`Vec`-length operands,
+  loop bodies without invariants, complex call targets), so they are
+  reported as **runtime-checked**, not machine-proven.
+
+| Entry point | Clause(s) added | Check |
+|---|---|---|
+| `term_has_escapes` | `ensures: s.len() == 0 => !result`; `ensures: result => s.len() >= 1` | runtime-checked |
+| `term_is_plain` | `ensures: term_has_escapes(s) => !result`; `ensures: !term_has_escapes(s) => result` | Z3-proven (2/2) |
+| `term_strip` | `ensures: s.len() == 0 => result.len() == 0`; `ensures: !term_has_escapes(s) => result.len() == s.len()`; `ensures: result.len() <= s.len()` | runtime-checked |
+| `term_count_escapes` | `ensures: s.len() == 0 => result == 0`; `ensures: result >= 0`; `ensures: !term_has_escapes(s) => result == 0`; `ensures: result <= s.len()` | runtime-checked |
+| `term_visible_len` | `ensures: result == term_strip(s).len()`; `ensures: result <= s.len()`; `ensures: s.len() == 0 => result == 0` | runtime-checked |
+| `term_truncate_visible` | `ensures: n <= 0 => result.len() == 0`; `ensures: result.len() <= s.len() + 4`; `ensures: n > 0 => term_visible_len(result) <= n` | runtime-checked |
+| `term_parse_sgr` | `ensures: s.len() == 0 => result.len() == 0`; `ensures: !term_has_escapes(s) => result.len() == 0`; `ensures: result.len() <= s.len()` | runtime-checked |
+
+Soundness notes and plan deviations:
+
+- `result.len() <= s.len()` on `term_strip` holds because stripping only
+  drops bytes; the `!term_has_escapes(s) => result.len() == s.len()` clause
+  covers the no-ESC case where every byte is copied verbatim.
+- `term_count_escapes`'s `result <= s.len()` holds because every consumed
+  unit advances the scan by at least one byte; `result >= 0` is a plain
+  scalar bound.
+- `term_visible_len`'s `result == term_strip(s).len()` is the defining
+  formula of the function (one call level deep; `term_strip` never calls
+  `term_visible_len`).
+- `term_truncate_visible`'s `result.len() <= s.len() + 4` accounts for the
+  only appended bytes, the four-byte `ESC '[' '0' 'm'` reset;
+  `n > 0 => term_visible_len(result) <= n` holds because the loop stops
+  after the `n`-th visible byte (and returns `s` unchanged when its visible
+  length is already `<= n`).
+- `term_parse_sgr`'s `result.len() <= s.len()` holds because each pushed
+  parameter is paid for by at least one byte of its terminated CSI `m`
+  sequence (a sequence with `k` separators pushes `k + 1` values while
+  costing `k + 3` bytes).
+- No clause was dropped. The plan's excluded shapes stay excluded: no
+  clause reads the content of the stripped output or of `result` elements,
+  none compares `Str` values (BUG 17; `.len()` only), none reads a
+  `Result`/`Option` payload (the module constructs none), and none calls a
+  function that transitively calls its callee (`term_has_escapes` calls
+  nothing; `term_visible_len` and `term_truncate_visible` call strictly
+  "lower" helpers, so the runtime evaluator cannot recurse).
