@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T00:12:18Z",
+    "updated":  "2026-10-08T00:31:09Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -212,7 +212,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ar",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Unix ar archive codec: parse and build common-format member headers",
@@ -222,7 +222,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ar/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ar/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ar.xi",
                                               "package.xi"
@@ -631,7 +631,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.bibtex",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "BibTeX bibliography parser and canonical emitter",
@@ -641,7 +641,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bibtex/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bibtex/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "bibtex.xi",
                                               "package.xi"
@@ -2635,7 +2635,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.gcode",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "G-code parsing and canonical emission for a documented line subset",
@@ -2645,7 +2645,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gcode/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gcode/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "gcode.xi",
                                               "package.xi"
@@ -4573,7 +4573,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.miniseed",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "miniSEED fixed 48-byte record header codec: parse, validate and build",
@@ -4583,7 +4583,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-miniseed/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-miniseed/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "miniseed.xi",
                                               "package.xi"
@@ -6589,7 +6589,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.robots",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "robots.txt parsing, canonical emitting and rule matching",
@@ -6599,7 +6599,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-robots/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-robots/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "robots.xi",
                                               "package.xi"
@@ -8833,7 +8833,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.xml",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "XML subset parser with a flat node model, queries, and escaping helpers",
@@ -8843,7 +8843,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-xml/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-xml/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "xml.xi",
                                               "package.xi"
