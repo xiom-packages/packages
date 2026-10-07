@@ -1,8 +1,6 @@
 # xiom.bloom -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.bloom`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/bloom.xi` (`module xiom.bloom`).
 Depends on `xiom.std` only (platform dependency; the module imports
 `xiom.string` for byte access, the tests add `xiom.test`, `xiom.io` and
@@ -241,6 +239,69 @@ Semantics highlights:
   the AND of two filters can report keys present in neither input.
 - `bloom_to_bytes` round-trips through `bloom_from_bytes` for every filter
   built by this module (`bloom_equal` is `true`).
+
+## Contracts (batch #32 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/bloom.xi` in the batch #32
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 41 clauses over the 20 contracted public entry points (40 planned
+plus 1 probe-gated); all are `ensures:` (no `requires:`), so the accepted-input
+domain is unchanged. `bloom_contains` and `bloom_has_str` are deliberately
+excluded: their contract is probabilistic and hand-built negatives do not
+support a sound membership claim. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.bloom -TimeoutSec 60` runs ended
+`port: PASS (passed=25 failed=0 program_exit=0 exit=0)` with the clauses active
+(9.0 s and 9.25 s), so the probe-gated fourth clause of `bloom_insert`
+(`ensures: bloom_contains(bf, h1, h2);`) was kept; no clause was dropped.
+
+`xiom-verify src/bloom.xi --check` (Z3 bundled with v0.64.0) reported
+**7 proven / 0 violated / 48 unknown / 11 errors**. The 11 errors are SMT
+emitter bugs on bodies that call the private helpers (`unknown constant`
+`_size_error`, `_make_filter`, `_fnv1a32`, `_mix32`, `_read_u32_le`,
+`_read_u16_le`, `_byte_len`, `_ok_filter`), not clause failures; the unknown
+clauses are skipped because the emitter cannot encode struct/`Result` operand
+sorts. All 41 clauses are enforced by the v0.64.0 runtime evaluator when the
+suite runs. "Z3-provable" below marks the scalar-shape family the SMT backend
+can discharge without executing the function; runtime-checked clauses read
+`Str`/`Vec` lengths, `@pre` snapshots through `&mut`, struct-param fields, or
+public accessor cross-calls.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `bloom_max_bits` | `ensures: result == 1073741824` | Z3-provable (pure scalar) |
+| `bloom_max_hashes` | `ensures: result == 1024` | Z3-provable (pure scalar) |
+| `bloom_version` | `ensures: result == 1` | Z3-provable (pure scalar) |
+| `bloom_header_len` | `ensures: result == 11` | Z3-provable (pure scalar) |
+| `bloom_new` | `ensures: m <= 0 \|\| k <= 0 \|\| m > 1073741824 \|\| k > 1024 => result is Err`; `ensures: m > 0 && k > 0 && m <= 1073741824 && k <= 1024 => result is Ok`; `ensures: result is Ok => m > 0 && k > 0 && m <= 1073741824 && k <= 1024` | Z3-provable (scalar guard trio; `Result` tag) |
+| `bloom_m` | `ensures: result == bf.m` | Z3-provable (scalar field read) |
+| `bloom_k` | `ensures: result == bf.k` | Z3-provable (scalar field read) |
+| `bloom_byte_len` | `ensures: result == bf.bits.len()` | runtime-checked (payload `Vec` length) |
+| `bloom_hash1` | `ensures: result >= 0 && result <= 4294967295`; `ensures: s.len() == 0 => result == 2166136261` | Z3-provable (bounds); runtime-checked (empty-input identity) |
+| `bloom_hash2` | `ensures: result >= 0 && result <= 4294967295`; `ensures: s.len() == 0 => result == 1223194048` | Z3-provable (bounds); runtime-checked (empty-input identity) |
+| `bloom_derive_index` | `ensures: i < 0 \|\| i >= bf.k => result is Err`; `ensures: bf.m > 0 && result is Ok => result.value >= 0 && result.value < bf.m`; `ensures: result is Ok => i >= 0 && i < bf.k` | runtime-checked (guard pair; `Result[Int]` payload range behind the `bf.m > 0` guard) |
+| `bloom_insert` | `ensures: bf.m == bf.m@pre`; `ensures: bf.k == bf.k@pre`; `ensures: bf.bits.len() == bf.bits.len()@pre`; `ensures: bloom_contains(bf, h1, h2)` (probe-gated, kept) | runtime-checked (`@pre` frame; probe clause is the sole cross-call and is safe: `bloom_contains` never calls `bloom_insert`) |
+| `bloom_add_str` | `ensures: bf.m == bf.m@pre`; `ensures: bf.bits.len() == bf.bits.len()@pre` | runtime-checked (`@pre` frame) |
+| `bloom_clear` | `ensures: bf.m == bf.m@pre`; `ensures: bf.k == bf.k@pre`; `ensures: bf.bits.len() == bf.bits.len()@pre` | runtime-checked (`@pre` frame) |
+| `bloom_set_count` | `ensures: result >= 0`; `ensures: bf.bits.len() == 0 => result == 0` | runtime-checked (count bound + empty-`Vec` guard) |
+| `bloom_is_empty` | `ensures: result == (bloom_set_count(bf) == 0)` | runtime-checked (definitional cross-call; `bloom_set_count` never calls `bloom_is_empty`) |
+| `bloom_fp_permille` | `ensures: bloom_set_count(bf) == 0 => result == 0`; `ensures: bf.m > 0 => result >= 0` | runtime-checked (cross-call + guarded bound; the estimate is approximate, so no `<= 1000` is claimed) |
+| `bloom_equal` | `ensures: a.m != b.m => !result`; `ensures: a.k != b.k => !result`; `ensures: result => a.m == b.m && a.k == b.k` | runtime-checked (guard pair between two struct params) |
+| `bloom_to_bytes` | `ensures: result.len() == 11 + bf.bits.len()` | runtime-checked (built `Vec` length) |
+| `bloom_from_bytes` | `ensures: data.len() < 11 => result is Err`; `ensures: result is Ok => data.len() >= 11` | runtime-checked (guard pair; `Result` tag + parameter `Vec` length) |
+| `bloom_union` | `ensures: a.m != b.m \|\| a.k != b.k => result is Err`; `ensures: result is Ok => a.m == b.m && a.k == b.k` | runtime-checked (guard pair; `Result` tag + struct-param field reads) |
+| `bloom_intersection` | `ensures: a.m != b.m \|\| a.k != b.k => result is Err`; `ensures: result is Ok => a.m == b.m && a.k == b.k` | runtime-checked (guard pair; `Result` tag + struct-param field reads) |
+
+Deliberately not claimed: any membership relation for `bloom_contains`/
+`bloom_has_str`; a `<= 1000` bound for `bloom_fp_permille` (the fixed-point
+estimate is an approximation); `result.value` field reads on struct-`Result`
+payloads (`bloom_new`, `bloom_from_bytes`, `bloom_union`,
+`bloom_intersection`); `Str` equality anywhere (BUG 17); vector indexing in a
+clause; `bf.m`/`bf.k` claims on an unguarded `&mut` receiver beyond the
+preservation frames above. No clause shadows a contracted parameter, and every
+clause also holds for hand-built `BloomFilter` values: the `@pre` frames read
+only lengths and scalar fields, and `bloom_derive_index`/`bloom_fp_permille`
+keep the `bf.m > 0` guard that a negative hand-built `m` would otherwise
+falsify.
 
 ## Complexity
 

@@ -288,25 +288,33 @@ fn _and_byte(x: Int, y: Int) -> Int {
 
 /// Largest m a filter may declare: 1073741824 (2^30 bits = 128 MiB of
 /// storage). Error case: none. Complexity: O(1).
-pub fn bloom_max_bits() -> Int {
+pub fn bloom_max_bits() -> Int
+  ensures: result == 1073741824;
+{
   return _BL_MAX_BITS;
 }
 
 /// Largest k a filter may declare: 1024 probes. Error case: none.
 /// Complexity: O(1).
-pub fn bloom_max_hashes() -> Int {
+pub fn bloom_max_hashes() -> Int
+  ensures: result == 1024;
+{
   return _BL_MAX_HASHES;
 }
 
 /// Serialization format version emitted by bloom_to_bytes and accepted by
 /// bloom_from_bytes: 1. Error case: none. Complexity: O(1).
-pub fn bloom_version() -> Int {
+pub fn bloom_version() -> Int
+  ensures: result == 1;
+{
   return _BL_VERSION;
 }
 
 /// Serialization header length in bytes: 11. Error case: none.
 /// Complexity: O(1).
-pub fn bloom_header_len() -> Int {
+pub fn bloom_header_len() -> Int
+  ensures: result == 11;
+{
   return _BL_HEADER_LEN;
 }
 
@@ -320,7 +328,11 @@ pub fn bloom_header_len() -> Int {
 /// Err("bloom: m exceeds maximum") when m > bloom_max_bits();
 /// Err("bloom: k exceeds maximum") when k > bloom_max_hashes().
 /// Complexity: O(m) time and memory.
-pub fn bloom_new(m: Int, k: Int) -> Result[BloomFilter, Str] {
+pub fn bloom_new(m: Int, k: Int) -> Result[BloomFilter, Str]
+  ensures: m <= 0 || k <= 0 || m > 1073741824 || k > 1024 => result is Err;
+  ensures: m > 0 && k > 0 && m <= 1073741824 && k <= 1024 => result is Ok;
+  ensures: result is Ok => m > 0 && k > 0 && m <= 1073741824 && k <= 1024;
+{
   let msg = _size_error(m, k);
   if msg.len() > 0 {
     return _err_filter(msg);
@@ -329,19 +341,25 @@ pub fn bloom_new(m: Int, k: Int) -> Result[BloomFilter, Str] {
 }
 
 /// Number of bits of the filter. Error case: none. Complexity: O(1).
-pub fn bloom_m(bf: &BloomFilter) -> Int {
+pub fn bloom_m(bf: &BloomFilter) -> Int
+  ensures: result == bf.m;
+{
   return bf.m;
 }
 
 /// Number of derived hashes (probes) per lookup. Error case: none.
 /// Complexity: O(1).
-pub fn bloom_k(bf: &BloomFilter) -> Int {
+pub fn bloom_k(bf: &BloomFilter) -> Int
+  ensures: result == bf.k;
+{
   return bf.k;
 }
 
 /// Payload length in bytes: ceil(m / 8). Error case: none.
 /// Complexity: O(1).
-pub fn bloom_byte_len(bf: &BloomFilter) -> Int {
+pub fn bloom_byte_len(bf: &BloomFilter) -> Int
+  ensures: result == bf.bits.len();
+{
   return bf.bits.len();
 }
 
@@ -354,7 +372,10 @@ pub fn bloom_byte_len(bf: &BloomFilter) -> Int {
 /// yields the offset basis. This is a checksum, not a cryptographic hash.
 /// Params: s - the text to hash (empty allowed).
 /// Error case: none. Complexity: O(s.len()).
-pub fn bloom_hash1(s: Str) -> Int {
+pub fn bloom_hash1(s: Str) -> Int
+  ensures: result >= 0 && result <= 4294967295;
+  ensures: s.len() == 0 => result == 2166136261;
+{
   return _fnv1a32(s);
 }
 
@@ -365,7 +386,10 @@ pub fn bloom_hash1(s: Str) -> Int {
 /// not the FNV offset basis. Non-cryptographic.
 /// Params: s - the text to hash (empty allowed).
 /// Error case: none. Complexity: O(s.len()).
-pub fn bloom_hash2(s: Str) -> Int {
+pub fn bloom_hash2(s: Str) -> Int
+  ensures: result >= 0 && result <= 4294967295;
+  ensures: s.len() == 0 => result == 1223194048;
+{
   return _mix32(s);
 }
 
@@ -381,7 +405,11 @@ pub fn bloom_hash2(s: Str) -> Int {
 /// Returns: Ok(index) with index in 0..m-1.
 /// Error case: Err("bloom: hash index out of range") when i < 0 or i >= k.
 /// Complexity: O(1).
-pub fn bloom_derive_index(bf: &BloomFilter, h1: Int, h2: Int, i: Int) -> Result[Int, Str] {
+pub fn bloom_derive_index(bf: &BloomFilter, h1: Int, h2: Int, i: Int) -> Result[Int, Str]
+  ensures: i < 0 || i >= bf.k => result is Err;
+  ensures: bf.m > 0 && result is Ok => result.value >= 0 && result.value < bf.m;
+  ensures: result is Ok => i >= 0 && i < bf.k;
+{
   if i < 0 || i >= bf.k {
     return _err_int("bloom: hash index out of range");
   }
@@ -398,7 +426,12 @@ pub fn bloom_derive_index(bf: &BloomFilter, h1: Int, h2: Int, i: Int) -> Result[
 /// every probe hits index h1 mod m; the two built-in hashes are independent
 /// enough that this is rare, and callers passing explicit hashes control it.
 /// Error case: none. Complexity: O(k).
-pub fn bloom_insert(bf: &mut BloomFilter, h1: Int, h2: Int) {
+pub fn bloom_insert(bf: &mut BloomFilter, h1: Int, h2: Int)
+  ensures: bf.m == bf.m@pre;
+  ensures: bf.k == bf.k@pre;
+  ensures: bf.bits.len() == bf.bits.len()@pre;
+  ensures: bloom_contains(bf, h1, h2);
+{
   let a = _mod_floor(h1, bf.m);
   let b = _mod_floor(h2, bf.m);
   var cur = a;
@@ -435,7 +468,10 @@ pub fn bloom_contains(bf: &BloomFilter, h1: Int, h2: Int) -> Bool {
 /// Params: bf - the filter; s - the value (hashed over its UTF-8 bytes).
 /// Equivalent to bloom_insert(bf, bloom_hash1(s), bloom_hash2(s)).
 /// Error case: none. Complexity: O(s.len() + k).
-pub fn bloom_add_str(bf: &mut BloomFilter, s: Str) {
+pub fn bloom_add_str(bf: &mut BloomFilter, s: Str)
+  ensures: bf.m == bf.m@pre;
+  ensures: bf.bits.len() == bf.bits.len()@pre;
+{
   bloom_insert(bf, _fnv1a32(s), _mix32(s));
 }
 
@@ -451,7 +487,11 @@ pub fn bloom_has_str(bf: &BloomFilter, s: Str) -> Bool {
 /// Clear every bit of the filter. m and k are preserved.
 /// Params: bf - the filter.
 /// Error case: none. Complexity: O(m).
-pub fn bloom_clear(bf: &mut BloomFilter) {
+pub fn bloom_clear(bf: &mut BloomFilter)
+  ensures: bf.m == bf.m@pre;
+  ensures: bf.k == bf.k@pre;
+  ensures: bf.bits.len() == bf.bits.len()@pre;
+{
   var i = 0;
   while i < bf.bits.len() {
     bf.bits[i] = 0 as UInt8;
@@ -467,7 +507,10 @@ pub fn bloom_clear(bf: &mut BloomFilter) {
 /// Params: bf - the filter.
 /// Returns: the population count of bits 0..m-1 (padding bits are always
 /// zero in filters built by this module). Complexity: O(m).
-pub fn bloom_set_count(bf: &BloomFilter) -> Int {
+pub fn bloom_set_count(bf: &BloomFilter) -> Int
+  ensures: result >= 0;
+  ensures: bf.bits.len() == 0 => result == 0;
+{
   var count = 0;
   var i = 0;
   while i < bf.bits.len() {
@@ -484,7 +527,9 @@ pub fn bloom_set_count(bf: &BloomFilter) -> Int {
 
 /// True when no bit is set. Params: bf - the filter. Error case: none.
 /// Complexity: O(m).
-pub fn bloom_is_empty(bf: &BloomFilter) -> Bool {
+pub fn bloom_is_empty(bf: &BloomFilter) -> Bool
+  ensures: result == (bloom_set_count(bf) == 0);
+{
   return bloom_set_count(bf) == 0;
 }
 
@@ -498,7 +543,10 @@ pub fn bloom_is_empty(bf: &BloomFilter) -> Bool {
 /// in 0..1000.
 /// Params: bf - the filter.
 /// Error case: none. Complexity: O(m + k).
-pub fn bloom_fp_permille(bf: &BloomFilter) -> Int {
+pub fn bloom_fp_permille(bf: &BloomFilter) -> Int
+  ensures: bloom_set_count(bf) == 0 => result == 0;
+  ensures: bf.m > 0 => result >= 0;
+{
   let x = bloom_set_count(bf);
   if x == 0 {
     return 0;
@@ -517,7 +565,11 @@ pub fn bloom_fp_permille(bf: &BloomFilter) -> Int {
 /// Params: a, b - the filters to compare.
 /// Returns: true when the two filters have identical shape and content.
 /// Error case: none. Complexity: O(m).
-pub fn bloom_equal(a: &BloomFilter, b: &BloomFilter) -> Bool {
+pub fn bloom_equal(a: &BloomFilter, b: &BloomFilter) -> Bool
+  ensures: a.m != b.m => !result;
+  ensures: a.k != b.k => !result;
+  ensures: result => a.m == b.m && a.k == b.k;
+{
   if a.m != b.m {
     return false;
   }
@@ -583,7 +635,9 @@ fn _read_u16_le(data: &Vec[UInt8], off: Int) -> Int {
 /// bloom_header_len() + bloom_byte_len(bf); padding bits are zero.
 /// Params: bf - the filter to serialize.
 /// Error case: none. Complexity: O(m).
-pub fn bloom_to_bytes(bf: &BloomFilter) -> Vec[UInt8] {
+pub fn bloom_to_bytes(bf: &BloomFilter) -> Vec[UInt8]
+  ensures: result.len() == 11 + bf.bits.len();
+{
   var out = Vec[UInt8].new();
   out.push(_BL_VERSION as UInt8);
   _write_u32_le(&mut out, bf.m);
@@ -613,7 +667,10 @@ pub fn bloom_to_bytes(bf: &BloomFilter) -> Vec[UInt8] {
 /// header + declared payload; Err("bloom: padding not zero") when a bit at
 /// position >= m is set.
 /// Complexity: O(data.len()).
-pub fn bloom_from_bytes(data: &Vec[UInt8]) -> Result[BloomFilter, Str] {
+pub fn bloom_from_bytes(data: &Vec[UInt8]) -> Result[BloomFilter, Str]
+  ensures: data.len() < 11 => result is Err;
+  ensures: result is Ok => data.len() >= 11;
+{
   if data.len() < _BL_HEADER_LEN {
     return _err_filter("bloom: truncated buffer");
   }
@@ -668,7 +725,10 @@ pub fn bloom_from_bytes(data: &Vec[UInt8]) -> Result[BloomFilter, Str] {
 /// Error case: Err("bloom: union size mismatch") when a.m != b.m or
 /// a.k != b.k.
 /// Complexity: O(m).
-pub fn bloom_union(a: &BloomFilter, b: &BloomFilter) -> Result[BloomFilter, Str] {
+pub fn bloom_union(a: &BloomFilter, b: &BloomFilter) -> Result[BloomFilter, Str]
+  ensures: a.m != b.m || a.k != b.k => result is Err;
+  ensures: result is Ok => a.m == b.m && a.k == b.k;
+{
   if a.m != b.m || a.k != b.k {
     return _err_filter("bloom: union size mismatch");
   }
@@ -695,7 +755,10 @@ pub fn bloom_union(a: &BloomFilter, b: &BloomFilter) -> Result[BloomFilter, Str]
 /// Error case: Err("bloom: intersection size mismatch") when a.m != b.m or
 /// a.k != b.k.
 /// Complexity: O(m).
-pub fn bloom_intersection(a: &BloomFilter, b: &BloomFilter) -> Result[BloomFilter, Str] {
+pub fn bloom_intersection(a: &BloomFilter, b: &BloomFilter) -> Result[BloomFilter, Str]
+  ensures: a.m != b.m || a.k != b.k => result is Err;
+  ensures: result is Ok => a.m == b.m && a.k == b.k;
+{
   if a.m != b.m || a.k != b.k {
     return _err_filter("bloom: intersection size mismatch");
   }

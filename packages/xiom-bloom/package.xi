@@ -8,7 +8,7 @@
 
 package xiom_bloom {
   name: "xiom.bloom";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Bloom filter over a flat byte buffer: double hashing, integer false-positive estimate, strict serialization";
   categories: ["data"];
   keywords: ["bloom", "filter", "probabilistic", "bitset"];
