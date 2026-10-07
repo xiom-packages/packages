@@ -270,7 +270,10 @@ fn _email_span(s: Str, at: Int) -> Int {
 /// text that merely contains an address).
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn secret_mask_email(s: Str) -> Str {
+pub fn secret_mask_email(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() == 0 => s.len() == 0;
+{
   let n = s.len();
   if n == 0 {
     return s;
@@ -296,7 +299,10 @@ pub fn secret_mask_email(s: Str) -> Str {
 /// no quoted local parts, no non-ASCII bytes).
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn secret_contains_email(s: Str) -> Bool {
+pub fn secret_contains_email(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: result => s.len() > 0;
+{
   let n = s.len();
   var i = 0;
   while i < n {
@@ -320,7 +326,10 @@ pub fn secret_contains_email(s: Str) -> Bool {
 /// (spaces and dashes included) and for the empty string.
 /// Error case: none.
 /// Complexity: O(digits.len()).
-pub fn secret_luhn_ok(digits: Str) -> Bool {
+pub fn secret_luhn_ok(digits: Str) -> Bool
+  ensures: digits.len() == 0 => !result;
+  ensures: result => digits.len() > 0;
+{
   let n = digits.len();
   if n == 0 {
     return false;
@@ -442,7 +451,10 @@ fn _luhn_run(s: Str, start: Int, end: Int) -> Bool {
 /// false.
 /// Error case: none.
 /// Complexity: O(s.len()).
-pub fn secret_contains_card(s: Str) -> Bool {
+pub fn secret_contains_card(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: result => s.len() > 0;
+{
   let n = s.len();
   var i = 0;
   while i < n {
@@ -479,7 +491,9 @@ pub fn secret_contains_card(s: Str) -> Bool {
 /// as a substring; a documented heuristic, not a parser.
 /// Error case: none.
 /// Complexity: O(name.len()).
-pub fn secret_is_sensitive_key(name: Str) -> Bool {
+pub fn secret_is_sensitive_key(name: Str) -> Bool
+  ensures: name.len() == 0 => !result;
+{
   let lower = string.str_lower(name);
   if string.str_contains(lower, "password") {
     return true;
@@ -675,7 +689,9 @@ fn _token_span(s: Str, at: Int) -> Int {
 /// Error case: none.
 /// Complexity: O(text.len()) amortized; overlapping rules are resolved by the
 /// order above.
-pub fn secret_redact(text: Str, placeholder: Str) -> Str {
+pub fn secret_redact(text: Str, placeholder: Str) -> Str
+  ensures: text.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let n = text.len();
   var i = 0;

@@ -10,7 +10,7 @@
 
 package xiom_secret {
   name: "xiom.secret";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Secret redaction for logs and text: emails, tokens, keys, and card-like digits";
   categories: ["text-nlp", "crypto-security"];
   keywords: ["redact", "secrets", "security", "masking"];

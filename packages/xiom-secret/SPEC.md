@@ -1,6 +1,6 @@
 # xiom.secret -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.secret` (`src/secret.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -184,3 +184,44 @@ The implementation follows the proven v0.61.3 idioms:
 - Output bytes are accumulated in `Vec[UInt8]` and materialized with
   `xiom.string.builder.sb_to_str` (one allocation per result `Str`).
 - `Str` equality uses `xiom.string.compare.str_compare` (BUG 17).
+
+## Contracts (batch #32 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/secret.xi` in the batch #32
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 10 clauses over the six public entry points; all are `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. The package is
+thin-but-above-floor: length/domain guards only, because every public predicate
+is an ASCII byte scanner. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.secret -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (4.1 s and 4.3 s); the 20-check conformance suite exercises every entry
+point -- including the empty-input, non-email and non-card negatives -- and no
+clause trapped, so none was dropped.
+
+`xiom-verify src/secret.xi --check` (Z3 bundled with v0.64.0) reported
+**0 proven / 0 violated / 17 unknown / 1 errors**; the single error is an SMT
+emitter bug on a cross-call body (`unknown constant _email_span`), not a
+clause failure, and every clause is skipped as `equality with unresolved
+operand sort` because the emitter cannot encode `Str`-length operands. All 10
+clauses are therefore runtime-checked and are enforced by the v0.64.0 runtime
+evaluator when the suite runs.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `secret_mask_email` | `s.len() == 0 => result.len() == 0`; `result.len() == 0 => s.len() == 0` | runtime-checked (built `Str` length, two-way empty relation) |
+| `secret_contains_email` | `s.len() == 0 => !result`; `result => s.len() > 0` | runtime-checked (`Bool` guard pair + `Str` length) |
+| `secret_luhn_ok` | `digits.len() == 0 => !result`; `result => digits.len() > 0` | runtime-checked (`Bool` guard pair + `Str` length) |
+| `secret_contains_card` | `s.len() == 0 => !result`; `result => s.len() > 0` | runtime-checked (`Bool` guard pair + `Str` length) |
+| `secret_is_sensitive_key` | `name.len() == 0 => !result` | runtime-checked (empty-name guard + `Str` length) |
+| `secret_redact` | `text.len() == 0 => result.len() == 0` | runtime-checked (built `Str` length, empty-input identity) |
+
+All 10 clauses hold for hand-built `Str` inputs: each clause observes only
+`.len()` values and the `Bool` result, so no byte-indexing, byte-class or
+`Str`-equality claim is made (BUG 17: `.len()` only). No clause reads a vector
+or a module constant, and no clause calls another function. Deliberately not
+claimed: byte-class and span-length bounds for the scanners (the plan rejects
+byte scans beyond length guards); `Str` equality between
+`secret_mask_email`'s output and its input; any `secret_redact` length formula
+(the placeholder and copied spans are data-dependent); and any claim about the
+`@`-position or masked local part. No clause was dropped.
