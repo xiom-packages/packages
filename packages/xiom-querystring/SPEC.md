@@ -1,6 +1,6 @@
 # xiom.querystring -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.querystring` (`src/querystring.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -155,3 +155,53 @@ All Str equality goes through `str_compare`.
 - Bytes widen as `(string.byte_at(s, i) as Int) & 0xFF`.
 - `match` is exhaustive; `use` lines end with `;`, `module` does not.
 - No `Ok`/`Err` anywhere: the API has no `Result` channel.
+
+## Contracts (batch #19 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/querystring.xi` in the
+batch #19 hardening pass (compiler v0.64.0; no version bump): 23 clauses
+across the 10 public entry points. Two consecutive
+`.\scripts\port.ps1 -Package xiom.querystring -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (10.2 s and 10.3 s). The 20-check conformance suite exercises all 10
+entry points with the clauses active; none trapped.
+
+All clauses are `ensures:`; no `requires:` was added, so the accepted-input
+domain is unchanged. Only `qs_count`'s `result >= 0` is a pure scalar
+expression (`result` arithmetic only, no calls), the shape the Z3 emitter
+can reason about; every other clause observes `Str`/`Vec` lengths or calls
+public functions, so the v0.64.0 emitter leaves it UNKNOWN and it is
+runtime-checked. `xiom-verify --check` on v0.64.0 reported **1 proven /
+1 violated / 27 unknown / 8 errors**; the single reported "violation" is an
+emitter artifact -- `_limit` is emitted as an unknown constant
+(`unknown constant _limit (xiom_ptr_Query)`), the body assertion errors out
+and the unconstrained `result` makes `not (result >= 0)` satisfiable -- the
+clause is true in the code (the minimum of two non-negative vector
+lengths). No real counterexample was produced.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `qs_encode_component` | `ensures: s.len() == 0 => result.len() == 0` | runtime-checked |
+| `qs_encode_component` | `ensures: result.len() >= s.len()`; `ensures: result.len() <= 3 * s.len()` | runtime-checked (byte-wise 1 or 3 output bytes per input byte) |
+| `qs_decode_component` | `ensures: s.len() == 0 => result.len() == 0` | runtime-checked |
+| `qs_decode_component` | `ensures: result.len() <= s.len()` | runtime-checked (each step consumes >= 1 and emits <= 1 byte) |
+| `qs_parse` | `ensures: text.len() == 0 => qs_count(result) == 0` | runtime-checked (cross-call) |
+| `qs_parse` | `ensures: qs_count(result) <= text.len()` | runtime-checked (cross-call; every pair consumes a non-empty slice) |
+| `qs_count` | `ensures: result >= 0` | Z3-provable (pure scalar) |
+| `qs_count` | `ensures: result <= q.names.len()`; `ensures: result <= q.values.len()` | runtime-checked (parallel-vector minimum) |
+| `qs_get` | `ensures: qs_has(q, name) => result is Some`; `ensures: result is None => !qs_has(q, name)` | runtime-checked (cross-call; Option tag only, no payload read) |
+| `qs_get_all` | `ensures: result.len() <= qs_count(q)`; `ensures: !qs_has(q, name) => result.len() == 0`; `ensures: q.names.len() == 0 => result.len() == 0` | runtime-checked (cross-calls on a Vec result) |
+| `qs_has` | `ensures: result => qs_count(q) > 0` | runtime-checked (cross-call) |
+| `qs_has` | `ensures: q.names.len() == 0 => !result` | runtime-checked |
+| `qs_set` | `ensures: qs_has(q, name) => qs_count(result) == qs_count(q)` | runtime-checked (exact; `qs_set` and `qs_has` share the `_limit` scan) |
+| `qs_set` | `ensures: !qs_has(q, name) => qs_count(result) == qs_count(q) + 1` | runtime-checked (exact; append path) |
+| `qs_remove` | `ensures: qs_count(result) <= qs_count(q)`; `ensures: !qs_has(q, name) => qs_count(result) == qs_count(q)` | runtime-checked (exact; filter keeps every non-match) |
+| `qs_serialize` | `ensures: qs_count(q) == 0 => result.len() == 0` | runtime-checked |
+| `qs_serialize` | `ensures: result.len() >= 2 * qs_count(q) - 1` | runtime-checked (one '=' per pair plus count-1 '&' minimum) |
+
+No clause uses tuple-component access, a `Result`/`Option` payload field
+read, a struct payload field, or `Str` equality. Struct returns (`Query`)
+are observed only through `qs_count`/`qs_has` cross-calls. The only
+cross-function clause calls are `qs_count` and `qs_has`; both are terminal
+over `_limit`/`str_compare` and never call the entry point they guard
+against, so there is no postcondition call-cycle (transitive re-entry 0).

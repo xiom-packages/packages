@@ -153,7 +153,11 @@ fn _push_component(sb: &mut Vec[UInt8], s: Str) {
 /// Form-encode one name or value: spaces become '+', unreserved bytes
 /// (A-Z a-z 0-9 - _ . ~) pass through, every other UTF-8 byte becomes %XX
 /// with uppercase hex digits. Complexity: O(s.len()).
-pub fn qs_encode_component(s: Str) -> Str {
+pub fn qs_encode_component(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() >= s.len();
+  ensures: result.len() <= 3 * s.len();
+{
   var sb = builder.sb_new();
   _push_component(&mut sb, s);
   return builder.sb_to_str(&sb);
@@ -164,7 +168,10 @@ pub fn qs_encode_component(s: Str) -> Str {
 /// kept literally: the '%' is emitted and scanning resumes at the next byte,
 /// so "%", "%2" and "%zz" pass through unchanged. Error-free by design.
 /// Complexity: O(s.len()).
-pub fn qs_decode_component(s: Str) -> Str {
+pub fn qs_decode_component(s: Str) -> Str
+  ensures: s.len() == 0 => result.len() == 0;
+  ensures: result.len() <= s.len();
+{
   var sb = builder.sb_new();
   let n = s.len();
   var i = 0;
@@ -221,7 +228,10 @@ fn _add_pair(q: &mut Query, seg: Str) {
 /// kept literally); empty names and values are preserved and names may repeat
 /// in first-seen order. Error case: none; every input yields a Query.
 /// Complexity: O(text length).
-pub fn qs_parse(text: Str) -> Query {
+pub fn qs_parse(text: Str) -> Query
+  ensures: text.len() == 0 => qs_count(result) == 0;
+  ensures: qs_count(result) <= text.len();
+{
   var q = Query{ names: Vec[Str].new(); values: Vec[Str].new(); };
   let n = text.len();
   var start = 0;
@@ -246,13 +256,20 @@ pub fn qs_parse(text: Str) -> Query {
 
 /// Number of pairs in `q` (min of the two parallel vector lengths, so a
 /// hand-built ragged query never over-counts).
-pub fn qs_count(q: &Query) -> Int {
+pub fn qs_count(q: &Query) -> Int
+  ensures: result >= 0;
+  ensures: result <= q.names.len();
+  ensures: result <= q.values.len();
+{
   return _limit(q);
 }
 
 /// Value of the FIRST pair named `name`; None when absent. Names are compared
 /// byte-exactly and case-sensitively via str_compare.
-pub fn qs_get(q: &Query, name: Str) -> Option[Str] {
+pub fn qs_get(q: &Query, name: Str) -> Option[Str]
+  ensures: qs_has(q, name) => result is Some;
+  ensures: result is None => !qs_has(q, name);
+{
   let lim = _limit(q);
   var i = 0;
   while i < lim {
@@ -268,7 +285,11 @@ pub fn qs_get(q: &Query, name: Str) -> Option[Str] {
 
 /// Values of EVERY pair named `name`, in pair order; an empty Vec when the
 /// name is absent. Names are compared byte-exactly and case-sensitively.
-pub fn qs_get_all(q: &Query, name: Str) -> Vec[Str] {
+pub fn qs_get_all(q: &Query, name: Str) -> Vec[Str]
+  ensures: result.len() <= qs_count(q);
+  ensures: !qs_has(q, name) => result.len() == 0;
+  ensures: q.names.len() == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   let lim = _limit(q);
   var i = 0;
@@ -284,7 +305,10 @@ pub fn qs_get_all(q: &Query, name: Str) -> Vec[Str] {
 }
 
 /// True when at least one pair is named `name` (byte-exact, case-sensitive).
-pub fn qs_has(q: &Query, name: Str) -> Bool {
+pub fn qs_has(q: &Query, name: Str) -> Bool
+  ensures: result => qs_count(q) > 0;
+  ensures: q.names.len() == 0 => !result;
+{
   let lim = _limit(q);
   var i = 0;
   while i < lim {
@@ -305,7 +329,10 @@ pub fn qs_has(q: &Query, name: Str) -> Bool {
 /// named `name` has its value replaced by `value` in place; when `name` is
 /// absent the pair `name=value` is appended. Later duplicates are kept as-is.
 /// Complexity: O(pairs).
-pub fn qs_set(q: &Query, name: Str, value: Str) -> Query {
+pub fn qs_set(q: &Query, name: Str, value: Str) -> Query
+  ensures: qs_has(q, name) => qs_count(result) == qs_count(q);
+  ensures: !qs_has(q, name) => qs_count(result) == qs_count(q) + 1;
+{
   var out = Query{ names: Vec[Str].new(); values: Vec[Str].new(); };
   let lim = _limit(q);
   var replaced = false;
@@ -333,7 +360,10 @@ pub fn qs_set(q: &Query, name: Str, value: Str) -> Query {
 /// Return a NEW query (the source is never mutated) with EVERY pair named
 /// `name` removed; identical pairs of other names keep their order.
 /// Complexity: O(pairs).
-pub fn qs_remove(q: &Query, name: Str) -> Query {
+pub fn qs_remove(q: &Query, name: Str) -> Query
+  ensures: qs_count(result) <= qs_count(q);
+  ensures: !qs_has(q, name) => qs_count(result) == qs_count(q);
+{
   var out = Query{ names: Vec[Str].new(); values: Vec[Str].new(); };
   let lim = _limit(q);
   var i = 0;
@@ -357,7 +387,10 @@ pub fn qs_remove(q: &Query, name: Str) -> Query {
 /// with '&', always "name=value", each side form-encoded (space -> '+',
 /// unreserved kept, everything else %XX uppercase). An empty query renders
 /// "". Complexity: O(total text length).
-pub fn qs_serialize(q: &Query) -> Str {
+pub fn qs_serialize(q: &Query) -> Str
+  ensures: qs_count(q) == 0 => result.len() == 0;
+  ensures: result.len() >= 2 * qs_count(q) - 1;
+{
   var sb = builder.sb_new();
   let lim = _limit(q);
   var i = 0;
