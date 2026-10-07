@@ -14,6 +14,21 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-07 18:20Z (batch #24 COMPLETE + PUBLISHED `eco-v0.1.73`; supersedes the 17:55Z block below):**
+- **Batch #24 DONE + PUBLISHED (`eco-v0.1.73`, run `37665215221` SUCCESS; all six live at 0.1.2):**
+  `rpc` (23 clauses; 27/27), `pack` (24; 22/22), `psf` (28; 20/20), `gedcom` (32; 23/23),
+  `nmea` (19; 24/24), `backoff` (43; 22/22); all x2 green on v0.64.0. Feats: `9ec6115d`,
+  `ff37373d`, `83669bfa`, `87606f21`, `6820bb7d`, `7ff2c792`; records: `798a0656`, `23d2d649`,
+  `2bd5935c`, `f1558b10`, `dce4fcc8`, `338b82a7`; wrap `8463961e` (incl. m211 + Wave 85
+  notes). **~151 zero-clause stable carriers remain** (next candidates: escape 537, rescan).
+- **Compiler:** main still unpushed with m202/m206/m209/m210/m211 (m211 = the io.list_dir
+  fix); no v0.64.1 archive as of 18:20Z. PER USER RELAY: at the next pin the never-destructure
+  rule + clone-avoidance workaround can be dropped -- verify probes at repin first.
+- **grpc** still STAGED (`95442d71`, 36/36 x2 on the candidate); record + publish held for v0.64.1.
+- **Next session priority:** batch #25 (rescan), and the item-2 grpc flow if v0.64.1 landed.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-07 17:55Z (batch #23 COMPLETE + PUBLISHED `eco-v0.1.72`; supersedes the 17:40Z block below):**
 - **Stdlib lane relay (17:59Z):** Wave 85 contract backfill published -- modules `convert.ip` (6 clauses),
   `convert.lossy` (4), `convert.network` (6), `convert.timestamp` (4): 31 clauses / 20 new pub;
@@ -1328,24 +1343,26 @@ running). Check `git log -1 --format=%h %s` before starting.
    category harmonization = owner decision; (d) keep the port watchdog
    discipline.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 17:55Z)
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (current -- 2026-10-07 18:20Z)
 
 ```
 You are the packages session for xiom-packages/packages (local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
-Read SESSION.md first -- the 2026-10-07 17:55Z STATE block is the live handoff.
+Read SESSION.md first -- the 2026-10-07 18:20Z STATE block is the live handoff.
 Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
 NO XIOM_RUNTIME_DIR needed (runtime-link + crypto-link RESOLVED; workaround retired).
-Validate 519/0; guard 504/464/40/0. Batches #19-#23 published (eco-v0.1.68-.72, 30
-packages live); ~157 zero-clause stable carriers remain. `option` stays excluded.
+Validate 519/0; guard 504/464/40/0. Batches #19-#24 published (eco-v0.1.68-.73, 36
+packages live); ~151 zero-clause stable carriers remain. `option` stays excluded.
 `xiom.grpc` is STAGED (`95442d71`: named-constant arms + direct tuple reads; 36/36 x2 on
 the v0.64.1 candidate) -- record + publish held for the official v0.64.1 archive, NOT
 released yet (check `gh release list --repo xiom-lang/xiom`). Compiler main (unpushed)
-carries m202/m206/m209/m210: grpc probes green, tuple-ref destructure fixed, Vec[Struct]
-clone fixed. PER USER RELAY: at the NEXT pin the never-destructure-a-tuple-ref rule and
-the clone-avoidance workaround can be DROPPED -- verify with the probes at repin first.
+carries m202/m206/m209/m210/m211: grpc probes green, tuple-ref destructure fixed,
+Vec[Struct] clone fixed, io.list_dir fixed. PER USER RELAY: at the NEXT pin the
+never-destructure-a-tuple-ref rule and the clone-avoidance workaround can be DROPPED --
+verify with the probes at repin first, and re-test retest-listdir.xi (expect distinct
+names now).
 
 Start: git fetch; git status -sb; git log -1; then
   $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
@@ -1356,27 +1373,27 @@ Then do, in order:
    (SHA256-verify, deploy to xiom.new, bump COMPILER_VERSION, status.ps1 -Action repin),
    then re-test ONLY the open findings on the official install: grpc probe_suite_min/
    probe_direct (expect GREEN), docs/repro/struct-clone/ (expect GREEN now, m210),
-   docs/repro/tuple-vec-set/ (green), %TEMP%\kilo\retest-listdir.xi (expect RED --
-   last-name repeated, stdlib), the io.xi:943 scratch probe (unreproduced), plus a
+   docs/repro/tuple-vec-set/ (green), %TEMP%\kilo\retest-listdir.xi (expect GREEN now,
+   m211 -- distinct names), the io.xi:943 scratch probe (unreproduced), plus a
    ref-destructure probe for m209 (e.g. the grpc metadata scan shape; expect GREEN).
    If grpc is green: run `port.ps1 -Package xiom.grpc` x2 on the official install,
    record 36/36 with `-RunBy task:...` on the REAL commit sha, then publish it in the
    next eco tag (generate_index, report, validate, guard, export-namespaces, tag,
    approve the registry-publish gate, watch, live-verify). On a fully green repin,
    update the porter brief templates + SESSION carry-forwards to DROP the tuple-ref
-   destructure and clone-avoidance rules. If the archive is NOT out: skip to batch #24
+   destructure and clone-avoidance rules. If the archive is NOT out: skip to batch #25
    and re-check at the wrap.
-2. Hardening batch #24 (FAN-OUT): rescan zero-clause stable carriers
-   (`scripts/contract-coverage.ps1`), skip `option`; next six smallest (rpc 512 is the
-   current smallest after osrelease; verify with the sizing scan) via a read-only explore
-   pre-plan; per-package background `task` porters (brief template
-   %TEMP%\kilo\batch23-porter-brief.md; port x2; bracket scan; SPEC Contracts + header
+2. Hardening batch #25 (FAN-OUT): rescan zero-clause stable carriers
+   (`scripts/contract-coverage.ps1`), skip `option`; next six smallest (escape 537 is
+   the current smallest after backoff; verify with the sizing scan) via a read-only
+   explore pre-plan; per-package background `task` porters (brief template
+   %TEMP%\kilo\batch24-porter-brief.md; port x2; bracket scan; SPEC Contracts + header
    sync; NO git; NO shared files; explicit-path cleanup); coordinator integrates
-   (port x2, patch bump -- check CURRENT version per package, feat commit exact files,
-   record with real sha + `-RunBy task:ses_...`); wrap + publish the next eco tag.
-   Transient GitHub 500s on push: wait ~60-90s and retry.
+   (port x2, patch bump, feat commit exact files, record with real sha +
+   `-RunBy task:ses_...`); wrap + publish the next eco tag. Transient GitHub 500s on
+   push: wait ~60-90s and retry.
 3. PULSE support: triage new `docs/PACKAGE-WISHLIST.md` rows from consumer reports
-   (none new at 17:55Z); new package names need an allowlist append + one ops scope relay.
+   (none new at 18:20Z); new package names need an allowlist append + one ops scope relay.
 4. Carry-forwards: `-TimeoutSec 60` watchdog (raise per package); port x2 + byte-level
    bracket scan on every touched package; SPEC headers synced when touched; bump ONLY
    when source changes; `xiom-verify` writes `xiom_verify_output.smt2` to the CWD (run it
