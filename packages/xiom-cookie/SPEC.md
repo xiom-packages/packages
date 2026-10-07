@@ -1,6 +1,6 @@
 # xiom.cookie -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.cookie` (`src/cookie.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -127,6 +127,50 @@ Complexity: request parsing is `O(line length * jar size)` because duplicate
 detection scans the names vector per segment (`O(line length)` with a hash
 index); `cookie_get` is `O(entries)`; serialization is `O(output)`; Set-Cookie
 parsing is `O(line length)`.
+
+## Contracts
+
+Every public entry point carries runtime-checkable `ensures:` clauses (XIOM
+v0.64.0 contract syntax). "Z3-provable" marks a pure-scalar clause the SMT
+backend can discharge without executing the function; all other clauses are
+checked at runtime by the contract evaluator (they read the post-state or
+cross-call public accessors). Struct-valued results are observed only through
+public cross-calls (`cookie_parse_request` via `cookie_count`); no clause
+reads `result.value.*`, indexes a vector, or compares strings.
+15 clauses over 6 entry points; 10 are Z3-provable.
+
+### cookie_parse_request(line: Str) -> CookieJar
+
+- `line.len() == 0 => cookie_count(result) == 0` -- runtime-checked (cross-call)
+- `cookie_count(result) <= line.len()` -- runtime-checked (cross-call)
+
+### cookie_get(jar: &CookieJar, name: Str) -> Option[Str]
+
+- `jar.names.len() == 0 => result is None` -- Z3-provable (pure scalar)
+- `result is Some => jar.names.len() >= 1` -- Z3-provable (pure scalar)
+- `result is Some => jar.values.len() >= 1` -- Z3-provable (pure scalar)
+
+### cookie_count(jar: &CookieJar) -> Int
+
+- `result >= 0` -- Z3-provable (pure scalar)
+- `result <= jar.names.len()` -- Z3-provable (pure scalar; min of the parallel lengths)
+- `result <= jar.values.len()` -- Z3-provable (pure scalar; min of the parallel lengths)
+
+### cookie_serialize_request(jar: &CookieJar) -> Str
+
+- `jar.names.len() == 0 => result.len() == 0` -- Z3-provable (pure scalar)
+- `jar.values.len() == 0 => result.len() == 0` -- Z3-provable (pure scalar)
+- `result.len() >= cookie_count(jar)` -- runtime-checked (cross-call; one '=' per entry)
+
+### cookie_parse_set(line: Str) -> Result[SetCookie, Str]
+
+- `line.len() <= 1 => result is Err` -- Z3-provable (pure scalar)
+- `result is Ok => line.len() >= 2` -- Z3-provable (pure scalar)
+
+### cookie_serialize_set(c: &SetCookie) -> Str
+
+- `result.len() >= c.name.len() + c.value.len() + 1` -- runtime-checked
+- `c.path.len() == 0 && c.domain.len() == 0 && c.same_site.len() == 0 && !c.secure && !c.http_only && c.max_age < 0 => result.len() == c.name.len() + c.value.len() + 1` -- runtime-checked (minimal render)
 
 ## 7. Error catalog
 

@@ -254,7 +254,10 @@ fn _add_request_pair(jar: &mut CookieJar, seg: Str) {
 /// Error case: none; malformed segments are silently skipped.
 /// Complexity: O(line length * jar size) because duplicate detection scans the
 /// names vector per segment; O(line length) with a hash index.
-pub fn cookie_parse_request(line: Str) -> CookieJar {
+pub fn cookie_parse_request(line: Str) -> CookieJar
+  ensures: line.len() == 0 => cookie_count(result) == 0;
+  ensures: cookie_count(result) <= line.len();
+{
   var jar = CookieJar{ names: Vec[Str].new(); values: Vec[Str].new(); };
   let len = line.len();
   var start = 0;
@@ -272,7 +275,11 @@ pub fn cookie_parse_request(line: Str) -> CookieJar {
 
 /// Value of the first request cookie named `name`; None when absent. Names
 /// are compared byte-exactly and case-sensitively (str_compare).
-pub fn cookie_get(jar: &CookieJar, name: Str) -> Option[Str] {
+pub fn cookie_get(jar: &CookieJar, name: Str) -> Option[Str]
+  ensures: jar.names.len() == 0 => result is None;
+  ensures: result is Some => jar.names.len() >= 1;
+  ensures: result is Some => jar.values.len() >= 1;
+{
   let lim = _limit(jar);
   var i = 0;
   while i < lim {
@@ -288,13 +295,21 @@ pub fn cookie_get(jar: &CookieJar, name: Str) -> Option[Str] {
 
 /// Number of entries in `jar` (min of the two parallel vector lengths, so a
 /// hand-built ragged jar never over-counts).
-pub fn cookie_count(jar: &CookieJar) -> Int {
+pub fn cookie_count(jar: &CookieJar) -> Int
+  ensures: result >= 0;
+  ensures: result <= jar.names.len();
+  ensures: result <= jar.values.len();
+{
   return _limit(jar);
 }
 
 /// Render the jar as a request `Cookie` header value: "a=1; b=2" in entry
 /// order. An empty jar renders "".
-pub fn cookie_serialize_request(jar: &CookieJar) -> Str {
+pub fn cookie_serialize_request(jar: &CookieJar) -> Str
+  ensures: jar.names.len() == 0 => result.len() == 0;
+  ensures: jar.values.len() == 0 => result.len() == 0;
+  ensures: result.len() >= cookie_count(jar);
+{
   var sb = builder.sb_new();
   let lim = _limit(jar);
   var i = 0;
@@ -374,7 +389,10 @@ fn _apply_attribute(out: &mut SetCookie, seg: Str) {
 /// ("cookie: missing name=value pair") or an empty name
 /// ("cookie: empty cookie name").
 /// Complexity: O(line length).
-pub fn cookie_parse_set(line: Str) -> Result[SetCookie, Str] {
+pub fn cookie_parse_set(line: Str) -> Result[SetCookie, Str]
+  ensures: line.len() <= 1 => result is Err;
+  ensures: result is Ok => line.len() >= 2;
+{
   let len = line.len();
   let first_end = _find_byte(line, _COOKIE_SEMI);
   var head = line;
@@ -420,7 +438,10 @@ pub fn cookie_parse_set(line: Str) -> Result[SetCookie, Str] {
 /// Domain=...; Max-Age=N; Secure; HttpOnly; SameSite=Lax" in exactly that
 /// order, omitting empty attributes and omitting Max-Age when it is negative.
 /// name=value is always rendered, even for an empty value.
-pub fn cookie_serialize_set(c: &SetCookie) -> Str {
+pub fn cookie_serialize_set(c: &SetCookie) -> Str
+  ensures: result.len() >= c.name.len() + c.value.len() + 1;
+  ensures: c.path.len() == 0 && c.domain.len() == 0 && c.same_site.len() == 0 && !c.secure && !c.http_only && c.max_age < 0 => result.len() == c.name.len() + c.value.len() + 1;
+{
   var sb = builder.sb_new();
   let name: Str = c.name;
   let value: Str = c.value;

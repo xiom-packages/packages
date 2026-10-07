@@ -10,7 +10,7 @@
 
 package xiom_cookie {
   name: "xiom.cookie";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Cookie and Set-Cookie header parsing and serialization";
   categories: ["network", "text-nlp"];
   keywords: ["cookie", "http", "header", "parsing"];
