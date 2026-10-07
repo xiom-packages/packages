@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T00:49:27Z",
+    "updated":  "2026-10-08T01:11:08Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -2897,7 +2897,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.gpt",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "GUID Partition Table codec: parse and build a canonical primary GPT",
@@ -2907,7 +2907,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gpt/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gpt/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "gpt.xi",
                                               "package.xi"
@@ -2997,7 +2997,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.hcl",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM structural HCL2 subset parser with a canonical emitter",
@@ -3007,7 +3007,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hcl/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hcl/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "hcl.xi",
                                               "package.xi"
@@ -3069,7 +3069,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.hl7",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "HL7 v2.x pipe-delimited message codec with flat offset-based storage",
@@ -3079,7 +3079,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hl7/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-hl7/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "hl7.xi",
                                               "package.xi"
@@ -5718,7 +5718,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.pgn",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "PGN chess notation codec: tag pairs, movetext tokens, canonical emit",
@@ -5728,7 +5728,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pgn/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pgn/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "pgn.xi",
                                               "package.xi"
@@ -7072,7 +7072,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.sgf",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Smart Game Format codec: game tree collections, nodes, properties and canonical emit",
@@ -7082,7 +7082,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sgf/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sgf/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "sgf.xi",
                                               "package.xi"
@@ -8530,7 +8530,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.vtt",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Strict WebVTT parsing, canonical formatting, and cue building",
@@ -8540,7 +8540,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vtt/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vtt/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "vtt.xi",
                                               "package.xi"
