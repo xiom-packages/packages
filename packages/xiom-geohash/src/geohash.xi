@@ -207,7 +207,11 @@ fn _encode_raw(lat_ud: Int, lon_ud: Int, precision: Int) -> Str {
 /// Err("geohash: longitude out of range") when the coordinate is outside its
 /// inclusive range. Validation order is precision, latitude, longitude.
 /// Complexity: O(precision).
-pub fn geohash_encode(lat_ud: Int, lon_ud: Int, precision: Int) -> Result[Str, Str] {
+pub fn geohash_encode(lat_ud: Int, lon_ud: Int, precision: Int) -> Result[Str, Str]
+  ensures: precision < 1 || precision > 12 => result is Err;
+  ensures: (lat_ud < -90000000 || lat_ud > 90000000 || lon_ud < -180000000 || lon_ud > 180000000) => result is Err;
+  ensures: result is Ok => result.value.len() >= 1 && result.value.len() <= 12;
+{
   if precision < _GEOHASH_MIN_PRECISION || precision > _GEOHASH_MAX_PRECISION {
     return _err_str("geohash: invalid precision");
   }
@@ -241,7 +245,11 @@ pub fn geohash_encode(lat_ud: Int, lon_ud: Int, precision: Int) -> Result[Str, S
 /// Err("geohash: invalid geohash character") for any byte that is not an
 /// alphabet letter after case folding (including a, i, l, o).
 /// Complexity: O(len(hash)).
-pub fn geohash_decode(hash: Str) -> Result[GeoBox, Str] {
+pub fn geohash_decode(hash: Str) -> Result[GeoBox, Str]
+  ensures: hash.len() == 0 => result is Err;
+  ensures: hash.len() > 12 => result is Err;
+  ensures: result is Ok => hash.len() >= 1 && hash.len() <= 12;
+{
   let len = hash.len();
   if len == 0 {
     return _err_box("geohash: empty geohash");
@@ -311,7 +319,11 @@ pub fn geohash_decode(hash: Str) -> Result[GeoBox, Str] {
 /// Err("geohash: empty geohash"), Err("geohash: geohash too long") (length
 /// checked before characters) or Err("geohash: invalid geohash character").
 /// Complexity: O(len(hash)).
-pub fn geohash_normalize(hash: Str) -> Result[Str, Str] {
+pub fn geohash_normalize(hash: Str) -> Result[Str, Str]
+  ensures: hash.len() == 0 => result is Err;
+  ensures: hash.len() > 12 => result is Err;
+  ensures: result is Ok => result.value.len() >= 1 && result.value.len() <= 12;
+{
   let len = hash.len();
   if len == 0 {
     return _err_str("geohash: empty geohash");
@@ -339,7 +351,9 @@ pub fn geohash_normalize(hash: Str) -> Result[Str, Str] {
 /// Returns: b.precision, always within [1, 12].
 /// Error case: none.
 /// Complexity: O(1).
-pub fn geohash_box_precision(b: GeoBox) -> Int {
+pub fn geohash_box_precision(b: GeoBox) -> Int
+  ensures: result == b.precision;
+{
   return b.precision;
 }
 
@@ -349,7 +363,9 @@ pub fn geohash_box_precision(b: GeoBox) -> Int {
 /// b.max_lat_ud.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn geohash_box_min_lat(b: GeoBox) -> Int {
+pub fn geohash_box_min_lat(b: GeoBox) -> Int
+  ensures: result == b.min_lat_ud;
+{
   return b.min_lat_ud;
 }
 
@@ -359,7 +375,9 @@ pub fn geohash_box_min_lat(b: GeoBox) -> Int {
 /// b.max_lon_ud.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn geohash_box_min_lon(b: GeoBox) -> Int {
+pub fn geohash_box_min_lon(b: GeoBox) -> Int
+  ensures: result == b.min_lon_ud;
+{
   return b.min_lon_ud;
 }
 
@@ -368,7 +386,9 @@ pub fn geohash_box_min_lon(b: GeoBox) -> Int {
 /// Returns: b.max_lat_ud, at most 90_000_000.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn geohash_box_max_lat(b: GeoBox) -> Int {
+pub fn geohash_box_max_lat(b: GeoBox) -> Int
+  ensures: result == b.max_lat_ud;
+{
   return b.max_lat_ud;
 }
 
@@ -377,7 +397,9 @@ pub fn geohash_box_max_lat(b: GeoBox) -> Int {
 /// Returns: b.max_lon_ud, at most 180_000_000.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn geohash_box_max_lon(b: GeoBox) -> Int {
+pub fn geohash_box_max_lon(b: GeoBox) -> Int
+  ensures: result == b.max_lon_ud;
+{
   return b.max_lon_ud;
 }
 
@@ -389,7 +411,11 @@ pub fn geohash_box_max_lon(b: GeoBox) -> Int {
 /// hash from integer input, so every encoded hash decodes to a non-empty box.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn geohash_box_is_empty(b: GeoBox) -> Bool {
+pub fn geohash_box_is_empty(b: GeoBox) -> Bool
+  ensures: b.min_lat_ud > b.max_lat_ud => result;
+  ensures: b.min_lon_ud > b.max_lon_ud => result;
+  ensures: !result => b.min_lat_ud <= b.max_lat_ud && b.min_lon_ud <= b.max_lon_ud;
+{
   if b.min_lat_ud > b.max_lat_ud {
     return true;
   }
@@ -408,7 +434,11 @@ pub fn geohash_box_is_empty(b: GeoBox) -> Bool {
 /// re-encodes to the box's hash; an empty box contains nothing.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn geohash_box_contains(b: GeoBox, lat_ud: Int, lon_ud: Int) -> Bool {
+pub fn geohash_box_contains(b: GeoBox, lat_ud: Int, lon_ud: Int) -> Bool
+  ensures: lat_ud < b.min_lat_ud || lat_ud > b.max_lat_ud => !result;
+  ensures: lon_ud < b.min_lon_ud || lon_ud > b.max_lon_ud => !result;
+  ensures: result => lat_ud >= b.min_lat_ud && lat_ud <= b.max_lat_ud && lon_ud >= b.min_lon_ud && lon_ud <= b.max_lon_ud;
+{
   if lat_ud < b.min_lat_ud || lat_ud > b.max_lat_ud {
     return false;
   }

@@ -9,7 +9,7 @@
 
 package xiom_geohash {
   name: "xiom.geohash";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Integer-only geohash codec over integer-microdegree coordinates";
   categories: ["science"];
   keywords: ["geohash", "geo", "encoding", "location"];

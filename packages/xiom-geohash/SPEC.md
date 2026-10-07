@@ -1,6 +1,6 @@
 # xiom.geohash -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.geohash` (`src/geohash.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -287,3 +287,46 @@ The module follows the v0.61.3 idioms proven by the sibling ports:
   The warnings are benign (struct values are copied) and the suite is green:
   `port.ps1` ends
   `port: PASS (passed=20 failed=0 program_exit=0 exit=0)`.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/geohash.xi` in the batch
+#20 hardening pass (compiler v0.64.0; no version bump): 20 clauses across the
+10 public entry points. Two consecutive
+`.\scripts\port.ps1 -Package xiom.geohash -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (6.5 s and 5.2 s). The 20-check conformance suite exercises every
+entry point on both the success and the rejection paths with the clauses
+active; none trapped.
+
+`xiom-verify --check` (Z3 on v0.64.0) result: **11 proven / 0 violated /
+10 unknown / 4 errors**. The 11 proven are the five definitional box
+accessors and the six pure-scalar emptiness/containment clauses. The 10
+unknown are skipped contract axioms (Result-sort equality, `||`
+disjunctions, Result payload sorts) plus body incompleteness and
+loop-invariant gaps. The 4 errors are emitter artifacts in body VCs
+(`unknown constant _err_str` / `_encode_raw` in the generated SMT), not
+violations of the code under test. No clause was machine-falsified.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `geohash_encode` | `ensures: precision < 1 \|\| precision > 12 => result is Err`; `ensures: (lat_ud < -90000000 \|\| lat_ud > 90000000 \|\| lon_ud < -180000000 \|\| lon_ud > 180000000) => result is Err`; `ensures: result is Ok => result.value.len() >= 1 && result.value.len() <= 12` | runtime-checked (emitter skips `\|\|`; Result-sort/payload unresolved) |
+| `geohash_decode` | `ensures: hash.len() == 0 => result is Err`; `ensures: hash.len() > 12 => result is Err`; `ensures: result is Ok => hash.len() >= 1 && hash.len() <= 12` | runtime-checked (Result-sort equality unresolved) |
+| `geohash_normalize` | `ensures: hash.len() == 0 => result is Err`; `ensures: hash.len() > 12 => result is Err`; `ensures: result is Ok => result.value.len() >= 1 && result.value.len() <= 12` | runtime-checked (Result-sort/payload equality unresolved) |
+| `geohash_box_precision` | `ensures: result == b.precision` | Z3-proven (1/1) |
+| `geohash_box_min_lat` | `ensures: result == b.min_lat_ud` | Z3-proven (1/1) |
+| `geohash_box_min_lon` | `ensures: result == b.min_lon_ud` | Z3-proven (1/1) |
+| `geohash_box_max_lat` | `ensures: result == b.max_lat_ud` | Z3-proven (1/1) |
+| `geohash_box_max_lon` | `ensures: result == b.max_lon_ud` | Z3-proven (1/1) |
+| `geohash_box_is_empty` | `ensures: b.min_lat_ud > b.max_lat_ud => result`; `ensures: b.min_lon_ud > b.max_lon_ud => result`; `ensures: !result => b.min_lat_ud <= b.max_lat_ud && b.min_lon_ud <= b.max_lon_ud` | Z3-proven (3/3) |
+| `geohash_box_contains` | `ensures: lat_ud < b.min_lat_ud \|\| lat_ud > b.max_lat_ud => !result`; `ensures: lon_ud < b.min_lon_ud \|\| lon_ud > b.max_lon_ud => !result`; `ensures: result => lat_ud >= b.min_lat_ud && lat_ud <= b.max_lat_ud && lon_ud >= b.min_lon_ud && lon_ud <= b.max_lon_ud` | Z3-proven (3/3) |
+
+The `geohash_decode` Ok payload is the `GeoBox` struct, so its clauses are
+tag/length only; no `result.value.<field>` read appears anywhere. The
+`geohash_encode`/`geohash_normalize` Ok payload clauses use literal bounds
+1/12 only, never `precision` or `hash.len()` (payload-vs-parameter is
+forbidden). The accessors claim only definitional equality, never bounds
+such as `b.precision` in `[1, 12]` (false for hand-built boxes). No clause
+uses `Str` equality, tuple-component access, struct-result payload reads, or
+a `&mut` parameter (the module has none); all four numeric bounds
+(-90000000, 90000000, -180000000, 180000000) are inlined literals.
