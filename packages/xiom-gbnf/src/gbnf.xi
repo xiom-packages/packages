@@ -635,7 +635,10 @@ fn _emit_node(g: &GbnfGrammar, n: Int) -> Str {
 /// reachability analysis is performed.
 /// Complexity: O(input length) for well-formed input; a duplicate-name check
 /// adds O(rules) per definition.
-pub fn gbnf_parse(text: Str) -> Result[GbnfGrammar, Str] {
+pub fn gbnf_parse(text: Str) -> Result[GbnfGrammar, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var pos = 0;
   var g = GbnfGrammar{
     names: Vec[Str].new();
@@ -701,7 +704,11 @@ pub fn gbnf_parse(text: Str) -> Result[GbnfGrammar, Str] {
 /// Returns: Ok(rule_count) for a valid grammar (0 for an empty one); Err(msg)
 /// with the same "gbnf: ..." messages as gbnf_parse.
 /// Complexity: same as gbnf_parse.
-pub fn gbnf_validate(text: Str) -> Result[Int, Str] {
+pub fn gbnf_validate(text: Str) -> Result[Int, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+  ensures: result is Ok => result.value >= 0;
+{
   let r = gbnf_parse(text);
   match r {
     Ok(g) => { return _ok_int(g.names.len()); },
@@ -717,7 +724,10 @@ pub fn gbnf_validate(text: Str) -> Result[Int, Str] {
 /// again yields the same canonical text (idempotent round-trip).
 /// Error case: none.
 /// Complexity: O(rules * expression size).
-pub fn gbnf_emit(g: &GbnfGrammar) -> Str {
+pub fn gbnf_emit(g: &GbnfGrammar) -> Str
+  ensures: g.names.len() == 0 => result.len() == 0;
+  ensures: result.len() >= g.names.len();
+{
   var out = "";
   var r = 0;
   while r < g.names.len() {
@@ -734,7 +744,10 @@ pub fn gbnf_emit(g: &GbnfGrammar) -> Str {
 /// Returns: the rule count; 0 for an empty grammar.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gbnf_rule_count(g: &GbnfGrammar) -> Int {
+pub fn gbnf_rule_count(g: &GbnfGrammar) -> Int
+  ensures: result == g.names.len();
+  ensures: result >= 0;
+{
   return g.names.len();
 }
 
@@ -743,7 +756,11 @@ pub fn gbnf_rule_count(g: &GbnfGrammar) -> Int {
 /// Returns: the rule name; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gbnf_rule_name(g: &GbnfGrammar, i: Int) -> Str {
+pub fn gbnf_rule_name(g: &GbnfGrammar, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= g.names.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < g.names.len();
+{
   if i < 0 || i >= g.names.len() {
     return "";
   }
@@ -756,7 +773,10 @@ pub fn gbnf_rule_name(g: &GbnfGrammar, i: Int) -> Str {
 /// Returns: the first rule name; "" for an empty grammar.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gbnf_root_name(g: &GbnfGrammar) -> Str {
+pub fn gbnf_root_name(g: &GbnfGrammar) -> Str
+  ensures: g.names.len() == 0 => result.len() == 0;
+  ensures: result.len() > 0 => g.names.len() > 0;
+{
   if g.names.len() == 0 {
     return "";
   }
@@ -769,7 +789,10 @@ pub fn gbnf_root_name(g: &GbnfGrammar) -> Str {
 /// Returns: true when defined.
 /// Error case: none.
 /// Complexity: O(rules).
-pub fn gbnf_has_rule(g: &GbnfGrammar, name: Str) -> Bool {
+pub fn gbnf_has_rule(g: &GbnfGrammar, name: Str) -> Bool
+  ensures: g.names.len() == 0 => !result;
+  ensures: result => g.names.len() > 0;
+{
   return _name_index(g, name) >= 0;
 }
 
@@ -779,7 +802,11 @@ pub fn gbnf_has_rule(g: &GbnfGrammar, name: Str) -> Bool {
 /// or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gbnf_node_count(g: &GbnfGrammar, i: Int) -> Int {
+pub fn gbnf_node_count(g: &GbnfGrammar, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= g.rule_starts.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < g.rule_starts.len();
+{
   if i < 0 || i >= g.rule_starts.len() {
     return -1;
   }
@@ -794,7 +821,11 @@ pub fn gbnf_node_count(g: &GbnfGrammar, i: Int) -> Int {
 /// the rule references no other rule.
 /// Error case: none.
 /// Complexity: O(nodes of rule i).
-pub fn gbnf_rule_refs(g: &GbnfGrammar, i: Int) -> Vec[Str] {
+pub fn gbnf_rule_refs(g: &GbnfGrammar, i: Int) -> Vec[Str]
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= g.rule_starts.len() => result.len() == 0;
+  ensures: result.len() <= g.node_kinds.len();
+{
   var out = Vec[Str].new();
   if i < 0 || i >= g.rule_starts.len() {
     return out;

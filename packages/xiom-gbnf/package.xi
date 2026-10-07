@@ -8,7 +8,7 @@
 
 package xiom_gbnf {
   name: "xiom.gbnf";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "GBNF (llama.cpp grammar) parser, validator and canonical emitter";
   categories: ["ai-ml"];
   keywords: ["gbnf", "grammar", "llm", "parser"];

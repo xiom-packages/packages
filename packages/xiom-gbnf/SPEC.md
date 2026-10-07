@@ -1,6 +1,6 @@
 # xiom.gbnf -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.gbnf` (`src/gbnf.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -301,3 +301,51 @@ XIOM v0.61.3 workarounds used (same shape as the other ported packages):
   spellings are normalized.
 - Errors carry byte offsets only, not line/column positions.
 - Duplicate detection and reference resolution are exact and case-sensitive.
+
+## Contracts (batch #33 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/gbnf.xi` in the batch #33
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 22 clauses across the 9 public entry points; all are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.gbnf -TimeoutSec 60` runs
+ended `port: PASS (passed=30 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.58 s and 5.25 s); the 30-check conformance suite exercises every
+entry point (t1-t30) and no clause trapped. No clause was dropped and none was
+probe-gated. No clause calls a function -- the private `_name_index` never
+appears -- and the empty-grammar `Ok` for `""` (decision 9) is pinned by the
+`gbnf_parse`/`gbnf_emit` clauses.
+
+`xiom-verify src/gbnf.xi --check` (Z3 bundled with v0.64.0) reported
+**0 proven / 0 violated / 26 unknown / 2 errors**; the 2 errors are the known
+SMT emitter bug (`unknown constant _err_int`, `unknown constant _name_index`),
+not clause failures, and the output states "not a proof failure of the code
+under test". Every clause's operands have sorts the emitter cannot resolve
+(struct-field lengths, `Result` tags), so all 22 clauses are **runtime-checked**
+and enforced by the v0.64.0 evaluator when the suite runs; no Z3 proof is
+claimed. The generated `xiom_verify_output.smt2` was deleted by literal path.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `gbnf_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime-checked (`Str` length + `Result` tag) |
+| `gbnf_validate` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0`; `ensures: result is Ok => result.value >= 0` | runtime-checked (`Str` length + `Result` tag; `Ok` payload read) |
+| `gbnf_emit` | `ensures: g.names.len() == 0 => result.len() == 0`; `ensures: result.len() >= g.names.len()` | runtime-checked (built `Str` length against a field length) |
+| `gbnf_rule_count` | `ensures: result == g.names.len()`; `ensures: result >= 0` | runtime-checked (field length) |
+| `gbnf_rule_name` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= g.names.len() => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < g.names.len()` | runtime-checked (built `Str` length; one-way sentinel) |
+| `gbnf_root_name` | `ensures: g.names.len() == 0 => result.len() == 0`; `ensures: result.len() > 0 => g.names.len() > 0` | runtime-checked (built `Str` length) |
+| `gbnf_has_rule` | `ensures: g.names.len() == 0 => !result`; `ensures: result => g.names.len() > 0` | runtime-checked (guard pair on a field length) |
+| `gbnf_node_count` | `ensures: i < 0 => result == -1`; `ensures: i >= g.rule_starts.len() => result == -1`; `ensures: result != -1 => i >= 0 && i < g.rule_starts.len()` | runtime-checked (`-1` sentinel trio) |
+| `gbnf_rule_refs` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= g.rule_starts.len() => result.len() == 0`; `ensures: result.len() <= g.node_kinds.len()` | runtime-checked (built `Vec` length against a field length) |
+
+Source-shape notes pinned by the clauses:
+
+- The sentinel families are one-way claims: `gbnf_rule_name` and
+  `gbnf_root_name` never claim that an in-range entry is non-empty (a
+  hand-built grammar may store `""`), and `gbnf_node_count` never claims a
+  non-sentinel node count is positive (hand-built roots may precede starts);
+  the third clause is the contrapositive "a non-sentinel result implies an
+  in-range index".
+- `gbnf_has_rule` claims only `!result` for an empty grammar and
+  `names.len() > 0` for a true result; it makes no claim about an empty-name
+  lookup against a non-empty grammar (a hand-built grammar may store an
+  empty rule name).
