@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T23:12:15Z",
+    "updated":  "2026-10-07T23:32:35Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -2550,7 +2550,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.fstab",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "fstab parser and canonical emitter for the documented six-field subset",
@@ -2560,7 +2560,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fstab/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fstab/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "fstab.xi",
                                               "package.xi"
@@ -3629,7 +3629,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ktx",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "KTX 1 texture-container header, key/value and mipmap-level codec (structural subset)",
@@ -3639,7 +3639,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ktx/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ktx/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ktx.xi",
                                               "package.xi"
@@ -6725,7 +6725,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.rtf",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM RTF subset codec: token stream parser, canonical emitter, plain-text extraction",
@@ -6735,7 +6735,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rtf/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rtf/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "rtf.xi",
                                               "package.xi"
@@ -8256,7 +8256,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.uboot",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "U-Boot legacy image header codec: parse, inspect and build the 64-byte ih_ header",
@@ -8266,7 +8266,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-uboot/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-uboot/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "uboot.xi",
                                               "package.xi"
@@ -8474,7 +8474,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.vdf",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Valve KeyValues (VDF) text parsing, lookup and canonical emitting",
@@ -8484,7 +8484,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vdf/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vdf/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "vdf.xi",
                                               "package.xi"
@@ -8952,7 +8952,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.zonefile",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "DNS zone-file (master file) codec subset: $ORIGIN/$TTL, relative names, flat records and a canonical emitter",
@@ -8962,7 +8962,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zonefile/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zonefile/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "zonefile.xi",
                                               "package.xi"
