@@ -10,7 +10,7 @@
 
 package xiom_mbox {
   name: "xiom.mbox";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "mbox mailbox codec: From-line separation, mboxrd quoting, byte-range bodies, canonical emit";
   categories: ["data"];
   keywords: ["mbox", "mail", "mailbox", "format"];

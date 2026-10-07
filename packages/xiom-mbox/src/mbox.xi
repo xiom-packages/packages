@@ -250,7 +250,10 @@ fn _span_ok(m: &Mailbox, i: Int) -> Bool {
 /// content. An unterminated final message is accepted (its body runs to the
 /// end of the pool). A bare CR is data, not a line terminator.
 /// Complexity: O(total input length).
-pub fn mbox_parse(text: Str) -> Result[Mailbox, Str] {
+pub fn mbox_parse(text: Str) -> Result[Mailbox, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var m = Mailbox{
     pool: text;
     env_start: Vec[Int].new();
@@ -296,7 +299,10 @@ pub fn mbox_parse(text: Str) -> Result[Mailbox, Str] {
 /// whose four vectors are not aligned, the smallest vector length.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn mbox_count(m: &Mailbox) -> Int {
+pub fn mbox_count(m: &Mailbox) -> Int
+  ensures: result >= 0;
+  ensures: result <= m.env_start.len();
+{
   return _msg_count(m);
 }
 
@@ -305,7 +311,10 @@ pub fn mbox_count(m: &Mailbox) -> Int {
 /// index.
 /// Error case: none ("" for an invalid index or a misaligned mailbox).
 /// Complexity: O(1) plus the copy of the slice.
-pub fn mbox_envelope_line(m: &Mailbox, i: Int) -> Str {
+pub fn mbox_envelope_line(m: &Mailbox, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= m.env_start.len() => result.len() == 0;
+{
   if !_span_ok(m, i) {
     return "";
   }
@@ -320,7 +329,10 @@ pub fn mbox_envelope_line(m: &Mailbox, i: Int) -> Str {
 /// invalid. No address validation is performed.
 /// Error case: none.
 /// Complexity: O(envelope line length).
-pub fn mbox_envelope_address(m: &Mailbox, i: Int) -> Str {
+pub fn mbox_envelope_address(m: &Mailbox, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= m.env_start.len() => result.len() == 0;
+{
   if !_span_ok(m, i) {
     return "";
   }
@@ -343,7 +355,10 @@ pub fn mbox_envelope_address(m: &Mailbox, i: Int) -> Str {
 /// there is no date text or the index is invalid. Kept raw: no date parsing.
 /// Error case: none.
 /// Complexity: O(envelope line length).
-pub fn mbox_envelope_date(m: &Mailbox, i: Int) -> Str {
+pub fn mbox_envelope_date(m: &Mailbox, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= m.env_start.len() => result.len() == 0;
+{
   if !_span_ok(m, i) {
     return "";
   }
@@ -371,7 +386,12 @@ pub fn mbox_envelope_date(m: &Mailbox, i: Int) -> Str {
 /// envelope line's terminator); -1 for an invalid index.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn mbox_body_offset(m: &Mailbox, i: Int) -> Int {
+pub fn mbox_body_offset(m: &Mailbox, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 0;
+  ensures: i >= m.body_start.len() => result == -1;
+{
   if !_span_ok(m, i) {
     return -1;
   }
@@ -385,7 +405,11 @@ pub fn mbox_body_offset(m: &Mailbox, i: Int) -> Int {
 /// preceding body. 0 for an invalid index.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn mbox_body_len(m: &Mailbox, i: Int) -> Int {
+pub fn mbox_body_len(m: &Mailbox, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: result >= 0;
+  ensures: i >= m.body_start.len() => result == 0;
+{
   if !_span_ok(m, i) {
     return 0;
   }
@@ -398,7 +422,10 @@ pub fn mbox_body_len(m: &Mailbox, i: Int) -> Int {
 /// included; "" for an invalid index.
 /// Error case: none.
 /// Complexity: O(1) plus the copy of the slice.
-pub fn mbox_body_raw(m: &Mailbox, i: Int) -> Str {
+pub fn mbox_body_raw(m: &Mailbox, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= m.body_start.len() => result.len() == 0;
+{
   if !_span_ok(m, i) {
     return "";
   }
@@ -414,7 +441,11 @@ pub fn mbox_body_raw(m: &Mailbox, i: Int) -> Str {
 /// bytes are preserved.
 /// Error case: none.
 /// Complexity: O(body length).
-pub fn mbox_body_into(m: &Mailbox, i: Int, out: &mut Vec[UInt8]) -> Int {
+pub fn mbox_body_into(m: &Mailbox, i: Int, out: &mut Vec[UInt8]) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: result >= 0;
+  ensures: out.len() == out.len()@pre + result;
+{
   if !_span_ok(m, i) {
     return 0;
   }
@@ -441,7 +472,12 @@ pub fn mbox_body_into(m: &Mailbox, i: Int, out: &mut Vec[UInt8]) -> Int {
 /// offset).
 /// Error case: none (-1 for an invalid index).
 /// Complexity: O(body length).
-pub fn mbox_header_separator(m: &Mailbox, i: Int) -> Int {
+pub fn mbox_header_separator(m: &Mailbox, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: result >= -1;
+  ensures: result != -1 => result >= 0;
+  ensures: i >= m.body_start.len() => result == -1;
+{
   if !_span_ok(m, i) {
     return -1;
   }
@@ -466,7 +502,11 @@ pub fn mbox_header_separator(m: &Mailbox, i: Int) -> Int {
 /// the message body (separator is the last line: headers, no body).
 /// Error case: none.
 /// Complexity: O(body length).
-pub fn mbox_header_body_start(m: &Mailbox, i: Int) -> Int {
+pub fn mbox_header_body_start(m: &Mailbox, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: result >= -1;
+  ensures: mbox_header_separator(m, i) < 0 => result == -1;
+{
   let sep = mbox_header_separator(m, i);
   if sep < 0 {
     return -1;
@@ -497,7 +537,9 @@ pub fn mbox_header_body_start(m: &Mailbox, i: Int) -> Int {
 /// Returns: the serialized mailbox.
 /// Error case: none.
 /// Complexity: O(total body length).
-pub fn mbox_emit(m: &Mailbox, eol: Str) -> Str {
+pub fn mbox_emit(m: &Mailbox, eol: Str) -> Str
+  ensures: mbox_count(m) == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let pool: Str = m.pool;
   let count = _msg_count(m);

@@ -251,3 +251,40 @@ Guards for XIOM v0.61.3 honored by this package:
   pool, so callers that need decoded offsets must materialize.
 - The emitter rewrites all terminators to `eol`, which normalizes mixed
   endings (documented canonicalization).
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/mbox.xi` (compiler
+v0.64.0; no version bump): 30 clauses across all 12 public entry points.
+Two consecutive
+`.\scripts\port.ps1 -Package xiom.mbox -TimeoutSec 60` runs ended
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` with the clauses
+active and no clause trapped, so none was dropped. Classes follow the
+batch #15 clause plan: **Z3-provable (pure scalar)** marks the
+guard/sentinel/bounds clauses that are pure-scalar Z3 candidates;
+**runtime-checked** marks clauses whose truth depends on a helper call, a
+`Vec` length, or a built `Str` and is enforced by the v0.64.0 runtime
+evaluator. No clause reads a `Result` payload, uses `==` on a `Str` value
+(BUG 17), or calls back into the function under contract;
+`mbox_header_body_start`'s clause calls `mbox_header_separator`, which is
+non-cyclic (the separator never calls `mbox_header_body_start`).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `mbox_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime-checked (guard pair) |
+| `mbox_count` | `ensures: result >= 0`; `ensures: result <= m.env_start.len()` | Z3-provable (`>= 0`); runtime-checked (vector-length bound) |
+| `mbox_envelope_line` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= m.env_start.len() => result.len() == 0` | runtime-checked (empty-result sentinels) |
+| `mbox_envelope_address` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= m.env_start.len() => result.len() == 0` | runtime-checked (empty-result sentinels) |
+| `mbox_envelope_date` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= m.env_start.len() => result.len() == 0` | runtime-checked (empty-result sentinels) |
+| `mbox_body_offset` | `ensures: i < 0 => result == -1`; `ensures: result >= -1`; `ensures: result != -1 => result >= 0`; `ensures: i >= m.body_start.len() => result == -1` | Z3-provable (sentinel/bounds); runtime-checked (index guard) |
+| `mbox_body_len` | `ensures: i < 0 => result == 0`; `ensures: result >= 0`; `ensures: i >= m.body_start.len() => result == 0` | Z3-provable (sentinel/bound); runtime-checked (index guard) |
+| `mbox_body_raw` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= m.body_start.len() => result.len() == 0` | runtime-checked (empty-result sentinels) |
+| `mbox_body_into` | `ensures: i < 0 => result == 0`; `ensures: result >= 0`; `ensures: out.len() == out.len()@pre + result` | Z3-provable (sentinel/bound); runtime-checked (`@pre` buffer-growth invariant) |
+| `mbox_header_separator` | `ensures: i < 0 => result == -1`; `ensures: result >= -1`; `ensures: result != -1 => result >= 0`; `ensures: i >= m.body_start.len() => result == -1` | Z3-provable (sentinel/bounds); runtime-checked (index guard) |
+| `mbox_header_body_start` | `ensures: i < 0 => result == -1`; `ensures: result >= -1`; `ensures: mbox_header_separator(m, i) < 0 => result == -1` | Z3-provable (sentinel/bound); runtime-checked (non-cyclic separator linkage) |
+| `mbox_emit` | `ensures: mbox_count(m) == 0 => result.len() == 0` | runtime-checked (empty-mailbox identity) |
+
+Not asserted: `Result`-payload and struct-field clauses (forbidden shapes),
+and the byte-level round-trip identities (`mbox_parse`/`mbox_emit`), which
+stay pinned by conformance tests 5, 6 and 17 since `==` on `Str` is BUG 17
+and would have to route through `xiom.string.compare.str_compare`.
