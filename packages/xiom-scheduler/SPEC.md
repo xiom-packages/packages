@@ -1,6 +1,6 @@
 # xiom.scheduler -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.scheduler` (`src/scheduler.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -288,3 +288,55 @@ No unsafe code and no FFI. The implementation follows the `xiom.csv` /
   hand-built `CronSchedule` that violates the sorted/full-range invariant is
   outside the contract.
 - Errors carry no position information.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/scheduler.xi` in the
+batch #23 hardening pass (compiler v0.64.0): 14 clauses across all five public
+entry points (2/3/3/3/3). Two consecutive
+`.\scripts\port.ps1 -Package xiom.scheduler -TimeoutSec 60` runs ended
+`port: PASS (passed=28 failed=0 program_exit=0 exit=0)` (15.3 s and 14.3 s)
+with the clauses active and no clause trapped, so none was dropped.
+
+Class vocabulary follows the batch #23 clause pre-plan: **Z3-provable** =
+pure scalar guard/form family (a Z3 candidate); **runtime-checked** = the
+clause's truth depends on a built `Str`/`Vec` result or on a called function
+and is enforced by the v0.64.0 runtime evaluator.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `cron_parse` | `ensures: expr.len() == 0 => result is Err` | Z3-provable (scalar guard) |
+| `cron_parse` | `ensures: result is Ok => expr.len() >= 9` | runtime-checked (minimal five-field length) |
+| `cron_describe` | `ensures: s.minutes.len() == 0 && s.hours.len() == 0 && s.days.len() == 0 && s.months.len() == 0 && s.weekdays.len() == 0 => result.len() == 4` | runtime-checked (separator count) |
+| `cron_describe` | `ensures: result.len() >= 4` | runtime-checked (separator bound) |
+| `cron_describe` | `ensures: s.minutes.len() == 60 && s.hours.len() == 24 && s.days.len() == 31 && s.months.len() == 12 && s.weekdays.len() == 7 => result.len() == 9` | runtime-checked (`_field_text` full-range keying) |
+| `cron_matches` | `ensures: s.minutes.len() == 0 => !result` | runtime-checked (empty-field guard) |
+| `cron_matches` | `ensures: s.hours.len() == 0 => !result` | runtime-checked (empty-field guard) |
+| `cron_matches` | `ensures: result => s.minutes.len() > 0 && s.hours.len() > 0 && s.months.len() > 0` | runtime-checked (membership guard) |
+| `cron_next` | `ensures: result is Ok => result.value > from_secs` | runtime-checked (Ok returned only from `t > from_secs`) |
+| `cron_next` | `ensures: result is Ok => result.value % 60 == 0` | runtime-checked (whole-minute construction) |
+| `cron_next` | `ensures: s.minutes.len() == 0 => result is Err` | runtime-checked (empty-field guard) |
+| `cron_parse_next` | `ensures: expr.len() == 0 => result is Err` | Z3-provable (scalar guard) |
+| `cron_parse_next` | `ensures: result is Ok => expr.len() >= 9` | runtime-checked (parse delegation) |
+| `cron_parse_next` | `ensures: result is Ok => result.value > from_secs` | runtime-checked (next delegation) |
+
+Rationale:
+
+- `cron_parse` / `cron_parse_next`: empty input splits to zero fields, so the
+  five-field check fails; a successful parse needs five non-empty tokens with
+  four separators, hence at least 9 characters.
+- `cron_describe`: `_field_text` returns `"*"` (1 character) exactly when
+  `v.len() == hi - lo + 1`, otherwise the comma-joined values (0 characters
+  for an empty vector); five fields joined by four spaces give the all-empty
+  total of 4, the all-full total of 9 and a lower bound of 4 everywhere.
+- `cron_matches` / `cron_next`: membership in a vector of length 0 is
+  impossible, so those fields can never satisfy a match; a `true` match
+  requires the minute, hour and month lookups to have succeeded.
+- `cron_next`: `Ok(t)` is returned only inside the `t > from_secs` test, and
+  `t = d * 86400 + hour * 3600 + minute * 60` is exactly divisible by 60 for
+  every term, so the whole-minute invariant holds for negative day numbers
+  too.
+- No exact next-timestamp clause: the next-match instant is not expressible
+  as a formula of the parameters (membership facts need the private
+  `_has_int`, and the scan result depends on civil-date math), per the
+  batch #23 plan.

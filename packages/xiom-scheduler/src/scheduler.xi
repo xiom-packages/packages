@@ -331,7 +331,10 @@ fn _day_matches(s: &CronSchedule, dom: Int, weekday: Int) -> Bool {
 /// field count, a malformed list, range, step or value, or an out-of-range
 /// value.
 /// Complexity: O(len(expr) + 60) (canonicalization scans the allowed range).
-pub fn cron_parse(expr: Str) -> Result[CronSchedule, Str] {
+pub fn cron_parse(expr: Str) -> Result[CronSchedule, Str]
+  ensures: expr.len() == 0 => result is Err;
+  ensures: result is Ok => expr.len() >= 9;
+{
   let fields = _split_fields(expr);
   if fields.len() != 5 {
     return _err_sched("cron: expected 5 fields, got " + convert.int_to_string(fields.len()));
@@ -387,7 +390,11 @@ fn _field_text(v: &Vec[Int], lo: Int, hi: Int) -> Str {
 /// Returns: the canonical expression; cron_parse round-trips it to an
 /// equivalent schedule.
 /// Complexity: O(60).
-pub fn cron_describe(s: &CronSchedule) -> Str {
+pub fn cron_describe(s: &CronSchedule) -> Str
+  ensures: s.minutes.len() == 0 && s.hours.len() == 0 && s.days.len() == 0 && s.months.len() == 0 && s.weekdays.len() == 0 => result.len() == 4;
+  ensures: result.len() >= 4;
+  ensures: s.minutes.len() == 60 && s.hours.len() == 24 && s.days.len() == 31 && s.months.len() == 12 && s.weekdays.len() == 7 => result.len() == 9;
+{
   return _field_text(&s.minutes, 0, 59) + " " + _field_text(&s.hours, 0, 23) + " " + _field_text(&s.days, 1, 31) + " " + _field_text(&s.months, 1, 12) + " " + _field_text(&s.weekdays, 0, 6);
 }
 
@@ -399,7 +406,11 @@ pub fn cron_describe(s: &CronSchedule) -> Str {
 /// Params: s - the schedule; epoch_secs - Unix seconds (UTC; may be negative).
 /// Returns: true on a match.
 /// Complexity: O(31 + |fields|).
-pub fn cron_matches(s: &CronSchedule, epoch_secs: Int) -> Bool {
+pub fn cron_matches(s: &CronSchedule, epoch_secs: Int) -> Bool
+  ensures: s.minutes.len() == 0 => !result;
+  ensures: s.hours.len() == 0 => !result;
+  ensures: result => s.minutes.len() > 0 && s.hours.len() > 0 && s.months.len() > 0;
+{
   let minute_index = _floor_div(epoch_secs, _SECS_PER_MIN);
   let days = _floor_div(minute_index, _MINS_PER_DAY);
   let minute_of_day = minute_index - days * _MINS_PER_DAY;
@@ -424,7 +435,11 @@ pub fn cron_matches(s: &CronSchedule, epoch_secs: Int) -> Bool {
 /// Returns: Ok(t) with t > from_secs and t mod 60 == 0; Err("cron: no match
 /// within 4 years") when no day matches in the scan window (e.g. "0 0 30 2 *").
 /// Complexity: O(1461 * |hours| * |minutes|).
-pub fn cron_next(s: &CronSchedule, from_secs: Int) -> Result[Int, Str] {
+pub fn cron_next(s: &CronSchedule, from_secs: Int) -> Result[Int, Str]
+  ensures: result is Ok => result.value > from_secs;
+  ensures: result is Ok => result.value % 60 == 0;
+  ensures: s.minutes.len() == 0 => result is Err;
+{
   let start_day = _floor_div(_floor_div(from_secs, _SECS_PER_MIN) + 1, _MINS_PER_DAY);
   let last_day = start_day + _DAYS_SCAN_LIMIT;
   var d = start_day;
@@ -461,7 +476,11 @@ pub fn cron_next(s: &CronSchedule, from_secs: Int) -> Result[Int, Str] {
 /// Params: expr - the cron expression; from_secs - Unix seconds (UTC).
 /// Returns: the cron_next result; parse errors are returned unchanged.
 /// Complexity: as cron_parse plus cron_next.
-pub fn cron_parse_next(expr: Str, from_secs: Int) -> Result[Int, Str] {
+pub fn cron_parse_next(expr: Str, from_secs: Int) -> Result[Int, Str]
+  ensures: expr.len() == 0 => result is Err;
+  ensures: result is Ok => expr.len() >= 9;
+  ensures: result is Ok => result.value > from_secs;
+{
   let parsed = cron_parse(expr);
   match parsed {
     Ok(s) => { return cron_next(&s, from_secs); },
