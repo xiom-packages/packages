@@ -420,7 +420,10 @@ fn _fmt_time(ms: Int, sep: Str) -> Str {
 /// "srt: bad timestamp shape", "srt: timestamp out of range",
 /// "srt: end before start", "srt: cue without payload"; see SPEC.md.
 /// Complexity: O(input length).
-pub fn srt_parse(text: Str) -> Result[Srt, Str] {
+pub fn srt_parse(text: Str) -> Result[Srt, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() > 0;
+{
   let lines = _split_lines(text);
   return _srt_parse_lines(&lines);
 }
@@ -433,7 +436,11 @@ pub fn srt_parse(text: Str) -> Result[Srt, Str] {
 /// terminated by LF. An empty track (no cues) yields "". Because a parsed
 /// cue always has at least one payload line, parsed tracks round-trip.
 /// Complexity: O(total payload lines).
-pub fn srt_format(s: &Srt) -> Str {
+pub fn srt_format(s: &Srt) -> Str
+  ensures: s.starts.len() == 0 => result.len() == 0;
+  ensures: s.payload_starts.len() == 0 => result.len() == 0;
+  ensures: s.payload_ends.len() == 0 => result.len() == 0;
+{
   var n = s.starts.len();
   if s.ends.len() < n { n = s.ends.len(); }
   if s.settings.len() < n { n = s.settings.len(); }
@@ -487,7 +494,11 @@ pub fn srt_format(s: &Srt) -> Str {
 /// Errors: "srt: bad timestamp shape" for a malformed shape (including a
 /// wrong number of millisecond digits), "srt: timestamp out of range" when
 /// minutes or seconds exceed 59.
-pub fn srt_parse_timestamp(t: Str) -> Result[Int, Str] {
+pub fn srt_parse_timestamp(t: Str) -> Result[Int, Str]
+  ensures: t.len() != 12 => result is Err;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 359999999;
+{
   let ms = _timestamp_ms(t);
   if ms == -1 { return _err_int("srt: bad timestamp shape"); }
   if ms == -2 { return _err_int("srt: timestamp out of range"); }
@@ -499,7 +510,10 @@ pub fn srt_parse_timestamp(t: Str) -> Result[Int, Str] {
 /// with at least two digits, and with more than two digits above 99 hours
 /// (such values are accepted here but rejected on parse, so they do not
 /// round-trip; see SPEC.md).
-pub fn srt_format_timestamp(ms: Int) -> Str {
+pub fn srt_format_timestamp(ms: Int) -> Str
+  ensures: ms < 0 => result.len() == 12;
+  ensures: result.len() >= 12;
+{
   return _fmt_time(ms, ",");
 }
 
@@ -526,13 +540,21 @@ fn _cue_count(s: &Srt) -> Int {
 }
 
 /// Number of cues in the track.
-pub fn srt_cue_count(s: &Srt) -> Int {
+pub fn srt_cue_count(s: &Srt) -> Int
+  ensures: result <= s.starts.len();
+  ensures: result <= s.ends.len();
+  ensures: result >= 0;
+{
   return _cue_count(s);
 }
 
 /// Index of cue `i` as read from the document (the emitter renumbers cues
 /// from 1); -1 when `i` is negative or out of range.
-pub fn srt_cue_index(s: &Srt, i: Int) -> Int {
+pub fn srt_cue_index(s: &Srt, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.indexes.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.indexes.len();
+{
   if i < 0 { return -1; }
   if i >= s.indexes.len() { return -1; }
   let x: Int = s.indexes[i];
@@ -541,7 +563,11 @@ pub fn srt_cue_index(s: &Srt, i: Int) -> Int {
 
 /// Start time of cue `i` in milliseconds; -1 when `i` is negative or out of
 /// range.
-pub fn srt_cue_start_ms(s: &Srt, i: Int) -> Int {
+pub fn srt_cue_start_ms(s: &Srt, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.starts.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.starts.len();
+{
   if i < 0 { return -1; }
   if i >= s.starts.len() { return -1; }
   let x: Int = s.starts[i];
@@ -550,7 +576,11 @@ pub fn srt_cue_start_ms(s: &Srt, i: Int) -> Int {
 
 /// End time of cue `i` in milliseconds; -1 when `i` is negative or out of
 /// range.
-pub fn srt_cue_end_ms(s: &Srt, i: Int) -> Int {
+pub fn srt_cue_end_ms(s: &Srt, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= s.ends.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < s.ends.len();
+{
   if i < 0 { return -1; }
   if i >= s.ends.len() { return -1; }
   let x: Int = s.ends[i];
@@ -559,7 +589,11 @@ pub fn srt_cue_end_ms(s: &Srt, i: Int) -> Int {
 
 /// Trailing settings text of cue `i`, verbatim ("" when the cue has none, or
 /// when `i` is negative or out of range).
-pub fn srt_cue_settings(s: &Srt, i: Int) -> Str {
+pub fn srt_cue_settings(s: &Srt, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= s.settings.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < s.settings.len();
+{
   if i < 0 { return ""; }
   if i >= s.settings.len() { return ""; }
   let x: Str = s.settings[i];
@@ -568,7 +602,11 @@ pub fn srt_cue_settings(s: &Srt, i: Int) -> Str {
 
 /// Number of payload lines of cue `i`; 0 when `i` is negative or out of
 /// range. Parsed cues always have at least one payload line.
-pub fn srt_cue_line_count(s: &Srt, i: Int) -> Int {
+pub fn srt_cue_line_count(s: &Srt, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= s.payload_starts.len() => result == 0;
+  ensures: i >= s.payload_ends.len() => result == 0;
+{
   if i < 0 { return 0; }
   if i >= s.payload_starts.len() { return 0; }
   if i >= s.payload_ends.len() { return 0; }
@@ -584,7 +622,11 @@ pub fn srt_cue_line_count(s: &Srt, i: Int) -> Int {
 
 /// Payload line `j` of cue `i`, verbatim; "" when `i` or `j` is negative or
 /// out of range.
-pub fn srt_cue_line(s: &Srt, i: Int, j: Int) -> Str {
+pub fn srt_cue_line(s: &Srt, i: Int, j: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: j < 0 => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < s.payload_starts.len() && i < s.payload_ends.len() && j >= 0;
+{
   if i < 0 { return ""; }
   if i >= s.payload_starts.len() { return ""; }
   if i >= s.payload_ends.len() { return ""; }
@@ -604,7 +646,11 @@ pub fn srt_cue_line(s: &Srt, i: Int, j: Int) -> Str {
 
 /// Payload of cue `i` as one Str, its lines joined with "\n"; "" when the cue
 /// has no lines or `i` is negative or out of range.
-pub fn srt_cue_text(s: &Srt, i: Int) -> Str {
+pub fn srt_cue_text(s: &Srt, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= s.payload_starts.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < s.payload_starts.len() && i < s.payload_ends.len();
+{
   if i < 0 { return ""; }
   if i >= s.payload_starts.len() { return ""; }
   if i >= s.payload_ends.len() { return ""; }

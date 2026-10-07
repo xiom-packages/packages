@@ -1,6 +1,6 @@
 # xiom.srt -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.srt` (`src/srt.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -320,3 +320,56 @@ goes through a typed local.
 - No cue ordering, overlap or duration checks.
 - A leading UTF-8 BOM is not stripped.
 - Errors carry no line/column numbers.
+
+## Contracts (batch #29 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/srt.xi` (compiler v0.64.0;
+no version bump): 34 clauses over the 12 public entry points (2/3/3/2, then
+3/3/3/3/3/3/3/3 in source order). Two consecutive
+`.\scripts\port.ps1 -Package xiom.srt -TimeoutSec 60` runs ended
+`port: PASS (passed=21 failed=0 program_exit=0 exit=0)` (5.78 s and 5.67 s
+wall) with the clauses active and no clause trapped, so none was dropped.
+
+All 34 clauses are **runtime-checked only**. `xiom-verify src\srt.xi --check`
+(v0.64.0, Z3 on PATH) reported **0 proven / 1 violated / 28 unknown /
+5 errors**; the lone `VIOLATED` is not a proof failure of the code: z3
+rejected the generated SMT because the emitter left local helpers unresolved
+(`unknown constant _split_lines`, `_timestamp_ms`, `_ok_int`, `_fmt_time`,
+`_cue_count`), and the tool itself reports "z3 rejected the generated SMT
+(emitter bug) -- this is not a proof failure of the code under test". The
+emitter also skips field-length and `Str`-length contracts ("equality with
+unresolved operand sort", "operator Le/Ge on non-numeric operands"), so no
+clause is claimed Z3-provable.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `srt_parse` | `text.len() == 0 => result is Err`; `result is Ok => text.len() > 0` | runtime-checked (`Str` param length guard; result tag) |
+| `srt_format` | `s.starts.len() == 0 => result.len() == 0`; `s.payload_starts.len() == 0 => result.len() == 0`; `s.payload_ends.len() == 0 => result.len() == 0` | runtime-checked (struct-field lengths; built `Str` length) |
+| `srt_parse_timestamp` | `t.len() != 12 => result is Err`; `result is Ok => result.value >= 0`; `result is Ok => result.value <= 359999999` | runtime-checked (`Str` param length guard; `Ok` payload bounds) |
+| `srt_format_timestamp` | `ms < 0 => result.len() == 12`; `result.len() >= 12` | runtime-checked (built `Str` length) |
+| `srt_cue_count` | `result <= s.starts.len()`; `result <= s.ends.len()`; `result >= 0` | runtime-checked (struct-field lengths) |
+| `srt_cue_index` | `i < 0 => result == -1`; `i >= s.indexes.len() => result == -1`; `result != -1 => i >= 0 && i < s.indexes.len()` | runtime-checked (pure scalar guard + struct-field length) |
+| `srt_cue_start_ms` | `i < 0 => result == -1`; `i >= s.starts.len() => result == -1`; `result != -1 => i >= 0 && i < s.starts.len()` | runtime-checked (pure scalar guard + struct-field length) |
+| `srt_cue_end_ms` | `i < 0 => result == -1`; `i >= s.ends.len() => result == -1`; `result != -1 => i >= 0 && i < s.ends.len()` | runtime-checked (pure scalar guard + struct-field length) |
+| `srt_cue_settings` | `i < 0 => result.len() == 0`; `i >= s.settings.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < s.settings.len()` | runtime-checked (built `Str` length; struct-field length) |
+| `srt_cue_line_count` | `i < 0 => result == 0`; `i >= s.payload_starts.len() => result == 0`; `i >= s.payload_ends.len() => result == 0` | runtime-checked (struct-field lengths) |
+| `srt_cue_line` | `i < 0 => result.len() == 0`; `j < 0 => result.len() == 0`; `result.len() > 0 => i >= 0 && i < s.payload_starts.len() && i < s.payload_ends.len() && j >= 0` | runtime-checked (built `Str` length; struct-field lengths) |
+| `srt_cue_text` | `i < 0 => result.len() == 0`; `i >= s.payload_starts.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < s.payload_starts.len() && i < s.payload_ends.len()` | runtime-checked (built `Str` length; struct-field lengths) |
+
+Source-shape notes pinned by the clauses:
+
+- The accepted timestamp length band is exactly `12` bytes
+  (`HH:MM:SS[,.]mmm`), so any other length is `Err`, and every `Ok` timestamp
+  value lies in `0..359999999` (`99:59:59,999` is the maximum).
+- `srt_format_timestamp` writes a zero-padded `HH:MM:SS,mmm`; the clamped
+  `ms < 0` path is exactly 12 bytes (`00:00:00,000`) and every result is
+  `>= 12` bytes (hours at or above 100 extend the length further).
+- `srt_cue_count` is a minimum over the six per-cue vectors, so the clauses
+  are upper bounds only (`result <= starts.len()`, `result <= ends.len()`),
+  never a per-cue minimum link.
+- No parser payload is read: `srt_parse` clauses read only the input length
+  and the result tag; `srt_format` reads only entry vector lengths and
+  carries no per-cue minimum claim.
+- No local shadows a clause-read parameter (shadowing audit of the batch);
+  no clause calls another function (the batch plan lists no safe srt
+  cross-calls, so all guards are against the function's own inputs).
