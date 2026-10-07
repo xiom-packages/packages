@@ -1,6 +1,6 @@
 # xiom.chemistry -- specification
 
-Version: 0.1.0 (incubating). Pure XIOM, no FFI. All masses are integers in
+Version: 0.1.2 (stable; published on the XIOM registry). Pure XIOM, no FFI. All masses are integers in
 whole milligrams per mole (mg/mol).
 
 ## 1. Scope
@@ -210,3 +210,36 @@ returns the number of failing checks (0 = green). `port.ps1` must end
 - Mass fractions are truncated integers, not exact rationals; they may not sum
   to 1000.
 - No reaction balancing, stoichiometric matrices or yield calculations.
+
+## Contracts (batch #21 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/chemistry.xi` in the batch
+#21 hardening pass (compiler v0.64.0; no version bump): 12 clauses across the
+5 public entry points. Three consecutive
+`.\scripts\port.ps1 -Package xiom.chemistry -TimeoutSec 60` runs ended
+`port: PASS (passed=25 failed=0 program_exit=0 exit=0)` with the clauses
+active (the two timed runs: 5.75 s and 5.70 s). The 25-check conformance suite
+exercises all 5 entry points with the clauses active; none trapped.
+
+All clauses are `ensures:`; no `requires:` was added, so the accepted-input
+domain is unchanged. Every clause observes `Str`/`Vec` lengths, an `Option`
+tag/payload scalar, or a `Result` tag, so none is a pure-scalar arithmetic
+claim and all 12 are runtime-checked by the v0.64.0 evaluator (none
+Z3-provable).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `chem_symbols` | `ensures: result.len() == 27` | runtime-checked (Vec-result length) |
+| `chem_element_mass_mg` | `ensures: symbol.len() == 0 => result is None`; `ensures: result is Some => result.value >= 0`; `ensures: result is Some => result.value <= 207200` | runtime-checked (tag + `Option` payload scalars) |
+| `chem_molar_mass_mg_per_mol` | `ensures: formula.len() == 0 => result is Err`; `ensures: result is Ok => formula.len() > 0` | runtime-checked |
+| `chem_formula_elements` | `ensures: formula.len() == 0 => result is Err`; `ensures: result is Ok => result.value.len() >= 1 && result.value.len() <= 27`; `ensures: result is Ok => formula.len() > 0` | runtime-checked (Result tag + Vec payload length) |
+| `chem_mass_fraction_permille` | `ensures: formula.len() == 0 => result is Err`; `ensures: result is Ok => formula.len() > 0`; `ensures: result is Ok => symbol.len() > 0` | runtime-checked |
+
+Deliberately not claimed: value-range clauses on
+`chem_molar_mass_mg_per_mol` (`result.value >= 1008`) and on
+`chem_mass_fraction_permille` (`result.value >= 0 && result.value <= 1000`).
+`_digits_value` (chemistry.xi:148-156) has no digit cap, so huge count runs
+can wrap i64 and make totals/numerators negative or greater than the total;
+those bounds are not universally true and were skipped. No clause calls a
+function that wraps its callee, no tuple-component access, no
+`Result`/struct payload field read, and no `Str` equality is used.

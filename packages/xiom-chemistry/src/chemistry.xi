@@ -360,7 +360,9 @@ fn _count_atoms(f: Str, target: Str) -> Result[Int, Str] {
 /// order (e.g. "Ag", "Al", ..., "Zn"); empty input never occurs.
 /// Error case: none.
 /// Complexity: O(table size).
-pub fn chem_symbols() -> Vec[Str] {
+pub fn chem_symbols() -> Vec[Str]
+  ensures: result.len() == 27;
+{
   return _table_symbols();
 }
 
@@ -371,7 +373,11 @@ pub fn chem_symbols() -> Vec[Str] {
 /// Na=22990, Cl=35453, Fe=55845.
 /// Error case: none (failure is None).
 /// Complexity: O(table size).
-pub fn chem_element_mass_mg(symbol: Str) -> Option[Int] {
+pub fn chem_element_mass_mg(symbol: Str) -> Option[Int]
+  ensures: symbol.len() == 0 => result is None;
+  ensures: result is Some => result.value >= 0;
+  ensures: result is Some => result.value <= 207200;
+{
   return _element_mass(symbol);
 }
 
@@ -385,7 +391,10 @@ pub fn chem_element_mass_mg(symbol: Str) -> Option[Int] {
 /// an unmatched ')' or unclosed '(', an empty group, a zero count or any
 /// unexpected character (trailing junk).
 /// Complexity: O(len(formula)).
-pub fn chem_molar_mass_mg_per_mol(formula: Str) -> Result[Int, Str] {
+pub fn chem_molar_mass_mg_per_mol(formula: Str) -> Result[Int, Str]
+  ensures: formula.len() == 0 => result is Err;
+  ensures: result is Ok => formula.len() > 0;
+{
   return _chem_scan(formula);
 }
 
@@ -397,7 +406,11 @@ pub fn chem_molar_mass_mg_per_mol(formula: Str) -> Result[Int, Str] {
 /// Error case: Err("chemistry: ...") for the same malformed inputs as
 /// chem_molar_mass_mg_per_mol.
 /// Complexity: O(len(formula) * distinct symbols).
-pub fn chem_formula_elements(formula: Str) -> Result[Vec[Str], Str] {
+pub fn chem_formula_elements(formula: Str) -> Result[Vec[Str], Str]
+  ensures: formula.len() == 0 => result is Err;
+  ensures: result is Ok => result.value.len() >= 1 && result.value.len() <= 27;
+  ensures: result is Ok => formula.len() > 0;
+{
   return _chem_collect(formula);
 }
 
@@ -410,7 +423,11 @@ pub fn chem_formula_elements(formula: Str) -> Result[Vec[Str], Str] {
 /// catalog as chem_molar_mass_mg_per_mol) or when `symbol` does not occur in
 /// the formula ("chemistry: symbol not present: ...").
 /// Complexity: O(len(formula)) + O(table size).
-pub fn chem_mass_fraction_permille(formula: Str, symbol: Str) -> Result[Int, Str] {
+pub fn chem_mass_fraction_permille(formula: Str, symbol: Str) -> Result[Int, Str]
+  ensures: formula.len() == 0 => result is Err;
+  ensures: result is Ok => formula.len() > 0;
+  ensures: result is Ok => symbol.len() > 0;
+{
   let scan = _chem_scan(formula);
   var total = 0;
   match scan {
