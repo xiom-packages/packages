@@ -123,7 +123,11 @@ fn _lev_table(a: Str, b: Str) -> Vec[Int] {
 /// Returns: the minimum number of unit edits turning a into b, always >= 0.
 /// Error case: none.
 /// Complexity: O(n*m) time and memory (flat Vec[Int] table).
-pub fn spell_distance(a: Str, b: Str) -> Int {
+pub fn spell_distance(a: Str, b: Str) -> Int
+  ensures: a.len() == 0 => result == b.len();
+  ensures: b.len() == 0 => result == a.len();
+  ensures: result >= 0;
+{
   let n = a.len();
   let m = b.len();
   if n == 0 {
@@ -151,7 +155,12 @@ pub fn spell_distance(a: Str, b: Str) -> Int {
 /// Error case: none.
 /// Complexity: O(n*m) time and memory worst case; O(1) when the lengths
 /// differ by more than the budget, O(n) when a whole row exceeds it.
-pub fn spell_distance_bounded(a: Str, b: Str, max_dist: Int) -> Int {
+pub fn spell_distance_bounded(a: Str, b: Str, max_dist: Int) -> Int
+  ensures: result >= 0;
+  ensures: max_dist >= 0 => result <= max_dist + 1;
+  ensures: max_dist < 0 => result <= 1;
+  ensures: spell_distance(a, b) <= max_dist => result == spell_distance(a, b);
+{
   var limit = max_dist;
   if limit < 0 {
     limit = 0;
@@ -248,7 +257,10 @@ pub fn spell_distance_bounded(a: Str, b: Str, max_dist: Int) -> Int {
 /// Returns: true when some dictionary entry compares equal to `word`.
 /// Error case: none.
 /// Complexity: O(dict.len()) str_compare calls.
-pub fn spell_contains(dict: &Vec[Str], word: Str) -> Bool {
+pub fn spell_contains(dict: &Vec[Str], word: Str) -> Bool
+  ensures: dict.len() == 0 => !result;
+  ensures: result => dict.len() > 0;
+{
   var i = 0;
   while i < dict.len() {
     if str_compare(dict[i], word) == 0 {
@@ -264,7 +276,9 @@ pub fn spell_contains(dict: &Vec[Str], word: Str) -> Bool {
 /// Returns: true when the word is exactly in the dictionary.
 /// Error case: none.
 /// Complexity: O(dict.len()) str_compare calls.
-pub fn spell_is_correct(dict: &Vec[Str], word: Str) -> Bool {
+pub fn spell_is_correct(dict: &Vec[Str], word: Str) -> Bool
+  ensures: result == spell_contains(dict, word);
+{
   return spell_contains(dict, word);
 }
 
@@ -278,7 +292,11 @@ pub fn spell_is_correct(dict: &Vec[Str], word: Str) -> Bool {
 /// Error case: none.
 /// Complexity: O(dict.len() * |word| * avg(dict word length)) to score, plus
 /// k selection passes over the dictionary where k is the result length.
-pub fn spell_suggest(dict: &Vec[Str], word: Str, max_dist: Int, max_results: Int) -> Vec[Str] {
+pub fn spell_suggest(dict: &Vec[Str], word: Str, max_dist: Int, max_results: Int) -> Vec[Str]
+  ensures: max_results <= 0 => result.len() == 0;
+  ensures: max_dist < 0 => result.len() == 0;
+  ensures: result.len() <= dict.len();
+{
   var out = Vec[Str].new();
   if max_results <= 0 {
     return out;
@@ -358,7 +376,11 @@ pub fn spell_suggest(dict: &Vec[Str], word: Str, max_dist: Int, max_results: Int
 /// Returns: unknown words in first-seen order, each at most once.
 /// Error case: none.
 /// Complexity: O(text.len() + words * dict.len()) str_compare calls.
-pub fn spell_unknown_words(dict: &Vec[Str], text: Str) -> Vec[Str] {
+pub fn spell_unknown_words(dict: &Vec[Str], text: Str) -> Vec[Str]
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: result.len() > 0 => text.len() > 0;
+  ensures: result.len() <= text.len();
+{
   var out = Vec[Str].new();
   let len = text.len();
   var i = 0;

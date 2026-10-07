@@ -1,8 +1,8 @@
 # xiom.spell -- Specification
 
-Status: `incubating` (implemented, harness-green, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.spell` (`src/spell.xi`). Manifest: `package.xi` (name
-`xiom.spell`, version `0.1.0`). Depends on `xiom.std` (`xiom.string`,
+`xiom.spell`). Depends on `xiom.std` (`xiom.string`,
 `xiom.string.compare`).
 
 ## Scope
@@ -178,8 +178,9 @@ Run from the repository root:
 .\scripts\port.ps1 -Package xiom.spell
 ```
 
-Last verified: compiler 0.61.3, `port: PASS (passed=26 failed=0
-program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0, batch #20 contract-hardening pass,
+`port: PASS (passed=26 failed=0 program_exit=0 exit=0)` (two runs, 8.9 s
+and 7.1 s).
 
 ## Compiler / stdlib notes for v0.61.3
 
@@ -208,3 +209,54 @@ program_exit=0 exit=0)`.
   and split by the word scanner.
 - The dictionary is a linear `Vec[Str]` scan for every membership test; a
   trie/set index is out of scope for this package.
+
+## Contracts (hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/spell.xi` in the batch
+#20 hardening pass (compiler v0.64.0; no version bump): 16 clauses across
+the six public entry points (3/4/2/1/3/3). No `requires:` clauses
+(ensures-only, mirroring batch #19). Two consecutive
+`.\scripts\port.ps1 -Package xiom.spell -TimeoutSec 60` runs ended
+`port: PASS (passed=26 failed=0 program_exit=0 exit=0)` with the clauses
+active (8.9 s and 7.1 s); the 26-check conformance suite exercises every
+entry point, including the degenerate-argument and empty-input paths, and
+no clause trapped. `xiom --dump-contracts src/spell.xi` lists all 16
+clauses, so none was dropped.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `spell_distance` | `ensures: a.len() == 0 => result == b.len()`; `ensures: b.len() == 0 => result == a.len()` | runtime-checked (length-sensing) |
+| `spell_distance` | `ensures: result >= 0` | Z3-provable (pure scalar) |
+| `spell_distance_bounded` | `ensures: result >= 0`; `ensures: max_dist >= 0 => result <= max_dist + 1`; `ensures: max_dist < 0 => result <= 1` | Z3-provable (pure scalar) |
+| `spell_distance_bounded` | `ensures: spell_distance(a, b) <= max_dist => result == spell_distance(a, b)` | runtime-checked (probe-gated exactness, call-bearing) |
+| `spell_contains` | `ensures: dict.len() == 0 => !result`; `ensures: result => dict.len() > 0` | runtime-checked |
+| `spell_is_correct` | `ensures: result == spell_contains(dict, word)` | runtime-checked (definitional cross-call) |
+| `spell_suggest` | `ensures: max_results <= 0 => result.len() == 0`; `ensures: max_dist < 0 => result.len() == 0`; `ensures: result.len() <= dict.len()` | runtime-checked |
+| `spell_unknown_words` | `ensures: text.len() == 0 => result.len() == 0`; `ensures: result.len() > 0 => text.len() > 0`; `ensures: result.len() <= text.len()` | runtime-checked |
+
+The `spell_distance` clauses are the two empty-input short circuits (an
+empty `a` returns `b.len()`, an empty `b` returns `a.len()`) plus the
+non-negativity bound; the bounded entry point's three scalar clauses
+characterise the budget contract (`result >= 0`; within a non-negative
+budget the result never exceeds `max_dist + 1`; a negative budget clamps
+to 0 so the result is at most 1), and the fourth clause is the exactness
+characterisation: when `spell_distance(a, b)` is within `max_dist`, the
+bounded result equals the exact distance. The `spell_is_correct` clause is
+definitional (the body is `spell_contains`); `spell_contains` never calls
+`spell_is_correct`, so there is no postcondition call-cycle. The
+`spell_suggest` clauses are the two degenerate early returns
+(`max_results <= 0`, `max_dist < 0`) and the count bound (one push per
+marked dictionary index); `spell_unknown_words` reports a non-empty text
+only for non-empty input and never more words than text bytes. No clause
+uses `Str` equality (BUG 17), tuple-component access, `Result` payload
+fields, payload-vs-parameter lengths, module consts or element indexing;
+the only cross-function clause calls are the two above (neither callee
+wraps its caller).
+
+`xiom-verify src/spell.xi --check` (Z3 on v0.64.0) result: **1 proven /
+0 violated / 19 unknown / 1 errors**. The error is an emitter artifact
+(unknown constant `_lev_table (String String)` in the generated SMT); the
+emitter also skips axioms over `Str` sorts (`equality with unresolved
+operand sort`) and function bodies with calls or uninstrumented loops, so
+the Z3-provable label records the pure-scalar contract shape rather than
+a machine proof. No clause was machine-falsified.
