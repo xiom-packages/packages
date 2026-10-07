@@ -547,3 +547,4 @@ xiom.router
 # Ops scope extension requested before the eco tag; static/kv follow when built.
 xiom.session
 xiom.http.middleware
+xiom.static
