@@ -1,8 +1,6 @@
 # xiom.cab -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.cab`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/cab.xi` (`module xiom.cab`).
 Depends on `xiom.std` (`xiom.string`: `byte_at`); the tests additionally use
 `xiom.test`, `xiom.io`, `xiom.string.compare` and `xiom.encoding.hex`.
@@ -401,8 +399,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.cab
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=17 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0,
+`port: PASS (passed=17 failed=0 program_exit=0 exit=0)` (batch #35 contract
+hardening pass active, two runs at 6.91 s / 6.95 s).
 
 ## Known limitations
 
@@ -449,3 +448,74 @@ Last verified: compiler 0.61.3,
   values already masked to u8/u16 range; date/time decoding is arithmetic
   (`/`, `%`).
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #35 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses were added to `src/cab.xi` in the batch
+#35 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration). 66 clauses over the 35 contracted public entry
+points, all `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive `& .\scripts\port.ps1 -Package xiom.cab
+-TimeoutSec 60` runs ended
+`port: PASS (passed=17 failed=0 program_exit=0 exit=0)` with the clauses
+active (6.91 s and 6.95 s); no clause trapped and none was dropped.
+
+The sentinel trios are per-column: every guard indexes the same vector its
+accessor reads (`folder_starts`, `folder_data_counts`, `folder_compress`,
+`folder_offsets`, `names`, `file_sizes`, `file_offsets`, `file_folders`,
+`file_dates`, `file_times`, `file_attribs`), so a hand-built `CabArchive`
+with differently sized parallel columns stays safe. `cab_file_name` uses the
+`.len() == 0` form (Str equality is BUG 17), the six DOS decoders claim
+exactly the inlined source arithmetic, and `cab_compression_code` /
+`cab_compression_known` use `% 16` with module constants inlined as
+literals. `cab_build` claims only the two Err guards and the 44-byte minimum
+(`44 + dir_len` is the exact emitted length).
+
+`xiom-verify src\cab.xi --check` (Z3 bundled with v0.64.0) reported
+**9 proven / 0 violated / 65 unknown / 28 errors**. The 9 proven checks are 5
+`ensures:` clauses -- `cab_compression_code` (both), `cab_dos_date_year`,
+`cab_dos_date_day`, `cab_dos_time_hour` -- plus 4 division/modulo
+side-condition obligations on their bodies; the 28 errors are SMT emitter
+bugs on private helpers (`_sig_ok`, `_le16`, `_err_archive`,
+`_version_has_setid`) and are explicitly "not a proof failure of the code
+under test". The remaining 61 clauses are marked runtime-checked only (no Z3
+claim); every clause is enforced by the v0.64.0 runtime evaluator when the
+conformance suite runs. No clause calls another contracted function.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `cab_parse` | `data.len() < 4 => result is Err`; `result is Ok => data.len() >= 32` | runtime-checked |
+| `cab_cabinet_size` | `result == a.cabinet_size` | runtime-checked |
+| `cab_version_major` | `result == a.version_major` | runtime-checked |
+| `cab_version_minor` | `result == a.version_minor` | runtime-checked |
+| `cab_flags` | `result == a.flags` | runtime-checked |
+| `cab_set_id` | `result == a.set_id` | runtime-checked |
+| `cab_i_cabinet` | `result == a.i_cabinet` | runtime-checked |
+| `cab_folder_count` | `result == a.folder_starts.len()`; `result >= 0` | runtime-checked |
+| `cab_file_count` | `result == a.names.len()`; `result >= 0` | runtime-checked |
+| `cab_reserved_header_len` | `result == a.reserve_header_len` | runtime-checked |
+| `cab_reserved_folder_len` | `result == a.reserve_folder_len` | runtime-checked |
+| `cab_reserved_data_len` | `result == a.reserve_data_len` | runtime-checked |
+| `cab_reserved_header_offset` | `result == a.reserved_header_offset` | runtime-checked |
+| `cab_folder_start` | `i < 0 => result == -1`; `i >= a.folder_starts.len() => result == -1`; `result != -1 => i >= 0 && i < a.folder_starts.len()` | runtime-checked |
+| `cab_folder_data_count` | `i < 0 => result == -1`; `i >= a.folder_data_counts.len() => result == -1`; `result != -1 => i >= 0 && i < a.folder_data_counts.len()` | runtime-checked |
+| `cab_folder_compression` | `i < 0 => result == -1`; `i >= a.folder_compress.len() => result == -1`; `result != -1 => i >= 0 && i < a.folder_compress.len()` | runtime-checked |
+| `cab_folder_reserve_offset` | `i < 0 => result == -1`; `i >= a.folder_offsets.len() => result == -1`; `result != -1 => i >= 0 && i < a.folder_offsets.len()` | runtime-checked |
+| `cab_file_name` | `i < 0 => result.len() == 0`; `i >= a.names.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < a.names.len()` | runtime-checked |
+| `cab_file_size` | `i < 0 => result == -1`; `i >= a.file_sizes.len() => result == -1`; `result != -1 => i >= 0 && i < a.file_sizes.len()` | runtime-checked |
+| `cab_file_offset` | `i < 0 => result == -1`; `i >= a.file_offsets.len() => result == -1`; `result != -1 => i >= 0 && i < a.file_offsets.len()` | runtime-checked |
+| `cab_file_folder` | `i < 0 => result == -1`; `i >= a.file_folders.len() => result == -1`; `result != -1 => i >= 0 && i < a.file_folders.len()` | runtime-checked |
+| `cab_file_date` | `i < 0 => result == -1`; `i >= a.file_dates.len() => result == -1`; `result != -1 => i >= 0 && i < a.file_dates.len()` | runtime-checked |
+| `cab_file_time` | `i < 0 => result == -1`; `i >= a.file_times.len() => result == -1`; `result != -1 => i >= 0 && i < a.file_times.len()` | runtime-checked |
+| `cab_file_attribs` | `i < 0 => result == -1`; `i >= a.file_attribs.len() => result == -1`; `result != -1 => i >= 0 && i < a.file_attribs.len()` | runtime-checked |
+| `cab_file_utf` | `i < 0 => !result`; `i >= a.file_attribs.len() => !result`; `result => i >= 0 && i < a.file_attribs.len()` | runtime-checked |
+| `cab_compression_code` | `type_compress < 0 => result == -1`; `type_compress >= 0 => result == type_compress % 16` | Z3-proven |
+| `cab_compression_known` | `type_compress < 0 => !result`; `result => type_compress % 16 <= 3` | runtime-checked |
+| `cab_version_has_setid` | `result == (major > 1 || (major == 1 && minor >= 3))` | runtime-checked |
+| `cab_dos_date_year` | `result == 1980 + d / 512` | Z3-proven |
+| `cab_dos_date_month` | `result == (d / 32) % 16` | runtime-checked |
+| `cab_dos_date_day` | `result == d % 32` | Z3-proven |
+| `cab_dos_time_hour` | `result == t / 2048` | Z3-proven |
+| `cab_dos_time_minute` | `result == (t / 32) % 64` | runtime-checked |
+| `cab_dos_time_second` | `result == (t % 32) * 2` | runtime-checked |
+| `cab_build` | `names.len() != sizes.len() => result is Err`; `names.len() > 65535 => result is Err`; `result is Ok => result.value.len() >= 44` | runtime-checked |

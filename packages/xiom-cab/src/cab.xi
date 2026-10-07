@@ -354,7 +354,10 @@ fn _push_le32(out: &mut Vec[UInt8], v: Int) {
 /// attribute bit (0x80) is set and the cabinet version is 1.3 or greater;
 /// UTF-8 sequences are not decoded. Bytes past cbCabinet are ignored.
 /// Complexity: O(data.len()).
-pub fn cab_parse(data: &Vec[UInt8]) -> Result[CabArchive, Str] {
+pub fn cab_parse(data: &Vec[UInt8]) -> Result[CabArchive, Str]
+  ensures: data.len() < 4 => result is Err;
+  ensures: result is Ok => data.len() >= 32;
+{
   if data.len() < CAB_SIGNATURE_LEN {
     return _err_archive("cab: bad signature");
   }
@@ -518,19 +521,25 @@ pub fn cab_parse(data: &Vec[UInt8]) -> Result[CabArchive, Str] {
 
 /// Total cabinet size from the header (`cbCabinet`), in bytes.
 /// Complexity: O(1).
-pub fn cab_cabinet_size(a: &CabArchive) -> Int {
+pub fn cab_cabinet_size(a: &CabArchive) -> Int
+  ensures: result == a.cabinet_size;
+{
   return a.cabinet_size;
 }
 
 /// CFHEADER version major byte.
 /// Complexity: O(1).
-pub fn cab_version_major(a: &CabArchive) -> Int {
+pub fn cab_version_major(a: &CabArchive) -> Int
+  ensures: result == a.version_major;
+{
   return a.version_major;
 }
 
 /// CFHEADER version minor byte.
 /// Complexity: O(1).
-pub fn cab_version_minor(a: &CabArchive) -> Int {
+pub fn cab_version_minor(a: &CabArchive) -> Int
+  ensures: result == a.version_minor;
+{
   return a.version_minor;
 }
 
@@ -538,54 +547,72 @@ pub fn cab_version_minor(a: &CabArchive) -> Int {
 /// (1), CAB_FLAG_LOCK (2, exposed but not interpreted),
 /// CAB_FLAG_PREV_CABINET (4) and CAB_FLAG_NEXT_CABINET (8).
 /// Complexity: O(1).
-pub fn cab_flags(a: &CabArchive) -> Int {
+pub fn cab_flags(a: &CabArchive) -> Int
+  ensures: result == a.flags;
+{
   return a.flags;
 }
 
 /// Cabinet set identifier (`setID`), or -1 when the version is below 1.3 and
 /// the field is absent.
 /// Complexity: O(1).
-pub fn cab_set_id(a: &CabArchive) -> Int {
+pub fn cab_set_id(a: &CabArchive) -> Int
+  ensures: result == a.set_id;
+{
   return a.set_id;
 }
 
 /// Cabinet index in its set (`iCabinet`), or -1 when the version is below
 /// 1.3 and the field is absent.
 /// Complexity: O(1).
-pub fn cab_i_cabinet(a: &CabArchive) -> Int {
+pub fn cab_i_cabinet(a: &CabArchive) -> Int
+  ensures: result == a.i_cabinet;
+{
   return a.i_cabinet;
 }
 
 /// Number of CFFOLDER entries.
 /// Complexity: O(1).
-pub fn cab_folder_count(a: &CabArchive) -> Int {
+pub fn cab_folder_count(a: &CabArchive) -> Int
+  ensures: result == a.folder_starts.len();
+  ensures: result >= 0;
+{
   return a.folder_starts.len();
 }
 
 /// Number of CFFILE entries.
 /// Complexity: O(1).
-pub fn cab_file_count(a: &CabArchive) -> Int {
+pub fn cab_file_count(a: &CabArchive) -> Int
+  ensures: result == a.names.len();
+  ensures: result >= 0;
+{
   return a.names.len();
 }
 
 /// `cbCFHeader`: byte length of the header reserve area (0 when the reserve
 /// flag is clear).
 /// Complexity: O(1).
-pub fn cab_reserved_header_len(a: &CabArchive) -> Int {
+pub fn cab_reserved_header_len(a: &CabArchive) -> Int
+  ensures: result == a.reserve_header_len;
+{
   return a.reserve_header_len;
 }
 
 /// `cbCFFolder`: byte length of the per-folder reserve area appended to every
 /// CFFOLDER entry (0 when the reserve flag is clear).
 /// Complexity: O(1).
-pub fn cab_reserved_folder_len(a: &CabArchive) -> Int {
+pub fn cab_reserved_folder_len(a: &CabArchive) -> Int
+  ensures: result == a.reserve_folder_len;
+{
   return a.reserve_folder_len;
 }
 
 /// `cbCFData`: byte length of the per-CFDATA reserve area (0 when the
 /// reserve flag is clear); CFDATA records themselves are not parsed.
 /// Complexity: O(1).
-pub fn cab_reserved_data_len(a: &CabArchive) -> Int {
+pub fn cab_reserved_data_len(a: &CabArchive) -> Int
+  ensures: result == a.reserve_data_len;
+{
   return a.reserve_data_len;
 }
 
@@ -593,14 +620,20 @@ pub fn cab_reserved_data_len(a: &CabArchive) -> Int {
 /// cab_reserved_header_len is 0 this is the offset just past the optional
 /// header fields and the span is empty.
 /// Complexity: O(1).
-pub fn cab_reserved_header_offset(a: &CabArchive) -> Int {
+pub fn cab_reserved_header_offset(a: &CabArchive) -> Int
+  ensures: result == a.reserved_header_offset;
+{
   return a.reserved_header_offset;
 }
 
 /// `coffCabStart` of folder `i`: absolute offset of the folder's first
 /// CFDATA record; -1 out of range.
 /// Complexity: O(1).
-pub fn cab_folder_start(a: &CabArchive, i: Int) -> Int {
+pub fn cab_folder_start(a: &CabArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.folder_starts.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < a.folder_starts.len();
+{
   if i < 0 || i >= a.folder_starts.len() {
     return -1;
   }
@@ -610,7 +643,11 @@ pub fn cab_folder_start(a: &CabArchive, i: Int) -> Int {
 
 /// `cCFData` of folder `i`: number of CFDATA records; -1 out of range.
 /// Complexity: O(1).
-pub fn cab_folder_data_count(a: &CabArchive, i: Int) -> Int {
+pub fn cab_folder_data_count(a: &CabArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.folder_data_counts.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < a.folder_data_counts.len();
+{
   if i < 0 || i >= a.folder_data_counts.len() {
     return -1;
   }
@@ -621,7 +658,11 @@ pub fn cab_folder_data_count(a: &CabArchive, i: Int) -> Int {
 /// Raw `typeCompress` word of folder `i` (unknown codes pass through);
 /// -1 out of range. See cab_compression_code / cab_compression_known.
 /// Complexity: O(1).
-pub fn cab_folder_compression(a: &CabArchive, i: Int) -> Int {
+pub fn cab_folder_compression(a: &CabArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.folder_compress.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < a.folder_compress.len();
+{
   if i < 0 || i >= a.folder_compress.len() {
     return -1;
   }
@@ -633,7 +674,11 @@ pub fn cab_folder_compression(a: &CabArchive, i: Int) -> Int {
 /// CFFOLDER entry offset + 8); -1 out of range. The span length is
 /// cab_reserved_folder_len(a), 0 when no reserve area is present.
 /// Complexity: O(1).
-pub fn cab_folder_reserve_offset(a: &CabArchive, i: Int) -> Int {
+pub fn cab_folder_reserve_offset(a: &CabArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.folder_offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < a.folder_offsets.len();
+{
   if i < 0 || i >= a.folder_offsets.len() {
     return -1;
   }
@@ -645,7 +690,11 @@ pub fn cab_folder_reserve_offset(a: &CabArchive, i: Int) -> Int {
 /// The result is a Str read from a Vec[Str] field: callers must compare it
 /// with xiom.string.compare.str_compare rather than `==`.
 /// Complexity: O(1).
-pub fn cab_file_name(a: &CabArchive, i: Int) -> Str {
+pub fn cab_file_name(a: &CabArchive, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= a.names.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < a.names.len();
+{
   if i < 0 || i >= a.names.len() {
     return "";
   }
@@ -655,7 +704,11 @@ pub fn cab_file_name(a: &CabArchive, i: Int) -> Str {
 
 /// `cbFile` of file `i`: uncompressed size in bytes; -1 out of range.
 /// Complexity: O(1).
-pub fn cab_file_size(a: &CabArchive, i: Int) -> Int {
+pub fn cab_file_size(a: &CabArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.file_sizes.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < a.file_sizes.len();
+{
   if i < 0 || i >= a.file_sizes.len() {
     return -1;
   }
@@ -666,7 +719,11 @@ pub fn cab_file_size(a: &CabArchive, i: Int) -> Int {
 /// `uoffFolderStart` of file `i`: uncompressed offset inside folder
 /// `cab_file_folder(a, i)`; -1 out of range.
 /// Complexity: O(1).
-pub fn cab_file_offset(a: &CabArchive, i: Int) -> Int {
+pub fn cab_file_offset(a: &CabArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.file_offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < a.file_offsets.len();
+{
   if i < 0 || i >= a.file_offsets.len() {
     return -1;
   }
@@ -676,7 +733,11 @@ pub fn cab_file_offset(a: &CabArchive, i: Int) -> Int {
 
 /// `iFolder` of file `i`: index of the owning folder; -1 out of range.
 /// Complexity: O(1).
-pub fn cab_file_folder(a: &CabArchive, i: Int) -> Int {
+pub fn cab_file_folder(a: &CabArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.file_folders.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < a.file_folders.len();
+{
   if i < 0 || i >= a.file_folders.len() {
     return -1;
   }
@@ -687,7 +748,11 @@ pub fn cab_file_folder(a: &CabArchive, i: Int) -> Int {
 /// Raw packed MS-DOS date of file `i` (see cab_dos_date_year / _month /
 /// _day); -1 out of range.
 /// Complexity: O(1).
-pub fn cab_file_date(a: &CabArchive, i: Int) -> Int {
+pub fn cab_file_date(a: &CabArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.file_dates.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < a.file_dates.len();
+{
   if i < 0 || i >= a.file_dates.len() {
     return -1;
   }
@@ -698,7 +763,11 @@ pub fn cab_file_date(a: &CabArchive, i: Int) -> Int {
 /// Raw packed MS-DOS time of file `i`, in two-second units (see
 /// cab_dos_time_hour / _minute / _second); -1 out of range.
 /// Complexity: O(1).
-pub fn cab_file_time(a: &CabArchive, i: Int) -> Int {
+pub fn cab_file_time(a: &CabArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.file_times.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < a.file_times.len();
+{
   if i < 0 || i >= a.file_times.len() {
     return -1;
   }
@@ -709,7 +778,11 @@ pub fn cab_file_time(a: &CabArchive, i: Int) -> Int {
 /// Raw `attribs` word of file `i` (see the CAB_ATTRIB_* constants);
 /// -1 out of range.
 /// Complexity: O(1).
-pub fn cab_file_attribs(a: &CabArchive, i: Int) -> Int {
+pub fn cab_file_attribs(a: &CabArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.file_attribs.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < a.file_attribs.len();
+{
   if i < 0 || i >= a.file_attribs.len() {
     return -1;
   }
@@ -721,7 +794,11 @@ pub fn cab_file_attribs(a: &CabArchive, i: Int) -> Int {
 /// attribs word; false out of range. Name validation honors the bit only for
 /// cabinets of version 1.3 or greater (see cab_parse).
 /// Complexity: O(1).
-pub fn cab_file_utf(a: &CabArchive, i: Int) -> Bool {
+pub fn cab_file_utf(a: &CabArchive, i: Int) -> Bool
+  ensures: i < 0 => !result;
+  ensures: i >= a.file_attribs.len() => !result;
+  ensures: result => i >= 0 && i < a.file_attribs.len();
+{
   if i < 0 || i >= a.file_attribs.len() {
     return false;
   }
@@ -732,7 +809,10 @@ pub fn cab_file_utf(a: &CabArchive, i: Int) -> Bool {
 /// Compression algorithm code: the low nibble of a raw `typeCompress` word
 /// (0 none, 1 MSZIP, 2 Quantum, 3 LZX); -1 when `type_compress` is negative.
 /// Complexity: O(1).
-pub fn cab_compression_code(type_compress: Int) -> Int {
+pub fn cab_compression_code(type_compress: Int) -> Int
+  ensures: type_compress < 0 => result == -1;
+  ensures: type_compress >= 0 => result == type_compress % 16;
+{
   if type_compress < 0 {
     return -1;
   }
@@ -743,7 +823,10 @@ pub fn cab_compression_code(type_compress: Int) -> Int {
 /// codes (0..3). Unknown codes return false but still parse (documented
 /// pass-through of the raw word).
 /// Complexity: O(1).
-pub fn cab_compression_known(type_compress: Int) -> Bool {
+pub fn cab_compression_known(type_compress: Int) -> Bool
+  ensures: type_compress < 0 => !result;
+  ensures: result => type_compress % 16 <= 3;
+{
   let code: Int = cab_compression_code(type_compress);
   if code < 0 {
     return false;
@@ -757,43 +840,57 @@ pub fn cab_compression_known(type_compress: Int) -> Bool {
 /// True when a cabinet with this (major, minor) version carries the optional
 /// setID/iCabinet fields: the documented "1.3 or greater" rule.
 /// Complexity: O(1).
-pub fn cab_version_has_setid(major: Int, minor: Int) -> Bool {
+pub fn cab_version_has_setid(major: Int, minor: Int) -> Bool
+  ensures: result == (major > 1 || (major == 1 && minor >= 3));
+{
   return _version_has_setid(major, minor);
 }
 
 /// Year of a raw packed MS-DOS date (1980..2107 for a u16 input).
 /// Complexity: O(1).
-pub fn cab_dos_date_year(d: Int) -> Int {
+pub fn cab_dos_date_year(d: Int) -> Int
+  ensures: result == 1980 + d / 512;
+{
   return 1980 + d / 512;
 }
 
 /// Month of a raw packed MS-DOS date (0..15 as stored; 0 means unset).
 /// Complexity: O(1).
-pub fn cab_dos_date_month(d: Int) -> Int {
+pub fn cab_dos_date_month(d: Int) -> Int
+  ensures: result == (d / 32) % 16;
+{
   return (d / 32) % 16;
 }
 
 /// Day of a raw packed MS-DOS date (0..31 as stored; 0 means unset).
 /// Complexity: O(1).
-pub fn cab_dos_date_day(d: Int) -> Int {
+pub fn cab_dos_date_day(d: Int) -> Int
+  ensures: result == d % 32;
+{
   return d % 32;
 }
 
 /// Hour of a raw packed MS-DOS time (0..31 as stored; 0 means unset).
 /// Complexity: O(1).
-pub fn cab_dos_time_hour(t: Int) -> Int {
+pub fn cab_dos_time_hour(t: Int) -> Int
+  ensures: result == t / 2048;
+{
   return t / 2048;
 }
 
 /// Minute of a raw packed MS-DOS time (0..63 as stored; 0 means unset).
 /// Complexity: O(1).
-pub fn cab_dos_time_minute(t: Int) -> Int {
+pub fn cab_dos_time_minute(t: Int) -> Int
+  ensures: result == (t / 32) % 64;
+{
   return (t / 32) % 64;
 }
 
 /// Second of a raw packed MS-DOS time, in two-second units (0..62).
 /// Complexity: O(1).
-pub fn cab_dos_time_second(t: Int) -> Int {
+pub fn cab_dos_time_second(t: Int) -> Int
+  ensures: result == (t % 32) * 2;
+{
   return (t % 32) * 2;
 }
 
@@ -817,7 +914,11 @@ pub fn cab_dos_time_second(t: Int) -> Int {
 /// byte outside the printable ASCII policy (0x20..0x7E);
 /// Err("cab: name too long") above CAB_MAX_NAME bytes.
 /// Complexity: O(total name bytes).
-pub fn cab_build(names: &Vec[Str], sizes: &Vec[Int]) -> Result[Vec[UInt8], Str] {
+pub fn cab_build(names: &Vec[Str], sizes: &Vec[Int]) -> Result[Vec[UInt8], Str]
+  ensures: names.len() != sizes.len() => result is Err;
+  ensures: names.len() > 65535 => result is Err;
+  ensures: result is Ok => result.value.len() >= 44;
+{
   let count: Int = names.len();
   if sizes.len() != count {
     return _err_bytes("cab: entry count mismatch");
