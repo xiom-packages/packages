@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-07T17:03:13Z",
+    "updated":  "2026-10-07T17:23:36Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -3163,7 +3163,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.humanize",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Human-readable bytes, durations, counts, ordinals, and lists",
@@ -3173,7 +3173,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-humanize/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-humanize/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "humanize.xi",
                                               "package.xi"
@@ -4930,7 +4930,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ngram",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Word and character n-grams with Jaccard/Dice similarity and MinHash signatures",
@@ -4940,7 +4940,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ngram/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ngram/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ngram.xi",
                                               "package.xi"
@@ -6078,7 +6078,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.property",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Deterministic property-based testing: seeds, generators, and shrinking",
@@ -6088,7 +6088,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-property/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-property/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "property.xi",
                                               "package.xi"
@@ -6283,7 +6283,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.quotedprintable",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "RFC 2045 quoted-printable codec for bytes and text",
@@ -6293,7 +6293,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-quotedprintable/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-quotedprintable/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "quotedprintable.xi",
                                               "package.xi"
@@ -7018,7 +7018,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.sentiment",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Lexicon-based sentiment scoring with negation handling",
@@ -7028,7 +7028,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sentiment/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sentiment/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "sentiment.xi",
                                               "package.xi"
@@ -7944,7 +7944,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.timeseries",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Moving averages, deltas, and range statistics over integer series",
@@ -7954,7 +7954,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-timeseries/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-timeseries/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "timeseries.xi",
                                               "package.xi"
