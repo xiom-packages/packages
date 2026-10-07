@@ -1,8 +1,7 @@
 # xiom.psf -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.psf`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
+Manifest: `package.xi` (`xiom.psf`, version `0.1.2`).
 Module: `src/psf.xi` (`module xiom.psf`).
 Depends on `xiom.std`; the library module imports nothing (pure integer and
 `Vec[UInt8]` code). The tests use `xiom.test`, `xiom.io`,
@@ -240,6 +239,32 @@ returned.
   when at least one glyph list is non-empty. Nothing is emitted unless every
   check passes.
 
+## Contracts
+
+Runtime-checkable `ensures:` clauses, harness-green on the v0.64.0 pin
+(read-only observations over parameters, `result` and `PsfFont` scalar
+fields; all hold for hand-built `PsfFont` structs). "Z3-provable" marks
+clauses whose shape is pure scalar/sentinel/field arithmetic; "runtime-checked"
+marks clauses that observe a `Result` discriminant or read a payload
+(`result.value`, `data.len()` under an `is Ok` antecedent).
+
+| Function | Clauses | Class |
+|---|---|---|
+| `psf_version` | `result == p.version` | Z3-provable |
+| `psf_charcount` | `result == p.char_count` | Z3-provable |
+| `psf_charsize` | `result == p.charsize` | Z3-provable |
+| `psf_height` | `result == p.height` | Z3-provable |
+| `psf_width` | `result == p.width` | Z3-provable |
+| `psf_has_unicode` | `result == p.has_unicode` | Z3-provable |
+| `psf_glyph_span` | `ch < 0 => result == -1`; `ch >= p.char_count => result == -1`; `result != -1 => result == p.charsize` | Z3-provable |
+| `psf_unicode_count` | `ch < 0 => result == -1`; `ch >= p.char_count => result == -1`; `!p.has_unicode && ch >= 0 && ch < p.char_count => result == 0` | Z3-provable |
+| `psf_unicode_at` | `ch < 0 \|\| ch >= p.char_count => result == -1`; `i < 0 => result == -1`; `!p.has_unicode && ch >= 0 && ch < p.char_count && i >= 0 => result == -1` | Z3-provable |
+| `psf_char_for_unicode` | `cp < 0 \|\| cp > 65534 => result == -1`; `!p.has_unicode && cp >= 0 && cp <= 65534 => result == -1`; `result != -1 => result >= 0 && result < p.char_count` | Z3-provable |
+| `psf_parse` | `data.len() < 4 => result is Err`; `result is Ok => data.len() >= 32` | clause 1 Z3-provable; clause 2 runtime-checked |
+| `psf_glyph_bytes` | `ch < 0 => result is Err`; `ch >= p.char_count => result is Err`; `result is Ok && p.charsize >= 1 => result.value.len() == p.charsize` | clauses 1-2 Z3-provable; clause 3 runtime-checked |
+| `psf_build1` | `charsize < 1 => result is Err`; `charsize > 32 => result is Err`; `result is Ok => result.value.len() >= 260` | clauses 1-2 Z3-provable; clause 3 runtime-checked |
+| `psf_build2` | `height < 1 => result is Err`; `width < 1 \|\| width > 64 => result is Err`; `result is Ok => result.value.len() >= 32` | clauses 1-2 Z3-provable; clause 3 runtime-checked |
+
 ## Pinned policies
 
 - **Trailing bytes (strict).** The buffer must end exactly after the glyph
@@ -361,7 +386,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.psf
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=20 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations

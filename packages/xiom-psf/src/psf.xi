@@ -170,41 +170,57 @@ fn _put_unicode(out: &mut Vec[UInt8], uni: &Vec[Vec[Int]], char_count: Int) {
 // ---------------------------------------------------------------------------
 
 // Format version of a parsed font: 1 for PSF1, 2 for PSF2.
-pub fn psf_version(p: &PsfFont) -> Int {
+pub fn psf_version(p: &PsfFont) -> Int
+  ensures: result == p.version;
+{
   return p.version;
 }
 
 // Glyph count: 256 or 512 for PSF1, the header `length` field for PSF2.
-pub fn psf_charcount(p: &PsfFont) -> Int {
+pub fn psf_charcount(p: &PsfFont) -> Int
+  ensures: result == p.char_count;
+{
   return p.char_count;
 }
 
 // Bytes per glyph: 1..32 (PSF1) or 1..256 (PSF2). Every glyph span is
 // exactly this many bytes.
-pub fn psf_charsize(p: &PsfFont) -> Int {
+pub fn psf_charsize(p: &PsfFont) -> Int
+  ensures: result == p.charsize;
+{
   return p.charsize;
 }
 
 // Glyph height in rows: the PSF2 header field, or charsize for PSF1 (PSF1
 // has no height field; the documented convention is height == charsize).
-pub fn psf_height(p: &PsfFont) -> Int {
+pub fn psf_height(p: &PsfFont) -> Int
+  ensures: result == p.height;
+{
   return p.height;
 }
 
 // Glyph width in columns: the PSF2 header field (1..64), or the constant 8
 // for PSF1 (PSF1 has no width field; the documented convention is width 8).
-pub fn psf_width(p: &PsfFont) -> Int {
+pub fn psf_width(p: &PsfFont) -> Int
+  ensures: result == p.width;
+{
   return p.width;
 }
 
 // True when the source carried a unicode table.
-pub fn psf_has_unicode(p: &PsfFont) -> Bool {
+pub fn psf_has_unicode(p: &PsfFont) -> Bool
+  ensures: result == p.has_unicode;
+{
   return p.has_unicode;
 }
 
 // Glyph bytes span of character `ch`: always charsize, or -1 when `ch` is
 // outside 0..psf_charcount(p)-1.
-pub fn psf_glyph_span(p: &PsfFont, ch: Int) -> Int {
+pub fn psf_glyph_span(p: &PsfFont, ch: Int) -> Int
+  ensures: ch < 0 => result == -1;
+  ensures: ch >= p.char_count => result == -1;
+  ensures: result != -1 => result == p.charsize;
+{
   if (ch < 0) { return -1; }
   if (ch >= p.char_count) { return -1; }
   return p.charsize;
@@ -212,7 +228,11 @@ pub fn psf_glyph_span(p: &PsfFont, ch: Int) -> Int {
 
 // Codepoint count of character `ch`: 0 when no unicode table is present, and
 // -1 when `ch` is outside 0..psf_charcount(p)-1.
-pub fn psf_unicode_count(p: &PsfFont, ch: Int) -> Int {
+pub fn psf_unicode_count(p: &PsfFont, ch: Int) -> Int
+  ensures: ch < 0 => result == -1;
+  ensures: ch >= p.char_count => result == -1;
+  ensures: !p.has_unicode && ch >= 0 && ch < p.char_count => result == 0;
+{
   if (ch < 0) { return -1; }
   if (ch >= p.char_count) { return -1; }
   if (!p.has_unicode) { return 0; }
@@ -222,7 +242,11 @@ pub fn psf_unicode_count(p: &PsfFont, ch: Int) -> Int {
 
 // The `i`-th codepoint of character `ch` (0 <= value <= 65534), or -1 when
 // `i` or `ch` is out of range or no unicode table is present.
-pub fn psf_unicode_at(p: &PsfFont, ch: Int, i: Int) -> Int {
+pub fn psf_unicode_at(p: &PsfFont, ch: Int, i: Int) -> Int
+  ensures: ch < 0 || ch >= p.char_count => result == -1;
+  ensures: i < 0 => result == -1;
+  ensures: !p.has_unicode && ch >= 0 && ch < p.char_count && i >= 0 => result == -1;
+{
   if (ch < 0) { return -1; }
   if (ch >= p.char_count) { return -1; }
   if (i < 0) { return -1; }
@@ -239,7 +263,11 @@ pub fn psf_unicode_at(p: &PsfFont, ch: Int, i: Int) -> Int {
 // matches or `cp` is outside 0..65534 (0xFFFF is the table terminator and is
 // never a codepoint). Duplicate codepoints are tolerated: the first match
 // wins. Returns -1 when no unicode table is present.
-pub fn psf_char_for_unicode(p: &PsfFont, cp: Int) -> Int {
+pub fn psf_char_for_unicode(p: &PsfFont, cp: Int) -> Int
+  ensures: cp < 0 || cp > 65534 => result == -1;
+  ensures: !p.has_unicode && cp >= 0 && cp <= 65534 => result == -1;
+  ensures: result != -1 => result >= 0 && result < p.char_count;
+{
   if (cp < 0) { return -1; }
   if (cp > 65534) { return -1; }
   if (!p.has_unicode) { return -1; }
@@ -271,7 +299,10 @@ pub fn psf_char_for_unicode(p: &PsfFont, cp: Int) -> Int {
 // trailing-bytes policy: the buffer must end exactly after the glyph area or
 // after the last terminator. Returns a flat PsfFont; on error no partial
 // index is returned.
-pub fn psf_parse(data: &Vec[UInt8]) -> Result[PsfFont, Str] {
+pub fn psf_parse(data: &Vec[UInt8]) -> Result[PsfFont, Str]
+  ensures: data.len() < 4 => result is Err;
+  ensures: result is Ok => data.len() >= 32;
+{
   let n = data.len();
   if (n < 2) { return _err_font("psf: truncated header"); }
   let b0: Int = (data[0] as Int) & 0xFF;
@@ -386,7 +417,11 @@ pub fn psf_parse(data: &Vec[UInt8]) -> Result[PsfFont, Str] {
 // 0..psf_charcount(p)-1; Err("psf: glyph data out of bounds") when the
 // recorded span does not fit `data` (a forged or stale index, or a shorter
 // buffer than the one that was parsed).
-pub fn psf_glyph_bytes(data: &Vec[UInt8], p: &PsfFont, ch: Int) -> Result[Vec[UInt8], Str] {
+pub fn psf_glyph_bytes(data: &Vec[UInt8], p: &PsfFont, ch: Int) -> Result[Vec[UInt8], Str]
+  ensures: ch < 0 => result is Err;
+  ensures: ch >= p.char_count => result is Err;
+  ensures: result is Ok && p.charsize >= 1 => result.value.len() == p.charsize;
+{
   if (ch < 0) { return _err_bytes("psf: index out of range"); }
   if (ch >= p.char_count) { return _err_bytes("psf: index out of range"); }
   let cs: Int = p.charsize;
@@ -422,7 +457,11 @@ pub fn psf_glyph_bytes(data: &Vec[UInt8], p: &PsfFont, ch: Int) -> Result[Vec[UI
 //   glyphs.len() is neither 256*charsize nor 512*charsize;
 //   Err("psf: unicode entry count mismatch") when uni.len() != char_count;
 //   Err("psf: invalid codepoint") for a codepoint outside 0..65534.
-pub fn psf_build1(glyphs: &Vec[UInt8], charsize: Int, uni: &Vec[Vec[Int]]) -> Result[Vec[UInt8], Str] {
+pub fn psf_build1(glyphs: &Vec[UInt8], charsize: Int, uni: &Vec[Vec[Int]]) -> Result[Vec[UInt8], Str]
+  ensures: charsize < 1 => result is Err;
+  ensures: charsize > 32 => result is Err;
+  ensures: result is Ok => result.value.len() >= 260;
+{
   if (charsize < 1) { return _err_bytes("psf: invalid charsize"); }
   if (charsize > 32) { return _err_bytes("psf: invalid charsize"); }
   var char_count = 0;
@@ -462,7 +501,11 @@ pub fn psf_build1(glyphs: &Vec[UInt8], charsize: Int, uni: &Vec[Vec[Int]]) -> Re
 //   glyphs.len() is not a multiple of charsize;
 //   Err("psf: unicode entry count mismatch") when uni.len() != char_count;
 //   Err("psf: invalid codepoint") for a codepoint outside 0..65534.
-pub fn psf_build2(glyphs: &Vec[UInt8], charsize: Int, height: Int, width: Int, uni: &Vec[Vec[Int]]) -> Result[Vec[UInt8], Str] {
+pub fn psf_build2(glyphs: &Vec[UInt8], charsize: Int, height: Int, width: Int, uni: &Vec[Vec[Int]]) -> Result[Vec[UInt8], Str]
+  ensures: height < 1 => result is Err;
+  ensures: width < 1 || width > 64 => result is Err;
+  ensures: result is Ok => result.value.len() >= 32;
+{
   if (charsize < 1) { return _err_bytes("psf: invalid charsize"); }
   if (charsize > 256) { return _err_bytes("psf: invalid charsize"); }
   if (height < 1) { return _err_bytes("psf: invalid height"); }
