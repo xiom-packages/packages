@@ -478,7 +478,10 @@ fn _doc_push_array(doc: &mut TomlDoc, key: Str, items: &Vec[Str], kind: Int) {
 /// with a "toml: ..." message on a duplicate key/table, a malformed line or
 /// an unsupported construct.
 /// Complexity: O(total input length).
-pub fn toml_parse(text: Str) -> Result[TomlDoc, Str] {
+pub fn toml_parse(text: Str) -> Result[TomlDoc, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var doc = TomlDoc{
     keys: Vec[Str].new();
     values: Vec[Str].new();
@@ -566,20 +569,29 @@ pub fn toml_parse(text: Str) -> Result[TomlDoc, Str] {
 }
 
 /// True when the document contains `key`.
-pub fn toml_has(d: &TomlDoc, key: Str) -> Bool {
+pub fn toml_has(d: &TomlDoc, key: Str) -> Bool
+  ensures: d.keys.len() == 0 => !result;
+  ensures: result => d.keys.len() > 0;
+{
   return _key_index(d, key) >= 0;
 }
 
 /// Kind of `key`: 0 str, 1 int, 2 bool, 3 str-array, 4 int-array; None when
 /// the key is absent.
-pub fn toml_kind(d: &TomlDoc, key: Str) -> Option[Int] {
+pub fn toml_kind(d: &TomlDoc, key: Str) -> Option[Int]
+  ensures: d.keys.len() == 0 => result is None;
+  ensures: result is Some => d.keys.len() > 0;
+{
   let i = _key_index(d, key);
   if i < 0 { return None; }
   return Some(d.kinds[i]);
 }
 
 /// String value of `key`; None when absent or of another kind.
-pub fn toml_get_str(d: &TomlDoc, key: Str) -> Option[Str] {
+pub fn toml_get_str(d: &TomlDoc, key: Str) -> Option[Str]
+  ensures: d.keys.len() == 0 => result is None;
+  ensures: result is Some => d.keys.len() > 0;
+{
   let i = _key_index(d, key);
   if i < 0 { return None; }
   if d.kinds[i] != _TOML_KIND_STR { return None; }
@@ -587,7 +599,10 @@ pub fn toml_get_str(d: &TomlDoc, key: Str) -> Option[Str] {
 }
 
 /// Integer value of `key`; None when absent or of another kind.
-pub fn toml_get_int(d: &TomlDoc, key: Str) -> Option[Int] {
+pub fn toml_get_int(d: &TomlDoc, key: Str) -> Option[Int]
+  ensures: d.keys.len() == 0 => result is None;
+  ensures: result is Some => d.keys.len() > 0;
+{
   let i = _key_index(d, key);
   if i < 0 { return None; }
   if d.kinds[i] != _TOML_KIND_INT { return None; }
@@ -595,7 +610,10 @@ pub fn toml_get_int(d: &TomlDoc, key: Str) -> Option[Int] {
 }
 
 /// Boolean value of `key`; None when absent or of another kind.
-pub fn toml_get_bool(d: &TomlDoc, key: Str) -> Option[Bool] {
+pub fn toml_get_bool(d: &TomlDoc, key: Str) -> Option[Bool]
+  ensures: d.keys.len() == 0 => result is None;
+  ensures: result is Some => d.keys.len() > 0;
+{
   let i = _key_index(d, key);
   if i < 0 { return None; }
   if d.kinds[i] != _TOML_KIND_BOOL { return None; }
@@ -604,7 +622,9 @@ pub fn toml_get_bool(d: &TomlDoc, key: Str) -> Option[Bool] {
 }
 
 /// Items of a string-array `key`; empty for an absent key or another kind.
-pub fn toml_get_str_array(d: &TomlDoc, key: Str) -> Vec[Str] {
+pub fn toml_get_str_array(d: &TomlDoc, key: Str) -> Vec[Str]
+  ensures: d.keys.len() == 0 => result.len() == 0;
+{
   var out = Vec[Str].new();
   let i = _key_index(d, key);
   if i < 0 { return out; }
@@ -620,7 +640,9 @@ pub fn toml_get_str_array(d: &TomlDoc, key: Str) -> Vec[Str] {
 }
 
 /// Parsed items of an int-array `key`; empty for an absent key or another kind.
-pub fn toml_get_int_array(d: &TomlDoc, key: Str) -> Vec[Int] {
+pub fn toml_get_int_array(d: &TomlDoc, key: Str) -> Vec[Int]
+  ensures: d.keys.len() == 0 => result.len() == 0;
+{
   var out = Vec[Int].new();
   let i = _key_index(d, key);
   if i < 0 { return out; }
@@ -636,7 +658,9 @@ pub fn toml_get_int_array(d: &TomlDoc, key: Str) -> Vec[Int] {
 }
 
 /// Dotted keys of every entry, in document order (a fresh copy).
-pub fn toml_keys(d: &TomlDoc) -> Vec[Str] {
+pub fn toml_keys(d: &TomlDoc) -> Vec[Str]
+  ensures: result.len() == d.keys.len();
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < d.keys.len() {
@@ -647,6 +671,8 @@ pub fn toml_keys(d: &TomlDoc) -> Vec[Str] {
 }
 
 /// Number of entries in the document.
-pub fn toml_key_count(d: &TomlDoc) -> Int {
+pub fn toml_key_count(d: &TomlDoc) -> Int
+  ensures: result == d.keys.len();
+{
   return d.keys.len();
 }

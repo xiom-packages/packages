@@ -1,6 +1,6 @@
 # xiom.toml -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.toml` (`src/toml.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -224,3 +224,48 @@ just-landed `xiom.csv` pure-parser idioms (byte-wise scanning with
   not enforced.
 - No writer/serializer and no file I/O API.
 - Errors carry no line/column position.
+
+## Contracts (batch #30 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/toml.xi` in the batch #30
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). All 16 clauses are `ensures:` (no `requires:`), so the
+accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.toml -TimeoutSec 60` runs ended
+`port: PASS (passed=21 failed=0 program_exit=0 exit=0)` with the clauses
+active (5.4 s and 4.9 s); the 21-check conformance suite exercises all ten
+public entry points, including the empty-document, missing-key, wrong-kind,
+duplicate and malformed-input paths, and no clause trapped.
+
+All clauses are runtime-checked: a direct `xiom-verify --check` run on this
+module reported 0 proven, 0 violated, 25 unknown and 7 errors. Every clause
+is UNKNOWN (X7007: unsupported expression in the contract language -- the
+emitted SMT leaves `Str`/`Vec` lengths as unresolved operand sorts), so none
+is claimed Z3-provable. The 7 error lines are a known emitter bug (`unknown
+constant _key_index` in the generated SMT for the private lookup helper),
+not contract violations.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `toml_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime-checked (`Result` tag + `Str` length; never a payload read) |
+| `toml_has` | `ensures: key.len() == 0 => !result`; `ensures: result => key.len() > 0` | runtime-checked (Bool result + `Str` length) |
+| `toml_kind` | `ensures: key.len() == 0 => result is None`; `ensures: result is Some => key.len() > 0` | runtime-checked (`Option` tag + `Str` length; no range claim on the carried `Int`) |
+| `toml_get_str` | `ensures: key.len() == 0 => result is None`; `ensures: result is Some => key.len() > 0` | runtime-checked (`Option` tag + `Str` length) |
+| `toml_get_int` | `ensures: key.len() == 0 => result is None`; `ensures: result is Some => key.len() > 0` | runtime-checked (`Option` tag + `Str` length) |
+| `toml_get_bool` | `ensures: key.len() == 0 => result is None`; `ensures: result is Some => key.len() > 0` | runtime-checked (`Option` tag + `Str` length) |
+| `toml_get_str_array` | `ensures: key.len() == 0 => result.len() == 0` | runtime-checked (`Vec` length) |
+| `toml_get_int_array` | `ensures: key.len() == 0 => result.len() == 0` | runtime-checked (`Vec` length) |
+| `toml_keys` | `ensures: result.len() == d.keys.len()` | runtime-checked (`Vec` length vs field) |
+| `toml_key_count` | `ensures: result == d.keys.len()` | runtime-checked (`Int` vs field length) |
+
+The empty-key clauses hold for every document produced by `toml_parse`: the
+parser rejects empty key segments and empty paths, so no stored key is ever
+the empty `Str`, `_key_index` never matches the empty `Str`, and every
+accessor misses.
+`toml_parse` returns `Ok` for zero-length input because the line loop then
+sees only the terminal zero-length slice, which is skipped. `toml_kind`
+deliberately claims no range on `d.kinds[i]` (a hand-built `TomlDoc` may
+carry any `Int`). No clause reads a `Result` payload or a struct-return
+payload, indexes a vector, compares `Str` values, references a module const,
+or calls a function; only parameter/`result` shapes, `Str`/`Vec` lengths and
+`Int` fields are used. No clause was dropped.
