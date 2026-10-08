@@ -1,120 +1,245 @@
-// XIOM -- GLFW Bindings v0.2.0 (Production -- v0.49.5: newtypes + Float32 fix)
-// Standalone package. Zero Vulkan dependency. All functions have contracts.
+// XIOM -- xiom.glfw: GLFW bindings via dynamic loader.
+// Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
+// Licensed under the MIT or Apache-2.0 license, at your option.
+//
+// DESIGN: dynamic loader path (same pattern as xiom.sdl3). The package does
+// NOT link GLFW at build time. `glfw_load` resolves `glfw3.dll` through
+// `xiom.ffi.dl` at runtime and every call goes through fn-pointer casts in
+// this single module -- the ONLY module in the package with `unsafe`.
+//
+// Classification (the suite maps it to markers):
+//   GLFW_LOAD_ABSENT  -> backend missing -> SKIP (CI stays green)
+//   GLFW_LOAD_NO_PLATFORM -> glfwInit failed (no display/platform) -> SKIP
+//   GLFW_LOAD_ABI     -> library present but exports missing -> FAIL
+//
+// Coverage (pilot smoke): init / terminate, version (packed + string), timer,
+// last-error accessor. Window/input/monitor resources are Phase 2
+// (ROADMAP.md); the pre-pilot C-bridge wrapper set is preserved in git
+// history only (it required GLFW headers/import libs at build time and could
+// not satisfy the SKIP-when-absent gate).
+//
+// G2 pin (SPEC.md): soname `glfw3.dll` (Windows) / `libglfw.so.3` (POSIX,
+// Phase 2) + upstream tag 3.4 header hash + resolved symbol set.
 
-module xiom.glwf
+module xiom.glfw
 
-extern "C" {
-  fn glfw_bridge_init() -> Int32;
-  fn glfw_bridge_terminate();
-  fn glfw_bridge_create_window(w: Int32, h: Int32, title: Str) -> Int;
-  fn glfw_bridge_destroy_window(window: Int);
-  fn glfw_bridge_should_close(window: Int) -> Int32;
-  fn glfw_bridge_set_window_title(window: Int, title: Str);
-  fn glfw_bridge_get_framebuffer_size(window: Int, w: Int, h: Int);
-  fn glfw_bridge_get_window_size(window: Int, w: Int, h: Int);
-  fn glfw_bridge_poll_events();
-  fn glfw_bridge_get_key(window: Int, key: Int32) -> Int32;
-  fn glfw_bridge_get_mouse_button(window: Int, button: Int32) -> Int32;
-  fn glfw_bridge_get_cursor_pos(window: Int, x: Int, y: Int);
-  fn glfw_bridge_get_primary_monitor() -> Int;
-  fn glfw_bridge_get_video_mode(monitor: Int, w: Int, h: Int, refresh: Int);
-  fn glfw_bridge_set_window_monitor(window: Int, monitor: Int, x: Int32, y: Int32, w: Int32, h: Int32, refresh: Int32);
-  fn glfw_bridge_get_window_monitor(window: Int) -> Int;
-  fn glfw_bridge_get_error() -> Str;
+use xiom.ffi.dl;
+
+// =========================================================================
+// Identity and constants
+// =========================================================================
+
+pub const GLFW3_SONAME: Str = "glfw3.dll";
+
+pub const GLFW_TRUE: Int = 1;
+pub const GLFW_FALSE: Int = 0;
+pub const GLFW_KEY_ESCAPE: Int = 256;
+pub const GLFW_PRESS: Int = 1;
+pub const GLFW_RELEASE: Int = 0;
+pub const GLFW_CLIENT_API: Int = 0x00022001;
+pub const GLFW_NO_API: Int = 0;
+
+// Probe outcome kinds.
+pub const GLFW_LOAD_ABSENT: Int = 0;      // backend missing -> SKIP
+pub const GLFW_LOAD_NO_PLATFORM: Int = 1; // glfwInit failed (headless) -> SKIP
+pub const GLFW_LOAD_ABI: Int = 2;         // exports missing -> FAIL
+
+pub type GlfwLoadError = {
+  kind: Int;
+  message: Str;
 }
 
-// -- Newtypes (v0.49.5: auto-convert to Int) --------------------------------
-pub type Window  = Int;
-pub type Monitor = Int;
-
-// -- Lifecycle --
-pub fn glfw_init() -> Bool
-{ return unsafe { glfw_bridge_init() != 0 }; }
-
-pub fn glfw_terminate()
-{ unsafe { glfw_bridge_terminate(); }; }
-
-// -- Window --
-pub fn glfw_create_window(title: Str, w: Int, h: Int) -> Result[Window, Str]
-  requires: title.len() > 0; requires: w > 0; requires: h > 0
-{
-  let win = unsafe { glfw_bridge_create_window(w as Int32, h as Int32, title) };
-  if win == 0 { return Err(unsafe { glfw_bridge_get_error() }); };
-  Ok(win)
+/// A loaded GLFW library.  Owned by the caller; release with `glfw_close`.
+pub type GlfwLibrary = {
+  handle: Int;
+  p_init: Int;
+  p_terminate: Int;
+  p_get_version: Int;
+  p_get_version_string: Int;
+  p_get_time: Int;
+  p_get_error: Int;
 }
 
-pub fn glfw_destroy_window(win: Window) requires: win != 0
-{ unsafe { glfw_bridge_destroy_window(win); }; }
+// =========================================================================
+// Out-param slot helpers (XIOM-owned buffers; no malloc/free)
+// =========================================================================
 
-pub fn glfw_should_close(win: Window) -> Bool requires: win != 0
-{ return unsafe { glfw_bridge_should_close(win) != 0 }; }
-
-pub fn glfw_set_title(win: Window, title: Str) requires: win != 0
-{ unsafe { glfw_bridge_set_window_title(win, title); }; }
-
-// -- Size --
-pub fn glfw_get_framebuffer_size(win: Window) -> (Int, Int) requires: win != 0
+fn slot_new(n: Int) -> Vec[UInt8]
+  requires: n > 0
+  requires: n <= 64
 {
-  var fw: Int32 = 0; var fh: Int32 = 0;
-  unsafe { glfw_bridge_get_framebuffer_size(win, &fw, &fh); }
-  return (fw as Int, fh as Int);
-}
-
-pub fn glfw_get_window_size(win: Window) -> (Int, Int) requires: win != 0
-{
-  var w: Int32 = 0; var h: Int32 = 0;
-  unsafe { glfw_bridge_get_window_size(win, &w, &h); }
-  return (w as Int, h as Int);
-}
-
-// -- Input --
-pub fn glfw_poll_events()
-{ unsafe { glfw_bridge_poll_events(); }; }
-
-pub fn glfw_get_key(win: Window, key: Int) -> Bool requires: win != 0
-{ return unsafe { glfw_bridge_get_key(win, key as Int32) != 0 }; }
-
-pub fn glfw_get_mouse_button(win: Window, button: Int) -> Bool requires: win != 0
-{ return unsafe { glfw_bridge_get_mouse_button(win, button as Int32) != 0 }; }
-
-pub fn glfw_get_cursor_pos(win: Window) -> (Float32, Float32) requires: win != 0
-{
-  var x: Float32 = 0.0; var y: Float32 = 0.0;
-  unsafe { glfw_bridge_get_cursor_pos(win, &x, &y); }
-  return (x, y);
-}
-
-// -- Monitors --
-pub fn glfw_get_primary_monitor() -> Monitor
-{ return unsafe { glfw_bridge_get_primary_monitor() }; }
-
-pub fn glfw_get_video_mode(monitor: Monitor) -> (Int, Int, Int) requires: monitor != 0
-{
-  var w: Int32 = 0; var h: Int32 = 0; var r: Int32 = 0;
-  unsafe { glfw_bridge_get_video_mode(monitor, &w, &h, &r); }
-  return (w as Int, h as Int, r as Int);
-}
-
-// -- Fullscreen --
-pub fn glfw_set_fullscreen(win: Window, monitor: Monitor, w: Int, h: Int, refresh: Int) requires: win != 0
-{ unsafe { glfw_bridge_set_window_monitor(win, monitor, 0, 0, w as Int32, h as Int32, refresh as Int32); }; }
-
-pub fn glfw_set_windowed(win: Window, x: Int, y: Int, w: Int, h: Int) requires: win != 0
-{ unsafe { glfw_bridge_set_window_monitor(win, 0, x as Int32, y as Int32, w as Int32, h as Int32, 0); }; }
-
-pub fn glfw_toggle_fullscreen(win: Window) -> Result[Unit, Str] requires: win != 0
-{
-  let cur = unsafe { glfw_bridge_get_window_monitor(win) };
-  if cur != 0 {
-    let mon = unsafe { glfw_bridge_get_primary_monitor() };
-    var mw: Int32 = 0; var mh: Int32 = 0; var mr: Int32 = 0;
-    unsafe { glfw_bridge_get_video_mode(mon, &mw, &mh, &mr); };
-    unsafe { glfw_bridge_set_window_monitor(win, 0, 100, 100, (mw/2) as Int32, (mh/2) as Int32, 0); };
-  } else {
-    let mon = unsafe { glfw_bridge_get_primary_monitor() };
-    var mw: Int32 = 0; var mh: Int32 = 0; var mr: Int32 = 0;
-    unsafe { glfw_bridge_get_video_mode(mon, &mw, &mh, &mr); };
-    unsafe { glfw_bridge_set_window_monitor(win, mon, 0, 0, mw, mh, mr); };
+  var s: Vec[UInt8] = Vec[UInt8].new();
+  var i: Int = 0;
+  while i < n {
+    s.push(0 as UInt8);
+    i = i + 1;
   }
-  Ok(())
+  return s;
+}
+
+fn read_u32_le(buf: &Vec[UInt8]) -> Int
+  requires: buf.len() >= 4
+{
+  let b0 = buf[0] as Int;
+  let b1 = buf[1] as Int;
+  let b2 = buf[2] as Int;
+  let b3 = buf[3] as Int;
+  return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+}
+
+fn read_u64_le(buf: &Vec[UInt8]) -> Int
+  requires: buf.len() >= 8
+{
+  let b0 = buf[0] as Int;
+  let b1 = buf[1] as Int;
+  let b2 = buf[2] as Int;
+  let b3 = buf[3] as Int;
+  let b4 = buf[4] as Int;
+  let b5 = buf[5] as Int;
+  let b6 = buf[6] as Int;
+  let b7 = buf[7] as Int;
+  return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)
+       | (b4 << 32) | (b5 << 40) | (b6 << 48) | (b7 << 56);
+}
+
+// =========================================================================
+// Loader
+// =========================================================================
+
+/// Load glfw3.dll and resolve the smoke API.  Nothing is leaked: the handle
+/// is closed when a symbol is missing.
+/// Complexity: O(symbols).
+pub fn glfw_load() -> Result[GlfwLibrary, GlfwLoadError] {
+  let h = dl.dl_open(GLFW3_SONAME);
+  if !h.is_ok {
+    return Err(GlfwLoadError{ kind: GLFW_LOAD_ABSENT; message: h.error });
+  }
+  let handle: Int = h.value;
+
+  let a1 = dl.dl_sym(handle, "glfwInit");
+  if !a1.is_ok { var ig = dl.dl_close(handle); return Err(GlfwLoadError{ kind: GLFW_LOAD_ABI; message: "glfwInit: " + a1.error }); }
+  let a2 = dl.dl_sym(handle, "glfwTerminate");
+  if !a2.is_ok { var ig = dl.dl_close(handle); return Err(GlfwLoadError{ kind: GLFW_LOAD_ABI; message: "glfwTerminate: " + a2.error }); }
+  let a3 = dl.dl_sym(handle, "glfwGetVersion");
+  if !a3.is_ok { var ig = dl.dl_close(handle); return Err(GlfwLoadError{ kind: GLFW_LOAD_ABI; message: "glfwGetVersion: " + a3.error }); }
+  let a4 = dl.dl_sym(handle, "glfwGetVersionString");
+  if !a4.is_ok { var ig = dl.dl_close(handle); return Err(GlfwLoadError{ kind: GLFW_LOAD_ABI; message: "glfwGetVersionString: " + a4.error }); }
+  let a5 = dl.dl_sym(handle, "glfwGetTime");
+  if !a5.is_ok { var ig = dl.dl_close(handle); return Err(GlfwLoadError{ kind: GLFW_LOAD_ABI; message: "glfwGetTime: " + a5.error }); }
+  let a6 = dl.dl_sym(handle, "glfwGetError");
+  if !a6.is_ok { var ig = dl.dl_close(handle); return Err(GlfwLoadError{ kind: GLFW_LOAD_ABI; message: "glfwGetError: " + a6.error }); }
+
+  return Ok(GlfwLibrary{
+    handle: handle,
+    p_init: a1.value,
+    p_terminate: a2.value,
+    p_get_version: a3.value,
+    p_get_version_string: a4.value,
+    p_get_time: a5.value,
+    p_get_error: a6.value,
+  });
+}
+
+/// Release the library handle.
+/// Complexity: O(1).
+pub fn glfw_close(lib: &GlfwLibrary) -> Result[Unit, Str]
+  requires: lib.handle != 0
+{
+  return dl.dl_close(lib.handle);
+}
+
+// =========================================================================
+// Safe call wrappers (confined: fn-pointer casts live here)
+// =========================================================================
+
+/// glfwInit() -> TRUE on success.
+/// Complexity: O(platform init).
+pub fn glfw_init(lib: &GlfwLibrary) -> Bool
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_init as fn() -> Int32;
+    return f() != 0;
+  }
+}
+
+/// glfwTerminate().
+/// Complexity: O(1).
+pub fn glfw_terminate(lib: &GlfwLibrary)
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_terminate as fn();
+    f();
+  }
+}
+
+/// glfwGetVersion() packed as major*10000 + minor*100 + rev
+/// (3.4.0 -> 30400).
+/// Complexity: O(1).
+pub fn glfw_get_version(lib: &GlfwLibrary) -> Int
+  requires: lib.handle != 0
+{
+  unsafe {
+    var sm = slot_new(4);
+    var sn = slot_new(4);
+    var sr = slot_new(4);
+    let f = lib.p_get_version as fn(*UInt8, *UInt8, *UInt8);
+    f(sm.as_mut_ptr(), sn.as_mut_ptr(), sr.as_mut_ptr());
+    let major = read_u32_le(&sm);
+    let minor = read_u32_le(&sn);
+    let rev = read_u32_le(&sr);
+    return major * 10000 + minor * 100 + rev;
+  }
+}
+
+/// glfwGetVersionString() -> compiler/platform description ("" when NULL).
+/// Complexity: O(len).
+pub fn glfw_get_version_string(lib: &GlfwLibrary) -> Str
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_get_version_string as fn() -> *UInt8;
+    let p = f();
+    if (p as Int) == 0 { return ""; }
+    return Str::from_c_str(p);
+  }
+}
+
+/// glfwGetTime() -> seconds since glfwInit (0.0 before init).
+/// Complexity: O(1).
+pub fn glfw_get_time(lib: &GlfwLibrary) -> Float64
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_get_time as fn() -> Float64;
+    return f();
+  }
+}
+
+/// glfwGetError(NULL) -> last error code (0 when none).
+/// Complexity: O(1).
+pub fn glfw_last_error_code(lib: &GlfwLibrary) -> Int
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_get_error as fn(Int) -> Int32;
+    return f(0) as Int;
+  }
+}
+
+/// glfwGetError(&desc) -> description of the last error ("" when none).
+/// Complexity: O(len).
+pub fn glfw_last_error(lib: &GlfwLibrary) -> Str
+  requires: lib.handle != 0
+{
+  unsafe {
+    var slot = slot_new(8);
+    let f = lib.p_get_error as fn(*UInt8) -> Int32;
+    let code = f(slot.as_mut_ptr()) as Int;
+    if code == 0 { return ""; }
+    let ptr = read_u64_le(&slot);
+    if ptr == 0 { return ""; }
+    return Str::from_c_str(ptr as *UInt8);
+  }
 }
