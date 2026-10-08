@@ -551,7 +551,9 @@ fn _push_code3(out: &mut Vec[UInt8], code: Int) {
 /// Returns: 512.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn smtp_command_limit() -> Int {
+pub fn smtp_command_limit() -> Int
+  ensures: result == 512;
+{
   return _SMTP_MAX_COMMAND;
 }
 
@@ -572,7 +574,11 @@ pub fn smtp_command_limit() -> Int {
 /// Err("smtp: bad verb: <verb>") for an unknown verb or a command form error;
 /// Err("smtp: bad path: ...") for a malformed MAIL/RCPT path or parameter.
 /// Complexity: O(len(line)).
-pub fn cmd_parse(line: Str) -> Result[Cmd, Str] {
+pub fn cmd_parse(line: Str) -> Result[Cmd, Str]
+  ensures: line.len() < 2 => result is Err;
+  ensures: line.len() > 512 => result is Err;
+  ensures: result is Ok => line.len() >= 2 && line.len() <= 512;
+{
   let n = line.len();
   if n < 2 {
     return _err_cmd("smtp: missing CRLF");
@@ -615,7 +621,10 @@ pub fn cmd_parse(line: Str) -> Result[Cmd, Str] {
 /// Err("smtp: control byte in command") for a C0/DEL byte in the argument;
 /// Err("smtp: bad path: ...") for a malformed MAIL/RCPT argument.
 /// Complexity: O(total length).
-pub fn cmd_build(verb: Str, arg: Str) -> Result[Cmd, Str] {
+pub fn cmd_build(verb: Str, arg: Str) -> Result[Cmd, Str]
+  ensures: verb.len() == 0 => result is Err;
+  ensures: result is Ok => verb.len() > 0;
+{
   let v = _upper_ascii(_trim_spaces(verb));
   let vid = _verb_id(v);
   if vid == _SMTP_V_UNKNOWN {
@@ -634,7 +643,10 @@ pub fn cmd_build(verb: Str, arg: Str) -> Result[Cmd, Str] {
 /// Error case: Err("smtp: bad verb: EHLO requires a domain") for an empty
 /// (or spaces-only) domain; plus every error of cmd_build.
 /// Complexity: O(len(domain)).
-pub fn cmd_ehlo(domain: Str) -> Result[Cmd, Str] {
+pub fn cmd_ehlo(domain: Str) -> Result[Cmd, Str]
+  ensures: domain.len() == 0 => result is Err;
+  ensures: result is Ok => domain.len() > 0;
+{
   let d = _trim_spaces(domain);
   if d.len() == 0 {
     return _err_cmd("smtp: bad verb: EHLO requires a domain");
@@ -665,7 +677,10 @@ pub fn cmd_helo(domain: Str) -> Result[Cmd, Str] {
 /// Err("smtp: bad path: missing FROM:") cannot happen here, while a malformed
 /// path or parameter yields Err("smtp: bad path: ...")).
 /// Complexity: O(total length).
-pub fn cmd_mail(reverse_path: Str, params: &Vec[Str]) -> Result[Cmd, Str] {
+pub fn cmd_mail(reverse_path: Str, params: &Vec[Str]) -> Result[Cmd, Str]
+  ensures: reverse_path.len() == 0 => result is Err;
+  ensures: result is Ok => reverse_path.len() > 0;
+{
   let arg = _assemble_arg("FROM:", reverse_path, params);
   return cmd_build("MAIL", arg);
 }
@@ -679,7 +694,10 @@ pub fn cmd_mail(reverse_path: Str, params: &Vec[Str]) -> Result[Cmd, Str] {
 /// Error case: Err("smtp: bad path: empty forward-path") for "<>"; plus every
 /// error of cmd_build.
 /// Complexity: O(total length).
-pub fn cmd_rcpt(forward_path: Str, params: &Vec[Str]) -> Result[Cmd, Str] {
+pub fn cmd_rcpt(forward_path: Str, params: &Vec[Str]) -> Result[Cmd, Str]
+  ensures: forward_path.len() == 0 => result is Err;
+  ensures: result is Ok => forward_path.len() > 0;
+{
   let arg = _assemble_arg("TO:", forward_path, params);
   return cmd_build("RCPT", arg);
 }
@@ -701,7 +719,10 @@ pub fn cmd_noop(arg: Str) -> Result[Cmd, Str] {
 /// Error case: Err("smtp: bad verb: AUTH requires a mechanism") for an empty
 /// mechanism; every error of cmd_build.
 /// Complexity: O(total length).
-pub fn cmd_auth(mechanism: Str, initial_response: Str) -> Result[Cmd, Str] {
+pub fn cmd_auth(mechanism: Str, initial_response: Str) -> Result[Cmd, Str]
+  ensures: mechanism.len() == 0 => result is Err;
+  ensures: result is Ok => mechanism.len() > 0;
+{
   let m = _trim_spaces(mechanism);
   if m.len() == 0 {
     return _err_cmd("smtp: bad verb: AUTH requires a mechanism");
@@ -758,7 +779,10 @@ pub fn cmd_starttls() -> Cmd {
 /// byte-exact for canonically spaced input and stable afterwards.
 /// Error case: none (the Cmd invariants are maintained by this module).
 /// Complexity: O(total length).
-pub fn cmd_emit(c: &Cmd) -> Str {
+pub fn cmd_emit(c: &Cmd) -> Str
+  ensures: c.arg.len() == 0 => result.len() == c.verb.len() + 2;
+  ensures: c.arg.len() > 0 => result.len() == c.verb.len() + c.arg.len() + 3;
+{
   var out = Vec[UInt8].new();
   let v: Str = c.verb;
   builder.sb_push_str(&mut out, v);
@@ -818,7 +842,9 @@ pub fn cmd_param_count(c: &Cmd) -> Int {
 /// past the last parameter.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn cmd_param(c: &Cmd, i: Int) -> Str {
+pub fn cmd_param(c: &Cmd, i: Int) -> Str
+  ensures: i < 0 || i >= c.params.len() => result.len() == 0;
+{
   if i < 0 || i >= c.params.len() {
     return "";
   }
@@ -859,7 +885,10 @@ pub fn cmd_verb_is(c: &Cmd, name: Str) -> Bool {
 /// continuation line;
 /// Err("smtp: control byte in response") for a forbidden byte in the text.
 /// Complexity: O(len(text)).
-pub fn resp_parse(text: Str) -> Result[Resp, Str] {
+pub fn resp_parse(text: Str) -> Result[Resp, Str]
+  ensures: text.len() < 2 => result is Err;
+  ensures: result is Ok => text.len() >= 2;
+{
   let n = text.len();
   if n < 2 {
     return _err_resp("smtp: missing CRLF");
@@ -953,7 +982,12 @@ pub fn resp_parse(text: Str) -> Result[Resp, Str] {
 /// an empty lines vector; Err("smtp: control byte in response") for a
 /// forbidden byte in a line text (TAB is legal).
 /// Complexity: O(total length).
-pub fn resp_build(code: Int, lines: &Vec[Str]) -> Result[Resp, Str] {
+pub fn resp_build(code: Int, lines: &Vec[Str]) -> Result[Resp, Str]
+  ensures: code < 100 || code > 599 => result is Err;
+  ensures: lines.len() == 0 => result is Err;
+  ensures: result is Ok => code >= 100 && code <= 599;
+  ensures: result is Ok => lines.len() > 0;
+{
   if code < 100 || code > 599 {
     return _err_resp("smtp: bad code digits: " + _int_str(code));
   }
@@ -981,7 +1015,10 @@ pub fn resp_build(code: Int, lines: &Vec[Str]) -> Result[Resp, Str] {
 /// trailing SP but empty text canonicalizes to the bare "NNN" form).
 /// Error case: none (the Resp invariants are maintained by this module).
 /// Complexity: O(total length).
-pub fn resp_emit(r: &Resp) -> Str {
+pub fn resp_emit(r: &Resp) -> Str
+  ensures: r.spans.len() == 0 => result.len() == 0;
+  ensures: r.spans.len() > 0 => result.len() >= 5;
+{
   var out = Vec[UInt8].new();
   let count = _line_count(r);
   var i = 0;
@@ -1036,7 +1073,9 @@ pub fn resp_is_multiline(r: &Resp) -> Bool {
 /// Returns: the line count (1 for a single-line reply).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn resp_line_count(r: &Resp) -> Int {
+pub fn resp_line_count(r: &Resp) -> Int
+  ensures: result == r.spans.len() / 2;
+{
   return _line_count(r);
 }
 
@@ -1046,7 +1085,9 @@ pub fn resp_line_count(r: &Resp) -> Int {
 /// or past the last line.
 /// Error case: none.
 /// Complexity: O(len(line)).
-pub fn resp_line(r: &Resp, i: Int) -> Str {
+pub fn resp_line(r: &Resp, i: Int) -> Str
+  ensures: i < 0 || i >= r.spans.len() / 2 => result.len() == 0;
+{
   if i < 0 || i >= _line_count(r) {
     return "";
   }
@@ -1060,7 +1101,9 @@ pub fn resp_line(r: &Resp, i: Int) -> Str {
 /// Returns: resp_line(r, 0); "" for a reply with no lines.
 /// Error case: none.
 /// Complexity: O(len(line)).
-pub fn resp_text(r: &Resp) -> Str {
+pub fn resp_text(r: &Resp) -> Str
+  ensures: result.len() == resp_line(r, 0).len();
+{
   return resp_line(r, 0);
 }
 
@@ -1072,7 +1115,9 @@ pub fn resp_text(r: &Resp) -> Str {
 /// inspected.
 /// Error case: none.
 /// Complexity: O(len(first line)).
-pub fn resp_enhanced(r: &Resp) -> Str {
+pub fn resp_enhanced(r: &Resp) -> Str
+  ensures: result.len() == 0 || result.len() >= 5;
+{
   let t = resp_line(r, 0);
   let n = t.len();
   var i = 0;
@@ -1116,6 +1161,8 @@ pub fn resp_enhanced(r: &Resp) -> Str {
 /// Returns: true when the first line text starts with an x.y.z code.
 /// Error case: none.
 /// Complexity: O(len(first line)).
-pub fn resp_has_enhanced(r: &Resp) -> Bool {
+pub fn resp_has_enhanced(r: &Resp) -> Bool
+  ensures: result == (resp_enhanced(r).len() > 0);
+{
   return resp_enhanced(r).len() > 0;
 }

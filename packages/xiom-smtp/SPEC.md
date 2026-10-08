@@ -1,6 +1,6 @@
 # xiom.smtp -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.smtp` (`src/smtp.xi`). Pure XIOM, no FFI, no I/O, no session
 state.
 
@@ -336,3 +336,51 @@ idioms as `xiom.eml`/`xiom.irc` and documents these compiler-driven choices:
   boundaries itself.
 - Reply text bytes >= 0x80 are passed through without UTF-8 validation, and
   replies have no length cap.
+
+## Contracts (batch #42 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses were added to `src/smtp.xi` in the
+batch #42 hardening pass (compiler v0.64.0; `package.xi` is left for the
+coordinator to bump at integration). 30 clauses over the 17 functions below,
+all `ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+Two consecutive
+`& .\scripts\port.ps1 -Package xiom.smtp -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active (9.02 s and 8.97 s); no clause trapped.
+
+Every clause holds for hand-built `Cmd`/`Resp` values that satisfy the
+section 2 invariants (in particular `spans.len()` even): each guard keeps the
+source's own validation branch, and only parameters, parameter fields (all
+`&`, never a bare `&mut` parameter) and vector lengths are read. No clause
+uses a module constant (the 512 command limit is an inlined literal), indexes
+a vector, reads a `Str` byte, compares `Str` values with `==`, reads a
+struct-Result payload field, or uses `result.value.0/.1`. The clause calls are
+the definitional cross-calls `resp_text` -> `resp_line` and
+`resp_has_enhanced` -> `resp_enhanced`; neither callee reaches its caller
+(non-re-entrant).
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it
+can emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `smtp_command_limit` | 1 | result is 512 | no | yes |
+| `cmd_parse` | 3 | under 2 or over 512 bytes => `Err`; `Ok` => 2..512 bytes | no | yes |
+| `cmd_build` | 2 | empty verb => `Err`; `Ok` => verb non-empty | no | yes |
+| `cmd_ehlo` | 2 | empty domain => `Err`; `Ok` => domain non-empty | no | yes |
+| `cmd_mail` | 2 | empty reverse path => `Err`; `Ok` => reverse path non-empty | no | yes |
+| `cmd_rcpt` | 2 | empty forward path => `Err`; `Ok` => forward path non-empty | no | yes |
+| `cmd_auth` | 2 | empty mechanism => `Err`; `Ok` => mechanism non-empty | no | yes |
+| `cmd_emit` | 2 | emitted length verb+2 (no arg) or verb+arg+3 (arg) | no | yes |
+| `cmd_param` | 1 | out-of-range index => `""` | no | yes |
+| `resp_parse` | 2 | under 2 bytes => `Err`; `Ok` => at least 2 bytes | no | yes |
+| `resp_build` | 4 | code outside 100..599 or empty lines => `Err`; `Ok` => code 100..599 and at least one line | no | yes |
+| `resp_emit` | 2 | no spans => `""`; spans present => at least 5 bytes | no | yes |
+| `resp_line_count` | 1 | result is `spans.len() / 2` | no | yes |
+| `resp_line` | 1 | out-of-range line index => `""` | no | yes |
+| `resp_text` | 1 | length equals `resp_line(r, 0).len()` | no | yes |
+| `resp_enhanced` | 1 | `""` or at least 5 bytes | no | yes |
+| `resp_has_enhanced` | 1 | true exactly when `resp_enhanced(r)` is non-empty | no | yes |
+
+Runtime-checked clauses, per the Z3 note above: all 30. No clause needed the
+circuit breaker, no probe-gated item applied, and no clause was dropped.

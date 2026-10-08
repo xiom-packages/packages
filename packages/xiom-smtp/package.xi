@@ -11,7 +11,7 @@
 
 package xiom_smtp {
   name: "xiom.smtp";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "SMTP protocol codec: RFC 5321 command lines and reply blocks, parse, build and canonical CRLF emit";
   categories: ["network"];
   keywords: ["smtp", "email", "protocol", "parser"];
