@@ -163,3 +163,39 @@ relay, not by a second implementation).
   vocabulary + ORBITDB's disk layer; porter flow; new name -> ops scope + allowlist at
   build-green) and later `xiom-btree` (extraction ready; same flow), then
   `xiom.vectors`/`xiom.ann` after XVECTOR's hardening.
+
+## 7. Lane deltas 2026-10-08 (evening) -- PULSE v0.64.1 sweep + ORBITDB/XVECTOR wishlist state
+
+Source: PULSE `PACKAGE-WISHLIST-PULSE.md` delta 2026-10-08 (Linux v0.64.1 sweep),
+ORBITDB `PACKAGE-WISHLIST-ORBITDB.md` + response, XVECTOR `PACKAGE-WISHLIST-XVECTOR.md`
+(read 17:45Z; both already carry the packages-lane replies).
+
+**PULSE (consumer-verified on Linux v0.64.1):**
+- **C-PULSE-10 CLOSED on Linux** (fixed by m217): `xiom.kv` kv-mode smoke 73/73 and a
+  20-minute store soak green (756 writes/0 fail, count stable across compact+reopen,
+  hard-kill reopen intact). PULSE decision: default stays `jsonl`; kv remains the verified
+  opt-in backend until the ops surface is kv-aware (Dockerfile/backup/crash_test/DEPLOYMENT).
+- All ten adopted packages' probes green on the Linux archive (state-holder, session-inline,
+  adopt-smoke, stdlib-server-parse, schema, audit-rotate, kv, middleware, metrics, static,
+  session).
+- **C-PULSE-13 (NEW, compiler/installer):** Unix shipped-installer layout mismatch --
+  `xiom pkg` installs to `$HOME/xiom/packages` while the compiler resolves
+  `~/.local/share/xiom` (canonical) -> dependency roots resolve zero; Windows unaffected.
+  PULSE workaround: symlink `$HOME/xiom/packages` -> canonical `packages`, or `XIOM_HOME`.
+  Recorded in `docs/COMPILER-FINDINGS.md` (compiler lane).
+- **`xiom.http` 0.1.1 is the known-red republish gate on v0.64.1** (extern-unsafe
+  enforcement; 67 T001s as a catalog dep; PULSE pruned it). Fix in flight (compat porter:
+  unsafe confinement + republish as 0.1.2); see the findings doc for the fleet sweep list.
+- Bindings routing: PULSE files binding requests here; likely first = a durable DB/KV
+  client binding for the event store (`xiom.sqlite` 0.2.0 already covers the SQLite case).
+
+**ORBITDB:** wishlist state unchanged since the response -- `xiom.btree` gate MET (churn
+soak; invariant `min_keys=(order-2)/2`; acceptance = churn probe), `xiom.wal` ships
+standalone (durable record shape + ORBITDB disk contract; `payload[0]` subtype tag),
+`xiom.durable` reconciliation order fixed; extraction queue stands (`xiom-wal` then
+`xiom-btree`, ops scope + allowlist at build-green). New docs since: storage-layout,
+query-pipeline, PRODUCTION-READINESS (no new package asks).
+
+**XVECTOR:** wishlist carries the packages-lane reply (names frozen, 156-check reference
+suite, no pure-XIOM SIMD planned, durable-WAL correction). No new asks; adoption of
+`xiom.metrics` at Phase 10 and kv gated on fsync as recorded.
