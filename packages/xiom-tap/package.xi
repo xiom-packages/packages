@@ -8,7 +8,7 @@
 
 package xiom_tap {
   name: "xiom.tap";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Test Anything Protocol (TAP) parser and canonical emitter";
   categories: ["testing"];
   keywords: ["tap", "testing", "protocol", "parser"];

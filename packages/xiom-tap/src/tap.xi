@@ -398,7 +398,18 @@ fn _parse_test_line(d: &mut TapDoc, line: Str, line_no: Int) -> Str {
 /// Returns: an empty TapDoc.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn tap_doc_new() -> TapDoc {
+pub fn tap_doc_new() -> TapDoc
+  ensures: result.version == 0;
+  ensures: result.planned == -1;
+  ensures: result.bailed == false;
+  ensures: result.bail_reason.len() == 0;
+  ensures: result.numbers.len() == 0;
+  ensures: result.oks.len() == 0;
+  ensures: result.descriptions.len() == 0;
+  ensures: result.directives.len() == 0;
+  ensures: result.reasons.len() == 0;
+  ensures: result.diagnostics.len() == 0;
+{
   return TapDoc{
     version: 0;
     planned: -1;
@@ -484,7 +495,14 @@ pub fn tap_add_diagnostic(d: &mut TapDoc, text: Str) {
 
 // Number of index-aligned test entries: the shortest of the five parallel
 // test arrays, so a hand-built doc can never be read out of range.
-fn _test_count(d: &TapDoc) -> Int {
+fn _test_count(d: &TapDoc) -> Int
+  ensures: result <= d.numbers.len();
+  ensures: result <= d.oks.len();
+  ensures: result <= d.descriptions.len();
+  ensures: result <= d.directives.len();
+  ensures: result <= d.reasons.len();
+  ensures: d.numbers.len() == 0 || d.oks.len() == 0 || d.descriptions.len() == 0 || d.directives.len() == 0 || d.reasons.len() == 0 => result == 0;
+{
   var n = d.numbers.len();
   if d.oks.len() < n {
     n = d.oks.len();
@@ -506,7 +524,9 @@ fn _test_count(d: &TapDoc) -> Int {
 /// Returns: the version; 0 when the stream had no version line.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn tap_version(d: &TapDoc) -> Int {
+pub fn tap_version(d: &TapDoc) -> Int
+  ensures: result == d.version;
+{
   let v: Int = d.version;
   return v;
 }
@@ -516,7 +536,9 @@ pub fn tap_version(d: &TapDoc) -> Int {
 /// Returns: the plan count (0 for a "1..0" plan); -1 when there is no plan.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn tap_planned(d: &TapDoc) -> Int {
+pub fn tap_planned(d: &TapDoc) -> Int
+  ensures: result == d.planned;
+{
   let v: Int = d.planned;
   return v;
 }
@@ -526,7 +548,9 @@ pub fn tap_planned(d: &TapDoc) -> Int {
 /// Returns: the number of index-aligned results (see the TapDoc doc comment).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn tap_test_count(d: &TapDoc) -> Int {
+pub fn tap_test_count(d: &TapDoc) -> Int
+  ensures: result == _test_count(d);
+{
   return _test_count(d);
 }
 
@@ -535,7 +559,9 @@ pub fn tap_test_count(d: &TapDoc) -> Int {
 /// Returns: the number; -1 when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn tap_number(d: &TapDoc, i: Int) -> Int {
+pub fn tap_number(d: &TapDoc, i: Int) -> Int
+  ensures: i < 0 || i >= _test_count(d) => result == -1;
+{
   if i < 0 || i >= _test_count(d) {
     return -1;
   }
@@ -562,7 +588,9 @@ pub fn tap_is_ok(d: &TapDoc, i: Int) -> Bool {
 /// Returns: the description ("" for none); "" when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn tap_description(d: &TapDoc, i: Int) -> Str {
+pub fn tap_description(d: &TapDoc, i: Int) -> Str
+  ensures: i < 0 || i >= _test_count(d) => result.len() == 0;
+{
   if i < 0 || i >= _test_count(d) {
     return "";
   }
@@ -602,7 +630,10 @@ pub fn tap_reason(d: &TapDoc, i: Int) -> Str {
 /// here even when it is an "ok" (see tap_skipped / tap_todo).
 /// Error case: none.
 /// Complexity: O(results).
-pub fn tap_passed(d: &TapDoc) -> Int {
+pub fn tap_passed(d: &TapDoc) -> Int
+  ensures: result >= 0 && result <= _test_count(d);
+  ensures: result <= d.oks.len();
+{
   var c = 0;
   var i = 0;
   let n = _test_count(d);
@@ -642,7 +673,10 @@ pub fn tap_failed(d: &TapDoc) -> Int {
 /// Returns: the count.
 /// Error case: none.
 /// Complexity: O(results).
-pub fn tap_skipped(d: &TapDoc) -> Int {
+pub fn tap_skipped(d: &TapDoc) -> Int
+  ensures: result >= 0 && result <= _test_count(d);
+  ensures: result <= d.directives.len();
+{
   var c = 0;
   var i = 0;
   let n = _test_count(d);
@@ -789,7 +823,10 @@ pub fn tap_write_test(number: Int, ok: Bool, description: Str, directive: Str, r
 /// Returns: "#" for an empty text, else "# <text>" (no terminator).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn tap_write_comment(text: Str) -> Str {
+pub fn tap_write_comment(text: Str) -> Str
+  ensures: text.len() == 0 => result.len() == 1;
+  ensures: text.len() > 0 => result.len() == text.len() + 2;
+{
   if text.len() == 0 {
     return "#";
   }
@@ -801,7 +838,9 @@ pub fn tap_write_comment(text: Str) -> Str {
 /// Returns: "Bail out!" or "Bail out! <reason>" (no terminator).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn tap_write_bail(reason: Str) -> Str {
+pub fn tap_write_bail(reason: Str) -> Str
+  ensures: reason.len() == 0 => result.len() == 9;
+{
   let r = _trim_ws(reason);
   if r.len() == 0 {
     return "Bail out!";
@@ -824,7 +863,9 @@ pub fn tap_write_bail(reason: Str) -> Str {
 /// Error case: none. Mismatched parallel arrays are clamped to their
 /// shortest length.
 /// Complexity: O(total output length).
-pub fn tap_emit(d: &TapDoc) -> Str {
+pub fn tap_emit(d: &TapDoc) -> Str
+  ensures: d.version <= 0 && d.planned < 0 && !d.bailed && _test_count(d) == 0 && d.diagnostics.len() == 0 => result.len() == 0;
+{
   var out = "";
   let ver = tap_version(d);
   if ver > 0 {
@@ -878,7 +919,11 @@ pub fn tap_emit(d: &TapDoc) -> Str {
 /// diagnostic block, unrecognized text before the plan or an unrecognized
 /// line after it. The catalog is in SPEC.md.
 /// Complexity: O(input length).
-pub fn tap_parse(text: Str) -> Result[TapDoc, Str] {
+pub fn tap_parse(text: Str) -> Result[TapDoc, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+  ensures: string.str_starts_with(text, "Bail out!") => result is Ok;
+{
   var doc = tap_doc_new();
   let len = text.len();
   var line_start = 0;
