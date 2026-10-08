@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T12:51:44Z",
+    "updated":  "2026-10-08T13:23:52Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -7344,23 +7344,24 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.sqlite",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "SQLite Database Bindings for XIOM",
+                         "description":  "SQLite bindings for XIOM (vendored amalgamation 3.53.4)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sqlite/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sqlite/v0.2.0/package.tar.gz",
                          "source_files":  [
-                                              "connection.xi",
-                                              "demo.xi",
+                                              "ffi.xi",
                                               "migration.xi",
                                               "query.xi",
+                                              "rows.xi",
                                               "schema.xi",
+                                              "sqlite.xi",
                                               "types.xi",
                                               "package.xi"
                                           ]

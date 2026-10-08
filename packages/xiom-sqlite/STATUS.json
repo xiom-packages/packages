@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  16,
                   "failed":  0,
-                  "run_by":  "task:bindings-phase1",
-                  "commit":  "bd985f39",
-                  "checked":  "2026-10-08T10:01:56Z"
+                  "run_by":  "native-session",
+                  "commit":  "95227e16",
+                  "checked":  "2026-10-08T10:24:04Z"
               },
     "publish":  false,
-    "excluded_reason":  "not allowlisted: pending native-lane allowlist append"
+    "excluded_reason":  "publish pending: first bindings batch (eco-v0.1.89)"
 }

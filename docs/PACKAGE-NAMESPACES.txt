@@ -2,8 +2,8 @@
 # Regenerate at every wave wrap; the stdlib session cross-checks new
 # module names against this list (packages check the stdlib via
 # scripts/namespace-check.ps1).
-# generated: 2026-10-08T12:51:55+03:00
-# packages: 519  modules: 603
+# generated: 2026-10-08T13:23:58+03:00
+# packages: 519  modules: 604
 
 ## package names
 xiom.acpi
@@ -1001,10 +1001,11 @@ xiom.spectroscopy
 xiom.spell
 xiom.spf
 xiom.spi
-xiom.sqlite.connection
-xiom.sqlite.demo
+xiom.sqlite
+xiom.sqlite.ffi
 xiom.sqlite.migration
 xiom.sqlite.query
+xiom.sqlite.rows
 xiom.sqlite.schema
 xiom.sqlite.types
 xiom.srt
