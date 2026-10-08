@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T15:42:31Z",
+    "updated":  "2026-10-08T16:11:41Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -6368,17 +6368,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.raylib",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Raylib -- simple game framework.",
+                         "description":  "raylib bindings for XIOM via dynamic loader (raylib.dll at runtime, SKIP when absent)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-raylib/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-raylib/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "package.xi",
                                               "raylib.xi"
