@@ -200,7 +200,9 @@ pub fn cbor_kind_undefined() -> Int {
 /// deepest accepted one; a container at depth 64 is rejected with
 /// `Err("cbor: nesting depth exceeds limit of 64")`. Both arrays and maps
 /// count against the same limit.
-pub fn cbor_max_depth() -> Int {
+pub fn cbor_max_depth() -> Int
+  ensures: result == 64;
+{
   return 64;
 }
 
@@ -695,7 +697,10 @@ fn _parse_value(p: &mut _CborParser, depth: Int, parent: Int) -> Result[Int, Str
 /// exceeds limit of 64") when a container is nested deeper than
 /// `cbor_max_depth()`.
 /// Complexity: O(data.len()).
-pub fn cbor_decode(data: Vec[UInt8]) -> Result[CborDoc, Str] {
+pub fn cbor_decode(data: Vec[UInt8]) -> Result[CborDoc, Str]
+  ensures: data.len() == 0 => result is Err;
+  ensures: result is Ok => data.len() >= 1;
+{
   var p = _CborParser{
     data: data;
     pos: 0;
@@ -727,14 +732,19 @@ pub fn cbor_decode(data: Vec[UInt8]) -> Result[CborDoc, Str] {
 /// Number of tokens in the document (1 for a scalar root value, and one
 /// token per array element / map key and value).
 /// Complexity: O(1).
-pub fn cbor_token_count(doc: &CborDoc) -> Int {
+pub fn cbor_token_count(doc: &CborDoc) -> Int
+  ensures: result == doc.kind.len();
+{
   return doc.kind.len();
 }
 
 /// Index of the root token: always 0 for a document produced by
 /// `cbor_decode` (kept as a named accessor for symmetry).
 /// Complexity: O(1).
-pub fn cbor_root(doc: &CborDoc) -> Int {
+pub fn cbor_root(doc: &CborDoc) -> Int
+  ensures: doc.kind.len() == 0 => result == -1;
+  ensures: doc.kind.len() > 0 => result == 0;
+{
   if doc.kind.len() == 0 {
     return -1;
   }
@@ -744,7 +754,10 @@ pub fn cbor_root(doc: &CborDoc) -> Int {
 /// Kind code of token `i` (one of the `cbor_kind_*` values), or -1 when `i`
 /// is outside [0, cbor_token_count(doc)).
 /// Complexity: O(1).
-pub fn cbor_kind(doc: &CborDoc, i: Int) -> Int {
+pub fn cbor_kind(doc: &CborDoc, i: Int) -> Int
+  ensures: i < 0 || i >= doc.kind.len() => result == -1;
+  ensures: 0 <= i && i < doc.kind.len() => result >= 0 && result <= 8;
+{
   if i < 0 || i >= doc.kind.len() {
     return -1;
   }
@@ -755,7 +768,9 @@ pub fn cbor_kind(doc: &CborDoc, i: Int) -> Int {
 /// Index of the token that contains token `i`, or -1 for the root token and
 /// for an out-of-range `i`.
 /// Complexity: O(1).
-pub fn cbor_parent(doc: &CborDoc, i: Int) -> Int {
+pub fn cbor_parent(doc: &CborDoc, i: Int) -> Int
+  ensures: i < 0 || i >= doc.parent.len() => result == -1;
+{
   if i < 0 || i >= doc.parent.len() {
     return -1;
   }
@@ -778,7 +793,10 @@ pub fn cbor_first_child(doc: &CborDoc, i: Int) -> Int {
 /// count for a map, with keys and values alternating), or 0 for a leaf token
 /// and for an out-of-range `i`.
 /// Complexity: O(1).
-pub fn cbor_child_count(doc: &CborDoc, i: Int) -> Int {
+pub fn cbor_child_count(doc: &CborDoc, i: Int) -> Int
+  ensures: i < 0 || i >= doc.child_count.len() => result == 0;
+  ensures: result >= 0;
+{
   if i < 0 || i >= doc.child_count.len() {
     return 0;
   }
@@ -813,7 +831,10 @@ pub fn cbor_token_end(doc: &CborDoc, i: Int) -> Int {
 /// children alternate key, value: pair k is child 2*k (key) and child
 /// 2*k + 1 (value).
 /// Complexity: O(n).
-pub fn cbor_child(doc: &CborDoc, i: Int, n: Int) -> Int {
+pub fn cbor_child(doc: &CborDoc, i: Int, n: Int) -> Int
+  ensures: n < 0 || n >= cbor_child_count(doc, i) => result == -1;
+  ensures: result >= -1 && result < doc.kind.len();
+{
   let count = cbor_child_count(doc, i);
   if n < 0 || n >= count {
     return -1;
@@ -845,7 +866,9 @@ pub fn cbor_next_sibling(doc: &CborDoc, i: Int) -> Int {
 /// token, or 0 when `i` is any other kind or is out of range (check the kind
 /// first).
 /// Complexity: O(1).
-pub fn cbor_int_value(doc: &CborDoc, i: Int) -> Int {
+pub fn cbor_int_value(doc: &CborDoc, i: Int) -> Int
+  ensures: cbor_kind(doc, i) != 0 && cbor_kind(doc, i) != 1 => result == 0;
+{
   let k = cbor_kind(doc, i);
   if k != cbor_kind_uint() && k != cbor_kind_negint() {
     return 0;
@@ -857,7 +880,10 @@ pub fn cbor_int_value(doc: &CborDoc, i: Int) -> Int {
 /// Boolean value of a bool token: 1 for true, 0 for false, -1 when `i` is
 /// not a bool token or is out of range.
 /// Complexity: O(1).
-pub fn cbor_bool_value(doc: &CborDoc, i: Int) -> Int {
+pub fn cbor_bool_value(doc: &CborDoc, i: Int) -> Int
+  ensures: cbor_kind(doc, i) != 6 => result == -1;
+  ensures: cbor_kind(doc, i) == 6 => result >= 0 && result <= 1;
+{
   if cbor_kind(doc, i) != cbor_kind_bool() {
     return -1;
   }
@@ -868,7 +894,10 @@ pub fn cbor_bool_value(doc: &CborDoc, i: Int) -> Int {
 /// Byte length of a byte-string token's payload, or -1 when `i` is not a
 /// bytes token or is out of range.
 /// Complexity: O(1).
-pub fn cbor_bytes_len(doc: &CborDoc, i: Int) -> Int {
+pub fn cbor_bytes_len(doc: &CborDoc, i: Int) -> Int
+  ensures: cbor_kind(doc, i) != 2 => result == -1;
+  ensures: cbor_kind(doc, i) == 2 => result >= 0;
+{
   if cbor_kind(doc, i) != cbor_kind_bytes() {
     return -1;
   }
@@ -899,7 +928,10 @@ pub fn cbor_bytes(doc: &CborDoc, i: Int) -> Vec[UInt8] {
 /// Byte length of a text-string token's payload, or -1 when `i` is not a
 /// text token or is out of range.
 /// Complexity: O(1).
-pub fn cbor_text_len(doc: &CborDoc, i: Int) -> Int {
+pub fn cbor_text_len(doc: &CborDoc, i: Int) -> Int
+  ensures: cbor_kind(doc, i) != 3 => result == -1;
+  ensures: cbor_kind(doc, i) == 3 => result >= 0;
+{
   if cbor_kind(doc, i) != cbor_kind_text() {
     return -1;
   }
@@ -954,7 +986,11 @@ pub fn cbor_token_bytes(doc: &CborDoc, i: Int) -> Vec[UInt8] {
 /// shortest form. Exact for the full signed 64-bit range, including
 /// `INT64_MIN` (which needs the 8-byte argument INT64_MAX).
 /// Complexity: O(1).
-pub fn cbor_encode_int(n: Int) -> Vec[UInt8] {
+pub fn cbor_encode_int(n: Int) -> Vec[UInt8]
+  ensures: result.len() >= 1 && result.len() <= 9;
+  ensures: n >= 0 && n < 24 => result.len() == 1;
+  ensures: n >= 24 && n <= 255 => result.len() == 2;
+{
   var out = Vec[UInt8].new();
   if n >= 0 {
     _push_head(&mut out, 0, n);
@@ -995,7 +1031,10 @@ pub fn cbor_encode_undefined() -> Vec[UInt8] {
 /// Encode raw bytes as a major type 2 definite-length byte string: shortest
 /// header for `bytes.len()`, then the bytes verbatim.
 /// Complexity: O(payload length).
-pub fn cbor_encode_bytes(bytes: &Vec[UInt8]) -> Vec[UInt8] {
+pub fn cbor_encode_bytes(bytes: &Vec[UInt8]) -> Vec[UInt8]
+  ensures: result.len() >= bytes.len() + 1;
+  ensures: result.len() <= bytes.len() + 9;
+{
   var out = Vec[UInt8].new();
   _push_head(&mut out, 2, bytes.len());
   var i = 0;
@@ -1011,7 +1050,10 @@ pub fn cbor_encode_bytes(bytes: &Vec[UInt8]) -> Vec[UInt8] {
 /// copied verbatim. No UTF-8 validation is performed (a `Str` is already
 /// valid UTF-8 by construction).
 /// Complexity: O(byte length).
-pub fn cbor_encode_text(s: Str) -> Vec[UInt8] {
+pub fn cbor_encode_text(s: Str) -> Vec[UInt8]
+  ensures: result.len() >= s.len() + 1;
+  ensures: result.len() <= s.len() + 9;
+{
   var out = Vec[UInt8].new();
   _push_head(&mut out, 3, string.str_len(s));
   builder.sb_push_str(&mut out, s);
@@ -1061,7 +1103,10 @@ pub fn cbor_encode_array(parts: &Vec[Vec[UInt8]]) -> Vec[UInt8] {
 /// in length; Err("cbor: duplicate map key") when two encoded keys are
 /// byte-identical (strictly ascending output is impossible).
 /// Complexity: O(pairs^2 * key length) comparisons.
-pub fn cbor_encode_map(keys: &Vec[Vec[UInt8]], values: &Vec[Vec[UInt8]]) -> Result[Vec[UInt8], Str] {
+pub fn cbor_encode_map(keys: &Vec[Vec[UInt8]], values: &Vec[Vec[UInt8]]) -> Result[Vec[UInt8], Str]
+  ensures: keys.len() != values.len() => result is Err;
+  ensures: result is Ok => keys.len() == values.len();
+{
   let n = keys.len();
   if n != values.len() {
     return _err_bytes("cbor: map keys/values length mismatch");
@@ -1208,7 +1253,11 @@ fn _reser_token(doc: &CborDoc, i: Int, out: &mut Vec[UInt8]) {
 /// document it produced, including map pair order. An empty document yields
 /// an empty vector.
 /// Complexity: O(input bytes).
-pub fn cbor_reserialize(doc: &CborDoc) -> Vec[UInt8] {
+pub fn cbor_reserialize(doc: &CborDoc) -> Vec[UInt8]
+  ensures: doc.kind.len() == 0 => result.len() == 0;
+  ensures: doc.kind.len() > 0 => result.len() >= 1;
+  ensures: result.len() == doc.data.len();
+{
   var out = Vec[UInt8].new();
   if doc.kind.len() == 0 {
     return out;

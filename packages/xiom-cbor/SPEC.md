@@ -1,8 +1,6 @@
 # xiom.cbor -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.cbor`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/cbor.xi` (`module xiom.cbor`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`).
 No FFI.
@@ -408,3 +406,59 @@ Last verified: compiler 0.61.3,
 - `string.str_len` gives the UTF-8 byte length of a `Str`; payload bytes
   are pushed through `xiom.string.builder.sb_push_str`.
 - No FFI: the package declares no `extern "C"` blocks.
+
+## Contracts (batch #43 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (32, across the 17 functions below) were
+added to `src/cbor.xi` in the batch #43 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 20-test conformance suite
+exercises every contracted entry point and no clause trapped, so none was
+dropped. Two consecutive `& .\scripts\port.ps1 -Package xiom.cbor
+-TimeoutSec 60` runs ended `port: PASS (passed=20 failed=0 program_exit=0
+exit=0)` with the clauses active (29.08 s and 27.01 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module and per the batch #37
+finding a bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, compares a `Str`, uses a module constant, or reads a Result payload.
+The only cross-calls are `cbor_kind` in the `cbor_int_value`,
+`cbor_bool_value`, `cbor_bytes_len` and `cbor_text_len` clauses and
+`cbor_child_count` in the `cbor_child` clause; neither callee can re-enter
+the function it appears in.
+
+Six claims rely on parsed-document invariants (the plan's `(pre: ...)`
+guards): `cbor_kind`'s `0..8` band assumes decode-produced `kind` entries;
+`cbor_child_count`'s `result >= 0` assumes decode-produced `child_count`
+entries; `cbor_child`'s `result >= -1 && result < doc.kind.len()` assumes
+the first-child/sibling links of a decode-produced token stream;
+`cbor_bool_value`'s `0..1` band assumes decode-produced bool values (the
+parser stores 0/1); `cbor_bytes_len` / `cbor_text_len`'s `result >= 0`
+assume decode-produced string payload lengths; and `cbor_reserialize`'s
+`result.len() == doc.data.len()` assumes a document produced by
+`cbor_decode` (strict decoding makes the rebuilt bytes equal the input).
+A hand-built `CborDoc` that violates these invariants is outside the claimed
+domain; the conformance suite only calls these functions on
+`cbor_decode`-produced documents.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `cbor_max_depth` | 1 | `result == 64` | no | yes |
+| `cbor_decode` | 2 | empty input => `Err`; `Ok` => `data.len() >= 1` | no | yes |
+| `cbor_token_count` | 1 | `result == doc.kind.len()` | no | yes |
+| `cbor_root` | 2 | empty doc => `-1`; non-empty doc => `0` | no | yes |
+| `cbor_kind` | 2 | out-of-range index => `-1`; in-range index => kind `0..8` | no | yes |
+| `cbor_parent` | 1 | out-of-range index => `-1` | no | yes |
+| `cbor_child_count` | 2 | out-of-range index => `0`; `result >= 0` | no | yes |
+| `cbor_child` | 2 | out-of-range `n` => `-1`; result is a token index or `-1` | no | yes |
+| `cbor_int_value` | 1 | non-uint/negint token => `0` | no | yes |
+| `cbor_bool_value` | 2 | non-bool token => `-1`; bool token => `0..1` | no | yes |
+| `cbor_bytes_len` | 2 | non-bytes token => `-1`; bytes token => `>= 0` | no | yes |
+| `cbor_text_len` | 2 | non-text token => `-1`; text token => `>= 0` | no | yes |
+| `cbor_encode_int` | 3 | `1..9` bytes; `0..23` => 1 byte; `24..255` => 2 bytes | no | yes |
+| `cbor_encode_bytes` | 2 | `bytes.len() + 1 <= result.len() <= bytes.len() + 9` | no | yes |
+| `cbor_encode_text` | 2 | `s.len() + 1 <= result.len() <= s.len() + 9` | no | yes |
+| `cbor_encode_map` | 2 | length mismatch => `Err`; `Ok` => equal lengths | no | yes |
+| `cbor_reserialize` | 3 | empty doc => empty result; non-empty => `>= 1`; equals `doc.data.len()` | no | yes |

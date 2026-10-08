@@ -9,7 +9,7 @@
 
 package xiom_cbor {
   name: "xiom.cbor";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Strict pure-XIOM CBOR subset codec with flat token storage and canonical emit";
   categories: ["data"];
   keywords: ["cbor", "binary", "encoding", "format"];
