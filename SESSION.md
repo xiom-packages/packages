@@ -14,6 +14,24 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-08 13:35Z (batch #43 COMPLETE + PUBLISHED; bindings batch 7 published; batch 8 = vulkan GO; supersedes the 13:05Z block below):**
+- **Batch #43 DONE + PUBLISHED (six packages, all live-verified):** `gif` 0.1.2 (26 clauses;
+  20/20), `cue` 0.1.2 (27; 22/22), `png` 0.1.2 (25; 17/17), `safetensors` 0.1.2 (38; 21/21),
+  `cbor` 0.1.2 (32; 20/20), `mqtt` 0.1.3 (59; 21/21; stray module-scope tail removed by the
+  coordinator). All x2 green on v0.64.1 (207 clauses total). Releases: `eco-v0.1.98` carried
+  gif/png/safetensors/cbor/mqtt (+opengl 0.3.0, run 37784374854); `eco-v0.1.99` carried cue
+  (run 37785226193). Feats/records on main (`74ab8cb9`, `c3b592c5`, `87f85d26`,`272e21a3`,
+  `f609d733`; gif `cc2a0002`, png `a3cb6e78`, safetensors `1c718df0`, mqtt `e6c5f845`).
+  **~37 zero-clause stable carriers remain** (next: `pci` ~1245, rescan at batch #44).
+- **Bindings batch 7 published:** `xiom.opengl` 0.3.0 (`eco-v0.1.98`; core-profile probe
+  3.3 core / 404 extensions, native 13/13 x2 on the RTX 3070 Ti; record `faa87bf5`).
+- **Bindings batch 8 GO = `xiom.vulkan`** (GPU tier; opengl session-API follow-up deferred).
+  Batches published so far: sqlite 0.2.0, sdl3 0.3.0, opengl 0.3.0, glfw 0.2.0, raylib 0.2.0.
+- Post-repin rules (v0.64.1): tag guard pairs only; no `Result ==`, no `is Ok(<literal>)`,
+  no `let (k,v) = &vec[i]`; `Vec[Struct].clone()` allowed. Credential: `Lefteris-Notas` active.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-08 13:05Z (v0.64.1 REPIN + OFFICIAL BATTERY DONE; `xiom.grpc` 0.1.0 + `xiom.sdl3` 0.3.0 published; supersedes the 12:15Z block below):**
 - **v0.64.1 repinned:** official `xiom-0.64.1-windows-x64.zip` SHA256-verified and the
   installed `xiom.exe` is byte-identical to the archive; `COMPILER_VERSION` + 519 records
@@ -1856,12 +1874,13 @@ Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin **v0.64.1** (official archive SHA256-verified; install byte-identical;
 repin commit 4e12f80a; COMPILER_VERSION + 519 records aligned); NO XIOM_RUNTIME_DIR needed.
-Validate 519/0; guard 505/469/36/0 (re-check at start). The official v0.64.1 battery is DONE
+Validate 519/0; guard 505/470/35/0 (re-check at start). The official v0.64.1 battery is DONE
 (docs/COMPILER-FINDINGS.md section; grpc tuple-vec-set + const-match + B-06/B-09 + C-PULSE-09
 + up/down + m211 + clone probes fixed; Result== now quiet-false, is-Ok(literal) still
-ignored, ref-destructure rule stays). `xiom.grpc` 0.1.0 published (`eco-v0.1.95`); bindings
-batch 5 `xiom.sdl3` 0.3.0 published (`eco-v0.1.96`); batch 6 = `xiom.raylib`. ~43 zero-clause
-stable carriers remain (next: `gif`). Clause-shape rules: tag guard pairs only -- no
+ignored, ref-destructure rule stays). Batch #43 published (`eco-v0.1.98` gif/png/safetensors/
+cbor/mqtt + opengl 0.3.0; `eco-v0.1.99` cue). Bindings batches 4-7 published (glfw 0.2.0,
+sdl3 0.3.0, raylib 0.2.0, opengl 0.3.0); batch 8 = `xiom.vulkan`. ~37 zero-clause stable
+carriers remain (next: `pci`). Clause-shape rules: tag guard pairs only -- no
 `Result` equality, no `is Ok(<literal>)`, no `let (k,v) = &vec[i]` (Vec[Struct].clone() is
 fine now).
 PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-09 fixed on v0.64.1 (mini-app green),
@@ -1882,14 +1901,14 @@ Start: git fetch; git status -sb; git log -1; then
   & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Batch #43 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
+1. Batch #44 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
    -Detailed` for the name list; size them by total non-test .xi lines per package), skip
-   `option`; the next smallest after pcapng is `gif` (~1214 lines; verify with the sizing
+   `option`; the next smallest after mqtt is `pci` (~1245 lines; verify with the sizing
    scan, then the next five). Read-only explore pre-plan (one explore task; IF its final
    message comes back EMPTY, resume it with `variant: low` + a "plan only, no preamble"
    prompt -- recovered every time since batch #38). Six background `task` porters with the
-   brief template `%TEMP%\kilo\batch42-porter-brief.md` retargeted (batch #43, plan
-   `%TEMP%\kilo\batch43-clause-plan.md`, `## Contracts (batch #43 hardening pass, 2026-10-XX)`).
+   brief template `%TEMP%\kilo\batch43-porter-brief.md` retargeted (batch #44, plan
+   `%TEMP%\kilo\batch44-clause-plan.md`, `## Contracts (batch #44 hardening pass, 2026-10-XX)`).
    Coordinator integrates as reports land: patch bump per CURRENT version, port x2
    post-bump, byte-level bracket scan, feat commit exact files, record with the REAL sha
    and `-RunBy task:ses_...`; wrap + publish the next eco tag (generate_index/report/
