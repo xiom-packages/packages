@@ -138,12 +138,16 @@ type _Parser = {
 // --------------------------------------------------
 
 /// Token kind code for an integer (`i<n>e`).
-pub fn bencode_kind_int() -> Int {
+pub fn bencode_kind_int() -> Int
+  ensures: result == 0;
+{
   return 0;
 }
 
 /// Token kind code for a byte string (`<len>:<bytes>`).
-pub fn bencode_kind_str() -> Int {
+pub fn bencode_kind_str() -> Int
+  ensures: result == 1;
+{
   return 1;
 }
 
@@ -162,7 +166,9 @@ pub fn bencode_kind_dict() -> Int {
 /// The top-level value has depth 0, so a container at depth 63 is the
 /// deepest accepted one; a container at depth 64 is rejected with
 /// `Err("bencode: nesting depth exceeds limit of 64")`.
-pub fn bencode_max_depth() -> Int {
+pub fn bencode_max_depth() -> Int
+  ensures: result == 64;
+{
   return 64;
 }
 
@@ -624,7 +630,10 @@ fn _parse_value(p: &mut _Parser, depth: Int, parent: Int) -> Result[Int, Str] {
 /// `bencode_max_depth()`; Err("bencode: trailing data after top-level
 /// value") when bytes remain after the root value.
 /// Complexity: O(data.len()).
-pub fn bencode_decode(data: Vec[UInt8]) -> Result[BencodeDoc, Str] {
+pub fn bencode_decode(data: Vec[UInt8]) -> Result[BencodeDoc, Str]
+  ensures: data.len() == 0 => result is Err;
+  ensures: result is Ok => data.len() >= 1;
+{
   var p = _Parser{
     data: data;
     pos: 0;
@@ -656,14 +665,19 @@ pub fn bencode_decode(data: Vec[UInt8]) -> Result[BencodeDoc, Str] {
 /// Number of tokens in the document (1 for a scalar root value, and one
 /// token per list/dict element).
 /// Complexity: O(1).
-pub fn bencode_token_count(doc: &BencodeDoc) -> Int {
+pub fn bencode_token_count(doc: &BencodeDoc) -> Int
+  ensures: result == doc.kind.len();
+{
   return doc.kind.len();
 }
 
 /// Index of the root token: always 0 for a document produced by
 /// `bencode_decode` (kept as a named accessor for symmetry).
 /// Complexity: O(1).
-pub fn bencode_root(doc: &BencodeDoc) -> Int {
+pub fn bencode_root(doc: &BencodeDoc) -> Int
+  ensures: doc.kind.len() == 0 => result == -1;
+  ensures: doc.kind.len() > 0 => result == 0;
+{
   if doc.kind.len() == 0 {
     return -1;
   }
@@ -673,7 +687,11 @@ pub fn bencode_root(doc: &BencodeDoc) -> Int {
 /// Kind code of token `i` (one of the `bencode_kind_*` values), or -1 when
 /// `i` is outside [0, bencode_token_count(doc)).
 /// Complexity: O(1).
-pub fn bencode_kind(doc: &BencodeDoc, i: Int) -> Int {
+pub fn bencode_kind(doc: &BencodeDoc, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= doc.kind.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < doc.kind.len();
+{
   if i < 0 || i >= doc.kind.len() {
     return -1;
   }
@@ -773,7 +791,9 @@ pub fn bencode_next_sibling(doc: &BencodeDoc, i: Int) -> Int {
 /// Parsed integer value of an int token, or 0 when `i` is not an int token
 /// (check the kind first) or is out of range.
 /// Complexity: O(1).
-pub fn bencode_int_value(doc: &BencodeDoc, i: Int) -> Int {
+pub fn bencode_int_value(doc: &BencodeDoc, i: Int) -> Int
+  ensures: bencode_kind(doc, i) != 0 => result == 0;
+{
   if bencode_kind(doc, i) != bencode_kind_int() {
     return 0;
   }
@@ -784,7 +804,9 @@ pub fn bencode_int_value(doc: &BencodeDoc, i: Int) -> Int {
 /// Byte length of a byte-string token's payload, or -1 when `i` is not a
 /// str token or is out of range.
 /// Complexity: O(1).
-pub fn bencode_str_len(doc: &BencodeDoc, i: Int) -> Int {
+pub fn bencode_str_len(doc: &BencodeDoc, i: Int) -> Int
+  ensures: bencode_kind(doc, i) != 1 => result == -1;
+{
   if bencode_kind(doc, i) != bencode_kind_str() {
     return -1;
   }
@@ -796,7 +818,10 @@ pub fn bencode_str_len(doc: &BencodeDoc, i: Int) -> Int {
 /// is not a str token or is out of range (a valid empty string is therefore
 /// indistinguishable from a non-string here; check the kind first).
 /// Complexity: O(payload length).
-pub fn bencode_str_bytes(doc: &BencodeDoc, i: Int) -> Vec[UInt8] {
+pub fn bencode_str_bytes(doc: &BencodeDoc, i: Int) -> Vec[UInt8]
+  ensures: bencode_kind(doc, i) != 1 => result.len() == 0;
+  ensures: result.len() > 0 => bencode_kind(doc, i) == 1;
+{
   var out = Vec[UInt8].new();
   if bencode_kind(doc, i) != bencode_kind_str() {
     return out;
@@ -895,7 +920,9 @@ pub fn bencode_dict_get(doc: &BencodeDoc, i: Int, key: &Vec[UInt8]) -> Int {
 /// Encode an integer as `i<n>e`, decimal and exact for the full signed
 /// 64-bit Int range (including INT64_MIN).
 /// Complexity: O(log |n|).
-pub fn bencode_encode_int(n: Int) -> Vec[UInt8] {
+pub fn bencode_encode_int(n: Int) -> Vec[UInt8]
+  ensures: result.len() >= 2 && result.len() <= 22;
+{
   var out = Vec[UInt8].new();
   out.push(105 as UInt8);
   let text = convert.int_to_string(n);
@@ -907,7 +934,10 @@ pub fn bencode_encode_int(n: Int) -> Vec[UInt8] {
 /// Encode raw bytes as `<len>:<bytes>` (UTF-8 agnostic; bytes are copied
 /// verbatim).
 /// Complexity: O(payload length).
-pub fn bencode_encode_bytes(bytes: &Vec[UInt8]) -> Vec[UInt8] {
+pub fn bencode_encode_bytes(bytes: &Vec[UInt8]) -> Vec[UInt8]
+  ensures: result.len() >= bytes.len() + 2;
+  ensures: result.len() <= bytes.len() + 20;
+{
   var out = Vec[UInt8].new();
   let n = bytes.len();
   let text = convert.int_to_string(n);
@@ -924,7 +954,10 @@ pub fn bencode_encode_bytes(bytes: &Vec[UInt8]) -> Vec[UInt8] {
 /// Encode a `Str` as a bencode byte string: the length is the UTF-8 byte
 /// length and the bytes are copied verbatim (no character re-encoding).
 /// Complexity: O(byte length).
-pub fn bencode_encode_str(s: Str) -> Vec[UInt8] {
+pub fn bencode_encode_str(s: Str) -> Vec[UInt8]
+  ensures: result.len() >= s.len() + 2;
+  ensures: result.len() <= s.len() + 20;
+{
   var out = Vec[UInt8].new();
   let n = string.str_len(s);
   let text = convert.int_to_string(n);
@@ -959,7 +992,10 @@ pub fn bencode_encode_list(parts: &Vec[Vec[UInt8]]) -> Vec[UInt8] {
 /// differ in length; Err("bencode: duplicate dict key") when two keys are
 /// equal (strictly ascending output is impossible).
 /// Complexity: O(pairs^2 * key length) comparisons.
-pub fn bencode_encode_dict(keys: &Vec[Vec[UInt8]], values: &Vec[Vec[UInt8]]) -> Result[Vec[UInt8], Str] {
+pub fn bencode_encode_dict(keys: &Vec[Vec[UInt8]], values: &Vec[Vec[UInt8]]) -> Result[Vec[UInt8], Str]
+  ensures: keys.len() != values.len() => result is Err;
+  ensures: result is Ok => keys.len() == values.len();
+{
   let n = keys.len();
   if n != values.len() {
     return _err_bytes("bencode: dict keys/values length mismatch");
@@ -1072,7 +1108,10 @@ fn _reser_token(doc: &BencodeDoc, i: Int, out: &mut Vec[UInt8]) {
 /// result equals the original input for any document it produced. An empty
 /// document yields an empty vector.
 /// Complexity: O(input bytes).
-pub fn bencode_reserialize(doc: &BencodeDoc) -> Vec[UInt8] {
+pub fn bencode_reserialize(doc: &BencodeDoc) -> Vec[UInt8]
+  ensures: doc.kind.len() == 0 => result.len() == 0;
+  ensures: doc.kind.len() > 0 => result.len() >= 2;
+{
   var out = Vec[UInt8].new();
   if doc.kind.len() == 0 {
     return out;

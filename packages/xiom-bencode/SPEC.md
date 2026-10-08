@@ -1,8 +1,6 @@
 # xiom.bencode -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.bencode`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/bencode.xi` (`module xiom.bencode`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`, `xiom.convert`).
 No FFI.
@@ -342,3 +340,58 @@ Last verified: compiler 0.61.3,
   bounds both.
 - `int_to_string` is `xiom.convert.int_to_string` (exact for `INT64_MIN`).
 - No FFI: the package declares no `extern "C"` blocks.
+
+## Contracts (batch #42 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (24, across the 15 functions below) were
+added using the proven families: exact scalar identities, sentinel returns,
+Result-tag guards and derived length bounds. All are `ensures:` (no
+`requires:`), so the accepted-input domain is unchanged. Every clause is
+enforced as a runtime check; the 19-check conformance suite exercises every
+entry point and both `& .\scripts\port.ps1 -Package xiom.bencode
+-TimeoutSec 60` runs ended `port: PASS (passed=19 failed=0 program_exit=0
+exit=0)` with the clauses active (12.4 s and 14.5 s). None is claimed
+Z3-provable: `xiom-verify` on v0.64.0 can report `[OK] VERIFIED` from a
+vacuous UNSAT, and no real obligation was demonstrated for this module, so
+the Z3-provable column is "no" throughout.
+
+Two plan clauses were re-expressed for the hand-built rule (a clause must
+hold for every hand-built `BencodeDoc`, not only for decode-produced ones):
+
+- `bencode_kind`'s planned `0 <= i && i < doc.kind.len() => result >= 0 &&
+  result <= 3` became the source-exact guard `result != -1 => i >= 0 && i <
+  doc.kind.len()`: the 0..3 kind range holds only for documents produced by
+  `bencode_decode`; a hand-built `kind` vector may store any Int.
+- `bencode_str_bytes`'s planned `bencode_kind(doc, i) == 1 => result.len() ==
+  bencode_str_len(doc, i)` requires the consistency invariant `payload_end -
+  payload_start == value[i]`, which hand-built documents can falsify and
+  which no clause can express (payload bounds are not exposed by an
+  accessor); it was replaced by the contrapositive guard `result.len() > 0 =>
+  bencode_kind(doc, i) == 1`.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `bencode_kind_int` | 1 | `result == 0` | no | yes |
+| `bencode_kind_str` | 1 | `result == 1` | no | yes |
+| `bencode_max_depth` | 1 | `result == 64` | no | yes |
+| `bencode_decode` | 2 | empty input => `Err`; `Ok` => `data.len() >= 1` | no | yes |
+| `bencode_token_count` | 1 | `result == doc.kind.len()` | no | yes |
+| `bencode_root` | 2 | empty doc => `-1`; non-empty doc => `0` | no | yes |
+| `bencode_kind` | 3 | out-of-range index => `-1`; `-1` only for an out-of-range index | no | yes |
+| `bencode_int_value` | 1 | non-int token => `0` | no | yes |
+| `bencode_str_len` | 1 | non-str token => `-1` | no | yes |
+| `bencode_str_bytes` | 2 | non-str token => empty result; non-empty result => str token | no | yes |
+| `bencode_encode_int` | 1 | `2 <= result.len() && result.len() <= 22` | no | yes |
+| `bencode_encode_bytes` | 2 | `bytes.len() + 2 <= result.len() <= bytes.len() + 20` | no | yes |
+| `bencode_encode_str` | 2 | `s.len() + 2 <= result.len() <= s.len() + 20` | no | yes |
+| `bencode_encode_dict` | 2 | length mismatch => `Err`; `Ok` => equal lengths | no | yes |
+| `bencode_reserialize` | 2 | empty doc => empty result; non-empty doc => `result.len() >= 2` | no | yes |
+
+Deliberately not claimed: the kind-code range for in-range indices
+(hand-built `kind` entries are arbitrary); the string payload-length identity
+(hand-built payload spans may not match `value`); `Str` equality (BUG 17);
+vector indexing in clauses; module constants (literals are inlined);
+tuple-component, Result-payload and struct-result field reads; and `Result`
+equality / `is Ok(<literal>)` shapes. The only cross-calls are `bencode_kind`
+reads inside the `bencode_int_value`, `bencode_str_len` and
+`bencode_str_bytes` clauses, which cannot re-enter their callee.
