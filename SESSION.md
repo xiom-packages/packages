@@ -14,6 +14,30 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-08 13:05Z (v0.64.1 REPIN + OFFICIAL BATTERY DONE; `xiom.grpc` 0.1.0 + `xiom.sdl3` 0.3.0 published; supersedes the 12:15Z block below):**
+- **v0.64.1 repinned:** official `xiom-0.64.1-windows-x64.zip` SHA256-verified and the
+  installed `xiom.exe` is byte-identical to the archive; `COMPILER_VERSION` + 519 records
+  aligned (`4e12f80a`); validate 519/0; guard **505/469/36/0**.
+- **Battery (`docs/COMPILER-FINDINGS.md` v0.64.1 section, `5a9b78c4`):** FIXED --
+  grpc `Vec[(Str,Str)]` crash/hang (probe_suite_min rc=0; probe_direct len=1/match=ok),
+  named-constant `match` arms (m188; grpc restored them), B-06 + B-09 (win32-gl q2 prints
+  GL 4.6.0), C-PULSE-09 (minimized wrapper-modules app prints `[PASS] wrap-session`),
+  `up`/`down` name crash (`up=1 down=1`), m211 listdir, io943 clean, `Vec[Struct].clone()`
+  probes green. STILL OPEN -- `Result ==` (equal `Ok(Vec)` pairs now compare FALSE quietly,
+  was a trap), `is Ok(<literal>)` still ignores the payload (`pick(2) is Ok(1)` true),
+  ref-destructure (no positive probe; rule stays), C-PULSE-10 Linux / C-PULSE-11 /
+  dep-roots (PULSE + compiler lanes), B-01/B-05/B-08 (bindings sweep).
+- **Published:** `xiom.grpc` 0.1.0 (`eco-v0.1.95`, run `37778110913`; 36/36 x2 on the
+  official pin); bindings batch 5 `xiom.sdl3` 0.3.0 (`eco-v0.1.96`, run `37778855517`;
+  native 21/21 x2 present path, absent 3/3 per relay). Both live-verified.
+- **Rule changes:** `Vec[Struct].clone()` avoidance RETIRED (probe evidence; aggregate-
+  payload deep clone via `json_clone` still stands); KEEP `let (k,v) = &vec[i]` avoidance,
+  no `Result ==`, no `is Ok(<literal>)`, tag guard pairs.
+- Next: batch #43 (gif) and bindings batch 6 (`xiom.raylib`). Credential:
+  `Lefteris-Notas` active.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-08 12:15Z (bindings batch 4 merged + PUBLISHED `eco-v0.1.94`: xiom.glfw 0.2.0; supersedes the 12:00Z block below):**
 - **Bindings batch 4 DONE + PUBLISHED (`eco-v0.1.94`, run `37775631158` SUCCESS):**
   `xiom.glfw` 0.2.0 live (first version, incubating). Merge `5519f67b`; wrap `0c4dd3b7`.
@@ -1824,18 +1848,23 @@ E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
 Read SESSION.md first -- the 2026-10-08 09:30Z STATE block is the live handoff.
 Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
-STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
-NO XIOM_RUNTIME_DIR needed. Validate 519/0; guard 505/467/38/0 (re-check at start).
-Batch #42 is DONE + PUBLISHED (`eco-v0.1.93`, run 37773629591): bencode 0.1.3, xpm 0.1.2,
-ntriples 0.1.2, pe 0.1.2, smtp 0.1.2, pcapng 0.1.2 -- all live-verified. ~43 zero-clause
-stable carriers remain. v0.64.0 clause-shape rules: no `Result` equality, no
-`is Ok(<literal>)` (batch #41 findings); tag guard pairs only.
-PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-10 is Linux-target-only (Windows
-probe green: packages\xiom-kv\tests\probe_kv_get_str.xi). Bindings Phase 1 complete
-(`eco-v0.1.89` sqlite; `eco-v0.1.92` sdl3+opengl 0.2.0); batch 4 = `xiom.glfw`; hook
-contract `port.args.json` (BINDINGS-LANE.md §10). ORBITDB/XVECTOR names frozen
-(PACKAGE-WISHLIST §6); ORBITDB extraction queue: xiom-wal then xiom-btree (ops scope +
-allowlist at build-green). `option` stays excluded.
+STATE: compiler pin **v0.64.1** (official archive SHA256-verified; install byte-identical;
+repin commit 4e12f80a; COMPILER_VERSION + 519 records aligned); NO XIOM_RUNTIME_DIR needed.
+Validate 519/0; guard 505/469/36/0 (re-check at start). The official v0.64.1 battery is DONE
+(docs/COMPILER-FINDINGS.md section; grpc tuple-vec-set + const-match + B-06/B-09 + C-PULSE-09
++ up/down + m211 + clone probes fixed; Result== now quiet-false, is-Ok(literal) still
+ignored, ref-destructure rule stays). `xiom.grpc` 0.1.0 published (`eco-v0.1.95`); bindings
+batch 5 `xiom.sdl3` 0.3.0 published (`eco-v0.1.96`); batch 6 = `xiom.raylib`. ~43 zero-clause
+stable carriers remain (next: `gif`). Clause-shape rules: tag guard pairs only -- no
+`Result` equality, no `is Ok(<literal>)`, no `let (k,v) = &vec[i]` (Vec[Struct].clone() is
+fine now).
+PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-09 fixed on v0.64.1 (mini-app green),
+C-PULSE-10 still Linux-target-only (Windows probe green: packages\xiom-kv\tests\probe_kv_get_str.xi).
+Bindings Phase 1 complete (`eco-v0.1.89` sqlite, `eco-v0.1.92` sdl3+opengl); batches 4-5
+published (`eco-v0.1.94` glfw, `eco-v0.1.96` sdl3 0.3.0); hook contract `port.args.json`
+(BINDINGS-LANE.md §10). ORBITDB/XVECTOR names frozen (PACKAGE-WISHLIST §6); ORBITDB
+extraction queue: xiom-wal then xiom-btree (ops scope + allowlist at build-green).
+`option` stays excluded.
 
 CREDENTIAL NOTE: `gh auth status` may show `Lefteris-Ngonart` active, which has only PULL
 on this repo (403 on push). Switch to `Lefteris-Notas` for pushes/gate approvals
@@ -1866,16 +1895,11 @@ Then do, in order:
    re-express with per-field parameter guards (spi lesson); a hand-built check that exposes
    a doc/source mismatch gets the minimal source fix + a regression test (aiff 2^31
    lesson).
-2. IF the official v0.64.1 archive is released: repin per docs/MAINTENANCE.md, re-test the
-   open findings on the official install (grpc probe_suite_min/probe_direct GREEN;
-   docs/repro/struct-clone/ GREEN m210; tuple-vec-set green; %TEMP%\kilo\retest-listdir.xi
-   GREEN m211; io.xi:943 unreproduced; ref-destructure probe GREEN m209; lrc shadowing
-   shape), plus the PULSE bump addendum probes (`probe_pkg_state_holder`,
-   `probe_adopt_smoke`, `probe_session_inline`, `probe_pkg_kv` -- the kv gate should flip
-   green; `docs/repro/dep-roots-name-form` both variants), then `port.ps1 -Package
-   xiom.grpc` x2, record 36/36 on the REAL commit sha, publish grpc in the next eco tag;
-   drop the destructure/clone rules from briefs + carry-forwards after the green repin.
-   If NOT released: continue batch #39 and re-check at the wrap.
+2. v0.64.1 is DONE (repin + official battery + grpc 0.1.0 + sdl3 0.3.0 published). Remaining
+   follow-ups: PULSE re-runs its suite on the repin (C-PULSE-09 should flip; kv Linux gate;
+   dep-roots under WSL); B-01/B-05/B-08 still open per the bindings sweep; re-check whether
+   a v0.64.2/hotfix lands for the still-open `Result ==` (quiet-false) and
+   `is Ok(<literal>)` shapes.
 3. PULSE support: triage new docs/PACKAGE-WISHLIST.md rows; the C-PULSE-10 Linux bisect is
    the compiler lane's; new names need an allowlist append + one ops scope relay.
 4. Bindings-lane coordination: watch for relays (template in docs/BINDINGS-LANE.md §6).
@@ -1901,9 +1925,10 @@ Then do, in order:
    package dir CWD, clean by literal path); never use `Vec[(Str,Str)]` in clause shapes;
    never read `&mut` params bare (C-PULSE-04); never shadow a contracted parameter with a
    local; by-value struct-param field reads ARE supported; never destructure
-   `let (k,v) = &vec[i]` over tuple elements UNTIL the v0.64.1 repin re-test passes; same
-   for the Vec[Struct].clone() avoidance; update SESSION.md at the wrap with a fresh paste
-   prompt.
+   `let (k,v) = &vec[i]` over tuple elements (v0.64.1 re-test: still no positive probe);
+   never compare `Result` values or pattern-match `is Ok(<literal>)` (v0.64.1: quiet-false /
+   literal ignored); `Vec[Struct].clone()` is RETIRED as a hazard (v0.64.1 probes green);
+   update SESSION.md at the wrap with a fresh paste prompt.
 ```
 
 ### PASTE PROMPT FOR THE BINDINGS SESSION (second worktree, current -- 2026-10-08 08:10Z)
