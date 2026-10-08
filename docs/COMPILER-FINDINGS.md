@@ -551,9 +551,15 @@ STILL OPEN on v0.64.1 (evidence re-run):
   pruned the package; compat republish in flight (unsafe-wrapped internals -> 0.1.2).
   **Fleet sweep (static, 2026-10-08):** 44 packages carry `extern "C"` outside tests;
   published FFI set -- `http` rawptr_returns=8/unsafe_refs=0 (red), `rest` 8/7,
-  `grpc` 0/2, `protobuf` 0/1, `sqlite` 5/26, `opengl` 6/33, `vulkan` 3/21 (consumer
-  rehearsals pending; only http is consumer-confirmed red). Queue: rehearsal recipe from
-  the http porter + classify each published FFI package as a catalog dep.
+  `grpc` 0/2, `protobuf` 0/1, `sqlite` 5/26, `opengl` 6/33, `vulkan` 3/21.
+  **Catalog-dep rehearsal sweep (consumer harness, 2026-10-08 evening):** `rest`,
+  `protobuf`, `sqlite`, `opengl`, `vulkan` are **COMPILE-CLEAN** as catalog deps (0
+  errors with an import-only consumer on v0.64.1); **`grpc` is RED with 6 T001
+  "ambiguous function exported by multiple imported modules"** (root `grpc.xi` +
+  bare-named `src/client|server|types.xi` double-identify in the consumer catalog, not
+  extern-unsafe) -- queue a grpc compat pass (module identity/renames) with the harness as
+  the acceptance test. Harness caveat: source-roots should list each module dir once;
+  http's root-located module needs the package root, not `src/`.
 
 ## v0.64.1 extern-unsafe enforcement -- follow-ups (2026-10-08, xiom.http compat pass)
 
