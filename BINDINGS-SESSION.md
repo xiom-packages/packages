@@ -3,15 +3,29 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 9 RELAYED** -- `xiom.dxc` 0.2.0 capability probe green
-(3/3 x2 via port.ps1 on v0.64.1: `ps_6_0` compile -> 2,532-byte DXIL blob
-from SDK dxcompiler.dll 1.9.0.5347); awaiting native merge/verify/publish.
-Preceded by inbound checks: PULSE's durable-DB ask is served by published
-`xiom.sqlite`; stdlib 0.64.2 delivered `fs_remove` + the `dl` doc fix; glfw +
-sqlite spot-checks green on 0.64.2. Next wave: directx11/12 (GPU tier) or
-per native pick.
+**STATUS: BATCH 10 RELAYED** -- `xiom.directx11` 0.2.0 capability probe green
+(5/5 x2 via port.ps1 on v0.64.1: hardware device at 11_0, 3 adapters, first =
+NVIDIA RTX 3070 Ti); awaiting native merge/verify/publish. Next wave per
+roadmap: directx12, then the compression tier (zstd/lzfse/ozz).
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 10: head=c7db19b7 (code) + this handoff commit; packages=xiom.directx11 0.2.0
+(capability probe replacing the pre-pilot static externs); tests=5/5 x2 via scripts/port.ps1
+on v0.64.1 (2026-10-08: hardware device at feature level 11_0 (45056), 3 DXGI adapters, first
+= NVIDIA GeForce RTX 3070 Ti vendor_id 4318 device_id 9346; deterministic SKIP classification
+per run); licenses=MIT OR Apache-2.0 (header-free bridge is our code; nothing vendored);
+pins=sonames d3d11.dll + dxgi.dll + Windows SDK 10.0.22621.0 header hashes (um\d3d11.h
+B2C0CAA5..., shared\dxgi.h 4B983AC7..., um\d3dcommon.h 62F7BF1A...) + ABI (IID_IDXGIFactory1
+{770aae78-f26f-4dba-a829-253c83d1b387}; IDXGIFactory1 slot 12=EnumAdapters1; IDXGIAdapter
+slot 8=GetDesc; DXGI_ADAPTER_DESC offsets 0/256/260; D3D11_SDK_VERSION=7;
+DRIVER_TYPE_HARDWARE=1; feature levels 9_3..11_1); local samples System32 d3d11.dll/dxgi.dll
+10.0.26100.9549 (sha256 3E6C8932.../023542BB...); gate=G0 OK, G1 OK, G2 OK, G3 OK
+(ABSENT/NO_DEVICE -> SKIP, ABI -> FAIL), G4 OK, G5 OK (all unsafe in the single module
+xiom.directx11); needs=NONE (allowlisted + baseline); port.args.json present
+(--c-source src/d3d11_probe.c, no --link).
+```
 
 ```
 BINDINGS BATCH 9: head=b282cf82 (code) + this handoff commit; packages=xiom.dxc 0.2.0
@@ -392,6 +406,21 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Scope decision requested from the native lane: the pre-pilot static-bridge
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
+
+## Batch 10 notes (xiom.directx11, 2026-10-08)
+
+- Header-free ABI extraction paid off again: the DXGI vtables were pinned
+  from `dxgi.h` before writing the bridge (factory slot 12 = EnumAdapters1,
+  adapter slot 8 = GetDesc, desc offsets 0/256/260) -- the first present-path
+  run created a hardware device and read the adapter name with no iteration.
+- `D3D11CreateDevice` with a NULL feature-level array returns 11_0 on this
+  driver; explicit 11_1 needs a requested feature-level list (Phase 2).
+- Adapter enumeration returns 3 entries on this host; the first is the
+  NVIDIA RTX 3070 Ti (`vendor_id 4318` = 0x10DE, `device_id 9346` = 0x2482).
+- Run matrix: 5/5 x2; SKIP classification (bogus sonames) every run.
+  Allowlisted + baseline; `port.args.json` compiles the bridge.
+- Pre-pilot module (22 KB static `extern "C"` D3D declarations) removed to
+  git history.
 
 ## Batch 9 notes (xiom.dxc, 2026-10-08)
 
