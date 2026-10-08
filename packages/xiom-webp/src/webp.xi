@@ -873,7 +873,10 @@ fn _post_error(a: &WebpImage) -> Str {
 ///   4. post-walk: container-kind consistency, VP8X flag/chunk agreement and
 ///      metadata chunk ordering.
 /// Complexity: O(input bytes).
-pub fn webp_parse(data: &Vec[UInt8]) -> Result[WebpImage, Str] {
+pub fn webp_parse(data: &Vec[UInt8]) -> Result[WebpImage, Str]
+  ensures: !webp_is_webp(data) => result is Err;
+  ensures: result is Ok => webp_is_webp(data);
+{
   let n = data.len();
   let hdr = _header_error(data, n);
   if (hdr.len() > 0) { return _err_img(hdr); }
@@ -964,7 +967,10 @@ pub fn webp_parse(data: &Vec[UInt8]) -> Result[WebpImage, Str] {
 /// True when the buffer starts with the 12-byte RIFF/WEBP header. Malformed
 /// or short buffers return false rather than an error; use webp_parse when
 /// the reason matters. Complexity: O(1).
-pub fn webp_is_webp(data: &Vec[UInt8]) -> Bool {
+pub fn webp_is_webp(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 12 => !result;
+  ensures: result => data.len() >= 12;
+{
   return _magic_ok(data, data.len());
 }
 
@@ -974,7 +980,9 @@ pub fn webp_is_webp(data: &Vec[UInt8]) -> Bool {
 
 /// Container kind: 0 simple, 1 extended, 2 animated.
 /// Complexity: O(1).
-pub fn webp_kind(img: &WebpImage) -> Int {
+pub fn webp_kind(img: &WebpImage) -> Int
+  ensures: result == img.kind;
+{
   return img.kind;
 }
 
@@ -992,7 +1000,10 @@ pub fn webp_riff_size(img: &WebpImage) -> Int {
 
 /// True when a VP8X chunk was present.
 /// Complexity: O(1).
-pub fn webp_has_vp8x(img: &WebpImage) -> Bool {
+pub fn webp_has_vp8x(img: &WebpImage) -> Bool
+  ensures: img.has_vp8x != 0 => result;
+  ensures: img.has_vp8x == 0 => !result;
+{
   return img.has_vp8x != 0;
 }
 
@@ -1010,7 +1021,9 @@ pub fn webp_flags(img: &WebpImage) -> Int {
 
 /// VP8X ICC profile bit (I) as 0 or 1.
 /// Complexity: O(1).
-pub fn webp_flag_icc(img: &WebpImage) -> Int {
+pub fn webp_flag_icc(img: &WebpImage) -> Int
+  ensures: result == img.flag_icc;
+{
   return img.flag_icc;
 }
 
@@ -1233,25 +1246,33 @@ pub fn webp_anim_background(img: &WebpImage) -> Int {
 
 /// Background color blue byte from the ANIM chunk.
 /// Complexity: O(1).
-pub fn webp_anim_background_blue(img: &WebpImage) -> Int {
+pub fn webp_anim_background_blue(img: &WebpImage) -> Int
+  ensures: result == img.anim_background % 256;
+{
   return img.anim_background % 256;
 }
 
 /// Background color green byte from the ANIM chunk.
 /// Complexity: O(1).
-pub fn webp_anim_background_green(img: &WebpImage) -> Int {
+pub fn webp_anim_background_green(img: &WebpImage) -> Int
+  ensures: result == (img.anim_background / 256) % 256;
+{
   return (img.anim_background / 256) % 256;
 }
 
 /// Background color red byte from the ANIM chunk.
 /// Complexity: O(1).
-pub fn webp_anim_background_red(img: &WebpImage) -> Int {
+pub fn webp_anim_background_red(img: &WebpImage) -> Int
+  ensures: result == (img.anim_background / 65536) % 256;
+{
   return (img.anim_background / 65536) % 256;
 }
 
 /// Background color alpha byte from the ANIM chunk.
 /// Complexity: O(1).
-pub fn webp_anim_background_alpha(img: &WebpImage) -> Int {
+pub fn webp_anim_background_alpha(img: &WebpImage) -> Int
+  ensures: result == (img.anim_background / 16777216) % 256;
+{
   return (img.anim_background / 16777216) % 256;
 }
 
@@ -1267,7 +1288,9 @@ pub fn webp_anim_loop_count(img: &WebpImage) -> Int {
 
 /// Number of top-level chunks in the chunk index.
 /// Complexity: O(1).
-pub fn webp_chunk_count(img: &WebpImage) -> Int {
+pub fn webp_chunk_count(img: &WebpImage) -> Int
+  ensures: result == img.chunk_fourcc.len();
+{
   return img.chunk_fourcc.len();
 }
 
@@ -1275,7 +1298,10 @@ pub fn webp_chunk_count(img: &WebpImage) -> Int {
 /// index. Because the value comes from a Vec[Str], compare it with
 /// xiom.string.compare.str_compare, never with `==`.
 /// Complexity: O(1).
-pub fn webp_chunk_fourcc(img: &WebpImage, i: Int) -> Str {
+pub fn webp_chunk_fourcc(img: &WebpImage, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= img.chunk_fourcc.len() => result.len() == 0;
+{
   if (i < 0 || i >= img.chunk_fourcc.len()) { return ""; }
   let v: Str = img.chunk_fourcc[i];
   return v;
@@ -1283,7 +1309,11 @@ pub fn webp_chunk_fourcc(img: &WebpImage, i: Int) -> Str {
 
 /// Absolute offset of chunk `i`'s fourcc, or -1 when out of range.
 /// Complexity: O(1).
-pub fn webp_chunk_offset(img: &WebpImage, i: Int) -> Int {
+pub fn webp_chunk_offset(img: &WebpImage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= img.chunk_offset.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < img.chunk_offset.len();
+{
   if (i < 0 || i >= img.chunk_offset.len()) { return -1; }
   let v: Int = img.chunk_offset[i];
   return v;
@@ -1329,13 +1359,19 @@ pub fn webp_chunk_kind(img: &WebpImage, i: Int) -> Int {
 
 /// Number of ANMF frames in the frame index.
 /// Complexity: O(1).
-pub fn webp_frame_count(img: &WebpImage) -> Int {
+pub fn webp_frame_count(img: &WebpImage) -> Int
+  ensures: result == img.frame_x.len();
+{
   return img.frame_x.len();
 }
 
 /// Frame `i` X coordinate in pixels, or -1 when out of range.
 /// Complexity: O(1).
-pub fn webp_frame_x(img: &WebpImage, i: Int) -> Int {
+pub fn webp_frame_x(img: &WebpImage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= img.frame_x.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < img.frame_x.len();
+{
   if (i < 0 || i >= img.frame_x.len()) { return -1; }
   let v: Int = img.frame_x[i];
   return v;
@@ -1409,7 +1445,11 @@ pub fn webp_frame_size(img: &WebpImage, i: Int) -> Int {
 
 /// Bitstream format of frame `i`: 1 VP8, 2 VP8L; -1 when out of range.
 /// Complexity: O(1).
-pub fn webp_frame_format(img: &WebpImage, i: Int) -> Int {
+pub fn webp_frame_format(img: &WebpImage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= img.frame_format.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < img.frame_format.len();
+{
   if (i < 0 || i >= img.frame_format.len()) { return -1; }
   let v: Int = img.frame_format[i];
   return v;
