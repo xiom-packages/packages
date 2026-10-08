@@ -3,12 +3,27 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 10 RELAYED** -- `xiom.directx11` 0.2.0 capability probe green
-(5/5 x2 via port.ps1 on v0.64.1: hardware device at 11_0, 3 adapters, first =
-NVIDIA RTX 3070 Ti); awaiting native merge/verify/publish. Next wave per
-roadmap: directx12, then the compression tier (zstd/lzfse/ozz).
+**STATUS: BATCH 11 RELAYED** -- `xiom.directx12` 0.2.0 capability probe green
+(5/5 x2 via port.ps1 on v0.64.1: highest accepted feature level **12_2**, 3
+adapters, first = NVIDIA RTX 3070 Ti); awaiting native merge/verify/publish.
+Next per confirmed plan: compression tier (`xiom.zstd` first, then
+lzfse/ozz).
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 11: head=4cf630ba + this handoff commit; packages=xiom.directx12 0.2.0 (capability probe replacing the pre-pilot static externs);
+tests=5/5 x2 via scripts/port.ps1 on v0.64.1 (2026-10-08: highest accepted feature level 12_2
+(49664) by descending D3D12CreateDevice attempts, 3 DXGI adapters, first = NVIDIA GeForce RTX
+3070 Ti vendor_id 4318 device_id 9346; deterministic SKIP classification per run);
+licenses=MIT OR Apache-2.0 (header-free bridge is our code; nothing vendored); pins=sonames
+d3d12.dll + dxgi.dll + Windows SDK 10.0.22621.0 header hashes (um\d3d12.h 82EB3319...,
+shared\dxgi.h 4B983AC7..., um\d3dcommon.h 62F7BF1A...) + ABI (IID_ID3D12Device
+{189819f1-1db6-4b57-be54-1821339b85f7}; IID_IDXGIFactory1 + DXGI vtables/offsets shared with
+directx11; feature levels 11_0..12_2); gate=G0..G5 OK (ABSENT/NO_DEVICE -> SKIP, ABI -> FAIL;
+all unsafe in the single module xiom.directx12); needs=NONE (allowlisted + baseline);
+port.args.json present (--c-source src/d3d12_probe.c, no --link).
+```
 
 ```
 BINDINGS BATCH 10: head=c7db19b7 (code) + this handoff commit; packages=xiom.directx11 0.2.0
@@ -406,6 +421,21 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Scope decision requested from the native lane: the pre-pilot static-bridge
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
+
+## Batch 11 notes (xiom.directx12, 2026-10-08)
+
+- Max-level capability probe: descending `D3D12CreateDevice` attempts
+  (12_2 -> 11_0); the RTX 3070 Ti accepts 12_2. The DXGI adapter
+  vtables/offsets verified for directx11 were reused unchanged; the only new
+  ABI is `IID_ID3D12Device` + the `D3D12CreateDevice` signature.
+- Run matrix: 5/5 x2 first-try; SKIP classification (bogus sonames) every
+  run. Allowlisted + baseline; `port.args.json` compiles the bridge.
+- Pre-pilot module (~17 KB static D3D12 externs) removed to git history.
+- Next: compression tier -- `xiom.zstd` (vendored C path; the sqlite
+  `--c-source` machinery + `port.args.json` are proven, but zstd is many
+  translation units: plan a `src/zstd_all.c` shim that #includes the vendored
+  `lib/` sources, or vendor the official single-file amalgamation if one is
+  published for the pinned release).
 
 ## Batch 10 notes (xiom.directx11, 2026-10-08)
 
