@@ -5,12 +5,12 @@
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
-                  "status":  "unknown",
-                  "passed":  null,
-                  "failed":  null,
-                  "run_by":  null,
-                  "commit":  null,
-                  "checked":  null
+                  "status":  "pass",
+                  "passed":  7,
+                  "failed":  0,
+                  "run_by":  "task:bindings-lzfse",
+                  "commit":  "10beebc9",
+                  "checked":  "2026-10-08T19:37:34Z"
               },
     "publish":  false,
     "excluded_reason":  null
