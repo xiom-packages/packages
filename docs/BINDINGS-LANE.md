@@ -196,3 +196,27 @@ is ambiguous.
 3. Bindings in the same eco tags (my recommendation) vs `bind-*` releases.
 4. Worktree path `E:\xiom-packages\bindings` OK?
 5. Confirm the licensing lists in §4.
+
+## 10. Pilot ops notes (bindings lane append, 2026-10-08)
+
+Phase 1 / package 1 (`xiom.sqlite`) is green and relayed; see
+`BINDINGS-SESSION.md` at the worktree root for the §6 relay block, evidence,
+and the compiler findings recorded while building it (enum-payload
+nondeterminism, const/unsafe resolver recursion, alloc/free guard-heap spin,
+`up`/`down` name crash).
+
+One runner capability is now on the critical path for all three pilot
+packages:
+
+- **Per-package extra compiler args in `scripts/port.ps1`** (native lane owns
+  the script): read an optional package-local args file and append the flags
+  to the suite invocation, with relative `--c-source` paths resolved against
+  the package directory (the compiler runs clang from a scratch cwd, so a
+  bare relative path fails) and a >=180 s watchdog for suites that compile a
+  vendored C source at link time. Requested shape, to be agreed on the native
+  side: `xiom --run tests/test_conformance.xi --c-source <abs>/vendor/sqlite3.c`.
+  The sdl3/opengl SKIP suites will use the same hook for their `--c-source`
+  bridges/loaders.
+- `xiom.sqlite` also needs the native-lane allowlist append + ops scope
+  enumeration (kept in the relay `needs=`).
+
