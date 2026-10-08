@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T21:39:46Z",
+    "updated":  "2026-10-08T22:10:16Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -1744,17 +1744,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.directx12",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Direct3D 12 bindings for Microsoft\u0027s low-level explicit-GPU-control graphics API",
+                         "description":  "Direct3D 12 / DXGI capability probe for XIOM (runtime d3d12.dll + dxgi.dll, no SDK headers, SKIP when absent)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-directx12/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-directx12/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "directx12.xi",
                                               "package.xi"
