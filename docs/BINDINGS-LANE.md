@@ -45,8 +45,10 @@ Classification notes:
 
 Binding gate, per package:
 
-- **G0 Manifest/category**: `package.xi` with `categories` containing a binding marker
-  (proposed exact key to agree with the release lane: `"binding"`), plus `license`.
+- **G0 Manifest/marker**: `package.xi` with `keywords` containing the binding marker
+  `"binding"` (decided 2026-10-08: `keywords`, NOT `categories` -- the registry silently
+  drops unknown category tokens and categories stay within the 16-token vocabulary), plus
+  `license`.
 - **G1 Compile**: the package compiles with the pinned compiler on the lane's platform.
 - **G2 ABI pin**: `SPEC.md` records upstream project, pinned version, the soname/link
   libraries, and a **SHA256 over the pinned header set**; a re-pin procedure is documented.
@@ -59,8 +61,8 @@ Binding gate, per package:
 - **Drift guard** (CI job, report-only at first): re-hash headers/symbols vs the G2 pin;
   flag when upstream moved. Re-pin only when the hash changes.
 - **Exclusion**: binding packages are excluded from `scripts/contract-coverage.ps1` (zero-
-  clause scan) and from native hardening waves, by category (policy analogous to the
-  documented `option` exclusion).
+  clause scan) and from native hardening waves, by the `keywords: ["binding"]` marker
+  (policy analogous to the documented `option` exclusion).
 
 ## 4. Licensing policy (recommended)
 
@@ -106,6 +108,12 @@ Single-writer rules:
 - **Keep-fresh rule**: before starting any bindings batch, the bindings session runs
   `git fetch; git merge origin/main` inside its worktree. If that merge conflicts, it stops
   and reports (should not happen: file sets are disjoint by rule).
+- **Names and conflicts**: binding names are pre-rostered (in-repo dirs; the 40 grandfathered
+  names are already allowlisted). Before activating a pre-named/manifest-less dir, run
+  `scripts/namespace-check.ps1 -Module <xiom.name>` (read-only) and include the result in the
+  relay; pilot check 2026-10-08: `xiom.sqlite`, `xiom.sdl3`, `xiom.opengl` all OK vs the 1720
+  stdlib namespaces. The native lane re-runs the check at merge and owns the allowlist append
+  + ops scope enumeration for names not yet allowlisted (e.g. `xiom.sqlite`).
 - **Merge/publish flow**: when a bindings batch is green, the bindings session reports to
   the native session: branch head SHA, package list, per-package test counts, licenses,
   pin hashes. The native session merges `bindings` → `main`, regenerates shared artifacts,
@@ -176,8 +184,10 @@ is ambiguous.
 
 ## 9. Open questions for the owner
 
-1. Binding marker: `categories: ["binding"]` in `package.xi` OK? Should the registry index
-   grow a `kind` field (ops ask to the release lane)?
+1. ~~Binding marker: `categories: ["binding"]` in `package.xi` OK?~~ **RESOLVED 2026-10-08:
+   the marker is `keywords: ["binding"]`** (registry-safe; categories stay
+   vocabulary-clean). The registry `kind` field remains an optional ops ask to the release
+   lane.
 2. Platform encoding: `platforms:` field vs SPEC-only. (Recommend the field.)
 3. Bindings in the same eco tags (my recommendation) vs `bind-*` releases.
 4. Worktree path `E:\xiom-packages\bindings` OK?
