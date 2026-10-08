@@ -9,7 +9,7 @@
 
 package xiom_snbt {
   name: "xiom.snbt";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Stringified NBT (SNBT) parsing, canonical emission and tree accessors";
   categories: ["data"];
   keywords: ["snbt", "nbt", "minecraft", "parser"];

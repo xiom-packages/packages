@@ -1,8 +1,6 @@
 # xiom.snbt -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.snbt`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/snbt.xi` (`module xiom.snbt`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`,
 `xiom.convert`; tests additionally use `xiom.test`, `xiom.io`,
@@ -321,3 +319,58 @@ value, and `snbt: empty tree` when `root < 0`.
 - `xiom.string.builder` (`sb_new`, `sb_push_byte`, `sb_push_str`,
   `sb_push_int`, `sb_to_str`) is used for all output construction; it never
   sees NUL bytes here.
+
+## Contracts (batch #46 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (36, across the 15 functions below) were
+added to `src/snbt.xi` in the batch #46 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 22-check conformance suite
+exercises the contracted entry points directly, except `snbt_child_count`,
+which the suite reaches from `snbt_find_child`, and no clause trapped in
+either green run, so none was dropped. Two consecutive green
+`& .\scripts\port.ps1 -Package xiom.snbt -TimeoutSec 90` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active (18.99 s and 17.44 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, and per the batch #37
+finding a bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant, or
+reads a `&mut` parameter. Guards keep the plan's families: sentinel pairs
+(`result == -1`, `result.len() == 0`, `result == 0`, `!result`), bounds
+(`node` against each parallel vector's `len()`, `index` against
+`snbt_child_count`), tag guards (`result is Ok` / `result is Err`), and
+exact formulas (`result == tree.kinds.len()`). Clause literals are the raw
+kind numbers (2 boolean, 3..6 integer kinds, 10 list, 11..13 arrays) rather
+than module constants; each matches its `SNBT_KIND_*` value in the source.
+The cross-calls are non-re-entrant definitional reads: `snbt_child_at` and
+`snbt_find_child` call `snbt_child_count`; `snbt_list_count`,
+`snbt_list_item`, `snbt_array_count`, `snbt_get_integer` and `snbt_get_bool`
+call `snbt_kind`; neither callee can return to the function carrying the
+clause. Every sentinel guard matches the accessor's own early-return branch
+for a bad index, and every `Ok` tag guard matches its typed-reader kind
+check, so the clauses hold for parser-produced and hand-built (drifted)
+`SnbtTree` values alike. `snbt_emit`'s `tree.root < 0 => Err` differs from
+its first guard only in error message, so it needs no
+`_tree_well_formed`-specific claim.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `snbt_parse` | 2 | empty input => `Err`; `Ok` implies `input.len() > 0` | no | yes |
+| `snbt_node_count` | 1 | `result == tree.kinds.len()` | no | yes |
+| `snbt_kind` | 3 | negative/over-length `node` => `-1`; `!= -1` implies in range | no | yes |
+| `snbt_kind_name` | 2 | known kind 1..13 => non-empty; unknown kind => empty | no | yes |
+| `snbt_text` | 2 | negative/over-length `node` => empty text | no | yes |
+| `snbt_parent` | 3 | negative/over-length `node` => `-1`; `!= -1` implies in range | no | yes |
+| `snbt_child_count` | 3 | negative/over-length `node` => `0`; `> 0` implies in range | no | yes |
+| `snbt_child_at` | 4 | bad node/index or `index >= snbt_child_count` => `-1`; `!= -1` implies in range | no | yes |
+| `snbt_find_child` | 2 | bad node or zero children => `-1` | no | yes |
+| `snbt_list_count` | 2 | `snbt_kind != 10` => `Err`; `Ok` implies kind 10 | no | yes |
+| `snbt_list_item` | 4 | bad kind/index => `Err`; `Ok` implies kind 10 and index in child range | no | yes |
+| `snbt_array_count` | 2 | kind outside 11..13 => `Err`; `Ok` implies kind in 11..13 | no | yes |
+| `snbt_get_integer` | 2 | kind outside 3..6 => `Err`; `Ok` implies kind in 3..6 | no | yes |
+| `snbt_get_bool` | 2 | `snbt_kind != 2` => `Err`; `Ok` implies kind 2 | no | yes |
+| `snbt_emit` | 2 | `root < 0` => `Err`; `Ok` implies `root >= 0` | no | yes |
