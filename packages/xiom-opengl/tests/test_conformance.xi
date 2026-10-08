@@ -84,6 +84,45 @@ fn main() -> Int {
     }
   }
 
+  // Phase 2: core-profile context probe (3.3 core) + extension scan.
+  if p.is_ok {
+    let core = opengl_probe_core(3, 3);
+    if core.is_ok {
+      let ci: GlCoreInfo = core.value;
+      failed = failed + report(ci.major >= 3,
+        "core: negotiated " + to_string(ci.major) + "." + to_string(ci.minor) + " core (" + ci.version + ")");
+      failed = failed + report(ci.extension_count > 0,
+        "core: extension count = " + to_string(ci.extension_count));
+      failed = failed + report(ci.extension_head.len() > 0,
+        "core: extension head = " + ci.extension_head);
+
+      let bogus = opengl_has_extension("GL_XIOM_NOT_AN_EXTENSION");
+      if bogus.is_ok {
+        failed = failed + report(!bogus.value, "core: bogus extension correctly absent");
+      } else {
+        failed = failed + report(false, "core: extension scan failed -- " + bogus.error.message);
+      }
+      let aniso = opengl_has_extension("GL_EXT_texture_filter_anisotropic");
+      if aniso.is_ok {
+        if aniso.value {
+          failed = failed + report(true, "core: GL_EXT_texture_filter_anisotropic present");
+        } else {
+          failed = failed + report(true, "core: GL_EXT_texture_filter_anisotropic not present (driver-dependent)");
+        }
+      } else {
+        failed = failed + report(true, "core: extension scan SKIP -- " + aniso.error.message);
+      }
+    } else {
+      if core.error.kind == OPENGL_LOAD_NO_CONTEXT {
+        failed = failed + report(true, "core: SKIP -- no core context available (" + core.error.message + ")");
+      } else if core.error.kind == OPENGL_LOAD_ABSENT {
+        failed = failed + report(true, "core: SKIP -- OpenGL runtime not present");
+      } else {
+        failed = failed + report(false, "core: probe failed -- " + core.error.message);
+      }
+    }
+  }
+
   // Unload must be safe even after a failed probe.
   opengl_unload();
   failed = failed + report(true, "loader: unload path exercised");
