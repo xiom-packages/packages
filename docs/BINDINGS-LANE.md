@@ -220,3 +220,12 @@ packages:
 - `xiom.sqlite` also needs the native-lane allowlist append + ops scope
   enumeration (kept in the relay `needs=`).
 
+**Agreed hook contract (native lane, 2026-10-08):** `scripts/port.ps1` reads an
+optional package-local `port.args.json` -- a JSON array of strings appended to
+the suite `--run` invocation in order. `${PACKAGE_DIR}` in any entry resolves to
+the package directory's absolute path. Contract example (`xiom-sqlite`):
+`["--c-source", "${PACKAGE_DIR}/vendor/sqlite3.c", "--opt-level", "default"]`.
+Malformed JSON or non-string entries fail closed. Vendored-C suites run with
+`port.ps1 -Package <name> -TimeoutSec 240` (watchdog; the amalgamation compiles
+at link time).
+
