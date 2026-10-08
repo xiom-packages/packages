@@ -27,9 +27,11 @@ running). Check `git log -1 --format=%h %s` before starting.
   modules"** (root `grpc.xi` + bare-named `src/*.xi` double-identity; not extern-unsafe).
   **Queued: grpc compat pass (module identity/renames) with the consumer harness as the
   acceptance test.**
-- Bindings batches 9-10 published (`eco-v0.1.102`: dxc 0.2.0 + directx11 0.2.0); next per
-  the lane: `xiom.directx12`, then the compression tier (zstd/lzfse/ozz). `xiom.http` 0.1.2
-  live (`eco-v0.1.103`; compat fix + findings `3b006c9d`; known defects queued).
+- Bindings batches 9-11 published (`eco-v0.1.102`: dxc + directx11 0.2.0; `eco-v0.1.105`:
+  directx12 0.2.0 -- native 5/5 x2, max feature level 12_2, 3 adapters, record `b93d01b7`;
+  guard 505/474/31/0). Next confirmed per the lane: **compression tier, `xiom.zstd`
+  first**, then lzfse/ozz. `xiom.http` 0.1.2 live (`eco-v0.1.103`; compat fix + findings
+  `3b006c9d`; known defects queued).
 - v0.64.1 rules: tag guard pairs only; no Result ==/is Ok(literal)/destructure; `unsafe fn`
   is a hard P001 error; `let _ = unsafe { call() }` invalid IR. Credential:
   `Lefteris-Notas` active.
