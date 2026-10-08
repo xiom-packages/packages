@@ -375,6 +375,32 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
 
+## Inbound checks (2026-10-08, post-batch-8: project lanes + stdlib)
+
+- **PULSE** (`docs/PACKAGE-WISHLIST-PULSE.md` bindings section): first binding
+  request is "a durable database/KV client binding (SQLite/Postgres or
+  similar) to back the event store and sessions beyond JSONL". **Already
+  served**: `xiom.sqlite` 0.2.0 is published (eco-v0.1.89) and is exactly that
+  durable store path; PULSE keeps JSONL as its documented fallback until it
+  adopts. Outbound HTTP client is explicitly "not yet needed"; TLS is
+  explicitly NOT a binding (front proxy). No new work item for this lane.
+- **ORBITDB**: `RELAY-PACKAGES-RESPONSE-ORBITDB.md` and
+  `STDLIB-WISHLIST-ORBITDB.md` contain no bindings-lane asks ("No C-FFI
+  needs", pure-XIOM target). Nothing to do.
+- **XVECTOR**: `RELAY-PACKAGES.md` restates the accelerator watch
+  (`xiom-blas`/`eigen`/`openblas` behind the portable `xiom.vectors` API);
+  unscheduled here, no new ask.
+- **Stdlib response** (`docs/BINDINGS-STDLIB-WISHLIST.md` updated):
+  stdlib **0.64.2** delivered W-1 `fs_remove` (also the shared wishlist's
+  2026-10-05 row) and corrected the W-4 `dl` cast note; `SafePtr`/`FFIBuffer`
+  typed slot helpers pre-existed (W-2 re-scoped to a docs ask); W-3
+  (guard-aware `free`) and W-5 (`Vec.with_len`) remain open.
+- **Compatibility spot-check on stdlib 0.64.2**: `port.ps1` green for
+  `xiom.glfw` (3/3, SKIP path) and `xiom.sqlite` (16/16). No suite changes
+  needed.
+- **Wave continuation**: batch 9 starts `xiom.dxc` (GPU tier: shader-compiler
+  binding over the same runtime-loader + SKIP pattern), then dx11/12.
+
 ## Phase-2 sector order proposal (Phase 1 pilot complete)
 
 Ordered by risk retired per unit of work, stable ABIs first, each slice
