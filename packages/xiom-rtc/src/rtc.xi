@@ -301,7 +301,10 @@ fn _floor_div(a: Int, b: Int) -> Int {
 /// Err("rtc.bcd: value N out of range 0..99") when value is negative or
 /// greater than 99.
 /// Complexity: O(1).
-pub fn rtc_bcd_encode(value: Int) -> Result[Int, Str] {
+pub fn rtc_bcd_encode(value: Int) -> Result[Int, Str]
+  ensures: value < 0 || value > 99 => result is Err;
+  ensures: value >= 0 && value <= 99 => result is Ok;
+{
   if value < 0 || value > 99 {
     return _err_int("rtc.bcd: value " + convert.int_to_string(value) + " out of range 0..99");
   }
@@ -313,7 +316,11 @@ pub fn rtc_bcd_encode(value: Int) -> Result[Int, Str] {
 /// Err("rtc.bcd: byte N out of range 0..255") when byte is outside 0..255;
 /// Err("rtc.bcd: byte N is not valid BCD") when either nibble exceeds 9.
 /// Complexity: O(1).
-pub fn rtc_bcd_decode(byte: Int) -> Result[Int, Str] {
+pub fn rtc_bcd_decode(byte: Int) -> Result[Int, Str]
+  ensures: byte < 0 || byte > 255 => result is Err;
+  ensures: byte >= 0 && byte <= 255 && (byte / 16 > 9 || byte % 16 > 9) => result is Err;
+  ensures: byte >= 0 && byte <= 255 && byte / 16 <= 9 && byte % 16 <= 9 => result is Ok;
+{
   if byte < 0 || byte > 255 {
     return _err_int("rtc.bcd: byte " + convert.int_to_string(byte) + " out of range 0..255");
   }
@@ -327,7 +334,9 @@ pub fn rtc_bcd_decode(byte: Int) -> Result[Int, Str] {
 
 /// True when `byte` is in 0..255 and both of its nibbles are decimal digits.
 /// Complexity: O(1).
-pub fn rtc_bcd_is_valid(byte: Int) -> Bool {
+pub fn rtc_bcd_is_valid(byte: Int) -> Bool
+  ensures: result == (byte >= 0 && byte <= 255 && byte / 16 <= 9 && byte % 16 <= 9);
+{
   if byte < 0 || byte > 255 {
     return false;
   }
@@ -348,7 +357,9 @@ pub fn rtc_bcd_is_valid(byte: Int) -> Bool {
 /// divisible by 4, except centuries, except 400-year centuries. So 2000 and
 /// 2024 are leap, 1900 and 2100 are not.
 /// Complexity: O(1).
-pub fn rtc_is_leap(year: Int) -> Bool {
+pub fn rtc_is_leap(year: Int) -> Bool
+  ensures: result == (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
+{
   if year % 4 != 0 {
     return false;
   }
@@ -363,7 +374,13 @@ pub fn rtc_is_leap(year: Int) -> Bool {
 
 /// Days in `month` of `year` (28/29/30/31), or 0 when month is outside
 /// 1..12. Complexity: O(1).
-pub fn rtc_days_in_month(year: Int, month: Int) -> Int {
+pub fn rtc_days_in_month(year: Int, month: Int) -> Int
+  ensures: month < 1 || month > 12 => result == 0;
+  ensures: month == 2 && rtc_is_leap(year) => result == 29;
+  ensures: month == 2 && !rtc_is_leap(year) => result == 28;
+  ensures: month == 4 || month == 6 || month == 9 || month == 11 => result == 30;
+  ensures: month == 1 || month == 3 || month == 5 || month == 7 || month == 8 || month == 10 || month == 12 => result == 31;
+{
   if month < 1 || month > 12 {
     return 0;
   }
@@ -382,7 +399,9 @@ pub fn rtc_days_in_month(year: Int, month: Int) -> Int {
 /// True when (year, month, day) is a real Gregorian date: month 1..12 and
 /// day 1..days_in_month. Feb 30, Feb 29 in a common year, day 0 and month 13
 /// are all false. Complexity: O(1).
-pub fn rtc_is_valid_date(year: Int, month: Int, day: Int) -> Bool {
+pub fn rtc_is_valid_date(year: Int, month: Int, day: Int) -> Bool
+  ensures: result == (rtc_days_in_month(year, month) >= 1 && day >= 1 && day <= rtc_days_in_month(year, month));
+{
   let dim = rtc_days_in_month(year, month);
   if dim == 0 {
     return false;
@@ -396,7 +415,9 @@ pub fn rtc_is_valid_date(year: Int, month: Int, day: Int) -> Bool {
 /// True when (hours, minutes, seconds) is a real 24-hour clock time: hours
 /// 0..23, minutes 0..59, seconds 0..59; hour 24 and second 60 are rejected.
 /// Complexity: O(1).
-pub fn rtc_is_valid_time(hours: Int, minutes: Int, seconds: Int) -> Bool {
+pub fn rtc_is_valid_time(hours: Int, minutes: Int, seconds: Int) -> Bool
+  ensures: result == (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 && seconds >= 0 && seconds <= 59);
+{
   if hours < 0 || hours > 23 {
     return false;
   }
@@ -417,7 +438,11 @@ pub fn rtc_is_valid_time(hours: Int, minutes: Int, seconds: Int) -> Bool {
 /// Err("rtc: impossible date Y-M-D") when day is outside the month's range
 /// (Feb 30, Feb 29 in a common year, day 0, ...).
 /// Complexity: O(1).
-pub fn rtc_days_from_civil(year: Int, month: Int, day: Int) -> Result[Int, Str] {
+pub fn rtc_days_from_civil(year: Int, month: Int, day: Int) -> Result[Int, Str]
+  ensures: month < 1 || month > 12 => result is Err;
+  ensures: month >= 1 && month <= 12 && (day < 1 || day > rtc_days_in_month(year, month)) => result is Err;
+  ensures: month >= 1 && month <= 12 && day >= 1 && day <= rtc_days_in_month(year, month) => result is Ok;
+{
   if month < 1 || month > 12 {
     return _err_int("rtc: month " + convert.int_to_string(month) + " out of range 1..12");
   }
@@ -443,7 +468,10 @@ pub fn rtc_days_from_civil(year: Int, month: Int, day: Int) -> Result[Int, Str] 
 /// Inverse of rtc_days_from_civil: the Gregorian date `days` after the UNIX
 /// epoch, including dates before it (negative days).
 /// Complexity: O(1).
-pub fn rtc_civil_from_days(days: Int) -> CivilDate {
+pub fn rtc_civil_from_days(days: Int) -> CivilDate
+  ensures: result.month >= 1 && result.month <= 12;
+  ensures: result.day >= 1 && result.day <= rtc_days_in_month(result.year, result.month);
+{
   let z = days + 719468;
   let era = _floor_div(z, 146097);
   let doe = z - era * 146097;
@@ -465,7 +493,10 @@ pub fn rtc_civil_from_days(days: Int) -> CivilDate {
 
 /// ISO day of week (1 = Monday .. 7 = Sunday) of the day `days` after the
 /// UNIX epoch (1970-01-01 was a Thursday). Complexity: O(1).
-pub fn rtc_weekday_from_days(days: Int) -> Int {
+pub fn rtc_weekday_from_days(days: Int) -> Int
+  ensures: result >= 1 && result <= 7;
+  ensures: result == (((days + 3) % 7) + 7) % 7 + 1;
+{
   var r = (days + 3) % 7;
   if r < 0 {
     r = r + 7;
@@ -528,7 +559,9 @@ pub fn rtc_24_to_twelve_pm(hours: Int) -> Result[Bool, Str] {
 /// Full year of a sample: RTC_PCF8563_YEAR_BASE + 100 * century + year. Both
 /// families share the 2000 year base, so this is also the full DS1307 year
 /// (whose century is always 0). Complexity: O(1).
-pub fn rtc_full_year(t: &RtcTime) -> Int {
+pub fn rtc_full_year(t: &RtcTime) -> Int
+  ensures: result == 2000 + t.century * 100 + t.year;
+{
   return RTC_PCF8563_YEAR_BASE + t.century * 100 + t.year;
 }
 
@@ -605,7 +638,10 @@ fn _validate_ds1307(t: &RtcTime) -> Result[Unit, Str] {
 ///      Err("rtc.ds1307: impossible date Y-M-D") with full year
 ///      RTC_DS1307_YEAR_BASE + year.
 /// Complexity: O(1).
-pub fn rtc_ds1307_decode(regs: &Vec[UInt8]) -> Result[RtcTime, Str] {
+pub fn rtc_ds1307_decode(regs: &Vec[UInt8]) -> Result[RtcTime, Str]
+  ensures: regs.len() < 7 => result is Err;
+  ensures: result is Ok => regs.len() >= 7;
+{
   if regs.len() < RTC_DS1307_REG_COUNT {
     return _err_time("rtc.ds1307: need " + convert.int_to_string(RTC_DS1307_REG_COUNT) + " registers, have " + convert.int_to_string(regs.len()));
   }
@@ -742,7 +778,10 @@ pub fn rtc_ds1307_encode(t: &RtcTime) -> Result[Vec[UInt8], Str] {
 ///
 /// Err("rtc.ds1307: need 7 registers, have N").
 /// Complexity: O(1).
-pub fn rtc_ds1307_is_halted(regs: &Vec[UInt8]) -> Result[Bool, Str] {
+pub fn rtc_ds1307_is_halted(regs: &Vec[UInt8]) -> Result[Bool, Str]
+  ensures: regs.len() < 7 => result is Err;
+  ensures: regs.len() >= 7 => result is Ok;
+{
   if regs.len() < RTC_DS1307_REG_COUNT {
     return _err_bool("rtc.ds1307: need " + convert.int_to_string(RTC_DS1307_REG_COUNT) + " registers, have " + convert.int_to_string(regs.len()));
   }
@@ -756,7 +795,10 @@ pub fn rtc_ds1307_is_halted(regs: &Vec[UInt8]) -> Result[Bool, Str] {
 ///
 /// Err("rtc.ds1307: need 7 registers, have N").
 /// Complexity: O(regs.len()).
-pub fn rtc_ds1307_set_halted(regs: &Vec[UInt8], halted: Bool) -> Result[Vec[UInt8], Str] {
+pub fn rtc_ds1307_set_halted(regs: &Vec[UInt8], halted: Bool) -> Result[Vec[UInt8], Str]
+  ensures: regs.len() < 7 => result is Err;
+  ensures: regs.len() >= 7 => result is Ok;
+{
   if regs.len() < RTC_DS1307_REG_COUNT {
     return _err_bytes("rtc.ds1307: need " + convert.int_to_string(RTC_DS1307_REG_COUNT) + " registers, have " + convert.int_to_string(regs.len()));
   }
@@ -865,7 +907,10 @@ fn _validate_pcf8563(t: &RtcTime) -> Result[Unit, Str] {
 ///      Err("rtc.pcf8563: impossible date Y-M-D") with full year
 ///      RTC_PCF8563_YEAR_BASE + 100 * century + year.
 /// Complexity: O(1).
-pub fn rtc_pcf8563_decode(regs: &Vec[UInt8]) -> Result[Pcf8563Time, Str] {
+pub fn rtc_pcf8563_decode(regs: &Vec[UInt8]) -> Result[Pcf8563Time, Str]
+  ensures: regs.len() < 9 => result is Err;
+  ensures: result is Ok => regs.len() >= 9;
+{
   if regs.len() < RTC_PCF8563_REG_COUNT {
     return _err_pcf("rtc.pcf8563: need " + convert.int_to_string(RTC_PCF8563_REG_COUNT) + " registers, have " + convert.int_to_string(regs.len()));
   }
@@ -994,7 +1039,11 @@ pub fn rtc_pcf8563_decode(regs: &Vec[UInt8]) -> Result[Pcf8563Time, Str] {
 /// Err("rtc.pcf8563: hours N out of range 0..23"),
 /// Err("rtc.pcf8563: PM flag set in 24-hour mode").
 /// Complexity: O(1).
-pub fn rtc_pcf8563_encode(s: &Pcf8563Time) -> Result[Vec[UInt8], Str] {
+pub fn rtc_pcf8563_encode(s: &Pcf8563Time) -> Result[Vec[UInt8], Str]
+  ensures: s.control1 < 0 || s.control1 > 255 || s.control2 < 0 || s.control2 > 255 || s.control2 / 32 != 0 => result is Err;
+  ensures: s.time.year < 0 || s.time.year > 99 || s.time.century < 0 || s.time.century > 1 || s.time.month < 1 || s.time.month > 12 || s.time.day < 1 || s.time.day > rtc_days_in_month(2000 + s.time.century * 100 + s.time.year, s.time.month) || s.time.weekday < 0 || s.time.weekday > 6 || s.time.minutes < 0 || s.time.minutes > 59 || s.time.seconds < 0 || s.time.seconds > 59 || (s.time.hour12 == true && (s.time.hours < 1 || s.time.hours > 12)) || (s.time.hour12 == false && (s.time.hours < 0 || s.time.hours > 23 || s.time.pm == true)) => result is Err;
+  ensures: s.control1 >= 0 && s.control1 <= 255 && s.control2 >= 0 && s.control2 <= 255 && s.control2 / 32 == 0 && s.time.year >= 0 && s.time.year <= 99 && s.time.century >= 0 && s.time.century <= 1 && s.time.month >= 1 && s.time.month <= 12 && s.time.day >= 1 && s.time.day <= rtc_days_in_month(2000 + s.time.century * 100 + s.time.year, s.time.month) && s.time.weekday >= 0 && s.time.weekday <= 6 && s.time.minutes >= 0 && s.time.minutes <= 59 && s.time.seconds >= 0 && s.time.seconds <= 59 && (s.time.hour12 == false || (s.time.hours >= 1 && s.time.hours <= 12)) && (s.time.hour12 == true || (s.time.hours >= 0 && s.time.hours <= 23 && s.time.pm == false)) => result is Ok;
+{
   if s.control1 < 0 || s.control1 > 255 {
     return _err_bytes("rtc.pcf8563: control 1 value " + convert.int_to_string(s.control1) + " out of range 0..255");
   }

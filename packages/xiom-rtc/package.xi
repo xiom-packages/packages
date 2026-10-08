@@ -9,7 +9,7 @@
 
 package xiom_rtc {
   name: "xiom.rtc";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Real-time clock register codecs: BCD fields, DS1307 and PCF8563 layouts, civil-date arithmetic";
   categories: ["systems"];
   keywords: ["rtc", "ds1307", "pcf8563", "i2c", "bcd", "clock", "embedded"];

@@ -1,8 +1,6 @@
 # xiom.rtc -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.rtc`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/rtc.xi` (`module xiom.rtc`).
 Depends on `xiom.std`; the library module imports `xiom.convert` (tests add
 `xiom.test`, `xiom.io`, `xiom.string.compare`, `xiom.encoding.hex`). No FFI.
@@ -276,3 +274,57 @@ range 0..23`, `PM flag set in 24-hour mode`.
 - `Str` values are never compared with `==`; the suite uses
   `xiom.string.compare.str_compare`. Bool flags are compared through a
   Bool-safe helper rather than `==`.
+
+## Contracts (batch #41 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/rtc.xi` in the batch #41
+hardening pass (compiler v0.64.0; `package.xi` is left for the coordinator
+to bump at integration). 33 clauses over 16 entry points, all `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.rtc -TimeoutSec 60` runs ended
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` with the clauses
+active (8.89 s and 10.39 s); no clause trapped.
+
+Every clause holds for hand-built values and structs: the guards keep the
+source's own validation branches, and only parameters, parameter fields,
+nested by-value-struct fields and plain `Int`/`Bool`/struct returns are
+read. No clause reads a bare `&mut` parameter, indexes a vector, uses a
+module constant, compares `Str` values with `==`, reads a struct-Result
+payload field or uses `result.value.0/.1`. The only clause calls are the
+definitional, non-re-entrant cross-calls: `rtc_is_leap(year)` in
+`rtc_days_in_month`, `rtc_days_in_month(...)` in `rtc_is_valid_date`,
+`rtc_days_from_civil`, `rtc_civil_from_days` and the `rtc_pcf8563_encode`
+day guard (including the full-year argument
+`rtc_days_in_month(2000 + s.time.century * 100 + s.time.year, s.time.month)`);
+none of these callees calls its caller.
+
+Two plan expressions were refined (family kept): the plan's chained
+comparisons are written as explicit conjuncts (the repository clause style,
+e.g. `value >= 0 && value <= 99`), and the `rtc_pcf8563_encode` shorthand
+"time fields outside their documented ranges" was expanded per field
+(`year`, `century`, `month`, `day` vs the month length of the century-based
+full year, `weekday`, `minutes`, `seconds`, and the mode-dependent
+`hours`/`pm` ranges). Nothing was dropped and no probe-gated items applied
+(none were listed for this package).
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it
+can emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `rtc_bcd_encode` | `value < 0 \|\| value > 99 => result is Err`; `value >= 0 && value <= 99 => result is Ok` | runtime-checked |
+| `rtc_bcd_decode` | `byte < 0 \|\| byte > 255 => result is Err`; `byte >= 0 && byte <= 255 && (byte / 16 > 9 \|\| byte % 16 > 9) => result is Err`; `byte >= 0 && byte <= 255 && byte / 16 <= 9 && byte % 16 <= 9 => result is Ok` | runtime-checked |
+| `rtc_bcd_is_valid` | `result == (byte >= 0 && byte <= 255 && byte / 16 <= 9 && byte % 16 <= 9)` | runtime-checked |
+| `rtc_is_leap` | `result == (year % 4 == 0 && (year % 100 != 0 \|\| year % 400 == 0))` | runtime-checked |
+| `rtc_days_in_month` | `month < 1 \|\| month > 12 => result == 0`; `month == 2 && rtc_is_leap(year) => result == 29`; `month == 2 && !rtc_is_leap(year) => result == 28`; `month == 4 \|\| month == 6 \|\| month == 9 \|\| month == 11 => result == 30`; `month == 1 \|\| month == 3 \|\| month == 5 \|\| month == 7 \|\| month == 8 \|\| month == 10 \|\| month == 12 => result == 31` | runtime-checked |
+| `rtc_is_valid_date` | `result == (rtc_days_in_month(year, month) >= 1 && day >= 1 && day <= rtc_days_in_month(year, month))` | runtime-checked |
+| `rtc_is_valid_time` | `result == (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 && seconds >= 0 && seconds <= 59)` | runtime-checked |
+| `rtc_days_from_civil` | `month < 1 \|\| month > 12 => result is Err`; `month >= 1 && month <= 12 && (day < 1 \|\| day > rtc_days_in_month(year, month)) => result is Err`; `month >= 1 && month <= 12 && day >= 1 && day <= rtc_days_in_month(year, month) => result is Ok` | runtime-checked |
+| `rtc_civil_from_days` | `result.month >= 1 && result.month <= 12`; `result.day >= 1 && result.day <= rtc_days_in_month(result.year, result.month)` | runtime-checked |
+| `rtc_weekday_from_days` | `result >= 1 && result <= 7`; `result == (((days + 3) % 7) + 7) % 7 + 1` | runtime-checked |
+| `rtc_full_year` | `result == 2000 + t.century * 100 + t.year` | runtime-checked |
+| `rtc_ds1307_decode` | `regs.len() < 7 => result is Err`; `result is Ok => regs.len() >= 7` | runtime-checked |
+| `rtc_ds1307_is_halted` | `regs.len() < 7 => result is Err`; `regs.len() >= 7 => result is Ok` | runtime-checked |
+| `rtc_ds1307_set_halted` | `regs.len() < 7 => result is Err`; `regs.len() >= 7 => result is Ok` | runtime-checked |
+| `rtc_pcf8563_decode` | `regs.len() < 9 => result is Err`; `result is Ok => regs.len() >= 9` | runtime-checked |
+| `rtc_pcf8563_encode` | controls: `s.control1 < 0 \|\| s.control1 > 255 \|\| s.control2 < 0 \|\| s.control2 > 255 \|\| s.control2 / 32 != 0 => result is Err`; time fields (year, century, month, day vs the month length of the century-based full year, weekday, minutes, seconds, mode-dependent hours/pm) out of range => `result is Err`; all controls and time fields in range => `result is Ok` | runtime-checked |
