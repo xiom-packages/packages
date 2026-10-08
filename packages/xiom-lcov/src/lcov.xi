@@ -554,7 +554,10 @@ fn _consume_open(d: &mut LcovDoc, line: Str, line_no: Int) -> Str {
 /// Returns: an empty LcovDoc.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lcov_doc_new() -> LcovDoc {
+pub fn lcov_doc_new() -> LcovDoc
+  ensures: lcov_file_count(result) == 0;
+  ensures: result.sf.len() == 0;
+{
   return LcovDoc{
     sf: Vec[Str].new();
     tn: Vec[Str].new();
@@ -618,7 +621,10 @@ fn _file_count(d: &LcovDoc) -> Int {
 /// Returns: the count (0 for an empty document).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lcov_file_count(d: &LcovDoc) -> Int {
+pub fn lcov_file_count(d: &LcovDoc) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.sf.len();
+{
   return _file_count(d);
 }
 
@@ -627,7 +633,11 @@ pub fn lcov_file_count(d: &LcovDoc) -> Int {
 /// Returns: the path; "" when `f` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lcov_file_source(d: &LcovDoc, f: Int) -> Str {
+pub fn lcov_file_source(d: &LcovDoc, f: Int) -> Str
+  ensures: f < 0 => result.len() == 0;
+  ensures: f >= d.sf.len() => result.len() == 0;
+  ensures: result.len() > 0 => f >= 0 && f < d.sf.len();
+{
   if f < 0 || f >= _file_count(d) {
     return "";
   }
@@ -642,7 +652,11 @@ pub fn lcov_file_source(d: &LcovDoc, f: Int) -> Str {
 /// Returns: the test name; "" when absent or `f` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lcov_file_test_name(d: &LcovDoc, f: Int) -> Str {
+pub fn lcov_file_test_name(d: &LcovDoc, f: Int) -> Str
+  ensures: f < 0 => result.len() == 0;
+  ensures: f >= d.tn.len() => result.len() == 0;
+  ensures: result.len() > 0 => f >= 0 && f < d.tn.len();
+{
   if f < 0 || f >= _file_count(d) {
     return "";
   }
@@ -660,7 +674,11 @@ pub fn lcov_file_test_name(d: &LcovDoc, f: Int) -> Str {
 /// present (or `f` is out of range).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lcov_declared_fnf(d: &LcovDoc, f: Int) -> Int {
+pub fn lcov_declared_fnf(d: &LcovDoc, f: Int) -> Int
+  ensures: f < 0 => result == -1;
+  ensures: f >= d.decl_fnf.len() => result == -1;
+  ensures: result != -1 => f >= 0 && f < d.decl_fnf.len();
+{
   if f < 0 || f >= _file_count(d) {
     return -1;
   }
@@ -742,7 +760,10 @@ pub fn lcov_declared_brh(d: &LcovDoc, f: Int) -> Int {
 /// Returns: the count (0 when `f` is out of range).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lcov_computed_fnf(d: &LcovDoc, f: Int) -> Int {
+pub fn lcov_computed_fnf(d: &LcovDoc, f: Int) -> Int
+  ensures: result == lcov_fn_count(d, f);
+  ensures: result >= 0;
+{
   return lcov_fn_count(d, f);
 }
 
@@ -752,7 +773,10 @@ pub fn lcov_computed_fnf(d: &LcovDoc, f: Int) -> Int {
 /// Returns: the count (0 when `f` is out of range).
 /// Error case: none.
 /// Complexity: O(records).
-pub fn lcov_computed_fnh(d: &LcovDoc, f: Int) -> Int {
+pub fn lcov_computed_fnh(d: &LcovDoc, f: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= lcov_fnda_count(d, f);
+{
   let n = lcov_fnda_count(d, f);
   if n <= 0 {
     return 0;
@@ -847,7 +871,10 @@ pub fn lcov_computed_brh(d: &LcovDoc, f: Int) -> Int {
 /// lcov_computed_fnf; false when absent or equal.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lcov_fnf_mismatch(d: &LcovDoc, f: Int) -> Bool {
+pub fn lcov_fnf_mismatch(d: &LcovDoc, f: Int) -> Bool
+  ensures: lcov_declared_fnf(d, f) < 0 => !result;
+  ensures: result => lcov_declared_fnf(d, f) >= 0;
+{
   let decl = lcov_declared_fnf(d, f);
   if decl < 0 {
     return false;
@@ -934,7 +961,10 @@ pub fn lcov_brh_mismatch(d: &LcovDoc, f: Int) -> Bool {
 /// Returns: the record count (0 when `f` is out of range).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lcov_fn_count(d: &LcovDoc, f: Int) -> Int {
+pub fn lcov_fn_count(d: &LcovDoc, f: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.fn_line.len();
+{
   if f < 0 || f >= _file_count(d) {
     return 0;
   }
@@ -950,7 +980,11 @@ pub fn lcov_fn_count(d: &LcovDoc, f: Int) -> Int {
 /// Returns: the line number; -1 when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lcov_fn_line(d: &LcovDoc, f: Int, i: Int) -> Int {
+pub fn lcov_fn_line(d: &LcovDoc, f: Int, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= lcov_fn_count(d, f) => result == -1;
+  ensures: result != -1 => i >= 0 && i < lcov_fn_count(d, f);
+{
   let n = lcov_fn_count(d, f);
   if i < 0 || i >= n {
     return -1;
@@ -1028,7 +1062,10 @@ pub fn lcov_fnda_name(d: &LcovDoc, f: Int, i: Int) -> Str {
 /// Returns: the record count (0 when `f` is out of range).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lcov_da_count(d: &LcovDoc, f: Int) -> Int {
+pub fn lcov_da_count(d: &LcovDoc, f: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.da_line.len();
+{
   if f < 0 || f >= _file_count(d) {
     return 0;
   }
@@ -1097,7 +1134,10 @@ pub fn lcov_da_has_checksum(d: &LcovDoc, f: Int, i: Int) -> Bool {
 /// out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lcov_da_checksum(d: &LcovDoc, f: Int, i: Int) -> Str {
+pub fn lcov_da_checksum(d: &LcovDoc, f: Int, i: Int) -> Str
+  ensures: !lcov_da_has_checksum(d, f, i) => result.len() == 0;
+  ensures: result.len() > 0 => lcov_da_has_checksum(d, f, i);
+{
   if !lcov_da_has_checksum(d, f, i) {
     return "";
   }
@@ -1179,7 +1219,11 @@ pub fn lcov_brda_branch(d: &LcovDoc, f: Int, i: Int) -> Str {
 /// and for an out-of-range `i`.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn lcov_brda_taken(d: &LcovDoc, f: Int, i: Int) -> Int {
+pub fn lcov_brda_taken(d: &LcovDoc, f: Int, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= lcov_brda_count(d, f) => result == -1;
+  ensures: result != -1 => i >= 0 && i < lcov_brda_count(d, f);
+{
   let n = lcov_brda_count(d, f);
   if i < 0 || i >= n {
     return -1;
@@ -1214,7 +1258,10 @@ pub fn lcov_brda_taken(d: &LcovDoc, f: Int, i: Int) -> Int {
 /// Error case: none. Mismatched parallel arrays are clamped to their
 /// shortest length.
 /// Complexity: O(total output length).
-pub fn lcov_emit(d: &LcovDoc) -> Str {
+pub fn lcov_emit(d: &LcovDoc) -> Str
+  ensures: lcov_file_count(d) == 0 => result.len() == 0;
+  ensures: lcov_file_count(d) > 0 => result.len() > 0;
+{
   var out = "";
   let nf = _file_count(d);
   var f = 0;
@@ -1330,7 +1377,9 @@ pub fn lcov_emit(d: &LcovDoc) -> Str {
 /// Error case: Err("lcov: ...") with a 1-based line number (or the SF line
 /// for a missing end_of_record). The catalog is in SPEC.md.
 /// Complexity: O(input length).
-pub fn lcov_parse(text: Str) -> Result[LcovDoc, Str] {
+pub fn lcov_parse(text: Str) -> Result[LcovDoc, Str]
+  ensures: text.len() == 0 => result is Ok;
+{
   var d = lcov_doc_new();
   var pending_tn = "";
   var open = false;

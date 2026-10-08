@@ -1,6 +1,6 @@
 # xiom.lcov -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.lcov` (`src/lcov.xi`). Pure XIOM, no FFI, no I/O.
 
 ## 1. Scope
@@ -363,3 +363,56 @@ validated by `xiom.bencode`); every per-file array is pushed together in
 arrays, so mismatched arrays cannot cause an out-of-range read. No
 `&struct.field` is passed as a `&Vec` parameter. No workarounds beyond these
 documented patterns were required.
+
+## Contracts (batch #45 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (34, across the 15 functions below) were
+added to `src/lcov.xi` in the batch #45 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 21-check conformance suite
+exercises every contracted entry point and no clause trapped, so none was
+dropped. Two consecutive green `& .\scripts\port.ps1 -Package xiom.lcov
+-TimeoutSec 90` runs ended `port: PASS (passed=21 failed=0 program_exit=0
+exit=0)` with the clauses active (17.13 s and 16.09 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, and a bare `[OK]
+VERIFIED` can be a vacuous UNSAT, so the Z3-provable column is "no"
+throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant, or
+reads a `&mut` parameter (this module has none). Guards keep the plan's
+families: sentinel pairs (`result == -1`, `result.len() == 0`), bounds
+(`result <= d.sf.len()` and the other store-vector lengths, `result <=
+lcov_fnda_count(d, f)`), tag guards (`result is Ok`) and exact formulas /
+definitional cross-calls. The cross-calls are non-re-entrant definitional
+reads: `lcov_doc_new` calls `lcov_file_count`; `lcov_computed_fnf` calls
+`lcov_fn_count`; `lcov_computed_fnh` calls `lcov_fnda_count`; `lcov_fn_line`
+calls `lcov_fn_count`; `lcov_da_checksum` calls `lcov_da_has_checksum`;
+`lcov_brda_taken` calls `lcov_brda_count`; `lcov_fnf_mismatch` calls
+`lcov_declared_fnf`; `lcov_emit` calls `lcov_file_count`; none of those
+callees can return to the function carrying the clause. Every accessor's
+guard matches its internal `_file_count` clamping (`_file_count` is the
+shortest per-file vector, so `f >= d.<vec>.len()` implies out of range), and
+the `-1` sentinel guards hold for parser-produced and hand-built (drifted)
+`LcovDoc` values alike: an out-of-range read returns the sentinel, so a
+non-sentinel result implies an in-range index even when a hand-built vector
+stores `-1` at a valid index.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `lcov_doc_new` | 2 | fresh doc: `lcov_file_count == 0` and empty `sf` | no | yes |
+| `lcov_file_count` | 2 | `result >= 0`; `result <= d.sf.len()` | no | yes |
+| `lcov_file_source` | 3 | negative/past-array index => `""`; non-empty implies in-range | no | yes |
+| `lcov_file_test_name` | 3 | negative/past-array index => `""`; non-empty implies in-range | no | yes |
+| `lcov_declared_fnf` | 3 | out-of-range index => `-1`; `!= -1` implies in-range | no | yes |
+| `lcov_computed_fnf` | 2 | exact `lcov_fn_count(d, f)`; `result >= 0` | no | yes |
+| `lcov_computed_fnh` | 2 | `result >= 0`; `result <= lcov_fnda_count(d, f)` | no | yes |
+| `lcov_fnf_mismatch` | 2 | absent declared value => `false`; `true` implies declared present | no | yes |
+| `lcov_fn_count` | 2 | `result >= 0`; `result <= d.fn_line.len()` | no | yes |
+| `lcov_fn_line` | 3 | out-of-range index => `-1`; `!= -1` implies in-range | no | yes |
+| `lcov_da_count` | 2 | `result >= 0`; `result <= d.da_line.len()` | no | yes |
+| `lcov_da_checksum` | 2 | no checksum => `""`; non-empty implies checksum present | no | yes |
+| `lcov_brda_taken` | 3 | out-of-range index => `-1`; `!= -1` implies in-range | no | yes |
+| `lcov_emit` | 2 | zero files => empty output; any file => non-empty output | no | yes |
+| `lcov_parse` | 1 | empty input => `Ok` | no | yes |

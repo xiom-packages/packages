@@ -11,7 +11,7 @@
 
 package xiom_lcov {
   name: "xiom.lcov";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "LCOV tracefile parser and canonical emitter";
   categories: ["testing"];
   keywords: ["lcov", "coverage", "tracefile", "parser"];
