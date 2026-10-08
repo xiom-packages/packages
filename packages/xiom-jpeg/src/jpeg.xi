@@ -781,7 +781,11 @@ fn _finish(a: _Acc) -> JpegImage {
 ///      no frame was seen). Bytes after EOI are allowed and counted by
 ///      jpeg_trailing_bytes.
 /// Complexity: O(input bytes).
-pub fn jpeg_parse(data: &Vec[UInt8]) -> Result[JpegImage, JpegError] {
+pub fn jpeg_parse(data: &Vec[UInt8]) -> Result[JpegImage, JpegError]
+  ensures: data.len() < 2 => result is Err;
+  ensures: !jpeg_is_jpeg(data) => result is Err;
+  ensures: result is Ok => jpeg_is_jpeg(data);
+{
   let n = data.len();
   if (n < 2) { return _fail_img(_bad(_at("jpeg: missing SOI", 0), 0)); }
   if (_b(data, 0) != 255) { return _fail_img(_bad(_at("jpeg: missing SOI", 0), 0)); }
@@ -942,7 +946,10 @@ pub fn jpeg_parse(data: &Vec[UInt8]) -> Result[JpegImage, JpegError] {
 /// True when the buffer starts with FFD8. Malformed or short buffers return
 /// false rather than an error; use jpeg_parse when the reason matters.
 /// Complexity: O(1).
-pub fn jpeg_is_jpeg(data: &Vec[UInt8]) -> Bool {
+pub fn jpeg_is_jpeg(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 2 => !result;
+  ensures: result => data.len() >= 2;
+{
   if (data.len() < 2) { return false; }
   if (_b(data, 0) != 255) { return false; }
   if (_b(data, 1) != 216) { return false; }
@@ -985,13 +992,19 @@ pub fn jpeg_is_progressive(img: &JpegImage) -> Bool {
 
 /// Number of frame components (1..255).
 /// Complexity: O(1).
-pub fn jpeg_component_count(img: &JpegImage) -> Int {
+pub fn jpeg_component_count(img: &JpegImage) -> Int
+  ensures: result == img.component_id.len();
+{
   return img.component_id.len();
 }
 
 /// Component identifier `i`, or -1 when `i` is out of range.
 /// Complexity: O(1).
-pub fn jpeg_component_id(img: &JpegImage, i: Int) -> Int {
+pub fn jpeg_component_id(img: &JpegImage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= img.component_id.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < img.component_id.len();
+{
   if (i < 0 || i >= img.component_id.len()) { return -1; }
   let v: Int = img.component_id[i];
   return v;
@@ -1123,7 +1136,11 @@ pub fn jpeg_quant_value_offset(img: &JpegImage, t: Int) -> Int {
 /// is out of range. The flat store is bounds-checked against the table's
 /// 64-value window so a drifted structure can not read out of window.
 /// Complexity: O(1).
-pub fn jpeg_quant_value(img: &JpegImage, t: Int, k: Int) -> Int {
+pub fn jpeg_quant_value(img: &JpegImage, t: Int, k: Int) -> Int
+  ensures: t < 0 || t >= img.quant_value_offset.len() => result == -1;
+  ensures: k < 0 || k > 63 => result == -1;
+  ensures: result != -1 => t >= 0 && t < img.quant_value_offset.len() && k >= 0 && k <= 63;
+{
   if (t < 0 || t >= img.quant_value_offset.len()) { return -1; }
   if (k < 0 || k > 63) { return -1; }
   let base: Int = img.quant_value_offset[t];
@@ -1177,7 +1194,11 @@ pub fn jpeg_dht_count_offset(img: &JpegImage, t: Int) -> Int {
 /// Count `k` (0..15) of DHT table `t`, or -1 when any index is out of range.
 /// The flat store is bounds-checked against the table's 16-count window.
 /// Complexity: O(1).
-pub fn jpeg_dht_count(img: &JpegImage, t: Int, k: Int) -> Int {
+pub fn jpeg_dht_count(img: &JpegImage, t: Int, k: Int) -> Int
+  ensures: t < 0 || t >= img.dht_count_offset.len() => result == -1;
+  ensures: k < 0 || k > 15 => result == -1;
+  ensures: result != -1 => k >= 0 && k <= 15;
+{
   if (t < 0 || t >= img.dht_count_offset.len()) { return -1; }
   if (k < 0 || k > 15) { return -1; }
   let base: Int = img.dht_count_offset[t];
@@ -1198,7 +1219,11 @@ pub fn jpeg_scan_count(img: &JpegImage) -> Int {
 
 /// Spectral selection start `Ss` of scan `s`, or -1.
 /// Complexity: O(1).
-pub fn jpeg_scan_ss(img: &JpegImage, s: Int) -> Int {
+pub fn jpeg_scan_ss(img: &JpegImage, s: Int) -> Int
+  ensures: s < 0 => result == -1;
+  ensures: s >= img.scan_ss.len() => result == -1;
+  ensures: result != -1 => s >= 0 && s < img.scan_ss.len();
+{
   if (s < 0 || s >= img.scan_ss.len()) { return -1; }
   let v: Int = img.scan_ss[s];
   return v;
@@ -1247,7 +1272,12 @@ pub fn jpeg_scan_component_offset(img: &JpegImage, s: Int) -> Int {
 /// Component identifier of selector `k` in scan `s`, or -1 when any index is
 /// out of range or the selector lies outside the scan's window.
 /// Complexity: O(1).
-pub fn jpeg_scan_component_id(img: &JpegImage, s: Int, k: Int) -> Int {
+pub fn jpeg_scan_component_id(img: &JpegImage, s: Int, k: Int) -> Int
+  ensures: s < 0 || s >= img.scan_component_offset.len() => result == -1;
+  ensures: s >= img.scan_component_count.len() => result == -1;
+  ensures: result != -1 => s >= 0 && s < img.scan_component_offset.len();
+  ensures: result != -1 => k >= 0;
+{
   if (s < 0 || s >= img.scan_component_offset.len()) { return -1; }
   if (s >= img.scan_component_count.len()) { return -1; }
   let count: Int = img.scan_component_count[s];
@@ -1296,7 +1326,11 @@ pub fn jpeg_scan_data_offset(img: &JpegImage, s: Int) -> Int {
 /// Raw byte length of scan `s`'s entropy span, still byte-stuffed and still
 /// containing restart markers, or -1.
 /// Complexity: O(1).
-pub fn jpeg_scan_data_length(img: &JpegImage, s: Int) -> Int {
+pub fn jpeg_scan_data_length(img: &JpegImage, s: Int) -> Int
+  ensures: s < 0 => result == -1;
+  ensures: s >= img.scan_data_length.len() => result == -1;
+  ensures: result != -1 => s >= 0 && s < img.scan_data_length.len();
+{
   if (s < 0 || s >= img.scan_data_length.len()) { return -1; }
   let v: Int = img.scan_data_length[s];
   return v;
@@ -1331,7 +1365,11 @@ pub fn jpeg_app_segment_count(img: &JpegImage) -> Int {
 
 /// Marker code (224..239) of APP segment `i`, or -1.
 /// Complexity: O(1).
-pub fn jpeg_app_marker(img: &JpegImage, i: Int) -> Int {
+pub fn jpeg_app_marker(img: &JpegImage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= img.app_marker.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < img.app_marker.len();
+{
   if (i < 0 || i >= img.app_marker.len()) { return -1; }
   let v: Int = img.app_marker[i];
   return v;
@@ -1369,7 +1407,11 @@ pub fn jpeg_comment_count(img: &JpegImage) -> Int {
 
 /// Marker offset of comment segment `i`, or -1.
 /// Complexity: O(1).
-pub fn jpeg_comment_offset(img: &JpegImage, i: Int) -> Int {
+pub fn jpeg_comment_offset(img: &JpegImage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= img.com_offset.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < img.com_offset.len();
+{
   if (i < 0 || i >= img.com_offset.len()) { return -1; }
   let v: Int = img.com_offset[i];
   return v;
@@ -1395,7 +1437,10 @@ pub fn jpeg_restart_interval(img: &JpegImage) -> Int {
 
 /// True when at least one DRI segment was seen.
 /// Complexity: O(1).
-pub fn jpeg_has_dri(img: &JpegImage) -> Bool {
+pub fn jpeg_has_dri(img: &JpegImage) -> Bool
+  ensures: img.dri_count == 0 => !result;
+  ensures: result => img.dri_count != 0;
+{
   return img.dri_count != 0;
 }
 
@@ -1419,7 +1464,9 @@ pub fn jpeg_total_bytes(img: &JpegImage) -> Int {
 
 /// Number of bytes after the EOI marker (0 when EOI is last).
 /// Complexity: O(1).
-pub fn jpeg_trailing_bytes(img: &JpegImage) -> Int {
+pub fn jpeg_trailing_bytes(img: &JpegImage) -> Int
+  ensures: result == img.total_bytes - (img.eoi_offset + 2);
+{
   return img.total_bytes - (img.eoi_offset + 2);
 }
 
@@ -1430,7 +1477,9 @@ pub fn jpeg_trailing_bytes(img: &JpegImage) -> Int {
 /// Human-readable failure message (always non-empty for Err values returned
 /// by jpeg_parse).
 /// Complexity: O(1).
-pub fn jpeg_error_message(e: &JpegError) -> Str {
+pub fn jpeg_error_message(e: &JpegError) -> Str
+  ensures: result.len() == e.message.len();
+{
   let m: Str = e.message;
   return m;
 }
@@ -1438,6 +1487,8 @@ pub fn jpeg_error_message(e: &JpegError) -> Str {
 /// Absolute byte offset the failure refers to (always >= 0 for Err values
 /// returned by jpeg_parse).
 /// Complexity: O(1).
-pub fn jpeg_error_offset(e: &JpegError) -> Int {
+pub fn jpeg_error_offset(e: &JpegError) -> Int
+  ensures: result == e.offset;
+{
   return e.offset;
 }

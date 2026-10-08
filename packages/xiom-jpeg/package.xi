@@ -8,7 +8,7 @@
 
 package xiom_jpeg {
   name: "xiom.jpeg";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "JPEG (ITU-T T.81) marker/segment codec: SOI/APPn/JFIF/EXIF, DQT, SOF0/1/2, DHT, SOS scan data with byte stuffing and RSTn, EOI";
   categories: ["graphics"];
   keywords: ["jpeg", "image", "container", "parser"];

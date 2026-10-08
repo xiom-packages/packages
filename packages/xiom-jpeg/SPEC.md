@@ -1,5 +1,7 @@
 # xiom.jpeg -- implemented byte format (SPEC)
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 > **Status:** implemented and conformance-tested on XIOM v0.61.3 (16/16 green).
 > **Scope:** JPEG (ITU-T T.81 / ISO/IEC 10918-1) marker and segment layer:
 > SOI/EOI framing, APP0..APP15 (JFIF decode, EXIF presence), DQT, SOF0/SOF1/SOF2,
@@ -502,3 +504,50 @@ Each test ends with one `assert(true, ...)` whose names are listed below.
   `_fail_img`); in-parser success is an internal `JpegError` with offset -1.
 - Complexity is O(input bytes) time and O(number of segments/tables/scans)
   indexed state; the raw scan bytes are referenced, not copied.
+
+## Contracts (batch #45 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (36, across the 15 functions below) were
+added to `src/jpeg.xi` in the batch #45 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 16-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive green `& .\scripts\port.ps1 -Package xiom.jpeg
+-TimeoutSec 90` runs ended `port: PASS (passed=16 failed=0 program_exit=0
+exit=0)` with the clauses active (40.5 s and 38.85 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, and per the batch #37
+finding a bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant, or
+reads a `&mut` parameter. Guards keep the plan's families: sentinel pairs
+(`result == -1`, `!result`), bounds/ranges (`k < 0 || k > 63 => result ==
+-1`, `result != -1 => k >= 0 && k <= 15`), tag guards (`result is Ok` /
+`result is Err`, `result => data.len() >= 2`), and exact formulas
+(`result == img.component_id.len()`, `result == img.total_bytes -
+(img.eoi_offset + 2)`, `result.len() == e.message.len()`,
+`result == e.offset`). The only cross-calls are non-re-entrant definitional
+reads: `jpeg_parse` calls `jpeg_is_jpeg`; `jpeg_is_jpeg` cannot return to
+`jpeg_parse`. Every accessor's guard matches its internal sentinel path, so
+clauses hold for parser-produced and hand-built (empty or drifted)
+`JpegImage` values alike.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `jpeg_parse` | 3 | <2 bytes or not `FF D8` => `Err`; `Ok` implies `jpeg_is_jpeg` | no | yes |
+| `jpeg_is_jpeg` | 2 | <2 bytes => `false`; `true` implies >= 2 bytes | no | yes |
+| `jpeg_component_count` | 1 | `result == img.component_id.len()` | no | yes |
+| `jpeg_component_id` | 3 | negative/over-length `i` => `-1`; `!= -1` implies in range | no | yes |
+| `jpeg_quant_value` | 3 | bad `t`/`k` => `-1`; `!= -1` implies `t` in table and `k` in 0..63 | no | yes |
+| `jpeg_dht_count` | 3 | bad `t`/`k` => `-1`; `!= -1` implies `k` in 0..15 | no | yes |
+| `jpeg_scan_ss` | 3 | negative/over-length `s` => `-1`; `!= -1` implies in range | no | yes |
+| `jpeg_scan_component_id` | 4 | negative/over-length `s` => `-1`; `!= -1` implies `s` in range and `k >= 0` | no | yes |
+| `jpeg_scan_data_length` | 3 | negative/over-length `s` => `-1`; `!= -1` implies in range | no | yes |
+| `jpeg_app_marker` | 3 | negative/over-length `i` => `-1`; `!= -1` implies in range | no | yes |
+| `jpeg_comment_offset` | 3 | negative/over-length `i` => `-1`; `!= -1` implies in range | no | yes |
+| `jpeg_has_dri` | 2 | `dri_count == 0` => `false`; `true` implies `dri_count != 0` | no | yes |
+| `jpeg_trailing_bytes` | 1 | `result == total_bytes - (eoi_offset + 2)` | no | yes |
+| `jpeg_error_message` | 1 | `result.len() == e.message.len()` | no | yes |
+| `jpeg_error_offset` | 1 | `result == e.offset` | no | yes |
