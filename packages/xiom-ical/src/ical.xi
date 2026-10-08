@@ -207,7 +207,10 @@ fn _upper_ascii(s: Str) -> Str {
 /// start of the text is removed too when it is followed by whitespace (the
 /// function works on the byte stream, not on logical lines).
 /// Complexity: O(text length).
-pub fn ical_unfold(text: Str) -> Str {
+pub fn ical_unfold(text: Str) -> Str
+  ensures: result.len() <= text.len();
+  ensures: text.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let n = text.len();
   var i = 0;
@@ -236,7 +239,10 @@ pub fn ical_unfold(text: Str) -> Str {
 /// backslash -> "\\\\", semicolon -> "\\;", comma -> "\\,", LF -> "\\n" and
 /// CR (including the CR of a CRLF pair) -> "\\n". All other bytes are copied
 /// verbatim. Complexity: O(s length).
-pub fn ical_escape_text(s: Str) -> Str {
+pub fn ical_escape_text(s: Str) -> Str
+  ensures: result.len() >= s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -278,7 +284,10 @@ pub fn ical_escape_text(s: Str) -> Str {
 /// "\\N" -> LF. An unknown escape such as "\\q" is preserved byte-for-byte
 /// (both the backslash and the escaped byte are kept), and a trailing lone
 /// backslash is kept. Complexity: O(s length).
-pub fn ical_unescape_text(s: Str) -> Str {
+pub fn ical_unescape_text(s: Str) -> Str
+  ensures: result.len() <= s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -464,7 +473,10 @@ fn _find_child_in(c: &Ical, comp: Int, lname: Str) -> Int {
 /// lines are ignored. Multiple top-level components are allowed; an empty
 /// stream parses as an empty tree.
 /// Complexity: O(total input length).
-pub fn ical_parse(text: Str) -> Result[Ical, Str] {
+pub fn ical_parse(text: Str) -> Result[Ical, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var c = _empty_ical();
   let unfolded = ical_unfold(text);
   let n = unfolded.len();
@@ -557,7 +569,10 @@ pub fn ical_component_count(c: &Ical) -> Int {
 }
 
 /// Number of top-level components (parent index -1).
-pub fn ical_root_count(c: &Ical) -> Int {
+pub fn ical_root_count(c: &Ical) -> Int
+  ensures: result >= 0;
+  ensures: result <= c.comp_names.len();
+{
   var n = 0;
   var i = 0;
   while i < c.comp_names.len() {
@@ -571,7 +586,11 @@ pub fn ical_root_count(c: &Ical) -> Int {
 }
 
 /// Index of the i-th top-level component, or -1 when i is out of range.
-pub fn ical_root(c: &Ical, i: Int) -> Int {
+pub fn ical_root(c: &Ical, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= ical_root_count(c) => result == -1;
+  ensures: result != -1 => i >= 0 && i < ical_root_count(c);
+{
   var seen = 0;
   var k = 0;
   while k < c.comp_names.len() {
@@ -588,7 +607,11 @@ pub fn ical_root(c: &Ical, i: Int) -> Int {
 }
 
 /// Lowercased name of component `comp` ("" for an out-of-range index).
-pub fn ical_component_name(c: &Ical, comp: Int) -> Str {
+pub fn ical_component_name(c: &Ical, comp: Int) -> Str
+  ensures: comp < 0 => result.len() == 0;
+  ensures: comp >= c.comp_names.len() => result.len() == 0;
+  ensures: result.len() > 0 => comp >= 0 && comp < c.comp_names.len();
+{
   if comp < 0 || comp >= c.comp_names.len() {
     return "";
   }
@@ -598,7 +621,11 @@ pub fn ical_component_name(c: &Ical, comp: Int) -> Str {
 
 /// Parent index of component `comp`: -1 for a top-level component and -2 for
 /// an out-of-range index.
-pub fn ical_component_parent(c: &Ical, comp: Int) -> Int {
+pub fn ical_component_parent(c: &Ical, comp: Int) -> Int
+  ensures: comp < 0 => result == -2;
+  ensures: comp >= c.comp_parents.len() => result == -2;
+  ensures: result != -2 => comp >= 0 && comp < c.comp_parents.len();
+{
   if comp < 0 || comp >= c.comp_parents.len() {
     return -2;
   }
@@ -608,7 +635,11 @@ pub fn ical_component_parent(c: &Ical, comp: Int) -> Int {
 
 /// Number of direct children of component `comp` (-1 addresses the top level,
 /// so `ical_child_count(c, -1)` equals `ical_root_count(c)`).
-pub fn ical_child_count(c: &Ical, comp: Int) -> Int {
+pub fn ical_child_count(c: &Ical, comp: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= c.comp_names.len();
+  ensures: comp == -1 => result == ical_root_count(c);
+{
   var n = 0;
   var i = 0;
   while i < c.comp_names.len() {
@@ -623,7 +654,11 @@ pub fn ical_child_count(c: &Ical, comp: Int) -> Int {
 
 /// Index of the i-th direct child of component `comp`, or -1. Pass -1 as
 /// `comp` to walk the top level.
-pub fn ical_child(c: &Ical, comp: Int, i: Int) -> Int {
+pub fn ical_child(c: &Ical, comp: Int, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= ical_child_count(c, comp) => result == -1;
+  ensures: result != -1 => i >= 0 && i < ical_child_count(c, comp);
+{
   var seen = 0;
   var k = 0;
   while k < c.comp_names.len() {
@@ -665,7 +700,11 @@ pub fn ical_prop_count(c: &Ical, comp: Int) -> Int {
 
 /// Lowercased name of the i-th direct property of component `comp` ("" when
 /// the ordinal is out of range).
-pub fn ical_prop_name(c: &Ical, comp: Int, i: Int) -> Str {
+pub fn ical_prop_name(c: &Ical, comp: Int, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= ical_prop_count(c, comp) => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < ical_prop_count(c, comp);
+{
   let k = _prop_index(c, comp, i);
   if k < 0 {
     return "";
@@ -701,7 +740,10 @@ pub fn ical_find_prop(c: &Ical, comp: Int, name: Str) -> Int {
 /// named `name` (case-insensitive); None when the property is absent. The
 /// first match in document order wins; use `ical_prop_count` and
 /// `ical_prop_value` to read duplicates.
-pub fn ical_get(c: &Ical, comp: Int, name: Str) -> Option[Str] {
+pub fn ical_get(c: &Ical, comp: Int, name: Str) -> Option[Str]
+  ensures: ical_find_prop(c, comp, name) == -1 => result is None;
+  ensures: ical_find_prop(c, comp, name) >= 0 => result is Some;
+{
   let k = ical_find_prop(c, comp, name);
   if k < 0 {
     return None;
@@ -770,7 +812,12 @@ pub fn ical_prop_param_value(c: &Ical, comp: Int, i: Int, j: Int) -> Str {
 // --------------------------------------------------
 
 /// A new empty stream: no components, no properties.
-pub fn ical_new() -> Ical {
+pub fn ical_new() -> Ical
+  ensures: result.comp_names.len() == 0;
+  ensures: result.comp_parents.len() == 0;
+  ensures: result.prop_names.len() == 0;
+  ensures: result.param_names.len() == 0;
+{
   return _empty_ical();
 }
 
@@ -778,7 +825,10 @@ pub fn ical_new() -> Ical {
 /// component) and return its index. Returns -1 without changing the stream
 /// when `name` is not a valid name (ALPHA / DIGIT / "-") or `parent` is
 /// neither -1 nor an existing component index.
-pub fn ical_add_component(c: &mut Ical, parent: Int, name: Str) -> Int {
+pub fn ical_add_component(c: &mut Ical, parent: Int, name: Str) -> Int
+  ensures: name.len() == 0 => result == -1;
+  ensures: parent < -1 => result == -1;
+{
   if !_token_ok(name) {
     return -1;
   }
@@ -796,7 +846,10 @@ pub fn ical_add_component(c: &mut Ical, parent: Int, name: Str) -> Int {
 /// `ical_add_text_prop` for TEXT values). Returns false without changing the
 /// stream when `comp` is out of range, `name` is invalid, or `value` contains
 /// a CR or LF byte (which cannot appear in one content line).
-pub fn ical_add_prop(c: &mut Ical, comp: Int, name: Str, value: Str) -> Bool {
+pub fn ical_add_prop(c: &mut Ical, comp: Int, name: Str, value: Str) -> Bool
+  ensures: comp < 0 => !result;
+  ensures: name.len() == 0 => !result;
+{
   if comp < 0 || comp >= c.comp_names.len() {
     return false;
   }
@@ -818,7 +871,10 @@ pub fn ical_add_prop(c: &mut Ical, comp: Int, name: Str, value: Str) -> Bool {
 /// `ical_escape_text` and stored. Returns false without changing the stream
 /// when `comp` is out of range or `name` is invalid (escaping always produces
 /// a value that fits one content line).
-pub fn ical_add_text_prop(c: &mut Ical, comp: Int, name: Str, text: Str) -> Bool {
+pub fn ical_add_text_prop(c: &mut Ical, comp: Int, name: Str, text: Str) -> Bool
+  ensures: comp < 0 => !result;
+  ensures: name.len() == 0 => !result;
+{
   return ical_add_prop(c, comp, name, ical_escape_text(text));
 }
 
@@ -828,7 +884,12 @@ pub fn ical_add_text_prop(c: &mut Ical, comp: Int, name: Str, text: Str) -> Bool
 /// UID, SUMMARY, DESCRIPTION and LOCATION are escaped as TEXT; DTSTAMP,
 /// DTSTART and DTEND are DATE-TIME values and are stored verbatim, so they
 /// must not contain CR or LF (such values are dropped).
-pub fn ical_build_event(uid: Str, dtstamp: Str, dtstart: Str, dtend: Str, summary: Str, description: Str, location: Str) -> Ical {
+pub fn ical_build_event(uid: Str, dtstamp: Str, dtstart: Str, dtend: Str, summary: Str, description: Str, location: Str) -> Ical
+  ensures: result.comp_names.len() == 2;
+  ensures: result.prop_names.len() >= 6;
+  ensures: result.prop_names.len() <= 9;
+  ensures: result.prop_comps.len() == result.prop_names.len();
+{
   var c = _empty_ical();
   let cal = ical_add_component(&mut c, -1, "VCALENDAR");
   let ev = ical_add_component(&mut c, cal, "VEVENT");
@@ -951,7 +1012,10 @@ fn _emit_comp(c: &Ical, comp: Int, out: &mut Vec[UInt8], fold: Bool) {
 /// BEGIN, then its direct properties, then its children, then its END. No
 /// folding is applied; use `ical_serialize_folded` for transport-sized lines.
 /// Complexity: O(output length).
-pub fn ical_serialize(c: &Ical) -> Str {
+pub fn ical_serialize(c: &Ical) -> Str
+  ensures: ical_root_count(c) == 0 => result.len() == 0;
+  ensures: result.len() >= 14 * ical_root_count(c);
+{
   var out = Vec[UInt8].new();
   var i = 0;
   while i < c.comp_names.len() {
