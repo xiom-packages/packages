@@ -1,8 +1,6 @@
 # xiom.ext -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.ext`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/ext.xi` (`module xiom.ext`).
 Depends on `xiom.std`; the library module imports `xiom.string` and
 `xiom.encoding.hex` from it (tests add `xiom.test`, `xiom.io`,
@@ -394,3 +392,52 @@ Last verified: compiler 0.61.3,
   to a pointer comparison).
 - The package declares no `extern "C"` blocks (no FFI) and no
   `Vec[StructType]`.
+
+## Contracts (batch #44 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (77, across all 57 public functions) were
+added to `src/ext.xi` in the batch #44 hardening pass (compiler v0.64.1;
+`package.xi` is left at 0.1.1 for the coordinator to bump at integration).
+All are `ensures:` with no `requires:`, so the accepted-input domain is
+unchanged. Every clause is enforced as a runtime check; the 20-test
+conformance suite exercises every contracted entry point and no clause
+trapped, so none was dropped. Two consecutive `& .\scripts\port.ps1 -Package
+xiom.ext -TimeoutSec 60` runs ended `port: PASS (passed=20 failed=0
+program_exit=0 exit=0)` with the clauses active (15.53 s and 15.16 s). None
+is claimed Z3-provable: `xiom-verify` was not run for this module, and per
+the batch #37 finding a bare `[OK] VERIFIED` can be a vacuous UNSAT, so the
+Z3-provable column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause calls
+another function, indexes a vector, compares a `Str` (lengths only), uses a
+module constant, or reads a Result payload. The plan carried no
+`(pre: ...)` guards, and every claim holds for arbitrary hand-built
+`ExtSuperblock` values: `ext_block_size` maps a hand-built `log_block_size`
+outside `0..6` to `-1`, and the builder guards mirror the exact
+`_validate_build` checks.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `ext_superblock_parse` | 2 | `data.len() < 2048` => `Err`; `Ok` => `data.len() >= 2048` | no | yes |
+| scalar field accessors (40; see list below) | 40 | `result == sb.<field>` | no | yes |
+| `ext_uuid_hex`, `ext_volume_name`, `ext_last_mounted` | 3 | `result.len() == sb.<field>.len()` | no | yes |
+| `ext_block_size` | 3 | log outside `0..6` => `-1`; otherwise `1024..65536` and `% 1024 == 0` | no | yes |
+| `ext_has_ext_fields` | 2 | `sb.has_ext` <=> `result` | no | yes |
+| `ext_blocks_count` / `ext_r_blocks_count` / `ext_free_blocks_count` | 3 | `result == <lo> + <hi> * 4294967296` | no | yes |
+| `ext_has_feature_compat` / `_incompat` / `_ro_compat` | 6 | `mask == 0` => true; false => `mask != 0` | no | yes |
+| `ext_feature_compat_name` / `_incompat_name` / `_ro_compat_name` | 9 | 0, negative or above the last documented bit => `""` | no | yes |
+| `ext_superblock_build` | 7 | bad magic/log size/inodes count/inode size/name lengths => `Err`; `Ok` => magic and non-zero counts | no | yes |
+| `ext_superblock_build_image` | 2 | bad magic => `Err`; `Ok` => `sb.magic == 61267` | no | yes |
+
+The 40 scalar field accessors are `ext_inodes_count`, `ext_blocks_count_lo`,
+`ext_r_blocks_count_lo`, `ext_free_blocks_count_lo`, `ext_free_inodes_count`,
+`ext_first_data_block`, `ext_log_block_size`, `ext_log_cluster_size`,
+`ext_blocks_per_group`, `ext_clusters_per_group`, `ext_inodes_per_group`,
+`ext_mtime`, `ext_wtime`, `ext_mnt_count`, `ext_max_mnt_count`, `ext_magic`,
+`ext_state`, `ext_errors`, `ext_minor_rev_level`, `ext_lastcheck`,
+`ext_checkinterval`, `ext_creator_os`, `ext_rev_level`, `ext_def_resuid`,
+`ext_def_resgid`, `ext_first_ino`, `ext_inode_size`, `ext_block_group_nr`,
+`ext_feature_compat`, `ext_feature_incompat`, `ext_feature_ro_compat`,
+`ext_algo_bitmap`, `ext_blocks_count_hi`, `ext_r_blocks_count_hi`,
+`ext_free_blocks_count_hi`, `ext_min_extra_isize`, `ext_want_extra_isize`,
+`ext_flags`, `ext_checksum_type`, `ext_desc_size`.
