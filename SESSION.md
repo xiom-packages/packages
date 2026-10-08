@@ -52,9 +52,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   `let _ = unsafe { call() };` emits invalid IR for pointer/Str/struct returns. Known
   `xiom.http` defects queued (double-free `setup_common_options`, UAF `http_download`,
   `char_to_str` numeric strings). PULSE `probe_pkg_http` should flip green.
-- **Next:** batch #45 (rescan; ~31 carriers) + the FFI catalog-dep rehearsal sweep for the
-  remaining published FFI set (rest/grpc/protobuf/sqlite/opengl/vulkan) using the http
-  porter's consumer-harness recipe.
+- **Next:** batch #45 in flight (smbios/gpx/lcov/avro/sd/jpeg porters running); FFI
+  catalog-dep rehearsal sweep DONE (`docs/COMPILER-FINDINGS.md`, this pass): rest/protobuf/
+  sqlite/opengl/vulkan COMPILE-CLEAN as consumer deps; **`xiom.grpc` RED -- 6 T001
+  "ambiguous function exported by multiple imported modules"** (root `grpc.xi` +
+  bare-named `src/*.xi` double-identity in the consumer catalog; not extern-unsafe) --
+  queue a grpc compat pass (module identity/renames) with the consumer harness as the
+  acceptance test.
 - **Lane checks recorded (requested):** PULSE deltas in `docs/PACKAGE-WISHLIST.md` §7 +
   `docs/COMPILER-FINDINGS.md` sweep (`a63e9a34`, `07d77c2d`) -- C-PULSE-10 CLOSED on Linux
   (m217), **C-PULSE-13 NEW** (Unix installer layout; compiler/ops), PULSE `OPS-REQUEST.md`
