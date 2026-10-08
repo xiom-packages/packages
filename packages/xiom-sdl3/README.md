@@ -6,8 +6,9 @@ resolved function pointers. No link-time dependency, no vendored code, no
 build flags -- and the conformance suite reports **SKIP** (green) when SDL3
 is not installed.
 
-> **Status:** `incubating` -- suite green in both configurations on the pin
-> (v0.64.0): 3/3 x2 without SDL3 (SKIP path), 10/10 x2 with SDL 3.4.8.
+> **Status:** `incubating` -- suite green on v0.64.1: 3/3 x2 without SDL3
+> (SKIP path), 21/21 x2 with SDL 3.4.8 (smoke + window/renderer/texture/
+> gamepad resources).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
@@ -43,7 +44,8 @@ fn main() {
 | Timer | `sdl3_get_ticks`, `sdl3_get_performance_counter`, `sdl3_delay` |
 | Events | `sdl3_pump_events`, `sdl3_poll_event` |
 | Error | `sdl3_get_error` |
-| Constants | `SDL_INIT_*`, a curated `SDL_WINDOW_*`/`SDL_EVENT_*` subset, `SDL3_SONAME`, `SDL3_LOAD_ABSENT`/`SDL3_LOAD_ABI` |
+| Resources | `sdl3_load_resources`, `sdl3_resources_close`, `sdl3_create_window`, `sdl3_destroy_window`, `sdl3_show_window`, `sdl3_hide_window`, `sdl3_window_size`, `sdl3_set_window_title`, `sdl3_create_renderer`, `sdl3_destroy_renderer`, `sdl3_set_render_draw_color`, `sdl3_render_clear`, `sdl3_render_present`, `sdl3_create_texture`, `sdl3_destroy_texture`, `sdl3_has_gamepad`, `sdl3_gamepad_count`, `sdl3_open_gamepad`, `sdl3_close_gamepad` |
+| Constants | `SDL_INIT_*`, `SDL_WINDOW_*`, `SDL_EVENT_*`, `SDL_PIXELFORMAT_RGBA8888`, `SDL_TEXTUREACCESS_*`, `SDL3_SONAME`, `SDL3_LOAD_*` |
 
 Failure model: `sdl3_load` distinguishes **absent** (`kind =
 SDL3_LOAD_ABSENT` -> callers SKIP) from **ABI mismatch** (`kind =
@@ -62,8 +64,9 @@ xiom --run tests/test_conformance.xi
 ```
 
 - Without SDL3: 3 `[PASS]` with explicit `SKIP` labels, exit 0.
-- With SDL3: 10 `[PASS]` (version, revision, init/was_init, ticks+delay,
-  perf counter, pump/poll, quit, handle release), exit 0.
+- With SDL3: 21 `[PASS]` (smoke + hidden window, renderer clear/present,
+  RGBA8888 texture, gamepad enumeration), exit 0.
 
-Full matrix + re-pin procedure: `SPEC.md` §4/§2. Window/renderer resources
-are Phase 2 (`ROADMAP.md`).
+Full matrix + re-pin procedure: `SPEC.md` §4/§2. Event decoding, the full
+constant tables and the POSIX soname are the remaining Phase 2 items
+(`ROADMAP.md`).

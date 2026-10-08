@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sdl3` |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SDL3 -- https://github.com/libsdl-org/SDL |
 | Upstream version pinned | **3.4.8** (tag `release-3.4.8`) |
 | Upstream license | zlib (bindings only; no code vendored) |
 | Package license | MIT OR Apache-2.0 |
 | Platform | Windows x64 (loader path is OS-agnostic in design; soname here is `SDL3.dll`) |
-| Compiler pin | xiom v0.64.0 |
+| Compiler pin | v0.64.1 (repo `COMPILER_VERSION` bump to v0.64.1 pending native repin; 0.3.0 runs recorded on v0.64.1) |
 
 ## 2. G2 pin: soname + dev header hash set
 
@@ -80,19 +80,29 @@ and recomputing (see `scripts`-free procedure below).
   `sdl3_get_ticks`, `sdl3_get_performance_counter`, `sdl3_delay`,
   `sdl3_pump_events`, `sdl3_poll_event`, `sdl3_get_error`, plus the
   version-arithmetic helpers and the curated constant set.
+- **Resource stage (Phase 2, separate loader):** `sdl3_load_resources`,
+  `sdl3_resources_close`, `sdl3_create_window`, `sdl3_destroy_window`,
+  `sdl3_show_window`, `sdl3_hide_window`, `sdl3_window_size`,
+  `sdl3_set_window_title`, `sdl3_create_renderer`, `sdl3_destroy_renderer`,
+  `sdl3_set_render_draw_color`, `sdl3_render_clear`, `sdl3_render_present`,
+  `sdl3_create_texture`, `sdl3_destroy_texture`, `sdl3_has_gamepad`,
+  `sdl3_gamepad_count`, `sdl3_open_gamepad`, `sdl3_close_gamepad`, with
+  `Sdl3Resources` / `Sdl3WindowSize`. A missing resource symbol fails only
+  this stage (`SDL3_LOAD_ABI`); the smoke stage is unaffected. Window-
+  dependent checks SKIP on hosts that cannot create a window.
 
-## 4. Test matrix (recorded 2026-10-08, compiler v0.64.0)
+## 4. Test matrix (recorded 2026-10-08, compiler v0.64.1)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
 | SDL3 absent (CI shape) | `port.ps1 -Package xiom.sdl3` with the Vulkan SDK dir removed from PATH | **PASS, 3/3 x2** (`loader: SKIP ... code 126`, `smoke: SKIP ...`) |
-| SDL3 3.4.8 present | same command, default PATH | **PASS, 10/10 x2** (version 3.4.8, init/was_init, ticks+delay, pump/poll, quit-clear, handle release) |
+| SDL3 3.4.8 present | same command, default PATH | **PASS, 21/21 x2** -- smoke 10 checks + resources: symbol set, hidden 320x200 window (size/title/show/hide), renderer (draw color, clear+present), RGBA8888 texture create/destroy, gamepad enumeration (0 attached -> SKIP open), resource handle release |
 
 No `port.args.json` is needed: the suite compiles no C source and needs no
 extra compiler flags (this is the design win of the loader path over a C
 bridge). `scripts/port.ps1` runs it unchanged.
 
-## 5. Compiler notes (v0.64.0)
+## 5. Compiler notes
 
 - The loader module avoids the binding-lane resolver pitfalls documented in
   `docs/BINDINGS-COMPILER-FINDINGS.md`: all exported functions carry the
@@ -100,13 +110,16 @@ bridge). `scripts/port.ps1` runs it unchanged.
   references inside confined blocks, no cross-module const aliases, no
   child->parent imports (single module), no malloc/free in confined blocks.
 - `xiom.ffi.dl`'s stale "Int-to-pointer casts are broken" smoke note does
-  not apply to v0.64.0: the fn-pointer cast idiom used here is proven by this
-  suite (see the stdlib wishlist item W-4 in
-  `docs/BINDINGS-STDLIB-WISHLIST.md`).
+  not apply: the fn-pointer cast idiom used here is proven by this suite
+  (see the stdlib wishlist item W-4 in `docs/BINDINGS-STDLIB-WISHLIST.md`).
+- 0.3.0 runs recorded on **v0.64.1** (the resolver picks the installed
+  0.64.1 over the v0.64.0 pin); the lane re-tests at each pin -- see the
+  v0.64.1 sweep in `docs/BINDINGS-COMPILER-FINDINGS.md` (B-06/B-09 fixed,
+  B-01/B-05/B-08 open).
 
 ## 6. Scope
 
-Pilot smoke only (init/version/quit + timer/event peek). Window, renderer,
-texture and gamepad resources plus the full constant tables are Phase 2 and
-preserved in git history (pre-0.2.0 `sdl3.xi`, `src/sdl3_safe.xi`); they
-will be rebuilt over this loader. See `ROADMAP.md`.
+0.3.0 covers the pilot smoke plus the resource stage (window/renderer/
+texture/gamepad) over the loader. Remaining Phase 2 items: event decoding
+with owned event buffers, the full constant tables (git history), POSIX
+soname fallback, and opengl-context interop -- see `ROADMAP.md`.

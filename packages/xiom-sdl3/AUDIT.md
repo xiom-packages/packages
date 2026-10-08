@@ -10,12 +10,13 @@ remain in git history and return in Phase 2 over this loader.
 
 | Item | State |
 |------|-------|
-| Compiler | xiom v0.64.0 |
+| Compiler | v0.64.1 (resolver picks installed 0.64.1; repo pin bump pending native repin) |
 | Upstream pin | SDL 3.4.8 (tag `release-3.4.8`), soname `SDL3.dll` |
 | Link model | none at build time; runtime `LoadLibraryA`/`GetProcAddress` via `xiom.ffi.dl` |
 | FFI confinement | all `unsafe` + fn-pointer casts in the root module `xiom.sdl3` only |
 | Suite | `tests/test_conformance.xi` |
-| Runs | absent: PASS 3/3 x2; present (SDL 3.4.8): PASS 10/10 x2 -- both via `scripts/port.ps1` |
+| Runs | absent: PASS 3/3 x2; present (SDL 3.4.8): PASS 21/21 x2 -- both via `scripts/port.ps1` (v0.64.1) |
+| Resources (0.3.0) | window (hidden 320x200, size/title/show/hide), renderer (draw color, clear+present), RGBA8888 texture create/destroy, gamepad enumeration + SKIP when none attached |
 
 ## G2 pin
 
@@ -40,9 +41,11 @@ remain in git history and return in Phase 2 over this loader.
 
 ## Known limitations
 
-- Smoke scope only: window/renderer/texture/gamepad resources are Phase 2.
+- Event decoding is not exposed yet (only pump/poll liveness); an owned
+  event-buffer API is Phase 2.
 - Curated constant subset only (full tables in git history).
 - Windows soname hard-coded (`SDL3.dll`); a `libSDL3.so.0` fallback is a
   Phase 2 item when POSIX CI exists.
 - Video/audio init is not exercised (device-dependent); the smoke is
-  headless by design.
+  headless by design. Window-dependent checks SKIP on hosts that cannot
+  create a window; gamepad open/close runs only when a device is attached.
