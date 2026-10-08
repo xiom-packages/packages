@@ -9,7 +9,7 @@
 
 package xiom_xpm {
   name: "xiom.xpm";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "X PixMap (XPM) X11 color-pixmap source parsing and canonical building";
   categories: ["graphics"];
   keywords: ["xpm", "x11", "pixmap", "format"];

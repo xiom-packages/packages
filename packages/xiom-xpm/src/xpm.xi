@@ -364,7 +364,14 @@ fn _hdr_bad(m: Str) -> XpmHeader {
 // `w h ncolors cpp [x_hot y_hot]`. Width/height are capped at 1000000,
 // ncolors at 4096, cpp must be 1..4, and hotspot coordinates must satisfy
 // 0 <= x_hot <= width and 0 <= y_hot <= height.
-fn _parse_header(h: Str, hlen: Int) -> XpmHeader {
+fn _parse_header(h: Str, hlen: Int) -> XpmHeader
+  ensures: !result.ok => result.width == 0 && result.height == 0 && result.ncolors == 0 && result.cpp == 0 && result.x_hot == -1 && result.y_hot == -1;
+  ensures: result.ok => result.width >= 1 && result.width <= 1000000;
+  ensures: result.ok => result.height >= 1 && result.height <= 1000000;
+  ensures: result.ok => result.ncolors >= 1 && result.ncolors <= 4096;
+  ensures: result.ok => result.cpp >= 1 && result.cpp <= 4;
+  ensures: result.ok => !result.has_hotspot || (result.x_hot >= 0 && result.x_hot <= result.width && result.y_hot >= 0 && result.y_hot <= result.height);
+{
   let starts = Vec[Int].new();
   let lens = Vec[Int].new();
   var pos = 0;
@@ -669,23 +676,31 @@ fn _put_cbyte(out: &mut Vec[UInt8], b: Int) {
 
 // Raster width in pixels of a parsed or built image (always 1..1000000 for a
 // consistent image).
-pub fn xpm_width(img: &XpmImage) -> Int {
+pub fn xpm_width(img: &XpmImage) -> Int
+  ensures: result == img.width;
+{
   return img.width;
 }
 
 // Raster height in pixels of a parsed or built image (always 1..1000000 for a
 // consistent image).
-pub fn xpm_height(img: &XpmImage) -> Int {
+pub fn xpm_height(img: &XpmImage) -> Int
+  ensures: result == img.height;
+{
   return img.height;
 }
 
 // Number of color-table entries: the length of `img.colors`.
-pub fn xpm_ncolors(img: &XpmImage) -> Int {
+pub fn xpm_ncolors(img: &XpmImage) -> Int
+  ensures: result == img.colors.len();
+{
   return img.colors.len();
 }
 
 // Symbol characters per pixel (cpp): 1..4.
-pub fn xpm_cpp(img: &XpmImage) -> Int {
+pub fn xpm_cpp(img: &XpmImage) -> Int
+  ensures: result == img.cpp;
+{
   return img.cpp;
 }
 
@@ -695,13 +710,19 @@ pub fn xpm_has_hotspot(img: &XpmImage) -> Bool {
 }
 
 // Hot spot x coordinate, or -1 when the image has no hot spot.
-pub fn xpm_hotspot_x(img: &XpmImage) -> Int {
+pub fn xpm_hotspot_x(img: &XpmImage) -> Int
+  ensures: !img.has_hotspot => result == -1;
+  ensures: img.has_hotspot => result == img.x_hot;
+{
   if (!img.has_hotspot) { return -1; }
   return img.x_hot;
 }
 
 // Hot spot y coordinate, or -1 when the image has no hot spot.
-pub fn xpm_hotspot_y(img: &XpmImage) -> Int {
+pub fn xpm_hotspot_y(img: &XpmImage) -> Int
+  ensures: !img.has_hotspot => result == -1;
+  ensures: img.has_hotspot => result == img.y_hot;
+{
   if (!img.has_hotspot) { return -1; }
   return img.y_hot;
 }
@@ -710,7 +731,12 @@ pub fn xpm_hotspot_y(img: &XpmImage) -> Int {
 // sentinel -1 when (x, y) is outside the image or the image is internally
 // inconsistent. Callers that need to tell "malformed image" from "out of
 // range" call xpm_parse first.
-pub fn xpm_pixel_index(img: &XpmImage, x: Int, y: Int) -> Int {
+pub fn xpm_pixel_index(img: &XpmImage, x: Int, y: Int) -> Int
+  ensures: x < 0 => result == -1;
+  ensures: y < 0 => result == -1;
+  ensures: x >= img.width => result == -1;
+  ensures: y >= img.height => result == -1;
+{
   if (!_consistent(img)) { return -1; }
   if (x < 0) { return -1; }
   if (y < 0) { return -1; }
@@ -723,7 +749,9 @@ pub fn xpm_pixel_index(img: &XpmImage, x: Int, y: Int) -> Int {
 // Color value of pixel (x, y), or "" when (x, y) is outside the image or the
 // image is internally inconsistent. The sentinel is unambiguous because
 // stored color values are never empty.
-pub fn xpm_pixel_color(img: &XpmImage, x: Int, y: Int) -> Str {
+pub fn xpm_pixel_color(img: &XpmImage, x: Int, y: Int) -> Str
+  ensures: xpm_pixel_index(img, x, y) < 0 => result.len() == 0;
+{
   let k = xpm_pixel_index(img, x, y);
   if (k < 0) { return ""; }
   let c: Str = img.colors[k];
@@ -732,7 +760,9 @@ pub fn xpm_pixel_color(img: &XpmImage, x: Int, y: Int) -> Str {
 
 // Color value of table entry `index`, or "" when `index` is outside
 // 0..ncolors-1. The stored spelling is preserved.
-pub fn xpm_color_at(img: &XpmImage, index: Int) -> Str {
+pub fn xpm_color_at(img: &XpmImage, index: Int) -> Str
+  ensures: index < 0 || index >= img.colors.len() => result.len() == 0;
+{
   if (index < 0) { return ""; }
   if (index >= img.colors.len()) { return ""; }
   let c: Str = img.colors[index];
@@ -741,7 +771,10 @@ pub fn xpm_color_at(img: &XpmImage, index: Int) -> Str {
 
 // Color-table index whose cpp-character symbol is `symbol`, or -1 when no
 // entry matches or `symbol.len() != cpp` or the image is inconsistent.
-pub fn xpm_symbol_index(img: &XpmImage, symbol: Str) -> Int {
+pub fn xpm_symbol_index(img: &XpmImage, symbol: Str) -> Int
+  ensures: symbol.len() != img.cpp => result == -1;
+  ensures: result >= -1 && result < img.colors.len();
+{
   if (!_consistent(img)) { return -1; }
   if (symbol.len() != img.cpp) { return -1; }
   let symbols: Vec[UInt8] = img.symbols;
@@ -750,7 +783,10 @@ pub fn xpm_symbol_index(img: &XpmImage, symbol: Str) -> Int {
 
 // The cpp-character symbol of color entry `index`, or "" when `index` is
 // outside 0..ncolors-1 or the image is inconsistent.
-pub fn xpm_symbol_at(img: &XpmImage, index: Int) -> Str {
+pub fn xpm_symbol_at(img: &XpmImage, index: Int) -> Str
+  ensures: index < 0 || index >= img.colors.len() || img.cpp < 1 || img.cpp > 4 || img.symbols.len() < (index + 1) * img.cpp => result.len() == 0;
+  ensures: 0 <= index && index < img.colors.len() && img.cpp >= 1 && img.cpp <= 4 && img.symbols.len() >= (index + 1) * img.cpp => result.len() == img.cpp;
+{
   if (index < 0) { return ""; }
   if (index >= img.colors.len()) { return ""; }
   if (img.cpp < 1) { return ""; }
@@ -777,7 +813,10 @@ pub fn xpm_symbol_at(img: &XpmImage, index: Int) -> Str {
 // whitespace may separate tokens outside string literals; a single trailing
 // comma before `}` is accepted. Errors are the deterministic `xpm: ...`
 // strings catalogued in SPEC.md.
-pub fn xpm_parse(data: &Vec[UInt8]) -> Result[XpmImage, Str] {
+pub fn xpm_parse(data: &Vec[UInt8]) -> Result[XpmImage, Str]
+  ensures: data.len() < 21 => result is Err;
+  ensures: result is Ok => data.len() >= 21;
+{
   let n = data.len();
   var pos = _skip_trivia(data, n, 0);
   if (pos < 0) { return _err_img("xpm: unclosed comment"); }
@@ -1078,13 +1117,26 @@ fn _emit(name: Str, img: &XpmImage, use_hot: Bool, x_hot: Int, y_hot: Int) -> Re
 
 // Build canonical XPM text for `name` from an image, preserving its hot spot
 // when it has one (see _emit for the layout and the error catalog).
-pub fn xpm_build(name: Str, img: &XpmImage) -> Result[Vec[UInt8], Str] {
+pub fn xpm_build(name: Str, img: &XpmImage) -> Result[Vec[UInt8], Str]
+  ensures: img.width <= 0 || img.width > 1000000 => result is Err;
+  ensures: img.height <= 0 || img.height > 1000000 => result is Err;
+  ensures: img.cpp < 1 || img.cpp > 4 => result is Err;
+  ensures: img.pixels.len() != img.width * img.height => result is Err;
+  ensures: name.len() == 0 => result is Err;
+  ensures: result is Ok => img.cpp >= 1 && img.cpp <= 4;
+  ensures: result is Ok => img.pixels.len() == img.width * img.height;
+{
   return _emit(name, img, img.has_hotspot, img.x_hot, img.y_hot);
 }
 
 // Build canonical XPM text for `name` from an image, always emitting the hot
 // spot (x_hot, y_hot), which must satisfy 0 <= x_hot <= width and
 // 0 <= y_hot <= height. The image's own hot spot is ignored.
-pub fn xpm_build_hotspot(name: Str, img: &XpmImage, x_hot: Int, y_hot: Int) -> Result[Vec[UInt8], Str] {
+pub fn xpm_build_hotspot(name: Str, img: &XpmImage, x_hot: Int, y_hot: Int) -> Result[Vec[UInt8], Str]
+  ensures: x_hot < 0 || y_hot < 0 => result is Err;
+  ensures: x_hot > img.width => result is Err;
+  ensures: y_hot > img.height => result is Err;
+  ensures: result is Ok => x_hot >= 0 && y_hot >= 0 && x_hot <= img.width && y_hot <= img.height;
+{
   return _emit(name, img, true, x_hot, y_hot);
 }

@@ -1,5 +1,7 @@
 # xiom.xpm SPEC
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 ## Scope
 
 Pure-XIOM parsing and building of X PixMap (XPM) C-source color pixmaps, for
@@ -293,3 +295,72 @@ Semantics.
 - `xpm_build` always emits the canonical layout above (`/* XPM */`, one TAB
   separator, one line per color and row); other valid spellings parse but
   are not reproduced.
+
+## Contracts (batch #42 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses were added to `src/xpm.xi` in the
+batch #42 hardening pass (compiler v0.64.0; `package.xi` is bumped by the
+coordinator at integration): 37 clause lines over the 15 entry points
+below, all `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.xpm -TimeoutSec 60` runs ended
+`port: PASS (passed=19 failed=0 program_exit=0 exit=0)` with the clauses
+active (35.76 s and 36.06 s); no clause trapped.
+
+Every clause holds for hand-built values and structs: only parameters,
+parameter fields and plain-struct result fields (`XpmHeader` is a plain
+struct, not a `Result` payload) are read, and out-of-range accessors claim
+only their documented empty/sentinel results. No clause uses a module
+constant (every bound is an inline literal), indexes a vector (`pixels`,
+`symbols` and `colors` elements are never read), compares `Str` values with
+`==`, reads a struct-`Result` payload field or uses `result.value.0/.1`.
+The single clause call is the definitional `xpm_pixel_index` in
+`xpm_pixel_color`; the callee does not call `xpm_pixel_color`
+(non-re-entrant).
+
+Plan expression dropped for hand-built safety: `xpm_pixel_color`'s planned
+`xpm_pixel_index(img, x, y) >= 0 => result.len() >= 1` carries the plan's
+(pre: stored colors non-empty) guard, which a hand-built consistent image
+may violate (a stored `""` color value passes `_consistent`, and the
+function returns it), and the precondition is not expressible as a clause
+antecedent without a `Vec[Str]` element read (vector indexing is a
+forbidden clause shape). Only the sentinel direction is claimed, following
+the sentinel-only precedent.
+
+The `xpm_symbol_at` in-range length claim keeps the plan's (pre: symbol
+bytes NUL-free) parse invariant: parsed symbol bytes are printable and
+NUL-free, and a hand-built image with an interior NUL in the selected range
+aborts inside `sb_to_str` (documented v0.61.3 NUL safety) before a result
+exists, so no returned value can falsify `result.len() == img.cpp`.
+
+The `xpm_parse` `21`-byte floor is a loose but sound lower bound: the
+declaration prefix `static char *x[]={};` alone is 20 bytes and fails with
+`xpm: missing header`, and every successful parse needs the value line, one
+color line and one pixel row on top of it.
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it
+can emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Entry point | Clause(s) added (abridged) | Class |
+|---|---|---|
+| `xpm_width` | `result == img.width` | runtime-checked |
+| `xpm_height` | `result == img.height` | runtime-checked |
+| `xpm_ncolors` | `result == img.colors.len()` | runtime-checked |
+| `xpm_cpp` | `result == img.cpp` | runtime-checked |
+| `xpm_hotspot_x` | absent hotspot => `-1`; present => `img.x_hot` | runtime-checked |
+| `xpm_hotspot_y` | absent hotspot => `-1`; present => `img.y_hot` | runtime-checked |
+| `xpm_pixel_index` | `x < 0`, `y < 0`, `x >= img.width`, `y >= img.height` each => `-1` | runtime-checked |
+| `xpm_pixel_color` | `xpm_pixel_index(img, x, y) < 0` => empty `Str` | runtime-checked |
+| `xpm_color_at` | `index < 0` or `index >= img.colors.len()` => empty `Str` | runtime-checked |
+| `xpm_symbol_index` | `symbol.len() != img.cpp` => `-1`; `-1 <= result < img.colors.len()` | runtime-checked |
+| `xpm_symbol_at` | index/cpp/pool guards => empty `Str`; in-range consistent guard => `result.len() == img.cpp` | runtime-checked |
+| `_parse_header` | fail => zeroed `width`/`height`/`ncolors`/`cpp` and `-1` hotspots; ok => dimensions `1..1000000`, ncolors `1..4096`, cpp `1..4`; hotspot only inside the dimensions (6 clauses) | runtime-checked |
+| `xpm_parse` | `data.len() < 21` => `Err`; `Ok` => `data.len() >= 21` | runtime-checked |
+| `xpm_build` | bad width/height/cpp/pixel-buffer/name => `Err`; `Ok` => cpp `1..4` and `pixels.len() == img.width * img.height` (7 clauses) | runtime-checked |
+| `xpm_build_hotspot` | negative or past-the-edge hotspot => `Err`; `Ok` => `0 <= x_hot <= width` and `0 <= y_hot <= height` (4 clauses) | runtime-checked |
+
+| Verification class | Clause lines |
+|---|---|
+| Runtime-checked (this pass) | 37 |
+| Z3-provable | 0 (no obligation demonstrated) |
+
