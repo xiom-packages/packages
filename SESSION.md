@@ -14,6 +14,28 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-08 10:35Z (bindings batch 1 MERGED; `eco-v0.1.89` publish PENDING OPS; supersedes the 09:55Z block below):**
+- **Bindings batch 1 merged:** `origin/bindings` @ `f9c3ad5c` fast-forwarded into `main` (no
+  conflicts; their branch already contained main). `xiom.sqlite` 0.2.0 (vendored SQLite
+  3.53.4 amalgamation; 16/16 x6 by the bindings lane; namespace-check OK, 7 modules /
+  0 conflicts). Integration: `port.ps1` per-package args hook live (`port.args.json`,
+  `${PACKAGE_DIR}` expansion) -- `47a0d42c`; hook contract in `docs/BINDINGS-LANE.md` §10;
+  5 bindings compiler findings recorded in `docs/COMPILER-FINDINGS.md` (BIND-ENUM-1,
+  BIND-RESOLVER-2, BIND-ALLOC-3, BIND-NAME-4, BIND-EXIT-5) -- `95227e16`; native
+  re-verification x2 green via the hook (`-TimeoutSec 240`) -- record `05a19deb`
+  (run_by native-session). Regen: validate 519/0, guard 504/464/40/0 (sqlite unguarded
+  until allowlist), namespaces 604.
+- **PENDING OPS before publish:** scope enumeration for 1 new name (`xiom.sqlite`;
+  expected total 505 live). On confirmation: append `xiom.sqlite` to
+  `.github/publish-allowlist.txt`, run guard, wrap + tag `eco-v0.1.89`, gate
+  `22424011031`, watch, live-verify sqlite 0.2.0. The bindings lane starts `xiom-sdl3`
+  after the publish confirmation.
+- Safety note from the bindings relay: their earlier hung alloc/free guard-heap spin
+  (BIND-ALLOC-3) burned CPU ~21 min and is the likely contributor to the 2026-10-08
+  memory event/restart; all their later runs use a watchdog.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-08 09:55Z (batch #39 COMPLETE + PUBLISHED `eco-v0.1.88`; supersedes the 09:30Z block below):**
 - **Batch #39 DONE + PUBLISHED (`eco-v0.1.88`, run `37759634793` SUCCESS; all six live):**
   `resolv` 0.1.2 (43 clauses; 25/25; `0ddfaa1d`/`e36516e4`), `ical` 0.1.3 (46; 22/22;
