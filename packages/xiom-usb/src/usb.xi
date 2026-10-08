@@ -448,7 +448,10 @@ fn _string_pool(u: &Usb, sid: Int) -> Int {
 /// `endpoint outside interface`, `endpoint count exceeds interface claim`,
 /// `string index out of range`.
 /// Complexity: O(data.len()).
-pub fn usb_parse(data: &Vec[UInt8]) -> Result[Usb, Str] {
+pub fn usb_parse(data: &Vec[UInt8]) -> Result[Usb, Str]
+  ensures: data.len() == 0 => result is Ok;
+  ensures: data.len() == 1 => result is Err;
+{
   var u = _usb_new();
   let total = data.len();
   var pos = 0;
@@ -592,12 +595,16 @@ pub fn usb_parse(data: &Vec[UInt8]) -> Result[Usb, Str] {
 // --------------------------------------------------
 
 /// Number of descriptors in the stream (structured plus raw-preserved).
-pub fn usb_descriptor_count(u: &Usb) -> Int {
+pub fn usb_descriptor_count(u: &Usb) -> Int
+  ensures: result == u.desc_type.len();
+{
   return u.desc_type.len();
 }
 
 /// bDescriptorType of descriptor `i`, or -1 for an out-of-range index.
-pub fn usb_descriptor_type(u: &Usb, i: Int) -> Int {
+pub fn usb_descriptor_type(u: &Usb, i: Int) -> Int
+  ensures: i < 0 || i >= u.desc_type.len() => result == -1;
+{
   if i < 0 || i >= u.desc_type.len() {
     return -1;
   }
@@ -629,7 +636,9 @@ pub fn usb_descriptor_offset(u: &Usb, i: Int) -> Int {
 /// Err("usb: descriptor index out of range") for a bad index and
 /// Err("usb: descriptor span out of bounds") when the recorded span does not
 /// fit `data`.
-pub fn usb_descriptor_bytes(data: &Vec[UInt8], u: &Usb, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn usb_descriptor_bytes(data: &Vec[UInt8], u: &Usb, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 || i >= u.desc_type.len() => result is Err;
+{
   if i < 0 || i >= u.desc_type.len() {
     return _err_bytes("usb: descriptor index out of range");
   }
@@ -652,12 +661,17 @@ pub fn usb_descriptor_bytes(data: &Vec[UInt8], u: &Usb, i: Int) -> Result[Vec[UI
 // --------------------------------------------------
 
 /// True when the stream contained a DEVICE descriptor.
-pub fn usb_has_device(u: &Usb) -> Bool {
+pub fn usb_has_device(u: &Usb) -> Bool
+  ensures: result == (u.device_desc >= 0);
+{
   return u.device_desc >= 0;
 }
 
 /// bcdUSB of the DEVICE descriptor (0x0200 = USB 2.0), or -1 when absent.
-pub fn usb_device_bcd_usb(u: &Usb) -> Int {
+pub fn usb_device_bcd_usb(u: &Usb) -> Int
+  ensures: u.device_desc < 0 => result == -1;
+  ensures: u.device_desc >= 0 => result == u.dev_bcd_usb;
+{
   if u.device_desc < 0 { return -1; }
   return u.dev_bcd_usb;
 }
@@ -735,12 +749,16 @@ pub fn usb_device_num_configurations(u: &Usb) -> Int {
 // --------------------------------------------------
 
 /// Number of CONFIGURATION descriptors in the stream.
-pub fn usb_configuration_count(u: &Usb) -> Int {
+pub fn usb_configuration_count(u: &Usb) -> Int
+  ensures: result == u.cfg_desc.len();
+{
   return u.cfg_desc.len();
 }
 
 /// wTotalLength of configuration `c`, or -1 for an out-of-range index.
-pub fn usb_configuration_total_length(u: &Usb, c: Int) -> Int {
+pub fn usb_configuration_total_length(u: &Usb, c: Int) -> Int
+  ensures: c < 0 || c >= u.cfg_total_len.len() => result == -1;
+{
   if c < 0 || c >= u.cfg_total_len.len() { return -1; }
   let v: Int = u.cfg_total_len[c];
   return v;
@@ -785,7 +803,11 @@ pub fn usb_configuration_max_power(u: &Usb, c: Int) -> Int {
 
 /// Number of INTERFACE descriptors actually present in configuration `c`,
 /// or -1 for an out-of-range index.
-pub fn usb_configuration_interface_count(u: &Usb, c: Int) -> Int {
+pub fn usb_configuration_interface_count(u: &Usb, c: Int) -> Int
+  ensures: c < 0 || c >= u.cfg_desc.len() => result == -1;
+  ensures: c >= 0 && c < u.cfg_desc.len() => result >= 0;
+  ensures: result <= u.if_config.len();
+{
   if c < 0 || c >= u.cfg_desc.len() { return -1; }
   var n = 0;
   var i = 0;
@@ -838,7 +860,11 @@ pub fn usb_interface_endpoint_claim(u: &Usb, i: Int) -> Int {
 
 /// Number of ENDPOINT descriptors actually owned by interface `i`, or -1
 /// for a bad index.
-pub fn usb_interface_endpoint_count(u: &Usb, i: Int) -> Int {
+pub fn usb_interface_endpoint_count(u: &Usb, i: Int) -> Int
+  ensures: i < 0 || i >= u.if_desc.len() => result == -1;
+  ensures: i >= 0 && i < u.if_desc.len() => result >= 0;
+  ensures: result <= u.ep_interface.len();
+{
   if i < 0 || i >= u.if_desc.len() { return -1; }
   var n = 0;
   var e = 0;
@@ -854,7 +880,10 @@ pub fn usb_interface_endpoint_count(u: &Usb, i: Int) -> Int {
 
 /// Claimed-minus-parsed endpoint count of interface `i` (the documented
 /// tolerance: actual may be below the claim), or -1 for a bad index.
-pub fn usb_interface_unlisted_endpoints(u: &Usb, i: Int) -> Int {
+pub fn usb_interface_unlisted_endpoints(u: &Usb, i: Int) -> Int
+  ensures: i < 0 || i >= u.if_endpoint_claim.len() || i >= u.if_desc.len() => result == -1;
+  ensures: i >= 0 && i < u.if_endpoint_claim.len() && i < u.if_desc.len() && usb_interface_endpoint_claim(u, i) >= 0 => result == usb_interface_endpoint_claim(u, i) - usb_interface_endpoint_count(u, i);
+{
   let claim = usb_interface_endpoint_claim(u, i);
   if claim < 0 { return -1; }
   let actual = usb_interface_endpoint_count(u, i);
@@ -976,7 +1005,9 @@ pub fn usb_string_index(u: &Usb, i: Int) -> Int {
 }
 
 /// Decoded printable-ASCII text of pool entry `i`; "" for a bad index.
-pub fn usb_string_text(u: &Usb, i: Int) -> Str {
+pub fn usb_string_text(u: &Usb, i: Int) -> Str
+  ensures: i < 0 || i >= u.str_text.len() => result.len() == 0;
+{
   if i < 0 || i >= u.str_text.len() { return ""; }
   let s: Str = u.str_text[i];
   return s;
@@ -999,7 +1030,10 @@ pub fn usb_string_present(u: &Usb, sid: Int) -> Bool {
 /// Err("usb: string index not found") when the pool has no such entry
 /// (string index 0 is "no string" and is never in the pool unless a
 /// descriptor declares it).
-pub fn usb_string(u: &Usb, sid: Int) -> Result[Str, Str] {
+pub fn usb_string(u: &Usb, sid: Int) -> Result[Str, Str]
+  ensures: usb_string_present(u, sid) == false => result is Err;
+  ensures: usb_string_present(u, sid) == true => result is Ok;
+{
   let at = _string_pool(u, sid);
   if at < 0 {
     return _err_str("usb: string index not found");
@@ -1047,7 +1081,9 @@ pub fn usb_raw_offset(u: &Usb, i: Int) -> Int {
 /// Err("usb: raw index out of range") for a bad index and
 /// Err("usb: raw span out of bounds") when the recorded span does not fit
 /// `data`.
-pub fn usb_raw_bytes(data: &Vec[UInt8], u: &Usb, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn usb_raw_bytes(data: &Vec[UInt8], u: &Usb, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 || i >= u.raw_desc.len() => result is Err;
+{
   if i < 0 || i >= u.raw_desc.len() {
     return _err_bytes("usb: raw index out of range");
   }

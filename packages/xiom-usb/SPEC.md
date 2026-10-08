@@ -1,8 +1,6 @@
 # xiom.usb -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.usb`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/usb.xi` (`module xiom.usb`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`); tests add
 `xiom.test`, `xiom.io`, `xiom.string.compare`, `xiom.encoding.hex`.
@@ -484,8 +482,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.usb
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=20 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.1,
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` (batch #47; two
+consecutive green runs with the contracts active).
 
 ## Known limitations
 
@@ -532,3 +531,59 @@ Last verified: compiler 0.61.3,
   v0.61.3 compiler accepts malformed angle-bracket parameter types
   silently).
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #47 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (22, across the 14 functions below) were
+added to `src/usb.xi` in the batch #47 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 20-check conformance suite
+exercises every contracted entry point directly and no clause trapped, so
+none was dropped. Two consecutive timed green `& .\scripts\port.ps1 -Package
+xiom.usb -TimeoutSec 90` runs ended `port: PASS (passed=20 failed=0
+program_exit=0 exit=0)` with the clauses active (16.89 s and 14.72 s); an
+earlier untimed run was also 20/20. None is claimed Z3-provable: `xiom-verify`
+was not run for this module, and per the batch #37 finding a bare
+`[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable column is "no"
+throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str` (length via `.len()` only),
+uses a module constant, or reads a `&mut` parameter. Guards keep the plan's
+families: sentinel pairs (`result == -1`, `result.len() == 0`), tag guards
+(`result is Ok` / `result is Err`), exact formulas (`result ==
+u.desc_type.len()`, `result == u.cfg_desc.len()`, `result == u.dev_bcd_usb`),
+bounds (`result <= u.if_config.len()`, `result <= u.ep_interface.len()`,
+guards against `u.*.len()`), and a Bool mirror (`result == (u.device_desc >=
+0)`). The only cross-calls are non-re-entrant definitional reads:
+`usb_string` calls `usb_string_present` (which reads `_string_pool`), and
+`usb_interface_unlisted_endpoints` calls `usb_interface_endpoint_claim` /
+`usb_interface_endpoint_count`; none of those callees can return to its
+caller. Two guards were refined to fit the source (families kept): the
+plan's unconditional `result >= 0` in `usb_configuration_interface_count`
+and `usb_interface_endpoint_count` is gated on the in-range index because
+the documented out-of-range path returns `-1`, and the unlisted-formula
+guard adds `usb_interface_endpoint_claim(u, i) >= 0` so a hand-built store
+with a negative stored claim (the source returns `-1` early) cannot
+falsify the formula. `usb_emit` is the one planned skip (its guarantee is
+the store-wide drift guard, not expressible in this family). Every
+accessor's guard matches its internal sentinel path, so clauses hold for
+parser-produced and hand-built (empty or drifted) `Usb` values alike.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `usb_parse` | 2 | empty => `Ok`; 1 byte => `Err` | no | yes |
+| `usb_descriptor_count` | 1 | `result == u.desc_type.len()` | no | yes |
+| `usb_descriptor_type` | 1 | negative/over-length `i` => `-1` | no | yes |
+| `usb_descriptor_bytes` | 1 | negative/over-length `i` => `Err` | no | yes |
+| `usb_has_device` | 1 | `result == (u.device_desc >= 0)` | no | yes |
+| `usb_device_bcd_usb` | 2 | absent device => `-1`; present => `u.dev_bcd_usb` | no | yes |
+| `usb_configuration_count` | 1 | `result == u.cfg_desc.len()` | no | yes |
+| `usb_configuration_total_length` | 1 | negative/over-length `c` => `-1` | no | yes |
+| `usb_configuration_interface_count` | 3 | bad `c` => `-1`; in-range => `>= 0`, `<= u.if_config.len()` | no | yes |
+| `usb_interface_endpoint_count` | 3 | bad `i` => `-1`; in-range => `>= 0`, `<= u.ep_interface.len()` | no | yes |
+| `usb_interface_unlisted_endpoints` | 2 | bad `i` => `-1`; otherwise claim minus count | no | yes |
+| `usb_string` | 2 | not present => `Err`; present => `Ok` | no | yes |
+| `usb_string_text` | 1 | negative/over-length `i` => `""` (`.len() == 0`) | no | yes |
+| `usb_raw_bytes` | 1 | negative/over-length `i` => `Err` | no | yes |
