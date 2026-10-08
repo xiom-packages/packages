@@ -1,6 +1,6 @@
 # xiom.pop3 -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.pop3` (`src/pop3.xi`). Pure XIOM, no FFI, no file or socket I/O.
 
 This document is the normative description of the `xiom.pop3` codec: the
@@ -384,7 +384,7 @@ documents these compiler-driven choices:
 - No `[T, U]` generics, no `Vec[fn]`, no `Vec[Float64]`, no `match` arm
   binds `mut`; tests dispatch `t1()` .. `t27()` directly; every `match` is
   exhaustive.
-- The source and test files are grep-audited for stray `Vec<`/`Result<`
+- The source and test files are grep-audited for stray `Vec`/`Result`
   angle brackets after every edit (v0.61.3 accepts malformed bracket types
   silently in some positions).
 
@@ -406,3 +406,69 @@ documents these compiler-driven choices:
 - Status text is ASCII-only; 8-bit text is rejected. Payload bytes are
   opaque except CR/LF, but no charset or transfer decoding is applied.
 - Errors carry no line or byte offset; each message names the violated rule.
+
+## Contracts (batch #41 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses were added to `src/pop3.xi` in the
+batch #41 hardening pass (compiler v0.64.0; `package.xi` is left for the
+coordinator to bump at integration). 54 clauses over the 20 functions
+below, all `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.pop3 -TimeoutSec 60` runs ended
+`port: PASS (passed=27 failed=0 program_exit=0 exit=0)` with the clauses
+active (9.70 s and 9.45 s); no clause trapped.
+
+Every clause holds for hand-built values and structs: each guard keeps the
+source's own validation branch, and only parameters, parameter fields (all
+`&`, never a bare `&mut` parameter) and vector lengths are read. No clause
+uses a module constant (numeric bounds and kind codes are inlined
+literals), indexes a vector, reads a `Str` byte, compares `Str` values
+with `==`, reads a struct-Result payload field, or uses
+`result.value.0/.1`. The clause calls are the definitional cross-calls
+`pop3_build_request` -> `_valid_name`/`_valid_digest`, `pop3_parse_listing`
+-> `pop3_parse_response` and `pop3_list_size` -> `pop3_lookup_line`; none
+of those callees reaches its caller (non-re-entrant).
+
+Plan expressions refined for hand-built safety: the plan's
+`result == (s.len() == 32)` for `_valid_digest` and
+`result == (1 <= s.len() <= 40)` for `_valid_name` are false for
+hand-built strings inside the length window (a 32-byte non-hex digest, a
+40-byte string with a space), so both were expressed in the proven Bool
+guard-pair family (`... => !result` plus `result => ...`). The
+`_parse_num` non-digit claim is not expressible without a loop or an
+element read, so only its first-byte form was kept (the ten
+`str_starts_with` prefixes; interior bytes are not covered). The plan's
+"otherwise => Ok" tails for `pop3_build_request`/`pop3_build_response` were
+rendered as the strong per-kind positive guards listed below (the PASS
+positive guard is omitted: it also depends on the 510-byte cap). No clause
+needed the circuit breaker and no probe-gated item applied. Sentinel
+complements (`result != -1` / `result.len() > 0` => index in range) were
+added to `pop3_line`, `pop3_pair_num`, `pop3_pair_val` and
+`pop3_list_size` in the proven dimacs/dtb style.
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it
+can emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `_parse_num` | 5 | empty/overlong/leading-zero/non-digit-first/out-of-range => `-1`; non-`-1` in `min..2147483647` | no | yes |
+| `_valid_name` | 3 | outside 1..40 bytes => `false`; `true` only inside `1..40` | no | yes |
+| `_valid_digest` | 2 | length other than 32 => `false`; `true` only at 32 | no | yes |
+| `pop3_parse_request` | 3 | empty or over-512-byte line => `Err`; `Ok` line at least 4 bytes | no | yes |
+| `pop3_build_request` | 12 | bad kind, bad USER/APOP fields, bad message numbers/counts => `Err`; per-kind valid/in-range positives => `Ok` | no | yes |
+| `pop3_parse_response` | 2 | text under 3 bytes => `Err`; `Ok` text at least 5 bytes | no | yes |
+| `pop3_parse_listing` | 3 | kind not 4/5 => `Err`; generic parse `Err` => `Err`; `Ok` only for kind 4/5 | no | yes |
+| `pop3_build_response` | 3 | multiline `-ERR` or payload on a single-line response => `Err`; empty single-line => `Ok` | no | yes |
+| `pop3_dot_stuff` | 3 | length 0 / +1 with a leading dot / unchanged | no | yes |
+| `pop3_dot_unstuff` | 3 | length unchanged for `len <= 1` or no leading dot; -1 with a leading dot | no | yes |
+| `pop3_is_ok` | 1 | `result == resp.ok` | no | yes |
+| `pop3_is_multiline` | 1 | `result == resp.multiline` | no | yes |
+| `pop3_line_count` | 1 | `result == resp.lines.len()` | no | yes |
+| `pop3_line` | 2 | out-of-range index => `""`; non-empty result only in range | no | yes |
+| `pop3_pair_count` | 1 | `result == resp.pair_nums.len()` | no | yes |
+| `pop3_pair_num` | 2 | out-of-range index => `-1`; non-`-1` only in range | no | yes |
+| `pop3_pair_val` | 2 | out-of-range index => `""`; non-empty result only in range | no | yes |
+| `pop3_lookup_line` | 1 | result in `-1..pair_nums.len()` | no | yes |
+| `pop3_list_size` | 2 | absent message => `-1`; non-`-1` only for a found message | no | yes |
+| `pop3_payload` | 2 | no lines => `""`; each line adds at least 2 bytes | no | yes |
+

@@ -11,7 +11,7 @@
 
 package xiom_pop3 {
   name: "xiom.pop3";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "POP3 protocol codec (RFC 1939): commands, responses, dot-stuffing, flat listing pairs";
   categories: ["network"];
   keywords: ["pop3", "email", "protocol", "parser"];

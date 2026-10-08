@@ -274,7 +274,13 @@ fn _has_cr_or_lf(s: Str) -> Bool {
 // Parse a canonical-decimal argument: 1..10 ASCII digits, no leading zero
 // unless the value is exactly "0", value in [min, POP3_MAX_NUM].
 // Returns the value, or -1 on any violation (so min must be >= 0).
-fn _parse_num(s: Str, min: Int) -> Int {
+fn _parse_num(s: Str, min: Int) -> Int
+  ensures: s.len() == 0 => result == -1;
+  ensures: s.len() > 10 => result == -1;
+  ensures: s.len() > 1 && string.str_starts_with(s, "0") => result == -1;
+  ensures: s.len() > 0 && !(string.str_starts_with(s, "0") || string.str_starts_with(s, "1") || string.str_starts_with(s, "2") || string.str_starts_with(s, "3") || string.str_starts_with(s, "4") || string.str_starts_with(s, "5") || string.str_starts_with(s, "6") || string.str_starts_with(s, "7") || string.str_starts_with(s, "8") || string.str_starts_with(s, "9")) => result == -1;
+  ensures: result >= 0 => result >= min && result <= 2147483647;
+{
   let n = s.len();
   if n == 0 || n > 10 {
     return -1;
@@ -303,7 +309,11 @@ fn _parse_num(s: Str, min: Int) -> Int {
 }
 
 // A USER/APOP name: 1..40 printable bytes with no space.
-fn _valid_name(s: Str) -> Bool {
+fn _valid_name(s: Str) -> Bool
+  ensures: s.len() < 1 => !result;
+  ensures: s.len() > 40 => !result;
+  ensures: result => s.len() >= 1 && s.len() <= 40;
+{
   let n = s.len();
   if n < 1 || n > POP3_MAX_NAME {
     return false;
@@ -341,7 +351,10 @@ fn _valid_uid(s: Str) -> Bool {
 }
 
 // An APOP digest: exactly 32 ASCII hex digits, either case.
-fn _valid_digest(s: Str) -> Bool {
+fn _valid_digest(s: Str) -> Bool
+  ensures: s.len() != 32 => !result;
+  ensures: result => s.len() == 32;
+{
   if s.len() != 32 {
     return false;
   }
@@ -397,7 +410,11 @@ fn _lower_digest(s: Str) -> Str {
 /// Err("pop3: control byte in command line") for any byte outside
 /// 0x20..0x7E; Err("pop3: line too long") above the cap.
 /// Complexity: O(line length).
-pub fn pop3_parse_request(line: Str) -> Result[Pop3Request, Str] {
+pub fn pop3_parse_request(line: Str) -> Result[Pop3Request, Str]
+  ensures: line.len() == 0 => result is Err;
+  ensures: line.len() > 512 => result is Err;
+  ensures: result is Ok => line.len() >= 4;
+{
   let n = line.len();
   if n == 0 {
     return _err_request("pop3: bad argument: empty command line");
@@ -547,7 +564,20 @@ pub fn pop3_parse_request(line: Str) -> Result[Pop3Request, Str] {
 /// number, line count); Err("pop3: line too long") when the content exceeds
 /// POP3_MAX_LINE bytes.
 /// Complexity: O(argument length).
-pub fn pop3_build_request(req: &Pop3Request) -> Result[Str, Str] {
+pub fn pop3_build_request(req: &Pop3Request) -> Result[Str, Str]
+  ensures: req.kind < 1 || req.kind > 12 => result is Err;
+  ensures: req.kind == 1 && !_valid_name(req.text) => result is Err;
+  ensures: req.kind == 12 && !_valid_digest(req.digest) => result is Err;
+  ensures: (req.kind == 6 || req.kind == 7 || req.kind == 11) && (req.msg < 1 || req.msg > 2147483647) => result is Err;
+  ensures: req.kind == 11 && (req.n < 0 || req.n > 2147483647) => result is Err;
+  ensures: (req.kind == 4 || req.kind == 5) && req.msg != -1 && (req.msg < 1 || req.msg > 2147483647) => result is Err;
+  ensures: req.kind == 3 || req.kind == 8 || req.kind == 9 || req.kind == 10 => result is Ok;
+  ensures: req.kind == 1 && _valid_name(req.text) => result is Ok;
+  ensures: req.kind == 12 && _valid_name(req.text) && _valid_digest(req.digest) => result is Ok;
+  ensures: (req.kind == 6 || req.kind == 7) && req.msg >= 1 && req.msg <= 2147483647 => result is Ok;
+  ensures: req.kind == 11 && req.msg >= 1 && req.msg <= 2147483647 && req.n >= 0 && req.n <= 2147483647 => result is Ok;
+  ensures: (req.kind == 4 || req.kind == 5) && (req.msg == -1 || (req.msg >= 1 && req.msg <= 2147483647)) => result is Ok;
+{
   let kind: Int = req.kind;
   let text: Str = req.text;
   let digest: Str = req.digest;
@@ -807,7 +837,10 @@ fn _scan_response(multiline: Bool, text: Str, listing_kind: Int, resp: &mut Pop3
 /// in response text") / Err("pop3: control byte in payload line"),
 /// Err("pop3: line too long") or Err("pop3: text after response").
 /// Complexity: O(text length).
-pub fn pop3_parse_response(multiline: Bool, text: Str) -> Result[Pop3Response, Str] {
+pub fn pop3_parse_response(multiline: Bool, text: Str) -> Result[Pop3Response, Str]
+  ensures: text.len() < 3 => result is Err;
+  ensures: result is Ok => text.len() >= 5;
+{
   var resp = Pop3Response{
     ok: false;
     multiline: false;
@@ -839,7 +872,11 @@ pub fn pop3_parse_response(multiline: Bool, text: Str) -> Result[Pop3Response, S
 /// Err("pop3: bad argument: listing size") /
 /// Err("pop3: bad argument: listing unique-id") for a malformed entry.
 /// Complexity: O(text length).
-pub fn pop3_parse_listing(kind: Int, text: Str) -> Result[Pop3Response, Str] {
+pub fn pop3_parse_listing(kind: Int, text: Str) -> Result[Pop3Response, Str]
+  ensures: kind != 4 && kind != 5 => result is Err;
+  ensures: pop3_parse_response(true, text) is Err => result is Err;
+  ensures: result is Ok => kind == 4 || kind == 5;
+{
   if kind != POP3_LIST && kind != POP3_UIDL {
     return _err_response("pop3: bad argument: kind is not LIST or UIDL");
   }
@@ -879,7 +916,11 @@ pub fn pop3_parse_listing(kind: Int, text: Str) -> Result[Pop3Response, Str] {
 /// Err("pop3: line too long") when a line exceeds POP3_MAX_LINE bytes
 /// (measured after stuffing).
 /// Complexity: O(payload length).
-pub fn pop3_build_response(resp: &Pop3Response) -> Result[Str, Str] {
+pub fn pop3_build_response(resp: &Pop3Response) -> Result[Str, Str]
+  ensures: !resp.ok && resp.multiline => result is Err;
+  ensures: !resp.multiline && (resp.lines.len() > 0 || resp.pair_nums.len() > 0) => result is Err;
+  ensures: !resp.multiline && resp.lines.len() == 0 && resp.pair_nums.len() == 0 && resp.text.len() == 0 => result is Ok;
+{
   let ok: Bool = resp.ok;
   let multiline: Bool = resp.multiline;
   let text: Str = resp.text;
@@ -939,7 +980,11 @@ pub fn pop3_build_response(resp: &Pop3Response) -> Result[Str, Str] {
 /// one leading "." (so a logical "." line becomes ".."); every other line
 /// is returned unchanged. The empty line is unchanged.
 /// Complexity: O(1) plus one allocation when stuffing applies.
-pub fn pop3_dot_stuff(line: Str) -> Str {
+pub fn pop3_dot_stuff(line: Str) -> Str
+  ensures: line.len() == 0 => result.len() == 0;
+  ensures: line.len() > 0 && !string.str_starts_with(line, ".") => result.len() == line.len();
+  ensures: line.len() > 0 && string.str_starts_with(line, ".") => result.len() == line.len() + 1;
+{
   if line.len() > 0 && _byte(line, 0) == _B_DOT {
     return "." + line;
   }
@@ -950,7 +995,11 @@ pub fn pop3_dot_stuff(line: Str) -> Str {
 /// loses its first byte; a bare "." line is the terminator and is returned
 /// unchanged (it is not payload); the empty line is unchanged.
 /// Complexity: O(1) plus one allocation when stripping applies.
-pub fn pop3_dot_unstuff(line: Str) -> Str {
+pub fn pop3_dot_unstuff(line: Str) -> Str
+  ensures: line.len() <= 1 => result.len() == line.len();
+  ensures: line.len() > 1 && !string.str_starts_with(line, ".") => result.len() == line.len();
+  ensures: line.len() > 1 && string.str_starts_with(line, ".") => result.len() == line.len() - 1;
+{
   if line.len() > 1 && _byte(line, 0) == _B_DOT {
     return string.str_slice(line, 1, line.len());
   }
@@ -962,14 +1011,18 @@ pub fn pop3_dot_unstuff(line: Str) -> Str {
 // --------------------------------------------------
 
 /// True for a +OK status, false for -ERR.
-pub fn pop3_is_ok(resp: &Pop3Response) -> Bool {
+pub fn pop3_is_ok(resp: &Pop3Response) -> Bool
+  ensures: result == resp.ok;
+{
   return resp.ok;
 }
 
 /// True when the response carried a payload section (`+OK` under a
 /// multiline expectation, including an empty payload); false for every
 /// -ERR and single-line +OK.
-pub fn pop3_is_multiline(resp: &Pop3Response) -> Bool {
+pub fn pop3_is_multiline(resp: &Pop3Response) -> Bool
+  ensures: result == resp.multiline;
+{
   return resp.multiline;
 }
 
@@ -980,14 +1033,19 @@ pub fn pop3_response_text(resp: &Pop3Response) -> Str {
 }
 
 /// Number of payload lines. For a listing parse this equals the pair count.
-pub fn pop3_line_count(resp: &Pop3Response) -> Int {
+pub fn pop3_line_count(resp: &Pop3Response) -> Int
+  ensures: result == resp.lines.len();
+{
   return resp.lines.len();
 }
 
 /// Payload line `index`, dot-unstuffed. Returns "" when index is negative
 /// or >= pop3_line_count (an empty payload line is also ""); use the count
 /// for bounds.
-pub fn pop3_line(resp: &Pop3Response, index: Int) -> Str {
+pub fn pop3_line(resp: &Pop3Response, index: Int) -> Str
+  ensures: index < 0 || index >= resp.lines.len() => result.len() == 0;
+  ensures: result.len() > 0 => index >= 0 && index < resp.lines.len();
+{
   if index < 0 || index >= resp.lines.len() {
     return "";
   }
@@ -996,12 +1054,17 @@ pub fn pop3_line(resp: &Pop3Response, index: Int) -> Str {
 }
 
 /// Number of LIST/UIDL pairs (0 for a generic parse).
-pub fn pop3_pair_count(resp: &Pop3Response) -> Int {
+pub fn pop3_pair_count(resp: &Pop3Response) -> Int
+  ensures: result == resp.pair_nums.len();
+{
   return resp.pair_nums.len();
 }
 
 /// Message number of pair `index`, or -1 when out of bounds.
-pub fn pop3_pair_num(resp: &Pop3Response, index: Int) -> Int {
+pub fn pop3_pair_num(resp: &Pop3Response, index: Int) -> Int
+  ensures: index < 0 || index >= resp.pair_nums.len() => result == -1;
+  ensures: result != -1 => index >= 0 && index < resp.pair_nums.len();
+{
   if index < 0 || index >= resp.pair_nums.len() {
     return -1;
   }
@@ -1011,7 +1074,10 @@ pub fn pop3_pair_num(resp: &Pop3Response, index: Int) -> Int {
 
 /// Value of pair `index` (LIST size text or UIDL unique-id), or "" when out
 /// of bounds.
-pub fn pop3_pair_val(resp: &Pop3Response, index: Int) -> Str {
+pub fn pop3_pair_val(resp: &Pop3Response, index: Int) -> Str
+  ensures: index < 0 || index >= resp.pair_vals.len() => result.len() == 0;
+  ensures: result.len() > 0 => index >= 0 && index < resp.pair_vals.len();
+{
   if index < 0 || index >= resp.pair_vals.len() {
     return "";
   }
@@ -1023,7 +1089,9 @@ pub fn pop3_pair_val(resp: &Pop3Response, index: Int) -> Str {
 /// message number is `msg`, or -1 when the message is absent. The first
 /// match wins; listing order and duplicate message numbers are not
 /// validated.
-pub fn pop3_lookup_line(resp: &Pop3Response, msg: Int) -> Int {
+pub fn pop3_lookup_line(resp: &Pop3Response, msg: Int) -> Int
+  ensures: result >= -1 && result < resp.pair_nums.len();
+{
   let n = resp.pair_nums.len();
   var i = 0;
   while i < n {
@@ -1038,7 +1106,10 @@ pub fn pop3_lookup_line(resp: &Pop3Response, msg: Int) -> Int {
 
 /// LIST size of message `msg`, or -1 when the message is absent or its
 /// value is not canonical decimal. Only meaningful for a POP3_LIST parse.
-pub fn pop3_list_size(resp: &Pop3Response, msg: Int) -> Int {
+pub fn pop3_list_size(resp: &Pop3Response, msg: Int) -> Int
+  ensures: pop3_lookup_line(resp, msg) < 0 => result == -1;
+  ensures: result != -1 => pop3_lookup_line(resp, msg) >= 0;
+{
   let idx = pop3_lookup_line(resp, msg);
   if idx < 0 {
     return -1;
@@ -1061,7 +1132,10 @@ pub fn pop3_uidl_id(resp: &Pop3Response, msg: Int) -> Str {
 /// The whole payload as one string: every payload line, dot-unstuffed in
 /// parse order, terminated by CRLF ("" when there are no payload lines).
 /// Complexity: O(payload length).
-pub fn pop3_payload(resp: &Pop3Response) -> Str {
+pub fn pop3_payload(resp: &Pop3Response) -> Str
+  ensures: resp.lines.len() == 0 => result.len() == 0;
+  ensures: resp.lines.len() > 0 => result.len() >= 2 * resp.lines.len();
+{
   var out = Vec[UInt8].new();
   let n = resp.lines.len();
   var i = 0;
