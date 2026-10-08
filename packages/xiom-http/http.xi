@@ -90,22 +90,28 @@ fn TEMP_HEADERS() -> Str { return "__xiom_http_headers.tmp"; }
 // libcurl options take pointer-sized values. XIOM Int -> *UInt8 via xiom_alloc.
 
 fn make_ptr_value(v: Int) -> *UInt8 {
-  var p: *UInt8 = xiom_alloc(8);
+  var p: *UInt8 = ptr.null[UInt8]();
+  unsafe { p = xiom_alloc(8); }
   if ptr.is_null[UInt8](p) {
     return ptr.null[UInt8]();
   };
-  xiom_write_byte(p, 0, v & 0xFF);
-  xiom_write_byte(p, 1, (v >> 8) & 0xFF);
-  xiom_write_byte(p, 2, (v >> 16) & 0xFF);
-  xiom_write_byte(p, 3, (v >> 24) & 0xFF);
-  xiom_write_byte(p, 4, 0);
-  xiom_write_byte(p, 5, 0);
-  xiom_write_byte(p, 6, 0);
-  xiom_write_byte(p, 7, 0);
+  unsafe {
+    xiom_write_byte(p, 0, v & 0xFF);
+    xiom_write_byte(p, 1, (v >> 8) & 0xFF);
+    xiom_write_byte(p, 2, (v >> 16) & 0xFF);
+    xiom_write_byte(p, 3, (v >> 24) & 0xFF);
+    xiom_write_byte(p, 4, 0);
+    xiom_write_byte(p, 5, 0);
+    xiom_write_byte(p, 6, 0);
+    xiom_write_byte(p, 7, 0);
+  }
   return p;
 }
 
-fn ptr_null() -> *UInt8 { return ptr.null[UInt8](); }
+fn ptr_null() -> *UInt8 {
+  var p: *UInt8 = ptr.null[UInt8]();
+  unsafe { return p; }
+}
 
 // --- C String Helpers -------------------------------------------------------
 // The XIOM runtime provides xiom_str_to_cstr. We pass the raw string pointer
@@ -114,10 +120,12 @@ fn ptr_null() -> *UInt8 { return ptr.null[UInt8](); }
 fn str_to_cstr(s: Str) -> *UInt8 {
   var bytes: Vec[UInt8] = encoding.utf8_encode(s);
   var len: Int = bytes.len();
+  var cstr: *UInt8 = ptr_null();
   if len == 0 {
-    return xiom_str_to_cstr(ptr_null(), 0);
+    unsafe { cstr = xiom_str_to_cstr(ptr_null(), 0); }
+    return cstr;
   };
-  var cstr: *UInt8 = xiom_str_to_cstr(&bytes[0], len);
+  unsafe { cstr = xiom_str_to_cstr(&bytes[0], len); }
   return cstr;
 }
 
@@ -132,7 +140,8 @@ fn str_to_cstr_or_err(s: Str, label: Str) -> Result[*UInt8, Str] {
 // --- Error Helpers ----------------------------------------------------------
 
 fn curl_error_string(code: Int) -> Str {
-  var err_ptr: *UInt8 = curl_easy_strerror(code);
+  var err_ptr: *UInt8 = ptr_null();
+  unsafe { err_ptr = curl_easy_strerror(code); }
   if ptr.is_null[UInt8](err_ptr) {
     return "unknown curl error";
   };
@@ -145,7 +154,7 @@ fn cstr_to_str(cstr: *UInt8) -> Str {
   var result: Str = "";
   var i: Int = 0;
   while i < 65536 {
-    var b: Int = xiom_read_byte(cstr, i);
+    var b: Int = unsafe { xiom_read_byte(cstr, i) };
     if b == 0 as UInt8 { break; };
     var b_int: Int = b as Int;
     result = result + byte_to_char(b_int);
@@ -183,91 +192,101 @@ fn open_temp_files() -> Result[TempFiles, Str] {
   var headers_path: *UInt8 = str_to_cstr(TEMP_HEADERS());
   var mode: *UInt8 = str_to_cstr("wb+");
 
-  var body_c: *UInt8 = fopen(body_path, mode);
+  var body_c: *UInt8 = ptr_null();
+  unsafe { body_c = fopen(body_path, mode); }
   if ptr.is_null[UInt8](body_c) {
-    xiom_free_cstr(body_path);
-    xiom_free_cstr(headers_path);
-    xiom_free_cstr(mode);
+    unsafe {
+      xiom_free_cstr(body_path);
+      xiom_free_cstr(headers_path);
+      xiom_free_cstr(mode);
+    }
     return Err("failed to open body temp file");
   };
 
-  var headers_c: *UInt8 = fopen(headers_path, mode);
+  var headers_c: *UInt8 = ptr_null();
+  unsafe { headers_c = fopen(headers_path, mode); }
   if ptr.is_null[UInt8](headers_c) {
-    xiom_free_cstr(body_path);
-    xiom_free_cstr(headers_path);
-    xiom_free_cstr(mode);
+    unsafe {
+      xiom_free_cstr(body_path);
+      xiom_free_cstr(headers_path);
+      xiom_free_cstr(mode);
+    }
     return Err("failed to open headers temp file");
   };
 
-  xiom_free_cstr(body_path);
-  xiom_free_cstr(headers_path);
-  xiom_free_cstr(mode);
+  unsafe {
+    xiom_free_cstr(body_path);
+    xiom_free_cstr(headers_path);
+    xiom_free_cstr(mode);
+  }
 
   return Ok(TempFiles{ body: body_c, headers: headers_c });
 }
 
 fn close_temp_files(body_f: *UInt8, headers_f: *UInt8) {
-  let _ = fclose(body_f);
-  let _ = fclose(headers_f);
+  unsafe { let _ = fclose(body_f); }
+  unsafe { let _ = fclose(headers_f); }
 }
 
 fn cleanup_temp_files() {
   var body_path: *UInt8 = str_to_cstr(TEMP_BODY());
   var headers_path: *UInt8 = str_to_cstr(TEMP_HEADERS());
-  let _ = remove(body_path);
-  let _ = remove(headers_path);
-  xiom_free_cstr(body_path);
-  xiom_free_cstr(headers_path);
+  unsafe { let _ = remove(body_path); }
+  unsafe { let _ = remove(headers_path); }
+  unsafe { xiom_free_cstr(body_path); }
+  unsafe { xiom_free_cstr(headers_path); }
 }
 
 // --- File I/O Helpers -------------------------------------------------------
 
 fn read_file_to_str(file: *UInt8) -> Str {
   var file_size: Int;
-  let _ = fseek(file, 0, SEEK_END());
-  file_size = ftell(file);
-  let _ = fseek(file, 0, SEEK_SET());
+  unsafe { let _ = fseek(file, 0, SEEK_END()); }
+  unsafe { file_size = ftell(file); }
+  unsafe { let _ = fseek(file, 0, SEEK_SET()); }
 
   if file_size <= 0 {
     return "";
   };
 
-  var buf: *UInt8 = xiom_alloc(file_size + 1);
+  var buf: *UInt8 = ptr_null();
+  unsafe { buf = xiom_alloc(file_size + 1); }
   if ptr.is_null[UInt8](buf) {
     return "";
   };
 
-  var read_count: Int = fread(buf, 1, file_size, file);
+  var read_count: Int = unsafe { fread(buf, 1, file_size, file) };
   var term: Int = read_count;
   if term < 0 { term = 0; };
   if term > file_size { term = file_size; };
 
   if term >= 0 {
-    xiom_write_byte(buf, term, 0);
+    unsafe { xiom_write_byte(buf, term, 0); }
   };
   var result: Str = cstr_to_str(buf);
-  xiom_free_ptr(buf);
+  unsafe { xiom_free_ptr(buf); }
   return result;
 }
 
 // --- Response Code Extraction -----------------------------------------------
 
 fn get_response_code(handle: *UInt8) -> Int {
-  var status_buf: *UInt8 = xiom_alloc(8);
+  var status_buf: *UInt8 = ptr_null();
+  unsafe { status_buf = xiom_alloc(8); }
   if ptr.is_null[UInt8](status_buf) {
     return 0;
   };
 
-  var rc: Int = curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE(), status_buf);
+  var rc: Int = unsafe { curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE(), status_buf) };
   if rc != 0 {
-    xiom_free_ptr(status_buf);
+    unsafe { xiom_free_ptr(status_buf); }
     return 0;
   };
 
   var lo: Int = status_buf[0] as Int;
   var hi: Int = status_buf[1] as Int;
   var status: Int = lo | (hi << 8);
-  xiom_free_ptr(status_buf);
+  unsafe { xiom_free_ptr(status_buf); }
   return status;
 }
 
@@ -276,53 +295,53 @@ fn get_response_code(handle: *UInt8) -> Int {
 fn setup_common_options(handle: *UInt8, url_cstr: *UInt8) -> Result[Unit, Str] {
   var rc: Int;
 
-  rc = curl_easy_setopt(handle, CURLOPT_URL(), url_cstr);
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_URL(), url_cstr); }
   if rc != 0 { return Err(string.str_concat("CURLOPT_URL failed: ", curl_error_string(rc))); };
 
   var p1: *UInt8 = make_ptr_value(1);
-  rc = curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION(), p1);
-  if rc != 0 { xiom_free_ptr(p1); return Err(string.str_concat("CURLOPT_FOLLOWLOCATION failed: ", curl_error_string(rc))); };
-  xiom_free_ptr(p1);
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION(), p1); }
+  if rc != 0 { unsafe { xiom_free_ptr(p1); }; return Err(string.str_concat("CURLOPT_FOLLOWLOCATION failed: ", curl_error_string(rc))); };
+  unsafe { xiom_free_ptr(p1); }
 
   var p30: *UInt8 = make_ptr_value(30);
-  rc = curl_easy_setopt(handle, CURLOPT_TIMEOUT(), p30);
-  if rc != 0 { xiom_free_ptr(p30); return Err(string.str_concat("CURLOPT_TIMEOUT failed: ", curl_error_string(rc))); };
-  xiom_free_ptr(p30);
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_TIMEOUT(), p30); }
+  if rc != 0 { unsafe { xiom_free_ptr(p30); }; return Err(string.str_concat("CURLOPT_TIMEOUT failed: ", curl_error_string(rc))); };
+  unsafe { xiom_free_ptr(p30); }
 
   var p10: *UInt8 = make_ptr_value(10);
-  rc = curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT(), p10);
-  if rc != 0 { xiom_free_ptr(p10); return Err(string.str_concat("CURLOPT_CONNECTTIMEOUT failed: ", curl_error_string(rc))); };
-  xiom_free_ptr(p10);
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT(), p10); }
+  if rc != 0 { unsafe { xiom_free_ptr(p10); }; return Err(string.str_concat("CURLOPT_CONNECTTIMEOUT failed: ", curl_error_string(rc))); };
+  unsafe { xiom_free_ptr(p10); }
 
-  rc = curl_easy_setopt(handle, CURLOPT_NOSIGNAL(), p1);
-  if rc != 0 { xiom_free_ptr(p1); return Err(string.str_concat("CURLOPT_NOSIGNAL failed: ", curl_error_string(rc))); };
-  xiom_free_ptr(p1);  // free our extra copy
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_NOSIGNAL(), p1); }
+  if rc != 0 { unsafe { xiom_free_ptr(p1); }; return Err(string.str_concat("CURLOPT_NOSIGNAL failed: ", curl_error_string(rc))); };
+  unsafe { xiom_free_ptr(p1); }  // free our extra copy
 
   var encoding_cstr: *UInt8 = str_to_cstr("gzip, deflate");
-  rc = curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING(), encoding_cstr);
-  xiom_free_cstr(encoding_cstr);
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING(), encoding_cstr); }
+  unsafe { xiom_free_cstr(encoding_cstr); }
   if rc != 0 { return Err(string.str_concat("CURLOPT_ACCEPT_ENCODING failed: ", curl_error_string(rc))); };
 
   var ua_cstr: *UInt8 = str_to_cstr("xiom.http/0.1.0");
-  rc = curl_easy_setopt(handle, CURLOPT_USERAGENT(), ua_cstr);
-  xiom_free_cstr(ua_cstr);
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_USERAGENT(), ua_cstr); }
+  unsafe { xiom_free_cstr(ua_cstr); }
   if rc != 0 { return Err(string.str_concat("CURLOPT_USERAGENT failed: ", curl_error_string(rc))); };
 
   var p_buf: *UInt8 = make_ptr_value(BUF_SIZE());
-  rc = curl_easy_setopt(handle, CURLOPT_BUFFERSIZE(), p_buf);
-  if rc != 0 { xiom_free_ptr(p_buf); return Err(string.str_concat("CURLOPT_BUFFERSIZE failed: ", curl_error_string(rc))); };
-  xiom_free_ptr(p_buf);
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_BUFFERSIZE(), p_buf); }
+  if rc != 0 { unsafe { xiom_free_ptr(p_buf); }; return Err(string.str_concat("CURLOPT_BUFFERSIZE failed: ", curl_error_string(rc))); };
+  unsafe { xiom_free_ptr(p_buf); }
 
   return Ok(());
 }
 
 fn perform_and_collect(handle: *UInt8, body_f: *UInt8, headers_f: *UInt8) -> Result[Unit, Str] {
   var rc: Int;
-  rc = curl_easy_setopt(handle, CURLOPT_WRITEDATA(), body_f);
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_WRITEDATA(), body_f); }
   if rc != 0 { return Err(string.str_concat("CURLOPT_WRITEDATA failed: ", curl_error_string(rc))); };
-  rc = curl_easy_setopt(handle, CURLOPT_HEADERDATA(), headers_f);
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_HEADERDATA(), headers_f); }
   if rc != 0 { return Err(string.str_concat("CURLOPT_HEADERDATA failed: ", curl_error_string(rc))); };
-  rc = curl_easy_perform(handle);
+  unsafe { rc = curl_easy_perform(handle); }
   if rc != 0 { return Err(string.str_concat("curl_easy_perform failed: ", curl_error_string(rc))); };
   return Ok(());
 }
@@ -343,21 +362,22 @@ pub fn http_get(url: Str) -> Result[HttpClientResponse, Str]
     return Err("xiom_str_to_cstr failed for URL");
   };
 
-  var handle: *UInt8 = curl_easy_init();
+  var handle: *UInt8 = ptr_null();
+  unsafe { handle = curl_easy_init(); }
   if ptr.is_null[UInt8](handle) {
-    xiom_free_cstr(url_cstr);
+    unsafe { xiom_free_cstr(url_cstr); }
     return Err("curl_easy_init returned null handle");
   };
 
   var setup = setup_common_options(handle, url_cstr);
   match setup {
-    Err(e) => { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err(e); },
+    Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(e); },
     Ok(_) => {},
   };
 
   var files = open_temp_files();
   match files {
-    Err(e) => { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err(e); },
+    Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(e); },
     Ok(fds) => {
       var perf = perform_and_collect(handle, fds.body, fds.headers);
       var status: Int = get_response_code(handle);
@@ -365,8 +385,8 @@ pub fn http_get(url: Str) -> Result[HttpClientResponse, Str]
       var headers: Str = read_file_to_str(fds.headers);
       close_temp_files(fds.body, fds.headers);
       cleanup_temp_files();
-      curl_easy_cleanup(handle);
-      xiom_free_cstr(url_cstr);
+      unsafe { curl_easy_cleanup(handle); }
+      unsafe { xiom_free_cstr(url_cstr); }
       match perf { Err(e) => { return Err(e); }, Ok(_) => {}, };
       return Ok(HttpClientResponse{ status: status, body: body, headers: headers });
     },
@@ -379,33 +399,34 @@ pub fn http_post(url: Str, body: Str, content_type: Str) -> Result[HttpClientRes
   var url_cstr: *UInt8 = str_to_cstr(url);
   if ptr.is_null[UInt8](url_cstr) { return Err("xiom_str_to_cstr failed for URL"); };
 
-  var handle: *UInt8 = curl_easy_init();
-  if ptr.is_null[UInt8](handle) { xiom_free_cstr(url_cstr); return Err("curl_easy_init returned null handle"); };
+  var handle: *UInt8 = ptr_null();
+  unsafe { handle = curl_easy_init(); }
+  if ptr.is_null[UInt8](handle) { unsafe { xiom_free_cstr(url_cstr); }; return Err("curl_easy_init returned null handle"); };
 
   var setup = setup_common_options(handle, url_cstr);
-  match setup { Err(e) => { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err(e); }, Ok(_) => {}, };
+  match setup { Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(e); }, Ok(_) => {}, };
 
   var rc: Int;
   var p1: *UInt8 = make_ptr_value(1);
-  rc = curl_easy_setopt(handle, CURLOPT_POST(), p1);
-  xiom_free_ptr(p1);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err(string.str_concat("CURLOPT_POST failed: ", curl_error_string(rc))); };
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POST(), p1); }
+  unsafe { xiom_free_ptr(p1); }
+  if rc != 0 { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(string.str_concat("CURLOPT_POST failed: ", curl_error_string(rc))); };
 
   var body_cstr: *UInt8 = str_to_cstr(body);
-  if ptr.is_null[UInt8](body_cstr) { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err("xiom_str_to_cstr failed for body"); };
+  if ptr.is_null[UInt8](body_cstr) { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err("xiom_str_to_cstr failed for body"); };
 
-  rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), body_cstr);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err(string.str_concat("CURLOPT_POSTFIELDS failed: ", curl_error_string(rc))); };
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), body_cstr); }
+  if rc != 0 { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); }; return Err(string.str_concat("CURLOPT_POSTFIELDS failed: ", curl_error_string(rc))); };
 
   var body_bytes: Vec[UInt8] = encoding.utf8_encode(body);
   var p_size: *UInt8 = make_ptr_value(body_bytes.len());
-  rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), p_size);
-  xiom_free_ptr(p_size);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err(string.str_concat("CURLOPT_POSTFIELDSIZE failed: ", curl_error_string(rc))); };
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), p_size); }
+  unsafe { xiom_free_ptr(p_size); }
+  if rc != 0 { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); }; return Err(string.str_concat("CURLOPT_POSTFIELDSIZE failed: ", curl_error_string(rc))); };
 
   var files = open_temp_files();
   match files {
-    Err(e) => { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err(e); },
+    Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); }; return Err(e); },
     Ok(fds) => {
       var perf = perform_and_collect(handle, fds.body, fds.headers);
       var status: Int = get_response_code(handle);
@@ -413,9 +434,9 @@ pub fn http_post(url: Str, body: Str, content_type: Str) -> Result[HttpClientRes
       var headers: Str = read_file_to_str(fds.headers);
       close_temp_files(fds.body, fds.headers);
       cleanup_temp_files();
-      curl_easy_cleanup(handle);
-      xiom_free_cstr(url_cstr);
-      xiom_free_cstr(body_cstr);
+      unsafe { curl_easy_cleanup(handle); }
+      unsafe { xiom_free_cstr(url_cstr); }
+      unsafe { xiom_free_cstr(body_cstr); }
       match perf { Err(e) => { return Err(e); }, Ok(_) => {}, };
       return Ok(HttpClientResponse{ status: status, body: resp_body, headers: headers });
     },
@@ -429,33 +450,34 @@ pub fn http_put(url: Str, body: Str) -> Result[HttpClientResponse, Str]
   var url_cstr: *UInt8 = str_to_cstr(url);
   if ptr.is_null[UInt8](url_cstr) { return Err("xiom_str_to_cstr failed for URL"); };
 
-  var handle: *UInt8 = curl_easy_init();
-  if ptr.is_null[UInt8](handle) { xiom_free_cstr(url_cstr); return Err("curl_easy_init returned null handle"); };
+  var handle: *UInt8 = ptr_null();
+  unsafe { handle = curl_easy_init(); }
+  if ptr.is_null[UInt8](handle) { unsafe { xiom_free_cstr(url_cstr); }; return Err("curl_easy_init returned null handle"); };
 
   var setup = setup_common_options(handle, url_cstr);
-  match setup { Err(e) => { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err(e); }, Ok(_) => {}, };
+  match setup { Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(e); }, Ok(_) => {}, };
 
   var rc: Int;
   var method_cstr: *UInt8 = str_to_cstr("PUT");
-  rc = curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST(), method_cstr);
-  xiom_free_cstr(method_cstr);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err(string.str_concat("CURLOPT_CUSTOMREQUEST PUT failed: ", curl_error_string(rc))); };
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST(), method_cstr); }
+  unsafe { xiom_free_cstr(method_cstr); }
+  if rc != 0 { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(string.str_concat("CURLOPT_CUSTOMREQUEST PUT failed: ", curl_error_string(rc))); };
 
   var body_cstr: *UInt8 = str_to_cstr(body);
-  if ptr.is_null[UInt8](body_cstr) { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err("xiom_str_to_cstr failed for body"); };
+  if ptr.is_null[UInt8](body_cstr) { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err("xiom_str_to_cstr failed for body"); };
 
-  rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), body_cstr);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err(string.str_concat("CURLOPT_POSTFIELDS PUT failed: ", curl_error_string(rc))); };
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDS(), body_cstr); }
+  if rc != 0 { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); }; return Err(string.str_concat("CURLOPT_POSTFIELDS PUT failed: ", curl_error_string(rc))); };
 
   var body_bytes: Vec[UInt8] = encoding.utf8_encode(body);
   var p_size: *UInt8 = make_ptr_value(body_bytes.len());
-  rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), p_size);
-  xiom_free_ptr(p_size);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err(string.str_concat("CURLOPT_POSTFIELDSIZE PUT failed: ", curl_error_string(rc))); };
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), p_size); }
+  unsafe { xiom_free_ptr(p_size); }
+  if rc != 0 { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); }; return Err(string.str_concat("CURLOPT_POSTFIELDSIZE PUT failed: ", curl_error_string(rc))); };
 
   var files = open_temp_files();
   match files {
-    Err(e) => { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); return Err(e); },
+    Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); }; return Err(e); },
     Ok(fds) => {
       var perf = perform_and_collect(handle, fds.body, fds.headers);
       var status: Int = get_response_code(handle);
@@ -463,9 +485,9 @@ pub fn http_put(url: Str, body: Str) -> Result[HttpClientResponse, Str]
       var headers: Str = read_file_to_str(fds.headers);
       close_temp_files(fds.body, fds.headers);
       cleanup_temp_files();
-      curl_easy_cleanup(handle);
-      xiom_free_cstr(url_cstr);
-      xiom_free_cstr(body_cstr);
+      unsafe { curl_easy_cleanup(handle); }
+      unsafe { xiom_free_cstr(url_cstr); }
+      unsafe { xiom_free_cstr(body_cstr); }
       match perf { Err(e) => { return Err(e); }, Ok(_) => {}, };
       return Ok(HttpClientResponse{ status: status, body: resp_body, headers: headers });
     },
@@ -479,21 +501,22 @@ pub fn http_delete(url: Str) -> Result[HttpClientResponse, Str]
   var url_cstr: *UInt8 = str_to_cstr(url);
   if ptr.is_null[UInt8](url_cstr) { return Err("xiom_str_to_cstr failed for URL"); };
 
-  var handle: *UInt8 = curl_easy_init();
-  if ptr.is_null[UInt8](handle) { xiom_free_cstr(url_cstr); return Err("curl_easy_init returned null handle"); };
+  var handle: *UInt8 = ptr_null();
+  unsafe { handle = curl_easy_init(); }
+  if ptr.is_null[UInt8](handle) { unsafe { xiom_free_cstr(url_cstr); }; return Err("curl_easy_init returned null handle"); };
 
   var setup = setup_common_options(handle, url_cstr);
-  match setup { Err(e) => { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err(e); }, Ok(_) => {}, };
+  match setup { Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(e); }, Ok(_) => {}, };
 
   var rc: Int;
   var method_cstr: *UInt8 = str_to_cstr("DELETE");
-  rc = curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST(), method_cstr);
-  xiom_free_cstr(method_cstr);
-  if rc != 0 { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err(string.str_concat("CURLOPT_CUSTOMREQUEST DELETE failed: ", curl_error_string(rc))); };
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST(), method_cstr); }
+  unsafe { xiom_free_cstr(method_cstr); }
+  if rc != 0 { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(string.str_concat("CURLOPT_CUSTOMREQUEST DELETE failed: ", curl_error_string(rc))); };
 
   var files = open_temp_files();
   match files {
-    Err(e) => { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err(e); },
+    Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(e); },
     Ok(fds) => {
       var perf = perform_and_collect(handle, fds.body, fds.headers);
       var status: Int = get_response_code(handle);
@@ -501,8 +524,8 @@ pub fn http_delete(url: Str) -> Result[HttpClientResponse, Str]
       var headers: Str = read_file_to_str(fds.headers);
       close_temp_files(fds.body, fds.headers);
       cleanup_temp_files();
-      curl_easy_cleanup(handle);
-      xiom_free_cstr(url_cstr);
+      unsafe { curl_easy_cleanup(handle); }
+      unsafe { xiom_free_cstr(url_cstr); }
       match perf { Err(e) => { return Err(e); }, Ok(_) => {}, };
       return Ok(HttpClientResponse{ status: status, body: resp_body, headers: headers });
     },
@@ -517,54 +540,56 @@ pub fn http_download(url: Str, path: Str) -> Result[Unit, Str]
   var url_cstr: *UInt8 = str_to_cstr(url);
   if ptr.is_null[UInt8](url_cstr) { return Err("xiom_str_to_cstr failed for URL"); };
 
-  var handle: *UInt8 = curl_easy_init();
-  if ptr.is_null[UInt8](handle) { xiom_free_cstr(url_cstr); return Err("curl_easy_init returned null handle"); };
+  var handle: *UInt8 = ptr_null();
+  unsafe { handle = curl_easy_init(); }
+  if ptr.is_null[UInt8](handle) { unsafe { xiom_free_cstr(url_cstr); }; return Err("curl_easy_init returned null handle"); };
 
   var setup = setup_common_options(handle, url_cstr);
-  match setup { Err(e) => { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); return Err(e); }, Ok(_) => {}, };
+  match setup { Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(e); }, Ok(_) => {}, };
 
   var path_cstr: *UInt8 = str_to_cstr(path);
   var mode_cstr: *UInt8 = str_to_cstr("wb");
-  var out_file: *UInt8 = fopen(path_cstr, mode_cstr);
+  var out_file: *UInt8 = ptr_null();
+  unsafe { out_file = fopen(path_cstr, mode_cstr); }
   if ptr.is_null[UInt8](out_file) {
-    curl_easy_cleanup(handle);
-    xiom_free_cstr(url_cstr);
-    xiom_free_cstr(path_cstr);
-    xiom_free_cstr(mode_cstr);
+    unsafe { curl_easy_cleanup(handle); }
+    unsafe { xiom_free_cstr(url_cstr); }
+    unsafe { xiom_free_cstr(path_cstr); }
+    unsafe { xiom_free_cstr(mode_cstr); }
     return Err(string.str_concat("failed to open output file: ", path));
   };
 
-  var rc: Int = curl_easy_setopt(handle, CURLOPT_WRITEDATA(), out_file);
+  var rc: Int = unsafe { curl_easy_setopt(handle, CURLOPT_WRITEDATA(), out_file) };
   if rc != 0 {
-    let _ = fclose(out_file);
-    curl_easy_cleanup(handle);
-    xiom_free_cstr(url_cstr);
-    xiom_free_cstr(path_cstr);
-    xiom_free_cstr(mode_cstr);
+    unsafe { let _ = fclose(out_file); }
+    unsafe { curl_easy_cleanup(handle); }
+    unsafe { xiom_free_cstr(url_cstr); }
+    unsafe { xiom_free_cstr(path_cstr); }
+    unsafe { xiom_free_cstr(mode_cstr); }
     return Err(string.str_concat("CURLOPT_WRITEDATA download failed: ", curl_error_string(rc)));
   };
 
-  var perf_rc: Int = curl_easy_perform(handle);
-  let _ = fclose(out_file);
+  var perf_rc: Int = unsafe { curl_easy_perform(handle) };
+  unsafe { let _ = fclose(out_file); }
 
   if perf_rc != 0 {
     var err_msg: Str = curl_error_string(perf_rc);
-    curl_easy_cleanup(handle);
-    xiom_free_cstr(url_cstr);
-    xiom_free_cstr(path_cstr);
-    xiom_free_cstr(mode_cstr);
-    let _ = remove(path_cstr);
+    unsafe { curl_easy_cleanup(handle); }
+    unsafe { xiom_free_cstr(url_cstr); }
+    unsafe { xiom_free_cstr(path_cstr); }
+    unsafe { xiom_free_cstr(mode_cstr); }
+    unsafe { let _ = remove(path_cstr); }
     return Err(string.str_concat("download failed: ", err_msg));
   };
 
   var status: Int = get_response_code(handle);
-  curl_easy_cleanup(handle);
-  xiom_free_cstr(url_cstr);
-  xiom_free_cstr(path_cstr);
-  xiom_free_cstr(mode_cstr);
+  unsafe { curl_easy_cleanup(handle); }
+  unsafe { xiom_free_cstr(url_cstr); }
+  unsafe { xiom_free_cstr(path_cstr); }
+  unsafe { xiom_free_cstr(mode_cstr); }
 
   if status < 200 || status >= 300 {
-    let _ = remove(path_cstr);
+    unsafe { let _ = remove(path_cstr); }
     return Err(string.str_concat("download failed with HTTP status ", to_string(status)));
   };
 
