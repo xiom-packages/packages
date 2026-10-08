@@ -163,7 +163,10 @@ fn _byte(data: &Vec[UInt8], pos: Int) -> Int {
 // Unsigned little-endian Int of the `size` bytes at `pos` (1..8 bytes;
 // 8-byte values above 2^63-1 wrap to the same two's-complement bit
 // pattern). The caller guarantees pos + size <= data.len().
-fn _read_le(data: &Vec[UInt8], pos: Int, size: Int) -> Int {
+fn _read_le(data: &Vec[UInt8], pos: Int, size: Int) -> Int
+  ensures: size == 0 => result == 0;
+  ensures: size >= 1 && size <= 7 => result >= 0;
+{
   var v: Int = 0;
   var shift: Int = 1;
   var i = 0;
@@ -178,7 +181,10 @@ fn _read_le(data: &Vec[UInt8], pos: Int, size: Int) -> Int {
 // Byte `shift_bytes` above the least significant byte of `v` (0 = LSB).
 // Arithmetic only: `& 0xFF` on values with bit 31 set miscompiles in
 // v0.61.3, and this form is exact for negative two's-complement values.
-fn _byte_of(v: Int, shift_bytes: Int) -> UInt8 {
+fn _byte_of(v: Int, shift_bytes: Int) -> UInt8
+  ensures: result >= 0 && result <= 255;
+  ensures: shift_bytes == 0 && v >= 0 => result == v % 256;
+{
   var q = v;
   var k = 0;
   while k < shift_bytes {
@@ -212,7 +218,10 @@ fn _push_bytes(out: &mut Vec[UInt8], v: &Vec[UInt8]) {
 
 // Sum of data[offset, offset + length) modulo 256, or -1 when the range
 // does not fit the buffer.
-fn _sum8(data: &Vec[UInt8], offset: Int, length: Int) -> Int {
+fn _sum8(data: &Vec[UInt8], offset: Int, length: Int) -> Int
+  ensures: offset < 0 || length < 0 || offset > data.len() - length => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 255;
+{
   if offset < 0 || length < 0 {
     return -1;
   }
@@ -229,13 +238,18 @@ fn _sum8(data: &Vec[UInt8], offset: Int, length: Int) -> Int {
 }
 
 // True when `b` (0..255) is a printable ASCII byte (0x20..0x7e).
-fn _b_printable(b: Int) -> Bool {
+fn _b_printable(b: Int) -> Bool
+  ensures: result == (b >= 32 && b <= 126);
+{
   return b >= 32 && b <= 126;
 }
 
 // True when data[offset, offset + length) exists and is all printable
 // ASCII.
-fn _range_printable(data: &Vec[UInt8], offset: Int, length: Int) -> Bool {
+fn _range_printable(data: &Vec[UInt8], offset: Int, length: Int) -> Bool
+  ensures: offset < 0 || length < 0 || offset > data.len() - length => result == false;
+  ensures: length == 0 && offset >= 0 && offset <= data.len() => result == true;
+{
   if offset < 0 || length < 0 {
     return false;
   }
@@ -253,7 +267,10 @@ fn _range_printable(data: &Vec[UInt8], offset: Int, length: Int) -> Bool {
 }
 
 // True when the bytes at `offset` equal the bytes of `s`.
-fn _range_eq_str(data: &Vec[UInt8], offset: Int, s: Str) -> Bool {
+fn _range_eq_str(data: &Vec[UInt8], offset: Int, s: Str) -> Bool
+  ensures: offset < 0 || offset > data.len() - s.len() => result == false;
+  ensures: s.len() == 0 && offset >= 0 && offset <= data.len() => result == true;
+{
   let n = s.len();
   if offset < 0 || n < 0 {
     return false;
@@ -294,7 +311,11 @@ fn _copy_range(data: &Vec[UInt8], offset: Int, length: Int) -> Vec[UInt8] {
 // ------------------------------------------------------------------
 
 // True when `s` fits `width` and every byte is printable ASCII.
-fn _text_ok(s: Str, width: Int) -> Bool {
+fn _text_ok(s: Str, width: Int) -> Bool
+  ensures: s.len() > width => result == false;
+  ensures: s.len() == 0 && width >= 0 => result == true;
+  ensures: result == true => s.len() <= width;
+{
   let n = s.len();
   if n > width {
     return false;
@@ -354,7 +375,11 @@ fn _push_text_field(out: &mut Vec[UInt8], s: Str, width: Int) {
 // header inside the buffer, printable signature, length >= 36 inside the
 // buffer, checksum over the declared length. Returns the descriptor used
 // by the walkers.
-fn _resolve_table(data: &Vec[UInt8], addr: Int) -> Result[AcpiTableDesc, Str] {
+fn _resolve_table(data: &Vec[UInt8], addr: Int) -> Result[AcpiTableDesc, Str]
+  ensures: addr < 0 => result is Err;
+  ensures: addr % 4 != 0 => result is Err;
+  ensures: addr > data.len() - 36 => result is Err;
+{
   if addr < 0 {
     return _err_desc("acpi: table address out of range");
   }
@@ -397,7 +422,9 @@ fn _resolve_table(data: &Vec[UInt8], addr: Int) -> Result[AcpiTableDesc, Str] {
 /// `acpi: rsdp oem id not printable`, `acpi: bad rsdp length`,
 /// `acpi: bad rsdp extended checksum`.
 /// Complexity: O(1) plus O(length) for the extended checksum.
-pub fn acpi_rsdp_parse(data: &Vec[UInt8]) -> Result[AcpiRsdp, Str] {
+pub fn acpi_rsdp_parse(data: &Vec[UInt8]) -> Result[AcpiRsdp, Str]
+  ensures: data.len() < 20 => result is Err;
+{
   if data.len() < ACPI_RSDP_MIN_LEN {
     return _err_rsdp("acpi: buffer too short");
   }
@@ -590,7 +617,9 @@ fn _walk_index(data: &Vec[UInt8], offset: Int, entry_size: Int, want_sig: Int, m
 /// Sum of data[offset, offset + length) modulo 256, or -1 when the range
 /// does not fit the buffer.
 /// Complexity: O(length).
-pub fn acpi_sum8(data: &Vec[UInt8], offset: Int, length: Int) -> Int {
+pub fn acpi_sum8(data: &Vec[UInt8], offset: Int, length: Int) -> Int
+  ensures: result == _sum8(data, offset, length);
+{
   return _sum8(data, offset, length);
 }
 
@@ -599,7 +628,9 @@ pub fn acpi_sum8(data: &Vec[UInt8], offset: Int, length: Int) -> Int {
 /// the verify helper used for the RSDP base checksum, the RSDP extended
 /// checksum and every SDT header checksum.
 /// Complexity: O(length).
-pub fn acpi_checksum_valid(data: &Vec[UInt8], offset: Int, length: Int) -> Bool {
+pub fn acpi_checksum_valid(data: &Vec[UInt8], offset: Int, length: Int) -> Bool
+  ensures: result == (acpi_sum8(data, offset, length) == 0);
+{
   return _sum8(data, offset, length) == 0;
 }
 
@@ -614,7 +645,10 @@ pub fn acpi_range_printable(data: &Vec[UInt8], offset: Int, length: Int) -> Bool
 /// ("FACP" is 1178682192), or -1 when `s` is not exactly four printable
 /// ASCII characters. Printable signatures never set bit 31.
 /// Complexity: O(1).
-pub fn acpi_signature_value(s: Str) -> Int {
+pub fn acpi_signature_value(s: Str) -> Int
+  ensures: s.len() != 4 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 2122219134;
+{
   if s.len() != 4 {
     return -1;
   }
@@ -644,7 +678,10 @@ pub fn acpi_table_count(t: &AcpiTableSet) -> Int {
 
 /// Absolute buffer offset of table `i`, or -1 when out of range.
 /// Complexity: O(1).
-pub fn acpi_table_offset(t: &AcpiTableSet, i: Int) -> Int {
+pub fn acpi_table_offset(t: &AcpiTableSet, i: Int) -> Int
+  ensures: i < 0 || i >= t.table_offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < t.table_offsets.len();
+{
   if i < 0 || i >= t.table_offsets.len() {
     return -1;
   }
@@ -687,7 +724,10 @@ pub fn acpi_table_signature(t: &AcpiTableSet, i: Int) -> Int {
 /// is not a four-character printable signature or no table matches.
 /// Duplicate signatures are tolerated: the first match in walk order wins.
 /// Complexity: O(tables).
-pub fn acpi_find_table(t: &AcpiTableSet, sig: Str) -> Int {
+pub fn acpi_find_table(t: &AcpiTableSet, sig: Str) -> Int
+  ensures: acpi_signature_value(sig) < 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result < t.table_sigs.len();
+{
   let want: Int = acpi_signature_value(sig);
   if want < 0 {
     return -1;
@@ -780,7 +820,9 @@ pub fn acpi_table_creator_revision(data: &Vec[UInt8], t: &AcpiTableSet, i: Int) 
 /// Absolute offset of the body of table `i` (header offset 36), or -1 when
 /// the index is out of range or the recorded span does not fit `data`.
 /// Complexity: O(1).
-pub fn acpi_table_body_offset(data: &Vec[UInt8], t: &AcpiTableSet, i: Int) -> Int {
+pub fn acpi_table_body_offset(data: &Vec[UInt8], t: &AcpiTableSet, i: Int) -> Int
+  ensures: i < 0 || i >= t.table_offsets.len() => result == -1;
+{
   if i < 0 || i >= t.table_offsets.len() {
     return -1;
   }
@@ -860,7 +902,13 @@ pub fn acpi_table_body(data: &Vec[UInt8], t: &AcpiTableSet, i: Int) -> Result[Ve
 /// `acpi: bad revision`, `acpi: bad oem revision`,
 /// `acpi: bad creator revision`, `acpi: table too large`.
 /// Complexity: O(body length).
-pub fn acpi_build_table(sig: Str, revision: Int, oem_id: Str, oem_table_id: Str, oem_revision: Int, creator_id: Str, creator_revision: Int, body: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn acpi_build_table(sig: Str, revision: Int, oem_id: Str, oem_table_id: Str, oem_revision: Int, creator_id: Str, creator_revision: Int, body: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: revision < 0 || revision > 255 => result is Err;
+  ensures: oem_revision < 0 || oem_revision > 4294967295 => result is Err;
+  ensures: creator_revision < 0 || creator_revision > 4294967295 => result is Err;
+  ensures: body.len() > 4294967259 => result is Err;
+  ensures: result is Ok => result.value.len() >= 36;
+{
   let te = _table_text_err(sig, oem_id, oem_table_id, creator_id);
   if te.len() > 0 {
     return _err_bytes(te);
@@ -961,7 +1009,12 @@ pub fn acpi_build_xsdt(entries: &Vec[Int], oem_id: Str, oem_table_id: Str, creat
 /// `acpi: rsdp address out of range` (negative address, or an RSDT address
 /// above 4294967295), `acpi: rsdp revision 0 has no xsdt`.
 /// Complexity: O(1).
-pub fn acpi_build_rsdp(revision: Int, rsdt_address: Int, xsdt_address: Int, oem_id: Str) -> Result[Vec[UInt8], Str] {
+pub fn acpi_build_rsdp(revision: Int, rsdt_address: Int, xsdt_address: Int, oem_id: Str) -> Result[Vec[UInt8], Str]
+  ensures: revision != 0 && revision != 2 => result is Err;
+  ensures: revision == 0 && xsdt_address != 0 => result is Err;
+  ensures: revision == 0 && result is Ok => result.value.len() == 20;
+  ensures: revision == 2 && result is Ok => result.value.len() == 36;
+{
   if revision != 0 && revision != 2 {
     return _err_bytes("acpi: rsdp revision must be 0 or 2");
   }

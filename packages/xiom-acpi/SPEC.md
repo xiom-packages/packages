@@ -1,8 +1,6 @@
 # xiom.acpi -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.acpi`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/acpi.xi` (`module xiom.acpi`).
 Depends on `xiom.std` (`xiom.string`); tests add `xiom.test`, `xiom.io`,
 `xiom.string`, `xiom.string.compare`, `xiom.encoding.hex`.
@@ -401,7 +399,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.acpi
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=18 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -444,3 +442,55 @@ Last verified: compiler 0.61.3,
   compared byte by byte (BUG 17 discipline). No `sb_to_str` is used, so no
   NUL handling is needed.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #40 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses were added to `src/acpi.xi` in the
+batch #40 hardening pass (compiler v0.64.0; `package.xi` is left for the
+coordinator to bump at integration). 36 clauses over the 17 functions
+below, all `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.acpi -TimeoutSec 60` runs ended
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` with the clauses
+active (9.84 s and 10.46 s); no clause trapped.
+
+Every clause holds for hand-built values and structs: guards keep the
+source's own validation branches, and only parameters, parameter fields
+(never a bare `&mut` parameter) and plain struct returns are read. No
+clause uses a module constant (field widths are inlined literals), indexes
+a vector, compares `Str` values with `==`, reads a struct-Result payload
+field or uses `result.value.0/.1`. The three clause calls are the
+definitional cross-calls `acpi_sum8` -> `_sum8`,
+`acpi_checksum_valid` -> `acpi_sum8` and `acpi_find_table` ->
+`acpi_signature_value`; none of these callees reaches its caller
+(non-re-entrant).
+
+One plan expression was refined for hand-built safety: the plan's
+`acpi_table_offset` claim `result != -1 => result >= 0` is false for a
+hand-built `AcpiTableSet` whose `table_offsets` vector stores a negative
+offset, so it was re-expressed in the same sentinel family as the proven
+dimacs shape: `result != -1 => i >= 0 && i < t.table_offsets.len()`.
+No probe-gated items applied.
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it
+can emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `_read_le` | 2 | `size == 0` => 0; 1..7 bytes => `result >= 0` | no | yes |
+| `_byte_of` | 2 | `result` is a byte 0..255; `shift_bytes == 0 && v >= 0` => `result == v % 256` | no | yes |
+| `_sum8` | 2 | invalid range => `-1`; non-`-1` in 0..255 | no | yes |
+| `_b_printable` | 1 | `result == (b >= 32 && b <= 126)` | no | yes |
+| `_range_printable` | 2 | invalid range => `false`; empty in-buffer range => `true` | no | yes |
+| `_range_eq_str` | 2 | invalid range => `false`; empty `s` in-buffer => `true` | no | yes |
+| `_text_ok` | 3 | `s.len() > width` => `false`; empty `s` and `width >= 0` => `true`; `true` => `s.len() <= width` | no | yes |
+| `_resolve_table` | 3 | negative, unaligned or header-out-of-range address => `Err` | no | yes |
+| `acpi_rsdp_parse` | 1 | `data.len() < 20` => `Err` | no | yes |
+| `acpi_sum8` | 1 | `result == _sum8(data, offset, length)` | no | yes |
+| `acpi_checksum_valid` | 1 | `result == (acpi_sum8(data, offset, length) == 0)` | no | yes |
+| `acpi_signature_value` | 2 | non-4-length => `-1`; non-`-1` in 0..2122219134 | no | yes |
+| `acpi_table_offset` | 2 | out-of-range index => `-1`; non-`-1` only for an in-range index | no | yes |
+| `acpi_find_table` | 2 | unpackable signature => `-1`; non-`-1` index in range | no | yes |
+| `acpi_table_body_offset` | 1 | out-of-range index => `-1` | no | yes |
+| `acpi_build_table` | 5 | bad revision / OEM revision / creator revision / oversized body => `Err`; `Ok` output >= 36 bytes | no | yes |
+| `acpi_build_rsdp` | 4 | bad revision or revision-0 XSDT => `Err`; revision 0 `Ok` is 20 bytes; revision 2 `Ok` is 36 bytes | no | yes |
