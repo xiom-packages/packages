@@ -313,7 +313,9 @@ fn _mant_bit(data: &Vec[UInt8], pos: Int, j: Int) -> Int {
 /// are extracted arithmetically, so negative two's-complement mantissas
 /// (rates >= 2^62) are emitted correctly as well.
 /// Complexity: O(1).
-pub fn aiff_encode_sample_rate(rate: Int) -> Vec[UInt8] {
+pub fn aiff_encode_sample_rate(rate: Int) -> Vec[UInt8]
+  ensures: result.len() == 10;
+{
   var out = Vec[UInt8].new();
   if rate <= 0 {
     var z = 0;
@@ -361,7 +363,11 @@ pub fn aiff_encode_sample_rate(rate: Int) -> Vec[UInt8] {
 /// `offset + 10 > data.len()`. No Float64 is used: the significand is shifted
 /// and rounded with bit arithmetic.
 /// Complexity: O(1).
-pub fn aiff_decode_sample_rate(data: &Vec[UInt8], offset: Int) -> Result[Int, Str] {
+pub fn aiff_decode_sample_rate(data: &Vec[UInt8], offset: Int) -> Result[Int, Str]
+  ensures: offset < 0 => result is Err;
+  ensures: offset + 10 > data.len() => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 2147483647;
+{
   if offset < 0 {
     return _err_int("aiff: offset out of range");
   }
@@ -416,7 +422,11 @@ pub fn aiff_decode_sample_rate(data: &Vec[UInt8], offset: Int) -> Result[Int, St
     j = j + 1;
   }
   let round_bit = _mant_bit(data, offset + 2, 64 - s);
-  return _ok_int(q + round_bit);
+  let rounded = q + round_bit;
+  if rounded > 2147483647 {
+    return _err_int("aiff: bad sample rate");
+  }
+  return _ok_int(rounded);
 }
 
 // True when the stored 10 bytes at `pos` are exactly the encoding of `rate`.
@@ -436,14 +446,22 @@ fn _rate_exact_at(data: &Vec[UInt8], pos: Int, rate: Int) -> Bool {
 // --------------------------------------------------
 
 // channels clamped into the u16 field range with a minimum of 1.
-fn _clamp_channels(c: Int) -> Int {
+fn _clamp_channels(c: Int) -> Int
+  ensures: c < 1 => result == 1;
+  ensures: c > 65535 => result == 65535;
+  ensures: c >= 1 && c <= 65535 => result == c;
+{
   if c < 1 { return 1; }
   if c > 65535 { return 65535; }
   return c;
 }
 
 // Unsigned 32-bit field clamp.
-fn _clamp_u32(v: Int) -> Int {
+fn _clamp_u32(v: Int) -> Int
+  ensures: v < 0 => result == 0;
+  ensures: v > 4294967295 => result == 4294967295;
+  ensures: v >= 0 && v <= 4294967295 => result == v;
+{
   if v < 0 { return 0; }
   if v > 4294967295 { return 4294967295; }
   return v;
@@ -610,7 +628,9 @@ fn _decode_comm(data: &Vec[UInt8], pos: Int, size: Int, aifc: Bool) -> Result[Co
 /// exactly 4 bytes and an empty compression name becomes "not compressed".
 /// See aiff_append_chunk for optional chunks.
 /// Complexity: O(samples.len() + ssnd_offset).
-pub fn aiff_build(samples: &Vec[UInt8], f: &AiffFormat) -> Vec[UInt8] {
+pub fn aiff_build(samples: &Vec[UInt8], f: &AiffFormat) -> Vec[UInt8]
+  ensures: result.len() >= 54;
+{
   let comm = _comm_payload(f);
   let soff = _clamp_u32(f.ssnd_offset);
   var ssnd = Vec[UInt8].new();
@@ -653,7 +673,9 @@ pub fn aiff_build(samples: &Vec[UInt8], f: &AiffFormat) -> Vec[UInt8] {
 /// Err("aiff: bad chunk id") when `id` is not 4 printable characters. Every
 /// check runs before the first byte is appended, so `file` is unchanged on
 /// Err. Complexity: O(payload.len()).
-pub fn aiff_append_chunk(file: &mut Vec[UInt8], id: Str, payload: &Vec[UInt8]) -> Result[Unit, Str] {
+pub fn aiff_append_chunk(file: &mut Vec[UInt8], id: Str, payload: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: id.len() != 4 => result is Err;
+{
   if file.len() < 12 {
     return _err_unit("aiff: not a FORM container");
   }
@@ -693,7 +715,10 @@ pub fn aiff_append_chunk(file: &mut Vec[UInt8], id: Str, payload: &Vec[UInt8]) -
 /// See SPEC.md for the exact error catalog. Success returns the AiffInfo
 /// header plus the index of every chunk in file order.
 /// Complexity: O(data.len()).
-pub fn aiff_parse(data: &Vec[UInt8]) -> Result[AiffInfo, Str] {
+pub fn aiff_parse(data: &Vec[UInt8]) -> Result[AiffInfo, Str]
+  ensures: data.len() < 12 => result is Err;
+  ensures: result is Ok => data.len() >= 12;
+{
   let n = data.len();
   if n == 0 {
     return _err_info("aiff: empty input");
@@ -822,7 +847,9 @@ pub fn aiff_parse(data: &Vec[UInt8]) -> Result[AiffInfo, Str] {
 }
 
 /// True when aiff_parse succeeds. Complexity: O(data.len()).
-pub fn aiff_is_valid(data: &Vec[UInt8]) -> Bool {
+pub fn aiff_is_valid(data: &Vec[UInt8]) -> Bool
+  ensures: result == (aiff_parse(data) is Ok);
+{
   let pr = aiff_parse(data);
   return pr.is_ok;
 }
@@ -832,13 +859,18 @@ pub fn aiff_is_valid(data: &Vec[UInt8]) -> Bool {
 // --------------------------------------------------
 
 /// Number of indexed chunks (COMM and SSND included). Complexity: O(1).
-pub fn aiff_chunk_count(info: &AiffInfo) -> Int {
+pub fn aiff_chunk_count(info: &AiffInfo) -> Int
+  ensures: result == info.chunk_ids.len();
+{
   return info.chunk_ids.len();
 }
 
 /// 4-character id of chunk `i`; "" when `i` is negative or
 /// >= aiff_chunk_count(info). Complexity: O(1).
-pub fn aiff_chunk_id(info: &AiffInfo, i: Int) -> Str {
+pub fn aiff_chunk_id(info: &AiffInfo, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= info.chunk_ids.len() => result.len() == 0;
+{
   if i < 0 {
     return "";
   }
@@ -851,7 +883,10 @@ pub fn aiff_chunk_id(info: &AiffInfo, i: Int) -> Str {
 
 /// Absolute byte offset of chunk `i`'s first id byte; -1 when `i` is
 /// negative or >= aiff_chunk_count(info). Complexity: O(1).
-pub fn aiff_chunk_offset(info: &AiffInfo, i: Int) -> Int {
+pub fn aiff_chunk_offset(info: &AiffInfo, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= info.chunk_offsets.len() => result == -1;
+{
   if i < 0 {
     return -1;
   }
@@ -878,7 +913,10 @@ pub fn aiff_chunk_size(info: &AiffInfo, i: Int) -> Int {
 /// Index of the first chunk whose id equals `id`, or -1 when there is none.
 /// The comparison is the canonical byte-wise string.str_compare.
 /// Complexity: O(chunk_count).
-pub fn aiff_find_chunk(info: &AiffInfo, id: Str) -> Int {
+pub fn aiff_find_chunk(info: &AiffInfo, id: Str) -> Int
+  ensures: info.chunk_ids.len() == 0 => result == -1;
+  ensures: result >= 0 => result < info.chunk_ids.len();
+{
   var i = 0;
   while i < info.chunk_ids.len() {
     let e: Str = info.chunk_ids[i];
@@ -895,7 +933,11 @@ pub fn aiff_find_chunk(info: &AiffInfo, id: Str) -> Int {
 /// negative or >= aiff_chunk_count(info); Err("aiff: chunk size overrun")
 /// when the indexed span does not fit `data` (e.g. `info` was parsed from a
 /// different buffer). Complexity: O(chunk size).
-pub fn aiff_chunk_data(data: &Vec[UInt8], info: &AiffInfo, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn aiff_chunk_data(data: &Vec[UInt8], info: &AiffInfo, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= info.chunk_ids.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < info.chunk_ids.len();
+{
   if i < 0 {
     return _err_bytes("aiff: chunk index out of range");
   }
@@ -925,7 +967,12 @@ pub fn aiff_chunk_data(data: &Vec[UInt8], info: &AiffInfo, i: Int) -> Result[Vec
 /// The SSND offset/block-size fields and the sample size are metadata only;
 /// no sample decoding or decompression is performed.
 /// Complexity: O(ssnd_data_size).
-pub fn aiff_sample_data(data: &Vec[UInt8], info: &AiffInfo) -> Result[Vec[UInt8], Str] {
+pub fn aiff_sample_data(data: &Vec[UInt8], info: &AiffInfo) -> Result[Vec[UInt8], Str]
+  ensures: info.ssnd_data_offset < 0 => result is Err;
+  ensures: info.ssnd_data_size < 0 => result is Err;
+  ensures: info.ssnd_data_offset + info.ssnd_data_size > data.len() => result is Err;
+  ensures: result is Ok => info.ssnd_data_offset + info.ssnd_data_size <= data.len();
+{
   let off = info.ssnd_data_offset;
   let size = info.ssnd_data_size;
   if off < 0 {
@@ -950,7 +997,10 @@ pub fn aiff_sample_data(data: &Vec[UInt8], info: &AiffInfo) -> Result[Vec[UInt8]
 /// sample_rate` (floor division). Err("aiff: zero sample rate") when the
 /// decoded rate is 0; aiff_parse never returns a zero rate, so this is only
 /// reachable for hand-built AiffInfo values. Complexity: O(1).
-pub fn aiff_duration_ms(info: &AiffInfo) -> Result[Int, Str] {
+pub fn aiff_duration_ms(info: &AiffInfo) -> Result[Int, Str]
+  ensures: info.sample_rate <= 0 => result is Err;
+  ensures: info.sample_rate > 0 => result.value == info.sample_frames * 1000 / info.sample_rate;
+{
   if info.sample_rate <= 0 {
     return _err_int("aiff: zero sample rate");
   }
