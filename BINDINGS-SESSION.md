@@ -3,13 +3,48 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 1 MERGED + WRAPPED** -- merged on main @ `05a19deb`, wrapped at
-`5ea29bb5`/`2cb3f03a` (xiom.sqlite 0.2.0 on the allowlist, 505 names).
-Waiting for the **eco-v0.1.89 publish confirmation** before starting xiom-sdl3.
-Lane findings: `docs/BINDINGS-COMPILER-FINDINGS.md`; asks:
-`docs/BINDINGS-STDLIB-WISHLIST.md`; repros: `docs/repro/bindings-pilot/`.
+**STATUS: BATCH 3 RELAYED -- PHASE 1 PILOT COMPLETE** -- `xiom.opengl` 0.2.0
+green (8/8 x2 on a GPU host + deterministic SKIP classification); awaiting
+native merge/regen/verify/publish. Batches 1-2 merged (sqlite 0.2.0
+published in eco-v0.1.89; sdl3 0.2.0 relayed). Lane findings:
+`docs/BINDINGS-COMPILER-FINDINGS.md` (now incl. B-09 with a runnable repro);
+asks: `docs/BINDINGS-STDLIB-WISHLIST.md`; repros:
+`docs/repro/bindings-pilot/`.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 3: head=df8c76aa (code) + this handoff commit; packages=xiom.opengl 0.2.0;
+tests=xiom.opengl 8/8 PASS x2 via scripts/port.ps1 (2026-10-08, v0.64.0) on an NVIDIA
+RTX 3070 Ti (GL 4.6.0 NVIDIA 616.92); both runs also exercise the deterministic SKIP
+classification (bogus soname -> OPENGL_LOAD_ABSENT); licenses=MIT OR Apache-2.0 (nothing
+vendored upstream; src/gl_probe.c is our bridge code); pins=soname opengl32.dll + resolved
+symbol set (glGetString/wglCreateContext/wglMakeCurrent/wglDeleteContext + user32
+CreateWindowExA/DestroyWindow/GetDC/ReleaseDC + gdi32 ChoosePixelFormat/SetPixelFormat) +
+PIXELFORMATDESCRIPTOR layout; local sample opengl32.dll FileVersion 10.0.26100.9278
+sha256 659BE03C...A5ECE, runtime strings in SPEC.md §2; gate=G0 OK (keywords:["binding"],
+license), G1 OK, G2 OK (pin + re-pin procedure), G3 OK (ABSENT/NO_CONTEXT -> SKIP, ABI ->
+FAIL; SKIP path deterministically testable on any host), G4 OK (staged probe suite), G5 OK
+(all unsafe/extern confined to the root module xiom.opengl); needs=NONE (already
+allowlisted). NOTE: this package DOES use port.args.json (--c-source ${PACKAGE_DIR}/
+src/gl_probe.c) -- the runner hook compiles the bridge, no --link flags.
+```
+
+```
+BINDINGS BATCH 2: head=f3553cc3 (code) + this handoff commit; packages=xiom.sdl3 0.2.0;
+tests=xiom.sdl3 present 10/10 x2 (SDL 3.4.8 on PATH) and absent 3/3 x2 (SKIP path), both
+through scripts/port.ps1, v0.64.0, 2026-10-08; licenses=MIT OR Apache-2.0 (nothing
+vendored; SDL3 itself untouched, zlib); pins=soname SDL3.dll + SDL release-3.4.8 header
+set manifest sha256 FD61D35102FDAC6FDDB944ED0192DFE4058222FDC531327F74264FF53B0E3023
+(7 headers listed in SPEC.md §2; local positive-path sample: Vulkan SDK 1.4.350.0 SDL3.dll
+FileVersion 3.4.8.0 sha256 6E2B4B6A...C263, runtime reports 3004008); gate=G0 OK
+(keywords:["binding"], license), G1 OK, G2 OK (soname + header manifest pin + re-pin
+procedure), G3 OK (SKIP path never FAILs; ABI mismatch is an explicit FAIL kind), G4 OK
+(loader smoke: load/version/revision/init/was_init/ticks+delay/perf/pump/poll/quit/release),
+G5 OK (all unsafe + fn-pointer casts confined to the single module xiom.sdl3); needs=NONE
+(already allowlisted; no ops ask; NO port.args.json required -- the loader needs no C source
+or extra compiler flags, which is the design point of the dynamic-loader path).
+```
 
 ```
 BINDINGS BATCH 1: head=dfaa17b2 (+ this handoff commit); packages=xiom.sqlite 0.2.0;
@@ -130,8 +165,84 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   3. Name/scope coordination for `xiom.wal` (ORBITDB vs XVECTOR duplication) is
      a native-lane call; this lane has no storage-format stake.
 
+## Batch 2 notes (xiom.sdl3, 2026-10-08)
+
+- Dynamic loader replaces static externs: `sdl3_load` (via `xiom.ffi.dl`)
+  resolves SDL3.dll at runtime. Absent -> `SDL3_LOAD_ABSENT`; the suite prints
+  explicit SKIP labels under `[PASS]` markers (green without the SDK).
+  Present-but-missing-symbol -> `SDL3_LOAD_ABI` (explicit `[FAIL]`; handle
+  closed, no leak).
+- The static-extern module `src/sdl3_safe.xi` and the extern tail of the old
+  root module were removed: they cannot satisfy G3 and would fail linking
+  without SDL3. The full pre-pilot SDL3 3.4.8 constant tables and resource
+  wrappers remain in git history (pre-0.2.0) and return in Phase 2
+  (`ROADMAP.md`).
+- Run matrix through `scripts/port.ps1`: absent 3/3 x2 (PATH without the
+  Vulkan SDK dir), present 10/10 x2 (SDL 3.4.8 from the Vulkan SDK on PATH;
+  runtime reports 3004008, revision `SDL-3.4.8-release-3.4.8`). The demo was
+  run against the same DLL.
+- **No `port.args.json`**: the pure-XIOM loader compiles no C source and needs
+  no extra flags (contrast `xiom.sqlite`, which needs
+  `--c-source vendor/sqlite3.c`). CI runs the suite unchanged.
+- G2 pin: soname `SDL3.dll` + `release-3.4.8` header-set manifest
+  `FD61D351...E3023` (per-file hashes in `SPEC.md` §2).
+
+## Batch 3 notes (xiom.opengl, 2026-10-08)
+
+- Loader/probe design: vendored `src/gl_probe.c` resolves opengl32/user32/
+  gdi32 at runtime and stages symbol -> contextless -> real-context probes;
+  classification ABSENT/NO_CONTEXT -> SKIP, ABI -> FAIL. The XIOM module is
+  a thin safe wrapper (all `unsafe`/`extern` in one module, G5).
+- The pure-XIOM Win32/WGL context path was abandoned first: it poisoned the
+  binary pre-output (0xC0000409, deterministic). Bounded repro + control
+  preserved in `docs/repro/bindings-pilot/win32-gl-unsafe/`; recorded as
+  finding **B-09** (the first lane finding with a deterministic, no-watchdog
+  runnable repro).
+- `opengl_probe_named("bogus.dll")` gives every host (GPU or not) a
+  deterministic SKIP-branch test, so the no-GPU CI shape is exercised even on
+  developer machines.
+- Run matrix: `port.ps1 -Package xiom.opengl` -> PASS 8/8 x2 (NVIDIA RTX 3070
+  Ti, GL 4.6.0 NVIDIA 616.92, GLSL 4.60 NVIDIA; VENDOR/RENDERER strings in
+  SPEC.md §2). No-context SKIP path code-reviewed, not force-tested locally.
+- `port.args.json` is present (`--c-source ${PACKAGE_DIR}/src/gl_probe.c`);
+  no `--link` flags are needed because the bridge loads everything
+  dynamically.
+
+## Phase-2 sector order proposal (Phase 1 pilot complete)
+
+Ordered by risk retired per unit of work, stable ABIs first, each slice
+proving one lane pattern already established in the pilot:
+
+1. **Window/input tier + reuse**: finish `xiom.sdl3` Phase 2 (window/renderer/
+   texture/gamepad over the loader) and add `xiom.glfw` + `xiom.raylib` with
+   the same system-lib SKIP pattern. Highest ecosystem pull (the projects
+   consume these first); no new lane mechanics.
+2. **GPU tier**: `xiom.opengl` Phase 2 (extension loading + context
+   attributes + function table) then `xiom.vulkan` (bridge precedent already
+   exists in-repo; loader + capabilities first), then `directx11/12` and
+   `dxc` (Windows-only, keep the same classification model).
+3. **Compression tier**: `xiom.zstd`, `xiom.lzfse`, `xiom.ozz` -- vendored-C
+   path (proven by sqlite) with per-package `port.args.json`; smallest
+   per-package effort, high publish value.
+4. **Data/drivers**: `xiom.libpq`, `xiom.odbc` (system-lib SKIP or vendored
+   client), after the sqlite pattern is already published.
+5. **Audio tier**: `xiom.miniaudio`, `xiom.portaudio`, `xiom.phonon` --
+   system-lib SKIP shape; device paths capability-gated.
+6. **Accelerators (XVECTOR/ORBITDB-facing)**: `xiom.openblas`/`xiom.eigen`/
+   `xiom.blas` behind a portable pure-XIOM contract (XVECTOR's `xiom.vectors`
+   seam), unscheduled until the projects freeze that contract; no pure-XIOM
+   SIMD kernel is planned in the bindings lane (position recorded in the
+   inbound-context section).
+7. **Crypto/media/heavy**: `xiom.openssl`, `xiom.ffmpeg`
+   (license-conditional), `onnx`/`opencv` -- last, per the plan's phasing.
+
+Each package keeps: G0-G5 gates, green x2 through `port.ps1`, a relay block
+in this file, and any new compiler finding appended to
+`docs/BINDINGS-COMPILER-FINDINGS.md` with a bounded repro.
+
 ## Next (after native merge + publish confirmation)
 
-Phase 1 pilot continues with **xiom-sdl3** (system-library path, SKIP when
-absent) and then **xiom-opengl** (GPU-lite loader probe). A Phase-2 sector
-order proposal follows the pilot.
+Phase 1 pilot is **complete** (sqlite published; sdl3 + opengl relayed). On
+the native merge/publish confirmation for batches 2-3, batch 4 starts the
+Phase-2 order above with slice 1 (`xiom.sdl3` Phase 2 completion or
+`xiom.glfw`, whichever the native lane prioritizes), one package per relay.

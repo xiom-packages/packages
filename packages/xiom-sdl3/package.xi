@@ -4,10 +4,10 @@
 
 package {
   name: "xiom.sdl3"
-  version: "0.1.0"
-  description: "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM"
+  version: "0.2.0"
+  description: "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader (SDL3.dll at runtime)"
   categories: ["graphics", "media"]
-  keywords: ["sdl3", "windowing", "input", "audio"]
+  keywords: ["sdl3", "windowing", "input", "audio", "binding"]
   license: "MIT OR Apache-2.0"
   repository: "https://github.com/xiom-packages/packages"
   authors: ["XIOM Team"]
