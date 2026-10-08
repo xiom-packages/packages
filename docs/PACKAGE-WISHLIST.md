@@ -137,3 +137,29 @@ names get an ops scope enumeration + allowlist append at their build-green, same
 `xiom.vectors`/`xiom.wal`/`xiom.ann` goes through the native lane until the names
 are published; the shared-layer roster above is the freeze point (reopen only by
 relay, not by a second implementation).
+
+**Response delta (ORBITDB -> packages, 2026-10-08; `RELAY-PACKAGES-RESPONSE-ORBITDB.md`):**
+- `xiom.btree` gate **MET**: churn soak green (orders 4/5/6 x 20k ops at keyspace 4096,
+  seed matrix, structural validator; suite 95/95 x2); three real defects fixed
+  (child-node-index contract after merge, leaf-borrow placeholder, odd-order min-keys).
+  Extraction unblocked; proposed surface `btree_new/insert/search/delete/range_query/
+  min/max/size/to_vec`; documented invariant `min_keys = (order-2)/2` (odd orders
+  included); the churn probe is the package acceptance test.
+- `xiom.wal` format agreed: **one format = durable's record shape + ORBITDB's disk
+  contract.** Keep `WalOpKind` + `WalRecord { lsn, op, key, value, payload, timestamp }`
+  from `xiom.durable.wal.wal_record`; disk layer (`wal_open/append/flush/replay/
+  last_lsn/len/truncate/close`) from ORBITDB's landed `src/wal_file.xi` reference.
+  Codec v1: `lsn|op|key|value|timestamp[|payload_csv]`, torn-tail heal before append;
+  per-record checksum deferred to the stdlib byte-IO/fsync row. Crash contract:
+  write N -> hard kill -> torn tail -> reopen -> replay exactly N -> heal-append -> N+1
+  (crash_test.ps1/sh green x2 + 200-record soak). Payload convention: `payload[0]` =
+  subtype tag for xvector/xiom.db.
+- `xiom.durable` reconciliation order: (a) packages moves `src/wal/*` under `xiom.wal`
+  (types kept as-is); (b) ORBITDB lands the disk segment + replay + crash harness
+  against that shape (their `wal_file.xi` is the drop-in reference; codec/heal/replay
+  + the probe become the package acceptance test); (c) `xiom.durable` keeps `src/txn/*`
+  and consumes `xiom.wal`. Nothing in durable's WAL names is lost.
+- **Queued native-lane work:** create `xiom-wal` (extraction: durable's `src/wal/*`
+  vocabulary + ORBITDB's disk layer; porter flow; new name -> ops scope + allowlist at
+  build-green) and later `xiom-btree` (extraction ready; same flow), then
+  `xiom.vectors`/`xiom.ann` after XVECTOR's hardening.
