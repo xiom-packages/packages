@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-08 18:05Z (batch #44 COMPLETE + PUBLISHED `eco-v0.1.101`; lane checks recorded; http compat republish in flight; supersedes the 17:40Z block below):**
+**STATE AT 2026-10-08 18:15Z (bindings batches 9-10 + xiom.http 0.1.2 PUBLISHED; batch #44 live; supersedes the 18:05Z-style state below):**
 - **Batch #43 DONE + PUBLISHED (six packages, all live-verified):** `gif` 0.1.2 (26 clauses;
   20/20), `cue` 0.1.2 (27; 22/22), `png` 0.1.2 (25; 17/17), `safetensors` 0.1.2 (38; 21/21),
   `cbor` 0.1.2 (32; 20/20), `mqtt` 0.1.3 (59; 21/21; stray module-scope tail removed by the
@@ -40,9 +40,21 @@ running). Check `git log -1 --format=%h %s` before starting.
   range allows 9:59:59.99; spot-checked). Two-to-three runs per package aborted in infra
   (compiler OOM / 60-90s watchdog) under the external `benchsplit.exe` 91GB WS benchmark --
   all retried green (policy: retry infra failures, never chase clauses).
-- **xiom.http compat republish IN FLIGHT** (v0.64.1 extern-unsafe enforcement; consumer
-  rehearsal RED->GREEN; porter still running). On its green: integrate (bump 0.1.2, port x2,
-  feat+record), publish (eco-v0.1.102), and tell PULSE `probe_pkg_http` should flip green.
+- **Bindings batches 9-10 PUBLISHED (`eco-v0.1.102`, run `37822051190`):** `xiom.dxc` 0.2.0
+  (DXIL blob probe 3/3 x2) + `xiom.directx11` 0.2.0 (hardware 11_0, 3 DXGI adapters, RTX
+  3070 Ti; 5/5 x2); both header-free probes with `port.args.json` C bridges; native records
+  `5c7f4245`. Guard **505/473/32/0**. Next per the lane: `xiom.directx12`, then the
+  compression tier (zstd/lzfse/ozz).
+- **`xiom.http` 0.1.2 PUBLISHED (`eco-v0.1.103`, run `37822835983`)**: v0.64.1 extern-unsafe
+  compat fix (`548e31b9`: 64 extern wraps, 3 raw-ptr helpers -> unsafe-internal, discard
+  reshapes; consumer rehearsal 67 T001 -> compiles + runs; suite 40/40 x2; record `680c7c08`).
+  Two new compiler findings recorded (`3b006c9d`): `unsafe fn` = hard P001 parse error;
+  `let _ = unsafe { call() };` emits invalid IR for pointer/Str/struct returns. Known
+  `xiom.http` defects queued (double-free `setup_common_options`, UAF `http_download`,
+  `char_to_str` numeric strings). PULSE `probe_pkg_http` should flip green.
+- **Next:** batch #45 (rescan; ~31 carriers) + the FFI catalog-dep rehearsal sweep for the
+  remaining published FFI set (rest/grpc/protobuf/sqlite/opengl/vulkan) using the http
+  porter's consumer-harness recipe.
 - **Lane checks recorded (requested):** PULSE deltas in `docs/PACKAGE-WISHLIST.md` §7 +
   `docs/COMPILER-FINDINGS.md` sweep (`a63e9a34`, `07d77c2d`) -- C-PULSE-10 CLOSED on Linux
   (m217), **C-PULSE-13 NEW** (Unix installer layout; compiler/ops), PULSE `OPS-REQUEST.md`
