@@ -1,0 +1,23 @@
+SQLite is in the Public Domain.
+===============================
+
+The SQLite source code (sqlite3.c, sqlite3.h, sqlite3ext.h) vendored in this
+directory is in the public domain.  The author disclaims copyright to this
+source code.  In place of a legal notice, here is a blessing:
+
+    May you do good and not evil.
+    May you find forgiveness for yourself and forgive others.
+    May you share freely, never taking more than you give.
+
+Upstream: https://sqlite.org/
+Copyright page: https://sqlite.org/copyright.html
+
+Vendored version: 3.53.4 (amalgamation build 3530400, from
+https://sqlite.org/2026/sqlite-amalgamation-3530400.zip).
+
+All files in this directory are unmodified upstream amalgamation output.  Do
+not edit them; re-pin by replacing them with a newer official amalgamation and
+updating SPEC.md (G2 pin) in the same commit.
+
+The XIOM binding code around these files (everything outside this directory)
+is licensed MIT OR Apache-2.0, matching the rest of this repository.
