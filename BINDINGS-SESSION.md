@@ -3,13 +3,30 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 5 RELAYED** -- `xiom.sdl3` 0.3.0 Phase 2 green (present
-21/21 x2, absent/SKIP 3/3 x2 via `port.ps1`), plus the v0.64.1 re-test sweep
-of lane findings (B-06/B-09 fixed; B-01/B-05/B-08 open). Runs recorded on
-**v0.64.1** (resolver picks the installed 0.64.1; repo `COMPILER_VERSION` is
-still v0.64.0 -- native repin pending). Next per GO: `xiom.raylib`.
+**STATUS: BATCH 6 RELAYED** -- `xiom.raylib` 0.2.0 green (present 12/12 x2
+raylib 5.5.0, absent/SKIP 3/3 x2 via `port.ps1` on v0.64.1); awaiting native
+merge/verify/publish. Batch 5 (sdl3 0.3.0) published in eco-v0.1.96. Next
+per GO: one package per relay (native to pick the next sector).
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 6: head=bef3e71c (code) + this handoff commit; packages=xiom.raylib 0.2.0;
+tests=xiom.raylib present 12/12 x2 (official raylib 5.5.0 win64 DLL on PATH: hidden 320x200
+window, size, time/frame-time/FPS, target FPS, begin/clear/end frame, CloseWindow) and absent
+3/3 x2 (SKIP), both via scripts/port.ps1 on v0.64.1, 2026-10-08; licenses=MIT OR Apache-2.0
+(nothing vendored; raylib zlib untouched); pins=soname raylib.dll + tag-5.5 src/raylib.h
+sha256 AFB287ECD313DE61E0000921375190B7E1CC35CD381AD6CAF914489473A3C871 + 15-symbol smoke set
+(size functions rename-tolerant: prefers GetWindowWidth/Height, falls back to
+GetScreenWidth/Height); local positive-path sample: official raylib-5.5_win64_msvc16.zip
+sha256 8D046084D12353183E701EF4C9D276C21FCD3243C2A368091FABFB2769B8507C, lib\raylib.dll
+FileVersion 5.5.0 sha256 C8D29FBDA31417B900BB0220CFB6C288544264A93764F5EA7CF5727FEEC76994;
+gate=G0 OK (keywords:["binding"], license), G1 OK, G2 OK, G3 OK (ABSENT/NO_WINDOW -> SKIP,
+ABI -> FAIL), G4 OK, G5 OK (all unsafe confined to the single module xiom.raylib);
+needs=NONE (already allowlisted); NO port.args.json. NOTE: upstream latest is raylib 6.0 --
+next re-pin candidate; the loader already tolerates the 5.x/6.x size-function rename.
+Pre-pilot static-extern module removed to git history as reference.
+```
 
 ```
 BINDINGS BATCH 5: head=4cbf7079 (code) + this handoff commit; packages=xiom.sdl3 0.3.0;
@@ -271,6 +288,24 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   reproductions re-run; B-01/B-05/B-08 remain open and their workarounds
   stay in force (tagged-struct value model, no malloc/free in confined
   blocks, marker-based pass/fail checks).
+
+## Batch 6 notes (xiom.raylib, 2026-10-08)
+
+- Same system-lib SKIP pattern: `raylib_load` resolves `raylib.dll` via
+  `xiom.ffi.dl`; classification ABSENT / NO_WINDOW (headless) -> SKIP,
+  ABI -> FAIL. The smoke sets `FLAG_WINDOW_HIDDEN` before `InitWindow` so a
+  desktop session proceeds; `IsWindowReady()` checks the result because
+  `InitWindow` is void.
+- The 5.5 DLL exports `GetScreenWidth/GetScreenHeight` (not the 6.x
+  `GetWindow*` names): the loader prefers the 6.x names and falls back, so
+  both generations resolve -- the first present-path run surfaced this as an
+  ABI FAIL, which is why the pin table records it.
+- Run matrix: absent 3/3 x2 (no raylib.dll on PATH); present 12/12 x2
+  against the official raylib 5.5 win64 binary (hidden 320x200 window, size
+  320x200, begin/clear/end frame).
+- Upstream latest is raylib 6.0 (package pins 5.5, the pre-pilot target);
+  flagged as the next re-pin candidate in SPEC/relay.
+- No `port.args.json`; no new compiler findings.
 
 ## Phase-2 sector order proposal (Phase 1 pilot complete)
 
