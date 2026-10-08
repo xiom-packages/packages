@@ -529,3 +529,28 @@ STILL OPEN on v0.64.1 (evidence re-run):
   type-alias defaulting; dep-roots dotted keys (WSL re-test pending): PULSE /
   compiler lanes.
 - `io.xi:943` multi-module re-test: clean (`n=3437`, no false violation).
+
+## v0.64.1 consumer sweep (2026-10-08 evening)
+
+- **C-PULSE-10 -- CLOSED on Linux v0.64.1** (fixed by m217, per PULSE): kv-mode smoke
+  73/73 + 20m store soak green (756 writes/0 fail, counts stable across compact/reopen).
+  Windows was already green (`packages\xiom-kv\tests\probe_kv_get_str.xi`). No further
+  action; keep the >=8-byte + multi-key regression cases as a next-touch item.
+- **C-PULSE-13 (NEW, OPEN; compiler/installer, Unix-only):** `xiom pkg` installs to
+  `$HOME/xiom/packages` while the compiler's `xiom_home()` resolves the canonical
+  `~/.local/share/xiom` (CRB-3c first-existing-candidate) -> dependency roots resolve
+  zero; `xiom doctor` reports "No packages". Windows agrees on `%LOCALAPPDATA%\xiom`.
+  Evidence: PULSE Linux sweep (install output + doctor + m212 dep-roots gate red/repair
+  logs). Ask: unify the resolver (prefer `xiom_graph::paths::xiom_home().join("packages")`
+  for installs), or add a "candidate containing packages/" tiebreak, or create/point
+  `$XIOM_HOME/packages` in the Unix installer; regression = `xiom doctor` on a fresh
+  Unix install.
+- **v0.64.1 enforces extern-unsafe confinement in catalog bodies -- published `xiom.http`
+  0.1.1 violates it** (67 T001s: extern calls without `unsafe`, and safe fns returning
+  `*UInt8`; any project with `xiom-http-0.1.1/src` on the catalog path fails). PULSE
+  pruned the package; compat republish in flight (unsafe-wrapped internals -> 0.1.2).
+  **Fleet sweep (static, 2026-10-08):** 44 packages carry `extern "C"` outside tests;
+  published FFI set -- `http` rawptr_returns=8/unsafe_refs=0 (red), `rest` 8/7,
+  `grpc` 0/2, `protobuf` 0/1, `sqlite` 5/26, `opengl` 6/33, `vulkan` 3/21 (consumer
+  rehearsals pending; only http is consumer-confirmed red). Queue: rehearsal recipe from
+  the http porter + classify each published FFI package as a catalog dep.
