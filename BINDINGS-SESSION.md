@@ -3,13 +3,32 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 4 RELAYED** -- `xiom.glfw` 0.2.0 green (present 9/9 x2,
-absent/SKIP 3/3 x2 via `port.ps1`); awaiting native merge/verify/publish.
-Phase 1 batches published (eco-v0.1.92). Next: `xiom.sdl3` Phase 2 (window/
-renderer/texture/gamepad over the loader) per the native priority. Lane
-findings: `docs/BINDINGS-COMPILER-FINDINGS.md` (B-01..B-09 with repros).
+**STATUS: BATCH 5 RELAYED** -- `xiom.sdl3` 0.3.0 Phase 2 green (present
+21/21 x2, absent/SKIP 3/3 x2 via `port.ps1`), plus the v0.64.1 re-test sweep
+of lane findings (B-06/B-09 fixed; B-01/B-05/B-08 open). Runs recorded on
+**v0.64.1** (resolver picks the installed 0.64.1; repo `COMPILER_VERSION` is
+still v0.64.0 -- native repin pending). Next per GO: `xiom.raylib`.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 5: head=4cbf7079 (code) + this handoff commit; packages=xiom.sdl3 0.3.0;
+tests=xiom.sdl3 present 21/21 x2 (SDL 3.4.8: smoke + hidden window / renderer clear+present /
+RGBA8888 texture / gamepad enumeration) and absent 3/3 x2 (SKIP), both via scripts/port.ps1,
+2026-10-08, COMPILER v0.64.1 (see note below); licenses=MIT OR Apache-2.0 (nothing vendored);
+pins=G2 unchanged (soname SDL3.dll + release-3.4.8 header-set manifest
+FD61D35102FDAC6FDDB944ED0192DFE4058222FDC531327F74264FF53B0E3023); gate=G0..G5 OK;
+needs=NONE (already allowlisted); NO port.args.json.
+PIN NOTE: repo COMPILER_VERSION still says v0.64.0 but the installed slot (and scripts/xiom.ps1
+-Info) resolve v0.64.1, so all batch-5 runs are v0.64.1. Native lane: repin records/SPEC rows
+as per your process; package SPEC rows for sdl3 0.3.0 already state v0.64.1.
+V0.64.1 FINDINGS SWEEP (docs/BINDINGS-COMPILER-FINDINGS.md): B-06 FIXED (full-catalog
+MigrationManager.up/down shape builds + 16/16), B-09 FIXED (Win32/WGL mega-block runs green
+2/2, real GL string); B-01 enum-payload nondeterminism STILL OPEN (2/6 builds), B-05
+alloc/free guard spin STILL OPEN (8 s watchdog kill, flat 4.5 MB), B-08 --run exit masking
+STILL OPEN (main returning 5 -> exit 0). B-02/B-03/B-04/B-07 not re-tested (pre-fix catalogs
+no longer exist); rebuildable from the findings doc.
+```
 
 ```
 BINDINGS BATCH 4: head=34ccd6ba (code) + this handoff commit; packages=xiom.glfw 0.2.0;
@@ -237,6 +256,21 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   build string `3.4.0 Win32 WGL Null EGL OSMesa VisualC DLL`).
 - No `port.args.json`; no new compiler findings (the loader avoids the known
   v0.64.0 classes; out-params use XIOM-owned Vec slots per B-05).
+
+## Batch 5 notes (xiom.sdl3 Phase 2, 2026-10-08)
+
+- Resource stage is a separate loader (`sdl3_load_resources`, 19 symbols) so
+  an older SDL3 still gets the smoke SKIP classification; a missing resource
+  symbol fails only the resource stage. Window paths SKIP cleanly when the
+  platform cannot create a window; gamepad open/close runs only when a
+  device is attached (none here -> SKIP line).
+- Runs on **v0.64.1** (installed slot; repo pin file still v0.64.0). The
+  resolver picks 0.64.1 over the pin, so batch-5 STATUS/green evidence is
+  v0.64.1; SPEC rows updated accordingly.
+- v0.64.1 sweep of lane findings moved B-06 and B-09 to FIXED with
+  reproductions re-run; B-01/B-05/B-08 remain open and their workarounds
+  stay in force (tagged-struct value model, no malloc/free in confined
+  blocks, marker-based pass/fail checks).
 
 ## Phase-2 sector order proposal (Phase 1 pilot complete)
 
