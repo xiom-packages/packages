@@ -18,8 +18,10 @@ support"); it is preserved in git history only as reference.
 
 ## G2 pin
 
-- `vendor/zstd.c` SHA256 `EFD20632...815EE` (2,227,176 B), `vendor/zstd.h`
-  SHA256 `9B4BC824...93D88B`, `vendor/LICENSE` (BSD-3-Clause) SHA256
+- `vendor/zstd.c` SHA256 `208E110A...20BA8E` (2,174,920 B, LF-normalized;
+  the Windows `combine.py` output was CRLF and is normalized to LF with the
+  pin taken over the stored bytes), `vendor/zstd.h` SHA256
+  `9B4BC824...93D88B`, `vendor/LICENSE` (BSD-3-Clause) SHA256
   `70552664...1C9D8`.
 - Release archive `zstd-1.5.7.tar.gz` SHA256 `eb33e51f...6fa3`, verified
   against the published `.sha256` asset.

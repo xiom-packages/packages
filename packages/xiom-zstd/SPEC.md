@@ -28,9 +28,14 @@ run from `build/single_file_libs/` of `zstd-1.5.7`.
 
 | File | Bytes | SHA256 |
 |------|-------|--------|
-| `vendor/zstd.c` (generated) | 2,227,176 | `EFD2063214B7EB797919386A39833AD0954B08182F89EB01D5F4150415A815EE` |
+| `vendor/zstd.c` (generated; **LF-normalized**) | 2,174,920 | `208E110A1F052D007242D4EEF6ED20A03AB1DC6E13EB2C4FF8D158112120BA8E` |
 | `vendor/zstd.h` (from `lib/`) | 181,748 | `9B4BC8245565C98CCFC61C07749928B57E7C0F6FDDB0530C4F6AA1971893D88B` |
 | `vendor/LICENSE` (BSD-3-Clause) | 1,549 | `7055266497633C9025B777C78EB7235AF13922117480ED5C674677ADC381C9D8` |
+
+Line-ending note: `combine.py` run under Windows Python writes CRLF; the
+vendored file is normalized to LF (and `.gitattributes` pins `vendor/** -text`)
+so the pin is over the stored LF bytes. On re-pin, normalize CRLF -> LF before
+computing the SHA256.
 
 ### Source archive provenance
 
