@@ -14,6 +14,36 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-08 10:55Z (bindings batch 1 PUBLISHED `eco-v0.1.89`; sdl3 unblocked; ORBITDB+XVECTOR relays triaged; supersedes the 10:35Z block below):**
+- **`eco-v0.1.89` DONE + live:** ops confirmed the scope LIVE (allowlist 504 -> 505);
+  run `37765449052` SUCCESS; **`xiom.sqlite` 0.2.0 live-verified** (stage incubating,
+  first version; ops' note said 0.1.0 -- the published version is 0.2.0 per the
+  manifest). Wrap `5ea29bb5` + post-publish record `40c86ee6`.
+- **Bindings lane unblocked (confirmation sent):** resume with keep-fresh merge ->
+  create/verify `packages/xiom-sdl3` -> dynamic-loader smoke (library-present path +
+  SKIP when absent, `port.args.json` for the probe) -> G0-G5 -> green x2 -> relay.
+  `xiom.sdl3` is already allowlisted, so no ops ask for it; publish follows a green
+  relay + merge.
+- **Bindings docs merged** (`01fc05b8`, their tip `ac1f03de`): `BINDINGS-SESSION.md`
+  project-lane context (XVECTOR read + accelerator answers), new
+  `docs/BINDINGS-COMPILER-FINDINGS.md`, `docs/BINDINGS-STDLIB-WISHLIST.md` (5 asks:
+  fs delete, `ffi` OutSlot, guard-aware `free`, dl docs correction, `Vec.with_len`),
+  and `docs/repro/bindings-pilot/` repro bundles (enum-payload-nd, up-down-name).
+- **ORBITDB + XVECTOR triaged** -- `docs/PACKAGE-WISHLIST.md` §6: names `xiom.wal`/
+  `xiom.vectors`/`xiom.ann` frozen (no collisions, 0 namespace conflicts);
+  `xiom.btree` tracked after a churn soak; `xiom.db` owner-parked; **`xiom.wal`
+  decided STANDALONE** (three users; not folded into kv/db); **overlap correction:
+  `xiom.durable` already carries unpublished `src/wal/*` + `src/txn/*` (66 pub fns,
+  manifest claims a WAL substrate) -- its WAL subtree reconciles into `xiom.wal` at
+  extraction** (both unpublished, no compat cost); `xiom.snapshot` unrelated;
+  blas-class = accelerators behind the portable contract; no pure-XIOM SIMD kernel
+  planned.
+- Compiler/grpc status unchanged: main unpushed with m202/m206/m209/m210/m211;
+  **v0.64.1 NOT released** (re-check at the next wrap); grpc staged (`95442d71`);
+  drop-rules after a green repin re-test. Credential: `Lefteris-Notas` active.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-08 10:35Z (bindings batch 1 MERGED; `eco-v0.1.89` publish PENDING OPS; supersedes the 09:55Z block below):**
 - **Bindings batch 1 merged:** `origin/bindings` @ `f9c3ad5c` fast-forwarded into `main` (no
   conflicts; their branch already contained main). `xiom.sqlite` 0.2.0 (vendored SQLite
@@ -1744,8 +1774,11 @@ Then do, in order:
    index/status/namespaces, validate/guard, publish in the next eco tag. Phase-0 script
    delta when the first binding package lands: exclude `keywords: ["binding"]` packages
    from scripts/contract-coverage.ps1 (keyword-based, NOT categories -- the registry drops
-   unknown category tokens). `xiom.sqlite` needs the allowlist append + one ops scope
-   relay at merge.
+   unknown category tokens). `xiom.sqlite` is DONE (allowlist 505, live 0.2.0); sdl3 is
+   the lane's current package (already allowlisted); the per-package hook contract is
+   `port.args.json` (docs/BINDINGS-LANE.md §10). ORBITDB/XVECTOR relays: names frozen in
+   `docs/PACKAGE-WISHLIST.md` §6 (`xiom.wal`/`xiom.vectors`/`xiom.ann`); their extraction
+   relays route through the native lane; new-name builds need ops scope + allowlist.
 5. Carry-forwards: `-TimeoutSec 60` watchdog; port x2 + byte-level bracket scan on every
    touched package; SPEC headers synced when touched; bump ONLY when source changes;
    `xiom-verify` writes `xiom_verify_output.smt2` to the CWD (put the FILE BEFORE --check,

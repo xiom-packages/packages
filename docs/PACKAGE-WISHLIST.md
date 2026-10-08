@@ -81,3 +81,59 @@ Carry-forwards:
   keep the `xiom.toml` source-roots workaround on both platforms until the next archive)
   and **C-PULSE-11** (type alias to a package type defaults to i64 with a warning; recorded
   in `docs/COMPILER-FINDINGS.md`).
+
+## 6. Inbound lane proposals 2026-10-08 -- ORBITDB + XVECTOR (name freeze + shared-layer decision)
+
+Sources: `E:\xiom-projects\xiom-orbitdb\docs\RELAY-PACKAGES-ORBITDB.md` (ORBITDB,
+embedded DB; 93-test suite green x2 on v0.64.0; no registry consumer pass yet) and
+`E:\xiom-projects\xiom-xvector\docs\PACKAGE-WISHLIST-XVECTOR.md` (XVECTOR, vector DB;
+no registry consumer yet). Both lanes hit C-PULSE-02 (source-roots) on v0.64.0.
+
+**Name freeze** (checked 2026-10-08: no in-repo dirs, nothing in the registry, 0
+namespace conflicts): `xiom.wal`, `xiom.vectors`, `xiom.ann`. `xiom.btree` is a
+tracked candidate -- ORBITDB's delete/underflow invariants for odd orders are still
+debt, so extraction waits for a churn soak. `xiom.db` (the ORBITDB engine behind
+`xiom.db.*`) is an owner-parked eventual publish.
+
+**Shared-layer decision (one layer, not two forks):**
+- `xiom.vectors` = the portable contract (dense vector types, cosine/dot/L2,
+  normalization, bounded top-K, WAL value codec). Reference implementation:
+  XVECTOR `src/engine.xi` (136 checks green x2). ORBITDB is the second user; freeze
+  the name now, extract through the normal porter flow once HNSW hardening lands.
+- `xiom.ann` = ANN indexes (flat exact scan + HNSW, recall harness vs the exact
+  oracle). Extract after XVECTOR's HNSW hardening (tombstones/tuning), consuming
+  `xiom.vectors`.
+- `xiom.wal` = **standalone package** (answer to ORBITDB's boundary question: NOT
+  folded into `xiom.kv`/`xiom.db`). Storage policy + file format is a domain layer
+  with three users: ORBITDB's crash-tested core (reference), XVECTOR's in-memory
+  codec, and PULSE's append-only JSONL store. ORBITDB shapes the API from its
+  crash-probe evidence; XVECTOR aligns its codec; `xiom.kv` may adopt the format
+  later without API churn (it remains a KV store).
+
+**Overlap correction (important):** `xiom.durable` (in-repo, incubating, unpublished,
+tests=unknown) already carries config/error/ids/storage/**WAL/txn** modules --
+`src/wal/*.xi` (lsn, record, writer, reader, checkpoint, recovery) and `src/txn/*.xi`,
+66 pub fns -- and its manifest description claims a "storage, WAL, transactions
+substrate". The XVECTOR note that durable "covers foundation types, not a WAL" does
+not match the tree. There is no registry conflict (both unpublished), but the WAL
+home must be reconciled before either publishes. Native-lane proposal: `xiom.wal` is
+the single shared WAL; `xiom.durable` keeps foundation/storage/txn-types scope, and
+its WAL subtree is folded into `xiom.wal` (or removed) at the extraction, since
+durable is unpublished and there is no compatibility cost. `xiom.snapshot` is
+unrelated (text snapshot comparison), no overlap.
+
+**Adoption notes:** `xiom.metrics` 0.2.0 planned (XVECTOR Phase 10); `xiom.kv` 0.1.0
+is a candidate for both lanes but gated on C-PULSE-10 (Linux `kv_get`; Windows green)
+plus the stdlib durable-write/fsync row (`docs/STDLIB-WISHLIST.md`, 2026-10-05); the
+blas-class dirs (`xiom-blas`/`xiom-eigen`/`xiom-openblas`) are pre-rostered binding
+placeholders -- opt-in accelerators behind the portable `xiom.vectors` contract,
+never the contract (bindings-lane answers acknowledged in the XVECTOR wishlist); no
+pure-XIOM SIMD kernel package is planned (native/stdlib territory) -- if `xiom.simd`-
+class work lands, kernels live there and the FFI libs accelerate behind it.
+
+**Process:** both lanes relay through their own docs to the owner/native lane. New
+names get an ops scope enumeration + allowlist append at their build-green, same as
+`xiom.sqlite` (bindings batch 1, `eco-v0.1.89`). Cross-lane coordination for
+`xiom.vectors`/`xiom.wal`/`xiom.ann` goes through the native lane until the names
+are published; the shared-layer roster above is the freeze point (reopen only by
+relay, not by a second implementation).
