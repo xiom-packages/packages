@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T22:36:02Z",
+    "updated":  "2026-10-08T22:45:04Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -4173,19 +4173,18 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.lzfse",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Apple LZFSE compression library bindings for XIOM",
+                         "description":  "Apple LZFSE compression bindings for XIOM (vendored lzfse-1.0 sources, no system library)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lzfse/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lzfse/v0.2.0/package.tar.gz",
                          "source_files":  [
-                                              "lzfse_safe.xi",
                                               "lzfse.xi",
                                               "package.xi"
                                           ]
