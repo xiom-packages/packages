@@ -3,13 +3,28 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 11 RELAYED** -- `xiom.directx12` 0.2.0 capability probe green
-(5/5 x2 via port.ps1 on v0.64.1: highest accepted feature level **12_2**, 3
-adapters, first = NVIDIA RTX 3070 Ti); awaiting native merge/verify/publish.
-Next per confirmed plan: compression tier (`xiom.zstd` first, then
-lzfse/ozz).
+**STATUS: BATCH 12 RELAYED** -- `xiom.zstd` 0.2.0 green (8/8 x2 + a
+post-normalization re-run via port.ps1 on v0.64.1: zstd 1.5.7 amalgamation,
+8192 -> 34 bytes, byte-identical round-trips); awaiting native
+merge/verify/publish. Next confirmed: `xiom.lzfse`, then `xiom.ozz`.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 12: head=a0f3513e + this handoff commit; packages=xiom.zstd 0.2.0 (vendored
+amalgamation replacing the pre-pilot null-pointer stubs); tests=8/8 x2 (+1 post-normalization
+re-run) via scripts/port.ps1 on v0.64.1 (2026-10-08: version 1.5.7, compressBound sanity,
+8192->34 bytes at level 3, frame content size 8192, round-trip identity incl. auto-size and
+2048-byte incompressible, invalid frame rejected); licenses=BSD-3-Clause (vendored zstd,
+chosen from the dual BSD-3/GPLv2) + package MIT OR Apache-2.0; pins=release tar.gz sha256
+eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3 (verified against the
+published .sha256), vendor/zstd.c sha256 208E110A1F052D007242D4EEF6ED20A03AB1DC6E13EB2C4FF8D158112120BA8E
+(2,174,920 B, LF-normalized; Windows combine.py wrote CRLF), vendor/zstd.h sha256
+9B4BC8245565C98CCFC61C07749928B57E7C0F6FDDB0530C4F6AA1971893D88B; gate=G0..G5 OK; needs=NONE
+(allowlisted + baseline); port.args.json present (--c-source src/zstd_all.c; the 4-line shim
+pins STATIC_BMI2 0 because the link line has no -mbmi2 -- vendored file itself unmodified).
+NOTE: .gitattributes `vendor/** -text` pins the bytes against autocrlf (same as xiom.sqlite).
+```
 
 ```
 BINDINGS BATCH 11: head=4cf630ba + this handoff commit; packages=xiom.directx12 0.2.0 (capability probe replacing the pre-pilot static externs);
@@ -421,6 +436,25 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Scope decision requested from the native lane: the pre-pilot static-bridge
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
+
+## Batch 12 notes (xiom.zstd, 2026-10-08)
+
+- Vendored path proven end-to-end for a multi-file C library: used the
+  upstream `combine.py` to generate the official single-file amalgamation
+  (v1.5.7), vendored it + `zstd.h` + LICENSE, and compiled it via a 4-line
+  shim (`STATIC_BMI2 0`) because the xiom link line has no `-mbmi2` -- the
+  first build failed exactly there and the shim fixed it without touching
+  the vendored bytes.
+- Real functional suite: 8192 -> 34 bytes at level 3, frame content size,
+  auto-size decompress, incompressible round-trip, invalid-frame rejection.
+- Line-ending trap caught: `combine.py` under Windows Python emits CRLF, so
+  the committed (LF) blob differed from the first hash. Pin corrected to the
+  stored LF bytes; `vendor/** -text` protects it from autocrlf (same as
+  `xiom.sqlite`). Re-pin procedure now says to normalize before hashing.
+- Run matrix: 8/8 x2 plus a re-run after normalization. Allowlisted +
+  baseline; `port.args.json` compiles the shim; amalgamation compile ~40-60s
+  (240 s watchdog headroom).
+- Next: `xiom.lzfse` (small vendored C, same path), then `xiom.ozz`.
 
 ## Batch 11 notes (xiom.directx12, 2026-10-08)
 
