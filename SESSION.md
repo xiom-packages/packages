@@ -45,12 +45,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   modules"** (root `grpc.xi` + bare-named `src/*.xi` double-identity; not extern-unsafe).
   **Queued: grpc compat pass (module identity/renames) with the consumer harness as the
   acceptance test.**
-- Bindings batches 9-13 published (`eco-v0.1.102`: dxc + directx11 0.2.0; `eco-v0.1.105`:
-  directx12 0.2.0; `eco-v0.1.106`: zstd 0.2.0; `eco-v0.1.107`: **lzfse 0.2.0** — vendored
-  Apple lzfse-1.0 sources (seven `--c-source` entries), native 7/7 x2, ratio 4096->182,
-  64KB round-trips; record `847f82b3`; guard 505/476/29/0). Next confirmed per the lane:
-  **`xiom.ozz`**. `xiom.http` 0.1.2 live (`eco-v0.1.103`; compat fix + findings `3b006c9d`;
-  known defects queued).
+- **Bindings batches 9-14 published:** dxc + directx11 0.2.0 (`eco-v0.1.102`), directx12
+  0.2.0 (`eco-v0.1.105`), zstd 0.2.0 (`eco-v0.1.106`), lzfse 0.2.0 (`eco-v0.1.107`),
+  **ozz 0.2.0** (`eco-v0.1.109`; first vendored C++ package -- two generated TUs via the
+  combine.py method; native 4/4 x2 with real Skeleton/LocalToModelJob checks; record
+  `01da6e02`; guard 505/477/28/0). **Compression/animation tier complete (zstd, lzfse,
+  ozz); next sector awaiting the bindings lane's proposal.** `xiom.http` 0.1.2 live
+  (`eco-v0.1.103`; compat fix + findings `3b006c9d`; known defects queued).
 - **Batch #46 dispatched:** mkv/webp/gguf/snbt/wkt/flac (~218 clauses planned; porters
   `ses_ee2e9615`, `ses_ee2e95df`, `ses_ee2e95a0`, `ses_ee2e9570`, `ses_ee2e953e`,
   `ses_ee2e950f`).
