@@ -5,9 +5,9 @@
 package {
   name: "xiom.vulkan"
   version: "0.2.0"
-  description: "Vulkan GPU bindings for XIOM"
+  description: "Vulkan capability probe for XIOM (runtime vulkan-1.dll, no SDK required, SKIP when absent)"
   categories: ["graphics"]
-  keywords: ["vulkan", "gpu", "rendering", "swapchain", "spir-v"]
+  keywords: ["vulkan", "gpu", "rendering", "binding"]
   license: "MIT OR Apache-2.0"
   repository: "https://github.com/xiom-packages/packages"
   authors: ["XIOM Team"]

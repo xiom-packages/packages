@@ -1,105 +1,49 @@
-# xiom-vulkan -- Compiler Gap Audit & Production Readiness (v0.48.9)
+# AUDIT: xiom.vulkan
 
-**Compiler:** xiom v0.48.9 -- 783/783 tests, zero warnings
-**Package:** packages/xiom-vulkan
-**C bridge:** 0 errors, 0 warnings (clang -O2 -Wall -Wextra)
-**Last sprint:** 8 (2026-07-20)
+## Status (2026-10-08)
 
-## Status: Production-ready for single-threaded use
+Capability-probe implementation at 0.2.0 (same version number as the pre-pilot
+manifest; the pre-pilot *content* was replaced).
 
-### All critical audit findings resolved (6 sprints of C bridge fixes)
-| Sprint | What | Status |
-|--------|------|--------|
-| S1 | 10 vkBind* + 6 vkMapMemory checks, offscreen leaks | [OK] |
-| S2 | QueueSubmit, framebuffers NULL, fence, enumerate checks | [OK] |
-| S3 | Thread-local error buffer, allocator destroy | [OK] |
-| S5 | Render pass order, swapchain partial cleanup, image count, dynamic state | [OK] |
-| S7 | Camera state per-app (XvkApp struct), DPI FontGlobalScale | [OK] |
-| S8 | Descriptor set caching, validation ring buffer atomics, texture CB checks | [OK] |
+| Item | State |
+|------|-------|
+| Compiler | xiom v0.64.1 |
+| Pin | soname `vulkan-1.dll` + tag `vulkan-sdk-1.4.350.0` `vulkan_core.h` hash + entry-point set (`SPEC.md` §2) |
+| Link model | none at build time; runtime `LoadLibraryA` + `vkGetInstanceProcAddr`; **no Vulkan headers included** (minimal ABI declared locally, opaque receive buffers) |
+| Build | `port.args.json`: `--c-source ${PACKAGE_DIR}/src/vk_probe.c` (no `--link`) |
+| FFI confinement | all `unsafe`/`extern` in the root module `xiom.vulkan` (G5); the bridge is plain C with no XIOM unsafe |
+| Suite | `tests/test_conformance.xi` |
+| Runs | **PASS 10/10 x2** via `scripts/port.ps1`: loader 1.4.350, 20 instance extensions, 15 layers, device RTX 3070 Ti (discrete, api 1.4); deterministic SKIP classification per run |
 
-### Compiler-dependent issues (not fixable in package)
-| Gap | Status | Impact |
-|-----|--------|--------|
-| **CG-01b** Int32->Float32 cast | Fixed in v0.48.8 | Demo needs v0.48.8+ compiler |
-| **G-27** E001 false-positives on loop counters | P2, non-fatal | 34 instances |
-| **G-28** E001 extern out-param treated as move | P2, non-fatal | ~41 instances |
-| **G-03** pub const module limit (~99) | P2 | vulkan.xi near limit |
+## Pre-pilot removal (preserved in git history)
 
-### Workarounds applied for current compiler (v0.48.7)
-- `xvk_camera_set_aspect_from_fb(Int32,Int32)` -- aspect computed in C, avoids CG-01b
-- `TRUE_I32`/`FALSE_I32` constants -- avoids `1 as Int32` casts
-- `Int32` params in wrapper signatures -- avoids `as Int32` in caller code
-.\run.ps1 models              # Model field
-.\run.ps1 sprites             # Sprite field
-.\run.ps1 ui                  # Immediate-mode UI
-.\run.ps1 viewport            # Multi-viewport
-.\run.ps1 test -NoRun         # Headless CI test (build only)
+The pre-pilot package carried a ~1.7 MB static-bridge game engine:
+`bridge/xvk_*` (instance, swapchain, pipeline, renderpass, command, descriptors,
+memory allocator, raytracing, textures, fonts, offscreen, shaders, stb_image,
+stb_truetype), `build.ps1`/`build.sh`/`run.ps1`, `vulkan_extern.xi`,
+`src/vulkan_safe.xi` / `vulkan_structs.xi` / `vulkan_constants_all.xi`,
+examples and the old audit/handoff docs. It required the Vulkan SDK at build
+time (link-time `vulkan-1.lib`) and could not satisfy the SKIP-when-absent
+gate; it is preserved in git history as reference and its scope returns over
+this loader in later phases.
 
-# Or the legacy full pipeline script:
-.\build.ps1 -Target demo2d -Run
-.\build.ps1 -Target test -Run
+## Design notes
 
-# Direct xiom (minimal):
-xiom -o demo_2d.exe examples/demo_2d.xi vulkan.xi src/wrapper.xi `
-  --c-source bridge/xvk_bridge.obj `
-  --link vulkan-1 --link glfw3 --link gdi32 --link user32 --link kernel32 --link shell32 --link ole32 `
-  --link-path $env:VULKAN_SDK\Lib --link-path $env:GLFW_DIR\lib-vc2022
-```
+- Header-free bridge: the minimal instance-create ABI is declared locally;
+  `vkGetInstanceProcAddr` provides all instance-level entry points (global
+  functions resolved with NULL, instance functions with the instance handle --
+  the first present-path run surfaced the NULL-dispatch mistake as
+  `device_count == 0`).
+- `VK_INCOMPLETE`(5) from enumeration with a capacity smaller than the count
+  is treated as success (the second present-path bug: head list came back
+  empty until fixed).
+- Out-of-scope by design: no instance extensions/layers are enabled, no
+  surface/swapchain, no queues -- this package identifies capability only.
 
-## Compile Status (v0.47.6)
+## Known limitations
 
-| Target | xiom compile | xiom link | Notes |
-|--------|--------------|------------|-------|
-| 11 demos | ALL PASS | ALL PASS | Zero type errors, zero link errors |
-| test_vulkan | PASS | PASS | Headless offscreen CI |
-| vulkan.xi (standalone) | PASS | N/A | |
-
-## v0.47.3 -> v0.47.6 Fixes
-
-| Issue | v0.47.3 | v0.47.6 |
-|-------|---------|---------|
-| `store %struct.Vec %tmp10` IR error | FIXED (checker) | Still fixed |
-| `XVK_HANDLE_IMPL` hex-constant macro | BROKEN (clang 19) | **FIXED** -- renamed macro param from `magic` to `magic_val` |
-| Windows platform libs missing | Undefined symbols | **FIXED** -- `--link gdi32 user32 kernel32 shell32 ole32` added |
-| `--link-path` quoting in build.ps1 | BROKEN | **FIXED** |
-| `cargo run` in build.ps1 | Doesn't work standalone | **FIXED** -- uses `xiom` from PATH |
-| Missing demo targets in build.ps1 | 6 targets | **12 targets** (all 11 demos + test) |
-
-## Compiler Gaps Resolved (v0.46 -> v0.47.6)
-
-| Gap | v0.46 | v0.47.6 |
-|-----|-------|---------|
-| G1: `Vec as *T` cast | Rejected | **FIXED** |
-| G2: `&local` -> `*T` param | Passes value, not address | **FIXED** |
-| G3: `(if..) as Int32` | Rejected | **FIXED** |
-| G4: Float Vec element reads | Garbage (sitofp, fptrunc missing) | **FIXED** -- element type tracking + fptrunc coercion |
-| G5: Vec literal + .data -> invalid IR | Rejected by clang | **FIXED** |
-| G6: .data local rebind | E001 + crash | **FIXED** |
-| G7: @null contract | clang reject | **FIXED** |
-
-## Production FFI Patterns (v0.47.6)
-
-### [OK] Native Vec->Ptr casting (all integer types verified)
-```xiom
-var v = Vec[Int32].new(); v.push(111); v.push(222);
-unsafe { xvk_foo(v as *Int32, v.len()); }
-```
-
-### [OK] &local->Ptr out-parameter passing
-```xiom
-var w: Int32 = 0;
-unsafe { xvk_get_size(&w); }
-```
-
-### [OK] Float32 scalar FFI (drawing APIs)
-```xiom
-unsafe { xvk_draw_triangle_2d(app, 1.0, 0.5, 0.0); }
-```
-
-### [OK] Float32/Float64 Vec element operations (G4 FIXED)
-Float Vec reads now use bitcast (not sitofp) for IEEE 754 reinterpretation.
-Float64->Float32 push coercion added (fptrunc double->float).
-```xiom
-var v = Vec[Float32].new(); v.push(1.5);
-let x: Float32 = v[0];  // x == 1.5 on v0.47.6+
-```
+- Windows loader name only (`vulkan-1.dll`).
+- Instance creation requests API 1.0 for maximum compatibility; device
+  apiVersion is reported from `VkPhysicalDeviceProperties`.
+- The no-ICD SKIP path is code-reviewed, not force-tested (this host has a
+  driver); the bogus-soname SKIP classification runs in every suite run.
