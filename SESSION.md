@@ -14,6 +14,31 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-08 11:10Z (batch #40 COMPLETE + PUBLISHED `eco-v0.1.90`; ORBITDB response recorded; supersedes the 10:55Z block below):**
+- **Batch #40 DONE + PUBLISHED (`eco-v0.1.90`, run `37767589894` SUCCESS; all six live
+  at 0.1.2):** `syslog` (30 clauses; 24/24; `2d4978ad`/`4b084fe4`), `ldif` (45; 22/22;
+  `189de103`/`31f87d9e`), `acpi` (36; 18/18; `9caf792b`/`6ec835b5`), `iso8583` (54;
+  18/18; `e0af745c`/`5403f7b4`), `fits` (40; 20/20; `b73a5e91`/`ae5b5c33`), `vcf` (48;
+  24/24; `c904db37`/`4fbd713b`); all x2 green on v0.64.0 (253 clauses total); wrap
+  `ec96d225`. Two hand-built refinements during integration: iso8583 `_values_ok` empty
+  guard needs `numbers.len() == 0 && values.len() == 0`; acpi `acpi_table_offset`
+  `result != -1` re-expressed as the bounds shape (negative stored offsets are legal).
+  **~55 zero-clause stable carriers remain** (next: `tftp` ~1060, rescan at batch #41).
+- **ORBITDB response recorded** (`docs/PACKAGE-WISHLIST.md` §6 delta): btree gate MET
+  (churn soak, 95/95 x2, invariant `min_keys = (order-2)/2`, churn probe = acceptance
+  test); `xiom.wal` format agreed (durable's `WalRecord` shape + ORBITDB's `wal_file.xi`
+  disk contract; codec v1 text; torn-tail heal; checksum deferred to stdlib byte-IO/
+  fsync); durable reconciliation order (a) packages moves `src/wal/*` under `xiom.wal`,
+  (b) ORBITDB lands the disk layer + crash harness, (c) durable keeps `src/txn/*` and
+  consumes `xiom.wal`. **Queued: create `xiom-wal` then `xiom-btree` (ops scope +
+  allowlist at build-green); `xiom.vectors`/`xiom.ann` after XVECTOR hardening.**
+- Bindings lane: sdl3 in progress (green-lighted); `xiom.sqlite` 0.2.0 live; hook
+  contract `port.args.json` (§10). Compiler/grpc unchanged: v0.64.1 NOT released
+  (re-checked 11:02Z); grpc staged; drop-rules after a green repin. Credential:
+  `Lefteris-Notas` active.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-08 10:55Z (bindings batch 1 PUBLISHED `eco-v0.1.89`; sdl3 unblocked; ORBITDB+XVECTOR relays triaged; supersedes the 10:35Z block below):**
 - **`eco-v0.1.89` DONE + live:** ops confirmed the scope LIVE (allowlist 504 -> 505);
   run `37765449052` SUCCESS; **`xiom.sqlite` 0.2.0 live-verified** (stage incubating,
@@ -1719,14 +1744,15 @@ Read SESSION.md first -- the 2026-10-08 09:30Z STATE block is the live handoff.
 Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
-NO XIOM_RUNTIME_DIR needed. Validate 519/0; guard 504/464/40/0 (re-check at start).
-Batch #39 is DONE + PUBLISHED (`eco-v0.1.88`, run 37759634793): resolv 0.1.2, ical 0.1.3,
-efi 0.1.2, dns 0.1.3, cpio 0.1.3, ply 0.1.2 -- all live-verified. ~61 zero-clause stable
-carriers remain. PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-10 is
+NO XIOM_RUNTIME_DIR needed. Validate 519/0; guard 505/465/40/0 (re-check at start).
+Batch #40 is DONE + PUBLISHED (`eco-v0.1.90`, run 37767589894): syslog 0.1.2, ldif 0.1.2,
+acpi 0.1.2, iso8583 0.1.2, fits 0.1.2, vcf 0.1.2 -- all live-verified. ~55 zero-clause
+stable carriers remain. PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-10 is
 Linux-target-only (Windows probe green: packages\xiom-kv\tests\probe_kv_get_str.xi).
-Bindings marker = `keywords: ["binding"]` (`6fa4f9a6`); relay transport pinned
-(`ceeea349`); sqlite/sdl3/opengl namespace-clean; `xiom.sqlite` not yet allowlisted.
-`option` stays excluded.
+Bindings: xiom.sqlite 0.2.0 LIVE (`eco-v0.1.89`, allowlist 505); sdl3 in progress;
+hook contract `port.args.json` (BINDINGS-LANE.md §10). ORBITDB/XVECTOR names frozen
+(PACKAGE-WISHLIST §6); ORBITDB extraction queue: xiom-wal then xiom-btree (ops scope +
+allowlist at build-green). `option` stays excluded.
 
 CREDENTIAL NOTE: `gh auth status` may show `Lefteris-Ngonart` active, which has only PULL
 on this repo (403 on push). Switch to `Lefteris-Notas` for pushes/gate approvals
@@ -1738,14 +1764,14 @@ Start: git fetch; git status -sb; git log -1; then
   & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Batch #40 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
+1. Batch #41 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
    -Detailed` for the name list; size them by total non-test .xi lines per package), skip
-   `option`; the next smallest after ply is `syslog` (~1033 lines; verify with the sizing
+   `option`; the next smallest after vcf is `tftp` (~1060 lines; verify with the sizing
    scan, then the next five). Read-only explore pre-plan (one explore task; IF its final
    message comes back EMPTY, resume it with `variant: low` + a "plan only, no preamble"
-   prompt -- recovered first try on batch #38). Six background `task` porters with the
-   brief template `%TEMP%\kilo\batch39-porter-brief.md` retargeted (batch #40, plan
-   `%TEMP%\kilo\batch40-clause-plan.md`, `## Contracts (batch #40 hardening pass, 2026-10-XX)`).
+   prompt -- recovered every time since batch #38). Six background `task` porters with the
+   brief template `%TEMP%\kilo\batch40-porter-brief.md` retargeted (batch #41, plan
+   `%TEMP%\kilo\batch41-clause-plan.md`, `## Contracts (batch #41 hardening pass, 2026-10-XX)`).
    Coordinator integrates as reports land: patch bump per CURRENT version, port x2
    post-bump, byte-level bracket scan, feat commit exact files, record with the REAL sha
    and `-RunBy task:ses_...`; wrap + publish the next eco tag (generate_index/report/
@@ -1779,6 +1805,9 @@ Then do, in order:
    `port.args.json` (docs/BINDINGS-LANE.md §10). ORBITDB/XVECTOR relays: names frozen in
    `docs/PACKAGE-WISHLIST.md` §6 (`xiom.wal`/`xiom.vectors`/`xiom.ann`); their extraction
    relays route through the native lane; new-name builds need ops scope + allowlist.
+   ORBITDB extraction queue (from their response): create `xiom-wal` (durable `src/wal/*`
+   vocabulary + their `wal_file.xi` disk reference; porter flow; acceptance = their crash
+   probe), then `xiom-btree` (gate met; churn probe = acceptance test).
 5. Carry-forwards: `-TimeoutSec 60` watchdog; port x2 + byte-level bracket scan on every
    touched package; SPEC headers synced when touched; bump ONLY when source changes;
    `xiom-verify` writes `xiom_verify_output.smt2` to the CWD (put the FILE BEFORE --check,
