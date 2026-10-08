@@ -8,7 +8,7 @@
 
 package xiom_pcapng {
   name: "xiom.pcapng";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "PCAP Next Generation (pcapng) capture-file block index, options and packet spans";
   categories: ["network"];
   keywords: ["pcapng", "capture", "network", "format"];

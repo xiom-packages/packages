@@ -1,8 +1,6 @@
 # xiom.pcapng -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.pcapng`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/pcapng.xi` (`module xiom.pcapng`).
 Depends on `xiom.std`; the library module imports nothing (the tests import
 `xiom.test`, `xiom.io`, `xiom.string` and `xiom.string.compare`).
@@ -338,6 +336,48 @@ message above.
 | block/section/interface/packet/record/name/ISB index accessors | O(1) |
 | `pcapng_option_find` | O(options) |
 | copy functions | O(copied span) time/space |
+
+## Contracts (batch #42 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses were added to `src/pcapng.xi` in the
+batch #42 hardening pass (compiler v0.64.0; `package.xi` is left for the
+coordinator to bump at integration): 20 clauses over the 15 functions
+below, all `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.pcapng -TimeoutSec 60` runs ended
+`port: PASS (passed=19 failed=0 program_exit=0 exit=0)` with the clauses
+active (28.39 s and 25.34 s); no clause trapped.
+
+Every clause holds for hand-built `PcapngFile` values: clauses read only
+parameters, parameter fields and vector lengths (`Vec[Int].len()`), and
+every sentinel is the source's own out-of-range return value. No clause
+indexes a vector, reads a `Str`, uses a module constant, reads a `Result`
+payload or uses `result.value.0/.1`. The only clause call is the
+definitional cross-call `pcapng_block_body_offset` -> `pcapng_block_offset`;
+the callee reads one indexed `offsets` entry and does not reach
+`pcapng_block_body_offset` (non-re-entrant). No probe-gated items applied;
+no plan clause was dropped.
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it
+can emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `pcapng_is_file` | 2 | `data.len() < 12` => `false`; `true` => `data.len() >= 12` | no | yes |
+| `pcapng_parse` | 2 | `data.len() < 12` => `Err`; `Ok` => `data.len() >= 12` | no | yes |
+| `pcapng_block_count` | 1 | `result == p.types.len()` | no | yes |
+| `pcapng_block_type` | 1 | out-of-range `i` => `-1` | no | yes |
+| `pcapng_block_offset` | 1 | out-of-range `i` => `-1` | no | yes |
+| `pcapng_block_body_offset` | 2 | out-of-range `i` => `-1`; in-range `i` => `pcapng_block_offset(p, i) + 8` | no | yes |
+| `pcapng_block_body` | 2 | out-of-range `i` => `Err`; `Ok` only for an in-range `i` | no | yes |
+| `pcapng_section_count` | 1 | `result == p.shb_blocks.len()` | no | yes |
+| `pcapng_section_order` | 1 | out-of-range `s` => `-1` | no | yes |
+| `pcapng_interface_count` | 1 | `result == p.idb_linktypes.len()` | no | yes |
+| `pcapng_packet_count` | 1 | `result == p.pkt_blocks.len()` | no | yes |
+| `pcapng_packet_kind` | 1 | out-of-range `i` => `-1` | no | yes |
+| `pcapng_record_count` | 1 | `result == p.rec_blocks.len()` | no | yes |
+| `pcapng_record_name_count` | 1 | out-of-range `r` => `-1` | no | yes |
+| `pcapng_option_find` | 2 | out-of-range `block` => `-1`; result in `-1..p.opt_codes.len()` | no | yes |
 
 ## Test plan
 

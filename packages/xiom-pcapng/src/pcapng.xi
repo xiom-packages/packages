@@ -333,7 +333,10 @@ fn _name_scan(data: &Vec[UInt8], value_start: Int, value_len: Int, addr_len: Int
 /// enough for a complete minimal block (12 bytes). Only the first four bytes
 /// and the length are inspected; malformed bodies are not detected here.
 /// Complexity: O(1).
-pub fn pcapng_is_file(data: &Vec[UInt8]) -> Bool {
+pub fn pcapng_is_file(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 12 => result == false;
+  ensures: result == true => data.len() >= 12;
+{
   if data.len() < 12 {
     return false;
   }
@@ -362,7 +365,10 @@ pub fn pcapng_is_file(data: &Vec[UInt8]) -> Bool {
 ///
 /// Complexity: O(data.len()) time and O(blocks + records + names + options)
 /// space.
-pub fn pcapng_parse(data: &Vec[UInt8]) -> Result[PcapngFile, Str] {
+pub fn pcapng_parse(data: &Vec[UInt8]) -> Result[PcapngFile, Str]
+  ensures: data.len() < 12 => result is Err;
+  ensures: result is Ok => data.len() >= 12;
+{
   let n = data.len();
   var types = Vec[Int].new();
   var offsets = Vec[Int].new();
@@ -677,13 +683,17 @@ pub fn pcapng_parse(data: &Vec[UInt8]) -> Result[PcapngFile, Str] {
 // --------------------------------------------------
 
 /// Number of blocks in the index. Complexity: O(1).
-pub fn pcapng_block_count(p: &PcapngFile) -> Int {
+pub fn pcapng_block_count(p: &PcapngFile) -> Int
+  ensures: result == p.types.len();
+{
   return p.types.len();
 }
 
 /// Type of block `i` (0x0A0D0D0A = 168627466 for an SHB); -1 when `i` is out
 /// of range. Complexity: O(1).
-pub fn pcapng_block_type(p: &PcapngFile, i: Int) -> Int {
+pub fn pcapng_block_type(p: &PcapngFile, i: Int) -> Int
+  ensures: i < 0 || i >= p.types.len() => result == -1;
+{
   if i < 0 || i >= p.types.len() {
     return -1;
   }
@@ -693,7 +703,9 @@ pub fn pcapng_block_type(p: &PcapngFile, i: Int) -> Int {
 
 /// Absolute offset of block `i` in the source buffer; -1 when out of range.
 /// Complexity: O(1).
-pub fn pcapng_block_offset(p: &PcapngFile, i: Int) -> Int {
+pub fn pcapng_block_offset(p: &PcapngFile, i: Int) -> Int
+  ensures: i < 0 || i >= p.offsets.len() => result == -1;
+{
   if i < 0 || i >= p.offsets.len() {
     return -1;
   }
@@ -703,7 +715,10 @@ pub fn pcapng_block_offset(p: &PcapngFile, i: Int) -> Int {
 
 /// Absolute offset of block `i`'s body (block offset + 8); -1 out of range.
 /// Complexity: O(1).
-pub fn pcapng_block_body_offset(p: &PcapngFile, i: Int) -> Int {
+pub fn pcapng_block_body_offset(p: &PcapngFile, i: Int) -> Int
+  ensures: i < 0 || i >= p.offsets.len() => result == -1;
+  ensures: 0 <= i && i < p.offsets.len() => result == pcapng_block_offset(p, i) + 8;
+{
   if i < 0 || i >= p.offsets.len() {
     return -1;
   }
@@ -735,7 +750,10 @@ pub fn pcapng_block_section(p: &PcapngFile, i: Int) -> Int {
 /// including unknown ones). Err("pcapng: block out of range") when `i` is
 /// out of range; Err("pcapng: span out of bounds") when the recorded span
 /// does not fit `data`. Complexity: O(body length).
-pub fn pcapng_block_body(data: &Vec[UInt8], p: &PcapngFile, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn pcapng_block_body(data: &Vec[UInt8], p: &PcapngFile, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 || i >= p.offsets.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < p.offsets.len();
+{
   if i < 0 || i >= p.offsets.len() {
     return _err_bytes("pcapng: block out of range");
   }
@@ -749,13 +767,17 @@ pub fn pcapng_block_body(data: &Vec[UInt8], p: &PcapngFile, i: Int) -> Result[Ve
 // --------------------------------------------------
 
 /// Number of sections (one per SHB). Complexity: O(1).
-pub fn pcapng_section_count(p: &PcapngFile) -> Int {
+pub fn pcapng_section_count(p: &PcapngFile) -> Int
+  ensures: result == p.shb_blocks.len();
+{
   return p.shb_blocks.len();
 }
 
 /// Byte order of section `s`: 1 = little-endian, 0 = big-endian; -1 out of
 /// range. Complexity: O(1).
-pub fn pcapng_section_order(p: &PcapngFile, s: Int) -> Int {
+pub fn pcapng_section_order(p: &PcapngFile, s: Int) -> Int
+  ensures: s < 0 || s >= p.shb_orders.len() => result == -1;
+{
   if s < 0 || s >= p.shb_orders.len() {
     return -1;
   }
@@ -801,7 +823,9 @@ pub fn pcapng_section_length(p: &PcapngFile, s: Int) -> Int {
 
 /// Number of interfaces described by IDBs across all sections.
 /// Complexity: O(1).
-pub fn pcapng_interface_count(p: &PcapngFile) -> Int {
+pub fn pcapng_interface_count(p: &PcapngFile) -> Int
+  ensures: result == p.idb_linktypes.len();
+{
   return p.idb_linktypes.len();
 }
 
@@ -848,12 +872,16 @@ pub fn pcapng_interface_section(p: &PcapngFile, i: Int) -> Int {
 
 /// Number of packet records (EPB and SPB) across all sections.
 /// Complexity: O(1).
-pub fn pcapng_packet_count(p: &PcapngFile) -> Int {
+pub fn pcapng_packet_count(p: &PcapngFile) -> Int
+  ensures: result == p.pkt_blocks.len();
+{
   return p.pkt_blocks.len();
 }
 
 /// Kind of packet `i`: 0 = EPB, 1 = SPB; -1 out of range. Complexity: O(1).
-pub fn pcapng_packet_kind(p: &PcapngFile, i: Int) -> Int {
+pub fn pcapng_packet_kind(p: &PcapngFile, i: Int) -> Int
+  ensures: i < 0 || i >= p.pkt_kinds.len() => result == -1;
+{
   if i < 0 || i >= p.pkt_kinds.len() {
     return -1;
   }
@@ -970,7 +998,9 @@ pub fn pcapng_packet_data(data: &Vec[UInt8], p: &PcapngFile, i: Int) -> Result[V
 // --------------------------------------------------
 
 /// Number of parsed NRB records (IPv4 and IPv6 only). Complexity: O(1).
-pub fn pcapng_record_count(p: &PcapngFile) -> Int {
+pub fn pcapng_record_count(p: &PcapngFile) -> Int
+  ensures: result == p.rec_blocks.len();
+{
   return p.rec_blocks.len();
 }
 
@@ -996,7 +1026,9 @@ pub fn pcapng_record_block(p: &PcapngFile, r: Int) -> Int {
 
 /// Number of DNS names attached to record `r`; -1 out of range.
 /// Complexity: O(1).
-pub fn pcapng_record_name_count(p: &PcapngFile, r: Int) -> Int {
+pub fn pcapng_record_name_count(p: &PcapngFile, r: Int) -> Int
+  ensures: r < 0 || r >= p.rec_name_counts.len() => result == -1;
+{
   if r < 0 || r >= p.rec_name_counts.len() {
     return -1;
   }
@@ -1163,7 +1195,10 @@ pub fn pcapng_option_length(p: &PcapngFile, i: Int) -> Int {
 /// First option pool index of block `block` with code `code`, scanning the
 /// pool in file order (first match wins); -1 when `block` is out of range or
 /// no such indexed option exists. Complexity: O(options).
-pub fn pcapng_option_find(p: &PcapngFile, block: Int, code: Int) -> Int {
+pub fn pcapng_option_find(p: &PcapngFile, block: Int, code: Int) -> Int
+  ensures: block < 0 || block >= p.types.len() => result == -1;
+  ensures: result >= -1 && result < p.opt_codes.len();
+{
   if block < 0 || block >= p.types.len() {
     return -1;
   }
