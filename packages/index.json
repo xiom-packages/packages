@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T20:58:58Z",
+    "updated":  "2026-10-08T21:08:35Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -1727,17 +1727,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.directx11",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Direct3D 11 bindings for Microsoft\u0027s Windows graphics API and the DirectX SDK",
+                         "description":  "Direct3D 11 / DXGI capability probe for XIOM (runtime d3d11.dll + dxgi.dll, no SDK headers, SKIP when absent)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-directx11/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-directx11/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "directx11.xi",
                                               "package.xi"
@@ -1921,19 +1921,18 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.dxc",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "DirectX Shader Compiler (DXC) bindings for XIOM",
+                         "description":  "DirectX Shader Compiler capability probe for XIOM (runtime dxcompiler.dll, no dxcapi.h, SKIP when absent)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dxc/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dxc/v0.2.0/package.tar.gz",
                          "source_files":  [
-                                              "dxc_safe.xi",
                                               "dxc.xi",
                                               "package.xi"
                                           ]
