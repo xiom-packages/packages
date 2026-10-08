@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T20:32:18Z",
+    "updated":  "2026-10-08T20:58:58Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -263,7 +263,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ass",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "ASS/SSA subtitle parsing, canonical formatting, and accessors",
@@ -273,7 +273,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ass/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ass/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ass.xi",
                                               "package.xi"
@@ -2262,7 +2262,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ext",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "ext2/3/4 superblock codec: parse and build the 1024-byte superblock at offset 1024",
@@ -2272,7 +2272,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ext/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ext/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ext.xi",
                                               "package.xi"
@@ -4709,7 +4709,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.mp3",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "MP3 structural parser: MPEG-1/2/2.5 frame headers, stream scan and ID3v1/v2 tags (no audio decoding)",
@@ -4719,7 +4719,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mp3/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mp3/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "mp3.xi",
                                               "package.xi"
@@ -4862,7 +4862,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.nbt",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Minecraft NBT (Named Binary Tag) encoding and decoding for the XIOM ecosystem",
@@ -4872,7 +4872,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nbt/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nbt/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "nbt.xi",
                                               "package.xi"
@@ -5616,7 +5616,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.pci",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "PCI configuration-space codec: decode a 256-byte function and build a canonical type-0 header",
@@ -5626,7 +5626,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pci/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pci/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "pci.xi",
                                               "package.xi"
@@ -7139,7 +7139,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.smtlib",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "SMT-LIB2 command/term parser and canonical emitter for a documented subset",
@@ -7149,7 +7149,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-smtlib/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-smtlib/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "smtlib.xi",
                                               "package.xi"
