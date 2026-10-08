@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T23:13:07Z",
+    "updated":  "2026-10-09T00:05:40Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -5324,19 +5324,18 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.ozz",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Ozz-Animation (v0.16.0) bindings for XIOM -- skeletal animation runtime + offline pipeline",
+                         "description":  "Ozz-Animation (v0.16.0) bindings for XIOM -- vendored C++ amalgamation, no system library",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ozz/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ozz/v0.2.0/package.tar.gz",
                          "source_files":  [
-                                              "ozz_safe.xi",
                                               "ozz.xi",
                                               "package.xi"
                                           ]
