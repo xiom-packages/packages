@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-08 17:40Z (bindings batch 8 published `eco-v0.1.100`; batch #44 dispatched; supersedes the 13:35Z block below):**
+**STATE AT 2026-10-08 18:05Z (batch #44 COMPLETE + PUBLISHED `eco-v0.1.101`; lane checks recorded; http compat republish in flight; supersedes the 17:40Z block below):**
 - **Batch #43 DONE + PUBLISHED (six packages, all live-verified):** `gif` 0.1.2 (26 clauses;
   20/20), `cue` 0.1.2 (27; 22/22), `png` 0.1.2 (25; 17/17), `safetensors` 0.1.2 (38; 21/21),
   `cbor` 0.1.2 (32; 20/20), `mqtt` 0.1.3 (59; 21/21; stray module-scope tail removed by the
@@ -31,13 +31,23 @@ running). Check `git log -1 --format=%h %s` before starting.
   stays in git history only (no `legacy/` resurrection) -- consistent with the loader-era
   pattern (sdl3/glfw/raylib/opengl). Published so far: sqlite 0.2.0, sdl3 0.3.0,
   opengl 0.3.0, glfw 0.2.0, raylib 0.2.0, vulkan 0.2.0. Batch 9 awaits their proposal.
-- **Batch #44 in flight (5/6 integrated on main):** `mp3` 0.1.2 (62 clauses; 21/21; `1c7cbd1f`),
-  `smtlib` 0.1.3 (48; 24/24; `35073e9d`), `ext` 0.1.2 (77; 20/20; `607c9bc6`), `nbt` 0.1.3
-  (48; 26/26; `ede91027`), `pci` 0.1.2 (88; 18/18; `6d37633b`); `ass` porter retrying under
-  memory pressure, then wrap + publish. Note: two mp3 runs aborted in infra (compiler OOM /
-  60s watchdog) under the external `benchsplit.exe` 91GB WS benchmark -- retried green;
-  nbt/pci/ass porters saw the same transient clang OOM class. Retry-on-infra-failure is the
-  policy (board posts carried the peer evidence).
+- **Batch #44 DONE + PUBLISHED (`eco-v0.1.101`, run `37820818709` SUCCESS; all six live):**
+  `mp3` 0.1.2 (62 clauses; 21/21; `1c7cbd1f`), `smtlib` 0.1.3 (48; 24/24; `35073e9d`),
+  `ext` 0.1.2 (77; 20/20; `607c9bc6`), `nbt` 0.1.3 (48; 26/26; `ede91027`), `pci` 0.1.2
+  (88; 18/18; `6d37633b`), `ass` 0.1.2 (44; 23/23; `abc4c2f9`); 367 clauses total; wrap
+  `661999ee`. **~31 zero-clause stable carriers remain** (rescan at batch #45).
+  Integration note: ass refined `ass_parse_timestamp`'s Ok bound to 3599999 (hour digit
+  range allows 9:59:59.99; spot-checked). Two-to-three runs per package aborted in infra
+  (compiler OOM / 60-90s watchdog) under the external `benchsplit.exe` 91GB WS benchmark --
+  all retried green (policy: retry infra failures, never chase clauses).
+- **xiom.http compat republish IN FLIGHT** (v0.64.1 extern-unsafe enforcement; consumer
+  rehearsal RED->GREEN; porter still running). On its green: integrate (bump 0.1.2, port x2,
+  feat+record), publish (eco-v0.1.102), and tell PULSE `probe_pkg_http` should flip green.
+- **Lane checks recorded (requested):** PULSE deltas in `docs/PACKAGE-WISHLIST.md` §7 +
+  `docs/COMPILER-FINDINGS.md` sweep (`a63e9a34`, `07d77c2d`) -- C-PULSE-10 CLOSED on Linux
+  (m217), **C-PULSE-13 NEW** (Unix installer layout; compiler/ops), PULSE `OPS-REQUEST.md`
+  for the owner (staging infra), bindings routing. ORBITDB/XVECTOR wishlists carry our
+  replies; no new asks.
 - **Lane checks (requested):** PULSE delta recorded -- C-PULSE-10 CLOSED on Linux (m217;
   73/73 + 20m soak), **C-PULSE-13 NEW** (Unix installer layout: `xiom pkg` vs compiler
   `xiom_home()`; compiler/ops ask), `xiom.http` 0.1.1 is the known-red catalog-dep gate
