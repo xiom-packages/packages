@@ -1,35 +1,48 @@
-# AUDIT: xiom-sqlite
+# AUDIT: xiom.sqlite
 
-## Status
-All 6 source files compile on xiom v0.45.3 with stubbed FFI functions. The production FFI implementation (extern "C" blocks connecting to libsqlite3 via ffi_bridge.c) has been replaced with compile-safe stubs.
+## Status (2026-10-08)
 
-## System Library Dependencies
-- **libsqlite3** (SQLite >= 3.31.0 recommended)
-  - Windows: `vcpkg install sqlite3` or `pacman -S mingw-w64-x86_64-sqlite3`
-  - Linux: `apt install libsqlite3-dev` (Debian) / `dnf install sqlite-devel` (Fedora)
-  - macOS: ships with `/usr/lib/libsqlite3.dylib`, or `brew install sqlite`
-  - Link flag: `-l sqlite3`
+Real vendored implementation -- the previous "FFI bridge not linked" stubs are
+gone (`src/connection.xi` and `src/demo.xi` deleted). The package compiles and
+its conformance suite is green on the pinned compiler.
 
-## FFI Bridge Dependencies
-- **ffi_bridge.c**: Provides `xiom_alloc`, `xiom_free_ptr`, `xiom_read_byte`, `xiom_write_byte`, `xiom_str_to_cstr`, `xiom_free_cstr`, `xiom_str_data`
-- **Runtime functions needed**: `to_char(Int) -> Char` for byte-to-character conversion (core builtin, available)
+| Item | State |
+|------|-------|
+| Compiler | xiom v0.64.0 |
+| Upstream | SQLite 3.53.4 amalgamation, vendored (public domain) |
+| Link model | `--c-source vendor/sqlite3.c` (static, no soname) |
+| FFI confinement | all `unsafe`/`extern` in `src/ffi.xi` only |
+| Suite | `tests/test_conformance.xi`, 16 checks |
+| Runs | 16/16 PASS x6 consecutive build+run cycles (default flags, 2026-10-08) |
 
-## Known Gaps
-1. **FFI bridge not linked**: All connection functions (`sqlite_open`, `sqlite_execute`, `sqlite_query`, etc.) are stubs that return errors. Real functionality requires compiling and linking ffi_bridge.c with libsqlite3.
-2. **Str-to-C-string conversion**: The `xiom_str_to_cstr` bridge function requires the ffi_bridge.c to convert XIOM `Str` to null-terminated C strings. Without the bridge, C string construction is not possible in pure XIOM.
-3. **derive[Clone] removed**: Removed from `SqliteValue`, `SqliteRow`, `SqliteResult`, `SqliteError`, and `SqliteValueKind` (enum). Manual clone functions provided instead (`clone_sqlite_value`, `clone_sqlite_row`). The `derive[Clone]` on enums with `Vec` fields and on structs containing `Str` fields was not supported by the compiler.
-4. **Enum variant construction**: Fixed `Integer(value: val)` to `Integer(val)` -- the `field:` syntax is for declarations, not construction.
+## Provenance
 
-## Files Modified
-- `src/types.xi` -- Removed derive[Clone], added manual clone functions, fixed enum variant construction syntax
-- `src/schema.xi` -- No changes needed (compiled clean)
-- `src/connection.xi` -- Replaced FFI implementation with stubs, removed native.* calls
-- `src/query.xi` -- No changes needed (compiled clean)
-- `src/migration.xi` -- Added use imports, replaced .clone() calls with clone_migration()
-- `src/demo.xi` -- Replaced with stubs (FFI-dependent)
+- Download: https://sqlite.org/2026/sqlite-amalgamation-3530400.zip (2,946,650 B)
+- Zip SHA3-256 verified against the upstream publication:
+  `628a44cf...27934e`
+- `sqlite3.c` SHA256 `B1DD5D74...DB28189`; `sqlite3.h` SHA256
+  `919E7F2E...5910E1D`; `sqlite3ext.h` SHA256 `AC9645E5...39AB4BE`.
+  Full table + re-pin procedure: `SPEC.md` §2.
 
-## Restoring Production FFI
-To restore the production FFI implementation, reapply the original `connection.xi` with:
-1. Proper `extern "C"` declarations using `Int` for pointer parameters
-2. Link `ffi_bridge.c` and `libsqlite3`
-3. Use `xiom_str_data(s: Str) -> Int` to get raw string pointer
+## Design notes
+
+- `SqliteValue` is a tagged struct (kind + payload fields), not an enum:
+  enum payload reads are nondeterministically miscompiled on v0.64.0
+  (build-to-build flakiness observed in this package; same class as the
+  `xiom.graphql` finding). See `SPEC.md` §5.
+- C out-params (`sqlite3_open`, `sqlite3_prepare_v2`) write into an
+  XIOM-owned 8-byte `Vec[UInt8]` slot; the FFI module does not call
+  malloc/free (guard-heap allocator mismatch on this pin).
+- `src/ffi.xi` uses numeric literals inside confined functions and in
+  `error_name`; the exported `SQLITE_*` consts are literal values. Both avoid
+  the const-resolution recursion on this pin.
+
+## Known limitations
+
+- BLOB values are surfaced as `SqliteValueKind` kind 4 only by tagging;
+  `column_blob`/`bind_blob` are Phase 2 (see ROADMAP.md).
+- `xiom.sqlite.query` WHERE helpers build literal SQL (parameter binding is
+  available through prepared statements; the builder is convenience-only and
+  not injection-safe for untrusted input).
+- File-backed tests leave a gitignored `sqlite_conformance_tmp.db` in the
+  package working directory.

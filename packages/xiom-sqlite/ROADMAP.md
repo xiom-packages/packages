@@ -1,48 +1,26 @@
-# xiom.sqlite -- Production Roadmap
+# xiom.sqlite -- Roadmap
 
-**Version**: v0.2.0 | **Compiler**: xiom v0.49.7 | **Last updated**: 2026-07-21
+**Version**: v0.2.0 | **Compiler**: xiom v0.64.0 | **Last updated**: 2026-10-08
 
-## Current Rating: 9/10
+## Current state
 
 | Criterion | Status |
 |-----------|--------|
-| [OK] Safe wrappers | 109 pub fn, 32 requires contracts (70%+) |
-| [OK] No workarounds | Pure XIOM idioms |
-| [OK] Examples | demo.xi -- 4 scenarios |
-| [OK] README | Build instructions, API reference |
-| [OK] SPEC.md | Architecture, API surface, bundling strategy |
-| [OK] ROADMAP.md | This file |
-| [OK] Contracts | 32 requires clauses across all modules |
-| [OK] Tests | 29 conformance tests (types, query, schema, migration, connection, error) |
-| [ ] C bridge | **FFI stubs** -- sqlite3 C bridge not yet linked |
-| [ ] Demo stable | Demos blocked on FFI bridge |
+| Vendored amalgamation | Done -- SQLite 3.53.4, SHA256-pinned (`SPEC.md` §2) |
+| FFI core | Done -- all unsafe confined to `src/ffi.xi` (G5) |
+| Conformance suite | Done -- 16 checks, green x6 build cycles |
+| Typed safe API | Done -- `Result[_, SqliteError]`, codes + messages |
+| Query/schema/migration helpers | Done -- pure XIOM |
+| Publish allowlist | Pending native lane (`xiom.sqlite` not yet allowlisted) |
 
-## Implementation History
+## Phase 2 (next touch)
 
-| Phase | Status | Description |
-|-------|--------|-------------|
-| **P1: Types** | [OK] Done | SqliteValue, SqliteRow, SqliteResult, SqliteError |
-| **P2: Query Builder** | [OK] Done | SELECT/INSERT/UPDATE/DELETE SQL generation |
-| **P3: Schema Builder** | [OK] Done | Table DDL, index DDL, affinity rendering |
-| **P4: Migration Manager** | [OK] Done | Sort, pending, up/down with validation |
-| **P5: Contracts** | [OK] Done | 32 requires clauses (table.len, col.len, index bounds) |
-| **P6: Tests** | [OK] Done | 29 conformance tests |
-| **P7: FFI Bridge** | [ ] Pending | sqlite3 C amalgamation integration |
-
-## FFI Bridge Gap (Blocking 10/10)
-
-The package is **9/10 functional** -- all pure-XIOM components work correctly.
-The FFI bridge needs:
-
-| Task | Effort |
-|------|--------|
-| Bundle sqlite3 amalgamation (sqlite3.c/sqlite3.h) | Day |
-| Write C bridge (sqlite3_open, sqlite3_exec, sqlite3_prepare_v2, etc.) | Day |
-| Replace FFI stubs in connection.xi with real extern "C" calls | Day |
-| Verify round-trip: open -> create table -> insert -> query -> close | Day |
-
-## Known Limitations
-
-- **SQL injection in query builder**: WHERE conditions concatenate values directly (no parameterization)
-- **No derive[Clone] on types with Vec fields**: Manual clone_sqlite_value/clone_sqlite_row workarounds
-- **No Linux/macOS CI**: Verified on Windows only
+1. BLOB round-trip: `column_blob` + `bind_blob` with an owned-bytes API.
+2. Parameter binding in `xiom.sqlite.query` (`?` placeholders instead of
+   literal concatenation) so the builder is safe for untrusted input.
+3. `busy_timeout` / `open_v2` flags (readonly, create) exposure.
+4. Transaction helper object (BEGIN/COMMIT/ROLLBACK with error recovery).
+5. Compiler v0.64.1+ re-test: restore enum-payload `SqliteValue` if the
+   upstream enum fix lands (see `SPEC.md` §5 finding 1); the tagged struct is
+   a portability workaround, not a design preference.
+6. Multi-statement tail execution API (`sqlite3_prepare_v3` tail pointer).
