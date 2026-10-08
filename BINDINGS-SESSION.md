@@ -3,6 +3,12 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
+**STATUS: BATCH 1 MERGED + WRAPPED** -- merged on main @ `05a19deb`, wrapped at
+`5ea29bb5`/`2cb3f03a` (xiom.sqlite 0.2.0 on the allowlist, 505 names).
+Waiting for the **eco-v0.1.89 publish confirmation** before starting xiom-sdl3.
+Lane findings: `docs/BINDINGS-COMPILER-FINDINGS.md`; asks:
+`docs/BINDINGS-STDLIB-WISHLIST.md`; repros: `docs/repro/bindings-pilot/`.
+
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
 
 ```
@@ -93,6 +99,36 @@ before it was diagnosed) ran ~21 minutes burning CPU and is the most likely
 contributor to the 98 GB memory event / restart at 11:54 on 2026-10-08.
 After diagnosis all runs used a memory/time-capped watchdog; the final suite
 runs peaked at ~7 MB RSS. No other lane process was touched.
+
+## Inbound context (2026-10-08, after batch 1 merged @ 05a19deb, wrapped 5ea29bb5/2cb3f03a)
+
+- Batch 1 merged and wrapped: `xiom.sqlite` 0.2.0 is on the allowlist (505 names);
+  `port.args.json` hook live (`docs/BINDINGS-LANE.md` §10); findings recorded in
+  `docs/COMPILER-FINDINGS.md`. **sdl3 starts only after the eco-v0.1.89 publish
+  confirmation** (owner/native relay); keep-fresh before starting.
+- New project lanes joined the ecosystem (Projects -> packages -> stdlib ->
+  compiler): PULSE (web), ORBITDB (embedded DB), XVECTOR (vector DB). Relays were
+  addressed to the packages lane; binding-relevant reads:
+  - ORBITDB (`docs/RELAY-PACKAGES-ORBITDB.md`): **"No C-FFI/bindings need from
+    ORBITDB (pure XIOM target)"** -- acknowledged, nothing for this lane.
+  - XVECTOR (`docs/PACKAGE-WISHLIST-XVECTOR.md`): proposes `xiom.vectors`,
+    `xiom.wal`, `xiom.ann` (pure-XIOM domain layers, native-lane coordination);
+    the accelerator row asks the bindings lane to `Watch` for the Phase 10
+    SIMD/kernel path and to say whether a pure-XIOM SIMD kernel package is
+    planned before they propose a second kernel package.
+- Bindings-lane position (for relay to XVECTOR/native):
+  1. `xiom-blas` / `xiom-eigen` / `xiom-openblas` exist in THIS worktree as
+     pre-rostered `incubating` placeholders (tests `unknown`; specs describe
+     CBLAS/OpenBLAS FFI, current code is stubs -- same pre-pilot state
+     `xiom.sqlite` was in). Nothing published; no timeline is promised. When the
+     bindings Phase 2 reaches them they will be opt-in accelerators behind the
+     portable `xiom.vectors` contract -- the binding API surface should mirror
+     the pure-XIOM functions, never define them.
+  2. The bindings lane plans **no pure-XIOM SIMD kernel package**; that is
+     native/stdlib territory. If `xiom.simd`-class work appears there, bindings
+     adopt it as the portable path and keep FFI libs as drop-in accelerators.
+  3. Name/scope coordination for `xiom.wal` (ORBITDB vs XVECTOR duplication) is
+     a native-lane call; this lane has no storage-format stake.
 
 ## Next (after native merge + publish confirmation)
 
