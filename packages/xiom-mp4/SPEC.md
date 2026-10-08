@@ -1,5 +1,7 @@
 # xiom.mp4 -- implementation specification
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 This document describes exactly what `src/mp4.xi` implements: the byte
 layout it reads, the validation it performs, the error strings it emits and
 what it deliberately does not do. It matches the shipped code; where the
@@ -433,3 +435,48 @@ values and fails the suite rather than being masked.
   `udta` children are not walked.
 - `stco`/`co64`/`stsz`/`elst` values beyond counts (offsets, sizes,
   segment times) are validated for framing but not exposed.
+
+## Contracts (batch #47 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (18, across the 16 functions below) were
+added to `src/mp4.xi` in the batch #47 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 33-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive timed green `& .\scripts\port.ps1 -Package xiom.mp4
+-TimeoutSec 90` runs ended `port: PASS (passed=33 failed=0 program_exit=0
+exit=0)` with the clauses active (72.85 s and 52.22 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str` (length via `.len()` only),
+uses a module constant, or reads a `&mut` parameter. Guards keep the plan's
+families: sentinel guards (`result is Err`, `result == -1`,
+`result == false`, `result.len() == 0`), exact formulas
+(`result == f.total_len`, `result == f.box_types.len()`,
+`result == f.moov_count`, `result == (f.moof_count > 0)`,
+`result == (f.first_moov_off >= 0 && f.first_mdat_off >= 0 &&
+f.first_moov_off > f.first_mdat_off)`), bounds/lengths
+(`result >= -1 && result < f.box_types.len()`), and tag guard pairs
+(`i < 0 || i >= f.box_types.len() => result is Err` / `result is Ok`).
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `mp4_parse` | 1 | buffer shorter than 8 bytes => `Err` | no | yes |
+| `mp4_total_len` | 1 | exact `f.total_len` | no | yes |
+| `mp4_box_count` | 1 | exact `f.box_types.len()` | no | yes |
+| `mp4_box_type` | 2 | out-of-range `i` => `Err`; `i` in range => `Ok` | no | yes |
+| `mp4_box_offset` | 1 | out-of-range `i` => `-1` | no | yes |
+| `mp4_box_uuid` | 1 | out-of-range `i` => `Err` | no | yes |
+| `mp4_box_is_container` | 1 | out-of-range `i` => `false` | no | yes |
+| `mp4_find_box` | 1 | `-1 <= result < f.box_types.len()` | no | yes |
+| `mp4_tree_text` | 1 | empty box pool => `result.len() == 0` | no | yes |
+| `mp4_ftyp_count` | 1 | exact `f.ftyp_offsets.len()` | no | yes |
+| `mp4_ftyp_brand` | 2 | out-of-range `i` => `Err`; negative `e` => `Err` | no | yes |
+| `mp4_mvhd_version` | 1 | out-of-range `i` => `-1` | no | yes |
+| `mp4_sample_entry_width` | 1 | out-of-range `e` => `-1` | no | yes |
+| `mp4_moov_count` | 1 | exact `f.moov_count` | no | yes |
+| `mp4_is_fragmented` | 1 | exact `f.moof_count > 0` predicate | no | yes |
+| `mp4_is_moov_at_end` | 1 | exact moov-after-first-mdat predicate | no | yes |

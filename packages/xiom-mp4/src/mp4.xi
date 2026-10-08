@@ -1039,7 +1039,9 @@ fn _walk(f: &mut Mp4File, buf: &Vec[UInt8], total: Int, start: Int, end: Int, de
 /// user type, and malformed payloads of ftyp/mvhd/tkhd/mdhd/hdlr/stsd/
 /// elst/stco/co64/stsz (see SPEC.md for the catalog). Media payloads
 /// (mdat) are never inspected; only their box framing is validated.
-pub fn mp4_parse(buffer: &Vec[UInt8]) -> Result[Mp4File, Str] {
+pub fn mp4_parse(buffer: &Vec[UInt8]) -> Result[Mp4File, Str]
+  ensures: buffer.len() < 8 => result is Err;
+{
   let total = buffer.len();
   if total < 8 {
     return _err_file("mp4: buffer too small for box header");
@@ -1058,12 +1060,16 @@ pub fn mp4_parse(buffer: &Vec[UInt8]) -> Result[Mp4File, Str] {
 // --------------------------------------------------
 
 /// Input buffer length recorded by mp4_parse.
-pub fn mp4_total_len(f: &Mp4File) -> Int {
+pub fn mp4_total_len(f: &Mp4File) -> Int
+  ensures: result == f.total_len;
+{
   return f.total_len;
 }
 
 /// Number of boxes recorded (every box at every depth, file order).
-pub fn mp4_box_count(f: &Mp4File) -> Int {
+pub fn mp4_box_count(f: &Mp4File) -> Int
+  ensures: result == f.box_types.len();
+{
   return f.box_types.len();
 }
 
@@ -1077,7 +1083,10 @@ fn _box_ok(f: &Mp4File, i: Int) -> Bool {
 
 /// Four character code of box `i`. Err("mp4: box index out of range") when
 /// `i` is out of bounds.
-pub fn mp4_box_type(f: &Mp4File, i: Int) -> Result[Str, Str] {
+pub fn mp4_box_type(f: &Mp4File, i: Int) -> Result[Str, Str]
+  ensures: i < 0 || i >= f.box_types.len() => result is Err;
+  ensures: i >= 0 && i < f.box_types.len() => result is Ok;
+{
   if !_box_ok(f, i) {
     return _err_str("mp4: box index out of range");
   }
@@ -1087,7 +1096,9 @@ pub fn mp4_box_type(f: &Mp4File, i: Int) -> Result[Str, Str] {
 }
 
 /// Absolute start offset of box `i`; -1 when out of bounds.
-pub fn mp4_box_offset(f: &Mp4File, i: Int) -> Int {
+pub fn mp4_box_offset(f: &Mp4File, i: Int) -> Int
+  ensures: i < 0 || i >= f.box_types.len() => result == -1;
+{
   if !_box_ok(f, i) {
     return -1;
   }
@@ -1140,7 +1151,9 @@ pub fn mp4_box_parent(f: &Mp4File, i: Int) -> Int {
 
 /// 32 lowercase hex digits of the user type for a uuid box; Err
 /// ("mp4: box is not uuid" or "mp4: box index out of range") otherwise.
-pub fn mp4_box_uuid(f: &Mp4File, i: Int) -> Result[Str, Str] {
+pub fn mp4_box_uuid(f: &Mp4File, i: Int) -> Result[Str, Str]
+  ensures: i < 0 || i >= f.box_types.len() => result is Err;
+{
   if !_box_ok(f, i) {
     return _err_str("mp4: box index out of range");
   }
@@ -1155,7 +1168,9 @@ pub fn mp4_box_uuid(f: &Mp4File, i: Int) -> Result[Str, Str] {
 }
 
 /// True when box `i` is a container whose children were walked.
-pub fn mp4_box_is_container(f: &Mp4File, i: Int) -> Bool {
+pub fn mp4_box_is_container(f: &Mp4File, i: Int) -> Bool
+  ensures: i < 0 || i >= f.box_types.len() => result == false;
+{
   if !_box_ok(f, i) {
     return false;
   }
@@ -1165,7 +1180,9 @@ pub fn mp4_box_is_container(f: &Mp4File, i: Int) -> Bool {
 }
 
 /// Index of the first box whose type equals `t` in file order, or -1.
-pub fn mp4_find_box(f: &Mp4File, t: Str) -> Int {
+pub fn mp4_find_box(f: &Mp4File, t: Str) -> Int
+  ensures: result >= -1 && result < f.box_types.len();
+{
   var i = 0;
   let n = f.box_types.len();
   while i < n {
@@ -1182,7 +1199,9 @@ pub fn mp4_find_box(f: &Mp4File, t: Str) -> Int {
 /// Depth-limited indented listing of the box tree, one line per box:
 /// two spaces per nesting level, then the fourcc, an optional `uuid=<hex>`
 /// and `size=`/`off=` fields. Ends with a newline; "" for an empty file.
-pub fn mp4_tree_text(f: &Mp4File) -> Str {
+pub fn mp4_tree_text(f: &Mp4File) -> Str
+  ensures: f.box_types.len() == 0 => result.len() == 0;
+{
   var sb = builder.sb_new();
   var i = 0;
   let n = f.box_types.len();
@@ -1222,7 +1241,9 @@ pub fn mp4_tree_text(f: &Mp4File) -> Str {
 // --------------------------------------------------
 
 /// Number of ftyp boxes.
-pub fn mp4_ftyp_count(f: &Mp4File) -> Int {
+pub fn mp4_ftyp_count(f: &Mp4File) -> Int
+  ensures: result == f.ftyp_offsets.len();
+{
   return f.ftyp_offsets.len();
 }
 
@@ -1257,7 +1278,10 @@ pub fn mp4_ftyp_brand_count(f: &Mp4File, i: Int) -> Int {
 }
 
 /// Compatible brand `e` of ftyp box `i`.
-pub fn mp4_ftyp_brand(f: &Mp4File, i: Int, e: Int) -> Result[Str, Str] {
+pub fn mp4_ftyp_brand(f: &Mp4File, i: Int, e: Int) -> Result[Str, Str]
+  ensures: i < 0 || i >= f.ftyp_brand_offsets.len() => result is Err;
+  ensures: e < 0 => result is Err;
+{
   if i < 0 || i >= f.ftyp_brand_offsets.len() {
     return _err_str("mp4: ftyp index out of range");
   }
@@ -1288,7 +1312,9 @@ pub fn mp4_mvhd_count(f: &Mp4File) -> Int {
 }
 
 /// Version (0 or 1) of mvhd box `i`; -1 when out of bounds.
-pub fn mp4_mvhd_version(f: &Mp4File, i: Int) -> Int {
+pub fn mp4_mvhd_version(f: &Mp4File, i: Int) -> Int
+  ensures: i < 0 || i >= f.mvhd_versions.len() => result == -1;
+{
   if i < 0 || i >= f.mvhd_versions.len() {
     return -1;
   }
@@ -1484,7 +1510,9 @@ pub fn mp4_sample_entry_fourcc(f: &Mp4File, e: Int) -> Result[Str, Str] {
 
 /// Width of visual sample entry `e` in pixels, or -1 for non-visual
 /// entries and out-of-range indices.
-pub fn mp4_sample_entry_width(f: &Mp4File, e: Int) -> Int {
+pub fn mp4_sample_entry_width(f: &Mp4File, e: Int) -> Int
+  ensures: e < 0 || e >= f.entry_widths.len() => result == -1;
+{
   if e < 0 || e >= f.entry_widths.len() {
     return -1;
   }
@@ -1608,7 +1636,9 @@ pub fn mp4_stsz_uniform_size(f: &Mp4File, i: Int) -> Int {
 // --------------------------------------------------
 
 /// Number of top-level moov boxes.
-pub fn mp4_moov_count(f: &Mp4File) -> Int {
+pub fn mp4_moov_count(f: &Mp4File) -> Int
+  ensures: result == f.moov_count;
+{
   return f.moov_count;
 }
 
@@ -1623,7 +1653,9 @@ pub fn mp4_mdat_count(f: &Mp4File) -> Int {
 }
 
 /// True when the file carries at least one movie fragment (moof).
-pub fn mp4_is_fragmented(f: &Mp4File) -> Bool {
+pub fn mp4_is_fragmented(f: &Mp4File) -> Bool
+  ensures: result == (f.moof_count > 0);
+{
   return f.moof_count > 0;
 }
 
@@ -1634,7 +1666,9 @@ pub fn mp4_has_mdat(f: &Mp4File) -> Bool {
 
 /// True when moov appears after the first mdat (progressive-download /
 /// moov-at-end layout).
-pub fn mp4_is_moov_at_end(f: &Mp4File) -> Bool {
+pub fn mp4_is_moov_at_end(f: &Mp4File) -> Bool
+  ensures: result == (f.first_moov_off >= 0 && f.first_mdat_off >= 0 && f.first_moov_off > f.first_mdat_off);
+{
   if f.first_moov_off < 0 {
     return false;
   }
