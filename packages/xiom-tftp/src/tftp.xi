@@ -424,14 +424,20 @@ fn _build_rq(op: Int, filename: Str, mode: Str, names: &Vec[Str], values: &Vec[S
 /// filename", "tftp: bad mode", "tftp: option pool mismatch" and the
 /// per-option catalog (see SPEC.md).
 /// Complexity: O(filename + mode + option bytes).
-pub fn tftp_build_rrq(filename: Str, mode: Str, option_names: &Vec[Str], option_values: &Vec[Str]) -> Result[Vec[UInt8], Str] {
+pub fn tftp_build_rrq(filename: Str, mode: Str, option_names: &Vec[Str], option_values: &Vec[Str]) -> Result[Vec[UInt8], Str]
+  ensures: _build_rq(1, filename, mode, option_names, option_values) is Err => result is Err;
+  ensures: _build_rq(1, filename, mode, option_names, option_values) is Ok => result is Ok;
+{
   return _build_rq(TFTP_OPCODE_RRQ, filename, mode, option_names, option_values);
 }
 
 /// Build a write request (opcode 2): `[u16 2][filename 0x00][mode 0x00]`
 /// followed by the option TLVs. Identical rules to `tftp_build_rrq`.
 /// Complexity: O(filename + mode + option bytes).
-pub fn tftp_build_wrq(filename: Str, mode: Str, option_names: &Vec[Str], option_values: &Vec[Str]) -> Result[Vec[UInt8], Str] {
+pub fn tftp_build_wrq(filename: Str, mode: Str, option_names: &Vec[Str], option_values: &Vec[Str]) -> Result[Vec[UInt8], Str]
+  ensures: _build_rq(2, filename, mode, option_names, option_values) is Err => result is Err;
+  ensures: _build_rq(2, filename, mode, option_names, option_values) is Ok => result is Ok;
+{
   return _build_rq(TFTP_OPCODE_WRQ, filename, mode, option_names, option_values);
 }
 
@@ -441,7 +447,10 @@ pub fn tftp_build_wrq(filename: Str, mode: Str, option_names: &Vec[Str], option_
 /// (65464) bytes, the RFC 2348 hard maximum -- Err("tftp: payload too
 /// long") otherwise. Content bytes are copied verbatim (0x00 included).
 /// Complexity: O(payload).
-pub fn tftp_build_data(block: Int, payload: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn tftp_build_data(block: Int, payload: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: payload.len() > 65464 => result is Err;
+  ensures: payload.len() <= 65464 => result is Ok;
+{
   let n = payload.len();
   if n > TFTP_BLKSIZE_MAX {
     return _err_bytes("tftp: payload too long");
@@ -459,7 +468,9 @@ pub fn tftp_build_data(block: Int, payload: &Vec[UInt8]) -> Result[Vec[UInt8], S
 
 /// Build an ACK packet (opcode 4): `[u16 4][u16 block]`, exactly 4 bytes.
 /// `block` is clamped to 0..65535. Complexity: O(1).
-pub fn tftp_build_ack(block: Int) -> Result[Vec[UInt8], Str] {
+pub fn tftp_build_ack(block: Int) -> Result[Vec[UInt8], Str]
+  ensures: result is Ok;
+{
   var out = Vec[UInt8].new();
   _push_u16(&mut out, TFTP_OPCODE_ACK);
   _push_u16(&mut out, _clamp_u16(block));
@@ -470,7 +481,9 @@ pub fn tftp_build_ack(block: Int) -> Result[Vec[UInt8], Str] {
 /// `code` is clamped to 0..65535; `message` bytes are copied verbatim (no
 /// charset check; see the RFC 1350 code table in `tftp_error_name`).
 /// Complexity: O(message).
-pub fn tftp_build_error(code: Int, message: Str) -> Result[Vec[UInt8], Str] {
+pub fn tftp_build_error(code: Int, message: Str) -> Result[Vec[UInt8], Str]
+  ensures: result is Ok;
+{
   var out = Vec[UInt8].new();
   _push_u16(&mut out, TFTP_OPCODE_ERROR);
   _push_u16(&mut out, _clamp_u16(code));
@@ -483,7 +496,11 @@ pub fn tftp_build_error(code: Int, message: Str) -> Result[Vec[UInt8], Str] {
 /// Err("tftp: empty OACK") for empty pools; the option catalog otherwise
 /// (including "tftp: option pool mismatch").
 /// Complexity: O(option bytes).
-pub fn tftp_build_oack(option_names: &Vec[Str], option_values: &Vec[Str]) -> Result[Vec[UInt8], Str] {
+pub fn tftp_build_oack(option_names: &Vec[Str], option_values: &Vec[Str]) -> Result[Vec[UInt8], Str]
+  ensures: option_names.len() != option_values.len() => result is Err;
+  ensures: option_names.len() == 0 => result is Err;
+  ensures: _options_error(option_names, option_values).len() == 0 && option_names.len() > 0 => result is Ok;
+{
   let oerr = _options_error(option_names, option_values);
   if oerr.len() > 0 {
     return _err_bytes(oerr);
@@ -510,7 +527,19 @@ pub fn tftp_build_oack(option_names: &Vec[Str], option_values: &Vec[Str]) -> Res
 /// on the wire survive parse->emit byte-for-byte; non-canonical casing or
 /// unknown filler does not.
 /// Complexity: O(packet bytes).
-pub fn tftp_emit(p: &TftpPacket) -> Result[Vec[UInt8], Str] {
+pub fn tftp_emit(p: &TftpPacket) -> Result[Vec[UInt8], Str]
+  ensures: p.opcode < 1 || p.opcode > 6 => result is Err;
+  ensures: p.opcode == 1 && tftp_build_rrq(p.filename, p.mode, p.option_names, p.option_values) is Err => result is Err;
+  ensures: p.opcode == 1 && tftp_build_rrq(p.filename, p.mode, p.option_names, p.option_values) is Ok => result is Ok;
+  ensures: p.opcode == 2 && tftp_build_wrq(p.filename, p.mode, p.option_names, p.option_values) is Err => result is Err;
+  ensures: p.opcode == 2 && tftp_build_wrq(p.filename, p.mode, p.option_names, p.option_values) is Ok => result is Ok;
+  ensures: p.opcode == 3 && tftp_build_data(p.block, p.payload) is Err => result is Err;
+  ensures: p.opcode == 3 && tftp_build_data(p.block, p.payload) is Ok => result is Ok;
+  ensures: p.opcode == 4 => result is Ok;
+  ensures: p.opcode == 5 => result is Ok;
+  ensures: p.opcode == 6 && tftp_build_oack(p.option_names, p.option_values) is Err => result is Err;
+  ensures: p.opcode == 6 && tftp_build_oack(p.option_names, p.option_values) is Ok => result is Ok;
+{
   let op: Int = p.opcode;
   let fnm: Str = p.filename;
   let md: Str = p.mode;
@@ -544,7 +573,11 @@ pub fn tftp_emit(p: &TftpPacket) -> Result[Vec[UInt8], Str] {
 /// 6 (OACK). Err("tftp: short packet") when fewer than 2 bytes are
 /// present; Err("tftp: unknown opcode") when the big-endian value is
 /// outside 1..6. Complexity: O(1).
-pub fn tftp_op(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn tftp_op(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: data.len() >= 2 && _u16(data, 0) >= 1 && _u16(data, 0) <= 6 => result is Ok;
+  ensures: data.len() >= 2 && (_u16(data, 0) < 1 || _u16(data, 0) > 6) => result is Err;
+{
   if data.len() < 2 {
     return _err_int("tftp: short packet");
   }
@@ -588,7 +621,11 @@ fn _parse_options(data: &Vec[UInt8], start: Int, names: &mut Vec[Str], values: &
 // Shared RRQ/WRQ parser. Precedence: length, opcode kind, filename NUL,
 // filename content, mode NUL, mode content, option TLVs. Trailing bytes
 // can only be an unterminated option field, which reports "missing NUL".
-fn _parse_rq(data: &Vec[UInt8], want_op: Int) -> Result[TftpPacket, Str] {
+fn _parse_rq(data: &Vec[UInt8], want_op: Int) -> Result[TftpPacket, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: data.len() >= 2 && _u16(data, 0) != want_op => result is Err;
+  ensures: result is Ok => data.len() >= 9;
+{
   let total = data.len();
   if total < 2 {
     return _err_packet("tftp: short packet");
@@ -649,14 +686,20 @@ fn _parse_rq(data: &Vec[UInt8], want_op: Int) -> Result[TftpPacket, Str] {
 /// including unknown values), "tftp: missing NUL", "tftp: bad filename",
 /// "tftp: bad mode", then the option catalog.
 /// Complexity: O(packet bytes).
-pub fn tftp_parse_rrq(data: &Vec[UInt8]) -> Result[TftpPacket, Str] {
+pub fn tftp_parse_rrq(data: &Vec[UInt8]) -> Result[TftpPacket, Str]
+  ensures: _parse_rq(data, 1) is Err => result is Err;
+  ensures: _parse_rq(data, 1) is Ok => result is Ok;
+{
   return _parse_rq(data, TFTP_OPCODE_RRQ);
 }
 
 /// Parse a WRQ (opcode 2) with its trailing option TLVs. Identical rules
 /// to `tftp_parse_rrq`, with "tftp: not a WRQ" for a non-WRQ opcode.
 /// Complexity: O(packet bytes).
-pub fn tftp_parse_wrq(data: &Vec[UInt8]) -> Result[TftpPacket, Str] {
+pub fn tftp_parse_wrq(data: &Vec[UInt8]) -> Result[TftpPacket, Str]
+  ensures: _parse_rq(data, 2) is Err => result is Err;
+  ensures: _parse_rq(data, 2) is Ok => result is Ok;
+{
   return _parse_rq(data, TFTP_OPCODE_WRQ);
 }
 
@@ -670,7 +713,11 @@ pub fn tftp_parse_wrq(data: &Vec[UInt8]) -> Result[TftpPacket, Str] {
 /// Errors: "tftp: short packet" (< 4 bytes), "tftp: not a DATA packet"
 /// (other opcode), "tftp: payload too long" (> 65464 bytes).
 /// Complexity: O(payload).
-pub fn tftp_parse_data(data: &Vec[UInt8]) -> Result[TftpPacket, Str] {
+pub fn tftp_parse_data(data: &Vec[UInt8]) -> Result[TftpPacket, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: data.len() > 65468 => result is Err;
+  ensures: result is Ok => data.len() >= 4 && data.len() <= 65468;
+{
   let total = data.len();
   if total < 2 {
     return _err_packet("tftp: short packet");
@@ -707,7 +754,11 @@ pub fn tftp_parse_data(data: &Vec[UInt8]) -> Result[TftpPacket, Str] {
 /// Errors: "tftp: short packet" (< 4 bytes), "tftp: not an ACK" (other
 /// opcode), "tftp: trailing bytes" (> 4 bytes).
 /// Complexity: O(1).
-pub fn tftp_parse_ack(data: &Vec[UInt8]) -> Result[TftpPacket, Str] {
+pub fn tftp_parse_ack(data: &Vec[UInt8]) -> Result[TftpPacket, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: data.len() > 4 => result is Err;
+  ensures: result is Ok => data.len() == 4;
+{
   let total = data.len();
   if total < 2 {
     return _err_packet("tftp: short packet");
@@ -748,7 +799,10 @@ pub fn tftp_parse_ack(data: &Vec[UInt8]) -> Result[TftpPacket, Str] {
 /// (other opcode), "tftp: missing NUL", "tftp: trailing bytes" (bytes
 /// after the terminator).
 /// Complexity: O(message).
-pub fn tftp_parse_error(data: &Vec[UInt8]) -> Result[TftpPacket, Str] {
+pub fn tftp_parse_error(data: &Vec[UInt8]) -> Result[TftpPacket, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: result is Ok => data.len() >= 5;
+{
   let total = data.len();
   if total < 2 {
     return _err_packet("tftp: short packet");
@@ -790,7 +844,11 @@ pub fn tftp_parse_error(data: &Vec[UInt8]) -> Result[TftpPacket, Str] {
 /// bare 2-byte packet, "tftp: missing NUL" for a partial TLV, then the
 /// option catalog. Known option names are stored canonically lowercase.
 /// Complexity: O(option bytes).
-pub fn tftp_parse_oack(data: &Vec[UInt8]) -> Result[TftpPacket, Str] {
+pub fn tftp_parse_oack(data: &Vec[UInt8]) -> Result[TftpPacket, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: data.len() == 2 => result is Err;
+  ensures: result is Ok => data.len() >= 5;
+{
   let total = data.len();
   if total < 2 {
     return _err_packet("tftp: short packet");
@@ -829,7 +887,21 @@ pub fn tftp_parse_oack(data: &Vec[UInt8]) -> Result[TftpPacket, Str] {
 /// reported here; every other error comes from the per-kind parser, whose
 /// "not an X" branches are then unreachable.
 /// Complexity: O(packet bytes).
-pub fn tftp_parse(data: &Vec[UInt8]) -> Result[TftpPacket, Str] {
+pub fn tftp_parse(data: &Vec[UInt8]) -> Result[TftpPacket, Str]
+  ensures: tftp_op(data) is Err => result is Err;
+  ensures: data.len() >= 2 && _u16(data, 0) == 1 && tftp_parse_rrq(data) is Err => result is Err;
+  ensures: data.len() >= 2 && _u16(data, 0) == 1 && tftp_parse_rrq(data) is Ok => result is Ok;
+  ensures: data.len() >= 2 && _u16(data, 0) == 2 && tftp_parse_wrq(data) is Err => result is Err;
+  ensures: data.len() >= 2 && _u16(data, 0) == 2 && tftp_parse_wrq(data) is Ok => result is Ok;
+  ensures: data.len() >= 2 && _u16(data, 0) == 3 && tftp_parse_data(data) is Err => result is Err;
+  ensures: data.len() >= 2 && _u16(data, 0) == 3 && tftp_parse_data(data) is Ok => result is Ok;
+  ensures: data.len() >= 2 && _u16(data, 0) == 4 && tftp_parse_ack(data) is Err => result is Err;
+  ensures: data.len() >= 2 && _u16(data, 0) == 4 && tftp_parse_ack(data) is Ok => result is Ok;
+  ensures: data.len() >= 2 && _u16(data, 0) == 5 && tftp_parse_error(data) is Err => result is Err;
+  ensures: data.len() >= 2 && _u16(data, 0) == 5 && tftp_parse_error(data) is Ok => result is Ok;
+  ensures: data.len() >= 2 && _u16(data, 0) == 6 && tftp_parse_oack(data) is Err => result is Err;
+  ensures: data.len() >= 2 && _u16(data, 0) == 6 && tftp_parse_oack(data) is Ok => result is Ok;
+{
   let op = tftp_op(data);
   if !op.is_ok {
     return _err_packet(op.error);
@@ -864,7 +936,12 @@ pub fn tftp_opcode(p: &TftpPacket) -> Int {
 
 /// Short uppercase name of an opcode: "RRQ", "WRQ", "DATA", "ACK",
 /// "ERROR", "OACK", or "UNKNOWN" for anything else. Complexity: O(1).
-pub fn tftp_opcode_name(op: Int) -> Str {
+pub fn tftp_opcode_name(op: Int) -> Str
+  ensures: op < 1 || op > 6 => result.len() == 7;
+  ensures: op == 1 || op == 2 || op == 4 => result.len() == 3;
+  ensures: op == 3 || op == 6 => result.len() == 4;
+  ensures: op == 5 => result.len() == 5;
+{
   if op == TFTP_OPCODE_RRQ {
     return "RRQ";
   }
@@ -915,7 +992,17 @@ pub fn tftp_error_code(p: &TftpPacket) -> Int {
 /// 4 "illegal operation", 5 "unknown transfer id", 6 "file already
 /// exists", 7 "no such user"; any other value gives "unknown" (the codec
 /// accepts any unsigned 16-bit code). Complexity: O(1).
-pub fn tftp_error_name(code: Int) -> Str {
+pub fn tftp_error_name(code: Int) -> Str
+  ensures: code < 0 || code > 7 => result.len() == 7;
+  ensures: code == 0 => result.len() == 11;
+  ensures: code == 1 => result.len() == 14;
+  ensures: code == 2 => result.len() == 16;
+  ensures: code == 3 => result.len() == 9;
+  ensures: code == 4 => result.len() == 17;
+  ensures: code == 5 => result.len() == 19;
+  ensures: code == 6 => result.len() == 19;
+  ensures: code == 7 => result.len() == 12;
+{
   if code == 0 {
     return "not defined";
   }
@@ -952,7 +1039,10 @@ pub fn tftp_error_message(p: &TftpPacket) -> Str {
 /// Number of option TLVs in the packet's pools (RRQ/WRQ/OACK). Returns 0
 /// when the two pools somehow differ in length, so the count is always a
 /// safe index bound for the option accessors. Complexity: O(1).
-pub fn tftp_option_count(p: &TftpPacket) -> Int {
+pub fn tftp_option_count(p: &TftpPacket) -> Int
+  ensures: p.option_names.len() != p.option_values.len() => result == 0;
+  ensures: p.option_names.len() == p.option_values.len() => result == p.option_names.len();
+{
   let n = p.option_names.len();
   if p.option_values.len() != n {
     return 0;
@@ -963,7 +1053,9 @@ pub fn tftp_option_count(p: &TftpPacket) -> Int {
 /// Name of option `i` (wire order), or "" when `i` is outside
 /// 0..tftp_option_count(p)-1. Names of known options are canonical
 /// lowercase; unknown names are carried verbatim. Complexity: O(1).
-pub fn tftp_option_name(p: &TftpPacket, i: Int) -> Str {
+pub fn tftp_option_name(p: &TftpPacket, i: Int) -> Str
+  ensures: i < 0 || i >= p.option_names.len() => result.len() == 0;
+{
   if i < 0 {
     return "";
   }
@@ -976,7 +1068,9 @@ pub fn tftp_option_name(p: &TftpPacket, i: Int) -> Str {
 
 /// Value of option `i` (wire order), or "" when `i` is outside
 /// 0..tftp_option_count(p)-1. Values are always verbatim. Complexity: O(1).
-pub fn tftp_option_value(p: &TftpPacket, i: Int) -> Str {
+pub fn tftp_option_value(p: &TftpPacket, i: Int) -> Str
+  ensures: i < 0 || i >= p.option_values.len() => result.len() == 0;
+{
   if i < 0 {
     return "";
   }
@@ -995,7 +1089,10 @@ pub fn tftp_payload_len(p: &TftpPacket) -> Int {
 
 /// Payload byte `i` as an Int 0..255, or -1 when `i` is outside the
 /// payload span 0..tftp_payload_len(p)-1. Complexity: O(1).
-pub fn tftp_payload_byte(p: &TftpPacket, i: Int) -> Int {
+pub fn tftp_payload_byte(p: &TftpPacket, i: Int) -> Int
+  ensures: i < 0 || i >= p.payload.len() => result == -1;
+  ensures: i >= 0 && i < p.payload.len() => result >= 0 && result <= 255;
+{
   if i < 0 {
     return -1;
   }
@@ -1025,7 +1122,11 @@ pub fn tftp_payload_copy(p: &TftpPacket) -> Vec[UInt8] {
 /// follows RFC 2348. Always false for non-DATA packets. Duplicate or
 /// re-sent blocks are accepted without state, per the re-sent block
 /// policy documented in SPEC.md. Complexity: O(1).
-pub fn tftp_is_last_block(p: &TftpPacket, blksize: Int) -> Bool {
+pub fn tftp_is_last_block(p: &TftpPacket, blksize: Int) -> Bool
+  ensures: p.opcode != 3 => result == false;
+  ensures: p.opcode == 3 && (blksize < 8 || blksize > 65464) => result == (p.payload.len() < 512);
+  ensures: p.opcode == 3 && blksize >= 8 && blksize <= 65464 => result == (p.payload.len() < blksize);
+{
   if p.opcode != TFTP_OPCODE_DATA {
     return false;
   }

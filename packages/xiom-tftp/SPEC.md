@@ -1,8 +1,6 @@
 # xiom.tftp -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.tftp`, version `0.1.0`, category `network`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/tftp.xi` (`module xiom.tftp`).
 Depends on `xiom.std`; the library module imports `xiom.string` and
 `xiom.string.builder` (the tests additionally use `xiom.test`, `xiom.io`,
@@ -322,7 +320,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.tftp
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=24 failed=0 program_exit=0 exit=0)`.
 
 ## 11. Known limitations
@@ -355,3 +353,78 @@ Last verified: compiler 0.61.3,
 - No function builds a `Vec` inside a match arm over a tuple-Result;
   there are no match arms and no tuple-Result payloads at all.
 - The module declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #41 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/tftp.xi` in the batch #41
+hardening pass (compiler v0.64.0; `package.xi` is left for the coordinator to
+bump at integration). 78 clauses over 23 entry points, all `ensures:` (no
+`requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.tftp -TimeoutSec 60` runs ended
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses
+active (8.57 s and 7.63 s); no clause trapped.
+
+Every clause holds for hand-built values and structs: the guards keep the
+source's own validation branches, and only parameters, parameter fields,
+plain `Str`/`Int`/`Bool` returns and definitional cross-calls are read. No
+clause reads a bare `&mut` parameter, indexes a vector, uses a module
+constant, compares `Str` values with `==`, reads a struct-Result payload
+field or uses `result.value.0/.1`. The clause calls are the non-re-entrant
+definitional ones (`_build_rq`, `_parse_rq`, `_options_error`, `_u16`,
+`tftp_op`, the six per-kind parsers and the six builders); no callee
+transitively reaches its caller.
+
+Three plan expressions were refined (each probe-verified against compiler
+v0.64.0 before the port):
+
+- the plan's direct Result-equality cross-calls (`result == _build_rq(...)`,
+  `result == _parse_rq(...)`, `result == tftp_build_<kind>(...)`,
+  `result == tftp_parse_<kind>(...)`) became status guard pairs
+  (`helper(...) is Err => result is Err` plus the `is Ok` twin): `==` on a
+  `Result` with a `Vec` payload compares fresh allocations and traps at
+  runtime, and `==` on a struct-payload `Result` fails codegen
+  (`icmp eq %struct`), so equality is unusable there;
+- the plan's dispatch chain (`tftp_op(data) is Ok(1) => ...`) became
+  `data.len() >= 2 && _u16(data, 0) == N` guards for N in 1..6: the
+  `is Ok(1)` literal pattern compiles but ignores its payload literal
+  (probed: it matches any `Ok`), which would falsify the chain;
+- `tftp_build_oack`'s "equal non-empty pools => Ok" became
+  `_options_error(option_names, option_values).len() == 0 && option_names.len() > 0
+  => result is Ok`, because equal pools with invalid TLV values are `Err`.
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it
+can emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `tftp_build_rrq` | `_build_rq(1, filename, mode, option_names, option_values) is Err => result is Err`; `... is Ok => result is Ok` | runtime-checked |
+| `tftp_build_wrq` | `_build_rq(2, filename, mode, option_names, option_values) is Err => result is Err`; `... is Ok => result is Ok` | runtime-checked |
+| `tftp_build_data` | `payload.len() > 65464 => result is Err`; `payload.len() <= 65464 => result is Ok` | runtime-checked |
+| `tftp_build_ack` | `result is Ok` | runtime-checked |
+| `tftp_build_error` | `result is Ok` | runtime-checked |
+| `tftp_build_oack` | `option_names.len() != option_values.len() => result is Err`; `option_names.len() == 0 => result is Err`; `_options_error(option_names, option_values).len() == 0 && option_names.len() > 0 => result is Ok` | runtime-checked |
+| `tftp_emit` | `p.opcode < 1 \|\| p.opcode > 6 => result is Err`; for opcode N in {1,2}: `tftp_build_<rq>(p.filename, p.mode, p.option_names, p.option_values) is Err/Ok => result is Err/Ok`; N == 3: `tftp_build_data(p.block, p.payload) is Err/Ok => result is Err/Ok`; `p.opcode == 4 => result is Ok`; `p.opcode == 5 => result is Ok`; N == 6: `tftp_build_oack(p.option_names, p.option_values) is Err/Ok => result is Err/Ok` | runtime-checked |
+| `tftp_op` | `data.len() < 2 => result is Err`; `data.len() >= 2 && _u16(data, 0) >= 1 && _u16(data, 0) <= 6 => result is Ok`; `data.len() >= 2 && (_u16(data, 0) < 1 \|\| _u16(data, 0) > 6) => result is Err` | runtime-checked |
+| `_parse_rq` | `data.len() < 2 => result is Err`; `data.len() >= 2 && _u16(data, 0) != want_op => result is Err`; `result is Ok => data.len() >= 9` | runtime-checked |
+| `tftp_parse_rrq` | `_parse_rq(data, 1) is Err => result is Err`; `_parse_rq(data, 1) is Ok => result is Ok` | runtime-checked |
+| `tftp_parse_wrq` | `_parse_rq(data, 2) is Err => result is Err`; `_parse_rq(data, 2) is Ok => result is Ok` | runtime-checked |
+| `tftp_parse_data` | `data.len() < 2 => result is Err`; `data.len() > 65468 => result is Err`; `result is Ok => data.len() >= 4 && data.len() <= 65468` | runtime-checked |
+| `tftp_parse_ack` | `data.len() < 2 => result is Err`; `data.len() > 4 => result is Err`; `result is Ok => data.len() == 4` | runtime-checked |
+| `tftp_parse_error` | `data.len() < 2 => result is Err`; `result is Ok => data.len() >= 5` | runtime-checked |
+| `tftp_parse_oack` | `data.len() < 2 => result is Err`; `data.len() == 2 => result is Err`; `result is Ok => data.len() >= 5` | runtime-checked |
+| `tftp_parse` | `tftp_op(data) is Err => result is Err`; for each opcode N in 1..6 and its `<kind>`, `data.len() >= 2 && _u16(data, 0) == N && tftp_parse_<kind>(data) is Err => result is Err` and the `is Ok => result is Ok` twin | runtime-checked |
+| `tftp_opcode_name` | `op < 1 \|\| op > 6 => result.len() == 7`; `op == 1 \|\| op == 2 \|\| op == 4 => result.len() == 3`; `op == 3 \|\| op == 6 => result.len() == 4`; `op == 5 => result.len() == 5` | runtime-checked |
+| `tftp_error_name` | `code < 0 \|\| code > 7 => result.len() == 7`; `code == 0 => result.len() == 11`; `code == 1 => result.len() == 14`; `code == 2 => result.len() == 16`; `code == 3 => result.len() == 9`; `code == 4 => result.len() == 17`; `code == 5 => result.len() == 19`; `code == 6 => result.len() == 19`; `code == 7 => result.len() == 12` | runtime-checked |
+| `tftp_option_count` | `p.option_names.len() != p.option_values.len() => result == 0`; `p.option_names.len() == p.option_values.len() => result == p.option_names.len()` | runtime-checked |
+| `tftp_option_name` | `i < 0 \|\| i >= p.option_names.len() => result.len() == 0` | runtime-checked |
+| `tftp_option_value` | `i < 0 \|\| i >= p.option_values.len() => result.len() == 0` | runtime-checked |
+| `tftp_payload_byte` | `i < 0 \|\| i >= p.payload.len() => result == -1`; `i >= 0 && i < p.payload.len() => result >= 0 && result <= 255` | runtime-checked |
+| `tftp_is_last_block` | `p.opcode != 3 => result == false`; `p.opcode == 3 && (blksize < 8 \|\| blksize > 65464) => result == (p.payload.len() < 512)`; `p.opcode == 3 && blksize >= 8 && blksize <= 65464 => result == (p.payload.len() < blksize)` | runtime-checked |
+
+Toolchain findings from the probe runs (v0.64.0): `==` on a `Result` with a
+`Vec` payload is unusable in clauses (fresh allocations compare unequal,
+trapping at runtime); `==` on a `Result` with a struct payload fails codegen
+(`icmp eq %struct`); the `is Ok(N)` literal pattern parses but matches any
+`Ok(N)` payload (the literal is ignored), so opcode dispatch must compare
+`_u16(data, 0)` instead. None of these affected the shipped source; every
+clause was re-expressed with a proven family.
