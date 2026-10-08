@@ -1,0 +1,4 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/../../../../../packages/xiom-sqlite/vendor/sqlite3.c"
+]
