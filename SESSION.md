@@ -14,7 +14,24 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-08 22:10Z (batch #47 dispatched; grpc compat fix in correction; bindings batch 14 live; supersedes the 20:20Z block below):**
+**STATE AT 2026-10-08 22:35Z (batch #47 COMPLETE + PUBLISHED `eco-v0.1.111`; xiom.grpc 0.1.1 live; supersedes the 22:10Z block below):**
+- **Batch #47 DONE + PUBLISHED (`eco-v0.1.111`, run `37853047324` SUCCESS; all six live):**
+  `junit` 0.1.2 (25 clauses; 22/22; `7cc2f458`), `usb` 0.1.2 (22; 20/20; `b70009f6`),
+  `snmp` 0.1.2 (27; 19/19; `6d3f6951`), `thrift` 0.1.2 (21; 24/24; `19871958`), `imap`
+  0.1.2 (20; 18/18; `72d08343`), `mp4` 0.1.2 (18; 33/33; `07fc7c5f`); 133 clauses total;
+  wrap `3e55aae5`. **~13 zero-clause stable carriers remain** (next: `bonjour` ~1699,
+  rescan at batch #48).
+- **`xiom.grpc` 0.1.1 published (`eco-v0.1.110`)**: catalog-dep gate closed -- submodule
+  wrappers renamed (`srv_*`/`cli_*`), raw extern names/linker symbols unchanged; consumer
+  harness 0 T001, port 36/36 x2.
+- Bindings batches 9-14 published through ozz (`eco-v0.1.109`); compression/animation tier
+  complete; next sector awaiting the lane's proposal. `xiom.http` 0.1.2 live (`eco-v0.1.103`).
+- v0.64.1 rules unchanged. Credential: `Lefteris-Notas` active (an Ngonart flip 403'd one
+  push; switched back).
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-08 22:10Z (batch #47 dispatched; grpc compat fix corrected; bindings batch 14 live; supersedes the 20:20Z block below):**
 - **Batch #46 DONE + PUBLISHED (`eco-v0.1.108`, run `37837844224` SUCCESS; all six live):**
   `mkv` 0.1.2 (36 clauses; 20/20; `7e124e47`), `webp` 0.1.2 (25; 20/20; `8c3e73dc`),
   `gguf` 0.1.2 (39; 24/24; `47cafb1c`), `snbt` 0.1.2 (36; 22/22; `7f3e6b4a`), `wkt` 0.1.2
@@ -1977,15 +1994,15 @@ Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin **v0.64.1** (official archive SHA256-verified; install byte-identical;
 repin commit 4e12f80a; COMPILER_VERSION + 519 records aligned); NO XIOM_RUNTIME_DIR needed.
-Validate 519/0; guard 505/476/29/0 (re-check at start). The official v0.64.1 battery is DONE
-(docs/COMPILER-FINDINGS.md section). Batch #46 published (`eco-v0.1.108`: mkv/webp/gguf/
-snbt/wkt/flac; earlier #44 `eco-v0.1.101`, #45 `eco-v0.1.104`). Bindings batches 2-13
-published (last: lzfse 0.2.0 in `eco-v0.1.107`); next: `xiom.ozz`. FFI catalog-dep sweep
-done: rest/protobuf/sqlite/opengl/vulkan CLEAN, **`xiom.grpc` RED (6 T001 module-identity
-ambiguity) -- compat pass queued**. ~19 zero-clause stable carriers remain (next: `junit`).
+Validate 519/0; guard 505/477/28/0 (re-check at start). The official v0.64.1 battery is DONE.
+Batch #47 published (`eco-v0.1.111`: junit/usb/snmp/thrift/imap/mp4); earlier #44 `eco-v0.1.101`,
+#45 `eco-v0.1.104`, #46 `eco-v0.1.108`; `xiom.grpc` 0.1.1 live (`eco-v0.1.110`; catalog-dep
+compat closed). Bindings batches 2-14 published (last: ozz 0.2.0 `eco-v0.1.109`; compression
+tier complete; next sector TBD). FFI catalog-dep sweep: all published FFI packages CLEAN or
+fixed (http 0.1.2, grpc 0.1.1). ~13 zero-clause stable carriers remain (next: `bonjour`).
 Clause-shape rules: tag guard pairs only -- no `Result` equality, no `is Ok(<literal>)`, no
 `let (k,v) = &vec[i]` (Vec[Struct].clone() is fine now); `unsafe fn` is a hard P001 error
-(`unsafe { }` in the body instead).
+(`unsafe { }` in the body instead); never rename raw externs (linker symbols).
 PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-09 fixed on v0.64.1 (mini-app green),
 C-PULSE-10 still Linux-target-only (Windows probe green: packages\xiom-kv\tests\probe_kv_get_str.xi).
 Bindings Phase 1 complete (`eco-v0.1.89` sqlite, `eco-v0.1.92` sdl3+opengl); batches 4-5
@@ -2004,14 +2021,14 @@ Start: git fetch; git status -sb; git log -1; then
   & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Batch #47 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
+1. Batch #48 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
    -Detailed` for the name list; size them by total non-test .xi lines per package), skip
-   `option`; the next smallest after flac is `junit` (~1543 lines; verify with the sizing
+   `option`; the next smallest after mp4 is `bonjour` (~1699 lines; verify with the sizing
    scan, then the next five). Read-only explore pre-plan (one explore task; IF its final
    message comes back EMPTY, resume it with `variant: low` + a "plan only, no preamble"
    prompt -- recovered every time since batch #38). Six background `task` porters with the
-   brief template `%TEMP%\kilo\batch46-porter-brief.md` retargeted (batch #47, plan
-   `%TEMP%\kilo\batch47-clause-plan.md`, `## Contracts (batch #47 hardening pass, 2026-10-XX)`).
+   brief template `%TEMP%\kilo\batch47-porter-brief.md` retargeted (batch #48, plan
+   `%TEMP%\kilo\batch48-clause-plan.md`, `## Contracts (batch #48 hardening pass, 2026-10-XX)`).
    Coordinator integrates as reports land: patch bump per CURRENT version, port x2
    post-bump, byte-level bracket scan, feat commit exact files, record with the REAL sha
    and `-RunBy task:ses_...`; wrap + publish the next eco tag (generate_index/report/
