@@ -9,7 +9,7 @@
 
 package xiom_fits {
   name: "xiom.fits";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "FITS header codec: 80-character cards, 2880-byte blocks, validated values";
   categories: ["science"];
   keywords: ["fits", "astronomy", "header", "format"];

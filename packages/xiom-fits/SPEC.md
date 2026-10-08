@@ -1,8 +1,6 @@
 # xiom.fits -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.fits`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/fits.xi` (`module xiom.fits`).
 Depends on `xiom.std`; the library module imports `xiom.string` and
 `xiom.string.compare` from it (tests add `xiom.test`, `xiom.io`,
@@ -210,6 +208,70 @@ pub fn fits_comment_of(h: &FitsHeader, keyword: Str) -> Str
 
 Duplicate keywords, duplicate `COMMENT`/`HISTORY` cards and non-standard
 spacing are accepted and preserved.
+
+## Contracts (batch #40 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses were added to `src/fits.xi` in the
+batch #40 hardening pass (compiler v0.64.0; `package.xi` is left for the
+coordinator to bump at integration): 40 clauses over 25 contracted
+functions, all `ensures:` with no `requires:`, so the accepted-input domain
+is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.fits -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (16.35 s and 14.31 s); the 20-check conformance suite exercises every
+contracted entry point and no clause trapped, so none was dropped.
+
+Every clause is **runtime-checked** (no Z3 claim; `xiom-verify` was not run,
+and per the batch #37 finding a bare `xiom-verify` `[OK] VERIFIED` can be a
+vacuous UNSAT). Clause inputs are parameters, parameter fields or plain
+struct-return fields only; `Result` and `Option` results are constrained by
+tag alone (`is Ok` / `is Err` / `is None`) except the single literal `Ok`
+payload bound `result.value.len() == 80` on `fits_card_format` (the fixed
+80-character card width, not a parameter length). Module constants are
+inlined as integer literals, no clause indexes a vector, no clause compares
+a `Str` (`==` only on `Int` values and lengths), and no clause reads a
+`&mut` receiver: the nine `&mut FitsHeader` push functions constrain only
+their by-value parameters. The only clause calls are the non-re-entrant
+definitional ones: `_trim_end_spaces` (from `fits_push_str`, `fits_find`)
+and `fits_find` (from `fits_str_value`, `fits_comment_of`); neither callee
+calls its caller. Every clause holds for hand-built structs: only vector
+lengths, scalar parameters and tags are read, `fits_new`/`fits_encode` read
+plain returned struct/`Vec` fields, and the `fits_encode` clauses pin the
+minimal 2880-byte block (empty header exactly 2880; every result a positive
+multiple of 2880).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `_trim_end_spaces` | `result.len() <= s.len()`; `s.len() == 0 => result.len() == 0` | runtime-checked (built `Str` length vs parameter) |
+| `_all_spaces` | `end <= start => result == true`; `s.len() == 0 => result == true` | runtime-checked (`Bool` guard pair) |
+| `_keyword_ok` | `keyword.len() < 1 \|\| keyword.len() > 8 => result == false`; `result == true => keyword.len() >= 1 && keyword.len() <= 8` | runtime-checked (`Bool` guard pair + length band) |
+| `_reserved_keyword` | `keyword.len() != 3 && keyword.len() != 7 => result == false`; `result == true => keyword.len() == 3 \|\| keyword.len() == 7` | runtime-checked (`Bool` guard pair) |
+| `_ci_eq` | `a.len() != b.len() => result == false`; `result == true => a.len() == b.len()` | runtime-checked (`Bool` guard pair) |
+| `_token_is_int` | `s.len() == 0 => result == false` | runtime-checked (`Bool` guard) |
+| `_token_is_real` | `s.len() <= 1 => result == false` | runtime-checked (`Bool` guard) |
+| `_value_start` | `result >= 9 && result <= 80` | runtime-checked (scalar index band) |
+| `_token_end` | `result >= start && result <= 80` | runtime-checked (scalar index band) |
+| `_comment_start` | `result == -1 \|\| result == -2 \|\| (result >= pos && result <= 79)` | runtime-checked (`-1`/`-2` sentinels + index band) |
+| `_value_field` | `kind == 4 && value.len() != 0 => result is Err`; `kind < 0 \|\| kind > 4 => result is Err`; `kind == 0 && value.len() >= 69 => result is Err` | runtime-checked (`Result` tag + parameter guards) |
+| `fits_card_format` | `(kind == 5 \|\| kind == 6 \|\| kind == 7) && value.len() > 72 => result is Err`; `kind < 0 => result is Err`; `kind > 7 => result is Err`; `result is Ok => result.value.len() == 80` | runtime-checked (`Result` tag + literal payload length) |
+| `fits_new` | `result.cards.len() == 0 && result.keywords.len() == 0 && result.kinds.len() == 0 && result.values.len() == 0 && result.comments.len() == 0` | runtime-checked (plain struct-return field lengths) |
+| `fits_push_card` | `card.len() != 80 => result is Err` | runtime-checked (by-value parameter length; receiver never read) |
+| `fits_push_str` | `_trim_end_spaces(keyword).len() == 0 => result is Err`; `_trim_end_spaces(keyword).len() > 8 => result is Err` | runtime-checked (definitional cross-call; receiver never read) |
+| `fits_push_comment` | `text.len() > 72 => result is Err`; `text.len() <= 72 => result is Ok` | runtime-checked (parameter length + `Result` tag; receiver never read) |
+| `fits_push_blank` | `text.len() > 72 => result is Err` | runtime-checked (parameter length; receiver never read) |
+| `fits_parse` | `data.len() == 0 => result is Err`; `data.len() % 2880 != 0 => result is Err` | runtime-checked (parameter length + `Result` tag) |
+| `fits_encode` | `h.cards.len() == 0 => result.len() == 2880`; `result.len() % 2880 == 0 && result.len() > 0` | runtime-checked (field length + built `Vec` length) |
+| `fits_card_count` | `result == h.cards.len()` | runtime-checked (definitional count) |
+| `fits_card` | `i < 0 \|\| i >= h.cards.len() => result.len() == 0` | runtime-checked (`""` sentinel + field length) |
+| `fits_kind` | `i < 0 \|\| i >= h.cards.len() => result == -1` | runtime-checked (`-1` sentinel + field length) |
+| `fits_find` | `_trim_end_spaces(keyword).len() == 0 => result == -1`; `result != -1 => result >= 0 && result < h.cards.len()` | runtime-checked (definitional cross-call + `-1` sentinel) |
+| `fits_str_value` | `fits_find(h, keyword) < 0 => result is None` | runtime-checked (definitional cross-call + `Option` tag) |
+| `fits_comment_of` | `fits_find(h, keyword) < 0 => result.len() == 0` | runtime-checked (definitional cross-call + built `Str` length) |
+
+No pre-plan clause was dropped or probe-gated; all 40 planned clauses were
+implemented. Card-level byte checks (column-9 `=`, keyword charset, quote
+closing, token classification) remain source-enforced and are documented in
+the error catalog below.
 
 ## Error catalog
 
