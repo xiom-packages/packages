@@ -1,9 +1,9 @@
 package xiom_raylib {
   name: "xiom.raylib";
-  version: "0.1.0";
-  description: "Raylib -- simple game framework.";
-  categories: ["graphics", "media"];
-  keywords: ["raylib", "gamedev", "rendering", "audio"];
+  version: "0.2.0";
+  description: "raylib bindings for XIOM via dynamic loader (raylib.dll at runtime, SKIP when absent)";
+  categories: ["graphics", "gamedev"];
+  keywords: ["raylib", "graphics", "windowing", "input", "binding"];
   license: "MIT OR Apache-2.0";
   repository: "https://github.com/xiom-packages/packages";
   authors: ["XIOM Team"];

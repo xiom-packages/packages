@@ -1,221 +1,105 @@
-// XIOM -- Raylib Bindings v0.1.0 (Phase 5 -- SPEC)
+// XIOM -- xiom.raylib: raylib bindings via dynamic loader.
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Safe wrappers around raylib v5.5 via extern "C" FFI.
-// Links against system-installed raylib at link time.
-// 26 functions + 8 newtypes + 40 constants + 28 safe wrappers.
+// DESIGN: dynamic loader path (same pattern as xiom.sdl3 / xiom.glfw). The
+// package does NOT link raylib at build time. `raylib_load` resolves
+// `raylib.dll` through `xiom.ffi.dl` at runtime and every call goes through
+// fn-pointer casts in this single module -- the ONLY module in the package
+// with `unsafe`.
+//
+// Classification (the suite maps it to markers):
+//   RAYLIB_LOAD_ABSENT    -> backend missing -> SKIP (CI stays green)
+//   RAYLIB_LOAD_NO_WINDOW -> InitWindow produced no ready window (headless)
+//                            -> SKIP
+//   RAYLIB_LOAD_ABI       -> library present but exports missing -> FAIL
+//
+// Coverage (pilot smoke): trace-log + config flags, hidden-window init,
+// window size/close, timer + frame time + FPS + target FPS, one hidden
+// begin/clear/end frame. Textures/models/sounds/input are Phase 2
+// (ROADMAP.md); the pre-pilot static-extern module is preserved in git
+// history only (it required a system-installed raylib at link time and could
+// not satisfy the SKIP-when-absent gate).
+//
+// G2 pin (SPEC.md): soname `raylib.dll` (Windows) + upstream tag 5.5 header
+// hash + resolved symbol set.
 
 module xiom.raylib
 
-// -- extern "C" -- Raw raylib C Declarations (26 functions) ------------------
+use xiom.ffi.dl;
 
-extern "C" {
-  fn InitWindow(width: Int32, height: Int32, title: Str);
-  fn CloseWindow();
-  fn WindowShouldClose() -> Int32;
-  fn BeginDrawing();
-  fn EndDrawing();
-  fn ClearBackground(color: Int32);
-  fn DrawRectangle(x: Int32, y: Int32, w: Int32, h: Int32, color: Int32);
-  fn DrawCircle(cx: Int32, cy: Int32, r: Float32, color: Int32);
-  fn DrawText(text: Str, x: Int32, y: Int32, fontSize: Int32, color: Int32);
-  fn DrawTexture(texture: Int, x: Int32, y: Int32, color: Int32);
-  fn DrawModel(model: Int, posX: Float32, posY: Float32, posZ: Float32, scale: Float32, color: Int32);
-  fn LoadTexture(path: Str) -> Int;
-  fn UnloadTexture(texture: Int);
-  fn LoadModel(path: Str) -> Int;
-  fn UnloadModel(model: Int);
-  fn LoadSound(path: Str) -> Int;
-  fn PlaySound(sound: Int);
-  fn SetCameraMode(camera: Int, mode: Int32);
-  fn UpdateCamera(camera: Int, mode: Int32);
-  fn GetMouseX() -> Float32;
-  fn GetMouseY() -> Float32;
-  fn IsKeyDown(key: Int32) -> Int32;
-  fn IsMouseButtonDown(button: Int32) -> Int32;
-  fn GetFrameTime() -> Float32;
-  fn SetTargetFPS(fps: Int32);
-  fn LoadFont(path: Str) -> Int;
-  fn DrawTextEx(font: Int, text: Str, x: Float32, y: Float32, fontSize: Float32, spacing: Float32, color: Int32);
+// =========================================================================
+// Identity and constants
+// =========================================================================
+
+pub const RAYLIB_SONAME: Str = "raylib.dll";
+
+// Trace log levels (raylib 5.5).
+pub const LOG_ALL: Int = 0;
+pub const LOG_TRACE: Int = 1;
+pub const LOG_DEBUG: Int = 2;
+pub const LOG_INFO: Int = 3;
+pub const LOG_WARNING: Int = 4;
+pub const LOG_ERROR: Int = 5;
+pub const LOG_FATAL: Int = 6;
+pub const LOG_NONE: Int = 7;
+
+// Config flags (raylib 5.5): hidden window keeps the smoke headless-safe.
+pub const FLAG_WINDOW_HIDDEN: Int = 0x00000080;
+
+// Packed colors (0xRRGGBBAA).
+pub const RAYWHITE: Int = 0xFFFFFFFF;
+pub const BLACK: Int = 0x000000FF;
+pub const RED: Int = 0xFF0000FF;
+pub const GREEN: Int = 0x00FF00FF;
+pub const BLUE: Int = 0x0000FFFF;
+
+// Input constants (documented for callers; input API is Phase 2).
+pub const KEY_ESCAPE: Int = 256;
+pub const MOUSE_BUTTON_LEFT: Int = 0;
+pub const MOUSE_BUTTON_RIGHT: Int = 1;
+
+// Probe outcome kinds.
+pub const RAYLIB_LOAD_ABSENT: Int = 0;    // backend missing -> SKIP
+pub const RAYLIB_LOAD_NO_WINDOW: Int = 1; // no ready window (headless) -> SKIP
+pub const RAYLIB_LOAD_ABI: Int = 2;       // exports missing -> FAIL
+
+pub type RaylibLoadError = {
+  kind: Int;
+  message: Str;
 }
 
-// -- Newtypes -- Opaque resource handles (8 types) ---------------------------
+pub type RaylibWindowSize = {
+  width: Int;
+  height: Int;
+}
 
-pub type RlWindow    = Int;
-pub type RlTexture   = Int;
-pub type RlShader    = Int;
-pub type RlModel     = Int;
-pub type RlSound     = Int;
-pub type RlMusic     = Int;
-pub type RlCamera    = Int;
-pub type RlFont      = Int;
+/// A loaded raylib.  Owned by the caller; release with `raylib_close`.
+pub type RaylibLibrary = {
+  handle: Int;
+  p_set_trace_log_level: Int;
+  p_set_config_flags: Int;
+  p_init_window: Int;
+  p_is_window_ready: Int;
+  p_window_should_close: Int;
+  p_close_window: Int;
+  p_get_window_width: Int;
+  p_get_window_height: Int;
+  p_get_time: Int;
+  p_get_frame_time: Int;
+  p_get_fps: Int;
+  p_set_target_fps: Int;
+  p_begin_drawing: Int;
+  p_clear_background: Int;
+  p_end_drawing: Int;
+}
 
-// -- Color Constants (RGBA packed as Int32, little-endian byte order) -------
+// =========================================================================
+// Color helpers (pure; packed 0xRRGGBBAA)
+// =========================================================================
 
-pub const RAYWHITE:   Int = 0xFFFFFFFF;
-pub const WHITE:      Int = 0xFFFFFFFF;
-pub const BLACK:      Int = 0xFF000000;
-pub const BLANK:      Int = 0x00000000;
-pub const LIGHTGRAY:  Int = 0xFFC8C8C8;
-pub const GRAY:       Int = 0xFF828282;
-pub const DARKGRAY:   Int = 0xFF505050;
-pub const RED:        Int = 0xFF3729E6;
-pub const MAROON:     Int = 0xFF3721BE;
-pub const GREEN:      Int = 0xFF30E400;
-pub const LIME:       Int = 0xFF2F9E00;
-pub const DARKGREEN:  Int = 0xFF2C7500;
-pub const BLUE:       Int = 0xFFF17900;
-pub const SKYBLUE:    Int = 0xFFFFBF66;
-pub const DARKBLUE:   Int = 0xFFAC5200;
-pub const YELLOW:     Int = 0xFF00F9FD;
-pub const GOLD:       Int = 0xFF00CBFF;
-pub const ORANGE:     Int = 0xFF00A1FF;
-pub const PINK:       Int = 0xFFC26DFF;
-pub const MAGENTA:    Int = 0xFFFF00FF;
-pub const PURPLE:     Int = 0xFFFF7AC8;
-pub const VIOLET:     Int = 0xFFBE3C87;
-pub const DARKPURPLE: Int = 0xFF7E1F70;
-pub const BEIGE:      Int = 0xFF83B0D3;
-pub const BROWN:      Int = 0xFF4F6A7F;
-pub const DARKBROWN:  Int = 0xFF2F3F4C;
-
-// -- Keyboard Key Constants -------------------------------------------------
-
-pub const KEY_SPACE:        Int = 32;
-pub const KEY_APOSTROPHE:   Int = 39;
-pub const KEY_COMMA:        Int = 44;
-pub const KEY_MINUS:        Int = 45;
-pub const KEY_PERIOD:       Int = 46;
-pub const KEY_SLASH:        Int = 47;
-pub const KEY_0:            Int = 48;
-pub const KEY_1:            Int = 49;
-pub const KEY_2:            Int = 50;
-pub const KEY_3:            Int = 51;
-pub const KEY_4:            Int = 52;
-pub const KEY_5:            Int = 53;
-pub const KEY_6:            Int = 54;
-pub const KEY_7:            Int = 55;
-pub const KEY_8:            Int = 56;
-pub const KEY_9:            Int = 57;
-pub const KEY_SEMICOLON:    Int = 59;
-pub const KEY_EQUAL:        Int = 61;
-pub const KEY_A:            Int = 65;
-pub const KEY_B:            Int = 66;
-pub const KEY_C:            Int = 67;
-pub const KEY_D:            Int = 68;
-pub const KEY_E:            Int = 69;
-pub const KEY_F:            Int = 70;
-pub const KEY_G:            Int = 71;
-pub const KEY_H:            Int = 72;
-pub const KEY_I:            Int = 73;
-pub const KEY_J:            Int = 74;
-pub const KEY_K:            Int = 75;
-pub const KEY_L:            Int = 76;
-pub const KEY_M:            Int = 77;
-pub const KEY_N:            Int = 78;
-pub const KEY_O:            Int = 79;
-pub const KEY_P:            Int = 80;
-pub const KEY_Q:            Int = 81;
-pub const KEY_R:            Int = 82;
-pub const KEY_S:            Int = 83;
-pub const KEY_T:            Int = 84;
-pub const KEY_U:            Int = 85;
-pub const KEY_V:            Int = 86;
-pub const KEY_W:            Int = 87;
-pub const KEY_X:            Int = 88;
-pub const KEY_Y:            Int = 89;
-pub const KEY_Z:            Int = 90;
-pub const KEY_LEFT_BRACKET:  Int = 91;
-pub const KEY_BACKSLASH:     Int = 92;
-pub const KEY_RIGHT_BRACKET: Int = 93;
-pub const KEY_GRAVE:         Int = 96;
-
-pub const KEY_ESCAPE:    Int = 256;
-pub const KEY_ENTER:     Int = 257;
-pub const KEY_TAB:       Int = 258;
-pub const KEY_BACKSPACE: Int = 259;
-pub const KEY_INSERT:    Int = 260;
-pub const KEY_DELETE:    Int = 261;
-pub const KEY_RIGHT:     Int = 262;
-pub const KEY_LEFT:      Int = 263;
-pub const KEY_DOWN:      Int = 264;
-pub const KEY_UP:        Int = 265;
-pub const KEY_PAGE_UP:   Int = 266;
-pub const KEY_PAGE_DOWN: Int = 267;
-pub const KEY_HOME:      Int = 268;
-pub const KEY_END:       Int = 269;
-pub const KEY_CAPS_LOCK:   Int = 280;
-pub const KEY_SCROLL_LOCK: Int = 281;
-pub const KEY_NUM_LOCK:    Int = 282;
-pub const KEY_PRINT_SCREEN: Int = 283;
-pub const KEY_PAUSE:       Int = 284;
-pub const KEY_F1:  Int = 290;
-pub const KEY_F2:  Int = 291;
-pub const KEY_F3:  Int = 292;
-pub const KEY_F4:  Int = 293;
-pub const KEY_F5:  Int = 294;
-pub const KEY_F6:  Int = 295;
-pub const KEY_F7:  Int = 296;
-pub const KEY_F8:  Int = 297;
-pub const KEY_F9:  Int = 298;
-pub const KEY_F10: Int = 299;
-pub const KEY_F11: Int = 300;
-pub const KEY_F12: Int = 301;
-pub const KEY_KP_0: Int = 320;
-pub const KEY_KP_1: Int = 321;
-pub const KEY_KP_2: Int = 322;
-pub const KEY_KP_3: Int = 323;
-pub const KEY_KP_4: Int = 324;
-pub const KEY_KP_5: Int = 325;
-pub const KEY_KP_6: Int = 326;
-pub const KEY_KP_7: Int = 327;
-pub const KEY_KP_8: Int = 328;
-pub const KEY_KP_9: Int = 329;
-pub const KEY_KP_DECIMAL:  Int = 330;
-pub const KEY_KP_DIVIDE:   Int = 331;
-pub const KEY_KP_MULTIPLY: Int = 332;
-pub const KEY_KP_SUBTRACT: Int = 333;
-pub const KEY_KP_ADD:      Int = 334;
-pub const KEY_KP_ENTER:    Int = 335;
-pub const KEY_KP_EQUAL:    Int = 336;
-pub const KEY_LEFT_SHIFT:    Int = 340;
-pub const KEY_LEFT_CONTROL:  Int = 341;
-pub const KEY_LEFT_ALT:      Int = 342;
-pub const KEY_LEFT_SUPER:    Int = 343;
-pub const KEY_RIGHT_SHIFT:   Int = 344;
-pub const KEY_RIGHT_CONTROL: Int = 345;
-pub const KEY_RIGHT_ALT:     Int = 346;
-pub const KEY_RIGHT_SUPER:   Int = 347;
-pub const KEY_MENU:          Int = 348;
-
-// -- Mouse Button Constants -------------------------------------------------
-
-pub const MOUSE_BUTTON_LEFT:   Int = 0;
-pub const MOUSE_BUTTON_RIGHT:  Int = 1;
-pub const MOUSE_BUTTON_MIDDLE: Int = 2;
-pub const MOUSE_BUTTON_SIDE:   Int = 3;
-pub const MOUSE_BUTTON_EXTRA:  Int = 4;
-pub const MOUSE_BUTTON_FORWARD: Int = 5;
-pub const MOUSE_BUTTON_BACK:   Int = 6;
-
-// -- Camera Mode Constants --------------------------------------------------
-
-pub const CAMERA_FREE:          Int = 0;
-pub const CAMERA_FIRST_PERSON:  Int = 1;
-pub const CAMERA_THIRD_PERSON:  Int = 2;
-pub const CAMERA_ORBITAL:       Int = 3;
-
-// -- FPS Constants ----------------------------------------------------------
-
-pub const FPS_MIN:  Int = 1;
-pub const FPS_MAX:  Int = 1000;
-pub const FPS_60:   Int = 60;
-pub const FPS_120:  Int = 120;
-pub const FPS_144:  Int = 144;
-
-// -- Color Helpers ----------------------------------------------------------
-
+/// Pack (r, g, b, a) into a raylib Color value.
+/// Complexity: O(1).
 pub fn color_rgba(r: Int, g: Int, b: Int, a: Int) -> Int
   requires: r >= 0
   requires: r <= 255
@@ -225,224 +109,292 @@ pub fn color_rgba(r: Int, g: Int, b: Int, a: Int) -> Int
   requires: b <= 255
   requires: a >= 0
   requires: a <= 255
-  ensures:  result >= 0
 {
-  return (a * 16777216) + (b * 65536) + (g * 256) + r;
+  return (r * 16777216) + (g * 65536) + (b * 256) + a;
 }
 
+/// Alpha byte of a packed color.
+/// Complexity: O(1).
 pub fn color_alpha(c: Int) -> Int
-  ensures: result >= 0
-  ensures: result <= 255
-{
-  return c / 16777216;
-}
-
-pub fn color_red(c: Int) -> Int
-  ensures: result >= 0
-  ensures: result <= 255
+  requires: c >= 0
 {
   return c % 256;
 }
 
-pub fn color_green(c: Int) -> Int
-  ensures: result >= 0
-  ensures: result <= 255
+/// Red byte of a packed color.
+/// Complexity: O(1).
+pub fn color_red(c: Int) -> Int
+  requires: c >= 0
 {
-  return (c / 256) % 256;
+  return (c / 16777216) % 256;
 }
 
-pub fn color_blue(c: Int) -> Int
-  ensures: result >= 0
-  ensures: result <= 255
+/// Green byte of a packed color.
+/// Complexity: O(1).
+pub fn color_green(c: Int) -> Int
+  requires: c >= 0
 {
   return (c / 65536) % 256;
 }
 
-// -- Safe Wrappers -- Window Lifecycle ----------------------------------------
+/// Blue byte of a packed color.
+/// Complexity: O(1).
+pub fn color_blue(c: Int) -> Int
+  requires: c >= 0
+{
+  return (c / 256) % 256;
+}
 
-pub fn init_window(width: Int, height: Int, title: Str)
-  requires: width > 0
-  requires: height > 0
+// =========================================================================
+// Loader
+// =========================================================================
+
+/// Load raylib.dll and resolve the smoke API.  Nothing is leaked: the handle
+/// is closed when a symbol is missing.
+/// Complexity: O(symbols).
+pub fn raylib_load() -> Result[RaylibLibrary, RaylibLoadError] {
+  let h = dl.dl_open(RAYLIB_SONAME);
+  if !h.is_ok {
+    return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABSENT; message: h.error });
+  }
+  let handle: Int = h.value;
+
+  let a1 = dl.dl_sym(handle, "SetTraceLogLevel");
+  if !a1.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "SetTraceLogLevel: " + a1.error }); }
+  let a2 = dl.dl_sym(handle, "SetConfigFlags");
+  if !a2.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "SetConfigFlags: " + a2.error }); }
+  let a3 = dl.dl_sym(handle, "InitWindow");
+  if !a3.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "InitWindow: " + a3.error }); }
+  let a4 = dl.dl_sym(handle, "IsWindowReady");
+  if !a4.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "IsWindowReady: " + a4.error }); }
+  let a5 = dl.dl_sym(handle, "WindowShouldClose");
+  if !a5.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "WindowShouldClose: " + a5.error }); }
+  let a6 = dl.dl_sym(handle, "CloseWindow");
+  if !a6.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "CloseWindow: " + a6.error }); }
+  let a7 = dl.dl_sym(handle, "GetWindowWidth");
+  var w_addr = 0;
+  if a7.is_ok {
+    w_addr = a7.value;
+  } else {
+    let a7b = dl.dl_sym(handle, "GetScreenWidth");
+    if !a7b.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "GetWindowWidth/GetScreenWidth: " + a7b.error }); }
+    w_addr = a7b.value;
+  }
+  let a8 = dl.dl_sym(handle, "GetWindowHeight");
+  var h_addr = 0;
+  if a8.is_ok {
+    h_addr = a8.value;
+  } else {
+    let a8b = dl.dl_sym(handle, "GetScreenHeight");
+    if !a8b.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "GetWindowHeight/GetScreenHeight: " + a8b.error }); }
+    h_addr = a8b.value;
+  }
+  let a9 = dl.dl_sym(handle, "GetTime");
+  if !a9.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "GetTime: " + a9.error }); }
+  let a10 = dl.dl_sym(handle, "GetFrameTime");
+  if !a10.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "GetFrameTime: " + a10.error }); }
+  let a11 = dl.dl_sym(handle, "GetFPS");
+  if !a11.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "GetFPS: " + a11.error }); }
+  let a12 = dl.dl_sym(handle, "SetTargetFPS");
+  if !a12.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "SetTargetFPS: " + a12.error }); }
+  let a13 = dl.dl_sym(handle, "BeginDrawing");
+  if !a13.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "BeginDrawing: " + a13.error }); }
+  let a14 = dl.dl_sym(handle, "ClearBackground");
+  if !a14.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "ClearBackground: " + a14.error }); }
+  let a15 = dl.dl_sym(handle, "EndDrawing");
+  if !a15.is_ok { var ig = dl.dl_close(handle); return Err(RaylibLoadError{ kind: RAYLIB_LOAD_ABI; message: "EndDrawing: " + a15.error }); }
+
+  return Ok(RaylibLibrary{
+    handle: handle,
+    p_set_trace_log_level: a1.value,
+    p_set_config_flags: a2.value,
+    p_init_window: a3.value,
+    p_is_window_ready: a4.value,
+    p_window_should_close: a5.value,
+    p_close_window: a6.value,
+    p_get_window_width: w_addr,
+    p_get_window_height: h_addr,
+    p_get_time: a9.value,
+    p_get_frame_time: a10.value,
+    p_get_fps: a11.value,
+    p_set_target_fps: a12.value,
+    p_begin_drawing: a13.value,
+    p_clear_background: a14.value,
+    p_end_drawing: a15.value,
+  });
+}
+
+/// Release the library handle.
+/// Complexity: O(1).
+pub fn raylib_close(lib: &RaylibLibrary) -> Result[Unit, Str]
+  requires: lib.handle != 0
+{
+  return dl.dl_close(lib.handle);
+}
+
+// =========================================================================
+// Safe call wrappers (confined: fn-pointer casts live here)
+// =========================================================================
+
+/// SetTraceLogLevel(level).  Call before InitWindow to quiet startup output.
+/// Complexity: O(1).
+pub fn raylib_set_trace_log_level(lib: &RaylibLibrary, level: Int)
+  requires: lib.handle != 0
+  requires: level >= 0
+{
+  unsafe {
+    let f = lib.p_set_trace_log_level as fn(Int);
+    f(level);
+  }
+}
+
+/// SetConfigFlags(flags).  Use FLAG_WINDOW_HIDDEN for a headless-safe smoke.
+/// Complexity: O(1).
+pub fn raylib_set_config_flags(lib: &RaylibLibrary, flags: Int)
+  requires: lib.handle != 0
+  requires: flags >= 0
+{
+  unsafe {
+    let f = lib.p_set_config_flags as fn(Int);
+    f(flags);
+  }
+}
+
+/// InitWindow(width, height, title).
+/// Complexity: O(platform init).
+pub fn raylib_init_window(lib: &RaylibLibrary, w: Int, h: Int, title: Str)
+  requires: lib.handle != 0
+  requires: w > 0
+  requires: h > 0
   requires: title.len() > 0
 {
-  unsafe { InitWindow(width as Int32, height as Int32, title); };
+  unsafe {
+    let f = lib.p_init_window as fn(Int, Int, *UInt8);
+    f(w, h, title.c_str());
+  }
 }
 
-pub fn close_window()
+/// IsWindowReady -> bool.
+/// Complexity: O(1).
+pub fn raylib_is_window_ready(lib: &RaylibLibrary) -> Bool
+  requires: lib.handle != 0
 {
-  unsafe { CloseWindow(); };
+  unsafe {
+    let f = lib.p_is_window_ready as fn() -> UInt8;
+    return (f() as Int) != 0;
+  }
 }
 
-pub fn should_close() -> Bool
+/// WindowShouldClose -> bool.
+/// Complexity: O(1).
+pub fn raylib_window_should_close(lib: &RaylibLibrary) -> Bool
+  requires: lib.handle != 0
 {
-  return unsafe { WindowShouldClose() != 0 };
+  unsafe {
+    let f = lib.p_window_should_close as fn() -> UInt8;
+    return (f() as Int) != 0;
+  }
 }
 
-// -- Safe Wrappers -- Drawing ------------------------------------------------
-
-pub fn begin_drawing()
+/// CloseWindow.
+/// Complexity: O(1).
+pub fn raylib_close_window(lib: &RaylibLibrary)
+  requires: lib.handle != 0
 {
-  unsafe { BeginDrawing(); };
+  unsafe {
+    let f = lib.p_close_window as fn();
+    f();
+  }
 }
 
-pub fn end_drawing()
+/// GetWindowWidth/GetWindowHeight as a struct.
+/// Complexity: O(1).
+pub fn raylib_window_size(lib: &RaylibLibrary) -> RaylibWindowSize
+  requires: lib.handle != 0
 {
-  unsafe { EndDrawing(); };
+  unsafe {
+    let fw = lib.p_get_window_width as fn() -> Int32;
+    let fh = lib.p_get_window_height as fn() -> Int32;
+    return RaylibWindowSize{ width: fw() as Int, height: fh() as Int };
+  }
 }
 
-pub fn clear_background(color: Int)
-  requires: color >= 0
+/// GetTime -> seconds since InitWindow.
+/// Complexity: O(1).
+pub fn raylib_get_time(lib: &RaylibLibrary) -> Float64
+  requires: lib.handle != 0
 {
-  unsafe { ClearBackground(color as Int32); };
+  unsafe {
+    let f = lib.p_get_time as fn() -> Float64;
+    return f();
+  }
 }
 
-pub fn draw_rectangle(x: Int, y: Int, w: Int, h: Int, color: Int)
-  requires: w >= 0
-  requires: h >= 0
-  requires: color >= 0
+/// GetFrameTime -> seconds of the last frame.
+/// Complexity: O(1).
+pub fn raylib_get_frame_time(lib: &RaylibLibrary) -> Float64
+  requires: lib.handle != 0
 {
-  unsafe { DrawRectangle(x as Int32, y as Int32, w as Int32, h as Int32, color as Int32); };
+  unsafe {
+    let f = lib.p_get_frame_time as fn() -> Float32;
+    let t: Float32 = f();
+    return t as Float64;
+  }
 }
 
-pub fn draw_circle(cx: Int, cy: Int, r: Float32, color: Int)
-  requires: r >= 0.0
-  requires: color >= 0
+/// GetFPS -> frames per second (last second).
+/// Complexity: O(1).
+pub fn raylib_get_fps(lib: &RaylibLibrary) -> Int
+  requires: lib.handle != 0
 {
-  unsafe { DrawCircle(cx as Int32, cy as Int32, r, color as Int32); };
+  unsafe {
+    let f = lib.p_get_fps as fn() -> Int32;
+    return f() as Int;
+  }
 }
 
-pub fn draw_text(text: Str, x: Int, y: Int, fontSize: Int, color: Int)
-  requires: text.len() > 0
-  requires: fontSize > 0
-  requires: color >= 0
-{
-  unsafe { DrawText(text, x as Int32, y as Int32, fontSize as Int32, color as Int32); };
-}
-
-// -- Safe Wrappers -- Textures & Models --------------------------------------
-
-pub fn load_texture(path: Str) -> RlTexture
-  requires: path.len() > 0
-  ensures:  result >= 0
-{
-  return unsafe { LoadTexture(path) };
-}
-
-pub fn unload_texture(texture: RlTexture)
-  requires: texture != 0
-{
-  unsafe { UnloadTexture(texture); };
-}
-
-pub fn draw_texture(texture: RlTexture, x: Int, y: Int, color: Int)
-  requires: texture != 0
-  requires: color >= 0
-{
-  unsafe { DrawTexture(texture, x as Int32, y as Int32, color as Int32); };
-}
-
-pub fn load_model(path: Str) -> RlModel
-  requires: path.len() > 0
-  ensures:  result >= 0
-{
-  return unsafe { LoadModel(path) };
-}
-
-pub fn unload_model(model: RlModel)
-  requires: model != 0
-{
-  unsafe { UnloadModel(model); };
-}
-
-pub fn draw_model(model: RlModel, posX: Float32, posY: Float32, posZ: Float32, scale: Float32, color: Int)
-  requires: model != 0
-  requires: scale > 0.0
-  requires: color >= 0
-{
-  unsafe { DrawModel(model, posX, posY, posZ, scale, color as Int32); };
-}
-
-// -- Safe Wrappers -- Audio --------------------------------------------------
-
-pub fn load_sound(path: Str) -> RlSound
-  requires: path.len() > 0
-  ensures:  result >= 0
-{
-  return unsafe { LoadSound(path) };
-}
-
-pub fn play_sound(sound: RlSound)
-  requires: sound != 0
-{
-  unsafe { PlaySound(sound); };
-}
-
-// -- Safe Wrappers -- Camera -------------------------------------------------
-
-pub fn set_camera_mode(camera: RlCamera, mode: Int)
-  requires: camera != 0
-  requires: mode >= 0
-{
-  unsafe { SetCameraMode(camera, mode as Int32); };
-}
-
-pub fn update_camera(camera: RlCamera, mode: Int)
-  requires: camera != 0
-  requires: mode >= 0
-{
-  unsafe { UpdateCamera(camera, mode as Int32); };
-}
-
-// -- Safe Wrappers -- Input --------------------------------------------------
-
-pub fn get_mouse_position() -> (Float32, Float32)
-{
-  let x: Float32 = unsafe { GetMouseX() };
-  let y: Float32 = unsafe { GetMouseY() };
-  return (x, y);
-}
-
-pub fn is_key_down(key: Int) -> Bool
-  requires: key >= 0
-{
-  return unsafe { IsKeyDown(key as Int32) != 0 };
-}
-
-pub fn is_mouse_button_down(button: Int) -> Bool
-  requires: button >= 0
-{
-  return unsafe { IsMouseButtonDown(button as Int32) != 0 };
-}
-
-// -- Safe Wrappers -- Timing -------------------------------------------------
-
-pub fn get_frame_time() -> Float32
-  ensures: result >= 0.0
-{
-  return unsafe { GetFrameTime() };
-}
-
-pub fn set_target_fps(fps: Int)
+/// SetTargetFPS(fps).
+/// Complexity: O(1).
+pub fn raylib_set_target_fps(lib: &RaylibLibrary, fps: Int)
+  requires: lib.handle != 0
   requires: fps >= 0
 {
-  unsafe { SetTargetFPS(fps as Int32); };
+  unsafe {
+    let f = lib.p_set_target_fps as fn(Int);
+    f(fps);
+  }
 }
 
-// -- Safe Wrappers -- Text Advanced ------------------------------------------
-
-pub fn load_font(path: Str) -> RlFont
-  requires: path.len() > 0
-  ensures:  result >= 0
+/// BeginDrawing (start one frame).
+/// Complexity: O(1).
+pub fn raylib_begin_drawing(lib: &RaylibLibrary)
+  requires: lib.handle != 0
 {
-  return unsafe { LoadFont(path) };
+  unsafe {
+    let f = lib.p_begin_drawing as fn();
+    f();
+  }
 }
 
-pub fn draw_text_ex(font: RlFont, text: Str, x: Float32, y: Float32, fontSize: Float32, spacing: Float32, color: Int)
-  requires: font != 0
-  requires: text.len() > 0
-  requires: fontSize > 0.0
-  requires: spacing >= 0.0
+/// ClearBackground(color).
+/// Complexity: O(1).
+pub fn raylib_clear_background(lib: &RaylibLibrary, color: Int)
+  requires: lib.handle != 0
   requires: color >= 0
 {
-  unsafe { DrawTextEx(font, text, x, y, fontSize, spacing, color as Int32); };
+  unsafe {
+    let f = lib.p_clear_background as fn(Int);
+    f(color);
+  }
+}
+
+/// EndDrawing (finish one frame).
+/// Complexity: O(1).
+pub fn raylib_end_drawing(lib: &RaylibLibrary)
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f = lib.p_end_drawing as fn();
+    f();
+  }
 }
