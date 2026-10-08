@@ -14,6 +14,22 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-08 12:15Z (bindings batch 4 merged + PUBLISHED `eco-v0.1.94`: xiom.glfw 0.2.0; supersedes the 12:00Z block below):**
+- **Bindings batch 4 DONE + PUBLISHED (`eco-v0.1.94`, run `37775631158` SUCCESS):**
+  `xiom.glfw` 0.2.0 live (first version, incubating). Merge `5519f67b`; wrap `0c4dd3b7`.
+  Relay matrix: present 9/9 x2 (official GLFW 3.4.0 win64) + absent/SKIP 3/3 x2;
+  **native re-verification ran the SKIP path x2 (3/3, `glfw3.dll` absent on this shell's
+  PATH)**; namespace-check OK (2 modules); the bindings lane's present-path record stands
+  (`task:bindings-glfw` @ `34ccd6ba`). Guard: **505/468/37/0**. No `port.args.json`
+  (pure dynamic loader, same as sdl3).
+- Batch #42 published (`eco-v0.1.93`): bencode 0.1.3, xpm 0.1.2, ntriples 0.1.2, pe 0.1.2,
+  smtp 0.1.2, pcapng 0.1.2 -- all live; ~43 zero-clause carriers remain (next: `gif`).
+- Next: batch #43 (gif) and bindings **batch 5 = `xiom.sdl3` Phase 2** (window/renderer/
+  texture/gamepad over the loader; then `xiom.raylib`). v0.64.1 NOT released (11:59Z).
+  Credential: `Lefteris-Notas` active.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-08 12:00Z (batch #42 COMPLETE + PUBLISHED `eco-v0.1.93`; supersedes the 11:45Z block below):**
 - **Batch #42 DONE + PUBLISHED (`eco-v0.1.93`, run `37773629591` SUCCESS; all six live at
   0.1.2-0.1.3):** `bencode` 0.1.3 (24 clauses; 19/19; `51c03f4c`/`4a0ef66c`), `xpm` 0.1.2
@@ -1870,8 +1886,9 @@ Then do, in order:
    unknown category tokens). `xiom.sqlite` is DONE (allowlist 505, live 0.2.0); sdl3 is
    the lane's current package (already allowlisted); the per-package hook contract is
    `port.args.json` (docs/BINDINGS-LANE.md §10). Bindings Phase 1 complete (`eco-v0.1.89`
-   sqlite, `eco-v0.1.92` sdl3+opengl); batch 4 = `xiom.glfw` first (native priority), then
-   `xiom.sdl3` Phase 2 -- one package per relay, `needs=NONE` while the name is allowlisted.
+   sqlite, `eco-v0.1.92` sdl3+opengl); batch 4 (`xiom.glfw` 0.2.0) published in
+   `eco-v0.1.94`; batch 5 = `xiom.sdl3` Phase 2, then `xiom.raylib` -- one package per
+   relay, `needs=NONE` while the name is allowlisted.
    ORBITDB/XVECTOR relays: names frozen in
    `docs/PACKAGE-WISHLIST.md` §6 (`xiom.wal`/`xiom.vectors`/`xiom.ann`); their extraction
    relays route through the native lane; new-name builds need ops scope + allowlist.
