@@ -331,7 +331,10 @@ fn _push_be(out: &mut Vec[UInt8], v: Int, size: Int) {
 // e_ident: magic, class, data encoding, ident version, OSABI and ABI
 // version. The seven remaining ident bytes are padding and are not
 // validated. Fills class/endianness/ident_version/osabi/abiversion.
-fn _read_ident(data: &Vec[UInt8], f: &mut ElfFile) -> Result[Unit, Str] {
+fn _read_ident(data: &Vec[UInt8], f: &mut ElfFile) -> Result[Unit, Str]
+  ensures: data.len() < 16 => result is Err;
+  ensures: result is Ok => data.len() >= 16;
+{
   if data.len() < 16 {
     return _err_unit("elf: truncated ident");
   }
@@ -369,7 +372,10 @@ fn _read_ident(data: &Vec[UInt8], f: &mut ElfFile) -> Result[Unit, Str] {
 
 // The fixed header fields after e_ident. Validates the buffer length, the
 // header version and e_ehsize against the class.
-fn _read_header(data: &Vec[UInt8], f: &mut ElfFile) -> Result[Unit, Str] {
+fn _read_header(data: &Vec[UInt8], f: &mut ElfFile) -> Result[Unit, Str]
+  ensures: data.len() < 52 => result is Err;
+  ensures: result is Ok => data.len() >= 52;
+{
   let total = data.len();
   let cls: Int = f.class;
   let be: Bool = f.endianness == ELF_DATA_2MSB;
@@ -667,7 +673,10 @@ fn _read_names(data: &Vec[UInt8], f: &mut ElfFile) -> Result[Unit, Str] {
 /// empty section-name string table (e_shstrndx == SHN_UNDEF with all-zero
 /// sh_name). Err(m) with an "elf: " message on malformed input; no partial
 /// file is returned. Complexity: O(data.len() + table entries).
-pub fn elf_parse(data: &Vec[UInt8]) -> Result[ElfFile, Str] {
+pub fn elf_parse(data: &Vec[UInt8]) -> Result[ElfFile, Str]
+  ensures: data.len() < 52 => result is Err;
+  ensures: result is Ok => data.len() >= 52;
+{
   var f = ElfFile{
     class: 0;
     endianness: 0;
@@ -725,13 +734,17 @@ pub fn elf_parse(data: &Vec[UInt8]) -> Result[ElfFile, Str] {
 // --------------------------------------------------
 
 /// EI_CLASS of the file: 1 (32-bit) or 2 (64-bit). Complexity: O(1).
-pub fn elf_class(f: &ElfFile) -> Int {
+pub fn elf_class(f: &ElfFile) -> Int
+  ensures: result == f.class;
+{
   return f.class;
 }
 
 /// EI_DATA of the file: 1 (little-endian) or 2 (big-endian).
 /// Complexity: O(1).
-pub fn elf_endianness(f: &ElfFile) -> Int {
+pub fn elf_endianness(f: &ElfFile) -> Int
+  ensures: result == f.endianness;
+{
   return f.endianness;
 }
 
@@ -746,13 +759,17 @@ pub fn elf_file_type(f: &ElfFile) -> Int {
 }
 
 /// e_machine (EM_*). Complexity: O(1).
-pub fn elf_machine(f: &ElfFile) -> Int {
+pub fn elf_machine(f: &ElfFile) -> Int
+  ensures: result == f.e_machine;
+{
   return f.e_machine;
 }
 
 /// e_entry: the raw entry-point field (for 64-bit files a value with bit 63
 /// set decodes as a negative Int). Complexity: O(1).
-pub fn elf_entry(f: &ElfFile) -> Int {
+pub fn elf_entry(f: &ElfFile) -> Int
+  ensures: result == f.e_entry;
+{
   return f.e_entry;
 }
 
@@ -778,12 +795,16 @@ pub fn elf_shstrndx(f: &ElfFile) -> Int {
 }
 
 /// Number of parsed program headers. Complexity: O(1).
-pub fn elf_program_count(f: &ElfFile) -> Int {
+pub fn elf_program_count(f: &ElfFile) -> Int
+  ensures: result == f.seg_types.len();
+{
   return f.seg_types.len();
 }
 
 /// Number of parsed section headers. Complexity: O(1).
-pub fn elf_section_count(f: &ElfFile) -> Int {
+pub fn elf_section_count(f: &ElfFile) -> Int
+  ensures: result == f.sec_types.len();
+{
   return f.sec_types.len();
 }
 
@@ -797,7 +818,11 @@ pub fn elf_section_count(f: &ElfFile) -> Int {
 /// elf_program_count(f); Err("elf: bad field selector") when field is not a
 /// known ELF_PH_FIELD_* value. The raw parsed value is returned (no range
 /// or alignment validation). Complexity: O(1).
-pub fn elf_program_field(f: &ElfFile, i: Int, field: Int) -> Result[Int, Str] {
+pub fn elf_program_field(f: &ElfFile, i: Int, field: Int) -> Result[Int, Str]
+  ensures: i < 0 || i >= f.seg_types.len() => result is Err;
+  ensures: field < 0 || field >= 8 => result is Err;
+  ensures: result is Ok => i >= 0 && i < f.seg_types.len() && field >= 0 && field < 8;
+{
   if i < 0 || i >= f.seg_types.len() {
     return _err_int("elf: index out of range");
   }
@@ -843,7 +868,11 @@ pub fn elf_program_field(f: &ElfFile, i: Int, field: Int) -> Result[Int, Str] {
 /// known ELF_SH_FIELD_* value. ELF_SH_FIELD_NAME is the raw sh_name byte
 /// offset, not the resolved name (use elf_section_name for that).
 /// Complexity: O(1).
-pub fn elf_section_field(f: &ElfFile, i: Int, field: Int) -> Result[Int, Str] {
+pub fn elf_section_field(f: &ElfFile, i: Int, field: Int) -> Result[Int, Str]
+  ensures: i < 0 || i >= f.sec_types.len() => result is Err;
+  ensures: field < 0 || field >= 10 => result is Err;
+  ensures: result is Ok => i >= 0 && i < f.sec_types.len() && field >= 0 && field < 10;
+{
   if i < 0 || i >= f.sec_types.len() {
     return _err_int("elf: index out of range");
   }
@@ -896,7 +925,10 @@ pub fn elf_section_field(f: &ElfFile, i: Int, field: Int) -> Result[Int, Str] {
 /// elf_section_count(f). The returned Str is read from a Vec[Str] field:
 /// callers must compare it with xiom.string.compare.str_compare rather than
 /// `==`. Complexity: O(1).
-pub fn elf_section_name(f: &ElfFile, i: Int) -> Result[Str, Str] {
+pub fn elf_section_name(f: &ElfFile, i: Int) -> Result[Str, Str]
+  ensures: i < 0 || i >= f.sec_names.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < f.sec_names.len();
+{
   if i < 0 || i >= f.sec_names.len() {
     return _err_str("elf: index out of range");
   }
@@ -908,7 +940,10 @@ pub fn elf_section_name(f: &ElfFile, i: Int) -> Result[Str, Str] {
 /// absent (including on an empty section table). Comparison is exact
 /// (case-sensitive) via xiom.string.compare.str_compare, and duplicate
 /// names resolve to the first match. Complexity: O(sections * name length).
-pub fn elf_section_index(f: &ElfFile, name: Str) -> Int {
+pub fn elf_section_index(f: &ElfFile, name: Str) -> Int
+  ensures: f.sec_names.len() == 0 => result == -1;
+  ensures: result >= 0 => result < f.sec_names.len();
+{
   let n: Int = f.sec_names.len();
   var i = 0;
   while i < n {
@@ -933,7 +968,10 @@ pub fn elf_section_index(f: &ElfFile, name: Str) -> Int {
 /// e_shstrndx 0 -- so the result declares no program and no section tables.
 ///
 /// Err("elf: negative entry") when entry < 0. Complexity: O(1).
-pub fn elf_build_minimal_64le(entry: Int) -> Result[Vec[UInt8], Str] {
+pub fn elf_build_minimal_64le(entry: Int) -> Result[Vec[UInt8], Str]
+  ensures: entry < 0 => result is Err;
+  ensures: result is Ok => result.value.len() == 64;
+{
   if entry < 0 {
     return _err_bytes("elf: negative entry");
   }
