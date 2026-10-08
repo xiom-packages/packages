@@ -33,8 +33,14 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **Rule changes:** `Vec[Struct].clone()` avoidance RETIRED (probe evidence; aggregate-
   payload deep clone via `json_clone` still stands); KEEP `let (k,v) = &vec[i]` avoidance,
   no `Result ==`, no `is Ok(<literal>)`, tag guard pairs.
-- Next: batch #43 (gif) and bindings batch 6 (`xiom.raylib`). Credential:
-  `Lefteris-Notas` active.
+- **Bindings batch 6 published:** `xiom.raylib` 0.2.0 (`eco-v0.1.97`, run `37782495481`;
+  native SKIP-path 3/3 x2 -- present 12/12 x2 per relay; guard 505/470/35/0). Upstream
+  note: raylib 6.0 is the next re-pin candidate (loader already tolerates the 5.x->6.x
+  size-function rename).
+- **Batch #43 dispatched:** gif/cue/png/safetensors/cbor/mqtt (~207 clauses planned;
+  mqtt's stray tail lines 1221-1222 get removed at integration; silent parser acceptance
+  of module-scope junk noted).
+- Next: batch #43 integration + wrap. Credential: `Lefteris-Notas` active.
 
 **--- Older state below (history) ---**
 
