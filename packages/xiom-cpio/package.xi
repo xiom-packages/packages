@@ -10,7 +10,7 @@
 
 package xiom_cpio {
   name: "xiom.cpio";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Cpio archive header codec: parse and build newc and odc entries";
   categories: ["data"];
   keywords: ["cpio", "archive", "format", "unix"];

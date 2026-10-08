@@ -441,7 +441,10 @@ fn _read_fields(data: &Vec[UInt8], pos: Int, format: Int) -> Result[Vec[Int], St
 /// Err("cpio: truncated data"). A stream that ends before a trailer is
 /// Err("cpio: missing trailer") (an empty buffer included).
 /// Complexity: O(data.len()).
-pub fn cpio_parse(data: &Vec[UInt8]) -> Result[CpioArchive, Str] {
+pub fn cpio_parse(data: &Vec[UInt8]) -> Result[CpioArchive, Str]
+  ensures: data.len() < 6 => result is Err;
+  ensures: result is Ok => data.len() >= 6;
+{
   var names = Vec[Str].new();
   var formats = Vec[Int].new();
   var fields = Vec[Int].new();
@@ -534,7 +537,10 @@ pub fn cpio_parse(data: &Vec[UInt8]) -> Result[CpioArchive, Str] {
 /// Detect the format of the first entry: CPIO_FORMAT_NEWC, CPIO_FORMAT_ODC,
 /// or -1 when the buffer is shorter than six bytes or the magic is neither.
 /// Complexity: O(1).
-pub fn cpio_detect_format(data: &Vec[UInt8]) -> Int {
+pub fn cpio_detect_format(data: &Vec[UInt8]) -> Int
+  ensures: data.len() < 6 => result == -1;
+  ensures: result >= -1 && result <= 1;
+{
   if data.len() < 6 {
     return -1;
   }
@@ -547,14 +553,20 @@ pub fn cpio_detect_format(data: &Vec[UInt8]) -> Int {
 
 /// Number of parsed entries (the trailer is not counted).
 /// Complexity: O(1).
-pub fn cpio_count(a: &CpioArchive) -> Int {
+pub fn cpio_count(a: &CpioArchive) -> Int
+  ensures: result == a.names.len();
+{
   return a.names.len();
 }
 
 /// Format code of entry `i` (CPIO_FORMAT_NEWC or CPIO_FORMAT_ODC); -1 when
 /// `i` is negative or >= cpio_count(a).
 /// Complexity: O(1).
-pub fn cpio_entry_format(a: &CpioArchive, i: Int) -> Int {
+pub fn cpio_entry_format(a: &CpioArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= cpio_count(a) => result == -1;
+  ensures: result != -1 => i >= 0 && i < cpio_count(a);
+{
   if i < 0 || i >= a.names.len() {
     return -1;
   }
@@ -566,7 +578,13 @@ pub fn cpio_entry_format(a: &CpioArchive, i: Int) -> Int {
 /// constants. Returns -1 when `i` is out of range or `k` is outside
 /// 0..CPIO_META_LEN-1.
 /// Complexity: O(1).
-pub fn cpio_entry_field(a: &CpioArchive, i: Int, k: Int) -> Int {
+pub fn cpio_entry_field(a: &CpioArchive, i: Int, k: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= cpio_count(a) => result == -1;
+  ensures: k < 0 => result == -1;
+  ensures: k >= 11 => result == -1;
+  ensures: result != -1 => i >= 0 && i < cpio_count(a) && k >= 0 && k < 11;
+{
   if i < 0 || i >= a.names.len() {
     return -1;
   }
@@ -581,7 +599,11 @@ pub fn cpio_entry_field(a: &CpioArchive, i: Int, k: Int) -> Int {
 /// read from a Vec[Str] field: callers must compare it with
 /// xiom.string.compare.str_compare rather than `==`.
 /// Complexity: O(1).
-pub fn cpio_entry_name(a: &CpioArchive, i: Int) -> Str {
+pub fn cpio_entry_name(a: &CpioArchive, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= cpio_count(a) => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < cpio_count(a);
+{
   if i < 0 || i >= a.names.len() {
     return "";
   }
@@ -591,13 +613,18 @@ pub fn cpio_entry_name(a: &CpioArchive, i: Int) -> Str {
 
 /// Inode number of entry `i`; -1 out of range.
 /// Complexity: O(1).
-pub fn cpio_entry_ino(a: &CpioArchive, i: Int) -> Int {
+pub fn cpio_entry_ino(a: &CpioArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: result == cpio_entry_field(a, i, 0);
+{
   return cpio_entry_field(a, i, CPIO_META_INO);
 }
 
 /// Mode bits of entry `i`; -1 out of range.
 /// Complexity: O(1).
-pub fn cpio_entry_mode(a: &CpioArchive, i: Int) -> Int {
+pub fn cpio_entry_mode(a: &CpioArchive, i: Int) -> Int
+  ensures: result == cpio_entry_field(a, i, 1);
+{
   return cpio_entry_field(a, i, CPIO_META_MODE);
 }
 
@@ -615,14 +642,18 @@ pub fn cpio_entry_gid(a: &CpioArchive, i: Int) -> Int {
 
 /// Link count of entry `i`; -1 out of range.
 /// Complexity: O(1).
-pub fn cpio_entry_nlink(a: &CpioArchive, i: Int) -> Int {
+pub fn cpio_entry_nlink(a: &CpioArchive, i: Int) -> Int
+  ensures: result == cpio_entry_field(a, i, 4);
+{
   return cpio_entry_field(a, i, CPIO_META_NLINK);
 }
 
 /// Modification time of entry `i` (seconds since the epoch, as stored);
 /// -1 out of range.
 /// Complexity: O(1).
-pub fn cpio_entry_mtime(a: &CpioArchive, i: Int) -> Int {
+pub fn cpio_entry_mtime(a: &CpioArchive, i: Int) -> Int
+  ensures: result == cpio_entry_field(a, i, 5);
+{
   return cpio_entry_field(a, i, CPIO_META_MTIME);
 }
 
@@ -664,7 +695,11 @@ pub fn cpio_entry_check(a: &CpioArchive, i: Int) -> Int {
 
 /// Declared file size of entry `i` in bytes; -1 out of range.
 /// Complexity: O(1).
-pub fn cpio_entry_filesize(a: &CpioArchive, i: Int) -> Int {
+pub fn cpio_entry_filesize(a: &CpioArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.filesizes.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < a.filesizes.len();
+{
   if i < 0 || i >= a.filesizes.len() {
     return -1;
   }
@@ -675,7 +710,11 @@ pub fn cpio_entry_filesize(a: &CpioArchive, i: Int) -> Int {
 /// Absolute offset of entry `i`'s first data byte in the parse buffer;
 /// -1 out of range.
 /// Complexity: O(1).
-pub fn cpio_entry_data_offset(a: &CpioArchive, i: Int) -> Int {
+pub fn cpio_entry_data_offset(a: &CpioArchive, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.data_offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < a.data_offsets.len();
+{
   if i < 0 || i >= a.data_offsets.len() {
     return -1;
   }
@@ -702,7 +741,11 @@ pub fn cpio_entry_next_offset(a: &CpioArchive, i: Int) -> Int {
 /// not fit `data` (for example when a shorter buffer is passed). A zero-size
 /// entry yields an empty Ok.
 /// Complexity: O(filesize).
-pub fn cpio_entry_data(data: &Vec[UInt8], a: &CpioArchive, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn cpio_entry_data(data: &Vec[UInt8], a: &CpioArchive, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= cpio_count(a) => result is Err;
+  ensures: result is Ok => i >= 0 && i < cpio_count(a);
+{
   if i < 0 || i >= a.names.len() {
     return _err_bytes("cpio: entry out of range");
   }
@@ -908,7 +951,10 @@ fn _append_at(out: &mut Vec[UInt8], format: Int, name: Str, meta: &Vec[Int], bas
 /// namesize are 6 octal digits and mtime/filesize are 11). Every check runs
 /// before the first byte is written, so `out` is unchanged on Err.
 /// Complexity: O(name + data).
-pub fn cpio_append(out: &mut Vec[UInt8], format: Int, name: Str, meta: &Vec[Int], data: &Vec[UInt8]) -> Result[Unit, Str] {
+pub fn cpio_append(out: &mut Vec[UInt8], format: Int, name: Str, meta: &Vec[Int], data: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: format != 0 && format != 1 => result is Err;
+  ensures: meta.len() != 11 => result is Err;
+{
   if format != CPIO_FORMAT_NEWC && format != CPIO_FORMAT_ODC {
     return _err_unit("cpio: bad format");
   }
@@ -926,7 +972,10 @@ pub fn cpio_append(out: &mut Vec[UInt8], format: Int, name: Str, meta: &Vec[Int]
 /// CPIO_FORMAT_ODC; `out` is unchanged on Err. The result is 124 bytes for
 /// newc and 88 bytes for odc.
 /// Complexity: O(1).
-pub fn cpio_append_trailer(out: &mut Vec[UInt8], format: Int) -> Result[Unit, Str] {
+pub fn cpio_append_trailer(out: &mut Vec[UInt8], format: Int) -> Result[Unit, Str]
+  ensures: format == 0 || format == 1 => result is Ok;
+  ensures: format != 0 && format != 1 => result is Err;
+{
   if format != CPIO_FORMAT_NEWC && format != CPIO_FORMAT_ODC {
     return _err_unit("cpio: bad format");
   }
@@ -959,7 +1008,12 @@ pub fn cpio_append_trailer(out: &mut Vec[UInt8], format: Int) -> Result[Unit, St
 /// entry error (the cpio_append catalog). An empty build yields exactly the
 /// trailer entry (124 bytes for newc, 88 for odc).
 /// Complexity: O(total name + data bytes).
-pub fn cpio_build(format: Int, names: &Vec[Str], datas: &Vec[Vec[UInt8]], metas: &Vec[Int]) -> Result[Vec[UInt8], Str] {
+pub fn cpio_build(format: Int, names: &Vec[Str], datas: &Vec[Vec[UInt8]], metas: &Vec[Int]) -> Result[Vec[UInt8], Str]
+  ensures: format != 0 && format != 1 => result is Err;
+  ensures: names.len() != datas.len() => result is Err;
+  ensures: metas.len() != names.len() * 11 => result is Err;
+  ensures: (format == 0 || format == 1) && names.len() == 0 && datas.len() == 0 && metas.len() == 0 => result is Ok;
+{
   if format != CPIO_FORMAT_NEWC && format != CPIO_FORMAT_ODC {
     return _err_bytes("cpio: bad format");
   }
