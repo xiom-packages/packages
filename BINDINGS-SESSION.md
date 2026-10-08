@@ -3,13 +3,30 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 1 MERGED + WRAPPED** -- merged on main @ `05a19deb`, wrapped at
-`5ea29bb5`/`2cb3f03a` (xiom.sqlite 0.2.0 on the allowlist, 505 names).
-Waiting for the **eco-v0.1.89 publish confirmation** before starting xiom-sdl3.
-Lane findings: `docs/BINDINGS-COMPILER-FINDINGS.md`; asks:
-`docs/BINDINGS-STDLIB-WISHLIST.md`; repros: `docs/repro/bindings-pilot/`.
+**STATUS: BATCH 2 RELAYED** -- `xiom.sdl3` 0.2.0 green (present 10/10 x2,
+absent/SKIP 3/3 x2, both via `scripts/port.ps1`); awaiting native
+merge/regen/verify/publish. BATCH 1 merged + wrapped earlier (`xiom.sqlite`
+0.2.0 on the allowlist; eco-v0.1.89 live). Lane findings:
+`docs/BINDINGS-COMPILER-FINDINGS.md`; asks: `docs/BINDINGS-STDLIB-WISHLIST.md`;
+repros: `docs/repro/bindings-pilot/`.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 2: head=f3553cc3 (code) + this handoff commit; packages=xiom.sdl3 0.2.0;
+tests=xiom.sdl3 present 10/10 x2 (SDL 3.4.8 on PATH) and absent 3/3 x2 (SKIP path), both
+through scripts/port.ps1, v0.64.0, 2026-10-08; licenses=MIT OR Apache-2.0 (nothing
+vendored; SDL3 itself untouched, zlib); pins=soname SDL3.dll + SDL release-3.4.8 header
+set manifest sha256 FD61D35102FDAC6FDDB944ED0192DFE4058222FDC531327F74264FF53B0E3023
+(7 headers listed in SPEC.md §2; local positive-path sample: Vulkan SDK 1.4.350.0 SDL3.dll
+FileVersion 3.4.8.0 sha256 6E2B4B6A...C263, runtime reports 3004008); gate=G0 OK
+(keywords:["binding"], license), G1 OK, G2 OK (soname + header manifest pin + re-pin
+procedure), G3 OK (SKIP path never FAILs; ABI mismatch is an explicit FAIL kind), G4 OK
+(loader smoke: load/version/revision/init/was_init/ticks+delay/perf/pump/poll/quit/release),
+G5 OK (all unsafe + fn-pointer casts confined to the single module xiom.sdl3); needs=NONE
+(already allowlisted; no ops ask; NO port.args.json required -- the loader needs no C source
+or extra compiler flags, which is the design point of the dynamic-loader path).
+```
 
 ```
 BINDINGS BATCH 1: head=dfaa17b2 (+ this handoff commit); packages=xiom.sqlite 0.2.0;
@@ -129,6 +146,28 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
      adopt it as the portable path and keep FFI libs as drop-in accelerators.
   3. Name/scope coordination for `xiom.wal` (ORBITDB vs XVECTOR duplication) is
      a native-lane call; this lane has no storage-format stake.
+
+## Batch 2 notes (xiom.sdl3, 2026-10-08)
+
+- Dynamic loader replaces static externs: `sdl3_load` (via `xiom.ffi.dl`)
+  resolves SDL3.dll at runtime. Absent -> `SDL3_LOAD_ABSENT`; the suite prints
+  explicit SKIP labels under `[PASS]` markers (green without the SDK).
+  Present-but-missing-symbol -> `SDL3_LOAD_ABI` (explicit `[FAIL]`; handle
+  closed, no leak).
+- The static-extern module `src/sdl3_safe.xi` and the extern tail of the old
+  root module were removed: they cannot satisfy G3 and would fail linking
+  without SDL3. The full pre-pilot SDL3 3.4.8 constant tables and resource
+  wrappers remain in git history (pre-0.2.0) and return in Phase 2
+  (`ROADMAP.md`).
+- Run matrix through `scripts/port.ps1`: absent 3/3 x2 (PATH without the
+  Vulkan SDK dir), present 10/10 x2 (SDL 3.4.8 from the Vulkan SDK on PATH;
+  runtime reports 3004008, revision `SDL-3.4.8-release-3.4.8`). The demo was
+  run against the same DLL.
+- **No `port.args.json`**: the pure-XIOM loader compiles no C source and needs
+  no extra flags (contrast `xiom.sqlite`, which needs
+  `--c-source vendor/sqlite3.c`). CI runs the suite unchanged.
+- G2 pin: soname `SDL3.dll` + `release-3.4.8` header-set manifest
+  `FD61D351...E3023` (per-file hashes in `SPEC.md` §2).
 
 ## Next (after native merge + publish confirmation)
 
