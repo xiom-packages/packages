@@ -203,7 +203,9 @@ fn _push_u64_le(out: &mut Vec[UInt8], v: Int) {
 }
 
 // True when `s` is non-empty and every byte is printable ASCII (0x20..0x7E).
-fn _is_printable_ascii(s: Str) -> Bool {
+fn _is_printable_ascii(s: Str) -> Bool
+  ensures: s.len() == 0 => result == false;
+{
   let n = string.str_len(s);
   if n == 0 {
     return false;
@@ -284,7 +286,11 @@ fn _skip_ws(p: &mut StParser) {
 }
 
 // Hex digit value of a byte, or -1.
-fn _hex_val(c: Int) -> Int {
+fn _hex_val(c: Int) -> Int
+  ensures: result >= -1 && result <= 15;
+  ensures: c >= 48 && c <= 57 => result == c - 48;
+  ensures: c >= 97 && c <= 102 => result >= 10 && result <= 15;
+{
   if c >= 48 && c <= 57 {
     return c - 48;
   }
@@ -298,7 +304,10 @@ fn _hex_val(c: Int) -> Int {
 }
 
 // Parse a non-negative integer (no sign, no leading zeros, <= INT64_MAX).
-fn _p_int(p: &mut StParser) -> Result[Int, Str] {
+fn _p_int(p: &mut StParser) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 9223372036854775807;
+{
   let start = p.pos;
   if p.pos >= p.len {
     return _err_int(_at("expected non-negative integer", p.pos));
@@ -748,7 +757,11 @@ fn _dtype_size(dtype: Str) -> Int {
 // sequence inside the data section, and for documented dtypes the shape
 // product times the element size equals the declared span. Unknown dtype
 // tokens skip the size check (documented pass-through).
-fn _validate_file(f: &SafetensorsFile) -> Result[Int, Str] {
+fn _validate_file(f: &SafetensorsFile) -> Result[Int, Str]
+  ensures: f.names.len() == 0 => result is Ok;
+  ensures: result is Ok => result.value == 0;
+  ensures: result is Err => f.names.len() > 0;
+{
   let n: Int = f.names.len();
   var i = 0;
   while i < n {
@@ -801,7 +814,10 @@ fn _validate_file(f: &SafetensorsFile) -> Result[Int, Str] {
 /// Err(Str) with a deterministic message for a short buffer, an oversized
 /// or empty header, a NUL byte in the header, malformed JSON, unsupported
 /// value kinds, duplicate names/keys and invalid offsets (see SPEC.md).
-pub fn st_parse(buffer: &Vec[UInt8]) -> Result[SafetensorsFile, Str] {
+pub fn st_parse(buffer: &Vec[UInt8]) -> Result[SafetensorsFile, Str]
+  ensures: buffer.len() < 8 => result is Err;
+  ensures: result is Ok => buffer.len() >= 10;
+{
   let total: Int = buffer.len();
   if total < 8 {
     return _err_file("safetensors: buffer too small for header length");
@@ -845,18 +861,24 @@ pub fn st_parse(buffer: &Vec[UInt8]) -> Result[SafetensorsFile, Str] {
 }
 
 /// Number of tensors in the file.
-pub fn st_tensor_count(f: &SafetensorsFile) -> Int {
+pub fn st_tensor_count(f: &SafetensorsFile) -> Int
+  ensures: result == f.names.len();
+{
   return f.names.len();
 }
 
 /// Raw header length N (the u64 stored in the first 8 bytes). The builder
 /// emits N as a multiple of 8; st_parse accepts any N.
-pub fn st_header_len(f: &SafetensorsFile) -> Int {
+pub fn st_header_len(f: &SafetensorsFile) -> Int
+  ensures: result == f.header_len;
+{
   return f.header_len;
 }
 
 /// Absolute offset of the first data-section byte (always 8 + N).
-pub fn st_data_start(f: &SafetensorsFile) -> Int {
+pub fn st_data_start(f: &SafetensorsFile) -> Int
+  ensures: result == f.data_start;
+{
   return f.data_start;
 }
 
@@ -875,7 +897,10 @@ fn _in_range(f: &SafetensorsFile, i: Int) -> Bool {
 
 /// Tensor name at index `i`.
 /// Err("safetensors: tensor index out of range") when `i` is out of bounds.
-pub fn st_tensor_name(f: &SafetensorsFile, i: Int) -> Result[Str, Str] {
+pub fn st_tensor_name(f: &SafetensorsFile, i: Int) -> Result[Str, Str]
+  ensures: i < 0 || i >= f.names.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < f.names.len();
+{
   if !_in_range(f, i) {
     return _err_str("safetensors: tensor index out of range");
   }
@@ -898,7 +923,11 @@ pub fn st_tensor_dtype(f: &SafetensorsFile, i: Int) -> Result[Str, Str] {
 
 /// Rank (number of dimensions) of tensor `i`; 0 for a scalar.
 /// Err("safetensors: tensor index out of range") when `i` is out of bounds.
-pub fn st_tensor_rank(f: &SafetensorsFile, i: Int) -> Result[Int, Str] {
+pub fn st_tensor_rank(f: &SafetensorsFile, i: Int) -> Result[Int, Str]
+  ensures: i < 0 || i >= f.names.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < f.names.len();
+  ensures: result is Ok => result.value >= 0 && result.value <= f.dims.len();
+{
   if !_in_range(f, i) {
     return _err_int("safetensors: tensor index out of range");
   }
@@ -910,7 +939,12 @@ pub fn st_tensor_rank(f: &SafetensorsFile, i: Int) -> Result[Int, Str] {
 /// Dimension `d` of tensor `i` (0-based).
 /// Err("safetensors: tensor index out of range") / Err("safetensors: dim
 /// index out of range") on out-of-bounds indices.
-pub fn st_tensor_dim(f: &SafetensorsFile, i: Int, d: Int) -> Result[Int, Str] {
+pub fn st_tensor_dim(f: &SafetensorsFile, i: Int, d: Int) -> Result[Int, Str]
+  ensures: i < 0 || i >= f.names.len() => result is Err;
+  ensures: d < 0 => result is Err;
+  ensures: result is Ok => i >= 0 && i < f.names.len() && d >= 0;
+  ensures: result is Ok => result.value >= 0;
+{
   if !_in_range(f, i) {
     return _err_int("safetensors: tensor index out of range");
   }
@@ -964,7 +998,10 @@ pub fn st_tensor_data_len(f: &SafetensorsFile, i: Int) -> Result[Int, Str] {
 /// Err("safetensors: tensor index out of range") for a bad index and
 /// Err("safetensors: container is smaller than the tensor data") when
 /// `container` is shorter than the declared span.
-pub fn st_tensor_bytes(f: &SafetensorsFile, i: Int, container: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn st_tensor_bytes(f: &SafetensorsFile, i: Int, container: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 || i >= f.names.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < f.names.len();
+{
   if !_in_range(f, i) {
     return _err_bytes("safetensors: tensor index out of range");
   }
@@ -987,7 +1024,10 @@ pub fn st_tensor_bytes(f: &SafetensorsFile, i: Int, container: &Vec[UInt8]) -> R
 
 /// Index of the tensor named `name` (declaration order).
 /// Err("safetensors: tensor not found: '<name>'") when no tensor matches.
-pub fn st_find_tensor(f: &SafetensorsFile, name: Str) -> Result[Int, Str] {
+pub fn st_find_tensor(f: &SafetensorsFile, name: Str) -> Result[Int, Str]
+  ensures: f.names.len() == 0 => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value < f.names.len();
+{
   let v: Vec[Str] = f.names;
   var i = 0;
   while i < v.len() {
@@ -1002,14 +1042,20 @@ pub fn st_find_tensor(f: &SafetensorsFile, name: Str) -> Result[Int, Str] {
 
 /// Bytes per element for a documented dtype token, 0 for any other token
 /// (opaque pass-through: no shape/size validation is performed for it).
-pub fn st_dtype_size(dtype: Str) -> Int {
+pub fn st_dtype_size(dtype: Str) -> Int
+  ensures: dtype.len() == 0 => result == 0;
+  ensures: result == 0 || result == 1 || result == 2 || result == 4 || result == 8;
+{
   return _dtype_size(dtype);
 }
 
 /// Element count of a shape vector: the product of the dimensions, 1 for an
 /// empty shape (scalar), 0 when any dimension is 0, and -1 on a negative
 /// dimension or signed overflow. Integer only; no rounding.
-pub fn st_shape_element_count(dims: &Vec[Int]) -> Int {
+pub fn st_shape_element_count(dims: &Vec[Int]) -> Int
+  ensures: dims.len() == 0 => result == 1;
+  ensures: result >= -1;
+{
   var v: Int = 1;
   var k = 0;
   while k < dims.len() {
@@ -1034,7 +1080,9 @@ pub fn st_shape_element_count(dims: &Vec[Int]) -> Int {
 // --------------------------------------------------
 
 /// Create an empty builder.
-pub fn st_builder_new() -> SafetensorsBuilder {
+pub fn st_builder_new() -> SafetensorsBuilder
+  ensures: result.names.len() == 0 && result.dtypes.len() == 0 && result.ranks.len() == 0 && result.dims.len() == 0 && result.payload.len() == 0 && result.offsets_start.len() == 0 && result.offsets_end.len() == 0 && result.shape_offsets.len() == 1;
+{
   var b = SafetensorsBuilder{
     names: Vec[Str].new();
     dtypes: Vec[Str].new();
@@ -1070,7 +1118,12 @@ pub fn st_builder_payload_len(b: &SafetensorsBuilder) -> Int {
 ///
 /// Err(Str) for an empty or non-ASCII name/dtype, a duplicate name, a
 /// negative dimension, a shape-product overflow or a data-length mismatch.
-pub fn st_builder_add(b: &mut SafetensorsBuilder, name: Str, dtype: Str, dims: &Vec[Int], data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn st_builder_add(b: &mut SafetensorsBuilder, name: Str, dtype: Str, dims: &Vec[Int], data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: name.len() == 0 => result is Err;
+  ensures: dtype.len() == 0 => result is Err;
+  ensures: result is Ok => name.len() > 0 && dtype.len() > 0;
+  ensures: result is Ok => result.value >= 0;
+{
   if string.str_len(name) == 0 {
     return _err_int("safetensors: builder: tensor name must not be empty");
   }
@@ -1189,7 +1242,10 @@ pub fn st_builder_header_json(b: &SafetensorsBuilder) -> Str {
 /// header JSON padded with spaces (0x20) so the header length is a multiple
 /// of 8, then the concatenated payload. The data section therefore starts
 /// 8-byte aligned at absolute offset 8 + N.
-pub fn st_builder_finish(b: &SafetensorsBuilder) -> Vec[UInt8] {
+pub fn st_builder_finish(b: &SafetensorsBuilder) -> Vec[UInt8]
+  ensures: result.len() >= 8 + b.payload.len();
+  ensures: (result.len() - 8 - b.payload.len()) % 8 == 0;
+{
   let header = _builder_header(b);
   let hlen = string.str_len(header);
   var padded = hlen;

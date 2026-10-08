@@ -1,8 +1,6 @@
 # xiom.safetensors -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.safetensors`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/safetensors.xi` (`module xiom.safetensors`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`,
 `xiom.string.compare`, `xiom.convert`).
@@ -406,3 +404,57 @@ Last verified: compiler 0.61.3,
   `Vec[fn]` dispatch; the tests call each `tN()` directly.
 - Big-endian/little-endian prefix decoding uses arithmetic modulo/division
   rather than bit tricks on sign-extended bytes.
+
+## Contracts (batch #43 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (38, across the 18 functions below) were
+added using the proven families: exact scalar identities, sentinel returns,
+guard-pair/`Bool` tag reasoning on `Result` and exact length identities on
+vectors. All are `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Every clause is enforced as a runtime check; the 21-check
+conformance suite exercises every entry point and both
+`& .\scripts\port.ps1 -Package xiom.safetensors -TimeoutSec 60` runs ended
+`port: PASS (passed=21 failed=0 program_exit=0 exit=0)` with the clauses
+active (9.5 s and 9.2 s). None is claimed Z3-provable: no `xiom-verify`
+obligation was demonstrated for this module, so the Z3-provable column is
+"no" throughout. The clauses avoid `Result` equality, `is Ok(<literal>)`,
+tuple-component, struct-`Result`-payload and bare `&mut`-parameter shapes;
+`st_builder_add`'s clauses read the `name`/`dtype` parameters only (never
+`b`), and `st_builder_finish`'s length identity reads `b.payload.len()` as
+planned.
+
+Two clauses carry the plan's parsed-file `(pre: ...)` guard: for files
+produced by `st_parse` the shape table is non-decreasing with the last
+sentinel equal to `dims.len()` and all `dims` entries non-negative, so
+`st_tensor_rank`'s `result.value <= f.dims.len()` and `st_tensor_dim`'s
+`result.value >= 0` hold on every constructed file. They are kept exactly as
+planned; no clause was dropped, no clause needed re-expression, and no
+stdlib gap was found.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `_is_printable_ascii` | 1 | empty `Str` => `false` | no | yes |
+| `_hex_val` | 3 | `-1 <= result <= 15`; digit guards give the exact value / range | no | yes |
+| `_p_int` | 2 | `Ok` => `0 <= result.value <= INT64_MAX` | no | yes |
+| `_validate_file` | 3 | empty table => `Ok`; `Ok` => `result.value == 0`; `Err` => non-empty table | no | yes |
+| `st_parse` | 2 | buffer < 8 bytes => `Err`; `Ok` => buffer >= 10 bytes | no | yes |
+| `st_tensor_count` | 1 | `result == f.names.len()` | no | yes |
+| `st_header_len` | 1 | `result == f.header_len` | no | yes |
+| `st_data_start` | 1 | `result == f.data_start` | no | yes |
+| `st_tensor_name` | 2 | out-of-range index => `Err`; `Ok` => index in range | no | yes |
+| `st_tensor_rank` | 3 | index guard pair; `Ok` => `0 <= result.value <= f.dims.len()` | no | yes |
+| `st_tensor_dim` | 4 | index/dim guard pair; `Ok` => index and dim non-negative | no | yes |
+| `st_tensor_bytes` | 2 | out-of-range index => `Err`; `Ok` => index in range | no | yes |
+| `st_find_tensor` | 2 | empty table => `Err`; `Ok` => index in range | no | yes |
+| `st_dtype_size` | 2 | empty token => `0`; result in {0, 1, 2, 4, 8} | no | yes |
+| `st_shape_element_count` | 2 | empty shape => `1`; `result >= -1` | no | yes |
+| `st_builder_new` | 1 | all vectors empty, `shape_offsets.len() == 1` | no | yes |
+| `st_builder_add` | 4 | empty `name`/`dtype` => `Err`; `Ok` => both non-empty and index >= 0 | no | yes |
+| `st_builder_finish` | 2 | `result.len() >= 8 + b.payload.len()`; header-plus-prefix part is a multiple of 8 | no | yes |
+
+Deliberately not claimed: shape/dim ranges that would need vector indexing or
+decoded-document invariants hand-built values can falsify; `Str` equality
+(BUG 17); module constants in clauses (literals are inlined); payload-length
+identities on `Result` payloads; and `Result` equality / `is Ok(<literal>)`
+shapes. No clause calls another function, so no cross-call can re-enter a
+callee.
