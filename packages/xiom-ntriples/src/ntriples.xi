@@ -201,7 +201,10 @@ fn _is_cont(b: Int) -> Bool {
 // First byte offset of an ill-formed UTF-8 sequence in `text`, or -1 when the
 // whole string is well-formed per RFC 3629 (rejects stray continuation bytes,
 // truncated sequences, overlong forms, surrogates and > U+10FFFF).
-fn _utf8_problem_at(text: Str) -> Int {
+fn _utf8_problem_at(text: Str) -> Int
+  ensures: text.len() == 0 => result == -1;
+  ensures: result >= -1 && result < text.len();
+{
   let n = text.len();
   var i = 0;
   while i < n {
@@ -333,7 +336,10 @@ fn _iri_code_forbidden(v: Int) -> Bool {
 // `digits` = 4 or 8. Err("ntriples: bad escape at <at>") for a truncated or
 // non-hex digit, a NUL code point (XIOM Str cannot carry NUL), a UTF-16
 // surrogate (U+D800-U+DFFF) or a value above U+10FFFF.
-fn _uchar_code(text: Str, at: Int, end: Int, digits: Int) -> Result[Int, Str] {
+fn _uchar_code(text: Str, at: Int, end: Int, digits: Int) -> Result[Int, Str]
+  ensures: at + 2 + digits > end => result is Err;
+  ensures: result is Ok => at + 2 + digits <= end;
+{
   let first = at + 2;
   if first + digits > end {
     return Err(_err_at("bad escape", at));
@@ -687,7 +693,9 @@ fn _parse_line(d: &mut NtDocument, text: Str, start: Int, end: Int) -> Result[In
 /// Returns: a document with all eight parallel vectors empty.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn nt_new() -> NtDocument {
+pub fn nt_new() -> NtDocument
+  ensures: result.s_kinds.len() == 0 && result.s_texts.len() == 0 && result.p_texts.len() == 0 && result.o_kinds.len() == 0 && result.o_texts.len() == 0 && result.o_langs.len() == 0 && result.o_dts.len() == 0 && result.o_flags.len() == 0;
+{
   return NtDocument{
     s_kinds: Vec[Str].new();
     s_texts: Vec[Str].new();
@@ -715,7 +723,12 @@ pub fn nt_new() -> NtDocument {
 /// `o_kind` = "literal" means a plain literal; the explicit "^^<>" state can
 /// only arise from nt_parse.
 /// Complexity: O(1) amortized.
-pub fn nt_add_triple(d: &mut NtDocument, s_kind: Str, s_text: Str, p_text: Str, o_kind: Str, o_text: Str, o_lang: Str, o_dt: Str) -> Bool {
+pub fn nt_add_triple(d: &mut NtDocument, s_kind: Str, s_text: Str, p_text: Str, o_kind: Str, o_text: Str, o_lang: Str, o_dt: Str) -> Bool
+  ensures: s_kind.len() == 0 => result == false;
+  ensures: o_kind.len() == 0 => result == false;
+  ensures: s_kind.len() != 3 && s_kind.len() != 5 => result == false;
+  ensures: o_kind.len() != 3 && o_kind.len() != 5 && o_kind.len() != 7 => result == false;
+{
   let s_iri = compare.str_compare(s_kind, "iri") == 0;
   let s_bnode = compare.str_compare(s_kind, "bnode") == 0;
   if !s_iri && !s_bnode {
@@ -776,7 +789,10 @@ pub fn nt_add_triple(d: &mut NtDocument, s_kind: Str, s_text: Str, p_text: Str, 
 /// control byte in a literal, extra term, unexpected end of line, unexpected
 /// byte.
 /// Complexity: O(n) time and memory in the input size.
-pub fn nt_parse(text: Str) -> Result[NtDocument, Str] {
+pub fn nt_parse(text: Str) -> Result[NtDocument, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   let bad = _utf8_problem_at(text);
   if bad >= 0 {
     return _err_doc(_err_at("invalid UTF-8 byte", bad));
@@ -810,7 +826,9 @@ pub fn nt_parse(text: Str) -> Result[NtDocument, Str] {
 /// Returns: the triple count; 0 for an empty document.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn nt_triple_count(d: &NtDocument) -> Int {
+pub fn nt_triple_count(d: &NtDocument) -> Int
+  ensures: result == d.s_kinds.len();
+{
   return d.s_kinds.len();
 }
 
@@ -819,7 +837,9 @@ pub fn nt_triple_count(d: &NtDocument) -> Int {
 /// Returns: "iri" or "bnode"; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn nt_subject_kind(d: &NtDocument, i: Int) -> Str {
+pub fn nt_subject_kind(d: &NtDocument, i: Int) -> Str
+  ensures: i < 0 || i >= d.s_kinds.len() => result.len() == 0;
+{
   if i < 0 || i >= d.s_kinds.len() {
     return "";
   }
@@ -859,7 +879,9 @@ pub fn nt_predicate(d: &NtDocument, i: Int) -> Str {
 /// range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn nt_object_kind(d: &NtDocument, i: Int) -> Str {
+pub fn nt_object_kind(d: &NtDocument, i: Int) -> Str
+  ensures: i < 0 || i >= d.o_kinds.len() => result.len() == 0;
+{
   if i < 0 || i >= d.o_kinds.len() {
     return "";
   }
@@ -873,7 +895,9 @@ pub fn nt_object_kind(d: &NtDocument, i: Int) -> Str {
 /// Returns: the term text; "" when `i` is negative or out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn nt_object_text(d: &NtDocument, i: Int) -> Str {
+pub fn nt_object_text(d: &NtDocument, i: Int) -> Str
+  ensures: i < 0 || i >= d.o_texts.len() => result.len() == 0;
+{
   if i < 0 || i >= d.o_texts.len() {
     return "";
   }
@@ -902,7 +926,9 @@ pub fn nt_object_lang(d: &NtDocument, i: Int) -> Str {
 /// index.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn nt_object_datatype(d: &NtDocument, i: Int) -> Str {
+pub fn nt_object_datatype(d: &NtDocument, i: Int) -> Str
+  ensures: i < 0 || i >= d.o_dts.len() => result.len() == 0;
+{
   if i < 0 || i >= d.o_dts.len() {
     return "";
   }
@@ -915,7 +941,9 @@ pub fn nt_object_datatype(d: &NtDocument, i: Int) -> Str {
 /// empty datatype "^^<>"; false otherwise and for out-of-range indices.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn nt_object_has_datatype(d: &NtDocument, i: Int) -> Bool {
+pub fn nt_object_has_datatype(d: &NtDocument, i: Int) -> Bool
+  ensures: i < 0 || i >= d.o_flags.len() => result == false;
+{
   if i < 0 || i >= d.o_flags.len() {
     return false;
   }
@@ -1023,7 +1051,10 @@ fn _emit_literal(sb: &mut Vec[UInt8], text: Str, lang: Str, dt: Str, flag: Int) 
 /// are absent. Documents built by nt_parse reparse to an equal document.
 /// Error case: none.
 /// Complexity: O(total text length).
-pub fn nt_emit(d: &NtDocument) -> Str {
+pub fn nt_emit(d: &NtDocument) -> Str
+  ensures: d.s_kinds.len() == 0 => result.len() == 0;
+  ensures: d.s_kinds.len() > 0 => result.len() >= 11;
+{
   var sb = Vec[UInt8].new();
   let n = d.s_kinds.len();
   var i = 0;
@@ -1065,7 +1096,9 @@ pub fn nt_emit(d: &NtDocument) -> Str {
 
 // True when `s` is a blank node label in the documented ASCII subset:
 // [A-Za-z0-9_] followed by [A-Za-z0-9_.-]*, not ending in '.'.
-fn _bnode_label_ok(s: Str) -> Bool {
+fn _bnode_label_ok(s: Str) -> Bool
+  ensures: s.len() == 0 => result == false;
+{
   let n = s.len();
   if n == 0 {
     return false;
@@ -1084,7 +1117,9 @@ fn _bnode_label_ok(s: Str) -> Bool {
 }
 
 // True when `s` matches [a-zA-Z]+ ('-' [a-zA-Z0-9]+)*.
-fn _langtag_ok(s: Str) -> Bool {
+fn _langtag_ok(s: Str) -> Bool
+  ensures: s.len() == 0 => result == false;
+{
   let n = s.len();
   var i = 0;
   let first_start = i;

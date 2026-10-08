@@ -1,6 +1,6 @@
 # xiom.ntriples -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.ntriples` (`src/ntriples.xi`). Pure XIOM, no FFI.
 Reference: [RDF 1.1 N-Triples](https://www.w3.org/TR/n-triples/) (W3C
 Recommendation, 25 February 2014).
@@ -297,3 +297,44 @@ XIOM v0.61.3 workarounds used (same shape as the other ported packages):
   sign-safe.
 - E001 borrow warnings on `&mut NtDocument` call sites are advisory; the
   mutations are observable and the suite pins them.
+
+## Contracts (batch #42 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/ntriples.xi` in the batch
+#42 hardening pass (compiler v0.64.0; `package.xi` is left for the coordinator
+to bump at integration). 21 clauses over 14 entry points, all `ensures:` (no
+`requires:`), so the accepted-input domain is unchanged. The public `&mut
+NtDocument` receiver of `nt_add_triple` is never read by a clause; its clauses
+constrain only the by-value kind parameters. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.ntriples -TimeoutSec 60` runs ended
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses
+active (18.60 s and 9.34 s); no clause trapped.
+
+Every clause holds for hand-built values and structs: the guards restate the
+source's own validation branches, and only parameters, parameter fields
+(`NtDocument` vector lengths), `Str`/`Int`/`Bool` returns and the plain-struct
+fields of `nt_new`'s result are read. No clause reads a bare `&mut` parameter,
+indexes a vector, uses a module constant (kind lengths 3/5/7 and the emit
+lower bound 11 are inline literals), compares `Str` values with `==`, reads a
+struct-Result payload field or uses `result.value.0/.1`. There are no clause
+cross-calls. Nothing was dropped and no probe-gated items applied.
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it can
+emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `nt_new` | `result.s_kinds.len() == 0 && result.s_texts.len() == 0 && result.p_texts.len() == 0 && result.o_kinds.len() == 0 && result.o_texts.len() == 0 && result.o_langs.len() == 0 && result.o_dts.len() == 0 && result.o_flags.len() == 0` | runtime-checked |
+| `nt_add_triple` | `s_kind.len() == 0 => result == false`; `o_kind.len() == 0 => result == false`; `s_kind.len() != 3 && s_kind.len() != 5 => result == false`; `o_kind.len() != 3 && o_kind.len() != 5 && o_kind.len() != 7 => result == false` | runtime-checked |
+| `nt_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked |
+| `nt_triple_count` | `result == d.s_kinds.len()` | runtime-checked |
+| `nt_subject_kind` | `i < 0 \|\| i >= d.s_kinds.len() => result.len() == 0` | runtime-checked |
+| `nt_object_kind` | `i < 0 \|\| i >= d.o_kinds.len() => result.len() == 0` | runtime-checked |
+| `nt_object_text` | `i < 0 \|\| i >= d.o_texts.len() => result.len() == 0` | runtime-checked |
+| `nt_object_datatype` | `i < 0 \|\| i >= d.o_dts.len() => result.len() == 0` | runtime-checked |
+| `nt_object_has_datatype` | `i < 0 \|\| i >= d.o_flags.len() => result == false` | runtime-checked |
+| `nt_emit` | `d.s_kinds.len() == 0 => result.len() == 0`; `d.s_kinds.len() > 0 => result.len() >= 11` | runtime-checked |
+| `_utf8_problem_at` | `text.len() == 0 => result == -1`; `result >= -1 && result < text.len()` | runtime-checked |
+| `_bnode_label_ok` | `s.len() == 0 => result == false` | runtime-checked |
+| `_langtag_ok` | `s.len() == 0 => result == false` | runtime-checked |
+| `_uchar_code` | `at + 2 + digits > end => result is Err`; `result is Ok => at + 2 + digits <= end` | runtime-checked |
