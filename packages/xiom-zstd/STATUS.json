@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  8,
                   "failed":  0,
-                  "run_by":  "task:bindings-zstd",
-                  "commit":  "d7357dd3",
-                  "checked":  "2026-10-08T19:16:54Z"
+                  "run_by":  "native-session",
+                  "commit":  "ba754abf",
+                  "checked":  "2026-10-08T19:36:02Z"
               },
     "publish":  false,
-    "excluded_reason":  null
+    "excluded_reason":  "publish pending: bindings batch 12 (eco-v0.1.106)"
 }
