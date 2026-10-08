@@ -205,7 +205,11 @@ fn _byte(data: &Vec[UInt8], pos: Int) -> Int {
 }
 
 // 2^k for 0 <= k <= 30, computed by repeated multiplication (no shift).
-fn _pow2(k: Int) -> Int {
+fn _pow2(k: Int) -> Int
+  ensures: k == 0 => result == 1;
+  ensures: k == 8 => result == 256;
+  ensures: k == 16 => result == 65536;
+{
   var v = 1;
   var i = 0;
   while i < k {
@@ -248,7 +252,10 @@ fn _scale_uv(raw: Int, vref_uv: Int, scale: Int, gain: Int) -> Int {
 ///
 /// Err("adc: resolution N out of range 8..24") otherwise.
 /// Complexity: O(1).
-pub fn adc_validate_resolution(bits: Int) -> Result[Unit, Str] {
+pub fn adc_validate_resolution(bits: Int) -> Result[Unit, Str]
+  ensures: bits < 8 || bits > 24 => result is Err;
+  ensures: bits >= 8 && bits <= 24 => result is Ok;
+{
   if bits < ADC_RES_MIN || bits > ADC_RES_MAX {
     return _err_unit("adc: resolution " + convert.int_to_string(bits) + " out of range 8..24");
   }
@@ -257,7 +264,10 @@ pub fn adc_validate_resolution(bits: Int) -> Result[Unit, Str] {
 
 /// Unipolar full-scale code of a resolution: 2^bits - 1, or -1 when the
 /// resolution is outside 8..24. Complexity: O(1).
-pub fn adc_full_scale(bits: Int) -> Int {
+pub fn adc_full_scale(bits: Int) -> Int
+  ensures: bits < 8 || bits > 24 => result == -1;
+  ensures: bits >= 8 && bits <= 24 => result == _pow2(bits) - 1;
+{
   if bits < ADC_RES_MIN || bits > ADC_RES_MAX {
     return -1;
   }
@@ -267,7 +277,10 @@ pub fn adc_full_scale(bits: Int) -> Int {
 /// Differential full-scale magnitude of a resolution: 2^(bits-1), the
 /// magnitude of the most negative two's complement code, or -1 when the
 /// resolution is outside 8..24. Complexity: O(1).
-pub fn adc_diff_full_scale(bits: Int) -> Int {
+pub fn adc_diff_full_scale(bits: Int) -> Int
+  ensures: bits < 8 || bits > 24 => result == -1;
+  ensures: bits >= 8 && bits <= 24 => result == _pow2(bits - 1);
+{
   if bits < ADC_RES_MIN || bits > ADC_RES_MAX {
     return -1;
   }
@@ -362,7 +375,13 @@ pub fn adc_mode_name(mode: Int) -> Str {
 ///   3. gain < 1 -> "adc: gain N must be at least 1";
 ///   4. raw outside 0..2^bits-1 -> "adc: raw N out of range 0..M".
 /// Complexity: O(1).
-pub fn adc_raw_to_uv(raw: Int, bits: Int, vref_uv: Int, gain: Int) -> Result[Int, Str] {
+pub fn adc_raw_to_uv(raw: Int, bits: Int, vref_uv: Int, gain: Int) -> Result[Int, Str]
+  ensures: bits < 8 || bits > 24 => result is Err;
+  ensures: vref_uv <= 0 => result is Err;
+  ensures: gain < 1 => result is Err;
+  ensures: raw < 0 || raw > _pow2(bits) - 1 => result is Err;
+  ensures: bits >= 8 && bits <= 24 && vref_uv > 0 && gain >= 1 && raw >= 0 && raw <= _pow2(bits) - 1 => result.value == vref_uv * raw / (_pow2(bits) - 1) / gain;
+{
   if bits < ADC_RES_MIN || bits > ADC_RES_MAX {
     return _err_int("adc: resolution " + convert.int_to_string(bits) + " out of range 8..24");
   }
@@ -418,7 +437,12 @@ pub fn adc_lsb_nanovolts(bits: Int, vref_uv: Int, gain: Int) -> Result[Int, Str]
 /// Err("adc: resolution N out of range 8..24") for an invalid resolution;
 /// Err("adc: raw N out of range 0..M") for a code outside 0..2^bits-1.
 /// Complexity: O(1).
-pub fn adc_twos_complement(raw: Int, bits: Int) -> Result[Int, Str] {
+pub fn adc_twos_complement(raw: Int, bits: Int) -> Result[Int, Str]
+  ensures: bits < 8 || bits > 24 => result is Err;
+  ensures: raw < 0 || raw > _pow2(bits) - 1 => result is Err;
+  ensures: bits >= 8 && bits <= 24 && raw >= 0 && raw <= _pow2(bits) - 1 && raw >= _pow2(bits - 1) => result.value == raw - _pow2(bits);
+  ensures: bits >= 8 && bits <= 24 && raw >= 0 && raw <= _pow2(bits) - 1 && raw < _pow2(bits - 1) => result.value == raw;
+{
   if bits < ADC_RES_MIN || bits > ADC_RES_MAX {
     return _err_int("adc: resolution " + convert.int_to_string(bits) + " out of range 8..24");
   }
@@ -445,7 +469,13 @@ pub fn adc_twos_complement(raw: Int, bits: Int) -> Result[Int, Str] {
 ///   4. raw outside -2^(bits-1)..2^(bits-1)-1 -> "adc: signed raw N out of
 ///      range -M..P".
 /// Complexity: O(1).
-pub fn adc_raw_to_uv_signed(raw: Int, bits: Int, vref_uv: Int, gain: Int) -> Result[Int, Str] {
+pub fn adc_raw_to_uv_signed(raw: Int, bits: Int, vref_uv: Int, gain: Int) -> Result[Int, Str]
+  ensures: bits < 8 || bits > 24 => result is Err;
+  ensures: vref_uv <= 0 => result is Err;
+  ensures: gain < 1 => result is Err;
+  ensures: raw < 0 - _pow2(bits - 1) || raw > _pow2(bits - 1) - 1 => result is Err;
+  ensures: bits >= 8 && bits <= 24 && vref_uv > 0 && gain >= 1 && raw >= 0 - _pow2(bits - 1) && raw <= _pow2(bits - 1) - 1 => result.value == vref_uv * raw / _pow2(bits - 1) / gain;
+{
   if bits < ADC_RES_MIN || bits > ADC_RES_MAX {
     return _err_int("adc: resolution " + convert.int_to_string(bits) + " out of range 8..24");
   }
@@ -487,7 +517,14 @@ pub fn adc_raw_to_millivolts_signed(raw: Int, bits: Int, vref_uv: Int, gain: Int
 ///   4. uv outside 0..vref_uv/gain (the full-scale voltage) ->
 ///      "adc: value N uV out of range 0..M".
 /// Complexity: O(1).
-pub fn adc_uv_to_raw(uv: Int, bits: Int, vref_uv: Int, gain: Int) -> Result[Int, Str] {
+pub fn adc_uv_to_raw(uv: Int, bits: Int, vref_uv: Int, gain: Int) -> Result[Int, Str]
+  ensures: bits < 8 || bits > 24 => result is Err;
+  ensures: vref_uv <= 0 => result is Err;
+  ensures: gain < 1 => result is Err;
+  ensures: uv < 0 => result is Err;
+  ensures: result is Ok => uv <= vref_uv / gain;
+  ensures: result is Ok => result.value == uv * gain * (_pow2(bits) - 1) / vref_uv;
+{
   if bits < ADC_RES_MIN || bits > ADC_RES_MAX {
     return _err_int("adc: resolution " + convert.int_to_string(bits) + " out of range 8..24");
   }
@@ -510,7 +547,9 @@ pub fn adc_uv_to_raw(uv: Int, bits: Int, vref_uv: Int, gain: Int) -> Result[Int,
 // --------------------------------------------------
 
 /// Sum of a sample block; 0 for an empty block. Complexity: O(n).
-pub fn adc_sum(samples: &Vec[Int]) -> Int {
+pub fn adc_sum(samples: &Vec[Int]) -> Int
+  ensures: samples.len() == 0 => result == 0;
+{
   var total = 0;
   var i = 0;
   while i < samples.len() {
@@ -525,7 +564,10 @@ pub fn adc_sum(samples: &Vec[Int]) -> Int {
 /// toward zero. Complexity: O(n).
 ///
 /// Err("adc: no samples") for an empty block.
-pub fn adc_mean(samples: &Vec[Int]) -> Result[Int, Str] {
+pub fn adc_mean(samples: &Vec[Int]) -> Result[Int, Str]
+  ensures: samples.len() == 0 => result is Err;
+  ensures: samples.len() > 0 => result.value == adc_sum(samples) / samples.len();
+{
   let n = samples.len();
   if n < 1 {
     return _err_int("adc: no samples");
@@ -612,7 +654,14 @@ pub fn adc_oversample_shift(factor: Int) -> Int {
 /// not a power of two >= 1; Err("adc: oversampled resolution N out of range
 /// 8..24") when the sum leaves the supported range.
 /// Complexity: O(log factor).
-pub fn adc_oversample_bits(resolution: Int, factor: Int) -> Result[Int, Str] {
+pub fn adc_oversample_bits(resolution: Int, factor: Int) -> Result[Int, Str]
+  ensures: resolution < 8 || resolution > 24 => result is Err;
+  ensures: factor < 1 => result is Err;
+  ensures: resolution == 24 && factor > 1 => result is Err;
+  ensures: resolution == 23 && factor > 2 => result is Err;
+  ensures: resolution >= 8 && resolution <= 24 && factor == 1 => result.value == resolution;
+  ensures: resolution >= 8 && resolution <= 23 && factor == 2 => result.value == resolution + 1;
+{
   if resolution < ADC_RES_MIN || resolution > ADC_RES_MAX {
     return _err_int("adc: resolution " + convert.int_to_string(resolution) + " out of range 8..24");
   }
@@ -635,7 +684,10 @@ pub fn adc_oversample_bits(resolution: Int, factor: Int) -> Result[Int, Str] {
 ///
 /// Err("adc.ads1x15: single-ended channel N out of range 0..3") otherwise.
 /// Complexity: O(1).
-pub fn ads_mux_single(channel: Int) -> Result[Int, Str] {
+pub fn ads_mux_single(channel: Int) -> Result[Int, Str]
+  ensures: channel < 0 || channel > 3 => result is Err;
+  ensures: channel >= 0 && channel <= 3 => result.value == 4 + channel;
+{
   if channel < 0 || channel > 3 {
     return _err_int("adc.ads1x15: single-ended channel " + convert.int_to_string(channel) + " out of range 0..3");
   }
@@ -650,7 +702,14 @@ pub fn ads_mux_single(channel: Int) -> Result[Int, Str] {
 /// outside 0..3; Err("adc.ads1x15: differential pair AINp-AINn is not
 /// supported") for any other pair.
 /// Complexity: O(1).
-pub fn ads_mux_differential(pos: Int, neg: Int) -> Result[Int, Str] {
+pub fn ads_mux_differential(pos: Int, neg: Int) -> Result[Int, Str]
+  ensures: pos < 0 || pos > 3 || neg < 0 || neg > 3 => result is Err;
+  ensures: pos == 0 && neg == 1 => result.value == 0;
+  ensures: pos == 0 && neg == 3 => result.value == 1;
+  ensures: pos == 1 && neg == 3 => result.value == 2;
+  ensures: pos == 2 && neg == 3 => result.value == 3;
+  ensures: pos >= 0 && pos <= 3 && neg >= 0 && neg <= 3 && (pos != 0 || neg != 1) && (pos != 0 || neg != 3) && (pos != 1 || neg != 3) && (pos != 2 || neg != 3) => result is Err;
+{
   if pos < 0 || pos > 3 {
     return _err_int("adc.ads1x15: channel " + convert.int_to_string(pos) + " out of range 0..3");
   }
@@ -854,7 +913,17 @@ pub fn ads_data_rate_index(sps: Int, is_ads1115: Bool) -> Int {
 /// (COMP_MODE 0, COMP_POL 0, COMP_LAT 0, COMP_QUE 3). The encoded word is
 /// 0x8583, the documented power-on default.
 /// Complexity: O(1).
-pub fn ads1x15_default_config() -> Ads1x15Config {
+pub fn ads1x15_default_config() -> Ads1x15Config
+  ensures: result.os == 1;
+  ensures: result.mux == 0;
+  ensures: result.pga == 2;
+  ensures: result.mode == 1;
+  ensures: result.dr == 4;
+  ensures: result.comp_mode == 0;
+  ensures: result.comp_pol == 0;
+  ensures: result.comp_lat == 0;
+  ensures: result.comp_que == 3;
+{
   return Ads1x15Config{ os: ADS_OS_START; mux: ADS_MUX_DIFF_0_1; pga: 2; mode: ADS_MODE_SINGLE_SHOT; dr: 4; comp_mode: ADS_COMP_TRADITIONAL; comp_pol: ADS_COMP_ACTIVE_LOW; comp_lat: ADS_COMP_NONLATCHING; comp_que: ADS_COMP_QUE_DISABLE; };
 }
 
@@ -901,7 +970,18 @@ fn _ads1x15_config_error(os: Int, mux: Int, pga: Int, mode: Int, dr: Int, comp_m
 /// field, in register order OS, MUX, PGA, MODE, DR, COMP_MODE, COMP_POL,
 /// COMP_LAT, COMP_QUE.
 /// Complexity: O(1).
-pub fn ads1x15_config_encode_word(cfg: &Ads1x15Config) -> Result[Int, Str] {
+pub fn ads1x15_config_encode_word(cfg: &Ads1x15Config) -> Result[Int, Str]
+  ensures: cfg.os < 0 || cfg.os > 1 => result is Err;
+  ensures: cfg.mux < 0 || cfg.mux > 7 => result is Err;
+  ensures: cfg.pga < 0 || cfg.pga > 7 => result is Err;
+  ensures: cfg.mode < 0 || cfg.mode > 1 => result is Err;
+  ensures: cfg.dr < 0 || cfg.dr > 7 => result is Err;
+  ensures: cfg.comp_mode < 0 || cfg.comp_mode > 1 => result is Err;
+  ensures: cfg.comp_pol < 0 || cfg.comp_pol > 1 => result is Err;
+  ensures: cfg.comp_lat < 0 || cfg.comp_lat > 1 => result is Err;
+  ensures: cfg.comp_que < 0 || cfg.comp_que > 3 => result is Err;
+  ensures: cfg.os >= 0 && cfg.os <= 1 && cfg.mux >= 0 && cfg.mux <= 7 && cfg.pga >= 0 && cfg.pga <= 7 && cfg.mode >= 0 && cfg.mode <= 1 && cfg.dr >= 0 && cfg.dr <= 7 && cfg.comp_mode >= 0 && cfg.comp_mode <= 1 && cfg.comp_pol >= 0 && cfg.comp_pol <= 1 && cfg.comp_lat >= 0 && cfg.comp_lat <= 1 && cfg.comp_que >= 0 && cfg.comp_que <= 3 => result.value == cfg.os * 32768 + cfg.mux * 4096 + cfg.pga * 512 + cfg.mode * 256 + cfg.dr * 32 + cfg.comp_mode * 16 + cfg.comp_pol * 8 + cfg.comp_lat * 4 + cfg.comp_que;
+{
   let os: Int = cfg.os;
   let mux: Int = cfg.mux;
   let pga: Int = cfg.pga;
@@ -941,7 +1021,10 @@ pub fn ads1x15_config_encode(cfg: &Ads1x15Config) -> Result[Vec[UInt8], Str] {
 ///
 /// Err("adc.ads1x15: config word N out of range 0..65535") otherwise.
 /// Complexity: O(1).
-pub fn ads1x15_config_decode_word(word: Int) -> Result[Ads1x15Config, Str] {
+pub fn ads1x15_config_decode_word(word: Int) -> Result[Ads1x15Config, Str]
+  ensures: word < 0 || word > 65535 => result is Err;
+  ensures: word >= 0 && word <= 65535 => result is Ok;
+{
   if word < 0 || word > 65535 {
     return _err_cfg("adc.ads1x15: config word " + convert.int_to_string(word) + " out of range 0..65535");
   }
@@ -963,7 +1046,10 @@ pub fn ads1x15_config_decode_word(word: Int) -> Result[Ads1x15Config, Str] {
 /// Err("adc.ads1x15: config needs 2 bytes, have N") when `data` is shorter
 /// than 2 bytes; otherwise the word errors of ads1x15_config_decode_word.
 /// Complexity: O(1).
-pub fn ads1x15_config_decode(data: &Vec[UInt8]) -> Result[Ads1x15Config, Str] {
+pub fn ads1x15_config_decode(data: &Vec[UInt8]) -> Result[Ads1x15Config, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: data.len() >= 2 => result is Ok;
+{
   if data.len() < 2 {
     return _err_cfg("adc.ads1x15: config needs 2 bytes, have " + convert.int_to_string(data.len()));
   }
