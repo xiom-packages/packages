@@ -1,7 +1,7 @@
 package xiom_opengl {
   name: "xiom.opengl";
-  version: "0.2.0";
-  description: "OpenGL loader/probe bindings for XIOM (opengl32.dll at runtime, staging + SKIP semantics)";
+  version: "0.3.0";
+  description: "OpenGL loader/probe bindings for XIOM (runtime opengl32.dll; classic + core-profile probes, extension scanning, SKIP semantics)";
   categories: ["graphics"];
   keywords: ["opengl", "gpu", "rendering", "cross-platform", "binding"];
   license: "MIT OR Apache-2.0";

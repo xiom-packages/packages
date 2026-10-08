@@ -35,6 +35,12 @@ extern "C" {
   fn xgl_error() -> *UInt8;
   fn xgl_contextless_len() -> Int32;
   fn xgl_query() -> Int32;
+  fn xgl_query_core(major: Int32, minor: Int32, flags: Int32) -> Int32;
+  fn xgl_core_major() -> Int32;
+  fn xgl_core_minor() -> Int32;
+  fn xgl_extension_count() -> Int32;
+  fn xgl_extension_head() -> *UInt8;
+  fn xgl_has_extension(name: *UInt8) -> Int32;
   fn xgl_vendor() -> *UInt8;
   fn xgl_renderer() -> *UInt8;
   fn xgl_version() -> *UInt8;
@@ -78,6 +84,19 @@ pub type GlInfo = {
   version: Str;
   glsl: Str;
   contextless_len: Int;
+}
+
+/// Core-context probe result: strings plus the negotiated core version and
+/// the extension count / head (first up to four extension names).
+pub type GlCoreInfo = {
+  vendor: Str;
+  renderer: Str;
+  version: Str;
+  glsl: Str;
+  major: Int;
+  minor: Int;
+  extension_count: Int;
+  extension_head: Str;
 }
 
 // =========================================================================
@@ -133,6 +152,102 @@ pub fn opengl_probe() -> Result[GlInfo, GlProbeError]
   requires: true
 {
   return opengl_probe_named(OPENGL_GL_SONAME);
+}
+
+/// Probe an explicitly named runtime with a **core-profile** context of the
+/// requested version (`major` >= 3).  Resolves `wglCreateContextAttribsARB`
+/// through a temporary classic context, then reports the negotiated version
+/// plus the extension count and the first few extension names.
+/// Complexity: O(load + 2 contexts + extension scan).
+pub fn opengl_probe_core_named(soname: Str, major: Int, minor: Int) -> Result[GlCoreInfo, GlProbeError]
+  requires: soname.len() > 0
+  requires: major >= 3
+  requires: minor >= 0
+{
+  let rc = unsafe { xgl_load_named(soname.c_str()) as Int };
+  if rc != 0 {
+    let msg = unsafe { Str::from_c_str(xgl_error()) };
+    if rc == 1 {
+      return Err(GlProbeError{ kind: OPENGL_LOAD_ABSENT; message: msg });
+    }
+    return Err(GlProbeError{ kind: OPENGL_LOAD_ABI; message: msg });
+  }
+
+  let q = unsafe { xgl_query_core(major as Int32, minor as Int32, 0 as Int32) as Int };
+  if q != 0 {
+    let msg = unsafe { Str::from_c_str(xgl_error()) };
+    unsafe { xgl_unload(); }
+    if q == 2 {
+      return Err(GlProbeError{ kind: OPENGL_LOAD_ABI; message: msg });
+    }
+    return Err(GlProbeError{ kind: OPENGL_LOAD_NO_CONTEXT; message: msg });
+  }
+
+  let vendor = unsafe { Str::from_c_str(xgl_vendor()) };
+  let renderer = unsafe { Str::from_c_str(xgl_renderer()) };
+  let version = unsafe { Str::from_c_str(xgl_version()) };
+  let glsl = unsafe { Str::from_c_str(xgl_glsl()) };
+  let vmajor = unsafe { xgl_core_major() as Int };
+  let vminor = unsafe { xgl_core_minor() as Int };
+  let ext_count = unsafe { xgl_extension_count() as Int };
+  let ext_head = unsafe { Str::from_c_str(xgl_extension_head()) };
+  unsafe { xgl_unload(); }
+
+  return Ok(GlCoreInfo{
+    vendor: vendor,
+    renderer: renderer,
+    version: version,
+    glsl: glsl,
+    major: vmajor,
+    minor: vminor,
+    extension_count: ext_count,
+    extension_head: ext_head,
+  });
+}
+
+/// Probe the default runtime with a core-profile context.
+/// Complexity: O(load + 2 contexts + extension scan).
+pub fn opengl_probe_core(major: Int, minor: Int) -> Result[GlCoreInfo, GlProbeError]
+  requires: major >= 3
+  requires: minor >= 0
+{
+  return opengl_probe_core_named(OPENGL_GL_SONAME, major, minor);
+}
+
+/// True when the named extension is present in the runtime's extension list
+/// (exact match; scanned with a 3.3 core context).
+/// Complexity: O(load + context + extensions).
+pub fn opengl_has_extension_named(soname: Str, name: Str) -> Result[Bool, GlProbeError]
+  requires: soname.len() > 0
+  requires: name.len() > 0
+{
+  let rc = unsafe { xgl_load_named(soname.c_str()) as Int };
+  if rc != 0 {
+    let msg = unsafe { Str::from_c_str(xgl_error()) };
+    if rc == 1 {
+      return Err(GlProbeError{ kind: OPENGL_LOAD_ABSENT; message: msg });
+    }
+    return Err(GlProbeError{ kind: OPENGL_LOAD_ABI; message: msg });
+  }
+  let r = unsafe { xgl_has_extension(name.c_str()) as Int };
+  if r < 0 {
+    let msg = unsafe { Str::from_c_str(xgl_error()) };
+    unsafe { xgl_unload(); }
+    return Err(GlProbeError{ kind: OPENGL_LOAD_NO_CONTEXT; message: msg });
+  }
+  unsafe { xgl_unload(); }
+  if r == 1 {
+    return Ok(true);
+  }
+  return Ok(false);
+}
+
+/// Default-runtime extension check.
+/// Complexity: O(load + context + extensions).
+pub fn opengl_has_extension(name: Str) -> Result[Bool, GlProbeError]
+  requires: name.len() > 0
+{
+  return opengl_has_extension_named(OPENGL_GL_SONAME, name);
 }
 
 /// Release any runtime handles held by the probe.  Safe to call when nothing

@@ -3,12 +3,27 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 6 RELAYED** -- `xiom.raylib` 0.2.0 green (present 12/12 x2
-raylib 5.5.0, absent/SKIP 3/3 x2 via `port.ps1` on v0.64.1); awaiting native
-merge/verify/publish. Batch 5 (sdl3 0.3.0) published in eco-v0.1.96. Next
-per GO: one package per relay (native to pick the next sector).
+**STATUS: BATCH 7 RELAYED** -- `xiom.opengl` 0.3.0 Phase 2 green
+(core-profile probe + extension loading; 13/13 x2 via port.ps1 on v0.64.1);
+awaiting native merge/verify/publish. Batch 6 (raylib 0.2.0) published in
+eco-v0.1.97. Proposed next per roadmap: `xiom.vulkan` (GPU tier) -- or an
+opengl session-API follow-up if the native lane prefers to close that seam
+first.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 7: head=9eb9ef5b (code) + this handoff commit; packages=xiom.opengl 0.3.0;
+tests=xiom.opengl 13/13 x2 via scripts/port.ps1 on v0.64.1 (2026-10-08, NVIDIA RTX 3070 Ti:
+classic 4.6 context, 3.3 core negotiated, 404 extensions with head + exact-match scan, bogus
+extension correctly absent, deterministic SKIP classification); licenses=MIT OR Apache-2.0
+(bridge is our code; nothing vendored upstream); pins=opengl G2 extended -- soname opengl32.dll,
+symbol set + wglGetProcAddress/glGetIntegerv/glGetStringi (context-scoped via
+wglGetProcAddress), WGL core-context attribs (0x2091/0x2092/0x2094/0x9126, core bit 0x1) and
+GL query constants (0x821B/0x821C/0x821D) recorded in SPEC.md §2; gate=G0..G5 OK (core probe
+keeps ABSENT/NO_CONTEXT -> SKIP, ABI -> FAIL; all unsafe confined to xiom.opengl);
+needs=NONE (already allowlisted); port.args.json unchanged (--c-source gl_probe.c).
+```
 
 ```
 BINDINGS BATCH 6: head=bef3e71c (code) + this handoff commit; packages=xiom.raylib 0.2.0;
@@ -306,6 +321,22 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Upstream latest is raylib 6.0 (package pins 5.5, the pre-pilot target);
   flagged as the next re-pin candidate in SPEC/relay.
 - No `port.args.json`; no new compiler findings.
+
+## Batch 7 notes (xiom.opengl Phase 2, 2026-10-08)
+
+- Core-profile probe: a temporary classic context obtains
+  `wglCreateContextAttribsARB`; the requested core context (3.3 here) is
+  created and the negotiated version + extension count/head reported;
+  `opengl_has_extension` scans `glGetStringi` with exact match. Probes stay
+  atomic (load -> context -> query -> unload); no session state leaks.
+- Runs on v0.64.1: 13/13 x2 (classic 4.6 strings, 3.3 core, 404 extensions,
+  bogus extension absent, aniso present). The SKIP classification test runs
+  in every suite invocation (bogus soname -> ABSENT).
+- Bridge refactor kept everything in `src/gl_probe.c` (context helpers);
+  `port.args.json` unchanged. All XIOM `unsafe` still in the single module.
+- Next options for batch 8: `xiom.vulkan` (GPU tier per the Phase-2 order)
+  or the opengl session API (`opengl_session_get_proc` function-table seam)
+  -- native lane to pick; the roadmap lists both.
 
 ## Phase-2 sector order proposal (Phase 1 pilot complete)
 

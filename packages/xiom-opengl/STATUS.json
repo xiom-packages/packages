@@ -6,11 +6,11 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  8,
+                  "passed":  13,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "6b20aa30",
-                  "checked":  "2026-10-08T11:37:04Z"
+                  "run_by":  "task:bindings-opengl-p2",
+                  "commit":  "9eb9ef5b",
+                  "checked":  "2026-10-08T13:22:06Z"
               },
     "publish":  false,
     "excluded_reason":  "published in eco-v0.1.92 (2026-10-08)"
