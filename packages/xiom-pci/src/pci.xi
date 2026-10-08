@@ -370,7 +370,10 @@ fn _cap_u32(f: &PciFunction, i: Int, rel: Int) -> Int {
 /// Err("pci: bad capability pointer") / Err("pci: capability loop") from the
 /// walk. An empty vendor ID (0x0000) parses and is "populated".
 /// Complexity: O(256).
-pub fn pci_parse(data: &Vec[UInt8]) -> Result[PciFunction, Str] {
+pub fn pci_parse(data: &Vec[UInt8]) -> Result[PciFunction, Str]
+  ensures: data.len() < 256 => result is Err;
+  ensures: result is Ok => data.len() >= 256;
+{
   if data.len() < _PCI_SPACE {
     return _err_fn("pci: truncated config space");
   }
@@ -424,7 +427,9 @@ pub fn pci_parse(data: &Vec[UInt8]) -> Result[PciFunction, Str] {
 /// Copy of the function's stored raw bytes exactly as parsed (256 bytes for a
 /// parsed function). Round-trips: pci_serialize(pci_parse(x).value) equals x
 /// for every accepted 256-byte prefix. Complexity: O(raw length).
-pub fn pci_serialize(f: &PciFunction) -> Vec[UInt8] {
+pub fn pci_serialize(f: &PciFunction) -> Vec[UInt8]
+  ensures: result.len() == f.raw.len();
+{
   let raw: Vec[UInt8] = f.raw;
   var out = Vec[UInt8].new();
   var i = 0;
@@ -438,7 +443,12 @@ pub fn pci_serialize(f: &PciFunction) -> Vec[UInt8] {
 /// Byte at configuration-space offset `off` (0..255) widened to an Int; -1
 /// when the stored raw buffer is shorter than 256 bytes or `off` is outside
 /// 0..255. Complexity: O(1).
-pub fn pci_raw_byte(f: &PciFunction, off: Int) -> Int {
+pub fn pci_raw_byte(f: &PciFunction, off: Int) -> Int
+  ensures: off < 0 => result == -1;
+  ensures: off >= 256 => result == -1;
+  ensures: result != -1 => off >= 0 && off < 256 && f.raw.len() >= 256;
+  ensures: result >= -1 && result <= 255;
+{
   if off < 0 { return -1; }
   if off >= _PCI_SPACE { return -1; }
   let raw: Vec[UInt8] = f.raw;
@@ -450,7 +460,10 @@ pub fn pci_raw_byte(f: &PciFunction, off: Int) -> Int {
 /// (the standard "no device" encoding). A vendor ID of 0x0000 counts as
 /// populated. False when the stored raw buffer is shorter than 256 bytes.
 /// Complexity: O(1).
-pub fn pci_is_populated(f: &PciFunction) -> Bool {
+pub fn pci_is_populated(f: &PciFunction) -> Bool
+  ensures: f.raw.len() < 256 => !result;
+  ensures: result => f.raw.len() >= 256;
+{
   let vendor: Int = pci_vendor_id(f);
   if vendor < 0 { return false; }
   return vendor != 65535;
@@ -462,7 +475,11 @@ pub fn pci_is_populated(f: &PciFunction) -> Bool {
 
 /// Vendor ID (LE16 at 0x00); -1 when the raw buffer is shorter than 256.
 /// Complexity: O(1).
-pub fn pci_vendor_id(f: &PciFunction) -> Int {
+pub fn pci_vendor_id(f: &PciFunction) -> Int
+  ensures: f.raw.len() < 256 => result == -1;
+  ensures: result >= -1 && result <= 65535;
+  ensures: result != -1 => f.raw.len() >= 256;
+{
   let raw: Vec[UInt8] = f.raw;
   if raw.len() < _PCI_SPACE { return -1; }
   return _u16(&raw, 0);
@@ -470,7 +487,11 @@ pub fn pci_vendor_id(f: &PciFunction) -> Int {
 
 /// Device ID (LE16 at 0x02); -1 when the raw buffer is shorter than 256.
 /// Complexity: O(1).
-pub fn pci_device_id(f: &PciFunction) -> Int {
+pub fn pci_device_id(f: &PciFunction) -> Int
+  ensures: f.raw.len() < 256 => result == -1;
+  ensures: result >= -1 && result <= 65535;
+  ensures: result != -1 => f.raw.len() >= 256;
+{
   let raw: Vec[UInt8] = f.raw;
   if raw.len() < _PCI_SPACE { return -1; }
   return _u16(&raw, 2);
@@ -478,7 +499,11 @@ pub fn pci_device_id(f: &PciFunction) -> Int {
 
 /// Command word (LE16 at 0x04), raw. See the pci_command_* predicates.
 /// Complexity: O(1).
-pub fn pci_command(f: &PciFunction) -> Int {
+pub fn pci_command(f: &PciFunction) -> Int
+  ensures: f.raw.len() < 256 => result == -1;
+  ensures: result >= -1 && result <= 65535;
+  ensures: result != -1 => f.raw.len() >= 256;
+{
   let raw: Vec[UInt8] = f.raw;
   if raw.len() < _PCI_SPACE { return -1; }
   return _u16(&raw, 4);
@@ -486,7 +511,11 @@ pub fn pci_command(f: &PciFunction) -> Int {
 
 /// Status word (LE16 at 0x06), raw. See the pci_status_* predicates.
 /// Complexity: O(1).
-pub fn pci_status(f: &PciFunction) -> Int {
+pub fn pci_status(f: &PciFunction) -> Int
+  ensures: f.raw.len() < 256 => result == -1;
+  ensures: result >= -1 && result <= 65535;
+  ensures: result != -1 => f.raw.len() >= 256;
+{
   let raw: Vec[UInt8] = f.raw;
   if raw.len() < _PCI_SPACE { return -1; }
   return _u16(&raw, 6);
@@ -494,7 +523,11 @@ pub fn pci_status(f: &PciFunction) -> Int {
 
 /// Revision ID (byte at 0x08); -1 when the raw buffer is shorter than 256.
 /// Complexity: O(1).
-pub fn pci_revision_id(f: &PciFunction) -> Int {
+pub fn pci_revision_id(f: &PciFunction) -> Int
+  ensures: f.raw.len() < 256 => result == -1;
+  ensures: result >= -1 && result <= 255;
+  ensures: result != -1 => f.raw.len() >= 256;
+{
   let raw: Vec[UInt8] = f.raw;
   if raw.len() < _PCI_SPACE { return -1; }
   return _u8(&raw, 8);
@@ -502,14 +535,22 @@ pub fn pci_revision_id(f: &PciFunction) -> Int {
 
 /// Programming interface byte (0x09); -1 when raw is shorter than 256.
 /// Complexity: O(1).
-pub fn pci_prog_if(f: &PciFunction) -> Int {
+pub fn pci_prog_if(f: &PciFunction) -> Int
+  ensures: f.raw.len() < 256 => result == -1;
+  ensures: result >= -1 && result <= 255;
+  ensures: result != -1 => f.raw.len() >= 256;
+{
   let raw: Vec[UInt8] = f.raw;
   if raw.len() < _PCI_SPACE { return -1; }
   return _u8(&raw, 9);
 }
 
 /// Sub-class code (0x0A); -1 when raw is shorter than 256. Complexity: O(1).
-pub fn pci_subclass(f: &PciFunction) -> Int {
+pub fn pci_subclass(f: &PciFunction) -> Int
+  ensures: f.raw.len() < 256 => result == -1;
+  ensures: result >= -1 && result <= 255;
+  ensures: result != -1 => f.raw.len() >= 256;
+{
   let raw: Vec[UInt8] = f.raw;
   if raw.len() < _PCI_SPACE { return -1; }
   return _u8(&raw, 10);
@@ -517,7 +558,11 @@ pub fn pci_subclass(f: &PciFunction) -> Int {
 
 /// Base class code (0x0B); -1 when raw is shorter than 256. Use
 /// pci_class_name for the documented partial name table. Complexity: O(1).
-pub fn pci_class_code(f: &PciFunction) -> Int {
+pub fn pci_class_code(f: &PciFunction) -> Int
+  ensures: f.raw.len() < 256 => result == -1;
+  ensures: result >= -1 && result <= 255;
+  ensures: result != -1 => f.raw.len() >= 256;
+{
   let raw: Vec[UInt8] = f.raw;
   if raw.len() < _PCI_SPACE { return -1; }
   return _u8(&raw, 11);
@@ -525,7 +570,11 @@ pub fn pci_class_code(f: &PciFunction) -> Int {
 
 /// Cache line size register (0x0C); -1 when raw is shorter than 256.
 /// Complexity: O(1).
-pub fn pci_cache_line_size(f: &PciFunction) -> Int {
+pub fn pci_cache_line_size(f: &PciFunction) -> Int
+  ensures: f.raw.len() < 256 => result == -1;
+  ensures: result >= -1 && result <= 255;
+  ensures: result != -1 => f.raw.len() >= 256;
+{
   let raw: Vec[UInt8] = f.raw;
   if raw.len() < _PCI_SPACE { return -1; }
   return _u8(&raw, 12);
@@ -533,7 +582,11 @@ pub fn pci_cache_line_size(f: &PciFunction) -> Int {
 
 /// Latency timer register (0x0D); -1 when raw is shorter than 256.
 /// Complexity: O(1).
-pub fn pci_latency_timer(f: &PciFunction) -> Int {
+pub fn pci_latency_timer(f: &PciFunction) -> Int
+  ensures: f.raw.len() < 256 => result == -1;
+  ensures: result >= -1 && result <= 255;
+  ensures: result != -1 => f.raw.len() >= 256;
+{
   let raw: Vec[UInt8] = f.raw;
   if raw.len() < _PCI_SPACE { return -1; }
   return _u8(&raw, 13);
@@ -548,7 +601,11 @@ pub fn pci_header_type(f: &PciFunction) -> Int {
 }
 
 /// BIST register (0x0F), raw. Complexity: O(1).
-pub fn pci_bist(f: &PciFunction) -> Int {
+pub fn pci_bist(f: &PciFunction) -> Int
+  ensures: f.raw.len() < 256 => result == -1;
+  ensures: result >= -1 && result <= 255;
+  ensures: result != -1 => f.raw.len() >= 256;
+{
   let raw: Vec[UInt8] = f.raw;
   if raw.len() < _PCI_SPACE { return -1; }
   return _u8(&raw, 15);
@@ -558,7 +615,10 @@ pub fn pci_bist(f: &PciFunction) -> Int {
 /// 0x00 = type-0 device, 0x01 = PCI-to-PCI bridge, 0x02 = CardBus bridge;
 /// any other value is an undocumented kind kept raw. -1 when raw is shorter
 /// than 256. Complexity: O(1).
-pub fn pci_header_kind(f: &PciFunction) -> Int {
+pub fn pci_header_kind(f: &PciFunction) -> Int
+  ensures: pci_header_type(f) < 0 => result == -1;
+  ensures: result >= -1 && result <= 127;
+{
   let ht: Int = pci_header_type(f);
   if ht < 0 { return -1; }
   return _header_kind(ht);
@@ -665,7 +725,12 @@ pub fn pci_status_master_data_parity_error(f: &PciFunction) -> Bool {
 /// named; every other code (including negatives) returns "". This is a
 /// convenience table, not a registry.
 /// Complexity: O(1).
-pub fn pci_class_name(code: Int) -> Str {
+pub fn pci_class_name(code: Int) -> Str
+  ensures: code < 0 => result.len() == 0;
+  ensures: code > 255 => result.len() == 0;
+  ensures: code == 0 => result.len() == 12;
+  ensures: result.len() > 0 => code >= 0 && code <= 255;
+{
   if code == 0x00 { return "Unclassified"; }
   if code == 0x01 { return "Mass storage controller"; }
   if code == 0x02 { return "Network controller"; }
@@ -704,7 +769,12 @@ pub fn pci_header_kind_name(kind: Int) -> Str {
 /// 0x05 = "MSI", 0x10 = "PCI Express"; every other ID returns "". Unknown
 /// capabilities stay in the capability columns with their raw bytes intact.
 /// Complexity: O(1).
-pub fn pci_cap_name(id: Int) -> Str {
+pub fn pci_cap_name(id: Int) -> Str
+  ensures: id == 1 => result.len() == 16;
+  ensures: id == 5 => result.len() == 3;
+  ensures: id == 16 => result.len() == 11;
+  ensures: result.len() > 0 => id == 1 || id == 5 || id == 16;
+{
   if id == 0x01 { return "Power Management"; }
   if id == 0x05 { return "MSI"; }
   if id == 0x10 { return "PCI Express"; }
@@ -720,7 +790,12 @@ pub fn pci_cap_name(id: Int) -> Str {
 /// 0x01 (a bridge's 0x18..0x27 bytes are bus/window registers), slot 0 on
 /// kind 0x02; no slots on any other kind. -1 when the slot is not a BAR for
 /// the kind or raw is shorter than 256. Complexity: O(1).
-pub fn pci_bar_raw(f: &PciFunction, i: Int) -> Int {
+pub fn pci_bar_raw(f: &PciFunction, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= 6 => result == -1;
+  ensures: result >= -1 && result <= 4294967295;
+  ensures: result != -1 => i >= 0 && i < 6 && f.raw.len() >= 256;
+{
   if !_bar_ready(f, i) { return -1; }
   let raw: Vec[UInt8] = f.raw;
   return _bar_val(&raw, i);
@@ -771,7 +846,12 @@ pub fn pci_bar_is_upper(f: &PciFunction, i: Int) -> Bool {
 /// 64-bit BAR, an invalid slot or short raw. A 64-bit address with bit 63
 /// set comes out negative (signed Int two's complement, documented).
 /// Complexity: O(1).
-pub fn pci_bar_address(f: &PciFunction, i: Int) -> Int {
+pub fn pci_bar_address(f: &PciFunction, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= 6 => result == -1;
+  ensures: result != -1 => i >= 0 && i < 6 && f.raw.len() >= 256;
+  ensures: pci_bar_is_upper(f, i) => result == -1;
+{
   if !_bar_ready(f, i) { return -1; }
   let raw: Vec[UInt8] = f.raw;
   if _bar_is_upper_of(&raw, i) { return -1; }
@@ -785,7 +865,12 @@ pub fn pci_bar_address(f: &PciFunction, i: Int) -> Int {
 /// always 0 or a power of two, capped at 2^62 for the signed 64-bit edge.
 /// -1 for the upper half of a 64-bit BAR, an invalid slot or short raw.
 /// Complexity: O(1) (at most 63 modulo steps).
-pub fn pci_bar_size(f: &PciFunction, i: Int) -> Int {
+pub fn pci_bar_size(f: &PciFunction, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= 6 => result == -1;
+  ensures: pci_bar_address(f, i) == 0 => result == 0;
+  ensures: result != -1 => result >= 0 && result <= 4611686018427387904;
+{
   if !_bar_ready(f, i) { return -1; }
   let raw: Vec[UInt8] = f.raw;
   if _bar_is_upper_of(&raw, i) { return -1; }
@@ -978,7 +1063,13 @@ pub fn pci_bridge_control(f: &PciFunction) -> Int {
 /// Number of capabilities recorded by the walk, defensively the minimum of
 /// the three capability-column lengths (a parsed function has them equal).
 /// O(1).
-pub fn pci_cap_count(f: &PciFunction) -> Int {
+pub fn pci_cap_count(f: &PciFunction) -> Int
+  ensures: result >= 0;
+  ensures: result <= f.cap_ids.len();
+  ensures: result <= f.cap_offsets.len();
+  ensures: result <= f.cap_spans.len();
+  ensures: f.cap_ids.len() <= f.cap_offsets.len() && f.cap_ids.len() <= f.cap_spans.len() => result == f.cap_ids.len();
+{
   let ids: Vec[Int] = f.cap_ids;
   let offsets: Vec[Int] = f.cap_offsets;
   let spans: Vec[Int] = f.cap_spans;
@@ -990,7 +1081,11 @@ pub fn pci_cap_count(f: &PciFunction) -> Int {
 
 /// Capability ID of list entry `i` in walk order; -1 when out of range.
 /// Complexity: O(1).
-pub fn pci_cap_id(f: &PciFunction, i: Int) -> Int {
+pub fn pci_cap_id(f: &PciFunction, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= f.cap_ids.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < f.cap_ids.len();
+{
   if i < 0 { return -1; }
   let ids: Vec[Int] = f.cap_ids;
   if i >= ids.len() { return -1; }
@@ -1000,7 +1095,11 @@ pub fn pci_cap_id(f: &PciFunction, i: Int) -> Int {
 
 /// Configuration-space offset of capability `i` in walk order; -1 out of
 /// range. Complexity: O(1).
-pub fn pci_cap_offset(f: &PciFunction, i: Int) -> Int {
+pub fn pci_cap_offset(f: &PciFunction, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= f.cap_offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < f.cap_offsets.len();
+{
   if i < 0 { return -1; }
   let offsets: Vec[Int] = f.cap_offsets;
   if i >= offsets.len() { return -1; }
@@ -1012,7 +1111,11 @@ pub fn pci_cap_offset(f: &PciFunction, i: Int) -> Int {
 /// to the end of the 256-byte space for the last capability. A bounded
 /// region, not a guaranteed register-block size. -1 out of range.
 /// Complexity: O(1).
-pub fn pci_cap_span(f: &PciFunction, i: Int) -> Int {
+pub fn pci_cap_span(f: &PciFunction, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= f.cap_spans.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < f.cap_spans.len();
+{
   if i < 0 { return -1; }
   let spans: Vec[Int] = f.cap_spans;
   if i >= spans.len() { return -1; }
@@ -1065,7 +1168,10 @@ pub fn pci_cap_read_u32(f: &PciFunction, i: Int, rel: Int) -> Int {
 /// PM capability (ID 0x01) version: bits 2..0 of the 16-bit PMC register at
 /// rel 2; -1 when `i` is not a PM capability or the span is too short
 /// (needs 4 bytes). Complexity: O(1).
-pub fn pci_cap_pm_version(f: &PciFunction, i: Int) -> Int {
+pub fn pci_cap_pm_version(f: &PciFunction, i: Int) -> Int
+  ensures: pci_cap_id(f, i) != 1 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 7;
+{
   if pci_cap_id(f, i) != 0x01 { return -1; }
   let v: Int = _cap_u16(f, i, 2);
   if v < 0 { return -1; }
@@ -1115,7 +1221,10 @@ pub fn pci_cap_msi_address(f: &PciFunction, i: Int) -> Int {
 /// MSI capability (ID 0x05) message data: LE16 at rel 8 for 32-bit addresses
 /// or rel 12 for 64-bit ones (needs 10 or 14 span bytes); -1 when `i` is not
 /// an MSI capability or the span is too short. Complexity: O(1).
-pub fn pci_cap_msi_data(f: &PciFunction, i: Int) -> Int {
+pub fn pci_cap_msi_data(f: &PciFunction, i: Int) -> Int
+  ensures: pci_cap_id(f, i) != 5 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 65535;
+{
   if pci_cap_id(f, i) != 0x05 { return -1; }
   if pci_cap_msi_64bit(f, i) {
     return _cap_u16(f, i, 12);
@@ -1126,7 +1235,10 @@ pub fn pci_cap_msi_data(f: &PciFunction, i: Int) -> Int {
 /// PCIe capability (ID 0x10) version: bits 3..0 of the 16-bit PCI Express
 /// capability register at rel 2; -1 when `i` is not a PCIe capability or the
 /// span is too short (needs 4 bytes). Complexity: O(1).
-pub fn pci_cap_pcie_version(f: &PciFunction, i: Int) -> Int {
+pub fn pci_cap_pcie_version(f: &PciFunction, i: Int) -> Int
+  ensures: pci_cap_id(f, i) != 16 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 15;
+{
   if pci_cap_id(f, i) != 0x10 { return -1; }
   let v: Int = _cap_u16(f, i, 2);
   if v < 0 { return -1; }
@@ -1163,7 +1275,12 @@ pub fn pci_cap_pcie_device_caps(f: &PciFunction, i: Int) -> Int {
 /// set -> Err("pci: capability list bit set").
 ///
 /// Returns Ok(bytes) of length 256. Complexity: O(256).
-pub fn pci_build_type0(cfg: &PciType0Config) -> Result[Vec[UInt8], Str] {
+pub fn pci_build_type0(cfg: &PciType0Config) -> Result[Vec[UInt8], Str]
+  ensures: cfg.bars.len() != 6 => result is Err;
+  ensures: cfg.status < 0 || cfg.status > 65535 => result is Err;
+  ensures: (cfg.status / 16) % 2 == 1 => result is Err;
+  ensures: result is Ok => cfg.bars.len() == 6 && cfg.status >= 0 && cfg.status <= 65535 && (cfg.status / 16) % 2 == 0;
+{
   let bars: Vec[Int] = cfg.bars;
   if bars.len() != _PCI_BAR_COUNT {
     return _err_bytes("pci: bar count");
