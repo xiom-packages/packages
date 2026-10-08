@@ -1,0 +1,2 @@
+# Vendored zstd bytes must stay byte-identical to the SHA256 pins in SPEC.md.
+vendor/** -text
