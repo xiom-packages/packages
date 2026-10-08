@@ -233,7 +233,13 @@ fn _checksum_byte(s: Int) -> Int {
 /// invalid (negative `off`/`len`, or past the end of `data`). This is the
 /// helper behind the four checksum predicates and the builders.
 /// Complexity: O(len).
-pub fn smbios_checksum8(data: &Vec[UInt8], off: Int, len: Int) -> Int {
+pub fn smbios_checksum8(data: &Vec[UInt8], off: Int, len: Int) -> Int
+  ensures: off < 0 => result == -1;
+  ensures: len < 0 => result == -1;
+  ensures: off + len > data.len() => result == -1;
+  ensures: result != -1 => off >= 0 && len >= 0 && off + len <= data.len();
+  ensures: result != -1 => result >= 0 && result <= 255;
+{
   if off < 0 || len < 0 || off + len > data.len() {
     return -1;
   }
@@ -252,7 +258,10 @@ pub fn smbios_checksum8(data: &Vec[UInt8], off: Int, len: Int) -> Int {
 /// True when `data` starts with a 32-bit entry point whose 31 bytes sum
 /// to 0 modulo 256. False when the buffer is shorter than 31 bytes.
 /// Complexity: O(1).
-pub fn smbios_entry32_checksum_ok(data: &Vec[UInt8]) -> Bool {
+pub fn smbios_entry32_checksum_ok(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 31 => !result;
+  ensures: result => data.len() >= 31;
+{
   return smbios_checksum8(data, 0, 31) == 0;
 }
 
@@ -268,7 +277,10 @@ pub fn smbios_entry32_intermediate_checksum_ok(data: &Vec[UInt8]) -> Bool {
 /// True when `data` starts with a 64-bit entry point whose 24 bytes sum
 /// to 0 modulo 256. False when the buffer is shorter than 24 bytes.
 /// Complexity: O(1).
-pub fn smbios_entry64_checksum_ok(data: &Vec[UInt8]) -> Bool {
+pub fn smbios_entry64_checksum_ok(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 24 => !result;
+  ensures: result => data.len() >= 24;
+{
   return smbios_checksum8(data, 0, 24) == 0;
 }
 
@@ -409,7 +421,10 @@ fn _entry64_at(data: &Vec[UInt8], off: Int) -> Result[SmbiosEntry, Str] {
 /// length`, `bad 32-bit checksum`, `bad intermediate anchor`, `bad
 /// intermediate checksum`.
 /// Complexity: O(1).
-pub fn smbios_entry32_parse(data: &Vec[UInt8]) -> Result[SmbiosEntry, Str] {
+pub fn smbios_entry32_parse(data: &Vec[UInt8]) -> Result[SmbiosEntry, Str]
+  ensures: data.len() < 31 => result is Err;
+  ensures: result is Ok => data.len() >= 31;
+{
   return _entry32_at(data, 0);
 }
 
@@ -429,7 +444,10 @@ pub fn smbios_entry64_parse(data: &Vec[UInt8]) -> Result[SmbiosEntry, Str] {
 /// anchor exists is the first aligned "_SM_" anchor parsed. Neither
 /// anchor yields Err("smbios: no entry point").
 /// Complexity: O(data.len()/16).
-pub fn smbios_entry_parse(data: &Vec[UInt8]) -> Result[SmbiosEntry, Str] {
+pub fn smbios_entry_parse(data: &Vec[UInt8]) -> Result[SmbiosEntry, Str]
+  ensures: data.len() < 24 => result is Err;
+  ensures: result is Ok => data.len() >= 24;
+{
   var off = 0;
   while off + 5 <= data.len() {
     if _anchor64(data, off) {
@@ -451,7 +469,10 @@ pub fn smbios_entry_parse(data: &Vec[UInt8]) -> Result[SmbiosEntry, Str] {
 /// holding an "_SM3_" or "_SM_" anchor counts once. A normal image has 1
 /// or 2.
 /// Complexity: O(data.len()/16).
-pub fn smbios_entry_points(data: &Vec[UInt8]) -> Int {
+pub fn smbios_entry_points(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0;
+  ensures: result <= data.len();
+{
   var n = 0;
   var off = 0;
   while off + 4 <= data.len() {
@@ -630,7 +651,10 @@ fn _table_parse(data: &Vec[UInt8], start: Int, end: Int, expect: Int) -> Result[
 /// structure`, `invalid structure length`, `unterminated string set`,
 /// `duplicate handle`.
 /// Complexity: O(table.len() + structures^2).
-pub fn smbios_table_parse(table: &Vec[UInt8]) -> Result[SmbiosTable, Str] {
+pub fn smbios_table_parse(table: &Vec[UInt8]) -> Result[SmbiosTable, Str]
+  ensures: table.len() == 0 => result is Ok;
+  ensures: table.len() > 0 && table.len() < 4 => result is Err;
+{
   return _table_parse(table, 0, table.len(), -1);
 }
 
@@ -648,7 +672,11 @@ pub fn smbios_table_parse(table: &Vec[UInt8]) -> Result[SmbiosTable, Str] {
 /// smbios_table_parse error. Offsets in the returned store are absolute
 /// in `data`.
 /// Complexity: O(data.len() + structures^2).
-pub fn smbios_parse(data: &Vec[UInt8]) -> Result[SmbiosTable, Str] {
+pub fn smbios_parse(data: &Vec[UInt8]) -> Result[SmbiosTable, Str]
+  ensures: data.len() < 24 => result is Err;
+  ensures: result is Ok => data.len() >= 24;
+  ensures: smbios_entry_parse(data) is Err => result is Err;
+{
   let er = smbios_entry_parse(data);
   if !er.is_ok {
     return _err_table(er.error);
@@ -682,13 +710,19 @@ pub fn smbios_parse(data: &Vec[UInt8]) -> Result[SmbiosTable, Str] {
 
 /// Number of structures in the store (the type 127 structure counts).
 /// Complexity: O(1).
-pub fn smbios_count(t: &SmbiosTable) -> Int {
+pub fn smbios_count(t: &SmbiosTable) -> Int
+  ensures: result == t.types.len();
+{
   return t.types.len();
 }
 
 /// Structure type of structure `i`, or -1 when out of range.
 /// Complexity: O(1).
-pub fn smbios_type(t: &SmbiosTable, i: Int) -> Int {
+pub fn smbios_type(t: &SmbiosTable, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= t.types.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < t.types.len();
+{
   if i < 0 || i >= t.types.len() {
     return -1;
   }
@@ -786,7 +820,11 @@ pub fn smbios_formatted(data: &Vec[UInt8], t: &SmbiosTable, i: Int) -> Result[Ve
 /// out of range. SMBIOS strings are 1-indexed; index 0 means "no string
 /// provided".
 /// Complexity: O(1).
-pub fn smbios_string_count(t: &SmbiosTable, i: Int) -> Int {
+pub fn smbios_string_count(t: &SmbiosTable, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= t.str_count.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < t.str_count.len();
+{
   if i < 0 || i >= t.str_count.len() {
     return -1;
   }
@@ -944,7 +982,10 @@ pub fn smbios_system_serial(data: &Vec[UInt8], t: &SmbiosTable, i: Int) -> Int {
 /// bad index and Err("smbios: uuid out of range") when structure `i` is
 /// not a System Information structure carrying a full 16-byte UUID.
 /// Complexity: O(1).
-pub fn smbios_uuid(data: &Vec[UInt8], t: &SmbiosTable, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn smbios_uuid(data: &Vec[UInt8], t: &SmbiosTable, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 || i >= t.types.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < t.types.len();
+{
   if i < 0 || i >= t.types.len() {
     return _err_bytes("smbios: structure index out of range");
   }
@@ -1152,7 +1193,13 @@ pub fn smbios_memory_device_manufacturer(data: &Vec[UInt8], t: &SmbiosTable, i: 
 /// of range` (above 0xFFFFFFFF), `table length out of range`, `structure
 /// count out of range`, `bcd revision out of range`.
 /// Complexity: O(1).
-pub fn smbios_entry32_build(major: Int, minor: Int, max_size: Int, table_addr: Int, table_len: Int, count: Int, bcd_rev: Int) -> Result[Vec[UInt8], Str] {
+pub fn smbios_entry32_build(major: Int, minor: Int, max_size: Int, table_addr: Int, table_len: Int, count: Int, bcd_rev: Int) -> Result[Vec[UInt8], Str]
+  ensures: major < 0 || major > 255 => result is Err;
+  ensures: minor < 0 || minor > 255 => result is Err;
+  ensures: max_size < 0 || max_size > 65535 => result is Err;
+  ensures: table_addr < 0 || table_addr > 4294967295 => result is Err;
+  ensures: result is Ok => result.value.len() == 31;
+{
   if major < 0 || major > 255 {
     return _err_bytes("smbios: major version out of range");
   }
@@ -1262,7 +1309,11 @@ pub fn smbios_entry64_build(major: Int, minor: Int, docrev: Int, revision: Int, 
 /// long` (more than 251 bytes), `smbios: empty string`, `smbios: string
 /// contains NUL`.
 /// Complexity: O(formatted + string bytes).
-pub fn smbios_struct_build(stype: Int, handle: Int, formatted: &Vec[UInt8], strings: &Vec[Str]) -> Result[Vec[UInt8], Str] {
+pub fn smbios_struct_build(stype: Int, handle: Int, formatted: &Vec[UInt8], strings: &Vec[Str]) -> Result[Vec[UInt8], Str]
+  ensures: stype < 0 || stype > 255 => result is Err;
+  ensures: handle < 0 || handle > 65535 => result is Err;
+  ensures: formatted.len() > 251 => result is Err;
+{
   if stype < 0 || stype > 255 {
     return _err_bytes("smbios: structure type out of range");
   }
@@ -1319,7 +1370,11 @@ pub fn smbios_struct_build(stype: Int, handle: Int, formatted: &Vec[UInt8], stri
 /// The result parses back with smbios_parse and yields the same
 /// structures.
 /// Complexity: O(table bytes).
-pub fn smbios_image_build32(table: &Vec[UInt8], major: Int, minor: Int, bcd_rev: Int) -> Result[Vec[UInt8], Str] {
+pub fn smbios_image_build32(table: &Vec[UInt8], major: Int, minor: Int, bcd_rev: Int) -> Result[Vec[UInt8], Str]
+  ensures: table.len() > 65535 => result is Err;
+  ensures: major < 0 || major > 255 => result is Err;
+  ensures: result is Ok => result.value.len() >= 32;
+{
   let tr = smbios_table_parse(table);
   if !tr.is_ok {
     return _err_bytes(tr.error);

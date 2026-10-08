@@ -11,7 +11,7 @@
 
 package xiom_smbios {
   name: "xiom.smbios";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "SMBIOS/DMI entry-point and structure-table codec with canonical building";
   categories: ["systems"];
   keywords: ["smbios", "dmi", "firmware", "format"];

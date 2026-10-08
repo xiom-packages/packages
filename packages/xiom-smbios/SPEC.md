@@ -1,8 +1,6 @@
 # xiom.smbios -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.smbios`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/smbios.xi` (`module xiom.smbios`).
 Depends on `xiom.std` (`xiom.string`, `xiom.encoding`); tests add
 `xiom.test`, `xiom.io`, `xiom.string.compare`, `xiom.encoding.hex`.
@@ -524,3 +522,57 @@ Last verified: compiler 0.61.3,
 - All parallel vectors are pushed together in `_table_parse` and every
   accessor re-derives and bounds-checks its spans.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #45 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (40, across the 15 functions below) were
+added to `src/smbios.xi` in the batch #45 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 18-test conformance suite
+exercises every contracted entry point and no clause trapped, so none was
+dropped. Two consecutive green `& .\scripts\port.ps1 -Package xiom.smbios
+-TimeoutSec 90` runs ended `port: PASS (passed=18 failed=0 program_exit=0
+exit=0)` with the clauses active. None is claimed Z3-provable:
+`xiom-verify` was not run for this module, and a bare `[OK] VERIFIED` can be
+a vacuous UNSAT, so the Z3-provable column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant, or
+reads a `&mut` parameter. Guards keep the plan's families: sentinel returns
+(`result == -1`), exact identities (`smbios_count`'s
+`result == t.types.len()`), tag guards (`result is Ok` / `result is Err`,
+`result.value.len()` of constant-size builder outputs), and bounds (`result
+>= 0`, `result <= 255`, `result <= data.len()`). The clauses hold for
+parser-produced and hand-built (drifted) stores alike: every guard is
+derived from the same vector length the accessor itself checks, and the
+builder guarantees assert only pre-validation checks and constant output
+sizes. The only cross-call is the non-re-entrant definitional read
+`smbios_entry_parse(data) is Err => result is Err` on `smbios_parse`;
+`smbios_entry_parse` cannot re-enter `smbios_parse`.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `smbios_checksum8` | 5 | invalid span => `-1`; a sum is within `0..255` | no | yes |
+| `smbios_entry32_checksum_ok` | 2 | buffer < 31 bytes => false; true implies `>= 31` | no | yes |
+| `smbios_entry64_checksum_ok` | 2 | buffer < 24 bytes => false; true implies `>= 24` | no | yes |
+| `smbios_entry32_parse` | 2 | buffer < 31 bytes => `Err`; `Ok` implies `>= 31` | no | yes |
+| `smbios_entry_parse` | 2 | buffer < 24 bytes => `Err`; `Ok` implies `>= 24` | no | yes |
+| `smbios_entry_points` | 2 | `result >= 0` and `<= data.len()` | no | yes |
+| `smbios_table_parse` | 2 | empty table parses; 1..3 bytes => `Err` | no | yes |
+| `smbios_parse` | 3 | buffer < 24 bytes => `Err`; entry-point `Err` propagates | no | yes |
+| `smbios_count` | 1 | `result == t.types.len()` | no | yes |
+| `smbios_type` | 3 | out-of-range index => `-1`; `-1` only when out of range | no | yes |
+| `smbios_string_count` | 3 | out-of-range index => `-1`; `-1` only when out of range | no | yes |
+| `smbios_uuid` | 2 | out-of-range index => `Err`; `Ok` implies in range | no | yes |
+| `smbios_entry32_build` | 5 | bad major/minor/max-size/address => `Err`; `Ok` is exactly 31 bytes | no | yes |
+| `smbios_struct_build` | 3 | bad type/handle/formatted length => `Err` | no | yes |
+| `smbios_image_build32` | 3 | over-u16 table or bad major => `Err`; `Ok` is `>= 32` bytes | no | yes |
+
+Deliberately not claimed: `Str` equality, vector indexing, module constants
+in clauses, tuple-component and struct-Result payload field reads, `Result`
+equality / `is Ok(<literal>)`, and payload-length-vs-parameter bounds. All
+clauses that read `result.value.len()` assert constant builder output sizes
+only (31 and `>= 32`). `smbios_entry64_parse` carries no clause: its length
+guards are covered through `smbios_entry_parse` and
+`smbios_entry64_checksum_ok`.
