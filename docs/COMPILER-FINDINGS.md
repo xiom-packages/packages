@@ -495,3 +495,37 @@ strict clauses on):
     bracket edits preserved behavior (counts unchanged, port x2 green).
 
 
+
+## v0.64.1 official battery (2026-10-08, native lane; pin 53c1fbac->4e12f80a)
+
+Install SHA256-verified byte-identical to the release archive; probes re-run
+through the repo wrapper / raw compiler with hard watchdogs.
+
+FIXED on v0.64.1 (workaround retirements):
+- `Vec[(Str, Str)]` read-after-mutation crash/hang (`xiom.grpc`): `probe_suite_min`
+  rc=0 (`start`), `probe_direct` len=1/match=ok; tuple-vec-set probes `bad=0`.
+  `xiom.grpc` restored named-constant arms and shipped 0.1.0 (36/36 x2).
+- Named-constant `match` arms (m188): covered by the same grpc restoration.
+- Win32/WGL confined mega-block (B-09): `probe_q2` prints `q2-start` + GL
+  `4.6.0 NVIDIA 616.92`, exit 0 (was a pre-output 0xC0000409); B-06 also fixed
+  per the bindings-lane sweep.
+- Session store behind consumer wrapper modules (C-PULSE-09): minimized app
+  builds and prints `[PASS] wrap-session`, exit 0 (was a silent crash); PULSE
+  should re-run its full suite on the repin.
+- `up`/`down` associated-fn name crash: probe prints `up=1 down=1` (the
+  unqualified-import and ffi-alias-shadowing parts remain open).
+- Multi-module `io` list-dir false ensures (m211): `retest-listdir.xi` green.
+- Struct-clone props (`probe_struct_clone`/`probe_struct_push` green): the
+  `Vec[Struct].clone()` avoidance is retired; aggregate-payload deep clone
+  (`json_clone` guidance) still stands.
+
+STILL OPEN on v0.64.1 (evidence re-run):
+- `Result` equality: no longer traps, but two equal `Ok(Vec[UInt8])` pairs
+  compare FALSE quietly (fresh allocations) -- keep tag guard pairs.
+- `is Ok(<literal>)` still ignores the payload literal (`pick(2) is Ok(1)` true).
+- Ref-destructure `let (k, v) = &vec[i]` (row 2026-10-07): no positive probe;
+  `xiom.grpc` sources keep the direct-component-read discipline -- RULE STAYS.
+- C-PULSE-10 Linux `kv_get` (Windows path PASS in-package probe); C-PULSE-11
+  type-alias defaulting; dep-roots dotted keys (WSL re-test pending): PULSE /
+  compiler lanes.
+- `io.xi:943` multi-module re-test: clean (`n=3437`, no false violation).
