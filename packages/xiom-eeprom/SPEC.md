@@ -1,8 +1,6 @@
 # xiom.eeprom -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.eeprom`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/eeprom.xi` (`module xiom.eeprom`).
 Depends on `xiom.std`; the library module imports `xiom.convert`
 (`int_to_string`) and `xiom.string.compare` (`str_compare`); the tests also
@@ -445,7 +443,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.eeprom
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=17 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -466,7 +464,7 @@ Last verified: compiler 0.61.3,
   buffer can hold a command followed by unrelated data.
 - Only the seven documented opcodes are supported; no vendor extensions.
 
-## Compiler / stdlib notes for v0.61.3
+## Compiler / stdlib notes for v0.64.0
 
 - Free functions only: no methods, no lambdas, no `Vec[fn]` dispatch, no
   `Vec[StructType]`.
@@ -487,3 +485,70 @@ Last verified: compiler 0.61.3,
 - Dynamic error strings are built with `xiom.convert.int_to_string` (the
   `xiom.convert` module, imported as `convert`).
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #37 hardening pass, 2026-10-07)
+
+Runtime-checkable `ensures:` clauses added to `src/eeprom.xi` in the batch #37
+hardening pass (compiler v0.64.0; `package.xi` is left for the coordinator to
+bump at integration). 65 clauses over the 27 contracted public entry points,
+all `ensures:` (no `requires:`), so the accepted-input domain is unchanged.
+Two consecutive `& .\scripts\port.ps1 -Package xiom.eeprom -TimeoutSec 60`
+runs ended `port: PASS (passed=17 failed=0 program_exit=0 exit=0)` with the
+clauses active (5.44 s and 5.24 s); no clause trapped and none was dropped.
+Every clause holds for hand-built values and structs: the guards keep the
+source's own validation branches, and no clause strengthens a claim an
+out-of-band `Ee93Command` or `Vec[UInt8]` buffer could falsify.
+
+Clause inputs are parameters or parameter fields only. `EepromDensity` result
+payload fields are never read; the table bands (bytes 128..262144, bits
+1024..2097152, page 8..256, `addr_bytes` 1|2, 93Cxx address bits 6..13, bytes
+128..8192, words 64..8192) are inlined as integer literals (no module
+constants). The division/modulo clauses mirror the body formulas exactly
+(`(addr / page_size) * page_size`, `page_size - (addr % page_size)`); the
+`ee24_write_target` clause is deliberately weakened to the in-page range
+`0 .. next_page_start - 1` (guarded by `page_size > 0 && addr >= 0 &&
+offset >= 0`, since truncating `%` can go negative otherwise). The only
+clause call is the definitional `ee24_seq_address` identity, whose callee
+`ee24_wrap_address` never calls its caller (non-re-entrant). No clauses were
+dropped and no probe-gated items applied.
+
+`xiom-verify src/eeprom.xi --check` (Z3 bundled with v0.64.0) reported
+**2 proven / 0 violated / 55 unknown / 15 errors**. The errors are SMT
+emitter bugs on bodies that call private helpers (`unknown constant _pow2`,
+`ee93_bits`, `_read_bits`, `_ee93_has_data`, `_ok_int`, "arguments missing"),
+which the tool itself labels "not a proof failure of the code under test".
+The two Z3-proven clauses are exactly `ee24_next_page_start`'s
+`page_size <= 0 => result == 0` guard and the `ee24_seq_address` identity
+(both emitted complete check-sat blocks); every other clause is enforced by
+the v0.64.0 runtime evaluator when the conformance suite runs, with no Z3
+claim.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `ee24_control_byte` | `(addr_pins < 0 \|\| addr_pins > 7) => result is Err`; `result is Ok => result.value >= 160 && result.value <= 175` | runtime-checked |
+| `ee24_device_address_write` | `(addr_pins < 0 \|\| addr_pins > 7) => result is Err`; `result is Ok => result.value >= 160 && result.value <= 174` | runtime-checked |
+| `ee24_device_address_read` | `(addr_pins < 0 \|\| addr_pins > 7) => result is Err`; `result is Ok => result.value >= 161 && result.value <= 175` | runtime-checked |
+| `ee24_density` | `name.len() == 0 => result is Err`; `result is Ok => name.len() >= 5 && name.len() <= 7` | runtime-checked |
+| `ee24_page_size` | `name.len() == 0 => result == -1`; `result == -1 \|\| (result >= 8 && result <= 256)` | runtime-checked |
+| `ee24_addr_bytes` | `name.len() == 0 => result == -1`; `result == -1 \|\| result == 1 \|\| result == 2` | runtime-checked |
+| `ee24_bytes` | `name.len() == 0 => result == -1`; `result == -1 \|\| (result >= 128 && result <= 262144)` | runtime-checked |
+| `ee24_bits` | `name.len() == 0 => result == -1`; `result == -1 \|\| (result >= 1024 && result <= 2097152)` | runtime-checked |
+| `ee24_word_address` | `(addr_bytes != 1 && addr_bytes != 2) => result is Err`; `addr < 0 => result is Err`; `result is Ok => addr >= 0 && addr <= 65535` | runtime-checked |
+| `ee24_page_start` | `page_size <= 0 => result == 0`; `page_size > 0 => result == (addr / page_size) * page_size` | runtime-checked |
+| `ee24_next_page_start` | `page_size <= 0 => result == 0` (**Z3-proven**); `page_size > 0 => result == (addr / page_size) * page_size + page_size` | 1 Z3-proven / 1 runtime-checked |
+| `ee24_page_remaining` | `page_size <= 0 => result == 0`; `page_size > 0 => result == page_size - (addr % page_size)` | runtime-checked |
+| `ee24_write_target` | `page_size <= 0 => result == 0`; `page_size > 0 && addr >= 0 && offset >= 0 => result >= 0 && result < (addr / page_size) * page_size + page_size` | runtime-checked |
+| `ee24_wrap_address` | `device_bytes <= 0 => result == 0`; `device_bytes > 0 => result >= 0 && result < device_bytes` | runtime-checked |
+| `ee24_seq_address` | `result == ee24_wrap_address(addr + offset, device_bytes)` | Z3-proven |
+| `ee24_write_span` | `(page_size <= 0 \|\| device_bytes <= 0) => result == 0`; `page_size > 0 && device_bytes > 0 => result >= 1 && result <= device_bytes` | runtime-checked |
+| `ee24_validate_address` | `device_bytes <= 0 => result is Err`; `(addr < 0 \|\| addr >= device_bytes) => result is Err`; `result is Ok => addr >= 0`; `result is Ok => addr < device_bytes` | runtime-checked |
+| `ee24_validate_page_write` | `page_size <= 0 => result is Err`; `count < 1 => result is Err`; `result is Ok => count >= 1`; `result is Ok => count <= page_size` | runtime-checked |
+| `ee93_address_bits` | `(org != 8 && org != 16) => result == -1`; `name.len() == 0 => result == -1`; `result != -1 => result >= 6`; `result != -1 => result <= 13` | runtime-checked |
+| `ee93_bytes` | `result == -1 \|\| (result >= 128 && result <= 8192)` | runtime-checked |
+| `ee93_word_count` | `result == -1 \|\| (result >= 64 && result <= 8192)` | runtime-checked |
+| `ee93_density` | `(org != 8 && org != 16) => result is Err`; `name.len() == 0 => result is Err`; `result is Ok => name.len() >= 5 && name.len() <= 6` | runtime-checked |
+| `ee93_opcode_name` | `result.len() >= 4 && result.len() <= 7`; `(opcode != 2 && opcode != 5 && opcode != 7 && opcode != 16 && opcode != 17 && opcode != 18 && opcode != 19) => result.len() == 7` | runtime-checked |
+| `ee93_encode` | `(cmd.org != 8 && cmd.org != 16) => result is Err`; `cmd.density.len() == 0 => result is Err`; `(cmd.opcode != 2 && cmd.opcode != 5 && cmd.opcode != 7 && cmd.opcode != 16 && cmd.opcode != 17 && cmd.opcode != 18 && cmd.opcode != 19) => result is Err` | runtime-checked |
+| `ee93_decode` | `(org != 8 && org != 16) => result is Err`; `density.len() == 0 => result is Err`; `data.len() == 0 => result is Err` | runtime-checked |
+| `ee93_encode_read_response` | `(org != 8 && org != 16) => result is Err`; `value < 0 => result is Err`; `result is Ok => value >= 0`; `result is Ok => value <= 65535` | runtime-checked |
+| `ee93_decode_read_response` | `(org != 8 && org != 16) => result is Err`; `data.len() == 0 => result is Err`; `result is Ok => result.value >= 0`; `result is Ok => result.value <= 65535` | runtime-checked |

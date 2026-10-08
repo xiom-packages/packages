@@ -222,7 +222,10 @@ fn _log2i(v: Int) -> Int {
 /// Err("eeprom.24cxx: address pins N out of range 0..7") when the A2..A0
 /// pin strapping `addr_pins` is outside 0..7.
 /// Complexity: O(1).
-pub fn ee24_control_byte(addr_pins: Int, read_op: Bool) -> Result[Int, Str] {
+pub fn ee24_control_byte(addr_pins: Int, read_op: Bool) -> Result[Int, Str]
+  ensures: (addr_pins < 0 || addr_pins > 7) => result is Err;
+  ensures: result is Ok => result.value >= 160 && result.value <= 175;
+{
   if addr_pins < 0 || addr_pins > 7 {
     return _err_int("eeprom.24cxx: address pins " + convert.int_to_string(addr_pins) + " out of range 0..7");
   }
@@ -235,13 +238,19 @@ pub fn ee24_control_byte(addr_pins: Int, read_op: Bool) -> Result[Int, Str] {
 
 /// Write-direction control byte (R/W = 0) for the given pin strapping; same
 /// validation and error as ee24_control_byte. Complexity: O(1).
-pub fn ee24_device_address_write(addr_pins: Int) -> Result[Int, Str] {
+pub fn ee24_device_address_write(addr_pins: Int) -> Result[Int, Str]
+  ensures: (addr_pins < 0 || addr_pins > 7) => result is Err;
+  ensures: result is Ok => result.value >= 160 && result.value <= 174;
+{
   return ee24_control_byte(addr_pins, false);
 }
 
 /// Read-direction control byte (R/W = 1) for the given pin strapping; same
 /// validation and error as ee24_control_byte. Complexity: O(1).
-pub fn ee24_device_address_read(addr_pins: Int) -> Result[Int, Str] {
+pub fn ee24_device_address_read(addr_pins: Int) -> Result[Int, Str]
+  ensures: (addr_pins < 0 || addr_pins > 7) => result is Err;
+  ensures: result is Ok => result.value >= 161 && result.value <= 175;
+{
   return ee24_control_byte(addr_pins, true);
 }
 
@@ -257,7 +266,10 @@ pub fn ee24_device_address_read(addr_pins: Int) -> Result[Int, Str] {
 /// Err("eeprom.24cxx: unknown density \"<name>\"") when the name is not one
 /// of the twelve canonical names.
 /// Complexity: O(1) (twelve str_compare calls).
-pub fn ee24_density(name: Str) -> Result[EepromDensity, Str] {
+pub fn ee24_density(name: Str) -> Result[EepromDensity, Str]
+  ensures: name.len() == 0 => result is Err;
+  ensures: result is Ok => name.len() >= 5 && name.len() <= 7;
+{
   if compare.str_compare(name, "24C01") == 0 {
     return _ok_density(EepromDensity{ name: "24C01"; bits: 1024; bytes: 128; addr_bytes: 1; page_size: 8; org: 8; });
   }
@@ -299,7 +311,10 @@ pub fn ee24_density(name: Str) -> Result[EepromDensity, Str] {
 
 /// Page size of a 24Cxx density, or -1 for an unknown name.
 /// Complexity: O(1).
-pub fn ee24_page_size(name: Str) -> Int {
+pub fn ee24_page_size(name: Str) -> Int
+  ensures: name.len() == 0 => result == -1;
+  ensures: result == -1 || (result >= 8 && result <= 256);
+{
   let r = ee24_density(name);
   if !r.is_ok {
     return -1;
@@ -310,7 +325,10 @@ pub fn ee24_page_size(name: Str) -> Int {
 
 /// Word-address width in bytes of a 24Cxx density (1 or 2), or -1 for an
 /// unknown name. Complexity: O(1).
-pub fn ee24_addr_bytes(name: Str) -> Int {
+pub fn ee24_addr_bytes(name: Str) -> Int
+  ensures: name.len() == 0 => result == -1;
+  ensures: result == -1 || result == 1 || result == 2;
+{
   let r = ee24_density(name);
   if !r.is_ok {
     return -1;
@@ -321,7 +339,10 @@ pub fn ee24_addr_bytes(name: Str) -> Int {
 
 /// Size in bytes of a 24Cxx density, or -1 for an unknown name.
 /// Complexity: O(1).
-pub fn ee24_bytes(name: Str) -> Int {
+pub fn ee24_bytes(name: Str) -> Int
+  ensures: name.len() == 0 => result == -1;
+  ensures: result == -1 || (result >= 128 && result <= 262144);
+{
   let r = ee24_density(name);
   if !r.is_ok {
     return -1;
@@ -332,7 +353,10 @@ pub fn ee24_bytes(name: Str) -> Int {
 
 /// Size in bits of a 24Cxx density, or -1 for an unknown name.
 /// Complexity: O(1).
-pub fn ee24_bits(name: Str) -> Int {
+pub fn ee24_bits(name: Str) -> Int
+  ensures: name.len() == 0 => result == -1;
+  ensures: result == -1 || (result >= 1024 && result <= 2097152);
+{
   let r = ee24_density(name);
   if !r.is_ok {
     return -1;
@@ -352,7 +376,11 @@ pub fn ee24_bits(name: Str) -> Int {
 /// or 2; Err("eeprom.24cxx: word address N does not fit in M address
 /// byte(s)") when `addr` is negative or exceeds 2^(8*M) - 1.
 /// Complexity: O(1).
-pub fn ee24_word_address(addr: Int, addr_bytes: Int) -> Result[Vec[UInt8], Str] {
+pub fn ee24_word_address(addr: Int, addr_bytes: Int) -> Result[Vec[UInt8], Str]
+  ensures: (addr_bytes != 1 && addr_bytes != 2) => result is Err;
+  ensures: addr < 0 => result is Err;
+  ensures: result is Ok => addr >= 0 && addr <= 65535;
+{
   if addr_bytes != 1 && addr_bytes != 2 {
     return _err_bytes("eeprom.24cxx: invalid address width " + convert.int_to_string(addr_bytes));
   }
@@ -375,7 +403,10 @@ pub fn ee24_word_address(addr: Int, addr_bytes: Int) -> Result[Vec[UInt8], Str] 
 /// First byte address of the page containing `addr`: addr - (addr mod
 /// page_size). A page_size <= 0 returns 0 instead of dividing by zero.
 /// Complexity: O(1).
-pub fn ee24_page_start(addr: Int, page_size: Int) -> Int {
+pub fn ee24_page_start(addr: Int, page_size: Int) -> Int
+  ensures: page_size <= 0 => result == 0;
+  ensures: page_size > 0 => result == (addr / page_size) * page_size;
+{
   if page_size <= 0 {
     return 0;
   }
@@ -386,7 +417,10 @@ pub fn ee24_page_start(addr: Int, page_size: Int) -> Int {
 /// page_start + page_size (equal to the device size on the last page).
 /// A page_size <= 0 returns 0.
 /// Complexity: O(1).
-pub fn ee24_next_page_start(addr: Int, page_size: Int) -> Int {
+pub fn ee24_next_page_start(addr: Int, page_size: Int) -> Int
+  ensures: page_size <= 0 => result == 0;
+  ensures: page_size > 0 => result == (addr / page_size) * page_size + page_size;
+{
   if page_size <= 0 {
     return 0;
   }
@@ -397,7 +431,10 @@ pub fn ee24_next_page_start(addr: Int, page_size: Int) -> Int {
 /// including) the page boundary: page_size - (addr mod page_size). A
 /// page_size <= 0 returns 0.
 /// Complexity: O(1).
-pub fn ee24_page_remaining(addr: Int, page_size: Int) -> Int {
+pub fn ee24_page_remaining(addr: Int, page_size: Int) -> Int
+  ensures: page_size <= 0 => result == 0;
+  ensures: page_size > 0 => result == page_size - (addr % page_size);
+{
   if page_size <= 0 {
     return 0;
   }
@@ -410,7 +447,10 @@ pub fn ee24_page_remaining(addr: Int, page_size: Int) -> Int {
 /// page_start + ((addr - page_start + offset) mod page_size). A page_size
 /// <= 0 returns 0.
 /// Complexity: O(1).
-pub fn ee24_write_target(addr: Int, offset: Int, page_size: Int) -> Int {
+pub fn ee24_write_target(addr: Int, offset: Int, page_size: Int) -> Int
+  ensures: page_size <= 0 => result == 0;
+  ensures: page_size > 0 && addr >= 0 && offset >= 0 => result >= 0 && result < (addr / page_size) * page_size + page_size;
+{
   if page_size <= 0 {
     return 0;
   }
@@ -422,7 +462,10 @@ pub fn ee24_write_target(addr: Int, offset: Int, page_size: Int) -> Int {
 /// current-address read (or a sequential read) restarts at 0 after the last
 /// byte. A device_bytes <= 0 returns 0.
 /// Complexity: O(1).
-pub fn ee24_wrap_address(addr: Int, device_bytes: Int) -> Int {
+pub fn ee24_wrap_address(addr: Int, device_bytes: Int) -> Int
+  ensures: device_bytes <= 0 => result == 0;
+  ensures: device_bytes > 0 => result >= 0 && result < device_bytes;
+{
   if device_bytes <= 0 {
     return 0;
   }
@@ -436,7 +479,9 @@ pub fn ee24_wrap_address(addr: Int, device_bytes: Int) -> Int {
 /// Byte address reached after `offset` sequential accesses from `addr` with
 /// device-end wrap (current-address read): wrap_address(addr + offset).
 /// Complexity: O(1).
-pub fn ee24_seq_address(addr: Int, offset: Int, device_bytes: Int) -> Int {
+pub fn ee24_seq_address(addr: Int, offset: Int, device_bytes: Int) -> Int
+  ensures: result == ee24_wrap_address(addr + offset, device_bytes);
+{
   return ee24_wrap_address(addr + offset, device_bytes);
 }
 
@@ -445,7 +490,10 @@ pub fn ee24_seq_address(addr: Int, offset: Int, device_bytes: Int) -> Int {
 /// device end. An out-of-range `addr` wraps first (device-end rule). A
 /// non-positive page_size or device_bytes returns 0.
 /// Complexity: O(1).
-pub fn ee24_write_span(addr: Int, page_size: Int, device_bytes: Int) -> Int {
+pub fn ee24_write_span(addr: Int, page_size: Int, device_bytes: Int) -> Int
+  ensures: (page_size <= 0 || device_bytes <= 0) => result == 0;
+  ensures: page_size > 0 && device_bytes > 0 => result >= 1 && result <= device_bytes;
+{
   if page_size <= 0 || device_bytes <= 0 {
     return 0;
   }
@@ -468,7 +516,12 @@ pub fn ee24_write_span(addr: Int, page_size: Int, device_bytes: Int) -> Int {
 /// Err("eeprom.24cxx: byte address N out of range 0..M") when addr is
 /// outside 0..device_bytes-1.
 /// Complexity: O(1).
-pub fn ee24_validate_address(addr: Int, device_bytes: Int) -> Result[Unit, Str] {
+pub fn ee24_validate_address(addr: Int, device_bytes: Int) -> Result[Unit, Str]
+  ensures: device_bytes <= 0 => result is Err;
+  ensures: (addr < 0 || addr >= device_bytes) => result is Err;
+  ensures: result is Ok => addr >= 0;
+  ensures: result is Ok => addr < device_bytes;
+{
   if device_bytes <= 0 {
     return _err_unit("eeprom.24cxx: invalid device size " + convert.int_to_string(device_bytes));
   }
@@ -490,7 +543,12 @@ pub fn ee24_validate_address(addr: Int, device_bytes: Int) -> Result[Unit, Str] 
 /// boundary, where R is the number of bytes that fit before it
 /// (page_remaining).
 /// Complexity: O(1).
-pub fn ee24_validate_page_write(addr: Int, count: Int, page_size: Int) -> Result[Unit, Str] {
+pub fn ee24_validate_page_write(addr: Int, count: Int, page_size: Int) -> Result[Unit, Str]
+  ensures: page_size <= 0 => result is Err;
+  ensures: count < 1 => result is Err;
+  ensures: result is Ok => count >= 1;
+  ensures: result is Ok => count <= page_size;
+{
   if page_size <= 0 {
     return _err_unit("eeprom.24cxx: invalid page size " + convert.int_to_string(page_size));
   }
@@ -550,7 +608,12 @@ fn _ee93_org_bytes(org: Int) -> Int {
 /// 13/12 for org 8/16 (the field addresses words on org 16). Returns -1 when
 /// org is not 8 or 16 or the name is unknown.
 /// Complexity: O(1).
-pub fn ee93_address_bits(name: Str, org: Int) -> Int {
+pub fn ee93_address_bits(name: Str, org: Int) -> Int
+  ensures: (org != 8 && org != 16) => result == -1;
+  ensures: name.len() == 0 => result == -1;
+  ensures: result != -1 => result >= 6;
+  ensures: result != -1 => result <= 13;
+{
   if org != 8 && org != 16 {
     return -1;
   }
@@ -565,7 +628,9 @@ pub fn ee93_address_bits(name: Str, org: Int) -> Int {
 /// not 8 or 16 or the name is unknown. The byte count is org-independent:
 /// the org only changes how many bytes one address cell covers.
 /// Complexity: O(1).
-pub fn ee93_bytes(name: Str, org: Int) -> Int {
+pub fn ee93_bytes(name: Str, org: Int) -> Int
+  ensures: result == -1 || (result >= 128 && result <= 8192);
+{
   if org != 8 && org != 16 {
     return -1;
   }
@@ -580,7 +645,9 @@ pub fn ee93_bytes(name: Str, org: Int) -> Int {
 /// 2^address_bits. Returns -1 when org is not 8 or 16 or the name is
 /// unknown.
 /// Complexity: O(1).
-pub fn ee93_word_count(name: Str, org: Int) -> Int {
+pub fn ee93_word_count(name: Str, org: Int) -> Int
+  ensures: result == -1 || (result >= 64 && result <= 8192);
+{
   let ab = ee93_address_bits(name, org);
   if ab < 0 {
     return -1;
@@ -596,7 +663,11 @@ pub fn ee93_word_count(name: Str, org: Int) -> Int {
 /// Err("eeprom.93cxx: unknown density \"<name>\" for org N") when the name
 /// is not one of the six canonical names.
 /// Complexity: O(1).
-pub fn ee93_density(name: Str, org: Int) -> Result[EepromDensity, Str] {
+pub fn ee93_density(name: Str, org: Int) -> Result[EepromDensity, Str]
+  ensures: (org != 8 && org != 16) => result is Err;
+  ensures: name.len() == 0 => result is Err;
+  ensures: result is Ok => name.len() >= 5 && name.len() <= 6;
+{
   if org != 8 && org != 16 {
     return _err_density("eeprom.93cxx: org " + convert.int_to_string(org) + " is not 8 or 16");
   }
@@ -610,7 +681,10 @@ pub fn ee93_density(name: Str, org: Int) -> Result[EepromDensity, Str] {
 
 /// Human-readable opcode name: "READ", "WRITE", "ERASE", "EWEN", "EWDS",
 /// "ERAL", "WRAL" or "unknown". Complexity: O(1).
-pub fn ee93_opcode_name(opcode: Int) -> Str {
+pub fn ee93_opcode_name(opcode: Int) -> Str
+  ensures: result.len() >= 4 && result.len() <= 7;
+  ensures: (opcode != 2 && opcode != 5 && opcode != 7 && opcode != 16 && opcode != 17 && opcode != 18 && opcode != 19) => result.len() == 7;
+{
   if opcode == EE93_READ {
     return "READ";
   }
@@ -741,7 +815,11 @@ fn _pack_bits(bits: &Vec[Int]) -> Vec[UInt8] {
 ///   6. WRITE/WRAL data outside 0..2^org - 1 -> Err("eeprom.93cxx: data N
 ///      out of range 0..M for org O").
 /// Complexity: O(address bits + org).
-pub fn ee93_encode(cmd: &Ee93Command) -> Result[Vec[UInt8], Str] {
+pub fn ee93_encode(cmd: &Ee93Command) -> Result[Vec[UInt8], Str]
+  ensures: (cmd.org != 8 && cmd.org != 16) => result is Err;
+  ensures: cmd.density.len() == 0 => result is Err;
+  ensures: (cmd.opcode != 2 && cmd.opcode != 5 && cmd.opcode != 7 && cmd.opcode != 16 && cmd.opcode != 17 && cmd.opcode != 18 && cmd.opcode != 19) => result is Err;
+{
   let name: Str = cmd.density;
   let org = cmd.org;
   let dr = ee93_density(name, org);
@@ -817,7 +895,11 @@ pub fn ee93_encode(cmd: &Ee93Command) -> Result[Vec[UInt8], Str] {
 /// The decoded address is 0 for EWEN/EWDS/ERAL/WRAL (don't-care fields);
 /// READ/WRITE/ERASE addresses are byte addresses (raw field * org cell).
 /// Complexity: O(command bits).
-pub fn ee93_decode(data: &Vec[UInt8], density: Str, org: Int) -> Result[Ee93Decoded, Str] {
+pub fn ee93_decode(data: &Vec[UInt8], density: Str, org: Int) -> Result[Ee93Decoded, Str]
+  ensures: (org != 8 && org != 16) => result is Err;
+  ensures: density.len() == 0 => result is Err;
+  ensures: data.len() == 0 => result is Err;
+{
   let dr = ee93_density(density, org);
   if !dr.is_ok {
     return _err_decoded(dr.error);
@@ -891,7 +973,12 @@ pub fn ee93_decode(data: &Vec[UInt8], density: Str, org: Int) -> Result[Ee93Deco
 /// Err("eeprom.93cxx: read response value N out of range 0..M for org O")
 /// when value is negative or exceeds 2^org - 1.
 /// Complexity: O(1).
-pub fn ee93_encode_read_response(value: Int, org: Int) -> Result[Vec[UInt8], Str] {
+pub fn ee93_encode_read_response(value: Int, org: Int) -> Result[Vec[UInt8], Str]
+  ensures: (org != 8 && org != 16) => result is Err;
+  ensures: value < 0 => result is Err;
+  ensures: result is Ok => value >= 0;
+  ensures: result is Ok => value <= 65535;
+{
   if org != 8 && org != 16 {
     return _err_bytes("eeprom.93cxx: org " + convert.int_to_string(org) + " is not 8 or 16");
   }
@@ -914,7 +1001,12 @@ pub fn ee93_encode_read_response(value: Int, org: Int) -> Result[Vec[UInt8], Str
 /// Err("eeprom.93cxx: read response needs N byte(s), have M") when `data`
 /// is shorter than org / 8 bytes.
 /// Complexity: O(1).
-pub fn ee93_decode_read_response(data: &Vec[UInt8], org: Int) -> Result[Int, Str] {
+pub fn ee93_decode_read_response(data: &Vec[UInt8], org: Int) -> Result[Int, Str]
+  ensures: (org != 8 && org != 16) => result is Err;
+  ensures: data.len() == 0 => result is Err;
+  ensures: result is Ok => result.value >= 0;
+  ensures: result is Ok => result.value <= 65535;
+{
   if org != 8 && org != 16 {
     return _err_int("eeprom.93cxx: org " + convert.int_to_string(org) + " is not 8 or 16");
   }
