@@ -1,0 +1,6 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/sqlite3.c",
+  "--opt-level",
+  "default"
+]

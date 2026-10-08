@@ -23,7 +23,13 @@
 # Exit code: 0 = green, 1 = compile/test failure, 3 = namespace conflict.
 # Watchdog: every compiler invocation is capped at -TimeoutSec (default 120,
 #   normal suites finish in ~10s); on timeout the process tree is killed and
-#   the run fails closed.
+#   the run fails closed. Suites that compile vendored C at link time need
+#   -TimeoutSec 180+ (xiom.sqlite uses 240).
+# Extra args: an optional package-local `port.args.json` (JSON array of
+#   strings) is appended to the suite `--run` invocation, in order;
+#   `${PACKAGE_DIR}` in any entry resolves to the package directory's absolute
+#   path (required for `--c-source` of vendored C, since clang links from a
+#   scratch cwd). Malformed JSON fails closed.
 # ============================================================================
 [CmdletBinding()]
 param(
@@ -74,6 +80,31 @@ function Find-TestSuite {
     $any = @(Get-ChildItem -LiteralPath $testsDir -Filter *.xi -File | Sort-Object Name)
     if ($any.Count -ge 1) { return ("tests/" + $any[0].Name) }
     return ""
+}
+
+function Get-PackageExtraArgs {
+    # Optional per-package extra compiler args: `<packageDir>/port.args.json`
+    # holds a JSON array of strings; each entry is appended to the suite
+    # `--run` invocation. `${PACKAGE_DIR}` resolves to the package dir
+    # absolute path. Fails closed on malformed content or non-string entries.
+    param([string]$PackageDir)
+    $file = Join-Path $PackageDir "port.args.json"
+    if (-not (Test-Path -LiteralPath $file)) { return @() }
+    $parsed = $null
+    try {
+        $parsed = (Get-Content -LiteralPath $file -Raw) | ConvertFrom-Json
+    } catch {
+        throw "port.args.json is not valid JSON: $file"
+    }
+    $out = @()
+    foreach ($item in @($parsed)) {
+        if ($null -eq $item) { continue }
+        if ($item -is [System.Management.Automation.PSCustomObject] -or $item -is [System.Collections.IDictionary]) {
+            throw "port.args.json entries must be strings: $file"
+        }
+        $out += ([string]$item).Replace('${PACKAGE_DIR}', $PackageDir)
+    }
+    return $out
 }
 
 function Invoke-Compiler {
@@ -180,7 +211,9 @@ try {
         $exitCode = $effectiveExit
     } else {
         Write-Host "  suite:    $suiteRel"
-        $result = Invoke-Compiler -Arguments @("--run", $suitePath) -TimeoutSec $TimeoutSec
+        $extraArgs = Get-PackageExtraArgs -PackageDir $packageDir
+        if ($extraArgs.Count -gt 0) { Write-Host ("  extra:    " + ($extraArgs -join " ")) }
+        $result = Invoke-Compiler -Arguments (@("--run", $suitePath) + $extraArgs) -TimeoutSec $TimeoutSec
         $output = $result.Output
         if (-not $Quiet) { Write-Host $output }
         if ($result.TimedOut) {
