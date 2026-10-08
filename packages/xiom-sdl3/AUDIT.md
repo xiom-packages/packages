@@ -10,7 +10,7 @@ remain in git history and return in Phase 2 over this loader.
 
 | Item | State |
 |------|-------|
-| Compiler | v0.64.1 (resolver picks installed 0.64.1; repo pin bump pending native repin) |
+| Compiler | v0.64.1 (repin landed 2026-10-08) |
 | Upstream pin | SDL 3.4.8 (tag `release-3.4.8`), soname `SDL3.dll` |
 | Link model | none at build time; runtime `LoadLibraryA`/`GetProcAddress` via `xiom.ffi.dl` |
 | FFI confinement | all `unsafe` + fn-pointer casts in the root module `xiom.sdl3` only |

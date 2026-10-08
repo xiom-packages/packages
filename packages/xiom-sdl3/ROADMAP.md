@@ -1,6 +1,6 @@
 # xiom.sdl3 -- Roadmap
 
-**Version**: v0.3.0 | **Compiler**: xiom v0.64.1 (pin bump pending) | **Last updated**: 2026-10-08
+**Version**: v0.3.0 | **Compiler**: xiom v0.64.1 | **Last updated**: 2026-10-08
 
 ## Current state
 

@@ -12,7 +12,7 @@
 | Upstream license | zlib (bindings only; no code vendored) |
 | Package license | MIT OR Apache-2.0 |
 | Platform | Windows x64 (loader path is OS-agnostic in design; soname here is `SDL3.dll`) |
-| Compiler pin | v0.64.1 (repo `COMPILER_VERSION` bump to v0.64.1 pending native repin; 0.3.0 runs recorded on v0.64.1) |
+| Compiler pin | v0.64.1 (repin landed 2026-10-08) |
 
 ## 2. G2 pin: soname + dev header hash set
 
