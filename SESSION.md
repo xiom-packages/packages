@@ -14,6 +14,24 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-08 20:20Z (batch #46 COMPLETE + PUBLISHED `eco-v0.1.108`; bindings batch 13 live; supersedes the 18:55Z block below):**
+- **Batch #46 DONE + PUBLISHED (`eco-v0.1.108`, run `37837844224` SUCCESS; all six live):**
+  `mkv` 0.1.2 (36 clauses; 20/20; `7e124e47`), `webp` 0.1.2 (25; 20/20; `8c3e73dc`),
+  `gguf` 0.1.2 (39; 24/24; `47cafb1c`), `snbt` 0.1.2 (36; 22/22; `7f3e6b4a`), `wkt` 0.1.2
+  (38; 27/27; `b5d7a59f`), `flac` 0.1.2 (44; 18/18; `5ebdf093`); 218 clauses total; wrap
+  `86f8ff15`. **~19 zero-clause stable carriers remain** (next: `junit` ~1543, rescan at
+  batch #47).
+- **Bindings batches 9-13 published:** dxc + directx11 0.2.0 (`eco-v0.1.102`), directx12
+  0.2.0 (`eco-v0.1.105`), zstd 0.2.0 (`eco-v0.1.106`), **lzfse 0.2.0** (`eco-v0.1.107`;
+  vendored Apple sources; native 7/7 x2; record `847f82b3`). Next confirmed: **`xiom.ozz`**.
+- **FFI catalog-dep sweep done** (`docs/COMPILER-FINDINGS.md` `b4bd1bfd`): rest/protobuf/
+  sqlite/opengl/vulkan CLEAN; **`xiom.grpc` RED (6 T001 module-identity ambiguity) --
+  compat pass queued**. `xiom.http` 0.1.2 live (`eco-v0.1.103`).
+- v0.64.1 rules unchanged (tag pairs only; no Result ==/is Ok(literal)/destructure;
+  `unsafe fn` P001; discard-shape IR). Credential: `Lefteris-Notas` active.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-08 18:55Z (batch #45 COMPLETE + PUBLISHED `eco-v0.1.104`; FFI sweep done; supersedes the 18:15Z block below):**
 - **Batch #45 DONE + PUBLISHED (`eco-v0.1.104`, run `37826066972` SUCCESS; all six live):**
   `smbios` 0.1.2 (40 clauses; 18/18; `42f11425`), `gpx` 0.1.2 (38; 29/29; `63ee1d72`),
@@ -1950,17 +1968,15 @@ Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin **v0.64.1** (official archive SHA256-verified; install byte-identical;
 repin commit 4e12f80a; COMPILER_VERSION + 519 records aligned); NO XIOM_RUNTIME_DIR needed.
-Validate 519/0; guard 505/473/32/0 (re-check at start). The official v0.64.1 battery is DONE
-(docs/COMPILER-FINDINGS.md section; grpc tuple-vec-set + const-match + B-06/B-09 + C-PULSE-09
-+ up/down + m211 + clone probes fixed; Result== now quiet-false, is-Ok(literal) still
-ignored, ref-destructure rule stays). Batch #45 published (`eco-v0.1.104`: smbios/gpx/
-lcov/avro/sd/jpeg; #44 `eco-v0.1.101`). Bindings batches 2-10 published (last: dxc +
-directx11 0.2.0 in `eco-v0.1.102`); next: `xiom.directx12`, then the compression tier
-(zstd/lzfse/ozz). FFI catalog-dep sweep done: rest/protobuf/sqlite/opengl/vulkan CLEAN,
-**`xiom.grpc` RED (6 T001 module-identity ambiguity) -- compat pass queued**. ~25 zero-clause
-stable carriers remain (next: `mkv`). Clause-shape rules: tag guard pairs only -- no
-`Result` equality, no `is Ok(<literal>)`, no `let (k,v) = &vec[i]` (Vec[Struct].clone() is
-fine now); `unsafe fn` is a hard P001 error on v0.64.1 (`unsafe { }` in the body instead).
+Validate 519/0; guard 505/476/29/0 (re-check at start). The official v0.64.1 battery is DONE
+(docs/COMPILER-FINDINGS.md section). Batch #46 published (`eco-v0.1.108`: mkv/webp/gguf/
+snbt/wkt/flac; earlier #44 `eco-v0.1.101`, #45 `eco-v0.1.104`). Bindings batches 2-13
+published (last: lzfse 0.2.0 in `eco-v0.1.107`); next: `xiom.ozz`. FFI catalog-dep sweep
+done: rest/protobuf/sqlite/opengl/vulkan CLEAN, **`xiom.grpc` RED (6 T001 module-identity
+ambiguity) -- compat pass queued**. ~19 zero-clause stable carriers remain (next: `junit`).
+Clause-shape rules: tag guard pairs only -- no `Result` equality, no `is Ok(<literal>)`, no
+`let (k,v) = &vec[i]` (Vec[Struct].clone() is fine now); `unsafe fn` is a hard P001 error
+(`unsafe { }` in the body instead).
 PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-09 fixed on v0.64.1 (mini-app green),
 C-PULSE-10 still Linux-target-only (Windows probe green: packages\xiom-kv\tests\probe_kv_get_str.xi).
 Bindings Phase 1 complete (`eco-v0.1.89` sqlite, `eco-v0.1.92` sdl3+opengl); batches 4-5
@@ -1979,14 +1995,14 @@ Start: git fetch; git status -sb; git log -1; then
   & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Batch #46 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
+1. Batch #47 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
    -Detailed` for the name list; size them by total non-test .xi lines per package), skip
-   `option`; the next smallest after jpeg is `mkv` (~1483 lines; verify with the sizing
+   `option`; the next smallest after flac is `junit` (~1543 lines; verify with the sizing
    scan, then the next five). Read-only explore pre-plan (one explore task; IF its final
    message comes back EMPTY, resume it with `variant: low` + a "plan only, no preamble"
    prompt -- recovered every time since batch #38). Six background `task` porters with the
-   brief template `%TEMP%\kilo\batch45-porter-brief.md` retargeted (batch #46, plan
-   `%TEMP%\kilo\batch46-clause-plan.md`, `## Contracts (batch #46 hardening pass, 2026-10-XX)`).
+   brief template `%TEMP%\kilo\batch46-porter-brief.md` retargeted (batch #47, plan
+   `%TEMP%\kilo\batch47-clause-plan.md`, `## Contracts (batch #47 hardening pass, 2026-10-XX)`).
    Coordinator integrates as reports land: patch bump per CURRENT version, port x2
    post-bump, byte-level bracket scan, feat commit exact files, record with the REAL sha
    and `-RunBy task:ses_...`; wrap + publish the next eco tag (generate_index/report/
