@@ -3,15 +3,30 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 3 RELAYED -- PHASE 1 PILOT COMPLETE** -- `xiom.opengl` 0.2.0
-green (8/8 x2 on a GPU host + deterministic SKIP classification); awaiting
-native merge/regen/verify/publish. Batches 1-2 merged (sqlite 0.2.0
-published in eco-v0.1.89; sdl3 0.2.0 relayed). Lane findings:
-`docs/BINDINGS-COMPILER-FINDINGS.md` (now incl. B-09 with a runnable repro);
-asks: `docs/BINDINGS-STDLIB-WISHLIST.md`; repros:
-`docs/repro/bindings-pilot/`.
+**STATUS: BATCH 4 RELAYED** -- `xiom.glfw` 0.2.0 green (present 9/9 x2,
+absent/SKIP 3/3 x2 via `port.ps1`); awaiting native merge/verify/publish.
+Phase 1 batches published (eco-v0.1.92). Next: `xiom.sdl3` Phase 2 (window/
+renderer/texture/gamepad over the loader) per the native priority. Lane
+findings: `docs/BINDINGS-COMPILER-FINDINGS.md` (B-01..B-09 with repros).
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 4: head=34ccd6ba (code) + this handoff commit; packages=xiom.glfw 0.2.0;
+tests=xiom.glfw present 9/9 x2 (GLFW 3.4.0 official win64 binary on PATH) and absent 3/3 x2
+(SKIP path), both via scripts/port.ps1, v0.64.0, 2026-10-08; licenses=MIT OR Apache-2.0
+(nothing vendored; GLFW zlib untouched); pins=soname glfw3.dll + tag-3.4 header
+GLFW/glfw3.h sha256 AA370985F6B493BBE0358A36AB49F5780A6397C0209C6D98A62143DEA595B73C +
+resolved symbol set (glfwInit/glfwTerminate/glfwGetVersion/glfwGetVersionString/glfwGetTime/
+glfwGetError); local positive-path sample: official glfw-3.4.bin.WIN64.zip sha256
+54EFA829400F2A0537F742B2B3BDD74E437BB4F2F048E4B7D3C5557D11A611E6, lib-vc2022\glfw3.dll
+FileVersion 3.4.0 sha256 4429ADFF...C14BB1, runtime build string "3.4.0 Win32 WGL Null EGL
+OSMesa VisualC DLL"; gate=G0 OK (keywords:["binding"], license), G1 OK, G2 OK (soname +
+header hash + symbol set + re-pin), G3 OK (ABSENT/NO_PLATFORM -> SKIP, ABI -> FAIL), G4 OK
+(loader smoke), G5 OK (all unsafe confined to the single module xiom.glfw); needs=NONE
+(already allowlisted); NO port.args.json (pure-XIOM loader). Also fixed the pre-pilot
+module-name typo (xiom.glwf -> xiom.glfw) and removed the unlinkable C bridge.
+```
 
 ```
 BINDINGS BATCH 3: head=df8c76aa (code) + this handoff commit; packages=xiom.opengl 0.2.0;
@@ -207,6 +222,21 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - `port.args.json` is present (`--c-source ${PACKAGE_DIR}/src/gl_probe.c`);
   no `--link` flags are needed because the bridge loads everything
   dynamically.
+
+## Batch 4 notes (xiom.glfw, 2026-10-08)
+
+- Same system-lib SKIP pattern as xiom.sdl3: `glfw_load` resolves
+  `glfw3.dll` via `xiom.ffi.dl`; classification ABSENT / NO_PLATFORM (init
+  fails headless) -> SKIP, ABI -> FAIL. All `unsafe` in the single module.
+- Pre-pilot defects fixed in passing: the module was declared `xiom.glwf`
+  (typo) and the C bridge required GLFW headers/import libs at build time
+  (could not satisfy G3). Bridge + stale tests/demos removed; history keeps
+  them as reference.
+- Run matrix: absent 3/3 x2 (no glfw3.dll on PATH); present 9/9 x2 against
+  the official GLFW 3.4 win64 binary (`lib-vc2022`, FileVersion 3.4.0,
+  build string `3.4.0 Win32 WGL Null EGL OSMesa VisualC DLL`).
+- No `port.args.json`; no new compiler findings (the loader avoids the known
+  v0.64.0 classes; out-params use XIOM-owned Vec slots per B-05).
 
 ## Phase-2 sector order proposal (Phase 1 pilot complete)
 
