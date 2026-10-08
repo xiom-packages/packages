@@ -204,7 +204,9 @@ fn _is_ws_byte(b: Int) -> Bool {
 }
 
 // Index of the first byte equal to `want` in `s`, or -1 when absent.
-fn _find_byte(s: Str, want: Int) -> Int {
+fn _find_byte(s: Str, want: Int) -> Int
+  ensures: result == -1 || (result >= 0 && result < s.len());
+{
   var i = 0;
   while i < s.len() {
     if _byte(s, i) == want {
@@ -229,7 +231,9 @@ fn _has_ws(s: Str) -> Bool {
 
 // End (exclusive) of the identifier token starting at `start`; `start` must
 // be an identifier start byte.
-fn _scan_token(s: Str, start: Int) -> Int {
+fn _scan_token(s: Str, start: Int) -> Int
+  ensures: start >= 0 && start <= s.len() => result >= start && result <= s.len();
+{
   var i = start;
   while i < s.len() && _is_ident_byte(_byte(s, i)) {
     i = i + 1;
@@ -238,7 +242,10 @@ fn _scan_token(s: Str, start: Int) -> Int {
 }
 
 // Position of the first byte at or after `pos` that is not a space or tab.
-fn _skip_ws(s: Str, pos: Int) -> Int {
+fn _skip_ws(s: Str, pos: Int) -> Int
+  ensures: pos >= 0 && pos > s.len() => result == pos;
+  ensures: pos >= 0 && pos <= s.len() => result >= pos && result <= s.len();
+{
   var i = pos;
   var go = true;
   while i < s.len() && go {
@@ -253,7 +260,11 @@ fn _skip_ws(s: Str, pos: Int) -> Int {
 
 // Value of the two ASCII digits at `pos`, or -1 when either byte is not a
 // digit or the field does not fit.
-fn _parse_two(s: Str, pos: Int) -> Int {
+fn _parse_two(s: Str, pos: Int) -> Int
+  ensures: pos < 0 => result == -1;
+  ensures: pos + 1 >= s.len() => result == -1;
+  ensures: result >= -1 && result <= 99;
+{
   if pos < 0 {
     return -1;
   }
@@ -275,7 +286,11 @@ fn _parse_two(s: Str, pos: Int) -> Int {
 //   -3 frames above 74
 // Minutes are exactly two digits (00..99), so no extra range check is
 // possible or needed.
-fn _parse_time(s: Str, pos: Int) -> Int {
+fn _parse_time(s: Str, pos: Int) -> Int
+  ensures: pos < 0 || pos + 8 != s.len() => result == -1;
+  ensures: result >= 0 => pos >= 0 && pos + 8 == s.len();
+  ensures: result >= -3 && result <= 995974;
+{
   if pos < 0 {
     return -1;
   }
@@ -303,7 +318,9 @@ fn _parse_time(s: Str, pos: Int) -> Int {
 // Index of the closing quote of the quoted string starting at `start`
 // (`s[start]` is '"'), or -1 when the quote is never closed. A doubled quote
 // "" inside the string is a literal quote and does not close it.
-fn _quoted_end(s: Str, start: Int) -> Int {
+fn _quoted_end(s: Str, start: Int) -> Int
+  ensures: result == -1 || (result > start && result < s.len());
+{
   var i = start + 1;
   while i < s.len() {
     if _byte(s, i) == _DQ {
@@ -389,7 +406,9 @@ fn _kind_of(kw: Str) -> Int {
 
 // Two-digit decimal text for `v` (clamped to 0..99). Used only for the
 // "track nn has no INDEX 01" message; the result is NUL-free ASCII.
-fn _two_digits_str(v: Int) -> Str {
+fn _two_digits_str(v: Int) -> Str
+  ensures: result.len() == 2;
+{
   var out = Vec[UInt8].new();
   _push_two_digits(&mut out, v);
   return builder.sb_to_str(&out);
@@ -459,7 +478,10 @@ fn _push_value(out: &mut Vec[UInt8], s: Str, q: Int) {
 /// numbers 00..99 (exactly two digits), times mm:ss:ff with ss 00..59 and
 /// ff 00..74. Input containing a NUL byte is rejected.
 /// Complexity: O(input length).
-pub fn cue_parse(text: Str) -> Result[Cue, Str] {
+pub fn cue_parse(text: Str) -> Result[Cue, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: _find_byte(text, 0) >= 0 => result is Err;
+{
   if _find_byte(text, 0) >= 0 {
     return _err_cue("cue: NUL byte in input");
   }
@@ -719,7 +741,10 @@ pub fn cue_parse(text: Str) -> Result[Cue, Str] {
 /// are skipped.
 /// Error case: none.
 /// Complexity: O(total output length).
-pub fn cue_emit(c: &Cue) -> Str {
+pub fn cue_emit(c: &Cue) -> Str
+  ensures: c.kinds.len() == 0 => result.len() == 0;
+  ensures: c.kinds.len() > 0 => result.len() >= 1;
+{
   var out = Vec[UInt8].new();
   let n = c.kinds.len();
   var i = 0;
@@ -844,12 +869,17 @@ fn _nth_kind(c: &Cue, kind: Int, n: Int) -> Int {
 // --------------------------------------------------
 
 /// Number of elements in the stream.
-pub fn cue_element_count(c: &Cue) -> Int {
+pub fn cue_element_count(c: &Cue) -> Int
+  ensures: result == c.kinds.len();
+{
   return c.kinds.len();
 }
 
 /// Kind (`EK_*`) of element `i`; -1 when `i` is out of range.
-pub fn cue_element_kind(c: &Cue, i: Int) -> Int {
+pub fn cue_element_kind(c: &Cue, i: Int) -> Int
+  ensures: i < 0 || i >= c.kinds.len() => result == -1;
+  ensures: 0 <= i && i < c.kinds.len() => result >= 1 && result <= 11;
+{
   if i < 0 || i >= c.kinds.len() {
     return -1;
   }
@@ -864,7 +894,9 @@ pub fn cue_element_kind_count(c: &Cue, kind: Int) -> Int {
 
 /// Numeric field of element `i`: TRACK/INDEX number, 0 for other kinds; -1
 /// when `i` is out of range.
-pub fn cue_element_num(c: &Cue, i: Int) -> Int {
+pub fn cue_element_num(c: &Cue, i: Int) -> Int
+  ensures: i < 0 || i >= c.nums.len() => result == -1;
+{
   if i < 0 || i >= c.nums.len() {
     return -1;
   }
@@ -905,7 +937,10 @@ pub fn cue_element_frame(c: &Cue, i: Int) -> Int {
 /// Total CD frames of element `i` as (mm*60 + ss)*75 + ff when the element
 /// is an INDEX, PREGAP or POSTGAP; -1 for other kinds or an out-of-range
 /// index. Values are exact integers (a full 99:59:74 is 449999 frames).
-pub fn cue_element_frames(c: &Cue, i: Int) -> Int {
+pub fn cue_element_frames(c: &Cue, i: Int) -> Int
+  ensures: cue_element_kind(c, i) != 3 && cue_element_kind(c, i) != 4 && cue_element_kind(c, i) != 5 => result == -1;
+  ensures: cue_element_kind(c, i) >= 3 && cue_element_kind(c, i) <= 5 => result == (cue_element_min(c, i) * 60 + cue_element_sec(c, i)) * 75 + cue_element_frame(c, i);
+{
   let k = cue_element_kind(c, i);
   if k == EK_INDEX || k == EK_PREGAP || k == EK_POSTGAP {
     let mm: Int = c.mins[i];
@@ -919,7 +954,9 @@ pub fn cue_element_frames(c: &Cue, i: Int) -> Int {
 /// Primary text of element `i`: FILE name, PERFORMER/TITLE/SONGWRITER value,
 /// ISRC code, CATALOG number or REM body; "" for other kinds and for an
 /// out-of-range index.
-pub fn cue_element_text(c: &Cue, i: Int) -> Str {
+pub fn cue_element_text(c: &Cue, i: Int) -> Str
+  ensures: i < 0 || i >= c.texts.len() => result.len() == 0;
+{
   if i < 0 || i >= c.texts.len() {
     return "";
   }
@@ -973,7 +1010,9 @@ pub fn cue_element_track(c: &Cue, i: Int) -> Int {
 // --------------------------------------------------
 
 /// Number of FILE elements.
-pub fn cue_file_count(c: &Cue) -> Int {
+pub fn cue_file_count(c: &Cue) -> Int
+  ensures: result == _count_kind(c, 1);
+{
   return _count_kind(c, EK_FILE);
 }
 
@@ -1019,7 +1058,10 @@ pub fn cue_track_element(c: &Cue, t: Int) -> Int {
 }
 
 /// Track number (1..99) of track `t`; -1 when `t` is out of range.
-pub fn cue_track_number(c: &Cue, t: Int) -> Int {
+pub fn cue_track_number(c: &Cue, t: Int) -> Int
+  ensures: cue_track_element(c, t) < 0 => result == -1;
+  ensures: cue_track_element(c, t) >= 0 => result >= 1 && result <= 99;
+{
   let i = _nth_kind(c, EK_TRACK, t);
   if i < 0 {
     return -1;
@@ -1175,7 +1217,9 @@ pub fn cue_index_frame(c: &Cue, k: Int) -> Int {
 
 /// Total CD frames of index `k` as (mm*60 + ss)*75 + ff; -1 when `k` is out
 /// of range.
-pub fn cue_index_frames(c: &Cue, k: Int) -> Int {
+pub fn cue_index_frames(c: &Cue, k: Int) -> Int
+  ensures: result == cue_element_frames(c, cue_index_element(c, k));
+{
   return cue_element_frames(c, _nth_kind(c, EK_INDEX, k));
 }
 

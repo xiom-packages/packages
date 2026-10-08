@@ -1,6 +1,6 @@
 # xiom.cue -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.cue` (`src/cue.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -376,3 +376,61 @@ Workarounds carried by this module, in the style of `xiom.ini`,
 - Whole-document only; no streaming, no editing API, no file I/O.
 - Blank-line layout, CRLF and indentation are not preserved on emit.
 - Errors carry the offending line text but no line/column numbers.
+
+## Contracts (batch #43 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (27, across the 17 functions below) were
+added to `src/cue.xi` in the batch #43 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 22-check conformance suite
+exercises every contracted entry point and no clause trapped, so none was
+dropped. Two consecutive `& .\scripts\port.ps1 -Package xiom.cue -TimeoutSec
+60` runs ended `port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with
+the clauses active (16.45 s and 13.38 s). None is claimed Z3-provable:
+`xiom-verify` was not run for this module, and per the batch #37 finding a
+bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable column is
+"no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant (the
+`EK_*` codes and the time-kind codes 3/4/5 are inlined), or reads a `&mut`
+parameter. Four bounds rely on parsed-sheet invariants (the plan's
+pre-guards): `cue_emit`'s "non-empty kinds => non-empty output" and
+`cue_element_kind`'s "in-range index => stored kind in 1..11" assume every
+`kinds` entry is an `EK_*` code (1..11); `cue_track_number`'s `1..99` band
+assumes parsed `nums` entries; `cue_element_frames`'s formula assumes the
+ten parallel Vecs are index-aligned, so the `cue_element_*` accessors used on
+the right-hand side read the same stored components as the body. A hand-built
+`Cue` that violates these invariants is outside the claimed domain; the
+conformance suite only calls these functions on parser-produced sheets. The
+two expressible pre-guards are kept in the clauses themselves: `_scan_token`
+guards `start >= 0 && start <= s.len()`, and `_skip_ws` guards `pos >= 0`.
+
+The only cross-calls are non-re-entrant definitional reads: `cue_parse` calls
+`_find_byte`, `cue_file_count` calls `_count_kind` (with the literal `1` for
+`EK_FILE`), `cue_track_number` calls `cue_track_element`, `cue_element_frames`
+calls `cue_element_kind`/`cue_element_min`/`cue_element_sec`/
+`cue_element_frame`, and `cue_index_frames` calls `cue_index_element` plus
+`cue_element_frames`; none of those callees can return to the function
+carrying the clause.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `_find_byte` | 1 | `-1`, or an index inside `0..s.len()` | no | yes |
+| `_scan_token` | 1 | `start .. s.len()` band (start guarded) | no | yes |
+| `_skip_ws` | 2 | `pos > s.len()` => `pos`; else `pos .. s.len()` band (pos guarded) | no | yes |
+| `_parse_two` | 3 | bad position => `-1`; result in `-1..99` | no | yes |
+| `_parse_time` | 3 | bad shape => `-1`; packed result implies full `mm:ss:ff`; result in `-3..995974` | no | yes |
+| `_quoted_end` | 1 | `-1`, or a closing index inside `(start, s.len())` | no | yes |
+| `_two_digits_str` | 1 | `result.len() == 2` | no | yes |
+| `cue_parse` | 2 | empty input => `Ok`; NUL byte => `Err` | no | yes |
+| `cue_emit` | 2 | empty kinds => empty output; non-empty kinds => non-empty output | no | yes |
+| `cue_element_count` | 1 | `result == c.kinds.len()` | no | yes |
+| `cue_element_kind` | 2 | out-of-range index => `-1`; in-range => stored kind in `1..11` | no | yes |
+| `cue_element_num` | 1 | out-of-range index => `-1` | no | yes |
+| `cue_element_text` | 1 | out-of-range index => empty result | no | yes |
+| `cue_element_frames` | 2 | non-time kind => `-1`; time kind => exact `(mm*60 + ss)*75 + ff` | no | yes |
+| `cue_file_count` | 1 | `result == _count_kind(c, 1)` | no | yes |
+| `cue_track_number` | 2 | missing track => `-1`; present track => `1..99` | no | yes |
+| `cue_index_frames` | 1 | `result == cue_element_frames(c, cue_index_element(c, k))` | no | yes |
