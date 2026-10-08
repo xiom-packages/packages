@@ -307,3 +307,397 @@ pub fn sdl3_get_error(lib: &Sdl3Library) -> Str
     return Str::from_c_str(p);
   }
 }
+
+// =========================================================================
+// Phase 2: window / renderer / texture / gamepad resources over the loader
+// =========================================================================
+
+// SDL pixel formats / texture access for the smoke.
+pub const SDL_PIXELFORMAT_RGBA8888: Int = 0x16462004;
+pub const SDL_TEXTUREACCESS_STATIC: Int = 0;
+
+pub type Sdl3WindowSize = {
+  width: Int;
+  height: Int;
+}
+
+/// Resolved addresses for the resource stage.  Separate from `Sdl3Library`
+/// so a host with an older SDL3 still gets the smoke SKIP classification:
+/// a missing resource symbol fails only the resource stage (`SDL3_LOAD_ABI`).
+pub type Sdl3Resources = {
+  handle: Int;
+  p_create_window: Int;
+  p_destroy_window: Int;
+  p_show_window: Int;
+  p_hide_window: Int;
+  p_get_window_size: Int;
+  p_set_window_title: Int;
+  p_create_renderer: Int;
+  p_destroy_renderer: Int;
+  p_set_render_draw_color: Int;
+  p_render_clear: Int;
+  p_render_present: Int;
+  p_create_texture: Int;
+  p_destroy_texture: Int;
+  p_get_gamepads: Int;
+  p_open_gamepad: Int;
+  p_close_gamepad: Int;
+  p_has_gamepad: Int;
+  p_free: Int;
+  p_get_error: Int;
+}
+
+fn sdl3_res_error(r: &Sdl3Resources) -> Str
+  requires: r.handle != 0
+{
+  unsafe {
+    let f = r.p_get_error as fn() -> *UInt8;
+    let p = f();
+    if (p as Int) == 0 { return ""; }
+    return Str::from_c_str(p);
+  }
+}
+
+/// Resource-stage loader: resolves the window/renderer/texture/gamepad API.
+/// Complexity: O(symbols).
+pub fn sdl3_load_resources() -> Result[Sdl3Resources, Sdl3LoadError] {
+  let h = dl.dl_open(SDL3_SONAME);
+  if !h.is_ok {
+    return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABSENT; message: h.error });
+  }
+  let handle: Int = h.value;
+
+  let a1 = dl.dl_sym(handle, "SDL_CreateWindow");
+  if !a1.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_CreateWindow: " + a1.error }); }
+  let a2 = dl.dl_sym(handle, "SDL_DestroyWindow");
+  if !a2.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_DestroyWindow: " + a2.error }); }
+  let a3 = dl.dl_sym(handle, "SDL_ShowWindow");
+  if !a3.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_ShowWindow: " + a3.error }); }
+  let a4 = dl.dl_sym(handle, "SDL_HideWindow");
+  if !a4.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_HideWindow: " + a4.error }); }
+  let a5 = dl.dl_sym(handle, "SDL_GetWindowSize");
+  if !a5.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetWindowSize: " + a5.error }); }
+  let a6 = dl.dl_sym(handle, "SDL_SetWindowTitle");
+  if !a6.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetWindowTitle: " + a6.error }); }
+  let a7 = dl.dl_sym(handle, "SDL_CreateRenderer");
+  if !a7.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_CreateRenderer: " + a7.error }); }
+  let a8 = dl.dl_sym(handle, "SDL_DestroyRenderer");
+  if !a8.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_DestroyRenderer: " + a8.error }); }
+  let a9 = dl.dl_sym(handle, "SDL_SetRenderDrawColor");
+  if !a9.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_SetRenderDrawColor: " + a9.error }); }
+  let a10 = dl.dl_sym(handle, "SDL_RenderClear");
+  if !a10.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_RenderClear: " + a10.error }); }
+  let a11 = dl.dl_sym(handle, "SDL_RenderPresent");
+  if !a11.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_RenderPresent: " + a11.error }); }
+  let a12 = dl.dl_sym(handle, "SDL_CreateTexture");
+  if !a12.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_CreateTexture: " + a12.error }); }
+  let a13 = dl.dl_sym(handle, "SDL_DestroyTexture");
+  if !a13.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_DestroyTexture: " + a13.error }); }
+  let a14 = dl.dl_sym(handle, "SDL_GetGamepads");
+  if !a14.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetGamepads: " + a14.error }); }
+  let a15 = dl.dl_sym(handle, "SDL_OpenGamepad");
+  if !a15.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_OpenGamepad: " + a15.error }); }
+  let a16 = dl.dl_sym(handle, "SDL_CloseGamepad");
+  if !a16.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_CloseGamepad: " + a16.error }); }
+  let a17 = dl.dl_sym(handle, "SDL_HasGamepad");
+  if !a17.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_HasGamepad: " + a17.error }); }
+  let a18 = dl.dl_sym(handle, "SDL_free");
+  if !a18.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_free: " + a18.error }); }
+  let a19 = dl.dl_sym(handle, "SDL_GetError");
+  if !a19.is_ok { var ig = dl.dl_close(handle); return Err(Sdl3LoadError{ kind: SDL3_LOAD_ABI; message: "SDL_GetError: " + a19.error }); }
+
+  return Ok(Sdl3Resources{
+    handle: handle,
+    p_create_window: a1.value,
+    p_destroy_window: a2.value,
+    p_show_window: a3.value,
+    p_hide_window: a4.value,
+    p_get_window_size: a5.value,
+    p_set_window_title: a6.value,
+    p_create_renderer: a7.value,
+    p_destroy_renderer: a8.value,
+    p_set_render_draw_color: a9.value,
+    p_render_clear: a10.value,
+    p_render_present: a11.value,
+    p_create_texture: a12.value,
+    p_destroy_texture: a13.value,
+    p_get_gamepads: a14.value,
+    p_open_gamepad: a15.value,
+    p_close_gamepad: a16.value,
+    p_has_gamepad: a17.value,
+    p_free: a18.value,
+    p_get_error: a19.value,
+  });
+}
+
+/// Release the resource-stage handle.
+/// Complexity: O(1).
+pub fn sdl3_resources_close(r: &Sdl3Resources) -> Result[Unit, Str]
+  requires: r.handle != 0
+{
+  return dl.dl_close(r.handle);
+}
+
+/// SDL_CreateWindow(title, w, h, flags).  Use SDL_WINDOW_HIDDEN for a
+/// headless-safe window.
+/// Complexity: O(1).
+pub fn sdl3_create_window(r: &Sdl3Resources, title: Str, w: Int, h: Int, flags: Int) -> Result[Int, Str]
+  requires: r.handle != 0
+  requires: title.len() > 0
+  requires: w > 0
+  requires: h > 0
+{
+  unsafe {
+    let f = r.p_create_window as fn(*UInt8, Int, Int, Int) -> Int;
+    let win = f(title.c_str(), w, h, flags);
+    if win == 0 {
+      return Err(sdl3_res_error(r));
+    }
+    return Ok(win);
+  }
+}
+
+/// SDL_DestroyWindow.
+/// Complexity: O(1).
+pub fn sdl3_destroy_window(r: &Sdl3Resources, win: Int)
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_destroy_window as fn(Int);
+    f(win);
+  }
+}
+
+/// SDL_ShowWindow -> bool.
+/// Complexity: O(1).
+pub fn sdl3_show_window(r: &Sdl3Resources, win: Int) -> Bool
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_show_window as fn(Int) -> UInt8;
+    return (f(win) as Int) != 0;
+  }
+}
+
+/// SDL_HideWindow -> bool.
+/// Complexity: O(1).
+pub fn sdl3_hide_window(r: &Sdl3Resources, win: Int) -> Bool
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_hide_window as fn(Int) -> UInt8;
+    return (f(win) as Int) != 0;
+  }
+}
+
+/// SDL_GetWindowSize -> Sdl3WindowSize.
+/// Complexity: O(1).
+pub fn sdl3_window_size(r: &Sdl3Resources, win: Int) -> Sdl3WindowSize
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    var sw = sdl3_slot4();
+    var sh = sdl3_slot4();
+    let f = r.p_get_window_size as fn(Int, *UInt8, *UInt8);
+    f(win, sw.as_mut_ptr(), sh.as_mut_ptr());
+    return Sdl3WindowSize{ width: sdl3_read_u32(&sw), height: sdl3_read_u32(&sh) };
+  }
+}
+
+/// SDL_SetWindowTitle -> bool.
+/// Complexity: O(1).
+pub fn sdl3_set_window_title(r: &Sdl3Resources, win: Int, title: Str) -> Bool
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_set_window_title as fn(Int, *UInt8) -> UInt8;
+    return (f(win, title.c_str()) as Int) != 0;
+  }
+}
+
+/// SDL_CreateRenderer(window, NULL) -> renderer handle.
+/// Complexity: O(1).
+pub fn sdl3_create_renderer(r: &Sdl3Resources, win: Int) -> Result[Int, Str]
+  requires: r.handle != 0
+  requires: win != 0
+{
+  unsafe {
+    let f = r.p_create_renderer as fn(Int, Int) -> Int;
+    let ren = f(win, 0);
+    if ren == 0 {
+      return Err(sdl3_res_error(r));
+    }
+    return Ok(ren);
+  }
+}
+
+/// SDL_DestroyRenderer.
+/// Complexity: O(1).
+pub fn sdl3_destroy_renderer(r: &Sdl3Resources, ren: Int)
+  requires: r.handle != 0
+  requires: ren != 0
+{
+  unsafe {
+    let f = r.p_destroy_renderer as fn(Int);
+    f(ren);
+  }
+}
+
+/// SDL_SetRenderDrawColor(r, g, b, a) -> bool.
+/// Complexity: O(1).
+pub fn sdl3_set_render_draw_color(r: &Sdl3Resources, ren: Int, rr: Int, gg: Int, bb: Int, aa: Int) -> Bool
+  requires: r.handle != 0
+  requires: ren != 0
+  requires: rr >= 0
+  requires: rr <= 255
+  requires: gg >= 0
+  requires: gg <= 255
+  requires: bb >= 0
+  requires: bb <= 255
+  requires: aa >= 0
+  requires: aa <= 255
+{
+  unsafe {
+    let f = r.p_set_render_draw_color as fn(Int, Int, Int, Int, Int) -> UInt8;
+    return (f(ren, rr, gg, bb, aa) as Int) != 0;
+  }
+}
+
+/// SDL_RenderClear -> bool.
+/// Complexity: O(1).
+pub fn sdl3_render_clear(r: &Sdl3Resources, ren: Int) -> Bool
+  requires: r.handle != 0
+  requires: ren != 0
+{
+  unsafe {
+    let f = r.p_render_clear as fn(Int) -> UInt8;
+    return (f(ren) as Int) != 0;
+  }
+}
+
+/// SDL_RenderPresent -> bool.
+/// Complexity: O(1).
+pub fn sdl3_render_present(r: &Sdl3Resources, ren: Int) -> Bool
+  requires: r.handle != 0
+  requires: ren != 0
+{
+  unsafe {
+    let f = r.p_render_present as fn(Int) -> UInt8;
+    return (f(ren) as Int) != 0;
+  }
+}
+
+/// SDL_CreateTexture(renderer, format, access, w, h) -> texture handle.
+/// Complexity: O(1).
+pub fn sdl3_create_texture(r: &Sdl3Resources, ren: Int, format: Int, access: Int, w: Int, h: Int) -> Result[Int, Str]
+  requires: r.handle != 0
+  requires: ren != 0
+  requires: w > 0
+  requires: h > 0
+{
+  unsafe {
+    let f = r.p_create_texture as fn(Int, Int, Int, Int, Int) -> Int;
+    let tex = f(ren, format, access, w, h);
+    if tex == 0 {
+      return Err(sdl3_res_error(r));
+    }
+    return Ok(tex);
+  }
+}
+
+/// SDL_DestroyTexture.
+/// Complexity: O(1).
+pub fn sdl3_destroy_texture(r: &Sdl3Resources, tex: Int)
+  requires: r.handle != 0
+  requires: tex != 0
+{
+  unsafe {
+    let f = r.p_destroy_texture as fn(Int);
+    f(tex);
+  }
+}
+
+/// SDL_HasGamepad -> bool.
+/// Complexity: O(1).
+pub fn sdl3_has_gamepad(r: &Sdl3Resources) -> Bool
+  requires: r.handle != 0
+{
+  unsafe {
+    let f = r.p_has_gamepad as fn() -> UInt8;
+    return (f() as Int) != 0;
+  }
+}
+
+/// Attached gamepad count (SDL_GetGamepads + SDL_free of the array).
+/// Complexity: O(gamepads).
+pub fn sdl3_gamepad_count(r: &Sdl3Resources) -> Int
+  requires: r.handle != 0
+{
+  unsafe {
+    var slot = sdl3_slot4();
+    let f = r.p_get_gamepads as fn(*UInt8) -> Int;
+    let arr = f(slot.as_mut_ptr());
+    let n = sdl3_read_u32(&slot);
+    if arr != 0 {
+      let fr = r.p_free as fn(Int);
+      fr(arr);
+    }
+    return n;
+  }
+}
+
+/// SDL_OpenGamepad(instance_id) -> gamepad handle.
+/// Complexity: O(1).
+pub fn sdl3_open_gamepad(r: &Sdl3Resources, id: Int) -> Result[Int, Str]
+  requires: r.handle != 0
+  requires: id >= 0
+{
+  unsafe {
+    let f = r.p_open_gamepad as fn(Int) -> Int;
+    let gp = f(id);
+    if gp == 0 {
+      return Err(sdl3_res_error(r));
+    }
+    return Ok(gp);
+  }
+}
+
+/// SDL_CloseGamepad.
+/// Complexity: O(1).
+pub fn sdl3_close_gamepad(r: &Sdl3Resources, gp: Int)
+  requires: r.handle != 0
+  requires: gp != 0
+{
+  unsafe {
+    let f = r.p_close_gamepad as fn(Int);
+    f(gp);
+  }
+}
+
+// Out-param slot helpers for the resource stage (4-byte int*).
+fn sdl3_slot4() -> Vec[UInt8]
+  requires: true
+{
+  var s: Vec[UInt8] = Vec[UInt8].new();
+  var i: Int = 0;
+  while i < 4 {
+    s.push(0 as UInt8);
+    i = i + 1;
+  }
+  return s;
+}
+
+fn sdl3_read_u32(buf: &Vec[UInt8]) -> Int
+  requires: buf.len() >= 4
+{
+  let b0 = buf[0] as Int;
+  let b1 = buf[1] as Int;
+  let b2 = buf[2] as Int;
+  let b3 = buf[3] as Int;
+  return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+}
