@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T22:10:16Z",
+    "updated":  "2026-10-08T22:36:02Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -8980,20 +8980,20 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.zstd",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "zstd -- fast lossless compression algorithm (Facebook).",
+                         "description":  "Zstandard bindings for XIOM (vendored 1.5.7 single-file amalgamation, no system library)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zstd/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-zstd/v0.2.0/package.tar.gz",
                          "source_files":  [
-                                              "zstd.xi",
-                                              "package.xi"
+                                              "package.xi",
+                                              "zstd.xi"
                                           ]
                      },
                      {
