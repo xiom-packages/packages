@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-09T00:05:40Z",
+    "updated":  "2026-10-09T01:07:56Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -2959,7 +2959,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.1.1",
                          "name":  "xiom.grpc",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "gRPC C Core bindings for XIOM -- client, server, types, and 17 canonical status codes",
@@ -2969,7 +2969,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-grpc/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-grpc/v0.1.1/package.tar.gz",
                          "source_files":  [
                                               "client.xi",
                                               "server.xi",
