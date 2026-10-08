@@ -310,12 +310,17 @@ pub fn avro_cursor_len(cur: &AvroCursor) -> Int {
 }
 
 /// Number of unread bytes (never negative).
-pub fn avro_cursor_remaining(cur: &AvroCursor) -> Int {
+pub fn avro_cursor_remaining(cur: &AvroCursor) -> Int
+  ensures: result == cur.data.len() - cur.pos;
+{
   return cur.data.len() - cur.pos;
 }
 
 /// True when every byte has been consumed.
-pub fn avro_cursor_done(cur: &AvroCursor) -> Bool {
+pub fn avro_cursor_done(cur: &AvroCursor) -> Bool
+  ensures: cur.pos < cur.data.len() => !result;
+  ensures: result => cur.pos >= cur.data.len();
+{
   return cur.pos >= cur.data.len();
 }
 
@@ -324,7 +329,10 @@ pub fn avro_cursor_done(cur: &AvroCursor) -> Bool {
 /// Err("avro: negative skip N at offset M") when `n < 0`;
 /// Err("avro: truncated input at offset M") when the buffer ends inside the
 /// skipped range. On success returns the new position.
-pub fn avro_cursor_skip(cur: &mut AvroCursor, n: Int) -> Result[Int, Str] {
+pub fn avro_cursor_skip(cur: &mut AvroCursor, n: Int) -> Result[Int, Str]
+  ensures: n < 0 => result is Err;
+  ensures: result is Ok => n >= 0;
+{
   if n < 0 {
     return _err_int("avro: negative skip " + convert.int_to_string(n) + _at(cur.pos));
   }
@@ -460,7 +468,9 @@ pub fn avro_read_long(cur: &mut AvroCursor) -> Result[Int, Str] {
 /// Err("avro: int out of range at offset M") when the decoded value is
 /// outside [-2^31, 2^31-1], plus the varint errors of `avro_read_long`.
 /// Complexity: O(1).
-pub fn avro_read_int(cur: &mut AvroCursor) -> Result[Int, Str] {
+pub fn avro_read_int(cur: &mut AvroCursor) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= -2147483648 && result.value <= 2147483647;
+{
   let start = cur.pos;
   let r = _read_zigzag(cur);
   if !r.is_ok {
@@ -537,7 +547,10 @@ pub fn avro_read_string(cur: &mut AvroCursor) -> Result[Str, Str] {
 /// Err("avro: truncated input at offset M") when fewer than `n` bytes
 /// remain. `n = 0` succeeds with an empty vector.
 /// Complexity: O(n).
-pub fn avro_read_fixed(cur: &mut AvroCursor, n: Int) -> Result[Vec[UInt8], Str] {
+pub fn avro_read_fixed(cur: &mut AvroCursor, n: Int) -> Result[Vec[UInt8], Str]
+  ensures: n < 0 => result is Err;
+  ensures: result is Ok => n >= 0;
+{
   var out = Vec[UInt8].new();
   if n < 0 {
     return _err_bytes("avro: negative fixed size " + convert.int_to_string(n) + _at(cur.pos));
@@ -574,7 +587,9 @@ pub fn avro_read_double(cur: &mut AvroCursor) -> Result[Vec[UInt8], Str] {
 /// Err("avro: negative enum index N at offset M") for a negative value,
 /// plus the varint and int32-range errors of `avro_read_int`.
 /// Complexity: O(1).
-pub fn avro_read_enum_index(cur: &mut AvroCursor) -> Result[Int, Str] {
+pub fn avro_read_enum_index(cur: &mut AvroCursor) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0;
+{
   let start = cur.pos;
   let r = avro_read_int(cur);
   if !r.is_ok {
@@ -754,7 +769,10 @@ pub fn avro_decode_long(data: Vec[UInt8]) -> Result[Int, Str] {
 
 /// Decode exactly one `int` and reject trailing bytes.
 /// Complexity: O(1).
-pub fn avro_decode_int(data: Vec[UInt8]) -> Result[Int, Str] {
+pub fn avro_decode_int(data: Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() == 0 => result is Err;
+  ensures: result is Ok => result.value >= -2147483648 && result.value <= 2147483647;
+{
   var cur = avro_cursor(data);
   let r = avro_read_int(&mut cur);
   if !r.is_ok {
@@ -769,7 +787,10 @@ pub fn avro_decode_int(data: Vec[UInt8]) -> Result[Int, Str] {
 
 /// Decode exactly one `boolean` and reject trailing bytes.
 /// Complexity: O(1).
-pub fn avro_decode_boolean(data: Vec[UInt8]) -> Result[Bool, Str] {
+pub fn avro_decode_boolean(data: Vec[UInt8]) -> Result[Bool, Str]
+  ensures: data.len() != 1 => result is Err;
+  ensures: result is Ok => data.len() == 1;
+{
   var cur = avro_cursor(data);
   let r = avro_read_boolean(&mut cur);
   if !r.is_ok {
@@ -829,13 +850,19 @@ pub fn avro_decode_fixed(data: Vec[UInt8], n: Int) -> Result[Vec[UInt8], Str] {
 
 /// Decode exactly one `float` (4 raw LE octets) and reject trailing bytes.
 /// Complexity: O(1).
-pub fn avro_decode_float(data: Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn avro_decode_float(data: Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: data.len() != 4 => result is Err;
+  ensures: result is Ok => data.len() == 4;
+{
   return avro_decode_fixed(data, 4);
 }
 
 /// Decode exactly one `double` (8 raw LE octets) and reject trailing bytes.
 /// Complexity: O(1).
-pub fn avro_decode_double(data: Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn avro_decode_double(data: Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: data.len() != 8 => result is Err;
+  ensures: result is Ok => data.len() == 8;
+{
   return avro_decode_fixed(data, 8);
 }
 
@@ -883,7 +910,9 @@ pub fn avro_encode_null() -> Vec[UInt8] {
 
 /// Encode an Avro `boolean` as one octet: 0 false / 1 true.
 /// Complexity: O(1).
-pub fn avro_encode_boolean(b: Bool) -> Vec[UInt8] {
+pub fn avro_encode_boolean(b: Bool) -> Vec[UInt8]
+  ensures: result.len() == 1;
+{
   var out = Vec[UInt8].new();
   if b {
     out.push(1 as UInt8);
@@ -902,7 +931,10 @@ pub fn avro_encode_boolean(b: Bool) -> Vec[UInt8] {
 /// parity bit, first group `2*(m % 64) + parity` then 7-bit groups of
 /// `m / 64`, all with division and modulo only.
 /// Complexity: O(1).
-pub fn avro_encode_long(n: Int) -> Vec[UInt8] {
+pub fn avro_encode_long(n: Int) -> Vec[UInt8]
+  ensures: result.len() >= 1;
+  ensures: result.len() <= 10;
+{
   var m: Int = n;
   var p: Int = 0;
   if n < 0 {
@@ -1080,7 +1112,11 @@ pub fn avro_encode_map_block(keys: &Vec[Vec[UInt8]], values: &Vec[Vec[UInt8]]) -
 /// Err("avro: map keys/values length mismatch") when the two vectors
 /// differ in length.
 /// Complexity: O(total entry bytes).
-pub fn avro_encode_map(keys: &Vec[Vec[UInt8]], values: &Vec[Vec[UInt8]]) -> Result[Vec[UInt8], Str] {
+pub fn avro_encode_map(keys: &Vec[Vec[UInt8]], values: &Vec[Vec[UInt8]]) -> Result[Vec[UInt8], Str]
+  ensures: keys.len() != values.len() => result is Err;
+  ensures: result is Ok => keys.len() == values.len();
+  ensures: keys.len() == 0 && values.len() == 0 => result is Ok;
+{
   let br = avro_encode_map_block(keys, values);
   if !br.is_ok {
     return _err_bytes(br.error);
@@ -1176,7 +1212,10 @@ fn _finish_hdr(meta: Vec[UInt8], key_start: Vec[Int], key_end: Vec[Int], val_sta
 /// sync marker; metadata block and entry errors as for
 /// `avro_read_map_bytes_long` (negative lengths, overlong varints, ...).
 /// Complexity: O(header bytes).
-pub fn avro_parse_ocf_header(data: Vec[UInt8]) -> Result[AvroOcfHeader, Str] {
+pub fn avro_parse_ocf_header(data: Vec[UInt8]) -> Result[AvroOcfHeader, Str]
+  ensures: data.len() < 4 => result is Err;
+  ensures: result is Ok => data.len() >= 4;
+{
   var cur = avro_cursor(data);
   if cur.data.len() < 4 {
     return _err_hdr(_trunc_msg(0));
@@ -1411,7 +1450,12 @@ pub fn avro_ocf_sync(hdr: &AvroOcfHeader) -> Vec[UInt8] {
 
 /// Sync marker byte `i` widened to an Int, or -1 when out of range.
 /// Complexity: O(1).
-pub fn avro_ocf_sync_byte(hdr: &AvroOcfHeader, i: Int) -> Int {
+pub fn avro_ocf_sync_byte(hdr: &AvroOcfHeader, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= hdr.sync.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < hdr.sync.len();
+  ensures: result != -1 => result >= 0 && result <= 255;
+{
   let sync: Vec[UInt8] = hdr.sync;
   if i < 0 || i >= sync.len() {
     return -1;

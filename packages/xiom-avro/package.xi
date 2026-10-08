@@ -9,7 +9,7 @@
 
 package xiom_avro {
   name: "xiom.avro";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Strict pure-XIOM Avro 1.11 binary primitive codecs and Object Container File header parser";
   categories: ["data"];
   keywords: ["avro", "binary", "encoding", "format", "ocf"];

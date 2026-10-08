@@ -1,8 +1,6 @@
 # xiom.avro -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.avro`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/avro.xi` (`module xiom.avro`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`,
 `xiom.convert`).
@@ -473,3 +471,51 @@ Last verified: compiler 0.61.3,
   only calls the `_ok_hdr` leaf constructor; all readers are
   recursion-free loops.
 - No FFI: the package declares no `extern "C"` blocks.
+
+## Contracts (batch #45 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (29, across the 15 functions below) were
+added to `src/avro.xi` in the batch #45 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 20-check conformance suite
+exercises every contracted entry point and no clause trapped, so none was
+dropped. Two consecutive green `& .\scripts\port.ps1 -Package xiom.avro
+-TimeoutSec 90` runs ended `port: PASS (passed=20 failed=0 program_exit=0
+exit=0)` with the clauses active (16.43 s and 16.65 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, and a bare
+`[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable column is "no"
+throughout.
+
+Clause inputs are parameters and parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant, or
+reads a `&mut` parameter. The contracted `&mut AvroCursor` entry points
+(`avro_cursor_skip`, `avro_read_int`, `avro_read_fixed`,
+`avro_read_enum_index`) carry parameter guards and return sentinels only;
+`avro_read_boolean` is intentionally skipped (a `&mut`-only entry point whose
+Bool payload has no runtime-checkable bound). Guards keep the proven
+families: exact formulas (`result == cur.data.len() - cur.pos`), Boolean
+guard pairs (`avro_cursor_done`), sentinel/guard pairs (`result == -1`,
+`result is Err` / `result is Ok`), bounds (`result.value` in
+`[-2^31, 2^31-1]` or `>= 0`, `result.len()` 1..10), and length guards on
+byte inputs (`data.len() != N => Err`). The paired-vector empty guard requires
+both sides empty (`keys.len() == 0 && values.len() == 0 => result is Ok`).
+No clause calls another function, so no re-entrancy is possible.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `avro_cursor_remaining` | 1 | `result == cur.data.len() - cur.pos` | no | yes |
+| `avro_cursor_done` | 2 | true iff `cur.pos >= cur.data.len()` | no | yes |
+| `avro_cursor_skip` | 2 | negative `n` => `Err`; `Ok` => `n >= 0` | no | yes |
+| `avro_read_int` | 1 | `Ok` payload in `[-2^31, 2^31-1]` | no | yes |
+| `avro_read_fixed` | 2 | negative `n` => `Err`; `Ok` => `n >= 0` | no | yes |
+| `avro_read_enum_index` | 1 | `Ok` payload `>= 0` | no | yes |
+| `avro_decode_int` | 2 | empty input => `Err`; `Ok` payload in int32 range | no | yes |
+| `avro_decode_boolean` | 2 | input not exactly 1 byte => `Err`; `Ok` => 1 byte | no | yes |
+| `avro_decode_float` | 2 | input not exactly 4 bytes => `Err`; `Ok` => 4 bytes | no | yes |
+| `avro_decode_double` | 2 | input not exactly 8 bytes => `Err`; `Ok` => 8 bytes | no | yes |
+| `avro_encode_boolean` | 1 | `result.len() == 1` | no | yes |
+| `avro_encode_long` | 2 | `1 <= result.len() <= 10` | no | yes |
+| `avro_encode_map` | 3 | length mismatch => `Err`; `Ok` => equal lengths; both empty => `Ok` | no | yes |
+| `avro_parse_ocf_header` | 2 | input < 4 bytes => `Err`; `Ok` => `>= 4` bytes | no | yes |
+| `avro_ocf_sync_byte` | 4 | out-of-range index => `-1`; `!= -1` implies in-range and 0..255 | no | yes |
