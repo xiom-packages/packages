@@ -26,13 +26,15 @@ running). Check `git log -1 --format=%h %s` before starting.
   x2; record `01da6e02`; guard 505/477/28/0). Compression/animation tier complete; next
   sector awaiting the lane's proposal.
 - **FFI catalog-dep sweep done** (`docs/COMPILER-FINDINGS.md` `b4bd1bfd`): rest/protobuf/
-  sqlite/opengl/vulkan CLEAN; **`xiom.grpc` compat fix IN CORRECTION** -- first pass renamed
-  grpc.xi's raw externs (breaks linker symbols; no `link_name` on v0.64.1), corrected pass
-  reverts externs and renames the redundant submodule wrappers (`srv_*`/`cli_*`) instead;
-  acceptance = consumer harness 0 T001 + port 36/36 x2. `xiom.http` 0.1.2 live (`.103`).
-- **Batch #47 dispatched:** junit/usb/snmp/thrift/imap/mp4 (~117 clauses; porters
-  `ses_ee273273`, `ses_ee27323f`, `ses_ee27320d`, `ses_ee2731d2`, `ses_ee273198`,
-  `ses_ee273167`).
+  sqlite/opengl/vulkan CLEAN; **`xiom.grpc` FIXED + PUBLISHED (0.1.1, `.110`)** -- the fix
+  renames the redundant submodule wrappers (`srv_*`/`cli_*`) while every raw extern name
+  (linker symbol) stays unchanged; consumer harness 0 T001, port 36/36 x2 (`82fac130`;
+  a first pass that renamed the externs was rejected -- no `link_name` on v0.64.1).
+  `xiom.http` 0.1.2 live (`.103`).
+- **Batch #47 in flight (2/6 integrated):** `junit` 0.1.2 (25 clauses; 22/22; `7cc2f458`),
+  `imap` 0.1.2 (20; 18/18; `72d08343`); usb/snmp/thrift/mp4 porters still running, then the
+  wrap. Porters: `ses_ee273273`, `ses_ee27323f`, `ses_ee27320d`, `ses_ee2731d2`,
+  `ses_ee273198`, `ses_ee273167`.
 - v0.64.1 rules unchanged (tag pairs only; no Result ==/is Ok(literal)/destructure;
   `unsafe fn` P001; discard-shape IR). Credential: `Lefteris-Notas` active.
 
