@@ -1,5 +1,7 @@
 # xiom.png SPEC
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 ## Scope
 
 Pure-XIOM parsing and structural validation of PNG (W3C PNG 1.2, RFC 2083)
@@ -353,3 +355,61 @@ pub fn png_text_length(img: &PngImage, i: Int) -> Int
 - `sRGB` and `iCCP` coexistence, chromaticity consistency checks and the
   `gAMA`-before-`sRGB` recommendation are not audited; only the ordering
   rules in this document are enforced.
+
+## Contracts (batch #43 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (25, across the 17 functions below) were
+added using the proven families: exact identities, sentinel returns,
+Result-tag guards, bounds and counts. All are `ensures:` (no `requires:`), so
+the accepted-input domain is unchanged. Every clause is enforced as a runtime
+check; the 17-check conformance suite exercises every entry point and two
+consecutive `& .\scripts\port.ps1 -Package xiom.png -TimeoutSec 60` runs
+ended `port: PASS (passed=17 failed=0 program_exit=0 exit=0)` with the
+clauses active (25.24 s and 22.75 s). No clause trapped. No Z3 claim is
+made: `xiom-verify` was not run in this pass, and on v0.64.1 it can report a
+vacuous UNSAT `[OK] VERIFIED`, so every clause below is runtime-checked.
+
+Three plan clauses were re-expressed for the hand-built rule (a clause must
+hold for every hand-built `PngImage`, not only for parse-produced ones):
+
+- `png_chunk_type`'s planned `0 <= i && i < img.chunk_type.len() =>
+  result.len() == 4` holds only for parse-produced images (every indexed type
+  is 4 letters); a hand-built `chunk_type` vector may hold any `Str`, so it
+  was re-expressed as the sentinel guard pair `result.len() > 0 => i >= 0 &&
+  i < img.chunk_type.len()`.
+- `png_text_kind`'s planned `0 <= i && i < img.text_kind.len() => result >=
+  0 && result <= 2` is a parse invariant (kinds 0/1/2); a hand-built
+  `text_kind` vector may store any `Int`, so it was re-expressed as `result
+  != -1 => i >= 0 && i < img.text_kind.len()`.
+- `png_text_keyword`'s planned `0 <= i && i < img.text_keyword.len() =>
+  result.len() >= 1` is a parse invariant (keywords are 1..79 bytes); a
+  hand-built keyword vector may hold an empty `Str`, so it was re-expressed
+  as `result.len() > 0 => i >= 0 && i < img.text_keyword.len()`.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `png_signature_size` | 1 | `result == 8` | no | yes |
+| `png_chunk_crc_size` | 1 | `result == 4` | no | yes |
+| `png_min_chunk_size` | 1 | `result == 12` | no | yes |
+| `png_max_chunk_length` | 1 | `result == 2147483647` | no | yes |
+| `png_crc32` | 2 | empty input => `0`; result in `0..4294967295` | no | yes |
+| `png_parse` | 3 | `< 8` or `8..19` bytes => `Err`; `Ok` => input `>= 57` bytes | no | yes |
+| `png_is_png` | 2 | `< 8` bytes => `false`; `true` => input `>= 8` bytes | no | yes |
+| `png_width` | 1 | `result == img.width` | no | yes |
+| `png_color_type` | 1 | `result == img.color_type` | no | yes |
+| `png_chunk_count` | 1 | `result == img.chunk_offset.len()` | no | yes |
+| `png_chunk_type` | 2 | out-of-range index => `""`; non-empty result => index in range | no | yes |
+| `png_chunk_offset` | 1 | out-of-range index => `-1` | no | yes |
+| `png_palette_entries` | 1 | `result == img.palette.len() / 3` | no | yes |
+| `png_palette_byte` | 2 | out-of-range index => `-1`; in range => byte `0..255` | no | yes |
+| `png_text_count` | 1 | `result == img.text_kind.len()` | no | yes |
+| `png_text_kind` | 2 | out-of-range index => `-1`; non-`-1` result => index in range | no | yes |
+| `png_text_keyword` | 2 | out-of-range index => `""`; non-empty result => index in range | no | yes |
+
+Deliberately not claimed: the 4-letter `chunk_type` length, the 0..2
+`text_kind` range and the non-empty keyword length for in-range indices
+(parse invariants; hand-built vectors are arbitrary); `Str` equality; vector
+indexing, module constants, tuple components, `Result` payloads, struct-Result
+fields, `Result` equality and `is Ok(<literal>)` shapes. No clause contains a
+cross-call; all read only parameters, plain parameter fields and the result.
+

@@ -63,7 +63,9 @@ use xiom.string.builder;
 // --------------------------------------------------
 
 /// Size of the PNG signature in bytes.
-pub fn png_signature_size() -> Int {
+pub fn png_signature_size() -> Int
+  ensures: result == 8;
+{
   return 8;
 }
 
@@ -73,17 +75,23 @@ pub fn png_chunk_header_size() -> Int {
 }
 
 /// Size of the trailing chunk CRC field in bytes.
-pub fn png_chunk_crc_size() -> Int {
+pub fn png_chunk_crc_size() -> Int
+  ensures: result == 4;
+{
   return 4;
 }
 
 /// Smallest possible complete chunk in bytes: 8 header + 4 CRC, empty data.
-pub fn png_min_chunk_size() -> Int {
+pub fn png_min_chunk_size() -> Int
+  ensures: result == 12;
+{
   return 12;
 }
 
 /// Largest legal chunk data length: 2^31 - 1 (the PNG 1.2 upper bound).
-pub fn png_max_chunk_length() -> Int {
+pub fn png_max_chunk_length() -> Int
+  ensures: result == 2147483647;
+{
   return 2147483647;
 }
 
@@ -421,7 +429,10 @@ fn _crc32(data: &Vec[UInt8], start: Int, end: Int) -> Int {
 /// reflected polynomial 0xEDB88320, final XOR 0xFFFFFFFF. The check value of
 /// "123456789" is 0xCBF43926 (3421780262) and the empty buffer hashes to 0.
 /// Complexity: O(data.len()).
-pub fn png_crc32(data: &Vec[UInt8]) -> Int {
+pub fn png_crc32(data: &Vec[UInt8]) -> Int
+  ensures: data.len() == 0 => result == 0;
+  ensures: result >= 0 && result <= 4294967295;
+{
   return _crc32(data, 0, data.len());
 }
 
@@ -808,7 +819,11 @@ fn _finish(a: _Acc) -> PngImage {
 ///   8. after the loop: "png: missing IEND", then "png: missing IDAT", then
 ///      "png: missing PLTE" for color type 3.
 /// Complexity: O(input bytes).
-pub fn png_parse(data: &Vec[UInt8]) -> Result[PngImage, Str] {
+pub fn png_parse(data: &Vec[UInt8]) -> Result[PngImage, Str]
+  ensures: data.len() < 8 => result is Err;
+  ensures: data.len() >= 8 && data.len() < 20 => result is Err;
+  ensures: result is Ok => data.len() >= 57;
+{
   let n = data.len();
   let sig = _signature_error(data, n);
   if (sig.len() > 0) { return _err_img(sig); }
@@ -938,7 +953,10 @@ pub fn png_parse(data: &Vec[UInt8]) -> Result[PngImage, Str] {
 /// True when the buffer starts with the 8-byte PNG signature. Malformed or
 /// short buffers return false rather than an error; use png_parse when the
 /// reason matters. Complexity: O(1).
-pub fn png_is_png(data: &Vec[UInt8]) -> Bool {
+pub fn png_is_png(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 8 => result == false;
+  ensures: result == true => data.len() >= 8;
+{
   return _signature_error(data, data.len()).len() == 0;
 }
 
@@ -948,7 +966,9 @@ pub fn png_is_png(data: &Vec[UInt8]) -> Bool {
 
 /// Image width in pixels (1..2147483647).
 /// Complexity: O(1).
-pub fn png_width(img: &PngImage) -> Int {
+pub fn png_width(img: &PngImage) -> Int
+  ensures: result == img.width;
+{
   return img.width;
 }
 
@@ -966,7 +986,9 @@ pub fn png_bit_depth(img: &PngImage) -> Int {
 
 /// IHDR color type: 0 gray, 2 truecolor, 3 indexed, 4 gray+alpha, 6 RGBA.
 /// Complexity: O(1).
-pub fn png_color_type(img: &PngImage) -> Int {
+pub fn png_color_type(img: &PngImage) -> Int
+  ensures: result == img.color_type;
+{
   return img.color_type;
 }
 
@@ -990,7 +1012,9 @@ pub fn png_interlace(img: &PngImage) -> Int {
 
 /// Number of chunks in the chunk index (including IHDR and IEND).
 /// Complexity: O(1).
-pub fn png_chunk_count(img: &PngImage) -> Int {
+pub fn png_chunk_count(img: &PngImage) -> Int
+  ensures: result == img.chunk_offset.len();
+{
   return img.chunk_offset.len();
 }
 
@@ -1002,7 +1026,10 @@ pub fn png_chunk_count(img: &PngImage) -> Int {
 /// Because the value comes from a Vec[Str], compare it with
 /// xiom.string.compare.str_compare, never with `==`.
 /// Complexity: O(1).
-pub fn png_chunk_type(img: &PngImage, i: Int) -> Str {
+pub fn png_chunk_type(img: &PngImage, i: Int) -> Str
+  ensures: i < 0 || i >= img.chunk_type.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < img.chunk_type.len();
+{
   if (i < 0 || i >= img.chunk_type.len()) { return ""; }
   let v: Str = img.chunk_type[i];
   return v;
@@ -1010,7 +1037,9 @@ pub fn png_chunk_type(img: &PngImage, i: Int) -> Str {
 
 /// Absolute offset of chunk `i`'s length field, or -1 when out of range.
 /// Complexity: O(1).
-pub fn png_chunk_offset(img: &PngImage, i: Int) -> Int {
+pub fn png_chunk_offset(img: &PngImage, i: Int) -> Int
+  ensures: i < 0 || i >= img.chunk_offset.len() => result == -1;
+{
   if (i < 0 || i >= img.chunk_offset.len()) { return -1; }
   let v: Int = img.chunk_offset[i];
   return v;
@@ -1052,14 +1081,19 @@ pub fn png_has_palette(img: &PngImage) -> Bool {
 
 /// Number of palette entries (palette bytes / 3), 0 when there is no PLTE.
 /// Complexity: O(1).
-pub fn png_palette_entries(img: &PngImage) -> Int {
+pub fn png_palette_entries(img: &PngImage) -> Int
+  ensures: result == img.palette.len() / 3;
+{
   return img.palette.len() / 3;
 }
 
 /// Palette byte `i` of the raw PLTE payload (0..255), or -1 when `i` is
 /// outside the payload.
 /// Complexity: O(1).
-pub fn png_palette_byte(img: &PngImage, i: Int) -> Int {
+pub fn png_palette_byte(img: &PngImage, i: Int) -> Int
+  ensures: i < 0 || i >= img.palette.len() => result == -1;
+  ensures: i >= 0 && i < img.palette.len() => result >= 0 && result <= 255;
+{
   if (i < 0 || i >= img.palette.len()) { return -1; }
   let v: Int = (img.palette[i] as Int) & 0xFF;
   return v;
@@ -1114,14 +1148,19 @@ pub fn png_srgb_intent(img: &PngImage) -> Int {
 
 /// Number of tEXt/zTXt/iTXt entries in the text index.
 /// Complexity: O(1).
-pub fn png_text_count(img: &PngImage) -> Int {
+pub fn png_text_count(img: &PngImage) -> Int
+  ensures: result == img.text_kind.len();
+{
   return img.text_kind.len();
 }
 
 /// Kind of text entry `i` (png_text_kind_text/ztxt/itxt), or -1 when out of
 /// range.
 /// Complexity: O(1).
-pub fn png_text_kind(img: &PngImage, i: Int) -> Int {
+pub fn png_text_kind(img: &PngImage, i: Int) -> Int
+  ensures: i < 0 || i >= img.text_kind.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < img.text_kind.len();
+{
   if (i < 0 || i >= img.text_kind.len()) { return -1; }
   let v: Int = img.text_kind[i];
   return v;
@@ -1130,7 +1169,10 @@ pub fn png_text_kind(img: &PngImage, i: Int) -> Int {
 /// Keyword of text entry `i`, or "" when out of range. Compare the returned
 /// Str with str_compare, never with `==`.
 /// Complexity: O(1).
-pub fn png_text_keyword(img: &PngImage, i: Int) -> Str {
+pub fn png_text_keyword(img: &PngImage, i: Int) -> Str
+  ensures: i < 0 || i >= img.text_keyword.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < img.text_keyword.len();
+{
   if (i < 0 || i >= img.text_keyword.len()) { return ""; }
   let v: Str = img.text_keyword[i];
   return v;

@@ -8,7 +8,7 @@
 
 package xiom_png {
   name: "xiom.png";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "PNG (W3C PNG 1.2) container codec: signature, chunk stream, CRC-32, IHDR/PLTE/tRNS/gAMA/pHYs/sRGB/text validation";
   categories: ["graphics"];
   keywords: ["png", "image", "container", "parser"];
