@@ -1744,14 +1744,15 @@ Read SESSION.md first -- the 2026-10-08 09:30Z STATE block is the live handoff.
 Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
-NO XIOM_RUNTIME_DIR needed. Validate 519/0; guard 504/464/40/0 (re-check at start).
-Batch #39 is DONE + PUBLISHED (`eco-v0.1.88`, run 37759634793): resolv 0.1.2, ical 0.1.3,
-efi 0.1.2, dns 0.1.3, cpio 0.1.3, ply 0.1.2 -- all live-verified. ~61 zero-clause stable
-carriers remain. PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-10 is
+NO XIOM_RUNTIME_DIR needed. Validate 519/0; guard 505/465/40/0 (re-check at start).
+Batch #40 is DONE + PUBLISHED (`eco-v0.1.90`, run 37767589894): syslog 0.1.2, ldif 0.1.2,
+acpi 0.1.2, iso8583 0.1.2, fits 0.1.2, vcf 0.1.2 -- all live-verified. ~55 zero-clause
+stable carriers remain. PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-10 is
 Linux-target-only (Windows probe green: packages\xiom-kv\tests\probe_kv_get_str.xi).
-Bindings marker = `keywords: ["binding"]` (`6fa4f9a6`); relay transport pinned
-(`ceeea349`); sqlite/sdl3/opengl namespace-clean; `xiom.sqlite` not yet allowlisted.
-`option` stays excluded.
+Bindings: xiom.sqlite 0.2.0 LIVE (`eco-v0.1.89`, allowlist 505); sdl3 in progress;
+hook contract `port.args.json` (BINDINGS-LANE.md §10). ORBITDB/XVECTOR names frozen
+(PACKAGE-WISHLIST §6); ORBITDB extraction queue: xiom-wal then xiom-btree (ops scope +
+allowlist at build-green). `option` stays excluded.
 
 CREDENTIAL NOTE: `gh auth status` may show `Lefteris-Ngonart` active, which has only PULL
 on this repo (403 on push). Switch to `Lefteris-Notas` for pushes/gate approvals
@@ -1763,14 +1764,14 @@ Start: git fetch; git status -sb; git log -1; then
   & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Batch #40 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
+1. Batch #41 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
    -Detailed` for the name list; size them by total non-test .xi lines per package), skip
-   `option`; the next smallest after ply is `syslog` (~1033 lines; verify with the sizing
+   `option`; the next smallest after vcf is `tftp` (~1060 lines; verify with the sizing
    scan, then the next five). Read-only explore pre-plan (one explore task; IF its final
    message comes back EMPTY, resume it with `variant: low` + a "plan only, no preamble"
-   prompt -- recovered first try on batch #38). Six background `task` porters with the
-   brief template `%TEMP%\kilo\batch39-porter-brief.md` retargeted (batch #40, plan
-   `%TEMP%\kilo\batch40-clause-plan.md`, `## Contracts (batch #40 hardening pass, 2026-10-XX)`).
+   prompt -- recovered every time since batch #38). Six background `task` porters with the
+   brief template `%TEMP%\kilo\batch40-porter-brief.md` retargeted (batch #41, plan
+   `%TEMP%\kilo\batch41-clause-plan.md`, `## Contracts (batch #41 hardening pass, 2026-10-XX)`).
    Coordinator integrates as reports land: patch bump per CURRENT version, port x2
    post-bump, byte-level bracket scan, feat commit exact files, record with the REAL sha
    and `-RunBy task:ses_...`; wrap + publish the next eco tag (generate_index/report/
