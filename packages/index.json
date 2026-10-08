@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T16:32:34Z",
+    "updated":  "2026-10-08T20:32:18Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -8550,7 +8550,7 @@
                          "version":  "0.2.0",
                          "name":  "xiom.vulkan",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Vulkan GPU bindings for XIOM",
+                         "description":  "Vulkan capability probe for XIOM (runtime vulkan-1.dll, no SDK required, SKIP when absent)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
@@ -8559,13 +8559,8 @@
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vulkan/v0.2.0/package.tar.gz",
                          "source_files":  [
-                                              "vulkan_constants_all.xi",
-                                              "vulkan_safe.xi",
-                                              "vulkan_structs.xi",
-                                              "wrapper.xi",
                                               "package.xi",
-                                              "vulkan.xi",
-                                              "vulkan_extern.xi"
+                                              "vulkan.xi"
                                           ]
                      },
                      {
