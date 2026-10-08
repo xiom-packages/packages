@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-09T01:07:56Z",
+    "updated":  "2026-10-09T01:21:42Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -3315,7 +3315,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.imap",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "IMAP4rev1 protocol parser (RFC 3501): commands, responses, literals, nested lists, response codes",
@@ -3325,7 +3325,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-imap/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-imap/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "imap.xi",
                                               "package.xi"
@@ -3538,7 +3538,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.junit",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM JUnit XML report codec for a documented subset (parse, access, emit)",
@@ -3548,7 +3548,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-junit/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-junit/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "junit.xi",
                                               "package.xi"
@@ -4724,7 +4724,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.mp4",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "ISO BMFF / MP4 box parser: recursive tree walk, ftyp/mvhd/tkhd/mdhd/hdlr/stsd/elst/stco/co64/stsz metadata and fragment detection",
@@ -4734,7 +4734,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mp4/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mp4/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "mp4.xi",
                                               "package.xi"
@@ -7204,7 +7204,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.snmp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "ASN.1 BER decoder plus SNMPv1/v2c message parser and minimal GetRequest/Response encoder (RFC 1157 / 3416 subset)",
@@ -7214,7 +7214,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-snmp/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-snmp/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "snmp.xi",
                                               "package.xi"
@@ -7890,7 +7890,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.thrift",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Apache Thrift binary protocol codec (message headers, fields, primitives, containers, skip)",
@@ -7900,7 +7900,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-thrift/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-thrift/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "thrift.xi",
                                               "package.xi"
@@ -8345,7 +8345,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.usb",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "USB descriptor-tree parsing, validation and canonical emission",
@@ -8355,7 +8355,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-usb/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-usb/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "usb.xi",
                                               "package.xi"
