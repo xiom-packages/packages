@@ -1,6 +1,6 @@
 # xiom.resolv -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.resolv` (`src/resolv.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -390,3 +390,43 @@ comparison uses `xiom.string.compare.str_compare` (BUG 17).
 - Only `xiom.string`, `xiom.string.compare` and `xiom.convert` are imported
   from `xiom.std` (`str_slice`, `str_lower`, `str_trim`, `byte_at`,
   `str_compare`, `int_to_string`). No FFI, no new dependencies.
+
+## Contracts (batch #39 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/resolv.xi` in the batch #39
+hardening pass (compiler v0.64.0; `package.xi` is left for the coordinator to
+bump at integration). 43 clauses over 17 entry points, all `ensures:` (no
+`requires:`), so the accepted-input domain is unchanged.
+
+Every clause holds for hand-built values and structs: the guards keep the
+source's own validation branches, and only parameters, parameter fields and
+plain `Int`/`Str` returns are read. No clause reads a bare `&mut` parameter
+(there is none in this module), indexes a vector, uses a module constant,
+compares `Str` values with `==`, reads a struct-Result payload field or uses
+`result.value.0/.1`. The only clause call is the definitional
+`resolv_address_normalize(s) is Some` identity in `resolv_address_valid`, plus
+the primitive `resolv_sortlist_count(h)` guards in the sortlist accessors and
+`resolv_emit` (the callee never calls its caller; non-re-entrant).
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it can
+emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `resolv_address_normalize` | `s.len() == 0 => result is None`; `result is Some => s.len() > 0` | runtime-checked |
+| `resolv_address_valid` | `s.len() == 0 => !result`; `result => s.len() > 0`; `result => resolv_address_normalize(s) is Some` | runtime-checked |
+| `resolv_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked |
+| `resolv_nameserver_count` | `result == h.nameservers.len()` | runtime-checked |
+| `resolv_nameserver` | `i < 0 => result is None`; `i >= h.nameservers.len() => result is None`; `result is Some => i >= 0 && i < h.nameservers.len()` | runtime-checked |
+| `resolv_nameserver_over_limit` | `h.nameservers.len() <= 3 => !result`; `h.nameservers.len() > 3 => result` | runtime-checked |
+| `resolv_domain` | `h.domain.len() == 0 => result is None`; `result is Some => h.domain.len() > 0` | runtime-checked |
+| `resolv_search_domain` | `i < 0 => result is None`; `i >= h.search.len() => result is None`; `result is Some => i >= 0 && i < h.search.len()` | runtime-checked |
+| `resolv_option_count` | `result == h.options.len()` | runtime-checked |
+| `resolv_option_name` | `i < 0 => result.len() == 0`; `i >= h.options.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < h.options.len()` | runtime-checked |
+| `resolv_option_value` | `i < 0 => result is None`; `i >= h.options.len() => result is None`; `result is Some => i >= 0 && i < h.options.len()` | runtime-checked |
+| `resolv_option_index` | `h.options.len() == 0 => result == -1`; `result >= -1`; `result < h.options.len()` | runtime-checked |
+| `resolv_sortlist_count` | `result >= 0`; `result <= h.sortlist_addrs.len()`; `result <= h.sortlist_masks.len()`; `result == h.sortlist_addrs.len() || result == h.sortlist_masks.len()` | runtime-checked |
+| `resolv_sortlist_addr` | `i < 0 => result is None`; `i >= resolv_sortlist_count(h) => result is None`; `result is Some => i >= 0 && i < resolv_sortlist_count(h)` | runtime-checked |
+| `resolv_sortlist_mask` | `i < 0 => result == -1`; `i >= resolv_sortlist_count(h) => result == -1`; `result != -1 => i >= 0 && i < resolv_sortlist_count(h)` | runtime-checked |
+| `resolv_unknown_line` | `i < 0 => result is None`; `i >= h.unknown.len() => result is None`; `result is Some => i >= 0 && i < h.unknown.len()` | runtime-checked |
+| `resolv_emit` | nameservers/domain/search/options/sortlist/unknown all empty => `result.len() == 0`; `result.len() >= 11 * h.nameservers.len() + h.unknown.len()` | runtime-checked |

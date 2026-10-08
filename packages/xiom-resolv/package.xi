@@ -9,7 +9,7 @@
 
 package xiom_resolv {
   name: "xiom.resolv";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "resolv.conf codec: directives, lexical address/mask validation, flat model and canonical emitter";
   categories: ["network"];
   keywords: ["resolv", "dns", "config", "unix"];
