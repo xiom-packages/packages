@@ -14,7 +14,7 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-08 13:35Z (batch #43 COMPLETE + PUBLISHED; bindings batch 7 published; batch 8 = vulkan GO; supersedes the 13:05Z block below):**
+**STATE AT 2026-10-08 17:40Z (bindings batch 8 published `eco-v0.1.100`; batch #44 dispatched; supersedes the 13:35Z block below):**
 - **Batch #43 DONE + PUBLISHED (six packages, all live-verified):** `gif` 0.1.2 (26 clauses;
   20/20), `cue` 0.1.2 (27; 22/22), `png` 0.1.2 (25; 17/17), `safetensors` 0.1.2 (38; 21/21),
   `cbor` 0.1.2 (32; 20/20), `mqtt` 0.1.3 (59; 21/21; stray module-scope tail removed by the
@@ -25,8 +25,15 @@ running). Check `git log -1 --format=%h %s` before starting.
   **~37 zero-clause stable carriers remain** (next: `pci` ~1245, rescan at batch #44).
 - **Bindings batch 7 published:** `xiom.opengl` 0.3.0 (`eco-v0.1.98`; core-profile probe
   3.3 core / 404 extensions, native 13/13 x2 on the RTX 3070 Ti; record `faa87bf5`).
-- **Bindings batch 8 GO = `xiom.vulkan`** (GPU tier; opengl session-API follow-up deferred).
-  Batches published so far: sqlite 0.2.0, sdl3 0.3.0, opengl 0.3.0, glfw 0.2.0, raylib 0.2.0.
+- **Bindings batch 8 published:** `xiom.vulkan` 0.2.0 (`eco-v0.1.100`, run `37817394106`;
+  capability probe: loader 1.4.350, 20 instance extensions, 15 layers, RTX 3070 Ti;
+  native 10/10 x2; record `264b0407`). Scope decision: the removed ~1.7MB static bridge
+  stays in git history only (no `legacy/` resurrection) -- consistent with the loader-era
+  pattern (sdl3/glfw/raylib/opengl). Published so far: sqlite 0.2.0, sdl3 0.3.0,
+  opengl 0.3.0, glfw 0.2.0, raylib 0.2.0, vulkan 0.2.0. Batch 9 awaits their proposal.
+- **Batch #44 dispatched:** pci/nbt/ass/ext/smtlib/mp3 (~242 clauses planned; porters
+  `ses_ee367d27`, `ses_ee367ced`, `ses_ee367cba`, `ses_ee367c88`, `ses_ee367c55`,
+  `ses_ee367c23`).
 - Post-repin rules (v0.64.1): tag guard pairs only; no `Result ==`, no `is Ok(<literal>)`,
   no `let (k,v) = &vec[i]`; `Vec[Struct].clone()` allowed. Credential: `Lefteris-Notas` active.
 
