@@ -198,7 +198,10 @@ fn _ldif_is_name_byte(b: Int) -> Bool {
 }
 
 // Smaller of two Int values.
-fn _min_int(a: Int, b: Int) -> Int {
+fn _min_int(a: Int, b: Int) -> Int
+  ensures: result == a || result == b;
+  ensures: result <= a && result <= b;
+{
   if a < b {
     return a;
   }
@@ -248,7 +251,10 @@ fn _ldif_scan_ctrl(text: Str) -> Option[Str] {
 // Split text into physical lines. A line ends at LF or CRLF (one trailing CR
 // is removed); a final line without a terminator is still a line and a
 // trailing terminator does not produce an extra empty line.
-fn _ldif_split_lines(text: Str) -> Vec[Str] {
+fn _ldif_split_lines(text: Str) -> Vec[Str]
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: text.len() > 0 => result.len() >= 1;
+{
   var out = Vec[Str].new();
   let len = text.len();
   if len == 0 {
@@ -280,7 +286,9 @@ fn _ldif_split_lines(text: Str) -> Vec[Str] {
 }
 
 // True when every byte of `s` is SP or TAB (the empty line included).
-fn _ldif_is_blank(s: Str) -> Bool {
+fn _ldif_is_blank(s: Str) -> Bool
+  ensures: s.len() == 0 => result == true;
+{
   var i = 0;
   while i < s.len() {
     if !_ldif_is_ws(_ldif_byte_at(s, i)) {
@@ -361,7 +369,10 @@ fn _ldif_colon(line: Str) -> Int {
 // ALPHA *( ALPHA / DIGIT / HYPHEN ) *( ";" 1*( ALPHA / DIGIT / HYPHEN ) ).
 // The empty name, a leading digit, a space and a trailing or empty option
 // ("a;", "a;;b") are all rejected.
-fn _ldif_name_ok(name: Str) -> Bool {
+fn _ldif_name_ok(name: Str) -> Bool
+  ensures: name.len() == 0 => result == false;
+  ensures: result == true => name.len() >= 1;
+{
   let n = name.len();
   if n == 0 {
     return false;
@@ -392,18 +403,26 @@ fn _ldif_name_ok(name: Str) -> Bool {
 }
 
 // True when `name` is "dn" under ASCII case folding.
-fn _ldif_is_dn(name: Str) -> Bool {
+fn _ldif_is_dn(name: Str) -> Bool
+  ensures: name.len() != 2 => result == false;
+  ensures: result == true => name.len() == 2;
+{
   return compare.str_compare_ignore_case(name, "dn") == 0;
 }
 
 // True when `name` is "changetype" under ASCII case folding.
-fn _ldif_is_changetype(name: Str) -> Bool {
+fn _ldif_is_changetype(name: Str) -> Bool
+  ensures: name.len() != 10 => result == false;
+  ensures: result == true => name.len() == 10;
+{
   return compare.str_compare_ignore_case(name, "changetype") == 0;
 }
 
 // Value kind of the line, decided by the byte after the first colon:
 // ':' -> base64, '<' -> url, anything else -> plain (including end of line).
-fn _ldif_kind_at(line: Str, colon: Int) -> Int {
+fn _ldif_kind_at(line: Str, colon: Int) -> Int
+  ensures: result == 0 || result == 1 || result == 2;
+{
   let n = line.len();
   if colon + 1 < n {
     let b = _ldif_byte_at(line, colon + 1);
@@ -420,7 +439,9 @@ fn _ldif_kind_at(line: Str, colon: Int) -> Int {
 // Index of the first value byte: after ':' (plain) or after '::' / ':<'
 // (base64 / url), then after any run of FILL spaces. The value runs to the
 // end of the line.
-fn _ldif_value_start(line: Str, colon: Int, kind: Int) -> Int {
+fn _ldif_value_start(line: Str, colon: Int, kind: Int) -> Int
+  ensures: colon >= 0 && (kind == 0 || colon + 1 < line.len()) => result >= colon + 1 && result <= line.len();
+{
   let n = line.len();
   var i = colon + 1;
   if kind != LDIF_KIND_PLAIN {
@@ -466,7 +487,9 @@ fn _push_entry(l: &mut Ldif, start: Int, count: Int) {
 
 // Base64 digit value (0..63) of one byte of the alphabet; -1 for '=' and for
 // every other byte, including whitespace and non-ASCII.
-fn _b64_value(c: Int) -> Int {
+fn _b64_value(c: Int) -> Int
+  ensures: result == -1 || (result >= 0 && result <= 63);
+{
   if c >= _LDIF_UPPER_A && c <= _LDIF_UPPER_Z {
     return c - _LDIF_UPPER_A;
   }
@@ -489,7 +512,10 @@ fn _b64_value(c: Int) -> Int {
 // the standard alphabet with 1 or 2 '=' padding characters only in the last
 // quad; the unused low bits of the padded final byte are not checked. The
 // encoded text carries no whitespace: folds are removed before decoding.
-fn _b64_decode(s: Str) -> Result[Vec[UInt8], Str] {
+fn _b64_decode(s: Str) -> Result[Vec[UInt8], Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: s.len() % 4 != 0 => result is Err;
+{
   let n = s.len();
   if n == 0 {
     return _err_bytes("ldif: empty base64 value");
@@ -663,12 +689,17 @@ fn _ldif_parse_record(l: &mut Ldif, lines: &Vec[Str], from: Int, to: Int) -> Res
 // --------------------------------------------------
 
 // Number of entries present in both range vectors.
-fn _ldif_entry_count(l: &Ldif) -> Int {
+fn _ldif_entry_count(l: &Ldif) -> Int
+  ensures: result <= l.entry_start.len() && result <= l.entry_count.len();
+  ensures: result == l.entry_start.len() || result == l.entry_count.len();
+{
   return _min_int(l.entry_start.len(), l.entry_count.len());
 }
 
 // Number of attributes present in all five aligned attribute vectors.
-fn _ldif_attr_total(l: &Ldif) -> Int {
+fn _ldif_attr_total(l: &Ldif) -> Int
+  ensures: result <= l.names.len() && result <= l.kinds.len() && result <= l.text.len() && result <= l.pool_start.len() && result <= l.pool_len.len();
+{
   var n = _min_int(l.names.len(), l.kinds.len());
   n = _min_int(n, l.text.len());
   n = _min_int(n, l.pool_start.len());
@@ -702,7 +733,10 @@ fn _ldif_entry_span(l: &Ldif, e: Int) -> _Span {
 
 // Flat attribute index of attribute `i` of entry `e`, or -1 when either
 // index is out of range.
-fn _ldif_attr_index(l: &Ldif, e: Int, i: Int) -> Int {
+fn _ldif_attr_index(l: &Ldif, e: Int, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result < _ldif_attr_total(l);
+{
   let sp = _ldif_entry_span(l, e);
   if i < 0 || i >= sp.count {
     return -1;
@@ -711,7 +745,9 @@ fn _ldif_attr_index(l: &Ldif, e: Int, i: Int) -> Int {
 }
 
 // Clamped decoded-byte span of flat attribute `idx` inside the pool.
-fn _ldif_pool_span(l: &Ldif, idx: Int) -> _Span {
+fn _ldif_pool_span(l: &Ldif, idx: Int) -> _Span
+  ensures: result.start >= 0 && result.count >= 0 && result.start + result.count <= l.pool.len();
+{
   if idx < 0 || idx >= l.pool_start.len() || idx >= l.pool_len.len() {
     return _Span{ start: 0; count: 0; };
   }
@@ -746,7 +782,9 @@ fn _ldif_pool_span(l: &Ldif, idx: Int) -> _Span {
 /// records are out of scope). See SPEC.md for the full grammar, the exact
 /// error catalog and the error-precedence rules.
 /// Complexity: O(total input length).
-pub fn ldif_parse(text: Str) -> Result[Ldif, Str] {
+pub fn ldif_parse(text: Str) -> Result[Ldif, Str]
+  ensures: text.len() == 0 => result is Ok;
+{
   let clean = _ldif_scan_ctrl(text);
   match clean {
     Some(m) => { return _err_ldif(m); },
@@ -809,20 +847,31 @@ pub fn ldif_entry_count(l: &Ldif) -> Int {
 
 /// Number of attributes in entry `e`; 0 when `e` is out of range. A parsed
 /// entry always has at least one attribute (its dn).
-pub fn ldif_entry_attr_count(l: &Ldif, e: Int) -> Int {
+pub fn ldif_entry_attr_count(l: &Ldif, e: Int) -> Int
+  ensures: e < 0 => result == 0;
+  ensures: e >= _ldif_entry_count(l) => result == 0;
+  ensures: result >= 0 && result <= _ldif_attr_total(l);
+{
   return _ldif_entry_span(l, e).count;
 }
 
 /// DN of entry `e`: the text form of its first attribute. "" when `e` is out
 /// of range. A parsed entry always starts with dn, so this is the entry's dn
 /// for every entry.
-pub fn ldif_dn(l: &Ldif, e: Int) -> Str {
+pub fn ldif_dn(l: &Ldif, e: Int) -> Str
+  ensures: e < 0 => result.len() == 0;
+  ensures: e >= _ldif_entry_count(l) => result.len() == 0;
+{
   return ldif_attr_value(l, e, 0);
 }
 
 /// Attribute description of attribute `i` of entry `e`, exactly as written
 /// (case and options preserved). "" when either index is out of range.
-pub fn ldif_attr_name(l: &Ldif, e: Int, i: Int) -> Str {
+pub fn ldif_attr_name(l: &Ldif, e: Int, i: Int) -> Str
+  ensures: e < 0 => result.len() == 0;
+  ensures: i < 0 => result.len() == 0;
+  ensures: e >= _ldif_entry_count(l) => result.len() == 0;
+{
   let idx = _ldif_attr_index(l, e, i);
   if idx < 0 {
     return "";
@@ -834,7 +883,10 @@ pub fn ldif_attr_name(l: &Ldif, e: Int, i: Int) -> Str {
 /// Value kind of attribute `i` of entry `e`: LDIF_KIND_PLAIN,
 /// LDIF_KIND_BASE64 or LDIF_KIND_URL. LDIF_KIND_PLAIN when either index is
 /// out of range.
-pub fn ldif_attr_kind(l: &Ldif, e: Int, i: Int) -> Int {
+pub fn ldif_attr_kind(l: &Ldif, e: Int, i: Int) -> Int
+  ensures: e < 0 => result == 0;
+  ensures: i < 0 => result == 0;
+{
   let idx = _ldif_attr_index(l, e, i);
   if idx < 0 {
     return LDIF_KIND_PLAIN;
@@ -855,7 +907,11 @@ pub fn ldif_attr_is_url(l: &Ldif, e: Int, i: Int) -> Bool {
 /// decoded bytes read as text up to the first NUL byte (Str is NUL-
 /// terminated, so a decoded payload may be truncated here -- use
 /// ldif_attr_bytes for binary values). "" when either index is out of range.
-pub fn ldif_attr_value(l: &Ldif, e: Int, i: Int) -> Str {
+pub fn ldif_attr_value(l: &Ldif, e: Int, i: Int) -> Str
+  ensures: e < 0 => result.len() == 0;
+  ensures: i < 0 => result.len() == 0;
+  ensures: e >= _ldif_entry_count(l) => result.len() == 0;
+{
   let idx = _ldif_attr_index(l, e, i);
   if idx < 0 {
     return "";
@@ -884,7 +940,10 @@ pub fn ldif_attr_value(l: &Ldif, e: Int, i: Int) -> Str {
 /// Binary-safe value bytes of attribute `i` of entry `e`: the decoded bytes
 /// for a base64 value, the raw bytes of the text for a plain or URL value.
 /// An empty vector when either index is out of range.
-pub fn ldif_attr_bytes(l: &Ldif, e: Int, i: Int) -> Vec[UInt8] {
+pub fn ldif_attr_bytes(l: &Ldif, e: Int, i: Int) -> Vec[UInt8]
+  ensures: e < 0 => result.len() == 0;
+  ensures: i < 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let idx = _ldif_attr_index(l, e, i);
   if idx < 0 {
@@ -916,7 +975,10 @@ pub fn ldif_attr_bytes(l: &Ldif, e: Int, i: Int) -> Vec[UInt8] {
 /// case-insensitive); repeated attributes yield the first one. The returned
 /// text follows ldif_attr_value (base64 values are decoded, truncated at the
 /// first NUL).
-pub fn ldif_first_value(l: &Ldif, e: Int, name: Str) -> Option[Str] {
+pub fn ldif_first_value(l: &Ldif, e: Int, name: Str) -> Option[Str]
+  ensures: e < 0 => result is None;
+  ensures: e >= _ldif_entry_count(l) => result is None;
+{
   let sp = _ldif_entry_span(l, e);
   var j = 0;
   while j < sp.count {
@@ -931,7 +993,12 @@ pub fn ldif_first_value(l: &Ldif, e: Int, name: Str) -> Option[Str] {
 }
 
 /// Label of a value kind: "plain", "base64", "url" or "unknown".
-pub fn ldif_kind_label(kind: Int) -> Str {
+pub fn ldif_kind_label(kind: Int) -> Str
+  ensures: kind == 0 => result.len() == 5;
+  ensures: kind == 1 => result.len() == 6;
+  ensures: kind == 2 => result.len() == 3;
+  ensures: kind != 0 && kind != 1 && kind != 2 => result.len() == 7;
+{
   if kind == LDIF_KIND_PLAIN {
     return "plain";
   }
@@ -957,7 +1024,9 @@ pub fn ldif_kind_label(kind: Int) -> Str {
 /// names, kinds and values as `l` (see SPEC.md).
 /// Error case: none (total; unknown kinds are written as plain values).
 /// Complexity: O(total output length).
-pub fn ldif_emit(l: &Ldif) -> Str {
+pub fn ldif_emit(l: &Ldif) -> Str
+  ensures: _ldif_entry_count(l) == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let ec = _ldif_entry_count(l);
   var e = 0;
