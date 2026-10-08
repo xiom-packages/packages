@@ -1,6 +1,6 @@
 # xiom.imap -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.imap` (`src/imap.xi`). Pure XIOM, no FFI, no file or socket I/O.
 
 This document is the normative description of the `xiom.imap` parser: the
@@ -414,3 +414,48 @@ choices:
   tolerated. Documented narrowing: tags reject `%`, `*`, `]` and `+`
   (RFC 3501 tags allow `]`), and argument-bearing response statuses are
   matched against a fixed shape set rather than a permissive grammar.
+
+## Contracts (batch #47 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (20, across the 16 functions below) were
+added to `src/imap.xi` in the batch #47 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 18-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive timed green `& .\scripts\port.ps1 -Package xiom.imap
+-TimeoutSec 90` runs ended `port: PASS (passed=18 failed=0 program_exit=0
+exit=0)` with the clauses active (12.12 s and 12.17 s; an earlier untimed run
+was also 18/18). None is claimed Z3-provable: `xiom-verify`
+was not run for this module, and per the batch #37 finding a bare
+`[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable column is "no"
+throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str` (length via `.len()` only),
+uses a module constant, or reads a `&mut` parameter. Guards keep the plan's
+families: tag guard pairs (`result is Err`), exact formulas (`result ==
+cmd.consumed`, `result == resp.number`), bounds/lengths (`result <=
+cmd.kinds.len()`, `result <= resp.kinds.len()`, `result.len() == 0`), and
+sentinels (`result == -1`). `imap_command_arg_kind` is the planned skip: it
+is an unconstrained passthrough (`_top_kind_of`) whose result depends on
+`depths` rather than a single readable bound.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `imap_parse_command_at` | 2 | `pos` out of range or empty buffer => `Err` | no | yes |
+| `imap_parse_command` | 1 | empty buffer => `Err` | no | yes |
+| `imap_parse_response_at` | 2 | `pos` out of range or empty buffer => `Err` | no | yes |
+| `imap_command_consumed` | 1 | `result == cmd.consumed` | no | yes |
+| `imap_command_arg_count` | 2 | `>= 0` and `<= cmd.kinds.len()` | no | yes |
+| `imap_command_arg_text` | 1 | negative `index` => empty (`.len() == 0`) | no | yes |
+| `imap_command_element_count` | 1 | `result == cmd.kinds.len()` | no | yes |
+| `imap_command_element_kind` | 1 | out-of-range `index` => `-1` | no | yes |
+| `imap_command_element_text` | 1 | out-of-range `index` => empty (`.len() == 0`) | no | yes |
+| `imap_command_element_depth` | 1 | out-of-range `index` => `-1` | no | yes |
+| `imap_response_number` | 1 | `result == resp.number` | no | yes |
+| `imap_response_consumed` | 1 | `result == resp.consumed` | no | yes |
+| `imap_response_arg_count` | 2 | `>= 0` and `<= resp.kinds.len()` | no | yes |
+| `imap_response_element_count` | 1 | `result == resp.kinds.len()` | no | yes |
+| `imap_response_element_kind` | 1 | out-of-range `index` => `-1` | no | yes |
+| `imap_response_element_text` | 1 | out-of-range `index` => empty (`.len() == 0`) | no | yes |
