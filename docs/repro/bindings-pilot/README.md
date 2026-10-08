@@ -71,3 +71,19 @@ libc frees a guard allocation). Never run this probe without a watchdog.
 
 Control shapes that exit 0: the same function with the `ffi.free` call
 removed, or with module-local `extern "C" { fn malloc/free }` used as a pair.
+
+## win32-gl-unsafe -- REPRODUCED, runnable (fails fast, no watchdog needed)
+
+Staged Win32/WGL context creation inside one confined `unsafe` block
+(pre-fix `xiom.opengl` probe shape).
+
+```
+cd docs/repro/bindings-pilot/win32-gl-unsafe/pkg
+xiom --run tests\probe_q1.xi   # control: green (q1-start | roundtrip_rc=0)
+xiom --run tests\probe_q2.xi   # repro:   exit 0xC0000409, no output, every rebuild
+```
+
+Observed 2026-10-08: `probe_q2` is deterministic (3/3 rebuilds crash before
+any output); `probe_q1` -- window + GetDC + cleanup with the same 12-argument
+fn-pointer cast -- is green, which bounds the trigger to the added
+pixel-format/WGL stage. Finding B-09.
