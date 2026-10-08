@@ -475,7 +475,11 @@ fn _scan_degrees(s: Str) -> Int {
 /// from zero. None when the text is malformed (empty, non-decimal, spaces,
 /// exponent) or outside [-180, 180].
 /// Complexity: O(text length).
-pub fn gpx_coord_parse(text: Str) -> Option[Int] {
+pub fn gpx_coord_parse(text: Str) -> Option[Int]
+  ensures: text.len() == 0 => result is None;
+  ensures: result is Some => text.len() > 0;
+  ensures: result is Some => result.value >= -180000000 && result.value <= 180000000;
+{
   let v = _scan_degrees(text);
   if v == _GPX_DEG_INVALID { return None; }
   if v > 180000000 { return None; }
@@ -489,7 +493,10 @@ pub fn gpx_coord_parse(text: Str) -> Option[Int] {
 /// 0 -> "0.0", 37500000 -> "37.5", -122400000 -> "-122.4". Negative zero is
 /// never emitted.
 /// Complexity: O(digits).
-pub fn gpx_coord_text(udeg: Int) -> Str {
+pub fn gpx_coord_text(udeg: Int) -> Str
+  ensures: result.len() >= 3;
+  ensures: udeg == 0 => result.len() == 3;
+{
   var m = udeg;
   var neg = false;
   if m < 0 {
@@ -861,7 +868,10 @@ fn _consume_text(p: &mut _GpxParser) -> Bool {
 /// quoting and duplicates, missing or invalid coordinates, entities,
 /// mismatched closing tags, unexpected text, premature end of input).
 /// Complexity: O(input length).
-pub fn gpx_parse(text: Str) -> Result[GpxDoc, Str] {
+pub fn gpx_parse(text: Str) -> Result[GpxDoc, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() > 0;
+{
   var p = _GpxParser{
     text: text; pos: 0;
     kinds: Vec[Int].new(); parents: Vec[Int].new();
@@ -904,7 +914,9 @@ pub fn gpx_parse(text: Str) -> Result[GpxDoc, Str] {
 /// Params: d - the document.
 /// Returns: d.kinds.len(); a document always has at least the root.
 /// Complexity: O(1).
-pub fn gpx_node_count(d: &GpxDoc) -> Int {
+pub fn gpx_node_count(d: &GpxDoc) -> Int
+  ensures: result == d.kinds.len();
+{
   return d.kinds.len();
 }
 
@@ -912,7 +924,11 @@ pub fn gpx_node_count(d: &GpxDoc) -> Int {
 /// Params: d - the document; node - the node index.
 /// Returns: the kind, or -1 when node is out of range.
 /// Complexity: O(1).
-pub fn gpx_kind(d: &GpxDoc, node: Int) -> Int {
+pub fn gpx_kind(d: &GpxDoc, node: Int) -> Int
+  ensures: node < 0 => result == -1;
+  ensures: node >= d.kinds.len() => result == -1;
+  ensures: result != -1 => node >= 0 && node < d.kinds.len();
+{
   if node < 0 || node >= d.kinds.len() { return -1; }
   let k: Int = d.kinds[node];
   return k;
@@ -923,7 +939,11 @@ pub fn gpx_kind(d: &GpxDoc, node: Int) -> Int {
 /// Returns: the parent index (-1 for the root), or -2 when node is out of
 /// range.
 /// Complexity: O(1).
-pub fn gpx_parent(d: &GpxDoc, node: Int) -> Int {
+pub fn gpx_parent(d: &GpxDoc, node: Int) -> Int
+  ensures: node < 0 => result == -2;
+  ensures: node >= d.parents.len() => result == -2;
+  ensures: result != -2 => node >= 0 && node < d.parents.len();
+{
   if node < 0 || node >= d.parents.len() { return -2; }
   let v: Int = d.parents[node];
   return v;
@@ -950,7 +970,11 @@ pub fn gpx_creator(d: &GpxDoc) -> Str {
 /// Returns: Some(microdegrees) for wpt/trkpt nodes; None for every other
 /// kind or an out-of-range index.
 /// Complexity: O(1).
-pub fn gpx_lat_udeg(d: &GpxDoc, node: Int) -> Option[Int] {
+pub fn gpx_lat_udeg(d: &GpxDoc, node: Int) -> Option[Int]
+  ensures: node < 0 => result is None;
+  ensures: node >= d.kinds.len() => result is None;
+  ensures: result is Some => node >= 0 && node < d.kinds.len();
+{
   if node < 0 || node >= d.kinds.len() { return None; }
   let k: Int = d.kinds[node];
   if k != 1 && k != 5 { return None; }
@@ -978,7 +1002,10 @@ pub fn gpx_lon_udeg(d: &GpxDoc, node: Int) -> Option[Int] {
 /// empty element yields Some("")); None when the node has no such field or
 /// an index is out of range. Duplicate fields are rejected at parse time.
 /// Complexity: O(fields).
-pub fn gpx_field(d: &GpxDoc, node: Int, field: Int) -> Option[Str] {
+pub fn gpx_field(d: &GpxDoc, node: Int, field: Int) -> Option[Str]
+  ensures: field < 0 || field > 5 => result is None;
+  ensures: result is Some => field >= 0 && field <= 5;
+{
   if field < 0 || field > 5 { return None; }
   var i = 0;
   while i < d.field_owners.len() {
@@ -1011,7 +1038,10 @@ pub fn gpx_has_field(d: &GpxDoc, node: Int, field: Int) -> Bool {
 /// Params: d - the document; node - the node index.
 /// Returns: the count; 0 for out-of-range nodes.
 /// Complexity: O(fields).
-pub fn gpx_field_count(d: &GpxDoc, node: Int) -> Int {
+pub fn gpx_field_count(d: &GpxDoc, node: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.field_owners.len();
+{
   var count = 0;
   var i = 0;
   while i < d.field_owners.len() {
@@ -1026,7 +1056,9 @@ pub fn gpx_field_count(d: &GpxDoc, node: Int) -> Int {
 /// Params: d - the document; kind - the node kind (0..5).
 /// Returns: their node indices (empty when nothing matches).
 /// Complexity: O(nodes).
-pub fn gpx_nodes_of_kind(d: &GpxDoc, kind: Int) -> Vec[Int] {
+pub fn gpx_nodes_of_kind(d: &GpxDoc, kind: Int) -> Vec[Int]
+  ensures: result.len() <= d.kinds.len();
+{
   var out = Vec[Int].new();
   var i = 0;
   while i < d.kinds.len() {
@@ -1062,7 +1094,13 @@ pub fn gpx_children(d: &GpxDoc, node: Int) -> Vec[Int] {
 /// verbatim, so pass "" to emit empty attributes.
 /// Returns: a document with exactly the root node.
 /// Complexity: O(1).
-pub fn gpx_new(version: Str, creator: Str) -> GpxDoc {
+pub fn gpx_new(version: Str, creator: Str) -> GpxDoc
+  ensures: gpx_node_count(result) == 1;
+  ensures: result.parents.len() == 1;
+  ensures: result.lat_udeg.len() == 1;
+  ensures: result.lon_udeg.len() == 1;
+  ensures: result.field_values.len() == 0;
+{
   var d = GpxDoc{
     kinds: Vec[Int].new(); parents: Vec[Int].new();
     lat_udeg: Vec[Int].new(); lon_udeg: Vec[Int].new();
@@ -1082,7 +1120,11 @@ pub fn gpx_new(version: Str, creator: Str) -> GpxDoc {
 /// [-90e6, 90e6], longitude in [-180e6, 180e6].
 /// Returns: the new node index, or -1 when a coordinate is out of range.
 /// Complexity: O(1).
-pub fn gpx_add_waypoint(d: &mut GpxDoc, lat_udeg: Int, lon_udeg: Int) -> Int {
+pub fn gpx_add_waypoint(d: &mut GpxDoc, lat_udeg: Int, lon_udeg: Int) -> Int
+  ensures: lat_udeg > 90000000 || lat_udeg < -90000000 => result == -1;
+  ensures: lon_udeg > 180000000 || lon_udeg < -180000000 => result == -1;
+  ensures: result >= -1;
+{
   if lat_udeg > 90000000 || lat_udeg < -90000000 { return -1; }
   if lon_udeg > 180000000 || lon_udeg < -180000000 { return -1; }
   let idx = d.kinds.len();
@@ -1141,7 +1183,11 @@ pub fn gpx_add_segment(d: &mut GpxDoc, track: Int) -> Int {
 /// Returns: the new node index, or -1 when segment is not a trkseg node or
 /// a coordinate is out of range.
 /// Complexity: O(1).
-pub fn gpx_add_trackpoint(d: &mut GpxDoc, segment: Int, lat_udeg: Int, lon_udeg: Int) -> Int {
+pub fn gpx_add_trackpoint(d: &mut GpxDoc, segment: Int, lat_udeg: Int, lon_udeg: Int) -> Int
+  ensures: segment < 0 => result == -1;
+  ensures: lat_udeg > 90000000 || lat_udeg < -90000000 => result == -1;
+  ensures: lon_udeg > 180000000 || lon_udeg < -180000000 => result == -1;
+{
   if segment < 0 || segment >= d.kinds.len() { return -1; }
   let k: Int = d.kinds[segment];
   if k != 4 { return -1; }
@@ -1163,7 +1209,11 @@ pub fn gpx_add_trackpoint(d: &mut GpxDoc, segment: Int, lat_udeg: Int, lon_udeg:
 /// field kind is valid; false otherwise (no change). Setting a field twice
 /// replaces the first value.
 /// Complexity: O(fields).
-pub fn gpx_set_field(d: &mut GpxDoc, node: Int, field: Int, value: Str) -> Bool {
+pub fn gpx_set_field(d: &mut GpxDoc, node: Int, field: Int, value: Str) -> Bool
+  ensures: field < 0 || field > 5 => !result;
+  ensures: node < 0 => !result;
+  ensures: result => field >= 0 && field <= 5;
+{
   if field < 0 || field > 5 { return false; }
   if node < 0 || node >= d.kinds.len() { return false; }
   let k: Int = d.kinds[node];
@@ -1327,7 +1377,10 @@ fn _emit_element(d: &GpxDoc, node: Int, indent: Int, first: &Vec[Int], next: &Ve
 /// elements. Field order is name, desc, sym, type, ele, time. "" when the
 /// document has no root node.
 /// Complexity: O(nodes + fields + text bytes).
-pub fn gpx_build(d: &GpxDoc) -> Str {
+pub fn gpx_build(d: &GpxDoc) -> Str
+  ensures: d.kinds.len() == 0 => result.len() == 0;
+  ensures: d.kinds.len() > 0 => result.len() >= 39;
+{
   let n = d.kinds.len();
   if n == 0 { return ""; }
   var first = Vec[Int].new();

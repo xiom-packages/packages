@@ -1,6 +1,6 @@
 # xiom.gpx -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.gpx` (`src/gpx.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -348,3 +348,51 @@ compiler-driven choices:
   requirements are not enforced.
 - Errors carry no line/column position.
 - No file I/O, no streaming parser, no geo math.
+
+## Contracts (batch #45 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (38, across the 15 functions below) were
+added to `src/gpx.xi` in the batch #45 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 29-check conformance suite
+exercises every contracted entry point and no clause trapped, so none was
+dropped or refined. Three
+`& .\scripts\port.ps1 -Package xiom.gpx -TimeoutSec 90` runs ended
+`port: PASS (passed=29 failed=0 program_exit=0 exit=0)` with the clauses
+active (two timed runs: 14.87 s and 14.89 s). No clause is claimed
+Z3-provable: `xiom-verify` was not run for this module, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; the `&mut GpxDoc`
+mutators (`gpx_add_waypoint`, `gpx_add_trackpoint`, `gpx_set_field`) carry
+parameter guards and return sentinels only and never read the receiver. No
+clause indexes a vector, reads a `Vec` element, compares a `Str`, uses a
+module constant or a struct-`Result` payload field, or uses
+`result.value.0/.1`. Guards keep the plan's families: sentinel pairs
+(`result == -1` / `-2`, `result is None`, `result.len() == 0`), bounds,
+tag guards (`result is Err` / `result is Ok`, `result is Some` with a
+`result.value` range), Bool variants (`=> !result`, `result =>`) and exact
+formulas (`result == d.kinds.len()`, `result.len() >= 39`). The only
+cross-call is the definitional `gpx_new` -> `gpx_node_count`;
+`gpx_node_count` returns `d.kinds.len()` and cannot reach `gpx_new`
+(non-re-entrant). Every clause holds for parser-produced and hand-built
+documents alike: the guards restate the accessors' own bounds checks.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `gpx_coord_parse` | 3 | empty text => `None`; `Some` => non-empty text and payload in [-180e6, 180e6] | no | yes |
+| `gpx_coord_text` | 2 | `result.len() >= 3`; `udeg == 0` => length 3 | no | yes |
+| `gpx_parse` | 2 | empty text => `Err`; `Ok` => non-empty text | no | yes |
+| `gpx_node_count` | 1 | `result == d.kinds.len()` | no | yes |
+| `gpx_kind` | 3 | out-of-range `node` => `-1`; non-`-1` => in range | no | yes |
+| `gpx_parent` | 3 | out-of-range `node` => `-2`; non-`-2` => in range | no | yes |
+| `gpx_lat_udeg` | 3 | out-of-range `node` => `None`; `Some` => in range | no | yes |
+| `gpx_field` | 2 | invalid field kind => `None`; `Some` => kind 0..5 | no | yes |
+| `gpx_field_count` | 2 | `0 <= result <= d.field_owners.len()` | no | yes |
+| `gpx_nodes_of_kind` | 1 | `result.len() <= d.kinds.len()` | no | yes |
+| `gpx_new` | 5 | one root node; `parents`/`lat_udeg`/`lon_udeg` length 1; no fields | no | yes |
+| `gpx_add_waypoint` | 3 | out-of-range coordinate => `-1`; `result >= -1` | no | yes |
+| `gpx_add_trackpoint` | 3 | negative `segment` or out-of-range coordinate => `-1` | no | yes |
+| `gpx_set_field` | 3 | invalid field or negative node => `false`; true => valid field kind | no | yes |
+| `gpx_build` | 2 | empty document => `""`; non-empty => `result.len() >= 39` | no | yes |
