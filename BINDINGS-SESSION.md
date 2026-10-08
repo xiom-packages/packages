@@ -3,12 +3,25 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 12 RELAYED** -- `xiom.zstd` 0.2.0 green (8/8 x2 + a
-post-normalization re-run via port.ps1 on v0.64.1: zstd 1.5.7 amalgamation,
-8192 -> 34 bytes, byte-identical round-trips); awaiting native
-merge/verify/publish. Next confirmed: `xiom.lzfse`, then `xiom.ozz`.
+**STATUS: BATCH 13 RELAYED** -- `xiom.lzfse` 0.2.0 green (7/7 x2 via port.ps1
+on v0.64.1: vendored lzfse-1.0 sources, 4096 -> 182 bytes, identical
+round-trips incl. 64KB, invalid stream rejected); awaiting native
+merge/verify/publish. Next confirmed: `xiom.ozz`.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 13: head=a528dfd8 + this handoff commit; packages=xiom.lzfse 0.2.0 (vendored
+Apple lzfse-1.0 sources replacing placeholder wrappers); tests=7/7 x2 via scripts/port.ps1
+on v0.64.1 (2026-10-08: scratch encode 684,384 B / decode 47,368 B, 4096->182 bytes,
+round-trip identity incl. 65,536-byte and 1024-byte incompressible, invalid stream
+rejected); licenses=BSD-3-Clause (vendored Apple sources) + package MIT OR Apache-2.0;
+pins=tag lzfse-1.0 archive sha256
+CF85F373F09E9177C0B21DBFBB427EFAEDC02D035D2AADE65EB58A3CBF9AD267 + per-file SHA256 table
+(15 files, SPEC.md §2); gate=G0..G5 OK; needs=NONE (allowlisted + baseline);
+port.args.json present (--c-source x7, upstream add_library source list, no --link);
+.gitattributes vendor/** -text byte pin; lzfse_main.c (CLI) intentionally not vendored.
+```
 
 ```
 BINDINGS BATCH 12: head=a0f3513e + this handoff commit; packages=xiom.zstd 0.2.0 (vendored
@@ -436,6 +449,23 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Scope decision requested from the native lane: the pre-pilot static-bridge
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
+
+## Batch 13 notes (xiom.lzfse, 2026-10-08)
+
+- Multi-source vendoring worked without a shim: `port.args.json` passes the
+  seven upstream `add_library` sources as separate `--c-source` entries
+  (clang compiles them individually -- no cross-TU static collisions).
+- Naming trap: a wrapper named like the extern (`lzfse_encode_scratch_size`)
+  self-recurses; wrappers now use `_required` suffix. Worth remembering for
+  other vendored C APIs whose names we might mirror.
+- Scratch is allocated per call at library-reported sizes (684 KB encode) --
+  documented; scratch reuse and a size-prefixed container helper are Phase 2
+  roadmap items.
+- Run matrix: 7/7 x2 first-try; allowlisted + baseline. Pre-pilot
+  placeholder files removed to git history.
+- Next: `xiom.ozz` (C++ -- expect a stronger shim/args need: C++ sources via
+  --c-source will need the C++ frontend; check before committing the
+  approach).
 
 ## Batch 12 notes (xiom.zstd, 2026-10-08)
 
