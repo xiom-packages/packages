@@ -3,14 +3,32 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 8 RELAYED** -- `xiom.vulkan` 0.2.0 capability probe green
-(10/10 x2 via port.ps1 on v0.64.1: loader 1.4.350, 20 instance extensions,
-15 layers, RTX 3070 Ti); awaiting native merge/verify/publish. The pre-pilot
-static-bridge engine (~1.7MB) was removed to git history -- native lane:
-flag if you prefer it preserved under `legacy/`. Next per roadmap:
-vulkan Phase 3 (instance extensions/surface/swapchain) or the next sector.
+**STATUS: BATCH 9 RELAYED** -- `xiom.dxc` 0.2.0 capability probe green
+(3/3 x2 via port.ps1 on v0.64.1: `ps_6_0` compile -> 2,532-byte DXIL blob
+from SDK dxcompiler.dll 1.9.0.5347); awaiting native merge/verify/publish.
+Preceded by inbound checks: PULSE's durable-DB ask is served by published
+`xiom.sqlite`; stdlib 0.64.2 delivered `fs_remove` + the `dl` doc fix; glfw +
+sqlite spot-checks green on 0.64.2. Next wave: directx11/12 (GPU tier) or
+per native pick.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 9: head=b282cf82 (code) + this handoff commit; packages=xiom.dxc 0.2.0
+(capability probe replacing the pre-pilot bridge); tests=3/3 x2 via scripts/port.ps1 on
+v0.64.1 (2026-10-08: dxcompiler.dll 1.9.0.5347 from Vulkan SDK 1.4.350.0: ps_6_0 'main'
+-> 2532-byte DXIL object, 4-byte aligned; deterministic SKIP classification per run);
+licenses=MIT OR Apache-2.0 (header-free bridge is our code; nothing vendored);
+pins=soname dxcompiler.dll + dxcapi.h hashes (SDK copy FF3CA20C... + upstream commit
+fe2615732 A8D40964...) + COM ABI (CLSID_DxcCompiler 73e22d93..., IID_IDxcCompiler3
+228b4687..., IID_IDxcResult 58346cda..., IID_IDxcBlob 8ba5fb08...; compiler slot 3=Compile;
+result slots 3=GetStatus,7=GetOutput; blob slot 4=GetBufferSize; DxcBuffer 24B;
+DXC_OUT_OBJECT=1); local sample dxcompiler.dll 1.9.0.5347 sha256
+6E990D20E53390CDE413CE9A8016A8F43582E325A04CF72ECC706B4BEA504F0C (dxil.dll not present;
+unsigned DXIL); gate=G0 OK, G1 OK, G2 OK, G3 OK (ABSENT -> SKIP; ABI/compile failure ->
+FAIL), G4 OK, G5 OK (all unsafe in the single module xiom.dxc); needs=NONE (allowlisted +
+baseline); port.args.json present (--c-source src/dxc_probe.c, no --link).
+```
 
 ```
 BINDINGS BATCH 8: head=af564de9 (code) + this handoff commit; packages=xiom.vulkan 0.2.0
@@ -374,6 +392,21 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Scope decision requested from the native lane: the pre-pilot static-bridge
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
+
+## Batch 9 notes (xiom.dxc, 2026-10-08)
+
+- Header-free COM bridge: `dxcapi.h` was read from the SDK and used as the
+  specification (GUIDs + vtable slot offsets), but the bridge declares the
+  ABI locally and drives `IDxcCompiler3`/`IDxcResult`/`IDxcBlob` through raw
+  vtable pointers -- no SDK header or import library at build time.
+- First present-path run compiled a real `ps_6_0` shader to a 2,532-byte DXIL
+  object on the first try (ABI extraction paid off; a wrong slot would have
+  crashed rather than failed softly).
+- `dxil.dll` is not in the SDK `Bin` here; unsigned DXIL is fine for the
+  capability probe (validator seam is a Phase 2 item).
+- Run matrix: 3/3 x2; SKIP classification (bogus soname) every run. Already
+  allowlisted; `port.args.json` compiles the bridge.
+- Pre-pilot bridge (77 KB, SDK headers + import libs) removed to git history.
 
 ## Inbound checks (2026-10-08, post-batch-8: project lanes + stdlib)
 
