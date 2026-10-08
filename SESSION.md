@@ -14,19 +14,25 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-08 20:20Z (batch #46 COMPLETE + PUBLISHED `eco-v0.1.108`; bindings batch 13 live; supersedes the 18:55Z block below):**
+**STATE AT 2026-10-08 22:10Z (batch #47 dispatched; grpc compat fix in correction; bindings batch 14 live; supersedes the 20:20Z block below):**
 - **Batch #46 DONE + PUBLISHED (`eco-v0.1.108`, run `37837844224` SUCCESS; all six live):**
   `mkv` 0.1.2 (36 clauses; 20/20; `7e124e47`), `webp` 0.1.2 (25; 20/20; `8c3e73dc`),
   `gguf` 0.1.2 (39; 24/24; `47cafb1c`), `snbt` 0.1.2 (36; 22/22; `7f3e6b4a`), `wkt` 0.1.2
   (38; 27/27; `b5d7a59f`), `flac` 0.1.2 (44; 18/18; `5ebdf093`); 218 clauses total; wrap
   `86f8ff15`. **~19 zero-clause stable carriers remain** (next: `junit` ~1543, rescan at
   batch #47).
-- **Bindings batches 9-13 published:** dxc + directx11 0.2.0 (`eco-v0.1.102`), directx12
-  0.2.0 (`eco-v0.1.105`), zstd 0.2.0 (`eco-v0.1.106`), **lzfse 0.2.0** (`eco-v0.1.107`;
-  vendored Apple sources; native 7/7 x2; record `847f82b3`). Next confirmed: **`xiom.ozz`**.
+- **Bindings batches 9-14 published:** dxc + directx11 (`.102`), directx12 (`.105`), zstd
+  (`.106`), lzfse (`.107`), **ozz 0.2.0** (`.109`; first vendored C++ package; native 4/4
+  x2; record `01da6e02`; guard 505/477/28/0). Compression/animation tier complete; next
+  sector awaiting the lane's proposal.
 - **FFI catalog-dep sweep done** (`docs/COMPILER-FINDINGS.md` `b4bd1bfd`): rest/protobuf/
-  sqlite/opengl/vulkan CLEAN; **`xiom.grpc` RED (6 T001 module-identity ambiguity) --
-  compat pass queued**. `xiom.http` 0.1.2 live (`eco-v0.1.103`).
+  sqlite/opengl/vulkan CLEAN; **`xiom.grpc` compat fix IN CORRECTION** -- first pass renamed
+  grpc.xi's raw externs (breaks linker symbols; no `link_name` on v0.64.1), corrected pass
+  reverts externs and renames the redundant submodule wrappers (`srv_*`/`cli_*`) instead;
+  acceptance = consumer harness 0 T001 + port 36/36 x2. `xiom.http` 0.1.2 live (`.103`).
+- **Batch #47 dispatched:** junit/usb/snmp/thrift/imap/mp4 (~117 clauses; porters
+  `ses_ee273273`, `ses_ee27323f`, `ses_ee27320d`, `ses_ee2731d2`, `ses_ee273198`,
+  `ses_ee273167`).
 - v0.64.1 rules unchanged (tag pairs only; no Result ==/is Ok(literal)/destructure;
   `unsafe fn` P001; discard-shape IR). Credential: `Lefteris-Notas` active.
 
