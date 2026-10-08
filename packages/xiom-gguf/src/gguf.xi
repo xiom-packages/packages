@@ -561,7 +561,10 @@ fn _parse_kv_value(g: &mut Gguf, buf: &Vec[UInt8], total: Int, pos_in: Int, key:
 /// entries, non-printable strings, unknown/nested array types, duplicate
 /// tensor names, invalid alignment, a data offset past the buffer, and
 /// tensor offsets past the data section (see SPEC.md).
-pub fn gguf_parse(buffer: &Vec[UInt8]) -> Result[Gguf, Str] {
+pub fn gguf_parse(buffer: &Vec[UInt8]) -> Result[Gguf, Str]
+  ensures: buffer.len() < 24 => result is Err;
+  ensures: result is Ok => buffer.len() >= 24;
+{
   let total = buffer.len();
   if total < 24 {
     return _err_gguf("gguf: buffer too small for header");
@@ -756,17 +759,23 @@ pub fn gguf_parse(buffer: &Vec[UInt8]) -> Result[Gguf, Str] {
 // --------------------------------------------------
 
 /// GGUF version (2 or 3).
-pub fn gguf_version(g: &Gguf) -> Int {
+pub fn gguf_version(g: &Gguf) -> Int
+  ensures: result == g.version;
+{
   return g.version;
 }
 
 /// Number of metadata KV entries.
-pub fn gguf_kv_count(g: &Gguf) -> Int {
+pub fn gguf_kv_count(g: &Gguf) -> Int
+  ensures: result == g.kv_keys.len();
+{
   return g.kv_keys.len();
 }
 
 /// Number of tensors.
-pub fn gguf_tensor_count(g: &Gguf) -> Int {
+pub fn gguf_tensor_count(g: &Gguf) -> Int
+  ensures: result == g.t_names.len();
+{
   return g.t_names.len();
 }
 
@@ -795,7 +804,11 @@ fn _kv_in_range(g: &Gguf, i: Int) -> Bool {
 
 /// KV key at index `i`.
 /// Err("gguf: key index out of range") when `i` is out of bounds.
-pub fn gguf_kv_key(g: &Gguf, i: Int) -> Result[Str, Str] {
+pub fn gguf_kv_key(g: &Gguf, i: Int) -> Result[Str, Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= g.kv_keys.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < g.kv_keys.len();
+{
   if !_kv_in_range(g, i) {
     return _err_str("gguf: key index out of range");
   }
@@ -818,7 +831,11 @@ pub fn gguf_kv_type(g: &Gguf, i: Int) -> Result[Int, Str] {
 /// Integer/bool value at index `i`.
 /// Err("gguf: key index out of range") when `i` is out of bounds; Err
 /// ("gguf: value is not an integer") for other types.
-pub fn gguf_kv_int(g: &Gguf, i: Int) -> Result[Int, Str] {
+pub fn gguf_kv_int(g: &Gguf, i: Int) -> Result[Int, Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= g.kv_keys.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < g.kv_keys.len();
+{
   if !_kv_in_range(g, i) {
     return _err_int("gguf: key index out of range");
   }
@@ -880,7 +897,11 @@ pub fn gguf_kv_arr_count(g: &Gguf, i: Int) -> Result[Int, Str] {
 }
 
 /// Integer array element `e` of entry `i`.
-pub fn gguf_kv_arr_int(g: &Gguf, i: Int, e: Int) -> Result[Int, Str] {
+pub fn gguf_kv_arr_int(g: &Gguf, i: Int, e: Int) -> Result[Int, Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= g.kv_keys.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < g.kv_keys.len();
+{
   if !_kv_in_range(g, i) {
     return _err_int("gguf: key index out of range");
   }
@@ -924,7 +945,10 @@ pub fn gguf_kv_arr_str(g: &Gguf, i: Int, e: Int) -> Result[Str, Str] {
 }
 
 /// Index of the first KV entry named `key` (Err("gguf: key not found")).
-pub fn gguf_find_kv(g: &Gguf, key: Str) -> Result[Int, Str] {
+pub fn gguf_find_kv(g: &Gguf, key: Str) -> Result[Int, Str]
+  ensures: g.kv_keys.len() == 0 => result is Err;
+  ensures: result is Ok => g.kv_keys.len() > 0;
+{
   var i = 0;
   while i < g.kv_keys.len() {
     let k: Str = g.kv_keys[i];
@@ -946,7 +970,11 @@ fn _t_in_range(g: &Gguf, i: Int) -> Bool {
 
 /// Tensor name at index `i`.
 /// Err("gguf: tensor index out of range") when `i` is out of bounds.
-pub fn gguf_tensor_name(g: &Gguf, i: Int) -> Result[Str, Str] {
+pub fn gguf_tensor_name(g: &Gguf, i: Int) -> Result[Str, Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= g.t_names.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < g.t_names.len();
+{
   if !_t_in_range(g, i) {
     return _err_str("gguf: tensor index out of range");
   }
@@ -957,7 +985,11 @@ pub fn gguf_tensor_name(g: &Gguf, i: Int) -> Result[Str, Str] {
 
 /// Tensor rank (0 for a scalar).
 /// Err("gguf: tensor index out of range") when `i` is out of bounds.
-pub fn gguf_tensor_ndims(g: &Gguf, i: Int) -> Result[Int, Str] {
+pub fn gguf_tensor_ndims(g: &Gguf, i: Int) -> Result[Int, Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= g.t_names.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < g.t_names.len();
+{
   if !_t_in_range(g, i) {
     return _err_int("gguf: tensor index out of range");
   }
@@ -989,7 +1021,11 @@ pub fn gguf_tensor_offset(g: &Gguf, i: Int) -> Result[Int, Str] {
 }
 
 /// Tensor dimension `d`.
-pub fn gguf_tensor_dim(g: &Gguf, i: Int, d: Int) -> Result[Int, Str] {
+pub fn gguf_tensor_dim(g: &Gguf, i: Int, d: Int) -> Result[Int, Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= g.t_names.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < g.t_names.len();
+{
   if !_t_in_range(g, i) {
     return _err_int("gguf: tensor index out of range");
   }
@@ -1019,7 +1055,11 @@ pub fn gguf_find_tensor(g: &Gguf, name: Str) -> Result[Int, Str] {
 }
 
 /// Documented name of a ggml type code (unknown codes are "unknown").
-pub fn gguf_type_name(t: Int) -> Str {
+pub fn gguf_type_name(t: Int) -> Str
+  ensures: t >= 0 && t <= 12 => result.len() >= 2;
+  ensures: t == 7 => result.len() == 4;
+  ensures: (t < 0 || t > 12) => result.len() == 7;
+{
   if t == 0 { return "u8"; }
   if t == 1 { return "i8"; }
   if t == 2 { return "u16"; }
@@ -1101,7 +1141,11 @@ pub fn gguf_builder_new() -> GgufBuilder {
 }
 
 /// Set the alignment (positive power of two, <= 1048576).
-pub fn gguf_builder_set_alignment(b: &mut GgufBuilder, a: Int) -> Result[Int, Str] {
+pub fn gguf_builder_set_alignment(b: &mut GgufBuilder, a: Int) -> Result[Int, Str]
+  ensures: a < 1 => result is Err;
+  ensures: a > 1048576 => result is Err;
+  ensures: result is Ok => a >= 1 && a <= 1048576;
+{
   if a < 1 || a > 1048576 || !_is_pow2(a) {
     return _err_int("gguf: alignment is not a power of two");
   }
@@ -1145,7 +1189,12 @@ pub fn gguf_builder_add_kv_str(b: &mut GgufBuilder, key: Str, v: Str) -> Result[
 }
 
 /// Append a f32/f64 KV entry (type 6 or 12) from raw-byte hex text.
-pub fn gguf_builder_add_kv_float(b: &mut GgufBuilder, key: Str, t: Int, hex: Str) -> Result[Int, Str] {
+pub fn gguf_builder_add_kv_float(b: &mut GgufBuilder, key: Str, t: Int, hex: Str) -> Result[Int, Str]
+  ensures: t != 6 && t != 12 => result is Err;
+  ensures: t == 6 && hex.len() != 8 => result is Err;
+  ensures: t == 12 && hex.len() != 16 => result is Err;
+  ensures: result is Ok => (t == 6 && hex.len() == 8) || (t == 12 && hex.len() == 16);
+{
   if !_type_is_float(t) {
     return _err_int("gguf: bad float type");
   }
@@ -1229,7 +1278,12 @@ pub fn gguf_builder_add_kv_arr_str(b: &mut GgufBuilder, key: Str, vals: &Vec[Str
 }
 
 /// Append a tensor info entry (name, dims, ggml type, data-section offset).
-pub fn gguf_builder_add_tensor(b: &mut GgufBuilder, name: Str, dims: &Vec[Int], t: Int, offset: Int) -> Result[Int, Str] {
+pub fn gguf_builder_add_tensor(b: &mut GgufBuilder, name: Str, dims: &Vec[Int], t: Int, offset: Int) -> Result[Int, Str]
+  ensures: t < 0 || t > 12 || t == 8 || t == 9 => result is Err;
+  ensures: dims.len() > 64 => result is Err;
+  ensures: name.len() == 0 => result is Err;
+  ensures: result is Ok => name.len() > 0 && dims.len() <= 64 && t >= 0 && t <= 12 && t != 8 && t != 9;
+{
   if !_is_printable_key(name) {
     return _err_int("gguf: name is not printable ASCII");
   }

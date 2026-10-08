@@ -4,6 +4,8 @@
 
 # xiom.gguf -- specification
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 ## 1. Scope
 
 A pure-XIOM, dependency-free codec for the **header** of a GGUF container
@@ -195,3 +197,52 @@ Ok/Err construction is confined to leaf helpers; `Str` values read from
 `str_compare`; every `UInt8` is widened with `(b as Int) & 0xFF`; parallel
 vectors are only appended where all sibling pushes are mirrored;
 `&struct.field` is never passed as a `&Vec[UInt8]` argument.
+
+## Contracts (batch #46 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (39, across the 15 functions below) were
+added to `src/gguf.xi` in the batch #46 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 24-check conformance suite
+exercises the contracted entry points and no clause trapped. Two timed
+consecutive `& .\scripts\port.ps1 -Package xiom.gguf -TimeoutSec 90` runs
+ended `port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the
+clauses active (14.64 s and 14.63 s); an initial untimed run was green as
+well. None is claimed Z3-provable: `xiom-verify` was not run for this module,
+and per the batch #37 finding a bare `[OK] VERIFIED` can be a vacuous UNSAT,
+so the Z3-provable column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector or reads a `Vec` element, compares a `Str`, uses a module constant, or
+reads the `&mut GgufBuilder` parameter `b` (the builder clauses constrain the
+scalar/vector parameters and the result only). Guards keep the plan's
+families: tag guard pairs (`result is Ok` / `result is Err`), sentinel and
+sentinel-adjacent ranges (`i < 0 => result is Err`,
+`g.kv_keys.len() == 0 => result is Err`), bounds/length guards
+(`dims.len() > 64 => result is Err`, `name.len() == 0 => result is Err`),
+exact definitional formulas (`result == g.version`,
+`result == g.kv_keys.len()`, `result == g.t_names.len()`), and fixed-length
+classifiers (`t == 7 => result.len() == 4`). The planned skips are
+`gguf_builder_new` (struct result; only field reads could express anything),
+`gguf_builder_finish` (failure depends on builder hex contents, no readable
+pre-state), and the second-index guards of `gguf_kv_arr_int` (`e`) and
+`gguf_tensor_dim` (`d`).
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `gguf_parse` | 2 | < 24 bytes => `Err`; `Ok` implies >= 24 bytes | no | yes |
+| `gguf_version` | 1 | `result == g.version` | no | yes |
+| `gguf_kv_count` | 1 | `result == g.kv_keys.len()` | no | yes |
+| `gguf_tensor_count` | 1 | `result == g.t_names.len()` | no | yes |
+| `gguf_kv_key` | 3 | negative/over-length `i` => `Err`; `Ok` implies in range | no | yes |
+| `gguf_kv_int` | 3 | negative/over-length `i` => `Err`; `Ok` implies in range | no | yes |
+| `gguf_kv_arr_int` | 3 | negative/over-length `i` => `Err`; `Ok` implies in range | no | yes |
+| `gguf_find_kv` | 2 | empty table => `Err`; `Ok` implies non-empty | no | yes |
+| `gguf_tensor_name` | 3 | negative/over-length `i` => `Err`; `Ok` implies in range | no | yes |
+| `gguf_tensor_ndims` | 3 | negative/over-length `i` => `Err`; `Ok` implies in range | no | yes |
+| `gguf_tensor_dim` | 3 | negative/over-length `i` => `Err`; `Ok` implies in range | no | yes |
+| `gguf_type_name` | 3 | known code => name length >= 2; `t == 7` => 4; unknown => 7 | no | yes |
+| `gguf_builder_set_alignment` | 3 | `a < 1` or `a > 1048576` => `Err`; `Ok` implies `1..1048576` | no | yes |
+| `gguf_builder_add_kv_float` | 4 | non-float `t` or wrong hex length => `Err`; `Ok` implies exact length | no | yes |
+| `gguf_builder_add_tensor` | 4 | bad `t`, rank > 64 or empty name => `Err`; `Ok` implies all valid | no | yes |
