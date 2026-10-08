@@ -1,8 +1,6 @@
 # xiom.tzif -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.tzif`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/tzif.xi` (`module xiom.tzif`).
 Depends on `xiom.std`; the library module imports `xiom.string` from it
 (tests add `xiom.test`, `xiom.io`, `xiom.string`, `xiom.string.compare`,
@@ -332,3 +330,56 @@ Last verified: compiler 0.61.3,
 - Str values read from `Vec[Str]` are bound to typed locals; the module
   performs no `==` on Str values.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #38 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/tzif.xi` (compiler v0.64.0;
+no version bump): 45 clauses over 15 functions (5 private helpers, 10 public
+entry points). Two consecutive
+`.\scripts\port.ps1 -Package xiom.tzif -TimeoutSec 60` runs ended
+`port: PASS (passed=17 failed=0 program_exit=0 exit=0)` (12.21 s and 10.07 s)
+with the clauses active and no clause trapped, so none was dropped.
+
+All 45 clauses are **runtime-checked only**: no Z3 proof was attempted in
+this pass, and `xiom-verify`'s `[OK] VERIFIED` is not trusted alone on
+v0.64.0 (it can emit a vacuous UNSAT, batch #37 finding). Every clause also
+holds over the hand-built negative `TzifFile`/`_Counts` values in the
+conformance suite (`build_probe`, `build_probe_mismatch`, and the hand-built
+t15/t17 `TzifFile` sources).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `_version_number` | `b == 0 => result == 1`; `b == 50 => result == 2`; `b == 51 => result == 3`; `b != 0 && b != 50 && b != 51 => result == 0` | runtime-checked |
+| `_counts_ok` | `c.typecnt == 0 || c.charcnt == 0 => result == false`; `c.isstdcnt != 0 && c.isstdcnt != c.typecnt => result == false`; `c.isutcnt != 0 && c.isutcnt != c.typecnt => result == false`; `c.typecnt != 0 && c.charcnt != 0 && (c.isstdcnt == 0 || c.isstdcnt == c.typecnt) && (c.isutcnt == 0 || c.isutcnt == c.typecnt) => result == true` | runtime-checked |
+| `_counts_err` | `c.typecnt == 0 => result.len() == 26`; `c.typecnt != 0 && c.charcnt == 0 => result.len() == 28`; `... && c.isstdcnt != 0 && c.isstdcnt != c.typecnt => result.len() == 39`; `... && (c.isstdcnt == 0 \|\| c.isstdcnt == c.typecnt) && c.isutcnt != 0 && c.isutcnt != c.typecnt => result.len() == 33` | runtime-checked |
+| `_block_size` | `result == c.timecnt * (time_size + 1) + c.typecnt * 6 + c.charcnt + c.leapcnt * (time_size + 4) + c.isstdcnt + c.isutcnt` | runtime-checked |
+| `_file_from` | `result.version == version`; the six count fields of `result` equal those of `c` (`timecnt`, `typecnt`, `leapcnt`, `charcnt`, `isstdcnt`, `isutcnt`); `result.times.len() == b.times.len()`; `result.footer.len() == footer.len()` | runtime-checked |
+| `tzif_parse` | `data.len() < 44 => result is Err`; `result is Ok => data.len() >= 44` | runtime-checked |
+| `tzif_version` | `result == f.version` | runtime-checked |
+| `tzif_timecnt` | `result == f.timecnt` | runtime-checked |
+| `tzif_typecnt` | `result == f.typecnt` | runtime-checked |
+| `tzif_leapcnt` | `result == f.leapcnt` | runtime-checked |
+| `tzif_charcnt` | `result == f.charcnt` | runtime-checked |
+| `tzif_transition_time` | `i < 0 \|\| i >= f.times.len() => result is Err`; `i >= 0 && i < f.times.len() => result is Ok` | runtime-checked |
+| `tzif_std_indicator` | `f.isstd.len() == 0 => result is Err`; `t < 0 \|\| t >= f.isstd.len() => result is Err`; `f.isstd.len() != 0 && t >= 0 && t < f.isstd.len() => result is Ok` | runtime-checked |
+| `tzif_ut_indicator` | `f.isut.len() == 0 => result is Err`; `t < 0 \|\| t >= f.isut.len() => result is Err`; `f.isut.len() != 0 && t >= 0 && t < f.isut.len() => result is Ok` | runtime-checked |
+| `tzif_build_v1` | one `Err` guard per early rejection, each under the conjunction of the preceding passing guards: `f.version != 1`; `f.utoffs.len() == 0`; `isdsts`/`desig_indices`/`designations` length != `utoffs.len()`; `times.len() != type_indices.len()`; `leap_occurs.len() != leap_corrections.len()`; `isstd` neither 0 nor `utoffs.len()`; `isut` neither 0 nor `utoffs.len()` (seven clauses); plus `result is Ok =>` the whole length-consistency prefix | runtime-checked |
+
+Clause-shape notes pinned by the pass:
+
+- `tzif_parse` keeps only the buffer-length guard pair. The plan's other
+  parse-side proposals (magic bytes, version byte, v1 trailing bytes, footer
+  framing) need byte reads and the plan's Ok-side block-count claim needs
+  `result.value.typecnt/charcnt`; all were dropped as inexpressible without
+  vector indexing / struct-Result-payload field reads.
+- `tzif_transition_time`'s indexed value clause was omitted as planned
+  (no vector indexing in clauses).
+- `tzif_build_v1`'s planned `all valid => Ok` was refined to
+  `result is Ok => <length-consistency prefix>` (guard-pair family): the
+  builder also rejects out-of-range vector contents and designation-table
+  overflow that the length guards cannot express, and the hand-built probes
+  in test 16 must not be falsified. No clause claims those loop checks.
+- No clause reads a `&mut` parameter (none exists in this package); no
+  clause-read parameter name is shadowed by a local; no module constant,
+  `Str` equality, tuple/payload component or vector index appears in any
+  clause.
