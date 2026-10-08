@@ -4,10 +4,10 @@
 
 package {
   name: "xiom.dxc"
-  version: "0.1.0"
-  description: "DirectX Shader Compiler (DXC) bindings for XIOM"
+  version: "0.2.0"
+  description: "DirectX Shader Compiler capability probe for XIOM (runtime dxcompiler.dll, no dxcapi.h, SKIP when absent)"
   categories: ["graphics", "tooling"]
-  keywords: ["dxc", "shader-compiler", "hlsl", "spir-v"]
+  keywords: ["dxc", "shader-compiler", "hlsl", "binding"]
   license: "MIT OR Apache-2.0"
   repository: "https://github.com/xiom-packages/packages"
   authors: ["XIOM Team"]
