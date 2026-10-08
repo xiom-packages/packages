@@ -4,10 +4,10 @@
 
 package {
   name: "xiom.lzfse"
-  version: "0.1.0"
-  description: "Apple LZFSE compression library bindings for XIOM"
+  version: "0.2.0"
+  description: "Apple LZFSE compression bindings for XIOM (vendored lzfse-1.0 sources, no system library)"
   categories: ["data"]
-  keywords: ["lzfse", "compression", "apple"]
+  keywords: ["lzfse", "compression", "apple", "binding"]
   license: "MIT OR Apache-2.0"
   repository: "https://github.com/xiom-packages/packages"
   authors: ["XIOM Team"]

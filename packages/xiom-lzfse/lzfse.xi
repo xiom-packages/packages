@@ -1,133 +1,116 @@
-// XIOM -- Apple LZFSE Compression Library Bindings
+// XIOM -- xiom.lzfse: LZFSE bindings (vendored Apple sources).
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
 //
-// Low-level FFI declarations for LZFSE (lzfse.h + lzfse_internal.h).
-// LZFSE is Apple's LZ-style compression with Finite State Entropy coding.
-// Reference: https://github.com/lzfse/lzfse
+// DESIGN: vendored C path (same pattern as xiom.zstd / xiom.sqlite). The
+// upstream `lzfse-1.0` library sources (Apple, BSD-3-Clause) are vendored
+// into `vendor/` and compiled into the test binary via `--c-source`
+// (port.args.json lists the seven library sources; no system library, no
+// runtime DLL).
 //
-// Types: size_t -> Int. uint8_t* -> Int. void* -> Int.
-// Naming follows the C API verbatim.
+// G5 confinement: this is the ONE module in the package with `extern "C"`;
+// every foreign call is wrapped here. Other files are pure XIOM.
+//
+// G2 pin (SPEC.md): upstream tag `lzfse-1.0` (archive SHA256) + per-file
+// SHA256 of the vendored sources + BSD-3-Clause license.
+//
+// API subset (pilot): encode/decode scratch sizes + one-shot
+// encode/decode into XIOM-owned buffers.  Streaming/chunked decode is
+// Phase 2 (ROADMAP.md): the LZFSE stream does not expose a frame content
+// size, so callers pass the output capacity.
 
 module xiom.lzfse
 
-// =========================================================================
-// FFI: 6 extern C functions covering all exported symbols
-// =========================================================================
-
 extern "C" {
   fn lzfse_encode_scratch_size() -> Int;
-  fn lzfse_encode_buffer(dst_buffer: Int, dst_size: Int, src_buffer: Int, src_size: Int, scratch_buffer: Int) -> Int;
   fn lzfse_decode_scratch_size() -> Int;
-  fn lzfse_decode_buffer(dst_buffer: Int, dst_size: Int, src_buffer: Int, src_size: Int, scratch_buffer: Int) -> Int;
-  fn lzvn_encode_scratch_size() -> Int;
-  fn lzvn_encode_buffer(dst: Int, dst_size: Int, src: Int, src_size: Int, work: Int) -> Int;
+  fn lzfse_encode_buffer(dst: *UInt8, dst_size: Int, src: *UInt8, src_size: Int, scratch: *UInt8) -> Int;
+  fn lzfse_decode_buffer(dst: *UInt8, dst_size: Int, src: *UInt8, src_size: Int, scratch: *UInt8) -> Int;
 }
 
-// =========================================================================
-// Compression bound -- worst-case estimate for the compressed size
-// =========================================================================
-
-pub fn compress_bound(src_size: Int) -> Int
-  requires: src_size > 0
+/// Required encode scratch-buffer size.
+/// Complexity: O(1).
+pub fn lzfse_encode_scratch_required() -> Int
+  requires: true
 {
-  return src_size + src_size / 4 + 64;
+  unsafe { return lzfse_encode_scratch_size() as Int; }
 }
 
-// =========================================================================
-// LZFSE safe wrapper functions -- for direct procedural use
-// =========================================================================
-
-pub fn encode_scratch_size() -> Int {
-  return unsafe { lzfse_encode_scratch_size() };
-}
-
-pub fn decode_scratch_size() -> Int {
-  return unsafe { lzfse_decode_scratch_size() };
-}
-
-pub fn encode_buffer(dst_buffer: Int, dst_size: Int, src_buffer: Int, src_size: Int, scratch_buffer: Int) -> Result[Int, Str]
-  requires: dst_buffer != 0
-  requires: dst_size > 0
-  requires: src_buffer != 0
-  requires: src_size > 0
+/// Required decode scratch-buffer size.
+/// Complexity: O(1).
+pub fn lzfse_decode_scratch_required() -> Int
+  requires: true
 {
-  let wrote: Int = unsafe { lzfse_encode_buffer(dst_buffer, dst_size, src_buffer, src_size, scratch_buffer) };
-  if wrote == 0 {
-    return Err("lzfse_encode_buffer failed: output buffer too small or encode error");
+  unsafe { return lzfse_decode_scratch_size() as Int; }
+}
+
+/// One-shot LZFSE encode of `src` into a buffer of `dst_capacity` bytes
+/// (use >= src.len() + slack; LZFSE may expand incompressible input
+/// slightly).  Returns the encoded bytes as a new buffer.
+/// Complexity: O(len(src)) plus encode work.
+pub fn lzfse_encode(src: &mut Vec[UInt8], dst_capacity: Int) -> Result[Vec[UInt8], Str]
+  requires: src.len() >= 0
+  requires: dst_capacity > 0
+{
+  var dst: Vec[UInt8] = Vec[UInt8].new();
+  var i: Int = 0;
+  while i < dst_capacity {
+    dst.push(0 as UInt8);
+    i = i + 1;
   }
-  return Ok(wrote);
-}
-
-pub fn decode_buffer(dst_buffer: Int, dst_size: Int, src_buffer: Int, src_size: Int, scratch_buffer: Int) -> Result[Int, Str]
-  requires: dst_buffer != 0
-  requires: dst_size > 0
-  requires: src_buffer != 0
-  requires: src_size > 0
-{
-  let wrote: Int = unsafe { lzfse_decode_buffer(dst_buffer, dst_size, src_buffer, src_size, scratch_buffer) };
-  if wrote == 0 {
-    return Err("lzfse_decode_buffer failed: decode error");
+  let scratch_size = lzfse_encode_scratch_required();
+  var scratch: Vec[UInt8] = Vec[UInt8].new();
+  var j: Int = 0;
+  while j < scratch_size {
+    scratch.push(0 as UInt8);
+    j = j + 1;
   }
-  return Ok(wrote);
-}
-
-pub fn encode_using_malloc(dst_buffer: Int, dst_size: Int, src_buffer: Int, src_size: Int) -> Result[Int, Str]
-  requires: dst_buffer != 0
-  requires: dst_size > 0
-  requires: src_buffer != 0
-  requires: src_size > 0
-{
-  let wrote: Int = unsafe { lzfse_encode_buffer(dst_buffer, dst_size, src_buffer, src_size, 0) };
-  if wrote == 0 {
-    return Err("lzfse_encode_buffer failed: output buffer too small or encode error");
+  let rc = unsafe {
+    lzfse_encode_buffer(dst.as_mut_ptr(), dst_capacity, src.as_mut_ptr(), src.len(), scratch.as_mut_ptr())
+  };
+  if rc <= 0 {
+    return Err("lzfse: encode failed (destination capacity too small?)");
   }
-  return Ok(wrote);
-}
-
-pub fn decode_using_malloc(dst_buffer: Int, dst_size: Int, src_buffer: Int, src_size: Int) -> Result[Int, Str]
-  requires: dst_buffer != 0
-  requires: dst_size > 0
-  requires: src_buffer != 0
-  requires: src_size > 0
-{
-  let wrote: Int = unsafe { lzfse_decode_buffer(dst_buffer, dst_size, src_buffer, src_size, 0) };
-  if wrote == 0 {
-    return Err("lzfse_decode_buffer failed: decode error");
+  var out: Vec[UInt8] = Vec[UInt8].new();
+  var k: Int = 0;
+  while k < rc {
+    out.push(dst[k]);
+    k = k + 1;
   }
-  return Ok(wrote);
+  return Ok(out);
 }
 
-// =========================================================================
-// LZVN safe wrapper functions -- simpler codec for blocks < 4096 bytes
-// =========================================================================
-
-pub fn lzvn_encode_scratch_size() -> Int {
-  return unsafe { lzvn_encode_scratch_size() };
-}
-
-pub fn lzvn_encode_buffer(dst: Int, dst_size: Int, src: Int, src_size: Int, work: Int) -> Result[Int, Str]
-  requires: dst != 0
-  requires: dst_size > 0
-  requires: src != 0
-  requires: src_size > 0
+/// One-shot LZFSE decode of `src` into a buffer of `dst_capacity` bytes.
+/// Returns the decoded bytes as a new buffer.
+/// Complexity: O(len(src)) plus decode work.
+pub fn lzfse_decode(src: &mut Vec[UInt8], dst_capacity: Int) -> Result[Vec[UInt8], Str]
+  requires: src.len() > 0
+  requires: dst_capacity > 0
 {
-  let wrote: Int = unsafe { lzvn_encode_buffer(dst, dst_size, src, src_size, work) };
-  if wrote == 0 {
-    return Err("lzvn_encode_buffer failed: output buffer too small or encode error");
+  var dst: Vec[UInt8] = Vec[UInt8].new();
+  var i: Int = 0;
+  while i < dst_capacity {
+    dst.push(0 as UInt8);
+    i = i + 1;
   }
-  return Ok(wrote);
-}
-
-pub fn lzvn_encode_using_malloc(dst: Int, dst_size: Int, src: Int, src_size: Int) -> Result[Int, Str]
-  requires: dst != 0
-  requires: dst_size > 0
-  requires: src != 0
-  requires: src_size > 0
-{
-  let wrote: Int = unsafe { lzvn_encode_buffer(dst, dst_size, src, src_size, 0) };
-  if wrote == 0 {
-    return Err("lzvn_encode_buffer failed: output buffer too small or encode error");
+  let scratch_size = lzfse_decode_scratch_required();
+  var scratch: Vec[UInt8] = Vec[UInt8].new();
+  var j: Int = 0;
+  while j < scratch_size {
+    scratch.push(0 as UInt8);
+    j = j + 1;
   }
-  return Ok(wrote);
+  let rc = unsafe {
+    lzfse_decode_buffer(dst.as_mut_ptr(), dst_capacity, src.as_mut_ptr(), src.len(), scratch.as_mut_ptr())
+  };
+  if rc <= 0 {
+    return Err("lzfse: decode failed (invalid stream or capacity too small)");
+  }
+  var out: Vec[UInt8] = Vec[UInt8].new();
+  var k: Int = 0;
+  while k < rc {
+    out.push(dst[k]);
+    k = k + 1;
+  }
+  return Ok(out);
 }

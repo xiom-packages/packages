@@ -1,0 +1,16 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/lzfse_encode.c",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/lzfse_encode_base.c",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/lzfse_decode.c",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/lzfse_decode_base.c",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/lzfse_fse.c",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/lzvn_encode_base.c",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/lzvn_decode_base.c"
+]
