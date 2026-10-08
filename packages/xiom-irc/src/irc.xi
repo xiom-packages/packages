@@ -516,7 +516,10 @@ fn _push_message(out: &mut Vec[UInt8], m: &IrcMessage) {
 /// Err("irc: empty prefix") for a ':' with nothing before the next space;
 /// Err("irc: missing command") when no command follows the tags/prefix.
 /// Complexity: O(len(text)).
-pub fn irc_parse(text: Str) -> Result[IrcMessage, Str] {
+pub fn irc_parse(text: Str) -> Result[IrcMessage, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() > 0;
+{
   var m = IrcMessage{
     tag_names: Vec[Str].new();
     tag_values: Vec[Str].new();
@@ -619,7 +622,11 @@ pub fn irc_parse(text: Str) -> Result[IrcMessage, Str] {
 /// all-empty parts and `is_server == false`.
 /// Error case: none.
 /// Complexity: O(len(prefix)).
-pub fn irc_parse_prefix(prefix: Str) -> IrcPrefix {
+pub fn irc_parse_prefix(prefix: Str) -> IrcPrefix
+  ensures: prefix.len() == 0 => result.is_server == false && result.nick.len() == 0 && result.user.len() == 0 && result.host.len() == 0;
+  ensures: result.is_server == true => result.nick.len() == result.raw.len() && result.user.len() == 0 && result.host.len() == 0;
+  ensures: result.raw.len() <= prefix.len();
+{
   var raw = prefix;
   if raw.len() > 0 && string.byte_at(raw, 0) == _IRC_COLON {
     raw = string.str_slice(raw, 1, raw.len());
@@ -674,7 +681,10 @@ pub fn irc_parse_prefix(prefix: Str) -> IrcPrefix {
 /// Error case: none (the IrcMessage invariants are maintained by the
 /// constructors in this module).
 /// Complexity: O(total length).
-pub fn irc_render(m: &IrcMessage) -> Str {
+pub fn irc_render(m: &IrcMessage) -> Str
+  ensures: result.len() >= 2;
+  ensures: m.tag_names.len() == 0 && m.has_prefix == false && m.command.len() == 0 && m.params.len() == 0 && m.has_trailing == false => result.len() == 2;
+{
   var out = Vec[UInt8].new();
   _push_message(&mut out, m);
   return builder.sb_to_str(&out);
@@ -697,7 +707,9 @@ pub fn irc_render(m: &IrcMessage) -> Str {
 /// space, CR, LF or a leading ':' in a middle parameter;
 /// Err("irc: trailing contains a line break") for CR/LF in the trailing.
 /// Complexity: O(total length).
-pub fn irc_build(command: Str, params: Vec[Str], trailing: Str, has_trailing: Bool) -> Result[Str, Str] {
+pub fn irc_build(command: Str, params: Vec[Str], trailing: Str, has_trailing: Bool) -> Result[Str, Str]
+  ensures: command.len() == 0 => result is Err;
+{
   var no_tags = Vec[Str].new();
   var no_values = Vec[Str].new();
   return irc_build_full(no_tags, no_values, "", command, params, trailing, has_trailing);
@@ -717,7 +729,10 @@ pub fn irc_build(command: Str, params: Vec[Str], trailing: Str, has_trailing: Bo
 /// Err("irc: invalid prefix: <prefix>") for a space or CR/LF;
 /// plus every error of irc_build.
 /// Complexity: O(total length).
-pub fn irc_build_full(tag_names: Vec[Str], tag_values: Vec[Str], prefix: Str, command: Str, params: Vec[Str], trailing: Str, has_trailing: Bool) -> Result[Str, Str] {
+pub fn irc_build_full(tag_names: Vec[Str], tag_values: Vec[Str], prefix: Str, command: Str, params: Vec[Str], trailing: Str, has_trailing: Bool) -> Result[Str, Str]
+  ensures: tag_names.len() != tag_values.len() => result is Err;
+  ensures: command.len() == 0 => result is Err;
+{
   let verr = _validate_build(&tag_names, &tag_values, prefix, command, &params, trailing, has_trailing);
   if verr.len() > 0 {
     return _err_str(verr);
@@ -762,7 +777,10 @@ pub fn irc_build_full(tag_names: Vec[Str], tag_values: Vec[Str], prefix: Str, co
 /// Error case: Err("irc: invalid numeric code: <code>") when code is
 /// negative or greater than 999; plus every error of irc_build_full.
 /// Complexity: O(total length).
-pub fn irc_build_numeric(prefix: Str, code: Int, params: Vec[Str], trailing: Str, has_trailing: Bool) -> Result[Str, Str] {
+pub fn irc_build_numeric(prefix: Str, code: Int, params: Vec[Str], trailing: Str, has_trailing: Bool) -> Result[Str, Str]
+  ensures: code < 0 || code > 999 => result is Err;
+  ensures: code >= 0 && code <= 999 && prefix.len() == 0 && params.len() == 0 && !has_trailing => result is Ok;
+{
   if code < 0 || code > 999 {
     return _err_str("irc: invalid numeric code: " + _int_str(code));
   }
@@ -782,7 +800,9 @@ pub fn irc_build_numeric(prefix: Str, code: Int, params: Vec[Str], trailing: Str
 /// otherwise (wrong length or a non-digit byte).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn irc_is_numeric(m: &IrcMessage) -> Bool {
+pub fn irc_is_numeric(m: &IrcMessage) -> Bool
+  ensures: m.command.len() != 3 => result == false;
+{
   let c: Str = m.command;
   if c.len() != 3 {
     return false;
@@ -804,7 +824,10 @@ pub fn irc_is_numeric(m: &IrcMessage) -> Bool {
 /// Error case: Err("irc: not a numeric reply") when the command is not
 /// exactly three ASCII digits.
 /// Complexity: O(1).
-pub fn irc_numeric_code(m: &IrcMessage) -> Result[Int, Str] {
+pub fn irc_numeric_code(m: &IrcMessage) -> Result[Int, Str]
+  ensures: !irc_is_numeric(m) => result is Err;
+  ensures: irc_is_numeric(m) => result.value >= 0 && result.value <= 999;
+{
   if !irc_is_numeric(m) {
     return _err_int("irc: not a numeric reply");
   }
@@ -827,7 +850,10 @@ pub fn irc_numeric_code(m: &IrcMessage) -> Result[Int, Str] {
 /// integers after the byte reads, never on Str values from a Vec.
 /// Error case: none.
 /// Complexity: O(min(len(a), len(b))).
-pub fn irc_eq_ci(a: Str, b: Str) -> Bool {
+pub fn irc_eq_ci(a: Str, b: Str) -> Bool
+  ensures: a.len() != b.len() => result == false;
+  ensures: a.len() == 0 => result == true;
+{
   if a.len() != b.len() {
     return false;
   }
@@ -859,7 +885,9 @@ pub fn irc_command_is(m: &IrcMessage, want: Str) -> Bool {
 /// Returns: m.tag_names.len() > 0.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn irc_has_tags(m: &IrcMessage) -> Bool {
+pub fn irc_has_tags(m: &IrcMessage) -> Bool
+  ensures: result == (m.tag_names.len() > 0);
+{
   return m.tag_names.len() > 0;
 }
 
@@ -868,7 +896,9 @@ pub fn irc_has_tags(m: &IrcMessage) -> Bool {
 /// Returns: the tag count (duplicates counted).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn irc_tag_count(m: &IrcMessage) -> Int {
+pub fn irc_tag_count(m: &IrcMessage) -> Int
+  ensures: result == m.tag_names.len();
+{
   return m.tag_names.len();
 }
 
@@ -878,7 +908,9 @@ pub fn irc_tag_count(m: &IrcMessage) -> Int {
 /// past the last tag.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn irc_tag_name(m: &IrcMessage, i: Int) -> Str {
+pub fn irc_tag_name(m: &IrcMessage, i: Int) -> Str
+  ensures: i < 0 || i >= m.tag_names.len() => result.len() == 0;
+{
   if i < 0 || i >= m.tag_names.len() {
     return "";
   }
@@ -923,7 +955,9 @@ pub fn irc_tag_has_value(m: &IrcMessage, i: Int) -> Bool {
 /// yields Some(""); None when the tag is absent.
 /// Error case: none.
 /// Complexity: O(tag count).
-pub fn irc_tag(m: &IrcMessage, name: Str) -> Option[Str] {
+pub fn irc_tag(m: &IrcMessage, name: Str) -> Option[Str]
+  ensures: m.tag_names.len() == 0 => result is None;
+{
   let i = _tag_last_index(m, name);
   if i < 0 {
     return None;
@@ -937,7 +971,9 @@ pub fn irc_tag(m: &IrcMessage, name: Str) -> Option[Str] {
 /// Returns: m.params.len().
 /// Error case: none.
 /// Complexity: O(1).
-pub fn irc_param_count(m: &IrcMessage) -> Int {
+pub fn irc_param_count(m: &IrcMessage) -> Int
+  ensures: result == m.params.len();
+{
   return m.params.len();
 }
 
@@ -947,7 +983,9 @@ pub fn irc_param_count(m: &IrcMessage) -> Int {
 /// middle parameter (the trailing text is not reachable here).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn irc_param(m: &IrcMessage, i: Int) -> Str {
+pub fn irc_param(m: &IrcMessage, i: Int) -> Str
+  ensures: i < 0 || i >= m.params.len() => result.len() == 0;
+{
   if i < 0 || i >= m.params.len() {
     return "";
   }
