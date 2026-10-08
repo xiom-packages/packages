@@ -1,6 +1,6 @@
 # xiom.vcf -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.vcf` (`src/vcf.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -371,3 +371,66 @@ idioms as `xiom.eml`/`xiom.csv` (byte-wise scanning with
 - Fold points are byte positions; a multi-byte UTF-8 sequence may be split.
 - `vcf_parse_card` rejects multi-card input; use `vcf_parse_stream`.
 - Errors carry the offending line text but no line/column positions.
+
+## Contracts (batch #40 hardening pass, 2026-10-08)
+
+Runtime-checked `ensures:` clauses were added to `src/vcf.xi` (compiler
+v0.64.0; `package.xi` is left for the coordinator to bump at integration):
+48 clauses over 35 functions, all `ensures:` (no `requires:`), so the
+accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.vcf -TimeoutSec 60` runs ended
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses
+active; no clause trapped.
+
+Clauses read only parameters, parameter fields, plain-struct result fields
+and `Str.len()`; no clause indexes a vector, uses a module constant, compares
+`Str` values with `==`, reads a struct-`Result` payload field, or uses
+`result.value.0/.1`. The only clause cross-call is `vcf_prop_index` from
+`vcf_prop_value`, which is more primitive than its caller (it never calls
+`vcf_prop_value`; non-re-entrant). Every clause holds for hand-built `VCard`,
+`VCardStream` and `VcfProperty` values: out-of-range accessors claim only
+their documented empty/sentinel results.
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it
+can emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `_vcf_is_token` | `result == true` => `b` in `65..90` / `97..122` / `48..57` or `45` | runtime-checked |
+| `_vcf_upper_byte` | `b` in `97..122` => `b - 32`; otherwise `b` | runtime-checked |
+| `_vcf_upper` | `result.len() == s.len()` | runtime-checked |
+| `_vcf_streq` | unequal lengths => `false`; `true` => equal lengths | runtime-checked |
+| `_vcf_find_byte` | `-1` or within `from..s.len()` | runtime-checked |
+| `_vcf_strip_bom` | `result.len()` is `s.len()` or `s.len() - 3` | runtime-checked |
+| `_vcf_split_lines` | empty text => 0 lines; non-empty text => `>= 1` line | runtime-checked |
+| `_vcf_unfold` | empty input => empty; `result.len() <= phys.len()` | runtime-checked |
+| `_vcf_fold` | `line.len() <= 75` => `line.len() + 2`; `result.len() >= 2` | runtime-checked |
+| `vcf_escape` | empty value => empty; `result.len() >= value.len()` | runtime-checked |
+| `vcf_escape_component` | `result.len() >= value.len()` | runtime-checked |
+| `vcf_unescape` | empty value => empty; `result.len() <= value.len()` | runtime-checked |
+| `_vcf_value_colon` | `-1` or within `from..line.len()` | runtime-checked |
+| `_vcf_scan_line` | empty line => empty `name`; `raw` is empty or the whole line | runtime-checked |
+| `_vcf_is_begin` | `name.len() != 5` => `false`; `true` => bare 5-byte name | runtime-checked |
+| `_vcf_is_end` | `name.len() != 3` => `false` | runtime-checked |
+| `_vcf_is_version` | `name.len() != 7` => `false` | runtime-checked |
+| `_vcf_version_supported` | `v.len() != 3` => `false`; `true` => `v.len() == 3` | runtime-checked |
+| `_vcf_card_at` | out-of-range `card` => empty `names` | runtime-checked |
+| `vcf_parse_card` | empty text => Err | runtime-checked |
+| `vcf_parse_stream` | empty text => Err | runtime-checked |
+| `vcf_property_count` | `result == v.names.len()` | runtime-checked |
+| `vcf_property` | out-of-range `i` => empty `name` | runtime-checked |
+| `vcf_prop_index` | `-1` or within `0..v.names.len()` | runtime-checked |
+| `vcf_prop_value` | `vcf_prop_index(v, name) < 0` => None | runtime-checked |
+| `vcf_props_all` | `result.len() <= v.names.len()` | runtime-checked |
+| `vcf_param_value` | out-of-range `i` => None | runtime-checked |
+| `vcf_stream_count` | `result == s.versions.len()` | runtime-checked |
+| `vcf_stream_property_count` | out-of-range `i` => `0` | runtime-checked |
+| `vcf_stream_property` | out-of-range `card` or `idx` => empty `name` | runtime-checked |
+| `vcf_build_n` | `result.len() >= 4` | runtime-checked |
+| `vcf_build_adr` | `result.len() >= 6` | runtime-checked |
+| `vcf_build_card` | `version.len() != 3` => Err; empty `formatted_name` => Err | runtime-checked |
+| `vcf_write` | no properties and `version.len() <= 67` => `result.len() == 34 + version.len()` | runtime-checked |
+| `vcf_write_stream` | empty stream => `result.len() == 0` | runtime-checked |
+
+No pre-plan clause was dropped or probe-gated; all 48 were implemented from
+the plan.

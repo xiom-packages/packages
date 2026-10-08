@@ -159,7 +159,9 @@ fn _vcf_is_ws(b: Int) -> Bool {
 
 // True for the ASCII property/group/parameter-name alphabet: A-Z, a-z, 0-9
 // and "-".
-fn _vcf_is_token(b: Int) -> Bool {
+fn _vcf_is_token(b: Int) -> Bool
+  ensures: result == true => (b >= 65 && b <= 90) || (b >= 97 && b <= 122) || (b >= 48 && b <= 57) || b == 45;
+{
   if b >= 65 && b <= 90 {
     return true;
   }
@@ -173,7 +175,10 @@ fn _vcf_is_token(b: Int) -> Bool {
 }
 
 // ASCII uppercase of byte b; every other byte passes through untouched.
-fn _vcf_upper_byte(b: Int) -> Int {
+fn _vcf_upper_byte(b: Int) -> Int
+  ensures: b >= 97 && b <= 122 => result == b - 32;
+  ensures: b < 97 || b > 122 => result == b;
+{
   if b >= 97 && b <= 122 {
     return b - 32;
   }
@@ -182,7 +187,9 @@ fn _vcf_upper_byte(b: Int) -> Int {
 
 // Byte-wise ASCII uppercase copy of s (bytes >= 0x80 pass through, so the
 // byte length is preserved).
-fn _vcf_upper(s: Str) -> Str {
+fn _vcf_upper(s: Str) -> Str
+  ensures: result.len() == s.len();
+{
   var out = Vec[UInt8].new();
   let n = s.len();
   var i = 0;
@@ -195,7 +202,10 @@ fn _vcf_upper(s: Str) -> Str {
 
 // True when a and b are byte-equal (BUG 17: go through str_compare, never
 // `==`).
-fn _vcf_streq(a: Str, b: Str) -> Bool {
+fn _vcf_streq(a: Str, b: Str) -> Bool
+  ensures: a.len() != b.len() => result == false;
+  ensures: result == true => a.len() == b.len();
+{
   return compare.str_compare(a, b) == 0;
 }
 
@@ -205,7 +215,9 @@ fn _vcf_streq_ci(a: Str, b: Str) -> Bool {
 }
 
 // Index of the first occurrence of byte ch in s at or after `from`, or -1.
-fn _vcf_find_byte(s: Str, from: Int, ch: Int) -> Int {
+fn _vcf_find_byte(s: Str, from: Int, ch: Int) -> Int
+  ensures: result == -1 || (result >= from && result < s.len());
+{
   let n = s.len();
   var i = from;
   while i < n {
@@ -219,7 +231,9 @@ fn _vcf_find_byte(s: Str, from: Int, ch: Int) -> Int {
 
 // Strip a leading UTF-8 byte-order mark, if present (tolerance for VCF files
 // exported by tools that prepend EF BB BF).
-fn _vcf_strip_bom(s: Str) -> Str {
+fn _vcf_strip_bom(s: Str) -> Str
+  ensures: result.len() == s.len() || result.len() == s.len() - 3;
+{
   if s.len() >= 3 && _vcf_byte_at(s, 0) == 239 && _vcf_byte_at(s, 1) == 187 && _vcf_byte_at(s, 2) == 191 {
     return string.str_slice(s, 3, s.len());
   }
@@ -233,7 +247,10 @@ fn _vcf_strip_bom(s: Str) -> Str {
 // Split text into physical lines. A line ends at LF, CRLF or a lone CR; a
 // final line without a terminator is still a line, and a trailing terminator
 // does not produce an extra empty line.
-fn _vcf_split_lines(text: Str) -> Vec[Str] {
+fn _vcf_split_lines(text: Str) -> Vec[Str]
+  ensures: text.len() == 0 => result.len() == 0;
+  ensures: text.len() > 0 => result.len() >= 1;
+{
   var out = Vec[Str].new();
   let n = text.len();
   if n == 0 {
@@ -265,7 +282,10 @@ fn _vcf_split_lines(text: Str) -> Vec[Str] {
 // or TAB is appended to the previous logical line with its terminator and
 // that one leading whitespace byte removed. A BOM on the very first line is
 // ignored. A folding-whitespace-only continuation contributes nothing.
-fn _vcf_unfold(phys: &Vec[Str]) -> Vec[Str] {
+fn _vcf_unfold(phys: &Vec[Str]) -> Vec[Str]
+  ensures: phys.len() == 0 => result.len() == 0;
+  ensures: result.len() <= phys.len();
+{
   var out = Vec[Str].new();
   var i = 0;
   while i < phys.len() {
@@ -293,7 +313,10 @@ fn _vcf_unfold(phys: &Vec[Str]) -> Vec[Str] {
 // terminated by CRLF; continuations start with one SPACE, so they carry at
 // most 74 content bytes. Folding is byte-based and may split a multi-byte
 // UTF-8 sequence (documented in SPEC.md).
-fn _vcf_fold(line: Str) -> Str {
+fn _vcf_fold(line: Str) -> Str
+  ensures: line.len() <= 75 => result.len() == line.len() + 2;
+  ensures: result.len() >= 2;
+{
   let n = line.len();
   if n <= _VCF_FOLD {
     return line + "\r\n";
@@ -370,7 +393,10 @@ fn _vcf_escape_into(out: &mut Vec[UInt8], value: Str, escape_semi: Bool, escape_
 /// canonical output.
 /// Error case: none.
 /// Complexity: O(value.len()).
-pub fn vcf_escape(value: Str) -> Str {
+pub fn vcf_escape(value: Str) -> Str
+  ensures: value.len() == 0 => result.len() == 0;
+  ensures: result.len() >= value.len();
+{
   var out = Vec[UInt8].new();
   _vcf_escape_into(&mut out, value, true, true);
   return builder.sb_to_str(&out);
@@ -382,7 +408,9 @@ pub fn vcf_escape(value: Str) -> Str {
 /// structured values.
 /// Error case: none.
 /// Complexity: O(value.len()).
-pub fn vcf_escape_component(value: Str) -> Str {
+pub fn vcf_escape_component(value: Str) -> Str
+  ensures: result.len() >= value.len();
+{
   var out = Vec[UInt8].new();
   _vcf_escape_into(&mut out, value, false, true);
   return builder.sb_to_str(&out);
@@ -393,7 +421,10 @@ pub fn vcf_escape_component(value: Str) -> Str {
 /// lone "\" is kept verbatim.
 /// Error case: none.
 /// Complexity: O(value.len()).
-pub fn vcf_unescape(value: Str) -> Str {
+pub fn vcf_unescape(value: Str) -> Str
+  ensures: value.len() == 0 => result.len() == 0;
+  ensures: result.len() <= value.len();
+{
   var out = Vec[UInt8].new();
   let n = value.len();
   var i = 0;
@@ -427,7 +458,9 @@ pub fn vcf_unescape(value: Str) -> Str {
 
 // Index of the value-separating ":" of a content line, found outside quoted
 // parameter strings; -1 when there is none.
-fn _vcf_value_colon(line: Str, from: Int) -> Int {
+fn _vcf_value_colon(line: Str, from: Int) -> Int
+  ensures: result == -1 || (result >= from && result < line.len());
+{
   let n = line.len();
   var i = from;
   var in_quote = false;
@@ -448,7 +481,10 @@ fn _vcf_value_colon(line: Str, from: Int) -> Int {
 // Scan one logical content line. Returns the parsed property, or the empty
 // property (name == "") when the line is malformed: no name, an empty name
 // after a group, a missing value colon, or unbalanced parameter quotes.
-fn _vcf_scan_line(line: Str) -> VcfProperty {
+fn _vcf_scan_line(line: Str) -> VcfProperty
+  ensures: line.len() == 0 => result.name.len() == 0;
+  ensures: result.raw.len() == 0 || result.raw.len() == line.len();
+{
   let n = line.len();
   if n == 0 {
     return _vcf_empty_prop();
@@ -491,7 +527,10 @@ fn _vcf_scan_line(line: Str) -> VcfProperty {
 }
 
 // True when p is a bare BEGIN:VCARD line (no group, no parameters).
-fn _vcf_is_begin(p: VcfProperty) -> Bool {
+fn _vcf_is_begin(p: VcfProperty) -> Bool
+  ensures: p.name.len() != 5 => result == false;
+  ensures: result == true => p.group.len() == 0 && p.params.len() == 0 && p.name.len() == 5;
+{
   if p.group.len() != 0 || p.params.len() != 0 {
     return false;
   }
@@ -502,7 +541,9 @@ fn _vcf_is_begin(p: VcfProperty) -> Bool {
 }
 
 // True when p is a bare END:VCARD line (no group, no parameters).
-fn _vcf_is_end(p: VcfProperty) -> Bool {
+fn _vcf_is_end(p: VcfProperty) -> Bool
+  ensures: p.name.len() != 3 => result == false;
+{
   if p.group.len() != 0 || p.params.len() != 0 {
     return false;
   }
@@ -513,7 +554,9 @@ fn _vcf_is_end(p: VcfProperty) -> Bool {
 }
 
 // True when p is a bare VERSION property (no group, no parameters).
-fn _vcf_is_version(p: VcfProperty) -> Bool {
+fn _vcf_is_version(p: VcfProperty) -> Bool
+  ensures: p.name.len() != 7 => result == false;
+{
   if p.group.len() != 0 || p.params.len() != 0 {
     return false;
   }
@@ -521,7 +564,10 @@ fn _vcf_is_version(p: VcfProperty) -> Bool {
 }
 
 // True for the supported version values "3.0" and "4.0".
-fn _vcf_version_supported(v: Str) -> Bool {
+fn _vcf_version_supported(v: Str) -> Bool
+  ensures: v.len() != 3 => result == false;
+  ensures: result == true => v.len() == 3;
+{
   return _vcf_streq(v, "3.0") || _vcf_streq(v, "4.0");
 }
 
@@ -631,7 +677,10 @@ fn _vcf_parse_lines(logical: &Vec[Str], single: Bool) -> Result[VCardStream, Str
 
 // Copy card `card` of a stream into a standalone VCard (empty when the index
 // is out of range).
-fn _vcf_card_at(s: &VCardStream, card: Int) -> VCard {
+fn _vcf_card_at(s: &VCardStream, card: Int) -> VCard
+  ensures: card < 0 => result.names.len() == 0;
+  ensures: card >= s.versions.len() => result.names.len() == 0;
+{
   var c = VCard{
     version: "";
     groups: Vec[Str].new();
@@ -673,7 +722,9 @@ fn _vcf_card_at(s: &VCardStream, card: Int) -> VCard {
 /// VERSION:3.0 or VERSION:4.0 as its first property; Err("vcf: ...")
 /// otherwise (see SPEC.md's error catalog).
 /// Complexity: O(text length).
-pub fn vcf_parse_card(text: Str) -> Result[VCard, Str] {
+pub fn vcf_parse_card(text: Str) -> Result[VCard, Str]
+  ensures: text.len() == 0 => result is Err;
+{
   let logical = _vcf_unfold(_vcf_split_lines(text));
   let r = _vcf_parse_lines(&logical, true);
   match r {
@@ -690,7 +741,9 @@ pub fn vcf_parse_card(text: Str) -> Result[VCard, Str] {
 /// otherwise. The stream keeps all cards in one flat property list plus
 /// per-card `firsts` / `counts` vectors; use `vcf_stream_*` to read it.
 /// Complexity: O(text length).
-pub fn vcf_parse_stream(text: Str) -> Result[VCardStream, Str] {
+pub fn vcf_parse_stream(text: Str) -> Result[VCardStream, Str]
+  ensures: text.len() == 0 => result is Err;
+{
   let logical = _vcf_unfold(_vcf_split_lines(text));
   return _vcf_parse_lines(&logical, false);
 }
@@ -703,7 +756,9 @@ pub fn vcf_parse_stream(text: Str) -> Result[VCardStream, Str] {
 /// counted).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn vcf_property_count(v: &VCard) -> Int {
+pub fn vcf_property_count(v: &VCard) -> Int
+  ensures: result == v.names.len();
+{
   return v.names.len();
 }
 
@@ -713,7 +768,9 @@ pub fn vcf_property_count(v: &VCard) -> Int {
 /// (check `name`).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn vcf_property(v: &VCard, i: Int) -> VcfProperty {
+pub fn vcf_property(v: &VCard, i: Int) -> VcfProperty
+  ensures: i < 0 || i >= v.names.len() => result.name.len() == 0;
+{
   if i < 0 || i >= v.names.len() {
     return _vcf_empty_prop();
   }
@@ -729,7 +786,9 @@ pub fn vcf_property(v: &VCard, i: Int) -> VcfProperty {
 /// `name`; -1 when absent.
 /// Error case: none.
 /// Complexity: O(property count).
-pub fn vcf_prop_index(v: &VCard, name: Str) -> Int {
+pub fn vcf_prop_index(v: &VCard, name: Str) -> Int
+  ensures: result == -1 || (result >= 0 && result < v.names.len());
+{
   let want = _vcf_upper(name);
   var i = 0;
   while i < v.names.len() {
@@ -746,7 +805,9 @@ pub fn vcf_prop_index(v: &VCard, name: Str) -> Int {
 /// None when the card has no such property.
 /// Error case: none.
 /// Complexity: O(property count).
-pub fn vcf_prop_value(v: &VCard, name: Str) -> Option[Str] {
+pub fn vcf_prop_value(v: &VCard, name: Str) -> Option[Str]
+  ensures: vcf_prop_index(v, name) < 0 => result is None;
+{
   let i = vcf_prop_index(v, name);
   if i < 0 {
     return None;
@@ -759,7 +820,9 @@ pub fn vcf_prop_value(v: &VCard, name: Str) -> Option[Str] {
 /// order; an empty vector when there are none.
 /// Error case: none.
 /// Complexity: O(property count).
-pub fn vcf_props_all(v: &VCard, name: Str) -> Vec[Str] {
+pub fn vcf_props_all(v: &VCard, name: Str) -> Vec[Str]
+  ensures: result.len() <= v.names.len();
+{
   let want = _vcf_upper(name);
   var out = Vec[Str].new();
   var i = 0;
@@ -804,7 +867,9 @@ fn _vcf_comma_outside_quotes(s: Str, from: Int) -> Int {
 /// absent.
 /// Error case: none.
 /// Complexity: O(parameter text length).
-pub fn vcf_param_value(v: &VCard, i: Int, pname: Str) -> Option[Str] {
+pub fn vcf_param_value(v: &VCard, i: Int, pname: Str) -> Option[Str]
+  ensures: i < 0 || i >= v.params.len() => result is None;
+{
   if i < 0 || i >= v.params.len() {
     return None;
   }
@@ -861,7 +926,9 @@ pub fn vcf_stream_version(s: &VCardStream, i: Int) -> Str {
 /// Number of cards in a stream.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn vcf_stream_count(s: &VCardStream) -> Int {
+pub fn vcf_stream_count(s: &VCardStream) -> Int
+  ensures: result == s.versions.len();
+{
   return s.versions.len();
 }
 
@@ -869,7 +936,9 @@ pub fn vcf_stream_count(s: &VCardStream) -> Int {
 /// range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn vcf_stream_property_count(s: &VCardStream, i: Int) -> Int {
+pub fn vcf_stream_property_count(s: &VCardStream, i: Int) -> Int
+  ensures: i < 0 || i >= s.counts.len() => result == 0;
+{
   if i < 0 || i >= s.counts.len() {
     return 0;
   }
@@ -884,7 +953,10 @@ pub fn vcf_stream_property_count(s: &VCardStream, i: Int) -> Int {
 /// range (check `name`).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn vcf_stream_property(s: &VCardStream, card: Int, idx: Int) -> VcfProperty {
+pub fn vcf_stream_property(s: &VCardStream, card: Int, idx: Int) -> VcfProperty
+  ensures: card < 0 || card >= s.versions.len() => result.name.len() == 0;
+  ensures: idx < 0 => result.name.len() == 0;
+{
   if card < 0 || card >= s.versions.len() {
     return _vcf_empty_prop();
   }
@@ -912,7 +984,9 @@ pub fn vcf_stream_property(s: &VCardStream, card: Int, idx: Int) -> VcfProperty 
 /// suffix) with ";" after escaping each one with `vcf_escape_component`.
 /// Error case: none.
 /// Complexity: O(total component length).
-pub fn vcf_build_n(family: Str, given: Str, additional: Str, prefix: Str, suffix: Str) -> Str {
+pub fn vcf_build_n(family: Str, given: Str, additional: Str, prefix: Str, suffix: Str) -> Str
+  ensures: result.len() >= 4;
+{
   return vcf_escape_component(family) + ";" + vcf_escape_component(given) + ";" + vcf_escape_component(additional) + ";" + vcf_escape_component(prefix) + ";" + vcf_escape_component(suffix);
 }
 
@@ -921,7 +995,9 @@ pub fn vcf_build_n(family: Str, given: Str, additional: Str, prefix: Str, suffix
 /// each one with `vcf_escape_component`.
 /// Error case: none.
 /// Complexity: O(total component length).
-pub fn vcf_build_adr(pobox: Str, ext: Str, street: Str, locality: Str, region: Str, code: Str, country: Str) -> Str {
+pub fn vcf_build_adr(pobox: Str, ext: Str, street: Str, locality: Str, region: Str, code: Str, country: Str) -> Str
+  ensures: result.len() >= 6;
+{
   return vcf_escape_component(pobox) + ";" + vcf_escape_component(ext) + ";" + vcf_escape_component(street) + ";" + vcf_escape_component(locality) + ";" + vcf_escape_component(region) + ";" + vcf_escape_component(code) + ";" + vcf_escape_component(country);
 }
 
@@ -937,7 +1013,10 @@ pub fn vcf_build_adr(pobox: Str, ext: Str, street: Str, locality: Str, region: S
 /// Err("vcf: unsupported version: <version>") when version is neither "3.0"
 /// nor "4.0"; Err("vcf: FN is required") when formatted_name is empty.
 /// Complexity: O(total field length).
-pub fn vcf_build_card(version: Str, formatted_name: Str, n: Str, org: Str, tel: Str, email: Str, adr: Str) -> Result[Str, Str] {
+pub fn vcf_build_card(version: Str, formatted_name: Str, n: Str, org: Str, tel: Str, email: Str, adr: Str) -> Result[Str, Str]
+  ensures: version.len() != 3 => result is Err;
+  ensures: formatted_name.len() == 0 => result is Err;
+{
   if !_vcf_version_supported(version) {
     return _vcf_err_text("vcf: unsupported version: " + version);
   }
@@ -986,7 +1065,9 @@ fn _vcf_write_value(name: Str, value: Str) -> Str {
 /// Returns: the card text.
 /// Error case: none.
 /// Complexity: O(total text length).
-pub fn vcf_write(v: &VCard) -> Str {
+pub fn vcf_write(v: &VCard) -> Str
+  ensures: v.names.len() == 0 && v.version.len() <= 67 => result.len() == 34 + v.version.len();
+{
   var out = _vcf_fold("BEGIN:VCARD");
   out = out + _vcf_fold("VERSION:" + v.version);
   var i = 0;
@@ -1014,7 +1095,9 @@ pub fn vcf_write(v: &VCard) -> Str {
 /// `vcf_write` over the cards).
 /// Error case: none.
 /// Complexity: O(total text length).
-pub fn vcf_write_stream(s: &VCardStream) -> Str {
+pub fn vcf_write_stream(s: &VCardStream) -> Str
+  ensures: s.versions.len() == 0 => result.len() == 0;
+{
   var out = "";
   var c = 0;
   let cards = s.versions.len();
