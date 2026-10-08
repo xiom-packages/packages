@@ -363,7 +363,10 @@ fn _register_str(data: &Vec[UInt8], first: Int, n: Int, label: Str) -> Result[St
 /// CRC7 (generator x^7 + x^3 + 1) of the whole byte vector, returned as a
 /// 7-bit value. The SD command checksums 0x4A (CMD0) and 0x43 (CMD8)
 /// follow from this function. Complexity: O(data.len()).
-pub fn sd_crc7(data: &Vec[UInt8]) -> Int {
+pub fn sd_crc7(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0;
+  ensures: result <= 127;
+{
   return _crc7_first(data, data.len());
 }
 
@@ -371,7 +374,11 @@ pub fn sd_crc7(data: &Vec[UInt8]) -> Int {
 ///
 /// Err("sd.cid: register needs 16 bytes, have N") when the vector is not
 /// exactly 16 bytes. Complexity: O(1).
-pub fn sd_cid_crc(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn sd_cid_crc(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() != 16 => result is Err;
+  ensures: result is Ok => data.len() == 16;
+  ensures: result is Ok => result.value >= 0 && result.value <= 127;
+{
   if data.len() != SD_CID_LEN {
     return _err_int("sd.cid: register needs 16 bytes, have " + convert.int_to_string(data.len()));
   }
@@ -433,7 +440,10 @@ pub fn sd_cid_manufacturer_id(data: &Vec[UInt8]) -> Result[Int, Str] {
 /// Err("sd.cid: oem id byte at offset B is not printable (value V)") when
 /// a byte is outside 0x20..0x7E (B is the register byte offset 1..2).
 /// Complexity: O(1).
-pub fn sd_cid_oem_id(data: &Vec[UInt8]) -> Result[Str, Str] {
+pub fn sd_cid_oem_id(data: &Vec[UInt8]) -> Result[Str, Str]
+  ensures: data.len() != 16 => result is Err;
+  ensures: result is Ok => result.value.len() == 2;
+{
   if data.len() != SD_CID_LEN {
     return _err_str("sd.cid: register needs 16 bytes, have " + convert.int_to_string(data.len()));
   }
@@ -507,7 +517,10 @@ pub fn sd_cid_manufacturing_date(data: &Vec[UInt8]) -> Result[SdMdt, Str] {
 ///   5. a non-printable OEM id or product name byte -> the offset error;
 ///   6. CRC7 mismatch -> "sd.cid: crc7 mismatch: stored N, computed M".
 /// Complexity: O(1).
-pub fn sd_cid_parse(data: &Vec[UInt8]) -> Result[SdCid, Str] {
+pub fn sd_cid_parse(data: &Vec[UInt8]) -> Result[SdCid, Str]
+  ensures: data.len() != 16 => result is Err;
+  ensures: result is Ok => data.len() == 16;
+{
   if data.len() != SD_CID_LEN {
     return _err_cid("sd.cid: register needs 16 bytes, have " + convert.int_to_string(data.len()));
   }
@@ -657,7 +670,11 @@ fn _tran_unit_bps(unit: Int) -> Int {
 /// Err("sd.taac: value N out of range 0..255") outside a byte;
 /// Err("sd.taac: value N has reserved bit 7 set"); Err("sd.taac: time
 /// value 0 is reserved") for the reserved time value. Complexity: O(1).
-pub fn sd_taac_ns(taac: Int) -> Result[Int, Str] {
+pub fn sd_taac_ns(taac: Int) -> Result[Int, Str]
+  ensures: taac < 0 || taac > 255 => result is Err;
+  ensures: taac >= 128 => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 80000000;
+{
   if taac < 0 || taac > 255 {
     return _err_int("sd.taac: value " + convert.int_to_string(taac) + " out of range 0..255");
   }
@@ -679,7 +696,10 @@ pub fn sd_taac_ns(taac: Int) -> Result[Int, Str] {
 ///
 /// Err("sd.nsac: value N out of range 0..255") outside a byte.
 /// Complexity: O(1).
-pub fn sd_nsac_ns(nsac: Int) -> Result[Int, Str] {
+pub fn sd_nsac_ns(nsac: Int) -> Result[Int, Str]
+  ensures: nsac < 0 || nsac > 255 => result is Err;
+  ensures: result is Ok => result.value == nsac * 100;
+{
   if nsac < 0 || nsac > 255 {
     return _err_int("sd.nsac: value " + convert.int_to_string(nsac) + " out of range 0..255");
   }
@@ -724,7 +744,10 @@ pub fn sd_tran_speed_bps(b: Int) -> Result[Int, Str] {
 ///
 /// Err("sd.csd: register needs 16 bytes, have N") on a wrong length.
 /// Complexity: O(1).
-pub fn sd_csd_structure(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn sd_csd_structure(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() != 16 => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 3;
+{
   if data.len() != SD_CSD_LEN {
     return _err_int("sd.csd: register needs 16 bytes, have " + convert.int_to_string(data.len()));
   }
@@ -733,7 +756,11 @@ pub fn sd_csd_structure(data: &Vec[UInt8]) -> Result[Int, Str] {
 
 /// Human label for a CSD_STRUCTURE value: "1.0" (0), "2.0" (1), "3.0" (2)
 /// or "reserved" (3 and anything else).
-pub fn sd_csd_structure_label(structure: Int) -> Str {
+pub fn sd_csd_structure_label(structure: Int) -> Str
+  ensures: structure < 0 => result.len() == 8;
+  ensures: structure == 0 => result.len() == 3;
+  ensures: structure > 3 => result.len() == 8;
+{
   if structure == 0 {
     return "1.0";
   }
@@ -834,7 +861,10 @@ pub fn sd_csd_dsr_imp(data: &Vec[UInt8]) -> Result[Bool, Str] {
 /// Err("sd.csd: reserved CSD structure value 3") for structure 3;
 /// Err("sd.csd: CSD structure value 2 (v3.0) is not supported").
 /// Complexity: O(1).
-pub fn sd_csd_c_size(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn sd_csd_c_size(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() != 16 => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 4194303;
+{
   if data.len() != SD_CSD_LEN {
     return _err_int("sd.csd: register needs 16 bytes, have " + convert.int_to_string(data.len()));
   }
@@ -882,7 +912,10 @@ pub fn sd_csd_c_size_mult(data: &Vec[UInt8]) -> Result[Int, Str] {
 /// Err("sd.csd: WRITE_BL_LEN N is reserved (valid 9..11)") when the
 /// SECTOR_SIZE path is taken with a reserved write block length; the
 /// structure errors of sd_csd_c_size. Complexity: O(1).
-pub fn sd_csd_erase_unit_bytes(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn sd_csd_erase_unit_bytes(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() != 16 => result is Err;
+  ensures: result is Ok => result.value >= 512;
+{
   if data.len() != SD_CSD_LEN {
     return _err_int("sd.csd: register needs 16 bytes, have " + convert.int_to_string(data.len()));
   }
@@ -915,7 +948,10 @@ pub fn sd_csd_erase_unit_bytes(data: &Vec[UInt8]) -> Result[Int, Str] {
 /// Err("sd.csd: READ_BL_LEN N is reserved (valid 9..11)") on a reserved
 /// v1.0 block length; the structure errors of sd_csd_c_size.
 /// Complexity: O(1).
-pub fn sd_csd_capacity_bytes(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn sd_csd_capacity_bytes(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() != 16 => result is Err;
+  ensures: result is Ok => result.value >= 2048;
+{
   if data.len() != SD_CSD_LEN {
     return _err_int("sd.csd: register needs 16 bytes, have " + convert.int_to_string(data.len()));
   }
@@ -1086,7 +1122,10 @@ fn _c_size_for_structure(st: Int, data: &Vec[UInt8]) -> Int {
 ///
 /// Err("sd.ocr: register needs 4 bytes, have N") on a wrong length.
 /// Complexity: O(1).
-pub fn sd_ocr_value(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn sd_ocr_value(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() != 4 => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 4294967295;
+{
   if data.len() != SD_OCR_LEN {
     return _err_int("sd.ocr: register needs 4 bytes, have " + convert.int_to_string(data.len()));
   }
@@ -1141,7 +1180,11 @@ pub fn sd_ocr_voltage_mask(data: &Vec[UInt8]) -> Result[Int, Str] {
 ///
 /// Err("sd.ocr: voltage N out of range 2700..3500") and
 /// Err("sd.ocr: voltage N is not a multiple of 100"). Complexity: O(1).
-pub fn sd_ocr_voltage_bit(vdd_mv: Int) -> Result[Int, Str] {
+pub fn sd_ocr_voltage_bit(vdd_mv: Int) -> Result[Int, Str]
+  ensures: vdd_mv < 2700 || vdd_mv > 3500 => result is Err;
+  ensures: vdd_mv % 100 != 0 => result is Err;
+  ensures: result is Ok => result.value >= 15 && result.value <= 23;
+{
   if vdd_mv < 2700 || vdd_mv > 3500 {
     return _err_int("sd.ocr: voltage " + convert.int_to_string(vdd_mv) + " out of range 2700..3500");
   }
@@ -1239,7 +1282,11 @@ fn _spi_args_ok(index: Int, arg: Int) -> Result[Unit, Str] {
 /// Err("sd.spi: command index N out of range 0..63");
 /// Err("sd.spi: argument N does not fit in 32 bits").
 /// Complexity: O(1).
-pub fn sd_spi_command_frame(index: Int, arg: Int) -> Result[Vec[UInt8], Str] {
+pub fn sd_spi_command_frame(index: Int, arg: Int) -> Result[Vec[UInt8], Str]
+  ensures: index < 0 || index > 63 => result is Err;
+  ensures: arg < 0 || arg > 4294967295 => result is Err;
+  ensures: result is Ok => result.value.len() == 6;
+{
   let chk = _spi_args_ok(index, arg);
   if !chk.is_ok {
     return _err_bytes(chk.error);
@@ -1292,7 +1339,11 @@ pub fn sd_spi_cmd0_frame() -> Result[Vec[UInt8], Str] {
 /// Err("sd.spi: cmd8 voltage N out of range 0..15");
 /// Err("sd.spi: cmd8 check pattern N out of range 0..255").
 /// Complexity: O(1).
-pub fn sd_spi_cmd8_frame(vhs: Int, check: Int) -> Result[Vec[UInt8], Str] {
+pub fn sd_spi_cmd8_frame(vhs: Int, check: Int) -> Result[Vec[UInt8], Str]
+  ensures: vhs < 0 || vhs > 15 => result is Err;
+  ensures: check < 0 || check > 255 => result is Err;
+  ensures: result is Ok => result.value.len() == 6;
+{
   if vhs < 0 || vhs > 15 {
     return _err_bytes("sd.spi: cmd8 voltage " + convert.int_to_string(vhs) + " out of range 0..15");
   }

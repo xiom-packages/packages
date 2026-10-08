@@ -1,8 +1,6 @@
 # xiom.sd -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.sd`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/sd.xi` (`module xiom.sd`).
 Depends on `xiom.std`; the library module imports `xiom.convert`
 (`int_to_string`) and `xiom.string.builder` (`sb_to_str`); the tests also
@@ -532,3 +530,52 @@ Last verified: compiler 0.61.3,
   reference earlier in the function makes v0.61.3 lower the return into a
   stale borrow.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #45 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (36, across the 15 functions below) were
+added to `src/sd.xi` in the batch #45 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 21-test conformance suite
+exercises every contracted entry point (all 15 appear in
+`tests/test_conformance.xi`) and no clause trapped, so none was dropped. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.sd -TimeoutSec 90` runs
+ended `port: PASS (passed=21 failed=0 program_exit=0 exit=0)` with the
+clauses active (16.60 s and 16.39 s). None is claimed Z3-provable:
+`xiom-verify` was not run for this module and per the batch #37 finding a
+bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable column is
+"no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant,
+reads a bare `&mut` parameter or a struct-Result payload field. The guards
+keep the plan's proven families: bounds (`result >= 0 && result <= 127`,
+`... <= 4194303`, `... <= 80000000`), tag guard pairs (`result is Err` /
+`result is Ok`), constant-only payload lengths (`result.value.len() == 2`,
+`== 6`) and exact formulas (`result.value == nsac * 100`). Every planned
+literal already matched the source (e.g. v2.0's 22-bit C_SIZE bound
+`4194303`, the `8.0 x 10 ms` TAAC maximum `80000000`, the v1.0 capacity
+minimum `2048` = `(0 + 1) * 2^2 * 2^9`, and the erase-unit minimum `512`),
+so no expression needed refinement. The only cross-call is the body's
+non-re-entrant `sd_spi_cmd8_frame` -> `sd_spi_command_frame` delegation; no
+clause calls a helper. No probe-gated item applied and no doc/source
+mismatch was found.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `sd_crc7` | 2 | `result` in `0..127` | no | yes |
+| `sd_cid_crc` | 3 | length != 16 => `Err`; `Ok` => length 16 and `0..127` | no | yes |
+| `sd_cid_oem_id` | 2 | length != 16 => `Err`; `Ok` payload is 2 bytes | no | yes |
+| `sd_cid_parse` | 2 | length != 16 => `Err`; `Ok` => length 16 | no | yes |
+| `sd_taac_ns` | 3 | out-of-byte or bit 7 set => `Err`; `Ok` in `0..80000000` | no | yes |
+| `sd_nsac_ns` | 2 | out-of-byte => `Err`; `Ok` == `nsac * 100` | no | yes |
+| `sd_csd_structure` | 2 | length != 16 => `Err`; `Ok` in `0..3` | no | yes |
+| `sd_csd_structure_label` | 3 | negative => 8 chars; 0 => 3 chars; > 3 => 8 chars | no | yes |
+| `sd_csd_c_size` | 2 | length != 16 => `Err`; `Ok` in `0..4194303` | no | yes |
+| `sd_csd_erase_unit_bytes` | 2 | length != 16 => `Err`; `Ok` >= 512 | no | yes |
+| `sd_csd_capacity_bytes` | 2 | length != 16 => `Err`; `Ok` >= 2048 | no | yes |
+| `sd_ocr_value` | 2 | length != 4 => `Err`; `Ok` in `0..4294967295` | no | yes |
+| `sd_ocr_voltage_bit` | 3 | out-of-range or non-100 mV step => `Err`; `Ok` in `15..23` | no | yes |
+| `sd_spi_command_frame` | 3 | bad index/argument => `Err`; `Ok` payload is 6 bytes | no | yes |
+| `sd_spi_cmd8_frame` | 3 | bad VHS/check => `Err`; `Ok` payload is 6 bytes | no | yes |
