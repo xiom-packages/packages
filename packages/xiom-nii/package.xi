@@ -11,7 +11,7 @@
 
 package xiom_nii {
   name: "xiom.nii";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM NIfTI-1 header codec: 348-byte parse, validation and builder";
   categories: ["science"];
   keywords: ["nifti", "neuroimaging", "header", "format"];

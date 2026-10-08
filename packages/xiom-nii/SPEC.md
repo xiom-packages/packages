@@ -1,8 +1,6 @@
 # xiom.nii -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.nii`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/nii.xi` (`module xiom.nii`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`,
 `xiom.convert`, `xiom.encoding.hex`); the tests additionally use `xiom.io`
@@ -416,3 +414,65 @@ Last verified: compiler 0.61.3,
 - Tests compare `Str` values through `xiom.string.compare.str_compare`
   (BUG 17) and bind every `Vec` element read to a typed local.
 - The library imports only `xiom.std` modules and declares no FFI.
+
+## Contracts (batch #41 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/nii.xi` in the batch #41
+hardening pass (compiler v0.64.0; `package.xi` is left for the coordinator
+to bump at integration). 56 clauses over 23 entry points, all `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. The 16
+`&mut NiftiBuilder` setters are constrained to their by-value
+index/value/token parameters; no clause reads the `&mut` receiver. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.nii -TimeoutSec 60` runs
+ended `port: PASS (passed=18 failed=0 program_exit=0 exit=0)` with the
+clauses active (8.39 s and 7.85 s); no clause trapped.
+
+Every clause holds for hand-built values and structs: the guards keep the
+source's own validation branches, and only parameters, parameter fields
+(`NiftiHeader.raw`/`swapped`/`ext_flag`, `NiftiBuilder.raw`) and plain
+`Str`/`Int` returns are read. No clause reads a bare `&mut` parameter,
+indexes a vector, uses a module constant (offsets and sizes are inline
+literals), compares `Str` values with `==`, reads a struct-Result payload
+field or uses `result.value.0/.1`. The clause calls are the definitional
+`nii_datatype_bitpix` in `nii_datatype_known`, `nii_float_raw` in
+`nii_float_hex`, `_validate_header_bytes` in `nii_builder_finish`, and the
+`_read_u32_le`/`_read_i16_le`/`_magic_kind_of`/`_float_sign_negative` word
+reads in `_validate_header_bytes`; no callee calls its caller
+(non-re-entrant).
+
+One plan expression was refined: `nii_bitpix` is `result >= -32768 &&
+result <= 32767`. The plan's definitional
+`result == nii_datatype_bitpix(nii_datatype(h))` identity holds only for a
+parsed header (byte 72 carries the table bitpix); a hand-built
+`NiftiHeader` with a mismatched `datatype`/`bitpix` byte pair falsifies it,
+and the accessor is documented as returning the stored field. Nothing was
+dropped and no probe-gated items applied.
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it
+can emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `nii_datatype_bitpix` | `datatype != 2 && datatype != 4 && datatype != 8 && datatype != 16 && datatype != 32 && datatype != 64 => result == -1`; `datatype == 2 => result == 8`; `datatype == 4 => result == 16`; `datatype == 8 => result == 32`; `datatype == 16 => result == 32`; `datatype == 32 => result == 64`; `datatype == 64 => result == 64` | runtime-checked |
+| `nii_datatype_name` | `datatype != 2 && datatype != 4 && datatype != 8 && datatype != 16 && datatype != 32 && datatype != 64 => result.len() == 0`; `datatype == 2 \|\| datatype == 4 \|\| datatype == 8 => result.len() == 16`; `datatype == 16 \|\| datatype == 64 => result.len() == 18`; `datatype == 32 => result.len() == 20` | runtime-checked |
+| `nii_datatype_known` | `result == (nii_datatype_bitpix(datatype) >= 0)` | runtime-checked |
+| `_validate_header_bytes` | `_read_u32_le(v, 0) != 348 => result is Err`; `(_read_i16_le(v, 40) < 0 \|\| _read_i16_le(v, 42) < 0 \|\| _read_i16_le(v, 44) < 0 \|\| _read_i16_le(v, 46) < 0 \|\| _read_i16_le(v, 48) < 0 \|\| _read_i16_le(v, 50) < 0 \|\| _read_i16_le(v, 52) < 0 \|\| _read_i16_le(v, 54) < 0) => result is Err`; `nii_datatype_bitpix(_read_i16_le(v, 70)) < 0 => result is Err`; `_read_i16_le(v, 72) != nii_datatype_bitpix(_read_i16_le(v, 70)) => result is Err`; `_magic_kind_of(v) < 0 => result is Err`; `_float_sign_negative(v, 108) => result is Err`; `_read_u32_le(v, 0) == 348 && _read_i16_le(v, 40) >= 0 && _read_i16_le(v, 42) >= 0 && _read_i16_le(v, 44) >= 0 && _read_i16_le(v, 46) >= 0 && _read_i16_le(v, 48) >= 0 && _read_i16_le(v, 50) >= 0 && _read_i16_le(v, 52) >= 0 && _read_i16_le(v, 54) >= 0 && nii_datatype_bitpix(_read_i16_le(v, 70)) >= 0 && _read_i16_le(v, 72) == nii_datatype_bitpix(_read_i16_le(v, 70)) && _magic_kind_of(v) >= 0 && !_float_sign_negative(v, 108) => result is Ok` | runtime-checked |
+| `nii_parse` | `buffer.len() < 348 => result is Err`; `result is Ok => buffer.len() >= 348` | runtime-checked |
+| `nii_to_bytes` | `result.len() == h.raw.len()` | runtime-checked |
+| `nii_swapped` | `result == h.swapped` | runtime-checked |
+| `nii_ext_flag` | `result == h.ext_flag` | runtime-checked |
+| `nii_dim` | `i < 0 \|\| i > 7 => result is Err`; `i >= 0 && i <= 7 => result is Ok` | runtime-checked |
+| `nii_bitpix` | `result >= -32768 && result <= 32767` | runtime-checked |
+| `nii_magic_kind` | `result >= -1 && result <= 1` | runtime-checked |
+| `nii_float_raw` | `field < 0 \|\| field > 15 => result is Err`; `field >= 0 && field <= 15 => result is Ok` | runtime-checked |
+| `nii_float_hex` | `nii_float_raw(h, field) is Err => result is Err`; `nii_float_raw(h, field) is Ok => result is Ok && result.value.len() == 8` | runtime-checked |
+| `nii_pixdim_raw` | `i < 0 \|\| i > 7 => result is Err`; `i >= 0 && i <= 7 => result is Ok` | runtime-checked |
+| `nii_srow_raw` | `row < 0 \|\| row > 2 \|\| col < 0 \|\| col > 3 => result is Err`; `row >= 0 && row <= 2 && col >= 0 && col <= 3 => result is Ok` | runtime-checked |
+| `nii_builder_new` | `result.raw.len() == 348` | runtime-checked |
+| `nii_builder_finish` | `_validate_header_bytes(b.raw) is Err => result is Err`; `_validate_header_bytes(b.raw) is Ok => result is Ok` | runtime-checked |
+| `nii_builder_set_dim` | `i < 0 \|\| i > 7 => result is Err`; `v < 0 => result is Err`; `v > 32767 => result is Err`; `i >= 0 && i <= 7 && v >= 0 && v <= 32767 => result is Ok` | runtime-checked |
+| `nii_builder_set_float` | `field < 0 \|\| field > 15 => result is Err`; `token.len() != 4 => result is Err`; `field >= 0 && field <= 15 && token.len() == 4 => result is Ok` | runtime-checked |
+| `nii_builder_set_pixdim` | `i < 0 \|\| i > 7 => result is Err`; `token.len() != 4 => result is Err`; `i >= 0 && i <= 7 && token.len() == 4 => result is Ok` | runtime-checked |
+| `nii_builder_set_srow` | `row < 0 \|\| row > 2 \|\| col < 0 \|\| col > 3 => result is Err`; `token.len() != 4 => result is Err`; `row >= 0 && row <= 2 && col >= 0 && col <= 3 && token.len() == 4 => result is Ok` | runtime-checked |
+| `nii_builder_set_magic` | `kind != 0 && kind != 1 => result is Err`; `(kind == 0 \|\| kind == 1) => result is Ok` | runtime-checked |
+| `nii_builder_set_descrip` | `s.len() > 80 => result is Err`; `s.len() <= 80 => result is Ok` | runtime-checked |

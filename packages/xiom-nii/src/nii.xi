@@ -441,7 +441,15 @@ fn _text_at(v: &Vec[UInt8], off: Int, size: Int) -> Str {
 
 /// Documented bitpix for a NIfTI-1 datatype code, or -1 when the code is not
 /// in the documented NIFTI_TYPE_UINT8..NIFTI_TYPE_FLOAT64 range.
-pub fn nii_datatype_bitpix(datatype: Int) -> Int {
+pub fn nii_datatype_bitpix(datatype: Int) -> Int
+  ensures: datatype != 2 && datatype != 4 && datatype != 8 && datatype != 16 && datatype != 32 && datatype != 64 => result == -1;
+  ensures: datatype == 2 => result == 8;
+  ensures: datatype == 4 => result == 16;
+  ensures: datatype == 8 => result == 32;
+  ensures: datatype == 16 => result == 32;
+  ensures: datatype == 32 => result == 64;
+  ensures: datatype == 64 => result == 64;
+{
   if datatype == 2 { return 8; }
   if datatype == 4 { return 16; }
   if datatype == 8 { return 32; }
@@ -453,7 +461,12 @@ pub fn nii_datatype_bitpix(datatype: Int) -> Int {
 
 /// Documented NIfTI-1 datatype name for a code, or "" when the code is not
 /// in the documented table.
-pub fn nii_datatype_name(datatype: Int) -> Str {
+pub fn nii_datatype_name(datatype: Int) -> Str
+  ensures: datatype != 2 && datatype != 4 && datatype != 8 && datatype != 16 && datatype != 32 && datatype != 64 => result.len() == 0;
+  ensures: datatype == 2 || datatype == 4 || datatype == 8 => result.len() == 16;
+  ensures: datatype == 16 || datatype == 64 => result.len() == 18;
+  ensures: datatype == 32 => result.len() == 20;
+{
   if datatype == 2 { return "NIFTI_TYPE_UINT8"; }
   if datatype == 4 { return "NIFTI_TYPE_INT16"; }
   if datatype == 8 { return "NIFTI_TYPE_INT32"; }
@@ -464,7 +477,9 @@ pub fn nii_datatype_name(datatype: Int) -> Str {
 }
 
 /// True when `datatype` is in the documented table.
-pub fn nii_datatype_known(datatype: Int) -> Bool {
+pub fn nii_datatype_known(datatype: Int) -> Bool
+  ensures: result == (nii_datatype_bitpix(datatype) >= 0);
+{
   return nii_datatype_bitpix(datatype) >= 0;
 }
 
@@ -476,7 +491,15 @@ pub fn nii_datatype_known(datatype: Int) -> Bool {
 /// (1) sizeof_hdr == 348, (2) all dim[] >= 0, (3) datatype in the table,
 /// (4) bitpix == nii_datatype_bitpix(datatype), (5) magic matches,
 /// (6) vox_offset >= 0 (IEEE-754 sign bit clear).
-fn _validate_header_bytes(v: &Vec[UInt8]) -> Result[Unit, Str] {
+fn _validate_header_bytes(v: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: _read_u32_le(v, 0) != 348 => result is Err;
+  ensures: (_read_i16_le(v, 40) < 0 || _read_i16_le(v, 42) < 0 || _read_i16_le(v, 44) < 0 || _read_i16_le(v, 46) < 0 || _read_i16_le(v, 48) < 0 || _read_i16_le(v, 50) < 0 || _read_i16_le(v, 52) < 0 || _read_i16_le(v, 54) < 0) => result is Err;
+  ensures: nii_datatype_bitpix(_read_i16_le(v, 70)) < 0 => result is Err;
+  ensures: _read_i16_le(v, 72) != nii_datatype_bitpix(_read_i16_le(v, 70)) => result is Err;
+  ensures: _magic_kind_of(v) < 0 => result is Err;
+  ensures: _float_sign_negative(v, 108) => result is Err;
+  ensures: _read_u32_le(v, 0) == 348 && _read_i16_le(v, 40) >= 0 && _read_i16_le(v, 42) >= 0 && _read_i16_le(v, 44) >= 0 && _read_i16_le(v, 46) >= 0 && _read_i16_le(v, 48) >= 0 && _read_i16_le(v, 50) >= 0 && _read_i16_le(v, 52) >= 0 && _read_i16_le(v, 54) >= 0 && nii_datatype_bitpix(_read_i16_le(v, 70)) >= 0 && _read_i16_le(v, 72) == nii_datatype_bitpix(_read_i16_le(v, 70)) && _magic_kind_of(v) >= 0 && !_float_sign_negative(v, 108) => result is Ok;
+{
   let size = _read_u32_le(v, _OFF_SIZEOF_HDR);
   if size != NII_HEADER_LEN {
     return _err_unit("nii: unsupported sizeof_hdr " + convert.int_to_string(size));
@@ -524,7 +547,10 @@ fn _validate_header_bytes(v: &Vec[UInt8]) -> Result[Unit, Str] {
 /// Err(Str) messages: `nii: buffer too small for header`,
 /// `nii: unsupported sizeof_hdr <n>` (n is the little-endian decode of bytes
 /// 0..4), and the validation catalog.
-pub fn nii_parse(buffer: &Vec[UInt8]) -> Result[NiftiHeader, Str] {
+pub fn nii_parse(buffer: &Vec[UInt8]) -> Result[NiftiHeader, Str]
+  ensures: buffer.len() < 348 => result is Err;
+  ensures: result is Ok => buffer.len() >= 348;
+{
   let total = buffer.len();
   if total < NII_HEADER_LEN {
     return _err_header("nii: buffer too small for header");
@@ -566,7 +592,9 @@ pub fn nii_parse(buffer: &Vec[UInt8]) -> Result[NiftiHeader, Str] {
 /// Re-emit the canonical little-endian 348 header bytes. A header parsed
 /// from a big-endian source comes out in canonical little-endian form.
 /// Complexity: O(348).
-pub fn nii_to_bytes(h: &NiftiHeader) -> Vec[UInt8] {
+pub fn nii_to_bytes(h: &NiftiHeader) -> Vec[UInt8]
+  ensures: result.len() == h.raw.len();
+{
   let raw: Vec[UInt8] = h.raw;
   var out = Vec[UInt8].new();
   var i = 0;
@@ -580,14 +608,18 @@ pub fn nii_to_bytes(h: &NiftiHeader) -> Vec[UInt8] {
 
 /// True when the source buffer was big-endian and got byteswapped at parse
 /// time.
-pub fn nii_swapped(h: &NiftiHeader) -> Bool {
+pub fn nii_swapped(h: &NiftiHeader) -> Bool
+  ensures: result == h.swapped;
+{
   return h.swapped;
 }
 
 /// Extension-flag byte at absolute offset 348: 0 means no extensions,
 /// nonzero means extensions are present; NII_EXT_UNKNOWN when the parsed
 /// buffer ended at the header. Never validated (any byte is reported as-is).
-pub fn nii_ext_flag(h: &NiftiHeader) -> Int {
+pub fn nii_ext_flag(h: &NiftiHeader) -> Int
+  ensures: result == h.ext_flag;
+{
   return h.ext_flag;
 }
 
@@ -609,7 +641,10 @@ pub fn nii_dim_count(h: &NiftiHeader) -> Int {
 
 /// dim[i] for i in 0..7 (0 is the dimension count, 1..7 the extents).
 /// Err("nii: dim index out of range") when i is outside 0..7.
-pub fn nii_dim(h: &NiftiHeader, i: Int) -> Result[Int, Str] {
+pub fn nii_dim(h: &NiftiHeader, i: Int) -> Result[Int, Str]
+  ensures: i < 0 || i > 7 => result is Err;
+  ensures: i >= 0 && i <= 7 => result is Ok;
+{
   if i < 0 || i > 7 {
     return _err_int("nii: dim index out of range");
   }
@@ -625,7 +660,9 @@ pub fn nii_datatype(h: &NiftiHeader) -> Int {
 
 /// bitpix field; always equal to nii_datatype_bitpix(nii_datatype(h)) for a
 /// parsed header.
-pub fn nii_bitpix(h: &NiftiHeader) -> Int {
+pub fn nii_bitpix(h: &NiftiHeader) -> Int
+  ensures: result >= -32768 && result <= 32767;
+{
   let raw: Vec[UInt8] = h.raw;
   return _read_i16_le(&raw, _OFF_BITPIX);
 }
@@ -675,7 +712,9 @@ pub fn nii_xyzt_units(h: &NiftiHeader) -> Int {
 
 /// Magic kind: NII_MAGIC_SINGLE (`n+1\0`, single file) or NII_MAGIC_PAIR
 /// (`ni1\0`, header pair). Always valid for a parsed header.
-pub fn nii_magic_kind(h: &NiftiHeader) -> Int {
+pub fn nii_magic_kind(h: &NiftiHeader) -> Int
+  ensures: result >= -1 && result <= 1;
+{
   let raw: Vec[UInt8] = h.raw;
   return _magic_kind_of(&raw);
 }
@@ -735,7 +774,10 @@ fn _float_field_offset(field: Int) -> Int {
 /// Raw 4-byte little-endian float32 token for a singleton float field
 /// (field ids are the NII_FLOAT_* constants).
 /// Err("nii: float field out of range") for an undocumented id.
-pub fn nii_float_raw(h: &NiftiHeader, field: Int) -> Result[Vec[UInt8], Str] {
+pub fn nii_float_raw(h: &NiftiHeader, field: Int) -> Result[Vec[UInt8], Str]
+  ensures: field < 0 || field > 15 => result is Err;
+  ensures: field >= 0 && field <= 15 => result is Ok;
+{
   let off = _float_field_offset(field);
   if off < 0 {
     return _err_bytes("nii: float field out of range");
@@ -746,7 +788,10 @@ pub fn nii_float_raw(h: &NiftiHeader, field: Int) -> Result[Vec[UInt8], Str] {
 
 /// Lowercase 8-character hex token for a singleton float field.
 /// Err("nii: float field out of range") for an undocumented id.
-pub fn nii_float_hex(h: &NiftiHeader, field: Int) -> Result[Str, Str] {
+pub fn nii_float_hex(h: &NiftiHeader, field: Int) -> Result[Str, Str]
+  ensures: nii_float_raw(h, field) is Err => result is Err;
+  ensures: nii_float_raw(h, field) is Ok => result is Ok && result.value.len() == 8;
+{
   let r = nii_float_raw(h, field);
   if !r.is_ok {
     let msg: Str = r.error;
@@ -758,7 +803,10 @@ pub fn nii_float_hex(h: &NiftiHeader, field: Int) -> Result[Str, Str] {
 
 /// Raw 4-byte little-endian token for pixdim[i], i in 0..7.
 /// Err("nii: pixdim index out of range") otherwise.
-pub fn nii_pixdim_raw(h: &NiftiHeader, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn nii_pixdim_raw(h: &NiftiHeader, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 || i > 7 => result is Err;
+  ensures: i >= 0 && i <= 7 => result is Ok;
+{
   if i < 0 || i > 7 {
     return _err_bytes("nii: pixdim index out of range");
   }
@@ -781,7 +829,10 @@ pub fn nii_pixdim_hex(h: &NiftiHeader, i: Int) -> Result[Str, Str] {
 /// Raw 4-byte little-endian token for srow_{row}[col], row in 0..2 and col in
 /// 0..3 (the 12 srow_x/y/z float32 values).
 /// Err("nii: srow index out of range") otherwise.
-pub fn nii_srow_raw(h: &NiftiHeader, row: Int, col: Int) -> Result[Vec[UInt8], Str] {
+pub fn nii_srow_raw(h: &NiftiHeader, row: Int, col: Int) -> Result[Vec[UInt8], Str]
+  ensures: row < 0 || row > 2 || col < 0 || col > 3 => result is Err;
+  ensures: row >= 0 && row <= 2 && col >= 0 && col <= 3 => result is Ok;
+{
   if row < 0 || row > 2 || col < 0 || col > 3 {
     return _err_bytes("nii: srow index out of range");
   }
@@ -809,7 +860,9 @@ pub fn nii_srow_hex(h: &NiftiHeader, row: Int, col: Int) -> Result[Str, Str] {
 /// sizeof_hdr 348, dim [3,1,1,1,1,1,1,1], datatype NIFTI_TYPE_UINT8 with
 /// bitpix 8, pixdim[0..7] = 1.0f (raw 0000803f), vox_offset = 352.0f
 /// (raw 0000b043), every other byte zero and magic `n+1\0`.
-pub fn nii_builder_new() -> NiftiBuilder {
+pub fn nii_builder_new() -> NiftiBuilder
+  ensures: result.raw.len() == 348;
+{
   var raw = Vec[UInt8].new();
   var i = 0;
   while i < NII_HEADER_LEN {
@@ -851,7 +904,10 @@ pub fn nii_builder_new() -> NiftiBuilder {
 /// Validate the assembled header (same rules and order as nii_parse) and
 /// return the canonical 348 little-endian bytes. Errors leave the builder
 /// unchanged. Complexity: O(348).
-pub fn nii_builder_finish(b: &NiftiBuilder) -> Result[Vec[UInt8], Str] {
+pub fn nii_builder_finish(b: &NiftiBuilder) -> Result[Vec[UInt8], Str]
+  ensures: _validate_header_bytes(b.raw) is Err => result is Err;
+  ensures: _validate_header_bytes(b.raw) is Ok => result is Ok;
+{
   let raw: Vec[UInt8] = b.raw;
   let vr = _validate_header_bytes(&raw);
   if !vr.is_ok {
@@ -872,7 +928,12 @@ pub fn nii_builder_finish(b: &NiftiBuilder) -> Result[Vec[UInt8], Str] {
 /// Err("nii: dim index out of range") for i outside 0..7;
 /// Err("nii: negative dimension") for v < 0;
 /// Err("nii: dimension out of range") for v > 32767.
-pub fn nii_builder_set_dim(b: &mut NiftiBuilder, i: Int, v: Int) -> Result[Unit, Str] {
+pub fn nii_builder_set_dim(b: &mut NiftiBuilder, i: Int, v: Int) -> Result[Unit, Str]
+  ensures: i < 0 || i > 7 => result is Err;
+  ensures: v < 0 => result is Err;
+  ensures: v > 32767 => result is Err;
+  ensures: i >= 0 && i <= 7 && v >= 0 && v <= 32767 => result is Ok;
+{
   if i < 0 || i > 7 {
     return _err_unit("nii: dim index out of range");
   }
@@ -903,7 +964,11 @@ pub fn nii_builder_set_datatype(b: &mut NiftiBuilder, datatype: Int) -> Result[U
 /// (field ids are the NII_FLOAT_* constants).
 /// Err("nii: float field out of range") for an undocumented id;
 /// Err("nii: float token must be 4 bytes") when token.len() != 4.
-pub fn nii_builder_set_float(b: &mut NiftiBuilder, field: Int, token: &Vec[UInt8]) -> Result[Unit, Str] {
+pub fn nii_builder_set_float(b: &mut NiftiBuilder, field: Int, token: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: field < 0 || field > 15 => result is Err;
+  ensures: token.len() != 4 => result is Err;
+  ensures: field >= 0 && field <= 15 && token.len() == 4 => result is Ok;
+{
   let off = _float_field_offset(field);
   if off < 0 {
     return _err_unit("nii: float field out of range");
@@ -918,7 +983,11 @@ pub fn nii_builder_set_float(b: &mut NiftiBuilder, field: Int, token: &Vec[UInt8
 /// Set pixdim[i] from a raw 4-byte little-endian token.
 /// Err("nii: pixdim index out of range") for i outside 0..7;
 /// Err("nii: float token must be 4 bytes") when token.len() != 4.
-pub fn nii_builder_set_pixdim(b: &mut NiftiBuilder, i: Int, token: &Vec[UInt8]) -> Result[Unit, Str] {
+pub fn nii_builder_set_pixdim(b: &mut NiftiBuilder, i: Int, token: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: i < 0 || i > 7 => result is Err;
+  ensures: token.len() != 4 => result is Err;
+  ensures: i >= 0 && i <= 7 && token.len() == 4 => result is Ok;
+{
   if i < 0 || i > 7 {
     return _err_unit("nii: pixdim index out of range");
   }
@@ -933,7 +1002,11 @@ pub fn nii_builder_set_pixdim(b: &mut NiftiBuilder, i: Int, token: &Vec[UInt8]) 
 /// col in 0..3.
 /// Err("nii: srow index out of range") otherwise;
 /// Err("nii: float token must be 4 bytes") when token.len() != 4.
-pub fn nii_builder_set_srow(b: &mut NiftiBuilder, row: Int, col: Int, token: &Vec[UInt8]) -> Result[Unit, Str] {
+pub fn nii_builder_set_srow(b: &mut NiftiBuilder, row: Int, col: Int, token: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: row < 0 || row > 2 || col < 0 || col > 3 => result is Err;
+  ensures: token.len() != 4 => result is Err;
+  ensures: row >= 0 && row <= 2 && col >= 0 && col <= 3 && token.len() == 4 => result is Ok;
+{
   if row < 0 || row > 2 || col < 0 || col > 3 {
     return _err_unit("nii: srow index out of range");
   }
@@ -1019,7 +1092,10 @@ pub fn nii_builder_set_xyzt_units(b: &mut NiftiBuilder, v: Int) -> Result[Unit, 
 /// Set the magic kind: NII_MAGIC_SINGLE (`n+1\0`) or NII_MAGIC_PAIR
 /// (`ni1\0`).
 /// Err("nii: invalid magic kind") otherwise.
-pub fn nii_builder_set_magic(b: &mut NiftiBuilder, kind: Int) -> Result[Unit, Str] {
+pub fn nii_builder_set_magic(b: &mut NiftiBuilder, kind: Int) -> Result[Unit, Str]
+  ensures: kind != 0 && kind != 1 => result is Err;
+  ensures: (kind == 0 || kind == 1) => result is Ok;
+{
   if kind != NII_MAGIC_SINGLE && kind != NII_MAGIC_PAIR {
     return _err_unit("nii: invalid magic kind");
   }
@@ -1059,7 +1135,10 @@ fn _set_text_field(b: &mut NiftiBuilder, off: Int, size: Int, s: Str) -> Result[
 
 /// Set descrip (at most 80 bytes, NUL-padded).
 /// Err("nii: text too long") when the string exceeds 80 bytes.
-pub fn nii_builder_set_descrip(b: &mut NiftiBuilder, s: Str) -> Result[Unit, Str] {
+pub fn nii_builder_set_descrip(b: &mut NiftiBuilder, s: Str) -> Result[Unit, Str]
+  ensures: s.len() > 80 => result is Err;
+  ensures: s.len() <= 80 => result is Ok;
+{
   return _set_text_field(b, _OFF_DESCRIP, _DESCRIP_LEN, s);
 }
 
