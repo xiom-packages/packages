@@ -1,6 +1,6 @@
 # xiom.wkt -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.wkt` (`src/wkt.xi`). Pure XIOM, no FFI.
 Tests: `tests/test_conformance.xi` (module `wkt_tests`, 27 checks).
 
@@ -318,3 +318,53 @@ repository:
   resolver does not find `module xiom.wkt`, and importing the module fails
   with "undefined variable" errors while the file still type-checks stand
   alone.
+
+## Contracts (batch #46 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (38, across the 15 functions below) were
+added to `src/wkt.xi` in the batch #46 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged and
+no clause changes what the module accepts or returns. Every clause is enforced
+as a runtime check; the 27-check conformance suite exercises every contracted
+entry point and no clause trapped, so none was dropped or refined. Two
+consecutive green `& .\scripts\port.ps1 -Package xiom.wkt -TimeoutSec 90` runs
+ended `port: PASS (passed=27 failed=0 program_exit=0 exit=0)` with the clauses
+active (72.74 s and 60.56 s). No clause is claimed Z3-provable: `xiom-verify`
+was not run for this module, and per the batch #37 finding a bare
+`[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable column is "no"
+throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant, reads
+a `&mut` parameter, or uses `result.value.0/.1`. Guards keep the plan's
+families: tag guards (`result is Ok` / `result is Err`, `result =>`,
+`!result`), sentinels (`result == -1`, `result == 0`, `result.len() == 0`),
+bounds (`i < 0`, `i >= doc.kinds.len()`, `result != -1 => i >= 0 && i <
+doc.markers.len()`), Bool variants (`i < 0 => result` for `wkt_is_empty`) and
+exact formulas (`result == doc.kinds.len()`, `result == doc.xs.len()`). The
+only cross-call is the definitional `wkt_normalize` -> `wkt_parse` tag mirror
+(`wkt_parse(text) is Err => result is Err`, `is Ok => is Ok`); `wkt_parse`
+never returns to `wkt_normalize`, so the pair is non-re-entrant. Every
+accessor's guard matches its internal sentinel path, so the clauses hold for
+parser-produced and hand-built (empty or drifted) `WktDoc` values alike;
+`wkt_type` is the only accessor whose guarantee is two-way (non-empty result
+exactly when `i` is in range).
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `wkt_parse` | 2 | empty text => `Err`; `Ok` implies non-empty text | no | yes |
+| `wkt_normalize` | 2 | `wkt_parse(text)` `Err` => `Err`; `Ok` => `Ok` | no | yes |
+| `wkt_write` | 2 | zero kinds => empty text; kinds present => non-empty text | no | yes |
+| `wkt_geometry_count` | 1 | `result == doc.kinds.len()` | no | yes |
+| `wkt_type` | 4 | out-of-range `i` => `""`; `""` exactly when out of range | no | yes |
+| `wkt_marker` | 3 | out-of-range `i` => `-1`; `!= -1` implies in range | no | yes |
+| `wkt_coord_arity` | 3 | out-of-range `i` => `-1`; `!= -1` implies in range | no | yes |
+| `wkt_is_empty` | 3 | out-of-range `i` => `true`; `false` implies in range | no | yes |
+| `wkt_parent` | 3 | out-of-range `i` => `-1`; `!= -1` implies in range | no | yes |
+| `wkt_child_count` | 3 | out-of-range `i` => `0`; `> 0` implies in range | no | yes |
+| `wkt_child` | 3 | bad `i`/`k` => `-1`; `!= -1` implies in range and `k >= 0` | no | yes |
+| `wkt_point_count` | 3 | out-of-range `i` => `0`; `> 0` implies in range | no | yes |
+| `wkt_ring_count` | 3 | out-of-range `i` => `0`; `> 0` implies in range | no | yes |
+| `wkt_coord_count` | 1 | `result == doc.xs.len()` | no | yes |
+| `wkt_x` | 2 | negative/over-length `p` => `""` | no | yes |
