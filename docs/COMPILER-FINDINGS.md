@@ -554,11 +554,13 @@ STILL OPEN on v0.64.1 (evidence re-run):
   `grpc` 0/2, `protobuf` 0/1, `sqlite` 5/26, `opengl` 6/33, `vulkan` 3/21.
   **Catalog-dep rehearsal sweep (consumer harness, 2026-10-08 evening):** `rest`,
   `protobuf`, `sqlite`, `opengl`, `vulkan` are **COMPILE-CLEAN** as catalog deps (0
-  errors with an import-only consumer on v0.64.1); **`grpc` is RED with 6 T001
-  "ambiguous function exported by multiple imported modules"** (root `grpc.xi` +
-  bare-named `src/client|server|types.xi` double-identify in the consumer catalog, not
-  extern-unsafe) -- queue a grpc compat pass (module identity/renames) with the harness as
-  the acceptance test. Harness caveat: source-roots should list each module dir once;
+  errors with an import-only consumer on v0.64.1); **`grpc` FIXED in 0.1.1** -- the 6 T001
+  "ambiguous function exported by multiple imported modules" came from grpc.xi's raw extern
+  declarations colliding with the thin submodule wrappers (`src/client|server.xi`); the fix
+  renames the wrappers (`srv_*`/`cli_*`) and keeps every raw extern name (linker symbols
+  unchanged -- a first pass that renamed the externs was rejected: v0.64.1 has no
+  `link_name`/alias and it would have broken real libgrpc linkage). Acceptance rerun:
+  consumer harness 0 T001, port 36/36 x2 (`82fac130`). Harness caveat: source-roots should list each module dir once;
   http's root-located module needs the package root, not `src/`.
 
 ## v0.64.1 extern-unsafe enforcement -- follow-ups (2026-10-08, xiom.http compat pass)
