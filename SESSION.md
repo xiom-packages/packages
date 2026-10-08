@@ -14,6 +14,29 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-08 11:30Z (batch #41 COMPLETE + PUBLISHED `eco-v0.1.91`; two new compiler findings recorded; supersedes the 11:10Z block below):**
+- **Batch #41 DONE + PUBLISHED (`eco-v0.1.91`, run `37769875810` SUCCESS; all six live at
+  0.1.2-0.1.3):** `tftp` 0.1.2 (78 clauses; 24/24; `5209efd7`/`300f4a77`), `dtb` 0.1.3
+  (38; 18/18; `3daa4787`/`d7e9f15d`), `rtc` 0.1.3 (33; 18/18; `8a78ec9e`/`aa4884dc`),
+  `pop3` 0.1.2 (54; 27/27; `1c166cd0`/`4a1bdf7c`), `nii` 0.1.2 (56; 18/18; `7d9c7f03`/
+  `7e8c58c2`), `edl` 0.1.2 (38; 22/22; `39af9193`/`b53e04ba`); all x2 green on v0.64.0
+  (297 clauses total); wrap `0329d910`. **~49 zero-clause stable carriers remain**
+  (next: `bencode` ~1105, rescan at batch #42).
+- **New compiler findings (v0.64.0, batch #41 probes; `docs/COMPILER-FINDINGS.md`
+  `41817131`):** (1) `Result` equality is unusable -- `result == helper(...)` traps at
+  runtime for `Vec` payloads (fresh allocations unequal) and fails codegen for struct
+  payloads (`icmp eq %struct`); use tag guard pairs. (2) `expr is Ok(<literal>)` ignores
+  the literal payload (matches any `Ok`; probe `tftp_op(data) is Ok(1)` matched an
+  Ok(2) input); compare the underlying value explicitly. Both were worked around in the
+  tftp clauses (status pairs + `_u16(data,0) == N`). Two porters dropped hand-built-
+  falsifiable plan items (dtb vector-index shapes; edl parse-only invariants) per rule.
+- **ORBITDB response recorded** (`docs/PACKAGE-WISHLIST.md` §6; btree gate MET, wal
+  format agreed, durable reconciliation order; queued xiom-wal then xiom-btree).
+- Bindings sdl3 in progress; v0.64.1 NOT released (re-checked 11:26Z); grpc staged.
+  Credential: `Lefteris-Notas` active.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-08 11:10Z (batch #40 COMPLETE + PUBLISHED `eco-v0.1.90`; ORBITDB response recorded; supersedes the 10:55Z block below):**
 - **Batch #40 DONE + PUBLISHED (`eco-v0.1.90`, run `37767589894` SUCCESS; all six live
   at 0.1.2):** `syslog` (30 clauses; 24/24; `2d4978ad`/`4b084fe4`), `ldif` (45; 22/22;
@@ -1745,14 +1768,16 @@ Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
 NO XIOM_RUNTIME_DIR needed. Validate 519/0; guard 505/465/40/0 (re-check at start).
-Batch #40 is DONE + PUBLISHED (`eco-v0.1.90`, run 37767589894): syslog 0.1.2, ldif 0.1.2,
-acpi 0.1.2, iso8583 0.1.2, fits 0.1.2, vcf 0.1.2 -- all live-verified. ~55 zero-clause
-stable carriers remain. PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-10 is
-Linux-target-only (Windows probe green: packages\xiom-kv\tests\probe_kv_get_str.xi).
-Bindings: xiom.sqlite 0.2.0 LIVE (`eco-v0.1.89`, allowlist 505); sdl3 in progress;
-hook contract `port.args.json` (BINDINGS-LANE.md §10). ORBITDB/XVECTOR names frozen
-(PACKAGE-WISHLIST §6); ORBITDB extraction queue: xiom-wal then xiom-btree (ops scope +
-allowlist at build-green). `option` stays excluded.
+Batch #41 is DONE + PUBLISHED (`eco-v0.1.91`, run 37769875810): tftp 0.1.2, dtb 0.1.3,
+rtc 0.1.3, pop3 0.1.2, nii 0.1.2, edl 0.1.2 -- all live-verified. ~49 zero-clause stable
+carriers remain. New v0.64.0 findings: `Result` equality traps/fails codegen and
+`is Ok(<literal>)` ignores the payload -- do NOT use either shape in clauses/source.
+PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-10 is Linux-target-only (Windows
+probe green: packages\xiom-kv\tests\probe_kv_get_str.xi). Bindings: xiom.sqlite 0.2.0
+LIVE (`eco-v0.1.89`, allowlist 505); sdl3 in progress; hook contract `port.args.json`
+(BINDINGS-LANE.md §10). ORBITDB/XVECTOR names frozen (PACKAGE-WISHLIST §6); ORBITDB
+extraction queue: xiom-wal then xiom-btree (ops scope + allowlist at build-green).
+`option` stays excluded.
 
 CREDENTIAL NOTE: `gh auth status` may show `Lefteris-Ngonart` active, which has only PULL
 on this repo (403 on push). Switch to `Lefteris-Notas` for pushes/gate approvals
@@ -1764,14 +1789,14 @@ Start: git fetch; git status -sb; git log -1; then
   & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Batch #41 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
+1. Batch #42 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
    -Detailed` for the name list; size them by total non-test .xi lines per package), skip
-   `option`; the next smallest after vcf is `tftp` (~1060 lines; verify with the sizing
+   `option`; the next smallest after edl is `bencode` (~1105 lines; verify with the sizing
    scan, then the next five). Read-only explore pre-plan (one explore task; IF its final
    message comes back EMPTY, resume it with `variant: low` + a "plan only, no preamble"
    prompt -- recovered every time since batch #38). Six background `task` porters with the
-   brief template `%TEMP%\kilo\batch40-porter-brief.md` retargeted (batch #41, plan
-   `%TEMP%\kilo\batch41-clause-plan.md`, `## Contracts (batch #41 hardening pass, 2026-10-XX)`).
+   brief template `%TEMP%\kilo\batch41-porter-brief.md` retargeted (batch #42, plan
+   `%TEMP%\kilo\batch42-clause-plan.md`, `## Contracts (batch #42 hardening pass, 2026-10-XX)`).
    Coordinator integrates as reports land: patch bump per CURRENT version, port x2
    post-bump, byte-level bracket scan, feat commit exact files, record with the REAL sha
    and `-RunBy task:ses_...`; wrap + publish the next eco tag (generate_index/report/
