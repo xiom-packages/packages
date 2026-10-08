@@ -123,6 +123,10 @@ Single-writer rules:
 - **Relay template** (bindings → native):
   `BINDINGS BATCH <n>: head=<sha>; packages=<list with versions>; tests=<pkg passed/total>;
   licenses=<list>; pins=<header hashes>; gate=<G0-G5 status>; needs=<ops/script asks>`.
+- **Relay transport**: commit and push the `bindings` branch (`git push -u origin bindings`) and
+  put the relay block at the top of `BINDINGS-SESSION.md`; ask the owner to forward the
+  one-liner to the native session (or the native session fetches `origin/bindings` on request).
+  The native session re-runs the namespace check and merges at the relay.
 
 ## 7. Paste prompt for the bindings session
 
