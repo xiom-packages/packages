@@ -9,7 +9,7 @@
 
 package xiom_flac {
   name: "xiom.flac";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "FLAC structural parser: metadata blocks (STREAMINFO, PADDING, APPLICATION, SEEKTABLE, VORBIS_COMMENT, CUESHEET, PICTURE) and frame headers (no audio decoding)";
   categories: ["media"];
   keywords: ["flac", "audio", "metadata", "lossless", "metadata-blocks", "format"];

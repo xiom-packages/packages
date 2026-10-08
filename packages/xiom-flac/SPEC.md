@@ -1,14 +1,10 @@
 # xiom.flac -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.flac`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/flac.xi` (`module xiom.flac`).
 Depends on `xiom.std` (`xiom.string.builder`, `xiom.convert`,
 `xiom.encoding.hex`; the tests add `xiom.test`, `xiom.io`, `xiom.string`,
 `xiom.string.compare`).
-No FFI: the module declares no `extern "C"` blocks and performs no audio
-decoding.
 
 ## Scope
 
@@ -423,3 +419,47 @@ fixture is built in-test (no external data files).
 - Str values read from `Vec[Str]` are only compared by callers with
   `xiom.string.compare.str_compare`.
 - All arithmetic is integer; no `Float64` is used anywhere.
+
+## Contracts (batch #46 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (44, across the 15 functions below) were
+added to `src/flac.xi` in the batch #46 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 18-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive green `& .\scripts\port.ps1 -Package xiom.flac
+-TimeoutSec 90` runs ended `port: PASS (passed=18 failed=0 program_exit=0
+exit=0)` with the clauses active (35.51 s and 31.5 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, and per the batch #37
+finding a bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant, or
+reads a `&mut` parameter. Guards keep the plan's families: sentinel pairs
+(`result == -1`, `result == -2`), bounds/ranges (`code >= 1 && code <= 5 =>
+result >= 192 && result <= 4608`), tag guards (`result is Ok` / `result is
+Err`, `data.len() < 4 => result is Err`), exact formulas (`result ==
+assignment + 1`), and Str length checks (`result.len() == 0` / `> 0`). Every
+accessor's guard matches its internal sentinel path, so clauses hold for
+parser-produced and hand-built (empty or drifted) `FlacMetadata` values
+alike.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `flac_crc8` | 5 | negative start/size or overrun => `-1`; empty range => `0`; result 0..255 | no | yes |
+| `flac_utf8_size` | 3 | out-of-byte lead => `-1`; `< 128` => `1`; `!= -1` implies lead byte and 1..7 | no | yes |
+| `flac_parse_utf8_number` | 3 | negative or out-of-buffer offset => `Err`; `Ok` implies in-buffer offset | no | yes |
+| `flac_metadata_type_name` | 2 | type 0..6 => non-empty; other => empty | no | yes |
+| `flac_block_size_for_code` | 4 | codes 6/7 => `-1`; 0/out-of-range => `0`; table values 192..4608 and 256..32768 | no | yes |
+| `flac_sample_rate_for_code` | 4 | 15 => `-2`; 12..14 => `-1`; 0/out-of-range => `0`; 1..11 in 8000..192000 | no | yes |
+| `flac_bits_per_sample_for_code` | 3 | 0 => `0`; 3/out-of-range => `-1`; valid in 8..32 | no | yes |
+| `flac_channel_assignment_channels` | 4 | negative or > 10 => `-1`; 0..7 => `assignment + 1`; 8..10 => `2` | no | yes |
+| `flac_channel_assignment_name` | 2 | 0..10 => non-empty; other => empty | no | yes |
+| `flac_parse_streaminfo` | 2 | length != 34 => `Err`; == 34 => `Ok` | no | yes |
+| `flac_parse_vorbis_comment` | 2 | payload < 8 => `Err`; `Ok` implies >= 8 | no | yes |
+| `flac_parse_picture` | 2 | payload < 32 => `Err`; `Ok` implies >= 32 | no | yes |
+| `flac_parse_metadata` | 2 | < 4 bytes => `Err`; `Ok` implies >= 4 | no | yes |
+| `flac_block_offset` | 3 | negative/over-length `i` => `-1`; `!= -1` implies in-range `i` | no | yes |
+| `flac_parse_frame_header` | 3 | negative offset or < 4 bytes from offset => `Err`; `Ok` implies >= 4 | no | yes |
