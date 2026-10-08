@@ -803,7 +803,10 @@ fn _ass_parse_lines(lines: &Vec[Str]) -> Result[Ass, Str] {
 /// "ass: field count mismatch", "ass: bad timestamp shape",
 /// "ass: timestamp out of range", "ass: unexpected line"; see SPEC.md.
 /// Complexity: O(input length).
-pub fn ass_parse(text: Str) -> Result[Ass, Str] {
+pub fn ass_parse(text: Str) -> Result[Ass, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() >= 8;
+{
   if _has_control(text) { return _err_ass("ass: control byte"); }
   let lines = _split_lines(text);
   return _ass_parse_lines(&lines);
@@ -822,7 +825,9 @@ pub fn ass_parse(text: Str) -> Result[Ass, Str] {
 /// uses canonical order and LF round-trips byte-exactly; CRLF and section
 /// reordering are normalized. An empty document formats to "".
 /// Complexity: O(section lines).
-pub fn ass_format(a: &Ass) -> Str {
+pub fn ass_format(a: &Ass) -> Str
+  ensures: ass_section_count(a) == 0 => result.len() == 0;
+{
   let total = _section_count(a);
   let lines_total = a.section_lines.len();
   var out = "";
@@ -867,7 +872,10 @@ pub fn ass_format(a: &Ass) -> Str {
 /// surrounding whitespace is allowed.
 /// Errors: "ass: bad timestamp shape" for a malformed shape or digit count,
 /// "ass: timestamp out of range" when minutes or seconds exceed 59.
-pub fn ass_parse_timestamp(t: Str) -> Result[Int, Str] {
+pub fn ass_parse_timestamp(t: Str) -> Result[Int, Str]
+  ensures: t.len() != 10 => result is Err;
+  ensures: result is Ok => result.value >= 0 && result.value <= 3599999;
+{
   let v = _timestamp_cs(t);
   if v == -1 { return _err_int("ass: bad timestamp shape"); }
   if v == -2 { return _err_int("ass: timestamp out of range"); }
@@ -878,7 +886,10 @@ pub fn ass_parse_timestamp(t: Str) -> Result[Int, Str] {
 /// `ass_parse_timestamp`). Negative values clamp to zero. Hours print with a
 /// single digit below 10 and with more digits above (such values do not
 /// re-parse; see SPEC.md).
-pub fn ass_format_timestamp(cs: Int) -> Str {
+pub fn ass_format_timestamp(cs: Int) -> Str
+  ensures: result.len() >= 10;
+  ensures: cs < 0 => result.len() == 10;
+{
   return _fmt_timestamp(cs);
 }
 
@@ -925,13 +936,22 @@ fn _info_count(a: &Ass) -> Int {
 }
 
 /// Number of sections.
-pub fn ass_section_count(a: &Ass) -> Int {
+pub fn ass_section_count(a: &Ass) -> Int
+  ensures: result >= 0;
+  ensures: result <= a.section_names.len() && result <= a.section_kinds.len();
+  ensures: result <= a.section_starts.len() && result <= a.section_ends.len();
+  ensures: result <= a.section_fmt_starts.len() && result <= a.section_fmt_ends.len();
+{
   return _section_count(a);
 }
 
 /// Name of section `i` (trimmed text between the brackets); "" when `i` is
 /// negative or out of range.
-pub fn ass_section_name(a: &Ass, i: Int) -> Str {
+pub fn ass_section_name(a: &Ass, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= ass_section_count(a) => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < ass_section_count(a);
+{
   if i < 0 { return ""; }
   if i >= _section_count(a) { return ""; }
   let x: Str = a.section_names[i];
@@ -940,7 +960,11 @@ pub fn ass_section_name(a: &Ass, i: Int) -> Str {
 
 /// Kind of section `i`: 0 Script Info, 1 V4/V4+ styles, 2 Events, 3 other;
 /// -1 when `i` is negative or out of range.
-pub fn ass_section_kind(a: &Ass, i: Int) -> Int {
+pub fn ass_section_kind(a: &Ass, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= ass_section_count(a) => result == -1;
+  ensures: result != -1 => i >= 0 && i < ass_section_count(a);
+{
   if i < 0 { return -1; }
   if i >= _section_count(a) { return -1; }
   let x: Int = a.section_kinds[i];
@@ -949,7 +973,12 @@ pub fn ass_section_kind(a: &Ass, i: Int) -> Int {
 
 /// Number of raw lines preserved for section `i`; 0 when `i` is negative or
 /// out of range. Hand-built values are clamped to the shared line pool.
-pub fn ass_section_line_count(a: &Ass, i: Int) -> Int {
+pub fn ass_section_line_count(a: &Ass, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= a.section_starts.len() => result == 0;
+  ensures: result >= 0;
+  ensures: result <= a.section_lines.len();
+{
   if i < 0 { return 0; }
   if i >= a.section_starts.len() { return 0; }
   if i >= a.section_ends.len() { return 0; }
@@ -965,7 +994,11 @@ pub fn ass_section_line_count(a: &Ass, i: Int) -> Int {
 
 /// Raw line `j` of section `i`, verbatim; "" when `i` or `j` is negative or
 /// out of range.
-pub fn ass_section_line(a: &Ass, i: Int, j: Int) -> Str {
+pub fn ass_section_line(a: &Ass, i: Int, j: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: j < 0 => result.len() == 0;
+  ensures: j >= ass_section_line_count(a, i) => result.len() == 0;
+{
   if i < 0 { return ""; }
   if i >= a.section_starts.len() { return ""; }
   if i >= a.section_ends.len() { return ""; }
@@ -1018,7 +1051,11 @@ fn _fmt_end(a: &Ass, sec: Int) -> Int {
 /// Number of declared Format fields of section `sec` (for an `[Events]`
 /// section without a Format line this is the 10 fields of the documented
 /// default); 0 when the section has none or `sec` is invalid.
-pub fn ass_format_field_count(a: &Ass, sec: Int) -> Int {
+pub fn ass_format_field_count(a: &Ass, sec: Int) -> Int
+  ensures: sec < 0 => result == 0;
+  ensures: result >= 0;
+  ensures: result <= a.format_fields.len();
+{
   let lo = _fmt_start(a, sec);
   if lo < 0 { return 0; }
   let hi = _fmt_end(a, sec);
@@ -1028,7 +1065,11 @@ pub fn ass_format_field_count(a: &Ass, sec: Int) -> Int {
 
 /// Declared Format field name `j` of section `sec`; "" when the section has
 /// no Format or `j` is negative or out of range.
-pub fn ass_format_field(a: &Ass, sec: Int, j: Int) -> Str {
+pub fn ass_format_field(a: &Ass, sec: Int, j: Int) -> Str
+  ensures: j < 0 => result.len() == 0;
+  ensures: sec < 0 => result.len() == 0;
+  ensures: j >= ass_format_field_count(a, sec) => result.len() == 0;
+{
   if j < 0 { return ""; }
   let lo = _fmt_start(a, sec);
   if lo < 0 { return ""; }
@@ -1062,7 +1103,9 @@ pub fn ass_info_value(a: &Ass, i: Int) -> Str {
 
 /// Value of the first Script Info pair whose key equals `key` (first-match),
 /// or "" when no pair matches.
-pub fn ass_info_value_by_key(a: &Ass, key: Str) -> Str {
+pub fn ass_info_value_by_key(a: &Ass, key: Str) -> Str
+  ensures: ass_info_count(a) == 0 => result.len() == 0;
+{
   let n = _info_count(a);
   var i = 0;
   while i < n {
@@ -1132,7 +1175,11 @@ pub fn ass_style_field(a: &Ass, i: Int, name: Str) -> Str {
 }
 
 /// Number of events (Dialogue plus Comment rows).
-pub fn ass_event_count(a: &Ass) -> Int {
+pub fn ass_event_count(a: &Ass) -> Int
+  ensures: result >= 0;
+  ensures: result <= a.event_kinds.len();
+  ensures: result <= a.event_starts.len();
+{
   return _event_count(a);
 }
 
@@ -1164,7 +1211,11 @@ pub fn ass_comment_count(a: &Ass) -> Int {
 
 /// Kind of event `i`: 0 Dialogue, 1 Comment; -1 when `i` is negative or out
 /// of range.
-pub fn ass_event_kind(a: &Ass, i: Int) -> Int {
+pub fn ass_event_kind(a: &Ass, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= ass_event_count(a) => result == -1;
+  ensures: result != -1 => i >= 0 && i < ass_event_count(a);
+{
   if i < 0 { return -1; }
   if i >= _event_count(a) { return -1; }
   let x: Int = a.event_kinds[i];
@@ -1189,7 +1240,10 @@ pub fn ass_event_field_count(a: &Ass, i: Int) -> Int {
 /// Field `j` of event `i`, verbatim (the last field is the raw line
 /// remainder, so commas in Text are preserved); "" when `i` or `j` is
 /// negative or out of range.
-pub fn ass_event_field_at(a: &Ass, i: Int, j: Int) -> Str {
+pub fn ass_event_field_at(a: &Ass, i: Int, j: Int) -> Str
+  ensures: j < 0 => result.len() == 0;
+  ensures: j >= ass_event_field_count(a, i) => result.len() == 0;
+{
   if i < 0 { return ""; }
   if i >= a.event_fstarts.len() { return ""; }
   if i >= a.event_fends.len() { return ""; }
@@ -1224,7 +1278,11 @@ pub fn ass_event_field(a: &Ass, i: Int, name: Str) -> Str {
 
 /// Parsed Start of event `i` in centiseconds; -1 when `i` is negative or out
 /// of range or the section's Format has no Start field.
-pub fn ass_event_start_cs(a: &Ass, i: Int) -> Int {
+pub fn ass_event_start_cs(a: &Ass, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= a.event_starts.len() => result == -1;
+  ensures: result >= -1;
+{
   if i < 0 { return -1; }
   if i >= a.event_starts.len() { return -1; }
   let x: Int = a.event_starts[i];
@@ -1245,7 +1303,10 @@ pub fn ass_event_end_cs(a: &Ass, i: Int) -> Int {
 /// Value of the first field of event `i` named Text (first-match), captured
 /// raw to the end of the line; "" when absent or out of range. `\N`, `\n`
 /// and `{...}` override blocks are returned as raw bytes.
-pub fn ass_event_text(a: &Ass, i: Int) -> Str {
+pub fn ass_event_text(a: &Ass, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= a.event_sections.len() => result.len() == 0;
+{
   return ass_event_field(a, i, "Text");
 }
 

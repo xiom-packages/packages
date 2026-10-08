@@ -1,6 +1,6 @@
 # xiom.ass -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.ass` (`src/ass.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -412,3 +412,58 @@ goes through a typed local.
 - No ordering, overlap or duration validation of events.
 - A leading UTF-8 BOM is not stripped.
 - Errors carry no line/column numbers.
+
+## Contracts (batch #44 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (44, across the 17 functions below) were
+added to `src/ass.xi` in the batch #44 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 23-check conformance suite
+exercises every contracted entry point and no clause trapped, so none was
+dropped. Two consecutive green `& .\scripts\port.ps1 -Package xiom.ass
+-TimeoutSec 60` runs ended `port: PASS (passed=23 failed=0 program_exit=0
+exit=0)` with the clauses active (16.48 s and 11.86 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, and per the batch #37
+finding a bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant, or
+reads a `&mut` parameter. Guards keep the plan's families: sentinel pairs
+(`result == -1`, `result.len() == 0`, `result == 0`), bounds (min-of-vectors
+counts, clamped ranges inside their pools), tag guards (`result is Ok` /
+`result is Err`, `result.value` payload range), and exact formulas
+(`result.len() >= 10`, `cs < 0 => result.len() == 10`). One literal was
+refined to the source: `ass_parse_timestamp`'s Ok bound is `3599999` (the
+source's single hour digit 0..9 gives at most `9:59:59.99` = 9*360000 +
+59*6000 + 59*100 + 99), not the pre-plan's `359999`. The only cross-calls are
+non-re-entrant definitional reads: `ass_format` calls `ass_section_count`;
+`ass_section_name`/`ass_section_kind` call `ass_section_count`;
+`ass_section_line` calls `ass_section_line_count`; `ass_format_field` calls
+`ass_format_field_count`; `ass_info_value_by_key` calls `ass_info_count`;
+`ass_event_kind` calls `ass_event_count`; `ass_event_field_at` calls
+`ass_event_field_count`; none of those callees can return to the function
+carrying the clause. Every accessor's guard matches its internal
+`_section_count`/`_event_count`/`_fmt_start`/`_fmt_end` clamping, so clauses
+hold for parser-produced and hand-built (drifted) `Ass` values alike.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `ass_parse` | 2 | empty input => `Err`; `Ok` implies `text.len() >= 8` | no | yes |
+| `ass_format` | 1 | zero sections => empty output | no | yes |
+| `ass_parse_timestamp` | 2 | non-10-byte shape => `Err`; `Ok` in `0..3599999` | no | yes |
+| `ass_format_timestamp` | 2 | `result.len() >= 10`; negative clamps to length 10 | no | yes |
+| `ass_section_count` | 4 | `result >= 0` and `<=` each of the six section vectors | no | yes |
+| `ass_section_name` | 3 | out-of-range index => `""`; non-empty implies in-range | no | yes |
+| `ass_section_kind` | 3 | out-of-range index => `-1`; `!= -1` implies in-range | no | yes |
+| `ass_section_line_count` | 4 | negative/over-start => `0`; result in `0..section_lines.len()` | no | yes |
+| `ass_section_line` | 3 | negative indices => `""`; past count => `""` | no | yes |
+| `ass_format_field_count` | 3 | `sec < 0` => `0`; result in `0..format_fields.len()` | no | yes |
+| `ass_format_field` | 3 | negative args => `""`; past count => `""` | no | yes |
+| `ass_info_value_by_key` | 1 | no info pairs => `""` | no | yes |
+| `ass_event_count` | 3 | `result >= 0`; `<= event_kinds.len()` and `<= event_starts.len()` | no | yes |
+| `ass_event_kind` | 3 | out-of-range index => `-1`; `!= -1` implies in-range | no | yes |
+| `ass_event_field_at` | 2 | negative `j` => `""`; past count => `""` | no | yes |
+| `ass_event_start_cs` | 3 | negative/over-length => `-1`; `result >= -1` | no | yes |
+| `ass_event_text` | 2 | negative/over-section index => `""` | no | yes |
