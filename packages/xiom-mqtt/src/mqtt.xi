@@ -293,7 +293,11 @@ fn _has_wildcard(s: &Vec[UInt8]) -> Bool {
 /// Encoded byte count of the MQTT remaining-length varint for `n`: 1..4 for
 /// `0..268435455`, and 0 when `n` is outside that range (there is no
 /// encoding; callers can treat 0 as "invalid"). Complexity: O(bytes).
-pub fn mqtt_remaining_length_size(n: Int) -> Int {
+pub fn mqtt_remaining_length_size(n: Int) -> Int
+  ensures: n < 0 => result == 0;
+  ensures: n > 268435455 => result == 0;
+  ensures: 0 <= n && n <= 268435455 => result >= 1 && result <= 4;
+{
   if n < 0 {
     return 0;
   }
@@ -347,7 +351,11 @@ pub fn mqtt_encode_remaining_length(n: Int) -> Result[Vec[UInt8], Str] {
 /// (continuation bit set on the 4th byte) or the encoding is overlong
 /// (non-minimal), e.g. `80 00` for 0.
 /// Complexity: O(bytes).
-pub fn mqtt_decode_remaining_length(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str] {
+pub fn mqtt_decode_remaining_length(data: &Vec[UInt8], off: Int) -> Result[(Int, Int), Str]
+  ensures: off < 0 => result is Err;
+  ensures: data.len() == 0 => result is Err;
+  ensures: result is Ok => off >= 0 && off < data.len();
+{
   if off < 0 {
     return _err_pair("mqtt: negative offset");
   }
@@ -440,7 +448,14 @@ fn _push_fixed(out: &mut Vec[UInt8], packet_type: Int, flags: Int, remaining_len
 /// Err("mqtt: remaining length out of range") when `remaining_length` is
 /// negative or above 268435455.
 /// Complexity: O(bytes).
-pub fn mqtt_encode_fixed_header(packet_type: Int, flags: Int, remaining_length: Int) -> Result[Vec[UInt8], Str] {
+pub fn mqtt_encode_fixed_header(packet_type: Int, flags: Int, remaining_length: Int) -> Result[Vec[UInt8], Str]
+  ensures: packet_type < 1 || packet_type > 14 => result is Err;
+  ensures: remaining_length < 0 || remaining_length > 268435455 => result is Err;
+  ensures: packet_type == 3 && (flags == 6 || flags == 7 || flags == 14 || flags == 15) => result is Err;
+  ensures: packet_type != 3 && packet_type != 6 && packet_type != 8 && packet_type != 10 && flags != 0 => result is Err;
+  ensures: result is Ok => packet_type >= 1 && packet_type <= 14;
+  ensures: result is Ok => remaining_length >= 0 && remaining_length <= 268435455;
+{
   if !_valid_type(packet_type) {
     return _err_bytes("mqtt: bad packet type");
   }
@@ -469,7 +484,10 @@ pub fn mqtt_encode_fixed_header(packet_type: Int, flags: Int, remaining_length: 
 /// reserved value for the type; Err("mqtt: bad qos") for a PUBLISH with
 /// QoS 3; Err("mqtt: bad remaining length") for a malformed varint.
 /// Complexity: O(bytes).
-pub fn mqtt_parse_fixed_header(data: &Vec[UInt8]) -> Result[MqttFixedHeader, Str] {
+pub fn mqtt_parse_fixed_header(data: &Vec[UInt8]) -> Result[MqttFixedHeader, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: result is Ok => data.len() >= 2;
+{
   if data.len() < 1 {
     return _err_fh("mqtt: truncated packet");
   }
@@ -528,7 +546,10 @@ fn _body_bounds(data: &Vec[UInt8], want_type: Int) -> Result[(Int, Int), Str] {
 /// bytes with no '#' (0x23) or '+' (0x2B) wildcard byte. Empty topics are
 /// rejected (an MQTT topic name has at least one byte).
 /// Complexity: O(topic length).
-pub fn mqtt_topic_is_valid(topic: &Vec[UInt8]) -> Bool {
+pub fn mqtt_topic_is_valid(topic: &Vec[UInt8]) -> Bool
+  ensures: topic.len() == 0 || topic.len() > 65535 => result == false;
+  ensures: result == true => topic.len() >= 1 && topic.len() <= 65535;
+{
   if topic.len() == 0 || topic.len() > 65535 {
     return false;
   }
@@ -543,7 +564,10 @@ pub fn mqtt_topic_is_valid(topic: &Vec[UInt8]) -> Bool {
 /// the final byte. '+' (0x2B) may appear anywhere. This is a light
 /// structural check, not full MQTT wildcard-level validation (see SPEC.md).
 /// Complexity: O(filter length).
-pub fn mqtt_topic_filter_is_valid(filter: &Vec[UInt8]) -> Bool {
+pub fn mqtt_topic_filter_is_valid(filter: &Vec[UInt8]) -> Bool
+  ensures: filter.len() == 0 || filter.len() > 65535 => result == false;
+  ensures: result == true => filter.len() >= 1 && filter.len() <= 65535;
+{
   if filter.len() == 0 || filter.len() > 65535 {
     return false;
   }
@@ -575,7 +599,16 @@ pub fn mqtt_topic_filter_is_valid(filter: &Vec[UInt8]) -> Bool {
 /// Err("mqtt: bad connect flags") when the flags and payload disagree;
 /// Err("mqtt: string too long") when any binary string exceeds 65535 bytes.
 /// Complexity: O(packet size).
-pub fn mqtt_encode_connect(c: &MqttConnect) -> Result[Vec[UInt8], Str] {
+pub fn mqtt_encode_connect(c: &MqttConnect) -> Result[Vec[UInt8], Str]
+  ensures: c.keepalive < 0 || c.keepalive > 65535 => result is Err;
+  ensures: c.client_id.len() > 65535 || c.will_topic.len() > 65535 || c.will_message.len() > 65535 || c.username.len() > 65535 || c.password.len() > 65535 => result is Err;
+  ensures: c.will_present && (c.will_qos < 0 || c.will_qos > 2) => result is Err;
+  ensures: c.will_present && c.will_topic.len() == 0 => result is Err;
+  ensures: !c.will_present && (c.will_topic.len() != 0 || c.will_message.len() != 0) => result is Err;
+  ensures: !c.username_present && c.username.len() != 0 => result is Err;
+  ensures: !c.password_present && c.password.len() != 0 => result is Err;
+  ensures: result is Ok => c.keepalive >= 0 && c.keepalive <= 65535;
+{
   if c.keepalive < 0 || c.keepalive > 65535 {
     return _err_bytes("mqtt: bad keepalive");
   }
@@ -658,7 +691,10 @@ pub fn mqtt_encode_connect(c: &MqttConnect) -> Result[Vec[UInt8], Str] {
 /// Err("mqtt: bad connect flags"), Err("mqtt: bad qos") for will QoS 3 and
 /// Err("mqtt: bad topic") for an empty will topic.
 /// Complexity: O(packet size).
-pub fn mqtt_parse_connect(data: &Vec[UInt8]) -> Result[MqttConnect, Str] {
+pub fn mqtt_parse_connect(data: &Vec[UInt8]) -> Result[MqttConnect, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: result is Ok => data.len() >= 14;
+{
   let br = _body_bounds(data, 1);
   if !br.is_ok {
     return _err_connect(br.error);
@@ -783,7 +819,11 @@ pub fn mqtt_parse_connect(data: &Vec[UInt8]) -> Result[MqttConnect, Str] {
 /// Err("mqtt: bad connack flags") when `session_present` is true with a
 /// non-zero return code (MQTT-3.2.2-4).
 /// Complexity: O(1).
-pub fn mqtt_encode_connack(session_present: Bool, return_code: Int) -> Result[Vec[UInt8], Str] {
+pub fn mqtt_encode_connack(session_present: Bool, return_code: Int) -> Result[Vec[UInt8], Str]
+  ensures: return_code < 0 || return_code > 5 => result is Err;
+  ensures: return_code != 0 && session_present => result is Err;
+  ensures: result is Ok => return_code >= 0 && return_code <= 5;
+{
   if return_code < 0 || return_code > 5 {
     return _err_bytes("mqtt: bad return code");
   }
@@ -806,7 +846,10 @@ pub fn mqtt_encode_connack(session_present: Bool, return_code: Int) -> Result[Ve
 /// non-zero return code must have session present clear (MQTT-3.2.2-4).
 /// Err("mqtt: bad payload") when the body is not exactly two bytes.
 /// Complexity: O(1).
-pub fn mqtt_parse_connack(data: &Vec[UInt8]) -> Result[MqttConnack, Str] {
+pub fn mqtt_parse_connack(data: &Vec[UInt8]) -> Result[MqttConnack, Str]
+  ensures: data.len() != 4 => result is Err;
+  ensures: result is Ok => data.len() == 4;
+{
   let br = _body_bounds(data, 2);
   if !br.is_ok {
     return _err_connack(br.error);
@@ -847,7 +890,15 @@ pub fn mqtt_parse_connack(data: &Vec[UInt8]) -> Result[MqttConnack, Str] {
 /// `qos > 0` and `packet_id` is not 1..65535;
 /// Err("mqtt: unexpected packet id") when `qos == 0` and `packet_id != 0`.
 /// Complexity: O(packet size).
-pub fn mqtt_encode_publish(topic: &Vec[UInt8], payload: &Vec[UInt8], qos: Int, retain: Bool, dup: Bool, packet_id: Int) -> Result[Vec[UInt8], Str] {
+pub fn mqtt_encode_publish(topic: &Vec[UInt8], payload: &Vec[UInt8], qos: Int, retain: Bool, dup: Bool, packet_id: Int) -> Result[Vec[UInt8], Str]
+  ensures: qos < 0 || qos > 2 => result is Err;
+  ensures: topic.len() > 65535 => result is Err;
+  ensures: !mqtt_topic_is_valid(topic) => result is Err;
+  ensures: qos == 0 && packet_id != 0 => result is Err;
+  ensures: qos > 0 && packet_id == 0 => result is Err;
+  ensures: qos > 0 && (packet_id < 0 || packet_id > 65535) => result is Err;
+  ensures: result is Ok => qos >= 0 && qos <= 2;
+{
   if qos < 0 || qos > 2 {
     return _err_bytes("mqtt: bad qos");
   }
@@ -895,7 +946,10 @@ pub fn mqtt_encode_publish(topic: &Vec[UInt8], payload: &Vec[UInt8], qos: Int, r
 /// Err("mqtt: bad topic") for an empty topic or a topic containing '+'/'#';
 /// Err("mqtt: packet id zero") for a QoS > 0 packet whose identifier is 0.
 /// Complexity: O(packet size).
-pub fn mqtt_parse_publish(data: &Vec[UInt8]) -> Result[MqttPublish, Str] {
+pub fn mqtt_parse_publish(data: &Vec[UInt8]) -> Result[MqttPublish, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: result is Ok => data.len() >= 5;
+{
   let hr = mqtt_parse_fixed_header(data);
   if !hr.is_ok {
     return _err_publish(hr.error);
@@ -951,7 +1005,11 @@ pub fn mqtt_parse_publish(data: &Vec[UInt8]) -> Result[MqttPublish, Str] {
 /// Err("mqtt: packet id zero") / Err("mqtt: packet id out of range") when
 /// `packet_id` is not 1..65535.
 /// Complexity: O(1).
-pub fn mqtt_encode_puback(packet_id: Int) -> Result[Vec[UInt8], Str] {
+pub fn mqtt_encode_puback(packet_id: Int) -> Result[Vec[UInt8], Str]
+  ensures: packet_id == 0 => result is Err;
+  ensures: packet_id < 0 || packet_id > 65535 => result is Err;
+  ensures: result is Ok => packet_id >= 1 && packet_id <= 65535;
+{
   let e = _packet_id_err(packet_id);
   if e.len() > 0 {
     return _err_bytes(e);
@@ -966,7 +1024,11 @@ pub fn mqtt_encode_puback(packet_id: Int) -> Result[Vec[UInt8], Str] {
 /// Err("mqtt: bad payload") when the body is not exactly two bytes;
 /// Err("mqtt: packet id zero") when the identifier is 0.
 /// Complexity: O(1).
-pub fn mqtt_parse_puback(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn mqtt_parse_puback(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() != 4 => result is Err;
+  ensures: result is Ok => data.len() == 4;
+  ensures: result is Ok => result.value >= 1 && result.value <= 65535;
+{
   let br = _body_bounds(data, 4);
   if !br.is_ok {
     return _err_int(br.error);
@@ -1000,7 +1062,13 @@ pub fn mqtt_parse_puback(data: &Vec[UInt8]) -> Result[Int, Str] {
 /// Err("mqtt: bad topic filter") for an invalid filter;
 /// Err("mqtt: bad qos") for a requested QoS outside 0..2.
 /// Complexity: O(packet size).
-pub fn mqtt_encode_subscribe(packet_id: Int, filters: &Vec[Vec[UInt8]], qoss: &Vec[Int]) -> Result[Vec[UInt8], Str] {
+pub fn mqtt_encode_subscribe(packet_id: Int, filters: &Vec[Vec[UInt8]], qoss: &Vec[Int]) -> Result[Vec[UInt8], Str]
+  ensures: packet_id == 0 => result is Err;
+  ensures: packet_id < 0 || packet_id > 65535 => result is Err;
+  ensures: filters.len() != qoss.len() => result is Err;
+  ensures: filters.len() == 0 => result is Err;
+  ensures: result is Ok => filters.len() > 0 && filters.len() == qoss.len();
+{
   let e = _packet_id_err(packet_id);
   if e.len() > 0 {
     return _err_bytes(e);
@@ -1042,7 +1110,10 @@ pub fn mqtt_encode_subscribe(packet_id: Int, filters: &Vec[Vec[UInt8]], qoss: &V
 /// Err("mqtt: bad qos") for a requested QoS outside 0..2;
 /// Err("mqtt: bad payload") when there are no filter entries.
 /// Complexity: O(packet size).
-pub fn mqtt_parse_subscribe(data: &Vec[UInt8]) -> Result[MqttSubscribe, Str] {
+pub fn mqtt_parse_subscribe(data: &Vec[UInt8]) -> Result[MqttSubscribe, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: result is Ok => data.len() >= 8;
+{
   let br = _body_bounds(data, 8);
   if !br.is_ok {
     return _err_subscribe(br.error);
@@ -1129,7 +1200,10 @@ pub fn mqtt_encode_suback(packet_id: Int, codes: &Vec[Int]) -> Result[Vec[UInt8]
 /// Err("mqtt: bad suback code") for a code outside 0/1/2/128;
 /// Err("mqtt: bad payload") when there are no return codes.
 /// Complexity: O(packet size).
-pub fn mqtt_parse_suback(data: &Vec[UInt8]) -> Result[MqttSuback, Str] {
+pub fn mqtt_parse_suback(data: &Vec[UInt8]) -> Result[MqttSuback, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: result is Ok => data.len() >= 5;
+{
   let br = _body_bounds(data, 9);
   if !br.is_ok {
     return _err_suback(br.error);
@@ -1178,7 +1252,10 @@ pub fn mqtt_encode_pingreq() -> Vec[UInt8] {
 /// Errors: the fixed-header and envelope errors, "mqtt: bad packet type"
 /// for any other type, and "mqtt: bad payload" when the body is not empty.
 /// Complexity: O(1).
-pub fn mqtt_parse_pingreq(data: &Vec[UInt8]) -> Result[Unit, Str] {
+pub fn mqtt_parse_pingreq(data: &Vec[UInt8]) -> Result[Unit, Str]
+  ensures: data.len() != 2 => result is Err;
+  ensures: result is Ok => data.len() == 2;
+{
   let br = _body_bounds(data, 12);
   if !br.is_ok {
     return _err_unit(br.error);
@@ -1216,7 +1293,5 @@ pub fn mqtt_parse_disconnect(data: &Vec[UInt8]) -> Result[Unit, Str] {
   if end - start != 0 {
     return _err_unit("mqtt: bad payload");
   }
-  return _ok_unit();
-}
   return _ok_unit();
 }

@@ -9,7 +9,7 @@
 
 package xiom_mqtt {
   name: "xiom.mqtt";
-  version: "0.1.2";
+  version: "0.1.3";
   description: "Pure-XIOM MQTT 3.1.1 packet codec for CONNECT, PUBLISH, SUBSCRIBE and friends";
   categories: ["network"];
   keywords: ["mqtt", "iot", "pubsub", "protocol"];

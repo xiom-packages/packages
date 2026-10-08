@@ -1,8 +1,6 @@
 # xiom.mqtt -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.mqtt`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/mqtt.xi` (`module xiom.mqtt`).
 Depends on `xiom.std` only (platform dependency; the module itself imports
 nothing).
@@ -346,3 +344,46 @@ Last verified: compiler 0.61.3,
   by reference (`&struct.field` yields an empty vector).
 - Tests compare `Str` errors with `str_compare` (`xiom.string.compare`),
   never with `==`, and use typed locals for every `Vec` read.
+
+## Contracts (batch #43 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (59, across the 18 functions below) were
+added using the proven families: sentinel returns, exact scalar identities,
+Result-tag guards and derived length bounds. All are `ensures:` (no
+`requires:`), so the accepted-input domain is unchanged. Every clause is
+enforced as a runtime check; the 21-check conformance suite exercises every
+entry point and both `& .\scripts\port.ps1 -Package xiom.mqtt -TimeoutSec 60`
+runs ended `port: PASS (passed=21 failed=0 program_exit=0 exit=0)` with the
+clauses active (11.4 s and 10.6 s). None is claimed Z3-provable: `xiom-verify`
+was not run in this pass and no real obligation was demonstrated for this
+module, so the Z3-provable column is "no" throughout.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `mqtt_remaining_length_size` | 3 | negative/over-range => `0`; in-range => `1..4` | no | yes |
+| `mqtt_decode_remaining_length` | 3 | negative offset or empty buffer => `Err`; `Ok` => `0 <= off < data.len()` | no | yes |
+| `mqtt_encode_fixed_header` | 6 | bad type / out-of-range length / PUBLISH QoS-3 nibble / non-zero nibble for other types => `Err`; `Ok` => type in `1..14`, length in `0..268435455` | no | yes |
+| `mqtt_parse_fixed_header` | 2 | `data.len() < 2` => `Err`; `Ok` => `data.len() >= 2` | no | yes |
+| `mqtt_topic_is_valid` | 2 | empty/over-long topic => `false`; `true` => `1..65535` bytes | no | yes |
+| `mqtt_topic_filter_is_valid` | 2 | empty/over-long filter => `false`; `true` => `1..65535` bytes | no | yes |
+| `mqtt_encode_connect` | 8 | bad keepalive / over-long string / will-QoS / empty will topic / flag-payload disagreement => `Err`; `Ok` => keepalive in `0..65535` | no | yes |
+| `mqtt_parse_connect` | 2 | `data.len() < 2` => `Err`; `Ok` => `data.len() >= 14` | no | yes |
+| `mqtt_encode_connack` | 3 | return code outside `0..5` or session present with non-zero code => `Err`; `Ok` => code in `0..5` | no | yes |
+| `mqtt_parse_connack` | 2 | `data.len() != 4` => `Err`; `Ok` => exactly 4 bytes | no | yes |
+| `mqtt_encode_publish` | 7 | bad QoS / over-long, empty or wildcard topic / zero-or-missing packet id => `Err`; `Ok` => QoS in `0..2` | no | yes |
+| `mqtt_parse_publish` | 2 | `data.len() < 2` => `Err`; `Ok` => `data.len() >= 5` | no | yes |
+| `mqtt_encode_puback` | 3 | id `0` or out of range => `Err`; `Ok` => id in `1..65535` | no | yes |
+| `mqtt_parse_puback` | 3 | `data.len() != 4` => `Err`; `Ok` => exactly 4 bytes and id in `1..65535` | no | yes |
+| `mqtt_encode_subscribe` | 5 | bad id / filter-QoS length mismatch / empty filter list => `Err`; `Ok` => non-empty list with equal lengths | no | yes |
+| `mqtt_parse_subscribe` | 2 | `data.len() < 2` => `Err`; `Ok` => `data.len() >= 8` | no | yes |
+| `mqtt_parse_suback` | 2 | `data.len() < 2` => `Err`; `Ok` => `data.len() >= 5` | no | yes |
+| `mqtt_parse_pingreq` | 2 | `data.len() != 2` => `Err`; `Ok` => exactly 2 bytes | no | yes |
+
+Deliberately not claimed: tuple-component reads (`result.value.0/.1` on
+`mqtt_decode_remaining_length`), struct-Result-payload field reads, `Str`
+equality, module constants (literals are inlined), vector indexing and bare
+`&mut` parameter reads. The only cross-call is `mqtt_topic_is_valid` inside
+the `mqtt_encode_publish` clauses, which cannot re-enter its callee. Public
+functions without clauses in this pass: `mqtt_encode_remaining_length`,
+`mqtt_encode_pingreq`, `mqtt_encode_disconnect` and `mqtt_parse_disconnect`
+(the plan scope is the 18 functions above).
