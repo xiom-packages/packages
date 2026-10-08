@@ -6,11 +6,11 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  10,
+                  "passed":  21,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "6b20aa30",
-                  "checked":  "2026-10-08T11:37:04Z"
+                  "run_by":  "task:bindings-sdl3-p2",
+                  "commit":  "ed1edd0b",
+                  "checked":  "2026-10-08T12:37:14Z"
               },
     "publish":  false,
     "excluded_reason":  "published in eco-v0.1.92 (2026-10-08)"
