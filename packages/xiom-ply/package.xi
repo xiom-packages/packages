@@ -9,7 +9,7 @@
 
 package xiom_ply {
   name: "xiom.ply";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "PLY polygon file format (ASCII): header and body parsing, scalar text values and canonical re-emission";
   categories: ["graphics"];
   keywords: ["ply", "mesh", "3d", "format"];
