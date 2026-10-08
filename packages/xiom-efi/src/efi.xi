@@ -449,7 +449,10 @@ fn _copy_span(data: &Vec[UInt8], off: Int, len: Int) -> Result[Vec[UInt8], Str] 
 /// vector.
 /// Error case: see the catalog above and SPEC.md.
 /// Complexity: O(data.len()).
-pub fn ffs_parse(data: &Vec[UInt8]) -> Result[FfsFile, Str] {
+pub fn ffs_parse(data: &Vec[UInt8]) -> Result[FfsFile, Str]
+  ensures: data.len() < 24 => result is Err;
+  ensures: result is Ok => data.len() >= 24;
+{
   let n = data.len();
   if n < _FFS_HEADER_SIZE { return _err_file("efi: truncated header"); }
   let attributes: Int = _byte(data, 19);
@@ -559,7 +562,13 @@ pub fn ffs_file_type(f: &FfsFile) -> Int {
 /// Name of the documented file type `t` (SPEC.md "File types"): the named
 /// subset, "OEM" for 224..239, "PAD" for 240, "FFS" for 241..254,
 /// "FREE_SPACE" for 255 and "UNKNOWN" otherwise. Complexity: O(1).
-pub fn ffs_file_type_name(t: Int) -> Str {
+pub fn ffs_file_type_name(t: Int) -> Str
+  ensures: t == 0 => result.len() == 7;
+  ensures: t == 9 => result.len() == 11;
+  ensures: t >= 224 && t <= 239 => result.len() == 3;
+  ensures: t == 255 => result.len() == 10;
+  ensures: result.len() > 0;
+{
   if t == _FFS_RAW { return "RAW"; }
   if t == _FFS_FREEFORM { return "FREEFORM"; }
   if t == _FFS_SECURITY_CORE { return "SECURITY_CORE"; }
@@ -590,7 +599,9 @@ pub fn ffs_file_attributes(f: &FfsFile) -> Int {
 
 /// Declared file size in bytes: the 24-bit Size field for small files, the
 /// 64-bit ExtendedSize for large files. Complexity: O(1).
-pub fn ffs_file_size(f: &FfsFile) -> Int {
+pub fn ffs_file_size(f: &FfsFile) -> Int
+  ensures: result == f.size;
+{
   return f.size;
 }
 
@@ -607,13 +618,18 @@ pub fn ffs_file_integrity_check(f: &FfsFile) -> Int {
 }
 
 /// True when the large-file attribute is set. Complexity: O(1).
-pub fn ffs_file_is_large(f: &FfsFile) -> Bool {
+pub fn ffs_file_is_large(f: &FfsFile) -> Bool
+  ensures: f.large => result;
+  ensures: !f.large => !result;
+{
   return f.large;
 }
 
 /// Header size in bytes: 24 for small files, 32 for large files.
 /// Complexity: O(1).
-pub fn ffs_file_header_size(f: &FfsFile) -> Int {
+pub fn ffs_file_header_size(f: &FfsFile) -> Int
+  ensures: result == f.header_size;
+{
   return f.header_size;
 }
 
@@ -624,13 +640,24 @@ pub fn ffs_file_header_size(f: &FfsFile) -> Int {
 /// Safe section count: the minimum of the five parallel section vector
 /// lengths. A parsed file reports the number of sections walked.
 /// Complexity: O(1).
-pub fn ffs_section_count(f: &FfsFile) -> Int {
+pub fn ffs_section_count(f: &FfsFile) -> Int
+  ensures: result >= 0;
+  ensures: result <= f.section_types.len();
+  ensures: result <= f.section_sizes.len();
+  ensures: result <= f.section_offsets.len();
+  ensures: result <= f.section_data_offsets.len();
+  ensures: result <= f.section_data_sizes.len();
+{
   return _sec_min(f);
 }
 
 /// Raw section type byte of section `i`; -1 when `i` is negative or out of
 /// range. Complexity: O(1).
-pub fn ffs_section_type(f: &FfsFile, i: Int) -> Int {
+pub fn ffs_section_type(f: &FfsFile, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= ffs_section_count(f) => result == -1;
+  ensures: result != -1 => i >= 0 && i < ffs_section_count(f);
+{
   if i < 0 { return -1; }
   if i >= _sec_min(f) { return -1; }
   let v: Int = f.section_types[i];
@@ -639,7 +666,13 @@ pub fn ffs_section_type(f: &FfsFile, i: Int) -> Int {
 
 /// Name of the documented section type `t` (SPEC.md "Section types"), or
 /// "UNKNOWN". Complexity: O(1).
-pub fn ffs_section_type_name(t: Int) -> Str {
+pub fn ffs_section_type_name(t: Int) -> Str
+  ensures: t == 1 => result.len() == 11;
+  ensures: t == 16 => result.len() == 4;
+  ensures: t == 21 => result.len() == 14;
+  ensures: t == 24 => result.len() == 21;
+  ensures: t == 0 => result.len() == 7;
+{
   if t == _SEC_COMPRESSION { return "COMPRESSION"; }
   if t == _SEC_GUID_DEFINED { return "GUID_DEFINED"; }
   if t == _SEC_DISPOSABLE { return "DISPOSABLE"; }
@@ -661,7 +694,11 @@ pub fn ffs_section_type_name(t: Int) -> Str {
 /// Declared total size in bytes of section `i` (common header + type header
 /// + data + alignment padding); -1 when `i` is negative or out of range.
 /// Complexity: O(1).
-pub fn ffs_section_size(f: &FfsFile, i: Int) -> Int {
+pub fn ffs_section_size(f: &FfsFile, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= ffs_section_count(f) => result == -1;
+  ensures: result != -1 => i >= 0 && i < ffs_section_count(f);
+{
   if i < 0 { return -1; }
   if i >= _sec_min(f) { return -1; }
   let v: Int = f.section_sizes[i];
@@ -708,7 +745,11 @@ pub fn ffs_section_data_size(f: &FfsFile, i: Int) -> Int {
 /// Err("efi: index out of range") when `i` is negative or >= section count;
 /// Err("efi: span out of bounds") when the recorded span does not fit in
 /// `data`. Complexity: O(section size).
-pub fn ffs_section_raw(data: &Vec[UInt8], f: &FfsFile, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn ffs_section_raw(data: &Vec[UInt8], f: &FfsFile, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 => result is Err;
+  ensures: i >= ffs_section_count(f) => result is Err;
+  ensures: result is Ok => i >= 0 && i < ffs_section_count(f);
+{
   if i < 0 { return _err_bytes("efi: index out of range"); }
   if i >= _sec_min(f) { return _err_bytes("efi: index out of range"); }
   let off: Int = f.section_offsets[i];
@@ -739,7 +780,12 @@ pub fn ffs_section_data(data: &Vec[UInt8], f: &FfsFile, i: Int) -> Result[Vec[UI
 /// VERSION section (0x14) BuildNumber field (u16 LE), or -1 when section `i`
 /// is not a VERSION section, is out of range, or its recorded span does not
 /// cover the 4-byte documented payload. Complexity: O(1).
-pub fn ffs_section_build_number(data: &Vec[UInt8], f: &FfsFile, i: Int) -> Int {
+pub fn ffs_section_build_number(data: &Vec[UInt8], f: &FfsFile, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= ffs_section_count(f) => result == -1;
+  ensures: ffs_section_type(f, i) != 20 => result == -1;
+  ensures: result != -1 => ffs_section_type(f, i) == 20;
+{
   if i < 0 { return -1; }
   if i >= _sec_min(f) { return -1; }
   let stype: Int = f.section_types[i];
@@ -783,7 +829,12 @@ pub fn ffs_section_ui_string(data: &Vec[UInt8], f: &FfsFile, i: Int) -> Str {
 /// 32 lowercase hex characters of the raw on-disk bytes; "" for any other
 /// type, an out-of-range index, or a recorded span that does not cover the
 /// 16 GUID bytes. Complexity: O(1).
-pub fn ffs_section_guid(data: &Vec[UInt8], f: &FfsFile, i: Int) -> Str {
+pub fn ffs_section_guid(data: &Vec[UInt8], f: &FfsFile, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= ffs_section_count(f) => result.len() == 0;
+  ensures: ffs_section_type(f, i) != 2 && ffs_section_type(f, i) != 24 => result.len() == 0;
+  ensures: result.len() > 0 => ffs_section_type(f, i) == 2 || ffs_section_type(f, i) == 24;
+{
   if i < 0 { return ""; }
   if i >= _sec_min(f) { return ""; }
   let stype: Int = f.section_types[i];
@@ -848,7 +899,11 @@ pub fn ffs_section_compression_length(data: &Vec[UInt8], f: &FfsFile, i: Int) ->
 /// high integrity byte and the extended size) is 0 modulo 256. -1 when the
 /// recorded header/size span does not fit in `data`. Complexity:
 /// O(header_size).
-pub fn ffs_header_checksum(data: &Vec[UInt8], f: &FfsFile) -> Int {
+pub fn ffs_header_checksum(data: &Vec[UInt8], f: &FfsFile) -> Int
+  ensures: f.header_size != 24 && f.header_size != 32 => result == -1;
+  ensures: f.large && f.header_size != 32 => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 255;
+{
   if !_file_spans_ok(data, f) { return -1; }
   let s: Int = _span_sum(data, 0, f.header_size, 16);
   return (256 - s % 256) % 256;
@@ -858,7 +913,11 @@ pub fn ffs_header_checksum(data: &Vec[UInt8], f: &FfsFile) -> Int {
 /// integrity byte so that the sum of the file data bytes (header_size..size)
 /// is 0 modulo 256. -1 when the recorded span does not fit in `data`.
 /// Complexity: O(size - header_size).
-pub fn ffs_data_checksum(data: &Vec[UInt8], f: &FfsFile) -> Int {
+pub fn ffs_data_checksum(data: &Vec[UInt8], f: &FfsFile) -> Int
+  ensures: f.size < f.header_size => result == -1;
+  ensures: f.size > data.len() => result == -1;
+  ensures: result == -1 || (result >= 0 && result <= 255);
+{
   if !_file_spans_ok(data, f) { return -1; }
   let s: Int = _span_sum(data, f.header_size, f.size - f.header_size, -1);
   return (256 - s % 256) % 256;
@@ -872,7 +931,11 @@ pub fn ffs_data_checksum(data: &Vec[UInt8], f: &FfsFile) -> Int {
 /// `ffs_parse` never rejects a mismatch; call this helper explicitly. False
 /// when the recorded header/size span does not fit in `data`.
 /// Complexity: O(size).
-pub fn ffs_integrity_ok(data: &Vec[UInt8], f: &FfsFile) -> Bool {
+pub fn ffs_integrity_ok(data: &Vec[UInt8], f: &FfsFile) -> Bool
+  ensures: f.header_size != 24 && f.header_size != 32 => !result;
+  ensures: f.size < f.header_size => !result;
+  ensures: f.size > data.len() => !result;
+{
   if !_file_spans_ok(data, f) { return false; }
   if (f.attributes & _FFS_ATTR_CHECKSUM) == 0 {
     return f.integrity_check == 0;
@@ -953,7 +1016,19 @@ fn _seal_integrity(out: &mut Vec[UInt8], header_size: Int, total: Int) {
 /// per-type minimums, or Err("efi: file too large") when the padded file
 /// would not fit the 24-bit size field.
 /// Complexity: O(body length).
-pub fn ffs_build(name: Str, file_type: Int, attributes: Int, state: Int, section_type: Int, body: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn ffs_build(name: Str, file_type: Int, attributes: Int, state: Int, section_type: Int, body: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: name.len() != 32 => result is Err;
+  ensures: file_type < 0 || file_type > 255 || state < 0 || state > 255 => result is Err;
+  ensures: attributes < 0 || attributes > 255 => result is Err;
+  ensures: section_type < 0 || section_type > 255 => result is Err;
+  ensures: attributes >= 0 && attributes <= 255 && attributes % 2 == 1 => result is Err;
+  ensures: section_type == 1 && body.len() < 4 => result is Err;
+  ensures: section_type == 2 && body.len() < 20 => result is Err;
+  ensures: section_type == 24 && body.len() < 16 => result is Err;
+  ensures: section_type == 20 && body.len() < 4 => result is Err;
+  ensures: section_type == 21 && (body.len() < 2 || body.len() % 2 == 1) => result is Err;
+  ensures: body.len() > 16777215 => result is Err;
+{
   if !_name_ok(name) { return _err_bytes("efi: bad name"); }
   if file_type < 0 || file_type > 255 { return _err_bytes("efi: bad file type"); }
   if attributes < 0 || attributes > 255 { return _err_bytes("efi: bad attributes"); }
