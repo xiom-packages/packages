@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T14:24:26Z",
+    "updated":  "2026-10-08T14:31:18Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -5190,17 +5190,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.opengl",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "OpenGL 4.6 -- cross-platform graphics API.",
+                         "description":  "OpenGL loader/probe bindings for XIOM (opengl32.dll at runtime, staging + SKIP semantics)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-opengl/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-opengl/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "opengl.xi",
                                               "package.xi"
@@ -6895,19 +6895,18 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.sdl3",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM",
+                         "description":  "SDL3 (Simple DirectMedia Layer 3) bindings for XIOM -- dynamic loader (SDL3.dll at runtime)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl3/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sdl3/v0.2.0/package.tar.gz",
                          "source_files":  [
-                                              "sdl3_safe.xi",
                                               "package.xi",
                                               "sdl3.xi"
                                           ]
