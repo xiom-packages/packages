@@ -14,6 +14,30 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-08 11:45Z (bindings Phase 1 COMPLETE + PUBLISHED `eco-v0.1.92`; B-09 recorded; supersedes the 11:30Z block below):**
+- **Bindings batches 2-3 merged + PUBLISHED (`eco-v0.1.92`, run `37770693430` SUCCESS):**
+  `xiom.sdl3` 0.2.0 and `xiom.opengl` 0.2.0 live as first versions (incubating). Merge
+  `c5e8fe72`; native re-verification via `port.ps1`: sdl3 present-path 10/10 x2 (SDL 3.4.8
+  from the Vulkan SDK, runtime 3004008) + absent 3/3 x2 (SKIP), opengl 8/8 x2 on the
+  RTX 3070 Ti (GL 4.6.0 NVIDIA 616.92) + deterministic SKIP path; both names already
+  allowlisted (needs=NONE). Records: `a03d9893` (B-09 in COMPILER-FINDINGS), `dcfc2de1`
+  (native runs), `6b20aa30` (regen: 467 ready/38 grandfathered), `024e524e` (published).
+- **Phase 1 pilot complete** (sqlite 0.2.0 + sdl3 0.2.0 + opengl 0.2.0 published). Phase-2
+  order in `BINDINGS-SESSION.md` §"Phase-2 sector order"; **native priority for slice 1:
+  `xiom.glfw` first, then `xiom.sdl3` Phase 2** (window/renderer/texture/gamepad over the
+  loader). Batches stay one-package-per-relay with `port.args.json` (`--c-source`) where a
+  C bridge is needed and `-TimeoutSec 240` watchdogs.
+- **B-09 recorded** (confined Win32/WGL mega-block poisons builds; deterministic repro
+  `docs/repro/bindings-pilot/win32-gl-unsafe/`; opengl moved its probe into the vendored C
+  bridge) -- full row in `docs/BINDINGS-COMPILER-FINDINGS.md`.
+- Batch #41 published (`eco-v0.1.91`) with two new compiler findings (Result equality
+  trap; `is Ok(<literal>)` payload ignore) -- `docs/COMPILER-FINDINGS.md`.
+- Next native work: **batch #42** (rescan; next `bencode` ~1105) in parallel with the
+  bindings lane's batch 4 (glfw). v0.64.1 NOT released (re-checked 11:26Z); grpc staged.
+  Credential: `Lefteris-Notas` active.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-08 11:30Z (batch #41 COMPLETE + PUBLISHED `eco-v0.1.91`; two new compiler findings recorded; supersedes the 11:10Z block below):**
 - **Batch #41 DONE + PUBLISHED (`eco-v0.1.91`, run `37769875810` SUCCESS; all six live at
   0.1.2-0.1.3):** `tftp` 0.1.2 (78 clauses; 24/24; `5209efd7`/`300f4a77`), `dtb` 0.1.3
@@ -1827,7 +1851,10 @@ Then do, in order:
    from scripts/contract-coverage.ps1 (keyword-based, NOT categories -- the registry drops
    unknown category tokens). `xiom.sqlite` is DONE (allowlist 505, live 0.2.0); sdl3 is
    the lane's current package (already allowlisted); the per-package hook contract is
-   `port.args.json` (docs/BINDINGS-LANE.md §10). ORBITDB/XVECTOR relays: names frozen in
+   `port.args.json` (docs/BINDINGS-LANE.md §10). Bindings Phase 1 complete (`eco-v0.1.89`
+   sqlite, `eco-v0.1.92` sdl3+opengl); batch 4 = `xiom.glfw` first (native priority), then
+   `xiom.sdl3` Phase 2 -- one package per relay, `needs=NONE` while the name is allowlisted.
+   ORBITDB/XVECTOR relays: names frozen in
    `docs/PACKAGE-WISHLIST.md` §6 (`xiom.wal`/`xiom.vectors`/`xiom.ann`); their extraction
    relays route through the native lane; new-name builds need ops scope + allowlist.
    ORBITDB extraction queue (from their response): create `xiom-wal` (durable `src/wal/*`
