@@ -299,7 +299,10 @@ fn _add_prop(d: &mut Dtb, node: Int, name_off: Int, value_off: Int, value_len: I
 /// `unterminated property name`, `unknown token`,
 /// `truncated structure block`.
 /// Complexity: O(data.len()).
-pub fn dtb_parse(data: &Vec[UInt8]) -> Result[Dtb, Str] {
+pub fn dtb_parse(data: &Vec[UInt8]) -> Result[Dtb, Str]
+  ensures: data.len() < 40 => result is Err;
+  ensures: result is Ok => data.len() >= 44;
+{
   if data.len() < 40 {
     return _err_dtb("dtb: header truncated");
   }
@@ -491,12 +494,16 @@ pub fn dtb_parse(data: &Vec[UInt8]) -> Result[Dtb, Str] {
 // --------------------------------------------------
 
 /// Total blob size stored in the header (`totalsize`).
-pub fn dtb_total_size(d: &Dtb) -> Int {
+pub fn dtb_total_size(d: &Dtb) -> Int
+  ensures: result == d.totalsize;
+{
   return d.totalsize;
 }
 
 /// Blob format version stored in the header (16 or 17 after a parse).
-pub fn dtb_version(d: &Dtb) -> Int {
+pub fn dtb_version(d: &Dtb) -> Int
+  ensures: result == d.version;
+{
   return d.version;
 }
 
@@ -511,18 +518,24 @@ pub fn dtb_boot_cpuid_phys(d: &Dtb) -> Int {
 }
 
 /// Size of the strings block (`size_dt_strings`) in bytes.
-pub fn dtb_strings_size(d: &Dtb) -> Int {
+pub fn dtb_strings_size(d: &Dtb) -> Int
+  ensures: result == d.size_dt_strings;
+{
   return d.size_dt_strings;
 }
 
 /// Number of memory reservation entries (the 0/0 terminator is not one).
-pub fn dtb_mem_rsv_count(d: &Dtb) -> Int {
+pub fn dtb_mem_rsv_count(d: &Dtb) -> Int
+  ensures: result == d.rsv_address.len();
+{
   return d.rsv_address.len();
 }
 
 /// Address of reservation entry `i` as a 64-bit Int bit pattern, or -1 for
 /// an out-of-range index.
-pub fn dtb_mem_rsv_address(d: &Dtb, i: Int) -> Int {
+pub fn dtb_mem_rsv_address(d: &Dtb, i: Int) -> Int
+  ensures: i < 0 || i >= d.rsv_address.len() => result == -1;
+{
   if i < 0 || i >= d.rsv_address.len() {
     return -1;
   }
@@ -545,12 +558,16 @@ pub fn dtb_mem_rsv_size(d: &Dtb, i: Int) -> Int {
 // --------------------------------------------------
 
 /// Number of nodes in the store (1 for any valid blob: the root).
-pub fn dtb_node_count(d: &Dtb) -> Int {
+pub fn dtb_node_count(d: &Dtb) -> Int
+  ensures: result == d.node_name_off.len();
+{
   return d.node_name_off.len();
 }
 
 /// Depth of node `i` (the root is 0), or -1 for an out-of-range index.
-pub fn dtb_node_depth(d: &Dtb, i: Int) -> Int {
+pub fn dtb_node_depth(d: &Dtb, i: Int) -> Int
+  ensures: i < 0 || i >= d.node_depth.len() => result == -1;
+{
   if i < 0 || i >= d.node_depth.len() {
     return -1;
   }
@@ -570,7 +587,9 @@ pub fn dtb_node_parent(d: &Dtb, i: Int) -> Int {
 
 /// Name of the root node; "" when the store has no nodes. `data` must be
 /// the buffer the store was parsed from.
-pub fn dtb_root_name(data: &Vec[UInt8], d: &Dtb) -> Str {
+pub fn dtb_root_name(data: &Vec[UInt8], d: &Dtb) -> Str
+  ensures: d.node_name_off.len() == 0 => result.len() == 0;
+{
   if d.node_name_off.len() == 0 {
     return "";
   }
@@ -580,7 +599,10 @@ pub fn dtb_root_name(data: &Vec[UInt8], d: &Dtb) -> Str {
 }
 
 /// Name of node `i`. Err("dtb: node index out of range") for a bad index.
-pub fn dtb_node_name(data: &Vec[UInt8], d: &Dtb, i: Int) -> Result[Str, Str] {
+pub fn dtb_node_name(data: &Vec[UInt8], d: &Dtb, i: Int) -> Result[Str, Str]
+  ensures: i < 0 || i >= d.node_name_off.len() => result is Err;
+  ensures: i >= 0 && i < d.node_name_off.len() => result is Ok;
+{
   if i < 0 || i >= d.node_name_off.len() {
     return _err_str("dtb: node index out of range");
   }
@@ -590,7 +612,9 @@ pub fn dtb_node_name(data: &Vec[UInt8], d: &Dtb, i: Int) -> Result[Str, Str] {
 }
 
 /// Number of properties in the store.
-pub fn dtb_prop_count(d: &Dtb) -> Int {
+pub fn dtb_prop_count(d: &Dtb) -> Int
+  ensures: result == d.prop_node.len();
+{
   return d.prop_node.len();
 }
 
@@ -604,7 +628,9 @@ pub fn dtb_prop_node(d: &Dtb, i: Int) -> Int {
 }
 
 /// Value length in bytes of property `i`, or -1 for a bad index.
-pub fn dtb_prop_value_len(d: &Dtb, i: Int) -> Int {
+pub fn dtb_prop_value_len(d: &Dtb, i: Int) -> Int
+  ensures: i < 0 || i >= d.prop_value_len.len() => result == -1;
+{
   if i < 0 || i >= d.prop_value_len.len() {
     return -1;
   }
@@ -614,7 +640,10 @@ pub fn dtb_prop_value_len(d: &Dtb, i: Int) -> Int {
 
 /// Name of property `i` (resolved through the strings block).
 /// Err("dtb: property index out of range") for a bad index.
-pub fn dtb_prop_name(data: &Vec[UInt8], d: &Dtb, i: Int) -> Result[Str, Str] {
+pub fn dtb_prop_name(data: &Vec[UInt8], d: &Dtb, i: Int) -> Result[Str, Str]
+  ensures: i < 0 || i >= d.prop_node.len() => result is Err;
+  ensures: i >= 0 && i < d.prop_node.len() => result is Ok;
+{
   if i < 0 || i >= d.prop_node.len() {
     return _err_str("dtb: property index out of range");
   }
@@ -629,7 +658,10 @@ pub fn dtb_prop_name(data: &Vec[UInt8], d: &Dtb, i: Int) -> Result[Str, Str] {
 /// Err("dtb: property index out of range") for a bad index and
 /// Err("dtb: property value out of bounds") when the recorded span does not
 /// fit `data`.
-pub fn dtb_prop_value(data: &Vec[UInt8], d: &Dtb, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn dtb_prop_value(data: &Vec[UInt8], d: &Dtb, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 || i >= d.prop_node.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < d.prop_node.len();
+{
   if i < 0 || i >= d.prop_node.len() {
     return _err_bytes("dtb: property index out of range");
   }
@@ -706,7 +738,12 @@ fn _find_child(data: &Vec[UInt8], d: &Dtb, parent: Int, s: Str, start: Int, end:
 /// full node names (unit addresses included). A single trailing '/' is
 /// accepted; empty components ("//") are not. No relative paths. Returns
 /// the node index, or -1 when the path does not resolve.
-pub fn dtb_find_node(data: &Vec[UInt8], d: &Dtb, path: Str) -> Int {
+pub fn dtb_find_node(data: &Vec[UInt8], d: &Dtb, path: Str) -> Int
+  ensures: d.node_name_off.len() == 0 => result == -1;
+  ensures: d.node_name_off.len() > 0 && path.len() == 0 => result == 0;
+  ensures: result >= -1;
+  ensures: result >= 0 => result < d.node_name_off.len();
+{
   let nn = d.node_name_off.len();
   if nn == 0 {
     return -1;
@@ -776,7 +813,11 @@ fn _prop_name_equals(data: &Vec[UInt8], d: &Dtb, i: Int, name: Str) -> Bool {
 
 /// Index of the first property of `node` whose name equals `name`
 /// byte-for-byte, or -1 when absent (also for a bad node index).
-pub fn dtb_find_property(data: &Vec[UInt8], d: &Dtb, node: Int, name: Str) -> Int {
+pub fn dtb_find_property(data: &Vec[UInt8], d: &Dtb, node: Int, name: Str) -> Int
+  ensures: node < 0 || node >= d.node_name_off.len() => result == -1;
+  ensures: result >= -1;
+  ensures: result >= 0 => result < d.prop_node.len();
+{
   if node < 0 || node >= d.node_name_off.len() {
     return -1;
   }
@@ -803,7 +844,19 @@ pub fn dtb_find_property(data: &Vec[UInt8], d: &Dtb, node: Int, name: Str) -> In
 // name is NUL-terminated inside the strings block, property owners are
 // non-decreasing and node names contain no NUL byte. A drifted store can
 // otherwise cause access violations or a non-canonical blob.
-fn _tree_well_formed(data: &Vec[UInt8], d: &Dtb) -> Bool {
+fn _tree_well_formed(data: &Vec[UInt8], d: &Dtb) -> Bool
+  ensures: d.node_name_len.len() != d.node_name_off.len() => !result;
+  ensures: d.node_depth.len() != d.node_name_off.len() => !result;
+  ensures: d.node_parent.len() != d.node_name_off.len() => !result;
+  ensures: d.prop_name_off.len() != d.prop_node.len() => !result;
+  ensures: d.prop_value_off.len() != d.prop_node.len() => !result;
+  ensures: d.prop_value_len.len() != d.prop_node.len() => !result;
+  ensures: d.rsv_address.len() != d.rsv_size.len() => !result;
+  ensures: d.node_name_off.len() == 0 => !result;
+  ensures: d.off_dt_strings < 0 => !result;
+  ensures: d.size_dt_strings < 0 => !result;
+  ensures: d.off_dt_strings + d.size_dt_strings > data.len() => !result;
+{
   let nn = d.node_name_off.len();
   if d.node_name_len.len() != nn { return false; }
   if d.node_depth.len() != nn { return false; }
@@ -979,7 +1032,10 @@ fn _emit_struct(data: &Vec[UInt8], d: &Dtb, prop_off: &Vec[Int], out: &mut Vec[U
 /// the node forest is not a preorder tree rooted at node 0, or a span/name
 /// does not fit `data` and the strings block.
 /// Complexity: O(blob size).
-pub fn dtb_emit(data: &Vec[UInt8], d: &Dtb) -> Result[Vec[UInt8], Str] {
+pub fn dtb_emit(data: &Vec[UInt8], d: &Dtb) -> Result[Vec[UInt8], Str]
+  ensures: !_tree_well_formed(data, d) => result is Err;
+  ensures: _tree_well_formed(data, d) => result is Ok;
+{
   if !_tree_well_formed(data, d) {
     return _err_bytes("dtb: invalid tree");
   }

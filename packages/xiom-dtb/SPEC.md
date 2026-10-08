@@ -1,8 +1,6 @@
 # xiom.dtb -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.dtb`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/dtb.xi` (`module xiom.dtb`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`); tests add
 `xiom.test`, `xiom.io`, `xiom.string.compare`, `xiom.encoding.hex`.
@@ -355,3 +353,65 @@ Last verified: compiler 0.61.3,
 - Every push on a parallel vector is mirrored on its siblings;
   `dtb_emit` refuses drifted stores (`dtb: invalid tree`).
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #41 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses were added to `src/dtb.xi` in the
+batch #41 hardening pass (compiler v0.64.0; `package.xi` is left for the
+coordinator to bump at integration). 38 clauses over the 18 functions
+below, all `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.dtb -TimeoutSec 60` runs ended
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` with the clauses
+active (7.64 s and 8.11 s); no clause trapped.
+
+Every clause holds for hand-built values and structs: each guard keeps the
+source's own validation branch (including the empty-store guard on
+`dtb_find_node`, which precedes the empty-path branch), and only
+parameters, parameter fields and vector lengths are read. No clause uses a
+module constant, indexes a vector or a `Str` byte, compares `Str` values
+with `==`, reads a struct-Result payload field, or uses
+`result.value.0/.1`. The single clause call is the definitional
+cross-call `dtb_emit` -> `_tree_well_formed`; the callee does not reach
+`dtb_emit` (non-re-entrant).
+
+Plan expressions refined for hand-built safety: the plan's range pair
+`-1 <= result < ...len()` on `dtb_find_node` / `dtb_find_property` is
+false for an empty store (result `-1`), so it was expressed as the proven
+sentinel pair `result >= -1` and `result >= 0 => result < ...len()`; the
+plan's `path.len() == 0 => result == 0` gets the
+`d.node_name_off.len() > 0` guard because the empty store returns `-1`
+first.
+
+Plan clauses dropped for the forbidden vector-index shape: the
+`_tree_well_formed` node-0 depth/parent check, the node-parent-index
+check, the node-name/property-value span checks and the property-owner
+check all need element reads; the `dtb_prop_value` "in-range but span
+does not fit => Err" claim needs `prop_value_off[i]` / `prop_value_len[i]`;
+and the `dtb_find_node` "path not starting '/'" claim needs a `Str` byte
+read. All were dropped without changing the clauses added. No probe-gated
+items applied.
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it
+can emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `dtb_parse` | 2 | `data.len() < 40` => `Err`; `Ok` input at least 44 bytes | no | yes |
+| `dtb_emit` | 2 | not well-formed => `Err`; well-formed => `Ok` | no | yes |
+| `_tree_well_formed` | 11 | any parallel-vector drift, no nodes, or a strings block outside the buffer => `false` | no | yes |
+| `dtb_find_node` | 4 | empty store => `-1`; non-empty store + empty path => `0`; result in `-1..node count` | no | yes |
+| `dtb_find_property` | 3 | bad node index => `-1`; result in `-1..prop count` | no | yes |
+| `dtb_total_size` | 1 | `result == d.totalsize` | no | yes |
+| `dtb_version` | 1 | `result == d.version` | no | yes |
+| `dtb_strings_size` | 1 | `result == d.size_dt_strings` | no | yes |
+| `dtb_mem_rsv_count` | 1 | `result == d.rsv_address.len()` | no | yes |
+| `dtb_mem_rsv_address` | 1 | out-of-range index => `-1` | no | yes |
+| `dtb_node_count` | 1 | `result == d.node_name_off.len()` | no | yes |
+| `dtb_node_depth` | 1 | out-of-range index => `-1` | no | yes |
+| `dtb_root_name` | 1 | empty store => empty name | no | yes |
+| `dtb_node_name` | 2 | bad index => `Err`; in-range index => `Ok` | no | yes |
+| `dtb_prop_count` | 1 | `result == d.prop_node.len()` | no | yes |
+| `dtb_prop_value_len` | 1 | out-of-range index => `-1` | no | yes |
+| `dtb_prop_name` | 2 | bad index => `Err`; in-range index => `Ok` | no | yes |
+| `dtb_prop_value` | 2 | bad index => `Err`; `Ok` only for an in-range index | no | yes |
