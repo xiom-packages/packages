@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  36,
                   "failed":  0,
-                  "run_by":  "native-session",
-                  "commit":  "4e12f80a",
-                  "checked":  "2026-10-08T12:36:12Z"
+                  "run_by":  "task:ses_ee277bf62ffeJ8GSKRRSg3h4rP",
+                  "commit":  "82fac130",
+                  "checked":  "2026-10-08T22:07:28Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: official v0.64.1 repin (eco-v0.1.95)"
