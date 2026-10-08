@@ -554,3 +554,26 @@ STILL OPEN on v0.64.1 (evidence re-run):
   `grpc` 0/2, `protobuf` 0/1, `sqlite` 5/26, `opengl` 6/33, `vulkan` 3/21 (consumer
   rehearsals pending; only http is consumer-confirmed red). Queue: rehearsal recipe from
   the http porter + classify each published FFI package as a catalog dep.
+
+## v0.64.1 extern-unsafe enforcement -- follow-ups (2026-10-08, xiom.http compat pass)
+
+- **`xiom.http` 0.1.2 is the fix** (`548e31b9`): 64 extern call sites wrapped in
+  `unsafe { }`; the 3 raw-pointer-returning helpers became **unsafe-internal** (safe
+  signature kept, unsafe body); 10 discard shapes reshaped. Consumer rehearsal (scratch
+  project, `source-roots` -> package): pre-fix **67 T001** (64 extern + 3 raw-ptr) ->
+  post-fix compiles and runs exit 0; package suite 40/40 x2; PULSE `probe_pkg_http`
+  should flip green on the republish.
+- **NEW finding: `unsafe fn` is a hard `P001` parse error on v0.64.1.** The T003 message
+  points at the right shape ("only unsafe-internal helpers may return pointers"): keep
+  the function safe and put the `unsafe { }` in its body. Sibling FFI packages must not
+  reach for `unsafe fn`.
+- **NEW finding: `let _ = unsafe { call() };` emits invalid IR** for pointer/Str/struct
+  returns in project builds (`trunc i64 -> i32` then `ret i8*`; clang: "defined with type
+  'i32' but expected 'ptr'"). Shape fix: `unsafe { let _ = call(); }` (behavior-identical).
+- **Known defects in `xiom.http` preserved by the compat pass (queue for a future fix):**
+  double-free in `setup_common_options` (p1 freed, reused for NOSIGNAL, freed again -- only
+  survives under the arena/no-op-free guard-heap model), UAF in `http_download`
+  (`remove(path_cstr)` after `xiom_free_cstr`), and `char_to_str`/`byte_to_char` emitting
+  numeric strings for printable ASCII. Consumer-layout caveat: the module lives at the
+  package root (`http.xi`), not `src/`, so catalog rehearsals need a root-module path or
+  an identical `src/` copy.
