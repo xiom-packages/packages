@@ -44,7 +44,10 @@ fn t_constants() -> Bool {
   if SDL_INIT_TIMER != 0x1 { ok = false; }
   if SDL_INIT_VIDEO != 0x20 { ok = false; }
   if SDL_WINDOW_VULKAN != 0x10000000 { ok = false; }
+  if SDL_WINDOW_HIDDEN != 0x8 { ok = false; }
   if SDL_EVENT_QUIT != 0x100 { ok = false; }
+  if SDL_PIXELFORMAT_RGBA8888 != 0x16462004 { ok = false; }
+  if SDL_TEXTUREACCESS_STATIC != 0 { ok = false; }
   if sdl3_versionnum(3, 4, 8) != 3004008 { ok = false; }
   if sdl3_version_major(3004008) != 3 { ok = false; }
   if sdl3_version_minor(3004008) != 4 { ok = false; }
@@ -117,6 +120,79 @@ fn main() -> Int {
     sdl3_quit(&lib);
     let still = sdl3_was_init(&lib, flags);
     failed = failed + report(!still, "quit: SDL_Quit clears TIMER|EVENTS");
+  }
+
+  // -------------------------------------------------------------------
+  // Phase 2: resource stage (window/renderer/texture/gamepad).
+  // Window-dependent checks SKIP cleanly when the platform cannot create
+  // one (headless CI); the resource loader itself must still resolve.
+  // -------------------------------------------------------------------
+  let rl = sdl3_load_resources();
+  if !rl.is_ok {
+    if rl.error.kind == SDL3_LOAD_ABSENT {
+      failed = failed + report(true, "resources: SKIP -- SDL3 runtime not present");
+    } else {
+      failed = failed + report(false, "resources: ABI mismatch -- " + rl.error.message);
+    }
+  } else {
+    let r: Sdl3Resources = rl.value;
+    failed = failed + report(true, "resources: window/renderer/texture/gamepad symbol set resolved");
+
+    let winr = sdl3_create_window(&r, "xiom-sdl3-phase2", 320, 200, SDL_WINDOW_HIDDEN);
+    if !winr.is_ok {
+      failed = failed + report(true, "window: SKIP -- create failed (headless/platform): " + winr.error);
+    } else {
+      let win: Int = winr.value;
+      failed = failed + report(true, "window: created hidden 320x200");
+      let sz = sdl3_window_size(&r, win);
+      failed = failed + report(sz.width > 0, "window: size = " + to_string(sz.width) + "x" + to_string(sz.height));
+      failed = failed + report(sdl3_set_window_title(&r, win, "xiom-sdl3-phase2-renamed"), "window: title update");
+      let shown = sdl3_show_window(&r, win);
+      let hidden = sdl3_hide_window(&r, win);
+      failed = failed + report(true, "window: show/hide callable (show=" + b2s(shown) + " hide=" + b2s(hidden) + ")");
+
+      let renr = sdl3_create_renderer(&r, win);
+      if !renr.is_ok {
+        failed = failed + report(true, "renderer: SKIP -- create failed: " + renr.error);
+      } else {
+        let ren: Int = renr.value;
+        let colored = sdl3_set_render_draw_color(&r, ren, 20, 40, 60, 255);
+        let cleared = sdl3_render_clear(&r, ren);
+        let presented = sdl3_render_present(&r, ren);
+        failed = failed + report(colored, "renderer: draw color set");
+        failed = failed + report(presented, "renderer: clear + present (clear=" + b2s(cleared) + ")");
+
+        let texr = sdl3_create_texture(&r, ren, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, 16, 16);
+        if !texr.is_ok {
+          failed = failed + report(false, "texture: create failed -- " + texr.error);
+        } else {
+          let tex: Int = texr.value;
+          sdl3_destroy_texture(&r, tex);
+          failed = failed + report(true, "texture: RGBA8888 16x16 created + destroyed");
+        }
+        sdl3_destroy_renderer(&r, ren);
+      }
+      sdl3_destroy_window(&r, win);
+    }
+
+    let has = sdl3_has_gamepad(&r);
+    let n = sdl3_gamepad_count(&r);
+    failed = failed + report(true, "gamepad: enumeration callable (has=" + b2s(has) + " count=" + to_string(n) + ")");
+    if n > 0 {
+      // No gamepad is attached in CI; if one is, open/close the first id.
+      let gp = sdl3_open_gamepad(&r, 0);
+      if gp.is_ok {
+        sdl3_close_gamepad(&r, gp.value);
+        failed = failed + report(true, "gamepad: open/close first id succeeded");
+      } else {
+        failed = failed + report(true, "gamepad: SKIP -- open failed: " + gp.error);
+      }
+    } else {
+      failed = failed + report(true, "gamepad: SKIP -- no gamepad attached");
+    }
+
+    let rc = sdl3_resources_close(&r);
+    failed = failed + report(rc.is_ok, "resources: handle released");
   }
 
   let cl = sdl3_close(&lib);
