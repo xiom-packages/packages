@@ -3,14 +3,46 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 8 RELAYED** -- `xiom.vulkan` 0.2.0 capability probe green
-(10/10 x2 via port.ps1 on v0.64.1: loader 1.4.350, 20 instance extensions,
-15 layers, RTX 3070 Ti); awaiting native merge/verify/publish. The pre-pilot
-static-bridge engine (~1.7MB) was removed to git history -- native lane:
-flag if you prefer it preserved under `legacy/`. Next per roadmap:
-vulkan Phase 3 (instance extensions/surface/swapchain) or the next sector.
+**STATUS: BATCH 10 RELAYED** -- `xiom.directx11` 0.2.0 capability probe green
+(5/5 x2 via port.ps1 on v0.64.1: hardware device at 11_0, 3 adapters, first =
+NVIDIA RTX 3070 Ti); awaiting native merge/verify/publish. Next wave per
+roadmap: directx12, then the compression tier (zstd/lzfse/ozz).
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 10: head=c7db19b7 (code) + this handoff commit; packages=xiom.directx11 0.2.0
+(capability probe replacing the pre-pilot static externs); tests=5/5 x2 via scripts/port.ps1
+on v0.64.1 (2026-10-08: hardware device at feature level 11_0 (45056), 3 DXGI adapters, first
+= NVIDIA GeForce RTX 3070 Ti vendor_id 4318 device_id 9346; deterministic SKIP classification
+per run); licenses=MIT OR Apache-2.0 (header-free bridge is our code; nothing vendored);
+pins=sonames d3d11.dll + dxgi.dll + Windows SDK 10.0.22621.0 header hashes (um\d3d11.h
+B2C0CAA5..., shared\dxgi.h 4B983AC7..., um\d3dcommon.h 62F7BF1A...) + ABI (IID_IDXGIFactory1
+{770aae78-f26f-4dba-a829-253c83d1b387}; IDXGIFactory1 slot 12=EnumAdapters1; IDXGIAdapter
+slot 8=GetDesc; DXGI_ADAPTER_DESC offsets 0/256/260; D3D11_SDK_VERSION=7;
+DRIVER_TYPE_HARDWARE=1; feature levels 9_3..11_1); local samples System32 d3d11.dll/dxgi.dll
+10.0.26100.9549 (sha256 3E6C8932.../023542BB...); gate=G0 OK, G1 OK, G2 OK, G3 OK
+(ABSENT/NO_DEVICE -> SKIP, ABI -> FAIL), G4 OK, G5 OK (all unsafe in the single module
+xiom.directx11); needs=NONE (allowlisted + baseline); port.args.json present
+(--c-source src/d3d11_probe.c, no --link).
+```
+
+```
+BINDINGS BATCH 9: head=b282cf82 (code) + this handoff commit; packages=xiom.dxc 0.2.0
+(capability probe replacing the pre-pilot bridge); tests=3/3 x2 via scripts/port.ps1 on
+v0.64.1 (2026-10-08: dxcompiler.dll 1.9.0.5347 from Vulkan SDK 1.4.350.0: ps_6_0 'main'
+-> 2532-byte DXIL object, 4-byte aligned; deterministic SKIP classification per run);
+licenses=MIT OR Apache-2.0 (header-free bridge is our code; nothing vendored);
+pins=soname dxcompiler.dll + dxcapi.h hashes (SDK copy FF3CA20C... + upstream commit
+fe2615732 A8D40964...) + COM ABI (CLSID_DxcCompiler 73e22d93..., IID_IDxcCompiler3
+228b4687..., IID_IDxcResult 58346cda..., IID_IDxcBlob 8ba5fb08...; compiler slot 3=Compile;
+result slots 3=GetStatus,7=GetOutput; blob slot 4=GetBufferSize; DxcBuffer 24B;
+DXC_OUT_OBJECT=1); local sample dxcompiler.dll 1.9.0.5347 sha256
+6E990D20E53390CDE413CE9A8016A8F43582E325A04CF72ECC706B4BEA504F0C (dxil.dll not present;
+unsigned DXIL); gate=G0 OK, G1 OK, G2 OK, G3 OK (ABSENT -> SKIP; ABI/compile failure ->
+FAIL), G4 OK, G5 OK (all unsafe in the single module xiom.dxc); needs=NONE (allowlisted +
+baseline); port.args.json present (--c-source src/dxc_probe.c, no --link).
+```
 
 ```
 BINDINGS BATCH 8: head=af564de9 (code) + this handoff commit; packages=xiom.vulkan 0.2.0
@@ -374,6 +406,62 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Scope decision requested from the native lane: the pre-pilot static-bridge
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
+
+## Batch 10 notes (xiom.directx11, 2026-10-08)
+
+- Header-free ABI extraction paid off again: the DXGI vtables were pinned
+  from `dxgi.h` before writing the bridge (factory slot 12 = EnumAdapters1,
+  adapter slot 8 = GetDesc, desc offsets 0/256/260) -- the first present-path
+  run created a hardware device and read the adapter name with no iteration.
+- `D3D11CreateDevice` with a NULL feature-level array returns 11_0 on this
+  driver; explicit 11_1 needs a requested feature-level list (Phase 2).
+- Adapter enumeration returns 3 entries on this host; the first is the
+  NVIDIA RTX 3070 Ti (`vendor_id 4318` = 0x10DE, `device_id 9346` = 0x2482).
+- Run matrix: 5/5 x2; SKIP classification (bogus sonames) every run.
+  Allowlisted + baseline; `port.args.json` compiles the bridge.
+- Pre-pilot module (22 KB static `extern "C"` D3D declarations) removed to
+  git history.
+
+## Batch 9 notes (xiom.dxc, 2026-10-08)
+
+- Header-free COM bridge: `dxcapi.h` was read from the SDK and used as the
+  specification (GUIDs + vtable slot offsets), but the bridge declares the
+  ABI locally and drives `IDxcCompiler3`/`IDxcResult`/`IDxcBlob` through raw
+  vtable pointers -- no SDK header or import library at build time.
+- First present-path run compiled a real `ps_6_0` shader to a 2,532-byte DXIL
+  object on the first try (ABI extraction paid off; a wrong slot would have
+  crashed rather than failed softly).
+- `dxil.dll` is not in the SDK `Bin` here; unsigned DXIL is fine for the
+  capability probe (validator seam is a Phase 2 item).
+- Run matrix: 3/3 x2; SKIP classification (bogus soname) every run. Already
+  allowlisted; `port.args.json` compiles the bridge.
+- Pre-pilot bridge (77 KB, SDK headers + import libs) removed to git history.
+
+## Inbound checks (2026-10-08, post-batch-8: project lanes + stdlib)
+
+- **PULSE** (`docs/PACKAGE-WISHLIST-PULSE.md` bindings section): first binding
+  request is "a durable database/KV client binding (SQLite/Postgres or
+  similar) to back the event store and sessions beyond JSONL". **Already
+  served**: `xiom.sqlite` 0.2.0 is published (eco-v0.1.89) and is exactly that
+  durable store path; PULSE keeps JSONL as its documented fallback until it
+  adopts. Outbound HTTP client is explicitly "not yet needed"; TLS is
+  explicitly NOT a binding (front proxy). No new work item for this lane.
+- **ORBITDB**: `RELAY-PACKAGES-RESPONSE-ORBITDB.md` and
+  `STDLIB-WISHLIST-ORBITDB.md` contain no bindings-lane asks ("No C-FFI
+  needs", pure-XIOM target). Nothing to do.
+- **XVECTOR**: `RELAY-PACKAGES.md` restates the accelerator watch
+  (`xiom-blas`/`eigen`/`openblas` behind the portable `xiom.vectors` API);
+  unscheduled here, no new ask.
+- **Stdlib response** (`docs/BINDINGS-STDLIB-WISHLIST.md` updated):
+  stdlib **0.64.2** delivered W-1 `fs_remove` (also the shared wishlist's
+  2026-10-05 row) and corrected the W-4 `dl` cast note; `SafePtr`/`FFIBuffer`
+  typed slot helpers pre-existed (W-2 re-scoped to a docs ask); W-3
+  (guard-aware `free`) and W-5 (`Vec.with_len`) remain open.
+- **Compatibility spot-check on stdlib 0.64.2**: `port.ps1` green for
+  `xiom.glfw` (3/3, SKIP path) and `xiom.sqlite` (16/16). No suite changes
+  needed.
+- **Wave continuation**: batch 9 starts `xiom.dxc` (GPU tier: shader-compiler
+  binding over the same runtime-loader + SKIP pattern), then dx11/12.
 
 ## Phase-2 sector order proposal (Phase 1 pilot complete)
 
