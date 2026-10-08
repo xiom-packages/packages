@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T11:10:08Z",
+    "updated":  "2026-10-08T12:22:19Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -55,7 +55,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.adc",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "ADC codecs: integer conversion scaling, channel/gain/reference selection, sample-rate tables and ADS1x15 config registers",
@@ -65,7 +65,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-adc/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-adc/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "adc.xi",
                                               "package.xi"
@@ -89,7 +89,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.aiff",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "AIFF/AIFF-C container header codec: FORM/COMM/SSND chunks, 80-bit sample rate, chunk index",
@@ -99,7 +99,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-aiff/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-aiff/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "aiff.xi",
                                               "package.xi"
@@ -2075,7 +2075,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.elf",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM ELF header and program/section table codec (32/64-bit, LE/BE)",
@@ -2085,7 +2085,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-elf/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-elf/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "elf.xi",
                                               "package.xi"
@@ -3418,7 +3418,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.irc",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "IRC message codec: RFC 1459/2812 subset plus IRCv3 tags, parse and build with round-trips",
@@ -3428,7 +3428,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-irc/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-irc/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "irc.xi",
                                               "package.xi"
@@ -7672,7 +7672,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.tap",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Test Anything Protocol (TAP) parser and canonical emitter",
@@ -7682,7 +7682,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tap/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tap/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "tap.xi",
                                               "package.xi"
@@ -8222,7 +8222,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.tzif",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "TZif time zone file codec for RFC 8536 versions 1/2/3 with a version 1 builder",
@@ -8232,7 +8232,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tzif/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tzif/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "tzif.xi",
                                               "package.xi"
