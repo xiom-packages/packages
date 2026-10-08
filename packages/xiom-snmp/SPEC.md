@@ -1,8 +1,6 @@
 # xiom.snmp -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.snmp`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/snmp.xi` (`module xiom.snmp`).
 Depends on `xiom.std`; the library module imports `xiom.string.builder`
 (the tests add `xiom.test`, `xiom.io`, `xiom.string`,
@@ -531,15 +529,6 @@ external data files.
     two-varbind message counts and ordered offsets; -1 guards for
     negative/out-of-range indexes; empty varbind list has offset -1.
 
-Run from the repository root:
-
-```
-& .\scripts\port.ps1 -Package xiom.snmp
-```
-
-Last verified: compiler 0.61.3,
-`port: PASS (passed=19 failed=0 program_exit=0 exit=0)`.
-
 ## Known limitations
 
 - No transport: callers move bytes; UDP/TCP framing and retries are not
@@ -593,4 +582,57 @@ Last verified: compiler 0.61.3,
   `xiom.string.compare.str_compare` and call their 19 test functions
   directly from `main` (no `Vec[fn]` dispatch).
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #47 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (27, across the 15 functions below) were
+added to `src/snmp.xi` in the batch #47 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 19-check conformance suite
+exercises the contracted entry points and no clause trapped in either green
+run, so none was dropped. Two consecutive green
+`& .\scripts\port.ps1 -Package xiom.snmp -TimeoutSec 90` runs ended
+`port: PASS (passed=19 failed=0 program_exit=0 exit=0)` with the clauses
+active (26.41 s and 24.97 s; compiler 0.64.1). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, and per the batch #37
+finding a bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant, or
+reads a `&mut` parameter. Guards keep the plan's families: sentinel pairs
+(`result == -1`, `result.len() == 0`), tag guards (`result is Err` /
+`result is Ok`), bounds (`result.len() >= 3`, `>= 2`, `>= 20`), and exact
+formulas (`result == 160 + kind`, `result == tag - 160`,
+`len < 128 => result.len() == bytes.len() + 2`). Clause literals are the raw
+values rather than module constants: 0/1 for `SNMP_VERSION_V1`/`_V2C`, 65/66/
+67/70 for the Counter32/Gauge32/TimeTicks/Counter64 tags, 4294967295 for
+`SNMP_MAX_U32`, 160/167 for the PDU tag range, 128 for the BER short-form
+length limit, 7 for the PDU kind bound and 20 for the builder's minimum
+message size; each matches its constant or branch in the source. The
+`snmp_pdu_tag` / `snmp_pdu_kind` guard pairs partition all Ints, so both the
+`-1` and the formula clause always apply to exactly one side, and the
+`result is Ok => result.value.len() >= N` clauses read only the length of an
+encoder payload (never a struct field or a parameter-length comparison).
+Every sentinel and tag guard matches the function's own early-return branch,
+so the clauses hold for parser-produced and hand-built values alike.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `ber_length_decode` | 2 | negative or out-of-buffer `off` => `Err` | no | yes |
+| `ber_tlv_decode` | 2 | negative or out-of-buffer `off` => `Err` | no | yes |
+| `ber_int_decode` | 1 | negative `off` => `Err` | no | yes |
+| `ber_counter32_decode` | 1 | negative `off` => `Err` | no | yes |
+| `ber_length_encode` | 2 | negative `len` => empty; `0..127` => exactly 1 byte | no | yes |
+| `ber_int_encode` | 2 | always >= 3 bytes (`value` content non-empty); `value == 0` => exactly 3 | no | yes |
+| `ber_uint_encode` | 4 | bad tag / negative value / 32-bit overflow => `Err`; `Ok` implies >= 3 bytes | no | yes |
+| `ber_octet_string_encode` | 2 | `bytes.len() < 128` => `bytes.len() + 2`; always >= 2 | no | yes |
+| `ber_oid_encode` | 2 | fewer than 2 arcs => `Err`; `Ok` implies >= 3 bytes | no | yes |
+| `snmp_value_decode` | 1 | negative `off` => `Err` | no | yes |
+| `snmp_message_parse` | 1 | input shorter than 2 bytes => `Err` | no | yes |
+| `snmp_varbind_offset` | 1 | negative or out-of-range `i` => `-1` | no | yes |
+| `snmp_pdu_tag` | 2 | kind outside 0..7 => `-1`; 0..7 => `160 + kind` | no | yes |
+| `snmp_pdu_kind` | 2 | tag outside 160..167 => `-1`; 160..167 => `tag - 160` | no | yes |
+| `snmp_get_request_build` | 2 | version outside 0..1 => `Err`; `Ok` implies >= 20 bytes | no | yes |
 

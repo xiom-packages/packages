@@ -414,7 +414,10 @@ fn _tlv_start(t: &BerTlv) -> Int {
 ///   * `ber: length overflow` -- more than 8 length bytes, or a long-form
 ///     value that does not fit a signed 64-bit Int.
 /// Complexity: O(length bytes).
-pub fn ber_length_decode(data: &Vec[UInt8], off: Int) -> Result[BerLength, Str] {
+pub fn ber_length_decode(data: &Vec[UInt8], off: Int) -> Result[BerLength, Str]
+  ensures: off < 0 => result is Err;
+  ensures: off >= data.len() => result is Err;
+{
   if off < 0 {
     return _err_blen("ber: negative offset");
   }
@@ -461,7 +464,10 @@ pub fn ber_length_decode(data: &Vec[UInt8], off: Int) -> Result[BerLength, Str] 
 /// The caller is responsible for checking the TLV against its container
 /// (the message parser rejects `ber: value overruns container`).
 /// Complexity: O(1) after the length field.
-pub fn ber_tlv_decode(data: &Vec[UInt8], off: Int) -> Result[BerTlv, Str] {
+pub fn ber_tlv_decode(data: &Vec[UInt8], off: Int) -> Result[BerTlv, Str]
+  ensures: off < 0 => result is Err;
+  ensures: off >= data.len() => result is Err;
+{
   if off < 0 {
     return _err_tlv("ber: negative offset");
   }
@@ -635,7 +641,9 @@ fn _oid_arcs(data: &Vec[UInt8], t: &BerTlv) -> Result[Vec[Int], Str] {
 /// `ber: non-minimal integer`; the latter three report the TLV's first
 /// byte.
 /// Complexity: O(content bytes).
-pub fn ber_int_decode(data: &Vec[UInt8], off: Int) -> Result[BerInt, Str] {
+pub fn ber_int_decode(data: &Vec[UInt8], off: Int) -> Result[BerInt, Str]
+  ensures: off < 0 => result is Err;
+{
   let tr = ber_tlv_decode(data, off);
   if !tr.is_ok {
     return _err_bint(tr.error);
@@ -775,7 +783,9 @@ pub fn ber_opaque_decode(data: &Vec[UInt8], off: Int) -> Result[BerBytes, Str] {
 /// Errors: the `ber_tlv_decode` catalog, `ber: tag mismatch` at `off`, and
 /// at the TLV's first byte `ber: empty integer` / `ber: value overflow`.
 /// Complexity: O(content bytes).
-pub fn ber_counter32_decode(data: &Vec[UInt8], off: Int) -> Result[BerInt, Str] {
+pub fn ber_counter32_decode(data: &Vec[UInt8], off: Int) -> Result[BerInt, Str]
+  ensures: off < 0 => result is Err;
+{
   return _uint_decoder(data, off, SNMP_TAG_COUNTER32, 4);
 }
 
@@ -864,7 +874,10 @@ fn _ticks_in(data: &Vec[UInt8], off: Int, end: Int) -> Result[BerInt, Str] {
 /// 0x80|n followed by the minimal big-endian value. A negative `len`
 /// yields an empty vector.
 /// Complexity: O(length bytes).
-pub fn ber_length_encode(len: Int) -> Vec[UInt8] {
+pub fn ber_length_encode(len: Int) -> Vec[UInt8]
+  ensures: len < 0 => result.len() == 0;
+  ensures: len >= 0 && len < 128 => result.len() == 1;
+{
   var out = Vec[UInt8].new();
   _push_length(&mut out, len);
   return out;
@@ -932,7 +945,10 @@ fn _uint_content(value: Int) -> Vec[UInt8] {
 
 /// Encode `value` as a minimally encoded signed INTEGER TLV (tag 0x02).
 /// Complexity: O(content bytes).
-pub fn ber_int_encode(value: Int) -> Vec[UInt8] {
+pub fn ber_int_encode(value: Int) -> Vec[UInt8]
+  ensures: result.len() >= 3;
+  ensures: value == 0 => result.len() == 3;
+{
   var body = _int_content(value);
   var out = Vec[UInt8].new();
   out.push(SNMP_TAG_INTEGER as UInt8);
@@ -949,7 +965,12 @@ pub fn ber_int_encode(value: Int) -> Vec[UInt8] {
 ///   * `ber: value too large` -- a 32-bit type above 4294967295 (Counter64
 ///     accepts any non-negative Int).
 /// Complexity: O(content bytes).
-pub fn ber_uint_encode(value: Int, tag: Int) -> Result[Vec[UInt8], Str] {
+pub fn ber_uint_encode(value: Int, tag: Int) -> Result[Vec[UInt8], Str]
+  ensures: tag != 65 && tag != 66 && tag != 67 && tag != 70 => result is Err;
+  ensures: value < 0 => result is Err;
+  ensures: tag != 70 && value > 4294967295 => result is Err;
+  ensures: result is Ok => result.value.len() >= 3;
+{
   if tag != SNMP_TAG_COUNTER32 && tag != SNMP_TAG_GAUGE32 && tag != SNMP_TAG_TIMETICKS && tag != SNMP_TAG_COUNTER64 {
     return _err_bytes("ber: bad unsigned tag");
   }
@@ -971,7 +992,10 @@ pub fn ber_uint_encode(value: Int, tag: Int) -> Result[Vec[UInt8], Str] {
 
 /// Encode `bytes` as an OCTET STRING TLV (tag 0x04), verbatim.
 /// Complexity: O(content bytes).
-pub fn ber_octet_string_encode(bytes: &Vec[UInt8]) -> Vec[UInt8] {
+pub fn ber_octet_string_encode(bytes: &Vec[UInt8]) -> Vec[UInt8]
+  ensures: bytes.len() < 128 => result.len() == bytes.len() + 2;
+  ensures: result.len() >= 2;
+{
   var out = Vec[UInt8].new();
   out.push(SNMP_TAG_OCTET_STRING as UInt8);
   _push_length(&mut out, bytes.len());
@@ -1011,7 +1035,10 @@ fn _push_base128(out: &mut Vec[UInt8], v: Int) {
 /// `ber: bad first oid arc`, `ber: bad second oid arc`,
 /// `ber: negative oid arc`.
 /// Complexity: O(arcs).
-pub fn ber_oid_encode(arcs: &Vec[Int]) -> Result[Vec[UInt8], Str] {
+pub fn ber_oid_encode(arcs: &Vec[Int]) -> Result[Vec[UInt8], Str]
+  ensures: arcs.len() < 2 => result is Err;
+  ensures: result is Ok => result.value.len() >= 3;
+{
   let n = arcs.len();
   if n < 2 {
     return _err_bytes("ber: oid needs two arcs");
@@ -1064,7 +1091,9 @@ pub fn ber_oid_encode(arcs: &Vec[Int]) -> Result[Vec[UInt8], Str] {
 /// `ber: unsupported value tag` at `off` for any other tag (including
 /// SEQUENCE and context tags).
 /// Complexity: O(content bytes).
-pub fn snmp_value_decode(data: &Vec[UInt8], off: Int) -> Result[SnmpValue, Str] {
+pub fn snmp_value_decode(data: &Vec[UInt8], off: Int) -> Result[SnmpValue, Str]
+  ensures: off < 0 => result is Err;
+{
   let tr = ber_tlv_decode(data, off);
   if !tr.is_ok {
     return _err_value(tr.error);
@@ -1257,7 +1286,9 @@ pub fn snmp_varbind_parse(data: &Vec[UInt8], off: Int) -> Result[SnmpVarBind, St
 /// and `snmp: trailing bytes` when a container declares more bytes than its
 /// fields consume.
 /// Complexity: O(message bytes).
-pub fn snmp_message_parse(data: &Vec[UInt8]) -> Result[SnmpMessage, Str] {
+pub fn snmp_message_parse(data: &Vec[UInt8]) -> Result[SnmpMessage, Str]
+  ensures: data.len() < 2 => result is Err;
+{
   let mr = ber_tlv_decode(data, 0);
   if !mr.is_ok {
     return _err_msg(mr.error);
@@ -1462,7 +1493,9 @@ pub fn snmp_varbind_count(m: &SnmpMessage) -> Int {
 
 /// Absolute offset of the i-th varbind SEQUENCE, or -1 when `i` is
 /// negative or >= `snmp_varbind_count(m)`. Complexity: O(1).
-pub fn snmp_varbind_offset(m: &SnmpMessage, i: Int) -> Int {
+pub fn snmp_varbind_offset(m: &SnmpMessage, i: Int) -> Int
+  ensures: i < 0 || i >= m.varbind_offsets.len() => result == -1;
+{
   if i < 0 {
     return -1;
   }
@@ -1475,7 +1508,10 @@ pub fn snmp_varbind_offset(m: &SnmpMessage, i: Int) -> Int {
 
 /// PDU tag (0xA0..0xA7) for a PDU kind 0..7, or -1 when the kind is out of
 /// range. Complexity: O(1).
-pub fn snmp_pdu_tag(kind: Int) -> Int {
+pub fn snmp_pdu_tag(kind: Int) -> Int
+  ensures: kind < 0 || kind > 7 => result == -1;
+  ensures: kind >= 0 && kind <= 7 => result == 160 + kind;
+{
   if kind < 0 || kind > 7 {
     return -1;
   }
@@ -1484,7 +1520,10 @@ pub fn snmp_pdu_tag(kind: Int) -> Int {
 
 /// PDU kind (0..7) for a PDU tag 0xA0..0xA7, or -1 otherwise.
 /// Complexity: O(1).
-pub fn snmp_pdu_kind(tag: Int) -> Int {
+pub fn snmp_pdu_kind(tag: Int) -> Int
+  ensures: tag < 160 || tag > 167 => result == -1;
+  ensures: tag >= 160 && tag <= 167 => result == tag - 160;
+{
   if tag < 160 || tag > 167 {
     return -1;
   }
@@ -1548,7 +1587,10 @@ fn _message_build(kind: Int, version: Int, community: &Vec[UInt8], request_id: I
 /// `snmp_value_encode`) none for NULL. The PDU carries request-id
 /// `request_id`, error-status 0 and error-index 0.
 /// Complexity: O(oid + community bytes).
-pub fn snmp_get_request_build(version: Int, community: &Vec[UInt8], request_id: Int, oid: &Vec[Int]) -> Result[Vec[UInt8], Str] {
+pub fn snmp_get_request_build(version: Int, community: &Vec[UInt8], request_id: Int, oid: &Vec[Int]) -> Result[Vec[UInt8], Str]
+  ensures: version != 0 && version != 1 => result is Err;
+  ensures: result is Ok => result.value.len() >= 20;
+{
   var null_val = SnmpValue{ tag: SNMP_TAG_NULL; int_val: 0; bytes: Vec[UInt8].new(); oid: Vec[Int].new(); next: 0; };
   return _message_build(SNMP_PDU_GET_REQUEST, version, community, request_id, 0, 0, oid, &null_val);
 }
