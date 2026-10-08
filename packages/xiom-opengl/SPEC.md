@@ -5,13 +5,13 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.opengl` |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | OpenGL (Khronos API); Windows implementation `opengl32.dll` |
 | Upstream license | none vendored -- the API is a specification; the bridge is our code |
 | Package license | MIT OR Apache-2.0 |
 | Platform | Windows x64 (system component `opengl32.dll`; soname hard-coded for now) |
-| Compiler pin | xiom v0.64.0 |
+| Compiler pin | v0.64.1 |
 
 ## 2. G2 pin: soname + symbol set + PFD layout
 
@@ -23,9 +23,16 @@ vendored bridge -- there is no link-time dependency on OpenGL.
 
 | Library (runtime-loaded) | Symbols |
 |--------------------------|---------|
-| `opengl32.dll` | `glGetString`, `wglCreateContext`, `wglMakeCurrent`, `wglDeleteContext` |
+| `opengl32.dll` | `glGetString`, `wglGetProcAddress`, `wglCreateContext`, `wglMakeCurrent`, `wglDeleteContext` |
 | `user32.dll` | `CreateWindowExA`, `DestroyWindow`, `GetDC`, `ReleaseDC` |
 | `gdi32.dll` | `ChoosePixelFormat`, `SetPixelFormat` |
+| via `wglGetProcAddress` (context-scoped) | `wglCreateContextAttribsARB`, `glGetIntegerv`, `glGetStringi` |
+
+**Core-context attribs pinned** (used by `xgl_query_core`):
+`WGL_CONTEXT_MAJOR_VERSION_ARB=0x2091`, `MINOR=0x2092`, `FLAGS=0x2094`,
+`PROFILE_MASK=0x9126`, `CORE_PROFILE_BIT_ARB=0x1`; GL queries
+`GL_MAJOR_VERSION=0x821B`, `GL_MINOR_VERSION=0x821C`,
+`GL_NUM_EXTENSIONS=0x821D`, `GL_EXTENSIONS=0x1F03`.
 
 **PIXELFORMATDESCRIPTOR layout:** 40 bytes; `nVersion=1`;
 `dwFlags = PFD_DRAW_TO_WINDOW(0x4) | PFD_SUPPORT_OPENGL(0x20) |
@@ -62,12 +69,14 @@ PFD_DOUBLEBUFFER(0x1)` = 0x25; `iPixelType = PFD_TYPE_RGBA(0)`;
 ## 3. Design: vendored C bridge + staged probe
 
 - `src/gl_probe.c` (our code, MIT/Apache) resolves all libraries at runtime,
-  performs the staged probe, and exposes ten flat `extern "C"` functions.
+  performs the staged probes, and exposes the flat `extern "C"` contract.
   It links nothing but kernel32 (`LoadLibraryA`/`GetProcAddress`).
 - The XIOM module (`opengl.xi`, module `xiom.opengl`) is a thin safe wrapper:
   all `unsafe`/`extern` in this package are confined to this single module
-  (G5). Public API: `opengl_probe`, `opengl_probe_named`, `opengl_unload`,
-  `GlInfo`, `GlProbeError`, constants.
+  (G5). Public API: `opengl_probe`, `opengl_probe_named`,
+  `opengl_probe_core`, `opengl_probe_core_named`, `opengl_has_extension`,
+  `opengl_has_extension_named`, `opengl_unload`, `GlInfo`, `GlCoreInfo`,
+  `GlProbeError`, constants.
 - **Why a C bridge** (not pure-XIOM Win32): a pure-XIOM version of the
   context path poisoned the binary on v0.64.0 (crash before first output,
   deterministic) -- see finding B-09 in
@@ -82,12 +91,19 @@ PFD_DOUBLEBUFFER(0x1)` = 0x25; `iPixelType = PFD_TYPE_RGBA(0)`;
   - `OPENGL_LOAD_ABSENT` -> SKIP (library missing; CI stays green)
   - `OPENGL_LOAD_NO_CONTEXT` -> SKIP (no display/pixel format/context)
   - `OPENGL_LOAD_ABI` -> FAIL (present but exports missing; never silent)
+- **Phase 2 (0.3.0): core-profile probe + extension loading.**
+  `opengl_probe_core(major, minor)` obtains `wglCreateContextAttribsARB`
+  through a temporary classic context and creates the requested core-profile
+  context, then reports the negotiated version, the extension count and the
+  first extension names; `opengl_has_extension(name)` scans the extension
+  list with `glGetStringi` (exact match). Both are atomic
+  (load -> context -> query -> unload) like the classic probe.
 
-## 4. Test matrix (recorded 2026-10-08, compiler v0.64.0)
+## 4. Test matrix (recorded 2026-10-08, compiler v0.64.1)
 
 | Configuration | Command | Result |
 |---------------|---------|--------|
-| Full (NVIDIA RTX 3070 Ti) | `scripts/port.ps1 -Package xiom.opengl` | **PASS 8/8 x2** -- constants, SKIP classification (bogus soname -> ABSENT), VENDOR/RENDERER/VERSION/GLSL, contextless NULL, unload |
+| Full (NVIDIA RTX 3070 Ti) | `scripts/port.ps1 -Package xiom.opengl` | **PASS 13/13 x2** -- constants, SKIP classification (bogus soname -> ABSENT), classic context strings, contextless NULL, 3.3 core negotiation, extension count (404) + head, bogus extension absent, well-known extension (driver-dependent), unload |
 | SKIP classification | deterministic on every host via `opengl_probe_named("xiom-absent-gl-probe-xyz.dll")` | **PASS** in both recorded runs |
 | No-context SKIP path | code-reviewed; force-testing requires breaking window creation (covered by the same kind mapping as the ABSENT branch) | not exercised locally |
 
@@ -96,9 +112,12 @@ soname), so CI without a GPU still exercises the classification logic.
 
 ## 5. Scope
 
-Capability probe only: symbol resolution, contextless safety, one real
-context with VENDOR/RENDERER/VERSION/GLSL. Extension loading
-(`wglGetProcAddress`), context attributes/versions, and the modern GL
-function table are Phase 2 (`ROADMAP.md`). The old static-extern wrapper set
-(pre-0.2.0 `opengl.xi`) could not link (`glCreateShader` etc. are not exported
-by `opengl32.dll`) and is preserved in git history only as reference.
+0.3.0 covers capability probing: symbol resolution, contextless safety, one
+classic context with VENDOR/RENDERER/VERSION/GLSL, and a core-profile probe
+(version negotiation + extension count/scan). A **session-based function
+table** (keeping a context alive so consumers can call modern GL entry
+points through resolved addresses) is the next step, along with the
+`opengl32sw.dll` fallback and the POSIX/EGL path (`ROADMAP.md`). The old
+static-extern wrapper set (pre-0.2.0 `opengl.xi`) could not link
+(`glCreateShader` etc. are not exported by `opengl32.dll`) and is preserved
+in git history only as reference.

@@ -13,8 +13,9 @@ bridge and reports a staged capability probe:
 Missing runtime -> **SKIP**; no display/context -> **SKIP**; present but
 broken exports -> **FAIL**. CI stays green without a GPU.
 
-> **Status:** `incubating` -- suite green x2 on the pin (v0.64.0):
-> 8/8 on an NVIDIA RTX 3070 Ti (GL 4.6), plus a deterministic SKIP-path test.
+> **Status:** `incubating` -- suite green x2 on the pin (v0.64.1):
+> 13/13 on an NVIDIA RTX 3070 Ti (classic 4.6 + 3.3 core probe, 404
+> extensions), plus a deterministic SKIP-path test.
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
@@ -42,7 +43,9 @@ fn main() {
 | Area | Functions |
 |------|-----------|
 | Probe | `opengl_probe`, `opengl_probe_named(soname)`, `opengl_unload` |
-| Types | `GlInfo` (vendor/renderer/version/glsl/contextless_len), `GlProbeError` (kind/message) |
+| Core probe | `opengl_probe_core(major, minor)`, `opengl_probe_core_named(soname, major, minor)` |
+| Extensions | `opengl_has_extension(name)`, `opengl_has_extension_named(soname, name)` |
+| Types | `GlInfo` (vendor/renderer/version/glsl/contextless_len), `GlCoreInfo` (strings + major/minor/extension_count/extension_head), `GlProbeError` (kind/message) |
 | Kinds | `OPENGL_LOAD_ABSENT`, `OPENGL_LOAD_NO_CONTEXT`, `OPENGL_LOAD_ABI` |
 | Constants | `GL_VENDOR/RENDERER/VERSION/EXTENSIONS/SHADING_LANGUAGE_VERSION`, `PFD_*`, `OPENGL_GL_SONAME` |
 
@@ -65,5 +68,6 @@ xiom --run tests/test_conformance.xi --c-source <abs>\src\gl_probe.c
 scripts/port.ps1 -Package xiom.opengl
 ```
 
-Expected: 8 `[PASS]`, exit 0, on a desktop session. See `SPEC.md` §4 for the
+Expected: 13 `[PASS]`, exit 0, on a desktop session (classic context,
+3.3 core probe with extension count/scan). See `SPEC.md` §4 for the
 recorded matrix and `SPEC.md` §2 for the G2 pin.
