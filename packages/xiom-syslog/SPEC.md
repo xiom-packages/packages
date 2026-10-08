@@ -1,6 +1,6 @@
 # xiom.syslog -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.syslog` (`src/syslog.xi`). Pure XIOM, no FFI, no file or
 network I/O.
 
@@ -321,3 +321,52 @@ comparison). Tests dispatch directly `t1()`..`t24()`; no `Vec[fn]` table.
 - An unescaped `]` in a PARAM-VALUE is an error rather than being accepted
   leniently (RFC 5424 requires the escape).
 - Errors identify the offending text but carry no byte offset.
+
+## Contracts (batch #40 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/syslog.xi` in the batch #40
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator at
+integration). 30 clauses over 16 functions (8 private helpers and 8 public
+entry points); all are `ensures:` (no `requires:`), so the accepted-input
+domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.syslog -TimeoutSec 60` runs ended
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses
+active (10.99 s and 10.03 s); the 24-check conformance suite exercises every
+entry point and no clause trapped, so none was dropped. The plan's
+`result == None` was refined to `result is None` to match the compiler's
+`Option` tag idiom.
+
+Every clause is **runtime-checked**: no clause is claimed Z3-provable and no
+`xiom-verify` proof is claimed (per the batch #37 finding, a bare
+`[OK] VERIFIED` on v0.64.0 can be a vacuous UNSAT). All clauses hold for
+hand-built `SyslogMsg` values: each guard is a condition the source itself
+checks before returning, the read-only `&SyslogMsg` parameter fields are read
+directly (`syslog_pri`, `syslog_sd_id`, `syslog_sd_param_count`,
+`syslog_sd_param`, `syslog_build`), and no clause reads a `Result`/`Option`
+payload field, indexes a vector, compares a `Str` with `==`, uses a module
+constant, or touches a `&mut` parameter (`_append_field`, `_append_escaped`,
+`_int_to_str` are not contracted). The only clause call is the non-re-entrant
+definitional `_is_leap` in `_days_in_month`; the callee never calls its
+caller. Elided as inexpressible: the per-byte charset loops
+(`_print_ascii_ok`, `_sd_name_ok`, `_version_ok`, the `_check_header_field`
+charset branch) and the internal shape/offset checks of
+`syslog_timestamp_valid`. No probe-gated items applied.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `_print_ascii_ok` | `ensures: s.len() == 0 => result == true` | runtime-checked (`Str` length + Bool result) |
+| `_sd_name_ok` | `ensures: s.len() < 1 \|\| s.len() > 32 => result == false`; `ensures: result == true => s.len() >= 1 && s.len() <= 32` | runtime-checked (`Str` length guard pair) |
+| `_field_end` | `ensures: result == -1 \|\| (result >= from && result < s.len())` | runtime-checked (sentinel or index band) |
+| `_check_header_field` | `ensures: value.len() == 0 => result.len() == 0`; `ensures: value.len() > max_len => result.len() > 0`; `ensures: result.len() == 0 => value.len() <= max_len` | runtime-checked (NILVALUE + length-vs-sentinel trio) |
+| `_digits2` | `ensures: at < 0 \|\| at + 2 > s.len() => result == -1`; `ensures: result != -1 => result >= 0 && result <= 99` | runtime-checked (bounds + digit range) |
+| `_digits4` | `ensures: at < 0 \|\| at + 4 > s.len() => result == -1`; `ensures: result != -1 => result >= 0 && result <= 9999` | runtime-checked (bounds + digit range) |
+| `_is_leap` | `ensures: result == (year % 400 == 0 \|\| (year % 100 != 0 && year % 4 == 0))` | runtime-checked (definitional Bool formula) |
+| `_days_in_month` | `ensures: month == 2 && _is_leap(year) => result == 29`; `ensures: month == 2 && !_is_leap(year) => result == 28`; `ensures: month != 2 && month != 4 && month != 6 && month != 9 && month != 11 => result == 31` | runtime-checked (calendar length; non-re-entrant `_is_leap` cross-call) |
+| `syslog_timestamp_valid` | `ensures: s.len() < 20 => result == false`; `ensures: result == true => s.len() >= 20` | runtime-checked (`Str` length + Bool result) |
+| `syslog_parse` | `ensures: text.len() == 0 => result is Err`; `ensures: text.len() < 3 => result is Err` | runtime-checked (`Result` tag + `Str` length) |
+| `syslog_ok` | `ensures: text.len() == 0 => result == false` | runtime-checked (`Str` length + Bool result) |
+| `syslog_pri` | `ensures: result == m.facility * 8 + m.severity` | runtime-checked (definitional formula) |
+| `syslog_sd_id` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= m.sd_ids.len() => result.len() == 0` | runtime-checked (index guards + `Str` result) |
+| `syslog_sd_param_count` | `ensures: elem < 0 \|\| elem >= m.sd_ids.len() => result == 0`; `ensures: result >= 0 && result <= m.sd_param_elem.len()` | runtime-checked (count band) |
+| `syslog_sd_param` | `ensures: elem < 0 \|\| elem >= m.sd_ids.len() => result is None` | runtime-checked (`Option` tag + index guard) |
+| `syslog_build` | `ensures: m.facility < 0 \|\| m.facility > 23 => result is Err`; `ensures: m.severity < 0 \|\| m.severity > 7 => result is Err`; `ensures: m.version < 1 \|\| m.version > 999 => result is Err`; `ensures: m.sd_param_names.len() != m.sd_param_values.len() => result is Err` | runtime-checked (`Result` tag + scalar and `Vec`-length guards) |

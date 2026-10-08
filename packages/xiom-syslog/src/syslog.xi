@@ -144,7 +144,9 @@ fn _is_digit(b: UInt8) -> Bool {
 }
 
 // True when every byte of `s` is PRINTUSASCII (%d33-126); true for "".
-fn _print_ascii_ok(s: Str) -> Bool {
+fn _print_ascii_ok(s: Str) -> Bool
+  ensures: s.len() == 0 => result == true;
+{
   var i = 0;
   while i < s.len() {
     let b = string.byte_at(s, i);
@@ -158,7 +160,10 @@ fn _print_ascii_ok(s: Str) -> Bool {
 
 // True for a valid SD-NAME: 1..32 PRINTUSASCII bytes, none of '=', SP, ']'
 // or '"' (RFC 5424 section 6.3.3). "" is not a valid name.
-fn _sd_name_ok(s: Str) -> Bool {
+fn _sd_name_ok(s: Str) -> Bool
+  ensures: s.len() < 1 || s.len() > 32 => result == false;
+  ensures: result == true => s.len() >= 1 && s.len() <= 32;
+{
   let n = s.len();
   if n < 1 || n > 32 {
     return false;
@@ -178,7 +183,9 @@ fn _sd_name_ok(s: Str) -> Bool {
 }
 
 // Index of the first SP at or after `from`, or -1 when there is none.
-fn _field_end(s: Str, from: Int) -> Int {
+fn _field_end(s: Str, from: Int) -> Int
+  ensures: result == -1 || (result >= from && result < s.len());
+{
   var i = from;
   while i < s.len() {
     if string.byte_at(s, i) == _SYSLOG_SP {
@@ -227,7 +234,11 @@ fn _version_ok(s: Str) -> Bool {
 // Validate one non-timestamp header field. Returns "" when `value` is
 // acceptable (NILVALUE "" or 1..max_len PRINTUSASCII bytes), otherwise the
 // deterministic "syslog: ..." error. Length is checked before charset.
-fn _check_header_field(name: Str, value: Str, max_len: Int) -> Str {
+fn _check_header_field(name: Str, value: Str, max_len: Int) -> Str
+  ensures: value.len() == 0 => result.len() == 0;
+  ensures: value.len() > max_len => result.len() > 0;
+  ensures: result.len() == 0 => value.len() <= max_len;
+{
   if value.len() == 0 {
     return "";
   }
@@ -264,7 +275,10 @@ fn _int_to_str(v: Int) -> Str {
 
 // Value of s[at], s[at+1] as two decimal digits; -1 when either byte is
 // missing or not a digit.
-fn _digits2(s: Str, at: Int) -> Int {
+fn _digits2(s: Str, at: Int) -> Int
+  ensures: at < 0 || at + 2 > s.len() => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 99;
+{
   if at < 0 || at + 2 > s.len() {
     return -1;
   }
@@ -278,7 +292,10 @@ fn _digits2(s: Str, at: Int) -> Int {
 
 // Value of s[at..at+3] as four decimal digits; -1 when any byte is missing
 // or not a digit.
-fn _digits4(s: Str, at: Int) -> Int {
+fn _digits4(s: Str, at: Int) -> Int
+  ensures: at < 0 || at + 4 > s.len() => result == -1;
+  ensures: result != -1 => result >= 0 && result <= 9999;
+{
   if at < 0 || at + 4 > s.len() {
     return -1;
   }
@@ -296,7 +313,9 @@ fn _digits4(s: Str, at: Int) -> Int {
 }
 
 // Proleptic Gregorian leap year test.
-fn _is_leap(year: Int) -> Bool {
+fn _is_leap(year: Int) -> Bool
+  ensures: result == (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0));
+{
   if year % 400 == 0 {
     return true;
   }
@@ -307,7 +326,11 @@ fn _is_leap(year: Int) -> Bool {
 }
 
 // Calendar length of `month` (1..12) in `year`.
-fn _days_in_month(year: Int, month: Int) -> Int {
+fn _days_in_month(year: Int, month: Int) -> Int
+  ensures: month == 2 && _is_leap(year) => result == 29;
+  ensures: month == 2 && !_is_leap(year) => result == 28;
+  ensures: month != 2 && month != 4 && month != 6 && month != 9 && month != 11 => result == 31;
+{
   if month == 2 {
     if _is_leap(year) {
       return 29;
@@ -337,7 +360,10 @@ fn _days_in_month(year: Int, month: Int) -> Int {
 /// and "-", which are not timestamps of this form).
 /// Error case: none.
 /// Complexity: O(len(s)).
-pub fn syslog_timestamp_valid(s: Str) -> Bool {
+pub fn syslog_timestamp_valid(s: Str) -> Bool
+  ensures: s.len() < 20 => result == false;
+  ensures: result == true => s.len() >= 20;
+{
   if s.len() < 20 {
     return false;
   }
@@ -428,7 +454,10 @@ pub fn syslog_timestamp_valid(s: Str) -> Bool {
 /// "" / zero elements; parameter escapes are decoded and a leading UTF-8
 /// BOM is stripped and flagged (`bom`).
 /// Complexity: O(len(text)).
-pub fn syslog_parse(text: Str) -> Result[SyslogMsg, Str] {
+pub fn syslog_parse(text: Str) -> Result[SyslogMsg, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: text.len() < 3 => result is Err;
+{
   var m = SyslogMsg{
     facility: 0;
     severity: 0;
@@ -705,7 +734,9 @@ pub fn syslog_parse(text: Str) -> Result[SyslogMsg, Str] {
 /// Returns: true when syslog_parse would return Ok; false otherwise.
 /// Error case: none.
 /// Complexity: O(len(text)).
-pub fn syslog_ok(text: Str) -> Bool {
+pub fn syslog_ok(text: Str) -> Bool
+  ensures: text.len() == 0 => result == false;
+{
   match syslog_parse(text) {
     Ok(_) => { return true; },
     Err(_) => { return false; },
@@ -714,7 +745,9 @@ pub fn syslog_ok(text: Str) -> Bool {
 }
 
 /// PRI value of a parsed message: facility * 8 + severity (0..191).
-pub fn syslog_pri(m: &SyslogMsg) -> Int {
+pub fn syslog_pri(m: &SyslogMsg) -> Int
+  ensures: result == m.facility * 8 + m.severity;
+{
   return m.facility * 8 + m.severity;
 }
 
@@ -781,7 +814,10 @@ pub fn syslog_sd_count(m: &SyslogMsg) -> Int {
 }
 
 /// SD-ID of element `i`; "" when `i` is out of range.
-pub fn syslog_sd_id(m: &SyslogMsg, i: Int) -> Str {
+pub fn syslog_sd_id(m: &SyslogMsg, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= m.sd_ids.len() => result.len() == 0;
+{
   if i < 0 || i >= m.sd_ids.len() {
     return "";
   }
@@ -811,7 +847,10 @@ fn _param_slot(m: &SyslogMsg, elem: Int, i: Int) -> Int {
 
 /// Number of parameters of structured-data element `elem`; 0 when `elem` is
 /// out of range.
-pub fn syslog_sd_param_count(m: &SyslogMsg, elem: Int) -> Int {
+pub fn syslog_sd_param_count(m: &SyslogMsg, elem: Int) -> Int
+  ensures: elem < 0 || elem >= m.sd_ids.len() => result == 0;
+  ensures: result >= 0 && result <= m.sd_param_elem.len();
+{
   if elem < 0 || elem >= m.sd_ids.len() {
     return 0;
   }
@@ -852,7 +891,9 @@ pub fn syslog_sd_param_value(m: &SyslogMsg, elem: Int, i: Int) -> Str {
 /// First parameter named `name` of element `elem`; None when the element is
 /// out of range or no parameter has that exact name (names are matched
 /// byte-exactly and are case-sensitive per RFC 5424).
-pub fn syslog_sd_param(m: &SyslogMsg, elem: Int, name: Str) -> Option[Str] {
+pub fn syslog_sd_param(m: &SyslogMsg, elem: Int, name: Str) -> Option[Str]
+  ensures: elem < 0 || elem >= m.sd_ids.len() => result is None;
+{
   if elem < 0 || elem >= m.sd_ids.len() {
     return None;
   }
@@ -907,7 +948,12 @@ fn _append_escaped(out: &mut Vec[UInt8], v: Str) {
 /// non-empty invalid TIMESTAMP, an over-long or non-printable header field,
 /// an invalid SD-ID or param name, or inconsistent parallel vectors.
 /// Complexity: O(field bytes).
-pub fn syslog_build(m: &SyslogMsg) -> Result[Str, Str] {
+pub fn syslog_build(m: &SyslogMsg) -> Result[Str, Str]
+  ensures: m.facility < 0 || m.facility > 23 => result is Err;
+  ensures: m.severity < 0 || m.severity > 7 => result is Err;
+  ensures: m.version < 1 || m.version > 999 => result is Err;
+  ensures: m.sd_param_names.len() != m.sd_param_values.len() => result is Err;
+{
   if m.facility < 0 || m.facility > 23 {
     return _err_str("syslog: facility out of range");
   }
