@@ -9,7 +9,7 @@
 
 package xiom_iso8583 {
   name: "xiom.iso8583";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "ISO 8583 ASCII message codec for a documented field subset";
   categories: ["data"];
   keywords: ["iso8583", "payments", "wire", "protocol"];

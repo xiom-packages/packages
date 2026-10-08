@@ -1,8 +1,6 @@
 # xiom.iso8583 -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.iso8583`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/iso8583.xi` (`module xiom.iso8583`).
 Depends on `xiom.std`. The library module imports `xiom.string` and
 `xiom.string.builder`; the tests add `xiom.test`, `xiom.io` and
@@ -312,7 +310,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.iso8583
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=18 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -356,3 +354,57 @@ Last verified: compiler 0.61.3,
   copied into typed locals before being passed by reference (the
   `&struct.field` empty-vector trap).
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #40 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/iso8583.xi` in the batch
+#40 hardening pass (compiler v0.64.0; `package.xi` is left for the
+coordinator to bump at integration). 54 clauses over 23 entry points, all
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.iso8583 -TimeoutSec 60` runs
+ended `port: PASS (passed=18 failed=0 program_exit=0 exit=0)` with the
+clauses active (7.75 s and 7.33 s); no clause trapped.
+
+Every clause holds for hand-built values and structs: the guards keep the
+source's own validation branches, and only parameters, parameter fields and
+plain `Str`/`Int` returns are read. No clause reads a bare `&mut` parameter,
+indexes a vector, uses a module constant, compares `Str` values with `==`,
+reads a struct-Result payload field or uses `result.value.0/.1`. The only
+clause calls are the definitional `iso8583_field_index(m, number) < 0`
+identity in `iso8583_get` and the `_field_kind(number)` dictionary read in
+`iso8583_field_max_length`; neither callee calls its caller (non-re-entrant).
+
+One plan expression was refined: the `_values_ok` empty-input guard is
+`numbers.len() == 0 && values.len() == 0 => result.len() == 0` (the plan's
+bare `numbers.len() == 0` guard would be falsified by an empty `numbers`
+with a non-empty `values`, which returns the mismatch error). Nothing was
+dropped and no probe-gated items applied.
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it
+can emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `_mti_ok` | `mti.len() != 4 => result == false`; `result == true => mti.len() == 4` | runtime-checked |
+| `_digits_int` | `count == 0 => result == 0`; `result == -1 || result >= 0` | runtime-checked |
+| `_field_kind` | `n == 2 => result == 3`; `n == 3 || n == 4 || n == 7 || n == 11 || n == 70 => result == 1`; `n == 32 => result == 3`; `n == 39 || n == 41 || n == 49 => result == 2`; `n == 48 => result == 4`; `result >= 0 && result <= 4` | runtime-checked |
+| `_field_fixed_len` | `n == 3 => result == 6`; `n == 4 => result == 12`; `n == 7 => result == 10`; `n == 11 => result == 6`; `n == 39 => result == 2`; `n == 41 => result == 8`; `n == 49 => result == 3`; `n == 70 => result == 3`; `result >= 0` | runtime-checked |
+| `_field_max_len` | `n == 2 => result == 19`; `n == 32 => result == 11`; `n == 48 => result == 999`; `result >= 0` | runtime-checked |
+| `_is_variable_kind` | `result == (kind == 3 || kind == 4)` | runtime-checked |
+| `_value_ok` | `v.len() == 0 && kind >= 1 && kind <= 4 => result == true`; `kind == 0 || kind < 0 || kind > 4 => result == false` | runtime-checked |
+| `_numbers_ok` | `numbers.len() == 0 => result.len() == 0` | runtime-checked |
+| `_values_ok` | `numbers.len() != values.len() => result.len() > 0`; `numbers.len() == 0 && values.len() == 0 => result.len() == 0` | runtime-checked |
+| `_mask` | `r == 0 => result == 8`; `r == 1 => result == 4`; `r == 2 => result == 2`; `r == 3 => result == 1`; `r < 0 || r > 3 => result == 1` | runtime-checked |
+| `_hex_char` | `n >= 0 && n <= 9 => result == 48 + n`; `n >= 10 && n <= 15 => result == 55 + n` | runtime-checked |
+| `_bitmap_parse_text` | `text.len() != 16 && text.len() != 32 && text.len() != 64 && text.len() != 128 => result.len() > 0` | runtime-checked |
+| `_bitmap_hex` | `has_secondary == false => result.len() == 16`; `has_secondary == true => result.len() == 32` | runtime-checked |
+| `iso8583_parse` | `text.len() < 4 => result is Err`; `text.len() < 20 => result is Err` | runtime-checked |
+| `iso8583_bitmap_parse` | `bitmap.len() != 16 && bitmap.len() != 32 && bitmap.len() != 64 && bitmap.len() != 128 => result is Err` | runtime-checked |
+| `iso8583_bitmap_of` | `numbers.len() == 0 => result is Ok && result.value.len() == 16`; `result is Ok => result.value.len() == 16 || result.value.len() == 32` | runtime-checked |
+| `iso8583_build_message` | `mti.len() != 4 => result is Err`; `numbers.len() != values.len() => result is Err` | runtime-checked |
+| `iso8583_format` | `m.mti.len() != 4 => result is Err`; `m.field_numbers.len() != m.field_values.len() => result is Err` | runtime-checked |
+| `iso8583_field_number` | `i < 0 || i >= m.field_numbers.len() => result == -1` | runtime-checked |
+| `iso8583_field_value` | `i < 0 || i >= m.field_values.len() => result.len() == 0` | runtime-checked |
+| `iso8583_field_index` | `result == -1 || (result >= 0 && result < m.field_numbers.len())` | runtime-checked |
+| `iso8583_get` | `iso8583_field_index(m, number) < 0 => result is Err` | runtime-checked |
+| `iso8583_field_max_length` | `_field_kind(number) == 0 => result == -1`; `_field_kind(number) != 0 => result >= 0` | runtime-checked |
