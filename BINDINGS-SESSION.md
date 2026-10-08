@@ -3,12 +3,31 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 13 RELAYED** -- `xiom.lzfse` 0.2.0 green (7/7 x2 via port.ps1
-on v0.64.1: vendored lzfse-1.0 sources, 4096 -> 182 bytes, identical
-round-trips incl. 64KB, invalid stream rejected); awaiting native
-merge/verify/publish. Next confirmed: `xiom.ozz`.
+**STATUS: BATCH 14 RELAYED** -- `xiom.ozz` 0.2.0 green (4/4 x2 via port.ps1 on
+v0.64.1: vendored C++ amalgamations; math + offline SkeletonBuilder ->
+runtime Skeleton + LocalToModelJob verified). Compression/animation tier
+package set complete per plan (zstd, lzfse, ozz). Awaiting native
+merge/verify/publish.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 14: head=f71fb8bf + this handoff commit; packages=xiom.ozz 0.2.0 (vendored
+C++ amalgamations replacing the pre-pilot module whose C bridge was never present);
+tests=4/4 x2 via scripts/port.ps1 on v0.64.1 (2026-10-08: math dot/cross + 90deg axis
+rotation; offline RawSkeleton -> runtime Skeleton (2 joints, parents -1/0); LocalToModelJob
+child at (0,1,0) in model space; aggregate green); licenses=MIT (vendored ozz) + package MIT
+OR Apache-2.0; pins=tag 0.16.0 archive sha256
+A7A34322344E9D839EAF637BBC463404C6AED3F52583DEA95C856FEA580C2693 + generated TUs
+vendor/ozz_all.cpp 24117B0FBBAA5E1221C2F8FBEE9CB6A79EB42E28179A29CD5DE75E392C751457 and
+vendor/ozz_bridge.cpp 0D2BA8800CADD74381ED907C8A9A35687A18EE014BA54C5D8D9DFFFFCCD6CA76
+(LF-normalized, blobs verified against pins) + LICENSE.md; gate=G0..G5 OK; needs=NONE
+(allowlisted + baseline); port.args.json present (--c-source x2, no --link).
+METHOD NOTE: the xiom link line has no include passthrough, so ozz (C++, no C API) is
+vendored as two generated TUs from the upstream-style combine.py (roots include/ + src/);
+generator inputs are reviewable at src/ozz-in.cpp and src/ozz-bridge-in.cpp; the full
+re-pin procedure is in SPEC.md §2. This method generalizes to any header-heavy C/C++ library.
+```
 
 ```
 BINDINGS BATCH 13: head=a528dfd8 + this handoff commit; packages=xiom.lzfse 0.2.0 (vendored
@@ -449,6 +468,27 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Scope decision requested from the native lane: the pre-pilot static-bridge
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
+
+## Batch 14 notes (xiom.ozz, 2026-10-08)
+
+- **New capability proven: vendored C++ through the link line.** `xiom
+  --help` has no include passthrough, so header-path-dependent C++ cannot be
+  passed as individual sources; the upstream-style `combine.py` bundles the
+  library into one TU (27 sources, first compile green in 2.3 s, no static
+  collisions) plus a second TU for our `extern "C"` bridge. Reusable for any
+  future header-heavy C/C++ package.
+- Bridge API corrections found by compile iteration: quaternion rotation is
+  `TransformVector(q, v)` (no `q * Float3`); matrix translation lanes need
+  `GetX/GetY/GetZ` (SIMD values are not structs). Wrapper-vs-extern name
+  shadowing bit again (lzfse lesson) -- public wrappers use `_ok`.
+- The pilot exercises real runtime objects (offline SkeletonBuilder ->
+  runtime Skeleton -> LocalToModelJob), not just symbol resolution.
+- Generated TUs LF-normalized + pinned; committed blob hashes verified
+  against the pins; `.gitattributes` `vendor/** -text`.
+- Run matrix: 4/4 x2. Allowlisted + baseline; `port.args.json` passes both TUs.
+- Compression/animation tier set complete (zstd, lzfse, ozz); next wave per
+  native priority (data drivers / audio / accelerators are the remaining
+  Phase-2 sectors).
 
 ## Batch 13 notes (xiom.lzfse, 2026-10-08)
 
