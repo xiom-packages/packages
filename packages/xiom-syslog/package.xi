@@ -4,7 +4,7 @@
 
 package xiom_syslog {
   name: "xiom.syslog";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "RFC 5424 syslog codec: PRI, header fields, structured data and MSG round-trip";
   categories: ["systems"];
   keywords: ["syslog", "logging", "rfc5424", "protocol"];

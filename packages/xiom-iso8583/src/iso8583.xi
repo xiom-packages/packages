@@ -178,7 +178,10 @@ fn _copy_values(src: &Vec[Vec[UInt8]]) -> Vec[Vec[UInt8]] {
 }
 
 // True when `mti` is exactly four ASCII digits.
-fn _mti_ok(mti: Str) -> Bool {
+fn _mti_ok(mti: Str) -> Bool
+  ensures: mti.len() != 4 => result == false;
+  ensures: result == true => mti.len() == 4;
+{
   if mti.len() != _MTI_LEN {
     return false;
   }
@@ -196,7 +199,10 @@ fn _mti_ok(mti: Str) -> Bool {
 // The `count`-digit unsigned decimal number starting at `start` of `s`, or
 // -1 when any of those characters is not an ASCII digit. The caller
 // guarantees the range is in bounds.
-fn _digits_int(s: Str, start: Int, count: Int) -> Int {
+fn _digits_int(s: Str, start: Int, count: Int) -> Int
+  ensures: count == 0 => result == 0;
+  ensures: result == -1 || result >= 0;
+{
   var v = 0;
   var i = 0;
   while i < count {
@@ -219,7 +225,14 @@ fn _digits_int(s: Str, start: Int, count: Int) -> Int {
 //   3 = LLVAR numeric (2-digit prefix), 4 = LLLVAR alphanumeric (3-digit
 //   prefix). This is the whole field dictionary of this package; every
 //   other ISO 8583 field number is rejected as unknown.
-fn _field_kind(n: Int) -> Int {
+fn _field_kind(n: Int) -> Int
+  ensures: n == 2 => result == 3;
+  ensures: n == 3 || n == 4 || n == 7 || n == 11 || n == 70 => result == 1;
+  ensures: n == 32 => result == 3;
+  ensures: n == 39 || n == 41 || n == 49 => result == 2;
+  ensures: n == 48 => result == 4;
+  ensures: result >= 0 && result <= 4;
+{
   if n == 2 { return 3; }
   if n == 3 { return 1; }
   if n == 4 { return 1; }
@@ -236,7 +249,17 @@ fn _field_kind(n: Int) -> Int {
 
 // Fixed encoded length of field `n`, or 0 when `n` is variable-length or
 // unknown. Only called after _field_kind confirmed a fixed kind.
-fn _field_fixed_len(n: Int) -> Int {
+fn _field_fixed_len(n: Int) -> Int
+  ensures: n == 3 => result == 6;
+  ensures: n == 4 => result == 12;
+  ensures: n == 7 => result == 10;
+  ensures: n == 11 => result == 6;
+  ensures: n == 39 => result == 2;
+  ensures: n == 41 => result == 8;
+  ensures: n == 49 => result == 3;
+  ensures: n == 70 => result == 3;
+  ensures: result >= 0;
+{
   if n == 3 { return 6; }
   if n == 4 { return 12; }
   if n == 7 { return 10; }
@@ -250,7 +273,12 @@ fn _field_fixed_len(n: Int) -> Int {
 
 // Maximum value length of the variable-length field `n`, or 0 when `n` is
 // fixed-length or unknown.
-fn _field_max_len(n: Int) -> Int {
+fn _field_max_len(n: Int) -> Int
+  ensures: n == 2 => result == 19;
+  ensures: n == 32 => result == 11;
+  ensures: n == 48 => result == 999;
+  ensures: result >= 0;
+{
   if n == 2 { return 19; }
   if n == 32 { return 11; }
   if n == 48 { return 999; }
@@ -258,7 +286,9 @@ fn _field_max_len(n: Int) -> Int {
 }
 
 // True for the variable-length kinds 3 (LLVAR) and 4 (LLLVAR).
-fn _is_variable_kind(kind: Int) -> Bool {
+fn _is_variable_kind(kind: Int) -> Bool
+  ensures: result == (kind == 3 || kind == 4);
+{
   if kind == 3 || kind == 4 {
     return true;
   }
@@ -294,7 +324,10 @@ fn _all_ans(v: &Vec[UInt8]) -> Bool {
 // True when `v` is a legal value for a field of the given kind. The final
 // branch is a defensive invariant guard: `_field_kind` can only return
 // 0..4 and 0 is rejected before any value is checked.
-fn _value_ok(kind: Int, v: &Vec[UInt8]) -> Bool {
+fn _value_ok(kind: Int, v: &Vec[UInt8]) -> Bool
+  ensures: v.len() == 0 && kind >= 1 && kind <= 4 => result == true;
+  ensures: kind == 0 || kind < 0 || kind > 4 => result == false;
+{
   if kind == 1 || kind == 3 {
     return _all_numeric(v);
   }
@@ -306,7 +339,9 @@ fn _value_ok(kind: Int, v: &Vec[UInt8]) -> Bool {
 
 // Validate field numbers: strictly ascending, in 2..128, all known.
 // Returns "" on success or the deterministic "iso8583: ..." error.
-fn _numbers_ok(numbers: &Vec[Int]) -> Str {
+fn _numbers_ok(numbers: &Vec[Int]) -> Str
+  ensures: numbers.len() == 0 => result.len() == 0;
+{
   var prev = 1;
   var i = 0;
   while i < numbers.len() {
@@ -329,7 +364,10 @@ fn _numbers_ok(numbers: &Vec[Int]) -> Str {
 // Validate that `values` is parallel to `numbers` and that every value
 // matches its field's length rule and character set. Returns "" on success
 // or the deterministic "iso8583: ..." error.
-fn _values_ok(numbers: &Vec[Int], values: &Vec[Vec[UInt8]]) -> Str {
+fn _values_ok(numbers: &Vec[Int], values: &Vec[Vec[UInt8]]) -> Str
+  ensures: numbers.len() != values.len() => result.len() > 0;
+  ensures: numbers.len() == 0 && values.len() == 0 => result.len() == 0;
+{
   if numbers.len() != values.len() {
     return "iso8583: field numbers/values length mismatch";
   }
@@ -382,7 +420,13 @@ fn _any_secondary(numbers: &Vec[Int]) -> Bool {
 
 // The nibble value of bit position `r` (0 = most significant) inside a
 // 4-bit nibble: 8, 4, 2, 1.
-fn _mask(r: Int) -> Int {
+fn _mask(r: Int) -> Int
+  ensures: r == 0 => result == 8;
+  ensures: r == 1 => result == 4;
+  ensures: r == 2 => result == 2;
+  ensures: r == 3 => result == 1;
+  ensures: r < 0 || r > 3 => result == 1;
+{
   if r == 0 { return 8; }
   if r == 1 { return 4; }
   if r == 2 { return 2; }
@@ -425,7 +469,10 @@ fn _hex_val(b: Int) -> Int {
 }
 
 // Uppercase hex digit for a nibble value 0..15.
-fn _hex_char(n: Int) -> UInt8 {
+fn _hex_char(n: Int) -> UInt8
+  ensures: n >= 0 && n <= 9 => result == 48 + n;
+  ensures: n >= 10 && n <= 15 => result == 55 + n;
+{
   if n < 10 {
     return (48 + n) as UInt8;
   }
@@ -496,7 +543,9 @@ fn _any_set(nibbles: &Vec[Int], first: Int, last: Int) -> Bool {
 // the same bit-1 rule as the wire (bit 1 = secondary bitmap present).
 // `nibbles` receives exactly 32 nibbles on success. Returns "" on success
 // or the deterministic "iso8583: ..." error.
-fn _bitmap_parse_text(text: Str, nibbles: &mut Vec[Int]) -> Str {
+fn _bitmap_parse_text(text: Str, nibbles: &mut Vec[Int]) -> Str
+  ensures: text.len() != 16 && text.len() != 32 && text.len() != 64 && text.len() != 128 => result.len() > 0;
+{
   let n = text.len();
   if n == _HEX_BITMAP_LEN || n == _HEX_FULL_LEN {
     if !_hex_nibbles(text, nibbles) {
@@ -549,7 +598,10 @@ fn _declared_numbers(nibbles: &Vec[Int], numbers: &mut Vec[Int]) -> Str {
 // Canonical uppercase hex text of the bitmap for `numbers`: 16 digits, or
 // 32 when `has_secondary`. `numbers` must already be validated
 // (ascending, known, distinct). Bit 1 is set exactly when has_secondary.
-fn _bitmap_hex(numbers: &Vec[Int], has_secondary: Bool) -> Str {
+fn _bitmap_hex(numbers: &Vec[Int], has_secondary: Bool) -> Str
+  ensures: has_secondary == false => result.len() == 16;
+  ensures: has_secondary == true => result.len() == 32;
+{
   var nibbles = Vec[Int].new();
   var i = 0;
   while i < _NIBBLES_FULL {
@@ -625,7 +677,10 @@ fn _push_prefix(out: &mut Vec[UInt8], v: Int, width: Int) {
 /// "iso8583: bad field value" (a character outside the field's character
 /// set); "iso8583: trailing data" (characters left after the last field).
 /// Complexity: O(message length).
-pub fn iso8583_parse(text: Str) -> Result[Iso8583Message, Str] {
+pub fn iso8583_parse(text: Str) -> Result[Iso8583Message, Str]
+  ensures: text.len() < 4 => result is Err;
+  ensures: text.len() < 20 => result is Err;
+{
   let n = text.len();
   if n < _MTI_LEN {
     return _err_msg("iso8583: bad mti");
@@ -733,7 +788,9 @@ pub fn iso8583_parse(text: Str) -> Result[Iso8583Message, Str] {
 /// "iso8583: bad bitmap length"; a bad character is
 /// "iso8583: bad bitmap hex" or "iso8583: bad bitmap binary".
 /// Complexity: O(1) (at most 128 bits).
-pub fn iso8583_bitmap_parse(bitmap: Str) -> Result[Iso8583Bitmap, Str] {
+pub fn iso8583_bitmap_parse(bitmap: Str) -> Result[Iso8583Bitmap, Str]
+  ensures: bitmap.len() != 16 && bitmap.len() != 32 && bitmap.len() != 64 && bitmap.len() != 128 => result is Err;
+{
   var nibbles = Vec[Int].new();
   let be = _bitmap_parse_text(bitmap, &mut nibbles);
   if be.len() > 0 {
@@ -759,7 +816,10 @@ pub fn iso8583_bitmap_parse(bitmap: Str) -> Result[Iso8583Bitmap, Str] {
 /// Err("iso8583: field numbers out of order") when the vector is not
 /// strictly ascending. An empty vector yields the all-zero primary bitmap.
 /// Complexity: O(numbers + 128 bits).
-pub fn iso8583_bitmap_of(numbers: &Vec[Int]) -> Result[Str, Str] {
+pub fn iso8583_bitmap_of(numbers: &Vec[Int]) -> Result[Str, Str]
+  ensures: numbers.len() == 0 => result is Ok && result.value.len() == 16;
+  ensures: result is Ok => result.value.len() == 16 || result.value.len() == 32;
+{
   let ne = _numbers_ok(numbers);
   if ne.len() > 0 {
     return _err_str(ne);
@@ -793,7 +853,10 @@ pub fn iso8583_bitmap_hex(m: &Iso8583Message) -> Str {
 /// Err("iso8583: bad field length"), Err("iso8583: bad field value") --
 /// all deterministic and documented in SPEC.md.
 /// Complexity: O(total value bytes).
-pub fn iso8583_build_message(mti: Str, numbers: &Vec[Int], values: &Vec[Vec[UInt8]]) -> Result[Iso8583Message, Str] {
+pub fn iso8583_build_message(mti: Str, numbers: &Vec[Int], values: &Vec[Vec[UInt8]]) -> Result[Iso8583Message, Str]
+  ensures: mti.len() != 4 => result is Err;
+  ensures: numbers.len() != values.len() => result is Err;
+{
   if !_mti_ok(mti) {
     return _err_msg("iso8583: bad mti");
   }
@@ -881,7 +944,10 @@ pub fn iso8583_build_with_bitmap(mti: Str, bitmap: Str, numbers: &Vec[Int], valu
 /// "iso8583: bad field length", "iso8583: bad field value",
 /// "iso8583: bitmap/fields mismatch".
 /// Complexity: O(total value bytes).
-pub fn iso8583_format(m: &Iso8583Message) -> Result[Str, Str] {
+pub fn iso8583_format(m: &Iso8583Message) -> Result[Str, Str]
+  ensures: m.mti.len() != 4 => result is Err;
+  ensures: m.field_numbers.len() != m.field_values.len() => result is Err;
+{
   if !_mti_ok(m.mti) {
     return _err_str("iso8583: bad mti");
   }
@@ -942,7 +1008,9 @@ pub fn iso8583_field_count(m: &Iso8583Message) -> Int {
 
 /// Field number at position `i` (0-based, ascending order); -1 when `i` is
 /// negative or beyond the last field. Complexity: O(1).
-pub fn iso8583_field_number(m: &Iso8583Message, i: Int) -> Int {
+pub fn iso8583_field_number(m: &Iso8583Message, i: Int) -> Int
+  ensures: i < 0 || i >= m.field_numbers.len() => result == -1;
+{
   if i < 0 || i >= m.field_numbers.len() {
     return -1;
   }
@@ -953,7 +1021,9 @@ pub fn iso8583_field_number(m: &Iso8583Message, i: Int) -> Int {
 /// Field value at position `i` as a Str ("" when `i` is out of range).
 /// Values are guaranteed printable by construction. Complexity: O(value
 /// length).
-pub fn iso8583_field_value(m: &Iso8583Message, i: Int) -> Str {
+pub fn iso8583_field_value(m: &Iso8583Message, i: Int) -> Str
+  ensures: i < 0 || i >= m.field_values.len() => result.len() == 0;
+{
   if i < 0 || i >= m.field_values.len() {
     return "";
   }
@@ -963,7 +1033,9 @@ pub fn iso8583_field_value(m: &Iso8583Message, i: Int) -> Str {
 
 /// Position of field `number` in the message; -1 when the field is absent.
 /// Complexity: O(fields).
-pub fn iso8583_field_index(m: &Iso8583Message, number: Int) -> Int {
+pub fn iso8583_field_index(m: &Iso8583Message, number: Int) -> Int
+  ensures: result == -1 || (result >= 0 && result < m.field_numbers.len());
+{
   var i = 0;
   while i < m.field_numbers.len() {
     let n: Int = m.field_numbers[i];
@@ -985,7 +1057,9 @@ pub fn iso8583_has_field(m: &Iso8583Message, number: Int) -> Bool {
 /// Err("iso8583: field not present") when the field is absent; no other
 /// error is possible on a well-formed message. Complexity: O(fields +
 /// value length).
-pub fn iso8583_get(m: &Iso8583Message, number: Int) -> Result[Str, Str] {
+pub fn iso8583_get(m: &Iso8583Message, number: Int) -> Result[Str, Str]
+  ensures: iso8583_field_index(m, number) < 0 => result is Err;
+{
   let idx = iso8583_field_index(m, number);
   if idx < 0 {
     return _err_str("iso8583: field not present");
@@ -1012,7 +1086,10 @@ pub fn iso8583_is_variable_field(number: Int) -> Bool {
 /// Maximum value length of field `number`: the fixed length for
 /// fixed-length fields, the maximum for LLVAR/LLLVAR fields, and -1 for
 /// unknown numbers. Complexity: O(1).
-pub fn iso8583_field_max_length(number: Int) -> Int {
+pub fn iso8583_field_max_length(number: Int) -> Int
+  ensures: _field_kind(number) == 0 => result == -1;
+  ensures: _field_kind(number) != 0 => result >= 0;
+{
   let kind = _field_kind(number);
   if kind == 0 {
     return -1;

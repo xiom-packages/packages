@@ -1,6 +1,6 @@
 # xiom.ldif -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.ldif` (`src/ldif.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -284,3 +284,40 @@ with `xiom.string.byte_at`, `Vec[UInt8]` accumulation with
 - Comments are not preserved on emit and base64 is re-encoded canonically.
 - No file I/O, no streaming and no error positions (the offending line text
   is included instead).
+
+## Contracts (batch #40 hardening pass, 2026-10-08)
+
+45 `ensures:` clauses were added to 24 functions (14 internal helpers and 10
+public API functions). Every clause is runtime-checked on each call; none is
+claimed Z3-proven in this pass, because on compiler v0.64.0 `xiom-verify`
+`[OK] VERIFIED` can be a vacuous UNSAT and no real obligation was demonstrated
+here. Clauses use only sentinel, bounds/length, count, guard-pair and range
+families; the internal cross-calls in clauses (`_ldif_attr_total`,
+`_ldif_entry_count`) are non-re-entrant.
+
+| Function | Clauses added | Verification |
+|---|---|---|
+| `_min_int` | result is `a` or `b`; result <= a && result <= b | runtime-checked |
+| `_ldif_split_lines` | empty text -> 0 lines; non-empty text -> >= 1 line | runtime-checked |
+| `_ldif_is_blank` | empty string -> true | runtime-checked |
+| `_ldif_name_ok` | empty name -> false; true -> name.len() >= 1 | runtime-checked |
+| `_ldif_is_dn` | name.len() != 2 -> false; true -> name.len() == 2 | runtime-checked |
+| `_ldif_is_changetype` | name.len() != 10 -> false; true -> name.len() == 10 | runtime-checked |
+| `_ldif_kind_at` | result in {0, 1, 2} | runtime-checked |
+| `_ldif_value_start` | valid colon/kind -> result in [colon + 1, line.len()] | runtime-checked |
+| `_b64_value` | result == -1 or result in [0, 63] | runtime-checked |
+| `_b64_decode` | empty or len % 4 != 0 -> Err | runtime-checked |
+| `_ldif_entry_count` | result equals the shorter range vector; <= both lengths | runtime-checked |
+| `_ldif_attr_total` | result <= each of the five attribute-vector lengths | runtime-checked |
+| `_ldif_pool_span` | result.start >= 0, result.count >= 0, start + count <= pool.len() | runtime-checked |
+| `_ldif_attr_index` | i < 0 -> -1; != -1 -> 0 <= result < attr total | runtime-checked |
+| `ldif_parse` | empty text -> Ok | runtime-checked |
+| `ldif_entry_attr_count` | out-of-range e -> 0; 0 <= result <= attr total | runtime-checked |
+| `ldif_dn` | out-of-range e -> "" | runtime-checked |
+| `ldif_attr_name` | out-of-range e or i -> "" | runtime-checked |
+| `ldif_attr_kind` | out-of-range e or i -> 0 (LDIF_KIND_PLAIN) | runtime-checked |
+| `ldif_attr_value` | out-of-range e or i -> "" | runtime-checked |
+| `ldif_attr_bytes` | out-of-range e or i -> empty vector | runtime-checked |
+| `ldif_first_value` | out-of-range e -> None | runtime-checked |
+| `ldif_kind_label` | exact label lengths 5 / 6 / 3 / 7 | runtime-checked |
+| `ldif_emit` | zero entries -> "" | runtime-checked |

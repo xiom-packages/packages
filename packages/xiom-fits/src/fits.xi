@@ -126,7 +126,10 @@ fn _err_unit(m: Str) -> Result[Unit, Str] {
 // --------------------------------------------------
 
 // `s` with trailing ASCII spaces removed.
-fn _trim_end_spaces(s: Str) -> Str {
+fn _trim_end_spaces(s: Str) -> Str
+  ensures: result.len() <= s.len();
+  ensures: s.len() == 0 => result.len() == 0;
+{
   var n = s.len();
   while n > 0 {
     if string.byte_at(s, n - 1) != 32 {
@@ -139,7 +142,10 @@ fn _trim_end_spaces(s: Str) -> Str {
 
 // True when s[start, end) is all ASCII spaces (`end` above s.len() is
 // clamped). `start` is assumed non-negative.
-fn _all_spaces(s: Str, start: Int, end: Int) -> Bool {
+fn _all_spaces(s: Str, start: Int, end: Int) -> Bool
+  ensures: end <= start => result == true;
+  ensures: s.len() == 0 => result == true;
+{
   let n = s.len();
   var e = end;
   if e > n {
@@ -182,7 +188,10 @@ fn _is_keyword_byte(b: UInt8) -> Bool {
 }
 
 // True for a 1..8 byte keyword made only of _is_keyword_byte bytes.
-fn _keyword_ok(keyword: Str) -> Bool {
+fn _keyword_ok(keyword: Str) -> Bool
+  ensures: keyword.len() < 1 || keyword.len() > 8 => result == false;
+  ensures: result == true => keyword.len() >= 1 && keyword.len() <= 8;
+{
   let n = keyword.len();
   if n < 1 || n > 8 {
     return false;
@@ -198,7 +207,10 @@ fn _keyword_ok(keyword: Str) -> Bool {
 }
 
 // True when `keyword` is one of the reserved whole-card keywords.
-fn _reserved_keyword(keyword: Str) -> Bool {
+fn _reserved_keyword(keyword: Str) -> Bool
+  ensures: keyword.len() != 3 && keyword.len() != 7 => result == false;
+  ensures: result == true => keyword.len() == 3 || keyword.len() == 7;
+{
   if compare.str_compare(keyword, "END") == 0 {
     return true;
   }
@@ -217,7 +229,10 @@ fn _upper(b: UInt8) -> Int {
 }
 
 // True when `a` and `b` are equal ignoring ASCII letter case.
-fn _ci_eq(a: Str, b: Str) -> Bool {
+fn _ci_eq(a: Str, b: Str) -> Bool
+  ensures: a.len() != b.len() => result == false;
+  ensures: result == true => a.len() == b.len();
+{
   let na = a.len();
   let nb = b.len();
   if na != nb {
@@ -238,7 +253,9 @@ fn _ci_eq(a: Str, b: Str) -> Bool {
 // --------------------------------------------------
 
 // True for an optionally signed run of ASCII digits ("" and "+" are not).
-fn _token_is_int(s: Str) -> Bool {
+fn _token_is_int(s: Str) -> Bool
+  ensures: s.len() == 0 => result == false;
+{
   let n = s.len();
   if n == 0 {
     return false;
@@ -263,7 +280,9 @@ fn _token_is_int(s: Str) -> Bool {
 
 // True for an optionally signed real token that contains a '.' or an E/D
 // exponent, so decoding classifies it as REAL and never as INT.
-fn _token_is_real(s: Str) -> Bool {
+fn _token_is_real(s: Str) -> Bool
+  ensures: s.len() <= 1 => result == false;
+{
   let n = s.len();
   if n == 0 {
     return false;
@@ -339,7 +358,9 @@ fn _token_is_real(s: Str) -> Bool {
 
 // Index of the first non-space byte at or after column 10 (index 9); 80
 // when the value field is empty.
-fn _value_start(card: Str) -> Int {
+fn _value_start(card: Str) -> Int
+  ensures: result >= 9 && result <= 80;
+{
   var i = 9;
   while i < 80 {
     if string.byte_at(card, i) != 32 {
@@ -352,7 +373,9 @@ fn _value_start(card: Str) -> Int {
 
 // End of an unquoted token: the first space or '/' at or after `start`,
 // else 80.
-fn _token_end(card: Str, start: Int) -> Int {
+fn _token_end(card: Str, start: Int) -> Int
+  ensures: result >= start && result <= 80;
+{
   var i = start;
   while i < 80 {
     let b = string.byte_at(card, i);
@@ -366,7 +389,9 @@ fn _token_end(card: Str, start: Int) -> Int {
 
 // Where a comment may begin after `pos`: skips spaces and returns the index
 // of '/', -1 when the card ends first, -2 when junk precedes '/'.
-fn _comment_start(card: Str, pos: Int) -> Int {
+fn _comment_start(card: Str, pos: Int) -> Int
+  ensures: result == -1 || result == -2 || (result >= pos && result <= 79);
+{
   var i = pos;
   while i < 80 {
     if string.byte_at(card, i) != 32 {
@@ -532,7 +557,11 @@ fn _pad_to(out: &mut Vec[UInt8], n: Int) {
 }
 
 // Value-field bytes for a value kind; Err on an invalid token.
-fn _value_field(kind: Int, value: Str) -> Result[Vec[UInt8], Str] {
+fn _value_field(kind: Int, value: Str) -> Result[Vec[UInt8], Str]
+  ensures: kind == 4 && value.len() != 0 => result is Err;
+  ensures: kind < 0 || kind > 4 => result is Err;
+  ensures: kind == 0 && value.len() >= 69 => result is Err;
+{
   var fv = Vec[UInt8].new();
   if kind == FITK_STR {
     fv.push(39u8);
@@ -598,7 +627,12 @@ fn _value_field(kind: Int, value: Str) -> Result[Vec[UInt8], Str] {
 /// Err: "fits: bad keyword", "fits: bad kind", "fits: bad logical",
 /// "fits: invalid integer", "fits: invalid real", "fits: invalid value",
 /// "fits: card too long". Complexity: O(keyword + value + comment).
-pub fn fits_card_format(keyword: Str, kind: Int, value: Str, comment: Str) -> Result[Str, Str] {
+pub fn fits_card_format(keyword: Str, kind: Int, value: Str, comment: Str) -> Result[Str, Str]
+  ensures: (kind == 5 || kind == 6 || kind == 7) && value.len() > 72 => result is Err;
+  ensures: kind < 0 => result is Err;
+  ensures: kind > 7 => result is Err;
+  ensures: result is Ok => result.value.len() == 80;
+{
   if kind == FITK_COMMENT || kind == FITK_HISTORY || kind == FITK_BLANK {
     var head = "        ";
     if kind == FITK_COMMENT {
@@ -683,7 +717,9 @@ fn _push_formatted(h: &mut FitsHeader, keyword: Str, kind: Int, value: Str, comm
 
 /// Create an empty header (no cards, no END; fits_encode adds END).
 /// Complexity: O(1).
-pub fn fits_new() -> FitsHeader {
+pub fn fits_new() -> FitsHeader
+  ensures: result.cards.len() == 0 && result.keywords.len() == 0 && result.kinds.len() == 0 && result.values.len() == 0 && result.comments.len() == 0;
+{
   return FitsHeader{
     cards: Vec[Str].new();
     keywords: Vec[Str].new();
@@ -701,7 +737,9 @@ pub fn fits_new() -> FitsHeader {
 /// card (fits_encode appends END itself); otherwise the same errors as
 /// fits_parse, and `h` is unchanged on Err.
 /// Complexity: O(card length).
-pub fn fits_push_card(h: &mut FitsHeader, card: Str) -> Result[Unit, Str] {
+pub fn fits_push_card(h: &mut FitsHeader, card: Str) -> Result[Unit, Str]
+  ensures: card.len() != 80 => result is Err;
+{
   if card.len() != 80 {
     return _err_unit("fits: card not 80 chars");
   }
@@ -711,7 +749,10 @@ pub fn fits_push_card(h: &mut FitsHeader, card: Str) -> Result[Unit, Str] {
 /// Append a string value card. Err on the fits_card_format errors; `h` is
 /// unchanged when the card cannot be formatted.
 /// Complexity: O(value length + comment length).
-pub fn fits_push_str(h: &mut FitsHeader, keyword: Str, value: Str, comment: Str) -> Result[Unit, Str] {
+pub fn fits_push_str(h: &mut FitsHeader, keyword: Str, value: Str, comment: Str) -> Result[Unit, Str]
+  ensures: _trim_end_spaces(keyword).len() == 0 => result is Err;
+  ensures: _trim_end_spaces(keyword).len() > 8 => result is Err;
+{
   return _push_formatted(h, keyword, FITK_STR, value, comment);
 }
 
@@ -751,7 +792,10 @@ pub fn fits_push_undefined(h: &mut FitsHeader, keyword: Str, comment: Str) -> Re
 /// Append a COMMENT card whose text is `text`.
 /// Err("fits: card too long") when the text exceeds 72 characters;
 /// `h` is unchanged on Err. Complexity: O(text length).
-pub fn fits_push_comment(h: &mut FitsHeader, text: Str) -> Result[Unit, Str] {
+pub fn fits_push_comment(h: &mut FitsHeader, text: Str) -> Result[Unit, Str]
+  ensures: text.len() > 72 => result is Err;
+  ensures: text.len() <= 72 => result is Ok;
+{
   return _push_formatted(h, "COMMENT", FITK_COMMENT, text, "");
 }
 
@@ -765,7 +809,9 @@ pub fn fits_push_history(h: &mut FitsHeader, text: Str) -> Result[Unit, Str] {
 /// Append a blank-keyword continuation card whose text is `text`.
 /// Err("fits: card too long") when the text exceeds 72 characters;
 /// `h` is unchanged on Err. Complexity: O(text length).
-pub fn fits_push_blank(h: &mut FitsHeader, text: Str) -> Result[Unit, Str] {
+pub fn fits_push_blank(h: &mut FitsHeader, text: Str) -> Result[Unit, Str]
+  ensures: text.len() > 72 => result is Err;
+{
   return _push_formatted(h, "", FITK_BLANK, text, "");
 }
 
@@ -787,7 +833,10 @@ pub fn fits_push_blank(h: &mut FitsHeader, text: Str) -> Result[Unit, Str] {
 /// per-card errors ("fits: card ...", "fits: bad keyword",
 /// "fits: missing '='", "fits: quote not closed", "fits: junk after
 /// value", "fits: bad logical"). Complexity: O(data.len()).
-pub fn fits_parse(data: &Vec[UInt8]) -> Result[FitsHeader, Str] {
+pub fn fits_parse(data: &Vec[UInt8]) -> Result[FitsHeader, Str]
+  ensures: data.len() == 0 => result is Err;
+  ensures: data.len() % 2880 != 0 => result is Err;
+{
   let total = data.len();
   if total == 0 || total % 2880 != 0 {
     return _err_header("fits: bad block padding");
@@ -840,7 +889,10 @@ pub fn fits_parse(data: &Vec[UInt8]) -> Result[FitsHeader, Str] {
 ///
 /// Output length is always a positive multiple of 2880. Cards are validated
 /// when they are pushed, so encoding cannot fail. Complexity: O(cards).
-pub fn fits_encode(h: &FitsHeader) -> Vec[UInt8] {
+pub fn fits_encode(h: &FitsHeader) -> Vec[UInt8]
+  ensures: h.cards.len() == 0 => result.len() == 2880;
+  ensures: result.len() % 2880 == 0 && result.len() > 0;
+{
   var out = Vec[UInt8].new();
   var i = 0;
   while i < h.cards.len() {
@@ -862,13 +914,17 @@ pub fn fits_encode(h: &FitsHeader) -> Vec[UInt8] {
 
 /// Number of stored cards (the END card is not stored).
 /// Complexity: O(1).
-pub fn fits_card_count(h: &FitsHeader) -> Int {
+pub fn fits_card_count(h: &FitsHeader) -> Int
+  ensures: result == h.cards.len();
+{
   return h.cards.len();
 }
 
 /// Raw 80-character text of card `i`, or "" when out of range.
 /// Complexity: O(card length).
-pub fn fits_card(h: &FitsHeader, i: Int) -> Str {
+pub fn fits_card(h: &FitsHeader, i: Int) -> Str
+  ensures: i < 0 || i >= h.cards.len() => result.len() == 0;
+{
   if i < 0 || i >= h.cards.len() {
     return "";
   }
@@ -888,7 +944,9 @@ pub fn fits_keyword(h: &FitsHeader, i: Int) -> Str {
 
 /// Kind of card `i` (a FITK_* constant), or -1 when out of range.
 /// Complexity: O(1).
-pub fn fits_kind(h: &FitsHeader, i: Int) -> Int {
+pub fn fits_kind(h: &FitsHeader, i: Int) -> Int
+  ensures: i < 0 || i >= h.cards.len() => result == -1;
+{
   if i < 0 || i >= h.cards.len() {
     return -1;
   }
@@ -929,7 +987,10 @@ pub fn fits_comment(h: &FitsHeader, i: Int) -> Str {
 /// Lookup is a linear first-match scan in file order, so with duplicate
 /// keywords the earliest card wins; blank-keyword cards never match, and an
 /// empty query returns -1. Complexity: O(cards * keyword length).
-pub fn fits_find(h: &FitsHeader, keyword: Str) -> Int {
+pub fn fits_find(h: &FitsHeader, keyword: Str) -> Int
+  ensures: _trim_end_spaces(keyword).len() == 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result < h.cards.len();
+{
   let q = _trim_end_spaces(keyword);
   if q.len() == 0 {
     return -1;
@@ -948,7 +1009,9 @@ pub fn fits_find(h: &FitsHeader, keyword: Str) -> Int {
 /// Decoded string value of the first card matching `keyword`; None when the
 /// keyword is absent or its card is not of kind FITK_STR.
 /// Complexity: O(cards * keyword length).
-pub fn fits_str_value(h: &FitsHeader, keyword: Str) -> Option[Str] {
+pub fn fits_str_value(h: &FitsHeader, keyword: Str) -> Option[Str]
+  ensures: fits_find(h, keyword) < 0 => result is None;
+{
   let i = fits_find(h, keyword);
   if i < 0 {
     return None;
@@ -1015,7 +1078,9 @@ pub fn fits_float_token(h: &FitsHeader, keyword: Str) -> Option[Str] {
 /// Comment of the first card matching `keyword`; "" when the keyword is
 /// absent or the card has no comment.
 /// Complexity: O(cards * keyword length).
-pub fn fits_comment_of(h: &FitsHeader, keyword: Str) -> Str {
+pub fn fits_comment_of(h: &FitsHeader, keyword: Str) -> Str
+  ensures: fits_find(h, keyword) < 0 => result.len() == 0;
+{
   let i = fits_find(h, keyword);
   if i < 0 {
     return "";
