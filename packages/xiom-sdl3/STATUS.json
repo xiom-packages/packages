@@ -9,9 +9,9 @@
                   "passed":  10,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "a03d9893",
-                  "checked":  "2026-10-08T11:31:18Z"
+                  "commit":  "6b20aa30",
+                  "checked":  "2026-10-08T11:37:04Z"
               },
     "publish":  false,
-    "excluded_reason":  "publish pending: bindings batches 2-3 (eco-v0.1.92)"
+    "excluded_reason":  "published in eco-v0.1.92 (2026-10-08)"
 }
