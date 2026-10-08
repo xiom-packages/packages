@@ -116,13 +116,13 @@ pub fn QueryBuilder.order_by(qb: &mut QueryBuilder, col: Str, desc: Bool)
   qb.order_by.push(clause);
 }
 
-pub fn QueryBuilder.limit(qb: &mut QueryBuilder, limit: Int)
+pub fn QueryBuilder.limit_to(qb: &mut QueryBuilder, limit: Int)
   requires: limit >= 0
 {
   qb.limit_val = limit;
 }
 
-pub fn QueryBuilder.offset(qb: &mut QueryBuilder, offset: Int)
+pub fn QueryBuilder.offset_by(qb: &mut QueryBuilder, offset: Int)
   requires: offset >= 0
 {
   qb.offset_val = offset;
@@ -225,11 +225,11 @@ pub fn query_order_by(qb: &mut QueryBuilder, col: Str, desc: Bool) {
 }
 
 pub fn query_limit(qb: &mut QueryBuilder, limit: Int) {
-  QueryBuilder.limit(qb, limit);
+  QueryBuilder.limit_to(qb, limit);
 }
 
 pub fn query_offset(qb: &mut QueryBuilder, offset: Int) {
-  QueryBuilder.offset(qb, offset);
+  QueryBuilder.offset_by(qb, offset);
 }
 
 pub fn query_to_sql(qb: &QueryBuilder) -> Str {

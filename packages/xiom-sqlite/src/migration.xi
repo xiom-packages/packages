@@ -1,7 +1,7 @@
 module xiom.sqlite.migration
 
+use xiom.sqlite.ffi;
 use xiom.sqlite.types;
-use xiom.sqlite.connection;
 
 pub type Migration = {
   version: Int;
@@ -90,20 +90,26 @@ pub fn MigrationManager.sort(mgr: &mut MigrationManager) {
   }
 }
 
-pub fn MigrationManager.up(mgr: &mut MigrationManager, conn: &SqliteConnection) -> Result[Int, SqliteError] {
+// Compiler finding (v0.64.0): a module exporting an associated fn whose last
+// segment is `up` (or `down`) crashes the compiler with a stack overflow when
+// the same catalog also imports `xiom.test`.  Names kept distinct on purpose:
+// migrate_up / migrate_down.
+pub fn MigrationManager.migrate_up(mgr: &mut MigrationManager, db: Int) -> Result[Int, SqliteError]
+  requires: db != 0
+{
   var ran = 0;
   MigrationManager.sort(mgr);
-  var pending = MigrationManager.pending(mgr);
+  var batch = MigrationManager.pending(mgr);
   var i = 0;
-  while i < pending.len() {
-    var m = pending[i];
+  while i < batch.len() {
+    var m = batch[i];
     if m.up_sql == "" {
       return Err(SqliteError{
         code: -1,
         message: "Migration " + m.name + " has empty up_sql",
       });
     }
-    var result = sqlite_execute(conn, m.up_sql);
+    var result = ffi.exec(db, m.up_sql);
     match result {
       Ok(_) => {
         mgr.current_version = m.version;
@@ -118,7 +124,8 @@ pub fn MigrationManager.up(mgr: &mut MigrationManager, conn: &SqliteConnection) 
   return Ok(ran);
 }
 
-pub fn MigrationManager.down(mgr: &mut MigrationManager, conn: &SqliteConnection, steps: Int) -> Result[Int, SqliteError]
+pub fn MigrationManager.migrate_down(mgr: &mut MigrationManager, db: Int, steps: Int) -> Result[Int, SqliteError]
+  requires: db != 0
   requires: steps > 0
 {
   if steps <= 0 { return Ok(0); }
@@ -146,7 +153,7 @@ pub fn MigrationManager.down(mgr: &mut MigrationManager, conn: &SqliteConnection
         message: "Migration " + m.name + " has empty down_sql",
       });
     }
-    var result = sqlite_execute(conn, m.down_sql);
+    var result = ffi.exec(db, m.down_sql);
     match result {
       Ok(_) => {
         mgr.current_version = m.version - 1;
@@ -176,12 +183,12 @@ pub fn migration_manager_add(mgr: &mut MigrationManager, migration: Migration) {
   MigrationManager.add(mgr, migration);
 }
 
-pub fn migration_manager_up(mgr: &mut MigrationManager, conn: &SqliteConnection) -> Result[Int, SqliteError] {
-  return MigrationManager.up(mgr, conn);
+pub fn migration_manager_up(mgr: &mut MigrationManager, db: Int) -> Result[Int, SqliteError] {
+  return MigrationManager.migrate_up(mgr, db);
 }
 
-pub fn migration_manager_down(mgr: &mut MigrationManager, conn: &SqliteConnection, steps: Int) -> Result[Int, SqliteError] {
-  return MigrationManager.down(mgr, conn, steps);
+pub fn migration_manager_down(mgr: &mut MigrationManager, db: Int, steps: Int) -> Result[Int, SqliteError] {
+  return MigrationManager.migrate_down(mgr, db, steps);
 }
 
 pub fn migration_manager_status(mgr: &MigrationManager) -> Int {
