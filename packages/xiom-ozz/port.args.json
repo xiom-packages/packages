@@ -1,0 +1,6 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/ozz_all.cpp",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/ozz_bridge.cpp"
+]

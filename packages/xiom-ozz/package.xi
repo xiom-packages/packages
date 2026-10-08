@@ -4,10 +4,10 @@
 
 package {
   name: "xiom.ozz"
-  version: "0.1.0"
-  description: "Ozz-Animation (v0.16.0) bindings for XIOM -- skeletal animation runtime + offline pipeline"
+  version: "0.2.0"
+  description: "Ozz-Animation (v0.16.0) bindings for XIOM -- vendored C++ amalgamation, no system library"
   categories: ["media", "graphics"]
-  keywords: ["ozz", "animation", "compression", "skeletal"]
+  keywords: ["ozz", "animation", "skeletal", "binding"]
   license: "MIT OR Apache-2.0"
   repository: "https://github.com/xiom-packages/packages"
   authors: ["XIOM Team"]
