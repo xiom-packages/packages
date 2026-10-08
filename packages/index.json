@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T21:14:44Z",
+    "updated":  "2026-10-08T21:39:46Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -452,7 +452,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.avro",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Strict pure-XIOM Avro 1.11 binary primitive codecs and Object Container File header parser",
@@ -462,7 +462,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-avro/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-avro/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "avro.xi",
                                               "package.xi"
@@ -2913,7 +2913,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.gpx",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "GPX subset codec: parse and canonical build for waypoints, routes and tracks",
@@ -2923,7 +2923,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gpx/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gpx/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "gpx.xi",
                                               "package.xi"
@@ -3504,7 +3504,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.jpeg",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "JPEG (ITU-T T.81) marker/segment codec: SOI/APPn/JFIF/EXIF, DQT, SOF0/1/2, DHT, SOS scan data with byte stuffing and RSTn, EOI",
@@ -3514,7 +3514,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jpeg/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jpeg/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "jpeg.xi",
                                               "package.xi"
@@ -3833,7 +3833,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.lcov",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "LCOV tracefile parser and canonical emitter",
@@ -3843,7 +3843,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lcov/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-lcov/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "lcov.xi",
                                               "package.xi"
@@ -6877,7 +6877,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.sd",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "SD/MMC card register codec: CID, CSD v1.0/v2.0, OCR, CRC7 and SPI framing",
@@ -6887,7 +6887,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sd/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sd/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "sd.xi",
                                               "package.xi"
@@ -7121,7 +7121,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.smbios",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "SMBIOS/DMI entry-point and structure-table codec with canonical building",
@@ -7131,7 +7131,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-smbios/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-smbios/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "smbios.xi",
                                               "package.xi"
