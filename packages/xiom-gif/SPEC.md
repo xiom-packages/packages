@@ -1,6 +1,7 @@
 # xiom.gif -- implemented byte format (SPEC)
 
-> **Status:** implemented and conformance-tested on XIOM v0.61.3 (20/20).
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 > **Scope:** GIF87a/GIF89a container structure: header, logical screen
 > descriptor, global/local color tables, image descriptors, opaque LZW
 > sub-block payloads, extensions, trailer. No pixel decoding, no LZW decode,
@@ -272,3 +273,54 @@ length byte that cannot be satisfied.
 | t18 | 255+45-byte sub-block chain concatenation, offsets |
 | t19 | accessor range sentinels |
 | t20 | offset chain agreement with raw fixture bytes |
+
+## Contracts (batch #43 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (26, across the 17 functions below) were
+added to `src/gif.xi` in the batch #43 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 20-test conformance suite
+exercises every contracted entry point and no clause trapped, so none was
+dropped. Two consecutive `& .\scripts\port.ps1 -Package xiom.gif
+-TimeoutSec 60` runs ended `port: PASS (passed=20 failed=0 program_exit=0
+exit=0)` with the clauses active (19.99 s and 22.15 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module and per the batch #37
+finding a bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant, or
+calls another function. Frames are described by parallel `Vec[Int]` fields
+that `_push_frame`/`_push_ext` keep equal-length by construction, so the
+index guards stated against `g.frame_left.len()` or `g.ext_kind.len()` hold
+for every parsed document. Four bounds rely on parsed-document invariants
+(the plan's pre-guards): `gif_global_color`'s `0..0xFFFFFF` band assumes
+`gct_bytes.len() == gct_size * 3`; `gif_local_color_count`'s `0..256` band
+assumes parsed `frame_lct_size` entries (0 when absent, else 2..256);
+`gif_frame_lzw_min`'s `2..8` band assumes parsed `frame_lzw_min` entries
+(the parser rejects anything else); and `gif_parse`'s `Ok => data.len() >= 14`
+is the minimal complete stream (6-byte header + 7-byte screen descriptor +
+1-byte trailer). A hand-built struct that violates these invariants is
+outside the claimed domain; the conformance suite only calls these
+functions on parser-produced documents.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `gif_parse` | 3 | `< 6` or `6..13` bytes => `Err`; `Ok` => `data.len() >= 14` | no | yes |
+| `gif_version` | 1 | `result == g.version` | no | yes |
+| `gif_width` | 1 | `result == g.width` | no | yes |
+| `gif_height` | 1 | `result == g.height` | no | yes |
+| `gif_has_gct` | 1 | `result == (g.has_gct == 1)` | no | yes |
+| `gif_gct_size` | 1 | `result == g.gct_size` | no | yes |
+| `gif_frame_count` | 1 | `result == g.frame_left.len()` | no | yes |
+| `gif_extension_count` | 1 | `result == g.ext_kind.len()` | no | yes |
+| `gif_is_animated` | 1 | `result == (g.frame_left.len() > 1)` | no | yes |
+| `gif_global_color` | 2 | out of `0..gct_size` => `-1`; in range => `0..0xFFFFFF` | no | yes |
+| `gif_local_color_count` | 2 | out-of-range frame => `-1`; in-range frame => `0..256` | no | yes |
+| `gif_frame` | 2 | out-of-range index => `Err`; `Ok` => index in range | no | yes |
+| `gif_frame_delay` | 1 | out-of-range index => `-1` | no | yes |
+| `gif_frame_lzw_min` | 2 | out-of-range index => `-1`; in-range index => `2..8` | no | yes |
+| `gif_lzw_data` | 2 | out-of-range index => `Err`; `Ok` => index in range | no | yes |
+| `gif_extension` | 2 | out-of-range index => `Err`; `Ok` => index in range | no | yes |
+| `gif_application_loop_count` | 2 | out-of-range extension => `-1`; otherwise `-1..65535` | no | yes |

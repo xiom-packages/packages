@@ -657,7 +657,11 @@ fn _scan_stream(g: &mut Gif, st: &mut _State, data: &Vec[UInt8], n: Int) -> Str 
 ///      sub-block chain, and a missing trailer are reported with offsets.
 ///
 /// LZW payloads stay opaque. Complexity: O(input bytes).
-pub fn gif_parse(data: &Vec[UInt8]) -> Result[Gif, Str] {
+pub fn gif_parse(data: &Vec[UInt8]) -> Result[Gif, Str]
+  ensures: data.len() < 6 => result is Err;
+  ensures: data.len() >= 6 && data.len() < 14 => result is Err;
+  ensures: result is Ok => data.len() >= 14;
+{
   let n = data.len();
   if (n < 6) {
     return _err_gif(_at("gif: truncated header at offset ", n));
@@ -763,31 +767,41 @@ pub fn gif_parse(data: &Vec[UInt8]) -> Result[Gif, Str] {
 
 /// Version code: GIF_VERSION_87A (87) or GIF_VERSION_89A (89).
 /// Complexity: O(1).
-pub fn gif_version(g: &Gif) -> Int {
+pub fn gif_version(g: &Gif) -> Int
+  ensures: result == g.version;
+{
   return g.version;
 }
 
 /// Logical screen width in pixels (0..65535, not range-checked).
 /// Complexity: O(1).
-pub fn gif_width(g: &Gif) -> Int {
+pub fn gif_width(g: &Gif) -> Int
+  ensures: result == g.width;
+{
   return g.width;
 }
 
 /// Logical screen height in pixels (0..65535, not range-checked).
 /// Complexity: O(1).
-pub fn gif_height(g: &Gif) -> Int {
+pub fn gif_height(g: &Gif) -> Int
+  ensures: result == g.height;
+{
   return g.height;
 }
 
 /// True when the logical screen descriptor flags a global color table.
 /// Complexity: O(1).
-pub fn gif_has_gct(g: &Gif) -> Bool {
+pub fn gif_has_gct(g: &Gif) -> Bool
+  ensures: result == (g.has_gct == 1);
+{
   return g.has_gct == 1;
 }
 
 /// Global color table entry count (2..256), or 0 when absent.
 /// Complexity: O(1).
-pub fn gif_gct_size(g: &Gif) -> Int {
+pub fn gif_gct_size(g: &Gif) -> Int
+  ensures: result == g.gct_size;
+{
   return g.gct_size;
 }
 
@@ -817,20 +831,26 @@ pub fn gif_aspect(g: &Gif) -> Int {
 
 /// Number of image descriptors in the file (0 for a trailer-only stream).
 /// Complexity: O(1).
-pub fn gif_frame_count(g: &Gif) -> Int {
+pub fn gif_frame_count(g: &Gif) -> Int
+  ensures: result == g.frame_left.len();
+{
   return g.frame_left.len();
 }
 
 /// Number of extension records in file order (graphic control, comment,
 /// plain text and application extensions all count).
 /// Complexity: O(1).
-pub fn gif_extension_count(g: &Gif) -> Int {
+pub fn gif_extension_count(g: &Gif) -> Int
+  ensures: result == g.ext_kind.len();
+{
   return g.ext_kind.len();
 }
 
 /// True when the file holds more than one image descriptor.
 /// Complexity: O(1).
-pub fn gif_is_animated(g: &Gif) -> Bool {
+pub fn gif_is_animated(g: &Gif) -> Bool
+  ensures: result == (g.frame_left.len() > 1);
+{
   return g.frame_left.len() > 1;
 }
 
@@ -841,7 +861,10 @@ pub fn gif_is_animated(g: &Gif) -> Bool {
 /// Global color table entry `i` as a packed 0xRRGGBB value, or -1 when
 /// `i` is outside 0..gct_size.
 /// Complexity: O(1).
-pub fn gif_global_color(g: &Gif, i: Int) -> Int {
+pub fn gif_global_color(g: &Gif, i: Int) -> Int
+  ensures: i < 0 || i >= g.gct_size => result == -1;
+  ensures: 0 <= i && i < g.gct_size => result >= 0 && result <= 16777215;
+{
   if (i < 0 || i >= g.gct_size) { return -1; }
   let off = i * 3;
   let r = (g.gct_bytes[off] as Int) & 0xFF;
@@ -869,7 +892,10 @@ pub fn gif_local_color(g: &Gif, i: Int, ci: Int) -> Int {
 /// Local color table entry count of frame `i` (2..256), 0 when the frame has
 /// no local table, or -1 when `i` is out of range.
 /// Complexity: O(1).
-pub fn gif_local_color_count(g: &Gif, i: Int) -> Int {
+pub fn gif_local_color_count(g: &Gif, i: Int) -> Int
+  ensures: i < 0 || i >= g.frame_left.len() => result == -1;
+  ensures: 0 <= i && i < g.frame_left.len() => result >= 0 && result <= 256;
+{
   let count = g.frame_left.len();
   if (i < 0 || i >= count) { return -1; }
   let size: Int = g.frame_lct_size[i];
@@ -885,7 +911,10 @@ pub fn gif_local_color_count(g: &Gif, i: Int) -> Int {
 /// Err("gif: frame index out of range") when `i` is negative or beyond
 /// gif_frame_count(g) - 1.
 /// Complexity: O(1).
-pub fn gif_frame(g: &Gif, i: Int) -> Result[GifFrame, Str] {
+pub fn gif_frame(g: &Gif, i: Int) -> Result[GifFrame, Str]
+  ensures: i < 0 || i >= g.frame_left.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < g.frame_left.len();
+{
   let count = g.frame_left.len();
   if (i < 0 || i >= count) {
     return _err_frame("gif: frame index out of range");
@@ -971,7 +1000,9 @@ pub fn gif_frame_height(g: &Gif, i: Int) -> Int {
 /// Graphic-control delay of frame `i` in hundredths of a second, or -1 when
 /// `i` is out of range. Frames without a graphic control extension report 0.
 /// Complexity: O(1).
-pub fn gif_frame_delay(g: &Gif, i: Int) -> Int {
+pub fn gif_frame_delay(g: &Gif, i: Int) -> Int
+  ensures: i < 0 || i >= g.frame_left.len() => result == -1;
+{
   let count = g.frame_left.len();
   if (i < 0 || i >= count) { return -1; }
   let v: Int = g.frame_delay[i];
@@ -1008,7 +1039,10 @@ pub fn gif_frame_trans_index(g: &Gif, i: Int) -> Int {
 
 /// LZW minimum code size of frame `i` (2..8), or -1 when `i` is out of range.
 /// Complexity: O(1).
-pub fn gif_frame_lzw_min(g: &Gif, i: Int) -> Int {
+pub fn gif_frame_lzw_min(g: &Gif, i: Int) -> Int
+  ensures: i < 0 || i >= g.frame_left.len() => result == -1;
+  ensures: 0 <= i && i < g.frame_left.len() => result >= 2 && result <= 8;
+{
   let count = g.frame_left.len();
   if (i < 0 || i >= count) { return -1; }
   let v: Int = g.frame_lzw_min[i];
@@ -1040,7 +1074,10 @@ pub fn gif_frame_lzw_size(g: &Gif, i: Int) -> Int {
 /// bytes are never decoded. Err("gif: frame index out of range") when `i`
 /// is out of range.
 /// Complexity: O(payload bytes).
-pub fn gif_lzw_data(g: &Gif, i: Int) -> Result[Vec[UInt8], Str] {
+pub fn gif_lzw_data(g: &Gif, i: Int) -> Result[Vec[UInt8], Str]
+  ensures: i < 0 || i >= g.frame_left.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < g.frame_left.len();
+{
   let count = g.frame_left.len();
   if (i < 0 || i >= count) {
     return _err_bytes("gif: frame index out of range");
@@ -1065,7 +1102,10 @@ pub fn gif_lzw_data(g: &Gif, i: Int) -> Result[Vec[UInt8], Str] {
 /// its fixed header and data). Err("gif: extension index out of range") when
 /// `i` is negative or beyond gif_extension_count(g) - 1.
 /// Complexity: O(1).
-pub fn gif_extension(g: &Gif, i: Int) -> Result[GifExtension, Str] {
+pub fn gif_extension(g: &Gif, i: Int) -> Result[GifExtension, Str]
+  ensures: i < 0 || i >= g.ext_kind.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < g.ext_kind.len();
+{
   let count = g.ext_kind.len();
   if (i < 0 || i >= count) {
     return _err_ext("gif: extension index out of range");
@@ -1174,7 +1214,10 @@ fn _is_animexts(g: &Gif, i: Int) -> Bool {
 /// exactly the 3 bytes `01 <count LE16>`. A returned 0 means "loop forever";
 /// the value is reported verbatim.
 /// Complexity: O(1).
-pub fn gif_application_loop_count(g: &Gif, i: Int) -> Int {
+pub fn gif_application_loop_count(g: &Gif, i: Int) -> Int
+  ensures: i < 0 || i >= g.ext_kind.len() => result == -1;
+  ensures: result >= -1 && result <= 65535;
+{
   let count = g.ext_kind.len();
   if (i < 0 || i >= count) { return -1; }
   let kind: Int = g.ext_kind[i];
