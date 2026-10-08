@@ -373,7 +373,13 @@ fn _crc8_range(data: &Vec[UInt8], start: Int, size: Int) -> Int {
 /// is negative or the range leaves the buffer. flac_crc8(empty) == 0 and
 /// the CRC-8/SMBUS check vector "123456789" is 244 (0xF4).
 /// Complexity: O(size).
-pub fn flac_crc8(data: &Vec[UInt8], start: Int, size: Int) -> Int {
+pub fn flac_crc8(data: &Vec[UInt8], start: Int, size: Int) -> Int
+  ensures: start < 0 || size < 0 => result == -1;
+  ensures: start >= 0 && size >= 0 && start + size > data.len() => result == -1;
+  ensures: result != -1 => start >= 0 && size >= 0 && start + size <= data.len();
+  ensures: start >= 0 && size == 0 && start <= data.len() => result == 0;
+  ensures: result != -1 => result >= 0 && result <= 255;
+{
   if start < 0 || size < 0 {
     return -1;
   }
@@ -392,7 +398,11 @@ pub fn flac_crc8(data: &Vec[UInt8], start: Int, size: Int) -> Int {
 /// or 0xFF. This is the length implied by the lead byte only; overlong
 /// forms are rejected by flac_parse_utf8_number.
 /// Complexity: O(1).
-pub fn flac_utf8_size(first: Int) -> Int {
+pub fn flac_utf8_size(first: Int) -> Int
+  ensures: first < 0 || first > 255 => result == -1;
+  ensures: first >= 0 && first < 128 => result == 1;
+  ensures: result != -1 => first >= 0 && first <= 255 && result >= 1 && result <= 7;
+{
   if first < 0 || first > 255 {
     return -1;
   }
@@ -439,7 +449,11 @@ pub fn flac_utf8_size(first: Int) -> Int {
 /// Err("flac: overlong utf8 number at N") for an overlong encoding
 /// (N = `offset`).
 /// Complexity: O(1).
-pub fn flac_parse_utf8_number(data: &Vec[UInt8], offset: Int) -> Result[Int, Str] {
+pub fn flac_parse_utf8_number(data: &Vec[UInt8], offset: Int) -> Result[Int, Str]
+  ensures: offset < 0 => result is Err;
+  ensures: offset >= data.len() => result is Err;
+  ensures: result is Ok => offset >= 0 && offset < data.len();
+{
   if offset < 0 {
     return _err_int("flac: offset out of range");
   }
@@ -502,7 +516,10 @@ pub fn flac_parse_utf8_number(data: &Vec[UInt8], offset: Int) -> Result[Int, Str
 /// Metadata block type name: 0 "STREAMINFO", 1 "PADDING", 2 "APPLICATION",
 /// 3 "SEEKTABLE", 4 "VORBIS_COMMENT", 5 "CUESHEET", 6 "PICTURE", anything
 /// else "". Complexity: O(1).
-pub fn flac_metadata_type_name(btype: Int) -> Str {
+pub fn flac_metadata_type_name(btype: Int) -> Str
+  ensures: btype >= 0 && btype <= 6 => result.len() > 0;
+  ensures: (btype < 0 || btype > 6) => result.len() == 0;
+{
   if btype == 0 { return "STREAMINFO"; }
   if btype == 1 { return "PADDING"; }
   if btype == 2 { return "APPLICATION"; }
@@ -518,7 +535,12 @@ pub fn flac_metadata_type_name(btype: Int) -> Str {
 /// every other valid code maps to its table value (192, 576, 1152, 2304,
 /// 4608, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768).
 /// Complexity: O(1).
-pub fn flac_block_size_for_code(code: Int) -> Int {
+pub fn flac_block_size_for_code(code: Int) -> Int
+  ensures: code == 6 || code == 7 => result == -1;
+  ensures: code < 0 || code == 0 || code > 15 => result == 0;
+  ensures: code >= 1 && code <= 5 => result >= 192 && result <= 4608;
+  ensures: code >= 8 && code <= 15 => result >= 256 && result <= 32768;
+{
   if code == 1 { return 192; }
   if code == 2 { return 576; }
   if code == 3 { return 1152; }
@@ -542,7 +564,12 @@ pub fn flac_block_size_for_code(code: Int) -> Int {
 /// (88200, 176400, 192000, 8000, 16000, 22050, 24000, 32000, 44100, 48000,
 /// 96000), codes 12..14 have an 8/16-bit extra field and map to -1, and 15
 /// (forbidden) maps to -2. Complexity: O(1).
-pub fn flac_sample_rate_for_code(code: Int) -> Int {
+pub fn flac_sample_rate_for_code(code: Int) -> Int
+  ensures: code == 15 => result == -2;
+  ensures: code >= 12 && code <= 14 => result == -1;
+  ensures: code < 0 || code == 0 || code > 15 => result == 0;
+  ensures: code >= 1 && code <= 11 => result >= 8000 && result <= 192000;
+{
   if code == 1 { return 88200; }
   if code == 2 { return 176400; }
   if code == 3 { return 192000; }
@@ -564,7 +591,11 @@ pub fn flac_sample_rate_for_code(code: Int) -> Int {
 /// Bits per sample for a frame-header sample-size code: 0 means "from
 /// STREAMINFO" and maps to 0; 1/2/4/5/6/7 map to 8/12/16/20/24/32; 3
 /// (reserved) and out-of-range codes map to -1. Complexity: O(1).
-pub fn flac_bits_per_sample_for_code(code: Int) -> Int {
+pub fn flac_bits_per_sample_for_code(code: Int) -> Int
+  ensures: code == 0 => result == 0;
+  ensures: code == 3 || code < 0 || code > 7 => result == -1;
+  ensures: code >= 1 && code <= 7 && code != 3 => result >= 8 && result <= 32;
+{
   if code == 1 { return 8; }
   if code == 2 { return 12; }
   if code == 4 { return 16; }
@@ -578,7 +609,12 @@ pub fn flac_bits_per_sample_for_code(code: Int) -> Int {
 /// Channel count for a frame-header channel assignment: 0..7 independent
 /// (1..8 channels), 8 left/side, 9 right/side and 10 mid/side (2 channels);
 /// anything else -1. Complexity: O(1).
-pub fn flac_channel_assignment_channels(assignment: Int) -> Int {
+pub fn flac_channel_assignment_channels(assignment: Int) -> Int
+  ensures: assignment < 0 => result == -1;
+  ensures: assignment >= 0 && assignment <= 7 => result == assignment + 1;
+  ensures: assignment == 8 || assignment == 9 || assignment == 10 => result == 2;
+  ensures: assignment > 10 => result == -1;
+{
   if assignment < 0 {
     return -1;
   }
@@ -594,7 +630,10 @@ pub fn flac_channel_assignment_channels(assignment: Int) -> Int {
 /// Channel assignment name: 0..7 "independent", 8 "left/side stereo",
 /// 9 "right/side stereo", 10 "mid/side stereo", anything else "".
 /// Complexity: O(1).
-pub fn flac_channel_assignment_name(assignment: Int) -> Str {
+pub fn flac_channel_assignment_name(assignment: Int) -> Str
+  ensures: assignment >= 0 && assignment <= 10 => result.len() > 0;
+  ensures: (assignment < 0 || assignment > 10) => result.len() == 0;
+{
   if assignment >= 0 && assignment <= 7 {
     return "independent";
   }
@@ -651,7 +690,10 @@ fn _streaminfo_at(data: &Vec[UInt8], start: Int) -> FlacStreamInfo {
 /// min block size below 16 is reported as stored). For streams use
 /// flac_parse_metadata, which takes the payload from its block header.
 /// Complexity: O(1).
-pub fn flac_parse_streaminfo(block: &Vec[UInt8]) -> Result[FlacStreamInfo, Str] {
+pub fn flac_parse_streaminfo(block: &Vec[UInt8]) -> Result[FlacStreamInfo, Str]
+  ensures: block.len() != 34 => result is Err;
+  ensures: block.len() == 34 => result is Ok;
+{
   if block.len() != 34 {
     return _err_streaminfo("flac: bad streaminfo length at 0");
   }
@@ -716,7 +758,10 @@ fn _vorbis_range(data: &Vec[UInt8], start: Int, end: Int, ebase: Int) -> Result[
 /// Err("flac: vorbis comment overrun at 0"). Strings stop at the first
 /// 0x00; other bytes pass through unchanged (UTF-8 is not validated).
 /// Complexity: O(payload).
-pub fn flac_parse_vorbis_comment(payload: &Vec[UInt8]) -> Result[FlacVorbisComment, Str] {
+pub fn flac_parse_vorbis_comment(payload: &Vec[UInt8]) -> Result[FlacVorbisComment, Str]
+  ensures: payload.len() < 8 => result is Err;
+  ensures: result is Ok => payload.len() >= 8;
+{
   return _vorbis_range(payload, 0, payload.len(), 0);
 }
 
@@ -784,7 +829,10 @@ fn _picture_range(data: &Vec[UInt8], start: Int, end: Int, ebase: Int) -> Result
 /// Err("flac: picture block overrun at 0"). The picture data itself is not
 /// copied and not inspected; only its declared length is reported.
 /// Complexity: O(payload).
-pub fn flac_parse_picture(payload: &Vec[UInt8]) -> Result[FlacPicture, Str] {
+pub fn flac_parse_picture(payload: &Vec[UInt8]) -> Result[FlacPicture, Str]
+  ensures: payload.len() < 32 => result is Err;
+  ensures: result is Ok => payload.len() >= 32;
+{
   return _picture_range(payload, 0, payload.len(), 0);
 }
 
@@ -848,7 +896,10 @@ fn _cuesheet_check(data: &Vec[UInt8], start: Int, size: Int, ebase: Int) -> Resu
 /// block with the last-block flag; bytes after it (the audio frames) are
 /// not inspected, and flac_parse_frame_header starts at `audio_offset`.
 /// Complexity: O(metadata size).
-pub fn flac_parse_metadata(data: &Vec[UInt8]) -> Result[FlacMetadata, Str] {
+pub fn flac_parse_metadata(data: &Vec[UInt8]) -> Result[FlacMetadata, Str]
+  ensures: data.len() < 4 => result is Err;
+  ensures: result is Ok => data.len() >= 4;
+{
   let n = data.len();
   if n == 0 {
     return _err_metadata("flac: empty input");
@@ -1071,7 +1122,11 @@ pub fn flac_block_count(m: &FlacMetadata) -> Int {
 
 /// Absolute offset of the 4-byte header of metadata block `i`, or -1 when
 /// `i` is negative or >= flac_block_count(m). Complexity: O(1).
-pub fn flac_block_offset(m: &FlacMetadata, i: Int) -> Int {
+pub fn flac_block_offset(m: &FlacMetadata, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= m.block_offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < m.block_offsets.len();
+{
   if i < 0 {
     return -1;
   }
@@ -1381,7 +1436,11 @@ pub fn flac_picture_data_length(m: &FlacMetadata, i: Int) -> Int {
 /// A CRC-8 mismatch is NOT an error: the header is returned with
 /// `crc8_ok == false`, which lets callers inspect damaged headers.
 /// Complexity: O(1).
-pub fn flac_parse_frame_header(data: &Vec[UInt8], offset: Int) -> Result[FlacFrameHeader, Str] {
+pub fn flac_parse_frame_header(data: &Vec[UInt8], offset: Int) -> Result[FlacFrameHeader, Str]
+  ensures: offset < 0 => result is Err;
+  ensures: offset + 4 > data.len() => result is Err;
+  ensures: result is Ok => offset >= 0 && offset + 4 <= data.len();
+{
   if offset < 0 {
     return _err_frame("flac: offset out of range");
   }

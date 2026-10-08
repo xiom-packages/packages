@@ -1,8 +1,6 @@
 # xiom.mkv -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.mkv`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/mkv.xi` (`module xiom.mkv`).
 Depends on `xiom.std`; the library module imports `xiom.string.builder`,
 `xiom.string.compare` and `xiom.utf8`.
@@ -296,3 +294,52 @@ Run:
 ```powershell
 .\scripts\port.ps1 -Package xiom.mkv
 ```
+
+## Contracts (batch #46 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (36, across the 14 functions below) were
+added to `src/mkv.xi` in the batch #46 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 20-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive timed green `& .\scripts\port.ps1 -Package xiom.mkv
+-TimeoutSec 90` runs ended `port: PASS (passed=20 failed=0 program_exit=0
+exit=0)` with the clauses active (39.02 s and 34.05 s); an earlier untimed run
+was also 20/20. None is claimed Z3-provable: `xiom-verify` was not run for
+this module, and per the batch #37 finding a bare `[OK] VERIFIED` can be a
+vacuous UNSAT, so the Z3-provable column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str` (length via `.len()` only),
+uses a module constant, or reads a `&mut` parameter. Guards keep the plan's
+families: sentinel pairs (`result == -1`, `!result`, `result == 0`), exact
+formulas (`result == p.duration_units_milli * p.timestamp_scale / 1000`,
+`result == p.duration_units_milli * p.timestamp_scale / 1000000`),
+bounds/lengths (`result <= p.trk_numbers.len()`, `result <=
+p.cls_offsets.len()`), and tag guards (`result is Ok` / `result is Err`,
+`result => i >= 0 && i < ...`). The only cross-calls are non-re-entrant
+definitional reads: `mkv_parse` calls `mkv_is_file`, `mkv_vint_size_width`
+calls `mkv_vint_size`, and the track/cluster accessors call `mkv_track_count`
+/ `mkv_cluster_count`. None of those callees can return to its caller.
+`mkv_doctype` is the one planned skip (its guarantee would need `Str`
+equality; `.len()` alone cannot mirror the field). Every accessor's guard
+matches its internal sentinel path, so clauses hold for parser-produced and
+hand-built (empty or drifted) `MkvFile` values alike.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `mkv_vint_width` | 2 | out-of-range `pos` => `0`; nonzero implies `pos` in range and 1..8 | no | yes |
+| `mkv_vint_id` | 3 | `pos` out of range => `Err`; `Ok` implies `pos` in range | no | yes |
+| `mkv_vint_size` | 3 | `pos` out of range => `Err`; `Ok` implies `pos` in range | no | yes |
+| `mkv_vint_size_width` | 2 | `mkv_vint_size` `Err` => `Err`; `Ok` => `mkv_vint_size` `Ok` | no | yes |
+| `mkv_is_file` | 2 | < 5 bytes => `false`; `true` implies >= 5 bytes | no | yes |
+| `mkv_parse` | 2 | not `mkv_is_file` => `Err`; `Ok` => `mkv_is_file` | no | yes |
+| `mkv_duration_nanos` | 2 | negative units => `-1`; otherwise exact formula | no | yes |
+| `mkv_duration_millis` | 2 | negative units => `-1`; otherwise exact formula | no | yes |
+| `mkv_track_count` | 4 | `>= 0` and <= three pool lengths | no | yes |
+| `mkv_track_number` | 3 | negative/over-count `i` => `-1`; `!= -1` implies in range | no | yes |
+| `mkv_track_codec_id` | 2 | negative/over-count `i` => empty (`.len() == 0`) | no | yes |
+| `mkv_track_video_width` | 3 | negative/over-count `i` => `-1`; `!= -1` implies in range | no | yes |
+| `mkv_cluster_count` | 3 | `>= 0` and <= two pool lengths | no | yes |
+| `mkv_cluster_is_unknown_size` | 3 | negative/over-count `i` => `false`; `true` implies in range | no | yes |

@@ -295,7 +295,10 @@ fn _marker_value(width: Int) -> Int {
 
 /// Byte width of the VINT at `pos` (1..8); 0 when `pos` is out of range or the
 /// first byte is 0x00 (an encoding wider than 8 bytes). Complexity: O(1).
-pub fn mkv_vint_width(data: &Vec[UInt8], pos: Int) -> Int {
+pub fn mkv_vint_width(data: &Vec[UInt8], pos: Int) -> Int
+  ensures: pos < 0 || pos >= data.len() => result == 0;
+  ensures: result != 0 => pos >= 0 && pos < data.len() && result >= 1 && result <= 8;
+{
   if pos < 0 || pos >= data.len() {
     return 0;
   }
@@ -308,7 +311,11 @@ pub fn mkv_vint_width(data: &Vec[UInt8], pos: Int) -> Int {
 /// past the buffer; Err("mkv: invalid vint") for a first byte of 0x00 (more
 /// than 8 bytes) or for the reserved encoding whose data bits are all zero
 /// (0x80, 0x4000, 0x200000, ...). Complexity: O(1).
-pub fn mkv_vint_id(data: &Vec[UInt8], pos: Int) -> Result[Int, Str] {
+pub fn mkv_vint_id(data: &Vec[UInt8], pos: Int) -> Result[Int, Str]
+  ensures: pos < 0 => result is Err;
+  ensures: pos >= data.len() => result is Err;
+  ensures: result is Ok => pos >= 0 && pos < data.len();
+{
   if pos < 0 || pos >= data.len() {
     return _err_int("mkv: truncated vint");
   }
@@ -342,7 +349,11 @@ pub fn mkv_vint_id_width(data: &Vec[UInt8], pos: Int) -> Result[Int, Str] {
 /// MKV_SIZE_UNKNOWN (-1). Err("mkv: truncated vint") when `pos` is out of
 /// range or the VINT runs past the buffer; Err("mkv: invalid vint") for a
 /// first byte of 0x00. Complexity: O(1).
-pub fn mkv_vint_size(data: &Vec[UInt8], pos: Int) -> Result[Int, Str] {
+pub fn mkv_vint_size(data: &Vec[UInt8], pos: Int) -> Result[Int, Str]
+  ensures: pos < 0 => result is Err;
+  ensures: pos >= data.len() => result is Err;
+  ensures: result is Ok => pos >= 0 && pos < data.len();
+{
   if pos < 0 || pos >= data.len() {
     return _err_int("mkv: truncated vint");
   }
@@ -365,7 +376,10 @@ pub fn mkv_vint_size(data: &Vec[UInt8], pos: Int) -> Result[Int, Str] {
 /// mkv_vint_size does (an unknown-size VINT has a valid width).
 /// Err("mkv: truncated vint") / Err("mkv: invalid vint") as for
 /// mkv_vint_size. Complexity: O(1).
-pub fn mkv_vint_size_width(data: &Vec[UInt8], pos: Int) -> Result[Int, Str] {
+pub fn mkv_vint_size_width(data: &Vec[UInt8], pos: Int) -> Result[Int, Str]
+  ensures: mkv_vint_size(data, pos) is Err => result is Err;
+  ensures: result is Ok => mkv_vint_size(data, pos) is Ok;
+{
   let r = mkv_vint_size(data, pos);
   if !r.is_ok {
     return _err_int(r.error);
@@ -785,7 +799,10 @@ fn _parse_track_entry(data: &Vec[UInt8], entry_offset: Int, start: Int, end: Int
 /// True when `data` starts with the EBML header ID 0x1A45DFA3 (4 bytes) and
 /// has at least one more byte. Only the ID is inspected; malformed bodies are
 /// not detected here. Complexity: O(1).
-pub fn mkv_is_file(data: &Vec[UInt8]) -> Bool {
+pub fn mkv_is_file(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 5 => !result;
+  ensures: result => data.len() >= 5;
+{
   if data.len() < 5 {
     return false;
   }
@@ -824,7 +841,10 @@ pub fn mkv_is_file(data: &Vec[UInt8]) -> Bool {
 /// documented messages and no partial store on any failure.
 ///
 /// Complexity: O(data.len()) plus the unknown-size Cluster boundary scans.
-pub fn mkv_parse(data: &Vec[UInt8]) -> Result[MkvFile, Str] {
+pub fn mkv_parse(data: &Vec[UInt8]) -> Result[MkvFile, Str]
+  ensures: !mkv_is_file(data) => result is Err;
+  ensures: result is Ok => mkv_is_file(data);
+{
   let n = data.len();
 
   // --- EBML header ---
@@ -1228,7 +1248,10 @@ pub fn mkv_duration_milli_units(p: &MkvFile) -> Int {
 /// Duration converted to nanoseconds:
 /// duration_milli_units * timestamp_scale / 1000 (truncating); -1 when the
 /// Duration element is absent. Complexity: O(1).
-pub fn mkv_duration_nanos(p: &MkvFile) -> Int {
+pub fn mkv_duration_nanos(p: &MkvFile) -> Int
+  ensures: p.duration_units_milli < 0 => result == -1;
+  ensures: p.duration_units_milli >= 0 => result == p.duration_units_milli * p.timestamp_scale / 1000;
+{
   if p.duration_units_milli < 0 {
     return -1;
   }
@@ -1238,7 +1261,10 @@ pub fn mkv_duration_nanos(p: &MkvFile) -> Int {
 /// Duration converted to milliseconds:
 /// duration_milli_units * timestamp_scale / 1000000 (truncating); -1 when the
 /// Duration element is absent. Complexity: O(1).
-pub fn mkv_duration_millis(p: &MkvFile) -> Int {
+pub fn mkv_duration_millis(p: &MkvFile) -> Int
+  ensures: p.duration_units_milli < 0 => result == -1;
+  ensures: p.duration_units_milli >= 0 => result == p.duration_units_milli * p.timestamp_scale / 1000000;
+{
   if p.duration_units_milli < 0 {
     return -1;
   }
@@ -1268,7 +1294,12 @@ pub fn mkv_title(p: &MkvFile) -> Str {
 // --------------------------------------------------
 
 /// Number of parsed TrackEntry records. Complexity: O(1).
-pub fn mkv_track_count(p: &MkvFile) -> Int {
+pub fn mkv_track_count(p: &MkvFile) -> Int
+  ensures: result >= 0;
+  ensures: result <= p.trk_numbers.len();
+  ensures: result <= p.trk_offsets.len();
+  ensures: result <= p.trk_codec_ids.len();
+{
   return _track_len(p);
 }
 
@@ -1284,7 +1315,11 @@ pub fn mkv_track_offset(p: &MkvFile, i: Int) -> Int {
 
 /// TrackNumber of track `i` (validated nonzero during parse); -1 when `i` is
 /// out of range. Complexity: O(1).
-pub fn mkv_track_number(p: &MkvFile, i: Int) -> Int {
+pub fn mkv_track_number(p: &MkvFile, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= mkv_track_count(p) => result == -1;
+  ensures: result != -1 => i >= 0 && i < mkv_track_count(p);
+{
   if i < 0 || i >= _track_len(p) {
     return -1;
   }
@@ -1314,7 +1349,10 @@ pub fn mkv_track_type(p: &MkvFile, i: Int) -> Int {
 }
 
 /// CodecID of track `i`, "" when absent or `i` out of range. Complexity: O(1).
-pub fn mkv_track_codec_id(p: &MkvFile, i: Int) -> Str {
+pub fn mkv_track_codec_id(p: &MkvFile, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= mkv_track_count(p) => result.len() == 0;
+{
   if i < 0 || i >= _track_len(p) {
     return "";
   }
@@ -1354,7 +1392,11 @@ pub fn mkv_track_language_ietf(p: &MkvFile, i: Int) -> Str {
 
 /// Video PixelWidth of track `i`; 0 when absent; -1 when `i` is out of range.
 /// Complexity: O(1).
-pub fn mkv_track_video_width(p: &MkvFile, i: Int) -> Int {
+pub fn mkv_track_video_width(p: &MkvFile, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= mkv_track_count(p) => result == -1;
+  ensures: result != -1 => i >= 0 && i < mkv_track_count(p);
+{
   if i < 0 || i >= _track_len(p) {
     return -1;
   }
@@ -1398,7 +1440,11 @@ pub fn mkv_track_audio_channels(p: &MkvFile, i: Int) -> Int {
 // --------------------------------------------------
 
 /// Number of top-level Cluster elements recorded. Complexity: O(1).
-pub fn mkv_cluster_count(p: &MkvFile) -> Int {
+pub fn mkv_cluster_count(p: &MkvFile) -> Int
+  ensures: result >= 0;
+  ensures: result <= p.cls_offsets.len();
+  ensures: result <= p.cls_unknown.len();
+{
   return _cluster_len(p);
 }
 
@@ -1448,7 +1494,11 @@ pub fn mkv_cluster_end_offset(p: &MkvFile, i: Int) -> Int {
 
 /// True when cluster `i` declared the EBML unknown-size encoding; false when
 /// `i` is out of range. Complexity: O(1).
-pub fn mkv_cluster_is_unknown_size(p: &MkvFile, i: Int) -> Bool {
+pub fn mkv_cluster_is_unknown_size(p: &MkvFile, i: Int) -> Bool
+  ensures: i < 0 => !result;
+  ensures: i >= mkv_cluster_count(p) => !result;
+  ensures: result => i >= 0 && i < mkv_cluster_count(p);
+{
   if i < 0 || i >= _cluster_len(p) {
     return false;
   }

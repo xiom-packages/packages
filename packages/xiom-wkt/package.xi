@@ -9,7 +9,7 @@
 
 package xiom_wkt {
   name: "xiom.wkt";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Well-Known Text (WKT) geometry codec for a documented subset";
   categories: ["science"];
   keywords: ["wkt", "geometry", "gis", "format"];

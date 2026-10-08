@@ -980,7 +980,10 @@ fn _parse_geometry(text: Str, pos: Int, par_eff_marker: Int, parent: Int, doc: &
 /// parentheses, invalid number, wrong ordinate count, missing comma, empty
 /// coordinate list, trailing tokens, conflicting ordinate markers.
 /// Complexity: O(n) over the input; recursion depth is the nesting depth.
-pub fn wkt_parse(text: Str) -> Result[WktDoc, Str] {
+pub fn wkt_parse(text: Str) -> Result[WktDoc, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() > 0;
+{
   var doc = WktDoc{
     kinds: Vec[Int].new();
     markers: Vec[Int].new();
@@ -1022,7 +1025,10 @@ pub fn wkt_parse(text: Str) -> Result[WktDoc, Str] {
 /// wkt_parse(text).
 /// Error case: the same Err messages as wkt_parse.
 /// Complexity: O(n).
-pub fn wkt_normalize(text: Str) -> Result[Str, Str] {
+pub fn wkt_normalize(text: Str) -> Result[Str, Str]
+  ensures: wkt_parse(text) is Err => result is Err;
+  ensures: wkt_parse(text) is Ok => result is Ok;
+{
   let r = wkt_parse(text);
   match r {
     Ok(d) => { return _ok_str(wkt_write(&d)); },
@@ -1168,7 +1174,10 @@ fn _emit_element(sb: &mut Vec[UInt8], doc: &WktDoc, i: Int) {
 /// equal document.
 /// Error case: none.
 /// Complexity: O(n) with an amortized O(1) string builder.
-pub fn wkt_write(doc: &WktDoc) -> Str {
+pub fn wkt_write(doc: &WktDoc) -> Str
+  ensures: doc.kinds.len() == 0 => result.len() == 0;
+  ensures: doc.kinds.len() > 0 => result.len() > 0;
+{
   var sb = builder.sb_new();
   if doc.kinds.len() > 0 {
     _emit_element(&mut sb, doc, 0);
@@ -1185,7 +1194,9 @@ pub fn wkt_write(doc: &WktDoc) -> Str {
 /// Returns: element count; 0 for an empty table.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn wkt_geometry_count(doc: &WktDoc) -> Int {
+pub fn wkt_geometry_count(doc: &WktDoc) -> Int
+  ensures: result == doc.kinds.len();
+{
   return doc.kinds.len();
 }
 
@@ -1196,7 +1207,12 @@ pub fn wkt_geometry_count(doc: &WktDoc) -> Int {
 /// out of range (so an empty result is distinguishable from every type).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn wkt_type(doc: &WktDoc, i: Int) -> Str {
+pub fn wkt_type(doc: &WktDoc, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= doc.kinds.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < doc.kinds.len();
+  ensures: i >= 0 && i < doc.kinds.len() => result.len() > 0;
+{
   if i < 0 || i >= doc.kinds.len() {
     return "";
   }
@@ -1211,7 +1227,11 @@ pub fn wkt_type(doc: &WktDoc, i: Int) -> Str {
 /// wkt_coord_arity for the effective ordinate count).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn wkt_marker(doc: &WktDoc, i: Int) -> Int {
+pub fn wkt_marker(doc: &WktDoc, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= doc.markers.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < doc.markers.len();
+{
   if i < 0 || i >= doc.markers.len() {
     return -1;
   }
@@ -1226,7 +1246,11 @@ pub fn wkt_marker(doc: &WktDoc, i: Int) -> Int {
 /// Returns: 2, 3 or 4; -1 when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn wkt_coord_arity(doc: &WktDoc, i: Int) -> Int {
+pub fn wkt_coord_arity(doc: &WktDoc, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= doc.arities.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < doc.arities.len();
+{
   if i < 0 || i >= doc.arities.len() {
     return -1;
   }
@@ -1239,7 +1263,11 @@ pub fn wkt_coord_arity(doc: &WktDoc, i: Int) -> Int {
 /// Returns: the EMPTY flag.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn wkt_is_empty(doc: &WktDoc, i: Int) -> Bool {
+pub fn wkt_is_empty(doc: &WktDoc, i: Int) -> Bool
+  ensures: i < 0 => result;
+  ensures: i >= doc.empties.len() => result;
+  ensures: !result => i >= 0 && i < doc.empties.len();
+{
   if i < 0 || i >= doc.empties.len() {
     return true;
   }
@@ -1252,7 +1280,11 @@ pub fn wkt_is_empty(doc: &WktDoc, i: Int) -> Bool {
 /// Returns: the parent index; -1 for the root or when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn wkt_parent(doc: &WktDoc, i: Int) -> Int {
+pub fn wkt_parent(doc: &WktDoc, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= doc.parents.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < doc.parents.len();
+{
   if i < 0 || i >= doc.parents.len() {
     return -1;
   }
@@ -1267,7 +1299,11 @@ pub fn wkt_parent(doc: &WktDoc, i: Int) -> Int {
 /// Returns: the direct child count; 0 when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn wkt_child_count(doc: &WktDoc, i: Int) -> Int {
+pub fn wkt_child_count(doc: &WktDoc, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= doc.kinds.len() => result == 0;
+  ensures: result > 0 => i >= 0 && i < doc.kinds.len();
+{
   if i < 0 || i >= doc.kinds.len() {
     return 0;
   }
@@ -1282,7 +1318,11 @@ pub fn wkt_child_count(doc: &WktDoc, i: Int) -> Int {
 /// Returns: the child element index; -1 when `i` or `k` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn wkt_child(doc: &WktDoc, i: Int, k: Int) -> Int {
+pub fn wkt_child(doc: &WktDoc, i: Int, k: Int) -> Int
+  ensures: i < 0 || i >= doc.kinds.len() => result == -1;
+  ensures: k < 0 => result == -1;
+  ensures: result != -1 => i >= 0 && i < doc.kinds.len() && k >= 0;
+{
   if i < 0 || i >= doc.kinds.len() {
     return -1;
   }
@@ -1333,7 +1373,11 @@ pub fn wkt_point_end(doc: &WktDoc, i: Int) -> Int {
 /// Returns: the coordinate count; 0 when `i` is out of range or EMPTY.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn wkt_point_count(doc: &WktDoc, i: Int) -> Int {
+pub fn wkt_point_count(doc: &WktDoc, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= doc.kinds.len() => result == 0;
+  ensures: result > 0 => i >= 0 && i < doc.kinds.len();
+{
   if i < 0 || i >= doc.kinds.len() {
     return 0;
   }
@@ -1349,7 +1393,11 @@ pub fn wkt_point_count(doc: &WktDoc, i: Int) -> Int {
 /// Returns: the ring count; 0 when `i` is out of range or there are no rings.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn wkt_ring_count(doc: &WktDoc, i: Int) -> Int {
+pub fn wkt_ring_count(doc: &WktDoc, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= doc.kinds.len() => result == 0;
+  ensures: result > 0 => i >= 0 && i < doc.kinds.len();
+{
   if i < 0 || i >= doc.kinds.len() {
     return 0;
   }
@@ -1420,7 +1468,9 @@ pub fn wkt_ring_point_count(doc: &WktDoc, r: Int) -> Int {
 /// Returns: doc.xs length, the number all element and ring spans index into.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn wkt_coord_count(doc: &WktDoc) -> Int {
+pub fn wkt_coord_count(doc: &WktDoc) -> Int
+  ensures: result == doc.xs.len();
+{
   return doc.xs.len();
 }
 
@@ -1430,7 +1480,10 @@ pub fn wkt_coord_count(doc: &WktDoc) -> Int {
 /// range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn wkt_x(doc: &WktDoc, p: Int) -> Str {
+pub fn wkt_x(doc: &WktDoc, p: Int) -> Str
+  ensures: p < 0 => result.len() == 0;
+  ensures: p >= doc.xs.len() => result.len() == 0;
+{
   if p < 0 || p >= doc.xs.len() {
     return "";
   }

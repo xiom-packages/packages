@@ -850,7 +850,10 @@ fn _parse_list(p: &mut SnbtParser, tree: &mut SnbtTree, parent: Int, depth: Int)
 /// any kind; container nesting is capped at SNBT_MAX_DEPTH and trailing
 /// non-whitespace text is an error ("snbt: trailing tokens"). The returned
 /// tree is finalized, so all navigation accessors work immediately.
-pub fn snbt_parse(input: Str) -> Result[SnbtTree, Str] {
+pub fn snbt_parse(input: Str) -> Result[SnbtTree, Str]
+  ensures: input.len() == 0 => result is Err;
+  ensures: result is Ok => input.len() > 0;
+{
   var tree = _tree_new();
   var p = SnbtParser{ input: input; pos: 0; len: string.str_len(input); };
   _skip_ws(&mut p);
@@ -874,7 +877,9 @@ pub fn snbt_parse(input: Str) -> Result[SnbtTree, Str] {
 // --------------------------------------------------
 
 /// Number of nodes in the store (0 for an empty tree).
-pub fn snbt_node_count(tree: &SnbtTree) -> Int {
+pub fn snbt_node_count(tree: &SnbtTree) -> Int
+  ensures: result == tree.kinds.len();
+{
   return tree.kinds.len();
 }
 
@@ -884,7 +889,11 @@ pub fn snbt_root(tree: &SnbtTree) -> Int {
 }
 
 /// Kind (1-13, `SNBT_KIND_*`) of `node`, or -1 for an out-of-range index.
-pub fn snbt_kind(tree: &SnbtTree, node: Int) -> Int {
+pub fn snbt_kind(tree: &SnbtTree, node: Int) -> Int
+  ensures: node < 0 => result == -1;
+  ensures: node >= tree.kinds.len() => result == -1;
+  ensures: result != -1 => node >= 0 && node < tree.kinds.len();
+{
   if node < 0 || node >= tree.kinds.len() {
     return -1;
   }
@@ -893,7 +902,10 @@ pub fn snbt_kind(tree: &SnbtTree, node: Int) -> Int {
 }
 
 /// Stable lower-case name of a kind constant ("" for an unknown value).
-pub fn snbt_kind_name(kind: Int) -> Str {
+pub fn snbt_kind_name(kind: Int) -> Str
+  ensures: kind >= 1 && kind <= 13 => result.len() > 0;
+  ensures: (kind < 1 || kind > 13) => result.len() == 0;
+{
   if kind == SNBT_KIND_STRING { return "string"; }
   if kind == SNBT_KIND_BOOLEAN { return "boolean"; }
   if kind == SNBT_KIND_BYTE { return "byte"; }
@@ -913,7 +925,10 @@ pub fn snbt_kind_name(kind: Int) -> Str {
 /// Stored text of `node`: the decoded string, a numeric body for
 /// float/double, the canonical decimal for integer kinds; "" for booleans,
 /// containers and out-of-range indices.
-pub fn snbt_text(tree: &SnbtTree, node: Int) -> Str {
+pub fn snbt_text(tree: &SnbtTree, node: Int) -> Str
+  ensures: node < 0 => result.len() == 0;
+  ensures: node >= tree.texts.len() => result.len() == 0;
+{
   if node < 0 || node >= tree.texts.len() {
     return "";
   }
@@ -933,7 +948,11 @@ pub fn snbt_key(tree: &SnbtTree, node: Int) -> Str {
 }
 
 /// Parent node index, or -1 for the root and out-of-range nodes.
-pub fn snbt_parent(tree: &SnbtTree, node: Int) -> Int {
+pub fn snbt_parent(tree: &SnbtTree, node: Int) -> Int
+  ensures: node < 0 => result == -1;
+  ensures: node >= tree.parents.len() => result == -1;
+  ensures: result != -1 => node >= 0 && node < tree.parents.len();
+{
   if node < 0 || node >= tree.parents.len() {
     return -1;
   }
@@ -942,7 +961,11 @@ pub fn snbt_parent(tree: &SnbtTree, node: Int) -> Int {
 }
 
 /// Number of children of `node` (0 for leaves and out-of-range nodes).
-pub fn snbt_child_count(tree: &SnbtTree, node: Int) -> Int {
+pub fn snbt_child_count(tree: &SnbtTree, node: Int) -> Int
+  ensures: node < 0 => result == 0;
+  ensures: node >= tree.child_count.len() => result == 0;
+  ensures: result > 0 => node >= 0 && node < tree.child_count.len();
+{
   if node < 0 || node >= tree.child_count.len() {
     return 0;
   }
@@ -951,7 +974,12 @@ pub fn snbt_child_count(tree: &SnbtTree, node: Int) -> Int {
 }
 
 /// Child node index at position `index` (0-based), or -1 when out of range.
-pub fn snbt_child_at(tree: &SnbtTree, node: Int, index: Int) -> Int {
+pub fn snbt_child_at(tree: &SnbtTree, node: Int, index: Int) -> Int
+  ensures: node < 0 || node >= tree.kinds.len() => result == -1;
+  ensures: index < 0 => result == -1;
+  ensures: index >= snbt_child_count(tree, node) => result == -1;
+  ensures: result != -1 => node >= 0 && node < tree.kinds.len() && index >= 0 && index < snbt_child_count(tree, node);
+{
   if node < 0 || node >= tree.kinds.len() {
     return -1;
   }
@@ -1001,7 +1029,10 @@ fn _key_equals(tree: &SnbtTree, node: Int, key: Str) -> Bool {
 
 /// First compound child of `node` whose key equals `key`, or -1 when absent
 /// (or when `node` is not a compound). Byte-exact key comparison.
-pub fn snbt_find_child(tree: &SnbtTree, node: Int, key: Str) -> Int {
+pub fn snbt_find_child(tree: &SnbtTree, node: Int, key: Str) -> Int
+  ensures: node < 0 || node >= tree.kinds.len() => result == -1;
+  ensures: snbt_child_count(tree, node) == 0 => result == -1;
+{
   if node < 0 || node >= tree.kinds.len() {
     return -1;
   }
@@ -1034,7 +1065,10 @@ fn _require_kind(tree: &SnbtTree, node: Int) -> Result[Int, Str] {
 
 /// Element count of a list node. Err("snbt: unexpected kind N") on another
 /// kind, Err("snbt: node index out of range") on a bad index.
-pub fn snbt_list_count(tree: &SnbtTree, node: Int) -> Result[Int, Str] {
+pub fn snbt_list_count(tree: &SnbtTree, node: Int) -> Result[Int, Str]
+  ensures: snbt_kind(tree, node) != 10 => result is Err;
+  ensures: result is Ok => snbt_kind(tree, node) == 10;
+{
   let kr = _require_kind(tree, node);
   if !kr.is_ok {
     return _err_int(kr.error);
@@ -1048,7 +1082,12 @@ pub fn snbt_list_count(tree: &SnbtTree, node: Int) -> Result[Int, Str] {
 
 /// Element node index of list element `index` (0-based). Err on a non-list
 /// node or an out-of-range index ("snbt: list index out of range").
-pub fn snbt_list_item(tree: &SnbtTree, node: Int, index: Int) -> Result[Int, Str] {
+pub fn snbt_list_item(tree: &SnbtTree, node: Int, index: Int) -> Result[Int, Str]
+  ensures: snbt_kind(tree, node) != 10 => result is Err;
+  ensures: index < 0 => result is Err;
+  ensures: index >= snbt_child_count(tree, node) => result is Err;
+  ensures: result is Ok => snbt_kind(tree, node) == 10 && index >= 0 && index < snbt_child_count(tree, node);
+{
   let kr = _require_kind(tree, node);
   if !kr.is_ok {
     return _err_int(kr.error);
@@ -1065,7 +1104,10 @@ pub fn snbt_list_item(tree: &SnbtTree, node: Int, index: Int) -> Result[Int, Str
 
 /// Element count of a typed array node (`[B;`, `[I;` or `[L;`). Err on
 /// another kind or a bad index.
-pub fn snbt_array_count(tree: &SnbtTree, node: Int) -> Result[Int, Str] {
+pub fn snbt_array_count(tree: &SnbtTree, node: Int) -> Result[Int, Str]
+  ensures: snbt_kind(tree, node) < 11 || snbt_kind(tree, node) > 13 => result is Err;
+  ensures: result is Ok => snbt_kind(tree, node) >= 11 && snbt_kind(tree, node) <= 13;
+{
   let kr = _require_kind(tree, node);
   if !kr.is_ok {
     return _err_int(kr.error);
@@ -1109,7 +1151,10 @@ fn _read_integer(tree: &SnbtTree, node: Int, want: Int) -> Result[Int, Str] {
 
 /// Value of any integer node (BYTE, SHORT, INT or LONG) as an Int. Err on
 /// another kind or a bad index.
-pub fn snbt_get_integer(tree: &SnbtTree, node: Int) -> Result[Int, Str] {
+pub fn snbt_get_integer(tree: &SnbtTree, node: Int) -> Result[Int, Str]
+  ensures: snbt_kind(tree, node) < 3 || snbt_kind(tree, node) > 6 => result is Err;
+  ensures: result is Ok => snbt_kind(tree, node) >= 3 && snbt_kind(tree, node) <= 6;
+{
   let kr = _require_kind(tree, node);
   if !kr.is_ok {
     return _err_int(kr.error);
@@ -1143,7 +1188,10 @@ pub fn snbt_get_long(tree: &SnbtTree, node: Int) -> Result[Int, Str] {
 }
 
 /// Boolean value of a BOOLEAN node. Err on another kind or a bad index.
-pub fn snbt_get_bool(tree: &SnbtTree, node: Int) -> Result[Bool, Str] {
+pub fn snbt_get_bool(tree: &SnbtTree, node: Int) -> Result[Bool, Str]
+  ensures: snbt_kind(tree, node) != 2 => result is Err;
+  ensures: result is Ok => snbt_kind(tree, node) == 2;
+{
   let kr = _require_kind(tree, node);
   if !kr.is_ok {
     return _err_bool(kr.error);
@@ -1460,7 +1508,10 @@ fn _emit_array(tree: &SnbtTree, node: Int, out: &mut Vec[UInt8], depth: Int, kin
 /// with `f`/`d` appended, typed arrays as `[B;...]`/`[I;...]`/`[L;...]`.
 /// Err("snbt: invalid tree") on drifted parallel vectors or an inconsistent
 /// store, Err("snbt: empty tree") when there is no root.
-pub fn snbt_emit(tree: &SnbtTree) -> Result[Str, Str] {
+pub fn snbt_emit(tree: &SnbtTree) -> Result[Str, Str]
+  ensures: tree.root < 0 => result is Err;
+  ensures: result is Ok => tree.root >= 0;
+{
   if !_tree_well_formed(tree) {
     return _err_str("snbt: invalid tree");
   }

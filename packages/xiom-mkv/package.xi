@@ -9,7 +9,7 @@
 
 package xiom_mkv {
   name: "xiom.mkv";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Matroska/WebM (EBML) container reader: VINT decoding, EBML header, Info, Tracks and Cluster spans";
   categories: ["data", "media"];
   keywords: ["mkv", "matroska", "webm", "ebml", "container"];

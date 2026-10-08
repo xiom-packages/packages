@@ -1,5 +1,7 @@
 # xiom.webp SPEC
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 ## Scope
 
 Pure-XIOM parsing and validation of the WebP (RIFF) container over flat
@@ -455,4 +457,46 @@ Semantics:
   (`ICCP` before image data, `ANIM` before `ANMF`, `ALPH` before the
   bitstream); `EXIF`/`XMP ` order is free.
 - No encoder, no re-emission, no conversion to or from other formats.
+
+## Contracts (batch #46 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (25, across the 15 functions below) were
+added to `src/webp.xi` in the batch #46 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 20-check conformance suite
+exercises every contracted entry point with the clauses active and no clause
+trapped, so none was dropped. Two consecutive green `& .\scripts\port.ps1
+-Package xiom.webp -TimeoutSec 90` runs ended `port: PASS (passed=20
+failed=0 program_exit=0 exit=0)` (42.01 s and 42.97 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters and plain struct-parameter fields only; no clause
+indexes a vector, reads a `Vec` element, compares a `Str`, uses a module
+constant, or reads a `&mut` parameter. The one cross-call (`webp_parse`'s
+clauses call `webp_is_webp(data)`) is definitional and non-re-entrant:
+`webp_is_webp` never reaches `webp_parse`. Guards keep the proven families:
+Boolean guard pairs (`webp_is_webp`, `webp_has_vp8x`), exact formulas
+(`result == img.kind`, the four ANIM background bytes, `webp_chunk_count`,
+`webp_frame_count`), sentinel/guard pairs (`result == -1`,
+`result.len() == 0`, `result is Err` / `result is Ok`).
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `webp_parse` | 2 | not a RIFF/WEBP header => `Err`; `Ok` => RIFF/WEBP header valid | no | yes |
+| `webp_is_webp` | 2 | fewer than 12 bytes => false; true => at least 12 bytes | no | yes |
+| `webp_kind` | 1 | `result == img.kind` | no | yes |
+| `webp_has_vp8x` | 2 | true iff `img.has_vp8x != 0` | no | yes |
+| `webp_flag_icc` | 1 | `result == img.flag_icc` | no | yes |
+| `webp_anim_background_blue` | 1 | `result == img.anim_background % 256` | no | yes |
+| `webp_anim_background_green` | 1 | `result == (img.anim_background / 256) % 256` | no | yes |
+| `webp_anim_background_red` | 1 | `result == (img.anim_background / 65536) % 256` | no | yes |
+| `webp_anim_background_alpha` | 1 | `result == (img.anim_background / 16777216) % 256` | no | yes |
+| `webp_chunk_count` | 1 | `result == img.chunk_fourcc.len()` | no | yes |
+| `webp_chunk_fourcc` | 2 | out-of-range index => `result.len() == 0` | no | yes |
+| `webp_chunk_offset` | 3 | out-of-range index => `-1`; `!= -1` => in range | no | yes |
+| `webp_frame_count` | 1 | `result == img.frame_x.len()` | no | yes |
+| `webp_frame_x` | 3 | out-of-range index => `-1`; `!= -1` => in range | no | yes |
+| `webp_frame_format` | 3 | out-of-range index => `-1`; `!= -1` => in range | no | yes |
 

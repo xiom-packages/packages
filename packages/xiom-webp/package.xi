@@ -9,7 +9,7 @@
 
 package xiom_webp {
   name: "xiom.webp";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "WebP (RIFF) container parser: header, chunk stream, padding, VP8/VP8L/VP8X/ALPH/ANIM/ANMF/ICCP/EXIF/XMP validation";
   categories: ["graphics"];
   keywords: ["webp", "riff", "image", "container", "parser"];
