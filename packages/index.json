@@ -1,10 +1,10 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T13:43:57Z",
+    "updated":  "2026-10-08T14:03:17Z",
     "packages":  [
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.acpi",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "ACPI table-layer codec: RSDP, SDT headers and RSDT/XSDT table chains",
@@ -14,7 +14,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-acpi/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-acpi/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "acpi.xi",
                                               "package.xi"
@@ -2380,7 +2380,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.fits",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "FITS header codec: 80-character cards, 2880-byte blocks, validated values",
@@ -2390,7 +2390,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fits/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-fits/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "fits.xi",
                                               "package.xi"
@@ -3435,7 +3435,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.iso8583",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "ISO 8583 ASCII message codec for a documented field subset",
@@ -3445,7 +3445,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-iso8583/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-iso8583/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "iso8583.xi",
                                               "package.xi"
@@ -3868,7 +3868,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ldif",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "LDIF (RFC 2849) content-entry parsing and canonical emitting",
@@ -3878,7 +3878,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ldif/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ldif/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ldif.xi",
                                               "package.xi"
@@ -7639,7 +7639,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.syslog",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "RFC 5424 syslog codec: PRI, header fields, structured data and MSG round-trip",
@@ -7649,7 +7649,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-syslog/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-syslog/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "syslog.xi",
                                               "package.xi"
@@ -8458,7 +8458,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.vcf",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "RFC 6350-subset vCard text codec: content lines, folding, escaping, cards and streams",
@@ -8468,7 +8468,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vcf/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vcf/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "vcf.xi",
                                               "package.xi"
