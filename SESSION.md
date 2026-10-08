@@ -14,6 +14,35 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-08 09:55Z (batch #39 COMPLETE + PUBLISHED `eco-v0.1.88`; supersedes the 09:30Z block below):**
+- **Batch #39 DONE + PUBLISHED (`eco-v0.1.88`, run `37759634793` SUCCESS; all six live):**
+  `resolv` 0.1.2 (43 clauses; 25/25; `0ddfaa1d`/`e36516e4`), `ical` 0.1.3 (46; 22/22;
+  `eefc7015`/`f7fd16c3`), `efi` 0.1.2 (59; 22/22; `66facf4d`/`1ad2a18e`), `dns` 0.1.3
+  (39; 24/24; `528a69aa`/`025210f6`), `cpio` 0.1.3 (38; 20/20; `836fcdd0`/`b961521a`),
+  `ply` 0.1.2 (49; 25/25; `a34ba7cf`/`792ae004`); all x2 green on v0.64.0 (274 clauses
+  total); wrap `3fb0c9e1`. **~61 zero-clause stable carriers remain** (next: `syslog`
+  ~1033, `acpi`/`ldif` ~1040, rescan at batch #40).
+- **Integration notes (batch #39):** efi's porter corrected one plan literal
+  (`FREEFORM_SUBTYPE_GUID` = 21 chars, not 20; spot-checked) -- keep verifying refined
+  literals against the source; dns's README carried a pre-existing mixed-bracket typo
+  (`Result[Vec<UInt8>, Str]`) -- fixed in the feat commit, whole-package scan now clean;
+  ply's `xiom-verify` run hit the known v0.64.0 emitter bug (9 errors, unknown private
+  constants) -- all 49 clauses correctly marked runtime-checked.
+- **stdlib lane active:** namespace checks now see 1724 stdlib namespaces (was 1720);
+  all batch #39 packages still OK, 0 conflicts.
+- **Bindings lane:** relay transport pinned (`ceeea349`: push the `bindings` branch +
+  relay block at the top of `BINDINGS-SESSION.md`; owner forwards the one-liner).
+  `origin/bindings` still absent as of 09:35Z -- no relay yet; `xiom.sqlite` remains the
+  first allowlist/scope ask at merge.
+- **Compiler/grpc status unchanged:** main unpushed with m202/m206/m209/m210/m211;
+  **v0.64.1 NOT released** (re-checked 09:52Z, latest v0.64.0); grpc staged (`95442d71`);
+  drop-rules after a green repin re-test; PULSE bump addendum probes on the next-archive
+  re-test list.
+- **Credential:** `Lefteris-Notas` active (all writes this session); restore
+  `Lefteris-Ngonart` when another lane needs it.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-08 09:30Z (batch #38 COMPLETE + PUBLISHED `eco-v0.1.87`; PULSE C-PULSE-09/10/11 triaged; bindings marker decided; supersedes the 08:10Z block below):**
 - **Batch #38 DONE + PUBLISHED (`eco-v0.1.87`, run `37756237071` SUCCESS; all six live):**
   `tzif` 0.1.3 (45 clauses; 17/17; `9b1b81fd`/`19f33932`), `tap` 0.1.2 (32; 24/24;
@@ -1629,7 +1658,7 @@ running). Check `git log -1 --format=%h %s` before starting.
    category harmonization = owner decision; (d) keep the port watchdog
    discipline.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-08 09:30Z)
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-08 09:55Z)
 
 ```
 You are the packages session for xiom-packages/packages (native lane; local
@@ -1639,12 +1668,13 @@ Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
 NO XIOM_RUNTIME_DIR needed. Validate 519/0; guard 504/464/40/0 (re-check at start).
-Batch #38 is DONE + PUBLISHED (`eco-v0.1.87`, run 37756237071): tzif 0.1.3, tap 0.1.2,
-aiff 0.1.3, irc 0.1.3, elf 0.1.2, adc 0.1.2 -- all live-verified. ~67 zero-clause stable
+Batch #39 is DONE + PUBLISHED (`eco-v0.1.88`, run 37759634793): resolv 0.1.2, ical 0.1.3,
+efi 0.1.2, dns 0.1.3, cpio 0.1.3, ply 0.1.2 -- all live-verified. ~61 zero-clause stable
 carriers remain. PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-10 is
 Linux-target-only (Windows probe green: packages\xiom-kv\tests\probe_kv_get_str.xi).
-Bindings marker = `keywords: ["binding"]` (`6fa4f9a6`); sqlite/sdl3/opengl namespace-clean;
-`xiom.sqlite` not yet allowlisted. `option` stays excluded.
+Bindings marker = `keywords: ["binding"]` (`6fa4f9a6`); relay transport pinned
+(`ceeea349`); sqlite/sdl3/opengl namespace-clean; `xiom.sqlite` not yet allowlisted.
+`option` stays excluded.
 
 CREDENTIAL NOTE: `gh auth status` may show `Lefteris-Ngonart` active, which has only PULL
 on this repo (403 on push). Switch to `Lefteris-Notas` for pushes/gate approvals
@@ -1656,14 +1686,14 @@ Start: git fetch; git status -sb; git log -1; then
   & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Batch #39 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
+1. Batch #40 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
    -Detailed` for the name list; size them by total non-test .xi lines per package), skip
-   `option`; the next smallest after adc is `resolv` (~1003 lines; verify with the sizing
+   `option`; the next smallest after ply is `syslog` (~1033 lines; verify with the sizing
    scan, then the next five). Read-only explore pre-plan (one explore task; IF its final
    message comes back EMPTY, resume it with `variant: low` + a "plan only, no preamble"
    prompt -- recovered first try on batch #38). Six background `task` porters with the
-   brief template `%TEMP%\kilo\batch38-porter-brief.md` retargeted (batch #39, plan
-   `%TEMP%\kilo\batch39-clause-plan.md`, `## Contracts (batch #39 hardening pass, 2026-10-XX)`).
+   brief template `%TEMP%\kilo\batch39-porter-brief.md` retargeted (batch #40, plan
+   `%TEMP%\kilo\batch40-clause-plan.md`, `## Contracts (batch #40 hardening pass, 2026-10-XX)`).
    Coordinator integrates as reports land: patch bump per CURRENT version, port x2
    post-bump, byte-level bracket scan, feat commit exact files, record with the REAL sha
    and `-RunBy task:ses_...`; wrap + publish the next eco tag (generate_index/report/
