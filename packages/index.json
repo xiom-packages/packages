@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T01:11:08Z",
+    "updated":  "2026-10-08T11:10:08Z",
     "packages":  [
                      {
                          "version":  "0.1.1",
@@ -1990,7 +1990,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.eeprom",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Serial EEPROM device protocol codecs: 24Cxx I2C and 93Cxx Microwire framing",
@@ -2000,7 +2000,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-eeprom/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-eeprom/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "eeprom.xi",
                                               "package.xi"
@@ -2567,7 +2567,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ftp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM FTP control-protocol codec (RFC 959): command parsing/emission and reply parsing/emission",
@@ -2577,7 +2577,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ftp/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ftp/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ftp.xi",
                                               "package.xi"
@@ -3556,7 +3556,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.2.1",
                          "name":  "xiom.jwt",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "JWT structural decoding and HS256 sign/verify: headers, claims, timestamps, constant-time MAC",
@@ -3566,7 +3566,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jwt/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-jwt/v0.2.1/package.tar.gz",
                          "source_files":  [
                                               "jwt.xi",
                                               "package.xi"
@@ -6691,7 +6691,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.rpm",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "RPM package lead and header parser: tags, types and metadata lookups",
@@ -6701,7 +6701,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rpm/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rpm/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "rpm.xi",
                                               "package.xi"
@@ -7293,7 +7293,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.spf",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "SPF record parser (RFC 7208 syntax subset) with flat term storage and canonical emitter",
@@ -7303,14 +7303,14 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-spf/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-spf/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "spf.xi",
                                               "package.xi"
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.spi",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "SPI transfer codec: modes, prescaler table, bit order, word sizes and a chip-select event stream",
@@ -7320,7 +7320,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-spi/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-spi/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "spi.xi",
                                               "package.xi"
