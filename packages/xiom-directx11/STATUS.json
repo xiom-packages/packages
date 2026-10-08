@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  5,
                   "failed":  0,
-                  "run_by":  "task:bindings-dx11",
-                  "commit":  "c7db19b7",
-                  "checked":  "2026-10-08T17:58:47Z"
+                  "run_by":  "native-session",
+                  "commit":  "cce33ecb",
+                  "checked":  "2026-10-08T18:08:35Z"
               },
     "publish":  false,
-    "excluded_reason":  null
+    "excluded_reason":  "publish pending: bindings batches 9-10 (eco-v0.1.102)"
 }
