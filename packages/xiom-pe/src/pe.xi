@@ -387,7 +387,11 @@ fn _ok_bytes(v: Vec[UInt8]) -> Result[Vec[UInt8], Str] { return Ok(v); }
 ///
 /// Err messages are deterministic; see SPEC.md for the catalog.
 /// Complexity: O(data.len()).
-pub fn pe_parse(data: &Vec[UInt8]) -> Result[PeImage, Str] {
+pub fn pe_parse(data: &Vec[UInt8]) -> Result[PeImage, Str]
+  ensures: data.len() < 64 => result is Err;
+  ensures: data.len() < 224 => result is Err;
+  ensures: result is Ok => data.len() >= 224;
+{
   let total = data.len();
   if (total < PE_DOS_HEADER_SIZE) {
     return _err_image("pe: truncated dos header");
@@ -561,7 +565,10 @@ pub fn pe_parse(data: &Vec[UInt8]) -> Result[PeImage, Str] {
 }
 
 /// True when pe_parse succeeds. Complexity: O(data.len()).
-pub fn pe_is_valid(data: &Vec[UInt8]) -> Bool {
+pub fn pe_is_valid(data: &Vec[UInt8]) -> Bool
+  ensures: pe_parse(data) is Err => result == false;
+  ensures: pe_parse(data) is Ok => result == true;
+{
   let r = pe_parse(data);
   return r.is_ok;
 }
@@ -570,7 +577,10 @@ pub fn pe_is_valid(data: &Vec[UInt8]) -> Bool {
 /// the buffer the image was parsed from. Err when pe_parse fails on `data`;
 /// a stubless image (e_lfanew == 64) yields an empty Ok.
 /// Complexity: O(stub size).
-pub fn pe_stub(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn pe_stub(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: pe_parse(data) is Err => result is Err;
+  ensures: result is Ok => pe_parse(data) is Ok;
+{
   let pr = pe_parse(data);
   if (!pr.is_ok) { return _err_bytes(pr.error); }
   let img: PeImage = pr.value;
@@ -590,13 +600,21 @@ pub fn pe_stub(data: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 // --------------------------------------------------
 
 /// COFF IMAGE_FILE_MACHINE value.
-pub fn pe_machine(img: &PeImage) -> Int {
+pub fn pe_machine(img: &PeImage) -> Int
+  ensures: result == img.machine;
+{
   return img.machine;
 }
 
 /// Human-readable name for the documented machines: "i386", "arm", "ia64",
 /// "amd64", "arm64"; "unknown" otherwise. Complexity: O(1).
-pub fn pe_machine_name(machine: Int) -> Str {
+pub fn pe_machine_name(machine: Int) -> Str
+  ensures: machine == 332 => result.len() == 4;
+  ensures: machine == 448 => result.len() == 3;
+  ensures: machine == 512 => result.len() == 4;
+  ensures: machine == 34404 => result.len() == 5;
+  ensures: machine == 43620 => result.len() == 5;
+{
   if (machine == PE_MACHINE_I386) { return "i386"; }
   if (machine == PE_MACHINE_ARM) { return "arm"; }
   if (machine == PE_MACHINE_IA64) { return "ia64"; }
@@ -606,14 +624,18 @@ pub fn pe_machine_name(machine: Int) -> Str {
 }
 
 /// Number of sections (the length of the parallel section Vecs).
-pub fn pe_section_count(img: &PeImage) -> Int {
+pub fn pe_section_count(img: &PeImage) -> Int
+  ensures: result == img.section_names.len();
+{
   return img.section_names.len();
 }
 
 /// Name of section `i` (1..8 printable ASCII characters), or "" when i is
 /// negative or out of range. The result is read from a Vec[Str] field:
 /// compare it with xiom.string.compare.str_compare rather than `==`.
-pub fn pe_section_name(img: &PeImage, i: Int) -> Str {
+pub fn pe_section_name(img: &PeImage, i: Int) -> Str
+  ensures: i < 0 || i >= img.section_names.len() => result.len() == 0;
+{
   if (i < 0 || i >= img.section_names.len()) {
     return "";
   }
@@ -622,7 +644,9 @@ pub fn pe_section_name(img: &PeImage, i: Int) -> Str {
 }
 
 /// virtualSize of section `i`; -1 out of range.
-pub fn pe_section_virtual_size(img: &PeImage, i: Int) -> Int {
+pub fn pe_section_virtual_size(img: &PeImage, i: Int) -> Int
+  ensures: i < 0 || i >= img.section_virtual_sizes.len() => result == -1;
+{
   if (i < 0 || i >= img.section_virtual_sizes.len()) {
     return -1;
   }
@@ -687,7 +711,9 @@ pub fn pe_section_characteristics(img: &PeImage, i: Int) -> Int {
 
 /// Index of the first section whose name equals `name` (str_compare, exact
 /// case), or -1 when absent. Complexity: O(sections).
-pub fn pe_find_section(img: &PeImage, name: Str) -> Int {
+pub fn pe_find_section(img: &PeImage, name: Str) -> Int
+  ensures: result >= -1 && result < img.section_names.len();
+{
   var i = 0;
   while (i < img.section_names.len()) {
     let s: Str = img.section_names[i];
@@ -700,7 +726,9 @@ pub fn pe_find_section(img: &PeImage, name: Str) -> Int {
 }
 
 /// AddressOfEntryPoint RVA.
-pub fn pe_entry_point(img: &PeImage) -> Int {
+pub fn pe_entry_point(img: &PeImage) -> Int
+  ensures: result == img.address_of_entry_point;
+{
   return img.address_of_entry_point;
 }
 
@@ -715,7 +743,9 @@ pub fn pe_subsystem(img: &PeImage) -> Int {
 }
 
 /// NumberOfRvaAndSizes: the declared data directory count (0..16).
-pub fn pe_directory_count(img: &PeImage) -> Int {
+pub fn pe_directory_count(img: &PeImage) -> Int
+  ensures: result == img.number_of_rva_and_sizes;
+{
   return img.number_of_rva_and_sizes;
 }
 
@@ -741,12 +771,16 @@ pub fn pe_pe_offset(img: &PeImage) -> Int {
 }
 
 /// Length of the DOS stub span (e_lfanew - 64; 0 when there is no stub).
-pub fn pe_stub_size(img: &PeImage) -> Int {
+pub fn pe_stub_size(img: &PeImage) -> Int
+  ensures: result == img.stub_size;
+{
   return img.stub_size;
 }
 
 /// Absolute offset of the optional header (e_lfanew + 24).
-pub fn pe_optional_offset(img: &PeImage) -> Int {
+pub fn pe_optional_offset(img: &PeImage) -> Int
+  ensures: result == img.pe_offset + 24;
+{
   return img.pe_offset + 4 + PE_COFF_HEADER_SIZE;
 }
 
@@ -806,7 +840,20 @@ pub fn pe_time_date_stamp(img: &PeImage) -> Int {
 /// field is range-checked to its on-disk width; the emitted length is
 /// `e_lfanew + 24 + sizeOfOptionalHeader + 40 * number_of_sections`.
 /// Error messages are deterministic; see SPEC.md. Complexity: O(header).
-pub fn pe_build_headers(img: &PeImage, stub: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn pe_build_headers(img: &PeImage, stub: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: img.pe_offset < 64 || img.pe_offset > 4294967295 => result is Err;
+  ensures: img.pe_offset >= 64 && img.stub_size != img.pe_offset - 64 => result is Err;
+  ensures: stub.len() != img.stub_size => result is Err;
+  ensures: img.number_of_sections < 1 || img.number_of_sections > 96 => result is Err;
+  ensures: img.number_of_sections != img.section_names.len() => result is Err;
+  ensures: img.number_of_rva_and_sizes < 0 || img.number_of_rva_and_sizes > 16 => result is Err;
+  ensures: img.number_of_rva_and_sizes != img.dir_virtual_addresses.len() => result is Err;
+  ensures: img.dir_sizes.len() != img.dir_virtual_addresses.len() => result is Err;
+  ensures: img.file_alignment < 512 || img.file_alignment > 65536 => result is Err;
+  ensures: img.optional_magic != 267 && img.optional_magic != 523 => result is Err;
+  ensures: result is Ok => img.number_of_sections == img.section_names.len();
+  ensures: result is Ok => img.dir_sizes.len() == img.dir_virtual_addresses.len();
+{
   if (!_u32_ok(img.pe_offset)) { return _err_bytes("pe: invalid e_lfanew"); }
   if (img.pe_offset < PE_DOS_HEADER_SIZE) { return _err_bytes("pe: invalid e_lfanew"); }
   if (img.stub_size != img.pe_offset - PE_DOS_HEADER_SIZE) {
@@ -1051,7 +1098,11 @@ pub fn pe_build_headers(img: &PeImage, stub: &Vec[UInt8]) -> Result[Vec[UInt8], 
 /// written in table order (the last section wins). The assembled buffer is
 /// re-parsed with pe_parse and its error is forwarded unchanged, so a
 /// successful build always parses back. Complexity: O(file size).
-pub fn pe_build(img: &PeImage, stub: &Vec[UInt8], raw: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn pe_build(img: &PeImage, stub: &Vec[UInt8], raw: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: img.section_names.len() == 0 => result is Err;
+  ensures: pe_build_headers(img, stub) is Err => result is Err;
+  ensures: result is Ok => pe_build_headers(img, stub) is Ok;
+{
   let hr = pe_build_headers(img, stub);
   if (!hr.is_ok) { return _err_bytes(hr.error); }
   let headers: Vec[UInt8] = hr.value;

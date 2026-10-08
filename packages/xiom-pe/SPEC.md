@@ -1,5 +1,7 @@
 # xiom.pe SPEC
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 ## Scope
 
 Pure-XIOM structural codec for the header layer of a Windows Portable
@@ -385,3 +387,34 @@ re-parse forwards every `pe_parse` message.
   printable NUL-padded names, nonzero power-of-two alignments and a
   512..65536 `fileAlignment`.
 - The whole buffer is in memory; there is no streaming API.
+
+## Contracts (batch #42 hardening pass, 2026-10-08)
+
+Ensures-only `ensures:` clauses were added to the public entry points and to
+the two builders (36 clause lines). All of them are runtime-checked; none is
+claimed Z3-proven. On v0.64.0 `xiom-verify` can report a vacuous UNSAT
+`[OK] VERIFIED`, so a clause is listed as Z3-provable only when a real proof
+obligation is demonstrated.
+
+| Function | Runtime-checked `ensures` (summary) | Status |
+|---|---|---|
+| `pe_parse` | `data.len() < 64` or `< 224` implies Err; Ok implies `data.len() >= 224` | runtime-checked |
+| `pe_is_valid` | parse Err implies `false`; parse Ok implies `true` | runtime-checked |
+| `pe_stub` | parse Err implies Err; Ok implies the parse was Ok | runtime-checked |
+| `pe_machine` | equals `img.machine` | runtime-checked |
+| `pe_machine_name` | the five documented machine values imply name lengths 4/3/4/5/5 | runtime-checked |
+| `pe_section_count` | equals `img.section_names.len()` | runtime-checked |
+| `pe_section_name` | out-of-range `i` implies `""` | runtime-checked |
+| `pe_section_virtual_size` | out-of-range `i` implies -1 | runtime-checked |
+| `pe_find_section` | `-1 <= result < img.section_names.len()` | runtime-checked |
+| `pe_entry_point` | equals `img.address_of_entry_point` | runtime-checked |
+| `pe_directory_count` | equals `img.number_of_rva_and_sizes` | runtime-checked |
+| `pe_stub_size` | equals `img.stub_size` | runtime-checked |
+| `pe_optional_offset` | equals `img.pe_offset + 24` | runtime-checked |
+| `pe_build_headers` | ten range/count mismatch conditions imply Err; Ok implies section-count and directory-Vec length agreement | runtime-checked |
+| `pe_build` | empty `section_names` implies Err; `pe_build_headers` Err implies Err; Ok implies `pe_build_headers` Ok | runtime-checked |
+
+| Verification class | Clause lines |
+|---|---|
+| Runtime-checked (this pass) | 36 |
+| Z3-provable | 0 (no obligation demonstrated) |
