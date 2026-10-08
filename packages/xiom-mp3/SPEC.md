@@ -1,8 +1,6 @@
 # xiom.mp3 -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.mp3`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/mp3.xi` (`module xiom.mp3`).
 Depends on `xiom.std` (`xiom.string.builder`, `xiom.string.compare`,
 `xiom.convert`; the tests add `xiom.test`, `xiom.io`, `xiom.string`,
@@ -461,3 +459,53 @@ Last verified: compiler 0.61.3,
   `string.compare.str_compare`.
 - Free functions only; no `extern "C"` blocks (no FFI), no methods, no
   lambdas, no `Vec[Float64]`.
+
+## Contracts (batch #44 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (62, across the 24 functions below) were
+added to `src/mp3.xi` in the batch #44 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 21-test conformance suite
+exercises all 24 contracted entry points and no clause trapped, so none was
+dropped. Two consecutive `& .\scripts\port.ps1 -Package xiom.mp3 -TimeoutSec
+60` runs ended `port: PASS (passed=21 failed=0 program_exit=0 exit=0)` with
+the clauses active (8.63 s and 11.87 s). None is claimed Z3-provable:
+`xiom-verify` was not run for this module, and per the batch #37 finding a
+bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable column is
+"no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, compares a `Str` (lengths only), uses a module constant, or reads a
+Result payload. The plan carried no `(pre: ...)` guards. The only cross-call
+is `mp3_id3v2_find` in the `mp3_id3v2_text` clause, a definitional lookup
+that cannot re-enter the function carrying the clause. `mp3_frame_length`'s
+positive-result band (valid version, layer `1..3`) is definitional on
+`mp3_samples_per_frame`, whose invalid-version/invalid-layer results are 0.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `mp3_version_name` | 2 | invalid version => `""`; non-empty => 1/2/25 | no | yes |
+| `mp3_layer_name` | 2 | invalid layer => `""`; non-empty => 1/2/3 | no | yes |
+| `mp3_channel_mode_name` | 2 | out-of-range mode => `""`; non-empty => `0..3` | no | yes |
+| `mp3_emphasis_name` | 2 | out-of-range emphasis => `""`; non-empty => `0..3` | no | yes |
+| `mp3_sample_rate` | 4 | bad index/version => `0`; non-zero => valid pair; non-zero scans `8000..48000` | no | yes |
+| `mp3_bitrate_kbps` | 5 | bad index => `-1`; index 15 => `-1`; index 0 => `0`; MPEG-1 L1 => `index * 32`; non-sentinel scan `8..448` | no | yes |
+| `mp3_samples_per_frame` | 6 | invalid version => `0`; L1/L2/L3 per version => 384/1152/576; non-zero in {384, 576, 1152} | no | yes |
+| `mp3_frame_length` | 3 | non-positive bitrate/rate => `0`; positive => valid version and layer `1..3` | no | yes |
+| `mp3_parse_frame_header` | 3 | bad offset => `Err`; `Ok` => offset inside `0..data.len()-4` | no | yes |
+| `mp3_frame_duration_ms` | 2 | rate <= 0 => `0`; rate > 0 => exact formula | no | yes |
+| `mp3_find_frame` | 3 | bad start => `Err`; fewer than 4 bytes left => `Err` | no | yes |
+| `mp3_scan_from` | 2 | empty => `Err`; `Ok` => `data.len() >= 4` | no | yes |
+| `mp3_id3v2_header` | 2 | short buffer => `Err`; `Ok` => `data.len() >= 10` | no | yes |
+| `mp3_id3v2_frames` | 2 | short buffer => `Err`; `Ok` => `data.len() >= 10` | no | yes |
+| `mp3_id3v2_frame_count` | 1 | `result == frames.ids.len()` | no | yes |
+| `mp3_id3v2_frame_id` | 3 | out-of-range `i` => `""`; non-empty => in range | no | yes |
+| `mp3_id3v2_frame_size` | 3 | out-of-range `i` => `-1`; not `-1` => in range | no | yes |
+| `mp3_id3v2_frame_text` | 3 | out-of-range `i` => `""`; non-empty => in range | no | yes |
+| `mp3_id3v2_find` | 3 | `result >= -1`; empty ids => `-1`; not `-1` => in range | no | yes |
+| `mp3_id3v2_text` | 1 | id absent => `""` | no | yes |
+| `mp3_scan` | 1 | empty input => `Err` | no | yes |
+| `mp3_has_id3v1` | 2 | below 128 bytes => false; true => `data.len() >= 128` | no | yes |
+| `mp3_id3v1` | 3 | empty or below 128 bytes => `Err`; `Ok` => `data.len() >= 128` | no | yes |
+| `mp3_id3v1_genre_name` | 2 | out-of-range genre => `""`; non-empty => `0..79` | no | yes |

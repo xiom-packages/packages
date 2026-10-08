@@ -336,7 +336,10 @@ fn _frame_size(data: &Vec[UInt8], pos: Int, ver: Int) -> Int {
 
 /// Name of a version code: 1 -> "MPEG-1", 2 -> "MPEG-2", 25 -> "MPEG-2.5",
 /// anything else -> "". Complexity: O(1).
-pub fn mp3_version_name(version: Int) -> Str {
+pub fn mp3_version_name(version: Int) -> Str
+  ensures: version != 1 && version != 2 && version != 25 => result.len() == 0;
+  ensures: result.len() > 0 => version == 1 || version == 2 || version == 25;
+{
   if version == 1 { return "MPEG-1"; }
   if version == 2 { return "MPEG-2"; }
   if version == 25 { return "MPEG-2.5"; }
@@ -345,7 +348,10 @@ pub fn mp3_version_name(version: Int) -> Str {
 
 /// Name of a layer code: 1 -> "Layer I", 2 -> "Layer II", 3 -> "Layer III",
 /// anything else -> "". Complexity: O(1).
-pub fn mp3_layer_name(layer: Int) -> Str {
+pub fn mp3_layer_name(layer: Int) -> Str
+  ensures: layer != 1 && layer != 2 && layer != 3 => result.len() == 0;
+  ensures: result.len() > 0 => layer == 1 || layer == 2 || layer == 3;
+{
   if layer == 1 { return "Layer I"; }
   if layer == 2 { return "Layer II"; }
   if layer == 3 { return "Layer III"; }
@@ -354,7 +360,10 @@ pub fn mp3_layer_name(layer: Int) -> Str {
 
 /// Name of a channel mode: 0 -> "stereo", 1 -> "joint stereo", 2 -> "dual
 /// channel", 3 -> "mono", anything else -> "". Complexity: O(1).
-pub fn mp3_channel_mode_name(mode: Int) -> Str {
+pub fn mp3_channel_mode_name(mode: Int) -> Str
+  ensures: mode < 0 || mode > 3 => result.len() == 0;
+  ensures: result.len() > 0 => mode >= 0 && mode <= 3;
+{
   if mode == 0 { return "stereo"; }
   if mode == 1 { return "joint stereo"; }
   if mode == 2 { return "dual channel"; }
@@ -364,7 +373,10 @@ pub fn mp3_channel_mode_name(mode: Int) -> Str {
 
 /// Name of an emphasis code: 0 -> "none", 1 -> "50/15 ms", 2 -> "reserved",
 /// 3 -> "CCITT J.17", anything else -> "". Complexity: O(1).
-pub fn mp3_emphasis_name(emphasis: Int) -> Str {
+pub fn mp3_emphasis_name(emphasis: Int) -> Str
+  ensures: emphasis < 0 || emphasis > 3 => result.len() == 0;
+  ensures: result.len() > 0 => emphasis >= 0 && emphasis <= 3;
+{
   if emphasis == 0 { return "none"; }
   if emphasis == 1 { return "50/15 ms"; }
   if emphasis == 2 { return "reserved"; }
@@ -377,7 +389,12 @@ pub fn mp3_emphasis_name(emphasis: Int) -> Str {
 /// {22050, 24000, 16000}, MPEG-2.5 {11025, 12000, 8000}. Index 3 is
 /// reserved and never reaches this table from a parsed header.
 /// Complexity: O(1).
-pub fn mp3_sample_rate(version: Int, index: Int) -> Int {
+pub fn mp3_sample_rate(version: Int, index: Int) -> Int
+  ensures: index < 0 || index > 2 => result == 0;
+  ensures: version != 1 && version != 2 && version != 25 => result == 0;
+  ensures: result != 0 => (version == 1 || version == 2 || version == 25) && index >= 0 && index <= 2;
+  ensures: result == 0 || (result >= 8000 && result <= 48000);
+{
   if index < 0 || index > 2 {
     return 0;
   }
@@ -408,7 +425,13 @@ pub fn mp3_sample_rate(version: Int, index: Int) -> Int {
 /// MPEG-2/2.5 Layer I {32,48,56,64,80,96,112,128,144,160,176,192,224,256},
 /// MPEG-2/2.5 Layers II/III {8,16,24,32,40,48,56,64,80,96,112,128,144,160}.
 /// Complexity: O(1).
-pub fn mp3_bitrate_kbps(version: Int, layer: Int, index: Int) -> Int {
+pub fn mp3_bitrate_kbps(version: Int, layer: Int, index: Int) -> Int
+  ensures: index < 0 || index > 15 => result == -1;
+  ensures: index == 15 => result == -1;
+  ensures: index == 0 => result == 0;
+  ensures: version == 1 && layer == 1 && index >= 1 && index <= 14 => result == index * 32;
+  ensures: result == -1 || result == 0 || (result >= 8 && result <= 448);
+{
   if index < 0 || index > 15 {
     return -1;
   }
@@ -494,7 +517,14 @@ pub fn mp3_bitrate_kbps(version: Int, layer: Int, index: Int) -> Int {
 /// Samples per frame for (`version`, `layer`), or 0 for an invalid pair:
 /// Layer I -> 384, Layer II -> 1152, Layer III MPEG-1 -> 1152, Layer III
 /// MPEG-2/2.5 -> 576. Complexity: O(1).
-pub fn mp3_samples_per_frame(version: Int, layer: Int) -> Int {
+pub fn mp3_samples_per_frame(version: Int, layer: Int) -> Int
+  ensures: version != 1 && version != 2 && version != 25 => result == 0;
+  ensures: (version == 1 || version == 2 || version == 25) && layer == 1 => result == 384;
+  ensures: (version == 1 || version == 2 || version == 25) && layer == 2 => result == 1152;
+  ensures: version == 1 && layer == 3 => result == 1152;
+  ensures: (version == 2 || version == 25) && layer == 3 => result == 576;
+  ensures: result != 0 => result == 384 || result == 576 || result == 1152;
+{
   if version != 1 && version != 2 && version != 25 {
     return 0;
   }
@@ -520,7 +550,11 @@ pub fn mp3_samples_per_frame(version: Int, layer: Int) -> Int {
 /// Layer III `144 * bitrate / sample_rate + padding`; MPEG-2/2.5 Layer III
 /// `72 * bitrate / sample_rate + padding` (bitrate in bit/s, integer floor
 /// division). Complexity: O(1).
-pub fn mp3_frame_length(version: Int, layer: Int, bitrate_kbps: Int, sample_rate: Int, padding: Bool) -> Int {
+pub fn mp3_frame_length(version: Int, layer: Int, bitrate_kbps: Int, sample_rate: Int, padding: Bool) -> Int
+  ensures: bitrate_kbps <= 0 => result == 0;
+  ensures: sample_rate <= 0 => result == 0;
+  ensures: result > 0 => bitrate_kbps > 0 && sample_rate > 0 && (version == 1 || version == 2 || version == 25) && layer >= 1 && layer <= 3;
+{
   if bitrate_kbps <= 0 {
     return 0;
   }
@@ -566,7 +600,11 @@ pub fn mp3_frame_length(version: Int, layer: Int, bitrate_kbps: Int, sample_rate
 /// mp3_frame_length (always > 0 for an accepted header) and
 /// `samples_per_frame` with mp3_samples_per_frame.
 /// Complexity: O(1).
-pub fn mp3_parse_frame_header(data: &Vec[UInt8], offset: Int) -> Result[Mp3FrameHeader, Str] {
+pub fn mp3_parse_frame_header(data: &Vec[UInt8], offset: Int) -> Result[Mp3FrameHeader, Str]
+  ensures: offset < 0 => result is Err;
+  ensures: offset + 4 > data.len() => result is Err;
+  ensures: result is Ok => offset >= 0 && offset + 4 <= data.len();
+{
   if offset < 0 {
     return _err_header("mp3: offset out of range");
   }
@@ -655,7 +693,10 @@ pub fn mp3_parse_frame_header(data: &Vec[UInt8], offset: Int) -> Result[Mp3Frame
 /// Duration of one frame in whole milliseconds: `samples_per_frame * 1000 /
 /// sample_rate` (floor division); 0 when the sample rate is <= 0 (only
 /// reachable for hand-built headers). Complexity: O(1).
-pub fn mp3_frame_duration_ms(header: &Mp3FrameHeader) -> Int {
+pub fn mp3_frame_duration_ms(header: &Mp3FrameHeader) -> Int
+  ensures: header.sample_rate <= 0 => result == 0;
+  ensures: header.sample_rate > 0 => result == header.samples_per_frame * 1000 / header.sample_rate;
+{
   if header.sample_rate <= 0 {
     return 0;
   }
@@ -679,7 +720,11 @@ pub fn mp3_frame_duration_ms(header: &Mp3FrameHeader) -> Int {
 /// `start > data.len()`; Err("mp3: no frame found") when no candidate is
 /// found (including `start == data.len()`); Err("mp3: free format at N") as
 /// above. Complexity: O(data.len() - start).
-pub fn mp3_find_frame(data: &Vec[UInt8], start: Int) -> Result[Int, Str] {
+pub fn mp3_find_frame(data: &Vec[UInt8], start: Int) -> Result[Int, Str]
+  ensures: start < 0 => result is Err;
+  ensures: start > data.len() => result is Err;
+  ensures: start >= 0 && start <= data.len() && data.len() - start < 4 => result is Err;
+{
   if start < 0 {
     return _err_int("mp3: offset out of range");
   }
@@ -730,7 +775,10 @@ pub fn mp3_find_frame(data: &Vec[UInt8], start: Int) -> Result[Int, Str] {
 /// `duration_ms` is `frame_count * samples_per_frame * 1000 / sample_rate`
 /// (floor division). See Mp3Scan for the result fields.
 /// Complexity: O(scan length).
-pub fn mp3_scan_from(data: &Vec[UInt8], start: Int) -> Result[Mp3Scan, Str] {
+pub fn mp3_scan_from(data: &Vec[UInt8], start: Int) -> Result[Mp3Scan, Str]
+  ensures: data.len() == 0 => result is Err;
+  ensures: result is Ok => data.len() >= 4;
+{
   let fr = mp3_find_frame(data, start);
   if !fr.is_ok {
     return _err_scan(fr.error);
@@ -825,7 +873,10 @@ pub fn mp3_scan_from(data: &Vec[UInt8], start: Int) -> Result[Mp3Scan, Str] {
 /// The returned total size does not include a v2.4 footer (the footer flag
 /// is reported, and per the ID3v2.4 spec the size field excludes it).
 /// Trailing bytes after the tag are ignored. Complexity: O(1).
-pub fn mp3_id3v2_header(data: &Vec[UInt8]) -> Result[Mp3Id3v2Info, Str] {
+pub fn mp3_id3v2_header(data: &Vec[UInt8]) -> Result[Mp3Id3v2Info, Str]
+  ensures: data.len() < 10 => result is Err;
+  ensures: result is Ok => data.len() >= 10;
+{
   if data.len() < 10 {
     return _err_id3v2("mp3: truncated id3v2 header at 0");
   }
@@ -902,7 +953,10 @@ pub fn mp3_id3v2_header(data: &Vec[UInt8]) -> Result[Mp3Id3v2Info, Str] {
 /// starting with 'T') with encoding 0 (latin1) or 3 (UTF-8) also get a text,
 /// truncated at the first NUL. See Mp3Id3v2Frames.
 /// Complexity: O(payload_size).
-pub fn mp3_id3v2_frames(data: &Vec[UInt8]) -> Result[Mp3Id3v2Frames, Str] {
+pub fn mp3_id3v2_frames(data: &Vec[UInt8]) -> Result[Mp3Id3v2Frames, Str]
+  ensures: data.len() < 10 => result is Err;
+  ensures: result is Ok => data.len() >= 10;
+{
   let hr = mp3_id3v2_header(data);
   if !hr.is_ok {
     return _err_frames(hr.error);
@@ -968,13 +1022,19 @@ pub fn mp3_id3v2_frames(data: &Vec[UInt8]) -> Result[Mp3Id3v2Frames, Str] {
 
 /// Number of recorded frames (== ids.len() == sizes.len() == texts.len()).
 /// Complexity: O(1).
-pub fn mp3_id3v2_frame_count(frames: &Mp3Id3v2Frames) -> Int {
+pub fn mp3_id3v2_frame_count(frames: &Mp3Id3v2Frames) -> Int
+  ensures: result == frames.ids.len();
+{
   return frames.ids.len();
 }
 
 /// Frame id at index `i`, or "" when `i` is negative or >=
 /// mp3_id3v2_frame_count(frames). Complexity: O(1).
-pub fn mp3_id3v2_frame_id(frames: &Mp3Id3v2Frames, i: Int) -> Str {
+pub fn mp3_id3v2_frame_id(frames: &Mp3Id3v2Frames, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= frames.ids.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < frames.ids.len();
+{
   if i < 0 {
     return "";
   }
@@ -987,7 +1047,11 @@ pub fn mp3_id3v2_frame_id(frames: &Mp3Id3v2Frames, i: Int) -> Str {
 
 /// Stored payload size of frame `i`, or -1 when `i` is negative or
 /// >= mp3_id3v2_frame_count(frames). Complexity: O(1).
-pub fn mp3_id3v2_frame_size(frames: &Mp3Id3v2Frames, i: Int) -> Int {
+pub fn mp3_id3v2_frame_size(frames: &Mp3Id3v2Frames, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= frames.sizes.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < frames.sizes.len();
+{
   if i < 0 {
     return -1;
   }
@@ -1000,7 +1064,11 @@ pub fn mp3_id3v2_frame_size(frames: &Mp3Id3v2Frames, i: Int) -> Int {
 
 /// Decoded text of frame `i` ("" for non-text frames, unsupported text
 /// encodings and out-of-range `i`). Complexity: O(1).
-pub fn mp3_id3v2_frame_text(frames: &Mp3Id3v2Frames, i: Int) -> Str {
+pub fn mp3_id3v2_frame_text(frames: &Mp3Id3v2Frames, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= frames.texts.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < frames.texts.len();
+{
   if i < 0 {
     return "";
   }
@@ -1014,7 +1082,11 @@ pub fn mp3_id3v2_frame_text(frames: &Mp3Id3v2Frames, i: Int) -> Str {
 /// Index of the first frame whose id equals `id` (byte-wise
 /// string.compare.str_compare), or -1 when there is none.
 /// Complexity: O(frame_count).
-pub fn mp3_id3v2_find(frames: &Mp3Id3v2Frames, id: Str) -> Int {
+pub fn mp3_id3v2_find(frames: &Mp3Id3v2Frames, id: Str) -> Int
+  ensures: result >= -1;
+  ensures: frames.ids.len() == 0 => result == -1;
+  ensures: result != -1 => result >= 0 && result < frames.ids.len();
+{
   var i = 0;
   while i < frames.ids.len() {
     let e: Str = frames.ids[i];
@@ -1029,7 +1101,9 @@ pub fn mp3_id3v2_find(frames: &Mp3Id3v2Frames, id: Str) -> Int {
 /// First text frame whose id equals `id`, or "" when there is none (also ""
 /// when the frame exists but carries no decoded text).
 /// Complexity: O(frame_count).
-pub fn mp3_id3v2_text(frames: &Mp3Id3v2Frames, id: Str) -> Str {
+pub fn mp3_id3v2_text(frames: &Mp3Id3v2Frames, id: Str) -> Str
+  ensures: mp3_id3v2_find(frames, id) < 0 => result.len() == 0;
+{
   let i = mp3_id3v2_find(frames, id);
   if i < 0 {
     return "";
@@ -1108,7 +1182,9 @@ pub fn mp3_id3v2_genre(data: &Vec[UInt8]) -> Result[Str, Str] {
 /// error. Otherwise the scan starts at 0. The scan then behaves exactly
 /// like mp3_scan_from, including the clean stop at an ID3v1 tail tag.
 /// Complexity: O(data.len()).
-pub fn mp3_scan(data: &Vec[UInt8]) -> Result[Mp3Scan, Str] {
+pub fn mp3_scan(data: &Vec[UInt8]) -> Result[Mp3Scan, Str]
+  ensures: data.len() == 0 => result is Err;
+{
   var start = 0;
   if data.len() >= 10 && _has_id3v2_magic(data) {
     let hr = mp3_id3v2_header(data);
@@ -1127,7 +1203,10 @@ pub fn mp3_scan(data: &Vec[UInt8]) -> Result[Mp3Scan, Str] {
 /// True when the buffer ends with a 128-byte ID3v1 tag ("TAG" at
 /// `data.len() - 128`). False for buffers shorter than 128 bytes.
 /// Complexity: O(1).
-pub fn mp3_has_id3v1(data: &Vec[UInt8]) -> Bool {
+pub fn mp3_has_id3v1(data: &Vec[UInt8]) -> Bool
+  ensures: data.len() < 128 => !result;
+  ensures: result => data.len() >= 128;
+{
   let n = data.len();
   if n < 128 {
     return false;
@@ -1146,7 +1225,11 @@ pub fn mp3_has_id3v1(data: &Vec[UInt8]) -> Bool {
 /// ID3v1.1 layout is detected by a zero byte at comment offset 28 followed
 /// by a nonzero track byte; otherwise the whole 30-byte comment is used and
 /// `has_track` is false. Complexity: O(1).
-pub fn mp3_id3v1(data: &Vec[UInt8]) -> Result[Mp3Id3v1, Str] {
+pub fn mp3_id3v1(data: &Vec[UInt8]) -> Result[Mp3Id3v1, Str]
+  ensures: data.len() == 0 => result is Err;
+  ensures: data.len() < 128 => result is Err;
+  ensures: result is Ok => data.len() >= 128;
+{
   let n = data.len();
   if n == 0 {
     return _err_v1("mp3: empty input");
@@ -1205,7 +1288,10 @@ pub fn mp3_id3v1(data: &Vec[UInt8]) -> Result[Mp3Id3v1, Str] {
 /// 70 Trailer, 71 Lo-Fi, 72 Tribal, 73 Acid Punk, 74 Acid Jazz, 75 Polka,
 /// 76 Retro, 77 Musical, 78 Rock & Roll, 79 Hard Rock.
 /// Complexity: O(1).
-pub fn mp3_id3v1_genre_name(genre: Int) -> Str {
+pub fn mp3_id3v1_genre_name(genre: Int) -> Str
+  ensures: genre < 0 || genre > 79 => result.len() == 0;
+  ensures: result.len() > 0 => genre >= 0 && genre <= 79;
+{
   if genre == 0 { return "Blues"; }
   if genre == 1 { return "Classic Rock"; }
   if genre == 2 { return "Country"; }
