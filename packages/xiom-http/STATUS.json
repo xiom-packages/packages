@@ -1,6 +1,6 @@
 {
     "package":  "xiom.http",
-    "stage":  "incubating",
+    "stage":  "stable",
     "compiler":  "v0.64.1",
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  40,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.64.0",
-                  "commit":  "bb212ffd",
-                  "checked":  "2026-10-05T19:13:33Z"
+                  "run_by":  "task:ses_ee35ef2edffee8dNcqg9Wty3Wc",
+                  "commit":  "548e31b9",
+                  "checked":  "2026-10-08T18:14:36Z"
               },
     "publish":  false,
     "excluded_reason":  "publish pending: eco-v0.1.38"
