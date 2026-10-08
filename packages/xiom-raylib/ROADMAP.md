@@ -1,38 +1,36 @@
-# xiom.raylib -- ROADMAP
+# xiom.raylib -- Roadmap
 
-## v0.1.0 (Current -- SPEC Implementation)
-- [x] `raylib.xi`: Module `xiom.raylib` with 8 newtypes, 26 extern "C" declarations
-- [x] 40+ color/key/mouse/camera/FPS constants
-- [x] 5 pure color helper functions (`color_rgba`, `color_alpha`, `color_red`, `color_green`, `color_blue`)
-- [x] 28 safe wrappers with `requires`/`ensures` contracts
-- [x] 37 conformance tests in `tests/test_conformance.xi`
+**Version**: v0.2.0 | **Compiler**: xiom v0.64.1 | **Last updated**: 2026-10-08
 
-## v0.2.0 -- C Bridge Layer
-- [ ] Implement `raylib_bridge.c` -- thin C wrapper linking raylib symbols
-- [ ] Build system integration (CMake/Meson) for `xiom` + raylib
-- [ ] Replace raw FFI stubs with bridge function calls
-- [ ] Enable runtime FFI tests to validate actual raylib linking
-- [ ] Add `GetScreenWidth()` / `GetScreenHeight()` wrappers
+## Current state
 
-## v0.3.0 -- Full API Surface
-- [ ] Add remaining raylib functions: shapes, textures, models, shaders
-- [ ] `Vector2`, `Vector3`, `Vector4`, `Matrix`, `Rectangle`, `Color` struct types
-- [ ] Shader uniforms API (`GetShaderLocation`, `SetShaderValue`)
-- [ ] Render textures (`LoadRenderTexture`, `BeginTextureMode`)
-- [ ] Audio streaming (`LoadMusicStream`, `UpdateMusicStream`)
-- [ ] 100+ conformance tests covering full API surface
+| Criterion | Status |
+|-----------|--------|
+| Dynamic loader (no link dependency) | Done -- `raylib_load`/`raylib_close` over `xiom.ffi.dl` |
+| SKIP-when-absent / no-window | Done -- `RAYLIB_LOAD_ABSENT` / `RAYLIB_LOAD_NO_WINDOW` |
+| ABI-mismatch detection + 5.x/6.x size names | Done -- `RAYLIB_LOAD_ABI` + rename-tolerant resolution |
+| Smoke suite (init/flags/timing/frame/close) | Done -- 12 checks present, 3 checks absent |
+| G2 pin (soname + header + symbols) | Done -- `SPEC.md` §2 |
+| Draw primitives (rect/circle/text) | Phase 2 |
+| Textures / images | Phase 2 |
+| Input (keys/mouse) | Phase 2 |
+| Audio (sounds/music) | Phase 2 |
+| Fonts (default + loaded) | Phase 2 |
+| Camera helpers | Phase 2 |
 
-## v0.4.0 -- Ergonomics & Safety
-- [ ] RAII resource management (auto-unload on scope exit)
-- [ ] `Result` return types for fallible operations
-- [ ] Input event polling (not just frame-based input)
-- [ ] Window icon / cursor / clipboard support
-- [ ] Gamepad / touch input
-- [ ] Custom logging callback integration with `xiom.log`
+## Phase 2 (next touches)
 
-## v0.5.0 -- Ecosystem Integration
-- [ ] `xiom-raylib-ui` -- immediate-mode GUI on raylib canvas
-- [ ] `xiom-raylib-physics` -- raylib + bullet/box2d interop
-- [ ] `xiom-raylib-net` -- networked multiplayer primitives
-- [ ] Examples: Pong, Snake, platformer, 3D viewer
-- [ ] Documentation & tutorials
+1. Draw primitives over the loader: `DrawRectangle`, `DrawCircle`,
+   `DrawText`, `DrawLine`, `DrawRectangleRec` with the packed-color helpers;
+   exercised inside a hidden-window frame in the suite.
+2. Textures/images: `LoadTexture`, `UnloadTexture`, `LoadImage`,
+   `ImageDraw*` with owned pixel buffers; file-path inputs documented
+   relative to the package test directory.
+3. Input: `IsKeyDown`, `IsMouseButtonDown`, `GetMouseX/Y`, `GetKeyPressed`
+   behind the hidden-window capability gate.
+4. Audio: `InitAudioDevice`, `LoadSound`, `PlaySound`, `CloseAudioDevice`
+   (device-gated SKIP).
+5. Fonts: `GetFontDefault`, `LoadFont`, `DrawTextEx`.
+6. Camera: `SetCameraMode`, `UpdateCamera`, `UpdateCameraPro`.
+7. Re-pin to raylib 6.0 when the native lane schedules it (the loader is
+   already rename-tolerant; check for other API moves).
