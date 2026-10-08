@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T14:58:00Z",
+    "updated":  "2026-10-08T15:15:22Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -2846,17 +2846,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.glfw",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "GLFW bindings for safe windowing, input, and monitor management with zero Vulkan dependency",
+                         "description":  "GLFW bindings for XIOM via dynamic loader (glfw3.dll at runtime, SKIP when absent)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-glfw/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-glfw/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "glfw.xi",
                                               "package.xi"
