@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T22:45:04Z",
+    "updated":  "2026-10-08T23:13:07Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -2430,7 +2430,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.flac",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "FLAC structural parser: metadata blocks (STREAMINFO, PADDING, APPLICATION, SEEKTABLE, VORBIS_COMMENT, CUESHEET, PICTURE) and frame headers (no audio decoding)",
@@ -2440,7 +2440,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-flac/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-flac/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "flac.xi",
                                               "package.xi"
@@ -2794,7 +2794,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.gguf",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "GGUF container header codec: metadata KV, tensor infos, alignment and builder",
@@ -2804,7 +2804,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gguf/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-gguf/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "gguf.xi",
                                               "package.xi"
@@ -4588,7 +4588,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.mkv",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Matroska/WebM (EBML) container reader: VINT decoding, EBML header, Info, Tracks and Cluster spans",
@@ -4598,7 +4598,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mkv/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-mkv/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "mkv.xi",
                                               "package.xi"
@@ -7188,7 +7188,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.snbt",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Stringified NBT (SNBT) parsing, canonical emission and tree accessors",
@@ -7198,7 +7198,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-snbt/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-snbt/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "snbt.xi",
                                               "package.xi"
@@ -8669,7 +8669,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.webp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "WebP (RIFF) container parser: header, chunk stream, padding, VP8/VP8L/VP8X/ALPH/ANIM/ANMF/ICCP/EXIF/XMP validation",
@@ -8679,7 +8679,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-webp/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-webp/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "webp.xi",
                                               "package.xi"
@@ -8741,7 +8741,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.wkt",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Well-Known Text (WKT) geometry codec for a documented subset",
@@ -8751,7 +8751,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-wkt/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-wkt/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "wkt.xi",
                                               "package.xi"
