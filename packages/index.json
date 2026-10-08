@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T14:03:17Z",
+    "updated":  "2026-10-08T14:24:26Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -1850,7 +1850,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.dtb",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Flattened Device Tree (DTB) parsing, validation and canonical v17 emission",
@@ -1860,7 +1860,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dtb/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-dtb/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "dtb.xi",
                                               "package.xi"
@@ -1973,7 +1973,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.edl",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "CMX EDL parsing and canonical emitting for a documented subset",
@@ -1983,7 +1983,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-edl/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-edl/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "edl.xi",
                                               "package.xi"
@@ -4947,7 +4947,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.nii",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM NIfTI-1 header codec: 348-byte parse, validation and builder",
@@ -4957,7 +4957,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nii/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-nii/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "nii.xi",
                                               "package.xi"
@@ -5941,7 +5941,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.pop3",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "POP3 protocol codec (RFC 1939): commands, responses, dot-stuffing, flat listing pairs",
@@ -5951,7 +5951,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pop3/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pop3/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "pop3.xi",
                                               "package.xi"
@@ -6708,7 +6708,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.rtc",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Real-time clock register codecs: BCD fields, DS1307 and PCF8563 layouts, civil-date arithmetic",
@@ -6718,7 +6718,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rtc/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-rtc/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "rtc.xi",
                                               "package.xi"
@@ -7843,7 +7843,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.tftp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM TFTP packet codec (RFC 1350) with RFC 2347 option TLVs: RRQ, WRQ, DATA, ACK, ERROR, OACK",
@@ -7853,7 +7853,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tftp/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tftp/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "tftp.xi",
                                               "package.xi"
