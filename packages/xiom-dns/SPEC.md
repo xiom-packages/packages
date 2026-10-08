@@ -1,8 +1,6 @@
 # xiom.dns -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.dns`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/dns.xi` (`module xiom.dns`).
 Depends on `xiom.std`; the library module imports only `xiom.string` and
 `xiom.string.builder` (the tests add `xiom.test`, `xiom.io`,
@@ -487,3 +485,61 @@ Last verified: compiler 0.61.3,
 - The tests call every check directly from `main` (no `Vec[fn]` dispatch,
   which miscompiles) and use typed locals for all Vec reads.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #39 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses were added to `src/dns.xi` in the
+batch #39 hardening pass (compiler v0.64.0; `package.xi` is left for the
+coordinator to bump at integration). 39 clauses over 17 contracted
+functions; all are `ensures:` (no `requires:`), so the accepted-input
+domain is unchanged. Two consecutive `& .\scripts\port.ps1 -Package
+xiom.dns -TimeoutSec 60` runs ended `port: PASS (passed=24 failed=0
+program_exit=0 exit=0)` with the clauses active (9.89 s and 9.76 s); no
+clause trapped and none of the added clauses was dropped.
+
+Every clause holds for hand-built `DnsHeader`, `DnsName`, `DnsRecord` and
+`DnsMessage` values: the guards mirror the checks the source itself applies
+to the parameter fields (width masking, `-1` sentinels, length/range
+tests), and no clause strengthens a claim a hand-built value could falsify.
+Clause expressions read only by-value parameters and shared-reference
+parameter fields; no `&mut` parameter is read (none exists in this package)
+and no `@pre` frame is needed. The only clause cross-call is the
+definitional `dns_message_question_count(m)` (a leaf returning
+`m.question_offsets.len()`; it never calls its callers). No `Str` equality,
+vector indexing, module constant, tuple/payload component or struct-`Result`
+payload read appears in any clause.
+
+All 39 clauses are **runtime-checked only**: no Z3 proof was attempted in
+this pass, and `xiom-verify`'s `[OK] VERIFIED` is not trusted alone on
+v0.64.0 (it can emit a vacuous UNSAT, batch #37 finding).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `dns_header_encode` | `result.len() == 12` | runtime-checked |
+| `dns_header_decode` | `data.len() < 12 => result is Err`; `result is Ok => data.len() >= 12` | runtime-checked |
+| `dns_name_encode` | `name.len() == 0 => result is Ok`; `name.len() > 255 => result is Err`; `result is Ok => name.len() <= 255` | runtime-checked |
+| `dns_name_decode` | `off < 0 => result is Err`; `data.len() == 0 => result is Err`; `result is Ok => off >= 0 && data.len() > 0` | runtime-checked |
+| `dns_name_to_str` | `n.labels.len() == 0 => result.len() == 0`; `n.labels.len() > 0 => result.len() >= n.labels.len() - 1` | runtime-checked |
+| `dns_question_encode` | `name.len() == 0 => result is Ok`; `name.len() > 255 => result is Err` | runtime-checked |
+| `dns_question_parse` | `off < 0 => result is Err`; `data.len() < 4 => result is Err`; `result is Ok => data.len() >= 4` | runtime-checked |
+| `dns_rr_rdata` | `r.rdata_offset < 0 => result is Err`; `r.rdata_length < 0 => result is Err`; `r.rdata_offset + r.rdata_length > data.len() => result is Err`; `result is Ok => r.rdata_offset >= 0 && r.rdata_length >= 0 && r.rdata_offset + r.rdata_length <= data.len()` | runtime-checked |
+| `dns_rdata_a` | `octets.len() != 4 => result is Err`; `octets.len() == 4 => result is Ok` | runtime-checked |
+| `dns_rdata_aaaa` | `octets.len() != 16 => result is Err`; `octets.len() == 16 => result is Ok` | runtime-checked |
+| `dns_rdata_cname` | `name.len() == 0 => result is Ok`; `name.len() > 255 => result is Err` | runtime-checked |
+| `dns_rdata_txt` | `text.len() > 255 => result is Err`; `text.len() <= 255 => result is Ok` | runtime-checked |
+| `dns_rdata_a_to_str` | `rdata.len() != 4 => result is Err`; `rdata.len() == 4 => result is Ok` | runtime-checked |
+| `dns_rdata_txt_parse` | `rdata.len() < 1 => result is Err`; `result is Ok => rdata.len() >= 1` | runtime-checked |
+| `dns_query_build` | `name.len() == 0 => result is Ok`; `name.len() > 255 => result is Err` | runtime-checked |
+| `dns_message_parse` | `data.len() < 12 => result is Err`; `result is Ok => data.len() >= 12` | runtime-checked |
+| `dns_message_question_offset` | `i < 0 => result == -1`; `i >= dns_message_question_count(m) => result == -1`; `result != -1 => i >= 0 && i < dns_message_question_count(m)` | runtime-checked |
+
+Clause-shape notes pinned by the pass:
+
+- All plan proposals fit the source unchanged; nothing was dropped, no
+  probe-gated item existed and the circuit breaker was not needed.
+- `dns_message_record_offset` was the only out-of-plan public accessor and
+  is unchanged (its guarantee is covered by the conformance suite); all
+  other uncontracted public helpers were outside the plan likewise.
+- The byte-level bracket scan of `src/dns.xi` and this file reports zero
+  hits for all five mixed-bracket scan patterns (the generic openers and
+  the two mixed closing pairs); the contract table text introduced none.

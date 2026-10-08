@@ -340,7 +340,10 @@ fn _rv_ipv6_ok(s: Str) -> Bool {
 /// Examples: "2001:DB8:0:0:0:0:0:1" -> Some("2001:db8:0:0:0:0:0:1");
 /// "::1" -> Some("::1"); "256.0.0.1" -> None; "" -> None.
 /// Complexity: O(s.len()).
-pub fn resolv_address_normalize(s: Str) -> Option[Str] {
+pub fn resolv_address_normalize(s: Str) -> Option[Str]
+  ensures: s.len() == 0 => result is None;
+  ensures: result is Some => s.len() > 0;
+{
   if _rv_has_colon(s) {
     if !_rv_ipv6_ok(s) { return None; }
     return Some(string.str_lower(s));
@@ -360,7 +363,11 @@ pub fn resolv_address_normalize(s: Str) -> Option[Str] {
 /// Examples: "1.2.3.4" -> true; "::1" -> true; "::ffff:1.2.3.4" -> true;
 /// "1.2.3.256" -> false; "1.2.3.4/24" -> false.
 /// Complexity: O(s.len()).
-pub fn resolv_address_valid(s: Str) -> Bool {
+pub fn resolv_address_valid(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: result => s.len() > 0;
+  ensures: result => resolv_address_normalize(s) is Some;
+{
   let o = resolv_address_normalize(s);
   return o.is_some;
 }
@@ -610,7 +617,10 @@ fn _rv_process(doc: &mut ResolvConf, text: Str) -> Str {
 /// Examples: "nameserver 1.1.1.1\nsearch a.example\n" -> Ok;
 /// "nameserver 256.0.0.1\n" -> Err("resolv: bad address: 256.0.0.1").
 /// Complexity: O(text.len()).
-pub fn resolv_parse(text: Str) -> Result[ResolvConf, Str] {
+pub fn resolv_parse(text: Str) -> Result[ResolvConf, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var doc = ResolvConf{
     nameservers: Vec[Str].new();
     domain: "";
@@ -682,7 +692,9 @@ pub fn resolv_parse(text: Str) -> Result[ResolvConf, Str] {
 /// resolv_nameserver_over_limit).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn resolv_nameserver_count(h: &ResolvConf) -> Int {
+pub fn resolv_nameserver_count(h: &ResolvConf) -> Int
+  ensures: result == h.nameservers.len();
+{
   return h.nameservers.len();
 }
 
@@ -694,7 +706,11 @@ pub fn resolv_nameserver_count(h: &ResolvConf) -> Int {
 /// Error case: none.
 /// Examples: "nameserver 2001:DB8::53" -> Some("2001:db8::53").
 /// Complexity: O(1).
-pub fn resolv_nameserver(h: &ResolvConf, i: Int) -> Option[Str] {
+pub fn resolv_nameserver(h: &ResolvConf, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= h.nameservers.len() => result is None;
+  ensures: result is Some => i >= 0 && i < h.nameservers.len();
+{
   if i < 0 || i >= h.nameservers.len() { return None; }
   let v: Str = h.nameservers[i];
   return Some(v);
@@ -726,7 +742,10 @@ pub fn resolv_nameservers(h: &ResolvConf) -> Vec[Str] {
 /// Error case: none.
 /// Examples: four nameserver lines -> true; three -> false.
 /// Complexity: O(1).
-pub fn resolv_nameserver_over_limit(h: &ResolvConf) -> Bool {
+pub fn resolv_nameserver_over_limit(h: &ResolvConf) -> Bool
+  ensures: h.nameservers.len() <= 3 => !result;
+  ensures: h.nameservers.len() > 3 => result;
+{
   return h.nameservers.len() > _RV_CLASSIC_NS_LIMIT;
 }
 
@@ -737,7 +756,10 @@ pub fn resolv_nameserver_over_limit(h: &ResolvConf) -> Bool {
 /// Error case: none.
 /// Examples: "domain a.example\ndomain b.example\n" -> Some("b.example").
 /// Complexity: O(1).
-pub fn resolv_domain(h: &ResolvConf) -> Option[Str] {
+pub fn resolv_domain(h: &ResolvConf) -> Option[Str]
+  ensures: h.domain.len() == 0 => result is None;
+  ensures: result is Some => h.domain.len() > 0;
+{
   let d: Str = h.domain;
   if d.len() == 0 { return None; }
   return Some(d);
@@ -761,7 +783,11 @@ pub fn resolv_search_count(h: &ResolvConf) -> Int {
 /// Examples: "search a.example b.example\n" -> i 0 "a.example", i 1
 /// "b.example".
 /// Complexity: O(1).
-pub fn resolv_search_domain(h: &ResolvConf, i: Int) -> Option[Str] {
+pub fn resolv_search_domain(h: &ResolvConf, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= h.search.len() => result is None;
+  ensures: result is Some => i >= 0 && i < h.search.len();
+{
   if i < 0 || i >= h.search.len() { return None; }
   let v: Str = h.search[i];
   return Some(v);
@@ -772,7 +798,9 @@ pub fn resolv_search_domain(h: &ResolvConf, i: Int) -> Option[Str] {
 /// Returns: the count across every `options` directive, in document order.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn resolv_option_count(h: &ResolvConf) -> Int {
+pub fn resolv_option_count(h: &ResolvConf) -> Int
+  ensures: result == h.options.len();
+{
   return h.options.len();
 }
 
@@ -797,7 +825,11 @@ pub fn resolv_option(h: &ResolvConf, i: Int) -> Option[Str] {
 /// Error case: none.
 /// Examples: "ndots:5" -> "ndots"; "rotate" -> "rotate".
 /// Complexity: O(token length).
-pub fn resolv_option_name(h: &ResolvConf, i: Int) -> Str {
+pub fn resolv_option_name(h: &ResolvConf, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= h.options.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < h.options.len();
+{
   if i < 0 || i >= h.options.len() { return ""; }
   let v: Str = h.options[i];
   return _rv_option_name_of(v);
@@ -811,7 +843,11 @@ pub fn resolv_option_name(h: &ResolvConf, i: Int) -> Str {
 /// Error case: none.
 /// Examples: "ndots:5" -> Some("5"); "rotate" -> None.
 /// Complexity: O(token length).
-pub fn resolv_option_value(h: &ResolvConf, i: Int) -> Option[Str] {
+pub fn resolv_option_value(h: &ResolvConf, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= h.options.len() => result is None;
+  ensures: result is Some => i >= 0 && i < h.options.len();
+{
   if i < 0 || i >= h.options.len() { return None; }
   let v: Str = h.options[i];
   return _rv_option_value_of(v);
@@ -827,7 +863,11 @@ pub fn resolv_option_value(h: &ResolvConf, i: Int) -> Option[Str] {
 /// Examples: "ndots:5 timeout:2 ndots:9" -> 0 for "ndots", 1 for "timeout",
 /// -1 for "attempts" and "NDOTS".
 /// Complexity: O(options * name length).
-pub fn resolv_option_index(h: &ResolvConf, name: Str) -> Int {
+pub fn resolv_option_index(h: &ResolvConf, name: Str) -> Int
+  ensures: h.options.len() == 0 => result == -1;
+  ensures: result >= -1;
+  ensures: result < h.options.len();
+{
   let n = h.options.len();
   var i = 0;
   while i < n {
@@ -845,7 +885,12 @@ pub fn resolv_option_index(h: &ResolvConf, name: Str) -> Int {
 /// document reports the smaller of the two parallel vectors.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn resolv_sortlist_count(h: &ResolvConf) -> Int {
+pub fn resolv_sortlist_count(h: &ResolvConf) -> Int
+  ensures: result >= 0;
+  ensures: result <= h.sortlist_addrs.len();
+  ensures: result <= h.sortlist_masks.len();
+  ensures: result == h.sortlist_addrs.len() || result == h.sortlist_masks.len();
+{
   var n = h.sortlist_addrs.len();
   if h.sortlist_masks.len() < n { n = h.sortlist_masks.len(); }
   return n;
@@ -857,7 +902,11 @@ pub fn resolv_sortlist_count(h: &ResolvConf) -> Int {
 /// The address is normalized exactly like a nameserver address.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn resolv_sortlist_addr(h: &ResolvConf, i: Int) -> Option[Str] {
+pub fn resolv_sortlist_addr(h: &ResolvConf, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= resolv_sortlist_count(h) => result is None;
+  ensures: result is Some => i >= 0 && i < resolv_sortlist_count(h);
+{
   if i < 0 || i >= resolv_sortlist_count(h) { return None; }
   let v: Str = h.sortlist_addrs[i];
   return Some(v);
@@ -872,7 +921,11 @@ pub fn resolv_sortlist_addr(h: &ResolvConf, i: Int) -> Option[Str] {
 /// Error case: none.
 /// Examples: "sortlist 10.0.0.0/8 192.0.2.7" -> mask 8 then -1.
 /// Complexity: O(1).
-pub fn resolv_sortlist_mask(h: &ResolvConf, i: Int) -> Int {
+pub fn resolv_sortlist_mask(h: &ResolvConf, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= resolv_sortlist_count(h) => result == -1;
+  ensures: result != -1 => i >= 0 && i < resolv_sortlist_count(h);
+{
   if i < 0 || i >= resolv_sortlist_count(h) { return -1; }
   let v: Int = h.sortlist_masks[i];
   return v;
@@ -897,7 +950,11 @@ pub fn resolv_unknown_count(h: &ResolvConf) -> Int {
 /// Error case: none.
 /// Examples: "lookup   file bind # note" -> Some("lookup   file bind").
 /// Complexity: O(1).
-pub fn resolv_unknown_line(h: &ResolvConf, i: Int) -> Option[Str] {
+pub fn resolv_unknown_line(h: &ResolvConf, i: Int) -> Option[Str]
+  ensures: i < 0 => result is None;
+  ensures: i >= h.unknown.len() => result is None;
+  ensures: result is Some => i >= 0 && i < h.unknown.len();
+{
   if i < 0 || i >= h.unknown.len() { return None; }
   let v: Str = h.unknown[i];
   return Some(v);
@@ -922,7 +979,10 @@ pub fn resolv_unknown_line(h: &ResolvConf, i: Int) -> Option[Str] {
 /// Examples: parse("search b.example a.example\nnameserver 1.1.1.1\n")
 /// emits "nameserver 1.1.1.1\nsearch b.example a.example\n".
 /// Complexity: O(total output length).
-pub fn resolv_emit(h: &ResolvConf) -> Str {
+pub fn resolv_emit(h: &ResolvConf) -> Str
+  ensures: h.nameservers.len() == 0 && h.domain.len() == 0 && h.search.len() == 0 && h.options.len() == 0 && resolv_sortlist_count(h) == 0 && h.unknown.len() == 0 => result.len() == 0;
+  ensures: result.len() >= 11 * h.nameservers.len() + h.unknown.len();
+{
   var out = "";
   var i = 0;
   while i < h.nameservers.len() {

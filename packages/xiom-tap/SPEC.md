@@ -1,6 +1,6 @@
 # xiom.tap -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.tap` (`src/tap.xi`). Pure XIOM, no FFI, no I/O.
 
 ## 1. Scope
@@ -375,3 +375,53 @@ as a `&Vec` parameter, so the empty-vector payload defect does not apply.
 Mismatched parallel arrays are clamped to their shortest length in
 `_test_count`, so a hand-built document can never cause an out-of-range read.
 No workarounds beyond these documented patterns were required.
+
+## Contracts (batch #38 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/tap.xi` in the batch #38
+hardening pass (compiler v0.64.0; `package.xi` is left for the coordinator to
+bump at integration). 32 clauses over 13 contracted functions (12 public plus
+`_test_count`), all `ensures:` (no `requires:`), so the accepted-input domain
+is unchanged. Two consecutive `& .\scripts\port.ps1 -Package xiom.tap
+-TimeoutSec 60` runs ended `port: PASS (passed=24 failed=0 program_exit=0
+exit=0)` with the clauses active (9.89 s and 8.27 s); no clause trapped and
+none of the added clauses was dropped.
+
+Every clause holds for hand-built `TapDoc` values: field, length and sentinel
+reads are on parameters only (`-1`, `""`, `0`, `false` as the source itself
+writes them), and no clause strengthens a claim a drifted hand-built document
+could falsify. The only clause call is the definitional `_test_count(d)`
+identity (used by `tap_test_count`, the accessor sentinels and `tap_emit`);
+`_test_count` never calls its callers (non-re-entrant). No `Vec` indexing, no
+`Str` equality, no module constants and no struct-`Result` payload reads
+appear in any clause. All clauses are **runtime-checked only**; no Z3 proof
+is claimed in this pass.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `tap_doc_new` | `result.version == 0`; `result.planned == -1`; `result.bailed == false`; `result.bail_reason.len() == 0`; `result.numbers.len() == 0`; `result.oks.len() == 0`; `result.descriptions.len() == 0`; `result.directives.len() == 0`; `result.reasons.len() == 0`; `result.diagnostics.len() == 0` | runtime-checked |
+| `_test_count` | `result <= d.numbers.len()`; `result <= d.oks.len()`; `result <= d.descriptions.len()`; `result <= d.directives.len()`; `result <= d.reasons.len()`; `d.numbers.len() == 0 \|\| d.oks.len() == 0 \|\| d.descriptions.len() == 0 \|\| d.directives.len() == 0 \|\| d.reasons.len() == 0 => result == 0` | runtime-checked |
+| `tap_version` | `result == d.version` | runtime-checked |
+| `tap_planned` | `result == d.planned` | runtime-checked |
+| `tap_test_count` | `result == _test_count(d)` | runtime-checked |
+| `tap_number` | `i < 0 \|\| i >= _test_count(d) => result == -1` | runtime-checked |
+| `tap_description` | `i < 0 \|\| i >= _test_count(d) => result.len() == 0` | runtime-checked |
+| `tap_passed` | `result >= 0 && result <= _test_count(d)`; `result <= d.oks.len()` | runtime-checked |
+| `tap_skipped` | `result >= 0 && result <= _test_count(d)`; `result <= d.directives.len()` | runtime-checked |
+| `tap_emit` | `d.version <= 0 && d.planned < 0 && !d.bailed && _test_count(d) == 0 && d.diagnostics.len() == 0 => result.len() == 0` | runtime-checked |
+| `tap_write_comment` | `text.len() == 0 => result.len() == 1`; `text.len() > 0 => result.len() == text.len() + 2` | runtime-checked |
+| `tap_write_bail` | `reason.len() == 0 => result.len() == 9` | runtime-checked |
+| `tap_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0`; `string.str_starts_with(text, "Bail out!") => result is Ok` | runtime-checked |
+
+The five `&mut TapDoc` mutators (`tap_add_test`, `tap_set_version`,
+`tap_set_plan`, `tap_set_bail`, `tap_add_diagnostic`) are deliberately skipped
+under the batch rules: a bare `&mut` parameter read is not a proposable clause
+shape and no by-value struct is available for an `@pre` frame.
+
+The plan's remaining `tap_parse` prose candidates (version line after
+content, YAML marker line, text before plan, duplicate plan) are not
+expressible in the proven clause vocabulary without forbidden shapes (line
+scanning needs `Vec` indexing, sentinel checks need `Str` equality, and the
+needed helper cross-calls are not on the plan's safe list), so they were
+dropped and those guarantees remain covered by the existing conformance
+suite.

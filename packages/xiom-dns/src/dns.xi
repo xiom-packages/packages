@@ -327,7 +327,9 @@ fn _flags_word(h: &DnsHeader) -> Int {
 /// are big-endian. Out-of-range field values are masked to their width
 /// (see SPEC.md); this function cannot fail.
 /// Complexity: O(1).
-pub fn dns_header_encode(h: &DnsHeader) -> Vec[UInt8] {
+pub fn dns_header_encode(h: &DnsHeader) -> Vec[UInt8]
+  ensures: result.len() == 12;
+{
   var out = Vec[UInt8].new();
   _push_u16_be(&mut out, _mask_bits(h.id, 16));
   _push_u16_be(&mut out, _flags_word(h));
@@ -342,7 +344,10 @@ pub fn dns_header_encode(h: &DnsHeader) -> Vec[UInt8] {
 /// so the only error is Err("dns: truncated header") when `data` is shorter
 /// than 12 bytes. Bytes after offset 12 are ignored.
 /// Complexity: O(1).
-pub fn dns_header_decode(data: &Vec[UInt8]) -> Result[DnsHeader, Str] {
+pub fn dns_header_decode(data: &Vec[UInt8]) -> Result[DnsHeader, Str]
+  ensures: data.len() < 12 => result is Err;
+  ensures: result is Ok => data.len() >= 12;
+{
   if data.len() < 12 {
     return _err_header("dns: truncated header");
   }
@@ -384,7 +389,11 @@ pub fn dns_header_decode(data: &Vec[UInt8]) -> Result[DnsHeader, Str] {
 /// and the terminating zero; Err("dns: label contains NUL byte") for a
 /// label containing 0x00. Checks run per label in that order.
 /// Complexity: O(name length).
-pub fn dns_name_encode(name: Str) -> Result[Vec[UInt8], Str] {
+pub fn dns_name_encode(name: Str) -> Result[Vec[UInt8], Str]
+  ensures: name.len() == 0 => result is Ok;
+  ensures: name.len() > 255 => result is Err;
+  ensures: result is Ok => name.len() <= 255;
+{
   let n = name.len();
   var end = n;
   if n > 0 {
@@ -450,7 +459,11 @@ pub fn dns_name_encode(name: Str) -> Result[Vec[UInt8], Str] {
 /// expanded name exceeds 255 bytes; Err("dns: label contains NUL byte")
 /// when a label carries 0x00 (a Str cannot represent it).
 /// Complexity: O(name bytes + pointer jumps * name bytes) worst case.
-pub fn dns_name_decode(data: &Vec[UInt8], off: Int) -> Result[DnsName, Str] {
+pub fn dns_name_decode(data: &Vec[UInt8], off: Int) -> Result[DnsName, Str]
+  ensures: off < 0 => result is Err;
+  ensures: data.len() == 0 => result is Err;
+  ensures: result is Ok => off >= 0 && data.len() > 0;
+{
   if off < 0 {
     return _err_name("dns: negative offset");
   }
@@ -519,7 +532,10 @@ pub fn dns_name_decode(data: &Vec[UInt8], off: Int) -> Result[DnsName, Str] {
 /// informational; to re-encode, join the labels with '.' yourself or
 /// round-trip the original bytes.
 /// Complexity: O(name length).
-pub fn dns_name_to_str(n: &DnsName) -> Str {
+pub fn dns_name_to_str(n: &DnsName) -> Str
+  ensures: n.labels.len() == 0 => result.len() == 0;
+  ensures: n.labels.len() > 0 => result.len() >= n.labels.len() - 1;
+{
   var sb = builder.sb_new();
   let count = n.labels.len();
   var i = 0;
@@ -542,7 +558,10 @@ pub fn dns_name_to_str(n: &DnsName) -> Str {
 /// QCLASS[2] (both big-endian, masked to 16 bits). Name errors propagate
 /// unchanged.
 /// Complexity: O(name length).
-pub fn dns_question_encode(name: Str, qtype: Int, qclass: Int) -> Result[Vec[UInt8], Str] {
+pub fn dns_question_encode(name: Str, qtype: Int, qclass: Int) -> Result[Vec[UInt8], Str]
+  ensures: name.len() == 0 => result is Ok;
+  ensures: name.len() > 255 => result is Err;
+{
   let nr = dns_name_encode(name);
   if !nr.is_ok {
     return _err_bytes(nr.error);
@@ -560,7 +579,11 @@ pub fn dns_question_encode(name: Str, qtype: Int, qclass: Int) -> Result[Vec[UIn
 /// (including Err("dns: negative offset")); Err("dns: truncated question")
 /// when fewer than 4 bytes follow the name.
 /// Complexity: O(name length).
-pub fn dns_question_parse(data: &Vec[UInt8], off: Int) -> Result[DnsQuestion, Str] {
+pub fn dns_question_parse(data: &Vec[UInt8], off: Int) -> Result[DnsQuestion, Str]
+  ensures: off < 0 => result is Err;
+  ensures: data.len() < 4 => result is Err;
+  ensures: result is Ok => data.len() >= 4;
+{
   let nr = dns_name_decode(data, off);
   if !nr.is_ok {
     return _err_question(nr.error);
@@ -649,7 +672,12 @@ pub fn dns_rr_parse(data: &Vec[UInt8], off: Int) -> Result[DnsRecord, Str] {
 /// Err("dns: rdata out of range") when the recorded span is negative or
 /// does not fit `data`; a zero-length RDATA yields an empty Ok.
 /// Complexity: O(rdata_length).
-pub fn dns_rr_rdata(data: &Vec[UInt8], r: &DnsRecord) -> Result[Vec[UInt8], Str] {
+pub fn dns_rr_rdata(data: &Vec[UInt8], r: &DnsRecord) -> Result[Vec[UInt8], Str]
+  ensures: r.rdata_offset < 0 => result is Err;
+  ensures: r.rdata_length < 0 => result is Err;
+  ensures: r.rdata_offset + r.rdata_length > data.len() => result is Err;
+  ensures: result is Ok => r.rdata_offset >= 0 && r.rdata_length >= 0 && r.rdata_offset + r.rdata_length <= data.len();
+{
   let off: Int = r.rdata_offset;
   let len: Int = r.rdata_length;
   if off < 0 || len < 0 {
@@ -674,7 +702,10 @@ pub fn dns_rr_rdata(data: &Vec[UInt8], r: &DnsRecord) -> Result[Vec[UInt8], Str]
 /// Build A RDATA from exactly 4 address octets (network order).
 /// Err("dns: bad A rdata") for any other length.
 /// Complexity: O(1).
-pub fn dns_rdata_a(octets: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn dns_rdata_a(octets: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: octets.len() != 4 => result is Err;
+  ensures: octets.len() == 4 => result is Ok;
+{
   if octets.len() != 4 {
     return _err_bytes("dns: bad A rdata");
   }
@@ -686,7 +717,10 @@ pub fn dns_rdata_a(octets: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 /// Build AAAA RDATA from exactly 16 address octets (network order).
 /// Err("dns: bad AAAA rdata") for any other length.
 /// Complexity: O(1).
-pub fn dns_rdata_aaaa(octets: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn dns_rdata_aaaa(octets: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: octets.len() != 16 => result is Err;
+  ensures: octets.len() == 16 => result is Ok;
+{
   if octets.len() != 16 {
     return _err_bytes("dns: bad AAAA rdata");
   }
@@ -698,7 +732,10 @@ pub fn dns_rdata_aaaa(octets: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 /// Build CNAME RDATA: the target name encoded uncompressed (no pointer is
 /// ever emitted). Name errors propagate unchanged.
 /// Complexity: O(name length).
-pub fn dns_rdata_cname(name: Str) -> Result[Vec[UInt8], Str] {
+pub fn dns_rdata_cname(name: Str) -> Result[Vec[UInt8], Str]
+  ensures: name.len() == 0 => result is Ok;
+  ensures: name.len() > 255 => result is Err;
+{
   let nr = dns_name_encode(name);
   if !nr.is_ok {
     return _err_bytes(nr.error);
@@ -727,7 +764,10 @@ pub fn dns_rdata_mx(preference: Int, exchange: Str) -> Result[Vec[UInt8], Str] {
 /// text bytes verbatim (embedded 0x00 is allowed -- a character-string is
 /// binary). Err("dns: txt too long") when text.len() > 255.
 /// Complexity: O(text length).
-pub fn dns_rdata_txt(text: Str) -> Result[Vec[UInt8], Str] {
+pub fn dns_rdata_txt(text: Str) -> Result[Vec[UInt8], Str]
+  ensures: text.len() > 255 => result is Err;
+  ensures: text.len() <= 255 => result is Ok;
+{
   let n = text.len();
   if n > 255 {
     return _err_bytes("dns: txt too long");
@@ -745,7 +785,10 @@ pub fn dns_rdata_txt(text: Str) -> Result[Vec[UInt8], Str] {
 /// Render 4-byte A RDATA as "a.b.c.d".
 /// Err("dns: bad A rdata") when the length is not 4.
 /// Complexity: O(1).
-pub fn dns_rdata_a_to_str(rdata: &Vec[UInt8]) -> Result[Str, Str] {
+pub fn dns_rdata_a_to_str(rdata: &Vec[UInt8]) -> Result[Str, Str]
+  ensures: rdata.len() != 4 => result is Err;
+  ensures: rdata.len() == 4 => result is Ok;
+{
   if rdata.len() != 4 {
     return _err_str("dns: bad A rdata");
   }
@@ -835,7 +878,10 @@ pub fn dns_rdata_mx_exchange(data: &Vec[UInt8], off: Int, len: Int) -> Result[Dn
 /// than one complete character-string (multi-string TXT is a documented
 /// non-goal).
 /// Complexity: O(text length).
-pub fn dns_rdata_txt_parse(rdata: &Vec[UInt8]) -> Result[Str, Str] {
+pub fn dns_rdata_txt_parse(rdata: &Vec[UInt8]) -> Result[Str, Str]
+  ensures: rdata.len() < 1 => result is Err;
+  ensures: result is Ok => rdata.len() >= 1;
+{
   let n = rdata.len();
   if n < 1 {
     return _err_str("dns: bad TXT rdata");
@@ -862,7 +908,10 @@ pub fn dns_rdata_txt_parse(rdata: &Vec[UInt8]) -> Result[Str, Str] {
 /// QDCOUNT=1 and AN/NS/AR=0, followed by one question with class IN and the
 /// given `qtype` (masked to 16 bits). Name errors propagate.
 /// Complexity: O(name length).
-pub fn dns_query_build(id: Int, name: Str, qtype: Int) -> Result[Vec[UInt8], Str] {
+pub fn dns_query_build(id: Int, name: Str, qtype: Int) -> Result[Vec[UInt8], Str]
+  ensures: name.len() == 0 => result is Ok;
+  ensures: name.len() > 255 => result is Err;
+{
   let nr = dns_name_encode(name);
   if !nr.is_ok {
     return _err_bytes(nr.error);
@@ -904,7 +953,10 @@ pub fn dns_query_build(id: Int, name: Str, qtype: Int) -> Result[Vec[UInt8], Str
 /// declared entry has no bytes left; otherwise the name and record errors
 /// propagate unchanged. Bytes after the last declared entry are ignored.
 /// Complexity: O(message length).
-pub fn dns_message_parse(data: &Vec[UInt8]) -> Result[DnsMessage, Str] {
+pub fn dns_message_parse(data: &Vec[UInt8]) -> Result[DnsMessage, Str]
+  ensures: data.len() < 12 => result is Err;
+  ensures: result is Ok => data.len() >= 12;
+{
   let hr = dns_header_decode(data);
   if !hr.is_ok {
     return _err_message(hr.error);
@@ -961,7 +1013,11 @@ pub fn dns_message_record_count(m: &DnsMessage) -> Int {
 /// Absolute offset of the i-th question's name in the parse buffer, or -1
 /// when i is negative or >= dns_message_question_count(m).
 /// Complexity: O(1).
-pub fn dns_message_question_offset(m: &DnsMessage, i: Int) -> Int {
+pub fn dns_message_question_offset(m: &DnsMessage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= dns_message_question_count(m) => result == -1;
+  ensures: result != -1 => i >= 0 && i < dns_message_question_count(m);
+{
   if i < 0 {
     return -1;
   }

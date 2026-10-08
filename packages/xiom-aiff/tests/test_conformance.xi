@@ -388,7 +388,12 @@ fn t3() -> TestResult {
   if !err_int_is(aiff_decode_sample_rate(&neg, 0), "aiff: bad sample rate") { ok = false; }
   let huge = hb("403eac44000000000000");
   if !err_int_is(aiff_decode_sample_rate(&huge, 0), "aiff: bad sample rate") { ok = false; }
-  return assert(ok, "80-bit rounding half-up and rejection of inf/negative/out-of-range");
+  // The rounding edge at the limit: q = 2^31-1 plus the tie bit must not
+  // slip past the documented 0..2^31-1 range (exponent 16413, mantissa top
+  // 32 bits set). Regression for the post-rounding guard.
+  let edge = hb("401dffffffff00000000");
+  if !err_int_is(aiff_decode_sample_rate(&edge, 0), "aiff: bad sample rate") { ok = false; }
+  return assert(ok, "80-bit rounding half-up and rejection of inf/negative/out-of-range/edge");
 }
 
 fn t4() -> TestResult {

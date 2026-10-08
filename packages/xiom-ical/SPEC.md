@@ -1,6 +1,6 @@
 # xiom.ical -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `xiom.ical` (`src/ical.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -286,3 +286,54 @@ choices:
 - No serializer for anything but the parsed/built model (no pretty printer,
   no property sorting) and no file I/O.
 - Errors carry no line/column position.
+
+## Contracts (batch #39 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/ical.xi` in the batch #39
+hardening pass (compiler v0.64.0; `package.xi` is left for the coordinator to
+bump at integration). 46 clauses over the 18 contracted functions below; all
+are `ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Two consecutive `& .\scripts\port.ps1 -Package xiom.ical -TimeoutSec 60` runs
+ended `port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active (19.87 s and 19.06 s); the 22-check conformance suite exercises every
+contracted entry point and no clause trapped, so none was dropped.
+
+Every clause is **runtime-checked** (no Z3 claim; `xiom-verify` was not run,
+and per the batch #37 finding a bare `xiom-verify` `[OK] VERIFIED` can be a
+vacuous UNSAT). Clause inputs are parameters, parameter fields or plain
+struct-return fields only; the `Result[Ical, Str]` and `Option[Str]` results
+are constrained by tag alone (`is Ok` / `is Err` / `is Some` / `is None`),
+never by payload reads. Module constants are inlined as integer literals, no
+clause indexes a vector, and no clause compares a `Str` (`==` only on `Int`
+values and lengths). The only clause calls are the non-re-entrant definitional
+ones: `ical_root_count` (from `ical_root`, `ical_child_count`,
+`ical_serialize`), `ical_child_count` (from `ical_child`), `ical_prop_count`
+(from `ical_prop_name`) and `ical_find_prop` (from `ical_get`); none of those
+callees calls its caller. The three `&mut Ical` mutators
+(`ical_add_component`, `ical_add_prop`, `ical_add_text_prop`) constrain only
+their by-value parameters and never read the receiver. Every clause holds for
+hand-built structs: only vector lengths, scalar parameters and tags are read,
+and the `ical_serialize` lower bound `14` is the byte size of one minimal
+empty-named root pair (`BEGIN:` + CRLF + `END:` + CRLF), true for any
+hand-built tree.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `ical_unfold` | `ensures: result.len() <= text.len()`; `ensures: text.len() == 0 => result.len() == 0` | runtime-checked (built `Str` length vs parameter) |
+| `ical_escape_text` | `ensures: result.len() >= s.len()`; `ensures: s.len() == 0 => result.len() == 0` | runtime-checked (built `Str` length vs parameter) |
+| `ical_unescape_text` | `ensures: result.len() <= s.len()`; `ensures: s.len() == 0 => result.len() == 0` | runtime-checked (built `Str` length vs parameter) |
+| `ical_parse` | `ensures: text.len() == 0 => result is Ok`; `ensures: result is Err => text.len() > 0` | runtime-checked (parameter length + `Result` tag) |
+| `ical_root_count` | `ensures: result >= 0`; `ensures: result <= c.comp_names.len()` | runtime-checked (scalar bound + field length) |
+| `ical_root` | `ensures: i < 0 => result == -1`; `ensures: i >= ical_root_count(c) => result == -1`; `ensures: result != -1 => i >= 0 && i < ical_root_count(c)` | runtime-checked (`-1` guard pair + definitional cross-call) |
+| `ical_component_name` | `ensures: comp < 0 => result.len() == 0`; `ensures: comp >= c.comp_names.len() => result.len() == 0`; `ensures: result.len() > 0 => comp >= 0 && comp < c.comp_names.len()` | runtime-checked (built `Str` length + field length; one-way guard pair) |
+| `ical_component_parent` | `ensures: comp < 0 => result == -2`; `ensures: comp >= c.comp_parents.len() => result == -2`; `ensures: result != -2 => comp >= 0 && comp < c.comp_parents.len()` | runtime-checked (`-2` sentinel pair + field length) |
+| `ical_child_count` | `ensures: result >= 0`; `ensures: result <= c.comp_names.len()`; `ensures: comp == -1 => result == ical_root_count(c)` | runtime-checked (scalar bound + definitional cross-call) |
+| `ical_child` | `ensures: i < 0 => result == -1`; `ensures: i >= ical_child_count(c, comp) => result == -1`; `ensures: result != -1 => i >= 0 && i < ical_child_count(c, comp)` | runtime-checked (`-1` guard pair + definitional cross-call) |
+| `ical_prop_name` | `ensures: i < 0 => result.len() == 0`; `ensures: i >= ical_prop_count(c, comp) => result.len() == 0`; `ensures: result.len() > 0 => i >= 0 && i < ical_prop_count(c, comp)` | runtime-checked (built `Str` length + definitional cross-call) |
+| `ical_get` | `ensures: ical_find_prop(c, comp, name) == -1 => result is None`; `ensures: ical_find_prop(c, comp, name) >= 0 => result is Some` | runtime-checked (definitional cross-call + `Option` tag) |
+| `ical_new` | `ensures: result.comp_names.len() == 0`; `ensures: result.comp_parents.len() == 0`; `ensures: result.prop_names.len() == 0`; `ensures: result.param_names.len() == 0` | runtime-checked (plain struct-return field lengths) |
+| `ical_add_component` | `ensures: name.len() == 0 => result == -1`; `ensures: parent < -1 => result == -1` | runtime-checked (by-value parameter length/range; receiver never read) |
+| `ical_add_prop` | `ensures: comp < 0 => !result`; `ensures: name.len() == 0 => !result` | runtime-checked (by-value parameter guard pair; receiver never read) |
+| `ical_add_text_prop` | `ensures: comp < 0 => !result`; `ensures: name.len() == 0 => !result` | runtime-checked (by-value parameter guard pair; receiver never read) |
+| `ical_build_event` | `ensures: result.comp_names.len() == 2`; `ensures: result.prop_names.len() >= 6`; `ensures: result.prop_names.len() <= 9`; `ensures: result.prop_comps.len() == result.prop_names.len()` | runtime-checked (plain struct-return field lengths) |
+| `ical_serialize` | `ensures: ical_root_count(c) == 0 => result.len() == 0`; `ensures: result.len() >= 14 * ical_root_count(c)` | runtime-checked (built `Str` length + definitional cross-call) |

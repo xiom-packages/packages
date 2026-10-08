@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.0` -- generated 2026-10-08T08:10:11Z.
+Toolchain pin: `v0.64.0` -- generated 2026-10-08T09:51:48Z.
 
 ## Summary
 
@@ -30,9 +30,9 @@ Versions are immutable forever; a published version can never be replaced.
 | Package | Folder | Stage | Suite | Tests | Run commit | Publish | Notes |
 |---|---|---|---|---|---|---|---|
 | xiom.acpi | xiom-acpi | stable | tests/test_conformance.xi | pass 18/18 | 23b01b82 | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.adc | xiom-adc | stable | tests/test_conformance.xi | pass 18/18 | 5f469ee5 | False | publish pending: wave-35 batch (eco-v0.1.5) |
+| xiom.adc | xiom-adc | stable | tests/test_conformance.xi | pass 18/18 | 2ff65d2d | False | publish pending: wave-35 batch (eco-v0.1.5) |
 | xiom.adler32 | xiom-adler32 | stable | tests/test_conformance.xi | pass 22/22 | 47b431cb | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.aiff | xiom-aiff | stable | tests/test_conformance.xi | pass 22/22 | 71177e82 | False | legacy bracket repair patch bump |
+| xiom.aiff | xiom-aiff | stable | tests/test_conformance.xi | pass 22/22 | 993c1759 | False | legacy bracket repair patch bump |
 | xiom.alerting | xiom-alerting | stable | tests/test_conformance.xi | pass 21/21 | f908d587 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.amqp | xiom-amqp | stable | tests/test_conformance.xi | pass 21/21 | d9ce9e8c | False | category harmonization patch bump (registry metadata) |
 | xiom.ar | xiom-ar | stable | tests/test_conformance.xi | pass 20/20 | 2883c677 | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -66,7 +66,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.control | xiom-control | stable | tests/test_conformance.xi | pass 32/32 | ae2dec2c | False | publish pending: eco-v0.1.37 promotion |
 | xiom.cookie | xiom-cookie | stable | tests/test_conformance.xi | pass 20/20 | 1270b10d | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.coverage | xiom-coverage | stable | tests/test_conformance.xi | pass 22/22 | 23b01b82 | False | publish pending: next scope delta |
-| xiom.cpio | xiom-cpio | stable | tests/test_conformance.xi | pass 20/20 | 01abe66b | False | legacy bracket repair patch bump |
+| xiom.cpio | xiom-cpio | stable | tests/test_conformance.xi | pass 20/20 | 836fcdd0 | False | legacy bracket repair patch bump |
 | xiom.crc | xiom-crc | stable | tests/test_conformance.xi | pass 20/20 | 23a77f9d | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.cron | xiom-cron | stable | tests/test_conformance.xi | pass 25/25 | db9bb484 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.csv | xiom-csv | stable | tests/test_conformance.xi | pass 20/20 | 56637a83 | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -76,16 +76,16 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.dhcp | xiom-dhcp | stable | tests/test_conformance.xi | pass 16/16 | e4db8620 | False | legacy bracket repair patch bump |
 | xiom.diff | xiom-diff | stable | tests/test_conformance.xi | pass 16/16 | 301c8e7b | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.dimacs | xiom-dimacs | stable | tests/test_conformance.xi | pass 25/25 | 5dd4b078 | False | category harmonization patch bump (registry metadata) |
-| xiom.dns | xiom-dns | stable | tests/test_conformance.xi | pass 24/24 | 5102d410 | False | legacy bracket repair patch bump |
+| xiom.dns | xiom-dns | stable | tests/test_conformance.xi | pass 24/24 | 528a69aa | False | legacy bracket repair patch bump |
 | xiom.dotenv | xiom-dotenv | stable | tests/test_conformance.xi | pass 18/18 | ee7080c4 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.dtb | xiom-dtb | stable | tests/test_conformance.xi | pass 18/18 | 8682b659 | False | legacy bracket repair patch bump |
 | xiom.duration | xiom-duration | stable | tests/test_conformance.xi | pass 22/22 | 676fc4cb | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ean | xiom-ean | stable | tests/test_conformance.xi | pass 20/20 | 4422ca91 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.edl | xiom-edl | stable | tests/test_conformance.xi | pass 22/22 | 77d7ec35 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.eeprom | xiom-eeprom | stable | tests/test_conformance.xi | pass 17/17 | 0be46d3f | False | category harmonization patch bump (registry metadata) |
-| xiom.efi | xiom-efi | stable | tests/test_conformance.xi | pass 22/22 | 77d7ec35 | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.efi | xiom-efi | stable | tests/test_conformance.xi | pass 22/22 | 66facf4d | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.electronics | xiom-electronics | stable | tests/test_conformance.xi | pass 24/24 | c5187ac8 | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.elf | xiom-elf | stable | tests/test_conformance.xi | pass 18/18 | 77d7ec35 | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.elf | xiom-elf | stable | tests/test_conformance.xi | pass 18/18 | 22ec536b | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.eml | xiom-eml | stable | tests/test_conformance.xi | pass 24/24 | d9025950 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.envsubst | xiom-envsubst | stable | tests/test_conformance.xi | pass 22/22 | eaa82ba0 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.escape | xiom-escape | stable | tests/test_conformance.xi | pass 20/20 | c04697e1 | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -118,13 +118,13 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.html | xiom-html | stable | tests/test_conformance.xi | pass 22/22 | c1278f47 | False | legacy bracket repair patch bump |
 | xiom.humanize | xiom-humanize | stable | tests/test_conformance.xi | pass 24/24 | fbbb78d2 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.iban | xiom-iban | stable | tests/test_conformance.xi | pass 21/21 | fd6b4c1a | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.ical | xiom-ical | stable | tests/test_conformance.xi | pass 22/22 | 9c7f7049 | False | legacy bracket repair patch bump |
+| xiom.ical | xiom-ical | stable | tests/test_conformance.xi | pass 22/22 | eefc7015 | False | legacy bracket repair patch bump |
 | xiom.ico | xiom-ico | stable | tests/test_conformance.xi | pass 16/16 | 3865ee7a | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.id3 | xiom-id3 | stable | tests/test_conformance.xi | pass 21/21 | 5c6c3b83 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.imap | xiom-imap | stable | tests/test_conformance.xi | pass 18/18 | fd38977f | False | publish pending: next scope delta |
 | xiom.ini | xiom-ini | stable | tests/test_conformance.xi | pass 20/20 | 485b4f81 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.inline-asm | xiom-inline-asm | stable | tests/test_conformance.xi | pass 24/24 | 03d7c0e4 | False | publish pending: next scope delta |
-| xiom.irc | xiom-irc | stable | tests/test_conformance.xi | pass 24/24 | 2bcdc226 | False | category harmonization patch bump (registry metadata) |
+| xiom.irc | xiom-irc | stable | tests/test_conformance.xi | pass 24/24 | a2d05155 | False | category harmonization patch bump (registry metadata) |
 | xiom.iso8583 | xiom-iso8583 | stable | tests/test_conformance.xi | pass 18/18 | fd38977f | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.jpeg | xiom-jpeg | stable | tests/test_conformance.xi | pass 16/16 | fd38977f | False | publish pending: wave-34 batch (eco-v0.1.4) |
 | xiom.json | xiom-json | stable | tests/test_conformance.xi | pass 44/44 | ae2dec2c | False | publish pending: eco-v0.1.37 promotion |
@@ -194,7 +194,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.plist | xiom-plist | stable | tests/test_conformance.xi | pass 22/22 | 4ff075bf | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.pls | xiom-pls | stable | tests/test_conformance.xi | pass 23/23 | f21291c9 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.plural | xiom-plural | stable | tests/test_conformance.xi | pass 35/35 | 9ffa99c2 | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.ply | xiom-ply | stable | tests/test_conformance.xi | pass 25/25 | 4ff075bf | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.ply | xiom-ply | stable | tests/test_conformance.xi | pass 25/25 | a34ba7cf | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.png | xiom-png | stable | tests/test_conformance.xi | pass 17/17 | 4ff075bf | False | publish pending: allowlist + next eco tag |
 | xiom.pool | xiom-pool | stable | tests/test_conformance.xi | pass 22/22 | 100ba6e8 | False | publish pending: next scope delta |
 | xiom.pop3 | xiom-pop3 | stable | tests/test_conformance.xi | pass 27/27 | 4ff075bf | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -217,7 +217,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.refactor | xiom-refactor | stable | tests/test_conformance.xi | pass 20/20 | dc5b4c29 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.relativity | xiom-relativity | stable | tests/test_conformance.xi | pass 20/20 | b4b1eed5 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.report | xiom-report | stable | tests/test_conformance.xi | pass 24/24 | 061caa75 | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.resolv | xiom-resolv | stable | tests/test_conformance.xi | pass 25/25 | df934ed2 | False | publish pending: registry scope addition + repo protection decision + allowlist |
+| xiom.resolv | xiom-resolv | stable | tests/test_conformance.xi | pass 25/25 | 0ddfaa1d | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.retry | xiom-retry | stable | tests/test_conformance.xi | pass 21/21 | b7ca16e9 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ris | xiom-ris | stable | tests/test_conformance.xi | pass 20/20 | 8388ca23 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.robotics | xiom-robotics | stable | tests/test_conformance.xi | pass 19/19 | a1f30e81 | False | publish pending: registry scope addition + repo protection decision + allowlist |
@@ -261,7 +261,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.svg | xiom-svg | stable | tests/test_conformance.xi | pass 20/20 | 22755120 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.syslog | xiom-syslog | stable | tests/test_conformance.xi | pass 24/24 | df934ed2 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.systemd | xiom-systemd | stable | tests/test_conformance.xi | pass 20/20 | 22d0dbdc | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.tap | xiom-tap | stable | tests/test_conformance.xi | pass 24/24 | df934ed2 | False | publish pending: next scope delta |
+| xiom.tap | xiom-tap | stable | tests/test_conformance.xi | pass 24/24 | 74ae845d | False | publish pending: next scope delta |
 | xiom.tar | xiom-tar | stable | tests/test_conformance.xi | pass 22/22 | 80b94336 | False | legacy bracket repair patch bump |
 | xiom.tcx | xiom-tcx | stable | tests/test_conformance.xi | pass 23/23 | 33dec7fe | False | legacy bracket repair patch bump |
 | xiom.telnet | xiom-telnet | stable | tests/test_conformance.xi | pass 18/18 | a931e97a | False | legacy bracket repair patch bump |
@@ -283,7 +283,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.tsv | xiom-tsv | stable | tests/test_conformance.xi | pass 22/22 | 7986ca8a | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ttl | xiom-ttl | stable | tests/test_conformance.xi | pass 14/14 | ab206c98 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.typography | xiom-typography | stable | tests/test_conformance.xi | pass 20/20 | b878d230 | False | publish pending: registry scope addition + repo protection decision + allowlist |
-| xiom.tzif | xiom-tzif | stable | tests/test_conformance.xi | pass 17/17 | 7eb2da3d | False | legacy bracket repair patch bump |
+| xiom.tzif | xiom-tzif | stable | tests/test_conformance.xi | pass 17/17 | 9b1b81fd | False | legacy bracket repair patch bump |
 | xiom.uart | xiom-uart | stable | tests/test_conformance.xi | pass 21/21 | f35ee04b | False | category harmonization patch bump (registry metadata) |
 | xiom.uboot | xiom-uboot | stable | tests/test_conformance.xi | pass 16/16 | e7ac6050 | False | publish pending: registry scope addition + repo protection decision + allowlist |
 | xiom.ulid | xiom-ulid | stable | tests/test_conformance.xi | pass 18/18 | b713828d | False | publish pending: registry scope addition + repo protection decision + allowlist |

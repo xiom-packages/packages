@@ -1,6 +1,6 @@
 # xiom.ply -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.ply` (`src/ply.xi`). Pure XIOM, no FFI, no dependencies beyond
 `xiom.std`.
 
@@ -216,6 +216,63 @@ O(output bytes); element lookups are O(elements), property lookups
 O(properties of the element), `ply_row_value` O(elements + 1), and
 `ply_value_int` O(elements + digits). Memory is O(elements + properties +
 comments + body tokens).
+
+## Contracts (batch #39 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/ply.xi` in the batch #39
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator
+at integration). All 49 clauses are `ensures:` (no `requires:`), so the
+accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.ply -TimeoutSec 60` runs ended
+`port: PASS (passed=25 failed=0 program_exit=0 exit=0)` with the clauses
+active (14.4 s and 11.5 s); the 25-check conformance suite exercises every
+contracted entry point, including the empty-document, out-of-range sentinel
+and hand-built-document paths, and no clause trapped.
+
+All 49 clauses are marked **runtime-checked**; none is claimed Z3-provable.
+A direct `xiom-verify src\ply.xi --check` run (Z3 bundled with v0.64.0)
+reported **1 proven / 0 violated / 38 unknown / 9 errors**; the error lines
+are the known emitter bug (the generated SMT refers to unknown constants
+such as `_ply_prop_start`, `_ply_err_int`, `_ply_scan_mag`,
+`_ply_token_neg`, `_ply_element_token_start` and `_ply_tokens_needed`), so
+the tool itself reports "not a proof failure of the code under test", and
+per the batch #37 finding an `[OK] VERIFIED` line alone can be a vacuous
+UNSAT. No clause reads a `Result` payload or a struct-return payload,
+indexes a vector, compares `Str` values, references a module constant, or
+uses `@pre`; only parameter/`result` shapes, `Str`/`Vec` lengths, `Int`
+fields and the two listed cross-calls (`ply_element_property` ->
+`ply_element_property_count`, `ply_value_int` -> `ply_element_property`)
+are used, and neither callee transitively reaches its caller.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `ply_type_name` | `code == 1 => result.len() == 4`; `code == 3 => result.len() == 5`; `code == 4 => result.len() == 6`; `code == 8 => result.len() == 6`; `code < 1 \|\| code > 8 => result.len() == 0` | runtime-checked (`Int` guard + `Str` length) |
+| `ply_type_code` | `name.len() == 0 => result == 0`; `result >= 0 && result <= 8`; `result != 0 => result >= 1` | runtime-checked (`Str` length + `Int` range) |
+| `ply_parse` | `text.len() == 0 => result is Err` | runtime-checked (`Result` tag + `Str` length; never a payload read) |
+| `ply_element_name` | `e < 0 => result.len() == 0`; `e >= doc.elem_names.len() => result.len() == 0`; `result.len() > 0 => e >= 0 && e < doc.elem_names.len()` | runtime-checked (`Str` length vs field length) |
+| `ply_element_rows` | `e < 0 => result == 0`; `e >= doc.elem_counts.len() => result == 0`; `result > 0 => e >= 0 && e < doc.elem_counts.len()` | runtime-checked (`Int` sentinel vs field length) |
+| `ply_element_property_count` | `e < 0 => result == 0`; `e >= doc.elem_prop_starts.len() => result == 0`; `e >= doc.elem_prop_ends.len() => result == 0`; `result >= 0` | runtime-checked (sentinel + non-negativity) |
+| `ply_element_property` | `e < 0 => result == -1`; `j < 0 => result == -1`; `j >= ply_element_property_count(doc, e) => result == -1`; `result != -1 => j >= 0 && j < ply_element_property_count(doc, e)` | runtime-checked (sentinel + cross-call to `ply_element_property_count`, which never reaches this function) |
+| `ply_property_name` | `p < 0 => result.len() == 0`; `p >= doc.prop_names.len() => result.len() == 0`; `result.len() > 0 => p >= 0 && p < doc.prop_names.len()` | runtime-checked (`Str` length vs field length) |
+| `ply_property_type` | `p < 0 => result == 0`; `p >= doc.prop_types.len() => result == 0`; `result != 0 => p >= 0 && p < doc.prop_types.len()` | runtime-checked (`Int` sentinel vs field length) |
+| `ply_property_element` | `result >= -1`; `result < doc.elem_names.len()` | runtime-checked (sentinel + bounds) |
+| `ply_property_index` | `result >= -1`; `result < doc.prop_names.len()` | runtime-checked (sentinel + bounds) |
+| `ply_comment` | `i < 0 => result.len() == 0`; `i >= doc.comments.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < doc.comments.len()` | runtime-checked (`Str` length vs field length) |
+| `ply_row_value` | `e < 0 => result.len() == 0`; `j < 0 => result.len() == 0`; `r < 0 => result.len() == 0` | runtime-checked (`Str` length + sentinel) |
+| `ply_value_int` | `j < 0 => result is Err`; `ply_element_property(doc, e, j) < 0 => result is Err`; `r < 0 => result is Err`; `result is Ok => ply_element_property(doc, e, j) >= 0 && r >= 0` | runtime-checked (`Result` tag + cross-call; no payload read) |
+| `ply_build_header` | `result.len() >= 32`; `doc.elem_names.len() == 0 && doc.comments.len() == 0 => result.len() == 32` | runtime-checked (`Str` length; 32 = magic + format + `end_header` with LF) |
+| `ply_build` | `doc.elem_counts.len() != doc.elem_names.len() => result is Err`; `doc.elem_prop_starts.len() != doc.elem_names.len() => result is Err`; `doc.elem_prop_ends.len() != doc.elem_names.len() => result is Err`; all four declaration vectors and `tokens` empty => `result is Ok` | runtime-checked (`Result` tag + field lengths) |
+
+Every clause holds for hand-built `PlyDoc` values: the accessors clamp
+out-of-range reads first, and the one-way forms (`result.len() > 0 =>`,
+`result != -1 =>`, `result is Ok =>`) are void, not falsified, when a
+hand-built document stores an in-range empty `Str` or a type code 0. The
+`ply_build` Ok clause fires only for the all-empty document, where
+`_ply_tokens_needed` returns 0 and the emitted header is exactly 32 bytes.
+The declaration-length mismatch guards match `_ply_tokens_needed`'s first
+three checks and can only report `Err` (the function never reaches the
+tokens-length equality check in those cases).
+No clause was dropped and no probe-gated clause was proposed or needed.
 
 ## 7. Error catalog
 

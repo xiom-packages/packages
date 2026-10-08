@@ -48,7 +48,7 @@ exact subset.
 | `dns_rdata_aaaa(octets)` | `Result[Vec[UInt8], Str]` | AAAA RDATA from exactly 16 octets. |
 | `dns_rdata_cname(name)` | `Result[Vec[UInt8], Str]` | CNAME RDATA (uncompressed target name). |
 | `dns_rdata_mx(preference, exchange)` | `Result[Vec[UInt8], Str]` | MX RDATA: u16 preference + exchange name. |
-| `dns_rdata_txt(text)` | `Result[Vec<UInt8>, Str]` | TXT RDATA: one character-string (<= 255 bytes). |
+| `dns_rdata_txt(text)` | `Result[Vec[UInt8], Str]` | TXT RDATA: one character-string (<= 255 bytes). |
 | `dns_rdata_a_to_str(rdata)` | `Result[Str, Str]` | 4 bytes -> `"a.b.c.d"`. |
 | `dns_rdata_aaaa_to_str(rdata)` | `Result[Str, Str]` | 16 bytes -> full-form IPv6. |
 | `dns_rdata_name(data, off, len)` | `Result[DnsName, Str]` | Name stored in RDATA (CNAME/MX target). |

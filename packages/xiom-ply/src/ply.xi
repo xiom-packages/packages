@@ -242,7 +242,13 @@ fn _ply_trim(text: Str, start: Int, end: Int) -> Str {
 /// Params: code - a type code, 0 for unknown.
 /// Returns: "char", "uchar", "short", "ushort", "int", "uint", "float" or
 /// "double"; "" otherwise. Complexity: O(1).
-pub fn ply_type_name(code: Int) -> Str {
+pub fn ply_type_name(code: Int) -> Str
+  ensures: code == 1 => result.len() == 4;
+  ensures: code == 3 => result.len() == 5;
+  ensures: code == 4 => result.len() == 6;
+  ensures: code == 8 => result.len() == 6;
+  ensures: code < 1 || code > 8 => result.len() == 0;
+{
   if code == _PLY_T_CHAR { return "char"; }
   if code == _PLY_T_UCHAR { return "uchar"; }
   if code == _PLY_T_SHORT { return "short"; }
@@ -258,7 +264,11 @@ pub fn ply_type_name(code: Int) -> Str {
 /// one of the eight PLY scalar types. Case-sensitive.
 /// Params: name - a candidate type name.
 /// Returns: 1..8, or 0. Complexity: O(1) (at most eight str_compares).
-pub fn ply_type_code(name: Str) -> Int {
+pub fn ply_type_code(name: Str) -> Int
+  ensures: name.len() == 0 => result == 0;
+  ensures: result >= 0 && result <= 8;
+  ensures: result != 0 => result >= 1;
+{
   if compare.str_compare(name, "char") == 0 { return _PLY_T_CHAR; }
   if compare.str_compare(name, "uchar") == 0 { return _PLY_T_UCHAR; }
   if compare.str_compare(name, "short") == 0 { return _PLY_T_SHORT; }
@@ -578,7 +588,9 @@ fn _ply_body(text: Str, start: Int, doc: &mut PlyDoc) -> Str {
 /// line N"), Err("ply: trailing rows at line N")). Line numbers are 1-based
 /// and count physical lines.
 /// Complexity: O(text bytes).
-pub fn ply_parse(text: Str) -> Result[PlyDoc, Str] {
+pub fn ply_parse(text: Str) -> Result[PlyDoc, Str]
+  ensures: text.len() == 0 => result is Err;
+{
   var doc = _ply_new_doc();
   let h = _ply_header(text, &mut doc);
   match h {
@@ -610,7 +622,11 @@ pub fn ply_element_count(doc: &PlyDoc) -> Int {
 /// Name of element `e` (`"vertex"`, `"face"`, ...).
 /// Params: doc - the document, read only; e - zero-based element index.
 /// Returns: the name; "" when `e` is out of range. Complexity: O(1).
-pub fn ply_element_name(doc: &PlyDoc, e: Int) -> Str {
+pub fn ply_element_name(doc: &PlyDoc, e: Int) -> Str
+  ensures: e < 0 => result.len() == 0;
+  ensures: e >= doc.elem_names.len() => result.len() == 0;
+  ensures: result.len() > 0 => e >= 0 && e < doc.elem_names.len();
+{
   if e < 0 || e >= doc.elem_names.len() {
     return "";
   }
@@ -622,7 +638,11 @@ pub fn ply_element_name(doc: &PlyDoc, e: Int) -> Str {
 /// many rows were accepted from the body.
 /// Params: doc - the document, read only; e - zero-based element index.
 /// Returns: the count; 0 when `e` is out of range. Complexity: O(1).
-pub fn ply_element_rows(doc: &PlyDoc, e: Int) -> Int {
+pub fn ply_element_rows(doc: &PlyDoc, e: Int) -> Int
+  ensures: e < 0 => result == 0;
+  ensures: e >= doc.elem_counts.len() => result == 0;
+  ensures: result > 0 => e >= 0 && e < doc.elem_counts.len();
+{
   if e < 0 || e >= doc.elem_counts.len() {
     return 0;
   }
@@ -633,7 +653,12 @@ pub fn ply_element_rows(doc: &PlyDoc, e: Int) -> Int {
 /// Number of properties declared for element `e`.
 /// Params: doc - the document, read only; e - zero-based element index.
 /// Returns: the property count; 0 when `e` is out of range. Complexity: O(1).
-pub fn ply_element_property_count(doc: &PlyDoc, e: Int) -> Int {
+pub fn ply_element_property_count(doc: &PlyDoc, e: Int) -> Int
+  ensures: e < 0 => result == 0;
+  ensures: e >= doc.elem_prop_starts.len() => result == 0;
+  ensures: e >= doc.elem_prop_ends.len() => result == 0;
+  ensures: result >= 0;
+{
   if e < 0 || e >= doc.elem_prop_starts.len() {
     return 0;
   }
@@ -653,7 +678,12 @@ pub fn ply_element_property_count(doc: &PlyDoc, e: Int) -> Int {
 /// zero-based property slot.
 /// Returns: the index used by ply_property_name/ply_property_type; -1 when
 /// `e` or `j` is out of range. Complexity: O(1).
-pub fn ply_element_property(doc: &PlyDoc, e: Int, j: Int) -> Int {
+pub fn ply_element_property(doc: &PlyDoc, e: Int, j: Int) -> Int
+  ensures: e < 0 => result == -1;
+  ensures: j < 0 => result == -1;
+  ensures: j >= ply_element_property_count(doc, e) => result == -1;
+  ensures: result != -1 => j >= 0 && j < ply_element_property_count(doc, e);
+{
   let pc = ply_element_property_count(doc, e);
   if j < 0 || j >= pc {
     return -1;
@@ -664,7 +694,11 @@ pub fn ply_element_property(doc: &PlyDoc, e: Int, j: Int) -> Int {
 /// Name of property `p` (a global property index).
 /// Params: doc - the document, read only; p - global property index.
 /// Returns: the name; "" when `p` is out of range. Complexity: O(1).
-pub fn ply_property_name(doc: &PlyDoc, p: Int) -> Str {
+pub fn ply_property_name(doc: &PlyDoc, p: Int) -> Str
+  ensures: p < 0 => result.len() == 0;
+  ensures: p >= doc.prop_names.len() => result.len() == 0;
+  ensures: result.len() > 0 => p >= 0 && p < doc.prop_names.len();
+{
   if p < 0 || p >= doc.prop_names.len() {
     return "";
   }
@@ -675,7 +709,11 @@ pub fn ply_property_name(doc: &PlyDoc, p: Int) -> Str {
 /// Scalar type code of property `p` (1..8, see ply_type_name).
 /// Params: doc - the document, read only; p - global property index.
 /// Returns: the code; 0 when `p` is out of range. Complexity: O(1).
-pub fn ply_property_type(doc: &PlyDoc, p: Int) -> Int {
+pub fn ply_property_type(doc: &PlyDoc, p: Int) -> Int
+  ensures: p < 0 => result == 0;
+  ensures: p >= doc.prop_types.len() => result == 0;
+  ensures: result != 0 => p >= 0 && p < doc.prop_types.len();
+{
   if p < 0 || p >= doc.prop_types.len() {
     return 0;
   }
@@ -687,7 +725,10 @@ pub fn ply_property_type(doc: &PlyDoc, p: Int) -> Int {
 /// Params: doc - the document, read only; p - global property index.
 /// Returns: the zero-based element index; -1 when `p` is out of range or
 /// owned by no element. Complexity: O(elements).
-pub fn ply_property_element(doc: &PlyDoc, p: Int) -> Int {
+pub fn ply_property_element(doc: &PlyDoc, p: Int) -> Int
+  ensures: result >= -1;
+  ensures: result < doc.elem_names.len();
+{
   if p < 0 || p >= doc.prop_types.len() {
     return -1;
   }
@@ -710,7 +751,10 @@ pub fn ply_property_element(doc: &PlyDoc, p: Int) -> Int {
 /// name - the exact, case-sensitive property name.
 /// Returns: the global property index; -1 when `e` is out of range or the
 /// element has no such property. Complexity: O(properties of e).
-pub fn ply_property_index(doc: &PlyDoc, e: Int, name: Str) -> Int {
+pub fn ply_property_index(doc: &PlyDoc, e: Int, name: Str) -> Int
+  ensures: result >= -1;
+  ensures: result < doc.prop_names.len();
+{
   let pc = ply_element_property_count(doc, e);
   var j = 0;
   while j < pc {
@@ -744,7 +788,11 @@ pub fn ply_comment_count(doc: &PlyDoc) -> Int {
 /// Params: doc - the document, read only; i - zero-based comment index.
 /// Returns: the text ("" for an empty comment); "" when `i` is out of
 /// range. Complexity: O(1).
-pub fn ply_comment(doc: &PlyDoc, i: Int) -> Str {
+pub fn ply_comment(doc: &PlyDoc, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= doc.comments.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < doc.comments.len();
+{
   if i < 0 || i >= doc.comments.len() {
     return "";
   }
@@ -784,7 +832,11 @@ fn _ply_element_token_start(doc: &PlyDoc, e: Int) -> Int {
 /// Returns: the original token text; "" when any index is out of range. A
 /// stored token is never empty, so "" is an unambiguous sentinel.
 /// Complexity: O(elements + 1).
-pub fn ply_row_value(doc: &PlyDoc, e: Int, r: Int, j: Int) -> Str {
+pub fn ply_row_value(doc: &PlyDoc, e: Int, r: Int, j: Int) -> Str
+  ensures: e < 0 => result.len() == 0;
+  ensures: j < 0 => result.len() == 0;
+  ensures: r < 0 => result.len() == 0;
+{
   let pc = ply_element_property_count(doc, e);
   let rows = ply_element_rows(doc, e);
   if j < 0 || j >= pc {
@@ -819,7 +871,12 @@ pub fn ply_row_value(doc: &PlyDoc, e: Int, r: Int, j: Int) -> Str {
 /// stored token cannot be converted (only possible for a hand-built
 /// document).
 /// Complexity: O(elements + digits).
-pub fn ply_value_int(doc: &PlyDoc, e: Int, r: Int, j: Int) -> Result[Int, Str] {
+pub fn ply_value_int(doc: &PlyDoc, e: Int, r: Int, j: Int) -> Result[Int, Str]
+  ensures: j < 0 => result is Err;
+  ensures: ply_element_property(doc, e, j) < 0 => result is Err;
+  ensures: r < 0 => result is Err;
+  ensures: result is Ok => ply_element_property(doc, e, j) >= 0 && r >= 0;
+{
   let p = ply_element_property(doc, e, j);
   if p < 0 {
     return _ply_err_int("ply: property out of range");
@@ -940,7 +997,10 @@ fn _ply_tokens_needed(doc: &PlyDoc) -> Int {
 /// `element`/`property` line per declaration; it always ends in LF.
 /// Error case: none (inconsistent parallel vectors are skipped defensively).
 /// Complexity: O(header size).
-pub fn ply_build_header(doc: &PlyDoc) -> Str {
+pub fn ply_build_header(doc: &PlyDoc) -> Str
+  ensures: result.len() >= 32;
+  ensures: doc.elem_names.len() == 0 && doc.comments.len() == 0 => result.len() == 32;
+{
   var sb = builder.sb_new();
   _ply_emit_header(doc, &mut sb);
   return builder.sb_to_str(&sb);
@@ -955,7 +1015,12 @@ pub fn ply_build_header(doc: &PlyDoc) -> Str {
 /// Error case: Err("ply: element count mismatch") when the declared element
 /// counts and the stored token stream disagree.
 /// Complexity: O(output bytes).
-pub fn ply_build(doc: &PlyDoc) -> Result[Str, Str] {
+pub fn ply_build(doc: &PlyDoc) -> Result[Str, Str]
+  ensures: doc.elem_counts.len() != doc.elem_names.len() => result is Err;
+  ensures: doc.elem_prop_starts.len() != doc.elem_names.len() => result is Err;
+  ensures: doc.elem_prop_ends.len() != doc.elem_names.len() => result is Err;
+  ensures: doc.elem_names.len() == 0 && doc.elem_counts.len() == 0 && doc.elem_prop_starts.len() == 0 && doc.elem_prop_ends.len() == 0 && doc.tokens.len() == 0 => result is Ok;
+{
   let need = _ply_tokens_needed(doc);
   if need < 0 {
     return _ply_err_str("ply: element count mismatch");

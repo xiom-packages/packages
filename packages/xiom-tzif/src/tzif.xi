@@ -247,7 +247,12 @@ fn _magic_ok(data: &Vec[UInt8], off: Int) -> Bool {
 
 // File version number for a version byte: 1 for NUL, 2 for '2', 3 for '3',
 // 0 for any unsupported byte. The caller guarantees one readable byte.
-fn _version_number(b: Int) -> Int {
+fn _version_number(b: Int) -> Int
+  ensures: b == 0 => result == 1;
+  ensures: b == 50 => result == 2;
+  ensures: b == 51 => result == 3;
+  ensures: b != 0 && b != 50 && b != 51 => result == 0;
+{
   if b == 0 { return 1; }
   if b == 50 { return 2; }
   if b == 51 { return 3; }
@@ -269,7 +274,12 @@ fn _read_counts(data: &Vec[UInt8], off: Int) -> _Counts {
 
 // True when the RFC 8536 count rules hold for one block: typecnt and
 // charcnt must be nonzero and each indicator count must be 0 or typecnt.
-fn _counts_ok(c: _Counts) -> Bool {
+fn _counts_ok(c: _Counts) -> Bool
+  ensures: c.typecnt == 0 || c.charcnt == 0 => result == false;
+  ensures: c.isstdcnt != 0 && c.isstdcnt != c.typecnt => result == false;
+  ensures: c.isutcnt != 0 && c.isutcnt != c.typecnt => result == false;
+  ensures: c.typecnt != 0 && c.charcnt != 0 && (c.isstdcnt == 0 || c.isstdcnt == c.typecnt) && (c.isutcnt == 0 || c.isutcnt == c.typecnt) => result == true;
+{
   if c.typecnt == 0 { return false; }
   if c.charcnt == 0 { return false; }
   if c.isstdcnt != 0 && c.isstdcnt != c.typecnt { return false; }
@@ -279,7 +289,12 @@ fn _counts_ok(c: _Counts) -> Bool {
 
 // The documented message for the first count rule _counts_ok rejects. Only
 // called when _counts_ok(c) is false.
-fn _counts_err(c: _Counts) -> Str {
+fn _counts_err(c: _Counts) -> Str
+  ensures: c.typecnt == 0 => result.len() == 26;
+  ensures: c.typecnt != 0 && c.charcnt == 0 => result.len() == 28;
+  ensures: c.typecnt != 0 && c.charcnt != 0 && c.isstdcnt != 0 && c.isstdcnt != c.typecnt => result.len() == 39;
+  ensures: c.typecnt != 0 && c.charcnt != 0 && (c.isstdcnt == 0 || c.isstdcnt == c.typecnt) && c.isutcnt != 0 && c.isutcnt != c.typecnt => result.len() == 33;
+{
   if c.typecnt == 0 { return "tzif: zero time type count"; }
   if c.charcnt == 0 { return "tzif: zero designation count"; }
   if c.isstdcnt != 0 && c.isstdcnt != c.typecnt { return "tzif: standard indicator count mismatch"; }
@@ -288,7 +303,9 @@ fn _counts_err(c: _Counts) -> Str {
 
 // Total byte size of the data block described by `c` whose time fields are
 // `time_size` bytes wide (4 for version 1, 8 for version 2/3).
-fn _block_size(c: _Counts, time_size: Int) -> Int {
+fn _block_size(c: _Counts, time_size: Int) -> Int
+  ensures: result == c.timecnt * (time_size + 1) + c.typecnt * 6 + c.charcnt + c.leapcnt * (time_size + 4) + c.isstdcnt + c.isutcnt;
+{
   return c.timecnt * (time_size + 1) + c.typecnt * 6 + c.charcnt + c.leapcnt * (time_size + 4) + c.isstdcnt + c.isutcnt;
 }
 
@@ -451,7 +468,17 @@ fn _parse_block(data: &Vec[UInt8], off: Int, time_size: Int, c: _Counts) -> Resu
 }
 
 // Assemble a TzifFile from one parsed block and its counts.
-fn _file_from(version: Int, c: _Counts, b: _Block, footer: Str) -> TzifFile {
+fn _file_from(version: Int, c: _Counts, b: _Block, footer: Str) -> TzifFile
+  ensures: result.version == version;
+  ensures: result.timecnt == c.timecnt;
+  ensures: result.typecnt == c.typecnt;
+  ensures: result.leapcnt == c.leapcnt;
+  ensures: result.charcnt == c.charcnt;
+  ensures: result.isstdcnt == c.isstdcnt;
+  ensures: result.isutcnt == c.isutcnt;
+  ensures: result.times.len() == b.times.len();
+  ensures: result.footer.len() == footer.len();
+{
   return TzifFile{
     version: version;
     timecnt: c.timecnt;
@@ -519,7 +546,10 @@ fn _file_from(version: Int, c: _Counts, b: _Block, footer: Str) -> TzifFile {
 ///
 /// The footer bytes are kept raw; no POSIX TZ string parsing is performed.
 /// Complexity: O(data.len()).
-pub fn tzif_parse(data: &Vec[UInt8]) -> Result[TzifFile, Str] {
+pub fn tzif_parse(data: &Vec[UInt8]) -> Result[TzifFile, Str]
+  ensures: data.len() < 44 => result is Err;
+  ensures: result is Ok => data.len() >= 44;
+{
   let n = data.len();
   if n < 44 { return _err_file("tzif: truncated header"); }
   if !_magic_ok(data, 0) { return _err_file("tzif: bad magic"); }
@@ -583,27 +613,37 @@ pub fn tzif_parse(data: &Vec[UInt8]) -> Result[TzifFile, Str] {
 }
 
 /// File format version: 1, 2 or 3. Complexity: O(1).
-pub fn tzif_version(f: &TzifFile) -> Int {
+pub fn tzif_version(f: &TzifFile) -> Int
+  ensures: result == f.version;
+{
   return f.version;
 }
 
 /// Transition count of the exposed block. Complexity: O(1).
-pub fn tzif_timecnt(f: &TzifFile) -> Int {
+pub fn tzif_timecnt(f: &TzifFile) -> Int
+  ensures: result == f.timecnt;
+{
   return f.timecnt;
 }
 
 /// Local time type count of the exposed block. Complexity: O(1).
-pub fn tzif_typecnt(f: &TzifFile) -> Int {
+pub fn tzif_typecnt(f: &TzifFile) -> Int
+  ensures: result == f.typecnt;
+{
   return f.typecnt;
 }
 
 /// Leap-second record count of the exposed block. Complexity: O(1).
-pub fn tzif_leapcnt(f: &TzifFile) -> Int {
+pub fn tzif_leapcnt(f: &TzifFile) -> Int
+  ensures: result == f.leapcnt;
+{
   return f.leapcnt;
 }
 
 /// Designation table byte count of the exposed block. Complexity: O(1).
-pub fn tzif_charcnt(f: &TzifFile) -> Int {
+pub fn tzif_charcnt(f: &TzifFile) -> Int
+  ensures: result == f.charcnt;
+{
   return f.charcnt;
 }
 
@@ -629,7 +669,10 @@ pub fn tzif_footer(f: &TzifFile) -> Str {
 /// Transition time `i` as a signed UNIX leap-time second count; for
 /// versions 2/3 the 64-bit second-block value. Err("tzif: index out of
 /// range") when i is negative or >= tzif_timecnt. Complexity: O(1).
-pub fn tzif_transition_time(f: &TzifFile, i: Int) -> Result[Int, Str] {
+pub fn tzif_transition_time(f: &TzifFile, i: Int) -> Result[Int, Str]
+  ensures: i < 0 || i >= f.times.len() => result is Err;
+  ensures: i >= 0 && i < f.times.len() => result is Ok;
+{
   if i < 0 || i >= f.times.len() {
     return _err_int("tzif: index out of range");
   }
@@ -719,7 +762,11 @@ pub fn tzif_leap_correction(f: &TzifFile, i: Int) -> Result[Int, Str] {
 /// Err("tzif: no standard indicator table") when the file stores none
 /// (isstdcnt == 0); Err("tzif: index out of range") when t is negative or
 /// >= tzif_typecnt. Complexity: O(1).
-pub fn tzif_std_indicator(f: &TzifFile, t: Int) -> Result[Int, Str] {
+pub fn tzif_std_indicator(f: &TzifFile, t: Int) -> Result[Int, Str]
+  ensures: f.isstd.len() == 0 => result is Err;
+  ensures: t < 0 || t >= f.isstd.len() => result is Err;
+  ensures: f.isstd.len() != 0 && t >= 0 && t < f.isstd.len() => result is Ok;
+{
   if f.isstd.len() == 0 {
     return _err_int("tzif: no standard indicator table");
   }
@@ -734,7 +781,11 @@ pub fn tzif_std_indicator(f: &TzifFile, t: Int) -> Result[Int, Str] {
 /// Err("tzif: no UT indicator table") when the file stores none
 /// (isutcnt == 0); Err("tzif: index out of range") when t is negative or
 /// >= tzif_typecnt. Complexity: O(1).
-pub fn tzif_ut_indicator(f: &TzifFile, t: Int) -> Result[Int, Str] {
+pub fn tzif_ut_indicator(f: &TzifFile, t: Int) -> Result[Int, Str]
+  ensures: f.isut.len() == 0 => result is Err;
+  ensures: t < 0 || t >= f.isut.len() => result is Err;
+  ensures: f.isut.len() != 0 && t >= 0 && t < f.isut.len() => result is Ok;
+{
   if f.isut.len() == 0 {
     return _err_int("tzif: no UT indicator table");
   }
@@ -784,7 +835,16 @@ pub fn tzif_ut_indicator(f: &TzifFile, t: Int) -> Result[Int, Str] {
 /// Err("tzif: designation table too large") when a designation index would
 /// not fit the one-octet desigidx field.
 /// Complexity: O(total vector contents).
-pub fn tzif_build_v1(f: &TzifFile) -> Result[Vec[UInt8], Str] {
+pub fn tzif_build_v1(f: &TzifFile) -> Result[Vec[UInt8], Str]
+  ensures: f.version != 1 => result is Err;
+  ensures: f.version == 1 && f.utoffs.len() == 0 => result is Err;
+  ensures: f.version == 1 && f.utoffs.len() != 0 && (f.isdsts.len() != f.utoffs.len() || f.desig_indices.len() != f.utoffs.len() || f.designations.len() != f.utoffs.len()) => result is Err;
+  ensures: f.version == 1 && f.utoffs.len() != 0 && f.isdsts.len() == f.utoffs.len() && f.desig_indices.len() == f.utoffs.len() && f.designations.len() == f.utoffs.len() && f.times.len() != f.type_indices.len() => result is Err;
+  ensures: f.version == 1 && f.utoffs.len() != 0 && f.isdsts.len() == f.utoffs.len() && f.desig_indices.len() == f.utoffs.len() && f.designations.len() == f.utoffs.len() && f.times.len() == f.type_indices.len() && f.leap_occurs.len() != f.leap_corrections.len() => result is Err;
+  ensures: f.version == 1 && f.utoffs.len() != 0 && f.isdsts.len() == f.utoffs.len() && f.desig_indices.len() == f.utoffs.len() && f.designations.len() == f.utoffs.len() && f.times.len() == f.type_indices.len() && f.leap_occurs.len() == f.leap_corrections.len() && f.isstd.len() != 0 && f.isstd.len() != f.utoffs.len() => result is Err;
+  ensures: f.version == 1 && f.utoffs.len() != 0 && f.isdsts.len() == f.utoffs.len() && f.desig_indices.len() == f.utoffs.len() && f.designations.len() == f.utoffs.len() && f.times.len() == f.type_indices.len() && f.leap_occurs.len() == f.leap_corrections.len() && (f.isstd.len() == 0 || f.isstd.len() == f.utoffs.len()) && f.isut.len() != 0 && f.isut.len() != f.utoffs.len() => result is Err;
+  ensures: result is Ok => f.version == 1 && f.utoffs.len() != 0 && f.isdsts.len() == f.utoffs.len() && f.desig_indices.len() == f.utoffs.len() && f.designations.len() == f.utoffs.len() && f.times.len() == f.type_indices.len() && f.leap_occurs.len() == f.leap_corrections.len() && (f.isstd.len() == 0 || f.isstd.len() == f.utoffs.len()) && (f.isut.len() == 0 || f.isut.len() == f.utoffs.len());
+{
   if f.version != 1 { return _err_bytes("tzif: builder writes version 1 only"); }
   let typecnt = f.utoffs.len();
   if typecnt == 0 { return _err_bytes("tzif: zero time type count"); }

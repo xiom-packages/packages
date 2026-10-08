@@ -1,8 +1,6 @@
 # xiom.aiff -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.aiff`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/aiff.xi` (`module xiom.aiff`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`).
 No FFI: the module declares no `extern "C"` blocks.
@@ -363,7 +361,7 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.aiff
 ```
 
-Last verified: compiler 0.61.3,
+Last verified: compiler 0.64.0,
 `port: PASS (passed=22 failed=0 program_exit=0 exit=0)`.
 
 ## Known limitations
@@ -414,3 +412,56 @@ Last verified: compiler 0.61.3,
   function boundaries only by reference or through `_ok_info`.
 - No `Vec[Float64]`: the sample-rate codec is pure integer arithmetic.
 - Free functions only; no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #38 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/aiff.xi` in the batch #38
+hardening pass (compiler v0.64.0; `package.xi` is left for the coordinator to
+bump at integration). 31 clauses over 15 entry points, all `ensures:` (no
+`requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.aiff -TimeoutSec 60` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active (11.87 s and 11.51 s); no clause trapped.
+
+Every clause holds for hand-built values and structs: the guards keep the
+source's own validation branches, and only parameters, parameter fields and
+plain struct returns are read. No clause reads a bare `&mut` parameter,
+indexes a vector, uses a module constant, compares `Str` values with `==`,
+reads a struct-Result payload field or uses `result.value.0/.1`. The only
+clause call is the definitional `aiff_parse(data) is Ok` identity in
+`aiff_is_valid` (the callee never calls its caller; non-re-entrant).
+
+Inexpressible plan items were elided: the `&mut file` guards in
+`aiff_append_chunk` (short-buffer, FORM magic), its printable-id guard
+(needs `_printable_str`), the FORM magic/form-type/size checks and the
+COMM/SSND-seen checks in `aiff_parse` (byte reads through `_tag_at` /
+`_be_u32` or vector indexing), the sign-bit and exponent-0x7FFF guards in
+`aiff_decode_sample_rate` (byte indexing), and the indexed-span guard in
+`aiff_chunk_data` (`info.chunk_offsets[i]`). No probe-gated items applied.
+
+The `aiff_decode_sample_rate` Ok-side bound is `0..2147483647`; the rounding
+edge (`q = 2^31 - 1` plus the tie bit, exponent 16413 with mantissa
+`0xFFFFFFFF00000000`) is rejected by the post-rounding guard, matching the
+documented limit. The pre-fix build returned `2^31` for that input; fixed in
+this pass, regression pinned in `tests/test_conformance.xi`.
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it
+can emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `_clamp_channels` | `c < 1 => result == 1`; `c > 65535 => result == 65535`; `c >= 1 && c <= 65535 => result == c` | runtime-checked |
+| `_clamp_u32` | `v < 0 => result == 0`; `v > 4294967295 => result == 4294967295`; `v >= 0 && v <= 4294967295 => result == v` | runtime-checked |
+| `aiff_encode_sample_rate` | `result.len() == 10` | runtime-checked |
+| `aiff_decode_sample_rate` | `offset < 0 => result is Err`; `offset + 10 > data.len() => result is Err`; `result is Ok => result.value >= 0 && result.value <= 2147483647` | runtime-checked |
+| `aiff_build` | `result.len() >= 54` | runtime-checked |
+| `aiff_append_chunk` | `id.len() != 4 => result is Err` | runtime-checked |
+| `aiff_parse` | `data.len() < 12 => result is Err`; `result is Ok => data.len() >= 12` | runtime-checked |
+| `aiff_is_valid` | `result == (aiff_parse(data) is Ok)` | runtime-checked |
+| `aiff_chunk_count` | `result == info.chunk_ids.len()` | runtime-checked |
+| `aiff_chunk_id` | `i < 0 => result.len() == 0`; `i >= info.chunk_ids.len() => result.len() == 0` | runtime-checked |
+| `aiff_chunk_offset` | `i < 0 => result == -1`; `i >= info.chunk_offsets.len() => result == -1` | runtime-checked |
+| `aiff_find_chunk` | `info.chunk_ids.len() == 0 => result == -1`; `result >= 0 => result < info.chunk_ids.len()` | runtime-checked |
+| `aiff_chunk_data` | `i < 0 => result is Err`; `i >= info.chunk_ids.len() => result is Err`; `result is Ok => i >= 0 && i < info.chunk_ids.len()` | runtime-checked |
+| `aiff_sample_data` | `info.ssnd_data_offset < 0 => result is Err`; `info.ssnd_data_size < 0 => result is Err`; `info.ssnd_data_offset + info.ssnd_data_size > data.len() => result is Err`; `result is Ok => info.ssnd_data_offset + info.ssnd_data_size <= data.len()` | runtime-checked |
+| `aiff_duration_ms` | `info.sample_rate <= 0 => result is Err`; `info.sample_rate > 0 => result.value == info.sample_frames * 1000 / info.sample_rate` | runtime-checked |

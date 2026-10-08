@@ -1,8 +1,6 @@
 # xiom.efi -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.efi`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/efi.xi` (`module xiom.efi`).
 Depends on `xiom.std` (uses `xiom.string.byte_at`); tests add `xiom.test`,
 `xiom.io`, `xiom.string`, `xiom.string.compare`, `xiom.encoding.hex`. No FFI.
@@ -284,6 +282,34 @@ pub fn ffs_integrity_ok(data: &Vec[UInt8], f: &FfsFile) -> Bool
   `efi: file too large`. With `FFS_ATTRIB_CHECKSUM` set, the data checksum is
   patched into byte 17 and the header checksum (computed afterwards) into
   byte 16. The result always has a length that is a multiple of 8.
+
+## Contracts (batch #39 hardening pass, 2026-10-08)
+
+`ensures:` clauses (59, across the 16 functions below) were added using the
+runtime-checkable families: Result-tag guards, exact field/formula identities,
+sentinel returns and primitive cross-call guards. Every clause is enforced as
+a runtime check. None is claimed Z3-provable: `xiom-verify` on v0.64.0 can
+report `[OK] VERIFIED` from a vacuous UNSAT, and no real obligation was
+demonstrated for this module, so the Z3-provable column is "no" throughout.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `ffs_parse` | 2 | `data.len() < 24` => `Err`; `Ok` => `data.len() >= 24` | no | yes |
+| `ffs_file_type_name` | 5 | OEM range 224..239; pinned lengths (0 -> 7, 9 -> 11, 255 -> 10); non-empty | no | yes |
+| `ffs_file_size` | 1 | `result == f.size` | no | yes |
+| `ffs_file_is_large` | 2 | `result == f.large` (both polarities) | no | yes |
+| `ffs_file_header_size` | 1 | `result == f.header_size` | no | yes |
+| `ffs_section_count` | 6 | `0 <= result` and `result <=` each of the five section column lengths | no | yes |
+| `ffs_section_type` | 3 | out-of-range index => `-1`; `-1` only for an out-of-range index | no | yes |
+| `ffs_section_type_name` | 5 | pinned lengths (1 -> 11, 16 -> 4, 21 -> 14, 24 -> 21, 0 -> 7) | no | yes |
+| `ffs_section_size` | 3 | out-of-range index => `-1`; `-1` only for an out-of-range index | no | yes |
+| `ffs_section_raw` | 3 | out-of-range index => `Err`; `Ok` only for an in-range index | no | yes |
+| `ffs_section_build_number` | 4 | non-VERSION or out-of-range => `-1`; non-`-1` => VERSION section | no | yes |
+| `ffs_section_guid` | 4 | non-GUID type or out-of-range => `""`; non-empty => GUID type | no | yes |
+| `ffs_header_checksum` | 3 | bad header size or large/header mismatch => `-1`; non-`-1` in 0..255 | no | yes |
+| `ffs_data_checksum` | 3 | size below the header or above the buffer => `-1`; else 0..255 | no | yes |
+| `ffs_integrity_ok` | 3 | header mismatch, size below the header or above the buffer => `false` | no | yes |
+| `ffs_build` | 11 | bad name/type/attributes/state/section type or per-type body minimum => `Err`; body > 0xFFFFFF => `Err` | no | yes |
 
 ## Error string catalog
 

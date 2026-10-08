@@ -1,8 +1,6 @@
 # xiom.cpio -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.cpio`, version `0.1.0`).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `src/cpio.xi` (`module xiom.cpio`).
 Depends on `xiom.std` (`xiom.string`: `byte_at`); the tests additionally use
 `xiom.test`, `xiom.io`, `xiom.string`, `xiom.string.compare` and
@@ -281,6 +279,52 @@ Named field accessors
   entry writer and finishes with the canonical trailer. The first failing
   entry surfaces its error unchanged. An empty build yields exactly the
   trailer entry.
+
+## Contracts (batch #39 hardening pass, 2026-10-08)
+
+Runtime-checked `ensures:` clauses were added to `src/cpio.xi` (compiler
+v0.64.0; `package.xi` is left for the coordinator to bump at integration):
+38 clauses over 16 entry points, all `ensures:` (no `requires:`), so the
+accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.cpio -TimeoutSec 60` runs ended
+`port: PASS (passed=20 failed=0 program_exit=0 exit=0)` with the clauses
+active (11.5 s and 15.63 s); no clause trapped.
+
+Every clause holds for hand-built values and structs: clauses read only
+parameters, parameter fields, plain results and `Str.len()`, and never the
+`&mut out` receiver of `cpio_append`/`cpio_append_trailer`. The only clause
+calls are `cpio_count` and `cpio_entry_field`, both more primitive than
+their callers (neither ever calls its caller; non-re-entrant). No clause
+indexes a vector, uses a module constant, compares `Str` values with `==`,
+reads a struct-Result payload field or uses `result.value.0/.1`.
+
+No Z3 claim is made: `xiom-verify` was not run in this pass (on v0.64.0 it
+can emit a vacuous UNSAT), so every clause below is runtime-checked.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `cpio_parse` | `data.len() < 6` => Err; Ok => `data.len() >= 6` | runtime-checked |
+| `cpio_detect_format` | `data.len() < 6` => `-1`; `result >= -1 && result <= 1` | runtime-checked |
+| `cpio_count` | `result == a.names.len()` | runtime-checked |
+| `cpio_entry_format` | bad `i` => `-1`; `result != -1` => `i` in `0..cpio_count(a)` | runtime-checked |
+| `cpio_entry_field` | bad `i` => `-1`; bad `k` (outside `0..10`) => `-1`; `result != -1` => `i` in `0..cpio_count(a)` and `k` in `0..10` | runtime-checked |
+| `cpio_entry_name` | bad `i` => `result.len() == 0`; `result.len() > 0` => `i` in `0..cpio_count(a)` | runtime-checked |
+| `cpio_entry_ino` | bad `i` => `-1`; `result == cpio_entry_field(a, i, 0)` | runtime-checked |
+| `cpio_entry_mode` | `result == cpio_entry_field(a, i, 1)` | runtime-checked |
+| `cpio_entry_nlink` | `result == cpio_entry_field(a, i, 4)` | runtime-checked |
+| `cpio_entry_mtime` | `result == cpio_entry_field(a, i, 5)` | runtime-checked |
+| `cpio_entry_filesize` | bad `i` => `-1`; `result != -1` => `i` in `0..a.filesizes.len()` | runtime-checked |
+| `cpio_entry_data_offset` | bad `i` => `-1`; `result != -1` => `i` in `0..a.data_offsets.len()` | runtime-checked |
+| `cpio_entry_data` | bad `i` => Err; Ok => `i` in `0..cpio_count(a)` | runtime-checked |
+| `cpio_append` | bad `format` => Err; `meta.len() != 11` => Err | runtime-checked |
+| `cpio_append_trailer` | valid `format` (0 or 1) => Ok; bad `format` => Err | runtime-checked |
+| `cpio_build` | bad `format` => Err; `names.len() != datas.len()` => Err; `metas.len() != names.len() * 11` => Err; empty valid inputs => Ok | runtime-checked |
+
+No pre-plan clause was dropped or probe-gated; all 38 were implemented from
+the plan. The byte-level checks (magic, digit validation, name NUL
+placement, alignment padding, `filesize` fit) are byte reads through
+`_byte`/`_hex_field`/`_oct_field` and remain source-enforced checks
+documented in the error catalog below.
 
 ## Error string catalog
 

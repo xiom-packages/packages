@@ -1,6 +1,6 @@
 # xiom.irc -- specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `xiom.irc` (`src/irc.xi`). Pure XIOM, no FFI, no I/O.
 
 ## 1. Scope and model
@@ -347,3 +347,52 @@ Element comparisons in the suite go through `xiom.string.compare`'s
 - **No canonicalization of unknown escapes:** the parser drops the
   backslash of an unknown escape (per the message-tags specification), so
   parse -> render is byte-exact only for canonical input.
+
+## Contracts (batch #38 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/irc.xi` in the batch #38
+hardening pass (compiler v0.64.0; `package.xi` is bumped by the coordinator
+at integration). 23 clauses over 15 entry points, all `ensures:` (no
+`requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.irc -TimeoutSec 60` runs ended
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses
+active (7.22 s and 7.78 s); no clause trapped and none was dropped. Guards
+read `Str`/`Vec` lengths and plain struct-return / `&struct` fields; no
+`Str` value is compared with `==` (length checks only, BUG 17); every
+constant is an inline literal (no module consts); the only clause
+cross-call is the acyclic `irc_is_numeric` from `irc_numeric_code`, and the
+only `Result` payload read is the `Int` `result.value` under that
+`irc_is_numeric` guard (the standard payload arithmetic shape; no struct
+payload field is read anywhere).
+
+Not expressible, therefore not claimed: the parser's content-dependent
+error cases (`irc_parse`'s empty tag section, empty prefix and missing
+command) need byte inspection, so `irc_parse` only claims the empty-input
+Err and the Ok-implies-non-empty guard. The planned `irc_build_numeric`
+clause `0 <= code <= 999 => result is Ok` does not fit the source: a valid
+code still fails when the prefix, a middle parameter or the trailing text
+is rejected by `irc_build_full`, so the Ok direction is claimed only under
+the conditions the source actually requires (empty prefix, no parameters,
+no trailing).
+
+No `xiom-verify` run was made in this pass; all 23 clauses are enforced by
+the v0.64.0 runtime evaluator when the conformance suite runs and are
+marked **runtime-checked only** (no Z3 claim).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `irc_parse` | `text.len() == 0 => result is Err`; `result is Ok => text.len() > 0` | runtime-checked |
+| `irc_parse_prefix` | `prefix.len() == 0 => result.is_server == false && result.nick.len() == 0 && result.user.len() == 0 && result.host.len() == 0`; `result.is_server == true => result.nick.len() == result.raw.len() && result.user.len() == 0 && result.host.len() == 0`; `result.raw.len() <= prefix.len()` | runtime-checked |
+| `irc_render` | `result.len() >= 2`; `m.tag_names.len() == 0 && m.has_prefix == false && m.command.len() == 0 && m.params.len() == 0 && m.has_trailing == false => result.len() == 2` | runtime-checked |
+| `irc_build` | `command.len() == 0 => result is Err` | runtime-checked |
+| `irc_build_full` | `tag_names.len() != tag_values.len() => result is Err`; `command.len() == 0 => result is Err` | runtime-checked |
+| `irc_build_numeric` | `code < 0 \|\| code > 999 => result is Err`; `code >= 0 && code <= 999 && prefix.len() == 0 && params.len() == 0 && !has_trailing => result is Ok` | runtime-checked |
+| `irc_is_numeric` | `m.command.len() != 3 => result == false` | runtime-checked |
+| `irc_numeric_code` | `!irc_is_numeric(m) => result is Err`; `irc_is_numeric(m) => result.value >= 0 && result.value <= 999` | runtime-checked |
+| `irc_eq_ci` | `a.len() != b.len() => result == false`; `a.len() == 0 => result == true` | runtime-checked |
+| `irc_has_tags` | `result == (m.tag_names.len() > 0)` | runtime-checked |
+| `irc_tag_count` | `result == m.tag_names.len()` | runtime-checked |
+| `irc_tag_name` | `i < 0 \|\| i >= m.tag_names.len() => result.len() == 0` | runtime-checked |
+| `irc_tag` | `m.tag_names.len() == 0 => result is None` | runtime-checked |
+| `irc_param_count` | `result == m.params.len()` | runtime-checked |
+| `irc_param` | `i < 0 \|\| i >= m.params.len() => result.len() == 0` | runtime-checked |

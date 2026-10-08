@@ -9,7 +9,7 @@
 
 package xiom_efi {
   name: "xiom.efi";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "UEFI Firmware File System (FFS) file and section codec, documented subset";
   categories: ["systems"];
   keywords: ["uefi", "firmware", "ffs", "format"];

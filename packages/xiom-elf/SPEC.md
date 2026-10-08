@@ -1,8 +1,6 @@
 # xiom.elf -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.elf`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/elf.xi` (`module xiom.elf`).
 Depends on `xiom.std`; the library module imports `xiom.string` (for
 `str_compare`). The tests add `xiom.test`, `xiom.io`,
@@ -240,6 +238,36 @@ Section names
   declares no program and no section tables and parses back cleanly.
   `Err("elf: negative entry")` when `entry < 0`.
 
+## Contracts (batch #38 hardening pass, 2026-10-08)
+
+Runtime-checked `ensures:` clauses were added to `src/elf.xi` (compiler
+v0.64.0). No per-function obligation was demonstrated with `xiom-verify`
+against this implementation -- on v0.64.0 an `[OK] VERIFIED` result alone
+can be a vacuous UNSAT -- so every clause below is listed as
+runtime-checked and the Z3-provable column is intentionally empty.
+
+| Function | Clause | Class |
+|---|---|---|
+| `_read_ident` | `data.len() < 16` => Err; Ok => `data.len() >= 16` | runtime-checked |
+| `_read_header` | `data.len() < 52` => Err; Ok => `data.len() >= 52` | runtime-checked |
+| `elf_parse` | `data.len() < 52` => Err; Ok => `data.len() >= 52` | runtime-checked |
+| `elf_class` | `result == f.class` | runtime-checked |
+| `elf_endianness` | `result == f.endianness` | runtime-checked |
+| `elf_machine` | `result == f.e_machine` | runtime-checked |
+| `elf_entry` | `result == f.e_entry` | runtime-checked |
+| `elf_program_count` | `result == f.seg_types.len()` | runtime-checked |
+| `elf_section_count` | `result == f.sec_types.len()` | runtime-checked |
+| `elf_program_field` | bad `i` => Err; bad `field` (outside `0..7`) => Err; Ok => `i` in `0..seg_types.len()` and `field` in `0..7` | runtime-checked |
+| `elf_section_field` | bad `i` => Err; bad `field` (outside `0..9`) => Err; Ok => `i` in `0..sec_types.len()` and `field` in `0..9` | runtime-checked |
+| `elf_section_name` | bad `i` => Err; Ok => `i` in `0..sec_names.len()` | runtime-checked |
+| `elf_section_index` | empty name table => `-1`; `result >= 0` => `result < sec_names.len()` | runtime-checked |
+| `elf_build_minimal_64le` | `entry < 0` => Err; Ok => `result.value.len() == 64` | runtime-checked |
+
+The plan's byte-level ident/header checks (magic, class, data encoding,
+ident version, `e_version`, `e_ehsize`, table spans, section names) are not
+expressible as clauses (vector indexing is forbidden in clauses) and remain
+source-enforced checks documented in the error catalog below.
+
 ## Error string catalog
 
 | Condition | Error text |
@@ -337,8 +365,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.elf
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=18 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.0 (batch #38 contract-hardening pass,
+2026-10-08), `port: PASS (passed=18 failed=0 program_exit=0 exit=0)` on two
+consecutive runs.
 
 ## Known limitations
 

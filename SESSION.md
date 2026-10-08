@@ -14,7 +14,79 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-08 08:10Z (batch #37 6/6 INTEGRATED -- WRAP PENDING `eco-v0.1.86`; bindings-lane groundwork ready; supersedes the 22:20Z block below):**
+**STATE AT 2026-10-08 09:55Z (batch #39 COMPLETE + PUBLISHED `eco-v0.1.88`; supersedes the 09:30Z block below):**
+- **Batch #39 DONE + PUBLISHED (`eco-v0.1.88`, run `37759634793` SUCCESS; all six live):**
+  `resolv` 0.1.2 (43 clauses; 25/25; `0ddfaa1d`/`e36516e4`), `ical` 0.1.3 (46; 22/22;
+  `eefc7015`/`f7fd16c3`), `efi` 0.1.2 (59; 22/22; `66facf4d`/`1ad2a18e`), `dns` 0.1.3
+  (39; 24/24; `528a69aa`/`025210f6`), `cpio` 0.1.3 (38; 20/20; `836fcdd0`/`b961521a`),
+  `ply` 0.1.2 (49; 25/25; `a34ba7cf`/`792ae004`); all x2 green on v0.64.0 (274 clauses
+  total); wrap `3fb0c9e1`. **~61 zero-clause stable carriers remain** (next: `syslog`
+  ~1033, `acpi`/`ldif` ~1040, rescan at batch #40).
+- **Integration notes (batch #39):** efi's porter corrected one plan literal
+  (`FREEFORM_SUBTYPE_GUID` = 21 chars, not 20; spot-checked) -- keep verifying refined
+  literals against the source; dns's README carried a pre-existing mixed-bracket typo
+  (`Result[Vec<UInt8>, Str]`) -- fixed in the feat commit, whole-package scan now clean;
+  ply's `xiom-verify` run hit the known v0.64.0 emitter bug (9 errors, unknown private
+  constants) -- all 49 clauses correctly marked runtime-checked.
+- **stdlib lane active:** namespace checks now see 1724 stdlib namespaces (was 1720);
+  all batch #39 packages still OK, 0 conflicts.
+- **Bindings lane:** relay transport pinned (`ceeea349`: push the `bindings` branch +
+  relay block at the top of `BINDINGS-SESSION.md`; owner forwards the one-liner).
+  `origin/bindings` still absent as of 09:35Z -- no relay yet; `xiom.sqlite` remains the
+  first allowlist/scope ask at merge.
+- **Compiler/grpc status unchanged:** main unpushed with m202/m206/m209/m210/m211;
+  **v0.64.1 NOT released** (re-checked 09:52Z, latest v0.64.0); grpc staged (`95442d71`);
+  drop-rules after a green repin re-test; PULSE bump addendum probes on the next-archive
+  re-test list.
+- **Credential:** `Lefteris-Notas` active (all writes this session); restore
+  `Lefteris-Ngonart` when another lane needs it.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-08 09:30Z (batch #38 COMPLETE + PUBLISHED `eco-v0.1.87`; PULSE C-PULSE-09/10/11 triaged; bindings marker decided; supersedes the 08:10Z block below):**
+- **Batch #38 DONE + PUBLISHED (`eco-v0.1.87`, run `37756237071` SUCCESS; all six live):**
+  `tzif` 0.1.3 (45 clauses; 17/17; `9b1b81fd`/`19f33932`), `tap` 0.1.2 (32; 24/24;
+  `74ae845d`/`7f4ec55d`), `aiff` 0.1.3 (31 + decode 2^31 rounding-edge FIX + regression;
+  22/22; `993c1759`/`0fbf65e2`), `irc` 0.1.3 (23; 24/24; `a2d05155`/`00fab15e`), `elf`
+  0.1.2 (24; 18/18; `22ec536b`/`4e9cfa73`), `adc` 0.1.2 (69; 18/18; `2ff65d2d`/`aeeef572`);
+  all x2 green on v0.64.0 (224 clauses total); wrap `79cfebbc`. **~67 zero-clause stable
+  carriers remain** (next: `resolv` ~1003, rescan at batch #39).
+- **aiff edge fix (recorded):** the porter's hand-built check exposed `aiff_decode_sample_rate`
+  returning `2^31` at the rounding edge (SPEC says >2^31-1 rejected); the coordinator added
+  the post-rounding guard + a `hb("401dffffffff00000000")` regression in t3; the SPEC
+  contracts row was tightened to `<= 2147483647`.
+- **PULSE triage committed + pushed (`1feb6f12`):** `docs/COMPILER-FINDINGS.md` rows for
+  C-PULSE-09 (session-store crash via consumer wrapper modules; compiler-lane bisect),
+  C-PULSE-10 (`kv_get` Str corruption) and C-PULSE-11 (package-type alias defaults to i64
+  with a warning); **C-PULSE-10 classification: WINDOWS v0.64.0 GREEN** via
+  `packages/xiom-kv/tests/probe_kv_get_str.xi` (single + multi-key), so PULSE's red is
+  LINUX-target-specific -- Linux consumers keep the `kv_get_bytes` + `from_utf8` workaround.
+  `docs/PACKAGE-WISHLIST.md` §5 adoption delta (metrics/middleware/static adopted green;
+  session deferred; kv blocked) + carry-forwards (static leading-`/` README line; kv
+  >=8-byte/multi-key regression cases at next touch); new bundle in `docs/repro/README.md`.
+- **Bindings lane:** marker decided as `keywords: ["binding"]` (registry-safe; NOT
+  `categories`, which drops unknown tokens) and the namespace-check flow added -- commit
+  `6fa4f9a6`, pushed; relay text given to the owner for the bindings session. Pilot names
+  checked clean: `xiom.sqlite`/`xiom.sdl3`/`xiom.opengl` OK vs 1720 stdlib namespaces;
+  `sdl3`/`opengl` allowlisted, `xiom.sqlite` not yet (native lane appends + one ops scope
+  enumeration at merge). Phase-0 script delta now keys on the `binding` keyword when the
+  first binding package lands.
+- **Compiler/grpc status unchanged:** main unpushed with m202/m206/m209/m210/m211;
+  **v0.64.1 NOT released** (re-checked 09:25Z, latest v0.64.0); grpc staged (`95442d71`);
+  drop-rules apply after a green repin re-test; PULSE bump addendum probes added to the
+  next-archive re-test list (`probe_pkg_state_holder`, `probe_adopt_smoke`,
+  `probe_session_inline`, `probe_pkg_kv`, `dep-roots-name-form` both variants).
+- **Restart note:** a PC restart killed the first batch #38 porter dispatch cleanly (zero
+  partial edits); six porters were re-dispatched and integrated. Explore pre-plan
+  empty-final recovery: resume the task with `variant: low` + a "plan only" prompt --
+  worked first try.
+- **Credential pattern:** write ops via `gh auth switch` to `Lefteris-Notas` (currently
+  ACTIVE after this session's pushes); restore `Lefteris-Ngonart` when the other lane needs
+  it.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-08 08:10Z (batch #37 6/6 integrated; wrapped + published as `eco-v0.1.86`; supersedes the 22:20Z block below):**
 - **Batch #37 integrated, NOT yet wrapped/published.** Six feats + records are committed
   (local may be ahead of origin; eeprom's record commit was the last): `spf` 0.1.2 (25
   clauses, 3 Z3-proven; 26/26; `ce100fb6`/`d6485355`), `spi` 0.1.3 (74; 22/22;
@@ -1586,73 +1658,73 @@ running). Check `git log -1 --format=%h %s` before starting.
    category harmonization = owner decision; (d) keep the port watchdog
    discipline.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-08 08:10Z)
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-08 09:55Z)
 
 ```
 You are the packages session for xiom-packages/packages (native lane; local
 E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
-Read SESSION.md first -- the 2026-10-08 08:10Z STATE block is the live handoff.
+Read SESSION.md first -- the 2026-10-08 09:30Z STATE block is the live handoff.
 Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
-NO XIOM_RUNTIME_DIR needed (runtime-link + crypto-link RESOLVED; workaround retired).
-Validate 519/0; guard 504/464/40/0 (re-check at start). **Batch #37 is 6/6 INTEGRATED but
-NOT wrapped/published**: spf 0.1.2 (25 clauses, 3 Z3-proven), spi 0.1.3 (74), ftp 0.1.2
-(31), rpm 0.1.2 (61), jwt 0.2.1 (32), eeprom 0.1.3 (65); feats ce100fb6/d9f297ab/84243a4c/
-089520ce/97ccf549/0be46d3f, records d6485355/37d217e4/a34eba98/05937bcf/3537c6d3/c0a59406.
-~73 zero-clause stable carriers remain. Bindings lane: groundwork in docs/BINDINGS-LANE.md
-(worktree E:\xiom-packages\bindings, branch `bindings`); the native session stays the ONLY
-publisher; the bindings-session prompt is below. `option` stays excluded. Per user relay: at
-the NEXT pin the never-destructure rule + clone-avoidance workaround can be dropped --
-verify with probes at repin first.
+NO XIOM_RUNTIME_DIR needed. Validate 519/0; guard 504/464/40/0 (re-check at start).
+Batch #39 is DONE + PUBLISHED (`eco-v0.1.88`, run 37759634793): resolv 0.1.2, ical 0.1.3,
+efi 0.1.2, dns 0.1.3, cpio 0.1.3, ply 0.1.2 -- all live-verified. ~61 zero-clause stable
+carriers remain. PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-10 is
+Linux-target-only (Windows probe green: packages\xiom-kv\tests\probe_kv_get_str.xi).
+Bindings marker = `keywords: ["binding"]` (`6fa4f9a6`); relay transport pinned
+(`ceeea349`); sqlite/sdl3/opengl namespace-clean; `xiom.sqlite` not yet allowlisted.
+`option` stays excluded.
 
 CREDENTIAL NOTE: `gh auth status` may show `Lefteris-Ngonart` active, which has only PULL
 on this repo (403 on push). Switch to `Lefteris-Notas` for pushes/gate approvals
 (`gh auth switch --user Lefteris-Notas`) and restore `Lefteris-Ngonart` afterwards if the
 other lane needs it. Verify with `gh api repos/xiom-packages/packages --jq .permissions`.
 
-Start: git fetch; git status -sb; git log -1; if `docs/COMPILER-FINDINGS.md` is dirty it
-carries the two new findings (verifier-vacuity, flaky Ok(Vec) length) -- include it in the
-wrap commit. Then
+Start: git fetch; git status -sb; git log -1; then
   $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
   & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. WRAP FIRST -- publish batch #37 as `eco-v0.1.86`: run generate_index, status -Action
-   report, validate, allowlist-guard, export-namespaces; commit
-   "chore: wrap batch #37 -- six hardening packages (spf/spi/ftp/rpm/jwt/eeprom) at
-   0.1.2-0.2.1; index/status/namespaces" (include dirty docs/COMPILER-FINDINGS.md); push
-   via Notas; `git tag eco-v0.1.86` + push tag; approve the registry-publish gate on the
-   new run (`gh api repos/xiom-packages/packages/actions/runs/<id>/pending_deployments -X
-   POST --input` with {"state":"approved","environment_ids":[22424011031],...}); watch;
-   live-verify spf 0.1.2, spi 0.1.3, ftp 0.1.2, rpm 0.1.2, jwt 0.2.1, eeprom 0.1.3 against
-   https://registry.xiom-lang.org/index.json. Transient GitHub 500s on push: wait 60-90s,
-   retry (worked every time).
-2. Batch #38 (FAN-OUT): rescan zero-clause carriers, skip `option`; next six smallest
-   (tzif 954 is the current smallest after eeprom; verify with the sizing scan); read-only
-   explore pre-plan; six background `task` porters (brief template
-   %TEMP%\kilo\batch37-porter-brief.md); coordinator integrates (port x2, patch bump per
-   CURRENT version, feat + record with real shas and `-RunBy task:ses_...`); wrap + publish
-   the next eco tag. Integration review rules: VERIFY reframed/strengthened clauses against
-   hand-built inputs (toml lesson); do NOT claim Z3-proven from xiom-verify alone
-   (v0.64.0 "VERIFIED" can be vacuous); if a payload-length clause on a helper-returned
-   Ok(Vec) is flaky, drop it and re-express with per-field parameter guards (spi lesson).
-3. IF the official v0.64.1 archive is released: repin per docs/MAINTENANCE.md, re-test the
+1. Batch #40 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
+   -Detailed` for the name list; size them by total non-test .xi lines per package), skip
+   `option`; the next smallest after ply is `syslog` (~1033 lines; verify with the sizing
+   scan, then the next five). Read-only explore pre-plan (one explore task; IF its final
+   message comes back EMPTY, resume it with `variant: low` + a "plan only, no preamble"
+   prompt -- recovered first try on batch #38). Six background `task` porters with the
+   brief template `%TEMP%\kilo\batch39-porter-brief.md` retargeted (batch #40, plan
+   `%TEMP%\kilo\batch40-clause-plan.md`, `## Contracts (batch #40 hardening pass, 2026-10-XX)`).
+   Coordinator integrates as reports land: patch bump per CURRENT version, port x2
+   post-bump, byte-level bracket scan, feat commit exact files, record with the REAL sha
+   and `-RunBy task:ses_...`; wrap + publish the next eco tag (generate_index/report/
+   validate/guard/export-namespaces -> wrap commit -> push via Notas -> tag -> gate
+   approve with `environment_ids:[22424011031]` -> watch -> live-verify). Integration
+   review rules: VERIFY reframed/strengthened clauses against hand-built inputs (toml
+   lesson); do NOT claim Z3-proven from xiom-verify alone (v0.64.0 "VERIFIED" can be
+   vacuous); if a payload-length clause on a helper-returned Ok(Vec) is flaky, drop it and
+   re-express with per-field parameter guards (spi lesson); a hand-built check that exposes
+   a doc/source mismatch gets the minimal source fix + a regression test (aiff 2^31
+   lesson).
+2. IF the official v0.64.1 archive is released: repin per docs/MAINTENANCE.md, re-test the
    open findings on the official install (grpc probe_suite_min/probe_direct GREEN;
    docs/repro/struct-clone/ GREEN m210; tuple-vec-set green; %TEMP%\kilo\retest-listdir.xi
    GREEN m211; io.xi:943 unreproduced; ref-destructure probe GREEN m209; lrc shadowing
-   shape), then `port.ps1 -Package xiom.grpc` x2, record 36/36 on the REAL commit sha,
-   publish grpc in the next eco tag; drop the two rules from briefs + carry-forwards after
-   the green repin. If NOT released: continue batch #38 and re-check at the wrap.
-4. PULSE support: triage new docs/PACKAGE-WISHLIST.md rows (none new at 08:10Z); new names
-   need an allowlist append + one ops scope relay.
-5. Bindings-lane coordination (NEW): watch for relays from the bindings session (template
-   in docs/BINDINGS-LANE.md §6: head SHA, packages, tests, licenses, pins). On a green
-   bindings batch: merge `bindings` -> `main` (file sets are disjoint by rule), regenerate
-   index/status/namespaces, run validate/guard, publish in the next eco tag. Phase-0 script
-   delta when the first binding package lands: exclude `categories: ["binding"]` packages
-   from scripts/contract-coverage.ps1 (small commit, note in SESSION).
-6. Carry-forwards: `-TimeoutSec 60` watchdog; port x2 + byte-level bracket scan on every
+   shape), plus the PULSE bump addendum probes (`probe_pkg_state_holder`,
+   `probe_adopt_smoke`, `probe_session_inline`, `probe_pkg_kv` -- the kv gate should flip
+   green; `docs/repro/dep-roots-name-form` both variants), then `port.ps1 -Package
+   xiom.grpc` x2, record 36/36 on the REAL commit sha, publish grpc in the next eco tag;
+   drop the destructure/clone rules from briefs + carry-forwards after the green repin.
+   If NOT released: continue batch #39 and re-check at the wrap.
+3. PULSE support: triage new docs/PACKAGE-WISHLIST.md rows; the C-PULSE-10 Linux bisect is
+   the compiler lane's; new names need an allowlist append + one ops scope relay.
+4. Bindings-lane coordination: watch for relays (template in docs/BINDINGS-LANE.md §6).
+   On a green bindings batch: merge `bindings` -> `main` (file sets disjoint), regenerate
+   index/status/namespaces, validate/guard, publish in the next eco tag. Phase-0 script
+   delta when the first binding package lands: exclude `keywords: ["binding"]` packages
+   from scripts/contract-coverage.ps1 (keyword-based, NOT categories -- the registry drops
+   unknown category tokens). `xiom.sqlite` needs the allowlist append + one ops scope
+   relay at merge.
+5. Carry-forwards: `-TimeoutSec 60` watchdog; port x2 + byte-level bracket scan on every
    touched package; SPEC headers synced when touched; bump ONLY when source changes;
    `xiom-verify` writes `xiom_verify_output.smt2` to the CWD (put the FILE BEFORE --check,
    package dir CWD, clean by literal path); never use `Vec[(Str,Str)]` in clause shapes;
@@ -1664,6 +1736,14 @@ Then do, in order:
 ```
 
 ### PASTE PROMPT FOR THE BINDINGS SESSION (second worktree, current -- 2026-10-08 08:10Z)
+
+> **Update 2026-10-08 09:30Z:** the binding marker is `keywords: ["binding"]` (§3 G0;
+> NOT `categories` -- the registry drops unknown category tokens) and the namespace-check
+> flow is in §6. Run `git fetch; git merge origin/main` first to pick up commit `6fa4f9a6`.
+> Pilot names verified clean: `xiom.sqlite`/`xiom.sdl3`/`xiom.opengl` (0 conflicts vs 1720
+> stdlib namespaces). `sdl3`/`opengl` are allowlisted; `xiom.sqlite` is NOT yet -- report
+> it under `needs=` and the native lane appends the allowlist + one ops scope enumeration
+> at merge.
 
 ```
 You are the BINDINGS session for the xiom-packages bindings lane (FFI/C-binding packages).

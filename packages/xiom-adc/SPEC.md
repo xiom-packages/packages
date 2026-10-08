@@ -1,8 +1,6 @@
 # xiom.adc -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.adc`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/adc.xi` (`module xiom.adc`).
 Depends on `xiom.std`; the library module imports `xiom.convert`
 (`int_to_string`); the tests also import `xiom.test`, `xiom.io`,
@@ -504,3 +502,67 @@ Last verified: compiler 0.61.3,
 - Dynamic error strings are built with `xiom.convert.int_to_string` (the
   `xiom.convert` module, imported as `convert`).
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #38 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/adc.xi` in the batch #38
+hardening pass (compiler v0.64.0; `package.xi` is left for the coordinator to
+bump at integration). 69 clauses over the 17 contracted functions (the
+private helper `_pow2` plus the public accessors below); all are `ensures:`
+with no `requires:`, so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.adc -TimeoutSec 60` runs ended
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` with the clauses
+active (20.73 s and 20.47 s); the 18-test conformance suite exercises every
+entry point and no clause trapped, so none was dropped.
+
+Every clause is **runtime-checked** (no Z3 claim; `xiom-verify` was not run,
+and per the batch #37 finding a bare `xiom-verify` `[OK] VERIFIED` can be a
+vacuous UNSAT). Clause inputs are parameters or parameter fields only;
+`AdcStats` and `Ads1x15Config` result payload fields are never read (the
+three `Result[Ads1x15Config, Str]` functions constrain only the word/length
+bands and `result is Ok`/`result is Err`); `ads1x15_default_config` is a
+plain struct return and is read field by field through `result`. Module
+constants are inlined as integer literals and no clause indexes a vector or
+compares a `Str`. The only clause calls are the non-re-entrant definitional
+ones: `_pow2` (`adc_full_scale`, `adc_diff_full_scale` and the scaling
+formulas) and `adc_sum` (`adc_mean`); neither callee calls its caller. Every
+guarded division is the aiff `info.sample_rate > 0` / eeprom `page_size > 0`
+pattern, where the divisor is positive whenever the evaluator reaches it;
+`adc_uv_to_raw`'s upper bound is stated in the equivalent Ok-guarded
+contrapositive form `result is Ok => uv <= vref_uv / gain` so the variable
+divisor never appears in an antecedent. Every clause holds for hand-built
+structs: the config field guards mirror the source's own validation
+branches, and hand-built out-of-range fields are rejected exactly as
+claimed.
+
+Two planned shapes were re-expressed (family kept), not dropped:
+
+- `adc_oversample_bits`'s general `resolution + shift > 24 => Err` cannot be
+  written without calling `adc_oversample_shift`, which is not on the
+  approved cross-call list; it is replaced by the boundary pair
+  `resolution == 24 && factor > 1 => result is Err` and
+  `resolution == 23 && factor > 2 => result is Err`, both true for every
+  integer factor (non-power-of-two factors already fail the factor check).
+- `adc_uv_to_raw`'s `uv < 0 || uv > vref_uv / gain => Err` is split into
+  `uv < 0 => result is Err` plus the Ok-guarded contrapositive above,
+  keeping the variable divisor out of clause antecedents.
+
+| Function | Clause(s) added | Class |
+|---|---|---|
+| `_pow2` (private) | `k == 0 => result == 1`; `k == 8 => result == 256`; `k == 16 => result == 65536` | runtime-checked |
+| `adc_validate_resolution` | `bits < 8 \|\| bits > 24 => result is Err`; `bits >= 8 && bits <= 24 => result is Ok` | runtime-checked |
+| `adc_full_scale` | `bits < 8 \|\| bits > 24 => result == -1`; `bits >= 8 && bits <= 24 => result == _pow2(bits) - 1` | runtime-checked |
+| `adc_diff_full_scale` | `bits < 8 \|\| bits > 24 => result == -1`; `bits >= 8 && bits <= 24 => result == _pow2(bits - 1)` | runtime-checked |
+| `adc_raw_to_uv` | `bits < 8 \|\| bits > 24 => result is Err`; `vref_uv <= 0 => result is Err`; `gain < 1 => result is Err`; `raw < 0 \|\| raw > _pow2(bits) - 1 => result is Err`; valid path `=> result.value == vref_uv * raw / (_pow2(bits) - 1) / gain` | runtime-checked |
+| `adc_twos_complement` | `bits < 8 \|\| bits > 24 => result is Err`; `raw < 0 \|\| raw > _pow2(bits) - 1 => result is Err`; top bit set `=> result.value == raw - _pow2(bits)`; top bit clear `=> result.value == raw` | runtime-checked |
+| `adc_raw_to_uv_signed` | `bits < 8 \|\| bits > 24 => result is Err`; `vref_uv <= 0 => result is Err`; `gain < 1 => result is Err`; signed raw out of range `=> result is Err`; valid path `=> result.value == vref_uv * raw / _pow2(bits - 1) / gain` | runtime-checked |
+| `adc_uv_to_raw` | `bits < 8 \|\| bits > 24 => result is Err`; `vref_uv <= 0 => result is Err`; `gain < 1 => result is Err`; `uv < 0 => result is Err`; `result is Ok => uv <= vref_uv / gain`; `result is Ok => result.value == uv * gain * (_pow2(bits) - 1) / vref_uv` | runtime-checked |
+| `adc_sum` | `samples.len() == 0 => result == 0` | runtime-checked |
+| `adc_mean` | `samples.len() == 0 => result is Err`; `samples.len() > 0 => result.value == adc_sum(samples) / samples.len()` | runtime-checked |
+| `adc_oversample_bits` | `resolution < 8 \|\| resolution > 24 => result is Err`; `factor < 1 => result is Err`; `resolution == 24 && factor > 1 => result is Err`; `resolution == 23 && factor > 2 => result is Err`; `factor == 1 => result.value == resolution`; `resolution <= 23 && factor == 2 => result.value == resolution + 1` | runtime-checked |
+| `ads_mux_single` | `channel < 0 \|\| channel > 3 => result is Err`; `channel >= 0 && channel <= 3 => result.value == 4 + channel` | runtime-checked |
+| `ads_mux_differential` | pos/neg outside 0..3 `=> result is Err`; `(0,1) -> 0`, `(0,3) -> 1`, `(1,3) -> 2`, `(2,3) -> 3`; every other in-range pair `=> result is Err` | runtime-checked |
+| `ads1x15_default_config` | `result.os == 1`; `result.mux == 0`; `result.pga == 2`; `result.mode == 1`; `result.dr == 4`; `result.comp_mode == 0`; `result.comp_pol == 0`; `result.comp_lat == 0`; `result.comp_que == 3` | runtime-checked |
+| `ads1x15_config_encode_word` | one `=> result is Err` clause per out-of-range field (os 0..1, mux/pga/dr 0..7, mode/comp_mode/comp_pol/comp_lat 0..1, comp_que 0..3); all-valid `=> result.value ==` the nine-term register formula | runtime-checked |
+| `ads1x15_config_decode_word` | `word < 0 \|\| word > 65535 => result is Err`; `word >= 0 && word <= 65535 => result is Ok` | runtime-checked |
+| `ads1x15_config_decode` | `data.len() < 2 => result is Err`; `data.len() >= 2 => result is Ok` | runtime-checked |
