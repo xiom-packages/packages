@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-08T16:25:58Z",
+    "updated":  "2026-10-08T16:32:34Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -1487,7 +1487,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.cue",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "CUE sheet parsing and canonical emitting",
@@ -1497,7 +1497,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cue/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-cue/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "cue.xi",
                                               "package.xi"
