@@ -3,14 +3,35 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 7 RELAYED** -- `xiom.opengl` 0.3.0 Phase 2 green
-(core-profile probe + extension loading; 13/13 x2 via port.ps1 on v0.64.1);
-awaiting native merge/verify/publish. Batch 6 (raylib 0.2.0) published in
-eco-v0.1.97. Proposed next per roadmap: `xiom.vulkan` (GPU tier) -- or an
-opengl session-API follow-up if the native lane prefers to close that seam
-first.
+**STATUS: BATCH 8 RELAYED** -- `xiom.vulkan` 0.2.0 capability probe green
+(10/10 x2 via port.ps1 on v0.64.1: loader 1.4.350, 20 instance extensions,
+15 layers, RTX 3070 Ti); awaiting native merge/verify/publish. The pre-pilot
+static-bridge engine (~1.7MB) was removed to git history -- native lane:
+flag if you prefer it preserved under `legacy/`. Next per roadmap:
+vulkan Phase 3 (instance extensions/surface/swapchain) or the next sector.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 8: head=af564de9 (code) + this handoff commit; packages=xiom.vulkan 0.2.0
+(capability probe replacing the pre-pilot static bridge); tests=10/10 x2 via scripts/port.ps1
+on v0.64.1 (2026-10-08: loader 1.4.350, 20 instance extensions + head, 15 layers, device
+NVIDIA GeForce RTX 3070 Ti type 2 api 1.4; deterministic SKIP classification per run);
+licenses=MIT OR Apache-2.0 (header-free bridge is our code; Khronos header pinned by hash,
+not vendored); pins=soname vulkan-1.dll + Vulkan-Headers tag vulkan-sdk-1.4.350.0
+vulkan_core.h sha256 6D2BA4755774B1D129DA6B8E661268B494D2D609DF6217C6B6485ACF7666B6C2 +
+entry-point set + ABI details (SPEC.md §2); local sample C:\Windows\System32\vulkan-1.dll
+1.4.350.0 sha256 0419974F00E82A3D619077BA414DA265A774F8DB9D45AD93BC1843F44B2C2C1F;
+gate=G0 OK, G1 OK, G2 OK, G3 OK (ABSENT/NO_DEVICE -> SKIP, ABI -> FAIL; bogus-soname test
+every run), G4 OK (capability suite), G5 OK (all unsafe in the single module xiom.vulkan);
+needs=NONE (already allowlisted); port.args.json present (--c-source src/vk_probe.c, no
+--link; no Vulkan SDK or headers required).
+SCOPE NOTE (native decision requested): the ~1.7MB pre-pilot Vulkan engine bridge
+(bridge/xvk_*, stb headers, shaders, build.ps1/build.sh/run.ps1, old wrappers/tests/docs)
+was removed in this batch and is preserved in git history only. 0.2.0 replaces it with the
+loader-capability path. If you want the bridge material preserved visibly under a
+non-compiled legacy/ directory before merge, say so and I will push a follow-up.
+```
 
 ```
 BINDINGS BATCH 7: head=9eb9ef5b (code) + this handoff commit; packages=xiom.opengl 0.3.0;
@@ -337,6 +358,22 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Next options for batch 8: `xiom.vulkan` (GPU tier per the Phase-2 order)
   or the opengl session API (`opengl_session_get_proc` function-table seam)
   -- native lane to pick; the roadmap lists both.
+
+## Batch 8 notes (xiom.vulkan, 2026-10-08)
+
+- Header-free capability bridge: `vkGetInstanceProcAddr` seam; minimal
+  instance-create ABI declared locally; loader-written structs received into
+  opaque 2048-byte buffers. No Vulkan SDK needed to build or run the probe.
+- Two bugs found by the first present-path run and fixed in the bridge:
+  (1) enumeration with capacity < count returns `VK_INCOMPLETE`(5), which was
+  treated as failure (empty extension head); (2) instance-level functions were
+  resolved via `vkGetInstanceProcAddr(NULL, ...)` -- they must use the
+  instance handle, otherwise device enumeration silently yields 0 devices.
+- Runs: 10/10 x2 (loader 1.4.350; 20 extensions; 15 layers; RTX 3070 Ti
+  discrete, api 1.4). SKIP classification runs every suite invocation.
+- Scope decision requested from the native lane: the pre-pilot static-bridge
+  engine was removed to git history in this batch (same treatment as
+  sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
 
 ## Phase-2 sector order proposal (Phase 1 pilot complete)
 
