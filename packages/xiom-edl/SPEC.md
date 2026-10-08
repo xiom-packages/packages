@@ -1,6 +1,6 @@
 # xiom.edl -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.edl` (`src/edl.xi`). Pure XIOM, no FFI, no file I/O.
 
 ## 1. Scope
@@ -420,3 +420,44 @@ the tests are called directly from `main` (no indexed `Vec[fn]` dispatch).
 - Whole-document only; no streaming, no editing API, no file I/O.
 - Blank-line layout, CRLF and column alignment are not preserved on emit.
 - Errors carry the offending line text but no line/column numbers.
+
+## Contracts (batch #41 hardening pass, 2026-10-08)
+
+Ensures-only `ensures:` clauses were added to the public entry points and to
+the two guarded helpers `_common_len`/`_tc_value` (38 clause lines). All of
+them are runtime-checked; none is claimed Z3-proven. On v0.64.0
+`xiom-verify` can report a vacuous UNSAT `[OK] VERIFIED`, so a clause is
+listed as Z3-provable only when a real proof obligation is demonstrated.
+
+| Function | Runtime-checked `ensures` (summary) | Status |
+|---|---|---|
+| `edl_parse` | NUL byte in input implies Err; unsupported `fps` implies Err; Ok implies `fps` is 24/25/30 | runtime-checked |
+| `edl_emit` | shortest parallel Vec of length 0 implies `""` | runtime-checked |
+| `_common_len` | `>= 0` and `<=` every one of the twelve Vec lengths | runtime-checked |
+| `_tc_value` | `i < 0`, `which` outside 1..4, or the selected Vec too short implies -1 | runtime-checked |
+| `edl_line_count` | equals `e.kinds.len()` | runtime-checked |
+| `edl_line_kind` | out-of-range `i` implies -1 | runtime-checked |
+| `edl_line_text` | out-of-range `i` implies `""` | runtime-checked |
+| `edl_title` | `edl_title_count(e) == 0` implies `""` | runtime-checked |
+| `edl_title_count` | `0 <= result <= e.kinds.len()` | runtime-checked |
+| `edl_frame_base` | equals `e.fps` | runtime-checked |
+| `edl_event_count` | `0 <= result <= e.kinds.len()` | runtime-checked |
+| `edl_event_line` | `i < 0` implies -1; result is -1 or a valid stream index | runtime-checked |
+| `edl_event_number` | `edl_event_line(e, i) < 0` implies -1 | runtime-checked |
+| `edl_event_transition` | `edl_event_line(e, i) < 0` implies -1 | runtime-checked |
+| `edl_event_duration` | `edl_event_line(e, i) < 0` implies -1 | runtime-checked |
+| `edl_event_wipe` | `edl_event_line(e, i) < 0` implies -1 | runtime-checked |
+| `edl_event_timecode_value` | line/selector out of range implies -1; in range equals `_tc_value(e, line, which)` | runtime-checked |
+| `edl_event_timecode` | negative packed value implies `""`; otherwise length 11 | runtime-checked |
+| `edl_timecode_part` | `value < 0` or unknown `part` implies -1; known `part` equals the documented formula | runtime-checked |
+| `edl_timecode` | length 11 | runtime-checked |
+
+| Verification class | Clause lines |
+|---|---|
+| Runtime-checked (this pass) | 38 |
+| Z3-provable | 0 (no obligation demonstrated) |
+
+The transition-implied ranges of `durs`/`wipes` (1..999 for `TR_DISSOLVE`/
+`TR_WIPE`, 0 for cuts) are parse invariants, not runtime clauses: a
+hand-built `Edl` may store any `Int` in those Vecs, so only the out-of-range
+sentinel is guaranteed by the accessors.

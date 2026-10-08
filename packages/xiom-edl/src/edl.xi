@@ -521,7 +521,11 @@ fn _push_tcs(src_ins: &mut Vec[Int], src_outs: &mut Vec[Int],
 /// mm/ss 00..59 and ff < fps; the `;` drop-frame separator is rejected.
 /// Input containing a NUL byte is rejected.
 /// Complexity: O(input length).
-pub fn edl_parse(text: Str, fps: Int) -> Result[Edl, Str] {
+pub fn edl_parse(text: Str, fps: Int) -> Result[Edl, Str]
+  ensures: _find_byte(text, 0) >= 0 => result is Err;
+  ensures: fps != 24 && fps != 25 && fps != 30 => result is Err;
+  ensures: result is Ok => fps == 24 || fps == 25 || fps == 30;
+{
   if _find_byte(text, 0) >= 0 {
     return _err_edl("edl: NUL byte in input");
   }
@@ -723,7 +727,11 @@ fn _nth_kind(e: &Edl, kind: Int, n: Int) -> Int {
 // The shortest length among the twelve parallel Vecs. Emission and guarded
 // accessors never index past it, so a hand-built Edl with unequal arrays
 // cannot cause an out-of-bounds read.
-fn _common_len(e: &Edl) -> Int {
+fn _common_len(e: &Edl) -> Int
+  ensures: result >= 0;
+  ensures: result <= e.kinds.len() && result <= e.nums.len() && result <= e.reels.len() && result <= e.tracks.len() && result <= e.trans.len() && result <= e.durs.len();
+  ensures: result <= e.wipes.len() && result <= e.src_ins.len() && result <= e.src_outs.len() && result <= e.rec_ins.len() && result <= e.rec_outs.len() && result <= e.texts.len();
+{
   var n = e.kinds.len();
   if e.nums.len() < n { n = e.nums.len(); }
   if e.reels.len() < n { n = e.reels.len(); }
@@ -741,7 +749,14 @@ fn _common_len(e: &Edl) -> Int {
 
 // Packed value of timecode `which` of stream slot `i`; -1 when `i` or
 // `which` is out of range.
-fn _tc_value(e: &Edl, i: Int, which: Int) -> Int {
+fn _tc_value(e: &Edl, i: Int, which: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: which < 1 || which > 4 => result == -1;
+  ensures: which == 1 && i >= e.src_ins.len() => result == -1;
+  ensures: which == 2 && i >= e.src_outs.len() => result == -1;
+  ensures: which == 3 && i >= e.rec_ins.len() => result == -1;
+  ensures: which == 4 && i >= e.rec_outs.len() => result == -1;
+{
   if i < 0 {
     return -1;
   }
@@ -797,7 +812,9 @@ fn _push_tc_field(out: &mut Vec[UInt8], e: &Edl, i: Int, which: Int) {
 /// unknown transition code emits `?`. An empty document emits "".
 /// Error case: none.
 /// Complexity: O(total output length).
-pub fn edl_emit(e: &Edl) -> Str {
+pub fn edl_emit(e: &Edl) -> Str
+  ensures: _common_len(e) == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   let n = _common_len(e);
   var i = 0;
@@ -853,12 +870,16 @@ pub fn edl_emit(e: &Edl) -> Str {
 // --------------------------------------------------
 
 /// Number of stored lines (the length of the flat line stream).
-pub fn edl_line_count(e: &Edl) -> Int {
+pub fn edl_line_count(e: &Edl) -> Int
+  ensures: result == e.kinds.len();
+{
   return e.kinds.len();
 }
 
 /// Kind (`LK_*`) of stream line `i`; -1 when `i` is out of range.
-pub fn edl_line_kind(e: &Edl, i: Int) -> Int {
+pub fn edl_line_kind(e: &Edl, i: Int) -> Int
+  ensures: i < 0 || i >= e.kinds.len() => result == -1;
+{
   if i < 0 || i >= e.kinds.len() {
     return -1;
   }
@@ -869,7 +890,9 @@ pub fn edl_line_kind(e: &Edl, i: Int) -> Int {
 /// Text of stream line `i`: the value after `TITLE` for `LK_TITLE`, the raw
 /// comment line (marker included) for `LK_COMMENT`, and "" for `LK_EVENT` or
 /// an out-of-range index.
-pub fn edl_line_text(e: &Edl, i: Int) -> Str {
+pub fn edl_line_text(e: &Edl, i: Int) -> Str
+  ensures: i < 0 || i >= e.kinds.len() => result.len() == 0;
+{
   if i < 0 || i >= e.kinds.len() {
     return "";
   }
@@ -882,7 +905,9 @@ pub fn edl_line_text(e: &Edl, i: Int) -> Str {
 }
 
 /// Text of the first `TITLE` line; "" when the document has no title.
-pub fn edl_title(e: &Edl) -> Str {
+pub fn edl_title(e: &Edl) -> Str
+  ensures: edl_title_count(e) == 0 => result.len() == 0;
+{
   let i = _nth_kind(e, LK_TITLE, 0);
   if i < 0 || i >= e.texts.len() {
     return "";
@@ -892,7 +917,9 @@ pub fn edl_title(e: &Edl) -> Str {
 }
 
 /// Number of `TITLE` lines.
-pub fn edl_title_count(e: &Edl) -> Int {
+pub fn edl_title_count(e: &Edl) -> Int
+  ensures: result >= 0 && result <= e.kinds.len();
+{
   return _count_kind(e, LK_TITLE);
 }
 
@@ -902,7 +929,9 @@ pub fn edl_comment_count(e: &Edl) -> Int {
 }
 
 /// Frame base the document was parsed with (24, 25 or 30).
-pub fn edl_frame_base(e: &Edl) -> Int {
+pub fn edl_frame_base(e: &Edl) -> Int
+  ensures: result == e.fps;
+{
   return e.fps;
 }
 
@@ -911,18 +940,25 @@ pub fn edl_frame_base(e: &Edl) -> Int {
 // --------------------------------------------------
 
 /// Number of event lines.
-pub fn edl_event_count(e: &Edl) -> Int {
+pub fn edl_event_count(e: &Edl) -> Int
+  ensures: result >= 0 && result <= e.kinds.len();
+{
   return _count_kind(e, LK_EVENT);
 }
 
 /// Stream index (usable with the `edl_line_*` accessors) of event `i`; -1
 /// when `i` is out of range.
-pub fn edl_event_line(e: &Edl, i: Int) -> Int {
+pub fn edl_event_line(e: &Edl, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: result >= -1 && result < e.kinds.len();
+{
   return _nth_kind(e, LK_EVENT, i);
 }
 
 /// Event number (001..999) of event `i`; -1 when `i` is out of range.
-pub fn edl_event_number(e: &Edl, i: Int) -> Int {
+pub fn edl_event_number(e: &Edl, i: Int) -> Int
+  ensures: edl_event_line(e, i) < 0 => result == -1;
+{
   let idx = _nth_kind(e, LK_EVENT, i);
   if idx < 0 || idx >= e.nums.len() {
     return -1;
@@ -954,7 +990,9 @@ pub fn edl_event_track(e: &Edl, i: Int) -> Str {
 
 /// Transition kind of event `i`: `TR_CUT`, `TR_DISSOLVE` or `TR_WIPE`; -1
 /// when `i` is out of range.
-pub fn edl_event_transition(e: &Edl, i: Int) -> Int {
+pub fn edl_event_transition(e: &Edl, i: Int) -> Int
+  ensures: edl_event_line(e, i) < 0 => result == -1;
+{
   let idx = _nth_kind(e, LK_EVENT, i);
   if idx < 0 || idx >= e.trans.len() {
     return -1;
@@ -965,7 +1003,9 @@ pub fn edl_event_transition(e: &Edl, i: Int) -> Int {
 
 /// Dissolve duration in frames (1..999) for a `D` event, 0 for a cut or
 /// wipe; -1 when `i` is out of range.
-pub fn edl_event_duration(e: &Edl, i: Int) -> Int {
+pub fn edl_event_duration(e: &Edl, i: Int) -> Int
+  ensures: edl_event_line(e, i) < 0 => result == -1;
+{
   let idx = _nth_kind(e, LK_EVENT, i);
   if idx < 0 || idx >= e.durs.len() {
     return -1;
@@ -976,7 +1016,9 @@ pub fn edl_event_duration(e: &Edl, i: Int) -> Int {
 
 /// Wipe code (001..999) for a `W` event, 0 for a cut or dissolve; -1 when
 /// `i` is out of range.
-pub fn edl_event_wipe(e: &Edl, i: Int) -> Int {
+pub fn edl_event_wipe(e: &Edl, i: Int) -> Int
+  ensures: edl_event_line(e, i) < 0 => result == -1;
+{
   let idx = _nth_kind(e, LK_EVENT, i);
   if idx < 0 || idx >= e.wipes.len() {
     return -1;
@@ -989,7 +1031,11 @@ pub fn edl_event_wipe(e: &Edl, i: Int) -> Int {
 /// `TC_REC_IN` or `TC_REC_OUT`) of event `i`, as hh*1000000 + mm*10000 +
 /// ss*100 + ff; -1 when `i` or `which` is out of range. Use
 /// `edl_timecode_part` to read a single component.
-pub fn edl_event_timecode_value(e: &Edl, i: Int, which: Int) -> Int {
+pub fn edl_event_timecode_value(e: &Edl, i: Int, which: Int) -> Int
+  ensures: edl_event_line(e, i) < 0 => result == -1;
+  ensures: which < 1 || which > 4 => result == -1;
+  ensures: edl_event_line(e, i) >= 0 => result == _tc_value(e, edl_event_line(e, i), which);
+{
   let idx = _nth_kind(e, LK_EVENT, i);
   if idx < 0 {
     return -1;
@@ -1000,7 +1046,10 @@ pub fn edl_event_timecode_value(e: &Edl, i: Int, which: Int) -> Int {
 /// Canonical "hh:mm:ss:ff" text of timecode `which` of event `i` (same
 /// selectors as `edl_event_timecode_value`); "" when `i` or `which` is out of
 /// range.
-pub fn edl_event_timecode(e: &Edl, i: Int, which: Int) -> Str {
+pub fn edl_event_timecode(e: &Edl, i: Int, which: Int) -> Str
+  ensures: edl_event_timecode_value(e, i, which) < 0 => result.len() == 0;
+  ensures: edl_event_timecode_value(e, i, which) >= 0 => result.len() == 11;
+{
   let idx = _nth_kind(e, LK_EVENT, i);
   if idx < 0 {
     return "";
@@ -1043,7 +1092,14 @@ pub fn edl_event_rec_out(e: &Edl, i: Int) -> Str {
 /// One component (`TCF_HH`, `TCF_MM`, `TCF_SS` or `TCF_FF`) of a packed
 /// timecode value; -1 for a negative value or an unknown component code.
 /// Hours are returned as stored (00..99 for parsed documents).
-pub fn edl_timecode_part(value: Int, part: Int) -> Int {
+pub fn edl_timecode_part(value: Int, part: Int) -> Int
+  ensures: value < 0 => result == -1;
+  ensures: part < 1 || part > 4 => result == -1;
+  ensures: value >= 0 && part == 1 => result == value / 1000000;
+  ensures: value >= 0 && part == 2 => result == (value / 10000) % 100;
+  ensures: value >= 0 && part == 3 => result == (value / 100) % 100;
+  ensures: value >= 0 && part == 4 => result == value % 100;
+{
   if value < 0 {
     return -1;
   }
@@ -1065,7 +1121,9 @@ pub fn edl_timecode_part(value: Int, part: Int) -> Int {
 /// Canonical "hh:mm:ss:ff" text built from four components, each clamped to
 /// two digits (0..99). No validation and no arithmetic: the components are
 /// rendered as given.
-pub fn edl_timecode(hh: Int, mm: Int, ss: Int, ff: Int) -> Str {
+pub fn edl_timecode(hh: Int, mm: Int, ss: Int, ff: Int) -> Str
+  ensures: result.len() == 11;
+{
   var out = Vec[UInt8].new();
   _push_two_digits(&mut out, hh);
   out.push(58u8);

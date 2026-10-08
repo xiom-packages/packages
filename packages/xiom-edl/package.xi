@@ -10,7 +10,7 @@
 
 package xiom_edl {
   name: "xiom.edl";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "CMX EDL parsing and canonical emitting for a documented subset";
   categories: ["media"];
   keywords: ["edl", "cmx", "video", "editing"];
