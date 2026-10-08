@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.0` -- generated 2026-10-08T10:23:54Z.
+Toolchain pin: `v0.64.0` -- generated 2026-10-08T10:44:00Z.
 
 ## Summary
 
@@ -509,7 +509,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.session | xiom-session | incubating | tests/test_conformance.xi | pass 24/24 | 7b7da18c | False |  |
 | xiom.smartcontract | xiom-smartcontract | incubating | tests/test_conformance.xi | pass 22/22 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.sql | xiom-sql | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: stub body |
-| xiom.sqlite | xiom-sqlite | incubating | tests/test_conformance.xi | pass 16/16 | bd985f39 | False | not allowlisted: pending native-lane allowlist append |
+| xiom.sqlite | xiom-sqlite | incubating | tests/test_conformance.xi | pass 16/16 | 95227e16 | False | publish pending: first bindings batch (eco-v0.1.89) |
 | xiom.ssh2 | xiom-ssh2 | incubating | tests/test_conformance.xi | pass 24/24 | 0da2fa55 | False | publish pending: eco-v0.1.37 (v0.62.3 result-payload fix) |
 | xiom.static | xiom-static | incubating | tests/test_conformance.xi | pass 25/25 | 50742952 | False |  |
 | xiom.stats-ml | xiom-stats-ml | incubating | tests/test_conformance.xi | pass 22/22 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |

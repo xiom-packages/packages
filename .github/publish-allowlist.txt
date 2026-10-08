@@ -549,3 +549,5 @@ xiom.session
 xiom.http.middleware
 xiom.static
 xiom.kv
+# Bindings lane pilot 1 (vendored SQLite 3.53.4); ops scope confirmed LIVE 2026-10-08.
+xiom.sqlite
