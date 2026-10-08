@@ -1,6 +1,6 @@
 # xiom.smtlib -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `xiom.smtlib` (`src/smtlib.xi`). Pure XIOM, no FFI.
 
 ## 1. Scope
@@ -333,3 +333,59 @@ XIOM v0.61.3 workarounds used (same shape as the other ported codecs):
   `Float64`; all matches are exhaustive and every parallel vector is
   pushed together in `_push_tok`/`_push_node`, with guards on every
   accessor.
+
+## Contracts (batch #44 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/smtlib.xi` in the batch #44
+hardening pass (compiler v0.64.1; `package.xi` is bumped by the coordinator at
+integration). 48 clauses across all 26 public entry points; all are `ensures:`
+(no `requires:`), so the accepted-input domain is unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.smtlib -TimeoutSec 60` runs ended
+`port: PASS (passed=24 failed=0 program_exit=0 exit=0)` with the clauses active
+(20.95 s and 16.30 s); the 24-check conformance suite exercises every entry
+point, including the out-of-range accessor sentinels (t22) and the empty-input
+`Ok` path (t13), and no clause trapped. No clause was dropped; the plan for
+this package listed no probe-gated proposals.
+
+All 48 clauses are **runtime-checked only**: `xiom-verify` was not run in this
+pass and no Z3 obligation was demonstrated, so no clause is claimed
+Z3-provable. Every cross-call clause is non-re-entrant: `smtlib_symbol_text`
+and `smtlib_command_name` call `smtlib_kind` (`smtlib_command_name` also calls
+`smtlib_command_head`), `smtlib_child` calls `smtlib_child_count`,
+`smtlib_command_head`/`smtlib_command_arg_count`/`smtlib_command_arg` call
+`smtlib_command_node`, and `smtlib_emit` calls `smtlib_command_count`; none of
+those callees calls the contracted function back. The two symbol/command-name
+clauses refine `smtlib_kind_symbol()` to the literal `1`, its exact source
+value; the other literals (`-1`, `0`..`5`, `128`) are the source's own
+sentinels/constants. No clause reads a `&mut` parameter (the package has
+none), indexes a vector, compares `Str` with `==`, reads a `Result` payload, or
+uses a module const.
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `smtlib_kind_list` | `result == 0` | runtime-checked |
+| `smtlib_kind_symbol` | `result == 1` | runtime-checked |
+| `smtlib_kind_keyword` | `result == 2` | runtime-checked |
+| `smtlib_kind_numeral` | `result == 3` | runtime-checked |
+| `smtlib_kind_decimal` | `result == 4` | runtime-checked |
+| `smtlib_kind_string` | `result == 5` | runtime-checked |
+| `smtlib_kind_name` | `k < 0 \|\| k > 5 => result.len() == 0`; `k >= 0 && k <= 5 => result.len() > 0` | runtime-checked |
+| `smtlib_max_depth` | `result == 128` | runtime-checked |
+| `smtlib_parse` | `text.len() == 0 => result is Ok`; `result is Err => text.len() > 0` | runtime-checked (tag guards only) |
+| `smtlib_node_count` | `result == doc.kinds.len()` | runtime-checked |
+| `smtlib_command_count` | `result == doc.commands.len()` | runtime-checked |
+| `smtlib_kind` | `i < 0 => result == -1`; `i >= doc.kinds.len() => result == -1`; `result != -1 => i >= 0 && i < doc.kinds.len()` | runtime-checked |
+| `smtlib_node_text` | `i < 0 => result.len() == 0`; `i >= doc.texts.len() => result.len() == 0`; `result.len() > 0 => i >= 0 && i < doc.texts.len()` | runtime-checked |
+| `smtlib_symbol_text` | `smtlib_kind(doc, i) != 1 => result.len() == 0`; `result.len() > 0 => smtlib_kind(doc, i) == 1` | runtime-checked (cross-call) |
+| `smtlib_parent` | `i < 0 => result == -1`; `i >= doc.parents.len() => result == -1` | runtime-checked |
+| `smtlib_child_count` | `i < 0 => result == 0`; `i >= doc.child_lengths.len() => result == 0`; `result != 0 => i >= 0 && i < doc.child_lengths.len()` | runtime-checked |
+| `smtlib_child_start` | `i < 0 => result == -1`; `i >= doc.child_starts.len() => result == -1` | runtime-checked |
+| `smtlib_child` | `n < 0 => result == -1`; `n >= smtlib_child_count(doc, i) => result == -1`; `result != -1 => n >= 0` | runtime-checked (cross-call) |
+| `smtlib_node_start` | `i < 0 => result == -1`; `i >= doc.starts.len() => result == -1` | runtime-checked |
+| `smtlib_node_end` | `i < 0 => result == -1`; `i >= doc.ends.len() => result == -1` | runtime-checked |
+| `smtlib_command_node` | `c < 0 => result == -1`; `c >= doc.commands.len() => result == -1`; `result != -1 => c >= 0 && c < doc.commands.len()` | runtime-checked |
+| `smtlib_command_head` | `c < 0 => result == -1`; `smtlib_command_node(doc, c) < 0 => result == -1` | runtime-checked (cross-call) |
+| `smtlib_command_name` | `smtlib_kind(doc, smtlib_command_head(doc, c)) != 1 => result.len() == 0`; `result.len() > 0 => smtlib_kind(doc, smtlib_command_head(doc, c)) == 1` | runtime-checked (nested cross-call; mirrors `smtlib_symbol_text`) |
+| `smtlib_command_arg_count` | `result >= 0`; `smtlib_command_node(doc, c) < 0 => result == 0` | runtime-checked (cross-call) |
+| `smtlib_command_arg` | `a < 0 => result == -1`; `smtlib_command_node(doc, c) < 0 => result == -1`; `a >= smtlib_command_arg_count(doc, c) => result == -1` | runtime-checked (cross-call) |
+| `smtlib_emit` | `smtlib_command_count(doc) == 0 => result.len() == 0` | runtime-checked (cross-call) |

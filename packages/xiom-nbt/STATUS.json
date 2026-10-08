@@ -8,9 +8,9 @@
                   "status":  "pass",
                   "passed":  26,
                   "failed":  0,
-                  "run_by":  "fleet-sweep:v0.64.0",
-                  "commit":  "f54d3249",
-                  "checked":  "2026-10-05T19:14:38Z"
+                  "run_by":  "task:ses_ee367ced7ffeyipc6VbmUIXksI",
+                  "commit":  "ede91027",
+                  "checked":  "2026-10-08T17:50:19Z"
               },
     "publish":  false,
     "excluded_reason":  "legacy bracket repair patch bump"

@@ -535,7 +535,10 @@ fn _parse_at(data: &Vec[UInt8], base: Int) -> Result[ExtSuperblock, Str] {
 /// Error case: the "ext: " messages above; no partial superblock is
 /// returned.
 /// Complexity: O(1).
-pub fn ext_superblock_parse(data: &Vec[UInt8]) -> Result[ExtSuperblock, Str] {
+pub fn ext_superblock_parse(data: &Vec[UInt8]) -> Result[ExtSuperblock, Str]
+  ensures: data.len() < 2048 => result is Err;
+  ensures: result is Ok => data.len() >= 2048;
+{
   if data.len() < EXT_SUPERBLOCK_MIN_BUFFER {
     return _err_sb("ext: truncated buffer");
   }
@@ -547,203 +550,277 @@ pub fn ext_superblock_parse(data: &Vec[UInt8]) -> Result[ExtSuperblock, Str] {
 // --------------------------------------------------
 
 /// s_inodes_count (u32). Total inode count. Complexity: O(1).
-pub fn ext_inodes_count(sb: &ExtSuperblock) -> Int {
+pub fn ext_inodes_count(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.inodes_count;
+{
   return sb.inodes_count;
 }
 
 /// s_blocks_count_lo (u32). Low 32 bits of the block count.
 /// Complexity: O(1).
-pub fn ext_blocks_count_lo(sb: &ExtSuperblock) -> Int {
+pub fn ext_blocks_count_lo(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.blocks_count_lo;
+{
   return sb.blocks_count_lo;
 }
 
 /// s_r_blocks_count_lo (u32). Blocks reserved for the super user.
 /// Complexity: O(1).
-pub fn ext_r_blocks_count_lo(sb: &ExtSuperblock) -> Int {
+pub fn ext_r_blocks_count_lo(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.r_blocks_count_lo;
+{
   return sb.r_blocks_count_lo;
 }
 
 /// s_free_blocks_count_lo (u32). Free block count, low 32 bits.
 /// Complexity: O(1).
-pub fn ext_free_blocks_count_lo(sb: &ExtSuperblock) -> Int {
+pub fn ext_free_blocks_count_lo(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.free_blocks_count_lo;
+{
   return sb.free_blocks_count_lo;
 }
 
 /// s_free_inodes_count (u32). Free inode count. Complexity: O(1).
-pub fn ext_free_inodes_count(sb: &ExtSuperblock) -> Int {
+pub fn ext_free_inodes_count(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.free_inodes_count;
+{
   return sb.free_inodes_count;
 }
 
 /// s_first_data_block (u32). First data block (0 for 1 KiB blocks, else 1).
 /// Complexity: O(1).
-pub fn ext_first_data_block(sb: &ExtSuperblock) -> Int {
+pub fn ext_first_data_block(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.first_data_block;
+{
   return sb.first_data_block;
 }
 
 /// s_log_block_size (u32). Block size is 1024 << this; 0..6.
 /// Complexity: O(1).
-pub fn ext_log_block_size(sb: &ExtSuperblock) -> Int {
+pub fn ext_log_block_size(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.log_block_size;
+{
   return sb.log_block_size;
 }
 
 /// Derived block size in bytes, 1024 << s_log_block_size; -1 when a
 /// hand-built struct stores a value outside 0..6. Complexity: O(1).
-pub fn ext_block_size(sb: &ExtSuperblock) -> Int {
+pub fn ext_block_size(sb: &ExtSuperblock) -> Int
+  ensures: sb.log_block_size < 0 || sb.log_block_size > 6 => result == -1;
+  ensures: result != -1 => result >= 1024 && result <= 65536;
+  ensures: result != -1 => result % 1024 == 0;
+{
   return _block_size(sb.log_block_size);
 }
 
 /// s_log_cluster_size (u32). Cluster size is 1024 << this (bigalloc).
 /// Complexity: O(1).
-pub fn ext_log_cluster_size(sb: &ExtSuperblock) -> Int {
+pub fn ext_log_cluster_size(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.log_cluster_size;
+{
   return sb.log_cluster_size;
 }
 
 /// s_blocks_per_group (u32). Blocks per block group.
 /// Complexity: O(1).
-pub fn ext_blocks_per_group(sb: &ExtSuperblock) -> Int {
+pub fn ext_blocks_per_group(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.blocks_per_group;
+{
   return sb.blocks_per_group;
 }
 
 /// s_clusters_per_group (u32). Clusters per block group.
 /// Complexity: O(1).
-pub fn ext_clusters_per_group(sb: &ExtSuperblock) -> Int {
+pub fn ext_clusters_per_group(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.clusters_per_group;
+{
   return sb.clusters_per_group;
 }
 
 /// s_inodes_per_group (u32). Inodes per block group.
 /// Complexity: O(1).
-pub fn ext_inodes_per_group(sb: &ExtSuperblock) -> Int {
+pub fn ext_inodes_per_group(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.inodes_per_group;
+{
   return sb.inodes_per_group;
 }
 
 /// s_mtime (u32). Last mount time, seconds since the Unix epoch.
 /// Complexity: O(1).
-pub fn ext_mtime(sb: &ExtSuperblock) -> Int {
+pub fn ext_mtime(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.mtime;
+{
   return sb.mtime;
 }
 
 /// s_wtime (u32). Last write time, seconds since the Unix epoch.
 /// Complexity: O(1).
-pub fn ext_wtime(sb: &ExtSuperblock) -> Int {
+pub fn ext_wtime(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.wtime;
+{
   return sb.wtime;
 }
 
 /// s_mnt_count (u16). Mount count since the last check.
 /// Complexity: O(1).
-pub fn ext_mnt_count(sb: &ExtSuperblock) -> Int {
+pub fn ext_mnt_count(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.mnt_count;
+{
   return sb.mnt_count;
 }
 
 /// s_max_mnt_count (u16). Mount count allowed before a check.
 /// Complexity: O(1).
-pub fn ext_max_mnt_count(sb: &ExtSuperblock) -> Int {
+pub fn ext_max_mnt_count(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.max_mnt_count;
+{
   return sb.max_mnt_count;
 }
 
 /// s_magic (u16). 0xEF53 on a valid superblock. Complexity: O(1).
-pub fn ext_magic(sb: &ExtSuperblock) -> Int {
+pub fn ext_magic(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.magic;
+{
   return sb.magic;
 }
 
 /// s_state (u16). Filesystem state flags, read raw. Complexity: O(1).
-pub fn ext_state(sb: &ExtSuperblock) -> Int {
+pub fn ext_state(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.state;
+{
   return sb.state;
 }
 
 /// s_errors (u16). Error-behavior code, read raw. Complexity: O(1).
-pub fn ext_errors(sb: &ExtSuperblock) -> Int {
+pub fn ext_errors(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.errors;
+{
   return sb.errors;
 }
 
 /// s_minor_rev_level (u16). Minor revision level. Complexity: O(1).
-pub fn ext_minor_rev_level(sb: &ExtSuperblock) -> Int {
+pub fn ext_minor_rev_level(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.minor_rev_level;
+{
   return sb.minor_rev_level;
 }
 
 /// s_lastcheck (u32). Last check time, seconds since the Unix epoch.
 /// Complexity: O(1).
-pub fn ext_lastcheck(sb: &ExtSuperblock) -> Int {
+pub fn ext_lastcheck(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.lastcheck;
+{
   return sb.lastcheck;
 }
 
 /// s_checkinterval (u32). Maximum check interval in seconds.
 /// Complexity: O(1).
-pub fn ext_checkinterval(sb: &ExtSuperblock) -> Int {
+pub fn ext_checkinterval(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.checkinterval;
+{
   return sb.checkinterval;
 }
 
 /// s_creator_os (u32). Creating-OS code, read raw. Complexity: O(1).
-pub fn ext_creator_os(sb: &ExtSuperblock) -> Int {
+pub fn ext_creator_os(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.creator_os;
+{
   return sb.creator_os;
 }
 
 /// s_rev_level (u32). 0 = original format, 1 = dynamic revision.
 /// Complexity: O(1).
-pub fn ext_rev_level(sb: &ExtSuperblock) -> Int {
+pub fn ext_rev_level(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.rev_level;
+{
   return sb.rev_level;
 }
 
 /// s_def_resuid (u16). Default UID for reserved blocks. Complexity: O(1).
-pub fn ext_def_resuid(sb: &ExtSuperblock) -> Int {
+pub fn ext_def_resuid(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.def_resuid;
+{
   return sb.def_resuid;
 }
 
 /// s_def_resgid (u16). Default GID for reserved blocks. Complexity: O(1).
-pub fn ext_def_resgid(sb: &ExtSuperblock) -> Int {
+pub fn ext_def_resgid(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.def_resgid;
+{
   return sb.def_resgid;
 }
 
 /// s_first_ino (u32). First non-reserved inode. Complexity: O(1).
-pub fn ext_first_ino(sb: &ExtSuperblock) -> Int {
+pub fn ext_first_ino(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.first_ino;
+{
   return sb.first_ino;
 }
 
 /// s_inode_size (u16). Inode size in bytes (>= 128). Complexity: O(1).
-pub fn ext_inode_size(sb: &ExtSuperblock) -> Int {
+pub fn ext_inode_size(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.inode_size;
+{
   return sb.inode_size;
 }
 
 /// s_block_group_nr (u16). Block group number of this superblock copy
 /// (used by backups). Complexity: O(1).
-pub fn ext_block_group_nr(sb: &ExtSuperblock) -> Int {
+pub fn ext_block_group_nr(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.block_group_nr;
+{
   return sb.block_group_nr;
 }
 
 /// s_feature_compat (u32) as a raw mask. Complexity: O(1).
-pub fn ext_feature_compat(sb: &ExtSuperblock) -> Int {
+pub fn ext_feature_compat(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.feature_compat;
+{
   return sb.feature_compat;
 }
 
 /// s_feature_incompat (u32) as a raw mask. Complexity: O(1).
-pub fn ext_feature_incompat(sb: &ExtSuperblock) -> Int {
+pub fn ext_feature_incompat(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.feature_incompat;
+{
   return sb.feature_incompat;
 }
 
 /// s_feature_ro_compat (u32) as a raw mask. Complexity: O(1).
-pub fn ext_feature_ro_compat(sb: &ExtSuperblock) -> Int {
+pub fn ext_feature_ro_compat(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.feature_ro_compat;
+{
   return sb.feature_ro_compat;
 }
 
 /// s_uuid as 32 lowercase hex characters. Complexity: O(1).
-pub fn ext_uuid_hex(sb: &ExtSuperblock) -> Str {
+pub fn ext_uuid_hex(sb: &ExtSuperblock) -> Str
+  ensures: result.len() == sb.uuid_hex.len();
+{
   return sb.uuid_hex;
 }
 
 /// s_volume_name, read up to the first NUL and trimmed; "" when empty.
 /// Complexity: O(1).
-pub fn ext_volume_name(sb: &ExtSuperblock) -> Str {
+pub fn ext_volume_name(sb: &ExtSuperblock) -> Str
+  ensures: result.len() == sb.volume_name.len();
+{
   return sb.volume_name;
 }
 
 /// s_last_mounted, read up to the first NUL and trimmed; "" when empty.
 /// Complexity: O(1).
-pub fn ext_last_mounted(sb: &ExtSuperblock) -> Str {
+pub fn ext_last_mounted(sb: &ExtSuperblock) -> Str
+  ensures: result.len() == sb.last_mounted.len();
+{
   return sb.last_mounted;
 }
 
 /// s_algo_bitmap (s_algorithm_usage_bitmap, u32), read raw.
 /// Complexity: O(1).
-pub fn ext_algo_bitmap(sb: &ExtSuperblock) -> Int {
+pub fn ext_algo_bitmap(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.algo_bitmap;
+{
   return sb.algo_bitmap;
 }
 
@@ -752,68 +829,93 @@ pub fn ext_algo_bitmap(sb: &ExtSuperblock) -> Int {
 // --------------------------------------------------
 
 /// s_blocks_count_hi (u32); 0 when has_ext is false. Complexity: O(1).
-pub fn ext_blocks_count_hi(sb: &ExtSuperblock) -> Int {
+pub fn ext_blocks_count_hi(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.blocks_count_hi;
+{
   return sb.blocks_count_hi;
 }
 
 /// s_r_blocks_count_hi (u32); 0 when has_ext is false. Complexity: O(1).
-pub fn ext_r_blocks_count_hi(sb: &ExtSuperblock) -> Int {
+pub fn ext_r_blocks_count_hi(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.r_blocks_count_hi;
+{
   return sb.r_blocks_count_hi;
 }
 
 /// s_free_blocks_count_hi (u32); 0 when has_ext is false. Complexity: O(1).
-pub fn ext_free_blocks_count_hi(sb: &ExtSuperblock) -> Int {
+pub fn ext_free_blocks_count_hi(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.free_blocks_count_hi;
+{
   return sb.free_blocks_count_hi;
 }
 
 /// s_min_extra_isize (u16); 0 when has_ext is false. Complexity: O(1).
-pub fn ext_min_extra_isize(sb: &ExtSuperblock) -> Int {
+pub fn ext_min_extra_isize(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.min_extra_isize;
+{
   return sb.min_extra_isize;
 }
 
 /// s_want_extra_isize (u16); 0 when has_ext is false. Complexity: O(1).
-pub fn ext_want_extra_isize(sb: &ExtSuperblock) -> Int {
+pub fn ext_want_extra_isize(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.want_extra_isize;
+{
   return sb.want_extra_isize;
 }
 
 /// s_flags (u32), read raw; 0 when has_ext is false. Complexity: O(1).
-pub fn ext_flags(sb: &ExtSuperblock) -> Int {
+pub fn ext_flags(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.flags;
+{
   return sb.flags;
 }
 
 /// s_checksum_type (u8), read raw; 0 when has_ext is false.
 /// Complexity: O(1).
-pub fn ext_checksum_type(sb: &ExtSuperblock) -> Int {
+pub fn ext_checksum_type(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.checksum_type;
+{
   return sb.checksum_type;
 }
 
 /// s_desc_size (u16), read raw; 0 when has_ext is false. Complexity: O(1).
-pub fn ext_desc_size(sb: &ExtSuperblock) -> Int {
+pub fn ext_desc_size(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.desc_size;
+{
   return sb.desc_size;
 }
 
 /// True when the ext4 extension fields were read (s_rev_level >= 1).
 /// Complexity: O(1).
-pub fn ext_has_ext_fields(sb: &ExtSuperblock) -> Bool {
+pub fn ext_has_ext_fields(sb: &ExtSuperblock) -> Bool
+  ensures: sb.has_ext => result;
+  ensures: !sb.has_ext => !result;
+{
   return sb.has_ext;
 }
 
 /// Derived 64-bit block count: blocks_count_lo + blocks_count_hi * 2^32.
 /// Values with s_blocks_count_hi >= 2^31 exceed Int range and are not
 /// representable (documented limitation). Complexity: O(1).
-pub fn ext_blocks_count(sb: &ExtSuperblock) -> Int {
+pub fn ext_blocks_count(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.blocks_count_lo + sb.blocks_count_hi * 4294967296;
+{
   return sb.blocks_count_lo + sb.blocks_count_hi * 4294967296;
 }
 
 /// Derived 64-bit reserved block count: r_blocks_count_lo + *_hi * 2^32.
 /// Same representability limitation as ext_blocks_count. Complexity: O(1).
-pub fn ext_r_blocks_count(sb: &ExtSuperblock) -> Int {
+pub fn ext_r_blocks_count(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.r_blocks_count_lo + sb.r_blocks_count_hi * 4294967296;
+{
   return sb.r_blocks_count_lo + sb.r_blocks_count_hi * 4294967296;
 }
 
 /// Derived 64-bit free block count: free_blocks_count_lo + *_hi * 2^32.
 /// Same representability limitation as ext_blocks_count. Complexity: O(1).
-pub fn ext_free_blocks_count(sb: &ExtSuperblock) -> Int {
+pub fn ext_free_blocks_count(sb: &ExtSuperblock) -> Int
+  ensures: result == sb.free_blocks_count_lo + sb.free_blocks_count_hi * 4294967296;
+{
   return sb.free_blocks_count_lo + sb.free_blocks_count_hi * 4294967296;
 }
 
@@ -823,28 +925,41 @@ pub fn ext_free_blocks_count(sb: &ExtSuperblock) -> Int {
 
 /// True when every bit set in `mask` is set in s_feature_compat.
 /// A mask of 0 is vacuously true. Complexity: O(1).
-pub fn ext_has_feature_compat(sb: &ExtSuperblock, mask: Int) -> Bool {
+pub fn ext_has_feature_compat(sb: &ExtSuperblock, mask: Int) -> Bool
+  ensures: mask == 0 => result;
+  ensures: !result => mask != 0;
+{
   let v: Int = sb.feature_compat;
   return _mask_set(v, mask);
 }
 
 /// True when every bit set in `mask` is set in s_feature_incompat.
 /// A mask of 0 is vacuously true. Complexity: O(1).
-pub fn ext_has_feature_incompat(sb: &ExtSuperblock, mask: Int) -> Bool {
+pub fn ext_has_feature_incompat(sb: &ExtSuperblock, mask: Int) -> Bool
+  ensures: mask == 0 => result;
+  ensures: !result => mask != 0;
+{
   let v: Int = sb.feature_incompat;
   return _mask_set(v, mask);
 }
 
 /// True when every bit set in `mask` is set in s_feature_ro_compat.
 /// A mask of 0 is vacuously true. Complexity: O(1).
-pub fn ext_has_feature_ro_compat(sb: &ExtSuperblock, mask: Int) -> Bool {
+pub fn ext_has_feature_ro_compat(sb: &ExtSuperblock, mask: Int) -> Bool
+  ensures: mask == 0 => result;
+  ensures: !result => mask != 0;
+{
   let v: Int = sb.feature_ro_compat;
   return _mask_set(v, mask);
 }
 
 /// Kernel-style name of one documented s_feature_compat bit; "" for 0, a
 /// multi-bit mask or an undocumented bit. Complexity: O(1).
-pub fn ext_feature_compat_name(mask: Int) -> Str {
+pub fn ext_feature_compat_name(mask: Int) -> Str
+  ensures: mask == 0 => result.len() == 0;
+  ensures: mask < 0 => result.len() == 0;
+  ensures: mask > 4096 => result.len() == 0;
+{
   if mask == EXT_FEATURE_COMPAT_DIR_PREALLOC { return "COMPAT_DIR_PREALLOC"; }
   if mask == EXT_FEATURE_COMPAT_IMAGIC_INODES { return "COMPAT_IMAGIC_INODES"; }
   if mask == EXT_FEATURE_COMPAT_HAS_JOURNAL { return "COMPAT_HAS_JOURNAL"; }
@@ -860,7 +975,11 @@ pub fn ext_feature_compat_name(mask: Int) -> Str {
 
 /// Kernel-style name of one documented s_feature_incompat bit; "" for 0, a
 /// multi-bit mask or an undocumented bit. Complexity: O(1).
-pub fn ext_feature_incompat_name(mask: Int) -> Str {
+pub fn ext_feature_incompat_name(mask: Int) -> Str
+  ensures: mask == 0 => result.len() == 0;
+  ensures: mask < 0 => result.len() == 0;
+  ensures: mask > 131072 => result.len() == 0;
+{
   if mask == EXT_FEATURE_INCOMPAT_COMPRESSION { return "INCOMPAT_COMPRESSION"; }
   if mask == EXT_FEATURE_INCOMPAT_FILETYPE { return "INCOMPAT_FILETYPE"; }
   if mask == EXT_FEATURE_INCOMPAT_RECOVER { return "INCOMPAT_RECOVER"; }
@@ -882,7 +1001,11 @@ pub fn ext_feature_incompat_name(mask: Int) -> Str {
 
 /// Kernel-style name of one documented s_feature_ro_compat bit; "" for 0, a
 /// multi-bit mask or an undocumented bit. Complexity: O(1).
-pub fn ext_feature_ro_compat_name(mask: Int) -> Str {
+pub fn ext_feature_ro_compat_name(mask: Int) -> Str
+  ensures: mask == 0 => result.len() == 0;
+  ensures: mask < 0 => result.len() == 0;
+  ensures: mask > 65536 => result.len() == 0;
+{
   if mask == EXT_FEATURE_RO_COMPAT_SPARSE_SUPER { return "RO_COMPAT_SPARSE_SUPER"; }
   if mask == EXT_FEATURE_RO_COMPAT_LARGE_FILE { return "RO_COMPAT_LARGE_FILE"; }
   if mask == EXT_FEATURE_RO_COMPAT_BTREE_DIR { return "RO_COMPAT_BTREE_DIR"; }
@@ -1216,7 +1339,15 @@ fn _emit_sb(sb: &ExtSuperblock, ubytes: &Vec[UInt8]) -> Vec[UInt8] {
 /// Err("ext: field out of range"). Check order is the catalog order.
 /// Nothing is emitted on Err.
 /// Complexity: O(1).
-pub fn ext_superblock_build(sb: &ExtSuperblock) -> Result[Vec[UInt8], Str] {
+pub fn ext_superblock_build(sb: &ExtSuperblock) -> Result[Vec[UInt8], Str]
+  ensures: sb.magic != 61267 => result is Err;
+  ensures: sb.log_block_size < 0 || sb.log_block_size > 6 => result is Err;
+  ensures: sb.inodes_count == 0 => result is Err;
+  ensures: sb.inode_size < 128 => result is Err;
+  ensures: sb.volume_name.len() > 16 => result is Err;
+  ensures: sb.last_mounted.len() > 64 => result is Err;
+  ensures: result is Ok => sb.magic == 61267 && sb.inodes_count != 0 && sb.blocks_per_group != 0 && sb.inodes_per_group != 0;
+{
   let vr = _validate_build(sb);
   if !vr.is_ok {
     let msg: Str = vr.error;
@@ -1239,7 +1370,10 @@ pub fn ext_superblock_build(sb: &ExtSuperblock) -> Result[Vec[UInt8], Str] {
 /// ext_superblock_parse.
 /// Error case: exactly the ext_superblock_build errors.
 /// Complexity: O(1).
-pub fn ext_superblock_build_image(sb: &ExtSuperblock) -> Result[Vec[UInt8], Str] {
+pub fn ext_superblock_build_image(sb: &ExtSuperblock) -> Result[Vec[UInt8], Str]
+  ensures: sb.magic != 61267 => result is Err;
+  ensures: result is Ok => sb.magic == 61267;
+{
   let br = ext_superblock_build(sb);
   if !br.is_ok {
     let msg: Str = br.error;

@@ -570,7 +570,10 @@ fn _decode_tag(rd: &mut NbtCursor, tree: &mut NbtTree, parent: Int, depth: Int) 
 /// capped at NBT_MAX_DEPTH container levels and trailing bytes are an error
 /// ("nbt: trailing bytes"). The returned tree is finalized, so all
 /// navigation accessors work immediately.
-pub fn nbt_decode(data: Vec[UInt8]) -> Result[NbtTree, Str] {
+pub fn nbt_decode(data: Vec[UInt8]) -> Result[NbtTree, Str]
+  ensures: data.len() == 0 => result is Err;
+  ensures: result is Ok => data.len() >= 4;
+{
   var rd = NbtCursor{ data: data; pos: 0; };
   var tree = nbt_tree_new();
   let pr = _peek_u8(&mut rd);
@@ -777,7 +780,11 @@ pub fn nbt_encode(tree: &mut NbtTree) -> Result[Vec[UInt8], Str] {
 // --------------------------------------------------
 
 /// Create an empty node store (no root). Add the root with parent -1.
-pub fn nbt_tree_new() -> NbtTree {
+pub fn nbt_tree_new() -> NbtTree
+  ensures: result.root == -1;
+  ensures: result.types.len() == 0;
+  ensures: result.data.len() == 0;
+{
   return NbtTree{
     types: Vec[Int].new();
     names: Vec[Str].new();
@@ -805,7 +812,9 @@ pub fn nbt_finalize(tree: &mut NbtTree) {
 /// Add a TAG_Compound node and return its index. Pass parent -1 for the
 /// root; the first root wins. Child names inside a Compound are the
 /// caller's responsibility (duplicates are legal NBT).
-pub fn nbt_add_compound(tree: &mut NbtTree, parent: Int, name: Str) -> Int {
+pub fn nbt_add_compound(tree: &mut NbtTree, parent: Int, name: Str) -> Int
+  ensures: result >= 0;
+{
   let nl = string.str_len(name);
   let noff = _push_name(tree, name);
   return _add_core(tree, NBT_TAG_COMPOUND, parent, name, noff, nl);
@@ -815,7 +824,9 @@ pub fn nbt_add_compound(tree: &mut NbtTree, parent: Int, name: Str) -> Int {
 /// element tag type (0 for an empty list, as vanilla NBT writes); every
 /// element added under the list must match it. When `parent` is a List the
 /// `name` is ignored (List elements are unnamed) and the caller may pass "".
-pub fn nbt_add_list(tree: &mut NbtTree, parent: Int, name: Str, elem_type: Int) -> Int {
+pub fn nbt_add_list(tree: &mut NbtTree, parent: Int, name: Str, elem_type: Int) -> Int
+  ensures: result >= 0;
+{
   let nl = string.str_len(name);
   let noff = _push_name(tree, name);
   let idx = _add_core(tree, NBT_TAG_LIST, parent, name, noff, nl);
@@ -833,41 +844,55 @@ fn _add_scalar(tree: &mut NbtTree, parent: Int, name: Str, tag: Int, v: Int) -> 
 }
 
 /// Add a TAG_Byte node (signed 8-bit value; the low byte is encoded).
-pub fn nbt_add_byte(tree: &mut NbtTree, parent: Int, name: Str, v: Int) -> Int {
+pub fn nbt_add_byte(tree: &mut NbtTree, parent: Int, name: Str, v: Int) -> Int
+  ensures: result >= 0;
+{
   return _add_scalar(tree, parent, name, NBT_TAG_BYTE, v);
 }
 
 /// Add a TAG_Short node (signed 16-bit value; the low 2 bytes are encoded).
-pub fn nbt_add_short(tree: &mut NbtTree, parent: Int, name: Str, v: Int) -> Int {
+pub fn nbt_add_short(tree: &mut NbtTree, parent: Int, name: Str, v: Int) -> Int
+  ensures: result >= 0;
+{
   return _add_scalar(tree, parent, name, NBT_TAG_SHORT, v);
 }
 
 /// Add a TAG_Int node (signed 32-bit value; the low 4 bytes are encoded).
-pub fn nbt_add_int(tree: &mut NbtTree, parent: Int, name: Str, v: Int) -> Int {
+pub fn nbt_add_int(tree: &mut NbtTree, parent: Int, name: Str, v: Int) -> Int
+  ensures: result >= 0;
+{
   return _add_scalar(tree, parent, name, NBT_TAG_INT, v);
 }
 
 /// Add a TAG_Long node (signed 64-bit value).
-pub fn nbt_add_long(tree: &mut NbtTree, parent: Int, name: Str, v: Int) -> Int {
+pub fn nbt_add_long(tree: &mut NbtTree, parent: Int, name: Str, v: Int) -> Int
+  ensures: result >= 0;
+{
   return _add_scalar(tree, parent, name, NBT_TAG_LONG, v);
 }
 
 /// Add a TAG_Float node from the raw 32-bit IEEE-754 bit pattern (there is
 /// no Float64 bitcast in XIOM v0.61.3; see SPEC.md).
-pub fn nbt_add_float_bits(tree: &mut NbtTree, parent: Int, name: Str, bits: Int) -> Int {
+pub fn nbt_add_float_bits(tree: &mut NbtTree, parent: Int, name: Str, bits: Int) -> Int
+  ensures: result >= 0;
+{
   return _add_scalar(tree, parent, name, NBT_TAG_FLOAT, bits);
 }
 
 /// Add a TAG_Double node from the raw 64-bit IEEE-754 bit pattern (there is
 /// no Float64 bitcast in XIOM v0.61.3; see SPEC.md).
-pub fn nbt_add_double_bits(tree: &mut NbtTree, parent: Int, name: Str, bits: Int) -> Int {
+pub fn nbt_add_double_bits(tree: &mut NbtTree, parent: Int, name: Str, bits: Int) -> Int
+  ensures: result >= 0;
+{
   return _add_scalar(tree, parent, name, NBT_TAG_DOUBLE, bits);
 }
 
 /// Add a TAG_String node. The UTF-8 bytes of `v` are stored verbatim; a
 /// byte length above 65535 is rejected by nbt_encode ("nbt: string length
 /// overrun") because NBT prefixes strings with an unsigned 16-bit length.
-pub fn nbt_add_str(tree: &mut NbtTree, parent: Int, name: Str, v: Str) -> Int {
+pub fn nbt_add_str(tree: &mut NbtTree, parent: Int, name: Str, v: Str) -> Int
+  ensures: result >= 0;
+{
   let vl = string.str_len(v);
   let voff = tree.data.len();
   var i = 0;
@@ -885,7 +910,9 @@ pub fn nbt_add_str(tree: &mut NbtTree, parent: Int, name: Str, v: Str) -> Int {
 }
 
 /// Add a TAG_Byte_Array node with the given bytes (copied verbatim).
-pub fn nbt_add_byte_array(tree: &mut NbtTree, parent: Int, name: Str, bytes: Vec[UInt8]) -> Int {
+pub fn nbt_add_byte_array(tree: &mut NbtTree, parent: Int, name: Str, bytes: Vec[UInt8]) -> Int
+  ensures: result >= 0;
+{
   let nl = string.str_len(name);
   let noff = _push_name(tree, name);
   let voff = tree.data.len();
@@ -903,7 +930,9 @@ pub fn nbt_add_byte_array(tree: &mut NbtTree, parent: Int, name: Str, bytes: Vec
 }
 
 /// Add a TAG_Int_Array node: each Int is encoded as 4 big-endian bytes.
-pub fn nbt_add_int_array(tree: &mut NbtTree, parent: Int, name: Str, values: Vec[Int]) -> Int {
+pub fn nbt_add_int_array(tree: &mut NbtTree, parent: Int, name: Str, values: Vec[Int]) -> Int
+  ensures: result >= 0;
+{
   let nl = string.str_len(name);
   let noff = _push_name(tree, name);
   let voff = tree.data.len();
@@ -922,7 +951,9 @@ pub fn nbt_add_int_array(tree: &mut NbtTree, parent: Int, name: Str, values: Vec
 }
 
 /// Add a TAG_Long_Array node: each Int is encoded as 8 big-endian bytes.
-pub fn nbt_add_long_array(tree: &mut NbtTree, parent: Int, name: Str, values: Vec[Int]) -> Int {
+pub fn nbt_add_long_array(tree: &mut NbtTree, parent: Int, name: Str, values: Vec[Int]) -> Int
+  ensures: result >= 0;
+{
   let nl = string.str_len(name);
   let noff = _push_name(tree, name);
   let voff = tree.data.len();
@@ -945,17 +976,25 @@ pub fn nbt_add_long_array(tree: &mut NbtTree, parent: Int, name: Str, values: Ve
 // --------------------------------------------------
 
 /// Number of nodes in the store (0 for an empty tree).
-pub fn nbt_node_count(tree: &NbtTree) -> Int {
+pub fn nbt_node_count(tree: &NbtTree) -> Int
+  ensures: result == tree.types.len();
+{
   return tree.types.len();
 }
 
 /// Root node index, or -1 when the tree has no root.
-pub fn nbt_root(tree: &NbtTree) -> Int {
+pub fn nbt_root(tree: &NbtTree) -> Int
+  ensures: result == tree.root;
+{
   return tree.root;
 }
 
 /// Tag type (1-12) of `node`, or -1 for an out-of-range index.
-pub fn nbt_tag_type(tree: &NbtTree, node: Int) -> Int {
+pub fn nbt_tag_type(tree: &NbtTree, node: Int) -> Int
+  ensures: node < 0 => result == -1;
+  ensures: node >= tree.types.len() => result == -1;
+  ensures: result != -1 => node >= 0 && node < tree.types.len();
+{
   if node < 0 || node >= tree.types.len() {
     return -1;
   }
@@ -966,7 +1005,11 @@ pub fn nbt_tag_type(tree: &NbtTree, node: Int) -> Int {
 /// Name of `node` ("" for list elements and unnamed nodes; "" for an
 /// out-of-range index). Names containing a raw 0x00 byte are truncated by
 /// the Str view; use the stored bytes via re-encode for full fidelity.
-pub fn nbt_name(tree: &NbtTree, node: Int) -> Str {
+pub fn nbt_name(tree: &NbtTree, node: Int) -> Str
+  ensures: node < 0 => result.len() == 0;
+  ensures: node >= tree.names.len() => result.len() == 0;
+  ensures: result.len() > 0 => node >= 0 && node < tree.names.len();
+{
   if node < 0 || node >= tree.names.len() {
     return "";
   }
@@ -975,7 +1018,10 @@ pub fn nbt_name(tree: &NbtTree, node: Int) -> Str {
 }
 
 /// Parent node index, or -1 for the root and for out-of-range nodes.
-pub fn nbt_parent(tree: &NbtTree, node: Int) -> Int {
+pub fn nbt_parent(tree: &NbtTree, node: Int) -> Int
+  ensures: node < 0 => result == -1;
+  ensures: node >= tree.parent.len() => result == -1;
+{
   if node < 0 || node >= tree.parent.len() {
     return -1;
   }
@@ -984,7 +1030,10 @@ pub fn nbt_parent(tree: &NbtTree, node: Int) -> Int {
 }
 
 /// Number of children of `node` (0 for leaves and out-of-range nodes).
-pub fn nbt_child_count(tree: &NbtTree, node: Int) -> Int {
+pub fn nbt_child_count(tree: &NbtTree, node: Int) -> Int
+  ensures: node < 0 => result == 0;
+  ensures: node >= tree.child_count.len() => result == 0;
+{
   if node < 0 || node >= tree.child_count.len() {
     return 0;
   }
@@ -993,7 +1042,12 @@ pub fn nbt_child_count(tree: &NbtTree, node: Int) -> Int {
 }
 
 /// Child node index at position `index` (0-based), or -1 when out of range.
-pub fn nbt_child_at(tree: &NbtTree, node: Int, index: Int) -> Int {
+pub fn nbt_child_at(tree: &NbtTree, node: Int, index: Int) -> Int
+  ensures: node < 0 => result == -1;
+  ensures: index < 0 => result == -1;
+  ensures: index >= nbt_child_count(tree, node) => result == -1;
+  ensures: result != -1 => node >= 0 && node < tree.child_start.len() && index >= 0;
+{
   if node < 0 || node >= tree.child_start.len() {
     return -1;
   }
@@ -1016,7 +1070,11 @@ pub fn nbt_child_at(tree: &NbtTree, node: Int, index: Int) -> Int {
 /// First child of `node` whose name compares equal to `name`, or -1 when
 /// absent. Str equality goes through str_compare (BUG 17: `==` on Str
 /// values read from a Vec lowers to a pointer compare).
-pub fn nbt_find_child(tree: &NbtTree, node: Int, name: Str) -> Int {
+pub fn nbt_find_child(tree: &NbtTree, node: Int, name: Str) -> Int
+  ensures: nbt_child_count(tree, node) == 0 => result == -1;
+  ensures: result >= -1;
+  ensures: result < tree.names.len();
+{
   let c: Int = nbt_child_count(tree, node);
   var i = 0;
   while i < c {
@@ -1049,7 +1107,11 @@ fn _require_type(tree: &NbtTree, node: Int, want: Int) -> Result[Int, Str] {
 }
 
 /// Signed TAG_Byte value. Err("nbt: unexpected tag type N") on another tag.
-pub fn nbt_get_byte(tree: &NbtTree, node: Int) -> Result[Int, Str] {
+pub fn nbt_get_byte(tree: &NbtTree, node: Int) -> Result[Int, Str]
+  ensures: node < 0 => result is Err;
+  ensures: node >= tree.types.len() => result is Err;
+  ensures: result is Ok => node >= 0 && node < tree.types.len();
+{
   let cr = _require_type(tree, node, NBT_TAG_BYTE);
   if !cr.is_ok {
     return _err_int(cr.error);
@@ -1112,7 +1174,11 @@ pub fn nbt_get_double_bits(tree: &NbtTree, node: Int) -> Result[Int, Str] {
 
 /// UTF-8 TAG_String payload as a Str (bytes materialized verbatim; a raw
 /// 0x00 byte terminates the Str view, see SPEC.md). Err on another tag.
-pub fn nbt_get_str(tree: &NbtTree, node: Int) -> Result[Str, Str] {
+pub fn nbt_get_str(tree: &NbtTree, node: Int) -> Result[Str, Str]
+  ensures: node < 0 => result is Err;
+  ensures: node >= tree.types.len() => result is Err;
+  ensures: result is Ok => node >= 0 && node < tree.types.len();
+{
   let cr = _require_type(tree, node, NBT_TAG_STRING);
   if !cr.is_ok {
     return _err_str(cr.error);
@@ -1199,7 +1265,11 @@ pub fn nbt_get_long_array(tree: &NbtTree, node: Int) -> Result[Vec[Int], Str] {
 }
 
 /// Number of elements of a TAG_List node. Err on another tag.
-pub fn nbt_list_len(tree: &NbtTree, node: Int) -> Result[Int, Str] {
+pub fn nbt_list_len(tree: &NbtTree, node: Int) -> Result[Int, Str]
+  ensures: node < 0 => result is Err;
+  ensures: node >= tree.types.len() => result is Err;
+  ensures: result is Ok => node >= 0 && node < tree.types.len();
+{
   let cr = _require_type(tree, node, NBT_TAG_LIST);
   if !cr.is_ok {
     return _err_int(cr.error);
@@ -1221,7 +1291,11 @@ pub fn nbt_list_element_type(tree: &NbtTree, node: Int) -> Result[Int, Str] {
 
 /// Node index of list element `index` (0-based). Err on a non-list node or
 /// an out-of-range index ("nbt: list index out of range").
-pub fn nbt_list_item(tree: &NbtTree, node: Int, index: Int) -> Result[Int, Str] {
+pub fn nbt_list_item(tree: &NbtTree, node: Int, index: Int) -> Result[Int, Str]
+  ensures: node < 0 => result is Err;
+  ensures: index < 0 => result is Err;
+  ensures: result is Ok => node >= 0 && node < tree.types.len() && index >= 0;
+{
   let cr = _require_type(tree, node, NBT_TAG_LIST);
   if !cr.is_ok {
     return _err_int(cr.error);

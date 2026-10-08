@@ -131,39 +131,54 @@ fn _err_doc(m: Str) -> Result[SmtDoc, Str] {
 // --------------------------------------------------
 
 /// Node kind code for a list (an s-expression).
-pub fn smtlib_kind_list() -> Int {
+pub fn smtlib_kind_list() -> Int
+  ensures: result == 0;
+{
   return 0;
 }
 
 /// Node kind code for a simple symbol.
-pub fn smtlib_kind_symbol() -> Int {
+pub fn smtlib_kind_symbol() -> Int
+  ensures: result == 1;
+{
   return 1;
 }
 
 /// Node kind code for a keyword (source text includes the leading `:`).
-pub fn smtlib_kind_keyword() -> Int {
+pub fn smtlib_kind_keyword() -> Int
+  ensures: result == 2;
+{
   return 2;
 }
 
 /// Node kind code for a numeral (validated digit text, leading zeros
 /// rejected).
-pub fn smtlib_kind_numeral() -> Int {
+pub fn smtlib_kind_numeral() -> Int
+  ensures: result == 3;
+{
   return 3;
 }
 
 /// Node kind code for a decimal (validated `<numeral>.<digits>` text).
-pub fn smtlib_kind_decimal() -> Int {
+pub fn smtlib_kind_decimal() -> Int
+  ensures: result == 4;
+{
   return 4;
 }
 
 /// Node kind code for a string (text is the decoded content).
-pub fn smtlib_kind_string() -> Int {
+pub fn smtlib_kind_string() -> Int
+  ensures: result == 5;
+{
   return 5;
 }
 
 /// Human-readable name of a kind code: "list", "symbol", "keyword",
 /// "numeral", "decimal", "string"; "" for any other value.
-pub fn smtlib_kind_name(k: Int) -> Str {
+pub fn smtlib_kind_name(k: Int) -> Str
+  ensures: k < 0 || k > 5 => result.len() == 0;
+  ensures: k >= 0 && k <= 5 => result.len() > 0;
+{
   if k == 0 { return "list"; }
   if k == 1 { return "symbol"; }
   if k == 2 { return "keyword"; }
@@ -177,7 +192,9 @@ pub fn smtlib_kind_name(k: Int) -> Str {
 /// command list plus 127 nested lists). A list nested at depth
 /// `smtlib_max_depth()` is rejected with
 /// `Err("smtlib: nesting depth exceeds limit of 128")`.
-pub fn smtlib_max_depth() -> Int {
+pub fn smtlib_max_depth() -> Int
+  ensures: result == 128;
+{
   return 128;
 }
 
@@ -994,7 +1011,10 @@ fn _validate_commands(doc: &SmtDoc) -> Result[Int, Str] {
 /// token, nesting depth, command arity and command argument kind.
 /// Complexity: O(text) time; the token and node vectors are proportional to
 /// the token count.
-pub fn smtlib_parse(text: Str) -> Result[SmtDoc, Str] {
+pub fn smtlib_parse(text: Str) -> Result[SmtDoc, Str]
+  ensures: text.len() == 0 => result is Ok;
+  ensures: result is Err => text.len() > 0;
+{
   var p = _SmtParser{
     tok_kind: Vec[Int].new();
     tok_text: Vec[Str].new();
@@ -1031,21 +1051,29 @@ pub fn smtlib_parse(text: Str) -> Result[SmtDoc, Str] {
 
 /// Number of nodes in the document.
 /// Complexity: O(1).
-pub fn smtlib_node_count(doc: &SmtDoc) -> Int {
+pub fn smtlib_node_count(doc: &SmtDoc) -> Int
+  ensures: result == doc.kinds.len();
+{
   return doc.kinds.len();
 }
 
 /// Number of top-level commands in the document (the emitter writes exactly
 /// this many lines).
 /// Complexity: O(1).
-pub fn smtlib_command_count(doc: &SmtDoc) -> Int {
+pub fn smtlib_command_count(doc: &SmtDoc) -> Int
+  ensures: result == doc.commands.len();
+{
   return doc.commands.len();
 }
 
 /// Kind code of node `i` (one of the `smtlib_kind_*` values), or -1 when `i`
 /// is outside [0, smtlib_node_count(doc)).
 /// Complexity: O(1).
-pub fn smtlib_kind(doc: &SmtDoc, i: Int) -> Int {
+pub fn smtlib_kind(doc: &SmtDoc, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= doc.kinds.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < doc.kinds.len();
+{
   return _d_kind(doc, i);
 }
 
@@ -1053,14 +1081,21 @@ pub fn smtlib_kind(doc: &SmtDoc, i: Int) -> Int {
 /// decimals; decoded content for strings; "" for lists and for any
 /// out-of-range `i` (check the kind to tell an empty string apart).
 /// Complexity: O(1).
-pub fn smtlib_node_text(doc: &SmtDoc, i: Int) -> Str {
+pub fn smtlib_node_text(doc: &SmtDoc, i: Int) -> Str
+  ensures: i < 0 => result.len() == 0;
+  ensures: i >= doc.texts.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < doc.texts.len();
+{
   return _d_text(doc, i);
 }
 
 /// Text of node `i` when it is a symbol, else "" (including out-of-range
 /// indices).
 /// Complexity: O(1).
-pub fn smtlib_symbol_text(doc: &SmtDoc, i: Int) -> Str {
+pub fn smtlib_symbol_text(doc: &SmtDoc, i: Int) -> Str
+  ensures: smtlib_kind(doc, i) != 1 => result.len() == 0;
+  ensures: result.len() > 0 => smtlib_kind(doc, i) == 1;
+{
   if _d_kind(doc, i) != smtlib_kind_symbol() {
     return "";
   }
@@ -1070,7 +1105,10 @@ pub fn smtlib_symbol_text(doc: &SmtDoc, i: Int) -> Str {
 /// Index of the list containing node `i`, or -1 for a command root and for
 /// out-of-range indices.
 /// Complexity: O(1).
-pub fn smtlib_parent(doc: &SmtDoc, i: Int) -> Int {
+pub fn smtlib_parent(doc: &SmtDoc, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= doc.parents.len() => result == -1;
+{
   if !_node_valid(doc, i) {
     return -1;
   }
@@ -1081,14 +1119,21 @@ pub fn smtlib_parent(doc: &SmtDoc, i: Int) -> Int {
 /// Number of direct children of node `i`, or 0 for an atom and for
 /// out-of-range indices.
 /// Complexity: O(1).
-pub fn smtlib_child_count(doc: &SmtDoc, i: Int) -> Int {
+pub fn smtlib_child_count(doc: &SmtDoc, i: Int) -> Int
+  ensures: i < 0 => result == 0;
+  ensures: i >= doc.child_lengths.len() => result == 0;
+  ensures: result != 0 => i >= 0 && i < doc.child_lengths.len();
+{
   return _d_child_count(doc, i);
 }
 
 /// Index of the first entry of node `i`'s child range in
 /// `SmtDoc.children`, or -1 for an out-of-range node.
 /// Complexity: O(1).
-pub fn smtlib_child_start(doc: &SmtDoc, i: Int) -> Int {
+pub fn smtlib_child_start(doc: &SmtDoc, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= doc.child_starts.len() => result == -1;
+{
   if !_node_valid(doc, i) {
     return -1;
   }
@@ -1099,14 +1144,21 @@ pub fn smtlib_child_start(doc: &SmtDoc, i: Int) -> Int {
 /// Index of the n-th direct child of node `i` (0-based), or -1 when `i` is
 /// not a list or `n` is outside [0, smtlib_child_count(doc, i)).
 /// Complexity: O(1).
-pub fn smtlib_child(doc: &SmtDoc, i: Int, n: Int) -> Int {
+pub fn smtlib_child(doc: &SmtDoc, i: Int, n: Int) -> Int
+  ensures: n < 0 => result == -1;
+  ensures: n >= smtlib_child_count(doc, i) => result == -1;
+  ensures: result != -1 => n >= 0;
+{
   return _d_child(doc, i, n);
 }
 
 /// Byte offset of the first byte of node `i` in the parsed input, or -1 when
 /// out of range.
 /// Complexity: O(1).
-pub fn smtlib_node_start(doc: &SmtDoc, i: Int) -> Int {
+pub fn smtlib_node_start(doc: &SmtDoc, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= doc.starts.len() => result == -1;
+{
   if !_node_valid(doc, i) {
     return -1;
   }
@@ -1117,7 +1169,10 @@ pub fn smtlib_node_start(doc: &SmtDoc, i: Int) -> Int {
 /// Byte offset one past the last byte of node `i` in the parsed input, or -1
 /// when out of range.
 /// Complexity: O(1).
-pub fn smtlib_node_end(doc: &SmtDoc, i: Int) -> Int {
+pub fn smtlib_node_end(doc: &SmtDoc, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= doc.ends.len() => result == -1;
+{
   if !_node_valid(doc, i) {
     return -1;
   }
@@ -1127,7 +1182,11 @@ pub fn smtlib_node_end(doc: &SmtDoc, i: Int) -> Int {
 
 /// Root node index of command `c`, or -1 when `c` is out of range.
 /// Complexity: O(1).
-pub fn smtlib_command_node(doc: &SmtDoc, c: Int) -> Int {
+pub fn smtlib_command_node(doc: &SmtDoc, c: Int) -> Int
+  ensures: c < 0 => result == -1;
+  ensures: c >= doc.commands.len() => result == -1;
+  ensures: result != -1 => c >= 0 && c < doc.commands.len();
+{
   if c < 0 || c >= doc.commands.len() {
     return -1;
   }
@@ -1138,7 +1197,10 @@ pub fn smtlib_command_node(doc: &SmtDoc, c: Int) -> Int {
 /// Head node index (the command symbol) of command `c`, or -1 when `c` is
 /// out of range.
 /// Complexity: O(1).
-pub fn smtlib_command_head(doc: &SmtDoc, c: Int) -> Int {
+pub fn smtlib_command_head(doc: &SmtDoc, c: Int) -> Int
+  ensures: c < 0 => result == -1;
+  ensures: smtlib_command_node(doc, c) < 0 => result == -1;
+{
   let node = smtlib_command_node(doc, c);
   if node < 0 {
     return -1;
@@ -1148,7 +1210,10 @@ pub fn smtlib_command_head(doc: &SmtDoc, c: Int) -> Int {
 
 /// Head symbol text of command `c`, or "" when `c` is out of range.
 /// Complexity: O(1).
-pub fn smtlib_command_name(doc: &SmtDoc, c: Int) -> Str {
+pub fn smtlib_command_name(doc: &SmtDoc, c: Int) -> Str
+  ensures: smtlib_kind(doc, smtlib_command_head(doc, c)) != 1 => result.len() == 0;
+  ensures: result.len() > 0 => smtlib_kind(doc, smtlib_command_head(doc, c)) == 1;
+{
   let head = smtlib_command_head(doc, c);
   if head < 0 {
     return "";
@@ -1159,7 +1224,10 @@ pub fn smtlib_command_name(doc: &SmtDoc, c: Int) -> Str {
 /// Number of arguments of command `c` (its head symbol excluded), or 0 when
 /// `c` is out of range.
 /// Complexity: O(1).
-pub fn smtlib_command_arg_count(doc: &SmtDoc, c: Int) -> Int {
+pub fn smtlib_command_arg_count(doc: &SmtDoc, c: Int) -> Int
+  ensures: result >= 0;
+  ensures: smtlib_command_node(doc, c) < 0 => result == 0;
+{
   let node = smtlib_command_node(doc, c);
   if node < 0 {
     return 0;
@@ -1170,7 +1238,11 @@ pub fn smtlib_command_arg_count(doc: &SmtDoc, c: Int) -> Int {
 /// Node index of argument `a` (0-based, the head symbol excluded) of command
 /// `c`, or -1 when either index is out of range.
 /// Complexity: O(1).
-pub fn smtlib_command_arg(doc: &SmtDoc, c: Int, a: Int) -> Int {
+pub fn smtlib_command_arg(doc: &SmtDoc, c: Int, a: Int) -> Int
+  ensures: a < 0 => result == -1;
+  ensures: smtlib_command_node(doc, c) < 0 => result == -1;
+  ensures: a >= smtlib_command_arg_count(doc, c) => result == -1;
+{
   if a < 0 {
     return -1;
   }
@@ -1260,7 +1332,9 @@ fn _emit_node(doc: &SmtDoc, i: Int, out: &mut Vec[UInt8]) {
 /// child counts, and emitting again yields the identical text (the emitter
 /// is idempotent). An empty document yields "".
 /// Complexity: O(total node text length).
-pub fn smtlib_emit(doc: &SmtDoc) -> Str {
+pub fn smtlib_emit(doc: &SmtDoc) -> Str
+  ensures: smtlib_command_count(doc) == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   var c = 0;
   while c < doc.commands.len() {

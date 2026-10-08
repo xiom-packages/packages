@@ -1,8 +1,6 @@
 # xiom.pci -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.pci`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/pci.xi` (`module xiom.pci`).
 Depends on `xiom.std`; the library module imports nothing from it (every name
 it returns is a literal). Tests additionally use `xiom.test`, `xiom.io`,
@@ -565,6 +563,71 @@ Last verified: compiler 0.61.3,
 - All `&mut Vec[UInt8]` helpers take the mutable reference at the top-level
   builder; nested helpers receive the existing reference (aiff/tar
   precedent), which also avoids the advisory E001 warning.
-- **Malformed bracket audit:** both `.xi` files were grep-audited for
-  `Vec<` / `Result<` after writing; every occurrence uses `Vec[...]` /
-  `Result[...]` and the suite compiles with no warnings.
+- **Malformed bracket audit:** both `.xi` files were grep-audited after
+  writing for angle-bracket generics (a `Vec` or `Result` immediately
+  followed by `<`); every generic occurrence uses `Vec[...]` /
+  `Result[...]` and the suite compiles with no warnings. The batch #44
+  byte-level rescan of `src/pci.xi` and `SPEC.md` reports zero hits for
+  those shapes and for a `<` or `>` immediately followed by `]`.
+
+## Contracts (batch #44 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses added to `src/pci.xi` (compiler
+v0.64.1; no manifest change in this pass): 88 clauses over the 29 public
+entry points that carry clauses. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.pci -TimeoutSec 60` runs ended
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` (12.17 s and
+12.65 s wall) with the clauses active; no clause was dropped (one earlier
+run timed out under transient machine-wide memory pressure from an
+external benchmark, not a clause failure).
+
+All 88 clauses are **runtime-checked only**: no SMT run was performed in
+this pass, so no Z3-provable claim is made (per batch rules, an
+`xiom-verify` `[OK] VERIFIED` listing alone is not evidence). Every
+clause also holds over the hand-built negative cases in the conformance
+suite (empty `PciFunction`, 255-byte raw, empty capability columns,
+`status = -1`, five-BAR builder config).
+
+| Entry point | Clause(s) added | Class |
+|---|---|---|
+| `pci_parse` | `data.len() < 256 => result is Err`; `result is Ok => data.len() >= 256` | runtime-checked |
+| `pci_serialize` | `result.len() == f.raw.len()` | runtime-checked |
+| `pci_raw_byte` | `off < 0 => result == -1`; `off >= 256 => result == -1`; `result != -1 => off >= 0 && off < 256 && f.raw.len() >= 256`; `result >= -1 && result <= 255` | runtime-checked |
+| `pci_is_populated` | `f.raw.len() < 256 => !result`; `result => f.raw.len() >= 256` | runtime-checked |
+| `pci_vendor_id`, `pci_device_id`, `pci_command`, `pci_status` | `f.raw.len() < 256 => result == -1`; `result >= -1 && result <= 65535`; `result != -1 => f.raw.len() >= 256` | runtime-checked |
+| `pci_revision_id`, `pci_prog_if`, `pci_subclass`, `pci_class_code`, `pci_cache_line_size`, `pci_latency_timer`, `pci_bist` | same sentinel/range/guard triple as the word accessors with upper bound `255` | runtime-checked |
+| `pci_header_kind` | `pci_header_type(f) < 0 => result == -1`; `result >= -1 && result <= 127` | runtime-checked |
+| `pci_class_name` | `code < 0 => result.len() == 0`; `code > 255 => result.len() == 0`; `code == 0 => result.len() == 12`; `result.len() > 0 => code >= 0 && code <= 255` | runtime-checked |
+| `pci_cap_name` | `id == 1 => result.len() == 16`; `id == 5 => result.len() == 3`; `id == 16 => result.len() == 11`; `result.len() > 0 => id == 1 \|\| id == 5 \|\| id == 16` | runtime-checked |
+| `pci_bar_raw` | `i < 0 => result == -1`; `i >= 6 => result == -1`; `result >= -1 && result <= 4294967295`; `result != -1 => i >= 0 && i < 6 && f.raw.len() >= 256` | runtime-checked |
+| `pci_bar_address` | same index/range guards as `pci_bar_raw`, plus `pci_bar_is_upper(f, i) => result == -1` | runtime-checked |
+| `pci_bar_size` | `i < 0 => result == -1`; `i >= 6 => result == -1`; `pci_bar_address(f, i) == 0 => result == 0`; `result != -1 => result >= 0 && result <= 4611686018427387904` | runtime-checked |
+| `pci_cap_count` | `result >= 0`; `result <= f.cap_ids.len()`; `result <= f.cap_offsets.len()`; `result <= f.cap_spans.len()`; `f.cap_ids.len() <= f.cap_offsets.len() && f.cap_ids.len() <= f.cap_spans.len() => result == f.cap_ids.len()` | runtime-checked |
+| `pci_cap_id` | `i < 0 => result == -1`; `i >= f.cap_ids.len() => result == -1`; `result != -1 => i >= 0 && i < f.cap_ids.len()` | runtime-checked |
+| `pci_cap_offset`, `pci_cap_span` | the `pci_cap_id` shape against `f.cap_offsets.len()` / `f.cap_spans.len()` | runtime-checked |
+| `pci_cap_pm_version` | `pci_cap_id(f, i) != 1 => result == -1`; `result != -1 => result >= 0 && result <= 7` | runtime-checked |
+| `pci_cap_msi_data` | `pci_cap_id(f, i) != 5 => result == -1`; `result != -1 => result >= 0 && result <= 65535` | runtime-checked |
+| `pci_cap_pcie_version` | `pci_cap_id(f, i) != 16 => result == -1`; `result != -1 => result >= 0 && result <= 15` | runtime-checked |
+| `pci_build_type0` | `cfg.bars.len() != 6 => result is Err`; `cfg.status < 0 \|\| cfg.status > 65535 => result is Err`; `(cfg.status / 16) % 2 == 1 => result is Err`; `result is Ok => cfg.bars.len() == 6 && cfg.status >= 0 && cfg.status <= 65535 && (cfg.status / 16) % 2 == 0` | runtime-checked |
+
+Source-shape notes pinned by the clauses:
+
+- The builder clauses read the by-ref `cfg` fields (`cfg.bars.len()`), not
+  the body-local `bars` alias, which is not in contract scope; the length
+  is identical and the guard-pair family is unchanged (the only expression
+  refinement in this pass; no proposal was dropped).
+- `pci_build_type0` uses tag guard pairs only (`result is Err` /
+  `result is Ok`); no `Result` equality and no `is Ok(<literal>)` shape.
+- Cross-call clauses are non-re-entrant: `pci_bar_address` /
+  `pci_bar_size` call `pci_bar_is_upper` / `pci_bar_address`,
+  `pci_header_kind` calls `pci_header_type`, and the PM/MSI/PCIe subset
+  clauses call `pci_cap_id`; none of those callees calls the contracted
+  function back.
+- Hand-built safety: the sentinel and guard clauses keep their meaning on
+  arbitrary `PciFunction` values (short `raw`, drifted capability
+  columns); `pci_cap_id` / `pci_cap_offset` / `pci_cap_span` claim only
+  the in-range implication, never a particular stored value.
+- `Str` and `Vec` results are observed through `.len()` only (no string
+  equality); no clause indexes a vector, reads a module constant, or
+  names a `&mut` parameter; no clause-read parameter name is shadowed by
+  a local.

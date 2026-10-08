@@ -10,7 +10,7 @@
 
 package xiom_ext {
   name: "xiom.ext";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "ext2/3/4 superblock codec: parse and build the 1024-byte superblock at offset 1024";
   categories: ["systems"];
   keywords: ["ext4", "filesystem", "superblock", "format"];

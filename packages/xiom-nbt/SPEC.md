@@ -1,7 +1,6 @@
 # xiom.nbt -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Manifest: `package.xi` (`xiom.nbt`, version `0.1.0`).
 Module: `src/nbt.xi` (`module xiom.nbt`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`,
@@ -331,3 +330,60 @@ Last verified: compiler 0.61.3,
   no `mut` bindings in `match` patterns; the reader is a small private
   struct (`NbtCursor`) passed as `&mut`.
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #44 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses were added to `src/nbt.xi` in the
+batch #44 hardening pass (compiler v0.64.1; `package.xi` is left for the
+coordinator to bump at integration). 48 clauses over the 26 functions
+below, all `ensures:` (no `requires:`), so the accepted-input domain is
+unchanged. Two consecutive
+`& .\scripts\port.ps1 -Package xiom.nbt -TimeoutSec 60` runs ended
+`port: PASS (passed=26 failed=0 program_exit=0 exit=0)` with the clauses
+active (wall 160.5 s and 25.4 s; the machine was under external memory
+pressure, and one earlier attempt was killed by the 60 s watchdog and
+passed on retry -- no clause trapped in any run).
+
+Every clause holds for hand-built values and structs: guards keep the
+source's own validation branches, and only parameters, parameter fields
+(never a bare `&mut` parameter) and plain struct returns are read.
+`nbt_encode` / `nbt_finalize` and the twelve `nbt_add_*` mutators read no
+`&mut` receiver state: the mutators carry only `result >= 0`. No clause
+uses a module constant, indexes a vector, compares `Str` values with `==`,
+reads a struct-Result payload field or uses `result.value.0/.1`. The two
+clause calls are the definitional cross-calls `nbt_child_at` ->
+`nbt_child_count` and `nbt_find_child` -> `nbt_child_count`; neither callee
+reaches its caller (non-re-entrant).
+
+All plan expressions fit the source as written: no clause was refined,
+dropped or probe-gated. No Z3 claim is made: `xiom-verify` was not run in
+this pass, so every clause below is runtime-checked.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `nbt_decode` | 2 | empty buffer => `Err`; `Ok` => >= 4 bytes | no | yes |
+| `nbt_tree_new` | 3 | `root == -1`; `types` and `data` empty | no | yes |
+| `nbt_node_count` | 1 | `result == tree.types.len()` | no | yes |
+| `nbt_root` | 1 | `result == tree.root` | no | yes |
+| `nbt_tag_type` | 3 | out-of-range `node` => `-1`; non-`-1` node in range | no | yes |
+| `nbt_name` | 3 | out-of-range `node` => `""`; non-empty only for an in-range node | no | yes |
+| `nbt_parent` | 2 | out-of-range `node` => `-1` | no | yes |
+| `nbt_child_count` | 2 | out-of-range `node` => `0` | no | yes |
+| `nbt_child_at` | 4 | negative node/index or index >= child count => `-1`; non-`-1` node in range and index >= 0 | no | yes |
+| `nbt_find_child` | 3 | no children => `-1`; never below `-1`; below `names.len()` | no | yes |
+| `nbt_get_byte` | 3 | out-of-range `node` => `Err`; `Ok` => node in range | no | yes |
+| `nbt_get_str` | 3 | out-of-range `node` => `Err`; `Ok` => node in range | no | yes |
+| `nbt_list_len` | 3 | out-of-range `node` => `Err`; `Ok` => node in range | no | yes |
+| `nbt_list_item` | 3 | negative `node`/`index` => `Err`; `Ok` => node in range and index >= 0 | no | yes |
+| `nbt_add_compound` | 1 | `result >= 0` | no | yes |
+| `nbt_add_list` | 1 | `result >= 0` | no | yes |
+| `nbt_add_byte` | 1 | `result >= 0` | no | yes |
+| `nbt_add_short` | 1 | `result >= 0` | no | yes |
+| `nbt_add_int` | 1 | `result >= 0` | no | yes |
+| `nbt_add_long` | 1 | `result >= 0` | no | yes |
+| `nbt_add_float_bits` | 1 | `result >= 0` | no | yes |
+| `nbt_add_double_bits` | 1 | `result >= 0` | no | yes |
+| `nbt_add_str` | 1 | `result >= 0` | no | yes |
+| `nbt_add_byte_array` | 1 | `result >= 0` | no | yes |
+| `nbt_add_int_array` | 1 | `result >= 0` | no | yes |
+| `nbt_add_long_array` | 1 | `result >= 0` | no | yes |

@@ -31,9 +31,24 @@ running). Check `git log -1 --format=%h %s` before starting.
   stays in git history only (no `legacy/` resurrection) -- consistent with the loader-era
   pattern (sdl3/glfw/raylib/opengl). Published so far: sqlite 0.2.0, sdl3 0.3.0,
   opengl 0.3.0, glfw 0.2.0, raylib 0.2.0, vulkan 0.2.0. Batch 9 awaits their proposal.
-- **Batch #44 dispatched:** pci/nbt/ass/ext/smtlib/mp3 (~242 clauses planned; porters
-  `ses_ee367d27`, `ses_ee367ced`, `ses_ee367cba`, `ses_ee367c88`, `ses_ee367c55`,
-  `ses_ee367c23`).
+- **Batch #44 in flight (5/6 integrated on main):** `mp3` 0.1.2 (62 clauses; 21/21; `1c7cbd1f`),
+  `smtlib` 0.1.3 (48; 24/24; `35073e9d`), `ext` 0.1.2 (77; 20/20; `607c9bc6`), `nbt` 0.1.3
+  (48; 26/26; `ede91027`), `pci` 0.1.2 (88; 18/18; `6d37633b`); `ass` porter retrying under
+  memory pressure, then wrap + publish. Note: two mp3 runs aborted in infra (compiler OOM /
+  60s watchdog) under the external `benchsplit.exe` 91GB WS benchmark -- retried green;
+  nbt/pci/ass porters saw the same transient clang OOM class. Retry-on-infra-failure is the
+  policy (board posts carried the peer evidence).
+- **Lane checks (requested):** PULSE delta recorded -- C-PULSE-10 CLOSED on Linux (m217;
+  73/73 + 20m soak), **C-PULSE-13 NEW** (Unix installer layout: `xiom pkg` vs compiler
+  `xiom_home()`; compiler/ops ask), `xiom.http` 0.1.1 is the known-red catalog-dep gate
+  (compat porter running: unsafe confinement -> 0.1.2), bindings routing note. ORBITDB +
+  XVECTOR wishlists carry our replies; no new asks. PULSE also has an `OPS-REQUEST.md`
+  (staging.pulse: DNS, TLS, systemd, firewall, monitoring, Linux toolchain source) -- for
+  the owner/ops lane, not packages.
+- **Docs:** `docs/PACKAGE-WISHLIST.md` §7 (`a63e9a34`) and `docs/COMPILER-FINDINGS.md`
+  v0.64.1 consumer sweep (`07d77c2d`): C-PULSE-10 closed, C-PULSE-13 filed, extern-unsafe
+  fleet sweep (44 packages carry externs; published set triaged; http red, rest/grpc/
+  protobuf/sqlite/opengl/vulkan rehearsals queued).
 - Post-repin rules (v0.64.1): tag guard pairs only; no `Result ==`, no `is Ok(<literal>)`,
   no `let (k,v) = &vec[i]`; `Vec[Struct].clone()` allowed. Credential: `Lefteris-Notas` active.
 
