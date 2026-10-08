@@ -1,8 +1,6 @@
 # xiom.junit -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.junit`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/junit.xi` (`module xiom.junit`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`,
 `xiom.string.compare`).
@@ -304,3 +302,48 @@ Last verified: compiler 0.61.3,
 - The package declares no `extern "C"` blocks (no FFI); output is built with
   `xiom.string.builder` over `Vec[UInt8]` and materialized with
   `sb_to_str` exactly once per emitted report.
+
+## Contracts (batch #47 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (25, across the 15 functions below) were
+added to `src/junit.xi` in the batch #47 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 22-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive green `& .\scripts\port.ps1 -Package xiom.junit
+-TimeoutSec 90` runs ended `port: PASS (passed=22 failed=0 program_exit=0
+exit=0)` with the clauses active (12.02 s and 12.27 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, and per the batch #37
+finding a bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant, or
+reads a `&mut` parameter. Guards keep the plan's families: guard-pair /
+sentinel guards (`s < 0 || s >= d.suite_names.len() => result.len() == 0`,
+`i < 0 || i >= d.case_outcomes.len() => result == -1`), tag guards
+(`text.len() == 0 => result is Err`), bounds (`result >= 0`,
+`result <= d.case_texts.len()`), exact formulas (`result == d.total_tests`,
+`result == (d.has_wrapper == 1)`) and an emit-size floor
+(`d.has_wrapper == 1 => result.len() >= 68`). The two cross-calls
+(`junit_suite_count` in `junit_emit`'s second clause and in
+`junit_suite_case_count`'s guard) are definitional and non-re-entrant.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `junit_parse` | 1 | empty input => `Err` | no | yes |
+| `junit_emit` | 2 | wrapper root => at least 68 bytes; bare root with no suites => empty | no | yes |
+| `junit_has_wrapper` | 1 | result mirrors `has_wrapper == 1` | no | yes |
+| `junit_suite_count` | 3 | `>= 0` and `<=` names/tests vector lengths | no | yes |
+| `junit_case_count` | 2 | `>= 0` and `<=` texts vector length | no | yes |
+| `junit_case_count_by_outcome` | 2 | `>= 0` and `<=` outcomes vector length | no | yes |
+| `junit_suite_name` | 1 | out-of-range `s` => empty | no | yes |
+| `junit_suite_tests` | 1 | out-of-range `s` => `-1` | no | yes |
+| `junit_suite_case_count` | 3 | out-of-range `s` => `0`; `0 <= result <=` case-suites length | no | yes |
+| `junit_case_suite` | 1 | out-of-range `i` => `-1` | no | yes |
+| `junit_case_outcome` | 1 | out-of-range `i` => `-1` | no | yes |
+| `junit_case_message` | 1 | out-of-range `i` => empty | no | yes |
+| `junit_case_text` | 1 | out-of-range `i` => empty | no | yes |
+| `junit_total_tests` | 1 | `result == d.total_tests` | no | yes |
+| `junit_outcome_name` | 4 | codes 0/1/2 => names of length 6/7/5; other => empty | no | yes |
