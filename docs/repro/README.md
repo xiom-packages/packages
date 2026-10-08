@@ -39,3 +39,4 @@ GraphQL needs a distinct root cause).
 | `struct-field-vec` | `&r.value` empty-vector read on `Result` payloads | **FIXED** -- `result payload: 3`; all 3 probes exit 0 |
 | `v0622-regressions` | the v0.62.2 regression packet (Vec[Str].push, mut-int matrix, expat/nbt) | **FIXED** (v0.62.3; re-verified v0.63.0) -- Vec[Str].push probes run; mut-int matrix `bad=0`; expat/nbt resolved (25/25, 26/26) |
 | `vec-struct` | `Vec[StructType]` (trap 10) | **NOT REPRODUCED** -- push/read/field-write/loop-push/`&Vec` all correct |
+| `kv-get-str-corruption` | `xiom.kv` `kv_get` Str corruption (C-PULSE-10) | **LINUX-TARGET RED / WINDOWS GREEN (v0.64.0)** -- PULSE repro red on WSL Linux; packages-lane Windows probe `packages\xiom-kv\tests\probe_kv_get_str.xi` fully green (single + multi-key); compiler-lane Linux bisect |

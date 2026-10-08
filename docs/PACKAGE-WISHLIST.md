@@ -56,3 +56,28 @@ Status legend: **IN-FIX** / **APPROVED-NEW** / **EXTEND** / **MERGE-INTO** / **D
   catalog; `xiom.toml` source-roots workaround) -- same class as the packages-lane
   observation that raw `--run` inside a package dir can fail the catalog stage while
   `port.ps1`/the repo-root wrapper compile the same files.
+
+## 5. Delta 2026-10-08 (PULSE adoption round 3, Linux/WSL session)
+
+Source: PULSE relay 2026-10-08 (`E:\xiom-projects\xiom-pulse\docs\PACKAGE-WISHLIST-PULSE.md`
+delta 2026-10-07; PULSE suites x2 all 0, smoke 61/61, crash/rate/store/proxy green).
+
+| Package | Status | Detail |
+|---|---|---|
+| `xiom.metrics` 0.2.0 | **ADOPTED GREEN** | labeled status counters, 11-bound latency histogram, Prometheus exposition in `src/metrics.xi` (holder pattern); uptime gauge at render. |
+| `xiom.http.middleware` 0.1.0 | **ADOPTED GREEN** | CSRF token + constant-time validate (`src/session.xi`); CORS header block (`src/cors.xi`). |
+| `xiom.static` 0.1.0 | **ADOPTED GREEN** | favicon through `static_serve`: mime, ETag/Last-Modified/Cache-Control, If-None-Match 304, Range 206/416, traversal guard. |
+| `xiom.session` 0.1.0 | **DEFERRED (compiler-gated C-PULSE-09)** | consumer probe green; store swap crashes when driven from wrapper modules (inline green). Recorded in `docs/COMPILER-FINDINGS.md`; local store retained; CSRF still adopted. |
+| `xiom.kv` 0.1.0 | **BLOCKED (C-PULSE-10; Linux-target-specific)** | WSL Linux red (`kv_get` address-like Str + multi-key `kv_get_bytes` truncation); packages-lane Windows v0.64.0 probe GREEN for the identical shape (`packages\xiom-kv\tests\probe_kv_get_str.xi`). JSONL store stays the documented fallback on Linux. |
+
+Carry-forwards:
+
+- `xiom.static`: document that `static_resolve_path` rejects a leading `/` (consumers strip
+  it from the request target) -- README line at the package's next touch (policy 1b).
+- `xiom.kv`: at the next touch, add a `kv_get`-after-`kv_put` case with values >= 8 bytes
+  and a multi-key overwrite case to the conformance suite (PULSE ask; Windows green today,
+  Linux gates on the compiler fix).
+- Cross-refs: **C-PULSE-08** (`dependency_roots_under` dotted-key mismatch, m212 latent --
+  keep the `xiom.toml` source-roots workaround on both platforms until the next archive)
+  and **C-PULSE-11** (type alias to a package type defaults to i64 with a warning; recorded
+  in `docs/COMPILER-FINDINGS.md`).
