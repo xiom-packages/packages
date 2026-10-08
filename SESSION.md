@@ -14,6 +14,24 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-08 12:00Z (batch #42 COMPLETE + PUBLISHED `eco-v0.1.93`; supersedes the 11:45Z block below):**
+- **Batch #42 DONE + PUBLISHED (`eco-v0.1.93`, run `37773629591` SUCCESS; all six live at
+  0.1.2-0.1.3):** `bencode` 0.1.3 (24 clauses; 19/19; `51c03f4c`/`4a0ef66c`), `xpm` 0.1.2
+  (37; 19/19; `a8682d9b`/`de4d4ee1`), `ntriples` 0.1.2 (21; 24/24; `ce157665`/`ab2b77e7`),
+  `pe` 0.1.2 (36; 18/18; `903faeaf`/`0fd038d6`), `smtp` 0.1.2 (30; 22/22; `76f5adac`/
+  `935cd064`), `pcapng` 0.1.2 (20; 19/19; `8e2081b2`/`7d287bf1`); all x2 green on v0.64.0
+  (168 clauses total); wrap `66b45245`. **~43 zero-clause stable carriers remain**
+  (next: `gif` ~1214, rescan at batch #43).
+- Integration notes: pe's porter corrected a plan literal (PE machine I386 = 0x14C = 332,
+  not 316; spot-checked against the const); bencode re-expressed two hand-built-falsifiable
+  clauses (kind range, str payload identity) and flagged the missing payload-span accessor
+  for a future API pass; xpm dropped one converse for a hand-built `""`-storing image; the
+  two scan hits in xpm were prose `[ <x_hot> <y_hot>]` (verified).
+- Bindings batch 4 (`xiom.glfw`) in progress; `eco-v0.1.92` already live (sdl3 + opengl
+  0.2.0). v0.64.1 NOT released (re-checked 11:59Z). Credential: `Lefteris-Notas` active.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-08 11:45Z (bindings Phase 1 COMPLETE + PUBLISHED `eco-v0.1.92`; B-09 recorded; supersedes the 11:30Z block below):**
 - **Bindings batches 2-3 merged + PUBLISHED (`eco-v0.1.92`, run `37770693430` SUCCESS):**
   `xiom.sdl3` 0.2.0 and `xiom.opengl` 0.2.0 live as first versions (incubating). Merge
@@ -1791,17 +1809,17 @@ Read SESSION.md first -- the 2026-10-08 09:30Z STATE block is the live handoff.
 Repo-local identity: "Lefteris Notas <lefterisnotas@gmail.com>".
 
 STATE: compiler pin v0.64.0 (deployed + SHA256-verified; repin commit 53c1fbac);
-NO XIOM_RUNTIME_DIR needed. Validate 519/0; guard 505/465/40/0 (re-check at start).
-Batch #41 is DONE + PUBLISHED (`eco-v0.1.91`, run 37769875810): tftp 0.1.2, dtb 0.1.3,
-rtc 0.1.3, pop3 0.1.2, nii 0.1.2, edl 0.1.2 -- all live-verified. ~49 zero-clause stable
-carriers remain. New v0.64.0 findings: `Result` equality traps/fails codegen and
-`is Ok(<literal>)` ignores the payload -- do NOT use either shape in clauses/source.
+NO XIOM_RUNTIME_DIR needed. Validate 519/0; guard 505/467/38/0 (re-check at start).
+Batch #42 is DONE + PUBLISHED (`eco-v0.1.93`, run 37773629591): bencode 0.1.3, xpm 0.1.2,
+ntriples 0.1.2, pe 0.1.2, smtp 0.1.2, pcapng 0.1.2 -- all live-verified. ~43 zero-clause
+stable carriers remain. v0.64.0 clause-shape rules: no `Result` equality, no
+`is Ok(<literal>)` (batch #41 findings); tag guard pairs only.
 PULSE C-PULSE-09/10/11 recorded (`1feb6f12`); C-PULSE-10 is Linux-target-only (Windows
-probe green: packages\xiom-kv\tests\probe_kv_get_str.xi). Bindings: xiom.sqlite 0.2.0
-LIVE (`eco-v0.1.89`, allowlist 505); sdl3 in progress; hook contract `port.args.json`
-(BINDINGS-LANE.md §10). ORBITDB/XVECTOR names frozen (PACKAGE-WISHLIST §6); ORBITDB
-extraction queue: xiom-wal then xiom-btree (ops scope + allowlist at build-green).
-`option` stays excluded.
+probe green: packages\xiom-kv\tests\probe_kv_get_str.xi). Bindings Phase 1 complete
+(`eco-v0.1.89` sqlite; `eco-v0.1.92` sdl3+opengl 0.2.0); batch 4 = `xiom.glfw`; hook
+contract `port.args.json` (BINDINGS-LANE.md §10). ORBITDB/XVECTOR names frozen
+(PACKAGE-WISHLIST §6); ORBITDB extraction queue: xiom-wal then xiom-btree (ops scope +
+allowlist at build-green). `option` stays excluded.
 
 CREDENTIAL NOTE: `gh auth status` may show `Lefteris-Ngonart` active, which has only PULL
 on this repo (403 on push). Switch to `Lefteris-Notas` for pushes/gate approvals
@@ -1813,14 +1831,14 @@ Start: git fetch; git status -sb; git log -1; then
   & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Batch #42 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
+1. Batch #43 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
    -Detailed` for the name list; size them by total non-test .xi lines per package), skip
-   `option`; the next smallest after edl is `bencode` (~1105 lines; verify with the sizing
+   `option`; the next smallest after pcapng is `gif` (~1214 lines; verify with the sizing
    scan, then the next five). Read-only explore pre-plan (one explore task; IF its final
    message comes back EMPTY, resume it with `variant: low` + a "plan only, no preamble"
    prompt -- recovered every time since batch #38). Six background `task` porters with the
-   brief template `%TEMP%\kilo\batch41-porter-brief.md` retargeted (batch #42, plan
-   `%TEMP%\kilo\batch42-clause-plan.md`, `## Contracts (batch #42 hardening pass, 2026-10-XX)`).
+   brief template `%TEMP%\kilo\batch42-porter-brief.md` retargeted (batch #43, plan
+   `%TEMP%\kilo\batch43-clause-plan.md`, `## Contracts (batch #43 hardening pass, 2026-10-XX)`).
    Coordinator integrates as reports land: patch bump per CURRENT version, port x2
    post-bump, byte-level bracket scan, feat commit exact files, record with the REAL sha
    and `-RunBy task:ses_...`; wrap + publish the next eco tag (generate_index/report/
