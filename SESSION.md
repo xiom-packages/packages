@@ -14,7 +14,26 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-09 13:30Z (batch #49 COMPLETE + PUBLISHED `eco-v0.1.115`; NATIVE ZERO-CLAUSE PROGRAM DRAINED -- only `option` excluded; supersedes the 13:10Z block below):**
+**STATE AT 2026-10-09 13:45Z (bindings batch 19 PUBLISHED `eco-v0.1.116`: phonon present+absent complete; audio sector complete; supersedes the 13:30Z block below):**
+- **Bindings batch 19 (`xiom.phonon` 0.2.0) PUBLISHED (`eco-v0.1.116`, run `37939875911`):**
+  merge `eea795e9`. **The native lane CLOSED the present-path gap (AUDIT option a):**
+  fetched `steamaudio_4.8.1.zip` (181,171,027 bytes), extracted `lib/windows-x64/phonon.dll`,
+  and ran the suite with it on PATH -- real context created (version 264193 = 0x040801,
+  simd 0) + retain/release balanced, **present 4/4 x2 + absent 3/3 x2**; AUDIT.md updated
+  (`1c1b2f49`); guard 505/481/24/0. **Audio sector COMPLETE** (miniaudio, portaudio, phonon
+  all live).
+- **`xiom.odbc` is STILL the only ops-pending publish** (allowlist/scope 505 -> 506) -- the
+  owner was reminded; append + wrap + live-verify on confirmation.
+- **Remaining queue needs external inputs:** bindings crypto/media decisions (openssl
+  vendored-vs-system; ffmpeg LGPL/GPL choice) next; accelerators gated on XVECTOR;
+  ORBITDB/XVECTOR extraction relays (`xiom-wal` first); v0.64.x repin re-tests when an
+  archive lands. Nothing else actionable in-lane right now.
+- Session tally: **32 eco releases** (`eco-v0.1.86` -> `eco-v0.1.116`); hardening program
+  complete (only `option` excluded); 19 bindings batches published through phonon.
+
+**--- Older state below (history) ---**
+
+**STATE AT 2026-10-09 13:30Z (batch #49 COMPLETE + PUBLISHED `eco-v0.1.115`; native zero-clause program drained; supersedes the 13:10Z block below):**
 - **Batch #49 DONE + PUBLISHED (`eco-v0.1.115`, run `37936361166` SUCCESS; all six live):**
   `coverage` 0.1.2 (30 clauses; 22/22; `9b3dd18c`), `sarif` 0.1.2 (42; 21/21; `96d6db39`),
   `pgp` 0.1.2 (41; 22/22; `db2d287c`), `meteorology` 0.1.2 (41; 22/22; `45848973`),
