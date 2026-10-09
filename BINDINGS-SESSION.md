@@ -3,13 +3,29 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 21 RELAYED** -- `xiom.ffmpeg` 0.2.0 green under the approved
-system-lib SKIP-only scope (`BINDINGS-LANE.md` §11): default PATH SKIP 2/2 x2,
-Cascadeur 6.0 LGPL 4/4 x2, Blender GPL 7.1.1 4/4, partial generations SKIP
-2/2; nothing vendored. Batch 20 (`xiom.openssl`) is PUBLISHED (`eco-v0.1.119`).
-Awaiting merge/verify/publish for batch 21.
+**STATUS: V0.64.2 SWEEP DONE + BATCH 21 RELAYED** -- all 19 binding suites
+green x1 on v0.64.2 (repo-release): B-01 + B-08 FIXED, B-06/B-09 stay fixed,
+B-05 + B-10 still open; batch 21 (`xiom.ffmpeg` 0.2.0) awaits merge/verify/
+publish; batch 20 (`xiom.openssl`) published (`eco-v0.1.119`).
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS SWEEP v0.64.2: head=224e5c49 + this handoff commit; compiler=v0.64.2 (repo-release,
+E:\xiom-lang\xiom\target\release; repo pin still v0.64.1 -- native repin pending); matrix=19/19
+binding suites green x1 via port.ps1 (sqlite 16, zstd 8, lzfse 7, ozz 4, miniaudio 4, sdl3 21,
+glfw 3, raylib 3, opengl 13, vulkan 10, dxc 3, directx11 5, directx12 5, libpq 2, odbc 5,
+portaudio 2, phonon 3, openssl 4, ffmpeg 2; absent/SKIP shapes where no DLL is on PATH);
+findings=B-01 FIXED (6/6 enum-payload rebuilds all-true, m231; sqlite tagged-struct workaround
+droppable once the official archive is installed/pinned), B-08 FIXED (program code 5 now printed
+and exits 5, m228; new repro docs/repro/bindings-pilot/run-exit/), B-06 + B-09 still fixed
+(up=1 down=1; win32-gl q1/q2 green, real GL 4.6.0), B-05 STILL OPEN (alloc-guard-spin: 10 s
+watchdog kill, 8.7 CPU-s, flat 4.5 MB -- runtime side), B-10 STILL OPEN (odbc 3-way scratch
+control: f_alloc 5/5 + my_alloc 5/5 green, alloc FAIL -- name-keyed redirect persists; f_ prefix
+rule stays); B-02/B-03/B-04/B-07 not re-tested (no live trigger); workarounds kept (B-05, B-10,
+sqlite enum until the repin); docs=BINDINGS-COMPILER-FINDINGS.md rows + repro README updated;
+needs=NONE.
+```
 
 ```
 BINDINGS BATCH 21: head=224e5c49 + this handoff commit; packages=xiom.ffmpeg 0.2.0 (system-lib
@@ -629,6 +645,20 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
 
+## v0.64.2 sweep notes (2026-10-09)
+
+- Toolchain: repo-release v0.64.2 at `E:\xiom-lang\xiom\target\release`
+  (resolved by `scripts/xiom.ps1`); repo pin still v0.64.1 -- the native
+  repin is pending. The old `%LOCALAPPDATA%\xiom.new` slot is gone.
+- Repro batteries: B-01 6/6 all-true rebuilds (was 2/6 bad); B-08 compiler
+  exits 5 for a program returning 5; B-05 spin reproduced under the 10 s
+  watchdog (8.7 CPU-s, flat 4.5 MB); B-10 3-way scratch control
+  (`f_alloc`/`my_alloc` green, `alloc` fail); B-06/B-09 green.
+- Matrix: 19/19 suites x1; no new compiler findings from the sweep.
+- Workaround retirement: B-01 (sqlite tagged-struct) droppable at the
+  official repin; B-05/B-10 workarounds stay; B-06/B-09 bridge/naming
+  workarounds are optional-touch only (no drive-by reverts).
+
 ## Batch 21 notes (xiom.ffmpeg, 2026-10-09)
 
 - Scope per the native decision (`BINDINGS-LANE.md` §11): system-lib SKIP
@@ -897,19 +927,17 @@ Each package keeps: G0-G5 gates, green x2 through `port.ps1`, a relay block
 in this file, and any new compiler finding appended to
 `docs/BINDINGS-COMPILER-FINDINGS.md` with a bounded repro.
 
-## Next (state at 2026-10-09, batch 21 pushed)
+## Next (state at 2026-10-09, batch 21 + v0.64.2 sweep pushed)
 
 - Batch 21 (`xiom.ffmpeg` 0.2.0) is relayed and pushed to `origin/bindings`:
   waiting on the native merge/verify/publish. Batch 20 (`xiom.openssl`) is
-  PUBLISHED (`eco-v0.1.119`); the ffmpeg system-lib SKIP-only scope is
-  approved (`BINDINGS-LANE.md` §11).
+  PUBLISHED (`eco-v0.1.119`).
+- **v0.64.2 sweep done** (repo-release): matrix 19/19 green; B-01 + B-08
+  FIXED (m231/m228), B-06/B-09 stay fixed, B-05 + B-10 still open. On the
+  native repin (official archive install): re-run the matrix on the pin and
+  retire the sqlite enum workaround (B-01); B-05/B-10 workarounds stay.
 - The approved binding-sector queue is drained: heavy runtimes
   (`xiom.onnx`/`xiom.opencv`) need the native lane's go-ahead (last per the
   sector order, separate decision), accelerators stay GATED on XVECTOR
   freezing `xiom.vectors`, physics (`box2d`/`jolt`) is unscheduled.
-- When the v0.64.2 tag lands: install/repin, re-run the bindings matrix and
-  the lane findings sweep (B-01 + B-08 expected FIXED per m231/m228; B-10
-  re-test; B-05 expected still OPEN -- runtime side), retire the workarounds
-  the sweep clears, update `docs/BINDINGS-COMPILER-FINDINGS.md` rows, and
-  relay reds with minimal repros. The lane copy of the compiler relay is
-  `docs/BINDINGS-COMPILER-RELAY-2026-10-09-v0.64.2.md`.
+- Lane copy of the compiler relay: `docs/BINDINGS-COMPILER-RELAY-2026-10-09-v0.64.2.md`.
