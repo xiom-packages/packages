@@ -34,6 +34,12 @@ running). Check `git log -1 --format=%h %s` before starting.
   `src/wal/*`, consumes `xiom.wal` 0.1.0); ORBITDB order-3 btree re-sync;
   bindings continues (jolt waits on the compiler flag).
 - Session tally: **39 eco releases** (`eco-v0.1.86` -> `eco-v0.1.123`).
+- Ops catalog verification (2026-10-09 21:53Z): `xiom.wal` 0.1.0, `xiom.btree` 0.1.0,
+  `xiom.box2d` 0.2.0, `xiom.imgui` 0.2.0 all **MATCH** the production index byte-for-byte
+  (timestamps included); the earlier trio (`xiom.http` 0.1.4, `xiom.ffmpeg` 0.2.0,
+  `xiom.sqlite` 0.3.0) is present. Ops flow for future names (same as before): scope ->
+  live confirmation -> allowlist append -> cut; nothing pre-staged for
+  `xiom.vectors`/`xiom.ann` (send the enumeration request at build-green).
 
 **STATE AT 2026-10-09 18:10Z (history -- superseded by the 19:15Z block above):**
 - **Bindings merge `1435ac01` (origin/bindings `65a586e2`) integrated and published** (`eco-v0.1.122`,
