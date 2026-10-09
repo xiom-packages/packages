@@ -612,13 +612,19 @@ STILL OPEN on v0.64.1 (evidence re-run):
 - **NEW finding: `let _ = unsafe { call() };` emits invalid IR** for pointer/Str/struct
   returns in project builds (`trunc i64 -> i32` then `ret i8*`; clang: "defined with type
   'i32' but expected 'ptr'"). Shape fix: `unsafe { let _ = call(); }` (behavior-identical).
-- **Known defects in `xiom.http` preserved by the compat pass (queue for a future fix):**
-  double-free in `setup_common_options` (p1 freed, reused for NOSIGNAL, freed again -- only
-  survives under the arena/no-op-free guard-heap model), UAF in `http_download`
-  (`remove(path_cstr)` after `xiom_free_cstr`), and `char_to_str`/`byte_to_char` emitting
-  numeric strings for printable ASCII. Consumer-layout caveat: the module lives at the
-  package root (`http.xi`), not `src/`, so catalog rehearsals need a root-module path or
-  an identical `src/` copy.
+- **`xiom.http` defects RESOLVED (0.1.3 + 0.1.4 fix passes):** 0.1.3 removed the
+  `setup_common_options` `p1` double-free and the `http_download` remove-after-free UAF.
+  **0.1.4 (native, 2026-10-09, commit `6649cb7f`) fixed `char_to_str`/`byte_to_char`
+  (printable ASCII now renders as the actual character via `tostring.to_string_char`;
+  clauses 38 -> 37; suite 40 -> 42 checks) and `make_long_value` (variadic LONG options
+  now pass the value, not a heap pointer; the probe bridge is faithful to libcurl's ABI).
+  Proof: port 42/42 x2 + root probe x2, plus real libcurl 8.22.0 present-path --
+  GET `https://example.com/` status 200, POST echo captured `CL=5;READ=5;BODY=hello`
+  (pre-fix POSTFIELDSIZE would be address-sized). Flag for the next touch:
+  `src/client.xi` + `src/demo.xi` carry pre-existing `Result[HttpResponse, Str]` vs
+  `Result[HttpClientResponse, Str]` T001 drift (dead modules, no suite closure includes
+  them). Consumer-layout caveat: the module lives at the package root (`http.xi`), not
+  `src/`, so catalog rehearsals need a root-module path or an identical `src/` copy.
 
 ## Bindings B-10 (2026-10-08/09): alloc-named local fn-pointer silently redirected
 
