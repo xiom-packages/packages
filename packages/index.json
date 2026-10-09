@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-09T22:05:54Z",
+    "updated":  "2026-10-10T00:55:06Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -1890,6 +1890,10 @@
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
+                                              },
+                                              {
+                                                  "version":  "0.1.0",
+                                                  "name":  "xiom.wal"
                                               }
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-durable/v0.1.0/package.tar.gz",
@@ -8537,17 +8541,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.vma",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Vulkan Memory Allocator (VMA) bindings for XIOM",
+                         "description":  "Vulkan Memory Allocator (VMA) bindings for XIOM (vendored v3.4.0 header + pinned Vulkan-Headers core; runtime loader)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vma/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-vma/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "vma_safe.xi",
                                               "package.xi",
