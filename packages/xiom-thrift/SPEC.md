@@ -1,8 +1,6 @@
 # xiom.thrift -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.thrift`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/thrift.xi` (`module xiom.thrift`).
 Depends on `xiom.std`. The library module imports `xiom.string`,
 `xiom.string.builder` and `xiom.convert`; the tests add `xiom.test`,
@@ -568,3 +566,48 @@ Last verified: compiler 0.61.3,
   bytes were validated as NUL-free UTF-8 (strings) or printable ASCII
   (message names).
 - The package declares no `extern "C"` blocks (no FFI).
+
+## Contracts (batch #47 hardening pass, 2026-10-08)
+
+Runtime-checkable `ensures:` clauses (21, across the 16 functions below) were
+added to `src/thrift.xi` in the batch #47 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 24-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive timed green `& .\scripts\port.ps1 -Package
+xiom.thrift -TimeoutSec 90` runs ended `port: PASS (passed=24 failed=0
+program_exit=0 exit=0)` with the clauses active (14.76 s and 14.21 s; two
+earlier timed runs and one untimed run were green too). None is claimed Z3-provable:
+`xiom-verify` was not run for this module, and per the batch #37 finding a
+bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable column is
+"no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, compares a `Str`, uses a module constant, or (on the `&mut`
+reader/writer entry points) reads the receiver. Guards use the plan's
+families: exact formulas (`result == 2147549184`), sentinels (`result == -1`,
+`result.len() == 0`), tag guards (`result is Ok` / `result is Err`),
+bounds/ranges (`result.value >= -128 && result.value <= 127`) and
+length/index counts (`result < s.ids.len()`).
+`thrift_read_message_begin` is skipped as planned (struct-Result payload
+plus `&mut` state reads).
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `thrift_protocol_version` | 1 | always 2147549184 | no | yes |
+| `thrift_max_depth` | 1 | always 64 | no | yes |
+| `thrift_type_known` | 1 | true exactly for ids 2, 3, 4, 6, 8, 10..15 | no | yes |
+| `thrift_writer_new` | 1 | fresh writer holds zero bytes | no | yes |
+| `thrift_writer_len` | 1 | equals `w.data.len()` | no | yes |
+| `thrift_reader_new` | 2 | reader data equals `data`; cursor starts at 0 | no | yes |
+| `thrift_reader_remaining` | 1 | never negative | no | yes |
+| `thrift_read_byte` | 1 | `Ok` implies -128..127 | no | yes |
+| `thrift_read_i16` | 1 | `Ok` implies -32768..32767 | no | yes |
+| `thrift_read_i64` | 1 | `Ok` implies the full signed 64-bit range | no | yes |
+| `thrift_skip` | 3 | `Ok` implies >= 0 bytes consumed; negative or STOP `ftype` => `Err` | no | yes |
+| `thrift_encode_struct` | 2 | drifted parallel lengths => `Err`; `Ok` implies >= 1 byte | no | yes |
+| `thrift_decode_struct` | 2 | empty input => `Err`; `Ok` implies >= 1 byte | no | yes |
+| `thrift_struct_id` | 1 | out-of-range `i` => -1 | no | yes |
+| `thrift_struct_bytes` | 1 | out-of-range `i` => empty vector | no | yes |
+| `thrift_struct_field_index` | 1 | `-1 <= result < s.ids.len()` | no | yes |

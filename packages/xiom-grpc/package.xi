@@ -1,6 +1,6 @@
 package {
   name: "xiom.grpc"
-  version: "0.1.0"
+  version: "0.1.1"
   description: "gRPC C Core bindings for XIOM -- client, server, types, and 17 canonical status codes"
   categories: ["network", "web"]
   keywords: ["grpc", "rpc", "protobuf", "http2"]

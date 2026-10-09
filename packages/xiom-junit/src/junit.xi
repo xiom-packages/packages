@@ -916,7 +916,9 @@ fn _consume_markup(p: &mut _JUnitParser) -> Bool {
 /// entity, invalid integer attribute, text where elements expected,
 /// premature EOF, unsupported markup).
 /// Complexity: O(n) over the report bytes (entity decoding is linear).
-pub fn junit_parse(text: Str) -> Result[JUnitDoc, Str] {
+pub fn junit_parse(text: Str) -> Result[JUnitDoc, Str]
+  ensures: text.len() == 0 => result is Err;
+{
   var p = _JUnitParser{
     text: text; pos: 0; root_seen: false; has_wrapper: 0;
     total_tests: 0; total_failures: 0; total_errors: 0; total_skipped: 0; total_time: "";
@@ -1156,7 +1158,10 @@ fn _emit_suite(out: &mut Vec[UInt8], d: &JUnitDoc, s: Int, level: Int) {
 /// an equal model (the emitted report is byte-stable across repeated runs).
 /// Error case: none.
 /// Complexity: O(suites + cases + output bytes).
-pub fn junit_emit(d: &JUnitDoc) -> Str {
+pub fn junit_emit(d: &JUnitDoc) -> Str
+  ensures: d.has_wrapper == 1 => result.len() >= 68;
+  ensures: d.has_wrapper != 1 && junit_suite_count(d) == 0 => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   var s = 0;
   if d.has_wrapper == 1 {
@@ -1192,7 +1197,9 @@ pub fn junit_emit(d: &JUnitDoc) -> Str {
 /// Returns: true for a wrapper root, false for a bare <testsuite> root.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn junit_has_wrapper(d: &JUnitDoc) -> Bool {
+pub fn junit_has_wrapper(d: &JUnitDoc) -> Bool
+  ensures: result == (d.has_wrapper == 1);
+{
   return d.has_wrapper == 1;
 }
 
@@ -1202,7 +1209,11 @@ pub fn junit_has_wrapper(d: &JUnitDoc) -> Bool {
 /// Returns: the suite count; 0 for an empty report.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn junit_suite_count(d: &JUnitDoc) -> Int {
+pub fn junit_suite_count(d: &JUnitDoc) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.suite_names.len();
+  ensures: result <= d.suite_tests.len();
+{
   var n = d.suite_names.len();
   if d.suite_tests.len() < n { n = d.suite_tests.len(); }
   if d.suite_failures.len() < n { n = d.suite_failures.len(); }
@@ -1217,7 +1228,10 @@ pub fn junit_suite_count(d: &JUnitDoc) -> Int {
 /// Returns: the case count; 0 for an empty report.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn junit_case_count(d: &JUnitDoc) -> Int {
+pub fn junit_case_count(d: &JUnitDoc) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.case_texts.len();
+{
   var n = d.case_names.len();
   if d.case_suites.len() < n { n = d.case_suites.len(); }
   if d.case_classnames.len() < n { n = d.case_classnames.len(); }
@@ -1234,7 +1248,10 @@ pub fn junit_case_count(d: &JUnitDoc) -> Int {
 /// Returns: the count.
 /// Error case: none.
 /// Complexity: O(cases).
-pub fn junit_case_count_by_outcome(d: &JUnitDoc, outcome: Int) -> Int {
+pub fn junit_case_count_by_outcome(d: &JUnitDoc, outcome: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.case_outcomes.len();
+{
   var n = 0;
   var i = 0;
   while i < d.case_outcomes.len() {
@@ -1252,7 +1269,9 @@ pub fn junit_case_count_by_outcome(d: &JUnitDoc, outcome: Int) -> Int {
 /// Returns: the name, or "" when `s` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn junit_suite_name(d: &JUnitDoc, s: Int) -> Str {
+pub fn junit_suite_name(d: &JUnitDoc, s: Int) -> Str
+  ensures: s < 0 || s >= d.suite_names.len() => result.len() == 0;
+{
   if s < 0 || s >= d.suite_names.len() {
     return "";
   }
@@ -1265,7 +1284,9 @@ pub fn junit_suite_name(d: &JUnitDoc, s: Int) -> Str {
 /// range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn junit_suite_tests(d: &JUnitDoc, s: Int) -> Int {
+pub fn junit_suite_tests(d: &JUnitDoc, s: Int) -> Int
+  ensures: s < 0 || s >= d.suite_tests.len() => result == -1;
+{
   if s < 0 || s >= d.suite_tests.len() {
     return -1;
   }
@@ -1332,7 +1353,11 @@ pub fn junit_suite_time(d: &JUnitDoc, s: Int) -> Str {
 /// Returns: the case count; 0 for an out-of-range suite index.
 /// Error case: none.
 /// Complexity: O(cases).
-pub fn junit_suite_case_count(d: &JUnitDoc, s: Int) -> Int {
+pub fn junit_suite_case_count(d: &JUnitDoc, s: Int) -> Int
+  ensures: s < 0 || s >= junit_suite_count(d) => result == 0;
+  ensures: result >= 0;
+  ensures: result <= d.case_suites.len();
+{
   if s < 0 || s >= junit_suite_count(d) {
     return 0;
   }
@@ -1353,7 +1378,9 @@ pub fn junit_suite_case_count(d: &JUnitDoc, s: Int) -> Int {
 /// Returns: the suite index, or -1 when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn junit_case_suite(d: &JUnitDoc, i: Int) -> Int {
+pub fn junit_case_suite(d: &JUnitDoc, i: Int) -> Int
+  ensures: i < 0 || i >= d.case_suites.len() => result == -1;
+{
   if i < 0 || i >= d.case_suites.len() {
     return -1;
   }
@@ -1404,7 +1431,9 @@ pub fn junit_case_time(d: &JUnitDoc, i: Int) -> Str {
 /// Returns: the outcome code, or -1 when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn junit_case_outcome(d: &JUnitDoc, i: Int) -> Int {
+pub fn junit_case_outcome(d: &JUnitDoc, i: Int) -> Int
+  ensures: i < 0 || i >= d.case_outcomes.len() => result == -1;
+{
   if i < 0 || i >= d.case_outcomes.len() {
     return -1;
   }
@@ -1418,7 +1447,9 @@ pub fn junit_case_outcome(d: &JUnitDoc, i: Int) -> Int {
 /// or when `i` is out of range).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn junit_case_message(d: &JUnitDoc, i: Int) -> Str {
+pub fn junit_case_message(d: &JUnitDoc, i: Int) -> Str
+  ensures: i < 0 || i >= d.case_messages.len() => result.len() == 0;
+{
   if i < 0 || i >= d.case_messages.len() {
     return "";
   }
@@ -1445,7 +1476,9 @@ pub fn junit_case_type(d: &JUnitDoc, i: Int) -> Str {
 /// of range).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn junit_case_text(d: &JUnitDoc, i: Int) -> Str {
+pub fn junit_case_text(d: &JUnitDoc, i: Int) -> Str
+  ensures: i < 0 || i >= d.case_texts.len() => result.len() == 0;
+{
   if i < 0 || i >= d.case_texts.len() {
     return "";
   }
@@ -1457,7 +1490,9 @@ pub fn junit_case_text(d: &JUnitDoc, i: Int) -> Str {
 /// Returns: the attribute value, 0 when the wrapper or attribute is absent.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn junit_total_tests(d: &JUnitDoc) -> Int {
+pub fn junit_total_tests(d: &JUnitDoc) -> Int
+  ensures: result == d.total_tests;
+{
   return d.total_tests;
 }
 
@@ -1503,7 +1538,12 @@ pub fn junit_total_time(d: &JUnitDoc) -> Str {
 /// Returns: the name, or "" for any other value.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn junit_outcome_name(outcome: Int) -> Str {
+pub fn junit_outcome_name(outcome: Int) -> Str
+  ensures: outcome == 0 => result.len() == 6;
+  ensures: outcome == 1 => result.len() == 7;
+  ensures: outcome == 2 => result.len() == 5;
+  ensures: outcome < 0 || outcome > 3 => result.len() == 0;
+{
   if outcome == JUNIT_PASSED {
     return "passed";
   }

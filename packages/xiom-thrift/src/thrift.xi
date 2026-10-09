@@ -270,7 +270,9 @@ const _T_LIST: Int = 15;
 /// The strict-message version word: `0x80010000`. A strict header word is
 /// `thrift_protocol_version() | message_type`.
 /// Complexity: O(1).
-pub fn thrift_protocol_version() -> Int {
+pub fn thrift_protocol_version() -> Int
+  ensures: result == 2147549184;
+{
   return 2147549184;
 }
 
@@ -279,7 +281,9 @@ pub fn thrift_protocol_version() -> Int {
 /// rejected. The struct/map/list/set passed to `thrift_skip` itself has
 /// depth 0.
 /// Complexity: O(1).
-pub fn thrift_max_depth() -> Int {
+pub fn thrift_max_depth() -> Int
+  ensures: result == 64;
+{
   return 64;
 }
 
@@ -385,7 +389,9 @@ pub fn thrift_msg_oneway() -> Int {
 /// unused ids 5, 7, 9 and 16+ are not value types; `thrift_t_stop()` is
 /// handled separately as a struct terminator.
 /// Complexity: O(1).
-pub fn thrift_type_known(t: Int) -> Bool {
+pub fn thrift_type_known(t: Int) -> Bool
+  ensures: result == (t == 2 || t == 3 || t == 4 || t == 6 || t == 8 || t == 10 || t == 11 || t == 12 || t == 13 || t == 14 || t == 15);
+{
   return _type_known(t);
 }
 
@@ -735,12 +741,16 @@ fn _utf8_error(bytes: &Vec[UInt8]) -> Str {
 // --------------------------------------------------
 
 /// A fresh empty writer. Complexity: O(1).
-pub fn thrift_writer_new() -> ThriftWriter {
+pub fn thrift_writer_new() -> ThriftWriter
+  ensures: result.data.len() == 0;
+{
   return ThriftWriter{ data: Vec[UInt8].new() };
 }
 
 /// Number of bytes written so far. Complexity: O(1).
-pub fn thrift_writer_len(w: &ThriftWriter) -> Int {
+pub fn thrift_writer_len(w: &ThriftWriter) -> Int
+  ensures: result == w.data.len();
+{
   return w.data.len();
 }
 
@@ -756,7 +766,10 @@ pub fn thrift_writer_bytes(w: &ThriftWriter) -> Vec[UInt8] {
 }
 
 /// A reader positioned at offset 0 of `data`. Complexity: O(1).
-pub fn thrift_reader_new(data: Vec[UInt8]) -> ThriftReader {
+pub fn thrift_reader_new(data: Vec[UInt8]) -> ThriftReader
+  ensures: result.data.len() == data.len();
+  ensures: result.pos == 0;
+{
   return ThriftReader{ data: data; pos: 0; };
 }
 
@@ -767,7 +780,9 @@ pub fn thrift_reader_pos(r: &ThriftReader) -> Int {
 
 /// Bytes left after the cursor (0 when the cursor is at or past the end).
 /// Complexity: O(1).
-pub fn thrift_reader_remaining(r: &ThriftReader) -> Int {
+pub fn thrift_reader_remaining(r: &ThriftReader) -> Int
+  ensures: result >= 0;
+{
   let total: Int = r.data.len();
   let rem: Int = total - r.pos;
   if rem < 0 {
@@ -963,7 +978,9 @@ pub fn thrift_write_byte(w: &mut ThriftWriter, v: Int) {
 }
 
 /// Decode a signed BYTE (int8, -128..127). Complexity: O(1).
-pub fn thrift_read_byte(r: &mut ThriftReader) -> Result[Int, Str] {
+pub fn thrift_read_byte(r: &mut ThriftReader) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= -128 && result.value <= 127;
+{
   let ur = _read_unsigned(r, 1);
   if !ur.is_ok {
     return _err_int(ur.error);
@@ -978,7 +995,9 @@ pub fn thrift_write_i16(w: &mut ThriftWriter, v: Int) {
 }
 
 /// Decode a signed I16 (-32768..32767). Complexity: O(1).
-pub fn thrift_read_i16(r: &mut ThriftReader) -> Result[Int, Str] {
+pub fn thrift_read_i16(r: &mut ThriftReader) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= -32768 && result.value <= 32767;
+{
   return _read_i16(r);
 }
 
@@ -998,7 +1017,9 @@ pub fn thrift_write_i64(w: &mut ThriftWriter, v: Int) {
 }
 
 /// Decode a signed I64 (the full Int range). Complexity: O(1).
-pub fn thrift_read_i64(r: &mut ThriftReader) -> Result[Int, Str] {
+pub fn thrift_read_i64(r: &mut ThriftReader) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= -9223372036854775807 - 1 && result.value <= 9223372036854775807;
+{
   return _read64(r);
 }
 
@@ -1301,7 +1322,11 @@ fn _skip_value(r: &mut ThriftReader, ftype: Int, depth: Int) -> Result[Int, Str]
 /// depth exceeds limit of 64") when a container is nested deeper than
 /// `thrift_max_depth()` (the value passed in has depth 0).
 /// Complexity: O(skipped bytes).
-pub fn thrift_skip(r: &mut ThriftReader, ftype: Int) -> Result[Int, Str] {
+pub fn thrift_skip(r: &mut ThriftReader, ftype: Int) -> Result[Int, Str]
+  ensures: result is Ok => result.value >= 0;
+  ensures: ftype < 0 => result is Err;
+  ensures: ftype == 0 => result is Err;
+{
   return _skip_value(r, ftype, 0);
 }
 
@@ -1485,7 +1510,10 @@ pub fn thrift_read_struct(r: &mut ThriftReader) -> Result[ThriftStruct, Str] {
 /// Err("thrift: struct field type not supported") and
 /// Err("thrift: invalid bool value") are the only failures.
 /// Complexity: O(fields + string bytes).
-pub fn thrift_encode_struct(s: &ThriftStruct) -> Result[Vec[UInt8], Str] {
+pub fn thrift_encode_struct(s: &ThriftStruct) -> Result[Vec[UInt8], Str]
+  ensures: s.types.len() != s.ids.len() || s.ints.len() != s.ids.len() || s.bytes.len() != s.ids.len() => result is Err;
+  ensures: result is Ok => result.value.len() >= 1;
+{
   let n = s.ids.len();
   if s.types.len() != n || s.ints.len() != n || s.bytes.len() != n {
     return _err_bytes("thrift: struct vectors length mismatch");
@@ -1533,7 +1561,10 @@ pub fn thrift_encode_struct(s: &ThriftStruct) -> Result[Vec[UInt8], Str] {
 /// (Err("thrift: trailing data") otherwise). A struct is terminated by its
 /// STOP byte, so the whole buffer must be consumed. Complexity:
 /// O(data bytes).
-pub fn thrift_decode_struct(data: Vec[UInt8]) -> Result[ThriftStruct, Str] {
+pub fn thrift_decode_struct(data: Vec[UInt8]) -> Result[ThriftStruct, Str]
+  ensures: data.len() == 0 => result is Err;
+  ensures: result is Ok => data.len() >= 1;
+{
   var r = thrift_reader_new(data);
   let sr = thrift_read_struct(&mut r);
   if !sr.is_ok {
@@ -1557,7 +1588,9 @@ pub fn thrift_struct_count(s: &ThriftStruct) -> Int {
 
 /// Field id at position `i`, or -1 when `i` is out of range.
 /// Complexity: O(1).
-pub fn thrift_struct_id(s: &ThriftStruct, i: Int) -> Int {
+pub fn thrift_struct_id(s: &ThriftStruct, i: Int) -> Int
+  ensures: i < 0 || i >= s.ids.len() => result == -1;
+{
   if i < 0 || i >= s.ids.len() {
     return -1;
   }
@@ -1590,7 +1623,9 @@ pub fn thrift_struct_int(s: &ThriftStruct, i: Int) -> Int {
 /// is out of range or the field is not a string (a valid empty string is
 /// therefore indistinguishable from a non-string here; check the type
 /// first). Complexity: O(payload length).
-pub fn thrift_struct_bytes(s: &ThriftStruct, i: Int) -> Vec[UInt8] {
+pub fn thrift_struct_bytes(s: &ThriftStruct, i: Int) -> Vec[UInt8]
+  ensures: i < 0 || i >= s.bytes.len() => result.len() == 0;
+{
   var out = Vec[UInt8].new();
   if i < 0 || i >= s.bytes.len() {
     return out;
@@ -1607,7 +1642,9 @@ pub fn thrift_struct_bytes(s: &ThriftStruct, i: Int) -> Vec[UInt8] {
 /// Position of the first field with id `id`, or -1 when absent. A
 /// well-formed struct has unique ids; duplicates keep their wire order and
 /// this returns the first one. Complexity: O(fields).
-pub fn thrift_struct_field_index(s: &ThriftStruct, id: Int) -> Int {
+pub fn thrift_struct_field_index(s: &ThriftStruct, id: Int) -> Int
+  ensures: result >= -1 && result < s.ids.len();
+{
   var i = 0;
   while i < s.ids.len() {
     let v: Int = s.ids[i];

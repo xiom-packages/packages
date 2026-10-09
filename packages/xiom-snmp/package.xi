@@ -10,7 +10,7 @@
 
 package xiom_snmp {
   name: "xiom.snmp";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "ASN.1 BER decoder plus SNMPv1/v2c message parser and minimal GetRequest/Response encoder (RFC 1157 / 3416 subset)";
   categories: ["network"];
   keywords: ["snmp", "ber", "asn1", "wire", "codec", "network"];

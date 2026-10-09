@@ -944,7 +944,10 @@ fn _check_command_shape(kind: Int, uid: Bool, a: &_Args) -> Str {
 /// command whose argument shape violates the table in SPEC.md; most messages
 /// end with "at byte N".
 /// Complexity: O(bytes consumed).
-pub fn imap_parse_command_at(buf: Str, pos: Int) -> Result[ImapCommand, Str] {
+pub fn imap_parse_command_at(buf: Str, pos: Int) -> Result[ImapCommand, Str]
+  ensures: pos < 0 || pos > buf.len() => result is Err;
+  ensures: buf.len() == 0 => result is Err;
+{
   let n = buf.len();
   if pos < 0 || pos > n {
     return _err_command("imap: bad start offset");
@@ -1018,7 +1021,9 @@ pub fn imap_parse_command_at(buf: Str, pos: Int) -> Result[ImapCommand, Str] {
 }
 
 /// Parse one command from the start of `buf` (see imap_parse_command_at).
-pub fn imap_parse_command(buf: Str) -> Result[ImapCommand, Str] {
+pub fn imap_parse_command(buf: Str) -> Result[ImapCommand, Str]
+  ensures: buf.len() == 0 => result is Err;
+{
   return imap_parse_command_at(buf, 0);
 }
 
@@ -1385,7 +1390,10 @@ fn _parse_continuation(c: &mut _Cur, resp: &mut ImapResponse) -> Bool {
 /// lexical error imap_parse_command_at reports; most messages end with
 /// "at byte N".
 /// Complexity: O(bytes consumed).
-pub fn imap_parse_response_at(buf: Str, pos: Int) -> Result[ImapResponse, Str] {
+pub fn imap_parse_response_at(buf: Str, pos: Int) -> Result[ImapResponse, Str]
+  ensures: pos < 0 || pos > buf.len() => result is Err;
+  ensures: buf.len() == 0 => result is Err;
+{
   let n = buf.len();
   if pos < 0 || pos > n {
     return _err_response("imap: bad start offset");
@@ -1458,13 +1466,18 @@ pub fn imap_command_is_uid(cmd: &ImapCommand) -> Bool {
 }
 
 /// Bytes consumed from the parse start through the terminating CRLF.
-pub fn imap_command_consumed(cmd: &ImapCommand) -> Int {
+pub fn imap_command_consumed(cmd: &ImapCommand) -> Int
+  ensures: result == cmd.consumed;
+{
   let v: Int = cmd.consumed;
   return v;
 }
 
 /// Number of top-level arguments (a top-level list counts once).
-pub fn imap_command_arg_count(cmd: &ImapCommand) -> Int {
+pub fn imap_command_arg_count(cmd: &ImapCommand) -> Int
+  ensures: result >= 0;
+  ensures: result <= cmd.kinds.len();
+{
   let k: Vec[Int] = cmd.kinds;
   let d: Vec[Int] = cmd.depths;
   return _count_top(&k, &d);
@@ -1479,7 +1492,9 @@ pub fn imap_command_arg_kind(cmd: &ImapCommand, index: Int) -> Int {
 
 /// Decoded text of top-level argument `index` ("" for list markers and NIL);
 /// "" when the index is out of range.
-pub fn imap_command_arg_text(cmd: &ImapCommand, index: Int) -> Str {
+pub fn imap_command_arg_text(cmd: &ImapCommand, index: Int) -> Str
+  ensures: index < 0 => result.len() == 0;
+{
   let k: Vec[Int] = cmd.kinds;
   let d: Vec[Int] = cmd.depths;
   let t: Vec[Str] = cmd.texts;
@@ -1487,26 +1502,34 @@ pub fn imap_command_arg_text(cmd: &ImapCommand, index: Int) -> Str {
 }
 
 /// Number of flat argument elements (list markers included).
-pub fn imap_command_element_count(cmd: &ImapCommand) -> Int {
+pub fn imap_command_element_count(cmd: &ImapCommand) -> Int
+  ensures: result == cmd.kinds.len();
+{
   let v: Vec[Int] = cmd.kinds;
   return v.len();
 }
 
 /// Kind of element `index` (IMAP_ARG_*), or -1 when out of range.
-pub fn imap_command_element_kind(cmd: &ImapCommand, index: Int) -> Int {
+pub fn imap_command_element_kind(cmd: &ImapCommand, index: Int) -> Int
+  ensures: index < 0 || index >= cmd.kinds.len() => result == -1;
+{
   let v: Vec[Int] = cmd.kinds;
   return _vec_int_at(&v, index);
 }
 
 /// Decoded text of element `index`, or "" when out of range.
-pub fn imap_command_element_text(cmd: &ImapCommand, index: Int) -> Str {
+pub fn imap_command_element_text(cmd: &ImapCommand, index: Int) -> Str
+  ensures: index < 0 || index >= cmd.texts.len() => result.len() == 0;
+{
   let v: Vec[Str] = cmd.texts;
   return _vec_str_at(&v, index);
 }
 
 /// List nesting depth of element `index` (top level 0), or -1 when out of
 /// range.
-pub fn imap_command_element_depth(cmd: &ImapCommand, index: Int) -> Int {
+pub fn imap_command_element_depth(cmd: &ImapCommand, index: Int) -> Int
+  ensures: index < 0 || index >= cmd.depths.len() => result == -1;
+{
   let v: Vec[Int] = cmd.depths;
   return _vec_int_at(&v, index);
 }
@@ -1541,7 +1564,9 @@ pub fn imap_response_status(resp: &ImapResponse) -> Str {
 }
 
 /// Message number of a numbered untagged response, -1 when absent.
-pub fn imap_response_number(resp: &ImapResponse) -> Int {
+pub fn imap_response_number(resp: &ImapResponse) -> Int
+  ensures: result == resp.number;
+{
   let v: Int = resp.number;
   return v;
 }
@@ -1572,13 +1597,18 @@ pub fn imap_response_text(resp: &ImapResponse) -> Str {
 }
 
 /// Bytes consumed from the parse start through the final CRLF.
-pub fn imap_response_consumed(resp: &ImapResponse) -> Int {
+pub fn imap_response_consumed(resp: &ImapResponse) -> Int
+  ensures: result == resp.consumed;
+{
   let v: Int = resp.consumed;
   return v;
 }
 
 /// Number of top-level arguments of an argument-bearing response.
-pub fn imap_response_arg_count(resp: &ImapResponse) -> Int {
+pub fn imap_response_arg_count(resp: &ImapResponse) -> Int
+  ensures: result >= 0;
+  ensures: result <= resp.kinds.len();
+{
   let k: Vec[Int] = resp.kinds;
   let d: Vec[Int] = resp.depths;
   return _count_top(&k, &d);
@@ -1600,19 +1630,25 @@ pub fn imap_response_arg_text(resp: &ImapResponse, index: Int) -> Str {
 }
 
 /// Number of flat argument elements (list markers included).
-pub fn imap_response_element_count(resp: &ImapResponse) -> Int {
+pub fn imap_response_element_count(resp: &ImapResponse) -> Int
+  ensures: result == resp.kinds.len();
+{
   let v: Vec[Int] = resp.kinds;
   return v.len();
 }
 
 /// Kind of element `index` (IMAP_ARG_*), or -1 when out of range.
-pub fn imap_response_element_kind(resp: &ImapResponse, index: Int) -> Int {
+pub fn imap_response_element_kind(resp: &ImapResponse, index: Int) -> Int
+  ensures: index < 0 || index >= resp.kinds.len() => result == -1;
+{
   let v: Vec[Int] = resp.kinds;
   return _vec_int_at(&v, index);
 }
 
 /// Decoded text of element `index`, or "" when out of range.
-pub fn imap_response_element_text(resp: &ImapResponse, index: Int) -> Str {
+pub fn imap_response_element_text(resp: &ImapResponse, index: Int) -> Str
+  ensures: index < 0 || index >= resp.texts.len() => result.len() == 0;
+{
   let v: Vec[Str] = resp.texts;
   return _vec_str_at(&v, index);
 }

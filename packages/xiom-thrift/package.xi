@@ -9,7 +9,7 @@
 
 package xiom_thrift {
   name: "xiom.thrift";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Apache Thrift binary protocol codec (message headers, fields, primitives, containers, skip)";
   categories: ["data"];
   keywords: ["thrift", "binary", "serialization", "codec", "rpc"];
