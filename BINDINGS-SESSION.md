@@ -26,8 +26,9 @@ BLOCKED ASK -- xiom.jolt v5.6.0 (pin 6E069EE0..., generator emits 25 per-directo
 with angle->quote include rewriting; the full library compiles under -std=c++17): the xiom
 link line passes no standard flag and clang 22 defaults to C++14 (verified in
 crates/xiom/src/lib.rs + a live probe), so C++17 libraries cannot build via --c-source.
-Request: a --cxx-standard passthrough (or a default-standard bump). No jolt artifacts
-committed until unblocked.
+Request: a --cxx-standard passthrough (or a default-standard bump). No jolt
+module/tests committed until unblocked; the validated generator is staged at
+packages/xiom-jolt/tools/combine.py.
 ```
 
 ```
