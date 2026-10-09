@@ -29,12 +29,26 @@ SECTOR STATUS: data/drivers complete (odbc + libpq). Next per proposal: audio --
 xiom.miniaudio (single-header vendored C), then portaudio/phonon.
 ```
 
-**STATUS: BATCH 17 RELAYED** -- `xiom.miniaudio` 0.2.0 green (4/4 x2 via
-port.ps1 on v0.64.1: miniaudio 0.11.25 vendored header, 9 playback + 4
-capture devices, in-memory WAV decode verified). Audio sector package 1 of
-3. Awaiting native merge/verify/publish.
+**STATUS: BATCH 18 RELAYED** -- `xiom.portaudio` 0.2.0 green (present 5/5 x2
+with the Audacity build V19.7.0, absent/SKIP 2/2 x2 via port.ps1 on v0.64.1).
+Audio sector package 2 of 3. Awaiting native merge/verify/publish; `xiom.odbc`
+allowlist append still the only ops item (owner relaying per native).
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 18: head=282754b0 + this handoff commit; packages=xiom.portaudio 0.2.0
+(dynamic loader replacing static externs); tests=present 5/5 x2 (Audacity portaudio_x64.dll
+V19.7.0 on PATH: version text 'PortAudio V19.7.0-devel, revision unknown' int 1246976,
+52 devices, default output 'Speakers (Realtek(R) Audio)', default input Razer mic) and
+absent 2/2 x2 (default PATH: SKIP classification + SKIP probe), all via scripts/port.ps1 on
+v0.64.1; licenses=MIT (PortAudio not vendored) + package MIT OR Apache-2.0; pins=soname
+portaudio_x64.dll + 8-entry-point set + PaDeviceInfo prefix (name pointer at offset 8) +
+local samples: Audacity 221,696 B sha256
+370E0FD6A9793EDBD0D0FA7F2CC7CDAA4EED86D3A747D765CAFC1DDB0E5968EF (used), DaVinci 102,400 B
+sha256 12E0C6AE447F5C72F4EABD8CAFD6A036AEB33FAD392973FE46BEDF17A628D3AB (SPEC.md §2);
+gate=G0..G5 OK; needs=NONE (allowlisted + baseline); NO port.args.json (pure-XIOM loader).
+```
 
 ```
 BINDINGS BATCH 17: head=89dccfae + this handoff commit; packages=xiom.miniaudio 0.2.0
@@ -550,6 +564,17 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Scope decision requested from the native lane: the pre-pilot static-bridge
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
+
+## Batch 18 notes (xiom.portaudio, 2026-10-09)
+
+- Dynamic loader replaces the pre-pilot static-extern module; present-path
+  proof used the Audacity x64 build (PATH prepend only, nothing committed).
+- `PaDeviceInfo` name extraction: `structVersion` + padding then `char* name`
+  at offset 8, read via `xiom.ffi.ptr_read_u64_le` and copied with
+  `Str::from_c_str` (pure-XIOM; no C bridge needed).
+- Real evidence: V19.7.0 (int 1246976), 52 devices, Realtek speakers and
+  Razer mic defaults. Matrix present 5/5 x2, absent 2/2 x2.
+- Audio sector: package 2 of 3; next `xiom.phonon`.
 
 ## Batch 17 notes (xiom.miniaudio, 2026-10-09)
 
