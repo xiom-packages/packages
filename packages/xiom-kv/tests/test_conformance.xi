@@ -1,4 +1,4 @@
-// XIOM -- xiom.kv conformance tests (28 checks)
+// XIOM -- xiom.kv conformance tests (30 checks)
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //
@@ -15,7 +15,8 @@
 // older; compaction (live set, single new segment, old removal, stale tmp);
 // rotation across segments; snapshot roundtrip, replay after the snapshot,
 // corrupt-snapshot fallback and snapshot+compact; determinism; key limits,
-// open validation, close no-op and the short-read guard. Str equality goes
+// open validation, close no-op, the short-read guard, and the PULSE consumer
+// regressions (>= 8-byte value reads, multi-key overwrite). Str equality goes
 // through str_compare; byte reads are widened with & 0xFF.
 
 module kv_tests
@@ -1002,6 +1003,49 @@ fn t28_keys_copy(dir: Str) -> TestResult {
   return finish(ok, name, dir, prefix);
 }
 
+// PULSE consumer regressions (C-PULSE-10 shapes): values >= 8 bytes must
+// round-trip byte-exact through kv_get, and multi-key writes must not
+// truncate earlier values (see docs/repro/kv-get-str-corruption).
+fn t29_long_values(dir: Str) -> TestResult {
+  let name = "C-PULSE-10: >= 8-byte values roundtrip byte-exact through kv_get";
+  let prefix = run_prefix("t29");
+  let r = kv_open(dir, prefix, 100000);
+  if !r.is_ok { return finish(false, name, dir, prefix); }
+  var s = r.value;
+  var ok = true;
+  if !put_ok(&mut s, "k10", "abcdefghij") { ok = false; }
+  if !get_eq(&s, "k10", "abcdefghij") { ok = false; }
+  if !put_ok(&mut s, "k08", "12345678") { ok = false; }
+  if !get_eq(&s, "k08", "12345678") { ok = false; }
+  if !get_eq(&s, "k10", "abcdefghij") { ok = false; }
+  if !put_ok(&mut s, "k10", "short") { ok = false; }
+  if !get_eq(&s, "k10", "short") { ok = false; }
+  if !get_eq(&s, "k08", "12345678") { ok = false; }
+  if kv_count(&s) != 2 { ok = false; }
+  return finish(ok, name, dir, prefix);
+}
+
+fn t30_multi_key(dir: Str) -> TestResult {
+  let name = "C-PULSE-10: multi-key writes do not truncate earlier values";
+  let prefix = run_prefix("t30");
+  let r = kv_open(dir, prefix, 100000);
+  if !r.is_ok { return finish(false, name, dir, prefix); }
+  var s = r.value;
+  var ok = true;
+  if !put_ok(&mut s, "first", "abcdefghij") { ok = false; }
+  if !put_ok(&mut s, "second", "123456789") { ok = false; }
+  if !put_ok(&mut s, "third", "xyz") { ok = false; }
+  if !get_eq(&s, "first", "abcdefghij") { ok = false; }
+  if !get_eq(&s, "second", "123456789") { ok = false; }
+  if !get_eq(&s, "third", "xyz") { ok = false; }
+  if !put_ok(&mut s, "second", "7777777") { ok = false; }
+  if !get_eq(&s, "first", "abcdefghij") { ok = false; }
+  if !get_eq(&s, "second", "7777777") { ok = false; }
+  if !get_eq(&s, "third", "xyz") { ok = false; }
+  if kv_count(&s) != 3 { ok = false; }
+  return finish(ok, name, dir, prefix);
+}
+
 fn main() -> Int {
   let dir = fs.fs_temp_dir();
   io.println("=== xiom.kv conformance tests ===");
@@ -1063,6 +1107,10 @@ fn main() -> Int {
   if r27.passed { io.println("  [PASS] " + r27.name); } else { io.println("  [FAIL] " + r27.name); failed = failed + 1; }
   let r28 = t28_keys_copy(dir);
   if r28.passed { io.println("  [PASS] " + r28.name); } else { io.println("  [FAIL] " + r28.name); failed = failed + 1; }
+  let r29 = t29_long_values(dir);
+  if r29.passed { io.println("  [PASS] " + r29.name); } else { io.println("  [FAIL] " + r29.name); failed = failed + 1; }
+  let r30 = t30_multi_key(dir);
+  if r30.passed { io.println("  [PASS] " + r30.name); } else { io.println("  [FAIL] " + r30.name); failed = failed + 1; }
 
   if failed == 0 {
     io.println("xiom.kv: all tests passed");

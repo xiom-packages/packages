@@ -218,7 +218,7 @@ API exists.
 
 ## 7. Tests
 
-`tests/test_conformance.xi` (28 checks) uses `fs_temp_dir()` with a per-run
+`tests/test_conformance.xi` (30 checks) uses `fs_temp_dir()` with a per-run
 prefix `xiomkv-<time>-<tag>-`, never creates directories, and cleans every
 fixture with `io.remove_file` (ids 1..64 probed; snapshot and tmp names).
 Covered: header bytes; put/get/overwrite/delete; contains/count/keys order;
@@ -230,4 +230,7 @@ stale tmp cleanup); rotation across segments and header-only rotated
 segments; snapshot roundtrip, post-snapshot replay, corrupt-snapshot
 fallback, snapshot+compact; determinism across two stores; key limits; open
 validation; close no-op; the `kv: short read` guard; and `kv_keys` returning
-an independent vector. Assertions use stable values only (no timestamps).
+an independent vector. Since 2026-10-09 it also pins the PULSE consumer
+regressions from `docs/repro/kv-get-str-corruption`: values >= 8 bytes must
+round-trip byte-exact through `kv_get`, and multi-key writes must not truncate
+earlier values. Assertions use stable values only (no timestamps).
