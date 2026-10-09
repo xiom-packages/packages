@@ -14,6 +14,27 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-09 14:35Z (xiom.odbc PUBLISHED `eco-v0.1.117`; ALL PUBLISH QUEUES CLEAR; supersedes the 13:45Z block below):**
+- **`xiom.odbc` 0.2.0 PUBLISHED (`eco-v0.1.117`, run `37944935097`):** ops scope confirmed
+  LIVE; allowlist appended **505 -> 506**; guard **506/482/24/0**; wrap `c8d79aff`; live-
+  verified. Ops note: the published version is **0.2.0** (their confirmation said 0.1.0 --
+  same pattern as sqlite). **Data/drivers sector complete: sqlite 0.2.0, libpq 0.2.0,
+  odbc 0.2.0.**
+- **All publish queues are now CLEAR** -- no pending ops asks, no pending publishes, the
+  hardening program is complete (only `option` excluded), and the drain-confirmation rescan
+  shows zero remaining carriers.
+- **Follow-on category found by the drain rescan:** `xiom.http` is the only stable
+  published package with `requires:` but **zero `ensures:`** (33 requires, 0 ensures --
+  hardened requires-only during the PULSE wave, so the zero-clause program skipped it).
+  **Ensures-only pass STARTED**: explore pre-plan -> single porter (proven families,
+  standard brief), then bump 0.1.2->0.1.3 + republish.
+- **Waiting on external inputs only:** bindings crypto/media decisions (openssl
+  vendored-vs-system; ffmpeg LGPL/GPL), ORBITDB/XVECTOR extraction relays (`xiom-wal`
+  first), and the next compiler archive for a repin re-test.
+- Session tally: **33 eco releases** (`eco-v0.1.86` -> `eco-v0.1.117`).
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-09 13:45Z (bindings batch 19 PUBLISHED `eco-v0.1.116`: phonon present+absent complete; audio sector complete; supersedes the 13:30Z block below):**
 - **Bindings batch 19 (`xiom.phonon` 0.2.0) PUBLISHED (`eco-v0.1.116`, run `37939875911`):**
   merge `eea795e9`. **The native lane CLOSED the present-path gap (AUDIT option a):**
