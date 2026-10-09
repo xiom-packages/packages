@@ -3,13 +3,33 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 20 RELAYED** -- `xiom.openssl` 0.2.0 green (default PATH
-4/4 x2 via Windows' LibreSSL build, Git OpenSSL 3.2.4 4/4 via the first
-candidate; real SHA-256 + RAND proof). **openssl decision made**: system-lib
-path (rationale in SPEC §2). ffmpeg recommendation in the relay below for the
-native decision. Awaiting merge/verify/publish.
+**STATUS: BATCH 21 RELAYED** -- `xiom.ffmpeg` 0.2.0 green under the approved
+system-lib SKIP-only scope (`BINDINGS-LANE.md` §11): default PATH SKIP 2/2 x2,
+Cascadeur 6.0 LGPL 4/4 x2, Blender GPL 7.1.1 4/4, partial generations SKIP
+2/2; nothing vendored. Batch 20 (`xiom.openssl`) is PUBLISHED (`eco-v0.1.119`).
+Awaiting merge/verify/publish for batch 21.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 21: head=224e5c49 + this handoff commit; packages=xiom.ffmpeg 0.2.0 (system-lib
+generation loader replacing the pre-pilot 27-static-extern module; native decision BINDINGS-LANE
+§11 followed: SKIP path only, nothing vendored); tests=default PATH SKIP 2/2 x2 (skip
+classification via bogus sonames + probe SKIP) and Cascadeur 6.0 LGPL set on PATH 4/4 x2
+(version FFmpeg 6.0; avcodec 60.3.100 / avformat 60.3.100 / avutil 58.2.100 / swresample 4.10.100;
+license 'LGPL version 2.1 or later', gpl-configured false), plus Blender 7.1.1 GPL set 4/4
+(second generation exercised; license 'GPL version 2 or later' reported as data, consistency
+check) and partial-generation SKIP 2/2 each (OneDrive 8.x no swresample-6; DaVinci 6.x no
+swresample-4 -- a generation must resolve all four libraries, never mixed across ABI generations);
+licenses=LGPL-2.1+ upstream (nothing vendored or committed) + package MIT OR Apache-2.0;
+pins=generation table (8.x 62/62/60/6, 7.x 61/61/59/5, 6.x 60/60/58/4, 5.x 59/59/57/4, 4.x
+58/58/56/3) + 7 LGPL-safe entry points (av_version_info, avutil_version,
+avcodec_version/configuration/license, avformat_version, swresample_version) + local sample
+hashes (Cascadeur set 094CF53C/978F36BF/2FFE865E/43FF1854; Blender avcodec-61 1377146F; OneDrive
+avcodec-62 6A194B53; DaVinci avcodec-60 83A94AD3 -- SPEC §3); gate=G0..G5 OK (ABSENT -> SKIP;
+ABI/PROBE_FAILED -> FAIL; all unsafe in the single module); needs=NONE (allowlisted + baseline;
+namespace-check OK, 0 conflicts); NO port.args.json (pure-XIOM loader).
+```
 
 ```
 BINDINGS BATCH 20: head=80d3e0a0 + this handoff commit; packages=xiom.openssl 0.2.0 (system-lib
@@ -609,6 +629,25 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
 
+## Batch 21 notes (xiom.ffmpeg, 2026-10-09)
+
+- Scope per the native decision (`BINDINGS-LANE.md` §11): system-lib SKIP
+  path only, LGPL-safe probe; vendoring NOT approved. Present-path proof
+  used the local Cascadeur 6.0 LGPL set placed on PATH at run time (nothing
+  committed; hashes in SPEC §3).
+- Generation model: one release generation = four libraries
+  (avcodec/avformat/avutil/swresample); a partial set is skipped, never
+  mixed across ABI generations. 8.x..4.x table in SPEC §3.
+- Probe calls 7 LGPL-safe entry points only: version string + four packed
+  versions + license/configuration evidence. GPL-configured host builds are
+  reported as data (Blender 7.1.1 sample), not failed -- the package never
+  depends on a GPL-only feature.
+- Extra coverage beyond the required x2: second generation (7.x) exercised
+  via Blender; two partial-generation SKIP cases (OneDrive 8.x, DaVinci
+  6.x). Pre-pilot 27-static-extern module + 26-test suite preserved in git
+  history.
+- Namespace-check OK (0 conflicts vs 1758); no new compiler findings.
+
 ## Batch 20 notes (xiom.openssl, 2026-10-09)
 
 - System-lib path chosen (decision recorded in SPEC §2 and the relay):
@@ -858,13 +897,16 @@ Each package keeps: G0-G5 gates, green x2 through `port.ps1`, a relay block
 in this file, and any new compiler finding appended to
 `docs/BINDINGS-COMPILER-FINDINGS.md` with a bounded repro.
 
-## Next (state at 2026-10-09, batch 20 pushed)
+## Next (state at 2026-10-09, batch 21 pushed)
 
-- Batch 20 (`xiom.openssl` 0.2.0) is relayed and pushed to `origin/bindings`:
-  waiting on the native merge/verify/publish. Nothing else is actionable
-  in-lane until then -- ffmpeg needs the native go-ahead (recommendation in
-  the relay: LGPL-only configuration, system-lib SKIP first) and the
-  accelerators stay GATED on XVECTOR freezing `xiom.vectors`.
+- Batch 21 (`xiom.ffmpeg` 0.2.0) is relayed and pushed to `origin/bindings`:
+  waiting on the native merge/verify/publish. Batch 20 (`xiom.openssl`) is
+  PUBLISHED (`eco-v0.1.119`); the ffmpeg system-lib SKIP-only scope is
+  approved (`BINDINGS-LANE.md` §11).
+- The approved binding-sector queue is drained: heavy runtimes
+  (`xiom.onnx`/`xiom.opencv`) need the native lane's go-ahead (last per the
+  sector order, separate decision), accelerators stay GATED on XVECTOR
+  freezing `xiom.vectors`, physics (`box2d`/`jolt`) is unscheduled.
 - When the v0.64.2 tag lands: install/repin, re-run the bindings matrix and
   the lane findings sweep (B-01 + B-08 expected FIXED per m231/m228; B-10
   re-test; B-05 expected still OPEN -- runtime side), retire the workarounds
