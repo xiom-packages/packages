@@ -1,5 +1,7 @@
 # xiom.upnp -- specification of the implemented subset
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 This document describes exactly what `packages/xiom-upnp/src/upnp.xi`
 parses and produces. It is deliberately narrower than the SSDP/UPnP
 specifications: everything below is implemented, everything else is
@@ -302,3 +304,48 @@ input string, and the serialisers, where they are -1.
 | t16 | truncated buffers and offsets at end of input |
 | t17 | authority and LOCATION validation matrix |
 | t18 | integer header bounds (32/24/16-bit) and accessor range guards |
+
+## Contracts (batch #48 hardening pass, 2026-10-09)
+
+Runtime-checkable `ensures:` clauses (35, across the 15 functions below) were
+added to `src/upnp.xi` in the batch #48 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 18-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive timed green `& .\scripts\port.ps1 -Package xiom.upnp
+-TimeoutSec 90` runs ended `port: PASS (passed=18 failed=0 program_exit=0
+exit=0)` with the clauses active (11.26 s and 11.02 s; an earlier untimed run
+was also 18/18). None is claimed Z3-provable: `xiom-verify` was not run for
+this module, so the Z3-provable column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a vector element, compares a `Str` (length via `.len()` only),
+uses a module constant, or reads a `&mut` parameter. Guards keep the plan's
+families: sentinel guards (`result is Err`, `result == -1`, `result.len() ==
+0`, `!result`), exact formulas (`result == m.names.len()`), tag guard pairs
+(`i < 0 || i >= m.names.len() => result.len() == 0` / `result.len() > 0 =>
+i >= 0 && i < m.names.len()`), bounds/lengths (the 36-byte UUID form,
+`kind < 0 || kind > 2 => result.len() == 7`) and all-valid-on-Ok
+conjunctions (`result is Ok => host.len() > 0 && mx >= 1 && mx <= 5 &&
+st.len() > 0`). `upnp_canonical_header_name` was deliberately left
+uncontracted (16-way case-insensitive mapping; no discriminating expression
+in the allowed families).
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `upnp_parse` | 2 | empty input or length > 8192 => `Err` | no | yes |
+| `upnp_is_device_uuid` | 2 | length != 36 => `false`; `true` => length 36 | no | yes |
+| `upnp_validate_authority` | 2 | empty input => `false`; `true` => nonempty | no | yes |
+| `upnp_validate_location` | 2 | empty input => `false`; `true` => nonempty | no | yes |
+| `upnp_classify_target` | 2 | empty input => `Err`; `Ok` => nonempty | no | yes |
+| `usn_split` | 2 | empty input => `Err`; `Ok` => nonempty | no | yes |
+| `upnp_header_count` | 1 | exact `m.names.len()` | no | yes |
+| `upnp_header` | 2 | drifted vectors => `""`; nonempty result => vectors aligned | no | yes |
+| `upnp_has_header` | 2 | drifted vectors => `false`; `true` => vectors aligned | no | yes |
+| `upnp_header_name` | 2 | out-of-range `i` => `""`; nonempty => `i` in range | no | yes |
+| `upnp_header_value` | 2 | out-of-range `i` => `""`; nonempty => `i` in range | no | yes |
+| `upnp_header_offset` | 2 | out-of-range `i` => `-1`; non-`-1` => `i` in range | no | yes |
+| `upnp_build_msearch` | 4 | empty host/`st`, `mx` outside 1..5 => `Err`; `Ok` => all valid | no | yes |
+| `upnp_build_notify_alive` | 5 | empty host/`nt`/`usn`, `max_age` outside 1..2147483647, `bootid` > 4294967295 or `configid` > 16777215 => `Err` | no | yes |
+| `upnp_msg_kind_name` | 3 | unknown `kind` => 7; kind 0 => 8; kind 1 => 6 | no | yes |
