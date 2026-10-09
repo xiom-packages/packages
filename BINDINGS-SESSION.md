@@ -29,6 +29,28 @@ SECTOR STATUS: data/drivers complete (odbc + libpq). Next per proposal: audio --
 xiom.miniaudio (single-header vendored C), then portaudio/phonon.
 ```
 
+**STATUS: BATCH 17 RELAYED** -- `xiom.miniaudio` 0.2.0 green (4/4 x2 via
+port.ps1 on v0.64.1: miniaudio 0.11.25 vendored header, 9 playback + 4
+capture devices, in-memory WAV decode verified). Audio sector package 1 of
+3. Awaiting native merge/verify/publish.
+
+## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 17: head=89dccfae + this handoff commit; packages=xiom.miniaudio 0.2.0
+(vendored single header replacing the pre-pilot bridge whose miniaudio header was never
+vendored); tests=4/4 x2 via scripts/port.ps1 on v0.64.1 (2026-10-09: version 0.11.25,
+context playback=9 capture=4, in-memory WAV decode 16 frames / 1 channel / 8000 Hz / s16
+with sample spot-checks); licenses=Unlicense (public domain) OR MIT-0 (vendored miniaudio)
++ package MIT OR Apache-2.0; pins=tag 0.11.25 vendor/miniaudio.h sha256
+AC7AF4DE748B7E26B777F37E01CEE313A308A7296A3EB080E2906B320CC55C89 (4,108,168 B; committed
+blob verified) + vendor/LICENSE sha256 457F1B500E0ADF6BC059EDDDFA78A2F62012E7C3BB43476C20E0BD23B25BA0EB;
+gate=G0..G5 OK; needs=NONE (allowlisted + baseline); port.args.json present
+(--c-source src/miniaudio_all.c: MINIAUDIO_IMPLEMENTATION + probe bridge in one TU, no
+--link). No library-absence SKIP path (vendored); a serviceless host reports the context
+check as SKIP with the miniaudio result code.
+```
+
 ## Sector proposal (bindings lane, post tier-3)
 
 Ordered by risk retired per unit of work, each keeping the one-package-per-
@@ -528,6 +550,20 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Scope decision requested from the native lane: the pre-pilot static-bridge
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
+
+## Batch 17 notes (xiom.miniaudio, 2026-10-09)
+
+- Vendored single-header pattern proven: one compile unit
+  (`src/miniaudio_all.c`) holds `MINIAUDIO_IMPLEMENTATION` plus the probe
+  bridge; no include paths, no --link, no separate bridge object.
+- Real functional evidence without any audio hardware/backend assumptions:
+  context init enumerated 9 playback + 4 capture devices; the in-memory WAV
+  decode (8 kHz mono s16, precomputed sine, byte-built header) verified
+  frames/channels/rate/format and spot-checked samples.
+- Probe bug found and fixed: the EOS read returns `MA_AT_END` on a drained
+  decoder (`MA_SUCCESS || MA_AT_END` with zero frames is the correct check).
+- Blob pin verified from git; `vendor/** -text` applied. Matrix 4/4 x2.
+- Audio sector: package 1 of 3; next `xiom.portaudio`, then `xiom.phonon`.
 
 ## Batch 16 notes (xiom.libpq, 2026-10-08/09)
 
