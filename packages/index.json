@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-09T16:21:49Z",
+    "updated":  "2026-10-09T16:51:10Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -5781,22 +5781,20 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.phonon",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Steam Audio (Phonon) spatial audio bindings for XIOM",
+                         "description":  "Steam Audio (Phonon) bindings for XIOM via dynamic loader (phonon.dll at runtime, SKIP when absent)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-phonon/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-phonon/v0.2.0/package.tar.gz",
                          "source_files":  [
-                                              "demo_phonon.xi",
                                               "package.xi",
-                                              "phonon.xi",
-                                              "phonon_safe.xi"
+                                              "phonon.xi"
                                           ]
                      },
                      {
