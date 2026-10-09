@@ -1,25 +1,18 @@
 # xiom.ffmpeg -- ROADMAP
 
-## Phase 1 (Done)
-- [x] `ffmpeg.xi` -- module `xiom.ffmpeg` with 20 extern "C" raw bindings
-- [x] Opaque types: `FfmpegContext`, `FfmpegPacket`, `FfmpegFrame`
-- [x] Safe wrappers: `open_input`, `close_input`, `find_stream_info`, `get_video_stream`, `read_frame`, `decode_frame`, `encode_frame`, `write_frame`, `open_output`
-- [x] Resource helpers: `alloc_packet`, `free_packet`, `alloc_frame`, `free_frame`
-- [x] Constants: `AVMEDIA_TYPE_VIDEO`, `AVMEDIA_TYPE_AUDIO`, `AV_ERROR_EOF`, `AV_ERROR_EAGAIN`, `AV_SUCCESS`
-- [x] `tests/test_conformance.xi` -- 26 tests covering types, constants, resource lifecycle, all 9 safe wrappers, error chains, `int_to_str`, contract stubs
-- [x] `requires:` contract on `open_input` and `open_output` (path.len() > 0)
+## Phase 1 (Done) -- historical
+- [x] 0.1.0 pre-pilot module: static `extern "C"` FFmpeg declarations + 26-test suite (preserved in git history)
 
-## Phase 2 (Planned)
-- [ ] FFmpeg DLL auto-detection (PATH vs bundled)
-- [ ] Safe stream-level wrapper (`FfmpegStream` type)
-- [ ] Codec parameter introspection (`get_codec_name`, `get_resolution`)
-- [ ] Audio stream support (decode/encode)
-- [ ] Transcode pipeline example (`examples/transcode.xi`)
-- [ ] Integration tests with real input files
+## Phase 2 (Done) -- 0.2.0 dynamic loader
+- [x] Multi-soname generation loader (avcodec/avformat/avutil/swresample); SKIP when absent, never FAIL
+- [x] LGPL-safe capability probe: `av_version_info` + four library versions + license/configuration evidence
+- [x] Conformance suite: deterministic SKIP classification + present-path checks
 
-## Phase 3 (Future)
-- [ ] Frame data access (pixel buffer read/write)
-- [ ] Filter graph support (`libavfilter`)
-- [ ] Hardware acceleration support (CUDA, DXVA2, VAAPI)
-- [ ] Streaming protocols (RTMP, HLS, SRT)
+## Phase 3 (Planned)
+- [ ] Stream/container introspection (`avformat_open_input`, `av_find_best_stream` over resolved pointers)
+- [ ] Packet/frame lifecycle wrappers (`av_packet_*`, `av_frame_*`)
+- [ ] Decode/encode send/receive wrappers on a loaded generation
+- [ ] Transcode pipeline example (`examples/transcode.xi`) with a real input fixture
+- [ ] Audio stream support
+- [ ] Filter graph / hardware acceleration (evaluate `libavfilter` as a separate generation entry)
 - [ ] WASM cross-compilation target

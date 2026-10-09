@@ -2,26 +2,24 @@ module xiom.sqlite.types
 
 // Value model for query results.
 //
-// Portability note (compiler v0.64.0): `SqliteValue` deliberately does NOT
-// use a user-defined enum with payloads.  On this pin, enum payload reads are
-// nondeterministically miscompiled (see docs/COMPILER-FINDINGS.md, the
-// enum-payload findings), which made result accessors flaky across builds.
-// A tagged struct with plain fields is stable and keeps the same public API
-// (`SqliteValue.integer(...)`, `.as_int()`, ...).
+// 0.3.0 (compiler v0.64.2): the original user-enum model is RESTORED.  The
+// 0.2.0 tagged-struct workaround existed only because enum payload reads
+// were nondeterministically miscompiled on v0.64.0/v0.64.1 (finding B-01);
+// v0.64.2 fixed that (m231; 6/6 stable rebuilds in the lane's repro plus
+// native 3/3) and the workaround was retired at the repin.  The public API
+// keeps the same constructors and accessors (`SqliteValue.integer(...)`,
+// `.as_int()`, ...); the payload now lives in `SqliteValueKind`.
 pub type SqliteValue = {
-  kind: Int;        // SqliteValueKind constants below
-  ival: Int;        // kind 1
-  fval: Float64;    // kind 2
-  sval: Str;        // kind 3
-  bval: Vec[Int];   // kind 4
+  value: SqliteValueKind;
 }
 
-// SqliteValue.kind tags.
-pub const VALUE_NULL: Int = 0;
-pub const VALUE_INTEGER: Int = 1;
-pub const VALUE_REAL: Int = 2;
-pub const VALUE_TEXT: Int = 3;
-pub const VALUE_BLOB: Int = 4;
+pub enum SqliteValueKind {
+  Null,
+  Integer(value: Int),
+  Real(value: Float64),
+  Text(value: Str),
+  Blob(value: Vec[Int]),
+}
 
 pub type SqliteRow = {
   columns: Vec[SqliteValue];
@@ -39,103 +37,77 @@ pub type SqliteError = {
 }
 
 pub fn SqliteValue.null() -> SqliteValue {
-  return SqliteValue{
-    kind: 0,
-    ival: 0,
-    fval: 0.0,
-    sval: "",
-    bval: Vec[Int].new(),
-  };
+  return SqliteValue{ value: SqliteValueKind.Null };
 }
 
 pub fn SqliteValue.integer(val: Int) -> SqliteValue {
-  return SqliteValue{
-    kind: 1,
-    ival: val,
-    fval: 0.0,
-    sval: "",
-    bval: Vec[Int].new(),
-  };
+  return SqliteValue{ value: SqliteValueKind.Integer(val) };
 }
 
 pub fn SqliteValue.real(val: Float64) -> SqliteValue {
-  return SqliteValue{
-    kind: 2,
-    ival: 0,
-    fval: val,
-    sval: "",
-    bval: Vec[Int].new(),
-  };
+  return SqliteValue{ value: SqliteValueKind.Real(val) };
 }
 
 pub fn SqliteValue.text(val: Str) -> SqliteValue {
-  return SqliteValue{
-    kind: 3,
-    ival: 0,
-    fval: 0.0,
-    sval: val,
-    bval: Vec[Int].new(),
-  };
+  return SqliteValue{ value: SqliteValueKind.Text(val) };
 }
 
 pub fn SqliteValue.blob(val: Vec[Int]) -> SqliteValue
   requires: val.len() >= 0
 {
-  return SqliteValue{
-    kind: 4,
-    ival: 0,
-    fval: 0.0,
-    sval: "",
-    bval: val,
-  };
+  return SqliteValue{ value: SqliteValueKind.Blob(val) };
 }
 
-/// Integer payload when kind == VALUE_INTEGER, else None.
+/// Integer payload when the value is an integer, else None.
 pub fn SqliteValue.as_int(val: &SqliteValue) -> Option[Int] {
-  if val.kind == 1 {
-    return Some(val.ival);
+  match val.value {
+    SqliteValueKind.Integer(value) => Some(value),
+    _ => None,
   }
-  return None;
 }
 
-/// Real payload when kind == VALUE_REAL, else None.
+/// Real payload when the value is a real, else None.
 pub fn SqliteValue.as_real(val: &SqliteValue) -> Option[Float64] {
-  if val.kind == 2 {
-    return Some(val.fval);
+  match val.value {
+    SqliteValueKind.Real(value) => Some(value),
+    _ => None,
   }
-  return None;
 }
 
-/// Text payload when kind == VALUE_TEXT, else None.
+/// Text payload when the value is text, else None.
 pub fn SqliteValue.as_text(val: &SqliteValue) -> Option[Str] {
-  if val.kind == 3 {
-    return Some(val.sval);
+  match val.value {
+    SqliteValueKind.Text(value) => Some(value),
+    _ => None,
   }
-  return None;
 }
 
-/// Blob payload when kind == VALUE_BLOB, else None.
+/// Blob payload when the value is a blob, else None.
 pub fn SqliteValue.as_blob(val: &SqliteValue) -> Option[Vec[Int]] {
-  if val.kind == 4 {
-    return Some(val.bval);
+  match val.value {
+    SqliteValueKind.Blob(value) => Some(value),
+    _ => None,
   }
-  return None;
 }
 
 /// True when the value is SQL NULL.
 pub fn SqliteValue.is_null(val: &SqliteValue) -> Bool {
-  return val.kind == 0;
+  match val.value {
+    SqliteValueKind.Null => true,
+    _ => false,
+  }
 }
 
 /// Stable name of the value kind ("null", "integer", "real", "text",
 /// "blob").
 pub fn SqliteValue.kind_name(val: &SqliteValue) -> Str {
-  if val.kind == 0 { return "null"; }
-  if val.kind == 1 { return "integer"; }
-  if val.kind == 2 { return "real"; }
-  if val.kind == 3 { return "text"; }
-  if val.kind == 4 { return "blob"; }
-  return "unknown";
+  match val.value {
+    SqliteValueKind.Null => "null",
+    SqliteValueKind.Integer(value) => "integer",
+    SqliteValueKind.Real(value) => "real",
+    SqliteValueKind.Text(value) => "text",
+    SqliteValueKind.Blob(value) => "blob",
+  }
 }
 
 pub fn SqliteRow.new() -> SqliteRow {
@@ -147,18 +119,32 @@ pub fn SqliteRow.add(row: &mut SqliteRow, value: SqliteValue) {
   row.columns.push(value);
 }
 
+// Deep copy: the BLOB vector is rebuilt so the clone never aliases the
+// source (same intent as the 0.2.0 helper).
 fn clone_sqlite_value(v: &SqliteValue) -> SqliteValue {
-  if v.kind == 4 {
-    // Rebuild the blob vector so the clone never aliases the source.
-    var b = Vec[Int].new();
-    var i = 0;
-    while i < v.bval.len() {
-      b.push(v.bval[i]);
-      i = i + 1;
-    }
-    return SqliteValue{ kind: v.kind, ival: v.ival, fval: v.fval, sval: v.sval, bval: b };
+  let i = SqliteValue.as_int(v);
+  if i.is_some {
+    return SqliteValue{ value: SqliteValueKind.Integer(i.value) };
   }
-  return SqliteValue{ kind: v.kind, ival: v.ival, fval: v.fval, sval: v.sval, bval: Vec[Int].new() };
+  let r = SqliteValue.as_real(v);
+  if r.is_some {
+    return SqliteValue{ value: SqliteValueKind.Real(r.value) };
+  }
+  let t = SqliteValue.as_text(v);
+  if t.is_some {
+    return SqliteValue{ value: SqliteValueKind.Text(t.value) };
+  }
+  let b = SqliteValue.as_blob(v);
+  if b.is_some {
+    var rebuilt = Vec[Int].new();
+    var i2: Int = 0;
+    while i2 < b.value.len() {
+      rebuilt.push(b.value[i2]);
+      i2 = i2 + 1;
+    }
+    return SqliteValue{ value: SqliteValueKind.Blob(rebuilt) };
+  }
+  return SqliteValue{ value: SqliteValueKind.Null };
 }
 
 fn clone_sqlite_row(row: &SqliteRow) -> SqliteRow {

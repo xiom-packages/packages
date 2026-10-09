@@ -6,14 +6,17 @@ Probes produced while building `xiom.sqlite` 0.2.0 on compiler v0.64.0
 
 General rules for this bundle:
 
-- Each probe is run with the pinned compiler:
-  `$env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"` and
+- Each probe is run with the resolved toolchain (`scripts/xiom.ps1 -Info`);
+  v0.64.2 runs used `E:\xiom-lang\xiom\target\release\xiom.exe` with
   `$env:XIOM_STDLIB = "E:\xiom-lang\stdlib"` (never set XIOM_RUNTIME_DIR).
+  The old `%LOCALAPPDATA%\xiom.new` install slot no longer exists.
 - These are build-shaped defects: if a probe is expected to flake, you must
   **rebuild** on every iteration (the defect is not run-to-run).
-- `xiom --run` masks the program's exit code on v0.64.0 (see finding B-08),
-  so judge probes by their **printed line**, not by `$LASTEXITCODE`. Only
-  compiler-level failures (stack overflow, link errors) surface as nonzero.
+- `xiom --run` masked the program's exit code on v0.64.0/v0.64.1 (finding
+  B-08); **v0.64.2 (m228) fixed it** -- `$LASTEXITCODE` now equals the
+  program's code (see `run-exit/`). For pre-fix builds, judge probes by
+  their **printed line**. Only compiler-level failures (stack overflow,
+  link errors) surface as nonzero.
 
 ## enum-payload-nd -- RESPAWNED, runnable
 
@@ -39,6 +42,9 @@ path through rows) while `A/C/D` stayed true; in the real pre-fix package the
 suite alternated 16/16 and 11/16 PASS across 6 rebuilds. A miscompiled build
 is consistently bad for that binary; the next rebuild may be green again.
 
+Re-tested on v0.64.2 (2026-10-09): **6/6 rebuilds all-true**
+(`A=true B=true C=true D=true`) -- finding B-01 FIXED (m231).
+
 ## up-down-name -- NOT independently reproducible
 
 `pkg/` is the closest reduction of the crashing `xiom.sqlite.migration`
@@ -53,6 +59,8 @@ removed the crash; renaming a variant back to `up` reintroduced it
 (transcript in `docs/BINDINGS-COMPILER-FINDINGS.md`, B-06). Treat the
 reduction as documentation of what was ruled out; the full catalog is needed
 to reproduce.
+
+Re-tested on v0.64.2 (2026-10-09): green (`up=1 down=1`) -- B-06 stays fixed.
 
 ## alloc-guard-spin -- REPRODUCED, runnable (watchdog required)
 
@@ -72,6 +80,10 @@ libc frees a guard allocation). Never run this probe without a watchdog.
 Control shapes that exit 0: the same function with the `ffi.free` call
 removed, or with module-local `extern "C" { fn malloc/free }` used as a pair.
 
+Re-tested on v0.64.2 (2026-10-09): **still spins** -- killed at the 10 s
+watchdog with 8.7 CPU-s and a flat 4.5 MB working set (B-05 still open,
+runtime side).
+
 ## win32-gl-unsafe -- REPRODUCED, runnable (fails fast, no watchdog needed)
 
 Staged Win32/WGL context creation inside one confined `unsafe` block
@@ -87,3 +99,59 @@ Observed 2026-10-08: `probe_q2` is deterministic (3/3 rebuilds crash before
 any output); `probe_q1` -- window + GetDC + cleanup with the same 12-argument
 fn-pointer cast -- is green, which bounds the trigger to the added
 pixel-format/WGL stage. Finding B-09.
+
+Re-tested on v0.64.2 (2026-10-09): q1 green (`roundtrip_rc=0`), q2 green
+(real GL string `4.6.0 NVIDIA 616.92`) -- B-09 stays fixed.
+
+## run-exit -- FIXED on v0.64.2 (B-08)
+
+A single-file probe whose `main` returns 5; `xiom --run` must surface the
+program's exit code.
+
+```
+xiom --run docs/repro/bindings-pilot/run-exit/probe.xi
+```
+
+Observed on v0.64.0/v0.64.1: program output printed, `exit code: 0` (the
+program's code was masked). Observed on v0.64.2 (2026-10-09): prints
+`exit code: 5` and the compiler exits 5 (m228); `$LASTEXITCODE` equals the
+program's code.
+
+## ffi-alias-shadow -- STILL BROKEN on v0.64.2 (B-07)
+
+Single file: a module whose own name ends with the imported stdlib alias
+(`module probe.ffi` + `use xiom.ffi;`).
+
+```
+xiom --run probe.xi
+```
+
+Observed on v0.64.2 (2026-10-09): `error[T001]: undefined variable
+'c_strlen'` even though the import line is present -- the alias
+self-collision persists.
+
+## child-import-parent -- GREEN on v0.64.2 (B-04)
+
+Package: `src/child.xi` does `use probe.parent;` and calls the parent's pub
+function unqualified.
+
+```
+xiom --run tests/probe.xi
+```
+
+Observed on v0.64.2 (2026-10-09): `b04: child imported parent, value=42`.
+The original v0.64.0 failure was in the pre-fix full catalog; the sibling
+layout guidance stays (B-04 remains a structural note).
+
+## const-alias -- GREEN on v0.64.2 (B-03)
+
+Package: `src/facade.xi` declares `pub const FACADE_VALUE: Int =
+leaf.LEAF_VALUE;` and the suite references it.
+
+```
+xiom --run tests/probe.xi
+```
+
+Observed on v0.64.2 (2026-10-09): `b03: alias const resolved, value=7`.
+Small catalogs were green on v0.64.0 too; the original stack overflow needed
+the large pre-fix `xiom.sqlite` catalog (no live trigger today).

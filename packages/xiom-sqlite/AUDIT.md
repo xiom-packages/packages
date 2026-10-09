@@ -1,6 +1,6 @@
 # AUDIT: xiom.sqlite
 
-## Status (2026-10-08)
+## Status (2026-10-09)
 
 Real vendored implementation -- the previous "FFI bridge not linked" stubs are
 gone (`src/connection.xi` and `src/demo.xi` deleted). The package compiles and
@@ -8,12 +8,12 @@ its conformance suite is green on the pinned compiler.
 
 | Item | State |
 |------|-------|
-| Compiler | xiom v0.64.0 |
+| Compiler | xiom v0.64.2 |
 | Upstream | SQLite 3.53.4 amalgamation, vendored (public domain) |
 | Link model | `--c-source vendor/sqlite3.c` (static, no soname) |
 | FFI confinement | all `unsafe`/`extern` in `src/ffi.xi` only |
 | Suite | `tests/test_conformance.xi`, 16 checks |
-| Runs | 16/16 PASS x6 consecutive build+run cycles (default flags, 2026-10-08) |
+| Runs | 16/16 PASS x6 consecutive build+run cycles + pin matrix x1 with the restored enum model (v0.64.2, 2026-10-09) |
 
 ## Provenance
 
@@ -26,10 +26,9 @@ its conformance suite is green on the pinned compiler.
 
 ## Design notes
 
-- `SqliteValue` is a tagged struct (kind + payload fields), not an enum:
-  enum payload reads are nondeterministically miscompiled on v0.64.0
-  (build-to-build flakiness observed in this package; same class as the
-  `xiom.graphql` finding). See `SPEC.md` §5.
+- `SqliteValue` wraps `SqliteValueKind`, a user enum with payloads: the
+  0.2.0 tagged-struct workaround is retired (B-01 fixed on v0.64.2/m231;
+  6/6 stable rebuilds). Constructors/accessors unchanged; see `SPEC.md` §5.
 - C out-params (`sqlite3_open`, `sqlite3_prepare_v2`) write into an
   XIOM-owned 8-byte `Vec[UInt8]` slot; the FFI module does not call
   malloc/free (guard-heap allocator mismatch on this pin).
@@ -39,8 +38,8 @@ its conformance suite is green on the pinned compiler.
 
 ## Known limitations
 
-- BLOB values are surfaced as `SqliteValueKind` kind 4 only by tagging;
-  `column_blob`/`bind_blob` are Phase 2 (see ROADMAP.md).
+- BLOB values are constructible (`SqliteValueKind.Blob`) but `column_blob`/
+  `bind_blob` are Phase 2 (see ROADMAP.md).
 - `xiom.sqlite.query` WHERE helpers build literal SQL (parameter binding is
   available through prepared statements; the builder is convenience-only and
   not injection-safe for untrusted input).

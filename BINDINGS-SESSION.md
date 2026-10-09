@@ -3,13 +3,68 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 20 RELAYED** -- `xiom.openssl` 0.2.0 green (default PATH
-4/4 x2 via Windows' LibreSSL build, Git OpenSSL 3.2.4 4/4 via the first
-candidate; real SHA-256 + RAND proof). **openssl decision made**: system-lib
-path (rationale in SPEC §2). ffmpeg recommendation in the relay below for the
-native decision. Awaiting merge/verify/publish.
+**STATUS: MERGE READY -- BRANCH `bindings` (batch 21 + batch 22 + docs)** --
+`xiom.ffmpeg` 0.2.0 (relay head 224e5c49) and `xiom.sqlite` 0.3.0
+(B-01 workaround retired; 16/16 x6 fresh build cycles + pin matrix 19/19
+on the official v0.64.2) are queued for the native merge/verify/publish;
+batch 22's live-package bump publish is the native lane's call.
+Findings/consumer/wishlist docs ride along (no publish impact). Batch 20
+and earlier are published through `eco-v0.1.119`.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 22: head=4e4d556a + this handoff commit; packages=xiom.sqlite 0.3.0
+(B-01 workaround RETIRED: `SqliteValue` wraps the restored user enum `SqliteValueKind`
+with payloads; same constructors/accessors for callers; obsolete `VALUE_*` constants
+removed -- public type representation changed); tests=16/16 x6 fresh build cycles (the
+B-01 signature was build-dependent; 2/6 bad on v0.64.0/v0.64.1) + full pin matrix x1
+19/19 green on the official v0.64.2 (sqlite 16, zstd 8, lzfse 7, ozz 4, miniaudio 4,
+sdl3 21, glfw 3, raylib 3, opengl 13, vulkan 10, dxc 3, directx11 5, directx12 5,
+libpq 2, odbc 5, portaudio 2, phonon 3, openssl 4, ffmpeg 2); licenses=vendored SQLite
+3.53.4 public domain + package MIT OR Apache-2.0 (unchanged); pins=SQLite amalgamation
+hashes unchanged (SPEC §2) + compiler pin v0.64.2; gate=G0..G5 OK; needs=NONE
+(allowlisted); NO port.args.json change. NOTE: 0.2.0 -> 0.3.0 bump of a live package --
+publish is the native lane's call.
+```
+
+```
+BINDINGS SWEEP v0.64.2: head=224e5c49 + this handoff commit; compiler=v0.64.2 (port.ps1 matrix used
+the installed slot %LOCALAPPDATA%\xiom.new; direct probes used the repo-release build
+E:\xiom-lang\xiom\target\release; repo pin still v0.64.1 -- native repin pending); matrix=19/19
+binding suites green x1 via port.ps1 (sqlite 16, zstd 8, lzfse 7, ozz 4, miniaudio 4, sdl3 21,
+glfw 3, raylib 3, opengl 13, vulkan 10, dxc 3, directx11 5, directx12 5, libpq 2, odbc 5,
+portaudio 2, phonon 3, openssl 4, ffmpeg 2; absent/SKIP shapes where no DLL is on PATH);
+findings=B-01 FIXED (6/6 enum-payload rebuilds all-true, m231; sqlite tagged-struct workaround
+droppable once the official archive is installed/pinned), B-08 FIXED (program code 5 now printed
+and exits 5, m228; new repro docs/repro/bindings-pilot/run-exit/), B-06 + B-09 still fixed
+(up=1 down=1; win32-gl q1/q2 green, real GL 4.6.0), B-05 STILL OPEN (alloc-guard-spin: 10 s
+watchdog kill, 8.7 CPU-s, flat 4.5 MB -- runtime side), B-10 STILL OPEN (odbc 3-way scratch
+control: f_alloc 5/5 + my_alloc 5/5 green, alloc FAIL -- name-keyed redirect persists; f_ prefix
+rule stays); B-02/B-03/B-04/B-07 not re-tested (no live trigger); workarounds kept (B-05, B-10,
+sqlite enum until the repin); docs=BINDINGS-COMPILER-FINDINGS.md rows + repro README updated;
+needs=NONE.
+```
+
+```
+BINDINGS BATCH 21: head=224e5c49 + this handoff commit; packages=xiom.ffmpeg 0.2.0 (system-lib
+generation loader replacing the pre-pilot 27-static-extern module; native decision BINDINGS-LANE
+§11 followed: SKIP path only, nothing vendored); tests=default PATH SKIP 2/2 x2 (skip
+classification via bogus sonames + probe SKIP) and Cascadeur 6.0 LGPL set on PATH 4/4 x2
+(version FFmpeg 6.0; avcodec 60.3.100 / avformat 60.3.100 / avutil 58.2.100 / swresample 4.10.100;
+license 'LGPL version 2.1 or later', gpl-configured false), plus Blender 7.1.1 GPL set 4/4
+(second generation exercised; license 'GPL version 2 or later' reported as data, consistency
+check) and partial-generation SKIP 2/2 each (OneDrive 8.x no swresample-6; DaVinci 6.x no
+swresample-4 -- a generation must resolve all four libraries, never mixed across ABI generations);
+licenses=LGPL-2.1+ upstream (nothing vendored or committed) + package MIT OR Apache-2.0;
+pins=generation table (8.x 62/62/60/6, 7.x 61/61/59/5, 6.x 60/60/58/4, 5.x 59/59/57/4, 4.x
+58/58/56/3) + 7 LGPL-safe entry points (av_version_info, avutil_version,
+avcodec_version/configuration/license, avformat_version, swresample_version) + local sample
+hashes (Cascadeur set 094CF53C/978F36BF/2FFE865E/43FF1854; Blender avcodec-61 1377146F; OneDrive
+avcodec-62 6A194B53; DaVinci avcodec-60 83A94AD3 -- SPEC §3); gate=G0..G5 OK (ABSENT -> SKIP;
+ABI/PROBE_FAILED -> FAIL; all unsafe in the single module); needs=NONE (allowlisted + baseline;
+namespace-check OK, 0 conflicts); NO port.args.json (pure-XIOM loader).
+```
 
 ```
 BINDINGS BATCH 20: head=80d3e0a0 + this handoff commit; packages=xiom.openssl 0.2.0 (system-lib
@@ -609,6 +664,59 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
 
+## Batch 22 notes (xiom.sqlite enum restore, 2026-10-09)
+
+- B-01 workaround retired at the repin per the native rule ("droppable at
+  the next touch"): `types.xi` restores the canonical enum model from the
+  repro bundle (struct wrapping `SqliteValueKind`); `rows.xi` needed only a
+  comment fix (constructors unchanged); `kind_name` kept (match-based).
+- Validation: 6 fresh rebuild cycles (the defect was build-dependent;
+  original evidence 2/6 bad) + the pin matrix x1 -- 16/16 each time.
+- Docs updated: SPEC §1/§5 (0.3.0, v0.64.2 pin, item 1 rewritten as
+  FIXED+restored), README status, AUDIT design note; obsolete `VALUE_*`
+  constants removed with the struct.
+- Version 0.3.0 (public type representation changed); the publish decision
+  is the native lane's.
+
+## v0.64.2 sweep notes (2026-10-09)
+
+- Toolchain: v0.64.2 -- the installed slot `%LOCALAPPDATA%\xiom.new`
+  (used by `port.ps1`) plus the repo-release build
+  `E:\xiom-lang\xiom\target\release` (used by the direct repro probes);
+  repo pin still v0.64.1 -- the native repin is pending. The old
+  `%LOCALAPPDATA%\xiom.new` slot has been replaced by the shipped release.
+- Repro batteries: B-01 6/6 all-true rebuilds (was 2/6 bad); B-08 compiler
+  exits 5 for a program returning 5; B-05 spin reproduced under the 10 s
+  watchdog (8.7 CPU-s, flat 4.5 MB); B-10 3-way scratch control
+  (`f_alloc`/`my_alloc` green, `alloc` fail); B-06/B-09 green.
+- Matrix: 19/19 suites x1; no new compiler findings from the sweep.
+- Minimal-shape follow-ups (2026-10-09): B-03 + B-04 GREEN, B-07 STILL
+  BROKEN (`undefined variable` in a `module ...ffi` + `use xiom.ffi;` shape);
+  bundles committed under `docs/repro/bindings-pilot/` (const-alias,
+  child-import-parent, ffi-alias-shadow); B-02 not re-tested (no trigger).
+- Workaround retirement: B-01 (sqlite tagged-struct) RETIRED in `xiom.sqlite`
+  0.3.0; B-05/B-10 workarounds stay; B-06/B-09 bridge/naming
+  workarounds are optional-touch only (no drive-by reverts).
+
+## Batch 21 notes (xiom.ffmpeg, 2026-10-09)
+
+- Scope per the native decision (`BINDINGS-LANE.md` §11): system-lib SKIP
+  path only, LGPL-safe probe; vendoring NOT approved. Present-path proof
+  used the local Cascadeur 6.0 LGPL set placed on PATH at run time (nothing
+  committed; hashes in SPEC §3).
+- Generation model: one release generation = four libraries
+  (avcodec/avformat/avutil/swresample); a partial set is skipped, never
+  mixed across ABI generations. 8.x..4.x table in SPEC §3.
+- Probe calls 7 LGPL-safe entry points only: version string + four packed
+  versions + license/configuration evidence. GPL-configured host builds are
+  reported as data (Blender 7.1.1 sample), not failed -- the package never
+  depends on a GPL-only feature.
+- Extra coverage beyond the required x2: second generation (7.x) exercised
+  via Blender; two partial-generation SKIP cases (OneDrive 8.x, DaVinci
+  6.x). Pre-pilot 27-static-extern module + 26-test suite preserved in git
+  history.
+- Namespace-check OK (0 conflicts vs 1758); no new compiler findings.
+
 ## Batch 20 notes (xiom.openssl, 2026-10-09)
 
 - System-lib path chosen (decision recorded in SPEC §2 and the relay):
@@ -826,6 +934,33 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - **Wave continuation**: batch 9 starts `xiom.dxc` (GPU tier: shader-compiler
   binding over the same runtime-loader + SKIP pattern), then dx11/12.
 
+## Inbound package wishlists (2026-10-09 refresh)
+
+- Fetched the three project-lane package wishlists (fresh, v0.64.2-era):
+  `E:\xiom-projects\xiom-pulse\docs\PACKAGE-WISHLIST-PULSE.md`,
+  `...\xiom-orbitdb\docs\PACKAGE-WISHLIST-ORBITDB.md`,
+  `...\xiom-xvector\docs\PACKAGE-WISHLIST-XVECTOR.md`.
+- Consolidated bindings-lane responses: **`docs/BINDINGS-PACKAGE-WISHLIST.md`**.
+  - PULSE durable-DB ask **SERVED from the registry** (live-verified
+    2026-10-09): `xiom.sqlite` 0.2.0, `xiom.libpq` 0.2.0 and `xiom.odbc`
+    0.2.0 are all signed; the 0.3.0 sqlite enum restore is pending batch 22.
+    Outbound HTTP is served by `xiom.http` 0.1.4 (libcurl); TLS
+    not-a-binding ACKed.
+  - ORBITDB: no FFI asks (pure XIOM through Phase 2) -- nothing to do.
+  - XVECTOR: accelerators stay **GATED** on the `xiom.vectors` freeze
+    (placeholders incubating/`unknown`); no SIMD kernel from this lane.
+- Flagged to the packages/native lane: registry consumers of vendored-C
+  packages (`xiom.sqlite`) need a `--c-source` build-hook story beyond the
+  runner's `port.args.json`.
+- Consumer-flow validation (registry installs into a scratch `XIOM_HOME`,
+  v0.64.2, checksum+signature verified): `xiom.sqlite` 0.2.0 and
+  `xiom.libpq` 0.2.0 both install and resolve via canonical
+  `[dependencies]` (no `source-roots`). sqlite needs the explicit
+  `--c-source <installed>/vendor/sqlite3.c` (gap confirmed: the shipped
+  `port.args.json` is not applied by consumer builds) -- recipe in the
+  package wishlist doc + the sqlite README (docs follow-up on batch 22);
+  libpq runs plain with the SKIP classification.
+
 ## Phase-2 sector order proposal (Phase 1 pilot complete)
 
 Ordered by risk retired per unit of work, stable ABIs first, each slice
@@ -858,16 +993,24 @@ Each package keeps: G0-G5 gates, green x2 through `port.ps1`, a relay block
 in this file, and any new compiler finding appended to
 `docs/BINDINGS-COMPILER-FINDINGS.md` with a bounded repro.
 
-## Next (state at 2026-10-09, batch 20 pushed)
+## Next (state at 2026-10-09, batch 22 pushed)
 
-- Batch 20 (`xiom.openssl` 0.2.0) is relayed and pushed to `origin/bindings`:
-  waiting on the native merge/verify/publish. Nothing else is actionable
-  in-lane until then -- ffmpeg needs the native go-ahead (recommendation in
-  the relay: LGPL-only configuration, system-lib SKIP first) and the
-  accelerators stay GATED on XVECTOR freezing `xiom.vectors`.
-- When the v0.64.2 tag lands: install/repin, re-run the bindings matrix and
-  the lane findings sweep (B-01 + B-08 expected FIXED per m231/m228; B-10
-  re-test; B-05 expected still OPEN -- runtime side), retire the workarounds
-  the sweep clears, update `docs/BINDINGS-COMPILER-FINDINGS.md` rows, and
-  relay reds with minimal repros. The lane copy of the compiler relay is
-  `docs/BINDINGS-COMPILER-RELAY-2026-10-09-v0.64.2.md`.
+- Batch 22 (`xiom.sqlite` 0.3.0, enum restore) is relayed and pushed:
+  waiting on the native lane (merge/verify + a publish decision for the
+  live-package bump). Batch 21 (`xiom.ffmpeg` 0.2.0) also awaits native
+  merge/verify/publish; batch 20 and earlier are published through
+  `eco-v0.1.119`.
+- Pin matrix re-run done: 19/19 green on the official v0.64.2 pin. The
+  B-01 workaround is retired; B-05/B-10 workarounds stay in force; B-08
+  probing may trust exit codes from v0.64.2 on (port.ps1 keeps marker
+  counting for older pins).
+- The approved binding-sector queue is drained: heavy runtimes
+  (`xiom.onnx`/`xiom.opencv`) need the native lane's go-ahead (last per the
+  sector order, separate decision), accelerators stay GATED on XVECTOR
+  freezing `xiom.vectors`, physics (`box2d`/`jolt`) is unscheduled.
+- Lane copy of the compiler relay: `docs/BINDINGS-COMPILER-RELAY-2026-10-09-v0.64.2.md`.
+- PULSE/ORBITDB/XVECTOR package wishlists fetched and answered
+  (`docs/BINDINGS-PACKAGE-WISHLIST.md`); no new in-lane work items
+  (accelerators stay gated on `xiom.vectors`). Registry consumer flow for
+  the DB bindings validated end-to-end (sqlite `--c-source` recipe + libpq
+  plain); batch-22 docs follow-up adds the sqlite README consumer section.
