@@ -26,8 +26,13 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **Follow-on category found by the drain rescan:** `xiom.http` is the only stable
   published package with `requires:` but **zero `ensures:`** (33 requires, 0 ensures --
   hardened requires-only during the PULSE wave, so the zero-clause program skipped it).
-  **Ensures-only pass STARTED**: explore pre-plan -> single porter (proven families,
-  standard brief), then bump 0.1.2->0.1.3 + republish.
+  **Ensures-only pass IN FLIGHT** (porter `ses_edee399a9`): pre-plan done (~38 clauses --
+  CURLOPT/CURLINFO/SEEK/BUF_SIZE/TEMP_* ABI pins + helper bounds; the five public entry
+  points are skipped as FFI/host-conditional with struct-Result payloads). Scope also
+  includes the two queued memory fixes (`setup_common_options` double-free;
+  `http_download` remove-after-free UAF), a new `tests/probe_root_module.xi` (the 40-check
+  suite never calls the root module), and the SPEC `HttpResponse` -> `HttpClientResponse`
+  doc fix. Then bump 0.1.2 -> 0.1.3 + republish.
 - **Waiting on external inputs only:** bindings crypto/media decisions (openssl
   vendored-vs-system; ffmpeg LGPL/GPL), ORBITDB/XVECTOR extraction relays (`xiom-wal`
   first), and the next compiler archive for a repin re-test.
