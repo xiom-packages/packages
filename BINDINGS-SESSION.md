@@ -29,12 +29,36 @@ SECTOR STATUS: data/drivers complete (odbc + libpq). Next per proposal: audio --
 xiom.miniaudio (single-header vendored C), then portaudio/phonon.
 ```
 
-**STATUS: BATCH 18 RELAYED** -- `xiom.portaudio` 0.2.0 green (present 5/5 x2
-with the Audacity build V19.7.0, absent/SKIP 2/2 x2 via port.ps1 on v0.64.1).
-Audio sector package 2 of 3. Awaiting native merge/verify/publish; `xiom.odbc`
-allowlist append still the only ops item (owner relaying per native).
+**STATUS: BATCH 19 RELAYED** -- `xiom.phonon` 0.2.0 green on the SKIP path
+(3/3 x2); **present path deliberately unexercised** (no `phonon.dll` available
+locally -- options recorded in `AUDIT.md`, probe ABI-verified against the
+exact v4.8.1 headers and activates automatically when the DLL is on PATH).
+**Audio sector COMPLETE** (miniaudio, portaudio, phonon). Awaiting native
+merge/verify/publish.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 19: head=f70eb9a1 + this handoff commit; packages=xiom.phonon 0.2.0 (dynamic
+loader replacing the pre-pilot 125-static-extern module); tests=SKIP path 3/3 x2 via
+scripts/port.ps1 on v0.64.1 (default PATH: version/SIMD/status constants, deterministic SKIP
+classification via bogus soname, probe SKIP code 126). PRESENT PATH NOT EXERCISED (honest):
+no phonon.dll on this host -- local SDK tree (E:\repos\steam-audio) is source+headers only,
+integration release zips (wwise 52MB, downloaded+inspected) are source+docs, main SDK zip is
+181MB (not fetched), core cmake build needs flatbuffers/pffft/zlib/mysofa fetches.
+AUDIT.md records the three follow-up options; the suite needs no changes. licenses=Apache-2.0
+(Steam Audio; nothing vendored) + package MIT OR Apache-2.0; pins=soname phonon.dll + tag
+v4.8.1 + entry points (iplContextCreate/Retain/Release) + IPLContextSettings 40-byte layout
+(version 0x040801 at 0, SIMD/status enums) + local header hashes (phonon.h CFAB6768...,
+phonon_version.h ED3A14DA..., phonon_interfaces.h 90C9AE80...); gate=G0..G5 OK
+(ABSENT -> SKIP, ABI/PROBE_FAILED -> FAIL; all unsafe in the single module); needs=NONE
+(allowlisted + baseline); NO port.args.json. ASK/OPTION: if the native lane wants full
+present-path evidence, fetching the 181MB SDK zip or running on a phonon.dll host completes
+it with zero package changes.
+SECTOR STATUS: audio complete (miniaudio, portaudio, phonon). Next per proposal:
+accelerators (GATED on XVECTOR freezing xiom.vectors) or crypto/media (openssl needs a
+vendored-vs-system decision; ffmpeg needs an LGPL/GPL configuration decision first).
+```
 
 ```
 BINDINGS BATCH 18: head=282754b0 + this handoff commit; packages=xiom.portaudio 0.2.0
@@ -564,6 +588,22 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Scope decision requested from the native lane: the pre-pilot static-bridge
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
+
+## Batch 19 notes (xiom.phonon, 2026-10-09)
+
+- Steam Audio (Valve) 4.8.1: ABI pinned from the exact local SDK headers
+  (`phonon.h` + `phonon_version.h` at `E:\repos\steam-audio`); the probe
+  builds the 40-byte `IPLContextSettings` (version `0x040801`, SSE2 baseline,
+  NULL callbacks) and balances create/retain/release via slots.
+- **Present path unexercised** -- exhaustive local search found no
+  `phonon.dll`; official integration zips are source-only (wwise zip
+  downloaded + inspected), the main SDK zip is 181MB, and a core cmake build
+  needs four fetched dependencies. `AUDIT.md` records the options; this is
+  the lane's first package whose primary present path is pending rather than
+  proven -- flagged prominently in the relay.
+- Absent path 3/3 x2 (constants + SKIP classification + SKIP probe).
+- Audio sector complete; next sector awaits the XVECTOR gate (accelerators)
+  or the openssl/ffmpeg configuration decisions (crypto/media).
 
 ## Batch 18 notes (xiom.portaudio, 2026-10-09)
 
