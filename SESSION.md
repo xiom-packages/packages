@@ -193,12 +193,12 @@ Then do, in order:
 4. PULSE relays if any (docs/PACKAGE-WISHLIST.md §5/§7 current; C-PULSE-10 closed on
    Linux; C-PULSE-13 fixed by m232; the registry relay on v0.64.2 cleared the PULSE
    source-roots workaround + kv workarounds -- PULSE-side drops at their next wrap).
-5. Queued package defects at next touches: `xiom.http` `make_ptr_value` passes heap
-   pointers where libcurl reads `long` (probe bridge stubs curl; a real-libcurl setopt
-   would fail on Win64) + `char_to_str` numeric-string behavior (clauses pin it);
-   `xiom.grpc` alias-qualified/triplicate-sibling interplay re-check after the compiler
-   fix; PULSE carry-forwards (static leading-`/` README line; kv >=8-byte/multi-key
-   regression cases).
+5. Queued package defects at next touches: `xiom.grpc` alias-qualified/triplicate-sibling
+   interplay re-check after the compiler fix (**still open on v0.64.2 -- next compiler
+   batch**); `xiom.http` `src/client.xi`/`src/demo.xi` pre-existing T001 drift (dead
+   modules; fix at the next http touch); PULSE carry-forwards **DONE 2026-10-09** (static
+   README path note + kv C-PULSE-10 regressions 30/30 -- both in-tree, no version bump yet,
+   ride the next source touches).
 6. Carry-forwards: byte-level bracket scan on every touched package; SPEC headers synced
    when touched; bump ONLY when source changes; `Result ==` for Vec/container payloads and
    `is Ok(<literal>)` are CLEARED on v0.64.2 (Map/Set `==` stays banned); never rename raw

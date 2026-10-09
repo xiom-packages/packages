@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.2` -- generated 2026-10-09T18:02:00Z.
+Toolchain pin: `v0.64.2` -- generated 2026-10-09T18:21:09Z.
 
 ## Summary
 
@@ -383,7 +383,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.expat | xiom-expat | incubating | tests/test_conformance.xi | pass 25/25 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.feature | xiom-feature | incubating | tests/test_conformance.xi | pass 22/22 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.ffi | xiom-ffi | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: no source in this repo (stdlib owns the module) |
-| xiom.ffmpeg | xiom-ffmpeg | incubating | tests/test_conformance.xi | pass 4/4 | 1435ac01 | False | publish pending: bindings batches 21+22 (eco-v0.1.122) |
+| xiom.ffmpeg | xiom-ffmpeg | incubating | tests/test_conformance.xi | pass 4/4 | 1435ac01 | False | published in eco-v0.1.122 (2026-10-09) |
 | xiom.firebird | xiom-firebird | incubating | tests/test_conformance.xi | pass 22/22 | 11412185 | False | publish pending: owner scope decision (parallel-lane implementation) |
 | xiom.flags | xiom-flags | incubating | tests/test_conformance.xi | pass 18/18 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.flash | xiom-flash | incubating | tests/test_conformance.xi | pass 20/20 | ca969acd | False | category harmonization patch bump (registry metadata) |
@@ -416,7 +416,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.jolt | xiom-jolt | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.k8s | xiom-k8s | incubating | tests/test_conformance.xi | pass 23/23 | 6e9fa56f | False | publish pending: next scope delta |
 | xiom.keymgmt | xiom-keymgmt | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
-| xiom.kv | xiom-kv | incubating | tests/test_conformance.xi | pass 28/28 | a4057093 | False |  |
+| xiom.kv | xiom-kv | incubating | tests/test_conformance.xi | pass 30/30 | 603f87ef | False | tests-only touch 2026-10-09 (rides the next source version bump) |
 | xiom.l10n-address | xiom-l10n-address | incubating | tests/test_conformance.xi | pass 22/22 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.l10n-currency | xiom-l10n-currency | incubating | tests/test_conformance.xi | pass 24/24 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.l10n-date | xiom-l10n-date | incubating | tests/test_conformance.xi | pass 18/18 | 5f469ee5 | False | publish pending: next scope delta |
@@ -511,7 +511,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.session | xiom-session | incubating | tests/test_conformance.xi | pass 24/24 | 7b7da18c | False |  |
 | xiom.smartcontract | xiom-smartcontract | incubating | tests/test_conformance.xi | pass 22/22 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.sql | xiom-sql | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: stub body |
-| xiom.sqlite | xiom-sqlite | incubating | tests/test_conformance.xi | pass 16/16 | 1435ac01 | False | publish pending: bindings batches 21+22 (eco-v0.1.122) |
+| xiom.sqlite | xiom-sqlite | incubating | tests/test_conformance.xi | pass 16/16 | 1435ac01 | False | published in eco-v0.1.122 (2026-10-09) |
 | xiom.ssh2 | xiom-ssh2 | incubating | tests/test_conformance.xi | pass 24/24 | 0da2fa55 | False | publish pending: eco-v0.1.37 (v0.62.3 result-payload fix) |
 | xiom.static | xiom-static | incubating | tests/test_conformance.xi | pass 25/25 | 50742952 | False |  |
 | xiom.stats-ml | xiom-stats-ml | incubating | tests/test_conformance.xi | pass 22/22 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |

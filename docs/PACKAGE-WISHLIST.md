@@ -243,10 +243,12 @@ All three lane repos fetched and their `docs/PACKAGE-WISHLIST-*.md` read; states
   suites x2 + smoke **78/78** + crash **6/6**; **C-PULSE-09 CLOSED** (adopt-smoke steps
   1..10 exit 0) and **C-PULSE-13 CLOSED** (m232 pkg/compiler home unification; WSL bridge
   removed from the box and from CI).
-- No new package asks. Queued at next touches (unchanged): `xiom.static` README line for the
-  leading-`/` strip requirement; `xiom.kv` suite regression cases (values >= 8 bytes;
-  multi-key overwrite); optional `xiom.session` two-module consumer-shape case (only if that
-  shape resurfaces -- it is closed compiler-side).
+- No new package asks. Queued at next touches: **DONE 2026-10-09 (native lane, no version
+  bump -- rides the next source touch):** `xiom.static` README path note added
+  (`95d5c95b`; leading-`/` strip requirement) and `xiom.kv` extended with the two
+  C-PULSE-10 regressions (>= 8-byte value roundtrip; multi-key overwrite; suite
+  **30/30 x2**, `603f87ef`). Still open: the optional `xiom.session` two-module
+  consumer-shape case (only if that shape resurfaces -- it is closed compiler-side).
 - kv decision: default stays JSONL; kv remains the verified opt-in backend (Linux 45m soak
   977/0 + 20m 756/0; the >= 24h aggregated bar is PULSE-side). Consumers may move to
   `xiom.http` 0.1.4 at will (printable-ASCII rendering + variadic LONG options fixed;
