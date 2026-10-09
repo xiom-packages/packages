@@ -229,7 +229,9 @@ pub fn amqp_default_frame_max() -> Int {
 }
 
 /// The frame-end octet every frame closes with (0xCE).
-pub fn amqp_frame_end_marker() -> Int {
+pub fn amqp_frame_end_marker() -> Int
+  ensures: result == 206;
+{
   return 206;
 }
 
@@ -385,7 +387,10 @@ fn _min_i64() -> Int {
 
 /// The property flag word bit for basic property `index`: 0 = content-type
 /// (bit 15) through 12 = app-id (bit 3). Out-of-range indices return 0.
-pub fn amqp_basic_flag(index: Int) -> Int {
+pub fn amqp_basic_flag(index: Int) -> Int
+  ensures: index < 0 || index > 15 => result == 0;
+  ensures: index >= 0 && index <= 15 => result == _pow2(15 - index);
+{
   if index < 0 || index > 15 {
     return 0;
   }
@@ -646,7 +651,10 @@ pub fn amqp_encode_protocol_header() -> Vec[UInt8] {
 /// revision 0 (AMQP 0-9) or 1 (AMQP 0-9-1).
 /// Err("amqp: bad protocol revision") for any other revision.
 /// Complexity: O(1).
-pub fn amqp_encode_protocol_header_rev(revision: Int) -> Result[Vec[UInt8], Str] {
+pub fn amqp_encode_protocol_header_rev(revision: Int) -> Result[Vec[UInt8], Str]
+  ensures: revision < 0 || revision > 1 => result is Err;
+  ensures: result is Ok => revision >= 0 && revision <= 1;
+{
   if revision < 0 || revision > 1 {
     return _err_bytes("amqp: bad protocol revision");
   }
@@ -670,7 +678,11 @@ pub fn amqp_encode_protocol_header_rev(revision: Int) -> Result[Vec[UInt8], Str]
 /// present; Err("amqp: bad protocol header") for a wrong magic/version;
 /// Err("amqp: bad protocol revision") for a revision other than 0 or 1.
 /// Complexity: O(1).
-pub fn amqp_parse_protocol_header(data: &Vec[UInt8]) -> Result[Int, Str] {
+pub fn amqp_parse_protocol_header(data: &Vec[UInt8]) -> Result[Int, Str]
+  ensures: data.len() < 8 => result is Err;
+  ensures: result is Ok => data.len() >= 8;
+  ensures: result is Ok => result.value == 0 || result.value == 1;
+{
   if data.len() < 8 {
     return _err_int("amqp: truncated protocol header");
   }
@@ -702,7 +714,12 @@ pub fn amqp_parse_protocol_header(data: &Vec[UInt8]) -> Result[Int, Str] {
 /// Err("amqp: bad frame end") when the closing octet is not 0xCE;
 /// Err("amqp: trailing bytes") when the buffer extends past the frame.
 /// Complexity: O(frame size).
-pub fn amqp_parse_frame_header(data: &Vec[UInt8], frame_max: Int) -> Result[AmqpFrameHeader, Str] {
+pub fn amqp_parse_frame_header(data: &Vec[UInt8], frame_max: Int) -> Result[AmqpFrameHeader, Str]
+  ensures: frame_max < 8 => result is Err;
+  ensures: data.len() < 8 => result is Err;
+  ensures: result is Ok => frame_max >= 8;
+  ensures: result is Ok => data.len() >= 8;
+{
   if frame_max < 8 {
     return _err_fh("amqp: bad frame max");
   }
@@ -736,7 +753,9 @@ pub fn amqp_parse_frame_header(data: &Vec[UInt8], frame_max: Int) -> Result[Amqp
 // --------------------------------------------------
 
 /// A fresh empty tree. Complexity: O(1).
-pub fn amqp_tree_new() -> AmqpTree {
+pub fn amqp_tree_new() -> AmqpTree
+  ensures: amqp_tree_len(result) == 0;
+{
   return AmqpTree{ kinds: Vec[Int].new(); keys: Vec[Vec[UInt8]].new(); ints: Vec[Int].new(); aux: Vec[Int].new(); strs: Vec[Vec[UInt8]].new(); };
 }
 
@@ -884,12 +903,17 @@ pub fn amqp_tree_push_field_bytes(t: &mut AmqpTree, key: &Vec[UInt8], s: &Vec[UI
 }
 
 /// Number of nodes (including end markers). Complexity: O(1).
-pub fn amqp_tree_len(t: &AmqpTree) -> Int {
+pub fn amqp_tree_len(t: &AmqpTree) -> Int
+  ensures: result == t.kinds.len();
+{
   return t.kinds.len();
 }
 
 /// Kind at node `i`, or -1 when out of range. Complexity: O(1).
-pub fn amqp_tree_kind_at(t: &AmqpTree, i: Int) -> Int {
+pub fn amqp_tree_kind_at(t: &AmqpTree, i: Int) -> Int
+  ensures: i < 0 || i >= t.kinds.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < t.kinds.len();
+{
   if i < 0 || i >= t.kinds.len() {
     return -1;
   }
@@ -960,7 +984,10 @@ fn _skip_subtree(t: &AmqpTree, i: Int) -> Int {
 }
 
 /// Number of top-level nodes in the tree. Complexity: O(nodes).
-pub fn amqp_tree_arg_count(t: &AmqpTree) -> Int {
+pub fn amqp_tree_arg_count(t: &AmqpTree) -> Int
+  ensures: result >= 0;
+  ensures: result <= t.kinds.len();
+{
   var i = 0;
   var count = 0;
   while i < t.kinds.len() {
@@ -1568,7 +1595,11 @@ fn _sch9(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h: Int, i: Int)
 /// 8 array, 9 bit. The implemented subset is AMQP 0-9-1 connection (10),
 /// channel (20), exchange (40), queue (50) and basic (60). Methods outside
 /// the subset return Err("amqp: unknown method"). Complexity: O(1).
-pub fn amqp_method_schema(class_id: Int, method_id: Int) -> Result[Vec[Int], Str] {
+pub fn amqp_method_schema(class_id: Int, method_id: Int) -> Result[Vec[Int], Str]
+  ensures: class_id != 10 && class_id != 20 && class_id != 40 && class_id != 50 && class_id != 60 => result is Err;
+  ensures: result is Ok => class_id == 10 || class_id == 20 || class_id == 40 || class_id == 50 || class_id == 60;
+  ensures: class_id == 10 && method_id == 51 => result is Ok;
+{
   if class_id == 10 {
     if method_id == 10 {
       return _ok_schema(_sch5(1, 1, 7, 6, 6));
@@ -1923,7 +1954,12 @@ fn _push_frame(out: &mut Vec[UInt8], frame_type: Int, channel: Int, payload: &Ve
 /// Err("amqp: value out of range"), Err("amqp: bad bit") and
 /// Err("amqp: string too long") for invalid values.
 /// Complexity: O(frame size).
-pub fn amqp_encode_method_frame(f: &AmqpMethodFrame) -> Result[Vec[UInt8], Str] {
+pub fn amqp_encode_method_frame(f: &AmqpMethodFrame) -> Result[Vec[UInt8], Str]
+  ensures: f.channel < 0 || f.channel > 65535 => result is Err;
+  ensures: f.class_id < 0 || f.class_id > 65535 => result is Err;
+  ensures: f.method_id < 0 || f.method_id > 65535 => result is Err;
+  ensures: result is Ok => f.channel >= 0 && f.channel <= 65535 && f.class_id >= 0 && f.class_id <= 65535 && f.method_id >= 0 && f.method_id <= 65535;
+{
   if f.channel < 0 || f.channel > 65535 {
     return _err_bytes("amqp: bad channel");
   }
@@ -2208,7 +2244,13 @@ pub fn amqp_parse_content_header_frame(data: &Vec[UInt8], frame_max: Int) -> Res
 /// Err("amqp: value out of range") for out-of-range values and
 /// Err("amqp: string too long") for a shortstr over 255 bytes.
 /// Complexity: O(frame size).
-pub fn amqp_encode_content_header_frame(h: &AmqpContentHeader) -> Result[Vec[UInt8], Str] {
+pub fn amqp_encode_content_header_frame(h: &AmqpContentHeader) -> Result[Vec[UInt8], Str]
+  ensures: h.channel < 0 || h.channel > 65535 => result is Err;
+  ensures: h.class_id != 60 => result is Err;
+  ensures: h.weight != 0 => result is Err;
+  ensures: h.flags < 0 || h.flags > 65535 || h.flags % 8 != 0 => result is Err;
+  ensures: result is Ok => h.class_id == 60 && h.weight == 0 && h.flags >= 0 && h.flags <= 65535 && h.flags % 8 == 0;
+{
   if h.channel < 0 || h.channel > 65535 {
     return _err_bytes("amqp: bad channel");
   }
@@ -2359,7 +2401,11 @@ pub fn amqp_parse_body_frame(data: &Vec[UInt8], frame_max: Int) -> Result[AmqpBo
 /// Serialize a body frame (type 3) from the channel and the body chunk.
 /// Err("amqp: bad channel") for a channel outside 0..65535.
 /// Complexity: O(body size).
-pub fn amqp_encode_body_frame(f: &AmqpBodyFrame) -> Result[Vec[UInt8], Str] {
+pub fn amqp_encode_body_frame(f: &AmqpBodyFrame) -> Result[Vec[UInt8], Str]
+  ensures: f.channel < 0 || f.channel > 65535 => result is Err;
+  ensures: f.body.len() > 2147483647 => result is Err;
+  ensures: result is Ok => f.channel >= 0 && f.channel <= 65535;
+{
   if f.channel < 0 || f.channel > 65535 {
     return _err_bytes("amqp: bad channel");
   }
@@ -2377,7 +2423,10 @@ pub fn amqp_encode_body_frame(f: &AmqpBodyFrame) -> Result[Vec[UInt8], Str] {
 /// Err("amqp: bad heartbeat") for a non-zero payload or channel; all other
 /// errors come from the frame header.
 /// Complexity: O(1).
-pub fn amqp_parse_heartbeat_frame(data: &Vec[UInt8], frame_max: Int) -> Result[AmqpHeartbeat, Str] {
+pub fn amqp_parse_heartbeat_frame(data: &Vec[UInt8], frame_max: Int) -> Result[AmqpHeartbeat, Str]
+  ensures: frame_max < 8 => result is Err;
+  ensures: data.len() < 8 => result is Err;
+{
   let hr = amqp_parse_frame_header(data, frame_max);
   if !hr.is_ok {
     return _err_hb(hr.error);
@@ -2399,7 +2448,10 @@ pub fn amqp_parse_heartbeat_frame(data: &Vec[UInt8], frame_max: Int) -> Result[A
 /// u16, zero payload size and frame-end.
 /// Err("amqp: bad heartbeat") for a channel other than 0.
 /// Complexity: O(1).
-pub fn amqp_encode_heartbeat_frame(channel: Int) -> Result[Vec[UInt8], Str] {
+pub fn amqp_encode_heartbeat_frame(channel: Int) -> Result[Vec[UInt8], Str]
+  ensures: channel != 0 => result is Err;
+  ensures: result is Ok => channel == 0;
+{
   if channel != 0 {
     return _err_bytes("amqp: bad heartbeat");
   }
