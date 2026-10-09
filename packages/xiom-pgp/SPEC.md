@@ -1,8 +1,6 @@
 # xiom.pgp -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.pgp`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/pgp.xi` (`module xiom.pgp`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`, `xiom.convert`).
 No FFI, no crypto, no external libraries.
@@ -449,3 +447,44 @@ The implementation follows the proven v0.61.3 package idioms:
   split with division and modulo, and `ceil(bits / 8)` uses an explicit
   quotient/remainder.
 - Error messages carry byte offsets produced with `xiom.convert.int`.
+
+## Contracts (batch #49 hardening pass, 2026-10-09)
+
+Runtime-checkable `ensures:` clauses (41, across the 15 functions below) were
+added to `src/pgp.xi` in the batch #49 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump to 0.1.2 at integration).
+All are `ensures:` with no `requires:`, so the accepted-input domain is
+unchanged. Every clause is enforced as a runtime check; the 22-check
+conformance suite exercises the contracted entry points and no clause
+trapped, so none was dropped. Three consecutive green
+`& .\scripts\port.ps1 -Package xiom.pgp -TimeoutSec 90` runs ended
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the clauses
+active (8.73 s and 13.42 s on the two timed runs; one earlier untimed run
+was also green). None is claimed Z3-provable: `xiom-verify` was not run for
+this module, so the Z3-provable column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, compares a `Str`, or uses a module constant. Guards use the plan's
+families: sentinels (`result == -1`, `result.len() == 1`), tag guards
+(`result is Err` / `result is Ok`), exact formulas (`result == d.tag.len()`,
+`result.len() == body.len() + 2`) and bounds/counts
+(`result >= 0 && result <= 16777215`). `_parse_subpackets` is skipped as
+planned (three `&mut Vec` out-params, no readable post-state).
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `pgp_packet_count` | 1 | equals `d.tag.len()` | no | yes |
+| `pgp_packet_tag` | 2 | out-of-range `i` => -1; `result != -1` => `i` in range | no | yes |
+| `pgp_packet_body_len` | 2 | out-of-range `i` => -1; `result != -1` => `i` in range | no | yes |
+| `pgp_new_length_encode` | 4 | 1/2/5-octet length by range; negative encodes as one octet | no | yes |
+| `pgp_packet_encode` | 3 | `result.len() == body.len() + 2/3/6` by range | no | yes |
+| `pgp_mpi_decode` | 2 | header out of range => `Err`; `Ok` implies header inside buffer | no | yes |
+| `pgp_mpi_encode` | 2 | empty value => `Ok`; `Ok` payload is at least two octets | no | yes |
+| `pgp_subpacket_length_encode` | 3 | `len` outside 1..4294967295 => `Err`; `Ok` implies inside | no | yes |
+| `pgp_signature_v4_decode` | 2 | body below ten octets => `Err`; `Ok` implies at least ten | no | yes |
+| `pgp_signature_v4_encode` | 7 | field/left16/region guards => `Err`; `Ok` implies left16 == 2 and both regions within 65535 | no | yes |
+| `_key_mpi_count` | 5 | exact algorithm table (2/3/4/1); `-1 <= result <= 4` | no | yes |
+| `pgp_crc24` | 2 | empty input => 11994318; `0 <= result <= 16777215` | no | yes |
+| `pgp_armor_decode` | 2 | empty text => `Err`; `Ok` implies non-empty text | no | yes |
+| `pgp_armor_encode` | 2 | empty or over-long label => `Err` | no | yes |
+| `pgp_user_id_key_index` | 2 | out-of-range `i` => -1; `result != -1` => `i` in range | no | yes |
