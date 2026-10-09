@@ -1,6 +1,11 @@
 # xiom.http ROADMAP
 
-## v0.1.0 (Current)
+## v0.1.4 (Current)
+- [x] Fix: printable bytes render as characters, not decimal codes (all module-local copies)
+- [x] Fix: libcurl LONG options passed by value (variadic ABI), removing the heap-pointer defect and its per-call leak
+- [x] Conformance suite expanded to 42 checks
+
+## v0.1.0 (historical)
 - [x] HTTP client via libcurl FFI (GET, POST, PUT, DELETE, download)
 - [x] URL parsing (scheme, host, port, path, query, fragment)
 - [x] HTTP types (HttpMethod, HttpVersion, HttpHeaders, HttpRequest, HttpResponse)

@@ -5,12 +5,12 @@
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
-                  "status":  "pass",
-                  "passed":  40,
-                  "failed":  0,
-                  "run_by":  "task:ses_edee399a9ffeDQzLVT3NbEhtL9",
-                  "commit":  "ad6905a0",
-                  "checked":  "2026-10-09T14:53:08Z"
+                  "status":  "unknown",
+                  "passed":  null,
+                  "failed":  null,
+                  "run_by":  null,
+                  "commit":  null,
+                  "checked":  null
               },
     "publish":  false,
     "excluded_reason":  "publish pending: eco-v0.1.38"

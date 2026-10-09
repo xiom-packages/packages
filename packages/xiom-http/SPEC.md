@@ -142,7 +142,7 @@ Production HTTP client backed by libcurl. This is the primary entry point for HT
 
 All functions:
 1. Initialize a libcurl easy handle via `curl_easy_init()`
-2. Configure common options: URL, follow redirects, timeouts (30s/10s), user agent (`xiom.http/0.1.0`), accept-encoding (gzip/deflate), no signals, buffer size 64 KiB
+2. Configure common options: URL, follow redirects, timeouts (30s/10s), user agent (`xiom.http/0.1.0` -- a stable compatibility pin, see the 0.1.4 fix pass), accept-encoding (gzip/deflate), no signals, buffer size 64 KiB
 3. Set method-specific options (POST fields, custom request verb, etc.)
 4. Capture response body and headers into temporary files via `CURLOPT_WRITEDATA` / `CURLOPT_HEADERDATA`
 5. Execute via `curl_easy_perform()`
@@ -351,13 +351,13 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) -> "Current State vs Target" for the full
 
 ## Contracts (ensures-only pass, 2026-10-09)
 
-Runtime-checkable `ensures:` clauses added to `http.xi` (the package-root `xiom.http` module; compiler v0.64.1; no version bump): **38 clauses over 33 private helpers** (27 constant accessors + 6 string/response helpers). The five public entry points, the FFI helpers, and the two dead functions (`str_to_cstr_or_err`, `check_url`) are unchanged; no `requires:` clause was added.
+Runtime-checkable `ensures:` clauses added to `http.xi` (the package-root `xiom.http` module; compiler v0.64.1; no version bump): **38 clauses over 33 private helpers** (27 constant accessors + 6 string/response helpers). The five public entry points, the FFI helpers, and the two dead functions (`str_to_cstr_or_err`, `check_url`) are unchanged; no `requires:` clause was added. The 0.1.4 fix pass below re-pins `byte_to_char`/`char_to_str` (38 -> 37 clauses).
 
 Z3-provable: **no** for every clause in this pass. No Z3 proof was attempted, and `xiom-verify` would be vacuous for the FFI-backed helpers here (the `extern "C"` functions have no bodies, so obligations over their results say nothing about the implementation). All clauses are runtime-checked.
 
-The 40-check `tests/test_conformance.xi` suite never imports the root module, so these clauses get no runtime exercise there. They are exercised by `tests/probe_root_module.xi`, a fast-fail `http_get("http://127.0.0.1:1/")` probe (closed port) that drives the helper chain `str_to_cstr -> setup_common_options -> perform_and_collect -> get_response_code -> read_file_to_str -> curl_error_string -> cstr_to_str -> byte_to_char -> char_to_str`. The probe links `tests/probe_bridge.c` because the v0.64.1 toolchain ships no FFI bridge symbols and no libcurl (see the probe header for the exact invocation).
+The 40-check `tests/test_conformance.xi` suite never imports the root module, so these clauses get no runtime exercise there. They are exercised by `tests/probe_root_module.xi`, a fast-fail `http_get("http://127.0.0.1:1/")` probe (closed port) that drives the helper chain `str_to_cstr -> setup_common_options -> perform_and_collect -> get_response_code -> read_file_to_str -> curl_error_string -> cstr_to_str -> byte_to_char -> char_to_str`. The probe links `tests/probe_bridge.c` because the v0.64.2 toolchain ships no FFI bridge symbols and no libcurl (see the probe header for the exact invocation). The suite grows to 42 checks in the 0.1.4 fix pass.
 
-Two clauses were refined from the pre-plan because the pre-plan bound does not hold for this source: `cstr_to_str` and `read_file_to_str` guarantee `result.len() <= 196608`, not `<= 65536` -- each of the 65536 loop iterations can append a 3-character numeric string via `byte_to_char`/`char_to_str`.
+Two clauses were refined from the pre-plan because the pre-plan bound does not hold for this source: `cstr_to_str` and `read_file_to_str` guarantee `result.len() <= 196608`, not `<= 65536` -- under the pre-0.1.4 numeric `char_to_str` each of the 65536 loop iterations could append a 3-character numeric string via `byte_to_char`/`char_to_str`. Since the 0.1.4 character-rendering fix every appended unit is at most one character, so `<= 65536` would now also hold; the bound is left at the (true, now slack) `<= 196608` to keep the fix pass scoped to the two defect clauses.
 
 | Function | Clause(s) added | Z3-provable | Runtime-checked |
 |---|---|---|---|
@@ -390,14 +390,48 @@ Two clauses were refined from the pre-plan because the pre-plan bound does not h
 | `TEMP_HEADERS` | `result.len() == 23` | no | yes |
 | `curl_error_string` | `result.len() > 0` | no | yes |
 | `cstr_to_str` | `result.len() <= 196608` | no | yes |
-| `byte_to_char` | `b == 0 => result.len() == 0`; `b == 9 \|\| b == 10 \|\| b == 13 \|\| b == 32 => result.len() == 1`; `b >= 33 && b <= 99 => result.len() == 2`; `b >= 100 && b <= 126 => result.len() == 3`; `b != 0 && b != 9 && b != 10 && b != 13 && b != 32 && (b < 33 \|\| b > 126) => result.len() == 1` | no | yes |
-| `char_to_str` | `result.len() >= 1` | no | yes |
+| `byte_to_char` | `b == 0 => result.len() == 0`; `b == 9 \|\| b == 10 \|\| b == 13 \|\| b == 32 => result.len() == 1`; `b >= 33 && b <= 126 => result.len() == 1`; `b != 0 && b != 9 && b != 10 && b != 13 && b != 32 && (b < 33 \|\| b > 126) => result.len() == 1` | no | yes |
+| `char_to_str` | `result.len() <= 4` | no | yes |
 | `read_file_to_str` | `result.len() <= 196608` | no | yes |
 | `get_response_code` | `result >= 0`; `result <= 65535` | no | yes |
 
 Source-shape notes pinned by the clauses:
 
-- `byte_to_char`'s length clauses pin the CURRENT numeric-string behavior of `char_to_str` (`to_string(to_int_from_char(c))`): a printable byte renders as its decimal code ("65" for 'A'), not as the character. If `char_to_str` is ever fixed to emit the actual character, the `len() == 2` / `len() == 3` clauses flip to `== 1`.
+- `byte_to_char`'s length clauses pin the character-rendering behavior of `char_to_str` (`tostring.to_string_char(c)`): a printable byte renders as the actual character ("A" for 65), exactly one character for every 33..126 byte. The pre-0.1.4 numeric-string shape (`len() == 2` / `len() == 3`) is gone, as anticipated by this note.
+- `char_to_str`'s `result.len() <= 4` clause is the shape that is true for every `Char` (UTF-8 is 1-4 bytes); the earlier `result.len() >= 1` is deliberately NOT used because `to_string_char(to_char(0))` renders the empty string -- the stdlib helper is C-string based, so the leading NUL terminates it. `byte_to_char` never routes byte 0 through `char_to_str`, so the printing path always yields >= 1 char.
 - The constant pins are inlined literals (no module constants in clauses); the value is checked each time the accessor runs, call site or not.
-- Memory-safety fixes in the same pass (behavior-preserving otherwise): the `setup_common_options` `p1` double-free was removed (the NOSIGNAL option gets its own allocation), and `http_download` now calls `remove(path_cstr)` before `xiom_free_cstr(path_cstr)` on both the perform-error and the non-2xx paths (previously remove-after-free). The probe bridge uses a real libc `free`, so the double-free removal is exercised at runtime.
+- Memory-safety fixes from the 0.1.3 pass are intact: the `setup_common_options` `p1` double-free was removed, and `http_download` calls `remove(path_cstr)` before `xiom_free_cstr(path_cstr)` on both the perform-error and the non-2xx paths (previously remove-after-free). The 0.1.4 pass additionally removed the `xiom_alloc`/`xiom_free_ptr` dance at every LONG option site (values are passed by cast), so those sites can neither leak nor double-free. The probe bridge uses a real libc `free`, so the double-free removal is exercised at runtime.
+
+---
+
+## 0.1.4 fix pass (2026-10-09)
+
+Two live defects fixed; public API signatures, dependencies, and `libcurl.xiom-bind` are unchanged.
+
+### Fix A -- character rendering (`byte_to_char` / `char_to_str`, all copies)
+
+`char_to_str` previously returned `to_string(to_int_from_char(c))`, so a printable byte rendered as its decimal code ("65" for 'A'). Every copy now renders the actual character for printable ASCII 33..126 via the stdlib helper `xiom.convert.tostring.to_string_char` (module `xiom.convert.tostring`; it encodes the Char as 1-4 UTF-8 bytes with `xiom.char.encode_utf8`, O(1)). A stdlib function was chosen over a local encoder to avoid duplicating UTF-8 logic. Copies updated:
+
+| File | Helper | Change |
+|---|---|---|
+| `http.xi` | `char_to_str`, `byte_to_char` | numeric -> `tostring.to_string_char`; clauses re-pinned |
+| `src/url.xi` | `char_to_str` | hardcoded map -> `tostring.to_string_char`; now also covers 91..96 and 123..126 (previously "?") |
+| `src/client.xi` | `byte_to_char` | hardcoded map -> `tostring.to_string_char`; covers 123..126 (previously "?") |
+| `src/types.xi` | `byte_to_char` | hardcoded map -> `tostring.to_string_char`; covers 123..126 (previously "?") |
+
+Special mappings are preserved per copy: root `0 -> ""`, 9 -> "\t", 10 -> "\n", 13 -> "\r", 32 -> " "; `src/url.xi` keeps 32 -> " " only; `src/client.xi`/`src/types.xi` keep 0 -> "\0". Non-printable, non-special bytes keep the per-copy fallback (all four fall back to "?").
+
+Clause changes (runtime-checked; not Z3-proved -- the callee is a stdlib function and the FFI-adjacent helpers have no provable bodies): `byte_to_char`'s `len() == 2` (33..99) and `len() == 3` (100..126) clauses became `b >= 33 && b <= 126 => result.len() == 1`. `char_to_str`'s `result.len() >= 1` was weakened to `result.len() <= 4`; the old clause does not hold for every `Char` because `to_string_char(to_char(0))` renders the empty string (C-string NUL terminator) and UTF-8 is at most 4 bytes otherwise.
+
+Suite: `tests/test_conformance.xi` grows from 40 to 42 checks, adding `url parse printable ascii` (`src/url.xi`: path `~ | { }` plus a space) and `response to_str body chars` (`src/types.xi`: body bytes 126, 124 -> "~|"). Both fail on the old mapping and pass on the new one.
+
+### Fix B -- variadic LONG options (`make_ptr_value` -> `make_long_value`)
+
+libcurl's `curl_easy_setopt` is variadic; for CURLOPTTYPE_LONG options the third argument is the long value itself. The old helper allocated 8 heap bytes, stored the value there, and passed the pointer, so real libcurl stored the ADDRESS (TIMEOUT=30 / CONNECTTIMEOUT=10 / POSTFIELDSIZE=len became address-sized values, effectively ignored; FOLLOWLOCATION only worked by accident), and every call leaked. The helper is now `make_long_value`, an Int -> *UInt8 value cast (`v as *UInt8` into a null-initialized local inside `unsafe`; the whole-body-`return` form miscompiles to null on v0.64.2). The LONG sites -- FOLLOWLOCATION, TIMEOUT, CONNECTTIMEOUT, NOSIGNAL, BUFFERSIZE, POST, POSTFIELDSIZE (POST and PUT) -- pass the bare value with no allocation or free. STRINGPOINT/OBJECTPOINT sites (URL, ACCEPT_ENCODING, USERAGENT, POSTFIELDS, CUSTOMREQUEST, WRITEDATA, HEADERDATA) keep real pointers and their frees.
+
+`tests/probe_bridge.c` now emulates the variadic ABI: the stub reads the LONG argument as an integer value (never dereferencing it) and rejects implausible values with CURLE_BAD_FUNCTION_ARGUMENT (43), pinning the configured values (FOLLOWLOCATION/NOSIGNAL/POST = 1, TIMEOUT = 30, CONNECTTIMEOUT = 10, BUFFERSIZE = 65536). The pre-0.1.4 heap-pointer code fails this probe.
+
+### User-Agent
+
+The literal `"xiom.http/0.1.0"` is left unchanged: the SPEC has always documented it as the client identifier, it survived the 0.1.1..0.1.4 version bumps, and it is therefore treated as a compatibility pin rather than a mirror of `package.xi`'s version.
 

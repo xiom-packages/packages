@@ -63,6 +63,7 @@ pub fn run_all_tests() -> Result[Unit, Str] {
   results.push(test_http_response_new());
   results.push(test_http_response_set_header());
   results.push(test_http_response_to_str());
+  results.push(test_http_response_to_str_body_chars());
   results.push(test_http_status_text());
   results.push(test_http_is_success());
   results.push(test_http_is_redirect());
@@ -76,6 +77,7 @@ pub fn run_all_tests() -> Result[Unit, Str] {
   results.push(test_url_parse_with_port());
   results.push(test_url_parse_with_query());
   results.push(test_url_parse_with_fragment());
+  results.push(test_url_parse_printable_ascii());
   results.push(test_url_to_str());
   results.push(test_path_join());
   results.push(test_http_parse_headers());
@@ -218,6 +220,17 @@ fn test_http_response_to_str() -> Result[Unit, Str] {
   var resp: HttpResponse = HttpResponse.new(200);
   var s: Str = resp.to_str();
   try(assert_true(xiom.string.str_len(s) > 0, "HttpResponse.to_str non-empty"));
+  return Ok(Unit);
+}
+
+fn test_http_response_to_str_body_chars() -> Result[Unit, Str] {
+  var resp: HttpResponse = HttpResponse.new(200);
+  var body: Vec[Int] = Vec[Int].new();
+  body.push(126);
+  body.push(124);
+  resp.set_body(body);
+  var s: Str = resp.to_str();
+  try(assert_str_eq(s, "HTTP/1.1 200 \r\n\r\n~|", "HttpResponse.to_str body renders '~|' as characters"));
   return Ok(Unit);
 }
 
@@ -377,6 +390,18 @@ fn test_url_parse_with_fragment() -> Result[Unit, Str] {
       try(assert_str_eq(u.fragment, "section-3", "url fragment"));
     },
     Err(e) => { return Err("FAIL: url_parse fragment: " + e); },
+  };
+  return Ok(Unit);
+}
+
+fn test_url_parse_printable_ascii() -> Result[Unit, Str] {
+  var res: Result[Url, Str] = url_parse("https://example.com/a~b|c{d} e");
+  match res {
+    Ok(u) => {
+      try(assert_str_eq(u.path, "/a~b|c{d} e", "url path renders printable ASCII '~|{}' as characters"));
+      try(assert_str_eq(u.host, "example.com", "url printable-ascii host"));
+    },
+    Err(e) => { return Err("FAIL: url_parse printable ascii: " + e); },
   };
   return Ok(Unit);
 }
@@ -615,6 +640,7 @@ fn main() -> Int {
   failures = failures + run_case("response new", test_http_response_new());
   failures = failures + run_case("response set_header", test_http_response_set_header());
   failures = failures + run_case("response to_str", test_http_response_to_str());
+  failures = failures + run_case("response to_str body chars", test_http_response_to_str_body_chars());
   failures = failures + run_case("status text", test_http_status_text());
   failures = failures + run_case("status is_success", test_http_is_success());
   failures = failures + run_case("status is_redirect", test_http_is_redirect());
@@ -628,6 +654,7 @@ fn main() -> Int {
   failures = failures + run_case("url parse with port", test_url_parse_with_port());
   failures = failures + run_case("url parse with query", test_url_parse_with_query());
   failures = failures + run_case("url parse with fragment", test_url_parse_with_fragment());
+  failures = failures + run_case("url parse printable ascii", test_url_parse_printable_ascii());
   failures = failures + run_case("url to_str", test_url_to_str());
   failures = failures + run_case("path join", test_path_join());
   failures = failures + run_case("parse headers", test_http_parse_headers());
@@ -643,6 +670,6 @@ fn main() -> Int {
   failures = failures + run_case("server listen error", test_server_listen_error());
   failures = failures + run_case("server handle error", test_server_handle_error());
   failures = failures + run_case("server close", test_server_close());
-  xiom.io.println("xiom.http: " + xiom.convert.int_to_string(40 - failures) + "/40 passed");
+  xiom.io.println("xiom.http: " + xiom.convert.int_to_string(42 - failures) + "/42 passed");
   return failures;
 }

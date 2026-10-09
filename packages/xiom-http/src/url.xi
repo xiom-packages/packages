@@ -2,6 +2,7 @@ module xiom.http.url
 
 use xiom.encoding;
 use xiom.string;
+use xiom.convert.tostring;
 
 fn char_code_at(s: Str, pos: Int) -> Int {
   match xiom.string.char_at(s, pos) {
@@ -31,95 +32,13 @@ fn is_alphanum(c: Int) -> Bool {
   return is_alpha_char(c) || is_digit_char(c);
 }
 
+// Renders a byte code as text: space stays " ", printable ASCII (33..126)
+// renders as the actual character via the stdlib Char -> Str helper
+// (tostring.to_string_char, UTF-8), everything else falls back to "?".
 fn char_to_str(c: Int) -> Str {
   if c == 32 { return " "; }
-  elif c == 33 { return "!"; }
-  elif c == 34 { return "\""; }
-  elif c == 35 { return "#"; }
-  elif c == 36 { return "$"; }
-  elif c == 37 { return "%"; }
-  elif c == 38 { return "&"; }
-  elif c == 39 { return "'"; }
-  elif c == 40 { return "("; }
-  elif c == 41 { return ")"; }
-  elif c == 42 { return "*"; }
-  elif c == 43 { return "+"; }
-  elif c == 44 { return ","; }
-  elif c == 45 { return "-"; }
-  elif c == 46 { return "."; }
-  elif c == 47 { return "/"; }
-  elif c == 48 { return "0"; }
-  elif c == 49 { return "1"; }
-  elif c == 50 { return "2"; }
-  elif c == 51 { return "3"; }
-  elif c == 52 { return "4"; }
-  elif c == 53 { return "5"; }
-  elif c == 54 { return "6"; }
-  elif c == 55 { return "7"; }
-  elif c == 56 { return "8"; }
-  elif c == 57 { return "9"; }
-  elif c == 58 { return ":"; }
-  elif c == 59 { return ";"; }
-  elif c == 60 { return "<"; }
-  elif c == 61 { return "="; }
-  elif c == 62 { return ">"; }
-  elif c == 63 { return "?"; }
-  elif c == 64 { return "@"; }
-  elif c >= 65 && c <= 90 {
-    if c == 65 { return "A"; }
-    elif c == 66 { return "B"; }
-    elif c == 67 { return "C"; }
-    elif c == 68 { return "D"; }
-    elif c == 69 { return "E"; }
-    elif c == 70 { return "F"; }
-    elif c == 71 { return "G"; }
-    elif c == 72 { return "H"; }
-    elif c == 73 { return "I"; }
-    elif c == 74 { return "J"; }
-    elif c == 75 { return "K"; }
-    elif c == 76 { return "L"; }
-    elif c == 77 { return "M"; }
-    elif c == 78 { return "N"; }
-    elif c == 79 { return "O"; }
-    elif c == 80 { return "P"; }
-    elif c == 81 { return "Q"; }
-    elif c == 82 { return "R"; }
-    elif c == 83 { return "S"; }
-    elif c == 84 { return "T"; }
-    elif c == 85 { return "U"; }
-    elif c == 86 { return "V"; }
-    elif c == 87 { return "W"; }
-    elif c == 88 { return "X"; }
-    elif c == 89 { return "Y"; }
-    elif c == 90 { return "Z"; }
-  }
-  elif c >= 97 && c <= 122 {
-    if c == 97 { return "a"; }
-    elif c == 98 { return "b"; }
-    elif c == 99 { return "c"; }
-    elif c == 100 { return "d"; }
-    elif c == 101 { return "e"; }
-    elif c == 102 { return "f"; }
-    elif c == 103 { return "g"; }
-    elif c == 104 { return "h"; }
-    elif c == 105 { return "i"; }
-    elif c == 106 { return "j"; }
-    elif c == 107 { return "k"; }
-    elif c == 108 { return "l"; }
-    elif c == 109 { return "m"; }
-    elif c == 110 { return "n"; }
-    elif c == 111 { return "o"; }
-    elif c == 112 { return "p"; }
-    elif c == 113 { return "q"; }
-    elif c == 114 { return "r"; }
-    elif c == 115 { return "s"; }
-    elif c == 116 { return "t"; }
-    elif c == 117 { return "u"; }
-    elif c == 118 { return "v"; }
-    elif c == 119 { return "w"; }
-    elif c == 120 { return "x"; }
-    elif c == 121 { return "y"; }
-    elif c == 122 { return "z"; }
+  if c >= 33 && c <= 126 {
+    return tostring.to_string_char(to_char(c));
   }
   return "?";
 }

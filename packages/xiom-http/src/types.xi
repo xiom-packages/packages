@@ -2,6 +2,7 @@ module xiom.http.types
 
 use xiom.string;
 use xiom.convert;
+use xiom.convert.tostring;
 
 pub enum HttpMethod {
   GET,
@@ -139,99 +140,18 @@ pub fn version_from_str(s: Str) -> HttpVersion {
   return HttpVersion.HTTP11;
 }
 
+// Renders a byte code as text: control specials keep their current mappings
+// (0 -> "\0", 9 -> "\t", 10 -> "\n", 13 -> "\r"), 32 -> " ", printable ASCII
+// (33..126) renders as the actual character via the stdlib Char -> Str helper
+// (tostring.to_string_char, UTF-8), everything else falls back to "?".
 fn byte_to_char(b: Int) -> Str {
   if b == 0 { return "\0"; }
   if b == 10 { return "\n"; }
   if b == 13 { return "\r"; }
   if b == 9 { return "\t"; }
   if b == 32 { return " "; }
-  if b == 33 { return "!"; }
-  if b == 34 { return "\""; }
-  if b == 35 { return "#"; }
-  if b == 36 { return "$"; }
-  if b == 37 { return "%"; }
-  if b == 38 { return "&"; }
-  if b == 39 { return "'"; }
-  if b == 40 { return "("; }
-  if b == 41 { return ")"; }
-  if b == 42 { return "*"; }
-  if b == 43 { return "+"; }
-  if b == 44 { return ","; }
-  if b == 45 { return "-"; }
-  if b == 46 { return "."; }
-  if b == 47 { return "/"; }
-  if b == 48 { return "0"; }
-  if b == 49 { return "1"; }
-  if b == 50 { return "2"; }
-  if b == 51 { return "3"; }
-  if b == 52 { return "4"; }
-  if b == 53 { return "5"; }
-  if b == 54 { return "6"; }
-  if b == 55 { return "7"; }
-  if b == 56 { return "8"; }
-  if b == 57 { return "9"; }
-  if b == 58 { return ":"; }
-  if b == 59 { return ";"; }
-  if b == 60 { return "<"; }
-  if b == 61 { return "="; }
-  if b == 62 { return ">"; }
-  if b == 63 { return "?"; }
-  if b == 64 { return "@"; }
-  if b >= 65 && b <= 90 {
-    if b == 65 { return "A"; }
-    if b == 66 { return "B"; }
-    if b == 67 { return "C"; }
-    if b == 68 { return "D"; }
-    if b == 69 { return "E"; }
-    if b == 70 { return "F"; }
-    if b == 71 { return "G"; }
-    if b == 72 { return "H"; }
-    if b == 73 { return "I"; }
-    if b == 74 { return "J"; }
-    if b == 75 { return "K"; }
-    if b == 76 { return "L"; }
-    if b == 77 { return "M"; }
-    if b == 78 { return "N"; }
-    if b == 79 { return "O"; }
-    if b == 80 { return "P"; }
-    if b == 81 { return "Q"; }
-    if b == 82 { return "R"; }
-    if b == 83 { return "S"; }
-    if b == 84 { return "T"; }
-    if b == 85 { return "U"; }
-    if b == 86 { return "V"; }
-    if b == 87 { return "W"; }
-    if b == 88 { return "X"; }
-    if b == 89 { return "Y"; }
-    if b == 90 { return "Z"; }
-  }
-  if b >= 97 && b <= 122 {
-    if b == 97 { return "a"; }
-    if b == 98 { return "b"; }
-    if b == 99 { return "c"; }
-    if b == 100 { return "d"; }
-    if b == 101 { return "e"; }
-    if b == 102 { return "f"; }
-    if b == 103 { return "g"; }
-    if b == 104 { return "h"; }
-    if b == 105 { return "i"; }
-    if b == 106 { return "j"; }
-    if b == 107 { return "k"; }
-    if b == 108 { return "l"; }
-    if b == 109 { return "m"; }
-    if b == 110 { return "n"; }
-    if b == 111 { return "o"; }
-    if b == 112 { return "p"; }
-    if b == 113 { return "q"; }
-    if b == 114 { return "r"; }
-    if b == 115 { return "s"; }
-    if b == 116 { return "t"; }
-    if b == 117 { return "u"; }
-    if b == 118 { return "v"; }
-    if b == 119 { return "w"; }
-    if b == 120 { return "x"; }
-    if b == 121 { return "y"; }
-    if b == 122 { return "z"; }
+  if b >= 33 && b <= 126 {
+    return tostring.to_string_char(to_char(b));
   }
   return "?";
 }

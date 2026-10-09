@@ -2,21 +2,25 @@
  * Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
  * SPDX-License-Identifier: MIT OR Apache-2.0
  *
- * The v0.64.1 toolchain ships only xiom_alloc in its runtime; the remaining
+ * The v0.64.2 toolchain ships only xiom_alloc in its runtime; the remaining
  * xiom_* FFI bridge symbols declared by packages/xiom-http/http.xi are not
  * provided anywhere, so this harness bridge supplies them. xiom_free_ptr and
  * xiom_free_cstr are REAL libc frees, not no-ops, so an allocation freed more
- * than once (the setup_common_options p1 double-free removed in this pass)
- * is not silently tolerated at runtime.
+ * than once (the setup_common_options p1 double-free removed in the 0.1.3
+ * pass) is not silently tolerated at runtime.
  *
- * libcurl is stubbed deterministically: driving the real library through this
- * module is not possible on Win64 -- make_ptr_value passes an 8-byte heap
- * pointer where libcurl reads a `long` option value, so CURLOPT_TIMEOUT
- * rejects the garbage low 32 bits (measured: 500/500 nonzero returns on the
- * vcpkg libcurl build). The stub keeps the package's own helper chain
- * (perform -> getinfo -> error string) deterministic and offline; the closed
- * port URL is kept as the http_get argument.
+ * libcurl is stubbed deterministically (the probe stays offline), but the stub
+ * is FAITHFUL to libcurl's variadic setopt ABI since the 0.1.4 fix pass: for
+ * CURLOPTTYPE_LONG options the third argument is the long VALUE itself, read
+ * from the register -- never dereferenced. The stub reads it that way and
+ * rejects implausible values with CURLE_BAD_FUNCTION_ARGUMENT (43). The old
+ * make_ptr_value bug (an 8-byte heap pointer where libcurl reads a `long`)
+ * therefore fails this probe: the value is a heap address, so TIMEOUT etc.
+ * do not match and setup_common_options returns an error. STRINGPOINT and
+ * OBJECTPOINT options (URL, USERAGENT, POSTFIELDS, CUSTOMREQUEST, WRITEDATA,
+ * HEADERDATA, ...) keep passing real pointers untouched.
  */
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -57,10 +61,31 @@ void xiom_copy_from_vec(unsigned char* c_buf, const unsigned char* vec_data,
 
 /* --- Deterministic libcurl stub ---------------------------------------- */
 
+/* Expected values pinned by http.xi (SPEC documents 30s/10s/64 KiB timeouts
+ * and buffer). A heap pointer fed in as the "long" cannot match these. */
+static int stub_long_option_ok(long long option, long long value) {
+  switch (option) {
+    case 52: return value == 1;      /* CURLOPT_FOLLOWLOCATION */
+    case 13: return value == 30;     /* CURLOPT_TIMEOUT */
+    case 78: return value == 10;     /* CURLOPT_CONNECTTIMEOUT */
+    case 99: return value == 1;      /* CURLOPT_NOSIGNAL */
+    case 98: return value == 65536;  /* CURLOPT_BUFFERSIZE */
+    case 47: return value == 1;      /* CURLOPT_POST */
+    case 60: return value >= 0;      /* CURLOPT_POSTFIELDSIZE (any non-negative length) */
+    default: return 1;               /* not one of the stubbed LONG options */
+  }
+}
+
 void* curl_easy_init(void) { return malloc(16); }
 
 int curl_easy_setopt(void* h, long long option, const void* value) {
-  (void)h; (void)option; (void)value;
+  (void)h;
+  /* Variadic ABI: for LONG options libcurl reads va_arg(param, long) -- the
+   * register/stack slot as an integer value, NOT a dereference. */
+  long v = (long)(intptr_t)value;
+  if (!stub_long_option_ok(option, (long long)v)) {
+    return 43; /* CURLE_BAD_FUNCTION_ARGUMENT */
+  }
   return 0;
 }
 

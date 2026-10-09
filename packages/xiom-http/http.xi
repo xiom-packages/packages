@@ -7,6 +7,7 @@ module xiom.http
 use xiom.ptr;
 use xiom.string;
 use xiom.encoding;
+use xiom.convert.tostring;
 
 // --- XIOM FFI Bridge --------------------------------------------------------
 
@@ -194,25 +195,19 @@ fn TEMP_HEADERS() -> Str
   return "__xiom_http_headers.tmp";
 }
 
-// --- Pointer-sized Value Helpers --------------------------------------------
-// libcurl options take pointer-sized values. XIOM Int -> *UInt8 via xiom_alloc.
+// --- Long-Option Value Helper -----------------------------------------------
+// libcurl's curl_easy_setopt is variadic: for CURLOPTTYPE_LONG options (e.g.
+// FOLLOWLOCATION, TIMEOUT, CONNECTTIMEOUT, NOSIGNAL, BUFFERSIZE, POST,
+// POSTFIELDSIZE) the third argument is the long VALUE itself, read from the
+// register -- not a pointer. XIOM's FFI surface types that parameter as
+// *UInt8, so the raw value is passed through an Int -> *UInt8 value cast.
+// The result is a bare value; it is NEVER dereferenced and needs no
+// allocation or free (0.1.4 fix). STRINGPOINT/OBJECTPOINT sites (URL,
+// USERAGENT, POSTFIELDS, CUSTOMREQUEST, WRITEDATA, ...) keep real pointers.
 
-fn make_ptr_value(v: Int) -> *UInt8 {
-  var p: *UInt8 = ptr.null[UInt8]();
-  unsafe { p = xiom_alloc(8); }
-  if ptr.is_null[UInt8](p) {
-    return ptr.null[UInt8]();
-  };
-  unsafe {
-    xiom_write_byte(p, 0, v & 0xFF);
-    xiom_write_byte(p, 1, (v >> 8) & 0xFF);
-    xiom_write_byte(p, 2, (v >> 16) & 0xFF);
-    xiom_write_byte(p, 3, (v >> 24) & 0xFF);
-    xiom_write_byte(p, 4, 0);
-    xiom_write_byte(p, 5, 0);
-    xiom_write_byte(p, 6, 0);
-    xiom_write_byte(p, 7, 0);
-  }
+fn make_long_value(v: Int) -> *UInt8 {
+  var p: *UInt8 = ptr_null();
+  unsafe { p = v as *UInt8; }
   return p;
 }
 
@@ -278,8 +273,7 @@ fn cstr_to_str(cstr: *UInt8) -> Str
 fn byte_to_char(b: Int) -> Str
   ensures: b == 0 => result.len() == 0;
   ensures: b == 9 || b == 10 || b == 13 || b == 32 => result.len() == 1;
-  ensures: b >= 33 && b <= 99 => result.len() == 2;
-  ensures: b >= 100 && b <= 126 => result.len() == 3;
+  ensures: b >= 33 && b <= 126 => result.len() == 1;
   ensures: b != 0 && b != 9 && b != 10 && b != 13 && b != 32 && (b < 33 || b > 126) => result.len() == 1;
 {
   if b == 0 { return ""; };
@@ -295,9 +289,9 @@ fn byte_to_char(b: Int) -> Str
 }
 
 fn char_to_str(c: Char) -> Str
-  ensures: result.len() >= 1;
+  ensures: result.len() <= 4;
 {
-  return to_string(to_int_from_char(c));
+  return tostring.to_string_char(c);
 }
 
 // --- Temp File Management ---------------------------------------------------
@@ -423,40 +417,33 @@ fn setup_common_options(handle: *UInt8, url_cstr: *UInt8) -> Result[Unit, Str] {
   unsafe { rc = curl_easy_setopt(handle, CURLOPT_URL(), url_cstr); }
   if rc != 0 { return Err(string.str_concat("CURLOPT_URL failed: ", curl_error_string(rc))); };
 
-  var p1: *UInt8 = make_ptr_value(1);
-  unsafe { rc = curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION(), p1); }
-  if rc != 0 { unsafe { xiom_free_ptr(p1); }; return Err(string.str_concat("CURLOPT_FOLLOWLOCATION failed: ", curl_error_string(rc))); };
-  unsafe { xiom_free_ptr(p1); }
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION(), make_long_value(1)); }
+  if rc != 0 { return Err(string.str_concat("CURLOPT_FOLLOWLOCATION failed: ", curl_error_string(rc))); };
 
-  var p30: *UInt8 = make_ptr_value(30);
-  unsafe { rc = curl_easy_setopt(handle, CURLOPT_TIMEOUT(), p30); }
-  if rc != 0 { unsafe { xiom_free_ptr(p30); }; return Err(string.str_concat("CURLOPT_TIMEOUT failed: ", curl_error_string(rc))); };
-  unsafe { xiom_free_ptr(p30); }
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_TIMEOUT(), make_long_value(30)); }
+  if rc != 0 { return Err(string.str_concat("CURLOPT_TIMEOUT failed: ", curl_error_string(rc))); };
 
-  var p10: *UInt8 = make_ptr_value(10);
-  unsafe { rc = curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT(), p10); }
-  if rc != 0 { unsafe { xiom_free_ptr(p10); }; return Err(string.str_concat("CURLOPT_CONNECTTIMEOUT failed: ", curl_error_string(rc))); };
-  unsafe { xiom_free_ptr(p10); }
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT(), make_long_value(10)); }
+  if rc != 0 { return Err(string.str_concat("CURLOPT_CONNECTTIMEOUT failed: ", curl_error_string(rc))); };
 
-  var p_nosignal: *UInt8 = make_ptr_value(1);
-  unsafe { rc = curl_easy_setopt(handle, CURLOPT_NOSIGNAL(), p_nosignal); }
-  if rc != 0 { unsafe { xiom_free_ptr(p_nosignal); }; return Err(string.str_concat("CURLOPT_NOSIGNAL failed: ", curl_error_string(rc))); };
-  unsafe { xiom_free_ptr(p_nosignal); }
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_NOSIGNAL(), make_long_value(1)); }
+  if rc != 0 { return Err(string.str_concat("CURLOPT_NOSIGNAL failed: ", curl_error_string(rc))); };
 
   var encoding_cstr: *UInt8 = str_to_cstr("gzip, deflate");
   unsafe { rc = curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING(), encoding_cstr); }
   unsafe { xiom_free_cstr(encoding_cstr); }
   if rc != 0 { return Err(string.str_concat("CURLOPT_ACCEPT_ENCODING failed: ", curl_error_string(rc))); };
 
+  // User-Agent is deliberately pinned: SPEC documents "xiom.http/0.1.0" as the
+  // stable client identifier and it has survived the 0.1.1..0.1.4 bumps, so it
+  // tracks compatibility, not the package version.
   var ua_cstr: *UInt8 = str_to_cstr("xiom.http/0.1.0");
   unsafe { rc = curl_easy_setopt(handle, CURLOPT_USERAGENT(), ua_cstr); }
   unsafe { xiom_free_cstr(ua_cstr); }
   if rc != 0 { return Err(string.str_concat("CURLOPT_USERAGENT failed: ", curl_error_string(rc))); };
 
-  var p_buf: *UInt8 = make_ptr_value(BUF_SIZE());
-  unsafe { rc = curl_easy_setopt(handle, CURLOPT_BUFFERSIZE(), p_buf); }
-  if rc != 0 { unsafe { xiom_free_ptr(p_buf); }; return Err(string.str_concat("CURLOPT_BUFFERSIZE failed: ", curl_error_string(rc))); };
-  unsafe { xiom_free_ptr(p_buf); }
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_BUFFERSIZE(), make_long_value(BUF_SIZE())); }
+  if rc != 0 { return Err(string.str_concat("CURLOPT_BUFFERSIZE failed: ", curl_error_string(rc))); };
 
   return Ok(());
 }
@@ -533,9 +520,7 @@ pub fn http_post(url: Str, body: Str, content_type: Str) -> Result[HttpClientRes
   match setup { Err(e) => { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(e); }, Ok(_) => {}, };
 
   var rc: Int;
-  var p1: *UInt8 = make_ptr_value(1);
-  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POST(), p1); }
-  unsafe { xiom_free_ptr(p1); }
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POST(), make_long_value(1)); }
   if rc != 0 { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); }; return Err(string.str_concat("CURLOPT_POST failed: ", curl_error_string(rc))); };
 
   var body_cstr: *UInt8 = str_to_cstr(body);
@@ -545,9 +530,7 @@ pub fn http_post(url: Str, body: Str, content_type: Str) -> Result[HttpClientRes
   if rc != 0 { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); }; return Err(string.str_concat("CURLOPT_POSTFIELDS failed: ", curl_error_string(rc))); };
 
   var body_bytes: Vec[UInt8] = encoding.utf8_encode(body);
-  var p_size: *UInt8 = make_ptr_value(body_bytes.len());
-  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), p_size); }
-  unsafe { xiom_free_ptr(p_size); }
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), make_long_value(body_bytes.len())); }
   if rc != 0 { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); }; return Err(string.str_concat("CURLOPT_POSTFIELDSIZE failed: ", curl_error_string(rc))); };
 
   var files = open_temp_files();
@@ -596,9 +579,7 @@ pub fn http_put(url: Str, body: Str) -> Result[HttpClientResponse, Str]
   if rc != 0 { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); }; return Err(string.str_concat("CURLOPT_POSTFIELDS PUT failed: ", curl_error_string(rc))); };
 
   var body_bytes: Vec[UInt8] = encoding.utf8_encode(body);
-  var p_size: *UInt8 = make_ptr_value(body_bytes.len());
-  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), p_size); }
-  unsafe { xiom_free_ptr(p_size); }
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE(), make_long_value(body_bytes.len())); }
   if rc != 0 { unsafe { curl_easy_cleanup(handle); xiom_free_cstr(url_cstr); xiom_free_cstr(body_cstr); }; return Err(string.str_concat("CURLOPT_POSTFIELDSIZE PUT failed: ", curl_error_string(rc))); };
 
   var files = open_temp_files();

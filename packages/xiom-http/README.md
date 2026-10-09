@@ -39,10 +39,26 @@ imports only the parser module compiles cleanly (0.1.0 shipped 19 T001s in that 
 to the caller. There is no accept loop, no routing, no handler registration. Consumers
 own their transport today; `xiom.router` (planned) will provide route matching.
 
+## 0.1.4 changes
+
+Two live defects from the 0.1.3 line are fixed (public API and dependencies unchanged):
+
+- **Character rendering**: `byte_to_char`/`char_to_str` in `http.xi`, `src/url.xi`,
+  `src/client.xi`, and `src/types.xi` now render printable ASCII as the actual
+  character (`"A"` for byte 65) via `xiom.convert.tostring.to_string_char` instead of
+  the decimal code (`"65"`); `~ | { }` are no longer flattened to `"?"`. Non-printable
+  fallbacks and the 0/9/10/13/32 special mappings are unchanged.
+- **libcurl LONG options**: `make_ptr_value` (a heap buffer whose pointer libcurl
+  stored as the option value, breaking timeouts/POST size and leaking) is now
+  `make_long_value`, passing the long value itself per libcurl's variadic ABI.
+
+See `SPEC.md` -> "0.1.4 fix pass" for the clause re-pins and the probe-bridge changes.
+
 ## Contracts and tests
 
 - `http_parse_request` / `http_parse_response`: `requires: input.len() > 0` (do not call
   with an empty string; an empty input traps as a contract violation).
 - Parser KATs (request line, POST body, response line, header parsing, malformed header)
-  live in `tests/test_conformance.xi` (40 checks) — added in 0.1.1 after a consumer-only
-  defect (missing import + bare `&mut Int` cursor) shipped green on 0.1.0.
+  live in `tests/test_conformance.xi` (42 checks) — added in 0.1.1 after a consumer-only
+  defect (missing import + bare `&mut Int` cursor) shipped green on 0.1.0; the 0.1.4
+  checks pin printable-ASCII rendering in `src/url.xi` and `src/types.xi`.

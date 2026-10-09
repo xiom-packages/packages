@@ -36,10 +36,11 @@ xiom http.xi src/types.xi src/parser.xi ../runtime/ffi_bridge.c -l curl -o http_
 - `src/mime.xi` -- MIME type mapping (21 extensions)
 - `src/server.xi` -- Server stub types (awaiting TCP layer)
 
-### FFI-dependent module (needs manual fix):
+### FFI-dependent module (links libcurl):
 - `http.xi` -- libcurl-backed HTTP client (GET/POST/PUT/DELETE/download)
-  - **Known issue:** Uses `+` operator for string concatenation (`"prefix: " + err`); XIOM requires `string.str_concat(a, b)` for Str concatenation. All error/status message construction chains must be converted.
-  - **Known issue:** Uses `Int as *UInt8` casts for libcurl option values. These must be replaced with `xiom_alloc`+`xiom_write_byte` buffer construction (see `int_as_ptr()` pattern in fixed version).
+  - All `Str` concatenation goes through `string.str_concat`.
+  - LONG curl options (FOLLOWLOCATION, TIMEOUT, CONNECTTIMEOUT, NOSIGNAL, BUFFERSIZE, POST, POSTFIELDSIZE) pass the value itself through an Int -> *UInt8 value cast (`make_long_value`) per libcurl's variadic ABI (fixed in 0.1.4). Do NOT reintroduce `xiom_alloc`+`xiom_write_byte` buffers for these -- libcurl reads a `long`, not a pointer.
+  - STRINGPOINT/OBJECTPOINT options (URL, ACCEPT_ENCODING, USERAGENT, POSTFIELDS, CUSTOMREQUEST, WRITEDATA, HEADERDATA) pass real pointers from `xiom_str_to_cstr` / `FILE*`; those are freed after `curl_easy_setopt` returns.
   - **Known issue:** CURLOPT_HTTPHEADER requires `curl_slist_append` which is not yet wired in the FFI. Content-Type headers are not sent for POST/PUT requests.
   - **Known issue:** Temp file response capture (`__xiom_http_body.tmp`, `__xiom_http_headers.tmp`). In-memory callback-based capture is planned for future versions.
 

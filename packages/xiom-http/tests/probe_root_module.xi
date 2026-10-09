@@ -12,16 +12,18 @@
 // curl_easy_perform fails fast with CURLE_COULDNT_CONNECT, so http_get
 // returns Err(error-text) and exit code is 0 when the [PASS] checks hold.
 //
-// Harness: the v0.64.1 toolchain ships only xiom_alloc in its runtime (no
+// Harness: the v0.64.2 toolchain ships only xiom_alloc in its runtime (no
 // xiom_str_to_cstr / xiom_free_cstr / xiom_write_byte / xiom_read_byte /
 // xiom_free_ptr symbols), so the probe links tests/probe_bridge.c. The bridge
-// also stubs libcurl deterministically: driving the REAL libcurl is not
-// possible for this module on Win64 -- make_ptr_value passes an 8-byte heap
-// pointer where libcurl reads a `long` option value, so CURLOPT_TIMEOUT's
-// setopt rejects the garbage low 32 bits (measured 500/500 nonzero returns).
-// The stub keeps the package's own chain deterministic and exercises the
-// contract-checked helpers (the fix under test, the p1 double-free removal,
-// uses a real libc free in the bridge).
+// also stubs libcurl deterministically and offline; since the 0.1.4 fix pass
+// it is FAITHFUL to libcurl's variadic setopt ABI: LONG options are read as
+// the long VALUE from the register (never dereferenced) and implausible
+// values are rejected with CURLE_BAD_FUNCTION_ARGUMENT (43). The old
+// make_ptr_value bug (a heap pointer where libcurl reads a `long`) therefore
+// fails this probe. The stub keeps the package's own chain deterministic and
+// exercises the contract-checked helpers (the 0.1.3 p1 double-free removal
+// uses a real libc free in the bridge; the 0.1.4 long-value fix is pinned by
+// the bridge's LONG option expectations).
 //
 // Run from E:\xiom-packages\packages:
 //   & .\scripts\xiom.ps1 -Stdlib "E:\xiom-lang\stdlib" --run `
