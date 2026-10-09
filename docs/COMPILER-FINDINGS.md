@@ -585,3 +585,14 @@ STILL OPEN on v0.64.1 (evidence re-run):
   numeric strings for printable ASCII. Consumer-layout caveat: the module lives at the
   package root (`http.xi`), not `src/`, so catalog rehearsals need a root-module path or
   an identical `src/` copy.
+
+## Bindings B-10 (2026-10-08/09): alloc-named local fn-pointer silently redirected
+
+- **A local fn-pointer variable named `alloc` inside a confined block has its calls
+  silently rewritten to the guard allocator.** ODBC's `SQLAllocHandle` call through a
+  loaded fn-pointer named `alloc` "succeeded" while the out-param stayed 0 (the guard
+  allocator was called instead of the real symbol); renaming the local to `f_alloc` fixed
+  the entire probe. The guard pass should exclude non-builtin locals from the `alloc`
+  rewrite. Evidence: bindings batch 15 (`packages/xiom-odbc`, 5/5 x2 after the rename),
+  full row in `docs/BINDINGS-COMPILER-FINDINGS.md`; workaround `f_` prefix on fn-pointer
+  locals applies to every loader-style binding.
