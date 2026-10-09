@@ -39,6 +39,27 @@ Always qualify API calls with the module prefix (`sqlite.open`, not `open`):
 unqualified `open`/`close` collide with `xiom.io` names in a consumer catalog
 (stdlib collision).
 
+## Registry use (consumer, verified 2026-10-09)
+
+```
+xiom pkg install xiom.sqlite@0.2.0
+```
+
+```toml
+# xiom.toml
+[dependencies]
+"xiom.sqlite" = "0.2.0"
+```
+
+The module then resolves automatically (no `source-roots`). Because the
+amalgamation is vendored, the consumer build compiles it too -- pass the
+installed copy (required until a package build-hook lands; `port.args.json`
+serves this package's own runner only):
+
+```
+xiom --run src/main.xi --c-source "%XIOM_HOME%/packages/xiom-sqlite-<version>/xiom-sqlite/vendor/sqlite3.c"
+```
+
 ## API surface
 
 | Area | Functions |
