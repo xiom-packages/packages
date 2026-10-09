@@ -1,4 +1,4 @@
-// dear imgui, v1.92.9 WIP
+// dear imgui, v1.92.9b
 // (internal structures/api)
 
 // You may use this file to debug, understand or extend Dear ImGui features but we don't provide any guarantee of forward compatibility.
@@ -1006,7 +1006,7 @@ enum ImGuiItemFlagsPrivate_
     ImGuiItemFlags_HasSelectionUserData     = 1 << 21, // false     // Set by SetNextItemSelectionUserData()
     ImGuiItemFlags_IsMultiSelect            = 1 << 22, // false     // Set by SetNextItemSelectionUserData()
 
-    ImGuiItemFlags_Default_                 = ImGuiItemFlags_AutoClosePopups | ImGuiItemFlags_LiveEditOnInputText | ImGuiItemFlags_LiveEditOnInputScalar, // Please don't change, use PushItemFlag() instead.
+    ImGuiItemFlags_Default_                 = ImGuiItemFlags_AutoClosePopups | ImGuiItemFlags_LiveEditOnInputText, // Please don't change, use PushItemFlag() instead.
 
     // Obsolete
     //ImGuiItemFlags_SelectableDontClosePopup = !ImGuiItemFlags_AutoClosePopups, // Can't have a redirect as we inverted the behavior
@@ -1265,6 +1265,7 @@ struct IMGUI_API ImGuiInputTextState
     ImStbTexteditState*     Stb;                    // State for stb_textedit.h
     ImGuiInputTextFlags     Flags;                  // copy of InputText() flags. may be used to check if e.g. ImGuiInputTextFlags_Password is set.
     ImGuiID                 ID;                     // widget id owning the text state
+    //int                   LastFrameActive;        // Last used frame-count (unused)
     int                     TextLen;                // UTF-8 length of the string in TextA (in bytes)
     const char*             TextSrc;                // == TextA.Data unless read-only, in which case == buf passed to InputText(). For _ReadOnly fields, pointer will be null outside the InputText() call.
     ImVector<char>          TextA;                  // main UTF8 buffer. TextA.Size is a buffer size! Should always be >= buf_size passed by user (and of course >= CurLenA + 1).
@@ -3504,7 +3505,7 @@ namespace ImGui
     // Popups, Modals
     IMGUI_API bool          BeginPopupEx(ImGuiID id, ImGuiWindowFlags extra_window_flags);
     IMGUI_API bool          BeginPopupMenuEx(ImGuiID id, const char* label, ImGuiWindowFlags extra_window_flags);
-    IMGUI_API void          OpenPopupEx(ImGuiID id, ImGuiPopupFlags popup_flags = ImGuiPopupFlags_None);
+    IMGUI_API bool          OpenPopupEx(ImGuiID id, ImGuiPopupFlags popup_flags = ImGuiPopupFlags_None);
     IMGUI_API void          ClosePopupToLevel(int remaining, bool restore_focus_to_window_under_popup);
     IMGUI_API void          ClosePopupsOverWindow(ImGuiWindow* ref_window, bool restore_focus_to_window_under_popup);
     IMGUI_API void          ClosePopupsExceptModals();

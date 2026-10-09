@@ -1,0 +1,14 @@
+[
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/imgui.cpp",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/imgui_draw.cpp",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/imgui_tables.cpp",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/imgui_widgets.cpp",
+  "--c-source",
+  "${PACKAGE_DIR}/vendor/imgui_impl_null.cpp",
+  "--c-source",
+  "${PACKAGE_DIR}/src/imgui_bridge.cpp"
+]
