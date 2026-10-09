@@ -29,8 +29,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   facade over the libpq/loader pattern -- defer wire-protocol duplication until libpq lands.
   Accelerators stay GATED on XVECTOR's contract freeze; ffmpeg needs the license choice
   (prefer LGPL or system-SKIP) BEFORE vendoring.
-- **Batch #48 dispatched:** bonjour/tcx/orc/plist/upnp/multicast (~13 carriers total; the
-  six porters spawn once the pre-plan lands).
+- **Batch #48 dispatched:** bonjour/tcx/orc/plist/upnp/multicast (~198 clauses planned; porters
+  `ses_edf5fafe`, `ses_edf5fac2`, `ses_edf5fa85`, `ses_edf5fa48`, `ses_edf5fa19`,
+  `ses_edf5f9e4`). ~13 carriers total; next after this batch: rescan.
 - **Batch #47 DONE + PUBLISHED (`eco-v0.1.111`, run `37853047324` SUCCESS; all six live):**
   `junit` 0.1.2 (25 clauses; 22/22; `7cc2f458`), `usb` 0.1.2 (22; 20/20; `b70009f6`),
   `snmp` 0.1.2 (27; 19/19; `6d3f6951`), `thrift` 0.1.2 (21; 24/24; `19871958`), `imap`
