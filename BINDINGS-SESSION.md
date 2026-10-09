@@ -950,6 +950,14 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Flagged to the packages/native lane: registry consumers of vendored-C
   packages (`xiom.sqlite`) need a `--c-source` build-hook story beyond the
   runner's `port.args.json`.
+- Consumer-flow validation (registry installs into a scratch `XIOM_HOME`,
+  v0.64.2, checksum+signature verified): `xiom.sqlite` 0.2.0 and
+  `xiom.libpq` 0.2.0 both install and resolve via canonical
+  `[dependencies]` (no `source-roots`). sqlite needs the explicit
+  `--c-source <installed>/vendor/sqlite3.c` (gap confirmed: the shipped
+  `port.args.json` is not applied by consumer builds) -- recipe in the
+  package wishlist doc + the sqlite README (docs follow-up on batch 22);
+  libpq runs plain with the SKIP classification.
 
 ## Phase-2 sector order proposal (Phase 1 pilot complete)
 
@@ -1001,4 +1009,6 @@ in this file, and any new compiler finding appended to
 - Lane copy of the compiler relay: `docs/BINDINGS-COMPILER-RELAY-2026-10-09-v0.64.2.md`.
 - PULSE/ORBITDB/XVECTOR package wishlists fetched and answered
   (`docs/BINDINGS-PACKAGE-WISHLIST.md`); no new in-lane work items
-  (accelerators stay gated on `xiom.vectors`).
+  (accelerators stay gated on `xiom.vectors`). Registry consumer flow for
+  the DB bindings validated end-to-end (sqlite `--c-source` recipe + libpq
+  plain); batch-22 docs follow-up adds the sqlite README consumer section.

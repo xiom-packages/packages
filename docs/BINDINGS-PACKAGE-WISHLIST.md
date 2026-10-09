@@ -31,12 +31,20 @@ stable PULSE API (route code never calls a binding directly).
 | TLS as a binding | Acknowledged NOT a binding for PULSE (front proxy terminates TLS; app stays loopback plaintext). `xiom.openssl` 0.2.0 (signed; libcrypto dynamic loader) exists if that posture changes | ACK |
 | Wrap-behind-one-module consumption contract | Acknowledged; matches the lane's design (typed safe facade, all `unsafe` confined to one module; SKIP-when-absent classification keeps CI green without the native library) | ACK |
 
-**Integration caveat for `xiom.sqlite` (consumer side):** the vendored C
-amalgamation is compiled with `--c-source` (see `SPEC.md` §2); registry
-consumers currently have to add that flag to their own build (the lane's
-`port.args.json` hook is runner-only) -- see the cross-lane note below.
-`xiom.libpq` / `xiom.odbc` are pure-XIOM loaders and need no consumer
-compile step.
+**Consumer flow -- VERIFIED end-to-end 2026-10-09** (scratch `XIOM_HOME`,
+compiler v0.64.2, registry installs checksum+signature-verified):
+- `xiom.sqlite` 0.2.0 (vendored C): `xiom pkg install xiom.sqlite@0.2.0`,
+  declare `"xiom.sqlite" = "0.2.0"` in `xiom.toml` `[dependencies]` (module
+  resolves automatically, no `source-roots`), then build with the installed
+  amalgamation:
+  `xiom --run src/main.xi --c-source %XIOM_HOME%/packages/xiom-sqlite-<ver>/xiom-sqlite/vendor/sqlite3.c`
+  -- a real consumer probe inserted and read a row back (PASS). WITHOUT the
+  `--c-source`, the build fails with undefined `sqlite3_*` symbols: the
+  installed package ships `port.args.json`, but consumer builds do not apply
+  it (confirmed gap -- see the cross-lane note below).
+- `xiom.libpq` 0.2.0 (pure XIOM): same install + `[dependencies]`, plain
+  `xiom --run` -- no C step; consumer probe green (SKIP classification when
+  no `libpq.dll` is on PATH). `xiom.odbc` shares that shape.
 
 ## 2. ORBITDB -- no bindings asks
 
@@ -66,12 +74,15 @@ v0.64.2. Accelerators remain the one unscheduled sector, behind the
 
 ## 4. Cross-lane integration note (for the packages/native lane)
 
-- **Registry consumption of vendored-C bindings**: `xiom.sqlite` (and any
-  future vendored package) needs the consumer build to compile the vendored
-  C (`--c-source`); `port.args.json` only serves the lane runner today.
-  PULSE-style consumers wiring `source-roots` will need either that flag or
-  a package build-hook in the compiler/package flow. Surfaced here so the
-  first consumer adoption does not trip on it.
+- **Registry consumption of vendored-C bindings -- CONFIRMED GAP
+  (2026-10-09, end-to-end tested)**: the dependency flow resolves the module
+  but the consumer build does not apply the package's shipped
+  `port.args.json`, so vendored-C packages (`xiom.sqlite`) need an explicit
+  `--c-source <installed>/vendor/sqlite3.c` in the consumer build. Suggested
+  fix (compiler/package lanes): apply a dependency's `port.args.json` build
+  args when compiling a consumer, or expose a `xiom pkg` helper that prints
+  them. Until then the README recipe is the workaround (satisfies PULSE's
+  consumer-snippet convention).
 - **fsync**: the ORBITDB/XVECTOR durable-store gates are the stdlib
   `fsync` row (filed in their own stdlib wishlists); not a bindings ask,
   noted for routing.
