@@ -1,355 +1,266 @@
-// XIOM -- PortAudio Audio I/O Bindings
-// Low-level extern "C" declarations and safe wrappers for PortAudio.
+// XIOM -- xiom.portaudio: PortAudio bindings via dynamic loader.
 // Copyright (c) 2026 Eleftherios Notas and The XIOM Authors
 // Licensed under the MIT or Apache-2.0 license, at your option.
+//
+// DESIGN: dynamic loader path (same pattern as xiom.miniaudio / xiom.odbc).
+// The package does NOT link PortAudio at build time and needs no headers:
+// constants are declared locally, `pa_load` resolves `portaudio_x64.dll`
+// through `xiom.ffi.dl`, and every call is an fn-pointer cast inside this
+// single module -- the ONLY module in the package with `unsafe` (G5).
+//
+// Classification:
+//   PA_LOAD_ABSENT    -> library missing -> SKIP (CI stays green)
+//   PA_LOAD_ABI       -> entry points missing -> FAIL
+//   PA_PROBE_FAILED   -> Pa_Initialize failed (no audio service) -> SKIP-class
+//
+// Coverage (pilot): version (int + text), initialize/terminate, device count,
+// and default output/input device names (read from PaDeviceInfo at offset 8
+// -- structVersion(4) + padding, then char* name).  Streams, formats and the
+// callback API are Phase 2 (ROADMAP.md).
+//
+// G2 pin (SPEC.md): soname `portaudio_x64.dll` + entry-point set + local
+// samples (Audacity / DaVinci Resolve builds) + upstream PortAudio v19.7.0.
+
 module xiom.portaudio
 
-// ===========================================================================
-// Types
-// ===========================================================================
+use xiom.ffi;
+use xiom.ffi.dl;
 
-pub type PaStream = Int
+// =========================================================================
+// Identity and constants (PortAudio; declared locally)
+// =========================================================================
 
-// ===========================================================================
-// Constants -- sample formats
-// ===========================================================================
+pub const PORT_AUDIO_SONAME: Str = "portaudio_x64.dll";
 
-pub const FORMAT_FLOAT32:      Int = 0x00000001
-pub const FORMAT_INT32:        Int = 0x00000002
-pub const FORMAT_INT24:        Int = 0x00000004
-pub const FORMAT_INT16:        Int = 0x00000008
-pub const FORMAT_INT8:         Int = 0x00000010
-pub const FORMAT_UINT8:        Int = 0x00000020
-pub const FORMAT_CUSTOM:       Int = 0x00010000
-pub const FORMAT_NONINTERLEAVED: Int = -2147483648
+// Sample formats (PaSampleFormat).
+pub const FORMAT_FLOAT32: Int = 0x00000001;
+pub const FORMAT_INT32: Int = 0x00000002;
+pub const FORMAT_INT24: Int = 0x00000004;
+pub const FORMAT_INT16: Int = 0x00000008;
+pub const FORMAT_INT8: Int = 0x00000010;
+pub const FORMAT_UINT8: Int = 0x00000020;
+pub const FORMAT_CUSTOM: Int = 0x00010000;
 
-// ===========================================================================
-// Constants -- error codes (negative values per PortAudio convention)
-// ===========================================================================
+pub const PA_LOAD_ABSENT: Int = 0;  // library missing -> SKIP
+pub const PA_LOAD_ABI: Int = 1;     // entry points missing -> FAIL
+pub const PA_PROBE_FAILED: Int = 2; // initialize failed -> SKIP-class
 
-pub const NO_ERROR:                          Int = 0
-pub const NOT_INITIALIZED:                   Int = -10000
-pub const UNANTICIPATED_HOST_ERROR:          Int = -9999
-pub const INVALID_CHANNEL_COUNT:             Int = -9998
-pub const INVALID_SAMPLE_RATE:               Int = -9997
-pub const INVALID_DEVICE:                    Int = -9996
-pub const INVALID_FLAG:                      Int = -9995
-pub const SAMPLE_FORMAT_NOT_SUPPORTED:       Int = -9994
-pub const BAD_IO_DEVICE_COMBINATION:         Int = -9993
-pub const INSUFFICIENT_MEMORY:               Int = -9992
-pub const BUFFER_TOO_BIG:                    Int = -9991
-pub const BUFFER_TOO_SMALL:                  Int = -9990
-pub const NULL_CALLBACK:                     Int = -9989
-pub const BAD_STREAM_PTR:                    Int = -9988
-pub const TIMED_OUT:                         Int = -9987
-pub const INTERNAL_ERROR:                    Int = -9986
-pub const DEVICE_UNAVAILABLE:                Int = -9985
-pub const INCOMPATIBLE_HOST_API_SPECIFIC_STREAM_INFO: Int = -9984
-pub const STREAM_IS_STOPPED:                 Int = -9983
-pub const STREAM_IS_NOT_STOPPED:             Int = -9982
-pub const INPUT_OVERFLOWED:                  Int = -9981
-pub const OUTPUT_UNDERFLOWED:                Int = -9980
-pub const HOST_API_NOT_FOUND:                Int = -9979
-pub const INVALID_HOST_API:                  Int = -9978
-pub const CAN_NOT_READ_FROM_A_CALLBACK_STREAM:   Int = -9977
-pub const CAN_NOT_WRITE_TO_A_CALLBACK_STREAM:    Int = -9976
-pub const CAN_NOT_READ_FROM_AN_OUTPUT_ONLY_STREAM: Int = -9975
-pub const CAN_NOT_WRITE_TO_AN_INPUT_ONLY_STREAM:  Int = -9974
-pub const INCOMPATIBLE_STREAM_HOST_API:      Int = -9973
-pub const BAD_BUFFER_PTR:                    Int = -9972
-
-// ===========================================================================
-// Constants -- device
-// ===========================================================================
-
-pub const NO_DEVICE:                         Int = -1
-
-// ===========================================================================
-// Constants -- stream flags
-// ===========================================================================
-
-pub const NO_FLAG:                           Int = 0
-pub const CLIP_OFF:                          Int = 0x00000001
-pub const DITHER_OFF:                        Int = 0x00000002
-pub const NEVER_DROP_INPUT:                  Int = 0x00000004
-pub const PRIME_OUTPUT_BUFFERS_USING_STREAM_CALLBACK: Int = 0x00000008
-pub const PLATFORM_SPECIFIC_FLAGS:           Int = 0xFFFF0000
-
-// ===========================================================================
-// Constants -- defaults
-// ===========================================================================
-
-pub const DEFAULT_SAMPLE_RATE:               Int = 44100
-pub const DEFAULT_FRAMES_PER_BUFFER:         Int = 512
-pub const DEFAULT_CHANNELS:                  Int = 2
-
-// ===========================================================================
-// extern "C" -- PortAudio C library declarations
-// ===========================================================================
-
-extern "C" {
-  fn Pa_Initialize() -> Int
-  fn Pa_Terminate() -> Int
-  fn Pa_GetDefaultOutputDevice() -> Int
-  fn Pa_GetDefaultInputDevice() -> Int
-  fn Pa_GetDeviceCount() -> Int
-  fn Pa_GetDefaultHostApi() -> Int
-  fn Pa_GetHostApiCount() -> Int
-  fn Pa_GetHostApiInfo(hostApi: Int) -> Int
-  fn Pa_GetDeviceInfo(device: Int) -> Int
-  fn Pa_OpenDefaultStream(stream: Int, numInputChannels: Int,
-                          numOutputChannels: Int, sampleFormat: Int,
-                          sampleRate: Float64, framesPerBuffer: Int,
-                          callback: Int, userData: Int) -> Int
-  fn Pa_OpenStream(stream: Int, inputParams: Int, outputParams: Int,
-                    sampleRate: Float64, framesPerBuffer: Int,
-                    streamFlags: Int, callback: Int, userData: Int) -> Int
-  fn Pa_StartStream(stream: Int) -> Int
-  fn Pa_StopStream(stream: Int) -> Int
-  fn Pa_CloseStream(stream: Int) -> Int
-  fn Pa_AbortStream(stream: Int) -> Int
-  fn Pa_IsStreamStopped(stream: Int) -> Int
-  fn Pa_IsStreamActive(stream: Int) -> Int
-  fn Pa_WriteStream(stream: Int, buffer: Int, frames: Int) -> Int
-  fn Pa_ReadStream(stream: Int, buffer: Int, frames: Int) -> Int
-  fn Pa_GetStreamInfo(stream: Int) -> Int
-  fn Pa_GetStreamTime(stream: Int) -> Float64
-  fn Pa_GetStreamCpuLoad(stream: Int) -> Float64
-  fn Pa_GetErrorText(code: Int) -> Int
-  fn Pa_GetVersion() -> Int
-  fn Pa_GetVersionText() -> Int
-  fn Pa_Sleep(msec: Int)
+pub type PaLoadError = {
+  kind: Int;
+  message: Str;
 }
 
-// ===========================================================================
-// Safe wrappers -- lifecycle
-// ===========================================================================
+pub type PaInfo = {
+  version: Int;
+  version_text: Str;
+  device_count: Int;
+  default_output: Int;
+  default_output_name: Str;
+  default_input: Int;
+  default_input_name: Str;
+}
 
-pub fn initialize() -> Result[Unit, Str]
-  ensures: result.is_ok() -> true
+/// A loaded PortAudio.  Owned by the caller; release with `pa_close`.
+pub type PaLibrary = {
+  handle: Int;
+  p_get_version: Int;
+  p_get_version_text: Int;
+  p_initialize: Int;
+  p_terminate: Int;
+  p_get_device_count: Int;
+  p_get_default_output: Int;
+  p_get_default_input: Int;
+  p_get_device_info: Int;
+}
+
+// =========================================================================
+// Loader
+// =========================================================================
+
+/// Load an explicitly named PortAudio build (bogus names exercise the
+/// ABSENT/SKIP classification deterministically on any host).
+/// Complexity: O(symbols).
+pub fn pa_load_named(soname: Str) -> Result[PaLibrary, PaLoadError]
+  requires: soname.len() > 0
 {
-  let err = unsafe { Pa_Initialize() };
-  if err != NO_ERROR {
-    return Err("Pa_Initialize failed with error code " + (err as Str));
+  let h = dl.dl_open(soname);
+  if !h.is_ok {
+    return Err(PaLoadError{ kind: PA_LOAD_ABSENT; message: h.error });
   }
-  return Ok(());
+  let handle: Int = h.value;
+
+  let a1 = dl.dl_sym(handle, "Pa_GetVersion");
+  if !a1.is_ok { var ig = dl.dl_close(handle); return Err(PaLoadError{ kind: PA_LOAD_ABI; message: "Pa_GetVersion: " + a1.error }); }
+  let a2 = dl.dl_sym(handle, "Pa_GetVersionText");
+  if !a2.is_ok { var ig = dl.dl_close(handle); return Err(PaLoadError{ kind: PA_LOAD_ABI; message: "Pa_GetVersionText: " + a2.error }); }
+  let a3 = dl.dl_sym(handle, "Pa_Initialize");
+  if !a3.is_ok { var ig = dl.dl_close(handle); return Err(PaLoadError{ kind: PA_LOAD_ABI; message: "Pa_Initialize: " + a3.error }); }
+  let a4 = dl.dl_sym(handle, "Pa_Terminate");
+  if !a4.is_ok { var ig = dl.dl_close(handle); return Err(PaLoadError{ kind: PA_LOAD_ABI; message: "Pa_Terminate: " + a4.error }); }
+  let a5 = dl.dl_sym(handle, "Pa_GetDeviceCount");
+  if !a5.is_ok { var ig = dl.dl_close(handle); return Err(PaLoadError{ kind: PA_LOAD_ABI; message: "Pa_GetDeviceCount: " + a5.error }); }
+  let a6 = dl.dl_sym(handle, "Pa_GetDefaultOutputDevice");
+  if !a6.is_ok { var ig = dl.dl_close(handle); return Err(PaLoadError{ kind: PA_LOAD_ABI; message: "Pa_GetDefaultOutputDevice: " + a6.error }); }
+  let a7 = dl.dl_sym(handle, "Pa_GetDefaultInputDevice");
+  if !a7.is_ok { var ig = dl.dl_close(handle); return Err(PaLoadError{ kind: PA_LOAD_ABI; message: "Pa_GetDefaultInputDevice: " + a7.error }); }
+  let a8 = dl.dl_sym(handle, "Pa_GetDeviceInfo");
+  if !a8.is_ok { var ig = dl.dl_close(handle); return Err(PaLoadError{ kind: PA_LOAD_ABI; message: "Pa_GetDeviceInfo: " + a8.error }); }
+
+  return Ok(PaLibrary{
+    handle: handle,
+    p_get_version: a1.value,
+    p_get_version_text: a2.value,
+    p_initialize: a3.value,
+    p_terminate: a4.value,
+    p_get_device_count: a5.value,
+    p_get_default_output: a6.value,
+    p_get_default_input: a7.value,
+    p_get_device_info: a8.value,
+  });
 }
 
-pub fn terminate() -> Result[Unit, Str]
-  ensures: result.is_ok() -> true
+/// Load the default PortAudio build (`portaudio_x64.dll`).
+/// Complexity: O(symbols).
+pub fn pa_load() -> Result[PaLibrary, PaLoadError]
+  requires: true
 {
-  let err = unsafe { Pa_Terminate() };
-  if err != NO_ERROR {
-    return Err("Pa_Terminate failed with error code " + (err as Str));
+  return pa_load_named(PORT_AUDIO_SONAME);
+}
+
+/// Release the library handle.
+/// Complexity: O(1).
+pub fn pa_close(lib: &PaLibrary) -> Result[Unit, Str]
+  requires: lib.handle != 0
+{
+  return dl.dl_close(lib.handle);
+}
+
+// =========================================================================
+// Probe
+// =========================================================================
+
+/// Initialize PortAudio, report version/devices/defaults, then terminate.
+/// Err("portaudio: Pa_Initialize rc=N") on initialize failure (callers treat
+/// that as SKIP-class -- a serviceless host).
+/// Complexity: O(backends + devices).
+pub fn pa_probe(lib: &PaLibrary) -> Result[PaInfo, Str]
+  requires: lib.handle != 0
+{
+  unsafe {
+    let f_version = lib.p_get_version as fn() -> Int32;
+    let f_text = lib.p_get_version_text as fn() -> *UInt8;
+    let f_init = lib.p_initialize as fn() -> Int32;
+    let f_term = lib.p_terminate as fn() -> Int32;
+    let f_count = lib.p_get_device_count as fn() -> Int32;
+    let f_def_out = lib.p_get_default_output as fn() -> Int32;
+    let f_def_in = lib.p_get_default_input as fn() -> Int32;
+    let f_dev_info = lib.p_get_device_info as fn(Int) -> Int;
+
+    let version = f_version() as Int;
+
+    var version_text = "";
+    let tp = f_text();
+    if (tp as Int) != 0 {
+      version_text = Str::from_c_str(tp);
+    }
+
+    let rc = f_init() as Int;
+    if rc != 0 {
+      return Err("portaudio: Pa_Initialize rc=" + int_to_str(rc));
+    }
+
+    let count = f_count() as Int;
+    let def_out = f_def_out() as Int;
+    let def_in = f_def_in() as Int;
+
+    var out_name = "";
+    if def_out >= 0 {
+      let info = f_dev_info(def_out);
+      if info != 0 {
+        let namep = ffi.ptr_read_u64_le((info + 8) as *UInt8);
+        if namep != 0 {
+          out_name = Str::from_c_str(namep as *UInt8);
+        }
+      }
+    }
+
+    var in_name = "";
+    if def_in >= 0 {
+      let info = f_dev_info(def_in);
+      if info != 0 {
+        let namep = ffi.ptr_read_u64_le((info + 8) as *UInt8);
+        if namep != 0 {
+          in_name = Str::from_c_str(namep as *UInt8);
+        }
+      }
+    }
+
+    var ig = f_term();
+
+    return Ok(PaInfo{
+      version: version,
+      version_text: version_text,
+      device_count: count,
+      default_output: def_out,
+      default_output_name: out_name,
+      default_input: def_in,
+      default_input_name: in_name,
+    });
   }
-  return Ok(());
 }
 
-// ===========================================================================
-// Safe wrappers -- device query
-// ===========================================================================
-
-pub fn get_default_output_device() -> Int {
-  return unsafe { Pa_GetDefaultOutputDevice() };
-}
-
-pub fn get_default_input_device() -> Int {
-  return unsafe { Pa_GetDefaultInputDevice() };
-}
-
-pub fn get_device_count() -> Int {
-  return unsafe { Pa_GetDeviceCount() };
-}
-
-pub fn get_default_host_api() -> Int {
-  return unsafe { Pa_GetDefaultHostApi() };
-}
-
-pub fn get_host_api_count() -> Int {
-  return unsafe { Pa_GetHostApiCount() };
-}
-
-// ===========================================================================
-// Safe wrappers -- stream management
-// ===========================================================================
-
-pub fn open_default_stream(
-  num_input_channels: Int,
-  num_output_channels: Int,
-  sample_format: Int,
-  sample_rate: Float64,
-  frames_per_buffer: Int
-) -> Result[PaStream, Str]
-  requires: num_input_channels >= 0
-  requires: num_output_channels >= 0
-  requires: frames_per_buffer > 0
-  requires: sample_rate > 0.0
-  ensures: result.is_ok() -> result.unwrap() != 0
+/// Load an explicitly named build and run `pa_probe`.
+/// Complexity: O(backends + devices).
+pub fn pa_probe_named(soname: Str) -> Result[PaInfo, PaLoadError]
+  requires: soname.len() > 0
 {
-  let err = unsafe {
-    Pa_OpenDefaultStream(0, num_input_channels, num_output_channels,
-                         sample_format, sample_rate, frames_per_buffer, 0, 0)
-  };
-  if err != NO_ERROR {
-    return Err("Pa_OpenDefaultStream failed with error code " + (err as Str));
+  let l = pa_load_named(soname);
+  if !l.is_ok {
+    return Err(l.error);
   }
-  let stream: PaStream = 0;
-  return Ok(stream);
-}
-
-pub fn open_stream(
-  num_input_channels: Int,
-  num_output_channels: Int,
-  sample_format: Int,
-  sample_rate: Float64,
-  frames_per_buffer: Int,
-  stream_flags: Int
-) -> Result[PaStream, Str]
-  requires: num_input_channels >= 0
-  requires: num_output_channels >= 0
-  requires: frames_per_buffer > 0
-  requires: sample_rate > 0.0
-  ensures: result.is_ok() -> result.unwrap() != 0
-{
-  let err = unsafe {
-    Pa_OpenStream(0, 0, 0, sample_rate, frames_per_buffer,
-                  stream_flags, 0, 0)
-  };
-  if err != NO_ERROR {
-    return Err("Pa_OpenStream failed with error code " + (err as Str));
+  let lib: PaLibrary = l.value;
+  let p = pa_probe(&lib);
+  let cl = pa_close(&lib);
+  if !p.is_ok {
+    return Err(PaLoadError{ kind: PA_PROBE_FAILED; message: p.error });
   }
-  let stream: PaStream = 0;
-  return Ok(stream);
-}
-
-pub fn start_stream(stream: PaStream) -> Result[Unit, Str]
-  requires: stream != 0
-  ensures: result.is_ok() -> true
-{
-  let err = unsafe { Pa_StartStream(stream) };
-  if err != NO_ERROR {
-    return Err("Pa_StartStream failed with error code " + (err as Str));
+  if !cl.is_ok {
+    return Err(PaLoadError{ kind: PA_PROBE_FAILED; message: cl.error });
   }
-  return Ok(());
+  return Ok(p.value);
 }
 
-pub fn stop_stream(stream: PaStream) -> Result[Unit, Str]
-  requires: stream != 0
-  ensures: result.is_ok() -> true
+/// Probe the default build (`portaudio_x64.dll`).
+/// Complexity: O(backends + devices).
+pub fn pa_probe_default() -> Result[PaInfo, PaLoadError]
+  requires: true
 {
-  let err = unsafe { Pa_StopStream(stream) };
-  if err != NO_ERROR {
-    return Err("Pa_StopStream failed with error code " + (err as Str));
+  return pa_probe_named(PORT_AUDIO_SONAME);
+}
+
+// Local integer-to-string (stdlib convert must not be called inside the
+// confined block; same rule as the other binding modules).
+fn int_to_str(n: Int) -> Str {
+  if n == 0 { return "0"; }
+  var num = n;
+  var neg = false;
+  if num < 0 { neg = true; num = 0 - num; }
+  var out = "";
+  while num > 0 {
+    let d = num % 10;
+    var ds = "0";
+    if d == 1 { ds = "1"; }
+    elif d == 2 { ds = "2"; }
+    elif d == 3 { ds = "3"; }
+    elif d == 4 { ds = "4"; }
+    elif d == 5 { ds = "5"; }
+    elif d == 6 { ds = "6"; }
+    elif d == 7 { ds = "7"; }
+    elif d == 8 { ds = "8"; }
+    elif d == 9 { ds = "9"; }
+    out = ds + out;
+    num = num / 10;
   }
-  return Ok(());
-}
-
-pub fn close_stream(stream: PaStream) -> Result[Unit, Str]
-  requires: stream != 0
-  ensures: result.is_ok() -> true
-{
-  let err = unsafe { Pa_CloseStream(stream) };
-  if err != NO_ERROR {
-    return Err("Pa_CloseStream failed with error code " + (err as Str));
-  }
-  return Ok(());
-}
-
-pub fn abort_stream(stream: PaStream) -> Result[Unit, Str]
-  requires: stream != 0
-  ensures: result.is_ok() -> true
-{
-  let err = unsafe { Pa_AbortStream(stream) };
-  if err != NO_ERROR {
-    return Err("Pa_AbortStream failed with error code " + (err as Str));
-  }
-  return Ok(());
-}
-
-pub fn is_stream_stopped(stream: PaStream) -> Int
-  requires: stream != 0
-{
-  return unsafe { Pa_IsStreamStopped(stream) };
-}
-
-pub fn is_stream_active(stream: PaStream) -> Int
-  requires: stream != 0
-{
-  return unsafe { Pa_IsStreamActive(stream) };
-}
-
-// ===========================================================================
-// Safe wrappers -- I/O
-// ===========================================================================
-
-pub fn write_stream(stream: PaStream, buffer: Int, frames: Int) -> Result[Unit, Str]
-  requires: stream != 0
-  requires: frames > 0
-  ensures: result.is_ok() -> true
-{
-  let err = unsafe { Pa_WriteStream(stream, buffer, frames) };
-  if err != NO_ERROR {
-    return Err("Pa_WriteStream failed with error code " + (err as Str));
-  }
-  return Ok(());
-}
-
-pub fn read_stream(stream: PaStream, buffer: Int, frames: Int) -> Result[Unit, Str]
-  requires: stream != 0
-  requires: frames > 0
-  ensures: result.is_ok() -> true
-{
-  let err = unsafe { Pa_ReadStream(stream, buffer, frames) };
-  if err != NO_ERROR {
-    return Err("Pa_ReadStream failed with error code " + (err as Str));
-  }
-  return Ok(());
-}
-
-// ===========================================================================
-// Safe wrappers -- stream info / diagnostics
-// ===========================================================================
-
-pub fn get_stream_info(stream: PaStream) -> Int
-  requires: stream != 0
-{
-  return unsafe { Pa_GetStreamInfo(stream) };
-}
-
-pub fn get_stream_time(stream: PaStream) -> Float64
-  requires: stream != 0
-{
-  return unsafe { Pa_GetStreamTime(stream) };
-}
-
-pub fn get_stream_cpu_load(stream: PaStream) -> Float64
-  requires: stream != 0
-{
-  return unsafe { Pa_GetStreamCpuLoad(stream) };
-}
-
-// ===========================================================================
-// Safe wrappers -- utility
-// ===========================================================================
-
-pub fn get_error_text(code: Int) -> Str
-  ensures: result != ""
-{
-  return unsafe { Pa_GetErrorText(code) as Str };
-}
-
-pub fn get_version() -> Int {
-  return unsafe { Pa_GetVersion() };
-}
-
-pub fn get_version_text() -> Str
-  ensures: result != ""
-{
-  return unsafe { Pa_GetVersionText() as Str };
-}
-
-pub fn sleep(msec: Int)
-  requires: msec > 0
-{
-  unsafe { Pa_Sleep(msec) };
+  if neg { return "-" + out; }
+  return out;
 }
