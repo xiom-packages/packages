@@ -1,12 +1,32 @@
 # xiom.durable SPEC
 
-Full API reference for the XIOM shared durable-systems substrate. xiom.durable is a pure-XIOM package providing the config, error, identity, storage, WAL, and transaction primitives reused by `xiom-db` and `xiom-vector`.
+Full API reference for the XIOM shared durable-systems substrate. xiom.durable is a pure-XIOM package providing the config, error, identity, storage, and transaction primitives reused by `xiom-db` and `xiom-vector`.
+
+## Dependencies and the single WAL home
+
+- `xiom.std` -- standard library (platform dependency).
+- `xiom.wal` `0.1.0` -- **the single WAL home** (extracted 2026-10-09, published
+  `eco-v0.1.121`). The WAL vocabulary and disk layer (`WalOpKind`, `WalRecord`,
+  `WalLsn`, `Checkpoint`, `WalWriter`, `wal_read_all` / `wal_read_from`,
+  `RecoveryResult` / `recovery_scan`, plus the disk
+  `wal_open` / `wal_append` / `wal_flush` / `wal_replay` / `wal_truncate`) lives
+  in the standalone `xiom.wal` package. durable no longer carries `src/wal/*`;
+  names and types carried over unchanged, so call sites are identical to the old
+  `xiom.durable.wal.*` modules.
+- `xiom.toml` (compiler manifest) declares `xiom.wal = "0.1.0"` so the v0.64.2
+  dependency-root resolver adds the installed package's source roots to the
+  module catalog; `package.xi` carries the same dep for the registry/packaging
+  lane.
+- Durability honesty (from the xiom.wal README): `wal_flush` is an honest no-op
+  until the stdlib fsync row lands -- crash-consistent (torn-tail healing,
+  malformed lines skipped on replay), not yet power-loss durable.
 
 ## Architecture
 
 ```
 packages/xiom-durable/
-|-- package.xi                       Package manifest (deps: xiom-std)
+|-- package.xi                       Package manifest (deps: xiom.std, xiom.wal)
+|-- xiom.toml                        Compiler manifest (dep roots for v0.64.2)
 |-- README.md - ARCHITECTURE.md - ROADMAP.md - SPEC.md
 |-- docs/contracts-and-invariants.md
 `-- src/
@@ -19,7 +39,6 @@ packages/xiom-durable/
     |-- metrics.xi      xiom.durable.metrics
     |-- version.xi      xiom.durable.version
     |-- storage/        page - checksum - pager - buffer_pool
-    |-- wal/            lsn - wal_record - wal_writer - wal_reader - checkpoint - recovery
     `-- txn/            txn_state - txn_manager - snapshot
 ```
 
@@ -30,8 +49,7 @@ error, result, ids, limits, contracts, metrics, version   (foundation, self-cont
 contracts --> config
 storage/page --> storage/pager
 storage/checksum, storage/buffer_pool
-wal/lsn, wal/wal_record --> wal/wal_writer --> wal/wal_reader, wal/recovery
-wal/checkpoint
+wal vocabulary + disk layer: package `xiom.wal` (external dep; single WAL home)
 txn/txn_state --> txn/txn_manager
 txn/snapshot
 ```
@@ -231,64 +249,29 @@ FNV-1a 32-bit over the low byte of each slot.
 
 ---
 
-## Module: `xiom.durable.wal.lsn`
+## WAL: package `xiom.wal` (external)
 
-### Type `WalLsn` `{ value: Int; } derive[Clone]`
+The WAL is no longer part of this package. `src/wal/*` was deleted in the
+2026-10-09 reconciliation and the vocabulary + disk layer are consumed from
+the published `xiom.wal` `0.1.0` package (`use xiom.wal;`). Types and names are
+unchanged from the old `xiom.durable.wal.*` modules, so existing call sites
+keep working:
 
-| Signature | Description |
-|-----------|-------------|
-| `wal_lsn(v: Int) -> WalLsn` | Construct |
-| `wal_lsn_value(l: &WalLsn) -> Int` | Unwrap |
-| `wal_lsn_next(l: &WalLsn) -> WalLsn` | `value + 1` |
+- `WalLsn`, `wal_lsn`, `wal_lsn_value`, `wal_lsn_next`
+- `WalOpKind` (superset: adds `BeginTxn`/`CommitTxn`/`AbortTxn`), `WalRecord`,
+  `wal_record_new`
+- `WalWriter`, `wal_writer_new`, `wal_writer_append`, `wal_writer_flush`,
+  `wal_writer_current_lsn`, `wal_writer_synced_lsn`
+- `wal_read_all`, `wal_read_from`
+- `Checkpoint`, `checkpoint_new`, `checkpoint_can_truncate`
+- `RecoveryResult`, `recovery_scan`
+- disk layer: `WalFile`, `wal_open`, `wal_append`, `wal_append_tagged`,
+  `wal_flush`, `wal_replay`, `wal_len`, `wal_last_lsn`, `wal_truncate`,
+  `wal_close`, `wal_op_code`, `wal_op_from_code`, `wal_op_is_write`
 
-## Module: `xiom.durable.wal.wal_record`
-
-### Enum `WalOpKind`
-`Insert` - `Update` - `Delete` - `SegmentSeal` - `ManifestUpdate` - `Checkpoint` - `SnapshotMarker`
-
-### Type `WalRecord`
-`{ lsn: Int; op: WalOpKind; key: Int; value: Int; payload: Vec[Int]; timestamp: Int; }`
-
-| Signature | Description |
-|-----------|-------------|
-| `wal_record_new(lsn: Int, op: WalOpKind, key: Int, value: Int) -> WalRecord` | New record with empty payload, timestamp 0 |
-
-## Module: `xiom.durable.wal.wal_writer`
-
-### Type `WalWriter`
-`{ records: Vec[WalRecord]; next_lsn: Int; synced_lsn: Int; }`
-
-| Signature | Description |
-|-----------|-------------|
-| `wal_writer_new() -> WalWriter` | Empty writer, `next_lsn = 1` |
-| `wal_writer_append(w: &mut WalWriter, op: WalOpKind, key: Int, value: Int) -> Int` | Append, return assigned LSN |
-| `wal_writer_flush(w: &mut WalWriter) -> Bool` | **Stub** -- sets `synced_lsn = next_lsn - 1`; `TODO(Phase 2)` fsync via FFI |
-| `wal_writer_current_lsn(w: &WalWriter) -> Int` | Last assigned LSN |
-| `wal_writer_synced_lsn(w: &WalWriter) -> Int` | Last durable LSN |
-
-## Module: `xiom.durable.wal.wal_reader`
-
-| Signature | Description |
-|-----------|-------------|
-| `wal_read_all(w: &WalWriter) -> Vec[WalRecord]` | Copy of all records |
-| `wal_read_from(w: &WalWriter, from_lsn: Int) -> Vec[WalRecord]` | Records with `lsn >= from_lsn` |
-
-## Module: `xiom.durable.wal.checkpoint`
-
-### Type `Checkpoint` `{ lsn: Int; timestamp: Int; }`
-
-| Signature | Description |
-|-----------|-------------|
-| `checkpoint_new(lsn: Int, timestamp: Int) -> Checkpoint` | Construct |
-| `checkpoint_can_truncate(cp: &Checkpoint, record_lsn: Int) -> Bool` | `record_lsn < cp.lsn` |
-
-## Module: `xiom.durable.wal.recovery`
-
-### Type `RecoveryResult` `{ records_replayed: Int; last_lsn: Int; corrupted: Bool; }`
-
-| Signature | Description |
-|-----------|-------------|
-| `recovery_scan(w: &WalWriter, from_checkpoint: Int) -> RecoveryResult` | Count/track records after checkpoint. `TODO(Phase 2)` torn-page detection |
+Full API reference: `packages/xiom-wal/SPEC.md`. Durability note: disk
+`wal_flush` is an honest no-op success until the stdlib fsync row lands
+(see the xiom.wal README "Durability caveat").
 
 ---
 
@@ -332,4 +315,13 @@ FNV-1a 32-bit over the low byte of each slot.
 - **Errors:** every fallible function returns `Result[T, CoreError]`; use `?` to propagate.
 - **IDs:** never pass raw `Int` where a typed ID exists.
 - **Durability:** honour WAL-before-ack -- flush before acknowledging a write.
-- **Scaffolded surfaces** (`pager_flush`, `wal_writer_flush` fsync, `recovery_scan` torn-page, buffer-pool eviction) are marked `TODO(Phase N)` and are the only non-final APIs.
+- **Scaffolded surfaces:** `pager_flush` (durable) and the WAL fsync/disk-recovery rows are marked `TODO(Phase N)`; the WAL ones now live in `xiom.wal` (see its SPEC). Buffer-pool eviction is the durable-local Phase 1 row.
+
+## Suite harness note (2026-10-09)
+
+`tests/test_conformance.xi` carries 152 contract-guarded test functions
+(unchanged bodies) plus an explicit `fn main()` runner: the v0.64.2
+`--run` path requires an entry `main`, so the harness invokes each test once
+and prints one `[PASS]` line per test; a failing `requires:`/runtime contract
+aborts the process, so a partial run can never report green.
+`port.ps1` PASS 152/152 x2 on v0.64.2 (2026-10-09).

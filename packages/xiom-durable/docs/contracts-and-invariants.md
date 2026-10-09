@@ -2,6 +2,8 @@
 
 This is the machine-readable-in-prose companion to the `requires:` / `ensures:` clauses and the predicate helpers in `src/contracts.xi`. Every invariant the shared core enforces is listed here with its rationale, where it lives, and how it is checked. Downstream engines (`xiom-db`, `xiom-vector`) inherit and rely on all of these.
 
+> **WAL ownership note (2026-10-09):** WAL invariants (sections 1, 3, 4) are enforced by the external `xiom.wal` package -- the single WAL home -- since durable's `src/wal/*` was deleted and the vocabulary consumed from `xiom.wal` 0.1.0 (names unchanged). See `packages/xiom-wal/SPEC.md`.
+
 ---
 
 ## 1. LSN monotonic ordering
@@ -9,7 +11,7 @@ This is the machine-readable-in-prose companion to the `requires:` / `ensures:` 
 **Invariant.** Every WAL record is assigned a log sequence number strictly greater than every previously assigned LSN. LSNs are never reused.
 
 - **Why.** Recovery replays records in LSN order; a non-monotonic or reused LSN would make replay ambiguous and could resurrect or drop effects.
-- **Where.** `wal/wal_writer.xi::wal_writer_append` (single point of assignment); `contracts.xi::is_valid_lsn_ordering(prev, next)` returns `next > prev`.
+- **Where.** `xiom.wal::wal_writer_append` (single point of assignment; external package); `contracts.xi::is_valid_lsn_ordering(prev, next)` returns `next > prev`.
 - **Check.** `wal_writer` increments `next_lsn` by exactly one per append; `wal_writer_new` starts at `1` so `0` is reserved for "before any record" (`lsn_zero`).
 
 ## 2. Page size is a power of two
@@ -25,16 +27,16 @@ This is the machine-readable-in-prose companion to the `requires:` / `ensures:` 
 **Invariant.** A write may only be acknowledged after its WAL record is durable -- i.e. its LSN is <= the writer's `synced_lsn`.
 
 - **Why.** This is the core crash-safety guarantee: on restart, any acknowledged write is guaranteed to be replayable from the log.
-- **Where.** `wal/wal_writer.xi` -- `wal_writer_append` buffers the record and returns its LSN; `wal_writer_flush` advances `synced_lsn` to the last appended LSN.
-- **Check.** Callers must call `wal_writer_flush` (or confirm `wal_writer_synced_lsn(&w) >= lsn`) before returning success to the client.
-- **Phase note.** In Phase 0 the buffer is trivially durable; Phase 2 replaces `wal_writer_flush` with a real `fsync`, at which point this becomes a hard guarantee.
+- **Where.** `xiom.wal` (external package) -- `wal_writer_append` buffers the record and returns its LSN; `wal_writer_flush` advances `synced_lsn` to the last appended LSN; the disk path appends via `wal_append` / `wal_flush`.
+- **Check.** Callers must call `wal_writer_flush` / `wal_flush` (or confirm `wal_writer_synced_lsn(&w) >= lsn`) before returning success to the client.
+- **Durability honesty.** Until the stdlib fsync row lands, `wal_flush` is a documented no-op: the WAL is crash-consistent (torn-tail healing, malformed lines skipped on replay) but not yet power-loss durable; this becomes a hard guarantee when the xiom.wal fsync row lands.
 
 ## 4. Checkpoint truncation safety
 
 **Invariant.** A WAL record may be truncated only if its LSN is strictly less than the checkpoint LSN.
 
 - **Why.** Records at or after the checkpoint may still be needed for replay; discarding them would lose committed effects.
-- **Where.** `wal/checkpoint.xi::checkpoint_can_truncate(cp, record_lsn)` returns `record_lsn < cp.lsn`.
+- **Where.** `xiom.wal::checkpoint_can_truncate(cp, record_lsn)` returns `record_lsn < cp.lsn` (external package).
 - **Check.** Truncation routines must gate every candidate record through `checkpoint_can_truncate`.
 
 ## 5. Snapshot visibility

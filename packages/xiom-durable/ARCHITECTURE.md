@@ -28,7 +28,7 @@ What is reused vs. kept separate:
 |-----------------------|------------------------|
 | `config`, `error`, `result`, `ids`, `limits`, `metrics`, `version` | Access methods: B-tree (db), HNSW/IVF/PQ (vector) |
 | `storage/` page, pager, buffer_pool, checksum | Query planning, cost models, distance kernels |
-| `wal/` record, writer, reader, checkpoint, recovery | Collection schema, segment compaction, filter execution |
+| `xiom.wal` (external package): record, writer, reader, checkpoint, recovery | Collection schema, segment compaction, filter execution |
 | `txn/` state, manager, snapshot | SQL parser / relational algebra |
 
 Rule of thumb: **if a concern is about durability or systems plumbing, it belongs in xiom.durable; if it is about the access path or data model, it belongs in the engine.**
@@ -38,6 +38,7 @@ Rule of thumb: **if a concern is about durability or systems plumbing, it belong
 ```
 xiom-durable/
 |-- package.xi
+|-- xiom.toml                <- compiler manifest: xiom.wal dep roots (v0.64.2)
 |-- README.md
 |-- ARCHITECTURE.md          <- this file
 |-- ROADMAP.md
@@ -58,17 +59,13 @@ xiom-durable/
     |   |-- checksum.xi      module xiom.durable.storage.checksum    -- FNV-1a corruption check
     |   |-- pager.xi         module xiom.durable.storage.pager       -- page allocator
     |   `-- buffer_pool.xi   module xiom.durable.storage.buffer_pool -- frame cache
-    |-- wal/
-    |   |-- lsn.xi           module xiom.durable.wal.lsn        -- WAL log sequence number
-    |   |-- wal_record.xi    module xiom.durable.wal.wal_record -- WalOpKind + WalRecord
-    |   |-- wal_writer.xi    module xiom.durable.wal.wal_writer -- append + WAL-before-ack
-    |   |-- wal_reader.xi    module xiom.durable.wal.wal_reader -- sequential / point-in-time
-    |   |-- checkpoint.xi    module xiom.durable.wal.checkpoint -- checkpoint + truncation
-    |   `-- recovery.xi      module xiom.durable.wal.recovery   -- post-checkpoint replay scan
     `-- txn/
         |-- txn_state.xi     module xiom.durable.txn.txn_state   -- lifecycle state machine
         |-- txn_manager.xi   module xiom.durable.txn.txn_manager -- in-flight coordination
         `-- snapshot.xi      module xiom.durable.txn.snapshot    -- stable read snapshots
+
+WAL (single home, external dep): packages/xiom-wal
+    `-- src/wal.xi           module xiom.wal -- vocabulary + disk segment
 ```
 
 ## Layered dependency graph
@@ -85,23 +82,20 @@ contracts --------------> config (validation)
 storage/page --> storage/pager --> (storage/buffer_pool)
 storage/checksum
         |
-wal/lsn
-wal/wal_record --> wal/wal_writer --> wal/wal_reader
-                                  `-> wal/recovery
-wal/checkpoint
-        |
 txn/txn_state --> txn/txn_manager
 txn/snapshot
+
+external dep: package xiom.wal --> module xiom.wal (record/writer/reader/checkpoint/recovery + disk layer)
 ```
 
-The foundation modules (`error`, `result`, `ids`, `limits`, `contracts`, `metrics`, `version`) are self-contained. Storage, WAL, and txn build on the foundation and, within their own subtree, on each other (e.g. `pager` uses `page`, `wal_writer` uses `wal_record`, `txn_manager` uses `txn_state`).
+The foundation modules (`error`, `result`, `ids`, `limits`, `contracts`, `metrics`, `version`) are self-contained. Storage and txn build on the foundation and, within their own subtree, on each other (e.g. `pager` uses `page`, `txn_manager` uses `txn_state`).
 
 ## Ownership rules
 
 XIOM's deterministic ownership model is the reason this substrate is worth sharing. The rules the core enforces:
 
 - **Pages.** A `Page` is owned by exactly one container -- either the `Pager` (its home) or the `BufferPool` (a resident copy). `pin_count` records live borrows; a page must not be evicted while `pin_count > 0`. `dirty` pages must be written back before eviction.
-- **WAL buffers.** `WalWriter` owns the append buffer. Records enter only through `wal_writer_append`, which is the single point that assigns LSNs. Readers (`wal_reader`) take immutable borrows (`&WalWriter`) and never mutate.
+- **WAL buffers.** Owned by the `xiom.wal` package (`WalWriter` / `WalFile`): records enter only through `wal_writer_append` / `wal_append`, the single points that assign LSNs. Readers (`wal_read_all`, `wal_read_from`, `wal_replay`) never mutate the writer.
 - **Transactions.** `TxnManager` owns the `active` set. A `Txn` transitions state only through `txn_commit` / `txn_abort`, which reconstruct the whole record rather than mutating a field in place, keeping the state machine transitions explicit.
 - **IDs are values.** Strong IDs (`PageId`, `Lsn`, ...) are cheap single-field structs passed by value or immutable reference; they carry no ownership of external resources.
 
@@ -109,10 +103,10 @@ XIOM's deterministic ownership model is the reason this substrate is worth shari
 
 These are the places where `requires:` / `ensures:` clauses and the `contracts.xi` predicates concentrate -- the "intent layer" of the engine:
 
-- **LSN monotonicity** -- `is_valid_lsn_ordering(prev, next)`; enforced by `wal_writer_append` assigning strictly increasing LSNs.
+- **LSN monotonicity** -- `is_valid_lsn_ordering(prev, next)`; enforced by `wal_writer_append` (in `xiom.wal`) assigning strictly increasing LSNs.
 - **Page size validity** -- `is_valid_page_size` / `is_power_of_two`; enforced by `core_config_validate`.
-- **WAL-before-ack** -- `wal_writer_flush` advances `synced_lsn`; a write is only durable once its LSN <= `synced_lsn`.
-- **Checkpoint truncation safety** -- `checkpoint_can_truncate` guarantees only records strictly below the checkpoint LSN are discarded.
+- **WAL-before-ack** -- `wal_writer_flush` / `wal_flush` (in `xiom.wal`) advance `synced_lsn`; a write is only durable once its LSN <= `synced_lsn`. NOTE: until the stdlib fsync row lands, `wal_flush` is an honest no-op (xiom.wal README).
+- **Checkpoint truncation safety** -- `checkpoint_can_truncate` (in `xiom.wal`) guarantees only records strictly below the checkpoint LSN are discarded.
 - **Snapshot visibility** -- `snapshot_is_visible` fixes the visible LSN horizon for a query.
 - **Transaction state transitions** -- `txn_state_can_commit` / `txn_state_is_terminal`.
 
@@ -135,12 +129,12 @@ All fallible operations surface through the single `CoreError` type -- there are
 ## Implemented vs. scaffolded
 
 **Fully implemented (in-memory, production-shaped):**
-`error`, `result`, `ids`, `limits`, `config`, `contracts`, `metrics`, `version`, `storage/page`, `storage/checksum`, `storage/pager` (alloc/read), `storage/buffer_pool` (cache/stats), `wal/lsn`, `wal/wal_record`, `wal/wal_writer` (append), `wal/wal_reader`, `wal/checkpoint`, `wal/recovery` (scan), `txn/txn_state`, `txn/txn_manager`, `txn/snapshot`.
+`error`, `result`, `ids`, `limits`, `config`, `contracts`, `metrics`, `version`, `storage/page`, `storage/checksum`, `storage/pager` (alloc/read), `storage/buffer_pool` (cache/stats), `txn/txn_state`, `txn/txn_manager`, `txn/snapshot`. The WAL surface (`xiom.wal` record/writer/reader/checkpoint/recovery vocabulary and the crash-proven disk segment) is fully implemented in the external `xiom.wal` package.
 
 **Scaffolded (clear `TODO(Phase N)` markers):**
 - `storage/pager::pager_flush` -- disk flush via FFI fsync (Phase 2).
 - `storage/buffer_pool::buffer_pool_put` -- clock/LRU eviction replacing slot-0 placeholder (Phase 1).
-- `wal/wal_writer::wal_writer_flush` -- real fsync/fdatasync durability (Phase 2).
-- `wal/recovery::recovery_scan` -- torn-page detection, checksum verification, redo/undo (Phase 2).
+- `xiom.wal::wal_flush` -- real fsync/fdatasync durability (Phase 2; owned by `xiom.wal`).
+- `xiom.wal::recovery_scan` -- torn-page detection, checksum verification, redo/undo (Phase 2; owned by `xiom.wal`).
 
 The FFI/disk boundary is deliberately the *only* thing stubbed: every in-memory data structure and every contract is real today, so the engines above can be built and tested end-to-end before durable storage lands.
