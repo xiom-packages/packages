@@ -14,6 +14,28 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-09 13:30Z (batch #49 COMPLETE + PUBLISHED `eco-v0.1.115`; NATIVE ZERO-CLAUSE PROGRAM DRAINED -- only `option` excluded; supersedes the 13:10Z block below):**
+- **Batch #49 DONE + PUBLISHED (`eco-v0.1.115`, run `37936361166` SUCCESS; all six live):**
+  `coverage` 0.1.2 (30 clauses; 22/22; `9b3dd18c`), `sarif` 0.1.2 (42; 21/21; `96d6db39`),
+  `pgp` 0.1.2 (41; 22/22; `db2d287c`), `meteorology` 0.1.2 (41; 22/22; `45848973`),
+  `amqp` 0.1.3 (37; 21/21; `072e7547`; SPEC property-index range corrected to source),
+  `ldap` 0.1.2 (41; 20/20; `356bed00`); 232 clauses; wrap `d7ad76be`. **The native
+  zero-clause hardening program is COMPLETE** -- every stable carrier now has contracts
+  except `option` (documented exclusion). Next-session rescan should list only `option`.
+- **Bindings batch 18 (`xiom.portaudio` 0.2.0) PUBLISHED in the same tag**: dynamic loader
+  (present 5/5 x2 per relay -- Audacity V19.7.0, 52 devices; native SKIP-path 2/2 x2;
+  record `9e2d9882`). Audio sector: next `xiom.phonon` (3 of 3), then crypto/media.
+- **`xiom.odbc` still PUBLISH-PENDING OPS** (allowlist/scope 505 -> 506) -- the only open
+  publish gate. Everything else is live.
+- **Queued lane work after the program:** (a) ORBITDB/XVECTOR extraction relays --
+  `xiom-wal` then `xiom-btree` (ops scope + allowlist at build-green); (b) bindings
+  phonon/openssl/media relays; (c) v0.64.x repin re-tests when an archive lands (the
+  v0.64.1 battery + rules are current).
+- Session tally: **31 eco releases** (`eco-v0.1.86` -> `eco-v0.1.115`); hardening batches
+  #37-#49 = 78 packages + grpc + http republish + 18 bindings batches.
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-09 13:10Z (bindings batch 17 PUBLISHED `eco-v0.1.114`; audio sector started; batch #49 pre-plan recovering; supersedes the 13:05Z block below):**
 - **Bindings batch 17 (`xiom.miniaudio` 0.2.0) PUBLISHED (`eco-v0.1.114`, run `37934612847`):**
   vendored 0.11.25 single header (Unlicense/MIT-0); native 4/4 x2 (playback=9, capture=4,
@@ -2072,14 +2094,18 @@ Start: git fetch; git status -sb; git log -1; then
   & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Batch #49 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
-   -Detailed` for the name list; size them by total non-test .xi lines per package), skip
-   `option`; the next smallest after multicast is `coverage` (~2004 lines; verify with the
-   sizing scan, then the next five). Read-only explore pre-plan (one explore task; IF its
-   final message comes back EMPTY, resume it with `variant: low` + a "plan only, no
-   preamble" prompt -- recovered every time since batch #38). Six background `task` porters
-   with the brief template `%TEMP%\kilo\batch48-porter-brief.md` retargeted (batch #49,
-   plan `%TEMP%\kilo\batch49-clause-plan.md`, `## Contracts (batch #49 hardening pass, 2026-10-XX)`).
+1. NO FURTHER HARDENING BATCHES: the zero-clause program is drained (only `option`
+   excluded). Run one confirmation rescan (`scripts/contract-coverage.ps1 -Detailed`) at
+   session start; it should list `option` only. If new zero-clause stable carriers appear
+   (new publishes without contracts), fan out the batch flow as before (explore pre-plan ->
+   six background `task` porters -> coordinator integrates; brief template
+   `%TEMP%\kilo\batch49-porter-brief.md`).
+   Remaining work queue: (a) `xiom.odbc` publish on ops confirm (append allowlist 505->506,
+   505 guard, wrap + tag, live-verify); (b) ORBITDB/XVECTOR extraction relays (`xiom-wal`
+   first: durable `src/wal/*` vocabulary + ORBITDB `wal_file.xi` disk reference; porter
+   flow + ops scope at build-green); (c) bindings relays (phonon/openssl/media) with the
+   standard merge -> namespace -> port x2 -> record -> wrap -> live-verify flow; (d) v0.64.x
+   repin re-tests when an archive lands (v0.64.1 battery current).
    Coordinator integrates as reports land: patch bump per CURRENT version, port x2
    post-bump, byte-level bracket scan, feat commit exact files, record with the REAL sha
    and `-RunBy task:ses_...`; wrap + publish the next eco tag (generate_index/report/
