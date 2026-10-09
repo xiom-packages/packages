@@ -932,6 +932,25 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - **Wave continuation**: batch 9 starts `xiom.dxc` (GPU tier: shader-compiler
   binding over the same runtime-loader + SKIP pattern), then dx11/12.
 
+## Inbound package wishlists (2026-10-09 refresh)
+
+- Fetched the three project-lane package wishlists (fresh, v0.64.2-era):
+  `E:\xiom-projects\xiom-pulse\docs\PACKAGE-WISHLIST-PULSE.md`,
+  `...\xiom-orbitdb\docs\PACKAGE-WISHLIST-ORBITDB.md`,
+  `...\xiom-xvector\docs\PACKAGE-WISHLIST-XVECTOR.md`.
+- Consolidated bindings-lane responses: **`docs/BINDINGS-PACKAGE-WISHLIST.md`**.
+  - PULSE durable-DB ask **SERVED from the registry** (live-verified
+    2026-10-09): `xiom.sqlite` 0.2.0, `xiom.libpq` 0.2.0 and `xiom.odbc`
+    0.2.0 are all signed; the 0.3.0 sqlite enum restore is pending batch 22.
+    Outbound HTTP is served by `xiom.http` 0.1.4 (libcurl); TLS
+    not-a-binding ACKed.
+  - ORBITDB: no FFI asks (pure XIOM through Phase 2) -- nothing to do.
+  - XVECTOR: accelerators stay **GATED** on the `xiom.vectors` freeze
+    (placeholders incubating/`unknown`); no SIMD kernel from this lane.
+- Flagged to the packages/native lane: registry consumers of vendored-C
+  packages (`xiom.sqlite`) need a `--c-source` build-hook story beyond the
+  runner's `port.args.json`.
+
 ## Phase-2 sector order proposal (Phase 1 pilot complete)
 
 Ordered by risk retired per unit of work, stable ABIs first, each slice
@@ -980,3 +999,6 @@ in this file, and any new compiler finding appended to
   sector order, separate decision), accelerators stay GATED on XVECTOR
   freezing `xiom.vectors`, physics (`box2d`/`jolt`) is unscheduled.
 - Lane copy of the compiler relay: `docs/BINDINGS-COMPILER-RELAY-2026-10-09-v0.64.2.md`.
+- PULSE/ORBITDB/XVECTOR package wishlists fetched and answered
+  (`docs/BINDINGS-PACKAGE-WISHLIST.md`); no new in-lane work items
+  (accelerators stay gated on `xiom.vectors`).
