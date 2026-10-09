@@ -80,6 +80,11 @@ let part = static_serve("C:/srv/public", "assets/logo.png", "", "bytes=100-199",
 | `static_serve(root, url_path, if_none_match, range_header, is_head, policy)` | `StaticResult` | Full 200/206/304/404/416 pipeline with HEAD support. |
 | `static_body_ints(body)` | `Vec[Int]` | Byte-preserving `Vec[UInt8]` -> `Vec[Int]` bridge (0..255). |
 
+**Path note:** `static_resolve_path` (and therefore `static_serve`) takes a
+**relative** URL path -- a leading `/` from a raw request target is rejected
+as absolute and the pipeline returns 404. Strip the leading slash in the
+caller before calling (`/favicon.ico` -> `favicon.ico`).
+
 ### Types
 
 | Type | Fields | Meaning |
