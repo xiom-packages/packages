@@ -14,7 +14,26 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-09 18:10Z (LIVE HANDOFF -- bindings batches 21+22 PUBLISHED via `eco-v0.1.122`; no open packages-side gate):**
+**STATE AT 2026-10-09 19:15Z (LIVE HANDOFF -- bindings batch 23 PUBLISHED via `eco-v0.1.123`; Jolt C++-standard ask routed to the compiler lane; no open packages-side gate):**
+- **Bindings merge `ef856577` (origin/bindings `62b6d7af`) integrated and published** (`eco-v0.1.123`,
+  run `37977945040` SUCCESS):
+  - **`xiom.box2d` 0.2.0** (vendored Box2D v3.1.1 C API; flat multi-source via port.args.json):
+    native **5/5 x2**; live sha256 `314568d7...` (19:07:29Z).
+  - **`xiom.imgui` 0.2.0** (vendored ImGui v1.92.9b + upstream null backends): native **4/4 x2**;
+    live sha256 `4d016de5...` (19:08:29Z).
+  - Guard **508/488/20/0** (box2d + imgui promoted from grandfathered); validate 522/0; README
+    Status blocks synced with the publish line.
+- **JOLT BLOCKER ROUTED** (`docs/COMPILER-FINDINGS.md` row): the xiom link line passes no C++
+  standard flag and clang 22 defaults to C++14, so vendored C++17 libraries cannot build via
+  `--c-source` (`xiom.jolt` v5.6.0; the validated generator is staged at
+  `packages/xiom-jolt/tools/combine.py`). Request: a `--cxx-standard` passthrough (preferred) or
+  a default bump to `c++17` (compiler lane). No jolt module/tests committed until unblocked.
+- **No open packages-side gate.** Next: XVECTOR `xiom.vectors` **OWNER GREENLIGHT** (brief staged
+  at `%TEMP%\kilo\vectors-extraction-porter-brief.md`); ORBITDB order-3 btree re-sync;
+  `xiom.durable` reconciliation; bindings continues (jolt waits on the compiler flag).
+- Session tally: **39 eco releases** (`eco-v0.1.86` -> `eco-v0.1.123`).
+
+**STATE AT 2026-10-09 18:10Z (history -- superseded by the 19:15Z block above):**
 - **Bindings merge `1435ac01` (origin/bindings `65a586e2`) integrated and published** (`eco-v0.1.122`,
   run `37970511382` SUCCESS):
   - **`xiom.ffmpeg` 0.2.0** (system-lib generation loader; SKIP-only, nothing vendored): native

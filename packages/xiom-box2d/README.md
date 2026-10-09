@@ -5,7 +5,8 @@ into `vendor/` (MIT) and compiled into the test binary with `--c-source` --
 no system library, no DLL, no SDK.
 
 > **Status:** `incubating` -- conformance suite green on the pin (xiom
-> v0.64.2; 5/5). **Lane:** bindings (`keywords: ["binding"]`).
+> v0.64.2; 5/5). Published in `eco-v0.1.123` (sha256 `314568d7...`).
+> **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
 
