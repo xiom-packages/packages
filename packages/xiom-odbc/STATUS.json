@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  5,
                   "failed":  0,
-                  "run_by":  "task:bindings-odbc",
-                  "commit":  "26ae03e6",
-                  "checked":  "2026-10-08T22:05:02Z"
+                  "run_by":  "native-session",
+                  "commit":  "31d0cc0e",
+                  "checked":  "2026-10-09T12:19:00Z"
               },
     "publish":  false,
-    "excluded_reason":  null
+    "excluded_reason":  "not allowlisted: pending ops scope + native-lane allowlist append"
 }
