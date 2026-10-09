@@ -14,7 +14,15 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-09 13:05Z (bindings batch 16 PUBLISHED `eco-v0.1.113`; data/drivers sector complete; batch #49 dispatched; supersedes the 12:45Z block below):**
+**STATE AT 2026-10-09 13:10Z (bindings batch 17 PUBLISHED `eco-v0.1.114`; audio sector started; batch #49 pre-plan recovering; supersedes the 13:05Z block below):**
+- **Bindings batch 17 (`xiom.miniaudio` 0.2.0) PUBLISHED (`eco-v0.1.114`, run `37934612847`):**
+  vendored 0.11.25 single header (Unlicense/MIT-0); native 4/4 x2 (playback=9, capture=4,
+  in-memory WAV decode 16 frames/1ch/8000 Hz/s16); merge `2f702bef`; record `a6f874b3`;
+  guard **505/479/26/0**. Next per the lane: `xiom.portaudio`, then `xiom.phonon`.
+- **Batch #49 dispatched:** coverage/sarif/pgp/meteorology/amqp/ldap (~232 clauses planned;
+  porters `ses_edf3531f`, `ses_edf352e6`, `ses_edf352af`, `ses_edf3526d`, `ses_edf35230`,
+  `ses_edf351fe`). Pre-plan recovered via the low-variant resume. `xiom.odbc` still
+  publish-pending ops (505 -> 506).
 - **Bindings batch 16 (`xiom.libpq` 0.2.0) PUBLISHED (`eco-v0.1.113`, run `37933741695`):**
   merge `104bbfc4`; native SKIP-path 2/2 x2 (present 4/4 x2 per relay: libpq 13.11,
   PQlibVersion 130011, closed-port CONNECTION_BAD + real error text; record `a1d55731`);
