@@ -3,13 +3,56 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 14 RELAYED** -- `xiom.ozz` 0.2.0 green (4/4 x2 via port.ps1 on
-v0.64.1: vendored C++ amalgamations; math + offline SkeletonBuilder ->
-runtime Skeleton + LocalToModelJob verified). Compression/animation tier
-package set complete per plan (zstd, lzfse, ozz). Awaiting native
-merge/verify/publish.
+**STATUS: BATCH 15 RELAYED** -- `xiom.odbc` 0.2.0 green (5/5 x2 via port.ps1
+on v0.64.1: driver manager `03.80.0000`, 7 drivers, 3 DSNs; new compiler
+finding **B-10** documented). **Sector proposal sent below**: data/drivers ->
+audio -> accelerators (gated) -> crypto/media. Awaiting native allowlist
+append for `xiom.odbc` + merge/verify/publish.
+
+## Sector proposal (bindings lane, post-tier-3)
+
+Ordered by risk retired per unit of work, each keeping the one-package-per-
+relay discipline:
+
+1. **Data/drivers (current)**: `xiom.odbc` (done, this batch) -> `xiom.libpq`
+   (system libpq; needs a PostgreSQL client library for positive-path proof
+   -- propose a download of the official win64 binaries for local proof like
+   raylib/glfw, or SKIP-only until a host has it; license PostgreSQL,
+   permissive) -> `xiom.postgres` (pure-XIOM protocol facade over
+   libpq or wire protocol; native to decide scope vs libpq).
+2. **Audio**: `xiom.miniaudio` (single-header vendored C -- fits the proven
+   amalgamation path; context + device enumeration + in-memory WAV
+   decode/encode as functional proof), then `xiom.portaudio` (system-lib
+   SKIP pattern), then `xiom.phonon` (vendored).
+3. **Accelerators (XVECTOR-facing)**: `xiom.openblas` / `xiom.eigen` /
+   `xiom.blas` behind the portable `xiom.vectors` contract -- GATED on
+   XVECTOR freezing that contract; do not start before then.
+4. **Crypto/media/heavy**: `xiom.openssl` (vendored or system SKIP),
+   `xiom.ffmpeg` (license-conditional: LGPL/GPL config choice needed before
+   vendoring), ONNX/OpenCV last.
+
+First package of the next sector after `xiom.odbc`: `xiom.libpq`.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 15: head=27e38bd3 + this handoff commit; packages=xiom.odbc 0.2.0 (first
+implementation; the dir was a manifest-less placeholder, namespace-check OK before
+activation); tests=5/5 x2 via scripts/port.ps1 on v0.64.1 (2026-10-08: ODBC manager
+03.80.0000, 7 drivers incl. SQL Server / ODBC Driver 11, 3 configured DSNs; deterministic
+SKIP classification via bogus soname); licenses=MIT OR Apache-2.0 (odbc32.dll is a system
+component; nothing vendored); pins=soname odbc32.dll + entry-point set (SQLAllocHandle,
+SQLSetEnvAttr, SQLDrivers, SQLDataSources, SQLGetInfo, SQLFreeHandle) + ODBC constants +
+local System32 sample 10.0.26100.9549 sha256 8A120C65049E31B26CF1608E9D9E3253F386D29539A508B345E30390542B88D7
+(SPEC.md §2); gate=G0 OK (keywords:["binding"], license), G1 OK, G2 OK, G3 OK (ABSENT ->
+SKIP, ABI -> FAIL), G4 OK (5 checks), G5 OK (all unsafe in the single module xiom.odbc);
+needs=ALLOWLIST APPEND for xiom.odbc (not in the publish allowlist; native lane does the
+append + ops scope). NO port.args.json (pure-XIOM loader).
+FINDING B-10 (recorded in docs/BINDINGS-COMPILER-FINDINGS.md): a local fn-pointer variable
+named `alloc` inside a confined block has its calls silently rewritten to the guard
+allocator (ODBC SQLAllocHandle appeared to succeed while the out-param stayed 0; renaming
+to f_alloc fixed it). Guard pass should exclude non-builtin locals.
+```
 
 ```
 BINDINGS BATCH 14: head=f71fb8bf + this handoff commit; packages=xiom.ozz 0.2.0 (vendored
@@ -468,6 +511,22 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Scope decision requested from the native lane: the pre-pilot static-bridge
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
+
+## Batch 15 notes (xiom.odbc, 2026-10-08)
+
+- First implementation for a manifest-less placeholder; namespace-check ran
+  before activation (OK, 0 conflicts).
+- **New compiler finding B-10**: a local fn-pointer named `alloc` in a
+  confined block is silently redirected to the guard allocator -- the ODBC
+  env handle stayed 0 while every call reported success. A C reference probe
+  outside XIOM proved the API call was correct; renaming the local to
+  `f_alloc` fixed it. All bridge locals now use the `f_` prefix.
+- Pure-XIOM loader (no bridge, no port.args.json): handles via XIOM-owned
+  slots; `SQLDrivers`/`SQLDataSources` scans capped to bound misbehaving
+  managers.
+- Local evidence: manager `03.80.0000`, 7 drivers, 3 DSNs. Run matrix 5/5 x2.
+- `xiom.odbc` is NOT allowlisted yet -- the relay carries the append ask.
+- Sector proposal added above; next package: `xiom.libpq`.
 
 ## Batch 14 notes (xiom.ozz, 2026-10-08)
 
