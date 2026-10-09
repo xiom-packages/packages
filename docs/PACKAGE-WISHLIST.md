@@ -233,3 +233,51 @@ the upstream fix and re-expand the matrix to order 3.
 **Ops:** both names are new (`xiom.wal`, `xiom.btree` not in the allowlist; the guard
 ignores non-allowlisted names) -- scope enumeration + allowlist append (506 -> 508)
 requested from ops via the owner; publish only after the confirmation.
+
+## 9. Lane wishlist fetch 2026-10-09 (17:30Z) -- PULSE / ORBITDB / XVECTOR
+
+All three lane repos fetched and their `docs/PACKAGE-WISHLIST-*.md` read; states and responses:
+
+**PULSE** (`xiom-pulse`, main synced, HEAD `db9d9fc` "adopt v0.64.2 everywhere; close C-PULSE-09/13"):
+- v0.64.2 consumer status: full probe fleet **11/11 on Windows AND Linux**, m212 gate +
+  suites x2 + smoke **78/78** + crash **6/6**; **C-PULSE-09 CLOSED** (adopt-smoke steps
+  1..10 exit 0) and **C-PULSE-13 CLOSED** (m232 pkg/compiler home unification; WSL bridge
+  removed from the box and from CI).
+- No new package asks. Queued at next touches (unchanged): `xiom.static` README line for the
+  leading-`/` strip requirement; `xiom.kv` suite regression cases (values >= 8 bytes;
+  multi-key overwrite); optional `xiom.session` two-module consumer-shape case (only if that
+  shape resurfaces -- it is closed compiler-side).
+- kv decision: default stays JSONL; kv remains the verified opt-in backend (Linux 45m soak
+  977/0 + 20m 756/0; the >= 24h aggregated bar is PULSE-side). Consumers may move to
+  `xiom.http` 0.1.4 at will (printable-ASCII rendering + variadic LONG options fixed;
+  `eco-v0.1.120`).
+
+**ORBITDB** (`xiom-orbitdb`, ahead 1 unpushed, HEAD `6f6c3ba` "drop v0.64.2-fixed workarounds;
+suite 120/120 x2 Win+WSL"):
+- Fully green on v0.64.2 with all compiler workarounds dropped; **no new consumer defects**.
+- **Both extraction asks are SATISFIED on the packages side:** `xiom.wal` 0.1.0 (`137a8200`)
+  and `xiom.btree` 0.1.0 (`c78fe78a`) are in the tree, verified and wrapped; the only gate is
+  the ops scope + allowlist append (506 -> 508). Their doc's "awaiting the extraction
+  decision" / "wal gate NOT met yet" predates the extraction: it proceeded with the stdlib
+  fsync row documented as the open durability limit (`wal_flush` honest no-op, call site
+  kept); the crash harness is the accepted gate.
+- **Order-3 `xiom.btree` delete defect (relay in section 8):** their fuzz covers orders 4/5;
+  the extraction found order-3 `merge_children` OOB (`min_keys = 0`; repro
+  `churn.ps1 -Order 3 -Ops 100 -N 16 -Seed 777` -> exit 3). Fix upstream or restate
+  `order >= 4`; the carve ships verbatim with the limitation documented and re-syncs after
+  the fix.
+- Reconciliation unchanged: ORBITDB keeps its reference implementation until its consumption
+  step; `xiom.durable` keeps `src/txn/*` and drops `src/wal/*` at its own port. `xiom.db`
+  publish remains owner-gated.
+
+**XVECTOR** (`xiom-xvector`, ahead 3, HEAD `9b93aa2` "refresh wishlists"):
+- Their wishlist already reflects our HEAD `b52028b9` (36 eco releases, http 0.1.4,
+  wal/btree in tree). No adoption blocks; `xiom.metrics` fine at Phase 10; `xiom.kv` gated
+  on fsync + C-PULSE-10 (Linux shape now green fleet-wide).
+- **`xiom.vectors` extraction gate MET** (169-check suite + 18 probes green x2 on v0.64.2;
+  HNSW hardening + recall harness landed) -- **awaiting OWNER GREENLIGHT**, then porter
+  scheduling; `xiom.ann` follows `xiom.vectors` (same owner-gate path). Names frozen
+  (`xiom.vectors`, `xiom.wal`, `xiom.ann`); XVECTOR owns the reference until extraction;
+  `xiom.wal` is the single WAL home (their local copies stay until then).
+- `xiom-blas`/`xiom-eigen`/`xiom-openblas` remain pre-rostered incubating stubs (bindings
+  lane, unscheduled); no pure-XIOM SIMD package is planned.

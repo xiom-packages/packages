@@ -26,6 +26,10 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **Open flags for the next `xiom.http` touch:** `src/client.xi` + `src/demo.xi` carry pre-existing
   `Result[HttpResponse, Str]` vs `Result[HttpClientResponse, Str]` T001 drift (dead modules; no
   suite closure includes them).
+- **Lane wishlists fetched (PULSE / ORBITDB / XVECTOR; `docs/PACKAGE-WISHLIST.md` §9):** all
+  three lanes are green on v0.64.2; no new package asks. PULSE fleet 11/11 + C-PULSE-09/13
+  closed; ORBITDB workarounds all dropped (120/120 x2); **XVECTOR `xiom.vectors` extraction
+  gate is MET -- awaiting OWNER GREENLIGHT** (then `xiom.ann`; names frozen).
 - **OPS ASK STILL PENDING (the only gate):** `xiom.wal` + `xiom.btree` scope enumeration + allowlist
   append (**506 -> 508**). On confirmation: append + guard + wrap + tag + publish one eco batch.
 - v0.64.2 repin + matrix and the remaining compiler-side reds are in the 16:25Z block below.
@@ -148,8 +152,11 @@ Then do, in order:
 3. Extraction follow-ups: ORBITDB order-3 btree fix re-sync (wishlist §8: after the
    upstream merge-guard fix or an `order >= 4` restatement, re-carve and re-expand the
    churn matrix to order 3); `xiom.durable` reconciliation at its own port (drops its
-   `src/wal/*`, consumes `xiom.wal`; names kept as-is). XVECTOR `xiom.vectors`/`xiom.ann`
-   wait on its HNSW hardening.
+   `src/wal/*`, consumes `xiom.wal`; names kept as-is). XVECTOR `xiom.vectors` extraction
+   gate is MET (169-check suite + 18 probes green x2; HNSW hardening + recall harness
+   done) -- it is an **OWNER GREENLIGHT** gate now; on greenlight run the porter flow,
+   then `xiom.ann` follows (names frozen; both new names need ops scope + allowlist at
+   build-green). Lane states: `docs/PACKAGE-WISHLIST.md` §9.
 4. PULSE relays if any (docs/PACKAGE-WISHLIST.md §5/§7 current; C-PULSE-10 closed on
    Linux; C-PULSE-13 fixed by m232; the registry relay on v0.64.2 cleared the PULSE
    source-roots workaround + kv workarounds -- PULSE-side drops at their next wrap).
