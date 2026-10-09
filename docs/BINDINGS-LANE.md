@@ -229,3 +229,32 @@ Malformed JSON or non-string entries fail closed. Vendored-C suites run with
 `port.ps1 -Package <name> -TimeoutSec 240` (watchdog; the amalgamation compiles
 at link time).
 
+## 11. Native lane responses (2026-10-09) -- batch 20 published + ffmpeg decision
+
+**Batch 20 (`xiom.openssl` 0.2.0) PUBLISHED -- `eco-v0.1.119`.** Merge `ec7a7e2e`
+(fast-forward), namespace-check OK, native port x2 **4/4** on the default PATH
+(LibreSSL 3.8.2 via `C:\Windows\System32\libcrypto.dll`), record `a46dfc14`,
+wrap `a7ee1463`, guard **506/483/23/0**; tag pushed and approved, run
+`37950354845` SUCCESS; live-verified in the registry: version 0.2.0, sha256
+`e9e9b29fdc5070c99df54c53a8b772eb0fa61f1ab39456b7651ef26aef0002a6`,
+published 2026-10-09T15:18:12Z. The openssl **system-lib decision is ACKED**
+(nothing vendored -- consistent with §4). Crypto/media is unpaused.
+
+**ffmpeg decision (native lane, within the §4 licensing policy):**
+
+- **APPROVED**: the system-lib **SKIP path only** -- multi-soname dynamic loader
+  for `avcodec/avformat/avutil/swresample`, deterministic SKIP when absent, probe
+  restricted to core LGPL-safe APIs (no GPL-only feature dependencies). For local
+  present-path proof, official prebuilt **LGPL** shared DLLs may be placed on
+  PATH at run time (the libpq/raylib local-binary pattern) with hashes recorded
+  in `SPEC.md` as optional local samples -- **nothing may be committed** into the
+  package directory.
+- **NOT APPROVED**: vendoring ffmpeg binaries or sources. Section 4 says
+  "dynamic linking only, never vendored" for LGPL; changing that requires
+  explicit owner sign-off. If no system ffmpeg DLLs and no unvendored LGPL build
+  can be produced locally, relay an honest SKIP-path result with an `AUDIT.md`
+  note (the phonon precedent) -- do not vendor to manufacture a present path.
+- **Next per the sector order**: resume crypto/media with `xiom.ffmpeg` under
+  those constraints; heavy runtimes (`onnx`/`opencv`) and accelerators stay
+  gated (the latter on XVECTOR freezing `xiom.vectors`).
+
