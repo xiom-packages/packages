@@ -3,11 +3,13 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 22 RELAYED + PIN MATRIX 19/19** -- `xiom.sqlite` 0.3.0
-restores the enum model (B-01 workaround retired; 16/16 x6 fresh build
-cycles + pin matrix x1 on the official v0.64.2 pin); batch 21
-(`xiom.ffmpeg` 0.2.0) awaits native merge/verify/publish; batch 20 and
-earlier are published through `eco-v0.1.119`.
+**STATUS: MERGE READY -- BRANCH `bindings` (batch 21 + batch 22 + docs)** --
+`xiom.ffmpeg` 0.2.0 (relay head 224e5c49) and `xiom.sqlite` 0.3.0
+(B-01 workaround retired; 16/16 x6 fresh build cycles + pin matrix 19/19
+on the official v0.64.2) are queued for the native merge/verify/publish;
+batch 22's live-package bump publish is the native lane's call.
+Findings/consumer/wishlist docs ride along (no publish impact). Batch 20
+and earlier are published through `eco-v0.1.119`.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
 
