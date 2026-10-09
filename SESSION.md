@@ -26,17 +26,28 @@ running). Check `git log -1 --format=%h %s` before starting.
 - **Follow-on category found by the drain rescan:** `xiom.http` is the only stable
   published package with `requires:` but **zero `ensures:`** (33 requires, 0 ensures --
   hardened requires-only during the PULSE wave, so the zero-clause program skipped it).
-  **Ensures-only pass IN FLIGHT** (porter `ses_edee399a9`): pre-plan done (~38 clauses --
-  CURLOPT/CURLINFO/SEEK/BUF_SIZE/TEMP_* ABI pins + helper bounds; the five public entry
-  points are skipped as FFI/host-conditional with struct-Result payloads). Scope also
-  includes the two queued memory fixes (`setup_common_options` double-free;
-  `http_download` remove-after-free UAF), a new `tests/probe_root_module.xi` (the 40-check
-  suite never calls the root module), and the SPEC `HttpResponse` -> `HttpClientResponse`
-  doc fix. Then bump 0.1.2 -> 0.1.3 + republish.
+  **Ensures-only pass DONE + COMMITTED** (porter `ses_edee399a9`): 38 clauses (21 CURLOPT
+  pins + CURLINFO/SEEK/BUF_SIZE/TEMP lengths + byte_to_char/char_to_str/cstr/read_file/
+  curl_error/response_code bounds; `cstr`/`read_file` refined to `<=196608` over the plan's
+  falsifiable `<=65536`); `setup_common_options` double-free fixed and BOTH
+  `http_download` remove-after-free branches fixed; new `tests/probe_root_module.xi` +
+  `tests/probe_bridge.c` (port x2 40/40 + probe x2 green); SPEC drift fixed; commit
+  `ad6905a0`, record `e02a1ff0`. Queued http defects (next touch): `make_ptr_value` passes
+  heap pointers where libcurl reads `long` (bridge stubs curl for the probe),
+  `char_to_str`/`byte_to_char` numeric-string behavior (clauses pin it).
+- **Compiler relay received (`docs/COMPILER-RELAY-2026-10-09-v0.64.2.md`, `35408bc7`):**
+  **v0.64.2 is RELEASE-READY but the tag/push is HELD FOR THE OWNER'S CALL.** Fixes for
+  this lane: m228 (`--run` exit code; B-08), m229 (`is Ok(<literal>)`), m230/m236 (stdlib
+  prelude via user-module import chains), m231 (B-01 enum payload), m232 (C-PULSE-13
+  installer home), m234 (XVC-C-08), m235 (C-ORBIT-05), m237/m238 (array_zip/fixed arrays),
+  **m239 (deep container equality -- `Result ==`/Vec content equality now real; Map/Set
+  `==` remains)**, m241 (OOB Vec write traps). Still open: triplicate sibling exports break
+  alias-qualified calls (next batch). **On the tag: repin + matrix re-run (res_eq + C-PULSE/
+  C-ORBIT workaround sets), revert obsolete workarounds, relay reds.**
 - **Waiting on external inputs only:** bindings crypto/media decisions (openssl
   vendored-vs-system; ffmpeg LGPL/GPL), ORBITDB/XVECTOR extraction relays (`xiom-wal`
-  first), and the next compiler archive for a repin re-test.
-- Session tally: **33 eco releases** (`eco-v0.1.86` -> `eco-v0.1.117`).
+  first), and the v0.64.2 tag for the repin.
+- Session tally: **34 eco releases** (`eco-v0.1.86` -> `eco-v0.1.118`).
 
 **--- Older state below (history) ---**
 
