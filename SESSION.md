@@ -14,7 +14,21 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-09 17:05Z (LIVE HANDOFF -- `xiom.http` 0.1.4 published; ops allowlist ask for `xiom.wal`/`xiom.btree` remains the only gate):**
+**STATE AT 2026-10-09 18:00Z (LIVE HANDOFF -- `xiom.wal` + `xiom.btree` PUBLISHED via `eco-v0.1.121`; no open packages-side gate remains):**
+- **`xiom.wal` 0.1.0 + `xiom.btree` 0.1.0 PUBLISHED (`eco-v0.1.121`, run `37969247684` SUCCESS):**
+  allowlist append 506 -> 508 (guard **508/485/23/0**), gate approved, live-verified registry:
+  wal sha256 `c727fb43...` published 17:56:13Z; btree sha256 `1ce8446e...` published 17:52:45Z
+  (both stage incubating). Ops scope confirmed LIVE (507 eco entries per container) and ops will
+  catalog-verify both. Records marked "published in eco-v0.1.121" (commits `a29a620a` + this wrap).
+- **No open packages-side gate.** Next queued: XVECTOR `xiom.vectors` extraction is an **OWNER
+  GREENLIGHT** gate (169-check suite + 18 probes green x2; names frozen; `xiom.ann` follows);
+  ORBITDB order-3 btree fix re-sync; `xiom.durable` reconciliation at its port;
+  PULSE static-README + kv regression cases at next touches; bindings crypto/media under the
+  approved ffmpeg system-lib SKIP-only decision.
+- v0.64.2 repin + matrix: the 16:25Z block below; lane states: `docs/PACKAGE-WISHLIST.md` §9.
+- Session tally: **37 eco releases** (`eco-v0.1.86` -> `eco-v0.1.121`).
+
+**STATE AT 2026-10-09 17:05Z (history -- superseded by the 18:00Z block above):**
 - **`xiom.http` 0.1.4 PUBLISHED (`eco-v0.1.120`, run `37962663088` SUCCESS):** next-touch fix pass --
   printable ASCII now renders as real characters (`char_to_str`/`byte_to_char` in all copies;
   clauses 38 -> 37; suite 40 -> 42) and variadic LONG options pass values, not heap pointers

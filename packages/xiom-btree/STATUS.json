@@ -13,5 +13,5 @@
                   "checked":  "2026-10-09T15:41:04Z"
               },
     "publish":  false,
-    "excluded_reason":  "new name: pending ops scope + native-lane allowlist append"
+    "excluded_reason":  "published in eco-v0.1.121 (2026-10-09)"
 }
