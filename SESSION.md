@@ -14,7 +14,113 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-09 15:05Z (ALL PROGRAMS COMPLETE through `eco-v0.1.118`; v0.64.2 tag held for the owner; HANDOFF -- next session starts here):**
+**STATE AT 2026-10-09 15:45Z (LIVE HANDOFF -- batch 20 published; `xiom.wal` + `xiom.btree` extracted; the ONLY open gate is the ops allowlist ask for the two new names; v0.64.2 still owner-held):**
+- **Batch 20 (`xiom.openssl` 0.2.0) PUBLISHED (`eco-v0.1.119`, run `37950354845` SUCCESS):**
+  merged `ec7a7e2e` (fast-forward), namespace-check OK, native port **4/4 x2** (LibreSSL 3.8.2
+  via System32 default PATH; Git OpenSSL 3.2.4 present path per relay), record `a46dfc14`,
+  wrap `a7ee1463`, gate approved (env `22424011031`); live-verified registry 0.2.0 sha256
+  `e9e9b29f...`. Guard 506/483/23/0 after the merge.
+- **ffmpeg decision recorded + pushed** (`docs/BINDINGS-LANE.md` §11, `4b13cfdc`):
+  **system-lib SKIP-only APPROVED** (multi-soname loader, LGPL-safe probe; local
+  uncommitted LGPL DLLs allowed for present-path proof); **vendoring LGPL NOT approved**
+  (needs owner sign-off). Bindings crypto/media unpaused; accelerators still gated on XVECTOR.
+- **Extraction relays DONE: `xiom.wal` 0.1.0 + `xiom.btree` 0.1.0** (feats `137a8200` /
+  `c78fe78a`; records `e795da85`; wrap `0236dc8f`; validate **522/0**; guard
+  **506/483/23/0**). Evidence: wal port 21/21 x2, crash x2 6/6, 200-record soak segment
+  **3,081 B** (matches the ORBITDB reference), truncate `>=15` -> 7; btree port 22/22 x2,
+  churn 4/5/6 x 20k @ keyspace 4096 GREEN (remaining=1355 each). Bracket scans clean;
+  extraction pins in both SPECs.
+- **Findings:** (a) **NEW ORBITDB order-3 delete corruption relayed**
+  (`docs/PACKAGE-WISHLIST.md` §8): `min_keys=(order-2)/2=0` -> `merge_children` OOB
+  (garbage key); repro `packages/xiom-btree/tests/churn.ps1 -Order 3 -Ops 100 -N 16
+  -Seed 777` exit 3; carve shipped verbatim + documented (SPEC §2.3); upstream fix or an
+  `order >= 4` restatement pending; (b) **NEW compiler finding** `io.read_file_lines`
+  false-contract on empty reads (`docs/COMPILER-FINDINGS.md`, `030ec354`; workaround
+  adopted in `wal_replay`; re-test on v0.64.2).
+- **OPS ASK PENDING (the only open gate):** `xiom.wal` + `xiom.btree` scope enumeration +
+  allowlist append (**506 -> 508**) relayed to the owner 2026-10-09. On confirmation:
+  append + guard + wrap + tag + publish as one eco batch. Do NOT append before ops confirms.
+- **v0.64.2** still tag-gated (owner holds the release for final compiler tests; the owner
+  signals). Sweep checklist in the paste prompt below.
+- **Reconciliation notes:** `xiom.wal` extraction was ADDITIVE (`xiom.durable` untouched);
+  at durable's port it drops `src/wal/*` and consumes `xiom.wal`. `xiom.btree` carve
+  re-syncs after the ORBITDB order-3 fix.
+- Session tally: **35 eco releases** (`eco-v0.1.86` -> `eco-v0.1.119`).
+
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-09 15:45Z) -- USE THIS ONE
+
+```
+You are the packages session for xiom-packages/packages (native lane; local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
+Read SESSION.md first -- the 2026-10-09 15:45Z STATE block is the live handoff;
+all older STATE blocks and older paste prompts below are history.
+
+STATE: compiler pin v0.64.1 (SHA256-verified install). Validate 522/0; guard
+506 allowlisted / 483 ready / 23 grandfathered / 0 failures (re-check at start).
+Batch 20 (xiom.openssl 0.2.0) is published (eco-v0.1.119); xiom.wal + xiom.btree
+0.1.0 are extracted, verified and wrapped. OPEN GATE: the ops ask for the two new
+names (allowlist 506 -> 508) -- if the owner/ops confirmed "<N> live", append the
+two names, run guard, wrap, tag + publish; otherwise keep waiting (never append
+before the confirmation). v0.64.2 is still owner-held.
+
+CREDENTIAL NOTE: the active gh account sometimes flips to `Lefteris-Ngonart`
+(pull-only; 403 on push). Switch to `Lefteris-Notas` for pushes/gate approvals
+(`gh auth switch --user Lefteris-Notas`); verify with
+`gh api repos/xiom-packages/packages --jq .permissions`.
+
+Start: git fetch; git status -sb; git log -1; then
+  $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
+  & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
+
+Then do, in order:
+1. v0.64.2 FIRST if the tag/release exists (`gh release list -R xiom-lang/xiom`):
+   follow docs/COMPILER-RELAY-2026-10-09-v0.64.2.md + docs/MAINTENANCE.md --
+   download + SHA256-verify the official archive, install, COMPILER_VERSION bump +
+   `status.ps1 -Action repin`, then the matrix re-run (res_eq probe -- expect exit 0;
+   docs/repro/struct-clone + tuple-vec-set; %TEMP%\kilo\retest-listdir.xi; the kv probe;
+   grpc suite 36/36; the v0.64.1 battery probes; c-pulse-09 mini-app rebuild+run; the
+   odbc probe for B-10; win32-gl q1/q2; the io.read_file_lines empty-read false-contract
+   re-test from the 2026-10-09 COMPILER-FINDINGS row) and RETIRE obsolete workarounds:
+   m229 kills the `is Ok(<literal>)` clause rule; m239 relaxes the `Result ==` caution
+   for Vec/container payloads (Map/Set `==` remains the gap); m228 makes port.ps1's
+   exit-code counting optional (keep it -- harmless and still needed for older pins);
+   update docs/COMPILER-FINDINGS.md rows to RESOLVED (m228/m229/m231/m239 + B-01/B-08 +
+   the new io.read_file_lines row if it flips) and the BINDINGS cross-refs; relay
+   residual reds with minimal repros. If the tag is NOT present: skip to 2.
+2. Ops-gated publish (only on the confirmed "<N> live"): append xiom.wal + xiom.btree to
+   .github/publish-allowlist.txt, guard, wrap, tag one eco batch, gate-approve
+   (`environment_ids:[22424011031]`), watch, live-verify. Then bindings-lane relays
+   (one package per relay; merge -> namespace-check -> port x2 with widened watchdog
+   (90 normal; 240-300 vendored C/C++) -> record -> wrap -> tag -> gate -> watch ->
+   live-verify): next sector CRYPTO/MEDIA under the approved ffmpeg system-lib
+   SKIP-only decision (docs/BINDINGS-LANE.md §11; vendoring LGPL needs owner sign-off);
+   openssl is live; accelerators stay GATED on XVECTOR. Ops ask ONLY for a new name not
+   yet allowlisted (current 506 + the two pending).
+3. Extraction follow-ups: ORBITDB order-3 btree fix re-sync (wishlist §8: after the
+   upstream merge-guard fix or an `order >= 4` restatement, re-carve and re-expand the
+   churn matrix to order 3); `xiom.durable` reconciliation at its own port (drops its
+   `src/wal/*`, consumes `xiom.wal`; names kept as-is). XVECTOR `xiom.vectors`/`xiom.ann`
+   wait on its HNSW hardening.
+4. PULSE relays if any (docs/PACKAGE-WISHLIST.md §5/§7 current; C-PULSE-10 closed on
+   Linux; C-PULSE-13 fixed by m232).
+5. Queued package defects at next touches: `xiom.http` `make_ptr_value` passes heap
+   pointers where libcurl reads `long` (probe bridge stubs curl; a real-libcurl setopt
+   would fail on Win64) + `char_to_str` numeric-string behavior (clauses pin it);
+   `xiom.grpc` alias-qualified/triplicate-sibling interplay re-check after the compiler
+   fix; PULSE carry-forwards (static leading-`/` README line; kv >=8-byte/multi-key
+   regression cases).
+6. Carry-forwards: byte-level bracket scan on every touched package; SPEC headers synced
+   when touched; bump ONLY when source changes; no `Result ==` or `is Ok(<literal>)` in
+   NEW clauses until the v0.64.2 repin confirms m239/m229; never rename raw externs
+   (linker symbols); loader fn-pointer locals use the `f_` prefix (B-10); `unsafe fn` is
+   a hard P001 error (`unsafe { }` in the body); `let _ = unsafe { call() };` emits
+   invalid IR (`unsafe { let _ = call(); }`); new hardening batches only for NEW
+   zero-clause stable carriers (explore pre-plan -> six background task porters ->
+   coordinator integrates; brief template %TEMP%\kilo\batch49-porter-brief.md); update
+   SESSION.md at each wrap with a fresh STATE block.
+```
+
+**STATE AT 2026-10-09 15:05Z (history -- superseded by the 15:45Z block above):**
 - **Ecosystem:** validate **520/0**; guard **506 allowlisted / 482 ready / 24 grandfathered /
   0 failures**; compiler pin **v0.64.1** (official archive SHA256-verified, byte-identical
   install). **34 eco releases this session** (`eco-v0.1.86` -> `eco-v0.1.118`); ~3,000
@@ -2141,7 +2247,7 @@ running). Check `git log -1 --format=%h %s` before starting.
    category harmonization = owner decision; (d) keep the port watchdog
    discipline.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-09 15:05Z) -- USE THIS ONE
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, SUPERSEDED -- 2026-10-09 15:05Z; kept for history only)
 
 ```
 You are the packages session for xiom-packages/packages (native lane; local
