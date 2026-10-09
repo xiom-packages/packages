@@ -14,7 +14,26 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-09 18:00Z (LIVE HANDOFF -- `xiom.wal` + `xiom.btree` PUBLISHED via `eco-v0.1.121`; no open packages-side gate remains):**
+**STATE AT 2026-10-09 18:10Z (LIVE HANDOFF -- bindings batches 21+22 PUBLISHED via `eco-v0.1.122`; no open packages-side gate):**
+- **Bindings merge `1435ac01` (origin/bindings `65a586e2`) integrated and published** (`eco-v0.1.122`,
+  run `37970511382` SUCCESS):
+  - **`xiom.ffmpeg` 0.2.0** (system-lib generation loader; SKIP-only, nothing vendored): native
+    absent **SKIP 2/2 x2** + Cascadeur 6.0 LGPL **4/4 x2** + Blender 7.1.1 GPL **4/4**; live
+    sha256 `392d8c41...` (18:04:08Z); promoted from grandfathered (guard **508/486/22/0**).
+  - **`xiom.sqlite` 0.3.0** (enum model restored, B-01 workaround retired): native **16/16 x2**;
+    live sha256 `eb835c48...` (18:06:28Z).
+  - Docs riding along: v0.64.2 sweep findings + repro bundles (run-exit, const-alias,
+    child-import-parent, ffi-alias-shadow), PULSE/ORBITDB/XVECTOR responses, registry
+    consumer-flow validation.
+  - **NEW finding filed** (`docs/COMPILER-FINDINGS.md`): registry consumers do NOT apply a
+    dependency's shipped `port.args.json` -- vendored-C deps need explicit `--c-source`
+    (consumer-verified; fix suggested in `docs/BINDINGS-PACKAGE-WISHLIST.md` section 4).
+- **No open packages-side gate.** Next: XVECTOR `xiom.vectors` **OWNER GREENLIGHT** (then
+  `xiom.ann`); ORBITDB order-3 btree re-sync; `xiom.durable` reconciliation; bindings
+  crypto/media continues under the approved ffmpeg system-lib SKIP-only decision.
+- Session tally: **38 eco releases** (`eco-v0.1.86` -> `eco-v0.1.122`).
+
+**STATE AT 2026-10-09 18:00Z (history -- superseded by the 18:10Z block above):**
 - **`xiom.wal` 0.1.0 + `xiom.btree` 0.1.0 PUBLISHED (`eco-v0.1.121`, run `37969247684` SUCCESS):**
   allowlist append 506 -> 508 (guard **508/485/23/0**), gate approved, live-verified registry:
   wal sha256 `c727fb43...` published 17:56:13Z; btree sha256 `1ce8446e...` published 17:52:45Z
