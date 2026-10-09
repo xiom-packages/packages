@@ -29,8 +29,10 @@ running). Check `git log -1 --format=%h %s` before starting.
   `packages/xiom-jolt/tools/combine.py`). Request: a `--cxx-standard` passthrough (preferred) or
   a default bump to `c++17` (compiler lane). No jolt module/tests committed until unblocked.
 - **No open packages-side gate.** Next: XVECTOR `xiom.vectors` **OWNER GREENLIGHT** (brief staged
-  at `%TEMP%\kilo\vectors-extraction-porter-brief.md`); ORBITDB order-3 btree re-sync;
-  `xiom.durable` reconciliation; bindings continues (jolt waits on the compiler flag).
+  at `%TEMP%\kilo\vectors-extraction-porter-brief.md`); **IN FLIGHT: `xiom.durable` port + WAL
+  reconciliation** (background porter; brief `%TEMP%\kilo\durable-port-porter-brief.md`; deletes
+  `src/wal/*`, consumes `xiom.wal` 0.1.0); ORBITDB order-3 btree re-sync;
+  bindings continues (jolt waits on the compiler flag).
 - Session tally: **39 eco releases** (`eco-v0.1.86` -> `eco-v0.1.123`).
 
 **STATE AT 2026-10-09 18:10Z (history -- superseded by the 19:15Z block above):**
