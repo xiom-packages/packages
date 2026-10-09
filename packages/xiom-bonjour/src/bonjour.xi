@@ -480,7 +480,10 @@ fn _join_labels(labels: &Vec[Str], start: Int) -> Str {
 /// byte") / Err("bonjour: label not printable") for bad label bytes.
 /// Checks run per label in that order.
 /// Complexity: O(name length).
-pub fn bonjour_name_encode(name: Str) -> Result[Vec[UInt8], Str] {
+pub fn bonjour_name_encode(name: Str) -> Result[Vec[UInt8], Str]
+  ensures: name.len() == 0 => result is Ok;
+  ensures: result is Err => name.len() > 0;
+{
   let lr = _name_split(name);
   if !lr.is_ok {
     return _err_bytes(lr.error);
@@ -562,7 +565,11 @@ pub fn bonjour_name_encode_compressed(name: Str, prior_names: &Vec[Str], prior_o
 /// Err("bonjour: label contains NUL byte") / Err("bonjour: label not
 /// printable") for bad label bytes.
 /// Complexity: O(name bytes + pointer jumps * name bytes) worst case.
-pub fn bonjour_name_decode(data: &Vec[UInt8], off: Int) -> Result[BonjourName, Str] {
+pub fn bonjour_name_decode(data: &Vec[UInt8], off: Int) -> Result[BonjourName, Str]
+  ensures: off < 0 => result is Err;
+  ensures: off >= data.len() => result is Err;
+  ensures: result is Ok => off >= 0 && off < data.len();
+{
   if off < 0 {
     return _err_name("bonjour: negative offset");
   }
@@ -656,7 +663,9 @@ pub fn bonjour_name_to_str(n: &BonjourName) -> Str {
 /// ANCOUNT[2], NSCOUNT[2], ARCOUNT[2]. All multi-byte fields are big-endian.
 /// Out-of-range field values are masked to their width (see SPEC.md); this
 /// function cannot fail. Complexity: O(1).
-pub fn bonjour_header_encode(h: &BonjourHeader) -> Vec[UInt8] {
+pub fn bonjour_header_encode(h: &BonjourHeader) -> Vec[UInt8]
+  ensures: result.len() == 12;
+{
   var out = Vec[UInt8].new();
   _push_u16_be(&mut out, _mask_bits(h.id, 16));
   _push_u16_be(&mut out, _flags_word(h));
@@ -671,7 +680,10 @@ pub fn bonjour_header_encode(h: &BonjourHeader) -> Vec[UInt8] {
 /// the only error is Err("bonjour: truncated header") when `data` is
 /// shorter than 12 bytes. Bytes after offset 12 are ignored.
 /// Complexity: O(1).
-pub fn bonjour_header_decode(data: &Vec[UInt8]) -> Result[BonjourHeader, Str] {
+pub fn bonjour_header_decode(data: &Vec[UInt8]) -> Result[BonjourHeader, Str]
+  ensures: data.len() < 12 => result is Err;
+  ensures: data.len() >= 12 => result is Ok;
+{
   if data.len() < 12 {
     return _err_header("bonjour: truncated header");
   }
@@ -702,7 +714,10 @@ pub fn bonjour_header_decode(data: &Vec[UInt8]) -> Result[BonjourHeader, Str] {
 /// `BONJOUR_CLASS_TOP_BIT` when `top` is true. In a response record the top
 /// bit is cache-flush; in a question it is unicast-response (QU).
 /// Complexity: O(1).
-pub fn bonjour_class_value(top: Bool) -> Int {
+pub fn bonjour_class_value(top: Bool) -> Int
+  ensures: top => result == 32769;
+  ensures: !top => result == 1;
+{
   if top {
     return BONJOUR_CLASS_IN + BONJOUR_CLASS_TOP_BIT;
   }
@@ -744,7 +759,10 @@ pub fn bonjour_class_base(rclass: Int) -> Int {
 /// QCLASS[2] (both big-endian, masked to 16 bits; pass the QU bit through
 /// `qclass` or use bonjour_class_value). Name errors propagate unchanged.
 /// Complexity: O(name length).
-pub fn bonjour_question_encode(name: Str, qtype: Int, qclass: Int) -> Result[Vec[UInt8], Str] {
+pub fn bonjour_question_encode(name: Str, qtype: Int, qclass: Int) -> Result[Vec[UInt8], Str]
+  ensures: name.len() == 0 => result is Ok;
+  ensures: result is Err => name.len() > 0;
+{
   let nr = bonjour_name_encode(name);
   if !nr.is_ok {
     return _err_bytes(nr.error);
@@ -935,7 +953,10 @@ pub fn bonjour_rdata_txt(pairs: &Vec[Str]) -> Result[Vec[UInt8], Str] {
 
 /// Build A RDATA from exactly 4 address octets (network order).
 /// Err("bonjour: bad A rdata") for any other length. Complexity: O(1).
-pub fn bonjour_rdata_a(octets: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn bonjour_rdata_a(octets: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: octets.len() != 4 => result is Err;
+  ensures: octets.len() == 4 => result is Ok;
+{
   if octets.len() != 4 {
     return _err_bytes("bonjour: bad A rdata");
   }
@@ -946,7 +967,10 @@ pub fn bonjour_rdata_a(octets: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 
 /// Build AAAA RDATA from exactly 16 address octets (network order).
 /// Err("bonjour: bad AAAA rdata") for any other length. Complexity: O(1).
-pub fn bonjour_rdata_aaaa(octets: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn bonjour_rdata_aaaa(octets: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: octets.len() != 16 => result is Err;
+  ensures: octets.len() == 16 => result is Ok;
+{
   if octets.len() != 16 {
     return _err_bytes("bonjour: bad AAAA rdata");
   }
@@ -961,7 +985,10 @@ pub fn bonjour_rdata_aaaa(octets: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
 
 /// Render 4-byte A RDATA as "a.b.c.d".
 /// Err("bonjour: bad A rdata") when the length is not 4. Complexity: O(1).
-pub fn bonjour_rdata_a_to_str(rdata: &Vec[UInt8]) -> Result[Str, Str] {
+pub fn bonjour_rdata_a_to_str(rdata: &Vec[UInt8]) -> Result[Str, Str]
+  ensures: rdata.len() != 4 => result is Err;
+  ensures: rdata.len() == 4 => result is Ok;
+{
   if rdata.len() != 4 {
     return _err_str("bonjour: bad A rdata");
   }
@@ -1037,7 +1064,12 @@ pub fn bonjour_rdata_ptr_target(data: &Vec[UInt8], off: Int, len: Int) -> Result
 /// The 16-bit priority of SRV RDATA at [off, off+len).
 /// Err("bonjour: bad SRV rdata") when len < 7 or the field is out of
 /// bounds. Complexity: O(1).
-pub fn bonjour_rdata_srv_priority(data: &Vec[UInt8], off: Int, len: Int) -> Result[Int, Str] {
+pub fn bonjour_rdata_srv_priority(data: &Vec[UInt8], off: Int, len: Int) -> Result[Int, Str]
+  ensures: len < 7 => result is Err;
+  ensures: off < 0 => result is Err;
+  ensures: off + 6 > data.len() => result is Err;
+  ensures: result is Ok => len >= 7 && off >= 0 && off + 6 <= data.len();
+{
   if len < 7 {
     return _err_int("bonjour: bad SRV rdata");
   }
@@ -1128,7 +1160,10 @@ pub fn bonjour_rdata_txt_parse(rdata: &Vec[UInt8]) -> Result[Vec[Str], Str] {
 /// either part. The result may still exceed 255 bytes; bonjour_rdata_txt
 /// enforces that limit.
 /// Complexity: O(key + value bytes).
-pub fn bonjour_txt_pair(key: Str, value: Str) -> Result[Str, Str] {
+pub fn bonjour_txt_pair(key: Str, value: Str) -> Result[Str, Str]
+  ensures: key.len() == 0 => result is Err;
+  ensures: result is Ok => key.len() > 0;
+{
   let klen = key.len();
   if klen == 0 {
     return _err_str("bonjour: empty TXT key");
@@ -1197,14 +1232,21 @@ pub fn bonjour_txt_get(pairs: &Vec[Str], key: Str) -> Result[Str, Str] {
 
 /// The DNS-SD service enumeration name: "_services._dns-sd._udp.local".
 /// Complexity: O(1).
-pub fn bonjour_service_enum_name() -> Str {
+pub fn bonjour_service_enum_name() -> Str
+  ensures: result.len() == 28;
+{
   return BONJOUR_ENUM_PREFIX + BONJOUR_DOMAIN;
 }
 
 /// True when `name` is in the mDNS `local` domain: exactly "local", or any
 /// name ending in ".local" (ASCII case-insensitive, no trailing dot).
 /// Complexity: O(name length).
-pub fn bonjour_is_local_name(name: Str) -> Bool {
+pub fn bonjour_is_local_name(name: Str) -> Bool
+  ensures: name.len() == 0 => !result;
+  ensures: name.len() >= 1 && name.len() <= 4 => !result;
+  ensures: name.len() == 6 => !result;
+  ensures: result => name.len() >= 5 && name.len() != 6;
+{
   let n = name.len();
   if n == 0 {
     return false;
@@ -1592,7 +1634,10 @@ pub fn bonjour_advertise(instance: Str, service_type: Str, port: Int, host: Str,
 /// when a declared entry has no bytes left; otherwise the name and record
 /// errors propagate unchanged. Bytes after the last declared entry are
 /// ignored. Complexity: O(message length).
-pub fn bonjour_message_parse(data: &Vec[UInt8]) -> Result[BonjourMessage, Str] {
+pub fn bonjour_message_parse(data: &Vec[UInt8]) -> Result[BonjourMessage, Str]
+  ensures: data.len() < 12 => result is Err;
+  ensures: result is Ok => data.len() >= 12;
+{
   let hr = bonjour_header_decode(data);
   if !hr.is_ok {
     return _err_message(hr.error);
@@ -1649,7 +1694,11 @@ pub fn bonjour_message_record_count(m: &BonjourMessage) -> Int {
 /// Absolute offset of the i-th question's name in the parse buffer, or -1
 /// when i is negative or >= bonjour_message_question_count(m).
 /// Complexity: O(1).
-pub fn bonjour_message_question_offset(m: &BonjourMessage, i: Int) -> Int {
+pub fn bonjour_message_question_offset(m: &BonjourMessage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= m.question_offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < m.question_offsets.len();
+{
   if i < 0 {
     return -1;
   }
