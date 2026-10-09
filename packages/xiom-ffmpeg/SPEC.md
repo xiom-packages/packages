@@ -1,107 +1,108 @@
-# xiom.ffmpeg -- SPEC
+# SPEC: xiom.ffmpeg -- FFmpeg bindings (dynamic loader, system-library SKIP path)
 
-**Phase**: 2 (Scientific) | **Priority**: HIGH
-**Status**: Implemented | **Depends on**: xiom.ffi
+## 1. Identity
 
-## What it wraps
-FFmpeg -- audio/video codec library (libavcodec, libavformat, libavutil).
-Decode/encode, transcode, stream.
+| Field | Value |
+|-------|-------|
+| Package | `xiom.ffmpeg` |
+| Version | 0.2.0 |
+| Kind | binding (`keywords: ["binding"]`) |
+| Upstream project | FFmpeg -- https://ffmpeg.org/ (libavcodec/libavformat/libavutil/libswresample) |
+| Upstream version | floating system builds (local samples: 6.0 LGPL, 7.1.1 GPL, 8.x partial) |
+| Upstream license | LGPL-2.1-or-later (FFmpeg); nothing vendored -- the LGPL policy requires dynamic linking only (`BINDINGS-LANE.md` §4/§11) |
+| Package license | MIT OR Apache-2.0 |
+| Platform | Windows x64 (multi-soname generation loader) |
+| Compiler pin | v0.64.1 |
 
-## Dependencies
-| What | How | Size |
-|------|-----|------|
-| FFmpeg | System-installed. `winget install FFmpeg`, `apt install libavcodec-dev` | ~50MB DLLs |
+## 2. Decision: system-library SKIP path only (never vendored)
 
-## Bundling strategy: System-installed only.
+Native-lane decision 2026-10-09 (`BINDINGS-LANE.md` §11): the system-lib
+**SKIP path is APPROVED**; vendoring FFmpeg binaries or sources is **NOT
+approved** (explicit owner sign-off required to change). The loader resolves
+one release generation of the four shared libraries at runtime and the suite
+reports SKIP when none is present, so CI without FFmpeg stays green.
+Present-path proof used a local official prebuilt LGPL set (Cascadeur) placed
+on PATH at run time -- nothing committed (the libpq/raylib local-binary
+pattern).
 
-## Implementation
+## 3. G2 pin: generation table + entry-point set + samples
 
-### Files
-| File | Lines | Purpose |
-|------|-------|---------|
-| `ffmpeg.xi` | 212 | Module `xiom.ffmpeg` -- types, raw FFI, safe wrappers |
-| `tests/test_conformance.xi` | 277 | 26 conformance tests |
-| `ROADMAP.md` | 26 | Future phases |
+**Generation table (in load order):** each generation must resolve all four
+sonames; a partially present generation is skipped (never mixed across ABI
+generations).
 
-### Types
-```
-pub type FfmpegContext = Int
-pub type FfmpegPacket  = Int
-pub type FfmpegFrame   = Int
-```
+| FFmpeg | avcodec | avformat | avutil | swresample |
+|--------|---------|----------|--------|------------|
+| 8.x | `avcodec-62.dll` | `avformat-62.dll` | `avutil-60.dll` | `swresample-6.dll` |
+| 7.x | `avcodec-61.dll` | `avformat-61.dll` | `avutil-59.dll` | `swresample-5.dll` |
+| 6.x | `avcodec-60.dll` | `avformat-60.dll` | `avutil-58.dll` | `swresample-4.dll` |
+| 5.x | `avcodec-59.dll` | `avformat-59.dll` | `avutil-57.dll` | `swresample-4.dll` |
+| 4.x | `avcodec-58.dll` | `avformat-58.dll` | `avutil-56.dll` | `swresample-3.dll` |
 
-### Extern "C" Block (20 functions)
-`avformat_alloc_context`, `avformat_open_input`, `avformat_close_input`,
-`avformat_find_stream_info`, `av_find_best_stream`, `av_read_frame`,
-`av_packet_alloc`, `av_packet_unref`, `av_packet_free`,
-`av_frame_alloc`, `av_frame_unref`, `av_frame_free`,
-`avcodec_find_decoder`, `avcodec_alloc_context3`, `avcodec_open2`,
-`avcodec_close`, `avcodec_free_context`,
-`avcodec_send_packet`, `avcodec_receive_frame`,
-`avcodec_send_frame`, `avcodec_receive_packet`,
-`avformat_alloc_output_context2`, `avformat_new_stream`,
-`avformat_write_header`, `av_interleaved_write_frame`,
-`av_write_trailer`, `avformat_free_context`, `av_strerror`
+**Resolved entry points (7):** `av_version_info`, `avutil_version`
+(libavutil); `avcodec_version`, `avcodec_configuration`, `avcodec_license`
+(libavcodec); `avformat_version` (libavformat); `swresample_version`
+(libswresample). All are LGPL-safe core APIs (no GPL-only feature
+dependency).
 
-### Safe Wrappers (9 + 4 helpers)
-| Function | Returns | Contract |
-|----------|---------|----------|
-| `open_input(path)` | `Result[FfmpegContext, Str]` | `requires path.len() > 0` |
-| `close_input(ctx)` | void | -- |
-| `find_stream_info(ctx)` | `Result[Int, Str]` | -- |
-| `get_video_stream(ctx)` | `Result[Int, Str]` | -- |
-| `read_frame(ctx, pkt)` | `Result[Int, Str]` | -- |
-| `decode_frame(ctx, pkt, frame)` | `Result[Int, Str]` | -- |
-| `encode_frame(ctx, frame, pkt)` | `Result[Int, Str]` | -- |
-| `write_frame(ctx, pkt)` | `Result[Int, Str]` | -- |
-| `open_output(path, ctx)` | `Result[FfmpegContext, Str]` | `requires path.len() > 0` |
-| `alloc_packet()` | `Result[FfmpegPacket, Str]` | -- |
-| `free_packet(pkt)` | void | -- |
-| `alloc_frame()` | `Result[FfmpegFrame, Str]` | -- |
-| `free_frame(frame)` | void | -- |
+**Probe evidence:** version string + the four packed versions decoded as
+`major.minor.micro` (`major<<16 | minor<<8 | micro`) + the build's
+`avcodec_license()` string + `--enable-gpl` presence in
+`avcodec_configuration()`.
 
-### Constants
-- `AVMEDIA_TYPE_VIDEO = 0`
-- `AVMEDIA_TYPE_AUDIO = 1`
-- `AV_ERROR_EOF = -541478725`
-- `AV_ERROR_EAGAIN = -11`
-- `AV_SUCCESS = 0`
+**Local runtime samples used for positive-path proof (NOT the pin; nothing
+committed):**
 
-### Tests: 26 (test_conformance.xi)
-1. Type declarations exist (compile-time)
-2. Constants defined
-3. alloc_packet returns Ok
-4. free_packet no crash
-5. alloc_frame returns Ok
-6. free_frame no crash
-7. Packet + frame distinct handles
-8. Multiple packets distinct
-9. Multiple frames distinct
-10. open_input valid path stub
-11. open_input nonempty no trap
-12. close_input null no crash
-13. find_stream_info null returns Err
-14. get_video_stream null returns Err
-15. read_frame null returns Err
-16. decode_frame null returns Err
-17. encode_frame null returns Err
-18. write_frame null returns Err
-19. open_output valid path stub
-20. Result chain null propagation
-21. int_to_str positive
-22. int_to_str zero
-23. int_to_str negative
-24. Error message format
-25. EOF constant negative
-26. EAGAIN constant negative
+| Artifact | Value |
+|----------|-------|
+| Cascadeur `avcodec-60.dll` (6.0 LGPL; proof set) | 20,333,568 B, SHA256 `094CF53C26B58C7DFFF8B5FE07D8575F21F026F8C962229D6B044AFCB2CD7BE7` |
+| Cascadeur `avformat-60.dll` | 3,280,896 B, SHA256 `978F36BF95E37FB26D48F010FD85B4C6DE985EEF82EEABD321D28F97F7694D5D` |
+| Cascadeur `avutil-58.dll` | 1,123,840 B, SHA256 `2FFE865E05C46A3D66C9D6CE8EF14B5B9B0D1A51E8B1A6FB23EA1C382F6E6218` |
+| Cascadeur `swresample-4.dll` | 194,560 B, SHA256 `43FF1854A154EBF929E99BA265E2B87A53F02F215CF3640009ACEFD64C6473BA` |
+| Blender 5.1 `avcodec-61.dll` (7.1.1 GPL; second generation + GPL evidence) | 36,024,320 B, SHA256 `1377146F3C433D582EFE11A86D04F6F833463BEB25F4954E4A0912F3A1FA00CF` |
+| OneDrive Codecs 8.1.2 `avcodec-62.dll` (8.x partial: no `swresample-6.dll` -> SKIP) | 13,386,576 B, SHA256 `6A194B539F41FD36F1CD42CA8DCCEC1DA91A2CE26E740D3158D9AFD7B1426ED0` |
+| DaVinci Resolve `avcodec-60.dll` (6.x partial: no `swresample-4.dll` -> SKIP) | 12,918,784 B, SHA256 `83A94AD365620CA621ADF0E7949C12D53D73D0CF9EE58ED7891BFEA6C06B7B04` |
 
-## API (original reference)
-```xiom
-pub fn av_register_all()
-pub fn avformat_open_input(path) -> Result[FormatCtx, Str]
-pub fn avcodec_find_decoder(id) -> Result[Codec, Str]
-pub fn avcodec_decode_video2(ctx, frame, got) -> Result[Int, Str]
-pub fn av_read_frame(ctx, pkt) -> Result[Int, Str]
-```
+Recorded runtime reports: `FFmpeg 6.0`, avcodec 60.3.100 / avformat 60.3.100 /
+avutil 58.2.100 / swresample 4.10.100, license `LGPL version 2.1 or later`
+(Cascadeur); `FFmpeg 7.1.1`, 61.19.101 / 61.7.100 / 59.39.100 / 5.3.100,
+license `GPL version 2 or later` (Blender).
 
-## Effort: Week
+### Re-pin procedure
+
+1. Re-verify the entry-point names/ABI before touching the module (all four
+   libraries expose the version calls across the FFmpeg 4.x-8.x generations).
+2. Update the generation table + sample table + `README.md`/`AUDIT.md` rows
+   in one commit.
+3. Re-run `scripts/port.ps1 -Package xiom.ffmpeg` (default PATH for the SKIP
+   path; a full LGPL generation directory prepended for the present path) and
+   record the matrix in §5.
+
+## 4. Design and safe boundary (G5)
+
+`ffmpeg.xi` is the only module with `unsafe`: an `FfmpegLibrary` loader
+struct (four handles + resolved entry points) plus wrappers
+(`ffmpeg_load(_named)`, `ffmpeg_close`, `ffmpeg_probe(_named/_default)`,
+`ffmpeg_version_str`, `ffmpeg_lgpl_build`). Classification:
+`FFMPEG_LOAD_ABSENT` -> SKIP; `FFMPEG_LOAD_ABI` -> FAIL;
+`FFMPEG_PROBE_FAILED` -> FAIL. Bridge locals use the `f_` prefix (finding
+B-10); no allocation in confined blocks (finding B-05). A GPL-configured
+host build is reported as data (`gpl_enabled`, license string), not an
+error: the package depends only on LGPL-safe APIs.
+
+## 5. Test matrix (recorded 2026-10-09, compiler v0.64.1)
+
+| Configuration | Command | Result |
+|---------------|---------|--------|
+| Default PATH (no FFmpeg DLLs) | `scripts/port.ps1 -Package xiom.ffmpeg` | **PASS 2/2 x2** -- SKIP classification (bogus sonames) + probe SKIP |
+| Cascadeur 6.0 LGPL prepended | same | **PASS 4/4 x2** -- `FFmpeg 6.0`, four versions, `LGPL version 2.1 or later` |
+| Blender 7.1.1 GPL prepended | same | **PASS 4/4** -- `FFmpeg 7.1.1`, license `GPL version 2 or later`, consistency check |
+| OneDrive 8.1.2 (partial) prepended | same | **PASS 2/2** -- generation skipped (no `swresample-6.dll`), SKIP |
+| DaVinci Resolve 6.x (partial) prepended | same | **PASS 2/2** -- generation skipped (no `swresample-4.dll`), SKIP |
+
+## 6. Scope
+
+Pilot: library identification + license/configuration evidence (LGPL-safe
+surface). Demux/decode/encode wrappers, packet/frame lifecycles, and a
+transcode example are Phase 2 (`ROADMAP.md`). The pre-pilot module (27 static
+`extern "C"` declarations, compile-time linked) is preserved in git history.
