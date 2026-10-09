@@ -5,13 +5,13 @@
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
-                  "status":  "unknown",
-                  "passed":  null,
-                  "failed":  null,
-                  "run_by":  null,
-                  "commit":  null,
-                  "checked":  null
+                  "status":  "pass",
+                  "passed":  152,
+                  "failed":  0,
+                  "run_by":  "native-session",
+                  "commit":  "88b51d96",
+                  "checked":  "2026-10-09T22:01:48Z"
               },
     "publish":  false,
-    "excluded_reason":  "renamed from xiom.core (namespace audit, owner-confirmed 2026-09-23); port to current stdlib pending"
+    "excluded_reason":  "port done 2026-10-09 (WAL reconciled to xiom.wal); not on the publish scope"
 }
