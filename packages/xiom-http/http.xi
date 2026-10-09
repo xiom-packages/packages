@@ -53,38 +53,146 @@ pub type HttpClientResponse = {
 
 // --- CURL Option Constants --------------------------------------------------
 
-fn CURLOPT_URL() -> Int { return 10002; }
-fn CURLOPT_FOLLOWLOCATION() -> Int { return 52; }
-fn CURLOPT_TIMEOUT() -> Int { return 13; }
-fn CURLOPT_CONNECTTIMEOUT() -> Int { return 78; }
-fn CURLOPT_POST() -> Int { return 47; }
-fn CURLOPT_POSTFIELDS() -> Int { return 10015; }
-fn CURLOPT_POSTFIELDSIZE() -> Int { return 60; }
-fn CURLOPT_CUSTOMREQUEST() -> Int { return 10036; }
-fn CURLOPT_HTTPHEADER() -> Int { return 10023; }
-fn CURLOPT_SSL_VERIFYPEER() -> Int { return 64; }
-fn CURLOPT_SSL_VERIFYHOST() -> Int { return 81; }
-fn CURLOPT_USERAGENT() -> Int { return 10018; }
-fn CURLOPT_WRITEDATA() -> Int { return 10001; }
-fn CURLOPT_HEADERDATA() -> Int { return 10029; }
-fn CURLOPT_NOSIGNAL() -> Int { return 99; }
-fn CURLOPT_FAILONERROR() -> Int { return 45; }
-fn CURLOPT_ACCEPT_ENCODING() -> Int { return 10102; }
-fn CURLOPT_TCP_KEEPALIVE() -> Int { return 213; }
-fn CURLOPT_TCP_KEEPIDLE() -> Int { return 214; }
-fn CURLOPT_TCP_KEEPINTVL() -> Int { return 215; }
-fn CURLOPT_BUFFERSIZE() -> Int { return 98; }
+fn CURLOPT_URL() -> Int
+  ensures: result == 10002;
+{
+  return 10002;
+}
+fn CURLOPT_FOLLOWLOCATION() -> Int
+  ensures: result == 52;
+{
+  return 52;
+}
+fn CURLOPT_TIMEOUT() -> Int
+  ensures: result == 13;
+{
+  return 13;
+}
+fn CURLOPT_CONNECTTIMEOUT() -> Int
+  ensures: result == 78;
+{
+  return 78;
+}
+fn CURLOPT_POST() -> Int
+  ensures: result == 47;
+{
+  return 47;
+}
+fn CURLOPT_POSTFIELDS() -> Int
+  ensures: result == 10015;
+{
+  return 10015;
+}
+fn CURLOPT_POSTFIELDSIZE() -> Int
+  ensures: result == 60;
+{
+  return 60;
+}
+fn CURLOPT_CUSTOMREQUEST() -> Int
+  ensures: result == 10036;
+{
+  return 10036;
+}
+fn CURLOPT_HTTPHEADER() -> Int
+  ensures: result == 10023;
+{
+  return 10023;
+}
+fn CURLOPT_SSL_VERIFYPEER() -> Int
+  ensures: result == 64;
+{
+  return 64;
+}
+fn CURLOPT_SSL_VERIFYHOST() -> Int
+  ensures: result == 81;
+{
+  return 81;
+}
+fn CURLOPT_USERAGENT() -> Int
+  ensures: result == 10018;
+{
+  return 10018;
+}
+fn CURLOPT_WRITEDATA() -> Int
+  ensures: result == 10001;
+{
+  return 10001;
+}
+fn CURLOPT_HEADERDATA() -> Int
+  ensures: result == 10029;
+{
+  return 10029;
+}
+fn CURLOPT_NOSIGNAL() -> Int
+  ensures: result == 99;
+{
+  return 99;
+}
+fn CURLOPT_FAILONERROR() -> Int
+  ensures: result == 45;
+{
+  return 45;
+}
+fn CURLOPT_ACCEPT_ENCODING() -> Int
+  ensures: result == 10102;
+{
+  return 10102;
+}
+fn CURLOPT_TCP_KEEPALIVE() -> Int
+  ensures: result == 213;
+{
+  return 213;
+}
+fn CURLOPT_TCP_KEEPIDLE() -> Int
+  ensures: result == 214;
+{
+  return 214;
+}
+fn CURLOPT_TCP_KEEPINTVL() -> Int
+  ensures: result == 215;
+{
+  return 215;
+}
+fn CURLOPT_BUFFERSIZE() -> Int
+  ensures: result == 98;
+{
+  return 98;
+}
 
-fn CURLINFO_RESPONSE_CODE() -> Int { return 2097154; }
+fn CURLINFO_RESPONSE_CODE() -> Int
+  ensures: result == 2097154;
+{
+  return 2097154;
+}
 
 // --- Internal Constants -----------------------------------------------------
 
-fn SEEK_SET() -> Int { return 0; }
-fn SEEK_END() -> Int { return 2; }
-fn BUF_SIZE() -> Int { return 65536; }
+fn SEEK_SET() -> Int
+  ensures: result == 0;
+{
+  return 0;
+}
+fn SEEK_END() -> Int
+  ensures: result == 2;
+{
+  return 2;
+}
+fn BUF_SIZE() -> Int
+  ensures: result == 65536;
+{
+  return 65536;
+}
 
-fn TEMP_BODY() -> Str { return "__xiom_http_body.tmp"; }
-fn TEMP_HEADERS() -> Str { return "__xiom_http_headers.tmp"; }
+fn TEMP_BODY() -> Str
+  ensures: result.len() == 20;
+{
+  return "__xiom_http_body.tmp";
+}
+fn TEMP_HEADERS() -> Str
+  ensures: result.len() == 23;
+{
+  return "__xiom_http_headers.tmp";
+}
 
 // --- Pointer-sized Value Helpers --------------------------------------------
 // libcurl options take pointer-sized values. XIOM Int -> *UInt8 via xiom_alloc.
@@ -139,7 +247,9 @@ fn str_to_cstr_or_err(s: Str, label: Str) -> Result[*UInt8, Str] {
 
 // --- Error Helpers ----------------------------------------------------------
 
-fn curl_error_string(code: Int) -> Str {
+fn curl_error_string(code: Int) -> Str
+  ensures: result.len() > 0;
+{
   var err_ptr: *UInt8 = ptr_null();
   unsafe { err_ptr = curl_easy_strerror(code); }
   if ptr.is_null[UInt8](err_ptr) {
@@ -150,7 +260,9 @@ fn curl_error_string(code: Int) -> Str {
 
 // --- C String -> XIOM Str ---------------------------------------------------
 
-fn cstr_to_str(cstr: *UInt8) -> Str {
+fn cstr_to_str(cstr: *UInt8) -> Str
+  ensures: result.len() <= 196608;
+{
   var result: Str = "";
   var i: Int = 0;
   while i < 65536 {
@@ -163,7 +275,13 @@ fn cstr_to_str(cstr: *UInt8) -> Str {
   return result;
 }
 
-fn byte_to_char(b: Int) -> Str {
+fn byte_to_char(b: Int) -> Str
+  ensures: b == 0 => result.len() == 0;
+  ensures: b == 9 || b == 10 || b == 13 || b == 32 => result.len() == 1;
+  ensures: b >= 33 && b <= 99 => result.len() == 2;
+  ensures: b >= 100 && b <= 126 => result.len() == 3;
+  ensures: b != 0 && b != 9 && b != 10 && b != 13 && b != 32 && (b < 33 || b > 126) => result.len() == 1;
+{
   if b == 0 { return ""; };
   if b == 10 { return "\n"; };
   if b == 13 { return "\r"; };
@@ -176,7 +294,9 @@ fn byte_to_char(b: Int) -> Str {
   return "?";
 }
 
-fn char_to_str(c: Char) -> Str {
+fn char_to_str(c: Char) -> Str
+  ensures: result.len() >= 1;
+{
   return to_string(to_int_from_char(c));
 }
 
@@ -239,7 +359,9 @@ fn cleanup_temp_files() {
 
 // --- File I/O Helpers -------------------------------------------------------
 
-fn read_file_to_str(file: *UInt8) -> Str {
+fn read_file_to_str(file: *UInt8) -> Str
+  ensures: result.len() <= 196608;
+{
   var file_size: Int;
   unsafe { let _ = fseek(file, 0, SEEK_END()); }
   unsafe { file_size = ftell(file); }
@@ -270,7 +392,10 @@ fn read_file_to_str(file: *UInt8) -> Str {
 
 // --- Response Code Extraction -----------------------------------------------
 
-fn get_response_code(handle: *UInt8) -> Int {
+fn get_response_code(handle: *UInt8) -> Int
+  ensures: result >= 0;
+  ensures: result <= 65535;
+{
   var status_buf: *UInt8 = ptr_null();
   unsafe { status_buf = xiom_alloc(8); }
   if ptr.is_null[UInt8](status_buf) {
@@ -313,9 +438,10 @@ fn setup_common_options(handle: *UInt8, url_cstr: *UInt8) -> Result[Unit, Str] {
   if rc != 0 { unsafe { xiom_free_ptr(p10); }; return Err(string.str_concat("CURLOPT_CONNECTTIMEOUT failed: ", curl_error_string(rc))); };
   unsafe { xiom_free_ptr(p10); }
 
-  unsafe { rc = curl_easy_setopt(handle, CURLOPT_NOSIGNAL(), p1); }
-  if rc != 0 { unsafe { xiom_free_ptr(p1); }; return Err(string.str_concat("CURLOPT_NOSIGNAL failed: ", curl_error_string(rc))); };
-  unsafe { xiom_free_ptr(p1); }  // free our extra copy
+  var p_nosignal: *UInt8 = make_ptr_value(1);
+  unsafe { rc = curl_easy_setopt(handle, CURLOPT_NOSIGNAL(), p_nosignal); }
+  if rc != 0 { unsafe { xiom_free_ptr(p_nosignal); }; return Err(string.str_concat("CURLOPT_NOSIGNAL failed: ", curl_error_string(rc))); };
+  unsafe { xiom_free_ptr(p_nosignal); }
 
   var encoding_cstr: *UInt8 = str_to_cstr("gzip, deflate");
   unsafe { rc = curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING(), encoding_cstr); }
@@ -576,22 +702,23 @@ pub fn http_download(url: Str, path: Str) -> Result[Unit, Str]
     var err_msg: Str = curl_error_string(perf_rc);
     unsafe { curl_easy_cleanup(handle); }
     unsafe { xiom_free_cstr(url_cstr); }
+    unsafe { let _ = remove(path_cstr); }
     unsafe { xiom_free_cstr(path_cstr); }
     unsafe { xiom_free_cstr(mode_cstr); }
-    unsafe { let _ = remove(path_cstr); }
     return Err(string.str_concat("download failed: ", err_msg));
   };
 
   var status: Int = get_response_code(handle);
   unsafe { curl_easy_cleanup(handle); }
   unsafe { xiom_free_cstr(url_cstr); }
-  unsafe { xiom_free_cstr(path_cstr); }
   unsafe { xiom_free_cstr(mode_cstr); }
 
   if status < 200 || status >= 300 {
     unsafe { let _ = remove(path_cstr); }
+    unsafe { xiom_free_cstr(path_cstr); }
     return Err(string.str_concat("download failed with HTTP status ", to_string(status)));
   };
+  unsafe { xiom_free_cstr(path_cstr); }
 
   return Ok(());
 }

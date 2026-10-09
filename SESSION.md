@@ -14,6 +14,71 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-09 15:05Z (ALL PROGRAMS COMPLETE through `eco-v0.1.118`; v0.64.2 tag held for the owner; HANDOFF -- next session starts here):**
+- **Ecosystem:** validate **520/0**; guard **506 allowlisted / 482 ready / 24 grandfathered /
+  0 failures**; compiler pin **v0.64.1** (official archive SHA256-verified, byte-identical
+  install). **34 eco releases this session** (`eco-v0.1.86` -> `eco-v0.1.118`); ~3,000
+  ensures clauses added (batches #37-#49 + the http pass).
+- **Programs:** zero-clause hardening COMPLETE (`eco-v0.1.115` drained it; only `option`
+  excluded) and the `xiom.http` ensures-only follow-on COMPLETE (0.1.3 in `eco-v0.1.118`:
+  38 clauses + `setup_common_options` double-free + BOTH `http_download` UAF branches +
+  `tests/probe_root_module.xi`+`probe_bridge.c`; `ad6905a0`/`e02a1ff0`).
+- **Bindings lane:** 19 batches published through phonon 0.2.0 (`eco-v0.1.116`); sectors
+  done: pilot, GPU, compression/animation, data/drivers (sqlite/libpq/odbc), audio
+  (miniaudio/portaudio/phonon). **Next: crypto/media** (openssl vendored-vs-system; ffmpeg
+  LGPL/GPL); accelerators GATED on XVECTOR.
+- **v0.64.2 IS RELEASE-READY -- TAG/PUSH HELD FOR THE OWNER'S CALL**
+  (`docs/COMPILER-RELAY-2026-10-09-v0.64.2.md`, `35408bc7`). Lane fixes: m228 (`--run`
+  exit code; B-08), m229 (`is Ok(<literal>)`), m230/m236 (stdlib prelude), m231 (B-01),
+  m232 (C-PULSE-13), m234 (XVC-C-08), m235 (C-ORBIT-05), m237/m238, **m239 (deep container
+  equality -- `Result ==`/Vec content equality REAL; Map/Set `==` the one gap)**, m241.
+  Compiler-side open: triplicate sibling exports vs alias-qualified calls.
+- **WHEN THE v0.64.2 TAG LANDS:** verify+install, `COMPILER_VERSION` + `repin`, matrix
+  re-run (res_eq -> exit 0; struct-clone/tuple-vec-set/listdir/kv/grpc/battery probes;
+  c-pulse-09 + odbc B-10 + win32-gl q1/q2), retire m229/m239/m228 workarounds, update
+  findings rows to RESOLVED, relay reds with repros.
+- **Queued defects:** `xiom.http` `make_ptr_value` long-vs-pointer (probe bridge stubs
+  curl) + `char_to_str` numeric-string behavior; `xiom.grpc` alias/not-destructure
+  interplay re-check post-fix. **Ops:** all closed (allowlist 506). **Credential:**
+  `Lefteris-Notas` active; the account flips to `Ngonart` (403) -- switch back.
+
+**STATE AT 2026-10-09 14:35Z (xiom.odbc PUBLISHED `eco-v0.1.117`; ALL PUBLISH QUEUES CLEAR; supersedes the 13:45Z block below):**
+- **`xiom.odbc` 0.2.0 PUBLISHED (`eco-v0.1.117`, run `37944935097`):** ops scope confirmed
+  LIVE; allowlist appended **505 -> 506**; guard **506/482/24/0**; wrap `c8d79aff`; live-
+  verified. Ops note: the published version is **0.2.0** (their confirmation said 0.1.0 --
+  same pattern as sqlite). **Data/drivers sector complete: sqlite 0.2.0, libpq 0.2.0,
+  odbc 0.2.0.**
+- **All publish queues are now CLEAR** -- no pending ops asks, no pending publishes, the
+  hardening program is complete (only `option` excluded), and the drain-confirmation rescan
+  shows zero remaining carriers.
+- **Follow-on category found by the drain rescan:** `xiom.http` is the only stable
+  published package with `requires:` but **zero `ensures:`** (33 requires, 0 ensures --
+  hardened requires-only during the PULSE wave, so the zero-clause program skipped it).
+  **Ensures-only pass DONE + COMMITTED** (porter `ses_edee399a9`): 38 clauses (21 CURLOPT
+  pins + CURLINFO/SEEK/BUF_SIZE/TEMP lengths + byte_to_char/char_to_str/cstr/read_file/
+  curl_error/response_code bounds; `cstr`/`read_file` refined to `<=196608` over the plan's
+  falsifiable `<=65536`); `setup_common_options` double-free fixed and BOTH
+  `http_download` remove-after-free branches fixed; new `tests/probe_root_module.xi` +
+  `tests/probe_bridge.c` (port x2 40/40 + probe x2 green); SPEC drift fixed; commit
+  `ad6905a0`, record `e02a1ff0`. Queued http defects (next touch): `make_ptr_value` passes
+  heap pointers where libcurl reads `long` (bridge stubs curl for the probe),
+  `char_to_str`/`byte_to_char` numeric-string behavior (clauses pin it).
+- **Compiler relay received (`docs/COMPILER-RELAY-2026-10-09-v0.64.2.md`, `35408bc7`):**
+  **v0.64.2 is RELEASE-READY but the tag/push is HELD FOR THE OWNER'S CALL.** Fixes for
+  this lane: m228 (`--run` exit code; B-08), m229 (`is Ok(<literal>)`), m230/m236 (stdlib
+  prelude via user-module import chains), m231 (B-01 enum payload), m232 (C-PULSE-13
+  installer home), m234 (XVC-C-08), m235 (C-ORBIT-05), m237/m238 (array_zip/fixed arrays),
+  **m239 (deep container equality -- `Result ==`/Vec content equality now real; Map/Set
+  `==` remains)**, m241 (OOB Vec write traps). Still open: triplicate sibling exports break
+  alias-qualified calls (next batch). **On the tag: repin + matrix re-run (res_eq + C-PULSE/
+  C-ORBIT workaround sets), revert obsolete workarounds, relay reds.**
+- **Waiting on external inputs only:** bindings crypto/media decisions (openssl
+  vendored-vs-system; ffmpeg LGPL/GPL), ORBITDB/XVECTOR extraction relays (`xiom-wal`
+  first), and the v0.64.2 tag for the repin.
+- Session tally: **34 eco releases** (`eco-v0.1.86` -> `eco-v0.1.118`).
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-09 13:45Z (bindings batch 19 PUBLISHED `eco-v0.1.116`: phonon present+absent complete; audio sector complete; supersedes the 13:30Z block below):**
 - **Bindings batch 19 (`xiom.phonon` 0.2.0) PUBLISHED (`eco-v0.1.116`, run `37939875911`):**
   merge `eea795e9`. **The native lane CLOSED the present-path gap (AUDIT option a):**
@@ -2076,7 +2141,74 @@ running). Check `git log -1 --format=%h %s` before starting.
    category harmonization = owner decision; (d) keep the port watchdog
    discipline.
 
-### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-08 09:55Z)
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, current -- 2026-10-09 15:05Z) -- USE THIS ONE
+
+```
+You are the packages session for xiom-packages/packages (native lane; local
+E:\xiom-packages\packages, remote github.com/xiom-packages/packages, private).
+Read SESSION.md first -- the 2026-10-09 15:05Z STATE block is the live handoff;
+all older STATE blocks and older paste prompts below are history.
+
+STATE: compiler pin v0.64.1 (SHA256-verified install). Validate 520/0; guard
+506 allowlisted / 482 ready / 24 grandfathered / 0 failures (re-check at start).
+The zero-clause hardening program is COMPLETE (only `option` excluded); the
+`xiom.http` ensures-only follow-on is COMPLETE (0.1.3 live). 19 bindings batches
+published through phonon 0.2.0. All publishes and ops asks are closed.
+
+CREDENTIAL NOTE: the active gh account sometimes flips to `Lefteris-Ngonart`
+(pull-only; 403 on push). Switch to `Lefteris-Notas` for pushes/gate approvals
+(`gh auth switch --user Lefteris-Notas`); verify with
+`gh api repos/xiom-packages/packages --jq .permissions`.
+
+Start: git fetch; git status -sb; git log -1; then
+  $env:XIOM_COMPILER = "$env:LOCALAPPDATA\xiom.new\bin\xiom.exe"
+  & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
+
+Then do, in order:
+1. v0.64.2 FIRST if the tag/release exists (`gh release list -R xiom-lang/xiom`):
+   follow docs/COMPILER-RELAY-2026-10-09-v0.64.2.md + docs/MAINTENANCE.md --
+   download + SHA256-verify the official archive, install, COMPILER_VERSION bump +
+   `status.ps1 -Action repin`, then the matrix re-run (res_eq probe -- expect exit 0;
+   docs/repro/struct-clone + tuple-vec-set; %TEMP%\kilo\retest-listdir.xi; the kv probe;
+   grpc suite 36/36; the v0.64.1 battery probes; c-pulse-09 mini-app rebuild+run; the
+   odbc probe for B-10; win32-gl q1/q2) and RETIRE obsolete workarounds: m229 kills the
+   `is Ok(<literal>)` clause rule; m239 relaxes the `Result ==` caution for Vec/container
+   payloads (Map/Set `==` remains the gap); m228 makes port.ps1's exit-code counting
+   optional (keep it -- harmless and still needed for older pins); update
+   docs/COMPILER-FINDINGS.md rows to RESOLVED (m228/m229/m231/m239 + B-01/B-08) and the
+   BINDINGS cross-refs; relay residual reds with minimal repros. If the tag is NOT
+   present: skip to 2.
+2. Bindings-lane relays (one package per relay; standard flow: merge -> namespace-check ->
+   port x2 with widened watchdog (90 normal; 240-300 vendored C/C++) -> record -> wrap ->
+   tag -> gate-approve (`environment_ids:[22424011031]`) -> watch -> live-verify): next
+   sector is CRYPTO/MEDIA (openssl vendored-vs-system; ffmpeg LGPL/GPL decision -- read
+   their AUDIT/recommendation first); accelerators (blas-class) stay GATED on XVECTOR.
+   Ops ask ONLY for a new name not yet allowlisted (current 506; additions so far:
+   sqlite, odbc): relay the ask to the owner, wait for "<N> live", then append the
+   allowlist + guard + wrap + tag.
+3. ORBITDB/XVECTOR extraction relays: `xiom-wal` FIRST (ORBITDB `src/wal_file.xi` disk
+   reference + durable `src/wal/*` record vocabulary; porter flow; ops scope + allowlist
+   at build-green), then `xiom-btree`; names frozen in docs/PACKAGE-WISHLIST.md §6.
+4. PULSE relays if any (docs/PACKAGE-WISHLIST.md §5/§7 current; C-PULSE-10 closed on
+   Linux; C-PULSE-13 fixed by m232).
+5. Queued package defects at next touches: `xiom.http` `make_ptr_value` passes heap
+   pointers where libcurl reads `long` (probe bridge stubs curl; a real-libcurl setopt
+   would fail on Win64) + `char_to_str` numeric-string behavior (clauses pin it);
+   `xiom.grpc` alias-qualified/triplicate-sibling interplay re-check after the compiler
+   fix; PULSE carry-forwards (static leading-`/` README line; kv >=8-byte/multi-key
+   regression cases).
+6. Carry-forwards: byte-level bracket scan on every touched package; SPEC headers synced
+   when touched; bump ONLY when source changes; no `Result ==` or `is Ok(<literal>)` in
+   NEW clauses until the v0.64.2 repin confirms m239/m229; never rename raw externs
+   (linker symbols); loader fn-pointer locals use the `f_` prefix (B-10); `unsafe fn` is
+   a hard P001 error (`unsafe { }` in the body); `let _ = unsafe { call() };` emits
+   invalid IR (`unsafe { let _ = call(); }`); new hardening batches only for NEW
+   zero-clause stable carriers (explore pre-plan -> six background task porters ->
+   coordinator integrates; brief template %TEMP%\kilo\batch49-porter-brief.md); update
+   SESSION.md at each wrap with a fresh STATE block.
+```
+
+### PASTE PROMPT FOR THE NEXT PACKAGES SESSION (native lane, SUPERSEDED -- 2026-10-08 09:55Z; kept for history only)
 
 ```
 You are the packages session for xiom-packages/packages (native lane; local

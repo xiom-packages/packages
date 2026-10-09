@@ -551,3 +551,5 @@ xiom.static
 xiom.kv
 # Bindings lane pilot 1 (vendored SQLite 3.53.4); ops scope confirmed LIVE 2026-10-08.
 xiom.sqlite
+# Bindings lane data/drivers sector (ODBC loader); ops scope confirmed LIVE 2026-10-09.
+xiom.odbc

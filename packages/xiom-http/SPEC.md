@@ -128,16 +128,16 @@ HTTP cookie parsing and serialization.
 
 ### `xiom.http` (`http.xi`)
 
-Production HTTP client backed by libcurl. This is the primary entry point for HTTP operations. Defines its own simplified `HttpResponse` type with `Str` body.
+Production HTTP client backed by libcurl. This is the primary entry point for HTTP operations. Defines its own simplified `HttpClientResponse` type with `Str` body.
 
-**Types:** `HttpResponse { status: Int; body: Str; headers: Str; }`
+**Types:** `HttpClientResponse { status: Int; body: Str; headers: Str; }`
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `http_get` | `(url: Str) -> Result[HttpResponse, Str]` | HTTP GET request |
-| `http_post` | `(url: Str, body: Str, content_type: Str) -> Result[HttpResponse, Str]` | HTTP POST request |
-| `http_put` | `(url: Str, body: Str) -> Result[HttpResponse, Str]` | HTTP PUT request |
-| `http_delete` | `(url: Str) -> Result[HttpResponse, Str]` | HTTP DELETE request |
+| `http_get` | `(url: Str) -> Result[HttpClientResponse, Str]` | HTTP GET request |
+| `http_post` | `(url: Str, body: Str, content_type: Str) -> Result[HttpClientResponse, Str]` | HTTP POST request |
+| `http_put` | `(url: Str, body: Str) -> Result[HttpClientResponse, Str]` | HTTP PUT request |
+| `http_delete` | `(url: Str) -> Result[HttpClientResponse, Str]` | HTTP DELETE request |
 | `http_download` | `(url: Str, path: Str) -> Result[Unit, Str]` | Download to a file on disk |
 
 All functions:
@@ -149,7 +149,7 @@ All functions:
 6. Extract HTTP status code via `curl_easy_getinfo(CURLINFO_RESPONSE_CODE)`
 7. Read response body and headers from temp files, clean up temp files
 8. Free the curl handle via `curl_easy_cleanup()`
-9. Return `Ok(HttpResponse)` or `Err(message)`
+9. Return `Ok(HttpClientResponse)` or `Err(message)`
 
 ### `xiom.http.client` (`src/client.xi`)
 
@@ -346,3 +346,58 @@ The modules documented above are the **implemented** surface of `xiom.http`: the
 The planned native server (`src/server.xi` beyond its current stub) will accept connections and dispatch requests through the router and middleware chain using **`xiom.net` (TCP, Layer 3.1)** as its transport -- not libcurl. libcurl remains exclusively the **client** transport. This keeps the server free of the libcurl dependency and allows platforms without libcurl to still run a server.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) -> "Current State vs Target" for the full implemented-vs-planned breakdown.
+
+---
+
+## Contracts (ensures-only pass, 2026-10-09)
+
+Runtime-checkable `ensures:` clauses added to `http.xi` (the package-root `xiom.http` module; compiler v0.64.1; no version bump): **38 clauses over 33 private helpers** (27 constant accessors + 6 string/response helpers). The five public entry points, the FFI helpers, and the two dead functions (`str_to_cstr_or_err`, `check_url`) are unchanged; no `requires:` clause was added.
+
+Z3-provable: **no** for every clause in this pass. No Z3 proof was attempted, and `xiom-verify` would be vacuous for the FFI-backed helpers here (the `extern "C"` functions have no bodies, so obligations over their results say nothing about the implementation). All clauses are runtime-checked.
+
+The 40-check `tests/test_conformance.xi` suite never imports the root module, so these clauses get no runtime exercise there. They are exercised by `tests/probe_root_module.xi`, a fast-fail `http_get("http://127.0.0.1:1/")` probe (closed port) that drives the helper chain `str_to_cstr -> setup_common_options -> perform_and_collect -> get_response_code -> read_file_to_str -> curl_error_string -> cstr_to_str -> byte_to_char -> char_to_str`. The probe links `tests/probe_bridge.c` because the v0.64.1 toolchain ships no FFI bridge symbols and no libcurl (see the probe header for the exact invocation).
+
+Two clauses were refined from the pre-plan because the pre-plan bound does not hold for this source: `cstr_to_str` and `read_file_to_str` guarantee `result.len() <= 196608`, not `<= 65536` -- each of the 65536 loop iterations can append a 3-character numeric string via `byte_to_char`/`char_to_str`.
+
+| Function | Clause(s) added | Z3-provable | Runtime-checked |
+|---|---|---|---|
+| `CURLOPT_URL` | `result == 10002` | no | yes |
+| `CURLOPT_FOLLOWLOCATION` | `result == 52` | no | yes |
+| `CURLOPT_TIMEOUT` | `result == 13` | no | yes |
+| `CURLOPT_CONNECTTIMEOUT` | `result == 78` | no | yes |
+| `CURLOPT_POST` | `result == 47` | no | yes |
+| `CURLOPT_POSTFIELDS` | `result == 10015` | no | yes |
+| `CURLOPT_POSTFIELDSIZE` | `result == 60` | no | yes |
+| `CURLOPT_CUSTOMREQUEST` | `result == 10036` | no | yes |
+| `CURLOPT_HTTPHEADER` | `result == 10023` | no | yes |
+| `CURLOPT_SSL_VERIFYPEER` | `result == 64` | no | yes |
+| `CURLOPT_SSL_VERIFYHOST` | `result == 81` | no | yes |
+| `CURLOPT_USERAGENT` | `result == 10018` | no | yes |
+| `CURLOPT_WRITEDATA` | `result == 10001` | no | yes |
+| `CURLOPT_HEADERDATA` | `result == 10029` | no | yes |
+| `CURLOPT_NOSIGNAL` | `result == 99` | no | yes |
+| `CURLOPT_FAILONERROR` | `result == 45` | no | yes |
+| `CURLOPT_ACCEPT_ENCODING` | `result == 10102` | no | yes |
+| `CURLOPT_TCP_KEEPALIVE` | `result == 213` | no | yes |
+| `CURLOPT_TCP_KEEPIDLE` | `result == 214` | no | yes |
+| `CURLOPT_TCP_KEEPINTVL` | `result == 215` | no | yes |
+| `CURLOPT_BUFFERSIZE` | `result == 98` | no | yes |
+| `CURLINFO_RESPONSE_CODE` | `result == 2097154` | no | yes |
+| `SEEK_SET` | `result == 0` | no | yes |
+| `SEEK_END` | `result == 2` | no | yes |
+| `BUF_SIZE` | `result == 65536` | no | yes |
+| `TEMP_BODY` | `result.len() == 20` | no | yes |
+| `TEMP_HEADERS` | `result.len() == 23` | no | yes |
+| `curl_error_string` | `result.len() > 0` | no | yes |
+| `cstr_to_str` | `result.len() <= 196608` | no | yes |
+| `byte_to_char` | `b == 0 => result.len() == 0`; `b == 9 \|\| b == 10 \|\| b == 13 \|\| b == 32 => result.len() == 1`; `b >= 33 && b <= 99 => result.len() == 2`; `b >= 100 && b <= 126 => result.len() == 3`; `b != 0 && b != 9 && b != 10 && b != 13 && b != 32 && (b < 33 \|\| b > 126) => result.len() == 1` | no | yes |
+| `char_to_str` | `result.len() >= 1` | no | yes |
+| `read_file_to_str` | `result.len() <= 196608` | no | yes |
+| `get_response_code` | `result >= 0`; `result <= 65535` | no | yes |
+
+Source-shape notes pinned by the clauses:
+
+- `byte_to_char`'s length clauses pin the CURRENT numeric-string behavior of `char_to_str` (`to_string(to_int_from_char(c))`): a printable byte renders as its decimal code ("65" for 'A'), not as the character. If `char_to_str` is ever fixed to emit the actual character, the `len() == 2` / `len() == 3` clauses flip to `== 1`.
+- The constant pins are inlined literals (no module constants in clauses); the value is checked each time the accessor runs, call site or not.
+- Memory-safety fixes in the same pass (behavior-preserving otherwise): the `setup_common_options` `p1` double-free was removed (the NOSIGNAL option gets its own allocation), and `http_download` now calls `remove(path_cstr)` before `xiom_free_cstr(path_cstr)` on both the perform-error and the non-2xx paths (previously remove-after-free). The probe bridge uses a real libc `free`, so the double-free removal is exercised at runtime.
+
