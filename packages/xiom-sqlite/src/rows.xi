@@ -69,7 +69,7 @@ pub fn count_rows(db: Int, sql: Str) -> Result[Int, SqliteError]
   return Ok(res.row_count());
 }
 
-// Map one column of the current row to a tagged SqliteValue. BLOBs are
+// Map one column of the current row to a SqliteValue. BLOBs are
 // surfaced as NULL for now (column_blob is a Phase-2 item; see ROADMAP.md).
 fn value_at(stmt: Int, col: Int) -> SqliteValue {
   let t = ffi.column_type(stmt, col);

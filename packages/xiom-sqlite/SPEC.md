@@ -5,14 +5,14 @@
 | Field | Value |
 |-------|-------|
 | Package | `xiom.sqlite` |
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | Kind | binding (`keywords: ["binding"]`) |
 | Upstream project | SQLite -- https://sqlite.org/ |
 | Upstream version | **3.53.4** (amalgamation build 3530400; `libversion_number` = 3053004) |
 | Upstream license | Public domain (blessing text in `vendor/LICENSE`) |
 | Package license | MIT OR Apache-2.0 (everything outside `vendor/`) |
 | Platform | Windows x64 (primary); no platform-specific XIOM code |
-| Compiler pin | xiom v0.64.0 |
+| Compiler pin | xiom v0.64.2 |
 
 ## 2. Vendored path (G2 pin)
 
@@ -102,15 +102,21 @@ first runs ~50 s).
 
 ## 5. Compiler findings pinned by this package (v0.64.0)
 
-These are documented in `docs/COMPILER-FINDINGS.md` by the native lane; the
-package is shaped to avoid them:
+History: 0.2.0 was shaped around these v0.64.0 findings; fixed items are
+restored, everything else stays avoided. Documented in
+`docs/COMPILER-FINDINGS.md` (native lane) and
+`docs/BINDINGS-COMPILER-FINDINGS.md` (lane detail):
 
-1. **Enum payload reads are nondeterministically miscompiled across builds.**
-   A user enum with payloads (`Integer(Int)`, `Text(Str)`, ...) produced
-   build-to-build flaky accessor results (11/16 vs 16/16 passes across
-   rebuilds of the identical source). `SqliteValue` therefore uses a tagged
-   struct with plain fields (see `src/types.xi`). This mirrors the existing
-   `xiom.graphql` enum-payload finding.
+1. **Enum payload reads were nondeterministically miscompiled across builds
+   (B-01; same class as the `xiom.graphql` finding).** FIXED on v0.64.2
+   (m231): the lane's repro produced 6/6 stable rebuilds and the native
+   matrix 3/3. 0.3.0 **restores the original model** -- `SqliteValue` wraps
+   `SqliteValueKind`, a user enum with payloads; accessors are match-based.
+   The 0.2.0 tagged struct was the workaround and has been retired.
+   Constructors and accessors are unchanged for callers; the obsolete
+   `VALUE_*` kind constants were removed with the struct. 0.3.0 validation:
+   16/16 across 6 fresh build cycles plus the pin matrix x1 (v0.64.2,
+   2026-10-09).
 2. **Const references inside confined `unsafe` blocks / large const chains
    can recurse the resolver** (`compiler stack overflow`, exit 0xC00000FD).
    `src/ffi.xi` uses numeric literals inside its confined functions and a

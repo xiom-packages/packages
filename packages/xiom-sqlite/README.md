@@ -4,8 +4,9 @@ SQLite bindings for XIOM. The official SQLite 3.53.4 amalgamation is vendored
 into `vendor/` (public domain) and compiled into the test binary with
 `--c-source` -- no system library, no runtime DLL.
 
-> **Status:** `incubating` -- conformance suite green on the pinned compiler
-> (xiom v0.64.0, 16/16 x6 build cycles); not yet in the publish allowlist.
+> **Status:** `incubating` -- conformance suite green on the pin (xiom
+> v0.64.2, 16/16 across the 0.3.0 enum-model restore build cycles; published
+> since `eco-v0.1.89`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start
@@ -35,7 +36,8 @@ fn main() {
 ```
 
 Always qualify API calls with the module prefix (`sqlite.open`, not `open`):
-unqualified `open`/`close` collide with `xiom.io` names on compiler v0.64.0.
+unqualified `open`/`close` collide with `xiom.io` names in a consumer catalog
+(stdlib collision).
 
 ## API surface
 
