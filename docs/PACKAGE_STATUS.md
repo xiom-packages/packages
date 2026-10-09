@@ -4,12 +4,12 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.1` -- generated 2026-10-09T15:14:43Z.
+Toolchain pin: `v0.64.1` -- generated 2026-10-09T15:41:24Z.
 
 ## Summary
 
-- packages tracked: 520
-- incubating: 239
+- packages tracked: 522
+- incubating: 241
 - ported: 1
 - stable: 280
 - publish enabled: 0
@@ -333,6 +333,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.bolt | xiom-bolt | incubating | tests/test_conformance.xi | pass 18/18 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.boosting | xiom-boosting | incubating | tests/test_conformance.xi | pass 20/20 | a3696e55 | False | publish pending: next scope delta |
 | xiom.box2d | xiom-box2d | incubating | tests/test_conformance.xi | unknown |  | False |  |
+| xiom.btree | xiom-btree | incubating | tests/test_conformance.xi | pass 22/22 | c78fe78a | False | new name: pending ops scope + native-lane allowlist append |
 | xiom.bullet | xiom-bullet | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.cache | xiom-cache | incubating | tests/test_conformance.xi | pass 26/26 | 23b01b82 | False | publish pending: next scope delta |
 | xiom.cancel | xiom-cancel | incubating | tests/test_conformance.xi | pass 24/24 | b3305ef6 | False | publish pending: next scope delta |
@@ -535,6 +536,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.video | xiom-video | incubating | tests/test_conformance.xi | pass 24/24 | e23f8e3a | False | publish pending: next scope delta |
 | xiom.vma | xiom-vma | incubating | tests/test_conformance.xi | unknown |  | False |  |
 | xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | pass 10/10 | 95757afa | False | publish pending: bindings batch 8 (eco-v0.1.100) |
+| xiom.wal | xiom-wal | incubating | tests/test_conformance.xi | pass 21/21 | 137a8200 | False | new name: pending ops scope + native-lane allowlist append |
 | xiom.wallet | xiom-wallet | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |
 | xiom.wasmtime | xiom-wasmtime | incubating | tests/test_conformance.xi | unknown |  | False | not allowlisted: declaration-only (no function bodies) |
 | xiom.web3 | xiom-web3 | incubating | tests/test_conformance.xi | pass 28/28 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |

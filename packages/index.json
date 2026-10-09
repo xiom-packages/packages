@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-09T18:14:41Z",
+    "updated":  "2026-10-09T18:41:21Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -851,6 +851,23 @@
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bson/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "bson.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.btree",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Pure-XIOM in-memory B-tree index: insert/search/delete with predecessor/successor replacement, underflow borrow/merge, inclusive range scans and in-order traversal over a flat append-only node array",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-btree/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "btree.xi",
                                               "package.xi"
                                           ]
                      },
@@ -8571,6 +8588,23 @@
                          "source_files":  [
                                               "package.xi",
                                               "vulkan.xi"
+                                          ]
+                     },
+                     {
+                         "version":  "0.1.0",
+                         "name":  "xiom.wal",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "Standalone write-ahead log: durable record shape + crash-proven disk segment (lsn|op|key|value|timestamp[|payload]) with torn-tail healing, replay, temp+rename truncate and in-memory LSN/checkpoint/recovery vocabulary",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-wal/v0.1.0/package.tar.gz",
+                         "source_files":  [
+                                              "wal.xi",
+                                              "package.xi"
                                           ]
                      },
                      {

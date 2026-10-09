@@ -199,3 +199,37 @@ query-pipeline, PRODUCTION-READINESS (no new package asks).
 **XVECTOR:** wishlist carries the packages-lane reply (names frozen, 156-check reference
 suite, no pure-XIOM SIMD planned, durable-WAL correction). No new asks; adoption of
 `xiom.metrics` at Phase 10 and kv gated on fsync as recorded.
+
+## 8. Extraction relay results 2026-10-09 -- `xiom.wal` + `xiom.btree` (native lane)
+
+**`xiom.wal` 0.1.0 extracted** (`packages/xiom-wal`, commit `137a8200`): durable's WAL
+vocabulary (types + names as-is) + ORBITDB's crash-proven disk layer, single module
+`xiom.wal` (487 lines). Native evidence: port **21/21 x2**; crash **x2 6/6** + 200-record
+soak (segment **3,081 B**, matching the ORBITDB reference); truncate smoke keep `lsn >= 15`
+-> 7; bracket scan clean. New compiler finding recorded
+(`io.read_file_lines` false-contract on empty reads; workaround adopted in `wal_replay`;
+`docs/COMPILER-FINDINGS.md`). Extraction is **additive**: `xiom.durable` is untouched;
+reconciliation stays the sequenced step (durable keeps `src/txn/*`, drops its `src/wal/*`
+at its own port and consumes `xiom.wal`).
+
+**`xiom.btree` 0.1.0 extracted** (`packages/xiom-btree`, commit `c78fe78a`): verbatim carve
+from ORBITDB `src/engine.xi` B-TREE section (only module/import-list changed; both existing
+`requires:` clauses kept), 616 lines. Native evidence: port **22/22 x2**; churn matrix
+orders **4/5/6 x 20k ops @ keyspace 4096 GREEN** (remaining=1355 each); bracket scan clean;
+pins in SPEC section 2.
+
+**NEW ORBITDB finding -- order-3 delete corrupts (relay + repro):**
+`min_keys = (order-2)/2 = 0` at order 3 permits 0-key/1-child non-root internal nodes; a
+later `fill_child` -> `merge_children` reads `children[pos+1]`/`keys[pos]` out of bounds
+(observed: materialized garbage key `-8070446941336389272`, then
+`MISMATCH search-missing op=69 key=4`). Repro:
+`packages/xiom-btree/tests/churn.ps1 -Order 3 -Ops 100 -N 16 -Seed 777` -> exit 3
+(confirmed native). The ORBITDB gate never ran order 3 (matrix 4/5/6), so this is new
+information: fix the merge guard upstream **or** restate the invariant as `order >= 4`.
+The package keeps the carve verbatim with the limitation documented (SPEC section 2.3,
+README, ROADMAP) and the suite scoped to orders 4/5 for deletes. Re-sync the carve after
+the upstream fix and re-expand the matrix to order 3.
+
+**Ops:** both names are new (`xiom.wal`, `xiom.btree` not in the allowlist; the guard
+ignores non-allowlisted names) -- scope enumeration + allowlist append (506 -> 508)
+requested from ops via the owner; publish only after the confirmation.

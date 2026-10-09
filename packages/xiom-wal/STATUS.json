@@ -1,0 +1,17 @@
+{
+    "package":  "xiom.wal",
+    "stage":  "incubating",
+    "compiler":  "v0.64.1",
+    "stdlib":  ">=0.60.0 <1.0.0",
+    "tests":  {
+                  "suite":  "tests/test_conformance.xi",
+                  "status":  "pass",
+                  "passed":  21,
+                  "failed":  0,
+                  "run_by":  "native-session",
+                  "commit":  "137a8200",
+                  "checked":  "2026-10-09T15:35:36Z"
+              },
+    "publish":  false,
+    "excluded_reason":  "new name: pending ops scope + native-lane allowlist append"
+}
