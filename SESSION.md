@@ -14,7 +14,15 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-09 12:45Z (batch #48 COMPLETE + PUBLISHED `eco-v0.1.112`; odbc publish pending ops; supersedes the 12:25Z block below):**
+**STATE AT 2026-10-09 13:05Z (bindings batch 16 PUBLISHED `eco-v0.1.113`; data/drivers sector complete; batch #49 dispatched; supersedes the 12:45Z block below):**
+- **Bindings batch 16 (`xiom.libpq` 0.2.0) PUBLISHED (`eco-v0.1.113`, run `37933741695`):**
+  merge `104bbfc4`; native SKIP-path 2/2 x2 (present 4/4 x2 per relay: libpq 13.11,
+  PQlibVersion 130011, closed-port CONNECTION_BAD + real error text; record `a1d55731`);
+  guard 505/478/27/0. **Data/drivers sector complete** (odbc pending ops + libpq live).
+  Next sector per the lane: **audio -- `xiom.miniaudio` first**.
+- **`xiom.odbc` still PUBLISH-PENDING OPS** (allowlist/scope 505 -> 506).
+- **Batch #49:** ~7 carriers left; six picked: coverage/sarif/pgp/meteorology/amqp/ldap
+  (pre-plan running; porters spawn on its return). `option` stays excluded.
 - **Batch #48 DONE + PUBLISHED (`eco-v0.1.112`, run `37930903155` SUCCESS; all six live):**
   `bonjour` 0.1.2 (34 clauses; 24/24; `d47ef5fc`), `tcx` 0.1.3 (28; 23/23; `a51f5b6b`),
   `orc` 0.1.2 (30; 33/33; `1909cc00`), `plist` 0.1.2 (33; 22/22; `bdad15f2`), `upnp` 0.1.2
