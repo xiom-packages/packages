@@ -14,7 +14,24 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-09 16:25Z (LIVE HANDOFF -- v0.64.2 REPINNED + matrix complete; the ops allowlist ask for `xiom.wal`/`xiom.btree` is the only open gate):**
+**STATE AT 2026-10-09 17:05Z (LIVE HANDOFF -- `xiom.http` 0.1.4 published; ops allowlist ask for `xiom.wal`/`xiom.btree` remains the only gate):**
+- **`xiom.http` 0.1.4 PUBLISHED (`eco-v0.1.120`, run `37962663088` SUCCESS):** next-touch fix pass --
+  printable ASCII now renders as real characters (`char_to_str`/`byte_to_char` in all copies;
+  clauses 38 -> 37; suite 40 -> 42) and variadic LONG options pass values, not heap pointers
+  (`make_long_value`; probe bridge faithful to libcurl's ABI). Native port **42/42 x2** + root
+  probe x2; porter's real-libcurl 8.22.0 proof: GET `example.com` 200, POST echo
+  `CL=5;READ=5;BODY=hello` (pre-fix POSTFIELDSIZE was address-sized). Commits `6649cb7f` (fix),
+  `65fffdf0` (record), `3f692856` (findings note), `90e2e043` (wrap). Live: sha256 `68f3073a...`,
+  published 16:57:47Z.
+- **Open flags for the next `xiom.http` touch:** `src/client.xi` + `src/demo.xi` carry pre-existing
+  `Result[HttpResponse, Str]` vs `Result[HttpClientResponse, Str]` T001 drift (dead modules; no
+  suite closure includes them).
+- **OPS ASK STILL PENDING (the only gate):** `xiom.wal` + `xiom.btree` scope enumeration + allowlist
+  append (**506 -> 508**). On confirmation: append + guard + wrap + tag + publish one eco batch.
+- v0.64.2 repin + matrix and the remaining compiler-side reds are in the 16:25Z block below.
+- Session tally: **36 eco releases** (`eco-v0.1.86` -> `eco-v0.1.120`).
+
+**STATE AT 2026-10-09 16:25Z (history -- superseded by the 17:05Z block above):**
 - **v0.64.2 shipped + repinned:** official `xiom-0.64.2-windows-x64.zip`, SHA256 `05d54f4b...`
   verified against the published SHA256SUMS; byte-identical `xiom.exe` deployed; `COMPILER_VERSION`
   bumped; repin **522 records**; validate **522/0**; guard **506/483/23/0** (commits `a2837e4e` +
