@@ -14,29 +14,23 @@ reference.
 | Link model | none at build time; runtime `xiom.ffi.dl`; no headers, nothing vendored |
 | FFI confinement | all `unsafe` in the root module `phonon.xi` (G5) |
 | Suite | `tests/test_conformance.xi` |
-| Runs | absent (default PATH): **PASS 3/3 x2** -- version/SIMD/status constants, deterministic SKIP classification, `probe: SKIP` (code 126) |
+| Runs | absent (default PATH): **PASS 3/3 x2**; **present 4/4 x2** (native lane, 2026-10-09) |
 
 ## Present-path status (honest record)
 
 The probe (context create -> retain -> balanced release) is implemented and
-ABI-verified against the exact v4.8.1 headers, but the **present path was not
-exercised locally** because no `phonon.dll` was available on this machine:
+ABI-verified against the exact v4.8.1 headers. The present path was **COMPLETED
+by the native lane on 2026-10-09** using follow-up option (a): fetched
+`steamaudio_4.8.1.zip` (181,171,027 bytes), extracted `lib/windows-x64/phonon.dll`,
+prepended its directory to PATH, and ran the suite twice:
 
-- The local SDK tree (`E:\repos\steam-audio`) ships sources + headers only;
-  Unity/Wwise integration binaries are gitignored (`.meta` stubs remain).
-- No DLL exists in system/game installs (searched System32, Program Files
-  incl. Steam common, Epic Games).
-- The official integration release zips (`steamaudio_wwise_4.8.1.zip`, 52MB,
-  downloaded and inspected) are **source + docs only**; the main SDK zip
-  (`steamaudio_4.8.1.zip`) is 181MB and was not fetched in this window.
-- A first-party core build (cmake) requires fetching flatbuffers, pffft,
-  zlib and mysofa and compiling the full C++ core -- deferred.
+- `[PASS] context: created (version 264193, simd level 0)` -- real Steam Audio
+  4.8.1 context via the dynamic loader;
+- `[PASS] context: retain/release balanced (handle released twice)`;
+- suite **PASS 4/4 x2** with no test changes.
 
-Follow-up options for the record: (a) fetch the 181MB SDK zip and use its
-`bin\windows-x64\phonon.dll`; (b) build `core` with cmake (VS 18 2026
-generator available); (c) run the suite on a host where a game/SDK provides
-`phonon.dll` on PATH. The suite needs no changes; the present checks activate
-automatically.
+Earlier gap for the record: the local SDK tree ships sources + headers only and
+the integration zips are source+docs; the main SDK zip supplied the DLL.
 
 ## Design notes
 
@@ -52,4 +46,3 @@ automatically.
 
 - HRTF/effects/scenes (~125-function surface) are Phase 2; the pilot covers
   identity + context lifecycle only.
-- Present-path evidence pending (see above).

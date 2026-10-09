@@ -6,12 +6,12 @@
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
                   "status":  "pass",
-                  "passed":  3,
+                  "passed":  4,
                   "failed":  0,
-                  "run_by":  "task:bindings-phonon (SKIP path x2; present pending)",
-                  "commit":  "0ea04009",
-                  "checked":  "2026-10-09T13:24:37Z"
+                  "run_by":  "native-session",
+                  "commit":  "eea795e9",
+                  "checked":  "2026-10-09T13:51:09Z"
               },
     "publish":  false,
-    "excluded_reason":  null
+    "excluded_reason":  "publish pending: bindings batch 19 (eco-v0.1.116)"
 }
