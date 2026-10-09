@@ -3,13 +3,12 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: MERGE READY -- BRANCH `bindings` (batch 21 + batch 22 + docs)** --
-`xiom.ffmpeg` 0.2.0 (relay head 224e5c49) and `xiom.sqlite` 0.3.0
-(B-01 workaround retired; 16/16 x6 fresh build cycles + pin matrix 19/19
-on the official v0.64.2) are queued for the native merge/verify/publish;
-batch 22's live-package bump publish is the native lane's call.
-Findings/consumer/wishlist docs ride along (no publish impact). Batch 20
-and earlier are published through `eco-v0.1.119`.
+**STATUS: BATCHES 21+22 PUBLISHED (`eco-v0.1.122`)** -- `xiom.ffmpeg` 0.2.0
+(sha256 392d8c41...) and `xiom.sqlite` 0.3.0 (sha256 eb835c48...) are live,
+native-verified and consumer-revalidated (scratch `XIOM_HOME`: sqlite PASS
+via the documented `--c-source` recipe, ffmpeg SKIP classification plain).
+Branch merged; main `96e249f2`. In-lane queue drained; accelerators stay
+gated on the `xiom.vectors` extraction.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
 
@@ -995,11 +994,9 @@ in this file, and any new compiler finding appended to
 
 ## Next (state at 2026-10-09, batch 22 pushed)
 
-- Batch 22 (`xiom.sqlite` 0.3.0, enum restore) is relayed and pushed:
-  waiting on the native lane (merge/verify + a publish decision for the
-  live-package bump). Batch 21 (`xiom.ffmpeg` 0.2.0) also awaits native
-  merge/verify/publish; batch 20 and earlier are published through
-  `eco-v0.1.119`.
+- Batches 21+22 are PUBLISHED (`eco-v0.1.122`, main `96e249f2`): ffmpeg
+  0.2.0 + sqlite 0.3.0 live, native-verified, consumer-revalidated on the
+  published artifacts. Nothing pending in-lane.
 - Pin matrix re-run done: 19/19 green on the official v0.64.2 pin. The
   B-01 workaround is retired; B-05/B-10 workarounds stay in force; B-08
   probing may trust exit codes from v0.64.2 on (port.ps1 keeps marker
@@ -1014,3 +1011,5 @@ in this file, and any new compiler finding appended to
   (accelerators stay gated on `xiom.vectors`). Registry consumer flow for
   the DB bindings validated end-to-end (sqlite `--c-source` recipe + libpq
   plain); batch-22 docs follow-up adds the sqlite README consumer section.
+  Revalidated on the published artifacts: sqlite 0.3.0 PASS, ffmpeg 0.2.0
+  SKIP, libpq 0.2.0 SKIP (scratch `XIOM_HOME`, checksums matched).

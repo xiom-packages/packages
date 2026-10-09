@@ -26,14 +26,15 @@ stable PULSE API (route code never calls a binding directly).
 
 | Ask | Bindings-lane answer | Status |
 |-----|----------------------|--------|
-| Durable database/KV client binding (SQLite/Postgres or similar) to back the event store and sessions beyond JSONL | **Available from the registry now**: `xiom.sqlite` 0.2.0 (signed; vendored SQLite 3.53.4 amalgamation, no external dependency; 0.3.0 enum restore pending batch 22), `xiom.libpq` 0.2.0 (signed; PostgreSQL client via `libpq.dll` at runtime, SKIP when absent) and `xiom.odbc` 0.2.0 (signed; ODBC driver manager, DSNs/drivers on the host, SKIP when absent). `xiom.sqlite` is the dependency-free embedded option | **SERVED** |
+| Durable database/KV client binding (SQLite/Postgres or similar) to back the event store and sessions beyond JSONL | **Available from the registry now**: `xiom.sqlite` 0.3.0 (signed, live; vendored SQLite 3.53.4 amalgamation, no external dependency; enum model restored), `xiom.libpq` 0.2.0 (signed; PostgreSQL client via `libpq.dll` at runtime, SKIP when absent) and `xiom.odbc` 0.2.0 (signed; ODBC driver manager, DSNs/drivers on the host, SKIP when absent). `xiom.sqlite` is the dependency-free embedded option | **SERVED** |
 | Optional outbound HTTP client binding (webhooks/proxying) | Not needed from this lane: `xiom.http` 0.1.4 ships the real-libcurl path (native-verified GET/POST). Revisit only if a standalone client package is wanted | NO ACTION (not needed yet) |
 | TLS as a binding | Acknowledged NOT a binding for PULSE (front proxy terminates TLS; app stays loopback plaintext). `xiom.openssl` 0.2.0 (signed; libcrypto dynamic loader) exists if that posture changes | ACK |
 | Wrap-behind-one-module consumption contract | Acknowledged; matches the lane's design (typed safe facade, all `unsafe` confined to one module; SKIP-when-absent classification keeps CI green without the native library) | ACK |
 
 **Consumer flow -- VERIFIED end-to-end 2026-10-09** (scratch `XIOM_HOME`,
 compiler v0.64.2, registry installs checksum+signature-verified):
-- `xiom.sqlite` 0.2.0 (vendored C): `xiom pkg install xiom.sqlite@0.2.0`,
+- `xiom.sqlite` 0.3.0 (vendored C; 0.2.0 verified first, 0.3.0 revalidated
+  on the published artifact 2026-10-09): `xiom pkg install xiom.sqlite@0.3.0`,
   declare `"xiom.sqlite" = "0.2.0"` in `xiom.toml` `[dependencies]` (module
   resolves automatically, no `source-roots`), then build with the installed
   amalgamation:
@@ -45,6 +46,9 @@ compiler v0.64.2, registry installs checksum+signature-verified):
 - `xiom.libpq` 0.2.0 (pure XIOM): same install + `[dependencies]`, plain
   `xiom --run` -- no C step; consumer probe green (SKIP classification when
   no `libpq.dll` is on PATH). `xiom.odbc` shares that shape.
+- `xiom.ffmpeg` 0.2.0 (pure XIOM, published in the same `eco-v0.1.122`
+  batch): plain flow; consumer probe green with the SKIP classification
+  (no FFmpeg DLLs on PATH).
 
 ## 2. ORBITDB -- no bindings asks
 
@@ -82,7 +86,8 @@ v0.64.2. Accelerators remain the one unscheduled sector, behind the
   fix (compiler/package lanes): apply a dependency's `port.args.json` build
   args when compiling a consumer, or expose a `xiom pkg` helper that prints
   them. Until then the README recipe is the workaround (satisfies PULSE's
-  consumer-snippet convention).
+  consumer-snippet convention). The gap is folded into the shared
+  `docs/COMPILER-FINDINGS.md` (native `f4a40f40`).
 - **fsync**: the ORBITDB/XVECTOR durable-store gates are the stdlib
   `fsync` row (filed in their own stdlib wishlists); not a bindings ask,
   noted for routing.
