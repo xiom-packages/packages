@@ -116,3 +116,42 @@ Observed on v0.64.0/v0.64.1: program output printed, `exit code: 0` (the
 program's code was masked). Observed on v0.64.2 (2026-10-09): prints
 `exit code: 5` and the compiler exits 5 (m228); `$LASTEXITCODE` equals the
 program's code.
+
+## ffi-alias-shadow -- STILL BROKEN on v0.64.2 (B-07)
+
+Single file: a module whose own name ends with the imported stdlib alias
+(`module probe.ffi` + `use xiom.ffi;`).
+
+```
+xiom --run probe.xi
+```
+
+Observed on v0.64.2 (2026-10-09): `error[T001]: undefined variable
+'c_strlen'` even though the import line is present -- the alias
+self-collision persists.
+
+## child-import-parent -- GREEN on v0.64.2 (B-04)
+
+Package: `src/child.xi` does `use probe.parent;` and calls the parent's pub
+function unqualified.
+
+```
+xiom --run tests/probe.xi
+```
+
+Observed on v0.64.2 (2026-10-09): `b04: child imported parent, value=42`.
+The original v0.64.0 failure was in the pre-fix full catalog; the sibling
+layout guidance stays (B-04 remains a structural note).
+
+## const-alias -- GREEN on v0.64.2 (B-03)
+
+Package: `src/facade.xi` declares `pub const FACADE_VALUE: Int =
+leaf.LEAF_VALUE;` and the suite references it.
+
+```
+xiom --run tests/probe.xi
+```
+
+Observed on v0.64.2 (2026-10-09): `b03: alias const resolved, value=7`.
+Small catalogs were green on v0.64.0 too; the original stack overflow needed
+the large pre-fix `xiom.sqlite` catalog (no live trigger today).

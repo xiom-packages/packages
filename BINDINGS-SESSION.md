@@ -688,8 +688,12 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   watchdog (8.7 CPU-s, flat 4.5 MB); B-10 3-way scratch control
   (`f_alloc`/`my_alloc` green, `alloc` fail); B-06/B-09 green.
 - Matrix: 19/19 suites x1; no new compiler findings from the sweep.
-- Workaround retirement: B-01 (sqlite tagged-struct) droppable at the
-  official repin; B-05/B-10 workarounds stay; B-06/B-09 bridge/naming
+- Minimal-shape follow-ups (2026-10-09): B-03 + B-04 GREEN, B-07 STILL
+  BROKEN (`undefined variable` in a `module ...ffi` + `use xiom.ffi;` shape);
+  bundles committed under `docs/repro/bindings-pilot/` (const-alias,
+  child-import-parent, ffi-alias-shadow); B-02 not re-tested (no trigger).
+- Workaround retirement: B-01 (sqlite tagged-struct) RETIRED in `xiom.sqlite`
+  0.3.0; B-05/B-10 workarounds stay; B-06/B-09 bridge/naming
   workarounds are optional-touch only (no drive-by reverts).
 
 ## Batch 21 notes (xiom.ffmpeg, 2026-10-09)
