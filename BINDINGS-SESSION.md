@@ -11,7 +11,8 @@ publish; batch 20 (`xiom.openssl`) published (`eco-v0.1.119`).
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
 
 ```
-BINDINGS SWEEP v0.64.2: head=224e5c49 + this handoff commit; compiler=v0.64.2 (repo-release,
+BINDINGS SWEEP v0.64.2: head=224e5c49 + this handoff commit; compiler=v0.64.2 (port.ps1 matrix used
+the installed slot %LOCALAPPDATA%\xiom.new; direct probes used the repo-release build
 E:\xiom-lang\xiom\target\release; repo pin still v0.64.1 -- native repin pending); matrix=19/19
 binding suites green x1 via port.ps1 (sqlite 16, zstd 8, lzfse 7, ozz 4, miniaudio 4, sdl3 21,
 glfw 3, raylib 3, opengl 13, vulkan 10, dxc 3, directx11 5, directx12 5, libpq 2, odbc 5,
@@ -647,9 +648,11 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 
 ## v0.64.2 sweep notes (2026-10-09)
 
-- Toolchain: repo-release v0.64.2 at `E:\xiom-lang\xiom\target\release`
-  (resolved by `scripts/xiom.ps1`); repo pin still v0.64.1 -- the native
-  repin is pending. The old `%LOCALAPPDATA%\xiom.new` slot is gone.
+- Toolchain: v0.64.2 -- the installed slot `%LOCALAPPDATA%\xiom.new`
+  (used by `port.ps1`) plus the repo-release build
+  `E:\xiom-lang\xiom\target\release` (used by the direct repro probes);
+  repo pin still v0.64.1 -- the native repin is pending. The old
+  `%LOCALAPPDATA%\xiom.new` slot has been replaced by the shipped release.
 - Repro batteries: B-01 6/6 all-true rebuilds (was 2/6 bad); B-08 compiler
   exits 5 for a program returning 5; B-05 spin reproduced under the 10 s
   watchdog (8.7 CPU-s, flat 4.5 MB); B-10 3-way scratch control
