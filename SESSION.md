@@ -29,7 +29,8 @@ running). Check `git log -1 --format=%h %s` before starting.
     dependency's shipped `port.args.json` -- vendored-C deps need explicit `--c-source`
     (consumer-verified; fix suggested in `docs/BINDINGS-PACKAGE-WISHLIST.md` section 4).
 - **No open packages-side gate.** Next: XVECTOR `xiom.vectors` **OWNER GREENLIGHT** (then
-  `xiom.ann`); ORBITDB order-3 btree re-sync; `xiom.durable` reconciliation; bindings
+  `xiom.ann`; porter brief already staged at `%TEMP%\kilo\vectors-extraction-porter-brief.md`);
+  ORBITDB order-3 btree re-sync; `xiom.durable` reconciliation; bindings
   crypto/media continues under the approved ffmpeg system-lib SKIP-only decision.
 - Session tally: **38 eco releases** (`eco-v0.1.86` -> `eco-v0.1.122`).
 
