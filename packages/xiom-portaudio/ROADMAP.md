@@ -1,35 +1,35 @@
-# xiom.portaudio -- ROADMAP
+# xiom.portaudio -- Roadmap
 
-**Module**: `xiom.portaudio`
-**Phase**: 5 (Nice-to-Have)
-**Status**: Implemented (Phase 1)
+**Version**: v0.2.0 | **Compiler**: xiom v0.64.1 | **Last updated**: 2026-10-09
 
-## Completed
+## Current state
 
-- [x] `portaudio.xi` -- full FFI `extern "C"` block (25 PortAudio C functions declared)
-- [x] `pub type PaStream = Int` -- opaque stream handle
-- [x] 9 sample format constants (`FORMAT_FLOAT32`..`FORMAT_NONINTERLEAVED`)
-- [x] 30 error code constants (`NO_ERROR`..`BAD_BUFFER_PTR`, matching PortAudio defines)
-- [x] 5 stream flag constants (`NO_FLAG`, `CLIP_OFF`, `DITHER_OFF`, `NEVER_DROP_INPUT`, `PRIME_OUTPUT_BUFFERS_USING_STREAM_CALLBACK`)
-- [x] 21 safe wrapper functions with `requires` contracts
-- [x] `tests/test_conformance.xi` -- 38 conformance tests across 10 sections
-- [x] Lifecycle coverage: init/terminate, device query, stream open/start/stop/close/abort
-- [x] I/O coverage: write stream, read stream
-- [x] Diagnostics: stream info, stream time, CPU load, error text, version
-- [x] Utility: sleep
+| Criterion | Status |
+|-----------|--------|
+| Dynamic loader (no link dependency) | Done -- `portaudio_x64.dll` at runtime |
+| G2 pin (soname + entry points + struct prefix) | Done -- `SPEC.md` §2 |
+| Version probe (int + text) | Done -- V19.7.0 (int 1246976) |
+| Device enumeration + default names | Done -- 52 devices, Realtek/Razer defaults |
+| SKIP/FAIL classification | Done |
+| Streams (`Pa_OpenStream`/`Pa_StartStream`) | Phase 2 |
+| Callbacks + buffering | Phase 2 |
+| Host-API info (`Pa_GetHostApiInfo`) | Phase 2 |
+| MSYS2/POSIX sonames | Phase 2 |
 
-## Planned (Phase 2)
+## Phase 2 (next touches)
 
-- [ ] C bridge (`xiom_portaudio_bridge`) -- native `.c`/`.dll` linking the PortAudio shared library
-- [ ] `Vec[Float32]` buffer marshaling for `write_stream` / `read_stream`
-- [ ] `package.xi` manifest
-- [ ] `StreamParams` config struct (device, channel count, sample format, suggested latency, host API)
-- [ ] `DeviceInfo` struct wrapper (name, max channels, default sample rate, host API)
-- [ ] Stream callback support (XIOM closure -> C function pointer)
-- [ ] Blocking I/O integration tests with actual audio hardware
+1. Streams: `pa_open_stream`/`pa_start`/`pa_stop`/`pa_close_stream` with
+   `PaStreamParameters` built in a byte layout (device/channels/format/
+   latency); a short playback or loopback smoke, device-gated SKIP.
+2. Host-API layer: `Pa_GetHostApiCount`/`Pa_GetHostApiInfo`/
+   `Pa_HostApiDeviceIndexToDeviceIndex` for WASAPI/WDMKS/MME/ASIO visibility.
+3. Callback API: function-pointer callback support (unsafe, confined to the
+   module) with an XIOM-side ring buffer.
+4. Device info surface: full `PaDeviceInfo` fields (channels, latencies,
+   default sample rate) via offset reads with a documented struct pin.
+5. SONAME variants: `libportaudio-2.dll` (MSYS2) and POSIX `libportaudio.so`.
 
-## Dependencies
+## Sector note
 
-- `xiom.ffi` -- extern "C" linkage
-- `xiom.test` -- test framework
-- `xiom.io` -- I/O for test output
+Audio sector, package 2 of 3 (`xiom.miniaudio` done, `xiom.portaudio` this
+package; `xiom.phonon` next).
