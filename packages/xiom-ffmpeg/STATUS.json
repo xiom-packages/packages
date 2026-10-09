@@ -5,12 +5,12 @@
     "stdlib":  ">=0.60.0 <1.0.0",
     "tests":  {
                   "suite":  "tests/test_conformance.xi",
-                  "status":  "unknown",
-                  "passed":  null,
-                  "failed":  null,
-                  "run_by":  null,
-                  "commit":  null,
-                  "checked":  null
+                  "status":  "pass",
+                  "passed":  4,
+                  "failed":  0,
+                  "run_by":  "task:bindings-ffmpeg",
+                  "commit":  "856a6f7b",
+                  "checked":  "2026-10-09T15:37:02Z"
               },
     "publish":  false,
     "excluded_reason":  null
