@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-09T19:55:32Z",
+    "updated":  "2026-10-09T21:01:56Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -2345,17 +2345,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.ffmpeg",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "FFmpeg -- audio/video codec library (libavcodec, libavformat, libavutil).",
+                         "description":  "FFmpeg (libavcodec/libavformat/libavutil/libswresample) bindings for XIOM via dynamic loader (system-library SKIP path; LGPL-safe probe)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ffmpeg/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ffmpeg/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "ffmpeg.xi",
                                               "package.xi"
@@ -7370,7 +7370,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.2.0",
+                         "version":  "0.3.0",
                          "name":  "xiom.sqlite",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "SQLite bindings for XIOM (vendored amalgamation 3.53.4)",
@@ -7380,7 +7380,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sqlite/v0.2.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sqlite/v0.3.0/package.tar.gz",
                          "source_files":  [
                                               "ffi.xi",
                                               "migration.xi",
