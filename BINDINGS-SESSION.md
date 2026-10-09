@@ -3,13 +3,35 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 23 RELAYED (merge-ready)** -- `xiom.box2d` 0.2.0 (vendored
-v3.1.1 C; 5/5 x2) and `xiom.imgui` 0.2.0 (vendored v1.92.9b headless; 4/4
-x2); `xiom.jolt` is pinned + generator-validated but blocked on a link-line
-C++ standard passthrough (ask relayed); batches 21+22 are PUBLISHED
-(`eco-v0.1.122`). Nothing else pending in-lane.
+**STATUS: BATCH 24 RELAYED (merge-ready)** -- `xiom.vma` 0.2.0 (vendored VMA
+v3.4.0 + pinned Vulkan-Headers core; live RTX 3070 Ti probe 5/5 x2) with
+finding **B-11** recorded (Vulkan-heavy calls recycle out-param slot memory;
+packed-return workaround shipped; repro bundle committed). Batches 21-23 are
+published (`eco-v0.1.122`/`123`); `xiom.jolt` still waits on the C++
+standard flag.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 24: head=db7cb594 + this handoff commit; packages=xiom.vma 0.2.0
+(vendored VMA v3.4.0 header + pinned Vulkan-Headers vulkan-sdk-1.4.350.0 core replacing the
+pre-pilot static-extern module; the only compiled TU is our bridge with VMA_IMPLEMENTATION;
+the loader vulkan-1.dll is dlopen'd -- no SDK, no import library); tests=5/5 x2 (bogus-module
+SKIP classification; live probe: heaps=3, 65536-byte host-visible allocation, mapped pattern
+write/read-back verified); licenses=MIT (VMA) + Apache-2.0/MIT (Vulkan-Headers), nothing else
+vendored + package MIT OR Apache-2.0; pins=VMA tarball sha256 822AA850... + Vulkan-Headers
+tarball sha256 70270D10... + per-file table (vulkan_core.h matches the xiom.vulkan pin
+6D2BA475...); one documented vendored rewrite (vk_mem_alloc.h: <vulkan/vulkan.h> ->
+"vulkan/vulkan.h"); gate=G0..G5 OK; needs=NONE (grandfathered/allowlisted); port.args.json
+present (one --c-source TU).
+FINDING B-11 (NEW; runtime lane): out-param slot memory written by a Vulkan-heavy C call is
+recycled before XIOM reads it (C volatile readback shows the correct value at return; XIOM
+reads 0; byte vs u32 reads can disagree within one call; sentinels destroyed; only the
+device+VMA+map sequence reproduces -- trivial/malloc/loader/instance-only variants are clean).
+Workaround shipped: packed scalar returns (vmaprobe_run_packed). Repro bundle:
+docs/repro/bindings-pilot/vulkan-slot-recycle/. Runtime lead: process-wide VEH + guard-arena
+discard vs the NVIDIA loader (driver threads / internal SEH).
+```
 
 ```
 BINDINGS BATCH 23: head=2b3f4a66 + this handoff commit; packages=xiom.box2d 0.2.0 +
@@ -682,6 +704,24 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
 
+## Batch 24 notes (xiom.vma + finding B-11, 2026-10-09)
+
+- `xiom.vma` 0.2.0: vendored header-only path; the bridge is the only TU;
+  the loader is dlopen'd; the probe drives a real device -> VMA allocator ->
+  64 KiB host-visible buffer -> mapped pattern -> cleanup. 5/5 x2 on the
+  RTX 3070 Ti; the SKIP path is deterministic via a bogus module name.
+- **Finding B-11 (new, runtime lane)**: while wiring the probe, out-param
+  slots written by the Vulkan-heavy call were recycled before the caller
+  could read them (C's own volatile readback: 65536 at return; XIOM read: 0;
+  one run showed byte reads `[0,49,50,51]` beside a u32 read of 0). Bisect:
+  trivial / malloc-churn / loader-only / instance-only variants clean; the
+  device+VMA+map sequence reproduces every run. Shipped workaround: packed
+  scalar returns. Row in `docs/BINDINGS-COMPILER-FINDINGS.md` + repro bundle;
+  runtime lead: process-wide VEH + wholesale guard-arena discard vs NVIDIA
+  driver threads/SEH.
+- Pin: VMA v3.4.0 (MIT) + Vulkan-Headers vulkan-sdk-1.4.350.0 (Apache-2.0);
+  the one-line vendored rewrite is documented in SPEC §2.
+
 ## Batch 23 notes (physics + UI roster, 2026-10-09)
 
 - `xiom.box2d` 0.2.0: vendored v3.1.1 C via the flat layout (35 sources +
@@ -1034,17 +1074,17 @@ in this file, and any new compiler finding appended to
 
 ## Next (state at 2026-10-09, batch 23 pushed)
 
-- Batch 23 (`xiom.box2d` 0.2.0 + `xiom.imgui` 0.2.0) is relayed and pushed:
-  waiting on the native merge/verify/publish. Batches 21+22 are PUBLISHED
-  (`eco-v0.1.122`, main `96e249f2`); `xiom.jolt` v5.6.0 is pinned + its
-  generator validated but blocked on the link-line C++ standard passthrough
-  ask (see the batch-23 relay).
+- Batch 24 (`xiom.vma` 0.2.0) is relayed and pushed: waiting on the native
+  merge/verify/publish. Batches 21-23 are PUBLISHED
+  (`eco-v0.1.122`/`eco-v0.1.123`); `xiom.jolt` v5.6.0 stays blocked on the
+  link-line C++ standard passthrough; finding B-11 (slot recycle on
+  Vulkan-heavy calls) is relayed with a repro bundle + workaround.
 - Pin matrix re-run done: 19/19 green on the official v0.64.2 pin. The
   B-01 workaround is retired; B-05/B-10 workarounds stay in force; B-08
   probing may trust exit codes from v0.64.2 on (port.ps1 keeps marker
   counting for older pins).
-- Physics/UI roster: `box2d` + `imgui` done (batch 23); `jolt` blocked on
-  the standard flag; `assimp`/`vma` and the heavy runtimes
+- Roster: `box2d` + `imgui` (batch 23) and `vma` (batch 24) done; `jolt`
+  blocked on the standard flag; `assimp` + `cuda` and the heavy runtimes
   (`xiom.onnx`/`xiom.opencv`) remain -- heavy runtimes need the native
   lane's go-ahead (last per the sector order, separate decision),
   accelerators stay GATED on XVECTOR freezing `xiom.vectors`.
