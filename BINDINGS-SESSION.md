@@ -3,12 +3,28 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: V0.64.2 SWEEP DONE + BATCH 21 RELAYED** -- all 19 binding suites
-green x1 on v0.64.2 (repo-release): B-01 + B-08 FIXED, B-06/B-09 stay fixed,
-B-05 + B-10 still open; batch 21 (`xiom.ffmpeg` 0.2.0) awaits merge/verify/
-publish; batch 20 (`xiom.openssl`) published (`eco-v0.1.119`).
+**STATUS: BATCH 22 RELAYED + PIN MATRIX 19/19** -- `xiom.sqlite` 0.3.0
+restores the enum model (B-01 workaround retired; 16/16 x6 fresh build
+cycles + pin matrix x1 on the official v0.64.2 pin); batch 21
+(`xiom.ffmpeg` 0.2.0) awaits native merge/verify/publish; batch 20 and
+earlier are published through `eco-v0.1.119`.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 22: head=4e4d556a + this handoff commit; packages=xiom.sqlite 0.3.0
+(B-01 workaround RETIRED: `SqliteValue` wraps the restored user enum `SqliteValueKind`
+with payloads; same constructors/accessors for callers; obsolete `VALUE_*` constants
+removed -- public type representation changed); tests=16/16 x6 fresh build cycles (the
+B-01 signature was build-dependent; 2/6 bad on v0.64.0/v0.64.1) + full pin matrix x1
+19/19 green on the official v0.64.2 (sqlite 16, zstd 8, lzfse 7, ozz 4, miniaudio 4,
+sdl3 21, glfw 3, raylib 3, opengl 13, vulkan 10, dxc 3, directx11 5, directx12 5,
+libpq 2, odbc 5, portaudio 2, phonon 3, openssl 4, ffmpeg 2); licenses=vendored SQLite
+3.53.4 public domain + package MIT OR Apache-2.0 (unchanged); pins=SQLite amalgamation
+hashes unchanged (SPEC §2) + compiler pin v0.64.2; gate=G0..G5 OK; needs=NONE
+(allowlisted); NO port.args.json change. NOTE: 0.2.0 -> 0.3.0 bump of a live package --
+publish is the native lane's call.
+```
 
 ```
 BINDINGS SWEEP v0.64.2: head=224e5c49 + this handoff commit; compiler=v0.64.2 (port.ps1 matrix used
@@ -646,6 +662,20 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
 
+## Batch 22 notes (xiom.sqlite enum restore, 2026-10-09)
+
+- B-01 workaround retired at the repin per the native rule ("droppable at
+  the next touch"): `types.xi` restores the canonical enum model from the
+  repro bundle (struct wrapping `SqliteValueKind`); `rows.xi` needed only a
+  comment fix (constructors unchanged); `kind_name` kept (match-based).
+- Validation: 6 fresh rebuild cycles (the defect was build-dependent;
+  original evidence 2/6 bad) + the pin matrix x1 -- 16/16 each time.
+- Docs updated: SPEC §1/§5 (0.3.0, v0.64.2 pin, item 1 rewritten as
+  FIXED+restored), README status, AUDIT design note; obsolete `VALUE_*`
+  constants removed with the struct.
+- Version 0.3.0 (public type representation changed); the publish decision
+  is the native lane's.
+
 ## v0.64.2 sweep notes (2026-10-09)
 
 - Toolchain: v0.64.2 -- the installed slot `%LOCALAPPDATA%\xiom.new`
@@ -930,15 +960,17 @@ Each package keeps: G0-G5 gates, green x2 through `port.ps1`, a relay block
 in this file, and any new compiler finding appended to
 `docs/BINDINGS-COMPILER-FINDINGS.md` with a bounded repro.
 
-## Next (state at 2026-10-09, batch 21 + v0.64.2 sweep pushed)
+## Next (state at 2026-10-09, batch 22 pushed)
 
-- Batch 21 (`xiom.ffmpeg` 0.2.0) is relayed and pushed to `origin/bindings`:
-  waiting on the native merge/verify/publish. Batch 20 (`xiom.openssl`) is
-  PUBLISHED (`eco-v0.1.119`).
-- **v0.64.2 sweep done** (repo-release): matrix 19/19 green; B-01 + B-08
-  FIXED (m231/m228), B-06/B-09 stay fixed, B-05 + B-10 still open. On the
-  native repin (official archive install): re-run the matrix on the pin and
-  retire the sqlite enum workaround (B-01); B-05/B-10 workarounds stay.
+- Batch 22 (`xiom.sqlite` 0.3.0, enum restore) is relayed and pushed:
+  waiting on the native lane (merge/verify + a publish decision for the
+  live-package bump). Batch 21 (`xiom.ffmpeg` 0.2.0) also awaits native
+  merge/verify/publish; batch 20 and earlier are published through
+  `eco-v0.1.119`.
+- Pin matrix re-run done: 19/19 green on the official v0.64.2 pin. The
+  B-01 workaround is retired; B-05/B-10 workarounds stay in force; B-08
+  probing may trust exit codes from v0.64.2 on (port.ps1 keeps marker
+  counting for older pins).
 - The approved binding-sector queue is drained: heavy runtimes
   (`xiom.onnx`/`xiom.opencv`) need the native lane's go-ahead (last per the
   sector order, separate decision), accelerators stay GATED on XVECTOR
