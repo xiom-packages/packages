@@ -1,5 +1,7 @@
 # xiom.multicast -- Specification
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 Copyright (c) 2026 Eleftherios Notas and The XIOM Authors.
 SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -444,3 +446,49 @@ The implementation follows the traps observed on the pinned compiler:
   byte-offset error messages.
 - Every parallel vector is pushed in the same order in all phases and
   every accessor guards each vector's length before reading.
+
+## Contracts (batch #48 hardening pass, 2026-10-09)
+
+Runtime-checkable `ensures:` clauses (37, across the 15 functions below) were
+added to `src/multicast.xi` in the batch #48 hardening pass (compiler
+v0.64.1; `package.xi` is left for the coordinator to bump at integration).
+All are `ensures:` with no `requires:`, so the accepted-input domain is
+unchanged. Every clause is enforced as a runtime check; the 18-check
+conformance suite exercises the contracted entry points and no clause
+trapped, so none was dropped. Three consecutive green
+`& .\scripts\port.ps1 -Package xiom.multicast -TimeoutSec 90` runs ended
+`port: PASS (passed=18 failed=0 program_exit=0 exit=0)` with the clauses
+active (14.89 s and 16.06 s timed; one earlier untimed run also green). A
+byte-level scan of every package file found 0 hits for the five forbidden
+angle-bracket patterns. None is claimed Z3-provable:
+`xiom-verify` was not run for this module, and per the batch #37 finding a
+bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable column is
+"no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str`, uses a module constant,
+reads a `&mut` parameter, or uses `Result` equality / `is Ok(<literal>)`
+(tag guard pairs only). The single cross-call (`igmp_checksum` in
+`igmp_checksum_valid`'s first clause) is definitional and non-re-entrant.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `igmp_checksum` | 1 | result in 0..65535 | no | yes |
+| `igmp_checksum_valid` | 2 | mirrors `igmp_checksum(data) == 0`; empty input => false | no | yes |
+| `icmpv6_checksum` | 2 | non-16-byte address => -1; both addresses 16 bytes => result in 0..65535 | no | yes |
+| `igmp_max_resp_ms` | 3 | code outside 0..255 => -1; code < 128 => `code * 100`; code 128..255 => positive | no | yes |
+| `igmp_qqic_seconds` | 2 | code outside 0..255 => -1; code < 128 => `code` | no | yes |
+| `mld_max_resp_ms` | 2 | code outside 0..65535 => -1; code < 32768 => `code` | no | yes |
+| `igmp_qrv_effective` | 2 | raw 0 => 2; otherwise the raw value | no | yes |
+| `igmp_is_multicast` | 2 | result mirrors the 3758096384..4026531839 (224.0.0.0/4) range | no | yes |
+| `mld_is_multicast` | 2 | result => address is exactly 16 bytes | no | yes |
+| `igmp_parse` | 2 | under 8 bytes => `Err`; `Ok` => at least 8 bytes | no | yes |
+| `igmp_query_variant` | 5 | exhaustive variant mapping from `msg_type`/`source_count`/`group` (0/1/2, -1 malformed) | no | yes |
+| `igmp_source_at` | 4 | out-of-range `k` => -1; offset/span guards => -1; non-(-1) requires in-range `k` and an in-bounds span | no | yes |
+| `igmp_record_type` | 3 | out-of-range `i` => -1; non-(-1) => `i` in `rec_types` range | no | yes |
+| `igmp_build_query_v2` | 3 | out-of-range group/max resp => `Err`; `Ok` => both in range | no | yes |
+| `mld_parse` | 2 | under 8 bytes => `Err`; `Ok` => at least 8 bytes | no | yes |
+
+Planned skips from the batch #48 clause plan (no clauses attempted, not
+drops): `igmp_record_source_at` (byte-mirror of `igmp_source_at`) and
+`igmp_message_name` / `mld_message_name` (low-signal length-only guards).
