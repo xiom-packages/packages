@@ -1,54 +1,37 @@
-# xiom.openssl -- ROADMAP
+# xiom.openssl -- Roadmap
 
-**Phase**: 4 (Enterprise) | **Priority**: Medium  
-**Status**: SPEC implemented, pending runtime integration  
-**Last updated**: 2026-07-21
+**Version**: v0.2.0 | **Compiler**: xiom v0.64.1 | **Last updated**: 2026-10-09
 
-## Implemented (v0.1)
+## Current state
 
-- [x] `openssl.xi` -- core module `xiom.openssl`
-  - [x] Opaque types: `SslContext`, `SslConnection`, `SslBio` (all `Int`)
-  - [x] Error type: `SslError { code: Int; message: Str }`
-  - [x] extern "C" block: 20 OpenSSL functions declared
-    - libssl: SSL_library_init, SSL_load_error_strings, TLS_client_method, SSL_CTX_new, SSL_CTX_free, SSL_new, SSL_set_fd, SSL_set_bio, SSL_connect, SSL_accept, SSL_shutdown, SSL_free, SSL_read, SSL_write
-    - libcrypto/BIO: BIO_new_connect, BIO_read, BIO_write, BIO_free
-    - libcrypto/err: ERR_get_error, ERR_error_string
-    - libcrypto/hash: SHA256, EVP_MD_CTX_new
-  - [x] Safe wrappers with contract clauses (`requires`, `ensures`):
-    - `init()`, `ctx_new(method)`, `ctx_new_client()`
-    - `connect(ctx, host, port)`, `accept(ctx, fd)`
-    - `read(ssl, buf)`, `write(ssl, data)`
-    - `ssl_shutdown(ssl)`, `ssl_free(ssl)`, `ctx_free(ctx)`
-    - `get_error_code()`, `get_error_string(error_code)`
-    - `sha256(data)`, `evp_md_ctx_new()`
-    - `bio_new_connect(host, port)`, `bio_read(bio, buf)`, `bio_write(bio, data)`, `bio_free(bio)`
-- [x] `tests/test_conformance.xi` -- 21 structural tests
-  - 5 type-identity tests
-  - 15 contract-clause-verification tests
-  - 1 error-construction test
-  - Runner: `run_conformance()`
+| Criterion | Status |
+|-----------|--------|
+| Dynamic multi-soname loader | Done -- 3.x / 1.1.x / unversioned |
+| G2 pin (candidates + entry points + samples) | Done -- `SPEC.md` §3 |
+| Version string/number | Done -- OpenSSL 3.2.4 / LibreSSL 3.8.2 proven |
+| SHA-256 functional proof | Done -- exact digest match |
+| CSPRNG (`RAND_bytes`) | Done |
+| EVP digests/ciphers | Phase 2 |
+| TLS contexts/BIOs (`libssl`) | Phase 2 |
+| Certificates (X509) | Phase 2 |
+| Secure memory (`OPENSSL_cleanse`, CRYPTO_secure_malloc) | Phase 2 |
 
-## Pending
+## Phase 2 (next touches)
 
-- [ ] **Runtime linking**: Wire `xiom.openssl` against system `libssl.so`/`libcrypto.so` (Linux), `libssl.dylib` (macOS), or `libssl-3-x64.dll` (Windows)
-- [ ] **Integration tests**: Real TLS handshake against a test server (requires runtime)
-- [ ] **Server mode**: `tls_listen()` / `tls_accept()` using `SSL_CTX_use_certificate_file` + `SSL_CTX_use_PrivateKey_file`
-- [ ] **Certificate verification**: `SSL_CTX_set_verify`, `SSL_get_verify_result`, `X509_STORE` wrappers
-- [ ] **SNI support**: `SSL_set_tlsext_host_name`
-- [ ] **Async I/O**: `SSL_set_mode(SSL_MODE_ASYNC)` or integration with `xiom.async`
-- [ ] **Platform CI**: Cross-compile to Linux (x86_64/aarch64), macOS, Windows
+1. SHA-256 EVP stream helpers (`EVP_MD_CTX_new`/`EVP_DigestInit_ex/Update/
+   Final`) over XIOM chunks; SHA-512/HMAC.
+2. CSPRNG wrappers: `RAND_bytes`/`RAND_priv_bytes` with Result-typed output
+   buffers; error-queue draining (`ERR_get_error`/`ERR_error_string_n`).
+3. TLS client: `libssl` loader half (`libssl-3-x64.dll` + `SSL_CTX_new`/
+   `TLS_client_method`/`SSL_connect` over memory BIOs) -- gated behind a
+   `--link`-free BIO pair; this is the piece PULSE said it does not need
+   (proxy terminates TLS) but ecosystem consumers will.
+4. Certificates: X509 parse/verify surface once TLS lands.
+5. Cleanse/secure-memory helpers.
+6. Decide the `xiom.ffmpeg` configuration (LGPL-only vs GPL) with the native
+   lane before starting that package (see the session relay recommendation).
 
-## Dependencies
+## Sector note
 
-| Module | Status |
-|--------|--------|
-| `xiom.ffi` | Stable (stdlib) |
-| `xiom.string` | Stable (stdlib) |
-| `xiom.core` | Stable (stdlib) |
-| `xiom.test` | Stable (stdlib) |
-
-## Known Limitations
-
-- All handle types are typed `Int` -- no compiler-level distinction between `SslContext`, `SslConnection`, `SslBio` at the type level (same as `TcpStream`, `TcpListener` in `xiom.net`)
-- Contracts are compile-time: `requires(host.len() > 0)` and `requires(port > 0)` are verified by `xiom` but do not generate runtime checks (by design -- v0.49 contract semantics)
-- Tests are structural only; runtime tests require a linked OpenSSL shared library
+Crypto/media sector, package 1 of 2 (`xiom.openssl` this package;
+`xiom.ffmpeg` next pending the license-configuration decision).
