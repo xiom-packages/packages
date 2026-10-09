@@ -14,7 +14,23 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-08 22:35Z (batch #47 COMPLETE + PUBLISHED `eco-v0.1.111`; xiom.grpc 0.1.1 live; supersedes the 22:10Z block below):**
+**STATE AT 2026-10-09 12:25Z (bindings batch 15 merged -- odbc pending ops allowlist; B-10 recorded; batch #48 dispatched; supersedes the 22:35Z block below):**
+- **Bindings batch 15 (`xiom.odbc` 0.2.0) merged + verified:** branch push unblocked (account
+  was flipped to Ngonart; switched back to `Lefteris-Notas` and pushed `12c564ba..aa35241f`);
+  merge `31d0cc0e`; native re-verification 5/5 x2 (manager 03.80.0000, 7 drivers, 3 DSNs;
+  record `d26127f2`). **PENDING OPS: allowlist append for `xiom.odbc`** (505 -> 506 live) --
+  on confirmation: append, guard, wrap + tag, live-verify odbc.
+- **B-10 recorded** (`docs/COMPILER-FINDINGS.md` `f82092ae`): a local fn-pointer named
+  `alloc` inside a confined block is silently redirected to the guard allocator; `f_`
+  prefix workaround applies to loader bindings.
+- **Sector proposal ACK (bindings):** order accepted (data/drivers -> audio -> accelerators
+  -> crypto/media). Next: **`xiom.libpq`** (official win64 client binaries allowed for local
+  positive-path proof, like raylib/glfw; else SKIP-only). `xiom.postgres` scoped as a thin
+  facade over the libpq/loader pattern -- defer wire-protocol duplication until libpq lands.
+  Accelerators stay GATED on XVECTOR's contract freeze; ffmpeg needs the license choice
+  (prefer LGPL or system-SKIP) BEFORE vendoring.
+- **Batch #48 dispatched:** bonjour/tcx/orc/plist/upnp/multicast (~13 carriers total; the
+  six porters spawn once the pre-plan lands).
 - **Batch #47 DONE + PUBLISHED (`eco-v0.1.111`, run `37853047324` SUCCESS; all six live):**
   `junit` 0.1.2 (25 clauses; 22/22; `7cc2f458`), `usb` 0.1.2 (22; 20/20; `b70009f6`),
   `snmp` 0.1.2 (27; 19/19; `6d3f6951`), `thrift` 0.1.2 (21; 24/24; `19871958`), `imap`

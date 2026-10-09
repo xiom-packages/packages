@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-09T01:21:42Z",
+    "updated":  "2026-10-09T15:19:01Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -5098,6 +5098,23 @@
                                           ]
                      },
                      {
+                         "version":  "0.2.0",
+                         "name":  "xiom.odbc",
+                         "repository":  "https://github.com/xiom-lang/packages",
+                         "description":  "ODBC driver-manager bindings for XIOM via dynamic loader (odbc32.dll at runtime, SKIP when absent)",
+                         "dependencies":  [
+                                              {
+                                                  "version":  "\u003e=0.60.0 \u003c1.0.0",
+                                                  "name":  "xiom.std"
+                                              }
+                                          ],
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-odbc/v0.2.0/package.tar.gz",
+                         "source_files":  [
+                                              "odbc.xi",
+                                              "package.xi"
+                                          ]
+                     },
+                     {
                          "version":  "0.1.2",
                          "name":  "xiom.ogg",
                          "repository":  "https://github.com/xiom-lang/packages",
@@ -9068,19 +9085,6 @@
 
                                           ],
                          "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-llvm/v0.1.0/package.tar.gz",
-                         "source_files":  [
-
-                                          ]
-                     },
-                     {
-                         "version":  "0.1.0",
-                         "name":  "xiom-odbc",
-                         "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "",
-                         "dependencies":  [
-
-                                          ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-odbc/v0.1.0/package.tar.gz",
                          "source_files":  [
 
                                           ]
