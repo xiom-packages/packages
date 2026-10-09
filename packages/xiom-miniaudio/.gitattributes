@@ -1,0 +1,3 @@
+# Vendored miniaudio bytes must stay byte-identical to the SHA256 pins in
+# SPEC.md. Disable end-of-line conversion for the whole vendor tree.
+vendor/** -text

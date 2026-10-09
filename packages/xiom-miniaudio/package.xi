@@ -4,10 +4,10 @@
 
 package {
   name: "xiom.miniaudio"
-  version: "0.1.0"
-  description: "MiniAudio playback, capture, and waveform synthesis bindings for XIOM"
+  version: "0.2.0"
+  description: "miniaudio bindings for XIOM (vendored 0.11.25 single header, no system library)"
   categories: ["media"]
-  keywords: ["miniaudio", "audio", "playback", "capture", "synthesis"]
+  keywords: ["miniaudio", "audio", "playback", "capture", "binding"]
   license: "MIT OR Apache-2.0"
   repository: "https://github.com/xiom-packages/packages"
   authors: ["XIOM Team"]
