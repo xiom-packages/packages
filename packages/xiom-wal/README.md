@@ -7,6 +7,11 @@ malformed/torn lines skipped on replay, LSN resume on open, and a
 temp+rename truncate that preserves payloads. Pure XIOM, standard library
 only (`xiom.std`).
 
+> **Status:** `incubating` -- conformance suite green on the pin (v0.64.2):
+> **21/21 x2**, plus the crash harness **x2 6/6** (observed=20; torn tail
+> skipped; heal-append) and a 200-record soak (3,081 B segment) on Windows.
+> Published in `eco-v0.1.121` (sha256 `c727fb43...`).
+
 ## Consumer snippet
 
 ```xiom

@@ -7,7 +7,8 @@ every call goes through resolved function pointers. No link-time dependency,
 no headers, no vendored code -- and the suite reports **SKIP** (green) when
 no build is present (LGPL policy: dynamic linking only, nothing vendored).
 
-> **Status:** `incubating` -- suite green on the pin (v0.64.1):
+> **Status:** `incubating` -- suite green on the pin (v0.64.2; published in
+> `eco-v0.1.122`):
 > **4/4 x2** with a local LGPL set on PATH (`FFmpeg 6.0`, license
 > `LGPL version 2.1 or later`), **4/4** on a GPL 7.1.1 set (reported as
 > data), **2/2 x2** SKIP on the default PATH, and **2/2** SKIP on partial

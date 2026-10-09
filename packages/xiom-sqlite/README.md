@@ -6,7 +6,7 @@ into `vendor/` (public domain) and compiled into the test binary with
 
 > **Status:** `incubating` -- conformance suite green on the pin (xiom
 > v0.64.2, 16/16 across the 0.3.0 enum-model restore build cycles; published
-> since `eco-v0.1.89`).
+> since `eco-v0.1.89`; 0.3.0 live in `eco-v0.1.122`).
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start

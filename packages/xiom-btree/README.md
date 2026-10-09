@@ -9,6 +9,11 @@ Extracted verbatim from ORBITDB's engine B-tree (commit `10109e1`), validated
 by the ORBITDB churn soak (orders 4/5/6, 20k ops at keyspace 4096, plus the
 quick default and seed matrices) -- see `SPEC.md` for pins and evidence.
 
+> **Status:** `incubating` -- conformance suite green on the pin (v0.64.2):
+> **22/22 x2** plus the churn matrix (orders 4/5/6 x 20k ops @ keyspace
+> 4096). Order-3 delete is a documented upstream limitation (SPEC section
+> 2.3). Published in `eco-v0.1.121` (sha256 `1ce8446e...`).
+
 ## Consumer snippet
 
 ```xiom

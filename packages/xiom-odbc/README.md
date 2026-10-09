@@ -6,7 +6,8 @@ function pointers. No link-time dependency, no headers, no vendored code --
 and the suite reports **SKIP** (green) when the manager is absent.
 
 > **Status:** `incubating` -- suite green x2 on the pin (v0.64.1): 5/5 with
-> real driver-manager evidence (ODBC `03.80.0000`, 7 drivers, 3 DSNs).
+> real driver-manager evidence (ODBC `03.80.0000`, 7 drivers, 3 DSNs);
+> published in `eco-v0.1.117`.
 > **Lane:** bindings (`keywords: ["binding"]`).
 
 ## Quick start

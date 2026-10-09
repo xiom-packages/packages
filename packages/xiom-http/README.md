@@ -4,6 +4,11 @@
 
 HTTP/1.1 types, request/response parsers, client helpers, and a (stub) server shell.
 
+> **Status:** `stable` -- published in `eco-v0.1.120` (0.1.4: printable ASCII
+> renders as characters and variadic LONG options pass values to libcurl;
+> proven against real libcurl 8.22.0). Suite **42/42 x2** + root probe x2 on
+> the pin (v0.64.2).
+
 ## Consumer quickstart (3 lines)
 
 ```xiom
