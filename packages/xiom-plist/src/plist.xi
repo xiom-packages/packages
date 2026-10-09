@@ -1269,7 +1269,10 @@ fn _build_doc(kinds: Vec[Int], texts: Vec[Str], keys: Vec[Str], parents: Vec[Int
 /// version, text outside elements, missing root value, multiple root values,
 /// content after the document root).
 /// Complexity: O(n) over the document bytes.
-pub fn plist_parse(text: Str) -> Result[PlistDoc, Str] {
+pub fn plist_parse(text: Str) -> Result[PlistDoc, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() > 0;
+{
   var p = _PlistParser{
     text: text; pos: 0;
     kinds: Vec[Int].new(); texts: Vec[Str].new(); keys: Vec[Str].new();
@@ -1381,7 +1384,11 @@ fn _range_ok(d: &PlistDoc, node: Int) -> Bool {
 /// Params: d - the parsed document.
 /// Returns: the node index, or -1 when the document has no root value.
 /// Complexity: O(1).
-pub fn plist_root(d: &PlistDoc) -> Int {
+pub fn plist_root(d: &PlistDoc) -> Int
+  ensures: d.kinds.len() == 0 => result == -1;
+  ensures: d.child_lengths.len() == 0 => result == -1;
+  ensures: d.children.len() == 0 => result == -1;
+{
   if !_range_ok(d, 0) {
     return -1;
   }
@@ -1399,7 +1406,10 @@ pub fn plist_root(d: &PlistDoc) -> Int {
 /// Returns: one of the PLIST_KIND_* constants, or -1 when there is no root
 /// value.
 /// Complexity: O(1).
-pub fn plist_root_kind(d: &PlistDoc) -> Int {
+pub fn plist_root_kind(d: &PlistDoc) -> Int
+  ensures: result == plist_kind(d, plist_root(d));
+  ensures: plist_root(d) == -1 => result == -1;
+{
   return plist_kind(d, plist_root(d));
 }
 
@@ -1407,7 +1417,9 @@ pub fn plist_root_kind(d: &PlistDoc) -> Int {
 /// Params: d - the parsed document.
 /// Returns: the node count; an empty synthetic document reports 1.
 /// Complexity: O(1).
-pub fn plist_node_count(d: &PlistDoc) -> Int {
+pub fn plist_node_count(d: &PlistDoc) -> Int
+  ensures: result == d.kinds.len();
+{
   return d.kinds.len();
 }
 
@@ -1416,7 +1428,10 @@ pub fn plist_node_count(d: &PlistDoc) -> Int {
 /// Returns: one of the PLIST_KIND_* constants, or -1 when node is out of
 /// range.
 /// Complexity: O(1).
-pub fn plist_kind(d: &PlistDoc, node: Int) -> Int {
+pub fn plist_kind(d: &PlistDoc, node: Int) -> Int
+  ensures: node < 0 || node >= d.kinds.len() => result == -1;
+  ensures: result != -1 => node >= 0 && node < d.kinds.len();
+{
   if node < 0 || node >= d.kinds.len() {
     return -1;
   }
@@ -1429,7 +1444,10 @@ pub fn plist_kind(d: &PlistDoc, node: Int) -> Int {
 /// Returns: Some(parent index); Some(-1) for the synthetic document node 0;
 /// None when node is out of range.
 /// Complexity: O(1).
-pub fn plist_parent(d: &PlistDoc, node: Int) -> Option[Int] {
+pub fn plist_parent(d: &PlistDoc, node: Int) -> Option[Int]
+  ensures: node < 0 || node >= d.parents.len() => result is None;
+  ensures: result is None => node < 0 || node >= d.parents.len();
+{
   if node < 0 || node >= d.parents.len() {
     return None;
   }
@@ -1442,7 +1460,10 @@ pub fn plist_parent(d: &PlistDoc, node: Int) -> Option[Int] {
 /// Returns: the stored text for string/integer/real/bool/data/date nodes
 /// ("" for containers, the document node and out-of-range indices).
 /// Complexity: O(1).
-pub fn plist_text(d: &PlistDoc, node: Int) -> Str {
+pub fn plist_text(d: &PlistDoc, node: Int) -> Str
+  ensures: node < 0 || node >= d.kinds.len() => result.len() == 0;
+  ensures: result.len() > 0 => plist_kind(d, node) >= 2 && plist_kind(d, node) <= 7 && node < d.texts.len();
+{
   let k = plist_kind(d, node);
   if k == PLIST_KIND_STRING || k == PLIST_KIND_INTEGER || k == PLIST_KIND_REAL || k == PLIST_KIND_BOOL || k == PLIST_KIND_DATA || k == PLIST_KIND_DATE {
     if node >= 0 && node < d.texts.len() {
@@ -1458,7 +1479,10 @@ pub fn plist_text(d: &PlistDoc, node: Int) -> Str {
 /// Returns: Some(value); None for another kind or an out-of-range index.
 /// Bounds: the stored canonical text always reparses to its value.
 /// Complexity: O(digits).
-pub fn plist_int_value(d: &PlistDoc, node: Int) -> Option[Int] {
+pub fn plist_int_value(d: &PlistDoc, node: Int) -> Option[Int]
+  ensures: plist_kind(d, node) != 3 => result is None;
+  ensures: node < 0 || node >= d.texts.len() => result is None;
+{
   if plist_kind(d, node) != PLIST_KIND_INTEGER {
     return None;
   }
@@ -1483,7 +1507,10 @@ pub fn plist_int_value(d: &PlistDoc, node: Int) -> Option[Int] {
 /// Returns: Some(true/false); None for another kind or an out-of-range
 /// index.
 /// Complexity: O(1).
-pub fn plist_bool_value(d: &PlistDoc, node: Int) -> Option[Bool] {
+pub fn plist_bool_value(d: &PlistDoc, node: Int) -> Option[Bool]
+  ensures: plist_kind(d, node) != 5 => result is None;
+  ensures: node < 0 || node >= d.texts.len() => result is None;
+{
   if plist_kind(d, node) != PLIST_KIND_BOOL {
     return None;
   }
@@ -1501,7 +1528,11 @@ pub fn plist_bool_value(d: &PlistDoc, node: Int) -> Option[Bool] {
 /// Params: d - the parsed document; node - the node index.
 /// Returns: the entry count; 0 for another kind or an out-of-range index.
 /// Complexity: O(1).
-pub fn plist_dict_count(d: &PlistDoc, node: Int) -> Int {
+pub fn plist_dict_count(d: &PlistDoc, node: Int) -> Int
+  ensures: plist_kind(d, node) != 0 => result == 0;
+  ensures: result >= 0;
+  ensures: result <= d.children.len();
+{
   if plist_kind(d, node) != PLIST_KIND_DICT {
     return 0;
   }
@@ -1518,7 +1549,11 @@ pub fn plist_dict_count(d: &PlistDoc, node: Int) -> Int {
 /// Returns: Some(key) (which may be ""); None for another kind,
 /// out-of-range positions or out-of-range nodes.
 /// Complexity: O(1).
-pub fn plist_dict_key(d: &PlistDoc, node: Int, index: Int) -> Option[Str] {
+pub fn plist_dict_key(d: &PlistDoc, node: Int, index: Int) -> Option[Str]
+  ensures: plist_kind(d, node) != 0 => result is None;
+  ensures: index < 0 => result is None;
+  ensures: index >= d.children.len() => result is None;
+{
   if plist_kind(d, node) != PLIST_KIND_DICT {
     return None;
   }
@@ -1546,7 +1581,9 @@ pub fn plist_dict_key(d: &PlistDoc, node: Int, index: Int) -> Option[Str] {
 /// out of range. plist_parse accepts duplicate keys (it does not police
 /// uniqueness) and lookup returns the first match.
 /// Complexity: O(entries).
-pub fn plist_dict_get(d: &PlistDoc, node: Int, key: Str) -> Option[Int] {
+pub fn plist_dict_get(d: &PlistDoc, node: Int, key: Str) -> Option[Int]
+  ensures: plist_kind(d, node) != 0 => result is None;
+{
   if plist_kind(d, node) != PLIST_KIND_DICT {
     return None;
   }
@@ -1573,7 +1610,11 @@ pub fn plist_dict_get(d: &PlistDoc, node: Int, key: Str) -> Option[Int] {
 /// Params: d - the parsed document; node - the node index.
 /// Returns: the item count; 0 for another kind or an out-of-range index.
 /// Complexity: O(1).
-pub fn plist_array_count(d: &PlistDoc, node: Int) -> Int {
+pub fn plist_array_count(d: &PlistDoc, node: Int) -> Int
+  ensures: plist_kind(d, node) != 1 => result == 0;
+  ensures: result >= 0;
+  ensures: result <= d.children.len();
+{
   if plist_kind(d, node) != PLIST_KIND_ARRAY {
     return 0;
   }
@@ -1590,7 +1631,11 @@ pub fn plist_array_count(d: &PlistDoc, node: Int) -> Int {
 /// Returns: Some(item node index); None for another kind, negative or
 /// out-of-range positions or out-of-range nodes.
 /// Complexity: O(1).
-pub fn plist_array_get(d: &PlistDoc, node: Int, index: Int) -> Option[Int] {
+pub fn plist_array_get(d: &PlistDoc, node: Int, index: Int) -> Option[Int]
+  ensures: plist_kind(d, node) != 1 => result is None;
+  ensures: index < 0 => result is None;
+  ensures: index >= d.children.len() => result is None;
+{
   if plist_kind(d, node) != PLIST_KIND_ARRAY {
     return None;
   }
@@ -1784,7 +1829,10 @@ fn _emit_scalar(d: &PlistDoc, node: Int, depth: Int, out: &mut Vec[UInt8]) {
 /// string is returned when `d` has no root value or its parallel vectors
 /// disagree (documents from plist_parse are always consistent).
 /// Complexity: O(nodes + text bytes).
-pub fn plist_emit(d: &PlistDoc) -> Str {
+pub fn plist_emit(d: &PlistDoc) -> Str
+  ensures: plist_root(d) == -1 => result.len() == 0;
+  ensures: result.len() > 0 => plist_root(d) != -1;
+{
   if !_doc_consistent(d) {
     return "";
   }

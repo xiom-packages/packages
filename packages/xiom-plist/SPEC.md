@@ -1,8 +1,6 @@
 # xiom.plist -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.plist`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/plist.xi` (`module xiom.plist`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`,
 `xiom.string.compare`, `xiom.convert`).
@@ -287,8 +285,9 @@ Run from the repository root:
 & .\scripts\port.ps1 -Package xiom.plist
 ```
 
-Last verified: compiler 0.61.3,
-`port: PASS (passed=22 failed=0 program_exit=0 exit=0)`.
+Last verified: compiler 0.64.1,
+`port: PASS (passed=22 failed=0 program_exit=0 exit=0)` with the batch #48
+hardening clauses active.
 
 ## 8. Compiler / stdlib notes
 
@@ -327,3 +326,57 @@ pure-parser idioms (byte-wise scanning with `xiom.string.byte_at`,
   base64 is validated by alphabet and trailing padding only and is not
   decoded; dates accept day 31 in every month.
 - One root value; no file I/O, streaming or registry integration.
+
+## Contracts (batch #48 hardening pass, 2026-10-09)
+
+Runtime-checkable `ensures:` clauses (33, across the 15 functions below) were
+added to `src/plist.xi` in the batch #48 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 22-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive timed green `& .\scripts\port.ps1 -Package xiom.plist
+-TimeoutSec 90` runs ended `port: PASS (passed=22 failed=0 program_exit=0
+exit=0)` with the clauses active (13.34 s and 13.18 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, and per the batch #37
+finding a bare `[OK] VERIFIED` can be a vacuous UNSAT, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str` (length via `.len()` only),
+uses a module constant, or reads a `&mut` parameter. Guards keep the plan's
+families: tag guard pairs (`result is Ok` / `result is Err`), sentinel pairs
+(`result == -1`, `result.len() == 0`, `result == 0`, `result is None`),
+bounds (`node` / `index` against each parallel vector's `len()`, `result <=
+d.children.len()`), and exact formulas (`result == d.kinds.len()`, `result ==
+plist_kind(d, plist_root(d))`). Clause literals are the raw kind numbers (2..7
+for the six scalar kinds, 3 integer, 5 bool, 0 dict, 1 array) rather than
+module constants; each matches its `PLIST_KIND_*` value in the source. The
+cross-calls are non-re-entrant definitional reads: `plist_root_kind` calls
+`plist_kind` and `plist_root`; `plist_text`, `plist_int_value`,
+`plist_bool_value`, `plist_dict_count`, `plist_dict_key`, `plist_dict_get`,
+`plist_array_count` and `plist_array_get` call `plist_kind`; `plist_emit`
+calls `plist_root`. None of those callees can return to the function carrying
+the clause. Every sentinel guard matches the accessor's own early-return
+branch for a bad node/index, so the clauses hold for parser-produced and
+hand-built (empty or drifted) `PlistDoc` values alike. The round-trip
+stability of `plist_emit` and the `result is Some` converse directions are
+planned skips (not expressed as clauses).
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `plist_parse` | 2 | empty input => `Err`; `Ok` implies `text.len() > 0` | no | yes |
+| `plist_root` | 3 | empty kinds/child_lengths/children => `-1` | no | yes |
+| `plist_root_kind` | 2 | `result == plist_kind(d, plist_root(d))`; no root => `-1` | no | yes |
+| `plist_node_count` | 1 | `result == d.kinds.len()` | no | yes |
+| `plist_kind` | 2 | bad `node` => `-1`; `!= -1` implies in range | no | yes |
+| `plist_parent` | 2 | bad `node` => `None`; `None` implies bad `node` | no | yes |
+| `plist_text` | 2 | bad `node` => empty (`.len() == 0`); non-empty implies scalar kind 2..7 | no | yes |
+| `plist_int_value` | 2 | kind `!= 3` or bad `node` => `None` | no | yes |
+| `plist_bool_value` | 2 | kind `!= 5` or bad `node` => `None` | no | yes |
+| `plist_dict_count` | 3 | kind `!= 0` => `0`; `0 <= result <= d.children.len()` | no | yes |
+| `plist_dict_key` | 3 | kind `!= 0`, `index < 0` or `index >= d.children.len()` => `None` | no | yes |
+| `plist_dict_get` | 1 | kind `!= 0` => `None` | no | yes |
+| `plist_array_count` | 3 | kind `!= 1` => `0`; `0 <= result <= d.children.len()` | no | yes |
+| `plist_array_get` | 3 | kind `!= 1`, `index < 0` or `index >= d.children.len()` => `None` | no | yes |
+| `plist_emit` | 2 | no root => empty (`.len() == 0`); non-empty implies root present | no | yes |
