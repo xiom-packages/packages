@@ -3,13 +3,33 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 16 RELAYED** -- `xiom.libpq` 0.2.0 green (present 4/4 x2 with
-local libpq 13.11, absent/SKIP 2/2 x2 via port.ps1 on v0.64.1). **Data/drivers
-sector COMPLETE** (odbc + libpq). Awaiting native merge/verify/publish and
-the `xiom.odbc` allowlist append (still pending from batch 15). Next sector
-per proposal: audio -- `xiom.miniaudio` first.
+**STATUS: BATCH 20 RELAYED** -- `xiom.openssl` 0.2.0 green (default PATH
+4/4 x2 via Windows' LibreSSL build, Git OpenSSL 3.2.4 4/4 via the first
+candidate; real SHA-256 + RAND proof). **openssl decision made**: system-lib
+path (rationale in SPEC §2). ffmpeg recommendation in the relay below for the
+native decision. Awaiting merge/verify/publish.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 20: head=80d3e0a0 + this handoff commit; packages=xiom.openssl 0.2.0 (system-lib
+multi-soname dynamic loader replacing the pre-pilot static-extern module); tests=default PATH
+4/4 x2 (LibreSSL 3.8.2 via C:\Windows\System32\libcrypto.dll: version string, byte-exact
+SHA-256("abc") digest check, RAND_bytes(16)) and Git for Windows on PATH 4/4 (OpenSSL 3.2.4,
+num 807403584); deterministic SKIP classification per run; licenses=Apache-2.0 (OpenSSL) /
+ISC-style (LibreSSL); nothing vendored + package MIT OR Apache-2.0; pins=candidate sonames
+(libcrypto-3-x64.dll, libcrypto-1_1-x64.dll, libcrypto-1_1.dll, libcrypto.dll) + entry points
+(OpenSSL_version, OpenSSL_version_num, SHA256, RAND_bytes) + local samples (Git 3.2.4 sha256
+9C069DEC...; System32 libcrypto.dll sha256 7CEA4AC1...; DaVinci 1.1.1n C4202179...; Python 1.1.1g
+594303E2...); gate=G0..G5 OK; needs=NONE (allowlisted + baseline); NO port.args.json.
+DECISION RECORD -- openssl: SYSTEM path (OpenSSL source is too large/configuration-heavy to
+vendor; libcrypto builds are ubiquitous on Windows; SKIP keeps CI green; present proof is real).
+RECOMMENDATION -- ffmpeg (needs native approval before start): (1) LGPL-compatible
+configuration ONLY (no GPL codecs, no --enable-gpl); (2) prefer the system-lib SKIP pattern
+first (multi-soname avcodec/avformat/avutil/swresample), since ffmpeg DLL sets are rarely on
+PATH and vendoring a prebuilt LGPL shared build is the fallback (license text + build config
+recorded as the G2 pin); (3) until approved, the crypto/media sector is paused after openssl.
+```
 
 ```
 BINDINGS BATCH 16: head=76bc9556 + this handoff commit; packages=xiom.libpq 0.2.0 (dynamic
@@ -589,6 +609,25 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
 
+## Batch 20 notes (xiom.openssl, 2026-10-09)
+
+- System-lib path chosen (decision recorded in SPEC §2 and the relay):
+  OpenSSL source is too large/configuration-heavy to vendor; libcrypto
+  builds are ubiquitous on Windows; the SKIP classification keeps CI green
+  while the present-path proof is real (byte-exact SHA-256("abc") digest +
+  RAND_bytes(16) via the resolved `SHA256`/`RAND_bytes` entry points).
+- Multi-soname loader candidates: `libcrypto-3-x64.dll`,
+  `libcrypto-1_1-x64.dll`, `libcrypto-1_1.dll`, `libcrypto.dll`.
+- Run matrix: default PATH (System32 LibreSSL 3.8.2) 4/4 x2; Git for
+  Windows on PATH (OpenSSL 3.2.4, num 807403584) 4/4; deterministic SKIP
+  classification every run (bogus soname). Sample hashes in SPEC §2.
+- Inbound compiler relay v0.64.2 recorded (lane copy under `docs/`):
+  B-01 fixed (m231), B-08 fixed (m228); B-05 still open (runtime/stdlib
+  side); B-10 (odbc `alloc` name rewrite) re-test queued with the sweep.
+  The sweep is gated on the tag -- installed slot is still v0.64.1.
+- ffmpeg recommendation sent (LGPL-only, system-lib first); crypto/media
+  paused until the native lane decides. NO port.args.json.
+
 ## Batch 19 notes (xiom.phonon, 2026-10-09)
 
 - Steam Audio (Valve) 4.8.1: ABI pinned from the exact local SDK headers
@@ -819,9 +858,16 @@ Each package keeps: G0-G5 gates, green x2 through `port.ps1`, a relay block
 in this file, and any new compiler finding appended to
 `docs/BINDINGS-COMPILER-FINDINGS.md` with a bounded repro.
 
-## Next (after native merge + publish confirmation)
+## Next (state at 2026-10-09, batch 20 pushed)
 
-Phase 1 pilot is **complete** (sqlite published; sdl3 + opengl relayed). On
-the native merge/publish confirmation for batches 2-3, batch 4 starts the
-Phase-2 order above with slice 1 (`xiom.sdl3` Phase 2 completion or
-`xiom.glfw`, whichever the native lane prioritizes), one package per relay.
+- Batch 20 (`xiom.openssl` 0.2.0) is relayed and pushed to `origin/bindings`:
+  waiting on the native merge/verify/publish. Nothing else is actionable
+  in-lane until then -- ffmpeg needs the native go-ahead (recommendation in
+  the relay: LGPL-only configuration, system-lib SKIP first) and the
+  accelerators stay GATED on XVECTOR freezing `xiom.vectors`.
+- When the v0.64.2 tag lands: install/repin, re-run the bindings matrix and
+  the lane findings sweep (B-01 + B-08 expected FIXED per m231/m228; B-10
+  re-test; B-05 expected still OPEN -- runtime side), retire the workarounds
+  the sweep clears, update `docs/BINDINGS-COMPILER-FINDINGS.md` rows, and
+  relay reds with minimal repros. The lane copy of the compiler relay is
+  `docs/BINDINGS-COMPILER-RELAY-2026-10-09-v0.64.2.md`.
