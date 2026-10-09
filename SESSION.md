@@ -28,9 +28,13 @@ running). Check `git log -1 --format=%h %s` before starting.
   Workaround shipped: packed scalar returns (`vmaprobe_run_packed`); repro bundle
   `docs/repro/bindings-pilot/vulkan-slot-recycle/`; runtime lead: process-wide VEH + guard-arena
   discard vs the NVIDIA loader.
-- **IN FLIGHT: `xiom.durable` port + WAL reconciliation** (background porter; port-only, not on the
-  publish scope). On completion: native port x2, record, wrap; its scratch probe
-  `tests/__porter_probe.xi` must be removed before commit.
+- **`xiom.durable` port + WAL reconciliation DONE** (`88b51d96`, record `a0047331`): native
+  **152/152 x2**; `src/wal/*` removed and the package now consumes `xiom.wal` 0.1.0 (dep-root
+  via the new `xiom.toml`; v0.64.2 requires exact version specs), `src/txn/*` + `src/storage/*`
+  untouched; port-only, **NOT on the publish scope**; module count 597 -> 591. New toolchain
+  finding filed (`docs/COMPILER-FINDINGS.md`): `xiom-pkg` local-fallback silently installs
+  nothing (quote-trim bug) and legacy `package.xi` `deps:` do not resolve catalog roots --
+  `xiom.toml` `[dependencies]` is the working mechanism.
 - Otherwise no open packages-side gate: `xiom.vectors` **OWNER GREENLIGHT** (brief staged);
   ORBITDB order-3 re-sync; jolt waits on the compiler `--cxx-standard` flag.
 - Session tally: **40 eco releases** (`eco-v0.1.86` -> `eco-v0.1.124`).

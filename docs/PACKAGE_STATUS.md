@@ -4,7 +4,7 @@
 <!-- Copyright (c) 2026 Eleftherios Notas and The XIOM Authors -->
 <!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
 
-Toolchain pin: `v0.64.2` -- generated 2026-10-09T21:55:10Z.
+Toolchain pin: `v0.64.2` -- generated 2026-10-09T22:01:55Z.
 
 ## Summary
 
@@ -369,7 +369,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.discovery | xiom-discovery | incubating | tests/test_conformance.xi | pass 22/22 | 69b768ea | False | publish pending: next scope delta |
 | xiom.docker | xiom-docker | incubating | tests/test_conformance.xi | pass 26/26 | ee890e25 | False | publish pending: next scope delta |
 | xiom.docx | xiom-docx | incubating | tests/test_conformance.xi | pass 27/27 | f0f7743d | False | category harmonization patch bump (registry metadata) |
-| xiom.durable | xiom-durable | incubating | tests/test_conformance.xi | unknown |  | False | renamed from xiom.core (namespace audit, owner-confirmed 2026-09-23); port to current stdlib pending |
+| xiom.durable | xiom-durable | incubating | tests/test_conformance.xi | pass 152/152 | 88b51d96 | False | port done 2026-10-09 (WAL reconciled to xiom.wal); not on the publish scope |
 | xiom.dxc | xiom-dxc | incubating | tests/test_conformance.xi | pass 3/3 | cce33ecb | False | publish pending: bindings batches 9-10 (eco-v0.1.102) |
 | xiom.dynamo | xiom-dynamo | incubating | tests/test_conformance.xi | pass 21/21 | 77d7ec35 | False | publish pending: next scope delta |
 | xiom.eigen | xiom-eigen | incubating | tests/test_conformance.xi | unknown |  | False |  |
@@ -534,7 +534,7 @@ Versions are immutable forever; a published version can never be replaced.
 | xiom.ui | xiom-ui | incubating | tests/test_conformance.xi | pass 98/98 | ed680f75 | False |  |
 | xiom.vault | xiom-vault | incubating | tests/test_conformance.xi | pass 28/28 | c3df370b | False | publish pending: eco-v0.1.36 manifest module-list fix |
 | xiom.video | xiom-video | incubating | tests/test_conformance.xi | pass 24/24 | e23f8e3a | False | publish pending: next scope delta |
-| xiom.vma | xiom-vma | incubating | tests/test_conformance.xi | pass 5/5 | 3b642f7c | False | publish pending: bindings batch 24 (eco-v0.1.124) |
+| xiom.vma | xiom-vma | incubating | tests/test_conformance.xi | pass 5/5 | 3b642f7c | False | published in eco-v0.1.124 (2026-10-09) |
 | xiom.vulkan | xiom-vulkan | incubating | tests/test_conformance.xi | pass 10/10 | 95757afa | False | publish pending: bindings batch 8 (eco-v0.1.100) |
 | xiom.wal | xiom-wal | incubating | tests/test_conformance.xi | pass 21/21 | 137a8200 | False | published in eco-v0.1.121 (2026-10-09) |
 | xiom.wallet | xiom-wallet | incubating | tests/test_conformance.xi | pass 20/20 | 5f469ee5 | False | publish pending: next scope delta |

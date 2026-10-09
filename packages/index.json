@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-10T00:55:06Z",
+    "updated":  "2026-10-10T01:01:53Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -1913,12 +1913,6 @@
                                               "snapshot.xi",
                                               "txn_manager.xi",
                                               "txn_state.xi",
-                                              "checkpoint.xi",
-                                              "lsn.xi",
-                                              "recovery.xi",
-                                              "wal_reader.xi",
-                                              "wal_record.xi",
-                                              "wal_writer.xi",
                                               "package.xi"
                                           ]
                      },
