@@ -1,7 +1,7 @@
 # xiom.meteorology -- specification
 
-Version: 0.1.0 (`stable`, not published).
-Module: `xiom.meteorology` (`src/meteorology.xi`, 2401 lines). Pure XIOM,
+Version: 0.1.2 (stable; published on the XIOM registry).
+Module: `xiom.meteorology` (`src/meteorology.xi`, 2457 lines). Pure XIOM,
 no FFI. Compiler: XIOM v0.61.3. Dependency: `xiom.std >=0.60.0 <1.0.0`.
 
 This document describes exactly what `src/meteorology.xi` and
@@ -568,3 +568,42 @@ The implementation follows the same discipline as its sibling packages
   `UInt8` constant >= 128.
 - The library never uses `match`; the tests do, and route every text
   comparison through `str_compare`.
+
+## Contracts (batch #49 hardening pass, 2026-10-09)
+
+Runtime-checkable `ensures:` clauses added to `src/meteorology.xi` in the
+batch #49 hardening pass (compiler v0.64.1; `package.xi` is bumped by the
+coordinator at integration). 41 clauses across 15 functions: the private
+recognizer/helper functions `_is_digit`, `_all_digits`, `_ends_with`,
+`_parse_ddhhmmz`, `_parse_issue_time`, `_parse_validity`, `_parse_wind`,
+`_parse_vis_meters`, `_parse_vis_sm`, `_parse_rvr`, `_parse_sky`, plus
+`metar_decode`, `taf_decode`, `taf_fc_kind` and `taf_fc_extra_count`. All are
+`ensures:` (no `requires:`), so the accepted-input domain is unchanged. Two
+consecutive `& .\scripts\port.ps1 -Package xiom.meteorology -TimeoutSec 90`
+runs ended `port: PASS` with the clauses active; the 22-check conformance
+suite exercises every public entry point and no clause trapped, and no clause
+had to be dropped. `_scan_tokens` (two `&mut Vec` out-parameters) and
+`_taf_group_token` (`&mut _TafState` with no readable post-state) are
+deliberately unclaused, as planned.
+
+All clauses are runtime-checked: the conformance run is the evidence, and no
+separate SMT obligation was demonstrated in this pass (per the batch #49
+brief, `xiom-verify` `[OK] VERIFIED` alone is not treated as a Z3 proof).
+
+| Function | Clause(s) added | Class |
+|---|---|---|
+| `_is_digit` | `ensures: result == (b >= 48 && b <= 57)` | runtime-checked (byte-predicate identity) |
+| `_all_digits` | `ensures: result == (start < end && _digits_value(s, start, end) >= 0)` | runtime-checked (definitional cross-call) |
+| `_ends_with` | `ensures: suffix.len() > s.len() => result == false`; `ensures: result == true => suffix.len() <= s.len()` | runtime-checked (guard pair) |
+| `_parse_ddhhmmz` | `ensures: t.len() != 7 => result.ok == false`; `ensures: result.ok == true => t.len() == 7`; `ensures: result.ok == true => result.day >= 1 && result.day <= 31`; `ensures: result.ok == true => result.hour >= 0 && result.hour <= 23 && result.minute >= 0 && result.minute <= 59` | runtime-checked (plain-struct field guard pairs) |
+| `_parse_issue_time` | `ensures: t.len() != 5 && t.len() != 7 => result.ok == false`; `ensures: result.ok == true => t.len() == 5 || t.len() == 7`; `ensures: result.ok == true => result.day >= 1 && result.day <= 31`; `ensures: result.ok == true => result.minute >= 0 && result.minute <= 59` | runtime-checked (plain-struct field guard pairs) |
+| `_parse_validity` | `ensures: t.len() != 9 => result.ok == false`; `ensures: result.ok == true => t.len() == 9`; `ensures: result.ok == true => result.from_day >= 1 && result.from_day <= 31 && result.to_day >= 1 && result.to_day <= 31`; `ensures: result.ok == true => result.from_hour >= 0 && result.from_hour <= 23 && result.to_hour >= 0 && result.to_hour <= 23` | runtime-checked (plain-struct field guard pairs) |
+| `_parse_wind` | `ensures: t.len() < 7 => result.ok == false`; `ensures: result.ok == true => result.unit == 0 || result.unit == 1`; `ensures: result.ok == true => result.dir == -1 || (result.dir >= 0 && result.dir <= 360)`; `ensures: result.ok == true => result.speed >= 0 && (result.gust == -1 || result.gust >= 0)`; `ensures: result.calm == true => result.vrb == false && result.dir == 0 && result.speed == 0 && result.gust == -1` | runtime-checked (plain-struct field ranges + calm-triad implication) |
+| `_parse_vis_meters` | `ensures: t.len() != 4 && t.len() != 7 => result.ok == false`; `ensures: result.ndv == true => t.len() == 7`; `ensures: result.ok == true => result.value_m >= 0 && result.value_m <= 9999` | runtime-checked (plain-struct field guard pairs) |
+| `_parse_vis_sm` | `ensures: result.ok == true => result.sm == true`; `ensures: result.ok == true => result.value_m >= 0`; `ensures: result.ok == true => result.prefix >= 0 && result.prefix <= 2` | runtime-checked (plain-struct field ranges) |
+| `_parse_rvr` | `ensures: result.ok == true => result.min_m >= 0`; `ensures: result.ok == true => result.trend >= 0 && result.trend <= 3`; `ensures: result.ok == true => result.prefix >= 0 && result.prefix <= 2`; `ensures: result.ok == true => result.unit == 0 || result.unit == 1` | runtime-checked (plain-struct field ranges) |
+| `_parse_sky` | `ensures: result.ok == true => result.cover >= 0 && result.cover <= 4`; `ensures: result.ok == true => result.height >= -1` | runtime-checked (plain-struct field ranges) |
+| `metar_decode` | `ensures: s.len() == 0 => result is Err`; `ensures: result is Ok => s.len() > 0` | runtime-checked (tag guard pair) |
+| `taf_decode` | `ensures: s.len() == 0 => result is Err`; `ensures: result is Ok => s.len() > 0` | runtime-checked (tag guard pair) |
+| `taf_fc_kind` | `ensures: g < 0 || g >= t.fc_kind.len() => result == -1`; `ensures: result != -1 => g >= 0 && g < t.fc_kind.len()` | runtime-checked (sentinel guard pair) |
+| `taf_fc_extra_count` | `ensures: result >= 0`; `ensures: result <= t.fc_extra_group.len()` | runtime-checked (count bounds) |

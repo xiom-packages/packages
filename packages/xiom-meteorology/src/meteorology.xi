@@ -362,7 +362,9 @@ fn _str_eq(a: Str, b: Str) -> Bool {
   return compare.str_compare(a, b) == 0;
 }
 
-fn _is_digit(b: UInt8) -> Bool {
+fn _is_digit(b: UInt8) -> Bool
+  ensures: result == (b >= 48 && b <= 57);
+{
   return b >= _MT_ZERO && b <= _MT_NINE;
 }
 
@@ -388,7 +390,9 @@ fn _digits_value(s: Str, start: Int, end: Int) -> Int {
 
 // True when every byte of s[start, end) is an ASCII digit and the run is
 // non-empty.
-fn _all_digits(s: Str, start: Int, end: Int) -> Bool {
+fn _all_digits(s: Str, start: Int, end: Int) -> Bool
+  ensures: result == (start < end && _digits_value(s, start, end) >= 0);
+{
   if start >= end { return false; }
   return _digits_value(s, start, end) >= 0;
 }
@@ -418,7 +422,10 @@ fn _slice_eq(s: Str, a: Int, b: Int, lit: Str) -> Bool {
   return true;
 }
 
-fn _ends_with(s: Str, suffix: Str) -> Bool {
+fn _ends_with(s: Str, suffix: Str) -> Bool
+  ensures: suffix.len() > s.len() => result == false;
+  ensures: result == true => suffix.len() <= s.len();
+{
   let n = s.len();
   let m = suffix.len();
   if m > n { return false; }
@@ -468,7 +475,12 @@ fn _scan_tokens(s: Str, tokens: &mut Vec[Str], starts: &mut Vec[Int]) {
 // ---------------------------------------------------------------------------
 
 // DDHHMMZ with day 1-31, hour 0-23, minute 0-59.
-fn _parse_ddhhmmz(t: Str) -> TimeParse {
+fn _parse_ddhhmmz(t: Str) -> TimeParse
+  ensures: t.len() != 7 => result.ok == false;
+  ensures: result.ok == true => t.len() == 7;
+  ensures: result.ok == true => result.day >= 1 && result.day <= 31;
+  ensures: result.ok == true => result.hour >= 0 && result.hour <= 23 && result.minute >= 0 && result.minute <= 59;
+{
   var r = _no_time();
   if t.len() != 7 { return r; }
   if string.byte_at(t, 6) != _MT_Z { return r; }
@@ -486,7 +498,12 @@ fn _parse_ddhhmmz(t: Str) -> TimeParse {
 }
 
 // TAF issue time: DDHHMMZ, or the shorter DDHHZ (minute 0).
-fn _parse_issue_time(t: Str) -> TimeParse {
+fn _parse_issue_time(t: Str) -> TimeParse
+  ensures: t.len() != 5 && t.len() != 7 => result.ok == false;
+  ensures: result.ok == true => t.len() == 5 || t.len() == 7;
+  ensures: result.ok == true => result.day >= 1 && result.day <= 31;
+  ensures: result.ok == true => result.minute >= 0 && result.minute <= 59;
+{
   if t.len() == 5 {
     var r = _no_time();
     if string.byte_at(t, 4) != _MT_Z { return r; }
@@ -504,7 +521,12 @@ fn _parse_issue_time(t: Str) -> TimeParse {
 }
 
 // DDHH/DDHH TAF validity period.
-fn _parse_validity(t: Str) -> ValidParse {
+fn _parse_validity(t: Str) -> ValidParse
+  ensures: t.len() != 9 => result.ok == false;
+  ensures: result.ok == true => t.len() == 9;
+  ensures: result.ok == true => result.from_day >= 1 && result.from_day <= 31 && result.to_day >= 1 && result.to_day <= 31;
+  ensures: result.ok == true => result.from_hour >= 0 && result.from_hour <= 23 && result.to_hour >= 0 && result.to_hour <= 23;
+{
   var r = _no_valid();
   if t.len() != 9 { return r; }
   if string.byte_at(t, 4) != _MT_SLASH { return r; }
@@ -538,7 +560,13 @@ fn _looks_like_wind(t: Str) -> Bool {
 // dddffKT / dddffGggKT / VRBffKT / VRBffGggKT, ff and gg 2 or 3 digits,
 // unit KT or MPS. dir -1 for VRB; gust -1 when absent; calm only for
 // non-VRB 000 with speed 0 and no gust.
-fn _parse_wind(t: Str) -> WindParse {
+fn _parse_wind(t: Str) -> WindParse
+  ensures: t.len() < 7 => result.ok == false;
+  ensures: result.ok == true => result.unit == 0 || result.unit == 1;
+  ensures: result.ok == true => result.dir == -1 || (result.dir >= 0 && result.dir <= 360);
+  ensures: result.ok == true => result.speed >= 0 && (result.gust == -1 || result.gust >= 0);
+  ensures: result.calm == true => result.vrb == false && result.dir == 0 && result.speed == 0 && result.gust == -1;
+{
   var w = _no_wind();
   let n = t.len();
   if n < 7 { return w; }
@@ -624,7 +652,11 @@ fn _vis_meter_token(t: Str) -> Bool {
 }
 
 // 4-digit meter visibility (with optional NDV); 9999 marks "10 km or more".
-fn _parse_vis_meters(t: Str) -> VisParse {
+fn _parse_vis_meters(t: Str) -> VisParse
+  ensures: t.len() != 4 && t.len() != 7 => result.ok == false;
+  ensures: result.ndv == true => t.len() == 7;
+  ensures: result.ok == true => result.value_m >= 0 && result.value_m <= 9999;
+{
   var v = _no_vis();
   let n = t.len();
   var core_end = 0;
@@ -679,7 +711,11 @@ fn _whole_sm_part(t: Str) -> Bool {
 
 // Visibility in statute miles: dSM, p/qSM, with an optional M (less than) or
 // P (greater than) prefix. value_m is the truncated meter equivalent.
-fn _parse_vis_sm(t: Str) -> VisParse {
+fn _parse_vis_sm(t: Str) -> VisParse
+  ensures: result.ok == true => result.sm == true;
+  ensures: result.ok == true => result.value_m >= 0;
+  ensures: result.ok == true => result.prefix >= 0 && result.prefix <= 2;
+{
   var v = _no_vis();
   let n = t.len();
   if n < 3 { return v; }
@@ -756,7 +792,12 @@ fn _rvr_shape(t: Str) -> Bool {
 // R<runway>/[M|P]vvvv[V[M|P]vvvv][FT][/][U|D|N]; vvvv is 4 digits, in meters
 // unless FT is present, in which case the stored min_m/max_m are the
 // truncated meter equivalents (ft * 3048 / 10000).
-fn _parse_rvr(t: Str) -> RvrParse {
+fn _parse_rvr(t: Str) -> RvrParse
+  ensures: result.ok == true => result.min_m >= 0;
+  ensures: result.ok == true => result.trend >= 0 && result.trend <= 3;
+  ensures: result.ok == true => result.prefix >= 0 && result.prefix <= 2;
+  ensures: result.ok == true => result.unit == 0 || result.unit == 1;
+{
   var r = _no_rvr();
   let n = t.len();
   if n < 4 { return r; }
@@ -945,7 +986,10 @@ fn _parse_wx(t: Str) -> WxParse {
 // ---------------------------------------------------------------------------
 
 // 0 FEW, 1 SCT, 2 BKN, 3 OVC, 4 VV; -1 when the token is not a layer.
-fn _parse_sky(t: Str) -> SkyParse {
+fn _parse_sky(t: Str) -> SkyParse
+  ensures: result.ok == true => result.cover >= 0 && result.cover <= 4;
+  ensures: result.ok == true => result.height >= -1;
+{
   var s = _no_sky();
   let n = t.len();
   if n == 5 && _slice_eq(t, 0, 2, "VV") {
@@ -1103,7 +1147,10 @@ fn _parse_alt(t: Str) -> AltParse {
 /// " at offset N" and, when a token is involved, ": <token>".
 /// Complexity: O(len(s)) plus O(1) per token (the mixed SM case reads one
 /// token of lookahead).
-pub fn metar_decode(s: Str) -> Result[MetarReport, Str] {
+pub fn metar_decode(s: Str) -> Result[MetarReport, Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: result is Ok => s.len() > 0;
+{
   var texts = Vec[Str].new();
   var starts = Vec[Int].new();
   _scan_tokens(s, &mut texts, &mut starts);
@@ -1958,7 +2005,10 @@ fn _taf_group_token(st: &mut _TafState, tok: Str) {
 /// validity, a missing/malformed validity after TEMPO/BECMG, and a malformed
 /// FM time; messages carry the byte offset and offending token.
 /// Complexity: O(len(s)) plus O(1) per token.
-pub fn taf_decode(s: Str) -> Result[TafReport, Str] {
+pub fn taf_decode(s: Str) -> Result[TafReport, Str]
+  ensures: s.len() == 0 => result is Err;
+  ensures: result is Ok => s.len() > 0;
+{
   var texts = Vec[Str].new();
   var starts = Vec[Int].new();
   _scan_tokens(s, &mut texts, &mut starts);
@@ -2182,7 +2232,10 @@ pub fn taf_forecast_count(t: &TafReport) -> Int {
 
 /// Kind of change group g: 0 BECMG, 1 TEMPO, 2 FM (-1 when out of range).
 /// Complexity: O(1).
-pub fn taf_fc_kind(t: &TafReport, g: Int) -> Int {
+pub fn taf_fc_kind(t: &TafReport, g: Int) -> Int
+  ensures: g < 0 || g >= t.fc_kind.len() => result == -1;
+  ensures: result != -1 => g >= 0 && g < t.fc_kind.len();
+{
   if g < 0 || g >= t.fc_kind.len() { return -1; }
   let v: Int = t.fc_kind[g];
   return v;
@@ -2354,7 +2407,10 @@ pub fn taf_sky_height_ft(t: &TafReport, k: Int) -> Int {
 
 /// Number of unclassified tokens inside change group g.
 /// Complexity: O(entries).
-pub fn taf_fc_extra_count(t: &TafReport, g: Int) -> Int {
+pub fn taf_fc_extra_count(t: &TafReport, g: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= t.fc_extra_group.len();
+{
   var n = 0;
   var i = 0;
   while i < t.fc_extra_group.len() {
