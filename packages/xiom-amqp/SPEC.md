@@ -1,6 +1,8 @@
 # xiom.amqp byte-level specification
 
-This document describes exactly what `xiom.amqp` (version 0.1.0) parses and
+Version: 0.1.3 (stable; published on the XIOM registry).
+
+This document describes exactly what `xiom.amqp` (version 0.1.3) parses and
 serializes. It is the implemented subset of AMQP 0-9-1 framing, written
 against the wire format rather than the full protocol grammar. Everything
 not described here is either rejected with a deterministic error (see the
@@ -191,8 +193,9 @@ The property flag word:
 
 Bits 2 (cluster-id), 1 and 0 are not supported: bit 0 (continuation)
 yields `amqp: bad property flags`, bits 1..2 yield
-`amqp: unsupported property`. `amqp_basic_flag(index)` returns the flag
-value for property `index` 0..12 (0 = content-type).
+`amqp: unsupported property`. `amqp_basic_flag(index)` returns the bit mask for
+property `index` 0..15 (0 = content-type; the documented basic properties use 0..12,
+while 13..15 cover the unsupported cluster-id/continuation bits).
 
 `headers` decodes into an `AmqpTree`; when the headers bit is clear the
 tree is empty, and a non-empty tree with the bit clear is rejected on
@@ -293,3 +296,49 @@ Every error message starts with `amqp: ` and is deterministic.
   Float64 conversion is performed.
 * Decoded method frames keep arguments as a generic value tree; there are
   no per-method struct views.
+
+## Contracts (batch #49 hardening pass, 2026-10-09)
+
+Runtime-checkable `ensures:` clauses (37, across the 15 functions below) were
+added to `src/amqp.xi` in the batch #49 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump to 0.1.3 at integration). All
+are `ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 21-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive timed green `& .\scripts\port.ps1 -Package xiom.amqp
+-TimeoutSec 90` runs ended `port: PASS (passed=21 failed=0 program_exit=0
+exit=0)` with the clauses active (14.64 s and 19.81 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters, parameter fields or the plain-struct result
+only; no clause indexes a vector, compares a `Str`, reads a `&mut` parameter
+or uses a module constant. Guards use the plan's families: exact constants
+(`result == 206`), sentinels (`result == -1`, `result == 0`), tag guards
+(`result is Err` / `result is Ok`), bounds/counts
+(`result >= 0 && result <= t.kinds.len()`), integer ranges
+(`f.channel >= 0 && f.channel <= 65535`) and definitional non-re-entrant
+cross-calls (`amqp_tree_len(result) == 0` on `amqp_tree_new`,
+`result == _pow2(15 - index)` on `amqp_basic_flag`). The one Result-payload
+read is the scalar revision (`result.value == 0 || result.value == 1`) on
+`amqp_parse_protocol_header`. Skipped as planned: the `&mut AmqpTree` push
+family (no readable post-state) and `amqp_parse_body_frame` (struct Result
+payload; its header guards are already covered by `amqp_parse_frame_header`).
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `amqp_frame_end_marker` | 1 | `result == 206` (0xCE) | no | yes |
+| `amqp_basic_flag` | 2 | out-of-range `index` => 0; in-range => `2^(15-index)` | no | yes |
+| `amqp_encode_protocol_header_rev` | 2 | revision outside 0..1 => `Err`; `Ok` => revision in 0..1 | no | yes |
+| `amqp_parse_protocol_header` | 3 | under 8 bytes => `Err`; `Ok` => >= 8 bytes and revision 0 or 1 | no | yes |
+| `amqp_parse_frame_header` | 4 | `frame_max < 8` or under 8 bytes => `Err`; `Ok` => both >= 8 | no | yes |
+| `amqp_tree_new` | 1 | `amqp_tree_len(result) == 0` | no | yes |
+| `amqp_tree_len` | 1 | equals `t.kinds.len()` | no | yes |
+| `amqp_tree_kind_at` | 2 | out-of-range `i` => -1; `result != -1` => `i` in range | no | yes |
+| `amqp_tree_arg_count` | 2 | `0 <= result <= t.kinds.len()` | no | yes |
+| `amqp_method_schema` | 3 | class outside {10,20,40,50,60} => `Err`; `Ok` => class inside; (10,51) => `Ok` | no | yes |
+| `amqp_encode_method_frame` | 4 | channel/class/method outside u16 => `Err`; `Ok` => all in 0..65535 | no | yes |
+| `amqp_encode_content_header_frame` | 5 | channel/class/weight/flags violations => `Err`; `Ok` => class 60, weight 0, flags in 0..65535 and 8-aligned | no | yes |
+| `amqp_encode_body_frame` | 3 | channel outside u16 or body over 2^31-1 => `Err`; `Ok` => channel in 0..65535 | no | yes |
+| `amqp_parse_heartbeat_frame` | 2 | `frame_max < 8` or under 8 bytes => `Err` | no | yes |
+| `amqp_encode_heartbeat_frame` | 2 | `channel != 0` => `Err`; `Ok` => channel 0 | no | yes |

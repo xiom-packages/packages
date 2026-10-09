@@ -604,12 +604,17 @@ pub fn pgp_document_parse(data: Vec[UInt8]) -> Result[PgpDocument, Str] {
 // --------------------------------------------------
 
 /// Number of packets in `d`. Complexity: O(1).
-pub fn pgp_packet_count(d: &PgpDocument) -> Int {
+pub fn pgp_packet_count(d: &PgpDocument) -> Int
+  ensures: result == d.tag.len();
+{
   return d.tag.len();
 }
 
 /// Packet tag of packet `i`; -1 when `i` is out of range. Complexity: O(1).
-pub fn pgp_packet_tag(d: &PgpDocument, i: Int) -> Int {
+pub fn pgp_packet_tag(d: &PgpDocument, i: Int) -> Int
+  ensures: i < 0 || i >= d.tag.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < d.tag.len();
+{
   if i < 0 || i >= d.tag.len() {
     return -1;
   }
@@ -680,7 +685,10 @@ pub fn pgp_packet_chunk_count(d: &PgpDocument, i: Int) -> Int {
 }
 
 /// Body length in bytes of packet `i`; -1 out of range. Complexity: O(1).
-pub fn pgp_packet_body_len(d: &PgpDocument, i: Int) -> Int {
+pub fn pgp_packet_body_len(d: &PgpDocument, i: Int) -> Int
+  ensures: i < 0 || i >= d.body_len.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < d.body_len.len();
+{
   if i < 0 || i >= d.body_len.len() {
     return -1;
   }
@@ -720,7 +728,12 @@ pub fn pgp_packet_body(d: &PgpDocument, i: Int) -> Vec[UInt8] {
 /// for 8384..4294967295. The encoding is the exact inverse of the parser's
 /// new-format definite-length reader.
 /// Complexity: O(1).
-pub fn pgp_new_length_encode(len: Int) -> Vec[UInt8] {
+pub fn pgp_new_length_encode(len: Int) -> Vec[UInt8]
+  ensures: len < 0 => result.len() == 1;
+  ensures: len >= 0 && len < 192 => result.len() == 1;
+  ensures: len >= 192 && len <= 8383 => result.len() == 2;
+  ensures: len > 8383 => result.len() == 5;
+{
   var out = Vec[UInt8].new();
   var v = len;
   if v < 0 {
@@ -748,7 +761,11 @@ pub fn pgp_new_length_encode(len: Int) -> Vec[UInt8] {
 /// body bytes.
 /// Returns: the complete packet bytes with the shortest definite length.
 /// Complexity: O(body.len()).
-pub fn pgp_packet_encode(tag: Int, body: &Vec[UInt8]) -> Vec[UInt8] {
+pub fn pgp_packet_encode(tag: Int, body: &Vec[UInt8]) -> Vec[UInt8]
+  ensures: body.len() < 192 => result.len() == body.len() + 2;
+  ensures: body.len() >= 192 && body.len() <= 8383 => result.len() == body.len() + 3;
+  ensures: body.len() > 8383 => result.len() == body.len() + 6;
+{
   var t = tag;
   if t < 0 {
     t = 0;
@@ -780,7 +797,10 @@ pub fn pgp_packet_encode(tag: Int, body: &Vec[UInt8]) -> Vec[UInt8] {
 /// the value octets run past the buffer; Err("pgp: non-canonical MPI at
 /// offset N") when the declared bit count does not match the value.
 /// Complexity: O(1).
-pub fn pgp_mpi_decode(data: &Vec[UInt8], offset: Int) -> Result[PgpMpi, Str] {
+pub fn pgp_mpi_decode(data: &Vec[UInt8], offset: Int) -> Result[PgpMpi, Str]
+  ensures: offset < 0 || offset + 2 > data.len() => result is Err;
+  ensures: result is Ok => offset >= 0 && offset + 2 <= data.len();
+{
   let n = data.len();
   if offset < 0 || offset + 2 > n {
     return _err_mpi("pgp: truncated MPI at offset " + _itos(offset));
@@ -816,7 +836,10 @@ pub fn pgp_mpi_decode(data: &Vec[UInt8], offset: Int) -> Result[PgpMpi, Str] {
 /// Error case: Err("pgp: MPI too large") when the significant bit length
 /// exceeds the 16-bit bit-count field (more than 8191 significant octets).
 /// Complexity: O(value.len()).
-pub fn pgp_mpi_encode(value: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn pgp_mpi_encode(value: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: value.len() == 0 => result is Ok;
+  ensures: result is Ok => result.value.len() >= 2;
+{
   var out = Vec[UInt8].new();
   let n = value.len();
   var s = 0;
@@ -887,7 +910,11 @@ pub fn pgp_mpi_value_bytes(data: &Vec[UInt8], m: &PgpMpi) -> Vec[UInt8] {
 /// Error case: Err("pgp: bad subpacket length") when `len` is below 1;
 /// Err("pgp: subpacket too large") when `len` exceeds 4294967295.
 /// Complexity: O(1).
-pub fn pgp_subpacket_length_encode(len: Int) -> Result[Vec[UInt8], Str] {
+pub fn pgp_subpacket_length_encode(len: Int) -> Result[Vec[UInt8], Str]
+  ensures: len < 1 => result is Err;
+  ensures: len > 4294967295 => result is Err;
+  ensures: result is Ok => len >= 1 && len <= 4294967295;
+{
   var out = Vec[UInt8].new();
   if len < 1 {
     return _err_bytes("pgp: bad subpacket length");
@@ -994,7 +1021,10 @@ fn _parse_subpackets(body: &Vec[UInt8], start: Int, len: Int, hashed: Int,
 /// Err("pgp: truncated subpacket at offset N") and Err("pgp: trailing
 /// signature data at offset N").
 /// Complexity: O(body.len()).
-pub fn pgp_signature_v4_decode(body: &Vec[UInt8]) -> Result[PgpSignature, Str] {
+pub fn pgp_signature_v4_decode(body: &Vec[UInt8]) -> Result[PgpSignature, Str]
+  ensures: body.len() < 10 => result is Err;
+  ensures: result is Ok => body.len() >= 10;
+{
   let n = body.len();
   if n < 1 {
     return _err_sig("pgp: truncated signature at offset 0");
@@ -1083,7 +1113,15 @@ pub fn pgp_signature_v4_decode(body: &Vec[UInt8]) -> Result[PgpSignature, Str] {
 /// region exceeds 65535 octets.
 /// Complexity: O(hashed.len() + unhashed.len()).
 pub fn pgp_signature_v4_encode(sig_type: Int, pubkey_algo: Int, hash_algo: Int,
-    hashed: &Vec[UInt8], unhashed: &Vec[UInt8], left16: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+    hashed: &Vec[UInt8], unhashed: &Vec[UInt8], left16: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: sig_type < 0 || sig_type > 255 => result is Err;
+  ensures: pubkey_algo < 0 || pubkey_algo > 255 => result is Err;
+  ensures: hash_algo < 0 || hash_algo > 255 => result is Err;
+  ensures: left16.len() != 2 => result is Err;
+  ensures: hashed.len() > 65535 || unhashed.len() > 65535 => result is Err;
+  ensures: result is Ok => left16.len() == 2;
+  ensures: result is Ok => hashed.len() <= 65535 && unhashed.len() <= 65535;
+{
   if sig_type < 0 || sig_type > 255 {
     return _err_bytes("pgp: bad signature field value");
   }
@@ -1224,7 +1262,13 @@ pub fn pgp_signature_left16(s: &PgpSignature) -> Vec[UInt8] {
 // Public MPI count for a key algorithm: RSA 2, ElGamal 3, DSA 4,
 // X9.42 DH 3, ECDH/ECDSA/EdDSA and the RFC 9580 native curves 1; -1 for an
 // algorithm this package does not model.
-fn _key_mpi_count(algo: Int) -> Int {
+fn _key_mpi_count(algo: Int) -> Int
+  ensures: algo >= 1 && algo <= 3 => result == 2;
+  ensures: algo == 16 || algo == 20 || algo == 21 => result == 3;
+  ensures: algo == 17 => result == 4;
+  ensures: algo == 18 || algo == 19 || algo == 22 || algo == 25 || algo == 26 || algo == 27 || algo == 28 => result == 1;
+  ensures: result >= -1 && result <= 4;
+{
   if algo == 1 || algo == 2 || algo == 3 {
     return 2;
   }
@@ -1490,7 +1534,10 @@ pub fn pgp_armor_line_width() -> Int {
 /// Returns: the 24-bit checksum (0..16777215). The check value of
 /// "123456789" is 0x21CF02.
 /// Complexity: O(data.len()).
-pub fn pgp_crc24(data: &Vec[UInt8]) -> Int {
+pub fn pgp_crc24(data: &Vec[UInt8]) -> Int
+  ensures: data.len() == 0 => result == 11994318;
+  ensures: result >= 0 && result <= 16777215;
+{
   var crc = 11994318;
   var i = 0;
   while i < data.len() {
@@ -1827,7 +1874,10 @@ fn _is_header_line(text: Str, start: Int, end: Int) -> Bool {
 /// character, bad padding, non-canonical trailing bits, bad checksum line,
 /// checksum mismatch, text after checksum, bad body line length.
 /// Complexity: O(text.len()).
-pub fn pgp_armor_decode(text: Str) -> Result[PgpArmor, Str] {
+pub fn pgp_armor_decode(text: Str) -> Result[PgpArmor, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() > 0;
+{
   let n = text.len();
   var pos = 0;
   var in_block = 0;
@@ -1980,7 +2030,10 @@ pub fn pgp_armor_decode(text: Str) -> Result[PgpArmor, Str] {
 /// the label grammar; Err("pgp: armor bad header line") when a stored header
 /// lacks `Name: value` shape.
 /// Complexity: O(header + data bytes).
-pub fn pgp_armor_encode(a: &PgpArmor) -> Result[Str, Str] {
+pub fn pgp_armor_encode(a: &PgpArmor) -> Result[Str, Str]
+  ensures: a.label.len() == 0 => result is Err;
+  ensures: a.label.len() > 64 => result is Err;
+{
   let lb: Str = a.label;
   if !_label_ok_at(lb, 0, lb.len()) {
     return _err_str("pgp: armor invalid label");
@@ -2129,7 +2182,10 @@ pub fn pgp_user_id_text(d: &PgpDocument, i: Int) -> Result[Str, Str] {
 /// Returns -1 when `i` is not a User ID packet or no key packet precedes it.
 /// This is the structural key-to-user-id binding; certification signatures
 /// are not cryptographically verified by this package. Complexity: O(i).
-pub fn pgp_user_id_key_index(d: &PgpDocument, i: Int) -> Int {
+pub fn pgp_user_id_key_index(d: &PgpDocument, i: Int) -> Int
+  ensures: i < 0 || i >= d.tag.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < d.tag.len();
+{
   if i < 0 || i >= d.tag.len() {
     return -1;
   }

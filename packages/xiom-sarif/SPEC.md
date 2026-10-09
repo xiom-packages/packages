@@ -1,8 +1,6 @@
 # xiom.sarif -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.sarif`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/sarif.xi` (`module xiom.sarif`).
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`,
 `xiom.string.compare`, `xiom.convert`).
@@ -236,6 +234,62 @@ Example (source parsed and re-emitted; line breaks added for readability):
      "locations":[{"physicalLocation":{"artifactLocation":{"uri":"src/b.xi"}}}]}]},
   {"tool":{"driver":{"name":"audit"}},"results":[]}]}
 ```
+
+## Contracts (batch #49 hardening pass, 2026-10-09)
+
+`ensures:` clauses were added in this pass and are enforced at runtime on
+every call in the instrumented build. No clause below has a demonstrated Z3
+proof obligation, so the Z3-provable column is "no" throughout (a bare
+`xiom-verify` `[OK] VERIFIED` was not treated as a proof). Guard families:
+guard-pair / Bool variant (`=>` guards on parameters and `result` tags),
+sentinels (`-1`, `""`), exact lengths and formulas, bounds and counts.
+
+Two consecutive
+`& .\scripts\port.ps1 -Package xiom.sarif -TimeoutSec 90` runs ended
+`port: PASS (passed=21 failed=0 program_exit=0 exit=0)` with the clauses
+active (16.73 s and 17.5 s). No clause trapped, so none was dropped. Clause
+inputs are parameters or parameter fields only; no clause indexes a vector,
+compares a `Str`, uses a module constant, or reads a Result payload. The
+only clause cross-calls are `sarif_run_count` (in the `sarif_emit`,
+`sarif_run_driver_name` and `sarif_run_result_count` clauses) and
+`sarif_result_count` / `sarif_location_count` (in the
+`sarif_run_result_count` and `sarif_result_location_count` clauses); none of
+those callees can re-enter the function whose clause calls it.
+
+Two functions were deliberately skipped (the plan's two skips): `_parse_top`
+(`&mut _SarifParser` state loop with no readable post-state) and
+`_emit_result` (`&mut Vec[UInt8]` out parameter, no return value).
+
+The `sarif_emit` exactly-29-bytes claim keeps the plan's `(pre: ...)` guard:
+`(d.schema.len() == 0 && sarif_run_count(d) == 0) => result.len() == 29`
+covers a report with an absent `$schema` and no runs, for which the emitter
+writes exactly `{"version":"2.1.0","runs":[]}`; the unguarded
+`result.len() >= 29` bound holds for every document, hand-built ones
+included. Two count claims rely on parsed-document invariants in the same
+way: `sarif_run_result_count`'s `result <= sarif_result_count(d)` and
+`sarif_result_location_count`'s `result <= sarif_location_count(d)` assume
+the non-negative, monotonic, sentinel-terminated offset rows that
+`sarif_parse` produces (the conformance suite only calls them on parsed
+reports).
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `sarif_version` | 1 | `result.len() == 5` | no | yes |
+| `sarif_parse` | 2 | empty `text` => `Err`; `Ok` => non-empty `text` | no | yes |
+| `sarif_emit` | 2 | `result.len() >= 29`; empty schema and zero runs => exactly 29 bytes | no | yes |
+| `sarif_run_count` | 3 | empty offsets => 0; `result <=` name count; non-empty offsets => `result <= offsets - 1` | no | yes |
+| `sarif_run_driver_name` | 2 | out-of-range `r` => `""`; non-empty result => `r` in range | no | yes |
+| `sarif_run_result_count` | 3 | out-of-range `r` => 0; `result >= 0`; `result <= sarif_result_count(d)` | no | yes |
+| `sarif_result_count` | 6 | empty location offsets => 0; `result <=` each result vector; `result >= 0` | no | yes |
+| `sarif_result_run` | 2 | out-of-range `i` => `-1`; `result != -1` => `i` in range | no | yes |
+| `sarif_result_rule_id` | 1 | out-of-range `i` => `""` | no | yes |
+| `sarif_result_level` | 2 | out-of-range `i` => `-1`; `result != -1` => `i` in range | no | yes |
+| `sarif_result_location_count` | 3 | out-of-range `i` => 0; `result >= 0`; `result <= sarif_location_count(d)` | no | yes |
+| `sarif_location_count` | 5 | `result <=` each location vector; `result >= 0` | no | yes |
+| `sarif_location_result` | 2 | out-of-range `i` => `-1`; `result != -1` => `i` in range | no | yes |
+| `sarif_location_uri` | 1 | out-of-range `i` => `""` | no | yes |
+| `sarif_level_count` | 2 | `result >= 0`; `result <= d.result_levels.len()` | no | yes |
+| `sarif_level_name` | 5 | codes 0/1/2/3 => lengths 5/7/4/4; other codes => `""` | no | yes |
 
 ## Error string catalog
 

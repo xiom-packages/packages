@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-09T16:06:55Z",
+    "updated":  "2026-10-09T16:21:49Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -144,7 +144,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.amqp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM AMQP 0-9-1 frame codec: protocol header, method, content header, body and heartbeat frames",
@@ -154,7 +154,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-amqp/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-amqp/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "amqp.xi",
                                               "package.xi"
@@ -1385,7 +1385,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.coverage",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM gcov coverage-text codec and per-file/overall summary math",
@@ -1395,7 +1395,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-coverage/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-coverage/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "coverage.xi",
                                               "package.xi"
@@ -3850,7 +3850,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.ldap",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "LDAP (RFC 4511) BER message decoder plus a minimal BindRequest/SearchRequest encoder",
@@ -3860,7 +3860,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ldap/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-ldap/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "ldap.xi",
                                               "package.xi"
@@ -4446,7 +4446,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.meteorology",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Aviation weather report codecs: METAR observation and TAF forecast decoding",
@@ -4456,7 +4456,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-meteorology/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-meteorology/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "meteorology.xi",
                                               "package.xi"
@@ -5747,7 +5747,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.pgp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "OpenPGP (RFC 4880/9580 subset) packet and ASCII armor codec: packets, MPIs, v4 keys/signatures, CRC24 armor -- no crypto",
@@ -5757,7 +5757,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pgp/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-pgp/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "pgp.xi",
                                               "package.xi"
@@ -5970,17 +5970,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.portaudio",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "PortAudio -- cross-platform audio I/O.",
+                         "description":  "PortAudio bindings for XIOM via dynamic loader (portaudio_x64.dll at runtime, SKIP when absent)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-portaudio/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-portaudio/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "package.xi",
                                               "portaudio.xi"
@@ -6822,7 +6822,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.sarif",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Pure-XIOM SARIF 2.1.0 report codec for a documented JSON subset",
@@ -6832,7 +6832,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sarif/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-sarif/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "sarif.xi",
                                               "package.xi"

@@ -1,5 +1,7 @@
 # xiom.ldap -- byte-level specification
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 This document describes exactly what `src/ldap.xi` implements: the accepted
 wire grammar, the validation order, the flat decode models and the complete
 error catalog. It is the contract the conformance suite tests.
@@ -549,3 +551,51 @@ ldap: empty operation
 | Long-form length bytes | 8 | `ber: length overflow` |
 | messageID / abandon id | 0..2147483647 | negative rejected on decode and encode; larger ids rejected only by `ldap_message_encode` (decode accepts any non-negative Int) |
 | Decoded Str fields | printable ASCII 0x20..0x7E | `ldap: non-printable string` |
+
+## Contracts (batch #49 hardening pass, 2026-10-09)
+
+Runtime-checkable `ensures:` clauses (41, across the 15 functions below) were
+added to `src/ldap.xi` in the batch #49 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 20-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive green `& .\scripts\port.ps1 -Package xiom.ldap
+-TimeoutSec 90` runs ended `port: PASS (passed=20 failed=0 program_exit=0
+exit=0)` with the clauses active (19.98 s and 33.16 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, and per the batch
+#37 finding a bare `[OK] VERIFIED` can be a vacuous UNSAT, so the
+Z3-provable column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a vector element, compares a `Str` (length via `.len()` only),
+uses a module constant (the message-id bound appears as the literal
+2147483647), or reads a `&mut` parameter. Guards keep the plan's families:
+tag guard pairs (`result is Ok` / `result is Err`), sentinel/out-of-range
+guards (`off < 0`, `data.len() - off < 2`, `len < 0`, `message_id < 0`),
+exact length formulas (`result.len() == 3`, `result.len() ==
+content.len() + 2`, `result.len() == len`) and bounds (`result >= 0 &&
+result <= 120`). The one cross-call is `ldap_op_tag_known(tag) == false =>
+result.len() == 7` in `ldap_op_tag_name`; it is definitional and
+non-re-entrant (`ldap_op_tag_known` never calls `ldap_op_tag_name`). Two
+planned skips were kept: `ber_bool_decode` (its guarantee would need a
+struct-Result payload field read) and `_partial_attr_parse` (five `&mut`
+out-parameters; no readable post-state).
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `ber_length_decode` | 3 | negative or out-of-range `off` => `Err`; `Ok` implies `off` in range | no | yes |
+| `ber_tlv_decode` | 4 | negative/out-of-range `off` or under 2 bytes => `Err`; `Ok` implies `off >= 0` and >= 2 bytes available | no | yes |
+| `ber_octet_string_decode` | 3 | under 2 bytes from `off` => `Err`; `Ok` implies `off >= 0` and >= 2 bytes available | no | yes |
+| `ber_sequence_decode` | 2 | negative `off` or under 2 bytes => `Err` | no | yes |
+| `ber_length_encode` | 3 | `len < 0` => empty; `len < 128` => 1 byte; 128..255 => 2 bytes | no | yes |
+| `ber_bool_encode` | 1 | always exactly 3 bytes | no | yes |
+| `ber_tlv_wrap` | 2 | content < 128 bytes => `len + 2`; 128..255 => `len + 3` | no | yes |
+| `ldap_bytes_copy` | 4 | out-of-range request => empty; in-range request => exactly `len` bytes | no | yes |
+| `ldap_op_tag_known` | 2 | outside 66..120 => `false`; `true` implies 66..120 | no | yes |
+| `ldap_op_tag_name` | 2 | unknown tag => name length 7; tag 99 => length 13 | no | yes |
+| `ldap_message_parse` | 2 | input under 2 bytes => `Err`; `Ok` implies >= 2 bytes | no | yes |
+| `ldap_message_encode` | 4 | negative/too-large id or empty op => `Err`; `Ok` implies id 0..2147483647 and non-empty op | no | yes |
+| `ldap_abandon_request_parse` | 3 | negative `off` or under 2 bytes => `Err`; `Ok` implies non-negative id | no | yes |
+| `ldap_bind_request_encode` | 2 | version outside 1..127 => `Err`; `Ok` implies version 1..127 | no | yes |
+| `ldap_search_request_encode` | 4 | bad scope/deref or negative limits => `Err`; `Ok` implies all four in range | no | yes |

@@ -11,7 +11,7 @@
 
 package xiom_coverage {
   name: "xiom.coverage";
-  version: "0.1.1";
+  version: "0.1.2";
   description: "Pure-XIOM gcov coverage-text codec and per-file/overall summary math";
   categories: ["testing"];
   keywords: ["gcov", "coverage", "parser", "summary"];

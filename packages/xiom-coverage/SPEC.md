@@ -1,6 +1,6 @@
 # xiom.coverage -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `xiom.coverage` (`src/coverage.xi`). Pure XIOM, no FFI, no I/O.
 
 ## 1. Scope
@@ -286,3 +286,47 @@ The first offending line aborts the parse; no partial document is returned.
 | Verbatim, deterministic record indices and order | t22 |
 
 Run them with `.\scripts\port.ps1 -Package xiom.coverage`.
+
+## Contracts (batch #49 hardening pass, 2026-10-09)
+
+Runtime-checkable `ensures:` clauses (30, across the 15 functions below) were
+added to `src/coverage.xi` in the batch #49 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump to 0.1.2 at integration). All
+are `ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 22-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive timed green `& .\scripts\port.ps1 -Package
+xiom.coverage -TimeoutSec 90` runs ended `port: PASS (passed=22 failed=0
+program_exit=0 exit=0)` with the clauses active (24.04 s and 21.23 s). None is
+claimed Z3-provable: `xiom-verify` was not run for this module, so the
+Z3-provable column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, compares a `Str`, or uses a module constant. Guards use the plan's
+families: branch-pair guards (`a < b => ...` / `a >= b => ...`), sentinels
+(`result == -1`, `result.len() == 0`, `result == false`), tag guards
+(`result is Ok`), exact formulas (`result == (part * 100) / whole`),
+definitional non-re-entrant cross-calls (`result == _file_count(d)`,
+`result == _min2(_min2(a, b), c)`, `result == _pct_floor(...)`) and
+bounds/counts (`result >= 0 && result <= d.ln_no.len()`). `_file_push` is
+skipped as planned (a `&mut GcovDoc` receiver, whose post-state is not
+readable in a clause) and `_parse_function` is skipped as planned (its only
+contractable output is catalog-format `Str` error text).
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `_min2` | 2 | branch pair picks `a` below, `b` at or above | no | yes |
+| `_min3` | 1 | equals `_min2(_min2(a, b), c)` | no | yes |
+| `_span` | 3 | 0 when empty/negative/past end; else `total - off` or `count` | no | yes |
+| `_pct_floor` | 2 | 0 when either input is `<= 0`; else exact floor formula | no | yes |
+| `_pct_bp` | 2 | 0 when either input is `<= 0`; else exact basis-point formula | no | yes |
+| `gcov_doc_new` | 1 | file count of a fresh document is 0 | no | yes |
+| `_file_count` | 4 | `0 <= result <=` the `sf`/`ln_n`/`ev_n` lengths | no | yes |
+| `gcov_file_count` | 1 | equals `_file_count(d)` | no | yes |
+| `gcov_file_line_count` | 4 | out-of-range `f` => 0; `0 <= result <=` `ln_no`/`ln_src` lengths | no | yes |
+| `gcov_file_line_number` | 2 | out-of-range `i` => -1; non-`-1` implies `i` in range | no | yes |
+| `gcov_line_covered` | 2 | out-of-range `i` => false; true implies `i` in range | no | yes |
+| `gcov_file_unexecuted_lines` | 2 | 0 when covered >= executable; else exact difference | no | yes |
+| `gcov_file_line_percent` | 2 | exact `_pct_floor` formula; `0 <= result <= 100` | no | yes |
+| `gcov_emit` | 1 | a zero-section document emits 0 bytes | no | yes |
+| `gcov_parse` | 1 | empty input parses to `Ok` | no | yes |

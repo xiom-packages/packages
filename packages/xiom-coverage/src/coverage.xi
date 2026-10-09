@@ -314,7 +314,10 @@ fn _parse_num(s: Str, from: Int, to: Int) -> Int {
 // --------------------------------------------------
 
 // Smaller of two Ints.
-fn _min2(a: Int, b: Int) -> Int {
+fn _min2(a: Int, b: Int) -> Int
+  ensures: a < b => result == a;
+  ensures: a >= b => result == b;
+{
   if a < b {
     return a;
   }
@@ -322,7 +325,9 @@ fn _min2(a: Int, b: Int) -> Int {
 }
 
 // Smallest of three Ints.
-fn _min3(a: Int, b: Int, c: Int) -> Int {
+fn _min3(a: Int, b: Int, c: Int) -> Int
+  ensures: result == _min2(_min2(a, b), c);
+{
   return _min2(_min2(a, b), c);
 }
 
@@ -334,7 +339,11 @@ fn _min4(a: Int, b: Int, c: Int, d: Int) -> Int {
 // Count of range [off, off+count) inside an array of length `total`,
 // clamped so the result is always a valid sub-range. 0 when the range is
 // empty, negative or starts at or past the end.
-fn _span(off: Int, count: Int, total: Int) -> Int {
+fn _span(off: Int, count: Int, total: Int) -> Int
+  ensures: off < 0 || count <= 0 || off >= total => result == 0;
+  ensures: off >= 0 && count > 0 && off < total && count > total - off => result == total - off;
+  ensures: off >= 0 && count > 0 && off < total && count <= total - off => result == count;
+{
   if off < 0 || count <= 0 || off >= total {
     return 0;
   }
@@ -347,7 +356,10 @@ fn _span(off: Int, count: Int, total: Int) -> Int {
 
 // Integer percent of `part` in `whole`, floored, 0 when either is <= 0.
 // Division truncates toward zero, which for non-negative values is floor.
-fn _pct_floor(part: Int, whole: Int) -> Int {
+fn _pct_floor(part: Int, whole: Int) -> Int
+  ensures: part <= 0 || whole <= 0 => result == 0;
+  ensures: part > 0 && whole > 0 => result == (part * 100) / whole;
+{
   if part <= 0 || whole <= 0 {
     return 0;
   }
@@ -356,7 +368,10 @@ fn _pct_floor(part: Int, whole: Int) -> Int {
 
 // Integer basis points (hundredths of a percent) of `part` in `whole`,
 // floored, 0 when either is <= 0.
-fn _pct_bp(part: Int, whole: Int) -> Int {
+fn _pct_bp(part: Int, whole: Int) -> Int
+  ensures: part <= 0 || whole <= 0 => result == 0;
+  ensures: part > 0 && whole > 0 => result == (part * 10000) / whole;
+{
   if part <= 0 || whole <= 0 {
     return 0;
   }
@@ -877,7 +892,9 @@ fn _parse_uncond(d: &mut GcovDoc, s: Str, line_no: Int, off: Int) -> Str {
 /// Returns: an empty GcovDoc.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gcov_doc_new() -> GcovDoc {
+pub fn gcov_doc_new() -> GcovDoc
+  ensures: gcov_file_count(result) == 0;
+{
   return GcovDoc{
     sf: Vec[Str].new();
     graph: Vec[Str].new();
@@ -922,7 +939,12 @@ pub fn gcov_doc_new() -> GcovDoc {
 
 // Number of index-aligned file sections: the shortest of the per-file
 // parallel arrays, so a hand-built doc can never be read out of range.
-fn _file_count(d: &GcovDoc) -> Int {
+fn _file_count(d: &GcovDoc) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.sf.len();
+  ensures: result <= d.ln_n.len();
+  ensures: result <= d.ev_n.len();
+{
   var n = d.sf.len();
   if d.graph.len() < n { n = d.graph.len(); }
   if d.graph_has.len() < n { n = d.graph_has.len(); }
@@ -954,7 +976,9 @@ fn _file_count(d: &GcovDoc) -> Int {
 /// Returns: the count (0 for an empty document).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gcov_file_count(d: &GcovDoc) -> Int {
+pub fn gcov_file_count(d: &GcovDoc) -> Int
+  ensures: result == _file_count(d);
+{
   return _file_count(d);
 }
 
@@ -1059,7 +1083,12 @@ pub fn gcov_file_programs(d: &GcovDoc, f: Int) -> Int {
 /// Returns: the record count (0 when `f` is out of range).
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gcov_file_line_count(d: &GcovDoc, f: Int) -> Int {
+pub fn gcov_file_line_count(d: &GcovDoc, f: Int) -> Int
+  ensures: f < 0 || f >= gcov_file_count(d) => result == 0;
+  ensures: result >= 0;
+  ensures: result <= d.ln_no.len();
+  ensures: result <= d.ln_src.len();
+{
   if f < 0 || f >= _file_count(d) {
     return 0;
   }
@@ -1075,7 +1104,10 @@ pub fn gcov_file_line_count(d: &GcovDoc, f: Int) -> Int {
 /// Returns: the line number; -1 when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gcov_file_line_number(d: &GcovDoc, f: Int, i: Int) -> Int {
+pub fn gcov_file_line_number(d: &GcovDoc, f: Int, i: Int) -> Int
+  ensures: i < 0 || i >= gcov_file_line_count(d, f) => result == -1;
+  ensures: result != -1 => i >= 0 && i < gcov_file_line_count(d, f);
+{
   let n = gcov_file_line_count(d, f);
   if i < 0 || i >= n {
     return -1;
@@ -1148,7 +1180,10 @@ pub fn gcov_line_executable(d: &GcovDoc, f: Int, i: Int) -> Bool {
 /// Returns: true for a covered line; false otherwise.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn gcov_line_covered(d: &GcovDoc, f: Int, i: Int) -> Bool {
+pub fn gcov_line_covered(d: &GcovDoc, f: Int, i: Int) -> Bool
+  ensures: i < 0 || i >= gcov_file_line_count(d, f) => result == false;
+  ensures: result == true => i >= 0 && i < gcov_file_line_count(d, f);
+{
   let n = gcov_file_line_count(d, f);
   if i < 0 || i >= n {
     return false;
@@ -1214,7 +1249,10 @@ pub fn gcov_file_covered_lines(d: &GcovDoc, f: Int) -> Int {
 /// Returns: the count.
 /// Error case: none.
 /// Complexity: O(records).
-pub fn gcov_file_unexecuted_lines(d: &GcovDoc, f: Int) -> Int {
+pub fn gcov_file_unexecuted_lines(d: &GcovDoc, f: Int) -> Int
+  ensures: gcov_file_covered_lines(d, f) >= gcov_file_executable_lines(d, f) => result == 0;
+  ensures: gcov_file_covered_lines(d, f) < gcov_file_executable_lines(d, f) => result == gcov_file_executable_lines(d, f) - gcov_file_covered_lines(d, f);
+{
   let e = gcov_file_executable_lines(d, f);
   let c = gcov_file_covered_lines(d, f);
   if c >= e {
@@ -1229,7 +1267,10 @@ pub fn gcov_file_unexecuted_lines(d: &GcovDoc, f: Int) -> Int {
 /// Returns: the percent (0..100).
 /// Error case: none.
 /// Complexity: O(records).
-pub fn gcov_file_line_percent(d: &GcovDoc, f: Int) -> Int {
+pub fn gcov_file_line_percent(d: &GcovDoc, f: Int) -> Int
+  ensures: result == _pct_floor(gcov_file_covered_lines(d, f), gcov_file_executable_lines(d, f));
+  ensures: result >= 0 && result <= 100;
+{
   return _pct_floor(gcov_file_covered_lines(d, f), gcov_file_executable_lines(d, f));
 }
 
@@ -1877,7 +1918,9 @@ fn _emit_event(out: Str, d: &GcovDoc, f: Int, k: Int, r: Int) -> Str {
 /// Error case: none. Mismatched parallel arrays are clamped to their
 /// shortest length; events referring to missing records are skipped.
 /// Complexity: O(total output length).
-pub fn gcov_emit(d: &GcovDoc) -> Str {
+pub fn gcov_emit(d: &GcovDoc) -> Str
+  ensures: gcov_file_count(d) == 0 => result.len() == 0;
+{
   var out = "";
   let nf = _file_count(d);
   var f = 0;
@@ -1932,7 +1975,9 @@ pub fn gcov_emit(d: &GcovDoc) -> Str {
 /// malformed line; the catalog is in SPEC.md. Byte O is the 0-based offset
 /// of the line's first non-SPACE/TAB byte.
 /// Complexity: O(input length).
-pub fn gcov_parse(text: Str) -> Result[GcovDoc, Str] {
+pub fn gcov_parse(text: Str) -> Result[GcovDoc, Str]
+  ensures: text.len() == 0 => result is Ok;
+{
   var d = gcov_doc_new();
   let len = text.len();
   var line_start = 0;

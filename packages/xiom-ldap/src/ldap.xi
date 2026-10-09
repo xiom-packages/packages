@@ -1060,7 +1060,11 @@ fn _ldap_str_raw(data: &Vec[UInt8], start: Int, n: Int, base: Int) -> Result[Str
 ///     value that does not fit a signed 64-bit Int;
 ///   * `ber: overlong length` -- non-minimal long form.
 /// Complexity: O(length bytes).
-pub fn ber_length_decode(data: &Vec[UInt8], off: Int) -> Result[BerLength, Str] {
+pub fn ber_length_decode(data: &Vec[UInt8], off: Int) -> Result[BerLength, Str]
+  ensures: off < 0 => result is Err;
+  ensures: off >= data.len() => result is Err;
+  ensures: result is Ok => off >= 0 && off < data.len();
+{
   if off < 0 {
     return _err_blen("ber: negative offset");
   }
@@ -1112,7 +1116,12 @@ pub fn ber_length_decode(data: &Vec[UInt8], off: Int) -> Result[BerLength, Str] 
 /// The caller is responsible for checking the TLV against its container
 /// (`_tlv_in` reports `ber: value overruns container`).
 /// Complexity: O(1) after the length field.
-pub fn ber_tlv_decode(data: &Vec[UInt8], off: Int) -> Result[BerTlv, Str] {
+pub fn ber_tlv_decode(data: &Vec[UInt8], off: Int) -> Result[BerTlv, Str]
+  ensures: off < 0 => result is Err;
+  ensures: off >= data.len() => result is Err;
+  ensures: data.len() - off < 2 => result is Err;
+  ensures: result is Ok => off >= 0 && data.len() - off >= 2;
+{
   if off < 0 {
     return _err_tlv("ber: negative offset");
   }
@@ -1229,7 +1238,11 @@ fn _int_in(data: &Vec[UInt8], off: Int, end: Int) -> Result[BerInt, Str] {
 /// verbatim (no text validation); a zero-length string is valid.
 /// Errors: the `ber_tlv_decode` catalog and `ber: tag mismatch` at `off`.
 /// Complexity: O(content bytes).
-pub fn ber_octet_string_decode(data: &Vec[UInt8], off: Int) -> Result[BerBytes, Str] {
+pub fn ber_octet_string_decode(data: &Vec[UInt8], off: Int) -> Result[BerBytes, Str]
+  ensures: off < 0 => result is Err;
+  ensures: data.len() - off < 2 => result is Err;
+  ensures: result is Ok => off >= 0 && data.len() - off >= 2;
+{
   let tr = ber_tlv_decode(data, off);
   if !tr.is_ok {
     return _err_bbytes(tr.error);
@@ -1321,7 +1334,10 @@ fn _enum_in(data: &Vec[UInt8], off: Int, end: Int) -> Result[BerEnum, Str] {
 /// returned `BerTlv.tag` is the actual wire tag.
 /// Errors: the `ber_tlv_decode` catalog and `ber: tag mismatch` at `off`.
 /// Complexity: O(1) after the length field.
-pub fn ber_sequence_decode(data: &Vec[UInt8], off: Int) -> Result[BerTlv, Str] {
+pub fn ber_sequence_decode(data: &Vec[UInt8], off: Int) -> Result[BerTlv, Str]
+  ensures: off < 0 => result is Err;
+  ensures: data.len() - off < 2 => result is Err;
+{
   let tr = ber_tlv_decode(data, off);
   if !tr.is_ok {
     return _err_tlv(tr.error);
@@ -1341,7 +1357,11 @@ pub fn ber_sequence_decode(data: &Vec[UInt8], off: Int) -> Result[BerTlv, Str] {
 /// 0x80|n followed by the minimal big-endian value. A negative `len`
 /// yields an empty vector.
 /// Complexity: O(length bytes).
-pub fn ber_length_encode(len: Int) -> Vec[UInt8] {
+pub fn ber_length_encode(len: Int) -> Vec[UInt8]
+  ensures: len < 0 => result.len() == 0;
+  ensures: len >= 0 && len < 128 => result.len() == 1;
+  ensures: len >= 128 && len <= 255 => result.len() == 2;
+{
   var out = Vec[UInt8].new();
   _push_length(&mut out, len);
   return out;
@@ -1422,7 +1442,9 @@ pub fn ber_octet_string_encode(bytes: &Vec[UInt8]) -> Vec[UInt8] {
 /// Encode a BOOLEAN TLV (tag 0x01): 0x01 0x01 0xFF for true and
 /// 0x01 0x01 0x00 for false.
 /// Complexity: O(1).
-pub fn ber_bool_encode(value: Bool) -> Vec[UInt8] {
+pub fn ber_bool_encode(value: Bool) -> Vec[UInt8]
+  ensures: result.len() == 3;
+{
   var out = Vec[UInt8].new();
   out.push(BER_TAG_BOOLEAN as UInt8);
   out.push(1 as UInt8);
@@ -1436,7 +1458,10 @@ pub fn ber_bool_encode(value: Bool) -> Vec[UInt8] {
 
 /// Wrap `content` in a TLV with tag `tag` and a definite length.
 /// Complexity: O(content bytes).
-pub fn ber_tlv_wrap(tag: Int, content: &Vec[UInt8]) -> Vec[UInt8] {
+pub fn ber_tlv_wrap(tag: Int, content: &Vec[UInt8]) -> Vec[UInt8]
+  ensures: content.len() < 128 => result.len() == content.len() + 2;
+  ensures: content.len() >= 128 && content.len() <= 255 => result.len() == content.len() + 3;
+{
   return _wrap_tlv(tag, content);
 }
 
@@ -1463,7 +1488,12 @@ fn _ldap_str_in(data: &Vec[UInt8], off: Int, end: Int) -> Result[LdapStr, Str] {
 /// assertion value or referral string that a parse function left in the
 /// source buffer.
 /// Complexity: O(len).
-pub fn ldap_bytes_copy(data: &Vec[UInt8], off: Int, len: Int) -> Vec[UInt8] {
+pub fn ldap_bytes_copy(data: &Vec[UInt8], off: Int, len: Int) -> Vec[UInt8]
+  ensures: off < 0 || len < 0 => result.len() == 0;
+  ensures: off > data.len() => result.len() == 0;
+  ensures: len > data.len() - off => result.len() == 0;
+  ensures: off >= 0 && len >= 0 && off <= data.len() && len <= data.len() - off => result.len() == len;
+{
   if off < 0 || len < 0 {
     return Vec[UInt8].new();
   }
@@ -1482,7 +1512,10 @@ pub fn ldap_bytes_copy(data: &Vec[UInt8], off: Int, len: Int) -> Vec[UInt8] {
 
 /// True when `tag` is one of the protocolOp tags this module recognizes.
 /// Complexity: O(1).
-pub fn ldap_op_tag_known(tag: Int) -> Bool {
+pub fn ldap_op_tag_known(tag: Int) -> Bool
+  ensures: tag < 66 || tag > 120 => result == false;
+  ensures: result == true => tag >= 66 && tag <= 120;
+{
   if tag == LDAP_OP_UNBIND_REQUEST { return true; }
   if tag == LDAP_OP_DEL_REQUEST { return true; }
   if tag == LDAP_OP_ABANDON_REQUEST { return true; }
@@ -1508,7 +1541,10 @@ pub fn ldap_op_tag_known(tag: Int) -> Bool {
 
 /// RFC 4511 protocolOp name for `tag`, or "unknown".
 /// Complexity: O(1).
-pub fn ldap_op_tag_name(tag: Int) -> Str {
+pub fn ldap_op_tag_name(tag: Int) -> Str
+  ensures: ldap_op_tag_known(tag) == false => result.len() == 7;
+  ensures: tag == 99 => result.len() == 13;
+{
   if tag == LDAP_OP_UNBIND_REQUEST { return "UnbindRequest"; }
   if tag == LDAP_OP_DEL_REQUEST { return "DelRequest"; }
   if tag == LDAP_OP_ABANDON_REQUEST { return "AbandonRequest"; }
@@ -1550,7 +1586,10 @@ pub fn ldap_op_tag_name(tag: Int) -> Str {
 /// and `ldap: trailing bytes` when the field after protocolOp is neither a
 /// [0] controls TLV nor absent.
 /// Complexity: O(message bytes) framing only.
-pub fn ldap_message_parse(data: &Vec[UInt8]) -> Result[LdapMessage, Str] {
+pub fn ldap_message_parse(data: &Vec[UInt8]) -> Result[LdapMessage, Str]
+  ensures: data.len() < 2 => result is Err;
+  ensures: result is Ok => data.len() >= 2;
+{
   let mr = ber_tlv_decode(data, 0);
   if !mr.is_ok {
     return _err_msg(mr.error);
@@ -1622,7 +1661,12 @@ pub fn ldap_message_parse(data: &Vec[UInt8]) -> Result[LdapMessage, Str] {
 /// Errors (no offsets; encoder): `ldap: negative message id`,
 /// `ldap: message id too large`, `ldap: empty operation`.
 /// Complexity: O(message bytes).
-pub fn ldap_message_encode(message_id: Int, op: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn ldap_message_encode(message_id: Int, op: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: message_id < 0 => result is Err;
+  ensures: message_id > 2147483647 => result is Err;
+  ensures: op.len() == 0 => result is Err;
+  ensures: result is Ok => message_id >= 0 && message_id <= 2147483647 && op.len() > 0;
+{
   if message_id < 0 {
     return _err_bytes("ldap: negative message id");
   }
@@ -1765,7 +1809,11 @@ pub fn ldap_unbind_request_parse(data: &Vec[UInt8], off: Int) -> Result[Int, Str
 /// Errors: the BER catalogs, `ber: tag mismatch` at `off`, the
 /// `_int_content` catalog at `off` and `ldap: negative abandon id` at `off`.
 /// Complexity: O(content bytes).
-pub fn ldap_abandon_request_parse(data: &Vec[UInt8], off: Int) -> Result[Int, Str] {
+pub fn ldap_abandon_request_parse(data: &Vec[UInt8], off: Int) -> Result[Int, Str]
+  ensures: off < 0 => result is Err;
+  ensures: data.len() - off < 2 => result is Err;
+  ensures: result is Ok => result.value >= 0;
+{
   let tr = ber_tlv_decode(data, off);
   if !tr.is_ok {
     return _err_int(tr.error);
@@ -1791,7 +1839,10 @@ pub fn ldap_abandon_request_parse(data: &Vec[UInt8], off: Int) -> Result[Int, St
 /// Errors (no offsets; encoder): `ldap: bad bind version`,
 /// `ldap: non-printable string`.
 /// Complexity: O(name + password bytes).
-pub fn ldap_bind_request_encode(version: Int, name: Str, password: &Vec[UInt8]) -> Result[Vec[UInt8], Str] {
+pub fn ldap_bind_request_encode(version: Int, name: Str, password: &Vec[UInt8]) -> Result[Vec[UInt8], Str]
+  ensures: version < 1 || version > 127 => result is Err;
+  ensures: result is Ok => version >= 1 && version <= 127;
+{
   if version < 1 || version > 127 {
     return _err_bytes("ldap: bad bind version");
   }
@@ -2612,7 +2663,12 @@ pub fn ldap_search_entry_parse(data: &Vec[UInt8], off: Int) -> Result[LdapSearch
 /// `ldap: bad deref aliases`, `ldap: negative integer`,
 /// `ldap: non-printable string`.
 /// Complexity: O(request bytes).
-pub fn ldap_search_request_encode(base: Str, scope: Int, deref_aliases: Int, size_limit: Int, time_limit: Int, types_only: Bool, attr: Str, value: &Vec[UInt8], attributes: &Vec[Str]) -> Result[Vec[UInt8], Str] {
+pub fn ldap_search_request_encode(base: Str, scope: Int, deref_aliases: Int, size_limit: Int, time_limit: Int, types_only: Bool, attr: Str, value: &Vec[UInt8], attributes: &Vec[Str]) -> Result[Vec[UInt8], Str]
+  ensures: scope < 0 || scope > 2 => result is Err;
+  ensures: deref_aliases < 0 || deref_aliases > 3 => result is Err;
+  ensures: size_limit < 0 || time_limit < 0 => result is Err;
+  ensures: result is Ok => scope >= 0 && scope <= 2 && deref_aliases >= 0 && deref_aliases <= 3 && size_limit >= 0 && time_limit >= 0;
+{
   if scope < 0 || scope > 2 {
     return _err_bytes("ldap: bad scope");
   }

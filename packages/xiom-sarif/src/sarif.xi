@@ -1373,7 +1373,9 @@ fn _parse_top(p: &mut _SarifParser) -> Bool {
 /// Returns: the literal "2.1.0".
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sarif_version() -> Str {
+pub fn sarif_version() -> Str
+  ensures: result.len() == 5;
+{
   return "2.1.0";
 }
 
@@ -1389,7 +1391,10 @@ pub fn sarif_version() -> Str {
 /// errors (unsupported version, unknown/duplicate/missing keys, invalid
 /// level, non-positive line/column). See SPEC.md for the full list.
 /// Complexity: O(n) over the report bytes.
-pub fn sarif_parse(text: Str) -> Result[SarifDoc, Str] {
+pub fn sarif_parse(text: Str) -> Result[SarifDoc, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() > 0;
+{
   var p = _SarifParser{
     src: text;
     len: text.len();
@@ -1573,7 +1578,10 @@ fn _emit_location(out: &mut Vec[UInt8], d: &SarifDoc, k: Int) {
 /// `\r`, `\t`).
 /// Error case: none.
 /// Complexity: O(runs + results + locations + output bytes).
-pub fn sarif_emit(d: &SarifDoc) -> Str {
+pub fn sarif_emit(d: &SarifDoc) -> Str
+  ensures: result.len() >= 29;
+  ensures: (d.schema.len() == 0 && sarif_run_count(d) == 0) => result.len() == 29;
+{
   var out = Vec[UInt8].new();
   builder.sb_push_str(&mut out, "{");
   let sc: Str = d.schema;
@@ -1639,7 +1647,11 @@ pub fn sarif_schema(d: &SarifDoc) -> Str {
 /// empty report.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sarif_run_count(d: &SarifDoc) -> Int {
+pub fn sarif_run_count(d: &SarifDoc) -> Int
+  ensures: d.run_result_offsets.len() == 0 => result == 0;
+  ensures: result <= d.run_driver_names.len();
+  ensures: d.run_result_offsets.len() > 0 => result <= d.run_result_offsets.len() - 1;
+{
   var n = d.run_driver_names.len();
   let on: Int = d.run_result_offsets.len();
   if on == 0 {
@@ -1656,7 +1668,10 @@ pub fn sarif_run_count(d: &SarifDoc) -> Int {
 /// Returns: the name, or "" when `r` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sarif_run_driver_name(d: &SarifDoc, r: Int) -> Str {
+pub fn sarif_run_driver_name(d: &SarifDoc, r: Int) -> Str
+  ensures: r < 0 || r >= sarif_run_count(d) => result.len() == 0;
+  ensures: result.len() > 0 => r >= 0 && r < sarif_run_count(d);
+{
   if r < 0 || r >= sarif_run_count(d) {
     return "";
   }
@@ -1670,7 +1685,11 @@ pub fn sarif_run_driver_name(d: &SarifDoc, r: Int) -> Str {
 /// Returns: the result count; 0 when `r` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sarif_run_result_count(d: &SarifDoc, r: Int) -> Int {
+pub fn sarif_run_result_count(d: &SarifDoc, r: Int) -> Int
+  ensures: r < 0 || r >= sarif_run_count(d) => result == 0;
+  ensures: result >= 0;
+  ensures: result <= sarif_result_count(d);
+{
   if r < 0 || r >= sarif_run_count(d) {
     return 0;
   }
@@ -1724,7 +1743,14 @@ pub fn sarif_run_level_count(d: &SarifDoc, r: Int, level: Int) -> Int {
 /// (including the result_location_offsets range); 0 for an empty report.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sarif_result_count(d: &SarifDoc) -> Int {
+pub fn sarif_result_count(d: &SarifDoc) -> Int
+  ensures: d.result_location_offsets.len() == 0 => result == 0;
+  ensures: result <= d.result_runs.len();
+  ensures: result <= d.result_rule_ids.len();
+  ensures: result <= d.result_levels.len();
+  ensures: result <= d.result_messages.len();
+  ensures: result >= 0;
+{
   var n = d.result_runs.len();
   if d.result_rule_ids.len() < n {
     n = d.result_rule_ids.len();
@@ -1750,7 +1776,10 @@ pub fn sarif_result_count(d: &SarifDoc) -> Int {
 /// Returns: the run index, or -1 when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sarif_result_run(d: &SarifDoc, i: Int) -> Int {
+pub fn sarif_result_run(d: &SarifDoc, i: Int) -> Int
+  ensures: i < 0 || i >= sarif_result_count(d) => result == -1;
+  ensures: result != -1 => i >= 0 && i < sarif_result_count(d);
+{
   if i < 0 || i >= sarif_result_count(d) {
     return -1;
   }
@@ -1764,7 +1793,9 @@ pub fn sarif_result_run(d: &SarifDoc, i: Int) -> Int {
 /// range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sarif_result_rule_id(d: &SarifDoc, i: Int) -> Str {
+pub fn sarif_result_rule_id(d: &SarifDoc, i: Int) -> Str
+  ensures: i < 0 || i >= sarif_result_count(d) => result.len() == 0;
+{
   if i < 0 || i >= sarif_result_count(d) {
     return "";
   }
@@ -1778,7 +1809,10 @@ pub fn sarif_result_rule_id(d: &SarifDoc, i: Int) -> Str {
 /// Returns: the level code, or -1 when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sarif_result_level(d: &SarifDoc, i: Int) -> Int {
+pub fn sarif_result_level(d: &SarifDoc, i: Int) -> Int
+  ensures: i < 0 || i >= sarif_result_count(d) => result == -1;
+  ensures: result != -1 => i >= 0 && i < sarif_result_count(d);
+{
   if i < 0 || i >= sarif_result_count(d) {
     return -1;
   }
@@ -1806,7 +1840,11 @@ pub fn sarif_result_message(d: &SarifDoc, i: Int) -> Str {
 /// Returns: the location count; 0 when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sarif_result_location_count(d: &SarifDoc, i: Int) -> Int {
+pub fn sarif_result_location_count(d: &SarifDoc, i: Int) -> Int
+  ensures: i < 0 || i >= sarif_result_count(d) => result == 0;
+  ensures: result >= 0;
+  ensures: result <= sarif_location_count(d);
+{
   if i < 0 || i >= sarif_result_count(d) {
     return 0;
   }
@@ -1889,7 +1927,13 @@ pub fn sarif_result_column(d: &SarifDoc, i: Int) -> Int {
 /// vectors; 0 for an empty report.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sarif_location_count(d: &SarifDoc) -> Int {
+pub fn sarif_location_count(d: &SarifDoc) -> Int
+  ensures: result <= d.location_results.len();
+  ensures: result <= d.location_uris.len();
+  ensures: result <= d.location_lines.len();
+  ensures: result <= d.location_columns.len();
+  ensures: result >= 0;
+{
   var n = d.location_results.len();
   if d.location_uris.len() < n {
     n = d.location_uris.len();
@@ -1908,7 +1952,10 @@ pub fn sarif_location_count(d: &SarifDoc) -> Int {
 /// Returns: the result index, or -1 when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sarif_location_result(d: &SarifDoc, i: Int) -> Int {
+pub fn sarif_location_result(d: &SarifDoc, i: Int) -> Int
+  ensures: i < 0 || i >= sarif_location_count(d) => result == -1;
+  ensures: result != -1 => i >= 0 && i < sarif_location_count(d);
+{
   if i < 0 || i >= sarif_location_count(d) {
     return -1;
   }
@@ -1921,7 +1968,9 @@ pub fn sarif_location_result(d: &SarifDoc, i: Int) -> Int {
 /// Returns: the uri, or "" when `i` is out of range.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sarif_location_uri(d: &SarifDoc, i: Int) -> Str {
+pub fn sarif_location_uri(d: &SarifDoc, i: Int) -> Str
+  ensures: i < 0 || i >= sarif_location_count(d) => result.len() == 0;
+{
   if i < 0 || i >= sarif_location_count(d) {
     return "";
   }
@@ -1964,7 +2013,10 @@ pub fn sarif_location_column(d: &SarifDoc, i: Int) -> Int {
 /// Returns: the count.
 /// Error case: none.
 /// Complexity: O(results).
-pub fn sarif_level_count(d: &SarifDoc, level: Int) -> Int {
+pub fn sarif_level_count(d: &SarifDoc, level: Int) -> Int
+  ensures: result >= 0;
+  ensures: result <= d.result_levels.len();
+{
   var n = 0;
   var i = 0;
   while i < d.result_levels.len() {
@@ -1983,6 +2035,12 @@ pub fn sarif_level_count(d: &SarifDoc, level: Int) -> Int {
 /// Returns: the name, or "" for any other value.
 /// Error case: none.
 /// Complexity: O(1).
-pub fn sarif_level_name(level: Int) -> Str {
+pub fn sarif_level_name(level: Int) -> Str
+  ensures: level == 0 => result.len() == 5;
+  ensures: level == 1 => result.len() == 7;
+  ensures: level == 2 => result.len() == 4;
+  ensures: level == 3 => result.len() == 4;
+  ensures: level < 0 || level > 3 => result.len() == 0;
+{
   return _level_name(level);
 }
