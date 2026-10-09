@@ -1,6 +1,6 @@
 # xiom.tcx -- Specification
 
-Version: 0.1.0 (incubating, not published).
+Version: 0.1.3 (stable; published on the XIOM registry).
 Module: `xiom.tcx` (`src/tcx.xi`). Pure XIOM, no FFI.
 Depends on `xiom.std` (`xiom.string`, `xiom.string.builder`,
 `xiom.string.compare`).
@@ -423,3 +423,49 @@ parser state) and documents these compiler-driven choices:
   preserved as written.
 - Errors carry no line/column position. No file I/O, no streaming parser, no
   GPS math.
+
+## Contracts (batch #48 hardening pass, 2026-10-09)
+
+Runtime-checkable `ensures:` clauses (28, across the 16 functions below) were
+added to `src/tcx.xi` in the batch #48 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump to 0.1.3 at integration). All
+are `ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 23-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive timed green `& .\scripts\port.ps1 -Package xiom.tcx
+-TimeoutSec 90` runs ended `port: PASS (passed=23 failed=0 program_exit=0
+exit=0)` with the clauses active (14.96 s and 13.89 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, compares a `Str`, or uses a module constant. Guards use the plan's
+families: sentinels (`result == -1`, `result.len() == 0`), tag guards
+(`result is Err` / `result is Ok`), exact formulas
+(`result == d.act_sport.len()`, `result.len() == 106` for the empty
+document), definitional non-re-entrant cross-calls
+(`result == (tcx_lap_trackpoint_count(d, l) > 0)`) and bounds/counts
+(`result >= 0 && result <= d.lap_start_time.len()`). The two documented
+local/parameter name near-misses (`tcx_trackpoint_lap` binds a local `l`;
+`tcx_lap_activity` binds a local `a`) keep their clause text off the
+shadowed names. `tcx_lap_total_time` is skipped as planned (byte-identical
+twin of `tcx_lap_start_time`).
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `tcx_parse` | 2 | empty input => `Err`; `Ok` implies non-empty input | no | yes |
+| `tcx_new` | 2 | all eighteen vectors empty | no | yes |
+| `tcx_build` | 1 | empty activities => canonical skeleton is 106 bytes | no | yes |
+| `tcx_activity_count` | 1 | equals `d.act_sport.len()` | no | yes |
+| `tcx_lap_count` | 1 | equals `d.lap_start_time.len()` | no | yes |
+| `tcx_trackpoint_count` | 1 | equals `d.tp_time.len()` | no | yes |
+| `tcx_activity_sport` | 2 | out-of-range `a` => empty; non-empty => `a` in range | no | yes |
+| `tcx_activity_id` | 2 | out-of-range `a` => empty; non-empty => `a` in range | no | yes |
+| `tcx_activity_lap_count` | 2 | out-of-range `a` => 0; `0 <= result <= lap count` | no | yes |
+| `tcx_lap_activity` | 2 | out-of-range `l` => -1; `-1 <= result < activity count` | no | yes |
+| `tcx_lap_start_time` | 2 | out-of-range `l` => empty; non-empty => `l` in range | no | yes |
+| `tcx_lap_trackpoint_count` | 2 | out-of-range `l` => 0; `0 <= result <= trackpoint count` | no | yes |
+| `tcx_lap_has_track` | 2 | out-of-range `l` => false; equals trackpoint count > 0 | no | yes |
+| `tcx_trackpoint_lap` | 2 | out-of-range `t` => -1; `-1 <= result < lap count` | no | yes |
+| `tcx_trackpoint_time` | 2 | out-of-range `t` => empty; non-empty => `t` in range | no | yes |
+| `tcx_trackpoint_has_position` | 2 | out-of-range `t` => false; true implies `t` in range | no | yes |

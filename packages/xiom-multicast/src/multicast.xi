@@ -402,14 +402,19 @@ fn _icmpv6_terms(src: &Vec[UInt8], dst: &Vec[UInt8], data: &Vec[UInt8]) -> Int {
 /// sum of all 16-bit big-endian words, a trailing odd byte padded on the
 /// right with zero. Pass the message with its checksum field zeroed to
 /// obtain the value to write. Complexity: O(data.len()).
-pub fn igmp_checksum(data: &Vec[UInt8]) -> Int {
+pub fn igmp_checksum(data: &Vec[UInt8]) -> Int
+  ensures: result >= 0 && result <= 65535;
+{
   return 65535 - _fold16(_sum_bytes(0, data));
 }
 
 /// True when the IGMP checksum of the complete message (checksum field
 /// included) is valid, i.e. the folded sum is 0xFFFF.
 /// Complexity: O(data.len()).
-pub fn igmp_checksum_valid(data: &Vec[UInt8]) -> Bool {
+pub fn igmp_checksum_valid(data: &Vec[UInt8]) -> Bool
+  ensures: result == (igmp_checksum(data) == 0);
+  ensures: data.len() == 0 => !result;
+{
   return _fold16(_sum_bytes(0, data)) == 65535;
 }
 
@@ -419,7 +424,10 @@ pub fn igmp_checksum_valid(data: &Vec[UInt8]) -> Bool {
 /// the message itself. Returns -1 when either address is not 16 bytes.
 /// Pass the message with its checksum field zeroed to obtain the value to
 /// write. Complexity: O(src.len() + dst.len() + data.len()).
-pub fn icmpv6_checksum(src: &Vec[UInt8], dst: &Vec[UInt8], data: &Vec[UInt8]) -> Int {
+pub fn icmpv6_checksum(src: &Vec[UInt8], dst: &Vec[UInt8], data: &Vec[UInt8]) -> Int
+  ensures: src.len() != 16 || dst.len() != 16 => result == -1;
+  ensures: src.len() == 16 && dst.len() == 16 => result >= 0 && result <= 65535;
+{
   if !_addr16_ok(src) {
     return -1;
   }
@@ -484,7 +492,11 @@ fn _with_icmpv6_checksum(body: &Vec[UInt8], src: &Vec[UInt8], dst: &Vec[UInt8]) 
 /// are tenths of a second, larger values use the floating encoding
 /// `(mant | 0x10) << (exp + 3)`. Returns -1 when `code` is outside 0..255.
 /// Complexity: O(1).
-pub fn igmp_max_resp_ms(code: Int) -> Int {
+pub fn igmp_max_resp_ms(code: Int) -> Int
+  ensures: code < 0 || code > 255 => result == -1;
+  ensures: code >= 0 && code < 128 => result == code * 100;
+  ensures: code >= 128 && code <= 255 => result > 0;
+{
   if code < 0 || code > 255 {
     return -1;
   }
@@ -500,7 +512,10 @@ pub fn igmp_max_resp_ms(code: Int) -> Int {
 /// seconds, larger values use the floating encoding
 /// `(mant | 0x10) << (exp + 3)`. Returns -1 when `code` is outside 0..255.
 /// Complexity: O(1).
-pub fn igmp_qqic_seconds(code: Int) -> Int {
+pub fn igmp_qqic_seconds(code: Int) -> Int
+  ensures: code < 0 || code > 255 => result == -1;
+  ensures: code >= 0 && code < 128 => result == code;
+{
   if code < 0 || code > 255 {
     return -1;
   }
@@ -516,7 +531,10 @@ pub fn igmp_qqic_seconds(code: Int) -> Int {
 /// below 32768 are plain milliseconds, larger values use the floating
 /// encoding `(mant | 0x1000) << (exp + 3)`. Returns -1 when `code` is
 /// outside 0..65535. Complexity: O(1).
-pub fn mld_max_resp_ms(code: Int) -> Int {
+pub fn mld_max_resp_ms(code: Int) -> Int
+  ensures: code < 0 || code > 65535 => result == -1;
+  ensures: code >= 0 && code < 32768 => result == code;
+{
   if code < 0 || code > 65535 {
     return -1;
   }
@@ -530,7 +548,10 @@ pub fn mld_max_resp_ms(code: Int) -> Int {
 
 /// Effective Querier's Robustness Variable: the raw QRV, or the RFC 3376
 /// default 2 when the raw value is 0. Complexity: O(1).
-pub fn igmp_qrv_effective(raw_qrv: Int) -> Int {
+pub fn igmp_qrv_effective(raw_qrv: Int) -> Int
+  ensures: raw_qrv == 0 => result == 2;
+  ensures: raw_qrv != 0 => result == raw_qrv;
+{
   if raw_qrv == 0 {
     return IGMP_QRV_DEFAULT;
   }
@@ -539,14 +560,20 @@ pub fn igmp_qrv_effective(raw_qrv: Int) -> Int {
 
 /// True when `addr` (an unsigned 32-bit Int) is inside 224.0.0.0/4.
 /// Complexity: O(1).
-pub fn igmp_is_multicast(addr: Int) -> Bool {
+pub fn igmp_is_multicast(addr: Int) -> Bool
+  ensures: addr >= 3758096384 && addr <= 4026531839 => result;
+  ensures: addr < 3758096384 || addr > 4026531839 => !result;
+{
   return addr >= IGMP_MULTICAST_BASE && addr <= IGMP_MULTICAST_TOP;
 }
 
 /// True when the 16-byte address starts with 0xFF (ff00::/8), the IPv6
 /// multicast block. Returns false for any other length.
 /// Complexity: O(1).
-pub fn mld_is_multicast(addr: &Vec[UInt8]) -> Bool {
+pub fn mld_is_multicast(addr: &Vec[UInt8]) -> Bool
+  ensures: addr.len() != 16 => !result;
+  ensures: result => addr.len() == 16;
+{
   if !_addr16_ok(addr) {
     return false;
   }
@@ -616,7 +643,10 @@ pub fn mld_message_name(msg_type: Int) -> Str {
 ///     crosses the end.
 /// Precedence is: length, type, checksum flag, shape. Complexity:
 /// O(data.len()).
-pub fn igmp_parse(data: &Vec[UInt8]) -> Result[IgmpMessage, Str] {
+pub fn igmp_parse(data: &Vec[UInt8]) -> Result[IgmpMessage, Str]
+  ensures: data.len() < 8 => result is Err;
+  ensures: result is Ok => data.len() >= 8;
+{
   let n = data.len();
   if n < IGMP_QUERY_SIZE {
     return _err_igmp("igmp: short message");
@@ -821,7 +851,13 @@ pub fn igmp_version(m: &IgmpMessage) -> Int {
 /// (group set, no sources), 2 group-and-source-specific (group set with
 /// sources); -1 for a non-query or a malformed general query carrying
 /// sources. Complexity: O(1).
-pub fn igmp_query_variant(m: &IgmpMessage) -> Int {
+pub fn igmp_query_variant(m: &IgmpMessage) -> Int
+  ensures: m.msg_type != 17 => result == -1;
+  ensures: m.msg_type == 17 && m.source_count > 0 && m.group == 0 => result == -1;
+  ensures: m.msg_type == 17 && m.source_count > 0 && m.group != 0 => result == 2;
+  ensures: m.msg_type == 17 && m.source_count <= 0 && m.group != 0 => result == 1;
+  ensures: m.msg_type == 17 && m.source_count <= 0 && m.group == 0 => result == 0;
+{
   if m.msg_type != IGMP_TYPE_QUERY {
     return -1;
   }
@@ -841,7 +877,12 @@ pub fn igmp_query_variant(m: &IgmpMessage) -> Int {
 /// `k`-th (0-based) source address of a v3 query as an unsigned 32-bit
 /// Int, or -1 when `k` is negative, beyond the declared count, or the
 /// recorded span does not fit `data`. Complexity: O(1).
-pub fn igmp_source_at(data: &Vec[UInt8], m: &IgmpMessage, k: Int) -> Int {
+pub fn igmp_source_at(data: &Vec[UInt8], m: &IgmpMessage, k: Int) -> Int
+  ensures: k < 0 || k >= m.source_count => result == -1;
+  ensures: m.source_offset < 0 => result == -1;
+  ensures: m.source_offset + (k + 1) * 4 > data.len() => result == -1;
+  ensures: result != -1 => k >= 0 && k < m.source_count && m.source_offset >= 0 && m.source_offset + (k + 1) * 4 <= data.len();
+{
   if k < 0 {
     return -1;
   }
@@ -892,7 +933,11 @@ pub fn igmp_record_count(m: &IgmpMessage) -> Int {
 }
 
 /// Record type of record `i`, or -1 when out of range. Complexity: O(1).
-pub fn igmp_record_type(m: &IgmpMessage, i: Int) -> Int {
+pub fn igmp_record_type(m: &IgmpMessage, i: Int) -> Int
+  ensures: i < 0 => result == -1;
+  ensures: i >= m.rec_types.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < m.rec_types.len();
+{
   if !_igmp_record_exists(m, i) {
     return -1;
   }
@@ -985,7 +1030,11 @@ pub fn igmp_record_aux(data: &Vec[UInt8], m: &IgmpMessage, i: Int) -> Result[Vec
 /// Err("igmp: bad group address") when `group` is outside 0..4294967295;
 /// Err("igmp: bad max resp code") when `max_resp` is outside 0..255.
 /// Nothing is written on Err. Complexity: O(1).
-pub fn igmp_build_query_v2(group: Int, max_resp: Int) -> Result[Vec[UInt8], Str] {
+pub fn igmp_build_query_v2(group: Int, max_resp: Int) -> Result[Vec[UInt8], Str]
+  ensures: group < 0 || group > 4294967295 => result is Err;
+  ensures: max_resp < 0 || max_resp > 255 => result is Err;
+  ensures: result is Ok => group >= 0 && group <= 4294967295 && max_resp >= 0 && max_resp <= 255;
+{
   if !_addr32_ok(group) {
     return _err_bytes("igmp: bad group address");
   }
@@ -1236,7 +1285,10 @@ pub fn igmp_build_report_v3(record_types: &Vec[Int], groups: &Vec[Int], source_c
 ///   * `mld: bad aux data length at <pos>` -- a record's auxiliary data
 ///     crosses the end.
 /// Complexity: O(data.len()).
-pub fn mld_parse(data: &Vec[UInt8]) -> Result[MldMessage, Str] {
+pub fn mld_parse(data: &Vec[UInt8]) -> Result[MldMessage, Str]
+  ensures: data.len() < 8 => result is Err;
+  ensures: result is Ok => data.len() >= 8;
+{
   let n = data.len();
   if n < 4 {
     return _err_mld("mld: short message");

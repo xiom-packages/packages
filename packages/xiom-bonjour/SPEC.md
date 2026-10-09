@@ -1,8 +1,6 @@
 # xiom.bonjour -- Specification
 
-Status: `incubating` (implemented, harness-green with compiler v0.61.3; not
-published).
-Manifest: `package.xi` (`xiom.bonjour`, version `0.1.0`).
+Version: 0.1.2 (stable; published on the XIOM registry).
 Module: `src/bonjour.xi` (`module xiom.bonjour`).
 Depends on `xiom.std`; the library module imports only `xiom.string`,
 `xiom.string.builder` and `xiom.string.compare` (the tests add `xiom.test`,
@@ -477,6 +475,39 @@ pub fn bonjour_message_record_offset(m: &BonjourMessage, i: Int) -> Int
 `bonjour_message_*_count` / `bonjour_message_*_offset`
 : Index accessors; offsets return -1 out of range (negative or past the
   last indexed entry), no error channel.
+
+## Contracts (batch #48 hardening pass, 2026-10-09)
+
+`ensures:` clauses were added in this pass and are enforced at runtime on
+every call in the instrumented build. No clause below has a demonstrated
+Z3 proof obligation, so every clause is marked *runtime-checked*; none is
+claimed Z3-proven. Guard families: guard-pair / Bool variant (`=>` guards
+on parameters and `result` tags), sentinels (`-1`, `!result`), exact
+formulas, bounds and lengths.
+
+| Function | Clauses | Verification |
+|---|---|---|
+| `bonjour_header_encode` | `result.len() == 12` | runtime-checked |
+| `bonjour_header_decode` | `data.len() < 12` => Err; `data.len() >= 12` => Ok | runtime-checked |
+| `bonjour_name_encode` | empty name => Ok; Err => non-empty name | runtime-checked |
+| `bonjour_name_decode` | `off < 0` / `off >= data.len()` => Err; Ok => `0 <= off < data.len()` | runtime-checked |
+| `bonjour_question_encode` | empty name => Ok; Err => non-empty name | runtime-checked |
+| `bonjour_class_value` | `top` => 32769; `!top` => 1 | runtime-checked |
+| `bonjour_txt_pair` | empty key => Err; Ok => non-empty key | runtime-checked |
+| `bonjour_rdata_a` | length `!= 4` => Err; `== 4` => Ok | runtime-checked |
+| `bonjour_rdata_aaaa` | length `!= 16` => Err; `== 16` => Ok | runtime-checked |
+| `bonjour_rdata_a_to_str` | length `!= 4` => Err; `== 4` => Ok | runtime-checked |
+| `bonjour_rdata_srv_priority` | `len < 7` / `off < 0` / `off + 6 > data.len()` => Err; Ok => all bounds hold | runtime-checked |
+| `bonjour_service_enum_name` | `result.len() == 28` | runtime-checked |
+| `bonjour_is_local_name` | lengths 0, 1..4 and 6 => `!result`; `result` => `len >= 5 && len != 6` | runtime-checked |
+| `bonjour_message_parse` | `data.len() < 12` => Err; Ok => `data.len() >= 12` | runtime-checked |
+| `bonjour_message_question_offset` | out-of-range `i` => `-1`; `result != -1` => `i` in range | runtime-checked |
+
+Deliberately skipped this pass (guarantee not expressible in the proven
+families): `bonjour_name_encode_compressed` (suffix hit-test needs
+`str_compare` over `Vec[Str]` elements), `bonjour_rr_parse` (guarantees
+live on struct-Result payload fields), `bonjour_txt_get` (key match is
+`str_compare`-based).
 
 ## Error string catalog
 

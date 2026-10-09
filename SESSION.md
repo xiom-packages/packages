@@ -14,6 +14,24 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
+**STATE AT 2026-10-09 12:45Z (batch #48 COMPLETE + PUBLISHED `eco-v0.1.112`; odbc publish pending ops; supersedes the 12:25Z block below):**
+- **Batch #48 DONE + PUBLISHED (`eco-v0.1.112`, run `37930903155` SUCCESS; all six live):**
+  `bonjour` 0.1.2 (34 clauses; 24/24; `d47ef5fc`), `tcx` 0.1.3 (28; 23/23; `a51f5b6b`),
+  `orc` 0.1.2 (30; 33/33; `1909cc00`), `plist` 0.1.2 (33; 22/22; `bdad15f2`), `upnp` 0.1.2
+  (35; 18/18; `64ab41fe`), `multicast` 0.1.2 (37; 18/18; `c4b58737`); 197 clauses total;
+  wrap `2f93ec58`. Integration notes: orc refined the stream-count guard onto `st_kind`
+  and the coordinator corrected the SPEC varint 10th-byte sentence to match source
+  behavior (doc-side fix); tcx/plist shadowing near-misses handled per plan.
+  **~7 zero-clause stable carriers remain** (next: `coverage` ~2004, rescan at batch #49).
+- **`xiom.odbc` 0.2.0 merged + verified (5/5 x2) but PUBLISH PENDING OPS**: allowlist append
+  + scope enumeration (505 -> 506). On confirmation: append, guard, wrap + tag, live-verify.
+- **Bindings sector:** batch 15 done; next package `xiom.libpq` per the accepted proposal
+  (official win64 client binaries allowed for local proof). B-10 recorded (`f82092ae`).
+- Credential note: the active gh account flips to `Lefteris-Ngonart` unexpectedly sometimes
+  (403 on push) -- re-switch to `Lefteris-Notas` and push (done twice this session).
+
+**--- Older state below (history) ---**
+
 **STATE AT 2026-10-09 12:25Z (bindings batch 15 merged -- odbc pending ops allowlist; B-10 recorded; batch #48 dispatched; supersedes the 22:35Z block below):**
 - **Bindings batch 15 (`xiom.odbc` 0.2.0) merged + verified:** branch push unblocked (account
   was flipped to Ngonart; switched back to `Lefteris-Notas` and pushed `12c564ba..aa35241f`);
@@ -29,8 +47,9 @@ running). Check `git log -1 --format=%h %s` before starting.
   facade over the libpq/loader pattern -- defer wire-protocol duplication until libpq lands.
   Accelerators stay GATED on XVECTOR's contract freeze; ffmpeg needs the license choice
   (prefer LGPL or system-SKIP) BEFORE vendoring.
-- **Batch #48 dispatched:** bonjour/tcx/orc/plist/upnp/multicast (~13 carriers total; the
-  six porters spawn once the pre-plan lands).
+- **Batch #48 dispatched:** bonjour/tcx/orc/plist/upnp/multicast (~198 clauses planned; porters
+  `ses_edf5fafe`, `ses_edf5fac2`, `ses_edf5fa85`, `ses_edf5fa48`, `ses_edf5fa19`,
+  `ses_edf5f9e4`). ~13 carriers total; next after this batch: rescan.
 - **Batch #47 DONE + PUBLISHED (`eco-v0.1.111`, run `37853047324` SUCCESS; all six live):**
   `junit` 0.1.2 (25 clauses; 22/22; `7cc2f458`), `usb` 0.1.2 (22; 20/20; `b70009f6`),
   `snmp` 0.1.2 (27; 19/19; `6d3f6951`), `thrift` 0.1.2 (21; 24/24; `19871958`), `imap`
@@ -2037,14 +2056,14 @@ Start: git fetch; git status -sb; git log -1; then
   & .\scripts\status.ps1 -Action validate; & .\scripts\allowlist-guard.ps1
 
 Then do, in order:
-1. Batch #48 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
+1. Batch #49 (FAN-OUT): rescan zero-clause carriers (`scripts/contract-coverage.ps1
    -Detailed` for the name list; size them by total non-test .xi lines per package), skip
-   `option`; the next smallest after mp4 is `bonjour` (~1699 lines; verify with the sizing
-   scan, then the next five). Read-only explore pre-plan (one explore task; IF its final
-   message comes back EMPTY, resume it with `variant: low` + a "plan only, no preamble"
-   prompt -- recovered every time since batch #38). Six background `task` porters with the
-   brief template `%TEMP%\kilo\batch47-porter-brief.md` retargeted (batch #48, plan
-   `%TEMP%\kilo\batch48-clause-plan.md`, `## Contracts (batch #48 hardening pass, 2026-10-XX)`).
+   `option`; the next smallest after multicast is `coverage` (~2004 lines; verify with the
+   sizing scan, then the next five). Read-only explore pre-plan (one explore task; IF its
+   final message comes back EMPTY, resume it with `variant: low` + a "plan only, no
+   preamble" prompt -- recovered every time since batch #38). Six background `task` porters
+   with the brief template `%TEMP%\kilo\batch48-porter-brief.md` retargeted (batch #49,
+   plan `%TEMP%\kilo\batch49-clause-plan.md`, `## Contracts (batch #49 hardening pass, 2026-10-XX)`).
    Coordinator integrates as reports land: patch bump per CURRENT version, port x2
    post-bump, byte-level bracket scan, feat commit exact files, record with the REAL sha
    and `-RunBy task:ses_...`; wrap + publish the next eco tag (generate_index/report/

@@ -139,7 +139,10 @@ pub type TcxDoc = {
 /// An empty document (no activities). tcx_build emits the canonical skeleton
 /// with a self-closed <Activities/>; parsing it back is not part of the
 /// round-trip contract (the subset requires at least one Activity).
-pub fn tcx_new() -> TcxDoc {
+pub fn tcx_new() -> TcxDoc
+  ensures: result.act_sport.len() == 0 && result.act_id.len() == 0 && result.act_lap_start.len() == 0 && result.lap_start_time.len() == 0 && result.lap_total_time.len() == 0 && result.lap_distance.len() == 0 && result.lap_max_speed.len() == 0 && result.lap_calories.len() == 0 && result.lap_avg_hr.len() == 0;
+  ensures: result.lap_tp_start.len() == 0 && result.tp_time.len() == 0 && result.tp_lat.len() == 0 && result.tp_lon.len() == 0 && result.tp_alt.len() == 0 && result.tp_distance.len() == 0 && result.tp_hr.len() == 0 && result.tp_cadence.len() == 0 && result.tp_sensor.len() == 0;
+{
   return TcxDoc{
     act_sport: Vec[Str].new(); act_id: Vec[Str].new();
     act_lap_start: Vec[Int].new();
@@ -1196,7 +1199,10 @@ fn _consume_text(p: &mut _TcxParser) -> Bool {
 /// tokens, entities, mismatched closing tags, unexpected text, premature end
 /// of input).
 /// Complexity: O(input length).
-pub fn tcx_parse(text: Str) -> Result[TcxDoc, Str] {
+pub fn tcx_parse(text: Str) -> Result[TcxDoc, Str]
+  ensures: text.len() == 0 => result is Err;
+  ensures: result is Ok => text.len() > 0;
+{
   var p = _TcxParser{
     text: text; pos: 0;
     act_sport: Vec[Str].new(); act_id: Vec[Str].new();
@@ -1300,7 +1306,9 @@ fn _tp_end(d: &TcxDoc, l: Int) -> Int {
 /// Params: d - the document.
 /// Returns: d.act_sport.len() (0 for tcx_new).
 /// Complexity: O(1).
-pub fn tcx_activity_count(d: &TcxDoc) -> Int {
+pub fn tcx_activity_count(d: &TcxDoc) -> Int
+  ensures: result == d.act_sport.len();
+{
   return d.act_sport.len();
 }
 
@@ -1308,7 +1316,9 @@ pub fn tcx_activity_count(d: &TcxDoc) -> Int {
 /// Params: d - the document.
 /// Returns: d.lap_start_time.len().
 /// Complexity: O(1).
-pub fn tcx_lap_count(d: &TcxDoc) -> Int {
+pub fn tcx_lap_count(d: &TcxDoc) -> Int
+  ensures: result == d.lap_start_time.len();
+{
   return d.lap_start_time.len();
 }
 
@@ -1316,14 +1326,19 @@ pub fn tcx_lap_count(d: &TcxDoc) -> Int {
 /// Params: d - the document.
 /// Returns: d.tp_time.len().
 /// Complexity: O(1).
-pub fn tcx_trackpoint_count(d: &TcxDoc) -> Int {
+pub fn tcx_trackpoint_count(d: &TcxDoc) -> Int
+  ensures: result == d.tp_time.len();
+{
   return d.tp_time.len();
 }
 
 /// Sport attribute of an activity ("" when a is out of range).
 /// Params: d - the document; a - the activity index.
 /// Complexity: O(1).
-pub fn tcx_activity_sport(d: &TcxDoc, a: Int) -> Str {
+pub fn tcx_activity_sport(d: &TcxDoc, a: Int) -> Str
+  ensures: a < 0 || a >= d.act_sport.len() => result.len() == 0;
+  ensures: result.len() > 0 => a >= 0 && a < d.act_sport.len();
+{
   if a < 0 || a >= d.act_sport.len() { return ""; }
   let v: Str = d.act_sport[a];
   return v;
@@ -1332,7 +1347,10 @@ pub fn tcx_activity_sport(d: &TcxDoc, a: Int) -> Str {
 /// Id text of an activity ("" when a is out of range).
 /// Params: d - the document; a - the activity index.
 /// Complexity: O(1).
-pub fn tcx_activity_id(d: &TcxDoc, a: Int) -> Str {
+pub fn tcx_activity_id(d: &TcxDoc, a: Int) -> Str
+  ensures: a < 0 || a >= d.act_id.len() => result.len() == 0;
+  ensures: result.len() > 0 => a >= 0 && a < d.act_id.len();
+{
   if a < 0 || a >= d.act_id.len() { return ""; }
   let v: Str = d.act_id[a];
   return v;
@@ -1341,7 +1359,10 @@ pub fn tcx_activity_id(d: &TcxDoc, a: Int) -> Str {
 /// Number of laps owned by activity a (0 when a is out of range).
 /// Params: d - the document; a - the activity index.
 /// Complexity: O(1).
-pub fn tcx_activity_lap_count(d: &TcxDoc, a: Int) -> Int {
+pub fn tcx_activity_lap_count(d: &TcxDoc, a: Int) -> Int
+  ensures: a < 0 || a >= d.act_sport.len() => result == 0;
+  ensures: result >= 0 && result <= d.lap_start_time.len();
+{
   if a < 0 || a >= d.act_sport.len() { return 0; }
   let s = _lap_start(d, a);
   let e = _lap_end(d, a);
@@ -1352,7 +1373,10 @@ pub fn tcx_activity_lap_count(d: &TcxDoc, a: Int) -> Int {
 /// Owning activity of lap l (-1 when l is out of range).
 /// Params: d - the document; l - the lap index.
 /// Complexity: O(activities).
-pub fn tcx_lap_activity(d: &TcxDoc, l: Int) -> Int {
+pub fn tcx_lap_activity(d: &TcxDoc, l: Int) -> Int
+  ensures: l < 0 || l >= d.lap_start_time.len() => result == -1;
+  ensures: result >= -1 && result < d.act_sport.len();
+{
   if l < 0 || l >= d.lap_start_time.len() { return -1; }
   var a = 0;
   while a < d.act_sport.len() {
@@ -1367,7 +1391,10 @@ pub fn tcx_lap_activity(d: &TcxDoc, l: Int) -> Int {
 /// Lap StartTime attribute ("" when l is out of range).
 /// Params: d - the document; l - the lap index.
 /// Complexity: O(1).
-pub fn tcx_lap_start_time(d: &TcxDoc, l: Int) -> Str {
+pub fn tcx_lap_start_time(d: &TcxDoc, l: Int) -> Str
+  ensures: l < 0 || l >= d.lap_start_time.len() => result.len() == 0;
+  ensures: result.len() > 0 => l >= 0 && l < d.lap_start_time.len();
+{
   if l < 0 || l >= d.lap_start_time.len() { return ""; }
   let v: Str = d.lap_start_time[l];
   return v;
@@ -1421,7 +1448,10 @@ pub fn tcx_lap_avg_hr(d: &TcxDoc, l: Int) -> Str {
 /// Number of trackpoints owned by lap l (0 when l is out of range).
 /// Params: d - the document; l - the lap index.
 /// Complexity: O(1).
-pub fn tcx_lap_trackpoint_count(d: &TcxDoc, l: Int) -> Int {
+pub fn tcx_lap_trackpoint_count(d: &TcxDoc, l: Int) -> Int
+  ensures: l < 0 || l >= d.lap_start_time.len() => result == 0;
+  ensures: result >= 0 && result <= d.tp_time.len();
+{
   if l < 0 || l >= d.lap_start_time.len() { return 0; }
   let s = _tp_start(d, l);
   let e = _tp_end(d, l);
@@ -1432,14 +1462,20 @@ pub fn tcx_lap_trackpoint_count(d: &TcxDoc, l: Int) -> Int {
 /// True when lap l has a Track (at least one trackpoint).
 /// Params: d - the document; l - the lap index.
 /// Complexity: O(1).
-pub fn tcx_lap_has_track(d: &TcxDoc, l: Int) -> Bool {
+pub fn tcx_lap_has_track(d: &TcxDoc, l: Int) -> Bool
+  ensures: l < 0 || l >= d.lap_start_time.len() => !result;
+  ensures: result == (tcx_lap_trackpoint_count(d, l) > 0);
+{
   return tcx_lap_trackpoint_count(d, l) > 0;
 }
 
 /// Owning lap of trackpoint t (-1 when t is out of range).
 /// Params: d - the document; t - the trackpoint index.
 /// Complexity: O(laps).
-pub fn tcx_trackpoint_lap(d: &TcxDoc, t: Int) -> Int {
+pub fn tcx_trackpoint_lap(d: &TcxDoc, t: Int) -> Int
+  ensures: t < 0 || t >= d.tp_time.len() => result == -1;
+  ensures: result >= -1 && result < d.lap_start_time.len();
+{
   if t < 0 || t >= d.tp_time.len() { return -1; }
   var l = 0;
   while l < d.lap_start_time.len() {
@@ -1454,7 +1490,10 @@ pub fn tcx_trackpoint_lap(d: &TcxDoc, t: Int) -> Int {
 /// Trackpoint Time text ("" when t is out of range).
 /// Params: d - the document; t - the trackpoint index.
 /// Complexity: O(1).
-pub fn tcx_trackpoint_time(d: &TcxDoc, t: Int) -> Str {
+pub fn tcx_trackpoint_time(d: &TcxDoc, t: Int) -> Str
+  ensures: t < 0 || t >= d.tp_time.len() => result.len() == 0;
+  ensures: result.len() > 0 => t >= 0 && t < d.tp_time.len();
+{
   if t < 0 || t >= d.tp_time.len() { return ""; }
   let v: Str = d.tp_time[t];
   return v;
@@ -1481,7 +1520,10 @@ pub fn tcx_trackpoint_lon(d: &TcxDoc, t: Int) -> Str {
 /// Trackpoint true when it carries a Position (both coordinates).
 /// Params: d - the document; t - the trackpoint index.
 /// Complexity: O(1).
-pub fn tcx_trackpoint_has_position(d: &TcxDoc, t: Int) -> Bool {
+pub fn tcx_trackpoint_has_position(d: &TcxDoc, t: Int) -> Bool
+  ensures: t < 0 || t >= d.tp_lat.len() => !result;
+  ensures: result => t >= 0 && t < d.tp_lat.len();
+{
   if t < 0 || t >= d.tp_lat.len() { return false; }
   let v: Str = d.tp_lat[t];
   return !_str_empty(v);
@@ -1706,7 +1748,9 @@ fn _emit_activity(d: &TcxDoc, a: Int, out: &mut Vec[UInt8]) {
 /// activities yields a self-closed <Activities/>. For a parsed document,
 /// re-parsing this output reproduces the same model.
 /// Complexity: O(records + output bytes).
-pub fn tcx_build(d: &TcxDoc) -> Str {
+pub fn tcx_build(d: &TcxDoc) -> Str
+  ensures: d.act_sport.len() == 0 => result.len() == 106;
+{
   var out = Vec[UInt8].new();
   builder.sb_push_str(&mut out, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
   builder.sb_push_str(&mut out, "<TrainingCenterDatabase>\n");

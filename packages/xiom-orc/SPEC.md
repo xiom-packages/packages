@@ -4,6 +4,8 @@
 
 # xiom.orc -- specification
 
+Version: 0.1.2 (stable; published on the XIOM registry).
+
 ## 1. Scope
 
 A pure-XIOM, dependency-free codec for the **metadata** of an Apache ORC
@@ -80,7 +82,9 @@ writers always set them).
 The decoder is self-contained and implements exactly what ORC needs:
 
 * **varint**: base-128, little-endian groups, at most 10 bytes. The 10th
-  byte may contribute only bit 63 (non-minimal encodings are accepted).
+  byte must contribute no payload bits (zero-payload non-minimal encodings are
+  accepted; any set payload bit is rejected as `orc: varint overflow`, since it
+  would not fit `Int`).
   Errors: `orc: truncated varint`, `orc: varint too long`,
   `orc: varint overflow`, all with the offset of the varint start.
 * **tag**: `field = tag / 8`, `wire = tag % 8`. `field` must be
@@ -314,3 +318,53 @@ read is bound to a typed local; every `UInt8` is widened with
 only; field names are validated printable before `sb_to_str` so it never
 sees a 0x00 byte; no `&struct.field` is passed as a `&Vec[UInt8]`
 argument; no generics other than the `Result[...]`/`Vec[...]` built-ins.
+
+## Contracts (batch #48 hardening pass, 2026-10-09)
+
+Runtime-checkable `ensures:` clauses (30, across the 15 functions below) were
+added to `src/orc.xi` in the batch #48 hardening pass (compiler v0.64.1;
+`package.xi` is left for the coordinator to bump at integration). All are
+`ensures:` with no `requires:`, so the accepted-input domain is unchanged.
+Every clause is enforced as a runtime check; the 33-check conformance suite
+exercises the contracted entry points and no clause trapped, so none was
+dropped. Two consecutive timed green `& .\scripts\port.ps1 -Package xiom.orc
+-TimeoutSec 90` runs ended `port: PASS (passed=33 failed=0 program_exit=0
+exit=0)` with the clauses active (17.71 s and 16.26 s). None is claimed
+Z3-provable: `xiom-verify` was not run for this module, so the Z3-provable
+column is "no" throughout.
+
+Clause inputs are parameters or parameter fields only; no clause indexes a
+vector, reads a `Vec` element, compares a `Str` (length via `.len()` only),
+uses a module constant, or reads a `&mut` parameter. Guards keep the plan's
+families: sentinel guards (`result is Err` / `result is Ok`), exact formulas
+(`result == o.file_length`, `result == o.footer_start`,
+`result == (o.footer_available == 1)`), bounds/lengths, and tag guard pairs.
+
+Note (`orc_stream_kind`): (pre: for hand-built `Orc`, `s_stream_count`/
+`s_stream_off` cover the stripe table exactly as `orc_parse` builds it).
+The pre-plan guard `e >= o.s_stream_count.len()` was refined to
+`e >= o.st_kind.len()`: a per-stripe stream count is not bounded by the
+number of stripes (conformance fixture t14 parses one stripe with three
+streams and calls `orc_stream_kind(&o, 0, 1)` / `(&o, 0, 2)`, both `Ok`), so
+the planned guard would have claimed `Err` for valid calls. Under the
+stripe-table coverage asserted by the pre-note, the flattened stream count
+`o.st_kind.len()` is an upper bound on every stripe's stream count, so the
+refined guard pair fits the source.
+
+| Function | Clauses | Guarantee (abridged) | Z3-provable | Runtime-checked |
+|---|---|---|---|---|
+| `orc_parse` | 1 | `buffer.len() < 4` => `Err` | no | yes |
+| `orc_file_length` | 1 | exact `o.file_length` | no | yes |
+| `orc_footer_offset` | 1 | exact `o.footer_start` | no | yes |
+| `orc_version_part` | 2 | out-of-range `i` => `Err`; `Ok` => `0 <= i < o.version.len()` | no | yes |
+| `orc_version_major` | 1 | empty version list => 0 | no | yes |
+| `orc_footer_available` | 1 | exact `(o.footer_available == 1)` | no | yes |
+| `orc_rows` | 2 | `o.footer_available` 0 => `Err`, non-0 => `Ok` | no | yes |
+| `orc_stripe_count` | 2 | same guard pair | no | yes |
+| `orc_stripe_offset` | 3 | guard pair + `i` out of `[0, o.s_offset.len())` => `Err` | no | yes |
+| `orc_columns` | 2 | same guard pair | no | yes |
+| `orc_column_kind` | 3 | guard pair + `i` out of `[0, o.t_kind.len())` => `Err` | no | yes |
+| `orc_stats_count` | 2 | same guard pair | no | yes |
+| `orc_stripe_stats_cols` | 3 | guard pair + `i` out of `[0, o.m_col_count.len())` => `Err` | no | yes |
+| `orc_stream_count` | 2 | same guard pair | no | yes |
+| `orc_stream_kind` | 4 | guard pair + `0 <= s < o.s_offset.len()`; `e` out of `[0, o.st_kind.len())` => `Err` | no | yes |

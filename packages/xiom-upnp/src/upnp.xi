@@ -550,7 +550,10 @@ fn _parse_version_parts(s: Str) -> VersionParts {
 /// True when `s` is a device UUID in the canonical 8-4-4-4-12 hex form
 /// (dashes at indexes 8, 13, 18 and 23, hex digits elsewhere, either case).
 /// Complexity: O(1).
-pub fn upnp_is_device_uuid(s: Str) -> Bool {
+pub fn upnp_is_device_uuid(s: Str) -> Bool
+  ensures: s.len() != 36 => !result;
+  ensures: result => s.len() == 36;
+{
   let n = string.str_len(s);
   if n != 36 { return false; }
   var i = 0;
@@ -630,7 +633,10 @@ fn _valid_port(s: Str) -> Bool {
 /// and the port, when present, must be 1..65535. Rejects spaces, slashes,
 /// empty hosts, unbracketed multiple colons and out-of-range ports.
 /// Complexity: O(length).
-pub fn upnp_validate_authority(s: Str) -> Bool {
+pub fn upnp_validate_authority(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: result => s.len() > 0;
+{
   let n = string.str_len(s);
   if n == 0 { return false; }
   var i = 0;
@@ -680,7 +686,10 @@ pub fn upnp_validate_authority(s: Str) -> Bool {
 /// (case-insensitive), an authority accepted by upnp_validate_authority,
 /// and no ASCII space or control byte anywhere. The path is not validated
 /// beyond that. Complexity: O(length).
-pub fn upnp_validate_location(s: Str) -> Bool {
+pub fn upnp_validate_location(s: Str) -> Bool
+  ensures: s.len() == 0 => !result;
+  ensures: result => s.len() > 0;
+{
   let n = string.str_len(s);
   if n == 0 { return false; }
   var i = 0;
@@ -753,7 +762,10 @@ fn _strip_quotes(s: Str) -> Str {
 /// with a structural version (digits, optionally ".digits"). Other
 /// structurally valid URNs classify as UPNP_TARGET_OTHER_URN. Anything else
 /// is Err with the offset of the offending part. Complexity: O(length).
-pub fn upnp_classify_target(s: Str) -> Result[SsdpTarget, SsdpError] {
+pub fn upnp_classify_target(s: Str) -> Result[SsdpTarget, SsdpError]
+  ensures: s.len() == 0 => result is Err;
+  ensures: result is Ok => s.len() > 0;
+{
   let n = string.str_len(s);
   if n == 0 {
     return _err_target("upnp: empty target", 0);
@@ -820,7 +832,10 @@ pub fn upnp_classify_target(s: Str) -> Result[SsdpTarget, SsdpError] {
 /// URNs must pass the structural urn check. More than one "::" and every
 /// other shape are Err with the offset of the offending part.
 /// Complexity: O(length).
-pub fn usn_split(usn: Str) -> Result[UsnSplit, SsdpError] {
+pub fn usn_split(usn: Str) -> Result[UsnSplit, SsdpError]
+  ensures: usn.len() == 0 => result is Err;
+  ensures: result is Ok => usn.len() > 0;
+{
   let n = string.str_len(usn);
   if n == 0 {
     return _err_usn("upnp: empty USN", 0);
@@ -1485,7 +1500,10 @@ fn _parse_start_line(line: Str, line_off: Int) -> Result[SsdpStart, SsdpError] {
 ///     "upnp: bad LOCATION", "upnp: bad DATE", "upnp: bad BOOTID.UPNP.ORG",
 ///     "upnp: bad CONFIGID.UPNP.ORG", "upnp: bad SEARCHPORT.UPNP.ORG".
 /// Complexity: O(message length).
-pub fn upnp_parse(data: &Vec[UInt8]) -> Result[SsdpMessage, SsdpError] {
+pub fn upnp_parse(data: &Vec[UInt8]) -> Result[SsdpMessage, SsdpError]
+  ensures: data.len() == 0 => result is Err;
+  ensures: data.len() > 8192 => result is Err;
+{
   let len = data.len();
   if len == 0 {
     return _err_msg("upnp: empty message", 0);
@@ -1573,7 +1591,9 @@ pub fn upnp_parse_text(s: Str) -> Result[SsdpMessage, SsdpError] {
 // --------------------------------------------------
 
 /// Number of headers in the message. Complexity: O(1).
-pub fn upnp_header_count(m: &SsdpMessage) -> Int {
+pub fn upnp_header_count(m: &SsdpMessage) -> Int
+  ensures: result == m.names.len();
+{
   return m.names.len();
 }
 
@@ -1594,7 +1614,10 @@ fn _header_index(m: &SsdpMessage, name: Str) -> Int {
 /// Value of the first header named `name` (case-insensitive), with
 /// surrounding whitespace already trimmed; "" when absent. Complexity:
 /// O(headers).
-pub fn upnp_header(m: &SsdpMessage, name: Str) -> Str {
+pub fn upnp_header(m: &SsdpMessage, name: Str) -> Str
+  ensures: m.values.len() != m.names.len() => result.len() == 0;
+  ensures: result.len() > 0 => m.values.len() == m.names.len();
+{
   let i = _header_index(m, name);
   if i < 0 { return ""; }
   let v: Str = m.values[i];
@@ -1603,13 +1626,19 @@ pub fn upnp_header(m: &SsdpMessage, name: Str) -> Str {
 
 /// True when a header named `name` (case-insensitive) is present.
 /// Complexity: O(headers).
-pub fn upnp_has_header(m: &SsdpMessage, name: Str) -> Bool {
+pub fn upnp_has_header(m: &SsdpMessage, name: Str) -> Bool
+  ensures: m.values.len() != m.names.len() => !result;
+  ensures: result => m.values.len() == m.names.len();
+{
   return _header_index(m, name) >= 0;
 }
 
 /// Name of header `i` exactly as sent, or "" when out of range.
 /// Complexity: O(1).
-pub fn upnp_header_name(m: &SsdpMessage, i: Int) -> Str {
+pub fn upnp_header_name(m: &SsdpMessage, i: Int) -> Str
+  ensures: i < 0 || i >= m.names.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < m.names.len();
+{
   if i < 0 { return ""; }
   if i >= m.names.len() { return ""; }
   let n: Str = m.names[i];
@@ -1617,7 +1646,10 @@ pub fn upnp_header_name(m: &SsdpMessage, i: Int) -> Str {
 }
 
 /// Trimmed value of header `i`, or "" when out of range. Complexity: O(1).
-pub fn upnp_header_value(m: &SsdpMessage, i: Int) -> Str {
+pub fn upnp_header_value(m: &SsdpMessage, i: Int) -> Str
+  ensures: i < 0 || i >= m.values.len() => result.len() == 0;
+  ensures: result.len() > 0 => i >= 0 && i < m.values.len();
+{
   if i < 0 { return ""; }
   if i >= m.values.len() { return ""; }
   let v: Str = m.values[i];
@@ -1626,7 +1658,10 @@ pub fn upnp_header_value(m: &SsdpMessage, i: Int) -> Str {
 
 /// Absolute offset of header `i`'s first byte, or -1 when out of range.
 /// Complexity: O(1).
-pub fn upnp_header_offset(m: &SsdpMessage, i: Int) -> Int {
+pub fn upnp_header_offset(m: &SsdpMessage, i: Int) -> Int
+  ensures: i < 0 || i >= m.header_offsets.len() => result == -1;
+  ensures: result != -1 => i >= 0 && i < m.header_offsets.len();
+{
   if i < 0 { return -1; }
   if i >= m.header_offsets.len() { return -1; }
   let v: Int = m.header_offsets[i];
@@ -1656,7 +1691,12 @@ fn _append_header(out: Str, name: Str, value: Str) -> Str {
 /// `host` must pass upnp_validate_authority, `mx` must be 1..5, `st` must
 /// classify (upnp_classify_target) and `user_agent` may be empty (the header
 /// is then omitted). Errors carry offset -1. Complexity: O(length).
-pub fn upnp_build_msearch(host: Str, mx: Int, st: Str, user_agent: Str) -> Result[Vec[UInt8], SsdpError] {
+pub fn upnp_build_msearch(host: Str, mx: Int, st: Str, user_agent: Str) -> Result[Vec[UInt8], SsdpError]
+  ensures: host.len() == 0 => result is Err;
+  ensures: mx < 1 || mx > 5 => result is Err;
+  ensures: st.len() == 0 => result is Err;
+  ensures: result is Ok => host.len() > 0 && mx >= 1 && mx <= 5 && st.len() > 0;
+{
   if string.str_len(host) == 0 {
     return _err_bytes("upnp: empty HOST", -1);
   }
@@ -1707,7 +1747,13 @@ pub fn upnp_build_msearch(host: Str, mx: Int, st: Str, user_agent: Str) -> Resul
 /// negative `bootid` or `configid` omits that header (otherwise the value
 /// must fit the UDA bounds: BOOTID 32-bit, CONFIGID 24-bit). Errors carry
 /// offset -1. Complexity: O(length).
-pub fn upnp_build_notify_alive(host: Str, max_age: Int, location: Str, nt: Str, usn: Str, server: Str, bootid: Int, configid: Int) -> Result[Vec[UInt8], SsdpError] {
+pub fn upnp_build_notify_alive(host: Str, max_age: Int, location: Str, nt: Str, usn: Str, server: Str, bootid: Int, configid: Int) -> Result[Vec[UInt8], SsdpError]
+  ensures: host.len() == 0 => result is Err;
+  ensures: max_age < 1 || max_age > 2147483647 => result is Err;
+  ensures: nt.len() == 0 => result is Err;
+  ensures: usn.len() == 0 => result is Err;
+  ensures: bootid > 4294967295 || configid > 16777215 => result is Err;
+{
   if string.str_len(host) == 0 {
     return _err_bytes("upnp: empty HOST", -1);
   }
@@ -1767,7 +1813,11 @@ pub fn upnp_build_notify_alive(host: Str, max_age: Int, location: Str, nt: Str, 
 
 /// Name of a message kind: "m-search", "notify", "response" or "unknown".
 /// Complexity: O(1).
-pub fn upnp_msg_kind_name(kind: Int) -> Str {
+pub fn upnp_msg_kind_name(kind: Int) -> Str
+  ensures: kind < 0 || kind > 2 => result.len() == 7;
+  ensures: kind == 0 => result.len() == 8;
+  ensures: kind == 1 => result.len() == 6;
+{
   if kind == UPNP_KIND_MSEARCH { return "m-search"; }
   if kind == UPNP_KIND_NOTIFY { return "notify"; }
   if kind == UPNP_KIND_RESPONSE { return "response"; }

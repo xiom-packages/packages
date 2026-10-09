@@ -1013,7 +1013,9 @@ fn _parse_postscript(o: &mut Orc, buf: &Vec[UInt8], start: Int, end: Int) -> Res
 ///     column out of range (column=N)";
 ///   * "orc: stripe extends past end of buffer (stripe=N)" / "orc: stream
 ///     column out of range (stripe=N, stream=N)".
-pub fn orc_parse(buffer: &Vec[UInt8]) -> Result[Orc, Str] {
+pub fn orc_parse(buffer: &Vec[UInt8]) -> Result[Orc, Str]
+  ensures: buffer.len() < 4 => result is Err;
+{
   let total = buffer.len();
   if total < 4 {
     return _err_orc("orc: file too small");
@@ -1126,7 +1128,9 @@ pub fn orc_parse(buffer: &Vec[UInt8]) -> Result[Orc, Str] {
 // --------------------------------------------------
 
 /// Total length in bytes of the parsed buffer.
-pub fn orc_file_length(o: &Orc) -> Int {
+pub fn orc_file_length(o: &Orc) -> Int
+  ensures: result == o.file_length;
+{
   return o.file_length;
 }
 
@@ -1141,7 +1145,9 @@ pub fn orc_postscript_length(o: &Orc) -> Int {
 }
 
 /// Absolute offset of the file footer (derived from the postscript).
-pub fn orc_footer_offset(o: &Orc) -> Int {
+pub fn orc_footer_offset(o: &Orc) -> Int
+  ensures: result == o.footer_start;
+{
   return o.footer_start;
 }
 
@@ -1182,7 +1188,10 @@ pub fn orc_version_count(o: &Orc) -> Int {
 
 /// Version part `i` of the postscript version list.
 /// Err("orc: version part index out of range") when out of bounds.
-pub fn orc_version_part(o: &Orc, i: Int) -> Result[Int, Str] {
+pub fn orc_version_part(o: &Orc, i: Int) -> Result[Int, Str]
+  ensures: i < 0 || i >= o.version.len() => result is Err;
+  ensures: result is Ok => i >= 0 && i < o.version.len();
+{
   if i < 0 || i >= o.version.len() {
     return _err_int("orc: version part index out of range");
   }
@@ -1192,7 +1201,9 @@ pub fn orc_version_part(o: &Orc, i: Int) -> Result[Int, Str] {
 }
 
 /// First version part (the major version; 0 when the list is empty).
-pub fn orc_version_major(o: &Orc) -> Int {
+pub fn orc_version_major(o: &Orc) -> Int
+  ensures: o.version.len() == 0 => result == 0;
+{
   if o.version.len() == 0 {
     return 0;
   }
@@ -1264,7 +1275,9 @@ pub fn orc_metadata_length(o: &Orc) -> Int {
 
 /// True when the footer (and stripe footers/metadata) were decoded, which
 /// happens exactly when the file is uncompressed.
-pub fn orc_footer_available(o: &Orc) -> Bool {
+pub fn orc_footer_available(o: &Orc) -> Bool
+  ensures: result == (o.footer_available == 1);
+{
   if o.footer_available == 1 {
     return true;
   }
@@ -1312,7 +1325,10 @@ pub fn orc_row_index_stride(o: &Orc) -> Result[Int, Str] {
 }
 
 /// Footer.numberOfRows: the total row count of the file.
-pub fn orc_rows(o: &Orc) -> Result[Int, Str] {
+pub fn orc_rows(o: &Orc) -> Result[Int, Str]
+  ensures: o.footer_available == 0 => result is Err;
+  ensures: o.footer_available != 0 => result is Ok;
+{
   let r = _footer_ready(o);
   if !r.is_ok {
     return _err_int(r.error);
@@ -1331,7 +1347,10 @@ pub fn orc_footer_writer_version(o: &Orc) -> Result[Int, Str] {
 }
 
 /// Number of StripeInformation entries (the stripe count).
-pub fn orc_stripe_count(o: &Orc) -> Result[Int, Str] {
+pub fn orc_stripe_count(o: &Orc) -> Result[Int, Str]
+  ensures: o.footer_available == 0 => result is Err;
+  ensures: o.footer_available != 0 => result is Ok;
+{
   let r = _footer_ready(o);
   if !r.is_ok {
     return _err_int(r.error);
@@ -1352,7 +1371,11 @@ fn _stripe_ready(o: &Orc, i: Int) -> Result[Int, Str] {
 }
 
 /// Absolute file offset of stripe `i`.
-pub fn orc_stripe_offset(o: &Orc, i: Int) -> Result[Int, Str] {
+pub fn orc_stripe_offset(o: &Orc, i: Int) -> Result[Int, Str]
+  ensures: o.footer_available == 0 => result is Err;
+  ensures: i < 0 || i >= o.s_offset.len() => result is Err;
+  ensures: result is Ok => o.footer_available != 0 && i >= 0 && i < o.s_offset.len();
+{
   let r = _stripe_ready(o, i);
   if !r.is_ok {
     return _err_int(r.error);
@@ -1411,7 +1434,10 @@ pub fn orc_stripe_rows(o: &Orc, i: Int) -> Result[Int, Str] {
 // --------------------------------------------------
 
 /// Number of columns (Footer.Type entries).
-pub fn orc_columns(o: &Orc) -> Result[Int, Str] {
+pub fn orc_columns(o: &Orc) -> Result[Int, Str]
+  ensures: o.footer_available == 0 => result is Err;
+  ensures: o.footer_available != 0 => result is Ok;
+{
   let r = _footer_ready(o);
   if !r.is_ok {
     return _err_int(r.error);
@@ -1432,7 +1458,11 @@ fn _column_ready(o: &Orc, i: Int) -> Result[Int, Str] {
 }
 
 /// Type.Kind code of column `i` (0..18, see orc_column_kind_name).
-pub fn orc_column_kind(o: &Orc, i: Int) -> Result[Int, Str] {
+pub fn orc_column_kind(o: &Orc, i: Int) -> Result[Int, Str]
+  ensures: o.footer_available == 0 => result is Err;
+  ensures: i < 0 || i >= o.t_kind.len() => result is Err;
+  ensures: result is Ok => o.footer_available != 0 && i >= 0 && i < o.t_kind.len();
+{
   let r = _column_ready(o, i);
   if !r.is_ok {
     return _err_int(r.error);
@@ -1605,7 +1635,10 @@ pub fn orc_column_scale(o: &Orc, i: Int) -> Result[Int, Str] {
 
 /// Number of footer ColumnStatistics entries (statistics are recorded in
 /// column order; entry i belongs to column i when present).
-pub fn orc_stats_count(o: &Orc) -> Result[Int, Str] {
+pub fn orc_stats_count(o: &Orc) -> Result[Int, Str]
+  ensures: o.footer_available == 0 => result is Err;
+  ensures: o.footer_available != 0 => result is Ok;
+{
   let r = _footer_ready(o);
   if !r.is_ok {
     return _err_int(r.error);
@@ -1638,7 +1671,11 @@ pub fn orc_stripe_stats_count(o: &Orc) -> Result[Int, Str] {
 
 /// Number of ColumnStatistics entries in stripe statistics entry `i`.
 /// Err("orc: stripe stats index out of range") when out of bounds.
-pub fn orc_stripe_stats_cols(o: &Orc, i: Int) -> Result[Int, Str] {
+pub fn orc_stripe_stats_cols(o: &Orc, i: Int) -> Result[Int, Str]
+  ensures: o.footer_available == 0 => result is Err;
+  ensures: i < 0 || i >= o.m_col_count.len() => result is Err;
+  ensures: result is Ok => o.footer_available != 0 && i >= 0 && i < o.m_col_count.len();
+{
   let r = _footer_ready(o);
   if !r.is_ok {
     return _err_int(r.error);
@@ -1656,7 +1693,10 @@ pub fn orc_stripe_stats_cols(o: &Orc, i: Int) -> Result[Int, Str] {
 // --------------------------------------------------
 
 /// Total number of streams across every stripe footer.
-pub fn orc_stream_count(o: &Orc) -> Result[Int, Str] {
+pub fn orc_stream_count(o: &Orc) -> Result[Int, Str]
+  ensures: o.footer_available == 0 => result is Err;
+  ensures: o.footer_available != 0 => result is Ok;
+{
   let r = _footer_ready(o);
   if !r.is_ok {
     return _err_int(r.error);
@@ -1698,7 +1738,12 @@ fn _stream_global(o: &Orc, s: Int, e: Int) -> Int {
 
 /// Stream.Kind code of stream `e` in stripe `s` (0..8, see
 /// orc_stream_kind_name).
-pub fn orc_stream_kind(o: &Orc, s: Int, e: Int) -> Result[Int, Str] {
+pub fn orc_stream_kind(o: &Orc, s: Int, e: Int) -> Result[Int, Str]
+  ensures: o.footer_available == 0 => result is Err;
+  ensures: s < 0 || s >= o.s_offset.len() => result is Err;
+  ensures: e < 0 || e >= o.st_kind.len() => result is Err;
+  ensures: result is Ok => o.footer_available != 0 && s >= 0 && s < o.s_offset.len() && e >= 0 && e < o.st_kind.len();
+{
   let r = _stream_ready(o, s, e);
   if !r.is_ok {
     return _err_int(r.error);

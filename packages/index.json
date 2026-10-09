@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-09T15:19:01Z",
+    "updated":  "2026-10-09T15:33:38Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -785,7 +785,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.bonjour",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Bonjour (mDNS/DNS-SD) message codec: DNS framing, name compression, PTR/SRV/TXT/A/AAAA records and DNS-SD builders",
@@ -795,7 +795,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bonjour/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-bonjour/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "bonjour.xi",
                                               "package.xi"
@@ -4792,7 +4792,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.multicast",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "IGMPv2/v3 and MLD/MLDv2 multicast group management codecs",
@@ -4802,7 +4802,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-multicast/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-multicast/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "multicast.xi",
                                               "package.xi"
@@ -5307,7 +5307,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.orc",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Apache ORC file metadata codec: postscript, protobuf footer, stripes and type tree",
@@ -5317,7 +5317,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-orc/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-orc/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "orc.xi",
                                               "package.xi"
@@ -5836,7 +5836,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.plist",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Apple XML property-list codec for a documented subset",
@@ -5846,7 +5846,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-plist/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-plist/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "plist.xi",
                                               "package.xi"
@@ -7720,7 +7720,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.2",
+                         "version":  "0.1.3",
                          "name":  "xiom.tcx",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "Garmin TCX subset codec: parse and canonical build for activities, laps and trackpoints",
@@ -7730,7 +7730,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tcx/v0.1.2/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-tcx/v0.1.3/package.tar.gz",
                          "source_files":  [
                                               "tcx.xi",
                                               "package.xi"
@@ -8328,7 +8328,7 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.1",
+                         "version":  "0.1.2",
                          "name":  "xiom.upnp",
                          "repository":  "https://github.com/xiom-lang/packages",
                          "description":  "SSDP/UPnP discovery message codec: M-SEARCH, NOTIFY and search responses",
@@ -8338,7 +8338,7 @@
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-upnp/v0.1.1/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-upnp/v0.1.2/package.tar.gz",
                          "source_files":  [
                                               "upnp.xi",
                                               "package.xi"
