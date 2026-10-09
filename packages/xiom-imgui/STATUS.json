@@ -8,10 +8,10 @@
                   "status":  "pass",
                   "passed":  4,
                   "failed":  0,
-                  "run_by":  "task:bindings-imgui",
-                  "commit":  "4c59cc6f",
-                  "checked":  "2026-10-09T18:37:51Z"
+                  "run_by":  "native-session",
+                  "commit":  "ef856577",
+                  "checked":  "2026-10-09T19:05:36Z"
               },
     "publish":  false,
-    "excluded_reason":  null
+    "excluded_reason":  "publish pending: bindings batch 23 (eco-v0.1.123)"
 }
