@@ -1,0 +1,4 @@
+# Vendored upstream sources must stay byte-identical to the SHA256 pins in
+# SPEC.md section 2 (vk_mem_alloc.h carries one documented rewrite).
+# Disable end-of-line conversion for the whole vendor tree.
+vendor/** -text
