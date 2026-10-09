@@ -3,15 +3,33 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: MERGE READY -- BRANCH `bindings` (batch 21 + batch 22 + docs)** --
-`xiom.ffmpeg` 0.2.0 (relay head 224e5c49) and `xiom.sqlite` 0.3.0
-(B-01 workaround retired; 16/16 x6 fresh build cycles + pin matrix 19/19
-on the official v0.64.2) are queued for the native merge/verify/publish;
-batch 22's live-package bump publish is the native lane's call.
-Findings/consumer/wishlist docs ride along (no publish impact). Batch 20
-and earlier are published through `eco-v0.1.119`.
+**STATUS: BATCH 23 RELAYED (merge-ready)** -- `xiom.box2d` 0.2.0 (vendored
+v3.1.1 C; 5/5 x2) and `xiom.imgui` 0.2.0 (vendored v1.92.9b headless; 4/4
+x2); `xiom.jolt` is pinned + generator-validated but blocked on a link-line
+C++ standard passthrough (ask relayed); batches 21+22 are PUBLISHED
+(`eco-v0.1.122`). Nothing else pending in-lane.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 23: head=2b3f4a66 + this handoff commit; packages=xiom.box2d 0.2.0 +
+xiom.imgui 0.2.0; tests=box2d 5/5 x2 (vendored Box2D v3.1.1 C API via flat multi-source,
+integer bridge: version 3.1.1, gravity (0,-10000) milli, resting drop settles at 499 milli
+on a ground top at 0, impulse vx=5000 milli, drop determinism) and imgui 4/4 x2 (vendored
+ImGui v1.92.9b core + upstream null backends; headless two-frame probe: version
+1.92.9b/19291, steady frame 76 vtx/240 idx/1 cmd, empty frame 0, determinism);
+licenses=MIT vendored (box2d + imgui only) + package MIT OR Apache-2.0;
+pins=box2d v3.1.1 tarball sha256 FB6EF914... + per-file table (SPEC 2); imgui v1.92.9b
+tarball sha256 21D8A0A5... + per-file table; gate=G0..G5 OK; needs=NONE (both
+grandfathered/allowlisted); port.args.json present (flat multi-source; no -I, no generator).
+BLOCKED ASK -- xiom.jolt v5.6.0 (pin 6E069EE0..., generator emits 25 per-directory TUs
+with angle->quote include rewriting; the full library compiles under -std=c++17): the xiom
+link line passes no standard flag and clang 22 defaults to C++14 (verified in
+crates/xiom/src/lib.rs + a live probe), so C++17 libraries cannot build via --c-source.
+Request: a --cxx-standard passthrough (or a default-standard bump). No jolt
+module/tests committed until unblocked; the validated generator is staged at
+packages/xiom-jolt/tools/combine.py.
+```
 
 ```
 BINDINGS BATCH 22: head=4e4d556a + this handoff commit; packages=xiom.sqlite 0.3.0
@@ -664,6 +682,27 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
 
+## Batch 23 notes (physics + UI roster, 2026-10-09)
+
+- `xiom.box2d` 0.2.0: vendored v3.1.1 C via the flat layout (35 sources +
+  bridge; the lzfse multi-source pattern): quoted includes resolve against
+  each file's own directory, so no generator and no `-I`. Integer-only
+  bridge (milli encoding); real simulation proof (drop settles at 499 milli
+  = half-extent on the ground; impulse dv = J/m exactly).
+- `xiom.imgui` 0.2.0: vendored v1.92.9b core + upstream null backends (the
+  supported blind-context flow); headless two-frame probe -- ImGui hides a
+  newly created window on frame 1, so the suite reports frame 2 (76 vtx /
+  240 idx / 1 cmd). Replaces the pre-pilot precompiled-object + GLFW/Vulkan
+  bridge tree (history only). Debug note: without `io.Fonts->Build()` or
+  the RendererHasTextures flag the 1.92 font system asserts.
+- `xiom.jolt` recon (BLOCKED): tarball v5.6.0 pinned (sha 6E069EE0...,
+  19.4 MB); generator (mirror + `<Jolt/` -> `"Jolt/` rewrite + 25
+  per-directory TUs) validated to compile the whole library under
+  `-std=c++17` in ~30 s with system clang. The link line passes no standard
+  flag and clang 22 defaults to C++14 -> cannot build via --c-source yet.
+  Ask relayed; no jolt artifacts committed until unblocked.
+- Namespace-check OK for both; no new compiler findings.
+
 ## Batch 22 notes (xiom.sqlite enum restore, 2026-10-09)
 
 - B-01 workaround retired at the repin per the native rule ("droppable at
@@ -993,24 +1032,27 @@ Each package keeps: G0-G5 gates, green x2 through `port.ps1`, a relay block
 in this file, and any new compiler finding appended to
 `docs/BINDINGS-COMPILER-FINDINGS.md` with a bounded repro.
 
-## Next (state at 2026-10-09, batch 22 pushed)
+## Next (state at 2026-10-09, batch 23 pushed)
 
-- Batch 22 (`xiom.sqlite` 0.3.0, enum restore) is relayed and pushed:
-  waiting on the native lane (merge/verify + a publish decision for the
-  live-package bump). Batch 21 (`xiom.ffmpeg` 0.2.0) also awaits native
-  merge/verify/publish; batch 20 and earlier are published through
-  `eco-v0.1.119`.
+- Batch 23 (`xiom.box2d` 0.2.0 + `xiom.imgui` 0.2.0) is relayed and pushed:
+  waiting on the native merge/verify/publish. Batches 21+22 are PUBLISHED
+  (`eco-v0.1.122`, main `96e249f2`); `xiom.jolt` v5.6.0 is pinned + its
+  generator validated but blocked on the link-line C++ standard passthrough
+  ask (see the batch-23 relay).
 - Pin matrix re-run done: 19/19 green on the official v0.64.2 pin. The
   B-01 workaround is retired; B-05/B-10 workarounds stay in force; B-08
   probing may trust exit codes from v0.64.2 on (port.ps1 keeps marker
   counting for older pins).
-- The approved binding-sector queue is drained: heavy runtimes
-  (`xiom.onnx`/`xiom.opencv`) need the native lane's go-ahead (last per the
-  sector order, separate decision), accelerators stay GATED on XVECTOR
-  freezing `xiom.vectors`, physics (`box2d`/`jolt`) is unscheduled.
+- Physics/UI roster: `box2d` + `imgui` done (batch 23); `jolt` blocked on
+  the standard flag; `assimp`/`vma` and the heavy runtimes
+  (`xiom.onnx`/`xiom.opencv`) remain -- heavy runtimes need the native
+  lane's go-ahead (last per the sector order, separate decision),
+  accelerators stay GATED on XVECTOR freezing `xiom.vectors`.
 - Lane copy of the compiler relay: `docs/BINDINGS-COMPILER-RELAY-2026-10-09-v0.64.2.md`.
 - PULSE/ORBITDB/XVECTOR package wishlists fetched and answered
   (`docs/BINDINGS-PACKAGE-WISHLIST.md`); no new in-lane work items
   (accelerators stay gated on `xiom.vectors`). Registry consumer flow for
   the DB bindings validated end-to-end (sqlite `--c-source` recipe + libpq
   plain); batch-22 docs follow-up adds the sqlite README consumer section.
+  Revalidated on the published artifacts: sqlite 0.3.0 PASS, ffmpeg 0.2.0
+  SKIP, libpq 0.2.0 SKIP (scratch `XIOM_HOME`, checksums matched).
