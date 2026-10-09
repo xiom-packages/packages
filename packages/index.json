@@ -1,7 +1,7 @@
 {
     "registry_url":  "https://registry.xiom-lang.org",
     "version":  1,
-    "updated":  "2026-10-09T21:21:06Z",
+    "updated":  "2026-10-09T22:05:54Z",
     "packages":  [
                      {
                          "version":  "0.1.2",
@@ -819,21 +819,19 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.box2d",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Box2D 2D physics engine FFI bindings for XIOM",
+                         "description":  "Box2D 2D physics bindings for XIOM (vendored v3.1.1 C sources, integer bridge)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-box2d/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-box2d/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "box2d.xi",
-                                              "box2d_safe.xi",
-                                              "demo_box2d.xi",
                                               "package.xi"
                                           ]
                      },
@@ -3349,17 +3347,17 @@
                                           ]
                      },
                      {
-                         "version":  "0.1.0",
+                         "version":  "0.2.0",
                          "name":  "xiom.imgui",
                          "repository":  "https://github.com/xiom-lang/packages",
-                         "description":  "Dear ImGui v1.92.9 -- immediate-mode GUI library.",
+                         "description":  "Dear ImGui immediate-mode GUI bindings for XIOM (vendored v1.92.9b core, headless frame probe)",
                          "dependencies":  [
                                               {
                                                   "version":  "\u003e=0.60.0 \u003c1.0.0",
                                                   "name":  "xiom.std"
                                               }
                                           ],
-                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-imgui/v0.1.0/package.tar.gz",
+                         "download_url":  "https://github.com/xiom-lang/packages/releases/download/xiom-imgui/v0.2.0/package.tar.gz",
                          "source_files":  [
                                               "imgui.xi",
                                               "package.xi"
