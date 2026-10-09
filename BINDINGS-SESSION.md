@@ -3,23 +3,40 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 15 RELAYED** -- `xiom.odbc` 0.2.0 green (5/5 x2 via port.ps1
-on v0.64.1: driver manager `03.80.0000`, 7 drivers, 3 DSNs; new compiler
-finding **B-10** documented). **Sector proposal sent below**: data/drivers ->
-audio -> accelerators (gated) -> crypto/media. Awaiting native allowlist
-append for `xiom.odbc` + merge/verify/publish.
+**STATUS: BATCH 16 RELAYED** -- `xiom.libpq` 0.2.0 green (present 4/4 x2 with
+local libpq 13.11, absent/SKIP 2/2 x2 via port.ps1 on v0.64.1). **Data/drivers
+sector COMPLETE** (odbc + libpq). Awaiting native merge/verify/publish and
+the `xiom.odbc` allowlist append (still pending from batch 15). Next sector
+per proposal: audio -- `xiom.miniaudio` first.
 
-## Sector proposal (bindings lane, post-tier-3)
+## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 16: head=76bc9556 + this handoff commit; packages=xiom.libpq 0.2.0 (dynamic
+loader replacing static-extern stub wrappers); tests=present 4/4 x2 (DaVinci Resolve libpq
+13.11 prepended to PATH: PQlibVersion 130011, closed-port connect -> CONNECTION_BAD + error
+text 'timeout expired') and absent 2/2 x2 (default PATH: SKIP classification + SKIP probe),
+all via scripts/port.ps1 on v0.64.1; licenses=PostgreSQL License (libpq not vendored; nothing
+committed) + package MIT OR Apache-2.0; pins=soname libpq.dll + 13-entry-point set
+(PQlibVersion/PQconnectdb/PQstatus/PQerrorMessage/PQfinish/PQexec/PQresultStatus/PQntuples/
+PQnfields/PQfname/PQgetvalue/PQgetisnull/PQclear) + constants (CONNECTION_OK/BAD, PGRES_*) +
+local samples: DaVinci 13.11 sha256 B43D05F89AC004934D8771F21D8BB0F3C80CD5C183221DFA6CB58BAFCE9F621E,
+Reallusion 10.7 sha256 7D4A589E45ED04756DE72C8A94932EC94F88B9874E0AE9234AA88467255C002E (SPEC.md §2);
+gate=G0..G5 OK (ABSENT -> SKIP; ABI/PROBE_FAILED -> FAIL; all unsafe in the single module);
+needs=ALLOWLIST APPEND still pending for xiom.odbc (batch 15) -- xiom.libpq is already
+allowlisted; NO port.args.json (pure-XIOM loader).
+SECTOR STATUS: data/drivers complete (odbc + libpq). Next per proposal: audio --
+xiom.miniaudio (single-header vendored C), then portaudio/phonon.
+```
+
+## Sector proposal (bindings lane, post tier-3)
 
 Ordered by risk retired per unit of work, each keeping the one-package-per-
 relay discipline:
 
-1. **Data/drivers (current)**: `xiom.odbc` (done, this batch) -> `xiom.libpq`
-   (system libpq; needs a PostgreSQL client library for positive-path proof
-   -- propose a download of the official win64 binaries for local proof like
-   raylib/glfw, or SKIP-only until a host has it; license PostgreSQL,
-   permissive) -> `xiom.postgres` (pure-XIOM protocol facade over
-   libpq or wire protocol; native to decide scope vs libpq).
+1. **Data/drivers (COMPLETE)**: `xiom.odbc` 0.2.0 + `xiom.libpq` 0.2.0; the
+   `xiom.postgres` scope call (facade over libpq vs pure-XIOM wire) is the
+   native lane's.
 2. **Audio**: `xiom.miniaudio` (single-header vendored C -- fits the proven
    amalgamation path; context + device enumeration + in-memory WAV
    decode/encode as functional proof), then `xiom.portaudio` (system-lib
@@ -31,7 +48,7 @@ relay discipline:
    `xiom.ffmpeg` (license-conditional: LGPL/GPL config choice needed before
    vendoring), ONNX/OpenCV last.
 
-First package of the next sector after `xiom.odbc`: `xiom.libpq`.
+Next package: `xiom.miniaudio` (audio sector).
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
 
@@ -511,6 +528,19 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
 - Scope decision requested from the native lane: the pre-pilot static-bridge
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
+
+## Batch 16 notes (xiom.libpq, 2026-10-08/09)
+
+- Dynamic loader replaces the pre-pilot static-extern stub module; no server
+  needed: `PQlibVersion` is connection-free and the connect probe targets a
+  closed local port, so real `PQconnectdb`/`PQstatus`/`PQerrorMessage` /
+  `PQfinish` behaviour is asserted (CONNECTION_BAD + non-empty error).
+- Present-path proof used the x64 libpq 13.11 shipped with DaVinci Resolve
+  (prepended to PATH for the run; nothing committed). Default PATH has no
+  libpq.dll, so the absent/SKIP path is the CI-default shape here.
+- Matrix: absent 2/2 x2, present 4/4 x2. Allowlisted + baseline;
+  needs= odbc allowlist append only.
+- Data/drivers sector complete; next: audio (`xiom.miniaudio`).
 
 ## Batch 15 notes (xiom.odbc, 2026-10-08)
 
