@@ -14,7 +14,28 @@ running). Check `git log -1 --format=%h %s` before starting.
 
 ## 0. Current state + next-session prompt (read this first)
 
-**STATE AT 2026-10-09 19:15Z (LIVE HANDOFF -- bindings batch 23 PUBLISHED via `eco-v0.1.123`; Jolt C++-standard ask routed to the compiler lane; no open packages-side gate):**
+**STATE AT 2026-10-09 22:00Z (LIVE HANDOFF -- bindings batch 24 PUBLISHED via `eco-v0.1.124`; finding B-11 filed; `xiom.durable` port still in flight):**
+- **Bindings merge `3b642f7c` (origin/bindings `57175523`) integrated and published** (`eco-v0.1.124`,
+  run `37996341269` SUCCESS):
+  - **`xiom.vma` 0.2.0** (vendored VMA v3.4.0 header + pinned Vulkan-Headers vulkan-sdk-1.4.350.0;
+    only TU = the bridge with `VMA_IMPLEMENTATION`; `vulkan-1.dll` dlopen'd): native **5/5 x2** live
+    on the RTX 3070 Ti (deterministic SKIP classification + heaps=3, 65536-byte host-visible
+    allocation, mapped pattern write/read-back); live sha256 `d12f5a5c...` (21:58:55Z); guard
+    **508/489/19/0**; README Status block synced.
+- **Finding B-11** (bindings lane; cross-ref row added to `docs/COMPILER-FINDINGS.md`): out-param
+  slot memory written by a Vulkan-heavy C call is recycled before XIOM reads it (C volatile readback
+  correct; XIOM reads 0; sentinels destroyed; only the device+VMA+map sequence reproduces).
+  Workaround shipped: packed scalar returns (`vmaprobe_run_packed`); repro bundle
+  `docs/repro/bindings-pilot/vulkan-slot-recycle/`; runtime lead: process-wide VEH + guard-arena
+  discard vs the NVIDIA loader.
+- **IN FLIGHT: `xiom.durable` port + WAL reconciliation** (background porter; port-only, not on the
+  publish scope). On completion: native port x2, record, wrap; its scratch probe
+  `tests/__porter_probe.xi` must be removed before commit.
+- Otherwise no open packages-side gate: `xiom.vectors` **OWNER GREENLIGHT** (brief staged);
+  ORBITDB order-3 re-sync; jolt waits on the compiler `--cxx-standard` flag.
+- Session tally: **40 eco releases** (`eco-v0.1.86` -> `eco-v0.1.124`).
+
+**STATE AT 2026-10-09 19:15Z (history -- superseded by the 22:00Z block above):**
 - **Bindings merge `ef856577` (origin/bindings `62b6d7af`) integrated and published** (`eco-v0.1.123`,
   run `37977945040` SUCCESS):
   - **`xiom.box2d` 0.2.0** (vendored Box2D v3.1.1 C API; flat multi-source via port.args.json):
