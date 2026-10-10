@@ -26,10 +26,12 @@ running). Check `git log -1 --format=%h %s` before starting.
   validate 523/0; guard 508/491/17/0. Release-check verdicts for the 11 packages rows filed on
   the bus (`-3` satisfied via T007 diagnostic; `-10` fixed; `-4` partial; `-9` clean; `-11` open
   + over-broad notes wording noted). No v0.64.2-matrix regression.
-- **OWNER GREENLIGHT received (18:11Z) for `xiom.vectors`:** extraction porter dispatched
-  (`ses_ed8fc4eb4ffe85NhoACIxNRrPw`; brief `%TEMP%\kilo\vectors-extraction-porter-brief.md`,
-  carve set + codec refs; verifying on the official v0.64.3 bits). On completion: native port x2,
-  record, wrap; then the ops scope ask for the new name (`xiom.vectors`), and `xiom.ann` follows.
+- **`xiom.vectors` EXTRACTED + VERIFIED (owner greenlight 18:11Z):** feat `b8911083` (Vector +
+  metrics with on-disk codes 1/2/3 + normalize + bounded top-K + WAL value codec/replay; 243-line
+  module, 37 checks); port **37/37 x2** + codec probe GREEN x2 on the official v0.64.3; validate
+  523/0; guard unchanged **508/491/17/0**. **Ops scope ask filed on the bus**
+  (`REL-20261010-1819-packages`; 508 to 509). On the live confirmation: allowlist append + guard +
+  wrap + tag + publish; `xiom.ann` follows under the same greenlight.
 - `xiom.http` dead-module repair **DONE** (`c2328531`): `src/client.xi`/`src/demo.xi` compile
   clean (combined `--check` 0 T001s via the new `tests/probe_all_modules.xi`; suite 42/42 x2;
   rides the next source bump). Parked bus items unchanged; owner greenlight for `xiom.vectors`
