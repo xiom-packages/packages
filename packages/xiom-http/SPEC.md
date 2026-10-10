@@ -219,36 +219,63 @@ brew install curl
 # No extra steps -- macOS ships libcurl.
 ```
 
-#### Windows
-```bash
-# Via vcpkg
-vcpkg install curl:x64-windows
+#### Windows (verified: curl-for-win 8.22.0, `curl-8.22.0_3-win64-mingw`)
 
-# Or download prebuilt from https://curl.se/windows/
-# Place libcurl.dll and libcurl.lib in the linker search path.
+```powershell
+# Download from https://curl.se/windows/ and extract (e.g. to %TEMP%\kilo\http-libcurl).
+# No vcpkg is needed for the verified flow -- see "Build Configuration" below.
 ```
 
-### Build Configuration
+### Build Configuration (Windows, verified v0.64.2 flow)
 
-XIOM links libcurl at compile time. Ensure the linker can find `libcurl`:
+The v0.64.2 toolchain runtime ships only `xiom_alloc`, so consumer builds must
+compile in `bridge\xiom_http_shims.c` (shipped in 0.1.5). It supplies the other
+`xiom_*` helpers the client references -- `xiom_free_ptr`, `xiom_write_byte`,
+`xiom_read_byte`, `xiom_str_to_cstr`, `xiom_free_cstr` (plus
+`xiom_copy_from_vec`, defined for completeness; today's client does not
+reference it) -- and deliberately contains **no libcurl stubs**, so it composes
+with the real import library.
 
-```json
-// In project build config or kilo.json:
-{
-  "link": {
-    "libraries": ["curl"]
-  }
-}
+```powershell
+# 1. lld-link searches for curl.lib; curl-for-win ships lib\libcurl.dll.a.
+Copy-Item <kit>\lib\libcurl.dll.a <scratch>\curl.lib
+
+# 2. Build/run the consumer with the shim + real libcurl (--c-source needs an
+#    absolute path; clang links from a scratch cwd):
+xiom --run app.xi `
+    --c-source <abs-installed>\bridge\xiom_http_shims.c `
+    --link curl --link-path <scratch>
+
+# 3. Runtime: DLL on PATH + CA bundle for TLS:
+$env:PATH = "<kit>\bin;$env:PATH"                    # libcurl-x64.dll
+$env:CURL_CA_BUNDLE = "<kit>\bin\curl-ca-bundle.crt"
 ```
+
+Verified end-to-end on 2026-10-10 (pin v0.64.2, curl-for-win 8.22.0): a
+consumer-style link without the shim failed with exactly `xiom_free_cstr`,
+`xiom_str_to_cstr`, `xiom_read_byte`, `xiom_write_byte`, and `xiom_free_ptr`
+(`curl_easy_*` resolved via `--link curl --link-path`; `xiom_alloc` comes from
+the runtime); with the shim, GET `https://example.com/` returned status 200
+with a 577-byte body and a POST to a local echo server returned 200 `ok`.
+
+`tests/probe_bridge.c` is **suite-only**: it provides the same `xiom_*` helpers
+but also stubs libcurl deterministically so the conformance suite stays offline.
+It must never be used in a consumer build (the suite never imports the root
+`xiom.http` module, so the suite itself needs no shim at all).
+
+#### Linux / macOS
+
+Link with `--link curl`; the platform linker finds the system libcurl installed
+above (`libcurl4-openssl-dev`, `libcurl-devel`, or Homebrew curl). The same
+`bridge/xiom_http_shims.c` applies -- the v0.64.2 runtime ships only `xiom_alloc`
+on every platform.
 
 ### Verifying the Build
 
 ```bash
-# Compile the xiom.http package
-xiom build --package xiom.http
-
-# Run the demo
-xiom run --module xiom.http.demo --fn demo_get
+# The 0.1.5 consumer recipe above is the verification: build the consumer with
+# the shim + real libcurl and run a GET/POST probe. The offline conformance
+# suite (tests/test_conformance.xi) needs no shim and no network.
 ```
 
 ### Runtime Requirements
@@ -434,4 +461,52 @@ libcurl's `curl_easy_setopt` is variadic; for CURLOPTTYPE_LONG options the third
 ### User-Agent
 
 The literal `"xiom.http/0.1.0"` is left unchanged: the SPEC has always documented it as the client identifier, it survived the 0.1.1..0.1.4 version bumps, and it is therefore treated as a compatibility pin rather than a mirror of `package.xi`'s version.
+
+---
+
+## 0.1.5 consumer-recipe pass (2026-10-10)
+
+The PULSE consumer lane reported (2026-10-10) that building against the published
+`xiom.http` client fails at link with `undefined symbol: curl_easy_*` plus
+`xiom_read_byte` unless the consumer supplies a C bridge. This pass ships that
+bridge, documents the flow, and proves it end-to-end. No `.xi` source, public
+API, or dependency change.
+
+### Shipped artifact
+
+`bridge/xiom_http_shims.c` -- the `xiom_*` helpers only (adapted from the 0.1.4
+local pilot `%TEMP%\kilo\http-libcurl\bridge_nocurl.c`): `xiom_free_ptr`,
+`xiom_write_byte`, `xiom_read_byte`, `xiom_str_to_cstr`, `xiom_free_cstr`,
+`xiom_copy_from_vec`. No libcurl stubs, so it composes with the real import
+library; `xiom_alloc` is deliberately not defined (runtime-provided; a
+duplicate symbol would fail the link). Every helper is documented in the file
+header.
+
+### Evidence (pin v0.64.2, curl-for-win 8.22.0)
+
+- Consumer-style link without the shim (curl linked via `--link curl
+  --link-path`) failed with exactly `xiom_free_cstr`, `xiom_str_to_cstr`,
+  `xiom_read_byte`, `xiom_write_byte`, `xiom_free_ptr`; `curl_easy_*` resolved,
+  `xiom_alloc` came from the runtime. `xiom_copy_from_vec` was not referenced
+  by today's client.
+- End-to-end pilot (`%TEMP%\kilo\http-consumer-pilot`, vendored 0.1.5 package
+  as a consumer source root): with the shipped shim, GET
+  `https://example.com/` returned status 200 with a 577-byte body; POST to the
+  local echo server returned status 200 body `ok`, and the server captured
+  `CL=20;READ=20;BODY=xiom-http-echo-probe;REQLINE=POST /echo HTTP/1.1`.
+  Green x2 (one run inline, one following the README recipe verbatim).
+- `scripts/port.ps1 -Package xiom-http -TimeoutSec 240`: **42/42 x2** PASS
+  (suite unchanged); root probe (`tests/probe_root_module.xi` +
+  `tests/probe_bridge.c`) **x2** exit 0 with both `[PASS]` checks.
+- Byte-level bracket scan (5 shapes: `Vec<`, `Result<`, `Option<`, `<]`, `>]`)
+  of all 14 `.xi` files in the package: **0 hits**.
+- Repo-wide scan note (1769 `.xi` files): 34 raw hits, 31 in comments/strings
+  and 3 real trap-14 sites outside this package (`xiom-metrics/src/metrics.xi`
+  `&mut Vec<UInt8>` parameter types at lines 468/513/528); untouched -- out of
+  this porter's scope, flagged for the owning lane.
+
+### Packaging
+
+`package.xi` -> 0.1.5; `STATUS.json` test fields reset to unknown (nulls) for
+the record run; stage/publish unchanged.
 

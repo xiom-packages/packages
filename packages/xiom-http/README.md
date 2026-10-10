@@ -4,10 +4,11 @@
 
 HTTP/1.1 types, request/response parsers, client helpers, and a (stub) server shell.
 
-> **Status:** `stable` -- published in `eco-v0.1.120` (0.1.4: printable ASCII
-> renders as characters and variadic LONG options pass values to libcurl;
-> proven against real libcurl 8.22.0). Suite **42/42 x2** + root probe x2 on
-> the pin (v0.64.2).
+> **Status:** `stable` -- 0.1.4 published in `eco-v0.1.120` (printable ASCII
+> renders as characters; variadic LONG options pass values to libcurl). 0.1.5
+> ships `bridge/xiom_http_shims.c` and the consumer client build recipe below,
+> verified end-to-end against real libcurl 8.22.0 (GET `example.com` -> 200,
+> echo POST -> 200). Suite **42/42 x2** + root probe x2 on the pin (v0.64.2).
 
 ## Consumer quickstart (3 lines)
 
@@ -19,6 +20,26 @@ use xiom.http.parser;   // http_parse_request, http_parse_response, http_parse_h
 
 Since 0.1.1 `xiom.http.parser` imports `xiom.http.types` itself, so a consumer that
 imports only the parser module compiles cleanly (0.1.0 shipped 19 T001s in that shape).
+
+## Consumer client build recipe (Windows; verified v0.64.2 + curl-for-win 8.22.0)
+
+The v0.64.2 runtime ships only `xiom_alloc`, so the client's other `xiom_*` bridge
+symbols come from the shipped shim (no libcurl stubs -- it composes with real curl).
+lld-link searches for `curl.lib`, while curl-for-win ships `lib\libcurl.dll.a` -- copy
+it to a scratch dir as `curl.lib`:
+
+    xiom --run app.xi --c-source <installed>\bridge\xiom_http_shims.c --link curl --link-path <scratch-with-curl.lib>
+
+Put the kit's `bin\libcurl-x64.dll` on `PATH` at runtime and set
+`CURL_CA_BUNDLE=<kit>\bin\curl-ca-bundle.crt` for TLS. `<installed>` is the installed
+package dir (e.g. `%LOCALAPPDATA%\xiom\packages\xiom-http-0.1.5\xiom-http`); pass it
+absolute -- clang links from a scratch cwd.
+
+```xiom
+use xiom.http;
+let r = http_get("https://example.com/");                        // Ok => 2xx + non-empty body
+let p = http_post("http://127.0.0.1:18094/echo", "hi", "text/plain");
+```
 
 ## Modules
 
@@ -58,6 +79,16 @@ Two live defects from the 0.1.3 line are fixed (public API and dependencies unch
   `make_long_value`, passing the long value itself per libcurl's variadic ABI.
 
 See `SPEC.md` -> "0.1.4 fix pass" for the clause re-pins and the probe-bridge changes.
+
+## 0.1.5 changes
+
+Consumer-recipe pass; no source or API change. Ships `bridge/xiom_http_shims.c`
+(the `xiom_*` runtime helpers, **no** libcurl stubs) plus the verified build
+recipe above; `tests/probe_bridge.c` stays suite-only (it also stubs curl
+offline). The consumer-style link without the shim fails on exactly
+`xiom_free_ptr`, `xiom_write_byte`, `xiom_read_byte`, `xiom_str_to_cstr`, and
+`xiom_free_cstr` (`xiom_alloc` ships in the runtime); `curl_easy_*` resolve via
+`--link curl --link-path`.
 
 ## Contracts and tests
 
