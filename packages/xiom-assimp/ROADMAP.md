@@ -8,10 +8,11 @@
 - [x] Subset build: core + OBJ/STL/PLY + zlib/minizip/earcut/utf8 (89 TUs)
 - [x] Scalar-return bridge; real in-memory OBJ + PLY imports
 - [x] 0.3.0: glTF2 importer (+ rapidjson) with an embedded-buffer import probe (92 TUs, 5/5)
-- [x] Conformance suite (5 checks incl. determinism)
+- [x] 0.4.0: COLLADA importer (+ pugixml) with a minimal-document import probe (96 TUs, 6/6)
+- [x] Conformance suite (6 checks incl. determinism)
 
 ## Phase 3 (Planned)
-- [ ] Expand the importer set (FBX, COLLADA + pugixml, BLEND, ...)
+- [ ] Expand the importer set (FBX, BLEND, ...)
 - [ ] Post-processing option wrappers (`aiProcess_*` flags, `ApplyPostProcessing`)
 - [ ] IO abstraction (custom `IOSystem` bridge)
 - [ ] File-based import helpers + examples

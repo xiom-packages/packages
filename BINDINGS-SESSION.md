@@ -3,11 +3,86 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 27 RELAYED (merge-ready; supersedes batch 26's 0.2.0)** --
-`xiom.assimp` 0.3.0 adds the glTF2 importer (+rapidjson; 92 TUs) with an
-embedded-buffer glTF2 probe: 5/5 x2. All earlier batches published through
-`eco-v0.1.126`; relay bus active (11 migrated items + doorbell); `xiom.jolt`
-still waits on the C++ standard flag.
+**STATUS: RESUMED (2026-10-10 16:29Z)** -- handoff picked up (tree clean,
+`origin/bindings` = `9a5a11bf`, bus processed/current). Batches 21-27 published
+(`eco-v0.1.122`..`eco-v0.1.128`; batch 27 `xiom.assimp` 0.3.0 live sha256
+`5b30c6a8...`, 16:23:47Z); batch 28 (`xiom.assimp` 0.4.0, COLLADA) relayed on
+the bus, awaiting packages ack; doorbell cron re-armed (`0 */3 * * *`).
+`xiom.jolt` blocked on the compiler C++ standard flag.
+
+## RESUME HERE (handoff, 2026-10-10)
+
+**Lane**: bindings. Worktree `E:\xiom-packages\bindings`, branch `bindings`.
+**Relay bus**: `xiom-lang/xiom-relays` at `E:\xiom-lang\xiom-relays` (shared
+clone: stage ONLY your own item files). The two working rules are in
+`docs/BINDINGS-LANE.md` section 12.
+
+### State
+- **Published**: batches 21-27 -> `eco-v0.1.122`..`eco-v0.1.128` (openssl 0.2.0,
+  sqlite 0.3.0, box2d 0.2.0, imgui 0.2.0, vma 0.2.0, cuda 0.2.0, assimp 0.2.0
+  in `eco-v0.1.127` and 0.3.0 in `eco-v0.1.128`).
+- **Batch 27** (`xiom.assimp` 0.3.0, glTF2): merged, verified 5/5 x2, wrapped
+  (`fffdc3f9`, guard 508/491/17/0); **published** `eco-v0.1.128` (run
+  `38067436940`; live sha256 `5b30c6a8...`, 16:23:47Z; confirmed in packages
+  SESSION 16:30Z).
+- **Batch 28** (`xiom.assimp` 0.4.0, COLLADA; 96 TUs; 6/6 x2) relayed/pushed;
+  bus item `REL-20261010-1623-bindings` supersedes the 0.2.0/0.3.0 items.
+- **Open items from this lane**: `REL-...-2` B-11 slot recycle, `-3` B-10
+  alloc-name, `-4` B-07 alias shadow, `-5` B-05 guard spin, `-6` B-02 const
+  resolver, `-7` C++ standard passthrough (blocks jolt), `-8` guard-aware
+  free, `-9` Vec sized buffer, `-10` dl out-param recipe, `-11` vendored-C
+  consumer hook (all created 2026-10-10 1548).
+- **Incoming items**: `REL-20261010-1550-xvector-11` (accelerator gate, acked),
+  `REL-20261010-1600-packages` (bus routing, acked).
+- Detailed evidence: relay blocks + notes below; bus digests via
+  `python tools/relay.py digest --to <lane>`.
+
+### Next actions (ordered)
+1. **Doorbell**: a session cron is per-session. In the new session run
+   `cron_create` with schedule `0 */3 * * *` and the standard prompt
+   (pull xiom-relays; process `view --lane bindings`; ack/fix/verify;
+   commit+push only this lane's item files), then pull + process once now.
+2. Watch for the batch-28 publish in the native SESSION notes (batch 27 done:
+   `eco-v0.1.128`); note new eco versions in this file's relay area.
+3. Continue assimp expansion if wanted: **FBX** next (no new contribs
+   expected), then BLEND. Generator knobs live in
+   `packages/xiom-assimp/tools/combine.py` (`ENABLED`,
+   `ASSET_DIRS_BY_IMPORTER`, `CONTRIB_MIRROR`, `CONTRIB_EXTRA`); check each
+   importer's own guard names (glTF2 adds `ASSIMP_BUILD_NO_GLTF2_IMPORTER`).
+4. `xiom.jolt` stays blocked on bus item `-7` (C++ standard passthrough);
+   staged generator at `packages/xiom-jolt/tools/combine.py`.
+5. Heavy runtimes (`xiom.onnx`/`xiom.opencv`) still need the native lane's
+   go-ahead; accelerators stay gated on the `xiom.vectors` extraction
+   (`REL-...-1550-xvector-11`).
+
+### Gotchas (learned this session)
+- **Driver-heavy FFI**: return packed/scalar values; out-param slots can be
+  recycled (B-11). Keep that ABI for new CUDA/Vulkan-style probes.
+- **Confined blocks**: no malloc/free (B-05); name locals `f_` (B-10);
+  no enum payload reads if the compiler pin regresses (B-01).
+- **Relays**: everything cross-lane goes through the bus now; file a
+  `to: packages` info item per batch (template: branch tip + evidence +
+  requested steps). BINDINGS-SESSION.md stays the lane work log.
+- **Relay repo**: shared clone; `git add` only your own items. Never rewrite
+  an item with PowerShell `Set-Content -Encoding UTF8` (BOM breaks front
+  matter); use the write tool.
+- **port.ps1 output**: `Write-Host` bypasses the pipeline; capture with
+  `*>&1 | Out-File`.
+- **Vendored trees**: `vendor/** -text` byte pins; regenerate assimp with the
+  generator, never hand-edit vendor files. System headers must never be
+  basename-remapped (the generator has a skip list).
+
+### Commands
+- Suite: `& scripts\port.ps1 -Package xiom.<name> [-Quiet] [-TimeoutSec N]`
+  (repo root; assimp needs >=300 s, ~96 TUs).
+- Bus (from `E:\xiom-lang\xiom-relays`): `git pull --ff-only` ->
+  `python tools/relay.py view --lane bindings` -> `ack/fix/verify` ->
+  commit+push only your files.
+- Assimp regen: `python packages\xiom-assimp\tools\combine.py <upstream>
+  packages\xiom-assimp` with the sparse clone at
+  `C:\Users\lefte\AppData\Local\Temp\kilo\assimp-src\assimp` (recreate per
+  SPEC: `git clone --depth 1 --branch v6.0.5 --filter=blob:none --sparse`
+  + `sparse-checkout set code include contrib`).
 
 ## Relay bus onboarding (2026-10-10, owner rollout)
 
@@ -26,6 +101,23 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS PUBLISH CONFIRM (batch 27): xiom.assimp 0.3.0 (glTF2) is live in
+eco-v0.1.128 (sha256 5b30c6a8...; 16:23:47Z; run 38067436940; guard
+508/491/17/0); batch 26 0.2.0 stays in eco-v0.1.127. Batch 28 (0.4.0 COLLADA)
+merge request open on the bus (REL-20261010-1623-bindings), awaiting ack.
+```
+
+```
+BINDINGS BATCH 28: head=494e0eb3 + this handoff commit; packages=xiom.assimp 0.4.0
+(SUPERSEDES the assimp versions in the batch-26/27 bus items; merging the branch tip
+gets everything): adds the COLLADA importer option (+ pugixml contrib), now 96 TUs;
+tests=6/6 x2 (version major 6; in-memory OBJ 1 mesh/3 verts/1 face; PLY 3 verts; glTF2
+3 verts; COLLADA 3 verts from a minimal 1.4.1 document; determinism); licenses unchanged;
+pins=tag v6.0.5 commit 392a658f... + generator + tree sha256; gate=G0..G5 OK;
+needs=NONE; port.args.json regenerated; watchdog >=300 s.
+```
 
 ```
 BINDINGS BATCH 27: head=10567ce2 + this handoff commit; packages=xiom.assimp 0.3.0
@@ -764,6 +856,15 @@ runs peaked at ~7 MB RSS. No other lane process was touched.
   engine was removed to git history in this batch (same treatment as
   sdl3_safe.xi / glfw_bridge.c / opengl static wrappers).
 
+## Batch 28 notes (xiom.assimp COLLADA, 2026-10-10)
+
+- 0.4.0 adds the COLLADA importer (+ pugixml contrib incl. its one C++ TU),
+  96 TUs; new in-memory probe with a minimal 1.4.1 document -> 6/6 x2.
+- The generator's contrib mechanism now carries C++ extras
+  (`CONTRIB_EXTRA`: minizip .c + pugixml.cpp).
+- Bus item filed for the tip merge; batches 26/27/28 collapse into one pass
+  (the tip already carries all).
+
 ## Batch 27 notes (xiom.assimp glTF2 expansion, 2026-10-10)
 
 - 0.3.0 adds the GLTF importer option (legacy glTF + glTF2 + glTFCommon
@@ -1180,19 +1281,18 @@ Each package keeps: G0-G5 gates, green x2 through `port.ps1`, a relay block
 in this file, and any new compiler finding appended to
 `docs/BINDINGS-COMPILER-FINDINGS.md` with a bounded repro.
 
-## Next (state at 2026-10-09, batch 23 pushed)
+## Next (superseded)
 
-- Batch 27 (`xiom.assimp` 0.3.0) is relayed and pushed: waiting on the
-  native merge/verify/publish (filed on the relay bus; supersedes batch 26's
-  assimp 0.2.0). Everything through batch 25 is published
-  (`eco-v0.1.126`); `xiom.jolt` v5.6.0 stays blocked on the link-line C++
-  standard passthrough.
+Superseded by the **RESUME HERE** section at the top of this file (2026-10-10
+handoff). Kept only as history.
+
 - Pin matrix re-run done: 19/19 green on the official v0.64.2 pin. The
   B-01 workaround is retired; B-05/B-10 workarounds stay in force; B-08
   probing may trust exit codes from v0.64.2 on (port.ps1 keeps marker
   counting for older pins).
 - Roster: `box2d`/`imgui` (batch 23), `vma` (batch 24), `cuda` (batch 25),
-  `assimp` (batch 26) done; `jolt` blocked on the standard flag; the heavy
+  `assimp` (batch 26, expanded 27/28) done; `jolt` blocked on the standard
+  flag; the heavy
   runtimes (`xiom.onnx`/`xiom.opencv`) need the native lane's go-ahead; the
   accelerators stay GATED on XVECTOR freezing `xiom.vectors`.
 - Lane copy of the compiler relay: `docs/BINDINGS-COMPILER-RELAY-2026-10-09-v0.64.2.md`.

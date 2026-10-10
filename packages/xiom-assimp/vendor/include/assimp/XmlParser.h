@@ -49,7 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "BaseImporter.h"
 #include "IOStream.hpp"
 
-#include <pugixml.hpp>
+#include "../../contrib/pugixml/src/pugixml.hpp"
 #include <istream>
 #include <utility>
 #include <vector>

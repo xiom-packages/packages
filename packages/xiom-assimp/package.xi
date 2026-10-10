@@ -4,8 +4,8 @@
 
 package xiom_assimp {
   name: "xiom.assimp";
-  version: "0.3.0";
-  description: "Open Asset Import Library (assimp v6.0.5) bindings for XIOM (vendored core + OBJ/STL/PLY/glTF2 importers; in-memory import probes)";
+  version: "0.4.0";
+  description: "Open Asset Import Library (assimp v6.0.5) bindings for XIOM (vendored core + OBJ/STL/PLY/glTF2/COLLADA importers; in-memory import probes)";
   categories: ["graphics"];
   keywords: ["assimp", "3d", "assets", "import", "binding"];
   license: "MIT OR Apache-2.0";

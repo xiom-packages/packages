@@ -11,12 +11,12 @@ import pipeline.
 |------|-------|
 | Compiler | xiom v0.64.2 |
 | Upstream | assimp v6.0.5 (commit 392a658f); BSD-3-Clause |
-| Subset | core (Common/CApi/Geometry/Material/PostProcessing) + OBJ/STL/PLY/glTF2 + zlib/minizip/earcut-hpp/utf8cpp/rapidjson; 92 TUs |
+| Subset | core (Common/CApi/Geometry/Material/PostProcessing) + OBJ/STL/PLY/glTF2/COLLADA + zlib/minizip/earcut-hpp/utf8cpp/rapidjson/pugixml; 96 TUs |
 | Generator | `tools/combine.py` (mirror + include rewrite + config synthesis + port.args emission) |
 | Link model | `--c-source` list from `port.args.json`; no system library |
 | FFI confinement | all `unsafe`/`extern` in the root module `assimp.xi` (G5) |
-| Suite | `tests/test_conformance.xi`, 5 checks (three real in-memory imports) |
-| Runs | 5/5 x2 on the pin (OBJ 1 mesh/3 verts/1 face; PLY 3 verts; glTF2 3 verts) |
+| Suite | `tests/test_conformance.xi`, 6 checks (four real in-memory imports) |
+| Runs | 6/6 x2 on the pin (OBJ 1 mesh/3 verts/1 face; PLY 3 verts; glTF2 3 verts; COLLADA 3 verts) |
 
 ## Design notes
 
@@ -37,8 +37,8 @@ import pipeline.
 
 ## Known limitations
 
-- Importer subset only (OBJ/STL/PLY/glTF2; draco-compressed glTF is behind
-  `ASSIMP_ENABLE_DRACO`, not defined); FBX/COLLADA/BLEND and the rest are
+- Importer subset only (OBJ/STL/PLY/glTF2/COLLADA; draco-compressed glTF is
+  behind `ASSIMP_ENABLE_DRACO`, not defined); FBX/BLEND and the rest are
   Phase 2 additions (generator constant + config update).
 - Export API disabled (`ASSIMP_BUILD_NO_EXPORT`).
 - Version revision field reports GitVersion (0 for the tarball build); the
