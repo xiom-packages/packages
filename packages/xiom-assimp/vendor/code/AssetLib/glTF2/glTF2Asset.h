@@ -76,10 +76,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
 #endif
 
-#include <rapidjson/document.h>
-#include <rapidjson/error/en.h>
-#include <rapidjson/rapidjson.h>
-#include <rapidjson/schema.h>
+#include "../../../contrib/rapidjson/include/rapidjson/document.h"
+#include "../../../contrib/rapidjson/include/rapidjson/error/en.h"
+#include "../../../contrib/rapidjson/include/rapidjson/rapidjson.h"
+#include "../../../contrib/rapidjson/include/rapidjson/schema.h"
 
 #if (__GNUC__ == 8 && __GNUC_MINOR__ >= 0)
 #   pragma GCC diagnostic pop

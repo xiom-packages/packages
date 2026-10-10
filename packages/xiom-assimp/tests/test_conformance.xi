@@ -57,7 +57,7 @@ fn main() -> Int {
   let major = v / 10000;
   failed = failed + report(major == 6, "version: " + assimp_version_str(v));
 
-  // 2. In-memory OBJ + PLY imports.
+  // 2. In-memory OBJ + PLY + glTF2 imports.
   let p = assimp_probe();
   if p.is_ok {
     failed = failed + report(p.value.obj_meshes == 1 && p.value.obj_vertices == 3
@@ -66,6 +66,8 @@ fn main() -> Int {
         + " faces=" + i2s(p.value.obj_faces));
     failed = failed + report(p.value.ply_vertices == 3,
       "ply: vertices=" + i2s(p.value.ply_vertices));
+    failed = failed + report(p.value.gltf_vertices == 3,
+      "gltf2: vertices=" + i2s(p.value.gltf_vertices));
   } else {
     failed = failed + report(false, "imports: " + p.error);
   }
@@ -74,7 +76,8 @@ fn main() -> Int {
   let p2 = assimp_probe();
   let same = p.is_ok && p2.is_ok
     && p2.value.obj_vertices == p.value.obj_vertices
-    && p2.value.ply_vertices == p.value.ply_vertices;
+    && p2.value.ply_vertices == p.value.ply_vertices
+    && p2.value.gltf_vertices == p.value.gltf_vertices;
   failed = failed + report(same, "determinism: repeated imports identical");
 
   if failed == 0 {

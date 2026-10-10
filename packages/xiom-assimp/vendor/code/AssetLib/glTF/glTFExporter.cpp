@@ -63,9 +63,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <limits>
 #include <inttypes.h>
 
-#include <rapidjson/rapidjson.h>
-#include <rapidjson/document.h>
-#include <rapidjson/error/en.h>
+#include "../../../contrib/rapidjson/include/rapidjson/rapidjson.h"
+#include "../../../contrib/rapidjson/include/rapidjson/document.h"
+#include "../../../contrib/rapidjson/include/rapidjson/error/en.h"
 
 #ifdef ASSIMP_IMPORTER_GLTF_USE_OPEN3DGC
 	// Header files, Open3DGC.

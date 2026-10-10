@@ -51,9 +51,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <vector>
 
-#include <rapidjson/document.h>
-#include <rapidjson/error/en.h>
-#include <rapidjson/rapidjson.h>
+#include "../../../contrib/rapidjson/include/rapidjson/document.h"
+#include "../../../contrib/rapidjson/include/rapidjson/error/en.h"
+#include "../../../contrib/rapidjson/include/rapidjson/rapidjson.h"
 
 // clang-format off
 

@@ -45,9 +45,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../../../include/assimp/StringUtils.h"
 #include "../../../include/assimp/DefaultLogger.hpp"
 #include "../../../include/assimp/Base64.hpp"
-#include <rapidjson/document.h>
-#include <rapidjson/schema.h>
-#include <rapidjson/stringbuffer.h>
+#include "../../../contrib/rapidjson/include/rapidjson/document.h"
+#include "../../../contrib/rapidjson/include/rapidjson/schema.h"
+#include "../../../contrib/rapidjson/include/rapidjson/stringbuffer.h"
 
 // clang-format off
 #ifdef ASSIMP_ENABLE_DRACO
