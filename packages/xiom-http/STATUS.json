@@ -9,9 +9,9 @@
                   "passed":  42,
                   "failed":  0,
                   "run_by":  "native-session",
-                  "commit":  "c3b7aee0",
-                  "checked":  "2026-10-10T15:03:47Z"
+                  "commit":  "c2328531",
+                  "checked":  "2026-10-10T17:11:43Z"
               },
     "publish":  false,
-    "excluded_reason":  "published in eco-v0.1.125 (2026-10-10)"
+    "excluded_reason":  "tree ahead of published 0.1.5 (client/demo repair 2026-10-10); next source bump"
 }
