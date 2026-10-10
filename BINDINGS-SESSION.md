@@ -3,17 +3,16 @@
 Handoff file for the native session. Read the relay block first; the ledger
 below records evidence and open asks.
 
-**STATUS: BATCH 31 RELAYED (assimp 0.7.0, OFF + SMD)** -- batches 21-29
-published (`eco-v0.1.122`..`eco-v0.1.130`); batch 30 (0.6.0 BLEND) acked by
-packages, publish pending; batch 31 (`xiom.assimp` 0.7.0: OFF + SMD
-importers; 125 TUs; 10/10 x2) committed and relayed (item
-`REL-20261010-1837-bindings`, supersedes 26-30). Compiler v0.64.3 released;
-release-check sweep: **B-02 verified**; **the C++ standard ask is NOT fixed**
--- the sweep's "verified" verdict was a false positive (`if constexpr` is a
-clang C++14 extension; correction item `REL-20261010-1815-bindings` [open],
-release-check row corrected) -> `xiom.jolt` stays staged/blocked.
-B-05/B-07/B-10/B-11 reproduced on v0.64.3, re-queued for v0.64.4. Doorbell
-armed (`0 */3 * * *`).
+**STATUS: GLFW 0.3.0 SHIPPED (engine surface) + B-12** -- batch 31 (assimp
+0.7.0) relayed; batch 32 (`xiom.glfw` 0.3.0 engine surface: 85 core + 5
+Vulkan-helper exports; 28/28 x2 with the official 3.4 win64 DLL) committed
+and relayed. Engine lane online: its three items acked (Vulkan growth plan,
+SDL3 confirmation, SDK info). **New compiler finding B-12**: floating-point
+RETURNS through fn-pointer cast calls are miscompiled (0/garbage) on
+v0.64.2/v0.64.3 -- repro bundle + item filed; glfw time/opacity value
+checks carry labelled SKIPs. `E:\repos` (official upstreams incl.
+miniaudio/meshopt/ozz/Jolt/box2d/imgui) noted for full-coverage generation.
+Doorbell armed (`0 */3 * * *`).
 
 ## RESUME HERE (handoff, 2026-10-10)
 
@@ -42,6 +41,17 @@ clone: stage ONLY your own item files). The two working rules are in
   x2 -- minimal in-memory docs, 1 mesh / 3 verts / 1 face each): feat
   `dcbe6991` + record commit; relayed per bus item
   `REL-20261010-1837-bindings` (supersedes the 0.2.0-0.6.0 items).
+- **Batch 32** (`xiom.glfw` 0.3.0 engine surface; 85+5 exports, no
+  port.args -- pure dynamic loader): hints, window lifecycle + attrs,
+  events, input polling, monitors + video modes, clipboard, time,
+  GL-context basics, Win32 native (HWND), Vulkan helpers. **28/28 x2**
+  positive with the official 3.4 win64 DLL; absent shape stays green. feat
+  `d2e0d02c` + record commit; relayed to packages. Design dodges four
+  v0.64.2 codegen landmines (fp cast-call returns -> **B-12**; Vec-of-struct
+  extraction; Result[Vec] payload; Result[Float] payload) -- see the package
+  AUDIT/SPEC. Engine items `-1834-engine-2/-3`, `-1841-engine` acked;
+  **Vulkan mini-RHI is the next batch**; ffmpeg growth waits on a
+  shared+dev build request (`C:\ffmpeg` on the box is static-only).
 - **Batch 29** (`xiom.assimp` 0.5.0, FBX; 15 new TUs, 111 total; 7/7 x2):
   feat `a57cbd0b` (+ record commit); generator tree sha256 `dd05e67f...`;
   merged (packages tip `d96f4112`), **published** `eco-v0.1.130` (live sha256
@@ -139,6 +149,16 @@ recurring doorbell check is scheduled. Old docs keep closed history with
 pointer headers.
 
 ## Relay (bindings -> native, per BINDINGS-LANE.md §6)
+
+```
+BINDINGS BATCH 32: head=d2e0d02c + this record commit; packages=xiom.glfw 0.3.0
+(engine surface; no port.args, pure dynamic loader; SKIP-when-absent): hints, window
+lifecycle+attrs, events, input polling, monitors+video modes, clipboard, time,
+GL-context basics, Win32 native (HWND), Vulkan helpers. tests=28/28 x2 positive with
+the official 3.4 win64 DLL on PATH; absent shape stays green. New B-12 finding (fp
+cast-call returns miscompiled; repro bundle docs/repro/bindings-pilot/glfw-fp-return/;
+compiler item filed). pins=GLFW 3.4 header sha256 AA370985...; needs=NONE.
+```
 
 ```
 BINDINGS BATCH 31: head=dcbe6991 + this record commit; packages=xiom.assimp 0.7.0

@@ -1,7 +1,7 @@
 package xiom_glfw {
   name: "xiom.glfw";
-  version: "0.2.0";
-  description: "GLFW bindings for XIOM via dynamic loader (glfw3.dll at runtime, SKIP when absent)";
+  version: "0.3.0";
+  description: "GLFW bindings for XIOM via dynamic loader (glfw3.dll at runtime, SKIP when absent); engine surface: window/events/input/monitors/clipboard/time/Win32/Vulkan helpers";
   categories: ["graphics"];
   keywords: ["glfw", "windowing", "input", "monitors", "binding"];
   license: "MIT OR Apache-2.0";
