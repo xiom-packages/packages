@@ -61,8 +61,11 @@ Packages-lane verdicts (full table on the bus, `release-checks/compiler-compiler
   statement-assignment pattern stands.
 - `REL-...-packages-10` (triplicate sibling exports): **fixed** -- grpc all-module build + suite
   36/36 (wave-97 shape no longer reproduces).
-- `REL-...-packages-4` (C-ORBIT-06): **partially fixed** -- with-twin hard T001 gone; the phantom
-  `use` + undeclared signature type is still silently accepted (2x W004).
+- `REL-...-packages-4` (C-ORBIT-06): **still open on v0.64.3 (unchanged)** -- the with-twin hard T001
+  reproduces from the ORBITDB repo root (`match pattern 'Corruption' belongs to 'DbError', not
+  'CoreError'`); the phantom `use` + undeclared signature type is still silently accepted
+  (2x W004). (Correction: an earlier "twin gone" note was a false PASS from running `--check`
+  inside the repro dir; the documented command runs from the repo root.)
 - `REL-...-packages-9` (bare `&mut Int` reads): repro clean on v0.64.3 (`mut-int-write-through`
   bad=0, exit 0).
 - `REL-...-packages-11` (Map/Set `==`): still open; NOTE the notes' known-issue wording ("two equal
